@@ -12,6 +12,7 @@ from typing import Any, Mapping
 
 from infrastructure.interprocess_lock import owned_interprocess_lock
 from infrastructure.market_time import shanghai_now
+from infrastructure.trading_safety import ACTION_KEYS, FALSE_ONLY_KEYS
 
 
 def _canonical_bytes(value: Any) -> bytes:
@@ -225,8 +226,8 @@ def _validate_payload_proof(payload: Mapping[str, Any]) -> None:
 
 
 def _assert_watch_only(value: Any, *, expected_lane: str, expected_selector: str) -> None:
-    action_keys = {"buy", "sell", "order", "trade", "side", "action", "signal", "order_status"}
-    false_only_keys = {"production_allowed", "buy_gate_updated", "orders_sent", "order_sent"}
+    action_keys = ACTION_KEYS
+    false_only_keys = FALSE_ONLY_KEYS
     if isinstance(value, Mapping):
         for key, nested in value.items():
             folded = key.casefold()

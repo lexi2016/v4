@@ -9,6 +9,7 @@ from typing import Any, Mapping
 
 from contracts.stages import FROZEN_STAGE_IDS
 from infrastructure.data_store import NativeDataStore, _date, _sha256
+from infrastructure.trading_safety import assert_safe_tree
 
 
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
@@ -31,17 +32,7 @@ def _validate_watch_row(row: Any) -> None:
 
 
 def _assert_safe_tree(value: Any) -> None:
-    if isinstance(value, Mapping):
-        for key, nested in value.items():
-            folded = str(key).casefold()
-            if folded in {"buy", "sell", "order", "trade", "side", "action", "signal"} and nested not in (False, 0, None, "", "WATCH_ONLY"):
-                raise ValueError("unsafe stage trading action")
-            if folded in {"production_allowed", "buy_gate_updated", "orders_sent", "order_sent"} and nested not in (False, 0, None, ""):
-                raise ValueError("unsafe stage trading state")
-            _assert_safe_tree(nested)
-    elif isinstance(value, list):
-        for nested in value:
-            _assert_safe_tree(nested)
+    assert_safe_tree(value, label="stage")
 
 
 def validate_stage_input(payload: Mapping[str, Any]) -> tuple[str, str]:

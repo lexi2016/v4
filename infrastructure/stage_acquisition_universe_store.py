@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from infrastructure.data_store import NativeDataStore, _date, _sha256
+from infrastructure.trading_safety import assert_safe_tree
 
 
 ARTIFACT_ROLE = "A_SHARE_STAGE_ACQUISITION_UNIVERSE_V2"
@@ -41,19 +42,7 @@ def _digest(value: Any) -> str:
 def _assert_safe_tree(value: Any) -> None:
     """Reject accidental promotion/order semantics anywhere in the artifact."""
 
-    if isinstance(value, Mapping):
-        for key, nested in value.items():
-            folded = str(key).casefold()
-            if folded in {"buy", "sell", "order", "trade", "side", "action", "signal"}:
-                if nested not in (False, 0, None, "", "WATCH_ONLY"):
-                    raise ValueError("unsafe stage-acquisition action")
-            if folded in {"production_allowed", "buy_gate_updated", "orders_sent", "order_sent"}:
-                if nested not in (False, 0, None, ""):
-                    raise ValueError("unsafe stage-acquisition trading state")
-            _assert_safe_tree(nested)
-    elif isinstance(value, list):
-        for nested in value:
-            _assert_safe_tree(nested)
+    assert_safe_tree(value, label="stage-acquisition")
 
 
 def _canonical_code(row: Mapping[str, Any], index: int) -> str:

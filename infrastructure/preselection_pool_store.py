@@ -10,6 +10,7 @@ from typing import Any, Mapping
 
 from infrastructure.data_store import _canonical_bytes, _date, _sha256
 from infrastructure.owned_path import resolve_owned_path
+from infrastructure.trading_safety import assert_safe_tree
 
 
 POOL_ORDER = (
@@ -261,15 +262,4 @@ def validate_pool_artifact(payload: Mapping[str, Any]) -> str:
 
 
 def _assert_safe(value: Any) -> None:
-    unsafe_flags = {
-        "production_allowed", "buy_gate_updated", "orders_sent", "order_sent",
-        "formal_pool_write", "buy_gate_write", "opens_buy_gate", "order_allowed",
-    }
-    if isinstance(value, Mapping):
-        for key, nested in value.items():
-            if key.casefold() in unsafe_flags and nested not in (False, 0, None, ""):
-                raise ValueError("unsafe preselection-pool trading field")
-            _assert_safe(nested)
-    elif isinstance(value, list):
-        for nested in value:
-            _assert_safe(nested)
+    assert_safe_tree(value, label="preselection-pool")
