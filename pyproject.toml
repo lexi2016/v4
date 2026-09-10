@@ -16,4 +16,6 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-W error"
+# Keep warnings-as-errors, but tolerate the starlette 1.6 TestClient(httpx)
+# deprecation until the suites migrate to the replacement client.
+addopts = "-W error -W default::starlette.exceptions.StarletteDeprecationWarning"
