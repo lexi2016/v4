@@ -1,0 +1,85 @@
+{
+  "schema_version": "v3_5.opening_second_filter_v11_graph_contract.v1",
+  "atlas_semantic_hash": "912718015fba24d47dcac919b5720139666e3b5dfdf8e72a2236019badcdd033",
+  "graph_baseline_semantic_hash": "8b4b933858f0e573b4d9f34423cd7aceeeb09dbf50cc826de0b18b712a4cbdd7",
+  "feature_id": "stage.workbench",
+  "graph_node_ids": [
+    "timeline_node:hkconnect_d1_top100_prob_active",
+    "timeline_node:v3_hkconnect_opening_second_filter_v1_1_morning_check",
+    "timeline_node:v3_opening_intraday_stage_select_0925_1500"
+  ],
+  "legacy_source_records": {
+    "d1_stage_preselect": {
+      "file_id": "file_46dace0844043eb2fecfa75b",
+      "path": "30_runtime/opening_advisor_8771/scripts/build_hkconnect_stage0925_preselect_pool.py",
+      "atlas_sha256": "5f47bc3b4ca7f1750151d6c498c2afa419eb564c5dea0afbb326d49da96806cf",
+      "current_sha256": "5f47bc3b4ca7f1750151d6c498c2afa419eb564c5dea0afbb326d49da96806cf"
+    },
+    "auction_reference_capture": {
+      "file_id": "file_f5f6800a18fdc855915d5931",
+      "path": "30_runtime/opening_advisor_8771/scripts/collect_hkconnect_0915_0920_reference_snapshot.py",
+      "atlas_sha256": "7619e9470dea857fde84e30942acd0197db0a6d412987763b815046da723940f",
+      "current_sha256": "7619e9470dea857fde84e30942acd0197db0a6d412987763b815046da723940f"
+    },
+    "v11_champion_rerank": {
+      "file_id": "file_1e5911dd23724fa5a115882c",
+      "path": "30_runtime/opening_advisor_8771/scripts/build_hkconnect_0920_auction_second_filter.py",
+      "atlas_sha256": "263b345b65b8f9b0abb203915874c15aa2ad25197001646640d4cb96b1548b91",
+      "current_sha256": "263b345b65b8f9b0abb203915874c15aa2ad25197001646640d4cb96b1548b91"
+    },
+    "dual_market_overlay": {
+      "file_id": "file_b8879c230d81dafc78aaedde",
+      "path": "30_runtime/opening_advisor_8771/backend/services/opening_second_filter_service.py",
+      "atlas_sha256": "4a1457127b27cb0b4556063c1dd8ad91c643ce5defb5bacb6f8f52b76c7304e3",
+      "current_sha256": "4a1457127b27cb0b4556063c1dd8ad91c643ce5defb5bacb6f8f52b76c7304e3"
+    },
+    "stage_workbench_consumer": {
+      "file_id": "file_246923ea63195cd1a018741f",
+      "path": "30_runtime/opening_advisor_8771/backend/services/v3_workbench_service.py",
+      "atlas_sha256": "f96f7fb3274bd0c8fe96e2fa1ec484d94d5bb16f0c2b281ee7fa76f82f21472e",
+      "current_sha256": "ac6796de882804336aac5bd8ddfd23c1280ebd282aefcf7f783f4a16768051b8"
+    },
+    "daily_orchestrator": {
+      "file_id": "file_6dfdc4aaf257fcff34e27c4e",
+      "path": "30_runtime/opening_advisor_8771/scripts/run_hkconnect_opening_second_screen_daily.py",
+      "atlas_sha256": "c77491744a7aa9aa067c4b193fd07310aabc785e71292eafdf8765fd34726800",
+      "current_sha256": "c77491744a7aa9aa067c4b193fd07310aabc785e71292eafdf8765fd34726800"
+    }
+  },
+  "frozen_model_contract": {
+    "model_id": "hkconnect_opening_second_filter_v1_1",
+    "version": "1.1",
+    "champion_contract": "old_v3_rule_guardrail_with_hardcap_and_0920_reference_layer",
+    "d1_membership_model": "0.2",
+    "same_day_rerank_model": "1.1",
+    "signal_cutoff": "09:19:59",
+    "publication_time": "09:20:00",
+    "top_n": 20,
+    "shadow_may_replace_champion": false
+  },
+  "v35_replacements": {
+    "champion_domain": "domains/opening_second_filter.py",
+    "verified_store": "infrastructure/opening_second_filter_store.py",
+    "offline_migration": "ops/import_opening_second_filter_v11.py",
+    "workbench_projection": "domains/stages.py",
+    "api_composition": "apps/api/v35_api/app.py",
+    "contract_tests": "tests/test_opening_second_filter_v11.py"
+  },
+  "implemented_scope": [
+    "V1_1_HK_0920_TOP20_CHAMPION",
+    "V1_1_A_0925_PRICE_VOLUME_ADAPTER",
+    "V1_1_ARTIFACT_SHA_RECEIPT",
+    "V1_1_STAGE_WORKBENCH_PROJECTION",
+    "NO_OLD_RUNTIME_PATH_IN_IMPORTED_ARTIFACT"
+  ],
+  "pending_scope": [
+    "V35_DAILY_0915_TO_0920_CAPTURE_ORCHESTRATOR",
+    "V35_DAILY_A_0925_CAPTURE_ORCHESTRATOR",
+    "V11_LATER_STAGE_SUPPORT_PRESSURE_SEAT_EVIDENCE",
+    "WINDOWS_TASK_CANARY"
+  ],
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "semantic_hash": "c8b4cb57fb14c712805bffa4ca7a3cc1d23d6ce48801933b391e5740bb698531"
+}

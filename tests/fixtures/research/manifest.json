@@ -1,0 +1,86 @@
+{
+  "schema_version": "v3_5.research_test_fixture_manifest.v1",
+  "fixture_id": "research_regressions_20260730",
+  "source_kind": "V3_LEGACY_READ_ONLY_FROZEN_INPUTS",
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "commits": {
+    "a6fbf96e0d422fb1024a3374c37a8ef4a3c72577": {
+      "kind": "BASELINE_COMMIT_ID_FROZEN_IN_EVIDENCE",
+      "files": {}
+    },
+    "276acc36f375691aa318e469cf12bd12348b1452": {
+      "kind": "CONTRACT_FREEZE_COMMIT_BYTES",
+      "files": {
+        "contracts/migration/phase6_hourly_research_idempotency_contract_v1.json": {
+          "relative_path": "commits/276acc36f375691aa318e469cf12bd12348b1452/contracts/migration/phase6_hourly_research_idempotency_contract_v1.json",
+          "sha256": "3a658b05938d3768b5a4a45f9214da37efd44fde9e001f2943a69921dbb576c6"
+        }
+      }
+    },
+    "ce9b94199b06c8d489f72dd9ed8697cb9bbcf82f": {
+      "kind": "OPTIMIZED_COMMIT_BUSINESS_CONTRACT_BYTES",
+      "files": {
+        "contracts/migration/research_desk_graph_contract_v1.json": {
+          "relative_path": "commits/ce9b94199b06c8d489f72dd9ed8697cb9bbcf82f/contracts/migration/research_desk_graph_contract_v1.json",
+          "sha256": "da58ce5d0d44109ae3482f9f3e776b5cdec6a4a56db6b1512d1ff3164d8d166a"
+        },
+        "contracts/migration/stage1_core_selection_contract.json": {
+          "relative_path": "commits/ce9b94199b06c8d489f72dd9ed8697cb9bbcf82f/contracts/migration/stage1_core_selection_contract.json",
+          "sha256": "4530bc9498135d43f738bda1067ec0e7620a47975db3bef3b5b6ccf92ebb35f5"
+        },
+        "contracts/migration/stage_0925_tdxpy_frozen_regression_v1.json": {
+          "relative_path": "commits/ce9b94199b06c8d489f72dd9ed8697cb9bbcf82f/contracts/migration/stage_0925_tdxpy_frozen_regression_v1.json",
+          "sha256": "6514cce11848c07346a5f8fa6cee8f070812845e3117c11dfa8f39f9d29f7fcf"
+        },
+        "contracts/research.py": {
+          "relative_path": "commits/ce9b94199b06c8d489f72dd9ed8697cb9bbcf82f/contracts/research.py",
+          "sha256": "d34ea72b4605b64647ee8c0ff9278f8fb1740435c8e3110a2fe4d39d4bb01605"
+        },
+        "contracts/runtime_workloads.json": {
+          "relative_path": "commits/ce9b94199b06c8d489f72dd9ed8697cb9bbcf82f/contracts/runtime_workloads.json",
+          "sha256": "71b87fe166095dcf3daa991cffb0e9c7459edc11f5d3c81289a5ea81844ee1db"
+        },
+        "domains/preselection.py": {
+          "relative_path": "commits/ce9b94199b06c8d489f72dd9ed8697cb9bbcf82f/domains/preselection.py",
+          "sha256": "21cae776801c3f9e5e762e41c386e70940a0714a58c30dfd525dab678a8c6a24"
+        },
+        "domains/research.py": {
+          "relative_path": "commits/ce9b94199b06c8d489f72dd9ed8697cb9bbcf82f/domains/research.py",
+          "sha256": "e89148cf30d313b5839025308f109bd0a963ca5af149437135080e32c5d42abd"
+        },
+        "domains/stage_scoring.py": {
+          "relative_path": "commits/ce9b94199b06c8d489f72dd9ed8697cb9bbcf82f/domains/stage_scoring.py",
+          "sha256": "0ab023b9d109aea109e56c79452539e87699dce2326199e9db08bbc3c294cc5d"
+        },
+        "domains/stages.py": {
+          "relative_path": "commits/ce9b94199b06c8d489f72dd9ed8697cb9bbcf82f/domains/stages.py",
+          "sha256": "532b8524a2b1a140d00c7d72aa3f3a27480d3cfd71c686bd53d95fbd06061c68"
+        }
+      }
+    },
+    "2421ccf": {
+      "kind": "REJECTED_EXPLORATORY_COMMIT_ID_FROZEN_IN_EVIDENCE",
+      "files": {}
+    }
+  },
+  "snapshot": {
+    "archive_date": "20260730",
+    "relative_path": "snapshots/research_lane_snapshot_20260730.json",
+    "sha256": "8ba8b92b6c85b977caac13390533fbf0aec05bfd4e52045229f0964a159be96c",
+    "bytes": 6311637,
+    "source_counts": {
+      "stock_research_timeline": 1475,
+      "stock_research_daily": 205,
+      "research_pool_bridge": 205,
+      "cannot_confirm": 333
+    },
+    "normalized_counts": {
+      "articles": 336,
+      "stock_pool": 205
+    }
+  }
+}

@@ -1,0 +1,31 @@
+type_name: gate-reviewer
+description: Independent read-only correctness and safety reviewer for a completed migration gate.
+use_when:
+  - A gate has local implementation and deterministic test evidence.
+do_not_use_when:
+  - The assigned gate is still missing its primary artifacts.
+available_tools:
+  - read-only filesystem and test execution
+input_contract:
+  required:
+    - task_goal
+    - context_files
+    - acceptance_gate
+output_contract:
+  format: worker_handoff
+  required_sections:
+    - result
+    - evidence
+    - confidence
+    - conflicts
+    - cannot_confirm
+    - handoff
+quality_standards:
+  - Review implementation, tests, generated evidence, and dirty-worktree safety.
+  - Do not treat a passing unit test as runtime acceptance.
+stop_rules:
+  success:
+    - Gate correctness and remaining gaps are independently classified.
+  stop_and_report:
+    - Evidence is missing or the review would require a write.
+handoff_to: controller

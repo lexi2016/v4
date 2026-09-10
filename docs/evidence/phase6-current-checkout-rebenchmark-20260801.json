@@ -1,0 +1,74 @@
+{
+  "business_date": "20260730",
+  "contract": {
+    "path": "contracts/migration/phase6_current_checkout_rebenchmark_v1.json",
+    "raw_sha256": "067775314cfc5b2474c4c8f23be5a2a64c6300290efb754af4dbcc7ab13c1bf3",
+    "semantic_hash": "65a13051fda998a6e8f571a75f64ec7805ebf6a43c321b586e128a9656b77a5f"
+  },
+  "current": {
+    "article_count": 336,
+    "artifact_canonical_sha256": "bd2a9dd314e7edd47e77935889271bbaf2dd81a75cc77eef37145464f88cb668",
+    "code_commit": "8c7ff01ade4f5d82db8adc5cb64c7038698888e5",
+    "derived_source_sha256": "62460168d82c2a0d17cac6d7b32d1052c3744e097fcc3a036f19b6fd8329e13a",
+    "durations_seconds": [
+      0.6738466000097105,
+      0.5499287999991793,
+      0.6201303999987431,
+      0.6240153000107966,
+      0.5226738000055775,
+      0.5242872999951942,
+      0.5813120999955572
+    ],
+    "iterations": 7,
+    "median_seconds": 0.5813120999955572,
+    "mode": "REPLAY",
+    "p95_seconds": 0.6738466000097105,
+    "payload_sha256": "bd2a9dd314e7edd47e77935889271bbaf2dd81a75cc77eef37145464f88cb668",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python_version": "3.14.3",
+    "slot": "2310",
+    "source_read_only": true,
+    "source_sha256": "8ba8b92b6c85b977caac13390533fbf0aec05bfd4e52045229f0964a159be96c",
+    "stock_pool_count": 205,
+    "warmup_iterations": 1
+  },
+  "evaluation": {
+    "artifact_canonical_sha256_unchanged": true,
+    "business_contract_sha256_unchanged": true,
+    "current_median_to_v3_success_ratio": 0.6836649464588023,
+    "current_p95_to_v3_success_ratio": 0.7166769335910999,
+    "derived_input_sha256_unchanged": true,
+    "median_speedup_vs_v3_success": 0.3163350535411978,
+    "p95_below_schedule_window": true,
+    "p95_improvement_vs_v3_success": 0.28332306640890015,
+    "payload_sha256_unchanged": true,
+    "safety_flags_remain_false": true,
+    "source_sha256_unchanged": true
+  },
+  "evidence_semantic_hash": "54954654c9447fb41c65f4a4548f2bc0b3cc0473dd29d8a56b537e3684ef9fbe",
+  "invocation_adjustment": {
+    "accepted_command_shape": "python -m ops.benchmarks.benchmark_hourly_research_idempotency",
+    "failed_before_benchmark": true,
+    "first_route": "python ops/benchmarks/benchmark_hourly_research_idempotency.py",
+    "reason": "DIRECT_SCRIPT_IMPORT_ROOT_NOT_AVAILABLE",
+    "sample_or_threshold_changed": false
+  },
+  "reference_v3_success": {
+    "article_count": 336,
+    "artifact_canonical_sha256": "bd2a9dd314e7edd47e77935889271bbaf2dd81a75cc77eef37145464f88cb668",
+    "code_commit": "a6fbf96e0d422fb1024a3374c37a8ef4a3c72577",
+    "median_seconds": 0.8502880000014557,
+    "p95_seconds": 0.9402375999925425,
+    "payload_sha256": "bd2a9dd314e7edd47e77935889271bbaf2dd81a75cc77eef37145464f88cb668",
+    "stock_pool_count": 205
+  },
+  "safety": {
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false,
+    "v3_written": false,
+    "windows_tasks_changed": false
+  },
+  "schema_version": "v3_5.phase6_current_checkout_rebenchmark_evidence.v1",
+  "status": "PASS"
+}

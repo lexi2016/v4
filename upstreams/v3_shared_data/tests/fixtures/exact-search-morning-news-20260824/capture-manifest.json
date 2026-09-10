@@ -1,0 +1,98 @@
+{
+  "schema_version": "exact-search-fixtures.v1",
+  "trade_date": "20260824",
+  "source": "https://www.jiuyangongshe.com",
+  "capture_mode": "direct public HTTP read-only; no publish/producer call",
+  "homepage": {
+    "path": "/Users/lexi/Documents/Codex/2026-08-24/v35-morning-research-fix-20260824/canary-morning-news-20260824/evidence/exact-search-fixtures/homepage.html",
+    "sha256": "24fe085af3278e0009738d5819c1799d56d76fd94cb1ef7153eb54ab3c28c840",
+    "source_reference": "/Users/lexi/Documents/Codex/2026-08-24/v35-morning-research-fix-20260824/canary-morning-news-20260824/evidence/http-capture-20260824/homepage.html",
+    "capture_status": "previously frozen non-publishing homepage capture reused verbatim"
+  },
+  "records": [
+    {
+      "slot": "开盘必读",
+      "query": "8月24日开盘必读资讯",
+      "query_source": "trade_date_label(20260824) + fixed official title template",
+      "search_url": "https://www.jiuyangongshe.com/search/new?k=8%E6%9C%8824%E6%97%A5%E5%BC%80%E7%9B%98%E5%BF%85%E8%AF%BB%E8%B5%84%E8%AE%AF",
+      "search_path": "/Users/lexi/Documents/Codex/2026-08-24/v35-morning-research-fix-20260824/canary-morning-news-20260824/evidence/exact-search-fixtures/search-01-开盘必读.html",
+      "search_sha256": "a1d4914801f18254ad6ef29121063d4df26498c436fee9ac7498562dc69d658a",
+      "search_response": {
+        "status": 200,
+        "response_url": "https://www.jiuyangongshe.com/search/new?k=8%E6%9C%8824%E6%97%A5%E5%BC%80%E7%9B%98%E5%BF%85%E8%AF%BB%E8%B5%84%E8%AE%AF",
+        "content_type": "text/html; charset=utf-8",
+        "content_length": 23982
+      },
+      "discovered_article_id": "2gry6ckj55a",
+      "article_url": "https://www.jiuyangongshe.com/a/2gry6ckj55a",
+      "article_path": "/Users/lexi/Documents/Codex/2026-08-24/v35-morning-research-fix-20260824/canary-morning-news-20260824/evidence/exact-search-fixtures/article-01-开盘必读-2gry6ckj55a.html",
+      "article_sha256": "82bb52236e85be8316c8b164f9049ef124d5bae7f5a15cdcbbf22c1d31961da7",
+      "article_response": {
+        "status": 200,
+        "response_url": "https://www.jiuyangongshe.com/a/2gry6ckj55a",
+        "content_type": "text/html; charset=utf-8",
+        "content_length": 219957
+      },
+      "candidate_match_stage": "server-rendered exact-date title/link match",
+      "candidate_snippet_preview": "s=\"parent lf\" data-v-bc665a12>             开盘必读        \n                      疯狂点赞的公社达人\n                        2026-08-24 07:53:44                        8月24日开盘必读资讯                 文章目录，建议按需查看 1、要闻简讯 2、盘前个股人气热度 3、三大报要点 4、公司公告 5、股指、期货、汇率 6、涨停复盘 7、龙虎榜 8、问财选股 9、北向资金 10、今日新股 11、投资日历 12、调研、点评及传闻 一、盘前资讯 1、要闻简讯 一、国常会：牢牢把握新一代通信网建设的机遇，巩固提升我国信息通信业竞争优势（央视） 8月21日，国务院总理李强主持召开国务院常务会议。会议指出，要积极顺应新一轮科技革命和产业变革趋势，牢牢把握新一代通信网建设的机遇，坚持应用牵引、适度超前，统筹推进基                    S   新华百货         S   海鸥住工         S   华阳集团     "
+    },
+    {
+      "slot": "盘前纪要",
+      "query": "8月24日盘前纪要",
+      "query_source": "trade_date_label(20260824) + fixed official title template",
+      "search_url": "https://www.jiuyangongshe.com/search/new?k=8%E6%9C%8824%E6%97%A5%E7%9B%98%E5%89%8D%E7%BA%AA%E8%A6%81",
+      "search_path": "/Users/lexi/Documents/Codex/2026-08-24/v35-morning-research-fix-20260824/canary-morning-news-20260824/evidence/exact-search-fixtures/search-02-盘前纪要.html",
+      "search_sha256": "f78b661e26d200d538348e40f77d94e993bc5250912b61bd571e6e8deb69c63e",
+      "search_response": {
+        "status": 200,
+        "response_url": "https://www.jiuyangongshe.com/search/new?k=8%E6%9C%8824%E6%97%A5%E7%9B%98%E5%89%8D%E7%BA%AA%E8%A6%81",
+        "content_type": "text/html; charset=utf-8",
+        "content_length": 22662
+      },
+      "discovered_article_id": "2z7x9l0gmnp",
+      "article_url": "https://www.jiuyangongshe.com/a/2z7x9l0gmnp",
+      "article_path": "/Users/lexi/Documents/Codex/2026-08-24/v35-morning-research-fix-20260824/canary-morning-news-20260824/evidence/exact-search-fixtures/article-02-盘前纪要-2z7x9l0gmnp.html",
+      "article_sha256": "de7c955f4de16a49d91d84f3236d2c4552c19d5e7e2996569cb5309dc196cc3f",
+      "article_response": {
+        "status": 200,
+        "response_url": "https://www.jiuyangongshe.com/a/2z7x9l0gmnp",
+        "content_type": "text/html; charset=utf-8",
+        "content_length": 137105
+      },
+      "candidate_match_stage": "server-rendered exact-date title/link match",
+      "candidate_snippet_preview": "parent lf\" data-v-bc665a12>             盘前纪要        \n                      航行五百年的公社达人\n                        2026-08-24 07:04:20                        8月24日盘前纪要                 每天10分钟阅读，开阔看盘思路，节约复盘时间。 觉得有用，请将此文分享给身边每一位热爱学习的朋友，一起成长进步！ No.1 盘前热点事件 一、昨日热点 创新药：汉森制药 mRNA：键凯科技 苹果：哈森股份 黄金：深中华A 白银：白银有色 光通信：可川科技 功率半导体：士兰微 二、刘鑫新进世名科技、众合科技 章建平新进中际旭创 世名科技2026年半年报显示，刘鑫新进成为第六大股东，持有600.00万股，占总股本比例1.86%。 众合科技2026年半年报显示，刘鑫新进成为第二大股东，持有1698万股                    S   华阳集团              254        188        262    "
+    },
+    {
+      "slot": "盘前解读",
+      "query": "8月24日 盘前解读",
+      "query_source": "trade_date_label(20260824) + fixed official title template",
+      "search_url": "https://www.jiuyangongshe.com/search/new?k=8%E6%9C%8824%E6%97%A5+%E7%9B%98%E5%89%8D%E8%A7%A3%E8%AF%BB",
+      "search_path": "/Users/lexi/Documents/Codex/2026-08-24/v35-morning-research-fix-20260824/canary-morning-news-20260824/evidence/exact-search-fixtures/search-03-盘前解读.html",
+      "search_sha256": "f564aade625cb4bff2e7db7135c7fa877c265c663c0da19bc5a559c88f42e789",
+      "search_response": {
+        "status": 200,
+        "response_url": "https://www.jiuyangongshe.com/search/new?k=8%E6%9C%8824%E6%97%A5+%E7%9B%98%E5%89%8D%E8%A7%A3%E8%AF%BB",
+        "content_type": "text/html; charset=utf-8",
+        "content_length": 24252
+      },
+      "discovered_article_id": "2gry4gqjb90",
+      "article_url": "https://www.jiuyangongshe.com/a/2gry4gqjb90",
+      "article_path": "/Users/lexi/Documents/Codex/2026-08-24/v35-morning-research-fix-20260824/canary-morning-news-20260824/evidence/exact-search-fixtures/article-03-盘前解读-2gry4gqjb90.html",
+      "article_sha256": "bbaaa6d614a27e244d19bc086b8c638deb5a8e00bf63e7e66b9703ed9ad6d31c",
+      "article_response": {
+        "status": 200,
+        "response_url": "https://www.jiuyangongshe.com/a/2gry4gqjb90",
+        "content_type": "text/html; charset=utf-8",
+        "content_length": 166334
+      },
+      "candidate_match_stage": "server-rendered exact-date title/link match",
+      "candidate_snippet_preview": "ommunity-bar\" data-v-bc665a12 data-v-1e8172d8>                     盘前解读           2026-08-24 07:05:24                      8月24日 盘前解读 盘面热点+题材前瞻+公告大全+全球市场等 热点事件详情               实控人变更为绵阳市国资委，股票8月24日复牌。 ② 8月21日 景旺电子拟调整珠海金湾基地扩产计划，投资43.88亿元建设“超高多层PCB智能制造项目”，扩充高端高速超高多层PCB产能，满足AI算力、高速网络通讯等领域客户需求。 ③ 8月21日 紫金矿业上半年营收1941.78亿元同比增长15.78%，归母净利润391.70亿元同比增长68.17%，资产负债率自2012年以来首次降至50%以下。 ④ 8月21日 万凯新材上半年                    S   士兰微         S   通鼎互联         S   C宇树         S   中钨高新         S   协鑫能科              2"
+    }
+  ],
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

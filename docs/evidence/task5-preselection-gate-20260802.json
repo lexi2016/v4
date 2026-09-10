@@ -1,0 +1,97 @@
+{
+  "schema_version": "v3_5.task5_preselection_gate.v1",
+  "gate_status": "PASS_AT_PRESELECTION_SLICE_BOUNDARY",
+  "full_system_independence": false,
+  "blocks_production_takeover": true,
+  "legacy_final_api_used_as_input": false,
+  "legacy_v3_written": false,
+  "production_runtime_data_written": false,
+  "graph_sources": [
+    {
+      "path": "30_runtime/opening_advisor_8771/backend/services/premarket_generator.py",
+      "sha256": "dcae5c9094cd29a9ea1f66317253e0e3b853cb585b06339458528f0cacba6209"
+    },
+    {
+      "path": "30_runtime/opening_advisor_8771/backend/services/source_registry.py",
+      "sha256": "5c44239c7597b744b59402354026f293c29d842aa16457489a2eb93528f48c33"
+    },
+    {
+      "path": "30_runtime/opening_advisor_8771/backend/services/research_recommendation_pool.py",
+      "sha256": "c451560d9f383c11754eeef4776a0278619d56d99d7e89c1f85376e308e3fb71"
+    },
+    {
+      "path": "30_runtime/opening_advisor_8771/backend/services/baimao_research_map.py",
+      "sha256": "fe995cff2c459f20ff88eedc6db4dd53580f926081fcd58b1dd80b00ab6982e2"
+    },
+    {
+      "path": "30_runtime/opening_advisor_8771/scripts/build_hkconnect_d1_pool_from_futu_snapshot.py",
+      "sha256": "0c3601cb4cbd68e4c29bd2a71a2128b599073553316cbc446eb72656c6f1342b"
+    },
+    {
+      "path": "30_runtime/opening_advisor_8771/frontend/fupan_dashboard_v3.html",
+      "sha256": "be63e4c3890ec96ec81e39cab60048474399da264ae4351763cd18794d2382c5"
+    }
+  ],
+  "cutoff_contract": {
+    "a_d1_premarket_pool": "previous selector trade date",
+    "a_d1_fupan_watchlist_pool": "target-date upstream producer artifact",
+    "a_d1_stage7_fenshi_review_pool": "previous-close Stage7 upstream producer artifact",
+    "a_share_research_recommendation_pool": "D-1 08:30 inclusive to D 08:30 exclusive",
+    "a_share_baimao_research_map": "exact-date only; missing remains CANNOT_CONFIRM",
+    "hkconnect_d1_top100": "D-1 model snapshot for exact target date",
+    "wechat_public_account_v3_preselect": "explicit effective-date upstream producer artifact"
+  },
+  "canaries": {
+    "20260730": {
+      "expected_counts": [19, 64, 70, 6, 0, 100, 43],
+      "actual_counts": [19, 64, 70, 6, 0, 100, 43],
+      "selector_sha256": "5c51379d33efef458403f6c28168d040fbec61291c9299017a5b3e498e22e3fb",
+      "fupan_sha256": "03e3fa1d176ac491f3713a97301daac43d50dfc7ea8be4df937a9ddbd0281328",
+      "stage7_sha256": "47e95c0ba86ec74c06be1f06555a2f4df7a13c249914497f8463eb82b29b7607",
+      "research_composite_sha256": "a1bca3e197326f320ba8254f37587566a14de75e3017bf64e597841cc593b3d8",
+      "hk_sha256": "3c73ab14d040abdde0b3acc6336c09f635f211e671f9e64f51735246aa11f652",
+      "wechat_manifest_sha256": "26f766d6877fdf029adfd08099c4b581189345d8bd56d8251ddd5b425e228157",
+      "wechat_rows_sha256": "e49f21f529981f95b0f8f96f6fa48f75d695a8317610f6d5564a03f0bee6b97a",
+      "wechat_composite_sha256": "8b2e1fd48e2b1a8dd78583b8c704b98f1514a7442f6c6b419ae4c0a99b239f34",
+      "result": "PASS"
+    },
+    "20260731": {
+      "expected_counts": [18, 0, 1, 14, 0, 100, 43],
+      "actual_counts": [18, 0, 1, 14, 0, 100, 43],
+      "selector_sha256": "5c51379d33efef458403f6c28168d040fbec61291c9299017a5b3e498e22e3fb",
+      "fupan_sha256": "4e99dce51a1bc5d44ea76bef121f9f2cf0abab59bf354e906683c62e08c556e1",
+      "stage7_sha256": "414311b98bd17ffa1f09b8966f0f71af3e530a2bd0d879cac9c3d520f55d524b",
+      "research_composite_sha256": "c861294995c3ee62ac88717fcd071f5d52bef6b0f17376b5b803ec0a832689d4",
+      "hk_sha256": "063132cd983b986dd70c1244d2cff2f1de65c6c3bee3844cd36fb483963d3902",
+      "wechat_manifest_sha256": "26f766d6877fdf029adfd08099c4b581189345d8bd56d8251ddd5b425e228157",
+      "wechat_rows_sha256": "e49f21f529981f95b0f8f96f6fa48f75d695a8317610f6d5564a03f0bee6b97a",
+      "wechat_composite_sha256": "8b2e1fd48e2b1a8dd78583b8c704b98f1514a7442f6c6b419ae4c0a99b239f34",
+      "result": "PASS"
+    }
+  },
+  "upstream_dependencies": {
+    "a_d1_fupan_watchlist_pool": "Task 7 close-review producer",
+    "a_d1_stage7_fenshi_review_pool": "Task 6 Stage7 producer",
+    "hkconnect_d1_top100": "later HK D-1 producer migration",
+    "wechat_public_account_v3_preselect": "later WeChat producer migration"
+  },
+  "ui_contract": {
+    "group_ids": [
+      "aPreselectGroup",
+      "hkPreselectGroup",
+      "wechatPreselectGroup",
+      "selectorPreselectGroup",
+      "fenshiPreselectGroup",
+      "fupanPreselectGroup",
+      "baimaoPreselectGroup",
+      "researchPreselectGroup"
+    ],
+    "table_and_collapse_controls": true,
+    "new_information_architecture": false
+  },
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

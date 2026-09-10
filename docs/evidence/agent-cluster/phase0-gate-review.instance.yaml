@@ -1,0 +1,40 @@
+instance_id: phase0-gate-review-20260801
+agent_type: gate-reviewer
+created_for_task: V3.5 graph baseline Gate 0
+task:
+  goal: Independently review Phase 0 implementation, tests, generated contracts, and safety boundaries.
+  narrow_scope: Gate 0 only.
+  out_of_scope:
+    - File edits
+    - Feature implementation
+    - Runtime task fixes
+inputs:
+  task_goal: Verify that Gate 0 is reproducible, graph-grounded, fail-closed, and explicitly not a runtime or deployment acceptance.
+  acceptance_gate:
+    - Frozen inputs reproduce byte-identical baseline and inventory contracts.
+    - Reconciliation has zero unexplained differences and zero Python parse failures.
+    - Inventory rejects unknown graph identities and evidence-free COMPLETE records.
+    - Runtime and deployment acceptance remain false.
+  context_files:
+    - ops/migration/graph_baseline.py
+    - tests/test_graph_baseline_v2.py
+    - tests/test_model_capability_routing.py
+    - contracts/migration/v3_graph_baseline_v2.json
+    - contracts/migration/v35_replacement_inventory_v2.json
+    - contracts/migration/model_capability_routing_v1.json
+    - docs/evidence/agent-cluster/phase0-graph-lineage-handoff.md
+  user_constraints:
+    - Codex/Sol is the sole writer.
+    - Legacy V3 is read-only.
+output:
+  destination: Controller mailbox
+  schema: worker_handoff
+evidence_requirements:
+  - Run focused tests read-only.
+  - Identify correctness, security, evidence, and acceptance-level issues.
+coordination_rules:
+  - You are not alone in the workspace.
+  - Do not revert or overwrite edits made by others.
+  - Perform no writes.
+stop_rules:
+  - Stop after a PASS or REQUEST_CHANGES handoff with evidence.

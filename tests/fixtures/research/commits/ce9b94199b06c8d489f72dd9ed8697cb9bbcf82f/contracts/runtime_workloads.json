@@ -1,0 +1,884 @@
+{
+  "retired_owners": [
+    {
+      "owner_id": "BilibiliFupanNightly2000",
+      "replacement_workload_id": "a_share_close_review",
+      "status": "RETIRED_DISABLED"
+    },
+    {
+      "owner_id": "OpeningAdvisorBackup0900",
+      "replacement_workload_id": "hourly_research",
+      "status": "RETIRED_DISABLED"
+    },
+    {
+      "owner_id": "OpeningAdvisorDaily",
+      "replacement_workload_id": "a_share_close_review",
+      "status": "RETIRED_DISABLED"
+    },
+    {
+      "owner_id": "OpeningAdvisorHourlyResearch",
+      "replacement_workload_id": "hourly_research",
+      "status": "RETIRED_DISABLED"
+    },
+    {
+      "owner_id": "OpeningAdvisorMorningNews0830",
+      "replacement_workload_id": "hourly_research",
+      "status": "RETIRED_DISABLED"
+    },
+    {
+      "owner_id": "OpeningAdvisorTomorrowPool",
+      "replacement_workload_id": "a_share_close_review",
+      "status": "RETIRED_DISABLED"
+    }
+  ],
+  "safety": {
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "v3_5.runtime_workloads.v2",
+  "task_registration_semantic_hash": "27bf0c68820eed8eb28c02022f0e841c19ec3c5f7d387559aad0d22ca1c7c6ac",
+  "task_registrations": [
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_0755_StartupEnsure"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_0755_StartupEnsure",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_0755_StartupEnsure.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_0755_StartupEnsure",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "v3_ashare_readiness_0755",
+        "v3_startup_ensure_0_2_hkconnect"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_0830_MorningNews"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_0830_MorningNews",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_0830_MorningNews.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_0830_MorningNews",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "v3_premarket_news_jyg_0830"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_0830_ZsxqResearch"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_0830_ZsxqResearch",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_0830_ZsxqResearch.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_0830_ZsxqResearch",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "v3_zsxq_research_0830"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_0840_MorningNewsRetry"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_0840_MorningNewsRetry",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_0840_MorningNewsRetry.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_0840_MorningNewsRetry",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "v3_premarket_news_jyg_0840_retry"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_0915_HKSecondFilter"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_0915_HKSecondFilter",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_0915_HKSecondFilter.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_0915_HKSecondFilter",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "v3_hkconnect_opening_second_filter_v1_1_morning_check"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_0920_AshareReadiness"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_0920_AshareReadiness",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_0920_AshareReadiness.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_0920_AshareReadiness",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "v3_ashare_readiness_0920"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_0925_IntradayStage"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_0925_IntradayStage",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_0925_IntradayStage.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_0925_IntradayStage",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "v3_opening_intraday_stage_select_0925_1500"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_0927_Stage0925Verify"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_0927_Stage0925Verify",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_0927_Stage0925Verify.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_0927_Stage0925Verify",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "v3_stage0925_visible_verify_0927"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_0929_Stage0925Verify"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_0929_Stage0925Verify",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_0929_Stage0925Verify.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_0929_Stage0925Verify",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "v3_stage0925_visible_verify_0929"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_0935_IntradayStage"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_0935_IntradayStage",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_0935_IntradayStage.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_0935_IntradayStage",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "v3_opening_intraday_stage_select_0925_1500"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_0940_IntradayStage"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_0940_IntradayStage",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_0940_IntradayStage.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_0940_IntradayStage",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "v3_opening_intraday_stage_select_0925_1500"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_0945_IntradayStage"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_0945_IntradayStage",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_0945_IntradayStage.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_0945_IntradayStage",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "v3_opening_intraday_stage_select_0925_1500"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_1030_IntradayStage"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_1030_IntradayStage",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_1030_IntradayStage.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_1030_IntradayStage",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "v3_opening_intraday_stage_select_0925_1500"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_1315_IntradayStage"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_1315_IntradayStage",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_1315_IntradayStage.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_1315_IntradayStage",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "v3_opening_intraday_stage_select_0925_1500"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_1500_IntradayStageAndFupan"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_1500_IntradayStageAndFupan",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_1500_IntradayStageAndFupan.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_1500_IntradayStageAndFupan",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "FUPAN_CLOSE_MATERIALS",
+        "v3_opening_intraday_stage_select_0925_1500"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_1555_HKCloseAndFupan"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_1555_HKCloseAndFupan",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_1555_HKCloseAndFupan.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_1555_HKCloseAndFupan",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "FUPAN_REVIEW_START",
+        "v3_hkconnect_close_stage_1545_1555"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_1605_FupanStructure"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_1605_FupanStructure",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_1605_FupanStructure.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_1605_FupanStructure",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "FUPAN_A_SHARE_STRUCTURE"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_1605_HKModelReview"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_1605_HKModelReview",
+      "legacy_launcher_paths": [],
+      "legacy_task_id": "OpeningAdvisorV3_1605_HKModelReview",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "hkconnect_model_selection_review"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_1700_AshareResearchPanel"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_1700_AshareResearchPanel",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_1700_AshareResearchPanel.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_1700_AshareResearchPanel",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "ashare_research_panel"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_1720_HKConnectResearchPanel"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_1720_HKConnectResearchPanel",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_1720_HKConnectResearchPanel.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_1720_HKConnectResearchPanel",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "hkconnect_research_panel"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_1730_AshareDailyPools"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_1730_AshareDailyPools",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_1730_AshareDailyPools.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_1730_AshareDailyPools",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "ashare_v193_slot_selector_premarket"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_1735_HKConnectD1Pool"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_1735_HKConnectD1Pool",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_1735_HKConnectD1Pool.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_1735_HKConnectD1Pool",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "hkconnect_d1_top100_prob_active"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_2000_PreopenAndHKOverlay"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_2000_PreopenAndHKOverlay",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_2000_PreopenAndHKOverlay.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_2000_PreopenAndHKOverlay",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "v3_hkconnect_a_overlay_pool_2000"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_2005_TomorrowPool"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_2005_TomorrowPool",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_2005_TomorrowPool.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_2005_TomorrowPool",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "tomorrow_pool_2005"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_2025_BilibiliFupan"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_2025_BilibiliFupan",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_2025_BilibiliFupan.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_2025_BilibiliFupan",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "bilibili_fupan_nightly"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_2030_FupanVideoCheck"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_2030_FupanVideoCheck",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_2030_FupanVideoCheck.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_2030_FupanVideoCheck",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "FUPAN_VIDEO_CHECK"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_2040_FupanVideoASR"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_2040_FupanVideoASR",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_2040_FupanVideoASR.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_2040_FupanVideoASR",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "FUPAN_VIDEO_DOWNLOAD_ASR"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_2050_FupanStockdict"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_2050_FupanStockdict",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_2050_FupanStockdict.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_2050_FupanStockdict",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "FUPAN_STOCKDICT"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_2105_FupanVideoOcrAlign"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_2105_FupanVideoOcrAlign",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_2105_FupanVideoOcrAlign.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_2105_FupanVideoOcrAlign",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "FUPAN_VIDEO_TABLE_OCR_ALIGN"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_2108_FupanGapAndGuard"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_2108_FupanGapAndGuard",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_2108_FupanGapAndGuard.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_2108_FupanGapAndGuard",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "FUPAN_VIDEO_GAP",
+        "v3_next_opening_pool_guard_2100"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_2110_FupanPublish"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_2110_FupanPublish",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_2110_FupanPublish.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_2110_FupanPublish",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "FUPAN_V3_PUBLISH"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_2115_FupanVerify"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_2115_FupanVerify",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_2115_FupanVerify.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_2115_FupanVerify",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "FUPAN_8771_VERIFY"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_2130_WQ101Prewarm"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_2130_WQ101Prewarm",
+      "legacy_launcher_paths": [],
+      "legacy_task_id": "OpeningAdvisorV3_2130_WQ101Prewarm",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "hkconnect_wq101_daily_prewarm"
+      ]
+    },
+    {
+      "actual_windows_task_ids": [
+        "OpeningAdvisorV3_BaimaoXRefresh"
+      ],
+      "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+      "enabled": false,
+      "execution_allowed": false,
+      "graph_task_spec_id": "task_spec:OpeningAdvisorV3_BaimaoXRefresh",
+      "legacy_launcher_paths": [
+        "_ops/windows_task_launchers/OpeningAdvisorV3_BaimaoXRefresh.ps1"
+      ],
+      "legacy_task_id": "OpeningAdvisorV3_BaimaoXRefresh",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "status": "CANNOT_CONFIRM",
+      "timeline_node_ids": [
+        "baimao_x_refresh"
+      ]
+    }
+  ],
+  "workloads": [
+    {
+      "aliases": [
+        "hourly_research_delta",
+        "v3_hourly_research_delta_0730_1530"
+      ],
+      "command": [
+        "python",
+        "-m",
+        "ops.run_hourly_research",
+        "--data-root",
+        "{data_root}",
+        "--date",
+        "{business_date}",
+        "--target-date",
+        "{target_date}",
+        "--slot",
+        "{slot}",
+        "--mode",
+        "{mode}"
+      ],
+      "enabled": true,
+      "market_scope": "CROSS_MARKET",
+      "owner_id": "v35_dispatcher.hourly_research",
+      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "scheduled_date_role": "SCHEDULED_DATE",
+      "session_requirement": "DAY_ELIGIBILITY_ONLY",
+      "signal_date_role": "BUSINESS_DATE",
+      "slots": [
+        "0700",
+        "1200",
+        "1800",
+        "2300"
+      ],
+      "target_date_role": "BUSINESS_DATE",
+      "workload_id": "hourly_research"
+    },
+    {
+      "aliases": [],
+      "command": [
+        "python",
+        "-m",
+        "ops.run_a_share_close_review"
+      ],
+      "enabled": false,
+      "market_scope": "A_SHARE",
+      "owner_id": "v35_dispatcher.a_share_close_review",
+      "run_policy": "A_SHARE_TRADE_DAY",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "scheduled_date_role": "SCHEDULED_DATE",
+      "session_requirement": "POST_CLOSE",
+      "signal_date_role": "BUSINESS_DATE",
+      "slots": [
+        "1710"
+      ],
+      "target_date_role": "BUSINESS_DATE",
+      "workload_id": "a_share_close_review"
+    },
+    {
+      "aliases": [],
+      "command": [
+        "python",
+        "-m",
+        "ops.build_close_review"
+      ],
+      "enabled": false,
+      "market_scope": "HK_CONNECT",
+      "owner_id": "v35_dispatcher.hk_connect_close_review",
+      "run_policy": "HK_CONNECT_TRADE_DAY",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "scheduled_date_role": "SCHEDULED_DATE",
+      "session_requirement": "POST_CLOSE",
+      "signal_date_role": "BUSINESS_DATE",
+      "slots": [
+        "1605"
+      ],
+      "target_date_role": "BUSINESS_DATE",
+      "workload_id": "hk_connect_close_review"
+    }
+  ]
+}

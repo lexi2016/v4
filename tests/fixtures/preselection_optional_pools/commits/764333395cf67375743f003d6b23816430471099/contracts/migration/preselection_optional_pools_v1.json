@@ -1,0 +1,99 @@
+{
+  "schema_version": "v3_5.preselection_optional_pools_contract.v1",
+  "semantic_hash": "ec7c3faaa4024545c1a7fa4e93a9f9b0f9d9b9578d8d82f613e7156a27b8554b",
+  "feature_id": "preselection.pools",
+  "business_date": "20260730",
+  "graph_authority": {
+    "graph_baseline_semantic_hash": "8b4b933858f0e573b4d9f34423cd7aceeeb09dbf50cc826de0b18b712a4cbdd7",
+    "graph_node_ids": [
+      "api:GET /preselection-pools",
+      "atlas:file_b9abe278524355ae2028217c",
+      "file:30_runtime/opening_advisor_8771/backend/services/v3_os_service.py",
+      "atlas:file_c4d61024cdfb74fbbece4b3c",
+      "file:30_runtime/opening_advisor_8771/backend/services/baimao_research_map.py"
+    ],
+    "legacy_sources": [
+      {
+        "path": "30_runtime/opening_advisor_8771/backend/services/v3_os_service.py",
+        "sha256": "627af9b80794ead237c3e4836ea010b192160f717134d57055840a23846b16a2"
+      },
+      {
+        "path": "30_runtime/opening_advisor_8771/backend/services/baimao_research_map.py",
+        "sha256": "fe995cff2c459f20ff88eedc6db4dd53580f926081fcd58b1dd80b00ab6982e2"
+      }
+    ]
+  },
+  "frozen_inputs": {
+    "v35_base_payload": {
+      "path": ".runtime/data/preselection/20260730.json",
+      "raw_sha256": "2dcad50851265ba3f93bf1a0f18f6ad70f8ed544d7f3e9e5bb9df87593d008ca",
+      "row_count": 259
+    },
+    "v35_base_receipt": {
+      "path": ".runtime/data/receipts/20260730.json",
+      "raw_sha256": "a84e73c42a94875370a15c4f1dbb3155639946dc13707af7c020510b51be305f"
+    },
+    "wechat_manifest": {
+      "input_identity": "wechat_public_account_preselect_manifest_20260730",
+      "raw_sha256": "26f766d6877fdf029adfd08099c4b581189345d8bd56d8251ddd5b425e228157"
+    },
+    "wechat_rows": {
+      "input_identity": "wechat_public_account_preselect_rows_20260730",
+      "raw_sha256": "e49f21f529981f95b0f8f96f6fa48f75d695a8317610f6d5564a03f0bee6b97a",
+      "row_count": 43
+    },
+    "v3_api": {
+      "observation_identity": "legacy_preselection_api_20260730_limit100",
+      "observed_raw_sha256": "f33386963248fe201e224918a3df8f5d2d724558a19c50469a5791a1096ad6c8"
+    }
+  },
+  "expected_projection": {
+    "pool_order": [
+      "a_d1_premarket_pool",
+      "a_d1_fupan_watchlist_pool",
+      "a_d1_stage7_fenshi_review_pool",
+      "a_share_research_recommendation_pool",
+      "a_share_baimao_research_map",
+      "hkconnect_d1_top100",
+      "wechat_public_account_v3_preselect"
+    ],
+    "pool_sizes": {
+      "a_d1_premarket_pool": 19,
+      "a_d1_fupan_watchlist_pool": 64,
+      "a_d1_stage7_fenshi_review_pool": 70,
+      "a_share_research_recommendation_pool": 6,
+      "a_share_baimao_research_map": 0,
+      "hkconnect_d1_top100": 100,
+      "wechat_public_account_v3_preselect": 43
+    },
+    "pool_count": 7,
+    "row_count": 302,
+    "unified_row_count": 19,
+    "a_all_pool_row_count": 186,
+    "baimao_status": "CANNOT_CONFIRM",
+    "wechat_status": "WECHAT_V3_PRESELECT_READY"
+  },
+  "boundaries": {
+    "base_payload_is_immutable": true,
+    "optional_overlay_is_exact_date": true,
+    "wechat_recommendation_status": "RESEARCH_ONLY",
+    "wechat_trade_status_contract": "RESEARCH_ONLY_NO_BUY_GATE",
+    "wechat_formal_pool_write": false,
+    "wechat_stage_selection_eligible": false,
+    "baimao_stage_selection_eligible": false,
+    "unified_rows_owner": "a_d1_premarket_pool",
+    "stage_input_reads_base_payload_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "pass_signal": "SEVEN_INDEPENDENT_POOLS_WITH_302_ROWS_AND_CORE19_UNCHANGED",
+  "reject_conditions": [
+    "POOL_ID_COLLAPSE",
+    "WECHAT_ROWS_ENTER_CANONICAL_MAIN_OR_STAGE_INPUT",
+    "EXTERNAL_SOURCE_HASH_DRIFT",
+    "OVERLAY_WRITES_OUTSIDE_V35_DATA_ROOT",
+    "FORMAL_POOL_OR_BUY_GATE_MUTATION",
+    "EXPECTATION_CHANGED_TO_FIT_NEW_SOURCE"
+  ]
+}

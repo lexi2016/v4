@@ -1,0 +1,106 @@
+{
+  "business_date": "20260730",
+  "expected": {
+    "first_five": [
+      ["A.605068", 78.0, "A_SHARE_OPENING_INITIAL_SCREEN_REQUIRES_CONFIRM"],
+      ["A.603221", 78.0, "A_SHARE_OPENING_INITIAL_SCREEN_REQUIRES_CONFIRM"],
+      ["A.605179", 66.0, "A_SHARE_OPENING_INITIAL_SCREEN_REQUIRES_CONFIRM"],
+      ["A.000428", 78.0, "A_SHARE_OPENING_INITIAL_SCREEN_REQUIRES_CONFIRM"],
+      ["A.002827", 41.4, "A_SHARE_OPENING_INITIAL_SCREEN_WATCH"]
+    ],
+    "flag_counts": {
+      "amount_below_v1_floor": 34,
+      "high_spike_fade_risk": 1,
+      "level_near_pressure_unbroken": 50,
+      "level_support_retest": 50,
+      "weak_intraday_change": 6
+    },
+    "labels": {
+      "A_SHARE_OPENING_INITIAL_SCREEN_REQUIRES_CONFIRM": 18,
+      "A_SHARE_OPENING_INITIAL_SCREEN_WATCH": 32
+    },
+    "last_five": [
+      ["A.002552", 26.37, "A_SHARE_OPENING_INITIAL_SCREEN_WATCH"],
+      ["A.000779", 17.11, "A_SHARE_OPENING_INITIAL_SCREEN_WATCH"],
+      ["A.688382", 20.44, "A_SHARE_OPENING_INITIAL_SCREEN_WATCH"],
+      ["A.002550", 18.0, "A_SHARE_OPENING_INITIAL_SCREEN_WATCH"],
+      ["A.600228", 18.81, "A_SHARE_OPENING_INITIAL_SCREEN_WATCH"]
+    ],
+    "projection_sha256": "7f9672575202efc6065c31a6e26ee23cbb2c360c4e1115075f84631f24695a8c",
+    "row_count": 50,
+    "score_sum": 2052.78,
+    "symbol_order_sha256": "3af573add2179f45e80f4750827397f0edb1612e942ff76b0f8c59a2debda777"
+  },
+  "feature_id": "stage.workbench",
+  "frozen_input": {
+    "path": "tests/fixtures/stage_0925_20260730_tdxpy_input.json",
+    "sha256": "d447078fee592a9dd741dddc16bd637ed02d2043b91c6648fab15aca3c6b284c"
+  },
+  "graph_baseline_semantic_hash": "8b4b933858f0e573b4d9f34423cd7aceeeb09dbf50cc826de0b18b712a4cbdd7",
+  "graph_node_ids": [
+    "api:GET /workbench/stage",
+    "file:30_runtime/opening_advisor_8771/backend/services/opening_second_filter_service.py",
+    "timeline_node:v3_opening_intraday_stage_select_0925_1500"
+  ],
+  "hypothesis": "The V3.5 A-share adapter must reproduce the frozen V3 _a_share_v1_1_core field projection without reordering the stage-ranked input.",
+  "legacy_authority": {
+    "atlas_file_id": "file_b8879c230d81dafc78aaedde",
+    "line_end": 1734,
+    "line_start": 1601,
+    "path": "30_runtime/opening_advisor_8771/backend/services/opening_second_filter_service.py",
+    "sha256": "4a1457127b27cb0b4556063c1dd8ad91c643ce5defb5bacb6f8f52b76c7304e3",
+    "symbol": "_a_share_v1_1_core"
+  },
+  "normalization": {
+    "open_price": "qmt_open",
+    "last_price": "qmt_last",
+    "low_price": "qmt_low",
+    "high_price": "qmt_high",
+    "prev_close_price": "qmt_prev_close",
+    "turnover": "qmt_amount",
+    "derived_open_vs_prev_close_pct": "qmt_stage_change_pct"
+  },
+  "projection_fields": [
+    "symbol",
+    "rank",
+    "opening_second_filter_label",
+    "opening_second_filter_score",
+    "opening_second_filter_reason",
+    "opening_second_filter_strategy",
+    "opening_second_filter_flags",
+    "opening_second_filter_cannot_confirm",
+    "current_change_pct",
+    "current_amount_yi",
+    "current_price",
+    "current_price_basis",
+    "support_distance_pct",
+    "pressure_distance_pct",
+    "risk_reward_ratio",
+    "breakout_status",
+    "level_structure_score_delta",
+    "level_structure_reason",
+    "support_primary_price",
+    "support_primary_basis",
+    "pressure_price",
+    "pressure_basis",
+    "invalidation_price",
+    "invalidation_condition",
+    "next_validation_time",
+    "fail_action_label"
+  ],
+  "rejection_conditions": [
+    "FIXTURE_SHA_DRIFT",
+    "ROW_COUNT_NOT_50",
+    "SYMBOL_ORDER_CHANGED",
+    "V11_FIELD_PROJECTION_CHANGED",
+    "ANY_TRADING_SAFETY_FLAG_TRUE"
+  ],
+  "safety": {
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "v3_5.stage_0925_v11_adapter_parity.v1",
+  "status": "FROZEN_BEFORE_CHANGE",
+  "semantic_hash": "fe87285b551bf01161f796ef0544c24cc2b5e7b79696b9838c7ed1b9cd6cf8c8"
+}

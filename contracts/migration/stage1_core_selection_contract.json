@@ -1,0 +1,91 @@
+{
+  "schema_version": "v3_5.stage1_graph_contract.v2",
+  "atlas_semantic_hash": "912718015fba24d47dcac919b5720139666e3b5dfdf8e72a2236019badcdd033",
+  "graph_baseline_semantic_hash": "8b4b933858f0e573b4d9f34423cd7aceeeb09dbf50cc826de0b18b712a4cbdd7",
+  "feature_ids": [
+    "navigation.dates",
+    "preselection.pools",
+    "stage.workbench"
+  ],
+  "source_record_ids": [
+    "file_246923ea63195cd1a018741f",
+    "file_1e5911dd23724fa5a115882c",
+    "file_2d687e7969164b4175b293c4",
+    "file_46dace0844043eb2fecfa75b",
+    "file_50c8fc836c92c033d1ad3fce",
+    "file_6dfdc4aaf257fcff34e27c4e",
+    "file_734e4e3df4f4132d7350651d",
+    "file_7eefb555b890e1cf6266d0c9",
+    "file_b8879c230d81dafc78aaedde",
+    "file_f5f6800a18fdc855915d5931",
+    "file_b9abe278524355ae2028217c"
+  ],
+  "entrypoint_record_ids": [
+    "entrypoint_0e4a1c702b657f189d43f34a"
+  ],
+  "api_contracts": [
+    "GET /api/v1/runs/date-list",
+    "GET /api/v3/preselection-pools",
+    "GET /api/v3/tasks/status",
+    "GET /api/v3/workbench/stage",
+    "POST /api/v3/workbench/stage/ensure"
+  ],
+  "runtime_task_keys": [
+    "timeline_node|ashare_v193_slot_selector_premarket|ashare_v193_slot_selector_premarket",
+    "timeline_node|hkconnect_d1_top100_prob_active|hkconnect_d1_top100_prob_active",
+    "timeline_node|hkconnect_wq101_daily_prewarm|hkconnect_wq101_daily_prewarm",
+    "timeline_node|tomorrow_pool_2005|tomorrow_pool_2005",
+    "timeline_node|v3_ashare_readiness_0755|v3_ashare_readiness_0755",
+    "timeline_node|v3_ashare_readiness_0920|v3_ashare_readiness_0920",
+    "timeline_node|v3_hkconnect_a_overlay_pool_2000|v3_hkconnect_a_overlay_pool_2000",
+    "timeline_node|v3_hkconnect_close_stage_1545_1555|v3_hkconnect_close_stage_1545_1555",
+    "timeline_node|v3_hkconnect_opening_second_filter_v1_1_morning_check|v3_hkconnect_opening_second_filter_v1_1_morning_check",
+    "timeline_node|v3_next_opening_pool_guard_2100|v3_next_opening_pool_guard_2100",
+    "timeline_node|v3_opening_intraday_stage_select_0925_1500|v3_opening_intraday_stage_select_0925_1500",
+    "timeline_node|v3_stage0925_visible_verify_0927|v3_stage0925_visible_verify_0927",
+    "timeline_node|v3_stage0925_visible_verify_0929|v3_stage0925_visible_verify_0929",
+    "windows_task|OpeningAdvisorV3_0755_StartupEnsure|v3_startup_ensure_0_2_hkconnect",
+    "windows_task|OpeningAdvisorV3_0915_HKSecondFilter|v3_hkconnect_opening_second_filter_v1_1_morning_check",
+    "windows_task|OpeningAdvisorV3_0920_AshareReadiness|v3_ashare_readiness_0920",
+    "windows_task|OpeningAdvisorV3_0925_IntradayStage|v3_opening_intraday_stage_select_0925_1500",
+    "windows_task|OpeningAdvisorV3_0927_Stage0925Verify|v3_stage0925_visible_verify_0927",
+    "windows_task|OpeningAdvisorV3_0929_Stage0925Verify|v3_stage0925_visible_verify_0929",
+    "windows_task|OpeningAdvisorV3_0935_IntradayStage|v3_opening_intraday_stage_select_0925_1500",
+    "windows_task|OpeningAdvisorV3_0940_IntradayStage|v3_opening_intraday_stage_select_0925_1500",
+    "windows_task|OpeningAdvisorV3_0945_IntradayStage|v3_opening_intraday_stage_select_0925_1500",
+    "windows_task|OpeningAdvisorV3_1030_IntradayStage|v3_opening_intraday_stage_select_0925_1500",
+    "windows_task|OpeningAdvisorV3_1315_IntradayStage|v3_opening_intraday_stage_select_0925_1500",
+    "windows_task|OpeningAdvisorV3_1500_IntradayStageAndFupan|v3_opening_intraday_stage_select_0925_1500",
+    "windows_task|OpeningAdvisorV3_1555_HKCloseAndFupan|v3_hkconnect_close_stage_1545_1555",
+    "windows_task|OpeningAdvisorV3_1730_AshareDailyPools|ashare_v193_slot_selector_premarket",
+    "windows_task|OpeningAdvisorV3_1735_HKConnectD1Pool|hkconnect_d1_top100_prob_active",
+    "windows_task|OpeningAdvisorV3_2000_PreopenAndHKOverlay|v3_hkconnect_a_overlay_pool_2000",
+    "windows_task|OpeningAdvisorV3_2005_TomorrowPool|tomorrow_pool_2005",
+    "windows_task|OpeningAdvisorV3_2108_FupanGapAndGuard|FUPAN_VIDEO_GAP",
+    "windows_task|OpeningAdvisorV3_2130_WQ101Prewarm|hkconnect_wq101_daily_prewarm"
+  ],
+  "legacy_ui_contract": {
+    "date_control": "calendar_input_with_compact_api_key",
+    "stage_selector": "eight_stage_select",
+    "timeline": "nineteen_clickable_nodes",
+    "stage_context": "single_date_plus_single_stage",
+    "markets": [
+      "A",
+      "HK"
+    ]
+  },
+  "known_legacy_gaps": [
+    "DATA_FUPAN_TIMELINE_BUTTON_HAS_NO_CLICK_HANDLER"
+  ],
+  "required_improvements": [
+    "ALL_TIMELINE_BUTTONS_HAVE_EXPLICIT_ACTION",
+    "CURRENT_DATE_MUST_NOT_BE_ACCEPTED_FROM_HISTORICAL_SAMPLE",
+    "EMPTY_CANDIDATES_REQUIRE_PROVEN_EMPTY_OR_EXPLICIT_BLOCKER",
+    "NO_RUNTIME_DEPENDENCY_ON_V3_SYSTEM"
+  ],
+  "deletion_policy": "NO_FEATURE_REMOVAL_WITHOUT_EXPLICIT_APPROVAL",
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "semantic_hash": "54428117760b2d9d3f5a862617125d0f82b5702a361fb7f1871cad4deb1d3cc2"
+}

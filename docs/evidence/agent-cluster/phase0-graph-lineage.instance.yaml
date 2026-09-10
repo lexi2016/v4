@@ -1,0 +1,33 @@
+instance_id: phase0-graph-lineage-20260801
+agent_type: graph-lineage-auditor
+created_for_task: V3.5 graph baseline v2 Gate 0
+task:
+  goal: Audit graph_baseline.py against Atlas 012, the 20260801 task graph, and inventory v1.
+  narrow_scope: Identity, SHA, counts, reconciliation, safety, and legacy read-only boundaries.
+  out_of_scope:
+    - File edits
+    - Business logic changes
+    - Deployment or Windows Task mutation
+inputs:
+  context_files:
+    - C:/Users/huang/Desktop/学习/v3_system/90_ops/status/v3_full_program_atlas_012
+    - C:/Users/huang/Desktop/学习/v3.5/.runtime/evidence/phase0/v3_current_script_task_graph_20260801
+    - C:/Users/huang/Desktop/学习/v3.5/contracts/migration/v35_replacement_inventory.json
+    - C:/Users/huang/Desktop/学习/v3.5/ops/migration/graph_baseline.py
+    - C:/Users/huang/Desktop/学习/v3.5/tests/test_graph_baseline_v2.py
+  user_constraints:
+    - Codex/Sol is the sole writer.
+    - Do not invent behavior absent from the V3 graph.
+output:
+  destination: Controller mailbox
+  schema: worker_handoff
+evidence_requirements:
+  - List every checked path and relevant JSON field.
+  - Separate confirmed findings from CANNOT_CONFIRM.
+coordination_rules:
+  - You are not alone in the workspace.
+  - Do not revert or overwrite edits made by others.
+  - Perform no writes.
+stop_rules:
+  - Stop after producing the complete read-only handoff.
+  - Request Controller judgment for conflicting graph authorities.

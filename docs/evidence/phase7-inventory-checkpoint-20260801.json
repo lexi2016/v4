@@ -1,0 +1,113 @@
+{
+  "blockers": [
+    "NO_COMPLETE_INVENTORY_RECORDS",
+    "NON_PASSING_ARTIFACT_API_PAGE_PARITY_RECEIPTS",
+    "DISABLED_RUNTIME_TASKS_HAVE_NO_EXECUTION_RECEIPTS"
+  ],
+  "claims": {
+    "business_parity_verified": false,
+    "deployed": false,
+    "inventory_accounting_complete": true,
+    "local_deployed": true,
+    "phase7_business_gate_passed": false,
+    "phase8_entry_allowed": false,
+    "ready_to_replace": false,
+    "ui_verified": true,
+    "user_final_acceptance": false
+  },
+  "evidence_semantic_hash": "b2878c1404a99312d672a4e3373dc96177d7f8ca0609b315f5b8e35907aae871",
+  "implementation_commit": "573d77fcdbdc51b7e2bdcc65686b2e5c18cfbc0c",
+  "live_acceptance": {
+    "path": "docs/evidence/phase2-live-browser-acceptance-20260801.json",
+    "semantic_hash": "633bd9b4afe18cee3cd24c331c82b37011ea7243f28883af7c26d5f2a878110f",
+    "status": "PASS_LOCAL_DEPLOYMENT_API_AND_PAGE_WITH_DECLARED_PARITY_GAPS"
+  },
+  "inventory": {
+    "base_v2": {
+      "path": "contracts/migration/v35_replacement_inventory_v2.json",
+      "raw_sha256": "d435508567a90d8649040deb529d5b74db87cddbdca0996e78c6bbe8a50bf336",
+      "semantic_hash": "35b56c67db16ff6cd8de2ab6acd7d199dad58bb4da05c218c660622c841ae9de"
+    },
+    "terminal_v3": {
+      "path": "contracts/migration/v35_replacement_inventory_v3.json",
+      "raw_sha256": "a74b60e81e57e149ca07bebb5c2b1addfd7fad841d89b284b81ec11f49a2768b",
+      "semantic_hash": "fc39abefed9ab2819bf8d646e3fcb056572a67e9fa4b32d299ed34dfefdb97e8",
+      "terminal_counts": {
+        "by_status": {
+          "CANNOT_CONFIRM": 506
+        },
+        "by_terminal_class": {
+          "CANNOT_CONFIRM": 500,
+          "COMPAT": 4,
+          "REMOVE_PROPOSED": 2
+        },
+        "complete": 0,
+        "total": 506
+      }
+    }
+  },
+  "non_passing_slice_receipt_authorities": [
+    {
+      "authority_gate_semantic_hash": "a763ac939fbe8940733697e294fb9a5d57f07d955bc5f804e58a0da235c8d5d7",
+      "authority_path": "docs/evidence/phase2-gate-receipt-20260801.json",
+      "authority_raw_sha256": "5bdf47acadf3dd152a03d512406b7f4230db7d66b24c623c5db1b75ea9ea6328",
+      "feature_id": "preselection.pools",
+      "receipt_semantic_hash": "b0921695005c7164cfba38342e9e3d8e26c0ea0f68969cb2f96328f043ea04c2",
+      "verdict": "CANNOT_CONFIRM"
+    },
+    {
+      "authority_gate_semantic_hash": "a763ac939fbe8940733697e294fb9a5d57f07d955bc5f804e58a0da235c8d5d7",
+      "authority_path": "docs/evidence/phase2-gate-receipt-20260801.json",
+      "authority_raw_sha256": "5bdf47acadf3dd152a03d512406b7f4230db7d66b24c623c5db1b75ea9ea6328",
+      "feature_id": "review.close",
+      "receipt_semantic_hash": "4613d0a3601e0402d7130da9a8eb6ea6ec00f9a6c5c5e9cab53182805bf56b1c",
+      "verdict": "CANNOT_CONFIRM"
+    },
+    {
+      "authority_gate_semantic_hash": "a763ac939fbe8940733697e294fb9a5d57f07d955bc5f804e58a0da235c8d5d7",
+      "authority_path": "docs/evidence/phase2-gate-receipt-20260801.json",
+      "authority_raw_sha256": "5bdf47acadf3dd152a03d512406b7f4230db7d66b24c623c5db1b75ea9ea6328",
+      "feature_id": "stage.workbench",
+      "receipt_semantic_hash": "523fcef91c9c21eb1ce744398bb96d7ad1d7aee1d803b54896e5eb357e5d6d21",
+      "verdict": "CANNOT_CONFIRM"
+    },
+    {
+      "authority_gate_semantic_hash": "089e5be76e62d214942dfcd4104e8ebd0274a2e9238ea331e4f095ea37d3092a",
+      "authority_path": "docs/evidence/phase3-gate-receipt-20260801.json",
+      "authority_raw_sha256": "04ebe48e00f6821e6a329918f85d3a8b8f719bd1b2bd5c6a2c70516b4acaf8ba",
+      "feature_id": "research.desk",
+      "receipt_semantic_hash": "4fa8eec75227620ccf2d6d5259780fd535ca4e267df7d9ab8d09a7ac0df5ef94",
+      "verdict": "CANNOT_CONFIRM"
+    }
+  ],
+  "phase": "PHASE_7",
+  "safety": {
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false,
+    "v3_written": false,
+    "windows_tasks_changed": false
+  },
+  "schema_version": "v3_5.phase7_inventory_checkpoint.v1",
+  "status": "AUDIT_COMPLETE_GATE_NOT_PASSED",
+  "validation": {
+    "frontend": {
+      "build": "PASS",
+      "typecheck": "PASS",
+      "vue_tests": {
+        "files_passed": 4,
+        "tests_passed": 24
+      }
+    },
+    "python_full_suite": {
+      "passed": 326,
+      "skipped": 1
+    },
+    "live_acceptance_and_gate_tests": {
+      "passed": 16
+    },
+    "terminal_inventory_tests": {
+      "passed": 9
+    }
+  }
+}

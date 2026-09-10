@@ -1,0 +1,45 @@
+{
+  "active_parity_receipt_semantic_hash": "5ec8689ce76a8963d2792afff21c64a4161c702a9005d467ec98500cb93d88de",
+  "business_date": "20260730",
+  "cannot_confirm": [
+    "BUILT_IN_BROWSER_CONTROL_UNAVAILABLE",
+    "SOURCE_SHA_MISMATCH_V3_V35",
+    "V3_STAGE_SNAPSHOT_HAS_NO_SEPARATE_MANIFEST"
+  ],
+  "claims": {
+    "business_parity_verified": false,
+    "deployed": false,
+    "integrated": false,
+    "ui_verified": false
+  },
+  "graph_baseline_semantic_hash": "8b4b933858f0e573b4d9f34423cd7aceeeb09dbf50cc826de0b18b712a4cbdd7",
+  "parity_authority_semantic_hash": "dfbf7a36d7fe3f0d02020dbc84a42ec31488aad76a4f74b56fabdf7dd4a97c7c",
+  "phase": "PHASE_1",
+  "safety": {
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "v3_5.phase_gate_receipt.v1",
+  "status": "PASS_WITH_DECLARED_CANNOT_CONFIRM",
+  "validation": {
+    "build": "PASS",
+    "concurrent_conflict_canary_rounds": 50,
+    "focused_python": {
+      "failed": 0,
+      "passed": 18
+    },
+    "full_python": {
+      "failed": 0,
+      "passed": 236,
+      "skipped": 1
+    },
+    "reviewer": "PASS",
+    "typecheck": "PASS",
+    "vue": {
+      "failed": 0,
+      "passed": 20
+    }
+  },
+  "gate_semantic_hash": "75f29112711be098c16c3da28da92add6baf5e97e7fc9e3b6bd0846ac29a0273"
+}

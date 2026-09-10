@@ -1,0 +1,66 @@
+{
+  "change_authority": {
+    "implementation_commit": "89ddcfc01999442c59b7c3fb25b0e5e5e64aebfa",
+    "path": "contracts/migration/preselection_optional_pools_v1.json",
+    "raw_sha256": "bb88f67e420b6bda9031b05dc5fcc50b9c80bc117008f314b95d927f0177457d",
+    "semantic_hash": "ec7c3faaa4024545c1a7fa4e93a9f9b0f9d9b9578d8d82f613e7156a27b8554b"
+  },
+  "claims": {
+    "current_performance_verified": true,
+    "current_rebenchmark_required": false,
+    "historical_phase6_pass_verified": true
+  },
+  "current_checkout": {
+    "business_contract_changed": [
+      {
+        "current_sha256": "076647baa1f7dbf14616eeefa479351f24ea55f739a692eb630178ef06fb13cd",
+        "frozen_sha256": "6514cce11848c07346a5f8fa6cee8f070812845e3117c11dfa8f39f9d29f7fcf",
+        "path": "contracts/migration/stage_0925_tdxpy_frozen_regression_v1.json",
+        "reason": "GRAPH_BOUND_V3_V11_PARITY_REMEDIATION"
+      },
+      {
+        "current_sha256": "22a44bfc920d31bff5196d6764fb2a30a1e534d411985bd53213ec979ed64e41",
+        "frozen_sha256": "21cae776801c3f9e5e762e41c386e70940a0714a58c30dfd525dab678a8c6a24",
+        "path": "domains/preselection.py",
+        "reason": "GRAPH_BOUND_PRESELECTION_POOL_REMEDIATION"
+      }
+    ],
+    "business_contract_unchanged_count": 7,
+    "observed_commit": "8c7ff01ade4f5d82db8adc5cb64c7038698888e5"
+  },
+  "current_rebenchmark": {
+    "contract": {
+      "path": "contracts/migration/phase6_current_checkout_rebenchmark_v1.json",
+      "raw_sha256": "067775314cfc5b2474c4c8f23be5a2a64c6300290efb754af4dbcc7ab13c1bf3",
+      "semantic_hash": "65a13051fda998a6e8f571a75f64ec7805ebf6a43c321b586e128a9656b77a5f"
+    },
+    "evidence": {
+      "path": "docs/evidence/phase6-current-checkout-rebenchmark-20260801.json",
+      "raw_sha256": "350a312f63c85b6c0d75b8948950f7ceabca8f37350d40240f92e0887ca7b746",
+      "semantic_hash": "54954654c9447fb41c65f4a4548f2bc0b3cc0473dd29d8a56b537e3684ef9fbe"
+    },
+    "status": "PASS"
+  },
+  "evidence_semantic_hash": "b03b5c421eb18851c8e5342ae4e7893a07f2870bec78b481db7dfbcb9a57bb1f",
+  "historical_phase6": {
+    "contract": {
+      "path": "contracts/migration/phase6_hourly_research_idempotency_contract_v1.json",
+      "raw_sha256": "b9c95b386c57b4c336ee802a791c02b9e808647ad028de84ec07487db396928d",
+      "semantic_hash": "b6515cd40e45d4704b0a19caa6144c5e06c4dde0a79ae5eb877b9fed64b146f7"
+    },
+    "evidence": {
+      "optimized_commit": "ce9b94199b06c8d489f72dd9ed8697cb9bbcf82f",
+      "path": "docs/evidence/phase6-hourly-research-idempotency-20260801.json",
+      "raw_sha256": "101faf96d8ddcec617bc0a235920c8cd3f717e70eaba18c6fb725e303ccba72d",
+      "semantic_hash": "2da6a2fa35eb12b6a36d1bc4a8e26296311f151b600e898d6441dd7a84611d62"
+    },
+    "status": "PASS_AT_OPTIMIZED_COMMIT"
+  },
+  "safety": {
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "v3_5.phase6_current_checkout_status.v1",
+  "status": "HISTORICAL_AND_CURRENT_PERFORMANCE_PASS"
+}

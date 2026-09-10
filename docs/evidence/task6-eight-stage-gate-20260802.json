@@ -1,0 +1,83 @@
+{
+  "schema_version": "v3_5.task6_eight_stage_gate.v1",
+  "gate_status": "PASS_AT_STAGE_SLICE_BOUNDARY",
+  "full_system_independence": false,
+  "blocks_production_takeover": true,
+  "legacy_final_api_used_as_input": false,
+  "legacy_v3_written": false,
+  "production_runtime_data_written": false,
+  "graph_sources": [
+    {
+      "path": "30_runtime/opening_advisor_8771/backend/services/stage_materializer.py",
+      "sha256": "a376ba0f776b89d3db4ae7c1d15c896bccc96efdfedf320f7106d4dc65f7ea5d"
+    },
+    {
+      "path": "30_runtime/opening_advisor_8771/scripts/materialize_hkconnect_rtdata_stage_replay.py",
+      "sha256": "80041e87894ebc8c65ca08bb8500cad0c2c13c55e3c0e3d62677e92a53841ebe"
+    },
+    {
+      "path": "30_runtime/opening_advisor_8771/backend/services/opening_second_filter_service.py",
+      "sha256": "4a1457127b27cb0b4556063c1dd8ad91c643ce5defb5bacb6f8f52b76c7304e3"
+    },
+    {
+      "path": "30_runtime/opening_advisor_8771/frontend/fupan_dashboard_v3.html",
+      "sha256": "be63e4c3890ec96ec81e39cab60048474399da264ae4351763cd18794d2382c5"
+    },
+    {
+      "path": "30_runtime/timeline_scheduler/collect_pytdx_stage_screening.py",
+      "sha256": "08b9a5c8ce5d163ec05d2b8d4778e0fdc3f2b79fc4b0686dd9f1518e17c90b9e"
+    }
+  ],
+  "stage_contract": {
+    "stage_count": 8,
+    "a_share_0925_path": "independent pools -> tdxpy exact-date auction -> a_share_v1_1_price_volume_adapter -> candidate -> selected",
+    "a_share_intraday_score": "clamp(50 + window_change_pct * 8 + close_position * 25 + min(amount / 100000000, 4) * 3 - coverage_penalty, 0, 100)",
+    "coverage_penalty": {
+      "complete": 0,
+      "partial": 18
+    },
+    "bar_windows": {
+      "STAGE_0930_0935": ["09:31", "09:35", 5],
+      "STAGE_0935_0940": ["09:36", "09:40", 5],
+      "STAGE_0940_0945": ["09:41", "09:45", 5],
+      "STAGE_0945_1030": ["09:46", "10:30", 45],
+      "STAGE_1300_1315": ["13:01", "13:15", 15],
+      "STAGE_1445_1500": ["14:46", "15:00", 15]
+    },
+    "hk_score_changed": false,
+    "model_or_threshold_changed": false
+  },
+  "canary_20260730": {
+    "input_mode": "frozen exact-date",
+    "requested_a": 147,
+    "source_a": 146,
+    "missing_codes": ["A.300333"],
+    "candidate_a": 50,
+    "selected_a": 50,
+    "requested_hk": 100,
+    "selected_hk": 10,
+    "pool_status": "INDEPENDENT_GRAPH_POOLS",
+    "selection_mode": "V3_5_NATIVE_STAGE_SCORE_V1",
+    "result": "PASS"
+  },
+  "tests": [
+    {
+      "scope": "eight-stage provider, scoring, input, run, quote, frozen 09:25 and V1.1 parity",
+      "passed": 51,
+      "failed": 0
+    },
+    {
+      "scope": "preselection regression after recursive safety normalization",
+      "passed": 35,
+      "failed": 0
+    }
+  ],
+  "ui_verified": false,
+  "ui_verified_reason": "Codex built-in browser control was unavailable; no substitute is claimed as UI evidence.",
+  "remaining_boundary": "Daily upstream producers, close-review/research chains, full runtime scheduling and built-in-browser parity remain later slices.",
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

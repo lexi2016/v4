@@ -1,0 +1,26 @@
+{
+  "schema_version": "v3_5.test_fixture_manifest.v1",
+  "fixture_id": "hkconnect_stage_replay_20260730",
+  "source_kind": "V3_LEGACY_READ_ONLY_AGGREGATED_REPLAY",
+  "trade_date": "20260730",
+  "stages": {
+    "STAGE_0930_0935": {
+      "relative_path": "20260730/STAGE_0930_0935/hkconnect_rtdata_stage_replay_20260730_STAGE_0930_0935.csv",
+      "sha256": "83b0cb0ca85a31ca974f42b9d0dc3540ba8cf84989e624a1465645a3769fbd66",
+      "row_count": 69
+    },
+    "STAGE_1300_1315": {
+      "relative_path": "20260730/STAGE_1300_1315/hkconnect_rtdata_stage_replay_20260730_STAGE_1300_1315.csv",
+      "sha256": "e35c4a8d756ff3432d01ba79705cefe530c8ecfecebb478d02df22bafce323f4",
+      "row_count": 2
+    },
+    "STAGE_1445_1500": {
+      "relative_path": "20260730/STAGE_1445_1500/hkconnect_rtdata_stage_replay_20260730_STAGE_1445_1500.csv",
+      "sha256": "8923320d6b224fea1d2a13da462c2c37a05359f4438d873766119bd134c0458a",
+      "row_count": 98
+    }
+  },
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

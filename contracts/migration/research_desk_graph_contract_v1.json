@@ -1,0 +1,174 @@
+{
+  "schema_version": "v3_5.research_desk_graph_contract.v1",
+  "atlas_semantic_hash": "912718015fba24d47dcac919b5720139666e3b5dfdf8e72a2236019badcdd033",
+  "graph_baseline_semantic_hash": "8b4b933858f0e573b4d9f34423cd7aceeeb09dbf50cc826de0b18b712a4cbdd7",
+  "feature_id": "research.desk",
+  "graph_node_ids": [
+    "task_spec:OpeningAdvisorV3_0830_MorningNews",
+    "task_spec:OpeningAdvisorV3_0830_ZsxqResearch",
+    "task_spec:OpeningAdvisorV3_0840_MorningNewsRetry",
+    "task_spec:OpeningAdvisorV3_1605_HKModelReview",
+    "task_spec:OpeningAdvisorV3_1700_AshareResearchPanel",
+    "task_spec:OpeningAdvisorV3_1720_HKConnectResearchPanel",
+    "task_spec:OpeningAdvisorV3_BaimaoXRefresh",
+    "task_spec:OpeningAdvisorV3_HourlyResearch_0700_2359",
+    "file:30_runtime/opening_advisor_8771/frontend/fupan_dashboard_v3.html",
+    "timeline_node:ashare_research_panel",
+    "timeline_node:baimao_x_refresh",
+    "timeline_node:hkconnect_model_selection_review",
+    "timeline_node:hkconnect_research_panel",
+    "timeline_node:hourly_research_delta",
+    "timeline_node:v3_hourly_research_delta_0730_1530",
+    "timeline_node:v3_premarket_news_jyg_0830",
+    "timeline_node:v3_premarket_news_jyg_0840_retry",
+    "timeline_node:v3_zsxq_research_0830",
+    "windows_task:OpeningAdvisorV3_0830_MorningNews",
+    "windows_task:OpeningAdvisorV3_0830_ZsxqResearch",
+    "windows_task:OpeningAdvisorV3_0840_MorningNewsRetry",
+    "windows_task:OpeningAdvisorV3_1605_HKModelReview",
+    "windows_task:OpeningAdvisorV3_1700_AshareResearchPanel",
+    "windows_task:OpeningAdvisorV3_1720_HKConnectResearchPanel",
+    "windows_task:OpeningAdvisorV3_BaimaoXRefresh",
+    "windows_task:OpeningAdvisorV3_HourlyResearch_0700_2359"
+  ],
+  "legacy_source_records": {
+    "hourly_orchestrator": {
+      "file_id": "file_4dc69e45e00d03f892076d75",
+      "path": "30_runtime/timeline_scheduler/run_hourly_research.py",
+      "atlas_sha256": "59d60552e76a32732521e64831cd52f822659963373a3124ef0c1e44975eefb4",
+      "current_sha256": "59d60552e76a32732521e64831cd52f822659963373a3124ef0c1e44975eefb4"
+    },
+    "research_service": {
+      "file_id": "file_28a0b2ad145a1ea891897ada",
+      "path": "30_runtime/opening_advisor_8771/backend/services/research_service.py",
+      "atlas_sha256": "e89a8c9eb69179538f9c23687ede90a22cb7e8012fe56e289fa356e64256287b",
+      "current_sha256": "e89a8c9eb69179538f9c23687ede90a22cb7e8012fe56e289fa356e64256287b"
+    },
+    "recommendation_pool": {
+      "file_id": "file_46fb0cc612db724028dc8465",
+      "path": "30_runtime/opening_advisor_8771/backend/services/research_recommendation_pool.py",
+      "atlas_sha256": "0f20bacb81d98b9a1aa669df114141241cb3960f1ac9435032fcf17030b37b5c",
+      "current_sha256": "c451560d9f383c11754eeef4776a0278619d56d99d7e89c1f85376e308e3fb71"
+    },
+    "frontend_dedupe_and_projection": {
+      "file_id": "file_b9abe278524355ae2028217c",
+      "path": "30_runtime/opening_advisor_8771/backend/services/v3_os_service.py",
+      "atlas_sha256": "0589d83d9145c6c004eb011d1b9d6761c42296619c4c7c75b3e54e123d9e97cd",
+      "current_sha256": "627af9b80794ead237c3e4836ea010b192160f717134d57055840a23846b16a2"
+    },
+    "research_router": {
+      "file_id": "file_ba7c909449b8d4428de5b7e9",
+      "path": "30_runtime/opening_advisor_8771/backend/routers/news_research.py",
+      "atlas_sha256": "b77fb2f3462950e79d073c19d0d1a5b97179b00c49ee46fc41ae3a90a000c020",
+      "current_sha256": "b77fb2f3462950e79d073c19d0d1a5b97179b00c49ee46fc41ae3a90a000c020"
+    },
+    "workbench_router": {
+      "file_id": "file_7eefb555b890e1cf6266d0c9",
+      "path": "30_runtime/opening_advisor_8771/backend/routers/v3_workbench.py",
+      "atlas_sha256": "db02384b0df0d57f32b6e4991db189c32f67d8393c5c526e7adafecaabf89904",
+      "current_sha256": "db02384b0df0d57f32b6e4991db189c32f67d8393c5c526e7adafecaabf89904"
+    },
+    "research_page": {
+      "file_id": "file_2e2eba99e86b0d4fb6563af1",
+      "path": "30_runtime/opening_advisor_8771/frontend/stock_research_os.html",
+      "atlas_sha256": "9b23c13db40eb20fa040067f5e3be49b4dbccc3ff8748f4c6ae728800a2c0c8d",
+      "current_sha256": "9b23c13db40eb20fa040067f5e3be49b4dbccc3ff8748f4c6ae728800a2c0c8d"
+    },
+    "research_admin_page": {
+      "file_id": "file_0f3528401878ed1e2275a349",
+      "path": "30_runtime/opening_advisor_8771/frontend/research-admin.html",
+      "atlas_sha256": "65782eab5cb3e522389ee2e998805e66983a4fbe826aa1f73fde52dbdbf33fd6",
+      "current_sha256": "65782eab5cb3e522389ee2e998805e66983a4fbe826aa1f73fde52dbdbf33fd6"
+    }
+  },
+  "frozen_input": {
+    "archive_date": "20260730",
+    "relative_path": "研报模块/runtime_outputs/latest/20260730/research_lane_snapshot.json",
+    "raw_sha256": "8ba8b92b6c85b977caac13390533fbf0aec05bfd4e52045229f0964a159be96c",
+    "source_counts": {
+      "stock_research_timeline": 1475,
+      "stock_research_daily": 205,
+      "research_pool_bridge": 205,
+      "cannot_confirm": 333
+    },
+    "normalized_counts": {
+      "articles": 336,
+      "stock_pool": 205
+    }
+  },
+  "frozen_semantics": {
+    "source_set": [
+      "08:30_MORNING_NEWS",
+      "ZSXQ_RESEARCH",
+      "FORMAL_POOL_RESEARCH_CHAIN",
+      "EXTERNAL_FINANCE_AND_AI"
+    ],
+    "dedupe_key_fields": [
+      "stock_code",
+      "source_title",
+      "url",
+      "source_path",
+      "source_name",
+      "claim_type_or_evidence_level"
+    ],
+    "timestamp_roles": {
+      "published_at": "source_published_at_or_event_time",
+      "collected_at": "last_checked_at_or_event_time",
+      "first_seen_at": "first_seen_at_or_event_time"
+    },
+    "legacy_timezone_semantics": "CANNOT_CONFIRM_MIXED_NAIVE_AND_OFFSET_AWARE",
+    "display_timezone": "Asia/Shanghai",
+    "legacy_runtime_path_policy": "REDACT_TO_SHA256_IDENTITY",
+    "stock_pool_limit": null,
+    "latest_fallback_allowed": false
+  },
+  "v35_endpoints": {
+    "exact": "GET /api/v3/research/articles?archive_date=YYYYMMDD",
+    "latest": "GET /api/v3/research/articles/latest",
+    "missing_status": "NOT_MATERIALIZED"
+  },
+  "v35_replacements": {
+    "contract": "contracts/research.py",
+    "domain": "domains/research.py",
+    "store": "infrastructure/research_store.py",
+    "offline_import": "ops/import_research_archive.py",
+    "api": "apps/api/v35_api/research_router.py",
+    "web": "apps/web/src/views/ResearchView.vue",
+    "python_tests": "tests/test_research_archive.py",
+    "web_tests": "apps/web/src/views/ResearchView.spec.ts"
+  },
+  "implemented_scope": [
+    "EXACT_DATE_ARCHIVE",
+    "EXPLICIT_LATEST_ONLY",
+    "FULL_GRAPH_DEDUPED_ARTICLE_ROWS",
+    "FULL_RESEARCH_STOCK_POOL",
+    "TIMEZONE_AWARE_ISO_8601",
+    "BACKFILL_REPLAY_DO_NOT_UPDATE_LATEST",
+    "TYPED_NOT_MATERIALIZED",
+    "NO_OLD_RUNTIME_PATH_IN_IMPORTED_ARTIFACT"
+  ],
+  "pending_scope": [
+    "LIVE_HOURLY_RESEARCH_PRODUCER",
+    "WINDOWS_TASK_CANARY",
+    "FIVE_TRADING_DAY_SHADOW_RUN",
+    "BUILT_IN_BROWSER_UI_VERIFICATION"
+  ],
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "parity_slice": {
+    "legacy_source_refs": [
+      {"path": "30_runtime/opening_advisor_8771/backend/services/research_service.py", "sha256": "e89a8c9eb69179538f9c23687ede90a22cb7e8012fe56e289fa356e64256287b"},
+      {"path": "30_runtime/opening_advisor_8771/frontend/fupan_dashboard_v3.html", "sha256": "be63e4c3890ec96ec81e39cab60048474399da264ae4351763cd18794d2382c5"}
+    ],
+    "raw_input_refs": [{"path": "研报模块/runtime_outputs/latest/20260730/research_lane_snapshot.json", "sha256": "8ba8b92b6c85b977caac13390533fbf0aec05bfd4e52045229f0964a159be96c", "origin": "LEGACY_FINAL_API", "use": "EXPECTED_ANSWER_ORACLE"}],
+    "business_date": "20260730",
+    "cutoff": "2026-07-30T23:59:59+08:00",
+    "v3_identities": {"producers": ["OpeningAdvisorV3_0830_MorningNews", "OpeningAdvisorV3_0830_ZsxqResearch", "OpeningAdvisorV3_HourlyResearch_0700_2359"], "api": ["GET /api/v3/research/articles?archive_date=YYYYMMDD", "GET /api/v3/research/articles/latest"], "dom": ["#researchBtn", "#researchPanel", "#researchContent"]},
+    "expected_v3_behavior": ["exact archive-date request is isolated", "latest is explicit and has no cross-date fallback", "research remains non-trading and does not update BUY gate"],
+    "allowed_paths": ["apps/api/v35_api/research_router.py", "apps/web/src/views/ResearchView.vue", "contracts/research.py", "domains/research.py", "infrastructure/research_store.py"],
+    "rules": {"PASS": ["API lane is PASS", "artifact manifest lane is PASS", "visible page lane is PASS"], "REJECT": ["LEGACY_FINAL_API used for LIVE", "critical CANNOT_CONFIRM", "missing graph source raw input behavior DOM or rule evidence"]},
+    "expected_gate_classification": "EXPECTED_FAIL_NOT_PARITY"
+  },
+  "semantic_hash": "45f00037a5d91c08ae76ce3bdb147bc730821183b52c14f759953e0c9b86cd11"
+}

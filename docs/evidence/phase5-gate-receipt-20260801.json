@@ -1,0 +1,106 @@
+{
+  "schema_version": "v3_5.phase_gate_receipt.v1",
+  "phase": "PHASE_5",
+  "status": "PASS",
+  "implementation_commit": "4ac6220",
+  "entrypoint_classification_commit": "714d5bf",
+  "audit_contract": "contracts/migration/phase5_runtime_governance_audit_v1.json",
+  "audit_contract_raw_sha256": "f52d0074759a64b241ff709f4a4897e3ac24f6a57259347f888e5316acd34dc5",
+  "audit_semantic_hash": "9caf50d9dd2258bfae1e49686dcff3f29ec9765d2bf669c551d7c4c2f8d666f7",
+  "input_raw_sha256": {
+    "graph": "2b64aeb6277dcbf17b649fd2ee2e98cefacc2397b4a3e77d0b745eac619e586b",
+    "inventory_v2": "d435508567a90d8649040deb529d5b74db87cddbdca0996e78c6bbe8a50bf336",
+    "runtime_catalog": "2e21fbc365f565b31384bf36feb771a26d7e2acea8a1c1ec2e58f3f22f7734db"
+  },
+  "counts": {
+    "actual_windows_tasks": 36,
+    "canonical_task_specs": 35,
+    "catalog_workloads": 5,
+    "task_registrations": 34,
+    "timeline_nodes": 34,
+    "launcher_files": 33,
+    "runtime_inventory_records": 69,
+    "entrypoints": 90,
+    "exact_catalog_tasks": 1,
+    "registered_disabled_tasks": 34,
+    "exact_entrypoints": 2,
+    "registered_entrypoints": 66,
+    "owner_only_entrypoints": 22,
+    "unresolved_entrypoints": 0,
+    "unexplained_entrypoints": 0,
+    "enabled_runner_commands_available": 1,
+    "blocking_gaps": 0
+  },
+  "approved_cannot_confirm": {
+    "registered_task_count": 34,
+    "disposition": "USER_APPROVED_DISABLED_CANNOT_CONFIRM",
+    "execution_allowed": false,
+    "extra_runtime_graph_collector_unchanged": true,
+    "missing_launcher_tasks_unchanged": 2
+  },
+  "hourly_research_runner": {
+    "workload_id": "hourly_research",
+    "module": "ops.run_hourly_research",
+    "input_contract": "FROZEN_BYTES_PLUS_SHA256",
+    "point_in_time_cutoff_required": true,
+    "mode_namespaces": [
+      "LIVE",
+      "REPLAY",
+      "BACKFILL"
+    ],
+    "latest_policy": "LIVE_ONLY_MONOTONIC",
+    "missing_input_status": "NOT_MATERIALIZED",
+    "legacy_v3_runtime_dependency": false
+  },
+  "validation": {
+    "full_python": {
+      "passed": 305,
+      "failed": 0,
+      "skipped": 1
+    },
+    "focused_phase5_runtime_research": {
+      "passed": 80,
+      "failed": 0
+    },
+    "reviewer_hourly_and_archive": {
+      "passed": 25,
+      "failed": 0
+    },
+    "reviewer": "PASS_P1_0_P2_0_P3_0",
+    "frontend_frozen_phase5c": {
+      "tests_passed": 24,
+      "typecheck": "PASS",
+      "build": "PASS",
+      "source_commit": "88c4964",
+      "current_slice_frontend_files_changed": false
+    },
+    "commands": {
+      "full_python": "python -m pytest -q",
+      "focused_phase5_runtime_research": "python -m pytest tests/test_hourly_research_runner.py tests/test_research_archive.py tests/test_runtime_workload_catalog.py tests/test_phase5_runtime_governance_audit.py tests/test_runtime_dispatcher.py tests/test_task_status_api.py -q",
+      "gate_binding": "python -m pytest tests/test_phase5_gate_receipt.py tests/test_phase5_runtime_governance_audit.py -q"
+    }
+  },
+  "claims": {
+    "implemented": true,
+    "tested": true,
+    "integrated": true,
+    "phase5_complete": true,
+    "deployed": false,
+    "ui_verified": false,
+    "business_parity_verified": false
+  },
+  "mutations": {
+    "legacy_v3_modified": false,
+    "business_runners_executed": false,
+    "windows_tasks_modified": false,
+    "live_business_artifacts_created": false
+  },
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "model_capability_routing": "contracts/migration/model_capability_routing_v1.json",
+  "next_phase": "PHASE_6",
+  "gate_semantic_hash": "92a92de16637a7ab0bab4489d70270d4192087fbd3d9c601965e16062dc15e36"
+}

@@ -1,0 +1,15 @@
+{
+  "schema_version": "v3_5.review_evidence_layers_contract.v1",
+  "rich_fields": [
+    "summary_cards", "market_rows", "prior_plan_rows", "board_rows", "anchor_rows",
+    "anchor_role_v3_rows", "intraday_handoff_rows", "catalyst_rows", "trigger_rows",
+    "scenario_tree_rows", "video", "video_gap_rows", "source_status_rows",
+    "formal_pool_validation", "rule_adoption_rows", "video_learning_rows",
+    "cannot_confirm_items"
+  ],
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

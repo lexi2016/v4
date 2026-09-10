@@ -1,0 +1,87 @@
+{
+  "cannot_confirm": [
+    "BUSINESS_PARITY_SOURCE_SHA_MISMATCH",
+    "LEGACY_MIXED_TIMEZONE_ASSUMED_ASIA_SHANGHAI",
+    "LEGACY_WEEKEND_HOLIDAY_ARCHIVE_SAMPLES_NOT_FOUND",
+    "LIVE_HOURLY_RESEARCH_PRODUCER_NOT_STARTED"
+  ],
+  "claims": {
+    "artifact_lane_verified": true,
+    "business_parity_verified": false,
+    "deployed": false,
+    "implemented": true,
+    "integrated": true,
+    "live_api_lane_verified": true,
+    "local_deployed": true,
+    "page_lane_verified": true,
+    "tested": true,
+    "ui_verified": true,
+    "user_final_acceptance": false
+  },
+  "commits": [
+    "b3e6e4d",
+    "504d6c3",
+    "c789d5d04586c20b3938442143a8e04f12f38f01"
+  ],
+  "graph_baseline_semantic_hash": "8b4b933858f0e573b4d9f34423cd7aceeeb09dbf50cc826de0b18b712a4cbdd7",
+  "outcomes": {
+    "research_archive": {
+      "article_count": 336,
+      "archive_date": "20260730",
+      "legacy_runtime_paths_redacted": 2,
+      "mode": "BACKFILL",
+      "raw_timeline_count": 1475,
+      "stock_pool_count": 205
+    },
+    "research_contract": {
+      "exact_date_isolated": true,
+      "latest_materialized": false,
+      "not_materialized_typed": true,
+      "timezone": "Asia/Shanghai",
+      "exact_page_article_count": 336,
+      "exact_page_stock_pool_count": 205,
+      "latest_missing_placeholder_visible": true,
+      "loading_ended": true
+    }
+  },
+  "live_acceptance": {
+    "path": "docs/evidence/phase2-live-browser-acceptance-20260801.json",
+    "semantic_hash": "633bd9b4afe18cee3cd24c331c82b37011ea7243f28883af7c26d5f2a878110f",
+    "status": "PASS_LOCAL_DEPLOYMENT_API_AND_PAGE_WITH_DECLARED_PARITY_GAPS"
+  },
+  "parity_receipts": {
+    "research.desk": {
+      "authority_semantic_hash": "36aada7fdc73222b38a0bd1c25a0a5e41248cc558e75383eb4e3941031e7caa7",
+      "receipt_semantic_hash": "4fa8eec75227620ccf2d6d5259780fd535ca4e267df7d9ab8d09a7ac0df5ef94",
+      "verdict": "CANNOT_CONFIRM"
+    }
+  },
+  "phase": "PHASE_3",
+  "safety": {
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "v3_5.phase_gate_receipt.v1",
+  "status": "PASS_WITH_DECLARED_CANNOT_CONFIRM",
+  "validation": {
+    "build": "PASS",
+    "codex_in_app_browser": "PASS",
+    "focused_research": {
+      "failed": 0,
+      "passed": 4
+    },
+    "full_python": {
+      "failed": 0,
+      "passed": 254,
+      "skipped": 1
+    },
+    "reviewer": "PASS_NO_P1_P2_P3",
+    "typecheck": "PASS",
+    "vue": {
+      "failed": 0,
+      "passed": 24
+    }
+  },
+  "gate_semantic_hash": "089e5be76e62d214942dfcd4104e8ebd0274a2e9238ea331e4f095ea37d3092a"
+}

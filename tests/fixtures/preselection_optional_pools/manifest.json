@@ -1,0 +1,139 @@
+{
+  "schema_version": "v3_5.test_fixture_manifest.v1",
+  "fixture_id": "preselection_optional_pools_20260730",
+  "source_kind": "V3_GIT_AND_FORMAL_READ_ONLY_FROZEN_INPUTS",
+  "trade_date": "20260730",
+  "base_payload": {
+    "relative_path": "base_20260730.json",
+    "sha256": "2dcad50851265ba3f93bf1a0f18f6ad70f8ed544d7f3e9e5bb9df87593d008ca",
+    "row_count": 259
+  },
+  "overlay_payload": {
+    "relative_path": "overlay_20260730.json",
+    "sha256": "14065b23bb04d8e8a9fd9050798cd5aa503906b1687ace8b18103f4a06952fa5",
+    "row_count": 43,
+    "pool_id": "wechat_public_account_v3_preselect"
+  },
+  "files": {
+    "receipt": {
+      "original_path": "docs/evidence/phase2-preselection-optional-pools-remediation-20260801.json",
+      "relative_path": "receipt_20260801.json",
+      "sha256": "bc7b49ce42af470c7590e65fca599c2f61a85a5396a099eb79d5ead2b2154ec6"
+    },
+    "live_acceptance": {
+      "original_path": "docs/evidence/phase2-live-browser-acceptance-20260801.json",
+      "relative_path": "live_acceptance_20260801.json",
+      "sha256": "cf7b278e65ab3c0458fd88dee75897f2ff5e9155966d7bfdde851adb725a44fb"
+    },
+    "contract": {
+      "original_path": "contracts/migration/preselection_optional_pools_v1.json",
+      "relative_path": "commits/764333395cf67375743f003d6b23816430471099/contracts/migration/preselection_optional_pools_v1.json",
+      "sha256": "bb88f67e420b6bda9031b05dc5fcc50b9c80bc117008f314b95d927f0177457d"
+    },
+    "domain": {
+      "original_path": "domains/preselection.py",
+      "relative_path": "commits/89ddcfc01999442c59b7c3fb25b0e5e5e64aebfa/domains/preselection.py",
+      "sha256": "22a44bfc920d31bff5196d6764fb2a30a1e534d411985bd53213ec979ed64e41"
+    },
+    "overlay_store": {
+      "original_path": "infrastructure/preselection_overlay_store.py",
+      "relative_path": "commits/89ddcfc01999442c59b7c3fb25b0e5e5e64aebfa/infrastructure/preselection_overlay_store.py",
+      "sha256": "da8a2514c65658fc4230292366bba1e76805c6110f9c04bec365e84a4cee4da0"
+    },
+    "importer": {
+      "original_path": "ops/import_preselection_overlays.py",
+      "relative_path": "commits/8c7ff01ade4f5d82db8adc5cb64c7038698888e5/ops/import_preselection_overlays.py",
+      "sha256": "4ba53d4f5bff3e2da1eda044efc18a6080bfc801d6b0c01a24a97d41cfbf0448"
+    },
+    "page": {
+      "original_path": "apps/web/src/App.vue",
+      "relative_path": "commits/8c7ff01ade4f5d82db8adc5cb64c7038698888e5/apps/web/src/App.vue",
+      "sha256": "97bb1363243435fc624458cd792e8e0298a927cb0a701d9083da764490f1b6b3"
+    },
+    "base_payload": {
+      "original_path": ".runtime/data/preselection/20260730.json",
+      "relative_path": "base_20260730.json",
+      "sha256": "2dcad50851265ba3f93bf1a0f18f6ad70f8ed544d7f3e9e5bb9df87593d008ca"
+    },
+    "base_import_receipt": {
+      "original_path": "receipts/20260730.json",
+      "relative_path": "base_receipt_20260730.json",
+      "sha256": "a84e73c42a94875370a15c4f1dbb3155639946dc13707af7c020510b51be305f"
+    },
+    "overlay_payload": {
+      "original_path": ".runtime/data/preselection_overlays/20260730.json",
+      "relative_path": "overlay_20260730.json",
+      "sha256": "14065b23bb04d8e8a9fd9050798cd5aa503906b1687ace8b18103f4a06952fa5"
+    },
+    "overlay_manifest": {
+      "original_path": ".runtime/data/preselection_overlays/manifest.json",
+      "relative_path": "overlay_manifest_20260730.json",
+      "sha256": "24bb5592d2312b06cc46c19cb034aef45d069e8ce67786b878d76ac53c131595"
+    },
+    "overlay_receipt": {
+      "original_path": ".runtime/data/preselection_overlays/receipts/20260730.json",
+      "relative_path": "overlay_receipt_20260730.json",
+      "sha256": "1955ac87302f83a4493752e5f532832d14e3582b579e68cd63b9155b3eb0460d"
+    }
+  },
+  "commits": {
+    "f1b2803b4260ad5a4b5d2902f3543e4678b15bdc": {
+      "commit": "f1b2803b4260ad5a4b5d2902f3543e4678b15bdc",
+      "role": "frozen_evaluation",
+      "files": {}
+    },
+    "89ddcfc01999442c59b7c3fb25b0e5e5e64aebfa": {
+      "commit": "89ddcfc01999442c59b7c3fb25b0e5e5e64aebfa",
+      "role": "implementation",
+      "files": {
+        "domains/preselection.py": {
+          "original_path": "domains/preselection.py",
+          "relative_path": "commits/89ddcfc01999442c59b7c3fb25b0e5e5e64aebfa/domains/preselection.py",
+          "sha256": "22a44bfc920d31bff5196d6764fb2a30a1e534d411985bd53213ec979ed64e41"
+        },
+        "infrastructure/preselection_overlay_store.py": {
+          "original_path": "infrastructure/preselection_overlay_store.py",
+          "relative_path": "commits/89ddcfc01999442c59b7c3fb25b0e5e5e64aebfa/infrastructure/preselection_overlay_store.py",
+          "sha256": "da8a2514c65658fc4230292366bba1e76805c6110f9c04bec365e84a4cee4da0"
+        }
+      }
+    },
+    "8c7ff01ade4f5d82db8adc5cb64c7038698888e5": {
+      "commit": "8c7ff01ade4f5d82db8adc5cb64c7038698888e5",
+      "role": "import_authority",
+      "files": {
+        "ops/import_preselection_overlays.py": {
+          "original_path": "ops/import_preselection_overlays.py",
+          "relative_path": "commits/8c7ff01ade4f5d82db8adc5cb64c7038698888e5/ops/import_preselection_overlays.py",
+          "sha256": "4ba53d4f5bff3e2da1eda044efc18a6080bfc801d6b0c01a24a97d41cfbf0448"
+        },
+        "apps/web/src/App.vue": {
+          "original_path": "apps/web/src/App.vue",
+          "relative_path": "commits/8c7ff01ade4f5d82db8adc5cb64c7038698888e5/apps/web/src/App.vue",
+          "sha256": "97bb1363243435fc624458cd792e8e0298a927cb0a701d9083da764490f1b6b3"
+        }
+      }
+    },
+    "c789d5d04586c20b3938442143a8e04f12f38f01": {
+      "commit": "c789d5d04586c20b3938442143a8e04f12f38f01",
+      "role": "live_acceptance",
+      "files": {}
+    },
+    "764333395cf67375743f003d6b23816430471099": {
+      "commit": "764333395cf67375743f003d6b23816430471099",
+      "role": "sealed_contract",
+      "files": {
+        "contracts/migration/preselection_optional_pools_v1.json": {
+          "original_path": "contracts/migration/preselection_optional_pools_v1.json",
+          "relative_path": "commits/764333395cf67375743f003d6b23816430471099/contracts/migration/preselection_optional_pools_v1.json",
+          "sha256": "bb88f67e420b6bda9031b05dc5fcc50b9c80bc117008f314b95d927f0177457d"
+        }
+      }
+    }
+  },
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

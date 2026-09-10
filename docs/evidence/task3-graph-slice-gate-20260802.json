@@ -1,0 +1,13 @@
+{
+  "schema_version": "v3_5.graph_slice_gate_evidence.v1",
+  "slice_contract": "contracts/migration/research_desk_graph_contract_v1.json",
+  "slice_semantic_hash": "45f00037a5d91c08ae76ce3bdb147bc730821183b52c14f759953e0c9b86cd11",
+  "classification": "EXPECTED_FAIL_NOT_PARITY",
+  "critical_cannot_confirm": [
+    "BUILT_IN_BROWSER_CONTROL_UNAVAILABLE",
+    "LEGACY_FINAL_API_EXPECTED_ANSWER_ORACLE_ONLY",
+    "NO_PASSING_ARTIFACT_API_PAGE_PARITY_RECEIPT"
+  ],
+  "lanes": {"artifact_manifest": "CANNOT_CONFIRM", "api": "CANNOT_CONFIRM", "visible_page": "CANNOT_CONFIRM"},
+  "safety": {"production_allowed": false, "buy_gate_updated": false, "orders_sent": false}
+}

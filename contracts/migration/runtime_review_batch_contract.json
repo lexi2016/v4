@@ -1,0 +1,187 @@
+{
+  "schema_version": "runtime_review_batch_contract.v1",
+  "phase": "PHASE_A",
+  "implementation_scope": "CALENDAR_DISPATCHER_TASK_IDENTITY_ONLY",
+  "bug_ids": ["037", "045", "046", "047", "048", "049"],
+  "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
+  "frozen_dates": {
+    "weekend": "20260725",
+    "weekend_after_cadence_change": "20260726",
+    "trading_day": "20260730"
+  },
+  "baseline": {
+    "branch": "codex/v3-5-full-rebuild-20260730",
+    "head": "6413467698d86696683d2ce95dad872729444b48",
+    "python_tests_passed": 123,
+    "web_tests_passed": 15,
+    "vue_typecheck_passed": true
+  },
+  "dirty_path_policy": {
+    "sha256_mode": "RAW_BYTES",
+    "scope": "PRE_EXISTING_GIT_DIRTY_FILES_ONLY",
+    "generated_and_ignored_paths_excluded": true,
+    "pre_edit_sha_must_match": true
+  },
+  "dirty_files": [
+    {
+      "status": "M",
+      "path": "apps/api/v35_api/app.py",
+      "sha256": "b85f11cf025894a570ff5e846fac7bb5e460eead5a787de054c32f8609aecec4"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/App.spec.ts",
+      "sha256": "d791ca48b027e479b4bea8ec1723cf3bd86c69793214c3db58a6e3caba9491c1"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/App.vue",
+      "sha256": "8e3b8782f56ed3f4d9b7ee9877a69649ad03cf3a1408309392ee2330a9458dc1"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/style.css",
+      "sha256": "1d34151830999c84b821058c50bc02dfe261ca61021f8a277d8e25eacf996038"
+    },
+    {
+      "status": "M",
+      "path": "contracts/migration/stage1_core_selection_contract.json",
+      "sha256": "d3a06e3b770994df0fe0e76148cd5e4d839d88732a0e07bae9e45da62897ca13"
+    },
+    {
+      "status": "M",
+      "path": "contracts/stages.py",
+      "sha256": "d1dcb3ed197486299578eb2a48190b95c1535ad9c0a998d14e450846edfa49ba"
+    },
+    {
+      "status": "M",
+      "path": "domains/close_review.py",
+      "sha256": "d5bfb738cd0c9980a7a70b6fa0fb0db0bcd30dcde7c07f7c70c6a51d597be8e1"
+    },
+    {
+      "status": "M",
+      "path": "domains/preselection.py",
+      "sha256": "b4e0e855b541b8dd22ef1acf92ac7092b9032221a87b3e62ec4c29ebc0e84b12"
+    },
+    {
+      "status": "M",
+      "path": "domains/stages.py",
+      "sha256": "e8ab6eabd4d29a57baaea6f003ffea1de66d990dea846c1b361eff81903ac405"
+    },
+    {
+      "status": "M",
+      "path": "infrastructure/review_store.py",
+      "sha256": "d1989b6fea9105bace9fbac7f215226a91545a33c3657e26b76be293a7503e54"
+    },
+    {
+      "status": "M",
+      "path": "tests/test_preselection_slice.py",
+      "sha256": "9c2a350b116b1fd59b8899111aef7ccefce93cb3eb5802919c54c229877a8bde"
+    },
+    {
+      "status": "M",
+      "path": "tests/test_stage1_graph_contract.py",
+      "sha256": "4385f191b2ef59b33288c4350dc38577685c779eccb046329a2c131720e444a8"
+    },
+    {
+      "status": "M",
+      "path": "tests/test_stage_runs.py",
+      "sha256": "64b09e22472dfe38587fcdd6fb063b63a2d198ca8f858b618a8114ef6ecad2ba"
+    },
+    {
+      "status": "??",
+      "path": "contracts/migration/opening_second_filter_v11_graph_contract.json",
+      "sha256": "495ce033b3f5320c50090bf6fc68ba71f622764c8a72e4e7f32d54f4d4aeab86"
+    },
+    {
+      "status": "??",
+      "path": "docs/superpowers/plans/2026-07-31-v35-runtime-and-review-remediation.md",
+      "sha256": "08f3cdf3273074c19b73cb5874b687c78b3b8603d5656413de5ada7a236e7369"
+    },
+    {
+      "status": "??",
+      "path": "domains/opening_second_filter.py",
+      "sha256": "3a93d6cd23007285a080788fb10c3f2908ddeb2daa0c4deced6171150244e822"
+    },
+    {
+      "status": "??",
+      "path": "infrastructure/hkconnect_close_store.py",
+      "sha256": "aea05a0ec8b4b42e6c140715fb1bf80ffcf49ded1f25f5bb59bc3c952bce4bf8"
+    },
+    {
+      "status": "??",
+      "path": "infrastructure/opening_second_filter_store.py",
+      "sha256": "aff6baea4250d109772787a106d934e121af92ce933b13c83cc3baad90653fa8"
+    },
+    {
+      "status": "??",
+      "path": "ops/build_close_review.py",
+      "sha256": "12bb459e7fa780b4379bd57d1331aa5f17c460bf9332efdf4f6460e1ba1057fe"
+    },
+    {
+      "status": "??",
+      "path": "ops/collect_hkconnect_close_snapshot.py",
+      "sha256": "a6075563fa5651b329c75c9df3bd8a5cb0350ccdbc7a50daa2b17adb6d5f7dde"
+    },
+    {
+      "status": "??",
+      "path": "ops/import_hkconnect_close_source.py",
+      "sha256": "b1e4b254fbb7936e05b3c12a80aefaf47bcf01372f79bfcc1230c6d93e877def"
+    },
+    {
+      "status": "??",
+      "path": "ops/import_opening_second_filter_v11.py",
+      "sha256": "070e5c5bed218ae51e32f2ca1dc7e97755f71e21eadfdf0ef0d36505cb83cba5"
+    },
+    {
+      "status": "??",
+      "path": "tests/test_close_review_producer.py",
+      "sha256": "f3b8d038ea6249dcc6ba4f14df2e048c241c46e5135273e19b587757dda3aad6"
+    },
+    {
+      "status": "??",
+      "path": "tests/test_opening_second_filter_graph_contract.py",
+      "sha256": "91e5edffd121bf1b99441fda5cdcaf8db661945f8e31edcff9225ad2b38e518f"
+    },
+    {
+      "status": "??",
+      "path": "tests/test_opening_second_filter_v11.py",
+      "sha256": "e9eeb9042b00de47a0ca877b43881c0549322312376ee9effa0a3d7a6790036d"
+    }
+  ],
+  "allowed_paths": [
+    "apps/api/v35_api/app.py",
+    "apps/api/v35_api/runtime_router.py",
+    "apps/web/src/App.spec.ts",
+    "apps/web/src/App.vue",
+    "apps/web/src/api/runtime.ts",
+    "apps/web/src/contracts/runtime.ts",
+    "apps/web/src/style.css",
+    "apps/web/src/views/TaskStatusView.spec.ts",
+    "apps/web/src/views/TaskStatusView.vue",
+    "contracts/market_calendar_2026.json",
+    "contracts/migration/runtime_review_batch_contract.json",
+    "contracts/runtime_tasks.py",
+    "contracts/runtime_workloads.json",
+    "contracts/trading_calendar.py",
+    "domains/runtime_policy.py",
+    "domains/task_status.py",
+    "infrastructure/scheduling/__init__.py",
+    "infrastructure/scheduling/catalog.py",
+    "infrastructure/scheduling/dispatcher.py",
+    "infrastructure/scheduling/execution_ledger.py",
+    "ops/launch_v35_dispatcher.ps1",
+    "ops/run_dispatcher.py",
+    "tests/test_runtime_dispatcher.py",
+    "tests/test_runtime_review_batch_contract.py",
+    "tests/test_runtime_workload_catalog.py",
+    "tests/test_task_status_api.py",
+    "tests/test_trading_calendar_policy.py"
+  ],
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "stop_rule": "STOP_AFTER_PHASE_A_USER_ACCEPTANCE"
+}

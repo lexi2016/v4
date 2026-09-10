@@ -1,0 +1,76 @@
+{
+  "business_date": "20260730",
+  "cannot_confirm": [
+    "BUILT_IN_BROWSER_CONTROL_UNAVAILABLE",
+    "LEGACY_EXACT_0925_TRANSACTION_EQUIVALENCE_NOT_PROVEN",
+    "V35_LIVE_SERVICE_NOT_RELOADED"
+  ],
+  "claims": {
+    "current_performance_verified": true,
+    "data_chain_counts_verified": true,
+    "deployed": false,
+    "frozen_v3_v11_model_parity_verified": true,
+    "legacy_live_source_parity_verified": false,
+    "ui_verified": false
+  },
+  "commits": {
+    "frozen_evaluation": "4fab283959572b7ef92e047aecdd946d7395f39e",
+    "model_remediation": "49d9055779f24c4a1b09e2f8914ca6bf7a064f2b",
+    "review_amendment": "96074e2563ff8d8edf248d0b24b20ed043161a1f",
+    "review_remediation": "dc6050fbe0845eda34215124e18c7164ad7411d3"
+  },
+  "evidence_semantic_hash": "c92e9833d46f8e4985d0b5ae61afa2e2d1209470d905159d5255b69c16551261",
+  "frozen_contracts": {
+    "data_chain": {
+      "path": "contracts/migration/stage_0925_tdxpy_frozen_regression_v1.json",
+      "raw_sha256": "076647baa1f7dbf14616eeefa479351f24ea55f739a692eb630178ef06fb13cd",
+      "semantic_hash": "3d5eb5b6b828cc0a4e4d9e444f18ace3fb8a61be7b001b8f5aeea2ec45ee0dd7"
+    },
+    "model_parity": {
+      "path": "contracts/migration/stage_0925_v11_adapter_parity_v1.json",
+      "raw_sha256": "018edc1715aeb5e7b3c648a37ab36bbba11ea057bd08852597ebb8ad6085e8ed",
+      "semantic_hash": "fe87285b551bf01161f796ef0544c24cc2b5e7b79696b9838c7ed1b9cd6cf8c8"
+    }
+  },
+  "implementation": {
+    "adapter_path": "domains/opening_second_filter.py",
+    "adapter_sha256": "9617e64f0dd7294a4700cdd6a3aafbc544c202f8589c7a81ba49c7520ad3d666",
+    "input_order_preserved": true,
+    "strategy": "a_share_v1_1_price_volume_adapter"
+  },
+  "outcomes": {
+    "candidate_a": 50,
+    "missing_symbols": [
+      "A.300333"
+    ],
+    "model_projection_sha256": "7f9672575202efc6065c31a6e26ee23cbb2c360c4e1115075f84631f24695a8c",
+    "model_version": "1.1",
+    "requested_a": 147,
+    "selected_a": 50,
+    "source_a": 146,
+    "source_method": "pytdx.hq.get_history_transaction_data"
+  },
+  "performance_status": {
+    "path": "docs/evidence/phase6-current-checkout-status-20260801.json",
+    "semantic_hash": "b03b5c421eb18851c8e5342ae4e7893a07f2870bec78b481db7dfbcb9a57bb1f",
+    "status": "HISTORICAL_AND_CURRENT_PERFORMANCE_PASS"
+  },
+  "safety": {
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false,
+    "v3_written": false,
+    "windows_tasks_changed": false
+  },
+  "schema_version": "v3_5.phase2_stage_0925_remediation.v1",
+  "status": "PASS_FROZEN_MODEL_PARITY_WITH_RUNTIME_GAPS",
+  "validation": {
+    "focused_tests": {
+      "passed": 49
+    },
+    "full_python": {
+      "passed": 343,
+      "skipped": 1
+    }
+  }
+}

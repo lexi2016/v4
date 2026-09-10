@@ -1,0 +1,130 @@
+{
+  "schema_version": "v3_5.phase2_preselection_optional_pools_remediation.v1",
+  "status": "PASS_FROZEN_ARTIFACT_API_AND_PAGE_WITH_DECLARED_PARITY_GAPS",
+  "business_date": "20260730",
+  "feature_id": "preselection.pools",
+  "graph_baseline_semantic_hash": "8b4b933858f0e573b4d9f34423cd7aceeeb09dbf50cc826de0b18b712a4cbdd7",
+  "commits": {
+    "frozen_evaluation": "f1b2803b4260ad5a4b5d2902f3543e4678b15bdc",
+    "implementation": "89ddcfc01999442c59b7c3fb25b0e5e5e64aebfa",
+    "import_authority": "8c7ff01ade4f5d82db8adc5cb64c7038698888e5",
+    "live_acceptance": "c789d5d04586c20b3938442143a8e04f12f38f01",
+    "sealed_contract": "764333395cf67375743f003d6b23816430471099"
+  },
+  "contract": {
+    "path": "contracts/migration/preselection_optional_pools_v1.json",
+    "raw_sha256": "bb88f67e420b6bda9031b05dc5fcc50b9c80bc117008f314b95d927f0177457d",
+    "semantic_hash": "ec7c3faaa4024545c1a7fa4e93a9f9b0f9d9b9578d8d82f613e7156a27b8554b"
+  },
+  "implementation": {
+    "domain": {
+      "path": "domains/preselection.py",
+      "sha256": "22a44bfc920d31bff5196d6764fb2a30a1e534d411985bd53213ec979ed64e41"
+    },
+    "overlay_store": {
+      "path": "infrastructure/preselection_overlay_store.py",
+      "sha256": "da8a2514c65658fc4230292366bba1e76805c6110f9c04bec365e84a4cee4da0"
+    },
+    "importer": {
+      "path": "ops/import_preselection_overlays.py",
+      "sha256": "4ba53d4f5bff3e2da1eda044efc18a6080bfc801d6b0c01a24a97d41cfbf0448"
+    },
+    "page": {
+      "path": "apps/web/src/App.vue",
+      "sha256": "9a0d6ec826b624de36840d07358851d06311356deeecadfabbffca8393359686"
+    }
+  },
+  "frozen_inputs": {
+    "base_payload": {
+      "path": ".runtime/data/preselection/20260730.json",
+      "raw_sha256": "2dcad50851265ba3f93bf1a0f18f6ad70f8ed544d7f3e9e5bb9df87593d008ca",
+      "row_count": 259
+    },
+    "wechat_manifest_raw_sha256": "26f766d6877fdf029adfd08099c4b581189345d8bd56d8251ddd5b425e228157",
+    "wechat_rows_raw_sha256": "e49f21f529981f95b0f8f96f6fa48f75d695a8317610f6d5564a03f0bee6b97a",
+    "wechat_row_count": 43
+  },
+  "materialized_overlay": {
+    "payload": {
+      "path": ".runtime/data/preselection_overlays/20260730.json",
+      "raw_sha256": "14065b23bb04d8e8a9fd9050798cd5aa503906b1687ace8b18103f4a06952fa5"
+    },
+    "manifest": {
+      "path": ".runtime/data/preselection_overlays/manifest.json",
+      "raw_sha256": "24bb5592d2312b06cc46c19cb034aef45d069e8ce67786b878d76ac53c131595"
+    },
+    "receipt": {
+      "path": ".runtime/data/preselection_overlays/receipts/20260730.json",
+      "raw_sha256": "1955ac87302f83a4493752e5f532832d14e3582b579e68cd63b9155b3eb0460d"
+    },
+    "idempotent_reimport_sha256": "14065b23bb04d8e8a9fd9050798cd5aa503906b1687ace8b18103f4a06952fa5"
+  },
+  "in_process_api": {
+    "canonical_payload_sha256": "f16cea079cfc502e0e76a84bf57691110b63c0de3a2ae2007add39d3df946fe5",
+    "pool_order": [
+      "a_d1_premarket_pool",
+      "a_d1_fupan_watchlist_pool",
+      "a_d1_stage7_fenshi_review_pool",
+      "a_share_research_recommendation_pool",
+      "a_share_baimao_research_map",
+      "hkconnect_d1_top100",
+      "wechat_public_account_v3_preselect"
+    ],
+    "pool_sizes": [19, 64, 70, 6, 0, 100, 43],
+    "pool_count": 7,
+    "row_count": 302,
+    "unified_row_count": 19,
+    "a_all_pool_row_count": 186,
+    "optional_pool_status": "MATERIALIZED_RESEARCH_ONLY"
+  },
+  "live_runtime_observation": {
+    "status": "PASS_CURRENT_SERVICE_RELOADED",
+    "payload_sha256": "f16cea079cfc502e0e76a84bf57691110b63c0de3a2ae2007add39d3df946fe5",
+    "pool_count": 7,
+    "row_count": 302
+  },
+  "live_acceptance": {
+    "path": "docs/evidence/phase2-live-browser-acceptance-20260801.json",
+    "semantic_hash": "633bd9b4afe18cee3cd24c331c82b37011ea7243f28883af7c26d5f2a878110f",
+    "status": "PASS_LOCAL_DEPLOYMENT_API_AND_PAGE_WITH_DECLARED_PARITY_GAPS"
+  },
+  "validation": {
+    "full_python": {
+      "passed": 387,
+      "skipped": 1
+    },
+    "python_focused": {
+      "passed": 40
+    },
+    "vue": {
+      "test_files_passed": 4,
+      "tests_passed": 24,
+      "typecheck": "PASS",
+      "build": "PASS"
+    }
+  },
+  "claims": {
+    "base_payload_unchanged": true,
+    "optional_overlay_materialized": true,
+    "seven_independent_pools_verified_in_process": true,
+    "stage_input_reads_base_only": true,
+    "cannot_confirm_visible_in_component_test": true,
+    "deployed": false,
+    "local_deployed": true,
+    "seven_independent_pools_verified_live": true,
+    "ui_verified": true,
+    "user_final_acceptance": false
+  },
+  "cannot_confirm": [
+    "BUSINESS_PARITY_SOURCE_SHA_MISMATCH",
+    "ORIGINAL_ATLAS_038_NOT_PRESENT"
+  ],
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "v3_written": false,
+    "windows_tasks_changed": false
+  },
+  "evidence_semantic_hash": "24a5f84a8c2af92b21961d9a0fc081f1e2b7027593fcf2eeaa85b1589efc77f6"
+}

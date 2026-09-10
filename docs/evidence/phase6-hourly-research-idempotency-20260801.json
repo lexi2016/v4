@@ -1,0 +1,93 @@
+{
+  "baseline": {
+    "article_count": 336,
+    "artifact_canonical_sha256": "bd2a9dd314e7edd47e77935889271bbaf2dd81a75cc77eef37145464f88cb668",
+    "code_commit": "a6fbf96e0d422fb1024a3374c37a8ef4a3c72577",
+    "derived_source_sha256": "62460168d82c2a0d17cac6d7b32d1052c3744e097fcc3a036f19b6fd8329e13a",
+    "durations_seconds": [
+      0.78003439999884,
+      0.8709151999937603,
+      0.7818583000043873,
+      0.800026800003252,
+      0.9402375999925425,
+      0.9271763999859104,
+      0.8502880000014557
+    ],
+    "iterations": 7,
+    "warmup_iterations": 1,
+    "median_seconds": 0.8502880000014557,
+    "p95_seconds": 0.9402375999925425,
+    "payload_sha256": "bd2a9dd314e7edd47e77935889271bbaf2dd81a75cc77eef37145464f88cb668",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python_version": "3.14.3",
+    "source_sha256": "8ba8b92b6c85b977caac13390533fbf0aec05bfd4e52045229f0964a159be96c",
+    "source_read_only": true,
+    "stock_pool_count": 205,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "business_date": "20260730",
+  "contract_freeze_commit": "276acc36f375691aa318e469cf12bd12348b1452",
+  "contract_projection_semantic_hash": "b6515cd40e45d4704b0a19caa6144c5e06c4dde0a79ae5eb877b9fed64b146f7",
+  "original_contract_semantic_hash": "0a1d0cf9157fe4b17e69064954781724ad2dfd3825acfc1a5933ead089d7f38e",
+  "evaluation": {
+    "artifact_canonical_sha256_unchanged": true,
+    "business_contract_sha256_unchanged": true,
+    "derived_input_sha256_unchanged": true,
+    "median_speedup_ratio": 0.21297760288381415,
+    "median_speedup_threshold": 0.2,
+    "p95_seconds_below_schedule_window": true,
+    "p95_to_baseline_ratio": 0.7782109543582701,
+    "p95_to_baseline_ratio_limit": 1.1,
+    "payload_sha256_unchanged": true,
+    "safety_flags_remain_false": true,
+    "source_sha256_unchanged": true
+  },
+  "evidence_semantic_hash": "2da6a2fa35eb12b6a36d1bc4a8e26296311f151b600e898d6441dd7a84611d62",
+  "exploratory_attempt": {
+    "accepted": false,
+    "code_commit": "2421ccf",
+    "median_seconds": 0.83723989999271,
+    "p95_seconds": 1.1103323999996064,
+    "reason": "median speedup was below 20 percent and p95 regressed"
+  },
+  "mode": "REPLAY",
+  "optimization_id": "phase6.hourly_research.content_addressed_idempotent_retry.v1",
+  "optimized": {
+    "article_count": 336,
+    "artifact_canonical_sha256": "bd2a9dd314e7edd47e77935889271bbaf2dd81a75cc77eef37145464f88cb668",
+    "code_commit": "ce9b94199b06c8d489f72dd9ed8697cb9bbcf82f",
+    "derived_source_sha256": "62460168d82c2a0d17cac6d7b32d1052c3744e097fcc3a036f19b6fd8329e13a",
+    "durations_seconds": [
+      0.6986061000061454,
+      0.6691957000002731,
+      0.7124530000000959,
+      0.731703200013726,
+      0.6536496000044281,
+      0.625865399997565,
+      0.6570637999975588
+    ],
+    "iterations": 7,
+    "warmup_iterations": 1,
+    "median_seconds": 0.6691957000002731,
+    "p95_seconds": 0.731703200013726,
+    "payload_sha256": "bd2a9dd314e7edd47e77935889271bbaf2dd81a75cc77eef37145464f88cb668",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python_version": "3.14.3",
+    "source_sha256": "8ba8b92b6c85b977caac13390533fbf0aec05bfd4e52045229f0964a159be96c",
+    "source_read_only": true,
+    "stock_pool_count": 205,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "safety": {
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "v3_5.phase6_performance_evidence.v1",
+  "slot": "2310",
+  "status": "PASS"
+}

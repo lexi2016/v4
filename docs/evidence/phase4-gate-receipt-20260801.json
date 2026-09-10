@@ -1,0 +1,85 @@
+{
+  "cannot_confirm": [
+    "BUSINESS_PARITY_SOURCE_SHA_MISMATCH",
+    "DISABLED_RUNTIME_TASKS_HAVE_NO_EXECUTION_RECEIPTS",
+    "FULL_BILIBILI_ASR_OCR_GAP_GUARD_PUBLISH_CHAIN_NOT_MIGRATED",
+    "LEGACY_ATLAS_038_NOT_PRESENT",
+    "LEGACY_RESEARCH_MIXED_TIMEZONE_ASSUMED_ASIA_SHANGHAI",
+    "LEGACY_RESEARCH_WEEKEND_AND_HOLIDAY_ARCHIVE_SAMPLES_NOT_FOUND",
+    "LIVE_HOURLY_RESEARCH_PRODUCER_NOT_STARTED",
+    "TWO_REMOVE_PROPOSALS_REQUIRE_USER_APPROVAL",
+    "V4_TRADING_OVERVIEW_SIGNALS_GATES_RUN_CARDS_NOT_MIGRATED"
+  ],
+  "claims": {
+    "artifact_lane_verified_for_live_slices": true,
+    "business_parity_verified": false,
+    "deployed": false,
+    "implemented": true,
+    "integrated": true,
+    "live_api_lane_verified_for_live_slices": true,
+    "local_deployed": true,
+    "page_lane_verified_for_live_slices": true,
+    "tested": true,
+    "ui_verified": true,
+    "user_final_acceptance": false
+  },
+  "commit": "123b866",
+  "feature_counts": {
+    "compat": 4,
+    "keep": 5,
+    "remove_proposed": 2,
+    "total": 11
+  },
+  "feature_decisions": {
+    "navigation.dates": "KEEP",
+    "orphan.loadConsole": "COMPAT",
+    "orphan.loadMorningLane": "REMOVE_PROPOSED_USER_APPROVAL_REQUIRED",
+    "orphan.loadWechatLane": "REMOVE_PROPOSED_USER_APPROVAL_REQUIRED",
+    "preselection.pools": "KEEP",
+    "research.desk": "KEEP",
+    "review.close": "COMPAT",
+    "runtime.status": "KEEP",
+    "stage.model_review_close": "COMPAT",
+    "stage.workbench": "KEEP",
+    "tasks.registry": "COMPAT"
+  },
+  "graph_baseline_semantic_hash": "8b4b933858f0e573b4d9f34423cd7aceeeb09dbf50cc826de0b18b712a4cbdd7",
+  "live_acceptance": {
+    "path": "docs/evidence/phase2-live-browser-acceptance-20260801.json",
+    "semantic_hash": "633bd9b4afe18cee3cd24c331c82b37011ea7243f28883af7c26d5f2a878110f",
+    "status": "PASS_LOCAL_DEPLOYMENT_API_AND_PAGE_WITH_DECLARED_PARITY_GAPS"
+  },
+  "phase": "PHASE_4",
+  "phase4_contract_raw_sha256": "1f3cdcc996bdfc4dadfe32a9c8b8ec91a32b4f5c5c647e3b646f04e97470ca6d",
+  "phase4_contract_semantic_hash": "54a4678ddcfbb4f27e988defd24e7ef55db898665cf9d56fe431f9782d3e388a",
+  "safety": {
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "v3_5.phase_gate_receipt.v1",
+  "status": "PASS_WITH_DECLARED_CANNOT_CONFIRM",
+  "validation": {
+    "build": "PASS",
+    "focused_phase4": {
+      "failed": 0,
+      "passed": 47
+    },
+    "focused_phase4_current": {
+      "failed": 0,
+      "passed": 4
+    },
+    "full_python": {
+      "failed": 0,
+      "passed": 361,
+      "skipped": 1
+    },
+    "reviewer": "PASS_NO_P1_P2_P3",
+    "typecheck": "PASS",
+    "vue": {
+      "failed": 0,
+      "passed": 24
+    }
+  },
+  "gate_semantic_hash": "a5f7a72600fdfe45b700b5581f46dfadfefcb48c03bdbf33c6360dd11494398c"
+}

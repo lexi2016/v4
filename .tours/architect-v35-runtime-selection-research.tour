@@ -1,0 +1,115 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "V3.5 Runtime Selection and Research Architecture",
+  "description": "Trace the 19-point V3.5 timeline from launchd scheduling through exact-date producers, artifact evidence, API projections, page consumers, and the research-only safety boundary.",
+  "steps": [
+    {
+      "file": "ops/run_v35_macos_scheduler.py",
+      "line": 1,
+      "title": "macOS scheduler entry",
+      "description": "The scheduler is the launcher boundary for the immutable V3.5 release. Follow its slot dispatch before looking at any producer output."
+    },
+    {
+      "file": "contracts/runtime_workloads.json",
+      "line": 791,
+      "title": "Workload catalog",
+      "description": "The 19-point graph derives planned slots and workload identities from this contract, including stage, close-review, pool, and research owners."
+    },
+    {
+      "file": "infrastructure/scheduling/dispatcher.py",
+      "line": 1,
+      "title": "Typed dispatcher",
+      "description": "This is the LIVE/BACKFILL dispatch boundary. Its receipt and retry semantics determine whether a slot is truly complete."
+    },
+    {
+      "file": "infrastructure/scheduling/executor_registry.py",
+      "line": 1,
+      "title": "Executor registry",
+      "description": "The registry resolves a workload to a producer without allowing the page to invent a result when execution evidence is absent."
+    },
+    {
+      "file": "ops/a_share_daily_sync.py",
+      "line": 1,
+      "title": "A-share exact-date sync",
+      "description": "The bounded TDX sync verifies exact-date coverage and continuity; a stale pointer is a retryable failure rather than a healthy exit."
+    },
+    {
+      "file": "domains/preselection.py",
+      "line": 1,
+      "title": "Independent preselection projection",
+      "description": "Pool semantics stay date-bound and independent. The A summary is not evidence that a missing HK or WeChat pool was produced."
+    },
+    {
+      "file": "stage_center/acquisition.py",
+      "line": 1,
+      "title": "Stage acquisition bindings",
+      "description": "The acquisition plan carries separate A and HK universe bindings, so one market can remain CANNOT_CONFIRM without blocking the other."
+    },
+    {
+      "file": "stage_center/collectors.py",
+      "line": 1,
+      "title": "Independent A/HK collectors",
+      "description": "Collectors consume the lane-specific exact-date bindings and return independent source rows, evidence, and failure reasons before selection."
+    },
+    {
+      "file": "stage_center/runner.py",
+      "line": 1,
+      "title": "Stage Center runner",
+      "description": "The runner materializes raw and selection evidence per lane and publishes a truthful combined status such as PARTIAL_WITH_ROWS."
+    },
+    {
+      "file": "ops/collect_hourly_research_input.py",
+      "line": 1,
+      "title": "Hourly research collection",
+      "description": "Hourly inputs are PIT/date-bound and recovery-aware. A failed peripheral feed must not force successful sources to rerun."
+    },
+    {
+      "file": "infrastructure/research_peripheral_store.py",
+      "line": 1,
+      "title": "Research source store",
+      "description": "The store preserves source receipts and immutable recovery lineage so a same-slot replacement can be audited by SHA."
+    },
+    {
+      "file": "infrastructure/runtime_graph/v35_topology.py",
+      "line": 1,
+      "title": "Generated graph engine",
+      "description": "This module parses App timeline arrays and workload contracts, then emits the deterministic 19-chain graph rather than maintaining a second scheduler map."
+    },
+    {
+      "file": "contracts/v35_runtime_graph_topology.json",
+      "line": 1,
+      "title": "Machine-readable topology contract",
+      "description": "The contract records baseline SHA, semantic SHA, role nodes, fixed edge vocabulary, artifact trio, current/latest pointers, and all 19 chains."
+    },
+    {
+      "file": "infrastructure/runtime_graph/v35_bindings.py",
+      "line": 1,
+      "title": "Separate live binding seam",
+      "description": "Live release, plist, process, and state evidence is intentionally separate. Without verified probes the snapshot stays CANNOT_CONFIRM."
+    },
+    {
+      "file": "apps/api/v35_api/app.py",
+      "line": 1,
+      "title": "Read-only API boundary",
+      "description": "The API projects exact-date pools, stages, reviews, and research lanes; HTTP success alone does not replace artifact and receipt validation."
+    },
+    {
+      "file": "apps/web/src/App.vue",
+      "line": 10,
+      "title": "19-point page timeline",
+      "description": "The App source is the page consumer and the source of truth for the visible eight stages plus eleven close/review positions."
+    },
+    {
+      "file": "apps/web/src/views/ResearchView.vue",
+      "line": 1,
+      "title": "Research page consumer",
+      "description": "Research panels consume date-bound lane data; a missing peripheral or core artifact remains visible as an evidence gap."
+    },
+    {
+      "file": "docs/v35-runtime-selection-research-graph.md",
+      "line": 1,
+      "title": "Root-cause map and safety boundary",
+      "description": "The final map ties the five recurring failure chains together and keeps old V3 design-only, current V3.5 live binding separate, and all work RESEARCH_ONLY."
+    }
+  ]
+}

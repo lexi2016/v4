@@ -1,0 +1,115 @@
+{
+  "schema_version": "v3_5.phase_gate_receipt.v1",
+  "phase": "PHASE_0",
+  "created_at": "2026-08-01T01:26:52.3580262+08:00",
+  "status": "PASS_STATIC_RECONCILIATION_ONLY",
+  "acceptance": {
+    "scope": "STATIC_GRAPH_RECONCILIATION_ONLY",
+    "static_reconciliation_accepted": true,
+    "runtime_accepted": false,
+    "deployment_accepted": false
+  },
+  "repository_baseline": {
+    "v35_branch": "codex/v3-5-full-rebuild-20260730",
+    "v35_head": "4c19c93fac6d2f8dda30966b653951abb7471d17",
+    "legacy_v3_head": "ceb90ce0457b0e30362f1c7aa7e97ab1684ce036",
+    "legacy_v3_tracked_dirty_count": 74,
+    "protected_v35_dirty_path_count": 21,
+    "protected_v35_dirty_baseline": "docs/evidence/phase0-takeover-dirty-baseline-20260801.json"
+  },
+  "frozen_inputs": {
+    "snapshot_id": "frozen_inputs_graph_baseline_v2_20260801T010442",
+    "mode": "FROZEN_RAW_BYTES",
+    "file_count": 343,
+    "missing_file_count": 0,
+    "manifest_semantic_hash": "6d357239d9b8ca5ef57ce7b3f555da671b48bb1bf8a9d6778b39c90327d25b9f",
+    "manifest_file_sha256": "85fb6cee9489e1b60928ba3efbe64451cdc7be904c631d4fcafcc8f52c2398f8",
+    "rebuild_baseline_equal": true,
+    "rebuild_inventory_equal": true
+  },
+  "artifacts": {
+    "graph_baseline": {
+      "path": "contracts/migration/v3_graph_baseline_v2.json",
+      "semantic_hash": "8b4b933858f0e573b4d9f34423cd7aceeeb09dbf50cc826de0b18b712a4cbdd7",
+      "file_sha256": "58785b0fd617b7866bb0e3c23dd3eed5340722d97d26ea45054edace361703ff"
+    },
+    "inventory_v2": {
+      "path": "contracts/migration/v35_replacement_inventory_v2.json",
+      "semantic_hash": "35b56c67db16ff6cd8de2ab6acd7d199dad58bb4da05c218c660622c841ae9de",
+      "file_sha256": "d435508567a90d8649040deb529d5b74db87cddbdca0996e78c6bbe8a50bf336"
+    },
+    "model_capability_routing": {
+      "path": "contracts/migration/model_capability_routing_v1.json",
+      "file_sha256": "37c849cdc3d0f44315316f53b01b298ab73a8d3b5fe14a0947a5fa0cad844803",
+      "sole_writer": "codex_sol"
+    }
+  },
+  "counts": {
+    "sources": 336,
+    "entrypoints": 90,
+    "runtime_tasks": 69,
+    "features": 11,
+    "graph_nodes_atlas": 426,
+    "graph_nodes_runtime": 783,
+    "graph_nodes_total": 1209,
+    "python_parse_errors": 0,
+    "unexplained_differences": 0,
+    "source_states": {
+      "MATCHES_ATLAS": 316,
+      "MODIFIED_SINCE_ATLAS": 20,
+      "MISSING": 0
+    },
+    "linked_runtime_tasks": 69,
+    "linked_features": 5,
+    "unreconciled_features": 6,
+    "runtime_findings": 4
+  },
+  "validation": [
+    {
+      "command": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q tests/test_graph_baseline_v2.py tests/test_model_capability_routing.py",
+      "result": "24 passed"
+    },
+    {
+      "command": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q",
+      "result": "218 passed, 1 skipped"
+    },
+    {
+      "command": "npm test",
+      "working_directory": "apps/web",
+      "result": "20 passed"
+    },
+    {
+      "command": "npm run typecheck",
+      "working_directory": "apps/web",
+      "result": "PASS"
+    },
+    {
+      "command": "npm run build",
+      "working_directory": "apps/web",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m pytest -q tests/test_runtime_dispatcher.py::test_two_dispatcher_processes_produce_one_selection_and_one_skip repeated 10 times",
+      "result": "10 passed",
+      "note": "A prior full-suite run had one non-reproducible Windows path-resolution failure; no dispatcher code was changed and the final full suite passed."
+    }
+  ],
+  "independent_review": {
+    "final_result": "PASS",
+    "remaining_p1": 0,
+    "remaining_p2": 0,
+    "reviewer_write_access": "NONE"
+  },
+  "cannot_confirm": [
+    "ORIGINAL_ATLAS_038_CONTENT",
+    "SIX_FEATURE_GRAPH_IDENTITIES",
+    "FOUR_RUNTIME_GRAPH_FINDINGS"
+  ],
+  "safety": {
+    "legacy_v3_written": false,
+    "windows_tasks_modified": false,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
