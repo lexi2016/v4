@@ -31,6 +31,12 @@ _DATE_RE = re.compile(r"^\d{8}$")
 _CODE_RE = re.compile(r"^HK\.(\d{5})$")
 _SHA_RE = re.compile(r"^[0-9a-f]{64}$", re.IGNORECASE)
 _UTC8 = timezone(timedelta(hours=8))
+# Row-bearing containers in the live stage-center payload shapes.  Their row
+# content is validated per row after extraction; the layer guard must not
+# descend into them (the rows carry integer ``order`` rank aliases there).
+_ROW_CONTAINER_KEYS = frozenset(
+    {"rows", "markets", "selection_markets", "market_summaries", "unified_rows"}
+)
 
 
 class ContractError(ValueError):
@@ -218,12 +224,18 @@ def normalise_observation_input(payload: Mapping[str, Any]) -> dict[str, Any]:
             raise ContractError(f"{code}.stage_rank must be a positive integer") from exc
         if numeric_rank < 1:
             raise ContractError(f"{code}.stage_rank must be a positive integer")
-        # "order" is a legacy integer rank at this input boundary only.
+        # "order" is a legacy integer rank alias at this input boundary only.
+        # Keep it in the row for evidence and identity compatibility with
+        # existing exact caches; validate it against the stage rank and
+        # exclude exactly this validated alias from the strict guard view.
         if "order" in row_copy:
             if isinstance(row_copy["order"], bool) or str(row_copy["order"]) != str(numeric_rank):
                 raise ContractError("legacy order must equal validated stage_rank")
-            row_copy.pop("order")
-        assert_safe_tree(row_copy, label="manager observation")
+        try:
+            guard_view = {key: value for key, value in row_copy.items() if key != "order"}
+            assert_safe_tree(guard_view, label="manager observation")
+        except ValueError as error:
+            raise ContractError(f"unsafe observation row {code}: {error}") from error
         row_copy["stage_rank"] = numeric_rank
         row_copy["source_last_bar_time"] = source_last_bar_time
         normalized_rows.append(row_copy)
@@ -242,7 +254,13 @@ def normalise_observation_input(payload: Mapping[str, Any]) -> dict[str, Any]:
         "rows": normalized_rows,
     }
     for layer in (payload, market_payload):
-        assert_safe_tree({key: value for key, value in layer.items() if key not in {"rows", "markets"}}, label="manager input")
+        try:
+            assert_safe_tree(
+                {key: value for key, value in layer.items() if key not in _ROW_CONTAINER_KEYS},
+                label="manager input",
+            )
+        except ValueError as error:
+            raise ContractError(f"unsafe manager input: {error}") from error
     return {
         "target_trade_date": target_trade_date,
         "stage_id": TARGET_STAGE_ID,

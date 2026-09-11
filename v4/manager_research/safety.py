@@ -46,6 +46,10 @@ def assert_manager_safe_tree(value: Any) -> None:
             )
             out = {}
             for key, nested in item.items():
+                if key == 'order' and isinstance(nested, int) and not isinstance(nested, bool):
+                    # Legacy selection rank alias, validated against the stage
+                    # rank at the input boundary; not an order instruction.
+                    continue
                 if key == 'action' and label_slot:
                     if 'research_label' in item:
                         raise ValueError('MANAGER_RESEARCH_LABEL_COLLISION')

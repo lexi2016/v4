@@ -30,6 +30,26 @@ class SafeRoot:
         self._identity: tuple[int, int] | None = None
 
     @staticmethod
+    def _open_visible(pathname, flags: int, mode: int = 0o777, *, dir_fd: int | None = None) -> int:
+        """os.open with a bounded retry for macOS dir-entry visibility lag.
+
+        On macOS a freshly created directory entry can transiently report
+        ENOENT to an adjacent openat despite a live parent descriptor.  Only
+        FileNotFoundError is retried (a few milliseconds); every other
+        failure propagates unchanged.
+        """
+
+        attempts = 25
+        for attempt in range(attempts):
+            try:
+                return os.open(pathname, flags, mode, dir_fd=dir_fd)
+            except FileNotFoundError:
+                if attempt + 1 >= attempts:
+                    raise
+                time.sleep(0.004)
+        raise AssertionError("unreachable")
+
+    @staticmethod
     def _parts(relative: str) -> tuple[str, ...]:
         if not isinstance(relative, str) or not relative or '\\' in relative or '\x00' in relative:
             raise OwnedIOError('OWNED_PATH_UNSAFE')
@@ -55,7 +75,9 @@ class SafeRoot:
                         os.mkdir(part, mode=0o700, dir_fd=fd)
                     except FileExistsError:
                         pass
-                child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
+                    child = self._open_visible(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
+                else:
+                    child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
                 os.close(fd)
                 fd = child
                 if i == root_depth:
@@ -104,7 +126,7 @@ class SafeRoot:
             if meta is not None and not stat.S_ISREG(meta.st_mode):
                 raise OwnedIOError('OWNED_DESTINATION_UNSAFE')
             temp = f'.{name}.{uuid4().hex}.tmp'
-            fd = os.open(temp, os.O_CREAT | os.O_EXCL | os.O_WRONLY | os.O_NOFOLLOW, 0o600, dir_fd=parent)
+            fd = self._open_visible(temp, os.O_CREAT | os.O_EXCL | os.O_WRONLY | os.O_NOFOLLOW, 0o600, dir_fd=parent)
             try:
                 with os.fdopen(fd, 'wb') as handle:
                     handle.write(raw)
@@ -112,7 +134,15 @@ class SafeRoot:
                     os.fsync(handle.fileno())
                 if require_absent:
                     # Atomic no-replace publication, with no empty-owner window.
-                    os.link(temp, name, src_dir_fd=parent, dst_dir_fd=parent, follow_symlinks=False)
+                    # ENOENT here is the same macOS visibility lag: retry briefly.
+                    for attempt in range(25):
+                        try:
+                            os.link(temp, name, src_dir_fd=parent, dst_dir_fd=parent, follow_symlinks=False)
+                            break
+                        except FileNotFoundError:
+                            if attempt + 1 >= 25:
+                                raise
+                            time.sleep(0.004)
                     os.unlink(temp, dir_fd=parent)
                 else:
                     os.replace(temp, name, src_dir_fd=parent, dst_dir_fd=parent)
@@ -156,7 +186,7 @@ class SafeRoot:
             raise OwnedIOError("OWNED_IO_PLATFORM_UNSUPPORTED")
         import fcntl
         with self.parent(relative, create=True) as (parent, name):
-            fd = os.open(name, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW | os.O_NONBLOCK, 0o600, dir_fd=parent)
+            fd = self._open_visible(name, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW | os.O_NONBLOCK, 0o600, dir_fd=parent)
             try:
                 if not stat.S_ISREG(os.fstat(fd).st_mode):
                     raise OwnedIOError('LOCK_FILE_NOT_REGULAR')

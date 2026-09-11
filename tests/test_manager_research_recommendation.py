@@ -686,7 +686,10 @@ def test_real_legacy_ten_row_fixture_remains_compatible(tmp_path: Any) -> None:
         migrated = result_envelope["product"]
         assert len(migrated["rows"]) == 10
         assert sum(len(row.get("facts", [])) for row in migrated["rows"]) == 219
-        assert store.read_product("20260907", input_data["input_identity"]) is not None
+        # GET is read-only under the F14 contract: the legacy binding is a
+        # in-memory projection; persistence only happens through an explicit
+        # replace/commit path, never during a read.
+        assert store.read_product("20260907", input_data["input_identity"]) is None
     finally:
         service.close()
 

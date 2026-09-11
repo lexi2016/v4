@@ -26,6 +26,11 @@ def test_process_smoke_reaches_healthz_on_ephemeral_loopback_port() -> None:
             "127.0.0.1",
             "--port",
             str(port),
+            # The launcher requires an explicit stage mode: shared consumes a
+            # configured stage root, local explicitly enables the local
+            # producer.  This smoke test exercises the local producer path.
+            "--stage-mode",
+            "local",
         ],
         cwd=ROOT,
         stdout=subprocess.DEVNULL,

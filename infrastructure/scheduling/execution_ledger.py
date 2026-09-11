@@ -14,13 +14,7 @@ from typing import Any, Mapping
 from uuid import uuid4
 
 from contracts.runtime_tasks import DispatchRequest, WorkloadDefinition
-from infrastructure.interprocess_lock import (
-    _owner_bytes as _lock_owner_bytes,
-    _pid_is_alive as _owned_pid_is_alive,
-    _unlink_if_same as _unlink_lock_if_same,
-    _write_exclusive as _write_lock_exclusive,
-    recover_owner_lock_residue as _recover_lock_residue,
-)
+from infrastructure.interprocess_lock import _pid_is_alive as _owned_pid_is_alive
 from infrastructure.owned_path import resolve_owned_path
 
 
@@ -158,23 +152,19 @@ class ExecutionLedger:
         encoded: bytes,
     ) -> bool:
         recovery_lock = destination.with_name(f".{destination.name}.reclaim.lock")
-        recovery_owner = _lock_owner_bytes(os.getpid(), uuid4().hex)
-        acquired = False
-        for _ in range(2):
-            try:
-                _write_lock_exclusive(recovery_lock, recovery_owner)
-                acquired = True
-                break
-            except FileExistsError:
-                if not _recover_lock_residue(recovery_lock):
-                    return False
-        if not acquired:
+        try:
+            lock_handle = os.open(
+                recovery_lock,
+                os.O_CREAT | os.O_EXCL | os.O_WRONLY,
+            )
+        except FileExistsError:
             return False
         try:
+            os.close(lock_handle)
             current = _read_existing_claim(destination)
             if current != dict(observed):
                 return False
-            if self._has_completed_receipt(current) or _owned_pid_is_alive(current.get("pid")):
+            if self._has_completed_receipt(current) or _pid_is_alive(current.get("pid")):
                 return False
             handle, temporary = tempfile.mkstemp(
                 prefix=f".{destination.name}.",
@@ -192,7 +182,10 @@ class ExecutionLedger:
                     os.unlink(temporary)
             return True
         finally:
-            _unlink_lock_if_same(recovery_lock, recovery_owner)
+            try:
+                recovery_lock.unlink()
+            except FileNotFoundError:
+                pass
 
     def _claim(self, relative: str, payload: Mapping[str, Any]) -> ClaimResult:
         destination = self._path(relative)
