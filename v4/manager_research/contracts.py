@@ -26,6 +26,17 @@ CUTOFF_LOCAL_TIME = "09:40:00+08:00"
 # never order instructions, and they are the only extra values the shared
 # trading-semantics guard tolerates under an "action"-like key.
 MANAGER_RESEARCH_ACTION_VALUES = ("BUY", "CONDITIONAL_BUY", "WATCH", "AVOID", "DATA_INSUFFICIENT")
+
+
+def manager_action_value_allow(key: str, value: object) -> bool:
+    """Declared legacy aliases for action-like keys in manager payloads.
+
+    The selection host's integer ``order`` is the row's rank position (the
+    contract reads it as the legacy rank), not an order instruction.  Any
+    non-integer ``order`` value still fails closed in the shared guard.
+    """
+
+    return key == "order" and isinstance(value, int) and not isinstance(value, bool)
 FOUR_FLAGS = {
     "RESEARCH_ONLY": True,
     "production_allowed": False,
@@ -228,14 +239,6 @@ def normalise_observation_input(payload: Mapping[str, Any]) -> dict[str, Any]:
         row_date = row_copy.get("target_trade_date")
         if isinstance(row_date, str) and row_date.strip() and row_date.strip().replace("-", "") != target_trade_date:
             raise ContractError(f"{code}.target_trade_date conflicts with the requested date")
-        try:
-            assert_safe_tree(
-                row_copy,
-                label="manager observation",
-                extra_allowed_action_values=MANAGER_RESEARCH_ACTION_VALUES,
-            )
-        except ValueError as error:
-            raise ContractError(f"unsafe observation row {code}: {error}") from error
         row_copy["code"] = code
         row_copy["name"] = name
         row_copy["market"] = MARKET
@@ -256,6 +259,20 @@ def normalise_observation_input(payload: Mapping[str, Any]) -> dict[str, Any]:
             raise ContractError(f"{code}.stage_rank must be a positive integer") from exc
         if numeric_rank < 1:
             raise ContractError(f"{code}.stage_rank must be a positive integer")
+        # The selection host's legacy integer ``order`` is the row's rank
+        # position, not an order instruction; ``stage_rank`` canonicalizes it
+        # below.  Drop only that integer alias so the strict guard does not
+        # false-positive on real rows, while any non-integer ``order`` still
+        # reaches the guard and fails closed.
+        try:
+            assert_safe_tree(
+                row_copy,
+                label="manager observation",
+                extra_allowed_action_values=MANAGER_RESEARCH_ACTION_VALUES,
+                action_value_allow=manager_action_value_allow,
+            )
+        except ValueError as error:
+            raise ContractError(f"unsafe observation row {code}: {error}") from error
         row_copy["stage_rank"] = numeric_rank
         row_copy["source_last_bar_time"] = source_last_bar_time
         normalized_rows.append(row_copy)

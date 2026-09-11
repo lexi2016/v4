@@ -76,6 +76,21 @@ def test_compatible_market_alias_still_passes() -> None:
     assert result["rows"][0]["market"] == "HK_CONNECT"
 
 
+def test_legacy_integer_order_alias_is_recognized() -> None:
+    # Real selection rows carry ``order`` as the legacy rank position; it is
+    # an accepted declared alias (kept for evidence), not an order
+    # instruction.
+    result = normalise_observation_input(_payload(order=1))
+    row = result["rows"][0]
+    assert row["order"] == 1
+    assert row["stage_rank"] == 1
+
+
+def test_non_integer_order_field_still_fails_closed() -> None:
+    with pytest.raises(ContractError, match="unsafe observation row"):
+        normalise_observation_input(_payload(order="BUY"))
+
+
 @pytest.mark.parametrize(
     "unsafe,case_id",
     [

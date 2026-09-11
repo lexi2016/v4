@@ -20,6 +20,7 @@ from .contracts import (
     PRODUCT_SCHEMA_VERSION,
     ContractError,
     cutoff_at as contract_cutoff_at,
+    manager_action_value_allow,
     normalise_observation_input,
     sha256_json,
     strict_trade_date,
@@ -1421,6 +1422,7 @@ class ManagerResearchJobService:
                 product,
                 label="manager product",
                 extra_allowed_action_values=MANAGER_RESEARCH_ACTION_VALUES,
+                action_value_allow=manager_action_value_allow,
             )
         except ValueError:
             return False

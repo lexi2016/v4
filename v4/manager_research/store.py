@@ -15,6 +15,7 @@ from .contracts import (
     MANAGER_RESEARCH_ACTION_VALUES,
     ContractError,
     canonical_json,
+    manager_action_value_allow,
     strict_trade_date,
 )
 
@@ -94,6 +95,7 @@ class ManagerResearchStore:
                 value,
                 label=label,
                 extra_allowed_action_values=MANAGER_RESEARCH_ACTION_VALUES,
+                action_value_allow=manager_action_value_allow,
             )
         except ValueError as error:
             raise StoreError(f"unsafe {label}: {error}") from error
