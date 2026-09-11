@@ -53,6 +53,8 @@ bash "/Users/lexi/Desktop/学习/v4_app/.runtime/serve-v4-sandbox.sh"
 |---|---|---|
 | baseline_v2.log（快照 = 未集成修改的原始 v4_app） | **918 passed / 102 failed / 10 errors / 69s** | 10 个收集错误：6×starlette 弃用告警升级、2×pyarrow 缺失、1×缺 `ops.build_manager_source_successor_proof`、1×其他 |
 | after_final3.log（集成后，`--ignore` 两个真实物化吊死测试） | **1008 passed / 77 failed / 2 errors / 73s** | 对比基线：**+90 passed、-25 failed、-8 errors**。剩余 2 个收集错误 = `test_manager_overlay_supersession` / `test_review_calendar_input`（基线同样存在） |
+| after_audit_fixes.log（GPT 独立审计修复后） | **1064 passed / 77 failed / 2 errors / 75s** | 失败集合与上一行**逐一比对完全相同**（无回归、无掩盖）；+56 全部来自新增回归测试 |
+| after_audit_fixes_final.log（含真实上游联调后的收尾提交） | **1066 passed / 77 failed / 2 errors / 68s** | 失败集合仍与修复前逐一相同；新增回归测试共 58 个 |
 
 **失败主因分类（102 → 最终）**：
 1. **依赖缺失（已恢复）**：pyarrow×23、pandas×2 用例此前 ModuleNotFoundError；既有环境装好后可运行。
@@ -88,7 +90,33 @@ bash "/Users/lexi/Desktop/学习/v4_app/.runtime/serve-v4-sandbox.sh"
 - `/api/v3/preselection-pools?date=20260910` → 真实池（A股 D-1 v1.9.2 候选池等）
 - `/api/v3/research/dates` → 真实日期目录；`/api/v3/manager/stage-selection` 等 37 条路由全部注册
 
-## 七、遗留问题与建议（CANNOT_CONFIRM）
+## 六之二、GPT 独立审计修复批次（2026-09-11 第二轮）
+
+外部独立审核（25 项发现 / 21 个离线反例，证据包验收后）按优先清单在 v4_app 上落地：
+
+| 审计项 | 修复内容 | 提交 |
+|---|---|---|
+| F01/F15 锁 | 4 处 mtime 强删锁替换为共享协议；锁原子落位（不再有空 owner 残留）、空锁/死 reclaim 可恢复、未知 owner 保持 fail-closed 并在超时错误中指明阻塞锁 | `57dbaa9` |
+| F02 守卫 | 共享守卫支持 tuple；data_store 复用共享递归（只保留 lane/selector 节点规则） | `2506bfe` |
+| F03 守卫边界 | 观测行/产品/job/回执在入库与读回均走共享守卫；manager 研究词表（action∈ADVICE_ACTIONS）显式声明为唯一例外 | `2506bfe` + `e10847d` |
+| F05 时间/身份 | source_last_bar_time 必填、可解析、≤09:40 cutoff；行级 market/stage/date 冲突拒绝而非改写 | `2506bfe` |
+| F11 数值 | `_number` 拒绝 bool/非有限值；排序 0 值不再当缺失（**有意偏离冻结怪癖，差异已测试记录**） | `b437d63` |
+| F12 启动器 | 读取 `V35_STAGE_CENTER_SELECTION_ROOT`，CLI 优先 | `b437d63` |
+| F04 写根 | NativeDataStore 拒绝根内软链组件；manager store 全部路径走 owned-path 守卫 | `e10847d` |
+| F06 缓存 | exact 缓存读回重校验身份/摘要/安全，污染缓存不再以 READY 出现 | `e10847d` |
+| F07 跨实例 | 每键跨进程锁 + 同字节幂等/异字节 StoreConflict | `e10847d` |
+| F08 事件合并 | 事件刷新前重读最新产品再附加，新财务结果不被旧快照回退 | `e10847d` |
+| F09 提交协议 | 提交顺序 receipt→product→job；读侧对账（READY 缺回执→COMMIT_* CANNOT_CONFIRM） | `e10847d` |
+| F10 取消 | 发布前在发布锁内重查取消（内存集合+磁盘 job），迟到 READY 不能覆盖 CANCELLED | `e10847d` |
+| F14 只读 GET | GET 零写入；新增显式 `service.migrate()` 命令承担迁移持久化 | `e10847d` |
+
+新增回归测试文件 5 个（`test_lock_protocol_hardening` / `test_manager_contract_hardening` / `test_scoring_bounds_hardening` / `test_launcher_env_hardening` / `test_manager_lifecycle_hardening`），把审计反例 R01–R21 中可转正的转为正向用例；4 个推荐引擎测试更新为"GET 只读"新契约（断言改为字节不变 + migrate 后落库）。
+
+**真实上游联调发现（重要）**：修复后由沙箱用真实 selection 数据回归时发现两处"守卫 vs 领域词表"冲突——①真实行含 `action: CONDITIONAL_BUY`（研究建议分类）；②真实行含整数 `order`（排位别名）。处理：研究词表**只在 `action` 键下**放行（其他指令词键保持严格，`order="BUY"` 仍被拒）；整数 `order` 通过显式声明谓词放行且**保留在行内**（剔除会改变 input_identity 使旧缓存失配——实测验证过）。修复后沙箱 20260908/09/10 真实管理器产品全部恢复解析（product=True，零错误）。
+
+**本轮未做（保留为下一批 B2+）**：F13 重定向逐跳校验、F17 线程池、F18 日志/响应脱敏、F19 下载与解析资源预算、F20 依赖声明闭合、F21/F22 测试分层与吊死守卫、F23 BoundaryPolicy 显式化、F24/F25 大模块收敛、完整 commit-marker 与 attempt/generation 栅栏协议。
+
+
 
 1. **v9–v14「inactive candidate」链未纳入**（A 股恢复类 overlay，独立评审链中）——是否并入需裁决。
 2. **publisher `_formal_data_root` 硬编码**：产品代码内嵌个人路径（`/Users/lexi/Documents/Codex/2026-08-13`、`~/Library/...`）+ 单测 fixtures 在 tmp → 该族单测永远 PATH_UNSAFE。建议：给守卫加显式配置/env seam 后再改测试（动产品语义前需裁决）。
