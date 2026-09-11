@@ -172,6 +172,29 @@ bash "/Users/lexi/Desktop/学习/v4_app/.runtime/serve-v4-sandbox.sh"
 
 **边界说明**：今日 0911 的研究账本/研报档案当晚才物化，默认到"当前日期"后相关面板显示诚实缺口态（阶段道 10 行真实候选可看），日期选择器可切回 0910 看完整态。经理页/指挥台**裸开**（无 `?date=`）仍按各自 exact-date 契约要求显式选日——该行为有其测试锁定（"does not request latest or any data when no date is selected"），本次未改；由主页进入的链接现在携带当前日期。
 
+## 六之六、素材仓「一次抓取、多次复用」落地与 v3 生产部署（2026-09-11）
+
+**目标（所有者指令）**：不要重复抓取材料，而是一次抓取加工、多次使用——先统一经理线三条抓取子系统。
+
+**实现**（commit `d233f8f`）：
+
+- `v4/manager_research/material_transport.py`（新）：`MaterialTransport` 将 `SourceTransport` 架在共享 `MaterialStore` 之上——成功 GET 以"响应信封"（状态码/最终跳转 URL/原始字节）内容寻址入仓；POST 表单流、非 2xx/空响应**直通不缓存**；失败不落盘；缓存命中回放原始状态与 `retrieved_at`（绝不谎称新抓取）。归档 PDF（`*.pdf`）TTL=不可变，动态列表/搜索页 TTL=30 分钟。
+- `MaterialStore.parsed()` 增加 `params` 维度：解析缓存键 = (blob, parser_id, parser_version, params)，供"同一 PDF、不同标题/基址"这类解析使用；`MaterialTransport.parsed()` 自动解码信封后把**原始文档**交给解析函数。
+- 三子系统接入：HKEX 官方（issuer 映射 + 标题检索 + PDF 下载 + **PDF 事实解析缓存** `hkex-pdf-facts`）、事件 lane（ICCSZ/媒体目录包上同一仓）、东财公开阅读器（`material_reader_fetcher`，一次搜索一次入仓）。装配点：`app.py` 的 `_load_manager_research_components` 4 元组 + provider/service 构造注入（无仓时为旧行为，全部测试夹具保持离线）。
+
+**真实数据实测（沙箱 8898，共享 `/private/tmp/v4opt-state2/materials`）**：
+
+| 场景 | 冷 | 热 | 仓计数 |
+|---|---|---|---|
+| 事件刷新 20260907（ICCSZ+HKEX 事件+东财，10 行） | 91s → READY（16 事件/150 资料） | **31s** 同结果 | 42 blobs，**零新增** |
+| 财务 collect HK.06166（真实公告 PDF+解析） | 9.0s → READY 24 facts，+1 parse 缓存 | **3.8s** 同 facts，`sha/parse_status` 一致 | 44 blobs，**零新增** |
+
+**测试**：`tests/test_material_reuse.py` 新增 7 例（GET 缓存/信封回放/POST 与错误直通/TTL 分类/params 分区/阅读器一次抓取/跨 provider 实例复用 PDF 与解析）；全量 **1186 passed / 77 failed / 2 errors，失败集合与冻结基线逐字节相同（零回归）**（`artifacts/after_material_reuse.log`）。
+
+**生产部署（v3）**：release `20260911-v4app-material-reuse-api-v3`（672 文件，manifest `b8f4d977…`）；plist 备份 `…backup_before_20260911_material_reuse_deploy`；生产 8873 实测：healthz 200、`default_date=20260911`（v2 修复保持）、manager 0910 product=True、**34 步全按钮扫掠 0 HTTP/0 控制台错误**；点击「刷新公开资料」后生产素材仓（`state/manager_auto_research/materials`）真实写入 24 个 HKEX 官方文档 + ICCSZ 目录条目。回滚：恢复备份 plist + re-bootstrap。
+
+**边界说明**：素材仓只缓存公开来源的原始响应与解析产物；BUY 门、RESEARCH_ONLY、四安全旗不变；解析失败按 M1 契约不落盘（每次重试重新解析，成功即缓存）。
+
 ## 七、遗留问题与建议（CANNOT_CONFIRM）
 
 
