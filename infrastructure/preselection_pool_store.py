@@ -253,5 +253,34 @@ def validate_pool_artifact(payload: Mapping[str, Any]) -> str:
     return trade_date
 
 
+def _legacy_research_flag_view(value: Any, *, depth: int = 0) -> Any:
+    """Declared legacy shape: the HK 0.2 lane serialized ``research_only``
+    as the string ``"True"`` in its pool rows.  Normalize exactly that
+    truthy spelling for the guard view only; every other value still fails
+    closed in the shared guard, and the persisted artifact is never
+    rewritten."""
+
+    if depth > 128:
+        raise ValueError("preselection-pool payload nesting")
+    if isinstance(value, Mapping):
+        view: dict[Any, Any] = {}
+        for key, nested in value.items():
+            if (
+                isinstance(key, str)
+                and key.casefold() == "research_only"
+                and isinstance(nested, str)
+                and nested.strip().lower() == "true"
+            ):
+                view[key] = True
+            else:
+                view[key] = _legacy_research_flag_view(nested, depth=depth + 1)
+        return view
+    if isinstance(value, list):
+        return [_legacy_research_flag_view(item, depth=depth + 1) for item in value]
+    if isinstance(value, tuple):
+        return tuple(_legacy_research_flag_view(item, depth=depth + 1) for item in value)
+    return value
+
+
 def _assert_safe(value: Any) -> None:
-    assert_safe_tree(value, label="preselection-pool")
+    assert_safe_tree(_legacy_research_flag_view(value), label="preselection-pool")
