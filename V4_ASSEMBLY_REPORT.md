@@ -114,7 +114,25 @@ bash "/Users/lexi/Desktop/学习/v4_app/.runtime/serve-v4-sandbox.sh"
 
 **真实上游联调发现（重要）**：修复后由沙箱用真实 selection 数据回归时发现两处"守卫 vs 领域词表"冲突——①真实行含 `action: CONDITIONAL_BUY`（研究建议分类）；②真实行含整数 `order`（排位别名）。处理：研究词表**只在 `action` 键下**放行（其他指令词键保持严格，`order="BUY"` 仍被拒）；整数 `order` 通过显式声明谓词放行且**保留在行内**（剔除会改变 input_identity 使旧缓存失配——实测验证过）。修复后沙箱 20260908/09/10 真实管理器产品全部恢复解析（product=True，零错误）。
 
-**本轮未做（保留为下一批 B2+）**：F13 重定向逐跳校验、F17 线程池、F18 日志/响应脱敏、F19 下载与解析资源预算、F20 依赖声明闭合、F21/F22 测试分层与吊死守卫、F23 BoundaryPolicy 显式化、F24/F25 大模块收敛、完整 commit-marker 与 attempt/generation 栅栏协议。
+**后续**：上述未做项在第三轮由外部优化实现包交付并在合并修复后采纳（见下节六之三）。
+
+## 六之三、GPT 优化实现包采纳记录（2026-09-11 第三轮）
+
+外部第二轮交付是**改过源码的实现包**（v4_app-optimized-20260911.zip + patch + 证据，4 个文件 SHA-256 与清单逐一校验通过、字节回放验证通过）。经对比评估：其工程深度整体优于我的补丁级实现，**采纳为新的源码基线**（`gpt-opt-merge` 分支 → 已合并回主线），并在其上补齐它在本机/真实数据下暴露的缺陷。
+
+**采纳（取代我的旧实现）**：dir-fd 级 owned I/O（`owned_io.py`，五个 store 共用）、内核 flock 锁（`interprocess_lock.py` 桥接遗留 owner 记录）、`.commits` 提交协议（attempt/generation 栅栏、单文档原子发布、读侧以提交为准）、POST 线程池、重定向逐跳校验、下载/解析预算、日志与响应脱敏、财务/催化纯投影拆分（service 2653→1678 行）、`tests/optimization` 104 项回归。我的旧实现相应退场：原子 owner 文件锁、守卫扩展钩子（词表/order 谓词）、提交顺序+读侧对账、`migrate()` 命令（其显式 replace 路径 + GET 只读契约已覆盖同等语义）。
+
+**合并修复（它的离线环境看不到的问题，全部由本机真实数据/平台实测暴露）**：
+1. `owned_io` macOS 目录项可见性滞后：新建目录项会被相邻 `openat/link` 瞬时 ENOENT——其自带并发测试在 macOS **5/5 必挂**、preselection 并发用例同因失败；加有界重试后其离线套件 **104/104 全绿**。
+2. 真实 selection 投影 payload 的行嵌在 `selection_markets`/`market_summaries`/`unified_rows` 三个容器中，其层守卫只排除 `{"rows","markets"}` → 整数 `order` 触发 `ValueError` **直接 500**；修复：层守卫排除全部行容器 + 守卫失败包成 `ContractError`（返回结构化 CANNOT_CONFIRM 而非 500）。
+3. 整数 `order`（排位别名）改为**保留在行内**（仅校验与 stage_rank 相等）：其"剔除"方案会改变 input_identity 使既有精确缓存全部失配（其自带真实 fixture 测试同因失败）；保留后实测 20260908/09/10 全部旧缓存恢复解析。
+4. `execution_ledger` 回退基线（其方案明确未迁移该文件的恢复分支）；`process_smoke` 按新契约显式 `--stage-mode local`；其遗留的两处"GET 写回"断言按它自己的 F14 只读契约修正。
+
+**验收证据**：其离线套件 104/104（macOS/Python3.14）；我方全量 **1169 passed / 77 failed / 2 errors，失败集合与冻结基线逐字节相同（零回归）**；真实数据 GET 0910/0909/0908 全部 product=True（各 10 行）；浏览器实测 manager 页渲染 10 只候选（含曾触发 500 的 `泽景股份·HK.02632`），reader=READY，零控制台错误（截图 `artifacts/screenshots/14-merged-manager-20260910.png`）。
+
+**未动**：前端字节、upstreams 符号链接、`.runtime` 证据、沙箱脚本、git 历史（旧提交全部保留可回退）；未部署、未接生产。
+
+## 七、遗留问题与建议（CANNOT_CONFIRM）
 
 
 
