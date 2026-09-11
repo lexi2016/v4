@@ -13,12 +13,19 @@ CANONICAL_VIOLATIONS = [
     ({"rows": [{"orders_sent": 1}]}, "orders-in-rows"),
     ({"meta": {"action": "BUY"}}, "action-in-meta"),
     ({"pools": [{"rows": [{"side": True}]}]}, "side-in-pools"),
+    ({"meta": ({"orders_sent": True},)}, "tuple-nested"),
 ]
+
+
+def _watch_only_guard(payload: dict) -> None:
+    data_store._assert_watch_only(payload, expected_lane="lane", expected_selector="selector")
+
 
 GUARDS = {
     "stage": stage_guard,
     "stage-acquisition": universe_guard,
     "preselection-pool": pool_guard,
+    "watch-only": _watch_only_guard,
 }
 
 
@@ -45,9 +52,27 @@ def test_every_store_guard_allows_watch_only_rows(name) -> None:
     )
 
 
-def test_watch_only_store_shares_the_same_key_sets() -> None:
-    assert data_store.ACTION_KEYS is trading_safety.ACTION_KEYS
-    assert data_store.FALSE_ONLY_KEYS is trading_safety.FALSE_ONLY_KEYS
+def test_data_store_guard_delegates_to_shared_recursion() -> None:
+    # data_store no longer carries its own recursion or key literals: the
+    # shared guard walks mapping/list/tuple nodes, and the lane rules ride
+    # along as a per-node check.
+    with pytest.raises(ValueError, match="trading state"):
+        data_store._assert_watch_only(
+            {"meta": ({"orders_sent": True},)},
+            expected_lane="lane",
+            expected_selector="selector",
+        )
+    data_store._assert_watch_only(
+        {"lane": "lane", "selector_status": "selector", "rows": [{"recommendation_status": "WATCH_ONLY"}]},
+        expected_lane="lane",
+        expected_selector="selector",
+    )
+    with pytest.raises(ValueError, match="unexpected selector status"):
+        data_store._assert_watch_only(
+            {"selector_status": "OTHER"},
+            expected_lane="lane",
+            expected_selector="selector",
+        )
 
 
 def test_shared_key_sets_cover_former_variants() -> None:

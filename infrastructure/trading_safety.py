@@ -29,8 +29,13 @@ _ALLOWED_ACTION_VALUES = (False, 0, None, "", "WATCH_ONLY")
 _ALLOWED_FALSE_VALUES = (False, 0, None, "")
 
 
-def assert_safe_tree(value: Any, *, label: str = "artifact") -> None:
-    """Reject promotion/order semantics anywhere in a payload tree."""
+def assert_safe_tree(value: Any, *, label: str = "artifact", node_check=None) -> None:
+    """Reject promotion/order semantics anywhere in a payload tree.
+
+    Walk every mapping/list/tuple node.  ``node_check`` lets a caller add
+    per-node constraints (e.g. lane/selector identity) while sharing this
+    single recursive implementation.
+    """
 
     if isinstance(value, Mapping):
         for key, nested in value.items():
@@ -39,7 +44,9 @@ def assert_safe_tree(value: Any, *, label: str = "artifact") -> None:
                 raise ValueError(f"unsafe {label} trading action")
             if folded in FALSE_ONLY_KEYS and nested not in _ALLOWED_FALSE_VALUES:
                 raise ValueError(f"unsafe {label} trading state")
-            assert_safe_tree(nested, label=label)
-    elif isinstance(value, list):
+            if node_check is not None:
+                node_check(folded, nested)
+            assert_safe_tree(nested, label=label, node_check=node_check)
+    elif isinstance(value, (list, tuple)):
         for nested in value:
-            assert_safe_tree(nested, label=label)
+            assert_safe_tree(nested, label=label, node_check=node_check)

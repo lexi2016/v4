@@ -12,7 +12,7 @@ from typing import Any, Mapping
 
 from infrastructure.interprocess_lock import owned_interprocess_lock
 from infrastructure.market_time import shanghai_now
-from infrastructure.trading_safety import ACTION_KEYS, FALSE_ONLY_KEYS
+from infrastructure.trading_safety import assert_safe_tree
 
 
 def _canonical_bytes(value: Any) -> bytes:
@@ -226,22 +226,12 @@ def _validate_payload_proof(payload: Mapping[str, Any]) -> None:
 
 
 def _assert_watch_only(value: Any, *, expected_lane: str, expected_selector: str) -> None:
-    action_keys = ACTION_KEYS
-    false_only_keys = FALSE_ONLY_KEYS
-    if isinstance(value, Mapping):
-        for key, nested in value.items():
-            folded = key.casefold()
-            if folded in false_only_keys and nested not in (False, 0, None, ""):
-                raise ValueError("unsafe trading field")
-            if folded in action_keys and nested not in (False, 0, None, "", "WATCH_ONLY"):
-                raise ValueError("unsafe trading action")
-            if folded in {"recommendation", "recommendation_status"} and nested not in {"WATCH_ONLY", "WATCH_ONLY_BACKTEST_GATED"}:
-                raise ValueError("unsafe recommendation semantics")
-            if folded in {"source_lane", "lane"} and nested != expected_lane:
-                raise ValueError("unexpected source lane")
-            if folded == "selector_status" and nested != expected_selector:
-                raise ValueError("unexpected selector status")
-            _assert_watch_only(nested, expected_lane=expected_lane, expected_selector=expected_selector)
-    elif isinstance(value, list):
-        for nested in value:
-            _assert_watch_only(nested, expected_lane=expected_lane, expected_selector=expected_selector)
+    def _lane_rules(folded: str, nested: Any) -> None:
+        if folded in {"recommendation", "recommendation_status"} and nested not in {"WATCH_ONLY", "WATCH_ONLY_BACKTEST_GATED"}:
+            raise ValueError("unsafe recommendation semantics")
+        if folded in {"source_lane", "lane"} and nested != expected_lane:
+            raise ValueError("unexpected source lane")
+        if folded == "selector_status" and nested != expected_selector:
+            raise ValueError("unexpected selector status")
+
+    assert_safe_tree(value, label="watch-only", node_check=_lane_rules)

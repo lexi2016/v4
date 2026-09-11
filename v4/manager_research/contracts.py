@@ -13,6 +13,8 @@ import json
 import re
 from typing import Any, Mapping, Sequence
 
+from infrastructure.trading_safety import assert_safe_tree
+
 
 PRODUCT_SCHEMA_VERSION = "v4.manager_research.product.v1"
 JOB_SCHEMA_VERSION = "v4.manager_research.job.v1"
@@ -99,15 +101,43 @@ def _json_safe(value: Any) -> Any:
     raise ContractError("observation contains a non-JSON value")
 
 
-def _row_source_date(value: Any, target_trade_date: str) -> str:
+def _parse_local_timestamp(value: str) -> datetime | None:
+    """Parse the stage host's ``YYYY-MM-DD HH:MM:SS`` (or ISO ``T``) shape."""
+
+    candidate = value.strip().replace("T", " ")
+    if len(candidate) < 10:
+        return None
+    for text in (candidate[:19], candidate):
+        try:
+            return datetime.strptime(text, "%Y-%m-%d %H:%M:%S").replace(tzinfo=_UTC8)
+        except ValueError:
+            continue
+    try:
+        return datetime.strptime(candidate[:10], "%Y-%m-%d").replace(tzinfo=_UTC8)
+    except ValueError:
+        return None
+
+
+def _row_source_time(value: Any, target_trade_date: str) -> str:
+    """Require a target-date bar time at or before the fixed research cut-off.
+
+    The job must not fabricate an observation time from the target date, and
+    a same-day bar after 09:40 may not be re-labelled as the frozen cut-off
+    input.  Missing, unparseable, cross-date or post-cut-off values all fail
+    closed.
+    """
+
     if not isinstance(value, str) or not value.strip():
-        return target_trade_date
-    # The stage host emits ``YYYY-MM-DD HH:MM:SS``.  Preserve it as supplied,
-    # while rejecting a row from a different calendar date.
-    source_day = value.strip()[:10].replace("-", "")
-    if _DATE_RE.fullmatch(source_day) and source_day != target_trade_date:
+        raise ContractError("observation source_last_bar_time is required")
+    text = value.strip()
+    parsed = _parse_local_timestamp(text)
+    if parsed is None:
+        raise ContractError("observation source_last_bar_time must be a valid timestamp")
+    if parsed.strftime("%Y%m%d") != target_trade_date:
         raise ContractError("observation source_last_bar_time is from another date")
-    return value.strip()
+    if parsed > datetime.fromisoformat(cutoff_at(target_trade_date)):
+        raise ContractError("observation source_last_bar_time is after the research cut-off")
+    return text
 
 
 def _extract_stage_payload(payload: Mapping[str, Any]) -> tuple[str, Mapping[str, Any], list[Any]]:
@@ -173,7 +203,7 @@ def normalise_observation_input(payload: Mapping[str, Any]) -> dict[str, Any]:
         seen_codes.add(code)
         name = row.get("name", row.get("stock_name"),)
         name = _text(name, f"{code}.name")
-        source_last_bar_time = _row_source_date(
+        source_last_bar_time = _row_source_time(
             row.get("source_last_bar_time", row.get("observed_at", "")),
             target_trade_date,
         )
@@ -182,6 +212,21 @@ def normalise_observation_input(payload: Mapping[str, Any]) -> dict[str, Any]:
         row_copy = _json_safe(dict(row))
         if not isinstance(row_copy, dict):
             raise ContractError("observation row must remain an object")
+        # Row-level identity claims must agree with the requested identity; a
+        # conflicting declaration is rejected instead of being relabelled.
+        row_market = row_copy.get("market")
+        if isinstance(row_market, str) and row_market.strip() and row_market.strip() not in {MARKET, "HK"}:
+            raise ContractError(f"{code}.market conflicts with {MARKET}")
+        row_stage = row_copy.get("stage_id")
+        if isinstance(row_stage, str) and row_stage.strip() and row_stage.strip() != TARGET_STAGE_ID:
+            raise ContractError(f"{code}.stage_id conflicts with {TARGET_STAGE_ID}")
+        row_date = row_copy.get("target_trade_date")
+        if isinstance(row_date, str) and row_date.strip() and row_date.strip().replace("-", "") != target_trade_date:
+            raise ContractError(f"{code}.target_trade_date conflicts with the requested date")
+        try:
+            assert_safe_tree(row_copy, label="manager observation")
+        except ValueError as error:
+            raise ContractError(f"unsafe observation row {code}: {error}") from error
         row_copy["code"] = code
         row_copy["name"] = name
         row_copy["market"] = MARKET
