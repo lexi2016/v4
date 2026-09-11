@@ -2461,11 +2461,36 @@ function onReadingDateChange(event: Event): void {
   readingDateUpperBound.value = compact;
 }
 
+async function loadDefaultDate(): Promise<void> {
+  // Without an explicit date the page follows the same canonical default the
+  // rest of the app uses (newest verified evidence date); it still loads one
+  // exact date and never substitutes another date's product.
+  try {
+    const response = await fetch("/api/v1/runs/date-list", { cache: "no-store" });
+    if (!response.ok) throw new Error("date-list request failed");
+    const catalog = (await response.json()) as { default_date?: unknown; dates?: unknown };
+    const candidate =
+      typeof catalog?.default_date === "string" && catalog.default_date
+        ? catalog.default_date
+        : Array.isArray(catalog?.dates) && typeof catalog.dates[0] === "string"
+          ? catalog.dates[0]
+          : "";
+    if (!isRealDate(candidate)) {
+      state.value = "NO_DATE_SELECTED";
+      return;
+    }
+    updateBrowserDate(candidate);
+    void loadDate(candidate);
+  } catch {
+    state.value = "NO_DATE_SELECTED";
+  }
+}
+
 function selectInitialDate(): void {
   const queryDate = new URLSearchParams(window.location.search).get("date") || "";
   const initialDate = props.date || queryDate;
   if (!initialDate) {
-    state.value = "NO_DATE_SELECTED";
+    void loadDefaultDate();
     return;
   }
   if (!isRealDate(initialDate)) {

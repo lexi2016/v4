@@ -1110,6 +1110,41 @@ describe("ManagerSelectionView", () => {
     expect(await screen.findByText("V4 · STOCK INVESTMENT RESEARCH MANAGER / EXACT LEDGER")).toBeTruthy();
   });
 
+  it("selects the canonical default date when no date is requested", async () => {
+    window.history.replaceState({}, "", "/manager-selection/");
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url === "/api/v1/runs/date-list") {
+        return response({ ok: true, default_date: "20260831", dates: ["20260831"], stage_dates: [], future_target_dates: [] });
+      }
+      if (url.includes("/api/v3/preselection-pools")) return response(preselection);
+      if (url.includes("/api/v3/manager/stage-selection")) return response(managerStageSelection);
+      if (url.includes("/api/v3/research/selection/manager-decision")) return response(managerDecisionResponseFor(product));
+      return response(product);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(ManagerSelectionView);
+
+    expect(await screen.findByText("124 条 research ledger（研究账本）")).toBeTruthy();
+    expect(fetchMock).toHaveBeenCalledWith("/api/v1/runs/date-list", expect.objectContaining({ cache: "no-store" }));
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v3/research/selection?target_trade_date=20260831",
+      expect.objectContaining({ cache: "no-store", signal: expect.any(AbortSignal) }),
+    );
+    expect(window.location.search).toBe("?date=20260831");
+  });
+
+  it("keeps the explicit-selection prompt when the date catalog is unavailable", async () => {
+    window.history.replaceState({}, "", "/manager-selection/");
+    const fetchMock = vi.fn(async (_url: string) => ({ ok: false, status: 503, json: async () => ({}) }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(ManagerSelectionView);
+
+    expect(await screen.findByText("未选择")).toBeTruthy();
+    expect(fetchMock.mock.calls.map((call) => call[0])).toEqual(["/api/v1/runs/date-list"]);
+  });
+
   it("reads one exact target date and renders the manager ledger without promotion", async () => {
     window.history.replaceState({}, "", "/manager-selection/?date=20260831");
     const fetchMock = stubFetch(product);

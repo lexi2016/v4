@@ -193,15 +193,35 @@ describe("DailyResearchCommandView", () => {
     window.history.replaceState({}, "", "/daily-research-command/");
   });
 
-  it("does not request latest or any data when no date is selected", async () => {
+  it("selects the canonical default date and reads only its strict day API", async () => {
     window.history.replaceState({}, "", "/daily-research-command/");
-    const fetchMock = vi.fn();
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url === "/api/v1/runs/date-list") {
+        return response({ ok: true, default_date: "20260824", dates: ["20260824"], stage_dates: [], future_target_dates: [] });
+      }
+      return response(readyWithGap);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(DailyResearchCommandView);
+
+    expect(await screen.findByText("READY_WITH_DECLARED_GAPS")).toBeTruthy();
+    expect(fetchMock.mock.calls.map((call) => call[0])).toEqual([
+      "/api/v1/runs/date-list",
+      "/api/v3/research/day?archive_date=20260824",
+    ]);
+    expect(window.location.search).toBe("?date=20260824");
+  });
+
+  it("stays on NO_DATE_SELECTED when the date catalog is unavailable", async () => {
+    window.history.replaceState({}, "", "/daily-research-command/");
+    const fetchMock = vi.fn(async (_url: string) => ({ ok: false, status: 503, json: async () => ({}) }));
     vi.stubGlobal("fetch", fetchMock);
 
     render(DailyResearchCommandView);
 
     expect(await screen.findByText("NO_DATE_SELECTED")).toBeTruthy();
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(fetchMock.mock.calls.map((call) => call[0])).toEqual(["/api/v1/runs/date-list"]);
   });
 
   it("uses only strict day API and renders the six-layer research evidence", async () => {

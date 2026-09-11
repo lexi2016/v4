@@ -217,6 +217,31 @@ function handleDateChange(value: string) {
   void loadDate(date);
 }
 
+async function loadDefaultDate(): Promise<void> {
+  // Without an explicit date the page follows the same canonical default the
+  // rest of the app uses (newest verified evidence date); the strict day API
+  // still receives exactly that one date — no latest substitution happens.
+  try {
+    const response = await fetch("/api/v1/runs/date-list");
+    if (!response.ok) throw new Error("date-list request failed");
+    const catalog = (await response.json()) as { default_date?: unknown; dates?: unknown };
+    const candidate =
+      typeof catalog?.default_date === "string" && catalog.default_date
+        ? catalog.default_date
+        : Array.isArray(catalog?.dates) && typeof catalog.dates[0] === "string"
+          ? catalog.dates[0]
+          : "";
+    if (!isCalendarDate(candidate)) {
+      state.value = "NO_DATE_SELECTED";
+      return;
+    }
+    setBrowserDate(candidate);
+    void loadDate(candidate);
+  } catch {
+    state.value = "NO_DATE_SELECTED";
+  }
+}
+
 onMounted(() => {
   const date = selectedQueryDate();
   if (!date) {
@@ -225,7 +250,9 @@ onMounted(() => {
       requestedDate.value = raw;
       state.value = "REJECTED";
       errorMessage.value = "研究日期不是有效的日历日期";
+      return;
     }
+    void loadDefaultDate();
     return;
   }
   void loadDate(date);
