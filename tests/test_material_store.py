@@ -5,6 +5,7 @@ import hashlib
 import json
 import threading
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -31,7 +32,8 @@ class CountingTransport:
 
 def test_miss_then_hit_uses_cache(tmp_path: Path) -> None:
     store = MaterialStore(tmp_path / "materials")
-    transport = CountingTransport(b"hello", retrieved_at="2026-09-11T04:00:00Z")
+    retrieved_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    transport = CountingTransport(b"hello", retrieved_at=retrieved_at)
 
     first = store.fetch("k", url="https://example.invalid/a", ttl_seconds=3600, transport=transport)
     second = store.fetch("k", url="https://example.invalid/a", ttl_seconds=3600, transport=transport)
@@ -41,7 +43,7 @@ def test_miss_then_hit_uses_cache(tmp_path: Path) -> None:
     assert second.sha256 == first.sha256 == hashlib.sha256(b"hello").hexdigest()
     assert second.body == b"hello"
     assert second.url == "https://example.invalid/a"
-    assert second.retrieved_at == "2026-09-11T04:00:00Z"
+    assert second.retrieved_at == retrieved_at
 
 
 def test_stale_retrieved_at_refetches_and_immutable_ttl_does_not(tmp_path: Path) -> None:

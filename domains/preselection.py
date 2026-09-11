@@ -75,15 +75,31 @@ def date_catalog(
             if _is_trading_date(date)
         }
     )
-    positive = sorted(
-        date
-        for date, rows in materialized.items()
-        if date <= system_date and rows > 0 and _is_trading_date(date)
-    )
     # ``stage_dates`` and ``default_date`` are evidence projections only.  The
     # persisted catalog date is not proof that a same-date artifact exists and
     # must never be promoted merely because the producer catalog is stale.
-    default = positive[-1] if positive else (evidence_stage[-1] if evidence_stage else "")
+    # The legacy pool-import lane can freeze while the verified stage-center
+    # lane keeps producing, so the default is the newest date with materialized
+    # pool rows or a verified stage artifact -- never the newest date of the
+    # legacy lane alone, and never a stage-list date without rows or artifacts.
+    default_candidates = sorted(
+        {
+            date
+            for date, rows in materialized.items()
+            if rows > 0 and date <= system_date and _is_trading_date(date)
+        }
+        | {
+            date
+            for date, item in stage_artifacts.items()
+            if str(item.get("status")) in ("MATERIALIZED", "PARTIAL")
+            if date <= system_date and _is_trading_date(date)
+        }
+    )
+    default = (
+        default_candidates[-1]
+        if default_candidates
+        else (evidence_stage[-1] if evidence_stage else "")
+    )
     navigation_dates = set(stage + future + list(stage_artifact_dates))
     if _is_trading_date(system_date):
         # The wall-clock trading date is navigable so the UI can show an

@@ -280,6 +280,38 @@ def test_date_catalog_requires_every_scheduled_market_for_materialized_stage(
     assert "STAGE_MARKET_MISSING:STAGE_0935_0940:HK_CONNECT" in artifact["cannot_confirm"]
 
 
+def test_date_catalog_default_follows_newest_verified_evidence_across_lanes(
+    tmp_path: Path,
+) -> None:
+    from domains.preselection import date_catalog
+    from infrastructure.data_store import NativeDataStore
+    from stage_center.selection import SelectionStore
+
+    store = NativeDataStore(tmp_path / "data")
+    store.import_catalog(
+        {
+            "schema_version": "v3_trade_calendar.v1",
+            "system_date": "20260901",
+            "stage_dates": ["20260901"],
+            "future_target_dates": [],
+            "materialized_rows": {"20260901": 2},
+        }
+    )
+    selection_root = tmp_path / "stage-selection"
+    SelectionStore(selection_root).publish(
+        _selection_envelope(TRADE_DATE, "STAGE_0935_0940", "A_SHARE"),
+        market="A_SHARE",
+    )
+
+    catalog = date_catalog(store, current_date=TRADE_DATE, stage_selection_root=selection_root)
+
+    # The legacy pool-import lane froze on 20260901; the verified stage-center
+    # artifact for TRADE_DATE is newer evidence.  The default must follow the
+    # newest verified evidence instead of pinning the app to the stale date.
+    assert catalog["default_date"] == TRADE_DATE
+    assert catalog["dates"] == [TRADE_DATE, "20260901"]
+
+
 def test_runtime_graph_projection_is_bounded_and_preserves_snapshot_identity(tmp_path: Path) -> None:
     from infrastructure.runtime_graph.contracts import EvidenceLayer, EvidenceResult, GraphStatus
     from infrastructure.runtime_graph.service import MAX_SNAPSHOT_BYTES, RuntimeGraphService
