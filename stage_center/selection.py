@@ -504,9 +504,17 @@ def _live_rank_int(value: Any) -> int:
 
 
 def stage_row_sort_key(row: Mapping[str, Any]) -> tuple[float, float, int, str]:
-    """Port Windows V3 ``stage_row_sort_key`` exactly."""
-    gap_tiebreak = _live_safe_float(row.get("qmt_gap_pct")) or -999999.0
-    amount_tiebreak = _live_safe_float(row.get("qmt_amount")) or 0.0
+    """Sort stage rows; a real zero value is a value, only None is missing.
+
+    This keeps the Windows V3 ordering for every valid row, except that a
+    genuine ``0.0`` score/gap is no longer treated as missing (the frozen
+    port used ``value or fallback`` and mis-sorted real zeros).
+    """
+    gap_value = _live_safe_float(row.get("qmt_gap_pct"))
+    amount_value = _live_safe_float(row.get("qmt_amount"))
+    score_value = _live_safe_float(row.get("stage_score"))
+    gap_tiebreak = gap_value if gap_value is not None else -999999.0
+    amount_tiebreak = amount_value if amount_value is not None else 0.0
     if row.get("stage_id") == "STAGE_0925":
         second_key = gap_tiebreak
         third_key = -int(amount_tiebreak)
@@ -525,7 +533,7 @@ def stage_row_sort_key(row: Mapping[str, Any]) -> tuple[float, float, int, str]:
         # validated raw ``batch_index`` so ties cannot be filled by code order.
         tie_break = str(row.get("stock_code") or "")
     return (
-        -(_live_safe_float(row.get("stage_score")) or -999999.0),
+        -(score_value if score_value is not None else -999999.0),
         -second_key,
         third_key,
         tie_break,

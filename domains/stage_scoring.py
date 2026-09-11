@@ -1,17 +1,23 @@
 """Pure V3.5 stage scoring extracted from the frozen V3 behavior contract."""
 from __future__ import annotations
 
+import math
 from copy import deepcopy
 from typing import Any, Iterable, Mapping
 
 
 def _number(value: Any) -> float | None:
+    if isinstance(value, bool):
+        return None
     try:
         if value in ("", None, "N/A"):
             return None
-        return float(value)
+        parsed = float(value)
     except (TypeError, ValueError):
         return None
+    # A non-finite value is a data defect, not evidence.  Letting NaN through
+    # previously produced maximum scores via max/min comparisons.
+    return parsed if math.isfinite(parsed) else None
 
 
 def _bounded(value: float, low: float, high: float) -> float:
@@ -158,6 +164,18 @@ def _safe_row(source: Mapping[str, Any]) -> dict[str, Any]:
     return row
 
 
+def _stage_score_sort_key(value: Any) -> float:
+    """Descending score order; a real 0 score is a score, only None is missing.
+
+    The frozen Windows port treated ``0.0`` as falsy and sorted it after
+    negative scores; this key keeps every valid row's order unchanged while
+    placing a real zero between positive and negative scores.
+    """
+
+    score = _number(value)
+    return -(score if score is not None else -999999.0)
+
+
 def rank_a_stage_rows(
     source_rows: Iterable[Mapping[str, Any]],
     stage_id: str,
@@ -171,19 +189,23 @@ def rank_a_stage_rows(
         row["stage_score"] = score_a_stage(row, stage_id)
         rows.append(row)
     if stage_id == "STAGE_0925":
+        def _pool_rank(row: Mapping[str, Any]) -> int:
+            rank = _number(row.get("pool_rank") or row.get("stage1_formal_rank"))
+            return int(rank if rank is not None else 999999)
+
         rows.sort(
             key=lambda row: (
-                -(_number(row.get("stage_score")) or -999999.0),
+                _stage_score_sort_key(row.get("stage_score")),
                 -(
                     (_value(row, "open_price", "qmt_open") or 0.0)
                     / (_value(row, "prev_close_price", "qmt_prev_close") or 1.0)
                 ),
-                int(_number(row.get("pool_rank") or row.get("stage1_formal_rank")) or 999999),
+                _pool_rank(row),
                 str(row.get("symbol") or row.get("stock_code") or ""),
             )
         )
     else:
-        rows.sort(key=lambda row: -(_number(row.get("stage_score")) or -999999.0))
+        rows.sort(key=lambda row: _stage_score_sort_key(row.get("stage_score")))
     return _rank(rows[:limit])
 
 

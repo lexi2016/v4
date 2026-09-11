@@ -32,13 +32,18 @@ def main() -> None:
         if os.environ.get("V35_DISPATCH_LEDGER_ROOT")
         else None
     )
+    stage_selection_root = arguments.stage_selection_root or (
+        Path(os.environ["V35_STAGE_CENTER_SELECTION_ROOT"])
+        if os.environ.get("V35_STAGE_CENTER_SELECTION_ROOT")
+        else None
+    )
     setup_json_logging()
     uvicorn.run(
         create_app(
             data_root=data_root,
             shared_data_root=shared_data_root,
             ledger_root=ledger_root,
-            stage_center_selection_root=arguments.stage_selection_root,
+            stage_center_selection_root=stage_selection_root,
         ),
         host=config.host,
         port=config.port,
