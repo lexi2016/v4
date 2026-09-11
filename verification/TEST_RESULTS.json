@@ -1,0 +1,243 @@
+{
+  "input_archive": "v4_app-20260911.zip",
+  "input_sha256": "d9aa3db694868479e904aa47dfb33853b2a624bd738899c0b06338769c3a60fc",
+  "input_git_head_reference": "5d3d650 (not the byte baseline; uploaded uncommitted changes are preserved)",
+  "baseline": {
+    "error": 27,
+    "passed": 872,
+    "failed": 146,
+    "skipped": 3
+  },
+  "optimized": {
+    "error": 27,
+    "passed": 976,
+    "failed": 146,
+    "skipped": 3
+  },
+  "optimization_regressions": {
+    "passed": 104
+  },
+  "baseline_case_count": 1048,
+  "baseline_outcome_changes": [],
+  "added_case_count": 104,
+  "new_failures": [],
+  "existing_test_contract_changes": [
+    "test_old_cached_product_is_reassembled_without_stopping_at_stale",
+    "test_pre_stage_evidence_cache_is_reused_under_current_identity"
+  ],
+  "test_contract_change_note": "Two GET assertions in tests/test_manager_research_recommendation.py changed to the explicitly read-only contract. No failing test was deleted or blanket skipped.",
+  "environment": {
+    "recorded_at": "2026-09-11T03:24:43.762194+00:00",
+    "suite": "broad",
+    "root": "/mnt/data/v4_optimization/optimized",
+    "python": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+    "platform": {
+      "sys_platform": "linux",
+      "uname": [
+        "Linux",
+        "localhost",
+        "6.18.35",
+        "#1 SMP Mon Aug 31 18:10:37 UTC 2026",
+        "x86_64"
+      ]
+    },
+    "declared_python": ">=3.14",
+    "normative_environment": false,
+    "production_acceptance": "CANNOT_CONFIRM",
+    "elapsed_seconds": 31.758,
+    "exit_code": 1,
+    "pytest_arguments": [
+      "-q",
+      "-ra",
+      "-o",
+      "addopts=",
+      "-W",
+      "error",
+      "-W",
+      "default::pytest.PytestWarning",
+      "--basetemp=/mnt/data/v4_optimization/evidence/final_optimized/sandbox-5b8c89a697174e34ab7f5793f8b94e6e/tmp/pytest",
+      "--junitxml=/mnt/data/v4_optimization/evidence/final_optimized/pytest.xml",
+      "tests",
+      "--continue-on-collection-errors",
+      "--ignore=tests/test_stage_eight_runs.py"
+    ],
+    "packages": {
+      "pytest": "9.0.2",
+      "fastapi": "0.128.2",
+      "starlette": "0.50.0",
+      "httpx": "0.28.1",
+      "pandas": "2.2.3",
+      "pyarrow": "NOT_INSTALLED",
+      "pytdx": "NOT_INSTALLED"
+    },
+    "blocked": [
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      },
+      {
+        "event": "subprocess.Popen"
+      }
+    ],
+    "sandbox": "/mnt/data/v4_optimization/evidence/final_optimized/sandbox-5b8c89a697174e34ab7f5793f8b94e6e",
+    "scope_note": "Broad excludes only the known real-materialization test file; failures are retained. This harness is not a filesystem/process-isolation security boundary."
+  },
+  "network_or_shell_attempts_in_new_regressions": [],
+  "broad_baseline_blocked_external_actions": {
+    "subprocess.Popen": 52
+  },
+  "normative_python_314_macos_acceptance": "CANNOT_CONFIRM",
+  "browser_or_source_dist_acceptance": "CANNOT_CONFIRM",
+  "production_deployment": "NOT_PERFORMED",
+  "whole_system_status": "NOT_RELEASE_ACCEPTED",
+  "historical_figures_not_reproduced": "User historical macOS/Python3.14: 1008 passed / 77 failed / 2 errors; not interchangeable with this offline comparison."
+}

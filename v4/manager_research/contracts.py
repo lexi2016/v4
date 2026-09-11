@@ -12,7 +12,6 @@ from hashlib import sha256
 import json
 import re
 from typing import Any, Mapping, Sequence
-
 from infrastructure.trading_safety import assert_safe_tree
 
 
@@ -21,22 +20,6 @@ JOB_SCHEMA_VERSION = "v4.manager_research.job.v1"
 TARGET_STAGE_ID = "STAGE_0935_0940"
 MARKET = "HK_CONNECT"
 CUTOFF_LOCAL_TIME = "09:40:00+08:00"
-# The manager research product speaks its own reviewed advice vocabulary.
-# These are research classifications (with all four safety flags false),
-# never order instructions, and they are the only extra values the shared
-# trading-semantics guard tolerates under an "action"-like key.
-MANAGER_RESEARCH_ACTION_VALUES = ("BUY", "CONDITIONAL_BUY", "WATCH", "AVOID", "DATA_INSUFFICIENT")
-
-
-def manager_action_value_allow(key: str, value: object) -> bool:
-    """Declared legacy aliases for action-like keys in manager payloads.
-
-    The selection host's integer ``order`` is the row's rank position (the
-    contract reads it as the legacy rank), not an order instruction.  Any
-    non-integer ``order`` value still fails closed in the shared guard.
-    """
-
-    return key == "order" and isinstance(value, int) and not isinstance(value, bool)
 FOUR_FLAGS = {
     "RESEARCH_ONLY": True,
     "production_allowed": False,
@@ -48,6 +31,12 @@ _DATE_RE = re.compile(r"^\d{8}$")
 _CODE_RE = re.compile(r"^HK\.(\d{5})$")
 _SHA_RE = re.compile(r"^[0-9a-f]{64}$", re.IGNORECASE)
 _UTC8 = timezone(timedelta(hours=8))
+# Row-bearing containers in the live stage-center payload shapes.  Their row
+# content is validated per row after extraction; the layer guard must not
+# descend into them (the rows carry integer ``order`` rank aliases there).
+_ROW_CONTAINER_KEYS = frozenset(
+    {"rows", "markets", "selection_markets", "market_summaries", "unified_rows"}
+)
 
 
 class ContractError(ValueError):
@@ -117,43 +106,27 @@ def _json_safe(value: Any) -> Any:
     raise ContractError("observation contains a non-JSON value")
 
 
-def _parse_local_timestamp(value: str) -> datetime | None:
-    """Parse the stage host's ``YYYY-MM-DD HH:MM:SS`` (or ISO ``T``) shape."""
-
-    candidate = value.strip().replace("T", " ")
-    if len(candidate) < 10:
-        return None
-    for text in (candidate[:19], candidate):
-        try:
-            return datetime.strptime(text, "%Y-%m-%d %H:%M:%S").replace(tzinfo=_UTC8)
-        except ValueError:
-            continue
+def _row_source_date(value: Any, target_trade_date: str) -> str:
+    if not isinstance(value, str) or not value.strip() or not re.search(r"[T ]\d{2}:\d{2}", value):
+        raise ContractError("observation source_last_bar_time must prove an exact timestamp")
     try:
-        return datetime.strptime(candidate[:10], "%Y-%m-%d").replace(tzinfo=_UTC8)
-    except ValueError:
-        return None
-
-
-def _row_source_time(value: Any, target_trade_date: str) -> str:
-    """Require a target-date bar time at or before the fixed research cut-off.
-
-    The job must not fabricate an observation time from the target date, and
-    a same-day bar after 09:40 may not be re-labelled as the frozen cut-off
-    input.  Missing, unparseable, cross-date or post-cut-off values all fail
-    closed.
-    """
-
-    if not isinstance(value, str) or not value.strip():
-        raise ContractError("observation source_last_bar_time is required")
-    text = value.strip()
-    parsed = _parse_local_timestamp(text)
-    if parsed is None:
-        raise ContractError("observation source_last_bar_time must be a valid timestamp")
+        parsed = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ContractError("observation source_last_bar_time is invalid") from exc
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=_UTC8)  # documented stage-host timezone
+    parsed = parsed.astimezone(_UTC8)
     if parsed.strftime("%Y%m%d") != target_trade_date:
         raise ContractError("observation source_last_bar_time is from another date")
     if parsed > datetime.fromisoformat(cutoff_at(target_trade_date)):
-        raise ContractError("observation source_last_bar_time is after the research cut-off")
-    return text
+        raise ContractError("observation source_last_bar_time exceeds cutoff")
+    return value.strip()
+
+
+def _assert_identity(value: Mapping[str, Any], target: str) -> None:
+    for key, expected in (("market", MARKET), ("stage_id", TARGET_STAGE_ID), ("target_trade_date", target), ("trade_date", target)):
+        if key in value and value[key] != expected:
+            raise ContractError(f"observation {key} conflicts with exact input")
 
 
 def _extract_stage_payload(payload: Mapping[str, Any]) -> tuple[str, Mapping[str, Any], list[Any]]:
@@ -205,11 +178,14 @@ def normalise_observation_input(payload: Mapping[str, Any]) -> dict[str, Any]:
     raw_cannot_confirm = market_payload.get("cannot_confirm", payload.get("cannot_confirm", []))
     cannot_confirm = _json_safe(raw_cannot_confirm)
     source_status = market_payload.get("status", payload.get("status", "CANNOT_CONFIRM"))
+    _assert_identity(payload, target_trade_date)
+    _assert_identity(market_payload, target_trade_date)
     normalized_rows: list[dict[str, Any]] = []
     seen_codes: set[str] = set()
     for index, row in enumerate(rows, start=1):
         if not isinstance(row, Mapping):
             raise ContractError("observation rows must be objects")
+        _assert_identity(row, target_trade_date)
         code = row.get("code", row.get("symbol"))
         if not isinstance(code, str) or _CODE_RE.fullmatch(code.strip()) is None:
             raise ContractError("observation code must be normalized HK.#####")
@@ -219,7 +195,7 @@ def normalise_observation_input(payload: Mapping[str, Any]) -> dict[str, Any]:
         seen_codes.add(code)
         name = row.get("name", row.get("stock_name"),)
         name = _text(name, f"{code}.name")
-        source_last_bar_time = _row_source_time(
+        source_last_bar_time = _row_source_date(
             row.get("source_last_bar_time", row.get("observed_at", "")),
             target_trade_date,
         )
@@ -228,23 +204,12 @@ def normalise_observation_input(payload: Mapping[str, Any]) -> dict[str, Any]:
         row_copy = _json_safe(dict(row))
         if not isinstance(row_copy, dict):
             raise ContractError("observation row must remain an object")
-        # Row-level identity claims must agree with the requested identity; a
-        # conflicting declaration is rejected instead of being relabelled.
-        row_market = row_copy.get("market")
-        if isinstance(row_market, str) and row_market.strip() and row_market.strip() not in {MARKET, "HK"}:
-            raise ContractError(f"{code}.market conflicts with {MARKET}")
-        row_stage = row_copy.get("stage_id")
-        if isinstance(row_stage, str) and row_stage.strip() and row_stage.strip() != TARGET_STAGE_ID:
-            raise ContractError(f"{code}.stage_id conflicts with {TARGET_STAGE_ID}")
-        row_date = row_copy.get("target_trade_date")
-        if isinstance(row_date, str) and row_date.strip() and row_date.strip().replace("-", "") != target_trade_date:
-            raise ContractError(f"{code}.target_trade_date conflicts with the requested date")
         row_copy["code"] = code
         row_copy["name"] = name
         row_copy["market"] = MARKET
         row_copy["stage_id"] = TARGET_STAGE_ID
         row_copy["target_trade_date"] = target_trade_date
-        raw_rank = row.get("rank", row.get("order", index))
+        raw_rank = row.get("stage_rank", row.get("rank", row.get("order", index)))
         try:
             # Do not silently turn a fractional or boolean rank into a new
             # position.  The stage order is part of the input identity.
@@ -259,18 +224,16 @@ def normalise_observation_input(payload: Mapping[str, Any]) -> dict[str, Any]:
             raise ContractError(f"{code}.stage_rank must be a positive integer") from exc
         if numeric_rank < 1:
             raise ContractError(f"{code}.stage_rank must be a positive integer")
-        # The selection host's legacy integer ``order`` is the row's rank
-        # position, not an order instruction; ``stage_rank`` canonicalizes it
-        # below.  Drop only that integer alias so the strict guard does not
-        # false-positive on real rows, while any non-integer ``order`` still
-        # reaches the guard and fails closed.
+        # "order" is a legacy integer rank alias at this input boundary only.
+        # Keep it in the row for evidence and identity compatibility with
+        # existing exact caches; validate it against the stage rank and
+        # exclude exactly this validated alias from the strict guard view.
+        if "order" in row_copy:
+            if isinstance(row_copy["order"], bool) or str(row_copy["order"]) != str(numeric_rank):
+                raise ContractError("legacy order must equal validated stage_rank")
         try:
-            assert_safe_tree(
-                row_copy,
-                label="manager observation",
-                extra_allowed_action_values=MANAGER_RESEARCH_ACTION_VALUES,
-                action_value_allow=manager_action_value_allow,
-            )
+            guard_view = {key: value for key, value in row_copy.items() if key != "order"}
+            assert_safe_tree(guard_view, label="manager observation")
         except ValueError as error:
             raise ContractError(f"unsafe observation row {code}: {error}") from error
         row_copy["stage_rank"] = numeric_rank
@@ -290,6 +253,14 @@ def normalise_observation_input(payload: Mapping[str, Any]) -> dict[str, Any]:
         "cannot_confirm": cannot_confirm,
         "rows": normalized_rows,
     }
+    for layer in (payload, market_payload):
+        try:
+            assert_safe_tree(
+                {key: value for key, value in layer.items() if key not in _ROW_CONTAINER_KEYS},
+                label="manager input",
+            )
+        except ValueError as error:
+            raise ContractError(f"unsafe manager input: {error}") from error
     return {
         "target_trade_date": target_trade_date,
         "stage_id": TARGET_STAGE_ID,

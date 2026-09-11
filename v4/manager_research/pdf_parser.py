@@ -15,6 +15,9 @@ import json
 from pathlib import Path
 import re
 import sys
+import time
+import math
+from .errors import public_error
 from typing import Any, Iterable, Mapping
 
 
@@ -118,28 +121,46 @@ def _normal_page_text(value: str) -> str:
     return "\n".join(line for line in (_normal_line(item) for item in value.replace("\r", "").split("\n")) if line)
 
 
-def extract_pdf_pages(body: bytes) -> list[dict[str, Any]]:
-    """Return page-numbered text using the pinned parser.
+def extract_pdf_pages(body: bytes, *, max_bytes: int = 32 * 1024 * 1024,
+                      max_pages: int = 500, max_text_characters: int = 8_000_000,
+                      timeout_seconds: float = 30.0) -> list[dict[str, Any]]:
+    """Bound page/text work; exceedance rejects the whole extraction.
 
-    Page extraction errors are isolated to that page.  An image/CID-only
-    document therefore returns no usable pages and is kept CANNOT_CONFIRM by
-    the caller rather than being converted into a title fact.
+    Deadline checks are cooperative between parser calls, not a claim that an
+    in-process third-party parser can be forcibly interrupted. Existing page
+    failures still yield no facts for that page, never synthetic evidence.
     """
-
+    if any(isinstance(n, bool) or not isinstance(n, int) or n < 1 for n in (max_bytes, max_pages, max_text_characters)):
+        raise PdfParseError("PDF_BUDGET_INVALID")
+    if not math.isfinite(timeout_seconds) or timeout_seconds <= 0:
+        raise PdfParseError("PDF_BUDGET_INVALID")
+    if len(body) > max_bytes:
+        raise PdfParseError("PDF_BYTE_BUDGET_EXCEEDED")
     if not body.startswith(b"%PDF"):
         return []
+    deadline = time.monotonic() + timeout_seconds
     try:
         reader = _load_pdf_reader()(BytesIO(body), strict=False)
     except Exception as exc:
-        raise PdfParseError(f"pypdf could not open document: {type(exc).__name__}: {exc}") from exc
+        raise PdfParseError(public_error(exc)) from exc
+    if len(reader.pages) > max_pages:
+        raise PdfParseError("PDF_PAGE_BUDGET_EXCEEDED")
     pages: list[dict[str, Any]] = []
+    total = 0
     for page_number, page in enumerate(reader.pages, start=1):
+        if time.monotonic() >= deadline:
+            raise PdfParseError("PDF_TIME_BUDGET_EXCEEDED")
         try:
             text = _normal_page_text(page.extract_text() or "")
         except Exception:
             text = ""
+        total += len(text)
+        if total > max_text_characters:
+            raise PdfParseError("PDF_TEXT_BUDGET_EXCEEDED")
         if text:
             pages.append({"page": page_number, "text": text})
+    if time.monotonic() >= deadline:
+        raise PdfParseError("PDF_TIME_BUDGET_EXCEEDED")
     return pages
 
 

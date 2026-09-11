@@ -5,10 +5,13 @@ import hashlib
 import json
 import os
 import re
+import time
+from infrastructure.interprocess_lock import owned_interprocess_lock
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Mapping
+from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 from contracts.research_day_product import (
@@ -35,7 +38,6 @@ from domains.research_day_product import (
 )
 from contracts.research import validate_research_archive
 from infrastructure.data_store import NativeDataStore, _date, _sha256
-from infrastructure.interprocess_lock import owned_interprocess_lock
 from infrastructure.owned_path import resolve_owned_path
 
 
@@ -681,14 +683,7 @@ class ResearchSelectionStore(NativeDataStore):
 
     @contextmanager
     def _lock(self):
-        """Use a selection-local lock; never create NativeDataStore's root lock."""
-
-        path = self._path(f"{self._SELECTION_ROOT}/.import.lock")
-        with owned_interprocess_lock(
-            path,
-            timeout_seconds=10,
-            timeout_message="selection import lock timeout",
-        ):
+        with owned_interprocess_lock(self._path(f"{self._SELECTION_ROOT}/.import.lock"), timeout_seconds=10, timeout_message='selection import lock timeout'):
             yield
 
     @classmethod

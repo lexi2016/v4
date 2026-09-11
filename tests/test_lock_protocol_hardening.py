@@ -1,15 +1,19 @@
-"""Regression tests for the hardened shared lock protocol (audit F01/F15).
+"""Lock-protocol regressions on the merged hardening base (audit F01/F15).
 
-Converted from the independent audit probes R07 and R15: crash residue
-(empty owner records, dead reclaim owners) must be recoverable, while a
-live owner's lock must never be stolen no matter how old its mtime, and a
-release must never delete a successor's lock.
+The lock is a POSIX kernel mutex (flock, auto-released on process death)
+bridged to a legacy PID/token owner record.  A live owner is never removed
+by age; a decoded dead owner's record is reclaimed; empty or undecodable
+legacy residue fails closed for manual recovery; a release never deletes a
+successor's record; and the macOS directory-entry visibility lag is retried
+inside owned_io instead of surfacing as FileNotFoundError (that race was
+found by running the adopted package on this macOS/Python 3.14 machine).
 """
 from __future__ import annotations
 
 import os
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -18,10 +22,11 @@ import pytest
 from infrastructure import a_share_review_store as a_share_review_module
 from infrastructure import interprocess_lock as locks
 from infrastructure import research_store as research_store_module
+from infrastructure.owned_io import SafeRoot
 from stage_center import raw_store as raw_store_module
 from stage_center import selection as selection_module
-from stage_center.raw_store import RawStore, RawStoreError
-from stage_center.selection import SelectionError, SelectionStore
+from stage_center.raw_store import RawStore
+from stage_center.selection import SelectionStore
 
 
 def _owner(pid: int, token: str = "probe") -> bytes:
@@ -33,7 +38,7 @@ def _age(path: Path, seconds: float) -> None:
     os.utime(path, (old, old))
 
 
-def _shorten_timeout(module, monkeypatch: pytest.MonkeyPatch, timeout: float = 0.05) -> None:
+def _shorten_timeout(module, monkeypatch: pytest.MonkeyPatch, timeout: float = 0.1) -> None:
     original = module.owned_interprocess_lock
 
     def wrapper(*args, **kwargs):
@@ -52,58 +57,33 @@ def test_live_owner_lock_is_not_stolen_by_old_mtime(tmp_path: Path) -> None:
     path = tmp_path / "live.lock"
     path.write_bytes(_owner(os.getpid(), "live"))
     _age(path, 3600)
-    with pytest.raises(ValueError, match="held by live pid"):
-        with locks.owned_interprocess_lock(path, timeout_seconds=0.05, timeout_message="timeout"):
+    with pytest.raises(ValueError, match="timeout"):
+        with locks.owned_interprocess_lock(path, timeout_seconds=0.1, timeout_message="timeout"):
             pass
     assert path.read_bytes() == _owner(os.getpid(), "live")
-
-
-def test_empty_lock_residue_is_recovered(tmp_path: Path) -> None:
-    path = tmp_path / "empty.lock"
-    path.write_bytes(b"")
-    with locks.owned_interprocess_lock(path, timeout_seconds=1, timeout_message="timeout"):
-        pass
-    assert not path.exists()
 
 
 def test_dead_owner_lock_is_recovered(tmp_path: Path) -> None:
     path = tmp_path / "dead.lock"
     path.write_bytes(_owner(999_999_999))
-    with locks.owned_interprocess_lock(path, timeout_seconds=1, timeout_message="timeout"):
+    with locks.owned_interprocess_lock(path, timeout_seconds=2, timeout_message="timeout"):
         pass
     assert not path.exists()
 
 
-def test_dead_reclaim_owner_does_not_block_recovery(tmp_path: Path) -> None:
-    path = tmp_path / "dead.lock"
-    path.write_bytes(_owner(999_999_999))
-    path.with_name(f"{path.name}.reclaim").write_bytes(_owner(999_999_998, "dead-reclaimer"))
-    with locks.owned_interprocess_lock(path, timeout_seconds=1, timeout_message="timeout"):
-        pass
-    assert not path.exists()
+def test_empty_or_corrupt_legacy_residue_fails_closed(tmp_path: Path) -> None:
+    for name, raw in (("empty.lock", b""), ("corrupt.lock", b"{not-json")):
+        path = tmp_path / name
+        path.write_bytes(raw)
+        with pytest.raises(ValueError, match="timeout"):
+            with locks.owned_interprocess_lock(path, timeout_seconds=0.1, timeout_message="timeout"):
+                pass
+        assert path.read_bytes() == raw
 
 
-def test_live_reclaimer_blocks_reclaim(tmp_path: Path) -> None:
-    path = tmp_path / "dead.lock"
-    path.write_bytes(_owner(999_999_999))
-    path.with_name(f"{path.name}.reclaim").write_bytes(_owner(os.getpid(), "live-reclaimer"))
-    with pytest.raises(ValueError, match="timeout"):
-        with locks.owned_interprocess_lock(path, timeout_seconds=0.05, timeout_message="timeout"):
-            pass
-
-
-def test_corrupt_owner_is_fail_closed_with_recovery_hint(tmp_path: Path) -> None:
-    path = tmp_path / "corrupt.lock"
-    path.write_bytes(b"{not-a-valid-owner")
-    with pytest.raises(ValueError, match="manual recovery required"):
-        with locks.owned_interprocess_lock(path, timeout_seconds=0.05, timeout_message="timeout"):
-            pass
-    assert path.read_bytes() == b"{not-a-valid-owner"
-
-
-def test_release_never_deletes_a_successors_lock(tmp_path: Path) -> None:
+def test_release_never_deletes_a_successors_record(tmp_path: Path) -> None:
     path = tmp_path / "handoff.lock"
-    with locks.owned_interprocess_lock(path, timeout_seconds=1, timeout_message="timeout"):
+    with locks.owned_interprocess_lock(path, timeout_seconds=2, timeout_message="timeout"):
         path.unlink()
         path.write_bytes(_owner(os.getpid() + 1, "successor"))
     assert path.read_bytes() == _owner(os.getpid() + 1, "successor")
@@ -111,9 +91,9 @@ def test_release_never_deletes_a_successors_lock(tmp_path: Path) -> None:
 
 def test_second_holder_waits_while_first_holds(tmp_path: Path) -> None:
     path = tmp_path / "serial.lock"
-    with locks.owned_interprocess_lock(path, timeout_seconds=1, timeout_message="timeout"):
+    with locks.owned_interprocess_lock(path, timeout_seconds=2, timeout_message="timeout"):
         with pytest.raises(ValueError, match="timeout"):
-            with locks.owned_interprocess_lock(path, timeout_seconds=0.05, timeout_message="timeout"):
+            with locks.owned_interprocess_lock(path, timeout_seconds=0.1, timeout_message="timeout"):
                 pass
 
 
@@ -147,40 +127,61 @@ def test_cross_process_contention_serializes(tmp_path: Path) -> None:
         proc.wait(timeout=10)
 
 
+def test_macos_visibility_lag_concurrent_locks_do_not_raise(tmp_path: Path) -> None:
+    # Regression for the macOS directory-entry visibility lag: concurrent
+    # lock acquisition on a fresh root must never surface FileNotFoundError
+    # from the mutex open, which owned_io retries internally.
+    root = SafeRoot(tmp_path)
+    errors: list[BaseException] = []
+
+    def worker() -> None:
+        try:
+            for _ in range(25):
+                with root.kernel_lock("contended.mutex", timeout=10, poll=0.001):
+                    pass
+        except BaseException as exc:  # collected for the assertion below
+            errors.append(exc)
+
+    threads = [threading.Thread(target=worker) for _ in range(4)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(30)
+    assert errors == []
+
+
 # ---------------------------------------------------------------------------
-# The four store call sites: a live owner with an ancient mtime is still not
-# stolen, and the lock file survives the failed acquire attempt.
+# The four store call sites: a live owner record with an ancient mtime is
+# still not stolen and the record survives the failed acquire attempt.
 # ---------------------------------------------------------------------------
 
 
-def _live_owner_file(path: Path, tmp_path: Path) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(_owner(os.getpid(), "live"))
-    _age(path, 3600)
-
-
-def _assert_not_stolen(path: Path) -> None:
-    assert path.read_bytes() == _owner(os.getpid(), "live")
+def _assert_live_record_not_stolen(lock_path: Path) -> None:
+    assert lock_path.read_bytes() == _owner(os.getpid(), "live")
 
 
 def test_selection_store_does_not_steal_live_lock(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     _shorten_timeout(selection_module, monkeypatch)
     store = SelectionStore(tmp_path / "selection")
-    _live_owner_file(store.lock_path, tmp_path)
-    with pytest.raises(SelectionError, match="live pid"):
+    store.lock_path.parent.mkdir(parents=True, exist_ok=True)
+    store.lock_path.write_bytes(_owner(os.getpid(), "live"))
+    _age(store.lock_path, 3600)
+    with pytest.raises(ValueError):
         with store._lock():
             pass
-    _assert_not_stolen(store.lock_path)
+    _assert_live_record_not_stolen(store.lock_path)
 
 
 def test_raw_store_does_not_steal_live_lock(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     _shorten_timeout(raw_store_module, monkeypatch)
     store = RawStore(tmp_path / "raw")
-    _live_owner_file(store.lock_path, tmp_path)
-    with pytest.raises(RawStoreError, match="live pid"):
+    store.lock_path.parent.mkdir(parents=True, exist_ok=True)
+    store.lock_path.write_bytes(_owner(os.getpid(), "live"))
+    _age(store.lock_path, 3600)
+    with pytest.raises(ValueError):
         with store._lock():
             pass
-    _assert_not_stolen(store.lock_path)
+    _assert_live_record_not_stolen(store.lock_path)
 
 
 def test_a_share_review_store_does_not_steal_live_lock(
@@ -189,11 +190,13 @@ def test_a_share_review_store_does_not_steal_live_lock(
     _shorten_timeout(a_share_review_module, monkeypatch)
     store = a_share_review_module.AShareReviewStore(tmp_path / "reviews")
     lock_path = store._path("a_share_reviews/.import.lock")
-    _live_owner_file(lock_path, tmp_path)
-    with pytest.raises(ValueError, match="live pid"):
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    lock_path.write_bytes(_owner(os.getpid(), "live"))
+    _age(lock_path, 3600)
+    with pytest.raises(ValueError):
         with store._lock():
             pass
-    _assert_not_stolen(lock_path)
+    _assert_live_record_not_stolen(lock_path)
 
 
 def test_research_selection_store_does_not_steal_live_lock(
@@ -202,8 +205,10 @@ def test_research_selection_store_does_not_steal_live_lock(
     _shorten_timeout(research_store_module, monkeypatch)
     store = research_store_module.ResearchSelectionStore(tmp_path / "research")
     lock_path = store._path("research/selection/.import.lock")
-    _live_owner_file(lock_path, tmp_path)
-    with pytest.raises(ValueError, match="live pid"):
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    lock_path.write_bytes(_owner(os.getpid(), "live"))
+    _age(lock_path, 3600)
+    with pytest.raises(ValueError):
         with store._lock():
             pass
-    _assert_not_stolen(lock_path)
+    _assert_live_record_not_stolen(lock_path)

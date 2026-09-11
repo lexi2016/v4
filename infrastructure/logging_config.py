@@ -10,7 +10,16 @@ from __future__ import annotations
 import json
 import logging
 import sys
+import traceback
+import re
+from pathlib import Path
 from datetime import UTC, datetime
+
+
+def _redact_message(text: str) -> str:
+    text = re.sub(r"(?i)(authorization\s*[:=]\s*(?:bearer\s+)?)[^\s,;]+", r"\1[REDACTED]", text)
+    text = re.sub(r"(?i)((?:api[_-]?key|access[_-]?token|password|secret)\s*[:=]\s*)[^\s,;]+", r"\1[REDACTED]", text)
+    return re.sub(r"(https?://)[^/@\s]+:[^/@\s]+@", r"\1[REDACTED]@", text)
 
 
 class JsonFormatter(logging.Formatter):
@@ -19,10 +28,15 @@ class JsonFormatter(logging.Formatter):
             "ts": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
             "level": record.levelname,
             "logger": record.name,
-            "message": record.getMessage(),
+            "message": _redact_message(record.getMessage()),
         }
         if record.exc_info:
-            payload["exc_info"] = self.formatException(record.exc_info)
+            # No exception text, source lines or locals are exposed in logs.
+            payload["exc_info"] = {
+                "type": record.exc_info[0].__name__ if record.exc_info[0] else "UnknownError",
+                "frames": [{"file": Path(frame.filename).name, "line": frame.lineno, "function": frame.name}
+                           for frame in traceback.extract_tb(record.exc_info[2])],
+            }
         for key in ("run_id", "workload_id", "trade_date", "stage_id"):
             value = getattr(record, key, None)
             if value is not None:

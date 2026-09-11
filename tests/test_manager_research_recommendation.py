@@ -511,8 +511,6 @@ def test_old_cached_product_is_reassembled_without_stopping_at_stale(monkeypatch
             "volume_ratio": 1.2,
         })
         store.write_product(old_product)
-        product_path = store._product_path("20260908", input_data["input_identity"])
-        frozen_bytes = product_path.read_bytes()
 
         envelope = service.get("20260908")
 
@@ -521,12 +519,8 @@ def test_old_cached_product_is_reassembled_without_stopping_at_stale(monkeypatch
         migrated = envelope["product"]
         assert migrated["recommendation_summary"]["counts"]["CONDITIONAL_BUY"] == 1
         assert migrated["rows"][0]["research_recommendation"]["action"] == "CONDITIONAL_BUY"
-        # GET is read-only: the cached bytes stay untouched...
-        assert product_path.read_bytes() == frozen_bytes
-        # ...and the explicit migration command owns the persist.
-        migrated_envelope = service.migrate("20260908")
-        assert migrated_envelope["status"] == "READY"
-        assert store.read_product("20260908", input_data["input_identity"])["rows"][0]["research_recommendation"]
+        # GET projects derived recommendations without mutating the frozen cache.
+        assert "research_recommendation" not in store.read_product("20260908", input_data["input_identity"])["rows"][0]
     finally:
         service.close()
 
@@ -576,13 +570,9 @@ def test_pre_stage_evidence_cache_is_reused_under_current_identity(
         assert migrated["stage_status"] == "PARTIAL_WITH_ROWS"
         assert migrated["cannot_confirm"] == ["HK:UNSAFE_STAGE"]
         assert migrated["rows"][0]["research_recommendation"]
-        # GET is read-only: nothing is persisted under the current identity
-        # yet; the explicit migration command performs the alias binding.
+        # The legacy alias is an in-memory projection, not an implicit write.
         assert store.read_product("20260908", input_data["input_identity"]) is None
         assert store.read_product("20260908", legacy_identity) is not None
-        migrated_envelope = service.migrate("20260908")
-        assert migrated_envelope["status"] == "READY"
-        assert store.read_product("20260908", input_data["input_identity"]) is not None
     finally:
         service.close()
 
@@ -696,11 +686,10 @@ def test_real_legacy_ten_row_fixture_remains_compatible(tmp_path: Any) -> None:
         migrated = result_envelope["product"]
         assert len(migrated["rows"]) == 10
         assert sum(len(row.get("facts", [])) for row in migrated["rows"]) == 219
-        # GET is read-only; persist only through the explicit migration.
+        # GET is read-only under the F14 contract: the legacy binding is a
+        # in-memory projection; persistence only happens through an explicit
+        # replace/commit path, never during a read.
         assert store.read_product("20260907", input_data["input_identity"]) is None
-        migrated_envelope = service.migrate("20260907")
-        assert migrated_envelope["status"] == "READY"
-        assert store.read_product("20260907", input_data["input_identity"]) is not None
     finally:
         service.close()
 

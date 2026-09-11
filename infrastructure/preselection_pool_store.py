@@ -10,6 +10,7 @@ from typing import Any, Mapping
 
 from infrastructure.data_store import _canonical_bytes, _date, _sha256
 from infrastructure.owned_path import resolve_owned_path
+from infrastructure.owned_io import SafeRoot
 from infrastructure.trading_safety import assert_safe_tree
 
 
@@ -63,28 +64,19 @@ class PreselectionPoolStore:
 
     def __init__(self, root: Path) -> None:
         self.root = Path(root)
+        self._io = SafeRoot(self.root)
 
     def _path(self, relative: str) -> Path:
         return resolve_owned_path(self.root, relative)
 
     def _read(self, relative: str) -> Any:
-        return json.loads(self._path(relative).read_text(encoding="utf-8"))
+        import json
 
-    def _write(self, relative: str, value: Any) -> None:
-        destination = self._path(relative)
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        handle, temporary = tempfile.mkstemp(
-            prefix=f".{destination.name}.", suffix=".tmp", dir=destination.parent
-        )
-        try:
-            with os.fdopen(handle, "wb") as output:
-                output.write(_canonical_bytes(value))
-                output.flush()
-                os.fsync(output.fileno())
-            os.replace(temporary, destination)
-        finally:
-            if os.path.exists(temporary):
-                os.unlink(temporary)
+        return json.loads(self._io.read_bytes(relative).decode("utf-8"))
+
+    def _write(self, relative: str, value: Mapping[str, Any]) -> None:
+        # Payload contracts stay at each public materialization boundary.
+        self._io.write_bytes(relative, _canonical_bytes(value))
 
     @staticmethod
     def _relative(trade_date: str, pool_id: str) -> tuple[str, str]:

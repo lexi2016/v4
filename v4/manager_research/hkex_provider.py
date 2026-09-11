@@ -12,12 +12,14 @@ from datetime import datetime, timedelta, timezone
 from html.parser import HTMLParser
 from hashlib import sha256
 import json
+import math
 import re
 import threading
 import time
 from typing import Any, Mapping, Sequence
 from urllib.parse import urlencode, urljoin, urlparse
-from urllib.request import HTTPCookieProcessor, Request, build_opener
+from urllib.request import HTTPCookieProcessor, HTTPRedirectHandler, Request, build_opener
+from .errors import public_error
 
 from .contracts import ContractError, cutoff_at as make_cutoff_at, strict_trade_date
 from .pdf_parser import PdfParseError, extract_pdf_facts
@@ -54,27 +56,40 @@ def _digest(body: bytes) -> str:
 
 
 def _safe_official_url(url: str) -> bool:
-    parsed = urlparse(url)
-    return parsed.scheme == "https" and parsed.hostname in HKEX_HOSTS
+    try:
+        parsed = urlparse(url)
+        return (parsed.scheme == "https" and parsed.hostname in HKEX_HOSTS
+                and parsed.port in (None, 443) and parsed.username is None
+                and parsed.password is None and not parsed.fragment)
+    except (TypeError, ValueError):
+        return False
+
+
+class _HKEXRedirectHandler(HTTPRedirectHandler):
+    max_repeats = 1
+    max_redirections = 5
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if not _safe_official_url(newurl):
+            raise ProviderError("HKEX_REDIRECT_TARGET_REFUSED")
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
 def _normal_text(value: str) -> str:
     return _WS_RE.sub(" ", value.replace("\xa0", " ")).strip()
 
 
-def _default_transport() -> SourceTransport:
-    opener = build_opener(HTTPCookieProcessor())
+def _default_transport(*, max_response_bytes: int = 32 * 1024 * 1024) -> SourceTransport:
+    if isinstance(max_response_bytes, bool) or not isinstance(max_response_bytes, int) or max_response_bytes < 1:
+        raise ProviderError("INVALID_RESPONSE_SIZE_BUDGET")
+    opener = build_opener(HTTPCookieProcessor(), _HKEXRedirectHandler())
 
-    def request(
-        url: str,
-        *,
-        timeout: float,
-        method: str = "GET",
-        body: bytes | None = None,
-        headers: Mapping[str, str] | None = None,
-    ) -> SourceResponse:
+    def request(url: str, *, timeout: float, method: str = "GET", body: bytes | None = None,
+                headers: Mapping[str, str] | None = None) -> SourceResponse:
         if not _safe_official_url(url):
             raise ProviderError("refused non-HKEX source URL")
+        if not math.isfinite(timeout) or timeout <= 0:
+            raise ProviderError("INVALID_TRANSPORT_TIMEOUT")
         request_headers = {
             "User-Agent": "Mozilla/5.0 (research-only; V4 manager research)",
             "Accept": "text/html,application/json,application/pdf;q=0.9,*/*;q=0.8",
@@ -82,24 +97,35 @@ def _default_transport() -> SourceTransport:
         if headers:
             request_headers.update(headers)
         request_obj = Request(url, data=body, headers=request_headers, method=method.upper())
+        deadline = time.monotonic() + timeout
         try:
             with opener.open(request_obj, timeout=timeout) as response:
-                response_body = response.read()
-                response_headers = {key.lower(): value for key, value in response.headers.items()}
                 final_url = response.geturl()
                 if not _safe_official_url(final_url):
                     raise ProviderError("refused non-HKEX redirect target")
-                return SourceResponse(
-                    url=url,
-                    final_url=final_url,
-                    status_code=int(response.status),
-                    body=response_body,
-                    headers=response_headers,
-                    retrieved_at=_now(),
-                )
-        except Exception as exc:  # urllib has several platform-specific errors
-            raise ProviderError(f"HKEX request failed: {type(exc).__name__}: {exc}") from exc
-
+                response_headers = {key.lower(): value for key, value in response.headers.items()}
+                length = response_headers.get("content-length")
+                if length is not None and (not str(length).isdigit() or int(length) > max_response_bytes):
+                    raise ProviderError("HKEX_RESPONSE_SIZE_BUDGET_EXCEEDED")
+                chunks: list[bytes] = []
+                total = 0
+                read = getattr(response, "read1", response.read)
+                while True:
+                    if time.monotonic() >= deadline:
+                        raise ProviderError("HKEX_RESPONSE_TIME_BUDGET_EXCEEDED")
+                    chunk = read(min(64 * 1024, max_response_bytes - total + 1))
+                    if not chunk:
+                        break
+                    total += len(chunk)
+                    if total > max_response_bytes:
+                        raise ProviderError("HKEX_RESPONSE_SIZE_BUDGET_EXCEEDED")
+                    chunks.append(chunk)
+                return SourceResponse(url=url, final_url=final_url, status_code=int(response.status),
+                    body=b"".join(chunks), headers=response_headers, retrieved_at=_now())
+        except ProviderError:
+            raise
+        except Exception as exc:
+            raise ProviderError(public_error(exc)) from exc
     return request
 
 
