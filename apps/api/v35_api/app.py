@@ -70,6 +70,23 @@ def _resolve_manager_research_state_root(
     return _CANONICAL_MANAGER_RESEARCH_STATE_ROOT
 
 
+class _RevalidatingStaticFiles(StaticFiles):
+    """Serve HTML entry points with revalidation, hashed assets as usual.
+
+    A cached HTML document can reference a hashed asset that a later release
+    no longer ships, so documents must be revalidated (``no-cache``) instead
+    of being served from heuristic freshness; content-hashed assets keep
+    their default caching because their names change with their bytes.
+    """
+
+    async def get_response(self, path: str, scope):  # type: ignore[override]
+        response = await super().get_response(path, scope)
+        content_type = response.headers.get("content-type", "")
+        if content_type.startswith("text/html"):
+            response.headers["cache-control"] = "no-cache"
+        return response
+
+
 def _load_manager_research_components() -> tuple[type[Any], type[Any], type[Any], type[Any]]:
     """Load only the independent manager package from its own directory.
 
@@ -527,6 +544,6 @@ def create_app(
 
     dist = Path(__file__).resolve().parents[2] / "web" / "dist"
     if dist.is_dir():
-        app.mount("/", StaticFiles(directory=dist, html=True), name="web")
+        app.mount("/", _RevalidatingStaticFiles(directory=dist, html=True), name="web")
 
     return app
