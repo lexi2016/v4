@@ -71,15 +71,18 @@ def test_row_level_identity_conflicts_are_rejected(field: str, value: str, case_
         normalise_observation_input(_payload(**{field: value}))
 
 
-def test_compatible_market_alias_still_passes() -> None:
-    result = normalise_observation_input(_payload(market="HK"))
+def test_exact_market_spelling_passes_and_aliases_fail_closed() -> None:
+    result = normalise_observation_input(_payload(market="HK_CONNECT"))
     assert result["rows"][0]["market"] == "HK_CONNECT"
+    for wrong in ("HK", "A_SHARE"):
+        with pytest.raises(ContractError, match="conflicts"):
+            normalise_observation_input(_payload(market=wrong))
 
 
 def test_legacy_integer_order_alias_is_recognized() -> None:
     # Real selection rows carry ``order`` as the legacy rank position; it is
-    # an accepted declared alias (kept for evidence), not an order
-    # instruction.
+    # an accepted alias (kept for evidence and identity compatibility), not
+    # an order instruction.
     result = normalise_observation_input(_payload(order=1))
     row = result["rows"][0]
     assert row["order"] == 1
@@ -87,7 +90,7 @@ def test_legacy_integer_order_alias_is_recognized() -> None:
 
 
 def test_non_integer_order_field_still_fails_closed() -> None:
-    with pytest.raises(ContractError, match="unsafe observation row"):
+    with pytest.raises(ContractError, match="legacy order must equal validated stage_rank"):
         normalise_observation_input(_payload(order="BUY"))
 
 
