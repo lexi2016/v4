@@ -83,6 +83,17 @@ bash "/Users/lexi/Desktop/学习/v4_app/.runtime/serve-v4-sandbox.sh"
 
 **结论：全部页面均渲染真实内容（非空白）；点击、日期输入、视图切换均驱动真实数据请求；全程零 console error（除 favicon 404）、零失败请求、零 HTTP≥400。**
 
+### 五之二、全控件点击扫掠（2026-09-11，34 步）
+
+对沙箱 8898 用同款 CDP 驱动执行**逐控件真实点击**（`/tmp/v4_sweep.py`，覆盖 5 个主标签、刷新快照、阶段 #3/#16、运行/恢复、强制重物化、研报台按所选日期/查看 latest/定位公众号/7 个过滤器、US-map 刷新、池展开收起、manager 刷新账本/切日期/候选下拉/导航/展开来源覆盖/刷新公开资料、daily 切日期）：**34 步、0 HTTP 错误、0 控制台错误**；结果 `/tmp/v4-sweep-results.json`，截图 `artifacts/screenshots/sweep/`。
+
+补充核实（代码级）：
+
+- `POST /api/v3/workbench/stage/ensure` 为只读兼容方法：响应 `ensure_status=READ_ONLY_CANNOT_CONFIRM, write_performed=False, producer_called=False`；`force=true` 被显式忽略（`force_ignored=true`）——生产端口可安全点击。
+- 经理页分区导航（交叉研究队列/经理关注层/完整研究账本等 5 钮）与对应分区整块受 `payload && materialized` 门控：仅当精确产品状态 ∈ {EARLY_DRAFT_IMPORTED, RESEARCH_SUPPLY_IMPORTED, READY, READY_WITH_DECLARED_GAPS} 才渲染。当前后端真实数据顶层状态为 `PARTIAL_WITH_ROWS`（三种日期实测一致），不在该集合 → 上述分区按设计隐藏并显示"研究账本尚未物化；不把缺失展示为 0 条"。该词表缺口在 release v8 的 dist 中逐字节相同（`managerSelection-F4dY33V6.js` 同哈希），**非本次合并引入**；是否把 `PARTIAL_WITH_ROWS` 纳入前端 materialized 集合（或后端改发 `READY_WITH_DECLARED_GAPS`）属产品语义裁决，记录为待办。
+- 事件刷新任务（刷新公开资料）：0908/0909 实测完成 **READY（10/10 行；17/16 条事件；181/169 条 reader 材料）**。`jobs/<id>.json` 会停留在 RUNNING 是**设计如此**——权威终态在 `.commits` 提交文档，`store.read_job` 以提交文档覆盖 jobs/ 准入记录（读侧以提交为准）；API 视图的 READY 即来自该路径。
+
+
 ## 六、API 冒烟（沙箱 8899）
 
 - `/healthz` → `{"status":"ok"}`；`/readyz` → 三安全旗 false
@@ -143,7 +154,26 @@ bash "/Users/lexi/Desktop/学习/v4_app/.runtime/serve-v4-sandbox.sh"
 - **回滚（如需）**：`launchctl bootout gui/$(id -u)/com.lexi.v35.api-only && cp ~/Library/LaunchAgents/com.lexi.v35.api-only.plist.backup_before_20260911_merge_deploy ~/Library/LaunchAgents/com.lexi.v35.api-only.plist && launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.lexi.v35.api-only.plist`（v8 release 目录未动）。
 - **未切换**：scheduler（仍在 `20260904T081111Z-v35-strict-stage-acquisition-v15` 谱系，HK 0.2 采集lane）与 runtime-graph（研究图 lane）——如需同步升级需另行裁决。
 
+## 六之五、日期默认值修复与 v2 生产部署（2026-09-11，按所有者指令）
+
+**现象（所有者报告）**：打开部署链接（主页与由主页进入的页面）都停在 **2026-09-01**，不自动跳到当前日期。
+
+**根因（已核实）**：`/api/v1/runs/date-list` 的 `default_date` 由 `domains/preselection.date_catalog` 计算，原规则**优先**"有物化池行的最新日期"（legacy pool-import 道）。该道的生产者 catalog `~/Library/.../state/data/date_catalog.json` **自 2026-09-01 21:40 起未再写入**（system_date / materialized_rows / stage_dates 全部停在 0901），而 stage-center 验证道持续产出至当前交易日（stage artifacts 0901..0911，0911 池 279 行真实数据）。主页 `selectedDate = default_date` → 0901，并把 `?date=20260901` 带进经理页链接。
+
+**修复（`953d982`）**：`date_catalog` 默认候选 = {materialized_rows>0 的日期} ∪ {stage artifacts 状态 ∈ MATERIALIZED/PARTIAL 的日期}（按 wall date 与交易日历过滤后取最新）。catalog 声明的 stage_dates 本身、以及无物化行的日期，都不构成默认证据（保持既有 `test_native_store_and_api_enforce_dates…` 语义）；BLOCKED artifact 不作证据；空集回退链保持原样。
+
+**验证**：
+
+- 新增回归 `test_date_catalog_default_follows_newest_verified_evidence_across_lanes`（legacy 道冻结 0901 + stage 道 0907 → default=0907）。
+- 全量：**1179 passed / 77 failed / 2 errors，失败集合与冻结基线逐字节相同（零回归）**（`artifacts/after_date_default_fix.log`）；顺带修复 `tests/test_material_store.py` 一处墙钟时间绑定（固定 retrieved_at 一小时 TTL 过期后脆断）。
+- 沙箱 8898 + 生产 8873 实测：`default_date=20260911`；浏览器主页日期输入=2026-09-11；主页点「经理选股工作台」→ `/manager-selection/?date=20260911`（截图 `artifacts/screenshots/20-prod-home-current-date.png`、`21-prod-manager-20260911.png`）。
+
+**生产部署（v2）**：release `20260911-v4app-date-default-api-v2`（app 670 文件；`apps/web/dist` 与 v1 同哈希 F4dY33V6，前端零改动）；plist 更新（备份 `com.lexi.v35.api-only.plist.backup_before_20260911_date_default_deploy`）；bootout/bootstrap 带 healthz 守卫（未触发回滚）。回滚：恢复备份 plist + re-bootstrap（v1 release 目录未动）。
+
+**边界说明**：今日 0911 的研究账本/研报档案当晚才物化，默认到"当前日期"后相关面板显示诚实缺口态（阶段道 10 行真实候选可看），日期选择器可切回 0910 看完整态。经理页/指挥台**裸开**（无 `?date=`）仍按各自 exact-date 契约要求显式选日——该行为有其测试锁定（"does not request latest or any data when no date is selected"），本次未改；由主页进入的链接现在携带当前日期。
+
 ## 七、遗留问题与建议（CANNOT_CONFIRM）
+
 
 
 
