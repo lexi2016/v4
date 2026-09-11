@@ -90,7 +90,7 @@ bash "/Users/lexi/Desktop/学习/v4_app/.runtime/serve-v4-sandbox.sh"
 补充核实（代码级）：
 
 - `POST /api/v3/workbench/stage/ensure` 为只读兼容方法：响应 `ensure_status=READ_ONLY_CANNOT_CONFIRM, write_performed=False, producer_called=False`；`force=true` 被显式忽略（`force_ignored=true`）——生产端口可安全点击。
-- 经理页分区导航（交叉研究队列/经理关注层/完整研究账本等 5 钮）与对应分区整块受 `payload && materialized` 门控：仅当精确产品状态 ∈ {EARLY_DRAFT_IMPORTED, RESEARCH_SUPPLY_IMPORTED, READY, READY_WITH_DECLARED_GAPS} 才渲染。当前后端真实数据顶层状态为 `PARTIAL_WITH_ROWS`（三种日期实测一致），不在该集合 → 上述分区按设计隐藏并显示"研究账本尚未物化；不把缺失展示为 0 条"。该词表缺口在 release v8 的 dist 中逐字节相同（`managerSelection-F4dY33V6.js` 同哈希），**非本次合并引入**；是否把 `PARTIAL_WITH_ROWS` 纳入前端 materialized 集合（或后端改发 `READY_WITH_DECLARED_GAPS`）属产品语义裁决，记录为待办。
+- 经理页分区导航（交叉研究队列/经理关注层/完整研究账本等 5 钮）与对应分区整块受 `payload && materialized` 门控。**2026-09-11 更正（此前记录有误）**：此前把该门控归因于"`PARTIAL_WITH_ROWS` 不在前端词表"——经复核，`PARTIAL_WITH_ROWS` 属于 `/api/v4/manager/research`（经理研究催化 lane，页面另有独立渲染且正常），而经理页主产品 `/api/v3/research/selection` 的状态词表（后端 `domains/research_day_product.py` 与前端 contract 一致：EARLY_DRAFT_IMPORTED / RESEARCH_SUPPLY_IMPORTED / READY / READY_WITH_DECLARED_GAPS / NOT_MATERIALIZED / CANNOT_CONFIRM）中**没有** `PARTIAL_WITH_ROWS`。生产实测该接口对 0908–0910 返回 `NOT_MATERIALIZED`（source_date/run_id 为空、0 候选）——即**选择研究产品在当前数据根上确实尚未物化**（审计已知的生产者断链），前端如实显示"研究账本尚未物化；不把缺失展示为 0 条"，行为正确，无需改词表。
 - 事件刷新任务（刷新公开资料）：0908/0909 实测完成 **READY（10/10 行；17/16 条事件；181/169 条 reader 材料）**。`jobs/<id>.json` 会停留在 RUNNING 是**设计如此**——权威终态在 `.commits` 提交文档，`store.read_job` 以提交文档覆盖 jobs/ 准入记录（读侧以提交为准）；API 视图的 READY 即来自该路径。
 
 
@@ -194,6 +194,18 @@ bash "/Users/lexi/Desktop/学习/v4_app/.runtime/serve-v4-sandbox.sh"
 **生产部署（v3）**：release `20260911-v4app-material-reuse-api-v3`（672 文件，manifest `b8f4d977…`）；plist 备份 `…backup_before_20260911_material_reuse_deploy`；生产 8873 实测：healthz 200、`default_date=20260911`（v2 修复保持）、manager 0910 product=True、**34 步全按钮扫掠 0 HTTP/0 控制台错误**；点击「刷新公开资料」后生产素材仓（`state/manager_auto_research/materials`）真实写入 24 个 HKEX 官方文档 + ICCSZ 目录条目。回滚：恢复备份 plist + re-bootstrap。
 
 **边界说明**：素材仓只缓存公开来源的原始响应与解析产物；BUY 门、RESEARCH_ONLY、四安全旗不变；解析失败按 M1 契约不落盘（每次重试重新解析，成功即缓存）。
+
+## 六之七、裸开自动选当前日期 + 缓存安全部署（2026-09-11，按所有者指令）
+
+**前端（commit `7e1e06e`）**：`/manager-selection/` 与 `/daily-research-command/` 裸开（无 `?date=`）时不再停在"未选择"，而是读取与主页相同的规范默认日（`/api/v1/runs/date-list` 的 `default_date`，即"最近有已验证证据的交易日"），随后仅加载**这一个精确日期**并 `replaceState` 写回 URL；日期目录不可用时保持诚实的选择提示。exact-date 契约不变（不读 latest、不以其他日期产品顶替）。测试：`ManagerSelectionView.spec.ts` / `DailyResearchCommandView.spec.ts` 更新为该契约（vitest 全量 218 通过；`vue-tsc` 干净）；沙箱与生产实测裸开均落 `?date=20260911`、零控制台错误。
+
+**缓存安全部署（commit `7089a36`）**：v4 上线后实测发现——浏览器缓存的旧 `index.html`（启发式新鲜度）会引用**已随新构建消失的旧哈希 JS**（实测生产日志出现 `managerSelection-F4dY33V6.js → 404`），旧页面被搁置。修复两层：
+1. HTML 入口由 `_RevalidatingStaticFiles` 以 `Cache-Control: no-cache` 提供（每次校验；哈希资源保持默认缓存），并有回归测试 `tests/test_static_cache_headers.py`；
+2. v5 release 的资源目录**保留历次发布过的全部哈希文件**（实测旧 `managerSelection-F4dY33V6.js` 重新 200），已在缓存里的旧文档亦可正常加载。
+
+**部署记录**：v4 `20260911-v4app-current-date-ui-v4`（前端 dist 变更为 `managerSelection-03dHvWrH.js` / `dailyResearchCommand-BLZPvhOI.js`）；v5 `20260911-v4app-cache-safe-deploy-v5`（675 文件，manifest `06a00d7b…`）。生产 8873 实测：`/` 返回 `cache-control: no-cache`；新旧资源均 200；禁用缓存的浏览器裸开 manager/daily 均落 `?date=20260911`、零控制台错误；34 步全按钮扫掠 0 错误（截图 22–25）。回滚：`…backup_before_20260911_current_date_ui_deploy` / `…backup_before_20260911_cache_safe_deploy`。
+
+**后端口径**：全量 1187 passed / 77 failed / 2 errors，失败集合与冻结基线逐字节相同（`artifacts/after_cache_headers.log`）。
 
 ## 七、遗留问题与建议（CANNOT_CONFIRM）
 
