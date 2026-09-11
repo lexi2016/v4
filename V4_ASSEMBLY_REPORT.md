@@ -132,7 +132,20 @@ bash "/Users/lexi/Desktop/学习/v4_app/.runtime/serve-v4-sandbox.sh"
 
 **未动**：前端字节、upstreams 符号链接、`.runtime` 证据、沙箱脚本、git 历史（旧提交全部保留可回退）；未部署、未接生产。
 
+## 六之四、生产部署记录（2026-09-11，按所有者指令）
+
+在用户明确指令下完成 **api-only 服务的生产切换**（其余 launchd 服务保持既有 release，隔离爆炸半径）：
+
+- **新 release**：`~/Library/Application Support/com.lexi.v35.local/releases/20260911-v4app-merge-api-v1/`（app 树 21M，符号链接保留；`release-manifest.json` 如实记录用途/状态/父谱系，SHA256 `7ed888bf…`）。
+- **切换**：`com.lexi.v35.api-only.plist` 更新 APP_ROOT/RELEASE_ID/PYTHONPATH/WorkingDirectory/日志路径与 manifest PATH+SHA；**备份** `com.lexi.v35.api-only.plist.backup_before_20260911_merge_deploy`；`bootout`+`bootstrap` 切换（含"4 秒内 healthz 非 200 即自动回滚"守卫，未触发）。
+- **诚实边界**：`runtime-inventory` 与 `runtime-dependency-manifest` 属外部发布流水线产物，本部署**不伪造**——相关 env 保持未声明，runtime-graph 身份对应层如实显示 CANNOT_CONFIRM；`release_id_status = VERIFIED`（manifest 实际哈希与声明一致）。
+- **部署后验收（8873 生产端口）**：`/healthz` 200；首页与 manager 页 200；`/api/v4/manager/research?date=20260910` product=True（10 行）；`/api/v3/preselection-pools` ok=True（7 池/422 行）；浏览器实测经理页 92,479 字符真实候选、零控制台错误；访问日志全 200。
+- **回滚（如需）**：`launchctl bootout gui/$(id -u)/com.lexi.v35.api-only && cp ~/Library/LaunchAgents/com.lexi.v35.api-only.plist.backup_before_20260911_merge_deploy ~/Library/LaunchAgents/com.lexi.v35.api-only.plist && launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.lexi.v35.api-only.plist`（v8 release 目录未动）。
+- **未切换**：scheduler（仍在 `20260904T081111Z-v35-strict-stage-acquisition-v15` 谱系，HK 0.2 采集lane）与 runtime-graph（研究图 lane）——如需同步升级需另行裁决。
+
 ## 七、遗留问题与建议（CANNOT_CONFIRM）
+
+
 
 
 
