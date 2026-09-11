@@ -1,29 +1,24 @@
-"""Atomic, date and input keyed storage for V4 manager research."""
+"""Exact-input local research storage with fenced, atomic result publication.
 
+A commit is ONE atomic JSON document containing a product, terminal jobs and
+receipts with a checksum. Legacy objects remain readable; GET never migrates
+files. A receipt mirror alone is not a committed result. New/old writers must
+not share a root during cutover. Use a new local sandbox root for this version.
+"""
 from __future__ import annotations
-
 from contextlib import contextmanager
 from datetime import datetime, timezone
 import json
-import os
 from pathlib import Path
-import tempfile
-from threading import RLock
-from typing import Any, Iterable, Mapping, Sequence
-
-from .contracts import (
-    MANAGER_RESEARCH_ACTION_VALUES,
-    ContractError,
-    canonical_json,
-    manager_action_value_allow,
-    strict_trade_date,
-)
-
-# Deliberate host dependencies: the manager package shares the repo's single
-# locked-write and owned-path implementations instead of carrying its own.
-from infrastructure.interprocess_lock import owned_interprocess_lock
-from infrastructure.owned_path import resolve_owned_path
-from infrastructure.trading_safety import assert_safe_tree
+from threading import RLock, local
+from typing import Any, Callable, Iterator, Mapping, Sequence
+from infrastructure.owned_io import LockAcquireTimeout, SafeRoot
+from .contracts import canonical_json, sha256_json, strict_trade_date
+from .cache_contract import validate_cached_product
+from .safety import assert_manager_safe_tree
+_COMMIT_SCHEMA = 'v4.manager_research.commit.v1'
+_ACTIVE = {'QUEUED', 'RUNNING'}
+_TERMINAL = {'READY', 'PARTIAL_WITH_ROWS', 'CANNOT_CONFIRM', 'FAILED', 'CANCELLED'}
 
 
 class StoreError(RuntimeError):
@@ -35,119 +30,236 @@ class StoreConflict(StoreError):
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+    return datetime.now(timezone.utc).isoformat(timespec='seconds')
 
 
 def _safe_component(value: str, name: str) -> str:
-    if not isinstance(value, str) or not value or "/" in value or "\\" in value or value in {".", ".."}:
-        raise StoreError(f"invalid {name}")
+    if (
+        not isinstance(value, str)
+        or not value
+        or len(value) > 180
+        or '/' in value
+        or '\\' in value
+        or '\x00' in value
+        or value in {'.', '..'}
+    ):
+        raise StoreError(f'invalid {name}')
     return value
 
 
-class ManagerResearchStore:
-    """Own research state below one explicit state root.
+def _attempt(job: Mapping[str, Any]) -> tuple[int, Any]:
+    value = job.get('attempt', 0)
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise StoreError('JOB_ATTEMPT_INVALID')
+    return (value, job.get('generation'))
 
-    There is intentionally no ``current`` pointer.  A product is addressed by
-    target date and the exact stage input identity, so a late response for a
-    different date cannot overwrite the selected date's result.
-    """
+
+class ManagerResearchStore:
 
     def __init__(self, root: Path | str):
         self.root = Path(root).expanduser()
-        self.jobs_root = self.root / "jobs"
-        self.products_root = self.root / "products"
-        self.receipts_root = self.root / "receipts"
+        self.jobs_root = self.root / 'jobs'
+        self.products_root = self.root / 'products'
+        self.receipts_root = self.root / 'receipts'
         self._lock = RLock()
-        for directory in (self.jobs_root, self.products_root, self.receipts_root):
-            directory.mkdir(parents=True, exist_ok=True)
+        self._held = local()
+        self._io = SafeRoot(self.root)
+        for directory in ('jobs', 'products', 'receipts'):
+            self._io.ensure_directory(directory)
 
     def _job_path(self, job_id: str) -> Path:
-        return resolve_owned_path(self.root, f"jobs/{_safe_component(job_id, 'job_id')}.json")
+        return self.jobs_root / f"{_safe_component(job_id, 'job_id')}.json"
 
     def _product_path(self, target_trade_date: str, input_identity: str) -> Path:
-        date_text = strict_trade_date(target_trade_date)
-        return resolve_owned_path(
-            self.root, f"products/{date_text}/{_safe_component(input_identity, 'input_identity')}.json"
-        )
+        return self.products_root / strict_trade_date(target_trade_date) / f"{_safe_component(input_identity, 'input_identity')}.json"
 
     def _receipt_path(self, target_trade_date: str, job_id: str) -> Path:
-        date_text = strict_trade_date(target_trade_date)
-        return resolve_owned_path(
-            self.root, f"receipts/{date_text}/{_safe_component(job_id, 'job_id')}.json"
-        )
+        return self.receipts_root / strict_trade_date(target_trade_date) / f"{_safe_component(job_id, 'job_id')}.json"
+
+    def _commit_path(self, date: str, identity: str) -> Path:
+        return self.root / '.commits' / strict_trade_date(date) / f"{_safe_component(identity, 'input_identity')}.json"
 
     @contextmanager
-    def _write_lock(self, path: Path):
-        """Serialize same-key writers across instances and processes."""
-
-        with owned_interprocess_lock(
-            path.with_name(f".{path.name}.lock"),
-            timeout_seconds=10,
-            timeout_message=f"manager store lock timeout: {path.name}",
-        ):
-            yield
-
-    @staticmethod
-    def _validated_payload(payload: Mapping[str, Any], label: str) -> dict[str, Any]:
-        value = dict(payload)
-        try:
-            assert_safe_tree(
-                value,
-                label=label,
-                extra_allowed_action_values=MANAGER_RESEARCH_ACTION_VALUES,
-                action_value_allow=manager_action_value_allow,
-            )
-        except ValueError as error:
-            raise StoreError(f"unsafe {label}: {error}") from error
-        return value
-
-    @staticmethod
-    def _read(path: Path) -> dict[str, Any] | None:
-        if not path.is_file():
-            return None
-        try:
-            value = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
-            raise StoreError(f"cannot read store object: {path}") from exc
-        if not isinstance(value, dict):
-            raise StoreError(f"store object must be an object: {path}")
-        return value
-
-    @staticmethod
-    def _write_atomic(path: Path, value: Mapping[str, Any]) -> None:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        payload = canonical_json(dict(value))
-        fd, temp_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=str(path.parent))
-        try:
-            with os.fdopen(fd, "wb") as handle:
-                handle.write(payload)
-                handle.flush()
-                os.fsync(handle.fileno())
-            os.replace(temp_name, path)
-        except BaseException:
+    def _transaction(self, date: str, identity: str) -> Iterator[None]:
+        key = f"{strict_trade_date(date)}-{_safe_component(identity, 'input_identity')}"
+        # RLock serializes this instance; kernel lock serializes other instances
+        # and processes. Reentrancy is per-thread and only for this exact key.
+        with self._lock:
+            held = getattr(self._held, 'keys', set())
+            if key in held:
+                yield
+                return
             try:
-                os.unlink(temp_name)
-            except OSError:
-                pass
-            raise
+                with self._io.kernel_lock(f'.locks/{key}.mutex'):
+                    self._held.keys = held | {key}
+                    try:
+                        yield
+                    finally:
+                        self._held.keys = held
+            except LockAcquireTimeout as exc:
+                raise StoreConflict('STORE_KEY_LOCK_TIMEOUT') from exc
+
+    def _read(self, path: Path) -> dict[str, Any] | None:
+        try:
+            raw = self._io.read_bytes(str(path.relative_to(self.root)))
+        except FileNotFoundError:
+            return None
+        except (OSError, ValueError) as exc:
+            raise StoreError('STORE_READ_BOUNDARY_FAILED') from exc
+        try:
+            value = json.loads(raw.decode('utf-8'))
+            if not isinstance(value, dict):
+                raise ValueError('not an object')
+            assert_manager_safe_tree(value)
+            canonical_json(value)
+            return value
+        except (UnicodeError, ValueError) as exc:
+            raise StoreError('STORE_OBJECT_INVALID') from exc
+
+    def _write_atomic(self, path: Path, value: Mapping[str, Any]) -> None:
+        assert_manager_safe_tree(value)
+        self._io.write_bytes(str(path.relative_to(self.root)), canonical_json(dict(value)))
+
+    def _read_commit(self, date: str, identity: str) -> dict[str, Any] | None:
+        commit = self._read(self._commit_path(date, identity))
+        if commit is None:
+            return None
+        content = {k: v for k, v in commit.items() if k != 'sha256'}
+        if (
+            commit.get('schema_version') != _COMMIT_SCHEMA
+            or commit.get('sha256') != sha256_json(content)
+            or commit.get('target_trade_date') != date
+            or commit.get('input_identity') != identity
+        ):
+            raise StoreError('COMMIT_INTEGRITY_FAILED')
+        product = commit.get('product')
+        if (
+            not isinstance(product, dict)
+            or product.get('target_trade_date') != date
+            or product.get('input_identity') != identity
+        ):
+            raise StoreError('COMMIT_PRODUCT_IDENTITY_FAILED')
+        jobs, receipts = (commit.get('jobs'), commit.get('receipts'))
+        if (
+            not isinstance(jobs, dict)
+            or not isinstance(receipts, dict)
+            or not jobs
+            or set(jobs) != set(receipts)
+        ):
+            raise StoreError('COMMIT_RECEIPT_SET_INVALID')
+        for key, job in jobs.items():
+            receipt = receipts[key]
+            if not isinstance(job, dict) or not isinstance(receipt, dict):
+                raise StoreError('COMMIT_MEMBER_INVALID')
+            for item in (job, receipt):
+                if (
+                    item.get('job_id') != key
+                    or item.get('target_trade_date') != date
+                    or item.get('input_identity') != identity
+                ):
+                    raise StoreError('COMMIT_MEMBER_IDENTITY_FAILED')
+            if job.get('status') not in _TERMINAL - {'CANCELLED'}:
+                raise StoreError('COMMIT_TERMINAL_STATE_INVALID')
+        return commit
 
     def read_job(self, job_id: str) -> dict[str, Any] | None:
         with self._lock:
-            return self._read(self._job_path(job_id))
+            job = self._read(self._job_path(job_id))
+            if job is None:
+                return None
+            if job.get('job_id') != job_id:
+                raise StoreError('JOB_IDENTITY_MISMATCH')
+            date, identity = (job.get('target_trade_date'), job.get('input_identity'))
+            if date and identity:
+                commit = self._read_commit(date, identity)
+                final = commit.get('jobs', {}).get(job_id) if commit else None
+                if final is not None and _attempt(final) == _attempt(job):
+                    return dict(final)
+            return job
 
     def write_job(self, job: Mapping[str, Any]) -> dict[str, Any]:
-        job_id = _safe_component(str(job.get("job_id", "")), "job_id")
-        value = self._validated_payload(job, "manager job")
-        value.setdefault("updated_at", _now())
-        path = self._job_path(job_id)
-        with self._write_lock(path):
-            with self._lock:
-                self._write_atomic(path, value)
-                return value
+        value = dict(job)
+        job_id = _safe_component(str(value.get('job_id', '')), 'job_id')
+        date = strict_trade_date(value.get('target_trade_date'))
+        identity = _safe_component(str(value.get('input_identity', '')), 'input_identity')
+        assert_manager_safe_tree(value)
+        with self._transaction(date, identity):
+            prior = self.read_job(job_id)
+            if (
+                prior is not None
+                and (prior.get('target_trade_date') != date or prior.get('input_identity') != identity)
+            ):
+                raise StoreConflict('JOB_EXACT_INPUT_CONFLICT')
+            if prior is not None:
+                if _attempt(prior) != _attempt(value):
+                    raise StoreConflict('JOB_GENERATION_SUPERSEDED')
+                if prior.get('status') in _TERMINAL:
+                    if canonical_json(prior) == canonical_json(value):
+                        return prior
+                    raise StoreConflict('JOB_ALREADY_TERMINAL')
+            value.setdefault('updated_at', _now())
+            self._write_atomic(self._job_path(job_id), value)
+            return value
+
+    def admit_job(self, job: Mapping[str, Any]) -> dict[str, Any]:
+        """Compare-and-admit a fresh generation; no implicit orphan takeover."""
+        value = dict(job)
+        date = strict_trade_date(value.get('target_trade_date'))
+        identity = _safe_component(str(value.get('input_identity', '')), 'input_identity')
+        with self._transaction(date, identity):
+            prior = self.read_job(value['job_id'])
+            if (
+                prior is not None
+                and (prior.get('target_trade_date') != date or prior.get('input_identity') != identity)
+            ):
+                raise StoreConflict('JOB_EXACT_INPUT_CONFLICT')
+            if prior is not None and prior.get('status') in _ACTIVE:
+                raise StoreConflict('JOB_OWNER_UNCONFIRMED')
+            expected = _attempt(prior)[0] + 1 if prior else 1
+            if (
+                _attempt(value)[0] != expected
+                or not isinstance(value.get('generation'), str)
+                or not value['generation']
+                or value.get('status') != 'QUEUED'
+            ):
+                raise StoreConflict('JOB_ADMISSION_CONFLICT')
+            self._write_atomic(self._job_path(value['job_id']), value)
+            return value
+
+    def cancel_job(self, job_id: str, target_trade_date: str | None=None) -> dict[str, Any] | None:
+        job = self.read_job(job_id)
+        if (
+            job is None
+            or (target_trade_date is not None and job.get('target_trade_date') != target_trade_date)
+        ):
+            return None
+        with self._transaction(job['target_trade_date'], job['input_identity']):
+            current = self.read_job(job_id)
+            if current is None or current.get('status') in _TERMINAL:
+                return current
+            current.update(
+                status='CANCELLED',
+                error='CANCELLED_BY_REQUEST',
+                can_retry=True,
+                updated_at=_now(),
+                completed_at=_now(),
+            )
+            self._write_atomic(self._job_path(job_id), current)
+            return current
 
     def read_product(self, target_trade_date: str, input_identity: str) -> dict[str, Any] | None:
         with self._lock:
-            return self._read(self._product_path(target_trade_date, input_identity))
+            commit = self._read_commit(target_trade_date, input_identity)
+            product = dict(commit['product']) if commit else self._read(self._product_path(
+                target_trade_date,
+                input_identity,
+            ))
+            if (
+                product is not None
+                and (product.get('target_trade_date') != target_trade_date or product.get('input_identity') != input_identity)
+            ):
+                raise StoreError('PRODUCT_IDENTITY_MISMATCH')
+            return product
 
     def read_compatible_product(
         self,
@@ -160,156 +272,149 @@ class ManagerResearchStore:
         market: str,
         normalized_rows: Sequence[Mapping[str, Any]],
     ) -> dict[str, Any] | None:
-        """Read one exact legacy product whose input identity was re-bound.
-
-        The V4 input identity gained explicit stage-status evidence after the
-        first cache was written.  A legacy product can therefore be reused
-        only when its old identity and the persisted product metadata still
-        prove the same date, stage, market, source artifact, row count and
-        candidate order.  This method scans one date directory only; it never
-        searches another date or a ``current`` pointer, and it performs no
-        migration write.
-        """
-
-        date_text = strict_trade_date(target_trade_date)
-        legacy_identity = _safe_component(legacy_input_identity, "legacy_input_identity")
-        if not isinstance(input_row_count, int) or isinstance(input_row_count, bool) or input_row_count < 1:
-            raise StoreError("input_row_count must be a positive integer")
-        if not isinstance(stage_id, str) or not stage_id.strip():
-            raise StoreError("stage_id must be a non-empty string")
-        if not isinstance(market, str) or not market.strip():
-            raise StoreError("market must be a non-empty string")
-        expected_rows = list(normalized_rows)
-        if len(expected_rows) != input_row_count:
-            raise StoreError("normalized row count does not match input_row_count")
-
-        def expected_key(row: Mapping[str, Any]) -> tuple[Any, Any, Any, Any]:
-            return (
-                row.get("code"),
-                row.get("stage_rank"),
-                row.get("name"),
-                row.get("source_last_bar_time"),
-            )
-
-        expected_keys = [expected_key(row) for row in expected_rows]
-        if any(not isinstance(key[0], str) or not key[0] for key in expected_keys):
-            raise StoreError("normalized rows must contain candidate codes")
-        if len({key[0] for key in expected_keys}) != len(expected_keys):
-            raise StoreError("normalized rows contain duplicate candidate codes")
-
-        date_root = self.products_root / date_text
-        with self._lock:
-            if not date_root.is_dir():
-                return None
-            for path in sorted(date_root.glob("*.json")):
-                if path.stem != legacy_identity:
-                    continue
-                candidate = self._read(path)
-                if candidate is None:
-                    continue
-                if (
-                    candidate.get("target_trade_date") != date_text
-                    or candidate.get("stage_id") != stage_id
-                    or candidate.get("market") != market
-                    or candidate.get("input_identity") != legacy_identity
-                    or candidate.get("input_source_sha256") != input_source_sha256
-                    or candidate.get("input_row_count") != input_row_count
-                ):
-                    continue
-                rows = candidate.get("rows")
-                if not isinstance(rows, list) or len(rows) != input_row_count:
-                    continue
-                candidate_keys: list[tuple[Any, Any, Any, Any]] = []
-                valid_rows = True
-                for row in rows:
-                    if not isinstance(row, Mapping):
-                        valid_rows = False
-                        break
-                    # Legacy products predate the nested row-date field, so
-                    # missing values remain compatible.  When either field is
-                    # persisted, however, it is part of the evidence bound to
-                    # this exact product date.  Do not let a top-level date
-                    # mask stale material from another trading day.
-                    if "target_trade_date" in row and row.get("target_trade_date") != date_text:
-                        valid_rows = False
-                        break
-                    observation = row.get("observation")
-                    observation_map = observation if isinstance(observation, Mapping) else {}
-                    if (
-                        isinstance(observation, Mapping)
-                        and "target_trade_date" in observation
-                        and observation.get("target_trade_date") != date_text
-                    ):
-                        valid_rows = False
-                        break
-                    candidate_keys.append(
-                        (
-                            row.get("code"),
-                            observation_map.get("stage_rank", row.get("stage_rank")),
-                            row.get("name"),
-                            observation_map.get("source_last_bar_time", row.get("source_last_bar_time")),
-                        )
-                    )
-                if valid_rows and candidate_keys == expected_keys:
-                    return candidate
+        date = strict_trade_date(target_trade_date)
+        candidate = self.read_product(date, legacy_input_identity)
+        if candidate is None:
             return None
+        expected = dict(
+            target_trade_date=date,
+            input_identity=legacy_input_identity,
+            input_source_sha256=input_source_sha256,
+            input_row_count=input_row_count,
+            stage_id=stage_id,
+            market=market,
+            rows=list(normalized_rows),
+        )
+        try:
+            validate_cached_product(candidate, expected)
+        except ValueError:
+            return None
+        return candidate
 
     def write_product(self, product: Mapping[str, Any]) -> dict[str, Any]:
-        date_text = strict_trade_date(product.get("target_trade_date"))
-        input_identity = _safe_component(str(product.get("input_identity", "")), "input_identity")
-        path = self._product_path(date_text, input_identity)
-        value = self._validated_payload(product, "manager product")
-        with self._write_lock(path):
-            with self._lock:
-                prior = self._read(path)
-                if prior is not None and canonical_json(prior) != canonical_json(value):
-                    raise StoreConflict(f"product identity already contains different data: {date_text}/{input_identity}")
-                if prior is None:
-                    self._write_atomic(path, value)
-                    return value
+        assert_manager_safe_tree(product)
+        date = strict_trade_date(product.get('target_trade_date'))
+        identity = _safe_component(str(product.get('input_identity', '')), 'input_identity')
+        with self._transaction(date, identity):
+            prior = self.read_product(date, identity)
+            if prior is not None:
+                if canonical_json(prior) != canonical_json(dict(product)):
+                    raise StoreConflict('PRODUCT_IDENTITY_CONFLICT')
                 return prior
+            self._write_atomic(self._product_path(date, identity), product)
+            return dict(product)
 
     def replace_product(self, product: Mapping[str, Any]) -> dict[str, Any]:
-        """Replace one exact input product during an explicit retry.
+        """Legacy explicit replacement only; committed results require commit_result."""
+        assert_manager_safe_tree(product)
+        date = strict_trade_date(product.get('target_trade_date'))
+        identity = _safe_component(str(product.get('input_identity', '')), 'input_identity')
+        with self._transaction(date, identity):
+            if self._read_commit(date, identity) is not None:
+                raise StoreConflict('COMMITTED_UPDATE_REQUIRES_NEW_ATTEMPT')
+            self._write_atomic(self._product_path(date, identity), product)
+            return dict(product)
 
-        The path remains immutable with respect to date and input identity;
-        only a caller that has already requested a retry reaches this method.
-        """
-
-        date_text = strict_trade_date(product.get("target_trade_date"))
-        input_identity = _safe_component(str(product.get("input_identity", "")), "input_identity")
-        path = self._product_path(date_text, input_identity)
-        value = self._validated_payload(product, "manager product")
-        with self._write_lock(path):
-            with self._lock:
-                self._write_atomic(path, value)
-                return value
-
-    def write_receipt(self, target_trade_date: str, job_id: str, receipt: Mapping[str, Any]) -> dict[str, Any]:
-        strict_trade_date(target_trade_date)
-        _safe_component(job_id, "job_id")
-        path = self._receipt_path(target_trade_date, job_id)
-        value = self._validated_payload(receipt, "manager receipt")
-        with self._write_lock(path):
-            with self._lock:
-                self._write_atomic(path, value)
-                return value
+    def write_receipt(
+        self,
+        target_trade_date: str,
+        job_id: str,
+        receipt: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        # Compatibility mirror. commit_result is the only result-visibility gate.
+        with self._lock:
+            self._write_atomic(self._receipt_path(target_trade_date, job_id), receipt)
+            return dict(receipt)
 
     def read_receipt(self, target_trade_date: str, job_id: str) -> dict[str, Any] | None:
         with self._lock:
+            job = self._read(self._job_path(job_id))
+            if job is not None:
+                if job.get('target_trade_date') != target_trade_date:
+                    return None
+                identity = job.get('input_identity')
+                if identity:
+                    commit = self._read_commit(target_trade_date, identity)
+                    if (
+                        commit
+                        and job_id in commit['receipts']
+                        and _attempt(commit['jobs'][job_id]) == _attempt(job)
+                    ):
+                        return dict(commit['receipts'][job_id])
+                    if job.get('generation'):
+                        return None
             return self._read(self._receipt_path(target_trade_date, job_id))
 
-    def list_jobs(self, target_trade_date: str | None = None) -> list[dict[str, Any]]:
-        with self._lock:
-            paths: Iterable[Path]
-            if target_trade_date is None:
-                paths = self.jobs_root.glob("*.json")
-            else:
-                date_text = strict_trade_date(target_trade_date)
-                paths = self.jobs_root.glob("*.json")
-            result = []
-            for path in sorted(paths):
-                item = self._read(path)
-                if item is not None and (target_trade_date is None or item.get("target_trade_date") == date_text):
-                    result.append(item)
-            return result
+    def commit_result(
+        self,
+        job: Mapping[str, Any],
+        product: Mapping[str, Any],
+        receipt: Mapping[str, Any],
+        *,
+        merge: Callable[[dict[str, Any]], dict[str, Any]] | None=None,
+    ) -> dict[str, Any]:
+        """Fence attempt/cancel and atomically publish product+terminal state+receipt.
+
+        ``merge`` is pure and short: it receives the latest product *inside* the
+        input-key critical section. It must never perform source collection.
+        """
+        date = strict_trade_date(job.get('target_trade_date'))
+        identity = _safe_component(str(job.get('input_identity', '')), 'input_identity')
+        job_id = _safe_component(str(job.get('job_id', '')), 'job_id')
+        with self._transaction(date, identity):
+
+            def check_owner() -> None:
+                current = self.read_job(job_id)
+                if (
+                    current is None
+                    or current.get('target_trade_date') != date
+                    or current.get('input_identity') != identity
+                    or _attempt(current) != _attempt(job)
+                    or current.get('status') not in _ACTIVE
+                ):
+                    raise StoreConflict('JOB_COMMIT_FENCE_REJECTED')
+            check_owner()
+            if job.get('status') not in _TERMINAL - {'CANCELLED'}:
+                raise StoreConflict('JOB_RESULT_NOT_PUBLISHABLE')
+            latest = self.read_product(date, identity)
+            if merge is not None:
+                if latest is None:
+                    raise StoreConflict('FINANCIAL_PRODUCT_MISSING')
+                product = merge(latest)
+            if job.get('mode') != 'EVENT_REFRESH' and product.get('status') != job.get('status'):
+                raise StoreConflict('PRODUCT_JOB_STATUS_MISMATCH')
+            for item in (product, receipt):
+                if item.get('target_trade_date') != date or item.get('input_identity') != identity:
+                    raise StoreConflict('COMMIT_IDENTITY_MISMATCH')
+                assert_manager_safe_tree(item)
+            if receipt.get('job_id') != job_id:
+                raise StoreConflict('RECEIPT_JOB_MISMATCH')
+            prior = self._read_commit(date, identity)
+            jobs = dict(prior['jobs']) if prior else {}
+            receipts = dict(prior['receipts']) if prior else {}
+            jobs[job_id] = dict(job)
+            receipts[job_id] = dict(receipt)
+            commit = dict(
+                schema_version=_COMMIT_SCHEMA,
+                target_trade_date=date,
+                input_identity=identity,
+                revision=int(prior['revision']) + 1 if prior else 1,
+                product=dict(product),
+                jobs=jobs,
+                receipts=receipts,
+            )
+            commit['sha256'] = sha256_json(commit)
+            self.write_receipt(date, job_id, receipt)
+            # also fences reentrant fault-injection/cancel callbacks
+            check_owner()
+            self._write_atomic(self._commit_path(date, identity), commit)
+            return dict(product)
+
+    def list_jobs(self, target_trade_date: str | None=None) -> list[dict[str, Any]]:
+        date = strict_trade_date(target_trade_date) if target_trade_date is not None else None
+        result = []
+        for name in self._io.files('jobs'):
+            item = self.read_job(name[:-5])
+            if item is not None and (date is None or item.get('target_trade_date') == date):
+                result.append(item)
+        return result

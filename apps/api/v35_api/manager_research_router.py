@@ -11,6 +11,7 @@ from datetime import datetime
 import re
 from typing import Any
 
+from starlette.concurrency import run_in_threadpool
 from fastapi import APIRouter, HTTPException, Query, Request
 
 
@@ -98,13 +99,13 @@ def create_manager_research_router(service: Any) -> APIRouter:
     async def ensure_research(request: Request, date: str | None = None) -> dict[str, Any]:
         _same_origin(request)
         await _reject_client_body(request)
-        return service.ensure(_date(date))
+        return await run_in_threadpool(service.ensure, _date(date))
 
     @router.post("/retry")
     async def retry_research(request: Request, date: str | None = None) -> dict[str, Any]:
         _same_origin(request)
         await _reject_client_body(request)
-        return service.retry(_date(date))
+        return await run_in_threadpool(service.retry, _date(date))
 
     @router.post("/events")
     async def refresh_research_events(request: Request, date: str | None = None) -> dict[str, Any]:
@@ -115,7 +116,7 @@ def create_manager_research_router(service: Any) -> APIRouter:
         ensure_events = getattr(service, "ensure_events", None)
         if not callable(ensure_events):
             raise HTTPException(status_code=503, detail="manager research catalyst refresh is unavailable")
-        return ensure_events(_date(date), force=True)
+        return await run_in_threadpool(ensure_events, _date(date), force=True)
 
     @router.get("/jobs/{job_id}")
     def read_job(job_id: str, date: str | None = None) -> dict[str, Any]:
@@ -138,7 +139,7 @@ def create_manager_research_router(service: Any) -> APIRouter:
         _same_origin(request)
         await _reject_client_body(request)
         target = _date(date) if date is not None else None
-        job = service.cancel(job_id, target)
+        job = await run_in_threadpool(service.cancel, job_id, target)
         if job is None:
             raise HTTPException(status_code=404, detail="manager research job not found")
         return _job_envelope(job)

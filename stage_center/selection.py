@@ -13,6 +13,8 @@ import math
 import os
 import re
 import tempfile
+import time
+from infrastructure.interprocess_lock import owned_interprocess_lock
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path, PurePosixPath
@@ -27,8 +29,6 @@ from .contracts import (
     SELECTION_STATUSES,
     STAGE_RECOMMENDATION_LIMIT,
 )
-
-from infrastructure.interprocess_lock import owned_interprocess_lock
 
 
 SELECTION_ARTIFACT_FIELDS_V1 = (
@@ -76,6 +76,7 @@ SELECTION_STATUSES = frozenset(SELECTION_STATUSES)
 _SHA_RE = re.compile(r"^[0-9a-f]{64}$")
 _ROLE_RE = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9_.-]*[A-Za-z0-9])?$")
 _LOCK_TIMEOUT_SECONDS = 10.0
+_LOCK_STALE_SECONDS = 30.0
 
 # This is an explicit version manifest, rather than a caller-provided label.
 # The digest is consequently stable across processes and binds the coefficients
@@ -504,17 +505,10 @@ def _live_rank_int(value: Any) -> int:
 
 
 def stage_row_sort_key(row: Mapping[str, Any]) -> tuple[float, float, int, str]:
-    """Sort stage rows; a real zero value is a value, only None is missing.
-
-    This keeps the Windows V3 ordering for every valid row, except that a
-    genuine ``0.0`` score/gap is no longer treated as missing (the frozen
-    port used ``value or fallback`` and mis-sorted real zeros).
-    """
+    """Port Windows V3 ``stage_row_sort_key`` exactly."""
     gap_value = _live_safe_float(row.get("qmt_gap_pct"))
-    amount_value = _live_safe_float(row.get("qmt_amount"))
-    score_value = _live_safe_float(row.get("stage_score"))
-    gap_tiebreak = gap_value if gap_value is not None else -999999.0
-    amount_tiebreak = amount_value if amount_value is not None else 0.0
+    gap_tiebreak = -999999.0 if gap_value is None else gap_value
+    amount_tiebreak = _live_safe_float(row.get("qmt_amount")) or 0.0
     if row.get("stage_id") == "STAGE_0925":
         second_key = gap_tiebreak
         third_key = -int(amount_tiebreak)
@@ -532,8 +526,9 @@ def stage_row_sort_key(row: Mapping[str, Any]) -> tuple[float, float, int, str]:
         # retain the old lexical fallback. Production rows always carry the
         # validated raw ``batch_index`` so ties cannot be filled by code order.
         tie_break = str(row.get("stock_code") or "")
+    score_value = _live_safe_float(row.get("stage_score"))
     return (
-        -(score_value if score_value is not None else -999999.0),
+        -(-999999.0 if score_value is None else score_value),
         -second_key,
         third_key,
         tie_break,
@@ -1781,21 +1776,9 @@ class SelectionStore:
         self.lock_path = self.root / ".selection.store.lock"
 
     @contextmanager
-    def _lock(self) -> Iterator[None]:
-        self.root.mkdir(parents=True, exist_ok=True)
-        lock = owned_interprocess_lock(
-            self.lock_path,
-            timeout_seconds=_LOCK_TIMEOUT_SECONDS,
-            timeout_message="selection store lock timeout",
-        )
-        try:
-            lock.__enter__()
-        except ValueError as error:
-            raise SelectionError(str(error)) from error
-        try:
+    def _lock(self):
+        with owned_interprocess_lock(self.lock_path, timeout_seconds=_LOCK_TIMEOUT_SECONDS, timeout_message='selection store lock timeout', timeout_error=SelectionError):
             yield
-        finally:
-            lock.__exit__(None, None, None)
 
     def _latest(self) -> dict[str, Any]:
         if not self.latest_path.exists():

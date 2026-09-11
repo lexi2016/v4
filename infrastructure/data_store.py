@@ -7,12 +7,13 @@ import os
 import tempfile
 from contextlib import contextmanager
 from datetime import datetime
-from pathlib import Path, PurePosixPath
+from pathlib import Path
+from infrastructure.owned_io import SafeRoot
 from typing import Any, Mapping
 
 from infrastructure.interprocess_lock import owned_interprocess_lock
 from infrastructure.market_time import shanghai_now
-from infrastructure.trading_safety import assert_safe_tree
+from infrastructure.trading_safety import assert_safe_tree, ACTION_KEYS, FALSE_ONLY_KEYS
 
 
 def _canonical_bytes(value: Any) -> bytes:
@@ -36,44 +37,16 @@ def _date(value: str) -> str:
 class NativeDataStore:
     def __init__(self, root: Path) -> None:
         self.root = Path(root)
-
-    @staticmethod
-    def _relative_parts(relative: str) -> tuple[str, ...]:
-        if not isinstance(relative, str) or not relative:
-            raise ValueError("owned destination must be a non-empty relative path")
-        pure = PurePosixPath(relative)
-        if pure.is_absolute() or any(part in {"", ".", ".."} for part in pure.parts):
-            raise ValueError("owned destination must be a normalized relative path")
-        return pure.parts
+        self._io = SafeRoot(self.root)
 
     def _path(self, relative: str) -> Path:
-        # Reject a symlinked component below the store root: a directory such
-        # as ``receipts`` replaced by a link must not let reads or writes
-        # escape the owned root.  (The chain above the root is the caller's
-        # environment choice and is intentionally not restricted here.)
-        current = self.root
-        for part in self._relative_parts(relative):
-            current = current / part
-            if current.is_symlink():
-                raise ValueError("owned destination has a symlinked component")
-        return current
+        return self.root / relative
 
     def _read(self, relative: str) -> Any:
-        return json.loads(self._path(relative).read_text(encoding="utf-8"))
+        return json.loads(self._io.read_bytes(relative).decode("utf-8"))
 
     def _write(self, relative: str, value: Any) -> None:
-        destination = self._path(relative)
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        handle, temporary = tempfile.mkstemp(prefix=f".{destination.name}.", suffix=".tmp", dir=destination.parent)
-        try:
-            with os.fdopen(handle, "wb") as output:
-                output.write(_canonical_bytes(value))
-                output.flush()
-                os.fsync(output.fileno())
-            os.replace(temporary, destination)
-        finally:
-            if os.path.exists(temporary):
-                os.unlink(temporary)
+        self._io.write_bytes(relative, _canonical_bytes(value))
 
     @contextmanager
     def _lock(self):
@@ -161,6 +134,7 @@ class NativeDataStore:
 
 
 def _validate_catalog(catalog: Mapping[str, Any]) -> None:
+    assert_safe_tree(catalog, label="date catalog")
     if not isinstance(catalog, Mapping):
         raise ValueError("invalid calendar payload")
     if catalog.get("schema_version") != "v3_trade_calendar.v1":
@@ -244,12 +218,19 @@ def _validate_payload_proof(payload: Mapping[str, Any]) -> None:
 
 
 def _assert_watch_only(value: Any, *, expected_lane: str, expected_selector: str) -> None:
-    def _lane_rules(folded: str, nested: Any) -> None:
-        if folded in {"recommendation", "recommendation_status"} and nested not in {"WATCH_ONLY", "WATCH_ONLY_BACKTEST_GATED"}:
-            raise ValueError("unsafe recommendation semantics")
-        if folded in {"source_lane", "lane"} and nested != expected_lane:
-            raise ValueError("unexpected source lane")
-        if folded == "selector_status" and nested != expected_selector:
-            raise ValueError("unexpected selector status")
-
-    assert_safe_tree(value, label="watch-only", node_check=_lane_rules)
+    assert_safe_tree(value, label="watch-only product")
+    def visit(item: Any) -> None:
+        if isinstance(item, Mapping):
+            for key, nested in item.items():
+                folded = key.casefold()
+                if folded in {"recommendation", "recommendation_status"} and nested not in ("WATCH_ONLY", "WATCH_ONLY_BACKTEST_GATED"):
+                    raise ValueError("unsafe recommendation semantics")
+                if folded in {"source_lane", "lane"} and nested != expected_lane:
+                    raise ValueError("unexpected source lane")
+                if folded == "selector_status" and nested != expected_selector:
+                    raise ValueError("unexpected selector status")
+                visit(nested)
+        elif isinstance(item, (list, tuple)):
+            for nested in item:
+                visit(nested)
+    visit(value)

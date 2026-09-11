@@ -3,19 +3,23 @@ from __future__ import annotations
 
 import os
 import tempfile
+import time
+from infrastructure.interprocess_lock import owned_interprocess_lock
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Mapping
+from uuid import uuid4
 
 from domains.a_share_review import validate_a_share_review
 from infrastructure.data_store import _canonical_bytes, _date, _sha256
-from infrastructure.interprocess_lock import owned_interprocess_lock
 from infrastructure.owned_path import resolve_owned_path
+from infrastructure.owned_io import SafeRoot
 
 
 class AShareReviewStore:
     def __init__(self, root: Path) -> None:
         self.root = Path(root)
+        self._io = SafeRoot(self.root)
 
     def _path(self, relative: str) -> Path:
         return resolve_owned_path(self.root, relative)
@@ -23,32 +27,15 @@ class AShareReviewStore:
     def _read(self, relative: str) -> Any:
         import json
 
-        return json.loads(self._path(relative).read_text(encoding="utf-8"))
+        return json.loads(self._io.read_bytes(relative).decode("utf-8"))
 
     def _write(self, relative: str, value: Mapping[str, Any]) -> None:
-        destination = self._path(relative)
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        handle, temporary = tempfile.mkstemp(
-            prefix=f".{destination.name}.", suffix=".tmp", dir=destination.parent
-        )
-        try:
-            with os.fdopen(handle, "wb") as output:
-                output.write(_canonical_bytes(value))
-                output.flush()
-                os.fsync(output.fileno())
-            os.replace(temporary, destination)
-        finally:
-            if os.path.exists(temporary):
-                os.unlink(temporary)
+        # Payload contracts stay at each public materialization boundary.
+        self._io.write_bytes(relative, _canonical_bytes(value))
 
     @contextmanager
     def _lock(self):
-        path = self._path("a_share_reviews/.import.lock")
-        with owned_interprocess_lock(
-            path,
-            timeout_seconds=10,
-            timeout_message="A-share review import lock timeout",
-        ):
+        with owned_interprocess_lock(self._path("a_share_reviews/.import.lock"), timeout_seconds=10, timeout_message='A-share review import lock timeout'):
             yield
 
     def _paths(self, trade_date: str) -> tuple[str, str, str]:

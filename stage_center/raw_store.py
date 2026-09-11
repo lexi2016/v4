@@ -14,6 +14,8 @@ import json
 import os
 import re
 import tempfile
+import time
+from infrastructure.interprocess_lock import owned_interprocess_lock
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path, PurePosixPath
@@ -22,8 +24,6 @@ from uuid import uuid4
 
 from .calendar import calendar_provenance
 from .contracts import EIGHT_STAGES, SAFETY_FLAGS
-
-from infrastructure.interprocess_lock import owned_interprocess_lock
 
 RAW_FIELDS = (
     "batch_index",
@@ -60,6 +60,7 @@ RAW_STATUSES = frozenset(("READY", "PARTIAL_WITH_ROWS", "READY_EMPTY", "CANNOT_C
 _TIME_FMT = "%Y-%m-%d %H:%M:%S"
 _SHA_RE = re.compile(r"^[0-9a-f]{64}$")
 _LOCK_TIMEOUT_SECONDS = 10.0
+_LOCK_STALE_SECONDS = 30.0
 _ROLE_RE = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9_.-]*[A-Za-z0-9])?$")
 _MARKET_CODE = {
     "A_SHARE": re.compile(r"^(?:A|SH|SZ|BJ)\.\d{6}$"),
@@ -340,21 +341,9 @@ class RawStore:
         self.lock_path = self.root / ".store.lock"
 
     @contextmanager
-    def _lock(self) -> Iterator[None]:
-        self.root.mkdir(parents=True, exist_ok=True)
-        lock = owned_interprocess_lock(
-            self.lock_path,
-            timeout_seconds=_LOCK_TIMEOUT_SECONDS,
-            timeout_message="store lock timeout",
-        )
-        try:
-            lock.__enter__()
-        except ValueError as error:
-            raise RawStoreError(str(error)) from error
-        try:
+    def _lock(self):
+        with owned_interprocess_lock(self.lock_path, timeout_seconds=_LOCK_TIMEOUT_SECONDS, timeout_message='store lock timeout', timeout_error=RawStoreError):
             yield
-        finally:
-            lock.__exit__(None, None, None)
 
     def _load_latest(self) -> dict[str, Any]:
         if not self.latest_path.exists():
