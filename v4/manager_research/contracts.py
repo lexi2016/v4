@@ -21,6 +21,11 @@ JOB_SCHEMA_VERSION = "v4.manager_research.job.v1"
 TARGET_STAGE_ID = "STAGE_0935_0940"
 MARKET = "HK_CONNECT"
 CUTOFF_LOCAL_TIME = "09:40:00+08:00"
+# The manager research product speaks its own reviewed advice vocabulary.
+# These are research classifications (with all four safety flags false),
+# never order instructions, and they are the only extra values the shared
+# trading-semantics guard tolerates under an "action"-like key.
+MANAGER_RESEARCH_ACTION_VALUES = ("BUY", "CONDITIONAL_BUY", "WATCH", "AVOID", "DATA_INSUFFICIENT")
 FOUR_FLAGS = {
     "RESEARCH_ONLY": True,
     "production_allowed": False,
@@ -224,7 +229,11 @@ def normalise_observation_input(payload: Mapping[str, Any]) -> dict[str, Any]:
         if isinstance(row_date, str) and row_date.strip() and row_date.strip().replace("-", "") != target_trade_date:
             raise ContractError(f"{code}.target_trade_date conflicts with the requested date")
         try:
-            assert_safe_tree(row_copy, label="manager observation")
+            assert_safe_tree(
+                row_copy,
+                label="manager observation",
+                extra_allowed_action_values=MANAGER_RESEARCH_ACTION_VALUES,
+            )
         except ValueError as error:
             raise ContractError(f"unsafe observation row {code}: {error}") from error
         row_copy["code"] = code

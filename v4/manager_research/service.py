@@ -5,14 +5,18 @@ from __future__ import annotations
 from concurrent.futures import Future, ThreadPoolExecutor, TimeoutError as FutureTimeoutError, as_completed
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
+import logging
 import re
 import threading
 import time
 from typing import Any, Callable, Mapping
 
+from infrastructure.trading_safety import assert_safe_tree
+
 from .contracts import (
     FOUR_FLAGS,
     JOB_SCHEMA_VERSION,
+    MANAGER_RESEARCH_ACTION_VALUES,
     PRODUCT_SCHEMA_VERSION,
     ContractError,
     cutoff_at as contract_cutoff_at,
@@ -1391,6 +1395,37 @@ class ManagerResearchJobService:
         except ContractError:
             return None
 
+    @staticmethod
+    def _exact_cache_is_consistent(input_data: Mapping[str, Any], product: Mapping[str, Any]) -> bool:
+        """Re-validate an exact-key cache hit before trusting its content.
+
+        A file that sits at the exact-key path but whose own identity
+        metadata, source digest or nested safety semantics no longer match
+        the request is corrupt evidence: it must never surface as READY.
+        """
+
+        if product.get("target_trade_date") != input_data["target_trade_date"]:
+            return False
+        if product.get("input_identity") != input_data["input_identity"]:
+            return False
+        if product.get("stage_id") != input_data["stage_id"]:
+            return False
+        if product.get("market") != input_data["market"]:
+            return False
+        if product.get("input_row_count") != input_data["input_row_count"]:
+            return False
+        if product.get("input_source_sha256") != input_data.get("input_source_sha256"):
+            return False
+        try:
+            assert_safe_tree(
+                product,
+                label="manager product",
+                extra_allowed_action_values=MANAGER_RESEARCH_ACTION_VALUES,
+            )
+        except ValueError:
+            return False
+        return True
+
     def _read_cached_product(self, input_data: Mapping[str, Any]) -> dict[str, Any] | None:
         """Read the exact product, then one validated pre-evidence alias."""
 
@@ -1398,7 +1433,14 @@ class ManagerResearchJobService:
         input_identity = str(input_data["input_identity"])
         exact = self.store.read_product(target_trade_date, input_identity)
         if exact is not None:
-            return exact
+            if self._exact_cache_is_consistent(input_data, exact):
+                return exact
+            logging.getLogger(__name__).warning(
+                "manager research exact cache identity mismatch at %s/%s; ignoring for re-materialization",
+                target_trade_date,
+                input_identity,
+            )
+            return None
         legacy_identity = self._legacy_input_identity(input_data)
         if legacy_identity is None or legacy_identity == input_identity:
             return None
@@ -1451,6 +1493,38 @@ class ManagerResearchJobService:
             "coverage_ratio": round(ready / total, 6) if total else 0.0,
         }
 
+    def _commit_gap(
+        self,
+        input_data: Mapping[str, Any],
+        product: Mapping[str, Any],
+        job: Mapping[str, Any],
+    ) -> str | None:
+        """Return the first missing commit step for a READY product, if any.
+
+        READY means product + job + receipt were all committed.  A reader must
+        never observe READY from a half-written commit (e.g. a receipt write
+        that failed after the product landed).
+        """
+
+        if job.get("status") != "READY":
+            return "COMMIT_JOB_NOT_READY"
+        job_id = str(job.get("job_id") or "")
+        receipt = (
+            self.store.read_receipt(str(input_data["target_trade_date"]), job_id)
+            if job_id
+            else None
+        )
+        if receipt is None:
+            return "COMMIT_RECEIPT_MISSING"
+        if receipt.get("input_identity") != input_data["input_identity"]:
+            return "COMMIT_RECEIPT_IDENTITY_MISMATCH"
+        if any(
+            receipt.get(flag) is not False
+            for flag in ("production_allowed", "buy_gate_updated", "orders_sent")
+        ):
+            return "COMMIT_RECEIPT_UNSAFE_FLAGS"
+        return None
+
     def _envelope(
         self,
         input_data: Mapping[str, Any],
@@ -1461,6 +1535,11 @@ class ManagerResearchJobService:
         cannot_confirm: list[str] | None = None,
     ) -> dict[str, Any]:
         resolved_status = status or (product or {}).get("status") or (job or {}).get("status") or "NOT_MATERIALIZED"
+        if resolved_status == "READY" and product is not None and job is not None:
+            gap = self._commit_gap(input_data, product, job)
+            if gap is not None:
+                resolved_status = "CANNOT_CONFIRM"
+                cannot_confirm = [*(cannot_confirm or []), gap]
         return {
             "schema_version": PRODUCT_SCHEMA_VERSION,
             "kind": "MANAGER_RESEARCH",
@@ -1647,7 +1726,7 @@ class ManagerResearchJobService:
     ) -> dict[str, Any] | None:
         if raw_product is None:
             return None
-        product, bound_from_legacy = self._bind_product_to_input(input_data, raw_product)
+        product, _bound_from_legacy = self._bind_product_to_input(input_data, raw_product)
         current_product = _current_product(product)
         if current_product is not None:
             rows = current_product.get("rows")
@@ -1659,15 +1738,9 @@ class ManagerResearchJobService:
                 and "cannot_confirm" in current_product
             )
             if has_recommendations:
-                if bound_from_legacy:
-                    try:
-                        return _project_cached_catalysts(self.store.write_product(current_product))
-                    except StoreError:
-                        return None
-                # Keep this projection in-memory.  A GET must immediately
-                # downgrade stale event labels and repair derived wording,
-                # while financial/event receipts remain immutable until an
-                # explicitly authorized refresh owns a write.
+                # GET is a read path: NEVER persist here.  A legacy-bound or
+                # stale-label projection stays in memory; persistence only
+                # happens through an explicit ensure/retry commit.
                 return _project_cached_catalysts(current_product)
         # Only the current content contract is eligible for this small cache
         # migration.  Sources invalidated by the existing R3 content boundary
@@ -1679,14 +1752,9 @@ class ManagerResearchJobService:
         ):
             migrated = self._reassemble_cached_recommendations(input_data, product)
             if migrated is not None:
-                try:
-                    if bound_from_legacy:
-                        return self.store.write_product(migrated)
-                    return self.store.replace_product(migrated)
-                except StoreError:
-                    # A concurrent owner may have replaced the exact product;
-                    # let the caller use its ordinary retry/ownership path.
-                    return None
+                # Same rule: return the projection in memory without rewriting
+                # the exact product or the legacy path during a read.
+                return migrated
         return current_product
 
     def get(self, target_trade_date: str) -> dict[str, Any]:
@@ -1897,7 +1965,14 @@ class ManagerResearchJobService:
                 if isinstance(row, Mapping) and isinstance(row.get("code"), str) and isinstance(row.get("catalyst_result"), Mapping)
             }
             event_batch = self._collect_events(input_data, observations, previous_rows=previous_rows)
-            updated = self._attach_catalyst_to_product(product, event_batch, observations)
+            # Attach onto the LATEST committed product: a financial retry that
+            # finished while events were collecting must not be reverted to
+            # this refresh's older snapshot.
+            latest_product = (
+                self.store.read_product(input_data["target_trade_date"], input_data["input_identity"])
+                or product
+            )
+            updated = self._attach_catalyst_to_product(latest_product, event_batch, observations)
             if job_id in self._cancelled:
                 job_state.update(status="CANCELLED", error="CANCELLED_BY_REQUEST", can_retry=True)
             else:
@@ -1968,6 +2043,56 @@ class ManagerResearchJobService:
         finally:
             with self._lock:
                 self._active.pop(job_id, None)
+
+    def migrate(self, target_trade_date: str) -> dict[str, Any]:
+        """Explicitly persist one in-memory cache migration.
+
+        Read paths (``get``) never write.  This command reassembles the
+        current-contract product from a legacy or pre-recommendation cache
+        and writes it through the validated store commit path; it never
+        calls the provider and never touches the legacy alias file.
+        """
+
+        try:
+            input_data = self._read_input(target_trade_date)
+        except (ContractError, StoreError) as exc:
+            return {
+                "schema_version": PRODUCT_SCHEMA_VERSION,
+                "kind": "MANAGER_RESEARCH",
+                "target_trade_date": target_trade_date,
+                "stage_id": "STAGE_0935_0940",
+                "market": "HK_CONNECT",
+                "status": "CANNOT_CONFIRM",
+                "product": None,
+                "job": None,
+                "can_ensure": False,
+                "can_retry": False,
+                "cannot_confirm": [str(exc)],
+                **FOUR_FLAGS,
+                "safety": dict(FOUR_FLAGS),
+            }
+        with self._lock:
+            raw_product = self._read_cached_product(input_data)
+            product = self._current_or_migrated_product(input_data, raw_product)
+            if product is None:
+                return self._envelope(
+                    input_data,
+                    status="NOT_MATERIALIZED",
+                    cannot_confirm=["NO_MIGRATABLE_PRODUCT"],
+                )
+            try:
+                if product.get("input_identity") == str(input_data["input_identity"]):
+                    stored = self.store.replace_product(product)
+                else:
+                    stored = self.store.write_product(product)
+            except (StoreError, ValueError) as exc:
+                return self._envelope(
+                    input_data,
+                    status="CANNOT_CONFIRM",
+                    cannot_confirm=[f"MIGRATION_WRITE_FAILED: {exc}"],
+                )
+            job = self.store.read_job(self._job_id(input_data))
+            return self._envelope(input_data, product=stored, job=job)
 
     def retry(self, target_trade_date: str) -> dict[str, Any]:
         return self.ensure(target_trade_date, force=True)
@@ -2376,45 +2501,53 @@ class ManagerResearchJobService:
             # discards already parsed official financial facts.
             event_batch = self._collect_events(input_data, observations)
             product = self._build_product(input_data, observations, results, event_batch=event_batch)
-            if job_id in self._cancelled:
-                job_state["status"] = "CANCELLED"
-                job_state["error"] = "CANCELLED_BY_REQUEST"
+            final_status = product["status"]
+            receipt_payload = {
+                "schema_version": "v4.manager_research.receipt.v1",
+                "job_id": job_id,
+                "target_trade_date": input_data["target_trade_date"],
+                "input_identity": input_data["input_identity"],
+                "provider_id": getattr(self.source_provider, "provider_id", type(self.source_provider).__name__ if self.source_provider else None),
+                "status": final_status,
+                "progress": job_state["progress"],
+                "source_receipt_count": len(product.get("source_receipts", [])),
+                "content_contract_version": CONTENT_CONTRACT_VERSION,
+                "content_contract_revision": CONTENT_CONTRACT_REVISION,
+                "pdf_parser": "pypdf",
+                "pdf_parser_version": "6.10.0",
+                "generated_at": product["generated_at"],
+                **FOUR_FLAGS,
+            }
+            with self._lock:
+                # Publish under the same lock that cancel() takes and re-check
+                # both the in-memory flag and the persisted job: a cancel that
+                # arrived after the row-collection check must win, and a
+                # CANCELLED job must never be overwritten by a late READY.
+                latest_job = self.store.read_job(job_id)
+                if job_id in self._cancelled or (
+                    latest_job is not None and latest_job.get("status") == "CANCELLED"
+                ):
+                    job_state["status"] = "CANCELLED"
+                    job_state["error"] = "CANCELLED_BY_REQUEST"
+                    job_state["completed_at"] = _now()
+                    job_state["updated_at"] = _now()
+                    job_state["can_retry"] = True
+                    self.store.write_job(job_state)
+                    return
+                # Commit order: receipt first, product second, job last.  A
+                # reader therefore never observes a READY product without its
+                # receipt, and any I/O failure keeps the job out of READY.
+                self.store.write_receipt(input_data["target_trade_date"], job_id, receipt_payload)
+                prior = self.store.read_product(input_data["target_trade_date"], input_data["input_identity"])
+                if prior is not None:
+                    self.store.replace_product(product)
+                else:
+                    self.store.write_product(product)
+                job_state["status"] = final_status
                 job_state["completed_at"] = _now()
                 job_state["updated_at"] = _now()
-                job_state["can_retry"] = True
+                job_state["can_retry"] = final_status != "READY"
                 self.store.write_job(job_state)
-                return
-            prior = self.store.read_product(input_data["target_trade_date"], input_data["input_identity"])
-            if prior is not None:
-                self.store.replace_product(product)
-            else:
-                self.store.write_product(product)
-            final_status = product["status"]
-            job_state["status"] = final_status
-            job_state["completed_at"] = _now()
-            job_state["updated_at"] = _now()
-            job_state["can_retry"] = final_status != "READY"
-            self.store.write_job(job_state)
-            self.store.write_receipt(
-                input_data["target_trade_date"],
-                job_id,
-                {
-                    "schema_version": "v4.manager_research.receipt.v1",
-                    "job_id": job_id,
-                    "target_trade_date": input_data["target_trade_date"],
-                    "input_identity": input_data["input_identity"],
-                    "provider_id": getattr(self.source_provider, "provider_id", type(self.source_provider).__name__ if self.source_provider else None),
-                    "status": final_status,
-                    "progress": job_state["progress"],
-                    "source_receipt_count": len(product.get("source_receipts", [])),
-                    "content_contract_version": CONTENT_CONTRACT_VERSION,
-                    "content_contract_revision": CONTENT_CONTRACT_REVISION,
-                    "pdf_parser": "pypdf",
-                    "pdf_parser_version": "6.10.0",
-                    "generated_at": product["generated_at"],
-                    **FOUR_FLAGS,
-                },
-            )
         except Exception as exc:
             job_state["status"] = "FAILED"
             job_state["error"] = f"{type(exc).__name__}: {exc}"

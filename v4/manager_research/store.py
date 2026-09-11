@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from datetime import datetime, timezone
 import json
 import os
@@ -10,7 +11,18 @@ import tempfile
 from threading import RLock
 from typing import Any, Iterable, Mapping, Sequence
 
-from .contracts import ContractError, canonical_json, strict_trade_date
+from .contracts import (
+    MANAGER_RESEARCH_ACTION_VALUES,
+    ContractError,
+    canonical_json,
+    strict_trade_date,
+)
+
+# Deliberate host dependencies: the manager package shares the repo's single
+# locked-write and owned-path implementations instead of carrying its own.
+from infrastructure.interprocess_lock import owned_interprocess_lock
+from infrastructure.owned_path import resolve_owned_path
+from infrastructure.trading_safety import assert_safe_tree
 
 
 class StoreError(RuntimeError):
@@ -49,15 +61,43 @@ class ManagerResearchStore:
             directory.mkdir(parents=True, exist_ok=True)
 
     def _job_path(self, job_id: str) -> Path:
-        return self.jobs_root / f"{_safe_component(job_id, 'job_id')}.json"
+        return resolve_owned_path(self.root, f"jobs/{_safe_component(job_id, 'job_id')}.json")
 
     def _product_path(self, target_trade_date: str, input_identity: str) -> Path:
         date_text = strict_trade_date(target_trade_date)
-        return self.products_root / date_text / f"{_safe_component(input_identity, 'input_identity')}.json"
+        return resolve_owned_path(
+            self.root, f"products/{date_text}/{_safe_component(input_identity, 'input_identity')}.json"
+        )
 
     def _receipt_path(self, target_trade_date: str, job_id: str) -> Path:
         date_text = strict_trade_date(target_trade_date)
-        return self.receipts_root / date_text / f"{_safe_component(job_id, 'job_id')}.json"
+        return resolve_owned_path(
+            self.root, f"receipts/{date_text}/{_safe_component(job_id, 'job_id')}.json"
+        )
+
+    @contextmanager
+    def _write_lock(self, path: Path):
+        """Serialize same-key writers across instances and processes."""
+
+        with owned_interprocess_lock(
+            path.with_name(f".{path.name}.lock"),
+            timeout_seconds=10,
+            timeout_message=f"manager store lock timeout: {path.name}",
+        ):
+            yield
+
+    @staticmethod
+    def _validated_payload(payload: Mapping[str, Any], label: str) -> dict[str, Any]:
+        value = dict(payload)
+        try:
+            assert_safe_tree(
+                value,
+                label=label,
+                extra_allowed_action_values=MANAGER_RESEARCH_ACTION_VALUES,
+            )
+        except ValueError as error:
+            raise StoreError(f"unsafe {label}: {error}") from error
+        return value
 
     @staticmethod
     def _read(path: Path) -> dict[str, Any] | None:
@@ -95,11 +135,13 @@ class ManagerResearchStore:
 
     def write_job(self, job: Mapping[str, Any]) -> dict[str, Any]:
         job_id = _safe_component(str(job.get("job_id", "")), "job_id")
-        with self._lock:
-            value = dict(job)
-            value.setdefault("updated_at", _now())
-            self._write_atomic(self._job_path(job_id), value)
-            return value
+        value = self._validated_payload(job, "manager job")
+        value.setdefault("updated_at", _now())
+        path = self._job_path(job_id)
+        with self._write_lock(path):
+            with self._lock:
+                self._write_atomic(path, value)
+                return value
 
     def read_product(self, target_trade_date: str, input_identity: str) -> dict[str, Any] | None:
         with self._lock:
@@ -214,15 +256,16 @@ class ManagerResearchStore:
         date_text = strict_trade_date(product.get("target_trade_date"))
         input_identity = _safe_component(str(product.get("input_identity", "")), "input_identity")
         path = self._product_path(date_text, input_identity)
-        with self._lock:
-            prior = self._read(path)
-            value = dict(product)
-            if prior is not None and canonical_json(prior) != canonical_json(value):
-                raise StoreConflict(f"product identity already contains different data: {date_text}/{input_identity}")
-            if prior is None:
-                self._write_atomic(path, value)
-                return value
-            return prior
+        value = self._validated_payload(product, "manager product")
+        with self._write_lock(path):
+            with self._lock:
+                prior = self._read(path)
+                if prior is not None and canonical_json(prior) != canonical_json(value):
+                    raise StoreConflict(f"product identity already contains different data: {date_text}/{input_identity}")
+                if prior is None:
+                    self._write_atomic(path, value)
+                    return value
+                return prior
 
     def replace_product(self, product: Mapping[str, Any]) -> dict[str, Any]:
         """Replace one exact input product during an explicit retry.
@@ -234,18 +277,21 @@ class ManagerResearchStore:
         date_text = strict_trade_date(product.get("target_trade_date"))
         input_identity = _safe_component(str(product.get("input_identity", "")), "input_identity")
         path = self._product_path(date_text, input_identity)
-        with self._lock:
-            value = dict(product)
-            self._write_atomic(path, value)
-            return value
+        value = self._validated_payload(product, "manager product")
+        with self._write_lock(path):
+            with self._lock:
+                self._write_atomic(path, value)
+                return value
 
     def write_receipt(self, target_trade_date: str, job_id: str, receipt: Mapping[str, Any]) -> dict[str, Any]:
         strict_trade_date(target_trade_date)
         _safe_component(job_id, "job_id")
-        with self._lock:
-            value = dict(receipt)
-            self._write_atomic(self._receipt_path(target_trade_date, job_id), value)
-            return value
+        path = self._receipt_path(target_trade_date, job_id)
+        value = self._validated_payload(receipt, "manager receipt")
+        with self._write_lock(path):
+            with self._lock:
+                self._write_atomic(path, value)
+                return value
 
     def read_receipt(self, target_trade_date: str, job_id: str) -> dict[str, Any] | None:
         with self._lock:

@@ -7,7 +7,7 @@ import os
 import tempfile
 from contextlib import contextmanager
 from datetime import datetime
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Mapping
 
 from infrastructure.interprocess_lock import owned_interprocess_lock
@@ -37,8 +37,26 @@ class NativeDataStore:
     def __init__(self, root: Path) -> None:
         self.root = Path(root)
 
+    @staticmethod
+    def _relative_parts(relative: str) -> tuple[str, ...]:
+        if not isinstance(relative, str) or not relative:
+            raise ValueError("owned destination must be a non-empty relative path")
+        pure = PurePosixPath(relative)
+        if pure.is_absolute() or any(part in {"", ".", ".."} for part in pure.parts):
+            raise ValueError("owned destination must be a normalized relative path")
+        return pure.parts
+
     def _path(self, relative: str) -> Path:
-        return self.root / relative
+        # Reject a symlinked component below the store root: a directory such
+        # as ``receipts`` replaced by a link must not let reads or writes
+        # escape the owned root.  (The chain above the root is the caller's
+        # environment choice and is intentionally not restricted here.)
+        current = self.root
+        for part in self._relative_parts(relative):
+            current = current / part
+            if current.is_symlink():
+                raise ValueError("owned destination has a symlinked component")
+        return current
 
     def _read(self, relative: str) -> Any:
         return json.loads(self._path(relative).read_text(encoding="utf-8"))
