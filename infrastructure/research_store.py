@@ -5,12 +5,10 @@ import hashlib
 import json
 import os
 import re
-import time
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Mapping
-from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 from contracts.research_day_product import (
@@ -37,6 +35,7 @@ from domains.research_day_product import (
 )
 from contracts.research import validate_research_archive
 from infrastructure.data_store import NativeDataStore, _date, _sha256
+from infrastructure.interprocess_lock import owned_interprocess_lock
 from infrastructure.owned_path import resolve_owned_path
 
 
@@ -685,33 +684,12 @@ class ResearchSelectionStore(NativeDataStore):
         """Use a selection-local lock; never create NativeDataStore's root lock."""
 
         path = self._path(f"{self._SELECTION_ROOT}/.import.lock")
-        path.parent.mkdir(parents=True, exist_ok=True)
-        deadline = time.monotonic() + 10
-        token = f"{os.getpid()}:{uuid4().hex}"
-        while True:
-            try:
-                handle = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-                os.write(handle, token.encode("ascii"))
-                os.close(handle)
-                break
-            except FileExistsError:
-                try:
-                    if time.time() - path.stat().st_mtime > 30:
-                        path.unlink()
-                        continue
-                except FileNotFoundError:
-                    continue
-                if time.monotonic() >= deadline:
-                    raise ValueError("selection import lock timeout")
-                time.sleep(0.02)
-        try:
+        with owned_interprocess_lock(
+            path,
+            timeout_seconds=10,
+            timeout_message="selection import lock timeout",
+        ):
             yield
-        finally:
-            try:
-                if path.read_text(encoding="ascii") == token:
-                    path.unlink()
-            except FileNotFoundError:
-                pass
 
     @classmethod
     def _receipt(cls, payload: Mapping[str, Any], artifact_relative: str, artifact_sha: str) -> dict[str, Any]:

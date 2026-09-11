@@ -14,7 +14,6 @@ import json
 import os
 import re
 import tempfile
-import time
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path, PurePosixPath
@@ -23,6 +22,8 @@ from uuid import uuid4
 
 from .calendar import calendar_provenance
 from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+
+from infrastructure.interprocess_lock import owned_interprocess_lock
 
 RAW_FIELDS = (
     "batch_index",
@@ -59,7 +60,6 @@ RAW_STATUSES = frozenset(("READY", "PARTIAL_WITH_ROWS", "READY_EMPTY", "CANNOT_C
 _TIME_FMT = "%Y-%m-%d %H:%M:%S"
 _SHA_RE = re.compile(r"^[0-9a-f]{64}$")
 _LOCK_TIMEOUT_SECONDS = 10.0
-_LOCK_STALE_SECONDS = 30.0
 _ROLE_RE = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9_.-]*[A-Za-z0-9])?$")
 _MARKET_CODE = {
     "A_SHARE": re.compile(r"^(?:A|SH|SZ|BJ)\.\d{6}$"),
@@ -342,38 +342,19 @@ class RawStore:
     @contextmanager
     def _lock(self) -> Iterator[None]:
         self.root.mkdir(parents=True, exist_ok=True)
-        deadline = time.monotonic() + _LOCK_TIMEOUT_SECONDS
-        token = f"{os.getpid()}:{uuid4().hex}"
-        while True:
-            try:
-                fd = os.open(self.lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-                try:
-                    os.write(fd, token.encode("ascii"))
-                finally:
-                    os.close(fd)
-                break
-            except FileExistsError:
-                try:
-                    stale = time.time() - self.lock_path.stat().st_mtime > _LOCK_STALE_SECONDS
-                except FileNotFoundError:
-                    continue
-                if stale:
-                    try:
-                        self.lock_path.unlink()
-                    except FileNotFoundError:
-                        pass
-                    continue
-                if time.monotonic() >= deadline:
-                    raise RawStoreError("store lock timeout")
-                time.sleep(0.01)
+        lock = owned_interprocess_lock(
+            self.lock_path,
+            timeout_seconds=_LOCK_TIMEOUT_SECONDS,
+            timeout_message="store lock timeout",
+        )
+        try:
+            lock.__enter__()
+        except ValueError as error:
+            raise RawStoreError(str(error)) from error
         try:
             yield
         finally:
-            try:
-                if self.lock_path.read_text(encoding="ascii") == token:
-                    self.lock_path.unlink()
-            except FileNotFoundError:
-                pass
+            lock.__exit__(None, None, None)
 
     def _load_latest(self) -> dict[str, Any]:
         if not self.latest_path.exists():

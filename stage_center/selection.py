@@ -13,7 +13,6 @@ import math
 import os
 import re
 import tempfile
-import time
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path, PurePosixPath
@@ -28,6 +27,8 @@ from .contracts import (
     SELECTION_STATUSES,
     STAGE_RECOMMENDATION_LIMIT,
 )
+
+from infrastructure.interprocess_lock import owned_interprocess_lock
 
 
 SELECTION_ARTIFACT_FIELDS_V1 = (
@@ -75,7 +76,6 @@ SELECTION_STATUSES = frozenset(SELECTION_STATUSES)
 _SHA_RE = re.compile(r"^[0-9a-f]{64}$")
 _ROLE_RE = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9_.-]*[A-Za-z0-9])?$")
 _LOCK_TIMEOUT_SECONDS = 10.0
-_LOCK_STALE_SECONDS = 30.0
 
 # This is an explicit version manifest, rather than a caller-provided label.
 # The digest is consequently stable across processes and binds the coefficients
@@ -1775,38 +1775,19 @@ class SelectionStore:
     @contextmanager
     def _lock(self) -> Iterator[None]:
         self.root.mkdir(parents=True, exist_ok=True)
-        deadline = time.monotonic() + _LOCK_TIMEOUT_SECONDS
-        token = f"{os.getpid()}:{uuid4().hex}"
-        while True:
-            try:
-                fd = os.open(self.lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-                try:
-                    os.write(fd, token.encode("ascii"))
-                finally:
-                    os.close(fd)
-                break
-            except FileExistsError:
-                try:
-                    stale = time.time() - self.lock_path.stat().st_mtime > _LOCK_STALE_SECONDS
-                except FileNotFoundError:
-                    continue
-                if stale:
-                    try:
-                        self.lock_path.unlink()
-                    except FileNotFoundError:
-                        pass
-                    continue
-                if time.monotonic() >= deadline:
-                    raise SelectionError("selection store lock timeout")
-                time.sleep(0.01)
+        lock = owned_interprocess_lock(
+            self.lock_path,
+            timeout_seconds=_LOCK_TIMEOUT_SECONDS,
+            timeout_message="selection store lock timeout",
+        )
+        try:
+            lock.__enter__()
+        except ValueError as error:
+            raise SelectionError(str(error)) from error
         try:
             yield
         finally:
-            try:
-                if self.lock_path.read_text(encoding="ascii") == token:
-                    self.lock_path.unlink()
-            except FileNotFoundError:
-                pass
+            lock.__exit__(None, None, None)
 
     def _latest(self) -> dict[str, Any]:
         if not self.latest_path.exists():

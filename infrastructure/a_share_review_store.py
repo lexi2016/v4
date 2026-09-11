@@ -3,14 +3,13 @@ from __future__ import annotations
 
 import os
 import tempfile
-import time
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Mapping
-from uuid import uuid4
 
 from domains.a_share_review import validate_a_share_review
 from infrastructure.data_store import _canonical_bytes, _date, _sha256
+from infrastructure.interprocess_lock import owned_interprocess_lock
 from infrastructure.owned_path import resolve_owned_path
 
 
@@ -45,33 +44,12 @@ class AShareReviewStore:
     @contextmanager
     def _lock(self):
         path = self._path("a_share_reviews/.import.lock")
-        path.parent.mkdir(parents=True, exist_ok=True)
-        deadline = time.monotonic() + 10
-        token = f"{os.getpid()}:{uuid4().hex}"
-        while True:
-            try:
-                handle = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-                os.write(handle, token.encode("ascii"))
-                os.close(handle)
-                break
-            except FileExistsError:
-                try:
-                    if time.time() - path.stat().st_mtime > 30:
-                        path.unlink()
-                        continue
-                except FileNotFoundError:
-                    continue
-                if time.monotonic() >= deadline:
-                    raise ValueError("A-share review import lock timeout")
-                time.sleep(0.02)
-        try:
+        with owned_interprocess_lock(
+            path,
+            timeout_seconds=10,
+            timeout_message="A-share review import lock timeout",
+        ):
             yield
-        finally:
-            try:
-                if path.read_text(encoding="ascii") == token:
-                    path.unlink()
-            except FileNotFoundError:
-                pass
 
     def _paths(self, trade_date: str) -> tuple[str, str, str]:
         payload = f"a_share_reviews/{trade_date}.json"
