@@ -317,6 +317,7 @@ class ManagerResearchJobService:
         row_timeout_seconds: float = 45.0,
         reader_fetcher: Callable[..., Any] | None = None,
         max_pending_jobs: int = 16,
+        material_store: Any | None = None,
     ) -> None:
         self.store = store
         self._instance_id = uuid4().hex
@@ -328,6 +329,15 @@ class ManagerResearchJobService:
         # reader.  Fixture providers remain fully offline unless a test passes
         # an explicit fetcher, so event tests never make accidental requests.
         self.reader_fetcher = reader_fetcher
+        # A shared material store turns the public reader into a fetch-once
+        # lane too: the same bounded search response is reused across jobs
+        # until its TTL expires instead of being requested again.
+        self._material_store = material_store
+        self._material_reader_fetcher: Callable[..., Any] | None = None
+        if material_store is not None and reader_fetcher is None:
+            from .reader_source import material_reader_fetcher
+
+            self._material_reader_fetcher = material_reader_fetcher(material_store)
         self._lock = threading.RLock()
         self._executor = ThreadPoolExecutor(max_workers=max(1, int(max_workers)), thread_name_prefix="manager-research")
         # Shared across jobs: timeouts must not create a fresh set of
@@ -1179,14 +1189,15 @@ class ManagerResearchJobService:
                 # optional event provider (for example in a canary or a
                 # source outage).  Preserve that source boundary per row.
                 normalized = self._empty_event_batch(input_data, observations, "EVENT_PROVIDER_UNAVAILABLE")
-            reader_enabled = bool(getattr(self.source_provider, "reader_source_enabled", False)) or self.reader_fetcher is not None
+            reader_fetcher = self.reader_fetcher or self._material_reader_fetcher
+            reader_enabled = bool(getattr(self.source_provider, "reader_source_enabled", False)) or reader_fetcher is not None
             if not reader_enabled:
                 return normalized
             reader_batch = read_public_news_batch(
                 observations,
                 target_date=str(input_data["target_trade_date"]),
                 queried_at=_now(),
-                fetcher=self.reader_fetcher,
+                fetcher=reader_fetcher,
             )
             return _attach_reader_batch(normalized, reader_batch, observations)
         except Exception as exc:

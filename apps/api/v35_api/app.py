@@ -70,7 +70,7 @@ def _resolve_manager_research_state_root(
     return _CANONICAL_MANAGER_RESEARCH_STATE_ROOT
 
 
-def _load_manager_research_components() -> tuple[type[Any], type[Any], type[Any]]:
+def _load_manager_research_components() -> tuple[type[Any], type[Any], type[Any], type[Any]]:
     """Load only the independent manager package from its own directory.
 
     The live host may receive ``v4/manager_research`` without the historical
@@ -86,6 +86,7 @@ def _load_manager_research_components() -> tuple[type[Any], type[Any], type[Any]
             loaded.ManagerResearchJobService,
             loaded.ManagerResearchStore,
             loaded.HkexOfficialProvider,
+            loaded.MaterialStore,
         )
     package_dir = Path(__file__).resolve().parents[3] / "v4" / "manager_research"
     init_path = package_dir / "__init__.py"
@@ -105,7 +106,12 @@ def _load_manager_research_components() -> tuple[type[Any], type[Any], type[Any]
     except BaseException:
         sys.modules.pop(_MANAGER_RESEARCH_RUNTIME_PACKAGE, None)
         raise
-    return module.ManagerResearchJobService, module.ManagerResearchStore, module.HkexOfficialProvider
+    return (
+        module.ManagerResearchJobService,
+        module.ManagerResearchStore,
+        module.HkexOfficialProvider,
+        module.MaterialStore,
+    )
 
 
 def _strict_date(value: str) -> str:
@@ -490,11 +496,27 @@ def create_app(
         manager_research_state_root,
         data_root,
     )
-    manager_research_job_service, manager_research_store, hkex_official_provider = _load_manager_research_components()
+    (
+        manager_research_job_service,
+        manager_research_store,
+        hkex_official_provider,
+        manager_material_store_class,
+    ) = _load_manager_research_components()
+    # One shared material store backs every manager research fetch lane: the
+    # same URL is retrieved once and reused across official PDFs, media events,
+    # and the public reader (cached parses included) until its TTL expires.
+    manager_material_store = manager_material_store_class(
+        Path(resolved_manager_research_state_root) / "materials"
+    )
+    if manager_research_source_provider is not None:
+        manager_research_provider = manager_research_source_provider
+    else:
+        manager_research_provider = hkex_official_provider(material_store=manager_material_store)
     manager_research_service = manager_research_job_service(
         manager_research_store(resolved_manager_research_state_root),
         manager_research_observation_reader,
-        manager_research_source_provider or hkex_official_provider(),
+        manager_research_provider,
+        material_store=manager_material_store,
     )
     app.state.manager_research_service = manager_research_service
     app.include_router(create_manager_research_router(manager_research_service))

@@ -201,20 +201,29 @@ def build_search_url(code: str, *, market: str = "HK", limit: int = MAX_ROWS_PER
     return f"{EASTMONEY_SEARCH_URL}?{urlencode(params)}"
 
 
-def _default_fetch(code: str, *, market: str, limit: int, timeout: float) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    url = build_search_url(code, market=market, limit=limit)
+def _http_fetch_raw(url: str, timeout: float, referer: str) -> tuple[int, bytes]:
     request = Request(
         url,
         headers={
             "Accept": "*/*",
-            "Referer": f"https://so.eastmoney.com/news/s?keyword={_normalise_target_code(code, market)}",
+            "Referer": referer,
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
         },
     )
+    with urlopen(request, timeout=timeout) as response:
+        body = response.read()
+        status = int(getattr(response, "status", 200))
+    return status, body
+
+
+def _news_referer(code: str, market: str) -> str:
+    return f"https://so.eastmoney.com/news/s?keyword={_normalise_target_code(code, market)}"
+
+
+def _default_fetch(code: str, *, market: str, limit: int, timeout: float) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    url = build_search_url(code, market=market, limit=limit)
     try:
-        with urlopen(request, timeout=timeout) as response:
-            body = response.read()
-            status = int(getattr(response, "status", 200))
+        status, body = _http_fetch_raw(url, timeout, _news_referer(code, market))
     except Exception as exc:  # noqa: BLE001 — per-stock source failure is data
         raise ReaderSourceError(f"PUBLIC_NEWS_FETCH_FAILED:{type(exc).__name__}") from exc
     if status < 200 or status >= 300:
@@ -224,6 +233,55 @@ def _default_fetch(code: str, *, market: str, limit: int, timeout: float) -> tup
         "source_body_sha256": hashlib.sha256(body).hexdigest(),
         "http_status": status,
     }
+
+
+def material_reader_fetcher(
+    store: Any,
+    *,
+    ttl_seconds: float | None = None,
+    timeout: float = REQUEST_TIMEOUT_SECONDS,
+    raw_fetch: Callable[..., tuple[int, bytes]] | None = None,
+) -> Callable[..., tuple[list[dict[str, Any]], dict[str, Any]]]:
+    """Reader fetcher over the shared MaterialStore (one search per code/limit).
+
+    Each bounded search response is stored once and reused by any caller that
+    asks for the same (market, code, limit) until its TTL expires; the reader
+    receipt still reports the raw body digest and the original status.
+    """
+
+    fetch_raw = raw_fetch or _http_fetch_raw
+
+    def fetch(*, code: str, market: str = "HK", limit: int = MAX_ROWS_PER_CANDIDATE) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+        capped = max(1, min(int(limit), MAX_ROWS_PER_CANDIDATE))
+        url = build_search_url(code, market=market, limit=capped)
+        referer = _news_referer(code, market)
+
+        def transport(_url: str) -> dict[str, Any]:
+            try:
+                status, body = fetch_raw(url, timeout, referer)
+            except Exception as exc:  # noqa: BLE001 — per-stock source failure is data
+                raise ReaderSourceError(f"PUBLIC_NEWS_FETCH_FAILED:{type(exc).__name__}") from exc
+            if status < 200 or status >= 300 or not body:
+                raise ReaderSourceError(f"PUBLIC_NEWS_HTTP_{status}")
+            return {
+                "body": body,
+                "content_type": "application/javascript",
+                "retrieved_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            }
+
+        material = store.fetch(
+            f"eastmoney:{market}:{code}:{capped}",
+            url=url,
+            ttl_seconds=ttl_seconds,
+            transport=transport,
+        )
+        return _jsonp_rows(material.body), {
+            "url": material.url,
+            "source_body_sha256": material.sha256,
+            "http_status": 200,
+        }
+
+    return fetch
 
 
 def _empty_bundle(code: str, name: str, market: str, target_date: Any, queried_at: str, status: str, gaps: list[str]) -> dict[str, Any]:

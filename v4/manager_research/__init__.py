@@ -15,6 +15,8 @@ from .contracts import (
     normalise_observation_input,
 )
 from .hkex_provider import HkexOfficialProvider
+from .material_transport import MaterialTransport
+from .materials import MaterialStore
 from .service import ManagerResearchJobService
 from .store import ManagerResearchStore
 
@@ -28,5 +30,7 @@ __all__ = [
     "HkexOfficialProvider",
     "ManagerResearchJobService",
     "ManagerResearchStore",
+    "MaterialStore",
+    "MaterialTransport",
     "normalise_observation_input",
 ]

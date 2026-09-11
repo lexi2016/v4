@@ -41,6 +41,9 @@ _SUBSTANTIVE_REPORT_TOKENS = (
     "annual report",
     "results announcement",
 )
+# Bump when extract_pdf_facts' observable output changes so cached parses of
+# immutable archived PDFs are recomputed instead of going stale.
+PDF_FACTS_CACHE_VERSION = 1
 
 
 class ProviderError(RuntimeError):
@@ -279,6 +282,7 @@ class HkexOfficialProvider:
         self, transport: SourceTransport | None = None, *, timeout: float = 20.0,
         active_stock_ttl_seconds: float = 300.0,
         event_media_transport: Any | None = None,
+        material_store: Any | None = None,
     ):
         self._transport = transport or _default_transport()
         self._timeout = timeout
@@ -292,6 +296,26 @@ class HkexOfficialProvider:
         # It is deliberately kept separate from the HKEX PDF transport so an
         # event refresh cannot alter financial-source caching or receipts.
         self._event_media_transport = event_media_transport
+        # An optional shared material store turns every URL this provider
+        # touches into a fetch-once artifact: archived PDFs are immutable,
+        # current listings/search pages expire on a short TTL, and the PDF
+        # parse is cached by (blob, parser version, title) as well.
+        self._material_store = material_store
+        self._material_transport: Any | None = None
+        if material_store is not None:
+            from .material_transport import DEFAULT_DYNAMIC_TTL_SECONDS, MaterialTransport
+
+            self._material_transport = MaterialTransport(
+                material_store,
+                self._transport,
+                namespace="hkex-official",
+                ttl_for=lambda url: (
+                    None
+                    if urlparse(url).path.lower().endswith(".pdf")
+                    else DEFAULT_DYNAMIC_TTL_SECONDS
+                ),
+            )
+            self._transport = self._material_transport
 
     def _request(
         self,
@@ -478,10 +502,27 @@ class HkexOfficialProvider:
                 selected = candidate
                 document_response = candidate_response
             try:
-                candidate_facts, candidate_pages = extract_pdf_facts(
-                    candidate_response.body,
-                    title=str(candidate.get("document_title", "")),
-                )
+                title = str(candidate.get("document_title", ""))
+                material = None
+                if self._material_transport is not None:
+                    # The response above was just served by the same store, so
+                    # this is a cache read that adds no network request; the
+                    # parsed facts are then reused by later refreshes of the
+                    # same immutable document.
+                    material = self._material_transport.material(document_url, timeout=self._timeout)
+                if material is not None:
+                    candidate_facts, candidate_pages = self._material_transport.parsed(
+                        material,
+                        parser_id="hkex-pdf-facts",
+                        parser_version=PDF_FACTS_CACHE_VERSION,
+                        params={"title": title},
+                        parse_fn=lambda body: extract_pdf_facts(body, title=title),
+                    )
+                else:
+                    candidate_facts, candidate_pages = extract_pdf_facts(
+                        candidate_response.body,
+                        title=title,
+                    )
             except PdfParseError as exc:
                 last_failure = str(exc)
                 continue
@@ -580,7 +621,20 @@ class HkexOfficialProvider:
 
         media_transport = self._event_media_transport
         if media_transport is None:
-            media_transport = BoundedMediaTransport()
+            if self._material_store is not None:
+                from .event_source import _default_media_transport
+                from .material_transport import DEFAULT_DYNAMIC_TTL_SECONDS, MaterialTransport
+
+                media_transport = BoundedMediaTransport(
+                    transport=MaterialTransport(
+                        self._material_store,
+                        _default_media_transport(),
+                        namespace="manager-media",
+                        ttl_seconds=DEFAULT_DYNAMIC_TTL_SECONDS,
+                    )
+                )
+            else:
+                media_transport = BoundedMediaTransport()
         media_batch = discover_iccsz_events(
             target_trade_date=target_trade_date,
             cutoff_at=cutoff_at,

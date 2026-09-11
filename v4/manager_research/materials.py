@@ -77,11 +77,21 @@ class MaterialStore:
     def _blob_relative(digest: str) -> str:
         return f'{_BLOB_ROOT}/{digest}'
 
-    def _parsed_relative(self, digest: str, parser_id: str, parser_version: int) -> str:
+    def _parsed_relative(
+        self,
+        digest: str,
+        parser_id: str,
+        parser_version: int,
+        params: Mapping[str, Any] | None = None,
+    ) -> str:
         self._require_slug(parser_id, 'parser_id')
         if not isinstance(parser_version, int) or isinstance(parser_version, bool) or parser_version < 1:
             raise MaterialError('parser_version must be a positive integer')
-        return f'{_PARSED_ROOT}/{digest}.{parser_id}.v{parser_version}.json'
+        suffix = ''
+        if params is not None:
+            params_digest = sha256(canonical_json(params)).hexdigest()[:16]
+            suffix = f'.{params_digest}'
+        return f'{_PARSED_ROOT}/{digest}.{parser_id}.v{parser_version}{suffix}.json'
 
     # -- caches ------------------------------------------------------------
 
@@ -200,15 +210,19 @@ class MaterialStore:
         parser_id: str,
         parser_version: int,
         parse_fn: Callable[[bytes], Any],
+        params: Mapping[str, Any] | None = None,
     ) -> Any:
         """Return the cached parse of ``material`` or parse it once.
 
-        The parse key is (blob sha, parser id, parser version): upgrading
-        the parser re-parses, reusing the same blob reuses the same parse.
-        A failed parse persists nothing and propagates.
+        The parse key is (blob sha, parser id, parser version, params): the
+        parser version covers code changes, and ``params`` covers inputs the
+        parse depends on beyond the bytes themselves (e.g. a document title
+        or a page base URL).  Upgrading re-parses, reusing the same blob and
+        params reuses the same parse.  A failed parse persists nothing and
+        propagates.
         """
 
-        relative = self._parsed_relative(material.sha256, parser_id, parser_version)
+        relative = self._parsed_relative(material.sha256, parser_id, parser_version, params)
         try:
             raw = self._io.read_bytes(relative)
         except (FileNotFoundError, ValueError):
