@@ -1,0 +1,26 @@
+[project]
+name = "v3-5"
+version = "0.1.0"
+description = "Independent V3.5 application foundation"
+requires-python = ">=3.14"
+dependencies = [
+  "fastapi>=0.128,<1.0",
+  "uvicorn>=0.40,<1.0",
+]
+
+# Data-reading execution lanes need these imports; installing them does not
+# certify a runtime. Production must use the existing reviewed Mac constraints.
+[project.optional-dependencies]
+data = ["pandas", "pyarrow"]
+
+[dependency-groups]
+dev = [
+  "httpx>=0.28,<1.0",
+  "pytest>=9.0,<10.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Keep warnings-as-errors, but tolerate the starlette 1.6 TestClient(httpx)
+# deprecation until the suites migrate to the replacement client.
+addopts = "-W error"
