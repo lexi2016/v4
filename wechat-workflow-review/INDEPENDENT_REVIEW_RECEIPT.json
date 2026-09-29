@@ -1,0 +1,91 @@
+{
+  "receipt_version": "github-workflow-review-independent-v1",
+  "review_date": "2026-09-29",
+  "reviewer_identity": "independent_agent",
+  "scope": "Read-only acceptance of the 37-file export as a static Chat code-review snapshot. No business-code re-review, deployment review, or repository upload was performed.",
+  "verdict": "PASS",
+  "pass_signal": "The export is a traceable, privacy-scanned, explicitly bounded source snapshot suitable for static Chat review.",
+  "actual_git_diff": "CANNOT_CONFIRM: no Git diff or base revision is included; this verdict accepts the snapshot for static source review only and does not claim review of a commit delta.",
+  "export_integrity": {
+    "total_files": 37,
+    "mapped_entries": 31,
+    "copied_source_files": 29,
+    "synthetic_fixtures": 2,
+    "export_sha256_checks": "PASS: all 31 FILE_MAP_AND_SHA256 export hashes match the files",
+    "source_sha256_checks": "PASS: all 29 mapped source hashes match the current source files",
+    "file_sha256sums": "PASS: all 36 listed files match and the list covers every file except itself"
+  },
+  "privacy_and_scope": {
+    "targeted_scan": "PASS: no known private Drive root ID, <USER_HOME> path, Windows user path, GitHub token prefix, or private-key marker found in the snapshot",
+    "article_data": "PASS: no actual article/report/market receipt was found in the exported fixtures; the V4 report and receipt fixtures are explicitly synthetic",
+    "transform_disclosure": "PASS: README.md lines 24 and FILE_MAP_AND_SHA256.json record path/ID redactions and synthetic fixture transformations",
+    "deployment_boundary_disclosure": "PASS: README.md lines 26 and TEST_EVIDENCE.md lines 24-28 state the collector, full V4 assembly, runtime, Drive, and business-data limits"
+  },
+  "independent_reruns": [
+    {
+      "target": "wechat_chat_handoff",
+      "command": "PYTHONPATH=scripts:tests <USER_HOME>/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3 -m unittest discover -s tests -p 'test_wechat_chat_handoff.py' -v",
+      "result": "PASS: 9 tests"
+    },
+    {
+      "target": "wechat_prepare_ocr_manifest",
+      "command": "Directly invoked both exported pure-Python test functions with temporary directories and the workspace Python 3.12.14 interpreter",
+      "result": "PASS: 2 test functions"
+    },
+    {
+      "target": "documented pytest smoke check",
+      "command": "python3 -m pytest -q -p no:cacheprovider tests/test_review_wechat_boundaries.py",
+      "result": "CANNOT_CONFIRM: the documented python3 resolves to Xcode Python 3.9.6 and reports No module named pytest; the exposed workspace Python 3.12.14 also has no pytest"
+    },
+    {
+      "target": "V4 TypeScript client",
+      "command": "node --test tests/wechat_ui/client.test.cjs",
+      "result": "CANNOT_CONFIRM: 0 passed, 6 failed at compiler startup with spawnSync tsc ENOENT"
+    },
+    {
+      "target": "V4 Stage A and remaining Python test groups",
+      "result": "CANNOT_CONFIRM: not independently rerun because the available workspace Python lacks pytest and FastAPI; the TEST_EVIDENCE.md historical totals remain reported evidence, not independently reproduced evidence"
+    }
+  ],
+  "findings": [
+    {
+      "id": "P2-TEST-REPRODUCIBILITY",
+      "severity": "P2",
+      "status": "CANNOT_CONFIRM",
+      "finding": "The recorded historical pytest and TypeScript pass totals are not reproducible from the documented commands with the interpreters and PATH available in this review. The evidence names Python 3.14/3.12 but does not provide their executable paths; the TypeScript test invokes bare tsc without recording its location.",
+      "evidence": [
+        {
+          "file": "handoffs/github_workflow_review_20260929/README.md",
+          "lines": "33-54",
+          "detail": "The README documents python3 -m pytest and node --test, then says pytest, FastAPI, and tsc are unavailable in the current environment."
+        },
+        {
+          "file": "handoffs/github_workflow_review_20260929/TEST_EVIDENCE.md",
+          "lines": "7-12,22-26",
+          "detail": "Historical results report 35/9/65/6 passes under Python 3.14, Python 3.12, and an available TypeScript compiler, while the event-dispositions v2 tests and other integrations remain CANNOT_CONFIRM."
+        },
+        {
+          "file": "handoffs/github_workflow_review_20260929/source/v4_app/tests/wechat_ui/client.test.cjs",
+          "line": 17,
+          "detail": "The test calls execFileSync('tsc', ...), which failed in this review with ENOENT."
+        }
+      ],
+      "impact": "Limits independent runtime-test confirmation only. It does not block static Chat code review because the snapshot contains the source/tests and discloses the missing runtime dependencies. The previous pass claims are not determined to be false."
+    }
+  ],
+  "p0_findings": [],
+  "p1_findings": [],
+  "p2_findings": [
+    "P2-TEST-REPRODUCIBILITY"
+  ],
+  "behavior_and_release_status": {
+    "static_snapshot_suitability": "PASS",
+    "business_behavior_independent_acceptance": "CANNOT_CONFIRM",
+    "complete_v4_deployability": "CANNOT_CONFIRM and explicitly out of scope for this export",
+    "target_repository_upload_performed": false,
+    "deployment_or_production_claim": false,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
