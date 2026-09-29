@@ -58,7 +58,8 @@ export function poolRowSignalDate(row: PoolRow) {
     || "该池未提供信号日";
 }
 
-export function formatPercent(value?: number) {
+export function formatPercent(value?: number | null) {
+  if (value === null) return "未知（缺比较依据）";
   return typeof value === "number" ? `${value.toFixed(3).replace(/\.?0+$/, "")}%` : "阶段行情未生成";
 }
 
@@ -113,6 +114,7 @@ export function rowRank(row: StageRow) {
   return row.rank ?? row.stage_rank ?? row.pool_rank ?? "-";
 }
 export function aShareChangePct(row: StageRow) {
+  if (row.current_change_pct === null) return null;
   if (typeof row.current_change_pct === "number") return row.current_change_pct;
   if (typeof row.d1_change_pct === "number") return row.d1_change_pct;
   if (

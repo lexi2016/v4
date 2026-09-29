@@ -415,12 +415,19 @@ class StageSelectionConsumer:
         for market in requested_markets:
             try:
                 envelope = self.store.read_verified(trade_date, stage_id, market)
-                projected.append(self._overlay_a_names(_project_market(market, envelope), trade_date))
+                projected.append(_project_market(market, envelope))
             except (SelectionError, OSError, ValueError, TypeError):
                 # Missing latest, missing trio, malformed JSON, SHA mismatch,
                 # and any other read-integrity error deliberately collapse to
                 # the same external evidence state.
                 projected.append(_invalid_market(market))
+            # An explicit, SHA-bound backfill may recover an empty failed lane.
+            # The original formal result remains intact and visible in lineage.
+            from .historical_readback import resolve_market
+            projected[-1] = self._overlay_a_names(resolve_market(
+                self.store, trade_date, stage_id, market, projected[-1],
+                project_market=_project_market,
+            ), trade_date)
 
         status = _summary_status(projected)
         invalid = any(_is_integrity_failure(item) for item in projected)
@@ -437,6 +444,8 @@ class StageSelectionConsumer:
             "run_id": projected[0].get("run_id") if len({item.get("run_id") for item in projected}) == 1 else None,
             "cannot_confirm": [READ_ONLY_CANNOT_CONFIRM] if invalid else [],
             "write_performed": False,
+            "historical_readbacks": [item["historical_readback"] for item in projected
+                                     if "historical_readback" in item],
             **SAFETY_FLAGS,
         }
         return response

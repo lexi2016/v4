@@ -260,6 +260,7 @@ def refresh_hk_active_lanes(
     trade_date: str | None = None,
     stage_id: str | None = None,
     cutoff_at: str | None = None,
+    historical_backfill: bool = False,
 ) -> SourceResult:
     """Re-probe only the V3 active trigger for an existing raw HK source.
 
@@ -269,7 +270,7 @@ def refresh_hk_active_lanes(
     the same explicit code-bounded Futu snapshot and carries its evidence.
     """
     from stage_center._live_collectors_parts.hk_minute import _refresh_hk_active_lanes_body as _v4_impl
-    return _v4_impl(globals(), source, codes=codes, python_path=python_path, shared_root=shared_root, process_runner=process_runner, trade_date=trade_date, stage_id=stage_id, cutoff_at=cutoff_at)
+    return _v4_impl(globals(), source, codes=codes, python_path=python_path, shared_root=shared_root, process_runner=process_runner, trade_date=trade_date, stage_id=stage_id, cutoff_at=cutoff_at, historical_backfill=historical_backfill)
 
 
 def _futu_hkconnect_active_snapshot(
