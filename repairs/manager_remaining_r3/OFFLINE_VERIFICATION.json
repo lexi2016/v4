@@ -1,0 +1,13 @@
+{
+  "base_commit": "043e248f82360256de30b55fa45cb77c5be8b90f",
+  "status": "OFFLINE_CODE_CANDIDATE_NOT_MAC_EXECUTED",
+  "environment": "Linux / Python 3.13.5",
+  "declared_delivery_suite": {"passed": 405, "failed": 0, "skipped": 0, "elapsed_seconds": 10.13, "command": "python tools/run_offline_tests.py", "scope": "DECLARED_DELIVERY_SUITE_NOT_WHOLE_REPOSITORY"},
+  "patch_replay": {"status": "PASS_BYTE_IDENTICAL_FORWARD_AND_REVERSE", "after_files": 121, "existing_runtime_preimages": 13, "patches": 2},
+  "runtime_transport": {"runtime_files": 18, "patch_bytes": 98286, "patch_sha256": "cfcb560e72f6c86c9947878fe12ace01971c5dcf922b0eca2b1bcc89c33de1e6", "decoded_after_byte_identical": true},
+  "broader_suite_unresolved": ["test_five_recovered_financial_sets_stay_researchable: five native Mac financial PDFs missing"],
+  "cannot_confirm": ["root evidence ZIP binary not downloaded", "full raw workspace response not read", "29 acquisition rejections not independently reconciled against all source payloads", "native Python 3.14", "fresh nonempty official singleton", "live original store/API/UI body readback", "independent reviewer", "natural daily scheduler"],
+  "production_writes": 0,
+  "deployment_executed": false,
+  "pytdx_recapture_repeated": false
+}
