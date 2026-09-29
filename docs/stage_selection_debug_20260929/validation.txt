@@ -1,0 +1,49 @@
+AUTHOR VALIDATION — Linux only, synthetic market data, no Mac service access
+Code commit: 912a259e522c5ca1cc548cdd556a23e7eb781a57
+Baseline: 8851f7f84e3d506d3f1317eec03ba92c8f49e324
+Python 3.13.5 / pytest 9.0.2; repository requires Python >=3.14.
+Node 22.16.0. No dependency or environment reinstall.
+
+FINAL TARGETED COMMAND
+python -m pytest -o addopts='-W error' tests/test_stage_auction_unknown_change.py tests/test_stage_hk_historical_observation.py tests/test_stage_archive_audit_projection.py tests/test_stage_history_readback.py tests/test_stage_selection_release_contract.py tests/test_stage_name_read_overlay.py stage_center/tests/test_selection_consumer_batch3.py tests/test_stage_source_root_repair.py -q
+Actual final stdout:
+........................................................................ [ 61%]
+.............................................                            [100%]
+117 passed in 3.44s
+exit=0
+
+FRONTEND SCALARS AND STATIC TEMPLATE
+node --experimental-strip-types --test apps/web/src/app_shell/formatters.stage.contract.mjs
+Actual summary: tests 3, pass 3, fail 0, skipped 0, cancelled 0; exit=0.
+Node emitted its ExperimentalWarning for type stripping.
+Two tests execute actual formatter functions; one checks SFC text only. NOT browser rendering.
+
+tsc apps/web/src/app_shell/formatters.ts apps/web/src/app_shell/types.ts --noEmit --target ES2022 --module ESNext --moduleResolution node --strict
+stdout/stderr empty; exit=0. NOT full vue-tsc or Vite build.
+
+ADDITIONAL SCOPED REGRESSION — FAILURES RETAINED
+python -m pytest -o addopts='-W error' stage_center/tests/test_selection_consumer_batch3.py tests/test_stage_source_root_repair.py tests/test_stage_research_context_v4.py -q
+Actual summary: 2 failed, 32 passed in 0.92s; exit=1.
+Failure 1: tests/test_stage_research_context_v4.py::test_persistent_v4_node_entrypoint_checks_ten_nodes
+  assert 3 == 0 from node_main(['--config', <source>/stage_center_tick_config.json, '--check']).
+Failure 2: tests/test_stage_research_context_v4.py::test_node_cli_check_is_reproducible_without_network
+  FileNotFoundError: the configured /Users/lexi/.../runtime/venvs/v3.5-mac/bin/python is not present in Linux.
+This is a condensed failure record, not a full raw-log transcript. No skipped/retried results were substituted for these failures. This group overlaps the 117 and must not be added to it as unique passes.
+
+RED/GREEN EVIDENCE SUMMARY
+Auction: 6 failed / 5 passed before, 11 passed after. None/empty/zero previous close yielded 0.0, negative close yielded -1100.0; explicit null was overwritten by last/open.
+HK historical: 7 failed / 3 passed before, 10 passed after; six intraday stages preserve original selector and SelectionStore output, NO_BUY and NO_TRADE, while live unsafe snapshots still fail closed. An intermediate test used the wrong envelope key input_rows; corrected to existing source_rows (not a product-schema change).
+Archive: corrected synthetic source fixture (including required articles) yielded 7 failed / 3 passed before, 10 passed after. An earlier incomplete synthetic fixture was not counted as a product fault.
+Ordinary history: old consumer ignored an exact valid binding; final consumer/API suite 36 passed. Actual FastAPI TestClient used with synthetic sealed selections for all 15 scheduled market slots, not HTTP access to localhost.
+Closure: initial 9 failed / 1 passed; final 11 passed including added unreviewed lazy-import negative. Missing new contract accounts for some initial failures; legacy helper-membership and partial-cohort tests also fail on baseline.
+Name overlay: intermediate regression 7 failed / 10 passed exposed double application of name overlay; corrected to exactly once after historical resolution. Final original 17 tests passed.
+Frontend: original formatter test 1 failed / 1 passed; corrected 2 passed, plus final added static HK-only applicability test.
+An initial ES2020 standalone TypeScript check rejected existing replaceAll; ES2022 check passed without changing the existing implementation.
+
+REMOTE SOURCE VERIFICATION
+Stage Center 91 source/test files: local Git tree and remote tree both 0a5f5b3857d8df5a8aa7a8f3d53da60e101415ac (runtime pycache excluded).
+All other changed source/test Git blob identities were read back and matched the tested local bytes; source_receipt.json records before/after SHA-256.
+A cached source copy was used only as a byte cache, reconciled with fixed GitHub source for the inspected scope. This is not a full 1312-file/environment identity certification; unrelated cached dependency differences were not pushed.
+
+NOT EXECUTED / NOT CLAIMED
+Independent review, Mac target-Python acceptance, full Vue build/browser, complete source-snapshot regression, 16 excluded market-fixture tests, actual historical market-data acceptance, inactive candidate build against Mac runtime, integration/deployment, 8873 API/UI readback and natural scheduled execution.
