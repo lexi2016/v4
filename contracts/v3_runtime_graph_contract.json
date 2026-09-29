@@ -1,0 +1,4711 @@
+{
+  "schema_version": "v3_runtime_graph_contract.v1",
+  "authority_root": "30_runtime",
+  "evidence_layers": [
+    "calendar",
+    "execution",
+    "artifact",
+    "api",
+    "page"
+  ],
+  "statuses": [
+    "NOT_DUE",
+    "SKIPPED_EXPECTED",
+    "RUNNING",
+    "PASS",
+    "DEGRADED",
+    "FAIL",
+    "EVIDENCE_GAP"
+  ],
+  "freshness_seconds": {
+    "topology": 86400,
+    "runtime_snapshot": 90,
+    "page_receipt": 900
+  },
+  "modules": {
+    "stage_selection": {
+      "page_section": "stageGroupRows",
+      "validator": "stage"
+    },
+    "preselection": {
+      "page_section": "preselectionContent",
+      "validator": "pool"
+    },
+    "research": {
+      "page_section": "researchContent",
+      "validator": "research"
+    },
+    "review": {
+      "page_section": "reviewContent",
+      "validator": "review"
+    },
+    "tasks": {
+      "page_section": "tasksContent",
+      "validator": "execution"
+    },
+    "auxiliary": {
+      "page_section": "tasksContent",
+      "validator": "auxiliary"
+    }
+  },
+  "repair": {
+    "max_attempts": 2,
+    "allowlist": [
+      "REBUILD_GRAPH_SNAPSHOT",
+      "RELOAD_ACCEPTED_ARTIFACT_CACHE",
+      "RETRY_IDEMPOTENT_NODE",
+      "REPAIR_VERIFIED_DATE_POINTER"
+    ],
+    "denylist": [
+      "OVERWRITE_FORMAL_POOL",
+      "CHANGE_SCORE_RULE",
+      "DELETE_ARTIFACT",
+      "DISABLE_CANONICAL_TASK",
+      "SWITCH_SCHEDULER",
+      "STOP_RESEARCH_PROCESS"
+    ]
+  },
+  "topology": {
+    "schema_version": "v3_runtime_topology.v1",
+    "authority_root": "30_runtime",
+    "generated_at": "2026-08-03T11:54:42",
+    "nodes": [
+      {
+        "node_id": "FUPAN_8771_VERIFY",
+        "required_evidence_layers": ["calendar","execution","artifact","page"],
+        "label": "21:15 8771 刷新与页面验收",
+        "category": "review",
+        "module": "review",
+        "scheduled_time": "21:15",
+        "windows_task_name": "OpeningAdvisorV3_2115_FupanVerify",
+        "page_sections": [
+          "reviewContent"
+        ],
+        "semantic_validator": "page",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/FUPAN_8771_VERIFY.json",
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_8771_VERIFY.json",
+            "kind": "receipt"
+          }
+        ],
+        "task_name": "OpeningAdvisorV3_2115_FupanVerify",
+        "run_policy": "a_share_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "21:15"
+        },
+        "dependencies": [
+          "OpeningAdvisorV3_2110_FupanPublish"
+        ],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_2115_FupanVerify",
+            "run_policy": "a_share_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "21:15"
+            },
+            "dependencies": [
+              "OpeningAdvisorV3_2110_FupanPublish"
+            ],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "node_id": "FUPAN_A_SHARE_STRUCTURE",
+        "required_evidence_layers": ["calendar","execution","artifact","api","page"],
+        "label": "A股收盘数据与题材骨架",
+        "category": "review",
+        "module": "review",
+        "scheduled_time": "17:10",
+        "windows_task_name": "OpeningAdvisorV3_1605_FupanStructure",
+        "page_sections": [
+          "reviewContent"
+        ],
+        "semantic_validator": "review",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/FUPAN_A_SHARE_STRUCTURE.json",
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_A_SHARE_STRUCTURE.json",
+            "kind": "receipt"
+          }
+        ],
+        "task_name": "OpeningAdvisorV3_1605_FupanStructure",
+        "run_policy": "a_share_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "17:10"
+        },
+        "dependencies": [
+          "OpeningAdvisorV3_1700_AshareResearchPanel"
+        ],
+        "timeout_seconds": 2700,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_1605_FupanStructure",
+            "run_policy": "a_share_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "17:10"
+            },
+            "dependencies": [
+              "OpeningAdvisorV3_1700_AshareResearchPanel"
+            ],
+            "timeout_seconds": 2700
+          }
+        ]
+      },
+      {
+        "node_id": "FUPAN_CLOSE_MATERIALS",
+        "required_evidence_layers": ["calendar","execution","artifact","api","page"],
+        "label": "15:00 收盘前总结材料",
+        "category": "review",
+        "module": "review",
+        "scheduled_time": "15:00",
+        "windows_task_name": "OpeningAdvisorV3_1500_IntradayStageAndFupan",
+        "page_sections": [
+          "reviewContent"
+        ],
+        "semantic_validator": "review",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/FUPAN_CLOSE_MATERIALS.json",
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_CLOSE_MATERIALS.json",
+            "kind": "receipt"
+          }
+        ],
+        "task_name": "OpeningAdvisorV3_1500_IntradayStageAndFupan",
+        "run_policy": "a_share_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "15:00"
+        },
+        "dependencies": [],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_1500_IntradayStageAndFupan",
+            "run_policy": "a_share_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "15:00"
+            },
+            "dependencies": [],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "node_id": "FUPAN_REVIEW_START",
+        "required_evidence_layers": ["calendar","execution","artifact","api","page"],
+        "label": "15:55 收盘后复盘启动",
+        "category": "review",
+        "module": "review",
+        "scheduled_time": "15:55",
+        "windows_task_name": "OpeningAdvisorV3_1555_HKCloseAndFupan",
+        "page_sections": [
+          "reviewContent"
+        ],
+        "semantic_validator": "review",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/FUPAN_REVIEW_START.json",
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_REVIEW_START.json",
+            "kind": "receipt"
+          }
+        ],
+        "task_name": "OpeningAdvisorV3_1555_HKCloseAndFupan",
+        "run_policy": "hk_connect_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "15:55"
+        },
+        "dependencies": [],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_1555_HKCloseAndFupan",
+            "run_policy": "hk_connect_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "15:55"
+            },
+            "dependencies": [],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "node_id": "FUPAN_STOCKDICT",
+        "required_evidence_layers": ["calendar","execution","artifact","page"],
+        "label": "20:50 股票字典校正",
+        "category": "auxiliary",
+        "module": "auxiliary",
+        "scheduled_time": "20:50",
+        "windows_task_name": "OpeningAdvisorV3_2050_FupanStockdict",
+        "page_sections": [
+          "reviewContent"
+        ],
+        "semantic_validator": "auxiliary",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/FUPAN_STOCKDICT.json",
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_STOCKDICT.json",
+            "kind": "receipt"
+          }
+        ],
+        "task_name": "OpeningAdvisorV3_2050_FupanStockdict",
+        "run_policy": "a_share_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "20:50"
+        },
+        "dependencies": [
+          "OpeningAdvisorV3_2040_FupanVideoASR"
+        ],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_2050_FupanStockdict",
+            "run_policy": "a_share_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "20:50"
+            },
+            "dependencies": [
+              "OpeningAdvisorV3_2040_FupanVideoASR"
+            ],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "node_id": "FUPAN_V3_PUBLISH",
+        "required_evidence_layers": ["calendar","execution","artifact","page"],
+        "label": "21:10 第三版复盘发布",
+        "category": "review",
+        "module": "review",
+        "scheduled_time": "21:10",
+        "windows_task_name": "OpeningAdvisorV3_2110_FupanPublish",
+        "page_sections": [
+          "reviewContent"
+        ],
+        "semantic_validator": "review",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/FUPAN_V3_PUBLISH.json",
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_V3_PUBLISH.json",
+            "kind": "receipt"
+          },
+          {
+            "path": "{data_root}/dashboard_cache/{date}/fupan_review_v3.json",
+            "kind": "json",
+            "semantic_alias": "fupan_review_v3",
+            "semantic_fields": {
+              "review_date": "review_date",
+              "status": "replay_model_v1.status",
+              "board_rows": "replay_model_v1.board_rows",
+              "anchor_role_rows": "replay_model_v1.anchor_role_rows",
+              "target_video_review_status": "replay_model_v1.target_video_review_status",
+              "target_video_evidence_count": "replay_model_v1.target_video_evidence_count",
+              "video_augmented_review_complete": "replay_model_v1.video_augmented_review_complete",
+              "no_buy_gate": "replay_model_v1.safety.NO_BUY_GATE",
+              "buy_gate_allowed": "acceptance.buy_gate_allowed",
+              "trading_advice_allowed": "acceptance.trading_advice_allowed"
+            }
+          }
+        ],
+        "task_name": "OpeningAdvisorV3_2110_FupanPublish",
+        "run_policy": "a_share_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "21:10"
+        },
+        "dependencies": [
+          "OpeningAdvisorV3_2108_FupanGapAndGuard"
+        ],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_2110_FupanPublish",
+            "run_policy": "a_share_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "21:10"
+            },
+            "dependencies": [
+              "OpeningAdvisorV3_2108_FupanGapAndGuard"
+            ],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "node_id": "FUPAN_VIDEO_CHECK",
+        "required_evidence_layers": ["calendar","execution","artifact","page"],
+        "label": "20:30 最新复盘视频检查",
+        "category": "auxiliary",
+        "module": "auxiliary",
+        "scheduled_time": "20:30",
+        "windows_task_name": "OpeningAdvisorV3_2030_FupanVideoCheck",
+        "page_sections": [
+          "reviewContent"
+        ],
+        "semantic_validator": "auxiliary",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/FUPAN_VIDEO_CHECK.json",
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_VIDEO_CHECK.json",
+            "kind": "receipt"
+          }
+        ],
+        "task_name": "OpeningAdvisorV3_2030_FupanVideoCheck",
+        "run_policy": "a_share_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "20:30"
+        },
+        "dependencies": [
+          "OpeningAdvisorV3_2025_BilibiliFupan"
+        ],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_2030_FupanVideoCheck",
+            "run_policy": "a_share_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "20:30"
+            },
+            "dependencies": [
+              "OpeningAdvisorV3_2025_BilibiliFupan"
+            ],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "node_id": "FUPAN_VIDEO_DOWNLOAD_ASR",
+        "required_evidence_layers": ["calendar","execution","artifact","page"],
+        "label": "20:40 视频下载与转写",
+        "category": "auxiliary",
+        "module": "auxiliary",
+        "scheduled_time": "20:40",
+        "windows_task_name": "OpeningAdvisorV3_2040_FupanVideoASR",
+        "page_sections": [
+          "reviewContent"
+        ],
+        "semantic_validator": "auxiliary",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/FUPAN_VIDEO_DOWNLOAD_ASR.json",
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_VIDEO_DOWNLOAD_ASR.json",
+            "kind": "receipt"
+          }
+        ],
+        "task_name": "OpeningAdvisorV3_2040_FupanVideoASR",
+        "run_policy": "a_share_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "20:40"
+        },
+        "dependencies": [
+          "OpeningAdvisorV3_2030_FupanVideoCheck"
+        ],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_2040_FupanVideoASR",
+            "run_policy": "a_share_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "20:40"
+            },
+            "dependencies": [
+              "OpeningAdvisorV3_2030_FupanVideoCheck"
+            ],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "node_id": "FUPAN_VIDEO_GAP",
+        "required_evidence_layers": ["calendar","execution","artifact","page"],
+        "label": "21:08 页面复盘对视频差距",
+        "category": "auxiliary",
+        "module": "auxiliary",
+        "scheduled_time": "21:08",
+        "windows_task_name": "OpeningAdvisorV3_2108_FupanGapAndGuard",
+        "page_sections": [
+          "reviewContent"
+        ],
+        "semantic_validator": "auxiliary",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/FUPAN_VIDEO_GAP.json",
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_VIDEO_GAP.json",
+            "kind": "receipt"
+          }
+        ],
+        "task_name": "OpeningAdvisorV3_2108_FupanGapAndGuard",
+        "run_policy": "a_share_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "21:08"
+        },
+        "dependencies": [
+          "OpeningAdvisorV3_2105_FupanVideoOcrAlign",
+          "OpeningAdvisorV3_2005_TomorrowPool"
+        ],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_2108_FupanGapAndGuard",
+            "run_policy": "a_share_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "21:08"
+            },
+            "dependencies": [
+              "OpeningAdvisorV3_2105_FupanVideoOcrAlign",
+              "OpeningAdvisorV3_2005_TomorrowPool"
+            ],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "node_id": "FUPAN_VIDEO_TABLE_OCR_ALIGN",
+        "required_evidence_layers": ["calendar","execution","artifact","page"],
+        "label": "21:05 视频表格 OCR/ASR/新闻对齐",
+        "category": "auxiliary",
+        "module": "auxiliary",
+        "scheduled_time": "21:05",
+        "windows_task_name": "OpeningAdvisorV3_2105_FupanVideoOcrAlign",
+        "page_sections": [
+          "reviewContent"
+        ],
+        "semantic_validator": "auxiliary",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/FUPAN_VIDEO_TABLE_OCR_ALIGN.json",
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_VIDEO_TABLE_OCR_ALIGN.json",
+            "kind": "receipt"
+          }
+        ],
+        "task_name": "OpeningAdvisorV3_2105_FupanVideoOcrAlign",
+        "run_policy": "a_share_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "21:05"
+        },
+        "dependencies": [
+          "OpeningAdvisorV3_2050_FupanStockdict"
+        ],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_2105_FupanVideoOcrAlign",
+            "run_policy": "a_share_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "21:05"
+            },
+            "dependencies": [
+              "OpeningAdvisorV3_2050_FupanStockdict"
+            ],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "event_id": "v3_1700_ashare_research_panel",
+        "node_id": "ashare_research_panel",
+        "required_evidence_layers": ["calendar","artifact","page"],
+        "label": "A股日线同步与基础研究面板",
+        "category": "research_panel",
+        "module": "research",
+        "page_sections": [
+          "researchContent"
+        ],
+        "semantic_validator": "research",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/ashare_research_panel.json",
+        "scheduled_time": "17:00",
+        "repeat": "trade_day",
+        "executor_type": "windows_task_status_artifact",
+        "windows_task_name": "OpeningAdvisorV3_1700_AshareResearchPanel",
+        "expected_outputs": [
+          "{data_root}/data_layer/data_layer_interface_current/CURRENT_SELECTOR_READY_PANEL.txt",
+          "{data_root}/data_layer/backtest_panel_interface_current/CURRENT_BACKTEST_BASE_PANEL.txt"
+        ],
+        "status_sources": [
+          {
+            "path": "{data_root}/data_layer/data_layer_interface_current/CURRENT_SELECTOR_READY_PANEL.txt",
+            "kind": "text_pointer",
+            "date_mode": "content_contains_date"
+          },
+          {
+            "path": "{data_root}/data_layer/backtest_panel_interface_current/CURRENT_BACKTEST_BASE_PANEL.txt",
+            "kind": "text_pointer",
+            "date_mode": "content_contains_date"
+          }
+        ],
+        "page_lane": "research_panels",
+        "research_only": true,
+        "production_allowed": false,
+        "cannot_confirm_default": [
+          "17:00 A股研究面板必须先同步 SH/SZ/BJ 本地 TDX vipdoc 日线，再运行 data_layer_daily_formula_increment_update_v1 并通过 CURRENT pointer 日期门禁；若 TDX 最大日期未覆盖目标日，必须硬失败，不能用旧 D-1 面板伪装通过。"
+        ],
+        "task_name": "OpeningAdvisorV3_1700_AshareResearchPanel",
+        "run_policy": "a_share_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "17:00"
+        },
+        "dependencies": [],
+        "timeout_seconds": 7200,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_1700_AshareResearchPanel",
+            "run_policy": "a_share_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "17:00"
+            },
+            "dependencies": [],
+            "timeout_seconds": 7200
+          }
+        ]
+      },
+      {
+        "event_id": "v3_1730_ashare_v193_slot_selector_premarket",
+        "node_id": "ashare_v193_slot_selector_premarket",
+        "required_evidence_layers": ["calendar","execution","artifact","api","page"],
+        "label": "A股 v1.9.3 槽位预选池",
+        "category": "stock_pool",
+        "module": "preselection",
+        "page_sections": [
+          "preselectionContent"
+        ],
+        "semantic_validator": "pool",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/ashare_v193_slot_selector_premarket.json",
+        "scheduled_time": "17:30",
+        "repeat": "trade_day",
+        "executor_type": "artifact_check",
+        "windows_task_name": "OpeningAdvisorV3_1730_AshareDailyPools",
+        "expected_outputs": [
+          "{data_root}/preselection_pools/latest.json",
+          "{data_root}/preselection_pools/{date}/ashare_v193_slot_selector_premarket_pool_{date}.csv",
+          "{data_root}/preselection_pools/{date}/ashare_v193_slot_selector_premarket_pool_{date}.manifest.json",
+          "{data_root}/preselection_pools/{date}/ashare_v193_slot_selector_premarket_pool_{date}.acceptance.json"
+        ],
+        "status_sources": [
+          {
+            "path": "{data_root}/preselection_pools/{date}/ashare_v193_slot_selector_premarket_pool_{date}.manifest.json",
+            "kind": "json",
+            "semantic_alias": "a_selector_manifest",
+            "semantic_fields": {
+              "trade_date": "trade_date",
+              "target_date": "target_date",
+              "signal_date": "signal_date",
+              "row_count": "row_count",
+              "runtime_row_count": "runtime_row_count",
+              "pool_id": "pool_id",
+              "research_only": "research_only",
+              "production_allowed": "production_allowed"
+            },
+            "date_fields": [
+              "latest_trade_date",
+              "target_date",
+              "trade_date"
+            ],
+            "status_fields": [
+              "status",
+              "latest_status"
+            ],
+            "row_count_fields": [
+              "row_count",
+              "runtime_row_count"
+            ]
+          },
+          {
+            "path": "{data_root}/preselection_pools/latest.json",
+            "kind": "json",
+            "semantic_alias": "a_selector_latest",
+            "semantic_fields": {
+              "latest_trade_date": "latest_trade_date",
+              "target_date": "target_date",
+              "trade_date": "trade_date",
+              "row_count": "row_count",
+              "runtime_row_count": "runtime_row_count",
+              "pool_id": "pool_id",
+              "research_only": "research_only",
+              "production_allowed": "production_allowed"
+            },
+            "date_fields": [
+              "latest_trade_date",
+              "target_date",
+              "trade_date"
+            ],
+            "status_fields": [
+              "status",
+              "latest_status"
+            ],
+            "row_count_fields": [
+              "row_count",
+              "runtime_row_count"
+            ]
+          }
+        ],
+        "page_lane": "stock_pools",
+        "research_only": true,
+        "production_allowed": false,
+        "cannot_confirm_default": [
+          "A股 v1.9.3 槽位当前承载 1.9.2/FMLA04 selector baseline；不是自动交易池。"
+        ],
+        "task_name": "OpeningAdvisorV3_1730_AshareDailyPools",
+        "run_policy": "a_share_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "17:30"
+        },
+        "dependencies": [],
+        "timeout_seconds": 1200,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_1730_AshareDailyPools",
+            "run_policy": "a_share_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "17:30"
+            },
+            "dependencies": [],
+            "timeout_seconds": 1200
+          }
+        ]
+      },
+      {
+        "node_id": "baimao_x_refresh",
+        "required_evidence_layers": ["calendar","execution","artifact","api","page"],
+        "label": "白毛/X 摘要刷新",
+        "category": "research",
+        "module": "research",
+        "scheduled_time": "09:30/11:30/15:30/20:30",
+        "windows_task_name": "OpeningAdvisorV3_BaimaoXRefresh",
+        "page_sections": [
+          "baimaoXBrief"
+        ],
+        "semantic_validator": "research",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/baimao_x_refresh.json",
+        "api_probe": "/api/v3/baimao/x/latest",
+        "api_date_fields": [
+          "business_date",
+          "trade_date"
+        ],
+        "expected_outputs": [
+          "{data_root}/baimao_x/latest_baimao_x_digest.json"
+        ],
+        "status_sources": [
+          {
+            "path": "{data_root}/baimao_x/latest_baimao_x_digest.json",
+            "kind": "json",
+            "semantic_alias": "baimao_digest",
+            "semantic_fields": {
+              "business_date": "business_date",
+              "trade_date": "trade_date",
+              "status": "status",
+              "ok": "ok",
+              "production_allowed": "production_allowed",
+              "buy_gate_updated": "buy_gate_updated",
+              "orders_sent": "orders_sent"
+            }
+          },
+          {
+            "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/baimao_x_refresh.json",
+            "kind": "receipt"
+          }
+        ],
+        "task_name": "OpeningAdvisorV3_BaimaoXRefresh",
+        "run_policy": "natural_day",
+        "schedule": {
+          "type": "daily_repeating_multi",
+          "windows": [
+            {
+              "start": "09:30"
+            },
+            {
+              "start": "11:30"
+            },
+            {
+              "start": "15:30"
+            },
+            {
+              "start": "20:30"
+            }
+          ]
+        },
+        "dependencies": [],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_BaimaoXRefresh",
+            "run_policy": "natural_day",
+            "schedule": {
+              "type": "daily_repeating_multi",
+              "windows": [
+                {
+                  "start": "09:30"
+                },
+                {
+                  "start": "11:30"
+                },
+                {
+                  "start": "15:30"
+                },
+                {
+                  "start": "20:30"
+                }
+              ]
+            },
+            "dependencies": [],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "event_id": "v3_2025_bilibili_fupan",
+        "node_id": "bilibili_fupan_nightly",
+        "required_evidence_layers": ["calendar","execution","artifact","page"],
+        "label": "20:25 B站复盘/视频比对",
+        "category": "review",
+        "module": "review",
+        "page_sections": [
+          "reviewContent"
+        ],
+        "semantic_validator": "review",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/bilibili_fupan_nightly.json",
+        "scheduled_time": "20:25",
+        "repeat": "trade_day",
+        "executor_type": "windows_task_status_artifact",
+        "windows_task_name": "OpeningAdvisorV3_2025_BilibiliFupan",
+        "expected_outputs": [
+          "{data_root}/runtime_graph/evidence/timeline_scheduler/bilibili_fupan_update_watch_status.json"
+        ],
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/timeline_scheduler/bilibili_fupan_update_watch_status.json",
+            "kind": "json",
+            "date_fields": [
+              "trade_date",
+              "target_date",
+              "date"
+            ],
+            "status_fields": [
+              "status"
+            ]
+          }
+        ],
+        "page_lane": "review",
+        "research_only": true,
+        "production_allowed": false,
+        "cannot_confirm_default": [
+          "复盘视频比对只作为研究/复盘证据，不构成 BUY gate 或交易指令。"
+        ],
+        "task_name": "OpeningAdvisorV3_2025_BilibiliFupan",
+        "run_policy": "a_share_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "20:25"
+        },
+        "dependencies": [
+          "OpeningAdvisorV3_1605_FupanStructure"
+        ],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_2025_BilibiliFupan",
+            "run_policy": "a_share_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "20:25"
+            },
+            "dependencies": [
+              "OpeningAdvisorV3_1605_FupanStructure"
+            ],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "event_id": "v3_1730_hkconnect_0_2_d1_top100",
+        "node_id": "hkconnect_d1_top100_prob_active",
+        "required_evidence_layers": ["calendar","execution","artifact","api","page"],
+        "label": "港股通 0.2 D-1 Top100",
+        "category": "stock_pool",
+        "module": "preselection",
+        "page_sections": [
+          "preselectionContent"
+        ],
+        "semantic_validator": "pool",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/hkconnect_d1_top100_prob_active.json",
+        "scheduled_time": "17:35",
+        "date_role": "target_date",
+        "repeat": "trade_day",
+        "executor_type": "artifact_check",
+        "windows_task_name": "OpeningAdvisorV3_1735_HKConnectD1Pool",
+        "expected_outputs": [
+          "{data_root}/preselection_pools/hkconnect/latest.json",
+          "{data_root}/preselection_pools/hkconnect/{target_date}/hkconnect_d1_top100_pool_{target_date}_prob_active.csv",
+          "{data_root}/preselection_pools/hkconnect/{target_date}/hkconnect_d1_top100_pool_{target_date}_prob_active.standard_manifest.json"
+        ],
+        "status_sources": [
+          {
+            "path": "{data_root}/preselection_pools/hkconnect/{target_date}/hkconnect_d1_top100_pool_{target_date}_prob_active.standard_manifest.json",
+            "kind": "json",
+            "semantic_alias": "hk_d1_manifest",
+            "semantic_fields": {
+              "target_date": "target_date",
+              "status": "status",
+              "strict_exact_0_2_ready": "strict_exact_0_2_ready",
+              "row_count": "row_count",
+              "research_only": "research_only",
+              "production_allowed": "production_allowed",
+              "buy_gate_changed": "buy_gate_changed",
+              "orders_sent": "orders_sent"
+            },
+            "date_fields": [
+              "target_date",
+              "trade_date",
+              "latest_target_date"
+            ],
+            "status_fields": [
+              "status",
+              "latest_status"
+            ],
+            "row_count_fields": [
+              "row_count"
+            ]
+          },
+          {
+            "path": "{data_root}/preselection_pools/hkconnect/latest.json",
+            "kind": "json",
+            "semantic_alias": "hk_d1_latest",
+            "semantic_fields": {
+              "latest_target_date": "latest_target_date",
+              "signal_date": "signal_date",
+              "latest_status": "latest_status",
+              "strict_exact_0_2_ready": "strict_exact_0_2_ready",
+              "d1_freshness_status": "d1_freshness_status",
+              "d1_freshness_ok": "d1_freshness_ok",
+              "research_only": "research_only",
+              "production_allowed": "production_allowed"
+            },
+            "date_fields": [
+              "latest_target_date",
+              "target_date",
+              "trade_date"
+            ],
+            "status_fields": [
+              "latest_status",
+              "status"
+            ],
+            "row_count_fields": [
+              "row_count"
+            ]
+          }
+        ],
+        "page_lane": "stock_pools",
+        "research_only": true,
+        "production_allowed": false,
+        "cannot_confirm_default": [
+          "This is a research D-1 Top100 pool only; it is not BUY gate, formal pool, selector pointer, or orders-ready."
+        ],
+        "task_name": "OpeningAdvisorV3_1735_HKConnectD1Pool",
+        "run_policy": "hk_connect_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "17:35"
+        },
+        "dependencies": [],
+        "timeout_seconds": 2700,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_1735_HKConnectD1Pool",
+            "run_policy": "hk_connect_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "17:35"
+            },
+            "dependencies": [],
+            "timeout_seconds": 2700
+          }
+        ]
+      },
+      {
+        "event_id": "v3_1608_hkconnect_model_selection_review",
+        "node_id": "hkconnect_model_selection_review",
+        "required_evidence_layers": ["calendar","execution","artifact","api","page"],
+        "label": "港股通模型选股收盘复盘",
+        "category": "research_panel",
+        "module": "review",
+        "page_sections": [
+          "reviewContent"
+        ],
+        "semantic_validator": "review",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/hkconnect_model_selection_review.json",
+        "scheduled_time": "16:08",
+        "repeat": "trade_day",
+        "executor_type": "artifact_check",
+        "windows_task_name": "OpeningAdvisorV3_1608_HKModelReview",
+        "expected_outputs": [
+          "{data_root}/hkconnect_close_reviews/{date}/v3_hkconnect_review_manifest_{date}.json"
+        ],
+        "status_sources": [
+          {
+            "path": "{data_root}/hkconnect_close_reviews/{date}/v3_hkconnect_review_manifest_{date}.json",
+            "kind": "json",
+            "date_fields": [
+              "trade_date"
+            ],
+            "status_fields": [
+              "status"
+            ]
+          }
+        ],
+        "page_lane": "research_panels",
+        "research_only": true,
+        "production_allowed": false,
+        "cannot_confirm_default": [
+          "16:08只读刷新港股通正式收盘快照并构建同日模型复盘；不启动8771、不打开BUY gate、不下单。"
+        ],
+        "task_name": "OpeningAdvisorV3_1608_HKModelReview",
+        "run_policy": "hk_connect_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "16:08"
+        },
+        "dependencies": [
+          "OpeningAdvisorV3_1555_HKCloseAndFupan"
+        ],
+        "timeout_seconds": 2700,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_1608_HKModelReview",
+            "run_policy": "hk_connect_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "16:08"
+            },
+            "dependencies": [
+              "OpeningAdvisorV3_1555_HKCloseAndFupan"
+            ],
+            "timeout_seconds": 2700
+          }
+        ]
+      },
+      {
+        "event_id": "v3_1705_hkconnect_research_panel",
+        "node_id": "hkconnect_research_panel",
+        "required_evidence_layers": ["calendar","artifact","page"],
+        "label": "港股通收盘复盘与研报决策面板",
+        "category": "research_panel",
+        "module": "research",
+        "page_sections": [
+          "researchContent"
+        ],
+        "semantic_validator": "research",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/hkconnect_research_panel.json",
+        "scheduled_time": "17:20",
+        "repeat": "trade_day",
+        "executor_type": "artifact_check",
+        "windows_task_name": "OpeningAdvisorV3_1720_HKConnectResearchPanel",
+        "expected_outputs": [
+          "{data_root}/hkconnect_close_reviews/{date}/v3_hkconnect_review_manifest_{date}.json",
+          "{data_root}/hkconnect_close_reviews/{date}/reports/{date}港股通复盘.md",
+          "{data_root}/hkconnect_close_reviews/{date}/tables/港股通全市场收盘Top20.csv",
+          "{data_root}/hkconnect_close_reviews/{date}/tables/0.2模型选股复盘.csv",
+          "{data_root}/hkconnect_close_reviews/{date}/tables/阶段选股复盘.csv",
+          "{data_root}/hkconnect_close_reviews/{date}/tables/七阶段Top20命中汇总.csv",
+          "{data_root}/hkconnect_close_reviews/{date}/tables/Top20命中归因.csv"
+        ],
+        "status_sources": [
+          {
+            "path": "{data_root}/hkconnect_close_reviews/{date}/v3_hkconnect_review_manifest_{date}.json",
+            "kind": "json",
+            "date_fields": [
+              "trade_date"
+            ],
+            "status_fields": [
+              "status"
+            ],
+            "row_count_fields": [
+              "row_counts.close_top20",
+              "row_counts.model_0_2",
+              "row_counts.stage_rows"
+            ]
+          }
+        ],
+        "page_lane": "research_panels",
+        "research_only": true,
+        "production_allowed": false,
+        "cannot_confirm_default": [
+          "17:20 只读重建本地 VIPDOC 收盘面板并发布同日港股通收盘 Top20、0.2 模型池和七阶段复盘；只有 MODEL_REVIEW_READY 才能记为 READY。",
+          "WQ101 已剥离到 21:30 独立预热任务；WQ101 缺失或失败不得阻塞 17:20 复盘、17:35 明日池或 20:05 联合验收。",
+          "CCASS archive 因子仍为 research-only/WATCH_ONLY，不代表 BUY gate、正式交易池或下单信号。"
+        ],
+        "task_name": "OpeningAdvisorV3_1720_HKConnectResearchPanel",
+        "run_policy": "hk_connect_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "17:20"
+        },
+        "dependencies": [],
+        "timeout_seconds": 7200,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_1720_HKConnectResearchPanel",
+            "run_policy": "hk_connect_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "17:20"
+            },
+            "dependencies": [],
+            "timeout_seconds": 7200
+          }
+        ]
+      },
+      {
+        "node_id": "hkconnect_wq101_daily_prewarm",
+        "required_evidence_layers": ["calendar","execution","page"],
+        "label": "21:30 港股通 WQ101 日缓存预热",
+        "category": "auxiliary",
+        "module": "auxiliary",
+        "scheduled_time": "21:30",
+        "windows_task_name": "OpeningAdvisorV3_2130_WQ101Prewarm",
+        "page_sections": [
+          "tasksContent"
+        ],
+        "semantic_validator": "auxiliary",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/hkconnect_wq101_daily_prewarm.json",
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/hkconnect_wq101_daily_prewarm.json",
+            "kind": "receipt"
+          }
+        ],
+        "task_name": "OpeningAdvisorV3_2130_WQ101Prewarm",
+        "run_policy": "hk_connect_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "21:30"
+        },
+        "dependencies": [],
+        "timeout_seconds": 14400,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_2130_WQ101Prewarm",
+            "run_policy": "hk_connect_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "21:30"
+            },
+            "dependencies": [],
+            "timeout_seconds": 14400
+          }
+        ]
+      },
+      {
+        "event_id": "v3_hourly_research_delta_0700_2300",
+        "node_id": "hourly_research_delta",
+        "required_evidence_layers": ["calendar","execution","artifact","api","page"],
+        "label": "每小时研报增量",
+        "category": "research_panel",
+        "module": "research",
+        "page_sections": [
+          "researchContent"
+        ],
+        "semantic_validator": "research",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/hourly_research_delta.json",
+        "api_probe": "/api/v3/research/lane?research_date={date}",
+        "api_date_fields": [
+          "research_date"
+        ],
+        "scheduled_time": "07:00-23:00",
+        "repeat": "natural_day",
+        "executor_type": "windows_task_status_artifact",
+        "windows_task_name": "OpeningAdvisorV3_HourlyResearch_0700_2359",
+        "expected_outputs": [
+          "{data_root}/research_module/runtime_outputs/events/latest_research_event.json",
+          "{data_root}/hourly_research/{date}"
+        ],
+        "status_sources": [
+          {
+            "path": "{data_root}/research_module/runtime_outputs/events/latest_research_event.json",
+            "kind": "json",
+            "semantic_alias": "research_event",
+            "semantic_fields": {
+              "trade_date": "trade_date",
+              "event_id": "event_id",
+              "event_reason": "event_reason",
+              "write_policy": "write_policy",
+              "default_status": "default_status",
+              "buy_gate_effect": "buy_gate_effect",
+              "live_order_effect": "live_order_effect"
+            },
+            "date_fields": [
+              "trade_date",
+              "date"
+            ],
+            "status_fields": [
+              "status",
+              "event_reason"
+            ]
+          },
+          {
+            "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/hourly_research_delta.json",
+            "kind": "receipt"
+          }
+        ],
+        "page_lane": "research_panels",
+        "research_only": true,
+        "production_allowed": false,
+        "cannot_confirm_default": [
+          "每小时研报增量为研究证据；Chrome DOM/外部正文授权不可用时必须保留 CANNOT_CONFIRM。"
+        ],
+        "task_name": "OpeningAdvisorV3_HourlyResearch_0700_2359",
+        "run_policy": "natural_day",
+        "schedule": {
+          "type": "daily_repeating",
+          "start": "07:00",
+          "interval": "PT1H",
+          "duration": "PT17H"
+        },
+        "dependencies": [],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_HourlyResearch_0700_2359",
+            "run_policy": "natural_day",
+            "schedule": {
+              "type": "daily_repeating",
+              "start": "07:00",
+              "interval": "PT1H",
+              "duration": "PT17H"
+            },
+            "dependencies": [],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "event_id": "v3_2005_tomorrow_pool",
+        "node_id": "tomorrow_pool_2005",
+        "required_evidence_layers": ["calendar","artifact","page"],
+        "label": "20:05 次日正式池/预选池生成",
+        "category": "stock_pool",
+        "module": "preselection",
+        "page_sections": [
+          "preselectionContent"
+        ],
+        "semantic_validator": "pool",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/tomorrow_pool_2005.json",
+        "scheduled_time": "20:05",
+        "repeat": "trade_day",
+        "executor_type": "windows_task_status_artifact",
+        "windows_task_name": "OpeningAdvisorV3_2005_TomorrowPool",
+        "expected_outputs": [
+          "{data_root}/runtime_graph/evidence/timeline_scheduler/tomorrow_pool_2005_status.json"
+        ],
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/timeline_scheduler/tomorrow_pool_2005_status.json",
+            "kind": "json",
+            "semantic_alias": "tomorrow_pool_status",
+            "semantic_fields": {
+              "target_date": "target_date",
+              "signal_date": "signal_date",
+              "formal_row_count": "checks.formal_row_count",
+              "premarket_row_count": "checks.premarket_row_count",
+              "hk_d1_row_count": "checks.hkconnect_d1.row_count",
+              "hk_d1_status": "checks.hkconnect_d1.pool_status",
+              "business_exit_code": "business_exit_code",
+              "status": "status",
+              "registry_ok": "checks.registry_ok",
+              "hkconnect_d1_ok": "checks.hkconnect_d1_ok",
+              "hk_d1_freshness_status": "checks.hkconnect_d1.d1_freshness_status",
+              "hk_d1_freshness_ok": "checks.hkconnect_d1.d1_freshness_ok",
+              "strict_exact_0_2_ready": "checks.hkconnect_d1.strict_exact_0_2_ready"
+            },
+            "date_fields": [
+              "target_date",
+              "signal_date"
+            ],
+            "status_fields": [
+              "status"
+            ],
+            "row_count_fields": [
+              "checks.formal_row_count",
+              "checks.premarket_row_count"
+            ]
+          }
+        ],
+        "page_lane": "stock_pools",
+        "research_only": true,
+        "production_allowed": false,
+        "cannot_confirm_default": [
+          "只读取 tomorrow_pool_2005 状态；不注册、不修改、不触发 Windows 计划任务。"
+        ],
+        "task_name": "OpeningAdvisorV3_2005_TomorrowPool",
+        "run_policy": "a_share_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "20:05"
+        },
+        "dependencies": [
+          "OpeningAdvisorV3_1730_AshareDailyPools"
+        ],
+        "timeout_seconds": 7200,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_2005_TomorrowPool",
+            "run_policy": "a_share_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "20:05"
+            },
+            "dependencies": [
+              "OpeningAdvisorV3_1730_AshareDailyPools"
+            ],
+            "timeout_seconds": 7200
+          }
+        ]
+      },
+      {
+        "event_id": "v3_0755_ashare_readiness",
+        "node_id": "v3_ashare_readiness_0755",
+        "required_evidence_layers": ["calendar","artifact","page"],
+        "label": "07:55 A股启动就绪门禁",
+        "category": "startup_gate",
+        "module": "tasks",
+        "page_sections": [
+          "tasksContent"
+        ],
+        "semantic_validator": "execution",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_ashare_readiness_0755.json",
+        "scheduled_time": "07:55",
+        "repeat": "natural_day",
+        "executor_type": "windows_task_status_artifact",
+        "windows_task_name": "OpeningAdvisorV3_0755_StartupEnsure",
+        "expected_outputs": [
+          "{data_root}/runtime_graph/evidence/runtime_debug/{date}_ashare_readiness/ashare_readiness_STAGE_0925.json"
+        ],
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/runtime_debug/{date}_ashare_readiness/ashare_readiness_STAGE_0925.json",
+            "kind": "json",
+            "date_fields": [
+              "trade_date"
+            ],
+            "status_fields": [
+              "status"
+            ],
+            "row_count_fields": [
+              "candidate_universe.row_count",
+              "candidate_universe.observable_row_count",
+              "candidate_universe.stage_universe_row_count"
+            ]
+          }
+        ],
+        "page_lane": "stock_pools",
+        "research_only": true,
+        "production_allowed": false,
+        "cannot_confirm_default": [
+          "07:55 只读检查 A股 selector/premarket/formal/observe universe；不触发旧数据巡检、不下单、不打开 BUY gate。"
+        ],
+        "task_name": "OpeningAdvisorV3_0755_StartupEnsure",
+        "run_policy": "a_or_hk_connect_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "07:55"
+        },
+        "dependencies": [],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_0755_StartupEnsure",
+            "run_policy": "a_or_hk_connect_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "07:55"
+            },
+            "dependencies": [],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "event_id": "v3_0920_ashare_readiness",
+        "node_id": "v3_ashare_readiness_0920",
+        "required_evidence_layers": ["calendar","artifact","page"],
+        "label": "09:20 A股阶段前就绪门禁",
+        "category": "startup_gate",
+        "module": "tasks",
+        "page_sections": [
+          "tasksContent"
+        ],
+        "semantic_validator": "execution",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_ashare_readiness_0920.json",
+        "scheduled_time": "09:20",
+        "repeat": "trade_day",
+        "executor_type": "windows_task_status_artifact",
+        "windows_task_name": "OpeningAdvisorV3_0920_AshareReadiness",
+        "expected_outputs": [
+          "{data_root}/runtime_graph/evidence/runtime_debug/{date}_ashare_readiness/ashare_readiness_STAGE_0925.json"
+        ],
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/runtime_debug/{date}_ashare_readiness/ashare_readiness_STAGE_0925.json",
+            "kind": "json",
+            "date_fields": [
+              "trade_date"
+            ],
+            "status_fields": [
+              "status"
+            ],
+            "row_count_fields": [
+              "candidate_universe.row_count",
+              "candidate_universe.observable_row_count",
+              "candidate_universe.stage_universe_row_count"
+            ]
+          }
+        ],
+        "page_lane": "stock_pools",
+        "research_only": true,
+        "production_allowed": false,
+        "cannot_confirm_default": [
+          "09:20 必须已有 A股可展示宇宙；A股行情优先富途只读源，pytdx 次级，MiniQMT 为应急只读 fallback；09:20 自动恢复 QMT 已保存登录会话。"
+        ],
+        "task_name": "OpeningAdvisorV3_0920_AshareReadiness",
+        "run_policy": "a_share_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "09:20"
+        },
+        "dependencies": [],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_0920_AshareReadiness",
+            "run_policy": "a_share_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "09:20"
+            },
+            "dependencies": [],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "node_id": "v3_hkconnect_a_overlay_pool_2000",
+        "required_evidence_layers": ["calendar","execution","page"],
+        "label": "20:00 港股通 A-overlay 预选池",
+        "category": "preselection",
+        "module": "preselection",
+        "scheduled_time": "20:00",
+        "windows_task_name": "OpeningAdvisorV3_2000_PreopenAndHKOverlay",
+        "page_sections": [
+          "preselectionContent"
+        ],
+        "semantic_validator": "pool",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_hkconnect_a_overlay_pool_2000.json",
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/v3_hkconnect_a_overlay_pool_2000.json",
+            "kind": "receipt"
+          }
+        ],
+        "task_name": "OpeningAdvisorV3_2000_PreopenAndHKOverlay",
+        "run_policy": "hk_connect_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "20:00"
+        },
+        "dependencies": [
+          "OpeningAdvisorV3_1735_HKConnectD1Pool"
+        ],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_2000_PreopenAndHKOverlay",
+            "run_policy": "hk_connect_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "20:00"
+            },
+            "dependencies": [
+              "OpeningAdvisorV3_1735_HKConnectD1Pool"
+            ],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "node_id": "v3_hkconnect_close_stage_1545_1555",
+        "required_evidence_layers": ["calendar","execution","page"],
+        "label": "15:45-15:55 港股尾盘确认",
+        "category": "stage_selection",
+        "module": "stage_selection",
+        "scheduled_time": "15:45-15:55",
+        "windows_task_name": "OpeningAdvisorV3_1555_HKCloseAndFupan",
+        "page_sections": [
+          "stageTimeline",
+          "stageGroupRows"
+        ],
+        "semantic_validator": "stage",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_hkconnect_close_stage_1545_1555.json",
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/v3_hkconnect_close_stage_1545_1555.json",
+            "kind": "receipt"
+          }
+        ],
+        "task_name": "OpeningAdvisorV3_1555_HKCloseAndFupan",
+        "run_policy": "hk_connect_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "15:55"
+        },
+        "dependencies": [],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_1555_HKCloseAndFupan",
+            "run_policy": "hk_connect_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "15:55"
+            },
+            "dependencies": [],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "node_id": "v3_hkconnect_opening_second_filter_v1_1_morning_check",
+        "required_evidence_layers": ["calendar","execution","page"],
+        "label": "09:15 港股通开盘二次筛选",
+        "category": "stage_selection",
+        "module": "stage_selection",
+        "scheduled_time": "09:15",
+        "windows_task_name": "OpeningAdvisorV3_0915_HKSecondFilter",
+        "page_sections": [
+          "stageTimeline",
+          "stageGroupRows"
+        ],
+        "semantic_validator": "stage",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_hkconnect_opening_second_filter_v1_1_morning_check.json",
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/v3_hkconnect_opening_second_filter_v1_1_morning_check.json",
+            "kind": "receipt"
+          }
+        ],
+        "task_name": "OpeningAdvisorV3_0915_HKSecondFilter",
+        "run_policy": "hk_connect_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "09:15"
+        },
+        "dependencies": [],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_0915_HKSecondFilter",
+            "run_policy": "hk_connect_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "09:15"
+            },
+            "dependencies": [],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "node_id": "v3_hourly_research_delta_0730_1530",
+        "required_evidence_layers": ["calendar","execution","artifact","api","page"],
+        "label": "07:30-15:30 小时研报增量",
+        "category": "research",
+        "module": "research",
+        "scheduled_time": "07:30-15:30",
+        "windows_task_name": "OpeningAdvisorV3_HourlyResearch_0700_2359",
+        "page_sections": [
+          "researchContent"
+        ],
+        "semantic_validator": "research",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_hourly_research_delta_0730_1530.json",
+        "api_probe": "/api/v3/research/lane?research_date={date}",
+        "api_date_fields": [
+          "research_date"
+        ],
+        "expected_outputs": [
+          "{data_root}/research_module/runtime_outputs/events/latest_research_event.json",
+          "{data_root}/hourly_research/{date}"
+        ],
+        "status_sources": [
+          {
+            "path": "{data_root}/research_module/runtime_outputs/events/latest_research_event.json",
+            "kind": "json",
+            "semantic_alias": "research_event",
+            "semantic_fields": {
+              "trade_date": "trade_date",
+              "event_id": "event_id",
+              "event_reason": "event_reason",
+              "write_policy": "write_policy",
+              "default_status": "default_status",
+              "buy_gate_effect": "buy_gate_effect",
+              "live_order_effect": "live_order_effect"
+            }
+          },
+          {
+            "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/v3_hourly_research_delta_0730_1530.json",
+            "kind": "receipt"
+          }
+        ],
+        "task_name": "OpeningAdvisorV3_HourlyResearch_0700_2359",
+        "run_policy": "natural_day",
+        "schedule": {
+          "type": "daily_repeating",
+          "start": "07:00",
+          "interval": "PT1H",
+          "duration": "PT17H"
+        },
+        "dependencies": [],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_HourlyResearch_0700_2359",
+            "run_policy": "natural_day",
+            "schedule": {
+              "type": "daily_repeating",
+              "start": "07:00",
+              "interval": "PT1H",
+              "duration": "PT17H"
+            },
+            "dependencies": [],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "node_id": "v3_next_opening_pool_guard_2100",
+        "required_evidence_layers": ["calendar","execution","page"],
+        "label": "21:08 次日开盘池守卫",
+        "category": "preselection",
+        "module": "preselection",
+        "scheduled_time": "21:08",
+        "windows_task_name": "OpeningAdvisorV3_2108_FupanGapAndGuard",
+        "page_sections": [
+          "preselectionContent"
+        ],
+        "semantic_validator": "pool",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_next_opening_pool_guard_2100.json",
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/v3_next_opening_pool_guard_2100.json",
+            "kind": "receipt"
+          }
+        ],
+        "task_name": "OpeningAdvisorV3_2108_FupanGapAndGuard",
+        "run_policy": "a_share_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "21:08"
+        },
+        "dependencies": [
+          "OpeningAdvisorV3_2105_FupanVideoOcrAlign",
+          "OpeningAdvisorV3_2005_TomorrowPool"
+        ],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_2108_FupanGapAndGuard",
+            "run_policy": "a_share_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "21:08"
+            },
+            "dependencies": [
+              "OpeningAdvisorV3_2105_FupanVideoOcrAlign",
+              "OpeningAdvisorV3_2005_TomorrowPool"
+            ],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "node_id": "v3_opening_intraday_stage_select_0925_1500",
+        "required_evidence_layers": ["calendar","execution","artifact","api","page"],
+        "label": "七阶段盘中选股",
+        "category": "stage_selection",
+        "module": "stage_selection",
+        "scheduled_time": "09:25-15:00",
+        "windows_task_name": "OpeningAdvisorV3_0925_IntradayStage",
+        "page_sections": [
+          "stageTimeline",
+          "stageGroupRows"
+        ],
+        "semantic_validator": "stage",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_opening_intraday_stage_select_0925_1500.json",
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/v3_opening_intraday_stage_select_0925_1500.json",
+            "kind": "receipt"
+          },
+          {
+            "path": "{data_root}/stage_workbench_snapshots/{date}/STAGE_0925_limit10.json",
+            "kind": "json",
+            "semantic_alias": "stage_workbench_snapshot",
+            "semantic_fields": {
+              "trade_date": "trade_date",
+              "stage_id": "stage.stage_id",
+              "effective_status": "stage.status",
+              "selected_a_rows": "selected_a_rows",
+              "selected_hk_rows": "selected_hk_rows",
+              "selected_total_rows": "selected_total_rows",
+              "a_source_rows": "markets.A.source_rows",
+              "hk_source_rows": "markets.HK.source_rows",
+              "a_candidate_count": "markets.A.candidate_count",
+              "hk_candidate_count": "markets.HK.candidate_count",
+              "write_policy": "materialized_snapshot.write_policy",
+              "buy_gate_effect": "materialized_snapshot.buy_gate_effect",
+              "live_order_effect": "materialized_snapshot.live_order_effect"
+            }
+          },
+          {
+            "path": "{data_root}/stage_workbench_snapshots/{date}/STAGE_0930_0935_limit10.json",
+            "kind": "json",
+            "semantic_alias": "stage_workbench_snapshot",
+            "semantic_fields": {
+              "trade_date": "trade_date",
+              "stage_id": "stage.stage_id",
+              "effective_status": "stage.status",
+              "selected_a_rows": "selected_a_rows",
+              "selected_hk_rows": "selected_hk_rows",
+              "selected_total_rows": "selected_total_rows",
+              "a_source_rows": "markets.A.source_rows",
+              "hk_source_rows": "markets.HK.source_rows",
+              "a_candidate_count": "markets.A.candidate_count",
+              "hk_candidate_count": "markets.HK.candidate_count",
+              "write_policy": "materialized_snapshot.write_policy",
+              "buy_gate_effect": "materialized_snapshot.buy_gate_effect",
+              "live_order_effect": "materialized_snapshot.live_order_effect"
+            }
+          },
+          {
+            "path": "{data_root}/stage_workbench_snapshots/{date}/STAGE_0935_0940_limit10.json",
+            "kind": "json",
+            "semantic_alias": "stage_workbench_snapshot",
+            "semantic_fields": {
+              "trade_date": "trade_date",
+              "stage_id": "stage.stage_id",
+              "effective_status": "stage.status",
+              "selected_a_rows": "selected_a_rows",
+              "selected_hk_rows": "selected_hk_rows",
+              "selected_total_rows": "selected_total_rows",
+              "a_source_rows": "markets.A.source_rows",
+              "hk_source_rows": "markets.HK.source_rows",
+              "a_candidate_count": "markets.A.candidate_count",
+              "hk_candidate_count": "markets.HK.candidate_count",
+              "write_policy": "materialized_snapshot.write_policy",
+              "buy_gate_effect": "materialized_snapshot.buy_gate_effect",
+              "live_order_effect": "materialized_snapshot.live_order_effect"
+            }
+          },
+          {
+            "path": "{data_root}/stage_workbench_snapshots/{date}/STAGE_0940_0945_limit10.json",
+            "kind": "json",
+            "semantic_alias": "stage_workbench_snapshot",
+            "semantic_fields": {
+              "trade_date": "trade_date",
+              "stage_id": "stage.stage_id",
+              "effective_status": "stage.status",
+              "selected_a_rows": "selected_a_rows",
+              "selected_hk_rows": "selected_hk_rows",
+              "selected_total_rows": "selected_total_rows",
+              "a_source_rows": "markets.A.source_rows",
+              "hk_source_rows": "markets.HK.source_rows",
+              "a_candidate_count": "markets.A.candidate_count",
+              "hk_candidate_count": "markets.HK.candidate_count",
+              "write_policy": "materialized_snapshot.write_policy",
+              "buy_gate_effect": "materialized_snapshot.buy_gate_effect",
+              "live_order_effect": "materialized_snapshot.live_order_effect"
+            }
+          },
+          {
+            "path": "{data_root}/stage_workbench_snapshots/{date}/STAGE_0945_1030_limit10.json",
+            "kind": "json",
+            "semantic_alias": "stage_workbench_snapshot",
+            "semantic_fields": {
+              "trade_date": "trade_date",
+              "stage_id": "stage.stage_id",
+              "effective_status": "stage.status",
+              "selected_a_rows": "selected_a_rows",
+              "selected_hk_rows": "selected_hk_rows",
+              "selected_total_rows": "selected_total_rows",
+              "a_source_rows": "markets.A.source_rows",
+              "hk_source_rows": "markets.HK.source_rows",
+              "a_candidate_count": "markets.A.candidate_count",
+              "hk_candidate_count": "markets.HK.candidate_count",
+              "write_policy": "materialized_snapshot.write_policy",
+              "buy_gate_effect": "materialized_snapshot.buy_gate_effect",
+              "live_order_effect": "materialized_snapshot.live_order_effect"
+            }
+          },
+          {
+            "path": "{data_root}/stage_workbench_snapshots/{date}/STAGE_1300_1315_limit10.json",
+            "kind": "json",
+            "semantic_alias": "stage_workbench_snapshot",
+            "semantic_fields": {
+              "trade_date": "trade_date",
+              "stage_id": "stage.stage_id",
+              "effective_status": "stage.status",
+              "selected_a_rows": "selected_a_rows",
+              "selected_hk_rows": "selected_hk_rows",
+              "selected_total_rows": "selected_total_rows",
+              "a_source_rows": "markets.A.source_rows",
+              "hk_source_rows": "markets.HK.source_rows",
+              "a_candidate_count": "markets.A.candidate_count",
+              "hk_candidate_count": "markets.HK.candidate_count",
+              "write_policy": "materialized_snapshot.write_policy",
+              "buy_gate_effect": "materialized_snapshot.buy_gate_effect",
+              "live_order_effect": "materialized_snapshot.live_order_effect"
+            }
+          },
+          {
+            "path": "{data_root}/stage_workbench_snapshots/{date}/STAGE_1445_1500_limit10.json",
+            "kind": "json",
+            "semantic_alias": "stage_workbench_snapshot",
+            "semantic_fields": {
+              "trade_date": "trade_date",
+              "stage_id": "stage.stage_id",
+              "effective_status": "stage.status",
+              "selected_a_rows": "selected_a_rows",
+              "selected_hk_rows": "selected_hk_rows",
+              "selected_total_rows": "selected_total_rows",
+              "a_source_rows": "markets.A.source_rows",
+              "hk_source_rows": "markets.HK.source_rows",
+              "a_candidate_count": "markets.A.candidate_count",
+              "hk_candidate_count": "markets.HK.candidate_count",
+              "write_policy": "materialized_snapshot.write_policy",
+              "buy_gate_effect": "materialized_snapshot.buy_gate_effect",
+              "live_order_effect": "materialized_snapshot.live_order_effect"
+            }
+          }
+        ],
+        "task_name": "OpeningAdvisorV3_0925_IntradayStage",
+        "run_policy": "a_or_hk_connect_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "09:25"
+        },
+        "dependencies": [
+          "OpeningAdvisorV3_0920_AshareReadiness"
+        ],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_0925_IntradayStage",
+            "run_policy": "a_or_hk_connect_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "09:25"
+            },
+            "dependencies": [
+              "OpeningAdvisorV3_0920_AshareReadiness"
+            ],
+            "timeout_seconds": 1800
+          },
+          {
+            "task_name": "OpeningAdvisorV3_0935_IntradayStage",
+            "run_policy": "a_or_hk_connect_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "09:35"
+            },
+            "dependencies": [],
+            "timeout_seconds": 1800
+          },
+          {
+            "task_name": "OpeningAdvisorV3_0940_IntradayStage",
+            "run_policy": "a_or_hk_connect_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "09:40"
+            },
+            "dependencies": [],
+            "timeout_seconds": 1800
+          },
+          {
+            "task_name": "OpeningAdvisorV3_0945_IntradayStage",
+            "run_policy": "a_or_hk_connect_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "09:45"
+            },
+            "dependencies": [],
+            "timeout_seconds": 1800
+          },
+          {
+            "task_name": "OpeningAdvisorV3_1030_IntradayStage",
+            "run_policy": "a_or_hk_connect_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "10:30"
+            },
+            "dependencies": [],
+            "timeout_seconds": 1800
+          },
+          {
+            "task_name": "OpeningAdvisorV3_1315_IntradayStage",
+            "run_policy": "a_or_hk_connect_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "13:15"
+            },
+            "dependencies": [],
+            "timeout_seconds": 1800
+          },
+          {
+            "task_name": "OpeningAdvisorV3_1500_IntradayStageAndFupan",
+            "run_policy": "a_share_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "15:00"
+            },
+            "dependencies": [],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "event_id": "v3_0830_premarket_news_jyg",
+        "node_id": "v3_premarket_news_jyg_0830",
+        "required_evidence_layers": ["calendar","artifact","page"],
+        "label": "08:30 盘前新闻订阅/韭研公社",
+        "category": "research_lane",
+        "module": "research",
+        "page_sections": [
+          "researchContent"
+        ],
+        "semantic_validator": "research",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_premarket_news_jyg_0830.json",
+        "scheduled_time": "08:30",
+        "repeat": "trade_day",
+        "executor_type": "windows_task_status_artifact",
+        "windows_task_name": "OpeningAdvisorV3_0830_MorningNews",
+        "expected_outputs": [
+          "{data_root}/runtime_graph/evidence/timeline_scheduler/morning_news_0830/{date}/morning_news_manifest_{date}.json"
+        ],
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/timeline_scheduler/morning_news_0830/{date}/morning_news_manifest_{date}.json",
+            "kind": "json",
+            "date_fields": [
+              "trade_date"
+            ],
+            "status_fields": [
+              "status",
+              "payload.required_news_contract.status"
+            ],
+            "row_count_fields": [
+              "payload.article_count",
+              "payload.stock_mentions",
+              "payload.formal_pool_overlap"
+            ]
+          }
+        ],
+        "page_lane": "morning",
+        "research_only": true,
+        "production_allowed": false,
+        "cannot_confirm_default": [
+          "盘前新闻只作为 research/news lane 证据；必须满足三槽位合同才算 READY，不打开 BUY gate。"
+        ],
+        "task_name": "OpeningAdvisorV3_0830_MorningNews",
+        "run_policy": "a_or_hk_connect_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "08:30"
+        },
+        "dependencies": [],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_0830_MorningNews",
+            "run_policy": "a_or_hk_connect_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "08:30"
+            },
+            "dependencies": [],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "event_id": "v3_0840_premarket_news_jyg_retry",
+        "node_id": "v3_premarket_news_jyg_0840_retry",
+        "required_evidence_layers": ["calendar","artifact","page"],
+        "label": "08:40 盘前新闻补验/韭研公社",
+        "category": "research_lane",
+        "module": "research",
+        "page_sections": [
+          "researchContent"
+        ],
+        "semantic_validator": "research",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_premarket_news_jyg_0840_retry.json",
+        "scheduled_time": "08:40",
+        "repeat": "trade_day",
+        "executor_type": "windows_task_status_artifact",
+        "windows_task_name": "OpeningAdvisorV3_0840_MorningNewsRetry",
+        "expected_outputs": [
+          "{data_root}/runtime_graph/evidence/timeline_scheduler/morning_news_0830/{date}/morning_news_manifest_{date}.json"
+        ],
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/timeline_scheduler/morning_news_0830/{date}/morning_news_manifest_{date}.json",
+            "kind": "json",
+            "date_fields": [
+              "trade_date"
+            ],
+            "status_fields": [
+              "status",
+              "payload.required_news_contract.status"
+            ],
+            "row_count_fields": [
+              "payload.article_count",
+              "payload.stock_mentions",
+              "payload.formal_pool_overlap"
+            ]
+          }
+        ],
+        "page_lane": "morning",
+        "research_only": true,
+        "production_allowed": false,
+        "cannot_confirm_default": [
+          "只补验早盘新闻合同和 dashboard cache；不影响 A股第一阶段选股、不下单。"
+        ],
+        "task_name": "OpeningAdvisorV3_0840_MorningNewsRetry",
+        "run_policy": "a_or_hk_connect_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "08:40"
+        },
+        "dependencies": [],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_0840_MorningNewsRetry",
+            "run_policy": "a_or_hk_connect_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "08:40"
+            },
+            "dependencies": [],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "event_id": "v3_0927_stage0925_visibility",
+        "node_id": "v3_stage0925_visible_verify_0927",
+        "required_evidence_layers": ["calendar","artifact","page"],
+        "label": "09:27 第一阶段页面可见性验收",
+        "category": "startup_gate",
+        "module": "stage_selection",
+        "page_sections": [
+          "stageTimeline",
+          "stageGroupRows"
+        ],
+        "semantic_validator": "stage",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_stage0925_visible_verify_0927.json",
+        "scheduled_time": "09:27",
+        "repeat": "trade_day",
+        "executor_type": "windows_task_status_artifact",
+        "windows_task_name": "OpeningAdvisorV3_0927_Stage0925Verify",
+        "expected_outputs": [
+          "{data_root}/runtime_graph/evidence/timeline_scheduler/runs/{date}/STAGE_0925/stage_visibility_verify_STAGE_0925.json"
+        ],
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/timeline_scheduler/runs/{date}/STAGE_0925/stage_visibility_verify_STAGE_0925.json",
+            "kind": "json",
+            "semantic_alias": "stage_visibility_status",
+            "semantic_fields": {
+              "trade_date": "trade_date",
+              "stage_id": "stage_id",
+              "effective_status": "final_user_visible_status.status",
+              "selected_a_rows": "final_user_visible_status.selected_a_rows",
+              "selected_hk_rows": "final_user_visible_status.selected_hk_rows",
+              "production_allowed": "production_allowed",
+              "buy_gate_effect": "buy_gate_effect",
+              "live_order_effect": "live_order_effect"
+            },
+            "date_fields": [
+              "trade_date"
+            ],
+            "status_fields": [
+              "status",
+              "final_user_visible_status.status"
+            ],
+            "row_count_fields": [
+              "stage_api_probe.selected_a_rows",
+              "stage_api_probe.unified_a_rows",
+              "stage_api_probe.a_candidate_count"
+            ]
+          }
+        ],
+        "page_lane": "stock_pools",
+        "research_only": true,
+        "production_allowed": false,
+        "cannot_confirm_default": [
+          "只验证 09:25 第一阶段在 8771 页面可见；不重复生成选股，不打开 BUY gate，不下单。"
+        ],
+        "task_name": "OpeningAdvisorV3_0927_Stage0925Verify",
+        "run_policy": "a_or_hk_connect_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "09:27"
+        },
+        "dependencies": [
+          "OpeningAdvisorV3_0925_IntradayStage"
+        ],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_0927_Stage0925Verify",
+            "run_policy": "a_or_hk_connect_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "09:27"
+            },
+            "dependencies": [
+              "OpeningAdvisorV3_0925_IntradayStage"
+            ],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "event_id": "v3_0929_stage0925_visibility",
+        "node_id": "v3_stage0925_visible_verify_0929",
+        "required_evidence_layers": ["calendar","artifact","page"],
+        "label": "09:29 第一阶段页面二次验收",
+        "category": "startup_gate",
+        "module": "stage_selection",
+        "page_sections": [
+          "stageTimeline",
+          "stageGroupRows"
+        ],
+        "semantic_validator": "stage",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_stage0925_visible_verify_0929.json",
+        "scheduled_time": "09:29",
+        "repeat": "trade_day",
+        "executor_type": "windows_task_status_artifact",
+        "windows_task_name": "OpeningAdvisorV3_0929_Stage0925Verify",
+        "expected_outputs": [
+          "{data_root}/runtime_graph/evidence/timeline_scheduler/runs/{date}/STAGE_0925/stage_visibility_verify_STAGE_0925.json"
+        ],
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/timeline_scheduler/runs/{date}/STAGE_0925/stage_visibility_verify_STAGE_0925.json",
+            "kind": "json",
+            "semantic_alias": "stage_visibility_status",
+            "semantic_fields": {
+              "trade_date": "trade_date",
+              "stage_id": "stage_id",
+              "effective_status": "final_user_visible_status.status",
+              "selected_a_rows": "final_user_visible_status.selected_a_rows",
+              "selected_hk_rows": "final_user_visible_status.selected_hk_rows",
+              "production_allowed": "production_allowed",
+              "buy_gate_effect": "buy_gate_effect",
+              "live_order_effect": "live_order_effect"
+            },
+            "date_fields": [
+              "trade_date"
+            ],
+            "status_fields": [
+              "status",
+              "final_user_visible_status.status"
+            ],
+            "row_count_fields": [
+              "stage_api_probe.selected_a_rows",
+              "stage_api_probe.unified_a_rows",
+              "stage_api_probe.a_candidate_count"
+            ]
+          }
+        ],
+        "page_lane": "stock_pools",
+        "research_only": true,
+        "production_allowed": false,
+        "cannot_confirm_default": [
+          "第二次验证 09:25 第一阶段在 8771 页面可见；不重复生成选股，不打开 BUY gate，不下单。"
+        ],
+        "task_name": "OpeningAdvisorV3_0929_Stage0925Verify",
+        "run_policy": "a_or_hk_connect_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "09:29"
+        },
+        "dependencies": [
+          "OpeningAdvisorV3_0925_IntradayStage"
+        ],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_0929_Stage0925Verify",
+            "run_policy": "a_or_hk_connect_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "09:29"
+            },
+            "dependencies": [
+              "OpeningAdvisorV3_0925_IntradayStage"
+            ],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "node_id": "v3_startup_ensure_0_2_hkconnect",
+        "required_evidence_layers": ["calendar","execution","page"],
+        "label": "07:55 0.2 港股通启动确保",
+        "category": "tasks",
+        "module": "tasks",
+        "scheduled_time": "07:55",
+        "windows_task_name": "OpeningAdvisorV3_0755_StartupEnsure",
+        "page_sections": [
+          "tasksContent"
+        ],
+        "semantic_validator": "execution",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_startup_ensure_0_2_hkconnect.json",
+        "status_sources": [
+          {
+            "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/v3_startup_ensure_0_2_hkconnect.json",
+            "kind": "receipt"
+          }
+        ],
+        "task_name": "OpeningAdvisorV3_0755_StartupEnsure",
+        "run_policy": "a_or_hk_connect_trade_day",
+        "schedule": {
+          "type": "daily",
+          "start": "07:55"
+        },
+        "dependencies": [],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_0755_StartupEnsure",
+            "run_policy": "a_or_hk_connect_trade_day",
+            "schedule": {
+              "type": "daily",
+              "start": "07:55"
+            },
+            "dependencies": [],
+            "timeout_seconds": 1800
+          }
+        ]
+      },
+      {
+        "event_id": "v3_0830_zsxq_research",
+        "node_id": "v3_zsxq_research_0830",
+        "required_evidence_layers": ["calendar","execution","artifact","api","page"],
+        "label": "08:30 知识星球抓取",
+        "category": "research_panel",
+        "module": "research",
+        "page_sections": [
+          "researchContent"
+        ],
+        "semantic_validator": "research",
+        "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_zsxq_research_0830.json",
+        "api_probe": "/api/v3/research/lane?research_date={date}",
+        "api_date_fields": [
+          "research_date"
+        ],
+        "scheduled_time": "08:30",
+        "repeat": "natural_day",
+        "executor_type": "windows_task_status_artifact",
+        "windows_task_name": "OpeningAdvisorV3_0830_ZsxqResearch",
+        "expected_outputs": [
+          "{data_root}/research_module/runtime_outputs/zsxq_hourly/{date}/0830/v35_zsxq_0830_status_{date}_0830.json",
+          "{data_root}/research_module/runtime_outputs/events/latest_research_event.json"
+        ],
+        "status_sources": [
+          {
+            "path": "{data_root}/research_module/runtime_outputs/zsxq_hourly/{date}/0830/v35_zsxq_0830_status_{date}_0830.json",
+            "kind": "json",
+            "semantic_alias": "zsxq_status",
+            "semantic_fields": {
+              "trade_date": "trade_date",
+              "status": "status",
+              "topic_count": "topic_count",
+              "fetch_ok": "fetch_ok",
+              "production_allowed": "production_allowed",
+              "buy_gate_updated": "buy_gate_updated",
+              "orders_sent": "orders_sent"
+            },
+            "date_fields": [
+              "trade_date"
+            ],
+            "status_fields": [
+              "status"
+            ],
+            "row_count_fields": [
+              "topic_count"
+            ]
+          },
+          {
+            "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/v3_zsxq_research_0830.json",
+            "kind": "receipt"
+          }
+        ],
+        "page_lane": "research_panels",
+        "research_only": true,
+        "production_allowed": false,
+        "cannot_confirm_default": [
+          "知识星球 08:30 抓取只统计 08:00-09:00 研究材料数量；认证、cookie、CLI 或外部接口不可用时必须保留 CANNOT_CONFIRM。",
+          "知识星球材料只进入研报研究台，不发帖、不评论、不推送飞书、不打开 BUY gate。"
+        ],
+        "task_name": "OpeningAdvisorV3_0830_ZsxqResearch",
+        "run_policy": "natural_day",
+        "schedule": {
+          "type": "daily",
+          "start": "08:30"
+        },
+        "dependencies": [],
+        "timeout_seconds": 1800,
+        "task_bindings": [
+          {
+            "task_name": "OpeningAdvisorV3_0830_ZsxqResearch",
+            "run_policy": "natural_day",
+            "schedule": {
+              "type": "daily",
+              "start": "08:30"
+            },
+            "dependencies": [],
+            "timeout_seconds": 1800
+          }
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "source": "FUPAN_A_SHARE_STRUCTURE",
+        "target": "bilibili_fupan_nightly",
+        "kind": "node_dependency"
+      },
+      {
+        "source": "FUPAN_REVIEW_START",
+        "target": "hkconnect_model_selection_review",
+        "kind": "node_dependency"
+      },
+      {
+        "source": "FUPAN_STOCKDICT",
+        "target": "FUPAN_VIDEO_TABLE_OCR_ALIGN",
+        "kind": "node_dependency"
+      },
+      {
+        "source": "FUPAN_V3_PUBLISH",
+        "target": "FUPAN_8771_VERIFY",
+        "kind": "node_dependency"
+      },
+      {
+        "source": "FUPAN_VIDEO_CHECK",
+        "target": "FUPAN_VIDEO_DOWNLOAD_ASR",
+        "kind": "node_dependency"
+      },
+      {
+        "source": "FUPAN_VIDEO_DOWNLOAD_ASR",
+        "target": "FUPAN_STOCKDICT",
+        "kind": "node_dependency"
+      },
+      {
+        "source": "FUPAN_VIDEO_GAP",
+        "target": "FUPAN_V3_PUBLISH",
+        "kind": "node_dependency"
+      },
+      {
+        "source": "FUPAN_VIDEO_TABLE_OCR_ALIGN",
+        "target": "FUPAN_VIDEO_GAP",
+        "kind": "node_dependency"
+      },
+      {
+        "source": "FUPAN_VIDEO_TABLE_OCR_ALIGN",
+        "target": "v3_next_opening_pool_guard_2100",
+        "kind": "node_dependency"
+      },
+      {
+        "source": "ashare_research_panel",
+        "target": "FUPAN_A_SHARE_STRUCTURE",
+        "kind": "node_dependency"
+      },
+      {
+        "source": "ashare_v193_slot_selector_premarket",
+        "target": "tomorrow_pool_2005",
+        "kind": "node_dependency"
+      },
+      {
+        "source": "bilibili_fupan_nightly",
+        "target": "FUPAN_VIDEO_CHECK",
+        "kind": "node_dependency"
+      },
+      {
+        "source": "hkconnect_d1_top100_prob_active",
+        "target": "v3_hkconnect_a_overlay_pool_2000",
+        "kind": "node_dependency"
+      },
+      {
+        "source": "tomorrow_pool_2005",
+        "target": "FUPAN_VIDEO_GAP",
+        "kind": "node_dependency"
+      },
+      {
+        "source": "tomorrow_pool_2005",
+        "target": "v3_next_opening_pool_guard_2100",
+        "kind": "node_dependency"
+      },
+      {
+        "source": "v3_ashare_readiness_0920",
+        "target": "v3_opening_intraday_stage_select_0925_1500",
+        "kind": "node_dependency"
+      },
+      {
+        "source": "v3_hkconnect_close_stage_1545_1555",
+        "target": "hkconnect_model_selection_review",
+        "kind": "node_dependency"
+      },
+      {
+        "source": "v3_next_opening_pool_guard_2100",
+        "target": "FUPAN_V3_PUBLISH",
+        "kind": "node_dependency"
+      },
+      {
+        "source": "v3_opening_intraday_stage_select_0925_1500",
+        "target": "v3_stage0925_visible_verify_0927",
+        "kind": "node_dependency"
+      },
+      {
+        "source": "v3_opening_intraday_stage_select_0925_1500",
+        "target": "v3_stage0925_visible_verify_0929",
+        "kind": "node_dependency"
+      }
+    ],
+    "raw_graph": {
+      "nodes": [
+        {
+          "node_id": "FUPAN_8771_VERIFY",
+          "label": "21:15 8771 刷新与页面验收",
+          "category": "review",
+          "module": "review",
+          "scheduled_time": "21:15",
+          "windows_task_name": "OpeningAdvisorV3_2115_FupanVerify",
+          "page_sections": [
+            "reviewContent"
+          ],
+          "semantic_validator": "page",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/FUPAN_8771_VERIFY.json",
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_8771_VERIFY.json",
+              "kind": "receipt"
+            }
+          ],
+          "task_name": "OpeningAdvisorV3_2115_FupanVerify",
+          "run_policy": "a_share_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "21:15"
+          },
+          "dependencies": [
+            "OpeningAdvisorV3_2110_FupanPublish"
+          ],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_2115_FupanVerify",
+              "run_policy": "a_share_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "21:15"
+              },
+              "dependencies": [
+                "OpeningAdvisorV3_2110_FupanPublish"
+              ],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "node_id": "FUPAN_A_SHARE_STRUCTURE",
+          "label": "A股收盘数据与题材骨架",
+          "category": "review",
+          "module": "review",
+          "scheduled_time": "17:10",
+          "windows_task_name": "OpeningAdvisorV3_1605_FupanStructure",
+          "page_sections": [
+            "reviewContent"
+          ],
+          "semantic_validator": "review",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/FUPAN_A_SHARE_STRUCTURE.json",
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_A_SHARE_STRUCTURE.json",
+              "kind": "receipt"
+            }
+          ],
+          "task_name": "OpeningAdvisorV3_1605_FupanStructure",
+          "run_policy": "a_share_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "17:10"
+          },
+          "dependencies": [
+            "OpeningAdvisorV3_1700_AshareResearchPanel"
+          ],
+          "timeout_seconds": 2700,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_1605_FupanStructure",
+              "run_policy": "a_share_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "17:10"
+              },
+              "dependencies": [
+                "OpeningAdvisorV3_1700_AshareResearchPanel"
+              ],
+              "timeout_seconds": 2700
+            }
+          ]
+        },
+        {
+          "node_id": "FUPAN_CLOSE_MATERIALS",
+          "label": "15:00 收盘前总结材料",
+          "category": "review",
+          "module": "review",
+          "scheduled_time": "15:00",
+          "windows_task_name": "OpeningAdvisorV3_1500_IntradayStageAndFupan",
+          "page_sections": [
+            "reviewContent"
+          ],
+          "semantic_validator": "review",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/FUPAN_CLOSE_MATERIALS.json",
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_CLOSE_MATERIALS.json",
+              "kind": "receipt"
+            }
+          ],
+          "task_name": "OpeningAdvisorV3_1500_IntradayStageAndFupan",
+          "run_policy": "a_share_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "15:00"
+          },
+          "dependencies": [],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_1500_IntradayStageAndFupan",
+              "run_policy": "a_share_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "15:00"
+              },
+              "dependencies": [],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "node_id": "FUPAN_REVIEW_START",
+          "label": "15:55 收盘后复盘启动",
+          "category": "review",
+          "module": "review",
+          "scheduled_time": "15:55",
+          "windows_task_name": "OpeningAdvisorV3_1555_HKCloseAndFupan",
+          "page_sections": [
+            "reviewContent"
+          ],
+          "semantic_validator": "review",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/FUPAN_REVIEW_START.json",
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_REVIEW_START.json",
+              "kind": "receipt"
+            }
+          ],
+          "task_name": "OpeningAdvisorV3_1555_HKCloseAndFupan",
+          "run_policy": "hk_connect_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "15:55"
+          },
+          "dependencies": [],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_1555_HKCloseAndFupan",
+              "run_policy": "hk_connect_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "15:55"
+              },
+              "dependencies": [],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "node_id": "FUPAN_STOCKDICT",
+          "label": "20:50 股票字典校正",
+          "category": "auxiliary",
+          "module": "auxiliary",
+          "scheduled_time": "20:50",
+          "windows_task_name": "OpeningAdvisorV3_2050_FupanStockdict",
+          "page_sections": [
+            "reviewContent"
+          ],
+          "semantic_validator": "auxiliary",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/FUPAN_STOCKDICT.json",
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_STOCKDICT.json",
+              "kind": "receipt"
+            }
+          ],
+          "task_name": "OpeningAdvisorV3_2050_FupanStockdict",
+          "run_policy": "a_share_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "20:50"
+          },
+          "dependencies": [
+            "OpeningAdvisorV3_2040_FupanVideoASR"
+          ],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_2050_FupanStockdict",
+              "run_policy": "a_share_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "20:50"
+              },
+              "dependencies": [
+                "OpeningAdvisorV3_2040_FupanVideoASR"
+              ],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "node_id": "FUPAN_V3_PUBLISH",
+          "label": "21:10 第三版复盘发布",
+          "category": "review",
+          "module": "review",
+          "scheduled_time": "21:10",
+          "windows_task_name": "OpeningAdvisorV3_2110_FupanPublish",
+          "page_sections": [
+            "reviewContent"
+          ],
+          "semantic_validator": "review",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/FUPAN_V3_PUBLISH.json",
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_V3_PUBLISH.json",
+              "kind": "receipt"
+            },
+            {
+              "path": "{data_root}/dashboard_cache/{date}/fupan_review_v3.json",
+              "kind": "json",
+              "semantic_alias": "fupan_review_v3",
+              "semantic_fields": {
+                "review_date": "review_date",
+                "status": "replay_model_v1.status",
+                "board_rows": "replay_model_v1.board_rows",
+                "anchor_role_rows": "replay_model_v1.anchor_role_rows",
+                "target_video_review_status": "replay_model_v1.target_video_review_status",
+                "target_video_evidence_count": "replay_model_v1.target_video_evidence_count",
+                "video_augmented_review_complete": "replay_model_v1.video_augmented_review_complete",
+                "no_buy_gate": "replay_model_v1.safety.NO_BUY_GATE",
+                "buy_gate_allowed": "acceptance.buy_gate_allowed",
+                "trading_advice_allowed": "acceptance.trading_advice_allowed"
+              }
+            }
+          ],
+          "task_name": "OpeningAdvisorV3_2110_FupanPublish",
+          "run_policy": "a_share_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "21:10"
+          },
+          "dependencies": [
+            "OpeningAdvisorV3_2108_FupanGapAndGuard"
+          ],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_2110_FupanPublish",
+              "run_policy": "a_share_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "21:10"
+              },
+              "dependencies": [
+                "OpeningAdvisorV3_2108_FupanGapAndGuard"
+              ],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "node_id": "FUPAN_VIDEO_CHECK",
+          "label": "20:30 最新复盘视频检查",
+          "category": "auxiliary",
+          "module": "auxiliary",
+          "scheduled_time": "20:30",
+          "windows_task_name": "OpeningAdvisorV3_2030_FupanVideoCheck",
+          "page_sections": [
+            "reviewContent"
+          ],
+          "semantic_validator": "auxiliary",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/FUPAN_VIDEO_CHECK.json",
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_VIDEO_CHECK.json",
+              "kind": "receipt"
+            }
+          ],
+          "task_name": "OpeningAdvisorV3_2030_FupanVideoCheck",
+          "run_policy": "a_share_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "20:30"
+          },
+          "dependencies": [
+            "OpeningAdvisorV3_2025_BilibiliFupan"
+          ],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_2030_FupanVideoCheck",
+              "run_policy": "a_share_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "20:30"
+              },
+              "dependencies": [
+                "OpeningAdvisorV3_2025_BilibiliFupan"
+              ],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "node_id": "FUPAN_VIDEO_DOWNLOAD_ASR",
+          "label": "20:40 视频下载与转写",
+          "category": "auxiliary",
+          "module": "auxiliary",
+          "scheduled_time": "20:40",
+          "windows_task_name": "OpeningAdvisorV3_2040_FupanVideoASR",
+          "page_sections": [
+            "reviewContent"
+          ],
+          "semantic_validator": "auxiliary",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/FUPAN_VIDEO_DOWNLOAD_ASR.json",
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_VIDEO_DOWNLOAD_ASR.json",
+              "kind": "receipt"
+            }
+          ],
+          "task_name": "OpeningAdvisorV3_2040_FupanVideoASR",
+          "run_policy": "a_share_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "20:40"
+          },
+          "dependencies": [
+            "OpeningAdvisorV3_2030_FupanVideoCheck"
+          ],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_2040_FupanVideoASR",
+              "run_policy": "a_share_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "20:40"
+              },
+              "dependencies": [
+                "OpeningAdvisorV3_2030_FupanVideoCheck"
+              ],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "node_id": "FUPAN_VIDEO_GAP",
+          "label": "21:08 页面复盘对视频差距",
+          "category": "auxiliary",
+          "module": "auxiliary",
+          "scheduled_time": "21:08",
+          "windows_task_name": "OpeningAdvisorV3_2108_FupanGapAndGuard",
+          "page_sections": [
+            "reviewContent"
+          ],
+          "semantic_validator": "auxiliary",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/FUPAN_VIDEO_GAP.json",
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_VIDEO_GAP.json",
+              "kind": "receipt"
+            }
+          ],
+          "task_name": "OpeningAdvisorV3_2108_FupanGapAndGuard",
+          "run_policy": "a_share_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "21:08"
+          },
+          "dependencies": [
+            "OpeningAdvisorV3_2105_FupanVideoOcrAlign",
+            "OpeningAdvisorV3_2005_TomorrowPool"
+          ],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_2108_FupanGapAndGuard",
+              "run_policy": "a_share_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "21:08"
+              },
+              "dependencies": [
+                "OpeningAdvisorV3_2105_FupanVideoOcrAlign",
+                "OpeningAdvisorV3_2005_TomorrowPool"
+              ],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "node_id": "FUPAN_VIDEO_TABLE_OCR_ALIGN",
+          "label": "21:05 视频表格 OCR/ASR/新闻对齐",
+          "category": "auxiliary",
+          "module": "auxiliary",
+          "scheduled_time": "21:05",
+          "windows_task_name": "OpeningAdvisorV3_2105_FupanVideoOcrAlign",
+          "page_sections": [
+            "reviewContent"
+          ],
+          "semantic_validator": "auxiliary",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/FUPAN_VIDEO_TABLE_OCR_ALIGN.json",
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_VIDEO_TABLE_OCR_ALIGN.json",
+              "kind": "receipt"
+            }
+          ],
+          "task_name": "OpeningAdvisorV3_2105_FupanVideoOcrAlign",
+          "run_policy": "a_share_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "21:05"
+          },
+          "dependencies": [
+            "OpeningAdvisorV3_2050_FupanStockdict"
+          ],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_2105_FupanVideoOcrAlign",
+              "run_policy": "a_share_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "21:05"
+              },
+              "dependencies": [
+                "OpeningAdvisorV3_2050_FupanStockdict"
+              ],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "event_id": "v3_1700_ashare_research_panel",
+          "node_id": "ashare_research_panel",
+          "label": "A股日线同步与基础研究面板",
+          "category": "research_panel",
+          "module": "research",
+          "page_sections": [
+            "researchContent"
+          ],
+          "semantic_validator": "research",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/ashare_research_panel.json",
+          "scheduled_time": "17:00",
+          "repeat": "trade_day",
+          "executor_type": "windows_task_status_artifact",
+          "windows_task_name": "OpeningAdvisorV3_1700_AshareResearchPanel",
+          "expected_outputs": [
+            "{data_root}/data_layer/data_layer_interface_current/CURRENT_SELECTOR_READY_PANEL.txt",
+            "{data_root}/data_layer/backtest_panel_interface_current/CURRENT_BACKTEST_BASE_PANEL.txt"
+          ],
+          "status_sources": [
+            {
+              "path": "{data_root}/data_layer/data_layer_interface_current/CURRENT_SELECTOR_READY_PANEL.txt",
+              "kind": "text_pointer",
+              "date_mode": "content_contains_date"
+            },
+            {
+              "path": "{data_root}/data_layer/backtest_panel_interface_current/CURRENT_BACKTEST_BASE_PANEL.txt",
+              "kind": "text_pointer",
+              "date_mode": "content_contains_date"
+            }
+          ],
+          "page_lane": "research_panels",
+          "research_only": true,
+          "production_allowed": false,
+          "cannot_confirm_default": [
+            "17:00 A股研究面板必须先同步 SH/SZ/BJ 本地 TDX vipdoc 日线，再运行 data_layer_daily_formula_increment_update_v1 并通过 CURRENT pointer 日期门禁；若 TDX 最大日期未覆盖目标日，必须硬失败，不能用旧 D-1 面板伪装通过。"
+          ],
+          "task_name": "OpeningAdvisorV3_1700_AshareResearchPanel",
+          "run_policy": "a_share_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "17:00"
+          },
+          "dependencies": [],
+          "timeout_seconds": 7200,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_1700_AshareResearchPanel",
+              "run_policy": "a_share_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "17:00"
+              },
+              "dependencies": [],
+              "timeout_seconds": 7200
+            }
+          ]
+        },
+        {
+          "event_id": "v3_1730_ashare_v193_slot_selector_premarket",
+          "node_id": "ashare_v193_slot_selector_premarket",
+          "label": "A股 v1.9.3 槽位预选池",
+          "category": "stock_pool",
+          "module": "preselection",
+          "page_sections": [
+            "preselectionContent"
+          ],
+          "semantic_validator": "pool",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/ashare_v193_slot_selector_premarket.json",
+          "scheduled_time": "17:30",
+          "repeat": "trade_day",
+          "executor_type": "artifact_check",
+          "windows_task_name": "OpeningAdvisorV3_1730_AshareDailyPools",
+          "expected_outputs": [
+            "{data_root}/preselection_pools/latest.json",
+            "{data_root}/preselection_pools/{date}/ashare_v193_slot_selector_premarket_pool_{date}.csv",
+            "{data_root}/preselection_pools/{date}/ashare_v193_slot_selector_premarket_pool_{date}.manifest.json",
+            "{data_root}/preselection_pools/{date}/ashare_v193_slot_selector_premarket_pool_{date}.acceptance.json"
+          ],
+          "status_sources": [
+            {
+              "path": "{data_root}/preselection_pools/{date}/ashare_v193_slot_selector_premarket_pool_{date}.manifest.json",
+              "kind": "json",
+              "semantic_alias": "a_selector_manifest",
+              "semantic_fields": {
+                "trade_date": "trade_date",
+                "target_date": "target_date",
+                "signal_date": "signal_date",
+                "row_count": "row_count",
+                "runtime_row_count": "runtime_row_count",
+                "pool_id": "pool_id",
+                "research_only": "research_only",
+                "production_allowed": "production_allowed"
+              },
+              "date_fields": [
+                "latest_trade_date",
+                "target_date",
+                "trade_date"
+              ],
+              "status_fields": [
+                "status",
+                "latest_status"
+              ],
+              "row_count_fields": [
+                "row_count",
+                "runtime_row_count"
+              ]
+            },
+            {
+              "path": "{data_root}/preselection_pools/latest.json",
+              "kind": "json",
+              "semantic_alias": "a_selector_latest",
+              "semantic_fields": {
+                "latest_trade_date": "latest_trade_date",
+                "target_date": "target_date",
+                "trade_date": "trade_date",
+                "row_count": "row_count",
+                "runtime_row_count": "runtime_row_count",
+                "pool_id": "pool_id",
+                "research_only": "research_only",
+                "production_allowed": "production_allowed"
+              },
+              "date_fields": [
+                "latest_trade_date",
+                "target_date",
+                "trade_date"
+              ],
+              "status_fields": [
+                "status",
+                "latest_status"
+              ],
+              "row_count_fields": [
+                "row_count",
+                "runtime_row_count"
+              ]
+            }
+          ],
+          "page_lane": "stock_pools",
+          "research_only": true,
+          "production_allowed": false,
+          "cannot_confirm_default": [
+            "A股 v1.9.3 槽位当前承载 1.9.2/FMLA04 selector baseline；不是自动交易池。"
+          ],
+          "task_name": "OpeningAdvisorV3_1730_AshareDailyPools",
+          "run_policy": "a_share_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "17:30"
+          },
+          "dependencies": [],
+          "timeout_seconds": 1200,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_1730_AshareDailyPools",
+              "run_policy": "a_share_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "17:30"
+              },
+              "dependencies": [],
+              "timeout_seconds": 1200
+            }
+          ]
+        },
+        {
+          "node_id": "baimao_x_refresh",
+          "label": "白毛/X 摘要刷新",
+          "category": "research",
+          "module": "research",
+          "scheduled_time": "09:30/11:30/15:30/20:30",
+          "windows_task_name": "OpeningAdvisorV3_BaimaoXRefresh",
+          "page_sections": [
+            "baimaoXBrief"
+          ],
+          "semantic_validator": "research",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/baimao_x_refresh.json",
+          "api_probe": "/api/v3/baimao/x/latest",
+          "api_date_fields": [
+            "business_date",
+            "trade_date"
+          ],
+          "expected_outputs": [
+            "{data_root}/baimao_x/latest_baimao_x_digest.json"
+          ],
+          "status_sources": [
+            {
+              "path": "{data_root}/baimao_x/latest_baimao_x_digest.json",
+              "kind": "json",
+              "semantic_alias": "baimao_digest",
+              "semantic_fields": {
+                "business_date": "business_date",
+                "trade_date": "trade_date",
+                "status": "status",
+                "ok": "ok",
+                "production_allowed": "production_allowed",
+                "buy_gate_updated": "buy_gate_updated",
+                "orders_sent": "orders_sent"
+              }
+            },
+            {
+              "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/baimao_x_refresh.json",
+              "kind": "receipt"
+            }
+          ],
+          "task_name": "OpeningAdvisorV3_BaimaoXRefresh",
+          "run_policy": "natural_day",
+          "schedule": {
+            "type": "daily_repeating_multi",
+            "windows": [
+              {
+                "start": "09:30"
+              },
+              {
+                "start": "11:30"
+              },
+              {
+                "start": "15:30"
+              },
+              {
+                "start": "20:30"
+              }
+            ]
+          },
+          "dependencies": [],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_BaimaoXRefresh",
+              "run_policy": "natural_day",
+              "schedule": {
+                "type": "daily_repeating_multi",
+                "windows": [
+                  {
+                    "start": "09:30"
+                  },
+                  {
+                    "start": "11:30"
+                  },
+                  {
+                    "start": "15:30"
+                  },
+                  {
+                    "start": "20:30"
+                  }
+                ]
+              },
+              "dependencies": [],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "event_id": "v3_2025_bilibili_fupan",
+          "node_id": "bilibili_fupan_nightly",
+          "label": "20:25 B站复盘/视频比对",
+          "category": "review",
+          "module": "review",
+          "page_sections": [
+            "reviewContent"
+          ],
+          "semantic_validator": "review",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/bilibili_fupan_nightly.json",
+          "scheduled_time": "20:25",
+          "repeat": "trade_day",
+          "executor_type": "windows_task_status_artifact",
+          "windows_task_name": "OpeningAdvisorV3_2025_BilibiliFupan",
+          "expected_outputs": [
+            "{data_root}/runtime_graph/evidence/timeline_scheduler/bilibili_fupan_update_watch_status.json"
+          ],
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/timeline_scheduler/bilibili_fupan_update_watch_status.json",
+              "kind": "json",
+              "date_fields": [
+                "trade_date",
+                "target_date",
+                "date"
+              ],
+              "status_fields": [
+                "status"
+              ]
+            }
+          ],
+          "page_lane": "review",
+          "research_only": true,
+          "production_allowed": false,
+          "cannot_confirm_default": [
+            "复盘视频比对只作为研究/复盘证据，不构成 BUY gate 或交易指令。"
+          ],
+          "task_name": "OpeningAdvisorV3_2025_BilibiliFupan",
+          "run_policy": "a_share_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "20:25"
+          },
+          "dependencies": [
+            "OpeningAdvisorV3_1605_FupanStructure"
+          ],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_2025_BilibiliFupan",
+              "run_policy": "a_share_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "20:25"
+              },
+              "dependencies": [
+                "OpeningAdvisorV3_1605_FupanStructure"
+              ],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "event_id": "v3_1730_hkconnect_0_2_d1_top100",
+          "node_id": "hkconnect_d1_top100_prob_active",
+          "label": "港股通 0.2 D-1 Top100",
+          "category": "stock_pool",
+          "module": "preselection",
+          "page_sections": [
+            "preselectionContent"
+          ],
+          "semantic_validator": "pool",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/hkconnect_d1_top100_prob_active.json",
+          "scheduled_time": "17:35",
+          "date_role": "target_date",
+          "repeat": "trade_day",
+          "executor_type": "artifact_check",
+          "windows_task_name": "OpeningAdvisorV3_1735_HKConnectD1Pool",
+          "expected_outputs": [
+            "{data_root}/preselection_pools/hkconnect/latest.json",
+            "{data_root}/preselection_pools/hkconnect/{target_date}/hkconnect_d1_top100_pool_{target_date}_prob_active.csv",
+            "{data_root}/preselection_pools/hkconnect/{target_date}/hkconnect_d1_top100_pool_{target_date}_prob_active.standard_manifest.json"
+          ],
+          "status_sources": [
+            {
+              "path": "{data_root}/preselection_pools/hkconnect/{target_date}/hkconnect_d1_top100_pool_{target_date}_prob_active.standard_manifest.json",
+              "kind": "json",
+              "semantic_alias": "hk_d1_manifest",
+              "semantic_fields": {
+                "target_date": "target_date",
+                "status": "status",
+                "strict_exact_0_2_ready": "strict_exact_0_2_ready",
+                "row_count": "row_count",
+                "research_only": "research_only",
+                "production_allowed": "production_allowed",
+                "buy_gate_changed": "buy_gate_changed",
+                "orders_sent": "orders_sent"
+              },
+              "date_fields": [
+                "target_date",
+                "trade_date",
+                "latest_target_date"
+              ],
+              "status_fields": [
+                "status",
+                "latest_status"
+              ],
+              "row_count_fields": [
+                "row_count"
+              ]
+            },
+            {
+              "path": "{data_root}/preselection_pools/hkconnect/latest.json",
+              "kind": "json",
+              "semantic_alias": "hk_d1_latest",
+              "semantic_fields": {
+                "latest_target_date": "latest_target_date",
+                "signal_date": "signal_date",
+                "latest_status": "latest_status",
+                "strict_exact_0_2_ready": "strict_exact_0_2_ready",
+                "d1_freshness_status": "d1_freshness_status",
+                "d1_freshness_ok": "d1_freshness_ok",
+                "research_only": "research_only",
+                "production_allowed": "production_allowed"
+              },
+              "date_fields": [
+                "latest_target_date",
+                "target_date",
+                "trade_date"
+              ],
+              "status_fields": [
+                "latest_status",
+                "status"
+              ],
+              "row_count_fields": [
+                "row_count"
+              ]
+            }
+          ],
+          "page_lane": "stock_pools",
+          "research_only": true,
+          "production_allowed": false,
+          "cannot_confirm_default": [
+            "This is a research D-1 Top100 pool only; it is not BUY gate, formal pool, selector pointer, or orders-ready."
+          ],
+          "task_name": "OpeningAdvisorV3_1735_HKConnectD1Pool",
+          "run_policy": "hk_connect_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "17:35"
+          },
+          "dependencies": [],
+          "timeout_seconds": 2700,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_1735_HKConnectD1Pool",
+              "run_policy": "hk_connect_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "17:35"
+              },
+              "dependencies": [],
+              "timeout_seconds": 2700
+            }
+          ]
+        },
+        {
+          "event_id": "v3_1608_hkconnect_model_selection_review",
+          "node_id": "hkconnect_model_selection_review",
+          "label": "港股通模型选股收盘复盘",
+          "category": "research_panel",
+          "module": "review",
+          "page_sections": [
+            "reviewContent"
+          ],
+          "semantic_validator": "review",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/hkconnect_model_selection_review.json",
+          "scheduled_time": "16:08",
+          "repeat": "trade_day",
+          "executor_type": "artifact_check",
+          "windows_task_name": "OpeningAdvisorV3_1608_HKModelReview",
+          "expected_outputs": [
+            "{data_root}/hkconnect_close_reviews/{date}/v3_hkconnect_review_manifest_{date}.json"
+          ],
+          "status_sources": [
+            {
+              "path": "{data_root}/hkconnect_close_reviews/{date}/v3_hkconnect_review_manifest_{date}.json",
+              "kind": "json",
+              "date_fields": [
+                "trade_date"
+              ],
+              "status_fields": [
+                "status"
+              ]
+            }
+          ],
+          "page_lane": "research_panels",
+          "research_only": true,
+          "production_allowed": false,
+          "cannot_confirm_default": [
+            "16:08只读刷新港股通正式收盘快照并构建同日模型复盘；不启动8771、不打开BUY gate、不下单。"
+          ],
+          "task_name": "OpeningAdvisorV3_1608_HKModelReview",
+          "run_policy": "hk_connect_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "16:08"
+          },
+          "dependencies": [
+            "OpeningAdvisorV3_1555_HKCloseAndFupan"
+          ],
+          "timeout_seconds": 2700,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_1608_HKModelReview",
+              "run_policy": "hk_connect_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "16:08"
+              },
+              "dependencies": [
+                "OpeningAdvisorV3_1555_HKCloseAndFupan"
+              ],
+              "timeout_seconds": 2700
+            }
+          ]
+        },
+        {
+          "event_id": "v3_1705_hkconnect_research_panel",
+          "node_id": "hkconnect_research_panel",
+          "label": "港股通收盘复盘与研报决策面板",
+          "category": "research_panel",
+          "module": "research",
+          "page_sections": [
+            "researchContent"
+          ],
+          "semantic_validator": "research",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/hkconnect_research_panel.json",
+          "scheduled_time": "17:20",
+          "repeat": "trade_day",
+          "executor_type": "artifact_check",
+          "windows_task_name": "OpeningAdvisorV3_1720_HKConnectResearchPanel",
+          "expected_outputs": [
+            "{data_root}/hkconnect_close_reviews/{date}/v3_hkconnect_review_manifest_{date}.json",
+            "{data_root}/hkconnect_close_reviews/{date}/reports/{date}港股通复盘.md",
+            "{data_root}/hkconnect_close_reviews/{date}/tables/港股通全市场收盘Top20.csv",
+            "{data_root}/hkconnect_close_reviews/{date}/tables/0.2模型选股复盘.csv",
+            "{data_root}/hkconnect_close_reviews/{date}/tables/阶段选股复盘.csv",
+            "{data_root}/hkconnect_close_reviews/{date}/tables/七阶段Top20命中汇总.csv",
+            "{data_root}/hkconnect_close_reviews/{date}/tables/Top20命中归因.csv"
+          ],
+          "status_sources": [
+            {
+              "path": "{data_root}/hkconnect_close_reviews/{date}/v3_hkconnect_review_manifest_{date}.json",
+              "kind": "json",
+              "date_fields": [
+                "trade_date"
+              ],
+              "status_fields": [
+                "status"
+              ],
+              "row_count_fields": [
+                "row_counts.close_top20",
+                "row_counts.model_0_2",
+                "row_counts.stage_rows"
+              ]
+            }
+          ],
+          "page_lane": "research_panels",
+          "research_only": true,
+          "production_allowed": false,
+          "cannot_confirm_default": [
+            "17:20 只读重建本地 VIPDOC 收盘面板并发布同日港股通收盘 Top20、0.2 模型池和七阶段复盘；只有 MODEL_REVIEW_READY 才能记为 READY。",
+            "WQ101 已剥离到 21:30 独立预热任务；WQ101 缺失或失败不得阻塞 17:20 复盘、17:35 明日池或 20:05 联合验收。",
+            "CCASS archive 因子仍为 research-only/WATCH_ONLY，不代表 BUY gate、正式交易池或下单信号。"
+          ],
+          "task_name": "OpeningAdvisorV3_1720_HKConnectResearchPanel",
+          "run_policy": "hk_connect_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "17:20"
+          },
+          "dependencies": [],
+          "timeout_seconds": 7200,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_1720_HKConnectResearchPanel",
+              "run_policy": "hk_connect_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "17:20"
+              },
+              "dependencies": [],
+              "timeout_seconds": 7200
+            }
+          ]
+        },
+        {
+          "node_id": "hkconnect_wq101_daily_prewarm",
+          "label": "21:30 港股通 WQ101 日缓存预热",
+          "category": "auxiliary",
+          "module": "auxiliary",
+          "scheduled_time": "21:30",
+          "windows_task_name": "OpeningAdvisorV3_2130_WQ101Prewarm",
+          "page_sections": [
+            "tasksContent"
+          ],
+          "semantic_validator": "auxiliary",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/hkconnect_wq101_daily_prewarm.json",
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/hkconnect_wq101_daily_prewarm.json",
+              "kind": "receipt"
+            }
+          ],
+          "task_name": "OpeningAdvisorV3_2130_WQ101Prewarm",
+          "run_policy": "hk_connect_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "21:30"
+          },
+          "dependencies": [],
+          "timeout_seconds": 14400,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_2130_WQ101Prewarm",
+              "run_policy": "hk_connect_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "21:30"
+              },
+              "dependencies": [],
+              "timeout_seconds": 14400
+            }
+          ]
+        },
+        {
+          "event_id": "v3_hourly_research_delta_0700_2300",
+          "node_id": "hourly_research_delta",
+          "label": "每小时研报增量",
+          "category": "research_panel",
+          "module": "research",
+          "page_sections": [
+            "researchContent"
+          ],
+          "semantic_validator": "research",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/hourly_research_delta.json",
+          "api_probe": "/api/v3/research/lane?research_date={date}",
+          "api_date_fields": [
+            "research_date"
+          ],
+          "scheduled_time": "07:00-23:00",
+          "repeat": "natural_day",
+          "executor_type": "windows_task_status_artifact",
+          "windows_task_name": "OpeningAdvisorV3_HourlyResearch_0700_2359",
+          "expected_outputs": [
+            "{data_root}/research_module/runtime_outputs/events/latest_research_event.json",
+            "{data_root}/hourly_research/{date}"
+          ],
+          "status_sources": [
+            {
+              "path": "{data_root}/research_module/runtime_outputs/events/latest_research_event.json",
+              "kind": "json",
+              "semantic_alias": "research_event",
+              "semantic_fields": {
+                "trade_date": "trade_date",
+                "event_id": "event_id",
+                "event_reason": "event_reason",
+                "write_policy": "write_policy",
+                "default_status": "default_status",
+                "buy_gate_effect": "buy_gate_effect",
+                "live_order_effect": "live_order_effect"
+              },
+              "date_fields": [
+                "trade_date",
+                "date"
+              ],
+              "status_fields": [
+                "status",
+                "event_reason"
+              ]
+            },
+            {
+              "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/hourly_research_delta.json",
+              "kind": "receipt"
+            }
+          ],
+          "page_lane": "research_panels",
+          "research_only": true,
+          "production_allowed": false,
+          "cannot_confirm_default": [
+            "每小时研报增量为研究证据；Chrome DOM/外部正文授权不可用时必须保留 CANNOT_CONFIRM。"
+          ],
+          "task_name": "OpeningAdvisorV3_HourlyResearch_0700_2359",
+          "run_policy": "natural_day",
+          "schedule": {
+            "type": "daily_repeating",
+            "start": "07:00",
+            "interval": "PT1H",
+            "duration": "PT17H"
+          },
+          "dependencies": [],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_HourlyResearch_0700_2359",
+              "run_policy": "natural_day",
+              "schedule": {
+                "type": "daily_repeating",
+                "start": "07:00",
+                "interval": "PT1H",
+                "duration": "PT17H"
+              },
+              "dependencies": [],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "event_id": "v3_2005_tomorrow_pool",
+          "node_id": "tomorrow_pool_2005",
+          "label": "20:05 次日正式池/预选池生成",
+          "category": "stock_pool",
+          "module": "preselection",
+          "page_sections": [
+            "preselectionContent"
+          ],
+          "semantic_validator": "pool",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/tomorrow_pool_2005.json",
+          "scheduled_time": "20:05",
+          "repeat": "trade_day",
+          "executor_type": "windows_task_status_artifact",
+          "windows_task_name": "OpeningAdvisorV3_2005_TomorrowPool",
+          "expected_outputs": [
+            "{data_root}/runtime_graph/evidence/timeline_scheduler/tomorrow_pool_2005_status.json"
+          ],
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/timeline_scheduler/tomorrow_pool_2005_status.json",
+              "kind": "json",
+              "semantic_alias": "tomorrow_pool_status",
+              "semantic_fields": {
+                "target_date": "target_date",
+                "signal_date": "signal_date",
+                "formal_row_count": "checks.formal_row_count",
+                "premarket_row_count": "checks.premarket_row_count",
+                "hk_d1_row_count": "checks.hkconnect_d1.row_count",
+                "hk_d1_status": "checks.hkconnect_d1.pool_status",
+                "business_exit_code": "business_exit_code",
+                "status": "status",
+                "registry_ok": "checks.registry_ok",
+                "hkconnect_d1_ok": "checks.hkconnect_d1_ok",
+                "hk_d1_freshness_status": "checks.hkconnect_d1.d1_freshness_status",
+                "hk_d1_freshness_ok": "checks.hkconnect_d1.d1_freshness_ok",
+                "strict_exact_0_2_ready": "checks.hkconnect_d1.strict_exact_0_2_ready"
+              },
+              "date_fields": [
+                "target_date",
+                "signal_date"
+              ],
+              "status_fields": [
+                "status"
+              ],
+              "row_count_fields": [
+                "checks.formal_row_count",
+                "checks.premarket_row_count"
+              ]
+            }
+          ],
+          "page_lane": "stock_pools",
+          "research_only": true,
+          "production_allowed": false,
+          "cannot_confirm_default": [
+            "只读取 tomorrow_pool_2005 状态；不注册、不修改、不触发 Windows 计划任务。"
+          ],
+          "task_name": "OpeningAdvisorV3_2005_TomorrowPool",
+          "run_policy": "a_share_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "20:05"
+          },
+          "dependencies": [
+            "OpeningAdvisorV3_1730_AshareDailyPools"
+          ],
+          "timeout_seconds": 7200,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_2005_TomorrowPool",
+              "run_policy": "a_share_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "20:05"
+              },
+              "dependencies": [
+                "OpeningAdvisorV3_1730_AshareDailyPools"
+              ],
+              "timeout_seconds": 7200
+            }
+          ]
+        },
+        {
+          "event_id": "v3_0755_ashare_readiness",
+          "node_id": "v3_ashare_readiness_0755",
+          "label": "07:55 A股启动就绪门禁",
+          "category": "startup_gate",
+          "module": "tasks",
+          "page_sections": [
+            "tasksContent"
+          ],
+          "semantic_validator": "execution",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_ashare_readiness_0755.json",
+          "scheduled_time": "07:55",
+          "repeat": "natural_day",
+          "executor_type": "windows_task_status_artifact",
+          "windows_task_name": "OpeningAdvisorV3_0755_StartupEnsure",
+          "expected_outputs": [
+            "{data_root}/runtime_graph/evidence/runtime_debug/{date}_ashare_readiness/ashare_readiness_STAGE_0925.json"
+          ],
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/runtime_debug/{date}_ashare_readiness/ashare_readiness_STAGE_0925.json",
+              "kind": "json",
+              "date_fields": [
+                "trade_date"
+              ],
+              "status_fields": [
+                "status"
+              ],
+              "row_count_fields": [
+                "candidate_universe.row_count",
+                "candidate_universe.observable_row_count",
+                "candidate_universe.stage_universe_row_count"
+              ]
+            }
+          ],
+          "page_lane": "stock_pools",
+          "research_only": true,
+          "production_allowed": false,
+          "cannot_confirm_default": [
+            "07:55 只读检查 A股 selector/premarket/formal/observe universe；不触发旧数据巡检、不下单、不打开 BUY gate。"
+          ],
+          "task_name": "OpeningAdvisorV3_0755_StartupEnsure",
+          "run_policy": "a_or_hk_connect_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "07:55"
+          },
+          "dependencies": [],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_0755_StartupEnsure",
+              "run_policy": "a_or_hk_connect_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "07:55"
+              },
+              "dependencies": [],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "event_id": "v3_0920_ashare_readiness",
+          "node_id": "v3_ashare_readiness_0920",
+          "label": "09:20 A股阶段前就绪门禁",
+          "category": "startup_gate",
+          "module": "tasks",
+          "page_sections": [
+            "tasksContent"
+          ],
+          "semantic_validator": "execution",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_ashare_readiness_0920.json",
+          "scheduled_time": "09:20",
+          "repeat": "trade_day",
+          "executor_type": "windows_task_status_artifact",
+          "windows_task_name": "OpeningAdvisorV3_0920_AshareReadiness",
+          "expected_outputs": [
+            "{data_root}/runtime_graph/evidence/runtime_debug/{date}_ashare_readiness/ashare_readiness_STAGE_0925.json"
+          ],
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/runtime_debug/{date}_ashare_readiness/ashare_readiness_STAGE_0925.json",
+              "kind": "json",
+              "date_fields": [
+                "trade_date"
+              ],
+              "status_fields": [
+                "status"
+              ],
+              "row_count_fields": [
+                "candidate_universe.row_count",
+                "candidate_universe.observable_row_count",
+                "candidate_universe.stage_universe_row_count"
+              ]
+            }
+          ],
+          "page_lane": "stock_pools",
+          "research_only": true,
+          "production_allowed": false,
+          "cannot_confirm_default": [
+            "09:20 必须已有 A股可展示宇宙；A股行情优先富途只读源，pytdx 次级，MiniQMT 为应急只读 fallback；09:20 自动恢复 QMT 已保存登录会话。"
+          ],
+          "task_name": "OpeningAdvisorV3_0920_AshareReadiness",
+          "run_policy": "a_share_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "09:20"
+          },
+          "dependencies": [],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_0920_AshareReadiness",
+              "run_policy": "a_share_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "09:20"
+              },
+              "dependencies": [],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "node_id": "v3_hkconnect_a_overlay_pool_2000",
+          "label": "20:00 港股通 A-overlay 预选池",
+          "category": "preselection",
+          "module": "preselection",
+          "scheduled_time": "20:00",
+          "windows_task_name": "OpeningAdvisorV3_2000_PreopenAndHKOverlay",
+          "page_sections": [
+            "preselectionContent"
+          ],
+          "semantic_validator": "pool",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_hkconnect_a_overlay_pool_2000.json",
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/v3_hkconnect_a_overlay_pool_2000.json",
+              "kind": "receipt"
+            }
+          ],
+          "task_name": "OpeningAdvisorV3_2000_PreopenAndHKOverlay",
+          "run_policy": "hk_connect_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "20:00"
+          },
+          "dependencies": [
+            "OpeningAdvisorV3_1735_HKConnectD1Pool"
+          ],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_2000_PreopenAndHKOverlay",
+              "run_policy": "hk_connect_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "20:00"
+              },
+              "dependencies": [
+                "OpeningAdvisorV3_1735_HKConnectD1Pool"
+              ],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "node_id": "v3_hkconnect_close_stage_1545_1555",
+          "label": "15:45-15:55 港股尾盘确认",
+          "category": "stage_selection",
+          "module": "stage_selection",
+          "scheduled_time": "15:45-15:55",
+          "windows_task_name": "OpeningAdvisorV3_1555_HKCloseAndFupan",
+          "page_sections": [
+            "stageTimeline",
+            "stageGroupRows"
+          ],
+          "semantic_validator": "stage",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_hkconnect_close_stage_1545_1555.json",
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/v3_hkconnect_close_stage_1545_1555.json",
+              "kind": "receipt"
+            }
+          ],
+          "task_name": "OpeningAdvisorV3_1555_HKCloseAndFupan",
+          "run_policy": "hk_connect_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "15:55"
+          },
+          "dependencies": [],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_1555_HKCloseAndFupan",
+              "run_policy": "hk_connect_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "15:55"
+              },
+              "dependencies": [],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "node_id": "v3_hkconnect_opening_second_filter_v1_1_morning_check",
+          "label": "09:15 港股通开盘二次筛选",
+          "category": "stage_selection",
+          "module": "stage_selection",
+          "scheduled_time": "09:15",
+          "windows_task_name": "OpeningAdvisorV3_0915_HKSecondFilter",
+          "page_sections": [
+            "stageTimeline",
+            "stageGroupRows"
+          ],
+          "semantic_validator": "stage",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_hkconnect_opening_second_filter_v1_1_morning_check.json",
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/v3_hkconnect_opening_second_filter_v1_1_morning_check.json",
+              "kind": "receipt"
+            }
+          ],
+          "task_name": "OpeningAdvisorV3_0915_HKSecondFilter",
+          "run_policy": "hk_connect_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "09:15"
+          },
+          "dependencies": [],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_0915_HKSecondFilter",
+              "run_policy": "hk_connect_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "09:15"
+              },
+              "dependencies": [],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "node_id": "v3_hourly_research_delta_0730_1530",
+          "label": "07:30-15:30 小时研报增量",
+          "category": "research",
+          "module": "research",
+          "scheduled_time": "07:30-15:30",
+          "windows_task_name": "OpeningAdvisorV3_HourlyResearch_0700_2359",
+          "page_sections": [
+            "researchContent"
+          ],
+          "semantic_validator": "research",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_hourly_research_delta_0730_1530.json",
+          "api_probe": "/api/v3/research/lane?research_date={date}",
+          "api_date_fields": [
+            "research_date"
+          ],
+          "expected_outputs": [
+            "{data_root}/research_module/runtime_outputs/events/latest_research_event.json",
+            "{data_root}/hourly_research/{date}"
+          ],
+          "status_sources": [
+            {
+              "path": "{data_root}/research_module/runtime_outputs/events/latest_research_event.json",
+              "kind": "json",
+              "semantic_alias": "research_event",
+              "semantic_fields": {
+                "trade_date": "trade_date",
+                "event_id": "event_id",
+                "event_reason": "event_reason",
+                "write_policy": "write_policy",
+                "default_status": "default_status",
+                "buy_gate_effect": "buy_gate_effect",
+                "live_order_effect": "live_order_effect"
+              }
+            },
+            {
+              "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/v3_hourly_research_delta_0730_1530.json",
+              "kind": "receipt"
+            }
+          ],
+          "task_name": "OpeningAdvisorV3_HourlyResearch_0700_2359",
+          "run_policy": "natural_day",
+          "schedule": {
+            "type": "daily_repeating",
+            "start": "07:00",
+            "interval": "PT1H",
+            "duration": "PT17H"
+          },
+          "dependencies": [],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_HourlyResearch_0700_2359",
+              "run_policy": "natural_day",
+              "schedule": {
+                "type": "daily_repeating",
+                "start": "07:00",
+                "interval": "PT1H",
+                "duration": "PT17H"
+              },
+              "dependencies": [],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "node_id": "v3_next_opening_pool_guard_2100",
+          "label": "21:08 次日开盘池守卫",
+          "category": "preselection",
+          "module": "preselection",
+          "scheduled_time": "21:08",
+          "windows_task_name": "OpeningAdvisorV3_2108_FupanGapAndGuard",
+          "page_sections": [
+            "preselectionContent"
+          ],
+          "semantic_validator": "pool",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_next_opening_pool_guard_2100.json",
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/v3_next_opening_pool_guard_2100.json",
+              "kind": "receipt"
+            }
+          ],
+          "task_name": "OpeningAdvisorV3_2108_FupanGapAndGuard",
+          "run_policy": "a_share_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "21:08"
+          },
+          "dependencies": [
+            "OpeningAdvisorV3_2105_FupanVideoOcrAlign",
+            "OpeningAdvisorV3_2005_TomorrowPool"
+          ],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_2108_FupanGapAndGuard",
+              "run_policy": "a_share_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "21:08"
+              },
+              "dependencies": [
+                "OpeningAdvisorV3_2105_FupanVideoOcrAlign",
+                "OpeningAdvisorV3_2005_TomorrowPool"
+              ],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "node_id": "v3_opening_intraday_stage_select_0925_1500",
+          "label": "七阶段盘中选股",
+          "category": "stage_selection",
+          "module": "stage_selection",
+          "scheduled_time": "09:25-15:00",
+          "windows_task_name": "OpeningAdvisorV3_0925_IntradayStage",
+          "page_sections": [
+            "stageTimeline",
+            "stageGroupRows"
+          ],
+          "semantic_validator": "stage",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_opening_intraday_stage_select_0925_1500.json",
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/v3_opening_intraday_stage_select_0925_1500.json",
+              "kind": "receipt"
+            },
+            {
+              "path": "{data_root}/stage_workbench_snapshots/{date}/STAGE_0925_limit10.json",
+              "kind": "json",
+              "semantic_alias": "stage_workbench_snapshot",
+              "semantic_fields": {
+                "trade_date": "trade_date",
+                "stage_id": "stage.stage_id",
+                "effective_status": "stage.status",
+                "selected_a_rows": "selected_a_rows",
+                "selected_hk_rows": "selected_hk_rows",
+                "selected_total_rows": "selected_total_rows",
+                "a_source_rows": "markets.A.source_rows",
+                "hk_source_rows": "markets.HK.source_rows",
+                "a_candidate_count": "markets.A.candidate_count",
+                "hk_candidate_count": "markets.HK.candidate_count",
+                "write_policy": "materialized_snapshot.write_policy",
+                "buy_gate_effect": "materialized_snapshot.buy_gate_effect",
+                "live_order_effect": "materialized_snapshot.live_order_effect"
+              }
+            },
+            {
+              "path": "{data_root}/stage_workbench_snapshots/{date}/STAGE_0930_0935_limit10.json",
+              "kind": "json",
+              "semantic_alias": "stage_workbench_snapshot",
+              "semantic_fields": {
+                "trade_date": "trade_date",
+                "stage_id": "stage.stage_id",
+                "effective_status": "stage.status",
+                "selected_a_rows": "selected_a_rows",
+                "selected_hk_rows": "selected_hk_rows",
+                "selected_total_rows": "selected_total_rows",
+                "a_source_rows": "markets.A.source_rows",
+                "hk_source_rows": "markets.HK.source_rows",
+                "a_candidate_count": "markets.A.candidate_count",
+                "hk_candidate_count": "markets.HK.candidate_count",
+                "write_policy": "materialized_snapshot.write_policy",
+                "buy_gate_effect": "materialized_snapshot.buy_gate_effect",
+                "live_order_effect": "materialized_snapshot.live_order_effect"
+              }
+            },
+            {
+              "path": "{data_root}/stage_workbench_snapshots/{date}/STAGE_0935_0940_limit10.json",
+              "kind": "json",
+              "semantic_alias": "stage_workbench_snapshot",
+              "semantic_fields": {
+                "trade_date": "trade_date",
+                "stage_id": "stage.stage_id",
+                "effective_status": "stage.status",
+                "selected_a_rows": "selected_a_rows",
+                "selected_hk_rows": "selected_hk_rows",
+                "selected_total_rows": "selected_total_rows",
+                "a_source_rows": "markets.A.source_rows",
+                "hk_source_rows": "markets.HK.source_rows",
+                "a_candidate_count": "markets.A.candidate_count",
+                "hk_candidate_count": "markets.HK.candidate_count",
+                "write_policy": "materialized_snapshot.write_policy",
+                "buy_gate_effect": "materialized_snapshot.buy_gate_effect",
+                "live_order_effect": "materialized_snapshot.live_order_effect"
+              }
+            },
+            {
+              "path": "{data_root}/stage_workbench_snapshots/{date}/STAGE_0940_0945_limit10.json",
+              "kind": "json",
+              "semantic_alias": "stage_workbench_snapshot",
+              "semantic_fields": {
+                "trade_date": "trade_date",
+                "stage_id": "stage.stage_id",
+                "effective_status": "stage.status",
+                "selected_a_rows": "selected_a_rows",
+                "selected_hk_rows": "selected_hk_rows",
+                "selected_total_rows": "selected_total_rows",
+                "a_source_rows": "markets.A.source_rows",
+                "hk_source_rows": "markets.HK.source_rows",
+                "a_candidate_count": "markets.A.candidate_count",
+                "hk_candidate_count": "markets.HK.candidate_count",
+                "write_policy": "materialized_snapshot.write_policy",
+                "buy_gate_effect": "materialized_snapshot.buy_gate_effect",
+                "live_order_effect": "materialized_snapshot.live_order_effect"
+              }
+            },
+            {
+              "path": "{data_root}/stage_workbench_snapshots/{date}/STAGE_0945_1030_limit10.json",
+              "kind": "json",
+              "semantic_alias": "stage_workbench_snapshot",
+              "semantic_fields": {
+                "trade_date": "trade_date",
+                "stage_id": "stage.stage_id",
+                "effective_status": "stage.status",
+                "selected_a_rows": "selected_a_rows",
+                "selected_hk_rows": "selected_hk_rows",
+                "selected_total_rows": "selected_total_rows",
+                "a_source_rows": "markets.A.source_rows",
+                "hk_source_rows": "markets.HK.source_rows",
+                "a_candidate_count": "markets.A.candidate_count",
+                "hk_candidate_count": "markets.HK.candidate_count",
+                "write_policy": "materialized_snapshot.write_policy",
+                "buy_gate_effect": "materialized_snapshot.buy_gate_effect",
+                "live_order_effect": "materialized_snapshot.live_order_effect"
+              }
+            },
+            {
+              "path": "{data_root}/stage_workbench_snapshots/{date}/STAGE_1300_1315_limit10.json",
+              "kind": "json",
+              "semantic_alias": "stage_workbench_snapshot",
+              "semantic_fields": {
+                "trade_date": "trade_date",
+                "stage_id": "stage.stage_id",
+                "effective_status": "stage.status",
+                "selected_a_rows": "selected_a_rows",
+                "selected_hk_rows": "selected_hk_rows",
+                "selected_total_rows": "selected_total_rows",
+                "a_source_rows": "markets.A.source_rows",
+                "hk_source_rows": "markets.HK.source_rows",
+                "a_candidate_count": "markets.A.candidate_count",
+                "hk_candidate_count": "markets.HK.candidate_count",
+                "write_policy": "materialized_snapshot.write_policy",
+                "buy_gate_effect": "materialized_snapshot.buy_gate_effect",
+                "live_order_effect": "materialized_snapshot.live_order_effect"
+              }
+            },
+            {
+              "path": "{data_root}/stage_workbench_snapshots/{date}/STAGE_1445_1500_limit10.json",
+              "kind": "json",
+              "semantic_alias": "stage_workbench_snapshot",
+              "semantic_fields": {
+                "trade_date": "trade_date",
+                "stage_id": "stage.stage_id",
+                "effective_status": "stage.status",
+                "selected_a_rows": "selected_a_rows",
+                "selected_hk_rows": "selected_hk_rows",
+                "selected_total_rows": "selected_total_rows",
+                "a_source_rows": "markets.A.source_rows",
+                "hk_source_rows": "markets.HK.source_rows",
+                "a_candidate_count": "markets.A.candidate_count",
+                "hk_candidate_count": "markets.HK.candidate_count",
+                "write_policy": "materialized_snapshot.write_policy",
+                "buy_gate_effect": "materialized_snapshot.buy_gate_effect",
+                "live_order_effect": "materialized_snapshot.live_order_effect"
+              }
+            }
+          ],
+          "task_name": "OpeningAdvisorV3_0925_IntradayStage",
+          "run_policy": "a_or_hk_connect_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "09:25"
+          },
+          "dependencies": [
+            "OpeningAdvisorV3_0920_AshareReadiness"
+          ],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_0925_IntradayStage",
+              "run_policy": "a_or_hk_connect_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "09:25"
+              },
+              "dependencies": [
+                "OpeningAdvisorV3_0920_AshareReadiness"
+              ],
+              "timeout_seconds": 1800
+            },
+            {
+              "task_name": "OpeningAdvisorV3_0935_IntradayStage",
+              "run_policy": "a_or_hk_connect_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "09:35"
+              },
+              "dependencies": [],
+              "timeout_seconds": 1800
+            },
+            {
+              "task_name": "OpeningAdvisorV3_0940_IntradayStage",
+              "run_policy": "a_or_hk_connect_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "09:40"
+              },
+              "dependencies": [],
+              "timeout_seconds": 1800
+            },
+            {
+              "task_name": "OpeningAdvisorV3_0945_IntradayStage",
+              "run_policy": "a_or_hk_connect_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "09:45"
+              },
+              "dependencies": [],
+              "timeout_seconds": 1800
+            },
+            {
+              "task_name": "OpeningAdvisorV3_1030_IntradayStage",
+              "run_policy": "a_or_hk_connect_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "10:30"
+              },
+              "dependencies": [],
+              "timeout_seconds": 1800
+            },
+            {
+              "task_name": "OpeningAdvisorV3_1315_IntradayStage",
+              "run_policy": "a_or_hk_connect_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "13:15"
+              },
+              "dependencies": [],
+              "timeout_seconds": 1800
+            },
+            {
+              "task_name": "OpeningAdvisorV3_1500_IntradayStageAndFupan",
+              "run_policy": "a_share_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "15:00"
+              },
+              "dependencies": [],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "event_id": "v3_0830_premarket_news_jyg",
+          "node_id": "v3_premarket_news_jyg_0830",
+          "label": "08:30 盘前新闻订阅/韭研公社",
+          "category": "research_lane",
+          "module": "research",
+          "page_sections": [
+            "researchContent"
+          ],
+          "semantic_validator": "research",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_premarket_news_jyg_0830.json",
+          "scheduled_time": "08:30",
+          "repeat": "trade_day",
+          "executor_type": "windows_task_status_artifact",
+          "windows_task_name": "OpeningAdvisorV3_0830_MorningNews",
+          "expected_outputs": [
+            "{data_root}/runtime_graph/evidence/timeline_scheduler/morning_news_0830/{date}/morning_news_manifest_{date}.json"
+          ],
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/timeline_scheduler/morning_news_0830/{date}/morning_news_manifest_{date}.json",
+              "kind": "json",
+              "date_fields": [
+                "trade_date"
+              ],
+              "status_fields": [
+                "status",
+                "payload.required_news_contract.status"
+              ],
+              "row_count_fields": [
+                "payload.article_count",
+                "payload.stock_mentions",
+                "payload.formal_pool_overlap"
+              ]
+            }
+          ],
+          "page_lane": "morning",
+          "research_only": true,
+          "production_allowed": false,
+          "cannot_confirm_default": [
+            "盘前新闻只作为 research/news lane 证据；必须满足三槽位合同才算 READY，不打开 BUY gate。"
+          ],
+          "task_name": "OpeningAdvisorV3_0830_MorningNews",
+          "run_policy": "a_or_hk_connect_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "08:30"
+          },
+          "dependencies": [],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_0830_MorningNews",
+              "run_policy": "a_or_hk_connect_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "08:30"
+              },
+              "dependencies": [],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "event_id": "v3_0840_premarket_news_jyg_retry",
+          "node_id": "v3_premarket_news_jyg_0840_retry",
+          "label": "08:40 盘前新闻补验/韭研公社",
+          "category": "research_lane",
+          "module": "research",
+          "page_sections": [
+            "researchContent"
+          ],
+          "semantic_validator": "research",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_premarket_news_jyg_0840_retry.json",
+          "scheduled_time": "08:40",
+          "repeat": "trade_day",
+          "executor_type": "windows_task_status_artifact",
+          "windows_task_name": "OpeningAdvisorV3_0840_MorningNewsRetry",
+          "expected_outputs": [
+            "{data_root}/runtime_graph/evidence/timeline_scheduler/morning_news_0830/{date}/morning_news_manifest_{date}.json"
+          ],
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/timeline_scheduler/morning_news_0830/{date}/morning_news_manifest_{date}.json",
+              "kind": "json",
+              "date_fields": [
+                "trade_date"
+              ],
+              "status_fields": [
+                "status",
+                "payload.required_news_contract.status"
+              ],
+              "row_count_fields": [
+                "payload.article_count",
+                "payload.stock_mentions",
+                "payload.formal_pool_overlap"
+              ]
+            }
+          ],
+          "page_lane": "morning",
+          "research_only": true,
+          "production_allowed": false,
+          "cannot_confirm_default": [
+            "只补验早盘新闻合同和 dashboard cache；不影响 A股第一阶段选股、不下单。"
+          ],
+          "task_name": "OpeningAdvisorV3_0840_MorningNewsRetry",
+          "run_policy": "a_or_hk_connect_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "08:40"
+          },
+          "dependencies": [],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_0840_MorningNewsRetry",
+              "run_policy": "a_or_hk_connect_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "08:40"
+              },
+              "dependencies": [],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "event_id": "v3_0927_stage0925_visibility",
+          "node_id": "v3_stage0925_visible_verify_0927",
+          "label": "09:27 第一阶段页面可见性验收",
+          "category": "startup_gate",
+          "module": "stage_selection",
+          "page_sections": [
+            "stageTimeline",
+            "stageGroupRows"
+          ],
+          "semantic_validator": "stage",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_stage0925_visible_verify_0927.json",
+          "scheduled_time": "09:27",
+          "repeat": "trade_day",
+          "executor_type": "windows_task_status_artifact",
+          "windows_task_name": "OpeningAdvisorV3_0927_Stage0925Verify",
+          "expected_outputs": [
+            "{data_root}/runtime_graph/evidence/timeline_scheduler/runs/{date}/STAGE_0925/stage_visibility_verify_STAGE_0925.json"
+          ],
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/timeline_scheduler/runs/{date}/STAGE_0925/stage_visibility_verify_STAGE_0925.json",
+              "kind": "json",
+              "semantic_alias": "stage_visibility_status",
+              "semantic_fields": {
+                "trade_date": "trade_date",
+                "stage_id": "stage_id",
+                "effective_status": "final_user_visible_status.status",
+                "selected_a_rows": "final_user_visible_status.selected_a_rows",
+                "selected_hk_rows": "final_user_visible_status.selected_hk_rows",
+                "production_allowed": "production_allowed",
+                "buy_gate_effect": "buy_gate_effect",
+                "live_order_effect": "live_order_effect"
+              },
+              "date_fields": [
+                "trade_date"
+              ],
+              "status_fields": [
+                "status",
+                "final_user_visible_status.status"
+              ],
+              "row_count_fields": [
+                "stage_api_probe.selected_a_rows",
+                "stage_api_probe.unified_a_rows",
+                "stage_api_probe.a_candidate_count"
+              ]
+            }
+          ],
+          "page_lane": "stock_pools",
+          "research_only": true,
+          "production_allowed": false,
+          "cannot_confirm_default": [
+            "只验证 09:25 第一阶段在 8771 页面可见；不重复生成选股，不打开 BUY gate，不下单。"
+          ],
+          "task_name": "OpeningAdvisorV3_0927_Stage0925Verify",
+          "run_policy": "a_or_hk_connect_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "09:27"
+          },
+          "dependencies": [
+            "OpeningAdvisorV3_0925_IntradayStage"
+          ],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_0927_Stage0925Verify",
+              "run_policy": "a_or_hk_connect_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "09:27"
+              },
+              "dependencies": [
+                "OpeningAdvisorV3_0925_IntradayStage"
+              ],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "event_id": "v3_0929_stage0925_visibility",
+          "node_id": "v3_stage0925_visible_verify_0929",
+          "label": "09:29 第一阶段页面二次验收",
+          "category": "startup_gate",
+          "module": "stage_selection",
+          "page_sections": [
+            "stageTimeline",
+            "stageGroupRows"
+          ],
+          "semantic_validator": "stage",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_stage0925_visible_verify_0929.json",
+          "scheduled_time": "09:29",
+          "repeat": "trade_day",
+          "executor_type": "windows_task_status_artifact",
+          "windows_task_name": "OpeningAdvisorV3_0929_Stage0925Verify",
+          "expected_outputs": [
+            "{data_root}/runtime_graph/evidence/timeline_scheduler/runs/{date}/STAGE_0925/stage_visibility_verify_STAGE_0925.json"
+          ],
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/timeline_scheduler/runs/{date}/STAGE_0925/stage_visibility_verify_STAGE_0925.json",
+              "kind": "json",
+              "semantic_alias": "stage_visibility_status",
+              "semantic_fields": {
+                "trade_date": "trade_date",
+                "stage_id": "stage_id",
+                "effective_status": "final_user_visible_status.status",
+                "selected_a_rows": "final_user_visible_status.selected_a_rows",
+                "selected_hk_rows": "final_user_visible_status.selected_hk_rows",
+                "production_allowed": "production_allowed",
+                "buy_gate_effect": "buy_gate_effect",
+                "live_order_effect": "live_order_effect"
+              },
+              "date_fields": [
+                "trade_date"
+              ],
+              "status_fields": [
+                "status",
+                "final_user_visible_status.status"
+              ],
+              "row_count_fields": [
+                "stage_api_probe.selected_a_rows",
+                "stage_api_probe.unified_a_rows",
+                "stage_api_probe.a_candidate_count"
+              ]
+            }
+          ],
+          "page_lane": "stock_pools",
+          "research_only": true,
+          "production_allowed": false,
+          "cannot_confirm_default": [
+            "第二次验证 09:25 第一阶段在 8771 页面可见；不重复生成选股，不打开 BUY gate，不下单。"
+          ],
+          "task_name": "OpeningAdvisorV3_0929_Stage0925Verify",
+          "run_policy": "a_or_hk_connect_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "09:29"
+          },
+          "dependencies": [
+            "OpeningAdvisorV3_0925_IntradayStage"
+          ],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_0929_Stage0925Verify",
+              "run_policy": "a_or_hk_connect_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "09:29"
+              },
+              "dependencies": [
+                "OpeningAdvisorV3_0925_IntradayStage"
+              ],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "node_id": "v3_startup_ensure_0_2_hkconnect",
+          "label": "07:55 0.2 港股通启动确保",
+          "category": "tasks",
+          "module": "tasks",
+          "scheduled_time": "07:55",
+          "windows_task_name": "OpeningAdvisorV3_0755_StartupEnsure",
+          "page_sections": [
+            "tasksContent"
+          ],
+          "semantic_validator": "execution",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_startup_ensure_0_2_hkconnect.json",
+          "status_sources": [
+            {
+              "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/v3_startup_ensure_0_2_hkconnect.json",
+              "kind": "receipt"
+            }
+          ],
+          "task_name": "OpeningAdvisorV3_0755_StartupEnsure",
+          "run_policy": "a_or_hk_connect_trade_day",
+          "schedule": {
+            "type": "daily",
+            "start": "07:55"
+          },
+          "dependencies": [],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_0755_StartupEnsure",
+              "run_policy": "a_or_hk_connect_trade_day",
+              "schedule": {
+                "type": "daily",
+                "start": "07:55"
+              },
+              "dependencies": [],
+              "timeout_seconds": 1800
+            }
+          ]
+        },
+        {
+          "event_id": "v3_0830_zsxq_research",
+          "node_id": "v3_zsxq_research_0830",
+          "label": "08:30 知识星球抓取",
+          "category": "research_panel",
+          "module": "research",
+          "page_sections": [
+            "researchContent"
+          ],
+          "semantic_validator": "research",
+          "page_receipt": "{data_root}/runtime_graph/page_receipts/{date}/v3_zsxq_research_0830.json",
+          "api_probe": "/api/v3/research/lane?research_date={date}",
+          "api_date_fields": [
+            "research_date"
+          ],
+          "scheduled_time": "08:30",
+          "repeat": "natural_day",
+          "executor_type": "windows_task_status_artifact",
+          "windows_task_name": "OpeningAdvisorV3_0830_ZsxqResearch",
+          "expected_outputs": [
+            "{data_root}/research_module/runtime_outputs/zsxq_hourly/{date}/0830/v35_zsxq_0830_status_{date}_0830.json",
+            "{data_root}/research_module/runtime_outputs/events/latest_research_event.json"
+          ],
+          "status_sources": [
+            {
+              "path": "{data_root}/research_module/runtime_outputs/zsxq_hourly/{date}/0830/v35_zsxq_0830_status_{date}_0830.json",
+              "kind": "json",
+              "semantic_alias": "zsxq_status",
+              "semantic_fields": {
+                "trade_date": "trade_date",
+                "status": "status",
+                "topic_count": "topic_count",
+                "fetch_ok": "fetch_ok",
+                "production_allowed": "production_allowed",
+                "buy_gate_updated": "buy_gate_updated",
+                "orders_sent": "orders_sent"
+              },
+              "date_fields": [
+                "trade_date"
+              ],
+              "status_fields": [
+                "status"
+              ],
+              "row_count_fields": [
+                "topic_count"
+              ]
+            },
+            {
+              "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/v3_zsxq_research_0830.json",
+              "kind": "receipt"
+            }
+          ],
+          "page_lane": "research_panels",
+          "research_only": true,
+          "production_allowed": false,
+          "cannot_confirm_default": [
+            "知识星球 08:30 抓取只统计 08:00-09:00 研究材料数量；认证、cookie、CLI 或外部接口不可用时必须保留 CANNOT_CONFIRM。",
+            "知识星球材料只进入研报研究台，不发帖、不评论、不推送飞书、不打开 BUY gate。"
+          ],
+          "task_name": "OpeningAdvisorV3_0830_ZsxqResearch",
+          "run_policy": "natural_day",
+          "schedule": {
+            "type": "daily",
+            "start": "08:30"
+          },
+          "dependencies": [],
+          "timeout_seconds": 1800,
+          "task_bindings": [
+            {
+              "task_name": "OpeningAdvisorV3_0830_ZsxqResearch",
+              "run_policy": "natural_day",
+              "schedule": {
+                "type": "daily",
+                "start": "08:30"
+              },
+              "dependencies": [],
+              "timeout_seconds": 1800
+            }
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "source": "FUPAN_A_SHARE_STRUCTURE",
+          "target": "bilibili_fupan_nightly",
+          "kind": "node_dependency"
+        },
+        {
+          "source": "FUPAN_REVIEW_START",
+          "target": "hkconnect_model_selection_review",
+          "kind": "node_dependency"
+        },
+        {
+          "source": "FUPAN_STOCKDICT",
+          "target": "FUPAN_VIDEO_TABLE_OCR_ALIGN",
+          "kind": "node_dependency"
+        },
+        {
+          "source": "FUPAN_V3_PUBLISH",
+          "target": "FUPAN_8771_VERIFY",
+          "kind": "node_dependency"
+        },
+        {
+          "source": "FUPAN_VIDEO_CHECK",
+          "target": "FUPAN_VIDEO_DOWNLOAD_ASR",
+          "kind": "node_dependency"
+        },
+        {
+          "source": "FUPAN_VIDEO_DOWNLOAD_ASR",
+          "target": "FUPAN_STOCKDICT",
+          "kind": "node_dependency"
+        },
+        {
+          "source": "FUPAN_VIDEO_GAP",
+          "target": "FUPAN_V3_PUBLISH",
+          "kind": "node_dependency"
+        },
+        {
+          "source": "FUPAN_VIDEO_TABLE_OCR_ALIGN",
+          "target": "FUPAN_VIDEO_GAP",
+          "kind": "node_dependency"
+        },
+        {
+          "source": "FUPAN_VIDEO_TABLE_OCR_ALIGN",
+          "target": "v3_next_opening_pool_guard_2100",
+          "kind": "node_dependency"
+        },
+        {
+          "source": "ashare_research_panel",
+          "target": "FUPAN_A_SHARE_STRUCTURE",
+          "kind": "node_dependency"
+        },
+        {
+          "source": "ashare_v193_slot_selector_premarket",
+          "target": "tomorrow_pool_2005",
+          "kind": "node_dependency"
+        },
+        {
+          "source": "bilibili_fupan_nightly",
+          "target": "FUPAN_VIDEO_CHECK",
+          "kind": "node_dependency"
+        },
+        {
+          "source": "hkconnect_d1_top100_prob_active",
+          "target": "v3_hkconnect_a_overlay_pool_2000",
+          "kind": "node_dependency"
+        },
+        {
+          "source": "tomorrow_pool_2005",
+          "target": "FUPAN_VIDEO_GAP",
+          "kind": "node_dependency"
+        },
+        {
+          "source": "tomorrow_pool_2005",
+          "target": "v3_next_opening_pool_guard_2100",
+          "kind": "node_dependency"
+        },
+        {
+          "source": "v3_ashare_readiness_0920",
+          "target": "v3_opening_intraday_stage_select_0925_1500",
+          "kind": "node_dependency"
+        },
+        {
+          "source": "v3_hkconnect_close_stage_1545_1555",
+          "target": "hkconnect_model_selection_review",
+          "kind": "node_dependency"
+        },
+        {
+          "source": "v3_next_opening_pool_guard_2100",
+          "target": "FUPAN_V3_PUBLISH",
+          "kind": "node_dependency"
+        },
+        {
+          "source": "v3_opening_intraday_stage_select_0925_1500",
+          "target": "v3_stage0925_visible_verify_0927",
+          "kind": "node_dependency"
+        },
+        {
+          "source": "v3_opening_intraday_stage_select_0925_1500",
+          "target": "v3_stage0925_visible_verify_0929",
+          "kind": "node_dependency"
+        }
+      ]
+    }
+  }
+}
