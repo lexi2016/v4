@@ -10,6 +10,7 @@ from __future__ import annotations
 import ast
 import hashlib
 import importlib.util
+import sys
 from pathlib import Path
 import types
 from typing import Any, Mapping
@@ -191,7 +192,7 @@ def test_composite_key_not_code_alone(route):
     pd.testing.assert_frame_equal(result[left.columns], left, check_exact=True)
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def metric_modules():
     assert hashlib.sha256(SCORE_PATH.read_bytes()).hexdigest() == "fc93d6225c75b633981508a18c428e7649122571c7d897264d0b7da1e591eb8c"
     assert hashlib.sha256(FROZEN_PATH.read_bytes()).hexdigest() == "c8ffabf345069d64a82ac686e6747afda8c22433f1309eecdc999a7ad1eac763"
@@ -200,8 +201,11 @@ def metric_modules():
     settings.CONTRACT = {"calibration_bins": [0., .5, 1.]}
     package = types.ModuleType("_rff_synthetic_frozen")
     package.__path__ = []
-    with mock.patch.dict("sys.modules", {"_rff_synthetic_frozen": package,
-                                        "_rff_synthetic_frozen.settings": settings}):
+    # Keep lazy-imported native dependencies cached; undo only our two entries.
+    # One evaluator/wrapper pair is shared by both parameter cases in this module.
+    with pytest.MonkeyPatch.context() as modules:
+        modules.setitem(sys.modules, "_rff_synthetic_frozen", package)
+        modules.setitem(sys.modules, "_rff_synthetic_frozen.settings", settings)
         frozen = load_module("_rff_synthetic_frozen.metrics", FROZEN_PATH)
         score = load_module("_rff_synthetic_score", SCORE_PATH)
         with mock.patch.object(score, "frozen_metrics", return_value=frozen):
