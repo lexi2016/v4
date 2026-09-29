@@ -379,6 +379,17 @@ def build_research_archive(
         cannot_confirm.append(f"LEGACY_SOURCE_CANNOT_CONFIRM_COUNT:{len(source_gaps)}")
     if path_redactions:
         cannot_confirm.append(f"LEGACY_RUNTIME_PATHS_REDACTED:{path_redactions}")
+    # Deterministic source-declared report-role projection. This is not a
+    # one-SHA archive exception: the source witness and complete rebuilt object
+    # remain subject to the original research_context comparison and cutoff.
+    if "report_entity_audit" in source:
+        audit = source["report_entity_audit"]
+        if not isinstance(audit, Mapping) or not isinstance(audit.get("affected_codes", []), list):
+            raise ValueError("report_entity_audit.affected_codes must be a list")
+        for code in audit.get("affected_codes", []):
+            if not isinstance(code, str) or not re.fullmatch(r"(?:[A-Z]{1,2}\.)?\d{5,6}(?:\.[A-Z]{2})?", code):
+                raise ValueError("report_entity_audit affected code is invalid")
+            cannot_confirm.append(f"REPORT_ROLE_EVIDENCE_EXCLUDED:{code}")
     payload = {
         "schema_version": SCHEMA_VERSION,
         "archive_date": archive_date,

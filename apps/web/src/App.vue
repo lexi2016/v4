@@ -172,7 +172,7 @@ const {
     <section v-if="!closeReviewActive" class="panel timeline-panel" aria-label="七阶段上下文">
       <div class="section-heading">
         <div><span class="eyebrow">阶段分组主视图</span><h2>七阶段上下文 v2</h2></div>
-        <p>{{ selectedDate }} · {{ currentStageDefinition.label }} · A股 {{ stageCountText(stageWorkbench?.selected_a_rows) }} / 港股 {{ stageCountText(stageWorkbench?.selected_hk_rows) }}</p>
+        <p>{{ selectedDate }} · {{ currentStageDefinition.label }} · A股 {{ selectedStage === "STAGE_1545_1555" ? "不适用" : stageCountText(stageWorkbench?.selected_a_rows) }} / 港股 {{ stageCountText(stageWorkbench?.selected_hk_rows) }}</p>
       </div>
       <div class="timeline-grid">
         <button
@@ -206,6 +206,15 @@ const {
         <span v-if="referenceMode" class="reference-label">参考快照 · WATCH_ONLY</span>
         <span v-if="stageRunStatus">最近运行：{{ stageRunStatus }}</span>
       </div>
+      <section v-if="stageWorkbench?.historical_readbacks?.length" aria-label="历史补抓读回" data-testid="historical-readback">
+        <strong>历史补抓 · RESEARCH_ONLY · 不代表当时实时成功</strong>
+        <article v-for="binding in stageWorkbench.historical_readbacks" :key="binding.market">
+          <p>{{ binding.market }} · 原正式结果：{{ binding.original_formal.status }} · 原 run：{{ binding.original_formal.run_id || "不可核验" }}</p>
+          <p>补抓 run：<code>{{ binding.backfill_run_id }}</code> · 选择 run：<code>{{ binding.selection_run_id }}</code></p>
+          <p>产物 SHA：<code>{{ binding.artifact_sha256 }}</code> · 绑定 SHA：<code>{{ binding.binding_sha256 }}</code></p>
+          <p v-if="binding.original_formal.cannot_confirm?.length">原运行问题：{{ binding.original_formal.cannot_confirm.join("、") }}</p>
+        </article>
+      </section>
       <section class="stage-lineage-panel" aria-label="阶段运行血缘">
         <strong>阶段运行血缘</strong>
         <div v-if="stageWorkbench?.stage_lineage" class="stage-lineage-grid">
@@ -250,8 +259,11 @@ const {
 
       <div class="market-columns">
         <section class="market-column" aria-label="A股候选">
-          <div class="market-title"><h3>A股</h3><span>{{ stageCountText(stageWorkbench?.selected_a_rows) }} 条</span></div>
-          <div v-if="!aRows.length" class="empty-card">
+          <div class="market-title"><h3>A股</h3><span v-if="selectedStage === 'STAGE_1545_1555'">不适用</span><span v-else>{{ stageCountText(stageWorkbench?.selected_a_rows) }} 条</span></div>
+          <div v-if="selectedStage === 'STAGE_1545_1555'" class="empty-card" aria-label="A股不适用">
+            <strong>不适用：15:45–15:55 仅适用于港股</strong>
+          </div>
+          <div v-else-if="!aRows.length" class="empty-card">
             <strong>A股无主表候选</strong>
             <span>{{ currentStageDefinition.label }} 阶段 · source rows {{ stageCountText(aSummary.source_rows) }} / requested {{ stageCountText(aSummary.requested_rows ?? aSummary.source_rows) }}</span>
             <p>{{ stageWorkbench?.stage.display_status || "该阶段数据尚未进入 V3.5。" }}</p>

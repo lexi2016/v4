@@ -45,10 +45,11 @@ def _collect_hk_minute_body(_v4_scope, /, plan, *, codes, python_path, shared_ro
         trade_date=plan.trade_date,
         stage_id=plan.stage_id,
         cutoff_at=_v4_global(_v4_scope, 'STAGE_BY_ID')[plan.stage_id].cutoff,
+        historical_backfill=plan.historical_backfill,
     )
 
 
-def _refresh_hk_active_lanes_body(_v4_scope, /, source, *, codes, python_path, shared_root, process_runner, trade_date, stage_id, cutoff_at):
+def _refresh_hk_active_lanes_body(_v4_scope, /, source, *, codes, python_path, shared_root, process_runner, trade_date, stage_id, cutoff_at, historical_backfill=False):
     """Re-probe only the V3 active trigger for an existing raw HK source.
 
     This is the recovery path after raw publication has succeeded but a
@@ -66,6 +67,28 @@ def _refresh_hk_active_lanes_body(_v4_scope, /, source, *, codes, python_path, s
         trade_date=trade_date,
         cutoff_at=cutoff_at,
     )
+    if (historical_backfill is True and source.source_id == "pytdx_exhq"
+            and source.status in {"READY", "PARTIAL_WITH_ROWS"} and source.rows):
+        # A current Futu probe is diagnostic only for an explicitly historical
+        # run. Preserve the real ExHQ rows, never promote its present-day lanes.
+        # The existing builder recognizes this observation marker and retains
+        # NO_BUY plus each row's computed trade_status (including NO_TRADE).
+        rows = []
+        active_fields = {"candidate_lanes", "active_gainer_pass", "volume_ratio",
+                         "active_snapshot_status", "data_confidence"}
+        for row in source.rows:
+            merged = {key: value for key, value in row.items() if key not in active_fields}
+            merged["candidate_lanes"] = []
+            merged["data_confidence"] = "HISTORICAL_EXHQ_OBSERVATION"
+            rows.append(merged)
+        return _v4_global(_v4_scope, 'replace')(
+            source, status="PARTIAL_WITH_ROWS", rows=tuple(rows),
+            cannot_confirm=tuple(dict.fromkeys((*source.cannot_confirm, *probe_errors,
+                "HK_FUTU_HISTORICAL_ACTIVE_SNAPSHOT_UNAVAILABLE"))),
+            source_evidence=tuple(dict.fromkeys((*source.source_evidence, *evidence,
+                "historical_backfill=true",
+                "active_snapshot_degraded_to_pytdx_observation=true"))),
+        )
     if "HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE" in probe_errors and trade_date and cutoff_at:
         return _v4_global(_v4_scope, 'replace')(
             source,

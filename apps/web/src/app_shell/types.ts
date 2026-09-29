@@ -37,7 +37,7 @@ export type StageRow = {
   cannot_confirm?: string[]; data_level?: string; recommendation_status?: string;
   support_primary_price?: number | string; pressure_price?: number | string;
   invalidation_price?: number | string;
-  current_change_pct?: number;
+  current_change_pct?: number | null;
   open_price?: number; last_price?: number; high_price?: number; low_price?: number;
   source_last_bar_time?: string;
 };
@@ -61,6 +61,11 @@ export type StageWorkbench = {
   selection_mode: string; response_source?: string; reference_snapshot?: boolean;
   opening_second_filter?: OpeningSecondFilter;
   stage_lineage?: StageLineage;
+  historical_readbacks?: Array<{
+    market: string; backfill_run_id: string; selection_run_id: string;
+    artifact_sha256: string; binding_sha256: string; real_time_success: false;
+    original_formal: { status: string; run_id?: string | null; cannot_confirm?: string[] };
+  }>;
 };
 export type StageLineageBranch = {
   label?: string; status?: string; origin?: string; receipt_sha256?: string | null;

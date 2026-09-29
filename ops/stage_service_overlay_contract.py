@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
 from typing import Any, Mapping, Sequence
@@ -85,6 +86,22 @@ STAGE_SERVICE_RELEASE_CLOSURE_SHA256 = {
     'stage_center/runner.py': '648fe7af52df1b4eba31802361f9af2d03decbbebb3286ecc7a5dc0b06523205',
     'domains/task_status.py': '047cfb2b6a8c165857b2841f137a86c9587a1a6e81199efdf71d508d05589300',
 }
+# Import by sibling file for the existing direct-script builder as well as
+# package imports. Never source identities from the dirty workspace at runtime.
+try:
+    from .stage_selection_release_contract import STAGE_SELECTION_SHA256, require_selection_closure
+except ImportError:
+    _selection_spec = importlib.util.spec_from_file_location(
+        "_v4_stage_selection_release_contract", Path(__file__).with_name("stage_selection_release_contract.py")
+    )
+    if _selection_spec is None or _selection_spec.loader is None:
+        raise ImportError("cannot load Stage selection release contract")
+    _selection_contract = importlib.util.module_from_spec(_selection_spec)
+    _selection_spec.loader.exec_module(_selection_contract)
+    STAGE_SELECTION_SHA256 = _selection_contract.STAGE_SELECTION_SHA256
+    require_selection_closure = _selection_contract.require_selection_closure
+
+STAGE_SERVICE_RELEASE_CLOSURE_SHA256.update(STAGE_SELECTION_SHA256)
 STAGE_SERVICE_RELEASE_CLOSURE_PATHS = tuple(STAGE_SERVICE_RELEASE_CLOSURE_SHA256)
 
 
@@ -169,6 +186,7 @@ def require_stage_overlay_source_hashes(
     *, source_root: Path, overlay_paths: Sequence[str],
 ) -> None:
     """Require exact source bytes for every selected Stage closure path."""
+    require_selection_closure(source_root=source_root, overlay_paths=overlay_paths)
     selected = set(overlay_paths)
     for relative in STAGE_SERVICE_RELEASE_CLOSURE_PATHS:
         if relative not in selected:
