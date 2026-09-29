@@ -1,0 +1,28 @@
+name: Manager repair pinned baseline export
+on:
+  push:
+    branches: [codex/manager-three-chain-fix-20260929-r1]
+    paths: [.github/workflows/manager-repair-baseline-export.yml]
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 043e248f82360256de30b55fa45cb77c5be8b90f
+          persist-credentials: false
+      - name: Verify immutable input archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '40188d9b9d25e70f793dce24948724ada89d0778180ca9822147d4461c5f7f63  V4_MANAGER_REMAINING_REPAIR_20260929_R1.zip' | sha256sum -c -
+          unzip -t V4_MANAGER_REMAINING_REPAIR_20260929_R1.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: manager-pinned-baseline-043e248
+          path: V4_MANAGER_REMAINING_REPAIR_20260929_R1.zip
+          if-no-files-found: error
+          retention-days: 1
