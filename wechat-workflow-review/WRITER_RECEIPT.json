@@ -1,0 +1,36 @@
+{
+  "receipt_version": "github-workflow-review-export-v1",
+  "date": "2026-09-29",
+  "writer_status": "READY_FOR_INDEPENDENT_REVIEW",
+  "goal": "Create a minimal source/test snapshot of the default WeChat Drive/Chat workflow and V4 Stage A archive display contract.",
+  "output_directory": "handoffs/github_workflow_review_20260929",
+  "target_repository_upload_performed": false,
+  "git_initialized": false,
+  "business_source_files_copied": 29,
+  "synthetic_stage_a_fixtures_created": 2,
+  "source_map": "FILE_MAP_AND_SHA256.json",
+  "source_map_sha256": "4117d83d8da72f9c783620cec370ff659c206d7eb83fa4bbc377b5c423f40ea4",
+  "sha256_list": "FILE_SHA256SUMS.txt",
+  "sha256_list_covers_all_other_files": true,
+  "privacy_scan": "PASS",
+  "offline_test_results": {
+    "wechat_boundaries_and_ocr_cache": "PASS: 35 passed",
+    "wechat_chat_handoff": "PASS: 9 passed",
+    "wechat_prepare_ocr_manifest": "PASS: 2 test functions invoked against exported script",
+    "prior_performance_appendix": "PARTIAL: 1 passed, 3 skipped because pandas/PyArrow are unavailable",
+    "v4_stage_a": "PASS: 65 passed with synthetic fixture; two non-failing warnings",
+    "v4_typescript_client": "PASS: 6 passed",
+    "python_ast_and_cli_load": "PASS: 7 Python files parsed; 5 CLI help commands exited 0"
+  },
+  "cannot_confirm": [
+    "test_wechat_handoff_v2.py: pytest and Pillow are not available together in one current interpreter",
+    "three Parquet appendix tests skipped without pandas and PyArrow",
+    "real article fetch and optional browser fallback: external intake collector not included",
+    "real macOS Vision/Swift OCR not executed",
+    "full V4 application route assembly and live archive/API/UI readback not executed",
+    "Drive byte transport and business-article semantics not evaluated",
+    "independent reviewer verdict pending"
+  ],
+  "publication_or_deployment_claim": false,
+  "notes": "V4 fixture report and receipt are synthetic. Exported files with path/ID sanitization have source and export hashes in the map. The source-copy SHA list omits its own self-hash."
+}

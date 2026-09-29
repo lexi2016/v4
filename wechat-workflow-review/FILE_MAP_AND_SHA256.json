@@ -1,0 +1,276 @@
+{
+  "schema_version": "wechat-github-review-export-v1",
+  "generated_date": "2026-09-29",
+  "output_root": "handoffs/github_workflow_review_20260929",
+  "entries": [
+    {
+      "source_group": "wechat",
+      "source_path": "AGENTS.md",
+      "export_path": "source/wechat/AGENTS.md",
+      "source_sha256": "a8c4548f33627285d13731d3ab531ec5a8bddd3bbfa6232fb6f713e9ee4877a3",
+      "export_sha256": "a349030af38d5236e268d8ee59be61e6bd22488bb34eae8428a17cad67b85e29",
+      "transform_counts": {
+        "local_home_placeholder": 4
+      }
+    },
+    {
+      "source_group": "wechat",
+      "source_path": "WORKFLOW_公众号链接固定执行方案.md",
+      "export_path": "source/wechat/WORKFLOW_公众号链接固定执行方案.md",
+      "source_sha256": "04a3d1cf5be4c8d278a04c76d4e3455d741fa8c2fcfb109b90f1431ac83de345",
+      "export_sha256": "fe549923926d413d3f9ced9bdbaa0bda9e2e31480071c51e4b2e0d57774a8b13",
+      "transform_counts": {
+        "local_home_placeholder": 8,
+        "windows_user_home_placeholder": 7,
+        "private_drive_id_redacted": 1
+      }
+    },
+    {
+      "source_group": "wechat",
+      "source_path": "templates/chat_research_prompt.md",
+      "export_path": "source/wechat/templates/chat_research_prompt.md",
+      "source_sha256": "29aec527fe954c1408f8a94905bfc9f5e7f28a2e97195008d2ee8978936a1c6f",
+      "export_sha256": "29aec527fe954c1408f8a94905bfc9f5e7f28a2e97195008d2ee8978936a1c6f",
+      "transform_counts": {}
+    },
+    {
+      "source_group": "wechat",
+      "source_path": "scripts/wechat_article_fetch.py",
+      "export_path": "source/wechat/scripts/wechat_article_fetch.py",
+      "source_sha256": "8c5a2dba2b1dc9c7392d43d9b8023fc2559c62c2dadc99cef8a1e5f3d69381a1",
+      "export_sha256": "8c5a2dba2b1dc9c7392d43d9b8023fc2559c62c2dadc99cef8a1e5f3d69381a1",
+      "transform_counts": {}
+    },
+    {
+      "source_group": "wechat",
+      "source_path": "scripts/wechat_crawl4ai_fetch.py",
+      "export_path": "source/wechat/scripts/wechat_crawl4ai_fetch.py",
+      "source_sha256": "bc611b7a1d4476507a57f83e8ccc5211fb3c5c95ff9ab04df142827fb6ebe7cb",
+      "export_sha256": "bc611b7a1d4476507a57f83e8ccc5211fb3c5c95ff9ab04df142827fb6ebe7cb",
+      "transform_counts": {}
+    },
+    {
+      "source_group": "wechat",
+      "source_path": "scripts/wechat_common.py",
+      "export_path": "source/wechat/scripts/wechat_common.py",
+      "source_sha256": "25934b26357060e3322dcf393816383558a166a5a969244a7e4f1e8de4582446",
+      "export_sha256": "77ca70900e870dba6bd8615e180eb73985bc902ab7a0947c087e36cc19d8eafa",
+      "transform_counts": {
+        "windows_user_home_placeholder": 7
+      }
+    },
+    {
+      "source_group": "wechat",
+      "source_path": "scripts/wechat_prepare_ocr.py",
+      "export_path": "source/wechat/scripts/wechat_prepare_ocr.py",
+      "source_sha256": "980c9004a1fa38862708ee325970ab8adfebbd66661cb42f0f8318436eebe606",
+      "export_sha256": "980c9004a1fa38862708ee325970ab8adfebbd66661cb42f0f8318436eebe606",
+      "transform_counts": {}
+    },
+    {
+      "source_group": "wechat",
+      "source_path": "scripts/wechat_macos_ocr.py",
+      "export_path": "source/wechat/scripts/wechat_macos_ocr.py",
+      "source_sha256": "be7e039d778babd32918da2b7d9620a7b3b9e98e6e62625840eaad1b6d4d834d",
+      "export_sha256": "be7e039d778babd32918da2b7d9620a7b3b9e98e6e62625840eaad1b6d4d834d",
+      "transform_counts": {}
+    },
+    {
+      "source_group": "wechat",
+      "source_path": "scripts/wechat_chat_handoff.py",
+      "export_path": "source/wechat/scripts/wechat_chat_handoff.py",
+      "source_sha256": "65191aa6b7b7a6190759d0643d75ceb8ef0cef0bfa8c6f092cfbef7088d56574",
+      "export_sha256": "65191aa6b7b7a6190759d0643d75ceb8ef0cef0bfa8c6f092cfbef7088d56574",
+      "transform_counts": {}
+    },
+    {
+      "source_group": "wechat",
+      "source_path": "scripts/wechat_yesterday_performance.py",
+      "export_path": "source/wechat/scripts/wechat_yesterday_performance.py",
+      "source_sha256": "b7e2917815b4d9842eeaccd67fee1f52a1a50bd327c2a61dc559ee9f7f9d36af",
+      "export_sha256": "b7e2917815b4d9842eeaccd67fee1f52a1a50bd327c2a61dc559ee9f7f9d36af",
+      "transform_counts": {}
+    },
+    {
+      "source_group": "wechat",
+      "source_path": "tests/test_review_wechat_boundaries.py",
+      "export_path": "source/wechat/tests/test_review_wechat_boundaries.py",
+      "source_sha256": "65a7b0b451d1bf8ffee921e513116ffd3d0b833360cce7cb0720345685a3e504",
+      "export_sha256": "65a7b0b451d1bf8ffee921e513116ffd3d0b833360cce7cb0720345685a3e504",
+      "transform_counts": {}
+    },
+    {
+      "source_group": "wechat",
+      "source_path": "tests/test_wechat_prepare_ocr_manifest.py",
+      "export_path": "source/wechat/tests/test_wechat_prepare_ocr_manifest.py",
+      "source_sha256": "c7f2b8aaf1b85596aa2a974277f602581171541b40cce737d62d2e09c7232dbf",
+      "export_sha256": "c7f2b8aaf1b85596aa2a974277f602581171541b40cce737d62d2e09c7232dbf",
+      "transform_counts": {}
+    },
+    {
+      "source_group": "wechat",
+      "source_path": "tests/test_wechat_macos_ocr_cache.py",
+      "export_path": "source/wechat/tests/test_wechat_macos_ocr_cache.py",
+      "source_sha256": "02c6cc2ea4de2f69b8319d00921495086a785cc14d873fe0ebd4c8165418a821",
+      "export_sha256": "02c6cc2ea4de2f69b8319d00921495086a785cc14d873fe0ebd4c8165418a821",
+      "transform_counts": {}
+    },
+    {
+      "source_group": "wechat",
+      "source_path": "tests/test_wechat_chat_handoff.py",
+      "export_path": "source/wechat/tests/test_wechat_chat_handoff.py",
+      "source_sha256": "a1df48347402728fef6ee65897eca89a52ad9f3abf2c7591891be196219a5814",
+      "export_sha256": "a1df48347402728fef6ee65897eca89a52ad9f3abf2c7591891be196219a5814",
+      "transform_counts": {}
+    },
+    {
+      "source_group": "wechat",
+      "source_path": "tests/test_wechat_handoff_v2.py",
+      "export_path": "source/wechat/tests/test_wechat_handoff_v2.py",
+      "source_sha256": "71e9582a85ef4fccb7fdb9ccc9ea9d60f2808a973f67f8f98d337526c6820530",
+      "export_sha256": "71e9582a85ef4fccb7fdb9ccc9ea9d60f2808a973f67f8f98d337526c6820530",
+      "transform_counts": {}
+    },
+    {
+      "source_group": "wechat",
+      "source_path": "tests/test_prior_mentions_performance_appendix.py",
+      "export_path": "source/wechat/tests/test_prior_mentions_performance_appendix.py",
+      "source_sha256": "f87e95092b8772869b12e392fabbbc92e3b5cd6e1231985d0bf8a4b1610e7a47",
+      "export_sha256": "f87e95092b8772869b12e392fabbbc92e3b5cd6e1231985d0bf8a4b1610e7a47",
+      "transform_counts": {}
+    },
+    {
+      "source_group": "skill",
+      "source_path": "baimao-feed/SKILL.md",
+      "export_path": "source/skill/baimao-feed/SKILL.md",
+      "source_sha256": "336fad0df67dc88a2796d66231962822754c361bdd7c0e1e814b45082a9ac9f5",
+      "export_sha256": "ede5b21cb4c928ba0d08c4690abb900c9fedb27ef24cd419bc078ba2d3d8b6cf",
+      "transform_counts": {
+        "private_drive_id_redacted": 1
+      }
+    },
+    {
+      "source_group": "skill",
+      "source_path": "baimao-feed/references/archive-contract.md",
+      "export_path": "source/skill/baimao-feed/references/archive-contract.md",
+      "source_sha256": "cf50b11a841028789c4b9d1ef5f594e58d982494c53a88915ae6fd6de64a5383",
+      "export_sha256": "cf50b11a841028789c4b9d1ef5f594e58d982494c53a88915ae6fd6de64a5383",
+      "transform_counts": {}
+    },
+    {
+      "source_group": "skill",
+      "source_path": "baimao-feed/references/drive-chat-handoff.md",
+      "export_path": "source/skill/baimao-feed/references/drive-chat-handoff.md",
+      "source_sha256": "9fd20a3150b12fe62d1d4c49efbc1393ad7c514c5c2009db2e98ea32a4e58cd8",
+      "export_sha256": "d103f3f97ccb2769f955506295657eeb8858aef8647364675c0ffa85fcecf0dd",
+      "transform_counts": {
+        "private_drive_id_redacted": 1
+      }
+    },
+    {
+      "source_group": "skill",
+      "source_path": "baimao-method/SKILL.md",
+      "export_path": "source/skill/baimao-method/SKILL.md",
+      "source_sha256": "c656c617c5985e98b69e0cd77be22358a5148ca30c693f7917f328e862d5a62b",
+      "export_sha256": "c656c617c5985e98b69e0cd77be22358a5148ca30c693f7917f328e862d5a62b",
+      "transform_counts": {}
+    },
+    {
+      "source_group": "skill",
+      "source_path": "baimao-method/references/wechat-report-chain.md",
+      "export_path": "source/skill/baimao-method/references/wechat-report-chain.md",
+      "source_sha256": "21b3c7c4b0ab6571a83ae7b29ea3ce5af4c7ab6d5bb4a515f03eaa95a40c331c",
+      "export_sha256": "21b3c7c4b0ab6571a83ae7b29ea3ce5af4c7ab6d5bb4a515f03eaa95a40c331c",
+      "transform_counts": {}
+    },
+    {
+      "source_group": "skill",
+      "source_path": "baimao-chokepoint/SKILL.md",
+      "export_path": "source/skill/baimao-chokepoint/SKILL.md",
+      "source_sha256": "b6f0d8dc97b3b896e04ac8c79edf047a57d9ac6f8c3f4587f028c8fae4ca0b4e",
+      "export_sha256": "b6f0d8dc97b3b896e04ac8c79edf047a57d9ac6f8c3f4587f028c8fae4ca0b4e",
+      "transform_counts": {}
+    },
+    {
+      "source_group": "v4_app",
+      "source_path": "infrastructure/wechat_research_archive.py",
+      "export_path": "source/v4_app/infrastructure/wechat_research_archive.py",
+      "source_sha256": "025052da29182a6136ac2de9168975379e3991583561de8a1f5766ca2eee2abf",
+      "export_sha256": "025052da29182a6136ac2de9168975379e3991583561de8a1f5766ca2eee2abf",
+      "transform_counts": {}
+    },
+    {
+      "source_group": "v4_app",
+      "source_path": "ops/index_wechat_research.py",
+      "export_path": "source/v4_app/ops/index_wechat_research.py",
+      "source_sha256": "ec1e44d39c1e5df20b62e9b0e2b765158355011e9cc5c1721635d36a2e238f1f",
+      "export_sha256": "ec1e44d39c1e5df20b62e9b0e2b765158355011e9cc5c1721635d36a2e238f1f",
+      "transform_counts": {}
+    },
+    {
+      "source_group": "v4_app",
+      "source_path": "apps/api/v35_api/wechat_research_router.py",
+      "export_path": "source/v4_app/apps/api/v35_api/wechat_research_router.py",
+      "source_sha256": "9989c824ec154856857ba1513a0de3ba464420aa0cfed49c8ff0c2397078c091",
+      "export_sha256": "9989c824ec154856857ba1513a0de3ba464420aa0cfed49c8ff0c2397078c091",
+      "transform_counts": {}
+    },
+    {
+      "source_group": "v4_app",
+      "source_path": "apps/web/src/api/wechat_research.ts",
+      "export_path": "source/v4_app/apps/web/src/api/wechat_research.ts",
+      "source_sha256": "eb42b8dcdec5ae8b6bf72e132f94394009cc9ea65f4b83471fc077e59a1084fa",
+      "export_sha256": "eb42b8dcdec5ae8b6bf72e132f94394009cc9ea65f4b83471fc077e59a1084fa",
+      "transform_counts": {}
+    },
+    {
+      "source_group": "v4_app",
+      "source_path": "apps/web/src/components/research/WechatResearchPanel.vue",
+      "export_path": "source/v4_app/apps/web/src/components/research/WechatResearchPanel.vue",
+      "source_sha256": "4cb44d8e06164d967339c201dca48cabef7aa1b7678c30a107c7ecab1b143592",
+      "export_sha256": "4cb44d8e06164d967339c201dca48cabef7aa1b7678c30a107c7ecab1b143592",
+      "transform_counts": {}
+    },
+    {
+      "source_group": "v4_app",
+      "source_path": "tests/test_wechat_stage_a.py",
+      "export_path": "source/v4_app/tests/test_wechat_stage_a.py",
+      "source_sha256": "cc7e128f941cbb49d967aaf808112fde956732ce8c6f7a72d6c892ad854fe004",
+      "export_sha256": "6abb6949e28a0846aa28022c752a50873b22d07d7d9e8e302f971b25d949dacf",
+      "transform_counts": {
+        "local_home_placeholder": 1,
+        "synthetic_test_identity_and_sha_update": 7
+      }
+    },
+    {
+      "source_group": "v4_app",
+      "source_path": "tests/wechat_ui/client.test.cjs",
+      "export_path": "source/v4_app/tests/wechat_ui/client.test.cjs",
+      "source_sha256": "a747099f68c1cec34c18aee42098e4bb33d90446404bd68d3a78894b933b0b90",
+      "export_sha256": "a747099f68c1cec34c18aee42098e4bb33d90446404bd68d3a78894b933b0b90",
+      "transform_counts": {}
+    },
+    {
+      "source_group": "synthetic_fixture",
+      "source_path": null,
+      "export_path": "source/v4_app/tests/fixtures/wechat_stage_a/report.md",
+      "source_sha256": null,
+      "export_sha256": "f9921ca25bf4aa9fd5e3e1829f60802f6249fd0a303506b3192560c2d8453236",
+      "transform_counts": {
+        "generated": 1,
+        "article_data_included": 0
+      }
+    },
+    {
+      "source_group": "synthetic_fixture",
+      "source_path": null,
+      "export_path": "source/v4_app/tests/fixtures/wechat_stage_a/IMPORT_RECEIPT.json",
+      "source_sha256": null,
+      "export_sha256": "4064398176ebf39fa18eb1790e1736a40140346c3a7167d597a4aa5659805c49",
+      "transform_counts": {
+        "generated": 1,
+        "real_receipt_copied": 0
+      }
+    }
+  ]
+}
