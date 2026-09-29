@@ -99,7 +99,9 @@ def __stage_card_evidence_body(_v4_scope, /, source, *, code, open_price, last_p
     normalized_high = _v4_global(_v4_scope, '_optional_number')(first(high_price, source.get("high_price"), source.get("high")))
     normalized_low = _v4_global(_v4_scope, '_optional_number')(first(low_price, source.get("low_price"), source.get("low")))
     current_change = _v4_global(_v4_scope, '_optional_number')(source.get("current_change_pct"))
-    if current_change is None:
+    # An explicit null is authoritative missing evidence, not a zero return.
+    # Only legacy callers which omit the field retain the window fallback.
+    if "current_change_pct" not in source:
         current_change = _v4_global(_v4_scope, '_live_pct_change')(normalized_last, normalized_open)
     support = _v4_global(_v4_scope, '_optional_number')(first(source.get("support"), source.get("support_primary_price"), source.get("support_price")))
     pressure = _v4_global(_v4_scope, '_optional_number')(first(source.get("pressure"), source.get("pressure_price"), source.get("resistance_price")))

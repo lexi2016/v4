@@ -17,6 +17,7 @@ def _select_a_0925_auction_body(_v4_scope, /, rows, trade_date, raw_artifact_sha
     _v4_global(_v4_scope, '_validate_market')("STAGE_0925", "A_SHARE")
     normalized: list[dict[str, Any]] = []
     invalid_evidence: list[str] = []
+    comparison_unavailable: list[str] = []
     for index, source in _v4_global(_v4_scope, 'enumerate')(rows):
         row_date = _v4_global(_v4_scope, 'str')(_v4_global(_v4_scope, '_a_row_value')(source, "trade_date", "verify_date", "date8", "target_date") or "").replace("-", "")
         if row_date and row_date != trade_date:
@@ -47,6 +48,15 @@ def _select_a_0925_auction_body(_v4_scope, /, rows, trade_date, raw_artifact_sha
             _v4_global(_v4_scope, '_a_row_value')(source, "prev_close_price", "prev_close", "last_close")
         )
         current_change = _v4_global(_v4_scope, '_live_pct_change')(price, prev_close)
+        # Display validity is separate from the frozen formula's missing-value
+        # policy below. Do not substitute a fabricated close or alter its score.
+        if prev_close is None or prev_close <= 0:
+            current_change = None
+        if current_change is None:
+            comparison_unavailable.append(f"A_AUCTION_PREV_CLOSE_UNAVAILABLE:{code}")
+        comparison_basis = (
+            "UNAVAILABLE" if current_change is None else "AUCTION_PRICE_VS_PREV_CLOSE"
+        )
         qmt = {
             "open": price,
             "lastPrice": price,
@@ -84,7 +94,7 @@ def _select_a_0925_auction_body(_v4_scope, /, rows, trade_date, raw_artifact_sha
                 "formal_eligible": False,
                 "prev_close_price": prev_close,
                 "current_change_pct": None if current_change is None else _v4_global(_v4_scope, 'round')(current_change, 4),
-                "qmt_gap_pct": 0.0 if current_change is None else _v4_global(_v4_scope, 'round')(current_change, 6),
+                "qmt_gap_pct": None if current_change is None else _v4_global(_v4_scope, 'round')(current_change, 6),
                 "qmt_amount": amount,
                 "stage_score": _v4_global(_v4_scope, 'round')(bounded_score, 6),
                 "support": price,
@@ -97,7 +107,7 @@ def _select_a_0925_auction_body(_v4_scope, /, rows, trade_date, raw_artifact_sha
                     "exact_date=true",
                     "formula=windows_v3_live_stage_quality_score",
                     "score_bounded_0_100=true",
-                    "current_change_pct_basis=AUCTION_PRICE_VS_PREV_CLOSE",
+                    f"current_change_pct_basis={comparison_basis}",
                 ],
                 "action_level": "NO_BUY",
                 "trade_status": "WATCH_ONLY",
@@ -106,7 +116,7 @@ def _select_a_0925_auction_body(_v4_scope, /, rows, trade_date, raw_artifact_sha
             }
         )
     normalized = _v4_global(_v4_scope, '_cap_recommendations')(_v4_global(_v4_scope, 'sorted')(normalized, key=lambda item: item["score"], reverse=True))
-    cannot = (*cannot_confirm, *invalid_evidence)
+    cannot = (*cannot_confirm, *invalid_evidence, *comparison_unavailable)
     top10 = _v4_global(_v4_scope, '_top10_contract')(source_evidence)
     legacy = _v4_global(_v4_scope, '_legacy_backfill')(source_evidence) and not top10
     algorithm_sha = _v4_global(_v4_scope, 'A_SHARE_LIVE_ALGORITHM_SHA256') if top10 else _v4_global(_v4_scope, 'LEGACY_A_SHARE_LIVE_ALGORITHM_SHA256')
@@ -117,7 +127,7 @@ def _select_a_0925_auction_body(_v4_scope, /, rows, trade_date, raw_artifact_sha
         "window=09:20-09:30",
         "formula=windows_v3_live_stage_quality_score",
         "score_bounded_0_100=true",
-        "current_change_pct_basis=AUCTION_PRICE_VS_PREV_CLOSE",
+        "current_change_pct_basis=PER_ROW" if comparison_unavailable else "current_change_pct_basis=AUCTION_PRICE_VS_PREV_CLOSE",
         f"algorithm_sha256={algorithm_sha}",
     )
     return _v4_global(_v4_scope, '_selection_envelope')(
