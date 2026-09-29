@@ -1,0 +1,274 @@
+{
+  "schema": "F5_RFF_R3_GITHUB_SOURCE_SLICE_MAP_V1",
+  "generated_on": "2026-09-29",
+  "source_binding_ref": "handoffs/F5_RFF_R3_DEPENDENCY_PREFLIGHT_REPAIR_LOCAL_20260928/staging/true_r3_candidate_01/CANDIDATE_INPUT_BINDING_NATIVE_ADAPTATION_R3_REBOUND.json",
+  "source_binding_sha256": "efe96e1d1046d074f545d7d53501d7281d2fad2e24b0a8f9f1ad9199f06f44d7",
+  "bound_code_sha256": "bf9ae8ec0352a56106a976e8dc8347f4270837d605e20f117cb534a8d683060e",
+  "files": [
+    {
+      "share_path": "external_frozen_evaluator/metrics.py",
+      "source_ref": "handoffs/F5_RFF_R3_L04_METADATA_CLOSEOUT_LOCAL_20260929/package/reference/source_current/external_frozen_evaluator/metrics.py",
+      "bytes": 8758,
+      "sha256": "c8ffabf345069d64a82ac686e6747afda8c22433f1309eecdc999a7ad1eac763",
+      "roles": [
+        "frozen_evaluator_dependency"
+      ],
+      "origin": "validated handoff source_current snapshot"
+    },
+    {
+      "share_path": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/contracts/EXPERIMENT_CONTRACT.json",
+      "source_ref": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/contracts/EXPERIMENT_CONTRACT.json",
+      "bytes": 5440,
+      "sha256": "e6c1509955730a032d183563d6ffcf2501a587dd5734426f35fc59b222491135",
+      "roles": [
+        "binding.experiment_contract_path",
+        "frozen_experiment_contract"
+      ]
+    },
+    {
+      "share_path": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/contracts/RFF_NATIVE_REFERENCE_RUNTIME_V1_20260928.json",
+      "source_ref": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/contracts/RFF_NATIVE_REFERENCE_RUNTIME_V1_20260928.json",
+      "bytes": 1103,
+      "sha256": "b572e4ae197835d143b1a109852e1104e7d1fd25660ab782d8a0c078a2b44a6d",
+      "roles": [
+        "binding.executable_helpers.native_reference_contract",
+        "binding.native_reference_contract_path"
+      ]
+    },
+    {
+      "share_path": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/src/rff_candidate_entry.py",
+      "source_ref": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/src/rff_candidate_entry.py",
+      "bytes": 61364,
+      "sha256": "ce8476ab930a0789079757250a71060d48b813344bdc6b4f156f791f39556e8e",
+      "roles": [
+        "binding.code_files.rff_candidate_entry"
+      ]
+    },
+    {
+      "share_path": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/src/rff_evaluation_completion.py",
+      "source_ref": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/src/rff_evaluation_completion.py",
+      "bytes": 45247,
+      "sha256": "f740a102c06a8ddd5199ae002ec4e329d8e77d5a9aefa70f6eeec613407ee352",
+      "roles": [
+        "binding.code_files.rff_completion"
+      ]
+    },
+    {
+      "share_path": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/src/rff_logistic_core.py",
+      "source_ref": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/src/rff_logistic_core.py",
+      "bytes": 10550,
+      "sha256": "f2e3a10ad3ea69186d1a8005ee475c374c125816de68a5abaec21d3cce72d73b",
+      "roles": [
+        "binding.code_files.rff_logistic_core"
+      ]
+    },
+    {
+      "share_path": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/src/rff_native_runtime.py",
+      "source_ref": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/src/rff_native_runtime.py",
+      "bytes": 11514,
+      "sha256": "0e79c7d90c8306ca4227a835db888cd49b04ae4eb29dffc07bd15c7ba8d7d413",
+      "roles": [
+        "binding.executable_helpers.native_runtime"
+      ]
+    },
+    {
+      "share_path": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/src/rff_worker.py",
+      "source_ref": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/src/rff_worker.py",
+      "bytes": 26856,
+      "sha256": "cecff1218a60c3c67405168b742f40ba76286efbd2435d8f31703375c640619d",
+      "roles": [
+        "binding.code_files.rff_worker"
+      ]
+    },
+    {
+      "share_path": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/tests/rff_worker_fit_boundary_sentinel.py",
+      "source_ref": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/tests/rff_worker_fit_boundary_sentinel.py",
+      "bytes": 4766,
+      "sha256": "2a7ef0e5ac6170286bf4c570e895bc6153e6f186f898d328d93c445a70703857",
+      "roles": [
+        "focused_fit_boundary_sentinel_source"
+      ]
+    },
+    {
+      "share_path": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/tests/test_rff_dependency_preflight_regressions.py",
+      "source_ref": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/tests/test_rff_dependency_preflight_regressions.py",
+      "bytes": 14231,
+      "sha256": "c5ab9b9324c1ba0137f5cf0f17dcb9114a6f61a1f099c1bc9390f90d79043cac",
+      "roles": [
+        "focused_test_source"
+      ]
+    },
+    {
+      "share_path": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/tests/test_rff_logistic_math_and_completion.py",
+      "source_ref": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/tests/test_rff_logistic_math_and_completion.py",
+      "bytes": 3178,
+      "sha256": "6c926569f2b062471aa1c9e71b47e6938462a24af3d825b0f4d6e1e82d640c9b",
+      "roles": [
+        "focused_test_source"
+      ]
+    },
+    {
+      "share_path": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/tests/test_rff_native_runtime_adaptation.py",
+      "source_ref": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/tests/test_rff_native_runtime_adaptation.py",
+      "bytes": 9403,
+      "sha256": "56e5f1a9c60de4eca46ec4687322a35bf1ab04018795f752591d56ba259c7156",
+      "roles": [
+        "focused_test_source"
+      ]
+    },
+    {
+      "share_path": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/tests/test_rff_route_and_l04_contract.py",
+      "source_ref": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/tests/test_rff_route_and_l04_contract.py",
+      "bytes": 35531,
+      "sha256": "caa2b0f58be85bb3cc128b8d4da116debee5ba04e8985d4bf88ba51567e5dca6",
+      "roles": [
+        "focused_test_source"
+      ]
+    },
+    {
+      "share_path": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/candidate_01/src/candidate_entry.py",
+      "source_ref": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/candidate_01/src/candidate_entry.py",
+      "bytes": 61890,
+      "sha256": "a872093b452dde3e6a9b5d8c32dc04496507c0216d4d76778bf4dc614eebcb74",
+      "roles": [
+        "binding.code_files.original_owner"
+      ]
+    },
+    {
+      "share_path": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/candidate_01/src/candidate_worker.py",
+      "source_ref": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/candidate_01/src/candidate_worker.py",
+      "bytes": 35087,
+      "sha256": "13fb744eea1a31c2a42bf13e1f51c3391e7122e4e067e117641b5ba5d1b013f1",
+      "roles": [
+        "binding.code_files.candidate_worker"
+      ]
+    },
+    {
+      "share_path": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/recovery_01/src/recovery_prefit_entry.py",
+      "source_ref": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/recovery_01/src/recovery_prefit_entry.py",
+      "bytes": 17107,
+      "sha256": "b919f0fc7ec00fa839bd62b4e8a93877b7b46d159ec1725f055e6900068ee1fd",
+      "roles": [
+        "binding.code_files.recovery_prefit_entry"
+      ]
+    },
+    {
+      "share_path": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/recovery_01/src/recovery_spawn_support.py",
+      "source_ref": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/recovery_01/src/recovery_spawn_support.py",
+      "bytes": 2072,
+      "sha256": "8a0e39feab877cd9cbde473477625699d5e163f5b226c45788ad0a854f620672",
+      "roles": [
+        "binding.code_files.recovery_spawn_support"
+      ]
+    },
+    {
+      "share_path": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/src/grouping.py",
+      "source_ref": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/src/grouping.py",
+      "bytes": 8702,
+      "sha256": "d2638755d01d992d06eb964dc7f0061227ab978d1d6a81b53e4296993cd17641",
+      "roles": [
+        "binding.code_files.grouping"
+      ]
+    },
+    {
+      "share_path": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/src/prefit_runner.py",
+      "source_ref": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/src/prefit_runner.py",
+      "bytes": 51657,
+      "sha256": "ca427a5a53c3a3a3289a940d7fcc2d579337f343f83baf5968a9c1a2998b1f5c",
+      "roles": [
+        "binding.code_files.prefit_runner"
+      ]
+    },
+    {
+      "share_path": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/src/score_aware_metrics.py",
+      "source_ref": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/src/score_aware_metrics.py",
+      "bytes": 8230,
+      "sha256": "fc93d6225c75b633981508a18c428e7649122571c7d897264d0b7da1e591eb8c",
+      "roles": [
+        "binding.code_files.score_aware_metrics"
+      ]
+    },
+    {
+      "share_path": "research/hk_burst_f5/batches/meta2023_baseplus64_r1_20260923/src/resource_tree.py",
+      "source_ref": "research/hk_burst_f5/batches/meta2023_baseplus64_r1_20260923/src/resource_tree.py",
+      "bytes": 41031,
+      "sha256": "9d0792a8e582d0345c83ddaf83a15612a5629b5f0460833b4715068324ff2752",
+      "roles": [
+        "binding.executable_helpers.resource_tree"
+      ]
+    },
+    {
+      "share_path": "runtime/factor_factory_runtime_v1/contracts/FACTOR_FACTORY_RUNTIME_V1.json",
+      "source_ref": "runtime/factor_factory_runtime_v1/contracts/FACTOR_FACTORY_RUNTIME_V1.json",
+      "bytes": 19724,
+      "sha256": "9b58cdbaab276e6d75192e954385475c68de1bba8ef91880db6e20fb68a5d3af",
+      "roles": [
+        "binding.executable_helpers.runtime_contract",
+        "binding.runtime_contract_path"
+      ]
+    },
+    {
+      "share_path": "runtime/factor_factory_runtime_v1/contracts/RESEARCH_LANE_POLICY_V1.json",
+      "source_ref": "runtime/factor_factory_runtime_v1/contracts/RESEARCH_LANE_POLICY_V1.json",
+      "bytes": 1200,
+      "sha256": "02e3922c8fd9950522241fc776af44da5cc27a2d84e758aabf72449c00a38ced",
+      "roles": [
+        "runtime_policy_dependency"
+      ]
+    },
+    {
+      "share_path": "runtime/factor_factory_runtime_v1/resource_tree.py",
+      "source_ref": "runtime/factor_factory_runtime_v1/resource_tree.py",
+      "bytes": 41031,
+      "sha256": "9d0792a8e582d0345c83ddaf83a15612a5629b5f0460833b4715068324ff2752",
+      "roles": [
+        "runtime_resource_tree_dependency"
+      ]
+    },
+    {
+      "share_path": "runtime/factor_factory_runtime_v1/src/ff_runtime_v1/hashio.py",
+      "source_ref": "runtime/factor_factory_runtime_v1/src/ff_runtime_v1/hashio.py",
+      "bytes": 7539,
+      "sha256": "24bd819c7c93080d2f4a549351853e9603aa60df6f6f7ac913aa09e0fc7cf31a",
+      "roles": [
+        "runtime_hashio_dependency"
+      ]
+    },
+    {
+      "share_path": "runtime/factor_factory_runtime_v1/src/ff_runtime_v1/manifest.py",
+      "source_ref": "runtime/factor_factory_runtime_v1/src/ff_runtime_v1/manifest.py",
+      "bytes": 6721,
+      "sha256": "71ee686c9e1837abbf64d9e1be02a1075e0c659f17e42aba828685cc4c9b4722",
+      "roles": [
+        "runtime_manifest_dependency"
+      ]
+    },
+    {
+      "share_path": "workspace/hkconnect_price_semantics_v2_20260919/zero_label_parity/execution_guard_core.py",
+      "source_ref": "workspace/hkconnect_price_semantics_v2_20260919/zero_label_parity/execution_guard_core.py",
+      "bytes": 17613,
+      "sha256": "85929366a7b018480085c02f80edd312f7f47de94bab5c32982d4e8637d7d7e0",
+      "roles": [
+        "official_execution_guard_dependency"
+      ]
+    },
+    {
+      "share_path": "workspace/hkconnect_price_semantics_v2_20260919/zero_label_parity/registry_adapter.py",
+      "source_ref": "workspace/hkconnect_price_semantics_v2_20260919/zero_label_parity/registry_adapter.py",
+      "bytes": 23598,
+      "sha256": "8596f2a20c165b5fbc2b92a597cb3e1177f6e40bfefac62753b40b3c7daae17f",
+      "roles": [
+        "official_registry_adapter_dependency"
+      ]
+    },
+    {
+      "share_path": "workspace/research/hk_burst_f5/integration/knowledge_training_v1/owner/owner_release_validation.py",
+      "source_ref": "workspace/research/hk_burst_f5/integration/knowledge_training_v1/owner/owner_release_validation.py",
+      "bytes": 46987,
+      "sha256": "8f8f28d0b9429d7730a092ffb37972371c88539d40eca7a4821146ba1d578ee9",
+      "roles": [
+        "owner_release_validation_dependency"
+      ]
+    }
+  ]
+}

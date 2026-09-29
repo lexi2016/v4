@@ -1,0 +1,26 @@
+{
+  "schema_version": "factor_factory.research_lane_policy.v1",
+  "policy_id": "RESEARCH_LANE_V1",
+  "principle": "Research changes experiment hypotheses and plugins only. Runtime changes require a separate Platform Lane release.",
+  "forbidden_basenames": [
+    "training_entry.py",
+    "resource_tree.py",
+    "execution_guard_core.py",
+    "registry_adapter.py",
+    "validate_training_dataset_passport_v1.py"
+  ],
+  "max_plugin_files": 2000,
+  "forbidden_research_actions": [
+    "INSTALL_DEPENDENCIES",
+    "MODIFY_RUNTIME_COMPONENT",
+    "MODIFY_REGISTRY_IMPLEMENTATION",
+    "MODIFY_PROJECTION_WRITER",
+    "REFRESH_PROJECTION_AS_TRAINING_PREFLIGHT",
+    "CHANGE_EVALUATOR_AFTER_RESULTS",
+    "CHANGE_LABEL_AFTER_RESULTS",
+    "CHANGE_ELIGIBILITY_AFTER_RESULTS",
+    "AUTO_RETRY_REAL_FIT"
+  ],
+  "platform_defect_rule": "If an experiment stops for runtime/import/spawn/resource-monitor/registry-entry infrastructure reasons, classify it as RUNTIME_DEFECT and move repair to Platform Lane. Do not patch runtime inside the research route.",
+  "research_result_rule": "Model effect is owned by the route evaluation receipt. FFRUN never promotes alpha or research PASS from process exit alone."
+}

@@ -1,0 +1,29 @@
+{
+  "dependency_versions": {
+    "scikit-learn": "1.8.0"
+  },
+  "direct_imports": [
+    "numpy",
+    "pandas",
+    "scipy",
+    "scipy.optimize",
+    "sklearn",
+    "sklearn.metrics"
+  ],
+  "native_library_policy": "NO_LIGHTGBM_OR_LIBOMP_BINDING; USE_THE_FROZEN_RFF_SCIPY_ROUTE",
+  "route_id": "F5_FULL64_RFF_LOGISTIC_R1_20260927",
+  "runtime_contract": {
+    "environment_policy": "REUSE_EXISTING_NO_INSTALL_DURING_RESEARCH_RUN",
+    "path": "/Users/lexi/Desktop/学习/因子工厂/runtime/factor_factory_runtime_v1/contracts/FACTOR_FACTORY_RUNTIME_V1.json",
+    "python_path": "/Users/lexi/Documents/Codex/2026-08-13/factor-mining-mac/.venv-training-v1/bin/python",
+    "runtime_id": "FACTOR_FACTORY_RUNTIME_V1_RFF_DEPENDENCY_MAINTENANCE_R1_20260928",
+    "sha256": "9b58cdbaab276e6d75192e954385475c68de1bba8ef91880db6e20fb68a5d3af"
+  },
+  "schema": "F5_FULL64_RFF_NATIVE_REFERENCE_RUNTIME_V1",
+  "spawn_environment": {
+    "dyld_library_path": "",
+    "inherit_custom_dyld_library_path": false,
+    "restore_parent_environment_after_process_start": true,
+    "worker_fit_or_input_read": false
+  }
+}

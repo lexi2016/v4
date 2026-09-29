@@ -1,0 +1,73 @@
+{
+  "schema": "F5_RFF_R3_GITHUB_EXPORT_SECURITY_SCAN_V1",
+  "scan_date": "2026-09-29",
+  "scanner": "local high-confidence secret-pattern scan plus machine-local absolute-path reference scan",
+  "scanned_file_count": 35,
+  "high_confidence_secret_candidates": [],
+  "machine_local_absolute_path_references": [
+    {
+      "file": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/contracts/EXPERIMENT_CONTRACT.json",
+      "type": "machine-local absolute path reference",
+      "count": 1
+    },
+    {
+      "file": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/contracts/RFF_NATIVE_REFERENCE_RUNTIME_V1_20260928.json",
+      "type": "machine-local absolute path reference",
+      "count": 2
+    },
+    {
+      "file": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/src/rff_candidate_entry.py",
+      "type": "machine-local absolute path reference",
+      "count": 1
+    },
+    {
+      "file": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/src/rff_evaluation_completion.py",
+      "type": "machine-local absolute path reference",
+      "count": 1
+    },
+    {
+      "file": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/src/rff_native_runtime.py",
+      "type": "machine-local absolute path reference",
+      "count": 2
+    },
+    {
+      "file": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/tests/test_rff_native_runtime_adaptation.py",
+      "type": "machine-local absolute path reference",
+      "count": 1
+    },
+    {
+      "file": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/tests/test_rff_route_and_l04_contract.py",
+      "type": "machine-local absolute path reference",
+      "count": 4
+    },
+    {
+      "file": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/recovery_01/src/recovery_prefit_entry.py",
+      "type": "machine-local absolute path reference",
+      "count": 1
+    },
+    {
+      "file": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/src/score_aware_metrics.py",
+      "type": "machine-local absolute path reference",
+      "count": 1
+    },
+    {
+      "file": "runtime/factor_factory_runtime_v1/contracts/FACTOR_FACTORY_RUNTIME_V1.json",
+      "type": "machine-local absolute path reference",
+      "count": 66
+    },
+    {
+      "file": "workspace/hkconnect_price_semantics_v2_20260919/zero_label_parity/registry_adapter.py",
+      "type": "machine-local absolute path reference",
+      "count": 1
+    },
+    {
+      "file": "workspace/research/hk_burst_f5/integration/knowledge_training_v1/owner/owner_release_validation.py",
+      "type": "machine-local absolute path reference",
+      "count": 22
+    }
+  ],
+  "values_emitted": false,
+  "upload_performed": false,
+  "result": "NO_HIGH_CONFIDENCE_SECRET_MATCHES_LOCAL_PATH_REFERENCES_REPORTED",
+  "review_note": "The listed machine-local absolute-path references contain file paths only in this receipt; inspect them before any upload. No matched values are reproduced."
+}

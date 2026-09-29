@@ -1,0 +1,47 @@
+{
+  "schema": "F5_RFF_R3_METADATA_DELTA_EXAMPLE_V1",
+  "example_only": true,
+  "authorization": false,
+  "approval": false,
+  "signature": null,
+  "execution_permitted": false,
+  "source_binding_sha256": "efe96e1d1046d074f545d7d53501d7281d2fad2e24b0a8f9f1ad9199f06f44d7",
+  "rows": [
+    {
+      "target": "CANDIDATE_INPUT_BINDING_NATIVE_ADAPTATION_R3_REBOUND.json",
+      "line": 318,
+      "field": "resource_trace_path",
+      "before": "<machine-local evidence path redacted>",
+      "after": "<machine-local candidate_output path redacted>",
+      "file_sha256_before": "dda0bdcfaef15179ceca94158c13f27630399f154138116280ea081c9c7401c0",
+      "file_sha256_after": "efe96e1d1046d074f545d7d53501d7281d2fad2e24b0a8f9f1ad9199f06f44d7"
+    },
+    {
+      "target": "INDEPENDENT_REVIEW_TRANSCRIPT_NATIVE_ADAPTATION_R3_UNSIGNED_DRAFT.json",
+      "line": 18,
+      "field": "input_binding_sha256",
+      "before": "dda0bdcfaef15179ceca94158c13f27630399f154138116280ea081c9c7401c0",
+      "after": "efe96e1d1046d074f545d7d53501d7281d2fad2e24b0a8f9f1ad9199f06f44d7",
+      "file_sha256_before": "7f3708b7e63c8b1adf81d08c554009d4618bf4a1b410cf985f9303d1a8ded142",
+      "file_sha256_after": "1c2cbcd3a4136200cd49e980eea640519c97c0a3ee4c5e45602f1b6739078b19"
+    },
+    {
+      "target": "PARENT_AUTHORIZATION_RECEIPT_NATIVE_ADAPTATION_R3_UNSIGNED_DRAFT.json",
+      "line": 20,
+      "field": "input_binding_sha256",
+      "before": "dda0bdcfaef15179ceca94158c13f27630399f154138116280ea081c9c7401c0",
+      "after": "efe96e1d1046d074f545d7d53501d7281d2fad2e24b0a8f9f1ad9199f06f44d7",
+      "file_sha256_before": "e136900a00018e402be6fe63ef9168818c4569973402fb1f1dfe3b2bf95ff801",
+      "file_sha256_after": "fc76f71afb27599d251cac86c62d6aa7170e1456969fccef3b5335c3d65f79c4"
+    },
+    {
+      "target": "PARENT_RELEASE_NATIVE_ADAPTATION_R3_UNSIGNED_DRAFT.json",
+      "line": 19,
+      "field": "input_binding_sha256",
+      "before": "dda0bdcfaef15179ceca94158c13f27630399f154138116280ea081c9c7401c0",
+      "after": "efe96e1d1046d074f545d7d53501d7281d2fad2e24b0a8f9f1ad9199f06f44d7",
+      "file_sha256_before": "8f8564878f1eff78f4eb85b8fe679823e490739c4661c1a41793bfcf5ae75213",
+      "file_sha256_after": "fe866598d7e3499c2ef5bdd0cf868db10ec94544eb89f94e9d020e88ae608178"
+    }
+  ]
+}
