@@ -1,0 +1,207 @@
+{
+  "schema_version": "v3_5.phase2_live_browser_acceptance.v1",
+  "status": "PASS_LOCAL_DEPLOYMENT_API_AND_PAGE_WITH_DECLARED_PARITY_GAPS",
+  "observed_at": "2026-08-01T16:32:42+08:00",
+  "business_date": "20260730",
+  "code_commit": "8bd09e72f220550e0ea8e35b97b726e70431fe5a",
+  "graph_baseline_semantic_hash": "8b4b933858f0e573b4d9f34423cd7aceeeb09dbf50cc826de0b18b712a4cbdd7",
+  "runtime": {
+    "base_url": "http://127.0.0.1:8872",
+    "entrypoint": "python -m apps.api.v35_api.run --host 127.0.0.1 --port 8872",
+    "process_id_at_observation": 5344,
+    "process_started_at": "2026-08-01T16:09:56+08:00",
+    "local_service_reloaded": true,
+    "local_deployed": true,
+    "production_deployed": false
+  },
+  "browser": {
+    "client": "Codex In-app Browser",
+    "url": "http://127.0.0.1:8872/?date=20260730",
+    "viewport_width": 1581,
+    "document_scroll_width": 1581,
+    "horizontal_overflow": false,
+    "application_console_errors": 0,
+    "application_console_warnings": 0,
+    "loading_ended": true,
+    "browser_observed": true,
+    "user_final_acceptance": false
+  },
+  "features": {
+    "preselection.pools": {
+      "artifact": {
+        "base_payload_path": ".runtime/data/preselection/20260730.json",
+        "base_payload_raw_sha256": "2dcad50851265ba3f93bf1a0f18f6ad70f8ed544d7f3e9e5bb9df87593d008ca",
+        "base_row_count": 259,
+        "overlay_payload_path": ".runtime/data/preselection_overlays/20260730.json",
+        "overlay_payload_raw_sha256": "14065b23bb04d8e8a9fd9050798cd5aa503906b1687ace8b18103f4a06952fa5",
+        "overlay_row_count": 43
+      },
+      "api": {
+        "request": "GET /api/v3/preselection-pools?date=20260730&limit=300",
+        "http_status": 200,
+        "canonical_payload_sha256": "f16cea079cfc502e0e76a84bf57691110b63c0de3a2ae2007add39d3df946fe5",
+        "pool_order": [
+          "a_d1_premarket_pool",
+          "a_d1_fupan_watchlist_pool",
+          "a_d1_stage7_fenshi_review_pool",
+          "a_share_research_recommendation_pool",
+          "a_share_baimao_research_map",
+          "hkconnect_d1_top100",
+          "wechat_public_account_v3_preselect"
+        ],
+        "pool_sizes": [19, 64, 70, 6, 0, 100, 43],
+        "pool_count": 7,
+        "row_count": 302,
+        "unified_row_count": 19,
+        "a_all_pool_row_count": 186
+      },
+      "page": {
+        "independent_pool_headings_visible": 7,
+        "cannot_confirm_visible": true,
+        "research_only_boundary_visible": true,
+        "screenshot": {
+          "path": ".runtime/evidence/phase7/browser/v35-stage-and-pools-20260730.png",
+          "raw_sha256": "dd417f63daddd09030538a1b9b95497298cd4f16666716badb1dab93ef9153f5",
+          "bytes": 134602
+        }
+      }
+    },
+    "stage.workbench": {
+      "artifact": {
+        "frozen_chain_contract_path": "contracts/migration/stage_0925_tdxpy_frozen_regression_v1.json",
+        "frozen_chain_semantic_hash": "3d5eb5b6b828cc0a4e4d9e444f18ace3fb8a61be7b001b8f5aeea2ec45ee0dd7",
+        "model_parity_contract_path": "contracts/migration/stage_0925_v11_adapter_parity_v1.json",
+        "model_parity_semantic_hash": "fe87285b551bf01161f796ef0544c24cc2b5e7b79696b9838c7ed1b9cd6cf8c8"
+      },
+      "api": {
+        "request": "GET /api/v3/workbench/stage?date=20260730&stage=STAGE_0925&limit=50",
+        "http_status": 200,
+        "canonical_payload_sha256": "216aa52ce36e08fee3c3becef5480fd34d7e0903066a215aa6204d99494049b4",
+        "selection_mode": "V1_1_CHAMPION_DUAL_MARKET",
+        "response_source": "V3_5_NATIVE_STAGE_SNAPSHOT_WITH_V1_1_CHAMPION",
+        "model_id": "hkconnect_opening_second_filter_v1_1",
+        "model_version": "1.1",
+        "a_requested": 147,
+        "a_source": 146,
+        "a_candidate": 50,
+        "a_selected": 50,
+        "a_missing_symbols": ["A.300333"],
+        "hk_selected": 20,
+        "selected_total": 70
+      },
+      "page": {
+        "model_1_1_visible": true,
+        "a_stock_rows_visible": true,
+        "hk_stock_rows_visible": true,
+        "screenshot_ref": ".runtime/evidence/phase7/browser/v35-stage-and-pools-20260730.png"
+      }
+    },
+    "review.close": {
+      "api": {
+        "request": "GET /api/v3/review?date=20260730",
+        "http_status": 200,
+        "canonical_payload_sha256": "01ad83929a46bfa4bfe2607d9c7f8812342e82adc05f0217019ce0aee64b0a8a",
+        "a_observation_rows": 12,
+        "a_formal_core_rows": 0,
+        "a_market_regime": "CANNOT_CONFIRM",
+        "a_risk_tone": "CANNOT_CONFIRM",
+        "hk_status": "MODEL_REVIEW_READY",
+        "hk_close_top20_rows": 20
+      },
+      "page": {
+        "a_share_review_visible": true,
+        "a_formal_core_missing_placeholder_visible": true,
+        "a_observation_rows_visible": 12,
+        "hk_close_review_visible": true,
+        "hk_close_rows_visible": 20,
+        "screenshot": {
+          "path": ".runtime/evidence/phase7/browser/v35-close-review-20260730.png",
+          "raw_sha256": "4743ed09d57bb654d47e6802105a532e250b93540bb5f9d53c80016e49317156",
+          "bytes": 132378
+        }
+      }
+    },
+    "research.desk": {
+      "artifact": {
+        "archive_path": ".runtime/data/research/archives/20260730.json",
+        "source_input_sha256": "8ba8b92b6c85b977caac13390533fbf0aec05bfd4e52045229f0964a159be96c"
+      },
+      "api": {
+        "exact": {
+          "request": "GET /api/v3/research/articles?archive_date=20260730",
+          "http_status": 200,
+          "canonical_payload_sha256": "5ded5aebe400e634ddd1b4d6d45ad1a212b5b7319bceb79f1f494cf54dfcfaba",
+          "status": "READY",
+          "endpoint_mode": "EXACT",
+          "article_count": 336,
+          "stock_pool_count": 205,
+          "timezone": "Asia/Shanghai",
+          "loading_complete": true
+        },
+        "latest": {
+          "request": "GET /api/v3/research/articles/latest",
+          "http_status": 200,
+          "canonical_payload_sha256": "2058f259f98bb5de17afa6667ada099a596dfcdaa63f840df29b4a00a65df1d3",
+          "status": "NOT_MATERIALIZED",
+          "endpoint_mode": "LATEST",
+          "article_count": 0,
+          "stock_pool_count": 0,
+          "loading_complete": true,
+          "cross_date_fallback": false
+        }
+      },
+      "page": {
+        "exact_stock_rows_visible": 205,
+        "exact_article_count_visible": 336,
+        "timezone_visible": "Asia/Shanghai",
+        "exact_screenshot": {
+          "path": ".runtime/evidence/phase7/browser/v35-research-exact-20260730.png",
+          "raw_sha256": "b0ce2f9e3bee6df242603f75b19a3cc219344eded48103dbc551ed442b879be9",
+          "bytes": 126974
+        },
+        "latest_missing_placeholder_visible": true,
+        "latest_screenshot": {
+          "path": ".runtime/evidence/phase7/browser/v35-research-latest-missing-20260730.png",
+          "raw_sha256": "7a739bb159115b136d4161b920004a2cc959f040c5d20d46a3c54d0015220118",
+          "bytes": 60898
+        }
+      }
+    }
+  },
+  "readyz": {
+    "request": "GET /readyz",
+    "http_status": 200,
+    "canonical_payload_sha256": "14fb82f2e1c964787163a1c7d998da85d313952df4650e4f5f45b0c6687c7195",
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "claims": {
+    "artifact_lane_verified": true,
+    "live_api_lane_verified": true,
+    "in_app_browser_page_lane_verified": true,
+    "local_deployed": true,
+    "production_deployed": false,
+    "business_parity_verified": false,
+    "user_final_acceptance": false
+  },
+  "cannot_confirm": [
+    "BUSINESS_PARITY_SOURCE_SHA_MISMATCH",
+    "LEGACY_EXACT_0925_TRANSACTION_EQUIVALENCE_NOT_PROVEN",
+    "PRESELECTION_GROUPS_INCLUDE_READ_TIME_COMPAT_PROJECTION",
+    "A_SHARE_FORMAL_CORE_MARKET_REGIME_AND_RISK_TONE_NOT_MATERIALIZED",
+    "A_SHARE_BAIMAO_RESEARCH_MAP_NOT_MATERIALIZED",
+    "LEGACY_RESEARCH_MIXED_TIMEZONE_ASSUMED_ASIA_SHANGHAI",
+    "LEGACY_RESEARCH_WEEKEND_AND_HOLIDAY_ARCHIVE_SAMPLES_NOT_FOUND",
+    "LIVE_HOURLY_RESEARCH_PRODUCER_NOT_STARTED",
+    "REAL_DISPATCHER_EXECUTOR_AND_WINDOWS_TASK_CANARY_NOT_STARTED"
+  ],
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "v3_written": false,
+    "windows_tasks_changed": false
+  },
+  "evidence_semantic_hash": "633bd9b4afe18cee3cd24c331c82b37011ea7243f28883af7c26d5f2a878110f"
+}

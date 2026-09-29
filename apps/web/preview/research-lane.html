@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>研报决策台 · V3.5 Lane 三栏预览</title>
+<link rel="stylesheet" href="research-lane.css">
+<style>
+  body { margin:0; background:#0f172a; color:#e2e8f0; font:14px/1.5 "Microsoft YaHei","PingFang SC",sans-serif; }
+  .shell { max-width:1560px; margin:0 auto; padding:16px; }
+  .topbar { display:flex; align-items:center; gap:12px; border-bottom:1px solid #334155; padding-bottom:12px; margin-bottom:12px; }
+  .topbar h1 { margin:0; font-size:18px; }
+  .topbar .meta { color:#94a3b8; font-size:12px; }
+  .topbar input { background:#1e293b; border:1px solid #334155; color:#e2e8f0; padding:5px 10px; border-radius:6px; }
+  .topbar button { background:#38bdf8; color:#0f172a; border:0; padding:5px 14px; border-radius:6px; font-weight:700; cursor:pointer; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="topbar">
+    <h1>研报决策台 <span class="badge readonly">RESEARCH_ONLY · 只读</span></h1>
+    <input id="dateInput" value="20260804" pattern="\d{8}">
+    <button onclick="load()">加载</button>
+    <button onclick="load('')">最新</button>
+    <span class="meta" id="meta">加载中…</span>
+  </div>
+  <div id="app"></div>
+</div>
+<script>
+const $ = (s) => document.querySelector(s);
+let feedFilter = "latest";
+function esc(v) { return String(v ?? "").replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function text(v) { return String(v ?? "").trim(); }
+function num(v, f = 0) { const n = Number(v); return Number.isFinite(n) ? n : f; }
+function deskText(v) {
+  const L = { L3_STRONG:"L3 强证据", L2_MEDIUM:"增强证据", L1_WEAK:"L1 弱证据", RESEARCH_ONLY:"只读研究", RESEARCH_FORMAL_OVERLAY:"正式池解释", RESEARCH_ONLY_OBSERVE:"研究观察", RESEARCH_EVIDENCE_REJECTED:"弱证据拒绝" };
+  return L[text(v)] || text(v) || "-";
+}
+function chips(row) {
+  const out = [];
+  if (text(row.evidence_level)) out.push(deskText(row.evidence_level));
+  if (num(row.evidence_count) > 0) out.push(`证据 ${num(row.evidence_count)}`);
+  if (num(row.research_score) > 0) out.push(`分数 ${num(row.research_score)}`);
+  if (Array.isArray(row.themes)) out.push(...row.themes.slice(0,3).map((t) => text(t)));
+  return out.slice(0,6);
+}
+function stockTitle(r) { return [text(r.stock_name || r.name), text(r.stock_code || r.code)].filter(Boolean).join(" "); }
+
+function setFeedFilter(f) { feedFilter = f; load(); }
+function scrollToWechat() {
+  document.querySelector("#hourlyInvestmentDesk")?.scrollIntoView({ behavior: "smooth" });
+  feedFilter = "stock";
+  load();
+}
+
+async function load(date) {
+  const d = (date === undefined ? $("#dateInput").value : date) || "";
+  const url = `/api/v3/research/lane${d ? `?research_date=${d}` : ""}`;
+  const p = await (await fetch(url)).json();
+  if (p.status === "NOT_MATERIALIZED") { $("#app").innerHTML = `<div class="empty">未物化：${esc(p.reason)}</div>`; return; }
+  const daily = p.stock_research_daily || [];
+  const timeline = p.stock_research_timeline || [];
+  const q = p.research_quality_summary || {};
+  const zsxq = p.zsxq_hourly || {};
+  const ai = p.ai_news || {};
+  const morning = p.morning_news || {};
+  const workbench = p.news_workbench || {};
+  const finance = p.external_finance || {};
+  const ocr = p.ocr_ingestion || {};
+  const keyMsg = p.key_investment_messages || [];
+  const hourly = p.hourly_research || {};
+  const gaps = p.cannot_confirm || [];
+  // 股票主线 + 每只股票的 ≤3 事件
+  const byStock = new Map();
+  timeline.forEach((ev) => {
+    const code = text(ev.stock_code || ev.code);
+    if (!code) return;
+    const l = byStock.get(code) || []; l.push(ev); byStock.set(code, l);
+  });
+  const mainline = daily.slice(0, 8).map((row) => ({ ...row, _tl: (byStock.get(text(row.stock_code)) || []).slice(0, 3) }));
+  // feed 卡
+  const allFeed = [];
+  (morning.articles || []).forEach((r) => allFeed.push({ kind:"article", source:"morning", ...r }));
+  (workbench.action_rows || []).forEach((r) => allFeed.push({ kind:"workbench", source:"workbench", ...r }));
+  (ai.items || []).forEach((r) => allFeed.push({ kind:"ai", source:"ai", ...r }));
+  (Array.isArray(finance.overview) ? finance.overview : []).forEach((r) => allFeed.push({ kind:"finance", source:"finance", ...r }));
+  (zsxq.items || []).forEach((r) => allFeed.push({ kind:"zsxq", source:"zsxq", ...r }));
+  const feedFilterMap = { latest: allFeed, stock: allFeed.filter((c) => text(c.stock_code || c.stock_name)), zsxq: allFeed.filter((c) => c.source === "zsxq"), finance: allFeed.filter((c) => c.source === "finance"), ai: allFeed.filter((c) => c.source === "ai") };
+  const feed = feedFilterMap[feedFilter] || allFeed;
+  // 时间线行
+  const tlRows = timeline.slice(0, 30).map((r) => ({ ...r, _t: text(r.event_time).slice(11,16) }));
+
+  $("#meta").textContent = `情报日 ${p.research_date} · 股票 ${daily.length} · 证据 ${timeline.length} · ${p.endpoint_mode}`;
+
+  $("#app").innerHTML = `
+  <section class="hourly-desk" id="hourlyInvestmentDesk">
+    <section class="hourly-status-strip">
+      <div class="hourly-status-cell"><span class="hourly-label">本小时新增</span><strong>${num(q.new_item_count)}</strong></div>
+      <div class="hourly-status-cell"><span class="hourly-label">知识星球</span><strong>${num(zsxq.topic_count ?? zsxq.zsxq_topic_count_0800_0900)}</strong></div>
+      <div class="hourly-status-cell"><span class="hourly-label">OCR</span><strong>${num(ocr.done_count)}</strong></div>
+      <div class="hourly-status-cell"><span class="hourly-label">外部财经</span><strong>${num(finance.raw_item_count)}</strong></div>
+      <div class="hourly-status-cell"><span class="hourly-label">AI新闻</span><strong>${num(ai.item_count)}</strong></div>
+      <button class="hourly-status-cell hourly-status-button" type="button" data-wechat-entry="view" onclick="scrollToWechat()"><span class="hourly-label">公众号</span><strong>${num((morning.articles || []).length)}</strong></button>
+      <div class="hourly-status-cell"><span class="hourly-label">股票主线</span><strong>${mainline.length}</strong></div>
+      <div class="hourly-status-cell"><span class="hourly-label">直接事件</span><strong>${timeline.length}</strong></div>
+      <div class="hourly-status-cell"><span class="hourly-label">重点消息</span><strong>${keyMsg.length}</strong></div>
+      <div class="hourly-status-cell"><span class="hourly-label">小时线</span><strong>${num(hourly.slot_count)}</strong></div>
+      <div class="hourly-status-cell"><span class="hourly-label">BUY gate</span><strong class="hourly-safe">只读</strong></div>
+      <div class="hourly-status-cell"><span class="hourly-label">live order</span><strong class="hourly-safe">无</strong></div>
+    </section>
+
+    <section class="hourly-desk-grid">
+      <aside class="hourly-priority-pane">
+        <div class="hourly-panel-head"><div><span class="hourly-eyebrow">股票层</span><h3>priority · 股票研报</h3></div><span class="hourly-pill">${mainline.length} 主线</span></div>
+        <div class="hourly-impact-list">
+          ${mainline.map((row) => `
+            <article class="hourly-impact-card ${!text(row.formal_overlap) && !text(row.stage_overlap) ? "observe" : ""}">
+              <span class="hourly-source-tag key">${esc(deskText(row.evidence_level || row.research_status))}</span>
+              <div class="hourly-impact-title">${esc(stockTitle(row))}</div>
+              <div class="hourly-impact-reason">${esc(text(row.latest_evidence_sentence || row.evidence_sentence || row.research_status || row.gate_status))}</div>
+              <div class="hourly-chips">${chips(row).map((c) => `<span class="hourly-chip">${esc(c)}</span>`).join("")}</div>
+              <div class="stock-timeline">
+                ${(row._tl || []).map((ev) => `
+                  <div class="stock-timeline-event">
+                    <div class="stock-timeline-head"><span>${esc(text(ev.event_time).slice(11,16))}</span><span>${esc(deskText(ev.claim_type || ev.evidence_level))}</span></div>
+                    <div class="stock-timeline-body">${esc(text(ev.evidence_sentence).slice(0,150))}</div>
+                  </div>`).join("")}
+              </div>
+            </article>`).join("")}
+          ${mainline.length ? "" : `<div class="empty">当前情报日无股票主线。</div>`}
+        </div>
+      </aside>
+
+      <section class="hourly-feed-pane">
+        <div class="hourly-feed-toolbar"><div><span class="hourly-eyebrow">情报阅读</span><h3>feed · 情报流</h3></div>
+          <div class="hourly-tabs">
+            ${["latest","stock","zsxq","finance","ai"].map((f) => `<button type="button" class="hourly-tab ${feedFilter === f ? "active" : ""}" data-research-filter="${f}" onclick="setFeedFilter('${f}')">${({latest:"全部",stock:"股票",zsxq:"星球",finance:"财经",ai:"AI"})[f]}</button>`).join("")}
+          </div>
+        </div>
+        <div class="hourly-feed-list">
+          ${feed.map((card) => `
+            <article class="hourly-feed-card ${esc(card.source)}">
+              <div class="hourly-feed-head">
+                <div><div class="hourly-feed-title">${esc(text(card.stock_name || card.stock_code || card.title))}</div>
+                <div class="hourly-meta">${esc(text(card.source_name || card.source_type || card.source))}</div></div>
+                <span class="hourly-source-tag source">${esc(card.source)}</span>
+              </div>
+              <div class="hourly-chips">${chips(card).map((c) => `<span class="hourly-chip">${esc(c)}</span>`).join("")}</div>
+              <div class="hourly-summary">${esc(text(card.summary || card.evidence_sentence || card.body_excerpt_preview || card.content).slice(0,240))}</div>
+              <div class="hourly-focus-strip">${text(card.url) ? `<a href="${esc(card.url)}" target="_blank" rel="noopener noreferrer" class="hourly-pill">打开原文</a>` : ""}</div>
+            </article>`).join("")}
+          ${feed.length ? "" : `<div class="empty">当前情报日无 feed 条目。</div>`}
+        </div>
+      </section>
+
+      <aside class="hourly-context-pane">
+        <div class="hourly-panel-head"><div><span class="hourly-eyebrow">本小时状态</span><h3>来源状态</h3></div></div>
+        <div class="hourly-source-panel">
+          <div class="hourly-eyebrow">07:00-24:00 时间线</div>
+          <div class="hourly-quality-list">
+            ${tlRows.map((r) => `<div class="hourly-quality-row"><span class="hourly-label">${esc(text(r._t))}</span><strong>${esc(text(r.stock_name || r.stock_code))}</strong><span class="hourly-source-tag key">${esc(deskText(r.evidence_level))}</span></div>`).join("")}
+            ${tlRows.length ? "" : `<div class="empty">无时间线事件。</div>`}
+          </div>
+        </div>
+        <div class="hourly-source-panel">
+          <div class="hourly-eyebrow">质量状态</div>
+          <div class="hourly-quality-list">
+            <div class="hourly-quality-row"><span class="hourly-label">原始条目</span><strong>${num(q.raw_item_count)}</strong></div>
+            <div class="hourly-quality-row"><span class="hourly-label">研报条目</span><strong>${num(q.research_item_count)}</strong></div>
+            <div class="hourly-quality-row"><span class="hourly-label">证据行</span><strong>${num(q.stock_evidence_count)}</strong></div>
+            <div class="hourly-quality-row"><span class="hourly-label">股票池</span><strong>${num(q.stock_daily_count)}</strong></div>
+            <div class="hourly-quality-row"><span class="hourly-label">增强证据</span><strong>${num(q.l2_medium_count)}</strong></div>
+            <div class="hourly-quality-row"><span class="hourly-label">强证据</span><strong>${num(q.l3_strong_count)}</strong></div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    ${gaps.length ? `<details class="review-appendix"><summary>技术/不能确认（${gaps.length}）</summary><div class="review-appendix-body"><ul class="review-list">${gaps.map((g) => `<li>${esc(text((g && (g.description || g.reason)) || g))}</li>`).join("")}</ul></div></details>` : ""}
+  </section>`;
+}
+load();
+</script>
+</body>
+</html>

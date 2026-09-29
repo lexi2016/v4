@@ -1,0 +1,86 @@
+{
+  "schema_version": "v4.wechat_materials.stage_a.v1",
+  "query": {
+    "date": "20260917",
+    "date_basis": "article",
+    "q": "",
+    "limit": 20
+  },
+  "timezone": "Asia/Shanghai",
+  "items": [
+    {
+      "NO_BUY_GATE": true,
+      "RESEARCH_ONLY": true,
+      "WATCH_ONLY": true,
+      "archive_owner": "WECHAT_LOCAL_ARCHIVE",
+      "article": {
+        "account": null,
+        "article_date": "20260917",
+        "article_id": null,
+        "biz": null,
+        "metadata_origin": "IMPORT_RECEIPT",
+        "published_at": null,
+        "title": "风言风语信息更新 9.17",
+        "url": "https://mp.weixin.qq.com/s/ZSRkQFGljlP0erggJpRrBQ"
+      },
+      "available_at": null,
+      "buy_gate_updated": false,
+      "cannot_confirm": [
+        "PUBLISHED_AT_UNCONFIRMED",
+        "ACCOUNT_UNCONFIRMED",
+        "STRUCTURED_ARTIFACTS_MISSING",
+        "FROZEN_INPUT_NOT_REGISTERED",
+        "RESEARCH_NOT_INDEPENDENTLY_VERIFIED",
+        "AVAILABLE_AT_NOT_ESTABLISHED"
+      ],
+      "identity": {
+        "input_digest": null,
+        "manifest_sha256": "29bf5c1df9fe1d2e88b3d81f917099f5572fc73ad0f3f948d803e999776963b2",
+        "package_id": "legacy_20260919_v1_report",
+        "package_sha256": "56bcd2dcf04e44e34eae970b6690c6ced2bbef8a2a6913c2bd6bf800595f96b1",
+        "package_sha256_status": "VERIFIED",
+        "receipt_sha256": "d1c0fb3f83ac524ac7e2a745f3159ae0bd9fdef87ce5045a9441ab402c57ea8f",
+        "return_id": null,
+        "source_run_id": "20260919_chat_handoff_ZSRkQFGljlP0erggJpRrBQ"
+      },
+      "indexed_at": "2026-09-20T10:29:28.218362+00:00",
+      "missing_artifacts": [
+        "coverage.csv",
+        "mentions.csv",
+        "unmapped.csv",
+        "summary.json"
+      ],
+      "orders_sent": false,
+      "origin": "USER_PROVIDED_CHAT_RETURN",
+      "production_allowed": false,
+      "receipt_claims": {
+        "archive": "REPORT_ONLY_ARCHIVED",
+        "independent_review_scope": [],
+        "input_binding_valid": false,
+        "semantic_research_accepted": false,
+        "structure": "MISSING"
+      },
+      "received_at": "2026-09-20T16:20:03+08:00",
+      "record_id": "c5adfe14b6d7c4af42f08151d4e65abe902fee89b423f8be20e08a4f957b0c5a",
+      "source_status": "NOT_REGISTERED",
+      "states": {
+        "archive": "REPORT_ONLY_ARCHIVED",
+        "input_binding": "LEGACY_INPUT_UNVERIFIED",
+        "research_review": "NOT_EVALUATED_STAGE_A",
+        "structure": "MISSING"
+      },
+      "write_policy": "READ_ONLY"
+    }
+  ],
+  "total": 1,
+  "returned": 1,
+  "next_cursor": null,
+  "index_revision": "e69468f99ae2a0c0022a4605bd06843ea9735f23190fedd4fe9a73fa94f33475",
+  "RESEARCH_ONLY": true,
+  "WATCH_ONLY": true,
+  "NO_BUY_GATE": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "status": "READY"
+}
