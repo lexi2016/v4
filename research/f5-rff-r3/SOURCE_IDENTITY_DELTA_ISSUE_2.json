@@ -1,0 +1,42 @@
+{
+  "schema": "F5_RFF_ISSUE2_CANDIDATE_SOURCE_DELTA_V1",
+  "status": "CODE_CANDIDATE_ONLY_NOT_EXECUTION_AUTHORIZATION",
+  "repository": "lexi2016/v4",
+  "source_baseline": "c24892e57cf4a568bc96095748974abe28b3112f",
+  "pr_parent": "73c6f2684017556c529616cba6bd288951ce88e9",
+  "issue": 2,
+  "historical_source_map_unchanged": true,
+  "historical_binding_sha256": "efe96e1d1046d074f545d7d53501d7281d2fad2e24b0a8f9f1ad9199f06f44d7",
+  "historical_bound_code_sha256": "bf9ae8ec0352a56106a976e8dc8347f4270837d605e20f117cb534a8d683060e",
+  "changed_runtime_files": [
+    {
+      "repository_path": "research/f5-rff-r3/research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/src/rff_worker.py",
+      "binding_field": "code_files.rff_worker.sha256",
+      "before_sha256": "cecff1218a60c3c67405168b742f40ba76286efbd2435d8f31703375c640619d",
+      "before_bytes": 26856,
+      "after_sha256": "3ea10757a81207147e5cfb9e68e69750a0579786153e7ce58ccf342a3184058c",
+      "after_bytes": 28369
+    }
+  ],
+  "added_test": {
+    "repository_path": "research/f5-rff-r3/research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/tests/test_rff_truth_join.py",
+    "sha256": "1ff18ce9e67932dacfafcbb8b32b2ccd49ce3cc8db22d6e753b9426691a2f825",
+    "bytes": 14943
+  },
+  "new_aggregate_code_sha256": null,
+  "aggregate_identity_note": "Not computed from sanitized share paths. A future separately authorized candidate must recompute SHA256 over canonical JSON of its complete code_files with exact actual paths: json.dumps(code_files, ensure_ascii=False, sort_keys=True, separators=(\",\", \":\")).encode(\"utf-8\"). The worker checks payload.source_code_sha256. Rebind only through the existing contract/owner; never overwrite historical signed binding/spec/review/release or reset budgets.",
+  "frozen_worker_execution_body_sha256_excluding_obsolete_join_import": "db2ffa81da628554c35d2bd686071a613ac68aa1a57a6192b17f9ed0f61fb90d",
+  "execution_permission": {
+    "fit": false,
+    "predict": false,
+    "truth_decode": false,
+    "real_evaluation": false,
+    "recovery": false
+  },
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
