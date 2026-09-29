@@ -1,0 +1,40 @@
+{
+  "announcement_collection_enabled": false,
+  "announcement_network_requests": 0,
+  "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app",
+  "buy_gate_updated": false,
+  "candidate_binding_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app",
+  "evidence_semantics": "fresh same-root daily-plan-r2 manual POST/GET and persisted-store readback; no scheduler hook execution claimed",
+  "execution_kind": "MANUAL_REFRESH",
+  "execution_mode": "HISTORICAL_MANUAL_REFRESH_OWNER_HTTP_READBACK",
+  "formal_recommendation_count": 0,
+  "hook_executed": false,
+  "input_identity": "0bbdefc40be2e2df348e6f4507e757f9e24c222d7b773bbaab7aa93cf0f8c45b",
+  "manager_state_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research",
+  "orders_sent": false,
+  "owner": "ManagerResearchJobService.refresh_workspace_plan",
+  "owner_attempt_state": "PARTIAL",
+  "owner_evidence": {
+    "readback": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_DAILY_CHAIN_FIX_20260928/manager_plan/20260929_pytdx_live_readback_r2.receipt.json",
+      "sha256": "0885cb90b036d61d1a33631ae9beb599ebf628949ef234f626f1f455fb089f90"
+    },
+    "refresh": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_DAILY_CHAIN_FIX_20260928/manager_plan/20260929_pytdx_live_manual_draft_r2.receipt.json",
+      "sha256": "8bcfab959ca93bd9facf6084a4c210f25a486e343311b7638613468faf125c81"
+    }
+  },
+  "owner_execution_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app",
+  "owner_product_generated_at": "2026-09-28T17:17:24.004029+00:00",
+  "plan_material_refresh_only": true,
+  "policy_status": "PROPOSAL_ONLY",
+  "product_sha256": "1cda7a53bcf2841ae95652e596ee6ca7bc976a69b5f0f57d822e701e991c566c",
+  "production_allowed": false,
+  "receipt_created_at_local": "2026-09-29T01:17:21.866327+08:00",
+  "research_only": true,
+  "run_id": "d4d9ef5eea98409aa5a64e442c812db2",
+  "schema_version": "manager_daily_chain.plan_refresh_owner_evidence.v2",
+  "scope": "NEXT_HK_SESSION_MANUAL_REFRESH_WITH_HTTP_READBACK",
+  "status": "PASS_OWNER_READBACK_EVIDENCE_FOR_PLAN_BINDING",
+  "target_trade_date": "20260929"
+}

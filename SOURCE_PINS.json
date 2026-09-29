@@ -1,0 +1,1452 @@
+{
+  "schema_version": "chat_input.source_pins.v1",
+  "created_at_utc": "2026-09-29T00:06:52.846100+00:00",
+  "rules": [
+    "ACTIVE_API_RELEASE_20260928_R2 is the exact V4 API code target.",
+    "ACTIVE_SCHEDULER_RELEASE_20260928_R1 is the exact scheduler code target.",
+    "ISOLATED_HKEX_CANDIDATE_NOT_ACTIVE is not an acceptable patch preimage.",
+    "CANONICAL_V4_APP_WORKTREE_TESTS are context only and do not pin active runtime source."
+  ],
+  "files": [
+    {
+      "package_path": "sources/active_api/apps/api/v35_api/manager_research_router.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/apps/api/v35_api/manager_research_router.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 10291,
+      "source_sha256": "dd928e522aba54dbb42fdce6bb08219c2c2392c9dcb903b7e5569fb9c5888631",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/apps/api/v35_api/manager_workbench_router.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/apps/api/v35_api/manager_workbench_router.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 51474,
+      "source_sha256": "d202bace0da2fec3e59977240af31a52026e18639b6b08878ebbbd60d52fe88b",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/contracts/runtime_tasks.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/contracts/runtime_tasks.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 3350,
+      "source_sha256": "f9923462342eaaeafba6255e9f8adda54f9852ea4996cf6da0cf82e4faf32965",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/contracts/stages.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/contracts/stages.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 2036,
+      "source_sha256": "d0ac1771a1005888e53e9a322da65f959cfbcbcc665357b8783d5eb4eda9c6df",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/contracts/trading_calendar.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/contracts/trading_calendar.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 9291,
+      "source_sha256": "584f28d18273a8824c5f68a701aa4404123b5c71900caada3e2772828991ee8f",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/contracts/us_equity_calendar.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/contracts/us_equity_calendar.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 3603,
+      "source_sha256": "73f223fb032e6c3a3a9f462f41b29fd029365ecfc98942bc5413a911faeba452",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/manager_catalyst_tracking.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/manager_catalyst_tracking.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 24351,
+      "source_sha256": "3432d0c75b82dd4b06c1204cf59e378a32bc4ccc5403a695417ba47789dc05a7",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/manager_close_discovery.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/manager_close_discovery.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 16974,
+      "source_sha256": "f983b5e2bea03d1d5309467e75c2e2da0157636813183221035fac5ef2704b6b",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/manager_close_rebound.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/manager_close_rebound.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 27594,
+      "source_sha256": "aef0a7a3b767d5f74e3ef24fb1205897032d4a3be9d9995a028207c02a708b95",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/manager_condition_evidence.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/manager_condition_evidence.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 30940,
+      "source_sha256": "9e1c7a9fb04c7a3f00d11ba1c4c3c4922c86b6536190df7caa9d2205804ee3f6",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/manager_research_evidence.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/manager_research_evidence.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 19661,
+      "source_sha256": "22ccd133851afa0fd7927ae7c40370ce1130ccd77055b0044e91d863ac1da8d9",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/__init__.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/__init__.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 791,
+      "source_sha256": "f0c1d0aa21e9370ca6962dbf86a01e0325c55e718a73a7fa95e4d469f29c9855",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/_cache.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/_cache.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 7557,
+      "source_sha256": "5080b2b9daec511877f90877c0682aa6ebb506ba536ee2f44740428bca2ae0f7",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/_evidence.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/_evidence.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 8875,
+      "source_sha256": "02ae017474bdb91af0bddb89684d567f90574112f6a93527007c54c05ad0400d",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/_owned_io.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/_owned_io.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 3872,
+      "source_sha256": "dacd18dff80b84a13d98b1eae0ccb3d024f327a7d941d95bb068dd9331a15ec1",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/_snapshot.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/_snapshot.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 7857,
+      "source_sha256": "248161565dd55f8dce3a46632ada3f0b1f88fde0e01904db4ad76ef4a91ccba6",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/assembly.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/assembly.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 5780,
+      "source_sha256": "6b1c36ea8d22d8975fa0123c0e0ef1d12cf0c3323d9a4e7a37709e5d0c98de7e",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/data_core/__init__.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/data_core/__init__.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 88,
+      "source_sha256": "0e7dce5ded9af6a90921df6c7670852894e6849275b25febae1cf5e73754ae59",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/data_core/breadth.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/data_core/breadth.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 10065,
+      "source_sha256": "e74d0592856c14c10ceff97546ba5cd9ac528e9fe77022a0322a05ff473167e5",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/data_core/data.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/data_core/data.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 18006,
+      "source_sha256": "f243a1f186b37ca2fa6c76b428c4597a2ebc9ab685a2d00dbf3ceb1e7d9fd2d7",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/data_core/emotion_metrics.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/data_core/emotion_metrics.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 22793,
+      "source_sha256": "132e89d992f2f0a17fe23c9c8acc562659c5966f6e5be2e2d87ae01779682bac",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/data_core/fetchers.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/data_core/fetchers.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 12647,
+      "source_sha256": "350cdba92df688bfa827d8f115992a29c9dc4ca09093060fe5c3b47374afc168",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/data_core/fuyao_sources.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/data_core/fuyao_sources.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 14948,
+      "source_sha256": "b08e40f5574189181221eae5a37ae4ca7a1d25b565986797a037b7c76cb54b85",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/data_core/market_facts.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/data_core/market_facts.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 27965,
+      "source_sha256": "f494b1788b5710b456e6fc2dca74c05a48e0910a2463b2adf33b2c174df3e7b4",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/data_core/stats_context.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/data_core/stats_context.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 13664,
+      "source_sha256": "9a9c1e80a617ed15009b58fcafd0dba7826992e78c3e7d10e0dcd607aa74d0d2",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/data_core/theme_tree.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/data_core/theme_tree.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 13256,
+      "source_sha256": "51e42f77067315a94b0940bf7ce8608ec990a6c378be1bb2bc24c183bf1ffd9e",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/data_core/trade_calendar.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/data_core/trade_calendar.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 8089,
+      "source_sha256": "be67388f1fe1aa02701df783ee0e0aeb5dc81f0bb4a8423c138a738e8ae22c97",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/data_core/util.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/data_core/util.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 3012,
+      "source_sha256": "bf773d20ec2edf398d083b1c6beedc5234ecff9440f4632ceeaf763e12fffc6b",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/generation.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/generation.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 17101,
+      "source_sha256": "b36dcbc550f31697391ed08d00b305b9291d51e8707532589f0e7bce0b1a20c2",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/model_provider.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/model_provider.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 8195,
+      "source_sha256": "8db1dcc867cbb758cc538c4419b75d199250d96a6f1bc163876ba7356d74a9a9",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/owned_authority.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/owned_authority.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 19924,
+      "source_sha256": "7bd218fba2444085723a4d9290931463a14c6e16878cebb73e655ae4f2e98072",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/owned_runtime.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/owned_runtime.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 13098,
+      "source_sha256": "401291b45ce8a169f7027df5b49336c9bde7bb9a6634c7bce66189e01b90ced9",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/vibe_core/__init__.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/vibe_core/__init__.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 75,
+      "source_sha256": "28c57552ab121d3a582bc59e716ed90996e97ecf2d334634011b3511be4a7853",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/vibe_core/analysts.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/vibe_core/analysts.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 7605,
+      "source_sha256": "f1022ecaf5e4597683179c5e6eeed82d02b6da3a5d9c6a9e997a952e74cf520b",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/vibe_core/deepdive/__init__.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/vibe_core/deepdive/__init__.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 59,
+      "source_sha256": "e427831aaf0d571f7cb4e98723f0a00d145af60e3221afac6128dc6daa219d11",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/vibe_core/deepdive/schemas.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/vibe_core/deepdive/schemas.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 1878,
+      "source_sha256": "fd7706bb31276910ea7acc0c8ce393a7d5b7a3c86280fdc2a5ffdbe2a0a544ae",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/vibe_core/helpers.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/vibe_core/helpers.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 816,
+      "source_sha256": "dffcb252a8cb80eb415136f550d0368791f630f411525639bf3f073c745c9aaf",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/vibe_core/llm_errors.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/vibe_core/llm_errors.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 6049,
+      "source_sha256": "f48f74f3d03d537a28c0b82c11620971f2b1c41be28c7bebb7ec14ba5af131e8",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/vibe_core/preflight.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/vibe_core/preflight.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 5042,
+      "source_sha256": "5f10839944af3e12d14a46e6a5a434a9d75475ebe74a05763cfca2d3d807dfca",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/vibe_core/prompts.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/vibe_core/prompts.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 4233,
+      "source_sha256": "833962c06d4be62e9801474af6a5020d80e89f6c1460e360618361ad079a492a",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/vibe_core/reflection_context.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/vibe_core/reflection_context.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 6701,
+      "source_sha256": "cfa7140d52d7494631d8537f797567f9e5e7a0ef81581c170f5e726b3621635f",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/vibe_core/review_graph.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/vibe_core/review_graph.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 777,
+      "source_sha256": "6a21ac2ddc5b82bf10f75e4d8b104c6ef29ea29972beb92bcbb8de1e9fa60fe6",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/vibe_core/roles.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/vibe_core/roles.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 1144,
+      "source_sha256": "cacc7b2a981e3c9a3f866e5a76d7cbd2257cd78bd01332311f4ab4f959fcd86a",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/vibe_core/schemas.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/vibe_core/schemas.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 15331,
+      "source_sha256": "71c640384e6c02566e94454baf3686da49ce9ba905aca1a6cdf05bb35084ae85",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/vibe_core/serializer.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/vibe_core/serializer.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 4471,
+      "source_sha256": "82b67b12fd2bfd21d3363e63ee487e5fc8d60e049cf362f0789bd7522c0d88bc",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/vibe_core/state.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/vibe_core/state.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 1873,
+      "source_sha256": "0499048b06d1fe4376b8f82b64fb401412efed888527fc91d46a4907d5567624",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/vibe_core/structured.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/vibe_core/structured.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 3287,
+      "source_sha256": "f885d094e8c3ffaede8861ebdaa4d23b47f9624cdeff11b0336333bfb297b712",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/vibe_core/synthesizer.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/vibe_core/synthesizer.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 3187,
+      "source_sha256": "b7116799db7f73a6443fa82ee0aa8b4a98e01bf84a78e1482a0e97d70669af06",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/vibe_core/util.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/vibe_core/util.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 290,
+      "source_sha256": "71b03ab4727a209cd9b1c26b0bf7e7ce35617240b1df04fc19d986c14506222f",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/domains/research_review_generation/vibe_core/verification.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/domains/research_review_generation/vibe_core/verification.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 6714,
+      "source_sha256": "1e369984953eed3ff96bc1df6299f5fa24ef48c4019f8d69037b2673dc9755ce",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/infrastructure/data_store.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/infrastructure/data_store.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 10704,
+      "source_sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/infrastructure/hkconnect_close_store.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/infrastructure/hkconnect_close_store.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 4178,
+      "source_sha256": "aea05a0ec8b4b42e6c140715fb1bf80ffcf49ded1f25f5bb59bc3c952bce4bf8",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/infrastructure/interprocess_lock.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/infrastructure/interprocess_lock.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 7514,
+      "source_sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/infrastructure/manager_close_attempt.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/infrastructure/manager_close_attempt.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 4720,
+      "source_sha256": "ecbe2ab89bcb4837f00ff4a9c04219393cf37225a9bbafc145e0904de7ffb006",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/infrastructure/manager_input_attestation.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/infrastructure/manager_input_attestation.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 10179,
+      "source_sha256": "d26211fd83db00c551be6c11d3bbed58d13d1db054d99699fc377ee5c335f3cc",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/infrastructure/market_time.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/infrastructure/market_time.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 960,
+      "source_sha256": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/infrastructure/owned_io.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/infrastructure/owned_io.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 9354,
+      "source_sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/infrastructure/owned_path.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/infrastructure/owned_path.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 2251,
+      "source_sha256": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/infrastructure/research_peripheral_store.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/infrastructure/research_peripheral_store.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 68593,
+      "source_sha256": "17f590fedf8d404f047d888bc1af7dcfeaa0f078c05dab2aec75f8f33dcb89a6",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/infrastructure/scheduling/execution_ledger.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/infrastructure/scheduling/execution_ledger.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 22725,
+      "source_sha256": "966fba07ec9d32abcab5435441e4e574002bcdd7b63d6494ff94d7a7e7018007",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 25925,
+      "source_sha256": "fd41e7ae1ba82429fb75364d42e96c435aa5855fb471c4fb55a0d38c962aa22a",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/infrastructure/stage_store.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/infrastructure/stage_store.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 24016,
+      "source_sha256": "00d3dca6b90f86b7a6f6707f3150f2189e2eb15fcbb7eb5198db4ffd5e0392c4",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/infrastructure/trading_safety.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/infrastructure/trading_safety.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 2597,
+      "source_sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/ops/run_manager_announcement_cycle.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/ops/run_manager_announcement_cycle.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 15488,
+      "source_sha256": "d3e5a0b3ebdbe1edc1b2ee8262abcd57a2e2e7d72ffc74ce521e04a5b13faec6",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/upstreams/v3_shared_data/shared_data/allowlist.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/upstreams/v3_shared_data/shared_data/allowlist.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 3011,
+      "source_sha256": "a5e307f15416fe422a0ad36f60d6996f6a3f74753581dc589ef93149178dd206",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/upstreams/v3_shared_data/shared_data/collectors.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/upstreams/v3_shared_data/shared_data/collectors.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 8200,
+      "source_sha256": "f59dc7f70939a033fcde715aef33c5e063cb10b20c98caf17ee3a42c4884c159",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/upstreams/v3_shared_data/shared_data/constants.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/upstreams/v3_shared_data/shared_data/constants.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 2604,
+      "source_sha256": "706ea95054bcfcf3bab12a234e79a1d25bb412ba32ab0e5b5a6f3f3f6b725df8",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/upstreams/v3_shared_data/shared_data/hashing.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/upstreams/v3_shared_data/shared_data/hashing.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 1027,
+      "source_sha256": "d4bce5d9337f07ec8c3594367b0203f4eb8de71b5380f14734b5944cf45dcca6",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 14396,
+      "source_sha256": "ac2c16669236d24d6d03cac183238ca8dccd8fd23895ae14ad34cef40c049008",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/upstreams/v3_shared_data/shared_data/paths.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/upstreams/v3_shared_data/shared_data/paths.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 3986,
+      "source_sha256": "3007691db34aa721cf9549e79d9f9782bf7490ccb5d9f6ca2895f968525afdb3",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/upstreams/v3_shared_data/shared_data/store.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/upstreams/v3_shared_data/shared_data/store.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 27895,
+      "source_sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/__init__.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/__init__.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 1005,
+      "source_sha256": "7902d6b467cacfa763ca6adef297b823c924c573cdb79df2c2e04ec758c38cc4",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/activation_canary.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/activation_canary.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 66082,
+      "source_sha256": "3ffa656adca7a498c7e52ca8a351548c3301231f7b79450093f0564033da5796",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/announcement_autorun.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/announcement_autorun.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 21749,
+      "source_sha256": "1221ea84070c16c615079a3bfb462613b4ce183e64e5df7d9fc31896860bdd4d",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/announcement_observation.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/announcement_observation.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 3757,
+      "source_sha256": "d9c390738d3e094644387746e0d893fb515a6c15660989003d75143e8d0189fd",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/announcement_source.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/announcement_source.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 18355,
+      "source_sha256": "029ad49dd506ab6ff78b204a0380c03f044085e32ac43ddfb88f8dd582b9f330",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/archive_catalyst_inputs.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/archive_catalyst_inputs.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 6278,
+      "source_sha256": "968b26e66cb041adcf503e251c2c710728ce33638627123ff618357398b37b71",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/attention_decision.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/attention_decision.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 9179,
+      "source_sha256": "4b84e0469a5267771ccfe9f9f5040fc829e82f7a1b24afdeed11ebef0cb7d640",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/cache_contract.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/cache_contract.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 1949,
+      "source_sha256": "0dabc0d2787fae9af2e3c0fb3f5bf3e49c71d28649ffd30c07c31f5e8d071b7f",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/catalyst_observations.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/catalyst_observations.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 27868,
+      "source_sha256": "9b1b4ecabc635c24580ba85fc293911f635ad056b8bf49a5feaa3adc1db5057f",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/catalyst_projection.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/catalyst_projection.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 15975,
+      "source_sha256": "f0824db4b6ca7723c0e4ec47d6a34f9c1bb32a7c978974da0149ff525f5e7e13",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/contracts.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/contracts.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 12756,
+      "source_sha256": "d90f0027a8383f20a299e3058d69716e62737e9e5300afc61a8ef2ed949d402f",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/errors.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/errors.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 263,
+      "source_sha256": "324e0f53301d4ba1007e1a69c86559472347bb7124f6c216f2b3c18e2c80bc1a",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/event_source.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/event_source.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 92966,
+      "source_sha256": "a61bcc463b5c0cffdd4dbb4b5d6c8fe17315119dd07c221b95911ec1233d5585",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/evidence_identity.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/evidence_identity.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 5276,
+      "source_sha256": "6ff16b31c8e23f3bbceea7acc22cf866afc29db6f9f67158381cec2c23b3d053",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/existing_materials.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/existing_materials.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 18966,
+      "source_sha256": "c6d7a3a981f550f172c1d8023835df2ae4c5979210c1fce0afef33131401cdb8",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/financial_projection.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/financial_projection.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 37491,
+      "source_sha256": "c5aec263ae59791fe28e07ab38ac0062b39563a2a7006d6840dde43580e3372c",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/hkex_provider.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/hkex_provider.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 33818,
+      "source_sha256": "e4ded3d5c0432ec1a14a756fb9cfe4594cefd76c22357daee936c2c2fc667032",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/issuer_us_relations.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/issuer_us_relations.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 10190,
+      "source_sha256": "df70772cb94f076ffb6056feb5cfb88101c39a7ac964e4e85089c8818a6dc3b0",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/material_transport.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/material_transport.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 7239,
+      "source_sha256": "497c52c915e5485f34de27cb1fb2caca3971c77f531385a0d1f80d4587fc6ab5",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/materializer_replay.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/materializer_replay.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 32409,
+      "source_sha256": "e127ddf17581137c42cb8292a25b3f71544231499008d25a7e418c6e54374b86",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/materials.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/materials.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 9292,
+      "source_sha256": "0d3c6c3fa0404c7006e5a8127b6123b99f7fff7c4d99af04b524fc04cb0e1ac2",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/pdf_parser.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/pdf_parser.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 41935,
+      "source_sha256": "0ddf7fd5510333c70060af7de2a25dd4e6c9ac2880a0d8b97d95e84542a03383",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/ports.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/ports.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 1569,
+      "source_sha256": "d55f0bd6b5ade41ec78c429cbaea3986bb24a4723f473ef94ac0e5ad7d08afea",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/reader_source.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/reader_source.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 26075,
+      "source_sha256": "41d1abd481f043ad4309c39c04f179e3b9f2f0c511f89b32c3d4554bd7ac42f4",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/recommendation.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/recommendation.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 53414,
+      "source_sha256": "5a26bd6145a30d3314f8268a9fcffc57fc35f329e75492b97d9726b6c3eeffb4",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/research_attention.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/research_attention.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 16298,
+      "source_sha256": "141d95c3c58a63b8bc51d09622373e6853c89a17b279181d07a84bfeba4b3969",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/research_evidence.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/research_evidence.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 24963,
+      "source_sha256": "6aa501e825037ac4b9dbe3e8c0eaac4f6eed3ad5d4642a31ac0ccd74be6b74df",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/safety.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/safety.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 3272,
+      "source_sha256": "c82fcdee6845e765783584f5ac46a9d4ca6b6b9fda1c3c2e919c17ab17c7f3e8",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/service.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/service.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 91199,
+      "source_sha256": "e91b362a207158d22503ba0d8fd15f05534e7b5d5c6ef36055ab9e09d5bcc158",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/stage_read_timing.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/stage_read_timing.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 4332,
+      "source_sha256": "bfbab170b4e8b32e1bdd0405282825989f0382aeb41e6044fe22d0fdeca6ae38",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/store.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/store.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 18387,
+      "source_sha256": "3e679e153516c2463630af2116ff57ae924468c5d0cd87b86abd2d2b077a934d",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/us_market_bridge.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/us_market_bridge.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 14192,
+      "source_sha256": "46fcf3fce15dfce4ae45e8eefe2c9b619d884f602d4f5b4261f163755debf0ae",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/vibe_binding_preflight.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/vibe_binding_preflight.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 2936,
+      "source_sha256": "b5b108f8e327b67ef43fd91ce33da936b2cfc7a67dae3b0f129071dff8c6554d",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/workspace.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/workspace.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 33935,
+      "source_sha256": "26605391a103619af08d0f93698ffea164df401abbd50fe45cc528aeecc9d1f4",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/workspace_actions.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/workspace_actions.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 14843,
+      "source_sha256": "9ae8f53fd261e5a28f97029e76ee0b296d7befb02a32a0f6689229b5000b2ecf",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/workspace_announcements.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/workspace_announcements.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 27156,
+      "source_sha256": "4d0828090ddada39f0280063afc88f5c9e0edd6bf1a0f099c997eb17689a988b",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/workspace_briefing.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/workspace_briefing.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 31633,
+      "source_sha256": "9b71d991d95de5040b9926ff97a1dd1b1c19f0d1fe561b84ac670a7267e0354f",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/workspace_discovery.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/workspace_discovery.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 21486,
+      "source_sha256": "bf412420ab89aeeede91d8c0beb8cebb9a3dc58c22afc30afc6de0d97964e0bf",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/workspace_history.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/workspace_history.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 13383,
+      "source_sha256": "44d4506bb12b4fe875ce6ce359d265c1221c153f0c89f035acd6dbf84430bb2b",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/workspace_plan.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/workspace_plan.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 64068,
+      "source_sha256": "96e8e8b7763f932cf353316acbfb45991b79fe00f1a7ca007659ebb76c728f4c",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/workspace_plan_autorun.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/workspace_plan_autorun.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 5803,
+      "source_sha256": "ec257948eb39a7157652d9e13e4aed4a91c55d66ce1df1e5d1bd7b277ee6d3a8",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/workspace_projection.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/workspace_projection.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 27450,
+      "source_sha256": "f5003b4de58db760e3d864473c5ce62846bb0e8ae1acdc8a8e77544272f865b8",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/workspace_read_control.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/workspace_read_control.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 10927,
+      "source_sha256": "491e3569e8f00586ca6f4e9982e182584d2f2a0437f83da66767b7ffdbf1fb25",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/v4/manager_research/workspace_semantics.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/v4/manager_research/workspace_semantics.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 31663,
+      "source_sha256": "f11f4d3a47c62dc844569fef392948781198c87ef7da0655bde1201084e26e4e",
+      "note": "Static Python import closure from manager API/owner roots"
+    },
+    {
+      "package_path": "sources/active_api/apps/api/v35_api/app.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/apps/api/v35_api/app.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 29304,
+      "source_sha256": "6bf47d61b11b24f720c0b243d36aad2db7e845e1c062382f36baf29a5b89c385",
+      "note": "Entrypoint or calendar context; intentionally not whole-app dependency closure"
+    },
+    {
+      "package_path": "sources/active_api/apps/api/v35_api/run.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/apps/api/v35_api/run.py",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 2616,
+      "source_sha256": "bcd4e623eabaedcc41a0e438942d755b578dbcc6a60c0ab0cf032af74fdbba43",
+      "note": "Entrypoint or calendar context; intentionally not whole-app dependency closure"
+    },
+    {
+      "package_path": "sources/active_api/contracts/market_calendar_2026.json",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/contracts/market_calendar_2026.json",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 3473,
+      "source_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+      "note": "Entrypoint or calendar context; intentionally not whole-app dependency closure"
+    },
+    {
+      "package_path": "sources/active_api/contracts/trading_calendar_2026.json",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/contracts/trading_calendar_2026.json",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 660,
+      "source_sha256": "703bafff4c81f23e0b4a52418a34f78a8f79fad76064040c18e02031a36e6eb2",
+      "note": "Entrypoint or calendar context; intentionally not whole-app dependency closure"
+    },
+    {
+      "package_path": "sources/active_api/contracts/us_equity_calendar_2026.json",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/contracts/us_equity_calendar_2026.json",
+      "source_layer": "ACTIVE_API_RELEASE_20260928_R2",
+      "source_bytes": 603,
+      "source_sha256": "cd8eac440e985be8fe9700983584dd1108873b68d5cc91cae2cbe8f7283a422f",
+      "note": "Entrypoint or calendar context; intentionally not whole-app dependency closure"
+    },
+    {
+      "package_path": "sources/active_scheduler/ops/run_v35_macos_scheduler_daemon.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260928-manager-daily-plan-hook-r1/app/ops/run_v35_macos_scheduler_daemon.py",
+      "source_layer": "ACTIVE_SCHEDULER_RELEASE_20260928_R1",
+      "source_bytes": 34320,
+      "source_sha256": "19e071da0c6b6748465853c4ad86a80d6060524333e9dab21647b67adc8b49ec",
+      "note": "Active hook/scheduler source"
+    },
+    {
+      "package_path": "sources/active_scheduler/ops/run_v35_macos_scheduler.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260928-manager-daily-plan-hook-r1/app/ops/run_v35_macos_scheduler.py",
+      "source_layer": "ACTIVE_SCHEDULER_RELEASE_20260928_R1",
+      "source_bytes": 25218,
+      "source_sha256": "f707df50c31f03fd51e439eece0d86dd60647d8d989e9a760f2ef1f2222c6f0d",
+      "note": "Active hook/scheduler source"
+    },
+    {
+      "package_path": "sources/active_scheduler/ops/launch_v35_macos_scheduler.sh",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260928-manager-daily-plan-hook-r1/app/ops/launch_v35_macos_scheduler.sh",
+      "source_layer": "ACTIVE_SCHEDULER_RELEASE_20260928_R1",
+      "source_bytes": 3982,
+      "source_sha256": "0c577ae83b1f182dabf3b62e642a5bd5f0f8708b48e1806d8c653b691d2ec952",
+      "note": "Active hook/scheduler source"
+    },
+    {
+      "package_path": "tests/active_release/api/test_manager_plan_identity_r2.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/tests/test_manager_plan_identity_r2.py",
+      "source_layer": "ACTIVE_RELEASE_TEST_BASELINE",
+      "source_bytes": 5689,
+      "source_sha256": "ebe66a16cd19edbe56086bd52cd9f74fac8849e2a0f52458c30a3f49685d3ce4",
+      "note": "Test file from the exact installed release"
+    },
+    {
+      "package_path": "tests/active_release/api/test_manager_workspace_targeted_r2.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/tests/test_manager_workspace_targeted_r2.py",
+      "source_layer": "ACTIVE_RELEASE_TEST_BASELINE",
+      "source_bytes": 19478,
+      "source_sha256": "ff1c19f0d27ebc6c8f0bb9db91a9128086e8711600b3ab91eece115a24e3fcf5",
+      "note": "Test file from the exact installed release"
+    },
+    {
+      "package_path": "tests/active_release/api/test_manager_business_completion_a.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/tests/test_manager_business_completion_a.py",
+      "source_layer": "ACTIVE_RELEASE_TEST_BASELINE",
+      "source_bytes": 42758,
+      "source_sha256": "d712a2fb1c79afbbfc683463b8a8eb63c1f95c2aabe0252d09efb0481b879429",
+      "note": "Test file from the exact installed release"
+    },
+    {
+      "package_path": "tests/active_release/api/test_us_relation_pipeline_r2.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/tests/test_us_relation_pipeline_r2.py",
+      "source_layer": "ACTIVE_RELEASE_TEST_BASELINE",
+      "source_bytes": 14570,
+      "source_sha256": "8129be4dbf2670869cde36a3132758adeb8f55d433f41e22ed72254d73880b0c",
+      "note": "Test file from the exact installed release"
+    },
+    {
+      "package_path": "tests/active_release/api/test_manager_research_reader.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/tests/test_manager_research_reader.py",
+      "source_layer": "ACTIVE_RELEASE_TEST_BASELINE",
+      "source_bytes": 21528,
+      "source_sha256": "751e2384c6b54ba3c1a525c9f203436693065c588190d215a884f0a990ac78c1",
+      "note": "Test file from the exact installed release"
+    },
+    {
+      "package_path": "tests/active_release/api/test_manager_research_service.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/tests/test_manager_research_service.py",
+      "source_layer": "ACTIVE_RELEASE_TEST_BASELINE",
+      "source_bytes": 5208,
+      "source_sha256": "76ad72b5cd9476241f58c447ee5082d096373f1aba6f397477f52ce322aeb906",
+      "note": "Test file from the exact installed release"
+    },
+    {
+      "package_path": "tests/active_release/api/test_manager_research_router_contract.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app/tests/test_manager_research_router_contract.py",
+      "source_layer": "ACTIVE_RELEASE_TEST_BASELINE",
+      "source_bytes": 4863,
+      "source_sha256": "673349cac3d50bda4abe6a6f1869811d0e5cab4ef95921610e1286cd14163419",
+      "note": "Test file from the exact installed release"
+    },
+    {
+      "package_path": "tests/active_release/scheduler/test_macos_scheduler_daemon.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260928-manager-daily-plan-hook-r1/app/tests/test_macos_scheduler_daemon.py",
+      "source_layer": "ACTIVE_RELEASE_TEST_BASELINE",
+      "source_bytes": 13839,
+      "source_sha256": "fc555cbbf1c5cc887f0756e85a7002ce4e1e3499adc5578cfa714070dde97a93",
+      "note": "Test file from the exact installed release"
+    },
+    {
+      "package_path": "tests/canonical_repo_different_baseline/tests/test_manager_plan_identity_r2.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/tests/test_manager_plan_identity_r2.py",
+      "source_layer": "CANONICAL_V4_APP_WORKTREE_TESTS",
+      "source_bytes": 5689,
+      "source_sha256": "ebe66a16cd19edbe56086bd52cd9f74fac8849e2a0f52458c30a3f49685d3ce4",
+      "note": "Canonical repository worktree file; may be modified/untracked and is not the active release preimage"
+    },
+    {
+      "package_path": "tests/canonical_repo_different_baseline/tests/test_manager_workspace_targeted_r2.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/tests/test_manager_workspace_targeted_r2.py",
+      "source_layer": "CANONICAL_V4_APP_WORKTREE_TESTS",
+      "source_bytes": 19595,
+      "source_sha256": "9e4a7d2977eedda3975bb17b7594e82a3e95e2872aeac626ed34478165d8843a",
+      "note": "Canonical repository worktree file; may be modified/untracked and is not the active release preimage"
+    },
+    {
+      "package_path": "tests/canonical_repo_different_baseline/tests/test_manager_business_completion_a.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/tests/test_manager_business_completion_a.py",
+      "source_layer": "CANONICAL_V4_APP_WORKTREE_TESTS",
+      "source_bytes": 42758,
+      "source_sha256": "d712a2fb1c79afbbfc683463b8a8eb63c1f95c2aabe0252d09efb0481b879429",
+      "note": "Canonical repository worktree file; may be modified/untracked and is not the active release preimage"
+    },
+    {
+      "package_path": "tests/canonical_repo_different_baseline/tests/test_us_relation_pipeline_r2.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/tests/test_us_relation_pipeline_r2.py",
+      "source_layer": "CANONICAL_V4_APP_WORKTREE_TESTS",
+      "source_bytes": 14570,
+      "source_sha256": "8129be4dbf2670869cde36a3132758adeb8f55d433f41e22ed72254d73880b0c",
+      "note": "Canonical repository worktree file; may be modified/untracked and is not the active release preimage"
+    },
+    {
+      "package_path": "tests/canonical_repo_different_baseline/tests/test_manager_research_reader.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/tests/test_manager_research_reader.py",
+      "source_layer": "CANONICAL_V4_APP_WORKTREE_TESTS",
+      "source_bytes": 21528,
+      "source_sha256": "751e2384c6b54ba3c1a525c9f203436693065c588190d215a884f0a990ac78c1",
+      "note": "Canonical repository worktree file; may be modified/untracked and is not the active release preimage"
+    },
+    {
+      "package_path": "tests/canonical_repo_different_baseline/tests/test_v35_macos_scheduler_announcement_hook.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/tests/test_v35_macos_scheduler_announcement_hook.py",
+      "source_layer": "CANONICAL_V4_APP_WORKTREE_TESTS",
+      "source_bytes": 19093,
+      "source_sha256": "815bd1a5f4859cc89a121f413f211c2a4562a7711647e8f89a39f823d0297516",
+      "note": "Canonical repository worktree file; may be modified/untracked and is not the active release preimage"
+    },
+    {
+      "package_path": "config/manager-plan-binding-r2.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_DAILY_CHAIN_FIX_20260928/staged_config/manager-daily-plan-hook-r1/manager-plan-binding-r2.json",
+      "source_layer": "PRIOR_MANAGER_CHAIN_EVIDENCE",
+      "source_bytes": 30090,
+      "source_sha256": "35cbd9b05cf858f1b26c7eafc4d18151895887dcaebea09cb57ffb4909fbef07",
+      "note": "Existing receipt/config copied read-only"
+    },
+    {
+      "package_path": "config/plan_refresh_canary_r2.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_DAILY_CHAIN_FIX_20260928/staged_config/manager-daily-plan-hook-r1/plan_refresh_canary_r2.json",
+      "source_layer": "PRIOR_MANAGER_CHAIN_EVIDENCE",
+      "source_bytes": 2312,
+      "source_sha256": "534321d02f4a1d65533198692eff21e6da6ffa1c12763ffcd22f9fd849ca37e8",
+      "note": "Existing receipt/config copied read-only"
+    },
+    {
+      "package_path": "evidence/manager/FINAL_RUNTIME_STATUS.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_DAILY_CHAIN_FIX_20260928/FINAL_RUNTIME_STATUS.json",
+      "source_layer": "PRIOR_MANAGER_CHAIN_EVIDENCE",
+      "source_bytes": 2386,
+      "source_sha256": "7bbdfc012e661ea1b32f4db07a45632e7e0f344a368441b7496af084e97bb15e",
+      "note": "Existing receipt/config copied read-only"
+    },
+    {
+      "package_path": "evidence/manager/api_cutover_r2_receipt.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_DAILY_CHAIN_FIX_20260928/api_cutover_r2_receipt.json",
+      "source_layer": "PRIOR_MANAGER_CHAIN_EVIDENCE",
+      "source_bytes": 474,
+      "source_sha256": "31106ca2f6a240b88b8bfc2d2613019b05af77f067fd9c4354b80063bd73d6a5",
+      "note": "Existing receipt/config copied read-only"
+    },
+    {
+      "package_path": "evidence/manager/scheduler_cutover_receipt.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_DAILY_CHAIN_FIX_20260928/scheduler_cutover_receipt.json",
+      "source_layer": "PRIOR_MANAGER_CHAIN_EVIDENCE",
+      "source_bytes": 1168,
+      "source_sha256": "d49956fc29de567a8c3078189f663b3a4ee5ca76e186e77081806698fb369dab",
+      "note": "Existing receipt/config copied read-only"
+    },
+    {
+      "package_path": "evidence/manager/reviewer/plan_refresh_canary_actual_owner.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_DAILY_CHAIN_FIX_20260928/reviewer/plan_refresh_canary_actual_owner.json",
+      "source_layer": "PRIOR_MANAGER_CHAIN_EVIDENCE",
+      "source_bytes": 1649,
+      "source_sha256": "165d01a94b5472c59f323f77a9b6808d1c7399fec67f4534f9aa09486a19019e",
+      "note": "Existing receipt/config copied read-only"
+    },
+    {
+      "package_path": "evidence/manager/reviewer/plan_owner_source_migration_v2_candidate.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_DAILY_CHAIN_FIX_20260928/reviewer/plan_owner_source_migration_v2_candidate.json",
+      "source_layer": "PRIOR_MANAGER_CHAIN_EVIDENCE",
+      "source_bytes": 1811,
+      "source_sha256": "f3b6b0c4f4b1c1af4e34970b29ac0426c69b6b2c4d398f46a865fed0e1450e81",
+      "note": "Existing receipt/config copied read-only"
+    },
+    {
+      "package_path": "evidence/manager/reviewer/plan_only_migration_v2_review.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_DAILY_CHAIN_FIX_20260928/reviewer/plan_only_migration_v2_review.json",
+      "source_layer": "PRIOR_MANAGER_CHAIN_EVIDENCE",
+      "source_bytes": 6705,
+      "source_sha256": "6f10ca7de7ec665f7e521dcd808d8ac4fd0a68c1aed166347671b09a61fa943f",
+      "note": "Existing receipt/config copied read-only"
+    },
+    {
+      "package_path": "evidence/manager/reviewer/plan_only_final_config_review.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_DAILY_CHAIN_FIX_20260928/reviewer/plan_only_final_config_review.json",
+      "source_layer": "PRIOR_MANAGER_CHAIN_EVIDENCE",
+      "source_bytes": 4850,
+      "source_sha256": "88cd3427b3af3dfb7301e916a23828b7b36c86e65695cd258c0955fc37288386",
+      "note": "Existing receipt/config copied read-only"
+    },
+    {
+      "package_path": "evidence/manager/reviewer/daily_pytdx_scheduler_source_review.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_DAILY_CHAIN_FIX_20260928/reviewer/daily_pytdx_scheduler_source_review.json",
+      "source_layer": "PRIOR_MANAGER_CHAIN_EVIDENCE",
+      "source_bytes": 5042,
+      "source_sha256": "d5c05065aa82634b6dbb2ff3b99ee827b7b362336e8d7a0433d895a447a26b4b",
+      "note": "Existing receipt/config copied read-only"
+    },
+    {
+      "package_path": "evidence/manager/reviewer/daily_pytdx_scheduler_test_result.txt",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_DAILY_CHAIN_FIX_20260928/reviewer/daily_pytdx_scheduler_test_result.txt",
+      "source_layer": "PRIOR_MANAGER_CHAIN_EVIDENCE",
+      "source_bytes": 209,
+      "source_sha256": "8eeb6215dc5144d95f7ae4b3fb6ecc43a9374bf1413f28ed0dda5f3f8d6ec986",
+      "note": "Existing receipt/config copied read-only"
+    },
+    {
+      "package_path": "evidence/hkex/HKEX_R3_original.zip",
+      "source_path": "/Users/lexi/Downloads/HKEX_R2_TWO_P1_REPAIR_20260928_R3.zip",
+      "source_layer": "PRIOR_HKEX_EVIDENCE",
+      "source_bytes": 553651,
+      "source_sha256": "63329f49d546af06f2244a41eb3979310003b5d489a54f1646b85fa47eef01f8",
+      "note": "Existing request/response/protocol receipt; no new probe"
+    },
+    {
+      "package_path": "evidence/hkex/V4_MANAGER_HKEX_NEW_SESSION_HANDOFF_20260928.md",
+      "source_path": "/Users/lexi/Downloads/V4_MANAGER_HKEX_NEW_SESSION_HANDOFF_20260928.md",
+      "source_layer": "PRIOR_HKEX_EVIDENCE",
+      "source_bytes": 9913,
+      "source_sha256": "67919530e58025c87c7b57b1d46204b114383cf2cc3e48f265b67c9176b27713",
+      "note": "Existing request/response/protocol receipt; no new probe"
+    },
+    {
+      "package_path": "evidence/hkex/reviewer/final_live_protocol_adjudication.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_TWO_P1_R3_LOCAL_20260928/reviewer/final_live_protocol_adjudication.json",
+      "source_layer": "PRIOR_HKEX_EVIDENCE",
+      "source_bytes": 8134,
+      "source_sha256": "437b65193f5b8a277a4731a39966d41bd47b7594588f9070b806f740e6a1f1ae",
+      "note": "Existing request/response/protocol receipt; no new probe"
+    },
+    {
+      "package_path": "evidence/hkex/reviewer/actual_owner_singleton_review.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_TWO_P1_R3_LOCAL_20260928/reviewer/actual_owner_singleton_review.json",
+      "source_layer": "PRIOR_HKEX_EVIDENCE",
+      "source_bytes": 3961,
+      "source_sha256": "982f067363c9b80e06f8d60acc9111175080c5308a9a6d57dec077532d96cc30",
+      "note": "Existing request/response/protocol receipt; no new probe"
+    },
+    {
+      "package_path": "evidence/hkex/reviewer/actual_owner_singleton_00001_adjudication.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_TWO_P1_R3_LOCAL_20260928/reviewer/actual_owner_singleton_00001_adjudication.json",
+      "source_layer": "PRIOR_HKEX_EVIDENCE",
+      "source_bytes": 5320,
+      "source_sha256": "43280337d76508f5e130e3683a8f5bd0766235b75c5f51d46a15e79283196fb7",
+      "note": "Existing request/response/protocol receipt; no new probe"
+    },
+    {
+      "package_path": "evidence/hkex/reviewer/leading_hyphen_review.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_TWO_P1_R3_LOCAL_20260928/reviewer/leading_hyphen_review.json",
+      "source_layer": "PRIOR_HKEX_EVIDENCE",
+      "source_bytes": 4964,
+      "source_sha256": "f159c17a4d841887203eda16155a989668ae6a21b3b8b75009978b5414d78892",
+      "note": "Existing request/response/protocol receipt; no new probe"
+    },
+    {
+      "package_path": "evidence/hkex/reviewer/receipt.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_TWO_P1_R3_LOCAL_20260928/reviewer/receipt.json",
+      "source_layer": "PRIOR_HKEX_EVIDENCE",
+      "source_bytes": 5384,
+      "source_sha256": "3ae1d12a9150cc8fd376febb1819454db1e8621fea5ef718142f036cd415c56e",
+      "note": "Existing request/response/protocol receipt; no new probe"
+    },
+    {
+      "package_path": "evidence/hkex/receipt.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_TWO_P1_R3_LOCAL_20260928/receipt.json",
+      "source_layer": "PRIOR_HKEX_EVIDENCE",
+      "source_bytes": 19844,
+      "source_sha256": "cbb49eabcf93625fc974f226c729eb52478379490ecb2bb2dc421c98bf2e3796",
+      "note": "Existing request/response/protocol receipt; no new probe"
+    },
+    {
+      "package_path": "evidence/hkex/REVIEW_HANDOFF.md",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_TWO_P1_R3_LOCAL_20260928/REVIEW_HANDOFF.md",
+      "source_layer": "PRIOR_HKEX_EVIDENCE",
+      "source_bytes": 3591,
+      "source_sha256": "afe712246b3fcf518d71c457df147fc5b26f3322f137e7c8dcf47d93464e603a",
+      "note": "Existing request/response/protocol receipt; no new probe"
+    },
+    {
+      "package_path": "evidence/hkex/actual_owner_singleton_request.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_TWO_P1_R3_LOCAL_20260928/actual-owner-singleton-00001/request.json",
+      "source_layer": "PRIOR_HKEX_EVIDENCE",
+      "source_bytes": 1049,
+      "source_sha256": "815ef99e19cdbd689250eb11f59cafff74980948c2c837905d9f2d24b42d460a",
+      "note": "Existing request/response/protocol receipt; no new probe"
+    },
+    {
+      "package_path": "evidence/hkex/actual_owner_singleton_attempt.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_TWO_P1_R3_LOCAL_20260928/actual-owner-singleton-00001/original_owner_attempt.json",
+      "source_layer": "PRIOR_HKEX_EVIDENCE",
+      "source_bytes": 25434,
+      "source_sha256": "54bfdfe77bc876877fc2f5212557eaa3e9bb4dfd6879619b6dc3a1d04d02f1b4",
+      "note": "Existing request/response/protocol receipt; no new probe"
+    },
+    {
+      "package_path": "evidence/hkex/actual_owner_singleton_hyphenfix_request.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_TWO_P1_R3_LOCAL_20260928/actual-owner-singleton-00001-hyphenfix/request.json",
+      "source_layer": "PRIOR_HKEX_EVIDENCE",
+      "source_bytes": 1049,
+      "source_sha256": "815ef99e19cdbd689250eb11f59cafff74980948c2c837905d9f2d24b42d460a",
+      "note": "Existing request/response/protocol receipt; no new probe"
+    },
+    {
+      "package_path": "evidence/hkex/actual_owner_singleton_hyphenfix_attempt.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_TWO_P1_R3_LOCAL_20260928/actual-owner-singleton-00001-hyphenfix/original_owner_attempt.json",
+      "source_layer": "PRIOR_HKEX_EVIDENCE",
+      "source_bytes": 31480,
+      "source_sha256": "6a969afd4512c58a6cd39184b13e5483ffec3de4b7f73212292a55986e399f57",
+      "note": "Existing request/response/protocol receipt; no new probe"
+    },
+    {
+      "package_path": "evidence/hkex/actual_owner_singleton_00003_request.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_TWO_P1_R3_LOCAL_20260928/actual-owner-singleton-00003/request.json",
+      "source_layer": "PRIOR_HKEX_EVIDENCE",
+      "source_bytes": 1061,
+      "source_sha256": "1432e5fa68202190358780c7977781fe73ca96aa051f78fc35e7edd26da6ad99",
+      "note": "Existing request/response/protocol receipt; no new probe"
+    },
+    {
+      "package_path": "evidence/hkex/actual_owner_singleton_00003_attempt.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_TWO_P1_R3_LOCAL_20260928/actual-owner-singleton-00003/original_owner_attempt.json",
+      "source_layer": "PRIOR_HKEX_EVIDENCE",
+      "source_bytes": 31506,
+      "source_sha256": "85d2e5f869c222dfd9247c3df12fffbbefdf3c801987ed82cd415b519e31b1da",
+      "note": "Existing request/response/protocol receipt; no new probe"
+    },
+    {
+      "package_path": "evidence/hkex/actual_owner_plan_09969_request.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_TWO_P1_R3_LOCAL_20260928/actual-owner-plan-20260929-09969/request.json",
+      "source_layer": "PRIOR_HKEX_EVIDENCE",
+      "source_bytes": 1027,
+      "source_sha256": "c80cc57e7ebefa91cb13c2a62cb1ecbd49d8885a1382039828094a2134f66f70",
+      "note": "Existing request/response/protocol receipt; no new probe"
+    },
+    {
+      "package_path": "evidence/hkex/actual_owner_plan_09969_attempt.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_TWO_P1_R3_LOCAL_20260928/actual-owner-plan-20260929-09969/original_owner_attempt.json",
+      "source_layer": "PRIOR_HKEX_EVIDENCE",
+      "source_bytes": 31551,
+      "source_sha256": "24f57bfe434c0d27de6e5f881a81991ab3e4ab758bd6688fd1f69c56ee8fdcde",
+      "note": "Existing request/response/protocol receipt; no new probe"
+    },
+    {
+      "package_path": "evidence/hkex/actual_owner_plan_09969_provenance.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_TWO_P1_R3_LOCAL_20260928/request_plan_20260929_single_09969.provenance.json",
+      "source_layer": "PRIOR_HKEX_EVIDENCE",
+      "source_bytes": 515,
+      "source_sha256": "050dfbbd21e76e39f0c99df139fa747d55c70a3e065cd3fcf0f07253b63619d4",
+      "note": "Existing request/response/protocol receipt; no new probe"
+    },
+    {
+      "package_path": "evidence/hkex/request_single_00001.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_TWO_P1_R3_LOCAL_20260928/request_single_00001.json",
+      "source_layer": "PRIOR_HKEX_EVIDENCE",
+      "source_bytes": 1049,
+      "source_sha256": "815ef99e19cdbd689250eb11f59cafff74980948c2c837905d9f2d24b42d460a",
+      "note": "Existing request/response/protocol receipt; no new probe"
+    },
+    {
+      "package_path": "evidence/hkex/request_single_00003.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_TWO_P1_R3_LOCAL_20260928/request_single_00003.json",
+      "source_layer": "PRIOR_HKEX_EVIDENCE",
+      "source_bytes": 1061,
+      "source_sha256": "1432e5fa68202190358780c7977781fe73ca96aa051f78fc35e7edd26da6ad99",
+      "note": "Existing request/response/protocol receipt; no new probe"
+    },
+    {
+      "package_path": "evidence/hkex/request_plan_09969.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_TWO_P1_R3_LOCAL_20260928/request_plan_20260929_single_09969.json",
+      "source_layer": "PRIOR_HKEX_EVIDENCE",
+      "source_bytes": 1027,
+      "source_sha256": "c80cc57e7ebefa91cb13c2a62cb1ecbd49d8885a1382039828094a2134f66f70",
+      "note": "Existing request/response/protocol receipt; no new probe"
+    },
+    {
+      "package_path": "evidence/hkex/request_single_00002.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_ALL_QUERY_LOCAL_R2_20260928/request_single_00002.json",
+      "source_layer": "PRIOR_HKEX_EVIDENCE",
+      "source_bytes": 1054,
+      "source_sha256": "69473318df150f1799c305cd0e38cfba5e1f6dae5dd298943c144a9112d673f0",
+      "note": "Existing request/response/protocol receipt; no new probe"
+    },
+    {
+      "package_path": "evidence/hkex/actual_owner_all_query_attempt.json",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_ALL_QUERY_LOCAL_R2_20260928/actual-owner/original_owner_attempt.json",
+      "source_layer": "PRIOR_HKEX_EVIDENCE",
+      "source_bytes": 34808,
+      "source_sha256": "c3f1c91ce67e09e1f511a77e77fe310c1cbebe942c972c957a77b0f1497355a3",
+      "note": "Existing request/response/protocol receipt; no new probe"
+    },
+    {
+      "package_path": "sources/isolated_hkex_candidate/v4/manager_research/announcement_source.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_ALL_QUERY_LOCAL_R2_20260928/writer/candidate/v4/manager_research/announcement_source.py",
+      "source_layer": "ISOLATED_HKEX_CANDIDATE_NOT_ACTIVE",
+      "source_bytes": 20671,
+      "source_sha256": "e3b90c2c09b6f8c4a39bcfd8c8912e3476011a8faf59b94f4069ccaa81ae0d24",
+      "note": "Candidate source only; SHA differs from active announcement_source.py"
+    },
+    {
+      "package_path": "evidence/stored_research/research/hourly/live/20260926/0830.json",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20260926/0830.json",
+      "source_layer": "ORIGINAL_STORED_RESEARCH_PAYLOAD",
+      "source_bytes": 991305,
+      "source_sha256": "85968f0112cddedbac46ba0471fbdcd47bedc892cc40af967255c0830d303b29",
+      "note": "Copied exact source payload cited by raw API; SHA checked against source_refs"
+    },
+    {
+      "package_path": "evidence/stored_research/receipts/research/hourly/live/20260926/0830.json",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/receipts/research/hourly/live/20260926/0830.json",
+      "source_layer": "ORIGINAL_STORED_RESEARCH_RECEIPT",
+      "source_bytes": 451,
+      "source_sha256": "d9cd91bca2f8ecce4e7ba8404c4680b24cf5bdc09a2394c2836eeb3d87f4220b",
+      "note": "Copied exact source receipt cited by raw API; SHA checked against source_refs"
+    },
+    {
+      "package_path": "evidence/stored_research/research/hourly/live/20260928/0830.json",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20260928/0830.json",
+      "source_layer": "ORIGINAL_STORED_RESEARCH_PAYLOAD",
+      "source_bytes": 799192,
+      "source_sha256": "ed256275b5244073099b875a3ecf2cea6745ece35610d445a7ae984d3969ef52",
+      "note": "Copied exact source payload cited by raw API; SHA checked against source_refs"
+    },
+    {
+      "package_path": "evidence/stored_research/receipts/research/hourly/live/20260928/0830.json",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/receipts/research/hourly/live/20260928/0830.json",
+      "source_layer": "ORIGINAL_STORED_RESEARCH_RECEIPT",
+      "source_bytes": 451,
+      "source_sha256": "e27bbcd5baa6b8ee9eb0d7b2f0837c54e6907353804b7dec205bd0895cce9d59",
+      "note": "Copied exact source receipt cited by raw API; SHA checked against source_refs"
+    },
+    {
+      "package_path": "evidence/stored_research/research/archives/20260927.json",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/archives/20260927.json",
+      "source_layer": "ORIGINAL_STORED_RESEARCH_PAYLOAD",
+      "source_bytes": 22680,
+      "source_sha256": "36128b61bd3077d89918d7d4802813a600291cccaa48e77c174bd7a6f0093d39",
+      "note": "Copied exact source payload cited by raw API; SHA checked against source_refs"
+    },
+    {
+      "package_path": "evidence/stored_research/receipts/research/archives/20260927.json",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/receipts/research/archives/20260927.json",
+      "source_layer": "ORIGINAL_STORED_RESEARCH_RECEIPT",
+      "source_bytes": 414,
+      "source_sha256": "854adcc0f79e06dad2f9bda3eaa1e5dc25a5d303c31fe9b60c21d47dd920f6cc",
+      "note": "Copied exact source receipt cited by raw API; SHA checked against source_refs"
+    },
+    {
+      "package_path": "evidence/stored_research/research/hourly/live/20260925/0830.json",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research/hourly/live/20260925/0830.json",
+      "source_layer": "ORIGINAL_STORED_RESEARCH_PAYLOAD",
+      "source_bytes": 1028643,
+      "source_sha256": "6825f2dda032d8071cdb5e082e275a78f70bc640b005eeceafea0b0cf731422a",
+      "note": "Copied exact source payload cited by raw API; SHA checked against source_refs"
+    },
+    {
+      "package_path": "evidence/stored_research/receipts/research/hourly/live/20260925/0830.json",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/receipts/research/hourly/live/20260925/0830.json",
+      "source_layer": "ORIGINAL_STORED_RESEARCH_RECEIPT",
+      "source_bytes": 451,
+      "source_sha256": "f87870c821fa1e6eb4550ac9f61881e8cfc4a4963c403c0cd1cdb32ed86aa4a5",
+      "note": "Copied exact source receipt cited by raw API; SHA checked against source_refs"
+    }
+  ]
+}
