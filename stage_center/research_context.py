@@ -37,6 +37,21 @@ _DATE_RE = re.compile(r"^\d{8}$")
 _SLOT_RE = re.compile(r"^(?:[01]\d|2[0-3])[0-5]\d$")
 _SHA_RE = re.compile(r"^[0-9a-fA-F]{64}$")
 
+# This isolated recovery overlay supports one exact source/archive pair whose
+# original V3.5 archive retained report-role exclusion warnings.  It is not a
+# general legacy fallback and never alters the frozen archive or its warnings.
+_V35_ROLE_WARNING_SOURCE_SHA256 = "5af979bc7a00fb48547ce1bf160622a2202885165b833baea35961481a13d34d"
+_V35_ROLE_WARNING_ARCHIVE_BASE_SHA256 = "c930018edb379e3863619918b97291f97cdfc6546e8222c2aff1039eea2570d1"
+_V35_ROLE_WARNING_SOURCE_IDENTITY = {
+    "producer": "ops.collect_hourly_research_input",
+    "module_path": "v3.5/domains/research_hourly",
+    "version": "20260928140002-fcbd7b14",
+    "producer_oracle_sha256": "850fffdf16b7c0127852cbe9cc374aed353e8d7cb1c2ba73d2eff880c95d022e",
+    "collector_identity_sha256": "66b941f5a066250c4fd9830170302b8b1f7041760a37c6e4bf02ea222aa307ab",
+    "research_hourly_domain_identity_sha256": "6c67bec8d162ed47d8ebc20ce9ae8da2b8e520399260165cc0bb992baa9c8e22",
+    "report_subject_policy_sha256": "0308fe6172e96b32e2ad0c2baa1187247e046d70c55134b329087e77a2297351",
+}
+
 
 @dataclass(frozen=True)
 class ResearchScore:
@@ -162,6 +177,105 @@ def _payload_base_sha(payload: Mapping[str, Any]) -> str:
     without_extension = dict(payload)
     without_extension.pop("stage_evidence_v1", None)
     return _canonical_sha256(without_extension)
+
+
+def _apply_exact_v35_role_warning_projection(
+    projected: Mapping[str, Any],
+    source: Mapping[str, Any],
+    payload: Mapping[str, Any],
+    *,
+    trade_date: str,
+    slot: str,
+    source_input_sha256: str,
+) -> tuple[dict[str, Any], tuple[str, ...]]:
+    """Reproduce the exact V3.5 role-warning part of one verified archive.
+
+    The original producer used ``report_entity_audit.affected_codes`` when
+    building the archive's ``cannot_confirm`` projection.  The V4 projection
+    omits that archive-only list.  This scoped compatibility path is enabled
+    only by the pinned 2026-09-28/1400 source and archive base SHAs and its
+    exact producer identities.  Any partial or conflicting role audit fails
+    closed; unrelated sources receive no compatibility treatment.
+    """
+    if (
+        trade_date != "20260928"
+        or slot != "1400"
+        or source_input_sha256 != _V35_ROLE_WARNING_SOURCE_SHA256
+    ):
+        return dict(projected), ()
+
+    if payload.get("schema_version") != "v3_5.research_archive.v1":
+        raise ValueError("V35_ROLE_WARNING_COMPAT_ARCHIVE_SCHEMA_MISMATCH")
+    if payload.get("source_input_sha256") != _V35_ROLE_WARNING_SOURCE_SHA256:
+        raise ValueError("V35_ROLE_WARNING_COMPAT_ARCHIVE_SOURCE_MISMATCH")
+    if _payload_base_sha(payload) != _V35_ROLE_WARNING_ARCHIVE_BASE_SHA256:
+        raise ValueError("V35_ROLE_WARNING_COMPAT_ARCHIVE_BASE_SHA_MISMATCH")
+
+    source_manifest = source.get("source_manifest")
+    if not isinstance(source_manifest, Mapping):
+        raise ValueError("V35_ROLE_WARNING_COMPAT_SOURCE_MANIFEST_MISSING")
+    for key, expected in _V35_ROLE_WARNING_SOURCE_IDENTITY.items():
+        if source_manifest.get(key) != expected:
+            raise ValueError(f"V35_ROLE_WARNING_COMPAT_SOURCE_IDENTITY_MISMATCH:{key}")
+    if (
+        source.get("schema_version") != "v3_research_lane.v2"
+        or source.get("trade_date") != "20260928"
+        or source.get("slot") != "1400"
+        or source_manifest.get("trade_date") != "20260928"
+        or source_manifest.get("hourly_slot") != "1400"
+    ):
+        raise ValueError("V35_ROLE_WARNING_COMPAT_SOURCE_DATE_SLOT_MISMATCH")
+
+    audit = source.get("report_entity_audit")
+    if not isinstance(audit, Mapping) or audit.get("policy_version") != "report_subject_scoring.v1":
+        raise ValueError("V35_ROLE_WARNING_COMPAT_REPORT_AUDIT_MISSING_OR_UNKNOWN")
+    affected = audit.get("affected_codes")
+    excluded = audit.get("excluded_evidence")
+    if not isinstance(affected, list) or not isinstance(excluded, list) or not excluded:
+        raise ValueError("V35_ROLE_WARNING_COMPAT_REPORT_AUDIT_SHAPE_INVALID")
+    if any(not isinstance(item, Mapping) or item.get("research_subject_eligible") is not False for item in excluded):
+        raise ValueError("V35_ROLE_WARNING_COMPAT_EXCLUDED_EVIDENCE_FLAG_INVALID")
+    excluded_codes = sorted({str(item.get("stock_code") or "") for item in excluded})
+    if (
+        affected != sorted(set(affected))
+        or any(not isinstance(code, str) or re.fullmatch(r"\d{6}", code) is None for code in affected)
+        or affected != excluded_codes
+    ):
+        raise ValueError("V35_ROLE_WARNING_COMPAT_AFFECTED_CODE_AUDIT_MISMATCH")
+
+    role_warnings = [f"REPORT_ROLE_EVIDENCE_EXCLUDED:{code}" for code in affected]
+    archived_gaps = payload.get("cannot_confirm")
+    current_gaps = projected.get("cannot_confirm")
+    if (
+        not isinstance(archived_gaps, list)
+        or not isinstance(current_gaps, list)
+        or len(archived_gaps) != len(set(archived_gaps))
+        or len(current_gaps) != len(set(current_gaps))
+    ):
+        raise ValueError("V35_ROLE_WARNING_COMPAT_CANNOT_CONFIRM_SHAPE_INVALID")
+    archive_set = set(archived_gaps)
+    current_set = set(current_gaps)
+    role_set = set(role_warnings)
+    if (
+        len(role_warnings) != 27
+        or archive_set - current_set != role_set
+        or current_set - archive_set
+    ):
+        raise ValueError("V35_ROLE_WARNING_COMPAT_ARCHIVE_WARNING_SET_MISMATCH")
+
+    compatible = dict(projected)
+    compatible["cannot_confirm"] = sorted(archive_set)
+    warning_sha = hashlib.sha256(
+        json.dumps(role_warnings, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    evidence = (
+        "v4_hourly_archive_projection_compat=EXACT_V35_ROLE_WARNING_REPRODUCTION",
+        f"v4_hourly_archive_projection_compat_source_sha256={_V35_ROLE_WARNING_SOURCE_SHA256}",
+        f"v4_hourly_archive_projection_compat_payload_base_sha256={_V35_ROLE_WARNING_ARCHIVE_BASE_SHA256}",
+        f"v4_hourly_archive_projection_compat_warning_count={len(role_warnings)}",
+        f"v4_hourly_archive_projection_compat_warning_list_sha256={warning_sha}",
+    )
+    return compatible, evidence
 
 
 def _source_slot_cutoff(trade_date: str, slot: str) -> datetime:
@@ -309,6 +423,14 @@ def _bound_source_rows(
         # Independently compare the original, unchanged archive projection.
         # Hash matching alone must not associate arbitrary source data with it.
         projected = build_research_archive(source, source_input_sha256=paths["source_input_sha256"])
+        projected, compatibility_evidence = _apply_exact_v35_role_warning_projection(
+            projected,
+            source,
+            payload,
+            trade_date=trade_date,
+            slot=slot,
+            source_input_sha256=paths["source_input_sha256"],
+        )
         if _payload_base_sha(projected) != _payload_base_sha(payload):
             raise ValueError("SOURCE_ARCHIVE_PROJECTION_SHA_MISMATCH")
         rows = project_hourly_stage_fields(source)
@@ -324,6 +446,7 @@ def _bound_source_rows(
         f"v4_hourly_source_pit_cutoff_bound={source_cutoff.isoformat(timespec='seconds')}",
         f"v4_hourly_source_manifest_pit_cutoff_bound={manifest_pit_cutoff.isoformat(timespec='seconds')}",
         "v4_research_delta_scope=SOURCE_DECLARED_FLAGS_NOT_INDEPENDENT_NEWNESS_VERIFICATION",
+        *compatibility_evidence,
     )
 
 

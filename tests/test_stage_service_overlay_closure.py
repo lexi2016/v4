@@ -4,6 +4,7 @@ import json
 import hashlib
 import plistlib
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -63,6 +64,23 @@ STRICT_COHORT_SHA256 = {
     "domains/task_status.py": "047cfb2b6a8c165857b2841f137a86c9587a1a6e81199efdf71d508d05589300",
     "stage_center_tick_config.json": "b59d96204a7ff8e0056dcab9dc406493cfd36695f630c9c77f056b5eb7b2652c",
 }
+NEW_RELEASE_CLOSURE_PINS = {
+    "stage_center/_live_collectors_parts/selection_builder_registry.py": "5b315c482723f4bbfb187e36241ea422f2a59518a2056be037d1fdbe2f00eb22",
+    "stage_center/_selection_parts/a_live.py": "b7faa3286df4f0312075c7a4563d3f4deed463d3f10ab2c4902967e8d5d7781d",
+    "stage_center/_selection_parts/market_quality.py": "726cd4987a070bf78ac7416756f3cbba86633b1176f6f43535ac747263474b3f",
+    "stage_center/_selection_parts/primitives_io.py": "6f492e2d32fab11970993adfe694cf159cccafe2205b288685917f93560e2501",
+    "stage_center/_selection_parts/selection_envelope.py": "be7748ff72fd85375fc6575a6a40281fb1518c8faf0e55f352f167fbbc42bd89",
+    "stage_center/_raw_store_parts/__init__.py": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+    "stage_center/_raw_store_parts/_namespace.py": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+    "stage_center/_raw_store_parts/codec.py": "504b97a64f483db17026dbeed6d5084fbc18ee972be60ad9e069ebd038708572",
+    "stage_center/_raw_store_parts/filesystem_io.py": "f904f4086d4debfc32f5ad33ec2717cda522a59f2e15a3518c7aa83b91eef2b1",
+    "stage_center/_raw_store_parts/receipt_identity.py": "b33c496a6052b450959a9b886c79ad8d5686230e320dbc99bfd98a3e8265a8f0",
+    "stage_center/_raw_store_parts/transaction_publish.py": "4c28d92667428cfeced54e074e800337ca88b7e87d8a5468a9464b668ca9b24e",
+    "stage_center/_raw_store_parts/transaction_read.py": "8b7e88dc5e5f41456e5222f1a5c08c5dcd05f5e5d7f2c179fd26652bff2932b6",
+    "stage_center/_selection_parts/artifact_codec.py": "6c0ddaed1dfe7a066be9aeb1c726e2357f5c1814b0baca834c37bb1879aeeb9d",
+    "stage_center/_selection_parts/store_publication.py": "e3ee42413c35aa098cddc136795fcf04a37898bc2224d815cbe9e2b854c5c968",
+    "stage_center/_selection_parts/store_verification.py": "af061784202e35bd7c497208407ce1313876683544d89bcb05153ebca1e7af0f",
+}
 
 
 def _write_synthetic_active_release(
@@ -72,6 +90,7 @@ def _write_synthetic_active_release(
     active_publication_mode: str | None = None,
     service_label: str = builder.STAGE_SERVICE_LABEL,
     deadline_only: bool = False,
+    selection_runtime_baseline: bool = False,
 ) -> tuple[Path, Path]:
     release_root = tmp_path / "formal" / "releases" / "active-r4-fixture"
     app_root = release_root / "app"
@@ -81,6 +100,15 @@ def _write_synthetic_active_release(
     (app_root / "ops" / "run_stage_center_nodes.py").write_text("# active entry\n")
     (app_root / "upstreams" / "v3_shared_data" / "README.txt").write_text("fixture shared package\n")
     (app_root / "manager" / "state-reference.json").write_text('{"root":"fixture-manager-root"}\n')
+    if selection_runtime_baseline:
+        for module in ("stage_center", "infrastructure"):
+            shutil.copytree(REPOSITORY_ROOT / module, app_root / module, dirs_exist_ok=True)
+        for relative in (
+            "stage_center/_selection_parts/artifact_codec.py",
+            "stage_center/_selection_parts/store_publication.py",
+            "stage_center/_selection_parts/store_verification.py",
+        ):
+            (app_root / relative).unlink()
     active_config = dict(config)
     active_config.update({
         "release_id": "active-r4-fixture",
@@ -521,8 +549,13 @@ def test_complete_strict_cohort_is_packaged_with_exact_source_identity(tmp_path,
     assert stage_builder.LEGACY_STAGE_SERVICE_OVERLAY_PATHS == expected_legacy
     assert set(STRICT_COHORT).issubset(set(stage_builder.STAGE_SERVICE_OVERLAY_PATHS))
     assert stage_builder.STAGE_SERVICE_OVERLAY_PATHS == expected_full
-    assert len(stage_builder.STAGE_SERVICE_RELEASE_CLOSURE_SHA256) == 50
-    assert len(stage_builder.STAGE_SERVICE_RELEASE_CLOSURE_ADDED_PATHS) == 48
+    assert len(stage_builder.STAGE_SERVICE_RELEASE_CLOSURE_SHA256) == 65
+    assert len(stage_builder.STAGE_SERVICE_RELEASE_CLOSURE_ADDED_PATHS) == 63
+    assert set(NEW_RELEASE_CLOSURE_PINS).issubset(stage_builder.STAGE_SERVICE_RELEASE_CLOSURE_SHA256)
+    assert {
+        path: stage_builder.STAGE_SERVICE_RELEASE_CLOSURE_SHA256[path]
+        for path in NEW_RELEASE_CLOSURE_PINS
+    } == NEW_RELEASE_CLOSURE_PINS
     assert set(stage_builder.STAGE_SERVICE_RELEASE_CLOSURE_ADDED_PATHS).issubset(
         set(stage_builder.LEGACY_STAGE_SERVICE_OVERLAY_PATHS)
     )
@@ -565,6 +598,80 @@ def test_complete_strict_cohort_is_packaged_with_exact_source_identity(tmp_path,
     for key in ("PRODUCTION_ALLOWED", "BUY_GATE_UPDATED", "ORDERS_SENT"):
         assert staged_plist["EnvironmentVariables"][key] == "false"
     assert receipt["activation_status"] == "NOT_ACTIVATED"
+
+
+def test_strict_package_closure_includes_all_pins_and_selection_store_roundtrips(
+    tmp_path, monkeypatch,
+):
+    _patch_offline_builder(monkeypatch)
+    source_root, source_config = _copy_strict_source(tmp_path, strict=True)
+    for module in ("stage_center", "infrastructure"):
+        shutil.copytree(REPOSITORY_ROOT / module, source_root / module, dirs_exist_ok=True)
+    baseline_release, stage_plist = _write_synthetic_active_release(
+        tmp_path, source_config, selection_runtime_baseline=True,
+    )
+    candidate_root = tmp_path / "candidates" / "strict-selection-roundtrip"
+    receipt = builder.build_stage_service_candidate(
+        source_root=source_root,
+        candidate_root=candidate_root,
+        stage_plist_path=stage_plist,
+        runtime_python=Path(sys.executable),
+        release_id="strict-selection-roundtrip",
+        formal_release_root=tmp_path / "formal",
+        receipt_path=tmp_path / "evidence" / "strict-selection-roundtrip.json",
+        baseline_release_root=baseline_release,
+    )
+
+    manifest = json.loads((candidate_root / "release-manifest.json").read_text())
+    entries = manifest["source"]["stage_overlay"]["entries"]
+    packaged_paths = {entry["path"] for entry in entries}
+    assert set(stage_builder.STAGE_SERVICE_RELEASE_CLOSURE_PATHS).issubset(packaged_paths)
+    for relative, expected_sha in NEW_RELEASE_CLOSURE_PINS.items():
+        packaged = candidate_root / "app" / relative
+        assert hashlib.sha256(packaged.read_bytes()).hexdigest() == expected_sha
+
+    candidate_app = candidate_root / "app"
+    store_root = tmp_path / "packaged-selection-store"
+    script = r'''
+import json
+import sys
+from pathlib import Path
+sys.path.insert(0, sys.argv[1])
+from stage_center.selection import SelectionError, SelectionStore, publish_selection, select_a_stage
+
+store_root = Path(sys.argv[2])
+envelope = select_a_stage(
+    [{"code": "A.000001", "first_open": 10.0, "last_close": 10.2,
+      "high": 10.4, "low": 9.9, "amount": 1000000,
+      "bar_count": 5, "expected_rows": 5}],
+    "20260928", "STAGE_0930_0935", "a" * 64,
+)
+published = publish_selection(store_root, envelope, market="A_SHARE")
+verified = SelectionStore(store_root).read_verified("20260928", "STAGE_0930_0935", "A_SHARE")
+assert verified == published == envelope
+run_id = verified["run_id"]
+artifact = store_root / "selection_runs" / "20260928" / "A_SHARE_SELECTION_STAGE_0930_0935" / run_id / "artifact.csv"
+artifact.write_bytes(artifact.read_bytes() + b"tampered\n")
+try:
+    SelectionStore(store_root).read_verified("20260928", "STAGE_0930_0935", "A_SHARE")
+except SelectionError as error:
+    assert "artifact SHA mismatch" in str(error)
+else:
+    raise AssertionError("tampered packaged selection artifact was accepted")
+print(json.dumps({"roundtrip": "PASS", "tamper_rejected": True, "run_id": run_id}))
+'''
+    completed = subprocess.run(
+        [str(Path(sys.executable)), "-I", "-c", script, str(candidate_app), str(store_root)],
+        cwd=candidate_app,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert completed.returncode == 0, completed.stderr
+    result = json.loads(completed.stdout)
+    assert result["roundtrip"] == "PASS"
+    assert result["tamper_rejected"] is True
+    assert receipt["stage_overlay_paths"] == list(stage_builder.STAGE_SERVICE_OVERLAY_PATHS)
 
 
 def test_legacy_non_strict_partial_overlay_remains_supported(tmp_path, monkeypatch):

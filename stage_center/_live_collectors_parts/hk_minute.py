@@ -33,6 +33,20 @@ def _collect_hk_minute_body(_v4_scope, /, plan, *, codes, python_path, shared_ro
     if not source.rows:
         return source
 
+    if _v4_global(_v4_scope, 'getattr')(plan, "historical_backfill", False):
+        return _refresh_hk_active_lanes_body(
+            _v4_scope,
+            source,
+            codes=codes,
+            python_path=python_path,
+            shared_root=root,
+            process_runner=process_runner,
+            trade_date=plan.trade_date,
+            stage_id=plan.stage_id,
+            cutoff_at=_v4_global(_v4_scope, 'STAGE_BY_ID')[plan.stage_id].cutoff,
+            historical_backfill=True,
+        )
+
     # This is intentionally a second, read-only module load.  The shared
     # auction module owns the already-reviewed Futu snapshot bridge and keeps
     # its child cwd/PYTHONPATH scoped by the same runner wrapper as ExHQ.
@@ -48,7 +62,7 @@ def _collect_hk_minute_body(_v4_scope, /, plan, *, codes, python_path, shared_ro
     )
 
 
-def _refresh_hk_active_lanes_body(_v4_scope, /, source, *, codes, python_path, shared_root, process_runner, trade_date, stage_id, cutoff_at):
+def _refresh_hk_active_lanes_body(_v4_scope, /, source, *, codes, python_path, shared_root, process_runner, trade_date, stage_id, cutoff_at, historical_backfill=False):
     """Re-probe only the V3 active trigger for an existing raw HK source.
 
     This is the recovery path after raw publication has succeeded but a
@@ -67,12 +81,25 @@ def _refresh_hk_active_lanes_body(_v4_scope, /, source, *, codes, python_path, s
         cutoff_at=cutoff_at,
     )
     if "HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE" in probe_errors and trade_date and cutoff_at:
+        cannot_confirm = _v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((*source.cannot_confirm, *probe_errors)))
+        source_evidence = _v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((*source.source_evidence, *evidence)))
+        if historical_backfill:
+            return _v4_global(_v4_scope, 'replace')(
+                source,
+                status="PARTIAL_WITH_ROWS",
+                rows=_v4_global(_v4_scope, 'tuple')(source.rows),
+                cannot_confirm=cannot_confirm,
+                source_evidence=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((
+                    *source_evidence,
+                    "active_snapshot_degraded_to_pytdx_observation=true",
+                ))),
+            )
         return _v4_global(_v4_scope, 'replace')(
             source,
             status="CANNOT_CONFIRM",
             rows=(),
-            cannot_confirm=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((*source.cannot_confirm, *probe_errors))),
-            source_evidence=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((*source.source_evidence, *evidence))),
+            cannot_confirm=cannot_confirm,
+            source_evidence=source_evidence,
         )
     enriched: list[dict[str, Any]] = []
     for row in source.rows:
