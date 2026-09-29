@@ -1,0 +1,74 @@
+{
+  "receipt_version": "wechat-chat-return-v2",
+  "status": "REPORT_ONLY_ARCHIVED",
+  "binding": {
+    "source_run_id": "synthetic-run",
+    "source_run": "synthetic-run",
+    "package_id": "synthetic-package-v1",
+    "package_zip": null,
+    "package_sha256_declared": null,
+    "package_sha256_observed": null,
+    "package_sha256_status": "UNKNOWN",
+    "package_id_embedded": "synthetic-package-v1",
+    "article_url": "https://mp.weixin.qq.com/s/synthetic-stage-a-fixture",
+    "article_id": "synthetic-stage-a-fixture",
+    "article_title": "Synthetic report-only fixture",
+    "article_date": "20260102",
+    "image_count": 0,
+    "content_hash": null,
+    "package_manifest_sha256_observed": null,
+    "package_manifest_sha256_declared": null,
+    "package_manifest_sha256_status": "UNKNOWN",
+    "reading_mode": "OCR_RISK_REVIEW",
+    "package_identity_status": "LEGACY_INPUT_UNVERIFIED",
+    "package_id_binding_status": "UNBOUND",
+    "input_digest": null
+  },
+  "report_origin": "SYNTHETIC_FIXTURE",
+  "report_package_relationship": "UNBOUND",
+  "received_at": "2026-01-03T16:20:03+08:00",
+  "archived_files": {
+    "report": {
+      "input_path": "synthetic-fixture/report.md",
+      "original_filename": "report.md",
+      "archived_filename": "report.md",
+      "bytes": 48,
+      "sha256": "f9921ca25bf4aa9fd5e3e1829f60802f6249fd0a303506b3192560c2d8453236",
+      "content_id": "synthetic-report-fixture",
+      "idempotent": false,
+      "received_at": "2026-01-03T16:20:03+08:00"
+    }
+  },
+  "missing_artifacts": [
+    "coverage.csv",
+    "mentions.csv",
+    "unmapped.csv",
+    "summary.json"
+  ],
+  "invalid_artifacts": [],
+  "required_return_files": [
+    "report.md",
+    "coverage.csv",
+    "mentions.csv",
+    "unmapped.csv",
+    "summary.json"
+  ],
+  "structured_validation_status": "MISSING",
+  "validation_details": {},
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "local_acceptance": {
+    "report_bytes_archived": true,
+    "bytes_archived": true,
+    "input_binding_valid": false,
+    "structure_valid": false,
+    "chat_claimed_complete": false,
+    "independent_review_scope": [],
+    "structured_files_complete": false,
+    "structured_validation_status": "MISSING",
+    "chat_self_reported_numbers_accepted": false,
+    "semantic_research_accepted": false,
+    "research_boundary": "RESEARCH_ONLY / WATCH_ONLY / NO_BUY_GATE"
+  }
+}
