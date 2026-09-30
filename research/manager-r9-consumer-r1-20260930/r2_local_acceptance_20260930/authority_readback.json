@@ -1,0 +1,115 @@
+{
+  "RESEARCH_ONLY": true,
+  "activation_allowed": false,
+  "active_producer_identified": false,
+  "binding_proposal": {
+    "activation_allowed": false,
+    "environment": null,
+    "reason": "SELECTED_ROOT_NOT_READBACK_VERIFIED",
+    "required_before_adoption": [
+      "CURRENT_SINGLE_PUBLISHER_ASSIGNMENT_AND_SOURCE_RECEIPTS",
+      "INDEPENDENT_REVIEW_OF_ROOT_SOURCE_SHA_TIME_AND_CURRENT_DATA",
+      "R1_PLUS_R2_CANDIDATE_RUNTIME_IDENTITY_AND_API_UI_ACCEPTANCE"
+    ],
+    "status": "CANNOT_CONFIRM"
+  },
+  "buy_gate_updated": false,
+  "finished_at": "2026-09-30T14:07:13.434797+08:00",
+  "independent_review_verified": false,
+  "inspected_dependency": {
+    "bytes": 10179,
+    "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_CONSUMER_R1_ACCEPTANCE_20260930/candidate/app/infrastructure/manager_input_attestation.py",
+    "sha256": "d26211fd83db00c551be6c11d3bbed58d13d1db054d99699fc377ee5c335f3cc",
+    "status": "PRESENT"
+  },
+  "inspected_owner": {
+    "bytes": 25290,
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/today_combined_stage_fix_20260930/candidate/app/stage_center/hk_universe_preflight.py",
+    "sha256": "f527db45d4ec3720845606dd38e76bf6e93e973063b43f1cadb44a8e12407e5c",
+    "status": "PRESENT"
+  },
+  "inspected_reader": {
+    "bytes": 19661,
+    "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_CONSUMER_R1_ACCEPTANCE_20260930/candidate/app/domains/manager_research_evidence.py",
+    "sha256": "22ccd133851afa0fd7927ae7c40370ce1130ccd77055b0044e91d863ac1da8d9",
+    "status": "PRESENT"
+  },
+  "orders_sent": false,
+  "production_allowed": false,
+  "real_api_verified": false,
+  "real_ui_verified": false,
+  "results": [
+    {
+      "RESEARCH_ONLY": true,
+      "activation_allowed": false,
+      "buy_gate_updated": false,
+      "data_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+      "data_writes": 0,
+      "diagnostic": {
+        "artifact_ref": "universes/20260930/HK_CONNECT_FULL_MARKET.json",
+        "code": "HK_CONNECT_EXACT_UNIVERSE_MISSING",
+        "field": "artifact",
+        "kind": "MISSING",
+        "layer": "UNIVERSE_ARTIFACT",
+        "schema_version": "v4.manager_close_failure.v1",
+        "source_code_ref": "stage_center/hk_universe_preflight.py",
+        "source_code_sha256": "f527db45d4ec3720845606dd38e76bf6e93e973063b43f1cadb44a8e12407e5c",
+        "source_owner": "stage_center.hk_universe_preflight.ensure_hk_connect_universe"
+      },
+      "files": [
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/universes/20260930/HK_CONNECT_FULL_MARKET.json",
+          "status": "MISSING"
+        }
+      ],
+      "membership_count": null,
+      "network_requests": 0,
+      "orders_sent": false,
+      "producer_activity_verified": false,
+      "production_allowed": false,
+      "raw_acquisition_receipt_verified": false,
+      "research_cutoff": "2026-09-30T14:07:13.393122+08:00",
+      "source": null,
+      "status": "CANNOT_CONFIRM",
+      "target_trade_date": "20260930"
+    },
+    {
+      "RESEARCH_ONLY": true,
+      "activation_allowed": false,
+      "buy_gate_updated": false,
+      "data_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+      "data_writes": 0,
+      "diagnostic": {
+        "artifact_ref": "universes/20260930/HK_CONNECT_FULL_MARKET.json",
+        "code": "HK_CONNECT_EXACT_UNIVERSE_MISSING",
+        "field": "artifact",
+        "kind": "MISSING",
+        "layer": "UNIVERSE_ARTIFACT",
+        "schema_version": "v4.manager_close_failure.v1",
+        "source_code_ref": "stage_center/hk_universe_preflight.py",
+        "source_code_sha256": "f527db45d4ec3720845606dd38e76bf6e93e973063b43f1cadb44a8e12407e5c",
+        "source_owner": "stage_center.hk_universe_preflight.ensure_hk_connect_universe"
+      },
+      "files": [
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20260930/HK_CONNECT_FULL_MARKET.json",
+          "status": "MISSING"
+        }
+      ],
+      "membership_count": null,
+      "network_requests": 0,
+      "orders_sent": false,
+      "producer_activity_verified": false,
+      "production_allowed": false,
+      "raw_acquisition_receipt_verified": false,
+      "research_cutoff": "2026-09-30T14:07:13.393122+08:00",
+      "source": null,
+      "status": "CANNOT_CONFIRM",
+      "target_trade_date": "20260930"
+    }
+  ],
+  "schema_version": "v4.manager_membership.readonly_intake.v1",
+  "sources_unchanged_during_audit": true,
+  "started_at": "2026-09-30T14:07:13.420211+08:00",
+  "status": "CANNOT_CONFIRM"
+}
