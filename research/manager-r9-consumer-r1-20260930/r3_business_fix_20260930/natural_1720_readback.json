@@ -1,0 +1,71 @@
+{
+  "observed_at": "2026-09-30T10:04:38.737619+00:00",
+  "dispatch": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher/receipts/live/20260930/1720/22f8189530d0492698aa697130bce0c6.dispatch-receipt.json",
+    "sha256": "dea416f6bec97237c4bfe352256b86f15bf9b0b43dfccda8a65fdaaee47a79e1",
+    "status": "SUCCEEDED",
+    "release_id": "20260929-manager-1555-pytdx-r1",
+    "run_id": "22f8189530d0492698aa697130bce0c6",
+    "finished_at": "2026-09-30T09:20:08.269649Z",
+    "slot": "1720",
+    "selected_workload_ids": [
+      "research_panel_daily_hk"
+    ],
+    "started_workload_ids": [
+      "research_panel_daily_hk"
+    ]
+  },
+  "panel_receipt": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/hk-20260930.json",
+    "sha256": "4c3a68ad57cecfbd1ac6edd272ec39046ef01ee3a89534efc270dcf076395043",
+    "status": "READY",
+    "target_date": "20260930",
+    "universe_count": 696,
+    "excluded_count": 7,
+    "file_count": 689,
+    "capture_run_id": "20260930-11854-a344440cbff68a1fa82fee15",
+    "capture_raw_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/hk_capture/20260930/20260930-11854-a344440cbff68a1fa82fee15.capture.json",
+    "capture_raw_sha256": "16cebcc6733e6ed7501697ece4c237b9e39d82459af1d0dc1659667493946fa9",
+    "capture_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/hk_capture/20260930/20260930-11854-a344440cbff68a1fa82fee15.json",
+    "source_sha256": "d91c896a929c627e070298041ae37f8299c3e2e9e3fb7da310c431afc734bbef"
+  },
+  "authority": {
+    "status": "READY",
+    "target_date": "20260930",
+    "through_date": "20260930",
+    "through_date_code_count": 689,
+    "panel_sha256": "151fbe7168efefc769e51920d8c153e92c1d4659a46cc76b100fa7182e5f51ec",
+    "manifest_relative": "panels/20260930-151fbe7168ef/manifest.json"
+  },
+  "security_master": {
+    "status": "READY",
+    "trade_date": "20260930",
+    "row_count": 696,
+    "run_id": "49ffde1ebebdc85e4680e701",
+    "capture_sha256": "6cc078269da987b268fb303ed7856277d64aceca720aeb542b1ade5790232bca",
+    "security_master_artifact_sha256": "754794679937494dc8dc6cdc8dfbd14dfa4b070ea709f551874e39006aa712dd",
+    "security_master_manifest_sha256": "acb3308410a8601651818b14fb519ff39a019adadc37ac3beec86c8cad5d5eb5"
+  },
+  "capture": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/hk_capture/20260930/20260930-11854-a344440cbff68a1fa82fee15.capture.json",
+    "sha256": "16cebcc6733e6ed7501697ece4c237b9e39d82459af1d0dc1659667493946fa9",
+    "top_level_keys": [
+      "buy_gate_updated",
+      "capture_sha256",
+      "codes",
+      "orders_sent",
+      "plates",
+      "production_allowed",
+      "rows",
+      "schema_version",
+      "security_master_rows",
+      "source_payload",
+      "source_sha256",
+      "target_date"
+    ],
+    "per_plate_records_present": false,
+    "acquisition_clock_fields_present": []
+  },
+  "qualification_contract_acceptance": "NOT_ESTABLISHED_BY_PANEL_OR_SECURITY_MASTER",
+  "network_requests_by_this_readback": 0
+}
