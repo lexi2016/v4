@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="21" skipped="0" tests="27" time="1.326" timestamp="2026-09-30T16:06:44.481680+00:00" hostname="ff03121e503b"><testcase classname="tests.test_final_rpc" name="test_new_registered_rpc_path_calls_original_plan_owner" time="0.247"><failure message="AssertionError: {&quot;detail&quot;:&quot;Not Found&quot;}&#10;assert 404 == 200&#10; +  where 404 = &lt;Response [404 Not Found]&gt;.status_code">rpc_cycle = namespace(svc=namespace(store=&lt;v4.manager_research.store.ManagerResearchStore object at 0x7f286185b770&gt;, _material_sto...registered_rpc_path_c0/binding.json'), client=&lt;starlette.testclient.TestClient object at 0x7f2862d43e00&gt;, rpc_calls=[])
+
+    def test_new_registered_rpc_path_calls_original_plan_owner(rpc_cycle):
+        c=rpc_cycle;r=request(c)
+&gt;       assert r.status_code==200,r.text
+E       AssertionError: {"detail":"Not Found"}
+E       assert 404 == 200
+E        +  where 404 = &lt;Response [404 Not Found]&gt;.status_code
+
+../../../delivery/tests/test_final_rpc.py:64: AssertionError</failure></testcase><testcase classname="tests.test_final_rpc" name="test_worker_same_tick_collects_then_rpc_saves_new_body" time="0.027"><failure message="AssertionError: assert [] == ['collect', 'plan']&#10;  &#10;  Right contains 2 more items, first extra item: 'collect'&#10;  &#10;  Full diff:&#10;  + []&#10;  - [&#10;  -     'collect',&#10;  -     'plan',&#10;  - ]">rpc_cycle = namespace(svc=namespace(store=&lt;v4.manager_research.store.ManagerResearchStore object at 0x7f2862e45d10&gt;, _material_sto...space/scheduled-cycle?date=20260930&amp;binding_sha256=16f9a813165a9e85a612d4b0522d25b162a46a1b0741b96ef020defd5c3fbee4')])
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x7f2862e65a90&gt;
+
+    def test_worker_same_tick_collects_then_rpc_saves_new_body(rpc_cycle,capsys):
+        c=rpc_cycle;rc,res=run(c,capsys)
+&gt;       assert c.state['events']==['collect','plan']
+E       AssertionError: assert [] == ['collect', 'plan']
+E         
+E         Right contains 2 more items, first extra item: 'collect'
+E         
+E         Full diff:
+E         + []
+E         - [
+E         -     'collect',
+E         -     'plan',
+E         - ]
+
+../../../delivery/tests/test_final_rpc.py:71: AssertionError</failure></testcase><testcase classname="tests.test_final_rpc" name="test_new_rpc_two_batches_and_retry_original_transaction" time="0.024"><failure message="assert (None)">rpc_cycle = namespace(svc=namespace(store=&lt;v4.manager_research.store.ManagerResearchStore object at 0x7f2862bedbd0&gt;, _material_sto...space/scheduled-cycle?date=20260930&amp;binding_sha256=e9f6406754cd792cac496ac8e19f7daaa1578e9429b4dcf00b6fb6f642a35d29')])
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x7f2862c24b90&gt;
+
+    def test_new_rpc_two_batches_and_retry_original_transaction(rpc_cycle,capsys):
+        c=rpc_cycle;run(c,capsys);first=ws._read_plan(c.svc.store,'20260930')
+&gt;       assert first and first['workspace']['stocks']
+E       assert (None)
+
+../../../delivery/tests/test_final_rpc.py:81: AssertionError</failure></testcase><testcase classname="tests.test_final_rpc" name="test_crossing_cutoff_after_collection_no_plan_write" time="0.020"><failure message="AssertionError: assert [] == ['collect']&#10;  &#10;  Right contains one more item: 'collect'&#10;  &#10;  Full diff:&#10;  + []&#10;  - [&#10;  -     'collect',&#10;  - ]">rpc_cycle = namespace(svc=namespace(store=&lt;v4.manager_research.store.ManagerResearchStore object at 0x7f2862c208a0&gt;, _material_sto...space/scheduled-cycle?date=20260930&amp;binding_sha256=bbfde9fb96ad6f192d9a02228aa1a32797088326a5b546935a64412159b80cf0')])
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x7f2862c27c50&gt;
+
+    def test_crossing_cutoff_after_collection_no_plan_write(rpc_cycle,capsys):
+        c=rpc_cycle;c.clock[0]=datetime.fromisoformat('2026-09-30T09:29:50+08:00');c.state['delay']=15
+        _,res=run(c,capsys)
+&gt;       assert c.state['events']==['collect']
+E       AssertionError: assert [] == ['collect']
+E         
+E         Right contains one more item: 'collect'
+E         
+E         Full diff:
+E         + []
+E         - [
+E         -     'collect',
+E         - ]
+
+../../../delivery/tests/test_final_rpc.py:95: AssertionError</failure></testcase><testcase classname="tests.test_final_rpc" name="test_callback_rechecks_clock_after_coordinator_entry" time="0.019"><failure message="AssertionError: {&quot;detail&quot;:&quot;Not Found&quot;}&#10;assert 404 == 200&#10; +  where 404 = &lt;Response [404 Not Found]&gt;.status_code">rpc_cycle = namespace(svc=namespace(store=&lt;v4.manager_research.store.ManagerResearchStore object at 0x7f2862ca23f0&gt;, _material_sto...back_rechecks_clock_a0/binding.json'), client=&lt;starlette.testclient.TestClient object at 0x7f2861ef2ea0&gt;, rpc_calls=[])
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f2862e0e990&gt;
+
+    def test_callback_rechecks_clock_after_coordinator_entry(rpc_cycle,monkeypatch):
+        c=rpc_cycle;before=snapshot(c.svc.store.root)
+        original=c.svc._workspace_reads.run
+        def delayed(key,fn,**kw):
+            c.clock[0]=datetime.fromisoformat('2026-09-30T09:30:01+08:00')
+            return original(key,fn,**kw)
+        monkeypatch.setattr(c.svc._workspace_reads,'run',delayed)
+        r=request(c)
+&gt;       assert r.status_code==200,r.text
+E       AssertionError: {"detail":"Not Found"}
+E       assert 404 == 200
+E        +  where 404 = &lt;Response [404 Not Found]&gt;.status_code
+
+../../../delivery/tests/test_final_rpc.py:109: AssertionError</failure></testcase><testcase classname="tests.test_final_rpc" name="test_failed_collection_keeps_old_committed_inputs_and_reports_failure" time="0.216"><failure message="TypeError: 'NoneType' object is not subscriptable">rpc_cycle = namespace(svc=namespace(store=&lt;v4.manager_research.store.ManagerResearchStore object at 0x7f2861ee6c30&gt;, _material_sto...space/scheduled-cycle?date=20260930&amp;binding_sha256=0028dde6f5ec55530deb6afbb8a6f75e275c60c04de1a399630bebc4a1e7cc38')])
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x7f2861f609d0&gt;
+
+    def test_failed_collection_keeps_old_committed_inputs_and_reports_failure(rpc_cycle,capsys):
+        c=rpc_cycle;capture(c.wired,'HK.00001');c.state['fail']=True
+        rc,res=run(c,capsys)
+        assert rc==2 and res['status']=='FAILED'
+        saved=ws._read_plan(c.svc.store,'20260930')
+&gt;       assert {s['symbol'] for s in saved['workspace']['stocks']}=={'HK.00001'}
+                                     ^^^^^^^^^^^^^^^^^^
+E       TypeError: 'NoneType' object is not subscriptable
+
+../../../delivery/tests/test_final_rpc.py:119: TypeError</failure></testcase><testcase classname="tests.test_final_rpc" name="test_disabled_collection_uses_rpc_without_fetching" time="0.021"><failure message="assert (2 == 0)">rpc_cycle = namespace(svc=namespace(store=&lt;v4.manager_research.store.ManagerResearchStore object at 0x7f2861d08e20&gt;, _material_sto...space/scheduled-cycle?date=20260930&amp;binding_sha256=f6e160d54ce1384f7850bc1b9475a6dd3d38b04b7ea85811cc4f18bb82a46a31')])
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x7f2861d5ec40&gt;
+
+    def test_disabled_collection_uses_rpc_without_fetching(rpc_cycle,capsys):
+        c=rpc_cycle;c.value['announcement_collection_enabled']=False
+        rc,res=run(c,capsys)
+&gt;       assert rc==0 and c.state['calls']==0 and not c.p.calls
+E       assert (2 == 0)
+
+../../../delivery/tests/test_final_rpc.py:125: AssertionError</failure></testcase><testcase classname="tests.test_final_rpc" name="test_rpc_rejections_do_not_write[wrong_sha]" time="0.020"><failure message="AssertionError: {&quot;detail&quot;:&quot;Not Found&quot;}&#10;assert 404 in {403, 409, 422}&#10; +  where 404 = &lt;Response [404 Not Found]&gt;.status_code">rpc_cycle = namespace(svc=namespace(store=&lt;v4.manager_research.store.ManagerResearchStore object at 0x7f2861d34e20&gt;, _material_sto...rejections_do_not_wri0/binding.json'), client=&lt;starlette.testclient.TestClient object at 0x7f2861d1bac0&gt;, rpc_calls=[])
+case = 'wrong_sha'
+
+    @pytest.mark.parametrize('case',['wrong_sha','body','origin','unbound_readers'])
+    def test_rpc_rejections_do_not_write(rpc_cycle,case):
+        c=rpc_cycle;params={'date':'20260930','binding_sha256':sha256(c.binding.read_bytes()).hexdigest()}
+        kwargs={}
+        if case=='wrong_sha':params['binding_sha256']='0'*64
+        if case=='body':kwargs['json']={'symbols':['HK.99999']}
+        if case=='origin':kwargs['headers']={'origin':'https://not-local.invalid'}
+        if case=='unbound_readers':c.svc._existing_research_source=None
+        before=snapshot(c.svc.store.root)
+        r=c.client.post('/api/v4/manager/research/workspace/scheduled-cycle',params=params,**kwargs)
+&gt;       assert r.status_code in {403,409,422},r.text
+E       AssertionError: {"detail":"Not Found"}
+E       assert 404 in {403, 409, 422}
+E        +  where 404 = &lt;Response [404 Not Found]&gt;.status_code
+
+../../../delivery/tests/test_final_rpc.py:139: AssertionError</failure></testcase><testcase classname="tests.test_final_rpc" name="test_rpc_rejections_do_not_write[body]" time="0.019"><failure message="AssertionError: {&quot;detail&quot;:&quot;Not Found&quot;}&#10;assert 404 in {403, 409, 422}&#10; +  where 404 = &lt;Response [404 Not Found]&gt;.status_code">rpc_cycle = namespace(svc=namespace(store=&lt;v4.manager_research.store.ManagerResearchStore object at 0x7f2861aca850&gt;, _material_sto...rejections_do_not_wri1/binding.json'), client=&lt;starlette.testclient.TestClient object at 0x7f2861acae50&gt;, rpc_calls=[])
+case = 'body'
+
+    @pytest.mark.parametrize('case',['wrong_sha','body','origin','unbound_readers'])
+    def test_rpc_rejections_do_not_write(rpc_cycle,case):
+        c=rpc_cycle;params={'date':'20260930','binding_sha256':sha256(c.binding.read_bytes()).hexdigest()}
+        kwargs={}
+        if case=='wrong_sha':params['binding_sha256']='0'*64
+        if case=='body':kwargs['json']={'symbols':['HK.99999']}
+        if case=='origin':kwargs['headers']={'origin':'https://not-local.invalid'}
+        if case=='unbound_readers':c.svc._existing_research_source=None
+        before=snapshot(c.svc.store.root)
+        r=c.client.post('/api/v4/manager/research/workspace/scheduled-cycle',params=params,**kwargs)
+&gt;       assert r.status_code in {403,409,422},r.text
+E       AssertionError: {"detail":"Not Found"}
+E       assert 404 in {403, 409, 422}
+E        +  where 404 = &lt;Response [404 Not Found]&gt;.status_code
+
+../../../delivery/tests/test_final_rpc.py:139: AssertionError</failure></testcase><testcase classname="tests.test_final_rpc" name="test_rpc_rejections_do_not_write[origin]" time="0.021"><failure message="AssertionError: {&quot;detail&quot;:&quot;Not Found&quot;}&#10;assert 404 in {403, 409, 422}&#10; +  where 404 = &lt;Response [404 Not Found]&gt;.status_code">rpc_cycle = namespace(svc=namespace(store=&lt;v4.manager_research.store.ManagerResearchStore object at 0x7f2860bdc250&gt;, _material_sto...rejections_do_not_wri2/binding.json'), client=&lt;starlette.testclient.TestClient object at 0x7f2860bdc950&gt;, rpc_calls=[])
+case = 'origin'
+
+    @pytest.mark.parametrize('case',['wrong_sha','body','origin','unbound_readers'])
+    def test_rpc_rejections_do_not_write(rpc_cycle,case):
+        c=rpc_cycle;params={'date':'20260930','binding_sha256':sha256(c.binding.read_bytes()).hexdigest()}
+        kwargs={}
+        if case=='wrong_sha':params['binding_sha256']='0'*64
+        if case=='body':kwargs['json']={'symbols':['HK.99999']}
+        if case=='origin':kwargs['headers']={'origin':'https://not-local.invalid'}
+        if case=='unbound_readers':c.svc._existing_research_source=None
+        before=snapshot(c.svc.store.root)
+        r=c.client.post('/api/v4/manager/research/workspace/scheduled-cycle',params=params,**kwargs)
+&gt;       assert r.status_code in {403,409,422},r.text
+E       AssertionError: {"detail":"Not Found"}
+E       assert 404 in {403, 409, 422}
+E        +  where 404 = &lt;Response [404 Not Found]&gt;.status_code
+
+../../../delivery/tests/test_final_rpc.py:139: AssertionError</failure></testcase><testcase classname="tests.test_final_rpc" name="test_rpc_rejections_do_not_write[unbound_readers]" time="0.020"><failure message="AssertionError: {&quot;detail&quot;:&quot;Not Found&quot;}&#10;assert 404 in {403, 409, 422}&#10; +  where 404 = &lt;Response [404 Not Found]&gt;.status_code">rpc_cycle = namespace(svc=namespace(store=&lt;v4.manager_research.store.ManagerResearchStore object at 0x7f2861cbac60&gt;, _material_sto...rejections_do_not_wri3/binding.json'), client=&lt;starlette.testclient.TestClient object at 0x7f2861cbb5c0&gt;, rpc_calls=[])
+case = 'unbound_readers'
+
+    @pytest.mark.parametrize('case',['wrong_sha','body','origin','unbound_readers'])
+    def test_rpc_rejections_do_not_write(rpc_cycle,case):
+        c=rpc_cycle;params={'date':'20260930','binding_sha256':sha256(c.binding.read_bytes()).hexdigest()}
+        kwargs={}
+        if case=='wrong_sha':params['binding_sha256']='0'*64
+        if case=='body':kwargs['json']={'symbols':['HK.99999']}
+        if case=='origin':kwargs['headers']={'origin':'https://not-local.invalid'}
+        if case=='unbound_readers':c.svc._existing_research_source=None
+        before=snapshot(c.svc.store.root)
+        r=c.client.post('/api/v4/manager/research/workspace/scheduled-cycle',params=params,**kwargs)
+&gt;       assert r.status_code in {403,409,422},r.text
+E       AssertionError: {"detail":"Not Found"}
+E       assert 404 in {403, 409, 422}
+E        +  where 404 = &lt;Response [404 Not Found]&gt;.status_code
+
+../../../delivery/tests/test_final_rpc.py:139: AssertionError</failure></testcase><testcase classname="tests.test_final_rpc" name="test_post_cutoff_rpc_is_expired_not_new_plan" time="0.020"><failure message="AssertionError: {&quot;detail&quot;:&quot;Not Found&quot;}&#10;assert 404 == 200&#10; +  where 404 = &lt;Response [404 Not Found]&gt;.status_code">rpc_cycle = namespace(svc=namespace(store=&lt;v4.manager_research.store.ManagerResearchStore object at 0x7f2861cac140&gt;, _material_sto..._cutoff_rpc_is_expire0/binding.json'), client=&lt;starlette.testclient.TestClient object at 0x7f2861cad220&gt;, rpc_calls=[])
+
+    def test_post_cutoff_rpc_is_expired_not_new_plan(rpc_cycle):
+        c=rpc_cycle;c.clock[0]=datetime.fromisoformat('2026-09-30T09:30:00+08:00')
+        before=snapshot(c.svc.store.root);r=request(c)
+&gt;       assert r.status_code==200,r.text
+E       AssertionError: {"detail":"Not Found"}
+E       assert 404 == 200
+E        +  where 404 = &lt;Response [404 Not Found]&gt;.status_code
+
+../../../delivery/tests/test_final_rpc.py:146: AssertionError</failure></testcase><testcase classname="tests.test_final_rpc" name="test_manual_original_announcement_route_refreshes_bound_plan_after_commit" time="0.033"><failure message="AssertionError: assert ['collect'] == ['collect', 'plan']&#10;  &#10;  Right contains one more item: 'plan'&#10;  &#10;  Full diff:&#10;    [&#10;        'collect',&#10;  -     'plan',&#10;    ]">rpc_cycle = namespace(svc=namespace(store=&lt;v4.manager_research.store.ManagerResearchStore object at 0x7f2861bf4c90&gt;, _material_sto...al_original_announcem0/binding.json'), client=&lt;starlette.testclient.TestClient object at 0x7f2861bf5a90&gt;, rpc_calls=[])
+
+    def test_manual_original_announcement_route_refreshes_bound_plan_after_commit(rpc_cycle):
+        c=rpc_cycle
+        r=c.client.post('/api/v4/manager/research/announcements/refresh',params={'date':'20260930','source_scope':'EASTMONEY_HK'})
+        assert r.status_code==200,r.text
+&gt;       assert c.state['events']==['collect','plan']
+E       AssertionError: assert ['collect'] == ['collect', 'plan']
+E         
+E         Right contains one more item: 'plan'
+E         
+E         Full diff:
+E           [
+E               'collect',
+E         -     'plan',
+E           ]
+
+../../../delivery/tests/test_final_rpc.py:155: AssertionError</failure></testcase><testcase classname="tests.test_final_rpc" name="test_manual_announcement_without_binding_does_not_enable_plan" time="0.034"><failure message="KeyError: 'plan_refresh'">rpc_cycle = namespace(svc=namespace(store=&lt;v4.manager_research.store.ManagerResearchStore object at 0x7f2861a6cc90&gt;, _material_sto...al_announcement_witho0/binding.json'), client=&lt;starlette.testclient.TestClient object at 0x7f2861a6d2b0&gt;, rpc_calls=[])
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f2861a83650&gt;
+
+    def test_manual_announcement_without_binding_does_not_enable_plan(rpc_cycle,monkeypatch):
+        c=rpc_cycle;monkeypatch.delenv('V4_MANAGER_PLAN_OWNER_BINDING_PATH')
+        r=c.client.post('/api/v4/manager/research/announcements/refresh',params={'date':'20260930','source_scope':'EASTMONEY_HK'})
+        assert r.status_code==200,r.text
+&gt;       assert r.json()['plan_refresh']['status']=='NOT_BOUND'
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'plan_refresh'
+
+../../../delivery/tests/test_final_rpc.py:165: KeyError</failure></testcase><testcase classname="tests.test_final_rpc" name="test_rpc_completion_deadline_preserves_real_saved_plan" time="0.023"><failure message="KeyError: 'plan_refresh'">rpc_cycle = namespace(svc=namespace(store=&lt;v4.manager_research.store.ManagerResearchStore object at 0x7f28619e5f30&gt;, _material_sto...space/scheduled-cycle?date=20260930&amp;binding_sha256=64cc3a60bf1df061285562373fdeabfe5263ff20cce47ac2ab6c84482ef12d42')])
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x7f28619ee330&gt;
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f2861c3ef50&gt;
+
+    def test_rpc_completion_deadline_preserves_real_saved_plan(rpc_cycle,capsys,monkeypatch):
+        c=rpc_cycle;run(c,capsys)
+        old=ws._read_plan(c.svc.store,'20260930')
+        plans_before=snapshot(c.svc.store.root/'workspace_plans')
+        original=ws.get_workspace
+        def slow_projection(*args,**kwargs):
+            value=original(*args,**kwargs)
+            c.clock[0]=datetime.fromisoformat('2026-09-30T09:30:01+08:00')
+            return value
+        monkeypatch.setattr(ws,'get_workspace',slow_projection)
+        c.state['issuer']='HK.00002';c.clock[0]=datetime.fromisoformat('2026-09-30T09:29:55+08:00')
+        rc,result=run(c,capsys)
+&gt;       assert rc==2 and result['plan_refresh']['status']=='FAILED'
+                         ^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'plan_refresh'
+
+../../../delivery/tests/test_final_rpc.py:181: KeyError</failure></testcase><testcase classname="tests.test_final_us_fields" name="test_explicit_original_fields_reach_consumer_without_clock_alias" time="0.014"><failure message="AssertionError: assert None == '2026-09-29T18:01:00+08:00'">make_rows = &lt;function make_rows.&lt;locals&gt;.make at 0x7f2861c13560&gt;
+
+    def test_explicit_original_fields_reach_consumer_without_clock_alias(make_rows):
+        rows=make_rows(FIELDS);snap,arc=archive(rows)
+        validate_research_archive(arc)
+        mats,cards,(_,ind,audit),gaps=consumer(arc)
+&gt;       assert mats[0]['retrieved_at']==FIELDS['retrieved_at']
+E       AssertionError: assert None == '2026-09-29T18:01:00+08:00'
+
+../../../delivery/tests/test_final_us_fields.py:51: AssertionError</failure></testcase><testcase classname="tests.test_final_us_fields" name="test_no_source_times_means_missing_not_crawl_time" time="0.002" /><testcase classname="tests.test_final_us_fields" name="test_bad_original_clock_is_not_repaired_or_admitted[changes0]" time="0.002"><failure message="AssertionError: assert None == 'not-a-time'">make_rows = &lt;function make_rows.&lt;locals&gt;.make at 0x7f28601b5260&gt;
+changes = {'retrieved_at': 'not-a-time'}
+
+    @pytest.mark.parametrize('changes',[{'retrieved_at':'not-a-time'}, {'available_at':'2026-09-30T10:00:00+08:00'},
+        {'available_at':None}])
+    def test_bad_original_clock_is_not_repaired_or_admitted(make_rows,changes):
+        fields=deepcopy(FIELDS);fields.update(changes)
+        rows=make_rows(fields);_,arc=archive(rows)
+        mats,cards,(_,ind,audit),gaps=consumer(arc)
+        assert ind=={}
+&gt;       for key,val in changes.items():assert mats[0][key]==val
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: assert None == 'not-a-time'
+
+../../../delivery/tests/test_final_us_fields.py:75: AssertionError</failure></testcase><testcase classname="tests.test_final_us_fields" name="test_bad_original_clock_is_not_repaired_or_admitted[changes1]" time="0.002"><failure message="AssertionError: assert None == '2026-09-30T10:00:00+08:00'">make_rows = &lt;function make_rows.&lt;locals&gt;.make at 0x7f2861a296c0&gt;
+changes = {'available_at': '2026-09-30T10:00:00+08:00'}
+
+    @pytest.mark.parametrize('changes',[{'retrieved_at':'not-a-time'}, {'available_at':'2026-09-30T10:00:00+08:00'},
+        {'available_at':None}])
+    def test_bad_original_clock_is_not_repaired_or_admitted(make_rows,changes):
+        fields=deepcopy(FIELDS);fields.update(changes)
+        rows=make_rows(fields);_,arc=archive(rows)
+        mats,cards,(_,ind,audit),gaps=consumer(arc)
+        assert ind=={}
+&gt;       for key,val in changes.items():assert mats[0][key]==val
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: assert None == '2026-09-30T10:00:00+08:00'
+
+../../../delivery/tests/test_final_us_fields.py:75: AssertionError</failure></testcase><testcase classname="tests.test_final_us_fields" name="test_bad_original_clock_is_not_repaired_or_admitted[changes2]" time="0.002" /><testcase classname="tests.test_final_us_fields" name="test_no_name_to_ticker_invention_even_with_source_metadata" time="0.002" /><testcase classname="tests.test_final_us_fields" name="test_original_standing_contract_is_forwarded_not_approved" time="0.002"><failure message="KeyError: 'business_relation_validity'">make_rows = &lt;function make_rows.&lt;locals&gt;.make at 0x7f2861c134c0&gt;
+
+    def test_original_standing_contract_is_forwarded_not_approved(make_rows):
+        contract={'schema_version':'v4.manager_research.business_relation_validity.v1','status':'ACTIVE','issuer_symbol':'HK.00001'}
+        rows=make_rows({**FIELDS,'business_relation_validity':contract});_,arc=archive(rows)
+        mats,*_=consumer(arc)
+&gt;       assert mats[0]['source_row']['business_relation_validity']==contract
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'business_relation_validity'
+
+../../../delivery/tests/test_final_us_fields.py:88: KeyError</failure></testcase><testcase classname="tests.test_final_us_fields" name="test_passthrough_does_not_change_stage_or_stock_ranking" time="0.002" /><testcase classname="tests.test_final_us_fields" name="test_conflicting_raw_candidates_do_not_merge_clocks" time="0.002" /><testcase classname="tests.test_final_us_fields" name="test_new_archive_envelope_survives_original_disk_store_and_refs_tamper_is_rejected" time="0.016"><failure message="KeyError: 'HK.00001'">make_rows = &lt;function make_rows.&lt;locals&gt;.make at 0x7f28601b5940&gt;
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-11/test_new_archive_envelope_surv0')
+
+    def test_new_archive_envelope_survives_original_disk_store_and_refs_tamper_is_rejected(make_rows,tmp_path):
+        from infrastructure.research_store import ResearchArchiveStore
+        rows=make_rows(FIELDS);_,arc=archive(rows)
+        store=ResearchArchiveStore(tmp_path/'original-archive')
+        receipt=store.publish(arc,mode='REPLAY')
+        readback=ResearchArchiveStore(store.root).read_exact('20260929')
+        assert readback==arc
+        mats,_,(_,ind,_),_=consumer(readback)
+&gt;       assert ind['HK.00001'][0]['related_us_symbols']==['QTEST']
+               ^^^^^^^^^^^^^^^
+E       KeyError: 'HK.00001'
+
+../../../delivery/tests/test_final_us_fields.py:121: KeyError</failure></testcase><testcase classname="tests.test_final_us_fields" name="test_cross_article_identity_never_lends_time_or_ticker" time="0.002" /><testcase classname="tests.test_final_us_fields" name="test_envelope_cannot_override_claim_status_or_binding_source" time="0.002"><failure message="KeyError: 'manager_source_evidence'">make_rows = &lt;function make_rows.&lt;locals&gt;.make at 0x7f286023b1a0&gt;
+
+    def test_envelope_cannot_override_claim_status_or_binding_source(make_rows):
+        rows=make_rows({**FIELDS,'claim_type':'SOURCE_STATEMENT','verification':'OWNER_VERIFIED'})
+        _,arc=archive(rows)
+&gt;       assert 'claim_type' not in arc['articles'][0]['manager_source_evidence']['fields']
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'manager_source_evidence'
+
+../../../delivery/tests/test_final_us_fields.py:143: KeyError</failure></testcase></testsuite></testsuites>

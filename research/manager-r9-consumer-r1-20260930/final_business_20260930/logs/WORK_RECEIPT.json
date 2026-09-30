@@ -1,0 +1,100 @@
+{
+  "status": "ISOLATED_BUSINESS_TESTED_NOT_INSTALLED",
+  "base_app": "/mnt/data/final_manager/work/base_app",
+  "app": "/mnt/data/final_manager/work/one_command_final/app",
+  "profile": "API6726_B1_US",
+  "actions": [
+    {
+      "path": "v4/manager_research/workspace_announcements.py",
+      "before_sha256": "e2e7bd7f00da4f1e1df0b169307ff225976c1572bbbf9ccc2d3618c59f46248a",
+      "after_sha256": "e2e7bd7f00da4f1e1df0b169307ff225976c1572bbbf9ccc2d3618c59f46248a"
+    },
+    {
+      "path": "v4/manager_research/issuer_us_relations.py",
+      "before_sha256": "ac79f4c6c49fe169537261be6e6e2f84199ed615a2b5d56a4ff25f3cf3d0b048",
+      "after_sha256": "ac79f4c6c49fe169537261be6e6e2f84199ed615a2b5d56a4ff25f3cf3d0b048"
+    },
+    {
+      "path": "v4/manager_research/eastmoney_run_history.py",
+      "before_sha256": "6bc723062141cf98681da460af37b73f74da208c682c1ee76a6d55b1a4570e8d",
+      "after_sha256": "6bc723062141cf98681da460af37b73f74da208c682c1ee76a6d55b1a4570e8d"
+    },
+    {
+      "path": "apps/api/v35_api/manager_research_router.py",
+      "before_sha256": "d66b0a4184d6490f92eccf6996446f872adef7289b5821aeecc35338145f4410",
+      "after_sha256": "5c5317fd2a84c7ae7cb522d97710f1c74bcb21d1a92e837c06682c3b101e3969"
+    },
+    {
+      "path": "contracts/research.py",
+      "before_sha256": "cd71bdd8ac24037627520c3cca6f658e83fc4e51c8a7934f6c6c9222f4b2f3c1",
+      "after_sha256": "d837de2f6e53c23b2c34e9792a52223c7c1e388aa90b63eaffe719630c31bfca"
+    },
+    {
+      "path": "domains/research.py",
+      "before_sha256": "2ad669ea58f08338605885547ec065921ec63cc0047460bb2acd153151fb214b",
+      "after_sha256": "2102cb40ec7d88c162977d16b3cd6b0a668803f36a3b93d7037cce674e6bda6a"
+    },
+    {
+      "path": "ops/collect_hourly_research_input.py",
+      "before_sha256": "767eaae79e2436284c0cf73626fd114a92448d3aff37b69c378862aae141a7fa",
+      "after_sha256": "657baeaebe6bc474d97d013ceb10a1d2b597947077edf448134920fa83e38990"
+    },
+    {
+      "path": "ops/run_manager_announcement_cycle.py",
+      "before_sha256": "56e9d6d73f48443d4502278f8a00b82faa7974031d75fb4ca6198aa62f627ff8",
+      "after_sha256": "36e098ead1789ee73455ab5ad99d3f6199c18c4295153e5542524d370e6d58e5"
+    },
+    {
+      "path": "v4/manager_research/existing_materials.py",
+      "before_sha256": "2a69d98f6aab13a3e341533554f3419ac420a2fbe426dd3f6f237b7eaa3b141c",
+      "after_sha256": "85aa251110dc70feb4417f69e044fd62cd9424bf8a755c996790f8d2340d8f17"
+    },
+    {
+      "path": "v4/manager_research/plan_owner_dispatch.py",
+      "before_sha256": "1c71301b9f49f387ceb8e6243fb645adc72bfea11fa6cfea7f25aeb9d2a2db20",
+      "after_sha256": "37a61204e95b3925d74badb6da21306946223000003d31d81a6d6ab65d15527f"
+    }
+  ],
+  "provided_frozen_entries": [],
+  "command": [
+    "/opt/pyvenv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "-c",
+    "/mnt/data/final_manager/delivery/pytest.ini",
+    "/mnt/data/final_manager/delivery/tests",
+    "--junitxml=/mnt/data/final_manager/work/one_command_final/junit.xml"
+  ],
+  "started_at": "2026-09-30T16:18:25.597012+00:00",
+  "finished_at": "2026-09-30T16:18:28.788604+00:00",
+  "exit_code": 0,
+  "counts": {
+    "tests": 27,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "candidate_source_unchanged_by_tests": true,
+  "reused_suites_not_run": [
+    "API14",
+    "B1_US33",
+    "R3B10",
+    "F0_F2"
+  ],
+  "IMPLEMENTED": "FROZEN_CODE_CANDIDATE",
+  "TESTED": "PASS_NEW_27",
+  "REVIEWED": "CANNOT_CONFIRM",
+  "DEPLOYED": "CANNOT_CONFIRM",
+  "API_VERIFIED": "CANNOT_CONFIRM",
+  "UI_VERIFIED": "CANNOT_CONFIRM",
+  "NATURAL_VERIFIED": "CANNOT_CONFIRM",
+  "source_app_changed": false,
+  "installation_allowed": false,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

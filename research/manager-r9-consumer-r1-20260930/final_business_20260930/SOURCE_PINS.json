@@ -1,0 +1,120 @@
+{
+  "schema_version": "issue8.final_business_sources.v1",
+  "scope": "inactive isolated candidate; not deployment",
+  "delta": [
+    {
+      "path": "v4/manager_research/workspace_announcements.py",
+      "source_ref": "284945925e6c4dd5f03cd3f5aff400798d134d2f (unchanged business delta)",
+      "new_in_this_batch": false,
+      "before_sha256": "b3a004c5c43451f7fc72163c02905e1542d6420e7d2fb14e99c7c439b765fb3e",
+      "after_sha256": "e2e7bd7f00da4f1e1df0b169307ff225976c1572bbbf9ccc2d3618c59f46248a",
+      "before_git_blob": "4a6217ffce7cea172deddd7ef894c2a1bc2ddebb",
+      "after_git_blob": "0a1de6f1abffa20728fa36f1d0a70effb146d7cf"
+    },
+    {
+      "path": "v4/manager_research/issuer_us_relations.py",
+      "source_ref": "284945925e6c4dd5f03cd3f5aff400798d134d2f (unchanged business delta)",
+      "new_in_this_batch": false,
+      "before_sha256": "ac3b3e228c3efed4efc7447d2461ac0c63a00b1d0fa9c93a6c0a479076af0b7d",
+      "after_sha256": "ac79f4c6c49fe169537261be6e6e2f84199ed615a2b5d56a4ff25f3cf3d0b048",
+      "before_git_blob": "6912b6c7d2b18f95da0827e1b3829c707039f9d2",
+      "after_git_blob": "1566557725f3329c03352c0862c0e73ca0d31a60"
+    },
+    {
+      "path": "v4/manager_research/eastmoney_run_history.py",
+      "source_ref": "284945925e6c4dd5f03cd3f5aff400798d134d2f (unchanged business delta)",
+      "new_in_this_batch": false,
+      "before_sha256": null,
+      "after_sha256": "6bc723062141cf98681da460af37b73f74da208c682c1ee76a6d55b1a4570e8d",
+      "before_git_blob": null,
+      "after_git_blob": "3b230f1ff76983e33004fef49b0799e276b1345a"
+    },
+    {
+      "path": "apps/api/v35_api/manager_research_router.py",
+      "source_ref": "bdc95a3f9d6d0313baeff2bf727ea82d122dc820",
+      "new_in_this_batch": true,
+      "before_sha256": "d66b0a4184d6490f92eccf6996446f872adef7289b5821aeecc35338145f4410",
+      "after_sha256": "5c5317fd2a84c7ae7cb522d97710f1c74bcb21d1a92e837c06682c3b101e3969",
+      "before_git_blob": "7db8e868bf8db3e0800b8e8fb9da715074db1c1e",
+      "after_git_blob": "85f7bc707f1a135ee92662ed40151cea35d3c5e6"
+    },
+    {
+      "path": "contracts/research.py",
+      "source_ref": "8851f7f84e3d506d3f1317eec03ba92c8f49e324",
+      "new_in_this_batch": true,
+      "before_sha256": "cd71bdd8ac24037627520c3cca6f658e83fc4e51c8a7934f6c6c9222f4b2f3c1",
+      "after_sha256": "d837de2f6e53c23b2c34e9792a52223c7c1e388aa90b63eaffe719630c31bfca",
+      "before_git_blob": "7b0e212950a878169f64849a7a7dae29797c3f84",
+      "after_git_blob": "3b3f29e4f98c7d85ad8a42db94565be2aa84b439"
+    },
+    {
+      "path": "domains/research.py",
+      "source_ref": "bdc95a3f9d6d0313baeff2bf727ea82d122dc820",
+      "new_in_this_batch": true,
+      "before_sha256": "2ad669ea58f08338605885547ec065921ec63cc0047460bb2acd153151fb214b",
+      "after_sha256": "2102cb40ec7d88c162977d16b3cd6b0a668803f36a3b93d7037cce674e6bda6a",
+      "before_git_blob": "8e3de7d3e38e6739dd2624bb0b950959fb9789a0",
+      "after_git_blob": "a7e033507cb67be2231b67ec3e701b95309ab2aa"
+    },
+    {
+      "path": "ops/collect_hourly_research_input.py",
+      "source_ref": "8851f7f84e3d506d3f1317eec03ba92c8f49e324",
+      "new_in_this_batch": true,
+      "before_sha256": "767eaae79e2436284c0cf73626fd114a92448d3aff37b69c378862aae141a7fa",
+      "after_sha256": "657baeaebe6bc474d97d013ceb10a1d2b597947077edf448134920fa83e38990",
+      "before_git_blob": "b33b26db87f87cf3dea325901164a473a5a8b491",
+      "after_git_blob": "9d243fd401501da5b0881dc32c620ca92478b01e"
+    },
+    {
+      "path": "ops/run_manager_announcement_cycle.py",
+      "source_ref": "bdc95a3f9d6d0313baeff2bf727ea82d122dc820",
+      "new_in_this_batch": true,
+      "before_sha256": "56e9d6d73f48443d4502278f8a00b82faa7974031d75fb4ca6198aa62f627ff8",
+      "after_sha256": "36e098ead1789ee73455ab5ad99d3f6199c18c4295153e5542524d370e6d58e5",
+      "before_git_blob": "2aa7c784a216c59ff991e28a87d4b7e96c3b0edc",
+      "after_git_blob": "a447dd2d27655efa7d606c7f7ee2b635c0fc51f4"
+    },
+    {
+      "path": "v4/manager_research/existing_materials.py",
+      "source_ref": "API6726 author reference original R9 dependency; exact pin required",
+      "new_in_this_batch": true,
+      "before_sha256": "2a69d98f6aab13a3e341533554f3419ac420a2fbe426dd3f6f237b7eaa3b141c",
+      "after_sha256": "85aa251110dc70feb4417f69e044fd62cd9424bf8a755c996790f8d2340d8f17",
+      "before_git_blob": "678a391d5a4eaee0b30a3737e0e5c6591ed4f03c",
+      "after_git_blob": "f85c0ea98d645799d2c4e6efecde19bab1e95c07"
+    },
+    {
+      "path": "v4/manager_research/plan_owner_dispatch.py",
+      "source_ref": "bdc95a3f9d6d0313baeff2bf727ea82d122dc820",
+      "new_in_this_batch": true,
+      "before_sha256": "1c71301b9f49f387ceb8e6243fb645adc72bfea11fa6cfea7f25aeb9d2a2db20",
+      "after_sha256": "37a61204e95b3925d74badb6da21306946223000003d31d81a6d6ab65d15527f",
+      "before_git_blob": "0c6d30891bc345aa2893b1f2829dcf547a7dd10f",
+      "after_git_blob": "79029e64a2cd2e085c66908c74f79e0c76f11252"
+    }
+  ],
+  "preserve": {
+    "v4/manager_research/workspace.py": "35c9292d3b422c9d5a744590cc472de5bfa2da8a62d12c6382ca0d1a9b3a6168",
+    "v4/manager_research/workspace_discovery.py": "ed9188a44a4adb6bf2fd08836d465ed3ea7e7d2b8dd7075da99b7aaabc5c5c1a",
+    "v4/manager_research/workspace_plan.py": "0721e90fcc5c261545a23e1aca1545b48077956a312a3c4cfe703f11aa4023f9",
+    "v4/manager_research/workspace_semantics.py": "dc8d1d330e4fdacf2ef7169a7ac62874bfd3e2658f8b4bcff0773e06e32c4f7f",
+    "v4/manager_research/workspace_briefing.py": "60a7942e6c2c6a8ed32099ec807c79c35fa393342ed59996798f21da12466ff6",
+    "v4/manager_research/research_evidence.py": "6a0075aeba1ec68c14ee5ec09f0290c6bbcd49e296fe76fa3ae17a03510c6ec2",
+    "v4/manager_research/announcement_materials.py": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+    "v4/manager_research/connect_selection.py": "b6c5300172f59b6979dbab15927036ff1ab3599a2adae2b4f0e5a1e4868a6248",
+    "v4/manager_research/workspace_plan_autorun.py": "e785ae1d465175bec0517e7c3b4a8d6e16593967cba554aa0428817a85cd079b"
+  },
+  "business_profiles": {
+    "API6726": {
+      "v4/manager_research/workspace_announcements.py": "b3a004c5c43451f7fc72163c02905e1542d6420e7d2fb14e99c7c439b765fb3e",
+      "v4/manager_research/issuer_us_relations.py": "ac3b3e228c3efed4efc7447d2461ac0c63a00b1d0fa9c93a6c0a479076af0b7d",
+      "v4/manager_research/eastmoney_run_history.py": null
+    },
+    "API6726_B1_US": {
+      "v4/manager_research/workspace_announcements.py": "e2e7bd7f00da4f1e1df0b169307ff225976c1572bbbf9ccc2d3618c59f46248a",
+      "v4/manager_research/issuer_us_relations.py": "ac79f4c6c49fe169537261be6e6e2f84199ed615a2b5d56a4ff25f3cf3d0b048",
+      "v4/manager_research/eastmoney_run_history.py": "6bc723062141cf98681da460af37b73f74da208c682c1ee76a6d55b1a4570e8d"
+    }
+  },
+  "field_provenance_scope": "Original optional article fields only; no invented acquisition or relationship"
+}
