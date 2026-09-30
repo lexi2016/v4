@@ -1,0 +1,76 @@
+{
+  "candidate": {
+    "activation_status": "NOT_ACTIVATED",
+    "forward_receipt_sha256": "69ed8c29225b9476ed358f76769ac1ec37a7f4d94806a8b803138901f789523e",
+    "manifest_sha256": "75f6f5543137319810b1f433cefa83ae89c204c2bf6ab56c42effa4be89a6366",
+    "release_written": false,
+    "root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f2/candidate_retry01",
+    "source_output_all_sha_mode_equal": true,
+    "source_output_mapping_count": 64
+  },
+  "candidate_runtime_canary": {
+    "candidate_updater_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f2/candidate_retry01/app/upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+    "candidate_updater_sha256": "45d31c1e6608d1a9af163ffd56ea111d5caeb40000c58cd140534cf81859634e",
+    "dependency_binding": "candidate updater script sets PACKAGE_ROOT from its own __file__ and prepends it before importing shared_data; rerun used candidate build updater path and candidate shared-data root",
+    "network_attempts": 0,
+    "python_version": "3.13.12",
+    "receipt_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_reviewer/candidate_runtime_canary/run-e_7yho0f/canary_receipt.json",
+    "receipt_sha256": "f9358b2b9aceb5d5049b4f4e72d14cc4f716e4591ebeb243d3bdaa9ae0679ab8",
+    "research_safety": {
+      "buy_gate_updated": false,
+      "orders_sent": false,
+      "production_allowed": false
+    },
+    "rows_written": 600,
+    "status": "PASS",
+    "wrapper_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/app/ops/launch_hk_0_2_python_nosite.sh"
+  },
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "focused_tests": {
+    "isolated_package_loader_confinement": "PASS 4/4 against built candidate"
+  },
+  "limitations": {
+    "deployment_api_ui_natural_run": "NOT_VERIFIED; outside frozen F0-F2 PASS scope",
+    "formal_runtime_dependencies": "CANNOT_CONFIRM",
+    "historical_17_20_binding": "CANNOT_CONFIRM"
+  },
+  "observed_evidence_caveat": "The F1 configured-owner canary invokes the existing 20260923 owner, whose shared_data/hk_0_2.py and shared_data/hk_security_master.py differ from the F2 built candidate. Independent no-network rerun against the built candidate updater/package root passed; this closes the candidate-dependency test gap for frozen F0-F2 review.",
+  "reviewed_scope": "Frozen R3 forward candidate F0-F2 only; isolated inactive candidate review",
+  "reviewer_identity": "independent read-only reviewer",
+  "schema_version": "v4.r3_hk_forward_independent_review.v1",
+  "status": "PASS",
+  "target_behavior": {
+    "candidate_build_parity_receipt": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_reviewer/parity_candidate_build/parity_receipt.json",
+    "candidate_build_parity_receipt_sha256": "c1489edab130b4a5215130b4bcf4e51b22f9c67561d6900157d51cfe555965ed",
+    "candidate_capture_error": {
+      "dispatcher_status": "FAILED",
+      "error": "Futu plate lookup failed: HK.LIST1922",
+      "lane_status": "FAILED"
+    },
+    "candidate_publish_error": {
+      "dispatcher_status": "FAILED",
+      "error": "F1_FIXTURE_SECURITY_MASTER_PUBLISH_FAILED",
+      "lane_status": "FAILED"
+    },
+    "candidate_success": {
+      "dispatcher_status": "SUCCEEDED",
+      "fresh_quote_count": 600,
+      "lane_status": "READY",
+      "membership_count": 604
+    },
+    "case_count": 6,
+    "stable_business_identity_equal": {
+      "capture_sha256": true,
+      "panel_capture_binding_sha256": true,
+      "panel_sha256": true,
+      "source_sha256": true
+    },
+    "status": "PASS",
+    "tested_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f2/candidate_retry01/app"
+  }
+}
+
