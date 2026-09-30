@@ -1,0 +1,326 @@
+{
+  "schema_version": "1.0",
+  "reviewed_at_utc": "2026-09-30T21:01:29.091681+00:00",
+  "reviewer": "independent read-only reviewer agent",
+  "review_status": "API_SERVICE_DEPLOYED; BUSINESS_POSITIVE_PATH_CANNOT_CONFIRM",
+  "scope": "Independent live candidate binding and business API semantics after API-only plist activation. No source/config/service/provider mutations. No refresh POST was repeated; direct reviewer reads used GET only.",
+  "source_activation_receipt": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/rollout/evidence/api_activation_owner_preflight_20260930T204144Z.json",
+    "sha256": "8bca68566bd1acd9e93bde7fb4d20108cb8d0acbfbd1e39155540e9eeb27ceea",
+    "declared_sha256": "8bca68566bd1acd9e93bde7fb4d20108cb8d0acbfbd1e39155540e9eeb27ceea",
+    "declared_sha256_matches": true
+  },
+  "independent_runtime_binding": {
+    "launchd_label": "com.lexi.v35.api-only",
+    "launchd_state": "running",
+    "pid": 52190,
+    "program": "/usr/bin/env",
+    "actual_process_command": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python -B -m apps.api.v35_api.run --host 127.0.0.1 --port 8873 --stage-selection-root /Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+    "active_api_plist": {
+      "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+      "sha256": "fce5e6073dc33d3a73f73c3777e5e68c22df8f9277486ae47719c4d00db6b3e3",
+      "mode": "0644",
+      "matches_reviewed_variant": true
+    },
+    "candidate_identity": {
+      "V35_APP_ROOT": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app",
+      "V35_RELEASE_ID": "r3a-r9-import-closure-20260930T193024Z",
+      "V35_RELEASE_MANIFEST_PATH": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/release-manifest.json",
+      "V35_RELEASE_MANIFEST_SHA256": "ac239a1c86021da15a321ab7a383822574373bb4f3c976ad27aadc03fb62da91",
+      "V4_MANAGER_UNIVERSE_OWNER_ROOT": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app",
+      "V4_MANAGER_UNIVERSE_OWNER_SHA256": "9d3d2c2d5ff3bd1c7713a9485e88000ae882f58b0a457b734656094606ba2941",
+      "V4_MANAGER_UNIVERSE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+      "binding_matches_live_launchctl_environment": true
+    },
+    "V4_MANAGER_RESEARCH_STATE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research",
+    "manager_state_matches_pre-activation_R9_value": true,
+    "safety_flags": {
+      "RESEARCH_ONLY": "1",
+      "production_allowed": "false",
+      "PRODUCTION_ALLOWED": "false",
+      "buy_gate_updated": "false",
+      "BUY_GATE_UPDATED": "false",
+      "orders_sent": "false",
+      "ORDERS_SENT": "false"
+    },
+    "scheduler": {
+      "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+      "sha256": "8a72635aeec0efe181b6e479cb7b99463942d9be3690982a79e0b1f93d30b86c",
+      "mode": "0644",
+      "state": "running",
+      "pid": 821,
+      "release_id_from_preflight": "20260929-manager-1555-pytdx-r1",
+      "manifest_sha256": "819eb1f02a7a32889ffc2dd46e0c7ff686e3d20f410db36367ef94ca0734b980",
+      "modified": false
+    },
+    "producer_deployment": "CANNOT_CONFIRM: active scheduler stays on previous R9 owner; candidate API binding does not establish R3A dispatcher/scheduled producer deployment."
+  },
+  "independent_direct_gets": [
+    {
+      "path": "/healthz",
+      "http_status": 200,
+      "bytes": 15,
+      "sha256": "a29ee2b15c494311c52521766e44af56a3ad2248e7a8ab465e5206463c13d288",
+      "summary": {
+        "status": "ok"
+      }
+    },
+    {
+      "path": "/readyz",
+      "http_status": 200,
+      "bytes": 73,
+      "sha256": "cf22ea4da9ccd23f3edc11c29e1cc8a43d90d6496f6c62eb8993face61b7c3a1",
+      "summary": {
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "path": "/api/v4/manager/research?date=20260930",
+      "http_status": 200,
+      "bytes": 500,
+      "sha256": "016b0e0d286eb53e36a7d05280762be01b43c23e5e327805f6ba4721992ca6e4",
+      "summary": {
+        "market": "HK_CONNECT",
+        "target_trade_date": "20260930",
+        "status": "CANNOT_CONFIRM",
+        "cannot_confirm": [
+          "HK_CONNECT rows must not be empty"
+        ]
+      }
+    },
+    {
+      "path": "/api/v4/manager/research?date=20261001",
+      "http_status": 200,
+      "bytes": 500,
+      "sha256": "e13c702dd56ecb2c484e1cf429376c697aea2010eabb7323edaa33ef6c592703",
+      "summary": {
+        "market": "HK_CONNECT",
+        "target_trade_date": "20261001",
+        "status": "CANNOT_CONFIRM",
+        "cannot_confirm": [
+          "HK_CONNECT rows must not be empty"
+        ]
+      }
+    },
+    {
+      "path": "/api/v4/manager/research/announcements?date=20260930",
+      "http_status": 200,
+      "bytes": 566,
+      "sha256": "5bb2fc3efc29ba4518ac6e8ba508f61fc3d6e676dfddc81b698072e96e6dd369",
+      "summary": {
+        "target_trade_date": "20260930",
+        "status": "NOT_RUN",
+        "official_documents": 0,
+        "eastmoney_documents": 0,
+        "gaps": [
+          "ANNOUNCEMENT_OWNER_NOT_RUN"
+        ]
+      }
+    },
+    {
+      "path": "/api/v4/manager/research/announcements?date=20261001",
+      "http_status": 200,
+      "bytes": 1248,
+      "sha256": "6967d9a2ea428d320cd5838bba9d58b2d6cbb87844f3a93a210e5e42c3880d42",
+      "summary": {
+        "target_trade_date": "20261001",
+        "status": "FAILED",
+        "official_documents": 0,
+        "eastmoney_documents": 0,
+        "gaps": [
+          "ANNOUNCEMENT_NO_COMMITTED_PRODUCT",
+          "PLAN_TARGET_NOT_VERIFIED_HK_TRADING_SESSION"
+        ]
+      }
+    },
+    {
+      "path": "/api/v4/manager/research/workspace?date=20260930&view=historical",
+      "http_status": 200,
+      "bytes": 6508,
+      "sha256": "e189324fbd490be0de3c38f0a4178cd7b04ad278dfc98811e52088fba589a70f",
+      "summary": {
+        "target_trade_date": "20260930",
+        "stocks": 0,
+        "gaps": [
+          "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING",
+          "HISTORY_COVERAGE_UNKNOWN",
+          "HISTORY_READER_VERSION_CHANGED"
+        ]
+      }
+    },
+    {
+      "path": "/api/v3/research/us-market?research_date=20260930",
+      "http_status": 200,
+      "bytes": 20952,
+      "sha256": "1bbc79b1751aca65465f06be61e11554e07a6745838fc7dea0dbdf08bd5a198e",
+      "summary": {
+        "research_date": "20260930",
+        "source_date": "20260930",
+        "captured_at": "2026-09-30T20:15:00Z",
+        "run_id": "us-rss:20260930:POST_CLOSE:d50319f2119155e8b6ef5cc5",
+        "status": "PARTIAL",
+        "row_count": 24,
+        "writer_receipt_quote_count": 33,
+        "cannot_confirm": [
+          "EXTERNAL_FINANCE_FETCH_FAILED:US_EQUITY",
+          "EXTERNAL_FINANCE_FETCH_FAILED:ai_compute_chip",
+          "EXTERNAL_FINANCE_FETCH_FAILED:biopharma_ma",
+          "EXTERNAL_FINANCE_FETCH_FAILED:commercial_space",
+          "EXTERNAL_FINANCE_FETCH_FAILED:robotics_autonomous",
+          "GOOGLE_NEWS_RSS_DISCOVERY_ONLY",
+          "MARKET_SNAPSHOT_CANNOT_CONFIRM",
+          "MARKET_SNAPSHOT_INCOMPLETE",
+          "MARKET_SNAPSHOT_NOT_DUE_PRE_OPEN",
+          "QUOTE_SESSION_TIME_MIXED",
+          "US_MARKET_CALENDAR_NOT_BOUND"
+        ],
+        "count_source": "writer receipt at 20260930T204539Z; reviewer direct read independently confirmed PARTIAL, exact source date/run ID, and 24-row count; quote count not independently recalculated."
+      }
+    },
+    {
+      "path": "/api/v3/research/us-market?research_date=20261001",
+      "http_status": 200,
+      "bytes": 12739,
+      "sha256": "e0c5100acf78b3cd1048eca066bec5acd921f26c19c29e4c603332548b31a989",
+      "summary": {
+        "research_date": "20261001",
+        "status": "CANNOT_CONFIRM",
+        "captured_at": "",
+        "source_date": "",
+        "run_id": null,
+        "row_count": 24,
+        "cannot_confirm": [
+          "EXACT_EXTERNAL_FINANCE_NOT_MATERIALIZED"
+        ],
+        "writer_receipt_quote_count": 0,
+        "count_source": "writer receipt; reviewer direct read confirmed CANNOT_CONFIRM and no source/capture date."
+      }
+    },
+    {
+      "path": "/api/v3/research/dates",
+      "http_status": 200,
+      "bytes": 3421,
+      "sha256": "19e3ca8b0171e8b21adf2c8c0e221d535ab9fdad8bb84830855ec6211b7dfd21",
+      "summary": {
+        "server_shanghai_time": "2026-10-01T04:53:19.463706+08:00",
+        "server_new_york_time": "2026-09-30T16:53:19.463706-04:00",
+        "latest_verified_artifact_date": "20260930",
+        "latest_verified_source_date": "20260930",
+        "display_status": "PARTIAL",
+        "freshness_state": "RECENT_BOUND_CAPTURE",
+        "freshness_calendar": "VERIFIED_NYSE_2026",
+        "quote_timing_gap": "QUOTE_SESSION_TIME_MIXED_OR_MISSING",
+        "top_level_exchange_calendar_status": "CANNOT_CONFIRM",
+        "new_capture_performed": false
+      }
+    },
+    {
+      "path": "/api/v3/research/lane?research_date=20260930",
+      "http_status": 200,
+      "bytes": 532791,
+      "sha256": "2ed0a10bac8a09bfeea330893862ec018dde03e66caa74d77203f80bfa615691",
+      "summary": {
+        "research_date": "20260930",
+        "status": "LIVE_HOURLY",
+        "update_diagnostic_state": "EXACT_ARTIFACT_AVAILABLE",
+        "update_diagnostic_process_status": "CANNOT_CONFIRM",
+        "artifact_verified": true,
+        "cannot_confirm_count": 18,
+        "includes": "RESEARCH_DAY_PRODUCT_NOT_MATERIALIZED:20260930"
+      },
+      "note": "Read at reviewer time; this is a separate time-dynamic API read, not a reproduction of the malformed writer digest."
+    }
+  ],
+  "date_semantics": {
+    "reviewer_api_clock": "2026-10-01T04:53:19.463706+08:00",
+    "target_20260930": "Historical target remains 20260930; exact manager read is CANNOT_CONFIRM and historical workspace has zero stocks plus HISTORY_READER_VERSION_CHANGED.",
+    "target_20261001": "HK Connect target is a non-trading date; the manager read has no rows and the announcement refresh was rejected as not a verified HK trading session.",
+    "official_calendar_evidence": [
+      {
+        "source": "HKEX Trading Calendar of Stock Connect (Jan 2026-Dec 2026)",
+        "url": "https://www.hkex.com.hk/-/media/HKEX-Market/Mutual-Market/Stock-Connect/Reference-Materials/Trading-Hour,-Trading-and-Settlement-Calendar/2026-Calendar_pdf_e.pdf",
+        "evidence": "October 1, 2, 5, 6, 7 show Southbound Trading Closed; October 8 is the next listed trading date."
+      },
+      {
+        "source": "SSE 2026 Mid-Autumn/National Day closure notice",
+        "url": "https://www.sse.com.cn/disclosure/announcement/general/c/c_20260915_10832273.shtml",
+        "evidence": "October 1-7 closed, normal opening resumes October 8."
+      }
+    ],
+    "next_existing_owner_slot": "2026-10-08 17:20 Asia/Shanghai from the unchanged prior R9 scheduler contract; it is a calendar-qualified existing-owner window, not proof of R3A producer deployment or future output.",
+    "parent_observed_ui": "IAB historical 20260930 view reported SOURCE_FAILED:HISTORY_READER_VERSION_CHANGED; changing plan date to 20261001 kept date=20260930 and plan_date=20261001, surfaced source/date/workbench contract failure, and cleared old result. Supplied by parent; not independently screen-captured by this reviewer."
+  },
+  "announcement_semantics": {
+    "20260930": "GET returns NOT_RUN, zero official/Eastmoney docs, ANNOUNCEMENT_OWNER_NOT_RUN.",
+    "20261001": "GET returns FAILED and zero docs; Writer recorded one refresh POST rejected HTTP 409 with NOT_COLLECTED/NOT_RECOVERY and PLAN_TARGET_NOT_VERIFIED_HK_TRADING_SESSION.",
+    "interpretation": "No announcement product was recovered; zero documents/HTTP 200 GET do not indicate a successful owner run."
+  },
+  "us_session_mapping_semantics": {
+    "20260930": "PARTIAL; 24 mapping rows, source/capture date 20260930, 33 quotes according to Writer readback, with five external-finance fetch failures, RSS discovery-only, incomplete/mixed-timestamp market snapshot, and unbound calendar in the exact mapping response.",
+    "20261001": "CANNOT_CONFIRM; 24 mapping rows but zero quotes, no run_id/source_date/captured_at, EXACT_EXTERNAL_FINANCE_NOT_MATERIALIZED.",
+    "promotion": "CANNOT_CONFIRM; the 20260930 result is not complete session-bound mapping, and 20261001 has no exact data."
+  },
+  "producer_and_natural_run": {
+    "candidate_api_active": true,
+    "candidate_hk_producer_dispatch_observed": false,
+    "provider_called": false,
+    "announcement_product_recovered": false,
+    "target_20261008_v2_artifact": "NOT_YET_DUE_FOR_20261008",
+    "natural_verified": "CANNOT_CONFIRM",
+    "reason": "Scheduler remains the prior R9 release with its original research_panel_daily_hk owner. R3A next producer execution and its v2 output have not been run or observed."
+  },
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": [
+      {
+        "id": "P2-malformed-writer-research-lane-response-digest",
+        "status": "NONBLOCKING_EVIDENCE_DEFECT",
+        "receipt_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/rollout/evidence/api_activation_owner_preflight_20260930T204144Z.json",
+        "json_path": "business_readbacks.historical_20260930_readbacks.20260930_research_lane.response_sha256",
+        "reported_value": "782fe88a217204313c35f6065a0c6497258353ea9c58d6a66f4",
+        "reported_length": 51,
+        "required_sha256_hex_length": 64,
+        "impact": "The original writer research_lane payload digest cannot verify that response. No raw body artifact is referenced in the activation receipt. Reviewer later read the same read-only route at a distinct time and recorded a valid 64-character digest, but that is a separate time-dynamic response.",
+        "scope_effect": "CANNOT_CONFIRM for the exact writer-snapshot response bytes; does not block API-only deployment or the independently observed current lane status."
+      }
+    ],
+    "count": 1
+  },
+  "status": {
+    "DEPLOYED": "PASS_API_ONLY_CANDIDATE_ACTIVE (launchd PID 52190; active plist exact candidate SHA; process/env identity read back)",
+    "API_VERIFIED": "PASS_FOR_HEALTH_AND_READ_ONLY_PATHS (health/ready and exact manager, announcements, workspace, US, dates, and lane GET paths observed; business results remain blocked/partial as recorded)",
+    "BEHAVIOR_VERIFIED": "PASS_FOR_NEGATIVE_BLOCKERS_ONLY; CANNOT_CONFIRM_SUCCESSFUL_R3A_PRODUCT_PATH",
+    "UI_VERIFIED": "CANNOT_CONFIRM_BY_REVIEWER; parent supplied IAB observation noted separately",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM",
+    "R3A_PRODUCER_DEPLOYED": "CANNOT_CONFIRM; scheduler still previous R9 owner",
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "source_semantics_reviewed": [
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app/apps/api/v35_api/manager_research_router.py",
+      "lines": "84-91,169-190,214-238",
+      "note": "Manager/workspace/announcement GET routes read through the existing service; refresh is a separate POST. Historical read errors are surfaced as explicit failure, not stale rows."
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app/apps/api/v35_api/research_lane_router.py",
+      "lines": "1113-1120,1166-1185",
+      "note": "Lane reads use exact source/date, and US market route projects stored snapshot only, with no on-demand fetch."
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app/infrastructure/research_lane_source.py",
+      "lines": "410-437",
+      "note": "Lane update diagnostic reads exact-date execution receipts and carries observed_at, explaining that separate GET response hashes can be time-dynamic."
+    }
+  ],
+  "reviewer_mutations": {
+    "source_or_config": false,
+    "service_or_scheduler": false,
+    "provider": false,
+    "POST_requests": 0
+  }
+}
