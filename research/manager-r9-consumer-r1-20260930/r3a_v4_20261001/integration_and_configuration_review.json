@@ -1,0 +1,393 @@
+{
+  "scope": "Canonical integration and independently reviewed candidate/configuration; live activation and business data verification are separate receipts",
+  "artifacts": [
+    {
+      "relative_path": "evidence/integration/canonical_integration_20260930T191038975332Z.json",
+      "sha256": "0e3cb62b3c5de3f325d5bfd2dc397e2b3b3473bb6546f4fb5f94f11bab602938",
+      "receipt": {
+        "backup_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/integration/backups_20260930T191038975332Z",
+        "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+        "completed_at_utc": "2026-09-30T19:10:38.991493+00:00",
+        "items": [
+          {
+            "mode": 420,
+            "path": "domains/manager_research_evidence.py",
+            "sha256": "4bfd8ec335eade9a97340fe17fc0742f2dba546d0e254fdfed2833ed324bb73d",
+            "status": "CAS_APPLIED"
+          },
+          {
+            "mode": 420,
+            "path": "infrastructure/isolated_package_loader.py",
+            "sha256": "c714d4b95c03da061f592e076cd12188dbeefcd9f0fae7aeaae18c0450e915eb",
+            "status": "CAS_APPLIED"
+          },
+          {
+            "mode": 420,
+            "path": "infrastructure/scheduling/_executor_registry_parts/research_jobs.py",
+            "sha256": "ee4627b05cd969357fb16e7fd88b7eccbc24aa1e13a04c6ddf120038f801defc",
+            "status": "NO_OP_ALREADY_EQUAL"
+          },
+          {
+            "mode": 420,
+            "path": "ops/_macos_research_panel_daily_parts/_namespace.py",
+            "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+            "status": "NO_OP_ALREADY_EQUAL"
+          },
+          {
+            "mode": 420,
+            "path": "ops/_macos_research_panel_daily_parts/cli.py",
+            "sha256": "f6161a61951e60de66a50e2ee28751400d316ede9dc503bb9b84967e8f4b09f2",
+            "status": "CAS_APPLIED"
+          },
+          {
+            "mode": 420,
+            "path": "ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+            "sha256": "d3db5b9644bbf2fb1f4e245717907862ebe1cee2d0f650a8d45d732fd4a71940",
+            "status": "CAS_APPLIED"
+          },
+          {
+            "mode": 420,
+            "path": "ops/_macos_research_panel_daily_parts/hk_market_capture.py",
+            "sha256": "0a9651f88bc8a50d4b5e8ec4b6775a5291918f9f2556cf37c05b80a55cdfd84a",
+            "status": "CAS_APPLIED"
+          },
+          {
+            "mode": 420,
+            "path": "ops/ensure_hk_security_master.py",
+            "sha256": "6c341a33c0283b023219c46cc2a1c6aaca49cf4b5dcb88aa2fb5527a13145601",
+            "status": "CAS_APPLIED"
+          },
+          {
+            "mode": 420,
+            "path": "stage_center/hk_universe_preflight.py",
+            "sha256": "9d3d2c2d5ff3bd1c7713a9485e88000ae882f58b0a457b734656094606ba2941",
+            "status": "CAS_APPLIED"
+          },
+          {
+            "mode": 420,
+            "path": "v4/manager_research/announcement_materials.py",
+            "sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+            "status": "CAS_APPLIED"
+          },
+          {
+            "mode": 420,
+            "path": "v4/manager_research/connect_selection.py",
+            "sha256": "945acad06c03321059756950988937dee9991d23007c4bac49251e8789488d3b",
+            "status": "CAS_APPLIED"
+          },
+          {
+            "mode": 420,
+            "path": "v4/manager_research/issuer_us_relations.py",
+            "sha256": "ac3b3e228c3efed4efc7447d2461ac0c63a00b1d0fa9c93a6c0a479076af0b7d",
+            "status": "CAS_APPLIED"
+          },
+          {
+            "mode": 420,
+            "path": "v4/manager_research/research_evidence.py",
+            "sha256": "6a0075aeba1ec68c14ee5ec09f0290c6bbcd49e296fe76fa3ae17a03510c6ec2",
+            "status": "CAS_APPLIED"
+          },
+          {
+            "mode": 420,
+            "path": "v4/manager_research/workspace.py",
+            "sha256": "35c9292d3b422c9d5a744590cc472de5bfa2da8a62d12c6382ca0d1a9b3a6168",
+            "status": "CAS_APPLIED"
+          },
+          {
+            "mode": 420,
+            "path": "v4/manager_research/workspace_announcements.py",
+            "sha256": "b3a004c5c43451f7fc72163c02905e1542d6420e7d2fb14e99c7c439b765fb3e",
+            "status": "CAS_APPLIED"
+          },
+          {
+            "mode": 420,
+            "path": "v4/manager_research/workspace_briefing.py",
+            "sha256": "60a7942e6c2c6a8ed32099ec807c79c35fa393342ed59996798f21da12466ff6",
+            "status": "CAS_APPLIED"
+          },
+          {
+            "mode": 420,
+            "path": "v4/manager_research/workspace_discovery.py",
+            "sha256": "ed9188a44a4adb6bf2fd08836d465ed3ea7e7d2b8dd7075da99b7aaabc5c5c1a",
+            "status": "CAS_APPLIED"
+          },
+          {
+            "mode": 420,
+            "path": "v4/manager_research/workspace_plan.py",
+            "sha256": "0721e90fcc5c261545a23e1aca1545b48077956a312a3c4cfe703f11aa4023f9",
+            "status": "CAS_APPLIED"
+          },
+          {
+            "mode": 420,
+            "path": "v4/manager_research/workspace_plan_autorun.py",
+            "sha256": "e785ae1d465175bec0517e7c3b4a8d6e16593967cba554aa0428817a85cd079b",
+            "status": "NO_OP_ALREADY_EQUAL"
+          },
+          {
+            "mode": 420,
+            "path": "v4/manager_research/workspace_semantics.py",
+            "sha256": "dc8d1d330e4fdacf2ef7169a7ac62874bfd3e2658f8b4bcff0773e06e32c4f7f",
+            "status": "CAS_APPLIED"
+          }
+        ],
+        "no_op_count": 3,
+        "path_count": 20,
+        "prewrite_receipt": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/integration/prewrite_cas_20260930T191038975332Z.json",
+        "safety": {
+          "buy_gate_updated": false,
+          "orders_sent": false,
+          "production_allowed": false,
+          "research_only": true
+        },
+        "schema_version": 1,
+        "status": "CANONICAL_ALLOWLIST_INTEGRATED",
+        "write_count": 17
+      }
+    },
+    {
+      "relative_path": "evidence/integration_reviewer/inactive_candidate_review_v2.json",
+      "sha256": "923cc7117aa19be51fd8874ef62311f80b09726942360b1a4437c8db1d45d22c",
+      "receipt": {
+        "schema_version": "1.0",
+        "reviewed_at_utc": "2026-09-30T20:01:37.470118+00:00",
+        "reviewer": "independent read-only reviewer agent",
+        "review_status": "PASS_SOURCE_AND_INACTIVE_CANDIDATE",
+        "review_scope": "Frozen R3A source and inactive integrated candidate only; no activation or live service behavior.",
+        "freeze": {
+          "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/integration/candidate_final_freeze_v2_20260930T195008Z.json",
+          "sha256": "5567392d458e9b8fd2e7607b62e4766f245bafab228e5ff5d328cae743db7fc3",
+          "candidate_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z",
+          "candidate_tree_inventory_sha256": "d63da05a492e8c63a867ea24b3fc444b27e8c731b2065678ef2e2ecbc6becde9",
+          "candidate_app_inventory_sha256": "fe92c19759dff54705638fb72c6f67baafe62d192dd9a14eceee1f9561699772",
+          "candidate_manifest_sha256": "ac239a1c86021da15a321ab7a383822574373bb4f3c976ad27aadc03fb62da91"
+        },
+        "findings": {
+          "P0": [],
+          "P1": [],
+          "P2": [],
+          "count": 0
+        },
+        "acceptance_evidence": [
+          {
+            "id": "candidate_import_closure_parity",
+            "status": "PASS",
+            "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/integration_reviewer/independent_r9_import_closure_parity.json",
+            "sha256": "b640e72cafa6557b80ce6cc3bf1b1f2ea35a15ed0a4784dd0aa35e972cf8fc31",
+            "result": "990/990 candidate source/output paths exact; 967 R9 paths, 20 allowlist paths, 16 traced F0 import additions; 954 R9 files preserved byte and mode; no candidate-tree symlinks."
+          },
+          {
+            "id": "offline_import_smoke",
+            "status": "PASS",
+            "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/integration_reviewer/independent_import_smoke_23_modules.json",
+            "sha256": "fc978326aed779c110c77457bed138a70d21af1e8f2f42d5a04c533414f648c8",
+            "result": "23 candidate modules imported under Python 3.14.6; 0 network API attempts; HK owner not invoked."
+          },
+          {
+            "id": "focused_hk_contract_regression",
+            "status": "PASS",
+            "test_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/tests/integration_reviewer/test_hk_connect_v2_contract.py",
+            "test_sha256": "391bf65235b62dcf99b16724fa566fc11a0f86586ba1eca8579c8edab57e1d13",
+            "result": "6 tests and 2 subtests passed against the frozen candidate with reviewer-only synthetic evidence root."
+          },
+          {
+            "id": "manager_saved_diagnostics_regression",
+            "status": "PASS",
+            "test_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/tests/reviewer/test_r3b_saved_diagnostics_v2.py",
+            "test_sha256": "9c265162d7b8dccd346be60f23f72890dea56f39db172339ac1003e08702b77e",
+            "result": "10/10 passed against the frozen candidate, candidate-only PYTHONPATH and /private/tmp working directory."
+          },
+          {
+            "id": "workspace_threeway_merge_regression",
+            "status": "PASS",
+            "test_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_API_INTEGRATION_20260930/tests/test_workspace_threeway_merge.py",
+            "test_sha256": "76c84723efc9ff09d0370726e72756a11e9715c7c7e3c73ea94ce094bafe8fb2",
+            "result": "4/4 passed against the frozen candidate, candidate-only PYTHONPATH and /private/tmp working directory."
+          },
+          {
+            "id": "static_hk_candidate_binding",
+            "status": "PASS",
+            "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/integration/candidate_hk_universe_binding_20260930T193024Z.json",
+            "sha256": "c5e4e2a41ea25724ff71797ade786b91d90a99f2bac6a86976c11be33d8263d4",
+            "result": "Candidate HK owner/helper SHA and the existing scheduler HK asset-root-derived manager root match the frozen binding; source/runtime binding evidence is static only."
+          },
+          {
+            "id": "api_plist_backup_and_inactive_state",
+            "status": "PASS",
+            "backup_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/integration/original_api_plist_7c2e62d4c79315df.plist",
+            "backup_sha256": "7c2e62d4c79315dfe71c8f45264616733a549d3cb45abae61ff92f957bfbaec7",
+            "backup_mode": "0644",
+            "active_api_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+            "active_api_sha256": "7c2e62d4c79315dfe71c8f45264616733a549d3cb45abae61ff92f957bfbaec7",
+            "active_scheduler_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+            "active_scheduler_sha256": "8a72635aeec0efe181b6e479cb7b99463942d9be3690982a79e0b1f93d30b86c",
+            "result": "Current API plist is byte-identical to the retained original backup; active API and scheduler remain on R9 configuration. Rollback plan targets restoration from this exact backup."
+          }
+        ],
+        "acceptance_limits": {
+          "activation_ready": "CANNOT_CONFIRM",
+          "live_api_binding_variant": "PENDING_SEPARATE_REVIEW",
+          "live_target_date_data": "CANNOT_CONFIRM: target-date probe lacks artifact_ref",
+          "api_verified": "CANNOT_CONFIRM",
+          "ui_verified": "CANNOT_CONFIRM",
+          "deployed": "CANNOT_CONFIRM",
+          "natural_verified": "CANNOT_CONFIRM",
+          "real_sdk_return_type": "CANNOT_CONFIRM",
+          "reason": "Candidate is inactive; current API/scheduler plists remain on R9. No service/provider/API/UI action occurred in this review."
+        },
+        "review_process_incident": {
+          "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/integration/candidate_parity_overwrite_incident_20260930T195008Z.json",
+          "sha256": "d06f940f98dcbc80cd7502e3746f19ed0ac7f19a384995849d8084fe416c64d3",
+          "summary": "An initial reviewer invocation of the parity verifier wrote to its shared configured output and replaced the Writer parity metadata; original overwritten bytes are unavailable. The reviewer stopped using that output, generated a separate independent parity receipt, and candidate freeze v2 binds the corrected reviewer receipt. No source or candidate bytes were changed by this event."
+        },
+        "next_gate": "Review the separately generated live-binding plist variant against its strict allowlist diff, safety flags, manager-state root, and exact backup/rollback path. This receipt does not authorize or verify activation."
+      }
+    },
+    {
+      "relative_path": "evidence/integration_reviewer/live_binding_variant_review_v1.json",
+      "sha256": "be030220e7fc07cb13323ea1ee2a08bb0a3bf107ba1f964c90ece604de01b50c",
+      "receipt": {
+        "schema_version": "1.0",
+        "reviewed_at_utc": "2026-09-30T20:15:38.628865+00:00",
+        "reviewer": "independent read-only reviewer agent",
+        "review_status": "PASS_WITH_NONBLOCKING_P2",
+        "scope": "Inactive live-binding API plist variant, strict semantic diff, safety flags, candidate/manager-state roots, pinned backup, and apply/rollback helper control flow. No apply, rollback, activation, service, scheduler, provider, API, UI, or app/test execution.",
+        "reviewed_artifacts": {
+          "variant": {
+            "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/rollout/config/com.lexi.v35.api-only.r3a-candidate-20260930T200043Z.plist",
+            "sha256": "fce5e6073dc33d3a73f73c3777e5e68c22df8f9277486ae47719c4d00db6b3e3",
+            "mode": "0o644"
+          },
+          "writer_diff_receipt": {
+            "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/rollout/evidence/live_api_variant_diff_20260930T200043Z.json",
+            "sha256": "f7a4a4d4e1fb7c1f129bd22c53470f9af51007d8984d227eac11f9547194e7c0"
+          },
+          "original_backup": {
+            "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/rollout/evidence/com.lexi.v35.api-only.original-7c2e62d4c79315df-20260930T200043Z.plist",
+            "sha256": "7c2e62d4c79315dfe71c8f45264616733a549d3cb45abae61ff92f957bfbaec7",
+            "mode": "0o644"
+          },
+          "generator": {
+            "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/rollout/config/build_live_api_variant.py",
+            "sha256": "dedf6a1a1ad67d70981cb3615f9431a856f8c50fd574c934348d918df6049b8e"
+          },
+          "apply_rollback_script": {
+            "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/rollout/config/apply_candidate_api_variant.py",
+            "sha256": "1c107bf67acab8241265f010a06ebdf8a4698532a05abeb1cab359c856f938a0"
+          },
+          "candidate_freeze": {
+            "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/integration/candidate_final_freeze_v2_20260930T195008Z.json",
+            "sha256": "5567392d458e9b8fd2e7607b62e4766f245bafab228e5ff5d328cae743db7fc3"
+          },
+          "candidate_manifest": {
+            "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/release-manifest.json",
+            "sha256": "ac239a1c86021da15a321ab7a383822574373bb4f3c976ad27aadc03fb62da91"
+          },
+          "candidate_hk_binding": {
+            "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/integration/candidate_hk_universe_binding_20260930T193024Z.json",
+            "sha256": "c5e4e2a41ea25724ff71797ade786b91d90a99f2bac6a86976c11be33d8263d4"
+          }
+        },
+        "independent_configuration_checks": {
+          "plist_parse": "PASS",
+          "plutil_lint": "PASS for variant and backup",
+          "top_level_changed_keys": [
+            "ProgramArguments",
+            "WorkingDirectory"
+          ],
+          "changed_existing_environment_assignments": [
+            "PYTHONPATH",
+            "V35_APP_ROOT",
+            "V35_RELEASE_ID",
+            "V35_RELEASE_MANIFEST_PATH",
+            "V35_RELEASE_MANIFEST_SHA256"
+          ],
+          "added_environment_assignments": [
+            "V4_MANAGER_UNIVERSE_OWNER_ROOT",
+            "V4_MANAGER_UNIVERSE_OWNER_SHA256",
+            "V4_MANAGER_UNIVERSE_ROOT"
+          ],
+          "removed_environment_assignments": [],
+          "all_other_assignment_values_and_order_preserved": true,
+          "all_non_assignment_program_arguments_preserved": true,
+          "candidate_working_directory_and_app_root_match_frozen_candidate": true,
+          "candidate_release_id_and_manifest_path_sha_match_freeze": true,
+          "python_interpreter_and_module_arguments_unchanged": true,
+          "preserved_manager_state_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research",
+          "manager_state_root_unchanged_from_current_api_plist": true,
+          "hk_owner_root_matches_candidate_app": true,
+          "hk_owner_helper_sha256": "9d3d2c2d5ff3bd1c7713a9485e88000ae882f58b0a457b734656094606ba2941",
+          "hk_data_root_matches_frozen_binding_and_current_scheduler_asset_root_parent": true,
+          "hk_data_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+          "safety_flags": {
+            "RESEARCH_ONLY": "1",
+            "production_allowed": "false",
+            "PRODUCTION_ALLOWED": "false",
+            "buy_gate_updated": "false",
+            "BUY_GATE_UPDATED": "false",
+            "orders_sent": "false",
+            "ORDERS_SENT": "false"
+          },
+          "safety_flags_preserved": true,
+          "backup_bytes_equal_current_api_base": true,
+          "backup_mode_and_current_api_mode": "0644",
+          "active_api_sha256_after_read_only_check": "7c2e62d4c79315dfe71c8f45264616733a549d3cb45abae61ff92f957bfbaec7",
+          "active_scheduler_sha256": "8a72635aeec0efe181b6e479cb7b99463942d9be3690982a79e0b1f93d30b86c",
+          "read_only_apply_helper_check": {
+            "command": "v3.5-mac Python apply_candidate_api_variant.py --check",
+            "stdout": {
+              "status": "LIVE_CONFIGURATION_UNCHANGED",
+              "live_sha256": "7c2e62d4c79315dfe71c8f45264616733a549d3cb45abae61ff92f957bfbaec7",
+              "mode": 420
+            }
+          },
+          "apply_or_rollback_executed": false,
+          "active_plist_changed": false,
+          "service_or_scheduler_action": false
+        },
+        "findings": {
+          "P0": [],
+          "P1": [],
+          "P2": [
+            {
+              "id": "P2-idempotent-apply-rollback-mode-check",
+              "status": "NONBLOCKING_FOLLOW_UP",
+              "evidence": [
+                {
+                  "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/rollout/config/apply_candidate_api_variant.py",
+                  "lines": [
+                    88,
+                    90
+                  ],
+                  "detail": "The --apply ALREADY_APPLIED branch returns on variant SHA equality without validating current mode against receipt.variant_mode."
+                },
+                {
+                  "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/rollout/config/apply_candidate_api_variant.py",
+                  "lines": [
+                    97,
+                    99
+                  ],
+                  "detail": "The --rollback ALREADY_ROLLED_BACK branch returns on base SHA equality without validating current mode against receipt.original_backup_mode."
+                }
+              ],
+              "impact": "An already-target-content plist with mode drift can be reported as successfully applied/rolled back. Content remains pinned, but the command status omits a contract mode mismatch.",
+              "current_scope_assessment": "Nonblocking for this one-time first-switch path: independent --check observed the live API at exact base SHA and mode 0644; the non-idempotent --apply path checks base SHA/mode before replacement and verifies variant SHA/mode after replacement. The corresponding rollback path checks variant SHA/mode and verifies backup SHA/mode.",
+              "follow_up": "Fix both idempotent branches before relying on them to certify a future already-applied/already-rolled-back state. If either reports target SHA with unexpected mode, stop and independently verify mode."
+            }
+          ],
+          "count": 1
+        },
+        "readiness": {
+          "variant_configuration_review": "PASS_WITH_NONBLOCKING_P2",
+          "first_apply_precondition": "PASS for observed base SHA+0644 and guarded one-time branch",
+          "rollback_source_and_path": "PASS; exact original backup bytes/mode are pinned and helper restores them only when candidate SHA+mode matches",
+          "activation_executed": false,
+          "api_verified": "CANNOT_CONFIRM",
+          "ui_verified": "CANNOT_CONFIRM",
+          "deployed": "CANNOT_CONFIRM",
+          "natural_verified": "CANNOT_CONFIRM",
+          "reason": "The variant remains inactive; this review changed no active plist, service, scheduler, or provider state."
+        }
+      }
+    }
+  ]
+}
