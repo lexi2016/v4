@@ -3,6 +3,76 @@ from __future__ import annotations
 from ._namespace import read_global as _v4_global
 
 
+def _same_day_late_observation_recovery(_v4_scope, /, *, mode, trade_date, evaluated_at, decision):
+    if mode != "RECOVERY" or decision.status != "LATE_CATCHUP_REPLAY":
+        return False
+    if getattr(decision, "trade_date", None) != trade_date:
+        return False
+    scheduled_at = getattr(decision, "scheduled_at", None)
+    if scheduled_at is None:
+        return False
+    local_now = _v4_global(_v4_scope, '_as_shanghai')(evaluated_at)
+    if local_now.strftime("%Y%m%d") != trade_date:
+        return False
+    local_cutoff = _v4_global(_v4_scope, '_as_shanghai')(scheduled_at)
+    return local_now > local_cutoff
+
+
+def _settled_partial_hk_cutoff_recovery_shape(
+    receipt, /, *, mode, trade_date, stage_id, attempt_count, max_attempts
+):
+    """Recognize an unexhausted retry for the observed HK cutoff failure."""
+
+    if mode != "RECOVERY" or not isinstance(receipt, dict):
+        return False
+    if (
+        receipt.get("trade_date") != trade_date
+        or receipt.get("stage_id") != stage_id
+        or receipt.get("node_id") != stage_id
+    ):
+        return False
+    if receipt.get("dispatch_mode") != "RECOVERY":
+        return False
+    if any(receipt.get(flag) is not False for flag in ("production_allowed", "buy_gate_updated", "orders_sent")):
+        return False
+    if receipt.get("status") != "PARTIAL_WITH_ROWS":
+        return False
+    if receipt.get("node_outcome") != "SETTLED_PARTIAL":
+        return False
+    recorded_attempt_count = receipt.get("node_attempt_count")
+    if (
+        not isinstance(recorded_attempt_count, int)
+        or isinstance(recorded_attempt_count, bool)
+        or recorded_attempt_count != attempt_count
+    ):
+        return False
+    # Reopen only after at least one attempt, while the original budget remains.
+    if max_attempts <= 0 or not (0 < attempt_count < max_attempts):
+        return False
+
+    markets = receipt.get("markets")
+    if not isinstance(markets, dict):
+        return False
+    hk = markets.get("HK_CONNECT")
+    if not isinstance(hk, dict):
+        return False
+    cannot_confirm = hk.get("cannot_confirm")
+    selected_rows = hk.get("selected_rows")
+    return (
+        hk.get("market") == "HK_CONNECT"
+        and hk.get("status") == "CANNOT_CONFIRM"
+        and hk.get("source_status") == "CANNOT_CONFIRM"
+        and hk.get("selection_status") == "CANNOT_CONFIRM"
+        and isinstance(selected_rows, int)
+        and not isinstance(selected_rows, bool)
+        and selected_rows == 0
+        and hk.get("write_performed") is False
+        and isinstance(cannot_confirm, (list, tuple))
+        and len(cannot_confirm) == 1
+        and "HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE" in cannot_confirm
+    )
+
+
 def __dispatch_stage_body(_v4_scope, /, config, trade_date, stage_id, evaluated_at, *, mode, runner, precaptures):
     """Run exactly one stage under the runner's existing per-stage lock."""
 
@@ -28,24 +98,97 @@ def __dispatch_stage_body(_v4_scope, /, config, trade_date, stage_id, evaluated_
     from .node_entry import _a_0925_repair_authority, _ISSUE11_MARKER
     repair = None
     repair_marker = _v4_global(_v4_scope, '_receipt_path')(config, trade_date, stage_id).parent / _ISSUE11_MARKER
+    # The A incident grant and the old HK remaining-budget contract are
+    # different authorities. Do not let the A marker/auth hide an HK request.
+    # The frozen _run_one interface, however, cannot execute HK only or preserve
+    # the A receipt on all internal failures. Fail before calling it, rather
+    # than deleting auth keys or pretending a whole-stage retry is HK-only.
+    a_marker_present = repair_marker.exists() or repair_marker.is_symlink()
+    if (trade_date == "20260930" and stage_id == "STAGE_0925"
+            and (a_marker_present or "a_0925_recovery_authorization" in config)
+            and _settled_partial_hk_cutoff_recovery_shape(
+                receipt, mode=mode, trade_date=trade_date, stage_id=stage_id,
+                attempt_count=attempt_count, max_attempts=max_attempts)):
+        scope_safe = False
+        try:
+            wall = _v4_global(_v4_scope, '_rearm_wall_now')()
+            safety = config.get("safety")
+            scope_safe = (
+                evaluated_at.tzinfo is not None and wall.tzinfo is not None
+                and _v4_global(_v4_scope, '_as_shanghai')(wall).strftime("%Y%m%d") == trade_date
+                and _v4_global(_v4_scope, '_as_shanghai')(evaluated_at).strftime("%Y%m%d") == trade_date
+                and evaluated_at <= wall
+                and isinstance(safety, dict)
+                and all(safety.get(flag) is False for flag in
+                        ("production_allowed", "buy_gate_updated", "orders_sent"))
+            )
+        except (AttributeError, TypeError, ValueError):
+            pass  # Invalid clocks/config remain a refusal, never an allowance.
+        return {
+            "status": "CANNOT_CONFIRM", "trade_date": trade_date,
+            "stage_id": stage_id, "node_id": stage_id, "dispatch_mode": mode,
+            "first_failed_layer": ("HK_RETRY_A_PRESERVATION_UNSUPPORTED" if scope_safe
+                                   else "HK_COEXISTENCE_SCOPE_UNSAFE"),
+            "requested_market": "HK_CONNECT", "node_attempt_count": attempt_count,
+            # A counter read from the shared receipt is not an independent HK
+            # reservation. In particular, do not reset count=4 after A recovery.
+            "hk_recorded_remaining_attempts": max_attempts - attempt_count,
+            "a_recovery_marker_present": a_marker_present,
+            "additional_a_attempts_granted": 0, "hk_retry_executed": False,
+            "runner_invoked": False, "write_performed": False,
+            **_v4_global(_v4_scope, '_safe_flags')(),
+        }
     if trade_date == "20260930" and stage_id == "STAGE_0925" and (repair_marker.exists() or repair_marker.is_symlink()):
         return {"status": "SKIPPED_REPAIR_RECOVERY_CONSUMED", "trade_date": trade_date,
                 "stage_id": stage_id, "node_id": stage_id, "dispatch_mode": mode,
                 "node_attempt_count": 4, "retry_exhausted": True, "write_performed": False,
                 "first_failed_layer": "ISSUE11_RECOVERY_ALLOWANCE_ALREADY_CONSUMED",
                 **_v4_global(_v4_scope, '_safe_flags')()}
+    settled_recovery_decision = None
     if _v4_global(_v4_scope, '_stage_settled')(receipt) and existing_status not in _v4_global(_v4_scope, 'TRANSIENT_STATUSES'):
-        return {
-            "status": "SKIPPED_ALREADY_SETTLED",
-            "stage_id": stage_id,
-            "node_id": stage_id,
-            "trade_date": trade_date,
-            "dispatch_mode": mode,
-            "node_outcome": (receipt or {}).get("node_outcome", "SETTLED"),
-            "node_attempt_count": attempt_count,
-            "write_performed": False,
-            **_v4_global(_v4_scope, '_safe_flags')(),
-        }
+        if _settled_partial_hk_cutoff_recovery_shape(
+            receipt,
+            mode=mode,
+            trade_date=trade_date,
+            stage_id=stage_id,
+            attempt_count=attempt_count,
+            max_attempts=max_attempts,
+        ):
+            settled_recovery_decision = _v4_global(_v4_scope, 'next')(
+                (
+                    item
+                    for item in runner.due_decisions(
+                        trade_date,
+                        _v4_global(_v4_scope, '_as_shanghai')(evaluated_at),
+                        historical_backfill=False,
+                    )
+                    if item.stage_id == stage_id
+                ),
+                None,
+            )
+        settled_recovery_is_due = (
+            settled_recovery_decision is not None
+            and getattr(settled_recovery_decision, "stage_id", None) == stage_id
+            and _same_day_late_observation_recovery(
+                _v4_scope,
+                mode=mode,
+                trade_date=trade_date,
+                evaluated_at=evaluated_at,
+                decision=settled_recovery_decision,
+            )
+        )
+        if not settled_recovery_is_due:
+            return {
+                "status": "SKIPPED_ALREADY_SETTLED",
+                "stage_id": stage_id,
+                "node_id": stage_id,
+                "trade_date": trade_date,
+                "dispatch_mode": mode,
+                "node_outcome": (receipt or {}).get("node_outcome", "SETTLED"),
+                "node_attempt_count": attempt_count,
+                "write_performed": False,
+                **_v4_global(_v4_scope, '_safe_flags')(),
+            }
     # An explicit repair request cannot fall back to the ordinary first-attempt
     # path when its frozen failed receipt is absent, malformed or not transient.
     if ("a_0925_recovery_authorization" in config
@@ -102,7 +245,7 @@ def __dispatch_stage_body(_v4_scope, /, config, trade_date, stage_id, evaluated_
 
     from stage_center.runner import SlotLock, _slot_lock_path
 
-    decision = _v4_global(_v4_scope, 'next')(
+    decision = settled_recovery_decision or _v4_global(_v4_scope, 'next')(
         item
         for item in runner.due_decisions(
             trade_date, _v4_global(_v4_scope, '_as_shanghai')(evaluated_at), historical_backfill=False
@@ -119,6 +262,13 @@ def __dispatch_stage_body(_v4_scope, /, config, trade_date, stage_id, evaluated_
             "write_performed": False,
             **_v4_global(_v4_scope, '_safe_flags')(),
         }
+    decision.same_day_late_observation_recovery = _same_day_late_observation_recovery(
+        _v4_scope,
+        mode=mode,
+        trade_date=trade_date,
+        evaluated_at=evaluated_at,
+        decision=decision,
+    )
 
     lock = SlotLock(_slot_lock_path(runner.config, trade_date, stage_id))
     _v4_global(_v4_scope, '_deadline').checkpoint("LOCK_ACQUIRE_START", trade_date=trade_date, stage_id=stage_id)
