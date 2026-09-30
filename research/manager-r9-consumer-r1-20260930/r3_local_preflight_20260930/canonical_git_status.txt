@@ -1,0 +1,431 @@
+## codex/system-consolidation-20260912
+ M apps/api/v35_api/app.py
+ M apps/api/v35_api/manager_research_router.py
+ M apps/api/v35_api/research_lane_router.py
+ M apps/api/v35_api/research_router.py
+ M apps/api/v35_api/review_router.py
+ M apps/api/v35_api/runtime_graph_router.py
+ M apps/web/src/App.spec.ts
+ M apps/web/src/App.vue
+ M apps/web/src/api/review.ts
+ M apps/web/src/components/research/GlobalIndustryMap.spec.ts
+ M apps/web/src/components/research/GlobalIndustryMap.vue
+ M apps/web/src/components/research/ResearchFeedPane.vue
+ M apps/web/src/components/research/ResearchStatusStrip.vue
+ M apps/web/src/components/review/HkCloseReviewPanel.vue
+ M apps/web/src/contracts/review.ts
+ M apps/web/src/contracts/runtime.ts
+ M apps/web/src/contracts/selection.ts
+ M apps/web/src/manager-selection/adapters/priority.spec.ts
+ M apps/web/src/manager-selection/adapters/priority.ts
+ M apps/web/src/style.css
+ M apps/web/src/styles/manager-selection.css
+ M apps/web/src/views/ManagerSelectionView.spec.ts
+ M apps/web/src/views/ManagerSelectionView.vue
+ M apps/web/src/views/ResearchView.spec.ts
+ M apps/web/src/views/ResearchView.vue
+ M apps/web/src/views/ReviewView.spec.ts
+ M apps/web/src/views/ReviewView.vue
+ M apps/web/src/views/TaskStatusView.spec.ts
+ M apps/web/src/views/TaskStatusView.vue
+ M contracts/market_calendar_2026.json
+ M contracts/research.py
+ M contracts/research_day_product.py
+ M contracts/runtime_workloads.json
+ M contracts/trading_calendar.py
+ M domains/d1_review_lane_producer.py
+ M domains/d1_review_source_producer.py
+ M domains/preselection.py
+ M domains/preselection_materializer.py
+ M domains/research.py
+ M domains/research_day_product.py
+ M domains/research_hourly.py
+ M domains/runtime_policy.py
+ M domains/task_status.py
+ M infrastructure/interprocess_lock.py
+ M infrastructure/owned_io.py
+ M infrastructure/preselection_pool_store.py
+ M infrastructure/research_lane_source.py
+ M infrastructure/research_peripheral_store.py
+ M infrastructure/research_store.py
+ M infrastructure/runtime_graph/service.py
+ M infrastructure/runtime_graph/store.py
+ M infrastructure/scheduling/dispatcher.py
+ M infrastructure/scheduling/execution_ledger.py
+ M infrastructure/scheduling/executor_registry.py
+ M infrastructure/tdx_minute_replay_provider.py
+ M ops/a_share_daily_sync.py
+ M ops/daily_materialize.py
+ M ops/ensure_hk_security_master.py
+ M ops/install_v35_macos_launchagents.py
+ M ops/launch_v35_macos_scheduler.sh
+ M ops/macos_research_panel_daily.py
+ M ops/materialize_d1_review_lanes.py
+ M ops/materialize_preselection.py
+ M ops/materialize_research_peripherals.py
+ M ops/materialize_scheduled_preselection.py
+ M ops/materialize_shared_v192_preselection.py
+ M ops/materialize_stage_acquisition_universe.py
+ M ops/migration/graph_baseline.py
+ M ops/publish_research_panel_runtime_receipt.py
+ M ops/refresh_research_preselection.py
+ M ops/run_hkconnect_0915_0920_capture.py
+ M ops/run_hourly_research.py
+ M ops/run_review_core_natural_pool_pipeline.py
+ M ops/run_scheduled_slot.py
+ M ops/run_stage_center_tick.py
+ M ops/run_v35_close_review_node.py
+ M ops/run_v35_macos_scheduler.py
+ M ops/run_zsxq_hourly_delta.py
+ M pyproject.toml
+ M stage_center/calendar.py
+ M stage_center/candidate_input.py
+ M stage_center/live_collectors.py
+ M stage_center/raw_store.py
+ M stage_center/research_context.py
+ M stage_center/runner.py
+ M stage_center/scheduler.py
+ M stage_center/selection.py
+ M tests/test_a_share_daily_sync.py
+ M tests/test_api_runtime_signature.py
+ M tests/test_hk_scheduler_python_forwarding.py
+ M tests/test_hkconnect_0915_0920_capture.py
+ M tests/test_launchagent_schedule.py
+ M tests/test_macos_scheduler_hourly_catchup.py
+ M tests/test_manager_research_reader.py
+ M tests/test_manager_research_recommendation.py
+ M tests/test_p1_api_boundaries.py
+ M tests/test_preselection_slice.py
+ M tests/test_recurrence_repairs.py
+ M tests/test_research_lane.py
+ M tests/test_runtime_dispatcher.py
+ M tests/test_scheduler_workload_integration.py
+ M tests/test_stage_name_read_overlay.py
+ M tests/test_tdx_minute_replay_provider.py
+ M tests/test_trading_calendar_policy.py
+ M tests/test_v35_19node_automation.py
+ D upstreams/review_core
+ M upstreams/v3_shared_data/scripts/acquire_stage_bundle.py
+ M upstreams/v3_shared_data/scripts/materialize_hk_0_2.py
+ M upstreams/v3_shared_data/scripts/run_scheduled_stage_bundle.py
+ M upstreams/v3_shared_data/shared_data/hk_0_2.py
+ M upstreams/v3_shared_data/shared_data/hk_auction_0920.py
+ M upstreams/v3_shared_data/shared_data/hk_security_master.py
+ M upstreams/v3_shared_data/shared_data/v192_selector.py
+ M upstreams/v3_shared_data/tests/test_v192_selector.py
+ M uv.lock
+ M v4/manager_research/hkex_provider.py
+ M v4/manager_research/recommendation.py
+ M v4/manager_research/service.py
+?? .pytest-tmp-a-consumers-1/
+?? .pytest-tmp-a-live2/
+?? .pytest-tmp-a-online-1/
+?? .pytest-tmp-a-online-2/
+?? .pytest-tmp-a-online-3/
+?? AGENTS.md
+?? README_SCHEDULER_CANDIDATE_ZH.md
+?? START_HERE.md
+?? apps/api/v35_api/_research_lane_router_parts/
+?? apps/api/v35_api/_review_router_parts/
+?? apps/api/v35_api/manager_workbench_router.py
+?? apps/api/v35_api/wechat_research_router.py
+?? apps/web/src/App.hk-observation-calendar.spec.ts
+?? apps/web/src/api/managerCatalystObservations.ts
+?? apps/web/src/api/managerWorkbenchResearch.ts
+?? apps/web/src/api/managerWorkspace.attention.spec.ts
+?? apps/web/src/api/managerWorkspace.ts
+?? apps/web/src/api/wechat_research.ts
+?? apps/web/src/app_shell/
+?? apps/web/src/components/research/WechatMentionPool.spec.ts
+?? apps/web/src/components/research/WechatMentionPool.vue
+?? apps/web/src/components/research/WechatResearchPanel.vue
+?? apps/web/src/components/review/DailyResearchReviewPanel.spec.ts
+?? apps/web/src/components/review/DailyResearchReviewPanel.vue
+?? apps/web/src/components/review/HkCloseReviewPanel.spec.ts
+?? apps/web/src/contracts/_selection_parts/
+?? apps/web/src/contracts/managerWorkbenchResearch.spec.ts
+?? apps/web/src/contracts/managerWorkbenchResearch.ts
+?? apps/web/src/manager-selection/__tests__/
+?? apps/web/src/manager-selection/adapters/workbenchPresentation.spec.ts
+?? apps/web/src/manager-selection/adapters/workbenchPresentation.ts
+?? apps/web/src/manager-selection/adapters/workspaceDecision.ts
+?? apps/web/src/manager-selection/announcementObservation.ts
+?? apps/web/src/manager-selection/businessStatus.ts
+?? apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts
+?? apps/web/src/manager-selection/catalystObservationPanel.ts
+?? apps/web/src/manager-selection/researchAttention.ts
+?? contracts/_research_day_product_parts/
+?? contracts/a_formula_field_contract_v0.csv
+?? contracts/a_known_history_gaps.json
+?? contracts/us_equity_calendar.py
+?? contracts/us_equity_calendar_2026.json
+?? contracts/vibe_runtime_profile.json
+?? docs/formula_margin_shadow_v1.md
+?? docs/scheduler-panel-candidate-20260913.md
+?? docs/system-consolidation-20260912-generation.md
+?? docs/system-consolidation-20260912-release-candidate.md
+?? docs/system-consolidation-20260912-research-review.md
+?? docs/system-consolidation-20260912.md
+?? docs/vibe_ownership_boundary_candidate_20260913.md
+?? domains/_d1_review_lane_producer_parts/
+?? domains/_hk_prefix_research_parts/
+?? domains/_preselection_materializer_parts/
+?? domains/_preselection_parts/
+?? domains/_research_day_product_parts/
+?? domains/_research_hourly_parts/
+?? domains/daily_research_review.py
+?? domains/hk_prefix_research.py
+?? domains/intraday_research.py
+?? domains/manager_catalyst_tracking.py
+?? domains/manager_close_discovery.py
+?? domains/manager_close_rebound.py
+?? domains/manager_condition_evidence.py
+?? domains/manager_research_evidence.py
+?? domains/research_review_generation/
+?? infrastructure/_research_peripheral_store_parts/
+?? infrastructure/_research_store_parts/
+?? infrastructure/_stage_acquisition_universe_commit_parts/
+?? infrastructure/_stage_acquisition_universe_contracts_parts/
+?? infrastructure/formula_generation.py
+?? infrastructure/manager_close_attempt.py
+?? infrastructure/manager_input_attestation.py
+?? infrastructure/preselection_pool_ports.py
+?? infrastructure/preselection_pool_readers.py
+?? infrastructure/preselection_pool_sources.py
+?? infrastructure/preselection_pool_transactions.py
+?? infrastructure/runtime_graph/_service_parts/
+?? infrastructure/runtime_graph/_store_parts/
+?? infrastructure/scheduling/_executor_registry_parts/
+?? infrastructure/scheduling/manager_announcement_supervisor.py
+?? infrastructure/scheduling/manager_capture_retry.py
+?? infrastructure/scheduling/manager_close_executor.py
+?? infrastructure/scope_gate.py
+?? infrastructure/secure_evidence_fs.py
+?? infrastructure/stage_acquisition_universe_commit.py
+?? infrastructure/stage_acquisition_universe_contracts.py
+?? infrastructure/stage_source_roots.py
+?? infrastructure/wechat_research_archive.py
+?? old-data/
+?? ops/_a_formula_increment_parts/
+?? ops/_a_formula_input_manifest_parts/
+?? ops/_a_share_daily_sync_parts/
+?? ops/_macos_research_panel_daily_parts/
+?? ops/_materialize_research_peripherals_parts/
+?? ops/_publish_research_panel_runtime_receipt_parts/
+?? ops/_run_review_core_natural_pool_pipeline_parts/
+?? ops/_run_stage_center_nodes_parts/
+?? ops/_run_v35_close_review_node_parts/
+?? ops/_run_v35_macos_scheduler_parts/
+?? ops/_us_market_digest_parts/
+?? ops/a_formula_increment.py
+?? ops/a_formula_input_manifest.py
+?? ops/build_manager_materializer_replay_seed.py
+?? ops/build_release_candidate.py
+?? ops/build_release_candidate_stage.py
+?? ops/find_manager_replay_ready_dates.py
+?? ops/hk_prefix_research.py
+?? ops/index_wechat_research.py
+?? ops/materialize_manager_close_discovery.py
+?? ops/materialize_research_day.py
+?? ops/migration/_graph_baseline_parts/
+?? ops/migration/collect_missing_bindings.py
+?? ops/migration/data_root_reconcile.py
+?? ops/migration/inspect_owner_bindings.py
+?? ops/migration/preselection_pool_snapshot_canary.py
+?? ops/migration/preserve_empty_archive.py
+?? ops/migration/quarantine_duplicate_pool.py
+?? ops/migration/v4_complete_migration.py
+?? ops/migration/verify_runtime_closure.py
+?? ops/preflight_manager_vibe_binding.py
+?? ops/prepare_api_only_cutover.py
+?? ops/quality/
+?? ops/recover_selection_observations.py
+?? ops/refresh_manager_vibe_radar_binding.py
+?? ops/release_candidate_audit.py
+?? ops/release_candidate_ports.py
+?? ops/release_candidate_sources.py
+?? ops/render_manager_announcement_binding.py
+?? ops/run_formula_margin_shadow.py
+?? ops/run_intraday_research.py
+?? ops/run_manager_announcement_cycle.py
+?? ops/run_manager_announcement_owner_canary.py
+?? ops/run_manager_materializer_offline_replay.py
+?? ops/run_manager_state_compatibility_canary.py
+?? ops/run_manager_us_activation_canary.py
+?? ops/run_research_review_generation.py
+?? ops/run_stage_center_nodes.py
+?? ops/run_us_market_slot.py
+?? ops/run_v35_macos_scheduler_daemon.py
+?? ops/seed_vibe_cache_version.py
+?? ops/stage_service_overlay_contract.py
+?? ops/us_market_digest.py
+?? ops/verify_source_release.py
+?? stage_center/_formula_margin_shadow_parts/
+?? stage_center/_live_collectors_parts/
+?? stage_center/_raw_store_parts/
+?? stage_center/_runner_parts/
+?? stage_center/_selection_parts/
+?? stage_center/attempt_evidence.py
+?? stage_center/end_to_end_deadline.py
+?? stage_center/formula_margin_shadow.py
+?? stage_center/hk_stage8/
+?? stage_center/input_contracts.py
+?? stage_center_tick_config.json
+?? tests/announcement_autorun_fixtures.py
+?? tests/fixtures/manager_20260924_preopen_screen.json
+?? tests/fixtures/manager_workbench_b1_simulated.json
+?? tests/fixtures/stage_active_manifest_v2.json
+?? tests/fixtures/stage_overlay/
+?? tests/fixtures/wechat_stage_a/
+?? tests/frontend/
+?? tests/r3_scoped_loader.py
+?? tests/test_a_formula_authority.py
+?? tests/test_a_formula_increment_offline.py
+?? tests/test_a_formula_input_manifest.py
+?? tests/test_a_known_history_keys.py
+?? tests/test_a_online_generation_consumer.py
+?? tests/test_a_owner_receipt_boundary_v4.py
+?? tests/test_archive_catalyst_inputs_r2.py
+?? tests/test_batch04_helper_phase_contracts.py
+?? tests/test_build_release_candidate.py
+?? tests/test_current_source_review_repairs_20260928.py
+?? tests/test_daily_research_review.py
+?? tests/test_find_manager_replay_ready_dates.py
+?? tests/test_formula_margin_shadow.py
+?? tests/test_hk_attempt_evidence_repair.py
+?? tests/test_hk_observation_calendar_20260925.py
+?? tests/test_hk_observation_owner_dispatch.py
+?? tests/test_hk_prefix_panel_projection.py
+?? tests/test_hk_prefix_research.py
+?? tests/test_hk_stage8_v4_recovery.py
+?? tests/test_mac_source_root_contracts.py
+?? tests/test_manager_announcement_api_and_integrity.py
+?? tests/test_manager_announcement_autorun.py
+?? tests/test_manager_announcement_plan_refresh_only.py
+?? tests/test_manager_announcement_supervisor.py
+?? tests/test_manager_attention_decision_r5_1.py
+?? tests/test_manager_business_completion_a.py
+?? tests/test_manager_business_completion_b.py
+?? tests/test_manager_catalyst_observations.py
+?? tests/test_manager_close_executor_rework.py
+?? tests/test_manager_condition_evidence.py
+?? tests/test_manager_decision_ux.py
+?? tests/test_manager_eastmoney_hk_announcements.py
+?? tests/test_manager_history_control_r1.py
+?? tests/test_manager_history_r2_regex_equivalence.py
+?? tests/test_manager_history_readback_r1.py
+?? tests/test_manager_materializer_offline_replay.py
+?? tests/test_manager_materializer_rework.py
+?? tests/test_manager_owner_no_bytecode.py
+?? tests/test_manager_plan_identity_r2.py
+?? tests/test_manager_pytdx_scheduler_runtime_route.py
+?? tests/test_manager_r2_rework.py
+?? tests/test_manager_rebound_grouping_equivalence.py
+?? tests/test_manager_rebound_two_gate_screen.py
+?? tests/test_manager_research_attention.py
+?? tests/test_manager_research_attention_r5_1_contract.py
+?? tests/test_manager_screen_summary_contract.py
+?? tests/test_manager_stage_rearm_rework.py
+?? tests/test_manager_theme_relation_acquisition.py
+?? tests/test_manager_us_activation_provenance.py
+?? tests/test_manager_us_market_bridge.py
+?? tests/test_manager_us_theme_vocabulary_delta.py
+?? tests/test_manager_workbench_research_router.py
+?? tests/test_manager_workspace_targeted_r2.py
+?? tests/test_migration_drain_observer.py
+?? tests/test_next_day_recovery_r5.py
+?? tests/test_page_repairs_20260915.py
+?? tests/test_preselection_authority_reference.py
+?? tests/test_preselection_migration_write_context.py
+?? tests/test_research_day_materialization.py
+?? tests/test_research_review_generation.py
+?? tests/test_runtime_dependency_contract.py
+?? tests/test_source_release_verification.py
+?? tests/test_split_root_contract_candidate.py
+?? tests/test_stage_assembly_repair.py
+?? tests/test_stage_gap_source_binding_r1.py
+?? tests/test_stage_jobs_manager_close_recapture.py
+?? tests/test_stage_manifest_identity_compat.py
+?? tests/test_stage_morning_root_wiring.py
+?? tests/test_stage_read_timing_r2.py
+?? tests/test_stage_research_context_v4.py
+?? tests/test_stage_service_candidate_binding.py
+?? tests/test_stage_service_overlay_closure.py
+?? tests/test_stage_source_root_repair.py
+?? tests/test_strict_stage_acquisition_v4.py
+?? tests/test_us_canary_fresh_capture.py
+?? tests/test_us_equity_calendar.py
+?? tests/test_us_map_freshness.py
+?? tests/test_us_owner_handoff.py
+?? tests/test_us_relation_pipeline_r2.py
+?? tests/test_v16_due_candidate.py
+?? tests/test_v16_panel_takeover_candidate.py
+?? tests/test_v16_public_chain_fixture.py
+?? tests/test_v16_reader_daemon_candidate.py
+?? tests/test_v35_macos_scheduler_announcement_hook.py
+?? tests/test_v35_success_recovery_r2.py
+?? tests/test_v4_core_stage_recovery.py
+?? tests/test_v4_intraday_research.py
+?? tests/test_v4_manual_research_generation.py
+?? tests/test_v4_review_core_ownership.py
+?? tests/test_v4_scheduler_alignment.py
+?? tests/test_v4_us_digest_recovery.py
+?? tests/test_vibe_assembly.py
+?? tests/test_vibe_cache_version_seed.py
+?? tests/test_vibe_calculation_parity.py
+?? tests/test_vibe_cli_real_graph.py
+?? tests/test_vibe_data_owner.py
+?? tests/test_vibe_evidence_chain.py
+?? tests/test_vibe_iwencai_binding.py
+?? tests/test_vibe_last_boundary_gates.py
+?? tests/test_vibe_model_factory.py
+?? tests/test_vibe_owned_inputs.py
+?? tests/test_vibe_owned_nodes.py
+?? tests/test_vibe_ownership_boundary.py
+?? tests/test_vibe_real_graph.py
+?? tests/test_vibe_seed_syscall_boundary.py
+?? tests/test_vibe_task_lock.py
+?? tests/test_wechat_mentions.py
+?? tests/test_wechat_stage_a.py
+?? tests/test_wechat_stage_a_wiring.py
+?? tests/vibe_ownership_fixtures.py
+?? tests/wechat_ui/
+?? tools/
+?? upstreams/shared_research/
+?? upstreams/v3_shared_data/shared_data/a_formula_authority.py
+?? upstreams/v3_shared_data/shared_data/v192_oracle_bundle.py
+?? upstreams/v3_shared_data/tests/test_scheduled_stage_bundle_manager_pytdx_mode.py
+?? upstreams/v3_shared_data/tests/test_stage_bundle_manager_pytdx_mode.py
+?? v4/manager_research/activation_canary.py
+?? v4/manager_research/announcement_autorun.py
+?? v4/manager_research/announcement_observation.py
+?? v4/manager_research/announcement_source.py
+?? v4/manager_research/archive_catalyst_inputs.py
+?? v4/manager_research/attention_decision.py
+?? v4/manager_research/catalyst_observations.py
+?? v4/manager_research/evidence_identity.py
+?? v4/manager_research/existing_materials.py
+?? v4/manager_research/issuer_us_relations.py
+?? v4/manager_research/materializer_replay.py
+?? v4/manager_research/plan_owner_dispatch.py
+?? v4/manager_research/replay_readiness.py
+?? v4/manager_research/research_attention.py
+?? v4/manager_research/research_evidence.py
+?? v4/manager_research/stage_read_timing.py
+?? v4/manager_research/us_market_bridge.py
+?? v4/manager_research/vibe_binding_preflight.py
+?? v4/manager_research/workspace.py
+?? v4/manager_research/workspace_actions.py
+?? v4/manager_research/workspace_announcements.py
+?? v4/manager_research/workspace_briefing.py
+?? v4/manager_research/workspace_discovery.py
+?? v4/manager_research/workspace_history.py
+?? v4/manager_research/workspace_plan.py
+?? v4/manager_research/workspace_plan_autorun.py
+?? v4/manager_research/workspace_projection.py
+?? v4/manager_research/workspace_read_control.py
+?? v4/manager_research/workspace_semantics.py
+?? v4_migration/
+?? verification/formula_margin_shadow_v1/
+?? verification/scheduler_candidate/
+?? verification/vibe_ownership/
