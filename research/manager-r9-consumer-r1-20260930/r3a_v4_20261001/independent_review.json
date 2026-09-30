@@ -1,0 +1,211 @@
+{
+  "schema_version": "v4.r3a.independent_review.v1",
+  "recorded_at_utc": "2026-09-30T18:44:10+00:00",
+  "reviewer_identity": "/root/r3_forward_reviewer",
+  "reviewer_mode": "read_only_independent_review",
+  "review_scope": "R3A candidate freeze v4; frozen F0-F2/API source pins; six-file diff only",
+  "status": "PASS_WITHIN_FROZEN_OFFLINE_CANDIDATE_SCOPE",
+  "reviewed_pins": {
+    "freeze": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/r3a_candidate_freeze_v4.json",
+      "sha256": "d76190dbc4a32a51d38b3624c8ccc2e8ae4aef93357f97d3688f5518c14a0a0e"
+    },
+    "business_diff": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/r3a_candidate_diff_v4.patch",
+      "sha256": "8612808247ad01d63d35dab329defd13fd939d5131cfb1bab879730ae2cef4e9",
+      "file_count": 6
+    },
+    "previous_v3_review": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/reviewer/r3a_independent_review_v3.json",
+      "sha256": "cbe91e033c48fa16c473f8c7bb8d248579cdb0574eb27e41c14b9274c1d2c68b",
+      "status": "FAIL_WITH_TWO_P2; both repaired behaviors independently retested here"
+    },
+    "test_source": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/tests/test_hk_connect_v2_contract.py",
+      "sha256": "d645d6f899df5cf2dc97f564ff6ccef0fb3aaa7e47963840523ba53554c35935"
+    },
+    "source_mappings": [
+      {
+        "path": "ops/_macos_research_panel_daily_parts/hk_market_capture.py",
+        "candidate_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app/ops/_macos_research_panel_daily_parts/hk_market_capture.py",
+        "sha256": "0a9651f88bc8a50d4b5e8ec4b6775a5291918f9f2556cf37c05b80a55cdfd84a",
+        "size_bytes": 31474,
+        "mode": 420,
+        "matches_freeze": true
+      },
+      {
+        "path": "ops/ensure_hk_security_master.py",
+        "candidate_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app/ops/ensure_hk_security_master.py",
+        "sha256": "6c341a33c0283b023219c46cc2a1c6aaca49cf4b5dcb88aa2fb5527a13145601",
+        "size_bytes": 41556,
+        "mode": 420,
+        "matches_freeze": true
+      },
+      {
+        "path": "stage_center/hk_universe_preflight.py",
+        "candidate_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app/stage_center/hk_universe_preflight.py",
+        "sha256": "9d3d2c2d5ff3bd1c7713a9485e88000ae882f58b0a457b734656094606ba2941",
+        "size_bytes": 40555,
+        "mode": 420,
+        "matches_freeze": true
+      },
+      {
+        "path": "domains/manager_research_evidence.py",
+        "candidate_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app/domains/manager_research_evidence.py",
+        "sha256": "4bfd8ec335eade9a97340fe17fc0742f2dba546d0e254fdfed2833ed324bb73d",
+        "size_bytes": 30848,
+        "mode": 420,
+        "matches_freeze": true
+      },
+      {
+        "path": "v4/manager_research/connect_selection.py",
+        "candidate_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app/v4/manager_research/connect_selection.py",
+        "sha256": "945acad06c03321059756950988937dee9991d23007c4bac49251e8789488d3b",
+        "size_bytes": 10768,
+        "mode": 420,
+        "matches_freeze": true
+      },
+      {
+        "path": "ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+        "candidate_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app/ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+        "sha256": "d3db5b9644bbf2fb1f4e245717907862ebe1cee2d0f650a8d45d732fd4a71940",
+        "size_bytes": 14219,
+        "mode": 420,
+        "matches_freeze": true
+      }
+    ],
+    "dependency_closure": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/original_import_dependency_closure_v3.json",
+      "sha256": "25d95fdac79e3b7b652ef3045f062adb922de710ee8c9b49c46100a587ca9441"
+    }
+  },
+  "independent_test_runs": [
+    {
+      "test": "HK Connect v2 offline contract, diagnostics, v1 preservation, capture-to-reader and quote-gate canaries",
+      "result": "PASS 6/6 methods; low-quote method includes 396-row and 0-row subtests",
+      "runtime": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "working_directory": "/private/tmp",
+      "candidate_pythonpath": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app",
+      "test_source_sha256": "d645d6f899df5cf2dc97f564ff6ccef0fb3aaa7e47963840523ba53554c35935",
+      "review_output_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/reviewer/offline_canary/review-v4-contract"
+    },
+    {
+      "test": "R3B saved-diagnostics regression with isolated candidate imports",
+      "result": "PASS 10/10",
+      "runtime": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "working_directory": "/private/tmp",
+      "test_source_sha256": "9c265162d7b8dccd346be60f23f72890dea56f39db172339ac1003e08702b77e",
+      "review_basetemp": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/reviewer/r3b-saved-diagnostics-v4-review-tmp"
+    },
+    {
+      "test": "Affected workspace three-way merge regression with isolated candidate imports",
+      "result": "PASS 4/4",
+      "runtime": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "working_directory": "/private/tmp",
+      "test_source_sha256": "76c84723efc9ff09d0370726e72756a11e9715c7c7e3c73ea94ce094bafe8fb2",
+      "review_basetemp": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/reviewer/r3b-workspace-regression-v4-review-tmp"
+    },
+    {
+      "test": "Syntax parse/compile of all six changed source files",
+      "result": "PASS; compiled 6 source files in memory",
+      "runtime": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python"
+    }
+  ],
+  "target_behavior_replays": {
+    "direct_existing_gate_chain": {
+      "receipt_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/reviewer/offline_canary/review-v4-gate-flow-5533db18f8/reviewer_gate_flow_receipt.json",
+      "receipt_sha256": "011d577a6dc2b079529fe958b89534b6376679d086df87e6d2bdbff36fa58451",
+      "method": "Invoked candidate run_hk_capture_gate and its real ensure/publisher callback; injected only offline fake SDK context; wrote only reviewer-local synthetic stores.",
+      "cases": [
+        {
+          "case": "396 fresh quote rows / 696 plate union",
+          "status": "PASS",
+          "plate_calls": [
+            "HK.GangGuTong",
+            "HK.LIST1922"
+          ],
+          "snapshot_calls": 4,
+          "error": "HK exact-date coverage below gate: universe=696,rows=396,coverage=0.56896552",
+          "capture_status": "READY",
+          "quote_status": "FAILED",
+          "panel_status": "BLOCKED_BY_QUOTE_GATE",
+          "authority_code_count": 696,
+          "capture_sha256": "754efe89fa0dcb570894610830882bd417b68fc36dcbe708ef4b40a730e08f2b",
+          "published_capture_sha256": "754efe89fa0dcb570894610830882bd417b68fc36dcbe708ef4b40a730e08f2b"
+        },
+        {
+          "case": "0 fresh quote rows / 696 plate union",
+          "status": "PASS",
+          "plate_calls": [
+            "HK.GangGuTong",
+            "HK.LIST1922"
+          ],
+          "snapshot_calls": 4,
+          "error": "HK exact-date coverage below gate: universe=696,rows=0,coverage=0.00000000",
+          "capture_status": "READY",
+          "quote_status": "FAILED",
+          "panel_status": "BLOCKED_BY_QUOTE_GATE",
+          "authority_code_count": 696,
+          "capture_sha256": "7d639f05c4931d321873d16af753d5d44170e08ec4b7e4d10a3b5168505cb86c",
+          "published_capture_sha256": "7d639f05c4931d321873d16af753d5d44170e08ec4b7e4d10a3b5168505cb86c"
+        },
+        {
+          "case": "second plate RET failure",
+          "status": "PASS_FAIL_CLOSED",
+          "plate_calls": [
+            "HK.GangGuTong",
+            "HK.LIST1922"
+          ],
+          "snapshot_calls": 0,
+          "error": "HK Futu membership capture incomplete: RET_NOT_OK:HK.LIST1922",
+          "capture_status": "FAILED",
+          "membership_authority_created": false
+        }
+      ]
+    },
+    "manager_read_scope_cutoff": {
+      "receipt_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/reviewer/offline_canary/review-v4-manager-read-scope-5eaefb9bcd.json",
+      "receipt_sha256": "f48cc97a3618fee836490287a151bec717957643a67804924b5c11abf22ff47a",
+      "results": "Both 396-row and 0-row captures are OWNER_VERIFIED with 696 codes after available_at; both return CANNOT_CONFIRM before available_at."
+    },
+    "focused_quote_receipt": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/reviewer/offline_canary/review-v4-contract/quote-gate-membership-d31f3bc422.json",
+      "sha256": "eb692236cdab92ef27ec400b465c892de3127cb23d37fadeb807c6f86c16be57"
+    }
+  },
+  "findings": [],
+  "risk_counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "acceptance": {
+    "REVIEWED": "PASS_WITHIN_FROZEN_OFFLINE_CANDIDATE_SCOPE",
+    "TESTED": "PASS; independent 6+10+4 focused cases plus direct gate and manager cutoff replays",
+    "BEHAVIOR_VERIFIED": "PASS_SYNTHETIC_OFFLINE for low quote, zero quote, failed plate, same capture/run publication identity, blocked panel, and cutoff enforcement",
+    "API_VERIFIED": "CANNOT_CONFIRM",
+    "UI_VERIFIED": "CANNOT_CONFIRM",
+    "DEPLOYED": "CANNOT_CONFIRM",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM",
+    "REAL_SDK_RETURN_CODE_TYPE": "CANNOT_CONFIRM",
+    "ACTIVE_DISPATCHER_RUNTIME_SOURCE_BINDING": "CANNOT_CONFIRM",
+    "LIVE_AVAILABLE_AT": "CANNOT_CONFIRM"
+  },
+  "limitations": [
+    "All behavior evidence is synthetic and offline; no real provider call or actual 2026-09-30 scheduled capture/publication is claimed.",
+    "The candidate is isolated; this does not establish service API/UI behavior, deployment, or natural-run behavior.",
+    "No real Futu SDK return-code type was observed."
+  ],
+  "safety_boundary": {
+    "provider_calls": false,
+    "canonical_authority_writes": false,
+    "active_release_written": false,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "deployed": false,
+    "pushed": false,
+    "committed": false,
+    "synthetic_authority_writes": "reviewer evidence roots only"
+  }
+}
