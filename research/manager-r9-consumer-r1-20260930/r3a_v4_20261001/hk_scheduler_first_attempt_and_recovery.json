@@ -1,0 +1,285 @@
+{
+  "scope": "First scheduler activation failed with EPERM; exact original scheduler restored; API candidate stayed healthy. This records the failed Desktop-location attempt, not any later standard-release attempt.",
+  "failure_review": {
+    "acceptance": {
+      "loaded_configuration_matches_candidate": "PASS_CONFIG_READBACK",
+      "natural_behavior": "CANNOT_CONFIRM",
+      "new_candidate_deployed": "FAIL",
+      "provider_or_dispatch_forced": false,
+      "scheduler_process_running": "FAIL",
+      "stable_scheduler_execution": "FAIL"
+    },
+    "api_candidate_snapshot": {
+      "launchd_state": "running",
+      "manifest_sha256": "ac239a1c86021da15a321ab7a383822574373bb4f3c976ad27aadc03fb62da91",
+      "pid": 52190,
+      "release_id": "r3a-r9-import-closure-20260930T193024Z",
+      "state_source": "launchctl print readback; API health was not otherwise probed",
+      "v4_manager_universe_owner_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app"
+    },
+    "candidate_bindings_from_loaded_launchd_environment": {
+      "V35_RELEASE_ID": "r9-hk-child-binding-candidate-20261001",
+      "V35_RELEASE_MANIFEST_SHA256": "2873051ac62897dc87d3a2a7a782df0c954c0f69f6f20880077881f45c0f808e",
+      "V35_RESEARCH_PANEL_HK_CHILD_APP_ROOT": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app",
+      "V35_RESEARCH_PANEL_HK_CHILD_MODULE_SHA256": "07aa9770c6ae0bb0cfd012e57843a37fedda6724a57cd52d7c339d854fc6609b",
+      "V35_RESEARCH_PANEL_HK_CHILD_RELEASE_ID": "r3a-r9-import-closure-20260930T193024Z",
+      "V35_RESEARCH_PANEL_HK_CHILD_RELEASE_MANIFEST_SHA256": "ac239a1c86021da15a321ab7a383822574373bb4f3c976ad27aadc03fb62da91",
+      "binding_readback": "matches frozen inactive candidate bindings; launchd job environment only, no live scheduler process"
+    },
+    "limits": [
+      "EPERM is the observed shell error; do not infer signing, quarantine, TCC, or filesystem root cause.",
+      "This readback is an exact point-in-time snapshot.",
+      "No service or configuration mutation was performed by the reviewer."
+    ],
+    "live_scheduler": {
+      "active_count": 0,
+      "argument_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/owner_bridge/build/r9-hk-child-binding-candidate-20261001T0710+0800/app/ops/launch_v35_macos_scheduler.sh",
+      "last_exit_code": 126,
+      "launchd_loaded_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+      "launchd_state": "spawn scheduled",
+      "mode": "0644",
+      "plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+      "plist_sha256": "66064b3b6e483b08433c747a3f1d35d754a3723c8968d68d2176450b0034e206",
+      "process_list_has_scheduler_process": false,
+      "program": "/bin/bash",
+      "runs": 3,
+      "scheduler_pid": null
+    },
+    "observed_at_utc": "2026-09-30T22:25:32Z",
+    "preserved_runtime_data_and_safety": {
+      "PRODUCTION_ALLOWED": "false",
+      "RESEARCH_ONLY": "1",
+      "V35_DAEMON_MODE": "persistent-minute",
+      "V35_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+      "V35_RUNTIME_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/runtime",
+      "V35_SHARED_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+      "buy_gate_updated": "false",
+      "orders_sent": "false",
+      "production_allowed": "false"
+    },
+    "scheduler_stderr": {
+      "eprem_line_numbers": [
+        1827,
+        1828,
+        1829,
+        1830
+      ],
+      "exact_line": "/bin/bash: /Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/owner_bridge/build/r9-hk-child-binding-candidate-20261001T0710+0800/app/ops/launch_v35_macos_scheduler.sh: Operation not permitted",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/logs/v35-a3-v4-scheduler.stderr.log",
+      "root_cause": "CANNOT_CONFIRM",
+      "snapshot_bytes": 200843,
+      "snapshot_mtime_utc": "2026-09-30T22:24:23.758737+00:00",
+      "snapshot_sha256": "2d84ba844bc3113be861166db1daefac12ba0dc1f0d91d4cb80f90dbea35ce95"
+    },
+    "schema_version": "r3a.hk_scheduler_runtime_readback.v1",
+    "scope": "post-apply read-only launchd/runtime identity readback; no dispatch/provider trigger",
+    "status": "FAIL_CANDIDATE_SCHEDULER_NOT_RUNNING_EPERM"
+  },
+  "writer_rollback": {
+    "actions": [
+      {
+        "command": "apply_candidate_hk_scheduler_variant.py --apply",
+        "post_mode": "0644",
+        "post_sha256": "66064b3b6e483b08433c747a3f1d35d754a3723c8968d68d2176450b0034e206",
+        "result": "APPLIED"
+      },
+      {
+        "command": "launchctl bootout gui/501/com.lexi.v35.scheduler",
+        "result": "exit 0",
+        "target_only": "com.lexi.v35.scheduler"
+      },
+      {
+        "command": "apply_candidate_hk_scheduler_variant.py --rollback",
+        "post_mode": "0644",
+        "post_sha256": "8a72635aeec0efe181b6e479cb7b99463942d9be3690982a79e0b1f93d30b86c",
+        "result": "ROLLED_BACK"
+      },
+      {
+        "command": "launchctl bootstrap gui/501 /Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+        "result": "exit 0",
+        "target_only": "com.lexi.v35.scheduler"
+      }
+    ],
+    "api_readback": {
+      "api_pid": "52190",
+      "api_plist_sha256": "fce5e6073dc33d3a73f73c3777e5e68c22df8f9277486ae47719c4d00db6b3e3",
+      "api_state": "running",
+      "candidate_identity_matches_active_plist": true,
+      "candidate_manifest_sha256": "ac239a1c86021da15a321ab7a383822574373bb4f3c976ad27aadc03fb62da91",
+      "candidate_release_id": "r3a-r9-import-closure-20260930T193024Z",
+      "healthz_body_sha256": "a29ee2b15c494311c52521766e44af56a3ad2248e7a8ab465e5206463c13d288",
+      "healthz_http_status": 200,
+      "readyz_body_sha256": "cf22ea4da9ccd23f3edc11c29e1cc8a43d90d6496f6c62eb8993face61b7c3a1",
+      "readyz_http_status": 200,
+      "safety_flags": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      }
+    },
+    "candidate_start_failure": {
+      "active_count": 0,
+      "failure_text": "/bin/bash: <candidate>/app/ops/launch_v35_macos_scheduler.sh: Operation not permitted",
+      "last_exit_code": 126,
+      "launchd_state": "spawn scheduled",
+      "permission_or_signing_changes_made": false,
+      "reviewer_failure_readback_receipt": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/owner_bridge/evidence/reviewer/hk_scheduler_runtime_failure_readback_20261001.json",
+      "reviewer_failure_readback_receipt_sha256": "2a883df5fe2f9ed54fe2783e3fe725ccf455b7dc361364c00946d3d26ab18a08",
+      "root_cause_beyond_eperm": "CANNOT_CONFIRM",
+      "runs": 3,
+      "same_candidate_retry_made": false,
+      "scheduler_pid": null,
+      "stderr_lines": [
+        1827,
+        1828,
+        1829,
+        1830
+      ],
+      "stderr_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/logs/v35-a3-v4-scheduler.stderr.log",
+      "stderr_snapshot_bytes": 200843,
+      "stderr_snapshot_mtime_utc": "2026-09-30T22:24:23.758737Z",
+      "stderr_snapshot_sha256": "2d84ba844bc3113be861166db1daefac12ba0dc1f0d91d4cb80f90dbea35ce95"
+    },
+    "cas_pins": {
+      "active_scheduler_plist": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+      "base_mode": "0644",
+      "base_sha256": "8a72635aeec0efe181b6e479cb7b99463942d9be3690982a79e0b1f93d30b86c",
+      "candidate_variant_sha256": "66064b3b6e483b08433c747a3f1d35d754a3723c8968d68d2176450b0034e206",
+      "cas_script": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/rollout/config/apply_candidate_hk_scheduler_variant.py",
+      "cas_script_sha256": "cd50a2432f872936aaa26de8beac619aee461eff5bee8c77a0a7b4da1b9b2753"
+    },
+    "created_at_utc": "2026-09-30T22:30:19.114869+00:00",
+    "restoration_readback": {
+      "active_plist_mode": "0644",
+      "active_plist_sha256": "8a72635aeec0efe181b6e479cb7b99463942d9be3690982a79e0b1f93d30b86c",
+      "base_manifest_sha256": "819eb1f02a7a32889ffc2dd46e0c7ff686e3d20f410db36367ef94ca0734b980",
+      "base_release_id": "20260929-manager-1555-pytdx-r1",
+      "base_sha256_matches": true,
+      "last_exit_code": "(never exited)",
+      "launchd_label": "com.lexi.v35.scheduler",
+      "loaded_launcher": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app/ops/launch_v35_macos_scheduler.sh",
+      "original_environment_mismatch_keys": [],
+      "original_environment_preserved_key_count": 71,
+      "pid": "56173",
+      "pid_first_and_second": [
+        "56173",
+        "56173"
+      ],
+      "process_executable": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/runtime/venvs/v3.5-mac/bin/python",
+      "process_module": "ops.run_v35_macos_scheduler_daemon",
+      "runs_first_and_second": [
+        "1",
+        "1"
+      ],
+      "runtime_and_data_roots": {
+        "V35_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+        "V35_DISPATCH_LEDGER_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher",
+        "V35_HK_UNIVERSE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data",
+        "V35_RESEARCH_PANEL_HK_ASSET_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2",
+        "V35_RESEARCH_PANEL_HK_TDX_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/hk_tdx",
+        "V35_RESEARCH_PANEL_HK_UPDATER_SCRIPT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+        "V35_RESEARCH_PANEL_RECEIPT_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts",
+        "V35_RUNTIME_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/runtime",
+        "V35_SHARED_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data"
+      },
+      "safety_flags": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "scheduler_process_stable_for_5s": true,
+      "state": "running"
+    },
+    "review_gate_before_attempt": {
+      "config_build_receipt_sha256": "0ac7f21a6ab1969c3cf4a7333f87a9f875c2f79dc81d8e8e1285a62509fe4198",
+      "scheduler_config_review_receipt_sha256": "3ce2665c13e1ef3550cf80b6c116ce504f2d5d080279a445b56c7b0b94f2667d",
+      "source_review": "PASS confirmed by parent; no source changes during this activation attempt",
+      "variant_sha256": "66064b3b6e483b08433c747a3f1d35d754a3723c8968d68d2176450b0034e206"
+    },
+    "schema_version": "r3a.hk_scheduler_activation_rollback.v1",
+    "scope_and_claim_limits": {
+      "api_or_other_service_reloaded": false,
+      "buy_gate_updated": false,
+      "candidate_active": false,
+      "manual_dispatch_triggered_by_writer": false,
+      "natural_scheduled_business_result": "CANNOT_CONFIRM",
+      "orders_sent": false,
+      "other_job_schedule_or_market_changed": false,
+      "production_allowed": false,
+      "provider_invoked_by_writer": false,
+      "scheduler_activation_pass": false
+    },
+    "status": "ORIGINAL_SCHEDULER_RESTORED"
+  },
+  "independent_recovery_review": {
+    "acceptance": {
+      "api_candidate_healthy": "PASS",
+      "buy_gate_updated": false,
+      "candidate_configuration_loaded_in_launchd": "PASS_CONFIG_READBACK",
+      "candidate_scheduler_deployment": "FAIL",
+      "candidate_scheduler_process_running": "FAIL",
+      "natural_due_dispatch_observed_in_short_window": false,
+      "natural_slot_or_provider_behavior": "CANNOT_CONFIRM",
+      "orders_sent": false,
+      "original_scheduler_recovered": "PASS",
+      "original_scheduler_stable_short_window": "PASS",
+      "production_allowed": false
+    },
+    "api_candidate_readback": {
+      "active_plist_sha256": "fce5e6073dc33d3a73f73c3777e5e68c22df8f9277486ae47719c4d00db6b3e3",
+      "healthz_body": {
+        "status": "ok"
+      },
+      "healthz_http_status": 200,
+      "launchd_pid": 52190,
+      "launchd_state": "running",
+      "manifest_sha256": "ac239a1c86021da15a321ab7a383822574373bb4f3c976ad27aadc03fb62da91",
+      "readyz_body": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "readyz_http_status": 200,
+      "release_id": "r3a-r9-import-closure-20260930T193024Z"
+    },
+    "failure_receipt": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/owner_bridge/evidence/reviewer/hk_scheduler_runtime_failure_readback_20261001.json",
+      "sha256": "2a883df5fe2f9ed54fe2783e3fe725ccf455b7dc361364c00946d3d26ab18a08",
+      "status": "FAIL_CANDIDATE_SCHEDULER_NOT_RUNNING_EPERM"
+    },
+    "notes": [
+      "Candidate startup failure remains recorded in the linked failure receipt; the observed EPERM root cause is CANNOT_CONFIRM.",
+      "Short recovery window contained only NO_DUE_SLOT cycles; no manual canary or forced dispatch was run.",
+      "A guessed /health/ready URL returned 404; OpenAPI advertised /healthz and /readyz, both of which returned 200 and are the health results recorded here."
+    ],
+    "observed_at_utc": "2026-09-30T22:31:37.222892+00:00",
+    "scheduler_independent_readback": {
+      "active_plist_sha256": "8a72635aeec0efe181b6e479cb7b99463942d9be3690982a79e0b1f93d30b86c",
+      "forced_dispatch_or_provider": false,
+      "launchd_last_exit": "never exited",
+      "launchd_pid": 56173,
+      "launchd_runs": 1,
+      "launchd_state": "running",
+      "mode": "0644",
+      "observed_cycle_results": "NO_DUE_SLOT; return_code=0; catchup.applied=false",
+      "observed_daemon_log_window": "2026-10-01T06:24 through 2026-10-01T06:29 Asia/Shanghai",
+      "process_list_pid": 56173,
+      "program_arguments": [
+        "/bin/bash",
+        "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app/ops/launch_v35_macos_scheduler.sh"
+      ],
+      "release_id": "20260929-manager-1555-pytdx-r1",
+      "release_manifest_sha256": "819eb1f02a7a32889ffc2dd46e0c7ff686e3d20f410db36367ef94ca0734b980",
+      "same_pid_runs_state_and_last_exit_both_snapshots": true,
+      "two_snapshot_interval_seconds": 5.013,
+      "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app"
+    },
+    "schema_version": "r3a.hk_scheduler_runtime_recovery_readback.v1",
+    "status": "PASS_ORIGINAL_SCHEDULER_RESTORED_AND_STABLE",
+    "writer_rollback_receipt": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/rollout/evidence/hk_scheduler_activation_rollback_20261001.json",
+      "sha256": "9cce7a28d828a9fbb9ca58b8a2a13b26f89981b69b3c952e5750085bf3548b2d",
+      "status": "ORIGINAL_SCHEDULER_RESTORED"
+    }
+  }
+}
