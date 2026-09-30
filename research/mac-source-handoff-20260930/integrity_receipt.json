@@ -1,0 +1,50 @@
+{
+  "business_data_collection_or_reruns_performed": false,
+  "business_tests_run": false,
+  "checked_copy_file_count": 2040,
+  "checked_copy_groups": {
+    "build_lock": 7,
+    "canonical": 680,
+    "configured_release": 1188,
+    "manager_r3_evidence": 13,
+    "stage14_evidence": 14,
+    "test_dependency_rows": 5,
+    "test_import_source_rows": 40,
+    "test_source": 93
+  },
+  "external_upload_or_repository_mutation": false,
+  "handoff_path": "/Users/lexi/Desktop/学习/v4_app/research/mac-source-handoff-20260930",
+  "manager_r3_github_blob_match_count": 13,
+  "non_replayable_raw_market_input_count": 10,
+  "parsed_json_file_count": 55,
+  "parsed_python_sources": [
+    "source/canonical/ops/build_release_candidate.py",
+    "source/canonical/ops/build_release_candidate_stage.py",
+    "source/canonical/ops/prepare_api_only_cutover.py",
+    "source/canonical/ops/release_candidate_audit.py",
+    "source/canonical/ops/release_candidate_ports.py",
+    "source/canonical/ops/release_candidate_sources.py",
+    "source/canonical/ops/stage_service_overlay_contract.py",
+    "source/canonical/ops/verify_source_release.py",
+    "tools/build_handoff.py",
+    "tools/compare_baselines.py",
+    "tools/verify_handoff.py",
+    "tools/verify_upload_manifest.py"
+  ],
+  "process_loaded_source_bytes": "CANNOT_CONFIRM",
+  "schema_version": "mac_source_handoff.integrity_receipt.v1",
+  "security_scan": {
+    "bytes_scanned_before_this_receipt": 40203088,
+    "files_scanned_before_this_receipt": 2065,
+    "high_confidence_pattern_count": 0,
+    "status": "PASS"
+  },
+  "stage14_exact_github_blob_match_count": 14,
+  "status": "PASS",
+  "toml_lock_validation": {
+    "command": "uv lock --check --offline --project source/canonical",
+    "diagnostic": "Using CPython 3.14.6 interpreter at: /Users/lexi/.local/bin/python3.14\nResolved 32 packages in 11ms",
+    "exit_code": 0,
+    "status": "PASS_LOCK_CHECK"
+  }
+}

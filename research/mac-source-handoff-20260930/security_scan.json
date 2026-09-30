@@ -1,0 +1,19 @@
+{
+  "bytes_scanned_before_integrity_receipt_and_manifest": 40203088,
+  "files_scanned_before_integrity_receipt_and_manifest": 2065,
+  "high_confidence_findings": [],
+  "patterns_checked": [
+    "private-key PEM markers",
+    "GitHub tokens",
+    "long OpenAI-style keys",
+    "AWS access-key IDs",
+    "Slack tokens",
+    "long bearer tokens"
+  ],
+  "raw_launchagent_or_environment_values_copied": false,
+  "raw_quote_or_minute_rows_copied": false,
+  "schema_version": "mac_source_handoff.security_scan.v1",
+  "scope": "all current regular files under this handoff root, including source, evidence, tools, and docs",
+  "security_scan_status": "PASS",
+  "source_credentials_modified": false
+}
