@@ -1,0 +1,1048 @@
+{
+  "schema": "evidence.regression_origin.remote_source_inventory.v1",
+  "repository": "lexi2016/v4",
+  "fixed_commit": "bdc95a3f9d6d0313baeff2bf727ea82d122dc820",
+  "handoff": {
+    "root": "research/mac-source-handoff-20260930",
+    "file_manifest": {
+      "path": "research/mac-source-handoff-20260930/HANDOFF_FILE_MANIFEST.json",
+      "git_blob_sha1": "38b48e5648714025c3dc612d8c2e60ffe88788b8"
+    },
+    "payload_file_count": 2063,
+    "payload_bytes": 39643992,
+    "anchors": {
+      "source_inventory.json": {
+        "path": "research/mac-source-handoff-20260930/source_inventory.json",
+        "bytes": 1836181,
+        "sha256": "60e5b43c8160a267e5f095ccdaea8ead9ce628277a2c569b59c3e3ed1924990a",
+        "git_blob_sha1": "7943250546089054c58d68f731765d815f1760e6"
+      },
+      "runtime/runtime_inventory.json": {
+        "path": "research/mac-source-handoff-20260930/runtime/runtime_inventory.json",
+        "bytes": 15691,
+        "sha256": "60b1d170e32b1c97e0992d56654310215628a7423346c1c479ebe81200662206",
+        "git_blob_sha1": "d466fc67535b629a3f694f5bf00a23462712c09a"
+      },
+      "issue10_11_stage/CHAT_START_HERE.md": {
+        "path": "research/mac-source-handoff-20260930/issue10_11_stage/CHAT_START_HERE.md",
+        "bytes": 4391,
+        "sha256": "d4fb8ae2d5a0e1af324f6a7e04c4d8261242e6379a81e530e3f28fcdcc34955c",
+        "git_blob_sha1": "2a367fe5575cff141cb038b6fe790cf2cfe9ab15"
+      }
+    }
+  },
+  "sources": [
+    {
+      "relative_path": "stage_center/candidate_input.py",
+      "sha256": "59c6bb0ef13a5aaa576477708385ec4ac68b7d20a69e3fc61d984da4a8284aff",
+      "bytes": 17567,
+      "scopes": [
+        "A_SHARE/STAGE_0925",
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "Candidate binding passed into Stage Center"
+      ],
+      "preferred_ref": {
+        "path": "source/canonical/stage_center/candidate_input.py",
+        "bytes": 17567,
+        "sha256": "59c6bb0ef13a5aaa576477708385ec4ac68b7d20a69e3fc61d984da4a8284aff",
+        "git_blob_sha1": "384a49608330385515463f4d4e9543c5a45d2097"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/canonical/stage_center/candidate_input.py",
+          "git_blob_sha1": "384a49608330385515463f4d4e9543c5a45d2097"
+        },
+        {
+          "path": "source/releases/manager_api/stage_center/candidate_input.py",
+          "git_blob_sha1": "384a49608330385515463f4d4e9543c5a45d2097"
+        },
+        {
+          "path": "source/releases/manager_scheduler_1555/stage_center/candidate_input.py",
+          "git_blob_sha1": "384a49608330385515463f4d4e9543c5a45d2097"
+        },
+        {
+          "path": "source/releases/stage_hk_deadline/stage_center/candidate_input.py",
+          "git_blob_sha1": "384a49608330385515463f4d4e9543c5a45d2097"
+        },
+        {
+          "path": "source/releases/stage_scheduler/stage_center/candidate_input.py",
+          "git_blob_sha1": "384a49608330385515463f4d4e9543c5a45d2097"
+        }
+      ]
+    },
+    {
+      "relative_path": "stage_center/_live_collectors_parts/a_auction.py",
+      "sha256": "728fa6e64914942e651e62442caa83becbc6aef4705ebea59e17a544b36ea00d",
+      "bytes": 14971,
+      "scopes": [
+        "A_SHARE/STAGE_0925",
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "preserve unrelated collector repair"
+      ],
+      "preferred_ref": {
+        "path": "source/releases/stage_scheduler/stage_center/_live_collectors_parts/a_auction.py",
+        "bytes": 14971,
+        "sha256": "728fa6e64914942e651e62442caa83becbc6aef4705ebea59e17a544b36ea00d",
+        "git_blob_sha1": "5ead3f1217744b854ec67cd0a614958504d0bfd3"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/releases/stage_scheduler/stage_center/_live_collectors_parts/a_auction.py",
+          "git_blob_sha1": "5ead3f1217744b854ec67cd0a614958504d0bfd3"
+        }
+      ]
+    },
+    {
+      "relative_path": "infrastructure/tdx_minute_replay_provider.py",
+      "sha256": "02d7505614b66768f6c3f6b86e4e606f0df9f4fabb6aaad5ea8f8a0fa3738260",
+      "bytes": 21256,
+      "scopes": [
+        "A_SHARE/STAGE_0925",
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "preserve unrelated provider repair"
+      ],
+      "preferred_ref": {
+        "path": "source/releases/stage_scheduler/infrastructure/tdx_minute_replay_provider.py",
+        "bytes": 21256,
+        "sha256": "02d7505614b66768f6c3f6b86e4e606f0df9f4fabb6aaad5ea8f8a0fa3738260",
+        "git_blob_sha1": "0f56417034470318e620b1a22c27e0ce92dcff6b"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/releases/stage_scheduler/infrastructure/tdx_minute_replay_provider.py",
+          "git_blob_sha1": "0f56417034470318e620b1a22c27e0ce92dcff6b"
+        }
+      ]
+    },
+    {
+      "relative_path": "ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+      "sha256": "dcb4784d1374fbe8f9076646b6befba4b48331826a7f07a82c25e497820689d4",
+      "bytes": 15083,
+      "scopes": [
+        "A_SHARE/STAGE_0925",
+        "A_SHARE/STAGE_1445_1500",
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "scheduled node dispatch",
+        "Stage slot routing; do not replace wholesale"
+      ],
+      "preferred_ref": {
+        "path": "source/releases/stage_scheduler/ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+        "bytes": 15083,
+        "sha256": "dcb4784d1374fbe8f9076646b6befba4b48331826a7f07a82c25e497820689d4",
+        "git_blob_sha1": "7b56cba5ce79d850b723d55ee2e0f5e6f024d39a"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/releases/stage_scheduler/ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+          "git_blob_sha1": "7b56cba5ce79d850b723d55ee2e0f5e6f024d39a"
+        }
+      ]
+    },
+    {
+      "relative_path": "ops/_run_stage_center_nodes_parts/node_entry.py",
+      "sha256": "54defb0f45adbafcf4b661611f41d0b43d89abf492d89d587c28962eff9b36fe",
+      "bytes": 30940,
+      "scopes": [
+        "A_SHARE/STAGE_0925",
+        "A_SHARE/STAGE_1445_1500",
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "node and retry orchestration",
+        "Scheduler node entry/binding"
+      ],
+      "preferred_ref": {
+        "path": "source/canonical/ops/_run_stage_center_nodes_parts/node_entry.py",
+        "bytes": 30940,
+        "sha256": "54defb0f45adbafcf4b661611f41d0b43d89abf492d89d587c28962eff9b36fe",
+        "git_blob_sha1": "6daf7bee2118d71e15a4d2da0c3dca288863ad5c"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/canonical/ops/_run_stage_center_nodes_parts/node_entry.py",
+          "git_blob_sha1": "6daf7bee2118d71e15a4d2da0c3dca288863ad5c"
+        },
+        {
+          "path": "source/releases/stage_hk_deadline/ops/_run_stage_center_nodes_parts/node_entry.py",
+          "git_blob_sha1": "6daf7bee2118d71e15a4d2da0c3dca288863ad5c"
+        },
+        {
+          "path": "source/releases/stage_scheduler/ops/_run_stage_center_nodes_parts/node_entry.py",
+          "git_blob_sha1": "6daf7bee2118d71e15a4d2da0c3dca288863ad5c"
+        }
+      ]
+    },
+    {
+      "relative_path": "ops/run_stage_center_nodes.py",
+      "sha256": "8e9ca56aca8a21950590abe83ef305e46a022490eb61f48e0c5d19c2493e1772",
+      "bytes": 13421,
+      "scopes": [
+        "A_SHARE/STAGE_0925",
+        "A_SHARE/STAGE_1445_1500",
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "stage runner CLI and config loading",
+        "Runner entrypoint referenced by scheduler"
+      ],
+      "preferred_ref": {
+        "path": "source/canonical/ops/run_stage_center_nodes.py",
+        "bytes": 13421,
+        "sha256": "8e9ca56aca8a21950590abe83ef305e46a022490eb61f48e0c5d19c2493e1772",
+        "git_blob_sha1": "2887e34e0162d2aa67544ba09759dbb75cee02a2"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/canonical/ops/run_stage_center_nodes.py",
+          "git_blob_sha1": "2887e34e0162d2aa67544ba09759dbb75cee02a2"
+        },
+        {
+          "path": "source/releases/stage_hk_deadline/ops/run_stage_center_nodes.py",
+          "git_blob_sha1": "2887e34e0162d2aa67544ba09759dbb75cee02a2"
+        },
+        {
+          "path": "source/releases/stage_scheduler/ops/run_stage_center_nodes.py",
+          "git_blob_sha1": "2887e34e0162d2aa67544ba09759dbb75cee02a2"
+        }
+      ]
+    },
+    {
+      "relative_path": "stage_center/_runner_parts/slot_execution.py",
+      "sha256": "d55cfe2978a2e86d7e609f599cfb6d321a0d2636e142fb817e69fedfd0972c20",
+      "bytes": 44470,
+      "scopes": [
+        "A_SHARE/STAGE_0925",
+        "A_SHARE/STAGE_1445_1500",
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "A collection, raw publication, selector call and aggregate error layer",
+        "Stage acquisition/selection execution and cutoff reuse path"
+      ],
+      "preferred_ref": {
+        "path": "source/releases/stage_scheduler/stage_center/_runner_parts/slot_execution.py",
+        "bytes": 44470,
+        "sha256": "d55cfe2978a2e86d7e609f599cfb6d321a0d2636e142fb817e69fedfd0972c20",
+        "git_blob_sha1": "4c3035d3fd00c6fd46bcc385574b96bac5dd2b50"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/releases/stage_scheduler/stage_center/_runner_parts/slot_execution.py",
+          "git_blob_sha1": "4c3035d3fd00c6fd46bcc385574b96bac5dd2b50"
+        }
+      ]
+    },
+    {
+      "relative_path": "stage_center/live_collectors.py",
+      "sha256": "82a08c2bbe286184e1a224d0a44e576d0f812f1ec2929ded303ab191a1d554bf",
+      "bytes": 15004,
+      "scopes": [
+        "A_SHARE/STAGE_0925",
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "A HQ collector routing"
+      ],
+      "preferred_ref": {
+        "path": "source/canonical/stage_center/live_collectors.py",
+        "bytes": 15004,
+        "sha256": "82a08c2bbe286184e1a224d0a44e576d0f812f1ec2929ded303ab191a1d554bf",
+        "git_blob_sha1": "f7ba32406153d1d4220a15851f2b0829502eaa03"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/canonical/stage_center/live_collectors.py",
+          "git_blob_sha1": "f7ba32406153d1d4220a15851f2b0829502eaa03"
+        },
+        {
+          "path": "source/releases/stage_hk_deadline/stage_center/live_collectors.py",
+          "git_blob_sha1": "f7ba32406153d1d4220a15851f2b0829502eaa03"
+        },
+        {
+          "path": "source/releases/stage_scheduler/stage_center/live_collectors.py",
+          "git_blob_sha1": "f7ba32406153d1d4220a15851f2b0829502eaa03"
+        }
+      ]
+    },
+    {
+      "relative_path": "ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+      "sha256": "2e40c84a30d9cabf047fefb5caec14f8b569d24e54a7f50c16211f0c0fda53ec",
+      "bytes": 2361,
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "CLI runtime args"
+      ],
+      "preferred_ref": {
+        "path": "source/canonical/ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+        "bytes": 2361,
+        "sha256": "2e40c84a30d9cabf047fefb5caec14f8b569d24e54a7f50c16211f0c0fda53ec",
+        "git_blob_sha1": "fe88b068c4ed1893b2649bfeaae88abb24a122f6"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/canonical/ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+          "git_blob_sha1": "fe88b068c4ed1893b2649bfeaae88abb24a122f6"
+        },
+        {
+          "path": "source/releases/stage_hk_deadline/ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+          "git_blob_sha1": "fe88b068c4ed1893b2649bfeaae88abb24a122f6"
+        },
+        {
+          "path": "source/releases/stage_scheduler/ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+          "git_blob_sha1": "fe88b068c4ed1893b2649bfeaae88abb24a122f6"
+        }
+      ]
+    },
+    {
+      "relative_path": "stage_center/runner.py",
+      "sha256": "648fe7af52df1b4eba31802361f9af2d03decbbebb3286ecc7a5dc0b06523205",
+      "bytes": 41717,
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500",
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "runner wrapper and construction",
+        "HK stage binding path"
+      ],
+      "preferred_ref": {
+        "path": "source/canonical/stage_center/runner.py",
+        "bytes": 41717,
+        "sha256": "648fe7af52df1b4eba31802361f9af2d03decbbebb3286ecc7a5dc0b06523205",
+        "git_blob_sha1": "0bcf8d31b78c1c0a3b3558dbdddc01d5d3eaed2a"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/canonical/stage_center/runner.py",
+          "git_blob_sha1": "0bcf8d31b78c1c0a3b3558dbdddc01d5d3eaed2a"
+        },
+        {
+          "path": "source/releases/stage_hk_deadline/stage_center/runner.py",
+          "git_blob_sha1": "0bcf8d31b78c1c0a3b3558dbdddc01d5d3eaed2a"
+        },
+        {
+          "path": "source/releases/stage_scheduler/stage_center/runner.py",
+          "git_blob_sha1": "0bcf8d31b78c1c0a3b3558dbdddc01d5d3eaed2a"
+        }
+      ]
+    },
+    {
+      "relative_path": "stage_center/_runner_parts/selection_input_validation.py",
+      "sha256": "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c",
+      "bytes": 10698,
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "exact selector input validation"
+      ],
+      "preferred_ref": {
+        "path": "source/canonical/stage_center/_runner_parts/selection_input_validation.py",
+        "bytes": 10698,
+        "sha256": "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c",
+        "git_blob_sha1": "4592c30c12dc9962e1c84c5c5eed1f9f53ec2888"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/canonical/stage_center/_runner_parts/selection_input_validation.py",
+          "git_blob_sha1": "4592c30c12dc9962e1c84c5c5eed1f9f53ec2888"
+        },
+        {
+          "path": "source/releases/stage_scheduler/stage_center/_runner_parts/selection_input_validation.py",
+          "git_blob_sha1": "4592c30c12dc9962e1c84c5c5eed1f9f53ec2888"
+        }
+      ]
+    },
+    {
+      "relative_path": "stage_center/_live_collectors_parts/a_minute.py",
+      "sha256": "5d56f92766b9b802c4b403d8f5af25cc82a9ef6b3f82675d1406fb4752c4362e",
+      "bytes": 2110,
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "A PyTDX HQ adapter"
+      ],
+      "preferred_ref": {
+        "path": "source/canonical/stage_center/_live_collectors_parts/a_minute.py",
+        "bytes": 2110,
+        "sha256": "5d56f92766b9b802c4b403d8f5af25cc82a9ef6b3f82675d1406fb4752c4362e",
+        "git_blob_sha1": "3d30471b125766cfc391bd538e9a092e3064d113"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/canonical/stage_center/_live_collectors_parts/a_minute.py",
+          "git_blob_sha1": "3d30471b125766cfc391bd538e9a092e3064d113"
+        },
+        {
+          "path": "source/releases/stage_scheduler/stage_center/_live_collectors_parts/a_minute.py",
+          "git_blob_sha1": "3d30471b125766cfc391bd538e9a092e3064d113"
+        }
+      ]
+    },
+    {
+      "relative_path": "upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py",
+      "sha256": "7b5f062e6c1231fa5edc7db0de5406066220e69cfe3605bf5b13fd3e0b8ad18f",
+      "bytes": 19952,
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "PyTDX HQ source collector"
+      ],
+      "preferred_ref": {
+        "path": "source/canonical/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py",
+        "bytes": 19952,
+        "sha256": "7b5f062e6c1231fa5edc7db0de5406066220e69cfe3605bf5b13fd3e0b8ad18f",
+        "git_blob_sha1": "9b63eeacbe3fe02a2a117f45a11b5ff541becb67"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/canonical/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py",
+          "git_blob_sha1": "9b63eeacbe3fe02a2a117f45a11b5ff541becb67"
+        },
+        {
+          "path": "source/releases/stage_hk_deadline/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py",
+          "git_blob_sha1": "9b63eeacbe3fe02a2a117f45a11b5ff541becb67"
+        },
+        {
+          "path": "source/releases/stage_scheduler/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py",
+          "git_blob_sha1": "9b63eeacbe3fe02a2a117f45a11b5ff541becb67"
+        }
+      ]
+    },
+    {
+      "relative_path": "stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "sha256": "5b315c482723f4bbfb187e36241ea422f2a59518a2056be037d1fdbe2f00eb22",
+      "bytes": 21870,
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "research-context load and selection builder"
+      ],
+      "preferred_ref": {
+        "path": "source/canonical/stage_center/_live_collectors_parts/selection_builder_registry.py",
+        "bytes": 21870,
+        "sha256": "5b315c482723f4bbfb187e36241ea422f2a59518a2056be037d1fdbe2f00eb22",
+        "git_blob_sha1": "ea28586244319a62396bcbb2357d5e74b65fcf16"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/canonical/stage_center/_live_collectors_parts/selection_builder_registry.py",
+          "git_blob_sha1": "ea28586244319a62396bcbb2357d5e74b65fcf16"
+        },
+        {
+          "path": "source/releases/stage_scheduler/stage_center/_live_collectors_parts/selection_builder_registry.py",
+          "git_blob_sha1": "ea28586244319a62396bcbb2357d5e74b65fcf16"
+        }
+      ]
+    },
+    {
+      "relative_path": "stage_center/research_context.py",
+      "sha256": "5e759ad9dd5057433d9beae465f6f46d7cf894b9bdf4d1b8fd44beaaca2eb104",
+      "bytes": 37596,
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "hourly witness and projection validation"
+      ],
+      "preferred_ref": {
+        "path": "source/releases/stage_scheduler/stage_center/research_context.py",
+        "bytes": 37596,
+        "sha256": "5e759ad9dd5057433d9beae465f6f46d7cf894b9bdf4d1b8fd44beaaca2eb104",
+        "git_blob_sha1": "ae431bee702465faa4fa7659fdaa9b343d01b953"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/releases/stage_scheduler/stage_center/research_context.py",
+          "git_blob_sha1": "ae431bee702465faa4fa7659fdaa9b343d01b953"
+        }
+      ]
+    },
+    {
+      "relative_path": "stage_center/selection.py",
+      "sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294",
+      "bytes": 31705,
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500",
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "A selector and selection store",
+        "Stage selection algorithm facade"
+      ],
+      "preferred_ref": {
+        "path": "source/canonical/stage_center/selection.py",
+        "bytes": 31705,
+        "sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294",
+        "git_blob_sha1": "e5bb693578a32f954355f53fe9b79e1d592e8422"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/canonical/stage_center/selection.py",
+          "git_blob_sha1": "e5bb693578a32f954355f53fe9b79e1d592e8422"
+        },
+        {
+          "path": "source/releases/stage_hk_deadline/stage_center/selection.py",
+          "git_blob_sha1": "e5bb693578a32f954355f53fe9b79e1d592e8422"
+        },
+        {
+          "path": "source/releases/stage_scheduler/stage_center/selection.py",
+          "git_blob_sha1": "e5bb693578a32f954355f53fe9b79e1d592e8422"
+        }
+      ]
+    },
+    {
+      "relative_path": "domains/research.py",
+      "sha256": "2ad669ea58f08338605885547ec065921ec63cc0047460bb2acd153151fb214b",
+      "bytes": 17502,
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "deterministic research archive projection"
+      ],
+      "preferred_ref": {
+        "path": "source/canonical/domains/research.py",
+        "bytes": 17502,
+        "sha256": "2ad669ea58f08338605885547ec065921ec63cc0047460bb2acd153151fb214b",
+        "git_blob_sha1": "8e3de7d3e38e6739dd2624bb0b950959fb9789a0"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/canonical/domains/research.py",
+          "git_blob_sha1": "8e3de7d3e38e6739dd2624bb0b950959fb9789a0"
+        },
+        {
+          "path": "source/releases/stage_hk_deadline/domains/research.py",
+          "git_blob_sha1": "8e3de7d3e38e6739dd2624bb0b950959fb9789a0"
+        },
+        {
+          "path": "source/releases/stage_scheduler/domains/research.py",
+          "git_blob_sha1": "8e3de7d3e38e6739dd2624bb0b950959fb9789a0"
+        }
+      ]
+    },
+    {
+      "relative_path": "domains/research_hourly.py",
+      "sha256": "f40f5b997fa088e021fa07d32a3d5875c9c71c8a65fa13daddceabb4567ca747",
+      "bytes": 42406,
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "hourly research archive helpers"
+      ],
+      "preferred_ref": {
+        "path": "source/releases/stage_scheduler/domains/research_hourly.py",
+        "bytes": 42406,
+        "sha256": "f40f5b997fa088e021fa07d32a3d5875c9c71c8a65fa13daddceabb4567ca747",
+        "git_blob_sha1": "51ec55ad9a08d7d0b5968ed213be9658b4c40e27"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/releases/stage_hk_deadline/domains/research_hourly.py",
+          "git_blob_sha1": "51ec55ad9a08d7d0b5968ed213be9658b4c40e27"
+        },
+        {
+          "path": "source/releases/stage_scheduler/domains/research_hourly.py",
+          "git_blob_sha1": "51ec55ad9a08d7d0b5968ed213be9658b4c40e27"
+        }
+      ]
+    },
+    {
+      "relative_path": "infrastructure/research_store.py",
+      "sha256": "471ad4ceb0c34f080da674d147df5bb96045c5e7998ab41ba2845297ab63ab6f",
+      "bytes": 172644,
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "hourly research store reads"
+      ],
+      "preferred_ref": {
+        "path": "source/releases/stage_scheduler/infrastructure/research_store.py",
+        "bytes": 172644,
+        "sha256": "471ad4ceb0c34f080da674d147df5bb96045c5e7998ab41ba2845297ab63ab6f",
+        "git_blob_sha1": "0bd3452c583b79ff5d949a4747da6cb0b9f48782"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/releases/manager_api/infrastructure/research_store.py",
+          "git_blob_sha1": "0bd3452c583b79ff5d949a4747da6cb0b9f48782"
+        },
+        {
+          "path": "source/releases/stage_hk_deadline/infrastructure/research_store.py",
+          "git_blob_sha1": "0bd3452c583b79ff5d949a4747da6cb0b9f48782"
+        },
+        {
+          "path": "source/releases/stage_scheduler/infrastructure/research_store.py",
+          "git_blob_sha1": "0bd3452c583b79ff5d949a4747da6cb0b9f48782"
+        }
+      ]
+    },
+    {
+      "relative_path": "infrastructure/data_store.py",
+      "sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+      "bytes": 10704,
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "stored data hash helpers"
+      ],
+      "preferred_ref": {
+        "path": "source/canonical/infrastructure/data_store.py",
+        "bytes": 10704,
+        "sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+        "git_blob_sha1": "c1cc44f6d6e70a363cf5722b145a805ff73e1e4d"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/canonical/infrastructure/data_store.py",
+          "git_blob_sha1": "c1cc44f6d6e70a363cf5722b145a805ff73e1e4d"
+        },
+        {
+          "path": "source/releases/manager_api/infrastructure/data_store.py",
+          "git_blob_sha1": "c1cc44f6d6e70a363cf5722b145a805ff73e1e4d"
+        },
+        {
+          "path": "source/releases/stage_hk_deadline/infrastructure/data_store.py",
+          "git_blob_sha1": "c1cc44f6d6e70a363cf5722b145a805ff73e1e4d"
+        },
+        {
+          "path": "source/releases/stage_scheduler/infrastructure/data_store.py",
+          "git_blob_sha1": "c1cc44f6d6e70a363cf5722b145a805ff73e1e4d"
+        }
+      ]
+    },
+    {
+      "relative_path": "infrastructure/owned_io.py",
+      "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+      "bytes": 9354,
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "safe file reads and owned roots"
+      ],
+      "preferred_ref": {
+        "path": "source/canonical/infrastructure/owned_io.py",
+        "bytes": 9354,
+        "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+        "git_blob_sha1": "1b6666551980c44ebb0b05f133c189909d79c7df"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/canonical/infrastructure/owned_io.py",
+          "git_blob_sha1": "1b6666551980c44ebb0b05f133c189909d79c7df"
+        },
+        {
+          "path": "source/releases/manager_api/infrastructure/owned_io.py",
+          "git_blob_sha1": "1b6666551980c44ebb0b05f133c189909d79c7df"
+        },
+        {
+          "path": "source/releases/stage_hk_deadline/infrastructure/owned_io.py",
+          "git_blob_sha1": "1b6666551980c44ebb0b05f133c189909d79c7df"
+        },
+        {
+          "path": "source/releases/stage_scheduler/infrastructure/owned_io.py",
+          "git_blob_sha1": "1b6666551980c44ebb0b05f133c189909d79c7df"
+        }
+      ]
+    },
+    {
+      "relative_path": "infrastructure/shared_morning_news_reader.py",
+      "sha256": "6f99c9052c93484c6ce6e70b6c2978be53b23f57c0f4e2cd68140982929c1938",
+      "bytes": 7976,
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "direct research-context import dependency"
+      ],
+      "preferred_ref": {
+        "path": "source/canonical/infrastructure/shared_morning_news_reader.py",
+        "bytes": 7976,
+        "sha256": "6f99c9052c93484c6ce6e70b6c2978be53b23f57c0f4e2cd68140982929c1938",
+        "git_blob_sha1": "6b0a04e2e2c996e9e5e1291f03355d4bdab6448c"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/canonical/infrastructure/shared_morning_news_reader.py",
+          "git_blob_sha1": "6b0a04e2e2c996e9e5e1291f03355d4bdab6448c"
+        },
+        {
+          "path": "source/releases/manager_api/infrastructure/shared_morning_news_reader.py",
+          "git_blob_sha1": "6b0a04e2e2c996e9e5e1291f03355d4bdab6448c"
+        },
+        {
+          "path": "source/releases/manager_scheduler_1555/infrastructure/shared_morning_news_reader.py",
+          "git_blob_sha1": "6b0a04e2e2c996e9e5e1291f03355d4bdab6448c"
+        },
+        {
+          "path": "source/releases/stage_hk_deadline/infrastructure/shared_morning_news_reader.py",
+          "git_blob_sha1": "6b0a04e2e2c996e9e5e1291f03355d4bdab6448c"
+        },
+        {
+          "path": "source/releases/stage_scheduler/infrastructure/shared_morning_news_reader.py",
+          "git_blob_sha1": "6b0a04e2e2c996e9e5e1291f03355d4bdab6448c"
+        }
+      ]
+    },
+    {
+      "relative_path": "stage_center/raw_store.py",
+      "sha256": "15052b23c62d38b65d65b96bf3b837782ebfa6fca7fe83f7c1d9374400bbdbde",
+      "bytes": 13539,
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "raw artifact publication/store"
+      ],
+      "preferred_ref": {
+        "path": "source/canonical/stage_center/raw_store.py",
+        "bytes": 13539,
+        "sha256": "15052b23c62d38b65d65b96bf3b837782ebfa6fca7fe83f7c1d9374400bbdbde",
+        "git_blob_sha1": "19e8b1808c69dbbe286b69e78117250ab44bb73f"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/canonical/stage_center/raw_store.py",
+          "git_blob_sha1": "19e8b1808c69dbbe286b69e78117250ab44bb73f"
+        },
+        {
+          "path": "source/releases/stage_hk_deadline/stage_center/raw_store.py",
+          "git_blob_sha1": "19e8b1808c69dbbe286b69e78117250ab44bb73f"
+        },
+        {
+          "path": "source/releases/stage_scheduler/stage_center/raw_store.py",
+          "git_blob_sha1": "19e8b1808c69dbbe286b69e78117250ab44bb73f"
+        }
+      ]
+    },
+    {
+      "relative_path": "stage_center/calendar.py",
+      "sha256": "31fed97066d9b804a71f15c48d4e0f8baa5d9af621e1d81dc0340fd6619e4099",
+      "bytes": 4805,
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "stage calendar/cutoff"
+      ],
+      "preferred_ref": {
+        "path": "source/canonical/stage_center/calendar.py",
+        "bytes": 4805,
+        "sha256": "31fed97066d9b804a71f15c48d4e0f8baa5d9af621e1d81dc0340fd6619e4099",
+        "git_blob_sha1": "5d819f6467328cd94d94563143fc57f461a5b973"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/canonical/stage_center/calendar.py",
+          "git_blob_sha1": "5d819f6467328cd94d94563143fc57f461a5b973"
+        },
+        {
+          "path": "source/releases/stage_hk_deadline/stage_center/calendar.py",
+          "git_blob_sha1": "5d819f6467328cd94d94563143fc57f461a5b973"
+        },
+        {
+          "path": "source/releases/stage_scheduler/stage_center/calendar.py",
+          "git_blob_sha1": "5d819f6467328cd94d94563143fc57f461a5b973"
+        }
+      ]
+    },
+    {
+      "relative_path": "stage_center/scheduler.py",
+      "sha256": "db110aba2fe504213591330000120b660cff04292728b5325711e2fa6799e7b0",
+      "bytes": 7099,
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "stage slot definition/scheduler"
+      ],
+      "preferred_ref": {
+        "path": "source/releases/stage_scheduler/stage_center/scheduler.py",
+        "bytes": 7099,
+        "sha256": "db110aba2fe504213591330000120b660cff04292728b5325711e2fa6799e7b0",
+        "git_blob_sha1": "df23d27c497e469fb6144a92fb809cf84c8d5794"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/releases/stage_scheduler/stage_center/scheduler.py",
+          "git_blob_sha1": "df23d27c497e469fb6144a92fb809cf84c8d5794"
+        }
+      ]
+    },
+    {
+      "relative_path": "stage_center/_runner_parts/hk_input_validation.py",
+      "sha256": "f703a8aa5e79742785b07d29778f42f53035e56b15f695aebc92d56c680531cd",
+      "bytes": 20620,
+      "scopes": [
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "D-1 exact-date/status/signal-date/100-unique validation"
+      ],
+      "preferred_ref": {
+        "path": "source/canonical/stage_center/_runner_parts/hk_input_validation.py",
+        "bytes": 20620,
+        "sha256": "f703a8aa5e79742785b07d29778f42f53035e56b15f695aebc92d56c680531cd",
+        "git_blob_sha1": "80a05785a9be6176138af654ecc06999330615ed"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/canonical/stage_center/_runner_parts/hk_input_validation.py",
+          "git_blob_sha1": "80a05785a9be6176138af654ecc06999330615ed"
+        },
+        {
+          "path": "source/releases/stage_scheduler/stage_center/_runner_parts/hk_input_validation.py",
+          "git_blob_sha1": "80a05785a9be6176138af654ecc06999330615ed"
+        }
+      ]
+    },
+    {
+      "relative_path": "stage_center/hk_stage8/snapshot.py",
+      "sha256": "d1658e72a03a6842c2e6b1b3ae63f6889aa00f28c69ad0a7aa5c7400bf6f5267",
+      "bytes": 19508,
+      "scopes": [
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "Exact-day/cutoff/capture validation that raises the observed blocker"
+      ],
+      "preferred_ref": {
+        "path": "source/canonical/stage_center/hk_stage8/snapshot.py",
+        "bytes": 19508,
+        "sha256": "d1658e72a03a6842c2e6b1b3ae63f6889aa00f28c69ad0a7aa5c7400bf6f5267",
+        "git_blob_sha1": "be5dd4ea8dc587e46bbda034e43fca1c1a1671f8"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/canonical/stage_center/hk_stage8/snapshot.py",
+          "git_blob_sha1": "be5dd4ea8dc587e46bbda034e43fca1c1a1671f8"
+        },
+        {
+          "path": "source/releases/stage_hk_deadline/stage_center/hk_stage8/snapshot.py",
+          "git_blob_sha1": "be5dd4ea8dc587e46bbda034e43fca1c1a1671f8"
+        },
+        {
+          "path": "source/releases/stage_scheduler/stage_center/hk_stage8/snapshot.py",
+          "git_blob_sha1": "be5dd4ea8dc587e46bbda034e43fca1c1a1671f8"
+        }
+      ]
+    },
+    {
+      "relative_path": "infrastructure/preselection_pool_store.py",
+      "sha256": "a640d28ec54119ae383f5dd838fe467d6ae8b5b0d87fa2c4afbb0646fbfe658a",
+      "bytes": 32457,
+      "scopes": [
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "Canonical pool artifact/manifest/receipt validation"
+      ],
+      "preferred_ref": {
+        "path": "source/canonical/infrastructure/preselection_pool_store.py",
+        "bytes": 32457,
+        "sha256": "a640d28ec54119ae383f5dd838fe467d6ae8b5b0d87fa2c4afbb0646fbfe658a",
+        "git_blob_sha1": "f67eb0df532b002b2b4ac832713c2432c920b213"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/canonical/infrastructure/preselection_pool_store.py",
+          "git_blob_sha1": "f67eb0df532b002b2b4ac832713c2432c920b213"
+        },
+        {
+          "path": "source/releases/stage_hk_deadline/infrastructure/preselection_pool_store.py",
+          "git_blob_sha1": "f67eb0df532b002b2b4ac832713c2432c920b213"
+        },
+        {
+          "path": "source/releases/stage_scheduler/infrastructure/preselection_pool_store.py",
+          "git_blob_sha1": "f67eb0df532b002b2b4ac832713c2432c920b213"
+        }
+      ]
+    },
+    {
+      "relative_path": "upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "sha256": "564104bb0e5f62a66c1409009ea6a57e72b2735aafa961761f5b65b2e412cd2d",
+      "bytes": 58597,
+      "scopes": [
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "D-1 Top100 producer and date/cutoff contract"
+      ],
+      "preferred_ref": {
+        "path": "source/releases/stage_scheduler/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+        "bytes": 58597,
+        "sha256": "564104bb0e5f62a66c1409009ea6a57e72b2735aafa961761f5b65b2e412cd2d",
+        "git_blob_sha1": "ec482b5b7caa423907a85d3fad143e46a2058ca8"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/releases/manager_api/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+          "git_blob_sha1": "ec482b5b7caa423907a85d3fad143e46a2058ca8"
+        },
+        {
+          "path": "source/releases/stage_hk_deadline/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+          "git_blob_sha1": "ec482b5b7caa423907a85d3fad143e46a2058ca8"
+        },
+        {
+          "path": "source/releases/stage_scheduler/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+          "git_blob_sha1": "ec482b5b7caa423907a85d3fad143e46a2058ca8"
+        }
+      ]
+    },
+    {
+      "relative_path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "sha256": "ac2c16669236d24d6d03cac183238ca8dccd8fd23895ae14ad34cef40c049008",
+      "bytes": 14396,
+      "scopes": [
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "Security-master validation dependency for invalid 09-30 input"
+      ],
+      "preferred_ref": {
+        "path": "source/canonical/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+        "bytes": 14396,
+        "sha256": "ac2c16669236d24d6d03cac183238ca8dccd8fd23895ae14ad34cef40c049008",
+        "git_blob_sha1": "36262bcd4fb9a8a52be8c6791180ee450c2d63b8"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/canonical/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+          "git_blob_sha1": "36262bcd4fb9a8a52be8c6791180ee450c2d63b8"
+        },
+        {
+          "path": "source/releases/manager_api/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+          "git_blob_sha1": "36262bcd4fb9a8a52be8c6791180ee450c2d63b8"
+        },
+        {
+          "path": "source/releases/stage_hk_deadline/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+          "git_blob_sha1": "36262bcd4fb9a8a52be8c6791180ee450c2d63b8"
+        },
+        {
+          "path": "source/releases/stage_scheduler/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+          "git_blob_sha1": "36262bcd4fb9a8a52be8c6791180ee450c2d63b8"
+        }
+      ]
+    },
+    {
+      "relative_path": "upstreams/v3_shared_data/scripts/live_acquisition/futu_minute.py",
+      "sha256": "af4cc0efea026eb3f6fa084389d6ee8351a286d38765e337147ced88fda150da",
+      "bytes": 4507,
+      "scopes": [
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "Futu acquisition dependency; inspect alongside receipt for 09-29 failure"
+      ],
+      "preferred_ref": {
+        "path": "source/canonical/upstreams/v3_shared_data/scripts/live_acquisition/futu_minute.py",
+        "bytes": 4507,
+        "sha256": "af4cc0efea026eb3f6fa084389d6ee8351a286d38765e337147ced88fda150da",
+        "git_blob_sha1": "9518999f52a44d4b1c5c7fe8398413edb22cde9b"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/canonical/upstreams/v3_shared_data/scripts/live_acquisition/futu_minute.py",
+          "git_blob_sha1": "9518999f52a44d4b1c5c7fe8398413edb22cde9b"
+        },
+        {
+          "path": "source/releases/manager_api/upstreams/v3_shared_data/scripts/live_acquisition/futu_minute.py",
+          "git_blob_sha1": "9518999f52a44d4b1c5c7fe8398413edb22cde9b"
+        },
+        {
+          "path": "source/releases/manager_scheduler_1555/upstreams/v3_shared_data/scripts/live_acquisition/futu_minute.py",
+          "git_blob_sha1": "9518999f52a44d4b1c5c7fe8398413edb22cde9b"
+        },
+        {
+          "path": "source/releases/stage_hk_deadline/upstreams/v3_shared_data/scripts/live_acquisition/futu_minute.py",
+          "git_blob_sha1": "9518999f52a44d4b1c5c7fe8398413edb22cde9b"
+        },
+        {
+          "path": "source/releases/stage_scheduler/upstreams/v3_shared_data/scripts/live_acquisition/futu_minute.py",
+          "git_blob_sha1": "9518999f52a44d4b1c5c7fe8398413edb22cde9b"
+        }
+      ]
+    },
+    {
+      "relative_path": "upstreams/v3_shared_data/scripts/live_acquisition/pytdx_exhq.py",
+      "sha256": "19946fd9c09033a77b460fe5a68f70969623d3b1c26f058091349e702d482fdd",
+      "bytes": 8534,
+      "scopes": [
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "ExHQ snapshot fallback/coverage dependency"
+      ],
+      "preferred_ref": {
+        "path": "source/canonical/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_exhq.py",
+        "bytes": 8534,
+        "sha256": "19946fd9c09033a77b460fe5a68f70969623d3b1c26f058091349e702d482fdd",
+        "git_blob_sha1": "62ca1b26929b77f17b433d5faccef268d8017ca8"
+      },
+      "exact_matching_refs": [
+        {
+          "path": "source/canonical/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_exhq.py",
+          "git_blob_sha1": "62ca1b26929b77f17b433d5faccef268d8017ca8"
+        },
+        {
+          "path": "source/releases/manager_api/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_exhq.py",
+          "git_blob_sha1": "62ca1b26929b77f17b433d5faccef268d8017ca8"
+        },
+        {
+          "path": "source/releases/manager_scheduler_1555/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_exhq.py",
+          "git_blob_sha1": "62ca1b26929b77f17b433d5faccef268d8017ca8"
+        },
+        {
+          "path": "source/releases/stage_hk_deadline/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_exhq.py",
+          "git_blob_sha1": "62ca1b26929b77f17b433d5faccef268d8017ca8"
+        },
+        {
+          "path": "source/releases/stage_scheduler/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_exhq.py",
+          "git_blob_sha1": "62ca1b26929b77f17b433d5faccef268d8017ca8"
+        }
+      ]
+    }
+  ],
+  "patches": [
+    {
+      "path": "research/mac-source-handoff-20260930/evidence/stage14/publish/issue11/a_auction_repair.diff",
+      "bytes": 7628,
+      "sha256": "b6ff17f5999ba833b279788fd6dcbaa75e921d356cba9f37554b5c9683724099",
+      "git_blob_sha1": "c60b57a87553c960068b5d8d55d7ab4603411b90",
+      "purpose": "A auction collector repair diff"
+    },
+    {
+      "path": "research/mac-source-handoff-20260930/evidence/stage14/publish/issue11/tdx_minute_replay_provider_repair.diff",
+      "bytes": 16059,
+      "sha256": "1f53b85ba18875d7ed862eb539ada965e5f1fbcb303f234b1ed66c9f4ccb4fdd",
+      "git_blob_sha1": "507d542614d78128d3ff9fb800a9d51a558aa4d2",
+      "purpose": "TDX replay provider repair diff"
+    },
+    {
+      "path": "research/mac-source-handoff-20260930/evidence/stage14/publish/issue11/stage_dispatch_3way.diff",
+      "bytes": 23699,
+      "sha256": "6c83f05c01ca32bafb90bf67edf8425811541a049b89dab48691ccd30c47365a",
+      "git_blob_sha1": "aa1ee8cd294af11c8505a5fa58671c3e71046200",
+      "purpose": "stage dispatch three-way comparison"
+    }
+  ],
+  "not_exported": "Remote files remain at the fixed commit; exact matching refs are recorded without duplicating their contents."
+}

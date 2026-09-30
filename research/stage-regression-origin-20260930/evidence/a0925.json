@@ -1,0 +1,173 @@
+{
+  "schema": "evidence.regression_origin.sanitized_a0925.v1",
+  "scope": "A_SHARE STAGE_0925 regression origin and 205-code identity; evidence packaging only",
+  "audit_status": "AUDIT_FINAL_AND_SOURCE_PACKAGED",
+  "conclusion": {
+    "natural_full_input_success": "CANNOT_CONFIRM",
+    "first_later_failure": {
+      "trade_date": "20260928",
+      "status": "PARTIAL_WITH_ROWS",
+      "a_share_status": "CANNOT_CONFIRM",
+      "first_error": "strict current is missing or unavailable",
+      "receipt_sha256": "c0543be024c26f3bf6f818e8827356adb77cadedee5cf53db986a900896268fc"
+    },
+    "subsequent_failures": [
+      {
+        "trade_date": "20260929",
+        "stage_id": "STAGE_0925",
+        "status": "PARTIAL_WITH_ROWS",
+        "a_share_status": "CANNOT_CONFIRM",
+        "error": "TypeError: cannot compare offset-naive and offset-aware datetimes",
+        "receipt_sha256": "bf0522a9d6b36c05b0367f22b99554db6decd6f07b42fdbd696d55481b9ca9e0"
+      },
+      {
+        "trade_date": "20260930",
+        "stage_id": "STAGE_0925",
+        "status": "CANNOT_CONFIRM",
+        "a_share_status": "CANNOT_CONFIRM",
+        "error": "TypeError: cannot compare offset-naive and offset-aware datetimes",
+        "node_attempt_count": 3,
+        "retry_exhausted": true,
+        "receipt_sha256": "b920987cdecc63d0f7857c50404b3807c8f5212f418be304f75a11a06500a87f"
+      }
+    ],
+    "last_receipt_with_a_rows": {
+      "trade_date": "20260924",
+      "selected_rows": 10,
+      "eligible_input_count": 188,
+      "observed_candidate_count": 193,
+      "dispatch_mode": "RECOVERY",
+      "due_status": "LATE_CATCHUP_REPLAY",
+      "natural_complete_success": "NOT_ESTABLISHED",
+      "receipt_sha256": "d0aad9cbfd3db1a37193009bbc99e8b1e01b4be179ebda321d36e2b967cc726b"
+    },
+    "post_failure_canary": {
+      "trade_date": "20260930",
+      "requested_rows": 1,
+      "status": "PASS",
+      "mode": "RECOVERY",
+      "scope": "single-code collector canary only",
+      "formal_205_row_recovery": "NOT_OBSERVED",
+      "receipt_sha256": "3be2aa358257df94b15a1d891103c6974929507f81c62f62da2fdcd984f746c3"
+    }
+  },
+  "input_identity": {
+    "market": "A_SHARE",
+    "trade_date": "20260930",
+    "stage_id": "STAGE_0925",
+    "code_count": 205,
+    "unique_code_count": 205,
+    "ordered_codes_path": "input/a0925_candidate_codes_original_order.json",
+    "ordered_codes_file_sha256": "cf16619116f85832c9bf1ba80c60a6166f37afee52f3ed4b379e76b6e708b71c",
+    "same_ordered_array_digest_modes": [
+      {
+        "algorithm": "SHA-256(UTF-8(\"\\n\".join(codes)))",
+        "sha256": "80f5a1c0bbed293b637d1a2bb25585de932ce5b235dd3ff0236fcb9a99d8eb69",
+        "meaning": "prior expected digest; reproduced from recovered ordered array"
+      },
+      {
+        "algorithm": "SHA-256(compact JSON UTF-8 of ordered list; ensure_ascii=false, sort_keys=true, separators=(\",\",\":\"))",
+        "sha256": "ed7370dd8a81ddc621d606c61b8df95095cdc2c9def7909ab8be5e02b214b073",
+        "meaning": "reader digest; reproduced from the same ordered array"
+      },
+      {
+        "algorithm": "SHA-256(compact JSON UTF-8 ordered array file bytes)",
+        "sha256": "cf16619116f85832c9bf1ba80c60a6166f37afee52f3ed4b379e76b6e708b71c",
+        "meaning": "packaged exact-array file identity"
+      }
+    ],
+    "current_reader": {
+      "relative_source_path": "stage_center/candidate_input.py",
+      "source_sha256": "59c6bb0ef13a5aaa576477708385ec4ac68b7d20a69e3fc61d984da4a8284aff",
+      "run_id": "20260930-a_share_stage_acquisition_universe_v3-92023837d870",
+      "current_file_sha256": "08b1a6b0376c1ba0828ed5b3423ef5860d4e66944342cf3cf74d28b189e21623",
+      "artifact_file_sha256": "92023837d8709abfb46fb03dec82ee9758ff56e57615cdfebeb98926e3789d72"
+    },
+    "preimage_status": "RECOVERED_FROM_SOURCE_BOUND_EQUALITY_ASSERTION",
+    "source_limit": "The canary receipt did not itself persist the fresh preselection array; recovery is bound to the candidate artifact and the recorded equality assertion."
+  },
+  "source_and_runtime_identity": {
+    "known_disk_source_versions": [
+      {
+        "relative_source_path": "stage_center/_live_collectors_parts/a_auction.py",
+        "version_label": "current Mac candidate disk snapshot",
+        "sha256": "728fa6e64914942e651e62442caa83becbc6aef4705ebea59e17a544b36ea00d"
+      },
+      {
+        "relative_source_path": "infrastructure/tdx_minute_replay_provider.py",
+        "version_label": "current Mac candidate disk snapshot",
+        "sha256": "02d7505614b66768f6c3f6b86e4e606f0df9f4fabb6aaad5ea8f8a0fa3738260"
+      },
+      {
+        "relative_source_path": "ops/_run_stage_center_nodes_parts/node_entry.py",
+        "version_label": "restored Mac candidate disk snapshot",
+        "sha256": "54defb0f45adbafcf4b661611f41d0b43d89abf492d89d587c28962eff9b36fe"
+      },
+      {
+        "relative_source_path": "ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+        "version_label": "restored Mac candidate disk snapshot",
+        "sha256": "dcb4784d1374fbe8f9076646b6befba4b48331826a7f07a82c25e497820689d4"
+      },
+      {
+        "relative_source_path": "ops/run_stage_center_nodes.py",
+        "version_label": "current Mac candidate disk snapshot",
+        "sha256": "8e9ca56aca8a21950590abe83ef305e46a022490eb61f48e0c5d19c2493e1772"
+      },
+      {
+        "relative_source_path": "stage_center/_runner_parts/slot_execution.py",
+        "version_label": "current Mac candidate disk snapshot",
+        "sha256": "d55cfe2978a2e86d7e609f599cfb6d321a0d2636e142fb817e69fedfd0972c20"
+      },
+      {
+        "relative_source_path": "stage_center/live_collectors.py",
+        "version_label": "current Mac candidate disk snapshot",
+        "sha256": "82a08c2bbe286184e1a224d0a44e576d0f812f1ec2929ded303ab191a1d554bf"
+      }
+    ],
+    "formal_runner_loaded_module_bytes": "CANNOT_CONFIRM",
+    "formal_post_fix_205_row_recovery": "NOT_OBSERVED",
+    "disk_or_configuration_identity_is_not_loaded_runtime_identity": true
+  },
+  "separate_unconfirmed_items": [
+    "No receipt proves natural, complete 205-input A-share STAGE_0925 success.",
+    "Exact collector/provider module bytes loaded by the 2026-09-30 formal runner are unknown.",
+    "The producer/config event that made the 2026-09-28 strict current unavailable is not established.",
+    "No formal 205-row recovery after collector/provider source repair is present.",
+    "Five other valid A stages were not re-hashed or rerun."
+  ],
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "tests_run": false,
+    "collector_invoked": false,
+    "formal_runner_invoked": false,
+    "service_started_or_restarted": false
+  },
+  "source_record": {
+    "source_audit_receipt_sha256": "441e1cabd3884d1c6b3c774f419dbbc9a9b538787f0aa610c227bad1c24f6bd7",
+    "source_report_sha256": "e80a6abea62c8ba16fcba707b6770a41431de4206b718e47bbe7c2b547f6969f",
+    "source_export_plan_sha256": "ba374f49c2c37dc256eb0697faa7cbc101ff2880127fbb669210e86f06c7cae6",
+    "local_absolute_paths": "REDACTED_FROM_EXPORT",
+    "field_redactions": [
+      "absolute_local_path_values"
+    ],
+    "no_market_rows_included": true,
+    "source_handoff_commit": "bdc95a3f9d6d0313baeff2bf727ea82d122dc820",
+    "remote_inventory_path": "source_export/REMOTE_SOURCE_INVENTORY.json"
+  },
+  "source_export_state": {
+    "planned_direct_sources": 8,
+    "fixed_pr15_exact_refs": 8,
+    "local_direct_source_files": 0,
+    "auxiliary_canary_exported": true,
+    "loaded_formal_module_bytes": "CANNOT_CONFIRM"
+  },
+  "prior_comment_context": {
+    "comment_id": "5910047929",
+    "actual_comment_summary": "The comment noted the two SHA differences and said the cause was CANNOT_CONFIRM.",
+    "clarification": "The previously unexplained digest difference is resolved: the same ordered array produces different digests under the newline-joined and compact-JSON algorithms.",
+    "expected_newline_digest_unchanged": "80f5a1c0bbed293b637d1a2bb25585de932ce5b235dd3ff0236fcb9a99d8eb69"
+  }
+}

@@ -1,0 +1,804 @@
+{
+  "schema": "evidence.regression_origin.sanitized_hk_stage_receipt_index.v1",
+  "source_report_sha256": "9235e5301ca286df57ec0cda5369663658ea2e58e4dcae4a4ffcfff637ae9ed4",
+  "selection_latest_sha256": "9077c171388c9bee478065d34ad0923b3d0f356bbec0ed3e587064c448c3078a",
+  "row_count": 88,
+  "rows_with_hk_entry": 83,
+  "row_bearing_rows": 31,
+  "row_bearing_index_matches": 31,
+  "semantics": "NO_HK_ENTRY means no HK_CONNECT node in that formal receipt, not a zero-candidate result. Receipt hashes identify the source receipts.",
+  "receipts": [
+    {
+      "trade_date": "20260915",
+      "stage_id": "STAGE_0925",
+      "hk_rows": null,
+      "status": "NO_HK_ENTRY",
+      "limiting_reason": "receipt has no HK_CONNECT entry",
+      "selection_latest_match": "NO_HK_ENTRY",
+      "receipt_sha256": "133b5696f5c498af90d8d8150d3234d62bfe707adc3564ea956eef2f4a73ef59"
+    },
+    {
+      "trade_date": "20260915",
+      "stage_id": "STAGE_0930_0935",
+      "hk_rows": null,
+      "status": "NO_HK_ENTRY",
+      "limiting_reason": "receipt has no HK_CONNECT entry",
+      "selection_latest_match": "NO_HK_ENTRY",
+      "receipt_sha256": "979fa9eb0507d570aef913504d6620ac6ce50c42a8e7e7fc322f7e184e675368"
+    },
+    {
+      "trade_date": "20260915",
+      "stage_id": "STAGE_0935_0940",
+      "hk_rows": null,
+      "status": "NO_HK_ENTRY",
+      "limiting_reason": "receipt has no HK_CONNECT entry",
+      "selection_latest_match": "NO_HK_ENTRY",
+      "receipt_sha256": "303299731ec138eb68f78e76fca4b1cb01cb80f9a17b0c6ca12cfa3a6fa91c9b"
+    },
+    {
+      "trade_date": "20260915",
+      "stage_id": "STAGE_0940_0945",
+      "hk_rows": null,
+      "status": "NO_HK_ENTRY",
+      "limiting_reason": "receipt has no HK_CONNECT entry",
+      "selection_latest_match": "NO_HK_ENTRY",
+      "receipt_sha256": "d9584ca47b1980e5e8214b825a02f1f0a6d8c01be41b3f4e8edfb89f53b46b2e"
+    },
+    {
+      "trade_date": "20260915",
+      "stage_id": "STAGE_0945_1030",
+      "hk_rows": null,
+      "status": "NO_HK_ENTRY",
+      "limiting_reason": "receipt has no HK_CONNECT entry",
+      "selection_latest_match": "NO_HK_ENTRY",
+      "receipt_sha256": "61fcabad6edd6a63a3dc73aa76d1d8fd94254efcbece115d9d3a330800ba9cb8"
+    },
+    {
+      "trade_date": "20260915",
+      "stage_id": "STAGE_1300_1315",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "b0ba8ef985d3f3bfa001110f258ed50e4c0430032ac09244e23da6ad7b0c149f"
+    },
+    {
+      "trade_date": "20260915",
+      "stage_id": "STAGE_1445_1500",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "5e3d1756499fdc615f9615e215d2c293c789d2496d32a192211bb33839b8c9d8"
+    },
+    {
+      "trade_date": "20260915",
+      "stage_id": "STAGE_1545_1555",
+      "hk_rows": 10,
+      "status": "READY",
+      "limiting_reason": "—",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "98560d44cbe71db9af32d9a3ee3b0ecaba77ae96b2e7d089aa3b909a64ce1988"
+    },
+    {
+      "trade_date": "20260916",
+      "stage_id": "STAGE_0925",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "a5e5e36b87d817ce6fde66198a8c04f26d44c49373e7adabbdfa7271c60694ee"
+    },
+    {
+      "trade_date": "20260916",
+      "stage_id": "STAGE_0930_0935",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "868f294e05a2110b14926b974f03b5a6a2eb4fb24ec0245233aab8fb577a9ffc"
+    },
+    {
+      "trade_date": "20260916",
+      "stage_id": "STAGE_0935_0940",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "ce02889f73057c459ee019511a4e6cfa444b6218b69b5c68681e018da5be8deb"
+    },
+    {
+      "trade_date": "20260916",
+      "stage_id": "STAGE_0940_0945",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "b940b8c35076ea45f224c0ed6c355b01825b558014902a788c71ea44b1aaea3f"
+    },
+    {
+      "trade_date": "20260916",
+      "stage_id": "STAGE_0945_1030",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "ef379df3f67e6887698b1bba5fbb9a63c3b2e0e16ef4411f2730411146041a54"
+    },
+    {
+      "trade_date": "20260916",
+      "stage_id": "STAGE_1300_1315",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "dd63462b4c7aeeeb14e7c9f695ba327bd5a51684a0a3714a01d3203e92124399"
+    },
+    {
+      "trade_date": "20260916",
+      "stage_id": "STAGE_1445_1500",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "b3e1b9a514c06f7b01590d559e5244ffcff0f36fe9b0d14fb011fe8ddf37e03b"
+    },
+    {
+      "trade_date": "20260916",
+      "stage_id": "STAGE_1545_1555",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "e918d978f81e8840916e96966ae7dd7523d38dfc6789b8c77794a5384cbc6c0c"
+    },
+    {
+      "trade_date": "20260917",
+      "stage_id": "STAGE_0925",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "f200e9171a1233dc8967adf871fd5d38d7f3571938efda2c1c031a88b1103ee8"
+    },
+    {
+      "trade_date": "20260917",
+      "stage_id": "STAGE_0930_0935",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "2925a8a779fad7d40b960997d751dabf852b2562f1d4c782c70990ee561fe5d8"
+    },
+    {
+      "trade_date": "20260917",
+      "stage_id": "STAGE_0935_0940",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "c245ee1abbf1b850b0fa3d5b9eb5420f7be35b732220850f6517d8e3196fa6c9"
+    },
+    {
+      "trade_date": "20260917",
+      "stage_id": "STAGE_0940_0945",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "cb940540b253e07b275ba8068fffbd492640730b445c7d05a5f5e71c500bc8d3"
+    },
+    {
+      "trade_date": "20260917",
+      "stage_id": "STAGE_0945_1030",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "b7e4c0cf93e1d7e3b5264df5e77240eef7ca6e87afd61d875e7e4da4e3f3770d"
+    },
+    {
+      "trade_date": "20260917",
+      "stage_id": "STAGE_1300_1315",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "768453502389c164429fb29e8a520d86fb74b8a7fc5e502f3424f743ec3b8ee8"
+    },
+    {
+      "trade_date": "20260917",
+      "stage_id": "STAGE_1445_1500",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "ed7da82644526e5a8b5cf1f5db37041befb06a013214932426db0424fdd28326"
+    },
+    {
+      "trade_date": "20260917",
+      "stage_id": "STAGE_1545_1555",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "deeccd86ecc1866ed8bd7405ed79f7e912405173832b5e35bdb0ed7607cfda0a"
+    },
+    {
+      "trade_date": "20260918",
+      "stage_id": "STAGE_0925",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "fb602caeb71de4ada8574be390513c596aaa2f7845a6748879d832a9e6c52c8b"
+    },
+    {
+      "trade_date": "20260918",
+      "stage_id": "STAGE_0930_0935",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "3659584627a9a6dad9d160554ebbf706f78a635634b2c031c1a7c3839fe06b63"
+    },
+    {
+      "trade_date": "20260918",
+      "stage_id": "STAGE_0935_0940",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "1bb28a77c928a0b2b60473e68544b4f799e836fdaade790bf9fcf291f29b3816"
+    },
+    {
+      "trade_date": "20260918",
+      "stage_id": "STAGE_0940_0945",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "8d1dc99a780fac963345d41b4c66ca4f593aeb8ad680286a40240a074eac5e75"
+    },
+    {
+      "trade_date": "20260918",
+      "stage_id": "STAGE_0945_1030",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "b9a662b3c6bb27149bd50cebed90ce524e92ac68a145cabf132f28bbc33fca27"
+    },
+    {
+      "trade_date": "20260918",
+      "stage_id": "STAGE_1300_1315",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "2ee59781be63b2f7c4a2e6ae0af943fa86eb09391d9557dd89019cc613002817"
+    },
+    {
+      "trade_date": "20260918",
+      "stage_id": "STAGE_1445_1500",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "97def1be59701caed918d5e4c4d0d4e511027f7b5538c8e17996d54ab9769390"
+    },
+    {
+      "trade_date": "20260918",
+      "stage_id": "STAGE_1545_1555",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "exact-date D-1 input missing",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "6c33bcc100e32e1c8c042d73d63d7c70fcc1e5d89cfd3eccd7277ad18d1052ee"
+    },
+    {
+      "trade_date": "20260921",
+      "stage_id": "STAGE_0925",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "incomplete coverage ratio=0.1; missing=80",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "aace125c65bb2564d9d021571fc285aaef7473b498122c6a107510b690ade095"
+    },
+    {
+      "trade_date": "20260921",
+      "stage_id": "STAGE_0930_0935",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe; execution cutoff unsafe",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "3b24c3bfb458d7c123da2f784a29020bbe2ea958503023e0771215b21f00d10e"
+    },
+    {
+      "trade_date": "20260921",
+      "stage_id": "STAGE_0935_0940",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe; execution cutoff unsafe",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "49ced8c64decc8a97a013f3203dbc1e254b293d2c12f02a4bbc90e1815487ca1"
+    },
+    {
+      "trade_date": "20260921",
+      "stage_id": "STAGE_0940_0945",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe; execution cutoff unsafe",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "25853145e015461b19af14a563c5c111f016eea5fc7e0e4023cf69415757fa01"
+    },
+    {
+      "trade_date": "20260921",
+      "stage_id": "STAGE_0945_1030",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe; execution cutoff unsafe",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "1bba738f4867fd4c13640c561194bf82b0edc6fb1e2d733e74ddcce69a5809f2"
+    },
+    {
+      "trade_date": "20260921",
+      "stage_id": "STAGE_1300_1315",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe; execution cutoff unsafe",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "347a4e61206038ad9fe5aecc8dac52e9f4585395ff6676e24d9783d2b51800cf"
+    },
+    {
+      "trade_date": "20260921",
+      "stage_id": "STAGE_1445_1500",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe; execution cutoff unsafe",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "c8b0e45a7b54858ee4a615731bb6885a925771b359a575d43d1bf12b81fbc5c8"
+    },
+    {
+      "trade_date": "20260921",
+      "stage_id": "STAGE_1545_1555",
+      "hk_rows": 10,
+      "status": "READY",
+      "limiting_reason": "—",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "7b6831737c522b48d7c397d0c31fd90b6490722fa19ea9b2a7d3e44332865243"
+    },
+    {
+      "trade_date": "20260922",
+      "stage_id": "STAGE_0925",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "incomplete coverage ratio=0.1; missing=80",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "7e3d4b11622a08d0d4c5e46ac936faa9f87ef4234a717149b70a3ec06d6103f5"
+    },
+    {
+      "trade_date": "20260922",
+      "stage_id": "STAGE_0930_0935",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "incomplete coverage ratio=0.1; missing=82",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "6f8bf5a2808891b83c6f627867ed218aee43245c3488ed507a13bbf4f248c522"
+    },
+    {
+      "trade_date": "20260922",
+      "stage_id": "STAGE_0935_0940",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "ExHQ probe/coverage incomplete",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "86096581cf33f04348aca23f4ad7d424cfe52c0e22c4fe755bd4fbec0987a7ca"
+    },
+    {
+      "trade_date": "20260922",
+      "stage_id": "STAGE_0940_0945",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "ExHQ probe/coverage incomplete",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "98206e6d277fdfee8837ee2974233021e4c1690668eeeec2fc144f4bb4efa644"
+    },
+    {
+      "trade_date": "20260922",
+      "stage_id": "STAGE_0945_1030",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "ExHQ probe/coverage incomplete",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "661d3e389bdd2c5e1b698660c25ef11d1fb74a3a0db8c8063104a7f75e1ec611"
+    },
+    {
+      "trade_date": "20260922",
+      "stage_id": "STAGE_1300_1315",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe; execution cutoff unsafe",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "cdf43d1cf105c31944aee2895af66eeea70f52ce8d6e44de49faf4f9ded821f9"
+    },
+    {
+      "trade_date": "20260922",
+      "stage_id": "STAGE_1445_1500",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe; execution cutoff unsafe",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "2589a07d139a607ed51b78a9bc6a02d05d003cfb0ba05e4070e601cb5befe4b7"
+    },
+    {
+      "trade_date": "20260922",
+      "stage_id": "STAGE_1545_1555",
+      "hk_rows": 10,
+      "status": "READY",
+      "limiting_reason": "—",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "0afd1875a67592125113c5c28d85d19aac3cf452961fe5b3244b8de4fb99a95d"
+    },
+    {
+      "trade_date": "20260923",
+      "stage_id": "STAGE_0925",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "incomplete coverage ratio=0.1; missing=80",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "cb7e3c298ac1d29a2d4b3a8a28d6267775b8ad918f0d74312898ee5fe393c173"
+    },
+    {
+      "trade_date": "20260923",
+      "stage_id": "STAGE_0930_0935",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe; PyTDX full-market coverage incomplete; ExHQ probe/coverage incomplete",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "1a9744d409c5db188fa4b5f62a0f8fae121294ea2337a75403dc7d759080cf43"
+    },
+    {
+      "trade_date": "20260923",
+      "stage_id": "STAGE_0935_0940",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe; execution cutoff unsafe; PyTDX full-market coverage incomplete; ExHQ probe/coverage incomplete",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "db42e8d84ca7dba0b331ca85291f376c36ef8d86fc4fb7107e0149788cd39704"
+    },
+    {
+      "trade_date": "20260923",
+      "stage_id": "STAGE_0940_0945",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe; execution cutoff unsafe; PyTDX full-market coverage incomplete; ExHQ probe/coverage incomplete",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "141612c07360831e152b018bc364350cfb93fcdd70cdaae3a8e0ee0d5673225a"
+    },
+    {
+      "trade_date": "20260923",
+      "stage_id": "STAGE_0945_1030",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe; execution cutoff unsafe; PyTDX full-market coverage incomplete; ExHQ probe/coverage incomplete",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "4143df950108c2968afcf56c4a477bc2177e0487efceee4fa4d3632f20756e0b"
+    },
+    {
+      "trade_date": "20260923",
+      "stage_id": "STAGE_1300_1315",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe; execution cutoff unsafe; PyTDX full-market coverage incomplete; ExHQ probe/coverage incomplete",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "604cdf2d226b51db73e31e00d9183b29577d3b1b3147ac80640df528aa4a401d"
+    },
+    {
+      "trade_date": "20260923",
+      "stage_id": "STAGE_1445_1500",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe; execution cutoff unsafe; PyTDX full-market coverage incomplete; ExHQ probe/coverage incomplete",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "b490f5e193e2c1ffeffa4f024a55e46593e617e4f2eda0480596e69dc1065fb7"
+    },
+    {
+      "trade_date": "20260923",
+      "stage_id": "STAGE_1545_1555",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "active snapshot unavailable",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "f6294f07a2aa7609bf241e0f780995ee014c0d27f4a7a3527023e377d21da380"
+    },
+    {
+      "trade_date": "20260924",
+      "stage_id": "STAGE_0925",
+      "hk_rows": 10,
+      "status": "READY",
+      "limiting_reason": "—",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "d0aad9cbfd3db1a37193009bbc99e8b1e01b4be179ebda321d36e2b967cc726b"
+    },
+    {
+      "trade_date": "20260924",
+      "stage_id": "STAGE_0930_0935",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe; execution cutoff unsafe; ExHQ probe/coverage incomplete",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "130bf6ca3e7171e3f345dc6a6b9de94632d5c5856a615b348dfaaeba5dad483d"
+    },
+    {
+      "trade_date": "20260924",
+      "stage_id": "STAGE_0935_0940",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe; execution cutoff unsafe; ExHQ probe/coverage incomplete",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "2ad4b1b59025cd5a957238787dcd0e21f6f3f87431517a466c1f6e3e01b34d01"
+    },
+    {
+      "trade_date": "20260924",
+      "stage_id": "STAGE_0940_0945",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "ExHQ probe/coverage incomplete",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "cbbb529a6c0685413c945528ec778fbfdccc5e8c2f76a2335596df9944a5cc92"
+    },
+    {
+      "trade_date": "20260924",
+      "stage_id": "STAGE_0945_1030",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe; execution cutoff unsafe",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "1f66a6c257c6f9761396ef1778bfcccb90713335544b093ad83a7242b6595fc2"
+    },
+    {
+      "trade_date": "20260924",
+      "stage_id": "STAGE_1300_1315",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "incomplete coverage ratio=0.1; missing=87",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "1c719306146aab9cfc7b1c62a1ba62f88338d196b8fbc41166a5d7805acb0731"
+    },
+    {
+      "trade_date": "20260924",
+      "stage_id": "STAGE_1445_1500",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "ExHQ probe/coverage incomplete",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "7e02a2aab3903e1186e04b060062fb2bf12b773522cc2ad9f55ba95cce6b0ce6"
+    },
+    {
+      "trade_date": "20260924",
+      "stage_id": "STAGE_1545_1555",
+      "hk_rows": 10,
+      "status": "READY",
+      "limiting_reason": "—",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "9ca745a1f24e9407883be8c73a259d3774ba03b5651c5b30db925486c8df1b00"
+    },
+    {
+      "trade_date": "20260928",
+      "stage_id": "STAGE_0925",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "incomplete coverage ratio=0.1; missing=80",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "c0543be024c26f3bf6f818e8827356adb77cadedee5cf53db986a900896268fc"
+    },
+    {
+      "trade_date": "20260928",
+      "stage_id": "STAGE_0930_0935",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "940234713db706bf6d79fc764622090ffd9e58812152ef441b44393ed66d79f3"
+    },
+    {
+      "trade_date": "20260928",
+      "stage_id": "STAGE_0935_0940",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "d43cd07d293f86892279aeed934ac90f45c775ac152d9836d7139a53ac146d2f"
+    },
+    {
+      "trade_date": "20260928",
+      "stage_id": "STAGE_0940_0945",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "29dbf97a27e910d27e9d09c12ffed02d7ee37921a07802880e9936709527a29c"
+    },
+    {
+      "trade_date": "20260928",
+      "stage_id": "STAGE_0945_1030",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "5f450c3de27cd65fd40d0ae14c630fc9cb8a71f5fd423e64d0ec1af7267fb68a"
+    },
+    {
+      "trade_date": "20260928",
+      "stage_id": "STAGE_1300_1315",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "b32a26f69e6d82ccb1669713c93293376c4285cb10ca0fc38923017a2e952dc6"
+    },
+    {
+      "trade_date": "20260928",
+      "stage_id": "STAGE_1445_1500",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "5de427bda3f69e4f9e46ebc3dfe3676d40af6765ec8d1d9298ba372243439336"
+    },
+    {
+      "trade_date": "20260928",
+      "stage_id": "STAGE_1545_1555",
+      "hk_rows": 9,
+      "status": "READY",
+      "limiting_reason": "—",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "bb8b4df90dd0775b9df2661afd15c42b415170666214d0542b54869ce17af818"
+    },
+    {
+      "trade_date": "20260929",
+      "stage_id": "STAGE_0925",
+      "hk_rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "limiting_reason": "incomplete coverage ratio=0.1; missing=80",
+      "selection_latest_match": "INDEX_MATCH",
+      "receipt_sha256": "bf0522a9d6b36c05b0367f22b99554db6decd6f07b42fdbd696d55481b9ca9e0"
+    },
+    {
+      "trade_date": "20260929",
+      "stage_id": "STAGE_0930_0935",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "9b7f995df07eab960ed70aa0a1bbd25f1102ab9220897dd339a2e4dd444def54"
+    },
+    {
+      "trade_date": "20260929",
+      "stage_id": "STAGE_0935_0940",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "7b7726d00a5b8ded522e86cb32f9b6b901b3e0d148d6c75705111b732cb472d8"
+    },
+    {
+      "trade_date": "20260929",
+      "stage_id": "STAGE_0940_0945",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "4aa1ce44c1b0fb24e53849652051d71b8d1f1a04caa99d0797409a856c24d065"
+    },
+    {
+      "trade_date": "20260929",
+      "stage_id": "STAGE_0945_1030",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "9058903aaa200da8baa8a0b4f97019d4189826cd1a7b7bc7a44393dfdd0db937"
+    },
+    {
+      "trade_date": "20260929",
+      "stage_id": "STAGE_1300_1315",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "9b4d8663160219ff4e7dd0bff90df0cd5b99cb8c22fece73324bc4ffc33d8f4d"
+    },
+    {
+      "trade_date": "20260929",
+      "stage_id": "STAGE_1445_1500",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "active-snapshot temporal cutoff unsafe",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "83fac88a38ad3f060c2e562fc397469ca915470909b907f7e2bb30b09ccd6d54"
+    },
+    {
+      "trade_date": "20260929",
+      "stage_id": "STAGE_1545_1555",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "active snapshot unavailable",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "ef7de89024b332bc2486e12e09eb4f37fb44619e8b16d324aee98b3d8186c5c5"
+    },
+    {
+      "trade_date": "20260930",
+      "stage_id": "STAGE_0925",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "D-1 pool not STRICT_0_2_READY",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "b920987cdecc63d0f7857c50404b3807c8f5212f418be304f75a11a06500a87f"
+    },
+    {
+      "trade_date": "20260930",
+      "stage_id": "STAGE_0930_0935",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "D-1 pool not STRICT_0_2_READY",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "08320ece4b0c0916b889a0b82097d3680293ef8faf99cb8723f12c597b26ed32"
+    },
+    {
+      "trade_date": "20260930",
+      "stage_id": "STAGE_0935_0940",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "D-1 pool not STRICT_0_2_READY",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "fa1b9e90b50e1abdae524dc4032c5670d1d43506695c48db9156e6ed3a7c2868"
+    },
+    {
+      "trade_date": "20260930",
+      "stage_id": "STAGE_0940_0945",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "D-1 pool not STRICT_0_2_READY",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "37a63b593d94913661404546d35386b3fc605cb8d7e57ed00d7fef0e5a21ef21"
+    },
+    {
+      "trade_date": "20260930",
+      "stage_id": "STAGE_0945_1030",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "D-1 pool not STRICT_0_2_READY",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "582fbbd80148af41fd0940639a1472a22927b6eeb41a49cbd4722c869b4a8351"
+    },
+    {
+      "trade_date": "20260930",
+      "stage_id": "STAGE_1300_1315",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "D-1 pool not STRICT_0_2_READY",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "7603c0171cf9b4d414aafb54e432ace359af9f1313f651df0c5430a16ccc0a14"
+    },
+    {
+      "trade_date": "20260930",
+      "stage_id": "STAGE_1445_1500",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "D-1 pool not STRICT_0_2_READY",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "65af88ab7280898cdc8c53784b2dde3d2439bc535bd8e6505006a02a84238c91"
+    },
+    {
+      "trade_date": "20260930",
+      "stage_id": "STAGE_1545_1555",
+      "hk_rows": 0,
+      "status": "CANNOT_CONFIRM",
+      "limiting_reason": "D-1 pool not STRICT_0_2_READY",
+      "selection_latest_match": "NO_INDEX",
+      "receipt_sha256": "5db1cce82d7b5690911446db9f131b55e882ae6a971a5c99b6934a2a4b8db536"
+    }
+  ]
+}

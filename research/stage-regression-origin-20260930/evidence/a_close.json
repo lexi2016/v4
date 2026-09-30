@@ -1,0 +1,96 @@
+{
+  "schema": "evidence.regression_origin.sanitized_a_close.v1",
+  "scope": "A_SHARE STAGE_1445_1500 read-only trace",
+  "audit_status": "AUDIT_FINAL",
+  "audit_source_identity": {
+    "report_sha256": "e4535f600fbb319e59dc8ea482a73112103961a56a5affe841ba498125274cf9",
+    "receipt_sha256": "0b369a567e4d33ccc16c7507e243c57c2957191f500bf5356da3f5f7a79e5e69",
+    "source_export_plan_sha256": "2984b5a0778865569adecf648a070f9533c85f4a4aac29a45128bfb0a8e3f419"
+  },
+  "result": {
+    "trade_date": "20260930",
+    "stage_id": "STAGE_1445_1500",
+    "formal_receipt_status": "CANNOT_CONFIRM",
+    "attempts": 3,
+    "retry_exhausted": true,
+    "a_raw_status": "PARTIAL_WITH_ROWS",
+    "a_raw_rows": 202,
+    "a_requested_rows": 205,
+    "a_raw_artifact_sha256": "cddd12a4ecda3575060ec4920d7d3498d6539a8a8177c65312b93f195ce7d773",
+    "a_selection_artifact": "NOT_SAVED",
+    "selection_latest_entry": "NO_A_OR_HK_ENTRY",
+    "api_readback": {
+      "http_status": 200,
+      "status": "CANNOT_CONFIRM",
+      "a_rows": 0,
+      "hk_rows": 0,
+      "combined_rows": 0,
+      "run_id": null
+    },
+    "ui_readback": "CANNOT_CONFIRM"
+  },
+  "failure_attribution": {
+    "summary_first_failed_layer": "EXACT_SELECTION_INPUT_BINDING",
+    "cross_market_summary_label": true,
+    "a_specific_error": "RESEARCH_SOURCE_WITNESS_INVALID:SOURCE_ARCHIVE_PROJECTION_SHA_MISMATCH",
+    "observed_path": "15:00 archive generated at 15:00:02 after cutoff; selector used the 14:00 archive; projection SHA check rejected A input",
+    "stored_payload_sha256": "811b7803b540ec22c8e3f061804229e59fa51179f20a55a56ccc12d946af4af0",
+    "receipt_source_input_sha256": "4076de79920c43cfa57336c23262a491cd77730f29b4e1a530bc5ed9836ef571",
+    "exact_differing_field": "CANNOT_CONFIRM",
+    "source_owner": "CANNOT_CONFIRM",
+    "helper_introduction_version": "CANNOT_CONFIRM"
+  },
+  "timeline": {
+    "20260924_last_saved_a_selection": {
+      "rows": 10,
+      "run_id": "run-872dda759ff05e113e6358b8",
+      "artifact_sha256": "bdd7b568f9f61b33ba5cc6405cd2f8467c1a1d4e46ff6c4c73dcdf8d3cecb92a",
+      "overall_receipt": "PARTIAL_COMMIT_RETRY_REQUIRED",
+      "overall_limitation": "HK_ZERO_ROW_PROVIDER_FAILURE"
+    },
+    "20260928": {
+      "a_hk_collector_rows": 0
+    },
+    "20260929": {
+      "a_raw_rows": 131,
+      "requested_rows": 134,
+      "same_projection_mismatch": true
+    },
+    "20260930": {
+      "a_raw_rows": 202,
+      "requested_rows": 205,
+      "same_projection_mismatch": true
+    }
+  },
+  "source_runtime_identity": {
+    "candidate_config_sha256": "c7bc01d219577b699a2b22a9836dc9918da988440c1bb6e3d16a558cf3a44166",
+    "app_local_release_manifest_sha256": "4f96be93d8e1ee5a1b1a009a0b033ff95863f4063bdb4064289d31b42a2b8f19",
+    "app_local_manifest_state": "NOT_ACTIVATED metadata is not process-binding proof",
+    "root_manifest_sha256": "04c9dd5c31d7af540913794c59cc4ebbc33f01162b76bd45c24dce4b609254ba",
+    "root_manifest_sha256_source": "shared A0925/HK evidence; A-close trace only read the prefix",
+    "actual_loaded_module_bytes": "CANNOT_CONFIRM",
+    "historical_source_config_run_binding": "CANNOT_CONFIRM",
+    "configured_v4_research_data_root_owner": "CANNOT_CONFIRM"
+  },
+  "bounded_followup": {
+    "preserve": "a_auction.py and TDX replay provider repairs; five other valid A stages; saved A raw artifact",
+    "avoid": "generalized rollback or broad shared context/selector changes before exact mismatch field, owner and helper version are identified",
+    "shared_context_selector_stages": 6
+  },
+  "evidence_layers": {
+    "raw_collected_saved": "YES_PARTIAL",
+    "a_selection_saved": "NO",
+    "api_readback": "YES",
+    "ui_readback": "CANNOT_CONFIRM",
+    "loaded_source_sha": "CANNOT_CONFIRM"
+  },
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "product_tests_run": false,
+    "collection_or_replay_run": false,
+    "service_changed": false
+  }
+}

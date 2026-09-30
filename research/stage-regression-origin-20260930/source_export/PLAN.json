@@ -1,0 +1,756 @@
+{
+  "schema": "evidence.regression_origin.source_export_plan.v2",
+  "status": "COMPLETE_REFERENCE_EXPORT_WITH_FIVE_LOCAL_UNCOVERED_DEPENDENCIES",
+  "source_versions": [
+    {
+      "relative_source_path": "domains/research.py",
+      "source_sha256": "2ad669ea58f08338605885547ec065921ec63cc0047460bb2acd153151fb214b",
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "deterministic research archive projection"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/canonical/domains/research.py",
+      "remote_bytes": 17502,
+      "remote_git_blob_sha1": "8e3de7d3e38e6739dd2624bb0b950959fb9789a0",
+      "matching_remote_paths": [
+        "source/canonical/domains/research.py",
+        "source/releases/stage_hk_deadline/domains/research.py",
+        "source/releases/stage_scheduler/domains/research.py"
+      ]
+    },
+    {
+      "relative_source_path": "domains/research_hourly.py",
+      "source_sha256": "f40f5b997fa088e021fa07d32a3d5875c9c71c8a65fa13daddceabb4567ca747",
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "hourly research archive helpers"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/releases/stage_scheduler/domains/research_hourly.py",
+      "remote_bytes": 42406,
+      "remote_git_blob_sha1": "51ec55ad9a08d7d0b5968ed213be9658b4c40e27",
+      "matching_remote_paths": [
+        "source/releases/stage_hk_deadline/domains/research_hourly.py",
+        "source/releases/stage_scheduler/domains/research_hourly.py"
+      ]
+    },
+    {
+      "relative_source_path": "infrastructure/data_store.py",
+      "source_sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "stored data hash helpers"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/canonical/infrastructure/data_store.py",
+      "remote_bytes": 10704,
+      "remote_git_blob_sha1": "c1cc44f6d6e70a363cf5722b145a805ff73e1e4d",
+      "matching_remote_paths": [
+        "source/canonical/infrastructure/data_store.py",
+        "source/releases/manager_api/infrastructure/data_store.py",
+        "source/releases/stage_hk_deadline/infrastructure/data_store.py",
+        "source/releases/stage_scheduler/infrastructure/data_store.py"
+      ]
+    },
+    {
+      "relative_source_path": "infrastructure/owned_io.py",
+      "source_sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "safe file reads and owned roots"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/canonical/infrastructure/owned_io.py",
+      "remote_bytes": 9354,
+      "remote_git_blob_sha1": "1b6666551980c44ebb0b05f133c189909d79c7df",
+      "matching_remote_paths": [
+        "source/canonical/infrastructure/owned_io.py",
+        "source/releases/manager_api/infrastructure/owned_io.py",
+        "source/releases/stage_hk_deadline/infrastructure/owned_io.py",
+        "source/releases/stage_scheduler/infrastructure/owned_io.py"
+      ]
+    },
+    {
+      "relative_source_path": "infrastructure/preselection_pool_ports.py",
+      "source_version": "isolated candidate app disk snapshot 2026-09-30",
+      "source_sha256": "52722e834001df0d7f891946034c7fee6f677976fd20f48f49995c8a7499ebd0",
+      "export_path": "source_export/files/infrastructure/preselection_pool_ports.py",
+      "export_bytes": 728,
+      "export_sha256": "52722e834001df0d7f891946034c7fee6f677976fd20f48f49995c8a7499ebd0",
+      "byte_identical": true,
+      "scopes": [
+        "HK_CONNECT"
+      ],
+      "redactions": [],
+      "export_status": "COPIED_BYTE_IDENTICAL"
+    },
+    {
+      "relative_source_path": "infrastructure/preselection_pool_readers.py",
+      "source_version": "isolated candidate app disk snapshot 2026-09-30",
+      "source_sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+      "export_path": "source_export/files/infrastructure/preselection_pool_readers.py",
+      "export_bytes": 5432,
+      "export_sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+      "byte_identical": true,
+      "scopes": [
+        "HK_CONNECT"
+      ],
+      "redactions": [],
+      "export_status": "COPIED_BYTE_IDENTICAL"
+    },
+    {
+      "relative_source_path": "infrastructure/preselection_pool_sources.py",
+      "source_version": "isolated candidate app disk snapshot 2026-09-30",
+      "source_sha256": "cc683561201453e3f7ca975b2b7cdb6a3836b1ecbe63e001a5abd181f38813d6",
+      "export_path": "source_export/files/infrastructure/preselection_pool_sources.py",
+      "export_bytes": 5798,
+      "export_sha256": "cc683561201453e3f7ca975b2b7cdb6a3836b1ecbe63e001a5abd181f38813d6",
+      "byte_identical": true,
+      "scopes": [
+        "HK_CONNECT"
+      ],
+      "redactions": [],
+      "export_status": "COPIED_BYTE_IDENTICAL"
+    },
+    {
+      "relative_source_path": "infrastructure/preselection_pool_store.py",
+      "source_sha256": "a640d28ec54119ae383f5dd838fe467d6ae8b5b0d87fa2c4afbb0646fbfe658a",
+      "scopes": [
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "Canonical pool artifact/manifest/receipt validation"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/canonical/infrastructure/preselection_pool_store.py",
+      "remote_bytes": 32457,
+      "remote_git_blob_sha1": "f67eb0df532b002b2b4ac832713c2432c920b213",
+      "matching_remote_paths": [
+        "source/canonical/infrastructure/preselection_pool_store.py",
+        "source/releases/stage_hk_deadline/infrastructure/preselection_pool_store.py",
+        "source/releases/stage_scheduler/infrastructure/preselection_pool_store.py"
+      ]
+    },
+    {
+      "relative_source_path": "infrastructure/preselection_pool_transactions.py",
+      "source_version": "isolated candidate app disk snapshot 2026-09-30",
+      "source_sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+      "export_path": "source_export/files/infrastructure/preselection_pool_transactions.py",
+      "export_bytes": 15569,
+      "export_sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+      "byte_identical": true,
+      "scopes": [
+        "HK_CONNECT"
+      ],
+      "redactions": [],
+      "export_status": "COPIED_BYTE_IDENTICAL"
+    },
+    {
+      "relative_source_path": "infrastructure/research_store.py",
+      "source_sha256": "471ad4ceb0c34f080da674d147df5bb96045c5e7998ab41ba2845297ab63ab6f",
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "hourly research store reads"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/releases/stage_scheduler/infrastructure/research_store.py",
+      "remote_bytes": 172644,
+      "remote_git_blob_sha1": "0bd3452c583b79ff5d949a4747da6cb0b9f48782",
+      "matching_remote_paths": [
+        "source/releases/manager_api/infrastructure/research_store.py",
+        "source/releases/stage_hk_deadline/infrastructure/research_store.py",
+        "source/releases/stage_scheduler/infrastructure/research_store.py"
+      ]
+    },
+    {
+      "relative_source_path": "infrastructure/shared_morning_news_reader.py",
+      "source_sha256": "6f99c9052c93484c6ce6e70b6c2978be53b23f57c0f4e2cd68140982929c1938",
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "direct research-context import dependency"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/canonical/infrastructure/shared_morning_news_reader.py",
+      "remote_bytes": 7976,
+      "remote_git_blob_sha1": "6b0a04e2e2c996e9e5e1291f03355d4bdab6448c",
+      "matching_remote_paths": [
+        "source/canonical/infrastructure/shared_morning_news_reader.py",
+        "source/releases/manager_api/infrastructure/shared_morning_news_reader.py",
+        "source/releases/manager_scheduler_1555/infrastructure/shared_morning_news_reader.py",
+        "source/releases/stage_hk_deadline/infrastructure/shared_morning_news_reader.py",
+        "source/releases/stage_scheduler/infrastructure/shared_morning_news_reader.py"
+      ]
+    },
+    {
+      "relative_source_path": "infrastructure/tdx_minute_replay_provider.py",
+      "source_sha256": "02d7505614b66768f6c3f6b86e4e606f0df9f4fabb6aaad5ea8f8a0fa3738260",
+      "scopes": [
+        "A_SHARE/STAGE_0925",
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "preserve unrelated provider repair"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/releases/stage_scheduler/infrastructure/tdx_minute_replay_provider.py",
+      "remote_bytes": 21256,
+      "remote_git_blob_sha1": "0f56417034470318e620b1a22c27e0ce92dcff6b",
+      "matching_remote_paths": [
+        "source/releases/stage_scheduler/infrastructure/tdx_minute_replay_provider.py"
+      ]
+    },
+    {
+      "relative_source_path": "ops/_run_stage_center_nodes_parts/node_entry.py",
+      "source_sha256": "54defb0f45adbafcf4b661611f41d0b43d89abf492d89d587c28962eff9b36fe",
+      "scopes": [
+        "A_SHARE/STAGE_0925",
+        "A_SHARE/STAGE_1445_1500",
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "node and retry orchestration",
+        "Scheduler node entry/binding"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/canonical/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "remote_bytes": 30940,
+      "remote_git_blob_sha1": "6daf7bee2118d71e15a4d2da0c3dca288863ad5c",
+      "matching_remote_paths": [
+        "source/canonical/ops/_run_stage_center_nodes_parts/node_entry.py",
+        "source/releases/stage_hk_deadline/ops/_run_stage_center_nodes_parts/node_entry.py",
+        "source/releases/stage_scheduler/ops/_run_stage_center_nodes_parts/node_entry.py"
+      ]
+    },
+    {
+      "relative_source_path": "ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+      "source_sha256": "2e40c84a30d9cabf047fefb5caec14f8b569d24e54a7f50c16211f0c0fda53ec",
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "CLI runtime args"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/canonical/ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+      "remote_bytes": 2361,
+      "remote_git_blob_sha1": "fe88b068c4ed1893b2649bfeaae88abb24a122f6",
+      "matching_remote_paths": [
+        "source/canonical/ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+        "source/releases/stage_hk_deadline/ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+        "source/releases/stage_scheduler/ops/_run_stage_center_nodes_parts/runtime_arguments.py"
+      ]
+    },
+    {
+      "relative_source_path": "ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+      "source_sha256": "dcb4784d1374fbe8f9076646b6befba4b48331826a7f07a82c25e497820689d4",
+      "scopes": [
+        "A_SHARE/STAGE_0925",
+        "A_SHARE/STAGE_1445_1500",
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "scheduled node dispatch",
+        "Stage slot routing; do not replace wholesale"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/releases/stage_scheduler/ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+      "remote_bytes": 15083,
+      "remote_git_blob_sha1": "7b56cba5ce79d850b723d55ee2e0f5e6f024d39a",
+      "matching_remote_paths": [
+        "source/releases/stage_scheduler/ops/_run_stage_center_nodes_parts/stage_dispatch.py"
+      ]
+    },
+    {
+      "relative_source_path": "ops/run_stage_center_nodes.py",
+      "source_sha256": "8e9ca56aca8a21950590abe83ef305e46a022490eb61f48e0c5d19c2493e1772",
+      "scopes": [
+        "A_SHARE/STAGE_0925",
+        "A_SHARE/STAGE_1445_1500",
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "stage runner CLI and config loading",
+        "Runner entrypoint referenced by scheduler"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/canonical/ops/run_stage_center_nodes.py",
+      "remote_bytes": 13421,
+      "remote_git_blob_sha1": "2887e34e0162d2aa67544ba09759dbb75cee02a2",
+      "matching_remote_paths": [
+        "source/canonical/ops/run_stage_center_nodes.py",
+        "source/releases/stage_hk_deadline/ops/run_stage_center_nodes.py",
+        "source/releases/stage_scheduler/ops/run_stage_center_nodes.py"
+      ]
+    },
+    {
+      "relative_source_path": "stage_center/_live_collectors_parts/a_auction.py",
+      "source_sha256": "728fa6e64914942e651e62442caa83becbc6aef4705ebea59e17a544b36ea00d",
+      "scopes": [
+        "A_SHARE/STAGE_0925",
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "preserve unrelated collector repair"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/releases/stage_scheduler/stage_center/_live_collectors_parts/a_auction.py",
+      "remote_bytes": 14971,
+      "remote_git_blob_sha1": "5ead3f1217744b854ec67cd0a614958504d0bfd3",
+      "matching_remote_paths": [
+        "source/releases/stage_scheduler/stage_center/_live_collectors_parts/a_auction.py"
+      ]
+    },
+    {
+      "relative_source_path": "stage_center/_live_collectors_parts/a_minute.py",
+      "source_sha256": "5d56f92766b9b802c4b403d8f5af25cc82a9ef6b3f82675d1406fb4752c4362e",
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "A PyTDX HQ adapter"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/canonical/stage_center/_live_collectors_parts/a_minute.py",
+      "remote_bytes": 2110,
+      "remote_git_blob_sha1": "3d30471b125766cfc391bd538e9a092e3064d113",
+      "matching_remote_paths": [
+        "source/canonical/stage_center/_live_collectors_parts/a_minute.py",
+        "source/releases/stage_scheduler/stage_center/_live_collectors_parts/a_minute.py"
+      ]
+    },
+    {
+      "relative_source_path": "stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "source_sha256": "5b315c482723f4bbfb187e36241ea422f2a59518a2056be037d1fdbe2f00eb22",
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "research-context load and selection builder"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/canonical/stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "remote_bytes": 21870,
+      "remote_git_blob_sha1": "ea28586244319a62396bcbb2357d5e74b65fcf16",
+      "matching_remote_paths": [
+        "source/canonical/stage_center/_live_collectors_parts/selection_builder_registry.py",
+        "source/releases/stage_scheduler/stage_center/_live_collectors_parts/selection_builder_registry.py"
+      ]
+    },
+    {
+      "relative_source_path": "stage_center/_runner_parts/hk_input_validation.py",
+      "source_sha256": "f703a8aa5e79742785b07d29778f42f53035e56b15f695aebc92d56c680531cd",
+      "scopes": [
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "D-1 exact-date/status/signal-date/100-unique validation"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/canonical/stage_center/_runner_parts/hk_input_validation.py",
+      "remote_bytes": 20620,
+      "remote_git_blob_sha1": "80a05785a9be6176138af654ecc06999330615ed",
+      "matching_remote_paths": [
+        "source/canonical/stage_center/_runner_parts/hk_input_validation.py",
+        "source/releases/stage_scheduler/stage_center/_runner_parts/hk_input_validation.py"
+      ]
+    },
+    {
+      "relative_source_path": "stage_center/_runner_parts/selection_input_validation.py",
+      "source_sha256": "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c",
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "exact selector input validation"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/canonical/stage_center/_runner_parts/selection_input_validation.py",
+      "remote_bytes": 10698,
+      "remote_git_blob_sha1": "4592c30c12dc9962e1c84c5c5eed1f9f53ec2888",
+      "matching_remote_paths": [
+        "source/canonical/stage_center/_runner_parts/selection_input_validation.py",
+        "source/releases/stage_scheduler/stage_center/_runner_parts/selection_input_validation.py"
+      ]
+    },
+    {
+      "relative_source_path": "stage_center/_runner_parts/slot_execution.py",
+      "source_sha256": "d55cfe2978a2e86d7e609f599cfb6d321a0d2636e142fb817e69fedfd0972c20",
+      "scopes": [
+        "A_SHARE/STAGE_0925",
+        "A_SHARE/STAGE_1445_1500",
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "A collection, raw publication, selector call and aggregate error layer",
+        "Stage acquisition/selection execution and cutoff reuse path"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/releases/stage_scheduler/stage_center/_runner_parts/slot_execution.py",
+      "remote_bytes": 44470,
+      "remote_git_blob_sha1": "4c3035d3fd00c6fd46bcc385574b96bac5dd2b50",
+      "matching_remote_paths": [
+        "source/releases/stage_scheduler/stage_center/_runner_parts/slot_execution.py"
+      ]
+    },
+    {
+      "relative_source_path": "stage_center/calendar.py",
+      "source_sha256": "31fed97066d9b804a71f15c48d4e0f8baa5d9af621e1d81dc0340fd6619e4099",
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "stage calendar/cutoff"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/canonical/stage_center/calendar.py",
+      "remote_bytes": 4805,
+      "remote_git_blob_sha1": "5d819f6467328cd94d94563143fc57f461a5b973",
+      "matching_remote_paths": [
+        "source/canonical/stage_center/calendar.py",
+        "source/releases/stage_hk_deadline/stage_center/calendar.py",
+        "source/releases/stage_scheduler/stage_center/calendar.py"
+      ]
+    },
+    {
+      "relative_source_path": "stage_center/candidate_input.py",
+      "source_sha256": "59c6bb0ef13a5aaa576477708385ec4ac68b7d20a69e3fc61d984da4a8284aff",
+      "scopes": [
+        "A_SHARE/STAGE_0925",
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "Candidate binding passed into Stage Center"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/canonical/stage_center/candidate_input.py",
+      "remote_bytes": 17567,
+      "remote_git_blob_sha1": "384a49608330385515463f4d4e9543c5a45d2097",
+      "matching_remote_paths": [
+        "source/canonical/stage_center/candidate_input.py",
+        "source/releases/manager_api/stage_center/candidate_input.py",
+        "source/releases/manager_scheduler_1555/stage_center/candidate_input.py",
+        "source/releases/stage_hk_deadline/stage_center/candidate_input.py",
+        "source/releases/stage_scheduler/stage_center/candidate_input.py"
+      ]
+    },
+    {
+      "relative_source_path": "stage_center/hk_stage8/snapshot.py",
+      "source_sha256": "d1658e72a03a6842c2e6b1b3ae63f6889aa00f28c69ad0a7aa5c7400bf6f5267",
+      "scopes": [
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "Exact-day/cutoff/capture validation that raises the observed blocker"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/canonical/stage_center/hk_stage8/snapshot.py",
+      "remote_bytes": 19508,
+      "remote_git_blob_sha1": "be5dd4ea8dc587e46bbda034e43fca1c1a1671f8",
+      "matching_remote_paths": [
+        "source/canonical/stage_center/hk_stage8/snapshot.py",
+        "source/releases/stage_hk_deadline/stage_center/hk_stage8/snapshot.py",
+        "source/releases/stage_scheduler/stage_center/hk_stage8/snapshot.py"
+      ]
+    },
+    {
+      "relative_source_path": "stage_center/live_collectors.py",
+      "source_sha256": "82a08c2bbe286184e1a224d0a44e576d0f812f1ec2929ded303ab191a1d554bf",
+      "scopes": [
+        "A_SHARE/STAGE_0925",
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "A HQ collector routing"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/canonical/stage_center/live_collectors.py",
+      "remote_bytes": 15004,
+      "remote_git_blob_sha1": "f7ba32406153d1d4220a15851f2b0829502eaa03",
+      "matching_remote_paths": [
+        "source/canonical/stage_center/live_collectors.py",
+        "source/releases/stage_hk_deadline/stage_center/live_collectors.py",
+        "source/releases/stage_scheduler/stage_center/live_collectors.py"
+      ]
+    },
+    {
+      "relative_source_path": "stage_center/raw_store.py",
+      "source_sha256": "15052b23c62d38b65d65b96bf3b837782ebfa6fca7fe83f7c1d9374400bbdbde",
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "raw artifact publication/store"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/canonical/stage_center/raw_store.py",
+      "remote_bytes": 13539,
+      "remote_git_blob_sha1": "19e8b1808c69dbbe286b69e78117250ab44bb73f",
+      "matching_remote_paths": [
+        "source/canonical/stage_center/raw_store.py",
+        "source/releases/stage_hk_deadline/stage_center/raw_store.py",
+        "source/releases/stage_scheduler/stage_center/raw_store.py"
+      ]
+    },
+    {
+      "relative_source_path": "stage_center/research_context.py",
+      "source_sha256": "5e759ad9dd5057433d9beae465f6f46d7cf894b9bdf4d1b8fd44beaaca2eb104",
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "hourly witness and projection validation"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/releases/stage_scheduler/stage_center/research_context.py",
+      "remote_bytes": 37596,
+      "remote_git_blob_sha1": "ae431bee702465faa4fa7659fdaa9b343d01b953",
+      "matching_remote_paths": [
+        "source/releases/stage_scheduler/stage_center/research_context.py"
+      ]
+    },
+    {
+      "relative_source_path": "stage_center/runner.py",
+      "source_sha256": "648fe7af52df1b4eba31802361f9af2d03decbbebb3286ecc7a5dc0b06523205",
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500",
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "runner wrapper and construction",
+        "HK stage binding path"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/canonical/stage_center/runner.py",
+      "remote_bytes": 41717,
+      "remote_git_blob_sha1": "0bcf8d31b78c1c0a3b3558dbdddc01d5d3eaed2a",
+      "matching_remote_paths": [
+        "source/canonical/stage_center/runner.py",
+        "source/releases/stage_hk_deadline/stage_center/runner.py",
+        "source/releases/stage_scheduler/stage_center/runner.py"
+      ]
+    },
+    {
+      "relative_source_path": "stage_center/scheduler.py",
+      "source_sha256": "db110aba2fe504213591330000120b660cff04292728b5325711e2fa6799e7b0",
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "stage slot definition/scheduler"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/releases/stage_scheduler/stage_center/scheduler.py",
+      "remote_bytes": 7099,
+      "remote_git_blob_sha1": "df23d27c497e469fb6144a92fb809cf84c8d5794",
+      "matching_remote_paths": [
+        "source/releases/stage_scheduler/stage_center/scheduler.py"
+      ]
+    },
+    {
+      "relative_source_path": "stage_center/selection.py",
+      "source_sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294",
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500",
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "A selector and selection store",
+        "Stage selection algorithm facade"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/canonical/stage_center/selection.py",
+      "remote_bytes": 31705,
+      "remote_git_blob_sha1": "e5bb693578a32f954355f53fe9b79e1d592e8422",
+      "matching_remote_paths": [
+        "source/canonical/stage_center/selection.py",
+        "source/releases/stage_hk_deadline/stage_center/selection.py",
+        "source/releases/stage_scheduler/stage_center/selection.py"
+      ]
+    },
+    {
+      "relative_source_path": "upstreams/v3_shared_data/scripts/acquire_stage_bundle.py",
+      "source_version": "isolated candidate app disk snapshot 2026-09-30",
+      "source_sha256": "def8901d102c7c39f5ab30aa96e25e7203bdeded67e3486d0760df462c46bb7e",
+      "export_path": "source_export/files/upstreams/v3_shared_data/scripts/acquire_stage_bundle.py",
+      "export_bytes": 22379,
+      "export_sha256": "def8901d102c7c39f5ab30aa96e25e7203bdeded67e3486d0760df462c46bb7e",
+      "byte_identical": true,
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "redactions": [],
+      "export_status": "COPIED_BYTE_IDENTICAL"
+    },
+    {
+      "relative_source_path": "upstreams/v3_shared_data/scripts/live_acquisition/futu_minute.py",
+      "source_sha256": "af4cc0efea026eb3f6fa084389d6ee8351a286d38765e337147ced88fda150da",
+      "scopes": [
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "Futu acquisition dependency; inspect alongside receipt for 09-29 failure"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/canonical/upstreams/v3_shared_data/scripts/live_acquisition/futu_minute.py",
+      "remote_bytes": 4507,
+      "remote_git_blob_sha1": "9518999f52a44d4b1c5c7fe8398413edb22cde9b",
+      "matching_remote_paths": [
+        "source/canonical/upstreams/v3_shared_data/scripts/live_acquisition/futu_minute.py",
+        "source/releases/manager_api/upstreams/v3_shared_data/scripts/live_acquisition/futu_minute.py",
+        "source/releases/manager_scheduler_1555/upstreams/v3_shared_data/scripts/live_acquisition/futu_minute.py",
+        "source/releases/stage_hk_deadline/upstreams/v3_shared_data/scripts/live_acquisition/futu_minute.py",
+        "source/releases/stage_scheduler/upstreams/v3_shared_data/scripts/live_acquisition/futu_minute.py"
+      ]
+    },
+    {
+      "relative_source_path": "upstreams/v3_shared_data/scripts/live_acquisition/pytdx_exhq.py",
+      "source_sha256": "19946fd9c09033a77b460fe5a68f70969623d3b1c26f058091349e702d482fdd",
+      "scopes": [
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "ExHQ snapshot fallback/coverage dependency"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/canonical/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_exhq.py",
+      "remote_bytes": 8534,
+      "remote_git_blob_sha1": "62ca1b26929b77f17b433d5faccef268d8017ca8",
+      "matching_remote_paths": [
+        "source/canonical/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_exhq.py",
+        "source/releases/manager_api/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_exhq.py",
+        "source/releases/manager_scheduler_1555/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_exhq.py",
+        "source/releases/stage_hk_deadline/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_exhq.py",
+        "source/releases/stage_scheduler/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_exhq.py"
+      ]
+    },
+    {
+      "relative_source_path": "upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py",
+      "source_sha256": "7b5f062e6c1231fa5edc7db0de5406066220e69cfe3605bf5b13fd3e0b8ad18f",
+      "scopes": [
+        "A_SHARE/STAGE_1445_1500"
+      ],
+      "roles": [
+        "PyTDX HQ source collector"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/canonical/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py",
+      "remote_bytes": 19952,
+      "remote_git_blob_sha1": "9b63eeacbe3fe02a2a117f45a11b5ff541becb67",
+      "matching_remote_paths": [
+        "source/canonical/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py",
+        "source/releases/stage_hk_deadline/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py",
+        "source/releases/stage_scheduler/upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py"
+      ]
+    },
+    {
+      "relative_source_path": "upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "source_sha256": "564104bb0e5f62a66c1409009ea6a57e72b2735aafa961761f5b65b2e412cd2d",
+      "scopes": [
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "D-1 Top100 producer and date/cutoff contract"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/releases/stage_scheduler/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "remote_bytes": 58597,
+      "remote_git_blob_sha1": "ec482b5b7caa423907a85d3fad143e46a2058ca8",
+      "matching_remote_paths": [
+        "source/releases/manager_api/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+        "source/releases/stage_hk_deadline/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+        "source/releases/stage_scheduler/upstreams/v3_shared_data/shared_data/hk_0_2.py"
+      ]
+    },
+    {
+      "relative_source_path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "source_sha256": "ac2c16669236d24d6d03cac183238ca8dccd8fd23895ae14ad34cef40c049008",
+      "scopes": [
+        "HK_CONNECT"
+      ],
+      "roles": [
+        "Security-master validation dependency for invalid 09-30 input"
+      ],
+      "export_status": "REFERENCED_AT_FIXED_PR15_COMMIT",
+      "remote_path": "source/canonical/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "remote_bytes": 14396,
+      "remote_git_blob_sha1": "36262bcd4fb9a8a52be8c6791180ee450c2d63b8",
+      "matching_remote_paths": [
+        "source/canonical/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+        "source/releases/manager_api/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+        "source/releases/stage_hk_deadline/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+        "source/releases/stage_scheduler/upstreams/v3_shared_data/shared_data/hk_security_master.py"
+      ]
+    }
+  ],
+  "fixed_source_handoff": {
+    "repository": "lexi2016/v4",
+    "commit": "bdc95a3f9d6d0313baeff2bf727ea82d122dc820",
+    "remote_inventory": "source_export/REMOTE_SOURCE_INVENTORY.json",
+    "remote_planned_sources": 32,
+    "locally_exported_uncovered_sources": 5,
+    "historical_loaded_runtime_binding": "CANNOT_CONFIRM"
+  },
+  "auxiliary_sources": [
+    {
+      "relative_source_path": "real_canary/run_a0925_canary.py",
+      "source_version": "isolated canary source 2026-09-30",
+      "source_bytes": 14971,
+      "source_sha256": "b56bc5a942b19577f9080d42d76b640a4536f032461cb90defdf3fe07ac7f16e",
+      "export_path": "source_export/auxiliary/run_a0925_canary.py",
+      "export_bytes": 14877,
+      "export_sha256": "286db86c7a7d6eb2933effd6616ac87b64a4cb32472df571a6b6f4e1738df719",
+      "byte_identical": false,
+      "scope": "A_SHARE/STAGE_0925 auxiliary provenance",
+      "redactions": [
+        {
+          "line": 16,
+          "byte_start": 370,
+          "byte_end": 499,
+          "old_byte_length": 129,
+          "old_value_sha256": "a77e0829a9b7704c4ecd89417ff44ccc12bbe6e09e8b09394e54be94b109441d",
+          "replacement": "[REDACTED_LOCAL_CANDIDATE_APP_ROOT]",
+          "operation": "replace the single absolute local candidate-app root string only"
+        }
+      ],
+      "reference_only_not_executable": true
+    }
+  ],
+  "audit_source_identity": {
+    "a0925": {
+      "report_sha256": "e80a6abea62c8ba16fcba707b6770a41431de4206b718e47bbe7c2b547f6969f",
+      "receipt_sha256": "441e1cabd3884d1c6b3c774f419dbbc9a9b538787f0aa610c227bad1c24f6bd7",
+      "source_export_plan_sha256": "ba374f49c2c37dc256eb0697faa7cbc101ff2880127fbb669210e86f06c7cae6"
+    },
+    "a_close": {
+      "report_sha256": "e4535f600fbb319e59dc8ea482a73112103961a56a5affe841ba498125274cf9",
+      "receipt_sha256": "0b369a567e4d33ccc16c7507e243c57c2957191f500bf5356da3f5f7a79e5e69",
+      "source_export_plan_sha256": "2984b5a0778865569adecf648a070f9533c85f4a4aac29a45128bfb0a8e3f419"
+    },
+    "hk": {
+      "report_sha256": "9235e5301ca286df57ec0cda5369663658ea2e58e4dcae4a4ffcfff637ae9ed4",
+      "receipt_sha256": "43dd07833468a58f798538c95fecd7380bed80692360ef5b854feb105757fdda",
+      "source_export_plan_sha256": "b31b5f0c463c7b8142ff221a7c78c5dc797ff1b8849df803848e52d0ff87034a"
+    }
+  },
+  "privacy_contract": {
+    "credentials_tokens_full_environment_raw_plist_and_quote_payloads": "NOT_INCLUDED",
+    "local_absolute_paths": "not included; one canary literal redacted with exact byte-span metadata",
+    "reference_only": true,
+    "not_installable": true
+  },
+  "patch_refs": "Three repair/comparison diffs are referenced at fixed PR15 commit in REMOTE_SOURCE_INVENTORY.json; patch bytes are not duplicated.",
+  "no_product_tests_or_replay": true
+}

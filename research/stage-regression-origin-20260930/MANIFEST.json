@@ -1,0 +1,191 @@
+{
+  "schema": "evidence.regression_origin.package_manifest.v2",
+  "package_status": "PACKAGED_AWAITING_INDEPENDENT_REVIEW",
+  "reference_only": true,
+  "not_installable": true,
+  "scope": "Sanitized evidence and fixed source refs for three regressions plus exact ordered 205-code identity; no product-code change.",
+  "audits": {
+    "a0925": {
+      "report_sha256": "e80a6abea62c8ba16fcba707b6770a41431de4206b718e47bbe7c2b547f6969f",
+      "receipt_sha256": "441e1cabd3884d1c6b3c774f419dbbc9a9b538787f0aa610c227bad1c24f6bd7",
+      "source_export_plan_sha256": "ba374f49c2c37dc256eb0697faa7cbc101ff2880127fbb669210e86f06c7cae6"
+    },
+    "a_close": {
+      "report_sha256": "e4535f600fbb319e59dc8ea482a73112103961a56a5affe841ba498125274cf9",
+      "receipt_sha256": "0b369a567e4d33ccc16c7507e243c57c2957191f500bf5356da3f5f7a79e5e69",
+      "source_export_plan_sha256": "2984b5a0778865569adecf648a070f9533c85f4a4aac29a45128bfb0a8e3f419"
+    },
+    "hk": {
+      "report_sha256": "9235e5301ca286df57ec0cda5369663658ea2e58e4dcae4a4ffcfff637ae9ed4",
+      "receipt_sha256": "43dd07833468a58f798538c95fecd7380bed80692360ef5b854feb105757fdda",
+      "source_export_plan_sha256": "b31b5f0c463c7b8142ff221a7c78c5dc797ff1b8849df803848e52d0ff87034a"
+    }
+  },
+  "input_identity": {
+    "path": "input/a0925_candidate_codes_original_order.json",
+    "bytes": 2873,
+    "sha256": "cf16619116f85832c9bf1ba80c60a6166f37afee52f3ed4b379e76b6e708b71c",
+    "item_count": 205,
+    "unique_count": 205
+  },
+  "upstream_fixed_commits": {
+    "pr12": "cb33d2fe2241079f46ae5e09e605f11a2fd5462f",
+    "pr13": "8af24212ecdbdd4105a44ac536f8b469b5ad9660",
+    "pr14_original": "e865206c492dcb7505e72892ebf430d7746488c8",
+    "pr14_independent_receipt_sha256": "a649908305eb37d50aada8e8e814f4ba30018904add0e32c579936a12f0a59b7",
+    "pr14_safety_refusal": "e790c1a577800e3fbde1d6b15cee0b7a0efd91ac",
+    "pr12_pr13_mac_evidence": "a60fbd8c55aa1fad637d8706ceada0db251ffb97",
+    "pr15_complete_source_handoff": "bdc95a3f9d6d0313baeff2bf727ea82d122dc820"
+  },
+  "source_export_counts": {
+    "planned_unique_source_files": 37,
+    "fixed_remote_exact_refs": 32,
+    "local_byte_identical_source_exports": 5,
+    "redacted_auxiliary_canary_sources": 1,
+    "remote_patch_refs": 3
+  },
+  "source_identity_limit": "Candidate disk hashes and fixed commits do not prove historical or actual loaded process module bytes; those remain CANNOT_CONFIRM.",
+  "coordinator_snapshots": {
+    "coordinator/github_snapshot.json": "c8cca395da4cf78d14eb895404089e9feed3e546cae183c910b15af734168111",
+    "coordinator/github_comments.json": "97d2ff959115186ca4249827bcd711c70d570827ff028f56ea11f011471dc593"
+  },
+  "files": [
+    {
+      "path": "CHAT_START_HERE.md",
+      "bytes": 6593,
+      "sha256": "336595926725959dbe3120d7e31b4bb360604ab1e561a14dd859b608ddff0a70",
+      "status": "included"
+    },
+    {
+      "path": "evidence/a0925.json",
+      "bytes": 8052,
+      "sha256": "81f71cc152e8c516f47c2536f319072038ead0172e37bba2e7876de9c0a71bc2",
+      "status": "included"
+    },
+    {
+      "path": "evidence/a_close.json",
+      "bytes": 3967,
+      "sha256": "f8e52bb29975e2d72bc856707cfad37359c25be8b4bcfe549bcf8f98d206a7d9",
+      "status": "included"
+    },
+    {
+      "path": "evidence/hk.json",
+      "bytes": 3476,
+      "sha256": "b8e3fe72c0b90b41f6658e8725606dff53e0de1797cf828252d1b4bbe9195f3f",
+      "status": "included"
+    },
+    {
+      "path": "evidence/hk_stage_receipt_index.json",
+      "bytes": 30693,
+      "sha256": "573eb1741fff062281ec34c9c037108c69e1fdce63dd4c474e5d780e278838a7",
+      "status": "included"
+    },
+    {
+      "path": "input/a0925_candidate_codes_original_order.json",
+      "bytes": 2873,
+      "sha256": "cf16619116f85832c9bf1ba80c60a6166f37afee52f3ed4b379e76b6e708b71c",
+      "status": "included"
+    },
+    {
+      "path": "source_export/PLAN.json",
+      "bytes": 33157,
+      "sha256": "7e087cb8f9d1a74cbb7ee7d22a4a139fec62892355c14bc8786f6098c53a37bf",
+      "status": "included"
+    },
+    {
+      "path": "source_export/REMOTE_SOURCE_INVENTORY.json",
+      "bytes": 40522,
+      "sha256": "d0b3860d242683265adafc5c423df12cccc28950a90441fac3be5fe67c5cab17",
+      "status": "included"
+    },
+    {
+      "path": "source_export/auxiliary/run_a0925_canary.py",
+      "bytes": 14877,
+      "sha256": "286db86c7a7d6eb2933effd6616ac87b64a4cb32472df571a6b6f4e1738df719",
+      "status": "included",
+      "source_version": "isolated canary source 2026-09-30",
+      "source_sha256": "b56bc5a942b19577f9080d42d76b640a4536f032461cb90defdf3fe07ac7f16e",
+      "export_sha256": "286db86c7a7d6eb2933effd6616ac87b64a4cb32472df571a6b6f4e1738df719",
+      "redactions": [
+        {
+          "line": 16,
+          "byte_start": 370,
+          "byte_end": 499,
+          "old_byte_length": 129,
+          "old_value_sha256": "a77e0829a9b7704c4ecd89417ff44ccc12bbe6e09e8b09394e54be94b109441d",
+          "replacement": "[REDACTED_LOCAL_CANDIDATE_APP_ROOT]",
+          "operation": "replace the single absolute local candidate-app root string only"
+        }
+      ]
+    },
+    {
+      "path": "source_export/files/infrastructure/preselection_pool_ports.py",
+      "bytes": 728,
+      "sha256": "52722e834001df0d7f891946034c7fee6f677976fd20f48f49995c8a7499ebd0",
+      "status": "included",
+      "source_version": "isolated candidate app disk snapshot 2026-09-30",
+      "source_sha256": "52722e834001df0d7f891946034c7fee6f677976fd20f48f49995c8a7499ebd0",
+      "export_sha256": "52722e834001df0d7f891946034c7fee6f677976fd20f48f49995c8a7499ebd0",
+      "redactions": []
+    },
+    {
+      "path": "source_export/files/infrastructure/preselection_pool_readers.py",
+      "bytes": 5432,
+      "sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+      "status": "included",
+      "source_version": "isolated candidate app disk snapshot 2026-09-30",
+      "source_sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+      "export_sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+      "redactions": []
+    },
+    {
+      "path": "source_export/files/infrastructure/preselection_pool_sources.py",
+      "bytes": 5798,
+      "sha256": "cc683561201453e3f7ca975b2b7cdb6a3836b1ecbe63e001a5abd181f38813d6",
+      "status": "included",
+      "source_version": "isolated candidate app disk snapshot 2026-09-30",
+      "source_sha256": "cc683561201453e3f7ca975b2b7cdb6a3836b1ecbe63e001a5abd181f38813d6",
+      "export_sha256": "cc683561201453e3f7ca975b2b7cdb6a3836b1ecbe63e001a5abd181f38813d6",
+      "redactions": []
+    },
+    {
+      "path": "source_export/files/infrastructure/preselection_pool_transactions.py",
+      "bytes": 15569,
+      "sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+      "status": "included",
+      "source_version": "isolated candidate app disk snapshot 2026-09-30",
+      "source_sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+      "export_sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+      "redactions": []
+    },
+    {
+      "path": "source_export/files/upstreams/v3_shared_data/scripts/acquire_stage_bundle.py",
+      "bytes": 22379,
+      "sha256": "def8901d102c7c39f5ab30aa96e25e7203bdeded67e3486d0760df462c46bb7e",
+      "status": "included",
+      "source_version": "isolated candidate app disk snapshot 2026-09-30",
+      "source_sha256": "def8901d102c7c39f5ab30aa96e25e7203bdeded67e3486d0760df462c46bb7e",
+      "export_sha256": "def8901d102c7c39f5ab30aa96e25e7203bdeded67e3486d0760df462c46bb7e",
+      "redactions": []
+    }
+  ],
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "privacy": {
+    "private_absolute_paths_in_package": 0,
+    "credential_values_included": false,
+    "raw_plist_or_full_environment_included": false,
+    "raw_quote_payloads_included": false
+  },
+  "sanitized_hk_receipt_index": {
+    "path": "evidence/hk_stage_receipt_index.json",
+    "rows": 88,
+    "row_bearing": 31,
+    "all_row_bearing_selection_latest_matches": true,
+    "source_report_sha256": "9235e5301ca286df57ec0cda5369663658ea2e58e4dcae4a4ffcfff637ae9ed4"
+  }
+}

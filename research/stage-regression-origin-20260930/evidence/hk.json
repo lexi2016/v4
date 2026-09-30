@@ -1,0 +1,91 @@
+{
+  "schema": "evidence.regression_origin.sanitized_hk.v1",
+  "scope": "HK_CONNECT all visible formal receipts and detailed STAGE_0930_0935 chain",
+  "audit_status": "AUDIT_FINAL",
+  "audit_source_identity": {
+    "report_sha256": "9235e5301ca286df57ec0cda5369663658ea2e58e4dcae4a4ffcfff637ae9ed4",
+    "receipt_sha256": "43dd07833468a58f798538c95fecd7380bed80692360ef5b854feb105757fdda",
+    "source_export_plan_sha256": "b31b5f0c463c7b8142ff221a7c78c5dc797ff1b8849df803848e52d0ff87034a"
+  },
+  "all_stage_summary": {
+    "visible_receipts": 88,
+    "trade_dates": 11,
+    "date_range": [
+      "20260915",
+      "20260930"
+    ],
+    "receipts_with_hk_node": 83,
+    "row_bearing_receipts": 31,
+    "row_bearing_receipts_matching_selection_latest": 31,
+    "selection_latest_sha256": "9077c171388c9bee478065d34ad0923b3d0f356bbec0ed3e587064c448c3078a",
+    "latest_row_bearing_index_match": {
+      "trade_date": "20260929",
+      "stage_id": "STAGE_0925",
+      "rows": 10,
+      "status": "PARTIAL_WITH_ROWS",
+      "mode": "RECOVERY",
+      "coverage": 0.1,
+      "missing_requested_members": 80
+    },
+    "latest_ready_index_match": {
+      "trade_date": "20260928",
+      "stage_id": "STAGE_1545_1555",
+      "rows": 9,
+      "mode": "RECOVERY"
+    },
+    "latest_natural_ready_index_match": {
+      "trade_date": "20260921",
+      "stage_id": "STAGE_1545_1555",
+      "rows": 10
+    },
+    "no_hk_node_semantics": "NO_HK_ENTRY is not inferred as zero candidates",
+    "trading_flags": {
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    }
+  },
+  "detailed_stage_0930_0935": {
+    "20260924": {
+      "rows": 10,
+      "status": "PARTIAL",
+      "limitation": "cutoff/coverage"
+    },
+    "20260928": {
+      "exact_date_d1": "STRICT_0_2_READY",
+      "unique_codes": 100,
+      "stage_outcome": "HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE"
+    },
+    "20260929": {
+      "exact_date_d1": "STRICT_0_2_READY",
+      "unique_codes": 100,
+      "stage_outcome": "HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE"
+    },
+    "20260930": {
+      "exact_date_d1": "INVALID_SENTINEL",
+      "rows": 0,
+      "recorded_reason": "20260929 security-master metadata invalid",
+      "sentinel_bound_to_capture_attempts": false
+    },
+    "current_validator": "Rejects capture or row timestamps beyond stage cutoff",
+    "directory_resolution": "No wrong-directory use established from static config/directories/resolver; not a runtime trace"
+  },
+  "bounded_recommendation": "Restore timely snapshot/source-capture lineage before stage cutoff; keep the existing PIT cutoff gate. The invalid 20260930 D-1 sentinel does not prove a stage-code regression.",
+  "source_runtime_identity": {
+    "historical_stage_source_config_run_binding": "CANNOT_CONFIRM",
+    "candidate_config_sha256": "c7bc01d219577b699a2b22a9836dc9918da988440c1bb6e3d16a558cf3a44166",
+    "candidate_release_manifest_root_sha256": "04c9dd5c31d7af540913794c59cc4ebbc33f01162b76bd45c24dce4b609254ba",
+    "app_local_release_manifest_sha256": "4f96be93d8e1ee5a1b1a009a0b033ff95863f4063bdb4064289d31b42a2b8f19",
+    "actual_loaded_module_sha256": "CANNOT_CONFIRM"
+  },
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "product_tests_run": false,
+    "collection_or_replay_run": false,
+    "service_changed": false
+  },
+  "stage_receipt_index_path": "evidence/hk_stage_receipt_index.json"
+}
