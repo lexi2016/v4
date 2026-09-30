@@ -1,0 +1,18 @@
+.FF.....                                                                 [100%]
+=================================== FAILURES ===================================
+_ test_real_order_passes_guard_without_rewriting_authorization[legacy-auth-unchanged] _
+delivery/tests/test_pr16_issue11_codes_digest.py:129: in test_real_order_passes_guard_without_rewriting_authorization
+    assert result is not None, "the real unchanged 205-code order must pass the codes guard"
+E   AssertionError: the real unchanged 205-code order must pass the codes guard
+E   assert None is not None
+_ test_real_order_passes_guard_without_rewriting_authorization[explicit-lf-mode] _
+delivery/tests/test_pr16_issue11_codes_digest.py:129: in test_real_order_passes_guard_without_rewriting_authorization
+    assert result is not None, "the real unchanged 205-code order must pass the codes guard"
+E   AssertionError: the real unchanged 205-code order must pass the codes guard
+E   assert None is not None
+=========================== short test summary info ============================
+FAILED ../../../dev::test_real_order_passes_guard_without_rewriting_authorization[legacy-auth-unchanged] - AssertionError: the real unchanged 205-code order must pass the codes guard
+assert None is not None
+FAILED ../../../dev::test_real_order_passes_guard_without_rewriting_authorization[explicit-lf-mode] - AssertionError: the real unchanged 205-code order must pass the codes guard
+assert None is not None
+2 failed, 6 passed in 0.20s

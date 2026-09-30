@@ -239,7 +239,7 @@ def test_a_one_shot_uses_only_a_lane_and_preserves_hk(case, monkeypatch, tmp_pat
               'infrastructure.tdx_minute_replay_provider':'2'*64}
     monkeypatch.setattr(entry,'_ISSUE11_RECEIPT_SHA',sha(saved))
     monkeypatch.setattr(entry,'_ISSUE11_CANDIDATE_SHA',case.candidate.artifact_sha256)
-    monkeypatch.setattr(entry,'_ISSUE11_CODES_SHA',sha(canonical(list(case.candidate.codes))))
+    monkeypatch.setattr(entry,'_ISSUE11_CODES_SHA',sha('\n'.join(case.candidate.codes).encode('utf-8')))
     monkeypatch.setattr(entry,'_issue11_loaded_repair_identity',lambda:expected)
     auth=dict(schema_version='stage_center.a_auction_recovery_authorization.v1',issue=11,
         trade_date=DATE,stage_id=STAGE,market='A_SHARE',mode='RECOVERY',additional_attempts=1,

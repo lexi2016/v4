@@ -9,10 +9,10 @@
       "path": "ops/_run_stage_center_nodes_parts/node_entry.py",
       "canonical_before_sha256": "54defb0f45adbafcf4b661611f41d0b43d89abf492d89d587c28962eff9b36fe",
       "stage_before_sha256": "54defb0f45adbafcf4b661611f41d0b43d89abf492d89d587c28962eff9b36fe",
-      "after_sha256": "e8707873a23284626f5af44aa7ede9b273e464f1d66bf79dd608099abf451dba",
-      "after_git_blob_sha1": "a2748870d1caa98c41c362ce9c3dc19adc4195b1",
-      "bytes": 41038,
-      "change": "REUSE_PR12_ONCE"
+      "after_sha256": "f8817fee6b89205476fa0c226505dc139f9ec16d30353dace7f7998bb6b3683e",
+      "after_git_blob_sha1": "bac58c4251fdade3e87ec2e1493026a579678764",
+      "bytes": 41449,
+      "change": "PR12_AUTHORITY_WITH_PR16_ORDERED_LF_DIGEST_FIX"
     },
     {
       "path": "ops/_run_stage_center_nodes_parts/stage_dispatch.py",
@@ -61,5 +61,14 @@
   "actual_mac_new_combination": "NOT_EXECUTED",
   "production_allowed": false,
   "buy_gate_updated": false,
-  "orders_sent": false
+  "orders_sent": false,
+  "codes_digest_fix": {
+    "parent_commit": "da09905c4d5d86ee5ffc3879fb618c9188f4ec52",
+    "evidence_commit": "e0cfa0f9901adaa11c052aa8796c72ee6784bf18",
+    "incremental_node_before_sha256": "e8707873a23284626f5af44aa7ede9b273e464f1d66bf79dd608099abf451dba",
+    "digest_mode": "ORDERED_CODES_UTF8_LF_JOIN_NO_TRAILING_LF_V1",
+    "expected_codes_sha256_unchanged": "80f5a1c0bbed293b637d1a2bb25585de932ce5b235dd3ff0236fcb9a99d8eb69",
+    "no_old_receipt_or_authorization_rewrite": true,
+    "old18_rerun": false
+  }
 }
