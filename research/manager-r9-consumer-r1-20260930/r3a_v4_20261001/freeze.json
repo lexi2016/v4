@@ -1,0 +1,173 @@
+{
+  "acceptance": {
+    "API_VERIFIED": "CANNOT_CONFIRM",
+    "BEHAVIOR_VERIFIED": "PENDING independent reviewer; synthetic target behavior only",
+    "DEPLOYED": "CANNOT_CONFIRM",
+    "IMPLEMENTED": "candidate only",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM",
+    "REAL_SDK_RETURN_CODE_TYPE": "CANNOT_CONFIRM",
+    "REVIEWED": "PENDING",
+    "TESTED": "PASS 6/6 + 10/10 + 4/4; py_compile exit 0",
+    "UI_VERIFIED": "CANNOT_CONFIRM"
+  },
+  "actual_source_diff": {
+    "file_count": 6,
+    "path": "evidence/r3a_candidate_diff_v4.patch",
+    "sha256": "8612808247ad01d63d35dab329defd13fd939d5131cfb1bab879730ae2cef4e9",
+    "size_bytes": 81054
+  },
+  "candidate_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app",
+  "freeze_builder": {
+    "path": "evidence/build_r3a_freeze_v4.py",
+    "sha256": "90be30f535233795a74158b83e7c576053e86b854be76c0c511447280ffd964c"
+  },
+  "freeze_generation": 4,
+  "full_offline_canary": {
+    "path": "evidence/offline_canary/v2-e2e-cc2ab77d9e/offline_canary_receipt.json",
+    "sha256": "b2c191f9b61cc2b71f3c2eee8f1d7198a5b4ddba4a2d379eae714c999d22fd0e",
+    "status": "PASS"
+  },
+  "import_dependency_closure": {
+    "dependency_count": 13,
+    "path": "evidence/original_import_dependency_closure_v3.json",
+    "sha256": "25d95fdac79e3b7b652ef3045f062adb922de710ee8c9b49c46100a587ca9441"
+  },
+  "previous_freeze": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/r3a_candidate_freeze_v3.json",
+    "reviewer_receipt_sha256": "cbe91e033c48fa16c473f8c7bb8d248579cdb0574eb27e41c14b9274c1d2c68b",
+    "reviewer_verdict": "FAIL_WITH_TWO_P2",
+    "sha256": "b5d93bdb22058f8409ddf7170db00d733a262d74bb247b35bb40906b77b6d355"
+  },
+  "quote_gate_canary": {
+    "path": "evidence/offline_canary/quote-gate-membership-441baf4e49.json",
+    "result": "PASS 396 and 0 fresh quotes; membership 696; panel blocked",
+    "sha256": "4b5cce7dc3bbc0faf307135c1ecb1542f018feb5cab1c8925a45c9c63ed5d575"
+  },
+  "recorded_at_utc": "2026-09-30T18:25:59+00:00",
+  "return_code_canary": {
+    "path": "evidence/offline_canary/return-code-coercion-bf53994b3d/return_code_coercion_canary_receipt.json",
+    "sha256": "6fc55d130e4751ede7aa3784e0a1e2e47525f3e096060b99f48eb64776548668",
+    "status": "PASS"
+  },
+  "review_status": "PENDING_INDEPENDENT_LUNA_MAX_REVIEW",
+  "reviewed_findings_repair": {
+    "P2-1": "Membership authority publishes from the one finalized full capture before quote/panel gate failure is returned; quote status and blocked panel status remain explicit in that immutable capture.",
+    "P2-2": "V2 diagnostics name the pure membership validator contract and v35 dispatcher producer; v1 default diagnostic fields remain unchanged."
+  },
+  "safety_boundary": {
+    "active_release_written": false,
+    "buy_gate_updated": false,
+    "canonical_authority_writes": false,
+    "canonical_source_written": false,
+    "committed": false,
+    "deployed": false,
+    "orders_sent": false,
+    "production_allowed": false,
+    "provider_calls": false,
+    "pushed": false,
+    "synthetic_authority_writes": true
+  },
+  "saved_diagnostics_regression": {
+    "path": "evidence/reviewer/r3b_saved_diagnostics_v2_receipt_v4.json",
+    "result": "PASS 10/10",
+    "sha256": "9929b79e26fd2f6628445d684b923123557e608d9507d8eaa0cb23dce719de6e"
+  },
+  "schema_version": "v4.r3a.candidate_freeze.v4",
+  "source_mappings": [
+    {
+      "baseline_mode": 420,
+      "baseline_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f2/candidate_retry01/app/ops/_macos_research_panel_daily_parts/hk_market_capture.py",
+      "baseline_sha256": "b5c566f9395daa57b84c8842c92ccaedc0cc775bbc0cc1b478716814f71ef282",
+      "baseline_size_bytes": 14809,
+      "candidate_mode": 420,
+      "candidate_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app/ops/_macos_research_panel_daily_parts/hk_market_capture.py",
+      "candidate_sha256": "0a9651f88bc8a50d4b5e8ec4b6775a5291918f9f2556cf37c05b80a55cdfd84a",
+      "candidate_size_bytes": 31474,
+      "changed_since_previous_freeze": true,
+      "path": "ops/_macos_research_panel_daily_parts/hk_market_capture.py",
+      "previous_freeze_candidate_sha256": "ea7cdab7182c7f357e8f9be8ec9b40c7e351a6d2434fa522bbe0c6153c6bd2f0"
+    },
+    {
+      "baseline_mode": 420,
+      "baseline_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f2/candidate_retry01/app/ops/ensure_hk_security_master.py",
+      "baseline_sha256": "ae6bae7dbd87f03327cf03904beee2e1f8b3e63b262057b49a3f6186eedf21f7",
+      "baseline_size_bytes": 29319,
+      "candidate_mode": 420,
+      "candidate_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app/ops/ensure_hk_security_master.py",
+      "candidate_sha256": "6c341a33c0283b023219c46cc2a1c6aaca49cf4b5dcb88aa2fb5527a13145601",
+      "candidate_size_bytes": 41556,
+      "changed_since_previous_freeze": true,
+      "path": "ops/ensure_hk_security_master.py",
+      "previous_freeze_candidate_sha256": "c09d7a0cc1d33b77cd09c81a80109324fd3614cb561673ec81007760cb750062"
+    },
+    {
+      "baseline_mode": 420,
+      "baseline_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f2/candidate_retry01/app/stage_center/hk_universe_preflight.py",
+      "baseline_sha256": "f527db45d4ec3720845606dd38e76bf6e93e973063b43f1cadb44a8e12407e5c",
+      "baseline_size_bytes": 25290,
+      "candidate_mode": 420,
+      "candidate_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app/stage_center/hk_universe_preflight.py",
+      "candidate_sha256": "9d3d2c2d5ff3bd1c7713a9485e88000ae882f58b0a457b734656094606ba2941",
+      "candidate_size_bytes": 40555,
+      "changed_since_previous_freeze": false,
+      "path": "stage_center/hk_universe_preflight.py",
+      "previous_freeze_candidate_sha256": "9d3d2c2d5ff3bd1c7713a9485e88000ae882f58b0a457b734656094606ba2941"
+    },
+    {
+      "baseline_mode": 420,
+      "baseline_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_AUTHORITY_R2_ACCEPTANCE_20260930/candidate/app/domains/manager_research_evidence.py",
+      "baseline_sha256": "22ccd133851afa0fd7927ae7c40370ce1130ccd77055b0044e91d863ac1da8d9",
+      "baseline_size_bytes": 19661,
+      "candidate_mode": 420,
+      "candidate_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app/domains/manager_research_evidence.py",
+      "candidate_sha256": "4bfd8ec335eade9a97340fe17fc0742f2dba546d0e254fdfed2833ed324bb73d",
+      "candidate_size_bytes": 30848,
+      "changed_since_previous_freeze": true,
+      "path": "domains/manager_research_evidence.py",
+      "previous_freeze_candidate_sha256": "0c657383ec622ddde383d62c5a9f83445eb9915d07634ea2aac40b3ffdac8f89"
+    },
+    {
+      "baseline_mode": 420,
+      "baseline_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_API_INTEGRATION_20260930/candidate/app/v4/manager_research/connect_selection.py",
+      "baseline_sha256": "b6c5300172f59b6979dbab15927036ff1ab3599a2adae2b4f0e5a1e4868a6248",
+      "baseline_size_bytes": 10522,
+      "candidate_mode": 420,
+      "candidate_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app/v4/manager_research/connect_selection.py",
+      "candidate_sha256": "945acad06c03321059756950988937dee9991d23007c4bac49251e8789488d3b",
+      "candidate_size_bytes": 10768,
+      "changed_since_previous_freeze": false,
+      "path": "v4/manager_research/connect_selection.py",
+      "previous_freeze_candidate_sha256": "945acad06c03321059756950988937dee9991d23007c4bac49251e8789488d3b"
+    },
+    {
+      "baseline_mode": 420,
+      "baseline_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f2/candidate_retry01/app/ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "baseline_sha256": "1d223e51128dcc5070c7dcb048d87aea74d16fd2cd7c1fa3ca8e1c5815e69a67",
+      "baseline_size_bytes": 12888,
+      "candidate_mode": 420,
+      "candidate_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app/ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "candidate_sha256": "d3db5b9644bbf2fb1f4e245717907862ebe1cee2d0f650a8d45d732fd4a71940",
+      "candidate_size_bytes": 14219,
+      "changed_since_previous_freeze": true,
+      "path": "ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "previous_freeze_candidate_sha256": null
+    }
+  ],
+  "status": "READY_FOR_INDEPENDENT_REVIEW",
+  "test_source": {
+    "note": "The previous test source is pinned by SHA in v3 review evidence but its bytes were not retained, so no synthetic test patch is claimed; Reviewer can inspect the current test file and replay the exact command.",
+    "path": "tests/test_hk_connect_v2_contract.py",
+    "previous_v3_sha256": "be8819b330635080c011d2004d290dad6092e6eece43689c944311adb68ba2a0",
+    "previous_v3_test_source_bytes_available": false,
+    "sha256": "d645d6f899df5cf2dc97f564ff6ccef0fb3aaa7e47963840523ba53554c35935"
+  },
+  "validation_receipts": {
+    "path": "evidence/offline_validation_receipts_v4.json",
+    "sha256": "afe4a3e7e42a22cffac623ceec019a5df1c44f4ca7dcfef438808abdf88f4a54"
+  },
+  "workspace_regression": {
+    "path": "evidence/offline_canary/r3b_workspace_regression_receipt_v4.json",
+    "result": "PASS 4/4",
+    "sha256": "9e51d748fb60b3e08d44094e4aad8872bd3782d0aa7fb6eb493322fd208487c0"
+  }
+}
