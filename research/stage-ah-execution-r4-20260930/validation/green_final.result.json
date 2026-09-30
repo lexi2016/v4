@@ -1,0 +1,28 @@
+{
+  "tests": 18,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "passed": 18,
+  "exit_code": 0,
+  "command": [
+    "/opt/pyvenv/bin/python",
+    "-m",
+    "pytest",
+    "-o",
+    "addopts=-W error",
+    "tests/test_stage_ah_execution_r4.py",
+    "-q",
+    "--tb=short",
+    "--junitxml=/mnt/data/stage_r4/logs/green_final.xml"
+  ],
+  "python": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "source_sha256": {
+    "ops/_run_stage_center_nodes_parts/stage_dispatch.py": "d7ea89f5467fb4d62af6b43c59d9dcd7cfcd020a1ee1ce07a9fae8525f735f86",
+    "stage_center/_runner_parts/slot_execution.py": "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a",
+    "stage_center/_runner_parts/runner_receipts.py": "d3d9e69230b00a2864eae106f1c5c89ea0d383e20c2e87d655d4cabd273bbc83"
+  },
+  "test_sha256": "d715225627c05e625823fca38f4e7939b1303839726614ac955fc9174e5e1e8a",
+  "scope": "SYNTHETIC_PUBLIC_DISPATCH_ORIGINAL_RUNNER_SELECTORS_STORES_NO_LIVE_DATA"
+}
