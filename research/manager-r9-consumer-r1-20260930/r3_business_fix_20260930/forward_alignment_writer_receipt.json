@@ -1,0 +1,1362 @@
+{
+  "build_completed_at_utc": "2026-09-30T12:01:10.872138+00:00",
+  "build_started_at_utc": "2026-09-30T12:01:09.211688+00:00",
+  "builder": {
+    "activation_status": "NOT_ACTIVATED",
+    "candidate_receipt_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f2/build_receipt_retry01.json",
+    "candidate_receipt_sha256": "439d5ffba4475b5183a2d74e7cc518693391b7b3b9a3fcc18f95be4b77aea194",
+    "deployment_status": "CANNOT_CONFIRM",
+    "entrypoint": "/Users/lexi/Desktop/学习/v4_app/ops/build_release_candidate.py",
+    "implementation": "ops.build_release_candidate.build_candidate",
+    "status": "READY_FOR_REVIEW"
+  },
+  "builder_elapsed_seconds": 1.660338,
+  "builder_frontend_dist_mapping": {
+    "aggregate_sha256": "20edf41409433078e6321cbffc2d1e04c9ac6068c4fb314b6b19e393dbb764b3",
+    "all_equal": true,
+    "entries": [
+      {
+        "all_equal": true,
+        "canonical_mode": 420,
+        "canonical_sha256": "444542681a3575082c280eb30674e6550766a127bdd6da019b78e8f247125dfa",
+        "inventory_sha256": "444542681a3575082c280eb30674e6550766a127bdd6da019b78e8f247125dfa",
+        "output_mode": 420,
+        "output_sha256": "444542681a3575082c280eb30674e6550766a127bdd6da019b78e8f247125dfa",
+        "path": "apps/web/dist/assets/dailyResearchCommand-D7J2FMsY.css",
+        "size_bytes": 12281,
+        "snapshot_mode": 420,
+        "snapshot_sha256": "444542681a3575082c280eb30674e6550766a127bdd6da019b78e8f247125dfa"
+      },
+      {
+        "all_equal": true,
+        "canonical_mode": 420,
+        "canonical_sha256": "b673277aaef748cd8ff8d7762fa6bc041d6116fd9c17464be6eebb68279c7e62",
+        "inventory_sha256": "b673277aaef748cd8ff8d7762fa6bc041d6116fd9c17464be6eebb68279c7e62",
+        "output_mode": 420,
+        "output_sha256": "b673277aaef748cd8ff8d7762fa6bc041d6116fd9c17464be6eebb68279c7e62",
+        "path": "apps/web/dist/assets/dailyResearchCommand-RtNjV2wa.js",
+        "size_bytes": 26611,
+        "snapshot_mode": 420,
+        "snapshot_sha256": "b673277aaef748cd8ff8d7762fa6bc041d6116fd9c17464be6eebb68279c7e62"
+      },
+      {
+        "all_equal": true,
+        "canonical_mode": 420,
+        "canonical_sha256": "110c264899444895ea06a36d88ef5f73f40bf508954488d63fd54575c2f527f5",
+        "inventory_sha256": "110c264899444895ea06a36d88ef5f73f40bf508954488d63fd54575c2f527f5",
+        "output_mode": 420,
+        "output_sha256": "110c264899444895ea06a36d88ef5f73f40bf508954488d63fd54575c2f527f5",
+        "path": "apps/web/dist/assets/main-CwqszCic.css",
+        "size_bytes": 38630,
+        "snapshot_mode": 420,
+        "snapshot_sha256": "110c264899444895ea06a36d88ef5f73f40bf508954488d63fd54575c2f527f5"
+      },
+      {
+        "all_equal": true,
+        "canonical_mode": 420,
+        "canonical_sha256": "ea03355e268b4af42deac5a8fafadacd570f1c412406114a63ff4f6d71f0e456",
+        "inventory_sha256": "ea03355e268b4af42deac5a8fafadacd570f1c412406114a63ff4f6d71f0e456",
+        "output_mode": 420,
+        "output_sha256": "ea03355e268b4af42deac5a8fafadacd570f1c412406114a63ff4f6d71f0e456",
+        "path": "apps/web/dist/assets/main-YZT2UVrH.js",
+        "size_bytes": 163575,
+        "snapshot_mode": 420,
+        "snapshot_sha256": "ea03355e268b4af42deac5a8fafadacd570f1c412406114a63ff4f6d71f0e456"
+      },
+      {
+        "all_equal": true,
+        "canonical_mode": 420,
+        "canonical_sha256": "116570ada05d49323b78e42fd85841c34b8e55cdd1cafbe6e49d14539734248d",
+        "inventory_sha256": "116570ada05d49323b78e42fd85841c34b8e55cdd1cafbe6e49d14539734248d",
+        "output_mode": 420,
+        "output_sha256": "116570ada05d49323b78e42fd85841c34b8e55cdd1cafbe6e49d14539734248d",
+        "path": "apps/web/dist/assets/managerSelection-BdpTPJA5.js",
+        "size_bytes": 296619,
+        "snapshot_mode": 420,
+        "snapshot_sha256": "116570ada05d49323b78e42fd85841c34b8e55cdd1cafbe6e49d14539734248d"
+      },
+      {
+        "all_equal": true,
+        "canonical_mode": 420,
+        "canonical_sha256": "937acb35ff2f5318182c43b1c045db2545b98d8486a17319913dde28331e83f5",
+        "inventory_sha256": "937acb35ff2f5318182c43b1c045db2545b98d8486a17319913dde28331e83f5",
+        "output_mode": 420,
+        "output_sha256": "937acb35ff2f5318182c43b1c045db2545b98d8486a17319913dde28331e83f5",
+        "path": "apps/web/dist/assets/managerSelection-DPqeaKxb.css",
+        "size_bytes": 48280,
+        "snapshot_mode": 420,
+        "snapshot_sha256": "937acb35ff2f5318182c43b1c045db2545b98d8486a17319913dde28331e83f5"
+      },
+      {
+        "all_equal": true,
+        "canonical_mode": 420,
+        "canonical_sha256": "8651472ec9b303719d201e466e997fc2fadfc2f7169ec1a07c6ded932659f95b",
+        "inventory_sha256": "8651472ec9b303719d201e466e997fc2fadfc2f7169ec1a07c6ded932659f95b",
+        "output_mode": 420,
+        "output_sha256": "8651472ec9b303719d201e466e997fc2fadfc2f7169ec1a07c6ded932659f95b",
+        "path": "apps/web/dist/assets/research_lane-t0CPXntR.js",
+        "size_bytes": 4268,
+        "snapshot_mode": 420,
+        "snapshot_sha256": "8651472ec9b303719d201e466e997fc2fadfc2f7169ec1a07c6ded932659f95b"
+      },
+      {
+        "all_equal": true,
+        "canonical_mode": 420,
+        "canonical_sha256": "aea5b49306b959dde2b610353b9aadc8a05da7dfef2271390adf513a4b2f6c6a",
+        "inventory_sha256": "aea5b49306b959dde2b610353b9aadc8a05da7dfef2271390adf513a4b2f6c6a",
+        "output_mode": 420,
+        "output_sha256": "aea5b49306b959dde2b610353b9aadc8a05da7dfef2271390adf513a4b2f6c6a",
+        "path": "apps/web/dist/assets/runtime-dom.esm-bundler-BLwL_Z7B.js",
+        "size_bytes": 68953,
+        "snapshot_mode": 420,
+        "snapshot_sha256": "aea5b49306b959dde2b610353b9aadc8a05da7dfef2271390adf513a4b2f6c6a"
+      },
+      {
+        "all_equal": true,
+        "canonical_mode": 420,
+        "canonical_sha256": "18f941af93aa8f2aea252d26c9cb6318aa18146d39715244a8dc2ee5c8bae956",
+        "inventory_sha256": "18f941af93aa8f2aea252d26c9cb6318aa18146d39715244a8dc2ee5c8bae956",
+        "output_mode": 420,
+        "output_sha256": "18f941af93aa8f2aea252d26c9cb6318aa18146d39715244a8dc2ee5c8bae956",
+        "path": "apps/web/dist/daily-research-command/index.html",
+        "size_bytes": 606,
+        "snapshot_mode": 420,
+        "snapshot_sha256": "18f941af93aa8f2aea252d26c9cb6318aa18146d39715244a8dc2ee5c8bae956"
+      },
+      {
+        "all_equal": true,
+        "canonical_mode": 420,
+        "canonical_sha256": "12ddc87e3c704d0bc1565998a00afc6e8df336a58c15c61e28644c492589c10b",
+        "inventory_sha256": "12ddc87e3c704d0bc1565998a00afc6e8df336a58c15c61e28644c492589c10b",
+        "output_mode": 420,
+        "output_sha256": "12ddc87e3c704d0bc1565998a00afc6e8df336a58c15c61e28644c492589c10b",
+        "path": "apps/web/dist/index.html",
+        "size_bytes": 836,
+        "snapshot_mode": 420,
+        "snapshot_sha256": "12ddc87e3c704d0bc1565998a00afc6e8df336a58c15c61e28644c492589c10b"
+      },
+      {
+        "all_equal": true,
+        "canonical_mode": 420,
+        "canonical_sha256": "72f87ed928a2b9de96a9d287034784bc38ef6f0e7d6bac428399a5e6cd9e46a5",
+        "inventory_sha256": "72f87ed928a2b9de96a9d287034784bc38ef6f0e7d6bac428399a5e6cd9e46a5",
+        "output_mode": 420,
+        "output_sha256": "72f87ed928a2b9de96a9d287034784bc38ef6f0e7d6bac428399a5e6cd9e46a5",
+        "path": "apps/web/dist/manager-selection/index.html",
+        "size_bytes": 678,
+        "snapshot_mode": 420,
+        "snapshot_sha256": "72f87ed928a2b9de96a9d287034784bc38ef6f0e7d6bac428399a5e6cd9e46a5"
+      }
+    ],
+    "entry_count": 11
+  },
+  "buy_gate_updated": false,
+  "candidate": {
+    "activation_status": "NOT_ACTIVATED",
+    "app_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f2/candidate_retry01/app",
+    "deployment_status": "CANNOT_CONFIRM",
+    "existing_frontend_dist_copied": true,
+    "formal_runtime_dependencies": "CANNOT_CONFIRM",
+    "frontend_dist_rebuilt": false,
+    "manifest_candidate_status": "READY_FOR_REVIEW",
+    "manifest_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f2/candidate_retry01/release-manifest.json",
+    "manifest_sha256": "75f6f5543137319810b1f433cefa83ae89c204c2bf6ab56c42effa4be89a6366",
+    "orders_sent": false,
+    "release_id": "r3-hk-forward-20260930",
+    "release_written": false,
+    "root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f2/candidate_retry01",
+    "schedule_changed": false,
+    "services_changed": false,
+    "ui_verified": false
+  },
+  "f1_behavior_summary": {
+    "buy_gate_updated": false,
+    "cases": {
+      "candidate:capture_error": {
+        "dispatcher_status": "FAILED",
+        "error_contains": "Futu plate lookup failed: HK.LIST1922",
+        "lane_status": "FAILED",
+        "plate_calls_ordered": [
+          "HK.GangGuTong",
+          "HK.LIST1922"
+        ],
+        "updater_call_count": 0
+      },
+      "candidate:publish_error": {
+        "dispatcher_status": "FAILED",
+        "error_contains": "F1_FIXTURE_SECURITY_MASTER_PUBLISH_FAILED",
+        "lane_status": "FAILED",
+        "plate_calls_ordered": [
+          "HK.GangGuTong",
+          "HK.LIST1922"
+        ],
+        "updater_call_count": 1
+      },
+      "candidate:success": {
+        "capture_manifest_sha256": "272e2141ab2c67da39fd38a1ccb43d28077fd372329d1a7c0f29949a0b01bc47",
+        "capture_raw_sha256": "efd4f6d5dc6abaecdb2d4bfda0aa095c93bcb62e55cb85ca4d9a6731a266f8b9",
+        "dispatcher_status": "SUCCEEDED",
+        "fresh_quotes": {
+          "count": 600,
+          "expected_range": "HK.00001-HK.00600",
+          "sorted_codes_sha256": "9386b7e3f3668b08f1f3bd412fb95a81b663028369c77ae02f188163eb56300e"
+        },
+        "lane_status": "READY",
+        "main_module": "ops.macos_research_panel_daily",
+        "membership": {
+          "count": 604,
+          "expected_range": "HK.00001-HK.00604",
+          "sorted_codes_sha256": "55769481d508bbffd056d7fc86016f25013845886aeefdb2a002fb03c300237b"
+        },
+        "panel_capture_binding_sha256": "b3e454c0496a0fa3c6c11079fd1d55a24a0e2103112739648c3c618939618ba7",
+        "panel_sha256": "30e3a7126a2299f5e527182f51af583e105d9067f6d97daaa23d152740904fae",
+        "plate_calls_ordered": [
+          "HK.GangGuTong",
+          "HK.LIST1922"
+        ],
+        "security_master": {
+          "count": 604,
+          "expected_range": "HK.00001-HK.00604",
+          "sorted_codes_sha256": "55769481d508bbffd056d7fc86016f25013845886aeefdb2a002fb03c300237b"
+        },
+        "security_master_manifest_sha256": "26ed6609fc5bd7b69cd5317c9fbc3408d5ced6708c00f0a172b31ab56d53a064",
+        "stale_excluded": {
+          "count": 4,
+          "expected_range": "HK.00601-HK.00604",
+          "sorted_codes_sha256": "40e236c143186933613d5159366c47a64013b5a44f0cf68b5334580c49ecb6ee"
+        }
+      },
+      "reference:capture_error": {
+        "dispatcher_status": "FAILED",
+        "error_contains": "Futu plate lookup failed: HK.LIST1922",
+        "lane_status": "FAILED",
+        "plate_calls_ordered": [
+          "HK.GangGuTong",
+          "HK.LIST1922"
+        ],
+        "updater_call_count": 0
+      },
+      "reference:publish_error": {
+        "dispatcher_status": "FAILED",
+        "error_contains": "F1_FIXTURE_SECURITY_MASTER_PUBLISH_FAILED",
+        "lane_status": "FAILED",
+        "plate_calls_ordered": [
+          "HK.GangGuTong",
+          "HK.LIST1922"
+        ],
+        "updater_call_count": 1
+      },
+      "reference:success": {
+        "capture_manifest_sha256": "1308163ac25aa4651597541011b2379750d3f5c9a3a19ec3c34a7a5a93601b38",
+        "capture_raw_sha256": "efd4f6d5dc6abaecdb2d4bfda0aa095c93bcb62e55cb85ca4d9a6731a266f8b9",
+        "dispatcher_status": "SUCCEEDED",
+        "fresh_quotes": {
+          "count": 600,
+          "expected_range": "HK.00001-HK.00600",
+          "sorted_codes_sha256": "9386b7e3f3668b08f1f3bd412fb95a81b663028369c77ae02f188163eb56300e"
+        },
+        "lane_status": "READY",
+        "main_module": "ops.macos_research_panel_daily",
+        "membership": {
+          "count": 604,
+          "expected_range": "HK.00001-HK.00604",
+          "sorted_codes_sha256": "55769481d508bbffd056d7fc86016f25013845886aeefdb2a002fb03c300237b"
+        },
+        "panel_capture_binding_sha256": "b3e454c0496a0fa3c6c11079fd1d55a24a0e2103112739648c3c618939618ba7",
+        "panel_sha256": "30e3a7126a2299f5e527182f51af583e105d9067f6d97daaa23d152740904fae",
+        "plate_calls_ordered": [
+          "HK.GangGuTong",
+          "HK.LIST1922"
+        ],
+        "security_master": {
+          "count": 604,
+          "expected_range": "HK.00001-HK.00604",
+          "sorted_codes_sha256": "55769481d508bbffd056d7fc86016f25013845886aeefdb2a002fb03c300237b"
+        },
+        "security_master_manifest_sha256": "1449fe00d331ebd50270efeb6a2f8d2baa32e15043d03a83b2a049f591635e57",
+        "stale_excluded": {
+          "count": 4,
+          "expected_range": "HK.00601-HK.00604",
+          "sorted_codes_sha256": "40e236c143186933613d5159366c47a64013b5a44f0cf68b5334580c49ecb6ee"
+        }
+      }
+    },
+    "network_calls_performed": false,
+    "oracle": "F1 exact configured-release versus isolated candidate dispatch_due and -m HK child with deterministic local Futu/updater fixtures",
+    "orders_sent": false,
+    "production_allowed": false,
+    "receipt_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f1/parity_receipt.json",
+    "receipt_sha256": "e05d6fdafce8ca06cad33bfb9756d19b677c8256c67466a5b247b6e6f29268a2",
+    "stable_business_identity_equal": {
+      "capture_sha256": true,
+      "panel_capture_binding_sha256": true,
+      "panel_sha256": true,
+      "source_sha256": true
+    },
+    "status": "PASS",
+    "test_script_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/tests/run_hk_forward_parity.py",
+    "test_script_sha256": "25fa1ca2f6667a3dc0c340bad98fdfc5c63bd7eef0c24aa9a9b4cf8587f69a0e"
+  },
+  "finalization": {
+    "builder_dist_mappings_reverified": 11,
+    "builder_receipt_sha256_reverified": true,
+    "candidate_manifest_sha256_reverified": true,
+    "candidate_outputs_changed": false,
+    "f0_failure_resolved_dependency_count": 1,
+    "f1_traced_source_path_count": 63,
+    "finalized_at_utc": "2026-09-30T12:49:41.814980+00:00",
+    "pre_finalization_forward_receipt_sha256": "4de1cde27a901213e15f9a5661cc6c5309a65959a91b17afba974891874d7a00",
+    "pre_update_forward_receipt_sha256": "609036455dd98f8904d8857c94323cc021bff4130c6d36dfbf09cc4871ee57ab",
+    "revision_chain": [
+      {
+        "candidate_outputs_changed": false,
+        "input_forward_receipt_sha256": "609036455dd98f8904d8857c94323cc021bff4130c6d36dfbf09cc4871ee57ab",
+        "reason": "Added the F0 required missing-import dependency to source-output mapping with an explicit not-observed-in-success-trace label."
+      }
+    ],
+    "routed_source_output_mappings_reverified": 64
+  },
+  "goal": "Freeze an inactive candidate for independent review with traced HK 17:20 source-to-output byte provenance.",
+  "historical_17_20_binding": "CANNOT_CONFIRM",
+  "input_pins": {
+    "api_plist_sha256": "7c2e62d4c79315dfe71c8f45264616733a549d3cb45abae61ff92f957bfbaec7",
+    "configured_hk_updater_effective_python": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/runtime/venvs/v3.5-hk02/bin/python",
+    "configured_hk_updater_python_version": "3.13.12",
+    "configured_hk_updater_runtime_canary_receipt_sha256": "8e08dd212e50efd0ffbe023ae33b45bc1115a4932aac8e6b048c4482ad52a585",
+    "configured_hk_updater_wrapper": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/app/ops/launch_hk_0_2_python_nosite.sh",
+    "reference_release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/release-manifest.json",
+    "reference_release_manifest_sha256": "819eb1f02a7a32889ffc2dd46e0c7ff686e3d20f410db36367ef94ca0734b980",
+    "scheduler_plist_sha256": "8a72635aeec0efe181b6e479cb7b99463942d9be3690982a79e0b1f93d30b86c"
+  },
+  "orders_sent": false,
+  "prior_failed_build_attempt": {
+    "builder_only_input_receipt_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f2/builder_dist_input.json",
+    "builder_only_input_receipt_sha256": "e6af8c8f0f9e3866cf4f729a7e1bbbc7e778b192f25cb26e2486affaa09f4ed0",
+    "candidate_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f2/candidate",
+    "error": "FileNotFoundError: required current frontend dist is missing from the isolated source snapshot",
+    "marker_content": "created_at=2026-09-30T11:55:10+00:00",
+    "marker_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f2/candidate/.candidate-build-in-progress",
+    "remedy": "Copied the exact existing canonical generated dist into the task-local snapshot with per-file mode, size, and SHA receipt; no frontend build or canonical UI change.",
+    "status": "INCOMPLETE_PRESERVED"
+  },
+  "production_allowed": false,
+  "research_only": true,
+  "runtime_evidence": {
+    "dispatcher_python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "dispatcher_python_version": "3.14.6",
+    "historical_17_20_binding": "CANNOT_CONFIRM",
+    "hk_owner_child_python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "hk_owner_child_python_version": "3.14.6",
+    "natural_lane_receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/hk-20260930.json",
+    "natural_lane_receipt_sha256": "4c3a68ad57cecfbd1ac6edd272ec39046ef01ee3a89534efc270dcf076395043",
+    "network_calls_performed": false,
+    "runtime_canary_receipt_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f1/runtime_canary/run-159_3c8c/canary_receipt.json",
+    "runtime_canary_receipt_sha256": "8e08dd212e50efd0ffbe023ae33b45bc1115a4932aac8e6b048c4482ad52a585",
+    "runtime_canary_status": "PASS",
+    "scheduler_plist_sha256": "8a72635aeec0efe181b6e479cb7b99463942d9be3690982a79e0b1f93d30b86c",
+    "updater_canary_result": {
+      "effective_python_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/runtime/venvs/v3.5-hk02/bin/python",
+      "execution_mode": "wrapper -S; configured v3.5-hk02 runtime and exact scheduler wrapper settings",
+      "fixture": {
+        "buy_gate_updated": false,
+        "network_attempts": 0,
+        "orders_sent": false,
+        "panel_sha256": "a552510835453bfb019e0d9b97d5e846453459ef988912f1fc2245e9a3687898",
+        "production_allowed": false,
+        "published_manifest_sha256": "3eafae38c574cd85d09012b42d1b4a6655cfaba11c15d6360a57d902ec5d1b5f",
+        "rows_written": 600,
+        "source_day_file_count": 600,
+        "status": "READY",
+        "target_date": "20260930",
+        "through_date_code_count": 600
+      },
+      "natural_run_binding": {
+        "dispatch_status": "SUCCEEDED",
+        "historical_17_20_binding": "CANNOT_CONFIRM",
+        "lane_receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/hk-20260930.json",
+        "lane_receipt_sha256": "4c3a68ad57cecfbd1ac6edd272ec39046ef01ee3a89534efc270dcf076395043",
+        "scheduler_plist_sha256": "8a72635aeec0efe181b6e479cb7b99463942d9be3690982a79e0b1f93d30b86c",
+        "target_date": "20260930"
+      },
+      "pandas_version": "2.3.3",
+      "pyarrow_version": "23.0.1",
+      "python_version": "3.13.12",
+      "real_updater_script": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+      "receipt_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f1/runtime_canary/run-159_3c8c/canary_receipt.json",
+      "receipt_sha256": "8e08dd212e50efd0ffbe023ae33b45bc1115a4932aac8e6b048c4482ad52a585",
+      "status": "PASS",
+      "wrapper_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/app/ops/launch_hk_0_2_python_nosite.sh"
+    },
+    "updater_effective_python_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/runtime/venvs/v3.5-hk02/bin/python",
+    "updater_python_version": "3.13.12",
+    "updater_script_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+    "updater_wrapper_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/app/ops/launch_hk_0_2_python_nosite.sh"
+  },
+  "schema_version": "v4.r3_hk_forward_f2_candidate_provenance.v1",
+  "source": {
+    "builder_dist_input_receipt_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f2/builder_dist_input.json",
+    "builder_dist_input_receipt_sha256": "e6af8c8f0f9e3866cf4f729a7e1bbbc7e778b192f25cb26e2486affaa09f4ed0",
+    "explicit_untracked_paths": [
+      "infrastructure/formula_generation.py",
+      "infrastructure/preselection_pool_readers.py",
+      "infrastructure/preselection_pool_sources.py",
+      "infrastructure/preselection_pool_transactions.py",
+      "infrastructure/scheduling/_executor_registry_parts/__init__.py",
+      "infrastructure/scheduling/_executor_registry_parts/_namespace.py",
+      "infrastructure/scheduling/_executor_registry_parts/panel_execution.py",
+      "infrastructure/scheduling/_executor_registry_parts/process_boundary.py",
+      "infrastructure/scheduling/_executor_registry_parts/research_jobs.py",
+      "infrastructure/scheduling/manager_capture_retry.py",
+      "infrastructure/scope_gate.py",
+      "ops/_macos_research_panel_daily_parts/__init__.py",
+      "ops/_macos_research_panel_daily_parts/_namespace.py",
+      "ops/_macos_research_panel_daily_parts/calendar_schedule.py",
+      "ops/_macos_research_panel_daily_parts/cli.py",
+      "ops/_macos_research_panel_daily_parts/day_file_output.py",
+      "ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "ops/_macos_research_panel_daily_parts/hk_market_capture.py",
+      "ops/_macos_research_panel_daily_parts/panel_primitives.py",
+      "stage_center/_selection_parts/__init__.py",
+      "stage_center/_selection_parts/_namespace.py",
+      "stage_center/_selection_parts/schema_values.py"
+    ],
+    "f0_failure_resolved_dependencies": [
+      {
+        "evidence": "F0 candidate dispatch failed with this exact missing import; candidate copy is byte-identical to the scoped canonical untracked source; the F1 candidate dispatch subsequently succeeded.",
+        "f0_candidate_sha256": "ee4627b05cd969357fb16e7fd88b7eccbc24aa1e13a04c6ddf120038f801defc",
+        "f0_missing_import_error": "ModuleNotFoundError: No module named 'infrastructure.scheduling._executor_registry_parts.research_jobs'",
+        "module": "infrastructure.scheduling._executor_registry_parts.research_jobs",
+        "observed_in_successful_trace": false,
+        "path": "infrastructure/scheduling/_executor_registry_parts/research_jobs.py",
+        "sha_equal_to_canonical": true
+      }
+    ],
+    "f1_parity_receipt_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f1/parity_receipt.json",
+    "f1_parity_receipt_sha256": "e05d6fdafce8ca06cad33bfb9756d19b677c8256c67466a5b247b6e6f29268a2",
+    "head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "other_untracked_files_copied": false,
+    "root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/candidate_source_snapshot",
+    "route_freeze_receipt_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f0/route_freeze.json",
+    "route_freeze_receipt_sha256": "8a3a8aaf1395aaa7947ef28a268c3e94121e09b2cb276734e84719ec1d9d53ec",
+    "runtime_closure_extension_receipt_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f0/runtime_closure_extension.json",
+    "runtime_closure_extension_receipt_sha256": "b8fb9986c080e0d70877ae786a296c671bba2a06af0a4e36352abf58b861eed1",
+    "source_snapshot_receipt_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f0/source_snapshot.json",
+    "source_snapshot_receipt_sha256": "0890b3dafa02b7435062044fc2e21e0a0529c567e50a6a1d790124b5fe90c57e",
+    "tracked_diff_bytes": null,
+    "tracked_diff_sha256": "c927f17bc28f62be7cfb6dc47ee0f1a58773a3c1aed11e79a5791c7d29e35def"
+  },
+  "source_output_mapping": {
+    "aggregate_sha256": "ec0f3fa5e26a7aa23fe77ca293c992dad8e090ea1b98b2fbace652a73d0e4f53",
+    "all_source_output_sha_equal": true,
+    "entries": [
+      {
+        "inventory_sha256": "6334176641872990a56b559f965a9dc6d65f29ab0a0efc0752ef1a73fe42bc7d",
+        "modules": [
+          "contracts"
+        ],
+        "output_mode": 420,
+        "output_sha256": "6334176641872990a56b559f965a9dc6d65f29ab0a0efc0752ef1a73fe42bc7d",
+        "output_size_bytes": 55,
+        "path": "contracts/__init__.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "6334176641872990a56b559f965a9dc6d65f29ab0a0efc0752ef1a73fe42bc7d",
+        "source_size_bytes": 55
+      },
+      {
+        "inventory_sha256": "f9923462342eaaeafba6255e9f8adda54f9852ea4996cf6da0cf82e4faf32965",
+        "modules": [
+          "contracts.runtime_tasks"
+        ],
+        "output_mode": 420,
+        "output_sha256": "f9923462342eaaeafba6255e9f8adda54f9852ea4996cf6da0cf82e4faf32965",
+        "output_size_bytes": 3350,
+        "path": "contracts/runtime_tasks.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "f9923462342eaaeafba6255e9f8adda54f9852ea4996cf6da0cf82e4faf32965",
+        "source_size_bytes": 3350
+      },
+      {
+        "inventory_sha256": "d0ac1771a1005888e53e9a322da65f959cfbcbcc665357b8783d5eb4eda9c6df",
+        "modules": [
+          "contracts.stages"
+        ],
+        "output_mode": 420,
+        "output_sha256": "d0ac1771a1005888e53e9a322da65f959cfbcbcc665357b8783d5eb4eda9c6df",
+        "output_size_bytes": 2036,
+        "path": "contracts/stages.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "d0ac1771a1005888e53e9a322da65f959cfbcbcc665357b8783d5eb4eda9c6df",
+        "source_size_bytes": 2036
+      },
+      {
+        "inventory_sha256": "61ad747fcfeedda6a6362fb9f6b45767bea7bbfa9dbeea3753beeb75dc5da577",
+        "modules": [
+          "contracts.trading_calendar"
+        ],
+        "output_mode": 420,
+        "output_sha256": "61ad747fcfeedda6a6362fb9f6b45767bea7bbfa9dbeea3753beeb75dc5da577",
+        "output_size_bytes": 9347,
+        "path": "contracts/trading_calendar.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "61ad747fcfeedda6a6362fb9f6b45767bea7bbfa9dbeea3753beeb75dc5da577",
+        "source_size_bytes": 9347
+      },
+      {
+        "inventory_sha256": "4a765d98449a944c990dbb9b1677930c448d9ecc71cba726f3916e48d3863215",
+        "modules": [
+          "domains.runtime_policy"
+        ],
+        "output_mode": 420,
+        "output_sha256": "4a765d98449a944c990dbb9b1677930c448d9ecc71cba726f3916e48d3863215",
+        "output_size_bytes": 5919,
+        "path": "domains/runtime_policy.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "4a765d98449a944c990dbb9b1677930c448d9ecc71cba726f3916e48d3863215",
+        "source_size_bytes": 5919
+      },
+      {
+        "inventory_sha256": "46068d69d6783fdcd33b3428ae3c7e8e690d5149f4f00837f6b1d1184dd6f47b",
+        "modules": [
+          "infrastructure"
+        ],
+        "output_mode": 420,
+        "output_sha256": "46068d69d6783fdcd33b3428ae3c7e8e690d5149f4f00837f6b1d1184dd6f47b",
+        "output_size_bytes": 68,
+        "path": "infrastructure/__init__.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "46068d69d6783fdcd33b3428ae3c7e8e690d5149f4f00837f6b1d1184dd6f47b",
+        "source_size_bytes": 68
+      },
+      {
+        "inventory_sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+        "modules": [
+          "infrastructure.data_store"
+        ],
+        "output_mode": 420,
+        "output_sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+        "output_size_bytes": 10704,
+        "path": "infrastructure/data_store.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+        "source_size_bytes": 10704
+      },
+      {
+        "inventory_sha256": "0904603912d6257cb02f41dfaf66c080e2f682e690b1c1901a86a7bafe1e74f0",
+        "modules": [
+          "infrastructure.formula_generation"
+        ],
+        "output_mode": 420,
+        "output_sha256": "0904603912d6257cb02f41dfaf66c080e2f682e690b1c1901a86a7bafe1e74f0",
+        "output_size_bytes": 17448,
+        "path": "infrastructure/formula_generation.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "0904603912d6257cb02f41dfaf66c080e2f682e690b1c1901a86a7bafe1e74f0",
+        "source_size_bytes": 17448
+      },
+      {
+        "inventory_sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+        "modules": [
+          "infrastructure.interprocess_lock"
+        ],
+        "output_mode": 420,
+        "output_sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+        "output_size_bytes": 7514,
+        "path": "infrastructure/interprocess_lock.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+        "source_size_bytes": 7514
+      },
+      {
+        "inventory_sha256": "c714d4b95c03da061f592e076cd12188dbeefcd9f0fae7aeaae18c0450e915eb",
+        "modules": [
+          "infrastructure.isolated_package_loader"
+        ],
+        "output_mode": 420,
+        "output_sha256": "c714d4b95c03da061f592e076cd12188dbeefcd9f0fae7aeaae18c0450e915eb",
+        "output_size_bytes": 6946,
+        "path": "infrastructure/isolated_package_loader.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "c714d4b95c03da061f592e076cd12188dbeefcd9f0fae7aeaae18c0450e915eb",
+        "source_size_bytes": 6946
+      },
+      {
+        "inventory_sha256": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+        "modules": [
+          "infrastructure.market_time"
+        ],
+        "output_mode": 420,
+        "output_sha256": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+        "output_size_bytes": 960,
+        "path": "infrastructure/market_time.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+        "source_size_bytes": 960
+      },
+      {
+        "inventory_sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+        "modules": [
+          "infrastructure.owned_io"
+        ],
+        "output_mode": 420,
+        "output_sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+        "output_size_bytes": 9354,
+        "path": "infrastructure/owned_io.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+        "source_size_bytes": 9354
+      },
+      {
+        "inventory_sha256": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+        "modules": [
+          "infrastructure.owned_path"
+        ],
+        "output_mode": 420,
+        "output_sha256": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+        "output_size_bytes": 2251,
+        "path": "infrastructure/owned_path.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+        "source_size_bytes": 2251
+      },
+      {
+        "inventory_sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+        "modules": [
+          "infrastructure.preselection_pool_readers"
+        ],
+        "output_mode": 420,
+        "output_sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+        "output_size_bytes": 5432,
+        "path": "infrastructure/preselection_pool_readers.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+        "source_size_bytes": 5432
+      },
+      {
+        "inventory_sha256": "cc683561201453e3f7ca975b2b7cdb6a3836b1ecbe63e001a5abd181f38813d6",
+        "modules": [
+          "infrastructure.preselection_pool_sources"
+        ],
+        "output_mode": 420,
+        "output_sha256": "cc683561201453e3f7ca975b2b7cdb6a3836b1ecbe63e001a5abd181f38813d6",
+        "output_size_bytes": 5798,
+        "path": "infrastructure/preselection_pool_sources.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "cc683561201453e3f7ca975b2b7cdb6a3836b1ecbe63e001a5abd181f38813d6",
+        "source_size_bytes": 5798
+      },
+      {
+        "inventory_sha256": "a640d28ec54119ae383f5dd838fe467d6ae8b5b0d87fa2c4afbb0646fbfe658a",
+        "modules": [
+          "infrastructure.preselection_pool_store"
+        ],
+        "output_mode": 420,
+        "output_sha256": "a640d28ec54119ae383f5dd838fe467d6ae8b5b0d87fa2c4afbb0646fbfe658a",
+        "output_size_bytes": 32457,
+        "path": "infrastructure/preselection_pool_store.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "a640d28ec54119ae383f5dd838fe467d6ae8b5b0d87fa2c4afbb0646fbfe658a",
+        "source_size_bytes": 32457
+      },
+      {
+        "inventory_sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+        "modules": [
+          "infrastructure.preselection_pool_transactions"
+        ],
+        "output_mode": 420,
+        "output_sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+        "output_size_bytes": 15569,
+        "path": "infrastructure/preselection_pool_transactions.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+        "source_size_bytes": 15569
+      },
+      {
+        "inventory_sha256": "8e6ad9905b4b7d4e4b6216305d7e5b79154c37ce6df3ce7e76de0af79a9f343f",
+        "modules": [
+          "infrastructure.research_peripheral_store"
+        ],
+        "output_mode": 420,
+        "output_sha256": "8e6ad9905b4b7d4e4b6216305d7e5b79154c37ce6df3ce7e76de0af79a9f343f",
+        "output_size_bytes": 14499,
+        "path": "infrastructure/research_peripheral_store.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "8e6ad9905b4b7d4e4b6216305d7e5b79154c37ce6df3ce7e76de0af79a9f343f",
+        "source_size_bytes": 14499
+      },
+      {
+        "inventory_sha256": "66f43516bae3998546285e3c757925a2d8c04c157f17309f13d53eef0668a425",
+        "modules": [
+          "infrastructure.scheduling"
+        ],
+        "output_mode": 420,
+        "output_sha256": "66f43516bae3998546285e3c757925a2d8c04c157f17309f13d53eef0668a425",
+        "output_size_bytes": 348,
+        "path": "infrastructure/scheduling/__init__.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "66f43516bae3998546285e3c757925a2d8c04c157f17309f13d53eef0668a425",
+        "source_size_bytes": 348
+      },
+      {
+        "inventory_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+        "modules": [
+          "infrastructure.scheduling._executor_registry_parts"
+        ],
+        "output_mode": 420,
+        "output_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+        "output_size_bytes": 70,
+        "path": "infrastructure/scheduling/_executor_registry_parts/__init__.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+        "source_size_bytes": 70
+      },
+      {
+        "inventory_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+        "modules": [
+          "infrastructure.scheduling._executor_registry_parts._namespace"
+        ],
+        "output_mode": 420,
+        "output_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+        "output_size_bytes": 527,
+        "path": "infrastructure/scheduling/_executor_registry_parts/_namespace.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+        "source_size_bytes": 527
+      },
+      {
+        "inventory_sha256": "eef66ed8934e958ac4efb5b8821eec8b48206b5fc978ecdfbc59801ae36ed098",
+        "modules": [
+          "infrastructure.scheduling._executor_registry_parts.panel_execution"
+        ],
+        "output_mode": 420,
+        "output_sha256": "eef66ed8934e958ac4efb5b8821eec8b48206b5fc978ecdfbc59801ae36ed098",
+        "output_size_bytes": 8914,
+        "path": "infrastructure/scheduling/_executor_registry_parts/panel_execution.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "eef66ed8934e958ac4efb5b8821eec8b48206b5fc978ecdfbc59801ae36ed098",
+        "source_size_bytes": 8914
+      },
+      {
+        "inventory_sha256": "9e711d087a2286f7e2c6cec717e39ac556e0ed477672a81bfd5c67a3cce9038c",
+        "modules": [
+          "infrastructure.scheduling._executor_registry_parts.process_boundary"
+        ],
+        "output_mode": 420,
+        "output_sha256": "9e711d087a2286f7e2c6cec717e39ac556e0ed477672a81bfd5c67a3cce9038c",
+        "output_size_bytes": 5079,
+        "path": "infrastructure/scheduling/_executor_registry_parts/process_boundary.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "9e711d087a2286f7e2c6cec717e39ac556e0ed477672a81bfd5c67a3cce9038c",
+        "source_size_bytes": 5079
+      },
+      {
+        "inventory_sha256": "ee4627b05cd969357fb16e7fd88b7eccbc24aa1e13a04c6ddf120038f801defc",
+        "modules": [
+          "<F0_failure_resolved_required_import>"
+        ],
+        "output_mode": 420,
+        "output_sha256": "ee4627b05cd969357fb16e7fd88b7eccbc24aa1e13a04c6ddf120038f801defc",
+        "output_size_bytes": 7588,
+        "path": "infrastructure/scheduling/_executor_registry_parts/research_jobs.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "ee4627b05cd969357fb16e7fd88b7eccbc24aa1e13a04c6ddf120038f801defc",
+        "source_size_bytes": 7588
+      },
+      {
+        "inventory_sha256": "96c1b7ec2a3c9a94b7f6ac094a5d0ad12ab3c92287201cc7143b42386846a417",
+        "modules": [
+          "infrastructure.scheduling.catalog"
+        ],
+        "output_mode": 420,
+        "output_sha256": "96c1b7ec2a3c9a94b7f6ac094a5d0ad12ab3c92287201cc7143b42386846a417",
+        "output_size_bytes": 11044,
+        "path": "infrastructure/scheduling/catalog.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "96c1b7ec2a3c9a94b7f6ac094a5d0ad12ab3c92287201cc7143b42386846a417",
+        "source_size_bytes": 11044
+      },
+      {
+        "inventory_sha256": "64e596ff1c554937c93ac921671a204b889f51acd307c88e1aaa2184daadbc01",
+        "modules": [
+          "infrastructure.scheduling.dispatcher"
+        ],
+        "output_mode": 420,
+        "output_sha256": "64e596ff1c554937c93ac921671a204b889f51acd307c88e1aaa2184daadbc01",
+        "output_size_bytes": 23717,
+        "path": "infrastructure/scheduling/dispatcher.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "64e596ff1c554937c93ac921671a204b889f51acd307c88e1aaa2184daadbc01",
+        "source_size_bytes": 23717
+      },
+      {
+        "inventory_sha256": "966fba07ec9d32abcab5435441e4e574002bcdd7b63d6494ff94d7a7e7018007",
+        "modules": [
+          "infrastructure.scheduling.execution_ledger"
+        ],
+        "output_mode": 420,
+        "output_sha256": "966fba07ec9d32abcab5435441e4e574002bcdd7b63d6494ff94d7a7e7018007",
+        "output_size_bytes": 22725,
+        "path": "infrastructure/scheduling/execution_ledger.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "966fba07ec9d32abcab5435441e4e574002bcdd7b63d6494ff94d7a7e7018007",
+        "source_size_bytes": 22725
+      },
+      {
+        "inventory_sha256": "5c7ec48515dee5927b3a5cf9c5457dea299b2b6280b6c90fa452b945466faef9",
+        "modules": [
+          "infrastructure.scheduling.executor_registry"
+        ],
+        "output_mode": 420,
+        "output_sha256": "5c7ec48515dee5927b3a5cf9c5457dea299b2b6280b6c90fa452b945466faef9",
+        "output_size_bytes": 24448,
+        "path": "infrastructure/scheduling/executor_registry.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "5c7ec48515dee5927b3a5cf9c5457dea299b2b6280b6c90fa452b945466faef9",
+        "source_size_bytes": 24448
+      },
+      {
+        "inventory_sha256": "6054e4e5560bcfac89e4dacda624926dcf59385c2ce3d40786aebab06f55b842",
+        "modules": [
+          "infrastructure.scheduling.manager_capture_retry"
+        ],
+        "output_mode": 420,
+        "output_sha256": "6054e4e5560bcfac89e4dacda624926dcf59385c2ce3d40786aebab06f55b842",
+        "output_size_bytes": 12233,
+        "path": "infrastructure/scheduling/manager_capture_retry.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "6054e4e5560bcfac89e4dacda624926dcf59385c2ce3d40786aebab06f55b842",
+        "source_size_bytes": 12233
+      },
+      {
+        "inventory_sha256": "5620d1ee89fbae998d4c801c2a7c4cffac50f890ad0b6951f99230c591dcff68",
+        "modules": [
+          "infrastructure.scope_gate"
+        ],
+        "output_mode": 420,
+        "output_sha256": "5620d1ee89fbae998d4c801c2a7c4cffac50f890ad0b6951f99230c591dcff68",
+        "output_size_bytes": 16258,
+        "path": "infrastructure/scope_gate.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "5620d1ee89fbae998d4c801c2a7c4cffac50f890ad0b6951f99230c591dcff68",
+        "source_size_bytes": 16258
+      },
+      {
+        "inventory_sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+        "modules": [
+          "infrastructure.trading_safety"
+        ],
+        "output_mode": 420,
+        "output_sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+        "output_size_bytes": 2597,
+        "path": "infrastructure/trading_safety.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+        "source_size_bytes": 2597
+      },
+      {
+        "inventory_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+        "modules": [
+          "ops._macos_research_panel_daily_parts"
+        ],
+        "output_mode": 420,
+        "output_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+        "output_size_bytes": 70,
+        "path": "ops/_macos_research_panel_daily_parts/__init__.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+        "source_size_bytes": 70
+      },
+      {
+        "inventory_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+        "modules": [
+          "ops._macos_research_panel_daily_parts._namespace"
+        ],
+        "output_mode": 420,
+        "output_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+        "output_size_bytes": 527,
+        "path": "ops/_macos_research_panel_daily_parts/_namespace.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+        "source_size_bytes": 527
+      },
+      {
+        "inventory_sha256": "02aa07879864b54de47813b50e6aa211e7be1bd93fe508136ed0574b7b17ee43",
+        "modules": [
+          "ops._macos_research_panel_daily_parts.calendar_schedule"
+        ],
+        "output_mode": 420,
+        "output_sha256": "02aa07879864b54de47813b50e6aa211e7be1bd93fe508136ed0574b7b17ee43",
+        "output_size_bytes": 3588,
+        "path": "ops/_macos_research_panel_daily_parts/calendar_schedule.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "02aa07879864b54de47813b50e6aa211e7be1bd93fe508136ed0574b7b17ee43",
+        "source_size_bytes": 3588
+      },
+      {
+        "inventory_sha256": "f6161a61951e60de66a50e2ee28751400d316ede9dc503bb9b84967e8f4b09f2",
+        "modules": [
+          "ops._macos_research_panel_daily_parts.cli"
+        ],
+        "output_mode": 420,
+        "output_sha256": "f6161a61951e60de66a50e2ee28751400d316ede9dc503bb9b84967e8f4b09f2",
+        "output_size_bytes": 17434,
+        "path": "ops/_macos_research_panel_daily_parts/cli.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "f6161a61951e60de66a50e2ee28751400d316ede9dc503bb9b84967e8f4b09f2",
+        "source_size_bytes": 17434
+      },
+      {
+        "inventory_sha256": "b3f9741ada744988ddb656826286e61276d17194f3049e0d9fb0564454ad8fb0",
+        "modules": [
+          "ops._macos_research_panel_daily_parts.day_file_output"
+        ],
+        "output_mode": 420,
+        "output_sha256": "b3f9741ada744988ddb656826286e61276d17194f3049e0d9fb0564454ad8fb0",
+        "output_size_bytes": 5952,
+        "path": "ops/_macos_research_panel_daily_parts/day_file_output.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "b3f9741ada744988ddb656826286e61276d17194f3049e0d9fb0564454ad8fb0",
+        "source_size_bytes": 5952
+      },
+      {
+        "inventory_sha256": "1d223e51128dcc5070c7dcb048d87aea74d16fd2cd7c1fa3ca8e1c5815e69a67",
+        "modules": [
+          "ops._macos_research_panel_daily_parts.hk_capture_gate"
+        ],
+        "output_mode": 420,
+        "output_sha256": "1d223e51128dcc5070c7dcb048d87aea74d16fd2cd7c1fa3ca8e1c5815e69a67",
+        "output_size_bytes": 12888,
+        "path": "ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "1d223e51128dcc5070c7dcb048d87aea74d16fd2cd7c1fa3ca8e1c5815e69a67",
+        "source_size_bytes": 12888
+      },
+      {
+        "inventory_sha256": "b5c566f9395daa57b84c8842c92ccaedc0cc775bbc0cc1b478716814f71ef282",
+        "modules": [
+          "ops._macos_research_panel_daily_parts.hk_market_capture"
+        ],
+        "output_mode": 420,
+        "output_sha256": "b5c566f9395daa57b84c8842c92ccaedc0cc775bbc0cc1b478716814f71ef282",
+        "output_size_bytes": 14809,
+        "path": "ops/_macos_research_panel_daily_parts/hk_market_capture.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "b5c566f9395daa57b84c8842c92ccaedc0cc775bbc0cc1b478716814f71ef282",
+        "source_size_bytes": 14809
+      },
+      {
+        "inventory_sha256": "7ab4e0d3d9529e4e59cc875e44f4b368caaa2b2ae3cad45d8c11ad01a7326a03",
+        "modules": [
+          "ops._macos_research_panel_daily_parts.panel_primitives"
+        ],
+        "output_mode": 420,
+        "output_sha256": "7ab4e0d3d9529e4e59cc875e44f4b368caaa2b2ae3cad45d8c11ad01a7326a03",
+        "output_size_bytes": 6403,
+        "path": "ops/_macos_research_panel_daily_parts/panel_primitives.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "7ab4e0d3d9529e4e59cc875e44f4b368caaa2b2ae3cad45d8c11ad01a7326a03",
+        "source_size_bytes": 6403
+      },
+      {
+        "inventory_sha256": "e350f409b291bee26e2218dc0ace6436d7a85cc48a20569f7e6f3e987bb265d4",
+        "modules": [
+          "ops.daily_materialize"
+        ],
+        "output_mode": 420,
+        "output_sha256": "e350f409b291bee26e2218dc0ace6436d7a85cc48a20569f7e6f3e987bb265d4",
+        "output_size_bytes": 27110,
+        "path": "ops/daily_materialize.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "e350f409b291bee26e2218dc0ace6436d7a85cc48a20569f7e6f3e987bb265d4",
+        "source_size_bytes": 27110
+      },
+      {
+        "inventory_sha256": "ae6bae7dbd87f03327cf03904beee2e1f8b3e63b262057b49a3f6186eedf21f7",
+        "modules": [
+          "ops.ensure_hk_security_master"
+        ],
+        "output_mode": 420,
+        "output_sha256": "ae6bae7dbd87f03327cf03904beee2e1f8b3e63b262057b49a3f6186eedf21f7",
+        "output_size_bytes": 29319,
+        "path": "ops/ensure_hk_security_master.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "ae6bae7dbd87f03327cf03904beee2e1f8b3e63b262057b49a3f6186eedf21f7",
+        "source_size_bytes": 29319
+      },
+      {
+        "inventory_sha256": "bb4db8d0cafaf43c7080439a60b986bf0ed02d4e4cb3295bde3f7ad8a266377f",
+        "modules": [
+          "<main_origin>",
+          "__main__"
+        ],
+        "output_mode": 420,
+        "output_sha256": "bb4db8d0cafaf43c7080439a60b986bf0ed02d4e4cb3295bde3f7ad8a266377f",
+        "output_size_bytes": 31048,
+        "path": "ops/macos_research_panel_daily.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "bb4db8d0cafaf43c7080439a60b986bf0ed02d4e4cb3295bde3f7ad8a266377f",
+        "source_size_bytes": 31048
+      },
+      {
+        "inventory_sha256": "f5bc18e6c6143feaa23627ac8b66885810adbf77fb2135a295526fd188949955",
+        "modules": [
+          "stage_center"
+        ],
+        "output_mode": 420,
+        "output_sha256": "f5bc18e6c6143feaa23627ac8b66885810adbf77fb2135a295526fd188949955",
+        "output_size_bytes": 1098,
+        "path": "stage_center/__init__.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "f5bc18e6c6143feaa23627ac8b66885810adbf77fb2135a295526fd188949955",
+        "source_size_bytes": 1098
+      },
+      {
+        "inventory_sha256": "b56739ecc4a80eaa081f3ea124cf3199683fd470d71a770c9f91cc14de128140",
+        "modules": [
+          "stage_center._selection_parts"
+        ],
+        "output_mode": 420,
+        "output_sha256": "b56739ecc4a80eaa081f3ea124cf3199683fd470d71a770c9f91cc14de128140",
+        "output_size_bytes": 57,
+        "path": "stage_center/_selection_parts/__init__.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "b56739ecc4a80eaa081f3ea124cf3199683fd470d71a770c9f91cc14de128140",
+        "source_size_bytes": 57
+      },
+      {
+        "inventory_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+        "modules": [
+          "stage_center._selection_parts._namespace"
+        ],
+        "output_mode": 420,
+        "output_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+        "output_size_bytes": 527,
+        "path": "stage_center/_selection_parts/_namespace.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+        "source_size_bytes": 527
+      },
+      {
+        "inventory_sha256": "80b0c21556c78c89132a08ca24eb80b5a211791719cb54801497dbe74472e458",
+        "modules": [
+          "stage_center._selection_parts.schema_values"
+        ],
+        "output_mode": 420,
+        "output_sha256": "80b0c21556c78c89132a08ca24eb80b5a211791719cb54801497dbe74472e458",
+        "output_size_bytes": 3956,
+        "path": "stage_center/_selection_parts/schema_values.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "80b0c21556c78c89132a08ca24eb80b5a211791719cb54801497dbe74472e458",
+        "source_size_bytes": 3956
+      },
+      {
+        "inventory_sha256": "33e5003faed8127ec3393eb36af473c0d63ee3a79843418ef1a950ce7b697397",
+        "modules": [
+          "stage_center.acquisition"
+        ],
+        "output_mode": 420,
+        "output_sha256": "33e5003faed8127ec3393eb36af473c0d63ee3a79843418ef1a950ce7b697397",
+        "output_size_bytes": 13342,
+        "path": "stage_center/acquisition.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "33e5003faed8127ec3393eb36af473c0d63ee3a79843418ef1a950ce7b697397",
+        "source_size_bytes": 13342
+      },
+      {
+        "inventory_sha256": "31fed97066d9b804a71f15c48d4e0f8baa5d9af621e1d81dc0340fd6619e4099",
+        "modules": [
+          "stage_center.calendar"
+        ],
+        "output_mode": 420,
+        "output_sha256": "31fed97066d9b804a71f15c48d4e0f8baa5d9af621e1d81dc0340fd6619e4099",
+        "output_size_bytes": 4805,
+        "path": "stage_center/calendar.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "31fed97066d9b804a71f15c48d4e0f8baa5d9af621e1d81dc0340fd6619e4099",
+        "source_size_bytes": 4805
+      },
+      {
+        "inventory_sha256": "59c6bb0ef13a5aaa576477708385ec4ac68b7d20a69e3fc61d984da4a8284aff",
+        "modules": [
+          "stage_center.candidate_input"
+        ],
+        "output_mode": 420,
+        "output_sha256": "59c6bb0ef13a5aaa576477708385ec4ac68b7d20a69e3fc61d984da4a8284aff",
+        "output_size_bytes": 17567,
+        "path": "stage_center/candidate_input.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "59c6bb0ef13a5aaa576477708385ec4ac68b7d20a69e3fc61d984da4a8284aff",
+        "source_size_bytes": 17567
+      },
+      {
+        "inventory_sha256": "9e3a864c74eaec6c616b911b09c167c8cb407db8435343c1b522de4f4c9459eb",
+        "modules": [
+          "stage_center.consumer"
+        ],
+        "output_mode": 420,
+        "output_sha256": "9e3a864c74eaec6c616b911b09c167c8cb407db8435343c1b522de4f4c9459eb",
+        "output_size_bytes": 20718,
+        "path": "stage_center/consumer.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "9e3a864c74eaec6c616b911b09c167c8cb407db8435343c1b522de4f4c9459eb",
+        "source_size_bytes": 20718
+      },
+      {
+        "inventory_sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+        "modules": [
+          "stage_center.contracts"
+        ],
+        "output_mode": 420,
+        "output_sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+        "output_size_bytes": 2331,
+        "path": "stage_center/contracts.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+        "source_size_bytes": 2331
+      },
+      {
+        "inventory_sha256": "15052b23c62d38b65d65b96bf3b837782ebfa6fca7fe83f7c1d9374400bbdbde",
+        "modules": [
+          "stage_center.raw_store"
+        ],
+        "output_mode": 420,
+        "output_sha256": "15052b23c62d38b65d65b96bf3b837782ebfa6fca7fe83f7c1d9374400bbdbde",
+        "output_size_bytes": 13539,
+        "path": "stage_center/raw_store.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "15052b23c62d38b65d65b96bf3b837782ebfa6fca7fe83f7c1d9374400bbdbde",
+        "source_size_bytes": 13539
+      },
+      {
+        "inventory_sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294",
+        "modules": [
+          "stage_center.selection"
+        ],
+        "output_mode": 420,
+        "output_sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294",
+        "output_size_bytes": 31705,
+        "path": "stage_center/selection.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294",
+        "source_size_bytes": 31705
+      },
+      {
+        "inventory_sha256": "9d65e7016df3529f10c34a9532da3b2ac9236c4446a3bf7adea1531281e6c6ad",
+        "modules": [
+          "_v35_hk_security_master_acquire_457ccaa74971.acquire_hk_security_master"
+        ],
+        "output_mode": 420,
+        "output_sha256": "9d65e7016df3529f10c34a9532da3b2ac9236c4446a3bf7adea1531281e6c6ad",
+        "output_size_bytes": 8873,
+        "path": "upstreams/v3_shared_data/scripts/acquire_hk_security_master.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "9d65e7016df3529f10c34a9532da3b2ac9236c4446a3bf7adea1531281e6c6ad",
+        "source_size_bytes": 8873
+      },
+      {
+        "inventory_sha256": "f5925bc479203da8b7f7f81bae26334035b254ee6c2e2b598c81d804f519f9e4",
+        "modules": [
+          "_v35_hk_daily_panel_authority_457ccaa74971",
+          "shared_data"
+        ],
+        "output_mode": 420,
+        "output_sha256": "f5925bc479203da8b7f7f81bae26334035b254ee6c2e2b598c81d804f519f9e4",
+        "output_size_bytes": 446,
+        "path": "upstreams/v3_shared_data/shared_data/__init__.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "f5925bc479203da8b7f7f81bae26334035b254ee6c2e2b598c81d804f519f9e4",
+        "source_size_bytes": 446
+      },
+      {
+        "inventory_sha256": "a5e307f15416fe422a0ad36f60d6996f6a3f74753581dc589ef93149178dd206",
+        "modules": [
+          "_v35_hk_daily_panel_authority_457ccaa74971.allowlist",
+          "shared_data.allowlist"
+        ],
+        "output_mode": 420,
+        "output_sha256": "a5e307f15416fe422a0ad36f60d6996f6a3f74753581dc589ef93149178dd206",
+        "output_size_bytes": 3011,
+        "path": "upstreams/v3_shared_data/shared_data/allowlist.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "a5e307f15416fe422a0ad36f60d6996f6a3f74753581dc589ef93149178dd206",
+        "source_size_bytes": 3011
+      },
+      {
+        "inventory_sha256": "f59dc7f70939a033fcde715aef33c5e063cb10b20c98caf17ee3a42c4884c159",
+        "modules": [
+          "_v35_hk_daily_panel_authority_457ccaa74971.collectors",
+          "shared_data.collectors"
+        ],
+        "output_mode": 420,
+        "output_sha256": "f59dc7f70939a033fcde715aef33c5e063cb10b20c98caf17ee3a42c4884c159",
+        "output_size_bytes": 8200,
+        "path": "upstreams/v3_shared_data/shared_data/collectors.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "f59dc7f70939a033fcde715aef33c5e063cb10b20c98caf17ee3a42c4884c159",
+        "source_size_bytes": 8200
+      },
+      {
+        "inventory_sha256": "706ea95054bcfcf3bab12a234e79a1d25bb412ba32ab0e5b5a6f3f3f6b725df8",
+        "modules": [
+          "_v35_hk_daily_panel_authority_457ccaa74971.constants",
+          "shared_data.constants"
+        ],
+        "output_mode": 420,
+        "output_sha256": "706ea95054bcfcf3bab12a234e79a1d25bb412ba32ab0e5b5a6f3f3f6b725df8",
+        "output_size_bytes": 2604,
+        "path": "upstreams/v3_shared_data/shared_data/constants.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "706ea95054bcfcf3bab12a234e79a1d25bb412ba32ab0e5b5a6f3f3f6b725df8",
+        "source_size_bytes": 2604
+      },
+      {
+        "inventory_sha256": "bd3b19a188907a2273d09a51ee06c448f41ea94277c30a56658350ed6f3843ba",
+        "modules": [
+          "_v35_hk_daily_panel_authority_457ccaa74971.consumer"
+        ],
+        "output_mode": 420,
+        "output_sha256": "bd3b19a188907a2273d09a51ee06c448f41ea94277c30a56658350ed6f3843ba",
+        "output_size_bytes": 2788,
+        "path": "upstreams/v3_shared_data/shared_data/consumer.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "bd3b19a188907a2273d09a51ee06c448f41ea94277c30a56658350ed6f3843ba",
+        "source_size_bytes": 2788
+      },
+      {
+        "inventory_sha256": "d4bce5d9337f07ec8c3594367b0203f4eb8de71b5380f14734b5944cf45dcca6",
+        "modules": [
+          "_v35_hk_daily_panel_authority_457ccaa74971.hashing",
+          "shared_data.hashing"
+        ],
+        "output_mode": 420,
+        "output_sha256": "d4bce5d9337f07ec8c3594367b0203f4eb8de71b5380f14734b5944cf45dcca6",
+        "output_size_bytes": 1027,
+        "path": "upstreams/v3_shared_data/shared_data/hashing.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "d4bce5d9337f07ec8c3594367b0203f4eb8de71b5380f14734b5944cf45dcca6",
+        "source_size_bytes": 1027
+      },
+      {
+        "inventory_sha256": "b149d3d984e9c02bc5db9862acc4b68739367f37d910e8a6d37f708b1fca9151",
+        "modules": [
+          "_v35_hk_daily_panel_authority_457ccaa74971.hk_0_2"
+        ],
+        "output_mode": 420,
+        "output_sha256": "b149d3d984e9c02bc5db9862acc4b68739367f37d910e8a6d37f708b1fca9151",
+        "output_size_bytes": 63127,
+        "path": "upstreams/v3_shared_data/shared_data/hk_0_2.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "b149d3d984e9c02bc5db9862acc4b68739367f37d910e8a6d37f708b1fca9151",
+        "source_size_bytes": 63127
+      },
+      {
+        "inventory_sha256": "ac2c16669236d24d6d03cac183238ca8dccd8fd23895ae14ad34cef40c049008",
+        "modules": [
+          "shared_data.hk_security_master"
+        ],
+        "output_mode": 420,
+        "output_sha256": "ac2c16669236d24d6d03cac183238ca8dccd8fd23895ae14ad34cef40c049008",
+        "output_size_bytes": 14396,
+        "path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "ac2c16669236d24d6d03cac183238ca8dccd8fd23895ae14ad34cef40c049008",
+        "source_size_bytes": 14396
+      },
+      {
+        "inventory_sha256": "3007691db34aa721cf9549e79d9f9782bf7490ccb5d9f6ca2895f968525afdb3",
+        "modules": [
+          "_v35_hk_daily_panel_authority_457ccaa74971.paths",
+          "shared_data.paths"
+        ],
+        "output_mode": 420,
+        "output_sha256": "3007691db34aa721cf9549e79d9f9782bf7490ccb5d9f6ca2895f968525afdb3",
+        "output_size_bytes": 3986,
+        "path": "upstreams/v3_shared_data/shared_data/paths.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "3007691db34aa721cf9549e79d9f9782bf7490ccb5d9f6ca2895f968525afdb3",
+        "source_size_bytes": 3986
+      },
+      {
+        "inventory_sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+        "modules": [
+          "_v35_hk_daily_panel_authority_457ccaa74971.store",
+          "shared_data.store"
+        ],
+        "output_mode": 420,
+        "output_sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+        "output_size_bytes": 27895,
+        "path": "upstreams/v3_shared_data/shared_data/store.py",
+        "sha_equal": true,
+        "source_mode": 420,
+        "source_sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+        "source_size_bytes": 27895
+      }
+    ],
+    "entry_count": 64,
+    "f0_failure_resolved_dependency_count": 1,
+    "f1_traced_source_path_count": 63,
+    "scope": "exact candidate-success outer dispatcher and -m HK child loaded source paths from F1 traces, plus explicitly labelled F0 missing-import resolution"
+  }
+}
