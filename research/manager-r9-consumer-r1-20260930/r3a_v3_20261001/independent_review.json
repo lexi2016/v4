@@ -1,0 +1,149 @@
+{
+  "schema_version": "v4.r3a.independent_review.v1",
+  "recorded_at_utc": "2026-09-30T18:02:38+00:00",
+  "reviewer_identity": "/root/r3_forward_reviewer",
+  "reviewer_mode": "read_only_source_review",
+  "scope": "R3A candidate freeze v3; frozen F0-F2/API scope pins retained; isolated offline evidence only",
+  "status": "FAIL_WITH_TWO_P2",
+  "reviewed_pins": {
+    "freeze": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/r3a_candidate_freeze_v3.json",
+      "sha256": "b5d93bdb22058f8409ddf7170db00d733a262d74bb247b35bb40906b77b6d355"
+    },
+    "business_diff": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/r3a_candidate_diff_v3.patch",
+      "sha256": "e947280c3194090941c6b3817a16dc24ca5571dd339bb59d5437493708a26734"
+    },
+    "dependency_closure": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/original_import_dependency_closure_v3.json",
+      "sha256": "25d95fdac79e3b7b652ef3045f062adb922de710ee8c9b49c46100a587ca9441"
+    },
+    "candidate_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app",
+    "changed_business_files": [
+      {
+        "path": "ops/_macos_research_panel_daily_parts/hk_market_capture.py",
+        "sha256": "ea7cdab7182c7f357e8f9be8ec9b40c7e351a6d2434fa522bbe0c6153c6bd2f0"
+      },
+      {
+        "path": "ops/ensure_hk_security_master.py",
+        "sha256": "c09d7a0cc1d33b77cd09c81a80109324fd3614cb561673ec81007760cb750062"
+      },
+      {
+        "path": "stage_center/hk_universe_preflight.py",
+        "sha256": "9d3d2c2d5ff3bd1c7713a9485e88000ae882f58b0a457b734656094606ba2941"
+      },
+      {
+        "path": "domains/manager_research_evidence.py",
+        "sha256": "0c657383ec622ddde383d62c5a9f83445eb9915d07634ea2aac40b3ffdac8f89"
+      },
+      {
+        "path": "v4/manager_research/connect_selection.py",
+        "sha256": "945acad06c03321059756950988937dee9991d23007c4bac49251e8789488d3b"
+      }
+    ]
+  },
+  "independent_tests": [
+    {
+      "test": "HK Connect v2 offline contract and capture-to-reader canary",
+      "test_source": "tests/test_hk_connect_v2_contract.py",
+      "test_source_sha256": "be8819b330635080c011d2004d290dad6092e6eece43689c944311adb68ba2a0",
+      "runtime": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "working_directory": "/private/tmp",
+      "result": "PASS 4/4",
+      "stdout": "Ran 4 tests in 0.195s; OK",
+      "reviewer_output_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/reviewer/offline_canary/review-v3-hk-contract-candidate"
+    },
+    {
+      "test": "R3B saved-diagnostics regression against isolated R3A candidate imports",
+      "test_source": "tests/reviewer/test_r3b_saved_diagnostics_v2.py",
+      "test_source_sha256": "9c265162d7b8dccd346be60f23f72890dea56f39db172339ac1003e08702b77e",
+      "runtime": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "working_directory": "/private/tmp",
+      "result": "PASS 10/10",
+      "stdout": "10 passed in 0.23s",
+      "reviewer_basetemp": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/reviewer/r3b-saved-diagnostics-v3-review-candidate-tmp"
+    },
+    {
+      "test": "Affected workspace three-way merge regression against isolated R3A candidate imports",
+      "test_source": "/Users/lexi/Desktop/学习/agents调试/MANAGER_API_INTEGRATION_20260930/tests/test_workspace_threeway_merge.py",
+      "test_source_sha256": "76c84723efc9ff09d0370726e72756a11e9715c7c7e3c73ea94ce094bafe8fb2",
+      "runtime": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "working_directory": "/private/tmp",
+      "result": "PASS 4/4",
+      "stdout": "4 passed in 0.05s",
+      "reviewer_basetemp": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/reviewer/r3b-workspace-regression-v3-review-candidate-tmp"
+    }
+  ],
+  "findings": [
+    {
+      "id": "P2-1",
+      "title": "Full membership capture remains blocked by quote snapshot gates",
+      "evidence": {
+        "code": "candidate/app/ops/_macos_research_panel_daily_parts/hk_market_capture.py:359-376,459-474; publisher handoff occurs after these gates",
+        "low_quote_canary": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/reviewer/offline_canary/review-v3-quote-gate-repro",
+        "pending_manifest": {
+          "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/reviewer/offline_canary/review-v3-quote-gate-repro/receipt/hk_capture/20260930/synthetic-low-quotes.json",
+          "sha256": "c1995b477d63ff2f4e0a88e658dd6aa377c39f8cddd5824999a28ef423ffc661"
+        },
+        "sdk_sidecar": {
+          "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/evidence/reviewer/offline_canary/review-v3-quote-gate-repro/receipt/hk_capture/20260930/synthetic-low-quotes.sdk.capture.json",
+          "sha256": "f75fd98cdacf6e0f6f0701359d2d32ba4a2af5cd46ea5f615c616a2f5fd8d9b5"
+        },
+        "input": {
+          "successful_plate_responses": 2,
+          "union_count": 696,
+          "fresh_quote_rows": 396,
+          "snapshot_calls": 4
+        },
+        "stdout": "SnapshotGateError: HK exact-date coverage below gate: universe=696,rows=396,coverage=0.56896552; ordered plate calls HK.GangGuTong, HK.LIST1922; sidecar status RAW_CAPTURED; manifest status PENDING; final .capture.json absent"
+      },
+      "impact": "A valid exact membership union is not published when quote coverage fails, so the downstream security-master/selection handoff is not reached. This violates the frozen requirement to decouple membership eligibility/publication from the unchanged quote-quality gates.",
+      "expected": "Persist and hand off the already captured full membership through the existing producer/publisher chain while retaining quote gates for quote-dependent output.",
+      "actual": "The collector raises before the ensure/publisher handoff and leaves only raw sidecar plus PENDING manifest.",
+      "repro_method": "Offline reviewer canary imports the frozen test harness, overrides get_market_snapshot to return 100 valid same-date quote rows per batch, sets minimum_universe_count=600 and required_coverage_ratio=0, and writes only under reviewer evidence root."
+    },
+    {
+      "id": "P2-2",
+      "title": "V2 missing-artifact diagnostics identify the old v1 producer as source owner",
+      "evidence": {
+        "code": "candidate/app/domains/manager_research_evidence.py:35-42",
+        "candidate_helper_sha256": "9d3d2c2d5ff3bd1c7713a9485e88000ae882f58b0a457b734656094606ba2941",
+        "reproduced_output": {
+          "error": "HK_UNIVERSE_V2_ARTIFACT_MISSING",
+          "source_owner": "stage_center.hk_universe_preflight.ensure_hk_connect_universe",
+          "source_code_ref": "stage_center/hk_universe_preflight.py",
+          "source_code_sha256": "9d3d2c2d5ff3bd1c7713a9485e88000ae882f58b0a457b734656094606ba2941"
+        }
+      },
+      "impact": "V2 failure evidence points maintainers to the legacy v1 function instead of distinguishing the pure v2 contract helper from the dispatcher workload that performs capture/publication.",
+      "expected": "Set the v2 contract owner to its pure helper and represent the dispatcher workload as the producer owner; preserve v1 diagnostics unchanged.",
+      "actual": "The shared UNIVERSE diagnostic hard-codes ensure_hk_connect_universe for every universe layer."
+    }
+  ],
+  "risk_counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 2
+  },
+  "acceptance": {
+    "REVIEWED": "FAIL_WITH_TWO_P2",
+    "TESTED": "PASS for the listed 4+10+4 independent focused cases; these passes do not close the two acceptance findings",
+    "BEHAVIOR_VERIFIED": "FAIL for the two reproduced target deviations",
+    "API_VERIFIED": "CANNOT_CONFIRM",
+    "UI_VERIFIED": "CANNOT_CONFIRM",
+    "DEPLOYED": "CANNOT_CONFIRM",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM",
+    "REAL_SDK_RETURN_CODE_TYPE": "CANNOT_CONFIRM"
+  },
+  "safety_boundary": {
+    "provider_calls": false,
+    "canonical_source_written": false,
+    "active_release_written": false,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "deployed": false,
+    "pushed": false,
+    "committed": false
+  }
+}
