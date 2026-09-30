@@ -1,0 +1,22 @@
+{
+  "baseline_commit": "3d03ca4ade08ac4c5f3f049756997d3934c782e3",
+  "code_commit": "f8aaea6ab0fe7f94cd4ca5f6ec07821c0d24d8f6",
+  "verification_scope": "Five changed source/test Git blob identities matched tested local bytes. Not entire snapshot or Mac runtime equivalence.",
+  "mac_reported_stage_dispatch_before_sha256": "dcb4784d1374fbe8f9076646b6befba4b48331826a7f07a82c25e497820689d4",
+  "mac_before_matches_github": false,
+  "files": [
+    {"path":"ops/_run_stage_center_nodes_parts/node_entry.py","before_sha256":"54defb0f45adbafcf4b661611f41d0b43d89abf492d89d587c28962eff9b36fe","after_sha256":"e8707873a23284626f5af44aa7ede9b273e464f1d66bf79dd608099abf451dba","bytes":41038,"git_blob_sha":"a2748870d1caa98c41c362ce9c3dc19adc4195b1"},
+    {"path":"ops/_run_stage_center_nodes_parts/stage_dispatch.py","before_sha256":"df6221a177d82f0fd683896b3ef21cd66cd7a8a4b6c6c8b95571f277108d52fe","after_sha256":"895525314446da1b5c97c5f1cbf860f266438b56b43b6140de40d0aa6df52ad6","bytes":14318,"git_blob_sha":"d2dc607ae3344d591561b874748bf692d7e6eb06"},
+    {"path":"tests/test_issue11_a_auction_recovery.py","before_sha256":null,"after_sha256":"efaa5fb52393881793706976fc3ca40577e505df90b16b1bb979dfe9598c461f","bytes":12486,"git_blob_sha":"72403ae62e06c26dca65b5f042e9ac872976715c"},
+    {"path":"tests/test_issue11_recovery_failclosed.py","before_sha256":null,"after_sha256":"a05411a93313d070630dad342afff77bd21f7a0eaa9aa6027d8cef8860982a7f","bytes":749,"git_blob_sha":"5fca7136e676521ac101296fe0341e25b60064ce"},
+    {"path":"tests/test_manager_stage_rearm_rework.py","before_sha256":"06a50aef98ae179abf256bbf128ec16653198a81e18695cc27f4c011465eb2e0","after_sha256":"ea6f894316572fe1bd00572b08dfc0cb011021f9e3c8f70877cf6d937857b30d","bytes":6363,"git_blob_sha":"982778b8cbebba7a749d41eaea14c38954c4d128"}
+  ],
+  "author_focused_tests":{"passed":58,"failed":0,"exit_code":0,"fixture_kind":"SYNTHETIC"},
+  "additional_affected_tests":{"passed":27,"failed":5,"same_failures_on_unmodified_products":true},
+  "independent_review":"NOT_EXECUTED",
+  "mac_integration":"NOT_EXECUTED",
+  "deployment":"NOT_EXECUTED",
+  "real_recovery":"NOT_EXECUTED",
+  "api_ui":"NOT_EXECUTED",
+  "production_allowed":false,"buy_gate_updated":false,"orders_sent":false
+}
