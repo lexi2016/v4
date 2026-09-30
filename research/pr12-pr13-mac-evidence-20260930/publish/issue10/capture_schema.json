@@ -1,0 +1,265 @@
+{
+  "capture": {
+    "capture_canonical_sha256": "46199aa304f7e0e5194d512d654446f2d724bf66dd93c870803889385cb2bd82",
+    "capture_serialization": "same canonical JSON serialization over the complete capture object with capture_sha256 field omitted",
+    "captured_row_count": 686,
+    "completed_at_shanghai": "2026-09-30T12:55:01+08:00",
+    "hash_binding": {
+      "capture_canonical_sha256": "canonical serialization of capture object excluding capture_sha256",
+      "manifest_file_bytes_sha256": "exact bytes of sibling *.json manifest file",
+      "raw_bytes_sha256": "exact bytes of *.capture.json",
+      "source_payload_canonical_sha256": "canonical serialization of source_payload object"
+    },
+    "manifest_file_bytes_sha256": "69e989d4e39bc5693d0b8884426b7af06aa9f83b0ca5904eedc6c77a29f79469",
+    "raw_bytes_sha256": "5bd301078adb4541861f5ca0aae67be1444b13102ad8560a4d8354ddf7c9b3e4",
+    "security_master_rows": 696,
+    "snapshot_batch_count": 4,
+    "snapshot_update_time_range": {
+      "first": "2026-09-30 09:20:15",
+      "last": "2026-09-30 12:00:00"
+    },
+    "source_date": "20260930",
+    "source_payload_canonical_sha256": "53697c4681ced03100eb73a2ab0dd7f9b538d2f5e91bbdc05d651be7324c006d",
+    "source_payload_serialization": "UTF-8 Python JSON: json.dumps(ensure_ascii=False, sort_keys=True, separators=(\",\", \":\")); default allow_nan behavior is retained",
+    "started_at_shanghai": "2026-09-30T12:54:59+08:00",
+    "universe_count": 696
+  },
+  "manifest_field_types": {
+    "capture": {
+      "fields": {
+        "buy_gate_updated": "boolean",
+        "capture_sha256": "string",
+        "codes": {
+          "item_type": "string",
+          "length": 696,
+          "type": "array",
+          "values_omitted": true
+        },
+        "orders_sent": "boolean",
+        "plates": {
+          "item_type": "string",
+          "length": 2,
+          "type": "array",
+          "values_omitted": true
+        },
+        "production_allowed": "boolean",
+        "rows": {
+          "item_schema": {
+            "close": "number",
+            "code": "string",
+            "high": "number",
+            "low": "number",
+            "name": "string",
+            "open": "number",
+            "source": "string",
+            "trade_date": "string",
+            "turnover": "number",
+            "volume": "integer"
+          },
+          "length": 686,
+          "type": "array"
+        },
+        "schema_version": "string",
+        "security_master_rows": {
+          "item_schema": {
+            "circular_market_val": "number",
+            "code": "string",
+            "listing_date": "string",
+            "lot_size": "integer",
+            "name": "string",
+            "outstanding_shares": [
+              "integer",
+              "number"
+            ],
+            "sec_status": "string",
+            "stock_child_type": "null",
+            "stock_owner": "number"
+          },
+          "length": 696,
+          "type": "array"
+        },
+        "source_payload": {
+          "fields": {
+            "excluded_codes": {
+              "item_type": "string",
+              "length": 10,
+              "type": "array",
+              "values_omitted": true
+            },
+            "excluded_count": "integer",
+            "excluded_reasons": {
+              "entry_count": 10,
+              "keys_omitted": true,
+              "type": "object",
+              "value_schema": "array<string>"
+            },
+            "plates": "array",
+            "positive_turnover_coverage_rate": "number",
+            "positive_volume_coverage_rate": "number",
+            "rows": {
+              "item_schema": {
+                "close": "number",
+                "code": "string",
+                "high": "number",
+                "low": "number",
+                "name": "string",
+                "open": "number",
+                "source": "string",
+                "trade_date": "string",
+                "turnover": "number",
+                "volume": "integer"
+              },
+              "length": 686,
+              "type": "array"
+            },
+            "target_date": "string"
+          },
+          "type": "object"
+        },
+        "source_sha256": "string",
+        "target_date": "string"
+      },
+      "type": "object"
+    },
+    "capture_path": "string",
+    "capture_raw_sha256": "string",
+    "capture_relative_path": "string",
+    "capture_run_id": "string",
+    "capture_sha256": "string",
+    "codes": {
+      "item_type": "string",
+      "length": 696,
+      "type": "array",
+      "values_omitted": true
+    },
+    "excluded_codes": {
+      "item_type": "string",
+      "length": 10,
+      "type": "array",
+      "values_omitted": true
+    },
+    "schema_version": "string",
+    "stale_codes": {
+      "item_type": "string",
+      "length": 0,
+      "type": "array",
+      "values_omitted": true
+    },
+    "status": "string",
+    "target_date": "string"
+  },
+  "privacy_boundary": {
+    "instrument_names_or_code_universe_exported": false,
+    "market_cap_values_exported": false,
+    "paths_and_environment_values_exported": false,
+    "quote_rows_exported": false,
+    "security_master_values_exported": false
+  },
+  "producer_identity": {
+    "capture_audit_wrapper_path": "hk_original_chain_recovery_20260930/writer/run_original_hk_quote_canary.py",
+    "capture_audit_wrapper_sha256": "18422b2d842f735ba849032cba8338cd525088b8354cb42ed4f1cbc3baaa3f3d",
+    "capture_run_id": "hk-20260930-current-quote-canary",
+    "original_entrypoint": "ops.macos_research_panel_daily.collect_hk_futu_rows",
+    "producer_manifest_role": "app-local producer manifest referenced by the canary receipt; not asserted to be the active LaunchAgent root-level manifest pin",
+    "producer_manifest_sha256": "34b221d46f982cb4419fe4840e37fea067c863a810728b1a44ee067b28ec8bfc",
+    "source_module_sha256": {
+      "macos_research_panel_daily.py": "19278e31e237c84bc4dc3a146bf74d2a1fac837d249676c7faa624acde39c1e6",
+      "macos_research_panel_daily_collectors.py": "afd6a4fa768a59e2ebe85c82482a593bb40203bd53abc81036af57f3a8e61f87",
+      "macos_research_panel_daily_common.py": "023fc378f17c8fe2c9b7c821db27ed63ae3c192a261c93c78991f1a89bca8052"
+    }
+  },
+  "raw_capture_field_types": {
+    "buy_gate_updated": "boolean",
+    "capture_sha256": "string",
+    "codes": {
+      "item_type": "string",
+      "length": 696,
+      "type": "array",
+      "values_omitted": true
+    },
+    "orders_sent": "boolean",
+    "plates": {
+      "item_type": "string",
+      "length": 2,
+      "type": "array",
+      "values_omitted": true
+    },
+    "production_allowed": "boolean",
+    "rows": {
+      "item_schema": {
+        "close": "number",
+        "code": "string",
+        "high": "number",
+        "low": "number",
+        "name": "string",
+        "open": "number",
+        "source": "string",
+        "trade_date": "string",
+        "turnover": "number",
+        "volume": "integer"
+      },
+      "length": 686,
+      "type": "array"
+    },
+    "schema_version": "string",
+    "security_master_rows": {
+      "item_schema": {
+        "circular_market_val": "number",
+        "code": "string",
+        "listing_date": "string",
+        "lot_size": "integer",
+        "name": "string",
+        "outstanding_shares": [
+          "integer",
+          "number"
+        ],
+        "sec_status": "string",
+        "stock_child_type": "null",
+        "stock_owner": "number"
+      },
+      "length": 696,
+      "type": "array"
+    },
+    "source_payload": {
+      "fields": {
+        "excluded_codes": {
+          "item_type": "string",
+          "length": 10,
+          "type": "array",
+          "values_omitted": true
+        },
+        "excluded_count": "integer",
+        "excluded_reasons": {
+          "entry_count": 10,
+          "keys_omitted": true,
+          "type": "object",
+          "value_schema": "array<string>"
+        },
+        "plates": "array",
+        "positive_turnover_coverage_rate": "number",
+        "positive_volume_coverage_rate": "number",
+        "rows": {
+          "item_schema": {
+            "close": "number",
+            "code": "string",
+            "high": "number",
+            "low": "number",
+            "name": "string",
+            "open": "number",
+            "source": "string",
+            "trade_date": "string",
+            "turnover": "number",
+            "volume": "integer"
+          },
+          "length": 686,
+          "type": "array"
+        },
+        "target_date": "string"
+      },
+      "type": "object"
+    },
+    "source_sha256": "string",
+    "target_date": "string"
+  },
+  "schema_version": "evidence.issue10.capture-schema.v1"
+}

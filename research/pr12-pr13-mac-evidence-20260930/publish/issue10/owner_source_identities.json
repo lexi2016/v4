@@ -1,0 +1,151 @@
+{
+  "api_owner": {
+    "entrypoint_path": "apps/api/v35_api/app.py",
+    "entrypoint_sha256": "fd3733389a07dbda480439700638a55c6fce1c5cca82d757a77675ee4e5bf815",
+    "loaded_process_bytes": "CANNOT_CONFIRM",
+    "plist_basename": "com.lexi.v35.api-only.plist",
+    "release_id": "20260929-manager-eastmoney-r2-stage-r9",
+    "release_manifest_sha256": "3c10ed2c1e617be232b7954e66c28a40ead47519ac126711f8b42aa6cbc1f4f7",
+    "working_directory_matches_recorded_api_root": true
+  },
+  "comparison_base_commit": "3d03ca4ade08ac4c5f3f049756997d3934c782e3",
+  "hk_observation_pool_integration": "NOT_IMPLEMENTED_BY_PR13; current runtime integration acceptance CANNOT_CONFIRM",
+  "module_identities": [
+    {
+      "active_file_present": true,
+      "active_matches_base": true,
+      "active_sha256": "54defb0f45adbafcf4b661611f41d0b43d89abf492d89d587c28962eff9b36fe",
+      "base_sha256": "54defb0f45adbafcf4b661611f41d0b43d89abf492d89d587c28962eff9b36fe",
+      "owner": "STAGE_APP_ROOT",
+      "path": "ops/_run_stage_center_nodes_parts/node_entry.py"
+    },
+    {
+      "active_file_present": true,
+      "active_matches_base": false,
+      "active_sha256": "dcb4784d1374fbe8f9076646b6befba4b48331826a7f07a82c25e497820689d4",
+      "base_sha256": "df6221a177d82f0fd683896b3ef21cd66cd7a8a4b6c6c8b95571f277108d52fe",
+      "owner": "STAGE_APP_ROOT",
+      "path": "ops/_run_stage_center_nodes_parts/stage_dispatch.py"
+    },
+    {
+      "active_file_present": true,
+      "active_matches_base": false,
+      "active_sha256": "728fa6e64914942e651e62442caa83becbc6aef4705ebea59e17a544b36ea00d",
+      "base_sha256": "b74756748e98035d8058447f5f2644aa5709e4739bfe0ee9f365d4f0c7094e2c",
+      "owner": "STAGE_APP_ROOT",
+      "path": "stage_center/_live_collectors_parts/a_auction.py"
+    },
+    {
+      "active_file_present": true,
+      "active_matches_base": false,
+      "active_sha256": "02d7505614b66768f6c3f6b86e4e606f0df9f4fabb6aaad5ea8f8a0fa3738260",
+      "base_sha256": "8afaea9b97edb790df33dc67b5ef4992b4a0f655a376ca458655509e2c6df9a9",
+      "owner": "STAGE_APP_ROOT",
+      "path": "infrastructure/tdx_minute_replay_provider.py"
+    },
+    {
+      "active_file_present": true,
+      "active_matches_base": true,
+      "active_sha256": "648fe7af52df1b4eba31802361f9af2d03decbbebb3286ecc7a5dc0b06523205",
+      "base_sha256": "648fe7af52df1b4eba31802361f9af2d03decbbebb3286ecc7a5dc0b06523205",
+      "owner": "STAGE_APP_ROOT",
+      "path": "stage_center/runner.py"
+    },
+    {
+      "active_file_present": true,
+      "active_matches_base": false,
+      "active_sha256": "d55cfe2978a2e86d7e609f599cfb6d321a0d2636e142fb817e69fedfd0972c20",
+      "base_sha256": "a6584015f7196091f69b25f810b6e83755b86d7ac8ce36891e479a4203b1945c",
+      "owner": "STAGE_APP_ROOT",
+      "path": "stage_center/_runner_parts/slot_execution.py"
+    },
+    {
+      "active_file_present": true,
+      "active_matches_base": true,
+      "active_sha256": "f703a8aa5e79742785b07d29778f42f53035e56b15f695aebc92d56c680531cd",
+      "base_sha256": "f703a8aa5e79742785b07d29778f42f53035e56b15f695aebc92d56c680531cd",
+      "owner": "STAGE_APP_ROOT",
+      "path": "stage_center/_runner_parts/hk_input_validation.py"
+    },
+    {
+      "active_file_present": true,
+      "active_matches_base": true,
+      "active_sha256": "1fd933e8436e4316832c29f89da16c1ccf3ed78b14ee853262ed758e476d2f95",
+      "base_sha256": "1fd933e8436e4316832c29f89da16c1ccf3ed78b14ee853262ed758e476d2f95",
+      "owner": "STAGE_APP_ROOT",
+      "path": "stage_center/_runner_parts/hk_candidate_authority.py"
+    },
+    {
+      "active_file_present": true,
+      "active_matches_base": false,
+      "active_sha256": "b6c78a4ffd7193d0e1afeee530a1c4c123e72a20ba3bc9f8183727dcca58a179",
+      "base_sha256": "3033cf9e83902481f35c9a6aa635ee6ea89a9ba0641b43921c2df69de3aa3b69",
+      "owner": "STAGE_APP_ROOT",
+      "path": "stage_center/_live_collectors_parts/hk_minute.py"
+    },
+    {
+      "active_file_present": true,
+      "active_matches_base": false,
+      "active_sha256": "f08f4620da6570ae2c8e48783dfb454237c958f0bbcfd8e92dfa4d096bc26809",
+      "base_sha256": "3d35e4274c564b826c248367e5bef6f24409b742966723ebeb5f60b726b7f106",
+      "owner": "STAGE_APP_ROOT",
+      "path": "domains/preselection.py"
+    },
+    {
+      "active_file_present": true,
+      "active_matches_base": true,
+      "active_sha256": "a640d28ec54119ae383f5dd838fe467d6ae8b5b0d87fa2c4afbb0646fbfe658a",
+      "base_sha256": "a640d28ec54119ae383f5dd838fe467d6ae8b5b0d87fa2c4afbb0646fbfe658a",
+      "owner": "STAGE_APP_ROOT",
+      "path": "infrastructure/preselection_pool_store.py"
+    },
+    {
+      "active_file_present": true,
+      "active_matches_base": false,
+      "active_sha256": "fd3733389a07dbda480439700638a55c6fce1c5cca82d757a77675ee4e5bf815",
+      "base_sha256": "86b3fb18ad5da95867dc6fc3ff9d2e23288b865a663791e79f33f4c4104a8bd7",
+      "owner": "API_APP_ROOT",
+      "path": "apps/api/v35_api/app.py"
+    },
+    {
+      "active_file_present": true,
+      "active_matches_base": false,
+      "active_sha256": "317159a9901ede51107418336e0340d8dd252ee20ced15698d5eaceeed8badf3",
+      "base_sha256": "648fe7af52df1b4eba31802361f9af2d03decbbebb3286ecc7a5dc0b06523205",
+      "owner": "API_APP_ROOT",
+      "path": "stage_center/runner.py"
+    },
+    {
+      "active_file_present": true,
+      "active_matches_base": false,
+      "active_sha256": "8a21fa2caf27e06ea4b6526ff0dd7db99390dda007936aaf99ef8772e6e4305a",
+      "base_sha256": "3d35e4274c564b826c248367e5bef6f24409b742966723ebeb5f60b726b7f106",
+      "owner": "API_APP_ROOT",
+      "path": "domains/preselection.py"
+    },
+    {
+      "active_file_present": true,
+      "active_matches_base": false,
+      "active_sha256": "c96db1543e8b28e640b3c2d2a64aaae6a96d9a2a4a2401ca2780519233805171",
+      "base_sha256": "a640d28ec54119ae383f5dd838fe467d6ae8b5b0d87fa2c4afbb0646fbfe658a",
+      "owner": "API_APP_ROOT",
+      "path": "infrastructure/preselection_pool_store.py"
+    }
+  ],
+  "pr12_head_commit": "cb33d2fe2241079f46ae5e09e605f11a2fd5462f",
+  "pr13_changed_files": [
+    "docs/issue10_hk_observation_20260930/README.md",
+    "ops/inspect_hk_observation_rows.py",
+    "tests/test_issue10_persisted_rows.py"
+  ],
+  "pr13_head_commit": "8af24212ecdbdd4105a44ac536f8b469b5ad9660",
+  "pr13_scope": "diagnostic code and tests only; PR13 did not change Stage/API owner product files",
+  "repository": "lexi2016/v4",
+  "schema_version": "evidence.issue10.owner-source-identities.v1",
+  "stage_owner": {
+    "dispatch_sha256": "dcb4784d1374fbe8f9076646b6befba4b48331826a7f07a82c25e497820689d4",
+    "entrypoint_sha256": "54defb0f45adbafcf4b661611f41d0b43d89abf492d89d587c28962eff9b36fe",
+    "root_alias": "STAGE_APP_ROOT",
+    "specified_stage_entrypoint_path": "ops/_run_stage_center_nodes_parts/node_entry.py"
+  }
+}

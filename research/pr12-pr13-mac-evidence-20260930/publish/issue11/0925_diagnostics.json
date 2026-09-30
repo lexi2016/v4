@@ -1,0 +1,45 @@
+{
+  "diagnostics": {
+    "candidate_current_sha256": "08b1a6b0376c1ba0828ed5b3423ef5860d4e66944342cf3cf74d28b189e21623",
+    "dispatch_mode": "RECOVERY",
+    "due_status": "LATE_CATCHUP_REPLAY",
+    "error": "all market collectors returned zero-row CANNOT_CONFIRM",
+    "first_failed_layer": "EXACT_SELECTION_INPUT_BINDING",
+    "markets": {
+      "A_SHARE": {
+        "first_error": "PYTDX_0925_REPLAY_ERROR:TypeError:can't compare offset-naive and offset-aware datetimes",
+        "observed_rows": 0,
+        "requested_rows": 205,
+        "status": "CANNOT_CONFIRM"
+      },
+      "HK_CONNECT": {
+        "first_error": "HK D1 status must be STRICT_0_2_READY",
+        "observed_rows": 0,
+        "requested_rows": null,
+        "status": "CANNOT_CONFIRM"
+      }
+    },
+    "node_attempt_count": 3,
+    "node_id": "STAGE_0925",
+    "node_outcome": "TRANSIENT",
+    "retry_exhausted": true,
+    "safety": {
+      "buy_gate_updated": false,
+      "orders_sent": false,
+      "production_allowed": false
+    },
+    "stage_id": "STAGE_0925",
+    "status": "CANNOT_CONFIRM",
+    "trade_date": "20260930",
+    "write_performed": false
+  },
+  "schema_version": "evidence.issue11.0925-diagnostics.v1",
+  "source": {
+    "body_exported": false,
+    "bytes": 2178,
+    "formal_relative_path": "APP_STATE/stage/receipts/20260930/STAGE_0925/receipt.json",
+    "formal_source_bytes_readback_matches_copy": true,
+    "sha256": "b920987cdecc63d0f7857c50404b3807c8f5212f418be304f75a11a06500a87f",
+    "source_receipt_copy_matches_recorded_bytes_and_sha256": true
+  }
+}

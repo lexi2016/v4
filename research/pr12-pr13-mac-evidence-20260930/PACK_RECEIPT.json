@@ -1,0 +1,40 @@
+{
+  "CANNOT_CONFIRM": [
+    "PR12 Mac-specific combined stage_dispatch adaptation and real STAGE_0925 recovery behavior; the package supplies the three-way source comparison only.",
+    "The receipt candidate_current_sha256 field binding to the PR12 candidate artifact SHA or 205-code-list SHA.",
+    "A full HK SourceResult artifact, its complete row count/hash, or full explicit missing-code list outside the exact supplied evidence set.",
+    "Whether the canary-derived 64-code list existed as an independently persisted request file at run time; the packaged list is DERIVED_FROM_CAPTURE.",
+    "HK observation-pool product integration and live API/UI/natural-run behavior; PR13 changes are diagnostic-only.",
+    "Which exact module bytes a live process loaded; file identities are source/readback evidence only."
+  ],
+  "manifest_bytes": 7262,
+  "manifest_path": "publish/MANIFEST.json",
+  "manifest_sha256": "bbd2df390703898ba00317cefa44cb8bdbb37d4e340d87538c6b930aca0f3214",
+  "not_installable": true,
+  "pack_bytes_excluding_pack_receipt_self": 120369,
+  "pack_files_excluding_pack_receipt_self": 13,
+  "pack_receipt_self_size_excluded_from_byte_total": true,
+  "payload_bytes": 113107,
+  "payload_file_count": 12,
+  "privacy_boundary": "No full capture/quote or security-master rows, full receipt body, attempt bodies, full plist/environment, 205-candidate code list, or credential literals are included.",
+  "reference_only": true,
+  "schema_version": "evidence_writer.pack-receipt.v1",
+  "status": "WRITTEN_REFERENCE_ONLY_PACKAGE",
+  "total_pack_file_count_including_pack_receipt_self": 14,
+  "verification": {
+    "all_payload_json_parsed": true,
+    "api_plist_selected_working_directory_matches_recorded_api_root": true,
+    "attempt_evidence_sizes_and_hashes_checked": true,
+    "capture_raw_source_capture_and_manifest_hash_bindings_checked": true,
+    "code_tests_run_by_pack_writer": false,
+    "privacy_scan_findings": 0,
+    "request_codes_json_array_count": 64,
+    "request_codes_sha256": "6c5dbc0cacccaa29a834c485240010f9f62ba5792e311a21f246abd12b7a3b22",
+    "source_diffs_applied_in_temporary_scoped_tree_and_hash_matched_active_source": {
+      "infrastructure/tdx_minute_replay_provider.py": "02d7505614b66768f6c3f6b86e4e606f0df9f4fabb6aaad5ea8f8a0fa3738260",
+      "stage_center/_live_collectors_parts/a_auction.py": "728fa6e64914942e651e62442caa83becbc6aef4705ebea59e17a544b36ea00d",
+      "stage_center/_live_collectors_parts/hk_minute.py": "b6c78a4ffd7193d0e1afeee530a1c4c123e72a20ba3bc9f8183727dcca58a179",
+      "stage_center/_runner_parts/slot_execution.py": "d55cfe2978a2e86d7e609f599cfb6d321a0d2636e142fb817e69fedfd0972c20"
+    }
+  }
+}

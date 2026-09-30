@@ -1,0 +1,117 @@
+{
+  "files": [
+    {
+      "bytes": 23699,
+      "not_installable": true,
+      "path": "publish/issue11/stage_dispatch_3way.diff",
+      "provenance": "Exact GitHub base and PR12-head blobs plus read-only specified Stage source. base_sha256=df6221a177d82f0fd683896b3ef21cd66cd7a8a4b6c6c8b95571f277108d52fe; PR12_sha256=895525314446da1b5c97c5f1cbf860f266438b56b43b6140de40d0aa6df52ad6; Mac_sha256=dcb4784d1374fbe8f9076646b6befba4b48331826a7f07a82c25e497820689d4.",
+      "purpose": "Three-way comparison of the specified Mac Stage dispatch file against common base and PR12 head; preserve Mac-only HK late-observation/rearm/annotation behavior.",
+      "reference_only": true,
+      "sha256": "6c83f05c01ca32bafb90bf67edf8425811541a049b89dab48691ccd30c47365a"
+    },
+    {
+      "bytes": 884,
+      "not_installable": true,
+      "path": "publish/issue11/node_entry_identity.json",
+      "provenance": "Exact remote base and PR12-head file content compared with the specified Stage file; full commit refs and SHA256s are in the JSON.",
+      "purpose": "Identity-only evidence for node_entry.py; avoids duplicating product source.",
+      "reference_only": true,
+      "sha256": "3d5949aa3ef26b2c584a6ec121f95f63d5577416f7c6d4ac6bf717447e652312"
+    },
+    {
+      "bytes": 7628,
+      "not_installable": true,
+      "path": "publish/issue11/a_auction_repair.diff",
+      "provenance": "Exact GitHub base commit 3d03ca4ade08ac4c5f3f049756997d3934c782e3 and read-only specified Stage source; before_sha256=b74756748e98035d8058447f5f2644aa5709e4739bfe0ee9f365d4f0c7094e2c; after_sha256=728fa6e64914942e651e62442caa83becbc6aef4705ebea59e17a544b36ea00d.",
+      "purpose": "Applyable source diff for the Mac A-share auction collector repair relative to fixed remote base.",
+      "reference_only": true,
+      "sha256": "b6ff17f5999ba833b279788fd6dcbaa75e921d356cba9f37554b5c9683724099"
+    },
+    {
+      "bytes": 16059,
+      "not_installable": true,
+      "path": "publish/issue11/tdx_minute_replay_provider_repair.diff",
+      "provenance": "Exact GitHub base commit 3d03ca4ade08ac4c5f3f049756997d3934c782e3 and read-only specified Stage source; before_sha256=8afaea9b97edb790df33dc67b5ef4992b4a0f655a376ca458655509e2c6df9a9; after_sha256=02d7505614b66768f6c3f6b86e4e606f0df9f4fabb6aaad5ea8f8a0fa3738260.",
+      "purpose": "Applyable source diff for the A-share replay provider repair relative to fixed remote base.",
+      "reference_only": true,
+      "sha256": "1f53b85ba18875d7ed862eb539ada965e5f1fbcb303f234b1ed66c9f4ccb4fdd"
+    },
+    {
+      "bytes": 1557,
+      "not_installable": true,
+      "path": "publish/issue11/0925_diagnostics.json",
+      "provenance": "Pre-run baseline receipt copy and its baseline manifest; formal receipt readback is hash/size matched. Body and raw market payload are not included.",
+      "purpose": "Whitelisted, sanitized diagnosis of the original STAGE_0925 receipt with original byte count and SHA256.",
+      "reference_only": true,
+      "sha256": "09b506bc3d1908ad62eed1ee853545b6646c72005bfa8ee58b4485450b45cb77"
+    },
+    {
+      "bytes": 1539,
+      "not_installable": true,
+      "path": "publish/issue11/attempts_metadata.json",
+      "provenance": "Only the six task-authorized attempt files were read for byte count and SHA256; no bodies were copied or parsed.",
+      "purpose": "Metadata-only index of the six exact START/RETURN evidence files across three attempts.",
+      "reference_only": true,
+      "sha256": "86620d4dd5101540bee24fd2790fc6a0c192b08683f13348724a3195b9374786"
+    },
+    {
+      "bytes": 1070,
+      "not_installable": true,
+      "path": "publish/issue11/candidate_205_metadata.json",
+      "provenance": "PR12 issue-11 README authorization contract and the current receipt candidate_current_sha256 field; correspondence between those hashes is explicitly CANNOT_CONFIRM.",
+      "purpose": "205-candidate artifact and original-order code-list hash identity without exporting the list.",
+      "reference_only": true,
+      "sha256": "67056f14c90356c30835a39e8279b207f634e5d5a34cd5ef33c07b7f37918699"
+    },
+    {
+      "bytes": 42559,
+      "not_installable": true,
+      "path": "publish/issue10/owner_source_deltas.diff",
+      "provenance": "Exact remote base blobs plus read-only specified Stage and plist-resolved API roots; complete file identities are in owner_source_identities.json. Large-file sections are named complete-function slices; unrelated diffs are omitted.",
+      "purpose": "Focused Stage/API owner-source diffs for HK binding, HK collector wrapper, preselection projection, and API projection boundary.",
+      "reference_only": true,
+      "sha256": "9b1b7ee8fb5a345ab858031903e4203001b0c5e81f54452734e64ee9c24cd010"
+    },
+    {
+      "bytes": 6811,
+      "not_installable": true,
+      "path": "publish/issue10/owner_source_identities.json",
+      "provenance": "Specified Stage source, API root resolved through selected WorkingDirectory from com.lexi.v35.api-only.plist, and deployment_r9 release-manifest fingerprint; absolute paths and full plist are omitted.",
+      "purpose": "Relative path and SHA256 identity map for Stage/API owners and changed files versus base.",
+      "reference_only": true,
+      "sha256": "80e038b144b3f5e2522a6e6210f723c1488765125ab36685e8be7545f8933a7e"
+    },
+    {
+      "bytes": 8636,
+      "not_installable": true,
+      "path": "publish/issue10/capture_schema.json",
+      "provenance": "Exact named local capture, sibling manifest, and canary receipt; includes SHA256 values and schema only. Quote rows, market-cap values, names, code universe, local paths, and environment values are omitted. Producer manifest SHA is explicitly identified as app-local.",
+      "purpose": "12:55 producer capture clocks, redacted field/type schema, producer identity, and hash-to-object serialization bindings.",
+      "reference_only": true,
+      "sha256": "1705289839a7461b8e32bb5d335158c2d46bffa70909f5bf3643d967547a91c0"
+    },
+    {
+      "bytes": 705,
+      "not_installable": true,
+      "path": "publish/issue10/request_codes_64.txt",
+      "provenance": "DERIVED_FROM_CAPTURE by turnover descending then code ascending; not represented as an independently saved run-time list.",
+      "purpose": "Compact UTF-8 JSON array of the 64 HK observation request codes, with exact bytes matching the canary input-code hash.",
+      "reference_only": true,
+      "sha256": "6c5dbc0cacccaa29a834c485240010f9f62ba5792e311a21f246abd12b7a3b22"
+    },
+    {
+      "bytes": 1960,
+      "not_installable": true,
+      "path": "publish/issue10/source_result_status.json",
+      "provenance": "Exact supplied canary summary bytes and exact PR13 changed-file list; no sample-row values were copied or used to reconstruct SourceResult.",
+      "purpose": "Canary summary status and explicit completeness boundary for HK observation SourceResult evidence.",
+      "reference_only": true,
+      "sha256": "a026781646eac44c4fbf3c8a7278ad4b897fe3c239a5f572ed393ef177e5762f"
+    }
+  ],
+  "manifest_scope": "12 evidence payload files only; this manifest and PACK_RECEIPT.json are excluded from its entries",
+  "not_installable": true,
+  "reference_only": true,
+  "repository": "lexi2016/v4",
+  "schema_version": "evidence_writer.manifest.v1"
+}
