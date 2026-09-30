@@ -19,7 +19,7 @@ def receipt(**changes):
 @pytest.fixture
 def setup(monkeypatch,tmp_path):
     binding=StageUniverseBinding.ready(market='HK_CONNECT',trade_date=DATE,role='HK_CONNECT_D1_TOP100',codes=tuple(f'HK.{i:05}' for i in range(1,101)),source_run_id='hk-d1-'+'a'*16,sha256='a'*64)
-    monkeypatch.setattr('stage_center.runner._build_hk_d1_binding',lambda *a:binding)
+    monkeypatch.setattr('stage_center.runner._build_hk_d1_binding',lambda *a, **kw:binding)
     monkeypatch.setattr(nodes,'_rearm_wall_now',lambda:NOW,raising=False)
     return {'hk_d1_root':str(tmp_path/'pools'),'receipt_root':str(tmp_path/'receipts'),'node_max_attempts':3},binding
 
@@ -47,7 +47,7 @@ def test_only_exact_hk_missing_input_class(setup):
 
 def test_string_or_partial_binding_cannot_rearm(setup,monkeypatch):
     cfg,_=setup
-    monkeypatch.setattr('stage_center.runner._build_hk_d1_binding',lambda *a:SimpleNamespace(status='READY',source_run_id='x',sha256='a'*64))
+    monkeypatch.setattr('stage_center.runner._build_hk_d1_binding',lambda *a, **kw:SimpleNamespace(status='READY',source_run_id='x',sha256='a'*64))
     assert nodes._exact_hk_d1_dependency_rearm(cfg,DATE,receipt(),NOW) is None
 
 def _dispatch_fixture(setup,monkeypatch):
@@ -58,7 +58,7 @@ def _dispatch_fixture(setup,monkeypatch):
     def run(d):
         calls.append(d); assert json.loads(path.read_text())['dependency_rearm_count']==1
         return receipt()
-    runner=SimpleNamespace(config=SimpleNamespace(lock_root=path.parent/'locks'),due_decisions=lambda *a,**kw:[SimpleNamespace(stage_id=STAGE,status='LATE_CATCHUP_REPLAY')],_run_one=run,_write_receipt=write)
+    runner=SimpleNamespace(config=SimpleNamespace(lock_root=path.parent/'locks'),due_decisions=lambda *a,**kw:[SimpleNamespace(stage_id=STAGE,status='LATE_CATCHUP_REPLAY',scheduled_at=NOW)],_run_one=run,_write_receipt=write,_receipt_path=lambda *a:path)
     monkeypatch.setattr(nodes,'_calendar_gate',lambda *a,**kw:{'status':'ELIGIBLE'})
     monkeypatch.setattr('stage_center.runner._slot_lock_path',lambda *a:path.parent/'slot.lock')
     return cfg,runner,path,writes,calls
