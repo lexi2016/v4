@@ -46,6 +46,15 @@ def __dispatch_stage_body(_v4_scope, /, config, trade_date, stage_id, evaluated_
             "write_performed": False,
             **_v4_global(_v4_scope, '_safe_flags')(),
         }
+    # An explicit repair request cannot fall back to the ordinary first-attempt
+    # path when its frozen failed receipt is absent, malformed or not transient.
+    if ("a_0925_recovery_authorization" in config
+            and existing_status not in _v4_global(_v4_scope, 'TRANSIENT_STATUSES')):
+        return {"status": "CANNOT_CONFIRM", "trade_date": trade_date,
+                "first_failed_layer": "ISSUE11_REPAIR_AUTHORITY_MISSING",
+                "stage_id": stage_id, "node_id": stage_id, "dispatch_mode": mode,
+                "node_attempt_count": attempt_count, "write_performed": False,
+                **_v4_global(_v4_scope, '_safe_flags')()}
     rearm = None
     if existing_status in _v4_global(_v4_scope, 'TRANSIENT_STATUSES'):
         if attempt_count >= max_attempts:
@@ -133,7 +142,8 @@ def __dispatch_stage_body(_v4_scope, /, config, trade_date, stage_id, evaluated_
             from infrastructure.owned_io import SafeRoot
             refreshed = _a_0925_repair_authority(_v4_scope, config, trade_date, stage_id, receipt, evaluated_at, mode)
             if refreshed is None:
-                return {"status": "SKIPPED_REPAIR_AUTHORITY_CHANGED", "stage_id": stage_id,
+                return {"status": "CANNOT_CONFIRM", "stage_id": stage_id,
+                        "first_failed_layer": "ISSUE11_REPAIR_AUTHORITY_CHANGED",
                         "trade_date": trade_date, "write_performed": False, **_v4_global(_v4_scope, '_safe_flags')()}
             # Revalidation is under the original slot lock. Persist old bytes
             # and the consumed one-shot grant atomically BEFORE any runner call.
