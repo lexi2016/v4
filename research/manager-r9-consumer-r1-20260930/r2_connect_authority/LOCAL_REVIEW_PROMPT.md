@@ -1,9 +1,0 @@
-请承接R1的本机独立验收，不重做正文分类。R2只允许改动v4/manager_research/connect_selection.py的一处owner参数接线和原diagnostic投影。先读OWNER_CLOSURE.md和本机反馈原receipt。
-
-首先只读核当前V4 data根的目标日authority四件套。不要因为旧shared根缺件就断言全项目没数据，也不要因为Stage配置写了hk_full_universe_root就断言它在生产。按原reader及固定owner SHA核全链，保存具体拒因。不要运行ensure_hk_connect_universe、残留Stage preflight或任何第二资格采集器；不要补造authority壳。
-
-Writer在完整实际R1 app上构建隔离R2，读取真实前像/后像/SHA并按必要变更范围测试。另一个Reviewer独立核实际owner/源响应/取得时钟/单一发布职责和readback；缺活动producer前像时明确列缺口，不签PASS。
-
-成功读原件后再考虑三字段binding；不能把工具activation_allowed=false改成true当作授权。由现有发布流程采用，之后原API及UI逐股验收。现有非资格master/Stage池/行情过滤rows不能替代Connect资格。source.available_at是原reader当前见证时钟，不是网络取得时钟。09969→LLY缺证仍拒绝。
-
-反馈请分列SOURCE / ORIGINAL_OWNER_SUPPLY / TARGET_AUTHORITY / BINDING / REAL_API / REAL_UI / NATURAL，附各自原件SHA、执行人/时间及独立验收范围。不要把R1的47通过和R2的27作者合成测试相加成全链通过；保留原基线与候选各132/6的六个失败。未部署就明确未部署。
