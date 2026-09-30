@@ -1,0 +1,14 @@
+{
+	"StandardOutPath" = "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/logs/v35-a3-v4-scheduler.stdout.log";
+	"LimitLoadToSessionType" = "Aqua";
+	"StandardErrorPath" = "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/logs/v35-a3-v4-scheduler.stderr.log";
+	"Label" = "com.lexi.v35.scheduler";
+	"OnDemand" = false;
+	"LastExitStatus" = 0;
+	"PID" = 821;
+	"Program" = "/bin/bash";
+	"ProgramArguments" = (
+		"/bin/bash";
+		"/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app/ops/launch_v35_macos_scheduler.sh";
+	);
+};
