@@ -1,0 +1,139 @@
+EEEEEEEEE                                                                [100%]
+==================================== ERRORS ====================================
+__ ERROR at setup of test_audit_complete_chain_still_not_supply_or_activation __
+
+    @pytest.fixture
+    def audit():
+>       assert TOOL.is_file(), 'bounded original-reader audit tool must be supplied'
+E       AssertionError: bounded original-reader audit tool must be supplied
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = PosixPath('/mnt/data/v4_r9_r2/delivery/tools/audit_connect_authority.py').is_file
+
+../delivery/tests/test_authority_audit.py:15: AssertionError
+____ ERROR at setup of test_missing_exact_date_no_recipe_and_native_reason _____
+
+    @pytest.fixture
+    def audit():
+>       assert TOOL.is_file(), 'bounded original-reader audit tool must be supplied'
+E       AssertionError: bounded original-reader audit tool must be supplied
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = PosixPath('/mnt/data/v4_r9_r2/delivery/tools/audit_connect_authority.py').is_file
+
+../delivery/tests/test_authority_audit.py:15: AssertionError
+_______ ERROR at setup of test_missing_chain_not_automatically_completed _______
+
+    @pytest.fixture
+    def audit():
+>       assert TOOL.is_file(), 'bounded original-reader audit tool must be supplied'
+E       AssertionError: bounded original-reader audit tool must be supplied
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = PosixPath('/mnt/data/v4_r9_r2/delivery/tools/audit_connect_authority.py').is_file
+
+../delivery/tests/test_authority_audit.py:15: AssertionError
+______ ERROR at setup of test_cutoff_not_backdated_and_no_clock_override _______
+
+    @pytest.fixture
+    def audit():
+>       assert TOOL.is_file(), 'bounded original-reader audit tool must be supplied'
+E       AssertionError: bounded original-reader audit tool must be supplied
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = PosixPath('/mnt/data/v4_r9_r2/delivery/tools/audit_connect_authority.py').is_file
+
+../delivery/tests/test_authority_audit.py:15: AssertionError
+__________ ERROR at setup of test_conflicting_roots_never_auto_select __________
+
+    @pytest.fixture
+    def audit():
+>       assert TOOL.is_file(), 'bounded original-reader audit tool must be supplied'
+E       AssertionError: bounded original-reader audit tool must be supplied
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = PosixPath('/mnt/data/v4_r9_r2/delivery/tools/audit_connect_authority.py').is_file
+
+../delivery/tests/test_authority_audit.py:15: AssertionError
+_________ ERROR at setup of test_no_selected_root_no_implicit_fallback _________
+
+    @pytest.fixture
+    def audit():
+>       assert TOOL.is_file(), 'bounded original-reader audit tool must be supplied'
+E       AssertionError: bounded original-reader audit tool must be supplied
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = PosixPath('/mnt/data/v4_r9_r2/delivery/tools/audit_connect_authority.py').is_file
+
+../delivery/tests/test_authority_audit.py:15: AssertionError
+_____________ ERROR at setup of test_symlink_owner_source_refused ______________
+
+    @pytest.fixture
+    def audit():
+>       assert TOOL.is_file(), 'bounded original-reader audit tool must be supplied'
+E       AssertionError: bounded original-reader audit tool must be supplied
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = PosixPath('/mnt/data/v4_r9_r2/delivery/tools/audit_connect_authority.py').is_file
+
+../delivery/tests/test_authority_audit.py:15: AssertionError
+____ ERROR at setup of test_evidence_destination_not_under_runtime_or_data _____
+
+    @pytest.fixture
+    def audit():
+>       assert TOOL.is_file(), 'bounded original-reader audit tool must be supplied'
+E       AssertionError: bounded original-reader audit tool must be supplied
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = PosixPath('/mnt/data/v4_r9_r2/delivery/tools/audit_connect_authority.py').is_file
+
+../delivery/tests/test_authority_audit.py:15: AssertionError
+________ ERROR at setup of test_reject_source_hash_drift_before_loading ________
+
+    @pytest.fixture
+    def audit():
+>       assert TOOL.is_file(), 'bounded original-reader audit tool must be supplied'
+E       AssertionError: bounded original-reader audit tool must be supplied
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = PosixPath('/mnt/data/v4_r9_r2/delivery/tools/audit_connect_authority.py').is_file
+
+../delivery/tests/test_authority_audit.py:15: AssertionError
+=========================== short test summary info ============================
+ERROR ../delivery/tests/test_authority_audit.py::test_audit_complete_chain_still_not_supply_or_activation - AssertionError: bounded original-reader audit tool must be supplied
+assert False
+ +  where False = is_file()
+ +    where is_file = PosixPath('/mnt/data/v4_r9_r2/delivery/tools/audit_connect_authority.py').is_file
+ERROR ../delivery/tests/test_authority_audit.py::test_missing_exact_date_no_recipe_and_native_reason - AssertionError: bounded original-reader audit tool must be supplied
+assert False
+ +  where False = is_file()
+ +    where is_file = PosixPath('/mnt/data/v4_r9_r2/delivery/tools/audit_connect_authority.py').is_file
+ERROR ../delivery/tests/test_authority_audit.py::test_missing_chain_not_automatically_completed - AssertionError: bounded original-reader audit tool must be supplied
+assert False
+ +  where False = is_file()
+ +    where is_file = PosixPath('/mnt/data/v4_r9_r2/delivery/tools/audit_connect_authority.py').is_file
+ERROR ../delivery/tests/test_authority_audit.py::test_cutoff_not_backdated_and_no_clock_override - AssertionError: bounded original-reader audit tool must be supplied
+assert False
+ +  where False = is_file()
+ +    where is_file = PosixPath('/mnt/data/v4_r9_r2/delivery/tools/audit_connect_authority.py').is_file
+ERROR ../delivery/tests/test_authority_audit.py::test_conflicting_roots_never_auto_select - AssertionError: bounded original-reader audit tool must be supplied
+assert False
+ +  where False = is_file()
+ +    where is_file = PosixPath('/mnt/data/v4_r9_r2/delivery/tools/audit_connect_authority.py').is_file
+ERROR ../delivery/tests/test_authority_audit.py::test_no_selected_root_no_implicit_fallback - AssertionError: bounded original-reader audit tool must be supplied
+assert False
+ +  where False = is_file()
+ +    where is_file = PosixPath('/mnt/data/v4_r9_r2/delivery/tools/audit_connect_authority.py').is_file
+ERROR ../delivery/tests/test_authority_audit.py::test_symlink_owner_source_refused - AssertionError: bounded original-reader audit tool must be supplied
+assert False
+ +  where False = is_file()
+ +    where is_file = PosixPath('/mnt/data/v4_r9_r2/delivery/tools/audit_connect_authority.py').is_file
+ERROR ../delivery/tests/test_authority_audit.py::test_evidence_destination_not_under_runtime_or_data - AssertionError: bounded original-reader audit tool must be supplied
+assert False
+ +  where False = is_file()
+ +    where is_file = PosixPath('/mnt/data/v4_r9_r2/delivery/tools/audit_connect_authority.py').is_file
+ERROR ../delivery/tests/test_authority_audit.py::test_reject_source_hash_drift_before_loading - AssertionError: bounded original-reader audit tool must be supplied
+assert False
+ +  where False = is_file()
+ +    where is_file = PosixPath('/mnt/data/v4_r9_r2/delivery/tools/audit_connect_authority.py').is_file
+9 errors in 0.16s

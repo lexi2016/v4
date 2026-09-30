@@ -1,0 +1,48 @@
+{
+  "uploaded_candidate_zip_sha256": "eea9e3466d45a8f8b238b462749851a4f76b74ad6d3eac209d17ed70be79742d",
+  "writer_receipt_input_zip_sha256_semantics": "SOURCE_PINS.input_zip_sha256 identifies prior source handoff, not newly uploaded candidate zip",
+  "writer_receipt_sha256": "72328c1374c17f69af53ef66a888a677a3afca77f7a35d7dbf77ffc9454d252b",
+  "all_after_pins_match": true,
+  "checks": [
+    {
+      "path": "v4/manager_research/workspace.py",
+      "match": true
+    },
+    {
+      "path": "v4/manager_research/workspace_announcements.py",
+      "match": true
+    },
+    {
+      "path": "v4/manager_research/workspace_discovery.py",
+      "match": true
+    },
+    {
+      "path": "v4/manager_research/workspace_plan.py",
+      "match": true
+    },
+    {
+      "path": "v4/manager_research/workspace_semantics.py",
+      "match": true
+    },
+    {
+      "path": "v4/manager_research/workspace_briefing.py",
+      "match": true
+    },
+    {
+      "path": "v4/manager_research/research_evidence.py",
+      "match": true
+    },
+    {
+      "path": "v4/manager_research/issuer_us_relations.py",
+      "match": true
+    },
+    {
+      "path": "v4/manager_research/announcement_materials.py",
+      "match": true
+    },
+    {
+      "path": "v4/manager_research/connect_selection.py",
+      "match": true
+    }
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "schema_version": "independent_frozen_candidate_review.v1",
+  "reviewer": "daily_reviewer",
+  "scope": "Frozen R1 candidate only; read-only code review and isolated regression validation.",
+  "verdict": {
+    "REVIEWED": "FAIL_FOR_TARGET_RUNTIME_ACCEPTANCE",
+    "code_review": "PASS_NO_P0_OR_P1_CODE_DEFECT_FOUND_IN_REVIEWED_SCOPE",
+    "BEHAVIOR_VERIFIED": "PASS_FOR_OFFLINE_SYNTHETIC_CASES_ONLY",
+    "real_target_behavior": "CANNOT_CONFIRM"
+  },
+  "freeze": {
+    "actual_diff": "/Users/lexi/Desktop/学习/agents调试/MANAGER_CONSUMER_R1_ACCEPTANCE_20260930/candidate/evidence/writer/actual_candidate_vs_r9.patch",
+    "actual_diff_sha256": "8df80ea36d044169cac4b32dc6b510b94d4d32a21b489a17693a8af6bd5e97b5",
+    "frozen_writer_receipt": "/Users/lexi/Desktop/学习/agents调试/MANAGER_CONSUMER_R1_ACCEPTANCE_20260930/candidate/evidence/writer/frozen_candidate_receipt.json",
+    "independent_pin_check": "PASS_ALL_10_CHANGED_OR_NEW_SOURCE_PINS_MATCHED",
+    "active_app_changed": false
+  },
+  "findings": [
+    {
+      "id": "P1_RUNTIME_CONNECT_AUTHORITY_NOT_BOUND",
+      "severity": "P1",
+      "classification": "integration_acceptance_blocker_not_code_defect",
+      "evidence": [
+        "candidate/app/v4/manager_research/connect_selection.py:21-23 reads V4_MANAGER_UNIVERSE_ROOT; when absent, returns HK_CONNECT_TARGET_AUTHORITY_ROOT_NOT_BOUND and no codes.",
+        "active /Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist:54-55 binds V4_MANAGER_SCREEN_AUTHORITY_ROOT and V4_MANAGER_SECURITY_MASTER_ROOT but does not bind V4_MANAGER_UNIVERSE_ROOT.",
+        "candidate/app/v4/manager_research/workspace.py:324-334 reads this scope and filters material-discovery cards; :372-381 passes the filtered inputs and applies gate_workspace."
+      ],
+      "impact": "On the inspected active API environment, the consumer has no Connect membership evidence and is designed to fail closed; it cannot produce target Connect cards there.",
+      "code_response": "The fail-closed behavior is correct when its required authority is missing. No unsupported fallback to ordinary HK identity should be added.",
+      "status": "BLOCKS_TARGET_RUNTIME_ACCEPTANCE"
+    },
+    {
+      "id": "P2_TARGET_DAY_CONNECT_AUTHORITY_UNAVAILABLE",
+      "severity": "P2",
+      "classification": "evidence_gap",
+      "evidence": [
+        "The actual API binds V4_MANAGER_SECURITY_MASTER_ROOT=/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data; its assets/hk_security_master/latest.json SHA-256 is 0c191e3e17096dd6f1b6ef8679345c0c5123613837f9f87555fac8d4d820cd85 and identifies trade date 20260928/run af610a65d292f23ff74c6251.",
+        "That run manifest SHA-256 is 3e8544470a80df68a5d9371ab5e0d81dac3293cd787ac8bd9622c1998b27631f; it records 2026-09-28T17:20:06+08:00 and 694 rows.",
+        "The bound master artifact exposes identity/valuation fields and no Connect eligibility field. V4_MANAGER_UNIVERSE_ROOT is not bound in the actual API environment, so a target-day Connect-universe receipt is not demonstrated by this runtime."
+      ],
+      "impact": "Target-date membership, positive Connect selection, and HK.09969 to LLY mapping cannot be confirmed. Ordinary HK security identity is not proof of Connect membership.",
+      "status": "CANNOT_CONFIRM"
+    },
+    {
+      "id": "UI_AND_NATURAL_RUNTIME",
+      "severity": "P2",
+      "classification": "outside_isolated_candidate_acceptance",
+      "evidence": [
+        "No candidate frontend changes; candidate was not deployed or API/UI-tested."
+      ],
+      "status": "CANNOT_CONFIRM",
+      "note": "Not treated as an additional production or deployment obligation for this bounded frozen batch."
+    }
+  ],
+  "acceptance_evidence": {
+    "reviewer_targeted_tests": {
+      "status": "PASS",
+      "tests": 47,
+      "failures": 0,
+      "errors": 0,
+      "runner": "tools/run_tests.py --app <candidate/app> --suite targeted",
+      "python": "v3.5-mac Python 3.14.6",
+      "network": "denied by test fixture",
+      "evidence_dir": "/Users/lexi/Desktop/学习/agents调试/MANAGER_CONSUMER_R1_ACCEPTANCE_20260930/evidence/reviewer/targeted_20260930"
+    },
+    "selected_original_regressions": {
+      "status": "NO_CANDIDATE_REGRESSION_DETECTED; SELECTED_SUITE_NOT_ALL_GREEN",
+      "modules": 6,
+      "tests_each_run": 138,
+      "passed_each_run": 132,
+      "failed_each_run": 6,
+      "failure_sets_identical": true,
+      "base_junit_sha256": "71c4ac393d49d3224fe4803d790e9e0e31b0366b753f91dba3a2c32649738f67",
+      "candidate_junit_sha256": "9934b71b39e228006df9622e3f819c4a670c4cb91abeab20841486174c154283",
+      "evidence_dir": "/Users/lexi/Desktop/学习/agents调试/MANAGER_CONSUMER_R1_ACCEPTANCE_20260930/evidence/reviewer/regressions_20260930",
+      "identical_failure_ids": [
+        "tests.test_manager_workspace_targeted_r2::test_half_day_close_is_native_and_can_anchor_window",
+        "tests.test_manager_workspace_targeted_r2::test_missing_half_day_close_is_an_explicit_calendar_gap",
+        "tests.test_manager_workspace_targeted_r2::test_two_character_unique_chinese_issuer_in_delimited_title",
+        "tests.test_manager_workspace_targeted_r2::test_native_name_prefix_collision_uses_longest_non_overlapping_match[\\u5357\\u65b9\\u6e2f\\u80a1\\u901a\\u7ea2\\u5229\\u653f\\u7b56\\u53d8\\u5316-master2-expected2]",
+        "tests.test_manager_workspace_targeted_r2::test_native_name_separate_source_positions_keep_both_issuers",
+        "tests.test_manager_workspace_targeted_r2::test_workspace_api_is_bodyless_same_origin_and_original_owner"
+      ]
+    }
+  },
+  "effects": {
+    "source_or_config_written": false,
+    "live_http_or_provider_called": false,
+    "service_or_plist_changed": false,
+    "deployment_or_api_ui_verification": false,
+    "orders_sent": false,
+    "production_allowed": false,
+    "buy_gate_updated": false
+  }
+}

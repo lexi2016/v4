@@ -1,0 +1,145 @@
+{
+  "schema_version": "r9.consumer_patch.pins.v1",
+  "runtime_base": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/normal_stage_readback_20260929/deployment_r9/app",
+  "input_zip_sha256": "766a52084c3ce81d4f5ed52ff602b3d168d891c314c826763ef8a59e0b4dae54",
+  "input_manifest_sha256": "8375cc0030b0a98b46a5b0aaeb3029c321404067e9da869f40a4d8fc7be75b0c",
+  "files": [
+    {
+      "target_path": "v4/manager_research/workspace.py",
+      "target_tree": "ACTUAL_R9_APP",
+      "before_sha256": "54a0e014a1f1f8750c42f23ef780b9a03750dfaf8ed1aa0a721ad3cdd0d69ef6",
+      "after_sha256": "ec9c7ba68c93061fa035747ba08c6e71fc7c167c322db2e225963542c72cd2d7",
+      "after_bytes": 38631,
+      "before_path": "before/api/v4/manager_research/workspace.py",
+      "after_path": "after/api/v4/manager_research/workspace.py"
+    },
+    {
+      "target_path": "v4/manager_research/workspace_announcements.py",
+      "target_tree": "ACTUAL_R9_APP",
+      "before_sha256": "36b5832786320f67bfa960cc159ee9f79dce90e1bb819d7edafde69f6ad7b27b",
+      "after_sha256": "b3a004c5c43451f7fc72163c02905e1542d6420e7d2fb14e99c7c439b765fb3e",
+      "after_bytes": 54199,
+      "before_path": "before/api/v4/manager_research/workspace_announcements.py",
+      "after_path": "after/api/v4/manager_research/workspace_announcements.py"
+    },
+    {
+      "target_path": "v4/manager_research/workspace_discovery.py",
+      "target_tree": "ACTUAL_R9_APP",
+      "before_sha256": "bf412420ab89aeeede91d8c0beb8cebb9a3dc58c22afc30afc6de0d97964e0bf",
+      "after_sha256": "ed9188a44a4adb6bf2fd08836d465ed3ea7e7d2b8dd7075da99b7aaabc5c5c1a",
+      "after_bytes": 23129,
+      "before_path": "before/api/v4/manager_research/workspace_discovery.py",
+      "after_path": "after/api/v4/manager_research/workspace_discovery.py"
+    },
+    {
+      "target_path": "v4/manager_research/workspace_plan.py",
+      "target_tree": "ACTUAL_R9_APP",
+      "before_sha256": "96e8e8b7763f932cf353316acbfb45991b79fe00f1a7ca007659ebb76c728f4c",
+      "after_sha256": "0721e90fcc5c261545a23e1aca1545b48077956a312a3c4cfe703f11aa4023f9",
+      "after_bytes": 64248,
+      "before_path": "before/api/v4/manager_research/workspace_plan.py",
+      "after_path": "after/api/v4/manager_research/workspace_plan.py"
+    },
+    {
+      "target_path": "v4/manager_research/workspace_semantics.py",
+      "target_tree": "ACTUAL_R9_APP",
+      "before_sha256": "f11f4d3a47c62dc844569fef392948781198c87ef7da0655bde1201084e26e4e",
+      "after_sha256": "dc8d1d330e4fdacf2ef7169a7ac62874bfd3e2658f8b4bcff0773e06e32c4f7f",
+      "after_bytes": 33731,
+      "before_path": "before/api/v4/manager_research/workspace_semantics.py",
+      "after_path": "after/api/v4/manager_research/workspace_semantics.py"
+    },
+    {
+      "target_path": "v4/manager_research/workspace_briefing.py",
+      "target_tree": "ACTUAL_R9_APP",
+      "before_sha256": "9b71d991d95de5040b9926ff97a1dd1b1c19f0d1fe561b84ac670a7267e0354f",
+      "after_sha256": "60a7942e6c2c6a8ed32099ec807c79c35fa393342ed59996798f21da12466ff6",
+      "after_bytes": 32275,
+      "before_path": "before/api/v4/manager_research/workspace_briefing.py",
+      "after_path": "after/api/v4/manager_research/workspace_briefing.py"
+    },
+    {
+      "target_path": "v4/manager_research/research_evidence.py",
+      "target_tree": "ACTUAL_R9_APP",
+      "before_sha256": "91fe7a4b7512224ab082700a496b68ef92b121800575bd68a3d3ed3958b01dbb",
+      "after_sha256": "6a0075aeba1ec68c14ee5ec09f0290c6bbcd49e296fe76fa3ae17a03510c6ec2",
+      "after_bytes": 23815,
+      "before_path": "before/api/v4/manager_research/research_evidence.py",
+      "after_path": "after/api/v4/manager_research/research_evidence.py"
+    },
+    {
+      "target_path": "v4/manager_research/issuer_us_relations.py",
+      "target_tree": "ACTUAL_R9_APP",
+      "before_sha256": "2bb74591000db19483cdafb6a5da78306871b054cc11e8ab82797e1d5b9663c8",
+      "after_sha256": "ac3b3e228c3efed4efc7447d2461ac0c63a00b1d0fa9c93a6c0a479076af0b7d",
+      "after_bytes": 15558,
+      "before_path": "before/api/v4/manager_research/issuer_us_relations.py",
+      "after_path": "after/api/v4/manager_research/issuer_us_relations.py"
+    },
+    {
+      "target_path": "v4/manager_research/announcement_materials.py",
+      "target_tree": "ACTUAL_R9_APP",
+      "before_sha256": null,
+      "after_sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+      "after_bytes": 10727,
+      "before_path": null,
+      "after_path": "after/api/v4/manager_research/announcement_materials.py"
+    },
+    {
+      "target_path": "v4/manager_research/connect_selection.py",
+      "target_tree": "ACTUAL_R9_APP",
+      "before_sha256": null,
+      "after_sha256": "1d5a03958b36b3e430133dec4365ad56b9c244200d28eefdb2f96892ee8f3a0f",
+      "after_bytes": 9064,
+      "before_path": null,
+      "after_path": "after/api/v4/manager_research/connect_selection.py"
+    }
+  ],
+  "tests": [
+    {
+      "path": "after/repair_tests/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "before_sha256": null
+    },
+    {
+      "path": "after/repair_tests/actual_eastmoney_product_20260929.json",
+      "sha256": "28962ca654943fb35a090259873de67ae2fc9977d383c81d12b237e75b354d06",
+      "before_sha256": null
+    },
+    {
+      "path": "after/repair_tests/conftest.py",
+      "sha256": "f0b0cd53be59c9bff38295deba397bedb70f26d3db8be22357dd542ef5308c10",
+      "before_sha256": null
+    },
+    {
+      "path": "after/repair_tests/test_r9_selection.py",
+      "sha256": "941e3cb6051aacae42849ccf43aa7d05f89b463ad7e110b98992023cd0a95823",
+      "before_sha256": null
+    },
+    {
+      "path": "after/repair_tests/test_r9_workspace_integration.py",
+      "sha256": "b3a159e27f9c9215803b48dbc80c502d39af94e01743a9daadee4ecc74b79d98",
+      "before_sha256": null
+    }
+  ],
+  "patches": {
+    "runtime.patch": "e7af98874e9a8766d7877d9b30156c1b401d95ef88aad13d663548139c066308",
+    "tests.patch": "04dbdd7efe9aec127cfa78a7cb0a67d26c0def53d5102257b1a686c22525ad7b"
+  },
+  "test_environment": "Author Linux CPython 3.13.5; native Mac Python314 not executed",
+  "runtime_permission": "Candidate only; local Luna Writer adoption and independent Reviewer required before publication; no scheduler changes",
+  "protected_source": [
+    {
+      "path": "apps/api/v35_api/manager_research_router.py",
+      "sha256": "d66b0a4184d6490f92eccf6996446f872adef7289b5821aeecc35338145f4410"
+    },
+    {
+      "path": "v4/manager_research/announcement_observation.py",
+      "sha256": "f86f2f0ac90b4e4490a74a27984c84f9c632075c47862d3627493282afef17ed"
+    },
+    {
+      "path": "v4/manager_research/announcement_source.py",
+      "sha256": "2236ffd7490d48e9df77e810474aafe7fa43dbfeb0c27557e0c91fc366d2de0d"
+    }
+  ]
+}
