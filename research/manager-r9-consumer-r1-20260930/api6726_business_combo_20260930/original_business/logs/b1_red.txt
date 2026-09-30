@@ -1,0 +1,262 @@
+FFFFFFFFF                                                                [100%]
+=================================== FAILURES ===================================
+_____ test_default_two_batches_advance_scope_and_both_enter_original_input _____
+
+wired = (namespace(store=<v4.manager_research.store.ManagerResearchStore object at 0x7f1d615daba0>, _material_store=<v4.manage...t 0x7f1d615daf90>, [datetime.datetime(2026, 9, 30, 8, 1, tzinfo=datetime.timezone(datetime.timedelta(seconds=28800)))])
+
+    def test_default_two_batches_advance_scope_and_both_enter_original_input(wired):
+        a=capture(wired);wired[2][0]+=timedelta(minutes=1);b=capture(wired)
+        assert a['eastmoney_hk_capture']['queried_issuers']==['HK.00001','HK.00002','HK.00003']
+>       assert b['eastmoney_hk_capture']['queried_issuers']==['HK.00004','HK.00005','HK.00006']
+E       AssertionError: assert ['HK.00001', ...', 'HK.00003'] == ['HK.00004', ...', 'HK.00006']
+E         
+E         At index 0 diff: 'HK.00001' != 'HK.00004'
+E         
+E         Full diff:
+E           [
+E         -     'HK.00004',
+E         ?             ^
+E         +     'HK.00001',
+E         ?             ^
+E         -     'HK.00005',
+E         ?             ^
+E         +     'HK.00002',
+E         ?             ^
+E         -     'HK.00006',
+E         ?             ^
+E         +     'HK.00003',
+E         ?             ^
+E           ]
+
+../delivery/tests/test_b1_history.py:105: AssertionError
+_ test_repeated_document_deduplicates_and_old_refs_survive_listing_index_update _
+
+wired = (namespace(store=<v4.manager_research.store.ManagerResearchStore object at 0x7f1d6069cf50>, _material_store=<v4.manage...t 0x7f1d6069ca50>, [datetime.datetime(2026, 9, 30, 8, 6, tzinfo=datetime.timezone(datetime.timedelta(seconds=28800)))])
+
+    def test_repeated_document_deduplicates_and_old_refs_survive_listing_index_update(wired):
+        capture(wired,'HK.00001');svc,p,clock=wired
+        paths=list((svc.store.root/'workspace_announcements/20260930/eastmoney_hk').glob('*.json'))
+        prior={str(f):f.read_bytes() for f in paths if f.name!='latest.json'}
+        p.listing_revision=1;clock[0]+=timedelta(minutes=6)
+        capture(wired,'HK.00001')
+        before=snapshot(svc.store.root);calls=len(p.calls)
+        result=selection(wired)
+>       assert len(result['materials'])==1 and len(result['captures'])==2
+E       AssertionError: assert (1 == 1 and 1 == 2)
+E        +  where 1 = len([{'RESEARCH_ONLY': True, 'art_code': 'AN202609290000100001', 'available_at': '2026-09-30T08:06:00+08:00', 'body_sha256': 'cd128e0396c28512c9e523662552435e8d2543b8b212c8f674a2cd5906cc9671', ...}])
+E        +  and   1 = len([{'exhaustive': False, 'generated_at': '2026-09-30T08:06:00+08:00', 'product_ref': 'workspace_announcements/20260930/eastmoney_hk/latest.json', 'readback_status': 'VERIFIED', ...}])
+
+../delivery/tests/test_b1_history.py:123: AssertionError
+___________ test_later_failed_batch_retains_previous_committed_body ____________
+
+wired = (namespace(store=<v4.manager_research.store.ManagerResearchStore object at 0x7f1d6069dd10>, _material_store=<v4.manage...t 0x7f1d6069df90>, [datetime.datetime(2026, 9, 30, 8, 1, tzinfo=datetime.timezone(datetime.timedelta(seconds=28800)))])
+
+    def test_later_failed_batch_retains_previous_committed_body(wired):
+        capture(wired,'HK.00001');svc,p,clock=wired
+        p.fail=True;clock[0]+=timedelta(minutes=1)
+        with pytest.raises(RuntimeError,match='SYNTHETIC_OWNER_FAILURE'):capture(wired,'HK.00002')
+        p.fail=False
+        result=selection(wired)
+        assert [m['document_issuer_symbol'] for m in result['materials']]==['HK.00001']
+        assert len(result['captures'])==1
+>       assert any('SYNTHETIC_OWNER_FAILURE' in g for g in result['gaps'])
+E       assert False
+E        +  where False = any(<generator object test_later_failed_batch_retains_previous_committed_body.<locals>.<genexpr> at 0x7f1d617e2190>)
+
+../delivery/tests/test_b1_history.py:138: AssertionError
+___________ test_cross_day_original_runs_and_after_cutoff_exclusion ____________
+
+wired = (namespace(store=<v4.manager_research.store.ManagerResearchStore object at 0x7f1d6065a3f0>, _material_store=<v4.manage...t 0x7f1d6065a9e0>, [datetime.datetime(2026, 9, 30, 8, 1, tzinfo=datetime.timezone(datetime.timedelta(seconds=28800)))])
+
+    def test_cross_day_original_runs_and_after_cutoff_exclusion(wired):
+        wired[2][0]=datetime.fromisoformat('2026-09-29T19:00:00+08:00');capture(wired,'HK.00001')
+        wired[2][0]=datetime.fromisoformat('2026-09-30T08:00:00+08:00');capture(wired,'HK.00002')
+        wired[2][0]+=timedelta(minutes=1);capture(wired,'HK.00003')
+        svc,_,_=wired;cut=context(wired);cut['research_cutoff']='2026-09-30T08:00:30+08:00'
+        result=ann.read_selection_inputs(svc,cut)
+>       assert {m['document_issuer_symbol'] for m in result['materials']}=={'HK.00001','HK.00002'}
+E       AssertionError: assert {'HK.00001'} == {'HK.00001', 'HK.00002'}
+E         
+E         Extra items in the right set:
+E         'HK.00002'
+E         
+E         Full diff:
+E           {
+E               'HK.00001',
+E         -     'HK.00002',
+E           }
+
+../delivery/tests/test_b1_history.py:147: AssertionError
+__________ test_tampered_body_or_reference_rejects_only_bad_run[body] __________
+
+wired = (namespace(store=<v4.manager_research.store.ManagerResearchStore object at 0x7f1d6065aea0>, _material_store=<v4.manage...t 0x7f1d6065b5c0>, [datetime.datetime(2026, 9, 30, 8, 1, tzinfo=datetime.timezone(datetime.timedelta(seconds=28800)))])
+mutation = 'body'
+
+    @pytest.mark.parametrize('mutation',['body','refs','raw','snapshot'])
+    def test_tampered_body_or_reference_rejects_only_bad_run(wired,mutation):
+        capture(wired,'HK.00001');wired[2][0]+=timedelta(minutes=1);capture(wired,'HK.00002')
+        svc,_,_=wired;root=svc.store.root/'workspace_announcements/20260930/eastmoney_hk'
+        paths=[f for f in root.glob('*.json') if f.name!='latest.json']
+        path=next(p for p in paths if json.loads(p.read_bytes())['scope']==['HK.00002'])
+        product=json.loads(path.read_bytes());ref=product['documents'][0]['content_refs'][0]
+        if mutation=='body':product['documents'][0]['body_text']+=' tampered';product=ann._seal(product);svc.store._write_atomic(path,product)
+        elif mutation=='refs':
+            product['documents'][0]['content_refs'][0]['body_sha256']='f'*64;product=ann._seal(product);svc.store._write_atomic(path,product)
+        elif mutation=='raw':(svc._material_store.root/'blobs'/ref['blob_sha256']).write_bytes(b'corrupt')
+        else:
+            files=list((svc._material_store.root/'observations/eastmoney_hk').glob('*.json'))
+            assert files,'per-response original index observations missing'
+            item=next(p for p in files if json.loads(p.read_bytes())['index']['source_key']==ref['source_key'])
+            item.write_text('{}')
+        if mutation in {'body','refs'} and product.get('attempt_run_id'):
+            from v4.manager_research.workspace import seal_attempt
+            a=svc.store.root/'workspace_announcement_runs/20260930/eastmoney_hk'/(product['attempt_run_id']+'.json')
+            proof=json.loads(a.read_bytes());proof['product_sha256']=product['sha256']
+            svc.store._write_atomic(a,seal_attempt(proof))
+        result=selection(wired)
+>       assert 'HK.00002' not in {m['document_issuer_symbol'] for m in result['materials']}
+E       AssertionError: assert 'HK.00002' not in {'HK.00002'}
+
+../delivery/tests/test_b1_history.py:175: AssertionError
+__________ test_tampered_body_or_reference_rejects_only_bad_run[refs] __________
+
+wired = (namespace(store=<v4.manager_research.store.ManagerResearchStore object at 0x7f1d60729a30>, _material_store=<v4.manage...t 0x7f1d607296d0>, [datetime.datetime(2026, 9, 30, 8, 1, tzinfo=datetime.timezone(datetime.timedelta(seconds=28800)))])
+mutation = 'refs'
+
+    @pytest.mark.parametrize('mutation',['body','refs','raw','snapshot'])
+    def test_tampered_body_or_reference_rejects_only_bad_run(wired,mutation):
+        capture(wired,'HK.00001');wired[2][0]+=timedelta(minutes=1);capture(wired,'HK.00002')
+        svc,_,_=wired;root=svc.store.root/'workspace_announcements/20260930/eastmoney_hk'
+        paths=[f for f in root.glob('*.json') if f.name!='latest.json']
+        path=next(p for p in paths if json.loads(p.read_bytes())['scope']==['HK.00002'])
+        product=json.loads(path.read_bytes());ref=product['documents'][0]['content_refs'][0]
+        if mutation=='body':product['documents'][0]['body_text']+=' tampered';product=ann._seal(product);svc.store._write_atomic(path,product)
+        elif mutation=='refs':
+            product['documents'][0]['content_refs'][0]['body_sha256']='f'*64;product=ann._seal(product);svc.store._write_atomic(path,product)
+        elif mutation=='raw':(svc._material_store.root/'blobs'/ref['blob_sha256']).write_bytes(b'corrupt')
+        else:
+            files=list((svc._material_store.root/'observations/eastmoney_hk').glob('*.json'))
+            assert files,'per-response original index observations missing'
+            item=next(p for p in files if json.loads(p.read_bytes())['index']['source_key']==ref['source_key'])
+            item.write_text('{}')
+        if mutation in {'body','refs'} and product.get('attempt_run_id'):
+            from v4.manager_research.workspace import seal_attempt
+            a=svc.store.root/'workspace_announcement_runs/20260930/eastmoney_hk'/(product['attempt_run_id']+'.json')
+            proof=json.loads(a.read_bytes());proof['product_sha256']=product['sha256']
+            svc.store._write_atomic(a,seal_attempt(proof))
+        result=selection(wired)
+>       assert 'HK.00002' not in {m['document_issuer_symbol'] for m in result['materials']}
+E       AssertionError: assert 'HK.00002' not in {'HK.00002'}
+
+../delivery/tests/test_b1_history.py:175: AssertionError
+__________ test_tampered_body_or_reference_rejects_only_bad_run[raw] ___________
+
+wired = (namespace(store=<v4.manager_research.store.ManagerResearchStore object at 0x7f1d605d4af0>, _material_store=<v4.manage...t 0x7f1d605d4d10>, [datetime.datetime(2026, 9, 30, 8, 1, tzinfo=datetime.timezone(datetime.timedelta(seconds=28800)))])
+mutation = 'raw'
+
+    @pytest.mark.parametrize('mutation',['body','refs','raw','snapshot'])
+    def test_tampered_body_or_reference_rejects_only_bad_run(wired,mutation):
+        capture(wired,'HK.00001');wired[2][0]+=timedelta(minutes=1);capture(wired,'HK.00002')
+        svc,_,_=wired;root=svc.store.root/'workspace_announcements/20260930/eastmoney_hk'
+        paths=[f for f in root.glob('*.json') if f.name!='latest.json']
+        path=next(p for p in paths if json.loads(p.read_bytes())['scope']==['HK.00002'])
+        product=json.loads(path.read_bytes());ref=product['documents'][0]['content_refs'][0]
+        if mutation=='body':product['documents'][0]['body_text']+=' tampered';product=ann._seal(product);svc.store._write_atomic(path,product)
+        elif mutation=='refs':
+            product['documents'][0]['content_refs'][0]['body_sha256']='f'*64;product=ann._seal(product);svc.store._write_atomic(path,product)
+        elif mutation=='raw':(svc._material_store.root/'blobs'/ref['blob_sha256']).write_bytes(b'corrupt')
+        else:
+            files=list((svc._material_store.root/'observations/eastmoney_hk').glob('*.json'))
+            assert files,'per-response original index observations missing'
+            item=next(p for p in files if json.loads(p.read_bytes())['index']['source_key']==ref['source_key'])
+            item.write_text('{}')
+        if mutation in {'body','refs'} and product.get('attempt_run_id'):
+            from v4.manager_research.workspace import seal_attempt
+            a=svc.store.root/'workspace_announcement_runs/20260930/eastmoney_hk'/(product['attempt_run_id']+'.json')
+            proof=json.loads(a.read_bytes());proof['product_sha256']=product['sha256']
+            svc.store._write_atomic(a,seal_attempt(proof))
+        result=selection(wired)
+        assert 'HK.00002' not in {m['document_issuer_symbol'] for m in result['materials']}
+>       assert 'HK.00001' in {m['document_issuer_symbol'] for m in result['materials']}
+E       AssertionError: assert 'HK.00001' in set()
+
+../delivery/tests/test_b1_history.py:176: AssertionError
+________ test_tampered_body_or_reference_rejects_only_bad_run[snapshot] ________
+
+wired = (namespace(store=<v4.manager_research.store.ManagerResearchStore object at 0x7f1d605d58c0>, _material_store=<v4.manage...t 0x7f1d605d5ae0>, [datetime.datetime(2026, 9, 30, 8, 1, tzinfo=datetime.timezone(datetime.timedelta(seconds=28800)))])
+mutation = 'snapshot'
+
+    @pytest.mark.parametrize('mutation',['body','refs','raw','snapshot'])
+    def test_tampered_body_or_reference_rejects_only_bad_run(wired,mutation):
+        capture(wired,'HK.00001');wired[2][0]+=timedelta(minutes=1);capture(wired,'HK.00002')
+        svc,_,_=wired;root=svc.store.root/'workspace_announcements/20260930/eastmoney_hk'
+        paths=[f for f in root.glob('*.json') if f.name!='latest.json']
+        path=next(p for p in paths if json.loads(p.read_bytes())['scope']==['HK.00002'])
+        product=json.loads(path.read_bytes());ref=product['documents'][0]['content_refs'][0]
+        if mutation=='body':product['documents'][0]['body_text']+=' tampered';product=ann._seal(product);svc.store._write_atomic(path,product)
+        elif mutation=='refs':
+            product['documents'][0]['content_refs'][0]['body_sha256']='f'*64;product=ann._seal(product);svc.store._write_atomic(path,product)
+        elif mutation=='raw':(svc._material_store.root/'blobs'/ref['blob_sha256']).write_bytes(b'corrupt')
+        else:
+            files=list((svc._material_store.root/'observations/eastmoney_hk').glob('*.json'))
+>           assert files,'per-response original index observations missing'
+E           AssertionError: per-response original index observations missing
+E           assert []
+
+../delivery/tests/test_b1_history.py:166: AssertionError
+_______ test_get_is_read_only_and_current_review_cannot_hide_older_runs ________
+
+wired = (namespace(store=<v4.manager_research.store.ManagerResearchStore object at 0x7f1d6054d650>, _material_store=<v4.manage...t 0x7f1d6054e250>, [datetime.datetime(2026, 9, 30, 8, 1, tzinfo=datetime.timezone(datetime.timedelta(seconds=28800)))])
+
+    def test_get_is_read_only_and_current_review_cannot_hide_older_runs(wired):
+        capture(wired,'HK.00001');wired[2][0]+=timedelta(minutes=1);latest=capture(wired,'HK.00002')
+        svc,p,_=wired;before=snapshot(svc.store.root);calls=len(p.calls)
+        result=ann.read_selection_inputs(svc,context(wired),current_review=latest)
+>       assert len(result['materials'])==2
+E       AssertionError: assert 1 == 2
+E        +  where 1 = len([{'RESEARCH_ONLY': True, 'art_code': 'AN202609290000200001', 'available_at': '2026-09-30T08:01:00+08:00', 'body_sha256': 'cd128e0396c28512c9e523662552435e8d2543b8b212c8f674a2cd5906cc9671', ...}])
+
+../delivery/tests/test_b1_history.py:184: AssertionError
+=========================== short test summary info ============================
+FAILED ../delivery/tests/test_b1_history.py::test_default_two_batches_advance_scope_and_both_enter_original_input - AssertionError: assert ['HK.00001', ...', 'HK.00003'] == ['HK.00004', ...', 'HK.00006']
+  
+  At index 0 diff: 'HK.00001' != 'HK.00004'
+  
+  Full diff:
+    [
+  -     'HK.00004',
+  ?             ^
+  +     'HK.00001',
+  ?             ^
+  -     'HK.00005',
+  ?             ^
+  +     'HK.00002',
+  ?             ^
+  -     'HK.00006',
+  ?             ^
+  +     'HK.00003',
+  ?             ^
+    ]
+FAILED ../delivery/tests/test_b1_history.py::test_repeated_document_deduplicates_and_old_refs_survive_listing_index_update - AssertionError: assert (1 == 1 and 1 == 2)
+ +  where 1 = len([{'RESEARCH_ONLY': True, 'art_code': 'AN202609290000100001', 'available_at': '2026-09-30T08:06:00+08:00', 'body_sha256': 'cd128e0396c28512c9e523662552435e8d2543b8b212c8f674a2cd5906cc9671', ...}])
+ +  and   1 = len([{'exhaustive': False, 'generated_at': '2026-09-30T08:06:00+08:00', 'product_ref': 'workspace_announcements/20260930/eastmoney_hk/latest.json', 'readback_status': 'VERIFIED', ...}])
+FAILED ../delivery/tests/test_b1_history.py::test_later_failed_batch_retains_previous_committed_body - assert False
+ +  where False = any(<generator object test_later_failed_batch_retains_previous_committed_body.<locals>.<genexpr> at 0x7f1d617e2190>)
+FAILED ../delivery/tests/test_b1_history.py::test_cross_day_original_runs_and_after_cutoff_exclusion - AssertionError: assert {'HK.00001'} == {'HK.00001', 'HK.00002'}
+  
+  Extra items in the right set:
+  'HK.00002'
+  
+  Full diff:
+    {
+        'HK.00001',
+  -     'HK.00002',
+    }
+FAILED ../delivery/tests/test_b1_history.py::test_tampered_body_or_reference_rejects_only_bad_run[body] - AssertionError: assert 'HK.00002' not in {'HK.00002'}
+FAILED ../delivery/tests/test_b1_history.py::test_tampered_body_or_reference_rejects_only_bad_run[refs] - AssertionError: assert 'HK.00002' not in {'HK.00002'}
+FAILED ../delivery/tests/test_b1_history.py::test_tampered_body_or_reference_rejects_only_bad_run[raw] - AssertionError: assert 'HK.00001' in set()
+FAILED ../delivery/tests/test_b1_history.py::test_tampered_body_or_reference_rejects_only_bad_run[snapshot] - AssertionError: per-response original index observations missing
+assert []
+FAILED ../delivery/tests/test_b1_history.py::test_get_is_read_only_and_current_review_cannot_hide_older_runs - AssertionError: assert 1 == 2
+ +  where 1 = len([{'RESEARCH_ONLY': True, 'art_code': 'AN202609290000200001', 'available_at': '2026-09-30T08:01:00+08:00', 'body_sha256': 'cd128e0396c28512c9e523662552435e8d2543b8b212c8f674a2cd5906cc9671', ...}])
+9 failed in 0.46s

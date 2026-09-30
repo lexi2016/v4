@@ -1,0 +1,86 @@
+{
+  "environment": {
+    "platform": "linux",
+    "python": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]"
+  },
+  "runs": [
+    {
+      "name": "b1_red",
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-c",
+        "/mnt/data/business_b12/delivery/pytest.ini",
+        "/mnt/data/business_b12/delivery/tests/test_b1_history.py::test_default_two_batches_advance_scope_and_both_enter_original_input",
+        "/mnt/data/business_b12/delivery/tests/test_b1_history.py::test_repeated_document_deduplicates_and_old_refs_survive_listing_index_update",
+        "/mnt/data/business_b12/delivery/tests/test_b1_history.py::test_later_failed_batch_retains_previous_committed_body",
+        "/mnt/data/business_b12/delivery/tests/test_b1_history.py::test_cross_day_original_runs_and_after_cutoff_exclusion",
+        "/mnt/data/business_b12/delivery/tests/test_b1_history.py::test_tampered_body_or_reference_rejects_only_bad_run",
+        "/mnt/data/business_b12/delivery/tests/test_b1_history.py::test_get_is_read_only_and_current_review_cannot_hide_older_runs"
+      ],
+      "returncode": 1,
+      "started_at": "2026-09-30T12:25:40.077724+00:00",
+      "finished_at": "2026-09-30T12:25:42.241142+00:00",
+      "summary": "9 failed in 0.46s"
+    },
+    {
+      "name": "b2_red",
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-c",
+        "/mnt/data/business_b12/delivery/pytest.ini",
+        "/mnt/data/business_b12/delivery/tests/test_b2_cycle.py"
+      ],
+      "returncode": 1,
+      "started_at": "2026-09-30T12:25:42.241340+00:00",
+      "finished_at": "2026-09-30T12:25:44.699396+00:00",
+      "summary": "4 failed, 4 passed in 0.76s"
+    },
+    {
+      "name": "us_red",
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-c",
+        "/mnt/data/business_b12/delivery/pytest.ini",
+        "/mnt/data/business_b12/delivery/tests/test_us_business.py"
+      ],
+      "returncode": 1,
+      "started_at": "2026-09-30T12:25:44.699586+00:00",
+      "finished_at": "2026-09-30T12:25:46.661297+00:00",
+      "summary": "7 failed, 6 passed in 0.20s"
+    },
+    {
+      "name": "final_green",
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-c",
+        "/mnt/data/business_b12/delivery/pytest.ini",
+        "/mnt/data/business_b12/delivery/tests/test_b1_history.py",
+        "/mnt/data/business_b12/delivery/tests/test_b2_cycle.py",
+        "/mnt/data/business_b12/delivery/tests/test_us_business.py",
+        "--junitxml",
+        "/mnt/data/business_b12/delivery/logs/junit.xml"
+      ],
+      "returncode": 0,
+      "started_at": "2026-09-30T12:25:46.661487+00:00",
+      "finished_at": "2026-09-30T12:25:50.352904+00:00",
+      "summary": "41 passed in 1.80s"
+    }
+  ],
+  "patch_forward_exact": true,
+  "patch_reverse_exact": true,
+  "protected_sources_unchanged": true,
+  "live_scope": false,
+  "independent_review": false
+}

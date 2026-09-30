@@ -1,0 +1,65 @@
+--- a/ops/run_manager_announcement_cycle.py
++++ b/ops/run_manager_announcement_cycle.py
+@@ -171,6 +171,33 @@
+     return {'status':'FAILED' if failed else 'PARTIAL' if partial else 'SUCCEEDED','preopen_plan':preopen,
+         'next_session_draft':draft,'announcement_collection':{'status':'DISABLED_PLAN_REFRESH_ONLY',
+             'announcement_network_requests':0},'production_allowed':False,'buy_gate_updated':False,'orders_sent':False}
++
++
++
++def run_announcement_then_preopen_cycle(service: Any, source_date: str, *, schedule: Mapping[str, Any],
++                                         preopen_config: Mapping[str, Any] | None = None,
++                                         announcement_enabled: bool = True, clock=None) -> dict:
++    """One collection, then original pre-open owner with a fresh completion clock.
++
++    Collection errors do not hide previously committed inputs. Cancellation or
++    the worker's hard deadline still propagates. The original autorun alone
++    decides NOT_DUE/EXPIRED and owns transaction-level input idempotency.
++    """
++    from v4.manager_research.workspace_projection import HK
++    from v4.manager_research.workspace_plan_autorun import run_scheduled_preopen_plan_safe
++    if announcement_enabled:
++        try:
++            collected=service.refresh_announcements(source_date,schedule=dict(schedule))
++        except Exception as exc:
++            # Do not serialize arbitrary provider exception text or credentials.
++            collected={'status':'FAILED','reason':type(exc).__name__}
++    else:
++        collected={'status':'ANNOUNCEMENT_COLLECTION_DISABLED'}
++    observed=clock() if clock is not None else datetime.now(HK)
++    plan=run_scheduled_preopen_plan_safe(service,source_date,now=observed,config=preopen_config)
++    return dict(status=collected['status'],attempt=(collected.get('attempt') or {}).get('run_id'),
++        announcement_failure=collected.get('reason'),preopen_plan=plan,
++        production_allowed=False,buy_gate_updated=False,orders_sent=False)
+ 
+ 
+ def main(argv: list[str] | None=None) -> int:
+@@ -238,20 +265,14 @@
+             print(json.dumps(dict(**result,policy_status='PROPOSAL_ONLY',
+                 production_allowed=False,buy_gate_updated=False,orders_sent=False)))
+             return 2 if result.get('status')=='FAILED' else 0
+-        plan_result=run_scheduled_preopen_plan_safe(service,now.strftime('%Y%m%d'),now=now,
+-            config=value.get('preopen_plan'))
+-        if not announcement_enabled:
+-            print(json.dumps(dict(status='ANNOUNCEMENT_COLLECTION_DISABLED',preopen_plan=plan_result,
+-                production_allowed=False,buy_gate_updated=False,orders_sent=False)))
+-            return 0
+-        result=service.refresh_announcements(now.strftime('%Y%m%d'),schedule=dict(
+-            policy=value['policy'],priority_codes=value['priority_codes'],now=now.isoformat(),
+-            execution_identity=dict(status='BOUND_WORKER',app_root_sha256=hashlib.sha256(str(APP_ROOT).encode()).hexdigest(),
+-                source_inventory_sha256=hashlib.sha256(json.dumps(value['files'],sort_keys=True).encode()).hexdigest(),
+-                python_sha256=value['python_sha256'])))
+-        print(json.dumps(dict(status=result['status'],attempt=(result.get('attempt') or {}).get('run_id'),
+-            preopen_plan=plan_result, production_allowed=False,buy_gate_updated=False,orders_sent=False)))
+-        return 0
++        result=run_announcement_then_preopen_cycle(service,now.strftime('%Y%m%d'),
++            announcement_enabled=announcement_enabled,preopen_config=value.get('preopen_plan'),
++            schedule=dict(policy=value['policy'],priority_codes=value['priority_codes'],now=now.isoformat(),
++                execution_identity=dict(status='BOUND_WORKER',app_root_sha256=hashlib.sha256(str(APP_ROOT).encode()).hexdigest(),
++                    source_inventory_sha256=hashlib.sha256(json.dumps(value['files'],sort_keys=True).encode()).hexdigest(),
++                    python_sha256=value['python_sha256'])))
++        print(json.dumps(result))
++        return 2 if result['status']=='FAILED' else 0
+     finally:
+         signal.setitimer(signal.ITIMER_REAL,0)
+         for signum,handler in old.items():signal.signal(signum,handler)

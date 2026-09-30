@@ -1,0 +1,21 @@
+{
+  "scope": "NEW_TOOLING_ONLY",
+  "files": [
+    {
+      "path": "tools/run_tests.py",
+      "before_sha256": "66dd75754fa248481981bdfec5bee28a2923452d20fbbd1053469d8544449942",
+      "after_sha256": "488baa6aeae8fb4deb4968aeece0232e5726c04cc37c999f423260f2bbd42e68",
+      "after_git_blob": "f3a3400ff0a1557267e5aa291c205f3ddc21d6cf"
+    },
+    {
+      "path": "tools/prepare_combo.py",
+      "before_sha256": null,
+      "after_sha256": "306331697de6767c9a90da2315ef30fc95fb00321bbc4852d806b8901562bea4",
+      "after_git_blob": "043d5f5bb5e677a5a2347553905fed5c78080346"
+    }
+  ],
+  "product_patch": "original_business/runtime.patch",
+  "product_patch_sha256": "731472b7450505da195914e9feb9fc71f6156cfca8d616abaa0c191d922f3cb0",
+  "api_protected_and_product_pins": "COMBINATION_PINS.json",
+  "business_files_changed_in_this_turn": false
+}

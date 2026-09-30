@@ -1,0 +1,83 @@
+{
+  "schema_version": "issue8.api6726.business_combo.v1",
+  "profile": "API_6726_B1_US_ONLY",
+  "api_review_commit": "6726a3dcd853246734486dc0a38fb3b5b41230f1",
+  "business_commit": "284945925e6c4dd5f03cd3f5aff400798d134d2f",
+  "base_sha256": {
+    "v4/manager_research/workspace.py": "35c9292d3b422c9d5a744590cc472de5bfa2da8a62d12c6382ca0d1a9b3a6168",
+    "v4/manager_research/workspace_announcements.py": "b3a004c5c43451f7fc72163c02905e1542d6420e7d2fb14e99c7c439b765fb3e",
+    "v4/manager_research/workspace_discovery.py": "ed9188a44a4adb6bf2fd08836d465ed3ea7e7d2b8dd7075da99b7aaabc5c5c1a",
+    "v4/manager_research/workspace_plan.py": "0721e90fcc5c261545a23e1aca1545b48077956a312a3c4cfe703f11aa4023f9",
+    "v4/manager_research/workspace_semantics.py": "dc8d1d330e4fdacf2ef7169a7ac62874bfd3e2658f8b4bcff0773e06e32c4f7f",
+    "v4/manager_research/workspace_briefing.py": "60a7942e6c2c6a8ed32099ec807c79c35fa393342ed59996798f21da12466ff6",
+    "v4/manager_research/research_evidence.py": "6a0075aeba1ec68c14ee5ec09f0290c6bbcd49e296fe76fa3ae17a03510c6ec2",
+    "v4/manager_research/issuer_us_relations.py": "ac3b3e228c3efed4efc7447d2461ac0c63a00b1d0fa9c93a6c0a479076af0b7d",
+    "v4/manager_research/announcement_materials.py": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+    "v4/manager_research/connect_selection.py": "b6c5300172f59b6979dbab15927036ff1ab3599a2adae2b4f0e5a1e4868a6248",
+    "v4/manager_research/workspace_plan_autorun.py": "e785ae1d465175bec0517e7c3b4a8d6e16593967cba554aa0428817a85cd079b"
+  },
+  "after_sha256": {
+    "v4/manager_research/workspace.py": "35c9292d3b422c9d5a744590cc472de5bfa2da8a62d12c6382ca0d1a9b3a6168",
+    "v4/manager_research/workspace_announcements.py": "e2e7bd7f00da4f1e1df0b169307ff225976c1572bbbf9ccc2d3618c59f46248a",
+    "v4/manager_research/workspace_discovery.py": "ed9188a44a4adb6bf2fd08836d465ed3ea7e7d2b8dd7075da99b7aaabc5c5c1a",
+    "v4/manager_research/workspace_plan.py": "0721e90fcc5c261545a23e1aca1545b48077956a312a3c4cfe703f11aa4023f9",
+    "v4/manager_research/workspace_semantics.py": "dc8d1d330e4fdacf2ef7169a7ac62874bfd3e2658f8b4bcff0773e06e32c4f7f",
+    "v4/manager_research/workspace_briefing.py": "60a7942e6c2c6a8ed32099ec807c79c35fa393342ed59996798f21da12466ff6",
+    "v4/manager_research/research_evidence.py": "6a0075aeba1ec68c14ee5ec09f0290c6bbcd49e296fe76fa3ae17a03510c6ec2",
+    "v4/manager_research/issuer_us_relations.py": "ac79f4c6c49fe169537261be6e6e2f84199ed615a2b5d56a4ff25f3cf3d0b048",
+    "v4/manager_research/announcement_materials.py": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+    "v4/manager_research/connect_selection.py": "b6c5300172f59b6979dbab15927036ff1ab3599a2adae2b4f0e5a1e4868a6248",
+    "v4/manager_research/workspace_plan_autorun.py": "e785ae1d465175bec0517e7c3b4a8d6e16593967cba554aa0428817a85cd079b",
+    "v4/manager_research/eastmoney_run_history.py": "6bc723062141cf98681da460af37b73f74da208c682c1ee76a6d55b1a4570e8d"
+  },
+  "api_changes": [
+    {
+      "surface": "api",
+      "path": "v4/manager_research/workspace_announcements.py",
+      "before_sha256": "b3a004c5c43451f7fc72163c02905e1542d6420e7d2fb14e99c7c439b765fb3e",
+      "before_git_blob": "4a6217ffce7cea172deddd7ef894c2a1bc2ddebb",
+      "after_sha256": "e2e7bd7f00da4f1e1df0b169307ff225976c1572bbbf9ccc2d3618c59f46248a",
+      "after_git_blob": "0a1de6f1abffa20728fa36f1d0a70effb146d7cf"
+    },
+    {
+      "surface": "api",
+      "path": "v4/manager_research/eastmoney_run_history.py",
+      "before_sha256": null,
+      "before_git_blob": null,
+      "after_sha256": "6bc723062141cf98681da460af37b73f74da208c682c1ee76a6d55b1a4570e8d",
+      "after_git_blob": "3b230f1ff76983e33004fef49b0799e276b1345a"
+    },
+    {
+      "surface": "api",
+      "path": "v4/manager_research/issuer_us_relations.py",
+      "before_sha256": "ac3b3e228c3efed4efc7447d2461ac0c63a00b1d0fa9c93a6c0a479076af0b7d",
+      "before_git_blob": "6912b6c7d2b18f95da0827e1b3829c707039f9d2",
+      "after_sha256": "ac79f4c6c49fe169537261be6e6e2f84199ed615a2b5d56a4ff25f3cf3d0b048",
+      "after_git_blob": "1566557725f3329c03352c0862c0e73ca0d31a60"
+    }
+  ],
+  "test_sha256": {
+    "tests/conftest.py": "2c8e7ff7f538bf264c8c52e45eb9ae4a5c99c2761f913f18818b464c8d967e2a",
+    "tests/test_us_business.py": "00dfbb6e669b4c4851ac73946b60c60628bc74b6bd163bbb680973430aeacf03",
+    "tests/test_b2_cycle.py": "b981cbe47319e4a0e7020cfcb264c002e7d555d06fbd09efef1d3dbf8c774f34",
+    "tests/test_b1_history.py": "3f7205a5307f56bbf22c5314f19135a099f3e1c8b9728c7897c4cc5842599e18"
+  },
+  "expected_tests": 33,
+  "preserved_api_behaviors": [
+    "WorkspaceReadError",
+    "SCHEDULED_MORNING",
+    "R3B_CURRENT_DIAGNOSTICS"
+  ],
+  "b2": {
+    "status": "CANNOT_CONFIRM_FINAL_CYCLE_BINDING",
+    "native_applied": false,
+    "tests_run": false,
+    "reason": "Uploaded canonical cycle delegates through request_bound_plan_cycle and returns; the API integration receipt pins neither cycle nor RPC/router. Do not overlay 8851 cycle or ec257948 autorun.",
+    "uploaded_ref": "bdc95a3f9d6d0313baeff2bf727ea82d122dc820",
+    "known_git_blobs": {
+      "ops/run_manager_announcement_cycle.py": "2aa7c784a216c59ff991e28a87d4b7e96c3b0edc",
+      "v4/manager_research/plan_owner_dispatch.py": "0c6d30891bc345aa2893b1f2829dcf547a7dd10f",
+      "apps/api/v35_api/manager_research_router.py": "7db8e868bf8db3e0800b8e8fb9da715074db1c1e"
+    }
+  }
+}

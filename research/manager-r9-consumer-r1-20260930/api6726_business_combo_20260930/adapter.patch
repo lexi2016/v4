@@ -1,0 +1,292 @@
+--- a/tools/run_tests.py
++++ b/tools/run_tests.py
+@@ -1,49 +1,89 @@
+ #!/usr/bin/env python3
+-"""Run only this business delta on an explicitly selected isolated app."""
++"""Run unchanged B1/US assertions with the separately frozen API_6726 profile.
++
++No pin fallback, workspace replacement, legacy autorun, or native B2 claim.
++"""
+ from pathlib import Path
+ import argparse
++from datetime import datetime, timezone
+ import hashlib
+ import json
+ import os
+ import subprocess
+ import sys
+-from datetime import datetime, timezone
++import xml.etree.ElementTree as ET
+ 
+ 
+-def main():
+-    parser=argparse.ArgumentParser()
++def load_profile(package: Path) -> dict:
++    value=json.loads((package/'COMBINATION_PINS.json').read_text(encoding='utf-8'))
++    if value.get('profile')!='API_6726_B1_US_ONLY':
++        raise ValueError('COMBINATION_PROFILE_INVALID')
++    return value
++
++
++def check_sources(app: Path, expected: dict) -> dict:
++    actual={}
++    for rel,pin in expected.items():
++        path=app/rel
++        if (Path(rel).is_absolute() or '..' in Path(rel).parts or not path.is_file()
++                or path.resolve()!=path or hashlib.sha256(path.read_bytes()).hexdigest()!=pin):
++            raise ValueError('SOURCE_DRIFT:'+rel)
++        actual[rel]=pin
++    return actual
++
++
++def selected_tests(package: Path, surface: str) -> list[Path]:
++    if surface!='business':
++        raise ValueError('B2_FINAL_CYCLE_BINDING_REQUIRED:see B2_ENTRY_STATUS.md')
++    return [package/'original_business/tests'/name for name in ('test_b1_history.py','test_us_business.py')]
++
++
++def main() -> int:
++    parser=argparse.ArgumentParser(description=__doc__)
+     parser.add_argument('--app',type=Path,required=True)
+-    parser.add_argument('--surface',choices=['business','cycle','all'],default='all')
++    parser.add_argument('--surface',choices=['business','cycle','all'],default='business')
+     parser.add_argument('--output',type=Path,required=True)
+     args=parser.parse_args()
+-    package=Path(__file__).resolve().parents[1];app=args.app.resolve(strict=True)
+-    pins=json.loads((package/'SOURCE_PINS.json').read_text())
+-    if 'releases' in app.parts or app.name=='v4_app':
+-        raise SystemExit('Use an isolated candidate, not canonical or a release.')
+-    expected={row['path']:row['after_sha256'] for row in pins['files']
+-              if row['surface']=='api' or args.surface in {'cycle','all'}}
+-    protected=pins['protected_unchanged']
+-    for rel,sha in {**expected,**protected}.items():
+-        if rel.endswith('workspace_plan_autorun.py') and args.surface=='business':continue
+-        path=app/rel
+-        if not path.is_file() or path.is_symlink() or hashlib.sha256(path.read_bytes()).hexdigest()!=sha:
+-            raise SystemExit('SOURCE_DRIFT:'+rel)
+-    args.output.mkdir(parents=True,exist_ok=False)
+-    files=['test_b1_history.py','test_us_business.py'] if args.surface=='business' else (
+-        ['test_b2_cycle.py'] if args.surface=='cycle' else ['test_b1_history.py','test_b2_cycle.py','test_us_business.py'])
+-    command=[sys.executable,'-m','pytest','-q','-c',str(package/'pytest.ini'),
+-        *[str(package/'tests'/name) for name in files], '--junitxml',str(args.output.resolve()/'junit.xml')]
+-    env=dict(os.environ);env['PYTHONPATH']=str(app)+os.pathsep+str(package/'tests')
++    package=Path(__file__).resolve().parents[1]
++    profile=load_profile(package);files=selected_tests(package,args.surface)
++    app=args.app.resolve(strict=True);output=args.output.resolve()
++    if 'releases' in app.parts or app.name=='v4_app' or 'deployment_r9' in app.parts:
++        raise ValueError('ISOLATED_APP_REQUIRED')
++    if output==app or app in output.parents:
++        raise ValueError('TEST_OUTPUT_MUST_BE_OUTSIDE_APP')
++    expected=profile['after_sha256']
++    before=check_sources(app,expected)
++    check_sources(package/'original_business',profile['test_sha256'])
++    output.mkdir(parents=True,exist_ok=False)
++    command=[sys.executable,'-m','pytest','-q','-p','no:cacheprovider','-c',str(package/'original_business/pytest.ini'),
++        *map(str,files),'--junitxml',str(output/'junit.xml')]
++    env=dict(os.environ);env['PYTHONPATH']=str(app)+os.pathsep+str(package/'original_business/tests')
+     env['PYTHONDONTWRITEBYTECODE']='1';env.pop('PYTHONHOME',None)
+-    started=datetime.now(timezone.utc).isoformat()
++    start=datetime.now(timezone.utc).isoformat()
+     run=subprocess.run(command,cwd=app,env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
+-    (args.output/'pytest.log').write_text(run.stdout)
+-    (args.output/'receipt.json').write_text(json.dumps(dict(command=command,app=str(app),surface=args.surface,
+-        started_at=started,finished_at=datetime.now(timezone.utc).isoformat(),returncode=run.returncode,
+-        interpreter=sys.executable,python=sys.version,source_pins=expected,
+-        test_scope='SYNTHETIC_INPUTS_REAL_ORIGINAL_STORES_AND_PLAN_PIPELINE',
+-        live_provider=False,live_api=False,independent_reviewer='NOT_INFERRED_FROM_RUNNER',
+-        network_policy='SOCKET_CONNECT_DENIED_IN_TEST_FIXTURE'),indent=2)+'\n')
+-    print(run.stdout,end='');return run.returncode
++    (output/'pytest.log').write_text(run.stdout,encoding='utf-8')
++    after=check_sources(app,expected)
++    counts=None
++    if (output/'junit.xml').is_file():
++        suites=list(ET.parse(output/'junit.xml').getroot().iter('testsuite'))
++        counts={k:sum(int(s.get(k,0)) for s in suites) for k in ('tests','failures','errors','skipped')}
++    passed=run.returncode==0 and counts==dict(tests=profile['expected_tests'],failures=0,errors=0,skipped=0)
++    receipt=dict(profile=profile['profile'],command=command,app=str(app),started_at=start,
++        finished_at=datetime.now(timezone.utc).isoformat(),returncode=run.returncode,
++        accepted_selected_scope=passed,counts=counts,source_pins_before=before,source_pins_after=after,
++        interpreter=sys.executable,python=sys.version,test_files_sha256=profile['test_sha256'],
++        test_scope='UNCHANGED_33_B1_US_ASSERTIONS_ON_NEW_API_REFERENCE_OR_NATIVE_ISOLATED_APP',
++        old_14_rerun=False,b2=profile['b2'],live_provider=False,live_api=False,
++        independent_review='NOT_INFERRED_FROM_RUNNER',deployment_allowed=False,
++        network_policy='ORIGINAL_SOCKET_DENY_FIXTURE')
++    (output/'receipt.json').write_text(json.dumps(receipt,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
++    print(run.stdout,end='')
++    return run.returncode if run.returncode else (0 if passed else 3)
+ 
+-if __name__=='__main__':raise SystemExit(main())
++
++if __name__=='__main__':
++    try:
++        raise SystemExit(main())
++    except (OSError,ValueError) as exc:
++        print(str(exc),file=sys.stderr)
++        raise SystemExit(2)
+--- /dev/null
++++ b/tools/prepare_combo.py
+@@ -0,0 +1,78 @@
++#!/usr/bin/env python3
++"""One command: copy a frozen isolated API, apply the unchanged B1/US patch, test.
++
++The source app is read-only. Cycle/autorun/workspace are never installed by this tool.
++"""
++from pathlib import Path
++import argparse
++from datetime import datetime, timezone
++import hashlib
++import json
++import os
++import shutil
++import subprocess
++import sys
++from run_tests import check_sources, load_profile
++
++
++def main() -> int:
++    parser=argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--base-app',type=Path,required=True)
++    parser.add_argument('--output',type=Path,required=True)
++    args=parser.parse_args()
++    package=Path(__file__).resolve().parents[1]; original=package/'original_business'
++    base=args.base_app.resolve(strict=True); output=args.output.resolve()
++    if (output.exists() or base==output or base in output.parents or output in base.parents
++            or package==output or package in output.parents or output in package.parents):
++        raise ValueError('NEW_SIBLING_OUTPUT_REQUIRED')
++    profile=load_profile(package)
++    check_sources(base,profile['base_sha256'])
++    for row in profile['api_changes']:
++        if row['before_sha256'] is None and (base/row['path']).exists():
++            raise ValueError('NEW_PATH_ALREADY_EXISTS:'+row['path'])
++    # Reuse original manifest identities, without replaying or changing old evidence.
++    manifest=json.loads((original/'MANIFEST.json').read_text(encoding='utf-8'))
++    check_sources(original,{row['path']:row['sha256'] for row in manifest['files']})
++    # Never follow source symlinks into an active tree or out-of-scope storage.
++    for root,dirs,files in os.walk(base,followlinks=False):
++        dirs[:]=[n for n in dirs if n not in {'.git','__pycache__'}]
++        for name in dirs+files:
++            if (Path(root)/name).is_symlink():
++                raise ValueError('BASE_SYMLINK:'+str((Path(root)/name).relative_to(base)))
++    output.mkdir(parents=True,exist_ok=False)
++    candidate=output/'app'
++    shutil.copytree(base,candidate,ignore=shutil.ignore_patterns('.git','__pycache__','*.pyc','*.pyo','*.log'))
++    check_sources(candidate,profile['base_sha256'])
++    patch=original/'runtime.patch'
++    command=['git','apply',str(patch)]
++    check=subprocess.run(['git','apply','--check',str(patch)],cwd=candidate,capture_output=True,text=True)
++    (output/'patch_check.log').write_text(check.stdout+check.stderr,encoding='utf-8')
++    if check.returncode:raise ValueError('PATCH_CHECK_FAILED:see patch_check.log')
++    applied=subprocess.run(command,cwd=candidate,capture_output=True,text=True)
++    (output/'patch_apply.log').write_text(applied.stdout+applied.stderr,encoding='utf-8')
++    if applied.returncode:raise ValueError('PATCH_APPLY_FAILED:see patch_apply.log')
++    check_sources(candidate,profile['after_sha256'])
++    check_sources(base,profile['base_sha256'])
++    test=subprocess.run([sys.executable,str(package/'tools/run_tests.py'),'--app',str(candidate),
++        '--surface','business','--output',str(output/'test_result')],cwd=package)
++    summary=dict(schema_version='issue8.api6726.combo_application.v1',
++        status='B1_US_APPLIED_AND_TESTED_B2_NOT_ADMITTED' if test.returncode==0 else 'TEST_FAILED',
++        base_app=str(base),candidate_app=str(candidate),api_baseline=profile['api_review_commit'],
++        original_business=profile['business_commit'],runtime_patch_sha256=hashlib.sha256(patch.read_bytes()).hexdigest(),
++        changed_paths=[r['path'] for r in profile['api_changes']],
++        preserved_workspace=profile['base_sha256']['v4/manager_research/workspace.py'],
++        preserved_autorun=profile['base_sha256']['v4/manager_research/workspace_plan_autorun.py'],
++        b2=profile['b2'],test_returncode=test.returncode,finished_at=datetime.now(timezone.utc).isoformat(),
++        independent_review='CANNOT_CONFIRM',deployment_allowed=False,production_allowed=False,
++        buy_gate_updated=False,orders_sent=False)
++    (output/'application_receipt.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
++    print(json.dumps({k:summary[k] for k in ('status','candidate_app','test_returncode')},ensure_ascii=False))
++    return test.returncode
++
++
++if __name__=='__main__':
++    try:
++        raise SystemExit(main())
++    except (OSError,ValueError) as exc:
++        print(str(exc),file=sys.stderr)
++        raise SystemExit(2)
+--- /dev/null
++++ b/COMBINATION_PINS.json
+@@ -0,0 +1,83 @@
++{
++  "schema_version": "issue8.api6726.business_combo.v1",
++  "profile": "API_6726_B1_US_ONLY",
++  "api_review_commit": "6726a3dcd853246734486dc0a38fb3b5b41230f1",
++  "business_commit": "284945925e6c4dd5f03cd3f5aff400798d134d2f",
++  "base_sha256": {
++    "v4/manager_research/workspace.py": "35c9292d3b422c9d5a744590cc472de5bfa2da8a62d12c6382ca0d1a9b3a6168",
++    "v4/manager_research/workspace_announcements.py": "b3a004c5c43451f7fc72163c02905e1542d6420e7d2fb14e99c7c439b765fb3e",
++    "v4/manager_research/workspace_discovery.py": "ed9188a44a4adb6bf2fd08836d465ed3ea7e7d2b8dd7075da99b7aaabc5c5c1a",
++    "v4/manager_research/workspace_plan.py": "0721e90fcc5c261545a23e1aca1545b48077956a312a3c4cfe703f11aa4023f9",
++    "v4/manager_research/workspace_semantics.py": "dc8d1d330e4fdacf2ef7169a7ac62874bfd3e2658f8b4bcff0773e06e32c4f7f",
++    "v4/manager_research/workspace_briefing.py": "60a7942e6c2c6a8ed32099ec807c79c35fa393342ed59996798f21da12466ff6",
++    "v4/manager_research/research_evidence.py": "6a0075aeba1ec68c14ee5ec09f0290c6bbcd49e296fe76fa3ae17a03510c6ec2",
++    "v4/manager_research/issuer_us_relations.py": "ac3b3e228c3efed4efc7447d2461ac0c63a00b1d0fa9c93a6c0a479076af0b7d",
++    "v4/manager_research/announcement_materials.py": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
++    "v4/manager_research/connect_selection.py": "b6c5300172f59b6979dbab15927036ff1ab3599a2adae2b4f0e5a1e4868a6248",
++    "v4/manager_research/workspace_plan_autorun.py": "e785ae1d465175bec0517e7c3b4a8d6e16593967cba554aa0428817a85cd079b"
++  },
++  "after_sha256": {
++    "v4/manager_research/workspace.py": "35c9292d3b422c9d5a744590cc472de5bfa2da8a62d12c6382ca0d1a9b3a6168",
++    "v4/manager_research/workspace_announcements.py": "e2e7bd7f00da4f1e1df0b169307ff225976c1572bbbf9ccc2d3618c59f46248a",
++    "v4/manager_research/workspace_discovery.py": "ed9188a44a4adb6bf2fd08836d465ed3ea7e7d2b8dd7075da99b7aaabc5c5c1a",
++    "v4/manager_research/workspace_plan.py": "0721e90fcc5c261545a23e1aca1545b48077956a312a3c4cfe703f11aa4023f9",
++    "v4/manager_research/workspace_semantics.py": "dc8d1d330e4fdacf2ef7169a7ac62874bfd3e2658f8b4bcff0773e06e32c4f7f",
++    "v4/manager_research/workspace_briefing.py": "60a7942e6c2c6a8ed32099ec807c79c35fa393342ed59996798f21da12466ff6",
++    "v4/manager_research/research_evidence.py": "6a0075aeba1ec68c14ee5ec09f0290c6bbcd49e296fe76fa3ae17a03510c6ec2",
++    "v4/manager_research/issuer_us_relations.py": "ac79f4c6c49fe169537261be6e6e2f84199ed615a2b5d56a4ff25f3cf3d0b048",
++    "v4/manager_research/announcement_materials.py": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
++    "v4/manager_research/connect_selection.py": "b6c5300172f59b6979dbab15927036ff1ab3599a2adae2b4f0e5a1e4868a6248",
++    "v4/manager_research/workspace_plan_autorun.py": "e785ae1d465175bec0517e7c3b4a8d6e16593967cba554aa0428817a85cd079b",
++    "v4/manager_research/eastmoney_run_history.py": "6bc723062141cf98681da460af37b73f74da208c682c1ee76a6d55b1a4570e8d"
++  },
++  "api_changes": [
++    {
++      "surface": "api",
++      "path": "v4/manager_research/workspace_announcements.py",
++      "before_sha256": "b3a004c5c43451f7fc72163c02905e1542d6420e7d2fb14e99c7c439b765fb3e",
++      "before_git_blob": "4a6217ffce7cea172deddd7ef894c2a1bc2ddebb",
++      "after_sha256": "e2e7bd7f00da4f1e1df0b169307ff225976c1572bbbf9ccc2d3618c59f46248a",
++      "after_git_blob": "0a1de6f1abffa20728fa36f1d0a70effb146d7cf"
++    },
++    {
++      "surface": "api",
++      "path": "v4/manager_research/eastmoney_run_history.py",
++      "before_sha256": null,
++      "before_git_blob": null,
++      "after_sha256": "6bc723062141cf98681da460af37b73f74da208c682c1ee76a6d55b1a4570e8d",
++      "after_git_blob": "3b230f1ff76983e33004fef49b0799e276b1345a"
++    },
++    {
++      "surface": "api",
++      "path": "v4/manager_research/issuer_us_relations.py",
++      "before_sha256": "ac3b3e228c3efed4efc7447d2461ac0c63a00b1d0fa9c93a6c0a479076af0b7d",
++      "before_git_blob": "6912b6c7d2b18f95da0827e1b3829c707039f9d2",
++      "after_sha256": "ac79f4c6c49fe169537261be6e6e2f84199ed615a2b5d56a4ff25f3cf3d0b048",
++      "after_git_blob": "1566557725f3329c03352c0862c0e73ca0d31a60"
++    }
++  ],
++  "test_sha256": {
++    "tests/conftest.py": "2c8e7ff7f538bf264c8c52e45eb9ae4a5c99c2761f913f18818b464c8d967e2a",
++    "tests/test_us_business.py": "00dfbb6e669b4c4851ac73946b60c60628bc74b6bd163bbb680973430aeacf03",
++    "tests/test_b2_cycle.py": "b981cbe47319e4a0e7020cfcb264c002e7d555d06fbd09efef1d3dbf8c774f34",
++    "tests/test_b1_history.py": "3f7205a5307f56bbf22c5314f19135a099f3e1c8b9728c7897c4cc5842599e18"
++  },
++  "expected_tests": 33,
++  "preserved_api_behaviors": [
++    "WorkspaceReadError",
++    "SCHEDULED_MORNING",
++    "R3B_CURRENT_DIAGNOSTICS"
++  ],
++  "b2": {
++    "status": "CANNOT_CONFIRM_FINAL_CYCLE_BINDING",
++    "native_applied": false,
++    "tests_run": false,
++    "reason": "Uploaded canonical cycle delegates through request_bound_plan_cycle and returns; the API integration receipt pins neither cycle nor RPC/router. Do not overlay 8851 cycle or ec257948 autorun.",
++    "uploaded_ref": "bdc95a3f9d6d0313baeff2bf727ea82d122dc820",
++    "known_git_blobs": {
++      "ops/run_manager_announcement_cycle.py": "2aa7c784a216c59ff991e28a87d4b7e96c3b0edc",
++      "v4/manager_research/plan_owner_dispatch.py": "0c6d30891bc345aa2893b1f2829dcf547a7dd10f",
++      "apps/api/v35_api/manager_research_router.py": "7db8e868bf8db3e0800b8e8fb9da715074db1c1e"
++    }
++  }
++}
