@@ -1,0 +1,233 @@
+{
+  "schema_version": "manager_workspace_close_supplement.v1",
+  "business_date": "20260930",
+  "timezone": "Asia/Shanghai",
+  "request": {
+    "method": "GET",
+    "url": "http://127.0.0.1:8873/api/v4/manager/research/workspace?date=20260930",
+    "started_at": {
+      "utc": "2026-09-30T09:31:45.201481Z",
+      "local": "2026-09-30T17:31:45.201481+08:00"
+    },
+    "completed_at": {
+      "utc": "2026-09-30T09:31:45.755906Z",
+      "local": "2026-09-30T17:31:45.755906+08:00"
+    },
+    "http_status": 200,
+    "content_type": "application/json",
+    "response_bytes": 8028446,
+    "response_sha256": "caa5297f1d64784e70571df324e7cda9d78cb5cdbc24738b1e7dd7a7972da11d",
+    "raw_body_persisted": false
+  },
+  "route_contract": {
+    "source_path": "/Users/lexi/Desktop/学习/v4_app/apps/api/v35_api/manager_research_router.py",
+    "read_route": "GET /api/v4/manager/research/workspace",
+    "refresh_route": "POST /api/v4/manager/research/workspace/refresh",
+    "request_method": "GET"
+  },
+  "workspace_summary": {
+    "target_trade_date": "20260930",
+    "stock_count": 0,
+    "focus_count": 0,
+    "formal_recommendation_count": 0,
+    "relation_count": 0,
+    "theme_count": 4,
+    "stocks_rows": 0,
+    "focus_symbol_rows": 0,
+    "formal_candidate_rows": 0
+  },
+  "close_nextday_preopen": {
+    "formal_candidate_plan_fields_found": [],
+    "close_recapture_evidence": {
+      "status": "NOT_RUN",
+      "source_trade_date": "20260929",
+      "target_trade_date": null,
+      "plan_trade_date": null,
+      "candidate_overlay_count": 0,
+      "cannot_confirm": [
+        "CLOSE_RECAPTURE_NOT_MATERIALIZED"
+      ],
+      "planner_availability": "SOURCE_NOT_AVAILABLE",
+      "planner_eligible_context": false
+    },
+    "plan_context": {
+      "plan_trade_date": "20260930",
+      "market_session": "20260929",
+      "market_session_close": "2026-09-29T16:10:00+08:00",
+      "price_session_status": "EXPECTED_COMPLETED_SESSION_NOT_QUOTE_VERIFICATION",
+      "market_data_verified": false
+    },
+    "saved_plan_product": {
+      "status": "STALE_INPUTS_CHANGED",
+      "run_id": "f0db65a25bb340b584682542b8d597b8",
+      "generated_at": "2026-09-30T01:53:35.549339+00:00",
+      "sha256": "b37f7df163a63afe49d3c677d3b06ba4913f2bbac2eff0b83f2e555c303b334b"
+    },
+    "workspace_plan_attempt": {
+      "run_id": "f0db65a25bb340b584682542b8d597b8",
+      "target_trade_date": "20260930",
+      "input_coverage": {
+        "attempted_artifact_count": 34,
+        "excluded_after_cutoff_count": 0,
+        "global_market_coverage": "NOT_ESTABLISHED",
+        "market_session": "20260929",
+        "material_count": 2041,
+        "plan_trade_date": "20260930",
+        "verified_artifact_count": 30
+      },
+      "attempt_sha256": "f1cc74b0e1d823824bd6059cf530dca28288c88b40d7cd0cb96f9ad8d7b7abb4",
+      "failure_reason_count": 2110,
+      "failure_prefix_counts": {
+        "ARCHIVE_ARTICLE_ACQUISITION_TIME_MISSING": 1967,
+        "ARCHIVE_ARTICLE_STRUCTURED_THEME_MISSING": 133,
+        "VIBE_INPUT_READ_FAILED": 3,
+        "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING": 1,
+        "DISCOVERY_NATIVE_HK_UNIVERSE_ROOT_NOT_BOUND": 1,
+        "MATERIAL_DISCOVERY_NATIVE_IDENTITY_READ_FAILED": 1,
+        "PLAN_HK_02_EXACT_DATE_PANEL_MISSING": 1,
+        "PLAN_HK_02_PANEL_TARGET_MISMATCH": 1,
+        "PLAN_NATIVE_CLOSE_READ_FAILED": 1,
+        "SCREEN_PANEL_AUTHORITY_UNVERIFIED": 1
+      }
+    }
+  },
+  "manager_lanes": [
+    {
+      "lane": "STAGE",
+      "stock_count": null,
+      "run_id": null,
+      "schedule_status": "SCHEDULER_PLAN_NOT_BOUND",
+      "failure_reasons": [
+        "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"
+      ],
+      "hk_connect_declared_run_id": null,
+      "a_share_declared_run_id": "run-fba3f53a20d38d0dbcda9f70"
+    },
+    {
+      "lane": "CLOSE",
+      "stock_count": null,
+      "run_id": null,
+      "schedule_status": "SCHEDULER_PLAN_NOT_BOUND",
+      "failure_reasons": [
+        "WORKBENCH_RESEARCH_NO_EXECUTION_RECEIPT"
+      ],
+      "next_plan": null
+    }
+  ],
+  "market_screen": {
+    "status": "CANNOT_CONFIRM",
+    "coverage": {
+      "input_candidate_count": 0,
+      "history_complete_count": 0,
+      "history_pending_count": 0,
+      "strict_count": 0,
+      "near_candidate_count": 0,
+      "near_count": 0,
+      "selected_count": 0,
+      "panel_row_count": 0,
+      "panel_code_count": 0
+    },
+    "gaps_count": null
+  },
+  "us_market_attention": {
+    "status": "READY",
+    "session_close_at": "2026-09-29T16:00:00-04:00",
+    "coverage_scope": "FIXED_24_INDUSTRY_PROXY_ROWS_AND_33_CONFIGURED_US_SYMBOLS_NOT_FULL_US_MARKET",
+    "coverage": {
+      "industry_proxy_count": 24,
+      "requested_symbol_count": 33,
+      "available_symbol_count": 33
+    },
+    "mapping_eligible": true,
+    "accepted_hk_mapping_count": 0,
+    "relation_gate": "TWO_SOURCE_PIT_VERIFIED_REQUIRED",
+    "source_identity": {
+      "source": "external_finance",
+      "status": "VERIFIED",
+      "payload_sha256": "7eb0094a0546f62f5346dddd795977e8bbda3520e34eed03f2556b2fdfd81566",
+      "receipt_sha256": "9ee7e53afdd8ce42f11a6ede4f0569a92553bea308eec5f97d253b3d895e5879",
+      "manifest_sha256": "9045fb80c37fe9bb583efa0bad39584c9ef09ec9544488beceac52c768c0feda"
+    },
+    "source_response_sha256": "a6451a3bec403d82cafa4c6c3f0779c77e381183548ae9be0a7b87140e3be2e6"
+  },
+  "research_attention": {
+    "status": "READY_WITH_GAPS",
+    "coverage": {
+      "candidate_union_count": 0,
+      "screen_candidate_count": 0,
+      "existing_workspace_stock_count": 0,
+      "official_symbol_count": 0,
+      "company_material_symbol_count": 0,
+      "us_industry_mapped_symbol_count": 0,
+      "us_individual_mapped_symbol_count": 0,
+      "raw_us_industry_up_count": 14,
+      "raw_us_individual_up_count": 19,
+      "us_mapping_rejected_industry_count": 14,
+      "us_mapping_rejected_individual_count": 19
+    },
+    "accepted_hk_mapping_count": 0,
+    "relation_gate": "TWO_SOURCE_PIT_VERIFIED_REQUIRED"
+  },
+  "selection_qualification_diagnostics": [
+    {
+      "path": "lanes[0].execution_timing.source_execution_evidence.cannot_confirm",
+      "value": {
+        "type": "list",
+        "count": 3,
+        "items": [
+          "NO_INDEPENDENT_RUN_RECEIPT_SHA_BINDING",
+          "NO_IMMUTABLE_NATURAL_RECOVERY_HISTORY",
+          "RECEIPT_RECORD_TIME_NOT_RECORDED"
+        ]
+      }
+    },
+    {
+      "path": "close_recapture_evidence.cannot_confirm",
+      "value": {
+        "type": "list",
+        "count": 1,
+        "items": [
+          "CLOSE_RECAPTURE_NOT_MATERIALIZED"
+        ]
+      }
+    },
+    {
+      "path": "stage_read_timing.source_execution_evidence.cannot_confirm",
+      "value": {
+        "type": "list",
+        "count": 3,
+        "items": [
+          "NO_INDEPENDENT_RUN_RECEIPT_SHA_BINDING",
+          "NO_IMMUTABLE_NATURAL_RECOVERY_HISTORY",
+          "RECEIPT_RECORD_TIME_NOT_RECORDED"
+        ]
+      }
+    },
+    {
+      "path": "us_market_attention.mapping_diagnostics",
+      "value": {
+        "status": "COMPUTED_BY_RELATION_LAYER",
+        "source_material_card_count": 0,
+        "mapping_eligible": true,
+        "accepted_hk_mapping_count": 0,
+        "relation_gate": "TWO_SOURCE_PIT_VERIFIED_REQUIRED"
+      }
+    },
+    {
+      "path": "research_attention.us_mapping_diagnostics",
+      "value": {
+        "status": "COMPUTED_BY_RELATION_LAYER",
+        "source_material_card_count": 0,
+        "mapping_eligible": true,
+        "accepted_hk_mapping_count": 0,
+        "relation_gate": "TWO_SOURCE_PIT_VERIFIED_REQUIRED"
+      }
+    }
+  ],
+  "interpretation": {
+    "formal_close_selection": "NO_FORMAL_CANDIDATES_IN_MANAGER_WORKSPACE",
+    "raw_us_attention_is_hk_candidate_selection": false,
+    "plan_product_currentness": "STALE_INPUTS_CHANGED",
+    "close_recap_capture": "NOT_RUN"
+  }
+}
