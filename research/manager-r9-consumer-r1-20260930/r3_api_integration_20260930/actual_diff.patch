@@ -1,0 +1,237 @@
+--- a/v4/manager_research/workspace_plan_autorun.py
++++ b/v4/manager_research/workspace_plan_autorun.py
+@@ -8,6 +8,7 @@
+ from __future__ import annotations
+ 
+ from datetime import datetime, timedelta
++import re
+ from typing import Any, Mapping
+ 
+ from .workspace_projection import HK, date_token, timestamp
+@@ -123,4 +124,91 @@
+         }
+ 
+ 
+-__all__ = ["DEFAULT_CONFIG", "preopen_window", "run_scheduled_preopen_plan", "run_scheduled_preopen_plan_safe"]
++MORNING_DEFAULT_CONFIG = {"enabled": False, "interval_seconds": 300, "status": "PROPOSAL_ONLY"}
++
++
++def morning_config(value: Mapping[str, Any] | None = None) -> dict[str, Any]:
++    config = dict(MORNING_DEFAULT_CONFIG)
++    if value is not None:
++        if not isinstance(value, Mapping) or set(value) - set(config):
++            raise ValueError("MORNING_PLAN_CONFIG_INVALID")
++        config.update(value)
++    if (type(config["enabled"]) is not bool
++            or type(config["interval_seconds"]) is not int
++            or config["interval_seconds"] not in {300, 600, 900}
++            or config["status"] != "PROPOSAL_ONLY"):
++        raise ValueError("MORNING_PLAN_CONFIG_INVALID")
++    return config
++
++
++def morning_window(target_trade_date: str) -> tuple[datetime, datetime]:
++    """Return the bounded plan window, ending before the existing pre-open owner."""
++    freeze, _ = preopen_window(target_trade_date, lead_seconds=300)
++    return freeze.replace(hour=7, minute=0, second=0, microsecond=0), freeze
++
++
++def run_scheduled_morning_plan(
++    service: Any,
++    target_trade_date: str,
++    *,
++    now: datetime,
++    config: Mapping[str, Any] | None = None,
++) -> dict[str, Any]:
++    cfg = morning_config(config)
++    if now.tzinfo is None:
++        raise ValueError("MORNING_PLAN_CLOCK_MUST_BE_AWARE")
++    if not cfg["enabled"]:
++        return {"status": "DISABLED", "policy_status": "PROPOSAL_ONLY"}
++    date = date_token(target_trade_date)
++    local = now.astimezone(HK)
++    if local.strftime("%Y%m%d") != date:
++        raise ValueError("MORNING_PLAN_DATE_CLOCK_MISMATCH")
++    start, freeze = morning_window(date)
++    if local < start:
++        return {"status": "NOT_DUE", "target_trade_date": date, "policy_status": "PROPOSAL_ONLY"}
++    if local >= freeze:
++        return {"status": "EXPIRED_NO_BACKFILL", "target_trade_date": date, "policy_status": "PROPOSAL_ONLY"}
++    if (local.hour * 60 + local.minute) % (cfg["interval_seconds"] // 60):
++        return {"status": "INTERVAL_NOT_DUE", "target_trade_date": date, "policy_status": "PROPOSAL_ONLY"}
++
++    value = service.refresh_workspace_plan(
++        date, execution_kind="SCHEDULED_MORNING", now=local, deadline=freeze
++    )
++    product = value.get("plan_product") if isinstance(value, Mapping) else None
++    attempt = value.get("workspace_plan_attempt") if isinstance(value, Mapping) else None
++    product = product if isinstance(product, Mapping) else {}
++    attempt = attempt if isinstance(attempt, Mapping) else {}
++    state = attempt.get("state")
++    status = product.get("status")
++    if status == "CURRENT":
++        status = "PARTIAL" if state == "PARTIAL" else "MATERIALIZED"
++    if status not in {"MATERIALIZED", "PARTIAL", "ALREADY_MATERIALIZED", "PRESERVED_SCHEDULED_PREOPEN"}:
++        raise ValueError("MORNING_PLAN_OWNER_READBACK_INVALID")
++    if not re.fullmatch(r"[0-9a-f]{32}", str(product.get("run_id") or "")):
++        raise ValueError("MORNING_PLAN_RUN_ID_INVALID")
++    return {
++        "status": status,
++        "target_trade_date": date,
++        "run_id": product.get("run_id"),
++        "product_sha256": product.get("sha256"),
++        "input_identity": value.get("input_identity") if isinstance(value, Mapping) else None,
++        "generated_at": product.get("generated_at"),
++        "owner": "ManagerResearchJobService.refresh_workspace_plan",
++        "policy_status": "PROPOSAL_ONLY",
++        "RESEARCH_ONLY": True,
++        "production_allowed": False,
++        "buy_gate_updated": False,
++        "orders_sent": False,
++    }
++
++
++__all__ = [
++    "DEFAULT_CONFIG",
++    "MORNING_DEFAULT_CONFIG",
++    "morning_config",
++    "morning_window",
++    "preopen_window",
++    "run_scheduled_morning_plan",
++    "run_scheduled_preopen_plan",
++    "run_scheduled_preopen_plan_safe",
++]
+--- a/v4/manager_research/workspace.py
++++ b/v4/manager_research/workspace.py
+@@ -16,10 +16,18 @@
+ from .workspace_discovery import read_discovery, read_material_discovery
+ from .workspace_plan import plan_context, read_plan_quotes, read_rebound_screen
+ from .workspace_projection import FLAGS, HK, build_workspace, date_token, digest, timestamp
+-from .workspace_read_control import phase, count, checkpoint, project, READ_CONTRACT, contract_identity
++from .workspace_read_control import (
++    WorkspaceReadError,
++    phase,
++    count,
++    checkpoint,
++    project,
++    READ_CONTRACT,
++    contract_identity,
++)
+ 
+ ATTEMPT_SCHEMA = 'v4.manager_research.workspace_attempt.v1'
+-_ERROR_TYPES = (ImportError, OSError, ValueError, KeyError, TypeError, RuntimeError, TimeoutError)
++_ERROR_TYPES = (ImportError, OSError, ValueError, KeyError, TypeError, RuntimeError, TimeoutError, WorkspaceReadError)
+ 
+ 
+ def _now() -> str:
+@@ -85,10 +93,10 @@
+             or any(row.get(k) is not v for k,v in FLAGS.items())
+             or not re.fullmatch(r'[0-9a-f]{32}',str(row.get('run_id','')))
+             or row.get('state') not in {'RUNNING','FAILED','PARTIAL','SUCCEEDED','SUCCEEDED_EMPTY'}
+-            or (row.get('execution_kind') not in {'MANUAL_REFRESH','SCHEDULED_PREOPEN'} and not (
++            or (row.get('execution_kind') not in {'MANUAL_REFRESH','SCHEDULED_PREOPEN','SCHEDULED_MORNING'} and not (
+                 row.get('execution_kind') == 'SCHEDULED_REFRESH' and
+                 row.get('owner') == 'ManagerResearchJobService.refresh_announcements'))
+-            or (row.get('execution_kind') == 'SCHEDULED_PREOPEN' and
++            or (row.get('execution_kind') in {'SCHEDULED_PREOPEN','SCHEDULED_MORNING'} and
+                 row.get('owner') != 'ManagerResearchJobService.refresh_workspace_plan')
+             or timestamp(row.get('started_at')) is None
+             or not isinstance(row.get('failure_reasons'),list)):
+@@ -501,7 +509,7 @@
+             # unreadable saved product merely because pre-open autorun adds a
+             # new execution kind.  Missing means legacy manual refresh only;
+             # an explicit unknown value still fails closed.
+-            or row.get('execution_kind','MANUAL_REFRESH') not in {'MANUAL_REFRESH','SCHEDULED_PREOPEN'}
++            or row.get('execution_kind','MANUAL_REFRESH') not in {'MANUAL_REFRESH','SCHEDULED_PREOPEN','SCHEDULED_MORNING'}
+             or timestamp(row.get('generated_at')) is None):
+         raise ValueError('WORKSPACE_STORED_PLAN_INVALID')
+     return row
+@@ -535,7 +543,9 @@
+         value['runtime_status_read_at']=current['plan_context']['research_cutoff']
+     value['plan_product']=dict(status='CURRENT' if same else ('PLAN_AFTER_READ_CUTOFF' if after_cutoff else 'STALE_INPUTS_CHANGED' if saved else 'NOT_MATERIALIZED'),
+         run_id=saved.get('run_id') if saved else None,generated_at=saved.get('generated_at') if saved else None,
+-        sha256=saved.get('sha256') if saved else None,original_owner='ManagerResearchJobService.refresh_workspace_plan',
++        sha256=saved.get('sha256') if saved else None,
++        execution_kind=saved.get('execution_kind','MANUAL_REFRESH') if saved else None,
++        original_owner='ManagerResearchJobService.refresh_workspace_plan',
+         last_checked_at=current['plan_context']['research_cutoff'],consumed=same)
+     value['workspace_plan_attempt']=attempt
+     value['observation_mode']='EXACT_DATE_PLAN_READBACK' if same else 'READ_ONLY_EXISTING_OWNER_PREVIEW'
+@@ -550,35 +560,55 @@
+     uses its supplied aware clock for both the read cutoff and product timing;
+     late/backfill eligibility is enforced by ``workspace_plan_autorun``.
+     """
+-    if execution_kind not in {'MANUAL_REFRESH','SCHEDULED_PREOPEN'}:
++    if execution_kind not in {'MANUAL_REFRESH','SCHEDULED_PREOPEN','SCHEDULED_MORNING'}:
+         raise ValueError('WORKSPACE_PLAN_EXECUTION_KIND_INVALID')
+-    if execution_kind == 'SCHEDULED_PREOPEN' and (now is None or now.tzinfo is None):
++    scheduled = execution_kind in {'SCHEDULED_PREOPEN','SCHEDULED_MORNING'}
++    if scheduled and (now is None or now.tzinfo is None):
+         raise ValueError('WORKSPACE_PLAN_SCHEDULED_CLOCK_REQUIRED')
+-    if execution_kind == 'SCHEDULED_PREOPEN' and deadline is None:
++    if scheduled and deadline is None:
+         raise ValueError('WORKSPACE_PLAN_SCHEDULED_DEADLINE_REQUIRED')
+     if deadline is not None and deadline.tzinfo is None:
+         raise ValueError('WORKSPACE_PLAN_DEADLINE_MUST_BE_AWARE')
+-    if execution_kind != 'SCHEDULED_PREOPEN' and deadline is not None:
++    if not scheduled and deadline is not None:
+         raise ValueError('WORKSPACE_PLAN_DEADLINE_ONLY_FOR_SCHEDULED_PREOPEN')
+-    if execution_kind == 'SCHEDULED_PREOPEN' and now.astimezone(timezone.utc) >= deadline.astimezone(timezone.utc):
++    if scheduled and now.astimezone(timezone.utc) >= deadline.astimezone(timezone.utc):
+         raise ValueError('WORKSPACE_PLAN_SCHEDULED_DEADLINE_EXPIRED')
+     date=date_token(target_trade_date)
++    if execution_kind == 'SCHEDULED_MORNING':
++        from .workspace_plan_autorun import morning_window
++        start, freeze = morning_window(date)
++        if (now.astimezone(HK).strftime('%Y%m%d') != date or not start <= now < freeze
++                or deadline != freeze):
++            raise ValueError('MORNING_PLAN_OUTSIDE_FROZEN_WINDOW')
++        if (getattr(service,'_existing_research_source',None) is None
++                or getattr(service,'_workspace_us_market_reader',None) is None):
++            raise ValueError('MORNING_PLAN_FULL_OWNER_READERS_REQUIRED')
+     with service.store._transaction(date,'workspace-plan-refresh'):
+-        prepared=None
+-        if execution_kind == 'SCHEDULED_PREOPEN':
++        prepared=None;preparation_error=None
++        if scheduled:
+             # The outer autorun check is only an optimization. A concurrent
+             # caller may pass it before the first caller commits, so repeat
+             # the exact-date check while holding the same store transaction
+             # used for plan persistence.
+             existing=_read_plan(service.store,date)
+             if existing is not None:
++                if execution_kind == 'SCHEDULED_MORNING' and existing.get('execution_kind') == 'SCHEDULED_PREOPEN':
++                    from copy import deepcopy
++                    value=deepcopy(existing['workspace'])
++                    value['plan_product']=dict(status='PRESERVED_SCHEDULED_PREOPEN',run_id=existing['run_id'],
++                        generated_at=existing['generated_at'],sha256=existing['sha256'],
++                        original_owner='ManagerResearchJobService.refresh_workspace_plan')
++                    return value
+                 existing_workspace=existing['workspace']
+                 existing_context=existing_workspace.get('plan_context') if isinstance(existing_workspace.get('plan_context'),dict) else {}
+                 existing_generated=timestamp(existing.get('generated_at'))
+                 existing_cutoff=timestamp(existing_context.get('research_cutoff'))
+                 open_at=deadline.astimezone(timezone.utc)
+-                prepared=get_workspace(service,date,include_saved=False,now=now)
+-                if (existing['input_identity']==prepared['input_identity']
++                try:
++                    prepared=get_workspace(service,date,include_saved=False,now=now)
++                except _ERROR_TYPES as exc:
++                    preparation_error=exc
++                if (prepared is not None and existing['input_identity']==prepared['input_identity']
+                         and existing_workspace.get('semantic_version')==prepared.get('semantic_version')
+                         and existing_cutoff is not None and existing_cutoff<=now
+                         and existing_generated is not None and existing_cutoff is not None
+@@ -603,9 +633,12 @@
+             service.store._write_atomic(run_root/'latest.json',sealed)
+         write_attempt()
+         try:
++            if preparation_error is not None:
++                raise preparation_error
+             value=prepared if prepared is not None else get_workspace(service,date,include_saved=False,now=now)
+             failures=sorted(set(value['gaps']))
+             state='PARTIAL' if failures else ('SUCCEEDED' if value['stocks'] else 'SUCCEEDED_EMPTY')
++            checkpoint()
+             completed_at=_now()
+             if deadline is not None and timestamp(completed_at) >= deadline.astimezone(timezone.utc):
+                 raise TimeoutError('WORKSPACE_PLAN_SCHEDULED_COMPLETION_DEADLINE_EXCEEDED')
