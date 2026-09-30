@@ -1,0 +1,169 @@
+{
+  "schema_version": "v4.manager_authority_source_owner_trace.v1",
+  "as_of": "2026-09-30T14:30:32+08:00",
+  "scope": "Read-only launchd/catalog/source/artifact trace. No provider calls, code or data changes, service changes, or trading actions.",
+  "evidence_paths": [
+    {
+      "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+      "sha256": "8a72635aeec0efe181b6e479cb7b99463942d9be3690982a79e0b1f93d30b86c",
+      "evidence": "Label com.lexi.v35.scheduler points at app release 20260929-manager-1555-pytdx-r1; mode is persistent-minute. Configured research-panel receipt root is /Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts; shared root is /Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data. launchctl list showed a live PID during this audit."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/release-manifest.json",
+      "sha256": "819eb1f02a7a32889ffc2dd46e0c7ff686e3d20f410db36367ef94ca0734b980",
+      "evidence": "SHA matches the plist pin. candidate_status=READY_FOR_REVIEW, deployment_status=CANNOT_CONFIRM, activation_status=NOT_ACTIVATED; source.release_id=20260926-manager-closure-r1. Launchd is pointed at this package, but formal activation is not established."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app/contracts/runtime_workloads.json",
+      "sha256": "098f68bb95f064f94a9d385c19bb30c5aa4d4d4e6db422950446b107370bfea0",
+      "lines": "1018-1084; 1247-1273",
+      "evidence": "Two enabled HK_CONNECT workloads are catalogued: research_panel_daily_hk, owner v35_dispatcher.research_panel_daily_hk, POST_CLOSE slot 1720, command ops.macos_research_panel_daily --lane HK; and hk_connect_close_review, owner v35_dispatcher.hk_connect_close_review, POST_CLOSE slot 1608. Catalog safety flags are false."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app/ops/launch_v35_macos_scheduler.sh",
+      "sha256": "0c577ae83b1f182dabf3b62e642a5bd5f0f8708b48e1806d8c653b691d2ec952",
+      "lines": "8-19; 63-94",
+      "evidence": "Launch script passes the configured roots and starts the persistent-minute daemon from the candidate app. run_v35_macos_scheduler_daemon.py:637-653 wraps the existing one-shot scheduler; run_scheduled_slot.py:175-181 loads the workload catalog and execution ledger."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app/infrastructure/scheduling/executor_registry.py",
+      "sha256": "61aab93e92591e17917dd2f880331913e33aa93806500ce1f2596735444e6833",
+      "lines": "748-759",
+      "evidence": "research_panel_daily_hk maps to _research_panel_daily(request, lane=HK); hk_connect_close_review maps to its close-review handler."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app/infrastructure/scheduling/executor_registry_review.py",
+      "sha256": "8d3eda519e158bb61cbaf3c642d92899a4b5c5646385b44d469de8edb6c34d3e",
+      "lines": "189-251; 614-674",
+      "evidence": "Daily HK owner executes ops.macos_research_panel_daily with current HK receipt/TDX/updater/asset-root bindings. The 1608 owner executes ops.collect_hkconnect_close_snapshot followed by ops.build_close_review."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app/ops/collect_hkconnect_close_snapshot.py",
+      "sha256": "901905f77532fe61674d2f423b6fab1babc86b3b6f5e3aeb5a34abce91630c76",
+      "lines": "16-18; 116-145; 147-196",
+      "evidence": "The 1608 quote collector calls Futu get_plate_stock for HK.GangGuTong and HK.LIST1922, keeps HK.* codes in a deduplicated union, then gets market snapshots. It filters rows to target-date snapshot and valid positive close/pre-close. Payload records trade_date, plate labels, counts, a SHA, and filtered rows, but not original per-plate frames or acquired_at."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app/infrastructure/hkconnect_close_store.py",
+      "sha256": "aea05a0ec8b4b42e6c140715fb1bf80ffcf49ded1f25f5bb59bc3c952bce4bf8",
+      "lines": "24-77; 79-102",
+      "evidence": "Close snapshots are stored at hkconnect_close_snapshots/<date>.json with a receipt and manifest SHA check under V35_DATA_ROOT, outside the two designated authority roots."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/hkconnect_close_snapshots/20260928.json",
+      "sha256": "2f3cc09632070b32921517a7583ee72db5a77635192f255cd8c536e092a14a14",
+      "evidence": "Historical 20260928 close snapshot is READY: universe_count=694, same_date_row_count=694, coverage_ratio=1.0, source_mode=FUTU_FULL_HKCONNECT_CLOSE_SNAPSHOT. Rows contain date/code/name/close/pre_close/amount/pct_chg_close/source. This is a filtered quote snapshot, not a raw plate response."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/receipts/hkconnect_close_snapshots/20260928.json",
+      "sha256": "28408b32f16e53112923047c143a336b82a22be80ea0fd359b9cf706876d031f",
+      "evidence": "Native import receipt binds the snapshot path, payload SHA, and 20260928 trade date."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher/receipts/live/20260928/1608/c3168e5e442f442697892b8fb457cb71.dispatch-receipt.json",
+      "sha256": "9f509499f6f930c1ce9ddb8c8015c18f591f38944fef5a0cb731ca6684a0e2ee",
+      "evidence": "Historical close-review run c3168e5e442f442697892b8fb457cb71 succeeded under release 20260926-manager-closure-r1; finished_at=2026-09-28T08:10:01Z (16:10:01 Shanghai). The corresponding workload-claim SHA is d209d366e123b6e2b766e89184457b05000ebd2bcbeb06c0e3626c2128625aab."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app/ops/macos_research_panel_daily_collectors.py",
+      "sha256": "afd6a4fa768a59e2ebe85c82482a593bb40203bd53abc81036af57f3a8e61f87",
+      "lines": "141-173; 220-240; 263-384; 398-430",
+      "evidence": "The 1720 collector calls both Futu plates. It converts each frame to records, retains only code/name for HK.* rows in a code-keyed dict (deduplicating overlap and losing plate attribution/other original fields), then requests market snapshots. Quote rows are filtered by exact update date, required numeric fields, positive volume/turnover, and OHLC checks. Persisted capture has target_date, plate labels, union codes, filtered rows, snapshot-derived security_master_rows, source/capture SHAs; manifest has target_date and run ID but no acquired_at or raw per-plate payload."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app/ops/macos_research_panel_daily_gate.py",
+      "sha256": "fc852dcbbcde3e3a6bfcf9ea6af46ea773cefe32e00355594edc1a4816665b34",
+      "lines": "594-663; 713-758",
+      "evidence": "The 1720 owner creates a fresh per-date capture manifest under the existing panel receipt root, calls collect_hk_futu_rows, validates the immutable manifest/raw capture, then calls ensure_hk_security_master from the same capture. store_root derives from the HK asset root as V35_SHARED_DATA_ROOT. This is an existing same-job seam."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app/ops/ensure_hk_security_master.py",
+      "sha256": "ae6bae7dbd87f03327cf03904beee2e1f8b3e63b262057b49a3f6186eedf21f7",
+      "lines": "489-592; 567-578",
+      "evidence": "The security-master writer consumes the validated capture and publishes its security_master_rows. It passes captured_at at publish time; this is a later publication timestamp, not a timestamp recorded per get_plate_stock call."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher/receipts/live/20260928/1720/86f97066a53b4f6d94e0877ec462608e.dispatch-receipt.json",
+      "sha256": "e90e2e9a602504c7d6e9756fec69bc9d4fa131ef1b79a023e31a66de8168e3b3",
+      "evidence": "Historical research_panel_daily_hk run 86f97066a53b4f6d94e0877ec462608e succeeded under release 20260926-manager-closure-r1; finished_at=2026-09-28T09:20:06Z. The workload-claim SHA is 8788b3af51190acdc7b928846fade8d1e88d9f9a12c074913c1cde9f9c174150."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/hk-20260928.json",
+      "sha256": "ae3862212e92da7fffb31c906d81144df331548bbe775b0ac1520f27bf7d5190",
+      "evidence": "READY receipt binds capture run 20260928-18628-c2ad198064443c1a4853dbfe and source_sha256=9c0770e05d970b57c7ef22ac390abcb3b0e51feda95865322e8fbac97abbb016; 694 universe/security rows, 687 dated quote rows, 7 excluded codes."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/hk_capture/20260928/20260928-18628-c2ad198064443c1a4853dbfe.json",
+      "sha256": "e5970ec3d1d74cdff04298a8319757227dad302f8fa58bcb9e17f7c05d733695",
+      "evidence": "READY capture manifest links its payload by relative path and raw/capture SHA; fields include target_date and capture_run_id but no acquisition time."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/hk_capture/20260928/20260928-18628-c2ad198064443c1a4853dbfe.capture.json",
+      "sha256": "b6486574db5af2a2a74efe338cdec752c97328ee96774ce72c132047670fbf30",
+      "evidence": "Collector-produced derived capture has 694 deduplicated union codes/security_master_rows, 687 filtered quote rows, both plate labels, and capture_sha256=08e4044c079b395a602db01c614a4f06aa7ca7e0923eeb0884103fde7e21cd1d. The file is not the original API response."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20260928/af610a65d292f23ff74c6251/manifest.json",
+      "sha256": "3e8544470a80df68a5d9371ab5e0d81dac3293cd787ac8bd9622c1998b27631f",
+      "evidence": "Existing shared-root security master run af610a65d292f23ff74c6251 is trade_date 20260928 with 694 rows and captured_at=2026-09-28T17:20:06+08:00; artifact_sha256=3861ba104821ac53f3731d89cb57a7f1de67dbd8d6dcb4caed5bcbfe57b66fee. It is not universes/20260928/HK_CONNECT_FULL_MARKET.json."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20260928/af610a65d292f23ff74c6251/artifact.csv",
+      "sha256": "3861ba104821ac53f3731d89cb57a7f1de67dbd8d6dcb4caed5bcbfe57b66fee",
+      "evidence": "694-row security-master table header is code,name,outstanding_shares,circular_market_val,listing_date,lot_size,stock_owner,stock_child_type,sec_status,captured_at,source."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher/receipts/live/20260929/1608",
+      "evidence": "Three hk_connect_close_review receipts (07d9e2062da840459d9b882cf3a40939, b981ff9d29874f2284c4047792b2799d, e4f69e7ec02f47bc847542d2af6cc36e) failed with NETWORK/TIMEOUT after 11 attempts and 1200 seconds, under release 20260928-manager-daily-plan-hook-r1. SHA256 values: c0733af9e54a30eb226793688737922f76536c700a8e0559bef24491242d35d0; f17e333097dd51ff7786c249e794cf5e8a360d42670e14e4a28c42decc9dbe19; af3e890e5d78c4a7c6f6de5fcc42566e4cb0c7864483d60c1edd676b8649b2d7."
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/hk_capture/20260929",
+      "evidence": "Three 249-byte PENDING manifests exist; each references a missing .capture.json. No hk-20260929.json READY receipt or research_panel_daily_hk live claim/dispatch receipt at slot 1720 was present."
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/ops/_macos_research_panel_daily_parts/hk_market_capture.py",
+      "sha256": "af2acc8566ca78e9ec69de614d8c589ff147268ac3c3bff349008171f2b18036",
+      "lines": "1-25",
+      "evidence": "Canonical V4 counterpart reads both plates then applies the HK.* filter and union de-dup. Its module docstring says 'review candidate, not deployment'; this does not bind it to the active LaunchAgent package."
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/ops/macos_research_panel_daily.py",
+      "sha256": "bb4db8d0cafaf43c7080439a60b986bf0ed02d4e4cb3295bde3f7ad8a266377f",
+      "evidence": "Canonical adapter imports the review-candidate hk_market_capture body; no LaunchAgent binding was found in this scoped trace."
+    }
+  ],
+  "cannot_confirm": [
+    "Formal activation/deployment of the configured 20260929-manager-1555-pytdx-r1 release: its manifest says NOT_ACTIVATED and deployment_status CANNOT_CONFIRM despite launchd loading that path.",
+    "A completed invocation of the configured candidate release for 20260929 or 20260930. Latest confirmed successful 1608 and 1720 runs are 20260928 under release 20260926-manager-closure-r1. The 20260929 1608 owner timed out in three receipts, and its 1720 capture manifests are PENDING only. As of 2026-09-30 14:30 Shanghai, today's 1608 and 1720 slots are still future.",
+    "Original Futu per-plate response bytes, plate-specific memberships, and exact plate-query acquisition timestamps. Persisted files hold normalized/deduplicated union data and quote/snapshot-derived rows; the security-master captured_at is publication time.",
+    "Whether either derived artifact meets the R2 reader's exact HK_CONNECT_FULL_MARKET schema/authority contract or can be published to both qualification roots; this trace did not review the R2 reader.",
+    "Whether the current candidate is built byte-for-byte from the canonical V4 module or which canonical repository owner should land a change. The canonical V4 counterpart is marked review candidate while launchd points to a V35 release package.",
+    "Downstream feature consumption and leakage acceptance. target_date appears as metadata and daily Futu quote fields are same-date post-close values. No downstream reader was inspected; keep target_date and close/open/high/low/volume/turnover blocked as same-date selection/model inputs until timing-safe use is proven."
+  ],
+  "boundary_status": {
+    "source_wiring": "VERIFIED_IN_CONFIGURED_CANDIDATE: enabled 1608 and 1720 HK_CONNECT owners both call Futu HK.GangGuTong and HK.LIST1922.",
+    "launchd": "LOADED_FROM_CANDIDATE_PATH; process was present during audit.",
+    "release_activation": "CANNOT_CONFIRM; release manifest says NOT_ACTIVATED.",
+    "historical_execution": "VERIFIED_FOR_20260928_ONLY under older source release 20260926-manager-closure-r1; both workloads completed and produced hashed artifacts.",
+    "original_response": "NOT_RETAINED; only normalized union/capture and filtered snapshot rows persist.",
+    "acquisition_time": "NO_PER_PLATE_QUERY_TIME_IN_CAPTURE; dispatcher interval and security-master publish captured_at provide only later/bounded timing evidence.",
+    "pool_boundary": "Deduplicated union of HK.* codes from the two Connect plates; per-plate origin and overlap are not preserved. Close collector publishes only same-date quote rows.",
+    "leakage": "BLOCKED_FOR_SAME_DATE_SELECTION; quote fields are post-close. Downstream consumer/date semantics remain CANNOT_CONFIRM.",
+    "research_only": {
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    "scope_preserved": "No stage-center/fullmarket preflight changes; disabled legacy Stage fullmarket path was not reopened."
+  },
+  "recommended_next_step": {
+    "owner_id": "v35_dispatcher.research_panel_daily_hk",
+    "workload_id": "research_panel_daily_hk",
+    "slot": "1720",
+    "reason": "This same job owns the two-plate read, dated capture, and existing ensure_hk_security_master publication into the V35 shared root.",
+    "minimum_same_job_seam": "In the existing collector, retain each get_plate_stock response by plate before HK.* normalization and union/dedup, bind it to acquired_at, target_date, capture_run_id, row count, and SHA, and include it in the existing immutable capture. Reuse that one capture in the existing security-master publication path to emit the already-approved HK_CONNECT_FULL_MARKET contract to its authorized destination(s); make no second provider call and create no producer.",
+    "canonical_source_caveat": "Resolve the existing source/release owner binding before editing a release snapshot; the canonical V4 counterpart is marked review candidate and is not proven to be the LaunchAgent source.",
+    "required_followup_evidence": "Current-release activation/source binding; natural 20260930 run receipt after its scheduled slot; plate-level raw capture with query timestamps; output run/SHA/manifest in each approved root; independent R2 reader acceptance.",
+    "stop_boundary": "Keep production_allowed=false, buy_gate_updated=false, orders_sent=false. Do not use same-day post-close rows for same-day pre-close selection."
+  }
+}
