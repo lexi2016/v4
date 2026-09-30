@@ -1,0 +1,14 @@
+--- a/v4/manager_research/workspace.py
++++ b/v4/manager_research/workspace.py
+@@ -527,7 +527,10 @@
+     # Persisted stock plans do not freeze live owner execution status. An
+     # unchanged material fingerprint must not conceal a later failed attempt.
+     if same:
+-        for key in ('lanes','runtime_gaps','run_accounting','continuity_gap','market_screen','market_screen_evidence','owner_chain','announcement_review','announcement_observation','us_market_attention','research_attention','stage_read_timing','repair_contract'):
++        # Eligibility diagnostics describe this read's owner binding, not the
++        # saved plan's binding. Refresh them without changing its identity,
++        # run_id or sealed bytes; the existing deep-copy overlay stays read-only.
++        for key in ('lanes','runtime_gaps','run_accounting','continuity_gap','market_screen','market_screen_evidence','owner_chain','announcement_review','announcement_observation','us_market_attention','research_attention','stage_read_timing','repair_contract','selection_diagnostics'):
+             if key in current:value[key]=deepcopy(current[key])
+         value['runtime_status_read_at']=current['plan_context']['research_cutoff']
+     value['plan_product']=dict(status='CURRENT' if same else ('PLAN_AFTER_READ_CUTOFF' if after_cutoff else 'STALE_INPUTS_CHANGED' if saved else 'NOT_MATERIALIZED'),

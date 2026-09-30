@@ -1,0 +1,30 @@
+{
+  "input_commit": "cf306997359dfadedb162033554c092d740eca33",
+  "runtime_changes": [
+    {
+      "path": "v4/manager_research/workspace.py",
+      "scope": "_readback_plan same branch diagnostic overlay",
+      "before_sha256": "ec9c7ba68c93061fa035747ba08c6e71fc7c167c322db2e225963542c72cd2d7",
+      "after_sha256": "8a1ce5122be59f2d56e258522909ca0ff76345a32aed3b4a2517e9cfb2e7c190",
+      "before_bytes": 38631,
+      "after_bytes": 38891,
+      "before_git_blob": "0ba83d7c628855e073ad62196163d5c42a9bd090",
+      "repository_before_path": "research/manager-r9-consumer-r1-20260930/candidate/v4/manager_research/workspace.py",
+      "changed_lines": "529-533",
+      "diffstat": "+4/-1"
+    }
+  ],
+  "unchanged_prerequisite": {
+    "path": "v4/manager_research/connect_selection.py",
+    "sha256": "b6c5300172f59b6979dbab15927036ff1ab3599a2adae2b4f0e5a1e4868a6248",
+    "git_blob": "203d5ae91ecf131df16f6eb36a8d61be92215929"
+  },
+  "all_other_r1_r2_sources": "UNCHANGED",
+  "test_scope": "10 R3B tests only; existing R1/R2 independent results reused",
+  "tool_fix_preserved": "a6ade9d919608a1954bbdf367bf16302465808cc",
+  "patches": {
+    "runtime.patch": "6ea8e48f07dc6c9c3806a78760c1f04dd1905fc50287c89709be46492022518a",
+    "tests.patch": "a7e9aca885d821ccacc19d19076fcc56e2d8e04c272fcf1db3f4e9a4ad988a6d"
+  },
+  "state": "CHAT_CODE_CANDIDATE_NOT_MAC_EXECUTED_NOT_DEPLOYED"
+}

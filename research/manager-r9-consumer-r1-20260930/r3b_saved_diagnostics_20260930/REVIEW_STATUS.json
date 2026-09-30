@@ -1,0 +1,43 @@
+{
+  "scope": "Issue8/R3-B only",
+  "IMPLEMENTED": {
+    "status": "PASS_CHAT_CODE_DELIVERED",
+    "evidence": "after/api/v4/manager_research/workspace.py; runtime.patch"
+  },
+  "TESTED": {
+    "status": "PASS_10_AUTHOR_TARGETED_TESTS",
+    "evidence": "logs/candidate_green.txt; logs/junit.xml; logs/run_receipt.json",
+    "baseline": "5 failed / 5 passed (expected defect failures)"
+  },
+  "REVIEWED": {
+    "status": "CANNOT_CONFIRM",
+    "reason": "No independent Mac/Work reviewer executed in this turn; author inspection is not independent review"
+  },
+  "BEHAVIOR_VERIFIED": {
+    "status": "PASS_FOR_SYNTHETIC_UPSTREAM_REAL_FILESYSTEM_WRITER_READBACK_ONLY",
+    "evidence": "evidence/changed_pin_witness.json"
+  },
+  "DEPLOYED": {
+    "status": "CANNOT_CONFIRM",
+    "reason": "Not performed"
+  },
+  "API_VERIFIED": {
+    "status": "CANNOT_CONFIRM",
+    "reason": "Not performed"
+  },
+  "UI_VERIFIED": {
+    "status": "CANNOT_CONFIRM",
+    "reason": "Not performed"
+  },
+  "NATURAL_VERIFIED": {
+    "status": "CANNOT_CONFIRM",
+    "reason": "Not performed"
+  },
+  "R3_A_F0": "CANNOT_CONFIRM_NOT_ASSUMED_UPLOADED",
+  "PR9": "PRESERVE_DRAFT_UNMERGED",
+  "ISSUE8": "PRESERVE_OPEN",
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "RESEARCH_ONLY": true
+}
