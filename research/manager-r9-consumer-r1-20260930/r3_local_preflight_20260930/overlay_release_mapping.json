@@ -1,0 +1,107 @@
+{
+  "schema_version": "v4.issue8.r3.overlay_release_mapping.v1",
+  "candidate_overlay_app_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_DAILY_CHAIN_FIX_20260928/candidate/manager-plan-scheduler/app",
+  "configured_release_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app",
+  "configured_release_manifest_sha256": "819eb1f02a7a32889ffc2dd46e0c7ff686e3d20f410db36367ef94ca0734b980",
+  "rows": [
+    {
+      "path": "contracts/runtime_workloads.json",
+      "canonical_sha256": "58a94c7bc32773babc8bd305a74a2f57d9b88a0c84df8f3fd3e8f7afb8159539",
+      "manifest_linked_overlay_sha256": "098f68bb95f064f94a9d385c19bb30c5aa4d4d4e6db422950446b107370bfea0",
+      "configured_release_sha256": "098f68bb95f064f94a9d385c19bb30c5aa4d4d4e6db422950446b107370bfea0",
+      "canonical_exists": true,
+      "overlay_exists": true,
+      "release_exists": true,
+      "overlay_equals_release": true,
+      "overlay_equals_canonical": false
+    },
+    {
+      "path": "infrastructure/scheduling/executor_registry.py",
+      "canonical_sha256": "5c7ec48515dee5927b3a5cf9c5457dea299b2b6280b6c90fa452b945466faef9",
+      "manifest_linked_overlay_sha256": "61aab93e92591e17917dd2f880331913e33aa93806500ce1f2596735444e6833",
+      "configured_release_sha256": "61aab93e92591e17917dd2f880331913e33aa93806500ce1f2596735444e6833",
+      "canonical_exists": true,
+      "overlay_exists": true,
+      "release_exists": true,
+      "overlay_equals_release": true,
+      "overlay_equals_canonical": false
+    },
+    {
+      "path": "infrastructure/scheduling/executor_registry_review.py",
+      "canonical_sha256": null,
+      "manifest_linked_overlay_sha256": "6bab582f3700bcbfb903b977450b92f5f7f65bff00ec809e02cd6e8e1db593e2",
+      "configured_release_sha256": "8d3eda519e158bb61cbaf3c642d92899a4b5c5646385b44d469de8edb6c34d3e",
+      "canonical_exists": false,
+      "overlay_exists": true,
+      "release_exists": true,
+      "overlay_equals_release": false,
+      "overlay_equals_canonical": false
+    },
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/panel_execution.py",
+      "canonical_sha256": "eef66ed8934e958ac4efb5b8821eec8b48206b5fc978ecdfbc59801ae36ed098",
+      "manifest_linked_overlay_sha256": null,
+      "configured_release_sha256": null,
+      "canonical_exists": true,
+      "overlay_exists": false,
+      "release_exists": false,
+      "overlay_equals_release": false,
+      "overlay_equals_canonical": false
+    },
+    {
+      "path": "ops/macos_research_panel_daily.py",
+      "canonical_sha256": "bb4db8d0cafaf43c7080439a60b986bf0ed02d4e4cb3295bde3f7ad8a266377f",
+      "manifest_linked_overlay_sha256": "19278e31e237c84bc4dc3a146bf74d2a1fac837d249676c7faa624acde39c1e6",
+      "configured_release_sha256": "19278e31e237c84bc4dc3a146bf74d2a1fac837d249676c7faa624acde39c1e6",
+      "canonical_exists": true,
+      "overlay_exists": true,
+      "release_exists": true,
+      "overlay_equals_release": true,
+      "overlay_equals_canonical": false
+    },
+    {
+      "path": "ops/macos_research_panel_daily_collectors.py",
+      "canonical_sha256": null,
+      "manifest_linked_overlay_sha256": "afd6a4fa768a59e2ebe85c82482a593bb40203bd53abc81036af57f3a8e61f87",
+      "configured_release_sha256": "afd6a4fa768a59e2ebe85c82482a593bb40203bd53abc81036af57f3a8e61f87",
+      "canonical_exists": false,
+      "overlay_exists": true,
+      "release_exists": true,
+      "overlay_equals_release": true,
+      "overlay_equals_canonical": false
+    },
+    {
+      "path": "ops/macos_research_panel_daily_gate.py",
+      "canonical_sha256": null,
+      "manifest_linked_overlay_sha256": "fc852dcbbcde3e3a6bfcf9ea6af46ea773cefe32e00355594edc1a4816665b34",
+      "configured_release_sha256": "fc852dcbbcde3e3a6bfcf9ea6af46ea773cefe32e00355594edc1a4816665b34",
+      "canonical_exists": false,
+      "overlay_exists": true,
+      "release_exists": true,
+      "overlay_equals_release": true,
+      "overlay_equals_canonical": false
+    },
+    {
+      "path": "ops/_macos_research_panel_daily_parts/hk_market_capture.py",
+      "canonical_sha256": "af2acc8566ca78e9ec69de614d8c589ff147268ac3c3bff349008171f2b18036",
+      "manifest_linked_overlay_sha256": null,
+      "configured_release_sha256": null,
+      "canonical_exists": true,
+      "overlay_exists": false,
+      "release_exists": false,
+      "overlay_equals_release": false,
+      "overlay_equals_canonical": false
+    },
+    {
+      "path": "ops/ensure_hk_security_master.py",
+      "canonical_sha256": "4c42292ad722ecaf666d428c4eaef44da2cca9927dca9d46b4fbf1df4e7a86a6",
+      "manifest_linked_overlay_sha256": "ae6bae7dbd87f03327cf03904beee2e1f8b3e63b262057b49a3f6186eedf21f7",
+      "configured_release_sha256": "ae6bae7dbd87f03327cf03904beee2e1f8b3e63b262057b49a3f6186eedf21f7",
+      "canonical_exists": true,
+      "overlay_exists": true,
+      "release_exists": true,
+      "overlay_equals_release": true,
+      "overlay_equals_canonical": false
+    }
+  ]
+}
