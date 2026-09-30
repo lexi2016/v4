@@ -1,0 +1,1527 @@
+--- /Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f2/candidate_retry01/app/ops/_macos_research_panel_daily_parts/hk_market_capture.py
++++ /Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app/ops/_macos_research_panel_daily_parts/hk_market_capture.py
+@@ -1,9 +1,92 @@
+ """ops.macos_research_panel_daily: hk_market_capture (review candidate, not deployment)."""
+ from __future__ import annotations
++import base64
++import hashlib
++import json
++import math
++import re
++from datetime import date, datetime, time, timezone
++from decimal import Decimal
++from typing import Any, Mapping
+ from ._namespace import read_global as _v4_global
+ 
+ 
+-def _collect_hk_futu_rows_body(_v4_scope, /, target_date, *, context_factory, batch_size, minimum_universe_count, required_coverage_ratio):
++_HK_CAPTURE_V2_SCHEMA = "v4.manager_hk_connect_capture.v2"
++_HK_CAPTURE_SERIALIZATION_V2 = "futu.dataframe.records.canonical-json.v1"
++_HK_FORWARD_SOURCE_SET = {
++    "source_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
++    "forward_receipt_sha256": "69ed8c29225b9476ed358f76769ac1ec37a7f4d94806a8b803138901f789523e",
++    "candidate_manifest_sha256": "75f6f5543137319810b1f433cefa83ae89c204c2bf6ab56c42effa4be89a6366",
++    "candidate_build_receipt_sha256": "439d5ffba4475b5183a2d74e7cc518693391b7b3b9a3fcc18f95be4b77aea194",
++    "api_writer_receipt_sha256": "3ea98364f997591e1cecba92758a35dff6c4cb0bb0136a43bcb3524f1d734a4d",
++    "api_reviewer_receipt_sha256": "daf18d4bf0a763187708c8f263385d09f668a77ac1d9c4948361b4a8c9855790",
++    "api_source_mapping_sha256": "5c66286e130e971cf89f256e8cb001e2d951dc67ac3db27d93a0f37ff76e1feb",
++}
++
++
++def _canonical_capture_bytes(value: Any) -> bytes:
++    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
++
++
++def _sdk_json_value(value: Any) -> Any:
++    """Encode SDK DataFrame values without dropping columns or row positions."""
++    if value is None or isinstance(value, (str, bool, int)):
++        return value
++    if isinstance(value, float):
++        return value if math.isfinite(value) else {"$float": repr(value)}
++    if isinstance(value, Decimal):
++        return {"$decimal": str(value)}
++    if isinstance(value, (datetime, date, time)):
++        return {"$datetime": value.isoformat()}
++    if isinstance(value, bytes):
++        return {"$bytes_base64": base64.b64encode(value).decode("ascii")}
++    if isinstance(value, Mapping):
++        if any(not isinstance(key, str) for key in value):
++            raise TypeError("Futu SDK row has a non-string key")
++        return {key: _sdk_json_value(item) for key, item in value.items()}
++    if isinstance(value, (list, tuple)):
++        return [_sdk_json_value(item) for item in value]
++    if type(value).__name__ in {"NAType", "NaTType"}:
++        return {"$missing_scalar": type(value).__name__}
++    item = getattr(value, "item", None)
++    if callable(item):
++        try:
++            scalar = item()
++        except (TypeError, ValueError):
++            scalar = value
++        if scalar is not value:
++            return _sdk_json_value(scalar)
++    raise TypeError(f"unsupported Futu SDK value type: {type(value).__name__}")
++
++
++def _sdk_dataframe_records(frame: Any) -> tuple[list[str], list[dict[str, Any]]]:
++    if frame is None or not callable(getattr(frame, "to_dict", None)):
++        raise TypeError("Futu plate response is not a usable DataFrame")
++    columns_value = getattr(frame, "columns", None)
++    if columns_value is None:
++        raise TypeError("Futu plate DataFrame columns are missing")
++    columns = [str(_sdk_json_value(column)) for column in list(columns_value)]
++    if len(columns) != len(set(columns)):
++        raise TypeError("Futu plate DataFrame columns are duplicated")
++    records = frame.to_dict(orient="records")
++    if not isinstance(records, list):
++        raise TypeError("Futu plate DataFrame records are malformed")
++    normalized = []
++    for record in records:
++        if not isinstance(record, Mapping):
++            raise TypeError("Futu plate DataFrame row is malformed")
++        row = _sdk_json_value(record)
++        if not isinstance(row, dict):
++            raise TypeError("Futu plate DataFrame row is malformed")
++        normalized.append(row)
++    return columns, normalized
++
++
++def _utc_now_iso() -> str:
++    return datetime.now(timezone.utc).isoformat(timespec="microseconds")
++
++
++def _collect_hk_futu_rows_body(_v4_scope, /, target_date, *, context_factory, batch_size, minimum_universe_count, required_coverage_ratio, membership_ready_callback=None):
+     """Collect an exact-date full HK Connect snapshot from Futu OpenD."""
+     target = _v4_global(_v4_scope, '_date')(target_date)
+     capture_manifest_value = _v4_global(_v4_scope, 'os').environ.get("V35_HK_CAPTURE_PATH")
+@@ -74,49 +157,258 @@
+                 separators=(",", ":"),
+             ).encode("utf-8")
+         )
++    plates = tuple(_v4_global(_v4_scope, 'HKCONNECT_PLATE_CODES'))
++    source_path = _v4_global(_v4_scope, 'Path')(__file__).resolve()
++    forward_source_set = dict(_HK_FORWARD_SOURCE_SET)
++    producer_owner = {
++        "workload_id": "v35_dispatcher.research_panel_daily_hk",
++        "code_ref": "ops/_macos_research_panel_daily_parts/hk_market_capture.py",
++        "code_sha256": hashlib.sha256(source_path.read_bytes()).hexdigest(),
++        "forward_source_set": forward_source_set,
++        "forward_source_set_sha256": hashlib.sha256(_canonical_capture_bytes(forward_source_set)).hexdigest(),
++    }
++
++    def _write_sdk_capture(payload):
++        if capture_manifest_path is None:
++            return None
++        path = capture_manifest_path.with_name(f"{capture_manifest_path.stem}.sdk.capture.json")
++        encoded = _canonical_capture_bytes(payload)
++        if path.is_symlink():
++            raise _v4_global(_v4_scope, 'SnapshotGateError')("HK SDK capture path must not be a symlink")
++        if path.exists() and path.read_bytes() != encoded:
++            raise _v4_global(_v4_scope, 'SnapshotGateError')("HK SDK capture path is immutable")
++        if not path.exists():
++            _v4_global(_v4_scope, '_atomic_write')(path, encoded)
++        return path, encoded
++
++    def _save_failed_capture(responses, errors, *, sdk_receipt=None):
++        capture = {
++            "schema_version": _HK_CAPTURE_V2_SCHEMA,
++            "status": "FAILED",
++            "membership_status": "FAILED",
++            "target_date": target,
++            "capture_run_id": capture_run_id,
++            "capture_receipt_ref": capture_manifest_path.name if capture_manifest_path is not None else None,
++            "producer_owner": producer_owner,
++            "plate_responses": responses,
++            "capture_errors": list(errors),
++            **_v4_global(_v4_scope, 'SAFETY_FLAGS'),
++        }
++        if sdk_receipt is not None:
++            capture["sdk_capture_ref"] = sdk_receipt[0].name
++            capture["sdk_capture_sha256"] = hashlib.sha256(sdk_receipt[1]).hexdigest()
++        capture["capture_sha256"] = _v4_global(_v4_scope, '_canonical_sha')(capture)
++        if capture_manifest_path is not None:
++            capture_bytes = _canonical_capture_bytes(capture)
++            capture_raw_sha = hashlib.sha256(capture_bytes).hexdigest()
++            write_raw_capture(capture_bytes)
++            write_manifest(_canonical_capture_bytes({
++                "schema_version": "v3.macos.research_panel_hk_capture_manifest.v1",
++                "status": "FAILED",
++                "target_date": target,
++                "capture_run_id": capture_run_id,
++                "capture_relative_path": capture_raw_path.name,
++                "capture_path": capture_raw_path.name,
++                "capture": capture,
++                "capture_sha256": capture["capture_sha256"],
++                "capture_raw_sha256": capture_raw_sha,
++                "capture_errors": list(errors),
++            }))
++        raise _v4_global(_v4_scope, 'SnapshotGateError')(
++            "HK Futu membership capture incomplete: " + ",".join(errors)
++        )
++
+     if context_factory is None:
+         def context_factory():
+             import futu
+ 
+             return futu.OpenQuoteContext(host="127.0.0.1", port=11111)
+-    context = context_factory()
++    context = None
++    context_error = None
++    try:
++        context = context_factory()
++    except Exception as error:
++        context_error = type(error).__name__
++    plate_responses: dict[str, dict[str, Any]] = {}
++    capture_errors: list[str] = []
++    if context is None:
++        capture_errors.append("CONTEXT_INIT:" + (context_error or "FAILED"))
++        for plate_code in plates:
++            response_material = {
++                "requested_plate": plate_code,
++                "serialization_version": _HK_CAPTURE_SERIALIZATION_V2,
++                "columns": [], "rows": [],
++            }
++            plate_responses[plate_code] = {
++                **response_material,
++                "row_count": 0,
++                "return_code": None,
++                "requested_at": _utc_now_iso(),
++                "completed_at": _utc_now_iso(),
++                "error_kind": "CONTEXT_INIT_FAILED",
++                "response_sha256": _v4_global(_v4_scope, '_canonical_sha')(response_material),
++            }
++        sdk_receipt = _write_sdk_capture({
++            "schema_version": _HK_CAPTURE_V2_SCHEMA,
++            "target_date": target,
++            "capture_run_id": capture_run_id,
++            "producer_owner": producer_owner,
++            "plate_responses": plate_responses,
++            "status": "FAILED",
++        })
++        _save_failed_capture(plate_responses, capture_errors, sdk_receipt=sdk_receipt)
++
+     universe: dict[str, str] = {}
++    per_plate_codes: dict[str, list[str]] = {}
+     snapshots: dict[str, dict[str, Any]] = {}
++    codes: list[str] = []
++    close_error = None
++    snapshot_failure = None
+     try:
+-        for plate_code in _v4_global(_v4_scope, 'HKCONNECT_PLATE_CODES'):
+-            return_code, frame = context.get_plate_stock(plate_code)
+-            if return_code != 0:
+-                raise _v4_global(_v4_scope, 'SnapshotGateError')(f"Futu plate lookup failed: {plate_code}")
+-            for item in _v4_global(_v4_scope, '_frame_records')(frame):
+-                code = _v4_global(_v4_scope, 'str')(item.get("code") or "").strip().upper()
+-                if code.startswith("HK."):
+-                    universe[code] = _v4_global(_v4_scope, 'str')(item.get("stock_name") or item.get("name") or "").strip()
+-        codes = _v4_global(_v4_scope, 'sorted')(universe)
+-        minimum_universe = _v4_global(_v4_scope, 'max')(600, _v4_global(_v4_scope, 'int')(minimum_universe_count))
+-        if _v4_global(_v4_scope, 'len')(codes) < minimum_universe:
+-            raise _v4_global(_v4_scope, 'SnapshotGateError')(f"HK universe below minimum: {_v4_global(_v4_scope, 'len')(codes)} < {minimum_universe_count}")
+-        step = _v4_global(_v4_scope, 'max')(1, _v4_global(_v4_scope, 'int')(batch_size))
+-        for offset in _v4_global(_v4_scope, 'range')(0, _v4_global(_v4_scope, 'len')(codes), step):
+-            return_code, frame = context.get_market_snapshot(codes[offset : offset + step])
+-            if return_code != 0:
+-                raise _v4_global(_v4_scope, 'SnapshotGateError')(f"Futu market snapshot failed at offset {offset}")
+-            batch_codes: set[str] = _v4_global(_v4_scope, 'set')()
+-            for item in _v4_global(_v4_scope, '_frame_records')(frame):
+-                code = _v4_global(_v4_scope, 'str')(item.get("code") or "").strip().upper()
+-                if not code or code not in universe:
++        for plate_code in plates:
++            requested_at = _utc_now_iso()
++            return_code = None
++            frame = None
++            error_kind = None
++            try:
++                returned = context.get_plate_stock(plate_code)
++                if not isinstance(returned, (tuple, list)) or len(returned) != 2:
++                    raise TypeError("Futu plate return is not (RET, DataFrame)")
++                return_code, frame = returned
++            except Exception as error:
++                error_kind = type(error).__name__
++            completed_at = _utc_now_iso()
++            try:
++                columns, frame_rows = _sdk_dataframe_records(frame)
++            except Exception as error:
++                columns, frame_rows = [], []
++                error_kind = error_kind or type(error).__name__
++            return_code_type = type(return_code).__name__
++            return_code_ok = type(return_code) is int and return_code == 0
++            try:
++                # Keep JSON-native SDK values unchanged for audit.  A value
++                # that cannot be serialized is represented with its type and
++                # repr, and is never treated as RET_OK.
++                captured_return_code = json.loads(json.dumps(
++                    return_code, ensure_ascii=False, allow_nan=False
++                ))
++            except (TypeError, ValueError, OverflowError):
++                captured_return_code = {
++                    "unserializable_type": f"{type(return_code).__module__}.{type(return_code).__qualname__}",
++                    "repr": repr(return_code)[:256],
++                }
++            response_material = {
++                "requested_plate": plate_code,
++                "serialization_version": _HK_CAPTURE_SERIALIZATION_V2,
++                "columns": columns,
++                "rows": frame_rows,
++            }
++            response = {
++                **response_material,
++                "return_code": captured_return_code,
++                "return_code_type": return_code_type,
++                "return_code_ok": return_code_ok,
++                "requested_at": requested_at,
++                "completed_at": completed_at,
++                "row_count": len(frame_rows),
++                "response_sha256": _v4_global(_v4_scope, '_canonical_sha')(response_material),
++            }
++            if error_kind:
++                response["error_kind"] = error_kind
++            plate_responses[plate_code] = response
++            if not return_code_ok:
++                capture_errors.append(f"RET_NOT_OK:{plate_code}")
++            if error_kind:
++                capture_errors.append(f"FRAME_INVALID:{plate_code}")
++            if not frame_rows:
++                capture_errors.append(f"FRAME_EMPTY:{plate_code}")
++
++        # Persist the complete structured SDK frames before deriving the
++        # membership sets or requesting quote snapshots.  This is SDK output,
++        # not a claim about the provider's wire bytes or upstream completeness.
++        sdk_payload = {
++            "schema_version": _HK_CAPTURE_V2_SCHEMA,
++            "target_date": target,
++            "capture_run_id": capture_run_id,
++            "producer_owner": producer_owner,
++            "plate_responses": plate_responses,
++            "status": "RAW_CAPTURED" if not capture_errors else "FAILED",
++            **_v4_global(_v4_scope, 'SAFETY_FLAGS'),
++        }
++        sdk_receipt = _write_sdk_capture(sdk_payload)
++
++        # Membership derives only from the two retained plate frames.  Quote
++        # rows and same-day quote coverage never alter this set.
++        for plate_code in plates:
++            response = plate_responses.get(plate_code)
++            if not isinstance(response, Mapping):
++                capture_errors.append(f"PLATE_MISSING:{plate_code}")
++                continue
++            frame_rows = response.get("rows")
++            if not isinstance(frame_rows, list):
++                capture_errors.append(f"FRAME_INVALID:{plate_code}")
++                continue
++            plate_codes: set[str] = set()
++            for item in frame_rows:
++                code = item.get("code")
++                if not isinstance(code, str) or not re.fullmatch(r"HK\.\d{5}", code):
++                    capture_errors.append(f"CODE_INVALID:{plate_code}")
++                    continue
++                plate_codes.add(code)
++                universe.setdefault(code, _v4_global(_v4_scope, 'str')(item.get("stock_name") or item.get("name") or "").strip())
++            per_plate_codes[plate_code] = sorted(plate_codes)
++
++        if not capture_errors:
++            if len(per_plate_codes) != len(plates) or any(not per_plate_codes.get(plate) for plate in plates):
++                capture_errors.append("PLATE_SET_INCOMPLETE")
++            else:
++                codes = _v4_global(_v4_scope, 'sorted')(universe)
++                minimum_universe = _v4_global(_v4_scope, 'max')(
++                    600, _v4_global(_v4_scope, 'int')(minimum_universe_count)
++                )
++                if _v4_global(_v4_scope, 'len')(codes) < minimum_universe:
+                     raise _v4_global(_v4_scope, 'SnapshotGateError')(
+-                        f"Futu market snapshot returned unmatched code: {code!r}"
++                        f"HK universe below minimum: {_v4_global(_v4_scope, 'len')(codes)} < {minimum_universe_count}"
+                     )
+-                if code in batch_codes:
+-                    raise _v4_global(_v4_scope, 'SnapshotGateError')(
+-                        f"Futu market snapshot returned duplicate code: {code}"
+-                    )
+-                batch_codes.add(code)
+-                snapshots[code] = item
++                step = _v4_global(_v4_scope, 'max')(1, _v4_global(_v4_scope, 'int')(batch_size))
++                for offset in _v4_global(_v4_scope, 'range')(0, _v4_global(_v4_scope, 'len')(codes), step):
++                    try:
++                        return_code, frame = context.get_market_snapshot(codes[offset : offset + step])
++                        if return_code != 0:
++                            raise _v4_global(_v4_scope, 'SnapshotGateError')(
++                                f"Futu market snapshot failed at offset {offset}"
++                            )
++                        batch_codes: set[str] = _v4_global(_v4_scope, 'set')()
++                        for item in _v4_global(_v4_scope, '_frame_records')(frame):
++                            code = _v4_global(_v4_scope, 'str')(item.get("code") or "").strip().upper()
++                            if not code or code not in universe:
++                                raise _v4_global(_v4_scope, 'SnapshotGateError')(
++                                    f"Futu market snapshot returned unmatched code: {code!r}"
++                                )
++                            if code in batch_codes:
++                                raise _v4_global(_v4_scope, 'SnapshotGateError')(
++                                    f"Futu market snapshot returned duplicate code: {code}"
++                                )
++                            batch_codes.add(code)
++                            snapshots[code] = item
++                    except Exception as error:
++                        snapshot_failure = error
++                        break
+     finally:
+         close = _v4_global(_v4_scope, 'getattr')(context, "close", None)
+         if _v4_global(_v4_scope, 'callable')(close):
+-            close()
++            try:
++                close()
++            except Exception as error:
++                close_error = type(error).__name__
++    if close_error:
++        snapshot_failure = snapshot_failure or _v4_global(_v4_scope, 'SnapshotGateError')(
++            "HK Futu context close failed: " + close_error
++        )
++    if capture_errors:
++        _save_failed_capture(plate_responses, capture_errors, sdk_receipt=sdk_receipt)
++    if len(per_plate_codes) != len(plates) or any(not per_plate_codes.get(plate) for plate in plates):
++        _save_failed_capture(plate_responses, ["PLATE_SET_INCOMPLETE"], sdk_receipt=sdk_receipt)
+     rows: list[dict[str, Any]] = []
+     excluded: dict[str, list[str]] = {}
+     positive_volume_count = 0
+@@ -176,18 +468,26 @@
+     positive_volume_coverage = positive_volume_count / _v4_global(_v4_scope, 'max')(_v4_global(_v4_scope, 'len')(codes), 1)
+     positive_turnover_coverage = positive_turnover_count / _v4_global(_v4_scope, 'max')(_v4_global(_v4_scope, 'len')(codes), 1)
+     minimum_universe = _v4_global(_v4_scope, 'max')(600, _v4_global(_v4_scope, 'int')(minimum_universe_count))
++    quote_errors = []
++    if snapshot_failure is not None:
++        safe_detail = (
++            str(snapshot_failure)
++            if isinstance(snapshot_failure, _v4_global(_v4_scope, 'SnapshotGateError'))
++            else "SDK_EXCEPTION"
++        )
++        quote_errors.append(type(snapshot_failure).__name__ + ":" + safe_detail)
+     if _v4_global(_v4_scope, 'len')(rows) < minimum_universe:
+-        raise _v4_global(_v4_scope, 'SnapshotGateError')(
++        quote_errors.append(
+             "HK exact-date coverage below gate: "
+             f"universe={_v4_global(_v4_scope, 'len')(codes)},rows={_v4_global(_v4_scope, 'len')(rows)},coverage={coverage:.8f}"
+         )
+     if positive_volume_coverage + 1e-12 < 0.8 or positive_turnover_coverage + 1e-12 < 0.8:
+-        raise _v4_global(_v4_scope, 'SnapshotGateError')(
++        quote_errors.append(
+             "HK positive-trade coverage below gate: "
+             f"volume={positive_volume_coverage:.8f},turnover={positive_turnover_coverage:.8f}"
+         )
+     if coverage + 1e-12 < _v4_global(_v4_scope, 'float')(required_coverage_ratio):
+-        raise _v4_global(_v4_scope, 'SnapshotGateError')(f"HK exact-date coverage below gate: universe={_v4_global(_v4_scope, 'len')(codes)},rows={_v4_global(_v4_scope, 'len')(rows)},coverage={coverage:.8f}")
++        quote_errors.append(f"HK exact-date coverage below gate: universe={_v4_global(_v4_scope, 'len')(codes)},rows={_v4_global(_v4_scope, 'len')(rows)},coverage={coverage:.8f}")
+     evidence_codes = _v4_global(_v4_scope, 'sorted')(excluded)
+     evidence_codes_limited = evidence_codes[:_v4_global(_v4_scope, 'MAX_EXCLUDED_EVIDENCE')]
+     evidence_reasons = {code: _v4_global(_v4_scope, 'sorted')(excluded[code]) for code in evidence_codes_limited}
+@@ -222,22 +522,55 @@
+         for code in codes
+         for source in (snapshots.get(code) or {},)
+     ]
++    plate_sets = [set(per_plate_codes[plate]) for plate in plates]
++    acquired_at = max(
++        datetime.fromisoformat(plate_responses[plate]["completed_at"].replace("Z", "+00:00"))
++        for plate in plates
++    ).isoformat()
++    plate_response_counts = {plate: plate_responses[plate]["row_count"] for plate in plates}
++    plate_response_sha256 = {plate: plate_responses[plate]["response_sha256"] for plate in plates}
++    membership_source_payload = {
++        "target_date": target,
++        "plate_codes": {plate: per_plate_codes[plate] for plate in plates},
++        "plate_response_sha256": plate_response_sha256,
++        "capture_run_id": capture_run_id,
++        "acquired_at": acquired_at,
++    }
++    sdk_capture_ref = sdk_receipt[0].name if sdk_receipt is not None else None
++    sdk_capture_sha256 = hashlib.sha256(sdk_receipt[1]).hexdigest() if sdk_receipt is not None else None
+     capture = {
+-        "schema_version": "v3.macos.research_panel_hk_capture.v1",
++        "schema_version": _HK_CAPTURE_V2_SCHEMA,
++        "status": "READY",
++        "membership_status": "READY",
+         "target_date": target,
+-        "plates": list(_v4_global(_v4_scope, 'HKCONNECT_PLATE_CODES')),
++        "capture_run_id": capture_run_id,
++        "capture_receipt_ref": capture_manifest_path.name if capture_manifest_path is not None else None,
++        "producer_owner": producer_owner,
++        "plate_responses": plate_responses,
++        "plate_codes": {plate: per_plate_codes[plate] for plate in plates},
++        "plate_response_counts": plate_response_counts,
++        "plate_response_sha256": plate_response_sha256,
++        "acquired_at": acquired_at,
++        "membership_source_payload": membership_source_payload,
++        "membership_source_sha256": _v4_global(_v4_scope, '_canonical_sha')(membership_source_payload),
++        "overlap_count": len(plate_sets[0] & plate_sets[1]),
++        "code_count": len(codes),
++        "plates": list(plates),
+         "codes": list(codes),
++        "sdk_capture_ref": sdk_capture_ref,
++        "sdk_capture_sha256": sdk_capture_sha256,
+         "rows": rows,
+         "security_master_rows": security_master_rows,
+         "source_payload": source_payload,
+         "source_sha256": source_sha,
++        "quote_status": "FAILED" if quote_errors else "READY",
++        "quote_errors": quote_errors,
++        "panel_status": "BLOCKED_BY_QUOTE_GATE" if quote_errors else "PENDING_PANEL_GATE",
+         **_v4_global(_v4_scope, 'SAFETY_FLAGS'),
+     }
+     capture["capture_sha256"] = _v4_global(_v4_scope, '_canonical_sha')(capture)
+     if capture_manifest_path is not None:
+-        capture_bytes = _v4_global(_v4_scope, 'json').dumps(
+-            capture, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+-        ).encode("utf-8")
++        capture_bytes = _canonical_capture_bytes(capture)
+         capture_raw_sha256 = _v4_global(_v4_scope, 'hashlib').sha256(capture_bytes).hexdigest()
+         write_raw_capture(capture_bytes)
+         stale_codes = sorted(
+@@ -248,17 +581,23 @@
+             _v4_global(_v4_scope, 'json').dumps(
+                 {
+                     "schema_version": "v3.macos.research_panel_hk_capture_manifest.v1",
+-                    "status": "READY",
++                    "status": "PENDING" if quote_errors else "READY",
+                     "target_date": target,
+                     "capture_run_id": capture_run_id,
+                     "capture_relative_path": capture_raw_path.name,
+                     "capture_path": capture_raw_path.name,
+                     "capture": capture,
++                    "capture_schema_version": _HK_CAPTURE_V2_SCHEMA,
+                     "capture_sha256": capture["capture_sha256"],
+                     "capture_raw_sha256": capture_raw_sha256,
+                     "codes": list(capture["codes"]),
++                    "plate_response_counts": plate_response_counts,
++                    "plate_response_sha256": plate_response_sha256,
+                     "excluded_codes": evidence_codes,
+                     "stale_codes": stale_codes,
++                    "quote_status": capture["quote_status"],
++                    "quote_errors": quote_errors,
++                    "panel_status": capture["panel_status"],
+                 },
+                 ensure_ascii=False,
+                 sort_keys=True,
+@@ -266,6 +605,17 @@
+             ).encode("utf-8")
+         )
+     _v4_scope["_LAST_HK_CAPTURE"] = capture
++    if membership_ready_callback is not None:
++        membership_ready_callback(capture)
++    if snapshot_failure is not None:
++        raise snapshot_failure
++    if quote_errors:
++        first_error = quote_errors[0]
++        if first_error.startswith("HK exact-date coverage below gate:"):
++            raise _v4_global(_v4_scope, 'SnapshotGateError')(first_error)
++        if first_error.startswith("HK positive-trade coverage below gate:"):
++            raise _v4_global(_v4_scope, 'SnapshotGateError')(first_error)
++        raise _v4_global(_v4_scope, 'SnapshotGateError')(first_error)
+     result = {
+         "status": "READY",
+         "target_date": target,
+--- /Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f2/candidate_retry01/app/ops/ensure_hk_security_master.py
++++ /Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app/ops/ensure_hk_security_master.py
+@@ -10,16 +10,21 @@
+ 
+ import argparse
+ import hashlib
++import importlib.util
+ import json
+ import math
++import os
++import tempfile
+ from datetime import datetime
+ from pathlib import Path
++from pathlib import PurePosixPath
+ from typing import Any, Mapping
+ 
+ from infrastructure.isolated_package_loader import load_isolated_package_module
+ 
+ 
+ _CAPTURE_SCHEMA = "v3.macos.research_panel_hk_capture.v1"
++_CAPTURE_SCHEMA_V2 = "v4.manager_hk_connect_capture.v2"
+ _CAPTURE_PLATES = ("HK.GangGuTong", "HK.LIST1922")
+ _SECURITY_FIELDS = (
+     "code",
+@@ -326,8 +331,17 @@
+     if not isinstance(capture, Mapping):
+         raise ValueError("HK panel capture envelope invalid")
+     envelope = dict(capture)
+-    if envelope.get("schema_version") != _CAPTURE_SCHEMA:
++    capture_schema = envelope.get("schema_version")
++    if capture_schema not in {_CAPTURE_SCHEMA, _CAPTURE_SCHEMA_V2}:
+         raise ValueError("HK panel capture schema mismatch")
++    if capture_schema == _CAPTURE_SCHEMA_V2:
++        contract, _contract_owner = _load_hk_connect_v2_contract()
++        try:
++            contract.validate_captured_hk_connect_membership_v2(
++                envelope, trade_date=trade_date
++            )
++        except (TypeError, ValueError) as error:
++            raise ValueError("HK panel capture v2 membership invalid") from error
+     if envelope.get("target_date") != trade_date:
+         raise ValueError("HK panel capture target date mismatch")
+     if list(envelope.get("plates") or []) != list(_CAPTURE_PLATES):
+@@ -448,6 +462,212 @@
+     if _canonical_sha(digest_payload) != capture_digest:
+         raise ValueError("HK panel capture hash mismatch")
+     return envelope
++
++
++def _load_hk_connect_v2_contract():
++    """Load the adjacent, exact candidate pure v2 contract by file identity."""
++    app_root = Path(__file__).resolve().parents[1]
++    path = app_root / "stage_center" / "hk_universe_preflight.py"
++    if path.is_symlink() or not path.is_file():
++        raise ValueError("HK Connect v2 contract source missing or symlinked")
++    source_sha256 = hashlib.sha256(path.read_bytes()).hexdigest()
++    spec = importlib.util.spec_from_file_location(
++        "_hk_connect_v2_contract_" + source_sha256, path
++    )
++    if spec is None or spec.loader is None:
++        raise ValueError("HK Connect v2 contract loader unavailable")
++    module = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(module)
++    if (
++        Path(module.__file__).resolve() != path.resolve()
++        or hashlib.sha256(path.read_bytes()).hexdigest() != source_sha256
++        or not callable(getattr(module, "validate_captured_hk_connect_membership_v2", None))
++        or not callable(getattr(module, "build_captured_hk_connect_authority_v2", None))
++    ):
++        raise ValueError("HK Connect v2 contract source identity changed")
++    owner = {
++        "code_ref": "stage_center/hk_universe_preflight.py",
++        "code_sha256": source_sha256,
++        "role": "PURE_CAPTURED_HK_CONNECT_CONTRACT_V2",
++    }
++    return module, owner
++
++
++def _authority_path(root: Path, relative: str) -> Path:
++    """Resolve one normalized authority path below the existing store root."""
++    if not isinstance(relative, str) or not relative or "\\" in relative:
++        raise ValueError("HK Connect authority path invalid")
++    path = PurePosixPath(relative)
++    if path.is_absolute() or path.as_posix() != relative or any(
++        part in {"", ".", ".."} for part in path.parts
++    ):
++        raise ValueError("HK Connect authority path invalid")
++    real_root = root.expanduser().resolve()
++    candidate = real_root
++    for part in path.parts:
++        candidate = candidate / part
++        if candidate.is_symlink():
++            raise ValueError("HK Connect authority path symlink")
++    resolved = candidate.resolve()
++    try:
++        resolved.relative_to(real_root)
++    except ValueError as error:
++        raise ValueError("HK Connect authority path escapes store root") from error
++    return candidate
++
++
++def _create_immutable_authority_file(path: Path, payload: bytes) -> bool:
++    """Create exact authority bytes without ever replacing an existing file."""
++    path.parent.mkdir(parents=True, exist_ok=True)
++    if path.is_symlink():
++        raise ValueError("HK Connect authority file symlink")
++    if path.exists():
++        if not path.is_file() or path.read_bytes() != payload:
++            raise ValueError(f"HK Connect authority immutable conflict: {path.name}")
++        return False
++    fd, temporary = tempfile.mkstemp(
++        prefix=f".{path.name}.", suffix=".tmp", dir=path.parent
++    )
++    temporary_path = Path(temporary)
++    try:
++        with os.fdopen(fd, "wb") as stream:
++            stream.write(payload)
++            stream.flush()
++            os.fsync(stream.fileno())
++        try:
++            os.link(temporary_path, path)
++            return True
++        except FileExistsError:
++            if path.is_symlink() or not path.is_file() or path.read_bytes() != payload:
++                raise ValueError(f"HK Connect authority immutable conflict: {path.name}")
++            return False
++    finally:
++        try:
++            temporary_path.unlink()
++        except FileNotFoundError:
++            pass
++
++
++def _publish_captured_hk_connect_authority_v2(
++    *, store_root: Path, trade_date: str, capture: Mapping[str, Any]
++) -> dict[str, Any]:
++    """Publish one captured-input v2 chain within the existing store root."""
++    contract, contract_owner = _load_hk_connect_v2_contract()
++    producer_owner = capture.get("producer_owner")
++    if not isinstance(producer_owner, Mapping):
++        raise ValueError("HK Connect v2 producer owner missing")
++    built = contract.build_captured_hk_connect_authority_v2(
++        capture,
++        trade_date=trade_date,
++        producer_owner=producer_owner,
++        contract_owner=contract_owner,
++    )
++    root = store_root.expanduser().resolve()
++    file_payloads = [
++        (built["paths"]["artifact_relative"], built["artifact_bytes"]),
++        (built["paths"]["manifest_relative"], built["manifest_bytes"]),
++        (built["paths"]["receipt_relative"], built["receipt_bytes"]),
++        (built["capture_relative"], built["capture_bytes"]),
++        (built["paths"]["current_relative"], built["current_bytes"]),
++    ]
++    written = {}
++    for relative, encoded in file_payloads:
++        path = _authority_path(root, relative)
++        created = _create_immutable_authority_file(path, encoded)
++        actual = path.read_bytes()
++        if actual != encoded:
++            raise ValueError(f"HK Connect authority readback mismatch: {relative}")
++        written[relative] = {
++            "sha256": hashlib.sha256(actual).hexdigest(),
++            "size_bytes": len(actual),
++            "created": created,
++        }
++
++    # Availability is witnessed only after every upstream immutable byte has
++    # been read back from disk. Existing publication bytes remain immutable.
++    publication_relative = built["publication_relative"]
++    publication_path = _authority_path(root, publication_relative)
++    if publication_path.exists():
++        try:
++            publication = json.loads(publication_path.read_bytes().decode("utf-8"))
++        except (OSError, UnicodeError, json.JSONDecodeError) as error:
++            raise ValueError("HK Connect v2 publication receipt unreadable") from error
++        if not isinstance(publication, Mapping):
++            raise ValueError("HK Connect v2 publication receipt invalid")
++        publication_material = dict(publication)
++        publication_digest = publication_material.pop("publication_sha256", None)
++        if not _is_sha256(publication_digest) or _canonical_sha(publication_material) != publication_digest:
++            raise ValueError("HK Connect v2 publication receipt hash mismatch")
++        expected_identity = {
++            "schema_version": contract.HK_CONNECT_PUBLICATION_SCHEMA_V2,
++            "status": "READY",
++            "target_date": trade_date,
++            "run_id": built["run_id"],
++            "capture_run_id": capture["capture_run_id"],
++            "capture_sha256": capture["capture_sha256"],
++            "artifact_sha256": built["artifact_sha256"],
++            "current_sha256": built["current_sha256"],
++            "producer_owner": dict(producer_owner),
++            "contract_owner": contract_owner,
++            **contract.SAFETY_FLAGS,
++        }
++        if any(publication.get(key) != value for key, value in expected_identity.items()):
++            raise ValueError("HK Connect v2 publication receipt identity mismatch")
++        available_at = publication.get("available_at")
++        try:
++            available_dt = datetime.fromisoformat(str(available_at).replace("Z", "+00:00"))
++        except (TypeError, ValueError) as error:
++            raise ValueError("HK Connect v2 publication availability invalid") from error
++        if available_dt.tzinfo is None:
++            raise ValueError("HK Connect v2 publication availability is naive")
++    else:
++        publication = {
++            "schema_version": contract.HK_CONNECT_PUBLICATION_SCHEMA_V2,
++            "status": "READY",
++            "target_date": trade_date,
++            "effective_date": trade_date,
++            "trade_date": trade_date,
++            "source_date": trade_date,
++            "market": "HK_CONNECT",
++            "scope": "FULL_MARKET",
++            "run_id": built["run_id"],
++            "publication_relative": publication_relative,
++            "available_at": datetime.now().astimezone().isoformat(timespec="microseconds"),
++            "acquired_at": capture["acquired_at"],
++            "capture_run_id": capture["capture_run_id"],
++            "capture_sha256": capture["capture_sha256"],
++            "artifact_relative": built["paths"]["artifact_relative"],
++            "artifact_sha256": built["artifact_sha256"],
++            "manifest_relative": built["paths"]["manifest_relative"],
++            "receipt_relative": built["paths"]["receipt_relative"],
++            "current_relative": built["paths"]["current_relative"],
++            "current_sha256": built["current_sha256"],
++            "workload_id": producer_owner.get("workload_id"),
++            "producer_owner": dict(producer_owner),
++            "contract_owner": contract_owner,
++            "forward_source_set": producer_owner.get("forward_source_set"),
++            "forward_source_set_sha256": producer_owner.get("forward_source_set_sha256"),
++            **contract.SAFETY_FLAGS,
++        }
++        publication["publication_sha256"] = _canonical_sha(publication)
++        publication_bytes = contract._canonical_json_line(publication)
++        _create_immutable_authority_file(publication_path, publication_bytes)
++        if publication_path.read_bytes() != publication_bytes:
++            raise ValueError("HK Connect v2 publication receipt readback mismatch")
++
++    return {
++        "status": "READY",
++        "run_id": built["run_id"],
++        "trade_date": trade_date,
++        "artifact_sha256": built["artifact_sha256"],
++        "current_sha256": built["current_sha256"],
++        "capture_run_id": capture["capture_run_id"],
++        "capture_sha256": capture["capture_sha256"],
++        "available_at": publication["available_at"],
++        "publication_relative": publication_relative,
++        "written_files": written,
++        **contract.SAFETY_FLAGS,
++    }
+ 
+ 
+ def _capture_result(
+@@ -496,11 +716,41 @@
+     capture: Mapping[str, Any] | None = None,
+     panel_sha256: str | None = None,
+     panel_binding_sha256: str | None = None,
++    membership_only: bool = False,
+     reuse_only: bool = False,
+ ) -> dict[str, object]:
+     package_root = shared_package_root.expanduser().resolve()
+     if not package_root.is_dir():
+         raise ValueError(f"shared package root missing: {package_root}")
++    if membership_only:
++        if capture is None or panel_sha256 is not None or panel_binding_sha256 is not None:
++            raise ValueError("HK membership-only ensure requires capture without panel binding")
++        contract, _contract_owner = _load_hk_connect_v2_contract()
++        try:
++            validated_membership = contract.validate_captured_hk_connect_membership_v2(
++                capture, trade_date=trade_date
++            )
++        except (TypeError, ValueError) as error:
++            raise ValueError("HK membership-only capture v2 invalid") from error
++        authority = _publish_captured_hk_connect_authority_v2(
++            store_root=store_root.expanduser().resolve(),
++            trade_date=trade_date,
++            capture=capture,
++        )
++        return {
++            "ok": True,
++            "status": authority.get("status", "READY"),
++            "trade_date": trade_date,
++            "row_count": validated_membership["code_count"],
++            "capture_sha256": validated_membership["capture_sha256"],
++            "source_sha256": validated_membership["source_sha256"],
++            "panel_sha256": None,
++            "panel_capture_binding_sha256": None,
++            "universe_authority": authority,
++            "production_allowed": False,
++            "buy_gate_updated": False,
++            "orders_sent": False,
++        }
+     validated_capture = (
+         _validated_capture(capture, trade_date=trade_date, panel_sha256=panel_sha256)
+         if capture is not None
+@@ -552,7 +802,7 @@
+             and set(rows) == set(codes)
+             and _capture_rows_match(rows, validated_capture["security_master_rows"])
+         ):
+-            return _capture_result(
++            result = _capture_result(
+                 capture=validated_capture,
+                 trade_date=trade_date,
+                 panel_sha256=panel_sha256,
+@@ -563,6 +813,13 @@
+                 artifact_sha256=manifest.get("artifact_sha256"),
+                 manifest_sha256=_canonical_sha(manifest),
+             )
++            if validated_capture.get("schema_version") == _CAPTURE_SCHEMA_V2:
++                result["universe_authority"] = _publish_captured_hk_connect_authority_v2(
++                    store_root=store_root,
++                    trade_date=trade_date,
++                    capture=validated_capture,
++                )
++            return result
+ 
+         publish_hk_security_master = getattr(acquire_module, "publish_hk_security_master")
+         _validate_security_master_rows(
+@@ -579,7 +836,7 @@
+         published_manifest = published.get("manifest")
+         if not isinstance(published_manifest, Mapping):
+             published_manifest = {}
+-        return _capture_result(
++        result = _capture_result(
+             capture=validated_capture,
+             trade_date=trade_date,
+             panel_sha256=panel_sha256,
+@@ -590,6 +847,13 @@
+             artifact_sha256=published.get("artifact_sha256"),
+             manifest_sha256=published.get("manifest_sha256") or _canonical_sha(published_manifest),
+         )
++        if validated_capture.get("schema_version") == _CAPTURE_SCHEMA_V2:
++            result["universe_authority"] = _publish_captured_hk_connect_authority_v2(
++                store_root=store_root,
++                trade_date=trade_date,
++                capture=validated_capture,
++            )
++        return result
+ 
+     resolve_stage_universe = getattr(acquire_module, "resolve_stage_universe", None)
+ 
+--- /Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f2/candidate_retry01/app/stage_center/hk_universe_preflight.py
++++ /Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app/stage_center/hk_universe_preflight.py
+@@ -28,6 +28,12 @@
+ HK_AUTHORITY_MANIFEST_SCHEMA = "v3_shared_data.hk_connect.authority.manifest.v1"
+ HK_AUTHORITY_RECEIPT_SCHEMA = "v3_shared_data.hk_connect.authority.receipt.v1"
+ HK_AUTHORITY_CURRENT_SCHEMA = "v3_shared_data.hk_connect.authority.current.v1"
++HK_CONNECT_CAPTURE_SCHEMA_V2 = "v4.manager_hk_connect_capture.v2"
++HK_CONNECT_ARTIFACT_SCHEMA_V2 = "v3_shared_data.stage_universe.capture.v2"
++HK_CONNECT_AUTHORITY_MANIFEST_SCHEMA_V2 = "v3_shared_data.hk_connect.authority.manifest.v2"
++HK_CONNECT_AUTHORITY_RECEIPT_SCHEMA_V2 = "v3_shared_data.hk_connect.authority.receipt.v2"
++HK_CONNECT_AUTHORITY_CURRENT_SCHEMA_V2 = "v3_shared_data.hk_connect.authority.current.v2"
++HK_CONNECT_PUBLICATION_SCHEMA_V2 = "v3_shared_data.hk_connect.authority.publication.v2"
+ SAFETY_FLAGS = {
+     "production_allowed": False,
+     "buy_gate_updated": False,
+@@ -593,6 +599,291 @@
+     }
+ 
+ 
++def validate_captured_hk_connect_membership_v2(
++    capture: Mapping[str, Any], *, trade_date: str | None = None
++) -> dict[str, Any]:
++    """Validate and derive membership from the two complete retained SDK frames.
++
++    This helper is deliberately pure: it does not discover paths, read files,
++    schedule work, call Futu, inspect quotes, or choose a data root.
++    """
++    if not isinstance(capture, Mapping):
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:envelope")
++    target = trade_date or capture.get("target_date")
++    if not isinstance(target, str) or not re.fullmatch(r"\d{8}", target):
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:trade_date")
++    try:
++        datetime.strptime(target, "%Y%m%d")
++    except ValueError as error:
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:trade_date") from error
++    if capture.get("schema_version") != HK_CONNECT_CAPTURE_SCHEMA_V2:
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:schema")
++    if capture.get("status") != "READY" or capture.get("target_date") != target:
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:status_or_date")
++    if any(capture.get(flag) is not False for flag in SAFETY_FLAGS):
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:safety")
++    capture_run_id = capture.get("capture_run_id")
++    if not isinstance(capture_run_id, str) or not capture_run_id.strip():
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:capture_run_id")
++    producer = capture.get("producer_owner")
++    if not isinstance(producer, Mapping):
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:producer_owner")
++    if producer.get("workload_id") != "v35_dispatcher.research_panel_daily_hk":
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:producer_workload")
++    if producer.get("code_ref") != "ops/_macos_research_panel_daily_parts/hk_market_capture.py":
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:producer_code_ref")
++    if not isinstance(producer.get("code_sha256"), str) or not re.fullmatch(r"[0-9a-f]{64}", producer["code_sha256"]):
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:producer_code_sha")
++    forward_set = producer.get("forward_source_set")
++    if not isinstance(forward_set, Mapping):
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:forward_source_set")
++    forward_required = {
++        "source_head", "forward_receipt_sha256", "candidate_manifest_sha256",
++        "candidate_build_receipt_sha256", "api_writer_receipt_sha256",
++        "api_reviewer_receipt_sha256", "api_source_mapping_sha256",
++    }
++    if set(forward_set) != forward_required:
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:forward_source_set_fields")
++    if not isinstance(forward_set.get("source_head"), str) or not re.fullmatch(r"[0-9a-f]{40}", forward_set["source_head"]):
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:forward_source_head")
++    for key in forward_required - {"source_head"}:
++        if not isinstance(forward_set.get(key), str) or not re.fullmatch(r"[0-9a-f]{64}", forward_set[key]):
++            raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:forward_source_sha")
++    forward_sha = _sha256(dict(forward_set))
++    if producer.get("forward_source_set_sha256") != forward_sha:
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:forward_source_set_sha")
++
++    responses = capture.get("plate_responses")
++    if not isinstance(responses, Mapping) or set(responses) != set(HKCONNECT_PLATE_CODES):
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:plate_responses")
++    expected_plates: dict[str, list[str]] = {}
++    response_counts: dict[str, int] = {}
++    response_shas: dict[str, str] = {}
++    completed: list[datetime] = []
++    for plate in HKCONNECT_PLATE_CODES:
++        response = responses.get(plate)
++        if not isinstance(response, Mapping) or response.get("requested_plate") != plate:
++            raise ValueError(f"HK_CONNECT_CAPTURE_V2_INVALID:plate:{plate}")
++        if type(response.get("return_code")) is not int or response["return_code"] != 0:
++            raise ValueError(f"HK_CONNECT_CAPTURE_V2_INVALID:return_code:{plate}")
++        if response.get("serialization_version") != "futu.dataframe.records.canonical-json.v1":
++            raise ValueError(f"HK_CONNECT_CAPTURE_V2_INVALID:serialization:{plate}")
++        columns = response.get("columns")
++        records = response.get("rows")
++        if (not isinstance(columns, list) or any(not isinstance(column, str) for column in columns)
++            or len(columns) != len(set(columns)) or "code" not in columns
++            or not isinstance(records, list) or not records):
++            raise ValueError(f"HK_CONNECT_CAPTURE_V2_INVALID:frame:{plate}")
++        if type(response.get("row_count")) is not int or response["row_count"] != len(records):
++            raise ValueError(f"HK_CONNECT_CAPTURE_V2_INVALID:row_count:{plate}")
++        requested_at = response.get("requested_at")
++        completed_at = response.get("completed_at")
++        try:
++            requested_dt = datetime.fromisoformat(str(requested_at).replace("Z", "+00:00"))
++            completed_dt = datetime.fromisoformat(str(completed_at).replace("Z", "+00:00"))
++        except (TypeError, ValueError) as error:
++            raise ValueError(f"HK_CONNECT_CAPTURE_V2_INVALID:time:{plate}") from error
++        if requested_dt.tzinfo is None or completed_dt.tzinfo is None or completed_dt < requested_dt:
++            raise ValueError(f"HK_CONNECT_CAPTURE_V2_INVALID:time:{plate}")
++        completed.append(completed_dt)
++        response_material = {
++            "requested_plate": plate,
++            "serialization_version": response["serialization_version"],
++            "columns": columns,
++            "rows": records,
++        }
++        response_sha = _sha256(response_material)
++        if response.get("response_sha256") != response_sha:
++            raise ValueError(f"HK_CONNECT_CAPTURE_V2_INVALID:response_sha:{plate}")
++        values: set[str] = set()
++        for row in records:
++            if not isinstance(row, Mapping) or set(row) != set(columns):
++                raise ValueError(f"HK_CONNECT_CAPTURE_V2_INVALID:row:{plate}")
++            code = row.get("code")
++            if not isinstance(code, str) or not _HK_CODE_RE.fullmatch(code):
++                raise ValueError(f"HK_CONNECT_CAPTURE_V2_INVALID:code:{plate}")
++            values.add(code)
++        if not values:
++            raise ValueError(f"HK_CONNECT_CAPTURE_V2_INVALID:empty_plate:{plate}")
++        expected_plates[plate] = sorted(values)
++        response_counts[plate] = len(records)
++        response_shas[plate] = response_sha
++
++    acquired_at = max(completed).isoformat()
++    if capture.get("acquired_at") != acquired_at:
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:acquired_at")
++    if capture.get("plate_codes") != expected_plates:
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:plate_codes")
++    if capture.get("plate_response_counts") != response_counts:
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:plate_response_counts")
++    if capture.get("plate_response_sha256") != response_shas:
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:plate_response_sha256")
++    plate_sets = [set(expected_plates[plate]) for plate in HKCONNECT_PLATE_CODES]
++    union = sorted(plate_sets[0] | plate_sets[1])
++    overlap = len(plate_sets[0] & plate_sets[1])
++    if capture.get("codes") != union or capture.get("code_count") != len(union):
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:membership_union")
++    if type(capture.get("overlap_count")) is not int or capture["overlap_count"] != overlap:
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:membership_overlap")
++    if len(union) != len(expected_plates[HKCONNECT_PLATE_CODES[0]]) + len(expected_plates[HKCONNECT_PLATE_CODES[1]]) - overlap:
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:membership_identity")
++
++    source_material = {
++        "target_date": target,
++        "plate_codes": expected_plates,
++        "plate_response_sha256": response_shas,
++        "capture_run_id": capture_run_id,
++        "acquired_at": acquired_at,
++    }
++    source_sha = _sha256(source_material)
++    if capture.get("membership_source_payload") != source_material or capture.get("membership_source_sha256") != source_sha:
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:membership_source_sha")
++    capture_sha = capture.get("capture_sha256")
++    if not isinstance(capture_sha, str) or not re.fullmatch(r"[0-9a-f]{64}", capture_sha):
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:capture_sha")
++    capture_material = dict(capture)
++    capture_material.pop("capture_sha256", None)
++    if _sha256(capture_material) != capture_sha:
++        raise ValueError("HK_CONNECT_CAPTURE_V2_INVALID:capture_sha")
++    return {
++        "trade_date": target,
++        "codes": union,
++        "code_count": len(union),
++        "overlap_count": overlap,
++        "plate_codes": expected_plates,
++        "plate_response_counts": response_counts,
++        "plate_response_sha256": response_shas,
++        "capture_run_id": capture_run_id,
++        "capture_sha256": capture_sha,
++        "acquired_at": acquired_at,
++        "source_payload": source_material,
++        "source_sha256": source_sha,
++        "producer_owner": dict(producer),
++    }
++
++
++def build_captured_hk_connect_authority_v2(
++    capture: Mapping[str, Any], *, trade_date: str,
++    producer_owner: Mapping[str, Any], contract_owner: Mapping[str, Any],
++) -> dict[str, Any]:
++    """Purely serialize a validated captured-input authority and its v2 chain."""
++    validated = validate_captured_hk_connect_membership_v2(capture, trade_date=trade_date)
++    if dict(producer_owner) != validated["producer_owner"]:
++        raise ValueError("HK_CONNECT_AUTHORITY_V2_INVALID:producer_owner_mismatch")
++    if (not isinstance(contract_owner, Mapping)
++        or contract_owner.get("code_ref") != "stage_center/hk_universe_preflight.py"
++        or not isinstance(contract_owner.get("code_sha256"), str)
++        or not re.fullmatch(r"[0-9a-f]{64}", contract_owner["code_sha256"])):
++        raise ValueError("HK_CONNECT_AUTHORITY_V2_INVALID:contract_owner")
++    target = validated["trade_date"]
++    codes = validated["codes"]
++    artifact_payload = {
++        "schema_version": HK_CONNECT_ARTIFACT_SCHEMA_V2,
++        "target_date": target,
++        "effective_date": target,
++        "trade_date": target,
++        "source_date": target,
++        "market": "HK_CONNECT",
++        "scope": "FULL_MARKET",
++        "codes": codes,
++        "code_count": len(codes),
++        "codes_sha256": _sha256(codes),
++        "overlap_count": validated["overlap_count"],
++        "source_role": HK_UNIVERSE_SOURCE_ROLE,
++        "source_sha256": validated["source_sha256"],
++        "plate_codes": validated["plate_codes"],
++        "plate_response_counts": validated["plate_response_counts"],
++        "plate_response_sha256": validated["plate_response_sha256"],
++        "capture_run_id": validated["capture_run_id"],
++        "capture_sha256": validated["capture_sha256"],
++        "acquired_at": validated["acquired_at"],
++        "producer_owner": dict(producer_owner),
++        "contract_owner": dict(contract_owner),
++        **SAFETY_FLAGS,
++    }
++    artifact_bytes = _canonical_json_line(artifact_payload)
++    artifact_sha = _sha256_bytes(artifact_bytes)
++    run_id = authority_run_id(target, artifact_sha)
++    paths = _authority_relative_paths(target, run_id)
++    base = f"universes/{target}/HK_CONNECT_FULL_MARKET.authority/{run_id}"
++    capture_relative = f"{base}/capture.json"
++    publication_relative = f"{base}/publication.json"
++    common = {
++        "authority_role": HK_AUTHORITY_ROLE,
++        "target_date": target,
++        "effective_date": target,
++        "trade_date": target,
++        "source_date": target,
++        "market": "HK_CONNECT",
++        "scope": "FULL_MARKET",
++        "status": "READY",
++        "run_id": run_id,
++        "artifact_relative": paths["artifact_relative"],
++        "artifact_sha256": artifact_sha,
++        "artifact_size": len(artifact_bytes),
++        "code_count": len(codes),
++        "codes_sha256": artifact_payload["codes_sha256"],
++        "source_role": HK_UNIVERSE_SOURCE_ROLE,
++        "source_sha256": validated["source_sha256"],
++        "plate_codes": validated["plate_codes"],
++        "plate_response_counts": validated["plate_response_counts"],
++        "plate_response_sha256": validated["plate_response_sha256"],
++        "capture_run_id": validated["capture_run_id"],
++        "capture_sha256": validated["capture_sha256"],
++        "capture_relative": capture_relative,
++        "publication_relative": publication_relative,
++        "acquired_at": validated["acquired_at"],
++        "producer_owner": dict(producer_owner),
++        "contract_owner": dict(contract_owner),
++        "stage_selection_eligible": True,
++        "source_materialization": "FRESH_FUTU_CAPTURED_INPUT",
++        "origin_claim": "SAME_JOB_CAPTURE_AND_PUBLICATION",
++        **SAFETY_FLAGS,
++    }
++    manifest = {"schema_version": HK_CONNECT_AUTHORITY_MANIFEST_SCHEMA_V2, **common}
++    manifest_bytes = _canonical_json_line(manifest)
++    manifest_sha = _sha256_bytes(manifest_bytes)
++    receipt = {
++        "schema_version": HK_CONNECT_AUTHORITY_RECEIPT_SCHEMA_V2,
++        **common,
++        "manifest_relative": paths["manifest_relative"],
++        "manifest_sha256": manifest_sha,
++        "write_performed": True,
++    }
++    receipt_bytes = _canonical_json_line(receipt)
++    receipt_sha = _sha256_bytes(receipt_bytes)
++    current = {
++        "schema_version": HK_CONNECT_AUTHORITY_CURRENT_SCHEMA_V2,
++        **common,
++        "manifest_relative": paths["manifest_relative"],
++        "receipt_relative": paths["receipt_relative"],
++        "current_relative": paths["current_relative"],
++        "manifest_sha256": manifest_sha,
++        "receipt_sha256": receipt_sha,
++    }
++    current_bytes = _canonical_json_line(current)
++    capture_bytes = _canonical_json_line(dict(capture))
++    return {
++        "run_id": run_id,
++        "paths": paths,
++        "capture_relative": capture_relative,
++        "publication_relative": publication_relative,
++        "artifact_payload": artifact_payload,
++        "artifact_bytes": artifact_bytes,
++        "artifact_sha256": artifact_sha,
++        "capture_bytes": capture_bytes,
++        "manifest": manifest,
++        "manifest_bytes": manifest_bytes,
++        "manifest_sha256": manifest_sha,
++        "receipt": receipt,
++        "receipt_bytes": receipt_bytes,
++        "receipt_sha256": receipt_sha,
++        "current": current,
++        "current_bytes": current_bytes,
++        "current_sha256": _sha256_bytes(current_bytes),
++    }
++
++
+ __all__ = [
+     "HKCONNECT_PLATE_CODES",
+     "HK_UNIVERSE_SOURCE_ROLE",
+@@ -602,4 +893,6 @@
+     "HK_AUTHORITY_CURRENT_SCHEMA",
+     "authority_run_id",
+     "ensure_hk_connect_universe",
++    "validate_captured_hk_connect_membership_v2",
++    "build_captured_hk_connect_authority_v2",
+ ]
+--- /Users/lexi/Desktop/学习/agents调试/MANAGER_AUTHORITY_R2_ACCEPTANCE_20260930/candidate/app/domains/manager_research_evidence.py
++++ /Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app/domains/manager_research_evidence.py
+@@ -27,7 +27,9 @@
+     """A bounded code plus safe, structured provenance; never a raw traceback."""
+     def __init__(self, code: str, *, layer: str = 'SNAPSHOT', kind: str = 'INVALID',
+                  field: str = 'evidence', artifact_ref: str | None = None,
+-                 owner_sha256: str | None = None):
++                 owner_sha256: str | None = None,
++                 source_owner: str | None = None,
++                 producer_owner: str | None = None):
+         import re
+         if not isinstance(code, str) or not re.fullmatch(r'[A-Z0-9_:.-]{1,160}', code):
+             code = 'EVIDENCE_VALIDATION_FAILED'
+@@ -35,15 +37,20 @@
+         self.diagnostic = {
+             'schema_version': 'v4.manager_close_failure.v1', 'layer': layer,
+             'kind': kind, 'code': code, 'field': field, 'artifact_ref': artifact_ref,
+-            'source_owner': 'stage_center.hk_universe_preflight.ensure_hk_connect_universe'
+-                if layer.startswith('UNIVERSE') else None,
++            'source_owner': source_owner or (
++                'stage_center.hk_universe_preflight.ensure_hk_connect_universe'
++                if layer.startswith('UNIVERSE') else None
++            ),
+             'source_code_ref': 'stage_center/hk_universe_preflight.py'
+                 if layer.startswith('UNIVERSE') else None,
+             'source_code_sha256': owner_sha256,
+         }
+-
+-
+-def load_universe_owner(owner_root: Path | None = None, expected_sha256: str | None = None):
++        if producer_owner is not None:
++            self.diagnostic['producer_owner'] = producer_owner
++
++
++def load_universe_owner(owner_root: Path | None = None, expected_sha256: str | None = None,
++                       *, require_v2: bool = False):
+     """Read the ORIGINAL owner at an explicit CAS-pinned root; no producer here.
+ 
+     Unbound callers retain their release-local owner. Configured consumers do
+@@ -87,6 +94,12 @@
+                      '_authority_payloads', '_authority_relative_paths', '_resolve_under', 'authority_run_id'):
+             if not callable(getattr(owner, name, None)):
+                 raise ValueError('owner interface missing')
++        if require_v2:
++            for name in ('validate_captured_hk_connect_membership_v2',
++                         'build_captured_hk_connect_authority_v2', '_canonical_json_line',
++                         '_sha256_bytes'):
++                if not callable(getattr(owner, name, None)):
++                    raise ValueError('v2 owner interface missing')
+         if type(getattr(owner, 'HK_UNIVERSE_MIN_COUNT', None)) is not int:
+             raise ValueError('owner minimum contract missing')
+         return owner
+@@ -120,10 +133,154 @@
+             and snapshot.rows_sha256==digest(encoded(list(rows))))
+ 
+ 
++def _read_captured_hk_connect_evidence_v2(root: Path, trade_date: str, *, owner: Any,
++        owner_sha256: str, as_of: datetime | None,
++        clock: Callable[[],datetime]) -> VerifiedUniverse:
++    """Read the same-root captured-input authority and persisted availability."""
++    import hashlib
++    import re
++    ref=f'universes/{trade_date}/HK_CONNECT_FULL_MARKET.json'
++    def error(code, *, layer='UNIVERSE_ARTIFACT', kind='INVALID', field='artifact', reference=ref):
++        return EvidenceError(code, layer=layer, kind=kind, field=field,
++                             artifact_ref=reference, owner_sha256=owner_sha256,
++                             source_owner=(
++                                 'stage_center.hk_universe_preflight.'
++                                 'validate_captured_hk_connect_membership_v2'
++                             ),
++                             producer_owner='v35_dispatcher.research_panel_daily_hk')
++    def load_canonical(relative, *, layer, missing_code, invalid_code):
++        try:
++            path=owner._resolve_under(root, relative)
++            if not path.is_file():
++                raise error(missing_code, layer=layer, kind='MISSING', field='artifact_ref', reference=relative)
++            raw=path.read_bytes()
++            value=json.loads(raw.decode('utf-8'))
++            if not isinstance(value,Mapping) or raw!=owner._canonical_json_line(dict(value)):
++                raise error(invalid_code, layer=layer, field='canonical_bytes', reference=relative)
++            return dict(value),raw
++        except EvidenceError:
++            raise
++        except (OSError,UnicodeError,json.JSONDecodeError,TypeError,ValueError) as exc:
++            raise error(invalid_code, layer=layer, field='artifact_ref', reference=relative) from exc
++
++    artifact,artifact_bytes=load_canonical(
++        ref,layer='UNIVERSE_ARTIFACT',missing_code='HK_UNIVERSE_V2_ARTIFACT_MISSING',
++        invalid_code='HK_UNIVERSE_V2_ARTIFACT_INVALID')
++    if (artifact.get('schema_version')!=getattr(owner,'HK_CONNECT_ARTIFACT_SCHEMA_V2',None)
++        or any(artifact.get(key)!=trade_date for key in ('target_date','effective_date','trade_date','source_date'))
++        or artifact.get('market')!='HK_CONNECT' or artifact.get('scope')!='FULL_MARKET'
++        or artifact.get('source_role')!=getattr(owner,'HK_UNIVERSE_SOURCE_ROLE',None)
++        or any(artifact.get(flag) is not False for flag in ('production_allowed','buy_gate_updated','orders_sent'))):
++        raise error('HK_UNIVERSE_V2_ARTIFACT_SCOPE_INVALID',field='schema_date_market_safety')
++    codes=artifact.get('codes')
++    if (not isinstance(codes,list) or not codes or codes!=sorted(set(codes))
++        or any(not isinstance(code,str) or not re.fullmatch(r'HK\.\d{5}',code) for code in codes)
++        or type(artifact.get('code_count')) is not int or artifact['code_count']!=len(codes)
++        or artifact.get('codes_sha256')!=owner._sha256(codes)):
++        raise error('HK_UNIVERSE_V2_ARTIFACT_CODES_INVALID',field='codes')
++    artifact_sha=hashlib.sha256(artifact_bytes).hexdigest()
++    try:
++        run=owner.authority_run_id(trade_date,artifact_sha)
++        paths=owner._authority_relative_paths(trade_date,run)
++    except (OSError,TypeError,ValueError) as exc:
++        raise error('HK_UNIVERSE_V2_AUTHORITY_ID_INVALID',layer='UNIVERSE_AUTHORITY',field='run_id') from exc
++    base=f'universes/{trade_date}/HK_CONNECT_FULL_MARKET.authority/{run}'
++    capture_ref=f'{base}/capture.json'; publication_ref=f'{base}/publication.json'
++    manifest,manifest_bytes=load_canonical(
++        paths['manifest_relative'],layer='UNIVERSE_AUTHORITY',
++        missing_code='HK_UNIVERSE_V2_MANIFEST_MISSING',invalid_code='HK_UNIVERSE_V2_MANIFEST_INVALID')
++    receipt,receipt_bytes=load_canonical(
++        paths['receipt_relative'],layer='UNIVERSE_AUTHORITY',
++        missing_code='HK_UNIVERSE_V2_RECEIPT_MISSING',invalid_code='HK_UNIVERSE_V2_RECEIPT_INVALID')
++    current,current_bytes=load_canonical(
++        paths['current_relative'],layer='UNIVERSE_AUTHORITY',
++        missing_code='HK_UNIVERSE_V2_CURRENT_MISSING',invalid_code='HK_UNIVERSE_V2_CURRENT_INVALID')
++    capture,capture_bytes=load_canonical(
++        capture_ref,layer='UNIVERSE_CAPTURE',
++        missing_code='HK_UNIVERSE_V2_CAPTURE_MISSING',invalid_code='HK_UNIVERSE_V2_CAPTURE_INVALID')
++    publication,publication_bytes=load_canonical(
++        publication_ref,layer='UNIVERSE_PUBLICATION',
++        missing_code='HK_UNIVERSE_V2_PUBLICATION_MISSING',invalid_code='HK_UNIVERSE_V2_PUBLICATION_INVALID')
++
++    contract_owner={'code_ref':'stage_center/hk_universe_preflight.py',
++                    'code_sha256':owner_sha256,
++                    'role':'PURE_CAPTURED_HK_CONNECT_CONTRACT_V2'}
++    producer=artifact.get('producer_owner')
++    if not isinstance(producer,Mapping) or artifact.get('contract_owner')!=contract_owner:
++        raise error('HK_UNIVERSE_V2_OWNER_BINDING_INVALID',layer='UNIVERSE_OWNER',field='contract_owner')
++    try:
++        validated=owner.validate_captured_hk_connect_membership_v2(capture,trade_date=trade_date)
++        built=owner.build_captured_hk_connect_authority_v2(
++            capture,trade_date=trade_date,producer_owner=producer,contract_owner=contract_owner)
++    except (OSError,TypeError,ValueError,KeyError,AttributeError) as exc:
++        raise error('HK_UNIVERSE_V2_CAPTURE_MEMBERSHIP_INVALID',layer='UNIVERSE_CAPTURE',field='capture') from exc
++    if (capture_bytes!=built['capture_bytes'] or artifact_bytes!=built['artifact_bytes']
++        or manifest_bytes!=built['manifest_bytes'] or receipt_bytes!=built['receipt_bytes']
++        or current_bytes!=built['current_bytes'] or built['run_id']!=run
++        or built['paths']!=paths or built['capture_relative']!=capture_ref
++        or built['publication_relative']!=publication_ref):
++        raise error('HK_UNIVERSE_V2_CHAIN_IDENTITY_MISMATCH',layer='UNIVERSE_AUTHORITY',
++                    kind='CONFLICT',field='authority_chain')
++    if (manifest.get('schema_version')!=getattr(owner,'HK_CONNECT_AUTHORITY_MANIFEST_SCHEMA_V2',None)
++        or receipt.get('schema_version')!=getattr(owner,'HK_CONNECT_AUTHORITY_RECEIPT_SCHEMA_V2',None)
++        or current.get('schema_version')!=getattr(owner,'HK_CONNECT_AUTHORITY_CURRENT_SCHEMA_V2',None)):
++        raise error('HK_UNIVERSE_V2_CHAIN_SCHEMA_INVALID',layer='UNIVERSE_AUTHORITY',field='schema_version')
++    expected_publication={
++        'schema_version':getattr(owner,'HK_CONNECT_PUBLICATION_SCHEMA_V2',None),
++        'status':'READY','target_date':trade_date,'effective_date':trade_date,
++        'trade_date':trade_date,'source_date':trade_date,'market':'HK_CONNECT',
++        'scope':'FULL_MARKET','run_id':run,'publication_relative':publication_ref,
++        'acquired_at':validated['acquired_at'],'capture_run_id':validated['capture_run_id'],
++        'capture_sha256':validated['capture_sha256'],
++        'artifact_relative':paths['artifact_relative'],'artifact_sha256':built['artifact_sha256'],
++        'manifest_relative':paths['manifest_relative'],'receipt_relative':paths['receipt_relative'],
++        'current_relative':paths['current_relative'],'current_sha256':built['current_sha256'],
++        'workload_id':producer.get('workload_id'),'producer_owner':dict(producer),
++        'contract_owner':contract_owner,
++        'forward_source_set':producer.get('forward_source_set'),
++        'forward_source_set_sha256':producer.get('forward_source_set_sha256'),
++        'production_allowed':False,'buy_gate_updated':False,'orders_sent':False,
++    }
++    publication_material=dict(publication)
++    publication_digest=publication_material.pop('publication_sha256',None)
++    if (not isinstance(publication_digest,str) or not re.fullmatch(r'[0-9a-f]{64}',publication_digest)
++        or owner._sha256(publication_material)!=publication_digest):
++        raise error('HK_UNIVERSE_V2_PUBLICATION_SHA_INVALID',layer='UNIVERSE_PUBLICATION',field='publication_sha256')
++    if any(publication.get(key)!=value for key,value in expected_publication.items()):
++        raise error('HK_UNIVERSE_V2_PUBLICATION_IDENTITY_INVALID',layer='UNIVERSE_PUBLICATION',field='identity')
++    try:
++        acquired=aware(validated['acquired_at']); available=aware(publication.get('available_at'))
++    except PublicationError as exc:
++        raise error('HK_UNIVERSE_V2_PUBLICATION_TIME_INVALID',layer='UNIVERSE_PUBLICATION',field='available_at') from exc
++    if (acquired.astimezone(HK).strftime('%Y%m%d')!=trade_date
++        or available.astimezone(HK).strftime('%Y%m%d')!=trade_date or available<acquired):
++        raise error('HK_UNIVERSE_V2_AFTER_AS_OF_OR_WRONG_DATE',kind='PIT_UNSAFE',field='acquired_at/available_at')
++    witnessed=clock()
++    if (witnessed.tzinfo is None or available>witnessed
++        or (as_of is not None and (as_of.tzinfo is None or witnessed>as_of
++            or acquired>as_of or available>as_of))):
++        raise error('HK_UNIVERSE_V2_AVAILABILITY_UNPROVEN_BY_AS_OF',kind='PIT_UNSAFE',field='available_at')
++    src={
++        'owner':producer.get('workload_id'),'role':'HK_CONNECT_FULL_MARKET_AUTHORITY',
++        'source_role':artifact['source_role'],'market':'HK_CONNECT','lane':None,
++        'source_date':trade_date,'artifact_ref':ref,'manifest_ref':paths['manifest_relative'],
++        'receipt_ref':paths['receipt_relative'],'current_ref':paths['current_relative'],
++        'capture_ref':capture_ref,'publication_ref':publication_ref,
++        'sha256':artifact_sha,'run_id':run,'acquired_at':acquired.isoformat(),
++        'observed_at':acquired.isoformat(),'available_at':available.isoformat(),
++        'read_at':witnessed.isoformat(),'capture_run_id':validated['capture_run_id'],
++        'capture_sha256':validated['capture_sha256'],'source_sha256':artifact['source_sha256'],
++        'producer_owner':dict(producer),'contract_owner':contract_owner,
++        'reason':'同根双板采集、authority 链与持久化 availability receipt 已逐字节校验',
++    }
++    return VerifiedUniverse(tuple(codes),src,_SEAL)
++
++
+ def read_universe_evidence(root: Path, trade_date: str, *, as_of: datetime | None = None,
+                            clock: Callable[[],datetime] = lambda: datetime.now(HK),
+                            authority_owner_root: Path | None = None,
+-                           authority_owner_sha256: str | None = None) -> VerifiedUniverse:
++                           authority_owner_sha256: str | None = None,
++                           require_v2: bool = False) -> VerifiedUniverse:
+     import re
+     if not isinstance(trade_date, str) or not re.fullmatch(r'\d{8}', trade_date):
+         raise EvidenceError('HK_UNIVERSE_DATE_INVALID', layer='UNIVERSE_ARTIFACT', field='trade_date')
+@@ -131,8 +288,17 @@
+         datetime.strptime(trade_date, '%Y%m%d')
+     except ValueError as exc:
+         raise EvidenceError('HK_UNIVERSE_DATE_INVALID', layer='UNIVERSE_ARTIFACT', field='trade_date') from exc
+-    owner = load_universe_owner(authority_owner_root, authority_owner_sha256)
++    if require_v2 and (authority_owner_root is None or authority_owner_sha256 is None):
++        raise EvidenceError('HK_UNIVERSE_V2_OWNER_BINDING_REQUIRED', layer='UNIVERSE_OWNER',
++                            kind='MISSING', field='owner_binding')
++    owner = load_universe_owner(authority_owner_root, authority_owner_sha256,
++                                require_v2=require_v2)
+     owner_sha = digest(Path(owner.__file__).read_bytes())
++    if require_v2:
++        return _read_captured_hk_connect_evidence_v2(
++            root, trade_date, owner=owner, owner_sha256=owner_sha,
++            as_of=as_of, clock=clock,
++        )
+     ref = f'universes/{trade_date}/HK_CONNECT_FULL_MARKET.json'
+     def error(code, *, layer='UNIVERSE_ARTIFACT', kind='INVALID', field='artifact', reference=ref):
+         return EvidenceError(code, layer=layer, kind=kind, field=field,
+--- /Users/lexi/Desktop/学习/agents调试/MANAGER_API_INTEGRATION_20260930/candidate/app/v4/manager_research/connect_selection.py
++++ /Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app/v4/manager_research/connect_selection.py
+@@ -30,6 +30,8 @@
+     owner_text=os.environ.get('V4_MANAGER_UNIVERSE_OWNER_ROOT','').strip()
+     owner_sha=os.environ.get('V4_MANAGER_UNIVERSE_OWNER_SHA256','').strip()
+     owner_kwargs={}
++    if not owner_text or not owner_sha:
++        result['gaps']=['HK_CONNECT_TARGET_AUTHORITY_OWNER_BINDING_REQUIRED'];return result
+     if owner_text or owner_sha:
+         owner_root=Path(owner_text)
+         try:
+@@ -48,20 +50,22 @@
+         from domains.manager_research_evidence import read_universe_evidence
+         # Do not inject the plan cutoff as a fake clock into this reader.
+         # This invokes native readback only, never ensure/capture/materialize.
+-        universe=read_universe_evidence(root,date,**owner_kwargs)
++        universe=read_universe_evidence(root,date,require_v2=True,**owner_kwargs)
+         source=dict(universe.source)
+         cutoff=timestamp(context.get('research_cutoff'))
++        acquired=timestamp(source.get('acquired_at'))
++        available=timestamp(source.get('available_at'))
+         if (source.get('source_date')!=date or source.get('market')!='HK_CONNECT'
+-                or timestamp(source.get('observed_at')) is None or cutoff is None
+-                or timestamp(source['observed_at'])>cutoff):
++                or acquired is None or available is None or cutoff is None
++                or acquired>cutoff or available>cutoff):
+             raise ValueError('HK_CONNECT_TARGET_AUTHORITY_AFTER_CUTOFF_OR_WRONG_DATE')
+         codes=sorted(set(universe.codes))
+         if not codes or any(canonical_symbol(c)!=c for c in codes):
+             raise ValueError('HK_CONNECT_TARGET_AUTHORITY_CODES_INVALID')
+         result.update(status='OWNER_VERIFIED',codes=codes,source=source,
+             identity=digest([date,codes,source['sha256']]),
+-            membership_semantics='TARGET_DATE_AUTHORITY_AS_READ_NOT_HISTORICAL_SELECTION_CAPTURE',
+-            availability_semantics='ORIGINAL_READER_WITNESS_CLOCK_RETAINED_NOT_BACKDATED')
++            membership_semantics='TARGET_DATE_CAPTURED_HK_CONNECT_AUTHORITY_V2',
++            availability_semantics='PERSISTED_ACQUIRED_AND_PUBLICATION_TIMES_MUST_PRECEDE_RESEARCH_CUTOFF')
+     except (ImportError,OSError,ValueError,KeyError,TypeError,RuntimeError) as exc:
+         reason=str(exc)
+         if not re.fullmatch(r'[A-Z0-9_:. -]{1,180}',reason):reason=type(exc).__name__
+--- /Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f2/candidate_retry01/app/ops/_macos_research_panel_daily_parts/hk_capture_gate.py
++++ /Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app/ops/_macos_research_panel_daily_parts/hk_capture_gate.py
+@@ -20,13 +20,43 @@
+         f"{_v4_global(_v4_scope, 'os').urandom(12).hex()}.json"
+     )
+     env = _v4_global(_v4_scope, 'os').environ
++    ensure_module = _v4_global(_v4_scope, 'importlib').import_module(
++        "ops.ensure_hk_security_master"
++    )
++    asset_root = args.hk_asset_root.expanduser().resolve()
++    store_root = asset_root.parent.parent
++    package_root = _v4_global(_v4_scope, 'Path')(
++        authority_paths["--hk-updater-script"]
++    ).expanduser().resolve().parents[1]
++    membership_result = {}
++
++    def publish_membership(capture):
++        membership_result.update(ensure_module.ensure_hk_security_master(
++            store_root=store_root,
++            universe_root=store_root,
++            shared_package_root=package_root,
++            trade_date=target,
++            futu_python=python_executable,
++            capture=capture,
++            membership_only=True,
++        ))
++
+     previous_capture_path = env.get("V35_HK_CAPTURE_PATH")
+     previous_capture_run_id = env.get("V35_HK_CAPTURE_RUN_ID")
+     env["V35_HK_CAPTURE_PATH"] = str(capture_manifest_path)
+     env["V35_HK_CAPTURE_RUN_ID"] = capture_manifest_path.stem
+     try:
+-        collected = _v4_global(_v4_scope, 'collect_hk_futu_rows')(
+-            target, minimum_universe_count=600, required_coverage_ratio=0.0
++        collector = _v4_global(_v4_scope, 'importlib').import_module(
++            "ops._macos_research_panel_daily_parts.hk_market_capture"
++        )
++        collected = collector._collect_hk_futu_rows_body(
++            _v4_scope,
++            target,
++            context_factory=None,
++            batch_size=200,
++            minimum_universe_count=600,
++            required_coverage_ratio=0.0,
++            membership_ready_callback=publish_membership,
+         )
+     finally:
+         if previous_capture_path is None:
+@@ -132,10 +162,19 @@
+         raise _v4_global(_v4_scope, 'SnapshotGateError')(
+             "HK panel capture missing after collector"
+         )
+-
+-    ensure_module = _v4_global(_v4_scope, 'importlib').import_module(
+-        "ops.ensure_hk_security_master"
+-    )
++    membership_authority = membership_result.get("universe_authority")
++    if (
++        membership_result.get("capture_sha256") != capture.get("capture_sha256")
++        or not _v4_global(_v4_scope, 'isinstance')(
++            membership_authority, _v4_global(_v4_scope, 'Mapping')
++        )
++        or membership_authority.get("capture_sha256") != capture.get("capture_sha256")
++        or membership_authority.get("capture_run_id") != capture.get("capture_run_id")
++    ):
++        raise _v4_global(_v4_scope, 'SnapshotGateError')(
++            "HK membership publication identity differs from final capture"
++        )
++
+     ensure_module._validated_capture(capture, trade_date=target, panel_sha256=None)
+     source_payload = capture["source_payload"]
+     expected_panel_codes = set(capture["codes"]) - set(source_payload["excluded_codes"])
+@@ -219,11 +258,6 @@
+         args.hk_tdx_root,
+         target,
+     )
+-    asset_root = args.hk_asset_root.expanduser().resolve()
+-    store_root = asset_root.parent.parent
+-    package_root = _v4_global(_v4_scope, 'Path')(
+-        authority_paths["--hk-updater-script"]
+-    ).expanduser().resolve().parents[1]
+     panel_sha256 = authority.get("panel_sha256")
+     if not ensure_module._is_sha256(panel_sha256):
+         raise _v4_global(_v4_scope, 'SnapshotGateError')("HK panel authority SHA invalid")
