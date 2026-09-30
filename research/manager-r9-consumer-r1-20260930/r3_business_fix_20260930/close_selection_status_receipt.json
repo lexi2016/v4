@@ -1,0 +1,160 @@
+{
+  "schema_version": "close_selection_status_receipt.v1",
+  "business_date": "20260930",
+  "timezone": "Asia/Shanghai",
+  "acquisition_time": {
+    "value": null,
+    "status": "CANNOT_CONFIRM",
+    "reason": "API response retrieval timestamps were not retained during the read-only query."
+  },
+  "boundary_status": {
+    "scheduler_dispatch": "SUCCEEDED",
+    "close_review_artifact_publication": "SUCCEEDED",
+    "qualified_hk_connect_selection": "CANNOT_CONFIRM",
+    "verified_candidate_count": 0,
+    "raw_close_top20_count": 20,
+    "raw_close_top20_is_candidate_selection": false
+  },
+  "observed_api_results": [
+    {
+      "surface": "manager_workbench_1530",
+      "method": "GET",
+      "route": "/api/v4/manager/workbench-research?date=20260930&market=HK_CONNECT&slot=1530",
+      "status": "NOT_RUN",
+      "cannot_confirm": ["WORKBENCH_RESEARCH_NO_EXECUTION_RECEIPT"],
+      "run_id": null,
+      "candidate_count": null,
+      "acquisition_time": null,
+      "acquisition_time_status": "CANNOT_CONFIRM"
+    },
+    {
+      "surface": "manager_close_recapture",
+      "method": "GET",
+      "route": "/api/v4/manager/workbench-research?date=20260930&market=HK_CONNECT&slot=CLOSE_RECAPTURE",
+      "status": "NOT_RUN",
+      "cannot_confirm": ["CLOSE_RECAPTURE_NOT_MATERIALIZED"],
+      "candidate_overlay_count": 0,
+      "acquisition_time": null,
+      "acquisition_time_status": "CANNOT_CONFIRM"
+    },
+    {
+      "surface": "manager_research_selection",
+      "method": "GET",
+      "route": "/api/v3/research/selection?target_trade_date=20260930&market_focus=HK_CONNECT",
+      "status": "NOT_MATERIALIZED",
+      "first_failed_layer": "SELECTION_PRODUCT_NOT_MATERIALIZED:20260930",
+      "cannot_confirm": ["SELECTION_PRODUCT_NOT_MATERIALIZED:20260930"],
+      "research_candidate_count": 0,
+      "formal_shortlist_count": 0,
+      "run_id": null,
+      "acquisition_time": null,
+      "acquisition_time_status": "CANNOT_CONFIRM"
+    },
+    {
+      "surface": "manager_hk_connect_stage_selection",
+      "method": "GET",
+      "route": "/api/v3/manager/stage-selection?date=20260930&stage=STAGE_0935_0940&market=HK_CONNECT&limit=50",
+      "status": "CANNOT_CONFIRM",
+      "stage_id": "STAGE_0935_0940",
+      "market": "HK_CONNECT",
+      "candidate_count": 0,
+      "run_id": null,
+      "cannot_confirm": [
+        "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
+        "HK:SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"
+      ],
+      "acquisition_time": null,
+      "acquisition_time_status": "CANNOT_CONFIRM"
+    },
+    {
+      "surface": "stage_center_close_stage",
+      "method": "GET",
+      "route": "/api/v3/stage-center/selection?date=20260930&stage=STAGE_1445_1500&limit=200",
+      "status": "CANNOT_CONFIRM",
+      "stage_id": "STAGE_1445_1500",
+      "a_share_candidate_count": 0,
+      "hk_connect_candidate_count": 0,
+      "run_id": null,
+      "acquisition_time": null,
+      "acquisition_time_status": "CANNOT_CONFIRM"
+    },
+    {
+      "surface": "hk_close_review_api",
+      "method": "GET",
+      "route": "/api/v3/review?date=20260930",
+      "hk_status": "MODEL_0_2_SOURCE_MISSING",
+      "artifact_sha256": "f06d64156d3347aa541f4337e2779e861530928c887fd31779880078e3180435",
+      "raw_close_top20_count": 20,
+      "model_0_2_close_top20_hits": null,
+      "stage_union_close_top20_hits": null,
+      "acquisition_time": null,
+      "acquisition_time_status": "CANNOT_CONFIRM"
+    }
+  ],
+  "hk_connect_close_review": {
+    "dispatch_receipt": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher/receipts/live/20260930/1608/22fc7f0de7314140b869a17e0ac3a3de.dispatch-receipt.json",
+      "sha256": "f53ebd4f694f5016e5cb9854bbf1b4b410ea66037d3c97330282ba02efe0f883",
+      "run_id": "22fc7f0de7314140b869a17e0ac3a3de",
+      "release_id": "20260929-manager-1555-pytdx-r1",
+      "scheduled_date": "20260930",
+      "target_date": "20260930",
+      "slot": "1608",
+      "status": "SUCCEEDED",
+      "finished_at": "2026-09-30T08:10:57.792853Z",
+      "workload_id": "hk_connect_close_review",
+      "workload_exit_code": 0
+    },
+    "artifact": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/close_reviews/20260930.json",
+      "sha256": "f06d64156d3347aa541f4337e2779e861530928c887fd31779880078e3180435",
+      "status": "MODEL_0_2_SOURCE_MISSING",
+      "raw_close_top20_count": 20,
+      "raw_close_top20_classification": "RAW_ATTRIBUTION_ROWS_NOT_QUALIFIED_CANDIDATES",
+      "verified_candidate_count": 0,
+      "model_0_2_close_top20_hits": null,
+      "stage_union_close_top20_hits": null,
+      "top100_available": 0,
+      "top100_required": 100,
+      "stage_rows": 0,
+      "missing_stages": [
+        "STAGE_0925",
+        "STAGE_0930_0935",
+        "STAGE_0935_0940",
+        "STAGE_0940_0945",
+        "STAGE_0945_1030",
+        "STAGE_1300_1315",
+        "STAGE_1445_1500"
+      ],
+      "cannot_confirm": [
+        "MODEL_0_2_TOP100_NOT_READY:0/100",
+        "MISSING_STAGE:STAGE_0925",
+        "MISSING_STAGE:STAGE_0930_0935",
+        "MISSING_STAGE:STAGE_0935_0940",
+        "MISSING_STAGE:STAGE_0940_0945",
+        "MISSING_STAGE:STAGE_0945_1030",
+        "MISSING_STAGE:STAGE_1300_1315",
+        "MISSING_STAGE:STAGE_1445_1500"
+      ],
+      "acquisition_time": null,
+      "acquisition_time_status": "CANNOT_CONFIRM"
+    },
+    "publication_receipt": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/receipts/close_reviews/20260930.json",
+      "sha256": "97ca31fae7345b13184dcf3994b9d47bf2139c9c2a5f2e6501ccf4110cd72a85",
+      "payload_path": "close_reviews/20260930.json",
+      "payload_sha256": "f06d64156d3347aa541f4337e2779e861530928c887fd31779880078e3180435"
+    }
+  },
+  "attached_secondary_finding": {
+    "scope": "A_SHARE_CLOSE_REVIEW_ONLY",
+    "dispatch_receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher/receipts/live/20260930/1605/6dcedaa23f4249b498a88b302bf838d3.dispatch-receipt.json",
+    "dispatch_receipt_sha256": "d7cefc4d52f4be5569004e90d86246bcf8f89e7d4a9b39957693e4193f0ae56b",
+    "run_id": "6dcedaa23f4249b498a88b302bf838d3",
+    "slot": "1605",
+    "status": "FAILED",
+    "failure_class": "CONTRACT",
+    "workload_id": "a_share_close_review",
+    "failure": "selector panel unresolved: no selector panel with max date >= 20260930 under /Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/数据"
+  }
+}
