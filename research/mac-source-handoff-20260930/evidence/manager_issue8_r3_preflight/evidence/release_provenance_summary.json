@@ -1,0 +1,81 @@
+{
+  "schema_version": "v4.issue8.r3.release_provenance_summary.v1",
+  "configured_release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/release-manifest.json",
+  "configured_release_manifest_sha256": "819eb1f02a7a32889ffc2dd46e0c7ff686e3d20f410db36367ef94ca0734b980",
+  "configured_release_manifest_raw_byte_count": 142304,
+  "configured_release_id": "20260929-manager-1555-pytdx-r1",
+  "configured_activation_status": "NOT_ACTIVATED",
+  "configured_deployment_status": "CANNOT_CONFIRM",
+  "configured_candidate_status": "READY_FOR_REVIEW",
+  "configured_source": {
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260926-manager-closure-r1/app",
+    "candidate_overlay_app_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_DAILY_CHAIN_FIX_20260928/candidate/manager-plan-scheduler/app",
+    "candidate_overlay_method": "active scheduler release plus exact source overlays; generated runtime caches excluded",
+    "release_id": "20260926-manager-closure-r1",
+    "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260926-manager-closure-r1/release-manifest.json",
+    "release_manifest_sha256": "fe4c3581dcaf4a8cfcc71aa04b6846730310b4f86548e1b3d6b2c04beb26a971"
+  },
+  "configured_source_manifest_exists": true,
+  "configured_source_manifest_declared_sha256": "fe4c3581dcaf4a8cfcc71aa04b6846730310b4f86548e1b3d6b2c04beb26a971",
+  "configured_source_manifest_actual_sha256": "fe4c3581dcaf4a8cfcc71aa04b6846730310b4f86548e1b3d6b2c04beb26a971",
+  "configured_source_manifest_hash_matches": true,
+  "configured_source_manifest_top_keys": [
+    "activation_status",
+    "app_root",
+    "application_inventory",
+    "buy_gate_updated",
+    "candidate_status",
+    "deployment_status",
+    "direct_input_baseline",
+    "frozen_changed_source_sha256",
+    "generated_at",
+    "hk_observation_review",
+    "independent_review_status",
+    "integration_baseline",
+    "manager_closure_reviews",
+    "manager_closure_source_delta",
+    "natural_status",
+    "orders_sent",
+    "production_allowed",
+    "release_id",
+    "release_root",
+    "research_only",
+    "schema_version",
+    "source_candidate_group_sha256",
+    "source_group"
+  ],
+  "current_manifest_top_keys": [
+    "activation_status",
+    "application_inventory",
+    "candidate",
+    "candidate_status",
+    "deployment_status",
+    "generated_at",
+    "manager_1555_overlay",
+    "runtime_cache_exclusion",
+    "safety",
+    "schema_version",
+    "source"
+  ],
+  "current_manifest_has_canonical_commit_or_build_receipt_field": false,
+  "manager_1555_overlay": {
+    "base_app": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260928-manager-daily-plan-hook-r1/app",
+    "changes": [
+      "infrastructure/scheduling/executor_registry_review.py"
+    ],
+    "stage_producer_changed": false,
+    "source_receipt_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_DAILY_REPAIR_20260929/receipt/manager_1555_source_freeze.json",
+    "source_receipt_declared_sha256": "47d29adfada7305b6b5388288334adaf0d0620f3fbd8ff67aca9614345968bc4",
+    "source_receipt_actual_sha256": "47d29adfada7305b6b5388288334adaf0d0620f3fbd8ff67aca9614345968bc4",
+    "source_receipt_hash_matches": true,
+    "source_receipt_scope": "manager fupan_review_start LIVE 1555 invokes the existing PyTDX close recapture helper independently of Stage readback",
+    "source_receipt_candidate_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_DAILY_REPAIR_20260929/candidate/manager-scheduler/app",
+    "source_receipt_status": "READY_FOR_REVIEW",
+    "source_receipt_changed_paths": [
+      "infrastructure/scheduling/executor_registry_review.py",
+      "tests/test_manager_pytdx_scheduler_runtime_route.py"
+    ],
+    "source_receipt_has_canonical_commit_or_worktree_sha": false
+  },
+  "candidate_overlay_app_root_exists": true
+}

@@ -1,0 +1,23 @@
+{
+  "schema_version": "v4.issue8.r3.current_launchagent_state.v1",
+  "label": "com.lexi.v35.scheduler",
+  "plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+  "plist_raw_sha256": "8a72635aeec0efe181b6e479cb7b99463942d9be3690982a79e0b1f93d30b86c",
+  "plist_raw_byte_count": 12826,
+  "raw_plist_copy_saved": false,
+  "program": null,
+  "program_arguments": [
+    "/bin/bash",
+    "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app/ops/launch_v35_macos_scheduler.sh"
+  ],
+  "program_arguments_app_root_suffix_match_count": 0,
+  "program_arguments_configured_release_path_count": 1,
+  "environment_variable_count": 75,
+  "environment_nonempty_value_count": 75,
+  "environment_secret_named_key_count": 1,
+  "launchctl_reported_pid": 821,
+  "launchctl_reported_last_exit_status": 0,
+  "launchctl_capture_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_PREFLIGHT_20260930/evidence/launchctl_current_state.txt",
+  "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app",
+  "working_directory_equals_derived_release_root": true
+}

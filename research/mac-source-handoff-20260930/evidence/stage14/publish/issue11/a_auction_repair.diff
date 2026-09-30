@@ -1,0 +1,130 @@
+diff --git a/stage_center/_live_collectors_parts/a_auction.py b/stage_center/_live_collectors_parts/a_auction.py
+--- a/stage_center/_live_collectors_parts/a_auction.py
++++ b/stage_center/_live_collectors_parts/a_auction.py
+@@ -1,6 +1,20 @@
+ """stage_center.live_collectors: a_auction (review candidate, not deployment)."""
+ from __future__ import annotations
++
++from datetime import datetime
++from zoneinfo import ZoneInfo
++
+ from ._namespace import read_global as _v4_global
++
++_SHANGHAI = ZoneInfo("Asia/Shanghai")
++
++
++def _shanghai_datetime(value: str) -> datetime:
++    """Parse an ISO timestamp as Shanghai market time, preserving offsets."""
++    parsed = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
++    if parsed.tzinfo is None:
++        return parsed.replace(tzinfo=_SHANGHAI)
++    return parsed.astimezone(_SHANGHAI)
+ 
+ 
+ def _collect_a_share_auction_body(_v4_scope, /, plan, *, codes, python_path, shared_root, auction_root, process_runner, replay_provider):
+@@ -65,10 +79,10 @@
+     replay_evidence = (
+         "route=a_share_exact_date_auction_transaction",
+         "exact_date=true",
+-        "replay_method=pytdx.hq.get_history_transaction_data",
+         f"replay_trade_date={plan.trade_date}",
+         f"replay_cutoff={cutoff_iso}",
+     )
++    replay_method_evidence = "replay_method=UNKNOWN"
+     try:
+         if replay_provider is None:
+             from infrastructure.tdx_minute_replay_provider import TdxMinuteReplayProvider
+@@ -92,16 +106,44 @@
+             if payload.get(safety_key) is not False:
+                 raise _v4_global(_v4_scope, 'ValueError')(f"replay safety flag {safety_key} must be false")
+         captured_at = _v4_global(_v4_scope, 'str')(payload.get("captured_at") or "")
+-        captured = _v4_global(_v4_scope, 'datetime').fromisoformat(captured_at.replace("Z", "+00:00"))
+-        cutoff = _v4_global(_v4_scope, 'datetime').fromisoformat(cutoff_iso)
+-        if captured.date() != cutoff.date() or captured > cutoff:
++        captured = _shanghai_datetime(captured_at)
++        cutoff = _shanghai_datetime(cutoff_iso)
++        market_cutoff_at = _v4_global(_v4_scope, 'str')(payload.get("market_cutoff_at") or "")
++        if not market_cutoff_at:
++            raise _v4_global(_v4_scope, 'ValueError')("replay market_cutoff_at is missing")
++        market_cutoff = _shanghai_datetime(market_cutoff_at)
++        capture_mode = _v4_global(_v4_scope, 'str')(payload.get("capture_mode") or "").strip().upper()
++        if capture_mode not in {"NATURAL", "RECOVERY"}:
++            raise _v4_global(_v4_scope, 'ValueError')("replay capture_mode is missing or invalid")
++        if (
++            captured.strftime("%Y%m%d") != plan.trade_date
++            or market_cutoff != cutoff
++            or (captured > cutoff and capture_mode != "RECOVERY")
++        ):
+             raise _v4_global(_v4_scope, 'ValueError')("replay captured_at is outside exact date/cutoff")
+         raw_rows = payload.get("rows")
+         if not _v4_global(_v4_scope, 'isinstance')(raw_rows, _v4_global(_v4_scope, 'Sequence')) or _v4_global(_v4_scope, 'isinstance')(raw_rows, (_v4_global(_v4_scope, 'str'), _v4_global(_v4_scope, 'bytes'))):
+             raise _v4_global(_v4_scope, 'ValueError')("replay rows must be a sequence")
++        envelope_method = _v4_global(_v4_scope, 'str')(payload.get("source_method") or "").strip()
++        row_methods = [
++            _v4_global(_v4_scope, 'str')(raw.get("source_method") or "").strip()
++            for raw in raw_rows
++            if _v4_global(_v4_scope, 'isinstance')(raw, _v4_global(_v4_scope, 'Mapping'))
++        ]
++        source_methods = {method for method in row_methods if method}
++        replay_method = envelope_method or (next(iter(source_methods)) if len(source_methods) == 1 and all(row_methods) else "")
++        replay_method_evidence = f"replay_method={replay_method or 'UNKNOWN'}"
++        if replay_method not in {
++            "pytdx.hq.get_transaction_data",
++            "pytdx.hq.get_history_transaction_data",
++        }:
++            raise _v4_global(_v4_scope, 'ValueError')("replay source_method is missing or untrusted")
++        if any(method and method != replay_method for method in row_methods):
++            raise _v4_global(_v4_scope, 'ValueError')("replay source_method does not match row evidence")
+         requested = _v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys(_v4_global(_v4_scope, '_canonical_a_code')(code) for code in codes if _v4_global(_v4_scope, '_canonical_a_code')(code)))
+         by_code: dict[str, dict[str, Any]] = {}
+         invalid_rows: list[str] = []
++        expected_tick_time = f"{plan.trade_date[:4]}-{plan.trade_date[4:6]}-{plan.trade_date[6:]} 09:25:00"
+         for raw in raw_rows:
+             if not _v4_global(_v4_scope, 'isinstance')(raw, _v4_global(_v4_scope, 'Mapping')):
+                 invalid_rows.append("non_mapping_row")
+@@ -110,6 +152,9 @@
+             if not code or code not in requested:
+                 continue
+             update_time = _v4_global(_v4_scope, '_replay_auction_time')(raw.get("source_last_tick_time") or raw.get("time") or captured_at, plan.trade_date)
++            if update_time != expected_tick_time:
++                invalid_rows.append(code or "unknown_code")
++                continue
+             numeric = {
+                 key: _v4_global(_v4_scope, '_safe_number')(raw.get(key))
+                 for key in ("open_price", "last_price", "high_price", "low_price", "prev_close_price", "turnover", "volume")
+@@ -142,12 +187,14 @@
+                 "temporal_cutoff_safe": True,
+                 "trade_date": plan.trade_date,
+                 "is_open_call_auction_match": True,
+-                "source_method": raw.get("source_method") or "pytdx.hq.get_history_transaction_data",
++                "source_method": raw.get("source_method") or replay_method,
+                 "source_last_tick_time": raw.get("source_last_tick_time") or update_time,
+             }
+         rows = _v4_global(_v4_scope, 'tuple')(by_code[code] for code in requested if code in by_code)
+         missing = _v4_global(_v4_scope, 'tuple')(code for code in requested if code not in by_code)
+         cannot = _v4_global(_v4_scope, 'list')(_v4_global(_v4_scope, 'str')(item) for item in (payload.get("cannot_confirm") or ()) if _v4_global(_v4_scope, 'str')(item))
++        if capture_mode == "RECOVERY":
++            cannot.append("CANNOT_CONFIRM_NATURAL_0925_CAPTURE_RECOVERY_ONLY")
+         if missing:
+             cannot.append("PYTDX_0925_AUCTION_ROWS_MISSING: " + ", ".join(missing))
+         if invalid_rows:
+@@ -164,8 +211,11 @@
+                 _v4_global(_v4_scope, 'dict').fromkeys(
+                     (
+                         *replay_evidence,
++                        replay_method_evidence,
+                         f"replay_source={payload.get('source') or 'PYTDX_A_SHARE_0925_HISTORY_TRANSACTION'}",
+                         f"replay_captured_at={captured_at}",
++                        f"replay_capture_mode={capture_mode}",
++                        f"replay_market_cutoff_at={market_cutoff_at}",
+                         "replay_temporal_cutoff_safe=true",
+                     )
+                 )
+@@ -178,5 +228,5 @@
+             cannot_confirm=(f"PYTDX_0925_REPLAY_ERROR:{_v4_global(_v4_scope, 'type')(error).__name__}:{error}",),
+             error=_v4_global(_v4_scope, 'str')(error),
+             requested_rows=_v4_global(_v4_scope, 'len')(codes),
+-            source_evidence=replay_evidence,
+-        )
++            source_evidence=(*replay_evidence, replay_method_evidence),
++        )

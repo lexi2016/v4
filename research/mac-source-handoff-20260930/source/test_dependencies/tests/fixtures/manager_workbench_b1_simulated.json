@@ -1,0 +1,184 @@
+{
+  "schema_version": "v4.manager_workbench.research.v1",
+  "market": "HK_CONNECT",
+  "trade_date": "20260918",
+  "slot": "1530",
+  "as_of": "2026-09-18T15:30:00+08:00",
+  "generated_at": "2026-09-18T15:31:00+08:00",
+  "run_id": "SIMULATED-B1-CONTRACT-20260918",
+  "status": "PARTIAL",
+  "rule_version": "manager-workbench-b1-simulated-v1",
+  "cache_key": "20260918|HK_CONNECT|1530|manager-workbench-b1-simulated-v1",
+  "universe": {
+    "owner": "SIMULATED_FIXTURE",
+    "role": "HK_CONNECT_ELIGIBILITY_FIXTURE",
+    "artifact_ref": "simulated/universe/20260918.json",
+    "manifest_ref": null,
+    "receipt_ref": null,
+    "run_id": "SIMULATED-UNIVERSE-20260918",
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "source_date": "20260918",
+    "market": "HK_CONNECT",
+    "lane": null,
+    "reason": "SIMULATED fixture only; not a real HK Connect universe",
+    "observed_at": "2026-09-18T15:29:00+08:00",
+    "available_at": "2026-09-18T15:29:30+08:00"
+  },
+  "coverage": {
+    "eligible_count": 3,
+    "covered_count": 2,
+    "missing_count": 1,
+    "missing_reasons": [
+      "SIMULATED_ONE_QUOTE_MISSING"
+    ]
+  },
+  "cannot_confirm": [
+    "SIMULATED_B2_SCANNER_NOT_IMPLEMENTED"
+  ],
+  "priority_summary": {
+    "focus": [
+      {
+        "item_id": "sim-focus-1",
+        "candidate_id": "sim-hk-01234",
+        "name": "模拟候选A（SIMULATED）",
+        "occurred_at": "2026-09-18T15:30:00+08:00",
+        "reason": "SIMULATED：用于验证经理工作台多来源合并与详情展示",
+        "evidence_status": "SIMULATED_PARTIAL",
+        "kind": "FOCUS"
+      }
+    ],
+    "theme_changes": [],
+    "risk_upgrades": [
+      {
+        "item_id": "sim-risk-1",
+        "candidate_id": "sim-hk-01234",
+        "name": "模拟候选A（SIMULATED）",
+        "occurred_at": "2026-09-18T15:30:00+08:00",
+        "reason": "SIMULATED：风险提示样式回归，不代表真实市场风险",
+        "evidence_status": "SIMULATED_PARTIAL",
+        "kind": "RISK_UPGRADED"
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "candidate_id": "sim-hk-01234",
+      "symbol": "HK.01234",
+      "name": "模拟候选A（SIMULATED）",
+      "source_lanes": [
+        "CLOSE_DISCOVERY",
+        "CONTINUOUS_TRACKING"
+      ],
+      "first_seen_at": "2026-09-17T15:30:00+08:00",
+      "last_seen_at": "2026-09-18T15:30:00+08:00",
+      "observed_at": "2026-09-18T15:30:00+08:00",
+      "available_at": "2026-09-18T15:30:00+08:00",
+      "turnover_amount": {
+        "value": 125000000,
+        "currency": "HKD",
+        "unit": "HKD",
+        "as_of": "2026-09-18T15:30:00+08:00",
+        "status": "SIMULATED"
+      },
+      "volume_comparison": {
+        "state": "unknown",
+        "ratio": null,
+        "baseline_as_of": null,
+        "reason": "SIMULATED：B2同时间历史基线尚未实施"
+      },
+      "position": {
+        "state": "unknown",
+        "label": "待确认",
+        "reason": "SIMULATED：B2位置规则尚未冻结"
+      },
+      "catalyst": {
+        "status": "SIMULATED_PARTIAL",
+        "summary": "SIMULATED：只验证B1合同，不声称存在真实催化"
+      },
+      "research_priority": {
+        "level": "WATCH",
+        "previous_level": "WATCH",
+        "change_reason": "SIMULATED：界面回归"
+      },
+      "data_status": "SIMULATED_PARTIAL",
+      "attention_reason": "SIMULATED：用于验证为什么关注、缺口与多来源展示",
+      "predicates": [
+        {
+          "predicate_id": "B1_CONTRACT_FIXTURE_PRESENT",
+          "value": true,
+          "reason": "SIMULATED fixture字段完整",
+          "input_refs": [
+            "simulated/fixture"
+          ],
+          "rule_version": "manager-workbench-b1-simulated-v1"
+        },
+        {
+          "predicate_id": "B2_VOLUME_RULE",
+          "value": "unknown",
+          "reason": "B2未实施，不把模拟量能当真实判定",
+          "input_refs": [],
+          "rule_version": "UNBOUND"
+        }
+      ],
+      "sources": [
+        {
+          "owner": "SIMULATED_FIXTURE",
+          "role": "CLOSE_DISCOVERY_FIXTURE",
+          "artifact_ref": "simulated/close/20260918.json",
+          "manifest_ref": null,
+          "receipt_ref": null,
+          "run_id": "SIM-CLOSE-20260918",
+          "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "source_date": "20260918",
+          "market": "HK_CONNECT",
+          "lane": "CLOSE_DISCOVERY",
+          "reason": "SIMULATED 15:30来源理由",
+          "observed_at": "2026-09-18T15:30:00+08:00",
+          "available_at": "2026-09-18T15:30:00+08:00"
+        },
+        {
+          "owner": "SIMULATED_FIXTURE",
+          "role": "CONTINUOUS_TRACKING_FIXTURE",
+          "artifact_ref": "simulated/watch/20260918.json",
+          "manifest_ref": null,
+          "receipt_ref": null,
+          "run_id": "SIM-WATCH-20260918",
+          "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "source_date": "20260917",
+          "market": "HK_CONNECT",
+          "lane": "CONTINUOUS_TRACKING",
+          "reason": "SIMULATED 前日持续跟踪理由",
+          "observed_at": "2026-09-17T15:30:00+08:00",
+          "available_at": "2026-09-17T15:31:00+08:00"
+        }
+      ],
+      "risks": [
+        {
+          "risk_type": "SIMULATED_DATA_GAP",
+          "severity": "unknown",
+          "explanation": "B2/B3尚未实施，不能据此形成真实风险结论"
+        }
+      ],
+      "observation_plan": {
+        "triggers": [
+          "等待已有受控链返回可验证证据"
+        ],
+        "invalidation_conditions": [
+          "关键来源合同失败则停止展示为已确认"
+        ],
+        "missing_evidence": [
+          "B2量能基线",
+          "B3催化映射"
+        ],
+        "created_at": "2026-09-18T15:31:00+08:00",
+        "updated_at": "2026-09-18T15:31:00+08:00"
+      },
+      "qualified": null,
+      "trade_date": "20260918"
+    }
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

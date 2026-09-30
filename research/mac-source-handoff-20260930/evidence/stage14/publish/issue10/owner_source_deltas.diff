@@ -1,0 +1,847 @@
+# Reference-only source deltas for the named Stage/API owner modules.
+# Fixed GitHub comparison base: 3d03ca4ade08ac4c5f3f049756997d3934c782e3
+# Full source identities and app-root bindings are in owner_source_identities.json.
+# Complete small-file diffs are exact; large-file excerpts are complete named functions only.
+===== STAGE: stage_center/_runner_parts/slot_execution.py full focused-file diff =====
+diff --git a/stage_center/_runner_parts/slot_execution.py b/stage_center/_runner_parts/slot_execution.py
+--- a/stage_center/_runner_parts/slot_execution.py
++++ b/stage_center/_runner_parts/slot_execution.py
+@@ -11,6 +11,11 @@
+             historical_backfill=True,
+             backfill_run_id=run_id,
+         )
++    same_day_late_observation_recovery = bool(
++        getattr(decision, "same_day_late_observation_recovery", False)
++        and not historical_backfill
++        and decision.status == "LATE_CATCHUP_REPLAY"
++    )
+     trade_date, stage_id = decision.trade_date, decision.stage_id
+     markets = _v4_global(_v4_scope, '_stage_markets_for_date')(stage_id, trade_date)
+     if not markets:
+@@ -210,6 +215,7 @@
+                             candidate=candidate,
+                             universe_bindings=universe_bindings,
+                             historical_backfill=historical_backfill,
++                            same_day_late_observation_recovery=same_day_late_observation_recovery,
+                         ),
+                         python_path=self.config.python_path,
+                         shared_root=self.config.shared_data_root,
+@@ -226,6 +232,7 @@
+                         candidate=candidate,
+                         universe_bindings=universe_bindings,
+                         historical_backfill=historical_backfill,
++                        same_day_late_observation_recovery=same_day_late_observation_recovery,
+                     ),
+                     python_path=self.config.python_path,
+                     shared_root=self.config.shared_data_root,
+@@ -284,6 +291,7 @@
+             candidate=candidate,
+             universe_bindings=universe_bindings,
+             historical_backfill=historical_backfill,
++            same_day_late_observation_recovery=same_day_late_observation_recovery,
+         )
+         sources: dict[str, SourceResult] = {}
+         selection_sources: dict[str, SourceResult] = {}
+
+===== STAGE: stage_center/_live_collectors_parts/hk_minute.py full focused-file diff =====
+diff --git a/stage_center/_live_collectors_parts/hk_minute.py b/stage_center/_live_collectors_parts/hk_minute.py
+--- a/stage_center/_live_collectors_parts/hk_minute.py
++++ b/stage_center/_live_collectors_parts/hk_minute.py
+@@ -33,7 +33,10 @@
+     if not source.rows:
+         return source
+ 
+-    if _v4_global(_v4_scope, 'getattr')(plan, "historical_backfill", False):
++    same_day_late_observation_recovery = bool(
++        _v4_global(_v4_scope, 'getattr')(plan, "same_day_late_observation_recovery", False)
++    )
++    if same_day_late_observation_recovery or _v4_global(_v4_scope, 'getattr')(plan, "historical_backfill", False):
+         return _refresh_hk_active_lanes_body(
+             _v4_scope,
+             source,
+@@ -44,7 +47,8 @@
+             trade_date=plan.trade_date,
+             stage_id=plan.stage_id,
+             cutoff_at=_v4_global(_v4_scope, 'STAGE_BY_ID')[plan.stage_id].cutoff,
+-            historical_backfill=True,
++            historical_backfill=_v4_global(_v4_scope, 'getattr')(plan, "historical_backfill", False),
++            same_day_late_observation_recovery=same_day_late_observation_recovery,
+         )
+ 
+     # This is intentionally a second, read-only module load.  The shared
+@@ -62,7 +66,7 @@
+     )
+ 
+ 
+-def _refresh_hk_active_lanes_body(_v4_scope, /, source, *, codes, python_path, shared_root, process_runner, trade_date, stage_id, cutoff_at, historical_backfill=False):
++def _refresh_hk_active_lanes_body(_v4_scope, /, source, *, codes, python_path, shared_root, process_runner, trade_date, stage_id, cutoff_at, historical_backfill=False, same_day_late_observation_recovery=False):
+     """Re-probe only the V3 active trigger for an existing raw HK source.
+ 
+     This is the recovery path after raw publication has succeeded but a
+@@ -83,7 +87,12 @@
+     if "HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE" in probe_errors and trade_date and cutoff_at:
+         cannot_confirm = _v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((*source.cannot_confirm, *probe_errors)))
+         source_evidence = _v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((*source.source_evidence, *evidence)))
+-        if historical_backfill:
++        if historical_backfill or same_day_late_observation_recovery:
++            recovery_evidence = (
++                ("same_day_late_observation_recovery=true",)
++                if same_day_late_observation_recovery
++                else ()
++            )
+             return _v4_global(_v4_scope, 'replace')(
+                 source,
+                 status="PARTIAL_WITH_ROWS",
+@@ -91,6 +100,7 @@
+                 cannot_confirm=cannot_confirm,
+                 source_evidence=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((
+                     *source_evidence,
++                    *recovery_evidence,
+                     "active_snapshot_degraded_to_pytdx_observation=true",
+                 ))),
+             )
+
+===== STAGE: domains/preselection.py::_project_independent_pools function-slice diff (reference-only) =====
+--- a/domains/preselection.py::_project_independent_pools@base
++++ b/domains/preselection.py::_project_independent_pools@stage
+@@ -1,3 +1,80 @@
+ def _project_independent_pools(pools: list[dict[str, Any]], trade_date: str) -> dict[str, Any]:
+-    from domains._preselection_parts.independent_projection import __project_independent_pools_body as _v4_impl
+-    return _v4_impl(globals(), pools, trade_date)
++    projected_pools: list[dict[str, Any]] = []
++    for pool in pools:
++        rows = list(pool["rows"])
++        status = str(pool.get("status") or "").upper()
++        ready_status = bool(rows) and (
++            status in {"READY", "MATERIALIZED", "AVAILABLE"}
++            or status.endswith("_READY")
++        )
++        projected = dict(pool)
++        if not ready_status and pool.get("pool_id") not in OPTIONAL_DAILY_POOL_IDS:
++            reasons = list(projected.get("cannot_confirm") or ())
++            reason = f"POOL_NOT_READY:{pool.get('pool_id')}:{status or 'UNKNOWN'}"
++            if reason not in reasons:
++                reasons.append(reason)
++            projected["cannot_confirm"] = reasons
++        projected_pools.append({
++            **projected,
++            "pool_size": len(rows),
++            "returned_rows": len(rows),
++        })
++    grouped = {pool["pool_id"]: list(pool["rows"]) for pool in projected_pools}
++    all_rows = [row for pool in projected_pools for row in pool["rows"]]
++    main_rows = grouped["a_d1_premarket_pool"]
++    all_a_rows = _dedupe_by_symbol(row for row in all_rows if _market(row) == "A")
++    main_symbols = {str(row.get("symbol") or row.get("code") or "") for row in main_rows}
++    source_only = [
++        row for row in all_a_rows
++        if str(row.get("symbol") or row.get("code") or "") not in main_symbols
++    ]
++    hk_rows = _dedupe_by_symbol(row for row in all_rows if _market(row) == "HK")
++    incomplete = [
++        pool["pool_id"] for pool in projected_pools
++        if not (
++            bool(pool.get("rows"))
++            and (
++                str(pool.get("status") or "").upper() in {"READY", "MATERIALIZED", "AVAILABLE"}
++                or str(pool.get("status") or "").upper().endswith("_READY")
++            )
++        )
++    ]
++    mandatory_incomplete = [
++        pool_id for pool_id in incomplete if pool_id not in OPTIONAL_DAILY_POOL_IDS
++    ]
++    optional_incomplete = [
++        pool_id for pool_id in incomplete if pool_id in OPTIONAL_DAILY_POOL_IDS
++    ]
++    daily_readiness_status = "PARTIAL_WITH_ROWS" if mandatory_incomplete else "READY_WITH_ROWS"
++    return {
++        "producer_status": "PARTIAL" if mandatory_incomplete else "CANONICAL_COMPLETE",
++        "pools": projected_pools,
++        "rows": all_rows,
++        "unified_rows": main_rows,
++        "a_source_only_rows": source_only,
++        "a_all_pool_rows": all_a_rows,
++        "market_totals": {"A": len(all_a_rows), "HK": len(hk_rows)},
++        "hk_pool_version": "0.2",
++        "hk_pool_role": "D_MINUS_1_MODEL_TOP100",
++        "startup_ensure": {},
++        "strict_0_2_status": next(pool["status"] for pool in projected_pools if pool["pool_id"] == "hkconnect_d1_top100"),
++        "evidence_paths": [
++            str(pool.get("source_path") or "")
++            for pool in projected_pools
++            if pool.get("source_path")
++        ],
++        "cannot_confirm": [reason for pool in projected_pools for reason in pool.get("cannot_confirm", [])],
++        "optional_pool_status": "CANNOT_CONFIRM" if optional_incomplete else "MATERIALIZED_RESEARCH_ONLY",
++        "daily_readiness_status": daily_readiness_status,
++        "mandatory_incomplete_pool_ids": mandatory_incomplete,
++        "optional_incomplete_pool_ids": optional_incomplete,
++        "mandatory_pool_ids": [pool_id for pool_id in _POOL_ORDER if pool_id not in OPTIONAL_DAILY_POOL_IDS],
++        "optional_pool_ids": [pool_id for pool_id in _POOL_ORDER if pool_id in OPTIONAL_DAILY_POOL_IDS],
++        "blocking_reasons": [
++            reason
++            for pool in projected_pools
++            if pool.get("pool_id") not in OPTIONAL_DAILY_POOL_IDS
++            for reason in pool.get("cannot_confirm", [])
++        ],
++        "trade_date": trade_date,
++    }
+
+===== API: stage_center/runner.py::_validated_hk_binding_evidence function-slice diff (reference-only) =====
+--- a/stage_center/runner.py::_validated_hk_binding_evidence@base
++++ b/stage_center/runner.py::_validated_hk_binding_evidence@api
+@@ -37,7 +37,5 @@
+     ):
+         raise RunnerError("HK D1 exact-input binding role is invalid")
+     return tuple(
+-        dict.fromkeys(
+-            (*binding.evidence, f"hk_d1_binding_sha256={binding.sha256}")
+-        )
++        dict.fromkeys((*binding.evidence, f"hk_d1_binding_sha256={binding.sha256}"))
+     )
+
+===== API: stage_center/runner.py::_build_hk_stage_binding function-slice diff (reference-only) =====
+--- a/stage_center/runner.py::_build_hk_stage_binding@base
++++ b/stage_center/runner.py::_build_hk_stage_binding@api
+@@ -1,8 +1,6 @@
+ def _build_hk_stage_binding(
+     root: Path,
+     trade_date: str,
+-    *,
+-    preselection_source_root: Path | str | None = None,
+ ) -> StageUniverseBinding:
+     """Bind an exact HK D-1 pool, or the latest verified prior pool on an HK-only observation day.
+ 
+@@ -20,26 +18,14 @@
+         states["hk_securities"] in open_states
+         and states["hk_connect"] is TradingDayState.NON_TRADING_DAY
+     ):
+-        from infrastructure.preselection_pool_store import PreselectionSourceResolver
+-
+-        resolver = PreselectionSourceResolver(root, source_root=preselection_source_root)
+-        try:
+-            with resolver.source_read_lease(trade_date, timeout_seconds=0):
+-                return _build_hk_d1_binding(
+-                    root,
+-                    trade_date,
+-                    preselection_source_root=preselection_source_root,
+-                )
+-        except RunnerError:
+-            raise
+-        except (OSError, ValueError) as error:
+-            raise RunnerError(
+-                f"HK D1 source read lease CANNOT_CONFIRM for {trade_date}: {error}"
+-            ) from error
++        return _build_hk_d1_binding(
++            root,
++            trade_date,
++        )
+ 
+     from infrastructure.preselection_pool_store import PreselectionSourceResolver
+ 
+-    resolver = PreselectionSourceResolver(root, source_root=preselection_source_root)
++    resolver = PreselectionSourceResolver(root)
+     cursor = datetime.strptime(trade_date, "%Y%m%d")
+     connect_sessions_checked = 0
+     for _ in range(45):
+@@ -53,62 +39,55 @@
+         connect_sessions_checked += 1
+         if connect_sessions_checked > 15:
+             break
+-        lease_entered = False
+         try:
+-            with resolver.source_read_lease(source_date, timeout_seconds=0):
+-                lease_entered = True
+-                owner = resolver.root_for_date(source_date)
+-                snapshot = resolver.read_pool_snapshot(
+-                    source_date, "hkconnect_d1_top100"
+-                )
+-                if snapshot.get("physical_source_root") != str(owner):
+-                    raise RunnerError("HK D1 prior source owner changed during read")
+-                source_binding = _build_hk_d1_binding(owner, source_date)
+-                source_sha = str(snapshot.get("artifact_raw_sha256") or "")
+-                if source_binding.sha256 != source_sha:
+-                    raise RunnerError("HK D1 prior artifact SHA changed during binding")
+-                confirmed = resolver.read_pool_snapshot(
+-                    source_date, "hkconnect_d1_top100"
+-                )
+-                for identity_key in (
+-                    "artifact_raw_sha256", "manifest_raw_sha256", "receipt_raw_sha256",
+-                    "physical_source_root", "artifact_relative", "manifest_relative",
+-                    "receipt_relative",
+-                ):
+-                    if confirmed.get(identity_key) != snapshot.get(identity_key):
+-                        raise RunnerError("HK D1 prior source identity changed during binding")
+-                rows = snapshot["artifact"].get("rows", snapshot["artifact"].get("data"))
+-                signal_dates = {
+-                    str(row.get("signal_date") or "")
+-                    for row in rows
+-                    if isinstance(row, Mapping)
+-                }
+-                if len(signal_dates) != 1 or not next(iter(signal_dates)):
+-                    raise RunnerError("HK D1 prior signal_date identity is invalid")
+-                return StageUniverseBinding.ready(
+-                    market="HK_CONNECT",
+-                    trade_date=trade_date,
+-                    role="HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION",
+-                    codes=source_binding.codes,
+-                    source_run_id=f"hk-d1-{source_date}-{source_sha[:16]}",
+-                    sha256=source_sha,
+-                    evidence=(
+-                        *source_binding.evidence,
+-                        f"hk_d1_source_trade_date={source_date}",
+-                        f"hk_d1_source_signal_date={next(iter(signal_dates))}",
+-                        f"hk_d1_source_manifest_sha256={snapshot['manifest_raw_sha256']}",
+-                        f"hk_d1_source_receipt_sha256={snapshot['receipt_raw_sha256']}",
+-                        f"hk_observation_trade_date={trade_date}",
+-                        "hk_observation_mode=HK_SECURITIES_OPEN_HK_CONNECT_CLOSED",
+-                    ),
+-                )
+-        except FileNotFoundError as error:
++            owner = resolver.root_for_date(source_date)
++            snapshot = resolver.read_pool_snapshot(
++                source_date, "hkconnect_d1_top100"
++            )
++            if snapshot.get("physical_source_root") != str(owner):
++                raise RunnerError("HK D1 prior source owner changed during read")
++            source_binding = _build_hk_d1_binding(owner, source_date)
++            source_sha = str(snapshot.get("artifact_raw_sha256") or "")
++            if source_binding.sha256 != source_sha:
++                raise RunnerError("HK D1 prior artifact SHA changed during binding")
++            confirmed = resolver.read_pool_snapshot(
++                source_date, "hkconnect_d1_top100"
++            )
++            for identity_key in (
++                "artifact_raw_sha256", "manifest_raw_sha256", "receipt_raw_sha256",
++                "physical_source_root", "artifact_relative", "manifest_relative",
++                "receipt_relative",
++            ):
++                if confirmed.get(identity_key) != snapshot.get(identity_key):
++                    raise RunnerError("HK D1 prior source identity changed during binding")
++            rows = snapshot["artifact"].get("rows", snapshot["artifact"].get("data"))
++            signal_dates = {
++                str(row.get("signal_date") or "")
++                for row in rows
++                if isinstance(row, Mapping)
++            }
++            if len(signal_dates) != 1 or not next(iter(signal_dates)):
++                raise RunnerError("HK D1 prior signal_date identity is invalid")
++            return StageUniverseBinding.ready(
++                market="HK_CONNECT",
++                trade_date=trade_date,
++                role="HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION",
++                codes=source_binding.codes,
++                source_run_id=f"hk-d1-{source_date}-{source_sha[:16]}",
++                sha256=source_sha,
++                evidence=(
++                    *source_binding.evidence,
++                    f"hk_d1_source_trade_date={source_date}",
++                    f"hk_d1_source_signal_date={next(iter(signal_dates))}",
++                    f"hk_d1_source_manifest_sha256={snapshot['manifest_raw_sha256']}",
++                    f"hk_d1_source_receipt_sha256={snapshot['receipt_raw_sha256']}",
++                    f"hk_observation_trade_date={trade_date}",
++                    "hk_observation_mode=HK_SECURITIES_OPEN_HK_CONNECT_CLOSED",
++                ),
++            )
++        except FileNotFoundError:
+             # An absent date/pool is not a source; keep looking for the newest
+             # existing, fully verified exact-date snapshot.
+-            if not lease_entered:
+-                raise RunnerError(
+-                    f"HK D1 prior source read lease CANNOT_CONFIRM for {source_date}: {error}"
+-                ) from error
+             continue
+         except RunnerError:
+             raise
+
+===== API: stage_center/runner.py::_attach_hk_authority function-slice diff (reference-only) =====
+--- a/stage_center/runner.py::_attach_hk_authority@base
++++ b/stage_center/runner.py::_attach_hk_authority@api
+@@ -3,7 +3,6 @@
+     *,
+     d1_root: Path,
+     second_root: Path | None,
+-    preselection_source_root: Path | str | None,
+     trade_date: str,
+     stage_id: str,
+     hk_binding: StageUniverseBinding | None = None,
+@@ -15,5 +14,163 @@
+     code-bounded snapshot probe.  The 09:25 second-filter is the sole explicit
+     pre-open lane source.
+     """
+-    from stage_center._runner_parts.hk_candidate_authority import __attach_hk_authority_body as _v4_impl
+-    return _v4_impl(globals(), source, d1_root=d1_root, second_root=second_root, preselection_source_root=preselection_source_root, trade_date=trade_date, stage_id=stage_id, hk_binding=hk_binding)
++    binding = hk_binding or _build_hk_stage_binding(d1_root, trade_date)
++    if binding.role == "HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION":
++        d1_path, d1_payload, d1_sha = _read_bound_prior_hk_d1_payload(
++            binding, d1_root=d1_root
++        )
++    else:
++        _validated_hk_binding_evidence(binding, trade_date)
++        d1_path = Path(_evidence_value(binding.evidence, "hk_d1_json") or d1_root)
++        d1_sha = binding.sha256
++        if _validate_hk_d1(d1_root, trade_date)[1] != d1_sha:
++            raise RunnerError("HK D1 exact binding SHA changed before authority overlay")
++        d1_payload = json.loads(d1_path.read_text(encoding="utf-8"))
++    d1_rows = d1_payload.get("rows", d1_payload.get("data")) or []
++    authority: dict[str, Mapping[str, Any]] = {}
++    for row in d1_rows:
++        if not isinstance(row, Mapping):
++            continue
++        code = _normal_code("HK_CONNECT", row.get("code") or row.get("ts_code") or row.get("stock_code"))
++        authority[code] = row
++    second: dict[str, Mapping[str, Any]] = {}
++    if stage_id == "STAGE_0925" or stage_id in HK_CONTINUATION_STAGES:
++        if second_root is None:
++            if stage_id == "STAGE_0925":
++                raise RunnerError("HK 09:25 second-filter root is required")
++        else:
++            try:
++                csv_path, _acceptance, _sha_value = _validate_hk_second_filter(second_root, trade_date)
++            except RunnerError:
++                # The continuation lane is an optional overlay for ordinary
++                # stages.  A missing/stale exact-date artifact must not make
++                # the live stage unusable, and it must never be replaced by
++                # a previous date.  STAGE_0925 remains hard-gated below.
++                if stage_id == "STAGE_0925":
++                    raise
++            else:
++                with csv_path.open("r", encoding="utf-8-sig", newline="") as stream:
++                    for row in csv.DictReader(stream):
++                        code = _normal_code("HK_CONNECT", row.get("code") or row.get("ts_code") or row.get("stock_code"))
++                        second[code] = row
++    rows: list[dict[str, Any]] = []
++    payload_model_id = (
++        d1_payload.get("model_id")
++        or d1_payload.get("model")
++        or d1_payload.get("model_name")
++        or d1_payload.get("selected_strategy")
++        or ""
++    )
++    payload_d1_status = str(d1_payload.get("status") or "")
++
++    def _first_present(*values: Any) -> Any:
++        for value in values:
++            if value not in (None, ""):
++                return value
++        return ""
++
++    for raw in source.rows:
++        code = _normal_code("HK_CONNECT", raw.get("code"))
++        merged = dict(raw)
++        base = authority.get(code)
++        if base:
++            for key, value in base.items():
++                if key not in {"code", "ts_code", "stock_code", "candidate_lanes", "source_universe", "lane", "membership_gate_ids"} and value not in (None, ""):
++                    merged.setdefault(key, value)
++            # D-1 is an exact-date name authority.  Quote bridges may encode
++            # a missing name as the symbol itself; treat that placeholder as
++            # empty so the authority can replace it.  If the exact authority
++            # row has no name, retain a genuinely useful quote name and only
++            # fall back to the canonical code when no name exists anywhere.
++            authority_name = next(
++                (
++                    base.get(key)
++                    for key in ("name", "stock_name", "security_name", "display_name")
++                    if not _is_code_display_name(base.get(key), code)
++                ),
++                None,
++            )
++            if not _is_code_display_name(authority_name, code):
++                merged["name"] = authority_name
++                merged["stock_name"] = authority_name
++            else:
++                quote_name = next(
++                    (
++                        merged.get(key)
++                        for key in ("name", "stock_name", "security_name", "display_name")
++                        if not _is_code_display_name(merged.get(key), code)
++                    ),
++                    code,
++                )
++                merged["name"] = quote_name
++                merged["stock_name"] = quote_name
++            merged["d1_status"] = payload_d1_status
++            merged["d1_model_id"] = _first_present(
++                base.get("model_id"),
++                base.get("model"),
++                base.get("model_name"),
++                base.get("selected_strategy"),
++                base.get("weekly_tuning_selected_strategy"),
++                payload_model_id,
++            )
++            merged["d1_prob_active"] = _first_present(
++                base.get("prob_active"),
++                base.get("probability"),
++                base.get("prob_active_score"),
++                base.get("score_prob_active"),
++                base.get("pool_score"),
++            )
++            merged["d1_rank"] = _first_present(base.get("pool_rank"), base.get("rank"), base.get("d1_rank"))
++            merged["d1_score"] = _first_present(base.get("pool_score"), base.get("score"), base.get("d1_score"))
++            merged["d1_source_evidence"] = list(base.get("source_evidence") or ()) if isinstance(base.get("source_evidence"), (list, tuple)) else []
++            merged["d1_source_evidence"].extend(binding.evidence)
++            if base.get("pool_version"):
++                merged["d1_source_evidence"].append(f"hk_d1_pool_version={base['pool_version']}")
++            if d1_payload.get("source_sha256"):
++                merged["d1_source_evidence"].append(f"hk_d1_source_sha256={d1_payload['source_sha256']}")
++        else:
++            # A full-market quote row can legitimately have no D-1 metadata;
++            # never leave the UI with an empty name in that case.
++            quote_name = next(
++                (
++                    merged.get(key)
++                    for key in ("name", "stock_name", "security_name", "display_name")
++                    if not _is_code_display_name(merged.get(key), code)
++                ),
++                code,
++            )
++            merged["name"] = quote_name
++            merged["stock_name"] = quote_name
++        # The active lane is a separate exact live-trigger assertion.  The
++        # three static lanes are accepted only from this exact D-1 row;
++        # copying arbitrary adapter/static labels would recreate the old bug
++        # where a static pool became a realtime recommendation.
++        live_lanes = [
++            str(item)
++            for item in (raw.get("candidate_lanes") or ())
++            if str(item) == "LIVE_HKCONNECT_GAINER"
++        ]
++        static_lanes = [
++            str(item)
++            for item in (base.get("candidate_lanes") or ())
++            if str(item) in HK_STATIC_LANES
++        ] if base else []
++        merged["candidate_lanes"] = list(dict.fromkeys([*live_lanes, *static_lanes]))
++        if code in second:
++            second_row = second[code]
++            for key, value in second_row.items():
++                if key not in {"code", "ts_code", "stock_code"} and value not in (None, ""):
++                    merged.setdefault(key, value)
++            merged["candidate_lanes"] = list(dict.fromkeys([*(merged.get("candidate_lanes") or ()), "PREOPEN_AUCTION_CONTINUATION"]))
++        rows.append(merged)
++    evidence = list(source.source_evidence)
++    evidence.extend(
++        (
++            "hk_d1_status=STRICT_0_2_READY",
++            f"hk_d1_json_sha256={d1_sha}",
++            *binding.evidence,
++        )
++    )
++    if payload_model_id:
++        evidence.append(f"hk_d1_model_id={payload_model_id}")
++    return replace(source, rows=tuple(rows), source_evidence=tuple(dict.fromkeys(evidence)))
+
+===== API: stage_center/runner.py::_project_raw_rows function-slice diff (reference-only) =====
+--- a/stage_center/runner.py::_project_raw_rows@base
++++ b/stage_center/runner.py::_project_raw_rows@api
+@@ -8,5 +8,13 @@
+     rejected before ``RawStore.publish`` so a malformed row cannot advance a
+     CANNOT_CONFIRM latest pointer or leave an incomplete bundle behind.
+     """
+-    from stage_center._runner_parts.row_evidence import __project_raw_rows_body as _v4_impl
+-    return _v4_impl(globals(), rows, trade_date=trade_date, stage_id=stage_id, market=market)
++    projected = tuple(
++        {field: row[field] for field in RAW_FIELDS}
++        if isinstance(row, Mapping) and all(field in row for field in RAW_FIELDS)
++        else dict(row)
++        for row in rows
++    )
++    _validated, issues = validate_rows(projected, trade_date=trade_date, stage_id=stage_id, market=market)
++    if issues:
++        raise RunnerError(f"raw projection validation failed for {market}: {'; '.join(issues[:3])}")
++    return projected
+
+===== API: stage_center/runner.py::StageCenterRunner._prepare_hk_active_snapshots function-slice diff (reference-only) =====
+--- a/stage_center/runner.py::StageCenterRunner._prepare_hk_active_snapshots@base
++++ b/stage_center/runner.py::StageCenterRunner._prepare_hk_active_snapshots@api
+@@ -13,5 +13,48 @@
+         earlier verified D-1 membership, preserving the original source date
+         and SHA; quotes remain exact to the observation date.
+         """
+-        from stage_center._runner_parts.runner_receipts import _StageCenterRunner__prepare_hk_active_snapshots_body as _v4_impl
+-        return _v4_impl(globals(), self, trade_date, evaluated_at, stage_id=stage_id, historical_backfill=historical_backfill)
++
++        loaded_binding: StageUniverseBinding | None = None
++
++        def universe_loader() -> tuple[Path, tuple[str, ...], str]:
++            nonlocal loaded_binding
++            if self.config.hk_d1_root is None:
++                raise RunnerError("production HK D1 Top100 root is required for Stage 8 pre-capture")
++            binding = _build_hk_stage_binding(
++                self.config.hk_d1_root,
++                trade_date,
++            )
++            loaded_binding = binding
++            return (
++                Path(_evidence_value(binding.evidence, "hk_d1_json") or self.config.hk_d1_root),
++                binding.codes,
++                binding.sha256,
++            )
++
++        from .hk_stage8 import prepare_due_snapshot, prepare_hk_active_snapshot
++
++        results = prepare_due_snapshot(
++            self.config,
++            trade_date,
++            evaluated_at,
++            stage_id=stage_id,
++            historical_backfill=historical_backfill,
++            universe_loader=universe_loader,
++            snapshot_preparer=prepare_hk_active_snapshot,
++        )
++        if loaded_binding is not None:
++            source_trade_date = _evidence_value(
++                loaded_binding.evidence, "hk_d1_source_trade_date"
++            ) or trade_date
++            source_signal_date = _evidence_value(
++                loaded_binding.evidence, "hk_d1_source_signal_date"
++            )
++            for item in results:
++                item.update({
++                    "hk_d1_source_trade_date": source_trade_date,
++                    "hk_d1_source_signal_date": source_signal_date,
++                    "hk_d1_source_sha256": loaded_binding.sha256,
++                    "hk_observation_trade_date": trade_date,
++                    "source_evidence": list(loaded_binding.evidence),
++                })
++        return results
+
+===== API: domains/preselection.py::_project_independent_pools function-slice diff (reference-only) =====
+--- a/domains/preselection.py::_project_independent_pools@base
++++ b/domains/preselection.py::_project_independent_pools@api
+@@ -1,3 +1,80 @@
+ def _project_independent_pools(pools: list[dict[str, Any]], trade_date: str) -> dict[str, Any]:
+-    from domains._preselection_parts.independent_projection import __project_independent_pools_body as _v4_impl
+-    return _v4_impl(globals(), pools, trade_date)
++    projected_pools: list[dict[str, Any]] = []
++    for pool in pools:
++        rows = list(pool["rows"])
++        status = str(pool.get("status") or "").upper()
++        ready_status = bool(rows) and (
++            status in {"READY", "MATERIALIZED", "AVAILABLE"}
++            or status.endswith("_READY")
++        )
++        projected = dict(pool)
++        if not ready_status and pool.get("pool_id") not in OPTIONAL_DAILY_POOL_IDS:
++            reasons = list(projected.get("cannot_confirm") or ())
++            reason = f"POOL_NOT_READY:{pool.get('pool_id')}:{status or 'UNKNOWN'}"
++            if reason not in reasons:
++                reasons.append(reason)
++            projected["cannot_confirm"] = reasons
++        projected_pools.append({
++            **projected,
++            "pool_size": len(rows),
++            "returned_rows": len(rows),
++        })
++    grouped = {pool["pool_id"]: list(pool["rows"]) for pool in projected_pools}
++    all_rows = [row for pool in projected_pools for row in pool["rows"]]
++    main_rows = grouped["a_d1_premarket_pool"]
++    all_a_rows = _dedupe_by_symbol(row for row in all_rows if _market(row) == "A")
++    main_symbols = {str(row.get("symbol") or row.get("code") or "") for row in main_rows}
++    source_only = [
++        row for row in all_a_rows
++        if str(row.get("symbol") or row.get("code") or "") not in main_symbols
++    ]
++    hk_rows = _dedupe_by_symbol(row for row in all_rows if _market(row) == "HK")
++    incomplete = [
++        pool["pool_id"] for pool in projected_pools
++        if not (
++            bool(pool.get("rows"))
++            and (
++                str(pool.get("status") or "").upper() in {"READY", "MATERIALIZED", "AVAILABLE"}
++                or str(pool.get("status") or "").upper().endswith("_READY")
++            )
++        )
++    ]
++    mandatory_incomplete = [
++        pool_id for pool_id in incomplete if pool_id not in OPTIONAL_DAILY_POOL_IDS
++    ]
++    optional_incomplete = [
++        pool_id for pool_id in incomplete if pool_id in OPTIONAL_DAILY_POOL_IDS
++    ]
++    daily_readiness_status = "PARTIAL_WITH_ROWS" if mandatory_incomplete else "READY_WITH_ROWS"
++    return {
++        "producer_status": "PARTIAL" if mandatory_incomplete else "CANONICAL_COMPLETE",
++        "pools": projected_pools,
++        "rows": all_rows,
++        "unified_rows": main_rows,
++        "a_source_only_rows": source_only,
++        "a_all_pool_rows": all_a_rows,
++        "market_totals": {"A": len(all_a_rows), "HK": len(hk_rows)},
++        "hk_pool_version": "0.2",
++        "hk_pool_role": "D_MINUS_1_MODEL_TOP100",
++        "startup_ensure": {},
++        "strict_0_2_status": next(pool["status"] for pool in projected_pools if pool["pool_id"] == "hkconnect_d1_top100"),
++        "evidence_paths": [
++            str(pool.get("source_path") or "")
++            for pool in projected_pools
++            if pool.get("source_path")
++        ],
++        "cannot_confirm": [reason for pool in projected_pools for reason in pool.get("cannot_confirm", [])],
++        "optional_pool_status": "CANNOT_CONFIRM" if optional_incomplete else "MATERIALIZED_RESEARCH_ONLY",
++        "daily_readiness_status": daily_readiness_status,
++        "mandatory_incomplete_pool_ids": mandatory_incomplete,
++        "optional_incomplete_pool_ids": optional_incomplete,
++        "mandatory_pool_ids": [pool_id for pool_id in _POOL_ORDER if pool_id not in OPTIONAL_DAILY_POOL_IDS],
++        "optional_pool_ids": [pool_id for pool_id in _POOL_ORDER if pool_id in OPTIONAL_DAILY_POOL_IDS],
++        "blocking_reasons": [
++            reason
++            for pool in projected_pools
++            if pool.get("pool_id") not in OPTIONAL_DAILY_POOL_IDS
++            for reason in pool.get("cannot_confirm", [])
++        ],
++        "trade_date": trade_date,
++    }
+
+===== API: domains/preselection.py::_hk_observation_only_dates function-slice diff (reference-only) =====
+--- a/domains/preselection.py::_hk_observation_only_dates@base
++++ b/domains/preselection.py::_hk_observation_only_dates@api
+@@ -1,5 +1,5 @@
+ def _hk_observation_only_dates() -> list[str]:
+-    """Return exact calendar dates when HK is open and Southbound is closed."""
++    """List contract dates when HK is open and Southbound is closed."""
+ 
+     calendar = _market_calendar()
+     cursor = date(calendar.year, 1, 1)
+
+===== API: infrastructure/preselection_pool_store.py::PreselectionPoolStore.read_pool function-slice diff (reference-only) =====
+--- a/infrastructure/preselection_pool_store.py::PreselectionPoolStore.read_pool@base
++++ b/infrastructure/preselection_pool_store.py::PreselectionPoolStore.read_pool@api
+@@ -1,9 +1,28 @@
+     def read_pool(self, trade_date: str, pool_id: str) -> dict[str, Any]:
+-        self._preflight_pending_read_recovery(trade_date, (pool_id,))
+-        with owned_interprocess_lock(
+-            self.root / ".import.lock",
+-            timeout_seconds=10,
+-            timeout_message="data-root import lock timeout",
++        trade_date = _date(trade_date)
++        if pool_id not in POOL_ORDER:
++            raise ValueError("unknown preselection pool")
++        artifact_path, receipt_path = self._relative(trade_date, pool_id)
++        manifest_path = f"preselection_pools/{trade_date}/manifest.json"
++        if not self._path(artifact_path).is_file():
++            raise FileNotFoundError(pool_id)
++        payload = self._read(artifact_path)
++        digest = _sha256(payload)
++        manifest = self._read(manifest_path)
++        receipt = self._read(receipt_path)
++        expected = self._receipt(
++            trade_date=trade_date,
++            pool_id=pool_id,
++            artifact_path=artifact_path,
++            artifact_sha256=digest,
++            payload=payload,
++        )
++        if (
++            not isinstance(manifest, dict)
++            or manifest.get(pool_id) != digest
++            or receipt != expected
+         ):
+-            self._reconcile_pending_commit_read_unlocked(trade_date, pool_id)
+-            return self._read_pool_unlocked(trade_date, pool_id)
++            raise ValueError("preselection-pool manifest or receipt SHA mismatch")
++        if validate_pool_artifact(payload) != trade_date or payload["pool_id"] != pool_id:
++            raise ValueError("preselection-pool identity mismatch")
++        return payload
+
+===== API: infrastructure/preselection_pool_store.py::PreselectionPoolStore.read_pool_snapshot function-slice diff (reference-only) =====
+--- a/infrastructure/preselection_pool_store.py::PreselectionPoolStore.read_pool_snapshot@base
++++ b/infrastructure/preselection_pool_store.py::PreselectionPoolStore.read_pool_snapshot@api
+@@ -1,25 +1,70 @@
+-    def read_pool_snapshot(
+-        self,
+-        trade_date: str,
+-        pool_id: str,
+-        *,
+-        lock_lease: object | None = None,
+-    ) -> dict[str, Any]:
+-        lock_path = self.root / ".import.lock"
+-        if lock_lease is None:
+-            self._preflight_pending_read_recovery(trade_date, (pool_id,))
+-            with owned_interprocess_lock(
+-                lock_path,
+-                timeout_seconds=10,
+-                timeout_message="data-root import lock timeout",
+-            ) as acquired_lease:
+-                return self._read_pool_snapshot_under_lease(
+-                    trade_date, pool_id, acquired_lease
+-                )
++    def read_pool_snapshot(self, trade_date: str, pool_id: str) -> dict[str, Any]:
++        """Read one pool trio with canonical physical-byte identity.
+ 
+-        # A caller may reuse the root lock only with the exact live lease from
+-        # its context.  Validate before preflight, then again immediately
+-        # before recovery or physical reads.
+-        assert_owned_interprocess_lock(lock_lease, lock_path)
+-        self._preflight_pending_read_recovery(trade_date, (pool_id,))
+-        return self._read_pool_snapshot_under_lease(trade_date, pool_id, lock_lease)
++        ``read_pool`` intentionally keeps its historical semantic-object
++        behavior.  Strict stage acquisition needs the physical artifact,
++        manifest, and receipt bytes to be canonical and bound to one another.
++        This reader therefore returns both semantic and raw-byte digests while
++        preserving the existing store paths and validation rules.
++        """
++
++        trade_date = _date(trade_date)
++        if pool_id not in POOL_ORDER:
++            raise ValueError("unknown preselection pool")
++        artifact_relative, receipt_relative = self._relative(trade_date, pool_id)
++        manifest_relative = f"preselection_pools/{trade_date}/manifest.json"
++        try:
++            # The descriptor-anchored reader both rejects symlink races and
++            # rechecks the root identity captured by SafeRoot.__init__.
++            artifact_bytes = self._io.read_bytes(artifact_relative)
++            manifest_bytes = self._io.read_bytes(manifest_relative)
++            receipt_bytes = self._io.read_bytes(receipt_relative)
++        except FileNotFoundError as error:
++            raise FileNotFoundError(
++                "preselection-pool physical snapshot file is missing"
++            ) from error
++        try:
++            artifact = json.loads(artifact_bytes.decode("utf-8"))
++            manifest = json.loads(manifest_bytes.decode("utf-8"))
++            receipt = json.loads(receipt_bytes.decode("utf-8"))
++        except (UnicodeDecodeError, json.JSONDecodeError) as error:
++            raise ValueError("preselection-pool physical JSON cannot be parsed") from error
++        if not isinstance(artifact, Mapping) or not isinstance(manifest, Mapping) or not isinstance(receipt, Mapping):
++            raise ValueError("preselection-pool physical snapshot must contain objects")
++        if artifact_bytes != _canonical_bytes(artifact):
++            raise ValueError("preselection-pool artifact bytes are not canonical")
++        if manifest_bytes != _canonical_bytes(manifest):
++            raise ValueError("preselection-pool manifest bytes are not canonical")
++        if receipt_bytes != _canonical_bytes(receipt):
++            raise ValueError("preselection-pool receipt bytes are not canonical")
++
++        digest = _sha256(artifact)
++        expected_receipt = self._receipt(
++            trade_date=trade_date,
++            pool_id=pool_id,
++            artifact_path=artifact_relative,
++            artifact_sha256=digest,
++            payload=artifact,
++        )
++        if manifest.get(pool_id) != digest or receipt != expected_receipt:
++            raise ValueError("preselection-pool manifest or receipt SHA mismatch")
++        if validate_pool_artifact(artifact) != trade_date or artifact.get("pool_id") != pool_id:
++            raise ValueError("preselection-pool identity mismatch")
++        return {
++            "artifact": dict(artifact),
++            "payload": dict(artifact),
++            "manifest": dict(manifest),
++            "receipt": dict(receipt),
++            "artifact_relative": artifact_relative,
++            "manifest_relative": manifest_relative,
++            "receipt_relative": receipt_relative,
++            "artifact_relative_path": artifact_relative,
++            "manifest_relative_path": manifest_relative,
++            "receipt_relative_path": receipt_relative,
++            "pool_sha256": digest,
++            "semantic_sha256": digest,
++            "artifact_sha256": digest,
++            "artifact_raw_sha256": _sha256_bytes(artifact_bytes),
++            "manifest_raw_sha256": _sha256_bytes(manifest_bytes),
++            "receipt_raw_sha256": _sha256_bytes(receipt_bytes),
++        }
+

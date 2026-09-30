@@ -1,0 +1,68 @@
+{
+  "expected": {
+    "business_date": "20260730",
+    "candidate_a": 50,
+    "missing_symbols": [
+      "A.300333"
+    ],
+    "requested_a": 147,
+    "selected_a": 50,
+    "source_a": 146
+  },
+  "feature_id": "stage.workbench",
+  "graph_baseline_semantic_hash": "8b4b933858f0e573b4d9f34423cd7aceeeb09dbf50cc826de0b18b712a4cbdd7",
+  "graph_node_ids": [
+    "api:GET /workbench/stage",
+    "file:30_runtime/timeline_scheduler/collect_pytdx_stage_screening.py",
+    "timeline_node:v3_opening_intraday_stage_select_0925_1500"
+  ],
+  "legacy_authority": {
+    "a_share_v11_adapter": {
+      "atlas_file_id": "file_b8879c230d81dafc78aaedde",
+      "line_end": 1734,
+      "line_start": 1601,
+      "path": "30_runtime/opening_advisor_8771/backend/services/opening_second_filter_service.py",
+      "sha256": "4a1457127b27cb0b4556063c1dd8ad91c643ce5defb5bacb6f8f52b76c7304e3",
+      "symbol": "_a_share_v1_1_core"
+    },
+    "exact_transaction_equivalence": "CANNOT_CONFIRM_LEGACY_MINUTE_REPLAY_ONLY",
+    "tdxpy_collector": {
+      "atlas_file_id": "file_f535595c8bc96e90478a23af",
+      "path": "30_runtime/timeline_scheduler/collect_pytdx_stage_screening.py",
+      "proven_semantics": "PYTDX_ONE_MINUTE_L0_REPLAY",
+      "sha256": "08b9a5c8ce5d163ec05d2b8d4778e0fdc3f2b79fc4b0686dd9f1518e17c90b9e"
+    }
+  },
+  "replacement": {
+    "adapter": {
+      "function": "apply_a_share_v11_adapter",
+      "model_version": "1.1",
+      "path": "domains/opening_second_filter.py",
+      "sha256": "9617e64f0dd7294a4700cdd6a3aafbc544c202f8589c7a81ba49c7520ad3d666",
+      "strategy": "a_share_v1_1_price_volume_adapter"
+    },
+    "frozen_input": {
+      "path": "tests/fixtures/stage_0925_20260730_tdxpy_input.json",
+      "sha256": "d447078fee592a9dd741dddc16bd637ed02d2043b91c6648fab15aca3c6b284c"
+    },
+    "provider": {
+      "auction_time": "09:25",
+      "date_policy": "EXACT_TRADE_DATE",
+      "path": "infrastructure/tdx_minute_replay_provider.py",
+      "sha256": "bc38a3c2657b43ba90b4b375c7d60a160e7194c1e80391f75ec43f606a1fe94a",
+      "source_method": "pytdx.hq.get_history_transaction_data"
+    },
+    "provider_test": {
+      "path": "tests/test_tdx_minute_replay_provider.py",
+      "sha256": "84c93028a3c181661b116c7e99b3d5563115458ae632cfb551e2696ecfa02b03"
+    }
+  },
+  "safety": {
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "v3_5.stage_0925_frozen_regression.v1",
+  "status": "REPLACEMENT_TESTED_NOT_DEPLOYED",
+  "semantic_hash": "94ef27eacb8a3b63041641647feb94475a7ca1997153896d13d2f62516460dfe"
+}

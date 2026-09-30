@@ -1,0 +1,38 @@
+{
+  "canary_report": {
+    "buy_gate_updated": false,
+    "bytes": 13197,
+    "full_sample_values_exported": false,
+    "input_codes_sha256": "6c5dbc0cacccaa29a834c485240010f9f62ba5792e311a21f246abd12b7a3b22",
+    "orders_sent": false,
+    "production_allowed": false,
+    "relative_path": "hk_intraday_observation_20260930/writer/evidence/hkconnect-exhq-20260930-STAGE_1300_1315-canary.json",
+    "requested_code_count": 64,
+    "sample_rows_count": 3,
+    "sha256": "67351be74539f03d55b6fd41692edb48449bcae2f0b8811b13cccad5bcb74704",
+    "stage_id": "STAGE_1300_1315",
+    "status": "PARTIAL_WITH_ROWS",
+    "summary_missing_count": 0,
+    "summary_row_count": 64,
+    "trade_date": "20260930"
+  },
+  "complete_SourceResult_artifact": "CANNOT_CONFIRM: no full SourceResult artifact is present in the exact supplied evidence set; the canary report stores only summary metadata and three sample rows",
+  "complete_SourceResult_row_count_sha256_and_full_explicit_missing_codes": "CANNOT_CONFIRM; not reconstructed from summary or sample rows",
+  "hk_observation_pool_integration": "NOT_IMPLEMENTED_BY_PR13; live runtime/API/UI behavior CANNOT_CONFIRM",
+  "pr13_changed_files": [
+    "docs/issue10_hk_observation_20260930/README.md",
+    "ops/inspect_hk_observation_rows.py",
+    "tests/test_issue10_persisted_rows.py"
+  ],
+  "pr13_delivery_scope": "diagnostic-only; no product owner source integration changes",
+  "pr13_head_commit": "8af24212ecdbdd4105a44ac536f8b469b5ad9660",
+  "repository": "lexi2016/v4",
+  "request_code_list": {
+    "matches_canary_input_codes_sha256": true,
+    "path": "request_codes_64.txt",
+    "provenance": "DERIVED_FROM_CAPTURE; ordered by turnover descending, then code ascending; this is not an independently saved run-time request file",
+    "serialized_bytes": 705,
+    "serialized_sha256": "6c5dbc0cacccaa29a834c485240010f9f62ba5792e311a21f246abd12b7a3b22"
+  },
+  "schema_version": "evidence.issue10.source-result-status.v1"
+}

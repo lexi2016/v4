@@ -1,0 +1,243 @@
+{
+  "captured_by": "launchctl list rows and a strict plist field allowlist",
+  "cross_layer_status": {
+    "launch_configuration": "captured selected path/id/safety fields plus raw plist SHA only",
+    "manager_17_20_mapping": "CANNOT_CONFIRM; the 15:55 source receipt has a narrower owner label and does not prove the 17:20 original owner",
+    "process_loaded_code_bytes": "CANNOT_CONFIRM for all owners; process listings and open file paths do not prove Python source bytes retained in memory",
+    "release_disk": "per-file SHA256/Git blob SHA1 and release-manifest comparison in source_inventory.json"
+  },
+  "owners": {
+    "manager_api": {
+      "argv0": "/usr/bin/env",
+      "configured_app_root": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/normal_stage_readback_20260929/deployment_r9/app",
+      "configured_manifest_path": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/normal_stage_readback_20260929/deployment_r9/release-manifest.json",
+      "configured_release_id_hint": "20260929-manager-eastmoney-r2-stage-r9",
+      "label": "com.lexi.v35.api-only",
+      "launchctl_status_row": "807\t0\tcom.lexi.v35.api-only",
+      "manifest_disk": {
+        "byte_count": 284818,
+        "declared_release_id": "20260929-manager-eastmoney-r2-stage-r9",
+        "entry_count": 956,
+        "exists": true,
+        "historical_build_mapping": "FIELD_PRESENT_VALUE_NOT_ASSUMED",
+        "path": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/normal_stage_readback_20260929/deployment_r9/release-manifest.json",
+        "revision_binding_field_names": [
+          "candidate_source_revision",
+          "frozen_source_revision"
+        ],
+        "sha256": "3c10ed2c1e617be232b7954e66c28a40ead47519ac126711f8b42aa6cbc1f4f7"
+      },
+      "manifest_entry_count": 956,
+      "manifest_hash_matches_launch_config": true,
+      "plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+      "plist_raw_sha256": "7c2e62d4c79315dfe71c8f45264616733a549d3cb45abae61ff92f957bfbaec7",
+      "process": {
+        "executable_identity": "807 /Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "launchctl_status": "0",
+        "loaded_code_bytes": "CANNOT_CONFIRM",
+        "loaded_code_bytes_reason": "filesystem descriptors do not expose Python module bytes retained in process memory",
+        "open_source_paths": [],
+        "pid": 807
+      },
+      "program": null,
+      "runtime_config_identity": null,
+      "selected_key_presence": {
+        "STAGE_CENTER_CONFIG": false,
+        "V35_RELEASE_MANIFEST_PATH": true,
+        "V4_MANAGER_SCREEN_AUTHORITY_ROOT": true,
+        "V4_MANAGER_SECURITY_MASTER_ROOT": true,
+        "V4_MANAGER_UNIVERSE_ROOT": false
+      },
+      "selected_launch_fields": {
+        "BUY_GATE_UPDATED": false,
+        "ORDERS_SENT": false,
+        "PRODUCTION_ALLOWED": false,
+        "PYTHONPATH": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/normal_stage_readback_20260929/deployment_r9/app/upstreams:/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/normal_stage_readback_20260929/deployment_r9/app",
+        "RESEARCH_ONLY": true,
+        "REVIEW_CORE_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260923-manager-window-2sessions-units-announcements-r1/app/upstreams",
+        "V35_APP_ROOT": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/normal_stage_readback_20260929/deployment_r9/app",
+        "V35_RELEASE_ID": "20260929-manager-eastmoney-r2-stage-r9",
+        "V35_RELEASE_MANIFEST_PATH": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/normal_stage_readback_20260929/deployment_r9/release-manifest.json",
+        "V35_RELEASE_MANIFEST_SHA256": "3c10ed2c1e617be232b7954e66c28a40ead47519ac126711f8b42aa6cbc1f4f7",
+        "V35_REVIEW_CORE_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260923-manager-window-2sessions-units-announcements-r1/app/upstreams",
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "working_directory": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/normal_stage_readback_20260929/deployment_r9/app"
+    },
+    "manager_scheduler_1555": {
+      "argv0": "/bin/bash",
+      "configured_app_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app",
+      "configured_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/release-manifest.json",
+      "configured_release_id_hint": "20260929-manager-1555-pytdx-r1",
+      "label": "com.lexi.v35.scheduler",
+      "launchctl_status_row": "821\t0\tcom.lexi.v35.scheduler",
+      "manifest_disk": {
+        "byte_count": 142304,
+        "declared_release_id": "20260929-manager-1555-pytdx-r1",
+        "entry_count": 586,
+        "exists": true,
+        "historical_build_mapping": "CANNOT_CONFIRM",
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/release-manifest.json",
+        "revision_binding_field_names": [],
+        "sha256": "819eb1f02a7a32889ffc2dd46e0c7ff686e3d20f410db36367ef94ca0734b980"
+      },
+      "manifest_entry_count": 583,
+      "manifest_hash_matches_launch_config": true,
+      "plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+      "plist_raw_sha256": "8a72635aeec0efe181b6e479cb7b99463942d9be3690982a79e0b1f93d30b86c",
+      "process": {
+        "executable_identity": "821 /Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/runtime/venvs/v3.5-mac/bin/python",
+        "launchctl_status": "0",
+        "loaded_code_bytes": "CANNOT_CONFIRM",
+        "loaded_code_bytes_reason": "filesystem descriptors do not expose Python module bytes retained in process memory",
+        "open_source_paths": [],
+        "pid": 821
+      },
+      "program": null,
+      "runtime_config_identity": null,
+      "selected_key_presence": {
+        "STAGE_CENTER_CONFIG": false,
+        "V35_RELEASE_MANIFEST_PATH": true,
+        "V4_MANAGER_SCREEN_AUTHORITY_ROOT": false,
+        "V4_MANAGER_SECURITY_MASTER_ROOT": false,
+        "V4_MANAGER_UNIVERSE_ROOT": false
+      },
+      "selected_launch_fields": {
+        "BUY_GATE_UPDATED": false,
+        "ORDERS_SENT": false,
+        "PRODUCTION_ALLOWED": false,
+        "PYTHONPATH": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app:/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260908-full-repair-a-content-isolation/app/upstreams/v3_shared_data",
+        "V35_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app",
+        "V35_RELEASE_ID": "20260929-manager-1555-pytdx-r1",
+        "V35_RELEASE_MANIFEST_PATH": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/release-manifest.json",
+        "V35_RELEASE_MANIFEST_SHA256": "819eb1f02a7a32889ffc2dd46e0c7ff686e3d20f410db36367ef94ca0734b980",
+        "V35_REVIEW_CORE_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.review-core.local/app",
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app"
+    },
+    "stage_hk_deadline": {
+      "argv0": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "configured_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260930-hk-deadline-startup-r1/app",
+      "configured_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260930-hk-deadline-startup-r1/release-manifest.json",
+      "configured_release_id_hint": "20260928-manifest-compat-hk-deadline-r1",
+      "label": "com.lexi.stage-center.hk-deadline",
+      "launchctl_status_row": "-\t3\tcom.lexi.stage-center.hk-deadline",
+      "manifest_disk": {
+        "byte_count": 239176,
+        "declared_release_id": "20260928-manifest-compat-hk-deadline-r1",
+        "entry_count": 824,
+        "exists": true,
+        "historical_build_mapping": "CANNOT_CONFIRM",
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260930-hk-deadline-startup-r1/release-manifest.json",
+        "revision_binding_field_names": [],
+        "sha256": "33f5dd30ccd7b970ce5075947d841fafc8e65f9996be4fa41987f700841b57e5"
+      },
+      "manifest_entry_count": 822,
+      "manifest_hash_matches_launch_config": true,
+      "plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.hk-deadline.plist",
+      "plist_raw_sha256": "3893f19ce08c4f245ff70eb56ccdadcf7e5de08a730d3c7e7b3958a2b360cf22",
+      "process": {
+        "launchctl_status": "3",
+        "loaded_code_bytes": "CANNOT_CONFIRM_PROCESS_NOT_RUNNING",
+        "pid": null
+      },
+      "program": null,
+      "runtime_config_identity": {
+        "bytes": 2876,
+        "content_copied": false,
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260930-hk-deadline-startup-r1/app/stage_center_tick_config.json",
+        "sha256": "3a8794adf32c6c51a92de783bd8a9b3e9ee37d7cb1d33961e07d761f86ee625e"
+      },
+      "selected_key_presence": {
+        "STAGE_CENTER_CONFIG": true,
+        "V35_RELEASE_MANIFEST_PATH": true,
+        "V4_MANAGER_SCREEN_AUTHORITY_ROOT": false,
+        "V4_MANAGER_SECURITY_MASTER_ROOT": false,
+        "V4_MANAGER_UNIVERSE_ROOT": false
+      },
+      "selected_launch_fields": {
+        "BUY_GATE_UPDATED": false,
+        "ORDERS_SENT": false,
+        "PRODUCTION_ALLOWED": false,
+        "PYTHONPATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260930-hk-deadline-startup-r1/app/upstreams:/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260930-hk-deadline-startup-r1/app",
+        "RESEARCH_ONLY": true,
+        "REVIEW_CORE_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260930-hk-deadline-startup-r1/app/upstreams",
+        "STAGE_CENTER_CONFIG": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260930-hk-deadline-startup-r1/app/stage_center_tick_config.json",
+        "STAGE_CENTER_RUNTIME_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime",
+        "V35_RELEASE_ID": "20260928-manifest-compat-hk-deadline-r1",
+        "V35_RELEASE_MANIFEST_PATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260930-hk-deadline-startup-r1/release-manifest.json",
+        "V35_RELEASE_MANIFEST_SHA256": "33f5dd30ccd7b970ce5075947d841fafc8e65f9996be4fa41987f700841b57e5",
+        "V35_REVIEW_CORE_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260930-hk-deadline-startup-r1/app/upstreams",
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260930-hk-deadline-startup-r1/app"
+    },
+    "stage_scheduler": {
+      "argv0": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "configured_app_root": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/today_combined_stage_fix_20260930/candidate/app",
+      "configured_manifest_path": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/today_combined_stage_fix_20260930/candidate/release-manifest.json",
+      "configured_release_id_hint": "20260930-stage-auction-witness-hk-recovery-r1",
+      "label": "com.lexi.stage-center.scheduler",
+      "launchctl_status_row": "-\t3\tcom.lexi.stage-center.scheduler",
+      "manifest_disk": {
+        "byte_count": 301336,
+        "declared_release_id": "20260930-stage-auction-witness-hk-recovery-r1",
+        "entry_count": 884,
+        "exists": true,
+        "historical_build_mapping": "CANNOT_CONFIRM",
+        "path": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/today_combined_stage_fix_20260930/candidate/release-manifest.json",
+        "revision_binding_field_names": [],
+        "sha256": "04c9dd5c31d7af540913794c59cc4ebbc33f01162b76bd45c24dce4b609254ba"
+      },
+      "manifest_entry_count": 882,
+      "manifest_hash_matches_launch_config": true,
+      "plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist",
+      "plist_raw_sha256": "2689f3a47ce8c6e3691f18e95ccd6f3aa7b316e9acc69459c107384bb33b04a8",
+      "process": {
+        "launchctl_status": "3",
+        "loaded_code_bytes": "CANNOT_CONFIRM_PROCESS_NOT_RUNNING",
+        "pid": null
+      },
+      "program": null,
+      "runtime_config_identity": {
+        "bytes": 2860,
+        "content_copied": false,
+        "path": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/today_combined_stage_fix_20260930/candidate/app/stage_center_tick_config.json",
+        "sha256": "c7bc01d219577b699a2b22a9836dc9918da988440c1bb6e3d16a558cf3a44166"
+      },
+      "selected_key_presence": {
+        "STAGE_CENTER_CONFIG": true,
+        "V35_RELEASE_MANIFEST_PATH": true,
+        "V4_MANAGER_SCREEN_AUTHORITY_ROOT": false,
+        "V4_MANAGER_SECURITY_MASTER_ROOT": false,
+        "V4_MANAGER_UNIVERSE_ROOT": false
+      },
+      "selected_launch_fields": {
+        "BUY_GATE_UPDATED": false,
+        "ORDERS_SENT": false,
+        "PRODUCTION_ALLOWED": false,
+        "PYTHONPATH": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/today_combined_stage_fix_20260930/candidate/app/upstreams:/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/today_combined_stage_fix_20260930/candidate/app",
+        "RESEARCH_ONLY": true,
+        "REVIEW_CORE_PACKAGE_ROOT": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/today_combined_stage_fix_20260930/candidate/app/upstreams",
+        "STAGE_CENTER_CONFIG": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/today_combined_stage_fix_20260930/candidate/app/stage_center_tick_config.json",
+        "STAGE_CENTER_RUNTIME_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime",
+        "V35_RELEASE_ID": "20260930-stage-auction-witness-hk-recovery-r1",
+        "V35_RELEASE_MANIFEST_PATH": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/today_combined_stage_fix_20260930/candidate/release-manifest.json",
+        "V35_RELEASE_MANIFEST_SHA256": "04c9dd5c31d7af540913794c59cc4ebbc33f01162b76bd45c24dce4b609254ba",
+        "V35_REVIEW_CORE_PACKAGE_ROOT": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/today_combined_stage_fix_20260930/candidate/app/upstreams",
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "working_directory": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/today_combined_stage_fix_20260930/candidate/app"
+    }
+  },
+  "raw_plist_or_environment_copied": false
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": "v4.issue8.r3.helper_execution_summary.v1",
+  "python_executable": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+  "helper_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_PREFLIGHT_20260930/package/tools/audit_r3_source_release_binding.py",
+  "helper_sha256": "91a74a28600fc5066dbfe4489f1a0a43113b760a52e4142afdd1fa77d817e619",
+  "arguments": {
+    "canonical": "/Users/lexi/Desktop/学习/v4_app",
+    "plist": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+    "output": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_PREFLIGHT_20260930/evidence/helper_source_release_binding.json"
+  },
+  "exit_code": 1,
+  "output_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_PREFLIGHT_20260930/evidence/helper_source_release_binding.json",
+  "output_sha256": "8ac470afe6a35da345069eb5fd830f03a56ef1dc063aec06107da35d98bfade7",
+  "result_status": "CANNOT_CONFIRM",
+  "source_mapping_status": null,
+  "gaps": [
+    "CONFIGURED_RELEASE_APP_ROOT_NOT_FOUND"
+  ],
+  "file_row_count": 0
+}
