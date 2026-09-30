@@ -1,0 +1,123 @@
+{
+  "schema_version": "issue8.r3b.independent-review.v1",
+  "reviewer_identity": "/root/r3b_independent_reviewer",
+  "writer_identity": "/root/r3b_adoption_writer",
+  "independent_identity": true,
+  "scope": "R3-B saved-plan dynamic readback diagnostic overlay only",
+  "candidate": {
+    "app_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3B_ACCEPTANCE_20260930/candidate/app",
+    "base_app_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_AUTHORITY_R2_ACCEPTANCE_20260930/candidate/app",
+    "changed_source_files": [
+      "v4/manager_research/workspace.py"
+    ],
+    "diffstat": "+4/-1",
+    "runtime_diff": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3B_ACCEPTANCE_20260930/evidence/runtime.diff",
+      "sha256": "fcd81af15257714eaee92d75590931a74869bac0e3d9fe7665eeecab36dc4550"
+    },
+    "workspace_sha256": {
+      "before": "ec9c7ba68c93061fa035747ba08c6e71fc7c167c322db2e225963542c72cd2d7",
+      "after": "8a1ce5122be59f2d56e258522909ca0ff76345a32aed3b4a2517e9cfb2e7c190"
+    },
+    "unchanged_connect_selection_sha256": "b6c5300172f59b6979dbab15927036ff1ab3599a2adae2b4f0e5a1e4868a6248",
+    "review": "The actual R2-base-to-candidate diff confirms the single added selection_diagnostics deepcopy overlay in _readback_plan's same branch. The saved-plan integrity read, cutoff comparison, input_identity comparison, and semantic_version comparison run before this branch. No P0/P1 correctness, security, or behavioral regression found in the bounded runtime diff."
+  },
+  "independent_test_run": {
+    "status": "PASS",
+    "test_count": 10,
+    "passed": 10,
+    "failed": 0,
+    "skipped": 0,
+    "exit_code": 0,
+    "duration_seconds": 0.16,
+    "command": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "-I",
+      "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3B_DELIVERY_20260930/package/tools/run_tests.py",
+      "--app-root",
+      "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3B_ACCEPTANCE_20260930/candidate/app",
+      "--output-dir",
+      "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3B_ACCEPTANCE_20260930/evidence/reviewer/reviewer-test"
+    ],
+    "python": "3.14.6 (main, Jul 18 2026, 17:05:49) [Clang 22.1.3 ]",
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "junit": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3B_ACCEPTANCE_20260930/evidence/reviewer/reviewer-test/junit.xml",
+      "sha256": "88c786805b021131a02251e2afba1e3ad2833713e860f6b9a671489e947b7a5b",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "pytest_log": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3B_ACCEPTANCE_20260930/evidence/reviewer/reviewer-test/pytest.log",
+      "sha256": "c77b20d64289b86c995a30c3e8723255b1692bc9b8945d778bfc895876ebff6d"
+    },
+    "runner_receipt": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3B_ACCEPTANCE_20260930/evidence/reviewer/reviewer-test/run_receipt.json",
+      "sha256": "589fd02359e729a296dcb804d9c3d4fad2d35e99902c2721e20e717966197365",
+      "independent_review_claimed_by_runner": false
+    },
+    "actual_imports": {
+      "v4.manager_research.workspace": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3B_ACCEPTANCE_20260930/candidate/app/v4/manager_research/workspace.py",
+        "sha256": "8a1ce5122be59f2d56e258522909ca0ff76345a32aed3b4a2517e9cfb2e7c190"
+      },
+      "v4.manager_research.connect_selection": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3B_ACCEPTANCE_20260930/candidate/app/v4/manager_research/connect_selection.py",
+        "sha256": "b6c5300172f59b6979dbab15927036ff1ab3599a2adae2b4f0e5a1e4868a6248"
+      }
+    },
+    "candidate_post_run_hashes_unchanged": true
+  },
+  "behavior_verification": {
+    "status": "PASS_SYNTHETIC_UPSTREAM_REAL_FILESYSTEM_ONLY",
+    "changed_pin_case": {
+      "test": "test_changed_pin_real_save_and_readback_updates_diagnostic_without_republishing",
+      "test_source": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3B_DELIVERY_20260930/package/tests/test_r3b_saved_diagnostics.py:151",
+      "assertions": "Response diagnostic reports NEW_PIN while saved run_id, product SHA, input identity, plan body, and all persisted bytes stay unchanged; synthetic excluded stock remains rejected and recommendation count stays zero.",
+      "independently_generated_test_artifact": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3B_ACCEPTANCE_20260930/evidence/reviewer/reviewer-test/tmp/test_changed_pin_real_save_and0/changed_pin_witness.json",
+      "artifact_sha256": "7f48e3d62ebcb17f82143924e8daa4c28b37fee60545c4e30f74b58b14625131",
+      "note": "The test fixture writes an evidence_kind string prefixed AUTHOR; this is a literal in the supplied test source, not a claim about this reviewer's identity."
+    },
+    "guards_and_safety": {
+      "unchanged_binding_and_witness_clock": "PASS (test source lines 186-196)",
+      "changed_owner_root_and_release_local_binding": "PASS (lines 199-217)",
+      "failed_authority_diagnostic": "PASS (lines 220-232)",
+      "deepcopy_and_no_disk_write": "PASS (lines 235-245)",
+      "membership_change_fails_closed": "PASS (lines 248-261)",
+      "tampered_saved_product_rejected": "PASS (lines 264-276)",
+      "earlier_cutoff_not_consumed": "PASS (lines 279-287)",
+      "no_saved_plan_no_write": "PASS (lines 290-297)",
+      "whitelist_and_buy_safety": "PASS; generated symbols are explicitly synthetic and test checks allowed-stock subset, qualified=false, buy_allowed=false, production_allowed=false."
+    },
+    "real_market_data_provider": "NOT_USED",
+    "real_api_or_ui": "NOT_TESTED"
+  },
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": [
+      {
+        "area": "test harness only",
+        "finding": "run_tests.py converts output_dir to an absolute lexical path and checks containment without resolving it; a symlinked ancestor pointing into candidate could bypass the intended output-outside-app guard.",
+        "evidence": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3B_DELIVERY_20260930/package/tools/run_tests.py:24-27",
+        "actual_run_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3B_ACCEPTANCE_20260930/evidence/reviewer/reviewer-test",
+        "actual_path_check": "Resolved output was outside candidate; every existing path component was non-symlink; output did not exist before this run.",
+        "applicability": "CANNOT_CONFIRM for invocations using another symlinked output path. No path issue was observed for this run; this does not block the bounded runtime change."
+      }
+    ]
+  },
+  "verdict": {
+    "REVIEWED": "PASS_R3B_FROZEN_SCOPE",
+    "TESTED": "PASS_10_OF_10_INDEPENDENT_MAC_RUN",
+    "BEHAVIOR_VERIFIED": "PASS_SYNTHETIC_UPSTREAM_REAL_FILESYSTEM_ONLY",
+    "DEPLOYED": "CANNOT_CONFIRM",
+    "API_VERIFIED": "CANNOT_CONFIRM",
+    "UI_VERIFIED": "CANNOT_CONFIRM",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM",
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
