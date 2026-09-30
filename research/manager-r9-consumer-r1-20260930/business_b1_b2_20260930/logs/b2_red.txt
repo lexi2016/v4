@@ -1,0 +1,117 @@
+FFFF....                                                                 [100%]
+=================================== FAILURES ===================================
+_______ test_last_preopen_tick_consumes_new_body_in_original_saved_plan ________
+
+cycle = namespace(svc=namespace(store=<v4.manager_research.store.ManagerResearchStore object at 0x7fed5a64ea50>, _material_sto...ed5a64ee40>, [datetime.datetime(2026, 9, 30, 9, 29, 20, tzinfo=datetime.timezone(datetime.timedelta(seconds=28800)))]))
+capsys = <_pytest.capture.CaptureFixture object at 0x7fed5a6c9e80>
+
+    def test_last_preopen_tick_consumes_new_body_in_original_saved_plan(cycle,capsys):
+        code,result=run(cycle,capsys)
+>       assert cycle.state['events']==['collect','plan']
+E       AssertionError: assert ['plan', 'collect'] == ['collect', 'plan']
+E         
+E         At index 0 diff: 'plan' != 'collect'
+E         
+E         Full diff:
+E           [
+E         +     'plan',
+E               'collect',
+E         -     'plan',
+E           ]
+
+../delivery/tests/test_b2_cycle.py:90: AssertionError
+____ test_after_collection_clock_is_used_and_crossing_open_never_backfills _____
+
+cycle = namespace(svc=namespace(store=<v4.manager_research.store.ManagerResearchStore object at 0x7fed5a6e2c10>, _material_sto...fed59334550>, [datetime.datetime(2026, 9, 30, 9, 30, 5, tzinfo=datetime.timezone(datetime.timedelta(seconds=28800)))]))
+capsys = <_pytest.capture.CaptureFixture object at 0x7fed5a6e2ad0>
+
+    def test_after_collection_clock_is_used_and_crossing_open_never_backfills(cycle,capsys):
+        cycle.clock[0]=datetime.fromisoformat('2026-09-30T09:29:50+08:00');cycle.state['delay']=15
+        _,result=run(cycle,capsys)
+>       assert result['preopen_plan']['status']=='EXPIRED_NO_BACKFILL'
+E       AssertionError: assert 'MATERIALIZED' == 'EXPIRED_NO_BACKFILL'
+E         
+E         - EXPIRED_NO_BACKFILL
+E         + MATERIALIZED
+
+../delivery/tests/test_b2_cycle.py:103: AssertionError
+_________ test_second_tick_new_input_updates_once_same_input_keeps_run _________
+
+cycle = namespace(svc=namespace(store=<v4.manager_research.store.ManagerResearchStore object at 0x7fed598eeb10>, _material_sto...ed59334b90>, [datetime.datetime(2026, 9, 30, 9, 29, 30, tzinfo=datetime.timezone(datetime.timedelta(seconds=28800)))]))
+capsys = <_pytest.capture.CaptureFixture object at 0x7fed59334a50>
+
+    def test_second_tick_new_input_updates_once_same_input_keeps_run(cycle,capsys):
+        run(cycle,capsys);first=ws._read_plan(cycle.svc.store,'20260930')
+        cycle.clock[0]+=timedelta(seconds=10);cycle.state['issuer']='HK.00002'
+        run(cycle,capsys);second=ws._read_plan(cycle.svc.store,'20260930')
+        assert first['run_id']!=second['run_id']
+>       assert {x['symbol'] for x in second['workspace']['stocks']}=={'HK.00001','HK.00002'}
+E       AssertionError: assert {'HK.00001'} == {'HK.00001', 'HK.00002'}
+E         
+E         Extra items in the right set:
+E         'HK.00002'
+E         
+E         Full diff:
+E           {
+E               'HK.00001',
+E         -     'HK.00002',
+E           }
+
+../delivery/tests/test_b2_cycle.py:113: AssertionError
+__ test_collection_failure_still_allows_in_window_plan_from_committed_inputs ___
+
+cycle = namespace(svc=namespace(store=<v4.manager_research.store.ManagerResearchStore object at 0x7fed59328050>, _material_sto...ed598ef5c0>, [datetime.datetime(2026, 9, 30, 9, 29, 20, tzinfo=datetime.timezone(datetime.timedelta(seconds=28800)))]))
+capsys = <_pytest.capture.CaptureFixture object at 0x7fed598ef100>
+
+    def test_collection_failure_still_allows_in_window_plan_from_committed_inputs(cycle,capsys):
+        capture(cycle.wired,'HK.00001');cycle.state['fail']=True
+>       code,result=run(cycle,capsys)
+                    ^^^^^^^^^^^^^^^^^
+
+../delivery/tests/test_b2_cycle.py:123: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../delivery/tests/test_b2_cycle.py:83: in run
+    code=worker.main(['--binding','/synthetic/not-read.json'])
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ops/run_manager_announcement_cycle.py:247: in main
+    result=service.refresh_announcements(now.strftime('%Y%m%d'),schedule=dict(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+day = '20260930'
+kw = {'schedule': {'execution_identity': {'app_root_sha256': '4e1f7a4071da3a8469c73bce54d23cedb8e4aafa4e68d3dabadfe18524119...aaff8a', 'status': 'BOUND_WORKER'}, 'now': '2026-09-30T09:29:20+08:00', 'policy': 'BALANCED_V1', 'priority_codes': []}}
+
+    def collect(day,**kw):
+        state['events'].append('collect');state['calls']+=1
+        clock[0]+=timedelta(seconds=state['delay'])
+>       if state['fail']:raise ValueError('SYNTHETIC_COLLECTION_FAILED')
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: SYNTHETIC_COLLECTION_FAILED
+
+../delivery/tests/test_b2_cycle.py:50: ValueError
+=========================== short test summary info ============================
+FAILED ../delivery/tests/test_b2_cycle.py::test_last_preopen_tick_consumes_new_body_in_original_saved_plan - AssertionError: assert ['plan', 'collect'] == ['collect', 'plan']
+  
+  At index 0 diff: 'plan' != 'collect'
+  
+  Full diff:
+    [
+  +     'plan',
+        'collect',
+  -     'plan',
+    ]
+FAILED ../delivery/tests/test_b2_cycle.py::test_after_collection_clock_is_used_and_crossing_open_never_backfills - AssertionError: assert 'MATERIALIZED' == 'EXPIRED_NO_BACKFILL'
+  
+  - EXPIRED_NO_BACKFILL
+  + MATERIALIZED
+FAILED ../delivery/tests/test_b2_cycle.py::test_second_tick_new_input_updates_once_same_input_keeps_run - AssertionError: assert {'HK.00001'} == {'HK.00001', 'HK.00002'}
+  
+  Extra items in the right set:
+  'HK.00002'
+  
+  Full diff:
+    {
+        'HK.00001',
+  -     'HK.00002',
+    }
+FAILED ../delivery/tests/test_b2_cycle.py::test_collection_failure_still_allows_in_window_plan_from_committed_inputs - ValueError: SYNTHETIC_COLLECTION_FAILED
+4 failed, 4 passed in 0.76s

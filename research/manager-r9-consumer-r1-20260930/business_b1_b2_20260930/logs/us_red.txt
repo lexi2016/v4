@@ -1,0 +1,118 @@
+FFFFF......FF                                                            [100%]
+=================================== FAILURES ===================================
+_ test_traditional_explicit_relation_survives_native_prose_pipeline[\u7c3d\u7f72] _
+
+verb = '簽署'
+
+    @pytest.mark.parametrize('verb',['簽署','供應','授權','許可'])
+    def test_traditional_explicit_relation_survives_native_prose_pipeline(verb):
+        text=('样本科技已增加供應NASDAQ:QTEST的產能。' if verb=='供應'
+              else '样本科技已'+verb+'NASDAQ:QTEST使用相關技術。')
+        got,rejected=cards(text)
+        assert got, rejected
+        industries,individuals,audit=material_us_relations(got,START,CUT)
+>       assert SYMBOL in individuals, audit
+E       AssertionError: [{'card_id': 'e94dc5c19470ec433c2fe3fe3b25aa2481205725fa24775939517b6e2931baa1', 'manager_themes': [], 'reason': 'NO_SUBJECT_BOUND_BUSINESS_OR_US_RELATION', 'rejection_reasons': ['NO_SUBJECT_BOUND_BUSINESS_OR_US_RELATION'], ...}]
+E       assert 'HK.00001' in {}
+
+../delivery/tests/test_us_business.py:36: AssertionError
+_ test_traditional_explicit_relation_survives_native_prose_pipeline[\u4f9b\u61c9] _
+
+verb = '供應'
+
+    @pytest.mark.parametrize('verb',['簽署','供應','授權','許可'])
+    def test_traditional_explicit_relation_survives_native_prose_pipeline(verb):
+        text=('样本科技已增加供應NASDAQ:QTEST的產能。' if verb=='供應'
+              else '样本科技已'+verb+'NASDAQ:QTEST使用相關技術。')
+        got,rejected=cards(text)
+        assert got, rejected
+        industries,individuals,audit=material_us_relations(got,START,CUT)
+>       assert SYMBOL in individuals, audit
+E       AssertionError: [{'card_id': 'd607107204bddef6a427181b095c3055475acc4187f5ced06b11efe7995cc6e8', 'manager_themes': [], 'reason': 'NO_SUBJECT_BOUND_BUSINESS_OR_US_RELATION', 'rejection_reasons': ['NO_SUBJECT_BOUND_BUSINESS_OR_US_RELATION'], ...}]
+E       assert 'HK.00001' in {}
+
+../delivery/tests/test_us_business.py:36: AssertionError
+_ test_traditional_explicit_relation_survives_native_prose_pipeline[\u6388\u6b0a] _
+
+verb = '授權'
+
+    @pytest.mark.parametrize('verb',['簽署','供應','授權','許可'])
+    def test_traditional_explicit_relation_survives_native_prose_pipeline(verb):
+        text=('样本科技已增加供應NASDAQ:QTEST的產能。' if verb=='供應'
+              else '样本科技已'+verb+'NASDAQ:QTEST使用相關技術。')
+        got,rejected=cards(text)
+        assert got, rejected
+        industries,individuals,audit=material_us_relations(got,START,CUT)
+>       assert SYMBOL in individuals, audit
+E       AssertionError: [{'card_id': 'd1c18273e8e68d29e2bda16fc858b350b6413d51076e0b866e14090cd852764a', 'manager_themes': [], 'reason': 'NO_SUBJECT_BOUND_BUSINESS_OR_US_RELATION', 'rejection_reasons': ['NO_SUBJECT_BOUND_BUSINESS_OR_US_RELATION'], ...}]
+E       assert 'HK.00001' in {}
+
+../delivery/tests/test_us_business.py:36: AssertionError
+_ test_traditional_explicit_relation_survives_native_prose_pipeline[\u8a31\u53ef] _
+
+verb = '許可'
+
+    @pytest.mark.parametrize('verb',['簽署','供應','授權','許可'])
+    def test_traditional_explicit_relation_survives_native_prose_pipeline(verb):
+        text=('样本科技已增加供應NASDAQ:QTEST的產能。' if verb=='供應'
+              else '样本科技已'+verb+'NASDAQ:QTEST使用相關技術。')
+        got,rejected=cards(text)
+        assert got, rejected
+        industries,individuals,audit=material_us_relations(got,START,CUT)
+>       assert SYMBOL in individuals, audit
+E       AssertionError: [{'card_id': '878084d8508817b171b8296604515a059720c31960d19e97e83161f9de7ef3ff', 'manager_themes': [], 'reason': 'NO_SUBJECT_BOUND_BUSINESS_OR_US_RELATION', 'rejection_reasons': ['NO_SUBJECT_BOUND_BUSINESS_OR_US_RELATION'], ...}]
+E       assert 'HK.00001' in {}
+
+../delivery/tests/test_us_business.py:36: AssertionError
+________ test_traditional_business_vocabulary_uses_same_existing_theme _________
+
+    def test_traditional_business_vocabulary_uses_same_existing_theme():
+        got,rejected=cards('样本科技已增加生物製藥產能。')
+        assert got,rejected
+        industries,individuals,audit=material_us_relations(got,START,CUT)
+>       assert SYMBOL in industries, audit
+E       AssertionError: [{'card_id': 'c40bbdcfd1f3d6ed18174707c45f6e6b61ec66b99ef43afbed69d83d3c0a3fac', 'manager_themes': [], 'reason': 'NO_SUBJECT_BOUND_BUSINESS_OR_US_RELATION', 'rejection_reasons': ['NO_SUBJECT_BOUND_BUSINESS_OR_US_RELATION'], ...}]
+E       assert 'HK.00001' in {}
+
+../delivery/tests/test_us_business.py:46: AssertionError
+____________ test_no_rewrite_of_original_prose_span_or_source_clock ____________
+
+    def test_no_rewrite_of_original_prose_span_or_source_clock():
+        text='样本科技已簽署NASDAQ:QTEST使用相關技術。'
+        got,_=cards(text);before=deepcopy(got)
+        _,individuals,_=material_us_relations(got,START,CUT)
+>       assert SYMBOL in individuals
+E       AssertionError: assert 'HK.00001' in {}
+
+../delivery/tests/test_us_business.py:79: AssertionError
+_ test_original_relation_join_admits_explicit_ticker_and_keeps_unmapped_raw_mover _
+
+    def test_original_relation_join_admits_explicit_ticker_and_keeps_unmapped_raw_mover():
+        from v4.manager_research.research_evidence import collect_attention_evidence
+        got,_=cards('样本科技已簽署NASDAQ:QTEST使用相關技術。')
+        us=dict(status='READY',mapping_eligible=True,captured_at='2026-09-30T06:00:00+08:00',
+            source_identity={'status':'VERIFIED','payload_sha256':'c'*64,'receipt_sha256':'d'*64,'manifest_sha256':'e'*64},raw_industry_up=[],
+            raw_individual_up=[dict(status='READY',symbol='QTEST',pct_change=5),dict(status='READY',symbol='UNMAPPED',pct_change=8)])
+        before=deepcopy(us)
+        evidence=collect_attention_evidence(market_screen={},stocks=[],material_cards=got,themes=[],
+            announcement_observation={},us_market=us,start=START,cutoff=CUT)
+>       assert SYMBOL in evidence.us_individual
+E       AssertionError: assert 'HK.00001' in {}
+E        +  where {} = AttentionEvidence(screen_rows={}, stock_rows={}, official={}, company={'HK.00001': [{'card_id': 'e94dc5c19470ec433c2fe...ted_candidates': []}], 'raw_movers_retained_when_unmapped': True, 'relation_gate': 'TWO_SOURCE_PIT_VERIFIED_REQUIRED'}).us_individual
+
+../delivery/tests/test_us_business.py:95: AssertionError
+=========================== short test summary info ============================
+FAILED ../delivery/tests/test_us_business.py::test_traditional_explicit_relation_survives_native_prose_pipeline[\u7c3d\u7f72] - AssertionError: [{'card_id': 'e94dc5c19470ec433c2fe3fe3b25aa2481205725fa24775939517b6e2931baa1', 'manager_themes': [], 'reason': 'NO_SUBJECT_BOUND_BUSINESS_OR_US_RELATION', 'rejection_reasons': ['NO_SUBJECT_BOUND_BUSINESS_OR_US_RELATION'], ...}]
+assert 'HK.00001' in {}
+FAILED ../delivery/tests/test_us_business.py::test_traditional_explicit_relation_survives_native_prose_pipeline[\u4f9b\u61c9] - AssertionError: [{'card_id': 'd607107204bddef6a427181b095c3055475acc4187f5ced06b11efe7995cc6e8', 'manager_themes': [], 'reason': 'NO_SUBJECT_BOUND_BUSINESS_OR_US_RELATION', 'rejection_reasons': ['NO_SUBJECT_BOUND_BUSINESS_OR_US_RELATION'], ...}]
+assert 'HK.00001' in {}
+FAILED ../delivery/tests/test_us_business.py::test_traditional_explicit_relation_survives_native_prose_pipeline[\u6388\u6b0a] - AssertionError: [{'card_id': 'd1c18273e8e68d29e2bda16fc858b350b6413d51076e0b866e14090cd852764a', 'manager_themes': [], 'reason': 'NO_SUBJECT_BOUND_BUSINESS_OR_US_RELATION', 'rejection_reasons': ['NO_SUBJECT_BOUND_BUSINESS_OR_US_RELATION'], ...}]
+assert 'HK.00001' in {}
+FAILED ../delivery/tests/test_us_business.py::test_traditional_explicit_relation_survives_native_prose_pipeline[\u8a31\u53ef] - AssertionError: [{'card_id': '878084d8508817b171b8296604515a059720c31960d19e97e83161f9de7ef3ff', 'manager_themes': [], 'reason': 'NO_SUBJECT_BOUND_BUSINESS_OR_US_RELATION', 'rejection_reasons': ['NO_SUBJECT_BOUND_BUSINESS_OR_US_RELATION'], ...}]
+assert 'HK.00001' in {}
+FAILED ../delivery/tests/test_us_business.py::test_traditional_business_vocabulary_uses_same_existing_theme - AssertionError: [{'card_id': 'c40bbdcfd1f3d6ed18174707c45f6e6b61ec66b99ef43afbed69d83d3c0a3fac', 'manager_themes': [], 'reason': 'NO_SUBJECT_BOUND_BUSINESS_OR_US_RELATION', 'rejection_reasons': ['NO_SUBJECT_BOUND_BUSINESS_OR_US_RELATION'], ...}]
+assert 'HK.00001' in {}
+FAILED ../delivery/tests/test_us_business.py::test_no_rewrite_of_original_prose_span_or_source_clock - AssertionError: assert 'HK.00001' in {}
+FAILED ../delivery/tests/test_us_business.py::test_original_relation_join_admits_explicit_ticker_and_keeps_unmapped_raw_mover - AssertionError: assert 'HK.00001' in {}
+ +  where {} = AttentionEvidence(screen_rows={}, stock_rows={}, official={}, company={'HK.00001': [{'card_id': 'e94dc5c19470ec433c2fe...ted_candidates': []}], 'raw_movers_retained_when_unmapped': True, 'relation_gate': 'TWO_SOURCE_PIT_VERIFIED_REQUIRED'}).us_individual
+7 failed, 6 passed in 0.20s

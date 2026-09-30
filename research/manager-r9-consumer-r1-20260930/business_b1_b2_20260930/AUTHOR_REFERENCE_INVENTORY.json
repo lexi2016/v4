@@ -1,0 +1,119 @@
+{
+  "scope": "AUTHOR_TEST_DEPENDENCIES_ONLY_NOT_DEPLOYABLE_NOT_FULL_NATIVE_APP",
+  "source": "Prior supplied R1 offline_reference_context + R9 source_handoff + exact R1/R2/R3B surfaces; cycle/autorun pinned separately to 8851 snapshot.",
+  "dependency_completion": "Restored manifest-declared empty py.typed and copied original pypdf LICENSE from previous delivery; exact manifest/package/license hashes checked, no validator relaxed.",
+  "inventory_scope": "Selected original reader/store/classifier/plan dependencies for inspection; not a complete dependency closure. Not for assembling or deploying a Mac app.",
+  "full_author_tree_manifest": {
+    "sha256": "cf414176db45eb6036de59af8e69ce9d7542e859be52ec15b0176c504e15f0f9",
+    "bytes": 66968,
+    "entries": 362,
+    "delivery": "separate author reference appendix, not a runtime file"
+  },
+  "files": [
+    {
+      "path": "contracts/trading_calendar.py",
+      "sha256": "61ad747fcfeedda6a6362fb9f6b45767bea7bbfa9dbeea3753beeb75dc5da577",
+      "bytes": 9347
+    },
+    {
+      "path": "domains/manager_research_evidence.py",
+      "sha256": "22ccd133851afa0fd7927ae7c40370ce1130ccd77055b0044e91d863ac1da8d9",
+      "bytes": 19661
+    },
+    {
+      "path": "infrastructure/owned_io.py",
+      "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+      "bytes": 9354
+    },
+    {
+      "path": "v4/manager_research/announcement_materials.py",
+      "sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+      "bytes": 10727
+    },
+    {
+      "path": "v4/manager_research/announcement_source.py",
+      "sha256": "2236ffd7490d48e9df77e810474aafe7fa43dbfeb0c27557e0c91fc366d2de0d",
+      "bytes": 36181
+    },
+    {
+      "path": "v4/manager_research/connect_selection.py",
+      "sha256": "b6c5300172f59b6979dbab15927036ff1ab3599a2adae2b4f0e5a1e4868a6248",
+      "bytes": 10522
+    },
+    {
+      "path": "v4/manager_research/contracts.py",
+      "sha256": "d90f0027a8383f20a299e3058d69716e62737e9e5300afc61a8ef2ed949d402f",
+      "bytes": 12756
+    },
+    {
+      "path": "v4/manager_research/existing_materials.py",
+      "sha256": "2a69d98f6aab13a3e341533554f3419ac420a2fbe426dd3f6f237b7eaa3b141c",
+      "bytes": 19437
+    },
+    {
+      "path": "v4/manager_research/hkex_provider.py",
+      "sha256": "e4ded3d5c0432ec1a14a756fb9cfe4594cefd76c22357daee936c2c2fc667032",
+      "bytes": 33818
+    },
+    {
+      "path": "v4/manager_research/material_transport.py",
+      "sha256": "497c52c915e5485f34de27cb1fb2caca3971c77f531385a0d1f80d4587fc6ab5",
+      "bytes": 7239
+    },
+    {
+      "path": "v4/manager_research/materials.py",
+      "sha256": "0d3c6c3fa0404c7006e5a8127b6123b99f7fff7c4d99af04b524fc04cb0e1ac2",
+      "bytes": 9292
+    },
+    {
+      "path": "v4/manager_research/ports.py",
+      "sha256": "d55f0bd6b5ade41ec78c429cbaea3986bb24a4723f473ef94ac0e5ad7d08afea",
+      "bytes": 1569
+    },
+    {
+      "path": "v4/manager_research/research_evidence.py",
+      "sha256": "6a0075aeba1ec68c14ee5ec09f0290c6bbcd49e296fe76fa3ae17a03510c6ec2",
+      "bytes": 23815
+    },
+    {
+      "path": "v4/manager_research/service.py",
+      "sha256": "0a44b9460fdc6e86b9758e03bdb228c589ee3058fba8a1da2f6a26dbba9480a5",
+      "bytes": 91315
+    },
+    {
+      "path": "v4/manager_research/store.py",
+      "sha256": "3e679e153516c2463630af2116ff57ae924468c5d0cd87b86abd2d2b077a934d",
+      "bytes": 18387
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "sha256": "8a1ce5122be59f2d56e258522909ca0ff76345a32aed3b4a2517e9cfb2e7c190",
+      "bytes": 38891
+    },
+    {
+      "path": "v4/manager_research/workspace_discovery.py",
+      "sha256": "ed9188a44a4adb6bf2fd08836d465ed3ea7e7d2b8dd7075da99b7aaabc5c5c1a",
+      "bytes": 23129
+    },
+    {
+      "path": "v4/manager_research/workspace_plan_autorun.py",
+      "sha256": "ec257948eb39a7157652d9e13e4aed4a91c55d66ce1df1e5d1bd7b277ee6d3a8",
+      "bytes": 5803
+    },
+    {
+      "path": "v4/manager_research/workspace_projection.py",
+      "sha256": "f5003b4de58db760e3d864473c5ce62846bb0e8ae1acdc8a8e77544272f865b8",
+      "bytes": 27450
+    },
+    {
+      "path": "v4/manager_research/workspace_read_control.py",
+      "sha256": "491e3569e8f00586ca6f4e9982e182584d2f2a0437f83da66767b7ffdbf1fb25",
+      "bytes": 10927
+    },
+    {
+      "path": "v4/manager_research/workspace_semantics.py",
+      "sha256": "dc8d1d330e4fdacf2ef7169a7ac62874bfd3e2658f8b4bcff0773e06e32c4f7f",
+      "bytes": 33731
+    }
+  ]
+}

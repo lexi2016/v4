@@ -1,0 +1,505 @@
+--- a/v4/manager_research/workspace_announcements.py
++++ b/v4/manager_research/workspace_announcements.py
+@@ -79,6 +79,7 @@
+ def _check_sources(service: Any, product: Mapping[str,Any], *, validation_cache: dict | None=None) -> dict:
+     """Verify the original owner identity plus every retained source binding."""
+     from .hkex_provider import ACTIVE_STOCK_LIST_URL
++    from .eastmoney_run_history import read_retained_response as read_eastmoney_response
+     import json
+     names,witness=_master(service,product['context'])
+     if witness!=product['identity_witness'] or sorted(names)!=product['scope']:
+@@ -316,8 +317,9 @@
+ 
+ def _check_eastmoney_sources(service: Any,product: Mapping[str,Any]) -> dict:
+     from .announcement_source import (eastmoney_list_url,eastmoney_content_url,
+-        read_eastmoney_response,_eastmoney_display_time,MAX_BYTES,
++        _eastmoney_display_time,MAX_BYTES,
+         MAX_EASTMONEY_CONTENT_PAGES,MAX_EASTMONEY_BODY_CHARACTERS)
++    from .eastmoney_run_history import read_retained_response as read_eastmoney_response
+     import json
+     names,witness=_master(service,product['context'])
+     if witness!=product.get('identity_witness') or sorted(product['scope'])!=[q.get('code') for q in product['queries']]:
+@@ -451,13 +453,28 @@
+     with service.store._transaction(date,'workspace-announcements'):
+         start=_now();context=plan_context(date,now=timestamp(start))
+         names,witness=_master(service,context)
++        from .eastmoney_run_history import (committed_products,next_sweep,
++            retain_index_observations,PROTOCOL,MAX_RUNS)
++        previous,history_rejections,history_gaps=committed_products(service,date)
++        if len(previous)>=MAX_RUNS:raise ValueError('EASTMONEY_HK_HISTORY_RUN_BUDGET')
++        # Preserve still-verifiable legacy index metadata BEFORE force-fetch.
++        if service._material_store is None:
++            raise ValueError('ANNOUNCEMENT_ORIGINAL_SHARED_STORE_NOT_BOUND')
++        sweep=None
+         if issuer_code is not None:
+             symbol=canonical_symbol(issuer_code)
+             if symbol!=issuer_code or symbol not in names:
+                 raise ValueError('EASTMONEY_HK_ISSUER_NOT_IN_VERIFIED_MASTER')
+             codes=[symbol]
+         else:
+-            codes=sorted(names)[:BATCH_SIZE]
++            codes,sweep=next_sweep(previous,names,witness,BATCH_SIZE)
++        retention_products=list(previous)
++        for capture_date in context.get('source_dates',[]):
++            if capture_date==date:continue
++            older,_,missing=committed_products(service,capture_date)
++            retention_products.extend(older);history_gaps.extend(missing)
++        retention_gaps=retain_index_observations(service._material_store,
++            [p for p in retention_products if set(p['scope']).intersection(codes)])
+         attempt=dict(schema_version=ATTEMPT_SCHEMA,target_trade_date=date,run_id=uuid4().hex,owner=OWNER,
+             state='RUNNING',execution_kind='MANUAL_REFRESH',source_scope=EASTMONEY_SCOPE,
+             started_at=start,last_success_at=None,failure_reasons=[],**FLAGS)
+@@ -478,9 +495,24 @@
+             batch=provider.collect_eastmoney_hk_batch(context=context,issuers=issuers,
+                 max_issuers=BATCH_SIZE,max_documents=MAX_DOCUMENTS,
+                 budget=budget)
++            # The provider can stop at its existing request/time budget. Keep
++            # unrequested issuers explicit rather than imply a successful scan.
++            queried={q['code'] for q in batch['queries']}
++            for code in codes:
++                if code not in queried:
++                    batch['queries'].append(dict(code=code,name=names[code]['name'],status='FAILED',
++                        listing_ref=None,entries=[],reason='EASTMONEY_HK_NOT_REQUESTED_BUDGET'))
++            batch['queries'].sort(key=lambda q:q['code'])
++            if sweep is not None:
++                sweep['successful_query_count']+=sum(q['status']=='OBSERVED' for q in batch['queries'])
++                sweep['failed_query_count']+=sum(q['status']!='OBSERVED' for q in batch['queries'])
++                sweep['visited_issuer_count']+=sum(isinstance(q.get('listing_ref'),Mapping) for q in batch['queries'])
++                sweep['all_issuers_visited']=sweep['visited_issuer_count']==len(names)
++                sweep['all_issuer_queries_succeeded']=sweep['successful_query_count']==len(names)
+             product=dict(schema_version=EASTMONEY_SCHEMA,owner=OWNER,target_trade_date=date,source='EASTMONEY_HK',
+                 source_scope=batch['source_scope'],
+-                run_id=uuid4().hex,context=context,identity_witness=witness,scope=codes,
++                run_id=uuid4().hex,attempt_run_id=attempt['run_id'],commit_protocol=PROTOCOL,
++                sweep=sweep,context=context,identity_witness=witness,scope=codes,
+                 scope_identity=digest([witness,codes]),queries=batch['queries'],documents=batch['documents'],
+                 pending_documents=batch['pending_documents'],generated_at=_now(),execution_kind='MANUAL_REFRESH',
+                 capture_budget=dict(max_seconds=45,max_requests=budget.max_requests,
+@@ -491,15 +523,23 @@
+                 success_scope='BOUNDED_EASTMONEY_HK_NOTICE_MIRROR_OBSERVATION_NOT_HKEX_OFFICIAL',**FLAGS)
+             product=_seal(product);_validate_eastmoney_product(product,date)
+             _check_eastmoney_sources(service,product)
+-            service.store._write_atomic(root/(product['run_id']+'.json'),product)
+-            service.store._write_atomic(root/'latest.json',product)
++            retention=retain_index_observations(service._material_store,[product])
++            if retention:raise ValueError('EASTMONEY_HK_CURRENT_INDEX_RETENTION_FAILED')
+             attempt.update(state='PARTIAL',finished_at=_now(),last_success_at=product['generated_at'],
+-                input_identity=product['scope_identity'],failure_reasons=product['gaps'],
++                input_identity=product['scope_identity'],product_run_id=product['run_id'],
++                product_sha256=product['sha256'],failure_reasons=sorted(set(
++                    product['gaps']+history_gaps+retention_gaps)),
+                 input_coverage=dict(master_count=len(names),queried_issuer_count=len(codes),
+                     successful_issuer_count=sum(q['status']=='OBSERVED' for q in product['queries']),
+                     document_count=len(product['documents']),pending_document_count=len(product['pending_documents']),
+                     full_market_exhaustion='NOT_CLAIMED'))
+             journal()
++            # Named immutable product is the commit point, written LAST.
++            # Latest alone cannot expose an unfinished new-protocol run.
++            service.store._write_atomic(root/'latest.json',product)
++            from .contracts import canonical_json
++            service.store._io.write_bytes(str((root/(product['run_id']+'.json')).relative_to(service.store.root)),
++                canonical_json(product),require_absent=True)
+         except Exception as exc:
+             attempt.update(state='FAILED',finished_at=_now(),failure_reasons=[safe_reason(exc,'EASTMONEY_HK_OWNER_FAILED')])
+             journal()
+@@ -540,38 +580,18 @@
+         result['previous_product_retained']=bool((result.get('product_identity') or {}).get('consumed'))
+         result['status']=result['attempt']['state']
+         result['gaps']=sorted(set(result['gaps']+result['attempt']['failure_reasons']))
+-    east_attempt_path=service.store.root/'workspace_announcement_runs'/date/'eastmoney_hk'/'latest.json'
+-    east_product_path=service.store.root/'workspace_announcements'/date/'eastmoney_hk'/'latest.json'
++    from .eastmoney_run_history import read_history
+     try:
+-        east_attempt=service.store._read(east_attempt_path)
+-        if east_attempt is not None:
+-            from .workspace import validate_attempt
+-            east_attempt=validate_attempt(east_attempt,date)
+-            if east_attempt.get('source_scope')!=EASTMONEY_SCOPE:
+-                raise ValueError('EASTMONEY_HK_ATTEMPT_SCOPE_INVALID')
+-            result['eastmoney_hk_attempt']=east_attempt
+-        east_product=service.store._read(east_product_path)
+-        if east_product is not None:
+-            east_product=_validate_eastmoney_product(east_product,date)
+-            _check_eastmoney_sources(service,east_product)
+-            consumer_context=context or plan_context(date,now=timestamp(_now()))
+-            selection_rejections=[]
+-            projected,projection_gaps=_project_eastmoney_hk(east_product,consumer_context,rejection_audit=selection_rejections)
+-            result['eastmoney_hk_selection_rejections']=selection_rejections
+-            result['eastmoney_hk_status']='PARTIAL'
+-            result['eastmoney_hk_documents']=projected
+-            result['eastmoney_hk_gaps']=sorted(set(east_product.get('gaps',[])+projection_gaps))
+-            result['eastmoney_hk_capture']=dict(source='EASTMONEY_HK',source_scope=east_product['source_scope'],
+-                run_id=east_product['run_id'],sha256=east_product['sha256'],generated_at=east_product['generated_at'],
+-                query_cutoff=east_product['context']['research_cutoff'],
+-                queried_issuers=east_product['scope'],document_count=len(east_product['documents']),
+-                source_status=east_product['status'],readback_status='VERIFIED',exhaustive=False,
+-                capture_budget=east_product.get('capture_budget'),
+-                hkex_first_publication_verified=False,**FLAGS)
+-        elif result['eastmoney_hk_attempt'] is not None:
+-            state=result['eastmoney_hk_attempt']['state']
+-            result['eastmoney_hk_status']=state if state in {'FAILED','RUNNING'} else 'NOT_RUN'
+-            result['eastmoney_hk_gaps']=list(result['eastmoney_hk_attempt'].get('failure_reasons',[]))
++        history=read_history(service,date,context or plan_context(date,now=timestamp(_now())))
++        result.update(eastmoney_hk_attempt=history['attempt'],
++            eastmoney_hk_captures=history['captures'],eastmoney_hk_coverage=history['coverage'],
++            eastmoney_hk_capture=(history['captures'][-1] if history['captures'] else None),
++            eastmoney_hk_documents=[row['document'] for row in history['documents']],
++            eastmoney_hk_selection_rejections=history['rejections'],eastmoney_hk_gaps=history['gaps'])
++        if history['captures']:result['eastmoney_hk_status']='PARTIAL'
++        elif history['attempt'] and history['attempt']['state'] in {'FAILED','RUNNING'}:
++            result['eastmoney_hk_status']=history['attempt']['state']
++        elif history['gaps']:result['eastmoney_hk_status']='READBACK_FAILED'
+     except (ValueError,RuntimeError,OSError,KeyError,TypeError,ImportError) as exc:
+         result['eastmoney_hk_status']='READBACK_FAILED'
+         result['eastmoney_hk_gaps']=[safe_reason(exc,'EASTMONEY_HK_SOURCE_READBACK_FAILED')]
+@@ -734,42 +754,30 @@
+             or any(date_token(d)!=d or d>target or d<since.strftime('%Y%m%d')
+                    or d>cutoff.strftime('%Y%m%d') for d in dates)):
+         raise ValueError('ANNOUNCEMENT_SELECTION_SOURCE_DATES_INVALID')
+-    materials=[];rejected=[];gaps=[];captures=[];seen=set()
++    materials=[];rejected=[];gaps=[];captures=[];seen={}
+     for day in dates:
+         checkpoint()
+         try:
+-            if day==target and current_review is not None:
+-                cap=current_review.get('eastmoney_hk_capture')
+-                if not isinstance(cap,Mapping) or cap.get('readback_status')!='VERIFIED':
+-                    gaps.extend(current_review.get('eastmoney_hk_gaps',[]))
+-                    continue
+-                cap={**dict(cap),'target_trade_date':day}
+-                docs=current_review.get('eastmoney_hk_documents',[])
+-                rejected.extend(deepcopy(current_review.get('eastmoney_hk_selection_rejections',[])))
+-                gaps.extend(current_review.get('eastmoney_hk_gaps',[]))
+-            else:
+-                path=service.store.root/'workspace_announcements'/day/'eastmoney_hk'/'latest.json'
+-                product=service.store._read(path)
+-                if product is None:continue
+-                product=_validate_eastmoney_product(product,day)
+-                _check_eastmoney_sources(service,product)
+-                docs,projection_gaps=_project_eastmoney_hk(product,context,rejection_audit=rejected)
+-                gaps.extend([*product.get('gaps',[]),*projection_gaps])
+-                cap=dict(source='EASTMONEY_HK',target_trade_date=day,readback_status='VERIFIED',
+-                    sha256=product['sha256'],run_id=product['run_id'],generated_at=product['generated_at'],
+-                    product_ref=f'workspace_announcements/{day}/eastmoney_hk/latest.json',
+-                    exhaustive=False)
+-            captures.append(deepcopy(cap))
+-            for doc in docs:
++            # Read all committed runs even when a caller supplies an older
++            # latest-only projection. GET never fetches or migrates history.
++            from .eastmoney_run_history import read_history
++            history=read_history(service,day,context)
++            captures.extend(deepcopy(history['captures']))
++            rejected.extend(history['rejections']);gaps.extend(history['gaps'])
++            for row in history['documents']:
++                doc=row['document'];cap=row['capture']
+                 checkpoint()
+                 try:
+                     m=mirror_material(doc,cap)
+                     role=mirror_role(m,since,cutoff)
+                     if role!=CURRENT_ROLE:raise ValueError('ANNOUNCEMENT_SELECTION_'+role)
+                     identity=(m['document_issuer_symbol'],m['art_code'],m['body_sha256'])
+-                    if identity in seen:continue
+-                    seen.add(identity)
++                    if identity in seen:
++                        materials[seen[identity]]['capture_occurrences'].extend(deepcopy(row['occurrences']))
++                        continue
+                     if len(materials)>=128:raise ValueError('ANNOUNCEMENT_SELECTION_DOCUMENT_BUDGET')
++                    seen[identity]=len(materials)
++                    m['capture_occurrences']=deepcopy(row['occurrences'])
+                     materials.append(m)
+                 except (ValueError,TypeError,KeyError) as exc:
+                     rejected.append(dict(symbol=doc.get('symbol'),name=doc.get('name'),art_code=doc.get('art_code'),
+--- /dev/null
++++ b/v4/manager_research/eastmoney_run_history.py
+@@ -0,0 +1,276 @@
++"""Bounded history for the EXISTING announcement owner and its original stores.
++
++No provider, clock, master or eligibility replacement. Named immutable products
++are commit points. Index observations preserve original MaterialStore metadata
++before its latest-key pointer moves; GET never creates or repairs evidence.
++"""
++from __future__ import annotations
++from copy import deepcopy
++import json
++import re
++from typing import Any, Mapping
++from .contracts import canonical_json
++from .workspace_projection import FLAGS, date_token, digest, timestamp
++
++PROTOCOL = 'EASTMONEY_RUN_AFTER_TERMINAL_JOURNAL_V1'
++OBS_SCHEMA = 'v4.manager_research.eastmoney_index_observation.v1'
++MAX_RUNS = 1024
++MAX_PRODUCT_BYTES = 8 * 1024 * 1024
++MAX_HISTORY_BYTES = 64 * 1024 * 1024
++_RUN = re.compile(r'^[0-9a-f]{32}\.json$')
++_ERRORS = (ValueError, RuntimeError, OSError, KeyError, TypeError, ImportError)
++
++
++def _observation_path(ref: Mapping[str, Any]) -> str:
++    return 'observations/eastmoney_hk/' + digest([
++        ref.get('source_key'), ref.get('blob_sha256'), ref.get('retrieved_at')]) + '.json'
++
++
++class _ObservedIndex:
++    """Read a persisted original index observation, never fabricate one from ref."""
++    def __init__(self, store: Any, ref: Mapping[str, Any]):
++        self.store = store
++        self.ref = ref
++        self._io = store._io
++        self._blob_relative = store._blob_relative
++
++    def stat_source(self, source_key: str) -> dict | None:
++        try:
++            raw = self._io.read_bytes(_observation_path(self.ref), max_bytes=32768)
++        except FileNotFoundError:
++            return self.store.stat_source(source_key)  # Legacy: exact live index only.
++        value = json.loads(raw)
++        index = value.get('index') if isinstance(value, dict) else None
++        if (not isinstance(index, dict) or value.get('schema_version') != OBS_SCHEMA
++                or value.get('index_sha256') != digest(index)
++                or index.get('source_key') != source_key):
++            raise ValueError('EASTMONEY_HK_INDEX_OBSERVATION_INVALID')
++        return index
++
++
++def read_retained_response(store: Any, ref: Mapping[str, Any]) -> bytes:
++    from .announcement_source import read_eastmoney_response
++    return read_eastmoney_response(_ObservedIndex(store, ref), ref)
++
++
++def product_refs(product: Mapping[str, Any]):
++    for query in product['queries']:
++        if isinstance(query.get('listing_ref'), dict):
++            yield query['listing_ref']
++    for doc in product['documents']:
++        yield doc['row']['listing_ref']
++        yield from doc['content_refs']
++        yield doc['pdf_ref']
++
++
++def retain_index_observations(store: Any, products: list[dict]) -> list[str]:
++    """Writer only: copy exact valid index records; missing old clocks stay missing."""
++    from .announcement_source import read_eastmoney_response, safe_reason
++    gaps = []; seen = set()
++    for product in products:
++        for ref in product_refs(product):
++            path = _observation_path(ref)
++            if path in seen:
++                continue
++            seen.add(path)
++            persisting=False
++            try:
++                # Existing observations must validate, not be overwritten/repaired.
++                try:
++                    store._io.read_bytes(path, max_bytes=32768)
++                except FileNotFoundError:
++                    read_eastmoney_response(store, ref)
++                    index = store.stat_source(ref['source_key'])
++                    if (not isinstance(index, dict) or index.get('sha256') != ref['blob_sha256']
++                            or index.get('url') != ref['request']['url']
++                            or index.get('retrieved_at') != ref['retrieved_at']):
++                        raise ValueError('EASTMONEY_HK_INDEX_CHANGED_BEFORE_RETENTION')
++                    value = dict(schema_version=OBS_SCHEMA, index=index, index_sha256=digest(index))
++                    persisting=True
++                    store._io.write_bytes(path, canonical_json(value), require_absent=True)
++                    persisting=False
++                index=_ObservedIndex(store,ref).stat_source(ref['source_key'])
++                if not index or any(index.get(k)!=v for k,v in dict(sha256=ref['blob_sha256'],
++                        url=ref['request']['url'],retrieved_at=ref['retrieved_at']).items()):
++                    raise ValueError('EASTMONEY_HK_INDEX_OBSERVATION_BINDING_INVALID')
++            except _ERRORS as exc:
++                if persisting:
++                    raise ValueError('EASTMONEY_HK_INDEX_RETENTION_WRITE_FAILED') from exc
++                gaps.append(safe_reason(exc, 'EASTMONEY_HK_INDEX_RETENTION_FAILED'))
++    return sorted(set(gaps))
++
++
++def committed_products(service: Any, date: str) -> tuple[list[dict], list[dict], list[str]]:
++    """Read committed named runs, including legacy runs with original journal proof.
++
++    A latest pointer alone cannot rescue a missing/corrupt named new-protocol
++    product. One bad run never removes another valid run.
++    """
++    from . import workspace_announcements as ann
++    from .workspace import validate_attempt
++    from .workspace_read_control import checkpoint
++    date = date_token(date)
++    root = f'workspace_announcements/{date}/eastmoney_hk'
++    attempts = f'workspace_announcement_runs/{date}/eastmoney_hk'
++    rows = []; rejected = []; gaps = []
++    names = service.store._io.files(root)
++    names = [name for name in names if _RUN.fullmatch(name)]
++    if len(names) > MAX_RUNS:
++        raise ValueError('EASTMONEY_HK_HISTORY_RUN_BUDGET')
++    total = 0; latest = None; legacy_attempts = None
++    try:
++        latest = service.store._read(service.store.root/root/'latest.json')
++    except _ERRORS as exc:
++        gaps.append(ann.safe_reason(exc, 'EASTMONEY_HK_LATEST_INVALID'))
++    # Legacy latest-only products remain readable, but never for the new protocol.
++    if (isinstance(latest, dict) and not latest.get('commit_protocol')
++            and _RUN.fullmatch(str(latest.get('run_id')) + '.json')
++            and latest['run_id'] + '.json' not in names):
++        names.append('latest.json')
++    if (isinstance(latest, dict) and latest.get('commit_protocol')
++            and str(latest.get('run_id'))+'.json' not in names):
++        gaps.append('EASTMONEY_HK_LATEST_RUN_NOT_COMMITTED')
++    for name in sorted(names):
++        checkpoint()
++        try:
++            raw = service.store._io.read_bytes(root+'/'+name, max_bytes=MAX_PRODUCT_BYTES)
++            total += len(raw)
++            if total > MAX_HISTORY_BYTES:
++                raise ValueError('EASTMONEY_HK_HISTORY_BYTE_BUDGET')
++            product = ann._validate_eastmoney_product(json.loads(raw), date)
++            if name != 'latest.json' and name != product['run_id']+'.json':
++                raise ValueError('EASTMONEY_HK_RUN_FILENAME_MISMATCH')
++            if product.get('commit_protocol') is not None:
++                if product['commit_protocol'] != PROTOCOL:
++                    raise ValueError('EASTMONEY_HK_COMMIT_PROTOCOL_INVALID')
++                attempt_id = product.get('attempt_run_id')
++                if not re.fullmatch(r'[0-9a-f]{32}', str(attempt_id)):
++                    raise ValueError('EASTMONEY_HK_COMMIT_ATTEMPT_INVALID')
++                proof = service.store._read(service.store.root/attempts/(attempt_id+'.json'))
++                proof = validate_attempt(proof, date)
++                if (proof.get('owner') != ann.OWNER or proof.get('source_scope') != ann.EASTMONEY_SCOPE
++                        or proof.get('state') not in {'PARTIAL','SUCCEEDED','SUCCEEDED_EMPTY'}
++                        or proof.get('product_sha256') != product['sha256']
++                        or proof.get('product_run_id') != product['run_id']
++                        or proof.get('last_success_at') != product['generated_at']):
++                    raise ValueError('EASTMONEY_HK_RUN_NOT_COMMITTED')
++            elif not (isinstance(latest, dict) and latest.get('sha256') == product['sha256']):
++                if legacy_attempts is None:
++                    attempt_names = service.store._io.files(attempts)
++                    if len(attempt_names) > MAX_RUNS + 1:
++                        raise ValueError('EASTMONEY_HK_HISTORY_ATTEMPT_BUDGET')
++                    legacy_attempts = []
++                    for n in attempt_names:
++                        if not _RUN.fullmatch(n):
++                            continue
++                        try:
++                            proof = validate_attempt(service.store._read(service.store.root/attempts/n), date)
++                            if proof.get('source_scope') == ann.EASTMONEY_SCOPE:
++                                legacy_attempts.append(proof)
++                        except _ERRORS:
++                            continue
++                if not any(p.get('owner') == ann.OWNER
++                        and p.get('state') in {'PARTIAL','SUCCEEDED','SUCCEEDED_EMPTY'}
++                        and p.get('last_success_at') == product['generated_at']
++                        and p.get('input_identity') == product['scope_identity'] for p in legacy_attempts):
++                    raise ValueError('EASTMONEY_HK_LEGACY_COMMIT_EVIDENCE_MISSING')
++            rows.append(product)
++        except _ERRORS as exc:
++            reason = ann.safe_reason(exc, 'EASTMONEY_HK_RUN_READBACK_FAILED')
++            gaps.append(reason)
++            rejected.append(dict(capture_trade_date=date, product_ref=root+'/'+name,
++                source='EASTMONEY_HK', reason=reason))
++            if total > MAX_HISTORY_BYTES:
++                break
++    return sorted(rows, key=lambda p:(timestamp(p['generated_at']), p['run_id'])), rejected, sorted(set(gaps))
++
++
++def next_sweep(products: list[dict], names: Mapping, witness: Mapping, size: int) -> tuple[list[str], dict]:
++    """Advance only from committed batches of this exact master/window universe."""
++    universe = sorted(names); identity = digest([witness, universe]); start = 0; cycle = 1
++    prior = None
++    for product in products:
++        sweep = product.get('sweep')
++        if not isinstance(sweep, dict) or sweep.get('universe_identity') != identity:
++            continue
++        a, b, c = sweep.get('start_index'), sweep.get('next_index'), sweep.get('cycle')
++        if (type(a) is not int or type(b) is not int or type(c) is not int
++                or c < 1 or not 0 <= a < b <= len(universe)
++                or product['scope'] != universe[a:b]):
++            raise ValueError('EASTMONEY_HK_SWEEP_IDENTITY_INVALID')
++        prior = sweep
++    if prior:
++        start = prior['next_index']; cycle = prior['cycle']
++        if start == len(universe):
++            start = 0; cycle += 1
++    end = min(start + size, len(universe))
++    return universe[start:end], dict(universe_identity=identity, cycle=cycle,
++        start_index=start, next_index=end, master_issuer_count=len(universe),
++        scheduled_issuer_count=end,
++        visited_issuer_count=(prior.get('visited_issuer_count',0) if prior and start else 0),
++        all_issuers_visited=False,
++        visit_semantics='RETAINED_LIST_RESPONSE_COUNT_NOT_DIRECTORY_EXHAUSTION',
++        successful_query_count=(prior.get('successful_query_count',0) if prior and start else 0),
++        failed_query_count=(prior.get('failed_query_count',0) if prior and start else 0))
++
++
++def read_history(service: Any, date: str, context: Mapping) -> dict:
++    from . import workspace_announcements as ann
++    from .workspace import validate_attempt
++    rows, rejected, gaps = committed_products(service, date)
++    from .workspace_read_control import checkpoint
++    captures = []; documents = []; seen = {}; successful = 0; latest_sweep = None
++    failed_issuers=[];pending_count=0
++    for product in rows:
++        checkpoint()
++        try:
++            # Exclude future capture before revalidation of source/master state.
++            if timestamp(product['generated_at']) > timestamp(context['research_cutoff']):
++                raise ValueError('EASTMONEY_HK_CAPTURE_AFTER_CONSUMER_CUTOFF')
++            ann._check_eastmoney_sources(service, product)
++            docs, missing = ann._project_eastmoney_hk(product, context, rejection_audit=rejected)
++            gaps.extend([*product.get('gaps',[]), *missing])
++            cap = dict(source='EASTMONEY_HK', source_scope=product['source_scope'],
++                target_trade_date=date, run_id=product['run_id'], sha256=product['sha256'],
++                generated_at=product['generated_at'], query_cutoff=product['context']['research_cutoff'],
++                queried_issuers=product['scope'], document_count=len(product['documents']),
++                product_ref=f'workspace_announcements/{date}/eastmoney_hk/'+product['run_id']+'.json',
++                source_status=product['status'], readback_status='VERIFIED', exhaustive=False,
++                capture_budget=product['capture_budget'], hkex_first_publication_verified=False, **FLAGS)
++            captures.append(cap)
++            if product.get('sweep'):
++                latest_sweep = product['sweep']
++            successful += sum(q.get('status')=='OBSERVED' for q in product['queries'])
++            failed_issuers.extend(dict(code=q.get('code'),reason=q.get('reason'),run_id=product['run_id'])
++                for q in product['queries'] if q.get('status')!='OBSERVED')
++            pending_count+=len(product['pending_documents'])
++            for doc in docs:
++                identity = (doc['symbol'], doc['art_code'], doc['body_sha256'])
++                if identity not in seen:
++                    seen[identity]=len(documents)
++                    documents.append(dict(document=doc, capture=cap, occurrences=[deepcopy(cap)]))
++                else:
++                    documents[seen[identity]]['occurrences'].append(deepcopy(cap))
++        except _ERRORS as exc:
++            reason = ann.safe_reason(exc, 'EASTMONEY_HK_SOURCE_READBACK_FAILED')
++            gaps.append(reason)
++            rejected.append(dict(capture_trade_date=date, run_id=product['run_id'], reason=reason,
++                                 source='EASTMONEY_HK'))
++    attempt = None
++    try:
++        attempt = service.store._read(service.store.root/'workspace_announcement_runs'/date/'eastmoney_hk/latest.json')
++        if attempt is not None:
++            attempt = validate_attempt(attempt, date)
++            if attempt.get('source_scope') != ann.EASTMONEY_SCOPE:
++                raise ValueError('EASTMONEY_HK_ATTEMPT_SCOPE_INVALID')
++            if timestamp(attempt['started_at']) > timestamp(context['research_cutoff']):
++                attempt = None
++            elif attempt.get('state') in {'FAILED','RUNNING'}:
++                gaps.extend(attempt.get('failure_reasons',[]))
++    except _ERRORS as exc:
++        gaps.append(ann.safe_reason(exc, 'EASTMONEY_HK_ATTEMPT_READBACK_FAILED'))
++    return dict(captures=captures, documents=documents, rejections=rejected, gaps=sorted(set(gaps)),
++        attempt=attempt, coverage=dict(committed_run_count=len(captures), unique_document_count=len(documents),
++        successful_query_count=successful,failed_issuers=failed_issuers,pending_document_count=pending_count,
++        sweep=deepcopy(latest_sweep), directory_exhaustion='UNVERIFIED',
++        all_announcements_captured=False, run_limit=MAX_RUNS, history_byte_limit=MAX_HISTORY_BYTES))
+--- a/v4/manager_research/issuer_us_relations.py
++++ b/v4/manager_research/issuer_us_relations.py
+@@ -38,8 +38,10 @@
+     ('CLOUD', r'云计算|云服务'),
+ )
+ _COMPILED = [(key, re.compile(pattern, re.I)) for key,pattern in BUSINESS_TAXONOMY]
+-_BUSINESS = re.compile(r'业务|产品|设备|订单|收入|营收|生产|产量|产能|供货|供应|交付|研发|制造|销售|贷款|利润|签署|合作|许可', re.I)
+-_RELATION = re.compile(r'供货|供应|合作|签署|客户|采购|订单|合同|许可|授权|持有|投资|参股|收购|partner|supply|customer|contract|licens',re.I)
++# Exact orthographic equivalents only; preserve original prose/spans and all
++# subject, source and temporal admission. This is not an issuer/ticker map.
++_BUSINESS = re.compile(r'業務|產品|設備|訂單|營收|生產|產量|產能|供貨|供應|研發|製造|銷售|貸款|利潤|簽署|許可|业务|产品|设备|订单|收入|营收|生产|产量|产能|供货|供应|交付|研发|制造|销售|贷款|利润|签署|合作|许可', re.I)
++_RELATION = re.compile(r'供貨|供應|簽署|客戶|採購|訂單|許可|授權|投資|參股|收購|供货|供应|合作|签署|客户|采购|订单|合同|许可|授权|持有|投资|参股|收购|partner|supply|customer|contract|licens',re.I)
+ _US_CODE = re.compile(r'(?<![A-Za-z0-9])US\.([A-Z][A-Z0-9.-]{0,9})(?![A-Za-z0-9.-])|(?<![A-Za-z0-9])(?:NASDAQ|NYSE)\s*:\s*([A-Z][A-Z0-9.-]{0,9})(?![A-Za-z0-9.-])|\$([A-Z][A-Z0-9.-]{0,9})(?![A-Za-z0-9.-])')
+ _TICKER = re.compile(r'^[A-Z][A-Z0-9.-]{0,9}$')
+ _SHA = re.compile(r'^[0-9a-f]{64}$')

@@ -1,0 +1,57 @@
+{
+  "schema_version": "issue8.business_b1_b2.us_source_candidate.v1",
+  "bases": {
+    "business": "4c1e2de72ef8a026aa5229caca6e4a5e98b17e36",
+    "r2": "e9b91cc9e27aa5e3360d03040529d6ba164a6fe4",
+    "r3b": "6f0f81788b95fb430029e187b2f3e02bcce58f1f",
+    "r3b_mac_receipt": "0d6005e8282ed5e3467c1b9e37d98c7c6d8fb286",
+    "cycle_snapshot": "8851f7f84e3d506d3f1317eec03ba92c8f49e324"
+  },
+  "files": [
+    {
+      "surface": "api",
+      "path": "v4/manager_research/workspace_announcements.py",
+      "before_sha256": "b3a004c5c43451f7fc72163c02905e1542d6420e7d2fb14e99c7c439b765fb3e",
+      "before_git_blob": "4a6217ffce7cea172deddd7ef894c2a1bc2ddebb",
+      "after_sha256": "e2e7bd7f00da4f1e1df0b169307ff225976c1572bbbf9ccc2d3618c59f46248a",
+      "after_git_blob": "0a1de6f1abffa20728fa36f1d0a70effb146d7cf"
+    },
+    {
+      "surface": "api",
+      "path": "v4/manager_research/eastmoney_run_history.py",
+      "before_sha256": null,
+      "before_git_blob": null,
+      "after_sha256": "6bc723062141cf98681da460af37b73f74da208c682c1ee76a6d55b1a4570e8d",
+      "after_git_blob": "3b230f1ff76983e33004fef49b0799e276b1345a"
+    },
+    {
+      "surface": "api",
+      "path": "v4/manager_research/issuer_us_relations.py",
+      "before_sha256": "ac3b3e228c3efed4efc7447d2461ac0c63a00b1d0fa9c93a6c0a479076af0b7d",
+      "before_git_blob": "6912b6c7d2b18f95da0827e1b3829c707039f9d2",
+      "after_sha256": "ac79f4c6c49fe169537261be6e6e2f84199ed615a2b5d56a4ff25f3cf3d0b048",
+      "after_git_blob": "1566557725f3329c03352c0862c0e73ca0d31a60"
+    },
+    {
+      "surface": "snapshot_20260929",
+      "path": "ops/run_manager_announcement_cycle.py",
+      "before_sha256": "d3e5a0b3ebdbe1edc1b2ee8262abcd57a2e2e7d72ffc74ce521e04a5b13faec6",
+      "before_git_blob": "620ec5b8f0c008725dbc642af454ca726d35de84",
+      "after_sha256": "387975ddad8534170a5dfc210193c9ab4755409d9a6cee13a14dd773bef1a94e",
+      "after_git_blob": "9a9d9a9bd7cde4e105392b04e1457da3c26dca94"
+    }
+  ],
+  "protected_unchanged": {
+    "v4/manager_research/workspace.py": "8a1ce5122be59f2d56e258522909ca0ff76345a32aed3b4a2517e9cfb2e7c190",
+    "v4/manager_research/connect_selection.py": "b6c5300172f59b6979dbab15927036ff1ab3599a2adae2b4f0e5a1e4868a6248",
+    "v4/manager_research/workspace_plan_autorun.py": "ec257948eb39a7157652d9e13e4aed4a91c55d66ce1df1e5d1bd7b277ee6d3a8"
+  },
+  "boundaries": {
+    "snapshot_equals_native": false,
+    "reference_dependencies_deployable": false,
+    "qualification_gate_changed": false,
+    "buy_gate_changed": false,
+    "qualification_producer_changed": false,
+    "new_producer_added": false
+  }
+}
