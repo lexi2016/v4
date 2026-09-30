@@ -1,0 +1,53 @@
+{
+  "a1445_archive_pin_p1": "WITHDRAWN; corrected original pair binding PASS",
+  "candidate_integrity_receipt": {
+    "pass": true,
+    "path": "review/pr16_candidate_integrity_review_receipt.json",
+    "sha256": "8014a5e03cebc2c529bc87641690f30b484122a52d4799238777f9a89cc57967"
+  },
+  "cannot_confirm": [
+    "Direct original A0925 receipt/attempt/current/artifact raw identities were outside the allowed read scope.",
+    "Formal 2026-09-30 loaded-module bytes and natural Stage recovery are not established.",
+    "A1445 producer execution/serializer identity and real Stage/API behavior.",
+    "HK owner capture linkage.",
+    "A-lane nested status semantics for synthetic builder exception."
+  ],
+  "independent_test_receipt": {
+    "pass": true,
+    "path": "review/pr16_reviewer_tests_20261001/receipt.json",
+    "sha256": "8859071ba3964b6fec7a00636311e326b4ad61ebac24e00f0a4334168a848311",
+    "test_count": 10
+  },
+  "p0": [],
+  "p1": [],
+  "p2": [
+    {
+      "effect": "The guard pins artifact SHA and ordered codes but does not compare current.json SHA or run_id to the frozen A0925 tuple. Actual changed-current/run possibility is CANNOT_CONFIRM.",
+      "evidence": [
+        "coordinator/scheme.md:16",
+        "writer/candidate/ops/_run_stage_center_nodes_parts/node_entry.py:659-663",
+        "writer/candidate/ops/_run_stage_center_nodes_parts/node_entry.py:718-754",
+        "writer/candidate/tests/test_pr16_issue11_codes_digest.py:82-95"
+      ],
+      "id": "A0925_CURRENT_RUN_NOT_BOUND",
+      "severity": "P2"
+    }
+  ],
+  "report_path": "review/pr16_independent_final_review.md",
+  "report_sha256": "46e1175f75ad04566daaf1e735085468575a74910b1de4b92f7c61afd3717707",
+  "reviewer_identity": "independent agent; different identity from Writer",
+  "schema": "pr16_independent_final_review.v1",
+  "scope": "frozen PASS only; isolated candidate review",
+  "status_layers": {
+    "API_VERIFIED": "CANNOT_CONFIRM",
+    "BEHAVIOR_VERIFIED": "synthetic digest guard and bounded A-only lane tests only",
+    "DEPLOYED": "CANNOT_CONFIRM",
+    "IMPLEMENTED": "writer-reported; candidate hash-pinned",
+    "INTEGRATED": "CANNOT_CONFIRM",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM",
+    "REVIEWED": "WITH_P2",
+    "TESTED": "independent 10-case rerun PASS",
+    "UI_VERIFIED": "CANNOT_CONFIRM"
+  },
+  "verdict": "REVIEWED_WITH_P2"
+}

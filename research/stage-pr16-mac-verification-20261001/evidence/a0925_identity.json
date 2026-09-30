@@ -1,0 +1,110 @@
+{
+  "schema": "pr16_a0925_identity_summary.v1",
+  "source_evidence_sha256": "73ffd66775bb2fe4fbaa63ccc30f35f55dbac373f2e40e405464f4a6248aed12",
+  "trade_date": "20260930",
+  "stage_id": "STAGE_0925",
+  "market": "A_SHARE",
+  "status": "IDENTITIES_RECOMPUTED; NATURAL_SUCCESS_NOT_CONFIRMED; FORMAL_LOADED_MODULE_BYTES_CANNOT_CONFIRM",
+  "formal_receipt": {
+    "path_relative_to_v4_state": "stage/receipts/20260930/STAGE_0925/receipt.json",
+    "bytes": 2178,
+    "sha256": "b920987cdecc63d0f7857c50404b3807c8f5212f418be304f75a11a06500a87f",
+    "status": "CANNOT_CONFIRM",
+    "dispatch_mode": "RECOVERY",
+    "node_attempt_count": 3,
+    "retry_exhausted": true,
+    "error": "all market collectors returned zero-row CANNOT_CONFIRM",
+    "candidate_current_sha256": "08b1a6b0376c1ba0828ed5b3423ef5860d4e66944342cf3cf74d28b189e21623",
+    "candidate_current_sha256_semantics": "Matches exact current.json raw bytes; it is not the artifact raw SHA or ordered-code digest.",
+    "loaded_module_bytes": "CANNOT_CONFIRM",
+    "safety_flags": {
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    }
+  },
+  "current_artifact_run": {
+    "current_path_relative_to_v4_state": "data/current/20260930/A_SHARE_STAGE_ACQUISITION_UNIVERSE_V3/current.json",
+    "current_bytes": 2244,
+    "current_raw_sha256": "08b1a6b0376c1ba0828ed5b3423ef5860d4e66944342cf3cf74d28b189e21623",
+    "artifact_path_relative_to_v4_state": "runs/20260930/A_SHARE_STAGE_ACQUISITION_UNIVERSE_V3/20260930-a_share_stage_acquisition_universe_v3-92023837d870/artifact.json",
+    "artifact_bytes": 36591,
+    "artifact_raw_sha256": "92023837d8709abfb46fb03dec82ee9758ff56e57615cdfebeb98926e3789d72",
+    "run_id": "20260930-a_share_stage_acquisition_universe_v3-92023837d870",
+    "current_codes_count": 205,
+    "unique_count": 205,
+    "current_ordered_codes_sha256_compact_json_utf8": "ed7370dd8a81ddc621d606c61b8df95095cdc2c9def7909ab8be5e02b214b073",
+    "current_ordered_codes_sha256_lf_join_utf8_no_trailing_lf": "80f5a1c0bbed293b637d1a2bb25585de932ce5b235dd3ff0236fcb9a99d8eb69",
+    "existing_candidate_codes_export_sha256": "cf16619116f85832c9bf1ba80c60a6166f37afee52f3ed4b379e76b6e708b71c",
+    "same_order_matches_bound_artifact": true,
+    "current_artifact_binding_checks": {
+      "current_path_raw_matches_formal_receipt_field": true,
+      "artifact_raw_matches_current_artifact_bytes_sha256": true,
+      "artifact_codes_match_current_codes_sha256": true,
+      "formal_receipt_field_semantics": "CANNOT_CONFIRM that the formal receipt field identifies artifact bytes or ordered codes; current.json itself binds its artifact_relative and artifact_bytes_sha256 to the verified artifact."
+    },
+    "candidate_current_sha256_field": null,
+    "artifact_embedded_run_id": "not present; run id is supplied by current.json and path"
+  },
+  "attempt_evidence": {
+    "attempt_count": 3,
+    "file_count": 6,
+    "all_original_hashes_and_sizes_match": true,
+    "files": [
+      {
+        "relative_path": "attempt_evidence/0c8e2ced9c4349fcab0444f1a90ea712/001_START.json",
+        "bytes": 551,
+        "sha256": "813788aa0bfd6880e9f3d4533e87705f56b983aeb6bfc70e5d6ed131878c4a7f",
+        "match": true
+      },
+      {
+        "relative_path": "attempt_evidence/0c8e2ced9c4349fcab0444f1a90ea712/002_RETURN.json",
+        "bytes": 740,
+        "sha256": "30aa20e6d08a9ca42a24ec5130dc72f3db220df5d13dac98b0860f2fe7bdd6c1",
+        "match": true
+      },
+      {
+        "relative_path": "attempt_evidence/6ac017fb4ed546f6b4a7be8607e41dde/001_START.json",
+        "bytes": 575,
+        "sha256": "d881196930afe13629c849a6cf20a24db51ebb34ea65b7ef040476a60f46310b",
+        "match": true
+      },
+      {
+        "relative_path": "attempt_evidence/6ac017fb4ed546f6b4a7be8607e41dde/002_RETURN.json",
+        "bytes": 780,
+        "sha256": "6dc79616d262f23a9a9d256d9c20f46a81584f74f1455ed217eefe540578bf68",
+        "match": true
+      },
+      {
+        "relative_path": "attempt_evidence/cbb58ea26b554b1c90abc907f4d226fb/001_START.json",
+        "bytes": 575,
+        "sha256": "bcd48e4c8a73e7b0b85eb7345a451bd4123eb17efc6cd7e433c36be5c8448d4a",
+        "match": true
+      },
+      {
+        "relative_path": "attempt_evidence/cbb58ea26b554b1c90abc907f4d226fb/002_RETURN.json",
+        "bytes": 779,
+        "sha256": "a1ee9ceb50c66c125350dbbed2dd8604429d6de5a404b907cdf6b9ed77df3f6e",
+        "match": true
+      }
+    ]
+  },
+  "preimage_references": {
+    "source_export_plan_sha256": "ba374f49c2c37dc256eb0697faa7cbc101ff2880127fbb669210e86f06c7cae6",
+    "previously_verified_codes_export_sha256": "cf16619116f85832c9bf1ba80c60a6166f37afee52f3ed4b379e76b6e708b71c",
+    "codes_array_copied_as_separate_package_file": false
+  },
+  "cannot_confirm": [
+    "No natural full-input A-share STAGE_0925 success is evidenced by the retained 2026-09-30 receipt.",
+    "Exact modules loaded by the formal runner are not recorded.",
+    "The old receipt candidate_current_sha256 field is not proven to bind to artifact bytes or the ordered code serialization.",
+    "No formal 205-row recovery after the source repair is present."
+  ],
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "real_runner_or_collector_invoked": false,
+    "budget_or_attempts_modified": false
+  }
+}

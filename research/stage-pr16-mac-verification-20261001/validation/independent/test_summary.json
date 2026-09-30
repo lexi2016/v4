@@ -1,0 +1,47 @@
+{
+  "schema": "pr16_independent_test_rerun_summary.v1",
+  "source_receipt_sha256": "8859071ba3964b6fec7a00636311e326b4ad61ebac24e00f0a4334168a848311",
+  "independent_receipt_reported_sha256": "8859071ba3964b6fec7a00636311e326b4ad61ebac24e00f0a4334168a848311",
+  "reviewer_identity": "independent reviewer agent; different identity from Writer",
+  "candidate_manifest_sha256": "9cef626583df3e9c0bddde1d2d517cbe2d96830db425241237cc6e131ccc56fe",
+  "candidate_manifest_verified_before": true,
+  "candidate_unchanged_after": true,
+  "pass": true,
+  "test_count": 10,
+  "python": "SERVICE_PYTHON; Python 3.14.6; pytest 9.1.1",
+  "results": [
+    {
+      "name": "pr16_digest",
+      "pass": true,
+      "exit_code": 0,
+      "counts": {
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0,
+        "tests": 8
+      },
+      "stdout_bytes": 580,
+      "stdout_sha256": "08615d3b91045f7389d6d4cb5eb7411e96896d9ba8899527c4e509922f985e13",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "junit_sha256": "2fc2474b9e1d48e40be5631b97e7baba331f96bd4539a2a893aa59a2cf9b9ab3"
+    },
+    {
+      "name": "stage_r4_a_only_success_exception",
+      "pass": true,
+      "exit_code": 0,
+      "counts": {
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0,
+        "tests": 2
+      },
+      "stdout_bytes": 602,
+      "stdout_sha256": "398cf6fe7ac658167958b5f189c8bad2944119690f1951788a0553eaa1de9dc5",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "junit_sha256": "c92014f79e128ed78d4aecea26820e69c1137148d58c9e6a08d9d4298b5ee1f1"
+    }
+  ],
+  "scope_boundary": "independent 8+2 synthetic/local test replay only; it does not establish natural full-input recovery or runtime deployment"
+}

@@ -1,0 +1,74 @@
+{
+  "schema": "v4.pr16.a1445_original_archive_recheck.v1",
+  "captured_on": "20261001",
+  "method": {
+    "operation": "direct read and SHA-256 of the owner data-root source/archive and existing receipt/manifest",
+    "canonicalization": {
+      "ensure_ascii": false,
+      "sort_keys": true,
+      "separators": [
+        ",",
+        ":"
+      ],
+      "encoding": "UTF-8",
+      "trailing_newline": false
+    },
+    "read_only": true,
+    "market_rows_or_payload_values_exported": false,
+    "business_code_or_original_data_modified": false
+  },
+  "authoritative_data_root": "<V35_APP_SUPPORT>/state/data",
+  "source": {
+    "path": "<V35_APP_SUPPORT>/state/data/research/hourly/source/4076de79920c43cfa57336c23262a491cd77730f29b4e1a530bc5ed9836ef571.json",
+    "bytes": 982826,
+    "raw_sha256": "4076de79920c43cfa57336c23262a491cd77730f29b4e1a530bc5ed9836ef571",
+    "expected_raw_sha256": "4076de79920c43cfa57336c23262a491cd77730f29b4e1a530bc5ed9836ef571",
+    "matches_expected": true
+  },
+  "archive": {
+    "path": "<V35_APP_SUPPORT>/state/data/research/hourly/live/20260930/1400.json",
+    "bytes": 151554,
+    "raw_sha256": "811b7803b540ec22c8e3f061804229e59fa51179f20a55a56ccc12d946af4af0",
+    "canonical_bytes": 151554,
+    "canonical_sha256": "811b7803b540ec22c8e3f061804229e59fa51179f20a55a56ccc12d946af4af0",
+    "raw_equals_canonical_bytes": true,
+    "raw_ends_with_lf": false,
+    "mtime_ns_before_read": 1790748723557330534,
+    "mtime_ns_after_read": 1790748723557330534,
+    "fstat_identity_unchanged_during_read": true,
+    "source_input_sha256": "4076de79920c43cfa57336c23262a491cd77730f29b4e1a530bc5ed9836ef571",
+    "source_generated_at": "2026-09-30T14:12:03+08:00",
+    "matches_frozen_plan_sha256": true
+  },
+  "store_receipt": {
+    "path": "<V35_APP_SUPPORT>/state/data/receipts/research/hourly/live/20260930/1400.json",
+    "bytes": 449,
+    "raw_sha256": "918ec558b0527907715607620dbbc7b0f38dcd3b9d73d79c49dc7891fb23b9c8",
+    "payload_sha256": "811b7803b540ec22c8e3f061804229e59fa51179f20a55a56ccc12d946af4af0",
+    "source_input_sha256": "4076de79920c43cfa57336c23262a491cd77730f29b4e1a530bc5ed9836ef571",
+    "payload_matches_archive_raw_and_canonical_sha": true,
+    "source_matches_original_source_sha": true
+  },
+  "store_manifest": {
+    "path": "<V35_APP_SUPPORT>/state/data/manifest.json",
+    "bytes": 118156,
+    "raw_sha256": "8839b0147074b66e4d89e82deb1e4ad8ed68563b2a6bb7df404ae0021c0decaa",
+    "payload_sha256_for_archive_path": "811b7803b540ec22c8e3f061804229e59fa51179f20a55a56ccc12d946af4af0",
+    "payload_matches_archive_raw_and_canonical_sha": true
+  },
+  "binding": {
+    "source_sha_matches_frozen_source_pin": true,
+    "archive_sha_matches_frozen_archive_pin": true,
+    "archive_source_input_matches_source": true,
+    "receipt_and_manifest_match_archive": true,
+    "original_pair_binding": "PASS"
+  },
+  "review_correction": {
+    "previous_review_archive_sha_claim": "811b7803b540ec22e8c3f061804229e59fa51179f20a55a56ccc12d946af4af0",
+    "previous_claim_is_withdrawn": true,
+    "previous_p1_plan_pin_typo_judgment_is_withdrawn": true,
+    "previous_claimed_receipt_manifest_binding_to_e8c3_is_withdrawn": true,
+    "supported_cause": "The prior review did not preserve or assert the absolute owner data-root identity while attributing the e8c3 claim to the original. The preserved prior output does not let me identify whether that value came from a different file/copy or a transcription/read error.",
+    "cause_of_previous_e8c3_value": "CANNOT_CONFIRM"
+  }
+}

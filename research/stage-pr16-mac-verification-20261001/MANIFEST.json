@@ -1,0 +1,350 @@
+{
+  "schema": "pr16_evidence_package_manifest.v1",
+  "package_path_in_repository": "research/stage-pr16-mac-verification-20261001/",
+  "created_on": "20261001",
+  "file_count_excluding_manifest": 37,
+  "manifest_self_hash_excluded": true,
+  "files": [
+    {
+      "path": "CHAT_START_HERE.md",
+      "bytes": 3670,
+      "sha256": "c5c0fb4414138aac92caf713778e31abe69f86f9124dd842bf94dfced390cec1",
+      "source_path_relative_to_evidence_root": null,
+      "original_sha256": null,
+      "export_transformed": true,
+      "transformation_reason": "generated package entry point from frozen scope and reviewed evidence"
+    },
+    {
+      "path": "PUBLISH_FILELIST.txt",
+      "bytes": 1747,
+      "sha256": "7e39e5daec82404a337e009ca417d36128ec5c8d50056e5a3aa9be77f62f49ec",
+      "source_path_relative_to_evidence_root": null,
+      "original_sha256": null,
+      "export_transformed": true,
+      "transformation_reason": "generated exact local publish tree file list"
+    },
+    {
+      "path": "evidence/a0925_identity.json",
+      "bytes": 5345,
+      "sha256": "e3b54f993a56845e517f2cc77f5c49778a5924a5f7fd4f56501038640bcf67f5",
+      "source_path_relative_to_evidence_root": "writer/evidence/a0925/verification.json",
+      "original_sha256": "73ffd66775bb2fe4fbaa63ccc30f35f55dbac373f2e40e405464f4a6248aed12",
+      "export_transformed": true,
+      "transformation_reason": "retained current/artifact/run identities, digest semantics, six attempt event hashes; omitted 205-code array and absolute roots"
+    },
+    {
+      "path": "evidence/a1445/command_runs.json",
+      "bytes": 2618,
+      "sha256": "c46a436211f1b0dcba868463bf362015dc95eee23e62f43a8260450c44958ba7",
+      "source_path_relative_to_evidence_root": "a1445/command_runs.json",
+      "original_sha256": "f1629ecc9e14c57a2283e6b34170a1057bc70cf8a11a2541fb85d4a50c441d77",
+      "export_transformed": true,
+      "transformation_reason": "publication copy with absolute user/data roots redacted; original source SHA recorded in package manifest"
+    },
+    {
+      "path": "evidence/a1445/original_archive_owner_recheck.json",
+      "bytes": 3529,
+      "sha256": "b66c3a37dd7d86f8359be24375020f8f7795e16e8554297ad722fc4878694c0b",
+      "source_path_relative_to_evidence_root": "review/a1445_original_archive_recheck.json",
+      "original_sha256": "a73915096dd0efae7ffd071f834af934caf1c47efe58026e1a3e07abf309efd6",
+      "export_transformed": true,
+      "transformation_reason": "publication copy with absolute user/data roots redacted; original source SHA recorded in package manifest"
+    },
+    {
+      "path": "evidence/a1445/pin_correction.md",
+      "bytes": 1239,
+      "sha256": "a54e33571d1fa7c6ea20564ec97227b2c44abf4c0df2fb8af054537fcc22c720",
+      "source_path_relative_to_evidence_root": "generated from corrected A1445 report, command capture, direct owner recheck",
+      "original_sha256": null,
+      "export_transformed": true,
+      "transformation_reason": "concise correction note; excludes absolute roots"
+    },
+    {
+      "path": "evidence/a1445/a1445_20260930_1400_projection_witness.json",
+      "bytes": 30180,
+      "sha256": "ee1c5263f09a83c49462ed360c1fb7e0a0621e7029b26ed0c3df4135572368d1",
+      "source_path_relative_to_evidence_root": "a1445/a1445_20260930_1400_projection_witness.json",
+      "original_sha256": "78ffc95f3ae7b6e0f69730796be69d9a4f3e1a294838b7873dbd5825908d3003",
+      "export_transformed": true,
+      "transformation_reason": "publication copy with absolute user/data roots redacted; original source SHA recorded in package manifest"
+    },
+    {
+      "path": "evidence/a1445/rebuild_projection_witness.py",
+      "bytes": 21460,
+      "sha256": "2830084270702800ce7762cea18bb3c79b73865b69d32bf2595b19c552710507",
+      "source_path_relative_to_evidence_root": "a1445/rebuild_projection_witness.py",
+      "original_sha256": "2c68bd11db32a24230a8a37bf5bbfbd48b7b20ea4151c006f12dc8284d306f00",
+      "export_transformed": true,
+      "transformation_reason": "package-only CLI adds --app-root, --data-root and --output-dir; no original evidence or business source modified"
+    },
+    {
+      "path": "evidence/a1445/receipt.json",
+      "bytes": 5755,
+      "sha256": "38761f2400a5b89822a1356a4e6ba0d12dd7b9227f36f4da1d40ad976074b947",
+      "source_path_relative_to_evidence_root": "a1445/receipt.json",
+      "original_sha256": "5104cd5e1ce3efc839cad46e7af434831bd7eb196b43f62cec191688c0232cbe",
+      "export_transformed": true,
+      "transformation_reason": "publication copy with absolute user/data roots redacted; original source SHA recorded in package manifest"
+    },
+    {
+      "path": "evidence/a1445/report.md",
+      "bytes": 4993,
+      "sha256": "15c4d7debfba560e838fe65330a9beb12ea34d1feb4add1effb6926518080ce7",
+      "source_path_relative_to_evidence_root": "a1445/report.md",
+      "original_sha256": "15c4d7debfba560e838fe65330a9beb12ea34d1feb4add1effb6926518080ce7",
+      "export_transformed": true,
+      "transformation_reason": "publication copy with absolute user/data roots redacted; original source SHA recorded in package manifest"
+    },
+    {
+      "path": "evidence/hk/receipt.json",
+      "bytes": 13260,
+      "sha256": "94c3392b51ccf1d224cb78736a47e5f49934a2c34914ff4a9fbe3f5000756512",
+      "source_path_relative_to_evidence_root": "hk/receipt.json",
+      "original_sha256": "94c3392b51ccf1d224cb78736a47e5f49934a2c34914ff4a9fbe3f5000756512",
+      "export_transformed": true,
+      "transformation_reason": "publication copy with absolute roots redacted; no source quote rows included"
+    },
+    {
+      "path": "evidence/hk/report.md",
+      "bytes": 6630,
+      "sha256": "2254c2ff011f98649c2f5d126131f0255fd4ceaa03eff35740b81b635a3f8388",
+      "source_path_relative_to_evidence_root": "hk/report.md",
+      "original_sha256": "2254c2ff011f98649c2f5d126131f0255fd4ceaa03eff35740b81b635a3f8388",
+      "export_transformed": true,
+      "transformation_reason": "publication copy with absolute roots redacted; no source quote rows included"
+    },
+    {
+      "path": "external-dependencies/infrastructure/_stage_acquisition_universe_commit_parts/__init__.py",
+      "bytes": 70,
+      "sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "source_path_relative_to_evidence_root": "writer/candidate/infrastructure/_stage_acquisition_universe_commit_parts/__init__.py",
+      "original_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "export_transformed": false,
+      "transformation_reason": null
+    },
+    {
+      "path": "external-dependencies/infrastructure/_stage_acquisition_universe_contracts_parts/__init__.py",
+      "bytes": 70,
+      "sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "source_path_relative_to_evidence_root": "writer/candidate/infrastructure/_stage_acquisition_universe_contracts_parts/__init__.py",
+      "original_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "export_transformed": false,
+      "transformation_reason": null
+    },
+    {
+      "path": "external-dependencies/infrastructure/preselection_pool_readers.py",
+      "bytes": 5432,
+      "sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+      "source_path_relative_to_evidence_root": "writer/candidate/infrastructure/preselection_pool_readers.py",
+      "original_sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+      "export_transformed": false,
+      "transformation_reason": null
+    },
+    {
+      "path": "external-dependencies/infrastructure/preselection_pool_sources.py",
+      "bytes": 5798,
+      "sha256": "cc683561201453e3f7ca975b2b7cdb6a3836b1ecbe63e001a5abd181f38813d6",
+      "source_path_relative_to_evidence_root": "writer/candidate/infrastructure/preselection_pool_sources.py",
+      "original_sha256": "cc683561201453e3f7ca975b2b7cdb6a3836b1ecbe63e001a5abd181f38813d6",
+      "export_transformed": false,
+      "transformation_reason": null
+    },
+    {
+      "path": "external-dependencies/infrastructure/preselection_pool_transactions.py",
+      "bytes": 15569,
+      "sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+      "source_path_relative_to_evidence_root": "writer/candidate/infrastructure/preselection_pool_transactions.py",
+      "original_sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+      "export_transformed": false,
+      "transformation_reason": null
+    },
+    {
+      "path": "patches/actualdiff.patch",
+      "bytes": 47648,
+      "sha256": "e6a0d2e39941786f2291b57fe1a8d721de4983f69312e19288f841c522ac32bb",
+      "source_path_relative_to_evidence_root": "writer/actualdiff.patch",
+      "original_sha256": "e6a0d2e39941786f2291b57fe1a8d721de4983f69312e19288f841c522ac32bb",
+      "export_transformed": false,
+      "transformation_reason": null
+    },
+    {
+      "path": "patches/source_only_rollback.patch",
+      "bytes": 35540,
+      "sha256": "cbea567e269f2498b0fbbca7988d817e276dc520d1f3a5fc457f66830e2407c5",
+      "source_path_relative_to_evidence_root": "writer/source_only_rollback.patch",
+      "original_sha256": "cbea567e269f2498b0fbbca7988d817e276dc520d1f3a5fc457f66830e2407c5",
+      "export_transformed": false,
+      "transformation_reason": null
+    },
+    {
+      "path": "provenance/candidate_source_manifest_compact.json",
+      "bytes": 302184,
+      "sha256": "73b4edcd0f10897482468f8d1b814187d65699a330ac762c2019c432574fa097",
+      "source_path_relative_to_evidence_root": "writer/candidate_source_manifest.json",
+      "original_sha256": "9cef626583df3e9c0bddde1d2d517cbe2d96830db425241237cc6e131ccc56fe",
+      "export_transformed": true,
+      "transformation_reason": "692 path/SHA/origin index; retained 50 closure pins and 5 external dependencies; removed absolute roots and full source tree"
+    },
+    {
+      "path": "review/candidate_integrity_receipt.json",
+      "bytes": 4037,
+      "sha256": "8014a5e03cebc2c529bc87641690f30b484122a52d4799238777f9a89cc57967",
+      "source_path_relative_to_evidence_root": "review/pr16_candidate_integrity_review_receipt.json",
+      "original_sha256": "8014a5e03cebc2c529bc87641690f30b484122a52d4799238777f9a89cc57967",
+      "export_transformed": true,
+      "transformation_reason": "sanitized publication copy; original source hash recorded in package manifest"
+    },
+    {
+      "path": "review/independent_final_review.md",
+      "bytes": 5215,
+      "sha256": "46e1175f75ad04566daaf1e735085468575a74910b1de4b92f7c61afd3717707",
+      "source_path_relative_to_evidence_root": "review/pr16_independent_final_review.md",
+      "original_sha256": "46e1175f75ad04566daaf1e735085468575a74910b1de4b92f7c61afd3717707",
+      "export_transformed": true,
+      "transformation_reason": "sanitized publication copy; original source hash recorded in package manifest"
+    },
+    {
+      "path": "review/independent_final_review_receipt.json",
+      "bytes": 2343,
+      "sha256": "0439e46d4132cbd0f669e4e492760e1b6172e5e521cfa49c5c96aad13811249b",
+      "source_path_relative_to_evidence_root": "review/pr16_independent_final_review_receipt.json",
+      "original_sha256": "0439e46d4132cbd0f669e4e492760e1b6172e5e521cfa49c5c96aad13811249b",
+      "export_transformed": true,
+      "transformation_reason": "sanitized publication copy; original source hash recorded in package manifest"
+    },
+    {
+      "path": "validation/independent/pr16_digest.junit.xml",
+      "bytes": 1152,
+      "sha256": "2fc2474b9e1d48e40be5631b97e7baba331f96bd4539a2a893aa59a2cf9b9ab3",
+      "source_path_relative_to_evidence_root": "review/pr16_reviewer_tests_20261001/pr16_digest.junit.xml",
+      "original_sha256": "2fc2474b9e1d48e40be5631b97e7baba331f96bd4539a2a893aa59a2cf9b9ab3",
+      "export_transformed": false,
+      "transformation_reason": null
+    },
+    {
+      "path": "validation/independent/pr16_digest.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path_relative_to_evidence_root": "review/pr16_reviewer_tests_20261001/pr16_digest.stderr.txt",
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "export_transformed": false,
+      "transformation_reason": null
+    },
+    {
+      "path": "validation/independent/pr16_digest.stdout.txt",
+      "bytes": 497,
+      "sha256": "360a3ac1b43adbd61f421c6555f68754e0fa52cfa7cf49837b6307bb9ddf9823",
+      "source_path_relative_to_evidence_root": "review/pr16_reviewer_tests_20261001/pr16_digest.stdout.txt",
+      "original_sha256": "08615d3b91045f7389d6d4cb5eb7411e96896d9ba8899527c4e509922f985e13",
+      "export_transformed": true,
+      "transformation_reason": "absolute local candidate and temp paths redacted from independent replay output"
+    },
+    {
+      "path": "validation/independent/stage_r4_a_only_success_exception.junit.xml",
+      "bytes": 469,
+      "sha256": "c92014f79e128ed78d4aecea26820e69c1137148d58c9e6a08d9d4298b5ee1f1",
+      "source_path_relative_to_evidence_root": "review/pr16_reviewer_tests_20261001/stage_r4_a_only_success_exception.junit.xml",
+      "original_sha256": "c92014f79e128ed78d4aecea26820e69c1137148d58c9e6a08d9d4298b5ee1f1",
+      "export_transformed": false,
+      "transformation_reason": null
+    },
+    {
+      "path": "validation/independent/stage_r4_a_only_success_exception.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path_relative_to_evidence_root": "review/pr16_reviewer_tests_20261001/stage_r4_a_only_success_exception.stderr.txt",
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "export_transformed": false,
+      "transformation_reason": null
+    },
+    {
+      "path": "validation/independent/stage_r4_a_only_success_exception.stdout.txt",
+      "bytes": 519,
+      "sha256": "5ba355d424a0169c62fd98159a80e0ddb2cd3f32434096e755278efc772b5eaf",
+      "source_path_relative_to_evidence_root": "review/pr16_reviewer_tests_20261001/stage_r4_a_only_success_exception.stdout.txt",
+      "original_sha256": "398cf6fe7ac658167958b5f189c8bad2944119690f1951788a0553eaa1de9dc5",
+      "export_transformed": true,
+      "transformation_reason": "absolute local candidate and temp paths redacted from independent replay output"
+    },
+    {
+      "path": "validation/independent/test_summary.json",
+      "bytes": 1847,
+      "sha256": "725db0002001e20e6bdf088d630686e9bdb4bc74a335ff37b870163d2c2f36c1",
+      "source_path_relative_to_evidence_root": "review/pr16_reviewer_tests_20261001/receipt.json",
+      "original_sha256": "8859071ba3964b6fec7a00636311e326b4ad61ebac24e00f0a4334168a848311",
+      "export_transformed": true,
+      "transformation_reason": "filtered result receipt; removed full commands, environment and local/temp paths"
+    },
+    {
+      "path": "validation/writer/pr16_digest.junit.xml",
+      "bytes": 1152,
+      "sha256": "c84609cf558e5b40db1ef24eea2136f596ae3ceb091a7ed270a6ab37ff8af575",
+      "source_path_relative_to_evidence_root": "writer/validation/attempt_04_isolated_pytest_tmp/pr16_digest.junit.xml",
+      "original_sha256": "c84609cf558e5b40db1ef24eea2136f596ae3ceb091a7ed270a6ab37ff8af575",
+      "export_transformed": false,
+      "transformation_reason": null
+    },
+    {
+      "path": "validation/writer/pr16_digest.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path_relative_to_evidence_root": "writer/validation/attempt_04_isolated_pytest_tmp/pr16_digest.stderr.txt",
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "export_transformed": false,
+      "transformation_reason": null
+    },
+    {
+      "path": "validation/writer/pr16_digest.stdout.txt",
+      "bytes": 510,
+      "sha256": "ee9c22319353285ab78d598a5d14df3a9bd485ea342988facfb1da4834aa36f7",
+      "source_path_relative_to_evidence_root": "writer/validation/attempt_04_isolated_pytest_tmp/pr16_digest.stdout.txt",
+      "original_sha256": "340cd4ffc0153463f88c7f5ce2810f44a04a1abd97389ae64be8de794896a30d",
+      "export_transformed": true,
+      "transformation_reason": "absolute local candidate and temp paths redacted from writer test output"
+    },
+    {
+      "path": "validation/writer/stage_r4_a_only_success_exception.junit.xml",
+      "bytes": 469,
+      "sha256": "5bf44e63e92d6530e2e57d8f14927ccb853150128fc9431c2dc371f2d65070a6",
+      "source_path_relative_to_evidence_root": "writer/validation/attempt_04_isolated_pytest_tmp/stage_r4_a_only_success_exception.junit.xml",
+      "original_sha256": "5bf44e63e92d6530e2e57d8f14927ccb853150128fc9431c2dc371f2d65070a6",
+      "export_transformed": false,
+      "transformation_reason": null
+    },
+    {
+      "path": "validation/writer/stage_r4_a_only_success_exception.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path_relative_to_evidence_root": "writer/validation/attempt_04_isolated_pytest_tmp/stage_r4_a_only_success_exception.stderr.txt",
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "export_transformed": false,
+      "transformation_reason": null
+    },
+    {
+      "path": "validation/writer/stage_r4_a_only_success_exception.stdout.txt",
+      "bytes": 532,
+      "sha256": "81929b0e10f2fc7eb00799205b5968c5ec19d15a6f962d52068df8108d124534",
+      "source_path_relative_to_evidence_root": "writer/validation/attempt_04_isolated_pytest_tmp/stage_r4_a_only_success_exception.stdout.txt",
+      "original_sha256": "9bae5484d41c38dc5a1742f56669eb2066d41bfb27aae5dc0f2a097f1f728f78",
+      "export_transformed": true,
+      "transformation_reason": "absolute local candidate and temp paths redacted from writer test output"
+    },
+    {
+      "path": "validation/writer/test_summary.json",
+      "bytes": 1985,
+      "sha256": "634d690d3c339203dbe90b3b08951703911f21c38f93538bfb3ee5af7f44c51b",
+      "source_path_relative_to_evidence_root": "writer/WRITER_RECEIPT.json",
+      "original_sha256": "84ce1445c8725990edc05c85220f97291f22a3455e04133709595ad40ecd96cb",
+      "export_transformed": true,
+      "transformation_reason": "filtered to final 8+2 test outcomes; removed private runtime/temp paths and unrelated retry history"
+    }
+  ],
+  "export_policy": {
+    "private_absolute_paths_redacted": true,
+    "temporary_roots_redacted": true,
+    "full_env_plist_or_credentials_included": false,
+    "original_data_rows_included": false,
+    "candidate_code_array_exported_separately": false,
+    "exact_patches_changed": false
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "schema": "v4.pr16.a1445_projection_witness_receipt.v1",
+  "captured_on": "20261001",
+  "status": "EVIDENCE_COMPLETE_PROJECTION_DIVERGENCE_CONFIRMED",
+  "scope": {
+    "date": "20260930",
+    "stage": "STAGE_1445_1500",
+    "source_slot": "1400",
+    "operation": "read-only reconstruction from the fixed source/archive pair",
+    "allowed_output_root": "a1445/"
+  },
+  "input_identity": {
+    "source": {
+      "path": "research/hourly/source/4076de79920c43cfa57336c23262a491cd77730f29b4e1a530bc5ed9836ef571.json",
+      "bytes": 982826,
+      "raw_sha256": "4076de79920c43cfa57336c23262a491cd77730f29b4e1a530bc5ed9836ef571",
+      "canonical_bytes": 804617,
+      "canonical_sha256": "34994edb74908dfa2dfaa0c49b442e0249fa021cd862e0dd5f7f18a90105d643"
+    },
+    "archive": {
+      "path": "research/hourly/live/20260930/1400.json",
+      "bytes": 151554,
+      "raw_sha256": "811b7803b540ec22c8e3f061804229e59fa51179f20a55a56ccc12d946af4af0",
+      "stored_payload_sha256": "811b7803b540ec22c8e3f061804229e59fa51179f20a55a56ccc12d946af4af0",
+      "stored_payload_sha256_contract": "SHA-256 of parsed payload canonical bytes via infrastructure.data_store._canonical_bytes",
+      "full_canonical_bytes": 151554,
+      "full_canonical_sha256": "811b7803b540ec22c8e3f061804229e59fa51179f20a55a56ccc12d946af4af0",
+      "base_without_stage_evidence_v1_bytes": 151554,
+      "base_without_stage_evidence_v1_sha256": "811b7803b540ec22c8e3f061804229e59fa51179f20a55a56ccc12d946af4af0",
+      "stage_evidence_v1_present": false
+    }
+  },
+  "time_binding": {
+    "stage_cutoff": "2026-09-30T15:00:00+08:00",
+    "selected_slot": "1400",
+    "selected_generated_at": "2026-09-30T14:12:03+08:00",
+    "rejected_1500_generated_at": "2026-09-30T15:00:02+08:00",
+    "rejected_1500_after_cutoff": true,
+    "source_manifest_pit_cutoff": "2026-09-30T14:00:59+08:00",
+    "capture_origin": "LATE_RECOVERY",
+    "original_time_capture": false
+  },
+  "reconstruction": {
+    "module_call_order": [
+      "stage_center.research_context._verified_hourly_slot",
+      "stage_center.research_context._bound_source_rows",
+      "domains.research.build_research_archive",
+      "stage_center.research_context._apply_exact_v35_20260929_1400_role_warning_projection",
+      "stage_center.research_context._payload_base_sha"
+    ],
+    "legacy_helper_expected_source_sha256": "506c947cad54071a286853df20afc74e10bb544b2b639fea1ea7a443216bc3fc",
+    "actual_source_sha256": "4076de79920c43cfa57336c23262a491cd77730f29b4e1a530bc5ed9836ef571",
+    "helper_effect": "no-op due exact source SHA guard mismatch",
+    "removed_before_diff": [
+      "stage_evidence_v1"
+    ],
+    "stage_evidence_v1_present_on_archive_and_rebuild": false,
+    "json_pointer_diff_count": 27,
+    "json_pointer_diff_family": "/cannot_confirm/1..27",
+    "archive_side": {
+      "type": "string",
+      "length": 36,
+      "value_preserved_in_witness": true
+    },
+    "rebuilt_side": {
+      "type": "MISSING",
+      "value": null
+    },
+    "original_bound_validation_error": "RESEARCH_SOURCE_WITNESS_INVALID:SOURCE_ARCHIVE_PROJECTION_SHA_MISMATCH"
+  },
+  "serializer_contract": {
+    "canonical_json": {
+      "ensure_ascii": false,
+      "sort_keys": true,
+      "separators": [
+        ",",
+        ":"
+      ],
+      "encoding": "UTF-8",
+      "trailing_newline": false
+    },
+    "source_decoder": "utf-8-sig",
+    "source_producer_serializer": "CANNOT_CONFIRM_FROM_SOURCE_MANIFEST"
+  },
+  "source_producer_manifest_claims": {
+    "producer": "ops.collect_hourly_research_input",
+    "module_path": "v3.5/domains/research_hourly",
+    "producer_oracle_sha256": "850fffdf16b7c0127852cbe9cc374aed353e8d7cb1c2ba73d2eff880c95d022e",
+    "collector_identity_sha256": "66b941f5a066250c4fd9830170302b8b1f7041760a37c6e4bf02ea222aa307ab",
+    "research_hourly_domain_identity_sha256": "6c67bec8d162ed47d8ebc20ce9ae8da2b8e520399260165cc0bb992baa9c8e22"
+  },
+  "witness_artifact": {
+    "path": "a1445_20260930_1400_projection_witness.json",
+    "bytes": 30324,
+    "raw_sha256": "78ffc95f3ae7b6e0f69730796be69d9a4f3e1a294838b7873dbd5825908d3003"
+  },
+  "witness_script": {
+    "path": "rebuild_projection_witness.py",
+    "bytes": 21111,
+    "raw_sha256": "2c68bd11db32a24230a8a37bf5bbfbd48b7b20ea4151c006f12dc8284d306f00"
+  },
+  "runtime_identity_boundary": {
+    "candidate_module_sha_recorded": true,
+    "modules_loaded_by_real_stage_process": "CANNOT_CONFIRM"
+  },
+  "export_boundary": {
+    "source_or_archive_bytes_copied": false,
+    "full_market_rows_exported": false,
+    "warnings_or_arrays_removed_or_reordered": false
+  },
+  "tests_run": [],
+  "cannot_confirm": [
+    "Original producer execution bytes and serializer contract",
+    "Modules loaded by the actual 2026-09-30 Stage process",
+    "Production fix and real Stage/API/UI behavior"
+  ],
+  "pin_transcription_correction": {
+    "previous_failed_pin": "811b7803b540ec22e8c3f061804229e59fa51179f20a55a56ccc12d946af4af0",
+    "authoritative_original_archive_pin": "811b7803b540ec22c8e3f061804229e59fa51179f20a55a56ccc12d946af4af0",
+    "previous_failed_attempt": {
+      "exit_code": 1,
+      "capture_path": "command_runs.json",
+      "capture_sha256": "f1629ecc9e14c57a2283e6b34170a1057bc70cf8a11a2541fb85d4a50c441d77",
+      "stderr_message": "stored payload canonical SHA mismatch"
+    },
+    "corrected_attempt": {
+      "argv": [
+        "python3.13",
+        "<PR16_EVIDENCE_ROOT>/a1445/rebuild_projection_witness.py"
+      ],
+      "exit_code": 0,
+      "capture_path": "command_runs.json",
+      "capture_sha256": "f1629ecc9e14c57a2283e6b34170a1057bc70cf8a11a2541fb85d4a50c441d77",
+      "stdout_status": "WITNESS_WRITTEN",
+      "stderr": "",
+      "diff_count": 27
+    },
+    "source_archive_originals_modified": false
+  }
+}

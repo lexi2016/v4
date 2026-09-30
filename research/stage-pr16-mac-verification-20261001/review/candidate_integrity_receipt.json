@@ -1,0 +1,87 @@
+{
+  "a0925_identity_evidence": {
+    "actual_sha256": "73ffd66775bb2fe4fbaa63ccc30f35f55dbac373f2e40e405464f4a6248aed12",
+    "direct_original_attempts_reverified_by_reviewer": false,
+    "expected_sha256": "73ffd66775bb2fe4fbaa63ccc30f35f55dbac373f2e40e405464f4a6248aed12",
+    "limitation": "The original receipt/attempt/current/artifact paths remain outside the read scope; only staged writer metadata was inspected.",
+    "path": "writer/evidence/a0925/verification.json",
+    "reported_status": "IDENTITIES_RECOMPUTED; NATURAL_SUCCESS_NOT_CONFIRMED; FORMAL_LOADED_MODULE_BYTES_CANNOT_CONFIRM"
+  },
+  "a1445_artifact_hashes": {
+    "a1445_20260930_1400_projection_witness.json": "78ffc95f3ae7b6e0f69730796be69d9a4f3e1a294838b7873dbd5825908d3003",
+    "command_runs.json": "f1629ecc9e14c57a2283e6b34170a1057bc70cf8a11a2541fb85d4a50c441d77",
+    "rebuild_projection_witness.py": "2c68bd11db32a24230a8a37bf5bbfbd48b7b20ea4151c006f12dc8284d306f00",
+    "receipt.json": "5104cd5e1ce3efc839cad46e7af434831bd7eb196b43f62cec191688c0232cbe",
+    "report.md": "15c4d7debfba560e838fe65330a9beb12ea34d1feb4add1effb6926518080ce7"
+  },
+  "a1445_owner_recheck": {
+    "binding": "PASS",
+    "path": "review/a1445_original_archive_recheck.json",
+    "sha256": "a73915096dd0efae7ffd071f834af934caf1c47efe58026e1a3e07abf309efd6"
+  },
+  "actualdiff_expected_sha256": "e6a0d2e39941786f2291b57fe1a8d721de4983f69312e19288f841c522ac32bb",
+  "actualdiff_sha256": "e6a0d2e39941786f2291b57fe1a8d721de4983f69312e19288f841c522ac32bb",
+  "candidate_integrity": {
+    "actual_regular_file_count": 692,
+    "extra_count": 0,
+    "hash_or_size_mismatch_count": 0,
+    "manifest_file_count": 692,
+    "missing_count": 0,
+    "pass": true,
+    "symlink_count": 0
+  },
+  "candidate_integrity_pass": true,
+  "candidate_manifest_sha256": "9cef626583df3e9c0bddde1d2d517cbe2d96830db425241237cc6e131ccc56fe",
+  "closure_pass": true,
+  "diff_hashes_match": true,
+  "external_pins_pass": true,
+  "external_stage_dependencies": {
+    "count": 5,
+    "error_count": 0,
+    "pass": true
+  },
+  "hk_artifact_hashes": {
+    "receipt.json": "94c3392b51ccf1d224cb78736a47e5f49934a2c34914ff4a9fbe3f5000756512",
+    "report.md": "2254c2ff011f98649c2f5d126131f0255fd4ceaa03eff35740b81b635a3f8388"
+  },
+  "hk_source_capture_binding": "CANNOT_CONFIRM",
+  "independent_test_receipt_sha256": "8859071ba3964b6fec7a00636311e326b4ad61ebac24e00f0a4334168a848311",
+  "pass": true,
+  "review_scope": "frozen PASS; isolated local candidate only",
+  "rollback_expected_sha256": "cbea567e269f2498b0fbbca7988d817e276dc520d1f3a5fc457f66830e2407c5",
+  "rollback_sha256": "cbea567e269f2498b0fbbca7988d817e276dc520d1f3a5fc457f66830e2407c5",
+  "schema": "pr16_candidate_integrity_review.v1",
+  "source_identity": {
+    "base_inventory_commit": "bdc95a3f9d6d0313baeff2bf727ea82d122dc820",
+    "base_inventory_git_blob_sha1": "7943250546089054c58d68f731765d815f1760e6",
+    "base_inventory_raw_sha256": "60e5b43c8160a267e5f095ccdaea8ead9ce628277a2c569b59c3e3ed1924990a",
+    "fixed_pr16_commit": "84264c47a99d464d174b8180375c8701883b2bb5",
+    "fixed_pr16_source_sha256_git_blob": "e04646f8153caf7b97a98de2e4b41c1a3fcb918c",
+    "fixed_pr16_source_sha256_raw": "22d24b3f473649f8253215265767a9c1e520f7a1a9838e1d967fe7389bcf7623",
+    "repository": "lexi2016/v4"
+  },
+  "stage_service_closure": {
+    "contract_path": "ops/stage_service_overlay_contract.py",
+    "contract_sha256": "a9ac2c1270b349152eaa56ca305aa42ab48abe2f43515f452a691e572ba24681",
+    "entry_mismatch_count": 0,
+    "expected_contract_sha256": "a9ac2c1270b349152eaa56ca305aa42ab48abe2f43515f452a691e572ba24681",
+    "input_count": 50,
+    "pass": true,
+    "pin_count": 50,
+    "status_counts": {
+      "MATCH_PR16_AFTER": 2,
+      "MATCH_STAGE_SERVICE_PIN": 48
+    }
+  },
+  "writer_status_layers": {
+    "API_VERIFIED": false,
+    "BEHAVIOR_VERIFIED": false,
+    "DEPLOYED": false,
+    "IMPLEMENTED": true,
+    "INTEGRATED": false,
+    "NATURAL_VERIFIED": false,
+    "REVIEWED": false,
+    "TESTED": false,
+    "UI_VERIFIED": false
+  }
+}

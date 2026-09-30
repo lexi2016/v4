@@ -1,0 +1,62 @@
+{
+  "schema": "pr16_writer_targeted_test_summary.v1",
+  "source_writer_receipt_sha256": "84ce1445c8725990edc05c85220f97291f22a3455e04133709595ad40ecd96cb",
+  "evidence_class": "writer-run auxiliary tests; not the independent acceptance receipt",
+  "python_version": "Python 3.14.6",
+  "pytest_version": "9.1.1",
+  "final_attempt": "attempt_04_isolated_pytest_tmp",
+  "pass": true,
+  "tests": [
+    {
+      "name": "pr16_digest",
+      "exit_code": 0,
+      "counts": {
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "stdout": {
+        "path": "pr16_digest.stdout.txt",
+        "bytes": 593,
+        "sha256": "340cd4ffc0153463f88c7f5ce2810f44a04a1abd97389ae64be8de794896a30d"
+      },
+      "stderr": {
+        "path": "pr16_digest.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "junit": {
+        "path": "pr16_digest.junit.xml",
+        "bytes": 1152,
+        "sha256": "c84609cf558e5b40db1ef24eea2136f596ae3ceb091a7ed270a6ab37ff8af575"
+      }
+    },
+    {
+      "name": "stage_r4_a_only_success_exception",
+      "exit_code": 0,
+      "counts": {
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "stdout": {
+        "path": "stage_r4_a_only_success_exception.stdout.txt",
+        "bytes": 615,
+        "sha256": "9bae5484d41c38dc5a1742f56669eb2066d41bfb27aae5dc0f2a097f1f728f78"
+      },
+      "stderr": {
+        "path": "stage_r4_a_only_success_exception.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "junit": {
+        "path": "stage_r4_a_only_success_exception.junit.xml",
+        "bytes": 469,
+        "sha256": "5bf44e63e92d6530e2e57d8f14927ccb853150128fc9431c2dc371f2d65070a6"
+      }
+    }
+  ],
+  "candidate_manifest_sha256": "9cef626583df3e9c0bddde1d2d517cbe2d96830db425241237cc6e131ccc56fe"
+}

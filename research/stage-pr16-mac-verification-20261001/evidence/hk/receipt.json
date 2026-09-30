@@ -1,0 +1,260 @@
+{
+  "schema": "v4.pr16.hk_cutoff_and_d1_lineage_receipt.v1",
+  "captured_on": "20261001",
+  "status": "READ_ONLY_EVIDENCE_SUPPLEMENT_WITH_CANNOT_CONFIRM",
+  "scope": {
+    "dates": [
+      "20260928",
+      "20260929",
+      "20260930"
+    ],
+    "stage": "STAGE_0930_0935",
+    "market": "HK_CONNECT",
+    "operation": "two requested lineage gaps only"
+  },
+  "summary": {
+    "d1_ready_20260928": true,
+    "d1_ready_20260929": true,
+    "active_snapshot_temporal_cutoff_unsafe_20260928": true,
+    "saved_stage_snapshot_after_cutoff_20260929": true,
+    "strict_d1_invalid_sentinel_20260930": true,
+    "sentinel_binds_to_three_20260929_dispatch_retries": "CANNOT_CONFIRM",
+    "cutoff_before_original_capture_lineage_20260928_20260929": "CANNOT_CONFIRM"
+  },
+  "redaction_boundary": {
+    "source_sha256_computed_over_original_bytes_before_summary": true,
+    "full_quote_rows_or_full_code_lists_exported": false,
+    "original_capture_files_copied": false,
+    "raw_data_files_modified": false,
+    "64_digest_or_3_sample_used_as_full_coverage": false
+  },
+  "evidence": {
+    "d1_pools": [
+      {
+        "target_date": "20260928",
+        "path": "Application Support/com.lexi.v35.local/state/data/preselection_pools/20260928/hkconnect_d1_top100.json",
+        "bytes": 213709,
+        "raw_sha256": "0024b72d7122f2a44ff21483eddc3d1be5b771caa854d915e23ea507e5d1f60d",
+        "status": "STRICT_0_2_READY",
+        "rows": 100,
+        "producer_run_id": "20260928-hk-connect-d1-top100-0-2-ef16f451b21c",
+        "producer_artifact_sha256": "6c7a524c0e81b835c5a1914aae80a0d98168f98ec95a6b1588b8816488c0a214",
+        "producer_manifest_sha256": "852fe3b106d5e04a9b5752146c22d2e5a53287572b5d07f81ecf31ebe4b4c26f",
+        "producer_receipt_sha256": "ef7cbd81261905255cd3e8914dd8ec5d2f10d099001cde81c21a52f5a76248bc"
+      },
+      {
+        "target_date": "20260929",
+        "path": "Application Support/com.lexi.v35.local/state/data/preselection_pools/20260929/hkconnect_d1_top100.json",
+        "bytes": 213570,
+        "raw_sha256": "d94eae4903aa09088f88d954d358869e7c1ac991782488ad62fd3bec40eeaaf3",
+        "status": "STRICT_0_2_READY",
+        "rows": 100,
+        "producer_run_id": "20260929-hk-connect-d1-top100-0-2-224afd3caf59",
+        "producer_artifact_sha256": "83940e1da0914b2b90c96ce65f241154403502da65e4cacca6023e79e0a13dbb",
+        "producer_manifest_sha256": "53c0deb8e082dcbf94be5f54e7cc6f356d581ada4f15bd7b0bd838165d0df170",
+        "producer_receipt_sha256": "0e89b2b4ad62a7d8ed01d921cf1288a49361c9eb04e337a1f5ee221375cb598f"
+      },
+      {
+        "target_date": "20260930",
+        "path": "Application Support/com.lexi.v35.local/state/data/preselection_pools/20260930/hkconnect_d1_top100.json",
+        "bytes": 586,
+        "raw_sha256": "972643a7a0ccc91d64681f5a62ac0cb8bd8940c2e3fc7b0a1ebc4370f29288df",
+        "status": "CANNOT_CONFIRM",
+        "rows": 0,
+        "source_role": "EXPECTED_MISSING",
+        "producer_id": "graph_expected_missing_v1",
+        "source_run_id": null,
+        "source_path": "",
+        "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reason": "20260929 security-master metadata invalid"
+      }
+    ],
+    "stage_receipts": [
+      {
+        "trade_date": "20260928",
+        "path": "Application Support/com.lexi.v4.local/state/stage/receipts/20260928/STAGE_0930_0935/receipt.json",
+        "bytes": 2383,
+        "raw_sha256": "940234713db706bf6d79fc764622090ffd9e58812152ef441b44393ed66d79f3",
+        "hk_status": "CANNOT_CONFIRM",
+        "first_error": "HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE",
+        "requested_and_returned_rows": 100,
+        "cutoff": "09:35:05",
+        "active_snapshot_sha256": "a9ce78baf58a8744823eda648a726a1b577dbf6c8bb9a4c7a181db80cab8e2f4",
+        "temporal_cutoff_safe": false,
+        "attempt_events_present": false,
+        "pre_captures_count": 0
+      },
+      {
+        "trade_date": "20260929",
+        "path": "Application Support/com.lexi.v4.local/state/stage/receipts/20260929/STAGE_0930_0935/receipt.json",
+        "bytes": 22294,
+        "raw_sha256": "9b7f995df07eab960ed70aa0a1bbd25f1102ab9220897dd339a2e4dd444def54",
+        "hk_status": "CANNOT_CONFIRM",
+        "attempt_id": "e7ac60e201f243088ddd601467ee0b8b",
+        "saved_snapshot_event_sha256": "1bdec5dc4e63d5cd7df3cff32f8bf07968dabf406045bf25c76f5ddd2ad61710",
+        "cutoff": "09:35:05",
+        "fetch_started_at": "2026-09-29T15:02:19.095579+08:00",
+        "fetch_finished_at": "2026-09-29T15:02:20.411968+08:00",
+        "row_timestamp_count": 100,
+        "row_timestamp_min": "2026-09-29 14:49:15",
+        "row_timestamp_max": "2026-09-29 15:02:19",
+        "snapshot_sha256": "d2b926478c1dde9bd50837c9a9b2e31b0d57318bc097805c614f23e06d306dab",
+        "requested_codes_sha256": "d4a294e18d5e0399a8410e833b4535dc8b1c3423af9d30aba0703b899d5f86a8",
+        "attempt_event_files": [
+          {
+            "path": "Application Support/com.lexi.v4.local/state/stage/receipts/20260929/STAGE_0930_0935/attempt_evidence/e7ac60e201f243088ddd601467ee0b8b/001_START.json",
+            "bytes": 580,
+            "raw_sha256": "5a418b0a32514e8868dfd8c7ce5973525e36cbb1afda8260f302935e1fe8c2ee"
+          },
+          {
+            "path": "Application Support/com.lexi.v4.local/state/stage/receipts/20260929/STAGE_0930_0935/attempt_evidence/e7ac60e201f243088ddd601467ee0b8b/002_HK_SNAPSHOT.json",
+            "bytes": 14732,
+            "raw_sha256": "1bdec5dc4e63d5cd7df3cff32f8bf07968dabf406045bf25c76f5ddd2ad61710"
+          },
+          {
+            "path": "Application Support/com.lexi.v4.local/state/stage/receipts/20260929/STAGE_0930_0935/attempt_evidence/e7ac60e201f243088ddd601467ee0b8b/003_RETURN.json",
+            "bytes": 708,
+            "raw_sha256": "eb2218936dc8e3328ad576a91a1162478ad9e473023a50484ba7cbf64f4c8b16"
+          }
+        ]
+      },
+      {
+        "trade_date": "20260930",
+        "path": "Application Support/com.lexi.v4.local/state/stage/receipts/20260930/STAGE_0930_0935/receipt.json",
+        "bytes": 29361,
+        "raw_sha256": "08320ece4b0c0916b889a0b82097d3680293ef8faf99cb8723f12c597b26ed32",
+        "hk_status": "CANNOT_CONFIRM",
+        "attempt_id": "5cd40470268f42078c8ae0f2854159a1",
+        "hk_snapshot_events": 0,
+        "row_evidence_status": "NOT_OBSERVED",
+        "attempt_event_files": [
+          {
+            "path": "Application Support/com.lexi.v4.local/state/stage/receipts/20260930/STAGE_0930_0935/attempt_evidence/5cd40470268f42078c8ae0f2854159a1/001_START.json",
+            "bytes": 556,
+            "raw_sha256": "27325d8977ec9e8d608cc3b4abbcbdaa3c21453ed854ab2708e6b06b4fea5165"
+          },
+          {
+            "path": "Application Support/com.lexi.v4.local/state/stage/receipts/20260930/STAGE_0930_0935/attempt_evidence/5cd40470268f42078c8ae0f2854159a1/002_RETURN.json",
+            "bytes": 669,
+            "raw_sha256": "bda5287cdb7b77ff064d6a4ac1fe4dd013e2e4c326a28393cf727a0bd32e1917"
+          }
+        ]
+      }
+    ],
+    "failed_source_workload_dispatches_20260929": [
+      {
+        "attempt": 1,
+        "run_id": "d45d29c6c6d64a1aa73c277f3790da0d",
+        "receipt_sha256": "5f7790d0ace78274df9e8b34145e6e47729185fd2b29bfac8e59cc480963478f",
+        "status": "FAILED",
+        "workload_id": "research_panel_daily_hk",
+        "failure_class": "UPSTREAM_NOT_READY",
+        "exit_code": 124,
+        "finished_at_utc": "2026-09-29T10:44:00.261397Z",
+        "path": "Application Support/com.lexi.v35.local/state/dispatcher/receipts/live/20260929/1720/d45d29c6c6d64a1aa73c277f3790da0d.dispatch-receipt.json"
+      },
+      {
+        "attempt": 2,
+        "run_id": "144722afadea45f6bc1e4a0ffce0781f",
+        "receipt_sha256": "dd90e5ebedb05d6d6c0176c2389ccc17433d1c301861721cf06ebd083abe526f",
+        "status": "FAILED",
+        "workload_id": "research_panel_daily_hk",
+        "failure_class": "UPSTREAM_NOT_READY",
+        "exit_code": 124,
+        "finished_at_utc": "2026-09-29T13:19:00.178829Z",
+        "path": "Application Support/com.lexi.v35.local/state/dispatcher/receipts/live/20260929/1720/144722afadea45f6bc1e4a0ffce0781f.dispatch-receipt.json"
+      },
+      {
+        "attempt": 3,
+        "run_id": "c8367bd4cbbc458bbc1af61c980661aa",
+        "receipt_sha256": "cad3f9995a18b18668c214d5a2f69a8fded44094bffb51733368cb3f2ec111dd",
+        "status": "FAILED",
+        "workload_id": "research_panel_daily_hk",
+        "failure_class": "UPSTREAM_NOT_READY",
+        "exit_code": 124,
+        "finished_at_utc": "2026-09-29T15:51:00.134156Z",
+        "path": "Application Support/com.lexi.v35.local/state/dispatcher/receipts/live/20260929/1720/c8367bd4cbbc458bbc1af61c980661aa.dispatch-receipt.json"
+      }
+    ],
+    "original_chain_diagnosis": {
+      "path": "line_fix_r1/hk_original_chain_recovery_20260930/diagnosis_receipt.json",
+      "bytes": 4019,
+      "raw_sha256": "c9d3b627e42fe38b9cd7eea58894a324d6bd417c002c5fafe49a128cc9390ca0",
+      "same_capture_29": "not found in checked authoritative paths",
+      "historical_pool_29_to_30": "CANNOT_CONFIRM; no full29 same-capture/master"
+    },
+    "successful_same_capture_20260928": {
+      "manifest_path": "Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/hk_capture/20260928/20260928-18628-c2ad198064443c1a4853dbfe.json",
+      "manifest_bytes": 432286,
+      "manifest_raw_sha256": "e5970ec3d1d74cdff04298a8319757227dad302f8fa58bcb9e17f7c05d733695",
+      "raw_capture_path": "Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/hk_capture/20260928/20260928-18628-c2ad198064443c1a4853dbfe.capture.json",
+      "raw_capture_bytes": 424029,
+      "raw_capture_sha256": "b6486574db5af2a2a74efe338cdec752c97328ee96774ce72c132047670fbf30",
+      "capture_sha256": "08e4044c079b395a602db01c614a4f06aa7ca7e0923eeb0884103fde7e21cd1d",
+      "status": "READY",
+      "target_date": "20260928",
+      "daily_rows": 687,
+      "security_master_rows": 694,
+      "linked_to_active_snapshot_sha256": false
+    },
+    "independent_original_owner_canary_20260930": {
+      "receipt_path": "line_fix_r1/hk_original_chain_recovery_20260930/writer/CURRENT_QUOTE_CHAIN_CANARY.receipt.json",
+      "receipt_bytes": 8783,
+      "receipt_sha256": "d8e369590ccccd184a22ad3d83aa8d031fd9e39e74983dbf35e38e162d8b1ebb",
+      "status": "CANARY_PASS",
+      "target_date": "20260930",
+      "capture_run_id": "hk-20260930-current-quote-canary",
+      "original_entrypoint": "ops.macos_research_panel_daily.collect_hk_futu_rows",
+      "owner_release": "com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app",
+      "owner_source_sha256": {
+        "macos_research_panel_daily.py": "19278e31e237c84bc4dc3a146bf74d2a1fac837d249676c7faa624acde39c1e6",
+        "macos_research_panel_daily_collectors.py": "afd6a4fa768a59e2ebe85c82482a593bb40203bd53abc81036af57f3a8e61f87",
+        "macos_research_panel_daily_common.py": "023fc378f17c8fe2c9b7c821db27ed63ae3c192a261c93c78991f1a89bca8052"
+      },
+      "manifest_sha256": "69e989d4e39bc5693d0b8884426b7af06aa9f83b0ca5904eedc6c77a29f79469",
+      "raw_capture_sha256": "5bd301078adb4541861f5ca0aae67be1444b13102ad8560a4d8354ddf7c9b3e4",
+      "raw_capture_bytes": 423477,
+      "snapshot_call_count": 4,
+      "snapshot_update_time_range": [
+        "2026-09-30 09:20:15",
+        "2026-09-30 12:00:00"
+      ],
+      "valid_row_count": 686,
+      "universe_count": 696,
+      "directly_binds_to_20260929_capture_or_20260930_sentinel": false,
+      "manifest_path": "line_fix_r1/hk_original_chain_recovery_20260930/writer/original_capture/hk-20260930-current-quote-canary.json",
+      "raw_capture_path": "line_fix_r1/hk_original_chain_recovery_20260930/writer/original_capture/hk-20260930-current-quote-canary.capture.json"
+    },
+    "prior_evidence_documents": [
+      {
+        "path": "line_fix_r1/regression_origin_20260930/hk/report.md",
+        "bytes": 27544,
+        "raw_sha256": "45a3a7b0d55d0dc55b341e5339b80e87f86ec28f33724b86a132a53924b97621"
+      },
+      {
+        "path": "line_fix_r1/regression_origin_20260930/hk/receipt.json",
+        "bytes": 67961,
+        "raw_sha256": "7b5705ccf0678721848202e9eff59ccdfa9c0e6c3e78345acab82cd908442c9e"
+      },
+      {
+        "path": "line_fix_r1/regression_origin_20260930/hk/source_export_plan.md",
+        "bytes": 12193,
+        "raw_sha256": "195d6487ce6bb92969a8f6af8e26b479389732a9b08e7791b9c9d5ae5817649a"
+      }
+    ]
+  },
+  "cannot_confirm": [
+    "20260928 active snapshot raw bytes, capture timestamp, and original-owner run/manifest link to active_snapshot_sha256 a9ce78baf58a8744823eda648a726a1b577dbf6c8bb9a4c7a181db80cab8e2f4",
+    "20260929 cutoff-before raw active snapshot and source-capture manifest; the only stored Stage snapshot is from 15:02",
+    "Direct source-run/manifest binding between the 20260930 invalid sentinel and the three 20260929 failed dispatcher retries",
+    "20260929 original same-capture/security-master artifact and its owner provenance"
+  ],
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "stage_or_collector_or_producer_invoked": false,
+    "services_or_schedulers_changed": false,
+    "tests_run": []
+  }
+}

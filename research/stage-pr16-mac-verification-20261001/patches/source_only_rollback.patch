@@ -1,0 +1,583 @@
+diff --git a/ops/_run_stage_center_nodes_parts/node_entry.py b/ops/_run_stage_center_nodes_parts/node_entry.py
+--- a/ops/_run_stage_center_nodes_parts/node_entry.py
++++ b/ops/_run_stage_center_nodes_parts/node_entry.py
+@@ -270,14 +270,6 @@
+ def _run_nodes_body(_v4_scope, /, config, *, trade_date, evaluated_at, explicit_node, materializer, runner, sleep):
+     """Run prep and/or serial due nodes, returning a bounded typed receipt."""
+ 
+-    # A repair grant is never available to the scheduled all-node scan.
+-    if "a_0925_recovery_authorization" in config:
+-        if explicit_node != "STAGE_0925" or trade_date != "20260930":
+-            return {"status": "CANNOT_CONFIRM", "trade_date": trade_date,
+-                    "error": "ISSUE11_REQUIRES_EXPLICIT_20260930_STAGE_0925",
+-                    "write_performed": False, **_v4_global(_v4_scope, '_safe_flags')()}
+-        config = dict(config)
+-        config["_issue11_explicit_request"] = _ISSUE11_EXPLICIT
+     evaluated = _v4_global(_v4_scope, '_as_shanghai')(evaluated_at)
+     if not _v4_global(_v4_scope, '_valid_trade_date')(trade_date):
+         return {
+@@ -383,7 +375,7 @@
+         results.append(result)
+ 
+     statuses = {_v4_global(_v4_scope, 'str')(item.get("status") or "") for item in results}
+-    exhausted = [item for item in results if item.get("status") in {"SKIPPED_RETRY_EXHAUSTED", "SKIPPED_REPAIR_RECOVERY_CONSUMED"}]
++    exhausted = [item for item in results if item.get("status") == "SKIPPED_RETRY_EXHAUSTED"]
+     if exhausted:
+         overall = "RETRY_EXHAUSTED"
+     elif statuses <= {"SKIPPED_ALREADY_SETTLED", "SKIPPED_RETRY_BACKOFF", "SKIPPED_SLOT_LOCKED"}:
+@@ -587,175 +579,3 @@
+         trace.close()
+         _v4_global(_v4_scope, '_deadline').set_current(None)
+     return _v4_global(_v4_scope, '_exit_code')(_v4_global(_v4_scope, 'str')(result.get("status") or "CANNOT_CONFIRM"))
+-
+-
+-# One identified incident, not a generic reset/force/retry capability. These
+-# pins come from issue #11; the actual corrected module SHAs must be separately
+-# supplied in an operator-approved, hash-bound authorization after Mac review.
+-_ISSUE11_EXPLICIT = object()
+-_ISSUE11_RECEIPT_SHA = "b920987cdecc63d0f7857c50404b3807c8f5212f418be304f75a11a06500a87f"
+-_ISSUE11_CANDIDATE_SHA = "92023837d8709abfb46fb03dec82ee9758ff56e57615cdfebeb98926e3789d72"
+-_ISSUE11_CODES_SHA = "80f5a1c0bbed293b637d1a2bb25585de932ce5b235dd3ff0236fcb9a99d8eb69"
+-# This pin binds original-order UTF-8 LF-joined codes, without a trailing LF.
+-# Authorization/current/artifact JSON identities retain their own serializers.
+-_ISSUE11_CODES_DIGEST_MODE = "ORDERED_CODES_UTF8_LF_JOIN_NO_TRAILING_LF_V1"
+-_ISSUE11_MARKER = "a_0925_issue11_recovery.json"
+-
+-
+-def _issue11_loaded_repair_identity():
+-    """Check actual loaded file locations; never infer a fix from its name."""
+-    import hashlib
+-    import importlib
+-    from pathlib import Path
+-    from infrastructure.owned_io import SafeRoot
+-
+-    app = Path(__file__).absolute().parents[2]
+-    modules = ("stage_center._live_collectors_parts.a_auction",
+-               "infrastructure.tdx_minute_replay_provider")
+-    result = {}
+-    for name in modules:
+-        module = importlib.import_module(name)
+-        path = Path(module.__file__).absolute()
+-        relative = path.relative_to(app).as_posix()
+-        result[name] = hashlib.sha256(SafeRoot(app).read_bytes(relative)).hexdigest()
+-    # The GitHub snapshot still contains this known pre-fix collector. A
+-    # self-consistent config pin of those broken bytes must not mint a grant.
+-    if result[modules[0]] == "b74756748e98035d8058447f5f2644aa5709e4739bfe0ee9f365d4f0c7094e2c":
+-        raise ValueError("ISSUE11_KNOWN_UNFIXED_AUCTION_COLLECTOR")
+-    return result
+-
+-
+-def _a_0925_repair_authority(scope, config, trade_date, stage_id, receipt, evaluated_at, mode):
+-    """Read-only eligibility check; a returned record has not spent the grant."""
+-    import base64
+-    import hashlib
+-    import json
+-    from pathlib import Path
+-    from stage_center.candidate_input import CandidateInput, read_candidate_input
+-    from stage_center.selection import SelectionStore
+-    from infrastructure.owned_io import SafeRoot
+-
+-    sha = lambda raw: hashlib.sha256(raw).hexdigest()
+-    canonical = lambda value: json.dumps(value, ensure_ascii=False, sort_keys=True,
+-                                         separators=(",", ":"), allow_nan=False).encode()
+-    flags = ("production_allowed", "buy_gate_updated", "orders_sent")
+-    try:
+-        if (trade_date != "20260930" or stage_id != "STAGE_0925" or mode != "RECOVERY"
+-                or config.get("_issue11_explicit_request") is not _ISSUE11_EXPLICIT
+-                or evaluated_at.tzinfo is None):
+-            return None
+-        now = _v4_global(scope, '_as_shanghai')(_v4_global(scope, '_rearm_wall_now')())
+-        when = _v4_global(scope, '_as_shanghai')(evaluated_at)
+-        if (now.strftime("%Y%m%d") != trade_date or when.strftime("%Y%m%d") != trade_date
+-                or when > now or when.hour < 9):
+-            return None
+-        if (type(config.get("node_max_attempts", 3)) is not int
+-                or config.get("node_max_attempts", 3) != 3
+-                or any(config.get("safety", {}).get(k) is not False for k in flags)):
+-            return None
+-        auth = config.get("a_0925_recovery_authorization")
+-        if not isinstance(auth, dict) or sha(canonical(auth)) != config.get("a_0925_recovery_authorization_sha256"):
+-            return None
+-        required = {"schema_version": "stage_center.a_auction_recovery_authorization.v1",
+-            "issue": 11, "trade_date": trade_date, "stage_id": stage_id, "market": "A_SHARE",
+-            "mode": "RECOVERY", "review_status": "APPROVED",
+-            "original_receipt_sha256": _ISSUE11_RECEIPT_SHA,
+-            "candidate_artifact_sha256": _ISSUE11_CANDIDATE_SHA, "codes_sha256": _ISSUE11_CODES_SHA}
+-        if (any(auth.get(k) != v for k,v in required.items())
+-                or auth.get("codes_digest_mode", _ISSUE11_CODES_DIGEST_MODE) != _ISSUE11_CODES_DIGEST_MODE
+-                or type(auth.get("additional_attempts")) is not int or auth["additional_attempts"] != 1
+-                or type(auth.get("candidate_count")) is not int or auth["candidate_count"] != 205
+-                or any(auth.get(k) is not False for k in flags)
+-                or any(not isinstance(auth.get(k), str) or not auth[k].strip()
+-                       for k in ("approval_id", "writer_id", "reviewer_id"))
+-                or auth["writer_id"] == auth["reviewer_id"]):
+-            return None
+-        path = _v4_global(scope, '_receipt_path')(config, trade_date, stage_id)
+-        io = SafeRoot(path.parent)
+-        for marker in (_ISSUE11_MARKER, "dependency_rearm.json"):
+-            try:
+-                io.read_bytes(marker)
+-                return None
+-            except FileNotFoundError:
+-                pass
+-        raw = io.read_bytes(path.name, max_bytes=1 << 20)
+-        if sha(raw) != _ISSUE11_RECEIPT_SHA or json.loads(raw) != receipt:
+-            return None
+-        if (not isinstance(receipt, dict)
+-                or receipt.get("schema_version") != "stage_center.runner.receipt.v1"
+-                or receipt.get("trade_date") != trade_date or receipt.get("stage_id") != stage_id
+-                or receipt.get("status") != "CANNOT_CONFIRM"
+-                or type(receipt.get("node_attempt_count")) is not int or receipt["node_attempt_count"] != 3
+-                or receipt.get("retry_exhausted") is not True
+-                or any(receipt.get(k) is not False for k in flags)
+-                or any(k.startswith("repair_recovery_") or k.startswith("dependency_rearm_") for k in receipt)):
+-            return None
+-        a = receipt.get("markets", {}).get("A_SHARE", {})
+-        if type(a.get("selected_rows")) is not int or a["selected_rows"] != 0 or a.get("rows"):
+-            return None
+-        evidence = auth.get("original_attempts")
+-        if not isinstance(evidence, dict) or len(evidence) != 6:
+-            return None
+-        events = set()
+-        error_text = json.dumps(receipt)
+-        for relative, expected in evidence.items():
+-            if not isinstance(relative, str) or not relative.startswith("attempt_evidence/"):
+-                return None
+-            data = io.read_bytes(relative, max_bytes=1 << 20)
+-            if sha(data) != expected:
+-                return None
+-            item = json.loads(data)
+-            number, event = item.get("attempt_number"), item.get("event")
+-            if (item.get("trade_date") != trade_date or item.get("stage_id") != stage_id
+-                    or type(number) is not int or number not in (1, 2, 3)
+-                    or event not in ("START", "RETURN")):
+-                return None
+-            events.add((number, event))
+-            error_text += json.dumps(item.get("detail"))
+-        if (len(events) != 6 or "TypeError" not in error_text
+-                or "offset-naive and offset-aware datetimes" not in error_text):
+-            return None
+-        candidate = read_candidate_input(Path(config["candidate_acquisition_root"]), trade_date)
+-        if (not isinstance(candidate, CandidateInput) or candidate.trade_date != trade_date
+-                or candidate.artifact_sha256 != _ISSUE11_CANDIDATE_SHA
+-                or len(candidate.codes) != 205 or len(set(candidate.codes)) != 205
+-                or sha("\n".join(candidate.codes).encode("utf-8")) != _ISSUE11_CODES_SHA):
+-            return None
+-        # No existing A selection may be overwritten. A malformed existing
+-        # pointer is not treated as an absent result or a recovery permission.
+-        selection_root = Path(config["selection_root"])
+-        try:
+-            SafeRoot(selection_root).read_bytes("selection_latest.json")
+-        except FileNotFoundError:
+-            pass
+-        else:
+-            store = SelectionStore(selection_root)
+-            latest = store._latest()  # Keep the original schema/owner/safety checks.
+-            key = store._key(trade_date, stage_id, "A_SHARE")
+-            # A healthy sibling stage creates selection_latest.json too. Only
+-            # an existing exact 09:25 entry needs trio validation here; a
+-            # present-but-malformed entry must never be mistaken for absence.
+-            if key in latest["entries"]:
+-                selection = store.read_verified(trade_date, stage_id, "A_SHARE")
+-                if selection.get("rows") or selection.get("selected_rows") != 0:
+-                    return None
+-        fixed = _issue11_loaded_repair_identity()
+-        if auth.get("fixed_modules") != fixed:
+-            return None
+-        return {"schema_version": "stage_center.a_auction_recovery_reservation.v1",
+-            "trade_date": trade_date, "stage_id": stage_id, "market": "A_SHARE",
+-            "approval_id": auth["approval_id"], "authorization_sha256": sha(canonical(auth)),
+-            "original_receipt_sha256": sha(raw),
+-            "original_receipt_base64": base64.b64encode(raw).decode("ascii"),
+-            "original_attempts": dict(evidence), "fixed_modules": fixed,
+-            "candidate_artifact_sha256": candidate.artifact_sha256,
+-            "candidate_current_sha256": candidate.current_sha256,
+-            "candidate_run_id": candidate.run_id, "codes_sha256": _ISSUE11_CODES_SHA,
+-            "codes_digest_mode": _ISSUE11_CODES_DIGEST_MODE,
+-            "candidate_count": 205, "original_attempt_count": 3, "additional_attempts": 1,
+-            "reserved_at": now.isoformat(), "result_origin": "CODE_REPAIR_RECOVERY",
+-            "recommendation_status": "RESEARCH_ONLY", "real_time_success": False,
+-            "evidence_limit": "L0_HISTORICAL_TRANSACTIONS_NOT_COMPLETE_AUCTION_BOOK",
+-            **{k: False for k in flags}}
+-    except (OSError, ValueError, TypeError, KeyError, AttributeError, ImportError):
+-        return None
+diff --git a/ops/_run_stage_center_nodes_parts/stage_dispatch.py b/ops/_run_stage_center_nodes_parts/stage_dispatch.py
+--- a/ops/_run_stage_center_nodes_parts/stage_dispatch.py
++++ b/ops/_run_stage_center_nodes_parts/stage_dispatch.py
+@@ -73,21 +73,6 @@
+     )
+ 
+ 
+-
+-def _continued_hk_lane_recovery(receipt, *, mode, trade_date, stage_id, attempt_count, max_attempts):
+-    return (
+-        mode == "RECOVERY" and isinstance(receipt, dict)
+-        and receipt.get("trade_date") == trade_date and receipt.get("stage_id") == stage_id
+-        and receipt.get("execution_origin") == "HK_ORIGINAL_BUDGET_RECOVERY"
+-        and receipt.get("execution_markets") == ["HK_CONNECT"]
+-        and type(receipt.get("node_attempt_count")) is int
+-        and receipt["node_attempt_count"] == attempt_count
+-        and 0 < attempt_count < max_attempts
+-        and receipt.get("status") in {"CANNOT_CONFIRM", "PARTIAL_COMMIT_RETRY_REQUIRED"}
+-        and all(receipt.get(k) is False for k in ("production_allowed", "buy_gate_updated", "orders_sent"))
+-    )
+-
+-
+ def __dispatch_stage_body(_v4_scope, /, config, trade_date, stage_id, evaluated_at, *, mode, runner, precaptures):
+     """Run exactly one stage under the runner's existing per-stage lock."""
+ 
+@@ -110,45 +95,6 @@
+     if rearm_marker.exists() and not _v4_global(_v4_scope, '_stage_settled')(receipt):
+         attempt_count = _v4_global(_v4_scope, 'max')(attempt_count, max_attempts + 1)
+         existing_status = "CANNOT_CONFIRM"
+-    from .node_entry import _a_0925_repair_authority, _ISSUE11_MARKER
+-    repair = None
+-    repair_marker = _v4_global(_v4_scope, '_receipt_path')(config, trade_date, stage_id).parent / _ISSUE11_MARKER
+-    if trade_date == "20260930" and stage_id == "STAGE_0925" and (repair_marker.exists() or repair_marker.is_symlink()):
+-        return {"status": "SKIPPED_REPAIR_RECOVERY_CONSUMED", "trade_date": trade_date,
+-                "stage_id": stage_id, "node_id": stage_id, "dispatch_mode": mode,
+-                "node_attempt_count": 4, "retry_exhausted": True, "write_performed": False,
+-                "first_failed_layer": "ISSUE11_RECOVERY_ALLOWANCE_ALREADY_CONSUMED",
+-                **_v4_global(_v4_scope, '_safe_flags')()}
+-    hk_lane_recovery = stage_id == "STAGE_0925" and (
+-        _settled_partial_hk_cutoff_recovery_shape(
+-            receipt, mode=mode, trade_date=trade_date, stage_id=stage_id,
+-            attempt_count=attempt_count, max_attempts=max_attempts)
+-        or _continued_hk_lane_recovery(
+-            receipt, mode=mode, trade_date=trade_date, stage_id=stage_id,
+-            attempt_count=attempt_count, max_attempts=max_attempts)
+-    )
+-    if hk_lane_recovery:
+-        wall = _v4_global(_v4_scope, '_rearm_wall_now')()
+-        safety = config.get("safety")
+-        if (evaluated_at.tzinfo is None or wall.tzinfo is None
+-                or _v4_global(_v4_scope, '_as_shanghai')(wall).strftime("%Y%m%d") != trade_date
+-                or _v4_global(_v4_scope, '_as_shanghai')(evaluated_at).strftime("%Y%m%d") != trade_date
+-                or evaluated_at > wall or not isinstance(safety, dict)
+-                or any(safety.get(k) is not False for k in
+-                       ("production_allowed", "buy_gate_updated", "orders_sent"))):
+-            return {"status": "CANNOT_CONFIRM", "trade_date": trade_date,
+-                    "stage_id": stage_id, "node_id": stage_id, "dispatch_mode": mode,
+-                    "first_failed_layer": "HK_RECOVERY_SCOPE_UNSAFE", "write_performed": False,
+-                    **_v4_global(_v4_scope, '_safe_flags')()}
+-    if (hk_lane_recovery and existing_status in _v4_global(_v4_scope, 'TRANSIENT_STATUSES')
+-            and not _v4_global(_v4_scope, '_retry_is_due')(
+-                receipt, _v4_global(_v4_scope, '_as_shanghai')(evaluated_at),
+-                retry_backoff_seconds=retry_backoff)):
+-        return {"status": "SKIPPED_RETRY_BACKOFF", "trade_date": trade_date,
+-                "stage_id": stage_id, "node_id": stage_id, "dispatch_mode": mode,
+-                "node_outcome": "TRANSIENT", "node_attempt_count": attempt_count,
+-                "retry_after": (receipt or {}).get("retry_after"), "write_performed": False,
+-                **_v4_global(_v4_scope, '_safe_flags')()}
+     settled_recovery_decision = None
+     if _v4_global(_v4_scope, '_stage_settled')(receipt) and existing_status not in _v4_global(_v4_scope, 'TRANSIENT_STATUSES'):
+         if _settled_partial_hk_cutoff_recovery_shape(
+@@ -194,24 +140,11 @@
+                 "write_performed": False,
+                 **_v4_global(_v4_scope, '_safe_flags')(),
+             }
+-    # An explicit repair request cannot fall back to the ordinary first-attempt
+-    # path when its frozen failed receipt is absent, malformed or not transient.
+-    if ("a_0925_recovery_authorization" in config
+-            and not hk_lane_recovery
+-            and existing_status not in _v4_global(_v4_scope, 'TRANSIENT_STATUSES')):
+-        return {"status": "CANNOT_CONFIRM", "trade_date": trade_date,
+-                "first_failed_layer": "ISSUE11_REPAIR_AUTHORITY_MISSING",
+-                "stage_id": stage_id, "node_id": stage_id, "dispatch_mode": mode,
+-                "node_attempt_count": attempt_count, "write_performed": False,
+-                **_v4_global(_v4_scope, '_safe_flags')()}
+     rearm = None
+-    if existing_status in _v4_global(_v4_scope, 'TRANSIENT_STATUSES') and not hk_lane_recovery:
++    if existing_status in _v4_global(_v4_scope, 'TRANSIENT_STATUSES'):
+         if attempt_count >= max_attempts:
+-            if "a_0925_recovery_authorization" in config:
+-                repair = _a_0925_repair_authority(_v4_scope, config, trade_date, stage_id, receipt, evaluated_at, mode)
+-            else:
+-                rearm = _v4_global(_v4_scope, '_exact_hk_d1_dependency_rearm')(config, trade_date, receipt, evaluated_at)
+-        if (attempt_count >= max_attempts or "a_0925_recovery_authorization" in config) and rearm is None and repair is None:
++            rearm = _v4_global(_v4_scope, '_exact_hk_d1_dependency_rearm')(config, trade_date, receipt, evaluated_at)
++        if attempt_count >= max_attempts and rearm is None:
+             previous = receipt or {}
+             return {
+                 "status": "SKIPPED_RETRY_EXHAUSTED",
+@@ -231,7 +164,7 @@
+                 "write_performed": False,
+                 **_v4_global(_v4_scope, '_safe_flags')(),
+             }
+-        if rearm is None and repair is None and not _v4_global(_v4_scope, '_retry_is_due')(
++        if rearm is None and not _v4_global(_v4_scope, '_retry_is_due')(
+             receipt,
+             _v4_global(_v4_scope, '_as_shanghai')(evaluated_at),
+             retry_backoff_seconds=retry_backoff,
+@@ -294,23 +227,6 @@
+         if _v4_global(_v4_scope, '_read_receipt')(config, trade_date, stage_id) != receipt:
+             return {"status": "SKIPPED_RECEIPT_CHANGED", "stage_id": stage_id,
+                     "trade_date": trade_date, "write_performed": False, **_v4_global(_v4_scope, '_safe_flags')()}
+-        if repair is not None:
+-            from infrastructure.owned_io import SafeRoot
+-            refreshed = _a_0925_repair_authority(_v4_scope, config, trade_date, stage_id, receipt, evaluated_at, mode)
+-            if refreshed is None:
+-                return {"status": "CANNOT_CONFIRM", "stage_id": stage_id,
+-                        "first_failed_layer": "ISSUE11_REPAIR_AUTHORITY_CHANGED",
+-                        "trade_date": trade_date, "write_performed": False, **_v4_global(_v4_scope, '_safe_flags')()}
+-            # Revalidation is under the original slot lock. Persist old bytes
+-            # and the consumed one-shot grant atomically BEFORE any runner call.
+-            repair = refreshed
+-            raw = (_v4_global(_v4_scope, 'json').dumps(repair, ensure_ascii=False, sort_keys=True,
+-                   separators=(",", ":"), allow_nan=False) + "\n").encode()
+-            try:
+-                SafeRoot(repair_marker.parent).write_bytes(_ISSUE11_MARKER, raw, require_absent=True)
+-            except FileExistsError:
+-                return {"status": "SKIPPED_REPAIR_RECOVERY_CONSUMED", "stage_id": stage_id,
+-                        "trade_date": trade_date, "write_performed": False, **_v4_global(_v4_scope, '_safe_flags')()}
+         if rearm is not None:
+             rearm = _v4_global(_v4_scope, '_exact_hk_d1_dependency_rearm')(config, trade_date, receipt, evaluated_at)
+             if rearm is None:
+@@ -328,20 +244,6 @@
+                 return {"status": "SKIPPED_RECEIPT_CHANGED", "stage_id": stage_id,
+                         "trade_date": trade_date, "write_performed": False, **_v4_global(_v4_scope, '_safe_flags')()}
+             runner._write_receipt({**(receipt or {}), **rearm}, trade_date, stage_id)
+-        if hk_lane_recovery or repair is not None:
+-            from stage_center._runner_parts.runner_receipts import scoped_recovery_runner
+-            runner = scoped_recovery_runner(
+-                runner, markets=("HK_CONNECT",) if hk_lane_recovery else ("A_SHARE",),
+-                prior_receipt=receipt, attempt_count=attempt_count + 1,
+-                origin="HK_ORIGINAL_BUDGET_RECOVERY" if hk_lane_recovery else "A_REPAIR_RECOVERY",
+-            )
+-            # Reserve the SAME shared stage counter before any collector or
+-            # inner receipt write; a crash must not reopen original budget.
+-            runner._write_receipt({**receipt, "status": "CANNOT_CONFIRM", "node_outcome": "TRANSIENT",
+-                "node_attempt_count": attempt_count + 1,
+-                "retry_exhausted": attempt_count + 1 >= max_attempts,
+-                "execution_pending": True, "partial_commit_possible": True,
+-                "write_performed": False}, trade_date, stage_id)
+         # Stage-8 pre-capture is scheduled at 15:50 and, when a launch lands
+         # exactly on 15:55:00, may be retried once more before the 15:55:05
+         # consumer cutoff.  Never invoke it after the immutable window.
+@@ -363,23 +265,7 @@
+             evaluated_at=_v4_global(_v4_scope, '_as_shanghai')(evaluated_at).isoformat(),
+             due_status=decision.status,
+         ) as attempt_journal:
+-            try:
+-                result = _v4_global(_v4_scope, 'dict')(runner._run_one(decision))
+-            except Exception as error:
+-                scope = getattr(runner, "_execution_scope", None)
+-                if scope is None:
+-                    raise
+-                # Preserve completed sibling results on unexpected builder,
+-                # provider or store errors as well as the runner's known errors.
+-                result = runner._write_receipt({
+-                    "status": "CANNOT_CONFIRM", "trade_date": trade_date, "stage_id": stage_id,
+-                    "error": f"{type(error).__name__}:{error}",
+-                    "first_failed_layer": "SCOPED_EXECUTION",
+-                    "markets": {market: {"status": "CANNOT_CONFIRM", "selection_status": "CANNOT_CONFIRM",
+-                        "selected_rows": 0, "cannot_confirm": [f"{type(error).__name__}:{error}"],
+-                        "write_performed": False} for market in scope.markets},
+-                    "write_performed": False,
+-                }, trade_date, stage_id)
++            result = _v4_global(_v4_scope, 'dict')(runner._run_one(decision))
+             attempt_journal.finish(result)
+         result["attempt_diagnostic"] = attempt_journal.summary()
+         _v4_global(_v4_scope, '_deadline').event("BUSINESS_RETURN", status=result.get("status"))
+@@ -396,13 +282,6 @@
+                        if k.startswith("dependency_rearm_")})
+         if rearm is not None:
+             result.update(rearm)
+-        if repair is not None:
+-            result.update(repair_recovery_original_attempt_count=3, repair_recovery_attempt_count=1,
+-                          repair_recovery_authorization_sha256=repair["authorization_sha256"],
+-                          repair_recovery_original_receipt_sha256=repair["original_receipt_sha256"],
+-                          repair_recovery_marker=_ISSUE11_MARKER,
+-                          result_origin="CODE_REPAIR_RECOVERY", real_time_success=False,
+-                          evidence_limit=repair["evidence_limit"])
+         status = _v4_global(_v4_scope, 'str')(result.get("status") or "CANNOT_CONFIRM")
+         if status == "PARTIAL_WITH_ROWS" and result.get("write_performed") is False:
+             # A partial status without a committed write is not a valid
+diff --git a/stage_center/_runner_parts/slot_execution.py b/stage_center/_runner_parts/slot_execution.py
+--- a/stage_center/_runner_parts/slot_execution.py
++++ b/stage_center/_runner_parts/slot_execution.py
+@@ -18,13 +18,6 @@
+     )
+     trade_date, stage_id = decision.trade_date, decision.stage_id
+     markets = _v4_global(_v4_scope, '_stage_markets_for_date')(stage_id, trade_date)
+-    execution_scope = getattr(self, "_execution_scope", None)
+-    if execution_scope is not None:
+-        if (historical_backfill or execution_scope.prior["trade_date"] != trade_date
+-                or execution_scope.prior["stage_id"] != stage_id
+-                or not set(execution_scope.markets).issubset(markets)):
+-            raise _v4_global(_v4_scope, 'RunnerError')("invalid lane recovery scope")
+-        markets = execution_scope.markets
+     if not markets:
+         raise _v4_global(_v4_scope, 'RunnerError')("no securities market is open for this stage date")
+     candidate_error = ""
+@@ -116,8 +109,7 @@
+     exact_input_errors: dict[str, str] = {}
+     sources: dict[str, SourceResult] = {}
+     try:
+-        if "HK_CONNECT" in markets:
+-            self._validate_hk_auction_root_binding(stage_id)
++        self._validate_hk_auction_root_binding(stage_id)
+         existing_state, existing = self._existing_slot(
+             trade_date,
+             stage_id,
+@@ -301,8 +293,6 @@
+             historical_backfill=historical_backfill,
+             same_day_late_observation_recovery=same_day_late_observation_recovery,
+         )
+-        if execution_scope is not None:
+-            plan = _v4_global(_v4_scope, 'replace')(plan, markets=markets)
+         sources: dict[str, SourceResult] = {}
+         selection_sources: dict[str, SourceResult] = {}
+         for market in markets:
+@@ -532,7 +522,7 @@
+             )
+         # Re-read the explicit pointer before any publication: a changed
+         # candidate cannot produce a selection artifact for the old input.
+-        if "A_SHARE" in markets and not a_candidate_missing:
++        if not a_candidate_missing:
+             _v4_global(_v4_scope, 'read_candidate_input')(
+                 self.config.candidate_acquisition_root,
+                 trade_date,
+@@ -612,28 +602,10 @@
+         raw_bundle: dict[str, Any] = {"markets": raw_markets}
+         if not raw_markets:
+             raise _v4_global(_v4_scope, 'RunnerError')("all market collectors returned zero-row CANNOT_CONFIRM")
+-        bundle_markets = dict(raw_markets)
+-        bundle_required = set(_v4_global(_v4_scope, '_stage_markets_for_date')(stage_id, trade_date))
+-        if execution_scope is not None:
+-            # Complete the ORIGINAL stage bundle from verified preserved raw;
+-            # never recollect/re-publish a sibling or infer a new authority.
+-            for sibling in bundle_required - set(markets):
+-                preserved = execution_scope.prior.get("markets", {}).get(sibling, {})
+-                preserved_sha = preserved.get("raw_artifact_sha256")
+-                if not preserved_sha:
+-                    continue
+-                latest = _v4_global(_v4_scope, '_latest_entry')(
+-                    self.config.raw_root, "latest.json", f"{trade_date}/{stage_id}/{sibling}")
+-                if latest is None:
+-                    raise _v4_global(_v4_scope, 'RunnerError')("preserved raw pointer is missing")
+-                verified = raw_store.verify_run(trade_date, stage_id, sibling, str(latest.get("run_id")))
+-                if verified.get("artifact_sha256") != preserved_sha:
+-                    raise _v4_global(_v4_scope, 'RunnerError')("preserved raw identity changed")
+-                bundle_markets[sibling] = verified
+-        if set(bundle_markets) == bundle_required:
++        if _v4_global(_v4_scope, 'set')(raw_markets) == _v4_global(_v4_scope, 'set')(markets):
+             try:
+                 _v4_global(_v4_scope, '_deadline').begin_write("BUNDLE_PUBLISH", stage_id=stage_id)
+-                raw_bundle.update(raw_store.publish_bundle(trade_date=trade_date, stage_id=stage_id, status=("READY" if _v4_global(_v4_scope, 'all')(item["status"] == "READY" for item in bundle_markets.values()) else "PARTIAL_WITH_ROWS"), markets=bundle_markets))
++                raw_bundle.update(raw_store.publish_bundle(trade_date=trade_date, stage_id=stage_id, status=("READY" if _v4_global(_v4_scope, 'all')(item["status"] == "READY" for item in raw_markets.values()) else "PARTIAL_WITH_ROWS"), markets=raw_markets))
+                 _v4_global(_v4_scope, '_deadline').end_write("BUNDLE_PUBLISH", stage_id=stage_id)
+             except _v4_global(_v4_scope, 'RawStoreError') as error:
+                 # An immutable raw bundle may have been left absent after
+@@ -700,13 +672,7 @@
+         if decision.status in {"LATE_CATCHUP_REPLAY", "HISTORICAL_BACKFILL"}:
+             source_evidence.append(decision.status)
+         return self._write_receipt({"status": status, "due_status": decision.status, "trade_date": trade_date, "stage_id": stage_id, "candidate_current_sha256": candidate.current_sha256, "candidate_run_id": candidate.run_id, "bundle_id": raw_bundle.get("bundle_id"), "markets": published, "source_evidence": _v4_global(_v4_scope, 'list')(_v4_global(_v4_scope, 'dict').fromkeys(source_evidence)), "write_performed": True}, trade_date, stage_id)
+-    except Exception as error:
+-        if execution_scope is None and not isinstance(error, (
+-            _v4_global(_v4_scope, 'RunnerError'), _v4_global(_v4_scope, 'RawStoreError'),
+-            _v4_global(_v4_scope, 'SelectionError'), _v4_global(_v4_scope, 'CandidateInputError'),
+-            OSError, ValueError,
+-        )):
+-            raise
++    except (_v4_global(_v4_scope, 'RunnerError'), _v4_global(_v4_scope, 'RawStoreError'), _v4_global(_v4_scope, 'SelectionError'), _v4_global(_v4_scope, 'CandidateInputError'), _v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError')) as error:
+         lane_failures = {}
+         for market in markets:
+             source = sources.get(market)
+diff --git a/stage_center/_runner_parts/runner_receipts.py b/stage_center/_runner_parts/runner_receipts.py
+--- a/stage_center/_runner_parts/runner_receipts.py
++++ b/stage_center/_runner_parts/runner_receipts.py
+@@ -61,9 +61,6 @@
+ 
+ def _StageCenterRunner__write_receipt_body(_v4_scope, /, self, payload, trade_date, stage_id):
+     result = {"schema_version": "stage_center.runner.receipt.v1", "runner": "stage_center", **_v4_global(_v4_scope, '_deadline').before_receipt(payload), **_v4_global(_v4_scope, 'SAFETY_FLAGS')}
+-    scope = getattr(self, "_execution_scope", None)
+-    if scope is not None:
+-        result = scope.merge(result, trade_date, stage_id)
+     if self.config.backfill_run_id:
+         result.update(
+             {
+@@ -82,83 +79,3 @@
+     _v4_global(_v4_scope, '_atomic_json')(receipt_path, result)
+     _v4_global(_v4_scope, '_deadline').receipt_written(receipt_path, result)
+     return result
+-
+-
+-class _ExecutionScope:
+-    """Internal scope on a copied original runner, never a second producer.
+-
+-    The dispatcher owns the original slot lock and budget. All original inner
+-    receipt writes and outer deadline rewrites share this merge contract.
+-    """
+-
+-    def __init__(self, markets, prior, attempt_count, origin):
+-        from copy import deepcopy
+-        self.markets = tuple(markets)
+-        self.prior = deepcopy(prior)
+-        self.attempt_count = attempt_count
+-        self.origin = origin
+-
+-    def merge(self, payload, trade_date, stage_id):
+-        from copy import deepcopy
+-        if (trade_date != self.prior["trade_date"] or stage_id != self.prior["stage_id"]):
+-            raise ValueError("recovery receipt slot changed")
+-        result = {**deepcopy(self.prior), **deepcopy(payload)}
+-        old_markets = self.prior.get("markets") or {}
+-        new_markets = payload.get("markets") or {}
+-        # Never take a sibling from an error payload, an empty projection, or
+-        # a fresh candidate binding. Preserve its original complete object.
+-        result["markets"] = {
+-            **deepcopy(old_markets),
+-            **{m: deepcopy(new_markets[m]) for m in self.markets if m in new_markets},
+-        }
+-        result["node_attempt_count"] = self.attempt_count
+-        result["execution_pending"] = payload.get("execution_pending", False)
+-        result["execution_markets"] = list(self.markets)
+-        result["execution_origin"] = self.origin
+-        result["execution_status"] = payload.get("execution_status", payload.get("status", "CANNOT_CONFIRM"))
+-        for key, value in self.prior.items():
+-            if key.startswith(("repair_recovery_", "dependency_rearm_")):
+-                result[key] = deepcopy(value)
+-        if "A_SHARE" not in self.markets and "A_SHARE" in old_markets:
+-            for key in ("candidate_current_sha256", "candidate_run_id"):
+-                if key in self.prior:
+-                    result[key] = deepcopy(self.prior[key])
+-        # Successful execution is not automatically a successful whole stage.
+-        # Real failures retain their original status/reason and retry semantics.
+-        if result.get("status") in {"READY", "READY_EMPTY", "NOOP_ALREADY_VERIFIED"}:
+-            states = {str(lane.get("selection_status", lane.get("status", "CANNOT_CONFIRM")))
+-                      for lane in result["markets"].values()}
+-            if not states <= {"READY", "READY_EMPTY", "NOOP_ALREADY_VERIFIED"}:
+-                result["status"] = "PARTIAL_WITH_ROWS"
+-        return result
+-
+-
+-def scoped_recovery_runner(runner, *, markets, prior_receipt, attempt_count, origin):
+-    """Bind a per-call market scope to the same runner, config and stores.
+-
+-    No new roots, collectors, selectors or retry budgets are introduced. The
+-    caller must already own the slot lock; this function does not authorize a
+-    run. The original receipt is archived byte-for-byte before its reservation.
+-    """
+-    from copy import copy
+-    import hashlib
+-    import json
+-    from infrastructure.owned_io import SafeRoot
+-
+-    if tuple(markets) not in {("A_SHARE",), ("HK_CONNECT",)}:
+-        raise ValueError("recovery requires one existing market lane")
+-    path = runner._receipt_path(prior_receipt["trade_date"], prior_receipt["stage_id"])
+-    io = SafeRoot(path.parent)
+-    raw = io.read_bytes(path.name)
+-    if json.loads(raw) != prior_receipt:
+-        raise ValueError("recovery receipt changed before scoping")
+-    digest = hashlib.sha256(raw).hexdigest()
+-    relative = f"attempt_evidence/preserved-{digest}/PRIOR_RECEIPT.json"
+-    try:
+-        io.write_bytes(relative, raw, require_absent=True)
+-    except FileExistsError:
+-        if io.read_bytes(relative) != raw:
+-            raise ValueError("preserved recovery receipt conflict")
+-    scoped = copy(runner)
+-    scoped._execution_scope = _ExecutionScope(markets, prior_receipt, attempt_count, origin)
+-    return scoped

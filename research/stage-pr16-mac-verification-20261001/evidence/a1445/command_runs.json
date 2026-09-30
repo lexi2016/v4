@@ -1,0 +1,33 @@
+{
+  "schema": "v4.pr16.a1445_command_execution_capture.v1",
+  "captured_at": "2026-10-01T02:19:35.561453+08:00",
+  "previous_failed_attempt": {
+    "captured_from": "original exec tool result history item 699221488",
+    "argv": [
+      "python3.13",
+      "<PR16_EVIDENCE_ROOT>/a1445/rebuild_projection_witness.py"
+    ],
+    "exit_code": 1,
+    "stdout": "",
+    "stderr": "Traceback (most recent call last):\n  File \"<PR16_EVIDENCE_ROOT>/a1445/rebuild_projection_witness.py\", line 482, in <module>\n    main()\n    ~~~~^^\n  File \"<PR16_EVIDENCE_ROOT>/a1445/rebuild_projection_witness.py\", line 254, in main\n    raise RuntimeError(\"stored payload canonical SHA mismatch\")\nRuntimeError: stored payload canonical SHA mismatch\n",
+    "script_sha256": "6fe884d7ad299d4c12a4c5b0b4d7ecd99cd2f43623f4e74a081b34d9b4487741",
+    "pin": "811b7803b540ec22e8c3f061804229e59fa51179f20a55a56ccc12d946af4af0"
+  },
+  "corrected_attempt": {
+    "argv": [
+      "python3.13",
+      "<PR16_EVIDENCE_ROOT>/a1445/rebuild_projection_witness.py"
+    ],
+    "cwd": "<PR16_EVIDENCE_ROOT>/a1445",
+    "exit_code": 0,
+    "stdout": "{\"status\":\"WITNESS_WRITTEN\",\"output\":\"<PR16_EVIDENCE_ROOT>/a1445/a1445_20260930_1400_projection_witness.json\",\"diff_count\":27,\"diff_pointers\":[\"/cannot_confirm/1\",\"/cannot_confirm/2\",\"/cannot_confirm/3\",\"/cannot_confirm/4\",\"/cannot_confirm/5\",\"/cannot_confirm/6\",\"/cannot_confirm/7\",\"/cannot_confirm/8\",\"/cannot_confirm/9\",\"/cannot_confirm/10\",\"/cannot_confirm/11\",\"/cannot_confirm/12\",\"/cannot_confirm/13\",\"/cannot_confirm/14\",\"/cannot_confirm/15\",\"/cannot_confirm/16\",\"/cannot_confirm/17\",\"/cannot_confirm/18\",\"/cannot_confirm/19\",\"/cannot_confirm/20\",\"/cannot_confirm/21\",\"/cannot_confirm/22\",\"/cannot_confirm/23\",\"/cannot_confirm/24\",\"/cannot_confirm/25\",\"/cannot_confirm/26\",\"/cannot_confirm/27\"],\"original_bound_error\":{\"type\":\"ResearchContextError\",\"message\":\"RESEARCH_SOURCE_WITNESS_INVALID:SOURCE_ARCHIVE_PROJECTION_SHA_MISMATCH\"},\"source_raw_sha256\":\"4076de79920c43cfa57336c23262a491cd77730f29b4e1a530bc5ed9836ef571\",\"archive_stored_payload_sha256\":\"811b7803b540ec22c8e3f061804229e59fa51179f20a55a56ccc12d946af4af0\"}\n",
+    "stderr": "",
+    "script_sha256": "2c68bd11db32a24230a8a37bf5bbfbd48b7b20ea4151c006f12dc8284d306f00",
+    "pin": "811b7803b540ec22c8e3f061804229e59fa51179f20a55a56ccc12d946af4af0",
+    "witness": {
+      "path": "a1445_20260930_1400_projection_witness.json",
+      "bytes": 30324,
+      "raw_sha256": "78ffc95f3ae7b6e0f69730796be69d9a4f3e1a294838b7873dbd5825908d3003"
+    }
+  }
+}
