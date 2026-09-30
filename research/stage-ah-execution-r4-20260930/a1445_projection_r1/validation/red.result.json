@@ -1,0 +1,23 @@
+{
+  "command": [
+    "/opt/pyvenv/bin/python",
+    "-m",
+    "pytest",
+    "-o",
+    "addopts=-W error",
+    "tests/test_pr16_a1445_role_projection.py",
+    "-q",
+    "--tb=short",
+    "--junitxml=/mnt/data/pr16_a1445_r1/logs/red.xml"
+  ],
+  "exit_code": 1,
+  "python": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "test_sha256": "013e6abfc77a9762b80840d947735c97af4c4bc8cda1ce0a5fe1c2251a2cdd16",
+  "source_sha256": "5e759ad9dd5057433d9beae465f6f46d7cf894b9bdf4d1b8fd44beaaca2eb104",
+  "tests": 17,
+  "failures": 3,
+  "errors": 0,
+  "skipped": 0,
+  "passed": 14
+}

@@ -1,0 +1,35 @@
+{
+  "schema": "pr16.a1445.projection.source_identity.v1",
+  "parent_commit": "84264c47a99d464d174b8180375c8701883b2bb5",
+  "evidence_commit": "b79d2dfad8cf260bd3288fee5150b8cad19011a9",
+  "source_commit": "bdc95a3f9d6d0313baeff2bf727ea82d122dc820",
+  "source_path": "research/mac-source-handoff-20260930/source/releases/stage_scheduler/stage_center/research_context.py",
+  "runtime_path": "stage_center/research_context.py",
+  "before": {
+    "bytes": 37596,
+    "sha256": "5e759ad9dd5057433d9beae465f6f46d7cf894b9bdf4d1b8fd44beaaca2eb104",
+    "git_blob": "ae431bee702465faa4fa7659fdaa9b343d01b953"
+  },
+  "after": {
+    "bytes": 36605,
+    "sha256": "e3dce4261dfe27c9d058b062991715f4894a3b309233f028ca62089559017095",
+    "git_blob": "116ed99fa00df55de50f57a9d4120426f8c084fc"
+  },
+  "historical_source_bytes_available": false,
+  "historical_archive_bytes_available": false,
+  "old_case": "STRUCTURAL_FIXTURE_NOT_506C_ORIGINAL",
+  "new_case": "STRUCTURAL_FIXTURE_NOT_4076_ORIGINAL",
+  "historical_replay": "NOT_RUN",
+  "unchanged": [
+    "R4 sibling-market preservation",
+    "205 LF digest fix",
+    "all collectors/providers",
+    "all selectors",
+    "_verified_hourly_slot",
+    "_payload_base_sha",
+    "source raw SHA check",
+    "final full-projection SHA comparison"
+  ],
+  "python_target": "Mac existing Stage interpreter 3.14.6 and dependencies; not executed here",
+  "test_carrier": "Existing snapshot cache; full research_context byte-matched via Git blob; archive builder/contracts/data_store byte-matched to witness. Other imported dependencies are a bounded carrier, not the independently verified 692-file Mac tree."
+}

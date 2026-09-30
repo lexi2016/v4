@@ -1,0 +1,22 @@
+{
+  "evidence_commit": "e0cfa0f9901adaa11c052aa8796c72ee6784bf18",
+  "array_path": "research/stage-regression-origin-20260930/input/a0925_candidate_codes_original_order.json",
+  "array_git_blob_sha1": "90aa00611dce9ae6cbcb16296b51acb5271e45f0",
+  "count": 205,
+  "unique_count": 205,
+  "original_order_preserved": true,
+  "lf_join_no_trailing_lf": {
+    "bytes": 1844,
+    "sha256": "80f5a1c0bbed293b637d1a2bb25585de932ce5b235dd3ff0236fcb9a99d8eb69"
+  },
+  "compact_json": {
+    "bytes": 2256,
+    "sha256": "ed7370dd8a81ddc621d606c61b8df95095cdc2c9def7909ab8be5e02b214b073"
+  },
+  "formatted_json_file": {
+    "bytes": 2873,
+    "sha256": "cf16619116f85832c9bf1ba80c60a6166f37afee52f3ed4b379e76b6e708b71c"
+  },
+  "current_and_artifact_recomputed_in_this_run": false,
+  "note": "evidence/a0925.json第三种algorithm文字误称compact JSON；文件实际为indent=2加末尾LF，其SHA按原字节核验。未修改上游证据。"
+}

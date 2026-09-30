@@ -1,0 +1,37 @@
+--- a/ops/_run_stage_center_nodes_parts/node_entry.py
++++ b/ops/_run_stage_center_nodes_parts/node_entry.py
+@@ -596,6 +596,9 @@
+ _ISSUE11_RECEIPT_SHA = "b920987cdecc63d0f7857c50404b3807c8f5212f418be304f75a11a06500a87f"
+ _ISSUE11_CANDIDATE_SHA = "92023837d8709abfb46fb03dec82ee9758ff56e57615cdfebeb98926e3789d72"
+ _ISSUE11_CODES_SHA = "80f5a1c0bbed293b637d1a2bb25585de932ce5b235dd3ff0236fcb9a99d8eb69"
++# This pin binds original-order UTF-8 LF-joined codes, without a trailing LF.
++# Authorization/current/artifact JSON identities retain their own serializers.
++_ISSUE11_CODES_DIGEST_MODE = "ORDERED_CODES_UTF8_LF_JOIN_NO_TRAILING_LF_V1"
+ _ISSUE11_MARKER = "a_0925_issue11_recovery.json"
+ 
+ 
+@@ -659,6 +662,7 @@
+             "original_receipt_sha256": _ISSUE11_RECEIPT_SHA,
+             "candidate_artifact_sha256": _ISSUE11_CANDIDATE_SHA, "codes_sha256": _ISSUE11_CODES_SHA}
+         if (any(auth.get(k) != v for k,v in required.items())
++                or auth.get("codes_digest_mode", _ISSUE11_CODES_DIGEST_MODE) != _ISSUE11_CODES_DIGEST_MODE
+                 or type(auth.get("additional_attempts")) is not int or auth["additional_attempts"] != 1
+                 or type(auth.get("candidate_count")) is not int or auth["candidate_count"] != 205
+                 or any(auth.get(k) is not False for k in flags)
+@@ -715,7 +719,7 @@
+         if (not isinstance(candidate, CandidateInput) or candidate.trade_date != trade_date
+                 or candidate.artifact_sha256 != _ISSUE11_CANDIDATE_SHA
+                 or len(candidate.codes) != 205 or len(set(candidate.codes)) != 205
+-                or sha(canonical(list(candidate.codes))) != _ISSUE11_CODES_SHA):
++                or sha("\n".join(candidate.codes).encode("utf-8")) != _ISSUE11_CODES_SHA):
+             return None
+         # No existing A selection may be overwritten. A malformed existing
+         # pointer is not treated as an absent result or a recovery permission.
+@@ -747,6 +751,7 @@
+             "candidate_artifact_sha256": candidate.artifact_sha256,
+             "candidate_current_sha256": candidate.current_sha256,
+             "candidate_run_id": candidate.run_id, "codes_sha256": _ISSUE11_CODES_SHA,
++            "codes_digest_mode": _ISSUE11_CODES_DIGEST_MODE,
+             "candidate_count": 205, "original_attempt_count": 3, "additional_attempts": 1,
+             "reserved_at": now.isoformat(), "result_origin": "CODE_REPAIR_RECOVERY",
+             "recommendation_status": "RESEARCH_ONLY", "real_time_success": False,

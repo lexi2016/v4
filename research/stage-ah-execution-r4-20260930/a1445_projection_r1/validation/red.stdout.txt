@@ -1,0 +1,49 @@
+FF..............F                                                        [100%]
+=================================== FAILURES ===================================
+_ test_old_four_and_new_27_are_derived_from_source_not_pinned_date[20260929-codes0] _
+stage_center/research_context.py:443: in _bound_source_rows
+    raise ValueError("SOURCE_ARCHIVE_PROJECTION_SHA_MISMATCH")
+E   ValueError: SOURCE_ARCHIVE_PROJECTION_SHA_MISMATCH
+
+The above exception was the direct cause of the following exception:
+tests/test_pr16_a1445_role_projection.py:104: in test_old_four_and_new_27_are_derived_from_source_not_pinned_date
+    rows, evidence, actual, paths = read_bound(tmp_path, date)
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_pr16_a1445_role_projection.py:89: in read_bound
+    rows, evidence = rc._bound_source_rows(root, payload=payload, paths=paths,
+stage_center/research_context.py:446: in _bound_source_rows
+    raise ResearchContextError(f"RESEARCH_SOURCE_WITNESS_INVALID:{error}") from error
+E   stage_center.research_context.ResearchContextError: RESEARCH_SOURCE_WITNESS_INVALID:SOURCE_ARCHIVE_PROJECTION_SHA_MISMATCH
+_ test_old_four_and_new_27_are_derived_from_source_not_pinned_date[20260930-codes1] _
+stage_center/research_context.py:443: in _bound_source_rows
+    raise ValueError("SOURCE_ARCHIVE_PROJECTION_SHA_MISMATCH")
+E   ValueError: SOURCE_ARCHIVE_PROJECTION_SHA_MISMATCH
+
+The above exception was the direct cause of the following exception:
+tests/test_pr16_a1445_role_projection.py:104: in test_old_four_and_new_27_are_derived_from_source_not_pinned_date
+    rows, evidence, actual, paths = read_bound(tmp_path, date)
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_pr16_a1445_role_projection.py:89: in read_bound
+    rows, evidence = rc._bound_source_rows(root, payload=payload, paths=paths,
+stage_center/research_context.py:446: in _bound_source_rows
+    raise ResearchContextError(f"RESEARCH_SOURCE_WITNESS_INVALID:{error}") from error
+E   stage_center.research_context.ResearchContextError: RESEARCH_SOURCE_WITNESS_INVALID:SOURCE_ARCHIVE_PROJECTION_SHA_MISMATCH
+_____ test_150002_stays_after_cutoff_14001203_late_recovery_is_not_retimed _____
+stage_center/research_context.py:443: in _bound_source_rows
+    raise ValueError("SOURCE_ARCHIVE_PROJECTION_SHA_MISMATCH")
+E   ValueError: SOURCE_ARCHIVE_PROJECTION_SHA_MISMATCH
+
+The above exception was the direct cause of the following exception:
+tests/test_pr16_a1445_role_projection.py:165: in test_150002_stays_after_cutoff_14001203_late_recovery_is_not_retimed
+    _, _, actual, paths = read_bound(tmp_path)
+                          ^^^^^^^^^^^^^^^^^^^^
+tests/test_pr16_a1445_role_projection.py:89: in read_bound
+    rows, evidence = rc._bound_source_rows(root, payload=payload, paths=paths,
+stage_center/research_context.py:446: in _bound_source_rows
+    raise ResearchContextError(f"RESEARCH_SOURCE_WITNESS_INVALID:{error}") from error
+E   stage_center.research_context.ResearchContextError: RESEARCH_SOURCE_WITNESS_INVALID:SOURCE_ARCHIVE_PROJECTION_SHA_MISMATCH
+=========================== short test summary info ============================
+FAILED tests/test_pr16_a1445_role_projection.py::test_old_four_and_new_27_are_derived_from_source_not_pinned_date[20260929-codes0] - stage_center.research_context.ResearchContextError: RESEARCH_SOURCE_WITNESS_INVALID:SOURCE_ARCHIVE_PROJECTION_SHA_MISMATCH
+FAILED tests/test_pr16_a1445_role_projection.py::test_old_four_and_new_27_are_derived_from_source_not_pinned_date[20260930-codes1] - stage_center.research_context.ResearchContextError: RESEARCH_SOURCE_WITNESS_INVALID:SOURCE_ARCHIVE_PROJECTION_SHA_MISMATCH
+FAILED tests/test_pr16_a1445_role_projection.py::test_150002_stays_after_cutoff_14001203_late_recovery_is_not_retimed - stage_center.research_context.ResearchContextError: RESEARCH_SOURCE_WITNESS_INVALID:SOURCE_ARCHIVE_PROJECTION_SHA_MISMATCH
+3 failed, 14 passed in 0.54s

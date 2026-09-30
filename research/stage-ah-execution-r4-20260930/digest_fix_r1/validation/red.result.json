@@ -1,0 +1,28 @@
+{
+  "tests": 8,
+  "failures": 2,
+  "errors": 0,
+  "skipped": 0,
+  "passed": 6,
+  "exit_code": 1,
+  "command": [
+    "/opt/pyvenv/bin/python",
+    "-m",
+    "pytest",
+    "-c",
+    "/dev/null",
+    "-W",
+    "error",
+    "/mnt/data/pr16_digest_fix_r1/delivery/tests/test_pr16_issue11_codes_digest.py",
+    "-q",
+    "--tb=short",
+    "--junitxml=/mnt/data/pr16_digest_fix_r1/delivery/validation/red.xml"
+  ],
+  "python": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "scope": "READ_ONLY_GUARD_REAL_205_CODES_WITH_SYNTHETIC_OTHER_AUTHORITY",
+  "source_sha256": "e8707873a23284626f5af44aa7ede9b273e464f1d66bf79dd608099abf451dba",
+  "test_sha256": "87cd35ae4fdaefae9baf4808702a6f9d58de8571738bf791d9fdeecc1ee1eb19",
+  "real_run": false,
+  "old18_rerun": false
+}

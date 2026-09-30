@@ -1,0 +1,202 @@
+diff --git a/stage_center/research_context.py b/stage_center/research_context.py
+--- a/stage_center/research_context.py
++++ b/stage_center/research_context.py
+@@ -164,28 +164,20 @@
+     return _canonical_sha256(without_extension)
+ 
+ 
+-_V35_20260929_1400_ROLE_WARNING_SOURCE_SHA256 = (
+-    "506c947cad54071a286853df20afc74e10bb544b2b639fea1ea7a443216bc3fc"
+-)
+-_V35_20260929_1400_ROLE_WARNING_ARCHIVE_BASE_SHA256 = (
+-    "16b41f40ba224d3adecd7682ec552dadd4869d2a56c2461b5456d122dfa3d5ac"
+-)
+-_V35_20260929_1400_ROLE_WARNING_CODES = (
+-    "002202", "600346", "600875", "601918",
+-)
+-_V35_20260929_1400_SOURCE_IDENTITY = {
+-    "capture_origin": "ORIGINAL_SLOT",
++# This compatibility contract identifies the producer/policy, not a trading
++# date, source SHA or stock list. Source bytes and the final complete archive
++# projection remain independently verified by _bound_source_rows.
++_V35_REPORT_ROLE_PRODUCER_IDENTITY = {
+     "collector_identity_sha256": "66b941f5a066250c4fd9830170302b8b1f7041760a37c6e4bf02ea222aa307ab",
+     "module_path": "v3.5/domains/research_hourly",
+     "producer": "ops.collect_hourly_research_input",
+     "producer_oracle_sha256": "850fffdf16b7c0127852cbe9cc374aed353e8d7cb1c2ba73d2eff880c95d022e",
+     "report_subject_policy_sha256": "0308fe6172e96b32e2ad0c2baa1187247e046d70c55134b329087e77a2297351",
+     "research_hourly_domain_identity_sha256": "6c67bec8d162ed47d8ebc20ce9ae8da2b8e520399260165cc0bb992baa9c8e22",
+-    "version": "20260929140003-54594c98",
+ }
+ 
+ 
+-def _apply_exact_v35_20260929_1400_role_warning_projection(
++def _apply_v35_report_role_warning_projection(
+     projected: Mapping[str, Any],
+     source: Mapping[str, Any],
+     payload: Mapping[str, Any],
+@@ -194,94 +186,78 @@
+     slot: str,
+     source_input_sha256: str,
+ ) -> tuple[dict[str, Any], tuple[str, ...]]:
+-    """Reproduce the exact role-warning fields of the pinned 2026-09-29 archive.
+-
+-    This adapter is limited to one source/archive pair whose input and archive
+-    base SHAs were read from the existing 1400 archive. It does not change the
+-    shared archive builder or infer warnings for other producers.
++    """Reproduce source-audited report_subject_scoring.v1 role warnings.
++
++    Only the verified source supplies warning content and order. The archive
++    is a comparison target, never a source of missing values. Actual source
++    timestamps/capture origin are not rewritten or granted a cutoff exception.
+     """
+-    if source_input_sha256 != _V35_20260929_1400_ROLE_WARNING_SOURCE_SHA256:
++    if "report_entity_audit" not in source:
+         return dict(projected), ()
+-    if trade_date != "20260929" or slot != "1400":
+-        raise ValueError("V35_20260929_1400_ROLE_WARNING_SOURCE_DATE_SLOT_MISMATCH")
+-
+-    if payload.get("schema_version") != "v3_5.research_archive.v1":
+-        raise ValueError("V35_20260929_1400_ROLE_WARNING_ARCHIVE_SCHEMA_MISMATCH")
+-    if payload.get("source_input_sha256") != _V35_20260929_1400_ROLE_WARNING_SOURCE_SHA256:
+-        raise ValueError("V35_20260929_1400_ROLE_WARNING_ARCHIVE_SOURCE_MISMATCH")
+-    if _payload_base_sha(payload) != _V35_20260929_1400_ROLE_WARNING_ARCHIVE_BASE_SHA256:
+-        raise ValueError("V35_20260929_1400_ROLE_WARNING_ARCHIVE_BASE_SHA_MISMATCH")
+-
+-    source_manifest = source.get("source_manifest")
+-    if not isinstance(source_manifest, Mapping):
+-        raise ValueError("V35_20260929_1400_ROLE_WARNING_SOURCE_MANIFEST_MISSING")
+-    for key, expected in _V35_20260929_1400_SOURCE_IDENTITY.items():
+-        if source_manifest.get(key) != expected:
+-            raise ValueError(f"V35_20260929_1400_ROLE_WARNING_SOURCE_IDENTITY_MISMATCH:{key}")
++    manifest = source.get("source_manifest")
++    if not isinstance(manifest, Mapping) or any(
++        manifest.get(key) != expected
++        for key, expected in _V35_REPORT_ROLE_PRODUCER_IDENTITY.items()
++    ):
++        raise ValueError("V35_REPORT_ROLE_SOURCE_IDENTITY_MISMATCH")
+     if (
+         source.get("schema_version") != "v3_research_lane.v2"
+-        or source.get("trade_date") != "20260929"
+-        or source.get("slot") != "1400"
+-        or source_manifest.get("trade_date") != "20260929"
+-        or source_manifest.get("hourly_slot") != "1400"
++        or source.get("trade_date") != trade_date
++        or source.get("slot") != slot
++        or manifest.get("trade_date") != trade_date
++        or manifest.get("hourly_slot") != slot
++        or payload.get("schema_version") != "v3_5.research_archive.v1"
++        or payload.get("archive_date") != trade_date
++        or payload.get("source_input_sha256") != source_input_sha256
++        or projected.get("source_input_sha256") != source_input_sha256
+     ):
+-        raise ValueError("V35_20260929_1400_ROLE_WARNING_SOURCE_DATE_SLOT_MISMATCH")
+-
+-    audit = source.get("report_entity_audit")
++        raise ValueError("V35_REPORT_ROLE_SOURCE_ARCHIVE_IDENTITY_MISMATCH")
++    audit = source["report_entity_audit"]
+     if not isinstance(audit, Mapping) or audit.get("policy_version") != "report_subject_scoring.v1":
+-        raise ValueError("V35_20260929_1400_ROLE_WARNING_REPORT_AUDIT_MISSING_OR_UNKNOWN")
+-    affected = audit.get("affected_codes")
+-    excluded = audit.get("excluded_evidence")
+-    if not isinstance(affected, list) or not isinstance(excluded, list) or not excluded:
+-        raise ValueError("V35_20260929_1400_ROLE_WARNING_REPORT_AUDIT_SHAPE_INVALID")
++        raise ValueError("V35_REPORT_ROLE_AUDIT_MISSING_OR_UNKNOWN")
++    affected, excluded = audit.get("affected_codes"), audit.get("excluded_evidence")
++    if (
++        not isinstance(affected, list) or not isinstance(excluded, list)
++        or any(not isinstance(code, str) or re.fullmatch(r"\d{6}", code) is None for code in affected)
++        or affected != sorted(set(affected))
++        or any(
++            not isinstance(item, Mapping)
++            or item.get("research_subject_eligible") is not False
++            or not isinstance(item.get("stock_code"), str)
++            or re.fullmatch(r"\d{6}", item["stock_code"]) is None
++            for item in excluded
++        )
++    ):
++        raise ValueError("V35_REPORT_ROLE_AUDIT_SHAPE_OR_ORDER_INVALID")
++    if set(affected) != {item["stock_code"] for item in excluded}:
++        raise ValueError("V35_REPORT_ROLE_AFFECTED_CODE_AUDIT_MISMATCH")
++
++    prefix = "REPORT_ROLE_EVIDENCE_EXCLUDED:"
++    role_warnings = [prefix + code for code in affected]
++    current_gaps, archived_gaps = projected.get("cannot_confirm"), payload.get("cannot_confirm")
+     if any(
+-        not isinstance(item, Mapping)
+-        or item.get("research_subject_eligible") is not False
+-        for item in excluded
++        not isinstance(gaps, list)
++        or any(not isinstance(item, str) for item in gaps)
++        or len(gaps) != len(set(gaps))
++        for gaps in (current_gaps, archived_gaps)
+     ):
+-        raise ValueError("V35_20260929_1400_ROLE_WARNING_EXCLUDED_EVIDENCE_FLAG_INVALID")
+-    excluded_codes = sorted({str(item.get("stock_code") or "") for item in excluded})
+-    if (
+-        affected != list(_V35_20260929_1400_ROLE_WARNING_CODES)
+-        or affected != sorted(set(affected))
+-        or any(not isinstance(code, str) or re.fullmatch(r"\d{6}", code) is None for code in affected)
+-        or affected != excluded_codes
+-    ):
+-        raise ValueError("V35_20260929_1400_ROLE_WARNING_AFFECTED_CODE_AUDIT_MISMATCH")
+-
+-    role_warnings = [f"REPORT_ROLE_EVIDENCE_EXCLUDED:{code}" for code in affected]
+-    archived_gaps = payload.get("cannot_confirm")
+-    current_gaps = projected.get("cannot_confirm")
+-    if (
+-        not isinstance(archived_gaps, list)
+-        or not isinstance(current_gaps, list)
+-        or len(archived_gaps) != len(set(archived_gaps))
+-        or len(current_gaps) != len(set(current_gaps))
+-    ):
+-        raise ValueError("V35_20260929_1400_ROLE_WARNING_CANNOT_CONFIRM_SHAPE_INVALID")
+-    archive_set = set(archived_gaps)
+-    current_set = set(current_gaps)
+-    role_set = set(role_warnings)
+-    missing_projection = archive_set - current_set
+-    if (
+-        len(role_warnings) != 4
+-        or missing_projection not in (role_set, set())
+-        or current_set - archive_set
+-    ):
+-        raise ValueError("V35_20260929_1400_ROLE_WARNING_ARCHIVE_WARNING_SET_MISMATCH")
+-
++        raise ValueError("V35_REPORT_ROLE_CANNOT_CONFIRM_SHAPE_INVALID")
++    base_gaps = [item for item in current_gaps if not item.startswith(prefix)]
++    expected_gaps = [*base_gaps, *role_warnings]
++    # An already-aware builder is idempotent only if its complete sequence
++    # agrees. Do not remove an extra/misordered role warning from either side.
++    if current_gaps != base_gaps and current_gaps != expected_gaps:
++        raise ValueError("V35_REPORT_ROLE_REBUILT_WARNING_SEQUENCE_MISMATCH")
++    if archived_gaps != expected_gaps:
++        raise ValueError("V35_REPORT_ROLE_ARCHIVE_WARNING_SEQUENCE_MISMATCH")
+     compatible = dict(projected)
+-    if missing_projection:
+-        compatible["cannot_confirm"] = sorted(archive_set)
+-    warning_sha = hashlib.sha256(
+-        json.dumps(role_warnings, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+-    ).hexdigest()
++    compatible["cannot_confirm"] = expected_gaps
+     evidence = (
+-        "v4_hourly_archive_projection_compat=EXACT_V35_20260929_1400_ROLE_WARNING_REPRODUCTION",
+-        f"v4_hourly_archive_projection_compat_source_sha256={_V35_20260929_1400_ROLE_WARNING_SOURCE_SHA256}",
+-        f"v4_hourly_archive_projection_compat_payload_base_sha256={_V35_20260929_1400_ROLE_WARNING_ARCHIVE_BASE_SHA256}",
++        "v4_hourly_archive_projection_compat=SOURCE_AUDITED_V35_REPORT_SUBJECT_SCORING_V1",
++        f"v4_hourly_archive_projection_compat_source_sha256={source_input_sha256}",
++        f"v4_hourly_archive_projection_compat_payload_base_sha256={_payload_base_sha(compatible)}",
+         f"v4_hourly_archive_projection_compat_warning_count={len(role_warnings)}",
+-        f"v4_hourly_archive_projection_compat_warning_list_sha256={warning_sha}",
++        f"v4_hourly_archive_projection_compat_warning_list_sha256={_canonical_sha256(role_warnings)}",
+     )
+     return compatible, evidence
+ 
+@@ -431,7 +407,7 @@
+         # Independently compare the original, unchanged archive projection.
+         # Hash matching alone must not associate arbitrary source data with it.
+         projected = build_research_archive(source, source_input_sha256=paths["source_input_sha256"])
+-        projected, projection_compat_evidence = _apply_exact_v35_20260929_1400_role_warning_projection(
++        projected, projection_compat_evidence = _apply_v35_report_role_warning_projection(
+             projected,
+             source,
+             payload,

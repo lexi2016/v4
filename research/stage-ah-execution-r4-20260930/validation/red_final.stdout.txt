@@ -1,0 +1,225 @@
+F.FFFFFFF......FFF                                                       [100%]
+=================================== FAILURES ===================================
+_ test_hk_public_retry_reaches_original_selector_and_consumer_without_a_work[True] _
+tests/test_stage_ah_execution_r4.py:124: in test_hk_public_retry_reaches_original_selector_and_consumer_without_a_work
+    assert case.calls==['HK_CONNECT']
+E   AssertionError: assert [] == ['HK_CONNECT']
+E     
+E     Right contains one more item: 'HK_CONNECT'
+E     
+E     Full diff:
+E     + []
+E     - [
+E     -     'HK_CONNECT',
+E     - ]
+___ test_all_hk_failure_paths_preserve_a_and_debit_shared_attempt[collector] ___
+tests/test_stage_ah_execution_r4.py:167: in test_all_hk_failure_paths_preserve_a_and_debit_shared_attempt
+    assert case.calls==['HK_CONNECT']
+E   AssertionError: assert [] == ['HK_CONNECT']
+E     
+E     Right contains one more item: 'HK_CONNECT'
+E     
+E     Full diff:
+E     + []
+E     - [
+E     -     'HK_CONNECT',
+E     - ]
+_ test_all_hk_failure_paths_preserve_a_and_debit_shared_attempt[source_empty] __
+tests/test_stage_ah_execution_r4.py:167: in test_all_hk_failure_paths_preserve_a_and_debit_shared_attempt
+    assert case.calls==['HK_CONNECT']
+E   AssertionError: assert [] == ['HK_CONNECT']
+E     
+E     Right contains one more item: 'HK_CONNECT'
+E     
+E     Full diff:
+E     + []
+E     - [
+E     -     'HK_CONNECT',
+E     - ]
+____ test_all_hk_failure_paths_preserve_a_and_debit_shared_attempt[builder] ____
+tests/test_stage_ah_execution_r4.py:167: in test_all_hk_failure_paths_preserve_a_and_debit_shared_attempt
+    assert case.calls==['HK_CONNECT']
+E   AssertionError: assert [] == ['HK_CONNECT']
+E     
+E     Right contains one more item: 'HK_CONNECT'
+E     
+E     Full diff:
+E     + []
+E     - [
+E     -     'HK_CONNECT',
+E     - ]
+__ test_all_hk_failure_paths_preserve_a_and_debit_shared_attempt[unexpected] ___
+tests/test_stage_ah_execution_r4.py:167: in test_all_hk_failure_paths_preserve_a_and_debit_shared_attempt
+    assert case.calls==['HK_CONNECT']
+E   AssertionError: assert [] == ['HK_CONNECT']
+E     
+E     Right contains one more item: 'HK_CONNECT'
+E     
+E     Full diff:
+E     + []
+E     - [
+E     -     'HK_CONNECT',
+E     - ]
+____ test_all_hk_failure_paths_preserve_a_and_debit_shared_attempt[publish] ____
+tests/test_stage_ah_execution_r4.py:167: in test_all_hk_failure_paths_preserve_a_and_debit_shared_attempt
+    assert case.calls==['HK_CONNECT']
+E   AssertionError: assert [] == ['HK_CONNECT']
+E     
+E     Right contains one more item: 'HK_CONNECT'
+E     
+E     Full diff:
+E     + []
+E     - [
+E     -     'HK_CONNECT',
+E     - ]
+____ test_all_hk_failure_paths_preserve_a_and_debit_shared_attempt[receipt] ____
+tests/test_stage_ah_execution_r4.py:167: in test_all_hk_failure_paths_preserve_a_and_debit_shared_attempt
+    assert case.calls==['HK_CONNECT']
+E   AssertionError: assert [] == ['HK_CONNECT']
+E     
+E     Right contains one more item: 'HK_CONNECT'
+E     
+E     Full diff:
+E     + []
+E     - [
+E     -     'HK_CONNECT',
+E     - ]
+_____ test_all_hk_failure_paths_preserve_a_and_debit_shared_attempt[crash] _____
+tests/test_stage_ah_execution_r4.py:167: in test_all_hk_failure_paths_preserve_a_and_debit_shared_attempt
+    assert case.calls==['HK_CONNECT']
+E   AssertionError: assert [] == ['HK_CONNECT']
+E     
+E     Right contains one more item: 'HK_CONNECT'
+E     
+E     Full diff:
+E     + []
+E     - [
+E     -     'HK_CONNECT',
+E     - ]
+_ test_unexpected_hk_failure_remains_retryable_only_with_original_remaining_budget _
+tests/test_stage_ah_execution_r4.py:198: in test_unexpected_hk_failure_remains_retryable_only_with_original_remaining_budget
+    assert invoke(case)['nodes'][0]['status']=='SKIPPED_RETRY_BACKOFF'
+E   AssertionError: assert 'CANNOT_CONFIRM' == 'SKIPPED_RETRY_BACKOFF'
+E     
+E     - SKIPPED_RETRY_BACKOFF
+E     + CANNOT_CONFIRM
+__________ test_a_one_shot_uses_only_a_lane_and_preserves_hk[success] __________
+tests/test_stage_ah_execution_r4.py:263: in test_a_one_shot_uses_only_a_lane_and_preserves_hk
+    assert out['node_attempt_count']==4 and case.calls==['A_SHARE']
+E   AssertionError: assert (4 == 4 and [] == ['A_SHARE']
+E     
+E     Right contains one more item: 'A_SHARE'
+E     
+E     Full diff:
+E     + []
+E     - [
+E     -     'A_SHARE',
+E     - ])
+_________ test_a_one_shot_uses_only_a_lane_and_preserves_hk[exception] _________
+tests/test_stage_ah_execution_r4.py:263: in test_a_one_shot_uses_only_a_lane_and_preserves_hk
+    assert out['node_attempt_count']==4 and case.calls==['A_SHARE']
+E   AssertionError: assert (4 == 4 and [] == ['A_SHARE']
+E     
+E     Right contains one more item: 'A_SHARE'
+E     
+E     Full diff:
+E     + []
+E     - [
+E     -     'A_SHARE',
+E     - ])
+=========================== short test summary info ============================
+FAILED tests/test_stage_ah_execution_r4.py::test_hk_public_retry_reaches_original_selector_and_consumer_without_a_work[True] - AssertionError: assert [] == ['HK_CONNECT']
+  
+  Right contains one more item: 'HK_CONNECT'
+  
+  Full diff:
+  + []
+  - [
+  -     'HK_CONNECT',
+  - ]
+FAILED tests/test_stage_ah_execution_r4.py::test_all_hk_failure_paths_preserve_a_and_debit_shared_attempt[collector] - AssertionError: assert [] == ['HK_CONNECT']
+  
+  Right contains one more item: 'HK_CONNECT'
+  
+  Full diff:
+  + []
+  - [
+  -     'HK_CONNECT',
+  - ]
+FAILED tests/test_stage_ah_execution_r4.py::test_all_hk_failure_paths_preserve_a_and_debit_shared_attempt[source_empty] - AssertionError: assert [] == ['HK_CONNECT']
+  
+  Right contains one more item: 'HK_CONNECT'
+  
+  Full diff:
+  + []
+  - [
+  -     'HK_CONNECT',
+  - ]
+FAILED tests/test_stage_ah_execution_r4.py::test_all_hk_failure_paths_preserve_a_and_debit_shared_attempt[builder] - AssertionError: assert [] == ['HK_CONNECT']
+  
+  Right contains one more item: 'HK_CONNECT'
+  
+  Full diff:
+  + []
+  - [
+  -     'HK_CONNECT',
+  - ]
+FAILED tests/test_stage_ah_execution_r4.py::test_all_hk_failure_paths_preserve_a_and_debit_shared_attempt[unexpected] - AssertionError: assert [] == ['HK_CONNECT']
+  
+  Right contains one more item: 'HK_CONNECT'
+  
+  Full diff:
+  + []
+  - [
+  -     'HK_CONNECT',
+  - ]
+FAILED tests/test_stage_ah_execution_r4.py::test_all_hk_failure_paths_preserve_a_and_debit_shared_attempt[publish] - AssertionError: assert [] == ['HK_CONNECT']
+  
+  Right contains one more item: 'HK_CONNECT'
+  
+  Full diff:
+  + []
+  - [
+  -     'HK_CONNECT',
+  - ]
+FAILED tests/test_stage_ah_execution_r4.py::test_all_hk_failure_paths_preserve_a_and_debit_shared_attempt[receipt] - AssertionError: assert [] == ['HK_CONNECT']
+  
+  Right contains one more item: 'HK_CONNECT'
+  
+  Full diff:
+  + []
+  - [
+  -     'HK_CONNECT',
+  - ]
+FAILED tests/test_stage_ah_execution_r4.py::test_all_hk_failure_paths_preserve_a_and_debit_shared_attempt[crash] - AssertionError: assert [] == ['HK_CONNECT']
+  
+  Right contains one more item: 'HK_CONNECT'
+  
+  Full diff:
+  + []
+  - [
+  -     'HK_CONNECT',
+  - ]
+FAILED tests/test_stage_ah_execution_r4.py::test_unexpected_hk_failure_remains_retryable_only_with_original_remaining_budget - AssertionError: assert 'CANNOT_CONFIRM' == 'SKIPPED_RETRY_BACKOFF'
+  
+  - SKIPPED_RETRY_BACKOFF
+  + CANNOT_CONFIRM
+FAILED tests/test_stage_ah_execution_r4.py::test_a_one_shot_uses_only_a_lane_and_preserves_hk[success] - AssertionError: assert (4 == 4 and [] == ['A_SHARE']
+  
+  Right contains one more item: 'A_SHARE'
+  
+  Full diff:
+  + []
+  - [
+  -     'A_SHARE',
+  - ])
+FAILED tests/test_stage_ah_execution_r4.py::test_a_one_shot_uses_only_a_lane_and_preserves_hk[exception] - AssertionError: assert (4 == 4 and [] == ['A_SHARE']
+  
+  Right contains one more item: 'A_SHARE'
+  
+  Full diff:
+  + []
+  - [
+  -     'A_SHARE',
+  - ])
+11 failed, 7 passed in 0.53s

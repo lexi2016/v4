@@ -1,0 +1,74 @@
+{
+  "schema_version": "stage_ah_r4.source_identity.v1",
+  "input_commit": "bdc95a3f9d6d0313baeff2bf727ea82d122dc820",
+  "source_packet": "research/mac-source-handoff-20260930",
+  "edit_basis": "canonical plus explicitly reconciled stage_scheduler preserved bytes and unchanged PR12 authorization",
+  "runtime_patch_before": "before/ exact stage_scheduler four-file front image; NOT canonical_before and NOT old PR14/R3",
+  "files": [
+    {
+      "path": "ops/_run_stage_center_nodes_parts/node_entry.py",
+      "canonical_before_sha256": "54defb0f45adbafcf4b661611f41d0b43d89abf492d89d587c28962eff9b36fe",
+      "stage_before_sha256": "54defb0f45adbafcf4b661611f41d0b43d89abf492d89d587c28962eff9b36fe",
+      "after_sha256": "f8817fee6b89205476fa0c226505dc139f9ec16d30353dace7f7998bb6b3683e",
+      "after_git_blob_sha1": "bac58c4251fdade3e87ec2e1493026a579678764",
+      "bytes": 41449,
+      "change": "PR12_AUTHORITY_WITH_PR16_ORDERED_LF_DIGEST_FIX"
+    },
+    {
+      "path": "ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+      "canonical_before_sha256": "df6221a177d82f0fd683896b3ef21cd66cd7a8a4b6c6c8b95571f277108d52fe",
+      "stage_before_sha256": "dcb4784d1374fbe8f9076646b6befba4b48331826a7f07a82c25e497820689d4",
+      "after_sha256": "d7ea89f5467fb4d62af6b43c59d9dcd7cfcd020a1ee1ce07a9fae8525f735f86",
+      "after_git_blob_sha1": "78696ef0dac8a50663becc3224a6021d66377580",
+      "bytes": 23381,
+      "change": "R4_BUSINESS_REPAIR"
+    },
+    {
+      "path": "stage_center/_runner_parts/slot_execution.py",
+      "canonical_before_sha256": "a6584015f7196091f69b25f810b6e83755b86d7ac8ce36891e479a4203b1945c",
+      "stage_before_sha256": "d55cfe2978a2e86d7e609f599cfb6d321a0d2636e142fb817e69fedfd0972c20",
+      "after_sha256": "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a",
+      "after_git_blob_sha1": "e406fcc2f173ba524cbcdae95bc39a789bc0a004",
+      "bytes": 46386,
+      "change": "R4_BUSINESS_REPAIR"
+    },
+    {
+      "path": "stage_center/_runner_parts/runner_receipts.py",
+      "canonical_before_sha256": "3d0d3fcc244d94b2e289e97429cd7863d2272c4151a733fef96920b47c741b0e",
+      "stage_before_sha256": "3d0d3fcc244d94b2e289e97429cd7863d2272c4151a733fef96920b47c741b0e",
+      "after_sha256": "d3d9e69230b00a2864eae106f1c5c89ea0d383e20c2e87d655d4cabd273bbc83",
+      "after_git_blob_sha1": "d940c780a1a65e957eca9522092056abeb132233",
+      "bytes": 7766,
+      "change": "R4_BUSINESS_REPAIR"
+    }
+  ],
+  "preserve_without_replacing": {
+    "stage_center/_live_collectors_parts/a_auction.py": "728fa6e64914942e651e62442caa83becbc6aef4705ebea59e17a544b36ea00d",
+    "infrastructure/tdx_minute_replay_provider.py": "02d7505614b66768f6c3f6b86e4e606f0df9f4fabb6aaad5ea8f8a0fa3738260",
+    "stage_center/_live_collectors_parts/hk_minute.py": "b6c78a4ffd7193d0e1afeee530a1c4c123e72a20ba3bc9f8183727dcca58a179",
+    "stage_center/acquisition.py": "2806c63dbe76af9051a3ea655356738d45a67205441c03638fd52ca44087fc1b",
+    "stage_center/runner.py": "648fe7af52df1b4eba31802361f9af2d03decbbebb3286ecc7a5dc0b06523205",
+    "stage_center/_runner_parts/slot_lock.py": "f90d3c8e3fba34d157bf45e1f544e9169a575931a3f2f33340e97c25879f5c1d"
+  },
+  "untouched": [
+    "stage_center/research_context.py",
+    "all original selectors",
+    "candidate_input ordered-code hashes",
+    "actual data/config/services"
+  ],
+  "research_context": "Mac 20260929 four-code and old remote 20260928 27-code exceptions are distinct, neither authorizes 20260930; no patch or whole-file copy",
+  "test_carrier": "Existing cache used only as import carrier. Modified files and original runner/kernel lock/acquisition reconciled to frozen source identities. Not an all-680-file/full-dependency certification.",
+  "actual_mac_new_combination": "NOT_EXECUTED",
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "codes_digest_fix": {
+    "parent_commit": "da09905c4d5d86ee5ffc3879fb618c9188f4ec52",
+    "evidence_commit": "e0cfa0f9901adaa11c052aa8796c72ee6784bf18",
+    "incremental_node_before_sha256": "e8707873a23284626f5af44aa7ede9b273e464f1d66bf79dd608099abf451dba",
+    "digest_mode": "ORDERED_CODES_UTF8_LF_JOIN_NO_TRAILING_LF_V1",
+    "expected_codes_sha256_unchanged": "80f5a1c0bbed293b637d1a2bb25585de932ce5b235dd3ff0236fcb9a99d8eb69",
+    "no_old_receipt_or_authorization_rewrite": true,
+    "old18_rerun": false
+  }
+}
