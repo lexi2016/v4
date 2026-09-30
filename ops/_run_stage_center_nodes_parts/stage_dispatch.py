@@ -98,6 +98,46 @@ def __dispatch_stage_body(_v4_scope, /, config, trade_date, stage_id, evaluated_
     from .node_entry import _a_0925_repair_authority, _ISSUE11_MARKER
     repair = None
     repair_marker = _v4_global(_v4_scope, '_receipt_path')(config, trade_date, stage_id).parent / _ISSUE11_MARKER
+    # The A incident grant and the old HK remaining-budget contract are
+    # different authorities. Do not let the A marker/auth hide an HK request.
+    # The frozen _run_one interface, however, cannot execute HK only or preserve
+    # the A receipt on all internal failures. Fail before calling it, rather
+    # than deleting auth keys or pretending a whole-stage retry is HK-only.
+    a_marker_present = repair_marker.exists() or repair_marker.is_symlink()
+    if (trade_date == "20260930" and stage_id == "STAGE_0925"
+            and (a_marker_present or "a_0925_recovery_authorization" in config)
+            and _settled_partial_hk_cutoff_recovery_shape(
+                receipt, mode=mode, trade_date=trade_date, stage_id=stage_id,
+                attempt_count=attempt_count, max_attempts=max_attempts)):
+        scope_safe = False
+        try:
+            wall = _v4_global(_v4_scope, '_rearm_wall_now')()
+            safety = config.get("safety")
+            scope_safe = (
+                evaluated_at.tzinfo is not None and wall.tzinfo is not None
+                and _v4_global(_v4_scope, '_as_shanghai')(wall).strftime("%Y%m%d") == trade_date
+                and _v4_global(_v4_scope, '_as_shanghai')(evaluated_at).strftime("%Y%m%d") == trade_date
+                and evaluated_at <= wall
+                and isinstance(safety, dict)
+                and all(safety.get(flag) is False for flag in
+                        ("production_allowed", "buy_gate_updated", "orders_sent"))
+            )
+        except (AttributeError, TypeError, ValueError):
+            pass  # Invalid clocks/config remain a refusal, never an allowance.
+        return {
+            "status": "CANNOT_CONFIRM", "trade_date": trade_date,
+            "stage_id": stage_id, "node_id": stage_id, "dispatch_mode": mode,
+            "first_failed_layer": ("HK_RETRY_A_PRESERVATION_UNSUPPORTED" if scope_safe
+                                   else "HK_COEXISTENCE_SCOPE_UNSAFE"),
+            "requested_market": "HK_CONNECT", "node_attempt_count": attempt_count,
+            # A counter read from the shared receipt is not an independent HK
+            # reservation. In particular, do not reset count=4 after A recovery.
+            "hk_recorded_remaining_attempts": max_attempts - attempt_count,
+            "a_recovery_marker_present": a_marker_present,
+            "additional_a_attempts_granted": 0, "hk_retry_executed": False,
+            "runner_invoked": False, "write_performed": False,
+            **_v4_global(_v4_scope, '_safe_flags')(),
+        }
     if trade_date == "20260930" and stage_id == "STAGE_0925" and (repair_marker.exists() or repair_marker.is_symlink()):
         return {"status": "SKIPPED_REPAIR_RECOVERY_CONSUMED", "trade_date": trade_date,
                 "stage_id": stage_id, "node_id": stage_id, "dispatch_mode": mode,
