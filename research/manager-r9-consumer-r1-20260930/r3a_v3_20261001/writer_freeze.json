@@ -1,0 +1,154 @@
+{
+  "affected_r3b_regression": {
+    "path": "evidence/offline_canary/r3b_workspace_regression_receipt_v3.json",
+    "result": "PASS 4/4",
+    "sha256": "5834d14647236578c0532cf93282ecef4982244f8f1abdbb86648ca77a9a5cae"
+  },
+  "business_source_changes_since_previous_freeze": [
+    "ops/_macos_research_panel_daily_parts/hk_market_capture.py"
+  ],
+  "candidate_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app",
+  "changed_business_files": [
+    {
+      "baseline_mode": 420,
+      "baseline_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f2/candidate_retry01/app/ops/_macos_research_panel_daily_parts/hk_market_capture.py",
+      "baseline_sha256": "b5c566f9395daa57b84c8842c92ccaedc0cc775bbc0cc1b478716814f71ef282",
+      "baseline_size_bytes": 14809,
+      "candidate_mode": 420,
+      "candidate_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app/ops/_macos_research_panel_daily_parts/hk_market_capture.py",
+      "candidate_sha256": "ea7cdab7182c7f357e8f9be8ec9b40c7e351a6d2434fa522bbe0c6153c6bd2f0",
+      "candidate_size_bytes": 29791,
+      "changed_since_previous_freeze": true,
+      "path": "ops/_macos_research_panel_daily_parts/hk_market_capture.py",
+      "previous_freeze_candidate_sha256": "b3253bf78daa8d6c8516e65eb8bd8d9f977d92248c702b3d31fb93c55ab422ca"
+    },
+    {
+      "baseline_mode": 420,
+      "baseline_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f2/candidate_retry01/app/ops/ensure_hk_security_master.py",
+      "baseline_sha256": "ae6bae7dbd87f03327cf03904beee2e1f8b3e63b262057b49a3f6186eedf21f7",
+      "baseline_size_bytes": 29319,
+      "candidate_mode": 420,
+      "candidate_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app/ops/ensure_hk_security_master.py",
+      "candidate_sha256": "c09d7a0cc1d33b77cd09c81a80109324fd3614cb561673ec81007760cb750062",
+      "candidate_size_bytes": 40167,
+      "changed_since_previous_freeze": false,
+      "path": "ops/ensure_hk_security_master.py",
+      "previous_freeze_candidate_sha256": "c09d7a0cc1d33b77cd09c81a80109324fd3614cb561673ec81007760cb750062"
+    },
+    {
+      "baseline_mode": 420,
+      "baseline_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/evidence/forward_f2/candidate_retry01/app/stage_center/hk_universe_preflight.py",
+      "baseline_sha256": "f527db45d4ec3720845606dd38e76bf6e93e973063b43f1cadb44a8e12407e5c",
+      "baseline_size_bytes": 25290,
+      "candidate_mode": 420,
+      "candidate_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app/stage_center/hk_universe_preflight.py",
+      "candidate_sha256": "9d3d2c2d5ff3bd1c7713a9485e88000ae882f58b0a457b734656094606ba2941",
+      "candidate_size_bytes": 40555,
+      "changed_since_previous_freeze": false,
+      "path": "stage_center/hk_universe_preflight.py",
+      "previous_freeze_candidate_sha256": "9d3d2c2d5ff3bd1c7713a9485e88000ae882f58b0a457b734656094606ba2941"
+    },
+    {
+      "baseline_mode": 420,
+      "baseline_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_AUTHORITY_R2_ACCEPTANCE_20260930/candidate/app/domains/manager_research_evidence.py",
+      "baseline_sha256": "22ccd133851afa0fd7927ae7c40370ce1130ccd77055b0044e91d863ac1da8d9",
+      "baseline_size_bytes": 19661,
+      "candidate_mode": 420,
+      "candidate_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app/domains/manager_research_evidence.py",
+      "candidate_sha256": "0c657383ec622ddde383d62c5a9f83445eb9915d07634ea2aac40b3ffdac8f89",
+      "candidate_size_bytes": 30285,
+      "changed_since_previous_freeze": false,
+      "path": "domains/manager_research_evidence.py",
+      "previous_freeze_candidate_sha256": "0c657383ec622ddde383d62c5a9f83445eb9915d07634ea2aac40b3ffdac8f89"
+    },
+    {
+      "baseline_mode": 420,
+      "baseline_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_API_INTEGRATION_20260930/candidate/app/v4/manager_research/connect_selection.py",
+      "baseline_sha256": "b6c5300172f59b6979dbab15927036ff1ab3599a2adae2b4f0e5a1e4868a6248",
+      "baseline_size_bytes": 10522,
+      "candidate_mode": 420,
+      "candidate_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/candidate/app/v4/manager_research/connect_selection.py",
+      "candidate_sha256": "945acad06c03321059756950988937dee9991d23007c4bac49251e8789488d3b",
+      "candidate_size_bytes": 10768,
+      "changed_since_previous_freeze": false,
+      "path": "v4/manager_research/connect_selection.py",
+      "previous_freeze_candidate_sha256": "945acad06c03321059756950988937dee9991d23007c4bac49251e8789488d3b"
+    }
+  ],
+  "diff_patch": {
+    "business_file_count": 5,
+    "path": "evidence/r3a_candidate_diff_v3.patch",
+    "sha256": "e947280c3194090941c6b3817a16dc24ca5571dd339bb59d5437493708a26734",
+    "size_bytes": 68857
+  },
+  "freeze_builder": {
+    "path": "evidence/build_r3a_freeze_v3.py",
+    "sha256": "ff833f4da06cbbbd3064a46405a4b81761cf61de75384e82c974e8918717e037"
+  },
+  "freeze_generation": 3,
+  "full_offline_canary": {
+    "code_count": 696,
+    "existing_master_reuse": true,
+    "overlap_count": 96,
+    "path": "evidence/offline_canary/v2-e2e-5c0fd5d3c3/offline_canary_receipt.json",
+    "publication_available_at": "2026-09-30T17:00:00.000000+08:00",
+    "quote_row_count": 689,
+    "sha256": "3ee8bfc7ef2ff623da58b785033d34590de118b45a8b100f817e3019affa8bcc",
+    "status": "PASS"
+  },
+  "import_dependency_closure": {
+    "dependency_count": 13,
+    "path": "evidence/original_import_dependency_closure_v3.json",
+    "sha256": "25d95fdac79e3b7b652ef3045f062adb922de710ee8c9b49c46100a587ca9441"
+  },
+  "limitations": [
+    "No real 20260930 09:30 capture; the target date elapsed before this candidate was completed.",
+    "Synthetic return-code canary proves fail-closed behavior for a fractional fake RET; actual Futu SDK return-code types remain CANNOT_CONFIRM.",
+    "No real provider call, authority write, API/UI, deployment, live publisher, or natural-run behavior is claimed.",
+    "A different-identity independent Reviewer must inspect this exact diff, frozen PASS scope, tests, and target behavior before review status changes."
+  ],
+  "offline_validation_receipt": {
+    "path": "evidence/offline_validation_receipts_v3.json",
+    "result": "PASS 4/4",
+    "sha256": "35f865bf002fcc3951dc6dfba75fb2839b5bea7050add3ecd0194d161b2048b5"
+  },
+  "previous_freeze": {
+    "path": "evidence/r3a_candidate_freeze_v2.json",
+    "sha256": "b8c92a71d7ebef1dfc2868ead318989505a04c2862d453a7face7ace989a7e17"
+  },
+  "recorded_at_utc": "2026-09-30T17:37:24+00:00",
+  "return_code_coercion_canary": {
+    "fractional_capture_status": "FAILED",
+    "fractional_return_code": 0.5,
+    "integer_zero_capture_status": "accepted by separate successful two-plate case",
+    "path": "evidence/offline_canary/return-code-coercion-1de399a925/return_code_coercion_canary_receipt.json",
+    "real_sdk_return_code_type": "CANNOT_CONFIRM",
+    "sha256": "e6011bcd0344b6644a5b5c2cdce33f160aae816c17aa576f1ee36cc0c7d64dd5",
+    "status": "PASS"
+  },
+  "reviewer_saved_diagnostics_regression": {
+    "path": "evidence/reviewer/r3b_saved_diagnostics_v2_receipt.json",
+    "result": "PASS 10/10",
+    "sha256": "e54b9fff6bf299c01f56e442bec036da2ba6aa879469aff9ba111c171ea95db5"
+  },
+  "safety_flags": {
+    "active_release_written": false,
+    "buy_gate_updated": false,
+    "canonical_source_written": false,
+    "committed": false,
+    "deployed": false,
+    "orders_sent": false,
+    "production_allowed": false,
+    "pushed": false,
+    "real_provider_calls": false
+  },
+  "schema_version": "v4.r3a.candidate_freeze.v3",
+  "scope": "R3A only; isolated candidate; synthetic offline canaries; no canonical or active release writes",
+  "status": "READY_FOR_INDEPENDENT_REVIEW",
+  "upstream_receipt_pins": {
+    "api_reviewer_receipt_sha256": "daf18d4bf0a763187708c8f263385d09f668a77ac1d9c4948361b4a8c9855790",
+    "api_writer_receipt_sha256": "3ea98364f997591e1cecba92758a35dff6c4cb0bb0136a43bcb3524f1d734a4d",
+    "design_sha256": "618673b8f93073d68d655f4e89d2e6d25f8172f62a36cb0557eac8788f89468b",
+    "f0_f2_review_receipt_sha256": "6ebeb1267db574f8d65dd93d1605f2cd51f0ad958509f055becb163c32778161"
+  }
+}
