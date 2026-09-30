@@ -1,0 +1,1054 @@
+--- r9/v4/manager_research/workspace.py
++++ candidate/v4/manager_research/workspace.py
+@@ -308,10 +308,30 @@
+         existing=_materials(service,date,context)
+     with phase('discovery_owner'):
+         discovery=_discovery(service,date,catalyst)
++    from .workspace_announcements import read as read_announcements, read_selection_inputs
++    from .connect_selection import read_scope, filter_cards, gate_workspace, evidence_view, selection_diagnostics
++    # The original owner revalidates existing stored bodies before the SAME
++    # native issuer classifier runs. This GET still never fetches or writes.
++    with phase('announcement_source_validation'):
++        announcement_review = read_announcements(service, date, context)
++    with phase('announcement_body_selection_inputs'):
++        try:
++            announcement_inputs=read_selection_inputs(service,context,current_review=announcement_review)
++        except _ERROR_TYPES as exc:
++            reason='ANNOUNCEMENT_SELECTION_ORIGINAL_READER_FAILED:'+type(exc).__name__
++            announcement_inputs=dict(materials=[],rejections=[dict(reason=reason)],gaps=[reason],captures=[],
++                status='CANNOT_CONFIRM',input_identity=digest([reason]),**FLAGS)
++    with phase('target_connect_authority'):
++        connect_scope=read_scope(context)
++    selection_materials=[*existing['materials'],*announcement_inputs['materials']]
+     with phase('material_discovery'):
+-        material_discovery=read_material_discovery(existing['materials'],context,
++        material_discovery=read_material_discovery(selection_materials,context,
+             getattr(service,'_workspace_security_master_root',None),
+             projection_memo=getattr(service,'_workspace_projection_memo',None))
++    material_discovery=deepcopy(material_discovery)
++    material_discovery['cards'],connect_rejections=filter_cards(material_discovery['cards'],connect_scope,target_date=date)
++    material_discovery['rejected_relations']=[*material_discovery.get('rejected_relations',[]),*connect_rejections]
++    material_discovery['coverage']['target_connect_card_count']=len(material_discovery['cards'])
+     with phase('exact_quote_owner'):
+         quote_evidence=read_plan_quotes(service._catalyst_data_root,context,
+             authority_root=getattr(service,'_workspace_security_master_root',None))
+@@ -350,13 +370,15 @@
+     committed_archive_ids={c.get('card_id') for c in catalyst.get('cards',[]) if isinstance(c,Mapping) and c.get('research_role')=='ARCHIVE_ISSUER_RESEARCH_OBSERVATION_ONLY'}
+     discovery_cards=[c for c in [*discovery['cards'],*material_discovery['cards']] if c.get('card_id') not in committed_archive_ids]
+     inputs = dict(catalyst=catalyst, stage=stage, close=close, close_recapture=close_recapture,
+-        materials=existing['materials'],
++        materials=selection_materials,
+         discovered_cards=discovery_cards, plan_context=context,
+         price_quotes=quote_evidence['quotes'], discovery_rejections=material_discovery.get('rejected_relations',[]),
+         attempts=attempts, source_gaps=[*existing['gaps'],*discovery['gaps'],*material_discovery['gaps'],
+-            *quote_evidence['gaps'],*market_screen.get('gaps',[])], previous=previous, market_screen=market_screen)
++            *quote_evidence['gaps'],*market_screen.get('gaps',[]),*announcement_inputs['gaps'],
++            *connect_scope.get('gaps',[])], previous=previous, market_screen=market_screen)
+     with phase('pure_workspace_projection'):
+         value = project(service, 'workspace_projection', [date, inputs], lambda: build_workspace(date, **inputs))
++    value=gate_workspace(value,connect_scope)
+     from .stage_read_timing import project_stage_read_timing
+     timing=project_stage_read_timing(stage,date,timestamp(context['research_cutoff']),
+         attempt=attempts.get('STAGE'),ledger_verified_empty=stage_ledger_verified_empty)
+@@ -392,9 +414,6 @@
+         semantic_projection=dict(status=value['briefing']['business_status'],
+             semantic_version=value['semantic_version'],input_identity=value['input_identity']),
+         api='PROJECTED_NOT_BROWSER_ACK',browser='LOCAL_REAL_UI_ACCEPTANCE_REQUIRED')
+-    from .workspace_announcements import read as read_announcements
+-    with phase('announcement_source_validation'):
+-        announcement_review = read_announcements(service, date, context)
+     value['announcement_review'] = announcement_review
+     from .announcement_observation import event_lane
+     value['announcement_observation'] = event_lane(announcement_review, market_screen, context)
+@@ -407,14 +426,26 @@
+         )
+     value['us_market_attention'] = us_market
+     from .research_attention import build_research_attention
++    scoped_screen,scoped_announcement_lane=evidence_view(market_screen,value['announcement_observation'],connect_scope)
+     with phase('research_attention_projection'):
+         research_attention = build_research_attention(
+-            date, context=context, market_screen=market_screen, stocks=value.get('stocks', []),
++            date, context=context, market_screen=scoped_screen, stocks=value.get('stocks', []),
+             material_cards=material_discovery.get('cards', []), themes=value.get('themes', []),
+-            announcement_observation=value['announcement_observation'], us_market=us_market,
++            announcement_observation=scoped_announcement_lane, us_market=us_market,
+         )
+-    value['repair_contract']='20260928.US_RELATION_AND_OWNER_R2'
++    value['repair_contract']='R9_ANNOUNCEMENT_BODY_CONNECT_CONSUMER_V1'
+     value['research_attention'] = research_attention
++    value['selection_diagnostics']=selection_diagnostics(value,research_attention,announcement_inputs,
++        connect_scope,material_discovery.get('rejected_relations',[]))
++    value['owner_chain']['announcement_selection']={
++        'owner':'ManagerResearchJobService.refresh_announcements -> original stored body readers -> existing issuer classifier',
++        'status':announcement_inputs['status'],'input_identity':announcement_inputs['input_identity'],
++        'captures':deepcopy(announcement_inputs['captures']),
++        'body_material_count':len(announcement_inputs['materials']),
++        'rejections':deepcopy(announcement_inputs['rejections']),
++        'gaps':deepcopy(announcement_inputs['gaps']),'read_only':True,
++        'official_first_publication_claimed':False,
++    }
+     # The bridge validates/raw-projects; only this completed relation stage
+     # can publish mapping counts. Never reuse the bridge placeholder.
+     from copy import deepcopy
+@@ -439,7 +470,7 @@
+         'input_identity': research_attention.get('input_identity'),
+         'write_back_to_existing_rank': False,
+     }
+-    identity_extensions = [value['input_identity'], research_attention['input_identity']]
++    identity_extensions = [value['input_identity'], research_attention['input_identity'],announcement_inputs['input_identity']]
+     if announcement_review.get('product_identity'):
+         identity_extensions.append(announcement_review['product_identity']['sha256'])
+     us_identity = us_market.get('source_identity') if isinstance(us_market, Mapping) else None
+--- r9/v4/manager_research/workspace_announcements.py
++++ candidate/v4/manager_research/workspace_announcements.py
+@@ -555,7 +555,9 @@
+             east_product=_validate_eastmoney_product(east_product,date)
+             _check_eastmoney_sources(service,east_product)
+             consumer_context=context or plan_context(date,now=timestamp(_now()))
+-            projected,projection_gaps=_project_eastmoney_hk(east_product,consumer_context)
++            selection_rejections=[]
++            projected,projection_gaps=_project_eastmoney_hk(east_product,consumer_context,rejection_audit=selection_rejections)
++            result['eastmoney_hk_selection_rejections']=selection_rejections
+             result['eastmoney_hk_status']='PARTIAL'
+             result['eastmoney_hk_documents']=projected
+             result['eastmoney_hk_gaps']=sorted(set(east_product.get('gaps',[])+projection_gaps))
+@@ -576,21 +578,32 @@
+     return result
+ 
+ 
+-def _project_eastmoney_hk(product: Mapping[str,Any],context: Mapping[str,Any]) -> tuple[list[dict],list[str]]:
++def _project_eastmoney_hk(product: Mapping[str,Any],context: Mapping[str,Any], *, rejection_audit: list[dict] | None=None) -> tuple[list[dict],list[str]]:
+     from .announcement_source import _eastmoney_display_time
+     since,cutoff=window(context)
+-    if context.get('plan_trade_date')!=product['target_trade_date']:
++    capture_date=product['target_trade_date']
++    source_dates=context.get('source_dates')
++    if context.get('plan_trade_date')!=capture_date and (
++            not isinstance(source_dates,list) or len(source_dates)>31 or capture_date not in source_dates
++            or capture_date>str(context.get('plan_trade_date') or '')):
+         raise ValueError('EASTMONEY_HK_CONSUMER_TARGET_MISMATCH')
+     out=[];gaps=[]
++    def reject(doc,reason):
++        gaps.append(reason)
++        if rejection_audit is not None:
++            rejection_audit.append(dict(symbol=doc.get('code'),name=doc.get('name'),
++                art_code=doc.get('row',{}).get('art_code'),title=doc.get('row',{}).get('title'),
++                body_sha256=doc.get('body_sha256'),capture_trade_date=capture_date,
++                display_time_iso=doc.get('row',{}).get('display_time_iso'),available_at=doc.get('available_at'),reason=reason))
+     if timestamp(product['generated_at'])>cutoff:
+         return [],['EASTMONEY_HK_CAPTURE_AFTER_CONSUMER_CUTOFF']
+     for doc in product['documents']:
+         row=doc['row'];displayed=_eastmoney_display_time(row['display_time'])
+         available=timestamp(doc['available_at'])
+         if displayed<=since or displayed>cutoff:
+-            gaps.append('EASTMONEY_HK_DISPLAY_TIME_OUTSIDE_CONSUMER_WINDOW');continue
++            reject(doc,'EASTMONEY_HK_DISPLAY_TIME_OUTSIDE_CONSUMER_WINDOW');continue
+         if available is None or available>cutoff:
+-            gaps.append('EASTMONEY_HK_CAPTURE_AFTER_CONSUMER_CUTOFF');continue
++            reject(doc,'EASTMONEY_HK_CAPTURE_AFTER_CONSUMER_CUTOFF');continue
+         source_refs=[row['listing_ref'],*doc['content_refs'],doc['pdf_ref']]
+         if (row['market_code']!='116' or row['stock_code']!=doc['code'].split('.')[1]
+                 or row['ann_type']!='H' or doc.get('source')!='EASTMONEY_HK'):
+@@ -611,7 +624,7 @@
+                 text_sha256=page['text_sha256'],source_ref=page['source_ref']) for page in doc['body_pages']],
+             content_page_count=doc['content_page_count'],
+             pdf_text_extraction_status=doc['pdf_text_extraction_status'],
+-            source_refs=source_refs,target_trade_date=product['target_trade_date'],
++            source_refs=source_refs,target_trade_date=context['plan_trade_date'],capture_trade_date=capture_date,
+             query_cutoff=product['context']['research_cutoff'],
+             publication_status='CANNOT_CONFIRM_FIRST_PUBLICATION',hkex_first_publication_verified=False,
+             fresh_catalyst_eligible=False,focus_eligible=False,buy_allowed=False,**FLAGS))
+@@ -705,3 +718,70 @@
+             positive_observation_count=len(positive),risk_count=len(risks),clarification_count=len(clarifications),
+             directory_exhaustion='UNVERIFIED',all_official_announcements_captured=False,
+             can_resume=product['next_index']<len(product['scope']) or bool(product['pending_documents']),natural_run_verified=False))
++
++
++def read_selection_inputs(service: Any, context: Mapping[str,Any], *, current_review: Mapping[str,Any] | None=None) -> dict:
++    """Read the bounded existing capture dates, through original validators only.
++
++    A date on the product remains its capture date. Neither the plan date nor
++    the consumer's now is written into original publication/acquisition fields.
++    """
++    from .announcement_materials import mirror_material, mirror_role, CURRENT_ROLE
++    from .workspace_read_control import checkpoint
++    dates=context.get('source_dates');target=date_token(context['plan_trade_date'])
++    since,cutoff=window(context)
++    if (not isinstance(dates,list) or not 1<=len(dates)<=31 or dates!=sorted(set(dates))
++            or any(date_token(d)!=d or d>target or d<since.strftime('%Y%m%d')
++                   or d>cutoff.strftime('%Y%m%d') for d in dates)):
++        raise ValueError('ANNOUNCEMENT_SELECTION_SOURCE_DATES_INVALID')
++    materials=[];rejected=[];gaps=[];captures=[];seen=set()
++    for day in dates:
++        checkpoint()
++        try:
++            if day==target and current_review is not None:
++                cap=current_review.get('eastmoney_hk_capture')
++                if not isinstance(cap,Mapping) or cap.get('readback_status')!='VERIFIED':
++                    gaps.extend(current_review.get('eastmoney_hk_gaps',[]))
++                    continue
++                cap={**dict(cap),'target_trade_date':day}
++                docs=current_review.get('eastmoney_hk_documents',[])
++                rejected.extend(deepcopy(current_review.get('eastmoney_hk_selection_rejections',[])))
++                gaps.extend(current_review.get('eastmoney_hk_gaps',[]))
++            else:
++                path=service.store.root/'workspace_announcements'/day/'eastmoney_hk'/'latest.json'
++                product=service.store._read(path)
++                if product is None:continue
++                product=_validate_eastmoney_product(product,day)
++                _check_eastmoney_sources(service,product)
++                docs,projection_gaps=_project_eastmoney_hk(product,context,rejection_audit=rejected)
++                gaps.extend([*product.get('gaps',[]),*projection_gaps])
++                cap=dict(source='EASTMONEY_HK',target_trade_date=day,readback_status='VERIFIED',
++                    sha256=product['sha256'],run_id=product['run_id'],generated_at=product['generated_at'],
++                    product_ref=f'workspace_announcements/{day}/eastmoney_hk/latest.json',
++                    exhaustive=False)
++            captures.append(deepcopy(cap))
++            for doc in docs:
++                checkpoint()
++                try:
++                    m=mirror_material(doc,cap)
++                    role=mirror_role(m,since,cutoff)
++                    if role!=CURRENT_ROLE:raise ValueError('ANNOUNCEMENT_SELECTION_'+role)
++                    identity=(m['document_issuer_symbol'],m['art_code'],m['body_sha256'])
++                    if identity in seen:continue
++                    seen.add(identity)
++                    if len(materials)>=128:raise ValueError('ANNOUNCEMENT_SELECTION_DOCUMENT_BUDGET')
++                    materials.append(m)
++                except (ValueError,TypeError,KeyError) as exc:
++                    rejected.append(dict(symbol=doc.get('symbol'),name=doc.get('name'),art_code=doc.get('art_code'),
++                        body_sha256=doc.get('body_sha256'),reason=safe_reason(exc,'ANNOUNCEMENT_SELECTION_ADMISSION_FAILED')))
++        except (ValueError,RuntimeError,OSError,KeyError,TypeError,ImportError) as exc:
++            reason=safe_reason(exc,'ANNOUNCEMENT_SELECTION_OWNER_READBACK_FAILED')
++            gaps.append(reason)
++            rejected.append(dict(capture_trade_date=day,reason=reason,source='EASTMONEY_HK'))
++    if not captures and not gaps:
++        gaps.append('ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW')
++    return dict(materials=materials,rejections=rejected,gaps=sorted(set(gaps)),captures=captures,
++        status=('CANNOT_CONFIRM' if gaps==['ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW']
++                else 'PARTIAL' if gaps else 'READY' if materials else 'READY_EMPTY'),
++        input_identity=digest([[(c.get('target_trade_date'),c.get('run_id'),c.get('sha256')) for c in captures],
++            [(m['material_id'],m['body_sha256']) for m in materials],rejected]),**FLAGS)
+--- r9/v4/manager_research/workspace_discovery.py
++++ candidate/v4/manager_research/workspace_discovery.py
+@@ -227,6 +227,7 @@
+             if len(alias)>=2 and alias!=code:
+                 aliases.setdefault(alias.casefold(),set()).add(code)
+     from .workspace_semantics import prose_sources, assess, SEMANTIC_VERSION, _spans
++    from .announcement_materials import is_mirror, mirror_binding_valid, CARD_FIELDS
+     cards=[]
+     audit = rejection_audit if rejection_audit is not None else []
+     names = {code: str(row.get('name') or '') for code,row in master.items()}
+@@ -237,7 +238,10 @@
+         if material.get('verification')!='OWNER_VERIFIED' or not material.get('source_refs'):
+             continue
+         role=temporal_role(material,context)
+-        if role in {'AFTER_CUTOFF_EXCLUDED','TIME_CONTEXT_UNVERIFIED'}:
++        if role in {'AFTER_CUTOFF_EXCLUDED','TIME_CONTEXT_UNVERIFIED','SOURCE_TIME_OR_BODY_UNVERIFIED'}:
++            if is_mirror(material):
++                audit.append(dict(symbol=material.get('document_issuer_symbol'),art_code=material.get('art_code'),
++                    body_sha256=material.get('body_sha256'),reason=role,source_refs=deepcopy(material.get('source_refs',[]))))
+             continue
+         row=material.get('source_row') if isinstance(material.get('source_row'),Mapping) else {}
+         # Not the pooled stock name; use the original prose about the issuer.
+@@ -251,6 +255,13 @@
+         possible_aliases=_possible_discovery_aliases(folded,alias_probes)
+         for _,_,alias,code in _select_alias_matches(folded,possible_aliases):
+             matched.setdefault(code,alias)
++        if is_mirror(material):
++            issuer=material.get('document_issuer_symbol')
++            if not mirror_binding_valid(material) or issuer not in master:
++                audit.append(dict(symbol=issuer,art_code=material.get('art_code'),reason='ANNOUNCEMENT_ISSUER_NOT_IN_NATIVE_MASTER'))
++                continue
++            # A filing belongs to its owner-bound issuer, not every named customer/peer.
++            matched={issuer:_issuer_alias(str(master[issuer]['name']))}
+         if not matched:
+             continue
+         if subject_patterns is None:
+@@ -263,6 +274,12 @@
+         for code,alias in sorted(matched.items()):
+             name=str(master[code]['name'])
+             assessed=assess(material,name,code,names=body_names,identity_row=master[code])
++            if is_mirror(material):
++                for rejected in assessed['rejected']:
++                    rejected.update(art_code=material['art_code'],body_sha256=material['body_sha256'],
++                        capture_trade_date=material['capture_trade_date'],
++                        time_basis=material['time_basis'],mirror_observed_at=material['mirror_observed_at'],
++                        available_at=material['available_at'],retrieved_at=material['retrieved_at'])
+             audit.extend(assessed['rejected'])
+             if not assessed['propositions']:
+                 continue
+@@ -292,6 +309,9 @@
+                 temporal_role=role,temporal_classification='PREOPEN_PLAN_RESEARCH_NOT_HISTORICAL_CAPTURE',
+                 captured_at_target=False,qualified=False,volume_condition='UNKNOWN',price_position='UNKNOWN',
+                 research_role='MATERIAL_RESEARCH_OBSERVATION_ONLY',**FLAGS))
++            if is_mirror(material):
++                cards[-1].update({k:deepcopy(material[k]) for k in CARD_FIELDS})
++                cards[-1]['mapping_reason']=f'镜像公告原文中的本公司事件：{quote}；镜像可见时间不是HKEX首次发布时间，仅研究候选。'
+     from .issuer_us_relations import extract_issuer_business_relations
+     for card in cards:
+         card['issuer_business_relations']=extract_issuer_business_relations(card)
+--- r9/v4/manager_research/workspace_plan.py
++++ candidate/v4/manager_research/workspace_plan.py
+@@ -100,6 +100,9 @@
+ 
+ def temporal_role(material: Mapping[str, Any], context: Mapping[str, Any]) -> str:
+     cutoff=timestamp(context.get('research_cutoff'))
++    from .announcement_materials import is_mirror, mirror_role
++    if is_mirror(material):
++        return mirror_role(material,timestamp(context.get('focus_window_start')),cutoff)
+     if cutoff is None:
+         return 'TIME_CONTEXT_UNVERIFIED'
+     for key in ('published_at','available_at','retrieved_at','collected_at','first_seen_at','archive_recorded_at'):
+--- r9/v4/manager_research/workspace_semantics.py
++++ candidate/v4/manager_research/workspace_semantics.py
+@@ -13,14 +13,17 @@
+ from .workspace_projection import canonical_symbol, digest
+ 
+ SEMANTIC_VERSION = '20260921.manager-semantic.r3.v1'  # R3 wire/fixture contract unchanged
+-PARSER_REVISION = '20260921.subject-action.r3.1.v1'
++PARSER_REVISION = '20260930.subject-action.mirror-bound.r1'
+ # Only fields carried through an original reader are used. No filename is
+ # opened and no text is manufactured when an exported row lacks a body.
+ BODY_FIELDS = ('transcript', 'body_text', 'content_text', 'body', 'text',
+                'evidence_sentence', 'summary')
+ FILE_RE = re.compile(r'\.(?:mp3|mp4|wav|m4a|pdf|docx?|pptx?)(?:\b|$)', re.I)
+ SPECULATION_RE = re.compile(r'动的时候|名字.{0,8}(?:相似|相同)|同名|名字带|谐音|玄学|蹭.{0,6}名字|炒作.{0,15}名字')
++_VARIANTS = str.maketrans({'機':'机','產':'产','術':'术','購':'购','獲':'获','簽':'签','協':'协','議':'议','訂':'订',
++    '單':'单','長':'长','貨':'货','臨':'临','試':'试','驗':'验','營':'营','許':'许','權':'权','發':'发','藥':'药','淨':'净','潤':'润','億':'亿','減':'减','團':'团','資':'资','業':'业','務':'务','銷':'销'})
+ ACTION_RE = re.compile(
++    r'簽署|達成|獲批|訂單|交付|營收|淨利|產能|量產|研發|增長|購回|回購|授權|許可|'
+     r'参股|入股|投资于|收购|公告|回购|增持|分红|签署|达成|完成|启动|启动|获批|提交|批准|积极意见|正面意见|CHMP|'
+     r'产量|毛利率|利润率|临床|保费|收入|营收|净利|盈利|订单|交付|销量|产能|量产|推出|发布|合作|授权|许可|'
+     r'研发|研究|增长|下降|提高|下调|上调|亏损|需求|价格|渠道|新品|持有|减值|融资|'
+@@ -79,7 +82,7 @@
+ 
+ def mechanism(text: str) -> str | None:
+     """Narrow mechanisms, not the upstream concatenated theme tag list."""
+-    t = text.casefold()
++    t = text.translate(_VARIANTS).casefold()
+     if (re.search(r'美国|\bus\b|\bu\.s\.|treasury', t)
+             and re.search(r'许可|授权|licens', t)
+             and re.search(r'药|pharma|drug|biotech', t)
+@@ -108,6 +111,7 @@
+ 
+ 
+ def event_type(text: str) -> str:
++    text=text.translate(_VARIANTS)
+     theme = mechanism(text)
+     if theme == 'REGULATORY_OPINION':
+         return 'REGULATORY_OPINION'
+@@ -214,12 +218,12 @@
+ # pairs or a sole antecedent may donate an omitted/pronominal subject. Anonymous
+ # counterparties are retained as UNRESOLVED entities; they never become HK codes.
+ _CLAUSE_BREAK = re.compile(r'，|(?<!\d),(?!\d)|(?<!不)但是|(?<!不)但|然而|不过|而且|并且|而(?!后|今|言)|(?=前者|后者)')
+-_REFERENCE = re.compile(r'\s*(?:(?:公告|披露|表示|正文显示|报告指出)[：:\s]*)?(前者|后者|本公司|该公司|本集团|该集团|公司|其(?!他|余))')
++_REFERENCE = re.compile(r'\s*(?:(?:公告|披露|表示|正文显示|报告指出)[：:\s]*)?(前者|后者|本公司|该公司|本集团|本集團|该集团|公司|其(?!他|余))')
+ _ANONYMOUS = re.compile(r'(?:某(?:一?家)?|一家|另一家|被投|未上市|非上市)[\u3400-\u9fffA-Za-z0-9]{0,10}?(?:公司|企业|药企|银行|集团|主体|厂商|供应商)')
+ _RELATION = re.compile(r'\s*(?:与|和|及|同|参股|入股|投资(?:于)?|控股|收购)\s*')
+ _INVESTMENT = re.compile(r'\s*(?:参股|入股|投资(?:于)?|控股|收购)\s*$')
+ _NOT_YET = re.compile(r'尚未|还未|仍未|暂未|未获|未经|待.{0,4}批准')
+-_NEGATION = re.compile(r'否认|否定|并非|并不|并未|并无|不存在|不是|从未|未曾|未能|没有|不曾|不涉及|不参与|不属于|不持有|不开展|不承担|不从事|不进行|不生产|不经营|不提供|未(?!来|知)')
++_NEGATION = re.compile(r'沒有|並未|並非|否認|否认|否定|并非|并不|并未|并无|不存在|不是|从未|未曾|未能|没有|不曾|不涉及|不参与|不属于|不持有|不开展|不承担|不从事|不进行|不生产|不经营|不提供|未(?!来|知)')
+ _CONTINUATION = re.compile(r'(?:(?:目前|累计|已经|继续|仍|也|再|将|并|已|现|预计|有望|同时|关键|相关|单季|本期|同比|环比)\s*)*(?:完成|实现|达成|签署|推出|发布|启动|交付|增长|下降|上调|下调|新增|取得|获得|临床|订单|保费|营收|收入|净利|盈利|销量|产量|毛利率|利润率|产能)')
+ _EMBEDDED_SUBJECT = re.compile(r'\s*(?:(?:公告|披露|表示|宣布|报告)(?:称)?[：:\s]*)?(?:其)?(?:(?:参股|控股|被投)(?:公司|企业|药企)|旗下.{0,12}?(?:公司|企业|药企)|子公司|附属公司)')
+ _REPORT = re.compile(r'(?:行业)?研究报告|行业报告|研报|调研纪要|会议纪要|研究纪要|年度报告|报告')
+@@ -364,6 +368,8 @@
+             material_id=value.get('material_id'),source_refs=deepcopy(value.get('source_refs',[])),
+             published_at=value.get('published_at'),title=value.get('title'),semantic_version=SEMANTIC_VERSION))
+     sources=prose_sources(value)
++    from .announcement_materials import is_mirror, mirror_binding_valid, substantive_propositions
++    bound_document=(is_mirror(value) and mirror_binding_valid(value) and value.get('document_issuer_symbol')==symbol)
+     if not sources:
+         reject('FILE_LOCATOR_OR_BODY_MISSING','title',str(value.get('title') or ''))
+         return dict(propositions=[],rejected=rejected)
+@@ -374,6 +380,18 @@
+             text=unit[0];spans=_spans(text,catalogue)
+             offset=unit.start()
+             frames=_claim_frames(text,catalogue)
++            if (bound_document and not spans
++                    and not re.search(r'(?:合作方|客户|客戶|供应商|供應商|第三方|分析师|分析師|媒体|媒體|报道|報道).*(?:称|稱|表示|指出|认为|認為)',text)
++                    and not re.search(r'[“”\"「」『』]|引用|摘录|摘錄|转载|轉載|子公司|附属|附屬',text)):
++                for frame in frames:
++                    if (frame.get('role_reason')=='ACTION_REFERENT_UNRESOLVED'
++                            and frame.get('reference') in {'本公司','本集团','本集團'}
++                            and frame['context_start']==frame['clause_start']):
++                        clause=text[frame['clause_start']:frame['clause_end']]
++                        subject=_REFERENCE.match(clause)
++                        frame.update(symbol=symbol,role_reason=None,subject_resolution='DOCUMENT_BOUND_FIRST_PERSON',
++                            subject_start=frame['clause_start']+subject.start(1),
++                            subject_end=frame['clause_start']+subject.end(1))
+             for frame in frames:
+                 if frame['symbol'] not in {symbol,None}:continue
+                 if frame['symbol'] is None and not any(code==symbol for _,_,code in spans):continue
+@@ -435,7 +453,7 @@
+                     and value.get('source_kind')=='HKEX_OFFICIAL_ANNOUNCEMENT')
+                 if official:role='ISSUER_EVENT'
+                 claim='REPORTED_CLAIM' if value.get('claim_type')=='RESEARCH_OPINION' else 'SOURCE_STATEMENT'
+-                if re.search(r'预计|预期|期待|认为|有望|看好|推荐|可能|或将|拟|潜在|potential|expected|proposed',text[frame['clause_start']:right],re.I):
++                if re.search(r'預計|預期|認為|擬|预计|预期|期待|认为|有望|看好|推荐|可能|或将|拟|潜在|potential|expected|proposed',text[frame['clause_start']:right],re.I):
+                     claim='EXPECTATION_OR_PROPOSAL'
+                     context_start=offset+frame['clause_start']
+                 if re.search(r'传闻|消息称|据称',clause):claim='UNCONFIRMED_REPORT'
+@@ -466,6 +484,9 @@
+                     semantic_version=SEMANTIC_VERSION)
+                 propositions.append(p)
+             else:reject('SUBJECT_NOT_IN_BODY',field,body)
++    if is_mirror(value):
++        propositions,selection_rejected=substantive_propositions(value,propositions)
++        rejected.extend(selection_rejected)
+     unique={p['proposition_id']:p for p in propositions}
+     return dict(propositions=list(unique.values()),rejected=rejected)
+ 
+--- r9/v4/manager_research/workspace_briefing.py
++++ candidate/v4/manager_research/workspace_briefing.py
+@@ -28,14 +28,17 @@
+     # Use the same exact material cutoff and focus window as the plan owner.
+     # Day-only comparisons incorrectly promoted pre-16:00 Friday background
+     # and material acquired after the frozen cutoff.
+-    from .workspace_plan import temporal_role
+-    return temporal_role(e, context) == 'NEW_PLAN_PUBLICATION'
++    from .announcement_materials import current_company_claim
++    return current_company_claim(e,timestamp(context.get('focus_window_start')),timestamp(context.get('research_cutoff')))
+ 
+ 
+ 
+ def _theme_fragments(material: Mapping[str,Any], context: Mapping[str,Any]) -> list[dict]:
+     """Do not use title or broad upstream theme tags as thematic propositions."""
+     from .workspace_plan import temporal_role
++    from .announcement_materials import is_mirror
++    if is_mirror(material):
++        return []  # Company disclosure is not a sector-wide publication or third-party catalyst.
+     if temporal_role(material, context) == 'AFTER_CUTOFF_EXCLUDED':
+         return []  # Not even a historical reference was available at this cutoff.
+     out=[]
+@@ -422,7 +425,11 @@
+         for e,p in own:
+             company_events.append(dict(symbol=stock['symbol'],name=stock['name'],group=group,
+                 evidence_id=p['evidence_id'],proposition_id=p['proposition_id'],quote=p['quote'],
+-                published_at=e.get('published_at'),claim_status=p['claim_status'],event_type=p['event_type']))
++                published_at=e.get('published_at'),available_at=e.get('available_at'),retrieved_at=e.get('retrieved_at'),
++                mirror_observed_at=e.get('mirror_observed_at'),time_basis=e.get('time_basis','SOURCE_PUBLICATION'),
++                publication_status=e.get('publication_status'),source_refs=deepcopy(e.get('source_refs',[])),
++                body_sha256=e.get('body_sha256'),art_code=e.get('art_code'),
++                claim_status=p['claim_status'],event_type=p['event_type']))
+     order={'DIRECT_COMPANY_EVENT':0,'COMPANY_RESEARCH':1,'INDUSTRY_INFERENCE':2,'BACKGROUND_OR_PRICE_ONLY':3}
+     stocks.sort(key=lambda s:(order[s['priority_basis']['group']],s['symbol']))
+     company_events=sorted({(e['symbol'],e['quote'],e['event_type']):e for e in company_events}.values(),
+--- r9/v4/manager_research/research_evidence.py
++++ candidate/v4/manager_research/research_evidence.py
+@@ -12,7 +12,7 @@
+ import re
+ from typing import Any, Mapping, Sequence
+ 
+-from .workspace_projection import canonical_symbol, timestamp
++from .workspace_projection import canonical_symbol, digest, timestamp
+ from .issuer_us_relations import material_us_relations
+ from .evidence_identity import (
+     acquired_at as evidence_acquired_at,
+@@ -122,7 +122,7 @@
+ 
+ 
+ def _independent_native_relation(relation, source):
+-    if relation.get('relation_origin')!='NATIVE_MATERIAL_PROPOSITION':return True
++    if relation.get('relation_origin')!='NATIVE_MATERIAL_PROPOSITION':return False
+     if not isinstance(source,Mapping) or source.get('status')!='VERIFIED':return False
+     us_sha=source.get('payload_sha256')
+     return (all(isinstance(source.get(k),str) and re.fullmatch(r'[0-9a-f]{64}',source[k])
+@@ -210,60 +210,34 @@
+     start: datetime | None,
+     cutoff: datetime | None,
+ ) -> dict[str, list[dict[str, Any]]]:
+-    result: dict[str, list[dict[str, Any]]] = {}
+-    for raw_stock in stocks or []:
+-        if not isinstance(raw_stock, Mapping):
+-            continue
+-        symbol = canonical_symbol(raw_stock.get("symbol"))
+-        if not symbol:
+-            continue
+-        for raw in raw_stock.get("evidence") or []:
+-            if not isinstance(raw, Mapping) or raw.get("semantic_status") != "ACCEPTED":
+-                continue
+-            published = raw.get("published_at")
+-            if (
+-                raw.get("temporal_role") != "NEW_PLAN_PUBLICATION"
+-                or not _in_window(published, start, cutoff)
+-                or not acquisition_is_within_window(raw, start, cutoff)
+-            ):
+-                continue
+-            row = deepcopy(dict(raw))
+-            row["evidence_lane"] = "COMPANY_MATERIAL"
+-            row["evidence_class"] = "VERIFIED_COMPANY_SPECIFIC_MATERIAL"
+-            row["acquired_at"] = evidence_acquired_at(row)
+-            result.setdefault(symbol, []).append(row)
+-
+-    seen = {
+-        (symbol, str(row.get("evidence_id") or row.get("card_id") or row.get("event_id") or ""))
+-        for symbol, rows in result.items()
+-        for row in rows
+-    }
+-    for raw in material_cards or []:
+-        if not isinstance(raw, Mapping) or raw.get("semantic_status") != "ACCEPTED":
+-            continue
+-        symbol = canonical_symbol(raw.get("symbol"))
+-        if not symbol or raw.get("temporal_role") != "NEW_PLAN_PUBLICATION":
+-            continue
+-        published = raw.get("published_at")
+-        if not _in_window(published, start, cutoff) or not acquisition_is_within_window(raw, start, cutoff):
+-            continue
+-        identity = str(raw.get("evidence_id") or raw.get("card_id") or raw.get("event_id") or "")
+-        if identity and (symbol, identity) in seen:
+-            continue
+-        row = deepcopy(dict(raw))
+-        row["evidence_lane"] = "COMPANY_MATERIAL"
+-        row["evidence_class"] = "VERIFIED_COMPANY_SPECIFIC_MATERIAL"
+-        row["acquired_at"] = evidence_acquired_at(row)
+-        result.setdefault(symbol, []).append(row)
+-        if identity:
+-            seen.add((symbol, identity))
+-    merged: dict[str, list[dict[str, Any]]] = {}
+-    for symbol, rows in result.items():
+-        values = merge_event_rows(symbol, rows)
+-        for row in values:
+-            row["evidence_lane"] = "COMPANY_MATERIAL"
+-            row["evidence_class"] = "VERIFIED_COMPANY_SPECIFIC_MATERIAL"
+-        merged[symbol] = values
++    from .announcement_materials import current_company_claim, is_mirror
++    result: dict[str,list[dict[str,Any]]]={}
++    combined=[e for s in stocks or [] if isinstance(s,Mapping)
++              for e in s.get('evidence') or []]+list(material_cards or [])
++    seen=set()
++    for raw in combined:
++        if (not isinstance(raw,Mapping) or raw.get('semantic_status')!='ACCEPTED'
++                or not current_company_claim(raw,start,cutoff)):
++            continue
++        symbol=canonical_symbol(raw.get('symbol'))
++        if not symbol:continue
++        identity=str(raw.get('evidence_id') or raw.get('card_id') or raw.get('event_id') or digest(raw))
++        key=(symbol,identity)
++        if key in seen:continue
++        seen.add(key)
++        row=deepcopy(dict(raw));row['evidence_lane']='COMPANY_MATERIAL'
++        row['evidence_class']=('VERIFIED_MIRROR_COMPANY_MATERIAL_NOT_HKEX_FIRST_PUBLICATION'
++                               if is_mirror(raw) else 'VERIFIED_COMPANY_SPECIFIC_MATERIAL')
++        row['acquired_at']=evidence_acquired_at(row)
++        result.setdefault(symbol,[]).append(row)
++    # Do not collapse a mirror row into an official or ordinary published row.
++    merged={}
++    for symbol,rows in result.items():
++        mirror=[r for r in rows if is_mirror(r)]
++        other=merge_event_rows(symbol,[r for r in rows if not is_mirror(r)])
++        for row in other:
++            row['evidence_lane']='COMPANY_MATERIAL';row['evidence_class']='VERIFIED_COMPANY_SPECIFIC_MATERIAL'
++        merged[symbol]=[*other,*mirror]
+     return merged
+ 
+ 
+@@ -511,15 +485,14 @@
+     official = official_evidence(announcement_observation, start, cutoff)
+     company = company_evidence(stocks, material_cards, start, cutoff)
+     theme_audit: list[dict[str,Any]]=[]
+-    theme_relations = verified_theme_relations(themes, start, cutoff, audit=theme_audit)
+-    # Native cards must use their anchored original body, not unvalidated
+-    # ticker metadata. Preserve the existing separately reviewed legacy route.
+-    legacy=[r for r in material_cards or [] if isinstance(r,Mapping) and r.get('identity_mapping_basis')!='UNIQUE_NATIVE_HK_NAME_IN_SOURCE_TEXT']
+-    direct_relations = structured_us_issuer_relations(legacy, start, cutoff)
+-    native_industry,native_direct,material_audit=material_us_relations(material_cards,start,cutoff)
++    verified_theme_relations(themes,start,cutoff,audit=theme_audit)
++    for row in theme_audit:
++        if row.get('reason')=='ACCEPTED':
++            row['reason']='LEGACY_THEME_RELATION_REQUIRES_ORIGINAL_ISSUER_PROPOSITION'
++    # ALL executable joins must pass the one original body/span parser, even
++    # when a legacy cache has related_us_symbols or a matching theme label.
++    theme_relations,direct_relations,material_audit=material_us_relations(material_cards,start,cutoff)
+     material_audit=[*theme_audit,*material_audit]
+-    for symbol,rows in native_industry.items():theme_relations.setdefault(symbol,[]).extend(rows)
+-    for symbol,rows in native_direct.items():direct_relations.setdefault(symbol,[]).extend(rows)
+     mapping_input=us_market
+     if isinstance(us_market,Mapping) and not _in_window(us_market.get('captured_at'),start,cutoff):
+         mapping_input={**us_market,'mapping_eligible':False}
+--- r9/v4/manager_research/issuer_us_relations.py
++++ candidate/v4/manager_research/issuer_us_relations.py
+@@ -7,7 +7,8 @@
+ """
+ from __future__ import annotations
+ from copy import deepcopy
+-from datetime import datetime
++from datetime import datetime, timedelta
++import hashlib
+ import re
+ from typing import Any, Mapping, Sequence
+ from .workspace_projection import canonical_symbol, digest, timestamp
+@@ -99,28 +100,94 @@
+             'issuer_quote':quote,'source_field':p['source_field'],'start':p['start'],'end':p['end'],
+             'manager_themes':themes,'related_us_symbols':sorted(tickers),
+             'direction':_direction(quote),'issuer_cautions':deepcopy(cautions),'effect_scope':p.get('effect_scope'),
++            'claim_status':p.get('claim_status'),
+             'basis':'NATIVE_ISSUER_SUBJECT_ACTION_SOURCE_SPAN'})
+     return result
+ 
+ 
+-def _card_error(card: Mapping[str,Any], start: datetime | None, cutoff: datetime | None) -> str | None:
+-    if card.get('semantic_status')!='ACCEPTED':return 'ISSUER_SEMANTIC_NOT_ACCEPTED'
+-    if canonical_symbol(card.get('symbol'),card.get('market','HK'))!=card.get('symbol'):return 'HK_SECURITY_IDENTITY_INVALID'
++def _card_errors(card: Mapping[str,Any], cutoff: datetime | None) -> list[str]:
++    """Report acquisition gaps separately; an old publication cannot hide them."""
++    errors=[]
++    if card.get('semantic_status')!='ACCEPTED':errors.append('ISSUER_SEMANTIC_NOT_ACCEPTED')
++    symbol=card.get('symbol')
++    if not isinstance(symbol,str) or canonical_symbol(symbol,card.get('market','HK'))!=symbol:
++        errors.append('HK_SECURITY_IDENTITY_INVALID')
+     identity=card.get('identity_source')
+     if (not isinstance(identity,Mapping) or identity.get('status')!='OWNER_VERIFIED'
+             or not _SHA.fullmatch(str(identity.get('artifact_sha256','')))):
+-        return 'NATIVE_ISSUER_IDENTITY_UNVERIFIED'
++        errors.append('NATIVE_ISSUER_IDENTITY_UNVERIFIED')
+     refs=card.get('source_refs')
+     if not isinstance(refs,list) or not refs or any(not isinstance(r,Mapping) or r.get('status')!='VERIFIED'
+-            or not _SHA.fullmatch(str(r.get('payload_sha256',''))) for r in refs):return 'ISSUER_SOURCE_LINEAGE_UNVERIFIED'
+-    published=timestamp(card.get('published_at'))
+-    if start is None or cutoff is None or published is None or not start<=published<=cutoff:return 'ISSUER_PUBLICATION_OUTSIDE_WINDOW'
+-    # Archive producer's explicit availability/retrieval are not interchangeable
+-    # with collection/first-seen. No new fallback or invented historical time.
+-    if timestamp(card.get('available_at')) is None or timestamp(card.get('retrieved_at')) is None:
+-        return 'ISSUER_ACQUISITION_TIME_MISSING_OR_INVALID'
+-    if not acquisition_is_within_window(card,start,cutoff):return 'ISSUER_ACQUISITION_TIME_OUTSIDE_WINDOW'
+-    return None
++            or not _SHA.fullmatch(str(r.get('payload_sha256',''))) for r in refs):
++        errors.append('ISSUER_SOURCE_LINEAGE_UNVERIFIED')
++    from .announcement_materials import is_mirror, mirror_binding_valid
++    if is_mirror(card) and not mirror_binding_valid(card):errors.append('MIRROR_ISSUER_SOURCE_BINDING_INVALID')
++    pub=timestamp(card.get('mirror_observed_at') if is_mirror(card) else card.get('published_at'))
++    available=timestamp(card.get('available_at'));retrieved=timestamp(card.get('retrieved_at'))
++    if pub is None:errors.append('ISSUER_SOURCE_PUBLICATION_OR_MIRROR_TIME_MISSING')
++    if available is None or retrieved is None:
++        errors.append('ISSUER_ACQUISITION_TIME_MISSING_OR_INVALID')
++    elif cutoff is None or (pub is not None and pub>retrieved) or retrieved>available or available>cutoff:
++        errors.append('ISSUER_ACQUISITION_TIME_OUTSIDE_WINDOW_OR_ORDER_INVALID')
++    # These are additional original clocks, never fallback acquisitions.
++    for key in ('first_seen_at','collected_at','archive_recorded_at'):
++        if card.get(key) not in (None,''):
++            stamp=timestamp(card[key])
++            if stamp is None or cutoff is None or stamp>cutoff:
++                errors.append('ISSUER_ADDITIONAL_CLOCK_INVALID_OR_AFTER_CUTOFF:'+key)
++    return errors
++
++
++def _standing_contract(card: Mapping[str,Any], claim: Mapping[str,Any], cutoff: datetime | None) -> tuple[dict | None,str | None]:
++    """A source-owner supplied span contract; no side store or clock backfill.
++
++    The contract must already be inside the original reader-verified payload.
++    A statement-only metadata cache cannot supply or extend its validity.
++    Validity is bounded to 366 days and never claims that an old relation is a
++    new catalyst. The claim/body/source hash bindings are all rechecked here.
++    """
++    row=card.get('original_source_row')
++    contract=row.get('business_relation_validity') if isinstance(row,Mapping) else None
++    if not isinstance(contract,Mapping):return None,'ISSUER_PUBLICATION_OUTSIDE_WINDOW'
++    a,b=claim.get('start'),claim.get('end');field=claim.get('source_field')
++    body=dict(prose_sources(card)).get(field)
++    def sha(text):return hashlib.sha256(text.encode('utf-8')).hexdigest()
++    refs=card.get('source_refs') or []
++    if (contract.get('schema_version')!='v4.manager_research.business_relation_validity.v1'
++            or contract.get('status')!='ACTIVE' or contract.get('issuer_symbol')!=card.get('symbol')
++            or contract.get('validity_basis')!='ORIGINAL_SOURCE_OWNER_EXPLICIT_REVIEW_PERIOD_NOT_NEW_CAPTURE'
++            or not isinstance(body,str) or contract.get('body_sha256')!=sha(body)
++            or (contract.get('source_field'),contract.get('start'),contract.get('end'))!=(field,a,b)
++            or contract.get('quote_sha256')!=sha(claim.get('issuer_quote',''))
++            or contract.get('source_payload_sha256') not in {r.get('payload_sha256') for r in refs if isinstance(r,Mapping)}):
++        return None,'STANDING_RELATION_SOURCE_SPAN_CONTRACT_INVALID'
++    begin=timestamp(contract.get('valid_from'));end=timestamp(contract.get('valid_until'))
++    confirmed=timestamp(contract.get('confirmed_at'))
++    acquired=timestamp(card.get('available_at'));retrieved=timestamp(card.get('retrieved_at'))
++    from .announcement_materials import is_mirror
++    published=timestamp(card.get('mirror_observed_at') if is_mirror(card) else card.get('published_at'))
++    if (not all((begin,end,confirmed,acquired,retrieved,published,cutoff))
++            or not begin<=confirmed<=acquired<=cutoff<end or retrieved>acquired
++            or not published<=confirmed or end-begin>timedelta(days=366)):
++        return None,'STANDING_RELATION_VALIDITY_OR_CAPTURE_INVALID'
++    if claim.get('claim_status')!='SOURCE_STATEMENT':return None,'STANDING_RELATION_NOT_SOURCE_STATEMENT'
++    return deepcopy(dict(contract)),None
++
++
++def _claim_time(card: Mapping[str,Any],claim: Mapping[str,Any],start: datetime | None,cutoff: datetime | None):
++    from .announcement_materials import current_company_claim
++    if current_company_claim(card,start,cutoff):return 'CURRENT_WINDOW_RELATION_EVIDENCE',None,None
++    contract,error=_standing_contract(card,claim,cutoff)
++    if error:return None,None,error
++    return 'STANDING_RELATION_NOT_NEW_CATALYST',contract,None
++
++
++def _card_error(card: Mapping[str,Any],start: datetime | None,cutoff: datetime | None) -> str | None:
++    """Compatibility diagnostic only; per-claim standing admission is below."""
++    errors=_card_errors(card,cutoff)
++    if errors:return errors[0]
++    from .announcement_materials import current_company_claim
++    return None if current_company_claim(card,start,cutoff) else 'ISSUER_PUBLICATION_OUTSIDE_WINDOW'
+ 
+ 
+ def material_us_relations(cards: Sequence[Mapping[str,Any]] | None, start: datetime | None, cutoff: datetime | None):
+@@ -128,28 +195,40 @@
+     for card in cards or []:
+         if not isinstance(card,Mapping):continue
+         claims=extract_issuer_business_relations(card)  # do not trust mutable cached extraction
+-        error=_card_error(card,start,cutoff)
++        errors=_card_errors(card,cutoff)
+         if not claims:
+             audit.append({'symbol':card.get('symbol'),'card_id':card.get('card_id'),
+-                'reason':error or 'NO_SUBJECT_BOUND_BUSINESS_OR_US_RELATION','manager_themes':[],
++                'reason':(errors or ['NO_SUBJECT_BOUND_BUSINESS_OR_US_RELATION'])[0],
++                'rejection_reasons':[*errors,'NO_SUBJECT_BOUND_BUSINESS_OR_US_RELATION'],'manager_themes':[],
+                 'related_us_symbols':sorted(_symbols(card.get('original_source_row') or {})),
+                 'source_refs':deepcopy(card.get('source_refs') or [])})
+         for claim in claims:
++            role,contract,time_error=_claim_time(card,claim,start,cutoff)
++            reasons=[*errors,*([time_error] if time_error else [])]
++            if claim.get('claim_status') not in {'SOURCE_STATEMENT','REPORTED_CLAIM'}:
++                reasons.append('ISSUER_RELATION_NOT_AFFIRMED_FACT_OR_ATTRIBUTED_REPORT')
+             a={'symbol':card['symbol'],'card_id':card.get('card_id'),**claim,
+-               'reason':error or 'ACCEPTED','source_refs':deepcopy(card.get('source_refs') or [])}
++               'reason':reasons[0] if reasons else 'ACCEPTED','rejection_reasons':reasons,
++               'relation_temporal_role':role,'source_refs':deepcopy(card.get('source_refs') or [])}
+             audit.append(a)
+-            if error:continue
++            if reasons:continue
+             key=digest([card['symbol'],claim,card['source_refs']])
+             if key in seen:continue
+             seen.add(key)
+             base={**claim,'symbol':card['symbol'],'name':card.get('name'),
++                'relation_temporal_role':role,'standing_validity':contract,
++                'is_new_catalyst':False,
++                'issuer_time_basis':card.get('time_basis','ORIGINAL_SOURCE_PUBLICATION'),
++                'issuer_mirror_observed_at':card.get('mirror_observed_at'),
+                 'issuer_published_at':card.get('published_at'),'issuer_available_at':card.get('available_at'),
+                 'issuer_retrieved_at':card.get('retrieved_at'),'published_at':card.get('published_at'),
+                 **{k:card.get(k) for k in ('available_at','retrieved_at','first_seen_at','collected_at','archive_recorded_at')},
+                 'source_refs':deepcopy(card['source_refs']),'identity_source':deepcopy(card['identity_source']),
+                 'connect_eligibility':card.get('connect_eligibility','TARGET_DATE_NOT_CHECKED'),
+                 'relationship_type':'INDUSTRY_INFERENCE','relation_origin':'NATIVE_MATERIAL_PROPOSITION',
+-                'research_only':True,'not_a_beneficiary_or_buy_assertion':True}
++                'research_only':True,'not_a_beneficiary_or_buy_assertion':True,
++                'relation_assertion_scope':('ATTRIBUTED_REPORT_NOT_INDEPENDENTLY_CONFIRMED'
++                    if claim.get('claim_status')=='REPORTED_CLAIM' else 'SOURCE_STATEMENT_NOT_PRICE_PREDICTION')}
+             for theme in claim['manager_themes']:
+                 industries.setdefault(card['symbol'],[]).append({**base,'manager_theme':theme})
+             if claim['related_us_symbols']:
+--- /dev/null
++++ candidate/v4/manager_research/announcement_materials.py
+@@ -0,0 +1,166 @@
++"""Read-only adapter for original-owner-validated mirror announcement bodies.
++
++No source fetch/store, timestamp synthesis, issuer map, or official-publication
++attestation. Call mirror_material only AFTER the existing owner reopens and
++validates its stored responses. Rechecking these bindings is not that I/O proof.
++"""
++from __future__ import annotations
++from copy import deepcopy
++from datetime import datetime
++import hashlib
++import re
++from typing import Any, Mapping, Sequence
++from .workspace_projection import FLAGS, canonical_symbol, digest, timestamp
++
++SOURCE_KIND = 'EASTMONEY_HK_ANNOUNCEMENT_BODY'
++SOURCE_IDENTITY = 'EASTMONEY_HK_MIRROR_NOT_HKEX_OFFICIAL'
++CURRENT_ROLE = 'CURRENT_WINDOW_MIRROR_OBSERVATION'
++TIME_BASIS = 'MIRROR_DISPLAY_TIME_NOT_HKEX_FIRST_PUBLICATION'
++_SHA = re.compile(r'[0-9a-f]{64}')
++
++
++def _hash(text: str) -> str:
++    return hashlib.sha256(text.encode('utf-8')).hexdigest()
++
++
++def is_mirror(value: Mapping[str, Any]) -> bool:
++    return value.get('source_kind') == SOURCE_KIND
++
++
++def _document_error(doc: Mapping[str, Any]) -> str | None:
++    symbol=doc.get('symbol')
++    if (doc.get('schema_version')!='v4.manager_research.eastmoney_hk_document.v2'
++            or not isinstance(symbol,str) or canonical_symbol(symbol)!=symbol or doc.get('source')!='EASTMONEY_HK'
++            or doc.get('source_identity')!=SOURCE_IDENTITY or doc.get('market_code')!='116'
++            or doc.get('stock_code')!=symbol[3:] or doc.get('ann_type')!='H'
++            or not str(doc.get('name') or '').strip() or not re.fullmatch(r'AN\d{18}',str(doc.get('art_code','')))):
++        return 'ANNOUNCEMENT_MATERIAL_IDENTITY_INVALID'
++    if (doc.get('published_at') not in (None,'') or doc.get('hkex_first_publication_verified') is not False
++            or doc.get('publication_status')!='CANNOT_CONFIRM_FIRST_PUBLICATION'):
++        return 'ANNOUNCEMENT_MATERIAL_PUBLICATION_UPGRADE_REJECTED'
++    if (any(doc.get(k) is not v for k,v in FLAGS.items()) or doc.get('buy_allowed') is not False
++            or doc.get('fresh_catalyst_eligible') is not False):
++        return 'ANNOUNCEMENT_MATERIAL_SAFETY_INVALID'
++    body=doc.get('body_text')
++    if not isinstance(body,str) or not body.strip():return 'ANNOUNCEMENT_MATERIAL_BODY_MISSING'
++    if (doc.get('body_status')!='FULL_CONTENT_API_TEXT_VERIFIED'
++            or doc.get('body_source')!='EASTMONEY_CONTENT_API_PAGES'
++            or _hash(body)!=doc.get('body_sha256') or not _SHA.fullmatch(str(doc.get('document_sha256','')))):
++        return 'ANNOUNCEMENT_MATERIAL_BODY_SHA_OR_CONTRACT_INVALID'
++    pages=doc.get('body_pages')
++    if (not isinstance(pages,list) or not pages or len(pages)!=doc.get('content_page_count')
++            or any(not isinstance(p,Mapping) or p.get('page_index')!=i+1 or not isinstance(p.get('text'),str)
++                   or _hash(p['text'])!=p.get('text_sha256') for i,p in enumerate(pages))
++            or '\n\n'.join(p['text'] for p in pages)!=body):
++        return 'ANNOUNCEMENT_MATERIAL_BODY_PAGES_INVALID'
++    refs=doc.get('source_refs')
++    if (not isinstance(refs,list) or len(refs)!=len(pages)+2 or any(not isinstance(r,Mapping)
++            or not _SHA.fullmatch(str(r.get('blob_sha256',''))) or not _SHA.fullmatch(str(r.get('body_sha256','')))
++            or timestamp(r.get('retrieved_at')) is None or not isinstance(r.get('request'),Mapping)
++            or r['request'].get('source')!='EASTMONEY_HK' or r['request'].get('method')!='GET'
++            or r.get('http_status')!=200 or not r.get('source_key') for r in refs)
++            or any(p.get('source_ref')!=refs[i+1] for i,p in enumerate(pages))):
++        return 'ANNOUNCEMENT_MATERIAL_SOURCE_REFS_INVALID'
++    available=timestamp(doc.get('available_at'));retrieved=timestamp(doc.get('retrieved_at'))
++    displayed=timestamp(doc.get('display_time_iso'))
++    if (available is None or retrieved is None or displayed is None
++            or displayed>available or retrieved!=available
++            or available!=max(timestamp(r['retrieved_at']) for r in refs)):
++        return 'ANNOUNCEMENT_MATERIAL_CLOCK_INVALID'
++    return None
++
++
++def mirror_material(doc: Mapping[str, Any], capture: Mapping[str, Any]) -> dict:
++    """Adapt bytes already checked by workspace_announcements' ORIGINAL reader."""
++    if (not isinstance(capture,Mapping) or capture.get('source')!='EASTMONEY_HK'
++            or capture.get('readback_status')!='VERIFIED'
++            or not _SHA.fullmatch(str(capture.get('sha256','')))
++            or not re.fullmatch(r'[0-9a-f]{32}',str(capture.get('run_id','')))):
++        raise ValueError('ANNOUNCEMENT_MATERIAL_OWNER_READBACK_UNVERIFIED')
++    error=_document_error(doc)
++    if error:raise ValueError(error)
++    capture_date=str(doc.get('capture_trade_date') or capture.get('target_trade_date') or '')
++    if not re.fullmatch(r'20\d{6}',capture_date):
++        raise ValueError('ANNOUNCEMENT_MATERIAL_CAPTURE_IDENTITY_INVALID')
++    # payload_sha256 denotes the existing MaterialStore HTTP ENVELOPE blob,
++    # not a new payload, not the PDF hash, and not an invented source receipt.
++    refs=[dict(status='VERIFIED',payload_sha256=r['blob_sha256'],
++        representation='MATERIALSTORE_HTTP_RESPONSE_ENVELOPE',
++        verification_owner='workspace_announcements._check_eastmoney_sources',
++        source_id=r['source_key'],source_url=r['request']['url'],
++        retrieved_at=r['retrieved_at'],response_body_sha256=r['body_sha256'],
++        raw_source_ref=deepcopy(dict(r))) for r in doc['source_refs']]
++    return dict(material_id=digest(['ANNOUNCEMENT_BODY',doc['symbol'],doc['art_code'],doc['body_sha256']]),
++        original_article_id=doc['event_id'],title=doc['title'],source_kind=SOURCE_KIND,
++        source='EASTMONEY_HK',source_identity=SOURCE_IDENTITY,source_market='HK',
++        source_url=doc['source_url'],source_refs=refs,verification='OWNER_VERIFIED',
++        source_row={'body_text':doc['body_text']},claim_type='SOURCE_STATEMENT',
++        issuer_code=doc['symbol'],document_issuer_symbol=doc['symbol'],
++        body_sha256=doc['body_sha256'],document_sha256=doc['document_sha256'],
++        art_code=doc['art_code'],owner_document=deepcopy(dict(doc)),
++        owner_capture=deepcopy(dict(capture)),capture_trade_date=capture_date,
++        published_at=None,published_date=None,mirror_observed_at=doc['display_time_iso'],
++        display_time_iso=doc['display_time_iso'],time_basis=TIME_BASIS,
++        available_at=doc['available_at'],retrieved_at=doc['retrieved_at'],
++        publication_status='CANNOT_CONFIRM_FIRST_PUBLICATION',hkex_first_publication_verified=False,
++        fresh_catalyst_eligible=False,buy_allowed=False,**FLAGS)
++
++
++def mirror_binding_valid(value: Mapping[str, Any]) -> bool:
++    if not is_mirror(value):return False
++    doc=value.get('owner_document');capture=value.get('owner_capture')
++    if not isinstance(doc,Mapping) or _document_error(doc):return False
++    try:expected=mirror_material(doc,capture)
++    except (TypeError,ValueError,KeyError):return False
++    # original_source_row is the existing card projection of source_row.
++    row=value.get('source_row') or value.get('original_source_row') or {}
++    if row.get('body_text')!=doc['body_text']:return False
++    keys=('source','source_identity','source_kind','source_refs','issuer_code','document_issuer_symbol',
++          'body_sha256','document_sha256','art_code','published_at','published_date','mirror_observed_at',
++          'display_time_iso','time_basis','available_at','retrieved_at','publication_status',
++          'hkex_first_publication_verified','fresh_catalyst_eligible','buy_allowed')
++    return all(value.get(k)==expected.get(k) for k in keys) and all(value.get(k) is v for k,v in FLAGS.items())
++
++
++def mirror_role(value: Mapping[str, Any], start: datetime | None, cutoff: datetime | None) -> str:
++    if cutoff is None:return 'TIME_CONTEXT_UNVERIFIED'
++    if not mirror_binding_valid(value):return 'SOURCE_TIME_OR_BODY_UNVERIFIED'
++    seen=timestamp(value['mirror_observed_at']);available=timestamp(value['available_at'])
++    if seen>cutoff or available>cutoff:return 'AFTER_CUTOFF_EXCLUDED'
++    return CURRENT_ROLE if start is not None and start<seen<=cutoff else 'BACKGROUND'
++
++
++def current_company_claim(value: Mapping[str, Any], start: datetime | None, cutoff: datetime | None) -> bool:
++    if is_mirror(value):return mirror_role(value,start,cutoff)==CURRENT_ROLE
++    if start is None or cutoff is None:return False
++    pub=timestamp(value.get('published_at'));available=timestamp(value.get('available_at'));retrieved=timestamp(value.get('retrieved_at'))
++    if pub is None or available is None or retrieved is None or not start<=pub<=retrieved<=available<=cutoff:
++        return False
++    from .evidence_identity import acquisition_is_within_window
++    return acquisition_is_within_window(value,start,cutoff)
++
++
++def substantive_propositions(value: Mapping[str, Any], propositions: Sequence[Mapping[str,Any]]) -> tuple[list[dict],list[dict]]:
++    """Selection filter AFTER, not instead of, the existing subject classifier."""
++    if not is_mirror(value):return list(propositions),[]
++    kept=[];rejected=[];binding_valid=mirror_binding_valid(value)
++    for p in propositions:
++        kind=p.get('event_type');action=str(p.get('action_quote') or '')
++        reason=None
++        if not binding_valid:reason='ANNOUNCEMENT_MATERIAL_BINDING_INVALID'
++        elif p.get('symbol')!=value.get('document_issuer_symbol'):reason='ANNOUNCEMENT_NOT_BOUND_ISSUER'
++        elif p.get('claim_status')!='SOURCE_STATEMENT' or p.get('polarity')!='AFFIRMED':reason='ANNOUNCEMENT_NOT_AFFIRMED_SOURCE_EVENT'
++        elif re.search(r'回购|回購|購回|购回|repurchas|buyback',action,re.I):reason='ROUTINE_CAPITAL_ACTION_NOT_SUBSTANTIVE_CATALYST'
++        elif kind in {'ISSUER_RESEARCH','VALUATION_OPINION','OWNERSHIP_CHANGE'}:reason='NO_SUBSTANTIVE_COMPANY_EVENT'
++        elif not re.search(r'已|完成|新增|取得|获得|獲得|获批|獲批|批准|签署|簽署|达成|達成|增长|增長|下降|增加|减少|減少|\d|announced|completed|signed|approved',action,re.I):
++            reason='NO_CONFIRMED_EVENT_ACTION'
++        if reason:rejected.append({**deepcopy(dict(p)),'reason':reason,'art_code':value.get('art_code'),
++            'body_sha256':value.get('body_sha256'),'source_refs':deepcopy(value.get('source_refs',[]))})
++        else:kept.append(dict(p))
++    return kept,rejected
++
++
++CARD_FIELDS=('source','source_identity','source_kind','issuer_code','document_issuer_symbol','body_sha256',
++             'document_sha256','art_code','owner_document','owner_capture','capture_trade_date',
++             'mirror_observed_at','display_time_iso','time_basis','publication_status',
++             'hkex_first_publication_verified','fresh_catalyst_eligible','buy_allowed')
+--- /dev/null
++++ candidate/v4/manager_research/connect_selection.py
+@@ -0,0 +1,147 @@
++"""Target-date HK Connect scope for the Manager's read-only candidate views.
++
++Uses the EXISTING full-market universe reader, never a Stage list, native HK
++name, ticker allowlist, or a new eligibility producer. Original Stage/screen
++products are not rewritten. A present-time authority readback is explicitly
++not a claim of historical PIT capture of the entire selection process.
++"""
++from __future__ import annotations
++from copy import deepcopy
++import os
++from pathlib import Path
++import re
++from typing import Any, Mapping, Sequence
++from .workspace_projection import FLAGS, canonical_symbol, date_token, digest, timestamp
++
++
++def read_scope(context: Mapping[str, Any]) -> dict:
++    date=date_token(context['plan_trade_date'])
++    result=dict(status='CANNOT_CONFIRM',target_trade_date=date,codes=[],source=None,
++                identity=None,gaps=[],read_only=True,**FLAGS)
++    configured=os.environ.get('V4_MANAGER_UNIVERSE_ROOT','').strip()
++    if not configured:
++        result['gaps']=['HK_CONNECT_TARGET_AUTHORITY_ROOT_NOT_BOUND'];return result
++    root=Path(configured).expanduser()
++    if not root.is_absolute() or '..' in root.parts or root.is_symlink():
++        result['gaps']=['HK_CONNECT_TARGET_AUTHORITY_ROOT_INVALID'];return result
++    try:
++        from domains.manager_research_evidence import read_universe_evidence
++        # Do not inject the plan cutoff as a fake clock into this reader.
++        universe=read_universe_evidence(root,date)
++        source=dict(universe.source)
++        cutoff=timestamp(context.get('research_cutoff'))
++        if (source.get('source_date')!=date or source.get('market')!='HK_CONNECT'
++                or timestamp(source.get('observed_at')) is None or cutoff is None
++                or timestamp(source['observed_at'])>cutoff):
++            raise ValueError('HK_CONNECT_TARGET_AUTHORITY_AFTER_CUTOFF_OR_WRONG_DATE')
++        codes=sorted(set(universe.codes))
++        if not codes or any(canonical_symbol(c)!=c for c in codes):
++            raise ValueError('HK_CONNECT_TARGET_AUTHORITY_CODES_INVALID')
++        result.update(status='OWNER_VERIFIED',codes=codes,source=source,
++            identity=digest([date,codes,source['sha256']]),
++            membership_semantics='TARGET_DATE_AUTHORITY_AS_READ_NOT_HISTORICAL_SELECTION_CAPTURE',
++            availability_semantics='ORIGINAL_READER_WITNESS_CLOCK_RETAINED_NOT_BACKDATED')
++    except (ImportError,OSError,ValueError,KeyError,TypeError,RuntimeError) as exc:
++        reason=str(exc)
++        if not re.fullmatch(r'[A-Z0-9_:. -]{1,180}',reason):reason=type(exc).__name__
++        result['gaps']=['HK_CONNECT_TARGET_AUTHORITY_UNVERIFIED:'+reason]
++    return result
++
++
++def _scope_error(scope: Mapping[str,Any], target_date: str) -> str | None:
++    source=scope.get('source');codes=scope.get('codes')
++    if (scope.get('status')!='OWNER_VERIFIED' or not isinstance(source,Mapping)
++            or not isinstance(codes,list) or any(not isinstance(c,str) for c in codes)
++            or codes!=sorted(set(codes))
++            or any(canonical_symbol(c)!=c for c in codes)
++            or not re.fullmatch(r'[0-9a-f]{64}',str(source.get('sha256','')))):
++        return 'TARGET_HK_CONNECT_MEMBERSHIP_UNVERIFIED'
++    if (scope.get('target_trade_date')!=target_date or source.get('source_date')!=target_date
++            or source.get('market')!='HK_CONNECT' or source.get('role')!='HK_CONNECT_FULL_MARKET_AUTHORITY'):
++        return 'TARGET_HK_CONNECT_MEMBERSHIP_DATE_OR_ROLE_MISMATCH'
++    if scope.get('identity')!=digest([target_date,codes,source['sha256']]):
++        return 'TARGET_HK_CONNECT_MEMBERSHIP_IDENTITY_MISMATCH'
++    return None
++
++
++def filter_cards(cards: Sequence[Mapping[str,Any]], scope: Mapping[str,Any], *, target_date: str | None=None) -> tuple[list[dict],list[dict]]:
++    target_date=target_date or scope.get('target_trade_date')
++    error=_scope_error(scope,target_date);allowed=set(scope.get('codes') or [])
++    out=[];rejected=[]
++    for raw in cards:
++        if not isinstance(raw,Mapping):continue
++        symbol=raw.get('symbol') or raw.get('code')
++        reason=error
++        if not reason and canonical_symbol(symbol,raw.get('market','HK'))!=symbol:
++            reason='NON_HK_SECURITY_IDENTITY'
++        if not reason and symbol not in allowed:reason='NOT_IN_TARGET_HK_CONNECT_UNIVERSE'
++        if reason:
++            rejected.append(dict(symbol=symbol,name=raw.get('name'),card_id=raw.get('card_id'),
++                event_id=raw.get('event_id'),art_code=raw.get('art_code'),reason=reason,
++                source_refs=deepcopy(raw.get('source_refs',[]))))
++            continue
++        row=deepcopy(dict(raw))
++        # A witness clock is diagnostic only, not a source clock and not a
++        # volatile component of input_identity/idempotency.
++        row.update(connect_eligibility='VERIFIED_TARGET_UNIVERSE',
++            membership_source={k:deepcopy(v) for k,v in scope['source'].items() if k!='available_at'},
++            membership_input_identity=scope['identity'],
++            membership_semantics='TARGET_DATE_AUTHORITY_AS_READ_NOT_HISTORICAL_SELECTION_CAPTURE')
++        out.append(row)
++    return out,rejected
++
++
++def gate_workspace(value: Mapping[str,Any],scope: Mapping[str,Any]) -> dict:
++    out=deepcopy(dict(value));date=out['target_trade_date']
++    stocks,rejected=filter_cards(out.get('stocks',[]),scope,target_date=date)
++    allowed={r['symbol'] for r in stocks}
++    out['stocks']=stocks
++    out['focus_symbols']=[s for s in out.get('focus_symbols',[]) if s in allowed]
++    out['company_events']=[e for e in out.get('company_events',[]) if e.get('symbol') in allowed]
++    for t in out.get('themes',[]):
++        t['mappings']=[m for m in t.get('mappings',[]) if m.get('symbol') in allowed]
++        t['mapped_symbols']=sorted({m['symbol'] for m in t['mappings']})
++        t['mapped_stock_count']=len(t['mapped_symbols'])
++    out.setdefault('summary',{}).update(stock_count=len(stocks),focus_count=len(out['focus_symbols']))
++    out.setdefault('briefing',{})['focus_count']=len(out['focus_symbols'])
++    out['connect_selection_rejections']=rejected
++    out['gaps']=sorted(set([*out.get('gaps',[]),*scope.get('gaps',[])]))
++    out['input_identity']=digest([out.get('input_identity'),scope.get('identity'),'HK_CONNECT_RESEARCH_SCOPE_V1'])
++    return out
++
++
++def evidence_view(screen: Mapping[str,Any], lane: Mapping[str,Any], scope: Mapping[str,Any]) -> tuple[dict,dict]:
++    """Private inputs for research attention; original screen/Stage stay intact."""
++    screen=deepcopy(dict(screen));lane=deepcopy(dict(lane))
++    for key in ('cards','strict','near','pending'):
++        if isinstance(screen.get(key),list):screen[key]=filter_cards(screen[key],scope)[0]
++    for key in ('official_documents','eastmoney_hk_documents','observations','pending_observations'):
++        if isinstance(lane.get(key),list):lane[key]=filter_cards(lane[key],scope)[0]
++    return screen,lane
++
++
++def selection_diagnostics(value: Mapping[str,Any],attention: Mapping[str,Any],sources: Mapping[str,Any],scope: Mapping[str,Any],material_rejections: Sequence[Mapping[str,Any]]) -> dict:
++    focus=set(value.get('focus_symbols',[]));rows={}
++    for stock in value.get('stocks',[]):
++        if stock.get('symbol') not in focus:continue
++        evidence=[deepcopy(e) for e in stock.get('evidence',[]) if e.get('semantic_status')=='ACCEPTED']
++        rows[stock['symbol']]=dict(symbol=stock['symbol'],name=stock['name'],
++            reason=deepcopy(stock.get('why_watch',[])),evidence=evidence,
++            candidate_kind='COMPANY_RESEARCH_NOT_BUY',qualified=False,buy_allowed=False,**FLAGS)
++    for card in attention.get('cards',[]):
++        relations=[e for e in card.get('evidence',[]) if e.get('evidence_lane') in {'US_INDIVIDUAL_MAPPING','US_INDUSTRY_MAPPING'}]
++        if not relations:continue
++        row=rows.setdefault(card['symbol'],dict(symbol=card['symbol'],name=card['name'],reason=[],evidence=[],
++            candidate_kind='BUSINESS_RELATION_RESEARCH_NOT_BUY',qualified=False,buy_allowed=False,**FLAGS))
++        for e in relations:
++            rel=e['hk_relation'];row['reason'].append(rel.get('issuer_quote',''))
++            row['evidence'].append(deepcopy(e))
++    rejected=[*sources.get('rejections',[]),*material_rejections,*value.get('connect_selection_rejections',[])]
++    return dict(schema_version='v4.manager_research.selection_diagnostics.v1',
++        target_trade_date=value['target_trade_date'],source_capture_dates=[c.get('target_trade_date') for c in sources.get('captures',[])],
++        status='PARTIAL' if scope.get('gaps') or sources.get('gaps') else 'READY',
++        candidates=[rows[k] for k in sorted(rows)],candidate_count=len(rows),
++        rejections=deepcopy(rejected),us_relation_audit=deepcopy(attention.get('us_mapping_diagnostics',{}).get('material_relation_audit',[])),
++        raw_us_movers_retained=True,original_stage_unchanged=True,original_screen_unchanged=True,
++        membership=deepcopy(dict(scope)),capture_input_identity=sources.get('input_identity'),
++        gaps=sorted(set([*sources.get('gaps',[]),*scope.get('gaps',[])])),**FLAGS)
