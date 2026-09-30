@@ -1,0 +1,112 @@
+{
+  "receipt_schema": "v4.manager_r3a.business_acceptance_plan.v1",
+  "status": "PLAN_ONLY",
+  "scope": "Read-only source contract review for the accepted Manager API candidate; no provider, API, POST, UI, env-secret, or R3A-candidate calls.",
+  "candidate_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_API_INTEGRATION_20260930/candidate/app",
+  "source_pins": {
+    "apps/api/v35_api/manager_research_router.py": "d66b0a4184d6490f92eccf6996446f872adef7289b5821aeecc35338145f4410",
+    "apps/web/src/api/managerWorkspace.ts": "139d9e4c3b4ef8b9071ee371b5f3839c10d27bcdd3c707a20553976b197b19c9",
+    "v4/manager_research/connect_selection.py": "b6c5300172f59b6979dbab15927036ff1ab3599a2adae2b4f0e5a1e4868a6248",
+    "v4/manager_research/workspace_plan.py": "0721e90fcc5c261545a23e1aca1545b48077956a312a3c4cfe703f11aa4023f9",
+    "v4/manager_research/workspace_announcements.py": "b3a004c5c43451f7fc72163c02905e1542d6420e7d2fb14e99c7c439b765fb3e",
+    "v4/manager_research/us_market_bridge.py": "46fcf3fce15dfce4ae45e8eefe2c9b619d884f602d4f5b4261f163755debf0ae",
+    "v4/manager_research/research_evidence.py": "6a0075aeba1ec68c14ee5ec09f0290c6bbcd49e296fe76fa3ae17a03510c6ec2",
+    "contracts/market_calendar_2026.json": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+    "contracts/us_equity_calendar_2026.json": "cd8eac440e985be8fe9700983584dd1108873b68d5cc91cae2cbe8f7283a422f"
+  },
+  "facts": [
+    {
+      "claim": "The route prefix is /api/v4/manager/research. GET /workspace accepts date and view; the browser client sends GET /api/v4/manager/research/workspace?date=<YYYYMMDD>&view=dynamic and does not accept a research_cutoff or market_session_date query. plan_context derives research_cutoff from server now.",
+      "evidence_paths": [
+        "apps/api/v35_api/manager_research_router.py:81-100,169-190",
+        "apps/web/src/api/managerWorkspace.ts:847-857",
+        "v4/manager_research/workspace.py:270-287",
+        "v4/manager_research/workspace_plan.py:18-98"
+      ]
+    },
+    {
+      "claim": "Existing Manager HK Connect read_scope calls read_universe_evidence(root, plan_trade_date), then requires source_date == plan_trade_date, market == HK_CONNECT, and observed_at <= research_cutoff. The pinned file SHA matches the provided b6c...a6248 baseline. This code does not check a separate persisted publication available_at.",
+      "evidence_paths": [
+        "v4/manager_research/connect_selection.py:17-72"
+      ]
+    },
+    {
+      "claim": "plan_context validates plan_trade_date against the HK securities calendar and uses the last completed HK securities session before the plan date as market_session. For plan_trade_date=20260930 at tonight's cutoff, that market_session is 20260929; neither date nor cutoff is caller-overridable through the workspace GET.",
+      "evidence_paths": [
+        "v4/manager_research/workspace_plan.py:18-98",
+        "v4/manager_research/workspace.py:270-287"
+      ]
+    },
+    {
+      "claim": "The local 2026 calendar resolves 20260930 as open for A, HK securities, and Southbound Connect; 20261001 as closed; 20261002 as HK securities open but A and Southbound Connect closed; 20261008 is the next date when both A and HK securities are open, so Southbound Connect reopens. Stage-center's HK observation lane follows HK securities state, which must not be called Southbound eligibility.",
+      "evidence_paths": [
+        "contracts/market_calendar_2026.json:35-85",
+        "contracts/trading_calendar.py:193-231",
+        "stage_center/calendar.py:84-124"
+      ]
+    },
+    {
+      "claim": "The announcement refresh is POST /api/v4/manager/research/announcements/refresh?date=<YYYYMMDD> with an empty request body; a non-whitespace body is rejected. Defaults are resume=false and source_scope absent (HKEX path). It captures a bounded issuer batch and records incomplete directory exhaustion; it is not the R3A membership publisher or US data producer. POST /workspace/refresh only projects existing inputs.",
+      "evidence_paths": [
+        "apps/api/v35_api/manager_research_router.py:45-49,202-238",
+        "v4/manager_research/service.py:405-425",
+        "v4/manager_research/workspace_announcements.py:206-278",
+        "v4/manager_research/workspace.py:555-658"
+      ]
+    },
+    {
+      "claim": "GET /api/v4/manager/research/announcements?date=<YYYYMMDD> reprojects only documents whose publication and acquisition are within the current consumer cutoff. It retains the original query_cutoff and marks a later consumer cutoff as SOURCE_QUERY_CUTOFF_PRECEDES_CURRENT_PLAN_CUTOFF; the route does not backdate.",
+      "evidence_paths": [
+        "apps/api/v35_api/manager_research_router.py:214-216",
+        "v4/manager_research/workspace_announcements.py:634-718"
+      ]
+    },
+    {
+      "claim": "The workspace GET reads the existing US exact-session peripheral store; it does not fetch/materialize US data. The chosen US session is latest_completed_session(research_cutoff), and a valid snapshot must be POST_CLOSE, exact-session, lineage-verified, and captured_at <= research_cutoff. At 2026-09-30 21:39 HKT the 20260930 NY session is in progress, so expected_us_session remains 20260929; after its close (2026-10-01 04:00 HKT), a later GET can expect 20260930 only if that exact owner artifact is published and valid.",
+      "evidence_paths": [
+        "v4/manager_research/workspace.py:428-435,457-473",
+        "v4/manager_research/us_market_bridge.py:153-199,249-285",
+        "contracts/us_equity_calendar.py:65-84"
+      ]
+    },
+    {
+      "claim": "US-to-HK mapping is a separate relation-layer result: require the exact US input to be mapping_eligible, cutoff-bound issuer material, and an accepted structured relation. Raw positive US movers or a bridge status alone do not prove a mapping.",
+      "evidence_paths": [
+        "v4/manager_research/research_evidence.py:306-332,336-453",
+        "v4/manager_research/workspace.py:457-473"
+      ]
+    },
+    {
+      "claim": "Late-tail evidence is admitted only with exact symbol, provider/stage, source_trade_date == market_session, matching plan_trade_date, OBSERVATION_ONLY status, and observed_at <= available_at <= research_cutoff. Per the parent-provided prior audit, the historical 20260930 tail's 20 raw rows were not candidates; they remain CANNOT_CONFIRM and were not reread here.",
+      "evidence_paths": [
+        "v4/manager_research/workspace_plan.py:885-903",
+        "Parent-provided boundary: historical 20260930 late-tail audit (not re-opened)"
+      ]
+    }
+  ],
+  "acceptance_steps": [
+    "Keep the R3A capture's true source/effective date as 20260930. Before any claim, bind its capture_run_id, artifact SHA, actual acquisition completion time, and persisted publication available_at from the new owner receipt; require both times <= the Manager GET's server-generated research_cutoff.",
+    "For a same-date, current research preview only, use the exact Manager target date 20260930 with view=dynamic after R3A publication. Confirm read_scope reports the source date 20260930 and target-date authority only; this is not an as-of-09:35 replay and does not prove next-session reuse.",
+    "If a fresh official-announcement scan is needed, the existing route is POST /api/v4/manager/research/announcements/refresh?date=20260930, with no body at all (not {}). Default resume=false/source_scope absent selects the HKEX path. This POST is not an R3A or US refresh and was not called.",
+    "Read announcements with GET /api/v4/manager/research/announcements?date=20260930. Check exact target date, product/run/hash, original query_cutoff, per-document published_at and acquired/retrieved time, and current consumer_cutoff. Accept a bounded PARTIAL result as partial only; do not claim directory exhaustion or first-publication proof.",
+    "Read the original workspace with GET /api/v4/manager/research/workspace?date=20260930&view=dynamic. Compare plan_context.research_cutoff with R3A acquired_at and available_at, inspect market_session (20260929 for tonight's 0930 target), announcement_observation times, and US owner_chain lineage.",
+    "At tonight's cutoff, expect the latest completed NY session to be 20260929. To verify US session 20260930, wait until after the 20260930 NYSE close (2026-10-01 04:00 HKT) and after the existing US owner has published its exact-session payload/receipt/manifest; then GET dynamic workspace again. Do not supply a hand-set market_session_date or cutoff.",
+    "For a real two-source mapping, require us_market_attention.expected_us_session to match the completed session, mapping_eligible=true, verified source identity, captured_at <= research_cutoff, and research_attention.us_mapping_diagnostics.status=COMPUTED_BY_RELATION_LAYER with relation_gate=TWO_SOURCE_PIT_VERIFIED_REQUIRED and accepted_hk_mapping_count > 0. Otherwise report CANNOT_CONFIRM, even if raw US movers are present.",
+    "Do not treat 20261002 as a Southbound Connect consumer date: only HK securities are open. The next actual Connect session is 20261008, whose preceding Connect session is 20260930; however the accepted current read_scope requires source_date == plan_trade_date (20261008), so today's 20260930 capture cannot be claimed as consumed for 20261008 under this API contract.",
+    "Keep the previously audited historical 20260930 late tail CANNOT_CONFIRM. No new R3A capture, announcement refresh, later GET, or dynamic preview can be backdated into its old cutoff."
+  ],
+  "cannot_confirm": [
+    "R3A v2 candidate source, live publication receipt, actual acquired_at/available_at, and source-root binding are not frozen/read back here.",
+    "The accepted Manager API source currently checks observed_at against cutoff but does not itself enforce distinct persisted available_at; the proposed R3A reader/publisher integration must be independently frozen before the v2 timing rule can pass.",
+    "8873 runtime/API/UI responses, service owner roots, the presence of a valid current announcement source master, and a 20260930 US exact-session artifact were not queried or verified.",
+    "A nonzero valid two-source US-to-HK mapping is data-dependent and not established by static source inspection."
+  ],
+  "boundary_status": "PLAN_ONLY; source-level route/date/cutoff behavior verified against the accepted candidate hashes; R3A publication, runtime/API/UI behavior, actual announcement capture, US mapping result, and future 20261008 Connect consumption remain CANNOT_CONFIRM.",
+  "recommended_next_step": "After the R3A v2 writer freezes its source and reader/publisher receipts, run the planned same-date 20260930 Manager GET only with a server cutoff later than both actual acquisition and persisted publication; separately treat 20261008 as CANNOT_CONFIRM until the frozen consumer contract explicitly binds the 20260930 prior Connect source without retagging it. Verify US 20260930 only after its NY close and exact-session owner publication.",
+  "not_performed": [
+    "No provider/API/POST/GET/UI call.",
+    "No source, configuration, or authority-data edits.",
+    "No environment-secret read.",
+    "No historical tail raw-row re-audit."
+  ]
+}
