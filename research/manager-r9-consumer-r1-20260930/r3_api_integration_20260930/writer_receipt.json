@@ -1,0 +1,99 @@
+{
+  "schema_version": "manager_api_integration.writer_freeze.v1",
+  "status": "READY_FOR_INDEPENDENT_REVIEW",
+  "frozen_at_utc": "2026-09-30T12:52:16.213820+00:00",
+  "candidate_app": "/Users/lexi/Desktop/学习/agents调试/MANAGER_API_INTEGRATION_20260930/candidate/app",
+  "source_files": {
+    "v4/manager_research/workspace.py": "35c9292d3b422c9d5a744590cc472de5bfa2da8a62d12c6382ca0d1a9b3a6168",
+    "v4/manager_research/workspace_announcements.py": "b3a004c5c43451f7fc72163c02905e1542d6420e7d2fb14e99c7c439b765fb3e",
+    "v4/manager_research/workspace_discovery.py": "ed9188a44a4adb6bf2fd08836d465ed3ea7e7d2b8dd7075da99b7aaabc5c5c1a",
+    "v4/manager_research/workspace_plan.py": "0721e90fcc5c261545a23e1aca1545b48077956a312a3c4cfe703f11aa4023f9",
+    "v4/manager_research/workspace_semantics.py": "dc8d1d330e4fdacf2ef7169a7ac62874bfd3e2658f8b4bcff0773e06e32c4f7f",
+    "v4/manager_research/workspace_briefing.py": "60a7942e6c2c6a8ed32099ec807c79c35fa393342ed59996798f21da12466ff6",
+    "v4/manager_research/research_evidence.py": "6a0075aeba1ec68c14ee5ec09f0290c6bbcd49e296fe76fa3ae17a03510c6ec2",
+    "v4/manager_research/issuer_us_relations.py": "ac3b3e228c3efed4efc7447d2461ac0c63a00b1d0fa9c93a6c0a479076af0b7d",
+    "v4/manager_research/announcement_materials.py": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+    "v4/manager_research/connect_selection.py": "b6c5300172f59b6979dbab15927036ff1ab3599a2adae2b4f0e5a1e4868a6248",
+    "v4/manager_research/workspace_plan_autorun.py": "e785ae1d465175bec0517e7c3b4a8d6e16593967cba554aa0428817a85cd079b"
+  },
+  "source_count": 11,
+  "actual_source_diff": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_API_INTEGRATION_20260930/evidence/actual_diff.patch",
+    "sha256": "8f36b8653e771688e4888636206a9f5a6398acf1183ba1507423b3c30172a587",
+    "paths_vs_r3b": [
+      "v4/manager_research/workspace.py",
+      "v4/manager_research/workspace_plan_autorun.py"
+    ]
+  },
+  "preserved_canonical_workspace_delta": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_API_INTEGRATION_20260930/evidence/canonical_preserved_workspace.patch",
+    "sha256": "e736d32b78096906008242e29930fa44e4fb0a16b33ac2c9b90f8edbd65f982d"
+  },
+  "source_mapping": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_API_INTEGRATION_20260930/evidence/source_mapping.json",
+    "sha256": "5c66286e130e971cf89f256e8cb001e2d951dc67ac3db27d93a0f37ff76e1feb"
+  },
+  "extra_dependency_controller_authorization": {
+    "path": "v4/manager_research/workspace_plan_autorun.py",
+    "sha256": "e785ae1d465175bec0517e7c3b4a8d6e16593967cba554aa0428817a85cd079b",
+    "method": "byte-for-byte copy from frozen canonical after parent authorization; preserves morning_window dependency"
+  },
+  "tests": {
+    "run1": {
+      "receipt": "/Users/lexi/Desktop/学习/agents调试/MANAGER_API_INTEGRATION_20260930/evidence/integrated_workspace_r3b_run1/run_receipt.json",
+      "sha256": "20981d7dfc10104d04984ee8f5b8b7faa642d3bae8573a6df0bce5acd81dbee7",
+      "counts": {
+        "tests": 14,
+        "failures": 4,
+        "errors": 0,
+        "skipped": 0
+      },
+      "r3b_subset": "10/10 PASS",
+      "focused_subset": "4 failed before dependency copy due missing morning_window; log retained"
+    },
+    "run2": {
+      "receipt": "/Users/lexi/Desktop/学习/agents调试/MANAGER_API_INTEGRATION_20260930/evidence/integrated_workspace_threeway_focused_run2/run_receipt.json",
+      "sha256": "b50b548780cd0bf14e6f9877e32aa91cdd9bf0447246ad9e50a0a9d014b1ee11",
+      "counts": {
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "status": "PASS",
+      "scope": "four integrated workspace regression tests after dependency copy"
+    },
+    "runner": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_API_INTEGRATION_20260930/tests/run_integrated_acceptance.py",
+      "sha256": "0a36f570a0d4c011f1b198bc5d2036da1d597172e02790eb998d76fb9f18193f"
+    },
+    "focused_test_source": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_API_INTEGRATION_20260930/tests/test_workspace_threeway_merge.py",
+      "sha256": "76c84723efc9ff09d0370726e72756a11e9715c7c7e3c73ea94ce094bafe8fb2"
+    }
+  },
+  "candidate_inventory": {
+    "regular_files_excluding_pycache_pyc_logs": 958,
+    "git_dir_present": false,
+    "symlink_count": 0,
+    "log_file_count": 0
+  },
+  "evidence_layers": {
+    "IMPLEMENTED": "isolated candidate only",
+    "TESTED": "R3B10 subset 10/10 in run1; focused integrated 4/4 in run2",
+    "REVIEWED": "CANNOT_CONFIRM pending independent reviewer",
+    "DEPLOYED": "CANNOT_CONFIRM",
+    "API_VERIFIED": "CANNOT_CONFIRM",
+    "UI_VERIFIED": "CANNOT_CONFIRM",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM",
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "reviewer_entrypoint": {
+    "source_mapping": "/Users/lexi/Desktop/学习/agents调试/MANAGER_API_INTEGRATION_20260930/evidence/source_mapping.json",
+    "actual_diff": "/Users/lexi/Desktop/学习/agents调试/MANAGER_API_INTEGRATION_20260930/evidence/actual_diff.patch",
+    "runner": "/Users/lexi/Desktop/学习/agents调试/MANAGER_API_INTEGRATION_20260930/tests/run_integrated_acceptance.py",
+    "expected_final_scope": "Review actual 11 source pins plus four integrated behavior tests and R3B10 against frozen candidate."
+  }
+}
