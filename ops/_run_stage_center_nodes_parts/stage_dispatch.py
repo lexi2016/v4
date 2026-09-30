@@ -25,6 +25,15 @@ def __dispatch_stage_body(_v4_scope, /, config, trade_date, stage_id, evaluated_
     if rearm_marker.exists() and not _v4_global(_v4_scope, '_stage_settled')(receipt):
         attempt_count = _v4_global(_v4_scope, 'max')(attempt_count, max_attempts + 1)
         existing_status = "CANNOT_CONFIRM"
+    from .node_entry import _a_0925_repair_authority, _ISSUE11_MARKER
+    repair = None
+    repair_marker = _v4_global(_v4_scope, '_receipt_path')(config, trade_date, stage_id).parent / _ISSUE11_MARKER
+    if trade_date == "20260930" and stage_id == "STAGE_0925" and (repair_marker.exists() or repair_marker.is_symlink()):
+        return {"status": "SKIPPED_REPAIR_RECOVERY_CONSUMED", "trade_date": trade_date,
+                "stage_id": stage_id, "node_id": stage_id, "dispatch_mode": mode,
+                "node_attempt_count": 4, "retry_exhausted": True, "write_performed": False,
+                "first_failed_layer": "ISSUE11_RECOVERY_ALLOWANCE_ALREADY_CONSUMED",
+                **_v4_global(_v4_scope, '_safe_flags')()}
     if _v4_global(_v4_scope, '_stage_settled')(receipt) and existing_status not in _v4_global(_v4_scope, 'TRANSIENT_STATUSES'):
         return {
             "status": "SKIPPED_ALREADY_SETTLED",
@@ -40,8 +49,11 @@ def __dispatch_stage_body(_v4_scope, /, config, trade_date, stage_id, evaluated_
     rearm = None
     if existing_status in _v4_global(_v4_scope, 'TRANSIENT_STATUSES'):
         if attempt_count >= max_attempts:
-            rearm = _v4_global(_v4_scope, '_exact_hk_d1_dependency_rearm')(config, trade_date, receipt, evaluated_at)
-        if attempt_count >= max_attempts and rearm is None:
+            if "a_0925_recovery_authorization" in config:
+                repair = _a_0925_repair_authority(_v4_scope, config, trade_date, stage_id, receipt, evaluated_at, mode)
+            else:
+                rearm = _v4_global(_v4_scope, '_exact_hk_d1_dependency_rearm')(config, trade_date, receipt, evaluated_at)
+        if (attempt_count >= max_attempts or "a_0925_recovery_authorization" in config) and rearm is None and repair is None:
             previous = receipt or {}
             return {
                 "status": "SKIPPED_RETRY_EXHAUSTED",
@@ -61,7 +73,7 @@ def __dispatch_stage_body(_v4_scope, /, config, trade_date, stage_id, evaluated_
                 "write_performed": False,
                 **_v4_global(_v4_scope, '_safe_flags')(),
             }
-        if rearm is None and not _v4_global(_v4_scope, '_retry_is_due')(
+        if rearm is None and repair is None and not _v4_global(_v4_scope, '_retry_is_due')(
             receipt,
             _v4_global(_v4_scope, '_as_shanghai')(evaluated_at),
             retry_backoff_seconds=retry_backoff,
@@ -117,6 +129,22 @@ def __dispatch_stage_body(_v4_scope, /, config, trade_date, stage_id, evaluated_
         if _v4_global(_v4_scope, '_read_receipt')(config, trade_date, stage_id) != receipt:
             return {"status": "SKIPPED_RECEIPT_CHANGED", "stage_id": stage_id,
                     "trade_date": trade_date, "write_performed": False, **_v4_global(_v4_scope, '_safe_flags')()}
+        if repair is not None:
+            from infrastructure.owned_io import SafeRoot
+            refreshed = _a_0925_repair_authority(_v4_scope, config, trade_date, stage_id, receipt, evaluated_at, mode)
+            if refreshed is None:
+                return {"status": "SKIPPED_REPAIR_AUTHORITY_CHANGED", "stage_id": stage_id,
+                        "trade_date": trade_date, "write_performed": False, **_v4_global(_v4_scope, '_safe_flags')()}
+            # Revalidation is under the original slot lock. Persist old bytes
+            # and the consumed one-shot grant atomically BEFORE any runner call.
+            repair = refreshed
+            raw = (_v4_global(_v4_scope, 'json').dumps(repair, ensure_ascii=False, sort_keys=True,
+                   separators=(",", ":"), allow_nan=False) + "\n").encode()
+            try:
+                SafeRoot(repair_marker.parent).write_bytes(_ISSUE11_MARKER, raw, require_absent=True)
+            except FileExistsError:
+                return {"status": "SKIPPED_REPAIR_RECOVERY_CONSUMED", "stage_id": stage_id,
+                        "trade_date": trade_date, "write_performed": False, **_v4_global(_v4_scope, '_safe_flags')()}
         if rearm is not None:
             rearm = _v4_global(_v4_scope, '_exact_hk_d1_dependency_rearm')(config, trade_date, receipt, evaluated_at)
             if rearm is None:
@@ -172,6 +200,13 @@ def __dispatch_stage_body(_v4_scope, /, config, trade_date, stage_id, evaluated_
                        if k.startswith("dependency_rearm_")})
         if rearm is not None:
             result.update(rearm)
+        if repair is not None:
+            result.update(repair_recovery_original_attempt_count=3, repair_recovery_attempt_count=1,
+                          repair_recovery_authorization_sha256=repair["authorization_sha256"],
+                          repair_recovery_original_receipt_sha256=repair["original_receipt_sha256"],
+                          repair_recovery_marker=_ISSUE11_MARKER,
+                          result_origin="CODE_REPAIR_RECOVERY", real_time_success=False,
+                          evidence_limit=repair["evidence_limit"])
         status = _v4_global(_v4_scope, 'str')(result.get("status") or "CANNOT_CONFIRM")
         if status == "PARTIAL_WITH_ROWS" and result.get("write_performed") is False:
             # A partial status without a committed write is not a valid

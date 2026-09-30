@@ -270,6 +270,14 @@ def __node_candidates_body(_v4_scope, /, trade_date, evaluated_at, *, explicit_n
 def _run_nodes_body(_v4_scope, /, config, *, trade_date, evaluated_at, explicit_node, materializer, runner, sleep):
     """Run prep and/or serial due nodes, returning a bounded typed receipt."""
 
+    # A repair grant is never available to the scheduled all-node scan.
+    if "a_0925_recovery_authorization" in config:
+        if explicit_node != "STAGE_0925" or trade_date != "20260930":
+            return {"status": "CANNOT_CONFIRM", "trade_date": trade_date,
+                    "error": "ISSUE11_REQUIRES_EXPLICIT_20260930_STAGE_0925",
+                    "write_performed": False, **_v4_global(_v4_scope, '_safe_flags')()}
+        config = dict(config)
+        config["_issue11_explicit_request"] = _ISSUE11_EXPLICIT
     evaluated = _v4_global(_v4_scope, '_as_shanghai')(evaluated_at)
     if not _v4_global(_v4_scope, '_valid_trade_date')(trade_date):
         return {
@@ -375,7 +383,7 @@ def _run_nodes_body(_v4_scope, /, config, *, trade_date, evaluated_at, explicit_
         results.append(result)
 
     statuses = {_v4_global(_v4_scope, 'str')(item.get("status") or "") for item in results}
-    exhausted = [item for item in results if item.get("status") == "SKIPPED_RETRY_EXHAUSTED"]
+    exhausted = [item for item in results if item.get("status") in {"SKIPPED_RETRY_EXHAUSTED", "SKIPPED_REPAIR_RECOVERY_CONSUMED"}]
     if exhausted:
         overall = "RETRY_EXHAUSTED"
     elif statuses <= {"SKIPPED_ALREADY_SETTLED", "SKIPPED_RETRY_BACKOFF", "SKIPPED_SLOT_LOCKED"}:
@@ -579,3 +587,170 @@ def _main_body(_v4_scope, /, argv):
         trace.close()
         _v4_global(_v4_scope, '_deadline').set_current(None)
     return _v4_global(_v4_scope, '_exit_code')(_v4_global(_v4_scope, 'str')(result.get("status") or "CANNOT_CONFIRM"))
+
+
+# One identified incident, not a generic reset/force/retry capability. These
+# pins come from issue #11; the actual corrected module SHAs must be separately
+# supplied in an operator-approved, hash-bound authorization after Mac review.
+_ISSUE11_EXPLICIT = object()
+_ISSUE11_RECEIPT_SHA = "b920987cdecc63d0f7857c50404b3807c8f5212f418be304f75a11a06500a87f"
+_ISSUE11_CANDIDATE_SHA = "92023837d8709abfb46fb03dec82ee9758ff56e57615cdfebeb98926e3789d72"
+_ISSUE11_CODES_SHA = "80f5a1c0bbed293b637d1a2bb25585de932ce5b235dd3ff0236fcb9a99d8eb69"
+_ISSUE11_MARKER = "a_0925_issue11_recovery.json"
+
+
+def _issue11_loaded_repair_identity():
+    """Check actual loaded file locations; never infer a fix from its name."""
+    import hashlib
+    import importlib
+    from pathlib import Path
+    from infrastructure.owned_io import SafeRoot
+
+    app = Path(__file__).absolute().parents[2]
+    modules = ("stage_center._live_collectors_parts.a_auction",
+               "infrastructure.tdx_minute_replay_provider")
+    result = {}
+    for name in modules:
+        module = importlib.import_module(name)
+        path = Path(module.__file__).absolute()
+        relative = path.relative_to(app).as_posix()
+        result[name] = hashlib.sha256(SafeRoot(app).read_bytes(relative)).hexdigest()
+    # The GitHub snapshot still contains this known pre-fix collector. A
+    # self-consistent config pin of those broken bytes must not mint a grant.
+    if result[modules[0]] == "b74756748e98035d8058447f5f2644aa5709e4739bfe0ee9f365d4f0c7094e2c":
+        raise ValueError("ISSUE11_KNOWN_UNFIXED_AUCTION_COLLECTOR")
+    return result
+
+
+def _a_0925_repair_authority(scope, config, trade_date, stage_id, receipt, evaluated_at, mode):
+    """Read-only eligibility check; a returned record has not spent the grant."""
+    import base64
+    import hashlib
+    import json
+    from pathlib import Path
+    from stage_center.candidate_input import CandidateInput, read_candidate_input
+    from stage_center.selection import SelectionStore
+    from infrastructure.owned_io import SafeRoot
+
+    sha = lambda raw: hashlib.sha256(raw).hexdigest()
+    canonical = lambda value: json.dumps(value, ensure_ascii=False, sort_keys=True,
+                                         separators=(",", ":"), allow_nan=False).encode()
+    flags = ("production_allowed", "buy_gate_updated", "orders_sent")
+    try:
+        if (trade_date != "20260930" or stage_id != "STAGE_0925" or mode != "RECOVERY"
+                or config.get("_issue11_explicit_request") is not _ISSUE11_EXPLICIT
+                or evaluated_at.tzinfo is None):
+            return None
+        now = _v4_global(scope, '_as_shanghai')(_v4_global(scope, '_rearm_wall_now')())
+        when = _v4_global(scope, '_as_shanghai')(evaluated_at)
+        if (now.strftime("%Y%m%d") != trade_date or when.strftime("%Y%m%d") != trade_date
+                or when > now or when.hour < 9):
+            return None
+        if (type(config.get("node_max_attempts", 3)) is not int
+                or config.get("node_max_attempts", 3) != 3
+                or any(config.get("safety", {}).get(k) is not False for k in flags)):
+            return None
+        auth = config.get("a_0925_recovery_authorization")
+        if not isinstance(auth, dict) or sha(canonical(auth)) != config.get("a_0925_recovery_authorization_sha256"):
+            return None
+        required = {"schema_version": "stage_center.a_auction_recovery_authorization.v1",
+            "issue": 11, "trade_date": trade_date, "stage_id": stage_id, "market": "A_SHARE",
+            "mode": "RECOVERY", "review_status": "APPROVED",
+            "original_receipt_sha256": _ISSUE11_RECEIPT_SHA,
+            "candidate_artifact_sha256": _ISSUE11_CANDIDATE_SHA, "codes_sha256": _ISSUE11_CODES_SHA}
+        if (any(auth.get(k) != v for k,v in required.items())
+                or type(auth.get("additional_attempts")) is not int or auth["additional_attempts"] != 1
+                or type(auth.get("candidate_count")) is not int or auth["candidate_count"] != 205
+                or any(auth.get(k) is not False for k in flags)
+                or any(not isinstance(auth.get(k), str) or not auth[k].strip()
+                       for k in ("approval_id", "writer_id", "reviewer_id"))
+                or auth["writer_id"] == auth["reviewer_id"]):
+            return None
+        path = _v4_global(scope, '_receipt_path')(config, trade_date, stage_id)
+        io = SafeRoot(path.parent)
+        for marker in (_ISSUE11_MARKER, "dependency_rearm.json"):
+            try:
+                io.read_bytes(marker)
+                return None
+            except FileNotFoundError:
+                pass
+        raw = io.read_bytes(path.name, max_bytes=1 << 20)
+        if sha(raw) != _ISSUE11_RECEIPT_SHA or json.loads(raw) != receipt:
+            return None
+        if (not isinstance(receipt, dict)
+                or receipt.get("schema_version") != "stage_center.runner.receipt.v1"
+                or receipt.get("trade_date") != trade_date or receipt.get("stage_id") != stage_id
+                or receipt.get("status") != "CANNOT_CONFIRM"
+                or type(receipt.get("node_attempt_count")) is not int or receipt["node_attempt_count"] != 3
+                or receipt.get("retry_exhausted") is not True
+                or any(receipt.get(k) is not False for k in flags)
+                or any(k.startswith("repair_recovery_") or k.startswith("dependency_rearm_") for k in receipt)):
+            return None
+        a = receipt.get("markets", {}).get("A_SHARE", {})
+        if type(a.get("selected_rows")) is not int or a["selected_rows"] != 0 or a.get("rows"):
+            return None
+        evidence = auth.get("original_attempts")
+        if not isinstance(evidence, dict) or len(evidence) != 6:
+            return None
+        events = set()
+        error_text = json.dumps(receipt)
+        for relative, expected in evidence.items():
+            if not isinstance(relative, str) or not relative.startswith("attempt_evidence/"):
+                return None
+            data = io.read_bytes(relative, max_bytes=1 << 20)
+            if sha(data) != expected:
+                return None
+            item = json.loads(data)
+            number, event = item.get("attempt_number"), item.get("event")
+            if (item.get("trade_date") != trade_date or item.get("stage_id") != stage_id
+                    or type(number) is not int or number not in (1, 2, 3)
+                    or event not in ("START", "RETURN")):
+                return None
+            events.add((number, event))
+            error_text += json.dumps(item.get("detail"))
+        if (len(events) != 6 or "TypeError" not in error_text
+                or "offset-naive and offset-aware datetimes" not in error_text):
+            return None
+        candidate = read_candidate_input(Path(config["candidate_acquisition_root"]), trade_date)
+        if (not isinstance(candidate, CandidateInput) or candidate.trade_date != trade_date
+                or candidate.artifact_sha256 != _ISSUE11_CANDIDATE_SHA
+                or len(candidate.codes) != 205 or len(set(candidate.codes)) != 205
+                or sha(canonical(list(candidate.codes))) != _ISSUE11_CODES_SHA):
+            return None
+        # No existing A selection may be overwritten. A malformed existing
+        # pointer is not treated as an absent result or a recovery permission.
+        selection_root = Path(config["selection_root"])
+        try:
+            SafeRoot(selection_root).read_bytes("selection_latest.json")
+        except FileNotFoundError:
+            pass
+        else:
+            store = SelectionStore(selection_root)
+            latest = store._latest()  # Keep the original schema/owner/safety checks.
+            key = store._key(trade_date, stage_id, "A_SHARE")
+            # A healthy sibling stage creates selection_latest.json too. Only
+            # an existing exact 09:25 entry needs trio validation here; a
+            # present-but-malformed entry must never be mistaken for absence.
+            if key in latest["entries"]:
+                selection = store.read_verified(trade_date, stage_id, "A_SHARE")
+                if selection.get("rows") or selection.get("selected_rows") != 0:
+                    return None
+        fixed = _issue11_loaded_repair_identity()
+        if auth.get("fixed_modules") != fixed:
+            return None
+        return {"schema_version": "stage_center.a_auction_recovery_reservation.v1",
+            "trade_date": trade_date, "stage_id": stage_id, "market": "A_SHARE",
+            "approval_id": auth["approval_id"], "authorization_sha256": sha(canonical(auth)),
+            "original_receipt_sha256": sha(raw),
+            "original_receipt_base64": base64.b64encode(raw).decode("ascii"),
+            "original_attempts": dict(evidence), "fixed_modules": fixed,
+            "candidate_artifact_sha256": candidate.artifact_sha256,
+            "candidate_current_sha256": candidate.current_sha256,
+            "candidate_run_id": candidate.run_id, "codes_sha256": _ISSUE11_CODES_SHA,
+            "candidate_count": 205, "original_attempt_count": 3, "additional_attempts": 1,
+            "reserved_at": now.isoformat(), "result_origin": "CODE_REPAIR_RECOVERY",
+            "recommendation_status": "RESEARCH_ONLY", "real_time_success": False,
+            "evidence_limit": "L0_HISTORICAL_TRANSACTIONS_NOT_COMPLETE_AUCTION_BOOK",
+            **{k: False for k in flags}}
+    except (OSError, ValueError, TypeError, KeyError, AttributeError, ImportError):
+        return None
