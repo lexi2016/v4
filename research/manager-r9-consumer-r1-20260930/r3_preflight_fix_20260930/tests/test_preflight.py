@@ -1,0 +1,261 @@
+"""Synthetic filesystem tests only; no Mac/provider/activation evidence."""
+import json
+import os
+from pathlib import Path
+import plistlib
+import subprocess
+import sys
+import pytest
+
+ROOT = Path(__file__).parents[1]
+DEFAULT_TOOL = ROOT / ('after/tools/audit_r3_source_release_binding.py' if (ROOT / 'after').exists() else 'tools/audit_r3_source_release_binding.py')
+TOOL = Path(os.environ.get('R3_TOOL', str(DEFAULT_TOOL)))
+LEGACY = ['ops/macos_research_panel_daily.py', 'ops/macos_research_panel_daily_collectors.py',
+          'ops/macos_research_panel_daily_gate.py', 'ops/ensure_hk_security_master.py',
+          'infrastructure/scheduling/executor_registry.py', 'infrastructure/scheduling/executor_registry_review.py',
+          'contracts/runtime_workloads.json']
+PANEL = 'infrastructure/scheduling/_executor_registry_parts/panel_execution.py'
+CAPTURE = 'ops/_macos_research_panel_daily_parts/hk_market_capture.py'
+NAMESPACE = 'ops/_macos_research_panel_daily_parts/_namespace.py'
+
+
+def put(root, rel, text):
+    path = root / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text)
+    return path
+
+
+@pytest.fixture
+def trees(tmp_path):
+    canonical = tmp_path / 'canonical'
+    release = tmp_path / 'releases/r1/app'
+    for root in (canonical, release):
+        for rel in LEGACY:
+            put(root, rel, '{}' if rel.endswith('.json') else 'VALUE=1\n')
+        put(root, 'ops/launch_v35_macos_scheduler.sh', '#!/bin/sh\n# synthetic only\n')
+        put(root, 'infrastructure/scheduling/executor_registry.py',
+            'from ._executor_registry_parts.panel_execution import dispatch\n')
+        put(root, PANEL, 'from ._namespace import read_global\ndef dispatch(): return 1\n')
+        put(root, 'infrastructure/scheduling/_executor_registry_parts/_namespace.py', 'def read_global(): return 1\n')
+        put(root, 'ops/macos_research_panel_daily.py', 'from ._macos_research_panel_daily_parts.hk_market_capture import collect\n')
+        put(root, CAPTURE, 'from ._namespace import read_global\ndef collect(): return 1\n')
+        put(root, NAMESPACE, 'def read_global(): return 1\n')
+    put(release.parent, 'release-manifest.json', json.dumps({
+        'activation_status': 'NOT_ACTIVATED', 'deployment_status': 'CANNOT_CONFIRM',
+        'candidate_status': 'READY_FOR_REVIEW', 'secret': 'MANIFEST_SECRET_SENTINEL'}))
+    return canonical, release
+
+
+def run_tool(tmp_path, trees, *, cwd=True, bare=False, extra=(), plist_override=None):
+    canonical, release = trees
+    plist = {'ProgramArguments': ['/bin/bash', str(release / 'ops/launch_v35_macos_scheduler.sh')],
+             'EnvironmentVariables': {'ACCESS_TOKEN': 'PLIST_SECRET_SENTINEL'}}
+    if cwd:
+        plist['WorkingDirectory'] = str(release)
+    if bare:
+        plist['ProgramArguments'].append(str(release))
+    plist['ProgramArguments'].extend(extra)
+    if plist_override is not None:
+        plist.update(plist_override)
+        plist = {k: v for k, v in plist.items() if v is not None}
+    pp = tmp_path / 'config/scheduler.plist'
+    pp.parent.mkdir(exist_ok=True)
+    pp.write_bytes(plistlib.dumps(plist))
+    output = tmp_path / 'receipt.json'
+    proc = subprocess.run([sys.executable, str(TOOL), '--canonical', str(canonical), '--plist', str(pp),
+                           '--output', str(output)], capture_output=True, text=True, timeout=15)
+    data = json.loads(output.read_text()) if output.exists() else {}
+    return proc, data, output
+
+
+def test_real_working_directory_and_script_shape(tmp_path, trees):
+    proc, report, _ = run_tool(tmp_path, trees)
+    assert report.get('configured_release_root') == str(trees[1])
+    assert len(report.get('files', [])) >= len(LEGACY)
+    assert 'CONFIGURED_RELEASE_APP_ROOT_NOT_FOUND' not in report['gaps']
+
+
+def test_seven_equal_but_split_implementation_differs(tmp_path, trees):
+    put(trees[0], PANEL, 'from ._namespace import read_global\ndef dispatch(): return 2\n')
+    _, report, _ = run_tool(tmp_path, trees, bare=True)
+    rows = {r['path']: r for r in report['files']}
+    assert PANEL in rows
+    assert rows[PANEL]['byte_equal'] is False
+    assert not report['status'].startswith('PASS')
+
+
+def test_missing_namespace_is_visible(tmp_path, trees):
+    (trees[1] / NAMESPACE).unlink()
+    _, report, _ = run_tool(tmp_path, trees, bare=True)
+    rows = {r['path']: r for r in report['files']}
+    assert NAMESPACE in rows and rows[NAMESPACE]['byte_equal'] is False
+    assert not report['status'].startswith('PASS')
+
+
+def test_root_conflict_rejected_not_first_match(tmp_path, trees):
+    other = tmp_path / 'releases/other/app'
+    other.mkdir(parents=True)
+    _, report, _ = run_tool(tmp_path, trees, bare=True, plist_override={'WorkingDirectory': str(other)})
+    assert 'CONFIGURED_RELEASE_ROOT_CONFLICT' in report['gaps']
+    assert report.get('files') == []
+
+
+def test_secret_safe_manifest_and_plist(tmp_path, trees):
+    proc, _, output = run_tool(tmp_path, trees, bare=True)
+    visible = output.read_text() + proc.stdout + proc.stderr
+    assert 'MANIFEST_SECRET_SENTINEL' not in visible
+    assert 'PLIST_SECRET_SENTINEL' not in visible
+
+
+@pytest.mark.parametrize('shape', ['script_only', 'program', 'bare', 'cwd_only'])
+def test_supported_unambiguous_shapes(tmp_path, trees, shape):
+    r = trees[1]
+    overrides = {
+        'script_only': {'WorkingDirectory': None},
+        'program': {'Program': str(r / 'ops/launch_v35_macos_scheduler.sh'), 'ProgramArguments': []},
+        'bare': {'ProgramArguments': [str(r)]},
+        'cwd_only': {'ProgramArguments': ['/usr/bin/python3', '-m', 'ops.run_v35_macos_scheduler_daemon']},
+    }
+    proc, report, _ = run_tool(tmp_path, trees, plist_override=overrides[shape])
+    assert proc.returncode == 1
+    assert report['configured_release_root'] == str(r)
+    assert report['comparison_completed'] is True
+    assert report['producer_edit_allowed'] is False
+
+
+@pytest.mark.parametrize('bad_args', [['/bin/bash', '-c', 'SECRET_SHELL'], ['/bin/bash', '-lc', 'SECRET_SHELL'], [2]])
+def test_bad_command_shapes_fail_closed_without_leak(tmp_path, trees, bad_args):
+    proc, report, output = run_tool(tmp_path, trees, plist_override={'ProgramArguments': bad_args})
+    assert proc.returncode == 2
+    assert report['comparison_completed'] is False
+    assert report['files'] == []
+    assert 'SECRET_SHELL' not in output.read_text() + proc.stdout + proc.stderr
+
+
+@pytest.mark.parametrize('bad_cwd', ['relative/app', '/invalid/../releases/x/app', '/home/no-release'])
+def test_invalid_working_directory_rejected(tmp_path, trees, bad_cwd):
+    proc, report, _ = run_tool(tmp_path, trees, plist_override={'WorkingDirectory': bad_cwd})
+    assert proc.returncode == 2 and report['files'] == []
+
+
+def test_equal_files_are_not_lineage_behavior_or_activation_proof(tmp_path, trees):
+    put(trees[1].parent, 'release-manifest.json', json.dumps({'activation_status': 'ACTIVATED', 'deployment_status': 'PASS'}))
+    proc, report, _ = run_tool(tmp_path, trees)
+    assert proc.returncode == 1
+    assert report['file_equality'] == 'EQUAL_FOR_COLLECTED_FILES'
+    assert report['source_mapping_status'] == 'CANNOT_CONFIRM'
+    assert report['historical_lineage'] == 'CANNOT_CONFIRM'
+    assert report['behavior_equivalence'] == 'CANNOT_CONFIRM'
+    assert report['formal_activation'] == 'CANNOT_CONFIRM'
+    assert report['manifest_observation']['declared']['activation_status'] == 'ACTIVATED'
+    assert report['producer_edit_allowed'] is False
+
+
+def test_transitive_new_import_and_package_init_included(tmp_path, trees):
+    for root in trees:
+        put(root, PANEL, 'from .more.nested import VALUE\n')
+        put(root, 'infrastructure/scheduling/_executor_registry_parts/more/__init__.py', 'VALUE=0\n')
+        put(root, 'infrastructure/scheduling/_executor_registry_parts/more/nested.py', 'from . import leaf\n')
+        put(root, 'infrastructure/scheduling/_executor_registry_parts/more/leaf.py', 'VALUE=1\n')
+    put(trees[0], 'infrastructure/scheduling/_executor_registry_parts/more/leaf.py', 'VALUE=2\n')
+    _, report, _ = run_tool(tmp_path, trees)
+    rows = {r['path']: r for r in report['files']}
+    assert 'infrastructure/scheduling/_executor_registry_parts/more/__init__.py' in rows
+    assert rows['infrastructure/scheduling/_executor_registry_parts/more/leaf.py']['byte_equal'] is False
+
+
+def test_module_level_side_effects_never_executed(tmp_path, trees):
+    marker = tmp_path / 'MUST_NOT_EXIST'
+    for root in trees:
+        put(root, CAPTURE, f"from pathlib import Path\nPath({str(marker)!r}).write_text('bad')\n")
+    _, report, _ = run_tool(tmp_path, trees)
+    assert not marker.exists()
+    assert report['network_requests'] == 0 and report['business_writes'] == 0
+
+
+def test_dynamic_import_is_not_silently_treated_as_complete(tmp_path, trees):
+    for root in trees:
+        put(root, CAPTURE, "import importlib\nimportlib.import_module(input())\n")
+    _, report, _ = run_tool(tmp_path, trees)
+    for closure in report['closures'].values():
+        assert any(a['code'] == 'DYNAMIC_DEPENDENCY_REQUIRES_REVIEW' for a in closure['alerts'])
+        assert closure['execution_closure_verified'] is False
+    assert report['producer_edit_allowed'] is False
+
+
+def test_missing_transitive_local_import_reported(tmp_path, trees):
+    put(trees[0], CAPTURE, 'from ops.not_present import collect\n')
+    _, report, _ = run_tool(tmp_path, trees)
+    assert any(a['code'] == 'LOCAL_IMPORT_MISSING' for a in report['closures']['canonical']['alerts'])
+
+
+@pytest.mark.parametrize('bad', ['syntax', 'oversize', 'symlink', 'fifo'])
+def test_unreadable_source_never_passes(tmp_path, trees, bad):
+    p = trees[0] / CAPTURE
+    if bad == 'syntax':
+        p.write_text('def : invalid')
+    elif bad == 'oversize':
+        p.write_bytes(b'x' * (2 * 1024 * 1024 + 1))
+    elif bad == 'fifo':
+        p.unlink(); os.mkfifo(p)
+    else:
+        secret = put(tmp_path, 'secret', 'SOURCE_SECRET_SENTINEL')
+        p.unlink(); p.symlink_to(secret)
+    _, report, output = run_tool(tmp_path, trees)
+    assert report['producer_edit_allowed'] is False
+    assert any(a['code'] == 'SOURCE_UNREADABLE_OR_INVALID' for a in report['closures']['canonical']['alerts'])
+    assert 'SOURCE_SECRET_SENTINEL' not in output.read_text()
+
+
+def test_oversized_split_directory_is_bounded(tmp_path, trees):
+    for n in range(100):
+        put(trees[0], f'ops/_macos_research_panel_daily_parts/extra{n}.py', 'VALUE=1\n')
+    _, report, _ = run_tool(tmp_path, trees)
+    assert any(a['code'] == 'SPLIT_DIRECTORY_UNREADABLE_OR_OVER_BUDGET' for a in report['closures']['canonical']['alerts'])
+
+
+def test_json_duplicate_keys_and_invalid_status_do_not_leak(tmp_path, trees):
+    put(trees[1].parent, 'release-manifest.json', '{"secret":"DUP_SECRET","secret":"DUP_SECRET"}')
+    _, report, output = run_tool(tmp_path, trees)
+    assert 'RELEASE_MANIFEST_UNREADABLE_OR_INVALID' in report['gaps']
+    assert 'DUP_SECRET' not in output.read_text()
+
+
+def test_unknown_manifest_status_redacted(tmp_path, trees):
+    put(trees[1].parent, 'release-manifest.json', '{"activation_status":"UNEXPECTED_SECRET"}')
+    _, report, output = run_tool(tmp_path, trees)
+    assert report['manifest_observation']['declared']['activation_status'] == 'UNRECOGNIZED_OR_MISSING'
+    assert 'UNEXPECTED_SECRET' not in output.read_text()
+
+
+def test_receipt_is_create_only(tmp_path, trees):
+    _, _, output = run_tool(tmp_path, trees)
+    before = output.read_bytes()
+    proc, _, _ = run_tool(tmp_path, trees)
+    assert proc.returncode == 2 and output.read_bytes() == before
+
+
+def test_canonical_output_refused(tmp_path, trees):
+    # Reuse a previously written safe plist; never put an evidence file into canonical.
+    run_tool(tmp_path, trees)
+    out = trees[0] / 'new_evidence.json'
+    proc = subprocess.run([sys.executable, str(TOOL), '--canonical', str(trees[0]),
+                           '--plist', str(tmp_path / 'config/scheduler.plist'), '--output', str(out)],
+                          capture_output=True, timeout=15)
+    assert proc.returncode == 2 and not out.exists()
+
+
+def test_scoped_git_head_dirty_untracked_and_file_hashes(tmp_path, trees):
+    c = trees[0]
+    for command in [['init', '-q'], ['add', '.'], ['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'fixture']]:
+        subprocess.run(['/usr/bin/git', '-C', str(c), *command], check=True, capture_output=True)
+    put(c, CAPTURE, 'VALUE=42\n')
+    untracked = 'ops/_macos_research_panel_daily_parts/untracked.py'
+    put(c, untracked, 'VALUE=100\n')
+    _, report, _ = run_tool(tmp_path, trees)
+    assert report['canonical_git']['changes'][CAPTURE] == ' M'
+    assert report['canonical_git']['changes'][untracked] == '??'
+    rows = {r['path']: r for r in report['files']}
+    assert rows[untracked]['canonical_sha256'] is not None
+    assert len(report['canonical_git']['head']) == 40

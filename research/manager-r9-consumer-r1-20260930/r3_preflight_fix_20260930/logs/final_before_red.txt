@@ -1,0 +1,91 @@
+FFFFF                                                                    [100%]
+=================================== FAILURES ===================================
+_________________ test_real_working_directory_and_script_shape _________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-5/test_real_working_directory_an0')
+trees = (PosixPath('/tmp/pytest-of-root/pytest-5/test_real_working_directory_an0/canonical'), PosixPath('/tmp/pytest-of-root/pytest-5/test_real_working_directory_an0/releases/r1/app'))
+
+    def test_real_working_directory_and_script_shape(tmp_path, trees):
+        proc, report, _ = run_tool(tmp_path, trees)
+>       assert report.get('configured_release_root') == str(trees[1])
+E       AssertionError: assert None == '/tmp/pytest-of-root/pytest-5/test_real_working_directory_an0/releases/r1/app'
+E        +  where None = <built-in method get of dict object at 0x7feb93cdc340>('configured_release_root')
+E        +    where <built-in method get of dict object at 0x7feb93cdc340> = {'canonical_root': '/tmp/pytest-of-root/pytest-5/test_real_working_directory_an0/canonical', 'files': [], 'gaps': ['CO..._ROOT_NOT_FOUND'], 'plist': '/tmp/pytest-of-root/pytest-5/test_real_working_directory_an0/config/scheduler.plist', ...}.get
+E        +  and   '/tmp/pytest-of-root/pytest-5/test_real_working_directory_an0/releases/r1/app' = str(PosixPath('/tmp/pytest-of-root/pytest-5/test_real_working_directory_an0/releases/r1/app'))
+
+tests/test_preflight.py:74: AssertionError
+______________ test_seven_equal_but_split_implementation_differs _______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-5/test_seven_equal_but_split_imp0')
+trees = (PosixPath('/tmp/pytest-of-root/pytest-5/test_seven_equal_but_split_imp0/canonical'), PosixPath('/tmp/pytest-of-root/pytest-5/test_seven_equal_but_split_imp0/releases/r1/app'))
+
+    def test_seven_equal_but_split_implementation_differs(tmp_path, trees):
+        put(trees[0], PANEL, 'from ._namespace import read_global\ndef dispatch(): return 2\n')
+        _, report, _ = run_tool(tmp_path, trees, bare=True)
+        rows = {r['path']: r for r in report['files']}
+>       assert PANEL in rows
+E       AssertionError: assert 'infrastructure/scheduling/_executor_registry_parts/panel_execution.py' in {'contracts/runtime_workloads.json': {'byte_equal': True, 'canonical_exists': True, 'canonical_sha256': '44136fa355b36...ced955472eca8cf0eea19edf798c43514e97feae458369b17732a4a6453e4b', 'path': 'ops/ensure_hk_security_master.py', ...}, ...}
+
+tests/test_preflight.py:83: AssertionError
+______________________ test_missing_namespace_is_visible _______________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-5/test_missing_namespace_is_visi0')
+trees = (PosixPath('/tmp/pytest-of-root/pytest-5/test_missing_namespace_is_visi0/canonical'), PosixPath('/tmp/pytest-of-root/pytest-5/test_missing_namespace_is_visi0/releases/r1/app'))
+
+    def test_missing_namespace_is_visible(tmp_path, trees):
+        (trees[1] / NAMESPACE).unlink()
+        _, report, _ = run_tool(tmp_path, trees, bare=True)
+        rows = {r['path']: r for r in report['files']}
+>       assert NAMESPACE in rows and rows[NAMESPACE]['byte_equal'] is False
+E       AssertionError: assert ('ops/_macos_research_panel_daily_parts/_namespace.py' in {'contracts/runtime_workloads.json': {'byte_equal': True, 'canonical_exists': True, 'canonical_sha256': '44136fa355b36...ced955472eca8cf0eea19edf798c43514e97feae458369b17732a4a6453e4b', 'path': 'ops/ensure_hk_security_master.py', ...}, ...})
+
+tests/test_preflight.py:92: AssertionError
+_________________ test_root_conflict_rejected_not_first_match __________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-5/test_root_conflict_rejected_no0')
+trees = (PosixPath('/tmp/pytest-of-root/pytest-5/test_root_conflict_rejected_no0/canonical'), PosixPath('/tmp/pytest-of-root/pytest-5/test_root_conflict_rejected_no0/releases/r1/app'))
+
+    def test_root_conflict_rejected_not_first_match(tmp_path, trees):
+        other = tmp_path / 'releases/other/app'
+        other.mkdir(parents=True)
+        _, report, _ = run_tool(tmp_path, trees, bare=True, plist_override={'WorkingDirectory': str(other)})
+>       assert 'CONFIGURED_RELEASE_ROOT_CONFLICT' in report['gaps']
+E       AssertionError: assert 'CONFIGURED_RELEASE_ROOT_CONFLICT' in ['CONFIGURED_RELEASE_FORMAL_ACTIVATION_NOT_PROVEN']
+
+tests/test_preflight.py:100: AssertionError
+_____________________ test_secret_safe_manifest_and_plist ______________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-5/test_secret_safe_manifest_and_0')
+trees = (PosixPath('/tmp/pytest-of-root/pytest-5/test_secret_safe_manifest_and_0/canonical'), PosixPath('/tmp/pytest-of-root/pytest-5/test_secret_safe_manifest_and_0/releases/r1/app'))
+
+    def test_secret_safe_manifest_and_plist(tmp_path, trees):
+        proc, _, output = run_tool(tmp_path, trees, bare=True)
+        visible = output.read_text() + proc.stdout + proc.stderr
+>       assert 'MANIFEST_SECRET_SENTINEL' not in visible
+E       assert 'MANIFEST_SECRET_SENTINEL' not in '{\n  "schem...": "PASS"\n}'
+E         
+E         'MANIFEST_SECRET_SENTINEL' is contained here:
+E           secret": "MANIFEST_SECRET_SENTINEL"
+E             },
+E             "canonical_git_identity": "REQUIRES_SEPARATE_GIT_STATUS_CAPTURE",
+E             "source_mapping_status": "PASS"
+E           }
+
+tests/test_preflight.py:107: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_preflight.py::test_real_working_directory_and_script_shape - AssertionError: assert None == '/tmp/pytest-of-root/pytest-5/test_real_working_directory_an0/releases/r1/app'
+ +  where None = <built-in method get of dict object at 0x7feb93cdc340>('configured_release_root')
+ +    where <built-in method get of dict object at 0x7feb93cdc340> = {'canonical_root': '/tmp/pytest-of-root/pytest-5/test_real_working_directory_an0/canonical', 'files': [], 'gaps': ['CO..._ROOT_NOT_FOUND'], 'plist': '/tmp/pytest-of-root/pytest-5/test_real_working_directory_an0/config/scheduler.plist', ...}.get
+ +  and   '/tmp/pytest-of-root/pytest-5/test_real_working_directory_an0/releases/r1/app' = str(PosixPath('/tmp/pytest-of-root/pytest-5/test_real_working_directory_an0/releases/r1/app'))
+FAILED tests/test_preflight.py::test_seven_equal_but_split_implementation_differs - AssertionError: assert 'infrastructure/scheduling/_executor_registry_parts/panel_execution.py' in {'contracts/runtime_workloads.json': {'byte_equal': True, 'canonical_exists': True, 'canonical_sha256': '44136fa355b36...ced955472eca8cf0eea19edf798c43514e97feae458369b17732a4a6453e4b', 'path': 'ops/ensure_hk_security_master.py', ...}, ...}
+FAILED tests/test_preflight.py::test_missing_namespace_is_visible - AssertionError: assert ('ops/_macos_research_panel_daily_parts/_namespace.py' in {'contracts/runtime_workloads.json': {'byte_equal': True, 'canonical_exists': True, 'canonical_sha256': '44136fa355b36...ced955472eca8cf0eea19edf798c43514e97feae458369b17732a4a6453e4b', 'path': 'ops/ensure_hk_security_master.py', ...}, ...})
+FAILED tests/test_preflight.py::test_root_conflict_rejected_not_first_match - AssertionError: assert 'CONFIGURED_RELEASE_ROOT_CONFLICT' in ['CONFIGURED_RELEASE_FORMAL_ACTIVATION_NOT_PROVEN']
+FAILED tests/test_preflight.py::test_secret_safe_manifest_and_plist - assert 'MANIFEST_SECRET_SENTINEL' not in '{\n  "schem...": "PASS"\n}'
+  
+  'MANIFEST_SECRET_SENTINEL' is contained here:
+    secret": "MANIFEST_SECRET_SENTINEL"
+      },
+      "canonical_git_identity": "REQUIRES_SEPARATE_GIT_STATUS_CAPTURE",
+      "source_mapping_status": "PASS"
+    }
+5 failed in 3.19s

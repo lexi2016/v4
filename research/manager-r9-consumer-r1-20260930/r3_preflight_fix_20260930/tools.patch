@@ -1,0 +1,411 @@
+--- a/tools/audit_r3_source_release_binding.py
++++ b/tools/audit_r3_source_release_binding.py
+@@ -1,77 +1,336 @@
+ #!/usr/bin/env python3
+-"""Read-only proof of canonical V4 -> configured release binding for Issue #8 R3."""
++"""Bounded, secret-safe STATIC evidence; never a source-lineage/activation gate.
++
++Does not import project modules, run shell/provider commands, or write source.
++Exit 1 = evidence produced, binding still CANNOT_CONFIRM; exit 2 = input/I/O error.
++"""
+ from __future__ import annotations
+-import argparse, hashlib, json, os, plistlib
++import argparse
++import ast
++from contextlib import contextmanager
++from datetime import datetime, timezone
++import hashlib
++import json
++import os
+ from pathlib import Path
+-
+-FILES = [
+-    "ops/macos_research_panel_daily.py",
+-    "ops/macos_research_panel_daily_collectors.py",
+-    "ops/macos_research_panel_daily_gate.py",
+-    "ops/ensure_hk_security_master.py",
+-    "infrastructure/scheduling/executor_registry.py",
+-    "infrastructure/scheduling/executor_registry_review.py",
+-    "contracts/runtime_workloads.json",
+-]
+-
+-def sha(path: Path) -> str:
+-    h=hashlib.sha256()
+-    with path.open("rb") as f:
+-        for chunk in iter(lambda:f.read(1024*1024), b""): h.update(chunk)
+-    return h.hexdigest()
+-
+-def main() -> int:
+-    ap=argparse.ArgumentParser()
+-    ap.add_argument("--canonical", required=True)
+-    ap.add_argument("--plist", required=True)
+-    ap.add_argument("--output", required=True)
+-    ns=ap.parse_args()
+-    canonical=Path(ns.canonical).resolve()
+-    plist=Path(ns.plist).resolve()
+-    out=Path(ns.output)
+-    result={"schema_version":"v4.issue8.r3.source_release_binding.v1","status":"CANNOT_CONFIRM",
+-            "canonical_root":str(canonical),"plist":str(plist),"files":[],"gaps":[]}
++import plistlib
++import re
++import stat
++import subprocess
++
++MAX_FILE = 2 * 1024 * 1024
++MAX_TOTAL = 32 * 1024 * 1024
++MAX_FILES = 256
++MAX_DIR = 96
++REQUIRED = ('contracts/runtime_workloads.json', 'infrastructure/scheduling/executor_registry.py',
++            'ops/macos_research_panel_daily.py', 'ops/ensure_hk_security_master.py')
++OPTIONAL = ('infrastructure/scheduling/executor_registry_review.py',
++            'ops/macos_research_panel_daily_collectors.py', 'ops/macos_research_panel_daily_gate.py',
++            'ops/launch_v35_macos_scheduler.sh', 'ops/run_v35_macos_scheduler_daemon.py',
++            'ops/run_v35_macos_scheduler.py', 'ops/run_scheduled_slot.py')
++SPLIT = ('infrastructure/scheduling/_executor_registry_parts', 'ops/_macos_research_panel_daily_parts')
++LOCAL = {'ops', 'infrastructure', 'contracts', 'domains', 'v4', 'stage_center', 'upstreams', 'shared_data'}
++DYNAMIC = {'exec', 'eval', '__import__', 'import_module', 'spec_from_file_location', 'SourceFileLoader',
++           'run_path', 'run_module'}
++STATUS_VALUES = {'READY_FOR_REVIEW', 'NOT_ACTIVATED', 'CANNOT_CONFIRM', 'ACTIVATED', 'DEPLOYED',
++                 'PASS', 'FAIL', 'FAILED', 'READY'}
++
++
++class EvidenceError(ValueError):
++    pass
++
++
++def exact(text):
++    if not isinstance(text, str) or not text or '\x00' in text:
++        raise EvidenceError('PATH_INVALID')
++    p = Path(text)
++    if not p.is_absolute() or '..' in p.parts:
++        raise EvidenceError('PATH_NOT_EXACT_ABSOLUTE')
++    return p
++
++
++@contextmanager
++def parent_fd(path):
++    """No-follow descriptor walk; do not dereference parent or leaf symlinks."""
++    fd = os.open('/', os.O_RDONLY | os.O_DIRECTORY)
+     try:
+-        p=plistlib.loads(plist.read_bytes())
+-    except Exception as exc:
+-        result["gaps"].append("PLIST_READ_FAILED:"+type(exc).__name__)
+-        out.write_text(json.dumps(result,ensure_ascii=False,indent=2)); return 2
+-    args=p.get("ProgramArguments") or []
+-    roots=[Path(x).resolve() for x in args if isinstance(x,str) and "/releases/" in x and x.endswith("/app")]
++        for part in path.parts[1:-1]:
++            nxt = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
++            os.close(fd)
++            fd = nxt
++        yield fd, path.name
++    finally:
++        os.close(fd)
++
++
++def read_bytes(path):
++    with parent_fd(path) as (parent, name):
++        fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent)
++        try:
++            before = os.fstat(fd)
++            if not stat.S_ISREG(before.st_mode) or before.st_size > MAX_FILE:
++                raise EvidenceError('FILE_TYPE_OR_SIZE_INVALID')
++            with os.fdopen(fd, 'rb', closefd=False) as stream:
++                raw = stream.read(MAX_FILE + 1)
++            after = os.fstat(fd)
++            if len(raw) > MAX_FILE or signature(before) != signature(after):
++                raise EvidenceError('FILE_CHANGED_OR_OVERSIZED')
++            return raw, signature(after)
++        finally:
++            os.close(fd)
++
++
++def signature(s):
++    return (s.st_dev, s.st_ino, s.st_size, s.st_mtime_ns, s.st_ctime_ns)
++
++
++def sha(raw):
++    return hashlib.sha256(raw).hexdigest()
++
++
++def unique(pairs):
++    result = {}
++    for key, value in pairs:
++        if key in result:
++            raise EvidenceError('DUPLICATE_JSON_KEY')
++        result[key] = value
++    return result
++
++
++def root_from_path(text):
++    p = exact(text)
++    hits = [Path(*p.parts[:i + 3]) for i, part in enumerate(p.parts[:-2])
++            if part == 'releases' and p.parts[i + 2] == 'app']
++    if len(hits) > 1:
++        raise EvidenceError('CONFIGURED_RELEASE_ROOT_CONFLICT')
++    return hits[0] if hits else None
++
++
++def resolve_release(plist):
++    if not isinstance(plist, dict):
++        raise EvidenceError('PLIST_NOT_OBJECT')
++    args = plist.get('ProgramArguments', [])
++    if not isinstance(args, list) or len(args) > 128 or any(not isinstance(x, str) for x in args):
++        raise EvidenceError('PLIST_ARGUMENTS_INVALID')
++    # Shell command strings need an audited launcher contract, not guessed parsing.
++    if '-c' in args or '-lc' in args:
++        raise EvidenceError('SHELL_COMMAND_STRING_UNSUPPORTED')
++    roots = set()
++    cwd = plist.get('WorkingDirectory')
++    if cwd is not None:
++        root = root_from_path(cwd)
++        if root is None or exact(cwd) != root:
++            raise EvidenceError('WORKING_DIRECTORY_NOT_RELEASE_APP')
++        roots.add(root)
++    for item in [plist.get('Program'), *args]:
++        if isinstance(item, str) and item.startswith('/') and '/releases/' in item:
++            root = root_from_path(item)
++            if root is not None:
++                roots.add(root)
+     if not roots:
+-        result["gaps"].append("CONFIGURED_RELEASE_APP_ROOT_NOT_FOUND")
+-        out.write_text(json.dumps(result,ensure_ascii=False,indent=2)); return 1
+-    release=roots[0]
+-    result["configured_release_root"]=str(release)
+-    manifest=release.parent/"release-manifest.json"
+-    if manifest.is_file():
+-        result["release_manifest_sha256"]=sha(manifest)
+-        try: result["release_manifest"]=json.loads(manifest.read_text())
+-        except Exception: result["gaps"].append("RELEASE_MANIFEST_JSON_INVALID")
+-    else:
+-        result["gaps"].append("RELEASE_MANIFEST_MISSING")
+-    all_equal=True
+-    for rel in FILES:
+-        c=canonical/rel; r=release/rel
+-        row={"path":rel,"canonical_exists":c.is_file(),"release_exists":r.is_file()}
+-        if c.is_file(): row["canonical_sha256"]=sha(c)
+-        if r.is_file(): row["release_sha256"]=sha(r)
+-        row["byte_equal"]=bool(c.is_file() and r.is_file() and row["canonical_sha256"]==row["release_sha256"])
+-        if not row["byte_equal"]: all_equal=False
+-        result["files"].append(row)
+-    git_head=canonical/".git"
+-    # Do not infer Git identity when .git is unavailable or indirect.
+-    result["canonical_git_identity"]="REQUIRES_SEPARATE_GIT_STATUS_CAPTURE"
+-    if not all_equal:
+-        result["gaps"].append("CANONICAL_RELEASE_RELEVANT_FILES_NOT_BYTE_EQUAL")
+-    activation=(result.get("release_manifest") or {}).get("activation_status")
+-    deployment=(result.get("release_manifest") or {}).get("deployment_status")
+-    if activation not in ("ACTIVATED","PASS") or deployment not in ("DEPLOYED","PASS"):
+-        result["gaps"].append("CONFIGURED_RELEASE_FORMAL_ACTIVATION_NOT_PROVEN")
+-    # PASS here means source mapping only. It does not claim deployment.
+-    result["source_mapping_status"]="PASS" if all_equal else "FAIL"
+-    result["status"]="PASS_SOURCE_MAPPING_ONLY" if all_equal else "CANNOT_CONFIRM"
+-    out.write_text(json.dumps(result,ensure_ascii=False,indent=2))
+-    return 0 if all_equal else 1
+-
+-if __name__=="__main__": raise SystemExit(main())
++        raise EvidenceError('CONFIGURED_RELEASE_APP_ROOT_NOT_FOUND')
++    if len(roots) != 1:
++        raise EvidenceError('CONFIGURED_RELEASE_ROOT_CONFLICT')
++    root = roots.pop()
++    # Verify the directory itself, including all ancestors, without following links.
++    with parent_fd(root / '__not_opened__'):
++        pass
++    return root
++
++
++def closure(root):
++    """Conservative static import over-approximation, NOT a runtime closure proof."""
++    pending = list(REQUIRED)
++    records, alerts, external, edges, stats = {}, [], set(), [], {}
++    total = 0
++
++    def present(rel):
++        return (root / rel).exists() or (root / rel).is_symlink()
++
++    def module(name, source, line, required=True):
++        if not name or name.split('.')[0] not in LOCAL:
++            external.add(name.split('.')[0] if name else '<relative>')
++            return
++        base = name.replace('.', '/')
++        candidates = [base + '.py', base + '/__init__.py']
++        found = [p for p in candidates if present(p)]
++        if not found and not (root / base).is_dir() and required:
++            alerts.append({'code': 'LOCAL_IMPORT_MISSING', 'path': source, 'line': line, 'module': name})
++        for rel in found:
++            pending.append(rel)
++            edges.append({'source': source, 'line': line, 'target': rel})
++        parts = base.split('/')
++        for n in range(1, len(parts)):
++            rel = '/'.join(parts[:n]) + '/__init__.py'
++            if present(rel):
++                pending.append(rel)
++
++    for rel in OPTIONAL:
++        if present(rel):
++            pending.append(rel)
++    # Include both known split families and namespace helpers, even with indirect dispatch.
++    for rel in SPLIT:
++        if not (root / rel).exists() and not (root / rel).is_symlink():
++            continue
++        try:
++            names = []
++            with parent_fd(root / rel / '__not_opened__') as (fd, _):
++                with os.scandir(fd) as entries:
++                    for entry in entries:
++                        names.append(entry.name)
++                        if len(names) > MAX_DIR:
++                            raise EvidenceError('SPLIT_DIRECTORY_BUDGET_EXCEEDED')
++            pending.extend(rel + '/' + n for n in sorted(names) if n.endswith('.py'))
++        except (OSError, EvidenceError):
++            alerts.append({'code': 'SPLIT_DIRECTORY_UNREADABLE_OR_OVER_BUDGET', 'path': rel})
++    while pending:
++        rel = pending.pop(0)
++        if rel in records:
++            continue
++        if len(records) >= MAX_FILES:
++            alerts.append({'code': 'FILE_COUNT_BUDGET_EXCEEDED'})
++            break
++        try:
++            raw, sig = read_bytes(root / rel)
++            total += len(raw)
++            if total > MAX_TOTAL:
++                raise EvidenceError('TOTAL_BYTE_BUDGET_EXCEEDED')
++            records[rel] = {'sha256': sha(raw), 'bytes': len(raw), 'status': 'READ'}
++            stats[rel] = sig
++            if not rel.endswith('.py'):
++                continue
++            tree = ast.parse(raw, filename=rel)
++            package = rel[:-3].split('/')[:-1]
++            if rel.endswith('/__init__.py'):
++                package = rel.split('/')[:-1]
++            for node in ast.walk(tree):
++                if isinstance(node, ast.Import):
++                    for alias in node.names:
++                        module(alias.name, rel, node.lineno)
++                elif isinstance(node, ast.ImportFrom):
++                    prefix = package[:len(package) - node.level + 1] if node.level else []
++                    if node.level > len(package) + 1:
++                        raise EvidenceError('RELATIVE_IMPORT_OUTSIDE_ROOT')
++                    base = '.'.join([*prefix, *([node.module] if node.module else [])])
++                    module(base, rel, node.lineno)
++                    for alias in node.names:
++                        if alias.name != '*':
++                            module(base + '.' + alias.name, rel, node.lineno, required=False)
++                        else:
++                            alerts.append({'code': 'STAR_IMPORT_REQUIRES_REVIEW', 'path': rel, 'line': node.lineno})
++                elif isinstance(node, ast.Call):
++                    name = getattr(node.func, 'id', getattr(node.func, 'attr', ''))
++                    if name in DYNAMIC:
++                        alerts.append({'code': 'DYNAMIC_DEPENDENCY_REQUIRES_REVIEW', 'path': rel, 'line': node.lineno})
++        except (OSError, ValueError, SyntaxError, UnicodeError):
++            records[rel] = {'sha256': None, 'status': 'UNREADABLE_OR_INVALID'}
++            alerts.append({'code': 'SOURCE_UNREADABLE_OR_INVALID', 'path': rel})
++    for rel, previous in stats.items():
++        try:
++            with parent_fd(root / rel) as (fd, name):
++                if signature(os.stat(name, dir_fd=fd, follow_symlinks=False)) != previous:
++                    raise EvidenceError('SOURCE_CHANGED')
++        except (OSError, EvidenceError):
++            alerts.append({'code': 'SOURCE_CHANGED_DURING_AUDIT', 'path': rel})
++    return {'records': records, 'alerts': alerts, 'edges': edges, 'external_modules_not_verified': sorted(external),
++            'coverage_status': 'BOUNDED_STATIC_ONLY', 'execution_closure_verified': False}
++
++
++def git_identity(root, paths):
++    """Read only; fsmonitor and optional index writes disabled; never emit diffs."""
++    command = ['/usr/bin/git', '--no-optional-locks', '-c', 'core.fsmonitor=false', '-C', str(root)]
++    try:
++        env = {'PATH': '/usr/bin:/bin', 'HOME': str(Path.home()), 'GIT_OPTIONAL_LOCKS': '0',
++               'GIT_CONFIG_NOSYSTEM': '1', 'GIT_CONFIG_GLOBAL': '/dev/null', 'GIT_TERMINAL_PROMPT': '0'}
++        head = subprocess.run(command + ['rev-parse', '--verify', 'HEAD'], env=env,
++                              capture_output=True, timeout=5, check=True).stdout.decode().strip()
++        if not re.fullmatch('[0-9a-f]{40,64}', head):
++            raise EvidenceError('GIT_HEAD_INVALID')
++        raw = subprocess.run(command + ['status', '--porcelain=v1', '-z', '--untracked-files=all',
++                                       '--', *sorted(paths)], env=env, capture_output=True, timeout=5, check=True).stdout
++        if len(raw) > 1024 * 1024:
++            raise EvidenceError('GIT_OUTPUT_BUDGET')
++        entries = raw.decode('utf-8').split('\0')
++        changes = {e[3:]: e[:2] for e in entries if len(e) >= 4 and e[3:] in paths}
++        return {'status': 'READ_ONLY_SCOPED_STATUS', 'head': head, 'changes': changes,
++                'status_bytes_sha256': sha(raw), 'scope_only': True}
++    except (OSError, ValueError, UnicodeError, subprocess.SubprocessError):
++        return {'status': 'CANNOT_CONFIRM', 'changes': {}, 'scope_only': True}
++
++
++def audit(canonical, plist_path):
++    result = {'schema_version': 'v4.issue8.r3.preflight_evidence.v2', 'status': 'CANNOT_CONFIRM',
++              'source_mapping_status': 'CANNOT_CONFIRM', 'historical_lineage': 'CANNOT_CONFIRM',
++              'behavior_equivalence': 'CANNOT_CONFIRM', 'formal_activation': 'CANNOT_CONFIRM',
++              'producer_edit_allowed': False, 'files': [], 'gaps': [],
++              'audit_started_at': datetime.now(timezone.utc).isoformat(),
++              'network_requests': 0, 'business_writes': 0, 'RESEARCH_ONLY': True,
++              'production_allowed': False, 'buy_gate_updated': False, 'orders_sent': False}
++    try:
++        raw, _ = read_bytes(plist_path)
++        result['plist_identity'] = {'sha256': sha(raw), 'bytes': len(raw), 'raw_or_env_exported': False}
++        release = resolve_release(plistlib.loads(raw))
++        result['configured_release_root'] = str(release)
++        result['canonical_root'] = str(canonical)
++        result['root_resolution'] = 'UNAMBIGUOUS_PLIST_PATHS'
++        left, right = closure(canonical), closure(release)
++        result['closures'] = {'canonical': left, 'release': right}
++        for rel in sorted(set(left['records']) | set(right['records'])):
++            a, b = left['records'].get(rel, {}), right['records'].get(rel, {})
++            result['files'].append({'path': rel, 'canonical_sha256': a.get('sha256'),
++                                    'release_sha256': b.get('sha256'),
++                                    'byte_equal': bool(a.get('sha256') and a.get('sha256') == b.get('sha256'))})
++        result['file_equality'] = ('EQUAL_FOR_COLLECTED_FILES' if result['files'] and
++                                  all(x['byte_equal'] for x in result['files']) else 'DIFFERENT_OR_MISSING')
++        result['canonical_git'] = git_identity(canonical, left['records'])
++        for row in result['files']:
++            row['canonical_git_status'] = result['canonical_git']['changes'].get(row['path'])
++        try:
++            raw, _ = read_bytes(release.parent / 'release-manifest.json')
++            manifest = json.loads(raw, object_pairs_hook=unique)
++            if not isinstance(manifest, dict):
++                raise EvidenceError('MANIFEST_NOT_OBJECT')
++            declared = {k: manifest.get(k) if manifest.get(k) in STATUS_VALUES else 'UNRECOGNIZED_OR_MISSING'
++                        for k in ('candidate_status', 'activation_status', 'deployment_status')}
++            result['manifest_observation'] = {'sha256': sha(raw), 'bytes': len(raw), 'declared': declared,
++                                               'status_is_assertion_not_proof': True, 'raw_exported': False}
++        except (OSError, ValueError, TypeError, UnicodeError):
++            result['gaps'].append('RELEASE_MANIFEST_UNREADABLE_OR_INVALID')
++        result['gaps'].extend(['EXECUTION_CLOSURE_NOT_RUNTIME_VERIFIED',
++                               'HISTORICAL_BUILD_MAPPING_NOT_PROVEN', 'FORMAL_ACTIVATION_NOT_PROVEN'])
++        result['comparison_completed'] = True
++    except EvidenceError as exc:
++        result['comparison_completed'] = False
++        result['gaps'].append(str(exc))
++    except (OSError, ValueError, TypeError, plistlib.InvalidFileException):
++        # Deliberately never serialize exception text, plist arguments, or environment values.
++        result['comparison_completed'] = False
++        result['gaps'].append('INPUT_OR_ROOT_INVALID')
++    result['audit_finished_at'] = datetime.now(timezone.utc).isoformat()
++    return result
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    for name in ('canonical', 'plist', 'output'):
++        parser.add_argument('--' + name, required=True)
++    args = parser.parse_args()
++    try:
++        canonical, pp, out = (exact(v) for v in (args.canonical, args.plist, args.output))
++        # Evidence cannot overwrite code, the launch config, a release or a previous receipt.
++        if out.is_relative_to(canonical) or out.is_relative_to(pp.parent) or 'releases' in out.parts:
++            raise EvidenceError('OUTPUT_LOCATION_FORBIDDEN')
++        report = audit(canonical, pp)
++        payload = (json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False) + '\n').encode()
++        with parent_fd(out) as (fd, name):
++            dest = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600, dir_fd=fd)
++            with os.fdopen(dest, 'wb') as stream:
++                stream.write(payload)
++        return 1 if report['comparison_completed'] else 2
++    except (OSError, ValueError):
++        print('PREFLIGHT_INPUT_OR_OUTPUT_REJECTED')
++        return 2
++
++
++if __name__ == '__main__':
++    raise SystemExit(main())

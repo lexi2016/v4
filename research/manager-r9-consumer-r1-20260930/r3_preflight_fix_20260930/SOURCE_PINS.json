@@ -1,0 +1,36 @@
+{
+  "input_commit": "852708f6f210f3e7e9abcc065d7826815c8f39f2",
+  "original_tool_commit": "145f35355cf3e47e335a580452c97175eb36c5f8",
+  "original_tool_git_blob": "61dac5a4848242d741d1ee0db94f465fa31d8b68",
+  "patch_root": "isolated copy of before/; git apply -p1 tools.patch and tests.patch",
+  "files": [
+    {
+      "path": "after/tools/audit_r3_source_release_binding.py",
+      "before_path": "before/tools/audit_r3_source_release_binding.py",
+      "before_sha256": "91a74a28600fc5066dbfe4489f1a0a43113b760a52e4142afdd1fa77d817e619",
+      "after_sha256": "f893eabc431f807a270a1388f9db9abe4ed310d730da6d08c461c4b468ff9822",
+      "bytes": 16072
+    },
+    {
+      "path": "tests/test_preflight.py",
+      "before_path": null,
+      "before_sha256": null,
+      "after_sha256": "13090e0b349183b5a1a9f991e0a3947fb69e6f19baabff2c20b1ed88e25e1b12",
+      "bytes": 12885
+    },
+    {
+      "path": "tools.patch",
+      "before_path": null,
+      "before_sha256": null,
+      "after_sha256": "a2b32659b664a7da53234358332b5ee96eade8a0f1e93661341ca3b3554b9879",
+      "bytes": 20164
+    },
+    {
+      "path": "tests.patch",
+      "before_path": null,
+      "before_sha256": null,
+      "after_sha256": "aa38182a6ce76b4fe2967813084c24a9ed41cc7bebbb0b5ce5ea11584dce9b17",
+      "bytes": 13208
+    }
+  ]
+}

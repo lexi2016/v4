@@ -1,0 +1,54 @@
+{
+  "schema_version": "v4.issue8.r3.preflight_fix.author_status.v1",
+  "input_commit": "852708f6f210f3e7e9abcc065d7826815c8f39f2",
+  "scope": "PREFLIGHT_TOOL_ONLY_NO_PRODUCER_NO_R3B",
+  "IMPLEMENTED": {
+    "status": "AUTHOR_TOOL_CANDIDATE",
+    "path": "after/tools/audit_r3_source_release_binding.py",
+    "sha256": "f893eabc431f807a270a1388f9db9abe4ed310d730da6d08c461c4b468ff9822"
+  },
+  "TESTED": {
+    "status": "PASS_AUTHOR_SYNTHETIC_ONLY",
+    "tests": 30,
+    "skipped": 0,
+    "exit_code": 0,
+    "evidence": "logs/final_after.txt",
+    "sha256": "b9f59fcfa97605dcec96b9af6e9fe6247c9104571d0b9528f2fb2766f4dc666b"
+  },
+  "REVIEWED": {
+    "status": "CANNOT_CONFIRM",
+    "reason": "Independent Luna Max Reviewer not invoked in this session"
+  },
+  "BEHAVIOR_VERIFIED": {
+    "status": "AUTHOR_SYNTHETIC_TOOL_CASES_ONLY",
+    "evidence": "logs/junit.xml",
+    "sha256": "2d1d23e6467dd0c54d38c6580eb61a8a0e018f5692b10f73911eb59a3aa32c63"
+  },
+  "DEPLOYED": {
+    "status": "CANNOT_CONFIRM",
+    "performed": false
+  },
+  "API_VERIFIED": {
+    "status": "CANNOT_CONFIRM",
+    "performed": false
+  },
+  "UI_VERIFIED": {
+    "status": "CANNOT_CONFIRM",
+    "performed": false
+  },
+  "NATURAL_VERIFIED": {
+    "status": "CANNOT_CONFIRM",
+    "performed": false
+  },
+  "source_release_binding": "CANNOT_CONFIRM",
+  "forward_alignment": "PROPOSAL_ONLY_NOT_IMPLEMENTED",
+  "R3A_changed": false,
+  "R3B_changed": false,
+  "R1_R2_retested": false,
+  "business_network_requests": 0,
+  "business_source_writes": 0,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
