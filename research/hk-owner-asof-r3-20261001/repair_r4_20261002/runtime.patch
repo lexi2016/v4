@@ -1,0 +1,113 @@
+diff --git a/infrastructure/preselection_pool_store.py b/infrastructure/preselection_pool_store.py
+--- a/infrastructure/preselection_pool_store.py
++++ b/infrastructure/preselection_pool_store.py
+@@ -58,6 +58,77 @@
+     }
+ )
+ RECEIPT_EXTENSION_FIELDS = frozenset({"source_row_count", "source_run_id"})
++
++# This extension belongs only to the already verified HK 0.2 projector.  Do
++# not expand the generic/A allowlist or change the historical receipt shape.
++_HK_SOURCE_EXTENSION_FIELDS = frozenset({
++    "historical_provenance", "source_manifest_sha256", "source_receipt_sha256",
++})
++
++
++def _validate_hk_source_extension(payload: Mapping[str, Any]) -> None:
++    """Check retained source bindings, not invent or replace source authority.
++
++    The original shared reader verifies the source files; Stage verifies its
++    calendar/cutoff. The store retains the entire extension in its existing
++    artifact hash, and rejects malformed or internally inconsistent bindings.
++    Legacy artifacts without this extension keep their old wire contract.
++    """
++    if not _HK_SOURCE_EXTENSION_FIELDS.intersection(payload):
++        return
++    if (not _HK_SOURCE_EXTENSION_FIELDS.issubset(payload)
++            or payload.get("pool_id") != "hkconnect_d1_top100"
++            or payload.get("market") != "HK"
++            or payload.get("source_role") != "SHARED_VERIFIED_HK_0_2"
++            or payload.get("producer_id") != "v3_shared_hk_0_2_consumer_v1"):
++        raise ValueError("invalid HK preselection source extension scope")
++    for field in ("source_sha256", "source_manifest_sha256", "source_receipt_sha256"):
++        if not isinstance(payload.get(field), str) or not _SHA256.fullmatch(payload[field]):
++            raise ValueError("invalid HK preselection source digest")
++    provenance = payload.get("historical_provenance")
++    if (not isinstance(provenance, Mapping)
++            or provenance.get("schema_version") != "v4.hk_d1_eligibility_asof.v2"):
++        raise ValueError("invalid HK preselection provenance schema")
++    bound = {"price_signal_date": "signal_date", "d1_source_run_id": "source_run_id",
++             "d1_source_artifact_sha256": "source_sha256",
++             "d1_source_manifest_sha256": "source_manifest_sha256",
++             "d1_source_receipt_sha256": "source_receipt_sha256"}
++    if any(not payload.get(field) or provenance.get(key) != payload[field]
++           for key, field in bound.items()):
++        raise ValueError("HK preselection provenance identity mismatch")
++    price_date = _date(str(payload["signal_date"]))
++    target_date = _date(str(payload.get("target_date") or ""))
++    if price_date >= target_date or target_date != payload.get("trade_date"):
++        raise ValueError("HK preselection source/target date mismatch")
++    qualification = provenance.get("eligibility_asof")
++    if (not isinstance(qualification, Mapping)
++            or qualification.get("schema_version") != "v4.hk_eligibility_asof.v1"
++            or qualification.get("validity") != "EXACT_CAPTURE_DATE_ONLY"
++            or qualification.get("source_role") != "FUTU_HKCONNECT_PLATE_MEMBERSHIP"
++            or qualification.get("source_date") != price_date
++            or provenance.get("eligibility_source_date") != qualification.get("source_date")):
++        raise ValueError("HK preselection eligibility as-of mismatch")
++    for field in ("authority_run_id", "security_master_run_id"):
++        if not isinstance(qualification.get(field), str) or not qualification[field].strip():
++            raise ValueError("HK preselection eligibility run identity missing")
++    for field in ("source_sha256", "codes_sha256", "authority_artifact_sha256",
++                  "authority_manifest_sha256", "authority_receipt_sha256",
++                  "authority_current_sha256", "security_master_artifact_sha256"):
++        if not isinstance(qualification.get(field), str) or not _SHA256.fullmatch(qualification[field]):
++            raise ValueError("invalid HK preselection eligibility digest")
++    from datetime import datetime
++    from zoneinfo import ZoneInfo
++    for field in ("captured_at", "security_master_captured_at"):
++        try:
++            captured = datetime.fromisoformat(qualification[field])
++        except (KeyError, TypeError, ValueError) as error:
++            raise ValueError("HK preselection capture unavailable") from error
++        if (captured.tzinfo is None or captured.utcoffset() is None
++                or captured.astimezone(ZoneInfo("Asia/Shanghai")).strftime("%Y%m%d") != price_date):
++            raise ValueError("HK preselection capture/source date mismatch")
++    if any(qualification.get(field) is not False
++           for field in ("production_allowed", "buy_gate_updated", "orders_sent")):
++        raise ValueError("unsafe HK preselection provenance")
+ 
+ # The scheduled optional lanes may first be materialized as an explicit
+ # EXPECTED_MISSING artifact and become available after their upstream source
+@@ -684,7 +755,8 @@
+     missing = required - set(payload)
+     if missing:
+         raise ValueError("missing required preselection-pool fields")
+-    unknown = set(payload) - required - POOL_ARTIFACT_OPTIONAL_FIELDS
++    _validate_hk_source_extension(payload)
++    unknown = set(payload) - required - POOL_ARTIFACT_OPTIONAL_FIELDS - _HK_SOURCE_EXTENSION_FIELDS
+     if unknown:
+         raise ValueError("invalid preselection-pool fields")
+     if payload.get("schema_version") != "v3_5.preselection_pool.v1":
+diff --git a/infrastructure/scheduling/executor_registry_preselection.py b/infrastructure/scheduling/executor_registry_preselection.py
+--- a/infrastructure/scheduling/executor_registry_preselection.py
++++ b/infrastructure/scheduling/executor_registry_preselection.py
+@@ -26,6 +26,10 @@
+         Returning ``None`` preserves the existing producer path for a date that
+         has not yet acquired both exact formal artifacts.
+         """
++
++    # R9 rebinds this function into facade globals; resolve the module-owned
++    # helper explicitly rather than depending on injected test globals.
++    from infrastructure.scheduling.executor_registry_preselection import _hk_owner_universe_root
+ 
+     expected = (
+         ("a_d1_premarket_pool", "A", "SHARED_VERIFIED_V192"),
+@@ -116,6 +120,7 @@
+ def _preselection_pools(
+     self, request: DispatchRequest
+ ) -> dict[str, Any]:
++    from infrastructure.scheduling.executor_registry_preselection import _hk_owner_universe_root
+     from contracts.trading_calendar import load_market_calendar, previous_session, resolve_market_states
+     calendar = load_market_calendar()
+     states = resolve_market_states(calendar, request.business_date)
