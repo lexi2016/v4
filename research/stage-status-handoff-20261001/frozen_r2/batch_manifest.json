@@ -1,0 +1,111 @@
+{
+  "schema_version": "hk_calendar_policy_lane_delta.v2",
+  "supersedes_manifest_sha256": "29bfb59e58e2137e88273684dafc7c105c6cb18c63aa5286a7ca2dd06d92f174",
+  "supersedes_patch_sha256": "609c9482406d601118c750f0480487bba8283bdcc7875d526feea5dd096f4ae2",
+  "files": [
+    {
+      "path": "contracts/trading_calendar.py",
+      "preimage_sha256": "61ad747fcfeedda6a6362fb9f6b45767bea7bbfa9dbeea3753beeb75dc5da577",
+      "preimage_bytes": 9347,
+      "after_sha256": "fa8252537d332cdd649c235c0341bc228595d12a6b788e8c25396d6c70d9bfc8",
+      "after_bytes": 9413,
+      "change": "modified"
+    },
+    {
+      "path": "contracts/runtime_workloads.json",
+      "preimage_sha256": "58a94c7bc32773babc8bd305a74a2f57d9b88a0c84df8f3fd3e8f7afb8159539",
+      "preimage_bytes": 52437,
+      "after_sha256": "c6e2d95f588ebd6062cd59b9ab91cae27556ee4d667037ace7164b7a54cdfd61",
+      "after_bytes": 52440,
+      "change": "modified"
+    },
+    {
+      "path": "domains/runtime_policy.py",
+      "preimage_sha256": "4a765d98449a944c990dbb9b1677930c448d9ecc71cba726f3916e48d3863215",
+      "preimage_bytes": 5919,
+      "after_sha256": "0575df80b82b7940505fd4509a09e6ac6588245cc1141143b11ac42b4b84a6d2",
+      "after_bytes": 6201,
+      "change": "modified"
+    },
+    {
+      "path": "domains/task_status.py",
+      "preimage_sha256": "047cfb2b6a8c165857b2841f137a86c9587a1a6e81199efdf71d508d05589300",
+      "preimage_bytes": 21978,
+      "after_sha256": "42a355b113a07b6d0c6c42b995ec9a123ca8608e74f8a6d11258a6bd130ebb97",
+      "after_bytes": 22132,
+      "change": "modified"
+    },
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/preselection.py",
+      "preimage_sha256": "7bf3f3b0ebcd4cecf53a184582df962fc25dac14facfdae56dc4339ab84015ac",
+      "preimage_bytes": 19563,
+      "after_sha256": "e7f9a398afdda5e30aca46d1292de80655a392774837e7d0d451b4e72e19c305",
+      "after_bytes": 24363,
+      "change": "modified"
+    },
+    {
+      "path": "upstreams/v3_shared_data/scripts/materialize_hk_0_2.py",
+      "preimage_sha256": "6f81a3855dcd8d311176b927da1105cd26e92beda5d6b6325f054c019a7c77ec",
+      "preimage_bytes": 2877,
+      "after_sha256": "e26e880f72271d7ea9e55aee4df937fa1d22564c3d286ead9f9f07e5fa4b6c9d",
+      "after_bytes": 3211,
+      "change": "modified"
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "preimage_sha256": "b149d3d984e9c02bc5db9862acc4b68739367f37d910e8a6d37f708b1fca9151",
+      "preimage_bytes": 63127,
+      "after_sha256": "5c4b9983853b89429b366e073d9e3f6d4cf21464f38bb02a52ca53af05d8483b",
+      "after_bytes": 65589,
+      "change": "modified"
+    },
+    {
+      "path": "ops/materialize_scheduled_preselection.py",
+      "preimage_sha256": "36d010dcd3b60f8042f5a5e5fa5191144cc9ec55f11311f948d038d441cfde60",
+      "preimage_bytes": 16616,
+      "after_sha256": "0852840d8b92e94973f0d7086eea1d1a8b00fb74e4b0017b8d348fc749e63a64",
+      "after_bytes": 17385,
+      "change": "modified"
+    },
+    {
+      "path": "domains/preselection_materializer.py",
+      "preimage_sha256": "a84d15d98e4d970bbd33f575b7e10081b665add89d56d67320b5f1477426ae2b",
+      "preimage_bytes": 15439,
+      "after_sha256": "243d595f896a3262ca098679a41d0d8c86fcfd1c35ff101f0b6ecf8c7940e0b4",
+      "after_bytes": 15536,
+      "change": "modified"
+    },
+    {
+      "path": "domains/_preselection_materializer_parts/hk_pool.py",
+      "preimage_sha256": "8750708f9e9488c4632303ca89f63be03e628e4961cb962bc37365eee084d571",
+      "preimage_bytes": 10934,
+      "after_sha256": "f66bf4abcd48a10ef7203ef0f9c543548eac46434cf61f38810066da411b48c4",
+      "after_bytes": 14745,
+      "change": "modified"
+    },
+    {
+      "path": "stage_center/_runner_parts/hk_input_validation.py",
+      "preimage_sha256": "f703a8aa5e79742785b07d29778f42f53035e56b15f695aebc92d56c680531cd",
+      "preimage_bytes": 20620,
+      "after_sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+      "after_bytes": 23786,
+      "change": "modified"
+    },
+    {
+      "path": "tests/test_hk_signal_calendar_boundary.py",
+      "preimage_sha256": null,
+      "preimage_bytes": 0,
+      "after_sha256": "40ed4fa052cb7433abd87634368ca518d5b1824378040006a416e9307cd865ed",
+      "after_bytes": 17233,
+      "change": "added"
+    },
+    {
+      "path": "tests/test_preselection_market_calendar_lanes.py",
+      "preimage_sha256": null,
+      "preimage_bytes": 0,
+      "after_sha256": "0135bf85803f26f5286cdf172e2d81381a2aed656e0c6bded32ce96004379a97",
+      "after_bytes": 5260,
+      "change": "added"
+    }
+  ]
+}

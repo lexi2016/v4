@@ -1,0 +1,1482 @@
+--- a/contracts/trading_calendar.py
++++ b/contracts/trading_calendar.py
+@@ -30,6 +30,7 @@
+     HK_SECURITIES_TRADE_DAY = "HK_SECURITIES_TRADE_DAY"
+     HK_CONNECT_TRADE_DAY = "HK_CONNECT_TRADE_DAY"
+     A_OR_HK_CONNECT_TRADE_DAY = "A_OR_HK_CONNECT_TRADE_DAY"
++    A_OR_HK_SECURITIES_TRADE_DAY = "A_OR_HK_SECURITIES_TRADE_DAY"
+ 
+ 
+ class MarketScope(StrEnum):
+--- a/contracts/runtime_workloads.json
++++ b/contracts/runtime_workloads.json
+@@ -1298,7 +1298,7 @@
+       "enabled": true,
+       "market_scope": "CROSS_MARKET",
+       "owner_id": "v35_dispatcher.preselection",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+--- a/domains/runtime_policy.py
++++ b/domains/runtime_policy.py
+@@ -46,6 +46,8 @@
+         raise ValueError("HK securities observation policy requires HK_CONNECT scope")
+     if policy is RunPolicy.HK_CONNECT_TRADE_DAY and scope is not MarketScope.HK_CONNECT:
+         raise ValueError("HK Connect policy requires HK_CONNECT scope")
++    if policy is RunPolicy.A_OR_HK_SECURITIES_TRADE_DAY and scope is not MarketScope.CROSS_MARKET:
++        raise ValueError("A-or-HK-securities policy requires CROSS_MARKET scope")
+     if scope is MarketScope.A_SHARE:
+         return ("a_share",)
+     if scope is MarketScope.HK_CONNECT:
+@@ -54,6 +56,8 @@
+             if policy is RunPolicy.HK_SECURITIES_TRADE_DAY
+             else ("hk_connect",)
+         )
++    if policy is RunPolicy.A_OR_HK_SECURITIES_TRADE_DAY:
++        return ("a_share", "hk_securities")
+     return ("a_share", "hk_connect")
+ 
+ 
+--- a/domains/task_status.py
++++ b/domains/task_status.py
+@@ -44,6 +44,8 @@
+         return states.get("hk_connect") in open_states
+     if policy is RunPolicy.A_OR_HK_CONNECT_TRADE_DAY:
+         return any(states.get(market) in open_states for market in ("a_share", "hk_connect"))
++    if policy is RunPolicy.A_OR_HK_SECURITIES_TRADE_DAY:
++        return any(states.get(market) in open_states for market in ("a_share", "hk_securities"))
+     return False
+ 
+ 
+--- a/infrastructure/scheduling/_executor_registry_parts/preselection.py
++++ b/infrastructure/scheduling/_executor_registry_parts/preselection.py
+@@ -3,7 +3,39 @@
+ from ._namespace import read_global as _v4_global
+ 
+ 
+-def _FixedExecutorRegistry__verified_preselection_source_body(_v4_scope, /, self, *, module_leaf, reader_name, target_date, signal_date):
++def _hk_price_and_eligibility_dates(target_date: str) -> tuple[str, str]:
++    """Keep HK securities pricing separate from Southbound eligibility."""
++    from contracts.trading_calendar import load_market_calendar, previous_session
++
++    calendar = load_market_calendar()
++    price_signal_date = previous_session(
++        calendar, target_date, market="hk_securities"
++    )
++    eligibility_source_date = previous_session(
++        calendar, target_date, market="hk_connect"
++    )
++    return price_signal_date, eligibility_source_date
++
++
++def _preselection_market_lane_states(trade_date: str) -> tuple[str, str]:
++    """Return this workload's independent A and HK-securities day states."""
++    from contracts.trading_calendar import load_market_calendar, resolve_market_states
++
++    states = resolve_market_states(load_market_calendar(), trade_date)
++    return states["a_share"].value, states["hk_securities"].value
++
++
++def _FixedExecutorRegistry__verified_preselection_source_body(
++    _v4_scope,
++    /,
++    self,
++    *,
++    module_leaf,
++    reader_name,
++    target_date,
++    signal_date,
++    eligibility_source_date=None,
++):
+     """Read an exact V4 shared source before deciding to run its producer."""
+     if self.shared_data_root is None or self.shared_package_root is None:
+         return None, "shared source root not configured"
+@@ -15,11 +47,13 @@
+             namespace_prefix=f"v35_preselection_{module_leaf}",
+         )
+         reader = _v4_global(_v4_scope, 'getattr')(module, reader_name)
+-        pool = reader(
+-            self.shared_data_root,
+-            target_date=target_date,
+-            expected_signal_date=signal_date,
+-        )
++        reader_arguments = {
++            "target_date": target_date,
++            "expected_signal_date": signal_date,
++        }
++        if eligibility_source_date and eligibility_source_date != signal_date:
++            reader_arguments["expected_eligibility_source_date"] = eligibility_source_date
++        pool = reader(self.shared_data_root, **reader_arguments)
+         receipt = _v4_global(_v4_scope, 'dict')(pool.run.receipt)
+         if receipt.get("status") != "READY" or _v4_global(_v4_scope, 'any')(
+             receipt.get(field) is not False
+@@ -72,17 +106,28 @@
+                 "preselection input root not configured",
+             )
+         )
++    try:
++        hk_signal_date, hk_eligibility_source_date = _hk_price_and_eligibility_dates(
++            request.target_date
++        )
++    except ValueError as error:
++        raise _v4_global(_v4_scope, 'WorkloadExecutionError')(
++            self._failure_result("preselection_pools", modules, str(error))
++        ) from error
+     a_exact_source, _a_exact_error = self._verified_preselection_source(
+         module_leaf="v192_selector",
+         reader_name="read_verified_v192_pool",
+         target_date=request.target_date,
+         signal_date=request.business_date,
+     )
+-    hk_exact_source, hk_exact_error = self._verified_preselection_source(
++    hk_exact_source, hk_exact_error = _FixedExecutorRegistry__verified_preselection_source_body(
++        _v4_scope,
++        self,
+         module_leaf="hk_0_2",
+         reader_name="read_verified_hk_0_2_pool",
+         target_date=request.target_date,
+-        signal_date=request.business_date,
++        signal_date=hk_signal_date,
++        eligibility_source_date=hk_eligibility_source_date,
+     )
+     def missing_entries(paths):
+         missing = [str(path) for path in paths if not path.is_file()]
+@@ -175,8 +220,26 @@
+         trusted_env["V3_SHARED_SELECTOR_READY_PANEL"] = _v4_global(_v4_scope, 'str')(selector)
+     else:
+         trusted_env.pop("V3_SHARED_SELECTOR_READY_PANEL", None)
++    a_market_state, hk_market_state = _preselection_market_lane_states(
++        request.business_date
++    )
++    trading_states = {"FULL_TRADING_DAY", "HALF_TRADING_DAY_AM"}
++    a_lane_eligible = a_market_state in trading_states
++    hk_lane_eligible = hk_market_state in trading_states
+     a_lane_degradations: list[dict[str, Any]] = []
+-    if public_entry_error:
++    if not a_lane_eligible:
++        status = "SKIPPED" if a_market_state == "NON_TRADING_DAY" else "CANNOT_CONFIRM"
++        public_result = {
++            "status": status,
++            "lane": "A_SHARE",
++            "reason": "A_SHARE_NON_TRADING_DAY" if status == "SKIPPED" else "A_SHARE_CALENDAR_UNKNOWN",
++            "production_allowed": False,
++            "buy_gate_updated": False,
++            "orders_sent": False,
++        }
++        if status == "CANNOT_CONFIRM":
++            a_lane_degradations.append(public_result)
++    elif public_entry_error:
+         public_result = self._failure_result("preselection_pools", ["scripts.capture_public_fupan"], public_entry_error)
+     else:
+         public_result = self._run(
+@@ -190,7 +253,18 @@
+         public_result["lane"] = "A_SHARE"
+         public_result["status"] = "CANNOT_CONFIRM"
+         a_lane_degradations.append(public_result)
+-    if a_exact_source is not None:
++    if not a_lane_eligible:
++        shared_result = {
++            "status": "SKIPPED" if a_market_state == "NON_TRADING_DAY" else "CANNOT_CONFIRM",
++            "lane": "A_SHARE",
++            "reason": "A_SHARE_NON_TRADING_DAY" if a_market_state == "NON_TRADING_DAY" else "A_SHARE_CALENDAR_UNKNOWN",
++            "production_allowed": False,
++            "buy_gate_updated": False,
++            "orders_sent": False,
++        }
++        if shared_result["status"] == "CANNOT_CONFIRM":
++            a_lane_degradations.append(shared_result)
++    elif a_exact_source is not None:
+         shared_result = {
+             "status": "SUCCEEDED",
+             "exit_code": 0,
+@@ -241,16 +315,25 @@
+     # public fupan, HK 0.2, D-1 optional, and scheduled materializer lanes
+     # remain independent and continue with an explicit A gap.
+     hk_lane_degradations: list[dict[str, Any]] = []
+-    hk_runtime_error = (
+-        None if hk_exact_source is not None else (hk_configuration_error or self._hk_0_2_runtime_error())
+-    )
++    hk_runtime_error = None if (not hk_lane_eligible or hk_exact_source is not None) else (hk_configuration_error or self._hk_0_2_runtime_error())
+     hk_runtime_missing = (
+         False
+-        if hk_exact_source is not None
++        if not hk_lane_eligible or hk_exact_source is not None
+         else self._runner is _v4_global(_v4_scope, '_default_runner') and not self.hk_0_2_python_executable.is_file()
+     )
+     hk_runtime_unavailable = hk_runtime_error is not None or hk_runtime_missing
+-    if hk_exact_source is not None:
++    if not hk_lane_eligible:
++        update_result = {
++            "status": "SKIPPED" if hk_market_state == "NON_TRADING_DAY" else "CANNOT_CONFIRM",
++            "lane": "HK_CONNECT",
++            "reason": "HK_SECURITIES_NON_TRADING_DAY" if hk_market_state == "NON_TRADING_DAY" else "HK_SECURITIES_CALENDAR_UNKNOWN",
++            "production_allowed": False,
++            "buy_gate_updated": False,
++            "orders_sent": False,
++        }
++        if update_result["status"] == "CANNOT_CONFIRM":
++            hk_lane_degradations.append(update_result)
++    elif hk_exact_source is not None:
+         update_result = {
+             "status": "SUCCEEDED", "exit_code": 0, "stdout": "", "stderr": "",
+             "lane": "HK_CONNECT", "production_allowed": False,
+@@ -272,7 +355,7 @@
+             [
+                 "--asset-root", _v4_global(_v4_scope, 'str')(self.shared_data_root / "assets" / "hk_0_2"),
+                 "--tdx-root", _v4_global(_v4_scope, 'str')(self.hk_0_2_tdx_root),
+-                "--through-date", request.business_date,
++                "--through-date", hk_signal_date,
+             ],
+             cwd=self.shared_package_root,
+             env=trusted_env,
+@@ -283,7 +366,9 @@
+             update_result["lane"] = "HK_CONNECT"
+             update_result["status"] = "CANNOT_CONFIRM"
+             hk_lane_degradations.append(update_result)
+-    if hk_exact_source is not None or hk_configuration_error:
++    if not hk_lane_eligible:
++        security_result = _v4_global(_v4_scope, 'dict')(update_result)
++    elif hk_exact_source is not None or hk_configuration_error:
+         security_result = _v4_global(_v4_scope, 'dict')(update_result)
+     else:
+         security_result = self._run(
+@@ -292,7 +377,7 @@
+                 "--store-root", _v4_global(_v4_scope, 'str')(self.shared_data_root),
+                 "--universe-root", _v4_global(_v4_scope, 'str')(hk_universe_root),
+                 "--shared-package-root", _v4_global(_v4_scope, 'str')(self.shared_package_root),
+-                "--trade-date", request.business_date,
++                "--trade-date", hk_eligibility_source_date,
+                 "--futu-python", _v4_global(_v4_scope, 'str')(self.shared_futu_python_executable),
+             ],
+             cwd=self.repo_root,
+@@ -303,7 +388,10 @@
+             security_result["lane"] = "HK_CONNECT"
+             security_result["status"] = "CANNOT_CONFIRM"
+             hk_lane_degradations.append(security_result)
+-    if hk_exact_source is not None:
++    if not hk_lane_eligible:
++        hk_result = _v4_global(_v4_scope, 'dict')(update_result)
++        hk_result["modules"] = ["scripts.materialize_hk_0_2"]
++    elif hk_exact_source is not None:
+         hk_result = {**update_result, "exact_source_reused": hk_exact_source}
+     elif hk_runtime_unavailable:
+         hk_result = _v4_global(_v4_scope, 'dict')(update_result)
+@@ -314,7 +402,8 @@
+             [
+                 "--store-root", _v4_global(_v4_scope, 'str')(self.shared_data_root),
+                 "--asset-root", _v4_global(_v4_scope, 'str')(self.shared_data_root / "assets" / "hk_0_2"),
+-                "--signal-date", request.business_date,
++                "--signal-date", hk_signal_date,
++                "--eligibility-source-date", hk_eligibility_source_date,
+                 "--target-date", request.target_date,
+             ],
+             cwd=self.shared_package_root,
+@@ -326,7 +415,7 @@
+             hk_result["lane"] = "HK_CONNECT"
+             hk_result["status"] = "CANNOT_CONFIRM"
+             hk_lane_degradations.append(hk_result)
+-    if hk_exact_source is None and hk_exact_error and hk_result.get("status") != "SUCCEEDED":
++    if hk_lane_eligible and hk_exact_source is None and hk_exact_error and hk_result.get("status") != "SUCCEEDED":
+         hk_lane_degradations.append({
+             "status": "CANNOT_CONFIRM",
+             "lane": "HK_CONNECT",
+@@ -336,7 +425,16 @@
+             "buy_gate_updated": False,
+             "orders_sent": False,
+         })
+-    if selector is None:
++    if not a_lane_eligible:
++        lane_result = {
++            "status": "SKIPPED" if a_market_state == "NON_TRADING_DAY" else "CANNOT_CONFIRM",
++            "lane": "A_SHARE",
++            "reason": "A_SHARE_NON_TRADING_DAY" if a_market_state == "NON_TRADING_DAY" else "A_SHARE_CALENDAR_UNKNOWN",
++            "production_allowed": False,
++            "buy_gate_updated": False,
++            "orders_sent": False,
++        }
++    elif selector is None:
+         lane_result = {
+             "status": "CANNOT_CONFIRM",
+             "exit_code": 1,
+@@ -366,7 +464,7 @@
+             ],
+         )
+     optional_lane_degradation = None
+-    if lane_result["status"] != "SUCCEEDED":
++    if a_lane_eligible and lane_result["status"] != "SUCCEEDED":
+         # The D-1 review lanes enrich the fupan/stage7 optional pools.  The
+         # scheduled materializer already emits explicit CANNOT_CONFIRM
+         # artifacts when those inputs are unavailable, so they must not
+@@ -384,6 +482,8 @@
+     arguments = [
+         "--trade-date", request.target_date,
+         "--signal-date", request.business_date,
++        "--hk-signal-date", hk_signal_date,
++        "--hk-eligibility-source-date", hk_eligibility_source_date,
+         "--data-root", _v4_global(_v4_scope, 'str')(self.data_root),
+         "--input-root", _v4_global(_v4_scope, 'str')(self.preselection_input_root),
+         "--shared-data-root", _v4_global(_v4_scope, 'str')(self.shared_data_root),
+@@ -393,14 +493,23 @@
+         arguments[6:6] = ["--selector", _v4_global(_v4_scope, 'str')(selector)]
+     result = self._run("ops.materialize_scheduled_preselection", arguments)
+     result["modules"] = modules
+-    result["a_selector_status"] = (
+-        "READY"
++    result["a_lane_status"] = (
++        "NOT_APPLICABLE"
++        if a_market_state == "NON_TRADING_DAY"
++        else "CANNOT_CONFIRM"
++        if not a_lane_eligible
++        else "SUCCEEDED"
+         if a_exact_source is not None
+         or (selector is not None and shared_result.get("status") == "SUCCEEDED")
+         else "CANNOT_CONFIRM"
+     )
++    result["a_selector_status"] = result["a_lane_status"]
+     result["hk_lane_status"] = (
+-        "SUCCEEDED"
++        "NOT_APPLICABLE"
++        if hk_market_state == "NON_TRADING_DAY"
++        else "CANNOT_CONFIRM"
++        if not hk_lane_eligible
++        else "SUCCEEDED"
+         if hk_exact_source is not None
+         or (hk_result["status"] == "SUCCEEDED" and not hk_lane_degradations)
+         else "CANNOT_CONFIRM"
+--- a/upstreams/v3_shared_data/scripts/materialize_hk_0_2.py
++++ b/upstreams/v3_shared_data/scripts/materialize_hk_0_2.py
+@@ -28,6 +28,11 @@
+         help="One-time exact verified shared root to migrate; never an online fallback",
+     )
+     parser.add_argument("--signal-date", required=True)
++    parser.add_argument(
++        "--eligibility-source-date",
++        default=None,
++        help="Verified Connect eligibility/security-master as-of date; defaults to --signal-date",
++    )
+     parser.add_argument("--target-date", required=True)
+     args = parser.parse_args()
+     if args.restore_source_root is not None:
+@@ -54,6 +59,7 @@
+             args.store_root,
+             target_date=args.target_date,
+             expected_signal_date=args.signal_date,
++            expected_eligibility_source_date=args.eligibility_source_date,
+         )
+         outcome = {
+             "ok": True,
+@@ -67,6 +73,7 @@
+                 args.store_root,
+                 args.asset_root,
+                 signal_date=args.signal_date,
++                eligibility_source_date=args.eligibility_source_date,
+                 target_date=args.target_date,
+             )
+         else:
+--- a/upstreams/v3_shared_data/shared_data/hk_0_2.py
++++ b/upstreams/v3_shared_data/shared_data/hk_0_2.py
+@@ -20,6 +20,7 @@
+ from importlib.metadata import PackageNotFoundError, version
+ from pathlib import Path
+ from typing import Any, Iterable, Mapping
++from zoneinfo import ZoneInfo
+ 
+ from .allowlist import AllowlistRegistry, SourceSpec
+ from .consumer import VerifiedRun, read_verified_latest
+@@ -44,6 +45,17 @@
+ _VIPDOC_DAY_STRUCT = struct.Struct("<IfffffII")
+ _MAX_CROSS_DAY_CLOSE_RATIO = 1.5
+ _MAX_PRE_CLOSE_GAP_CALENDAR_DAYS = 14
++
++
++def _capture_date_shanghai(value: Any) -> str:
++    text = str(value or "").strip()
++    try:
++        parsed = datetime.fromisoformat(text)
++    except ValueError as error:
++        raise StoreError("HK 0.2 security-master capture time is invalid") from error
++    if parsed.tzinfo is None:
++        raise StoreError("HK 0.2 security-master capture time must include a timezone")
++    return parsed.astimezone(ZoneInfo("Asia/Shanghai")).strftime("%Y%m%d")
+ 
+ _OUTPUT_FIELDS = (
+     "trade_date", "bar_time", "rank", "code", "code_norm", "ts_code", "name",
+@@ -996,11 +1008,13 @@
+     store_root: Path | str,
+     *,
+     signal_date: str,
++    eligibility_source_date: str | None = None,
+     target_date: str,
+     rows: Iterable[Mapping[str, Any]],
+     panel_sha256: str,
+ ) -> dict[str, Any]:
+     signal_date, target_date = validate_date(signal_date), validate_date(target_date)
++    eligibility_source_date = validate_date(eligibility_source_date or signal_date)
+     normalized = [{field: _cell(dict(row).get(field)) for field in _OUTPUT_FIELDS} for row in rows]
+     if len(normalized) != 100:
+         raise StoreError("HK 0.2 strict pool must contain exactly 100 rows")
+@@ -1021,7 +1035,11 @@
+             raise StoreError("HK 0.2 safety boundary mismatch")
+         if _is_name_code_placeholder(row["code_norm"], row["name"]):
+             raise StoreError(f"HK 0.2 name missing or code placeholder: {row['code_norm']}")
+-    _, security_master_manifest = _load_verified_security_master(store_root, signal_date)
++    _, security_master_manifest = _load_verified_security_master(store_root, eligibility_source_date)
++    security_master_captured_at = str(security_master_manifest.get("captured_at") or "")
++    captured_date = _capture_date_shanghai(security_master_captured_at)
++    if captured_date != eligibility_source_date:
++        raise StoreError("HK 0.2 security-master capture date does not match eligibility source")
+     with tempfile.TemporaryDirectory(prefix="v3sd_hk02_publish_") as temporary:
+         source = Path(temporary) / "hkconnect_d1_top100_0_2.csv"
+         with open(source, "w", encoding="utf-8-sig", newline="") as handle:
+@@ -1036,9 +1054,11 @@
+             "model_bundle_sha256": HK_0_2_MODEL_SHA256,
+             "daily_features_sha256": HK_0_2_ORACLE_SHA256S["daily_features"],
+             "proxy_prob_active_sha256": HK_0_2_ORACLE_SHA256S["proxy_prob_active"],
+-            "security_master_trade_date": signal_date,
++            "eligibility_source_date": eligibility_source_date,
++            "security_master_trade_date": eligibility_source_date,
+             "security_master_run_id": str(security_master_manifest["run_id"]),
+             "security_master_artifact_sha256": str(security_master_manifest["artifact_sha256"]),
++            "security_master_captured_at": security_master_captured_at,
+         }
+         spec = SourceSpec(
+             source_id="hkconnect_0_2_frozen_prob_active",
+@@ -1056,13 +1076,34 @@
+         )
+         store = SafeRootStore(Path(store_root), AllowlistRegistry({(target_date, HK_0_2_ROLE): (spec,)}))
+         outcome = store.replay_file(owner="v3_shared_data", trade_date=target_date, role=HK_0_2_ROLE, source_id=spec.source_id, stage_id=HK_0_2_STAGE_ID)
+-    read_verified_hk_0_2_pool(store_root, target_date=target_date, expected_signal_date=signal_date)
++    read_verified_hk_0_2_pool(
++        store_root,
++        target_date=target_date,
++        expected_signal_date=signal_date,
++        expected_eligibility_source_date=eligibility_source_date,
++    )
+     return outcome
+ 
+ 
+-def read_verified_hk_0_2_pool(store_root: Path | str, *, target_date: str, expected_signal_date: str) -> VerifiedHK02Pool:
++def read_verified_hk_0_2_pool(
++    store_root: Path | str,
++    *,
++    target_date: str,
++    expected_signal_date: str,
++    expected_eligibility_source_date: str | None = None,
++) -> VerifiedHK02Pool:
+     target_date, expected_signal_date = validate_date(target_date), validate_date(expected_signal_date)
+-    security_master, security_master_manifest = _load_verified_security_master(store_root, expected_signal_date)
++    eligibility_source_date = validate_date(
++        expected_eligibility_source_date or expected_signal_date
++    )
++    security_master, security_master_manifest = _load_verified_security_master(
++        store_root, eligibility_source_date
++    )
++    security_master_captured_at = str(
++        security_master_manifest.get("captured_at") or ""
++    )
++    if _capture_date_shanghai(security_master_captured_at) != eligibility_source_date:
++        raise StoreError("HK 0.2 security-master capture date does not match eligibility source")
+     run = read_verified_latest(store_root, target_date, HK_0_2_ROLE)
+     provenance = dict(run.manifest.get("provenance") or {})
+     expected = {
+@@ -1071,10 +1112,18 @@
+         "model_bundle_sha256": HK_0_2_MODEL_SHA256,
+         "daily_features_sha256": HK_0_2_ORACLE_SHA256S["daily_features"],
+         "proxy_prob_active_sha256": HK_0_2_ORACLE_SHA256S["proxy_prob_active"],
+-        "security_master_trade_date": expected_signal_date,
++        "security_master_trade_date": eligibility_source_date,
+         "security_master_run_id": str(security_master_manifest["run_id"]),
+         "security_master_artifact_sha256": str(security_master_manifest["artifact_sha256"]),
+     }
++    if eligibility_source_date != expected_signal_date:
++        expected.update({
++            "eligibility_source_date": eligibility_source_date,
++            "security_master_captured_at": security_master_captured_at,
++        })
++    elif "eligibility_source_date" in provenance:
++        expected["eligibility_source_date"] = eligibility_source_date
++        expected["security_master_captured_at"] = security_master_captured_at
+     for key, value in expected.items():
+         if provenance.get(key) != value:
+             raise StoreError(f"HK 0.2 provenance mismatch: {key}")
+@@ -1205,9 +1254,18 @@
+     }
+ 
+ 
+-def materialize_frozen_hk_0_2(store_root: Path | str, asset_root: Path | str, *, signal_date: str, target_date: str) -> dict[str, Any]:
++def materialize_frozen_hk_0_2(
++    store_root: Path | str,
++    asset_root: Path | str,
++    *,
++    signal_date: str,
++    target_date: str,
++    eligibility_source_date: str | None = None,
++) -> dict[str, Any]:
++    signal_date, target_date = validate_date(signal_date), validate_date(target_date)
++    eligibility_source_date = validate_date(eligibility_source_date or signal_date)
+     assets = load_frozen_hk_0_2_assets(asset_root)
+-    security_master, _ = _load_verified_security_master(store_root, signal_date)
++    security_master, _ = _load_verified_security_master(store_root, eligibility_source_date)
+     rows = score_frozen_hk_0_2(
+         asset_root,
+         signal_date=signal_date,
+@@ -1215,7 +1273,14 @@
+         eligible_codes=security_master.keys(),
+     )
+     rows = _fill_name_placeholders(rows, security_master)
+-    return publish_hk_0_2_rows(store_root, signal_date=signal_date, target_date=target_date, rows=rows, panel_sha256=str(assets.panel_manifest["panel_sha256"]))
++    return publish_hk_0_2_rows(
++        store_root,
++        signal_date=signal_date,
++        eligibility_source_date=eligibility_source_date,
++        target_date=target_date,
++        rows=rows,
++        panel_sha256=str(assets.panel_manifest["panel_sha256"]),
++    )
+ 
+ 
+ def quarantine_rejected_hk_0_2_run(
+--- a/ops/materialize_scheduled_preselection.py
++++ b/ops/materialize_scheduled_preselection.py
+@@ -143,6 +143,8 @@
+     *,
+     trade_date: str,
+     signal_date: str,
++    hk_signal_date: str | None = None,
++    hk_eligibility_source_date: str | None = None,
+     selector: Path | None,
+     input_root: Path,
+     shared_data_root: Path,
+@@ -151,6 +153,8 @@
+     pool_reader=None,
+     hk_pool_reader=None,
+ ) -> list[dict]:
++    hk_signal_date = hk_signal_date or signal_date
++    hk_eligibility_source_date = hk_eligibility_source_date or signal_date
+     day = Path(input_root) / trade_date
+     fupan = day / "fupan.csv"
+     fupan_manifest = day / "fupan.manifest.json"
+@@ -214,7 +218,8 @@
+         hk_0_2 = build_shared_hk_0_2_pool(
+             shared_data_root,
+             trade_date=trade_date,
+-            signal_date=signal_date,
++            signal_date=hk_signal_date,
++            eligibility_source_date=hk_eligibility_source_date,
+             shared_package_root=shared_package_root,
+             reader=hk_pool_reader,
+         )
+@@ -337,6 +342,16 @@
+     parser = argparse.ArgumentParser()
+     parser.add_argument("--trade-date", required=True)
+     parser.add_argument("--signal-date", required=True)
++    parser.add_argument(
++        "--hk-signal-date",
++        default=None,
++        help="HK securities price session; defaults to --signal-date for existing callers",
++    )
++    parser.add_argument(
++        "--hk-eligibility-source-date",
++        default=None,
++        help="verified HK Connect eligibility source date; defaults to --signal-date for existing callers",
++    )
+     # The selector is an A-share research-preview fallback only.  HK 0.2
+     # materialization has its own exact-date source and must not be gated by
+     # this optional A-share input.
+@@ -371,6 +386,8 @@
+     artifacts = build_scheduled_artifacts(
+         trade_date=args.trade_date,
+         signal_date=args.signal_date,
++        hk_signal_date=args.hk_signal_date,
++        hk_eligibility_source_date=args.hk_eligibility_source_date,
+         selector=args.selector,
+         input_root=args.input_root,
+         shared_data_root=args.shared_data_root,
+--- a/domains/preselection_materializer.py
++++ b/domains/preselection_materializer.py
+@@ -144,12 +144,13 @@
+     *,
+     trade_date: str,
+     signal_date: str,
++    eligibility_source_date: str | None = None,
+     shared_package_root: Path | None = None,
+     reader=None,
+ ) -> dict[str, Any]:
+     """Map the verified shared HK 0.2 Top100 into the V3.5 pool contract."""
+     from domains._preselection_materializer_parts.hk_pool import _build_shared_hk_0_2_pool_body as _v4_impl
+-    return _v4_impl(globals(), shared_data_root, trade_date=trade_date, signal_date=signal_date, shared_package_root=shared_package_root, reader=reader)
++    return _v4_impl(globals(), shared_data_root, trade_date=trade_date, signal_date=signal_date, eligibility_source_date=eligibility_source_date, shared_package_root=shared_package_root, reader=reader)
+ 
+ 
+ def build_upstream_csv_pool(
+--- a/domains/_preselection_materializer_parts/hk_pool.py
++++ b/domains/_preselection_materializer_parts/hk_pool.py
+@@ -3,17 +3,30 @@
+ from ._namespace import read_global as _v4_global
+ 
+ 
+-def _build_shared_hk_0_2_pool_body(_v4_scope, /, shared_data_root, *, trade_date, signal_date, shared_package_root, reader):
++def _build_shared_hk_0_2_pool_body(
++    _v4_scope,
++    /,
++    shared_data_root,
++    *,
++    trade_date,
++    signal_date,
++    eligibility_source_date,
++    shared_package_root,
++    reader,
++):
+     """Map the verified shared HK 0.2 Top100 into the V3.5 pool contract."""
++    eligibility_source_date = eligibility_source_date or signal_date
+     if reader is None:
+         if shared_package_root is None:
+             raise _v4_global(_v4_scope, 'ValueError')("shared_package_root is required for HK 0.2 verification")
+         reader = _v4_global(_v4_scope, '_shared_hk_0_2_reader')(shared_package_root)
+-    pool = reader(
+-        _v4_global(_v4_scope, 'Path')(shared_data_root),
+-        target_date=trade_date,
+-        expected_signal_date=signal_date,
+-    )
++    reader_args = {
++        "target_date": trade_date,
++        "expected_signal_date": signal_date,
++    }
++    if eligibility_source_date != signal_date:
++        reader_args["expected_eligibility_source_date"] = eligibility_source_date
++    pool = reader(_v4_global(_v4_scope, 'Path')(shared_data_root), **reader_args)
+     verification = pool.run.verification
+     receipt = pool.run.receipt
+     for key in ("production_allowed", "buy_gate_updated", "orders_sent"):
+@@ -65,6 +78,75 @@
+     )
+     artifact["source_run_id"] = _v4_global(_v4_scope, 'str')(verification["run_id"])
+     artifact["source_row_count"] = _v4_global(_v4_scope, 'int')(verification["row_count"])
++    source_manifest_sha256 = _v4_global(_v4_scope, 'str')(
++        verification.get("manifest_sha256") or ""
++    )
++    source_receipt_sha256 = _v4_global(_v4_scope, 'str')(
++        verification.get("receipt_sha256") or ""
++    )
++    if source_manifest_sha256:
++        artifact["source_manifest_sha256"] = source_manifest_sha256
++    if source_receipt_sha256:
++        artifact["source_receipt_sha256"] = source_receipt_sha256
++    artifact["signal_date"] = signal_date
++    artifact["target_date"] = trade_date
++    artifact["stage_selection_eligible"] = True
++    if eligibility_source_date != signal_date:
++        source_provenance = _v4_global(_v4_scope, 'dict')(
++            pool.run.manifest.get("provenance") or {}
++        )
++        historical_provenance = {
++            "schema_version": "v4.hk_d1_split_date_provenance.v1",
++            "price_signal_date": signal_date,
++            "eligibility_source_date": eligibility_source_date,
++            "eligibility_source_run_id": _v4_global(_v4_scope, 'str')(
++                source_provenance.get("security_master_run_id") or ""
++            ),
++            "eligibility_source_artifact_sha256": _v4_global(_v4_scope, 'str')(
++                source_provenance.get("security_master_artifact_sha256") or ""
++            ),
++            "eligibility_source_captured_at": _v4_global(_v4_scope, 'str')(
++                source_provenance.get("security_master_captured_at") or ""
++            ),
++            "d1_source_run_id": _v4_global(_v4_scope, 'str')(verification["run_id"]),
++            "d1_source_artifact_relative": _v4_global(_v4_scope, 'str')(
++                verification.get("artifact_relative") or ""
++            ),
++            "d1_source_artifact_sha256": _v4_global(_v4_scope, 'str')(
++                verification["artifact_sha256"]
++            ),
++            "d1_source_manifest_sha256": _v4_global(_v4_scope, 'str')(
++                verification.get("manifest_sha256") or ""
++            ),
++            "d1_source_receipt_sha256": _v4_global(_v4_scope, 'str')(
++                verification.get("receipt_sha256") or ""
++            ),
++        }
++        if (
++            source_provenance.get("signal_date") != signal_date
++            or source_provenance.get("eligibility_source_date") != eligibility_source_date
++            or source_provenance.get("security_master_trade_date") != eligibility_source_date
++            or not historical_provenance["eligibility_source_run_id"]
++            or not _v4_global(_v4_scope, 're').fullmatch(
++                r"[0-9a-f]{64}", historical_provenance["eligibility_source_artifact_sha256"]
++            )
++            or not historical_provenance["eligibility_source_captured_at"]
++            or historical_provenance["d1_source_artifact_relative"]
++            != _v4_global(_v4_scope, 'str')(verification.get("artifact_relative") or "")
++            or not _v4_global(_v4_scope, 're').fullmatch(
++                r"[0-9a-f]{64}", historical_provenance["d1_source_artifact_sha256"]
++            )
++            or not _v4_global(_v4_scope, 're').fullmatch(
++                r"[0-9a-f]{64}", historical_provenance["d1_source_manifest_sha256"]
++            )
++            or not _v4_global(_v4_scope, 're').fullmatch(
++                r"[0-9a-f]{64}", historical_provenance["d1_source_receipt_sha256"]
++            )
++        ):
++            raise _v4_global(_v4_scope, 'ValueError')(
++                "shared HK 0.2 split-date eligibility provenance is incomplete"
++            )
++        artifact["historical_provenance"] = historical_provenance
+     return artifact
+ 
+ 
+--- a/stage_center/_runner_parts/hk_input_validation.py
++++ b/stage_center/_runner_parts/hk_input_validation.py
+@@ -140,22 +140,88 @@
+             raise _v4_global(_v4_scope, 'RunnerError')(f"HK D1 snapshot integrity invalid: {error}") from error
+         if snapshot.get("payload") != payload:
+             raise _v4_global(_v4_scope, 'RunnerError')("HK D1 snapshot changed during validation")
+-        previous = _v4_global(_v4_scope, 'datetime').strptime(trade_date, "%Y%m%d")
+-        for _ in _v4_global(_v4_scope, 'range')(15):
+-            previous -= _v4_global(_v4_scope, 'timedelta')(days=1)
+-            previous_date = previous.strftime("%Y%m%d")
+-            state = _v4_global(_v4_scope, 'resolve_market_states')(previous_date)["hk_connect"]
+-            if state is _v4_global(_v4_scope, 'TradingDayState').UNKNOWN:
+-                raise _v4_global(_v4_scope, 'RunnerError')("HK D1 signal calendar CANNOT_CONFIRM")
+-            if state in {_v4_global(_v4_scope, 'TradingDayState').FULL_TRADING_DAY, _v4_global(_v4_scope, 'TradingDayState').HALF_TRADING_DAY_AM}:
+-                break
+-        else:
+-            raise _v4_global(_v4_scope, 'RunnerError')("HK D1 signal calendar CANNOT_CONFIRM")
++        open_states = {
++            _v4_global(_v4_scope, 'TradingDayState').FULL_TRADING_DAY,
++            _v4_global(_v4_scope, 'TradingDayState').HALF_TRADING_DAY_AM,
++        }
++
++        def previous_session(market: str) -> str:
++            cursor = _v4_global(_v4_scope, 'datetime').strptime(
++                trade_date, "%Y%m%d"
++            )
++            for _ in _v4_global(_v4_scope, 'range')(15):
++                cursor -= _v4_global(_v4_scope, 'timedelta')(days=1)
++                candidate = cursor.strftime("%Y%m%d")
++                state = _v4_global(_v4_scope, 'resolve_market_states')(candidate)[market]
++                if state is _v4_global(_v4_scope, 'TradingDayState').UNKNOWN:
++                    raise _v4_global(_v4_scope, 'RunnerError')(
++                        "HK D1 signal/eligibility calendar CANNOT_CONFIRM"
++                    )
++                if state in open_states:
++                    return candidate
++            raise _v4_global(_v4_scope, 'RunnerError')(
++                "HK D1 signal/eligibility calendar CANNOT_CONFIRM"
++            )
++
++        price_signal_date = previous_session("hk_securities")
++        eligibility_source_date = previous_session("hk_connect")
+         if payload.get("market") != "HK" or payload.get("source_role") != "SHARED_VERIFIED_HK_0_2":
+             raise _v4_global(_v4_scope, 'RunnerError')("HK D1 market/source role mismatch")
++        if payload.get("signal_date") not in (None, price_signal_date):
++            raise _v4_global(_v4_scope, 'RunnerError')("HK D1 envelope signal_date mismatch")
++        if price_signal_date != eligibility_source_date:
++            provenance = payload.get("historical_provenance")
++            if not _v4_global(_v4_scope, 'isinstance')(provenance, _v4_global(_v4_scope, 'Mapping')):
++                raise _v4_global(_v4_scope, 'RunnerError')(
++                    "HK D1 split-date eligibility provenance missing"
++                )
++            required_hashes = (
++                "eligibility_source_artifact_sha256",
++                "d1_source_artifact_sha256",
++                "d1_source_manifest_sha256",
++                "d1_source_receipt_sha256",
++            )
++            if (
++                provenance.get("schema_version") != "v4.hk_d1_split_date_provenance.v1"
++                or provenance.get("price_signal_date") != price_signal_date
++                or provenance.get("eligibility_source_date") != eligibility_source_date
++                or provenance.get("eligibility_source_run_id") in (None, "")
++                or any(
++                    not _v4_global(_v4_scope, 're').fullmatch(
++                        r"[0-9a-f]{64}", _v4_global(_v4_scope, 'str')(provenance.get(key) or "")
++                    )
++                    for key in required_hashes
++                )
++                or provenance.get("d1_source_run_id") != payload.get("source_run_id")
++                or provenance.get("d1_source_artifact_sha256") != payload.get("source_sha256")
++                or provenance.get("d1_source_manifest_sha256") != payload.get("source_manifest_sha256")
++                or provenance.get("d1_source_receipt_sha256") != payload.get("source_receipt_sha256")
++            ):
++                raise _v4_global(_v4_scope, 'RunnerError')(
++                    "HK D1 split-date provenance identity mismatch"
++                )
++            captured_at = _v4_global(_v4_scope, 'str')(
++                provenance.get("eligibility_source_captured_at") or ""
++            )
++            try:
++                from zoneinfo import ZoneInfo
++
++                captured = _v4_global(_v4_scope, 'datetime').fromisoformat(captured_at)
++            except ValueError as error:
++                raise _v4_global(_v4_scope, 'RunnerError')(
++                    "HK D1 eligibility source capture time invalid"
++                ) from error
++            if (
++                captured.tzinfo is None
++                or captured.astimezone(ZoneInfo("Asia/Shanghai")).strftime("%Y%m%d")
++                != eligibility_source_date
++            ):
++                raise _v4_global(_v4_scope, 'RunnerError')(
++                    "HK D1 eligibility source capture date mismatch"
++                )
+         codes = []
+         for row in rows:
+-            if row.get("market") != "HK" or row.get("signal_date") != previous_date:
++            if row.get("market") != "HK" or row.get("signal_date") != price_signal_date:
+                 raise _v4_global(_v4_scope, 'RunnerError')("HK D1 row market/signal_date mismatch")
+             code = row.get("symbol", row.get("code"))
+             if not _v4_global(_v4_scope, 'isinstance')(code, _v4_global(_v4_scope, 'str')) or _v4_global(_v4_scope, 're').fullmatch(r"HK\.\d{5}", code) is None:
+--- /dev/null
++++ b/tests/test_hk_signal_calendar_boundary.py
+@@ -0,0 +1,498 @@
++from __future__ import annotations
++
++import csv
++import importlib.util
++import json
++import subprocess
++import sys
++from pathlib import Path
++from types import SimpleNamespace
++
++import pytest
++
++
++def test_hk_price_and_connect_eligibility_dates_remain_separate() -> None:
++    from infrastructure.scheduling._executor_registry_parts.preselection import (
++        _hk_price_and_eligibility_dates,
++    )
++
++    assert _hk_price_and_eligibility_dates("20260928") == (
++        "20260925",
++        "20260924",
++    )
++    assert _hk_price_and_eligibility_dates("20260929") == (
++        "20260928",
++        "20260928",
++    )
++    assert _hk_price_and_eligibility_dates("20261008") == (
++        "20261007",
++        "20260930",
++    )
++
++
++@pytest.mark.parametrize(
++    ("business_date", "target_date", "price_date", "eligibility_date"),
++    [
++        ("20260925", "20260928", "20260925", "20260924"),
++        ("20261007", "20261008", "20261007", "20260930"),
++    ],
++)
++def test_original_preselection_owner_forwards_split_hk_dates_through_stage(
++    tmp_path: Path,
++    monkeypatch: pytest.MonkeyPatch,
++    business_date: str,
++    target_date: str,
++    price_date: str,
++    eligibility_date: str,
++) -> None:
++    from contracts.runtime_tasks import DispatchMode, DispatchRequest
++    from infrastructure.scheduling import executor_registry as registry_module
++    from infrastructure.scheduling.executor_registry import FixedExecutorRegistry
++
++    calls: list[tuple[str, list[str]]] = []
++
++    def fake_runner(command, *, cwd, timeout_seconds, env):
++        del cwd, timeout_seconds, env
++        module = str(command[2])
++        arguments = list(command[3:])
++        calls.append((module, arguments))
++        return subprocess.CompletedProcess(command, 0, "", "")
++
++    monkeypatch.setattr(
++        registry_module,
++        "load_isolated_package_module",
++        lambda *_args, **_kwargs: (_ for _ in ()).throw(ModuleNotFoundError("fixture")),
++    )
++    shared_root = tmp_path / "shared"
++    (shared_root / "universes").mkdir(parents=True)
++    (shared_root / "assets/hk_security_master").mkdir(parents=True)
++    package_root = tmp_path / "package"
++    scripts = package_root / "scripts"
++    scripts.mkdir(parents=True)
++    for name in (
++        "capture_public_fupan.py",
++        "materialize_v192_selector.py",
++        "update_hk_0_2_panel.py",
++        "materialize_hk_0_2.py",
++    ):
++        (scripts / name).write_text("# fixture\n", encoding="utf-8")
++
++    registry = FixedExecutorRegistry(
++        data_root=tmp_path / "data",
++        shared_data_root=shared_root,
++        hk_universe_root=shared_root,
++        shared_package_root=package_root,
++        selector_data_root=tmp_path / "selector",
++        preselection_input_root=tmp_path / "input",
++        repo_root=Path(__file__).parents[1],
++        runner=fake_runner,
++        hk_0_2_python_executable=Path(sys.executable),
++    )
++    monkeypatch.setattr(registry, "_hk_0_2_runtime_error", lambda: None)
++    request = DispatchRequest(
++        scheduled_date=business_date,
++        business_date=business_date,
++        target_date=target_date,
++        slot="1800",
++        mode=DispatchMode.LIVE,
++    )
++
++    result = registry._preselection_pools(request)
++
++    assert result["status"] == "SUCCEEDED"
++    assert result["a_lane_status"] == "NOT_APPLICABLE"
++    assert result["hk_lane_status"] == "SUCCEEDED"
++    by_module = {module: arguments for module, arguments in calls}
++    update = by_module["scripts.update_hk_0_2_panel"]
++    assert update[update.index("--through-date") + 1] == price_date
++    security = by_module["ops.ensure_hk_security_master"]
++    assert security[security.index("--trade-date") + 1] == eligibility_date
++    materialize = by_module["scripts.materialize_hk_0_2"]
++    assert materialize[materialize.index("--signal-date") + 1] == price_date
++    assert materialize[materialize.index("--eligibility-source-date") + 1] == eligibility_date
++    projection = by_module["ops.materialize_scheduled_preselection"]
++    assert projection[projection.index("--signal-date") + 1] == business_date
++    assert projection[projection.index("--hk-signal-date") + 1] == price_date
++    assert projection[projection.index("--hk-eligibility-source-date") + 1] == eligibility_date
++
++    pool = _shared_hk_pool(
++        signal_date=price_date,
++        target_date=target_date,
++        eligibility_date=eligibility_date,
++        captured_at=f"{eligibility_date[:4]}-{eligibility_date[4:6]}-{eligibility_date[6:]}T17:20:06+08:00",
++    )
++
++    def hk_pool_reader(_root: Path, **kwargs):
++        assert kwargs == {
++            "target_date": target_date,
++            "expected_signal_date": price_date,
++            "expected_eligibility_source_date": eligibility_date,
++        }
++        return pool
++
++    from ops.materialize_scheduled_preselection import main as project_scheduled_artifacts
++
++    projection_exit = project_scheduled_artifacts(
++        argv=projection,
++        pool_reader=lambda *_args, **_kwargs: (_ for _ in ()).throw(
++            FileNotFoundError("A fixture unavailable")
++        ),
++        hk_pool_reader=hk_pool_reader,
++    )
++    # The unrelated A formal input is absent in this fixture.  The HK artifact
++    # still has to be present with split provenance and pass the real Stage gate.
++    assert projection_exit == 0
++    from stage_center.runner import _validate_hk_d1
++
++    hk_artifact_path, _ = _validate_hk_d1(tmp_path / "data", target_date)
++    assert hk_artifact_path.is_file()
++
++
++def test_hk_materializer_preserves_existing_split_date_target(
++    tmp_path: Path,
++    monkeypatch: pytest.MonkeyPatch,
++    capsys: pytest.CaptureFixture[str],
++) -> None:
++    script = (
++        Path(__file__).parents[1]
++        / "upstreams/v3_shared_data/scripts/materialize_hk_0_2.py"
++    )
++    spec = importlib.util.spec_from_file_location("materialize_hk_0_2_cli_fixture", script)
++    assert spec is not None and spec.loader is not None
++    materializer = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(materializer)
++
++    store_root = tmp_path / "shared-store"
++    store_root.mkdir()
++    sentinel = store_root / "existing-target.json"
++    sentinel_bytes = b"pre-existing verified target\n"
++    sentinel.write_bytes(sentinel_bytes)
++    expected = {
++        "target_date": "20260928",
++        "expected_signal_date": "20260925",
++        "expected_eligibility_source_date": "20260924",
++    }
++    existing = SimpleNamespace(
++        run=SimpleNamespace(
++            receipt={"status": "READY"},
++            verification={
++                "run_id": "existing-hk-run",
++                "artifact_sha256": "a" * 64,
++                "manifest_sha256": "b" * 64,
++                "receipt_sha256": "c" * 64,
++            },
++        )
++    )
++
++    def read_existing(root: Path, **kwargs):
++        assert root == store_root
++        assert kwargs == expected
++        return existing
++
++    monkeypatch.setattr(materializer, "read_verified_hk_0_2_pool", read_existing)
++    monkeypatch.setattr(
++        materializer,
++        "materialize_frozen_hk_0_2",
++        lambda *_args, **_kwargs: pytest.fail("valid existing HK target must not be rebuilt"),
++    )
++    monkeypatch.setattr(
++        sys,
++        "argv",
++        [
++            str(script),
++            "--store-root",
++            str(store_root),
++            "--asset-root",
++            str(tmp_path / "assets"),
++            "--signal-date",
++            expected["expected_signal_date"],
++            "--eligibility-source-date",
++            expected["expected_eligibility_source_date"],
++            "--target-date",
++            expected["target_date"],
++        ],
++    )
++
++    assert materializer.main() == 0
++    outcome = json.loads(capsys.readouterr().out)
++    assert outcome["already_exists"] is True
++    assert outcome["status"] == "READY"
++    assert outcome["run_id"] == "existing-hk-run"
++    assert sentinel.read_bytes() == sentinel_bytes
++
++
++def _shared_hk_pool(*, signal_date: str, target_date: str, eligibility_date: str, captured_at: str):
++    provenance = {
++        "signal_date": signal_date,
++        "eligibility_source_date": eligibility_date,
++        "security_master_trade_date": eligibility_date,
++        "security_master_run_id": "security-master-run-20260924",
++        "security_master_artifact_sha256": "d" * 64,
++        "security_master_captured_at": captured_at,
++    }
++    verification = {
++        "run_id": "hk-d1-run-20260928",
++        "artifact_sha256": "a" * 64,
++        "manifest_sha256": "b" * 64,
++        "receipt_sha256": "c" * 64,
++        "artifact_relative": "runs/20260928/HK_CONNECT_D1_TOP100_0_2/run/artifact.csv",
++        "row_count": 100,
++    }
++    rows = [
++        {
++            "rank": index,
++            "code": f"HK.{index:05d}",
++            "code_norm": f"HK.{index:05d}",
++            "name": f"HK company {index}",
++            "signal_date": signal_date,
++            "target_date": target_date,
++            "selected_strategy": "prob_active",
++            "d1_freshness_status": "PASS",
++            "score_prob_active": 1.0 - index / 1000.0,
++        }
++        for index in range(1, 101)
++    ]
++    run = SimpleNamespace(
++        receipt={
++            "status": "READY",
++            "production_allowed": False,
++            "buy_gate_updated": False,
++            "orders_sent": False,
++        },
++        verification=verification,
++        manifest={"provenance": provenance},
++    )
++    return SimpleNamespace(run=run, rows=rows)
++
++
++def _project_hk_pool(*, signal_date: str, target_date: str, eligibility_date: str, captured_at: str):
++    from domains.preselection_materializer import build_shared_hk_0_2_pool
++
++    pool = _shared_hk_pool(
++        signal_date=signal_date,
++        target_date=target_date,
++        eligibility_date=eligibility_date,
++        captured_at=captured_at,
++    )
++    calls: dict[str, object] = {}
++
++    def reader(_root: Path, **kwargs):
++        calls.update(kwargs)
++        return pool
++
++    artifact = build_shared_hk_0_2_pool(
++        Path("/unused-test-source"),
++        trade_date=target_date,
++        signal_date=signal_date,
++        eligibility_source_date=eligibility_date,
++        reader=reader,
++    )
++    return artifact, calls
++
++
++def _materialize_and_validate(tmp_path: Path, artifact: dict, trade_date: str) -> str:
++    from infrastructure.preselection_pool_store import PreselectionPoolStore
++    from stage_center.runner import _validate_hk_d1
++
++    store = PreselectionPoolStore(tmp_path)
++    store.materialize(artifact)
++    path, digest = _validate_hk_d1(tmp_path, trade_date)
++    assert path.is_file()
++    return digest
++
++
++def test_projected_split_date_pool_binds_price_and_eligibility_sources(tmp_path: Path) -> None:
++    artifact, calls = _project_hk_pool(
++        signal_date="20260925",
++        target_date="20260928",
++        eligibility_date="20260924",
++        captured_at="2026-09-24T17:20:06+08:00",
++    )
++
++    assert calls == {
++        "target_date": "20260928",
++        "expected_signal_date": "20260925",
++        "expected_eligibility_source_date": "20260924",
++    }
++    history = artifact["historical_provenance"]
++    assert history["price_signal_date"] == "20260925"
++    assert history["eligibility_source_date"] == "20260924"
++    assert history["eligibility_source_captured_at"] == "2026-09-24T17:20:06+08:00"
++    assert history["d1_source_run_id"] == artifact["source_run_id"]
++    assert artifact["stage_selection_eligible"] is True
++    _materialize_and_validate(tmp_path, artifact, "20260928")
++
++
++def test_scheduled_projection_passes_distinct_hk_price_and_eligibility_dates(
++    tmp_path: Path,
++) -> None:
++    from ops.materialize_scheduled_preselection import build_scheduled_artifacts
++
++    calls: dict[str, object] = {}
++    pool = _shared_hk_pool(
++        signal_date="20260925",
++        target_date="20260928",
++        eligibility_date="20260924",
++        captured_at="2026-09-24T17:20:06+08:00",
++    )
++
++    def hk_reader(_root: Path, **kwargs):
++        calls.update(kwargs)
++        return pool
++
++    artifacts = build_scheduled_artifacts(
++        trade_date="20260928",
++        signal_date="20260924",
++        hk_signal_date="20260925",
++        selector=None,
++        input_root=tmp_path / "input",
++        shared_data_root=tmp_path / "shared",
++        shared_package_root=tmp_path / "package",
++        data_root=tmp_path / "data",
++        pool_reader=lambda *_args, **_kwargs: (_ for _ in ()).throw(
++            FileNotFoundError("A fixture unavailable")
++        ),
++        hk_pool_reader=hk_reader,
++    )
++
++    assert calls == {
++        "target_date": "20260928",
++        "expected_signal_date": "20260925",
++        "expected_eligibility_source_date": "20260924",
++    }
++    by_id = {artifact["pool_id"]: artifact for artifact in artifacts}
++    assert by_id["hkconnect_d1_top100"]["signal_date"] == "20260925"
++    assert by_id["hkconnect_d1_top100"]["historical_provenance"][
++        "eligibility_source_date"
++    ] == "20260924"
++
++
++def test_projection_preserves_legacy_same_date_call_shape(tmp_path: Path) -> None:
++    artifact, calls = _project_hk_pool(
++        signal_date="20260928",
++        target_date="20260929",
++        eligibility_date="20260928",
++        captured_at="2026-09-28T17:20:06+08:00",
++    )
++
++    assert calls == {
++        "target_date": "20260929",
++        "expected_signal_date": "20260928",
++    }
++    assert "historical_provenance" not in artifact
++    _materialize_and_validate(tmp_path, artifact, "20260929")
++
++
++def test_stage_rejects_misdated_928_price_rows(tmp_path: Path) -> None:
++    from stage_center.runner import RunnerError
++
++    artifact, _calls = _project_hk_pool(
++        signal_date="20260924",
++        target_date="20260928",
++        eligibility_date="20260924",
++        captured_at="2026-09-24T17:20:06+08:00",
++    )
++
++    with pytest.raises(RunnerError, match="signal_date"):
++        _materialize_and_validate(tmp_path, artifact, "20260928")
++
++
++def test_stage_rejects_late_captured_eligibility_master(tmp_path: Path) -> None:
++    from stage_center.runner import RunnerError
++
++    artifact, _calls = _project_hk_pool(
++        signal_date="20260925",
++        target_date="20260928",
++        eligibility_date="20260924",
++        captured_at="2026-09-28T02:50:33+08:00",
++    )
++
++    with pytest.raises(RunnerError, match="capture date mismatch"):
++        _materialize_and_validate(tmp_path, artifact, "20260928")
++
++
++def test_verified_hk_reader_checks_independent_eligibility_master_date(
++    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
++) -> None:
++    from upstreams.v3_shared_data.shared_data import hk_0_2
++
++    artifact_path = tmp_path / "artifact.csv"
++    fields = (
++        "rank",
++        "code_norm",
++        "name",
++        "score_prob_active",
++    )
++    with artifact_path.open("w", encoding="utf-8", newline="") as handle:
++        writer = csv.DictWriter(handle, fieldnames=fields)
++        writer.writeheader()
++        writer.writerows(
++            {
++                "rank": index,
++                "code_norm": f"HK.{index:05d}",
++                "name": f"HK company {index}",
++                "score_prob_active": 1.0 - index / 1000.0,
++            }
++            for index in range(1, 101)
++        )
++
++    security_master_manifest = {
++        "trade_date": "20260924",
++        "run_id": "security-master-run-20260924",
++        "artifact_sha256": "d" * 64,
++        "captured_at": "2026-09-24T17:20:06+08:00",
++    }
++    source_provenance = {
++        "signal_date": "20260925",
++        "eligibility_source_date": "20260924",
++        "source_contract": "tdx_vipdoc_71_day_prob_active",
++        "model_bundle_sha256": hk_0_2.HK_0_2_MODEL_SHA256,
++        "daily_features_sha256": hk_0_2.HK_0_2_ORACLE_SHA256S["daily_features"],
++        "proxy_prob_active_sha256": hk_0_2.HK_0_2_ORACLE_SHA256S["proxy_prob_active"],
++        "security_master_trade_date": "20260924",
++        "security_master_run_id": security_master_manifest["run_id"],
++        "security_master_artifact_sha256": security_master_manifest["artifact_sha256"],
++        "security_master_captured_at": security_master_manifest["captured_at"],
++    }
++    run = SimpleNamespace(
++        manifest={"provenance": source_provenance},
++        artifact_path=artifact_path,
++    )
++    run.verification = {"row_count": 100}
++    monkeypatch.setattr(
++        hk_0_2,
++        "_load_verified_security_master",
++        lambda _root, trade_date: (
++            {f"HK.{index:05d}": {} for index in range(1, 101)},
++            security_master_manifest,
++        ),
++    )
++    monkeypatch.setattr(hk_0_2, "read_verified_latest", lambda *_args: run)
++
++    result = hk_0_2.read_verified_hk_0_2_pool(
++        tmp_path,
++        target_date="20260928",
++        expected_signal_date="20260925",
++        expected_eligibility_source_date="20260924",
++    )
++    assert len(result.rows) == 100
++
++    late_manifest = {
++        **security_master_manifest,
++        "captured_at": "2026-09-28T02:50:33+08:00",
++    }
++    monkeypatch.setattr(
++        hk_0_2,
++        "_load_verified_security_master",
++        lambda _root, trade_date: (
++            {f"HK.{index:05d}": {} for index in range(1, 101)},
++            late_manifest,
++        ),
++    )
++    with pytest.raises(hk_0_2.StoreError, match="capture date"):
++        hk_0_2.read_verified_hk_0_2_pool(
++            tmp_path,
++            target_date="20260928",
++            expected_signal_date="20260925",
++            expected_eligibility_source_date="20260924",
++        )
+--- /dev/null
++++ b/tests/test_preselection_market_calendar_lanes.py
+@@ -0,0 +1,147 @@
++from __future__ import annotations
++
++import subprocess
++import sys
++from pathlib import Path
++
++import pytest
++
++
++@pytest.mark.parametrize(
++    ("trade_date", "target_date", "eligible_a", "eligible_hk"),
++    [
++        ("20260925", "20260928", False, True),
++        ("20261007", "20261008", False, True),
++        ("20260403", "20260407", True, False),
++        ("20260924", "20260925", True, True),
++        ("20260217", "20260220", False, False),
++    ],
++)
++def test_preselection_admission_and_task_status_use_a_or_hk_securities(
++    trade_date: str,
++    target_date: str,
++    eligible_a: bool,
++    eligible_hk: bool,
++) -> None:
++    from contracts.runtime_tasks import SessionRequirement
++    from contracts.trading_calendar import MarketScope, RunPolicy
++    from domains.runtime_policy import evaluate_run_policy
++    from domains.task_status import _schedule_date_is_eligible
++    from infrastructure.scheduling.catalog import load_workload_catalog
++
++    catalog = load_workload_catalog()
++    workload = next(item for item in catalog.workloads if item.workload_id == "preselection_pools")
++
++    assert workload.run_policy is RunPolicy.A_OR_HK_SECURITIES_TRADE_DAY
++    assert workload.market_scope is MarketScope.CROSS_MARKET
++    decision = evaluate_run_policy(
++        workload.run_policy,
++        trade_date,
++        workload.slots[0],
++        market_scope=workload.market_scope,
++        session_requirement=SessionRequirement(workload.session_requirement),
++    )
++    expected = tuple(
++        market
++        for market, eligible in (("a_share", eligible_a), ("hk_securities", eligible_hk))
++        if eligible
++    )
++
++    assert decision.eligible is bool(expected)
++    assert decision.eligible_markets == expected
++    assert _schedule_date_is_eligible(workload, trade_date) is bool(expected)
++    if expected:
++        assert decision.trade_date == trade_date
++    else:
++        assert decision.reason == "NON_TRADING_DAY"
++
++
++@pytest.mark.parametrize(
++    ("trade_date", "target_date", "eligible_a", "eligible_hk"),
++    [
++        ("20260925", "20260928", False, True),
++        ("20261007", "20261008", False, True),
++        ("20260403", "20260407", True, False),
++        ("20260924", "20260925", True, True),
++        ("20260217", "20260220", False, False),
++    ],
++)
++def test_original_preselection_owner_runs_only_open_market_lanes(
++    trade_date: str,
++    target_date: str,
++    eligible_a: bool,
++    eligible_hk: bool,
++    tmp_path: Path,
++    monkeypatch: pytest.MonkeyPatch,
++) -> None:
++    from contracts.runtime_tasks import DispatchMode, DispatchRequest
++    from infrastructure.scheduling import executor_registry as registry_module
++    from infrastructure.scheduling.executor_registry import FixedExecutorRegistry
++
++    calls: list[str] = []
++
++    def fake_runner(command, *, cwd, timeout_seconds, env):
++        del cwd, timeout_seconds, env
++        calls.append(str(command[2]))
++        return subprocess.CompletedProcess(command, 0, "", "")
++
++    monkeypatch.setattr(
++        registry_module,
++        "load_isolated_package_module",
++        lambda *_args, **_kwargs: (_ for _ in ()).throw(ModuleNotFoundError("fixture")),
++    )
++    selector = tmp_path / "selector.csv"
++    selector.write_text("ts_code\n000001.SZ\n", encoding="utf-8")
++    monkeypatch.setattr(registry_module, "resolve_selector_panel", lambda *_args, **_kwargs: selector)
++
++    shared_root = tmp_path / "shared"
++    (shared_root / "universes").mkdir(parents=True)
++    (shared_root / "assets/hk_security_master").mkdir(parents=True)
++    package_root = tmp_path / "package"
++    scripts = package_root / "scripts"
++    scripts.mkdir(parents=True)
++    for name in (
++        "capture_public_fupan.py",
++        "materialize_v192_selector.py",
++        "update_hk_0_2_panel.py",
++        "materialize_hk_0_2.py",
++    ):
++        (scripts / name).write_text("# fixture\n", encoding="utf-8")
++
++    registry = FixedExecutorRegistry(
++        data_root=tmp_path / "data",
++        shared_data_root=shared_root,
++        hk_universe_root=shared_root,
++        shared_package_root=package_root,
++        selector_data_root=tmp_path / "selector",
++        preselection_input_root=tmp_path / "input",
++        repo_root=Path(__file__).parents[1],
++        runner=fake_runner,
++        hk_0_2_python_executable=Path(sys.executable),
++    )
++    monkeypatch.setattr(registry, "_hk_0_2_runtime_error", lambda: None)
++    request = DispatchRequest(
++        scheduled_date=trade_date,
++        business_date=trade_date,
++        target_date=target_date,
++        slot="1800",
++        mode=DispatchMode.LIVE,
++    )
++
++    result = registry._preselection_pools(request)
++
++    expected_a_modules = {
++        "scripts.capture_public_fupan",
++        "ops.materialize_shared_v192_preselection",
++        "ops.materialize_d1_review_lanes",
++    }
++    expected_hk_modules = {
++        "scripts.update_hk_0_2_panel",
++        "ops.ensure_hk_security_master",
++        "scripts.materialize_hk_0_2",
++    }
++    assert expected_a_modules.issubset(calls) is eligible_a
++    assert expected_hk_modules.issubset(calls) is eligible_hk
++    assert "ops.materialize_scheduled_preselection" in calls
++    assert result["a_lane_status"] == ("SUCCEEDED" if eligible_a else "NOT_APPLICABLE")
++    assert result["hk_lane_status"] == ("SUCCEEDED" if eligible_hk else "NOT_APPLICABLE")

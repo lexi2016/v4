@@ -1,0 +1,3522 @@
+- main:
+  - heading "V4 阶段选股" [level=1]
+  - paragraph: 阶段选股只读取同一 date + stage 的 A股与港股通阶段工作台；只读观察，不打开 BUY gate，不接交易接口，不生成 live order。
+  - generic: V4 · r4-stage-merged-c3e5357d07f068e79296790e0b968934c34541d579c586282c5e83f56f6a3875 · manifest/执行文件已核验
+  - region "页面控制":
+    - text: 交易日
+    - textbox "交易日（日历选择）": 2026-09-30
+    - button "查看次日预选池：2026-10-08"
+    - text: 阶段
+    - combobox "阶段":
+      - option "港股通09:20 / A股09:25竞价选股" [selected]
+      - option "09:30-09:35"
+      - option "09:35-09:40"
+      - option "09:40-09:45"
+      - option "09:45-10:30"
+      - option "13:00-13:15"
+      - option "14:45-15:00"
+      - option "15:45-15:55港股"
+    - button "刷新快照"
+    - generic: V4 · A/HK按各自市场日历导航；回执不代表进程存活，运行状态见任务页
+  - status: 当前请求日期：20260930； 导航日期：20260930； 证据默认日：20260930。 研究 latest 仅由研究面板显式选择；缺少所选日材料不表示已更新。
+  - text: 当前查看交易日：2026-09-30
+  - link "查看历史回补：2026-09-28 · STAGE_0930_0935 · A股 · WATCH_ONLY":
+    - /url: /?date=20260928&stage=STAGE_0930_0935&backfill_run_id=a_share_historical_recovery_20260928_20260929_r3&market=A_SHARE
+  - navigation "功能入口":
+    - button "阶段选股"
+    - button "D-1 预选池"
+    - button "研报决策台"
+    - button "经理选股工作台"
+    - button "任务状态"
+    - button "A股复盘"
+    - button "研究复盘"
+    - link "原版 Vibe · 8910":
+      - /url: http://127.0.0.1:8910/a-share/review
+  - region "美股收盘板块涨跌幅":
+    - text: US CLOSE PROXY MAP
+    - heading "美股收盘板块涨跌幅（研究只读）" [level=2]
+    - generic: PARTIAL · 质量缺口
+    - button "刷新"
+    - generic: 目标阶段日：2026-09-30
+    - generic: 读取快照日：2026-09-30
+    - generic: 美股来源日：2026-09-30
+    - generic: US session：20260930
+    - generic: 场次：POST_CLOSE
+    - status: 快照质量：PARTIAL · 来源场次与原采集时间通过近期时钟核验；不是本次更新或自然运行成功回执。 交易所节假日／提前收盘及最新完整交易日：VERIFIED_NYSE_2026。 本次刷新只读取，不触发采集。
+    - status: 未确认依据：EXTERNAL_FINANCE_FETCH_FAILED:US_EQUITY；EXTERNAL_FINANCE_FETCH_FAILED:ai_compute_chip；EXTERNAL_FINANCE_FETCH_FAILED:biopharma_ma；EXTERNAL_FINANCE_FETCH_FAILED:commercial_space；EXTERNAL_FINANCE_FETCH_FAILED:robotics_autonomous；GOOGLE_NEWS_RSS_DISCOVERY_ONLY；MARKET_SNAPSHOT_CANNOT_CONFIRM；MARKET_SNAPSHOT_INCOMPLETE；MARKET_SNAPSHOT_NOT_DUE_PRE_OPEN；QUOTE_SESSION_TIME_MIXED；US_MARKET_CALENDAR_NOT_BOUND；QUOTE_SESSION_TIME_MIXED_OR_MISSING
+    - paragraph: 美股读取根：/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data
+    - status: 上海时钟：2026-10-01T21:41:32.393914+08:00 · 纽约时钟：2026-10-01T09:41:32.393914-04:00 · 纽约时钟尚未到常规16:00收盘点。 这只是时钟，不是交易所节假日/提前收盘核验；不据此推算上一完整交易日。
+    - generic "板块涨跌前三":
+      - article:
+        - generic: Leader 1
+        - strong: 云计算
+        - generic: +1.281%
+        - generic: 上涨 · 1/1 (100.0%)
+      - article:
+        - generic: Leader 2
+        - strong: 光伏
+        - generic: +1.243%
+        - generic: 上涨 · 1/1 (100.0%)
+      - article:
+        - generic: Leader 3
+        - strong: 生物医药
+        - generic: +0.555%
+        - generic: 上涨 · 1/1 (100.0%)
+    - region "上涨板块":
+      - heading "上涨 6" [level=3]:
+        - text: 上涨
+        - generic: "6"
+      - article:
+        - strong: 云计算
+        - generic: CLOU · etf_proxy
+        - generic: +1.281%
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 光伏
+        - generic: TAN · etf_proxy
+        - generic: +1.243%
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 生物医药
+        - generic: XBI · etf_proxy
+        - generic: +0.555%
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 存储
+        - generic: MU / WDC / STX · stock_basket_proxy
+        - generic: +0.397%
+        - generic: 3/3 (100.0%)
+      - article:
+        - strong: 半导体
+        - generic: SOXX · etf_proxy
+        - generic: +0.211%
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: AI算力
+        - generic: NVDA / AVGO / AMD · stock_basket_proxy
+        - generic: +0.034%
+        - generic: 3/3 (100.0%)
+    - region "下跌板块":
+      - heading "下跌 18" [level=3]:
+        - text: 下跌
+        - generic: "18"
+      - article:
+        - strong: 机器人
+        - generic: BOTZ · etf_proxy
+        - generic: "-0.028%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 新能源
+        - generic: ICLN · etf_proxy
+        - generic: "-0.059%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 商业航天
+        - generic: ARKX · etf_proxy
+        - generic: "-0.063%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 石油
+        - generic: XLE · etf_proxy
+        - generic: "-0.065%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 天然气
+        - generic: FCG · etf_proxy
+        - generic: "-0.140%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 锂电池
+        - generic: LIT · etf_proxy
+        - generic: "-0.175%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 卫星
+        - generic: UFO · etf_proxy
+        - generic: "-0.236%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 自动驾驶
+        - generic: DRIV · etf_proxy
+        - generic: "-0.241%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 黄金
+        - generic: GLD · etf_proxy
+        - generic: "-0.535%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 电网
+        - generic: GRID · etf_proxy
+        - generic: "-0.651%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 核电
+        - generic: NLR · etf_proxy
+        - generic: "-0.653%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 稀土
+        - generic: REMX · etf_proxy
+        - generic: "-0.818%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: CPO
+        - generic: COHR / LITE / CIEN · stock_basket_proxy
+        - generic: "-0.869%"
+        - generic: 3/3 (100.0%)
+      - article:
+        - strong: 消费
+        - generic: XLY / XLP · etf_basket_proxy
+        - generic: "-0.906%"
+        - generic: 2/2 (100.0%)
+      - article:
+        - strong: 铜/有色
+        - generic: COPX · etf_proxy
+        - generic: "-0.912%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 银行金融
+        - generic: KBE · etf_proxy
+        - generic: "-0.956%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 军工
+        - generic: ITA · etf_proxy
+        - generic: "-1.013%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 数据中心
+        - generic: VRT / DLR / EQIX · stock_basket_proxy
+        - generic: "-1.259%"
+        - generic: 3/3 (100.0%)
+    - generic: provider：Tencent qt.gtimg.cn
+    - generic: provider session time：16:00:01、16:00:22、16:00:36、16:00:37、16:00:40
+    - generic: capture time：2026-09-30T20:15:00Z
+    - generic: coverage：33/33
+    - paragraph: 代理 ETF / 股票篮子仅用于研究观察；change_pct 为当日 close 对 previous_close，篮子按可用成分等权平均。RESEARCH_ONLY=true · production_allowed=false · 不构成预测或交易指令。
+  - region "七阶段上下文":
+    - text: 阶段分组主视图
+    - heading "七阶段上下文 v2" [level=2]
+    - paragraph: 20260930 · 港股通09:20 / A股09:25竞价选股 · A股 10 / 港股 0
+    - button "1. 港股通09:20 / A股09:25竞价选股 PARTIAL_WITH_ROWS A 10 / HK 0":
+      - generic: 1. 港股通09:20 / A股09:25竞价选股
+      - generic: PARTIAL_WITH_ROWS
+      - generic: A 10 / HK 0
+    - button "2. 09:30-09:35 PARTIAL_WITH_ROWS A 10 / HK 0":
+      - generic: 2. 09:30-09:35
+      - generic: PARTIAL_WITH_ROWS
+      - generic: A 10 / HK 0
+    - button "3. 09:35-09:40 PARTIAL_WITH_ROWS A 10 / HK 0":
+      - generic: 3. 09:35-09:40
+      - generic: PARTIAL_WITH_ROWS
+      - generic: A 10 / HK 0
+    - button "4. 09:40-09:45 PARTIAL_WITH_ROWS A 10 / HK 0":
+      - generic: 4. 09:40-09:45
+      - generic: PARTIAL_WITH_ROWS
+      - generic: A 10 / HK 0
+    - button "5. 09:45-10:30 PARTIAL_WITH_ROWS A 10 / HK 0":
+      - generic: 5. 09:45-10:30
+      - generic: PARTIAL_WITH_ROWS
+      - generic: A 10 / HK 0
+    - button "6. 13:00-13:15 PARTIAL_WITH_ROWS A 10 / HK 0":
+      - generic: 6. 13:00-13:15
+      - generic: PARTIAL_WITH_ROWS
+      - generic: A 10 / HK 0
+    - button "7. 14:45-15:00 PARTIAL_WITH_ROWS A 10 / HK 0":
+      - generic: 7. 14:45-15:00
+      - generic: PARTIAL_WITH_ROWS
+      - generic: A 10 / HK 0
+    - button "8. 15:45-15:55港股 CANNOT_CONFIRM A 不适用 / HK 0":
+      - generic: 8. 15:45-15:55港股
+      - generic: CANNOT_CONFIRM
+      - generic: A 不适用 / HK 0
+    - button "9. 16:08 港股通正式收盘：0.2 × 七阶段 Top20 复盘入口保留 点击加载只读收盘复盘":
+      - generic: 9. 16:08 港股通正式收盘：0.2 × 七阶段 Top20
+      - generic: 复盘入口保留
+      - generic: 点击加载只读收盘复盘
+    - button "10. 15:00 收盘前总结材料 复盘入口保留 当前不冒充完成":
+      - generic: 10. 15:00 收盘前总结材料
+      - generic: 复盘入口保留
+      - generic: 当前不冒充完成
+    - button "11. 15:55 收盘后复盘启动 复盘入口保留 当前不冒充完成":
+      - generic: 11. 15:55 收盘后复盘启动
+      - generic: 复盘入口保留
+      - generic: 当前不冒充完成
+    - button "12. 16:05 A股收盘数据与题材骨架 未到验收批次 当前不冒充完成":
+      - generic: 12. 16:05 A股收盘数据与题材骨架
+      - generic: 未到验收批次
+      - generic: 当前不冒充完成
+    - button "13. 20:30 最新复盘视频检查 未到验收批次 当前不冒充完成":
+      - generic: 13. 20:30 最新复盘视频检查
+      - generic: 未到验收批次
+      - generic: 当前不冒充完成
+    - button "14. 20:40 视频下载与转写 未到验收批次 当前不冒充完成":
+      - generic: 14. 20:40 视频下载与转写
+      - generic: 未到验收批次
+      - generic: 当前不冒充完成
+    - button "15. 20:50 股票字典校正 未到验收批次 当前不冒充完成":
+      - generic: 15. 20:50 股票字典校正
+      - generic: 未到验收批次
+      - generic: 当前不冒充完成
+    - button "16. 21:05 视频表格OCR/ASR/新闻对齐 未到验收批次 当前不冒充完成":
+      - generic: 16. 21:05 视频表格OCR/ASR/新闻对齐
+      - generic: 未到验收批次
+      - generic: 当前不冒充完成
+    - button "17. 21:08 页面复盘对视频差距 未到验收批次 当前不冒充完成":
+      - generic: 17. 21:08 页面复盘对视频差距
+      - generic: 未到验收批次
+      - generic: 当前不冒充完成
+    - button "18. 21:10 第三版复盘发布 未到验收批次 当前不冒充完成":
+      - generic: 18. 21:10 第三版复盘发布
+      - generic: 未到验收批次
+      - generic: 当前不冒充完成
+    - button "19. 21:15 8871 刷新与页面验收 未到验收批次 当前不冒充完成":
+      - generic: 19. 21:15 8871 刷新与页面验收
+      - generic: 未到验收批次
+      - generic: 当前不冒充完成
+  - text: 当前阶段
+  - heading "港股通09:20 / A股09:25竞价选股 阶段" [level=2]
+  - paragraph: PARTIAL_WITH_ROWS · 09:20-09:25
+  - region "普通阶段页历史恢复来源":
+    - strong: 历史恢复来源 · BACKFILL · 只读
+    - paragraph: A股 · run=5e8d958ee01a4734844c529b67f85535 · SelectionStore manifest/receipt=已验证 · runner receipt=VERIFIED · SHA=8d2b9a9daca3ed0e15e5cfb7ff75661e1929fa205f37f9003c1f155bd16dd74a
+  - button "运行 / 恢复当前阶段"
+  - button "强制重新物化"
+  - region "阶段执行声明与选股身份":
+    - heading "执行尝试与已验证产物分列" [level=3]
+    - paragraph: 20260930 · STAGE_0925 · DECLARED_ONLY
+    - paragraph: 尝试模式（回执声明）：RECOVERY / LATE_CATCHUP_REPLAY；记录时间：原回执未记录，不推断历史开始时间
+    - paragraph: 执行状态（声明）：CANNOT_CONFIRM；节点尝试：3 · TRANSIENT
+    - paragraph: 首次失败层：EXACT_SELECTION_INPUT_BINDING；all market collectors returned zero-row CANNOT_CONFIRM
+    - paragraph: 此处不独立认证自然／补跑血缘。选股身份匹配只验证对应产物引用；原回执自计算SHA不是运行认证。
+    - article:
+      - heading "A_SHARE · CANNOT_CONFIRM" [level=4]
+      - paragraph: 选股引用：NO_VERIFIED_SELECTION_BINDING
+      - paragraph: 回执计数：请求 205 / 来源 0 / 接受 未记录／未绑定 / 选择 未记录／未绑定
+      - paragraph: 失败层：EXACT_SELECTION_INPUT_BINDING
+      - generic "原失败原因、计数与身份（不改写历史）"
+    - article:
+      - heading "HK_CONNECT · CANNOT_CONFIRM" [level=4]
+      - paragraph: 选股引用：NO_VERIFIED_SELECTION_BINDING
+      - paragraph: 回执计数：请求 未记录／未绑定 / 来源 0 / 接受 未记录／未绑定 / 选择 未记录／未绑定
+      - paragraph: 失败层：EXACT_SELECTION_INPUT_BINDING
+      - generic "原失败原因、计数与身份（不改写历史）"
+    - generic "绑定缺口与所读回执"
+  - paragraph: PARTIAL_WITH_ROWS
+  - region "A股候选":
+    - heading "A股" [level=3]
+    - generic: 10 条
+    - article:
+      - strong: 国轩高科
+      - generic: A.002074 · 排名 1
+      - generic: NO_BUY · WATCH_ONLY
+      - term: 涨幅
+      - definition: 昨收缺失，涨幅不可确认
+      - term: 阶段分
+      - definition: "53.825"
+      - term: 新闻分
+      - definition: 该时段未提供
+      - term: 研报分
+      - definition: 该时段未提供
+      - term: 支撑位
+      - definition: "30.49"
+      - term: 压力位
+      - definition: "30.49"
+      - term: 失效位
+      - definition: "30.49"
+      - term: 所选阶段计划验证
+      - definition: 09:25:05
+    - article:
+      - strong: 宁德时代
+      - generic: A.300750 · 排名 2
+      - generic: NO_BUY · WATCH_ONLY
+      - term: 涨幅
+      - definition: 昨收缺失，涨幅不可确认
+      - term: 阶段分
+      - definition: "53.599"
+      - term: 新闻分
+      - definition: 该时段未提供
+      - term: 研报分
+      - definition: 该时段未提供
+      - term: 支撑位
+      - definition: "290"
+      - term: 压力位
+      - definition: "290"
+      - term: 失效位
+      - definition: "290"
+      - term: 所选阶段计划验证
+      - definition: 09:25:05
+    - article:
+      - strong: 广汽集团
+      - generic: A.601238 · 排名 3
+      - generic: NO_BUY · WATCH_ONLY
+      - term: 涨幅
+      - definition: 昨收缺失，涨幅不可确认
+      - term: 阶段分
+      - definition: "53.564"
+      - term: 新闻分
+      - definition: 该时段未提供
+      - term: 研报分
+      - definition: 该时段未提供
+      - term: 支撑位
+      - definition: "6.16"
+      - term: 压力位
+      - definition: "6.16"
+      - term: 失效位
+      - definition: "6.16"
+      - term: 所选阶段计划验证
+      - definition: 09:25:05
+    - article:
+      - strong: 中际旭创
+      - generic: A.300308 · 排名 4
+      - generic: NO_BUY · WATCH_ONLY
+      - term: 涨幅
+      - definition: 昨收缺失，涨幅不可确认
+      - term: 阶段分
+      - definition: "53.276"
+      - term: 新闻分
+      - definition: 该时段未提供
+      - term: 研报分
+      - definition: 该时段未提供
+      - term: 支撑位
+      - definition: "821.99"
+      - term: 压力位
+      - definition: "821.99"
+      - term: 失效位
+      - definition: "821.99"
+      - term: 所选阶段计划验证
+      - definition: 09:25:05
+    - article:
+      - strong: 世联行
+      - generic: A.002285 · 排名 5
+      - generic: NO_BUY · WATCH_ONLY
+      - term: 涨幅
+      - definition: 昨收缺失，涨幅不可确认
+      - term: 阶段分
+      - definition: "52.616"
+      - term: 新闻分
+      - definition: 该时段未提供
+      - term: 研报分
+      - definition: 该时段未提供
+      - term: 支撑位
+      - definition: "2.89"
+      - term: 压力位
+      - definition: "2.89"
+      - term: 失效位
+      - definition: "2.89"
+      - term: 所选阶段计划验证
+      - definition: 09:25:05
+    - article:
+      - strong: 会稽山
+      - generic: A.601579 · 排名 6
+      - generic: NO_BUY · WATCH_ONLY
+      - term: 涨幅
+      - definition: 昨收缺失，涨幅不可确认
+      - term: 阶段分
+      - definition: "52.355"
+      - term: 新闻分
+      - definition: 该时段未提供
+      - term: 研报分
+      - definition: 该时段未提供
+      - term: 支撑位
+      - definition: "37.66"
+      - term: 压力位
+      - definition: "37.66"
+      - term: 失效位
+      - definition: "37.66"
+      - term: 所选阶段计划验证
+      - definition: 09:25:05
+    - article:
+      - strong: 先导基电
+      - generic: A.600641 · 排名 7
+      - generic: NO_BUY · WATCH_ONLY
+      - term: 涨幅
+      - definition: 昨收缺失，涨幅不可确认
+      - term: 阶段分
+      - definition: "52.266"
+      - term: 新闻分
+      - definition: 该时段未提供
+      - term: 研报分
+      - definition: 该时段未提供
+      - term: 支撑位
+      - definition: "50"
+      - term: 压力位
+      - definition: "50"
+      - term: 失效位
+      - definition: "50"
+      - term: 所选阶段计划验证
+      - definition: 09:25:05
+    - article:
+      - strong: 亨通光电
+      - generic: A.600487 · 排名 8
+      - generic: NO_BUY · WATCH_ONLY
+      - term: 涨幅
+      - definition: 昨收缺失，涨幅不可确认
+      - term: 阶段分
+      - definition: "52.137"
+      - term: 新闻分
+      - definition: 该时段未提供
+      - term: 研报分
+      - definition: 该时段未提供
+      - term: 支撑位
+      - definition: "57.55"
+      - term: 压力位
+      - definition: "57.55"
+      - term: 失效位
+      - definition: "57.55"
+      - term: 所选阶段计划验证
+      - definition: 09:25:05
+    - article:
+      - strong: 新易盛
+      - generic: A.300502 · 排名 9
+      - generic: NO_BUY · WATCH_ONLY
+      - term: 涨幅
+      - definition: 昨收缺失，涨幅不可确认
+      - term: 阶段分
+      - definition: "51.991"
+      - term: 新闻分
+      - definition: 该时段未提供
+      - term: 研报分
+      - definition: 该时段未提供
+      - term: 支撑位
+      - definition: "397.98"
+      - term: 压力位
+      - definition: "397.98"
+      - term: 失效位
+      - definition: "397.98"
+      - term: 所选阶段计划验证
+      - definition: 09:25:05
+    - article:
+      - strong: 恩华药业
+      - generic: A.002262 · 排名 10
+      - generic: NO_BUY · WATCH_ONLY
+      - term: 涨幅
+      - definition: 昨收缺失，涨幅不可确认
+      - term: 阶段分
+      - definition: "51.93"
+      - term: 新闻分
+      - definition: 该时段未提供
+      - term: 研报分
+      - definition: 该时段未提供
+      - term: 支撑位
+      - definition: "23.65"
+      - term: 压力位
+      - definition: "23.65"
+      - term: 失效位
+      - definition: "23.65"
+      - term: 所选阶段计划验证
+      - definition: 09:25:05
+  - region "港股通候选":
+    - heading "港股通09:20二筛" [level=3]
+    - generic: 0 条
+    - strong: 港股通该阶段无可确认候选
+    - paragraph: PARTIAL_WITH_ROWS
+  - region "统一预选池":
+    - text: D-1 数据
+    - heading "D-1 预选池" [level=2]
+    - paragraph: PARTIAL_WITH_ROWS
+    - navigation "D1名单分页":
+      - button "上一页" [disabled]
+      - text: 显示第 1 页 · 每个池独立分页，每页最多200行；不截断选股输入
+      - button "下一页／查看余下名单"
+    - region "A股所有预选池汇总":
+      - heading "A股所有预选池汇总" [level=3]
+      - generic: 本页 200 / 来源共 205 条（分页显示）
+      - button "收起" [expanded]
+      - paragraph: 只要汇总池有股票即可进行阶段选股，无需所有子池齐全。
+      - paragraph:
+        - strong: PARTIAL_WITH_ROWS
+      - table:
+        - rowgroup:
+          - row "池内排名 代码 名称 来源/状态 信号日 池评分":
+            - columnheader "池内排名"
+            - columnheader "代码"
+            - columnheader "名称"
+            - columnheader "来源/状态"
+            - columnheader "信号日"
+            - columnheader "池评分"
+        - rowgroup:
+          - row "1 A.002298 中电鑫龙（选） （选） 20260929 114":
+            - cell "1"
+            - cell "A.002298"
+            - cell "中电鑫龙（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "114"
+          - row "2 A.002712 思美传媒（选） （选） 20260929 112.96505464":
+            - cell "2"
+            - cell "A.002712"
+            - cell "思美传媒（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "112.96505464"
+          - row "3 A.603188 亚邦股份（选） （选） 20260929 113.18209352":
+            - cell "3"
+            - cell "A.603188"
+            - cell "亚邦股份（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "113.18209352"
+          - row "4 A.603725 天安新材（选） （选） 20260929 10.7164176":
+            - cell "4"
+            - cell "A.603725"
+            - cell "天安新材（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "10.7164176"
+          - row "5 A.002882 金龙羽（选） （选） 20260929 98.40898432":
+            - cell "5"
+            - cell "A.002882"
+            - cell "金龙羽（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "98.40898432"
+          - row "6 A.600322 津投城开（选） （选） 20260929 113.10839328":
+            - cell "6"
+            - cell "A.600322"
+            - cell "津投城开（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "113.10839328"
+          - row "7 A.603980 吉华集团（选） （选） 20260929 183.30466272":
+            - cell "7"
+            - cell "A.603980"
+            - cell "吉华集团（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "183.30466272"
+          - row "8 A.605069 正和生态（选） （选） 20260929 114.59726256":
+            - cell "8"
+            - cell "A.605069"
+            - cell "正和生态（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "114.59726256"
+          - row "9 A.300154 瑞凌股份（选） （选） 20260929 110.77391088":
+            - cell "9"
+            - cell "A.300154"
+            - cell "瑞凌股份（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "110.77391088"
+          - row "10 A.301628 强达电路（选） （选） 20260929 117":
+            - cell "10"
+            - cell "A.301628"
+            - cell "强达电路（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "117"
+          - row "11 A.601658 邮储银行（选） （选） 20260929 117":
+            - cell "11"
+            - cell "A.601658"
+            - cell "邮储银行（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "117"
+          - row "12 A.000068 华控赛格（选） （选） 20260929 113.21898776":
+            - cell "12"
+            - cell "A.000068"
+            - cell "华控赛格（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "113.21898776"
+          - row "13 A.000665 湖北广电（选） （选） 20260929 113.869844":
+            - cell "13"
+            - cell "A.000665"
+            - cell "湖北广电（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "113.869844"
+          - row "14 A.300198 ST纳川（选） （选） 20260929 112.57079372":
+            - cell "14"
+            - cell "A.300198"
+            - cell "ST纳川（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "112.57079372"
+          - row "15 A.300804 广康生化（选） （选） 20260929 113.33476872":
+            - cell "15"
+            - cell "A.300804"
+            - cell "广康生化（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "113.33476872"
+          - row "16 A.000655 金岭矿业（选） （选） 20260929 112.53975888":
+            - cell "16"
+            - cell "A.000655"
+            - cell "金岭矿业（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "112.53975888"
+          - row "17 A.300643 万通智控（选） （选） 20260929 110.10066352":
+            - cell "17"
+            - cell "A.300643"
+            - cell "万通智控（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "110.10066352"
+          - row "18 A.002474 榕基软件（选） （选） 20260929 112.11678368":
+            - cell "18"
+            - cell "A.002474"
+            - cell "榕基软件（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "112.11678368"
+          - row "19 A.600719 大连热电（选） （选） 20260929 202.77229312":
+            - cell "19"
+            - cell "A.600719"
+            - cell "大连热电（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "202.77229312"
+          - row "20 A.600663 陆家嘴（选） （选） 20260929 196.33966688":
+            - cell "20"
+            - cell "A.600663"
+            - cell "陆家嘴（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "196.33966688"
+          - row "21 A.603578 三星新材（选） （选） 20260929 109.81491552":
+            - cell "21"
+            - cell "A.603578"
+            - cell "三星新材（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "109.81491552"
+          - row "22 A.300107 建新股份（选） （选） 20260929 112.53553272":
+            - cell "22"
+            - cell "A.300107"
+            - cell "建新股份（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "112.53553272"
+          - row "23 A.301038 深水规院（选） （选） 20260929 110.20739096":
+            - cell "23"
+            - cell "A.301038"
+            - cell "深水规院（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "110.20739096"
+          - row "24 A.002016 世荣兆业（选） （选） 20260929 112.74641016":
+            - cell "24"
+            - cell "A.002016"
+            - cell "世荣兆业（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "112.74641016"
+          - row "25 A.002714 牧原股份（选） （选） 20260929 122":
+            - cell "25"
+            - cell "A.002714"
+            - cell "牧原股份（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "122"
+          - row "26 A.600094 大名城（选） （选） 20260929 107.39288512":
+            - cell "26"
+            - cell "A.600094"
+            - cell "大名城（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "107.39288512"
+          - row "27 A.600159 大龙地产（选） （选） 20260929 112.59069028":
+            - cell "27"
+            - cell "A.600159"
+            - cell "大龙地产（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "112.59069028"
+          - row "28 A.000980 众泰汽车（选） （选） 20260929 116":
+            - cell "28"
+            - cell "A.000980"
+            - cell "众泰汽车（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "116"
+          - row "29 A.300335 迪森股份（选） （选） 20260929 109.73301984":
+            - cell "29"
+            - cell "A.300335"
+            - cell "迪森股份（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "109.73301984"
+          - row "30 A.002574 明牌珠宝（选） （选） 20260929 82.58062592":
+            - cell "30"
+            - cell "A.002574"
+            - cell "明牌珠宝（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "82.58062592"
+          - row "31 A.600512 腾达建设（选） （选） 20260929 109.5180324":
+            - cell "31"
+            - cell "A.600512"
+            - cell "腾达建设（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "109.5180324"
+          - row "32 A.000590 古汉医药（选） （选） 20260929 109.35265592":
+            - cell "32"
+            - cell "A.000590"
+            - cell "古汉医药（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "109.35265592"
+          - row "33 A.000897 津滨发展（选） （选） 20260929 113.05531456":
+            - cell "33"
+            - cell "A.000897"
+            - cell "津滨发展（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "113.05531456"
+          - row "34 A.600939 重庆建工（选） （选） 20260929 109.39071984":
+            - cell "34"
+            - cell "A.600939"
+            - cell "重庆建工（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "109.39071984"
+          - row "1 A.601066 中信建投 PARTIAL_WITH_ROWS 20260929 12":
+            - cell "1"
+            - cell "A.601066"
+            - cell "中信建投"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "12"
+          - row "2 A.601995 中金公司 PARTIAL_WITH_ROWS 20260929 8":
+            - cell "2"
+            - cell "A.601995"
+            - cell "中金公司"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "8"
+          - row "3 A.601377 兴业证券 PARTIAL_WITH_ROWS 20260929 6":
+            - cell "3"
+            - cell "A.601377"
+            - cell "兴业证券"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "6"
+          - row "4 A.600999 招商证券 PARTIAL_WITH_ROWS 20260929 6":
+            - cell "4"
+            - cell "A.600999"
+            - cell "招商证券"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "6"
+          - row "5 A.600276 恒瑞医药 PARTIAL_WITH_ROWS 20260929 5":
+            - cell "5"
+            - cell "A.600276"
+            - cell "恒瑞医药"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "5"
+          - row "6 A.000776 广发证券 PARTIAL_WITH_ROWS 20260929 5":
+            - cell "6"
+            - cell "A.000776"
+            - cell "广发证券"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "5"
+          - row "7 A.601688 华泰证券 PARTIAL_WITH_ROWS 20260929 5":
+            - cell "7"
+            - cell "A.601688"
+            - cell "华泰证券"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "5"
+          - row "8 A.601878 浙商证券 PARTIAL_WITH_ROWS 20260929 5":
+            - cell "8"
+            - cell "A.601878"
+            - cell "浙商证券"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "5"
+          - row "9 A.600030 中信证券 PARTIAL_WITH_ROWS 20260929 4":
+            - cell "9"
+            - cell "A.600030"
+            - cell "中信证券"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "4"
+          - row "10 A.600109 国金证券 PARTIAL_WITH_ROWS 20260929 4":
+            - cell "10"
+            - cell "A.600109"
+            - cell "国金证券"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "4"
+          - row "11 A.002670 国盛证券 PARTIAL_WITH_ROWS 20260929 4":
+            - cell "11"
+            - cell "A.002670"
+            - cell "国盛证券"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "4"
+          - row "12 A.002736 国信证券 PARTIAL_WITH_ROWS 20260929 4":
+            - cell "12"
+            - cell "A.002736"
+            - cell "国信证券"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "4"
+          - row "13 A.000166 申万宏源 PARTIAL_WITH_ROWS 20260929 4":
+            - cell "13"
+            - cell "A.000166"
+            - cell "申万宏源"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "4"
+          - row "14 A.300308 中际旭创 PARTIAL_WITH_ROWS 20260929 3":
+            - cell "14"
+            - cell "A.300308"
+            - cell "中际旭创"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "3"
+          - row "15 A.600958 东方证券 PARTIAL_WITH_ROWS 20260929 3":
+            - cell "15"
+            - cell "A.600958"
+            - cell "东方证券"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "3"
+          - row "16 A.601099 太平洋 PARTIAL_WITH_ROWS 20260929 3":
+            - cell "16"
+            - cell "A.601099"
+            - cell "太平洋"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "3"
+          - row "17 A.601162 天风证券 PARTIAL_WITH_ROWS 20260929 3":
+            - cell "17"
+            - cell "A.601162"
+            - cell "天风证券"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "3"
+          - row "18 A.600918 中泰证券 PARTIAL_WITH_ROWS 20260929 3":
+            - cell "18"
+            - cell "A.600918"
+            - cell "中泰证券"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "3"
+          - row "19 A.603986 兆易创新 PARTIAL_WITH_ROWS 20260929 2":
+            - cell "19"
+            - cell "A.603986"
+            - cell "兆易创新"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "2"
+          - row "20 A.300364 中文在线 PARTIAL_WITH_ROWS 20260929 2":
+            - cell "20"
+            - cell "A.300364"
+            - cell "中文在线"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "2"
+          - row "21 A.300750 宁德时代 PARTIAL_WITH_ROWS 20260929 2":
+            - cell "21"
+            - cell "A.300750"
+            - cell "宁德时代"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "2"
+          - row "22 A.300679 电连技术 PARTIAL_WITH_ROWS 20260929 2":
+            - cell "22"
+            - cell "A.300679"
+            - cell "电连技术"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "2"
+          - row "23 A.600487 亨通光电 PARTIAL_WITH_ROWS 20260929 2":
+            - cell "23"
+            - cell "A.600487"
+            - cell "亨通光电"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "2"
+          - row "24 A.688469 芯联集成 PARTIAL_WITH_ROWS 20260929 2":
+            - cell "24"
+            - cell "A.688469"
+            - cell "芯联集成"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "2"
+          - row "25 A.000803 山高环能 PARTIAL_WITH_ROWS 20260929 2":
+            - cell "25"
+            - cell "A.000803"
+            - cell "山高环能"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "2"
+          - row "26 A.603170 宝立食品 PARTIAL_WITH_ROWS 20260929 2":
+            - cell "26"
+            - cell "A.603170"
+            - cell "宝立食品"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "2"
+          - row "27 A.000678 襄阳轴承 PARTIAL_WITH_ROWS 20260929 2":
+            - cell "27"
+            - cell "A.000678"
+            - cell "襄阳轴承"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "2"
+          - row "28 A.002912 中新赛克 PARTIAL_WITH_ROWS 20260929 2":
+            - cell "28"
+            - cell "A.002912"
+            - cell "中新赛克"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "2"
+          - row "29 A.301190 善水科技 PARTIAL_WITH_ROWS 20260929 2":
+            - cell "29"
+            - cell "A.301190"
+            - cell "善水科技"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "2"
+          - row "30 A.601108 财通证券 PARTIAL_WITH_ROWS 20260929 2":
+            - cell "30"
+            - cell "A.601108"
+            - cell "财通证券"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "2"
+          - row "31 A.601555 东吴证券 PARTIAL_WITH_ROWS 20260929 2":
+            - cell "31"
+            - cell "A.601555"
+            - cell "东吴证券"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "2"
+          - row "32 A.000402 金融街 PARTIAL_WITH_ROWS 20260929 2":
+            - cell "32"
+            - cell "A.000402"
+            - cell "金融街"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "2"
+          - row "33 A.002926 华西证券 PARTIAL_WITH_ROWS 20260929 2":
+            - cell "33"
+            - cell "A.002926"
+            - cell "华西证券"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "2"
+          - row "34 A.000061 农产品 PARTIAL_WITH_ROWS 20260929 2":
+            - cell "34"
+            - cell "A.000061"
+            - cell "农产品"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "2"
+          - row "35 A.002673 西部证券 PARTIAL_WITH_ROWS 20260929 2":
+            - cell "35"
+            - cell "A.002673"
+            - cell "西部证券"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "2"
+          - row "36 A.000783 长江证券 PARTIAL_WITH_ROWS 20260929 2":
+            - cell "36"
+            - cell "A.000783"
+            - cell "长江证券"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "2"
+          - row "37 A.601127 赛力斯 PARTIAL_WITH_ROWS 20260929 2":
+            - cell "37"
+            - cell "A.601127"
+            - cell "赛力斯"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "2"
+          - row "38 A.603727 博迈科 PARTIAL_WITH_ROWS 20260929 2":
+            - cell "38"
+            - cell "A.603727"
+            - cell "博迈科"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "2"
+          - row "39 A.002262 恩华药业 PARTIAL_WITH_ROWS 20260929 2":
+            - cell "39"
+            - cell "A.002262"
+            - cell "恩华药业"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "2"
+          - row "40 A.300953 震裕科技 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "40"
+            - cell "A.300953"
+            - cell "震裕科技"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "41 A.688628 优利德 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "41"
+            - cell "A.688628"
+            - cell "优利德"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "42 A.300394 天孚通信 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "42"
+            - cell "A.300394"
+            - cell "天孚通信"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "43 A.300620 光库科技 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "43"
+            - cell "A.300620"
+            - cell "光库科技"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "44 A.601869 长飞光纤 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "44"
+            - cell "A.601869"
+            - cell "长飞光纤"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "45 A.603091 众鑫股份 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "45"
+            - cell "A.603091"
+            - cell "众鑫股份"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "46 A.300853 申昊科技 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "46"
+            - cell "A.300853"
+            - cell "申昊科技"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "47 A.601728 中国电信 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "47"
+            - cell "A.601728"
+            - cell "中国电信"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "48 A.688112 鼎阳科技 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "48"
+            - cell "A.688112"
+            - cell "鼎阳科技"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "49 A.300489 光智科技 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "49"
+            - cell "A.300489"
+            - cell "光智科技"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "50 A.600405 动力源 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "50"
+            - cell "A.600405"
+            - cell "动力源"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "51 A.688448 磁谷科技 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "51"
+            - cell "A.688448"
+            - cell "磁谷科技"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "52 A.603115 海星股份 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "52"
+            - cell "A.603115"
+            - cell "海星股份"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "53 A.600059 古越龙山 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "53"
+            - cell "A.600059"
+            - cell "古越龙山"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "54 A.601579 会稽山 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "54"
+            - cell "A.601579"
+            - cell "会稽山"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "55 A.603256 宏和科技 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "55"
+            - cell "A.603256"
+            - cell "宏和科技"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "56 A.601011 宝泰隆 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "56"
+            - cell "A.601011"
+            - cell "宝泰隆"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "57 A.002524 光正眼科 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "57"
+            - cell "A.002524"
+            - cell "光正眼科"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "58 A.002773 康弘药业 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "58"
+            - cell "A.002773"
+            - cell "康弘药业"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "59 A.000892 欢瑞世纪 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "59"
+            - cell "A.000892"
+            - cell "欢瑞世纪"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "60 A.300182 捷成股份 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "60"
+            - cell "A.300182"
+            - cell "捷成股份"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "61 A.300846 首都在线 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "61"
+            - cell "A.300846"
+            - cell "首都在线"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "62 A.603533 掌阅科技 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "62"
+            - cell "A.603533"
+            - cell "掌阅科技"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "64 A.000011 深物业A PARTIAL_WITH_ROWS 20260929 1":
+            - cell "64"
+            - cell "A.000011"
+            - cell "深物业A"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "65 A.000014 沙河股份 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "65"
+            - cell "A.000014"
+            - cell "沙河股份"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "66 A.000090 天健集团 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "66"
+            - cell "A.000090"
+            - cell "天健集团"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "67 A.002285 世联行 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "67"
+            - cell "A.002285"
+            - cell "世联行"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "68 A.603598 引力传媒 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "68"
+            - cell "A.603598"
+            - cell "引力传媒"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "69 A.002278 神开股份 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "69"
+            - cell "A.002278"
+            - cell "神开股份"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "70 A.600888 新疆众和 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "70"
+            - cell "A.600888"
+            - cell "新疆众和"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "71 A.002806 华锋股份 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "71"
+            - cell "A.002806"
+            - cell "华锋股份"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "72 A.002011 盾安环境 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "72"
+            - cell "A.002011"
+            - cell "盾安环境"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "73 A.600641 先导基电 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "73"
+            - cell "A.600641"
+            - cell "先导基电"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "74 A.600941 中国移动 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "74"
+            - cell "A.600941"
+            - cell "中国移动"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "75 A.301369 联动科技 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "75"
+            - cell "A.301369"
+            - cell "联动科技"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "76 A.688383 新益昌 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "76"
+            - cell "A.688383"
+            - cell "新益昌"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "77 A.688478 晶升股份 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "77"
+            - cell "A.688478"
+            - cell "晶升股份"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "78 A.300891 惠云钛业 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "78"
+            - cell "A.300891"
+            - cell "惠云钛业"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "79 A.001201 东瑞股份 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "79"
+            - cell "A.001201"
+            - cell "东瑞股份"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "80 A.600006 东风股份 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "80"
+            - cell "A.600006"
+            - cell "东风股份"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "81 A.600338 西藏珠峰 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "81"
+            - cell "A.600338"
+            - cell "西藏珠峰"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "82 A.300727 润禾材料 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "82"
+            - cell "A.300727"
+            - cell "润禾材料"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "83 A.688678 福立旺 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "83"
+            - cell "A.688678"
+            - cell "福立旺"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "84 A.000936 华西股份 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "84"
+            - cell "A.000936"
+            - cell "华西股份"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "85 A.002602 世纪华通 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "85"
+            - cell "A.002602"
+            - cell "世纪华通"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "86 A.688025 杰普特 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "86"
+            - cell "A.688025"
+            - cell "杰普特"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "87 A.601668 中国建筑 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "87"
+            - cell "A.601668"
+            - cell "中国建筑"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "88 A.688279 峰岹科技 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "88"
+            - cell "A.688279"
+            - cell "峰岹科技"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "89 A.300418 昆仑万维 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "89"
+            - cell "A.300418"
+            - cell "昆仑万维"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "90 A.301218 华是科技 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "90"
+            - cell "A.301218"
+            - cell "华是科技"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "91 A.000607 华媒控股 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "91"
+            - cell "A.000607"
+            - cell "华媒控股"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "92 A.002074 国轩高科 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "92"
+            - cell "A.002074"
+            - cell "国轩高科"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "93 A.300340 科恒股份 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "93"
+            - cell "A.300340"
+            - cell "科恒股份"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "94 A.300413 芒果超媒 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "94"
+            - cell "A.300413"
+            - cell "芒果超媒"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "95 A.002440 闰土股份 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "95"
+            - cell "A.002440"
+            - cell "闰土股份"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "97 A.600352 浙江龙盛 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "97"
+            - cell "A.600352"
+            - cell "浙江龙盛"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "98 A.300502 新易盛 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "98"
+            - cell "A.300502"
+            - cell "新易盛"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "99 A.603602 纵横通信 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "99"
+            - cell "A.603602"
+            - cell "纵横通信"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "100 A.001979 招商蛇口 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "100"
+            - cell "A.001979"
+            - cell "招商蛇口"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "101 A.600126 杭钢股份 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "101"
+            - cell "A.600126"
+            - cell "杭钢股份"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "102 A.600346 恒力石化 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "102"
+            - cell "A.600346"
+            - cell "恒力石化"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "103 A.601918 新集能源 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "103"
+            - cell "A.601918"
+            - cell "新集能源"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "104 A.002202 金风科技 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "104"
+            - cell "A.002202"
+            - cell "金风科技"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "105 A.600875 东方电气 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "105"
+            - cell "A.600875"
+            - cell "东方电气"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "106 A.000686 东北证券 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "106"
+            - cell "A.000686"
+            - cell "东北证券"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "107 A.601788 光大证券 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "107"
+            - cell "A.601788"
+            - cell "光大证券"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "108 A.600909 华安证券 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "108"
+            - cell "A.600909"
+            - cell "华安证券"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "109 A.002500 山西证券 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "109"
+            - cell "A.002500"
+            - cell "山西证券"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "110 A.600369 西南证券 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "110"
+            - cell "A.600369"
+            - cell "西南证券"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "111 A.601696 中银证券 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "111"
+            - cell "A.601696"
+            - cell "中银证券"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "112 A.002889 东方嘉盛 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "112"
+            - cell "A.002889"
+            - cell "东方嘉盛"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "113 A.300791 仙乐健康 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "113"
+            - cell "A.300791"
+            - cell "仙乐健康"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "114 A.601208 东材科技 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "114"
+            - cell "A.601208"
+            - cell "东材科技"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "115 A.688625 呈和科技 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "115"
+            - cell "A.688625"
+            - cell "呈和科技"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "116 A.301626 苏州天脉 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "116"
+            - cell "A.301626"
+            - cell "苏州天脉"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "117 A.300672 国科微 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "117"
+            - cell "A.300672"
+            - cell "国科微"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "118 A.601238 广汽集团 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "118"
+            - cell "A.601238"
+            - cell "广汽集团"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "119 A.301080 百普赛斯 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "119"
+            - cell "A.301080"
+            - cell "百普赛斯"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "120 A.001301 尚太科技 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "120"
+            - cell "A.001301"
+            - cell "尚太科技"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "121 A.002001 新和成 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "121"
+            - cell "A.002001"
+            - cell "新和成"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "122 A.002948 青岛银行 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "122"
+            - cell "A.002948"
+            - cell "青岛银行"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "123 A.002984 森麒麟 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "123"
+            - cell "A.002984"
+            - cell "森麒麟"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "124 A.300136 信维通信 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "124"
+            - cell "A.300136"
+            - cell "信维通信"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "125 A.600549 厦门钨业 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "125"
+            - cell "A.600549"
+            - cell "厦门钨业"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "126 A.603132 金徽股份 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "126"
+            - cell "A.603132"
+            - cell "金徽股份"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "127 A.600426 华鲁恒升 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "127"
+            - cell "A.600426"
+            - cell "华鲁恒升"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "128 A.600562 国睿科技 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "128"
+            - cell "A.600562"
+            - cell "国睿科技"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "129 A.688001 华兴源创 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "129"
+            - cell "A.688001"
+            - cell "华兴源创"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "130 A.688123 聚辰股份 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "130"
+            - cell "A.688123"
+            - cell "聚辰股份"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "131 A.688712 北芯生命 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "131"
+            - cell "A.688712"
+            - cell "北芯生命"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "132 A.920072 科莱瑞迪 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "132"
+            - cell "A.920072"
+            - cell "科莱瑞迪"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "133 A.920289 北交所公司华汇智能 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "133"
+            - cell "A.920289"
+            - cell "北交所公司华汇智能"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "134 A.920438 戈碧迦 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "134"
+            - cell "A.920438"
+            - cell "戈碧迦"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "135 A.000700 模塑科技 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "135"
+            - cell "A.000700"
+            - cell "模塑科技"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "136 A.000973 佛塑科技 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "136"
+            - cell "A.000973"
+            - cell "佛塑科技"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "137 A.300633 开立医疗 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "137"
+            - cell "A.300633"
+            - cell "开立医疗"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "138 A.301363 美好医疗 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "138"
+            - cell "A.301363"
+            - cell "美好医疗"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "139 A.601777 千里科技 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "139"
+            - cell "A.601777"
+            - cell "千里科技"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "140 A.603087 甘李药业 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "140"
+            - cell "A.603087"
+            - cell "甘李药业"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "141 A.688301 奕瑞科技 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "141"
+            - cell "A.688301"
+            - cell "奕瑞科技"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "142 A.688351 微电生理 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "142"
+            - cell "A.688351"
+            - cell "微电生理"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "143 A.603103 横店影视 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "143"
+            - cell "A.603103"
+            - cell "横店影视"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "144 A.688143 长盈通 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "144"
+            - cell "A.688143"
+            - cell "长盈通"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "145 A.001330 博纳影业 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "145"
+            - cell "A.001330"
+            - cell "博纳影业"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "146 A.002232 启明信息 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "146"
+            - cell "A.002232"
+            - cell "启明信息"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "147 A.300904 威力传动 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "147"
+            - cell "A.300904"
+            - cell "威力传动"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "148 A.600699 均胜电子 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "148"
+            - cell "A.600699"
+            - cell "均胜电子"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "149 A.603278 大业股份 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "149"
+            - cell "A.603278"
+            - cell "大业股份"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "150 A.600754 锦江酒店 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "150"
+            - cell "A.600754"
+            - cell "锦江酒店"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "151 A.000333 美的集团 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "151"
+            - cell "A.000333"
+            - cell "美的集团"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "152 A.603939 益丰药房 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "152"
+            - cell "A.603939"
+            - cell "益丰药房"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "153 A.600056 中国医药 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "153"
+            - cell "A.600056"
+            - cell "中国医药"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "154 A.002371 北方华创 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "154"
+            - cell "A.002371"
+            - cell "北方华创"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "155 A.000591 太阳能 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "155"
+            - cell "A.000591"
+            - cell "太阳能"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "156 A.601988 中国银行 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "156"
+            - cell "A.601988"
+            - cell "中国银行"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "157 A.300017 网宿科技 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "157"
+            - cell "A.300017"
+            - cell "网宿科技"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "158 A.000786 北新建材 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "158"
+            - cell "A.000786"
+            - cell "北新建材"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "159 A.001221 悍高集团 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "159"
+            - cell "A.001221"
+            - cell "悍高集团"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "160 A.002043 兔宝宝 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "160"
+            - cell "A.002043"
+            - cell "兔宝宝"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "161 A.002233 塔牌集团 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "161"
+            - cell "A.002233"
+            - cell "塔牌集团"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "162 A.002271 东方雨虹 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "162"
+            - cell "A.002271"
+            - cell "东方雨虹"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "163 A.002372 伟星新材 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "163"
+            - cell "A.002372"
+            - cell "伟星新材"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "164 A.002791 坚朗五金 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "164"
+            - cell "A.002791"
+            - cell "坚朗五金"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "165 A.300737 科顺股份 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "165"
+            - cell "A.300737"
+            - cell "科顺股份"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "166 A.600585 海螺水泥 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "166"
+            - cell "A.600585"
+            - cell "海螺水泥"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "167 A.603737 三棵树 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "167"
+            - cell "A.603737"
+            - cell "三棵树"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+          - row "168 A.603019 中科曙光 PARTIAL_WITH_ROWS 20260929 1":
+            - cell "168"
+            - cell "A.603019"
+            - cell "中科曙光"
+            - cell "PARTIAL_WITH_ROWS"
+            - cell "20260929"
+            - cell "1"
+    - region "港股通 D-1 预选池":
+      - heading "港股通 D-1 预选池" [level=3]
+      - generic: 来源未确认；本页 0 / 来源声明 0 条
+      - button "收起" [expanded]
+      - paragraph:
+        - strong: CANNOT_CONFIRM
+        - text: "· HK_0_2_EXACT_INPUT_CONTRACT_INVALID:HK security master verification failed: HK security-master metadata invalid: '20260929'"
+      - generic "来源与更新缺口（不阻断其他有效池）"
+      - table:
+        - rowgroup:
+          - row "池内排名 代码 名称 来源/状态 信号日 池评分":
+            - columnheader "池内排名"
+            - columnheader "代码"
+            - columnheader "名称"
+            - columnheader "来源/状态"
+            - columnheader "信号日"
+            - columnheader "池评分"
+        - rowgroup:
+          - row "该池当前无可确认行；保留原池边界，不与其他池合并。":
+            - cell "该池当前无可确认行；保留原池边界，不与其他池合并。"
+    - region "公众号股票池":
+      - heading "公众号股票池" [level=3]
+      - generic: 来源未确认；本页 0 / 来源声明 0 条
+      - button "收起" [expanded]
+      - paragraph:
+        - strong: CANNOT_CONFIRM
+        - text: · WECHAT_V3_PRESELECT_UPSTREAM_MISSING
+      - generic "来源与更新缺口（不阻断其他有效池）"
+      - paragraph: 公众号旧池未生成/待补齐；报告与全文提及尚未接入阶段候选，不把 mentions 直接当候选或评分。
+      - button "打开公众号研究归档"
+      - region "公众号全文提及":
+        - text: ARCHIVED ARTICLE MENTIONS · STAGE A READ ONLY
+        - heading "公众号全文提及" [level=4]
+        - paragraph: 文章日 20260930 的原始 mentions.csv；按市场和上市代码去重展示。
+        - button "打开原报告"
+        - paragraph: 这是文章日归档事实，不是 PIT 阶段可用时间；全文提及包含券商 / 机构署名，不能当作推荐、评分、阶段候选或交易输入。 发行人和证券代码未由独立主表复核，保留原始 mapping_status；安全边界：RESEARCH_ONLY · WATCH_ONLY · NO_BUY_GATE。
+        - text: 搜索来源、名称、代码或上下文
+        - searchbox "搜索来源、名称、代码或上下文"
+        - button "查询"
+        - generic: 当前页 0 / 匹配 0 个上市代码
+        - generic: 结构状态：CANNOT_CONFIRM
+        - status:
+          - strong: 保留的证据边界：
+          - text: NO_ARTICLE_ARCHIVE:20260930
+        - navigation "公众号提及市场分组":
+          - button "A股 0（原始 0 行）" [pressed]
+          - button "北交所 0（原始 0 行）"
+          - button "港股 0（原始 0 行）"
+        - paragraph: NOT_INDEXED：该文章日没有已登记的 Stage A 归档。
+    - region "A股 D-1 主预选池":
+      - heading "A股 D-1 主预选池" [level=3]
+      - generic: 完整 34 条
+      - button "收起" [expanded]
+      - paragraph:
+        - strong: V192_CANDIDATE_READY
+        - text: · RANK_FOR_REVIEW_ONLY_NOT_BUY_PRIORITY
+      - generic "来源与更新缺口（不阻断其他有效池）"
+      - table:
+        - rowgroup:
+          - row "池内排名 代码 名称 来源/状态 信号日 池评分":
+            - columnheader "池内排名"
+            - columnheader "代码"
+            - columnheader "名称"
+            - columnheader "来源/状态"
+            - columnheader "信号日"
+            - columnheader "池评分"
+        - rowgroup:
+          - row "1 A.002298 中电鑫龙（选） （选） 20260929 114":
+            - cell "1"
+            - cell "A.002298"
+            - cell "中电鑫龙（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "114"
+          - row "2 A.002712 思美传媒（选） （选） 20260929 112.96505464":
+            - cell "2"
+            - cell "A.002712"
+            - cell "思美传媒（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "112.96505464"
+          - row "3 A.603188 亚邦股份（选） （选） 20260929 113.18209352":
+            - cell "3"
+            - cell "A.603188"
+            - cell "亚邦股份（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "113.18209352"
+          - row "4 A.603725 天安新材（选） （选） 20260929 10.7164176":
+            - cell "4"
+            - cell "A.603725"
+            - cell "天安新材（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "10.7164176"
+          - row "5 A.002882 金龙羽（选） （选） 20260929 98.40898432":
+            - cell "5"
+            - cell "A.002882"
+            - cell "金龙羽（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "98.40898432"
+          - row "6 A.600322 津投城开（选） （选） 20260929 113.10839328":
+            - cell "6"
+            - cell "A.600322"
+            - cell "津投城开（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "113.10839328"
+          - row "7 A.603980 吉华集团（选） （选） 20260929 183.30466272":
+            - cell "7"
+            - cell "A.603980"
+            - cell "吉华集团（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "183.30466272"
+          - row "8 A.605069 正和生态（选） （选） 20260929 114.59726256":
+            - cell "8"
+            - cell "A.605069"
+            - cell "正和生态（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "114.59726256"
+          - row "9 A.300154 瑞凌股份（选） （选） 20260929 110.77391088":
+            - cell "9"
+            - cell "A.300154"
+            - cell "瑞凌股份（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "110.77391088"
+          - row "10 A.301628 强达电路（选） （选） 20260929 117":
+            - cell "10"
+            - cell "A.301628"
+            - cell "强达电路（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "117"
+          - row "11 A.601658 邮储银行（选） （选） 20260929 117":
+            - cell "11"
+            - cell "A.601658"
+            - cell "邮储银行（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "117"
+          - row "12 A.000068 华控赛格（选） （选） 20260929 113.21898776":
+            - cell "12"
+            - cell "A.000068"
+            - cell "华控赛格（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "113.21898776"
+          - row "13 A.000665 湖北广电（选） （选） 20260929 113.869844":
+            - cell "13"
+            - cell "A.000665"
+            - cell "湖北广电（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "113.869844"
+          - row "14 A.300198 ST纳川（选） （选） 20260929 112.57079372":
+            - cell "14"
+            - cell "A.300198"
+            - cell "ST纳川（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "112.57079372"
+          - row "15 A.300804 广康生化（选） （选） 20260929 113.33476872":
+            - cell "15"
+            - cell "A.300804"
+            - cell "广康生化（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "113.33476872"
+          - row "16 A.000655 金岭矿业（选） （选） 20260929 112.53975888":
+            - cell "16"
+            - cell "A.000655"
+            - cell "金岭矿业（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "112.53975888"
+          - row "17 A.300643 万通智控（选） （选） 20260929 110.10066352":
+            - cell "17"
+            - cell "A.300643"
+            - cell "万通智控（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "110.10066352"
+          - row "18 A.002474 榕基软件（选） （选） 20260929 112.11678368":
+            - cell "18"
+            - cell "A.002474"
+            - cell "榕基软件（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "112.11678368"
+          - row "19 A.600719 大连热电（选） （选） 20260929 202.77229312":
+            - cell "19"
+            - cell "A.600719"
+            - cell "大连热电（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "202.77229312"
+          - row "20 A.600663 陆家嘴（选） （选） 20260929 196.33966688":
+            - cell "20"
+            - cell "A.600663"
+            - cell "陆家嘴（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "196.33966688"
+          - row "21 A.603578 三星新材（选） （选） 20260929 109.81491552":
+            - cell "21"
+            - cell "A.603578"
+            - cell "三星新材（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "109.81491552"
+          - row "22 A.300107 建新股份（选） （选） 20260929 112.53553272":
+            - cell "22"
+            - cell "A.300107"
+            - cell "建新股份（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "112.53553272"
+          - row "23 A.301038 深水规院（选） （选） 20260929 110.20739096":
+            - cell "23"
+            - cell "A.301038"
+            - cell "深水规院（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "110.20739096"
+          - row "24 A.002016 世荣兆业（选） （选） 20260929 112.74641016":
+            - cell "24"
+            - cell "A.002016"
+            - cell "世荣兆业（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "112.74641016"
+          - row "25 A.002714 牧原股份（选） （选） 20260929 122":
+            - cell "25"
+            - cell "A.002714"
+            - cell "牧原股份（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "122"
+          - row "26 A.600094 大名城（选） （选） 20260929 107.39288512":
+            - cell "26"
+            - cell "A.600094"
+            - cell "大名城（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "107.39288512"
+          - row "27 A.600159 大龙地产（选） （选） 20260929 112.59069028":
+            - cell "27"
+            - cell "A.600159"
+            - cell "大龙地产（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "112.59069028"
+          - row "28 A.000980 众泰汽车（选） （选） 20260929 116":
+            - cell "28"
+            - cell "A.000980"
+            - cell "众泰汽车（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "116"
+          - row "29 A.300335 迪森股份（选） （选） 20260929 109.73301984":
+            - cell "29"
+            - cell "A.300335"
+            - cell "迪森股份（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "109.73301984"
+          - row "30 A.002574 明牌珠宝（选） （选） 20260929 82.58062592":
+            - cell "30"
+            - cell "A.002574"
+            - cell "明牌珠宝（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "82.58062592"
+          - row "31 A.600512 腾达建设（选） （选） 20260929 109.5180324":
+            - cell "31"
+            - cell "A.600512"
+            - cell "腾达建设（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "109.5180324"
+          - row "32 A.000590 古汉医药（选） （选） 20260929 109.35265592":
+            - cell "32"
+            - cell "A.000590"
+            - cell "古汉医药（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "109.35265592"
+          - row "33 A.000897 津滨发展（选） （选） 20260929 113.05531456":
+            - cell "33"
+            - cell "A.000897"
+            - cell "津滨发展（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "113.05531456"
+          - row "34 A.600939 重庆建工（选） （选） 20260929 109.39071984":
+            - cell "34"
+            - cell "A.600939"
+            - cell "重庆建工（选）"
+            - cell "（选）"
+            - cell "20260929"
+            - cell "109.39071984"
+    - region "A股 D-1 Stage7/分时复盘池":
+      - heading "A股 D-1 Stage7/分时复盘池" [level=3]
+      - generic: 来源未确认；本页 0 / 来源声明 0 条
+      - button "收起" [expanded]
+      - paragraph:
+        - strong: CANNOT_CONFIRM
+        - text: · A_D1_STAGE7_FENSHI_EVIDENCE_MISSING
+      - generic "来源与更新缺口（不阻断其他有效池）"
+      - table:
+        - rowgroup:
+          - row "池内排名 代码 名称 来源/状态 信号日 池评分":
+            - columnheader "池内排名"
+            - columnheader "代码"
+            - columnheader "名称"
+            - columnheader "来源/状态"
+            - columnheader "信号日"
+            - columnheader "池评分"
+        - rowgroup:
+          - row "该池当前无可确认行；保留原池边界，不与其他池合并。":
+            - cell "该池当前无可确认行；保留原池边界，不与其他池合并。"
+    - region "A股 D-1 复盘继续观察池":
+      - heading "A股 D-1 复盘继续观察池" [level=3]
+      - generic: 来源未确认；本页 0 / 来源声明 0 条
+      - button "收起" [expanded]
+      - paragraph:
+        - strong: CANNOT_CONFIRM
+        - text: · A_D1_FUPAN_WATCHLIST_EVIDENCE_MISSING
+      - generic "来源与更新缺口（不阻断其他有效池）"
+      - table:
+        - rowgroup:
+          - row "池内排名 代码 名称 来源/状态 信号日 池评分":
+            - columnheader "池内排名"
+            - columnheader "代码"
+            - columnheader "名称"
+            - columnheader "来源/状态"
+            - columnheader "信号日"
+            - columnheader "池评分"
+        - rowgroup:
+          - row "该池当前无可确认行；保留原池边界，不与其他池合并。":
+            - cell "该池当前无可确认行；保留原池边界，不与其他池合并。"
+    - region "白毛卡点研究池":
+      - heading "白毛卡点研究池" [level=3]
+      - generic: 来源未确认；本页 0 / 来源声明 0 条
+      - button "收起" [expanded]
+      - paragraph:
+        - strong: CANNOT_CONFIRM
+        - text: · BAIMAO_RESEARCH_MAP_NOT_FOUND
+      - generic "来源与更新缺口（不阻断其他有效池）"
+      - paragraph: 白毛卡点研究映射暂无已核验行；不生成候选或评分，保留原池边界。
+    - region "A股研究推荐池":
+      - heading "A股研究推荐池" [level=3]
+      - generic: 完整 173 条
+      - button "收起" [expanded]
+      - paragraph:
+        - strong: RESEARCH_RECOMMENDATION_POOL_READY
+        - text: · LEGACY_SOURCE_CANNOT_CONFIRM_COUNT:1
+      - generic "来源与更新缺口（不阻断其他有效池）"
+      - table:
+        - rowgroup:
+          - row "池内排名 代码 名称 来源/状态 信号日 池评分":
+            - columnheader "池内排名"
+            - columnheader "代码"
+            - columnheader "名称"
+            - columnheader "来源/状态"
+            - columnheader "信号日"
+            - columnheader "池评分"
+        - rowgroup:
+          - row "1 A.601066 中信建投 v3_5_hourly_research_window_v1 20260929 12":
+            - cell "1"
+            - cell "A.601066"
+            - cell "中信建投"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "12"
+          - row "2 A.601995 中金公司 v3_5_hourly_research_window_v1 20260929 8":
+            - cell "2"
+            - cell "A.601995"
+            - cell "中金公司"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "8"
+          - row "3 A.601377 兴业证券 v3_5_hourly_research_window_v1 20260929 6":
+            - cell "3"
+            - cell "A.601377"
+            - cell "兴业证券"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "6"
+          - row "4 A.600999 招商证券 v3_5_hourly_research_window_v1 20260929 6":
+            - cell "4"
+            - cell "A.600999"
+            - cell "招商证券"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "6"
+          - row "5 A.600276 恒瑞医药 v3_5_hourly_research_window_v1 20260929 5":
+            - cell "5"
+            - cell "A.600276"
+            - cell "恒瑞医药"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "5"
+          - row "6 A.000776 广发证券 v3_5_hourly_research_window_v1 20260929 5":
+            - cell "6"
+            - cell "A.000776"
+            - cell "广发证券"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "5"
+          - row "7 A.601688 华泰证券 v3_5_hourly_research_window_v1 20260929 5":
+            - cell "7"
+            - cell "A.601688"
+            - cell "华泰证券"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "5"
+          - row "8 A.601878 浙商证券 v3_5_hourly_research_window_v1 20260929 5":
+            - cell "8"
+            - cell "A.601878"
+            - cell "浙商证券"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "5"
+          - row "9 A.600030 中信证券 v3_5_hourly_research_window_v1 20260929 4":
+            - cell "9"
+            - cell "A.600030"
+            - cell "中信证券"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "4"
+          - row "10 A.600109 国金证券 v3_5_hourly_research_window_v1 20260929 4":
+            - cell "10"
+            - cell "A.600109"
+            - cell "国金证券"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "4"
+          - row "11 A.002670 国盛证券 v3_5_hourly_research_window_v1 20260929 4":
+            - cell "11"
+            - cell "A.002670"
+            - cell "国盛证券"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "4"
+          - row "12 A.002736 国信证券 v3_5_hourly_research_window_v1 20260929 4":
+            - cell "12"
+            - cell "A.002736"
+            - cell "国信证券"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "4"
+          - row "13 A.000166 申万宏源 v3_5_hourly_research_window_v1 20260929 4":
+            - cell "13"
+            - cell "A.000166"
+            - cell "申万宏源"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "4"
+          - row "14 A.300308 中际旭创 v3_5_hourly_research_window_v1 20260929 3":
+            - cell "14"
+            - cell "A.300308"
+            - cell "中际旭创"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "3"
+          - row "15 A.600958 东方证券 v3_5_hourly_research_window_v1 20260929 3":
+            - cell "15"
+            - cell "A.600958"
+            - cell "东方证券"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "3"
+          - row "16 A.601099 太平洋 v3_5_hourly_research_window_v1 20260929 3":
+            - cell "16"
+            - cell "A.601099"
+            - cell "太平洋"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "3"
+          - row "17 A.601162 天风证券 v3_5_hourly_research_window_v1 20260929 3":
+            - cell "17"
+            - cell "A.601162"
+            - cell "天风证券"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "3"
+          - row "18 A.600918 中泰证券 v3_5_hourly_research_window_v1 20260929 3":
+            - cell "18"
+            - cell "A.600918"
+            - cell "中泰证券"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "3"
+          - row "19 A.603986 兆易创新 v3_5_hourly_research_window_v1 20260929 2":
+            - cell "19"
+            - cell "A.603986"
+            - cell "兆易创新"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "2"
+          - row "20 A.300364 中文在线 v3_5_hourly_research_window_v1 20260929 2":
+            - cell "20"
+            - cell "A.300364"
+            - cell "中文在线"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "2"
+          - row "21 A.300750 宁德时代 v3_5_hourly_research_window_v1 20260929 2":
+            - cell "21"
+            - cell "A.300750"
+            - cell "宁德时代"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "2"
+          - row "22 A.300679 电连技术 v3_5_hourly_research_window_v1 20260929 2":
+            - cell "22"
+            - cell "A.300679"
+            - cell "电连技术"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "2"
+          - row "23 A.600487 亨通光电 v3_5_hourly_research_window_v1 20260929 2":
+            - cell "23"
+            - cell "A.600487"
+            - cell "亨通光电"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "2"
+          - row "24 A.688469 芯联集成 v3_5_hourly_research_window_v1 20260929 2":
+            - cell "24"
+            - cell "A.688469"
+            - cell "芯联集成"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "2"
+          - row "25 A.000803 山高环能 v3_5_hourly_research_window_v1 20260929 2":
+            - cell "25"
+            - cell "A.000803"
+            - cell "山高环能"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "2"
+          - row "26 A.603170 宝立食品 v3_5_hourly_research_window_v1 20260929 2":
+            - cell "26"
+            - cell "A.603170"
+            - cell "宝立食品"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "2"
+          - row "27 A.000678 襄阳轴承 v3_5_hourly_research_window_v1 20260929 2":
+            - cell "27"
+            - cell "A.000678"
+            - cell "襄阳轴承"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "2"
+          - row "28 A.002912 中新赛克 v3_5_hourly_research_window_v1 20260929 2":
+            - cell "28"
+            - cell "A.002912"
+            - cell "中新赛克"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "2"
+          - row "29 A.301190 善水科技 v3_5_hourly_research_window_v1 20260929 2":
+            - cell "29"
+            - cell "A.301190"
+            - cell "善水科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "2"
+          - row "30 A.601108 财通证券 v3_5_hourly_research_window_v1 20260929 2":
+            - cell "30"
+            - cell "A.601108"
+            - cell "财通证券"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "2"
+          - row "31 A.601555 东吴证券 v3_5_hourly_research_window_v1 20260929 2":
+            - cell "31"
+            - cell "A.601555"
+            - cell "东吴证券"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "2"
+          - row "32 A.000402 金融街 v3_5_hourly_research_window_v1 20260929 2":
+            - cell "32"
+            - cell "A.000402"
+            - cell "金融街"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "2"
+          - row "33 A.002926 华西证券 v3_5_hourly_research_window_v1 20260929 2":
+            - cell "33"
+            - cell "A.002926"
+            - cell "华西证券"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "2"
+          - row "34 A.000061 农产品 v3_5_hourly_research_window_v1 20260929 2":
+            - cell "34"
+            - cell "A.000061"
+            - cell "农产品"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "2"
+          - row "35 A.002673 西部证券 v3_5_hourly_research_window_v1 20260929 2":
+            - cell "35"
+            - cell "A.002673"
+            - cell "西部证券"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "2"
+          - row "36 A.000783 长江证券 v3_5_hourly_research_window_v1 20260929 2":
+            - cell "36"
+            - cell "A.000783"
+            - cell "长江证券"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "2"
+          - row "37 A.601127 赛力斯 v3_5_hourly_research_window_v1 20260929 2":
+            - cell "37"
+            - cell "A.601127"
+            - cell "赛力斯"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "2"
+          - row "38 A.603727 博迈科 v3_5_hourly_research_window_v1 20260929 2":
+            - cell "38"
+            - cell "A.603727"
+            - cell "博迈科"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "2"
+          - row "39 A.002262 恩华药业 v3_5_hourly_research_window_v1 20260929 2":
+            - cell "39"
+            - cell "A.002262"
+            - cell "恩华药业"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "2"
+          - row "40 A.300953 震裕科技 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "40"
+            - cell "A.300953"
+            - cell "震裕科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "41 A.688628 优利德 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "41"
+            - cell "A.688628"
+            - cell "优利德"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "42 A.300394 天孚通信 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "42"
+            - cell "A.300394"
+            - cell "天孚通信"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "43 A.300620 光库科技 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "43"
+            - cell "A.300620"
+            - cell "光库科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "44 A.601869 长飞光纤 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "44"
+            - cell "A.601869"
+            - cell "长飞光纤"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "45 A.603091 众鑫股份 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "45"
+            - cell "A.603091"
+            - cell "众鑫股份"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "46 A.300853 申昊科技 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "46"
+            - cell "A.300853"
+            - cell "申昊科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "47 A.601728 中国电信 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "47"
+            - cell "A.601728"
+            - cell "中国电信"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "48 A.688112 鼎阳科技 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "48"
+            - cell "A.688112"
+            - cell "鼎阳科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "49 A.300489 光智科技 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "49"
+            - cell "A.300489"
+            - cell "光智科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "50 A.600405 动力源 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "50"
+            - cell "A.600405"
+            - cell "动力源"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "51 A.688448 磁谷科技 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "51"
+            - cell "A.688448"
+            - cell "磁谷科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "52 A.603115 海星股份 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "52"
+            - cell "A.603115"
+            - cell "海星股份"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "53 A.600059 古越龙山 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "53"
+            - cell "A.600059"
+            - cell "古越龙山"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "54 A.601579 会稽山 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "54"
+            - cell "A.601579"
+            - cell "会稽山"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "55 A.603256 宏和科技 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "55"
+            - cell "A.603256"
+            - cell "宏和科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "56 A.601011 宝泰隆 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "56"
+            - cell "A.601011"
+            - cell "宝泰隆"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "57 A.002524 光正眼科 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "57"
+            - cell "A.002524"
+            - cell "光正眼科"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "58 A.002773 康弘药业 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "58"
+            - cell "A.002773"
+            - cell "康弘药业"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "59 A.000892 欢瑞世纪 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "59"
+            - cell "A.000892"
+            - cell "欢瑞世纪"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "60 A.300182 捷成股份 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "60"
+            - cell "A.300182"
+            - cell "捷成股份"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "61 A.300846 首都在线 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "61"
+            - cell "A.300846"
+            - cell "首都在线"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "62 A.603533 掌阅科技 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "62"
+            - cell "A.603533"
+            - cell "掌阅科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "63 A.300107 建新股份 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "63"
+            - cell "A.300107"
+            - cell "建新股份"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "64 A.000011 深物业A v3_5_hourly_research_window_v1 20260929 1":
+            - cell "64"
+            - cell "A.000011"
+            - cell "深物业A"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "65 A.000014 沙河股份 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "65"
+            - cell "A.000014"
+            - cell "沙河股份"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "66 A.000090 天健集团 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "66"
+            - cell "A.000090"
+            - cell "天健集团"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "67 A.002285 世联行 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "67"
+            - cell "A.002285"
+            - cell "世联行"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "68 A.603598 引力传媒 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "68"
+            - cell "A.603598"
+            - cell "引力传媒"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "69 A.002278 神开股份 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "69"
+            - cell "A.002278"
+            - cell "神开股份"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "70 A.600888 新疆众和 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "70"
+            - cell "A.600888"
+            - cell "新疆众和"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "71 A.002806 华锋股份 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "71"
+            - cell "A.002806"
+            - cell "华锋股份"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "72 A.002011 盾安环境 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "72"
+            - cell "A.002011"
+            - cell "盾安环境"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "73 A.600641 先导基电 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "73"
+            - cell "A.600641"
+            - cell "先导基电"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "74 A.600941 中国移动 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "74"
+            - cell "A.600941"
+            - cell "中国移动"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "75 A.301369 联动科技 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "75"
+            - cell "A.301369"
+            - cell "联动科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "76 A.688383 新益昌 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "76"
+            - cell "A.688383"
+            - cell "新益昌"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "77 A.688478 晶升股份 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "77"
+            - cell "A.688478"
+            - cell "晶升股份"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "78 A.300891 惠云钛业 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "78"
+            - cell "A.300891"
+            - cell "惠云钛业"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "79 A.001201 东瑞股份 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "79"
+            - cell "A.001201"
+            - cell "东瑞股份"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "80 A.600006 东风股份 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "80"
+            - cell "A.600006"
+            - cell "东风股份"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "81 A.600338 西藏珠峰 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "81"
+            - cell "A.600338"
+            - cell "西藏珠峰"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "82 A.300727 润禾材料 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "82"
+            - cell "A.300727"
+            - cell "润禾材料"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "83 A.688678 福立旺 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "83"
+            - cell "A.688678"
+            - cell "福立旺"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "84 A.000936 华西股份 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "84"
+            - cell "A.000936"
+            - cell "华西股份"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "85 A.002602 世纪华通 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "85"
+            - cell "A.002602"
+            - cell "世纪华通"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "86 A.688025 杰普特 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "86"
+            - cell "A.688025"
+            - cell "杰普特"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "87 A.601668 中国建筑 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "87"
+            - cell "A.601668"
+            - cell "中国建筑"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "88 A.688279 峰岹科技 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "88"
+            - cell "A.688279"
+            - cell "峰岹科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "89 A.300418 昆仑万维 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "89"
+            - cell "A.300418"
+            - cell "昆仑万维"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "90 A.301218 华是科技 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "90"
+            - cell "A.301218"
+            - cell "华是科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "91 A.000607 华媒控股 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "91"
+            - cell "A.000607"
+            - cell "华媒控股"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "92 A.002074 国轩高科 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "92"
+            - cell "A.002074"
+            - cell "国轩高科"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "93 A.300340 科恒股份 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "93"
+            - cell "A.300340"
+            - cell "科恒股份"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "94 A.300413 芒果超媒 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "94"
+            - cell "A.300413"
+            - cell "芒果超媒"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "95 A.002440 闰土股份 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "95"
+            - cell "A.002440"
+            - cell "闰土股份"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "96 A.300804 广康生化 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "96"
+            - cell "A.300804"
+            - cell "广康生化"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "97 A.600352 浙江龙盛 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "97"
+            - cell "A.600352"
+            - cell "浙江龙盛"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "98 A.300502 新易盛 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "98"
+            - cell "A.300502"
+            - cell "新易盛"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "99 A.603602 纵横通信 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "99"
+            - cell "A.603602"
+            - cell "纵横通信"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "100 A.001979 招商蛇口 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "100"
+            - cell "A.001979"
+            - cell "招商蛇口"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "101 A.600126 杭钢股份 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "101"
+            - cell "A.600126"
+            - cell "杭钢股份"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "102 A.600346 恒力石化 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "102"
+            - cell "A.600346"
+            - cell "恒力石化"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "103 A.601918 新集能源 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "103"
+            - cell "A.601918"
+            - cell "新集能源"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "104 A.002202 金风科技 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "104"
+            - cell "A.002202"
+            - cell "金风科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "105 A.600875 东方电气 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "105"
+            - cell "A.600875"
+            - cell "东方电气"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "106 A.000686 东北证券 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "106"
+            - cell "A.000686"
+            - cell "东北证券"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "107 A.601788 光大证券 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "107"
+            - cell "A.601788"
+            - cell "光大证券"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "108 A.600909 华安证券 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "108"
+            - cell "A.600909"
+            - cell "华安证券"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "109 A.002500 山西证券 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "109"
+            - cell "A.002500"
+            - cell "山西证券"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "110 A.600369 西南证券 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "110"
+            - cell "A.600369"
+            - cell "西南证券"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "111 A.601696 中银证券 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "111"
+            - cell "A.601696"
+            - cell "中银证券"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "112 A.002889 东方嘉盛 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "112"
+            - cell "A.002889"
+            - cell "东方嘉盛"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "113 A.300791 仙乐健康 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "113"
+            - cell "A.300791"
+            - cell "仙乐健康"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "114 A.601208 东材科技 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "114"
+            - cell "A.601208"
+            - cell "东材科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "115 A.688625 呈和科技 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "115"
+            - cell "A.688625"
+            - cell "呈和科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "116 A.301626 苏州天脉 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "116"
+            - cell "A.301626"
+            - cell "苏州天脉"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "117 A.300672 国科微 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "117"
+            - cell "A.300672"
+            - cell "国科微"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "118 A.601238 广汽集团 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "118"
+            - cell "A.601238"
+            - cell "广汽集团"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "119 A.301080 百普赛斯 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "119"
+            - cell "A.301080"
+            - cell "百普赛斯"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "120 A.001301 尚太科技 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "120"
+            - cell "A.001301"
+            - cell "尚太科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "121 A.002001 新和成 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "121"
+            - cell "A.002001"
+            - cell "新和成"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "122 A.002948 青岛银行 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "122"
+            - cell "A.002948"
+            - cell "青岛银行"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "123 A.002984 森麒麟 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "123"
+            - cell "A.002984"
+            - cell "森麒麟"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "124 A.300136 信维通信 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "124"
+            - cell "A.300136"
+            - cell "信维通信"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "125 A.600549 厦门钨业 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "125"
+            - cell "A.600549"
+            - cell "厦门钨业"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "126 A.603132 金徽股份 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "126"
+            - cell "A.603132"
+            - cell "金徽股份"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "127 A.600426 华鲁恒升 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "127"
+            - cell "A.600426"
+            - cell "华鲁恒升"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "128 A.600562 国睿科技 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "128"
+            - cell "A.600562"
+            - cell "国睿科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "129 A.688001 华兴源创 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "129"
+            - cell "A.688001"
+            - cell "华兴源创"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "130 A.688123 聚辰股份 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "130"
+            - cell "A.688123"
+            - cell "聚辰股份"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "131 A.688712 北芯生命 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "131"
+            - cell "A.688712"
+            - cell "北芯生命"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "132 A.920072 科莱瑞迪 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "132"
+            - cell "A.920072"
+            - cell "科莱瑞迪"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "133 A.920289 北交所公司华汇智能 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "133"
+            - cell "A.920289"
+            - cell "北交所公司华汇智能"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "134 A.920438 戈碧迦 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "134"
+            - cell "A.920438"
+            - cell "戈碧迦"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "135 A.000700 模塑科技 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "135"
+            - cell "A.000700"
+            - cell "模塑科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "136 A.000973 佛塑科技 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "136"
+            - cell "A.000973"
+            - cell "佛塑科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "137 A.300633 开立医疗 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "137"
+            - cell "A.300633"
+            - cell "开立医疗"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "138 A.301363 美好医疗 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "138"
+            - cell "A.301363"
+            - cell "美好医疗"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "139 A.601777 千里科技 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "139"
+            - cell "A.601777"
+            - cell "千里科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "140 A.603087 甘李药业 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "140"
+            - cell "A.603087"
+            - cell "甘李药业"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "141 A.688301 奕瑞科技 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "141"
+            - cell "A.688301"
+            - cell "奕瑞科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "142 A.688351 微电生理 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "142"
+            - cell "A.688351"
+            - cell "微电生理"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "143 A.603103 横店影视 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "143"
+            - cell "A.603103"
+            - cell "横店影视"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "144 A.688143 长盈通 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "144"
+            - cell "A.688143"
+            - cell "长盈通"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "145 A.001330 博纳影业 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "145"
+            - cell "A.001330"
+            - cell "博纳影业"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "146 A.002232 启明信息 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "146"
+            - cell "A.002232"
+            - cell "启明信息"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "147 A.300904 威力传动 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "147"
+            - cell "A.300904"
+            - cell "威力传动"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "148 A.600699 均胜电子 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "148"
+            - cell "A.600699"
+            - cell "均胜电子"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "149 A.603278 大业股份 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "149"
+            - cell "A.603278"
+            - cell "大业股份"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "150 A.600754 锦江酒店 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "150"
+            - cell "A.600754"
+            - cell "锦江酒店"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "151 A.000333 美的集团 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "151"
+            - cell "A.000333"
+            - cell "美的集团"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "152 A.603939 益丰药房 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "152"
+            - cell "A.603939"
+            - cell "益丰药房"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "153 A.600056 中国医药 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "153"
+            - cell "A.600056"
+            - cell "中国医药"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "154 A.002371 北方华创 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "154"
+            - cell "A.002371"
+            - cell "北方华创"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "155 A.000591 太阳能 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "155"
+            - cell "A.000591"
+            - cell "太阳能"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "156 A.601988 中国银行 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "156"
+            - cell "A.601988"
+            - cell "中国银行"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "157 A.300017 网宿科技 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "157"
+            - cell "A.300017"
+            - cell "网宿科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "158 A.000786 北新建材 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "158"
+            - cell "A.000786"
+            - cell "北新建材"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "159 A.001221 悍高集团 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "159"
+            - cell "A.001221"
+            - cell "悍高集团"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "160 A.002043 兔宝宝 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "160"
+            - cell "A.002043"
+            - cell "兔宝宝"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "161 A.002233 塔牌集团 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "161"
+            - cell "A.002233"
+            - cell "塔牌集团"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "162 A.002271 东方雨虹 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "162"
+            - cell "A.002271"
+            - cell "东方雨虹"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "163 A.002372 伟星新材 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "163"
+            - cell "A.002372"
+            - cell "伟星新材"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "164 A.002791 坚朗五金 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "164"
+            - cell "A.002791"
+            - cell "坚朗五金"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "165 A.300737 科顺股份 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "165"
+            - cell "A.300737"
+            - cell "科顺股份"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "166 A.600585 海螺水泥 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "166"
+            - cell "A.600585"
+            - cell "海螺水泥"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "167 A.603737 三棵树 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "167"
+            - cell "A.603737"
+            - cell "三棵树"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "168 A.603019 中科曙光 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "168"
+            - cell "A.603019"
+            - cell "中科曙光"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "169 A.688041 海光信息 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "169"
+            - cell "A.688041"
+            - cell "海光信息"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "170 A.688411 海博思创 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "170"
+            - cell "A.688411"
+            - cell "海博思创"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "171 A.603199 九华旅游 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "171"
+            - cell "A.603199"
+            - cell "九华旅游"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "172 A.603626 科森科技 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "172"
+            - cell "A.603626"
+            - cell "科森科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"
+          - row "173 A.688603 天承科技 v3_5_hourly_research_window_v1 20260929 1":
+            - cell "173"
+            - cell "A.688603"
+            - cell "天承科技"
+            - cell "v3_5_hourly_research_window_v1"
+            - cell "20260929"
+            - cell "1"

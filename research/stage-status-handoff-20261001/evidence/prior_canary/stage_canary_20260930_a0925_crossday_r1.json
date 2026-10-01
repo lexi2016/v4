@@ -1,0 +1,660 @@
+{
+  "schema_version": "stage_historical_canary.v1",
+  "started_at": "2026-10-01T04:38:11.308556+00:00",
+  "finished_at": "2026-10-01T04:40:21.646989+00:00",
+  "command": [
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "-B",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261001-stage-pr16-a1445-a0925-crossday-r1/app/ops/run_stage_center_tick.py",
+    "--config",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261001-stage-pr16-a1445-a0925-crossday-r1/app/stage_center_tick_config.json",
+    "--stage-id",
+    "STAGE_0925",
+    "--trade-date",
+    "20260930",
+    "--historical-backfill"
+  ],
+  "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261001-stage-pr16-a1445-a0925-crossday-r1/app",
+  "python_version": "Python 3.14.6",
+  "release": {
+    "release_id": "20261001-stage-pr16-a1445-a0925-crossday-r1",
+    "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261001-stage-pr16-a1445-a0925-crossday-r1/release-manifest.json",
+    "manifest_sha256": "5dc3be0b27fb46c9b2cb9b30d0d50ae0424395d69dc0ae3d143af88251fff204",
+    "stage_config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261001-stage-pr16-a1445-a0925-crossday-r1/app/stage_center_tick_config.json",
+    "stage_config_sha256": "0c9bd14ff414a03cb8b76fd3766c801758b3b310944e3226d9a0cc055109b309",
+    "entrypoint_sha256": "4eb8e1a3be0e3780ff9cb62417c695c5aab67948f224db462d3f6e3a67299f42",
+    "collector_sha256": "2b39ede48161e6be59efc769849a8da2319521faeac3f2985b82de508e7c6aef"
+  },
+  "plist_sha256": "9e285d6423b0232a0f10d7d6707e6fd24a9cc067fb16ab7a31cfb8d2ec676b84",
+  "exit_code": 0,
+  "stdout_path": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/writer/stage_canary_20260930_a0925_crossday_r1/runner.stdout",
+  "stdout_sha256": "5dec3102b53dc7a53f61f1e05d498d573dd8734b504b5aee3082015fcf28552f",
+  "stderr_path": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/writer/stage_canary_20260930_a0925_crossday_r1/runner.stderr",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "summary": {
+    "backfill_run_id": "5e8d958ee01a4734844c529b67f85535",
+    "bundle_id": null,
+    "buy_gate_updated": false,
+    "candidate_current_sha256": "08b1a6b0376c1ba0828ed5b3423ef5860d4e66944342cf3cf74d28b189e21623",
+    "candidate_run_id": "20260930-a_share_stage_acquisition_universe_v3-92023837d870",
+    "current_updated": false,
+    "due_status": "HISTORICAL_BACKFILL",
+    "latest_updated": false,
+    "markets": {
+      "A_SHARE": {
+        "algorithm_id": "V3_STAGE_SELECTION_V1",
+        "algorithm_sha256": "eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2",
+        "artifact_id": "selection-f1deb298dd5fdde9ef9f92e6",
+        "buy_gate_updated": false,
+        "cannot_confirm": [
+          "PYTDX_0925_HISTORY_TRANSACTION_L0_NO_ORDER_BOOK",
+          "CANNOT_CONFIRM_NATURAL_0925_CAPTURE_RECOVERY_ONLY",
+          "PYTDX_0925_AUCTION_ROWS_MISSING: A.920072, A.920289, A.920438",
+          "PYTDX_0925_DIAGNOSTICS_V1:{\"accepted_symbol_count\": 202, \"accepted_tick_count\": 202, \"exact_time_count\": 202, \"invalid_tick_count\": 0, \"numeric_rejection_count\": 0, \"pages_read\": 477, \"raw_tick_count\": 683544, \"read_error_codes\": [], \"read_error_count\": 0, \"schema_version\": \"PYTDX_0925_DIAGNOSTICS_V1\", \"stop_reasons\": {\"ACCEPTED\": 202, \"EMPTY_PAGE\": 3}, \"time_examples\": [\"13:09\", \"13:10\", \"13:11\", \"13:12\", \"13:13\"], \"time_mismatch_count\": 683342}"
+        ],
+        "coverage_ratio": 0.04878,
+        "market": "A_SHARE",
+        "missing_symbols": [
+          "A.920072",
+          "A.920289",
+          "A.920438"
+        ],
+        "orders_sent": false,
+        "production_allowed": false,
+        "raw_artifact_sha256": "c22b4044810432207303515b8efd39ddf62b025d95a5a4c512d2815183284b4f",
+        "requested_rows": 205,
+        "rows": [
+          {
+            "action_level": "NO_BUY",
+            "bar_order": 124,
+            "code": "A.002074",
+            "current_change_pct": 0.0,
+            "formal_eligible": false,
+            "high_price": 30.49,
+            "invalidation": 30.49,
+            "invalidation_price": 30.49,
+            "lane_evidence": [
+              "A_SHARE_EXACT_DATE_AUCTION_TRANSACTION",
+              "window=09:20-09:30",
+              "exact_date=true",
+              "formula=windows_v3_live_stage_quality_score",
+              "score_bounded_0_100=true",
+              "current_change_pct_basis=AUCTION_PRICE_VS_PREV_CLOSE"
+            ],
+            "last_price": 30.49,
+            "low_price": 30.49,
+            "name": null,
+            "next_validation_time": "09:25:05",
+            "open_price": 30.49,
+            "pressure": 30.49,
+            "pressure_price": 30.49,
+            "prev_close_price": null,
+            "qmt_amount": 153001869.0,
+            "qmt_gap_pct": 0.0,
+            "rank": 1,
+            "score": 53.825047,
+            "source_last_bar_time": "2026-09-30 09:25:00",
+            "source_mode": "A_SHARE_AUCTION_TRANSACTION_STAGE_0925",
+            "stage_score": 53.825047,
+            "status": "集合竞价成交代理观察",
+            "stock_name": null,
+            "support": 30.49,
+            "support_primary_price": 30.49,
+            "trade_status": "WATCH_ONLY"
+          },
+          {
+            "action_level": "NO_BUY",
+            "bar_order": 54,
+            "code": "A.300750",
+            "current_change_pct": 0.0,
+            "formal_eligible": false,
+            "high_price": 290.0,
+            "invalidation": 290.0,
+            "invalidation_price": 290.0,
+            "lane_evidence": [
+              "A_SHARE_EXACT_DATE_AUCTION_TRANSACTION",
+              "window=09:20-09:30",
+              "exact_date=true",
+              "formula=windows_v3_live_stage_quality_score",
+              "score_bounded_0_100=true",
+              "current_change_pct_basis=AUCTION_PRICE_VS_PREV_CLOSE"
+            ],
+            "last_price": 290.0,
+            "low_price": 290.0,
+            "name": null,
+            "next_validation_time": "09:25:05",
+            "open_price": 290.0,
+            "pressure": 290.0,
+            "pressure_price": 290.0,
+            "prev_close_price": null,
+            "qmt_amount": 143956000.0,
+            "qmt_gap_pct": 0.0,
+            "rank": 2,
+            "score": 53.5989,
+            "source_last_bar_time": "2026-09-30 09:25:00",
+            "source_mode": "A_SHARE_AUCTION_TRANSACTION_STAGE_0925",
+            "stage_score": 53.5989,
+            "status": "集合竞价成交代理观察",
+            "stock_name": null,
+            "support": 290.0,
+            "support_primary_price": 290.0,
+            "trade_status": "WATCH_ONLY"
+          },
+          {
+            "action_level": "NO_BUY",
+            "bar_order": 149,
+            "code": "A.601238",
+            "current_change_pct": 0.0,
+            "formal_eligible": false,
+            "high_price": 6.16,
+            "invalidation": 6.16,
+            "invalidation_price": 6.16,
+            "lane_evidence": [
+              "A_SHARE_EXACT_DATE_AUCTION_TRANSACTION",
+              "window=09:20-09:30",
+              "exact_date=true",
+              "formula=windows_v3_live_stage_quality_score",
+              "score_bounded_0_100=true",
+              "current_change_pct_basis=AUCTION_PRICE_VS_PREV_CLOSE"
+            ],
+            "last_price": 6.16,
+            "low_price": 6.16,
+            "name": null,
+            "next_validation_time": "09:25:05",
+            "open_price": 6.16,
+            "pressure": 6.16,
+            "pressure_price": 6.16,
+            "prev_close_price": null,
+            "qmt_amount": 142554104.0,
+            "qmt_gap_pct": 0.0,
+            "rank": 3,
+            "score": 53.563853,
+            "source_last_bar_time": "2026-09-30 09:25:00",
+            "source_mode": "A_SHARE_AUCTION_TRANSACTION_STAGE_0925",
+            "stage_score": 53.563853,
+            "status": "集合竞价成交代理观察",
+            "stock_name": null,
+            "support": 6.16,
+            "support_primary_price": 6.16,
+            "trade_status": "WATCH_ONLY"
+          },
+          {
+            "action_level": "NO_BUY",
+            "bar_order": 47,
+            "code": "A.300308",
+            "current_change_pct": 0.0,
+            "formal_eligible": false,
+            "high_price": 821.99,
+            "invalidation": 821.99,
+            "invalidation_price": 821.99,
+            "lane_evidence": [
+              "A_SHARE_EXACT_DATE_AUCTION_TRANSACTION",
+              "window=09:20-09:30",
+              "exact_date=true",
+              "formula=windows_v3_live_stage_quality_score",
+              "score_bounded_0_100=true",
+              "current_change_pct_basis=AUCTION_PRICE_VS_PREV_CLOSE"
+            ],
+            "last_price": 821.99,
+            "low_price": 821.99,
+            "name": null,
+            "next_validation_time": "09:25:05",
+            "open_price": 821.99,
+            "pressure": 821.99,
+            "pressure_price": 821.99,
+            "prev_close_price": null,
+            "qmt_amount": 131025206.0,
+            "qmt_gap_pct": 0.0,
+            "rank": 4,
+            "score": 53.27563,
+            "source_last_bar_time": "2026-09-30 09:25:00",
+            "source_mode": "A_SHARE_AUCTION_TRANSACTION_STAGE_0925",
+            "stage_score": 53.27563,
+            "status": "集合竞价成交代理观察",
+            "stock_name": null,
+            "support": 821.99,
+            "support_primary_price": 821.99,
+            "trade_status": "WATCH_ONLY"
+          },
+          {
+            "action_level": "NO_BUY",
+            "bar_order": 99,
+            "code": "A.002285",
+            "current_change_pct": 0.0,
+            "formal_eligible": false,
+            "high_price": 2.89,
+            "invalidation": 2.89,
+            "invalidation_price": 2.89,
+            "lane_evidence": [
+              "A_SHARE_EXACT_DATE_AUCTION_TRANSACTION",
+              "window=09:20-09:30",
+              "exact_date=true",
+              "formula=windows_v3_live_stage_quality_score",
+              "score_bounded_0_100=true",
+              "current_change_pct_basis=AUCTION_PRICE_VS_PREV_CLOSE"
+            ],
+            "last_price": 2.89,
+            "low_price": 2.89,
+            "name": null,
+            "next_validation_time": "09:25:05",
+            "open_price": 2.89,
+            "pressure": 2.89,
+            "pressure_price": 2.89,
+            "prev_close_price": null,
+            "qmt_amount": 104652969.0,
+            "qmt_gap_pct": 0.0,
+            "rank": 5,
+            "score": 52.616324,
+            "source_last_bar_time": "2026-09-30 09:25:00",
+            "source_mode": "A_SHARE_AUCTION_TRANSACTION_STAGE_0925",
+            "stage_score": 52.616324,
+            "status": "集合竞价成交代理观察",
+            "stock_name": null,
+            "support": 2.89,
+            "support_primary_price": 2.89,
+            "trade_status": "WATCH_ONLY"
+          },
+          {
+            "action_level": "NO_BUY",
+            "bar_order": 87,
+            "code": "A.601579",
+            "current_change_pct": 0.0,
+            "formal_eligible": false,
+            "high_price": 37.66,
+            "invalidation": 37.66,
+            "invalidation_price": 37.66,
+            "lane_evidence": [
+              "A_SHARE_EXACT_DATE_AUCTION_TRANSACTION",
+              "window=09:20-09:30",
+              "exact_date=true",
+              "formula=windows_v3_live_stage_quality_score",
+              "score_bounded_0_100=true",
+              "current_change_pct_basis=AUCTION_PRICE_VS_PREV_CLOSE"
+            ],
+            "last_price": 37.66,
+            "low_price": 37.66,
+            "name": null,
+            "next_validation_time": "09:25:05",
+            "open_price": 37.66,
+            "pressure": 37.66,
+            "pressure_price": 37.66,
+            "prev_close_price": null,
+            "qmt_amount": 94183894.0,
+            "qmt_gap_pct": 0.0,
+            "rank": 6,
+            "score": 52.354597,
+            "source_last_bar_time": "2026-09-30 09:25:00",
+            "source_mode": "A_SHARE_AUCTION_TRANSACTION_STAGE_0925",
+            "stage_score": 52.354597,
+            "status": "集合竞价成交代理观察",
+            "stock_name": null,
+            "support": 37.66,
+            "support_primary_price": 37.66,
+            "trade_status": "WATCH_ONLY"
+          },
+          {
+            "action_level": "NO_BUY",
+            "bar_order": 105,
+            "code": "A.600641",
+            "current_change_pct": 0.0,
+            "formal_eligible": false,
+            "high_price": 50.0,
+            "invalidation": 50.0,
+            "invalidation_price": 50.0,
+            "lane_evidence": [
+              "A_SHARE_EXACT_DATE_AUCTION_TRANSACTION",
+              "window=09:20-09:30",
+              "exact_date=true",
+              "formula=windows_v3_live_stage_quality_score",
+              "score_bounded_0_100=true",
+              "current_change_pct_basis=AUCTION_PRICE_VS_PREV_CLOSE"
+            ],
+            "last_price": 50.0,
+            "low_price": 50.0,
+            "name": null,
+            "next_validation_time": "09:25:05",
+            "open_price": 50.0,
+            "pressure": 50.0,
+            "pressure_price": 50.0,
+            "prev_close_price": null,
+            "qmt_amount": 90630000.0,
+            "qmt_gap_pct": 0.0,
+            "rank": 7,
+            "score": 52.26575,
+            "source_last_bar_time": "2026-09-30 09:25:00",
+            "source_mode": "A_SHARE_AUCTION_TRANSACTION_STAGE_0925",
+            "stage_score": 52.26575,
+            "status": "集合竞价成交代理观察",
+            "stock_name": null,
+            "support": 50.0,
+            "support_primary_price": 50.0,
+            "trade_status": "WATCH_ONLY"
+          },
+          {
+            "action_level": "NO_BUY",
+            "bar_order": 56,
+            "code": "A.600487",
+            "current_change_pct": 0.0,
+            "formal_eligible": false,
+            "high_price": 57.55,
+            "invalidation": 57.55,
+            "invalidation_price": 57.55,
+            "lane_evidence": [
+              "A_SHARE_EXACT_DATE_AUCTION_TRANSACTION",
+              "window=09:20-09:30",
+              "exact_date=true",
+              "formula=windows_v3_live_stage_quality_score",
+              "score_bounded_0_100=true",
+              "current_change_pct_basis=AUCTION_PRICE_VS_PREV_CLOSE"
+            ],
+            "last_price": 57.55,
+            "low_price": 57.55,
+            "name": null,
+            "next_validation_time": "09:25:05",
+            "open_price": 57.55,
+            "pressure": 57.55,
+            "pressure_price": 57.55,
+            "prev_close_price": null,
+            "qmt_amount": 85461750.0,
+            "qmt_gap_pct": 0.0,
+            "rank": 8,
+            "score": 52.136544,
+            "source_last_bar_time": "2026-09-30 09:25:00",
+            "source_mode": "A_SHARE_AUCTION_TRANSACTION_STAGE_0925",
+            "stage_score": 52.136544,
+            "status": "集合竞价成交代理观察",
+            "stock_name": null,
+            "support": 57.55,
+            "support_primary_price": 57.55,
+            "trade_status": "WATCH_ONLY"
+          },
+          {
+            "action_level": "NO_BUY",
+            "bar_order": 129,
+            "code": "A.300502",
+            "current_change_pct": 0.0,
+            "formal_eligible": false,
+            "high_price": 397.98,
+            "invalidation": 397.98,
+            "invalidation_price": 397.98,
+            "lane_evidence": [
+              "A_SHARE_EXACT_DATE_AUCTION_TRANSACTION",
+              "window=09:20-09:30",
+              "exact_date=true",
+              "formula=windows_v3_live_stage_quality_score",
+              "score_bounded_0_100=true",
+              "current_change_pct_basis=AUCTION_PRICE_VS_PREV_CLOSE"
+            ],
+            "last_price": 397.98,
+            "low_price": 397.98,
+            "name": null,
+            "next_validation_time": "09:25:05",
+            "open_price": 397.98,
+            "pressure": 397.98,
+            "pressure_price": 397.98,
+            "prev_close_price": null,
+            "qmt_amount": 79635798.0,
+            "qmt_gap_pct": 0.0,
+            "rank": 9,
+            "score": 51.990895,
+            "source_last_bar_time": "2026-09-30 09:25:00",
+            "source_mode": "A_SHARE_AUCTION_TRANSACTION_STAGE_0925",
+            "stage_score": 51.990895,
+            "status": "集合竞价成交代理观察",
+            "stock_name": null,
+            "support": 397.98,
+            "support_primary_price": 397.98,
+            "trade_status": "WATCH_ONLY"
+          },
+          {
+            "action_level": "NO_BUY",
+            "bar_order": 72,
+            "code": "A.002262",
+            "current_change_pct": 0.0,
+            "formal_eligible": false,
+            "high_price": 23.65,
+            "invalidation": 23.65,
+            "invalidation_price": 23.65,
+            "lane_evidence": [
+              "A_SHARE_EXACT_DATE_AUCTION_TRANSACTION",
+              "window=09:20-09:30",
+              "exact_date=true",
+              "formula=windows_v3_live_stage_quality_score",
+              "score_bounded_0_100=true",
+              "current_change_pct_basis=AUCTION_PRICE_VS_PREV_CLOSE"
+            ],
+            "last_price": 23.65,
+            "low_price": 23.65,
+            "name": null,
+            "next_validation_time": "09:25:05",
+            "open_price": 23.65,
+            "pressure": 23.65,
+            "pressure_price": 23.65,
+            "prev_close_price": null,
+            "qmt_amount": 77186505.0,
+            "qmt_gap_pct": 0.0,
+            "rank": 10,
+            "score": 51.929663,
+            "source_last_bar_time": "2026-09-30 09:25:00",
+            "source_mode": "A_SHARE_AUCTION_TRANSACTION_STAGE_0925",
+            "stage_score": 51.929663,
+            "status": "集合竞价成交代理观察",
+            "stock_name": null,
+            "support": 23.65,
+            "support_primary_price": 23.65,
+            "trade_status": "WATCH_ONLY"
+          }
+        ],
+        "run_id": "run-f1deb298dd5fdde9ef9f92e6",
+        "schema_version": "stage_center.selection.v2",
+        "selected_rows": 10,
+        "selection_status": "PARTIAL_WITH_ROWS",
+        "source_evidence": [
+          "route=a_share_exact_date_auction_transaction",
+          "exact_date=true",
+          "replay_trade_date=20260930",
+          "replay_cutoff=2026-09-30T09:25:05",
+          "replay_method=pytdx.hq.get_history_transaction_data",
+          "replay_source=PYTDX_A_SHARE_0925_HISTORY_TRANSACTION",
+          "replay_captured_at=2026-10-01T12:40:21+08:00",
+          "replay_capture_mode=RECOVERY",
+          "replay_market_cutoff_at=2026-09-30T09:25:05+08:00",
+          "replay_temporal_cutoff_safe=true",
+          "candidate_current_sha256=08b1a6b0376c1ba0828ed5b3423ef5860d4e66944342cf3cf74d28b189e21623",
+          "candidate_run_id=20260930-a_share_stage_acquisition_universe_v3-92023837d870",
+          "a_formal_overlay_unavailable=ROOT_NOT_BOUND",
+          "a_name_overlay_unavailable=exact-date A D-1 premarket pool missing",
+          "due_status=HISTORICAL_BACKFILL",
+          "PYTDX_0925_HISTORY_TRANSACTION_L0_NO_ORDER_BOOK",
+          "CANNOT_CONFIRM_NATURAL_0925_CAPTURE_RECOVERY_ONLY",
+          "PYTDX_0925_AUCTION_ROWS_MISSING: A.920072, A.920289, A.920438",
+          "PYTDX_0925_DIAGNOSTICS_V1:{\"accepted_symbol_count\": 202, \"accepted_tick_count\": 202, \"exact_time_count\": 202, \"invalid_tick_count\": 0, \"numeric_rejection_count\": 0, \"pages_read\": 477, \"raw_tick_count\": 683544, \"read_error_codes\": [], \"read_error_count\": 0, \"schema_version\": \"PYTDX_0925_DIAGNOSTICS_V1\", \"stop_reasons\": {\"ACCEPTED\": 202, \"EMPTY_PAGE\": 3}, \"time_examples\": [\"13:09\", \"13:10\", \"13:11\", \"13:12\", \"13:13\"], \"time_mismatch_count\": 683342}",
+          "selection_contract=V3_TOP10_RECOMMENDATION",
+          "window=09:20-09:30",
+          "formula=windows_v3_live_stage_quality_score",
+          "score_bounded_0_100=true",
+          "current_change_pct_basis=AUCTION_PRICE_VS_PREV_CLOSE",
+          "algorithm_sha256=eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2"
+        ],
+        "source_rows": 202,
+        "source_status": "PARTIAL_WITH_ROWS",
+        "stage_id": "STAGE_0925",
+        "trade_date": "20260930"
+      },
+      "HK_CONNECT": {
+        "cannot_confirm": [
+          "HK D1 status must be STRICT_0_2_READY"
+        ],
+        "market": "HK_CONNECT",
+        "selected_rows": 0,
+        "selection_status": "CANNOT_CONFIRM",
+        "source_status": "CANNOT_CONFIRM",
+        "status": "CANNOT_CONFIRM",
+        "write_performed": false
+      }
+    },
+    "mode": "BACKFILL",
+    "namespace": {
+      "raw_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/backfill/5e8d958ee01a4734844c529b67f85535",
+      "receipt_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/backfill/5e8d958ee01a4734844c529b67f85535",
+      "selection_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/backfill/5e8d958ee01a4734844c529b67f85535"
+    },
+    "orders_sent": false,
+    "production_allowed": false,
+    "runner": "stage_center",
+    "schema_version": "stage_center.runner.receipt.v1",
+    "source_evidence": [
+      "candidate_current_sha256=08b1a6b0376c1ba0828ed5b3423ef5860d4e66944342cf3cf74d28b189e21623",
+      "candidate_run_id=20260930-a_share_stage_acquisition_universe_v3-92023837d870",
+      "a_formal_overlay_unavailable=ROOT_NOT_BOUND",
+      "a_name_overlay_unavailable=exact-date A D-1 premarket pool missing",
+      "hk_connect_exact_input_error=HK D1 status must be STRICT_0_2_READY",
+      "HISTORICAL_BACKFILL"
+    ],
+    "stage_id": "STAGE_0925",
+    "status": "PARTIAL_WITH_ROWS",
+    "trade_date": "20260930",
+    "write_performed": true
+  },
+  "ordinary_latest_pointer_sha256_before": {
+    "raw_latest": "1a685f555b248a7212325ec4af4f9a6e3c78dbc370e8d0345d3d455ba1eb464c",
+    "raw_bundle_latest": "208ed1307b0fd718b7305daef21a5535648133bc57fd0335e28959d44d61164a",
+    "selection_latest": "9077c171388c9bee478065d34ad0923b3d0f356bbec0ed3e587064c448c3078a"
+  },
+  "ordinary_latest_pointer_sha256_after": {
+    "raw_latest": "1a685f555b248a7212325ec4af4f9a6e3c78dbc370e8d0345d3d455ba1eb464c",
+    "raw_bundle_latest": "208ed1307b0fd718b7305daef21a5535648133bc57fd0335e28959d44d61164a",
+    "selection_latest": "9077c171388c9bee478065d34ad0923b3d0f356bbec0ed3e587064c448c3078a"
+  },
+  "ordinary_target_entries_before": {
+    "raw_latest": {
+      "20260930/STAGE_0925/A_SHARE": null,
+      "20260930/STAGE_0925/HK_CONNECT": null
+    },
+    "raw_bundle_latest": {
+      "20260930/STAGE_0925": null
+    },
+    "selection_latest": {
+      "20260930/STAGE_0925/A_SHARE": null,
+      "20260930/STAGE_0925/HK_CONNECT": null
+    }
+  },
+  "ordinary_target_entries_after": {
+    "raw_latest": {
+      "20260930/STAGE_0925/A_SHARE": null,
+      "20260930/STAGE_0925/HK_CONNECT": null
+    },
+    "raw_bundle_latest": {
+      "20260930/STAGE_0925": null
+    },
+    "selection_latest": {
+      "20260930/STAGE_0925/A_SHARE": null,
+      "20260930/STAGE_0925/HK_CONNECT": null
+    }
+  },
+  "ordinary_latest_pointers_unchanged": true,
+  "previous_attempts_before": [
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/backfill/cceef5c9c92b49cc9fd8fb508db21d1e/20260930/STAGE_0925/receipt.json",
+      "sha256": "d3d43a0fc09c7265b94eb648a49558b249725c41f4d9e343910ff15750450c12",
+      "backfill_run_id": "cceef5c9c92b49cc9fd8fb508db21d1e",
+      "status": "CANNOT_CONFIRM",
+      "write_performed": false,
+      "markets": {
+        "A_SHARE": {
+          "status": "CANNOT_CONFIRM",
+          "observed_rows": 0,
+          "cannot_confirm": [
+            "PYTDX_0925_REPLAY_ERROR:ValueError:replay captured_at is outside exact date/cutoff"
+          ]
+        },
+        "HK_CONNECT": {
+          "status": "CANNOT_CONFIRM",
+          "observed_rows": 0,
+          "cannot_confirm": [
+            "HK D1 status must be STRICT_0_2_READY"
+          ]
+        }
+      }
+    }
+  ],
+  "new_backfill_receipts": [
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/backfill/5e8d958ee01a4734844c529b67f85535/20260930/STAGE_0925/receipt.json",
+      "sha256": "8d2b9a9daca3ed0e15e5cfb7ff75661e1929fa205f37f9003c1f155bd16dd74a",
+      "backfill_run_id": "5e8d958ee01a4734844c529b67f85535",
+      "status": "PARTIAL_WITH_ROWS",
+      "write_performed": true,
+      "markets": {
+        "A_SHARE": {
+          "status": null,
+          "observed_rows": null,
+          "cannot_confirm": [
+            "PYTDX_0925_HISTORY_TRANSACTION_L0_NO_ORDER_BOOK",
+            "CANNOT_CONFIRM_NATURAL_0925_CAPTURE_RECOVERY_ONLY",
+            "PYTDX_0925_AUCTION_ROWS_MISSING: A.920072, A.920289, A.920438",
+            "PYTDX_0925_DIAGNOSTICS_V1:{\"accepted_symbol_count\": 202, \"accepted_tick_count\": 202, \"exact_time_count\": 202, \"invalid_tick_count\": 0, \"numeric_rejection_count\": 0, \"pages_read\": 477, \"raw_tick_count\": 683544, \"read_error_codes\": [], \"read_error_count\": 0, \"schema_version\": \"PYTDX_0925_DIAGNOSTICS_V1\", \"stop_reasons\": {\"ACCEPTED\": 202, \"EMPTY_PAGE\": 3}, \"time_examples\": [\"13:09\", \"13:10\", \"13:11\", \"13:12\", \"13:13\"], \"time_mismatch_count\": 683342}"
+          ]
+        },
+        "HK_CONNECT": {
+          "status": "CANNOT_CONFIRM",
+          "observed_rows": null,
+          "cannot_confirm": [
+            "HK D1 status must be STRICT_0_2_READY"
+          ]
+        }
+      }
+    }
+  ],
+  "all_backfill_receipts_after": [
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/backfill/5e8d958ee01a4734844c529b67f85535/20260930/STAGE_0925/receipt.json",
+      "sha256": "8d2b9a9daca3ed0e15e5cfb7ff75661e1929fa205f37f9003c1f155bd16dd74a",
+      "backfill_run_id": "5e8d958ee01a4734844c529b67f85535",
+      "status": "PARTIAL_WITH_ROWS",
+      "write_performed": true,
+      "markets": {
+        "A_SHARE": {
+          "status": null,
+          "observed_rows": null,
+          "cannot_confirm": [
+            "PYTDX_0925_HISTORY_TRANSACTION_L0_NO_ORDER_BOOK",
+            "CANNOT_CONFIRM_NATURAL_0925_CAPTURE_RECOVERY_ONLY",
+            "PYTDX_0925_AUCTION_ROWS_MISSING: A.920072, A.920289, A.920438",
+            "PYTDX_0925_DIAGNOSTICS_V1:{\"accepted_symbol_count\": 202, \"accepted_tick_count\": 202, \"exact_time_count\": 202, \"invalid_tick_count\": 0, \"numeric_rejection_count\": 0, \"pages_read\": 477, \"raw_tick_count\": 683544, \"read_error_codes\": [], \"read_error_count\": 0, \"schema_version\": \"PYTDX_0925_DIAGNOSTICS_V1\", \"stop_reasons\": {\"ACCEPTED\": 202, \"EMPTY_PAGE\": 3}, \"time_examples\": [\"13:09\", \"13:10\", \"13:11\", \"13:12\", \"13:13\"], \"time_mismatch_count\": 683342}"
+          ]
+        },
+        "HK_CONNECT": {
+          "status": "CANNOT_CONFIRM",
+          "observed_rows": null,
+          "cannot_confirm": [
+            "HK D1 status must be STRICT_0_2_READY"
+          ]
+        }
+      }
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/backfill/cceef5c9c92b49cc9fd8fb508db21d1e/20260930/STAGE_0925/receipt.json",
+      "sha256": "d3d43a0fc09c7265b94eb648a49558b249725c41f4d9e343910ff15750450c12",
+      "backfill_run_id": "cceef5c9c92b49cc9fd8fb508db21d1e",
+      "status": "CANNOT_CONFIRM",
+      "write_performed": false,
+      "markets": {
+        "A_SHARE": {
+          "status": "CANNOT_CONFIRM",
+          "observed_rows": 0,
+          "cannot_confirm": [
+            "PYTDX_0925_REPLAY_ERROR:ValueError:replay captured_at is outside exact date/cutoff"
+          ]
+        },
+        "HK_CONNECT": {
+          "status": "CANNOT_CONFIRM",
+          "observed_rows": 0,
+          "cannot_confirm": [
+            "HK D1 status must be STRICT_0_2_READY"
+          ]
+        }
+      }
+    }
+  ]
+}
