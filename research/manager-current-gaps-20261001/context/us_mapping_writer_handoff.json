@@ -1,0 +1,215 @@
+{
+  "schema": "manager_r4_us_mapping_writer_handoff_v2",
+  "status": "READY_FOR_INDEPENDENT_INTEGRATION_REVIEW",
+  "candidate": {
+    "release_id": "r4-us-mapping-6e1538c6804ba0bc0a15a9c60564601c1677de3915849afc22ba589081a72850",
+    "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/r4-us-mapping-6e1538c6804ba0bc0a15a9c60564601c1677de3915849afc22ba589081a72850",
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/r4-us-mapping-6e1538c6804ba0bc0a15a9c60564601c1677de3915849afc22ba589081a72850/app",
+    "base_release_id": "r4-stage-merged-c3e5357d07f068e79296790e0b968934c34541d579c586282c5e83f56f6a3875",
+    "base_manifest_sha256": "ec5c62cd8a9935c6c2838afd3c02a98ea9fe9d2aaefdae27fb5d462a8c65e3b5",
+    "manifest_sha256": "55618356e7014fe458e50c75b2af380b5b214e0a8df68f021cb9cb647e7916dc",
+    "application_inventory_sha256": "836d43caf68fdc40b95cedfa3a40a9b928fd38ac4da48dc0c431af33388ed83a",
+    "application_inventory_count": 1006,
+    "candidate_status": "READY_FOR_INDEPENDENT_INTEGRATION_REVIEW",
+    "activation_status": "NOT_ACTIVATED",
+    "overlay_diff": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R4_ACTUAL_RESULTS_20261001/us_mapping_repair/evidence/r4-us-mapping-6e1538c6804ba0bc0a15a9c60564601c1677de3915849afc22ba589081a72850.overlay.diff",
+    "overlay_diff_sha256": "02fec81319b8b26563e127767b3a3084273fbe9cff6af84054164503aa75de18",
+    "overlay_content_digest": "6e1538c6804ba0bc0a15a9c60564601c1677de3915849afc22ba589081a72850",
+    "source_overlay_sha256": {
+      "ops/us_market_digest.py": "1b61633c40dfd10c9f346476896189bebefba80651c0e473b9ae0d17d7e0cb7d",
+      "v4/manager_research/connect_capture_adapter.py": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b",
+      "v4/manager_research/connect_selection.py": "ccc65ccb6eaf3be948652e6fc318305d9b87908826d15e98f208e122441ad5b0",
+      "v4/manager_research/us_market_bridge.py": "18d4ede4267a446d235267c71cecd1208f30ae3fdfe9ff02d9354d1b5a18de06",
+      "tests/test_manager_connect_capture_adapter_r4.py": "ccd9eed6e0ce2f4b07fbc1fa59960af94c9cab116973199aba552468194abeaf",
+      "tests/test_manager_us_quote_replay_r4.py": "faf78900c684edd5a53c22aadcedcf3f7a0d7e444db1da89e278ddacb8a463d9",
+      "ops/_us_market_digest_parts/__init__.py": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "ops/_us_market_digest_parts/_namespace.py": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "ops/_us_market_digest_parts/capture_merge.py": "ee76f91ad9aecadaf1f7bda12a71798c8d4446b5c91880612195e2635201709e",
+      "ops/_us_market_digest_parts/capture_metadata.py": "e67899cad690190ead9f567aaa609930badd48e8af5a7081c6ba7cc9580b8c06",
+      "ops/_us_market_digest_parts/cli_primitives.py": "cbdf4f9fafc79cc54d4545334cbdfe9378535fa778d94bb66a1897963789c695",
+      "ops/_us_market_digest_parts/historical_payload.py": "f13767b18dcc3745e8f727f76b07d171b9e89987287e6e6e0f1e7313794e07b1",
+      "ops/_us_market_digest_parts/market_snapshot.py": "649d1f706f7ddbe662191b876fa46102c7b3f0f1d7f9cb2f8039a4d8b8e6287e",
+      "ops/_us_market_digest_parts/phase_merge.py": "4b243459f010f063c46cfcf7974beecba870704fc181dd342b1a22900e0ebfc4",
+      "ops/_us_market_digest_parts/phase_payload.py": "d40e4b58413fb7f3db90b59cdee3984dd581ea03020115338e02d8b50be74e37",
+      "ops/_us_market_digest_parts/phase_publication.py": "b5021979a5c7b57b517af197e7a7fff5e0d22a2d4bacab1d55df1bf301e31014",
+      "ops/_us_market_digest_parts/quote_parsing.py": "b2acf3b603248b13b8aed1b1e1da78fb64d2d9fa19b6d7d6e243fab8f7e6eb3e",
+      "ops/_us_market_digest_parts/session_windows.py": "2472b3a09d2652fc53993f9ac42814e6ca215daef65853578100730f00e3bfb8",
+      "ops/_us_market_digest_parts/snapshot_merge.py": "2fdb99354861f5afbfad5cdcfef532050ed36720e474981cfddf69b1efbf4bf5"
+    },
+    "superseded_candidates": [
+      {
+        "release_id": "r4-us-mapping-0da6743e3edf73de3df8b1239a35a803dced129021fea5ca1f31ea9dbdb4900c",
+        "status": "SUPERSEDED_INACTIVE",
+        "reason": "missing 13-file ops/_us_market_digest_parts dependency closure"
+      },
+      {
+        "release_id": "r4-us-mapping-ea56b90eaa69dfe7fa733f972f5256dae7175317b427807119dbda29710aa376",
+        "status": "SUPERSEDED_INACTIVE",
+        "reason": "configured live dispatch-root suffix was not handled"
+      }
+    ]
+  },
+  "focused_test": {
+    "command": "cd '/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/r4-us-mapping-6e1538c6804ba0bc0a15a9c60564601c1677de3915849afc22ba589081a72850/app' && PYTHONPATH='/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/r4-us-mapping-6e1538c6804ba0bc0a15a9c60564601c1677de3915849afc22ba589081a72850/app/upstreams:/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/r4-us-mapping-6e1538c6804ba0bc0a15a9c60564601c1677de3915849afc22ba589081a72850/app' PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q --tb=short --basetemp=/tmp/v4-r4-mapping-final2 -p no:cacheprovider tests/test_manager_us_quote_replay_r4.py tests/test_manager_connect_capture_adapter_r4.py",
+    "result": "9 passed in 0.11s",
+    "runtime": "actual API service Python 3.14.6"
+  },
+  "release_identity_check": {
+    "validator": "infrastructure.scheduling.dispatcher.validate_release_identity",
+    "result": "PASS",
+    "manifest_sha256": "55618356e7014fe458e50c75b2af380b5b214e0a8df68f021cb9cb647e7916dc"
+  },
+  "connect_d1_projection": {
+    "result": "OWNER_VERIFIED",
+    "target_trade_date": "20261002",
+    "source_date": "20260930",
+    "membership_semantics": "EXACT_PREVIOUS_FULL_SESSION_CAPTURED_CONNECT_CODES",
+    "codes": 696,
+    "scope_error": null,
+    "target_date_authority_diagnostic": "HK_CONNECT_TARGET_AUTHORITY_UNVERIFIED:HK_UNIVERSE_V2_ARTIFACT_MISSING",
+    "availability_upper_bound": "2026-09-30T17:20:08.269649+08:00",
+    "receipt_roots": {
+      "capture": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts",
+      "dispatch": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher/receipts/live"
+    }
+  },
+  "us_quote_projection": {
+    "result": "READY",
+    "target_trade_date": "20261002",
+    "session_date": "20260930",
+    "mapping_eligible": true,
+    "coverage": {
+      "industry_proxy_count": 24,
+      "requested_symbol_count": 33,
+      "available_symbol_count": 33
+    },
+    "positive_industries": [
+      "云计算",
+      "光伏",
+      "生物医药",
+      "存储",
+      "半导体",
+      "AI算力"
+    ],
+    "positive_symbols": [
+      "CLOU",
+      "TAN",
+      "STX",
+      "AMD",
+      "XBI",
+      "NVDA",
+      "WDC",
+      "SOXX",
+      "MU"
+    ],
+    "stored_payload_status": "CANNOT_CONFIRM",
+    "stored_snapshot_status": "PARTIAL",
+    "recheck_status": "RECHECKED_READY",
+    "storage_mutated": false,
+    "captured_at": "2026-09-30T20:15:00Z",
+    "source_response_sha256": "78a2422bb0c8bec11141a5748c2d591592b104193da83db2e74ec6ffd80dc3ed",
+    "payload_sha256": "efbf4e3cc09652fc73abf43fa9c4bc784c60931e1bb4f2724fab12c8b6c9967c",
+    "receipt_sha256": "451816de910d01272f1d439fc1414183efffbac61f0ae3cafe602f3c13224694",
+    "manifest_sha256": "65cb30a8599b05d38b9aa70d1ecc655d6f6d9d1076b04567b140f9581147a58b"
+  },
+  "inactive_plist": {
+    "live_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+    "live_preimage_sha256": "2ba6b17639d769fe8adf977707b099ec1de1587c65b81eb0675d3ad81323996b",
+    "live_preimage_copy": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R4_ACTUAL_RESULTS_20261001/us_mapping_repair/config/r4-us-mapping-6e1538c6804ba0bc0a15a9c60564601c1677de3915849afc22ba589081a72850.live-base.plist",
+    "variant_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R4_ACTUAL_RESULTS_20261001/us_mapping_repair/config/r4-us-mapping-6e1538c6804ba0bc0a15a9c60564601c1677de3915849afc22ba589081a72850.api-only.plist",
+    "variant_sha256": "6f876ac42dd0008061a8b803b4eef824c453b810c63d58b39e885777614e9507",
+    "changed_env_assignments": [
+      "V35_APP_ROOT",
+      "V35_RELEASE_ID",
+      "PYTHONPATH",
+      "V35_RELEASE_MANIFEST_PATH",
+      "V35_RELEASE_MANIFEST_SHA256",
+      "V4_MANAGER_HK_CAPTURE_RECEIPT_ROOT",
+      "V4_MANAGER_HK_DISPATCH_RECEIPT_ROOT"
+    ],
+    "working_directory_updated": true,
+    "plist_lint": "PASS",
+    "guard_helper": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R4_ACTUAL_RESULTS_20261001/us_mapping_repair/config/r4-us-mapping-6e1538c6804ba0bc0a15a9c60564601c1677de3915849afc22ba589081a72850.plist-cas.py",
+    "guard_helper_sha256": "f733807935e790d51da0a0bbb32d4862c203b66ea26edb88daaa4f60064c2b0a",
+    "guard_readonly_check": "CAS_READY_ONLY",
+    "live_write_performed": false,
+    "launchctl_called": false
+  },
+  "old_store_hashes": {
+    "all_match_pinned": true,
+    "items": {
+      "us_payload": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/research/peripherals/20260930/external_finance.json",
+        "sha256": "efbf4e3cc09652fc73abf43fa9c4bc784c60931e1bb4f2724fab12c8b6c9967c",
+        "matches_pinned": true
+      },
+      "us_receipt": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/receipts/research/peripherals/20260930/external_finance.json",
+        "sha256": "451816de910d01272f1d439fc1414183efffbac61f0ae3cafe602f3c13224694",
+        "matches_pinned": true
+      },
+      "us_manifest": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/research/peripherals/manifest.json",
+        "sha256": "65cb30a8599b05d38b9aa70d1ecc655d6f6d9d1076b04567b140f9581147a58b",
+        "matches_pinned": true
+      },
+      "hk_capture_raw": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/hk_capture/20260930/20260930-11854-a344440cbff68a1fa82fee15.capture.json",
+        "sha256": "16cebcc6733e6ed7501697ece4c237b9e39d82459af1d0dc1659667493946fa9",
+        "matches_pinned": true
+      },
+      "hk_capture_manifest": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/hk_capture/20260930/20260930-11854-a344440cbff68a1fa82fee15.json",
+        "sha256": "4fe070230133773b106cdb3764872f00210a3b0626b8402faaeb19aedc2c6212",
+        "matches_pinned": true
+      },
+      "hk_panel_receipt": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/HK-20260930.json",
+        "sha256": "4c3a68ad57cecfbd1ac6edd272ec39046ef01ee3a89534efc270dcf076395043",
+        "matches_pinned": true
+      },
+      "hk_dispatch_receipt": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher/receipts/live/20260930/1720/22f8189530d0492698aa697130bce0c6.dispatch-receipt.json",
+        "sha256": "dea416f6bec97237c4bfe352256b86f15bf9b0b43dfccda8a65fdaaee47a79e1",
+        "matches_pinned": true
+      },
+      "hk_master_manifest": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20260930/49ffde1ebebdc85e4680e701/manifest.json",
+        "sha256": "acb3308410a8601651818b14fb519ff39a019adadc37ac3beec86c8cad5d5eb5",
+        "matches_pinned": true
+      },
+      "hk_master_receipt": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20260930/49ffde1ebebdc85e4680e701/receipt.json",
+        "sha256": "6d4a078ec83a9f0418f20b865eb0bfbee094e35ca683786b0bc73ebc427c6aa9",
+        "matches_pinned": true
+      },
+      "hk_master_artifact": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20260930/49ffde1ebebdc85e4680e701/artifact.csv",
+        "sha256": "754794679937494dc8dc6cdc8dfbd14dfa4b070ea709f551874e39006aa712dd",
+        "matches_pinned": true
+      }
+    }
+  },
+  "broader_suite_failures_for_independent_review": {
+    "observed": "43 passed, 3 failed in prior combined run",
+    "baseline_attribution": "CANNOT_CONFIRM_PENDING_REVIEWER",
+    "failures": [
+      "tests/test_manager_us_market_bridge.py::test_partial_snapshot_keeps_raw_discovery_but_never_becomes_ready (HK.01234 mapping fixture gap observed)",
+      "tests/test_us_map_freshness.py::test_latest_partial_keeps_both_times_and_quality (legacy PARTIAL fixture after same-session seconds now yields READY)",
+      "tests/test_us_map_freshness.py::test_reads_do_not_mutate_artifact_receipt_or_manifest (same PARTIAL fixture consistency mismatch)"
+    ]
+  },
+  "acceptance_gaps": {
+    "independent_review": "PENDING",
+    "API_VERIFIED": "CANNOT_CONFIRM",
+    "UI_VERIFIED": "CANNOT_CONFIRM",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM"
+  },
+  "no_external_effects": {
+    "service_started_or_reloaded": false,
+    "live_plist_changed": false,
+    "orders_sent": false,
+    "production_allowed": false,
+    "buy_gate_updated": false
+  }
+}

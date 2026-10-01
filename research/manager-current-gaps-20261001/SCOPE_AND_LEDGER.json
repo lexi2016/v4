@@ -1,0 +1,15 @@
+{
+  "goal": "Read-only current progress and page/source audit; publish scoped source/evidence handoff to GitHub and deliver Chat prompt",
+  "supersedes": "Earlier local BI01/BI02 repair scope; user changed objective before Writer edits",
+  "allowed_paths": ["local task artifact directory", "GitHub research/manager-current-gaps-20261001/", "GitHub Issue8/17 comments"],
+  "forbidden_actions": ["business source/config writes", "deployment", "service or scheduler changes", "calendar changes", "BUY changes", "A-share Stage changes", "Vibe 8910 changes", "Chat message sending"],
+  "pass_signal": "Scoped GitHub commit and branch read back; published blob hashes match local manifest; issue links returned; prompt delivered",
+  "stop_rule": "Report concrete missing evidence without extending into repair or weakening data gates",
+  "workers": [
+    {"worker":"bi_contract_writer","milestone":"repair halted before edits","dispatch_time":"previous task phase","expected_terminal_type":"no-write handoff","lifecycle_status":"completed","final_received":true,"final_consumed":true,"receipt_verified":true,"receipt":"No file writes or tests reported; no repair artifact exists"},
+    {"worker":"current_progress_audit","milestone":"read-only current source and release audit","dispatch_time":"2026-10-01T21:39+08:00","expected_terminal_type":"bounded audit receipt","lifecycle_status":"completed","final_received":true,"final_consumed":true,"receipt_verified":true,"receipt":"evidence/current_audit.md","receipt_sha256":"f6c28518a1347c0eb370cf4bf4cff81d6fd97f8f728b46f445270e1cbb301ddb"}
+  ],
+  "repair_status": {"IMPLEMENTED":"NOT_RUN","TESTED":"NOT_RUN","REVIEWED":"NOT_RUN","INTEGRATED":"NOT_RUN","DEPLOYED":"NOT_RUN","BEHAVIOR_VERIFIED":"CANNOT_CONFIRM","NATURAL_VERIFIED":"CANNOT_CONFIRM"},
+  "inspection_status": {"API_INSPECTED":true,"UI_INSPECTED":true,"SOURCE_AUDITED":true,"meaning":"Current observations only; not proof of repaired behavior"},
+  "research_only":true,"production_allowed":false,"buy_gate_updated":false,"orders_sent":false
+}
