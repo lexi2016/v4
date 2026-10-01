@@ -1,0 +1,45 @@
+{
+  "feedback_commit": "34e1dc6912100830f42cf0fc90eec72f624afc9a",
+  "upstream_bi_candidate_commit": "d18be217a84c10c17c7b36bb7816b2ee58f14ff9",
+  "scope": "BR003_INCREMENTAL_ONLY",
+  "files": [
+    {
+      "path": "v4/manager_research/workspace_announcements.py",
+      "required_sha256": "f741def292593fa07c4151b9c9f60dd3e347861be680c55427c051ca993a067c"
+    },
+    {
+      "path": "v4/manager_research/issuer_us_relations.py",
+      "required_sha256": "75fdca7a3c8bc1e8f385a023d47df640f002096921d6a0f3af8ea6cc466ee00f"
+    },
+    {
+      "path": "v4/manager_research/research_attention.py",
+      "required_sha256": "c77c8f2f109b018547622a5afbb0ac8c6fb0b949bab77a42190fcadea8cb5206"
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "before_sha256": "981e77c0024c56a2f089927db76a6dda59d399a61858beea59e639d75e9d1c42",
+      "after_sha256": "6eef36501d05334c60e052ec0e344240ce310c6a0a1444a7ce6b8c61be33f9fa",
+      "before_bytes": 67498,
+      "after_bytes": 67513
+    },
+    {
+      "path": "apps/web/src/manager-selection/researchAttention.ts",
+      "required_sha256": "2490663c6002fd496212ae20cf9f7641d5070fc85cfa6170aab62d470cbaec51"
+    }
+  ],
+  "incremental_patch": {
+    "path": "br003.incremental.patch",
+    "sha256": "5279b153f186e7c51ffe04a4763c3e351194991cbebb1c29a69ed06834f0d48c",
+    "bytes": 3006
+  },
+  "invariants": {
+    "legal_historical_capture_date_preserved": true,
+    "owner_capture_target_date_preserved": true,
+    "pit_gate_unchanged": true,
+    "dual_source_gate_unchanged": true,
+    "source_ref_gate_unchanged": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

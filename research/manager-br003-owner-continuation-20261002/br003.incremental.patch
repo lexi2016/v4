@@ -1,0 +1,41 @@
+--- a/apps/web/src/api/managerWorkspace.ts
++++ b/apps/web/src/api/managerWorkspace.ts
+@@ -439,7 +439,7 @@
+ function verifiedNativeRefs(value: unknown): value is JsonObject[] {
+   return nonEmptyObjectRecords(value) && value.every(ref => ref.status === 'VERIFIED' && sha256Value(ref.payload_sha256));
+ }
+-function validMirrorCompanyEvidence(row: JsonObject, start: number, cutoff: number): boolean {
++function validMirrorCompanyEvidence(row: JsonObject, start: number, cutoff: number, date: string): boolean {
+   if (row.semantic_status !== 'ACCEPTED' || row.source_kind !== 'EASTMONEY_HK_ANNOUNCEMENT_BODY' ||
+       row.source !== 'EASTMONEY_HK' || row.source_identity !== 'EASTMONEY_HK_MIRROR_NOT_HKEX_OFFICIAL' ||
+       row.temporal_role !== 'CURRENT_WINDOW_MIRROR_OBSERVATION' || row.time_basis !== MIRROR_TIME_BASIS ||
+@@ -449,7 +449,7 @@
+       !isJsonObject(row.original_source_row) || !verifiedNativeRefs(row.source_refs)) return false;
+   const doc = row.owner_document, capture = row.owner_capture;
+   // Reuse the ordinary announcement-document validator, including raw refs/pages.
+-  try { validateEastmoneyDocuments([doc], String(doc.target_trade_date), cutoff); } catch { return false; }
++  try { validateEastmoneyDocuments([doc], date, cutoff); } catch { return false; }
+   const seen = explicitTimestamp(row.mirror_observed_at), acquired = explicitTimestamp(row.available_at);
+   if (seen === null || acquired === null || !(start < seen && seen <= acquired && acquired <= cutoff) ||
+       row.retrieved_at !== row.available_at || row.mirror_observed_at !== doc.display_time_iso ||
+@@ -526,9 +526,9 @@
+     confirmed <= acquired && cutoff < end && end - begin <= 366 * 86400000;
+ }
+ 
+-function validCompanyEvidence(row: JsonObject, start: number, cutoff: number): boolean {
++function validCompanyEvidence(row: JsonObject, start: number, cutoff: number, date: string): boolean {
+   if (row.evidence_class === 'VERIFIED_MIRROR_COMPANY_MATERIAL_NOT_HKEX_FIRST_PUBLICATION')
+-    return validMirrorCompanyEvidence(row, start, cutoff);
++    return validMirrorCompanyEvidence(row, start, cutoff, date);
+   if (row.evidence_class !== 'VERIFIED_COMPANY_SPECIFIC_MATERIAL' ||
+       row.semantic_status !== 'ACCEPTED' || row.temporal_role !== 'NEW_PLAN_PUBLICATION' ||
+       timestampByWindow(row.published_at, start, cutoff) === null ||
+@@ -666,7 +666,7 @@
+   };
+ 
+   const officialRows = validateClaim('OFFICIAL_ANNOUNCEMENT', row => validOfficialEvidence(row, start, cutoff));
+-  validateClaim('COMPANY_MATERIAL', row => validCompanyEvidence(row, start, cutoff));
++  validateClaim('COMPANY_MATERIAL', row => validCompanyEvidence(row, start, cutoff, date));
+   const individualRows = validateClaim('US_INDIVIDUAL_MAPPING', row => validUsIndividualMapping(row, start, cutoff));
+   const industryRows = validateClaim('US_INDUSTRY_MAPPING', row => validUsIndustryMapping(row, start, cutoff));
+   const trendRows = validateClaim('TREND_CONTINUATION', row => validTrendEvidence(row, screenSession));
