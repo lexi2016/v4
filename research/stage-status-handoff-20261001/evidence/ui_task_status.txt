@@ -1,0 +1,857 @@
+- main:
+  - heading "V4 阶段选股" [level=1]
+  - paragraph: 阶段选股只读取同一 date + stage 的 A股与港股通阶段工作台；只读观察，不打开 BUY gate，不接交易接口，不生成 live order。
+  - generic: V4 · r4-stage-merged-c3e5357d07f068e79296790e0b968934c34541d579c586282c5e83f56f6a3875 · manifest/执行文件已核验
+  - region "页面控制":
+    - text: 交易日
+    - textbox "交易日（日历选择）": 2026-09-30
+    - button "查看次日预选池：2026-10-08"
+    - text: 阶段
+    - combobox "阶段":
+      - option "港股通09:20 / A股09:25竞价选股"
+      - option "09:30-09:35"
+      - option "09:35-09:40"
+      - option "09:40-09:45"
+      - option "09:45-10:30"
+      - option "13:00-13:15"
+      - option "14:45-15:00" [selected]
+      - option "15:45-15:55港股"
+    - button "刷新快照"
+    - generic: V4 · A/HK按各自市场日历导航；回执不代表进程存活，运行状态见任务页
+  - status: 当前请求日期：20260930； 导航日期：20260930； 证据默认日：20260930。 研究 latest 仅由研究面板显式选择；缺少所选日材料不表示已更新。
+  - text: 当前查看交易日：2026-09-30
+  - link "查看历史回补：2026-09-28 · STAGE_0930_0935 · A股 · WATCH_ONLY":
+    - /url: /?date=20260928&stage=STAGE_0930_0935&backfill_run_id=a_share_historical_recovery_20260928_20260929_r3&market=A_SHARE
+  - navigation "功能入口":
+    - button "阶段选股"
+    - button "D-1 预选池"
+    - button "研报决策台"
+    - button "经理选股工作台"
+    - button "任务状态" [active]
+    - button "A股复盘"
+    - button "研究复盘"
+    - link "原版 Vibe · 8910":
+      - /url: http://127.0.0.1:8910/a-share/review
+  - region "任务状态":
+    - text: RUNTIME GOVERNANCE
+    - heading "任务状态" [level=2]
+    - paragraph: 20260930 · catalog 与同日 receipt
+    - region "阶段摘要":
+      - article:
+        - generic: 阶段状态
+        - strong: 观察材料已生成
+        - generic: 20260930 / 14:45-15:00 阶段
+      - article:
+        - generic: A股候选
+        - strong: "10"
+        - generic: source rows 202；candidate 10
+      - article:
+        - generic: 港股通候选
+        - strong: "0"
+        - generic: candidate 0；同阶段观察
+      - article:
+        - generic: 港股通源
+        - strong: V3.5 原生输入
+        - generic: 运行时不调用旧 V3 服务
+      - article:
+        - generic: 统一行数
+        - strong: "10"
+        - generic: A股与港股通同阶段合并展示
+      - article:
+        - generic: 数据级别
+        - strong: CANNOT_CONFIRM
+        - generic: 阶段产物驱动，非交易接口
+      - article:
+        - generic: 执行边界
+        - strong: 研究边界
+        - generic: 只读观察，不下单，不接 broker
+    - article:
+      - generic: 逻辑任务
+      - strong: "25"
+    - article:
+      - generic: 已配置 owner
+      - strong: "24"
+    - article:
+      - generic: 别名
+      - strong: "17"
+    - article:
+      - generic: 退役 owner
+      - strong: "6"
+    - article:
+      - generic: 图谱待确认
+      - strong: "34"
+    - region "实际调度证据":
+      - strong: RECEIPT_CHAIN_VERIFIED
+      - paragraph: 同日回执：4 · 当前进程存活：CANNOT_CONFIRM
+      - paragraph: 配置中的owner不证明进程存活；禁用图谱登记与实际调度回执分开显示。
+      - paragraph: 任务行证据：SAME_DATE_LEDGER_CHAIN · receipts/live/20260930
+    - alert:
+      - strong: CANNOT_CONFIRM · 证据降级
+      - generic: EXECUTION_RECEIPT_MISSING:v4_intraday_research
+      - generic: EXECUTION_RECEIPT_MISSING:hourly_research
+      - generic: EXECUTION_RECEIPT_MISSING:zsxq_0830
+      - generic: EXECUTION_RECEIPT_MISSING:morning_news_0830
+      - generic: EXECUTION_RECEIPT_MISSING:research_panel_daily_a
+      - generic: EXECUTION_RECEIPT_MISSING:research_panel_daily_hk
+      - generic: EXECUTION_RECEIPT_MISSING:research_panel_runtime_evidence
+      - generic: EXECUTION_RECEIPT_MISSING:wechat_preselection_sync
+      - generic: EXECUTION_RECEIPT_MISSING:review_core_pool_pipeline
+      - generic: EXECUTION_RECEIPT_MISSING:a_share_close_review
+      - generic: EXECUTION_RECEIPT_MISSING:hk_connect_close_review
+      - generic: EXECUTION_RECEIPT_MISSING:preselection_pools
+      - generic: EXECUTION_RECEIPT_MISSING:daily_materialize
+      - generic: EXECUTION_RECEIPT_MISSING:hk_auction_0920
+      - generic: EXECUTION_RECEIPT_MISSING:fupan_close_materials
+      - generic: EXECUTION_RECEIPT_MISSING:fupan_review_start
+      - generic: EXECUTION_RECEIPT_MISSING:fupan_video_check
+      - generic: EXECUTION_RECEIPT_MISSING:fupan_video_download_asr
+      - generic: EXECUTION_RECEIPT_MISSING:fupan_stockdict
+      - generic: EXECUTION_RECEIPT_MISSING:fupan_video_table_ocr_align
+      - generic: EXECUTION_RECEIPT_MISSING:fupan_video_gap
+      - generic: EXECUTION_RECEIPT_MISSING:fupan_v3_publish
+      - generic: EXECUTION_RECEIPT_MISSING:fupan_8771_verify
+      - generic: SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID
+      - generic: SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID
+      - generic: SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID
+      - generic: EXECUTION_RECEIPT_MISSING:hk_connect_close_review
+      - generic: EXECUTION_RECEIPT_MISSING:FUPAN_CLOSE_MATERIALS
+      - generic: EXECUTION_RECEIPT_MISSING:FUPAN_REVIEW_START
+      - generic: EXECUTION_RECEIPT_MISSING:a_share_close_review
+      - generic: EXECUTION_RECEIPT_MISSING:FUPAN_VIDEO_CHECK
+      - generic: EXECUTION_RECEIPT_MISSING:FUPAN_VIDEO_DOWNLOAD_ASR
+      - generic: EXECUTION_RECEIPT_MISSING:FUPAN_STOCKDICT
+      - generic: EXECUTION_RECEIPT_MISSING:FUPAN_VIDEO_TABLE_OCR_ALIGN
+      - generic: EXECUTION_RECEIPT_MISSING:FUPAN_VIDEO_GAP
+      - generic: EXECUTION_RECEIPT_MISSING:FUPAN_V3_PUBLISH
+      - generic: EXECUTION_RECEIPT_MISSING:FUPAN_8771_VERIFY
+    - generic "逻辑任务执行状态":
+      - article:
+        - strong: v4_intraday_research
+        - generic: CANNOT_CONFIRM
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 20261008 09:25
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: EXECUTION_RECEIPT_MISSING
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: hourly_research
+        - generic: CANNOT_CONFIRM
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 20261001 22:00
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: EXECUTION_RECEIPT_MISSING
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: zsxq_0830
+        - generic: CANNOT_CONFIRM
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 20261002 08:30
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: EXECUTION_RECEIPT_MISSING
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: morning_news_0830
+        - generic: CANNOT_CONFIRM
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 20261008 08:30
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: EXECUTION_RECEIPT_MISSING
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: research_panel_daily_a
+        - generic: CANNOT_CONFIRM
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 20261008 17:00
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: EXECUTION_RECEIPT_MISSING
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: research_panel_daily_hk
+        - generic: CANNOT_CONFIRM
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 20261008 17:20
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: EXECUTION_RECEIPT_MISSING
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: research_panel_runtime_evidence
+        - generic: CANNOT_CONFIRM
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 20261008 17:30
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: EXECUTION_RECEIPT_MISSING
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: wechat_preselection_sync
+        - generic: CANNOT_CONFIRM
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 20261002 09:01
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: EXECUTION_RECEIPT_MISSING
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: review_core_pool_pipeline
+        - generic: CANNOT_CONFIRM
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 20261008 21:15
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: EXECUTION_RECEIPT_MISSING
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: a_share_close_review
+        - generic: CANNOT_CONFIRM
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 20261008 16:05
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: EXECUTION_RECEIPT_MISSING
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: hk_connect_close_review
+        - generic: CANNOT_CONFIRM
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 20261008 16:08
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: EXECUTION_RECEIPT_MISSING
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: preselection_pools
+        - generic: CANNOT_CONFIRM
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 20261008 17:30
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: EXECUTION_RECEIPT_MISSING
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: daily_materialize
+        - generic: CANNOT_CONFIRM
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 20261008 21:40
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: EXECUTION_RECEIPT_MISSING
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: hk_auction_0920
+        - generic: CANNOT_CONFIRM
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 20261008 09:15
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: EXECUTION_RECEIPT_MISSING
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: stage_workbench
+        - generic: EXTERNAL_AUTHORITY
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 未配置
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: STAGE_CENTER_EXTERNAL_AUTHORITY
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: fupan_close_materials
+        - generic: CANNOT_CONFIRM
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 20261008 15:00
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: EXECUTION_RECEIPT_MISSING
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: fupan_review_start
+        - generic: CANNOT_CONFIRM
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 20261008 15:55
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: EXECUTION_RECEIPT_MISSING
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: fupan_video_check
+        - generic: CANNOT_CONFIRM
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 20261008 20:30
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: EXECUTION_RECEIPT_MISSING
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: fupan_video_download_asr
+        - generic: CANNOT_CONFIRM
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 20261008 20:40
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: EXECUTION_RECEIPT_MISSING
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: fupan_stockdict
+        - generic: CANNOT_CONFIRM
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 20261008 20:50
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: EXECUTION_RECEIPT_MISSING
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: fupan_video_table_ocr_align
+        - generic: CANNOT_CONFIRM
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 20261008 21:05
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: EXECUTION_RECEIPT_MISSING
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: fupan_video_gap
+        - generic: CANNOT_CONFIRM
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 20261008 21:08
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: EXECUTION_RECEIPT_MISSING
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: fupan_v3_publish
+        - generic: CANNOT_CONFIRM
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 20261008 21:10
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: EXECUTION_RECEIPT_MISSING
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: fupan_8771_verify
+        - generic: CANNOT_CONFIRM
+        - term: 最近运行
+        - definition: 未确认
+        - term: 下次计划
+        - definition: 20261008 21:15
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: EXECUTION_RECEIPT_MISSING
+        - term: 调度回执时效（非数据更新）
+        - definition: NOT_OBSERVED
+        - paragraph: 无可验证业务更新证据
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: CANNOT_CONFIRM
+          - term: 已调用采集器
+          - definition: 未记录／未知
+          - term: 已执行采集
+          - definition: 未记录／未知
+          - term: 新采集已验证
+          - definition: 未记录／未知
+          - term: 业务更新
+          - definition: CANNOT_CONFIRM
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: EXECUTION_RECEIPT_MISSING
+      - article:
+        - strong: us_market_digest
+        - generic: SUCCEEDED
+        - term: 最近运行
+        - definition: 2026-09-30T14:00:02.069187Z
+        - term: 下次计划
+        - definition: 20261001 22:00
+        - term: 耗时
+        - definition: 未记录
+        - term: 结果码
+        - definition: SUCCEEDED
+        - term: 调度回执时效（非数据更新）
+        - definition: CURRENT
+        - paragraph: 未到采集时段；未调用采集；未更新
+        - generic "业务采集与更新证据":
+          - term: 采集状态
+          - definition: NOT_DUE
+          - term: 已调用采集器
+          - definition: 否
+          - term: 已执行采集
+          - definition: 否
+          - term: 新采集已验证
+          - definition: 否
+          - term: 业务更新
+          - definition: NOT_DUE_NO_UPDATE
+          - term: 业务数据日
+          - definition: 未记录（不借用计划日）
+          - term: 业务证据
+          - definition: WORKLOAD_RESULT_PROJECTED
+        - generic "查看 receipt 身份（路径本身不是验证）"
+    - group "图谱待确认任务":
+      - generic "图谱待确认任务 · 不会执行"
+    - generic "身份映射与诊断"
+    - paragraph: 研究边界：只读观察，不下单，不接交易接口。

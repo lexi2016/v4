@@ -1,0 +1,107 @@
+{
+  "observed_at": "2026-10-01T22:11:09.640926+08:00",
+  "branch": "codex/system-consolidation-20260912",
+  "HEAD": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "working_tree": "Many prior tracked/untracked changes; not a clean commit or releasable application",
+  "active_roots": {
+    "preselection_app": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/r9-hk-child-binding-standard-b1f316ac73f0/app",
+    "shared_package": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data",
+    "stage_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261001-stage-pr16-a1445-a0925-crossday-r1/app",
+    "api_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/r4-stage-merged-c3e5357d07f068e79296790e0b968934c34541d579c586282c5e83f56f6a3875/app"
+  },
+  "bindings": [
+    {
+      "label": "com.lexi.v35.api-only",
+      "plist_sha256": "2ba6b17639d769fe8adf977707b099ec1de1587c65b81eb0675d3ad81323996b",
+      "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/r4-stage-merged-c3e5357d07f068e79296790e0b968934c34541d579c586282c5e83f56f6a3875/app",
+      "selected_environment": {},
+      "evidence_layer": "CONFIGURATION_ONLY"
+    },
+    {
+      "label": "com.lexi.stage-center.scheduler",
+      "plist_sha256": "9e285d6423b0232a0f10d7d6707e6fd24a9cc067fb16ab7a31cfb8d2ec676b84",
+      "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261001-stage-pr16-a1445-a0925-crossday-r1/app",
+      "selected_environment": {},
+      "evidence_layer": "CONFIGURATION_ONLY"
+    },
+    {
+      "label": "com.lexi.v35.scheduler",
+      "plist_sha256": "875bff64d5605acb808729e73706ddb39300ec03139708c10a9451f6713ac26a",
+      "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app",
+      "selected_environment": {
+        "V35_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/r9-hk-child-binding-standard-b1f316ac73f0/app",
+        "V35_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+        "V35_HK_UNIVERSE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data",
+        "V35_RUNTIME_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/runtime",
+        "V35_SHARED_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+        "V35_SHARED_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data"
+      },
+      "evidence_layer": "CONFIGURATION_ONLY"
+    }
+  ],
+  "service_python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+  "r2_after_integrity": [
+    {
+      "path": "contracts/trading_calendar.py",
+      "matches": true
+    },
+    {
+      "path": "contracts/runtime_workloads.json",
+      "matches": true
+    },
+    {
+      "path": "domains/runtime_policy.py",
+      "matches": true
+    },
+    {
+      "path": "domains/task_status.py",
+      "matches": true
+    },
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/preselection.py",
+      "matches": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/scripts/materialize_hk_0_2.py",
+      "matches": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "matches": true
+    },
+    {
+      "path": "ops/materialize_scheduled_preselection.py",
+      "matches": true
+    },
+    {
+      "path": "domains/preselection_materializer.py",
+      "matches": true
+    },
+    {
+      "path": "domains/_preselection_materializer_parts/hk_pool.py",
+      "matches": true
+    },
+    {
+      "path": "stage_center/_runner_parts/hk_input_validation.py",
+      "matches": true
+    },
+    {
+      "path": "tests/test_hk_signal_calendar_boundary.py",
+      "matches": true
+    },
+    {
+      "path": "tests/test_preselection_market_calendar_lanes.py",
+      "matches": true
+    }
+  ],
+  "missing_paths": [
+    "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/r9-hk-child-binding-standard-b1f316ac73f0/app/domains/_preselection_materializer_parts/hk_pool.py",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261001-stage-pr16-a1445-a0925-crossday-r1/app/domains/_preselection_materializer_parts/hk_pool.py"
+  ],
+  "pr16": {
+    "draft": true,
+    "head": "e97b9e33359a13c2fe144e2a6935d14e48c7b31b",
+    "original_replay": "NOT_RUN",
+    "active_stage_context_sha256": "3bfaae2b13bc8fdb7658e38047f505a8e4c74c1ce5cfb762d38c912bba23e89e"
+  }
+}

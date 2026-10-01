@@ -1,0 +1,309 @@
+- main:
+  - heading "V4 阶段选股" [level=1]
+  - paragraph: 阶段选股只读取同一 date + stage 的 A股与港股通阶段工作台；只读观察，不打开 BUY gate，不接交易接口，不生成 live order。
+  - generic: V4 · r4-stage-merged-c3e5357d07f068e79296790e0b968934c34541d579c586282c5e83f56f6a3875 · manifest/执行文件已核验
+  - region "页面控制":
+    - text: 交易日
+    - textbox "交易日（日历选择）": 2026-10-08
+    - button "查看次日预选池：2026-10-08" [active]
+    - text: 阶段
+    - combobox "阶段":
+      - option "港股通09:20 / A股09:25竞价选股"
+      - option "09:30-09:35"
+      - option "09:35-09:40"
+      - option "09:40-09:45"
+      - option "09:45-10:30"
+      - option "13:00-13:15"
+      - option "14:45-15:00" [selected]
+      - option "15:45-15:55港股"
+    - button "刷新快照"
+    - generic: V4 · A/HK按各自市场日历导航；回执不代表进程存活，运行状态见任务页
+  - status: 当前请求日期：20261008； 导航日期：20260930； 证据默认日：20260930。 研究 latest 仅由研究面板显式选择；缺少所选日材料不表示已更新。
+  - text: 当前查看次日预选池目标日：2026-10-08。阶段状态以服务端回执为准，未到时不表示已完成。
+  - link "查看历史回补：2026-09-28 · STAGE_0930_0935 · A股 · WATCH_ONLY":
+    - /url: /?date=20260928&stage=STAGE_0930_0935&backfill_run_id=a_share_historical_recovery_20260928_20260929_r3&market=A_SHARE
+  - navigation "功能入口":
+    - button "阶段选股"
+    - button "D-1 预选池"
+    - button "研报决策台"
+    - button "经理选股工作台"
+    - button "任务状态"
+    - button "A股复盘"
+    - button "研究复盘"
+    - link "原版 Vibe · 8910":
+      - /url: http://127.0.0.1:8910/a-share/review
+  - region "美股收盘板块涨跌幅":
+    - text: US CLOSE PROXY MAP
+    - heading "美股收盘板块涨跌幅（研究只读）" [level=2]
+    - generic: PARTIAL · 质量缺口
+    - button "刷新"
+    - generic: 目标阶段日：2026-10-08
+    - generic: 读取快照日：2026-09-30
+    - generic: 美股来源日：2026-09-30
+    - generic: US session：20260930
+    - generic: 场次：POST_CLOSE
+    - status: 快照质量：PARTIAL · 来源场次与原采集时间通过近期时钟核验；不是本次更新或自然运行成功回执。 交易所节假日／提前收盘及最新完整交易日：VERIFIED_NYSE_2026。 本次刷新只读取，不触发采集。
+    - status: 未确认依据：EXTERNAL_FINANCE_FETCH_FAILED:US_EQUITY；EXTERNAL_FINANCE_FETCH_FAILED:ai_compute_chip；EXTERNAL_FINANCE_FETCH_FAILED:biopharma_ma；EXTERNAL_FINANCE_FETCH_FAILED:commercial_space；EXTERNAL_FINANCE_FETCH_FAILED:robotics_autonomous；GOOGLE_NEWS_RSS_DISCOVERY_ONLY；MARKET_SNAPSHOT_CANNOT_CONFIRM；MARKET_SNAPSHOT_INCOMPLETE；MARKET_SNAPSHOT_NOT_DUE_PRE_OPEN；QUOTE_SESSION_TIME_MIXED；US_MARKET_CALENDAR_NOT_BOUND；QUOTE_SESSION_TIME_MIXED_OR_MISSING
+    - paragraph: 美股读取根：/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data
+    - status: 上海时钟：2026-10-01T21:48:23.011124+08:00 · 纽约时钟：2026-10-01T09:48:23.011124-04:00 · 纽约时钟尚未到常规16:00收盘点。 这只是时钟，不是交易所节假日/提前收盘核验；不据此推算上一完整交易日。
+    - generic "板块涨跌前三":
+      - article:
+        - generic: Leader 1
+        - strong: 云计算
+        - generic: +1.281%
+        - generic: 上涨 · 1/1 (100.0%)
+      - article:
+        - generic: Leader 2
+        - strong: 光伏
+        - generic: +1.243%
+        - generic: 上涨 · 1/1 (100.0%)
+      - article:
+        - generic: Leader 3
+        - strong: 生物医药
+        - generic: +0.555%
+        - generic: 上涨 · 1/1 (100.0%)
+    - region "上涨板块":
+      - heading "上涨 6" [level=3]:
+        - text: 上涨
+        - generic: "6"
+      - article:
+        - strong: 云计算
+        - generic: CLOU · etf_proxy
+        - generic: +1.281%
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 光伏
+        - generic: TAN · etf_proxy
+        - generic: +1.243%
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 生物医药
+        - generic: XBI · etf_proxy
+        - generic: +0.555%
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 存储
+        - generic: MU / WDC / STX · stock_basket_proxy
+        - generic: +0.397%
+        - generic: 3/3 (100.0%)
+      - article:
+        - strong: 半导体
+        - generic: SOXX · etf_proxy
+        - generic: +0.211%
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: AI算力
+        - generic: NVDA / AVGO / AMD · stock_basket_proxy
+        - generic: +0.034%
+        - generic: 3/3 (100.0%)
+    - region "下跌板块":
+      - heading "下跌 18" [level=3]:
+        - text: 下跌
+        - generic: "18"
+      - article:
+        - strong: 机器人
+        - generic: BOTZ · etf_proxy
+        - generic: "-0.028%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 新能源
+        - generic: ICLN · etf_proxy
+        - generic: "-0.059%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 商业航天
+        - generic: ARKX · etf_proxy
+        - generic: "-0.063%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 石油
+        - generic: XLE · etf_proxy
+        - generic: "-0.065%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 天然气
+        - generic: FCG · etf_proxy
+        - generic: "-0.140%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 锂电池
+        - generic: LIT · etf_proxy
+        - generic: "-0.175%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 卫星
+        - generic: UFO · etf_proxy
+        - generic: "-0.236%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 自动驾驶
+        - generic: DRIV · etf_proxy
+        - generic: "-0.241%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 黄金
+        - generic: GLD · etf_proxy
+        - generic: "-0.535%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 电网
+        - generic: GRID · etf_proxy
+        - generic: "-0.651%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 核电
+        - generic: NLR · etf_proxy
+        - generic: "-0.653%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 稀土
+        - generic: REMX · etf_proxy
+        - generic: "-0.818%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: CPO
+        - generic: COHR / LITE / CIEN · stock_basket_proxy
+        - generic: "-0.869%"
+        - generic: 3/3 (100.0%)
+      - article:
+        - strong: 消费
+        - generic: XLY / XLP · etf_basket_proxy
+        - generic: "-0.906%"
+        - generic: 2/2 (100.0%)
+      - article:
+        - strong: 铜/有色
+        - generic: COPX · etf_proxy
+        - generic: "-0.912%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 银行金融
+        - generic: KBE · etf_proxy
+        - generic: "-0.956%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 军工
+        - generic: ITA · etf_proxy
+        - generic: "-1.013%"
+        - generic: 1/1 (100.0%)
+      - article:
+        - strong: 数据中心
+        - generic: VRT / DLR / EQIX · stock_basket_proxy
+        - generic: "-1.259%"
+        - generic: 3/3 (100.0%)
+    - generic: provider：Tencent qt.gtimg.cn
+    - generic: provider session time：16:00:01、16:00:22、16:00:36、16:00:37、16:00:40
+    - generic: capture time：2026-09-30T20:15:00Z
+    - generic: coverage：33/33
+    - paragraph: 代理 ETF / 股票篮子仅用于研究观察；change_pct 为当日 close 对 previous_close，篮子按可用成分等权平均。RESEARCH_ONLY=true · production_allowed=false · 不构成预测或交易指令。
+  - region "七阶段上下文":
+    - text: 阶段分组主视图
+    - heading "七阶段上下文 v2" [level=2]
+    - paragraph: 20261008 · 14:45-15:00 · A股 0 / 港股 0
+    - button "1. 港股通09:20 / A股09:25竞价选股 CANNOT_CONFIRM A 0 / HK 0":
+      - generic: 1. 港股通09:20 / A股09:25竞价选股
+      - generic: CANNOT_CONFIRM
+      - generic: A 0 / HK 0
+    - button "2. 09:30-09:35 CANNOT_CONFIRM A 0 / HK 0":
+      - generic: 2. 09:30-09:35
+      - generic: CANNOT_CONFIRM
+      - generic: A 0 / HK 0
+    - button "3. 09:35-09:40 CANNOT_CONFIRM A 0 / HK 0":
+      - generic: 3. 09:35-09:40
+      - generic: CANNOT_CONFIRM
+      - generic: A 0 / HK 0
+    - button "4. 09:40-09:45 CANNOT_CONFIRM A 0 / HK 0":
+      - generic: 4. 09:40-09:45
+      - generic: CANNOT_CONFIRM
+      - generic: A 0 / HK 0
+    - button "5. 09:45-10:30 CANNOT_CONFIRM A 0 / HK 0":
+      - generic: 5. 09:45-10:30
+      - generic: CANNOT_CONFIRM
+      - generic: A 0 / HK 0
+    - button "6. 13:00-13:15 CANNOT_CONFIRM A 0 / HK 0":
+      - generic: 6. 13:00-13:15
+      - generic: CANNOT_CONFIRM
+      - generic: A 0 / HK 0
+    - button "7. 14:45-15:00 CANNOT_CONFIRM A 0 / HK 0":
+      - generic: 7. 14:45-15:00
+      - generic: CANNOT_CONFIRM
+      - generic: A 0 / HK 0
+    - button "8. 15:45-15:55港股 CANNOT_CONFIRM A 不适用 / HK 0":
+      - generic: 8. 15:45-15:55港股
+      - generic: CANNOT_CONFIRM
+      - generic: A 不适用 / HK 0
+    - button "9. 16:08 港股通正式收盘：0.2 × 七阶段 Top20 复盘入口保留 点击加载只读收盘复盘":
+      - generic: 9. 16:08 港股通正式收盘：0.2 × 七阶段 Top20
+      - generic: 复盘入口保留
+      - generic: 点击加载只读收盘复盘
+    - button "10. 15:00 收盘前总结材料 复盘入口保留 当前不冒充完成":
+      - generic: 10. 15:00 收盘前总结材料
+      - generic: 复盘入口保留
+      - generic: 当前不冒充完成
+    - button "11. 15:55 收盘后复盘启动 复盘入口保留 当前不冒充完成":
+      - generic: 11. 15:55 收盘后复盘启动
+      - generic: 复盘入口保留
+      - generic: 当前不冒充完成
+    - button "12. 16:05 A股收盘数据与题材骨架 未到验收批次 当前不冒充完成":
+      - generic: 12. 16:05 A股收盘数据与题材骨架
+      - generic: 未到验收批次
+      - generic: 当前不冒充完成
+    - button "13. 20:30 最新复盘视频检查 未到验收批次 当前不冒充完成":
+      - generic: 13. 20:30 最新复盘视频检查
+      - generic: 未到验收批次
+      - generic: 当前不冒充完成
+    - button "14. 20:40 视频下载与转写 未到验收批次 当前不冒充完成":
+      - generic: 14. 20:40 视频下载与转写
+      - generic: 未到验收批次
+      - generic: 当前不冒充完成
+    - button "15. 20:50 股票字典校正 未到验收批次 当前不冒充完成":
+      - generic: 15. 20:50 股票字典校正
+      - generic: 未到验收批次
+      - generic: 当前不冒充完成
+    - button "16. 21:05 视频表格OCR/ASR/新闻对齐 未到验收批次 当前不冒充完成":
+      - generic: 16. 21:05 视频表格OCR/ASR/新闻对齐
+      - generic: 未到验收批次
+      - generic: 当前不冒充完成
+    - button "17. 21:08 页面复盘对视频差距 未到验收批次 当前不冒充完成":
+      - generic: 17. 21:08 页面复盘对视频差距
+      - generic: 未到验收批次
+      - generic: 当前不冒充完成
+    - button "18. 21:10 第三版复盘发布 未到验收批次 当前不冒充完成":
+      - generic: 18. 21:10 第三版复盘发布
+      - generic: 未到验收批次
+      - generic: 当前不冒充完成
+    - button "19. 21:15 8871 刷新与页面验收 未到验收批次 当前不冒充完成":
+      - generic: 19. 21:15 8871 刷新与页面验收
+      - generic: 未到验收批次
+      - generic: 当前不冒充完成
+  - text: 当前阶段
+  - heading "14:45-15:00 阶段" [level=2]
+  - paragraph: CANNOT_CONFIRM · 14:45-15:00
+  - button "运行 / 恢复当前阶段"
+  - button "强制重新物化"
+  - region "阶段执行声明与选股身份":
+    - heading "执行尝试与已验证产物分列" [level=3]
+    - paragraph: 20261008 · STAGE_1445_1500 · EXECUTION_RECEIPT_MISSING
+    - paragraph: 尝试模式（回执声明）：未记录 / 未记录；记录时间：原回执未记录，不推断历史开始时间
+    - paragraph: 执行状态（声明）：未记录；节点尝试：未记录／未绑定 · 未记录
+    - paragraph: 此处不独立认证自然／补跑血缘。选股身份匹配只验证对应产物引用；原回执自计算SHA不是运行认证。
+    - generic "绑定缺口与所读回执"
+  - paragraph: CANNOT_CONFIRM
+  - region "A股候选":
+    - heading "A股" [level=3]
+    - generic: 0 条
+    - strong: A股无主表候选
+    - generic: 14:45-15:00 阶段 · source rows — / requested 未记录／未绑定
+    - paragraph: CANNOT_CONFIRM
+  - region "港股通候选":
+    - heading "港股通二筛" [level=3]
+    - generic: 0 条
+    - strong: 港股通该阶段无可确认候选
+    - paragraph: CANNOT_CONFIRM
+  - region "统一预选池":
+    - text: D-1 数据
+    - heading "D-1 预选池" [level=2]
+    - paragraph: 等待读取
+    - navigation "D1名单分页":
+      - button "上一页" [disabled]
+      - text: 显示第 1 页 · 每个池独立分页，每页最多200行；不截断选股输入
+    - status: 正在读取 20261008 的 D-1 预选池。
