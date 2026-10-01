@@ -1,0 +1,40 @@
+[
+  {
+    "case": "legal_historical_capture",
+    "request_date": "20261002",
+    "owner_document_target_trade_date": "20261002",
+    "owner_document_capture_trade_date": "20260929",
+    "owner_capture_target_trade_date": "20260929",
+    "available_at": "2026-09-29T18:02:00+08:00",
+    "mirror_observed_at": "2026-09-29T18:00:00+08:00",
+    "source_ref_count": 3,
+    "parser_result": {
+      "ok": true,
+      "ids": [],
+      "cards": [
+        "HK.01234"
+      ],
+      "relationships": 0,
+      "text": "公告来源独立研究观察（不改变两条件名单或重点排名）\n\n20261002 ｜ HKEX目录：未运行 ｜ HKEX数量未知，不是已扫描后的0候选。\n\n读取截止：2026-10-02T09:28:00+08:00；超跌参考完整交易日：20260929。盘中量价 UNKNOWN，等待独立确认；不等于买入判断。\n\n无原 owner 尝试记录，不能推定自动运行已成功。\n\n发行人范围 未知；已尝试查询 未知（有效目录响应 未知）；未尝试 未知。\n\n目录服务端翻页穷尽：UNKNOWN / 未提供；排队正文 未知。未查询、失败与零公告不同。\n\n逐发行人查询截止、待查与失败覆盖\n\n尚不能判断是否存在“此前超跌＋今日公告”。\n\n全部已观察官方文档（0，不是全市场公告总数）\n东方财富港股公告（聚合来源；不是 HKEX 官方目录）\n\nEastmoney HK 状态：PARTIAL；当前截止前读回 0 条逐篇公告，正文来自已校验的完整内容接口页，附件PDF另行保留。该来源的公告日期/显示时间按原样展示；HKEX 首次发布时间 CANNOT_CONFIRM。\n\n当前截止前没有可读回的Eastmoney逐篇公告；查看运行状态和缺口。\n\nEastmoney状态、尝试与未解缺口\nHKEX各轮窗口和未解缺口\n证据优先研究（只读，不是原筛选／focus／BUY 排名）\n\n状态 READY_WITH_GAPS；cutoff 2026-10-02T09:28:00+08:00。评分配置 20260927.research-attention.evidence-state-v2，状态 PROPOSAL_ONLY。研究排序先按证据状态，再用既有proposal分数和PIT时点打破同组并列；不写回原rank/Stage/BUY。\n\n星海科技 · HK.01234 · 公司证据，待市场确认 · 24分\n\n原量价分类：不在strict/near；原near/strict内部rank：无。\n\n研究结论：已有截止时点内的公司证据，但现有量价/趋势通道尚未确认；先等市场确认，不因事件本身升级为交易准入。\n\n为什么现在看：公司特异材料\n\n下一步核什么：等待既有 strict/near/趋势通道出现同窗确认；盘前不能用盘后或未来行情回填。\n\n什么时候降级/撤销：若公司证据被更正、主体关系失效或证明当时不可见，则撤销该公司证据优先级。\n\n查看原分数构成（仅解释，不是BUY分）\n\n证据时点：公开 未知；系统取得 2026-09-29T18:02:00+08:00。两类时间不互相替代。\n\n仍缺：NO_CUTOFF_BOUND_OFFICIAL_ANNOUNCEMENT；NO_VERIFIED_US_TO_HK_MAPPING\n\nCOMPANY_MATERIAL · 时间未知\n美股原始上涨发现（即使没有合格港股映射也保留）"
+    }
+  },
+  {
+    "case": "tampered_owner_document_target_date",
+    "request_date": "20261002",
+    "owner_document_target_trade_date": "20260929",
+    "owner_document_capture_trade_date": "20260929",
+    "owner_capture_target_trade_date": "20260929",
+    "available_at": "2026-09-29T18:02:00+08:00",
+    "mirror_observed_at": "2026-09-29T18:00:00+08:00",
+    "source_ref_count": 3,
+    "parser_result": {
+      "ok": true,
+      "ids": [],
+      "cards": [
+        "HK.01234"
+      ],
+      "relationships": 0,
+      "text": "公告来源独立研究观察（不改变两条件名单或重点排名）\n\n20261002 ｜ HKEX目录：未运行 ｜ HKEX数量未知，不是已扫描后的0候选。\n\n读取截止：2026-10-02T09:28:00+08:00；超跌参考完整交易日：20260929。盘中量价 UNKNOWN，等待独立确认；不等于买入判断。\n\n无原 owner 尝试记录，不能推定自动运行已成功。\n\n发行人范围 未知；已尝试查询 未知（有效目录响应 未知）；未尝试 未知。\n\n目录服务端翻页穷尽：UNKNOWN / 未提供；排队正文 未知。未查询、失败与零公告不同。\n\n逐发行人查询截止、待查与失败覆盖\n\n尚不能判断是否存在“此前超跌＋今日公告”。\n\n全部已观察官方文档（0，不是全市场公告总数）\n东方财富港股公告（聚合来源；不是 HKEX 官方目录）\n\nEastmoney HK 状态：PARTIAL；当前截止前读回 0 条逐篇公告，正文来自已校验的完整内容接口页，附件PDF另行保留。该来源的公告日期/显示时间按原样展示；HKEX 首次发布时间 CANNOT_CONFIRM。\n\n当前截止前没有可读回的Eastmoney逐篇公告；查看运行状态和缺口。\n\nEastmoney状态、尝试与未解缺口\nHKEX各轮窗口和未解缺口\n证据优先研究（只读，不是原筛选／focus／BUY 排名）\n\n状态 READY_WITH_GAPS；cutoff 2026-10-02T09:28:00+08:00。评分配置 20260927.research-attention.evidence-state-v2，状态 PROPOSAL_ONLY。研究排序先按证据状态，再用既有proposal分数和PIT时点打破同组并列；不写回原rank/Stage/BUY。\n\n星海科技 · HK.01234 · 公司证据，待市场确认 · 24分\n\n原量价分类：不在strict/near；原near/strict内部rank：无。\n\n研究结论：已有截止时点内的公司证据，但现有量价/趋势通道尚未确认；先等市场确认，不因事件本身升级为交易准入。\n\n为什么现在看：公司特异材料\n\n下一步核什么：等待既有 strict/near/趋势通道出现同窗确认；盘前不能用盘后或未来行情回填。\n\n什么时候降级/撤销：若公司证据被更正、主体关系失效或证明当时不可见，则撤销该公司证据优先级。\n\n查看原分数构成（仅解释，不是BUY分）\n\n证据时点：公开 未知；系统取得 2026-09-29T18:02:00+08:00。两类时间不互相替代。\n\n仍缺：NO_CUTOFF_BOUND_OFFICIAL_ANNOUNCEMENT；NO_VERIFIED_US_TO_HK_MAPPING\n\nCOMPANY_MATERIAL · 时间未知\n美股原始上涨发现（即使没有合格港股映射也保留）"
+    }
+  }
+]

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="2" time="1.022" timestamp="2026-10-02T00:58:55.291319+08:00" hostname="lexideMacBook-Pro.local"><testcase classname="" name="test_history_capture_date_is_separate_from_consumer_target" time="0.778" /><testcase classname="" name="test_wrong_owner_document_target_date_is_rejected" time="0.194"><failure message="assert True is False">browser_page = &lt;Page url='about:blank'&gt;
+
+    def test_wrong_owner_document_target_date_is_rejected(browser_page):
+        value, row = historical_workspace()
+        row['owner_document']['target_trade_date'] = CAPTURE
+        visible = tc.render(browser_page, value)
+        results = json.loads((OUT/'probe_results.json').read_text())
+        results.append(dict(case='tampered_owner_document_target_date', request_date=TARGET,
+            owner_document_target_trade_date=row['owner_document']['target_trade_date'],
+            owner_document_capture_trade_date=row['owner_document']['capture_trade_date'],
+            owner_capture_target_trade_date=row['owner_capture']['target_trade_date'],
+            available_at=row['available_at'], mirror_observed_at=row['mirror_observed_at'],
+            source_ref_count=len(row['source_refs']), parser_result=visible))
+        (OUT/'probe_results.json').write_text(json.dumps(results, ensure_ascii=False, indent=2))
+&gt;       assert visible['ok'] is False
+E       assert True is False
+
+../agents调试/MANAGER_BI_LOCAL_ACCEPTANCE_20261002/reviewer_evidence/date_probe/test_br003_target_date.py:108: AssertionError</failure></testcase></testsuite></testsuites>

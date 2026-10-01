@@ -1,0 +1,39 @@
+{
+  "final_receipt_sha256": "eccc15ac0b0574ecd0b3b4fab109c4dfa26a3ce61c07909b3bb6857eb31105a5",
+  "decision": "FAIL",
+  "junit": {
+    "red_baseline": {
+      "hash_match": true,
+      "counts": {
+        "tests": 39,
+        "failures": 14,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "green_candidate": {
+      "hash_match": true,
+      "counts": {
+        "tests": 39,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "br003_date_probe": {
+      "hash_match": true,
+      "counts": {
+        "tests": 2,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0
+      }
+    }
+  },
+  "configured_release": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/r4-stage-merged-c3e5357d07f068e79296790e0b968934c34541d579c586282c5e83f56f6a3875/app",
+  "roots": {
+    "V35_SHARED_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/workspace/v3_shared_data/.runtime/data",
+    "V4_MANAGER_SCREEN_AUTHORITY_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+    "V4_MANAGER_UNIVERSE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data"
+  }
+}

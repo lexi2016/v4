@@ -1,0 +1,211 @@
+{
+  "receipt_type": "BI_LOCAL_INDEPENDENT_REVIEW",
+  "reviewer": "bi_local_review",
+  "phase": "FINAL_REVIEW",
+  "created_at_utc": "2026-10-01T17:03:06.880599+00:00",
+  "input_commit": "d18be217a84c10c17c7b36bb7816b2ee58f14ff9",
+  "scope_sha256": "2cc450f1258c97927ce57bff0a3f65374c10d4d8e8b2fd92d92aac18060265e2",
+  "writer_receipt": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BI_LOCAL_ACCEPTANCE_20261002/writer_evidence/writer_receipt.json",
+    "sha256": "b5fe3411efd560e12a596783fa4f1997102dfd7ea8630736b4a0a7891babd41e",
+    "status": "READY_FOR_INDEPENDENT_REVIEW_NOT_FINAL_ACCEPTANCE"
+  },
+  "decision": "FAIL",
+  "risk_summary": {
+    "P0": 0,
+    "P1": 0,
+    "P2_blocking": 1,
+    "P2_advisory": 1,
+    "withdrawn_out_of_scope": 1
+  },
+  "findings": [
+    {
+      "id": "BR-003",
+      "severity": "P2",
+      "status": "CONFIRMED_CANDIDATE_BEHAVIOR",
+      "title": "Mirror owner-document target date is not bound to the requested workspace target",
+      "evidence": [
+        "application_candidate/apps/web/src/api/managerWorkspace.ts:442-452: validMirrorCompanyEvidence receives only row/start/cutoff and calls validateEastmoneyDocuments([doc], String(doc.target_trade_date), cutoff).",
+        "application_candidate/apps/web/src/api/managerWorkspace.ts:647-668: validateAttentionLaneEvidence validates COMPANY_MATERIAL through validCompanyEvidence with no workspace target date.",
+        "reviewer_evidence/date_probe/probe_results.json: request_date=20261002; legal historical capture target=20261002/capture=20260929 parses ok=true; after changing only owner_document.target_trade_date to 20260929 it still parses ok=true.",
+        "reviewer_evidence/date_probe/junit.xml: 2 tests, 1 passed and 1 failed; the failing assertion expected the tampered owner-document target to be rejected."
+      ],
+      "impact": "A mirror row with owner_document.target_trade_date inconsistent with the current workspace request can pass client validation.",
+      "required_action": "Forward the requested workspace target date into mirror company-evidence validation and reject mismatches; add this serialized-output negative case."
+    },
+    {
+      "id": "BR-001",
+      "severity": "P2_ADVISORY",
+      "status": "NON_BLOCKING_GUARD_VERIFIED",
+      "title": "Generic work_once path misuse risk is bounded by the actual task-local wrapper",
+      "evidence": [
+        "writer_evidence/local_acceptance_runner.py:11-41 allowlists application_candidate, rejects the canonical tree and configured release roots, and checks protected output paths.",
+        "writer_receipt.path_guard.candidate_exact_allowlisted_path_asserted=true; independent candidate and canonical SHA checks match."
+      ],
+      "impact": "No observed scope crossing in this batch; generic delivery/tools/work_once.py remains less guarded when invoked outside this wrapper."
+    },
+    {
+      "id": "BR-002",
+      "severity": "P2_ADVISORY",
+      "status": "WITHDRAWN_AS_BLOCKING_OUT_OF_SCOPE",
+      "title": "Full issuer-body rendering is optional under the corrected frozen target",
+      "evidence": [
+        "reviewer_evidence/STATIC_REVIEW_SCOPE_CORRECTION.json: scope_ruling and BR-002 decision."
+      ],
+      "impact": "No acceptance impact."
+    }
+  ],
+  "evidence": {
+    "candidate": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BI_LOCAL_ACCEPTANCE_20261002/application_candidate",
+      "after_sha256_matches_writer": true,
+      "after_sha256_checks": {
+        "v4/manager_research/workspace_announcements.py": {
+          "expected": "f741def292593fa07c4151b9c9f60dd3e347861be680c55427c051ca993a067c",
+          "actual": "f741def292593fa07c4151b9c9f60dd3e347861be680c55427c051ca993a067c",
+          "match": true
+        },
+        "v4/manager_research/issuer_us_relations.py": {
+          "expected": "75fdca7a3c8bc1e8f385a023d47df640f002096921d6a0f3af8ea6cc466ee00f",
+          "actual": "75fdca7a3c8bc1e8f385a023d47df640f002096921d6a0f3af8ea6cc466ee00f",
+          "match": true
+        },
+        "v4/manager_research/research_attention.py": {
+          "expected": "c77c8f2f109b018547622a5afbb0ac8c6fb0b949bab77a42190fcadea8cb5206",
+          "actual": "c77c8f2f109b018547622a5afbb0ac8c6fb0b949bab77a42190fcadea8cb5206",
+          "match": true
+        },
+        "apps/web/src/api/managerWorkspace.ts": {
+          "expected": "981e77c0024c56a2f089927db76a6dda59d399a61858beea59e639d75e9d1c42",
+          "actual": "981e77c0024c56a2f089927db76a6dda59d399a61858beea59e639d75e9d1c42",
+          "match": true
+        },
+        "apps/web/src/manager-selection/researchAttention.ts": {
+          "expected": "2490663c6002fd496212ae20cf9f7641d5070fc85cfa6170aab62d470cbaec51",
+          "actual": "2490663c6002fd496212ae20cf9f7641d5070fc85cfa6170aab62d470cbaec51",
+          "match": true
+        }
+      },
+      "canonical_pinned_before_sha256_still_matches": true,
+      "canonical_sha256_checks": {
+        "v4/manager_research/workspace_announcements.py": {
+          "expected_before": "e57fe8b069901221d3284f6b029c57f7815120a7d11b2da170138916ebb70a18",
+          "actual": "e57fe8b069901221d3284f6b029c57f7815120a7d11b2da170138916ebb70a18",
+          "match": true
+        },
+        "v4/manager_research/issuer_us_relations.py": {
+          "expected_before": "ac3b3e228c3efed4efc7447d2461ac0c63a00b1d0fa9c93a6c0a479076af0b7d",
+          "actual": "ac3b3e228c3efed4efc7447d2461ac0c63a00b1d0fa9c93a6c0a479076af0b7d",
+          "match": true
+        },
+        "v4/manager_research/research_attention.py": {
+          "expected_before": "141d95c3c58a63b8bc51d09622373e6853c89a17b279181d07a84bfeba4b3969",
+          "actual": "141d95c3c58a63b8bc51d09622373e6853c89a17b279181d07a84bfeba4b3969",
+          "match": true
+        },
+        "apps/web/src/api/managerWorkspace.ts": {
+          "expected_before": "139d9e4c3b4ef8b9071ee371b5f3839c10d27bcdd3c707a20553976b197b19c9",
+          "actual": "139d9e4c3b4ef8b9071ee371b5f3839c10d27bcdd3c707a20553976b197b19c9",
+          "match": true
+        },
+        "apps/web/src/manager-selection/researchAttention.ts": {
+          "expected_before": "564aa856a92f31c9fba2d4f1cd7f28d8a15a6d976df7436bf187d8fdac3b10f4",
+          "actual": "564aa856a92f31c9fba2d4f1cd7f28d8a15a6d976df7436bf187d8fdac3b10f4",
+          "match": true
+        }
+      },
+      "only_five_candidate_content_changes": true
+    },
+    "independent_tests": {
+      "red_baseline": {
+        "junit_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BI_LOCAL_ACCEPTANCE_20261002/reviewer_evidence/red_baseline/junit.xml",
+        "junit_sha256": "fe21f11e6b969091339940ecb7740809ef2f700650c857b76c23cef1090eacc5",
+        "summary": {
+          "tests": 39,
+          "failures": 14,
+          "errors": 0,
+          "skipped": 0
+        },
+        "exit_code": 1,
+        "result": "EXPECTED_TARGET_BEHAVIOR_FAILURES_WITH_DEPS_AVAILABLE"
+      },
+      "green_candidate": {
+        "junit_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BI_LOCAL_ACCEPTANCE_20261002/reviewer_evidence/green/junit.xml",
+        "junit_sha256": "4a61d642e91f24bf4890a410dc6eae8cd41d336b3ab05ff0f2407ff0ccbe7388",
+        "summary": {
+          "tests": 39,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "exit_code": 0,
+        "result": "39_CASES_PASS"
+      },
+      "br003_date_probe": {
+        "script_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BI_LOCAL_ACCEPTANCE_20261002/reviewer_evidence/date_probe/test_br003_target_date.py",
+        "script_sha256": "738e3c4731322f73aebc58ae495c6c39ff46393871860fa8698346e6e6194d23",
+        "results_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BI_LOCAL_ACCEPTANCE_20261002/reviewer_evidence/date_probe/probe_results.json",
+        "results_sha256": "213eecb02734d243663dd5bf2e52d71b7f21b1ab05ce944f92be5f927b05cc1b",
+        "junit_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BI_LOCAL_ACCEPTANCE_20261002/reviewer_evidence/date_probe/junit.xml",
+        "junit_sha256": "f51dbb740c30c41952ddbf739d49664a4e2903fdbfba461fc9b70f5d5c6f4079",
+        "summary": {
+          "tests": 2,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 0
+        },
+        "exit_code": 1,
+        "cases": [
+          {
+            "case": "legal_historical_capture",
+            "request_date": "20261002",
+            "owner_document_target_trade_date": "20261002",
+            "owner_document_capture_trade_date": "20260929",
+            "owner_capture_target_trade_date": "20260929",
+            "parser_ok": true,
+            "parser_error": null
+          },
+          {
+            "case": "tampered_owner_document_target_date",
+            "request_date": "20261002",
+            "owner_document_target_trade_date": "20260929",
+            "owner_document_capture_trade_date": "20260929",
+            "owner_capture_target_trade_date": "20260929",
+            "parser_ok": true,
+            "parser_error": null
+          }
+        ],
+        "result": "LEGAL_HISTORY_ACCEPTED; TAMPERED_OWNER_TARGET_ALSO_ACCEPTED"
+      }
+    },
+    "scope_correction": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BI_LOCAL_ACCEPTANCE_20261002/reviewer_evidence/STATIC_REVIEW_SCOPE_CORRECTION.json",
+      "sha256": "261c30ff8e47f0065f478d2bd655566a0deb525d947a781b457e7d041936d643"
+    },
+    "invalid_probe_attempts_excluded": [
+      "Initial reviewer invocations failed before collection due incorrect PYTHONPATH and missing BI_APP. An early fixture hit an unrelated decision validator error; the final probe removed the unrelated US-mapping lane and the legal-history acceptance case passed."
+    ]
+  },
+  "acceptance": {
+    "PASS_SIGNAL": "Five exact after hashes; no unrelated isolated source changes; independent actual local 39-case pass with zero errors/skips plus source review PASS and target behavior receipt; red baseline reproduces behavior failures, not missing dependencies",
+    "independent_39_case_replay": "PASS",
+    "red_baseline": "PASS_EXPECTED_FAILURES",
+    "source_review": "FAIL_BR003",
+    "target_behavior_receipt": "FAIL_BR003",
+    "overall": "FAIL"
+  },
+  "status": {
+    "IMPLEMENTED": "ISOLATED_CANDIDATE_PRESENT",
+    "TESTED": "PASS_39_CASE_GREEN_AND_EXPECTED_RED; BR003_NEGATIVE_PROBE_FAILED",
+    "REVIEWED": "FAIL_BR003",
+    "BEHAVIOR_VERIFIED": "FAIL_BR003_WRONG_TARGET_ACCEPTED",
+    "DEPLOYED": "NOT_RUN",
+    "API_VERIFIED": "NOT_RUN",
+    "UI_VERIFIED": "NOT_RUN",
+    "NATURAL_VERIFIED": "NOT_RUN",
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_and_live_behavior": "CANNOT_CONFIRM; not run and outside frozen scope"
+  }
+}

@@ -1,0 +1,199 @@
+{
+  "observed_at": "2026-10-01T17:11:39.160915+00:00",
+  "url": "http://127.0.0.1:8873/api/v4/manager/research/workspace?date=20261002&view=auto",
+  "status": 200,
+  "sha256": "c27bf3be33aa9657f209bd59a68e466554a1b427d04ba38b2d5b0d698a747454",
+  "bytes": 17680649,
+  "read_context": {
+    "mode": "CURRENT_DYNAMIC_PREVIEW",
+    "status": "VERIFIED_WITH_GAPS",
+    "as_of": "2026-10-02T01:11:37.307241+08:00",
+    "candidate_count_known": false,
+    "contract": "20260923.workspace-history-read.r1"
+  },
+  "summary": {
+    "stock_count": 0,
+    "relation_count": 0,
+    "theme_count": 4,
+    "reused_material_count": 2016,
+    "formal_recommendation_count": 0,
+    "focus_count": 0,
+    "input_relation_count": 0,
+    "rejected_fragment_count": 1015,
+    "market_screen_strict_count": 0,
+    "market_screen_near_count": 0,
+    "market_screen_card_count": 0
+  },
+  "existing_material_coverage": {
+    "window_dates": [
+      "20260929",
+      "20260930",
+      "20261001",
+      "20261002"
+    ],
+    "attempted_artifact_count": 33,
+    "verified_artifact_count": 30,
+    "material_count": 2016,
+    "global_market_coverage": "NOT_ESTABLISHED",
+    "vibe_binding": {
+      "schema_version": "v4.manager_research.vibe_binding_preflight.v1",
+      "source_contract": "A_SHARE_AGGREGATED_REVIEW_CONTEXT_ONLY",
+      "hk_candidate_coverage": "NOT_PROVIDED_BY_VIBE_A_SHARE_REVIEW_CONTRACT",
+      "network_requests": 0,
+      "writes": 0,
+      "required_inputs": [
+        "binding_json",
+        "implementation_manifest_sha256",
+        "input_sha256_by_date:20260929",
+        "input_sha256_by_date:20260930"
+      ],
+      "verified_dates": [],
+      "gaps": [
+        "VIBE_EXACT_INPUT_SHA_NOT_BOUND:20260929",
+        "VIBE_EXACT_INPUT_SHA_NOT_BOUND:20260930",
+        "VIBE_OWNER_READ_FAILED:20260929",
+        "VIBE_OWNER_READ_FAILED:20260930"
+      ],
+      "status": "SOURCE_FAILED",
+      "market_scope": "A_SHARE_ONLY",
+      "calendar_owner": "contracts.trading_calendar / a_share",
+      "calendar_status": "VERIFIED",
+      "calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+      "a_share_session_dates": [
+        "20260929",
+        "20260930"
+      ],
+      "excluded_dates": [
+        "20261001",
+        "20261002"
+      ],
+      "unknown_calendar_dates": [],
+      "owner_verification_status": "FAILED",
+      "usable_context_available": false,
+      "projected_material_count": 0,
+      "material_count": 0,
+      "projection_counts_by_date": {},
+      "context_dates": [],
+      "empty_dates": [],
+      "projection_empty_dates": [],
+      "availability_reason": null
+    },
+    "excluded_after_cutoff_count": 0,
+    "vibe_radar_snapshot": {
+      "status": "NOT_APPLICABLE",
+      "material_count": 0,
+      "plan_trade_date": "20260929",
+      "projected_material_count": 0,
+      "included_material_count": 0,
+      "excluded_after_cutoff_count": 0,
+      "network_requests": 0
+    },
+    "plan_trade_date": "20261002",
+    "research_cutoff": "2026-10-02T01:11:37.307241+08:00",
+    "market_session": "20260930"
+  },
+  "plan_product": {
+    "status": "STALE_INPUTS_CHANGED",
+    "run_id": "e2d05c8ecfdb4fd78c037502c736ba35",
+    "generated_at": "2026-09-30T09:21:01.822912+00:00",
+    "sha256": "5ea4815a285c9a421c1d6943acbf1a2e1a4262d89a4a6e2755452ae30b4397b7",
+    "execution_kind": "MANUAL_REFRESH",
+    "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
+    "last_checked_at": "2026-10-02T01:11:37.307241+08:00",
+    "consumed": false
+  },
+  "material_discovery_coverage": {
+    "material_record_count": 2016,
+    "identity_row_count": 696,
+    "mapped_stock_count": 16,
+    "target_connect_card_count": 0
+  },
+  "membership": {
+    "status": "CANNOT_CONFIRM",
+    "target_trade_date": "20261002",
+    "codes": [],
+    "source": null,
+    "identity": null,
+    "gaps": [
+      "HK_CONNECT_TARGET_AUTHORITY_UNVERIFIED:HK_UNIVERSE_V2_ARTIFACT_MISSING"
+    ],
+    "read_only": true,
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "authority_reader_binding": {
+      "mode": "EXPLICIT_SOURCE_PIN",
+      "owner_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app",
+      "source_code_ref": "stage_center/hk_universe_preflight.py",
+      "source_code_sha256": "9d3d2c2d5ff3bd1c7713a9485e88000ae882f58b0a457b734656094606ba2941"
+    },
+    "authority_diagnostic": {
+      "schema_version": "v4.manager_close_failure.v1",
+      "layer": "UNIVERSE_ARTIFACT",
+      "kind": "MISSING",
+      "code": "HK_UNIVERSE_V2_ARTIFACT_MISSING",
+      "field": "artifact_ref",
+      "artifact_ref": "universes/20261002/HK_CONNECT_FULL_MARKET.json",
+      "source_owner": "stage_center.hk_universe_preflight.validate_captured_hk_connect_membership_v2",
+      "source_code_ref": "stage_center/hk_universe_preflight.py",
+      "source_code_sha256": "9d3d2c2d5ff3bd1c7713a9485e88000ae882f58b0a457b734656094606ba2941",
+      "producer_owner": "v35_dispatcher.research_panel_daily_hk"
+    }
+  },
+  "rejection_counts": {
+    "EASTMONEY_HK_DISPLAY_TIME_OUTSIDE_CONSUMER_WINDOW": 2,
+    "ACTION_REFERENT_UNRESOLVED": 220,
+    "NO_SUBJECT_LOCAL_ACTION_OR_RESEARCH_CLAIM": 340,
+    "PUBLISHER_OR_ANALYST_NOT_SUBJECT": 122,
+    "FILE_LOCATOR_OR_BODY_MISSING": 231,
+    "MENTIONED_PEER_LIST_NOT_SUBJECT": 24,
+    "SUBJECT_NOT_IN_BODY": 9,
+    "REPORT_OR_MEETING_LOCATOR_NOT_BUSINESS_CLAIM": 2,
+    "TARGET_HK_CONNECT_MEMBERSHIP_UNVERIFIED": 67
+  },
+  "us_relations": {
+    "status": "COMPUTED_BY_RELATION_LAYER",
+    "source_material_card_count": 0,
+    "missing_input": "FULL_VERIFIED_MATERIAL_CARDS_REQUIRED",
+    "mapping_eligible": true,
+    "accepted_hk_mapping_count": 0
+  },
+  "announcement": {
+    "status": "PARTIAL",
+    "native_master_count": 696,
+    "queried_issuer_count": 15,
+    "pending_issuer_count": 681,
+    "failed_issuer_count": 8,
+    "observed_document_count": 10,
+    "event_group_count": 7,
+    "all_official_announcements_captured": false,
+    "eastmoney_hk_status": "NOT_RUN",
+    "eastmoney_hk_document_count": 0
+  },
+  "us_market": {
+    "status": "PARTIAL",
+    "coverage": {
+      "industry_proxy_count": 24,
+      "requested_symbol_count": 33,
+      "available_symbol_count": 33
+    },
+    "captured_at": "2026-09-30T20:15:00Z",
+    "raw_industry_up_count": 6,
+    "raw_individual_up_count": 9
+  },
+  "screen": {
+    "status": "READY_WITH_GAPS",
+    "coverage": {
+      "input_candidate_count": 689,
+      "history_complete_count": 0,
+      "history_pending_count": 689,
+      "strict_count": 0,
+      "near_candidate_count": 0,
+      "near_count": 0,
+      "selected_count": 0,
+      "panel_row_count": 455252,
+      "panel_code_count": 716
+    }
+  }
+}
