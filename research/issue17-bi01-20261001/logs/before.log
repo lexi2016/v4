@@ -1,0 +1,47 @@
+ file:///tmp/bi01-replay-before/app/apps/web/src/api/managerWorkspace.ts:268
+      throw new Error('EASTMONEY_HK_DOCUMENT_IDENTITY_INVALID');
+            ^
+
+Error: EASTMONEY_HK_DOCUMENT_IDENTITY_INVALID
+    at validateAnnouncementObservation (file:///tmp/bi01-replay-before/app/apps/web/src/api/managerWorkspace.ts:268:13)
+    at file:///workspace/v4/research/issue17-bi01-20261001/tests/validate.mjs:7:15
+
+Node.js v24.19.0
+
+F....
+=================================== FAILURES ===================================
+_________________ test_original_store_to_ts_validator_and_dom __________________
+
+scenario = ((namespace(store=<v4.manager_research.store.ManagerResearchStore object at 0x7f6366378bc0>, _material_store=<v4.manag...': '20260929', 'focus_window_start': '2026-09-28T16:10:00+08:00', 'research_cutoff': '2026-09-30T08:00:00+08:00', ...})
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-7/test_original_store_to_ts_vali0')
+
+    def test_original_store_to_ts_validator_and_dom(scenario,tmp_path):
+        wired,first=scenario;svc,p,clock=wired
+        before=snapshot(svc.store.root);calls=len(p.calls)
+        history=read_history(svc,'20260930',context(wired))
+        assert len(history['captures'])==4,history['gaps']
+        assert len(history['documents'])==3
+        review=ann.read(svc,'20260930',context(wired))
+        lane=event_lane(review,{},context(wired))
+        assert len(lane['eastmoney_hk_documents'])==3
+        payload=tmp_path/'lane.json';payload.write_text(json.dumps(lane,ensure_ascii=False))
+        result=subprocess.run(['node',str(Path(__file__).with_name('validate.mjs')),os.environ['BI01_APP'],str(payload)],capture_output=True,text=True)
+        print(result.stdout,result.stderr)
+>       assert result.returncode==0,result.stdout+result.stderr
+E       AssertionError: file:///tmp/bi01-replay-before/app/apps/web/src/api/managerWorkspace.ts:268
+E               throw new Error('EASTMONEY_HK_DOCUMENT_IDENTITY_INVALID');
+E                     ^
+E         
+E         Error: EASTMONEY_HK_DOCUMENT_IDENTITY_INVALID
+E             at validateAnnouncementObservation (file:///tmp/bi01-replay-before/app/apps/web/src/api/managerWorkspace.ts:268:13)
+E             at file:///workspace/v4/research/issue17-bi01-20261001/tests/validate.mjs:7:15
+E         
+E         Node.js v24.19.0
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['node', '/workspace/v4/research/issue17-bi01-20261001/tests/validate.mjs', '/tmp/bi01-replay-be....ts:268:13)\n    at file:///workspace/v4/research/issue17-bi01-20261001/tests/validate.mjs:7:15\n\nNode.js v24.19.0\n").returncode
+
+/workspace/v4/research/issue17-bi01-20261001/tests/test_instance.py:57: AssertionError
+=========================== short test summary info ============================
+FAILED ../../dev/test_instance.py::test_original_store_to_ts_validator_and_dom
+1 failed, 4 passed in 0.71s

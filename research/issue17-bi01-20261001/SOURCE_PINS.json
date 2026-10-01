@@ -1,0 +1,31 @@
+{
+  "product_before_commit": "95426ac3db39f6d86ec2031617c4ac180d40868e",
+  "product_before_root": "research/manager-r9-consumer-r1-20260930/final_business_20260930/after/app",
+  "frontend_commit": "bdc95a3f9d6d0313baeff2bf727ea82d122dc820",
+  "files": [
+    {
+      "path": "v4/manager_research/eastmoney_run_history.py",
+      "before_sha256": "6bc723062141cf98681da460af37b73f74da208c682c1ee76a6d55b1a4570e8d",
+      "after_sha256": "6bc723062141cf98681da460af37b73f74da208c682c1ee76a6d55b1a4570e8d",
+      "changed": false
+    },
+    {
+      "path": "v4/manager_research/workspace_announcements.py",
+      "before_sha256": "e2e7bd7f00da4f1e1df0b169307ff225976c1572bbbf9ccc2d3618c59f46248a",
+      "after_sha256": "43143536d34f520aac01550cea0d2c7141f3cd346174c5622ef092434cbdc689",
+      "changed": true
+    }
+  ],
+  "runtime_patch_sha256": "bc134ed08aa2f99df566b6d6e3276aba750458a8eb78b46ab43d4fce199ba51b",
+  "preserve": {
+    "v4/manager_research/workspace.py": "35c9292d3b422c9d5a744590cc472de5bfa2da8a62d12c6382ca0d1a9b3a6168",
+    "v4/manager_research/workspace_discovery.py": "ed9188a44a4adb6bf2fd08836d465ed3ea7e7d2b8dd7075da99b7aaabc5c5c1a",
+    "v4/manager_research/workspace_plan.py": "0721e90fcc5c261545a23e1aca1545b48077956a312a3c4cfe703f11aa4023f9",
+    "v4/manager_research/workspace_semantics.py": "dc8d1d330e4fdacf2ef7169a7ac62874bfd3e2658f8b4bcff0773e06e32c4f7f",
+    "v4/manager_research/workspace_briefing.py": "60a7942e6c2c6a8ed32099ec807c79c35fa393342ed59996798f21da12466ff6",
+    "v4/manager_research/research_evidence.py": "6a0075aeba1ec68c14ee5ec09f0290c6bbcd49e296fe76fa3ae17a03510c6ec2",
+    "v4/manager_research/announcement_materials.py": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+    "v4/manager_research/connect_selection.py": "b6c5300172f59b6979dbab15927036ff1ab3599a2adae2b4f0e5a1e4868a6248",
+    "v4/manager_research/workspace_plan_autorun.py": "e785ae1d465175bec0517e7c3b4a8d6e16593967cba554aa0428817a85cd079b"
+  }
+}

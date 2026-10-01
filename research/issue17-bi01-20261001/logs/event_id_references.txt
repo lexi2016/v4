@@ -1,0 +1,88 @@
+v4/manager_research/workspace_semantics.py:80:    return str(value.get('card_id') or value.get('material_id') or value.get('event_id') or digest(value))
+apps/web/src/views/ManagerSelectionView.vue:929:    id: `event-${catalystText(event.event_id || sourceUrl || event.source_title)}`,
+v4/manager_research/workspace_projection.py:95:        for key in ('origin_event_id', 'event_id'):
+v4/manager_research/workspace_projection.py:357:        s['confirmed_independent_event_count'] = len({e['origin_event_id'] for g in groups for e in g
+v4/manager_research/workspace_projection.py:358:            if e.get('origin_event_id') and e.get('origin_verification') == 'OWNER_VERIFIED'})
+apps/api/v35_api/research_lane_router.py:344:            last_event_id = str(request.query_params.get("since") or "")
+apps/api/v35_api/research_lane_router.py:351:                event_id = str((event or {}).get("event_id") or "")
+apps/api/v35_api/research_lane_router.py:352:                if event_id and event_id != last_event_id:
+apps/api/v35_api/research_lane_router.py:353:                    last_event_id = event_id
+apps/api/v35_api/research_lane_router.py:367:                    yield f"id: {event_id}\nevent: research_generation_completed\ndata: {json.dumps(payload, ensure_ascii=False)}\n\n"
+apps/web/src/components/research/ResearchImpactList.vue:27:          <div v-for="event in (row._timeline ?? []).slice(0, 3)" :key="text(event.event_id)" class="stock-timeline-event">
+apps/web/src/views/ManagerSelectionView.spec.ts:49:  event_id: "EVENT_AKESO",
+apps/web/src/views/ManagerSelectionView.spec.ts:96:    event_id: `EVENT_RESEARCH_${code}`,
+apps/web/src/views/ManagerSelectionView.spec.ts:1166:  event_id: "EVENT_RESEARCH_5",
+apps/web/src/views/ManagerSelectionView.spec.ts:2921:      event_id: "event-1",
+apps/web/src/views/ManagerSelectionView.spec.ts:2947:      event_id: "event-directory-only",
+apps/web/src/views/ManagerSelectionView.spec.ts:2966:      event_id: "event-unknown-source",
+apps/web/src/views/ManagerSelectionView.spec.ts:3187:      event_id: id,
+apps/api/v35_api/_review_router_parts/hk_prefix_asset.py:351:        event_id = _v4_global(_v4_scope, 'str')(row.get("event_series_id") or "")
+apps/api/v35_api/_review_router_parts/hk_prefix_asset.py:353:        if event_id not in mapping_by_series or _v4_global(_v4_scope, 'len')(control_ids) != 3 or _v4_global(_v4_scope, 'any')(item not in mapping_by_series for item in control_ids):
+apps/api/v35_api/_review_router_parts/hk_prefix_asset.py:355:        event_mapping = mapping_by_series[event_id]
+v4/manager_research/workspace_discovery.py:36:            cards.append(dict(card_id=digest([date,symbol,event['event_id'],membership.get('sha256')]),
+v4/manager_research/workspace_discovery.py:37:                event_id=event['event_id'],market='HK_CONNECT',symbol=symbol,name=symbol,title=event['title'],
+v4/manager_research/workspace_discovery.py:293:                event_id='material:'+str(material.get('original_article_id') or material_id),
+apps/api/v35_api/_research_lane_router_parts/response_primitives.py:60:        "event_id": "",
+apps/web/src/manager-selection/announcementObservation.ts:16:  const details=element('details');details.dataset.announcementSource=String(doc.event_id);
+apps/web/src/manager-selection/announcementObservation.ts:78:    const article=element('article');article.dataset.eastmoneyAnnouncement=String(doc.event_id);
+apps/web/src/manager-selection/announcementObservation.ts:82:    const body=element('details');body.dataset.eastmoneyBody=String(doc.event_id);
+apps/api/v35_api/_research_lane_router_parts/lane_response.py:12:            "event_id": article["article_id"],
+v4/manager_research/workspace_briefing.py:65:                event_id=material.get('original_article_id') or material.get('event_id'),
+v4/manager_research/workspace_briefing.py:264:                        'source_url':evidence.get('source_url'),'event_id':evidence.get('event_id'),
+v4/manager_research/workspace_briefing.py:334:        groups=event_groups([{**f,'event_id':f.get('event_id') or f['evidence_id']} for f in frags])
+v4/manager_research/workspace_announcements.py:634:            event_id=digest([doc['source'],doc['code'],row['art_code'],doc['body_sha256']]),
+v4/manager_research/workspace_announcements.py:683:            groups[group_id]=dict(symbol=doc['code'],name=doc['name'],event_id=group_id,
+v4/manager_research/workspace_announcements.py:697:        official.append(dict(symbol=doc['code'],name=doc['name'],event_id=digest([doc['code'],row['url']]),
+v4/manager_research/workspace_announcements.py:708:            eid=group['event_id'];pid=digest([eid,claim])
+apps/web/src/api/managerWorkspace.ts:234:    if(!/^HK\.\d{5}$/.test(String(doc.symbol)) || !/^[0-9a-f]{64}$/.test(String(doc.event_id)) ||
+apps/web/src/api/managerWorkspace.ts:235:        ids.has(String(doc.event_id)) || typeof doc.title!=='string' || !doc.title)
+apps/web/src/api/managerWorkspace.ts:237:    ids.add(String(doc.event_id));officialUrl(doc.source_url);
+apps/web/src/api/managerWorkspace.ts:258:        !/^[0-9a-f]{64}$/.test(String(doc.event_id))||eastIds.has(String(doc.event_id))||
+apps/web/src/api/managerWorkspace.ts:269:    eastIds.add(String(doc.event_id));
+apps/web/src/api/managerWorkspace.ts:335:    const original=value.official_documents.find(d=>d.event_id===row.event_id);
+apps/web/src/manager-selection/__tests__/announcementObservation.spec.ts:14:      event_id:'a'.repeat(64),symbol:'HK.00700',name:'腾讯控股',title:'翌日披露报表 - 已发行股份变动及股份购回',
+v4/manager_research/service.py:1394:                event_key = str(event.get("event_id") or event.get("source_url") or event.get("source_title") or "")
+v4/manager_research/service.py:1407:                        str(event.get("event_id") or event.get("source_url") or event.get("source_title") or ""),
+apps/web/src/manager-selection/__tests__/workspaceAfterReadback.spec.ts:21:      const article = host.querySelector(`[data-eastmoney-announcement="${doc.event_id}"]`)!;
+v4/manager_research/research_evidence.py:186:        identity = str(raw.get("event_id") or raw.get("document_sha256") or "")
+v4/manager_research/research_evidence.py:224:        identity=str(raw.get('evidence_id') or raw.get('card_id') or raw.get('event_id') or digest(raw))
+apps/web/src/manager-selection/__tests__/businessCompletionR3.spec.ts:59:        eastmoney_hk_documents:[{event_id:'a'.repeat(64)}],
+v4/manager_research/catalyst_observations.py:276:def _card(event, relation, sources, *, date, available, supplemental, event_id):
+v4/manager_research/catalyst_observations.py:285:    return dict(card_id=sha256_json([date, event_id, relation.get('symbol') if relation else None]),
+v4/manager_research/catalyst_observations.py:286:                event_id=event_id, title=event['title'], symbol=relation.get('symbol') if relation else None,
+v4/manager_research/catalyst_observations.py:307:                                   event_id=sha256_json([checked['bundle_sha256'], event['event_key']])))
+v4/manager_research/catalyst_observations.py:374:            gaps.append('NEWS_SOURCE_URL_MISSING:' + event.event_id)
+v4/manager_research/catalyst_observations.py:379:            gaps.append('NEWS_SOURCE_URL_INVALID:' + event.event_id)
+v4/manager_research/catalyst_observations.py:382:            gaps.append('NEWS_THEME_MAPPING_MISSING:' + event.event_id)
+v4/manager_research/catalyst_observations.py:391:                           supplemental=False, event_id=event.event_id))
+v4/manager_research/evidence_identity.py:78:def event_identity(symbol: str, row: Mapping[str, Any]) -> str:
+v4/manager_research/evidence_identity.py:86:    fallback=str(row.get("original_article_id") or row.get("event_id") or row.get("evidence_id") or row.get("card_id") or row.get("material_id") or "")
+v4/manager_research/evidence_identity.py:104:        identity=event_identity(symbol,row)
+v4/manager_research/evidence_identity.py:111:        base["canonical_event_id"]=identity
+v4/manager_research/evidence_identity.py:116:                "event_id":value.get("event_id"),"evidence_id":value.get("evidence_id"),
+v4/manager_research/evidence_identity.py:129:__all__=["acquired_at","acquisition_is_within_window","acquisition_timestamps","event_identity","merge_event_rows"]
+v4/manager_research/event_source.py:260:    ``event_id`` is the source identity when it is present.  Older rows and
+v4/manager_research/event_source.py:266:    event_id = str(event.get("event_id") or "").strip()
+v4/manager_research/event_source.py:267:    if event_id:
+v4/manager_research/event_source.py:268:        return f"id:{event_id}"
+v4/manager_research/event_source.py:273:def _event_identity_matches(left: Mapping[str, Any], right: Mapping[str, Any]) -> bool:
+v4/manager_research/event_source.py:276:    left_id = str(left.get("event_id") or "").strip()
+v4/manager_research/event_source.py:277:    right_id = str(right.get("event_id") or "").strip()
+v4/manager_research/event_source.py:288:    for field in ("event_id", "source_url", "url", "source_sha256", "source_id", "title"):
+v4/manager_research/event_source.py:600:    event_id = sha256(canonical_json({"url": source_url, "sha256": source_sha256})).hexdigest()[:24]
+v4/manager_research/event_source.py:604:        "event_id": event_id,
+v4/manager_research/event_source.py:814:                "event_id": sha256(canonical_json({"url": url, "title": directory_row.get("title")})).hexdigest()[:24],
+v4/manager_research/event_source.py:1554:                    "event_id": sha256(canonical_json({"url": source_url, "sha256": body_sha, "title": source_title})).hexdigest()[:24],
+v4/manager_research/event_source.py:1607:                    "event_id": sha256(canonical_json({"url": source_url, "sha256": body_sha, "title": source_title})).hexdigest()[:24],
+v4/manager_research/event_source.py:1669:                    "event_id": sha256(canonical_json({"url": source_url, "title": source_title})).hexdigest()[:24],
+v4/manager_research/event_source.py:1853:                    if not any(_event_identity_matches(existing, event) for existing in event_list):
+v4/manager_research/announcement_autorun.py:316:                identity = row.get('proposition_id') or row.get('event_id') or digest(row)
+v4/manager_research/catalyst_projection.py:221:                str(event.get("event_id") or event.get("source_url") or event.get("source_title") or ""): event
+v4/manager_research/catalyst_projection.py:228:                        by_key.get(str(item.get("event_id") or item.get("source_url") or item.get("source_title") or ""), dict(item))
+v4/manager_research/workspace.py:56:            verified_documents=[dict(event_id=doc.get('event_id'),symbol=doc.get('symbol'),
+v4/manager_research/connect_selection.py:104:                event_id=raw.get('event_id'),art_code=raw.get('art_code'),reason=reason,
+apps/web/src/contracts/_selection_parts/types.ts:40:  event_id?: string;
+v4/manager_research/announcement_materials.py:94:        original_article_id=doc['event_id'],title=doc['title'],source_kind=SOURCE_KIND,
+apps/web/src/contracts/_selection_parts/schema.ts:91:  "event_id",
+apps/web/src/contracts/_selection_parts/evidence.ts:112:    "event_id",
+apps/web/src/contracts/_selection_parts/evidence.ts:174:  if (value.event_stock_link_id !== `${value.event_id}|${expectedCandidateId}`) {

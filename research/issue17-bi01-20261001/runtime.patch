@@ -1,0 +1,13 @@
+--- a/v4/manager_research/workspace_announcements.py
++++ b/v4/manager_research/workspace_announcements.py
+@@ -629,7 +629,9 @@
+                 or row['ann_type']!='H' or doc.get('source')!='EASTMONEY_HK'):
+             raise ValueError('EASTMONEY_HK_PROJECTED_IDENTITY_INVALID')
+         out.append(dict(schema_version='v4.manager_research.eastmoney_hk_document.v2',
+-            symbol=doc['code'],name=doc['name'],event_id=digest(['EASTMONEY_HK',row['art_code']]),
++            # Stable document instance: repeat captures share ID; issuer/body revisions do not.
++            symbol=doc['code'],name=doc['name'],
++            event_id=digest([doc['source'],doc['code'],row['art_code'],doc['body_sha256']]),
+             source='EASTMONEY_HK',source_identity='EASTMONEY_HK_MIRROR_NOT_HKEX_OFFICIAL',
+             market_code='116',stock_code=row['stock_code'],ann_type='H',art_code=row['art_code'],
+             title=row['title'],notice_date=row['notice_date'],display_time=row['display_time'],
