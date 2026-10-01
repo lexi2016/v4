@@ -1,0 +1,120 @@
+FFFFFFFFFFF.........................FFF                                  [100%]
+=================================== FAILURES ===================================
+__________ test_python_output_original_parser_and_dom[multi_instance] __________
+mnt/data/bi_fix/tests/test_cross_boundary.py:68: in test_python_output_original_parser_and_dom
+    assert view['ok'], view
+E   AssertionError: {'error': 'EASTMONEY_HK_DOCUMENT_IDENTITY_INVALID', 'ok': False}
+E   assert False
+_________ test_python_output_original_parser_and_dom[repeat_instance] __________
+mnt/data/bi_fix/tests/test_cross_boundary.py:68: in test_python_output_original_parser_and_dom
+    assert view['ok'], view
+E   AssertionError: {'error': 'EASTMONEY_HK_DOCUMENT_IDENTITY_INVALID', 'ok': False}
+E   assert False
+___________ test_python_output_original_parser_and_dom[two_issuers] ____________
+mnt/data/bi_fix/tests/test_cross_boundary.py:68: in test_python_output_original_parser_and_dom
+    assert view['ok'], view
+E   AssertionError: {'error': 'EASTMONEY_HK_DOCUMENT_IDENTITY_INVALID', 'ok': False}
+E   assert False
+__________ test_python_output_original_parser_and_dom[native_current] __________
+mnt/data/bi_fix/tests/test_cross_boundary.py:68: in test_python_output_original_parser_and_dom
+    assert view['ok'], view
+E   AssertionError: {'error': 'WORKSPACE_RESEARCH_ATTENTION_DECISION_INVALID', 'ok': False}
+E   assert False
+_________ test_python_output_original_parser_and_dom[native_industry] __________
+mnt/data/bi_fix/tests/test_cross_boundary.py:68: in test_python_output_original_parser_and_dom
+    assert view['ok'], view
+E   AssertionError: {'error': 'WORKSPACE_RESEARCH_ATTENTION_DECISION_INVALID', 'ok': False}
+E   assert False
+________ test_python_output_original_parser_and_dom[native_individual] _________
+mnt/data/bi_fix/tests/test_cross_boundary.py:68: in test_python_output_original_parser_and_dom
+    assert view['ok'], view
+E   AssertionError: {'error': 'WORKSPACE_RESEARCH_ATTENTION_DECISION_INVALID', 'ok': False}
+E   assert False
+_____________ test_python_output_original_parser_and_dom[standing] _____________
+mnt/data/bi_fix/tests/test_cross_boundary.py:68: in test_python_output_original_parser_and_dom
+    assert view['ok'], view
+E   AssertionError: {'error': 'WORKSPACE_RESEARCH_ATTENTION_DECISION_INVALID', 'ok': False}
+E   assert False
+__________ test_python_output_original_parser_and_dom[mixed_issuers] ___________
+mnt/data/bi_fix/tests/test_cross_boundary.py:68: in test_python_output_original_parser_and_dom
+    assert view['ok'], view
+E   AssertionError: {'error': 'WORKSPACE_RESEARCH_ATTENTION_DECISION_INVALID', 'ok': False}
+E   assert False
+______________ test_python_output_original_parser_and_dom[mirror] ______________
+mnt/data/bi_fix/tests/test_cross_boundary.py:68: in test_python_output_original_parser_and_dom
+    assert view['ok'], view
+E   AssertionError: {'error': 'WORKSPACE_RESEARCH_ATTENTION_DECISION_INVALID', 'ok': False}
+E   assert False
+_______ test_python_output_original_parser_and_dom[mirror_company_only] ________
+mnt/data/bi_fix/tests/test_cross_boundary.py:68: in test_python_output_original_parser_and_dom
+    assert view['ok'], view
+E   AssertionError: {'error': 'WORKSPACE_RESEARCH_ATTENTION_DECISION_INVALID', 'ok': False}
+E   assert False
+_________ test_python_output_original_parser_and_dom[risk_explanation] _________
+mnt/data/bi_fix/tests/test_cross_boundary.py:68: in test_python_output_original_parser_and_dom
+    assert view['ok'], view
+E   AssertionError: {'error': 'WORKSPACE_RESEARCH_ATTENTION_DECISION_INVALID', 'ok': False}
+E   assert False
+_________ test_bi01_same_instance_identity_stable_across_capture_time __________
+mnt/data/bi_fix/tests/test_cross_boundary.py:126: in test_bi01_same_instance_identity_stable_across_capture_time
+    assert len({a['event_id'],c['event_id'],d['event_id']})==3
+E   AssertionError: assert 1 == 3
+E    +  where 1 = len({'8c1ebe9a8fd4ad3b4d59ac34d3faf29f4c20fbef6fa2115a876f06fa19864708'})
+_________ test_instance_id_propagates_material_and_dom_source_identity _________
+mnt/data/bi_fix/tests/test_cross_boundary.py:131: in test_instance_id_propagates_material_and_dom_source_identity
+    assert len({d['event_id'] for d in docs})==2
+E   AssertionError: assert 1 == 2
+E    +  where 1 = len({'8c1ebe9a8fd4ad3b4d59ac34d3faf29f4c20fbef6fa2115a876f06fa19864708'})
+_______ test_python_preserves_canonical_lane_labels_and_relation_claims ________
+mnt/data/bi_fix/tests/test_cross_boundary.py:142: in test_python_preserves_canonical_lane_labels_and_relation_claims
+    assert value['decision']['why_now_readable']==['公司特异材料','已核美股个股映射','已核美股行业映射']
+E   AssertionError: assert ['公司特异材料', '已...；关联不等于受益或买入。'] == ['公司特异材料', '已...', '已核美股行业映射']
+E     
+E     Left contains one more item: '美股关联原文方向：EXPOSURE_ONLY_NOT_PRICE_DIRECTION；关联不等于受益或买入。'
+E     
+E     Full diff:
+E       [
+E           '公司特异材料',
+E           '已核美股个股映射',
+E           '已核美股行业映射',
+E     +     '美股关联原文方向：EXPOSURE_ONLY_NOT_PRICE_DIRECTION；关联不等于受益或买入。',
+E       ]
+=========================== short test summary info ============================
+FAILED mnt/data/bi_fix/tests/test_cross_boundary.py::test_python_output_original_parser_and_dom[multi_instance] - AssertionError: {'error': 'EASTMONEY_HK_DOCUMENT_IDENTITY_INVALID', 'ok': False}
+assert False
+FAILED mnt/data/bi_fix/tests/test_cross_boundary.py::test_python_output_original_parser_and_dom[repeat_instance] - AssertionError: {'error': 'EASTMONEY_HK_DOCUMENT_IDENTITY_INVALID', 'ok': False}
+assert False
+FAILED mnt/data/bi_fix/tests/test_cross_boundary.py::test_python_output_original_parser_and_dom[two_issuers] - AssertionError: {'error': 'EASTMONEY_HK_DOCUMENT_IDENTITY_INVALID', 'ok': False}
+assert False
+FAILED mnt/data/bi_fix/tests/test_cross_boundary.py::test_python_output_original_parser_and_dom[native_current] - AssertionError: {'error': 'WORKSPACE_RESEARCH_ATTENTION_DECISION_INVALID', 'ok': False}
+assert False
+FAILED mnt/data/bi_fix/tests/test_cross_boundary.py::test_python_output_original_parser_and_dom[native_industry] - AssertionError: {'error': 'WORKSPACE_RESEARCH_ATTENTION_DECISION_INVALID', 'ok': False}
+assert False
+FAILED mnt/data/bi_fix/tests/test_cross_boundary.py::test_python_output_original_parser_and_dom[native_individual] - AssertionError: {'error': 'WORKSPACE_RESEARCH_ATTENTION_DECISION_INVALID', 'ok': False}
+assert False
+FAILED mnt/data/bi_fix/tests/test_cross_boundary.py::test_python_output_original_parser_and_dom[standing] - AssertionError: {'error': 'WORKSPACE_RESEARCH_ATTENTION_DECISION_INVALID', 'ok': False}
+assert False
+FAILED mnt/data/bi_fix/tests/test_cross_boundary.py::test_python_output_original_parser_and_dom[mixed_issuers] - AssertionError: {'error': 'WORKSPACE_RESEARCH_ATTENTION_DECISION_INVALID', 'ok': False}
+assert False
+FAILED mnt/data/bi_fix/tests/test_cross_boundary.py::test_python_output_original_parser_and_dom[mirror] - AssertionError: {'error': 'WORKSPACE_RESEARCH_ATTENTION_DECISION_INVALID', 'ok': False}
+assert False
+FAILED mnt/data/bi_fix/tests/test_cross_boundary.py::test_python_output_original_parser_and_dom[mirror_company_only] - AssertionError: {'error': 'WORKSPACE_RESEARCH_ATTENTION_DECISION_INVALID', 'ok': False}
+assert False
+FAILED mnt/data/bi_fix/tests/test_cross_boundary.py::test_python_output_original_parser_and_dom[risk_explanation] - AssertionError: {'error': 'WORKSPACE_RESEARCH_ATTENTION_DECISION_INVALID', 'ok': False}
+assert False
+FAILED mnt/data/bi_fix/tests/test_cross_boundary.py::test_bi01_same_instance_identity_stable_across_capture_time - AssertionError: assert 1 == 3
+ +  where 1 = len({'8c1ebe9a8fd4ad3b4d59ac34d3faf29f4c20fbef6fa2115a876f06fa19864708'})
+FAILED mnt/data/bi_fix/tests/test_cross_boundary.py::test_instance_id_propagates_material_and_dom_source_identity - AssertionError: assert 1 == 2
+ +  where 1 = len({'8c1ebe9a8fd4ad3b4d59ac34d3faf29f4c20fbef6fa2115a876f06fa19864708'})
+FAILED mnt/data/bi_fix/tests/test_cross_boundary.py::test_python_preserves_canonical_lane_labels_and_relation_claims - AssertionError: assert ['公司特异材料', '已...；关联不等于受益或买入。'] == ['公司特异材料', '已...', '已核美股行业映射']
+  
+  Left contains one more item: '美股关联原文方向：EXPOSURE_ONLY_NOT_PRICE_DIRECTION；关联不等于受益或买入。'
+  
+  Full diff:
+    [
+        '公司特异材料',
+        '已核美股个股映射',
+        '已核美股行业映射',
+  +     '美股关联原文方向：EXPOSURE_ONLY_NOT_PRICE_DIRECTION；关联不等于受益或买入。',
+    ]
+14 failed, 25 passed in 2.26s

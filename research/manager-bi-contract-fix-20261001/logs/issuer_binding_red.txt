@@ -1,0 +1,9 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_________ test_malformed_serialized_outputs_are_rejected[wrong_issuer] _________
+mnt/data/bi_fix/tests/test_cross_boundary.py:107: in test_malformed_serialized_outputs_are_rejected
+    assert render(browser_page,value)['ok'] is False
+E   assert True is False
+=========================== short test summary info ============================
+FAILED mnt/data/bi_fix/tests/test_cross_boundary.py::test_malformed_serialized_outputs_are_rejected[wrong_issuer] - assert True is False
+1 failed, 38 deselected in 1.94s

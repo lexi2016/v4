@@ -1,0 +1,107 @@
+{
+  "scope": "GITHUB_PATCH_TEST_LOG_DELIVERY; full before/after and DOM evidence included in downloadable ZIP",
+  "baseline": "2ef8cd8da081afd5243744b943c5d62cda932c51",
+  "payload_tree_sha": "eb3c1c068dbcf55026eb501c0ae5fe8ff9cffe5a",
+  "files": [
+    {
+      "path": "BI04_AND_CALENDAR.md",
+      "bytes": 2384,
+      "sha256": "787a10aeafdb0d13675769cf9f4321bd797fc7b72b32525624bde97b854733ce"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3384,
+      "sha256": "fcacf8bc70f47e1071b0c658b9a1db3c82564ec4a0060370a6250b8e552f9f8a"
+    },
+    {
+      "path": "REVIEW_STATUS.json",
+      "bytes": 633,
+      "sha256": "3d85e3b8ac37c5acdd5c8bad668b77e96b28f9e997ca1ba91cfc2e718d798241"
+    },
+    {
+      "path": "SOURCE_PINS.json",
+      "bytes": 1936,
+      "sha256": "94f150042d80de33c4e48c3d731f1b400dc3303a66498f71df507d7f4b881919"
+    },
+    {
+      "path": "TEST_REPORT.md",
+      "bytes": 3175,
+      "sha256": "dfd10ca337fbf49d16604701db429b251bdbc603ba484c50ff3b7f2adee8cccf"
+    },
+    {
+      "path": "WORK_ONCE.md",
+      "bytes": 3171,
+      "sha256": "301a207675bf3bb20dee834d1e9f8d7e6ae654b293f2c8e2625e5a9ef13ae2e6"
+    },
+    {
+      "path": "evidence/IMPORTED_SOURCE_IDENTITY.json",
+      "bytes": 11384,
+      "sha256": "fa4e5ba80bfa659f000bac59efbc9841df11255cbc4c4005954a9c20d720fcd0"
+    },
+    {
+      "path": "evidence/PATCH_VERIFICATION.json",
+      "bytes": 256,
+      "sha256": "da07dcaae8769e9d3764b4a9344b828526369584372e94512c6d69dd5f5249cd"
+    },
+    {
+      "path": "logs/green.txt",
+      "bytes": 99,
+      "sha256": "f777b1e52662683aef7347c489c91ddaaae1ea4b755003d754bab055a09e5912"
+    },
+    {
+      "path": "logs/green.xml",
+      "bytes": 5177,
+      "sha256": "1471910d32c0246bafc25aa6b73e1953b632ac881467258624b6819f3e296181"
+    },
+    {
+      "path": "logs/issuer_binding_red.txt",
+      "bytes": 671,
+      "sha256": "179067e2c01ab58129d2fe3597e2dcc13216373c01bc14b1aaeabd8b01ffdfa8"
+    },
+    {
+      "path": "logs/red.txt",
+      "bytes": 8794,
+      "sha256": "9db0770cc721f0e097f7bd82874c77660268303b9652be94e390dcebfc3d10d4"
+    },
+    {
+      "path": "logs/red.xml",
+      "bytes": 11578,
+      "sha256": "803a3e5c6f2e4ee5b40f6d0a51c51ddf24917fc7a8da736304f764393eb57fb3"
+    },
+    {
+      "path": "logs/work_WORK_RECEIPT.json",
+      "bytes": 1878,
+      "sha256": "29cabbd48a831780c0b8da79a2b696f0b13bd44779dab0960223de3ba9ce8d4e"
+    },
+    {
+      "path": "logs/work_pytest.log",
+      "bytes": 99,
+      "sha256": "cf4c77a19be190bd82b8a9ed80d23ea94bbfe8fd3066d11c91ddc278d568c443"
+    },
+    {
+      "path": "pytest.ini",
+      "bytes": 23,
+      "sha256": "e426e9d19abc292755ba0193e87e40a93f26b61e87db8e131fe90288610e9aa7"
+    },
+    {
+      "path": "runtime.patch",
+      "bytes": 26234,
+      "sha256": "f2e558ec4b9dfe22137766d40bca1e5b6ce314b6667490f59dcc3d0eca657d0f"
+    },
+    {
+      "path": "tests/producer_cases.py",
+      "bytes": 11922,
+      "sha256": "c3305882545199245affd9e12616fa992ecb99a0162ae2db6c624b41e87c4b91"
+    },
+    {
+      "path": "tests/test_cross_boundary.py",
+      "bytes": 10328,
+      "sha256": "d9fbca75deb014aec320827e45db4d4062a4ab0e0b708ad32a2a19ac23d771ef"
+    },
+    {
+      "path": "tools/work_once.py",
+      "bytes": 3527,
+      "sha256": "168cfdb964cde1e141cc988319d10933c87ebdff1e69423e2727888f2f37a0bf"
+    }
+  ]
+}

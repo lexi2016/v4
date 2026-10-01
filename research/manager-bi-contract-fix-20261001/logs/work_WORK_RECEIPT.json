@@ -1,0 +1,38 @@
+{
+  "status": "ISOLATED_CONTRACT_TESTED_NOT_LIVE_UI",
+  "source_before": {
+    "v4/manager_research/workspace_announcements.py": "e57fe8b069901221d3284f6b029c57f7815120a7d11b2da170138916ebb70a18",
+    "v4/manager_research/issuer_us_relations.py": "ac3b3e228c3efed4efc7447d2461ac0c63a00b1d0fa9c93a6c0a479076af0b7d",
+    "v4/manager_research/research_attention.py": "141d95c3c58a63b8bc51d09622373e6853c89a17b279181d07a84bfeba4b3969",
+    "apps/web/src/api/managerWorkspace.ts": "139d9e4c3b4ef8b9071ee371b5f3839c10d27bcdd3c707a20553976b197b19c9",
+    "apps/web/src/manager-selection/researchAttention.ts": "564aa856a92f31c9fba2d4f1cd7f28d8a15a6d976df7436bf187d8fdac3b10f4"
+  },
+  "python": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+  "app": "/mnt/data/bi_fix/replay_app",
+  "applied": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "DEPLOYED": "NOT_RUN",
+  "API_VERIFIED": "NOT_RUN",
+  "UI_VERIFIED": "NOT_RUN",
+  "command": [
+    "/opt/pyvenv/bin/python",
+    "-m",
+    "pytest",
+    "-c",
+    "/mnt/data/bi_fix/delivery/pytest.ini",
+    "/mnt/data/bi_fix/delivery/tests/test_cross_boundary.py",
+    "-q",
+    "--tb=short",
+    "--junitxml=/mnt/data/bi_fix/work_replay/junit.xml"
+  ],
+  "exit_code": 0,
+  "source_after": {
+    "v4/manager_research/workspace_announcements.py": "f741def292593fa07c4151b9c9f60dd3e347861be680c55427c051ca993a067c",
+    "v4/manager_research/issuer_us_relations.py": "75fdca7a3c8bc1e8f385a023d47df640f002096921d6a0f3af8ea6cc466ee00f",
+    "v4/manager_research/research_attention.py": "c77c8f2f109b018547622a5afbb0ac8c6fb0b949bab77a42190fcadea8cb5206",
+    "apps/web/src/api/managerWorkspace.ts": "981e77c0024c56a2f089927db76a6dda59d399a61858beea59e639d75e9d1c42",
+    "apps/web/src/manager-selection/researchAttention.ts": "2490663c6002fd496212ae20cf9f7641d5070fc85cfa6170aab62d470cbaec51"
+  }
+}

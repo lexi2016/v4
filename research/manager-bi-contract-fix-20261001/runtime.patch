@@ -1,0 +1,364 @@
+--- a/v4/manager_research/workspace_announcements.py
++++ b/v4/manager_research/workspace_announcements.py
+@@ -606,7 +606,7 @@
+             not isinstance(source_dates,list) or len(source_dates)>31 or capture_date not in source_dates
+             or capture_date>str(context.get('plan_trade_date') or '')):
+         raise ValueError('EASTMONEY_HK_CONSUMER_TARGET_MISMATCH')
+-    out=[];gaps=[]
++    out=[];gaps=[];seen_instances=set()
+     def reject(doc,reason):
+         gaps.append(reason)
+         if rejection_audit is not None:
+@@ -627,8 +627,13 @@
+         if (row['market_code']!='116' or row['stock_code']!=doc['code'].split('.')[1]
+                 or row['ann_type']!='H' or doc.get('source')!='EASTMONEY_HK'):
+             raise ValueError('EASTMONEY_HK_PROJECTED_IDENTITY_INVALID')
++        # Identity is the document instance, not an acquisition or the article alone.
++        # Repeat captures are idempotent; issuer/body revisions remain independent.
++        event_id=digest([doc['source'],doc['code'],row['art_code'],doc['body_sha256']])
++        if event_id in seen_instances:continue
++        seen_instances.add(event_id)
+         out.append(dict(schema_version='v4.manager_research.eastmoney_hk_document.v2',
+-            symbol=doc['code'],name=doc['name'],event_id=digest(['EASTMONEY_HK',row['art_code']]),
++            symbol=doc['code'],name=doc['name'],event_id=event_id,
+             source='EASTMONEY_HK',source_identity='EASTMONEY_HK_MIRROR_NOT_HKEX_OFFICIAL',
+             market_code='116',stock_code=row['stock_code'],ann_type='H',art_code=row['art_code'],
+             title=row['title'],notice_date=row['notice_date'],display_time=row['display_time'],
+--- a/v4/manager_research/issuer_us_relations.py
++++ b/v4/manager_research/issuer_us_relations.py
+@@ -216,6 +216,7 @@
+             if key in seen:continue
+             seen.add(key)
+             base={**claim,'symbol':card['symbol'],'name':card.get('name'),
++                'semantic_status':'ACCEPTED',  # only after source/subject/PIT admission above
+                 'relation_temporal_role':role,'standing_validity':contract,
+                 'is_new_catalyst':False,
+                 'issuer_time_basis':card.get('time_basis','ORIGINAL_SOURCE_PUBLICATION'),
+--- a/v4/manager_research/research_attention.py
++++ b/v4/manager_research/research_attention.py
+@@ -193,8 +193,8 @@
+                 observation_condition='先核双来源与本公司业务；量价及Stage条件仍由原通道决定，US上涨不等于HK可买。',
+                 invalidation='主体/业务关系被更正、来源或取得时间失效时撤销；不得用事后取得材料补回旧计划。'))
+         card['research_relationships']=relationships
+-        directions=sorted({r['direction'] for r in relationships})
+-        card['decision']['why_now_readable'].append('美股关联原文方向：'+ ' / '.join(directions)+'；关联不等于受益或买入。')
++        # decision.why_now_readable is the exact lane-label contract. Direction,
++        # risk and source explanations remain in research_relationships for UI.
+     return card
+ 
+ 
+--- a/apps/web/src/api/managerWorkspace.ts
++++ b/apps/web/src/api/managerWorkspace.ts
+@@ -211,43 +211,7 @@
+   if(u.protocol!=='https:'||u.username||u.password||!validHost||!validPath)
+     throw new Error('EASTMONEY_HK_SOURCE_URL_INVALID');
+ }
+-export function validateAnnouncementObservation(raw: unknown, date: string): AnnouncementObservation {
+-  const value=object(raw);safe(value);
+-  if(value.schema_version!=='v4.manager_research.announcement_observation.v1' || value.target_trade_date!==date ||
+-      value.independent_of_strict_near_focus!==true || typeof value.count_known!=='boolean' ||
+-      !/^\d{8}$/.test(String(value.prior_session)) || String(value.prior_session)>=date ||
+-      !['NOT_RUN','RUNNING','FAILED','READBACK_FAILED','PARTIAL','SUCCEEDED','SUCCEEDED_EMPTY'].includes(String(value.status)))
+-    throw new Error('ANNOUNCEMENT_LANE_IDENTITY_INVALID');
+-  const cutoff=announcementTime(value.research_cutoff);
+-  records(value.observations);records(value.pending_observations);records(value.official_documents);records(value.capture_runs);
+-  const eastmoneyDocs=value.eastmoney_hk_documents===undefined?[]:value.eastmoney_hk_documents;
+-  records(eastmoneyDocs);
+-  if(value.eastmoney_hk_gaps!==undefined)strings(value.eastmoney_hk_gaps);
+-  if(value.eastmoney_hk_status!==undefined && !['NOT_RUN','RUNNING','FAILED','READBACK_FAILED','PARTIAL'].includes(String(value.eastmoney_hk_status)))
+-    throw new Error('EASTMONEY_HK_STATUS_INVALID');
+-  object(value.coverage);strings(value.gaps);
+-  if(['NOT_RUN','READBACK_FAILED'].includes(String(value.status)) && (value.count_known || value.official_documents.length || value.observations.length))
+-    throw new Error('ANNOUNCEMENT_UNKNOWN_MASQUERADING_AS_KNOWN');
+-  const ids=new Set<string>();
+-  for(const doc of value.official_documents){
+-    safe(doc);
+-    if(!/^HK\.\d{5}$/.test(String(doc.symbol)) || !/^[0-9a-f]{64}$/.test(String(doc.event_id)) ||
+-        ids.has(String(doc.event_id)) || typeof doc.title!=='string' || !doc.title)
+-      throw new Error('ANNOUNCEMENT_DOCUMENT_IDENTITY_INVALID');
+-    ids.add(String(doc.event_id));officialUrl(doc.source_url);
+-    const p=announcementTime(doc.published_at),r=announcementTime(doc.retrieved_at),a=announcementTime(doc.available_at);
+-    if(p>cutoff || r>cutoff || a>cutoff || p>r || p>a)throw new Error('ANNOUNCEMENT_DOCUMENT_TIME_INVALID');
+-    if(!['FAILED','BODY_PARSED','BODY_UNREADABLE','BODY_UNREAD'].includes(String(doc.body_status)))throw new Error('ANNOUNCEMENT_BODY_STATUS_INVALID');
+-    records(doc.source_refs);if(!doc.source_refs.length)throw new Error('ANNOUNCEMENT_RAW_REFERENCE_MISSING');
+-    for(const ref of doc.source_refs){
+-      if(!/^[0-9a-f]{64}$/.test(String(ref.blob_sha256)) || !/^[0-9a-f]{64}$/.test(String(ref.body_sha256)) ||
+-          typeof ref.source_key!=='string')throw new Error('ANNOUNCEMENT_RAW_REFERENCE_INVALID');
+-      officialUrl(object(ref.request).url);
+-      if(announcementTime(ref.retrieved_at)>cutoff)throw new Error('ANNOUNCEMENT_RAW_AFTER_CUTOFF');
+-    }
+-    if(doc.body_status==='BODY_PARSED' && (!/^[0-9a-f]{64}$/.test(String(doc.document_sha256)) ||
+-        !doc.source_refs.some(r=>r.body_sha256===doc.document_sha256)))throw new Error('ANNOUNCEMENT_PARSED_BODY_UNBOUND');
+-  }
++function validateEastmoneyDocuments(eastmoneyDocs: JsonObject[], date: string, cutoff: number): void {
+   const eastIds=new Set<string>();
+   for(const doc of eastmoneyDocs){
+     safe(doc);
+@@ -328,6 +292,46 @@
+         contentUrl.searchParams.get('page_index')!=='1'||object(pdfRef.request).url!==doc.source_url)
+       throw new Error('EASTMONEY_HK_REQUEST_SCOPE_INVALID');
+   }
++}
++
++export function validateAnnouncementObservation(raw: unknown, date: string): AnnouncementObservation {
++  const value=object(raw);safe(value);
++  if(value.schema_version!=='v4.manager_research.announcement_observation.v1' || value.target_trade_date!==date ||
++      value.independent_of_strict_near_focus!==true || typeof value.count_known!=='boolean' ||
++      !/^\d{8}$/.test(String(value.prior_session)) || String(value.prior_session)>=date ||
++      !['NOT_RUN','RUNNING','FAILED','READBACK_FAILED','PARTIAL','SUCCEEDED','SUCCEEDED_EMPTY'].includes(String(value.status)))
++    throw new Error('ANNOUNCEMENT_LANE_IDENTITY_INVALID');
++  const cutoff=announcementTime(value.research_cutoff);
++  records(value.observations);records(value.pending_observations);records(value.official_documents);records(value.capture_runs);
++  const eastmoneyDocs=value.eastmoney_hk_documents===undefined?[]:value.eastmoney_hk_documents;
++  records(eastmoneyDocs);
++  if(value.eastmoney_hk_gaps!==undefined)strings(value.eastmoney_hk_gaps);
++  if(value.eastmoney_hk_status!==undefined && !['NOT_RUN','RUNNING','FAILED','READBACK_FAILED','PARTIAL'].includes(String(value.eastmoney_hk_status)))
++    throw new Error('EASTMONEY_HK_STATUS_INVALID');
++  object(value.coverage);strings(value.gaps);
++  if(['NOT_RUN','READBACK_FAILED'].includes(String(value.status)) && (value.count_known || value.official_documents.length || value.observations.length))
++    throw new Error('ANNOUNCEMENT_UNKNOWN_MASQUERADING_AS_KNOWN');
++  const ids=new Set<string>();
++  for(const doc of value.official_documents){
++    safe(doc);
++    if(!/^HK\.\d{5}$/.test(String(doc.symbol)) || !/^[0-9a-f]{64}$/.test(String(doc.event_id)) ||
++        ids.has(String(doc.event_id)) || typeof doc.title!=='string' || !doc.title)
++      throw new Error('ANNOUNCEMENT_DOCUMENT_IDENTITY_INVALID');
++    ids.add(String(doc.event_id));officialUrl(doc.source_url);
++    const p=announcementTime(doc.published_at),r=announcementTime(doc.retrieved_at),a=announcementTime(doc.available_at);
++    if(p>cutoff || r>cutoff || a>cutoff || p>r || p>a)throw new Error('ANNOUNCEMENT_DOCUMENT_TIME_INVALID');
++    if(!['FAILED','BODY_PARSED','BODY_UNREADABLE','BODY_UNREAD'].includes(String(doc.body_status)))throw new Error('ANNOUNCEMENT_BODY_STATUS_INVALID');
++    records(doc.source_refs);if(!doc.source_refs.length)throw new Error('ANNOUNCEMENT_RAW_REFERENCE_MISSING');
++    for(const ref of doc.source_refs){
++      if(!/^[0-9a-f]{64}$/.test(String(ref.blob_sha256)) || !/^[0-9a-f]{64}$/.test(String(ref.body_sha256)) ||
++          typeof ref.source_key!=='string')throw new Error('ANNOUNCEMENT_RAW_REFERENCE_INVALID');
++      officialUrl(object(ref.request).url);
++      if(announcementTime(ref.retrieved_at)>cutoff)throw new Error('ANNOUNCEMENT_RAW_AFTER_CUTOFF');
++    }
++    if(doc.body_status==='BODY_PARSED' && (!/^[0-9a-f]{64}$/.test(String(doc.document_sha256)) ||
++        !doc.source_refs.some(r=>r.body_sha256===doc.document_sha256)))throw new Error('ANNOUNCEMENT_PARSED_BODY_UNBOUND');
++  }
++  validateEastmoneyDocuments(eastmoneyDocs, date, cutoff);
+   if(eastmoneyDocs.length && ['NOT_RUN','FAILED','READBACK_FAILED'].includes(String(value.eastmoney_hk_status)))
+     throw new Error('EASTMONEY_HK_DOCUMENTS_WITHOUT_SUCCESSFUL_READBACK');
+   for(const row of [...value.observations,...value.pending_observations]){
+@@ -429,7 +433,102 @@
+   return ownerClockSeen;
+ }
+ 
++// These are the existing Python native-relation roles, not new semantic statuses.
++const MIRROR_TIME_BASIS = 'MIRROR_DISPLAY_TIME_NOT_HKEX_FIRST_PUBLICATION';
++const sha256Value = (value: unknown): boolean => typeof value === 'string' && /^[0-9a-f]{64}$/.test(value);
++function verifiedNativeRefs(value: unknown): value is JsonObject[] {
++  return nonEmptyObjectRecords(value) && value.every(ref => ref.status === 'VERIFIED' && sha256Value(ref.payload_sha256));
++}
++function validMirrorCompanyEvidence(row: JsonObject, start: number, cutoff: number): boolean {
++  if (row.semantic_status !== 'ACCEPTED' || row.source_kind !== 'EASTMONEY_HK_ANNOUNCEMENT_BODY' ||
++      row.source !== 'EASTMONEY_HK' || row.source_identity !== 'EASTMONEY_HK_MIRROR_NOT_HKEX_OFFICIAL' ||
++      row.temporal_role !== 'CURRENT_WINDOW_MIRROR_OBSERVATION' || row.time_basis !== MIRROR_TIME_BASIS ||
++      row.published_at !== null || row.hkex_first_publication_verified !== false ||
++      row.publication_status !== 'CANNOT_CONFIRM_FIRST_PUBLICATION' || row.fresh_catalyst_eligible !== false ||
++      row.buy_allowed !== false || !isJsonObject(row.owner_document) || !isJsonObject(row.owner_capture) ||
++      !isJsonObject(row.original_source_row) || !verifiedNativeRefs(row.source_refs)) return false;
++  const doc = row.owner_document, capture = row.owner_capture;
++  // Reuse the ordinary announcement-document validator, including raw refs/pages.
++  try { validateEastmoneyDocuments([doc], String(doc.target_trade_date), cutoff); } catch { return false; }
++  const seen = explicitTimestamp(row.mirror_observed_at), acquired = explicitTimestamp(row.available_at);
++  if (seen === null || acquired === null || !(start < seen && seen <= acquired && acquired <= cutoff) ||
++      row.retrieved_at !== row.available_at || row.mirror_observed_at !== doc.display_time_iso ||
++      row.available_at !== doc.available_at || row.symbol !== doc.symbol || row.issuer_code !== doc.symbol ||
++      row.document_issuer_symbol !== doc.symbol || row.body_sha256 !== doc.body_sha256 ||
++      row.document_sha256 !== doc.document_sha256 || row.art_code !== doc.art_code ||
++      row.original_source_row.body_text !== doc.body_text || capture.source !== 'EASTMONEY_HK' ||
++      capture.readback_status !== 'VERIFIED' || !sha256Value(capture.sha256) ||
++      !/^[0-9a-f]{32}$/.test(String(capture.run_id)) || !Array.isArray(doc.source_refs) ||
++      doc.source_refs.length !== row.source_refs.length) return false;
++  return row.source_refs.every((ref,index) => {
++    const raw = (doc.source_refs as JsonObject[])[index];
++    return ref.representation === 'MATERIALSTORE_HTTP_RESPONSE_ENVELOPE' &&
++      ref.verification_owner === 'workspace_announcements._check_eastmoney_sources' &&
++      ref.payload_sha256 === raw.blob_sha256 && ref.response_body_sha256 === raw.body_sha256 &&
++      ref.retrieved_at === raw.retrieved_at && isJsonObject(ref.raw_source_ref) &&
++      ref.raw_source_ref.blob_sha256 === raw.blob_sha256 && ref.raw_source_ref.body_sha256 === raw.body_sha256;
++  });
++}
++function validNativeRelation(row: JsonObject, start: number, cutoff: number): boolean {
++  const relation = row.hk_relation as JsonObject;
++  if (relation.semantic_status !== 'ACCEPTED' || relation.basis !== 'NATIVE_ISSUER_SUBJECT_ACTION_SOURCE_SPAN' ||
++      relation.effect_scope !== 'ISSUER_CLAIM_NOT_PRICE_CONFIRMATION' ||
++      !['SOURCE_STATEMENT','REPORTED_CLAIM'].includes(String(relation.claim_status)) ||
++      relation.research_only !== true || relation.not_a_beneficiary_or_buy_assertion !== true ||
++      relation.is_new_catalyst !== false || !/^HK\.(?!00000)\d{5}$/.test(String(relation.symbol)) ||
++      typeof relation.issuer_quote !== 'string' || !relation.issuer_quote.trim() ||
++      typeof relation.source_field !== 'string' || !relation.source_field ||
++      !Number.isSafeInteger(relation.start) || !Number.isSafeInteger(relation.end) ||
++      Number(relation.start) < 0 || Number(relation.end) <= Number(relation.start) ||
++      !isJsonObject(relation.identity_source) || relation.identity_source.status !== 'OWNER_VERIFIED' ||
++      !sha256Value(relation.identity_source.artifact_sha256) || !verifiedNativeRefs(relation.source_refs) ||
++      !isJsonObject(row.source_identity) ||
++      relation.source_refs.some(ref => ref.payload_sha256 === (row.source_identity as JsonObject).payload_sha256)) return false;
++  const mirror = relation.issuer_time_basis === MIRROR_TIME_BASIS;
++  if ((!mirror && relation.issuer_time_basis !== 'ORIGINAL_SOURCE_PUBLICATION') ||
++      relation.issuer_published_at !== relation.published_at ||
++      relation.issuer_retrieved_at !== relation.retrieved_at || relation.issuer_available_at !== relation.available_at ||
++      (mirror && relation.published_at !== null)) return false;
++  const published = explicitTimestamp(mirror ? relation.issuer_mirror_observed_at : relation.published_at);
++  const retrieved = explicitTimestamp(relation.retrieved_at), acquired = explicitTimestamp(relation.available_at);
++  const joint = explicitTimestamp(row.available_at);
++  if (published === null || retrieved === null || acquired === null || joint === null ||
++      !(published <= retrieved && retrieved <= acquired && acquired <= joint && joint <= cutoff)) return false;
++  for (const field of ['first_seen_at','collected_at','archive_recorded_at']) {
++    const value = relation[field];
++    if (value === undefined || value === null || value === '') continue;
++    const clock = explicitTimestamp(value);
++    if (clock === null || clock > cutoff) return false;
++  }
++  if (mirror && relation.source_refs.some(ref => ref.representation !== 'MATERIALSTORE_HTTP_RESPONSE_ENVELOPE' ||
++      ref.verification_owner !== 'workspace_announcements._check_eastmoney_sources' ||
++      !isJsonObject(ref.raw_source_ref) || ref.payload_sha256 !== ref.raw_source_ref.blob_sha256 ||
++      ref.response_body_sha256 !== ref.raw_source_ref.body_sha256)) return false;
++  if (relation.relation_temporal_role === 'CURRENT_WINDOW_RELATION_EVIDENCE') {
++    return relation.standing_validity === null && (mirror ? published > start : published >= start) &&
++      (mirror || hasPersistedAcquisition(relation,COMPANY_OWNER_ACQUISITION_FIELDS,COMPANY_ALL_ACQUISITION_FIELDS,start,cutoff));
++  }
++  if (relation.relation_temporal_role !== 'STANDING_RELATION_NOT_NEW_CATALYST' ||
++      relation.claim_status !== 'SOURCE_STATEMENT' || !isJsonObject(relation.standing_validity)) return false;
++  const validity = relation.standing_validity;
++  const begin = explicitTimestamp(validity.valid_from), end = explicitTimestamp(validity.valid_until);
++  const confirmed = explicitTimestamp(validity.confirmed_at);
++  // Body/quote SHA computations are rechecked by the Python source-owner gate.
++  // This consumer verifies the serialized contract/refs and actual cutoff, never
++  // treats an old relationship as a publication inside the current short window.
++  return validity.schema_version === 'v4.manager_research.business_relation_validity.v1' && validity.status === 'ACTIVE' &&
++    validity.issuer_symbol === relation.symbol &&
++    validity.validity_basis === 'ORIGINAL_SOURCE_OWNER_EXPLICIT_REVIEW_PERIOD_NOT_NEW_CAPTURE' &&
++    ['body_sha256','quote_sha256','source_payload_sha256'].every(key => sha256Value(validity[key])) &&
++    validity.source_field === relation.source_field && validity.start === relation.start && validity.end === relation.end &&
++    relation.source_refs.some(ref => ref.payload_sha256 === validity.source_payload_sha256) &&
++    begin !== null && end !== null && confirmed !== null && begin <= confirmed && published <= confirmed &&
++    confirmed <= acquired && cutoff < end && end - begin <= 366 * 86400000;
++}
++
+ function validCompanyEvidence(row: JsonObject, start: number, cutoff: number): boolean {
++  if (row.evidence_class === 'VERIFIED_MIRROR_COMPANY_MATERIAL_NOT_HKEX_FIRST_PUBLICATION')
++    return validMirrorCompanyEvidence(row, start, cutoff);
+   if (row.evidence_class !== 'VERIFIED_COMPANY_SPECIFIC_MATERIAL' ||
+       row.semantic_status !== 'ACCEPTED' || row.temporal_role !== 'NEW_PLAN_PUBLICATION' ||
+       timestampByWindow(row.published_at, start, cutoff) === null ||
+@@ -502,6 +601,9 @@
+       typeof row.us_mover.label !== 'string' || !row.us_mover.label.trim() || !isJsonObject(row.hk_relation))
+     return false;
+   const relation = row.hk_relation;
++  if (relation.relation_origin === 'NATIVE_MATERIAL_PROPOSITION')
++    return relation.relationship_type === 'INDUSTRY_INFERENCE' && row.issuer_published_at === relation.issuer_published_at &&
++      validNativeRelation(row,start,cutoff);
+   return relation.relationship_type === 'INDUSTRY_INFERENCE' &&
+     typeof relation.issuer_quote === 'string' && !!relation.issuer_quote.trim() &&
+     nonEmptyObjectRecords(relation.source_refs) &&
+@@ -532,6 +634,9 @@
+       typeof row.us_mover.symbol !== 'string' || !row.us_mover.symbol.trim() || !isJsonObject(row.hk_relation))
+     return false;
+   const relation = row.hk_relation;
++  if (relation.relation_origin === 'NATIVE_MATERIAL_PROPOSITION')
++    return relation.relationship_type === 'EXPLICIT_US_ISSUER_RELATION' && row.published_at === relation.published_at &&
++      relatedUsSymbols(relation).has(String(row.us_mover.symbol).trim().toUpperCase()) && validNativeRelation(row,start,cutoff);
+   const published = timestampByWindow(relation.published_at, start, cutoff);
+   return relation.semantic_status === 'ACCEPTED' && nonEmptyObjectRecords(relation.source_refs) &&
+     published !== null && row.published_at === relation.published_at &&
+@@ -546,6 +651,9 @@
+ } {
+   if (start === null || cutoff === null) throw new Error('attention window');
+   const evidence = card.evidence as JsonObject[];
++  if (evidence.some(row => isJsonObject(row.hk_relation) &&
++      row.hk_relation.relation_origin === 'NATIVE_MATERIAL_PROPOSITION' && row.hk_relation.symbol !== card.symbol))
++    throw new Error('native relation issuer mismatch');
+   if (evidence.some(row => typeof row.evidence_lane !== 'string' ||
+       !RESEARCH_ATTENTION_LANES.includes(row.evidence_lane) || !lanes.includes(row.evidence_lane)))
+     throw new Error('evidence lane mismatch');
+@@ -675,6 +783,18 @@
+       throw new Error('WORKSPACE_RESEARCH_ATTENTION_TIME_INVALID');
+     return parsed;
+   };
++  const publicationForOrder=(card: JsonObject): number => {
++    const raw=card.freshest_published_at, parsed=explicitTimestamp(raw);
++    // Preserve the original publication clock of an admitted standing relation.
++    // Only that source-bound clock may precede this attention window; acquired
++    // ordering clocks still obey the current US/issuer joint evidence window.
++    if (parsed!==null && start!==null && cutoff!==null && parsed<start &&
++        (card.evidence as JsonObject[]).some(row=>isJsonObject(row.hk_relation) &&
++          row.hk_relation.relation_origin==='NATIVE_MATERIAL_PROPOSITION' &&
++          row.hk_relation.relation_temporal_role==='STANDING_RELATION_NOT_NEW_CATALYST' &&
++          row.hk_relation.issuer_published_at===raw && validNativeRelation(row,start,cutoff))) return parsed;
++    return timestampForOrder(raw);
++  };
+   const comparePriorityKey=(left: number[], right: number[]): number => {
+     for(let index=0;index<left.length;index++) if(left[index]!==right[index]) return left[index]-right[index];
+     return 0;
+@@ -707,8 +827,8 @@
+           const previousAcquired=timestampForOrder(previousCard.freshest_acquired_at);
+           order=previousAcquired-currentAcquired;
+           if(order===0){
+-            const currentPublished=timestampForOrder(card.freshest_published_at);
+-            const previousPublished=timestampForOrder(previousCard.freshest_published_at);
++            const currentPublished=publicationForOrder(card);
++            const previousPublished=publicationForOrder(previousCard);
+             order=previousPublished-currentPublished;
+             if(order===0){
+               const currentRank=card.original_screen_rank===null?Number.POSITIVE_INFINITY:Number(card.original_screen_rank);
+@@ -720,7 +840,7 @@
+         if(order<0)throw new Error('WORKSPACE_RESEARCH_ATTENTION_ORDER_INVALID');
+       } else {
+         timestampForOrder(card.freshest_acquired_at);
+-        timestampForOrder(card.freshest_published_at);
++        publicationForOrder(card);
+       }
+     }
+     previousCard=card as unknown as ResearchAttentionCard;
+--- a/apps/web/src/manager-selection/researchAttention.ts
++++ b/apps/web/src/manager-selection/researchAttention.ts
+@@ -20,6 +20,38 @@
+   const link=sourceLink(row.source_url);if(link)body.append(link);
+   const us=row.us_mover as JsonObject|undefined;if(us)body.append(el('p',`US：${text(us.label,text(us.symbol))} ${String(us.pct_change??us.change_pct??'')}%；此处只表示已核关系后的研究映射。`));
+   node.append(body);return node;
++}
++
++function renderRelationships(article:HTMLElement, card:JsonObject):void{
++  const relationships=Array.isArray(card.research_relationships)?card.research_relationships:[];
++  const evidence=Array.isArray(card.evidence)?card.evidence as JsonObject[]:[];
++  for(const raw of relationships){
++    const row=object(raw);
++    // Display only an explanation attached to a mapping that passed the original
++    // card validator. Never promote a standalone relationship label into evidence.
++    const bound=evidence.find(e=>{
++      const r=object(e.hk_relation),m=object(e.us_mover);
++      return e.evidence_lane===row.lane&&r.symbol===card.symbol&&row.symbol===card.symbol&&
++        (m.symbol??m.label)===row.us_signal&&r.issuer_quote===row.evidence_quote&&r.direction===row.direction;
++    });
++    if(!bound)continue;
++    const relation=object(bound.hk_relation),section=el('section','','research-relationship');
++    section.dataset.researchRelationship=String(row.lane)+':'+String(row.us_signal);
++    section.append(el('h5',`美股关系：${text(row.us_signal)}`),
++      el('p',`美股关联原文方向：${text(row.direction)}；关联不等于受益或买入。`),
++      el('blockquote',text(row.evidence_quote)));
++    const mirror=relation.issuer_time_basis==='MIRROR_DISPLAY_TIME_NOT_HKEX_FIRST_PUBLICATION';
++    const standing=relation.relation_temporal_role==='STANDING_RELATION_NOT_NEW_CATALYST';
++    section.append(el('p',`${mirror?'镜像可见（非HKEX首次发布时间）':'原文发布时间'}：${text(mirror?relation.issuer_mirror_observed_at:row.published_at)}；原关系取得：${text(relation.issuer_available_at)}；双来源最晚取得：${text(row.acquired_at)}。`));
++    if(standing){const validity=object(relation.standing_validity);section.append(el('p',`长期关系，不是今天新增催化；源内有效期：${text(validity.valid_from)} 至 ${text(validity.valid_until)}。`));}
++    for(const caution of Array.isArray(relation.issuer_cautions)?relation.issuer_cautions:[])
++      section.append(el('p',`本公司风险原文（非特定US关系因果）：${text(object(caution).quote)}`));
++    section.append(el('p',text(row.observation_condition)),el('p',text(row.invalidation)));
++    for(const ref of Array.isArray(relation.source_refs)?relation.source_refs:[]){
++      const r=object(ref),link=sourceLink(r.source_url??r.url);if(link)section.append(link);
++    }
++    article.append(section);
++  }
+ }
+ 
+ export function renderResearchAttention(host:HTMLElement, attention?:ResearchAttention, us?:UsMarketAttention):void{
+@@ -52,6 +84,7 @@
+       article.append(el('p',`证据时点：公开 ${text(card.freshest_published_at,'未知')}；系统取得 ${text(card.freshest_acquired_at,'未知')}。两类时间不互相替代。`));
+       const missing=(card.missing as string[]||[]);if(missing.length)article.append(el('p',`仍缺：${missing.join('；')}`));
+       for(const evidence of (card.evidence as JsonObject[]||[]).slice(0,6))article.append(evidenceDetails(evidence));
++      renderRelationships(article,card);
+       host.append(article);
+     }
+   }
