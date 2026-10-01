@@ -1,0 +1,128 @@
+{
+  "package": "ChatGPT Mac dot Computers connection diagnostics",
+  "collection": {
+    "started_utc": "2026-10-01T18:36:34Z",
+    "completed_utc": "2026-10-01T18:59:33Z",
+    "completed_local": "2026-10-02T02:59:33+08:00",
+    "timezone": "Asia/Shanghai (+08:00)",
+    "method": "Read-only app/process metadata and bounded review of the selected clean pre-task log window; live post-cutoff records excluded; no raw log lines copied; no user action/reproduction."
+  },
+  "operating_system": {
+    "product": "macOS",
+    "version": "26.6.2",
+    "build": "25G83"
+  },
+  "installed_chatgpt_app": {
+    "bundle_path": "/Applications/ChatGPT.app",
+    "version": "26.928.31416",
+    "build": "12553",
+    "bundle_identifier": "com.openai.codex",
+    "executable": "ChatGPT",
+    "executable_path": "/Applications/ChatGPT.app/Contents/MacOS/ChatGPT"
+  },
+  "live_processes": [
+    {
+      "name": "ChatGPT",
+      "pid": 59071,
+      "executable_path": "/Applications/ChatGPT.app/Contents/MacOS/ChatGPT",
+      "started_local": "2026-10-01T08:21:27+08:00",
+      "started_utc": "2026-10-01T00:21:27Z",
+      "bundle_version": "26.928.31416",
+      "bundle_build": "12553",
+      "command_arguments_collected": false
+    },
+    {
+      "name": "Codex (Service)",
+      "pids": [
+        59085,
+        59086,
+        59088
+      ],
+      "executable_path": "/Applications/ChatGPT.app/Contents/Frameworks/Codex Framework.framework/Versions/154.0.8037.57/Helpers/Codex (Service).app/Contents/MacOS/Codex (Service)",
+      "started_local": "2026-10-01T08:21:28+08:00",
+      "started_utc": "2026-10-01T00:21:28Z",
+      "bundle_version": "154.0.8037.57",
+      "bundle_build": "8037.57",
+      "bundle_identifier": "com.openai.codex.helper",
+      "command_arguments_collected": false
+    },
+    {
+      "name": "SkyComputerUseService",
+      "pid": 59132,
+      "executable_path": "/Users/<user>/.codex/computer-use/Codex Computer Use.app/Contents/MacOS/SkyComputerUseService",
+      "started_local": "2026-10-01T08:21:34+08:00",
+      "started_utc": "2026-10-01T00:21:34Z",
+      "bundle_version": "26.924.1001281",
+      "bundle_build": "1001281",
+      "bundle_identifier": "com.openai.sky.CUAService",
+      "command_arguments_collected": false,
+      "scope_note": "Process presence does not establish that this component owns dot Computers."
+    }
+  ],
+  "reported_dot_ui": {
+    "provenance": "Parent-reported current UI state; not directly captured by this writer.",
+    "observed_at": "not provided",
+    "section": "嘻嘻 → Computers",
+    "target_host": "lexideMacBook-Pro.local",
+    "target_status": "Offline",
+    "allow_control": "disabled",
+    "cloud_status": "Connected",
+    "previous_messages": [
+      "Couldn’t finish setup",
+      "无法更新远程控制状态"
+    ],
+    "screenshot": "not available",
+    "controller_cutoff_utc": "2026-10-01T18:29:44Z",
+    "cutoff_is_ui_event_time": false
+  },
+  "computer_use_attempt": {
+    "provenance": "Parent-reported fresh CUA attempt during this task; exact timestamp not provided.",
+    "result": "blocked by tool safety restriction",
+    "message": "Computer Use is not allowed to use app com.openai.codex for safety reasons.",
+    "screenshot_captured": false,
+    "macos_permission_conclusion": "CANNOT_CONFIRM; tool safety denial is not evidence that macOS denied permission."
+  },
+  "log_review": {
+    "clean_pre_diagnostic_log": {
+      "line_range_reviewed": "1-71",
+      "line_count": 71,
+      "embedded_timestamp_range_utc": "2026-10-01T00:21:34.186Z..2026-10-01T18:26:45.442Z",
+      "controller_cutoff_utc": "2026-10-01T18:29:44Z",
+      "review_result": "No dot-specific state, request body, response status/error, client identifier, service request ID, or handshake/close result could be identified.",
+      "source_basename": "codex-desktop-<session-id-redacted>-59071-t1-i1-002131-0.log",
+      "basename_redaction_note": "Only UUID/session identifier segment redacted; remaining original basename unchanged."
+    },
+    "excluded_live_task_log": {
+      "source_label": "codex-desktop t0 log (session identifier omitted)",
+      "post_cutoff_records_used_as_failure_evidence": false,
+      "cutoff_utc": "2026-10-01T18:29:44Z",
+      "reason": "Live task log grew during this diagnosis; session-style identifiers overlapped the active diagnostic context. Rows may be self-generated chat/tool/session instrumentation; exact event type and service provenance CANNOT_CONFIRM.",
+      "identifier_values_retained": false
+    }
+  },
+  "request_identifiers": {
+    "client_identifier": {
+      "status": "日志未提供",
+      "values": []
+    },
+    "service_request_id": {
+      "status": "日志未提供",
+      "values": []
+    },
+    "target_host_id": {
+      "status": "日志未提供",
+      "values": []
+    },
+    "unclassified_identifiers_from_excluded_rows": {
+      "status": "excluded as potentially self-generated task/session metadata",
+      "values": []
+    }
+  },
+  "service_mapping": {
+    "dot_Computers_to_Codex_remoteControl": "CANNOT_CONFIRM",
+    "dot_Computers_to_Work_Sync": "CANNOT_CONFIRM",
+    "dot_Computers_to_Responses_model_WebSocket": "CANNOT_CONFIRM"
+  },
+  "root_cause": "CANNOT_CONFIRM",
+  "changes_made": false
+}

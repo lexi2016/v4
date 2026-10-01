@@ -1,0 +1,16 @@
+Sanitized evidence notes; raw log lines, prompt/tool payloads, and identifier values were not copied.
+
+Clean pre-diagnostic source:
+- Source basename: codex-desktop-<session-id-redacted>-59071-t1-i1-002131-0.log. Only the UUID/session identifier segment is redacted; the remaining original basename is unchanged.
+- Reviewed source lines: 1-71 (71 lines total).
+- Embedded timestamp range: 2026-10-01T00:21:34.186Z .. 2026-10-01T18:26:45.442Z.
+- This is the newest inspected pre-diagnostic log and ends before the controller-provided cutoff 2026-10-01T18:29:44Z.
+- No dot-specific state, request body, response status/error, client identifier, service request ID, or handshake/close result could be identified in this clean source.
+
+Contamination exclusion:
+- The live t0 Codex desktop log grew while this diagnostic ran. Records after the controller-provided cutoff are excluded wholesale from failure analysis.
+- In-memory review found session-style identifiers in the live task log that overlap the active diagnostic context. These may be this task's chat/tool/session instrumentation; exact event type and service provenance CANNOT_CONFIRM.
+- No excluded record is used as product connection evidence. No identifier values or record counts from that segment are retained, and no identifier is labeled as a request ID.
+- No further log sweep was performed after this contamination was identified.
+
+User-reported UI state remains separate: 嘻嘻 → Computers → lexideMacBook-Pro.local = Offline; Allow disabled; cloud = Connected. Exact observation time and screenshot are not provided. The controller's 18:29:44Z cutoff is not the UI event time.

@@ -1,0 +1,11 @@
+timestamp_utc,timestamp_local,layer_source,observation,provenance,evidence_ref
+not provided,not provided,dot UI,嘻嘻 → Computers target lexideMacBook-Pro.local reports Offline; Allow disabled; cloud Connected,Parent-reported; not directly captured by writer,No screenshot; task brief
+not provided,not provided,dot UI history,Previous messages: Couldn’t finish setup; 无法更新远程控制状态,Parent-reported; event timestamps absent,Task brief
+not provided,not provided,CUA tool,Attempt blocked by tool safety restriction; no screenshot/state readback,Parent-reported; exact tool timestamp absent,Tool message in environment.json
+2026-10-01T18:36:34Z,2026-10-02T02:36:34+08:00,host/app metadata,macOS 26.6.2 build 25G83; ChatGPT 26.928.31416 build 12553; bundle com.openai.codex; executable ChatGPT,Direct read-only observation,sw_vers; ChatGPT.app Info.plist
+2026-10-01T00:21:27Z,2026-10-01T08:21:27+08:00,process metadata,ChatGPT PID 59071 started,Direct read-only observation,ps/lsof; environment.json
+2026-10-01T00:21:28Z,2026-10-01T08:21:28+08:00,process metadata,"Codex Service PIDs 59085, 59086, 59088 started",Direct read-only observation,ps/lsof; nested app Info.plist
+2026-10-01T00:21:34Z,2026-10-01T08:21:34+08:00,process metadata,SkyComputerUseService PID 59132 started,Direct read-only observation,ps/lsof; helper app Info.plist
+2026-10-01T18:26:45.442Z,2026-10-02T02:26:45.442+08:00,clean pre-task log,Latest embedded timestamp in reviewed clean log; no dot-specific state or request evidence identified across source lines 1-71,Direct bounded read-only review; cutoff 18:29:44Z,"codex-desktop-<session-id-redacted>-59071-t1-i1-002131-0.log; only UUID/session identifier segment redacted, rest original"
+2026-10-01T18:29:44Z,2026-10-02T02:29:44+08:00,contamination cutoff,Controller-provided cutoff used to exclude live task log records,Controller instruction; not the UI event time,Post-cutoff live t0 records excluded
+2026-10-01T18:59:33Z,2026-10-02T02:59:33+08:00,collection,Environment/process capture complete; root cause remains CANNOT_CONFIRM,Direct collection completion timestamp,No app/network/service changes
