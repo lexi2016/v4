@@ -1,0 +1,42 @@
+FF.........                                                              [100%]
+=================================== FAILURES ===================================
+_ test_real_shared_projector_stage_chain_has_capture_provenance[20261007-20261008] _
+tests/test_hk_owner_asof_r3.py:104: in test_real_shared_projector_stage_chain_has_capture_provenance
+    scheduled.publish_scheduled_artifacts(PreselectionPoolStore(data),artifacts)
+ops/materialize_scheduled_preselection.py:316: in publish_scheduled_artifacts
+    validate_pool_artifact(artifact)
+infrastructure/preselection_pool_store.py:715: in validate_pool_artifact
+    _assert_safe(payload)
+infrastructure/preselection_pool_store.py:749: in _assert_safe
+    assert_safe_tree(_legacy_research_flag_view(value), label="preselection-pool")
+infrastructure/trading_safety.py:63: in assert_safe_tree
+    visit(value, 0)
+infrastructure/trading_safety.py:55: in visit
+    visit(nested, depth + 1)
+infrastructure/trading_safety.py:58: in visit
+    visit(nested, depth + 1)
+infrastructure/trading_safety.py:54: in visit
+    raise ValueError(f"unsafe {label} research state")
+E   ValueError: unsafe preselection-pool research state
+_ test_real_shared_projector_stage_chain_has_capture_provenance[20261008-20261009] _
+tests/test_hk_owner_asof_r3.py:104: in test_real_shared_projector_stage_chain_has_capture_provenance
+    scheduled.publish_scheduled_artifacts(PreselectionPoolStore(data),artifacts)
+ops/materialize_scheduled_preselection.py:316: in publish_scheduled_artifacts
+    validate_pool_artifact(artifact)
+infrastructure/preselection_pool_store.py:715: in validate_pool_artifact
+    _assert_safe(payload)
+infrastructure/preselection_pool_store.py:749: in _assert_safe
+    assert_safe_tree(_legacy_research_flag_view(value), label="preselection-pool")
+infrastructure/trading_safety.py:63: in assert_safe_tree
+    visit(value, 0)
+infrastructure/trading_safety.py:55: in visit
+    visit(nested, depth + 1)
+infrastructure/trading_safety.py:58: in visit
+    visit(nested, depth + 1)
+infrastructure/trading_safety.py:54: in visit
+    raise ValueError(f"unsafe {label} research state")
+E   ValueError: unsafe preselection-pool research state
+=========================== short test summary info ============================
+FAILED tests/test_hk_owner_asof_r3.py::test_real_shared_projector_stage_chain_has_capture_provenance[20261007-20261008] - ValueError: unsafe preselection-pool research state
+FAILED tests/test_hk_owner_asof_r3.py::test_real_shared_projector_stage_chain_has_capture_provenance[20261008-20261009] - ValueError: unsafe preselection-pool research state
+2 failed, 9 passed in 0.45s

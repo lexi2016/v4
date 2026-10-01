@@ -1,0 +1,112 @@
+{
+  "schema_version": "v4.hk_owner_asof_r3.delivery_readback.v1",
+  "input_commit": "3ed9e89a1de1616d89ddbe166484227b5fcd42fa",
+  "local_git": {
+    "schema_version": "v4.hk_owner_asof_r3.git_delivery.v1",
+    "commit": "cfb7fad359a639f66097db78d597d92ab265c367",
+    "parent": "3ed9e89a1de1616d89ddbe166484227b5fcd42fa",
+    "branch": "codex/hk-owner-asof-r3-20261001",
+    "tree": "3ef606cf597ea1653889fad591bd9e7cf937a538",
+    "delivery_tree": "69cb8a077b92d94439cbe11cb8935452aefb1ca9",
+    "base_snapshot_preserved_tree": "389020f70c385a6315f1422f2e0c9601cc9b6e60",
+    "remote_pushed": false,
+    "draft_pr_created": false,
+    "github_tool_capability": "READ_ACTIONS_ONLY",
+    "bundle": "V4_HK_OWNER_ASOF_R3_20261001.bundle",
+    "bundle_bytes": 410985,
+    "bundle_sha256": "7bca0cc26e46ddbc0b07e6128fa0755924d7eee986002d4aa1697f4336fc734e",
+    "new_object_count": 136,
+    "new_delivery_files": 91,
+    "bundle_pack_checksum_and_index_verified": true,
+    "git_tree_file_readback_verified": true,
+    "complete_bundle_prerequisite_verification": "REQUIRES_WORK_REPOSITORY_CONTAINING_EXACT_3ed_COMMIT; NOT_PERFORMED_LOCALLY",
+    "draft_pr_base": "codex/stage-hk-status-handoff-20261001"
+  },
+  "source_image_files_verified": 36,
+  "before_git_blobs_verified_against_frozen_input": true,
+  "patch_roundtrip": [
+    {
+      "variant": "canonical",
+      "patch": "runtime.patch",
+      "exit": 0,
+      "byte_equal": true
+    },
+    {
+      "variant": "canonical",
+      "patch": "rollback.patch",
+      "exit": 0,
+      "byte_equal": true
+    },
+    {
+      "variant": "active",
+      "patch": "runtime.patch",
+      "exit": 0,
+      "byte_equal": true
+    },
+    {
+      "variant": "active",
+      "patch": "rollback.patch",
+      "exit": 0,
+      "byte_equal": true
+    }
+  ],
+  "final_tests": {
+    "canonical": {
+      "red": {
+        "tests": 19,
+        "passed": 1,
+        "failures": 18,
+        "errors": 0,
+        "skipped": 0,
+        "exit_code": 1
+      },
+      "green": {
+        "tests": 19,
+        "passed": 19,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "exit_code": 0
+      }
+    },
+    "active": {
+      "red": {
+        "tests": 19,
+        "passed": 1,
+        "failures": 18,
+        "errors": 0,
+        "skipped": 0,
+        "exit_code": 1
+      },
+      "green": {
+        "tests": 19,
+        "passed": 19,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "exit_code": 0
+      }
+    }
+  },
+  "a1445_existing_zip": {
+    "name": "V4_PR16_A1445_PROJECTION_R1_20261001.zip",
+    "bytes": 54207,
+    "sha256": "0eec6a6be7b1655a97a657d256c9011b732ae49955b6daaa277505342bf7cfe9",
+    "members": 24,
+    "mac_independent_17": "NOT_RUN",
+    "original_replay": "NOT_RUN",
+    "changed": false
+  },
+  "github_pushed": false,
+  "new_draft_pr_created": false,
+  "mac_independent_tests": "NOT_RUN",
+  "actual_selection": "NOT_RUN",
+  "api_ui": "NOT_RUN",
+  "natural_run": "NOT_RUN",
+  "deployment": "NOT_RUN",
+  "full_active_dependency_identity": "NOT_CONFIRMED; see TEST_DEPENDENCY_LIMITS.json",
+  "immutable_existing_oct8_conflict": "RETAINED_NOT_AUTO_REPLACED",
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

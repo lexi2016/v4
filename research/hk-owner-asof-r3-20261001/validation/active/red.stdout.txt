@@ -1,0 +1,232 @@
+FFFFFFFFFFFFFFF.FFF                                                      [100%]
+=================================== FAILURES ===================================
+_ test_real_shared_projector_stage_chain_has_capture_provenance[20261007-20261008] _
+tests/test_hk_owner_asof_r3.py:115: in test_real_shared_projector_stage_chain_has_capture_provenance
+    qualification=json.loads(bytes.fromhex(verified.run.manifest['provenance'].get('eligibility_asof_hex', '')).decode())
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/json/__init__.py:346: in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/json/decoder.py:345: in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/json/decoder.py:363: in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+E   json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+_ test_real_shared_projector_stage_chain_has_capture_provenance[20261008-20261009] _
+tests/test_hk_owner_asof_r3.py:115: in test_real_shared_projector_stage_chain_has_capture_provenance
+    qualification=json.loads(bytes.fromhex(verified.run.manifest['provenance'].get('eligibility_asof_hex', '')).decode())
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/json/__init__.py:346: in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/json/decoder.py:345: in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/json/decoder.py:363: in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+E   json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+_ test_shared_rejects_unverified_eligibility_not_using_master_time[missing_capture] _
+tests/test_hk_owner_asof_r3.py:161: in test_shared_rejects_unverified_eligibility_not_using_master_time
+    with pytest.raises((ValueError,OSError, hk.StoreError)):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE any of (<class 'ValueError'>, <class 'OSError'>, <class '_hk19_contract_b281c9b26648.store.StoreError'>)
+_ test_shared_rejects_unverified_eligibility_not_using_master_time[wrong_date] _
+tests/test_hk_owner_asof_r3.py:161: in test_shared_rejects_unverified_eligibility_not_using_master_time
+    with pytest.raises((ValueError,OSError, hk.StoreError)):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE any of (<class 'ValueError'>, <class 'OSError'>, <class '_hk19_contract_b281c9b26648.store.StoreError'>)
+_ test_shared_rejects_unverified_eligibility_not_using_master_time[future_capture] _
+tests/test_hk_owner_asof_r3.py:161: in test_shared_rejects_unverified_eligibility_not_using_master_time
+    with pytest.raises((ValueError,OSError, hk.StoreError)):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE any of (<class 'ValueError'>, <class 'OSError'>, <class '_hk19_contract_b281c9b26648.store.StoreError'>)
+_ test_shared_rejects_unverified_eligibility_not_using_master_time[master_codes] _
+tests/test_hk_owner_asof_r3.py:161: in test_shared_rejects_unverified_eligibility_not_using_master_time
+    with pytest.raises((ValueError,OSError, hk.StoreError)):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE any of (<class 'ValueError'>, <class 'OSError'>, <class '_hk19_contract_b281c9b26648.store.StoreError'>)
+_ test_shared_rejects_unverified_eligibility_not_using_master_time[authority_sha] _
+tests/test_hk_owner_asof_r3.py:161: in test_shared_rejects_unverified_eligibility_not_using_master_time
+    with pytest.raises((ValueError,OSError, hk.StoreError)):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE any of (<class 'ValueError'>, <class 'OSError'>, <class '_hk19_contract_b281c9b26648.store.StoreError'>)
+_____________ test_price_day_stale_oct8_preview_is_not_stage_input _____________
+tests/test_hk_owner_asof_r3.py:173: in test_price_day_stale_oct8_preview_is_not_stage_input
+    with pytest.raises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE <class 'ValueError'>
+______ test_shared_source_identity_change_after_publication_is_not_hidden ______
+tests/test_hk_owner_asof_r3.py:185: in test_shared_source_identity_change_after_publication_is_not_hidden
+    with pytest.raises((ValueError,hk.StoreError)):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE any of (<class 'ValueError'>, <class '_hk19_contract_b281c9b26648.store.StoreError'>)
+_ test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[True-20261007-20261008] _
+tests/test_hk_owner_asof_r3.py:216: in test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only
+    assert pub==[(shared,price)], 'original publisher was not reached'
+E   AssertionError: original publisher was not reached
+E   assert [] == [(PosixPath('..., '20261007')]
+E     
+E     Right contains one more item: (PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex0/shared'), '20261007')
+E     
+E     Full diff:
+E     + []
+E     - [
+E     -     (
+E     -         PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex0/shared'),
+E     -         '20261007',
+E     -     ),
+E     - ]
+_ test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[True-20261008-20261009] _
+tests/test_hk_owner_asof_r3.py:216: in test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only
+    assert pub==[(shared,price)], 'original publisher was not reached'
+E   AssertionError: original publisher was not reached
+E   assert [] == [(PosixPath('..., '20261008')]
+E     
+E     Right contains one more item: (PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex1/shared'), '20261008')
+E     
+E     Full diff:
+E     + []
+E     - [
+E     -     (
+E     -         PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex1/shared'),
+E     -         '20261008',
+E     -     ),
+E     - ]
+_ test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[False-20261007-20261008] _
+tests/test_hk_owner_asof_r3.py:216: in test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only
+    assert pub==[(shared,price)], 'original publisher was not reached'
+E   AssertionError: original publisher was not reached
+E   assert [] == [(PosixPath('..., '20261007')]
+E     
+E     Right contains one more item: (PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex2/shared'), '20261007')
+E     
+E     Full diff:
+E     + []
+E     - [
+E     -     (
+E     -         PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex2/shared'),
+E     -         '20261007',
+E     -     ),
+E     - ]
+_ test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[False-20261008-20261009] _
+tests/test_hk_owner_asof_r3.py:216: in test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only
+    assert pub==[(shared,price)], 'original publisher was not reached'
+E   AssertionError: original publisher was not reached
+E   assert [] == [(PosixPath('..., '20261008')]
+E     
+E     Right contains one more item: (PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex3/shared'), '20261008')
+E     
+E     Full diff:
+E     + []
+E     - [
+E     -     (
+E     -         PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex3/shared'),
+E     -         '20261008',
+E     -     ),
+E     - ]
+___________ test_explicit_separate_universe_root_survives_shared_cli ___________
+tests/test_hk_owner_asof_r3.py:242: in test_explicit_separate_universe_root_survives_shared_cli
+    hk.publish_hk_0_2_rows(shared,signal_date=price,target_date=target,
+E   TypeError: publish_hk_0_2_rows() got an unexpected keyword argument 'eligibility_universe_root'
+_____ test_original_scheduled_hk_only_cli_does_not_publish_a_missing_pool ______
+tests/test_hk_owner_asof_r3.py:261: in test_original_scheduled_hk_only_cli_does_not_publish_a_missing_pool
+    code=scheduled.main(['--trade-date',target,'--signal-date','20260930',
+ops/materialize_scheduled_preselection.py:269: in main
+    args = parser.parse_args(argv)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/argparse.py:1916: in parse_args
+    self.error(msg)
+/usr/lib/python3.13/argparse.py:2672: in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+/usr/lib/python3.13/argparse.py:2659: in exit
+    _sys.exit(status)
+E   SystemExit: 2
+----------------------------- Captured stderr call -----------------------------
+usage: __main__.py [-h] --trade-date TRADE_DATE --signal-date SIGNAL_DATE
+                   [--selector SELECTOR] --input-root INPUT_ROOT
+                   [--data-root DATA_ROOT] --shared-data-root SHARED_DATA_ROOT
+                   --shared-package-root SHARED_PACKAGE_ROOT
+                   [--reuse-formal-pools]
+__main__.py: error: unrecognized arguments: --hk-signal-date 20261007 --hk-eligibility-source-date 20261007 --market HK --hk-eligibility-universe-root /tmp/pytest-of-root/pytest-11/test_original_scheduled_hk_onl0/shared
+_ test_resealed_past_or_future_source_is_not_assumed_valid_for_price_day[20260930] _
+tests/test_hk_owner_asof_r3.py:290: in test_resealed_past_or_future_source_is_not_assumed_valid_for_price_day
+    hk.publish_hk_0_2_rows(shared,signal_date='20261007',target_date='20261008',
+E   TypeError: publish_hk_0_2_rows() got an unexpected keyword argument 'eligibility_source_date'
+_ test_resealed_past_or_future_source_is_not_assumed_valid_for_price_day[20261008] _
+tests/test_hk_owner_asof_r3.py:290: in test_resealed_past_or_future_source_is_not_assumed_valid_for_price_day
+    hk.publish_hk_0_2_rows(shared,signal_date='20261007',target_date='20261008',
+E   TypeError: publish_hk_0_2_rows() got an unexpected keyword argument 'eligibility_source_date'
+_ test_workload_policy_only_changes_preselection_not_six_other_catalog_entries _
+tests/test_hk_owner_asof_r3.py:298: in test_workload_policy_only_changes_preselection_not_six_other_catalog_entries
+    decision=evaluate_run_policy(RunPolicy.A_OR_HK_SECURITIES_TRADE_DAY,'20261007','1730',
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: type object 'RunPolicy' has no attribute 'A_OR_HK_SECURITIES_TRADE_DAY'. Did you mean: 'HK_SECURITIES_TRADE_DAY'?
+=========================== short test summary info ============================
+FAILED tests/test_hk_owner_asof_r3.py::test_real_shared_projector_stage_chain_has_capture_provenance[20261007-20261008] - json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+FAILED tests/test_hk_owner_asof_r3.py::test_real_shared_projector_stage_chain_has_capture_provenance[20261008-20261009] - json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+FAILED tests/test_hk_owner_asof_r3.py::test_shared_rejects_unverified_eligibility_not_using_master_time[missing_capture] - Failed: DID NOT RAISE any of (<class 'ValueError'>, <class 'OSError'>, <class '_hk19_contract_b281c9b26648.store.StoreError'>)
+FAILED tests/test_hk_owner_asof_r3.py::test_shared_rejects_unverified_eligibility_not_using_master_time[wrong_date] - Failed: DID NOT RAISE any of (<class 'ValueError'>, <class 'OSError'>, <class '_hk19_contract_b281c9b26648.store.StoreError'>)
+FAILED tests/test_hk_owner_asof_r3.py::test_shared_rejects_unverified_eligibility_not_using_master_time[future_capture] - Failed: DID NOT RAISE any of (<class 'ValueError'>, <class 'OSError'>, <class '_hk19_contract_b281c9b26648.store.StoreError'>)
+FAILED tests/test_hk_owner_asof_r3.py::test_shared_rejects_unverified_eligibility_not_using_master_time[master_codes] - Failed: DID NOT RAISE any of (<class 'ValueError'>, <class 'OSError'>, <class '_hk19_contract_b281c9b26648.store.StoreError'>)
+FAILED tests/test_hk_owner_asof_r3.py::test_shared_rejects_unverified_eligibility_not_using_master_time[authority_sha] - Failed: DID NOT RAISE any of (<class 'ValueError'>, <class 'OSError'>, <class '_hk19_contract_b281c9b26648.store.StoreError'>)
+FAILED tests/test_hk_owner_asof_r3.py::test_price_day_stale_oct8_preview_is_not_stage_input - Failed: DID NOT RAISE <class 'ValueError'>
+FAILED tests/test_hk_owner_asof_r3.py::test_shared_source_identity_change_after_publication_is_not_hidden - Failed: DID NOT RAISE any of (<class 'ValueError'>, <class '_hk19_contract_b281c9b26648.store.StoreError'>)
+FAILED tests/test_hk_owner_asof_r3.py::test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[True-20261007-20261008] - AssertionError: original publisher was not reached
+assert [] == [(PosixPath('..., '20261007')]
+  
+  Right contains one more item: (PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex0/shared'), '20261007')
+  
+  Full diff:
+  + []
+  - [
+  -     (
+  -         PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex0/shared'),
+  -         '20261007',
+  -     ),
+  - ]
+FAILED tests/test_hk_owner_asof_r3.py::test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[True-20261008-20261009] - AssertionError: original publisher was not reached
+assert [] == [(PosixPath('..., '20261008')]
+  
+  Right contains one more item: (PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex1/shared'), '20261008')
+  
+  Full diff:
+  + []
+  - [
+  -     (
+  -         PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex1/shared'),
+  -         '20261008',
+  -     ),
+  - ]
+FAILED tests/test_hk_owner_asof_r3.py::test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[False-20261007-20261008] - AssertionError: original publisher was not reached
+assert [] == [(PosixPath('..., '20261007')]
+  
+  Right contains one more item: (PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex2/shared'), '20261007')
+  
+  Full diff:
+  + []
+  - [
+  -     (
+  -         PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex2/shared'),
+  -         '20261007',
+  -     ),
+  - ]
+FAILED tests/test_hk_owner_asof_r3.py::test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[False-20261008-20261009] - AssertionError: original publisher was not reached
+assert [] == [(PosixPath('..., '20261008')]
+  
+  Right contains one more item: (PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex3/shared'), '20261008')
+  
+  Full diff:
+  + []
+  - [
+  -     (
+  -         PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex3/shared'),
+  -         '20261008',
+  -     ),
+  - ]
+FAILED tests/test_hk_owner_asof_r3.py::test_explicit_separate_universe_root_survives_shared_cli - TypeError: publish_hk_0_2_rows() got an unexpected keyword argument 'eligibility_universe_root'
+FAILED tests/test_hk_owner_asof_r3.py::test_original_scheduled_hk_only_cli_does_not_publish_a_missing_pool - SystemExit: 2
+FAILED tests/test_hk_owner_asof_r3.py::test_resealed_past_or_future_source_is_not_assumed_valid_for_price_day[20260930] - TypeError: publish_hk_0_2_rows() got an unexpected keyword argument 'eligibility_source_date'
+FAILED tests/test_hk_owner_asof_r3.py::test_resealed_past_or_future_source_is_not_assumed_valid_for_price_day[20261008] - TypeError: publish_hk_0_2_rows() got an unexpected keyword argument 'eligibility_source_date'
+FAILED tests/test_hk_owner_asof_r3.py::test_workload_policy_only_changes_preselection_not_six_other_catalog_entries - AttributeError: type object 'RunPolicy' has no attribute 'A_OR_HK_SECURITIES_TRADE_DAY'. Did you mean: 'HK_SECURITIES_TRADE_DAY'?
+18 failed, 1 passed in 0.59s

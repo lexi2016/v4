@@ -1,0 +1,493 @@
+diff --git a/contracts/runtime_workloads.json b/contracts/runtime_workloads.json
+--- a/contracts/runtime_workloads.json
++++ b/contracts/runtime_workloads.json
+@@ -1300,7 +1300,7 @@
+       "enabled": true,
+       "market_scope": "CROSS_MARKET",
+       "owner_id": "v35_dispatcher.preselection",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+diff --git a/contracts/trading_calendar.py b/contracts/trading_calendar.py
+--- a/contracts/trading_calendar.py
++++ b/contracts/trading_calendar.py
+@@ -30,6 +30,7 @@
+     HK_SECURITIES_TRADE_DAY = "HK_SECURITIES_TRADE_DAY"
+     HK_CONNECT_TRADE_DAY = "HK_CONNECT_TRADE_DAY"
+     A_OR_HK_CONNECT_TRADE_DAY = "A_OR_HK_CONNECT_TRADE_DAY"
++    A_OR_HK_SECURITIES_TRADE_DAY = "A_OR_HK_SECURITIES_TRADE_DAY"
+ 
+ 
+ class MarketScope(StrEnum):
+diff --git a/domains/preselection_materializer.py b/domains/preselection_materializer.py
+--- a/domains/preselection_materializer.py
++++ b/domains/preselection_materializer.py
+@@ -409,19 +409,29 @@
+     *,
+     trade_date: str,
+     signal_date: str,
++    eligibility_source_date: str | None = None,
++    eligibility_universe_root: Path | None = None,
+     shared_package_root: Path | None = None,
+     reader=None,
+ ) -> dict[str, Any]:
+     """Map the verified shared HK 0.2 Top100 into the V3.5 pool contract."""
++    from contracts.trading_calendar import load_market_calendar, previous_session
++    expected_price = previous_session(load_market_calendar(), trade_date, market="hk_securities")
++    if signal_date != expected_price:
++        raise ValueError("shared HK 0.2 stale price signal; not a formal Stage input")
++    eligibility_source_date = eligibility_source_date or signal_date
+     if reader is None:
+         if shared_package_root is None:
+             raise ValueError("shared_package_root is required for HK 0.2 verification")
+         reader = _shared_hk_0_2_reader(shared_package_root)
+-    pool = reader(
+-        Path(shared_data_root),
+-        target_date=trade_date,
+-        expected_signal_date=signal_date,
+-    )
++    reader_args = {
++        "target_date": trade_date,
++        "expected_signal_date": signal_date,
++    }
++    reader_args["expected_eligibility_source_date"] = eligibility_source_date
++    if eligibility_universe_root is not None:
++        reader_args["eligibility_universe_root"] = eligibility_universe_root
++    pool = reader(Path(shared_data_root), **reader_args)
+     verification = pool.run.verification
+     receipt = pool.run.receipt
+     for key in ("production_allowed", "buy_gate_updated", "orders_sent"):
+@@ -473,6 +483,43 @@
+     )
+     artifact["source_run_id"] = str(verification["run_id"])
+     artifact["source_row_count"] = int(verification["row_count"])
++    source_manifest_sha256 = str(
++        verification.get("manifest_sha256") or ""
++    )
++    source_receipt_sha256 = str(
++        verification.get("receipt_sha256") or ""
++    )
++    if source_manifest_sha256:
++        artifact["source_manifest_sha256"] = source_manifest_sha256
++    if source_receipt_sha256:
++        artifact["source_receipt_sha256"] = source_receipt_sha256
++    artifact["signal_date"] = signal_date
++    artifact["target_date"] = trade_date
++    artifact["stage_selection_eligible"] = True
++    source_provenance = dict(pool.run.manifest.get("provenance") or {})
++    try:
++        qualification = json.loads(
++            bytes.fromhex(source_provenance["eligibility_asof_hex"]).decode("utf-8")
++        )
++    except (ValueError, KeyError, TypeError, UnicodeError) as error:
++        raise ValueError("shared HK 0.2 eligibility as-of is invalid") from error
++    if (qualification.get("schema_version") != "v4.hk_eligibility_asof.v1"
++            or qualification.get("source_date") != eligibility_source_date
++            or qualification.get("validity") != "EXACT_CAPTURE_DATE_ONLY"
++            or eligibility_source_date != signal_date
++            or any(qualification.get(flag) is not False for flag in
++                   ("production_allowed", "buy_gate_updated", "orders_sent"))):
++        raise ValueError("shared HK 0.2 eligibility as-of/date mismatch")
++    artifact["historical_provenance"] = {
++        "schema_version": "v4.hk_d1_eligibility_asof.v2",
++        "price_signal_date": signal_date,
++        "eligibility_source_date": eligibility_source_date,
++        "eligibility_asof": qualification,
++        "d1_source_run_id": artifact["source_run_id"],
++        "d1_source_artifact_sha256": artifact["source_sha256"],
++        "d1_source_manifest_sha256": source_manifest_sha256,
++        "d1_source_receipt_sha256": source_receipt_sha256,
++    }
+     return artifact
+ 
+ 
+diff --git a/domains/runtime_policy.py b/domains/runtime_policy.py
+--- a/domains/runtime_policy.py
++++ b/domains/runtime_policy.py
+@@ -46,6 +46,8 @@
+         raise ValueError("HK securities observation policy requires HK_CONNECT scope")
+     if policy is RunPolicy.HK_CONNECT_TRADE_DAY and scope is not MarketScope.HK_CONNECT:
+         raise ValueError("HK Connect policy requires HK_CONNECT scope")
++    if policy is RunPolicy.A_OR_HK_SECURITIES_TRADE_DAY and scope is not MarketScope.CROSS_MARKET:
++        raise ValueError("A-or-HK-securities policy requires CROSS_MARKET scope")
+     if scope is MarketScope.A_SHARE:
+         return ("a_share",)
+     if scope is MarketScope.HK_CONNECT:
+@@ -54,6 +56,8 @@
+             if policy is RunPolicy.HK_SECURITIES_TRADE_DAY
+             else ("hk_connect",)
+         )
++    if policy is RunPolicy.A_OR_HK_SECURITIES_TRADE_DAY:
++        return ("a_share", "hk_securities")
+     return ("a_share", "hk_connect")
+ 
+ 
+diff --git a/infrastructure/scheduling/executor_registry_preselection.py b/infrastructure/scheduling/executor_registry_preselection.py
+--- a/infrastructure/scheduling/executor_registry_preselection.py
++++ b/infrastructure/scheduling/executor_registry_preselection.py
+@@ -70,8 +70,18 @@
+                 return None
+             if market == "HK" and len(rows) != 100:
+                 return None
++            if market == "HK":
++                from contracts.trading_calendar import load_market_calendar, previous_session
++                from domains.preselection_materializer import build_shared_hk_0_2_pool
++                price = previous_session(load_market_calendar(), trade_date, market="hk_securities")
++                verified = build_shared_hk_0_2_pool(self.shared_data_root,
++                    trade_date=trade_date, signal_date=price, eligibility_source_date=price,
++                    eligibility_universe_root=_hk_owner_universe_root(self),
++                    shared_package_root=self.shared_package_root)
++                if verified != payload:
++                    return None
+             pools[pool_id] = payload
+-    except (FileNotFoundError, OSError, ValueError, json.JSONDecodeError):
++    except (FileNotFoundError, OSError, ValueError, RuntimeError, json.JSONDecodeError):
+         return None
+     return {
+         "status": "SUCCEEDED",
+@@ -95,9 +105,27 @@
+         "orders_sent": False,
+     }
+ 
++def _hk_owner_universe_root(self):
++    root = self.hk_universe_root
++    if (root is not None and self.shared_data_root is not None
++            and self.shared_data_root.resolve() == root.resolve() / ".runtime" / "data"):
++        return self.shared_data_root
++    return root
++
++
+ def _preselection_pools(
+     self, request: DispatchRequest
+ ) -> dict[str, Any]:
++    from contracts.trading_calendar import load_market_calendar, previous_session, resolve_market_states
++    calendar = load_market_calendar()
++    states = resolve_market_states(calendar, request.business_date)
++    a_lane_eligible = states["a_share"].value in {"FULL_TRADING_DAY", "HALF_TRADING_DAY_AM"}
++    hk_lane_eligible = states["hk_securities"].value in {"FULL_TRADING_DAY", "HALF_TRADING_DAY_AM"}
++    hk_signal_date = previous_session(calendar, request.target_date, market="hk_securities")
++    # Exact current capture is the supported eligibility validity contract;
++    # a previous Connect session is not itself a source authority.
++    hk_eligibility_source_date = hk_signal_date
++    hk_universe_root = _hk_owner_universe_root(self)
+     reused = self._verified_formal_pool_reuse(request.target_date)
+     modules = [
+         "scripts.capture_public_fupan",
+@@ -128,13 +156,12 @@
+                 "preselection input root not configured",
+             )
+         )
+-    shared_entries = [
+-        self.shared_package_root / "scripts" / "capture_public_fupan.py",
+-    ]
++    shared_entries = ([self.shared_package_root / "scripts" / "capture_public_fupan.py"]
++                      if a_lane_eligible else [])
+     if reused is None:
+         shared_entries.extend(
+             (
+-                self.shared_package_root / "scripts" / "materialize_v192_selector.py",
++                *((self.shared_package_root / "scripts" / "materialize_v192_selector.py",) if a_lane_eligible else ()),
+                 self.shared_package_root / "scripts" / "update_hk_0_2_panel.py",
+                 self.shared_package_root / "scripts" / "materialize_hk_0_2.py",
+             )
+@@ -159,7 +186,9 @@
+         )
+     selector: Path | None = None
+     selector_error = ""
+-    if self.selector_data_root is None:
++    if not a_lane_eligible:
++        selector_error = "A_SHARE_NON_TRADING_DAY"
++    elif self.selector_data_root is None:
+         selector_error = "selector data root not configured"
+     else:
+         try:
+@@ -182,7 +211,7 @@
+         trusted_env.pop("V3_SHARED_SELECTOR_READY_PANEL", None)
+     a_lane_degradations: list[dict[str, Any]] = []
+     optional_lane_degradations: list[dict[str, Any]] = []
+-    if selector_error and reused is None:
++    if a_lane_eligible and selector_error and reused is None:
+         a_lane_degradations.append(
+             {
+                 "status": "CANNOT_CONFIRM",
+@@ -193,18 +222,23 @@
+                 "orders_sent": False,
+             }
+         )
+-    public_result = self._run(
+-        "scripts.capture_public_fupan",
+-        ["--trade-date", request.business_date],
+-        cwd=self.shared_package_root,
+-        env=trusted_env,
+-    )
+-    if public_result["status"] != "SUCCEEDED":
++    if not a_lane_eligible:
++        public_result = {"status": "SKIPPED", "lane": "A_SHARE"}
++    else:
++        public_result = self._run(
++            "scripts.capture_public_fupan",
++            ["--trade-date", request.business_date],
++            cwd=self.shared_package_root,
++            env=trusted_env,
++        )
++    if a_lane_eligible and public_result["status"] != "SUCCEEDED":
+         public_result = dict(public_result)
+         public_result["lane"] = "A_SHARE_OPTIONAL" if reused is not None else "A_SHARE"
+         public_result["status"] = "CANNOT_CONFIRM"
+         (optional_lane_degradations if reused is not None else a_lane_degradations).append(public_result)
+-    if reused is not None:
++    if not a_lane_eligible:
++        shared_result = {"status": "SKIPPED", "lane": "A_SHARE"}
++    elif reused is not None:
+         shared_result = {
+             "status": "SUCCEEDED",
+             "workload_id": "a_d1_premarket_pool",
+@@ -231,6 +265,7 @@
+             a_lane_degradations.append(shared_result)
+     hk_lane_degradations: list[dict[str, Any]] = []
+     security_result: dict[str, Any] = {}
++    universe_result: dict[str, Any] = {"status": "SKIPPED"}
+     if reused is not None:
+         update_result = {
+             "status": "SUCCEEDED",
+@@ -265,7 +300,7 @@
+                 [
+                     "--asset-root", str(self.shared_data_root / "assets" / "hk_0_2"),
+                     "--tdx-root", str(self.hk_0_2_tdx_root),
+-                    "--through-date", request.business_date,
++                    "--through-date", hk_signal_date,
+                 ],
+                 cwd=self.shared_package_root,
+                 env=trusted_env,
+@@ -276,25 +311,44 @@
+                 update_result["lane"] = "HK_CONNECT"
+                 update_result["status"] = "CANNOT_CONFIRM"
+                 hk_lane_degradations.append(update_result)
+-        security_result = self._run(
+-            "ops.ensure_hk_security_master",
+-            [
+-                "--store-root", str(self.shared_data_root),
+-                "--universe-root", str(self.hk_universe_root),
+-                "--shared-package-root", str(self.shared_package_root),
+-                "--trade-date", request.business_date,
+-                "--futu-python", str(self.shared_futu_python_executable),
+-                "--reuse-only",
+-            ],
+-            cwd=self.repo_root,
+-            env=trusted_env,
+-        )
++        try:
++            if hk_runtime_unavailable or not hk_lane_eligible:
++                raise ValueError("HK_SOURCE_RUNTIME_OR_CALENDAR_UNAVAILABLE")
++            if request.business_date != hk_signal_date:
++                raise ValueError("HK_PRICE_SESSION_NOT_REACHED")
++            from stage_center.hk_universe_preflight import ensure_hk_connect_universe
++            source = ensure_hk_connect_universe(hk_universe_root, hk_signal_date)
++            if source.get("ok") is not True or source.get("trade_date") != hk_signal_date:
++                raise ValueError("HK_UNIVERSE_EXACT_SOURCE_UNAVAILABLE")
++            universe_result = {"status": "SUCCEEDED", "source_date": hk_signal_date,
++                               "artifact_sha256": source.get("artifact_sha256")}
++        except (OSError, RuntimeError, ValueError, TypeError) as error:
++            universe_result = {"status": "CANNOT_CONFIRM", "reason": str(error),
++                "lane": "HK_CONNECT", "production_allowed": False,
++                "buy_gate_updated": False, "orders_sent": False}
++        if universe_result["status"] != "SUCCEEDED":
++            security_result = dict(universe_result)
++        else:
++            security_result = self._run(
++                "ops.ensure_hk_security_master",
++                [
++                    "--store-root", str(self.shared_data_root),
++                    "--universe-root", str(hk_universe_root),
++                    "--shared-package-root", str(self.shared_package_root),
++                    "--trade-date", hk_eligibility_source_date,
++                    "--futu-python", str(self.shared_futu_python_executable),
++                ],
++                cwd=self.repo_root,
++                env=trusted_env,
++            )
+         if security_result["status"] != "SUCCEEDED":
+             security_result = dict(security_result)
+             security_result["lane"] = "HK_CONNECT"
+             security_result["status"] = "CANNOT_CONFIRM"
+             hk_lane_degradations.append(security_result)
+-        if hk_runtime_unavailable:
++        if security_result.get("status") != "SUCCEEDED":
++            hk_result = dict(security_result)
++        elif hk_runtime_unavailable:
+             hk_result = dict(update_result)
+             hk_result["modules"] = ["scripts.materialize_hk_0_2"]
+         else:
+@@ -303,7 +357,9 @@
+                 [
+                     "--store-root", str(self.shared_data_root),
+                     "--asset-root", str(self.shared_data_root / "assets" / "hk_0_2"),
+-                    "--signal-date", request.business_date,
++                    "--signal-date", hk_signal_date,
++                    "--eligibility-source-date", hk_eligibility_source_date,
++                    "--eligibility-universe-root", str(hk_universe_root),
+                     "--target-date", request.target_date,
+                 ],
+                 cwd=self.shared_package_root,
+@@ -315,7 +371,9 @@
+                 hk_result["lane"] = "HK_CONNECT"
+                 hk_result["status"] = "CANNOT_CONFIRM"
+                 hk_lane_degradations.append(hk_result)
+-    if selector is None:
++    if not a_lane_eligible:
++        lane_result = {"status": "SKIPPED", "lane": "A_SHARE"}
++    elif selector is None:
+         lane_result = {
+             "status": "CANNOT_CONFIRM",
+             "exit_code": 1,
+@@ -344,7 +402,7 @@
+                 ),
+             ],
+         )
+-    if lane_result["status"] != "SUCCEEDED":
++    if a_lane_eligible and lane_result["status"] != "SUCCEEDED":
+         # The D-1 review lanes enrich the fupan/stage7 optional pools.  The
+         # scheduled materializer already emits explicit CANNOT_CONFIRM
+         # artifacts when those inputs are unavailable, so they must not
+@@ -369,15 +427,21 @@
+     ]
+     if selector is not None:
+         arguments[6:6] = ["--selector", str(selector)]
+-    if reused is not None:
++    if reused is not None and a_lane_eligible:
+         arguments.append("--reuse-formal-pools")
++    if not a_lane_eligible:
++        arguments.extend(["--market", "HK"])
++    arguments.extend(["--hk-signal-date", hk_signal_date,
++        "--hk-eligibility-source-date", hk_eligibility_source_date,
++        "--hk-eligibility-universe-root", str(hk_universe_root)])
+     result = self._run("ops.materialize_scheduled_preselection", arguments)
+     result["modules"] = modules
++    result["hk_universe_publication"] = universe_result
+     result["formal_pool_reuse"] = (
+         reused.get("formal_pool_reuse") if reused is not None else None
+     )
+     result["a_selector_status"] = (
+-        "READY"
++        "PRESERVED_NOT_EXECUTED" if not a_lane_eligible else "READY"
+         if reused is not None
+         else ("READY" if selector is not None and not a_lane_degradations else "CANNOT_CONFIRM")
+     )
+diff --git a/ops/materialize_scheduled_preselection.py b/ops/materialize_scheduled_preselection.py
+--- a/ops/materialize_scheduled_preselection.py
++++ b/ops/materialize_scheduled_preselection.py
+@@ -39,7 +39,7 @@
+ }
+ 
+ 
+-def _formal_pool_gate(artifacts: Sequence[Mapping[str, object]]) -> dict[str, object]:
++def _formal_pool_gate(artifacts: Sequence[Mapping[str, object]], *, hk_only: bool = False) -> dict[str, object]:
+     """Check the required A/HK artifacts after materialization.
+ 
+     Optional graph lanes remain independently materialized and are returned to
+@@ -55,6 +55,8 @@
+     missing_or_invalid: list[str] = []
+     required: dict[str, dict[str, object]] = {}
+     for pool_id, ready_statuses in _FORMAL_POOL_READY_STATUSES.items():
++        if hk_only and pool_id != "hkconnect_d1_top100":
++            continue
+         artifact = by_id.get(pool_id)
+         status = str(artifact.get("status") or "") if artifact else "MISSING"
+         rows = artifact.get("rows") if artifact else None
+@@ -114,6 +116,10 @@
+     *,
+     trade_date: str,
+     signal_date: str,
++    hk_signal_date: str | None = None,
++    hk_eligibility_source_date: str | None = None,
++    hk_eligibility_universe_root: Path | None = None,
++    markets: tuple[str, ...] = ("A", "HK"),
+     selector: Path | None,
+     input_root: Path,
+     shared_data_root: Path,
+@@ -123,6 +129,23 @@
+     hk_pool_reader=None,
+     reuse_formal_pools: Mapping[str, Mapping] | None = None,
+ ) -> list[dict]:
++    hk_signal_date = hk_signal_date or signal_date
++    hk_eligibility_source_date = hk_eligibility_source_date or hk_signal_date
++    if markets not in (("A", "HK"), ("HK",)):
++        raise ValueError("unsupported scheduled preselection market scope")
++    if markets == ("HK",):
++        try:
++            return [build_shared_hk_0_2_pool(shared_data_root,
++                trade_date=trade_date, signal_date=hk_signal_date,
++                eligibility_source_date=hk_eligibility_source_date,
++                eligibility_universe_root=hk_eligibility_universe_root,
++                shared_package_root=shared_package_root, reader=hk_pool_reader)]
++        except Exception as error:
++            if not _is_expected_verified_input_error(error):
++                raise
++            return [_missing(trade_date, pool_id="hkconnect_d1_top100",
++                display_name="港股通 0.2 D-1 Top100", market="HK",
++                reason=f"{_input_error_code('HK_0_2', error)}:{error}")]
+     day = Path(input_root) / trade_date
+     fupan = day / "fupan.csv"
+     fupan_manifest = day / "fupan.manifest.json"
+@@ -187,7 +210,9 @@
+             hk_0_2 = build_shared_hk_0_2_pool(
+                 shared_data_root,
+                 trade_date=trade_date,
+-                signal_date=signal_date,
++                signal_date=hk_signal_date,
++                eligibility_source_date=hk_eligibility_source_date,
++                eligibility_universe_root=hk_eligibility_universe_root,
+                 shared_package_root=shared_package_root,
+                 reader=hk_pool_reader,
+             )
+@@ -256,6 +281,10 @@
+     # The selector is an A-share research-preview fallback only.  HK 0.2
+     # materialization has its own exact-date source and must not be gated by
+     # this optional A-share input.
++    parser.add_argument("--hk-signal-date", default=None)
++    parser.add_argument("--hk-eligibility-source-date", default=None)
++    parser.add_argument("--hk-eligibility-universe-root", type=Path, default=None)
++    parser.add_argument("--market", choices=("HK",), default=None)
+     parser.add_argument("--selector", type=Path, default=None)
+     parser.add_argument("--input-root", type=Path, required=True)
+     parser.add_argument("--data-root", type=Path, default=DEFAULT_DATA_ROOT)
+@@ -271,7 +300,7 @@
+     inputs = tuple(path for path in day.glob("*") if path.is_file()) if day.is_dir() else ()
+     before = {path: path.read_bytes() for path in inputs}
+     reuse_formal_pools = None
+-    if args.reuse_formal_pools:
++    if args.reuse_formal_pools and args.market != "HK":
+         formal_store = PreselectionPoolStore(args.data_root)
+         reuse_formal_pools = {
+             pool_id: formal_store.read_pool(args.trade_date, pool_id)
+@@ -280,6 +309,10 @@
+     artifacts = build_scheduled_artifacts(
+         trade_date=args.trade_date,
+         signal_date=args.signal_date,
++        hk_signal_date=args.hk_signal_date,
++        hk_eligibility_source_date=args.hk_eligibility_source_date,
++        hk_eligibility_universe_root=args.hk_eligibility_universe_root,
++        markets=("HK",) if args.market == "HK" else ("A", "HK"),
+         selector=args.selector,
+         input_root=args.input_root,
+         shared_data_root=args.shared_data_root,
+@@ -289,12 +322,15 @@
+         hk_pool_reader=hk_pool_reader,
+         reuse_formal_pools=reuse_formal_pools,
+     )
++    # A missing HK input must not occupy its immutable key or touch any A pool.
++    eligible = [item for item in artifacts if not (
++        args.market == "HK" and item.get("source_role") == "EXPECTED_MISSING")]
+     results = materialize_preselection_date(
+-        PreselectionPoolStore(args.data_root), artifacts
++        PreselectionPoolStore(args.data_root), eligible
+     )
+     if any(path.read_bytes() != content for path, content in before.items()):
+         raise RuntimeError("read-only scheduled preselection input changed")
+-    formal_pool_gate = _formal_pool_gate(artifacts)
++    formal_pool_gate = _formal_pool_gate(artifacts, hk_only=args.market == "HK")
+     failed = formal_pool_gate["status"] != "READY"
+     print(json.dumps({
+         "trade_date": args.trade_date,

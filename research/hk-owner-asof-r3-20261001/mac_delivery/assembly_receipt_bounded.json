@@ -1,0 +1,177 @@
+{
+  "manifest_files_verified": 94,
+  "source_images_verified": 36,
+  "bindings": [
+    {
+      "variant": "canonical",
+      "path": "domains/_preselection_materializer_parts/hk_pool.py",
+      "actual_source": "/Users/lexi/Desktop/学习/v4_app/domains/_preselection_materializer_parts/hk_pool.py",
+      "actual_sha256": "f66bf4abcd48a10ef7203ef0f9c543548eac46434cf61f38810066da411b48c4",
+      "state": "BEFORE"
+    },
+    {
+      "variant": "canonical",
+      "path": "domains/preselection_materializer.py",
+      "actual_source": "/Users/lexi/Desktop/学习/v4_app/domains/preselection_materializer.py",
+      "actual_sha256": "243d595f896a3262ca098679a41d0d8c86fcfd1c35ff101f0b6ecf8c7940e0b4",
+      "state": "BEFORE"
+    },
+    {
+      "variant": "canonical",
+      "path": "infrastructure/scheduling/_executor_registry_parts/preselection.py",
+      "actual_source": "/Users/lexi/Desktop/学习/v4_app/infrastructure/scheduling/_executor_registry_parts/preselection.py",
+      "actual_sha256": "e7f9a398afdda5e30aca46d1292de80655a392774837e7d0d451b4e72e19c305",
+      "state": "BEFORE"
+    },
+    {
+      "variant": "canonical",
+      "path": "ops/materialize_scheduled_preselection.py",
+      "actual_source": "/Users/lexi/Desktop/学习/v4_app/ops/materialize_scheduled_preselection.py",
+      "actual_sha256": "0852840d8b92e94973f0d7086eea1d1a8b00fb74e4b0017b8d348fc749e63a64",
+      "state": "BEFORE"
+    },
+    {
+      "variant": "canonical",
+      "path": "stage_center/_runner_parts/hk_input_validation.py",
+      "actual_source": "/Users/lexi/Desktop/学习/v4_app/stage_center/_runner_parts/hk_input_validation.py",
+      "actual_sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+      "state": "BEFORE"
+    },
+    {
+      "variant": "canonical",
+      "path": "upstreams/v3_shared_data/scripts/materialize_hk_0_2.py",
+      "actual_source": "/Users/lexi/Desktop/学习/v4_app/upstreams/v3_shared_data/scripts/materialize_hk_0_2.py",
+      "actual_sha256": "e26e880f72271d7ea9e55aee4df937fa1d22564c3d286ead9f9f07e5fa4b6c9d",
+      "state": "BEFORE"
+    },
+    {
+      "variant": "canonical",
+      "path": "upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "actual_source": "/Users/lexi/Desktop/学习/v4_app/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "actual_sha256": "5c4b9983853b89429b366e073d9e3f6d4cf21464f38bb02a52ca53af05d8483b",
+      "state": "BEFORE"
+    },
+    {
+      "variant": "canonical",
+      "path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "actual_source": "/Users/lexi/Desktop/学习/v4_app/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "actual_sha256": "ac2c16669236d24d6d03cac183238ca8dccd8fd23895ae14ad34cef40c049008",
+      "state": "BEFORE"
+    },
+    {
+      "variant": "active",
+      "path": "preselection_app/contracts/runtime_workloads.json",
+      "actual_source": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/r9-hk-child-binding-standard-b1f316ac73f0/app/contracts/runtime_workloads.json",
+      "actual_sha256": "098f68bb95f064f94a9d385c19bb30c5aa4d4d4e6db422950446b107370bfea0",
+      "state": "BEFORE"
+    },
+    {
+      "variant": "active",
+      "path": "preselection_app/contracts/trading_calendar.py",
+      "actual_source": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/r9-hk-child-binding-standard-b1f316ac73f0/app/contracts/trading_calendar.py",
+      "actual_sha256": "61ad747fcfeedda6a6362fb9f6b45767bea7bbfa9dbeea3753beeb75dc5da577",
+      "state": "BEFORE"
+    },
+    {
+      "variant": "active",
+      "path": "preselection_app/domains/preselection_materializer.py",
+      "actual_source": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/r9-hk-child-binding-standard-b1f316ac73f0/app/domains/preselection_materializer.py",
+      "actual_sha256": "f090146f39eaaf1ea5baaa5da60cddc2aefe738be16eb1609f166b643953d84e",
+      "state": "BEFORE"
+    },
+    {
+      "variant": "active",
+      "path": "preselection_app/domains/runtime_policy.py",
+      "actual_source": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/r9-hk-child-binding-standard-b1f316ac73f0/app/domains/runtime_policy.py",
+      "actual_sha256": "4a765d98449a944c990dbb9b1677930c448d9ecc71cba726f3916e48d3863215",
+      "state": "BEFORE"
+    },
+    {
+      "variant": "active",
+      "path": "preselection_app/infrastructure/scheduling/executor_registry_preselection.py",
+      "actual_source": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/r9-hk-child-binding-standard-b1f316ac73f0/app/infrastructure/scheduling/executor_registry_preselection.py",
+      "actual_sha256": "8b3e6a89536192a74f4b6fa9528874146019f86c595f76f074d75c3e8c3c745a",
+      "state": "BEFORE"
+    },
+    {
+      "variant": "active",
+      "path": "preselection_app/ops/materialize_scheduled_preselection.py",
+      "actual_source": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/r9-hk-child-binding-standard-b1f316ac73f0/app/ops/materialize_scheduled_preselection.py",
+      "actual_sha256": "2aac77c9a995c8e97488be5324e8dd105e19e68a08bfb71cceb2df670aaa5478",
+      "state": "BEFORE"
+    },
+    {
+      "variant": "active",
+      "path": "shared_package/scripts/materialize_hk_0_2.py",
+      "actual_source": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data/scripts/materialize_hk_0_2.py",
+      "actual_sha256": "da2b7ded436badd1406700ba0674324382cc3fa6d5a802178e1ef31fe5e2cdf6",
+      "state": "BEFORE"
+    },
+    {
+      "variant": "active",
+      "path": "shared_package/shared_data/hk_0_2.py",
+      "actual_source": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "actual_sha256": "45a5091cb26800b7ccf8d7c3c75b680e951d492ac8ceb5f30b80a1ff9a6eebac",
+      "state": "BEFORE"
+    },
+    {
+      "variant": "active",
+      "path": "shared_package/shared_data/hk_security_master.py",
+      "actual_source": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "actual_sha256": "a5e9337559c530283eea4ca36c3535dbb9dbc902c920ae4ccbf0f1a1626ab764",
+      "state": "BEFORE"
+    },
+    {
+      "variant": "active",
+      "path": "stage_app/stage_center/_runner_parts/hk_input_validation.py",
+      "actual_source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261001-stage-pr16-a1445-a0925-crossday-r1/app/stage_center/_runner_parts/hk_input_validation.py",
+      "actual_sha256": "f703a8aa5e79742785b07d29778f42f53035e56b15f695aebc92d56c680531cd",
+      "state": "BEFORE"
+    }
+  ],
+  "roundtrips": [
+    {
+      "variant": "canonical",
+      "root": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/canonical",
+      "files": 8,
+      "after_byte_equal": true,
+      "rollback_byte_equal": true
+    },
+    {
+      "variant": "active",
+      "root": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/preselection_app",
+      "files": 6,
+      "after_byte_equal": true,
+      "rollback_byte_equal": true
+    },
+    {
+      "variant": "active",
+      "root": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/shared_package",
+      "files": 3,
+      "after_byte_equal": true,
+      "rollback_byte_equal": true
+    },
+    {
+      "variant": "active",
+      "root": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/stage_app",
+      "files": 1,
+      "after_byte_equal": true,
+      "rollback_byte_equal": true
+    }
+  ],
+  "actual_roots": {
+    "preselection_app": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/r9-hk-child-binding-standard-b1f316ac73f0/app",
+    "shared_package": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data",
+    "stage_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261001-stage-pr16-a1445-a0925-crossday-r1/app"
+  },
+  "isolated_roots": {
+    "canonical": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/canonical",
+    "preselection_app": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/preselection_app",
+    "shared_package": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/shared_package",
+    "stage_app": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/stage_app",
+    "active_composed": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/active_composed"
+  },
+  "composition": "Test import carrier uses preselection contracts, actual shared package, and actual Stage source. Separate Stage dependency behavior still needs independent review.",
+  "active_source_writes": false,
+  "original_data_writes": false
+}

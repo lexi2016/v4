@@ -1,0 +1,13 @@
+{
+  "tests": 19,
+  "passed": 1,
+  "failures": 18,
+  "errors": 0,
+  "skipped": 0,
+  "exit_code": 1,
+  "python": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "test_sha256": "abc5cd94cd6a0d5745ca74413ba4680955217a30a0d58f30e82797698eb32ba6",
+  "command": "HK19_VARIANT=active python -m pytest -o addopts='-W error' tests/test_hk_owner_asof_r3.py -q --tb=short --junitxml=<external-review>/active_red_final.xml",
+  "scope": "SYNTHETIC_ORIGINAL_INTERFACES_AND_REAL_PERSISTENCE; NOT_FULL_FROZEN_DEPENDENCY_OR_MAC_ACCEPTANCE"
+}

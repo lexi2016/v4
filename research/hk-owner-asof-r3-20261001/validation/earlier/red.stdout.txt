@@ -1,0 +1,242 @@
+FFFFFFFFFFF                                                              [100%]
+=================================== FAILURES ===================================
+_ test_real_shared_projector_stage_chain_has_capture_provenance[20261007-20261008] _
+upstreams/v3_shared_data/shared_data/store.py:267: in replay_file
+    spec = self.allowlist.resolve(trade_date, role, source_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+upstreams/v3_shared_data/shared_data/allowlist.py:65: in resolve
+    spec.validate()
+upstreams/v3_shared_data/shared_data/allowlist.py:50: in validate
+    raise ValueError("provenance values must be path-neutral")
+E   ValueError: provenance values must be path-neutral
+
+The above exception was the direct cause of the following exception:
+tests/test_hk_owner_asof_r3.py:90: in test_real_shared_projector_stage_chain_has_capture_provenance
+    hk.publish_hk_0_2_rows(shared, signal_date=price, target_date=target,
+upstreams/v3_shared_data/shared_data/hk_0_2.py:1078: in publish_hk_0_2_rows
+    outcome = store.replay_file(owner="v3_shared_data", trade_date=target_date, role=HK_0_2_ROLE, source_id=spec.source_id, stage_id=HK_0_2_STAGE_ID)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+upstreams/v3_shared_data/shared_data/store.py:269: in replay_file
+    raise StoreError(str(error)) from error
+E   _hk19_contract_225b57358160.store.StoreError: provenance values must be path-neutral
+_ test_real_shared_projector_stage_chain_has_capture_provenance[20261008-20261009] _
+upstreams/v3_shared_data/shared_data/store.py:267: in replay_file
+    spec = self.allowlist.resolve(trade_date, role, source_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+upstreams/v3_shared_data/shared_data/allowlist.py:65: in resolve
+    spec.validate()
+upstreams/v3_shared_data/shared_data/allowlist.py:50: in validate
+    raise ValueError("provenance values must be path-neutral")
+E   ValueError: provenance values must be path-neutral
+
+The above exception was the direct cause of the following exception:
+tests/test_hk_owner_asof_r3.py:90: in test_real_shared_projector_stage_chain_has_capture_provenance
+    hk.publish_hk_0_2_rows(shared, signal_date=price, target_date=target,
+upstreams/v3_shared_data/shared_data/hk_0_2.py:1078: in publish_hk_0_2_rows
+    outcome = store.replay_file(owner="v3_shared_data", trade_date=target_date, role=HK_0_2_ROLE, source_id=spec.source_id, stage_id=HK_0_2_STAGE_ID)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+upstreams/v3_shared_data/shared_data/store.py:269: in replay_file
+    raise StoreError(str(error)) from error
+E   _hk19_contract_225b57358160.store.StoreError: provenance values must be path-neutral
+_ test_shared_rejects_unverified_eligibility_not_using_master_time[missing_capture] _
+upstreams/v3_shared_data/shared_data/store.py:267: in replay_file
+    spec = self.allowlist.resolve(trade_date, role, source_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+upstreams/v3_shared_data/shared_data/allowlist.py:65: in resolve
+    spec.validate()
+upstreams/v3_shared_data/shared_data/allowlist.py:50: in validate
+    raise ValueError("provenance values must be path-neutral")
+E   ValueError: provenance values must be path-neutral
+
+The above exception was the direct cause of the following exception:
+tests/test_hk_owner_asof_r3.py:136: in test_shared_rejects_unverified_eligibility_not_using_master_time
+    hk.publish_hk_0_2_rows(shared,signal_date=price,target_date=target,
+upstreams/v3_shared_data/shared_data/hk_0_2.py:1078: in publish_hk_0_2_rows
+    outcome = store.replay_file(owner="v3_shared_data", trade_date=target_date, role=HK_0_2_ROLE, source_id=spec.source_id, stage_id=HK_0_2_STAGE_ID)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+upstreams/v3_shared_data/shared_data/store.py:269: in replay_file
+    raise StoreError(str(error)) from error
+E   _hk19_contract_225b57358160.store.StoreError: provenance values must be path-neutral
+_ test_shared_rejects_unverified_eligibility_not_using_master_time[wrong_date] _
+upstreams/v3_shared_data/shared_data/store.py:267: in replay_file
+    spec = self.allowlist.resolve(trade_date, role, source_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+upstreams/v3_shared_data/shared_data/allowlist.py:65: in resolve
+    spec.validate()
+upstreams/v3_shared_data/shared_data/allowlist.py:50: in validate
+    raise ValueError("provenance values must be path-neutral")
+E   ValueError: provenance values must be path-neutral
+
+The above exception was the direct cause of the following exception:
+tests/test_hk_owner_asof_r3.py:136: in test_shared_rejects_unverified_eligibility_not_using_master_time
+    hk.publish_hk_0_2_rows(shared,signal_date=price,target_date=target,
+upstreams/v3_shared_data/shared_data/hk_0_2.py:1078: in publish_hk_0_2_rows
+    outcome = store.replay_file(owner="v3_shared_data", trade_date=target_date, role=HK_0_2_ROLE, source_id=spec.source_id, stage_id=HK_0_2_STAGE_ID)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+upstreams/v3_shared_data/shared_data/store.py:269: in replay_file
+    raise StoreError(str(error)) from error
+E   _hk19_contract_225b57358160.store.StoreError: provenance values must be path-neutral
+_ test_shared_rejects_unverified_eligibility_not_using_master_time[future_capture] _
+upstreams/v3_shared_data/shared_data/store.py:267: in replay_file
+    spec = self.allowlist.resolve(trade_date, role, source_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+upstreams/v3_shared_data/shared_data/allowlist.py:65: in resolve
+    spec.validate()
+upstreams/v3_shared_data/shared_data/allowlist.py:50: in validate
+    raise ValueError("provenance values must be path-neutral")
+E   ValueError: provenance values must be path-neutral
+
+The above exception was the direct cause of the following exception:
+tests/test_hk_owner_asof_r3.py:136: in test_shared_rejects_unverified_eligibility_not_using_master_time
+    hk.publish_hk_0_2_rows(shared,signal_date=price,target_date=target,
+upstreams/v3_shared_data/shared_data/hk_0_2.py:1078: in publish_hk_0_2_rows
+    outcome = store.replay_file(owner="v3_shared_data", trade_date=target_date, role=HK_0_2_ROLE, source_id=spec.source_id, stage_id=HK_0_2_STAGE_ID)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+upstreams/v3_shared_data/shared_data/store.py:269: in replay_file
+    raise StoreError(str(error)) from error
+E   _hk19_contract_225b57358160.store.StoreError: provenance values must be path-neutral
+_ test_shared_rejects_unverified_eligibility_not_using_master_time[master_codes] _
+upstreams/v3_shared_data/shared_data/store.py:267: in replay_file
+    spec = self.allowlist.resolve(trade_date, role, source_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+upstreams/v3_shared_data/shared_data/allowlist.py:65: in resolve
+    spec.validate()
+upstreams/v3_shared_data/shared_data/allowlist.py:50: in validate
+    raise ValueError("provenance values must be path-neutral")
+E   ValueError: provenance values must be path-neutral
+
+The above exception was the direct cause of the following exception:
+tests/test_hk_owner_asof_r3.py:136: in test_shared_rejects_unverified_eligibility_not_using_master_time
+    hk.publish_hk_0_2_rows(shared,signal_date=price,target_date=target,
+upstreams/v3_shared_data/shared_data/hk_0_2.py:1078: in publish_hk_0_2_rows
+    outcome = store.replay_file(owner="v3_shared_data", trade_date=target_date, role=HK_0_2_ROLE, source_id=spec.source_id, stage_id=HK_0_2_STAGE_ID)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+upstreams/v3_shared_data/shared_data/store.py:269: in replay_file
+    raise StoreError(str(error)) from error
+E   _hk19_contract_225b57358160.store.StoreError: provenance values must be path-neutral
+_ test_shared_rejects_unverified_eligibility_not_using_master_time[authority_sha] _
+upstreams/v3_shared_data/shared_data/store.py:267: in replay_file
+    spec = self.allowlist.resolve(trade_date, role, source_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+upstreams/v3_shared_data/shared_data/allowlist.py:65: in resolve
+    spec.validate()
+upstreams/v3_shared_data/shared_data/allowlist.py:50: in validate
+    raise ValueError("provenance values must be path-neutral")
+E   ValueError: provenance values must be path-neutral
+
+The above exception was the direct cause of the following exception:
+tests/test_hk_owner_asof_r3.py:136: in test_shared_rejects_unverified_eligibility_not_using_master_time
+    hk.publish_hk_0_2_rows(shared,signal_date=price,target_date=target,
+upstreams/v3_shared_data/shared_data/hk_0_2.py:1078: in publish_hk_0_2_rows
+    outcome = store.replay_file(owner="v3_shared_data", trade_date=target_date, role=HK_0_2_ROLE, source_id=spec.source_id, stage_id=HK_0_2_STAGE_ID)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+upstreams/v3_shared_data/shared_data/store.py:269: in replay_file
+    raise StoreError(str(error)) from error
+E   _hk19_contract_225b57358160.store.StoreError: provenance values must be path-neutral
+_____________ test_price_day_stale_oct8_preview_is_not_stage_input _____________
+upstreams/v3_shared_data/shared_data/store.py:267: in replay_file
+    spec = self.allowlist.resolve(trade_date, role, source_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+upstreams/v3_shared_data/shared_data/allowlist.py:65: in resolve
+    spec.validate()
+upstreams/v3_shared_data/shared_data/allowlist.py:50: in validate
+    raise ValueError("provenance values must be path-neutral")
+E   ValueError: provenance values must be path-neutral
+
+The above exception was the direct cause of the following exception:
+tests/test_hk_owner_asof_r3.py:144: in test_price_day_stale_oct8_preview_is_not_stage_input
+    hk.publish_hk_0_2_rows(shared,signal_date='20260930',target_date='20261008',
+upstreams/v3_shared_data/shared_data/hk_0_2.py:1078: in publish_hk_0_2_rows
+    outcome = store.replay_file(owner="v3_shared_data", trade_date=target_date, role=HK_0_2_ROLE, source_id=spec.source_id, stage_id=HK_0_2_STAGE_ID)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+upstreams/v3_shared_data/shared_data/store.py:269: in replay_file
+    raise StoreError(str(error)) from error
+E   _hk19_contract_225b57358160.store.StoreError: provenance values must be path-neutral
+______ test_shared_source_identity_change_after_publication_is_not_hidden ______
+upstreams/v3_shared_data/shared_data/store.py:267: in replay_file
+    spec = self.allowlist.resolve(trade_date, role, source_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+upstreams/v3_shared_data/shared_data/allowlist.py:65: in resolve
+    spec.validate()
+upstreams/v3_shared_data/shared_data/allowlist.py:50: in validate
+    raise ValueError("provenance values must be path-neutral")
+E   ValueError: provenance values must be path-neutral
+
+The above exception was the direct cause of the following exception:
+tests/test_hk_owner_asof_r3.py:156: in test_shared_source_identity_change_after_publication_is_not_hidden
+    hk.publish_hk_0_2_rows(shared,signal_date='20261007',target_date='20261008',
+upstreams/v3_shared_data/shared_data/hk_0_2.py:1078: in publish_hk_0_2_rows
+    outcome = store.replay_file(owner="v3_shared_data", trade_date=target_date, role=HK_0_2_ROLE, source_id=spec.source_id, stage_id=HK_0_2_STAGE_ID)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+upstreams/v3_shared_data/shared_data/store.py:269: in replay_file
+    raise StoreError(str(error)) from error
+E   _hk19_contract_225b57358160.store.StoreError: provenance values must be path-neutral
+_ test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[20261007-20261008] _
+tests/test_hk_owner_asof_r3.py:186: in test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only
+    assert pub==[(shared,price)], 'original publisher was not reached'
+E   AssertionError: original publisher was not reached
+E   assert [] == [(PosixPath('..., '20261007')]
+E     
+E     Right contains one more item: (PosixPath('/tmp/pytest-of-root/pytest-0/test_original_owner_invokes_ex0/shared'), '20261007')
+E     
+E     Full diff:
+E     + []
+E     - [
+E     -     (
+E     -         PosixPath('/tmp/pytest-of-root/pytest-0/test_original_owner_invokes_ex0/shared'),
+E     -         '20261007',
+E     -     ),
+E     - ]
+_ test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[20261008-20261009] _
+tests/test_hk_owner_asof_r3.py:186: in test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only
+    assert pub==[(shared,price)], 'original publisher was not reached'
+E   AssertionError: original publisher was not reached
+E   assert [] == [(PosixPath('..., '20261008')]
+E     
+E     Right contains one more item: (PosixPath('/tmp/pytest-of-root/pytest-0/test_original_owner_invokes_ex1/shared'), '20261008')
+E     
+E     Full diff:
+E     + []
+E     - [
+E     -     (
+E     -         PosixPath('/tmp/pytest-of-root/pytest-0/test_original_owner_invokes_ex1/shared'),
+E     -         '20261008',
+E     -     ),
+E     - ]
+=========================== short test summary info ============================
+FAILED tests/test_hk_owner_asof_r3.py::test_real_shared_projector_stage_chain_has_capture_provenance[20261007-20261008] - _hk19_contract_225b57358160.store.StoreError: provenance values must be path-neutral
+FAILED tests/test_hk_owner_asof_r3.py::test_real_shared_projector_stage_chain_has_capture_provenance[20261008-20261009] - _hk19_contract_225b57358160.store.StoreError: provenance values must be path-neutral
+FAILED tests/test_hk_owner_asof_r3.py::test_shared_rejects_unverified_eligibility_not_using_master_time[missing_capture] - _hk19_contract_225b57358160.store.StoreError: provenance values must be path-neutral
+FAILED tests/test_hk_owner_asof_r3.py::test_shared_rejects_unverified_eligibility_not_using_master_time[wrong_date] - _hk19_contract_225b57358160.store.StoreError: provenance values must be path-neutral
+FAILED tests/test_hk_owner_asof_r3.py::test_shared_rejects_unverified_eligibility_not_using_master_time[future_capture] - _hk19_contract_225b57358160.store.StoreError: provenance values must be path-neutral
+FAILED tests/test_hk_owner_asof_r3.py::test_shared_rejects_unverified_eligibility_not_using_master_time[master_codes] - _hk19_contract_225b57358160.store.StoreError: provenance values must be path-neutral
+FAILED tests/test_hk_owner_asof_r3.py::test_shared_rejects_unverified_eligibility_not_using_master_time[authority_sha] - _hk19_contract_225b57358160.store.StoreError: provenance values must be path-neutral
+FAILED tests/test_hk_owner_asof_r3.py::test_price_day_stale_oct8_preview_is_not_stage_input - _hk19_contract_225b57358160.store.StoreError: provenance values must be path-neutral
+FAILED tests/test_hk_owner_asof_r3.py::test_shared_source_identity_change_after_publication_is_not_hidden - _hk19_contract_225b57358160.store.StoreError: provenance values must be path-neutral
+FAILED tests/test_hk_owner_asof_r3.py::test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[20261007-20261008] - AssertionError: original publisher was not reached
+assert [] == [(PosixPath('..., '20261007')]
+  
+  Right contains one more item: (PosixPath('/tmp/pytest-of-root/pytest-0/test_original_owner_invokes_ex0/shared'), '20261007')
+  
+  Full diff:
+  + []
+  - [
+  -     (
+  -         PosixPath('/tmp/pytest-of-root/pytest-0/test_original_owner_invokes_ex0/shared'),
+  -         '20261007',
+  -     ),
+  - ]
+FAILED tests/test_hk_owner_asof_r3.py::test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[20261008-20261009] - AssertionError: original publisher was not reached
+assert [] == [(PosixPath('..., '20261008')]
+  
+  Right contains one more item: (PosixPath('/tmp/pytest-of-root/pytest-0/test_original_owner_invokes_ex1/shared'), '20261008')
+  
+  Full diff:
+  + []
+  - [
+  -     (
+  -         PosixPath('/tmp/pytest-of-root/pytest-0/test_original_owner_invokes_ex1/shared'),
+  -         '20261008',
+  -     ),
+  - ]
+11 failed in 0.63s

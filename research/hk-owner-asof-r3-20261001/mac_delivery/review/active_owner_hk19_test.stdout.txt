@@ -1,0 +1,65 @@
+FF.......FFFF.F....                                                      [100%]
+=================================== FAILURES ===================================
+_ test_real_shared_projector_stage_chain_has_capture_provenance[20261007-20261008] _
+tests/test_hk_owner_asof_r3.py:129: in test_real_shared_projector_stage_chain_has_capture_provenance
+    scheduled.materialize_preselection_date(PreselectionPoolStore(data), artifacts)
+domains/preselection_materializer.py:1167: in materialize_preselection_date
+    results.append(store.materialize(artifact))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/preselection_pool_store.py:388: in materialize
+    trade_date = validate_pool_artifact(payload)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/preselection_pool_store.py:689: in validate_pool_artifact
+    raise ValueError("invalid preselection-pool fields")
+E   ValueError: invalid preselection-pool fields
+_ test_real_shared_projector_stage_chain_has_capture_provenance[20261008-20261009] _
+tests/test_hk_owner_asof_r3.py:129: in test_real_shared_projector_stage_chain_has_capture_provenance
+    scheduled.materialize_preselection_date(PreselectionPoolStore(data), artifacts)
+domains/preselection_materializer.py:1167: in materialize_preselection_date
+    results.append(store.materialize(artifact))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/preselection_pool_store.py:388: in materialize
+    trade_date = validate_pool_artifact(payload)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/preselection_pool_store.py:689: in validate_pool_artifact
+    raise ValueError("invalid preselection-pool fields")
+E   ValueError: invalid preselection-pool fields
+_ test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[True-20261007-20261008] _
+tests/test_hk_owner_asof_r3.py:207: in test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only
+    monkeypatch.setattr(registry,'load_isolated_package_module',lambda *a,**k:(_ for _ in ()).throw(ModuleNotFoundError('SYNTHETIC missing prior run')))
+E   AttributeError: <module 'infrastructure.scheduling.executor_registry' from '/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/active_owner_composed/infrastructure/scheduling/executor_registry.py'> has no attribute 'load_isolated_package_module'
+_ test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[True-20261008-20261009] _
+tests/test_hk_owner_asof_r3.py:207: in test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only
+    monkeypatch.setattr(registry,'load_isolated_package_module',lambda *a,**k:(_ for _ in ()).throw(ModuleNotFoundError('SYNTHETIC missing prior run')))
+E   AttributeError: <module 'infrastructure.scheduling.executor_registry' from '/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/active_owner_composed/infrastructure/scheduling/executor_registry.py'> has no attribute 'load_isolated_package_module'
+_ test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[False-20261007-20261008] _
+tests/test_hk_owner_asof_r3.py:207: in test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only
+    monkeypatch.setattr(registry,'load_isolated_package_module',lambda *a,**k:(_ for _ in ()).throw(ModuleNotFoundError('SYNTHETIC missing prior run')))
+E   AttributeError: <module 'infrastructure.scheduling.executor_registry' from '/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/active_owner_composed/infrastructure/scheduling/executor_registry.py'> has no attribute 'load_isolated_package_module'
+_ test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[False-20261008-20261009] _
+tests/test_hk_owner_asof_r3.py:207: in test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only
+    monkeypatch.setattr(registry,'load_isolated_package_module',lambda *a,**k:(_ for _ in ()).throw(ModuleNotFoundError('SYNTHETIC missing prior run')))
+E   AttributeError: <module 'infrastructure.scheduling.executor_registry' from '/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/active_owner_composed/infrastructure/scheduling/executor_registry.py'> has no attribute 'load_isolated_package_module'
+_____ test_original_scheduled_hk_only_cli_does_not_publish_a_missing_pool ______
+tests/test_hk_owner_asof_r3.py:261: in test_original_scheduled_hk_only_cli_does_not_publish_a_missing_pool
+    code=scheduled.main(['--trade-date',target,'--signal-date','20260930',
+ops/materialize_scheduled_preselection.py:328: in main
+    results = materialize_preselection_date(
+domains/preselection_materializer.py:1167: in materialize_preselection_date
+    results.append(store.materialize(artifact))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/preselection_pool_store.py:388: in materialize
+    trade_date = validate_pool_artifact(payload)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/preselection_pool_store.py:689: in validate_pool_artifact
+    raise ValueError("invalid preselection-pool fields")
+E   ValueError: invalid preselection-pool fields
+=========================== short test summary info ============================
+FAILED tests/test_hk_owner_asof_r3.py::test_real_shared_projector_stage_chain_has_capture_provenance[20261007-20261008]
+FAILED tests/test_hk_owner_asof_r3.py::test_real_shared_projector_stage_chain_has_capture_provenance[20261008-20261009]
+FAILED tests/test_hk_owner_asof_r3.py::test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[True-20261007-20261008]
+FAILED tests/test_hk_owner_asof_r3.py::test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[True-20261008-20261009]
+FAILED tests/test_hk_owner_asof_r3.py::test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[False-20261007-20261008]
+FAILED tests/test_hk_owner_asof_r3.py::test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[False-20261008-20261009]
+FAILED tests/test_hk_owner_asof_r3.py::test_original_scheduled_hk_only_cli_does_not_publish_a_missing_pool
+7 failed, 12 passed in 0.96s

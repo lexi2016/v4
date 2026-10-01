@@ -1,0 +1,85 @@
+diff --git a/stage_center/_runner_parts/hk_input_validation.py b/stage_center/_runner_parts/hk_input_validation.py
+--- a/stage_center/_runner_parts/hk_input_validation.py
++++ b/stage_center/_runner_parts/hk_input_validation.py
+@@ -140,69 +140,22 @@
+             raise _v4_global(_v4_scope, 'RunnerError')(f"HK D1 snapshot integrity invalid: {error}") from error
+         if snapshot.get("payload") != payload:
+             raise _v4_global(_v4_scope, 'RunnerError')("HK D1 snapshot changed during validation")
+-        open_states = {
+-            _v4_global(_v4_scope, 'TradingDayState').FULL_TRADING_DAY,
+-            _v4_global(_v4_scope, 'TradingDayState').HALF_TRADING_DAY_AM,
+-        }
+-
+-        def previous_session(market: str) -> str:
+-            cursor = _v4_global(_v4_scope, 'datetime').strptime(
+-                trade_date, "%Y%m%d"
+-            )
+-            for _ in _v4_global(_v4_scope, 'range')(15):
+-                cursor -= _v4_global(_v4_scope, 'timedelta')(days=1)
+-                candidate = cursor.strftime("%Y%m%d")
+-                state = _v4_global(_v4_scope, 'resolve_market_states')(candidate)[market]
+-                if state is _v4_global(_v4_scope, 'TradingDayState').UNKNOWN:
+-                    raise _v4_global(_v4_scope, 'RunnerError')(
+-                        "HK D1 signal/eligibility calendar CANNOT_CONFIRM"
+-                    )
+-                if state in open_states:
+-                    return candidate
+-            raise _v4_global(_v4_scope, 'RunnerError')(
+-                "HK D1 signal/eligibility calendar CANNOT_CONFIRM"
+-            )
+-
+-        price_signal_date = previous_session("hk_securities")
++        previous = _v4_global(_v4_scope, 'datetime').strptime(trade_date, "%Y%m%d")
++        for _ in _v4_global(_v4_scope, 'range')(15):
++            previous -= _v4_global(_v4_scope, 'timedelta')(days=1)
++            previous_date = previous.strftime("%Y%m%d")
++            state = _v4_global(_v4_scope, 'resolve_market_states')(previous_date)["hk_connect"]
++            if state is _v4_global(_v4_scope, 'TradingDayState').UNKNOWN:
++                raise _v4_global(_v4_scope, 'RunnerError')("HK D1 signal calendar CANNOT_CONFIRM")
++            if state in {_v4_global(_v4_scope, 'TradingDayState').FULL_TRADING_DAY, _v4_global(_v4_scope, 'TradingDayState').HALF_TRADING_DAY_AM}:
++                break
++        else:
++            raise _v4_global(_v4_scope, 'RunnerError')("HK D1 signal calendar CANNOT_CONFIRM")
+         if payload.get("market") != "HK" or payload.get("source_role") != "SHARED_VERIFIED_HK_0_2":
+             raise _v4_global(_v4_scope, 'RunnerError')("HK D1 market/source role mismatch")
+-        if payload.get("signal_date") not in (None, price_signal_date):
+-            raise _v4_global(_v4_scope, 'RunnerError')("HK D1 envelope signal_date mismatch")
+-        provenance = payload.get("historical_provenance")
+-        if not isinstance(provenance, dict) or provenance.get("schema_version") != "v4.hk_d1_eligibility_asof.v2":
+-            raise _v4_global(_v4_scope, 'RunnerError')("HK D1 verified eligibility as-of missing")
+-        qualification = provenance.get("eligibility_asof")
+-        if not isinstance(qualification, dict):
+-            raise _v4_global(_v4_scope, 'RunnerError')("HK D1 eligibility source invalid")
+-        source_date = qualification.get("source_date")
+-        hashes = ("source_sha256", "codes_sha256", "authority_artifact_sha256",
+-                  "authority_manifest_sha256", "authority_receipt_sha256", "authority_current_sha256",
+-                  "security_master_artifact_sha256")
+-        # Exact comparisons, separate from the artifact-digest legacy field alias.
+-        if (qualification.get("schema_version") != "v4.hk_eligibility_asof.v1"
+-                or not qualification.get("authority_run_id") or not qualification.get("security_master_run_id")
+-                or source_date != price_signal_date or qualification.get("validity") != "EXACT_CAPTURE_DATE_ONLY"
+-                or qualification.get("source_role") != "FUTU_HKCONNECT_PLATE_MEMBERSHIP"
+-                or provenance.get("price_signal_date") != price_signal_date
+-                or provenance.get("eligibility_source_date") != source_date
+-                or provenance.get("d1_source_run_id") != payload.get("source_run_id")
+-                or provenance.get("d1_source_artifact_sha256") != payload.get("source_sha256")
+-                or provenance.get("d1_source_manifest_sha256") != payload.get("source_manifest_sha256")
+-                or provenance.get("d1_source_receipt_sha256") != payload.get("source_receipt_sha256")
+-                or any(not _v4_global(_v4_scope, 're').fullmatch(r"[0-9a-f]{64}", str(qualification.get(k) or "")) for k in hashes)
+-                or any(qualification.get(k) is not False for k in _v4_global(_v4_scope, 'SAFETY_FLAGS'))):
+-            raise _v4_global(_v4_scope, 'RunnerError')("HK D1 eligibility provenance identity mismatch")
+-        from zoneinfo import ZoneInfo
+-        for key in ("captured_at", "security_master_captured_at"):
+-            try:
+-                captured = _v4_global(_v4_scope, 'datetime').fromisoformat(qualification[key])
+-            except (ValueError, TypeError, KeyError) as error:
+-                raise _v4_global(_v4_scope, 'RunnerError')("HK D1 capture unavailable") from error
+-            if captured.tzinfo is None or captured.astimezone(ZoneInfo("Asia/Shanghai")).strftime("%Y%m%d") != source_date:
+-                raise _v4_global(_v4_scope, 'RunnerError')("HK D1 capture source-date mismatch")
+         codes = []
+         for row in rows:
+-            if row.get("market") != "HK" or row.get("signal_date") != price_signal_date:
++            if row.get("market") != "HK" or row.get("signal_date") != previous_date:
+                 raise _v4_global(_v4_scope, 'RunnerError')("HK D1 row market/signal_date mismatch")
+             code = row.get("symbol", row.get("code"))
+             if not _v4_global(_v4_scope, 'isinstance')(code, _v4_global(_v4_scope, 'str')) or _v4_global(_v4_scope, 're').fullmatch(r"HK\.\d{5}", code) is None:
