@@ -1,0 +1,320 @@
+{
+  "receipt_type": "MANAGER_BR003_STAGE_A_WRITER_RECEIPT",
+  "status": "FAIL_STAGE_A_HANDOFF_READY",
+  "scope": {
+    "task_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002",
+    "delivery_identity": "80d4c41ec75aef41a642f1e27d32e472368f4675",
+    "delivery_parent": "34e1dc6912100830f42cf0fc90eec72f624afc9a",
+    "writer": "bi_local_apply",
+    "allowed_candidate_write": "existing prior application_candidate/apps/web/src/api/managerWorkspace.ts only, plus task-root evidence",
+    "canonical_source_write": "NONE",
+    "deployment": "NOT_RUN",
+    "business_code_repair_after_failure": "NONE"
+  },
+  "source_identity": {
+    "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+    "head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "branch": "codex/system-consolidation-20260912",
+    "canonical_git_status_before_sha256": "ab9f3f6abae6f7c65d8f8b4682b5f546fb2beaa763e3cfe30874c7330614eb1b",
+    "canonical_git_status_after_sha256": "ab9f3f6abae6f7c65d8f8b4682b5f546fb2beaa763e3cfe30874c7330614eb1b",
+    "canonical_git_status_before_lines": 452,
+    "canonical_git_status_after_lines": 452,
+    "canonical_git_status_unchanged": true
+  },
+  "implementation": {
+    "status": "APPLIED_TO_ISOLATED_CANDIDATE",
+    "candidate_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BI_LOCAL_ACCEPTANCE_20261002/application_candidate",
+    "changed_files": [
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BI_LOCAL_ACCEPTANCE_20261002/application_candidate/apps/web/src/api/managerWorkspace.ts",
+        "before_sha256": "981e77c0024c56a2f089927db76a6dda59d399a61858beea59e639d75e9d1c42",
+        "after_sha256": "6eef36501d05334c60e052ec0e344240ce310c6a0a1444a7ce6b8c61be33f9fa",
+        "expected_after_sha256": "6eef36501d05334c60e052ec0e344240ce310c6a0a1444a7ce6b8c61be33f9fa",
+        "patch_sha256": "5279b153f186e7c51ffe04a4763c3e351194991cbebb1c29a69ed06834f0d48c",
+        "after_pin_matches": true
+      }
+    ],
+    "other_four_candidate_pins_unchanged": true,
+    "non_target_candidate_files_unchanged": true,
+    "candidate_symlinks_unchanged": true,
+    "candidate_regular_file_count_before": 1423,
+    "all_five_candidate_after_pins": {
+      "v4/manager_research/workspace_announcements.py": "f741def292593fa07c4151b9c9f60dd3e347861be680c55427c051ca993a067c",
+      "v4/manager_research/issuer_us_relations.py": "75fdca7a3c8bc1e8f385a023d47df640f002096921d6a0f3af8ea6cc466ee00f",
+      "v4/manager_research/research_attention.py": "c77c8f2f109b018547622a5afbb0ac8c6fb0b949bab77a42190fcadea8cb5206",
+      "apps/web/src/api/managerWorkspace.ts": "6eef36501d05334c60e052ec0e344240ce310c6a0a1444a7ce6b8c61be33f9fa",
+      "apps/web/src/manager-selection/researchAttention.ts": "2490663c6002fd496212ae20cf9f7641d5070fc85cfa6170aab62d470cbaec51"
+    }
+  },
+  "tests": {
+    "status": "FAIL",
+    "invocations": 1,
+    "expected_cases": 41,
+    "junit": {
+      "tests": 41,
+      "failures": 0,
+      "errors": 35,
+      "skipped": 0
+    },
+    "passes_inferred": 6,
+    "pytest_exit_code": 1,
+    "typescript_compiler_error": "TS2552: Cannot find name 'date'. Did you mean 'Date'?",
+    "compiler_location": "candidate apps/web/src/api/managerWorkspace.ts:669:85",
+    "code_identity": "validateAttentionLaneEvidence(card, lanes, start, cutoff, screenSession) has no date parameter; the patched validCompanyEvidence(..., date) call is inside this function. validateResearchAttention(raw, date, screenSession) has a separate date parameter.",
+    "behavior_result": "CANNOT_CONFIRM; TypeScript compile failed in browser_page setup before parser behavior assertions.",
+    "evidence": {
+      "guarded_command": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BI_LOCAL_ACCEPTANCE_20261002/writer_evidence/test-env/bin/python writer_evidence/run_br003_guarded.py",
+      "pytest_command": [
+        "/Users/lexi/Desktop/学习/agents调试/MANAGER_BI_LOCAL_ACCEPTANCE_20261002/writer_evidence/test-env/bin/python",
+        "-m",
+        "pytest",
+        "-c",
+        "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001/pytest.ini",
+        "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001/tests/test_cross_boundary.py",
+        "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/delivery/tests/test_br003_target_date.py",
+        "-q",
+        "--tb=short",
+        "--junitxml=/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/work_once_output/junit.xml"
+      ],
+      "junit_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/work_once_output/junit.xml",
+      "junit_sha256": "bde9809f7d5133edc0efe9598fdd624e0cf6069582f0198b8467231cafefbbcc",
+      "pytest_log_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/work_once_output/pytest.log",
+      "pytest_log_sha256": "7dea1aa011f4031af87c1b9709db53f253f69f6f16b7c1e1fc92a1560f866370",
+      "typescript_log_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/work_once_output/cases/tsc.log",
+      "typescript_log_sha256": "7aa90bfe91556c973276db5a599cc38232306df6d1f270cab71a7ba1955cac28",
+      "runner_stdout_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/work_once_stdout.txt",
+      "runner_stdout_sha256": "e33cf56510d039b55910976bdc5f1de222e3e0b94739c51702818b43f9d7edc4",
+      "work_receipt_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/work_once_output/WORK_RECEIPT.json",
+      "work_receipt_sha256": "d8e7a9d27e1ca41118238a130c976ea4791fa8f24856938fcf66d8ca3710a4d3"
+    }
+  },
+  "delivery_integrity": {
+    "six_manifest_payloads_match_before_run": true,
+    "all_six_payloads_unchanged_after_run": true,
+    "payload_sha256": {
+      "README.md": "128b328502e7cb538c0be7aa303f6c6017348046c287ffb8e0337b87efb4f432",
+      "OWNER_CONTINUATION.md": "88e4afaf3801f298ed3b2cb09a91cfdb6ced0d793f8bc5cf5b8ab51afe5648f3",
+      "SOURCE_PINS.json": "0cc71085b17b4107fcf093f6899ef14b774a11e6ef499393bbf300eb41a5bb73",
+      "br003.incremental.patch": "5279b153f186e7c51ffe04a4763c3e351194991cbebb1c29a69ed06834f0d48c",
+      "tests/test_br003_target_date.py": "c05f271be936599c05c874446dc884ed958de8f36c2bbf0237aec15f474df197",
+      "tools/work_once.py": "0948600312d7b55821f83dae5dc70184b4f9b3db3d1fc1b0738b080fb7734255"
+    },
+    "prior_21_file_test_delivery_copied_task_locally": true,
+    "upstream_copy_unchanged_after_run": true,
+    "upstream_copy_directory": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001",
+    "upstream_files": [
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001/BI04_AND_CALENDAR.md",
+        "sha256": "787a10aeafdb0d13675769cf9f4321bd797fc7b72b32525624bde97b854733ce"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001/GITHUB_MANIFEST.json",
+        "sha256": "961d4645684d82982744f8470154014899c20fa20b3eb7cc4701492b2017282b"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001/README.md",
+        "sha256": "fcacf8bc70f47e1071b0c658b9a1db3c82564ec4a0060370a6250b8e552f9f8a"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001/REVIEW_STATUS.json",
+        "sha256": "3d85e3b8ac37c5acdd5c8bad668b77e96b28f9e997ca1ba91cfc2e718d798241"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001/SOURCE_PINS.json",
+        "sha256": "94f150042d80de33c4e48c3d731f1b400dc3303a66498f71df507d7f4b881919"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001/TEST_REPORT.md",
+        "sha256": "dfd10ca337fbf49d16604701db429b251bdbc603ba484c50ff3b7f2adee8cccf"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001/WORK_ONCE.md",
+        "sha256": "301a207675bf3bb20dee834d1e9f8d7e6ae654b293f2c8e2625e5a9ef13ae2e6"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001/evidence/IMPORTED_SOURCE_IDENTITY.json",
+        "sha256": "fa4e5ba80bfa659f000bac59efbc9841df11255cbc4c4005954a9c20d720fcd0"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001/evidence/PATCH_VERIFICATION.json",
+        "sha256": "da07dcaae8769e9d3764b4a9344b828526369584372e94512c6d69dd5f5249cd"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001/logs/green.txt",
+        "sha256": "f777b1e52662683aef7347c489c91ddaaae1ea4b755003d754bab055a09e5912"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001/logs/green.xml",
+        "sha256": "1471910d32c0246bafc25aa6b73e1953b632ac881467258624b6819f3e296181"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001/logs/issuer_binding_red.txt",
+        "sha256": "179067e2c01ab58129d2fe3597e2dcc13216373c01bc14b1aaeabd8b01ffdfa8"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001/logs/red.txt",
+        "sha256": "9db0770cc721f0e097f7bd82874c77660268303b9652be94e390dcebfc3d10d4"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001/logs/red.xml",
+        "sha256": "803a3e5c6f2e4ee5b40f6d0a51c51ddf24917fc7a8da736304f764393eb57fb3"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001/logs/work_WORK_RECEIPT.json",
+        "sha256": "29cabbd48a831780c0b8da79a2b696f0b13bd44779dab0960223de3ba9ce8d4e"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001/logs/work_pytest.log",
+        "sha256": "cf4c77a19be190bd82b8a9ed80d23ea94bbfe8fd3066d11c91ddc278d568c443"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001/pytest.ini",
+        "sha256": "e426e9d19abc292755ba0193e87e40a93f26b61e87db8e131fe90288610e9aa7"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001/runtime.patch",
+        "sha256": "f2e558ec4b9dfe22137766d40bca1e5b6ce314b6667490f59dcc3d0eca657d0f"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001/tests/producer_cases.py",
+        "sha256": "c3305882545199245affd9e12616fa992ecb99a0162ae2db6c624b41e87c4b91"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001/tests/test_cross_boundary.py",
+        "sha256": "d9fbca75deb014aec320827e45db4d4062a4ab0e0b708ad32a2a19ac23d771ef"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/manager-bi-contract-fix-20261001/tools/work_once.py",
+        "sha256": "168cfdb964cde1e141cc988319d10933c87ebdff1e69423e2727888f2f37a0bf"
+      }
+    ]
+  },
+  "protection": {
+    "canonical_five_pins_before_sha256": {
+      "v4/manager_research/workspace_announcements.py": "e57fe8b069901221d3284f6b029c57f7815120a7d11b2da170138916ebb70a18",
+      "v4/manager_research/issuer_us_relations.py": "ac3b3e228c3efed4efc7447d2461ac0c63a00b1d0fa9c93a6c0a479076af0b7d",
+      "v4/manager_research/research_attention.py": "141d95c3c58a63b8bc51d09622373e6853c89a17b279181d07a84bfeba4b3969",
+      "apps/web/src/api/managerWorkspace.ts": "139d9e4c3b4ef8b9071ee371b5f3839c10d27bcdd3c707a20553976b197b19c9",
+      "apps/web/src/manager-selection/researchAttention.ts": "564aa856a92f31c9fba2d4f1cd7f28d8a15a6d976df7436bf187d8fdac3b10f4"
+    },
+    "canonical_five_pins_after_sha256": {
+      "v4/manager_research/workspace_announcements.py": "e57fe8b069901221d3284f6b029c57f7815120a7d11b2da170138916ebb70a18",
+      "v4/manager_research/issuer_us_relations.py": "ac3b3e228c3efed4efc7447d2461ac0c63a00b1d0fa9c93a6c0a479076af0b7d",
+      "v4/manager_research/research_attention.py": "141d95c3c58a63b8bc51d09622373e6853c89a17b279181d07a84bfeba4b3969",
+      "apps/web/src/api/managerWorkspace.ts": "139d9e4c3b4ef8b9071ee371b5f3839c10d27bcdd3c707a20553976b197b19c9",
+      "apps/web/src/manager-selection/researchAttention.ts": "564aa856a92f31c9fba2d4f1cd7f28d8a15a6d976df7436bf187d8fdac3b10f4"
+    },
+    "canonical_five_pins_unchanged": true,
+    "canonical_worktree_status_unchanged": true,
+    "canonical_files_written": false,
+    "configured_release_written": false,
+    "plist_written": false,
+    "launchctl_called": false,
+    "service_started_stopped_or_reloaded": false,
+    "API_or_UI_called": false,
+    "network_or_external_action": false,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "deployment_plan": {
+    "status": "BLOCKED_CONFIGURATION_AND_TEST_PREFLIGHT",
+    "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/deployment_plan.json",
+    "sha256": "dc12b1fb5d2056da1524aa1fd743812dd60edba8ebe8397706963c8ad74d1587",
+    "DEPLOYED": "NOT_RUN",
+    "API_VERIFIED": "NOT_RUN",
+    "UI_VERIFIED": "NOT_RUN",
+    "reason": "Stage A compiler failure; parent instruction says stopA. Read-only plan records five missing configured-release paths, release/manifest identity drift, and no fitting existing manager overlay builder."
+  },
+  "review_and_behavior": {
+    "independent_reviewer": "PENDING; parent reports separate targeted compile reproduction",
+    "REVIEWED": "NOT_RUN_BY_WRITER",
+    "BEHAVIOR_VERIFIED": "CANNOT_CONFIRM",
+    "NATURAL_VERIFIED": "NOT_RUN"
+  },
+  "commands_run": [
+    "python3 -m py_compile writer_evidence/run_br003_guarded.py",
+    "/Users/lexi/Desktop/学习/agents调试/MANAGER_BI_LOCAL_ACCEPTANCE_20261002/writer_evidence/test-env/bin/python writer_evidence/run_br003_guarded.py",
+    "Guarded runner invoked the fixed delivery work_once.py once; its captured pytest JUnit had 41 tests, 0 failures, 35 setup errors, 0 skipped."
+  ],
+  "writer_evidence_files": [
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/deployment_plan.json",
+      "sha256": "dc12b1fb5d2056da1524aa1fd743812dd60edba8ebe8397706963c8ad74d1587"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/run_br003_guarded.py",
+      "sha256": "b817a137571b5f9052622e68ad0a5f21e35667c02f7cab471cfe3586775f0ec4"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/stageA_runner_receipt.json",
+      "sha256": "5981cce6f517bccc9bedbebd3124d3097f1a0a978e0163d76ac8ffde913e8a3a"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/tmp/node-compile-cache/v24.19.0-arm64-cf738c9d-501/ba70623a",
+      "sha256": "bdb1ae7964dd0bf3ddd0a6582e3b6b8c3b7f743f70ab9af59acefe06b725ff74"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/tmp/pytest-of-lexi/pytest-0/compiled0/api/managerWorkspace.js",
+      "sha256": "a8939d24d0e4d6bbbd949fb92cc3fd55c5dc74b2d718fa0ddf8724a258ca13af"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/tmp/pytest-of-lexi/pytest-0/compiled0/manager-selection/announcementObservation.js",
+      "sha256": "79ffe24ed58cbe8af0d0289b4cfc22ea4dea7d892eda27ef6916a1d307c54185"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/tmp/pytest-of-lexi/pytest-0/compiled0/manager-selection/researchAttention.js",
+      "sha256": "1730e4d3236cfff1c1f983f2b4b8c08f6086fe648127793d9d74e6f33352f7d1"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/tmp/pytest-of-lexi/pytest-0/compiled1/api/managerWorkspace.js",
+      "sha256": "a8939d24d0e4d6bbbd949fb92cc3fd55c5dc74b2d718fa0ddf8724a258ca13af"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/tmp/pytest-of-lexi/pytest-0/compiled1/manager-selection/announcementObservation.js",
+      "sha256": "79ffe24ed58cbe8af0d0289b4cfc22ea4dea7d892eda27ef6916a1d307c54185"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/tmp/pytest-of-lexi/pytest-0/compiled1/manager-selection/researchAttention.js",
+      "sha256": "1730e4d3236cfff1c1f983f2b4b8c08f6086fe648127793d9d74e6f33352f7d1"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/work_once_output/WORK_RECEIPT.json",
+      "sha256": "d8e7a9d27e1ca41118238a130c976ea4791fa8f24856938fcf66d8ca3710a4d3"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/work_once_output/cases/imports.json",
+      "sha256": "539e6417faf71b8d9c3e303694cf5b9274c7d7bf92f0ec83f7c3d402d59ed364"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/work_once_output/cases/tsc.log",
+      "sha256": "7aa90bfe91556c973276db5a599cc38232306df6d1f270cab71a7ba1955cac28"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/work_once_output/junit.xml",
+      "sha256": "bde9809f7d5133edc0efe9598fdd624e0cf6069582f0198b8467231cafefbbcc"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/work_once_output/patch_apply.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/work_once_output/patch_check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/work_once_output/pytest.log",
+      "sha256": "7dea1aa011f4031af87c1b9709db53f253f69f6f16b7c1e1fc92a1560f866370"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/writer_evidence/work_once_stdout.txt",
+      "sha256": "e33cf56510d039b55910976bdc5f1de222e3e0b94739c51702818b43f9d7edc4"
+    }
+  ],
+  "CANNOT_CONFIRM": [
+    "BR003 positive/negative target-date behavior because the 41-case suite failed at TypeScript setup.",
+    "Independent source review and behavior verdict; parent says targeted compiler repro is being performed separately.",
+    "The actual loaded 8873 process binding, deployment acceptance, API/UI behavior, and natural behavior.",
+    "Accepted R3A runtime identity from the configured release evidence."
+  ]
+}

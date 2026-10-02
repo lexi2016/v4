@@ -1,0 +1,72 @@
+{
+  "http_status": 200,
+  "elapsed_seconds": 5.68,
+  "response_sha256": "64aeb133af41d598c1138c6cb7006feab6d721044f11cfcdcde3ba994e1d1efa",
+  "eastmoney_hk_status": "PARTIAL",
+  "document_count": 0,
+  "capture": {
+    "source": "EASTMONEY_HK",
+    "source_scope": "MASTER_OWNED_BOUNDED_HK_ISSUERS_NOT_FULL_MARKET",
+    "run_id": "3e609b6dc28b44bda259d6df2177b083",
+    "sha256": "143a337df1c02074f398a17cfc5d482edc44966997d3562ba018244446d123e4",
+    "generated_at": "2026-10-02T01:52:19.294758+00:00",
+    "query_cutoff": "2026-10-02T09:52:18.950040+08:00",
+    "queried_issuers": [
+      "HK.00001",
+      "HK.00002",
+      "HK.00003"
+    ],
+    "document_count": 0,
+    "source_status": "PARTIAL",
+    "readback_status": "VERIFIED",
+    "exhaustive": false,
+    "capture_budget": {
+      "elapsed_seconds": 0.3366416249918984,
+      "max_requests": 87,
+      "max_response_bytes": 67108864,
+      "max_seconds": 45,
+      "requests_used": 3,
+      "response_bytes_used": 9509
+    },
+    "hkex_first_publication_verified": false,
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "attempt": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "execution_kind": "MANUAL_REFRESH",
+    "failure_reasons": [
+      "EASTMONEY_LIST_PAGE_NOT_EXHAUSTIVE",
+      "HKEX_FIRST_PUBLICATION_NOT_CONFIRMED"
+    ],
+    "finished_at": "2026-10-02T01:52:19.307633+00:00",
+    "input_coverage": {
+      "document_count": 0,
+      "full_market_exhaustion": "NOT_CLAIMED",
+      "master_count": 696,
+      "pending_document_count": 0,
+      "queried_issuer_count": 3,
+      "successful_issuer_count": 3
+    },
+    "input_identity": "69e6089bd7c10f7526c68b8fd5aa2c1fc4cd1ee72a4eddf491ede8a1e7cbfbec",
+    "last_success_at": "2026-10-02T01:52:19.294758+00:00",
+    "orders_sent": false,
+    "owner": "ManagerResearchJobService.refresh_announcements",
+    "production_allowed": false,
+    "run_id": "7646dbd687114d20b55a67f65b12a179",
+    "schema_version": "v4.manager_research.workspace_attempt.v1",
+    "sha256": "25245dc1c8c08ea871a1adebfc98dfb99b5a22d26b67aa1cf7d79586c0669650",
+    "source_scope": "EASTMONEY_HK",
+    "started_at": "2026-10-02T01:52:18.950040+00:00",
+    "state": "PARTIAL",
+    "target_trade_date": "20261002"
+  },
+  "gaps": [
+    "EASTMONEY_LIST_PAGE_NOT_EXHAUSTIVE",
+    "HKEX_FIRST_PUBLICATION_NOT_CONFIRMED"
+  ],
+  "official_queried": 180
+}

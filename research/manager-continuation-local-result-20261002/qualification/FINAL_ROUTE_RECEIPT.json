@@ -1,0 +1,71 @@
+{
+  "reviewer": "qualification_native_route (read-only Luna Max)",
+  "sealed_by": "root controller from completed reviewer evidence; copying source bytes only",
+  "decision": "REGISTERED_DAILY_OWNER_NOT_WIRED_TO_TARGET_V2_PRODUCER",
+  "native_execution": "NOT_RUN",
+  "scheduler_plist": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+  "scheduler_plist_sha256": "875bff64d5605acb808729e73706ddb39300ec03139708c10a9451f6713ac26a",
+  "scheduler_working_directory": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app",
+  "bindings": {
+    "V35_RESEARCH_PANEL_HK_ASSET_ROOT": {
+      "value": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2",
+      "exists": true
+    },
+    "V35_RESEARCH_PANEL_HK_TDX_ROOT": {
+      "value": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/hk_tdx",
+      "exists": true
+    },
+    "V35_RESEARCH_PANEL_HK_PYTHON_EXECUTABLE": {
+      "value": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/app/ops/launch_hk_0_2_python_nosite.sh",
+      "exists": true
+    },
+    "V35_RESEARCH_PANEL_HK_UPDATER_SCRIPT": {
+      "value": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+      "exists": true
+    },
+    "V35_RESEARCH_PANEL_RECEIPT_ROOT": {
+      "value": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts",
+      "exists": true
+    }
+  },
+  "producer_label": "v35_dispatcher.research_panel_daily_hk",
+  "required_target_artifact": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261002/HK_CONNECT_FULL_MARKET.json",
+  "artifact_exists": false,
+  "evidence_chain": [
+    {
+      "file": "contracts/runtime_workloads.json",
+      "lines": "1019-1084",
+      "meaning": "daily HK owner registered"
+    },
+    {
+      "file": "infrastructure/scheduling/executor_registry_review.py",
+      "lines": "189-251",
+      "meaning": "registered job builds dated HK panel command"
+    },
+    {
+      "file": "ops/macos_research_panel_daily_gate.py",
+      "lines": "713-770",
+      "meaning": "panel update followed by ensure_hk_security_master; no targetV2 publisher in return path"
+    },
+    {
+      "file": "ops/ensure_hk_security_master.py",
+      "lines": "489-592",
+      "meaning": "capture branch uses publish_hk_security_master"
+    },
+    {
+      "file": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "lines": "91-175",
+      "meaning": "writes security-master run/latest, no universes/target-date/HK_CONNECT_FULL_MARKET artifact"
+    },
+    {
+      "file": "ops/macos_research_panel_daily_collectors.py",
+      "lines": "141-215;373-443",
+      "meaning": "capture envelopes do not bind required producer_owner"
+    }
+  ],
+  "next_action": "Chat must inspect supplied exact native source and pinned authority builder; resolve missing existing owner publication binding without changing manager consumer, relaxing V2 or constructing qualification from price/master/D-1 rows.",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

@@ -1,0 +1,35 @@
+{
+  "scope": "controller necessary receipt correction, no review or serviceaction",
+  "actual_task_config_plist": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+  "plist_sha256": "2ba6b17639d769fe8adf977707b099ec1de1587c65b81eb0675d3ad81323996b",
+  "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/r4-stage-merged-c3e5357d07f068e79296790e0b968934c34541d579c586282c5e83f56f6a3875/app",
+  "configured_files": [
+    {
+      "path": "v4/manager_research/workspace_announcements.py",
+      "exists": true,
+      "sha256": "e57fe8b069901221d3284f6b029c57f7815120a7d11b2da170138916ebb70a18"
+    },
+    {
+      "path": "v4/manager_research/issuer_us_relations.py",
+      "exists": true,
+      "sha256": "ac3b3e228c3efed4efc7447d2461ac0c63a00b1d0fa9c93a6c0a479076af0b7d"
+    },
+    {
+      "path": "v4/manager_research/research_attention.py",
+      "exists": true,
+      "sha256": "141d95c3c58a63b8bc51d09622373e6853c89a17b279181d07a84bfeba4b3969"
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "exists": true,
+      "sha256": "139d9e4c3b4ef8b9071ee371b5f3839c10d27bcdd3c707a20553976b197b19c9"
+    },
+    {
+      "path": "apps/web/src/manager-selection/researchAttention.ts",
+      "exists": true,
+      "sha256": "564aa856a92f31c9fba2d4f1cd7f28d8a15a6d976df7436bf187d8fdac3b10f4"
+    }
+  ],
+  "writer_deployment_plan_selected": "com.lexi.v35.local.plist",
+  "deployment_plan_scope_correction": "Oldlocalplist was selected instead of task API-only config; its missingpaths/manifestdrift cannot be reported as the8873 task deploymentblocker. Deployment stopped solely at genuine TS compileFAIL; no additional deployment investigation."
+}

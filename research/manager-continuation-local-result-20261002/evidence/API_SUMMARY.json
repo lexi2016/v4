@@ -1,0 +1,832 @@
+{
+  "raw_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/ui_evidence/workspace_current.json",
+  "raw_bytes": 73202121,
+  "raw_sha256": "a53287ba9ef060db882000b4280b7519a29ff47d3a56b3616c7e1fd121364069",
+  "endpoint": "http://127.0.0.1:8873/api/v4/manager/research/workspace?date=20261002&view=auto",
+  "target_trade_date": "20261002",
+  "us_market_attention": {
+    "schema_version": "v4.manager_research.us_market_bridge.v1",
+    "target_trade_date": "20261002",
+    "research_cutoff": "2026-10-02T10:02:41.805146+08:00",
+    "status": "CANNOT_CONFIRM",
+    "expected_us_session": "20261001",
+    "session_state": "OPEN_FULL_DAY",
+    "session_close_at": "2026-10-01T16:00:00-04:00",
+    "session_calendar_source": "https://www.nyse.com/trade/hours-calendars",
+    "coverage_scope": "FIXED_24_INDUSTRY_PROXY_ROWS_AND_33_CONFIGURED_US_SYMBOLS_NOT_FULL_US_MARKET",
+    "selection_semantics": "POSITIVE_CHANGE_GT_ZERO_NOT_LARGE_GAIN_SCREEN",
+    "selection_threshold_pct": 0.0,
+    "coverage": {
+      "industry_proxy_count": 24,
+      "requested_symbol_count": 33,
+      "available_symbol_count": 33
+    },
+    "mapping_eligible": false,
+    "mapping_ineligible_reasons": [
+      "US_MARKET_SNAPSHOT_NOT_READY"
+    ],
+    "mapping_diagnostics": {
+      "status": "COMPUTED_BY_RELATION_LAYER",
+      "source_material_card_count": 0,
+      "material_relation_audit": [],
+      "missing_input": "FULL_VERIFIED_MATERIAL_CARDS_REQUIRED",
+      "mapping_eligible": false,
+      "accepted_hk_mapping_count": 0,
+      "industry": [
+        {
+          "label": "CPO",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "存储",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "天然气",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "石油",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "云计算",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "半导体",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "电网",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "数据中心",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "银行金融",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "机器人",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "黄金",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "军工",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "商业航天",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        }
+      ],
+      "individual": [
+        {
+          "symbol": "COHR",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "CIEN",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "LITE",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "MU",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "STX",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "FCG",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "VRT",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "XLE",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "CLOU",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "WDC",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "SOXX",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "NVDA",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "GRID",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "KBE",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "AMD",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "BOTZ",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "DLR",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "GLD",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "ITA",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "ARKX",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "EQIX",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        }
+      ],
+      "raw_movers_retained_when_unmapped": true,
+      "relation_gate": "TWO_SOURCE_PIT_VERIFIED_REQUIRED"
+    },
+    "source_identity": {
+      "owner": "ResearchPeripheralStore",
+      "source": "external_finance",
+      "session_date": "20261001",
+      "payload_path": "research/peripherals/20261001/external_finance.json",
+      "receipt_path": "receipts/research/peripherals/20261001/external_finance.json",
+      "manifest_path": "research/peripherals/manifest.json",
+      "status": "VERIFIED",
+      "payload_sha256": "044954de73a3922092d9a3888dfd51fc053f468bd138c7e30f7867605b3f62ae",
+      "receipt_sha256": "14ae27ca7e98d2bf5f7b5e154ba9a9bdf8ef54596d9b1efc707f30bbbb77ce4a",
+      "manifest_sha256": "7b1c75d0fe99955173ed38630e19a6298b6509e1f74548acc90084a19aead419"
+    },
+    "source_response_sha256": "dba3ff8a8e6d6413281efe646d25db946ae7a5392e946e8139c0819892fb0bd9",
+    "captured_at": "2026-10-01T20:15:01Z",
+    "gaps": [
+      "US_MARKET_SNAPSHOT_NOT_READY"
+    ],
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "us_raw_industry_up_count": 13,
+  "us_raw_individual_up_count": 21,
+  "research_attention": {
+    "schema_version": "v4.manager_research.research_attention.v1",
+    "target_trade_date": "20261002",
+    "research_cutoff": "2026-10-02T10:02:41.805146+08:00",
+    "freshness": {
+      "basis": "MAX_OF_PLAN_FOCUS_WINDOW_AND_CONFIGURED_LOOKBACK",
+      "focus_window_start": "2026-09-29T16:10:00+08:00",
+      "max_evidence_age_hours": 120,
+      "effective_start": "2026-09-29T16:10:00+08:00",
+      "status": "PROPOSAL_ONLY"
+    },
+    "status": "READY_WITH_GAPS",
+    "priority_name": "EVIDENCE_STATE_RESEARCH_ATTENTION_NOT_EXISTING_FOCUS_OR_BUY_RANK",
+    "ordering_basis": "EVIDENCE_STATE_THEN_EXISTING_PROPOSAL_SCORE_THEN_PIT_FRESHNESS",
+    "config": {
+      "official_parsed": 42,
+      "official_directory_only": 18,
+      "company_specific_material": 24,
+      "verified_us_individual": 24,
+      "verified_us_industry": 18,
+      "strict_screen": 10,
+      "near_screen": 6,
+      "trend_continuation": 8,
+      "cross_lane_bonus": 10,
+      "immediate_threshold": 55,
+      "high_threshold": 35,
+      "normal_threshold": 20,
+      "max_score": 100,
+      "max_evidence_age_hours": 120,
+      "display_limit": 30,
+      "version": "20260927.research-attention.evidence-state-v2",
+      "status": "PROPOSAL_ONLY"
+    },
+    "coverage": {
+      "candidate_union_count": 0,
+      "screen_candidate_count": 0,
+      "existing_workspace_stock_count": 0,
+      "official_symbol_count": 0,
+      "company_material_symbol_count": 0,
+      "us_industry_mapped_symbol_count": 0,
+      "us_individual_mapped_symbol_count": 0,
+      "raw_us_industry_up_count": 13,
+      "raw_us_individual_up_count": 21,
+      "us_mapping_rejected_industry_count": 13,
+      "us_mapping_rejected_individual_count": 21
+    },
+    "us_mapping_diagnostics": {
+      "status": "COMPUTED_BY_RELATION_LAYER",
+      "source_material_card_count": 0,
+      "material_relation_audit": [],
+      "missing_input": "FULL_VERIFIED_MATERIAL_CARDS_REQUIRED",
+      "mapping_eligible": false,
+      "accepted_hk_mapping_count": 0,
+      "industry": [
+        {
+          "label": "CPO",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "存储",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "天然气",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "石油",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "云计算",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "半导体",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "电网",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "数据中心",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "银行金融",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "机器人",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "黄金",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "军工",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        },
+        {
+          "label": "商业航天",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> native issuer proposition",
+          "accepted_candidates": []
+        }
+      ],
+      "individual": [
+        {
+          "symbol": "COHR",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "CIEN",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "LITE",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "MU",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "STX",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "FCG",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "VRT",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "XLE",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "CLOU",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "WDC",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "SOXX",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "NVDA",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "GRID",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "KBE",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "AMD",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "BOTZ",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "DLR",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "GLD",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "ITA",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "ARKX",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        },
+        {
+          "symbol": "EQIX",
+          "candidate_relation_count": 0,
+          "accepted_mapping_count": 0,
+          "reason": "US_MAPPING_INPUT_NOT_ELIGIBLE",
+          "rejected_candidates": [],
+          "candidate_owner": "MaterialStore/ResearchArchiveStore -> explicit US symbol in issuer clause",
+          "accepted_candidates": []
+        }
+      ],
+      "raw_movers_retained_when_unmapped": true,
+      "relation_gate": "TWO_SOURCE_PIT_VERIFIED_REQUIRED"
+    },
+    "gaps": [
+      "US_MARKET_MAPPING_INPUT_NOT_READY"
+    ],
+    "input_identity": "9355f7f01dd088b85305ed6c96ba9d28f252eeb84514c32927c327af541cff54",
+    "strict_near_unchanged": true,
+    "existing_focus_rank_unchanged": true,
+    "stage_unchanged": true,
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "research_attention_card_count": 0,
+  "announcement": {
+    "product_identity": {
+      "run_id": "3350299e0a9b42a3977dcf5d9be4c02c",
+      "revision": 75,
+      "sha256": "ed731d40466833521906d01eec0d16fb3f8491af762ceb3273f0ebcbecb4807a",
+      "generated_at": "2026-10-02T02:02:08.540328+00:00",
+      "query_since": "2026-09-29T16:10:00+08:00",
+      "query_as_of": "2026-10-01T08:46:37.748536+08:00",
+      "consumer_cutoff": "2026-10-02T10:02:41.805146+08:00",
+      "consumed": true
+    },
+    "coverage": {
+      "native_master_count": 696,
+      "queried_issuer_count": 195,
+      "pending_document_count": 0,
+      "failed_issuers": [
+        {
+          "symbol": "HK.00001",
+          "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+        },
+        {
+          "symbol": "HK.00002",
+          "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+        },
+        {
+          "symbol": "HK.00004",
+          "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+        },
+        {
+          "symbol": "HK.00006",
+          "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+        },
+        {
+          "symbol": "HK.00008",
+          "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+        },
+        {
+          "symbol": "HK.00012",
+          "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+        },
+        {
+          "symbol": "HK.00014",
+          "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+        },
+        {
+          "symbol": "HK.00016",
+          "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+        }
+      ],
+      "observed_document_count": 146,
+      "event_group_count": 112,
+      "positive_observation_count": 9,
+      "risk_count": 0,
+      "clarification_count": 10,
+      "directory_exhaustion": "UNVERIFIED",
+      "all_official_announcements_captured": false,
+      "can_resume": true,
+      "natural_run_verified": false
+    }
+  },
+  "plan_product": {
+    "status": "STALE_INPUTS_CHANGED",
+    "run_id": "b6fc4032513a4ed89b6bcdfaf26de3ff",
+    "generated_at": "2026-10-02T01:27:01.348111+00:00",
+    "sha256": "12a82fe493b9622e03e79a189b99d6259ae2ec23ca7161530496a5030a533a92",
+    "execution_kind": "SCHEDULED_PREOPEN",
+    "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
+    "last_checked_at": "2026-10-02T10:02:41.805146+08:00",
+    "consumed": false
+  },
+  "read_context": {
+    "mode": "CURRENT_DYNAMIC_PREVIEW",
+    "status": "VERIFIED_WITH_GAPS",
+    "as_of": "2026-10-02T10:02:41.805146+08:00",
+    "candidate_count_known": false,
+    "contract": "20260923.workspace-history-read.r1"
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

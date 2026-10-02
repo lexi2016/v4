@@ -1,0 +1,120 @@
+{
+  "receipt_type": "BR003_INCREMENTAL_INDEPENDENT_REVIEW",
+  "reviewer": "bi_local_review",
+  "fixed_task_id": "fixed80d4c41",
+  "created_at_utc": "2026-10-02T01:35:08.070203+00:00",
+  "candidate_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BI_LOCAL_ACCEPTANCE_20261002/application_candidate",
+  "decision": "FAIL",
+  "P0": 0,
+  "P1": 1,
+  "P2": 0,
+  "PASS_SIGNAL": "source/hash verified and independent compile verdict for the incremental BR003 target only",
+  "scope_boundary": {
+    "candidate_only_read": true,
+    "business_source_changed_by_reviewer": false,
+    "41_case_suite_repeated": false,
+    "fresh_red39_run": false,
+    "live_api_ui_deploy_or_service_action": "NOT_RUN"
+  },
+  "source_integrity": {
+    "delivery_source_pins_sha256": "0cc71085b17b4107fcf093f6899ef14b774a11e6ef499393bbf300eb41a5bb73",
+    "incremental_patch_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/delivery/br003.incremental.patch",
+    "incremental_patch_sha256_actual": "5279b153f186e7c51ffe04a4763c3e351194991cbebb1c29a69ed06834f0d48c",
+    "incremental_patch_sha256_pinned": "5279b153f186e7c51ffe04a4763c3e351194991cbebb1c29a69ed06834f0d48c",
+    "patch_hash_matches_pin": true,
+    "candidate_source_hashes": {
+      "v4/manager_research/workspace_announcements.py": {
+        "expected_sha256": "f741def292593fa07c4151b9c9f60dd3e347861be680c55427c051ca993a067c",
+        "actual_sha256": "f741def292593fa07c4151b9c9f60dd3e347861be680c55427c051ca993a067c",
+        "match": true
+      },
+      "v4/manager_research/issuer_us_relations.py": {
+        "expected_sha256": "75fdca7a3c8bc1e8f385a023d47df640f002096921d6a0f3af8ea6cc466ee00f",
+        "actual_sha256": "75fdca7a3c8bc1e8f385a023d47df640f002096921d6a0f3af8ea6cc466ee00f",
+        "match": true
+      },
+      "v4/manager_research/research_attention.py": {
+        "expected_sha256": "c77c8f2f109b018547622a5afbb0ac8c6fb0b949bab77a42190fcadea8cb5206",
+        "actual_sha256": "c77c8f2f109b018547622a5afbb0ac8c6fb0b949bab77a42190fcadea8cb5206",
+        "match": true
+      },
+      "apps/web/src/api/managerWorkspace.ts": {
+        "expected_sha256": "6eef36501d05334c60e052ec0e344240ce310c6a0a1444a7ce6b8c61be33f9fa",
+        "actual_sha256": "6eef36501d05334c60e052ec0e344240ce310c6a0a1444a7ce6b8c61be33f9fa",
+        "match": true
+      },
+      "apps/web/src/manager-selection/researchAttention.ts": {
+        "expected_sha256": "2490663c6002fd496212ae20cf9f7641d5070fc85cfa6170aab62d470cbaec51",
+        "actual_sha256": "2490663c6002fd496212ae20cf9f7641d5070fc85cfa6170aab62d470cbaec51",
+        "match": true
+      }
+    },
+    "all_candidate_hashes_match_pins": true,
+    "changed_file_expected_after_sha256": "6eef36501d05334c60e052ec0e344240ce310c6a0a1444a7ce6b8c61be33f9fa"
+  },
+  "finding": {
+    "id": "BR003-INCREMENTAL-COMPILE-001",
+    "severity": "P1",
+    "status": "CONFIRMED_DELIVERY_CODE_COMPILE_FAILURE",
+    "title": "BR003 patch uses an undeclared date identifier in the attention-lane validator",
+    "evidence": [
+      "Candidate apps/web/src/api/managerWorkspace.ts:647-651 declares validateAttentionLaneEvidence(card, lanes, start, cutoff, screenSession) with no date parameter.",
+      "Candidate apps/web/src/api/managerWorkspace.ts:669 calls validCompanyEvidence(row, start, cutoff, date); date is not in this function scope.",
+      "Candidate apps/web/src/api/managerWorkspace.ts:685-687 declares validateAttentionDecision without date; line 718 calls validateAttentionLaneEvidence without date; line 819 calls validateAttentionDecision without date.",
+      "Candidate apps/web/src/api/managerWorkspace.ts:762 declares validateResearchAttention(raw, date, screenSession), the existing source of the requested workspace date."
+    ],
+    "compile": {
+      "typescript_version": "5.9.3",
+      "command": [
+        "/Users/lexi/Desktop/学习/agents调试/MANAGER_BI_LOCAL_ACCEPTANCE_20261002/writer_evidence/test-tools/tsc",
+        "/Users/lexi/Desktop/学习/agents调试/MANAGER_BI_LOCAL_ACCEPTANCE_20261002/application_candidate/apps/web/src/api/managerWorkspace.ts",
+        "/Users/lexi/Desktop/学习/agents调试/MANAGER_BI_LOCAL_ACCEPTANCE_20261002/application_candidate/apps/web/src/manager-selection/researchAttention.ts",
+        "/Users/lexi/Desktop/学习/agents调试/MANAGER_BI_LOCAL_ACCEPTANCE_20261002/application_candidate/apps/web/src/manager-selection/announcementObservation.ts",
+        "--target",
+        "ES2020",
+        "--module",
+        "ES2020",
+        "--lib",
+        "ES2020,DOM",
+        "--outDir",
+        "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/reviewer_evidence/tsc_out",
+        "--strict",
+        "--skipLibCheck"
+      ],
+      "command_stdout_stderr_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/reviewer_evidence/independent_tsc.log",
+      "command_stdout_stderr_sha256": "9a5e19243af072d17629d77db65dc9a6953ebd4fc3bc0e8417e6071f3be4cf38",
+      "exit_code": 2,
+      "stdout_stderr": "../agents调试/MANAGER_BI_LOCAL_ACCEPTANCE_20261002/application_candidate/apps/web/src/api/managerWorkspace.ts(669,85): error TS2552: Cannot find name 'date'. Did you mean 'Date'?"
+    },
+    "impact": "The approved after-hash file does not compile under the same strict TypeScript 5.9.3 check used by the acceptance harness, so this incremental BR003 correction cannot pass target acceptance.",
+    "required_argument_propagation": [
+      "Add date: string to validateAttentionLaneEvidence at lines 647-651 and pass it at line 718.",
+      "Add date: string to validateAttentionDecision at lines 685-687 and pass it to validateAttentionLaneEvidence at line 718.",
+      "Forward the existing date parameter from validateResearchAttention at line 819 into validateAttentionDecision."
+    ]
+  },
+  "prior_BR003_behavior_proof": {
+    "receipt_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BI_LOCAL_ACCEPTANCE_20261002/reviewer_evidence/FINAL_REVIEW.json",
+    "receipt_sha256": "eccc15ac0b0574ecd0b3b4fab109c4dfa26a3ce61c07909b3bb6857eb31105a5",
+    "probe_results_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BI_LOCAL_ACCEPTANCE_20261002/reviewer_evidence/date_probe/probe_results.json",
+    "probe_results_sha256": "213eecb02734d243663dd5bf2e52d71b7f21b1ab05ce944f92be5f927b05cc1b",
+    "result": "Before incremental patch, legal historical capture parsed true and wrong owner_document.target_trade_date also parsed true; preserved as separate evidence."
+  },
+  "acceptance": {
+    "target_behavior_review": "NOT_REACHED_IN_THIS_INCREMENTAL_REVIEW_BECAUSE_COMPILE_BLOCKS_IT",
+    "independent_compile": "FAIL",
+    "overall": "FAIL"
+  },
+  "status": {
+    "REVIEWED": "FAIL_P1",
+    "TESTED": "STRICT_TYPESCRIPT_COMPILE_REPRODUCED_EXIT_2",
+    "BEHAVIOR_VERIFIED": "CANNOT_CONFIRM_AFTER_INCREMENTAL_PATCH_DUE_COMPILE_FAILURE",
+    "DEPLOYED": "NOT_RUN",
+    "API_VERIFIED": "NOT_RUN",
+    "UI_VERIFIED": "NOT_RUN",
+    "NATURAL_VERIFIED": "NOT_RUN",
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

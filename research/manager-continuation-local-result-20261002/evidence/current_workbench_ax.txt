@@ -1,0 +1,116 @@
+Browser tab: 3, Title: "经理选股工作台 · V4", URL: "http://127.0.0.1:8873/manager-selection/?date=20260925&plan_date=20261002".
+0 AXWebArea 经理选股工作台 · V4, URL: 127.0.0.1:8873/manager-selection/?date=20260925&plan_date=20261002
+	1 container
+		2 text V4 · 股票研究
+		3 heading 经理选股工作台, Value: 1
+			4 text 经理选股工作台
+		5 text 先看股票、理由和数据时间，再逐项核对条件。先核具体变化，再核预期；原Stage与BUY保留在来源详情。
+		6 container 当前目标交易日
+			7 text 原Stage参考日
+			8 text 20260925
+			9 text 研究日期 · exact
+		10 container 本计划研究关注
+			11 container
+				12 heading 本计划研究关注, Value: 2
+					13 text 本计划研究关注
+				14 text 计划目标日：
+				15 date field (settable) Description: 计划目标日, Value: 2026-10-02
+					16 container
+						17 stepper
+						18 stepper
+						19 stepper
+					20 pop up button 显示日期选择器 显示日期选择器
+				21 text 独立于原Stage来源日期；URL用 plan_date 保存计划日，date 仍表示Stage来源日。
+				22 button 读取更新
+				23 button 用既有材料生成计划
+				24 text 读取口径：
+				25 pop up button (collapsed, settable) Description: 历史或现在回看, Value: 当时历史 / 当日预览, Secondary Actions: Expand
+					26 menu
+						27 (selected) 当时历史 / 当日预览
+						28 现在回看（可能含后续消息）
+			70 text 计划 20261002 · 当日动态预览（非历史冻结计划） ｜ 材料截至 10-02 10:00 港时 ｜ 行情基准 20260930，原行情已核（非晚间实时行情）。
+			31 container 业务闭环状态
+				71 container
+					72 text 计划：冻结产物已陈旧 STALE_INPUTS_CHANGED；SCHEDULED_PREOPEN；读取 VERIFIED_WITH_GAPS 下一步：在合法盘前冻结窗口由现有 Manager owner 物化；晚间不得补成盘前。
+				73 container
+					74 text 公告：待核验 待核验；最近尝试 2026-10-02T01:59:50.991353+00:00 下一步：继续保留覆盖、失败和原件引用。
+				75 container
+					76 text 美股：CANNOT_CONFIRM 来源 CANNOT_CONFIRM；行业上涨 13／个股上涨 21；有效关系 0；FIXED_24_INDUSTRY_PROXY_ROWS_AND_33_CONFIGURED_US_SYMBOLS_NOT_FULL_US_MARKET；session 20261001 下一步：补 exact-session owner/receipt，不放宽 session 或关系校验。
+				77 container
+					78 text 研究关注：READY_WITH_GAPS 只读研究优先级；原screen/Stage/BUY不变。 下一步：继续核对证据时间、来源与缺口；不把分数当买入排名。
+				79 container
+					80 text Stage：到期回执待核 DUE_RECEIPT_UNKNOWN；产物状态 CANNOT_CONFIRM；时段 LATE_CATCHUP_REPLAY；最近成功 未记录；最近尝试 未记录；原因 SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID 下一步：按原owner补齐/复验该lane产物；历史缺件不得用当前输入回填。
+				81 container
+					82 text 材料：未运行 NOT_RUN；最近成功 未记录；最近尝试 未记录；原因 ARCHIVE_ARTICLE_ACQUISITION_TIME_MISSING:0005744debc4d84d5e0ae2785cbeab746c956bf6954cb8480d94b694cc2222c8；ARCHIVE_ARTICLE_ACQUISITION_TIME_MISSING:001b76c61e26e56f1388e3fafd60e2d3ba07dcebd046d79b10712ed6d389daf2 下一步：按原owner补齐/复验该lane产物；历史缺件不得用当前输入回填。
+				83 container
+					84 text 15:30：未运行 NOT_RUN；最近成功 未记录；最近尝试 未记录；原因 WORKBENCH_RESEARCH_SLOT_NOT_REACHED 下一步：按原owner补齐/复验该lane产物；历史缺件不得用当前输入回填。
+			32 container 次日重点研究名单
+				85 heading 研究重点名单（0）, Value: 3
+					86 text 研究重点名单（0）
+				87 text 以下是当前读取返回的研究关注；保存/冻结状态以原owner计划回执为准。
+				88 text 正式 Stage 推荐：0只；Stage 选择输入未核实，执行状态 DUE_RECEIPT_UNKNOWN。正式Stage结果与研究计划名单分列；0只不表示Stage成功扫描后为空。缺口：SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID；HK:SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID
+				89 text 原owner没有返回重点研究名单；不以候选总数代替。
+			33 container 盘后补采研究观察
+				90 heading 盘后补采（研究观察）, Value: 3
+					91 text 盘后补采（研究观察）
+				92 text 盘后补采，不代表15:30时点结果；仅研究观察。15:45–15:55分钟行情是收盘前观察，不是正式收盘价。次日计划是否消费，以真实 available_at、research_cutoff 和原owner/PIT校验为准。
+				93 container
+					94 heading 请求日独立盘后补采产物, Value: 4
+						95 text 请求日独立盘后补采产物
+					96 text 状态 NOT_RUN；计划日 未提供；来源日 20260930；真实可用时间 未提供。 观察模式 CLOSE_RECAPTURE；采集开始 未提供；最近可用 未提供。 当前没有可显示的补采候选；状态/缺项：CLOSE_RECAPTURE_NOT_MATERIALIZED
+					97 button (collapsed) 补采产物、覆盖与原owner证据, Secondary Actions: Expand
+						98 text 补采产物、覆盖与原owner证据
+				99 text 本次计划没有返回前一交易日盘后观察；不以当前页面时间补造历史数据。
+			34 container 当前候选摘要
+				100 text 研究窗口 09-29 16:10 港时—10-02 10:00 港时；候选、风险和覆盖未知，不是已成功扫描后的零候选。须补齐原owner证据。
+			36 container 关注来源筛选
+				37 checkbox 全部关注, Value: 1
+				38 checkbox Stage来源, Value: 0
+				39 checkbox 材料来源, Value: 0
+				40 checkbox 15:30尾盘来源, Value: 0
+				101 text 覆盖未知 · 不是0候选
+			42 container 去重股票
+				102 text 该日期的来源尚未验证或计划缺件，候选数量未知。
+			43 container 证据优先研究
+				103 heading 证据优先研究（只读，不是原筛选／focus／BUY 排名）, Value: 3
+					104 text 证据优先研究（只读，不是原筛选／focus／BUY 排名）
+				105 text 状态 READY_WITH_GAPS；cutoff 2026-10-02T10:00:10.160131+08:00。评分配置 20260927.research-attention.evidence-state-v2，状态 PROPOSAL_ONLY。研究排序先按证据状态，再用既有proposal分数和PIT时点打破同组并列；不写回原rank/Stage/BUY。
+				106 button (collapsed) 美股原始上涨发现（即使没有合格港股映射也保留）, Secondary Actions: Expand
+					107 text 美股原始上涨发现（即使没有合格港股映射也保留）
+			49 button (collapsed) 政策与产业线索：适用公司、原文及缺口, Secondary Actions: Expand
+				50 text 政策与产业线索：适用公司、原文及缺口
+			3100 button (collapsed) 超跌反弹选股（独立策略；与15:30尾盘来源分开） · 严格0 · 近条件0 · 待核689, Secondary Actions: Expand
+				3101 text 超跌反弹选股（独立策略；与15:30尾盘来源分开） · 严格0 · 近条件0 · 待核689
+			58 container 公告来源独立研究观察
+				3078 heading 公告来源独立研究观察（不改变两条件名单或重点排名）, Value: 3
+					3079 text 公告来源独立研究观察（不改变两条件名单或重点排名）
+				3080 text 20261002 ｜ HKEX目录：运行中（进程存活未核） ｜ HKEX只统计已观察记录，覆盖尚未证明穷尽。
+				3081 text 读取截止：2026-10-02T10:00:10.160131+08:00；超跌参考完整交易日：20260930。盘中量价 UNKNOWN，等待独立确认；不等于买入判断。
+				3082 text 最近尝试：2026-10-02T01:59:50.991353+00:00 → UNKNOWN / 未提供；RUNNING；MANUAL_REFRESH。
+				3083 button (collapsed) 最近尝试、失败原因与请求预算, Secondary Actions: Expand
+					3084 text 最近尝试、失败原因与请求预算
+				3085 text 发行人范围 696；已尝试查询 183（有效目录响应 未知）；未尝试 513。
+				3086 text 目录服务端翻页穷尽：UNVERIFIED；排队正文 0。未查询、失败与零公告不同。
+				3087 button (collapsed) 逐发行人查询截止、待查与失败覆盖, Secondary Actions: Expand
+					3088 text 逐发行人查询截止、待查与失败覆盖
+				3089 text 已读范围内暂无可标注的“此前超跌＋今日公告”记录；未读范围未知。
+				3090 button (collapsed) 全部已观察官方文档（140，不是全市场公告总数）, Secondary Actions: Expand
+					3091 text 全部已观察官方文档（140，不是全市场公告总数）
+				3092 heading 东方财富港股公告（聚合来源；不是 HKEX 官方目录）, Value: 4
+					3093 text 东方财富港股公告（聚合来源；不是 HKEX 官方目录）
+				3094 text Eastmoney HK 状态：PARTIAL；当前截止前读回 0 条逐篇公告，正文来自已校验的完整内容接口页，附件PDF另行保留。该来源的公告日期/显示时间按原样展示；HKEX 首次发布时间 CANNOT_CONFIRM。
+				3095 text 当前截止前没有可读回的Eastmoney逐篇公告；查看运行状态和缺口。
+				3096 button (collapsed) Eastmoney状态、尝试与未解缺口, Secondary Actions: Expand
+					3097 text Eastmoney状态、尝试与未解缺口
+				3098 button (collapsed) HKEX各轮窗口和未解缺口, Secondary Actions: Expand
+					3099 text HKEX各轮窗口和未解缺口
+			62 button (collapsed) 原owner状态与公司原始分类, Secondary Actions: Expand
+				63 text 原owner状态与公司原始分类
+			64 text 仅研究：事件成立与行情承接、BUY准入分开。未核同口径量价不报触发价；不因高开远离可靠参考位追入，也不预设一定回踩。未读取仓位、未发订单。
+			65 button (collapsed) 来源覆盖、运行身份与缺件, Secondary Actions: Expand
+				66 text 来源覆盖、运行身份与缺件
+		67 container 原来源排序与交易门禁
+			68 button (collapsed) 原来源排序、Stage与BUY门禁（各自口径，不是另一份关注榜）, Secondary Actions: Expand
+				69 text 原来源排序、Stage与BUY门禁（各自口径，不是另一份关注榜）
+
+The focused UI element is 3100 button (collapsed) 超跌反弹选股（独立策略；与15:30尾盘来源分开） · 严格0 · 近条件0 · 待核689, Secondary Actions: Expand
