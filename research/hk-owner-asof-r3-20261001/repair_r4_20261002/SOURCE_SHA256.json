@@ -1,0 +1,43 @@
+{
+  "input_commit": "3bcb43884cfa54fecf6eea88b0450279ffd07ab5",
+  "runtime_files": [
+    {
+      "path": "infrastructure/preselection_pool_store.py",
+      "before": {
+        "bytes": 30904,
+        "sha256": "e5ead3a523c44f95f7730d1faf4b314c93954db26eab3ec34b777d956223184d",
+        "git_blob_sha1": "7fc97ee9056944692f548e00a5680c52b3368c75"
+      },
+      "after": {
+        "bytes": 35448,
+        "sha256": "aae429b1fc5ed276d9dd97c70b841944d401b0eeedafa257474f13e745fc05d3",
+        "git_blob_sha1": "135057d81fd19633d179a70d9b1bedf2d2e4c820"
+      }
+    },
+    {
+      "path": "infrastructure/scheduling/executor_registry_preselection.py",
+      "before": {
+        "bytes": 20775,
+        "sha256": "cf5d2d1f2cb67fe4881ff615b89b61315c8226a319bc27927a95556a31ace3e5",
+        "git_blob_sha1": "2f1ac2b7e50a46cba2f5d2be5abd46a8eaaf6434"
+      },
+      "after": {
+        "bytes": 21119,
+        "sha256": "9a9f633eabbb607806d30dd5c22559e6df90f81dfe5c4084dcc7d4c5e757a969",
+        "git_blob_sha1": "893071f8faff83c2b78ebfd12cf525e9fa03c223"
+      }
+    }
+  ],
+  "canonical_runtime_modified": false,
+  "active_base": "R3 after plus supplied actual R9 e5ead3 store",
+  "not_overwrite": [
+    "source/canonical",
+    "original R3 after",
+    "mac_delivery evidence",
+    "A runtime and historical records"
+  ],
+  "tests_original_assertions_preserved": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

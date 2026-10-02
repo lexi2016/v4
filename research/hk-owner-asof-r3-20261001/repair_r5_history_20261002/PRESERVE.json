@@ -1,0 +1,35 @@
+{
+  "schema_version": "v4.hk_history_r5.preserve.v1",
+  "unchanged": [
+    {
+      "root": "preselection_app",
+      "path": "ops/ensure_hk_security_master.py",
+      "git_blob": "939d057a40d24c38d394b477737ee709b1ac4e7d",
+      "sha256": "ae6bae7dbd87f03327cf03904beee2e1f8b3e63b262057b49a3f6186eedf21f7"
+    },
+    {
+      "root": "shared_package",
+      "path": "shared_data/store.py",
+      "git_blob": "273dc301ff7e8fe9d91e9d3e3c7c427817dc3976",
+      "sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16"
+    },
+    {
+      "root": "shared_package",
+      "path": "shared_data/allowlist.py",
+      "git_blob": "afa173a579a48919b4653381fd528d901f3241d6",
+      "sha256": "a5e307f15416fe422a0ad36f60d6996f6a3f74753581dc589ef93149178dd206"
+    }
+  ],
+  "frozen": [
+    "A business code and stages",
+    "R4 prior 27 accepted cases",
+    "BUY/production safety",
+    "manager",
+    "F5"
+  ],
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

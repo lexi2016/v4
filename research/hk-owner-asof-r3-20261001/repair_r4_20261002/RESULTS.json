@@ -1,0 +1,36 @@
+{
+  "red": {
+    "tests": 20,
+    "failures": 10,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 10,
+    "exit_code": 1,
+    "python": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+    "test_sha256": "fd1f58e575f4e98ded201ba09f2c134b8e7d17c465fe74d0a521087f2ae28998",
+    "command": "/opt/pyvenv/bin/python -m pytest -o addopts=\"-W error\" tests/test_hk_r9_contract_r4.py -q --tb=short --basetemp=/mnt/data/pr20_repair/temp_red_01 --junitxml=/mnt/data/pr20_repair/logs/red.xml",
+    "source_sha256": {
+      "infrastructure/preselection_pool_store.py": "e5ead3a523c44f95f7730d1faf4b314c93954db26eab3ec34b777d956223184d",
+      "infrastructure/scheduling/executor_registry_preselection.py": "cf5d2d1f2cb67fe4881ff615b89b61315c8226a319bc27927a95556a31ace3e5"
+    },
+    "scope": "EXACT_R9_STORE_AND_R9_GLOBAL_REBIND_RULE; SYNTHETIC_READERS_AND_CHILD_BOUNDARIES; NOT_FULL_MAC_DEPENDENCIES"
+  },
+  "green": {
+    "tests": 20,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 20,
+    "exit_code": 0,
+    "python": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+    "test_sha256": "fd1f58e575f4e98ded201ba09f2c134b8e7d17c465fe74d0a521087f2ae28998",
+    "command": "/opt/pyvenv/bin/python -m pytest -o addopts=\"-W error\" tests/test_hk_r9_contract_r4.py -q --tb=short --basetemp=/mnt/data/pr20_repair/temp_green_01 --junitxml=/mnt/data/pr20_repair/logs/green.xml",
+    "source_sha256": {
+      "infrastructure/preselection_pool_store.py": "aae429b1fc5ed276d9dd97c70b841944d401b0eeedafa257474f13e745fc05d3",
+      "infrastructure/scheduling/executor_registry_preselection.py": "9a9f633eabbb607806d30dd5c22559e6df90f81dfe5c4084dcc7d4c5e757a969"
+    },
+    "scope": "EXACT_R9_STORE_AND_R9_GLOBAL_REBIND_RULE; SYNTHETIC_READERS_AND_CHILD_BOUNDARIES; NOT_FULL_MAC_DEPENDENCIES"
+  }
+}

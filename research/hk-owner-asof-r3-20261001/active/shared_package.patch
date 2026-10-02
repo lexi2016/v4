@@ -1,0 +1,316 @@
+diff --git a/scripts/materialize_hk_0_2.py b/scripts/materialize_hk_0_2.py
+--- a/scripts/materialize_hk_0_2.py
++++ b/scripts/materialize_hk_0_2.py
+@@ -18,13 +18,17 @@
+     parser.add_argument("--store-root", type=Path, required=True)
+     parser.add_argument("--asset-root", type=Path, required=True)
+     parser.add_argument("--signal-date", required=True)
++    parser.add_argument("--eligibility-source-date", default=None)
+     parser.add_argument("--target-date", required=True)
++    parser.add_argument("--eligibility-universe-root", type=Path, default=None)
+     args = parser.parse_args()
+     try:
+         existing = read_verified_hk_0_2_pool(
+             args.store_root,
+             target_date=args.target_date,
+             expected_signal_date=args.signal_date,
++            expected_eligibility_source_date=args.eligibility_source_date,
++            eligibility_universe_root=args.eligibility_universe_root,
+         )
+         outcome = {
+             "ok": True,
+@@ -37,6 +41,8 @@
+             args.store_root,
+             args.asset_root,
+             signal_date=args.signal_date,
++            eligibility_source_date=args.eligibility_source_date,
++            eligibility_universe_root=args.eligibility_universe_root,
+             target_date=args.target_date,
+         )
+     print(json.dumps(outcome, ensure_ascii=False))
+diff --git a/shared_data/hk_0_2.py b/shared_data/hk_0_2.py
+--- a/shared_data/hk_0_2.py
++++ b/shared_data/hk_0_2.py
+@@ -17,6 +17,7 @@
+ import struct
+ import tempfile
+ from datetime import datetime, timezone
++from zoneinfo import ZoneInfo
+ from dataclasses import dataclass
+ from importlib.metadata import PackageNotFoundError, version
+ from pathlib import Path
+@@ -26,6 +27,7 @@
+ from .consumer import VerifiedRun, read_verified_latest
+ from .hashing import canonical_bytes, sha256_file
+ from .paths import validate_date
++from .hk_security_master import read_verified_hk_eligibility_asof
+ from .store import SafeRootStore, StoreError
+ 
+ 
+@@ -955,11 +957,14 @@
+     store_root: Path | str,
+     *,
+     signal_date: str,
++    eligibility_source_date: str | None = None,
++    eligibility_universe_root: Path | str | None = None,
+     target_date: str,
+     rows: Iterable[Mapping[str, Any]],
+     panel_sha256: str,
+ ) -> dict[str, Any]:
+     signal_date, target_date = validate_date(signal_date), validate_date(target_date)
++    eligibility_source_date = validate_date(eligibility_source_date or signal_date)
+     normalized = [{field: _cell(dict(row).get(field)) for field in _OUTPUT_FIELDS} for row in rows]
+     if len(normalized) != 100:
+         raise StoreError("HK 0.2 strict pool must contain exactly 100 rows")
+@@ -980,7 +985,16 @@
+             raise StoreError("HK 0.2 safety boundary mismatch")
+         if _is_name_code_placeholder(row["code_norm"], row["name"]):
+             raise StoreError(f"HK 0.2 name missing or code placeholder: {row['code_norm']}")
+-    _, security_master_manifest = _load_verified_security_master(store_root, signal_date)
++    if eligibility_source_date != signal_date:
++        raise StoreError("HK 0.2 prior eligibility requires explicit validity evidence; current contract is exact capture date only")
++    eligibility_asof = read_verified_hk_eligibility_asof(
++        store_root, eligibility_source_date, universe_root=eligibility_universe_root,
++    )
++    _, security_master_manifest = _load_verified_security_master(store_root, eligibility_source_date)
++    security_master_captured_at = str(security_master_manifest.get("captured_at") or "")
++    captured_date = _capture_date_shanghai(security_master_captured_at)
++    if captured_date != eligibility_source_date:
++        raise StoreError("HK 0.2 security-master capture date does not match eligibility source")
+     with tempfile.TemporaryDirectory(prefix="v3sd_hk02_publish_") as temporary:
+         source = Path(temporary) / "hkconnect_d1_top100_0_2.csv"
+         with open(source, "w", encoding="utf-8-sig", newline="") as handle:
+@@ -995,9 +1009,12 @@
+             "model_bundle_sha256": HK_0_2_MODEL_SHA256,
+             "daily_features_sha256": HK_0_2_ORACLE_SHA256S["daily_features"],
+             "proxy_prob_active_sha256": HK_0_2_ORACLE_SHA256S["proxy_prob_active"],
+-            "security_master_trade_date": signal_date,
++            "eligibility_source_date": eligibility_source_date,
++            "security_master_trade_date": eligibility_source_date,
+             "security_master_run_id": str(security_master_manifest["run_id"]),
+             "security_master_artifact_sha256": str(security_master_manifest["artifact_sha256"]),
++            "security_master_captured_at_hex": security_master_captured_at.encode("utf-8").hex(),
++            "eligibility_asof_hex": canonical_bytes(eligibility_asof).hex(),
+         }
+         spec = SourceSpec(
+             source_id="hkconnect_0_2_frozen_prob_active",
+@@ -1015,13 +1032,41 @@
+         )
+         store = SafeRootStore(Path(store_root), AllowlistRegistry({(target_date, HK_0_2_ROLE): (spec,)}))
+         outcome = store.replay_file(owner="v3_shared_data", trade_date=target_date, role=HK_0_2_ROLE, source_id=spec.source_id, stage_id=HK_0_2_STAGE_ID)
+-    read_verified_hk_0_2_pool(store_root, target_date=target_date, expected_signal_date=signal_date)
++    read_verified_hk_0_2_pool(
++        store_root,
++        target_date=target_date,
++        expected_signal_date=signal_date,
++        expected_eligibility_source_date=eligibility_source_date,
++        eligibility_universe_root=eligibility_universe_root,
++    )
+     return outcome
+ 
+ 
+-def read_verified_hk_0_2_pool(store_root: Path | str, *, target_date: str, expected_signal_date: str) -> VerifiedHK02Pool:
++def read_verified_hk_0_2_pool(
++    store_root: Path | str,
++    *,
++    target_date: str,
++    expected_signal_date: str,
++    expected_eligibility_source_date: str | None = None,
++    eligibility_universe_root: Path | str | None = None,
++) -> VerifiedHK02Pool:
+     target_date, expected_signal_date = validate_date(target_date), validate_date(expected_signal_date)
+-    security_master, security_master_manifest = _load_verified_security_master(store_root, expected_signal_date)
++    eligibility_source_date = validate_date(
++        expected_eligibility_source_date or expected_signal_date
++    )
++    security_master, security_master_manifest = _load_verified_security_master(
++        store_root, eligibility_source_date
++    )
++    security_master_captured_at = str(
++        security_master_manifest.get("captured_at") or ""
++    )
++    if _capture_date_shanghai(security_master_captured_at) != eligibility_source_date:
++        raise StoreError("HK 0.2 security-master capture date does not match eligibility source")
++    if eligibility_source_date != expected_signal_date:
++        raise StoreError("HK 0.2 prior eligibility validity is not established")
++    eligibility_asof = read_verified_hk_eligibility_asof(
++        store_root, eligibility_source_date, universe_root=eligibility_universe_root,
++    )
+     run = read_verified_latest(store_root, target_date, HK_0_2_ROLE)
+     provenance = dict(run.manifest.get("provenance") or {})
+     expected = {
+@@ -1030,10 +1075,26 @@
+         "model_bundle_sha256": HK_0_2_MODEL_SHA256,
+         "daily_features_sha256": HK_0_2_ORACLE_SHA256S["daily_features"],
+         "proxy_prob_active_sha256": HK_0_2_ORACLE_SHA256S["proxy_prob_active"],
+-        "security_master_trade_date": expected_signal_date,
++        "security_master_trade_date": eligibility_source_date,
+         "security_master_run_id": str(security_master_manifest["run_id"]),
+         "security_master_artifact_sha256": str(security_master_manifest["artifact_sha256"]),
+     }
++    if eligibility_source_date != expected_signal_date:
++        expected.update({
++            "eligibility_source_date": eligibility_source_date,
++            "security_master_captured_at": security_master_captured_at,
++        })
++    elif "eligibility_source_date" in provenance:
++        expected["eligibility_source_date"] = eligibility_source_date
++        expected["security_master_captured_at"] = security_master_captured_at
++    # Encode the original timestamps reversibly instead of loosening the
++    # store's path-neutral string-only provenance contract.
++    expected.pop("security_master_captured_at", None)
++    expected.update(
++        eligibility_source_date=eligibility_source_date,
++        security_master_captured_at_hex=security_master_captured_at.encode("utf-8").hex(),
++        eligibility_asof_hex=canonical_bytes(eligibility_asof).hex(),
++    )
+     for key, value in expected.items():
+         if provenance.get(key) != value:
+             raise StoreError(f"HK 0.2 provenance mismatch: {key}")
+@@ -1050,9 +1111,24 @@
+     return VerifiedHK02Pool(run, tuple(rows))
+ 
+ 
+-def materialize_frozen_hk_0_2(store_root: Path | str, asset_root: Path | str, *, signal_date: str, target_date: str) -> dict[str, Any]:
++def materialize_frozen_hk_0_2(
++    store_root: Path | str,
++    asset_root: Path | str,
++    *,
++    signal_date: str,
++    target_date: str,
++    eligibility_source_date: str | None = None,
++    eligibility_universe_root: Path | str | None = None,
++) -> dict[str, Any]:
++    signal_date, target_date = validate_date(signal_date), validate_date(target_date)
++    eligibility_source_date = validate_date(eligibility_source_date or signal_date)
++    # Verify reference membership before model work; do not infer eligibility
++    # from a TDX panel, even if it contains most of the same symbols.
++    read_verified_hk_eligibility_asof(
++        store_root, eligibility_source_date, universe_root=eligibility_universe_root,
++    )
+     assets = load_frozen_hk_0_2_assets(asset_root)
+-    security_master, _ = _load_verified_security_master(store_root, signal_date)
++    security_master, _ = _load_verified_security_master(store_root, eligibility_source_date)
+     rows = score_frozen_hk_0_2(
+         asset_root,
+         signal_date=signal_date,
+@@ -1060,7 +1136,15 @@
+         eligible_codes=security_master.keys(),
+     )
+     rows = _fill_name_placeholders(rows, security_master)
+-    return publish_hk_0_2_rows(store_root, signal_date=signal_date, target_date=target_date, rows=rows, panel_sha256=str(assets.panel_manifest["panel_sha256"]))
++    return publish_hk_0_2_rows(
++        store_root,
++        signal_date=signal_date,
++        eligibility_source_date=eligibility_source_date,
++        eligibility_universe_root=eligibility_universe_root,
++        target_date=target_date,
++        rows=rows,
++        panel_sha256=str(assets.panel_manifest["panel_sha256"]),
++    )
+ 
+ 
+ def quarantine_rejected_hk_0_2_run(
+@@ -1106,3 +1190,15 @@
+         }
+         store._write_json(quarantine / "quarantine.json", receipt)
+     return receipt
++
++
++def _capture_date_shanghai(value: Any) -> str:
++    text = str(value or "").strip()
++    try:
++        parsed = datetime.fromisoformat(text)
++    except ValueError as error:
++        raise StoreError("HK 0.2 security-master capture time is invalid") from error
++    if parsed.tzinfo is None:
++        raise StoreError("HK 0.2 security-master capture time must include a timezone")
++    return parsed.astimezone(ZoneInfo("Asia/Shanghai")).strftime("%Y%m%d")
++
+diff --git a/shared_data/hk_security_master.py b/shared_data/hk_security_master.py
+--- a/shared_data/hk_security_master.py
++++ b/shared_data/hk_security_master.py
+@@ -223,3 +223,83 @@
+     "load_verified_hk_security_master",
+     "publish_hk_security_master",
+ ]
++
++
++from scripts.live_acquisition.universe import resolve_stage_universe as _hk_asof_universe_reader
++
++def read_verified_hk_eligibility_asof(
++    store_root: Path | str, source_date: str, *, universe_root: Path | str | None = None,
++) -> dict[str, Any]:
++    """Bind reference metadata to the ORIGINAL captured membership authority.
++
++    A security-master timestamp is never a substitute for a membership capture.
++    The existing universe reader owns authority/plate/count/SHA validation. This
++    adds the capture-date and cross-source binding needed by the HK-only owner.
++    No old authority is reconstructed and no existing file is written.
++    """
++    from zoneinfo import ZoneInfo
++
++    source_date = validate_date(source_date)
++    root = Path(universe_root) if universe_root is not None else Path(store_root)
++    try:
++        universe = _hk_asof_universe_reader(root, source_date, "HK_CONNECT")
++        raw = universe.path.read_bytes()
++        payload = json.loads(raw)
++        captured_at = payload.get("captured_at")
++        captured = datetime.fromisoformat(captured_at)
++        if (captured.tzinfo is None
++                or captured.astimezone(ZoneInfo("Asia/Shanghai")).strftime("%Y%m%d") != source_date
++                or payload.get("source_date") != source_date
++                or universe.source_role != "FUTU_HKCONNECT_PLATE_MEMBERSHIP"
++                or payload.get("captured_at") != captured_at):
++            raise ValueError("membership capture/date/source mismatch")
++        current_relative = f"universes/{source_date}/HK_CONNECT_FULL_MARKET.current.json"
++        current_path = resolve_under(root, current_relative)
++        current_raw = current_path.read_bytes()
++        current = json.loads(current_raw)
++        run_id = current["run_id"]
++        manifest_relative = f"universes/{source_date}/HK_CONNECT_FULL_MARKET.authority/{run_id}/manifest.json"
++        receipt_relative = f"universes/{source_date}/HK_CONNECT_FULL_MARKET.authority/{run_id}/receipt.json"
++        manifest_raw = resolve_under(root, manifest_relative).read_bytes()
++        receipt_raw = resolve_under(root, receipt_relative).read_bytes()
++        manifest = json.loads(manifest_raw)
++        if (manifest.get("captured_at") != captured_at
++                or manifest.get("artifact_sha256") != sha256_file(universe.path)
++                or manifest.get("source_materialization") not in {
++                    "FRESH_FUTU_ARTIFACT", "VERIFIED_EXISTING_ARTIFACT_CHAIN_COMPLETION"}):
++            raise ValueError("original membership manifest/capture mismatch")
++        rows, master = load_verified_hk_security_master(store_root, source_date)
++        master_time = datetime.fromisoformat(master["captured_at"])
++        if (master_time.tzinfo is None
++                or master_time.astimezone(ZoneInfo("Asia/Shanghai")).strftime("%Y%m%d") != source_date
++                or master["universe_codes_sha256"] != universe.codes_sha256
++                or set(rows) != set(universe.codes)):
++            raise ValueError("master is not bound to the verified membership")
++        # Refuse a pointer move during this read; all original verification
++        # remains in the existing reader, including its count/plate contract.
++        again = _hk_asof_universe_reader(root, source_date, "HK_CONNECT")
++        if (again != universe or universe.path.read_bytes() != raw
++                or current_path.read_bytes() != current_raw):
++            raise ValueError("membership changed during as-of verification")
++        import hashlib
++        return {
++            "schema_version": "v4.hk_eligibility_asof.v1",
++            "source_date": source_date, "captured_at": captured_at,
++            "validity": "EXACT_CAPTURE_DATE_ONLY", "source_role": universe.source_role,
++            "source_sha256": universe.source_sha256,
++            "codes_sha256": universe.codes_sha256, "code_count": len(universe.codes),
++            "authority_run_id": run_id,
++            "authority_artifact_sha256": hashlib.sha256(raw).hexdigest(),
++            "authority_manifest_sha256": hashlib.sha256(manifest_raw).hexdigest(),
++            "authority_receipt_sha256": hashlib.sha256(receipt_raw).hexdigest(),
++            "authority_current_sha256": hashlib.sha256(current_raw).hexdigest(),
++            "security_master_run_id": master["run_id"],
++            "security_master_artifact_sha256": master["artifact_sha256"],
++            "security_master_captured_at": master["captured_at"],
++            # Capture is real evidence, but natural scheduler execution still
++            # requires its original parent receipt; a unit test cannot grant it.
++            "natural_verified": False, **_SAFETY,
++        }
++    except (OSError, ValueError, TypeError, KeyError, AttributeError) as error:
++        raise StoreError(f"HK eligibility source CANNOT_CONFIRM: {error}") from error
++

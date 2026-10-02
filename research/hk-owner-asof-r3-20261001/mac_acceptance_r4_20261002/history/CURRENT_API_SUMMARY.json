@@ -1,0 +1,61 @@
+{
+  "trade_date": "20260930",
+  "write_policy": "read_only",
+  "market_totals": {
+    "A": 205,
+    "HK": 0
+  },
+  "strict_0_2_status": "CANNOT_CONFIRM",
+  "hk_pool": {
+    "buy_gate_updated": false,
+    "cannot_confirm": [
+      "HK_0_2_EXACT_INPUT_CONTRACT_INVALID:HK security master verification failed: HK security-master metadata invalid: '20260929'",
+      "POOL_NOT_READY:hkconnect_d1_top100:CANNOT_CONFIRM"
+    ],
+    "display_name": "港股通 0.2 D-1 Top100",
+    "market": "HK",
+    "orders_sent": false,
+    "pool_id": "hkconnect_d1_top100",
+    "producer_id": "graph_expected_missing_v1",
+    "production_allowed": false,
+    "rows": [],
+    "schema_version": "v3_5.preselection_pool.v1",
+    "source_path": "",
+    "source_role": "EXPECTED_MISSING",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "status": "CANNOT_CONFIRM",
+    "trade_date": "20260930",
+    "optional": false,
+    "required_for_daily_readiness": true,
+    "readiness_role": "MANDATORY_DAILY",
+    "pool_size": 0,
+    "returned_rows": 0,
+    "page_offset": 0,
+    "page_limit": 1,
+    "has_more": false,
+    "complete": false
+  },
+  "hk_binding": {
+    "physical_source_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+    "artifact_relative": "preselection_pools/20260930/hkconnect_d1_top100.json",
+    "manifest_relative": "preselection_pools/20260930/manifest.json",
+    "receipt_relative": "preselection_pools/20260930/receipts/hkconnect_d1_top100.json",
+    "artifact_raw_sha256": "972643a7a0ccc91d64681f5a62ac0cb8bd8940c2e3fc7b0a1ebc4370f29288df",
+    "manifest_raw_sha256": "5f2a87d532e7948c99575259e67604d48b31c32f342b0a86c76f58afa8387234",
+    "receipt_raw_sha256": "61f19f90c8786511e685b8698351e25ba500f1c8979cb6e1a060706f5128ca2b",
+    "trade_date": "20260930",
+    "target_date": null,
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_role": "EXPECTED_MISSING",
+    "source_run_id": null,
+    "stage_selection_eligible": null,
+    "physical_status": "TRIO_VERIFIED",
+    "cannot_confirm": [
+      "HK_D1_EXPLICIT_target_date_MISSING_OR_MISMATCH",
+      "HK_D1_EXPLICIT_stage_selection_eligible_NOT_TRUE"
+    ],
+    "stage_reuse_status": "CANNOT_CONFIRM",
+    "projection_source_matches": true
+  },
+  "raw_sha256": "a04858858310aa903c3900f91f1581caf534380a3b6e119a5439cdcbe863fee1"
+}

@@ -1,0 +1,104 @@
+{
+  "buy_gate_updated": false,
+  "collection_performed": false,
+  "existing_owner_commands": [],
+  "existing_pools": [
+    {
+      "error": "StoreError:HK security master verification failed: HK security-master metadata invalid: '20260929'",
+      "shared_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+      "status": "CANNOT_CONFIRM",
+      "universe_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data"
+    }
+  ],
+  "inspected_at": "2026-10-02T01:21:35.534800+00:00",
+  "module_sha256": {
+    "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/shared_package/shared_data/hk_0_2.py": "1ffa950c1f13ff1439c4a2b0910fdd1b863609f96c5dd7c91ea43a658eb145a4",
+    "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/shared_package/shared_data/hk_security_master.py": "08510cafeb98e55c656f19653793a8658e11c9b8cef2a9040e2982edf017d654"
+  },
+  "native_prices": [
+    {
+      "eligibility_proven": false,
+      "model_input_ready": false,
+      "native_observation": {
+        "fields": {
+          "amount": {
+            "byte_offset": 20,
+            "currency": null,
+            "native_field": "amount_v",
+            "scale_applied": 1,
+            "storage_type": "float32_le",
+            "unit": null,
+            "unit_status": "NOT_PROVEN"
+          },
+          "price": {
+            "byte_offsets": [
+              4,
+              8,
+              12,
+              16
+            ],
+            "currency": null,
+            "currency_status": "NOT_PROVEN",
+            "native_fields": [
+              "open_v",
+              "high_v",
+              "low_v",
+              "close_v"
+            ],
+            "scale_applied": 1,
+            "storage_type": "float32_le",
+            "transform": "NONE"
+          },
+          "trade": {
+            "byte_offset": 24,
+            "native_field": "trade_v",
+            "scale_applied": 1,
+            "storage_type": "uint32_le",
+            "unit": null,
+            "unit_status": "NOT_PROVEN"
+          }
+        },
+        "owner_source_sha256": "1ffa950c1f13ff1439c4a2b0910fdd1b863609f96c5dd7c91ea43a658eb145a4",
+        "read_completed_at": "2026-10-02T01:21:35.805088+00:00",
+        "read_started_at": "2026-10-02T01:21:35.726485+00:00",
+        "requested_after_date": "20260928",
+        "requested_through_date": "20260929",
+        "schema_version": "v3_shared_data.hk02_native_observation.v1",
+        "scope": "NEW_INCREMENT_ONLY",
+        "selected_dates": [],
+        "session_finality": "NOT_ATTESTED_BY_PROVIDER",
+        "source_files": []
+      },
+      "rows": 0,
+      "source_files_scanned": 713,
+      "status": "CANNOT_CONFIRM",
+      "tdx_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/hk_tdx",
+      "unique_codes": 0
+    }
+  ],
+  "natural_verified": false,
+  "orders_sent": false,
+  "pool_generated": false,
+  "price_assets": [
+    {
+      "asset_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2",
+      "error": "ValueError:exact price day absent or duplicate codes",
+      "status": "CANNOT_CONFIRM"
+    }
+  ],
+  "production_allowed": false,
+  "schema_version": "v4.hk_original_history_preflight.v1",
+  "scope": "EXPLICIT_EXISTING_OWNER_ROOTS_ONLY",
+  "signal_date": "20260929",
+  "source_pairs": [
+    {
+      "error": "StoreError:HK eligibility source CANNOT_CONFIRM: HK_CONNECT authority current pointer missing",
+      "shared_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+      "status": "CANNOT_CONFIRM",
+      "universe_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data"
+    }
+  ],
+  "status": "CANNOT_CONFIRM",
+  "target_date": "20260930",
+  "write_performed": false
+}

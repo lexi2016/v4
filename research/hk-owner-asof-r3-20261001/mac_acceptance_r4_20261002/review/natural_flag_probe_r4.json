@@ -1,0 +1,16 @@
+{
+  "probe": "synthetic_actual_R9_store_boundary",
+  "field": "historical_provenance.eligibility_asof.natural_verified",
+  "mutated_value": true,
+  "materialize_accepted": true,
+  "rejection": null,
+  "store_path": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r4_acceptance_20261002/isolated/active_r9_app/infrastructure/preselection_pool_store.py",
+  "store_sha256": "aae429b1fc5ed276d9dd97c70b841944d401b0eeedafa257474f13e745fc05d3",
+  "contract_fixture": "R4 synthetic projector fixture; no provider or source read",
+  "implication": "boundary accepts natural_verified=True despite the actual shared eligibility reader hardcoding False",
+  "no_original_data": true,
+  "stored_natural_verified": true,
+  "stage_accepts": true,
+  "path": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r4_acceptance_20261002/review/natural_flag_probe_data/preselection_pools/20261008/hkconnect_d1_top100.json",
+  "digest": "a687c44efe3958d2cfad4eb2532eaa8c07e4f18390581c40c656b6c9a6be2454"
+}

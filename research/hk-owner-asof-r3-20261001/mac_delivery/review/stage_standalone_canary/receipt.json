@@ -1,0 +1,53 @@
+{
+  "status": "PASS",
+  "interpreter": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+  "python_version": "3.14.6 (main, Jul 18 2026, 17:05:49) [Clang 22.1.3 ]",
+  "target_date": "20261008",
+  "price_signal_date": "20261007",
+  "stage_app": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/stage_app",
+  "cases": [
+    {
+      "case": "valid",
+      "result": "ACCEPTED",
+      "artifact": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/review/stage_standalone_canary/valid/source/preselection_pools/20261008/hkconnect_d1_top100.json",
+      "artifact_sha256": "d2243c6820bc51fcf2d4e62716401744e79ab7ed6e743cf43114416b3757106b"
+    },
+    {
+      "case": "wrong_capture_date",
+      "result": "REJECTED_AS_EXPECTED",
+      "error": "HK D1 capture source-date mismatch"
+    },
+    {
+      "case": "wrong_d1_manifest_identity",
+      "result": "REJECTED_AS_EXPECTED",
+      "error": "HK D1 eligibility provenance identity mismatch"
+    }
+  ],
+  "loaded_dependencies": [
+    {
+      "module": "stage_center.runner",
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/stage_app/stage_center/runner.py",
+      "sha256": "648fe7af52df1b4eba31802361f9af2d03decbbebb3286ecc7a5dc0b06523205"
+    },
+    {
+      "module": "stage_center._runner_parts.hk_input_validation",
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/stage_app/stage_center/_runner_parts/hk_input_validation.py",
+      "sha256": "5f3d4cf5bb869e08269f27178096947d15fef96f532723f3d8597563fae1e519"
+    },
+    {
+      "module": "infrastructure.preselection_pool_store",
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/stage_app/infrastructure/preselection_pool_store.py",
+      "sha256": "a640d28ec54119ae383f5dd838fe467d6ae8b5b0d87fa2c4afbb0646fbfe658a"
+    },
+    {
+      "module": "contracts.trading_calendar",
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/stage_app/contracts/trading_calendar.py",
+      "sha256": "584f28d18273a8824c5f68a701aa4404123b5c71900caada3e2772828991ee8f"
+    },
+    {
+      "module": "contracts.research_day_product",
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/stage_app/contracts/research_day_product.py",
+      "sha256": "f0e4d36e30259db6bf94bb3374241ce9d96ea04a4cf5eb18f74b871decef277d"
+    }
+  ]
+}

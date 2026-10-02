@@ -1,0 +1,197 @@
+[
+  {
+    "source": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher/receipts/live/20260929/1720/d45d29c6c6d64a1aa73c277f3790da0d.dispatch-receipt.json",
+    "sha256": "5f7790d0ace78274df9e8b34145e6e47729185fd2b29bfac8e59cc480963478f",
+    "bytes": 3622,
+    "scheduler_summary": {
+      "attempt": 1,
+      "business_date": "20260929",
+      "buy_gate_updated": false,
+      "catchup": {
+        "applied": true,
+        "lag_minutes": 74,
+        "scheduled_slot": "1720"
+      },
+      "failure_class": "UPSTREAM_NOT_READY",
+      "macos_scheduler_schema_version": "v3_5.macos_scheduler_result.v1",
+      "observed_slot": "1834",
+      "orders_sent": false,
+      "production_allowed": false,
+      "receipt_path": "receipts/live/20260929/1720/d45d29c6c6d64a1aa73c277f3790da0d.dispatch-receipt.json",
+      "release_id": "20260928-manager-daily-plan-hook-r1",
+      "retry_after": "2026-09-29T10:49:00.261308Z",
+      "run_id": "d45d29c6c6d64a1aa73c277f3790da0d",
+      "scheduled_date": "20260929",
+      "schema_version": "v3_5.scheduled_slot_result.v1",
+      "selected_workload_ids": [
+        "research_panel_daily_hk"
+      ],
+      "shared_acquisition": {
+        "status": "NOT_STAGE_SLOT"
+      },
+      "slot": "1720",
+      "started_workload_ids": [],
+      "status": "FAILED",
+      "target_date": "20260929",
+      "upstream_fingerprint": "tree-89a3e73f7906b6a824691e9206f4bfcf65ce7293ca9dfe1365c21cf825c94a83"
+    },
+    "receipt_keys": [
+      "attempt",
+      "blocked_markets",
+      "business_date",
+      "buy_gate_updated",
+      "eligible_markets",
+      "failure_class",
+      "finished_at",
+      "ledger_sha256",
+      "mode",
+      "orders_sent",
+      "prev_ledger_sha256",
+      "production_allowed",
+      "receipt_path",
+      "release_id",
+      "resolved_dates",
+      "retry_after",
+      "run_id",
+      "scheduled_date",
+      "schema_version",
+      "selected_workload_ids",
+      "slot",
+      "started_workload_ids",
+      "status",
+      "target_date",
+      "upstream_fingerprint",
+      "workload_results"
+    ]
+  },
+  {
+    "source": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher/receipts/live/20260929/1720/144722afadea45f6bc1e4a0ffce0781f.dispatch-receipt.json",
+    "sha256": "dd90e5ebedb05d6d6c0176c2389ccc17433d1c301861721cf06ebd083abe526f",
+    "bytes": 3686,
+    "scheduler_summary": {
+      "attempt": 2,
+      "business_date": "20260929",
+      "buy_gate_updated": false,
+      "catchup": {
+        "applied": true,
+        "lag_minutes": 229,
+        "scheduled_slot": "1720"
+      },
+      "failure_class": "UPSTREAM_NOT_READY",
+      "macos_scheduler_schema_version": "v3_5.macos_scheduler_result.v1",
+      "observed_slot": "2109",
+      "orders_sent": false,
+      "production_allowed": false,
+      "receipt_path": "receipts/live/20260929/1720/144722afadea45f6bc1e4a0ffce0781f.dispatch-receipt.json",
+      "release_id": "20260928-manager-daily-plan-hook-r1",
+      "retry_after": "2026-09-29T13:24:00.178730Z",
+      "run_id": "144722afadea45f6bc1e4a0ffce0781f",
+      "scheduled_date": "20260929",
+      "schema_version": "v3_5.scheduled_slot_result.v1",
+      "selected_workload_ids": [
+        "research_panel_daily_hk"
+      ],
+      "shared_acquisition": {
+        "status": "NOT_STAGE_SLOT"
+      },
+      "slot": "1720",
+      "started_workload_ids": [],
+      "status": "FAILED",
+      "target_date": "20260929",
+      "upstream_fingerprint": "tree-89a3e73f7906b6a824691e9206f4bfcf65ce7293ca9dfe1365c21cf825c94a83"
+    },
+    "receipt_keys": [
+      "attempt",
+      "blocked_markets",
+      "business_date",
+      "buy_gate_updated",
+      "eligible_markets",
+      "failure_class",
+      "finished_at",
+      "ledger_sha256",
+      "mode",
+      "orders_sent",
+      "prev_ledger_sha256",
+      "production_allowed",
+      "receipt_path",
+      "release_id",
+      "resolved_dates",
+      "retry_after",
+      "run_id",
+      "scheduled_date",
+      "schema_version",
+      "selected_workload_ids",
+      "slot",
+      "started_workload_ids",
+      "status",
+      "target_date",
+      "upstream_fingerprint",
+      "workload_results"
+    ]
+  },
+  {
+    "source": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher/receipts/live/20260929/1720/c8367bd4cbbc458bbc1af61c980661aa.dispatch-receipt.json",
+    "sha256": "cad3f9995a18b18668c214d5a2f69a8fded44094bffb51733368cb3f2ec111dd",
+    "bytes": 3686,
+    "scheduler_summary": {
+      "attempt": 3,
+      "business_date": "20260929",
+      "buy_gate_updated": false,
+      "catchup": {
+        "applied": true,
+        "lag_minutes": 381,
+        "scheduled_slot": "1720"
+      },
+      "failure_class": "UPSTREAM_NOT_READY",
+      "macos_scheduler_schema_version": "v3_5.macos_scheduler_result.v1",
+      "observed_slot": "2341",
+      "orders_sent": false,
+      "production_allowed": false,
+      "receipt_path": "receipts/live/20260929/1720/c8367bd4cbbc458bbc1af61c980661aa.dispatch-receipt.json",
+      "release_id": "20260928-manager-daily-plan-hook-r1",
+      "retry_after": "2026-09-29T15:56:00.134073Z",
+      "run_id": "c8367bd4cbbc458bbc1af61c980661aa",
+      "scheduled_date": "20260929",
+      "schema_version": "v3_5.scheduled_slot_result.v1",
+      "selected_workload_ids": [
+        "research_panel_daily_hk"
+      ],
+      "shared_acquisition": {
+        "status": "NOT_STAGE_SLOT"
+      },
+      "slot": "1720",
+      "started_workload_ids": [],
+      "status": "FAILED",
+      "target_date": "20260929",
+      "upstream_fingerprint": "tree-89a3e73f7906b6a824691e9206f4bfcf65ce7293ca9dfe1365c21cf825c94a83"
+    },
+    "receipt_keys": [
+      "attempt",
+      "blocked_markets",
+      "business_date",
+      "buy_gate_updated",
+      "eligible_markets",
+      "failure_class",
+      "finished_at",
+      "ledger_sha256",
+      "mode",
+      "orders_sent",
+      "prev_ledger_sha256",
+      "production_allowed",
+      "receipt_path",
+      "release_id",
+      "resolved_dates",
+      "retry_after",
+      "run_id",
+      "scheduled_date",
+      "schema_version",
+      "selected_workload_ids",
+      "slot",
+      "started_workload_ids",
+      "status",
+      "target_date",
+      "upstream_fingerprint",
+      "workload_results"
+    ]
+  }
+]

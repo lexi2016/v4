@@ -1,0 +1,63 @@
+{
+  "runtime_files": [
+    {
+      "path": "infrastructure/preselection_pool_store.py",
+      "before": "e5ead3a523c44f95f7730d1faf4b314c93954db26eab3ec34b777d956223184d",
+      "after": "aae429b1fc5ed276d9dd97c70b841944d401b0eeedafa257474f13e745fc05d3"
+    },
+    {
+      "path": "infrastructure/scheduling/executor_registry_preselection.py",
+      "before": "cf5d2d1f2cb67fe4881ff615b89b61315c8226a319bc27927a95556a31ace3e5",
+      "after": "9a9f633eabbb607806d30dd5c22559e6df90f81dfe5c4084dcc7d4c5e757a969"
+    }
+  ],
+  "roundtrips": [
+    {
+      "patch": "runtime.patch",
+      "check": true,
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "patch": "runtime.patch",
+      "check": false,
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "patch": "rollback.patch",
+      "check": true,
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "patch": "rollback.patch",
+      "check": false,
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "patch": "runtime.patch",
+      "check": true,
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "patch": "runtime.patch",
+      "check": false,
+      "exit": 0,
+      "stderr": ""
+    }
+  ],
+  "bindings": {
+    "app_root": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r4_acceptance_20261002/isolated/active_r9_app",
+    "r3_base": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/active_owner_composed",
+    "shared_package_root": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/shared_package",
+    "stage_root": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002/isolated/stage_app",
+    "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "scope": "R3 actual-owner composition plus exact R4 patch; inactive mixed test carrier"
+  },
+  "active_source_writes": false,
+  "original_data_writes": false,
+  "mechanical_path_correction": "shared_package is package root directly, no upstreams subdirectory"
+}

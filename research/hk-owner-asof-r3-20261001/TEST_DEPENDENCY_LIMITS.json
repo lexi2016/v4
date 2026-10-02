@@ -1,0 +1,56 @@
+{
+  "dependencies": [
+    {
+      "path": "stage_center/hk_universe_preflight.py",
+      "bytes": 25290,
+      "sha256": "f527db45d4ec3720845606dd38e76bf6e93e973063b43f1cadb44a8e12407e5c",
+      "git_blob_sha1": "071868acac9abf2a492d614d1d469c81ba031fdb",
+      "role": "AUTHOR_TEST_IMPORT_CARRIER; NOT_ASSERTED_EQUAL_TO_ACTIVE_OWNER"
+    },
+    {
+      "path": "upstreams/v3_shared_data/scripts/live_acquisition/universe.py",
+      "bytes": 30015,
+      "sha256": "f959f7aef40ca555ec672b577d71e8e3d829ac36d92859643f7cea6a84fce469",
+      "git_blob_sha1": "feffc0b984ff8117cef76dd78f6cb38486ac6229",
+      "role": "AUTHOR_TEST_IMPORT_CARRIER; NOT_ASSERTED_EQUAL_TO_ACTIVE_OWNER"
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/store.py",
+      "bytes": 27895,
+      "sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+      "git_blob_sha1": "273dc301ff7e8fe9d91e9d3e3c7c427817dc3976",
+      "role": "AUTHOR_TEST_IMPORT_CARRIER; NOT_ASSERTED_EQUAL_TO_ACTIVE_OWNER"
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/allowlist.py",
+      "bytes": 3011,
+      "sha256": "a5e307f15416fe422a0ad36f60d6996f6a3f74753581dc589ef93149178dd206",
+      "git_blob_sha1": "afa173a579a48919b4653381fd528d901f3241d6",
+      "role": "AUTHOR_TEST_IMPORT_CARRIER; NOT_ASSERTED_EQUAL_TO_ACTIVE_OWNER"
+    },
+    {
+      "path": "infrastructure/preselection_pool_store.py",
+      "bytes": 32457,
+      "sha256": "a640d28ec54119ae383f5dd838fe467d6ae8b5b0d87fa2c4afbb0646fbfe658a",
+      "git_blob_sha1": "f67eb0df532b002b2b4ac832713c2432c920b213",
+      "role": "AUTHOR_TEST_IMPORT_CARRIER; NOT_ASSERTED_EQUAL_TO_ACTIVE_OWNER"
+    },
+    {
+      "path": "infrastructure/isolated_package_loader.py",
+      "bytes": 5179,
+      "sha256": "2d02912bd6e00faef5d34fd7dcc6c26b7be3ed41045c98a1ada3252c78a55058",
+      "git_blob_sha1": "7ce6aa7175c677c5e9dfc9d7b9c8af1c007612b6",
+      "role": "AUTHOR_TEST_IMPORT_CARRIER; NOT_ASSERTED_EQUAL_TO_ACTIVE_OWNER"
+    },
+    {
+      "path": "stage_center/runner.py",
+      "bytes": 41733,
+      "sha256": "1d682e7c2e43138dd151602d6d716eebe8221bf2f8eec67a9631ed32aa788acc",
+      "git_blob_sha1": "f0ee6c7febabea085b4708405501035196d5a316",
+      "role": "AUTHOR_TEST_IMPORT_CARRIER; NOT_ASSERTED_EQUAL_TO_ACTIVE_OWNER"
+    }
+  ],
+  "full_149_file_identity": false,
+  "publisher_and_universe_reader": "Existing cached contract carriers use 651 synthetic members. The exported active publisher has a distinct fixed blob af1e0b46c3645219dc0ccb1c195ce620e36064a2. No active publisher/reader replacement is delivered.",
+  "target_requirement": "Use existing active publisher and its actual shared reader under the Mac target interpreter. No real source/model/Stage/network execution was performed."
+}

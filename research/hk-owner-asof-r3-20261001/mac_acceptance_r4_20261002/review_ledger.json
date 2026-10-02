@@ -1,0 +1,13 @@
+{
+  "worker": "/root/hk_r3_mac_review",
+  "milestone": "PR20 R4 independent active acceptance",
+  "dispatch_time": "2026-10-02 Asia/Shanghai",
+  "expected_terminal_type": "REVIEW_RECEIPT_AND_VERDICT",
+  "lifecycle_status": "completed",
+  "final_received": true,
+  "final_consumed": true,
+  "receipt_verified": true,
+  "note": "Bounded wait elapsed without final; independent reviewer not cancelled or duplicated.",
+  "receipt_sha256": "61ac38e1ee4a35a1838843b77cd47ba67f1cb2f9240e26390d053674f101c0b8",
+  "terminal_reason": "27/27 targeted PASS; independent REVIEW FAIL with P2 provenance flag gap"
+}

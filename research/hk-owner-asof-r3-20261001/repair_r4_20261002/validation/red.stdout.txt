@@ -1,0 +1,101 @@
+FFFFF..........FFFFF                                                     [100%]
+=================================== FAILURES ===================================
+_ test_projector_fields_survive_actual_r9_trio_and_existing_a[20261002-20261005] _
+tests/test_hk_r9_contract_r4.py:70: in test_projector_fields_survive_actual_r9_trio_and_existing_a
+    store.materialize(value)
+infrastructure/preselection_pool_store.py:388: in materialize
+    trade_date = validate_pool_artifact(payload)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/preselection_pool_store.py:689: in validate_pool_artifact
+    raise ValueError("invalid preselection-pool fields")
+E   ValueError: invalid preselection-pool fields
+_ test_projector_fields_survive_actual_r9_trio_and_existing_a[20261005-20261006] _
+tests/test_hk_r9_contract_r4.py:70: in test_projector_fields_survive_actual_r9_trio_and_existing_a
+    store.materialize(value)
+infrastructure/preselection_pool_store.py:388: in materialize
+    trade_date = validate_pool_artifact(payload)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/preselection_pool_store.py:689: in validate_pool_artifact
+    raise ValueError("invalid preselection-pool fields")
+E   ValueError: invalid preselection-pool fields
+_ test_projector_fields_survive_actual_r9_trio_and_existing_a[20261006-20261007] _
+tests/test_hk_r9_contract_r4.py:70: in test_projector_fields_survive_actual_r9_trio_and_existing_a
+    store.materialize(value)
+infrastructure/preselection_pool_store.py:388: in materialize
+    trade_date = validate_pool_artifact(payload)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/preselection_pool_store.py:689: in validate_pool_artifact
+    raise ValueError("invalid preselection-pool fields")
+E   ValueError: invalid preselection-pool fields
+_ test_projector_fields_survive_actual_r9_trio_and_existing_a[20261007-20261008] _
+tests/test_hk_r9_contract_r4.py:70: in test_projector_fields_survive_actual_r9_trio_and_existing_a
+    store.materialize(value)
+infrastructure/preselection_pool_store.py:388: in materialize
+    trade_date = validate_pool_artifact(payload)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/preselection_pool_store.py:689: in validate_pool_artifact
+    raise ValueError("invalid preselection-pool fields")
+E   ValueError: invalid preselection-pool fields
+_ test_projector_fields_survive_actual_r9_trio_and_existing_a[20261008-20261009] _
+tests/test_hk_r9_contract_r4.py:70: in test_projector_fields_survive_actual_r9_trio_and_existing_a
+    store.materialize(value)
+infrastructure/preselection_pool_store.py:388: in materialize
+    trade_date = validate_pool_artifact(payload)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/preselection_pool_store.py:689: in validate_pool_artifact
+    raise ValueError("invalid preselection-pool fields")
+E   ValueError: invalid preselection-pool fields
+__________ test_retained_provenance_is_inside_original_hash_boundary ___________
+tests/test_hk_r9_contract_r4.py:102: in test_retained_provenance_is_inside_original_hash_boundary
+    value=artifact();store=PreselectionPoolStore(tmp_path);store.materialize(value)
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/preselection_pool_store.py:388: in materialize
+    trade_date = validate_pool_artifact(payload)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/preselection_pool_store.py:689: in validate_pool_artifact
+    raise ValueError("invalid preselection-pool fields")
+E   ValueError: invalid preselection-pool fields
+_ test_r9_rebound_owner_uses_real_module_helpers_not_injected_globals[True-20261007-20261008] _
+tests/test_hk_r9_contract_r4.py:151: in test_r9_rebound_owner_uses_real_module_helpers_not_injected_globals
+    result=obj._preselection_pools(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/scheduling/executor_registry_preselection.py:128: in _preselection_pools
+    hk_universe_root = _hk_owner_universe_root(self)
+                       ^^^^^^^^^^^^^^^^^^^^^^^
+E   NameError: name '_hk_owner_universe_root' is not defined
+_ test_r9_rebound_owner_uses_real_module_helpers_not_injected_globals[True-20261008-20261009] _
+tests/test_hk_r9_contract_r4.py:151: in test_r9_rebound_owner_uses_real_module_helpers_not_injected_globals
+    result=obj._preselection_pools(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/scheduling/executor_registry_preselection.py:128: in _preselection_pools
+    hk_universe_root = _hk_owner_universe_root(self)
+                       ^^^^^^^^^^^^^^^^^^^^^^^
+E   NameError: name '_hk_owner_universe_root' is not defined
+_ test_r9_rebound_owner_uses_real_module_helpers_not_injected_globals[False-20261007-20261008] _
+tests/test_hk_r9_contract_r4.py:151: in test_r9_rebound_owner_uses_real_module_helpers_not_injected_globals
+    result=obj._preselection_pools(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/scheduling/executor_registry_preselection.py:128: in _preselection_pools
+    hk_universe_root = _hk_owner_universe_root(self)
+                       ^^^^^^^^^^^^^^^^^^^^^^^
+E   NameError: name '_hk_owner_universe_root' is not defined
+_ test_r9_rebound_owner_uses_real_module_helpers_not_injected_globals[False-20261008-20261009] _
+tests/test_hk_r9_contract_r4.py:151: in test_r9_rebound_owner_uses_real_module_helpers_not_injected_globals
+    result=obj._preselection_pools(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/scheduling/executor_registry_preselection.py:128: in _preselection_pools
+    hk_universe_root = _hk_owner_universe_root(self)
+                       ^^^^^^^^^^^^^^^^^^^^^^^
+E   NameError: name '_hk_owner_universe_root' is not defined
+=========================== short test summary info ============================
+FAILED tests/test_hk_r9_contract_r4.py::test_projector_fields_survive_actual_r9_trio_and_existing_a[20261002-20261005] - ValueError: invalid preselection-pool fields
+FAILED tests/test_hk_r9_contract_r4.py::test_projector_fields_survive_actual_r9_trio_and_existing_a[20261005-20261006] - ValueError: invalid preselection-pool fields
+FAILED tests/test_hk_r9_contract_r4.py::test_projector_fields_survive_actual_r9_trio_and_existing_a[20261006-20261007] - ValueError: invalid preselection-pool fields
+FAILED tests/test_hk_r9_contract_r4.py::test_projector_fields_survive_actual_r9_trio_and_existing_a[20261007-20261008] - ValueError: invalid preselection-pool fields
+FAILED tests/test_hk_r9_contract_r4.py::test_projector_fields_survive_actual_r9_trio_and_existing_a[20261008-20261009] - ValueError: invalid preselection-pool fields
+FAILED tests/test_hk_r9_contract_r4.py::test_retained_provenance_is_inside_original_hash_boundary - ValueError: invalid preselection-pool fields
+FAILED tests/test_hk_r9_contract_r4.py::test_r9_rebound_owner_uses_real_module_helpers_not_injected_globals[True-20261007-20261008] - NameError: name '_hk_owner_universe_root' is not defined
+FAILED tests/test_hk_r9_contract_r4.py::test_r9_rebound_owner_uses_real_module_helpers_not_injected_globals[True-20261008-20261009] - NameError: name '_hk_owner_universe_root' is not defined
+FAILED tests/test_hk_r9_contract_r4.py::test_r9_rebound_owner_uses_real_module_helpers_not_injected_globals[False-20261007-20261008] - NameError: name '_hk_owner_universe_root' is not defined
+FAILED tests/test_hk_r9_contract_r4.py::test_r9_rebound_owner_uses_real_module_helpers_not_injected_globals[False-20261008-20261009] - NameError: name '_hk_owner_universe_root' is not defined
+10 failed, 10 passed in 0.34s

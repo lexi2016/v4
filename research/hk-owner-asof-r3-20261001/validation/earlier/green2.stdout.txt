@@ -1,0 +1,18 @@
+FF.........                                                              [100%]
+=================================== FAILURES ===================================
+_ test_real_shared_projector_stage_chain_has_capture_provenance[20261007-20261008] _
+tests/test_hk_owner_asof_r3.py:106: in test_real_shared_projector_stage_chain_has_capture_provenance
+    assert all((data/p).read_bytes()==b for p,b in before.items()
+E   assert False
+E    +  where False = all(<generator object test_real_shared_projector_stage_chain_has_capture_provenance.<locals>.<genexpr> at 0x7ff2a828b840>)
+_ test_real_shared_projector_stage_chain_has_capture_provenance[20261008-20261009] _
+tests/test_hk_owner_asof_r3.py:106: in test_real_shared_projector_stage_chain_has_capture_provenance
+    assert all((data/p).read_bytes()==b for p,b in before.items()
+E   assert False
+E    +  where False = all(<generator object test_real_shared_projector_stage_chain_has_capture_provenance.<locals>.<genexpr> at 0x7ff2a8326a40>)
+=========================== short test summary info ============================
+FAILED tests/test_hk_owner_asof_r3.py::test_real_shared_projector_stage_chain_has_capture_provenance[20261007-20261008] - assert False
+ +  where False = all(<generator object test_real_shared_projector_stage_chain_has_capture_provenance.<locals>.<genexpr> at 0x7ff2a828b840>)
+FAILED tests/test_hk_owner_asof_r3.py::test_real_shared_projector_stage_chain_has_capture_provenance[20261008-20261009] - assert False
+ +  where False = all(<generator object test_real_shared_projector_stage_chain_has_capture_provenance.<locals>.<genexpr> at 0x7ff2a8326a40>)
+2 failed, 9 passed in 0.46s

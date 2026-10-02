@@ -1,0 +1,101 @@
+{
+  "schema": "v4.hk_r3.intake.v1",
+  "date": "2026-10-02",
+  "request_source": "/Users/lexi/.codex/attachments/a8845851-1b9f-4073-bd3f-bf748639ac50/已粘贴的文本.txt",
+  "claimed_delivery": {
+    "zip": "V4_HK_OWNER_ASOF_R3_20261001.zip",
+    "bytes": 1054665,
+    "members": 95,
+    "sha256": "fb75e5188b424d6c2a74e68a388b270008349c029c179fd89688f25f6abfe6c7",
+    "bundle": "V4_HK_OWNER_ASOF_R3_20261001.bundle",
+    "parent": "3ed9e89a1de1616d89ddbe166484227b5fcd42fa",
+    "commit": "cfb7fad359a639f66097db78d597d92ab265c367",
+    "author_tests": "19 scenarios in each baseline; active publisher full dependencies NOT_VERIFIED"
+  },
+  "verified": {
+    "local_artifact_search": "Received user-specified Downloads ZIP; CRC, 95 members, 94 listed hashes and frozen Git bundle independently verified",
+    "browser_reads": "getTab and getState each timed out after 30 seconds; no further same-route retry",
+    "pr19": {
+      "draft": true,
+      "merged": false,
+      "head": "3ed9e89a1de1616d89ddbe166484227b5fcd42fa"
+    },
+    "candidate_github_commit_read": "404 NOT_FOUND",
+    "parent_in_current_workspace_object_database": false,
+    "workspace_HEAD": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "candidate_local_commit": "cfb7fad359a639f66097db78d597d92ab265c367"
+  },
+  "scope": {
+    "GOAL": "Receive frozen HK R3 bytes, isolate integration and obtain independent target-env review; publish code Draft PR against PR19 branch",
+    "WRITER": "External Chat candidate only; no local business code writer",
+    "REVIEWER": "Independent Luna Max reviewer after artifacts exist",
+    "ALLOWED_PATHS": [
+      "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r3_intake_20261002",
+      "Future isolated source copies and Git import checkout only; exact manifest paths after receipt"
+    ],
+    "FORBIDDEN_PATHS": [
+      "Active release source and service config",
+      "Original research data and immutable keys",
+      "A business changes or repeated stage selection",
+      "Vibe 8910"
+    ],
+    "PASS_SIGNAL": "Package, SHA and commit verified; independent current-service-Python combination receipt on actual publisher/shared reader",
+    "STOP_RULE": "Review FAIL prevents activation; authorized Draft delivery includes exact candidate code and failed acceptance evidence"
+  },
+  "status": {
+    "ARTIFACT_RECEIVED": true,
+    "TESTED": "FAIL_ACTIVE_12_PASS_7_FAIL",
+    "REVIEWED": "FAIL",
+    "INTEGRATED": false,
+    "DEPLOYED": false,
+    "API_VERIFIED": "NOT_RUN_FOR_R3",
+    "UI_VERIFIED": "NOT_RUN_FOR_R3",
+    "NATURAL_VERIFIED": false,
+    "ISOLATED_ASSEMBLY": true
+  },
+  "needed_files": [],
+  "selection_executed": false,
+  "original_data_writes": false,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "independent_review": {
+    "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "python_version": "3.14.6",
+    "canonical": {
+      "test_count": 19,
+      "assertions_passed": 19,
+      "assertions_failed": 0,
+      "process_exit_code": 1,
+      "process_exit_reason": "pytest teardown PermissionError while removing readonly synthetic snapshots under its temporary directory",
+      "stdout": "review/canonical_hk19_test.stdout.txt",
+      "stderr": "review/canonical_hk19_test.stderr.txt",
+      "junit": "review/canonical_hk19_test.xml",
+      "result": "ASSERTIONS_PASS_TEARDOWN_ERROR"
+    },
+    "active_r9": {
+      "test_count": 19,
+      "passed": 12,
+      "failed": 7,
+      "process_exit_code": 1,
+      "failure_breakdown": {
+        "store_contract_failures": 3,
+        "test_fixture_setup_failures": 4
+      },
+      "stdout": "review/active_owner_hk19_test.stdout.txt",
+      "stderr": "review/active_owner_hk19_test.stderr.txt",
+      "junit": "review/active_owner_hk19_test.xml",
+      "result": "FAIL"
+    },
+    "standalone_stage": {
+      "status": "PASS",
+      "synthetic_cases": {
+        "valid_capture_and_identity": "ACCEPTED",
+        "wrong_capture_date": "REJECTED_AS_EXPECTED",
+        "wrong_d1_manifest_identity": "REJECTED_AS_EXPECTED"
+      },
+      "receipt": "review/stage_standalone_canary/receipt.json",
+      "result_scope": "Stage reader and its Stage-release dependencies only; does not close the active R9 writer/store integration failure."
+    }
+  }
+}

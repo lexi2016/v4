@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="18" skipped="0" tests="19" time="0.587" timestamp="2026-10-01T16:02:11.766332+00:00" hostname="c8379d31c23d"><testcase classname="tests.test_hk_owner_asof_r3" name="test_real_shared_projector_stage_chain_has_capture_provenance[20261007-20261008]" time="0.061"><failure message="json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)">tests/test_hk_owner_asof_r3.py:115: in test_real_shared_projector_stage_chain_has_capture_provenance
+    qualification=json.loads(bytes.fromhex(verified.run.manifest['provenance'].get('eligibility_asof_hex', '')).decode())
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/json/__init__.py:346: in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/json/decoder.py:345: in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/json/decoder.py:363: in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+E   json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)</failure></testcase><testcase classname="tests.test_hk_owner_asof_r3" name="test_real_shared_projector_stage_chain_has_capture_provenance[20261008-20261009]" time="0.024"><failure message="json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)">tests/test_hk_owner_asof_r3.py:115: in test_real_shared_projector_stage_chain_has_capture_provenance
+    qualification=json.loads(bytes.fromhex(verified.run.manifest['provenance'].get('eligibility_asof_hex', '')).decode())
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/json/__init__.py:346: in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/json/decoder.py:345: in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/json/decoder.py:363: in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+E   json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)</failure></testcase><testcase classname="tests.test_hk_owner_asof_r3" name="test_shared_rejects_unverified_eligibility_not_using_master_time[missing_capture]" time="0.018"><failure message="Failed: DID NOT RAISE any of (&lt;class 'ValueError'&gt;, &lt;class 'OSError'&gt;, &lt;class '_hk19_contract_b281c9b26648.store.StoreError'&gt;)">tests/test_hk_owner_asof_r3.py:161: in test_shared_rejects_unverified_eligibility_not_using_master_time
+    with pytest.raises((ValueError,OSError, hk.StoreError)):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE any of (&lt;class 'ValueError'&gt;, &lt;class 'OSError'&gt;, &lt;class '_hk19_contract_b281c9b26648.store.StoreError'&gt;)</failure></testcase><testcase classname="tests.test_hk_owner_asof_r3" name="test_shared_rejects_unverified_eligibility_not_using_master_time[wrong_date]" time="0.019"><failure message="Failed: DID NOT RAISE any of (&lt;class 'ValueError'&gt;, &lt;class 'OSError'&gt;, &lt;class '_hk19_contract_b281c9b26648.store.StoreError'&gt;)">tests/test_hk_owner_asof_r3.py:161: in test_shared_rejects_unverified_eligibility_not_using_master_time
+    with pytest.raises((ValueError,OSError, hk.StoreError)):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE any of (&lt;class 'ValueError'&gt;, &lt;class 'OSError'&gt;, &lt;class '_hk19_contract_b281c9b26648.store.StoreError'&gt;)</failure></testcase><testcase classname="tests.test_hk_owner_asof_r3" name="test_shared_rejects_unverified_eligibility_not_using_master_time[future_capture]" time="0.019"><failure message="Failed: DID NOT RAISE any of (&lt;class 'ValueError'&gt;, &lt;class 'OSError'&gt;, &lt;class '_hk19_contract_b281c9b26648.store.StoreError'&gt;)">tests/test_hk_owner_asof_r3.py:161: in test_shared_rejects_unverified_eligibility_not_using_master_time
+    with pytest.raises((ValueError,OSError, hk.StoreError)):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE any of (&lt;class 'ValueError'&gt;, &lt;class 'OSError'&gt;, &lt;class '_hk19_contract_b281c9b26648.store.StoreError'&gt;)</failure></testcase><testcase classname="tests.test_hk_owner_asof_r3" name="test_shared_rejects_unverified_eligibility_not_using_master_time[master_codes]" time="0.017"><failure message="Failed: DID NOT RAISE any of (&lt;class 'ValueError'&gt;, &lt;class 'OSError'&gt;, &lt;class '_hk19_contract_b281c9b26648.store.StoreError'&gt;)">tests/test_hk_owner_asof_r3.py:161: in test_shared_rejects_unverified_eligibility_not_using_master_time
+    with pytest.raises((ValueError,OSError, hk.StoreError)):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE any of (&lt;class 'ValueError'&gt;, &lt;class 'OSError'&gt;, &lt;class '_hk19_contract_b281c9b26648.store.StoreError'&gt;)</failure></testcase><testcase classname="tests.test_hk_owner_asof_r3" name="test_shared_rejects_unverified_eligibility_not_using_master_time[authority_sha]" time="0.018"><failure message="Failed: DID NOT RAISE any of (&lt;class 'ValueError'&gt;, &lt;class 'OSError'&gt;, &lt;class '_hk19_contract_b281c9b26648.store.StoreError'&gt;)">tests/test_hk_owner_asof_r3.py:161: in test_shared_rejects_unverified_eligibility_not_using_master_time
+    with pytest.raises((ValueError,OSError, hk.StoreError)):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE any of (&lt;class 'ValueError'&gt;, &lt;class 'OSError'&gt;, &lt;class '_hk19_contract_b281c9b26648.store.StoreError'&gt;)</failure></testcase><testcase classname="tests.test_hk_owner_asof_r3" name="test_price_day_stale_oct8_preview_is_not_stage_input" time="0.029"><failure message="Failed: DID NOT RAISE &lt;class 'ValueError'&gt;">tests/test_hk_owner_asof_r3.py:173: in test_price_day_stale_oct8_preview_is_not_stage_input
+    with pytest.raises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE &lt;class 'ValueError'&gt;</failure></testcase><testcase classname="tests.test_hk_owner_asof_r3" name="test_shared_source_identity_change_after_publication_is_not_hidden" time="0.023"><failure message="Failed: DID NOT RAISE any of (&lt;class 'ValueError'&gt;, &lt;class '_hk19_contract_b281c9b26648.store.StoreError'&gt;)">tests/test_hk_owner_asof_r3.py:185: in test_shared_source_identity_change_after_publication_is_not_hidden
+    with pytest.raises((ValueError,hk.StoreError)):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE any of (&lt;class 'ValueError'&gt;, &lt;class '_hk19_contract_b281c9b26648.store.StoreError'&gt;)</failure></testcase><testcase classname="tests.test_hk_owner_asof_r3" name="test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[True-20261007-20261008]" time="0.007"><failure message="AssertionError: original publisher was not reached&#10;assert [] == [(PosixPath('..., '20261007')]&#10;  &#10;  Right contains one more item: (PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex0/shared'), '20261007')&#10;  &#10;  Full diff:&#10;  + []&#10;  - [&#10;  -     (&#10;  -         PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex0/shared'),&#10;  -         '20261007',&#10;  -     ),&#10;  - ]">tests/test_hk_owner_asof_r3.py:216: in test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only
+    assert pub==[(shared,price)], 'original publisher was not reached'
+E   AssertionError: original publisher was not reached
+E   assert [] == [(PosixPath('..., '20261007')]
+E     
+E     Right contains one more item: (PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex0/shared'), '20261007')
+E     
+E     Full diff:
+E     + []
+E     - [
+E     -     (
+E     -         PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex0/shared'),
+E     -         '20261007',
+E     -     ),
+E     - ]</failure></testcase><testcase classname="tests.test_hk_owner_asof_r3" name="test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[True-20261008-20261009]" time="0.006"><failure message="AssertionError: original publisher was not reached&#10;assert [] == [(PosixPath('..., '20261008')]&#10;  &#10;  Right contains one more item: (PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex1/shared'), '20261008')&#10;  &#10;  Full diff:&#10;  + []&#10;  - [&#10;  -     (&#10;  -         PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex1/shared'),&#10;  -         '20261008',&#10;  -     ),&#10;  - ]">tests/test_hk_owner_asof_r3.py:216: in test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only
+    assert pub==[(shared,price)], 'original publisher was not reached'
+E   AssertionError: original publisher was not reached
+E   assert [] == [(PosixPath('..., '20261008')]
+E     
+E     Right contains one more item: (PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex1/shared'), '20261008')
+E     
+E     Full diff:
+E     + []
+E     - [
+E     -     (
+E     -         PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex1/shared'),
+E     -         '20261008',
+E     -     ),
+E     - ]</failure></testcase><testcase classname="tests.test_hk_owner_asof_r3" name="test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[False-20261007-20261008]" time="0.006"><failure message="AssertionError: original publisher was not reached&#10;assert [] == [(PosixPath('..., '20261007')]&#10;  &#10;  Right contains one more item: (PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex2/shared'), '20261007')&#10;  &#10;  Full diff:&#10;  + []&#10;  - [&#10;  -     (&#10;  -         PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex2/shared'),&#10;  -         '20261007',&#10;  -     ),&#10;  - ]">tests/test_hk_owner_asof_r3.py:216: in test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only
+    assert pub==[(shared,price)], 'original publisher was not reached'
+E   AssertionError: original publisher was not reached
+E   assert [] == [(PosixPath('..., '20261007')]
+E     
+E     Right contains one more item: (PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex2/shared'), '20261007')
+E     
+E     Full diff:
+E     + []
+E     - [
+E     -     (
+E     -         PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex2/shared'),
+E     -         '20261007',
+E     -     ),
+E     - ]</failure></testcase><testcase classname="tests.test_hk_owner_asof_r3" name="test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only[False-20261008-20261009]" time="0.006"><failure message="AssertionError: original publisher was not reached&#10;assert [] == [(PosixPath('..., '20261008')]&#10;  &#10;  Right contains one more item: (PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex3/shared'), '20261008')&#10;  &#10;  Full diff:&#10;  + []&#10;  - [&#10;  -     (&#10;  -         PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex3/shared'),&#10;  -         '20261008',&#10;  -     ),&#10;  - ]">tests/test_hk_owner_asof_r3.py:216: in test_original_owner_invokes_existing_publisher_and_preserves_a_on_hk_only
+    assert pub==[(shared,price)], 'original publisher was not reached'
+E   AssertionError: original publisher was not reached
+E   assert [] == [(PosixPath('..., '20261008')]
+E     
+E     Right contains one more item: (PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex3/shared'), '20261008')
+E     
+E     Full diff:
+E     + []
+E     - [
+E     -     (
+E     -         PosixPath('/tmp/pytest-of-root/pytest-11/test_original_owner_invokes_ex3/shared'),
+E     -         '20261008',
+E     -     ),
+E     - ]</failure></testcase><testcase classname="tests.test_hk_owner_asof_r3" name="test_explicit_separate_universe_root_survives_shared_cli" time="0.014"><failure message="TypeError: publish_hk_0_2_rows() got an unexpected keyword argument 'eligibility_universe_root'">tests/test_hk_owner_asof_r3.py:242: in test_explicit_separate_universe_root_survives_shared_cli
+    hk.publish_hk_0_2_rows(shared,signal_date=price,target_date=target,
+E   TypeError: publish_hk_0_2_rows() got an unexpected keyword argument 'eligibility_universe_root'</failure></testcase><testcase classname="tests.test_hk_owner_asof_r3" name="test_original_scheduled_hk_only_cli_does_not_publish_a_missing_pool" time="0.022"><failure message="SystemExit: 2">tests/test_hk_owner_asof_r3.py:261: in test_original_scheduled_hk_only_cli_does_not_publish_a_missing_pool
+    code=scheduled.main(['--trade-date',target,'--signal-date','20260930',
+ops/materialize_scheduled_preselection.py:269: in main
+    args = parser.parse_args(argv)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/argparse.py:1916: in parse_args
+    self.error(msg)
+/usr/lib/python3.13/argparse.py:2672: in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+/usr/lib/python3.13/argparse.py:2659: in exit
+    _sys.exit(status)
+E   SystemExit: 2</failure></testcase><testcase classname="tests.test_hk_owner_asof_r3" name="test_existing_oct8_early_preview_is_not_overwritten_or_relabelled" time="0.032" /><testcase classname="tests.test_hk_owner_asof_r3" name="test_resealed_past_or_future_source_is_not_assumed_valid_for_price_day[20260930]" time="0.009"><failure message="TypeError: publish_hk_0_2_rows() got an unexpected keyword argument 'eligibility_source_date'">tests/test_hk_owner_asof_r3.py:290: in test_resealed_past_or_future_source_is_not_assumed_valid_for_price_day
+    hk.publish_hk_0_2_rows(shared,signal_date='20261007',target_date='20261008',
+E   TypeError: publish_hk_0_2_rows() got an unexpected keyword argument 'eligibility_source_date'</failure></testcase><testcase classname="tests.test_hk_owner_asof_r3" name="test_resealed_past_or_future_source_is_not_assumed_valid_for_price_day[20261008]" time="0.008"><failure message="TypeError: publish_hk_0_2_rows() got an unexpected keyword argument 'eligibility_source_date'">tests/test_hk_owner_asof_r3.py:290: in test_resealed_past_or_future_source_is_not_assumed_valid_for_price_day
+    hk.publish_hk_0_2_rows(shared,signal_date='20261007',target_date='20261008',
+E   TypeError: publish_hk_0_2_rows() got an unexpected keyword argument 'eligibility_source_date'</failure></testcase><testcase classname="tests.test_hk_owner_asof_r3" name="test_workload_policy_only_changes_preselection_not_six_other_catalog_entries" time="0.001"><failure message="AttributeError: type object 'RunPolicy' has no attribute 'A_OR_HK_SECURITIES_TRADE_DAY'. Did you mean: 'HK_SECURITIES_TRADE_DAY'?">tests/test_hk_owner_asof_r3.py:298: in test_workload_policy_only_changes_preselection_not_six_other_catalog_entries
+    decision=evaluate_run_policy(RunPolicy.A_OR_HK_SECURITIES_TRADE_DAY,'20261007','1730',
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: type object 'RunPolicy' has no attribute 'A_OR_HK_SECURITIES_TRADE_DAY'. Did you mean: 'HK_SECURITIES_TRADE_DAY'?</failure></testcase></testsuite></testsuites>

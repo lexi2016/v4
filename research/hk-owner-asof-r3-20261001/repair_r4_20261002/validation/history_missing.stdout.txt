@@ -1,0 +1,44 @@
+{
+  "buy_gate_updated": false,
+  "collection_performed": false,
+  "existing_owner_commands": [],
+  "existing_pools": [
+    {
+      "error": "StoreError:HK security master verification failed: HK security-master metadata invalid: [Errno 2] No such file or directory: '/mnt/data/pr20_repair/SYNTHETIC_ABSENT/shared/assets/hk_security_master/latest.json'",
+      "shared_root": "/mnt/data/pr20_repair/SYNTHETIC_ABSENT/shared",
+      "status": "CANNOT_CONFIRM",
+      "universe_root": "/mnt/data/pr20_repair/SYNTHETIC_ABSENT/universe"
+    }
+  ],
+  "inspected_at": "2026-10-01T18:32:09.632945+00:00",
+  "module_sha256": {
+    "/mnt/data/pr20_repair/work/upstreams/v3_shared_data/shared_data/hk_0_2.py": "1ffa950c1f13ff1439c4a2b0910fdd1b863609f96c5dd7c91ea43a658eb145a4",
+    "/mnt/data/pr20_repair/work/upstreams/v3_shared_data/shared_data/hk_security_master.py": "08510cafeb98e55c656f19653793a8658e11c9b8cef2a9040e2982edf017d654"
+  },
+  "native_prices": [],
+  "natural_verified": false,
+  "orders_sent": false,
+  "pool_generated": false,
+  "price_assets": [
+    {
+      "asset_root": "/mnt/data/pr20_repair/SYNTHETIC_ABSENT/assets",
+      "error": "StoreError:invalid HK 0.2 json: panel_latest.json: [Errno 2] No such file or directory: '/mnt/data/pr20_repair/SYNTHETIC_ABSENT/assets/panel_latest.json'",
+      "status": "CANNOT_CONFIRM"
+    }
+  ],
+  "production_allowed": false,
+  "schema_version": "v4.hk_original_history_preflight.v1",
+  "scope": "EXPLICIT_EXISTING_OWNER_ROOTS_ONLY",
+  "signal_date": "20260929",
+  "source_pairs": [
+    {
+      "error": "StoreError:HK eligibility source CANNOT_CONFIRM: HK_CONNECT authority current pointer missing",
+      "shared_root": "/mnt/data/pr20_repair/SYNTHETIC_ABSENT/shared",
+      "status": "CANNOT_CONFIRM",
+      "universe_root": "/mnt/data/pr20_repair/SYNTHETIC_ABSENT/universe"
+    }
+  ],
+  "status": "CANNOT_CONFIRM",
+  "target_date": "20260930",
+  "write_performed": false
+}
