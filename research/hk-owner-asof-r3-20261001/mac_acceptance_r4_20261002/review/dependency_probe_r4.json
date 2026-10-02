@@ -1,0 +1,61 @@
+{
+  "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+  "app_root": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r4_acceptance_20261002/isolated/active_r9_app",
+  "shared_package_root": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r4_acceptance_20261002/isolated/active_r9_app/upstreams/v3_shared_data",
+  "modules": [
+    {
+      "label": "R9 store",
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r4_acceptance_20261002/isolated/active_r9_app/infrastructure/preselection_pool_store.py",
+      "sha256": "aae429b1fc5ed276d9dd97c70b841944d401b0eeedafa257474f13e745fc05d3"
+    },
+    {
+      "label": "R9 facade",
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r4_acceptance_20261002/isolated/active_r9_app/infrastructure/scheduling/executor_registry.py",
+      "sha256": "61aab93e92591e17917dd2f880331913e33aa93806500ce1f2596735444e6833"
+    },
+    {
+      "label": "R9 owner source",
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r4_acceptance_20261002/isolated/active_r9_app/infrastructure/scheduling/executor_registry_preselection.py",
+      "sha256": "9a9f633eabbb607806d30dd5c22559e6df90f81dfe5c4084dcc7d4c5e757a969"
+    },
+    {
+      "label": "actual R9 HK publisher",
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r4_acceptance_20261002/isolated/active_r9_app/stage_center/hk_universe_preflight.py",
+      "sha256": "2a0cc6772a950487c22a6dbf3a3a4b563c8c234941fba89ebd5cae5ac0a8f4ec"
+    },
+    {
+      "label": "active shared hk_0_2 reader",
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r4_acceptance_20261002/isolated/active_r9_app/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "sha256": "1ffa950c1f13ff1439c4a2b0910fdd1b863609f96c5dd7c91ea43a658eb145a4"
+    },
+    {
+      "label": "active shared HK security master",
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r4_acceptance_20261002/isolated/active_r9_app/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "sha256": "08510cafeb98e55c656f19653793a8658e11c9b8cef2a9040e2982edf017d654"
+    },
+    {
+      "label": "active shared store",
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r4_acceptance_20261002/isolated/active_r9_app/upstreams/v3_shared_data/shared_data/store.py",
+      "sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16"
+    },
+    {
+      "label": "actual shared live universe reader",
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/runtime_recovery_20261001/coordinator/hk_r4_acceptance_20261002/isolated/active_r9_app/upstreams/v3_shared_data/scripts/live_acquisition/universe.py",
+      "sha256": "b586f0bd93c6d3457a174c3851e2ea7860f223ee95cd4127b0c7728b11a3040b"
+    }
+  ],
+  "live_universe_reader": {
+    "module": "scripts.live_acquisition.universe",
+    "function": "resolve_stage_universe"
+  },
+  "facade_probe": {
+    "actual_facade_class": "infrastructure.scheduling.executor_registry.FixedExecutorRegistry",
+    "method_globals_are_facade_globals": true,
+    "code_is_owner_source": true,
+    "result": "EXPECTED_FAIL_CLOSED_BEFORE_PRODUCER",
+    "error": "workload execution failed: workload_id=preselection_pools status=FAILED exit_code=1",
+    "producer_boundary_called": false
+  },
+  "external_calls": false,
+  "data_writes": false
+}

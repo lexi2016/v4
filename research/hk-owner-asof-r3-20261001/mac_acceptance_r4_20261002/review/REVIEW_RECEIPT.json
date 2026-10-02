@@ -1,0 +1,174 @@
+{
+  "reviewer": "independent Luna Max reviewer",
+  "reviewed_commit": "46ff1ef2d86390a3f8a85c7b7d9e245f99f10897",
+  "parent_commit": "3bcb43884cfa54fecf6eea88b0450279ffd07ab5",
+  "scope": "R3 active R9 isolated composition plus exact R4 runtime patch",
+  "verdict": "FAIL",
+  "statuses": {
+    "TESTED": "PASS",
+    "BEHAVIOR_VERIFIED": "PASS_SYNTHETIC",
+    "REVIEWED": "FAIL_P2_PROVENANCE_GAP",
+    "REAL_PROVIDER_ACCEPTANCE": "CANNOT_CONFIRM",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM",
+    "API_VERIFIED": "CANNOT_CONFIRM",
+    "UI_VERIFIED": "CANNOT_CONFIRM",
+    "DEPLOYED": false
+  },
+  "findings": [
+    {
+      "id": "R4-P2-01",
+      "severity": "P2",
+      "title": "The stored HK provenance permits natural_verified=true",
+      "evidence": [
+        {
+          "path": "isolated/active_r9_app/infrastructure/preselection_pool_store.py",
+          "lines": "129-131",
+          "detail": "The extension validator requires production_allowed, buy_gate_updated, and orders_sent to be False, but omits natural_verified."
+        },
+        {
+          "path": "isolated/active_r9_app/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+          "lines": "299-301",
+          "detail": "The actual eligibility reader explicitly sets natural_verified=False and notes a parent scheduler receipt is still required."
+        },
+        {
+          "path": "isolated/active_r9_app/stage_center/_runner_parts/hk_input_validation.py",
+          "lines": "182-194",
+          "detail": "The Stage strict reader checks the three SAFETY_FLAGS and source bindings but does not reject natural_verified=true."
+        },
+        {
+          "path": "review/natural_flag_probe_r4.json",
+          "detail": "A synthetic R4 projector artifact changed only eligibility_asof.natural_verified to true; the actual R9 store materialized it and actual Stage _validate_hk_d1 accepted it."
+        }
+      ],
+      "impact": "A crafted or faulty caller can persist and stage-validate a false natural-verification claim even though the verified source reader currently emits False. This probe does not show that the normal producer emits True.",
+      "recommendation": "Require eligibility_asof.natural_verified is False at the R9 store and Stage strict boundary, and add a negative regression case.",
+      "uncertainty": "CANNOT_CONFIRM whether a separately documented legitimate producer may set this field to True; none was established in the reviewed package."
+    }
+  ],
+  "risk_summary": {
+    "P0": [],
+    "P1": [],
+    "P2": ["R4-P2-01"]
+  },
+  "source_and_diff": {
+    "runtime_patch_files": [
+      {
+        "path": "infrastructure/preselection_pool_store.py",
+        "sha256": "aae429b1fc5ed276d9dd97c70b841944d401b0eeedafa257474f13e745fc05d3",
+        "matches_package_after_sha256": true
+      },
+      {
+        "path": "infrastructure/scheduling/executor_registry_preselection.py",
+        "sha256": "9a9f633eabbb607806d30dd5c22559e6df90f81dfe5c4084dcc7d4c5e757a969",
+        "matches_package_after_sha256": true
+      }
+    ],
+    "changed_runtime_scope": "The reviewed R4 patch adds a narrow HK provenance extension validator to the R9 store and explicit helper imports in both rebound owner functions. Assembly receipt states canonical, shared, Stage, and original data were not modified."
+  },
+  "acceptance": {
+    "command": "service-python -B package/tools/run_mac_acceptance.py --app-root isolated/active_r9_app --output-root review/active_reported_20261002 --variant active --suite reported",
+    "exact_invocations": 1,
+    "python": {
+      "executable": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "version": "3.14.6",
+      "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O"
+    },
+    "result": {
+      "exit_code": 0,
+      "tests": 27,
+      "passed": 27,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "coverage": {
+      "previously_reported_cases": 7,
+      "new_r4_cases": 20,
+      "scope": "Only the reported active suite; no A suite or full repository suite."
+    },
+    "evidence_paths": [
+      "review/active_reported_20261002/result.json",
+      "review/active_reported_20261002/junit.xml",
+      "review/active_reported_20261002/stdout.txt",
+      "review/active_reported_20261002/stderr.txt"
+    ]
+  },
+  "loaded_dependencies": {
+    "probe": "review/dependency_probe_r4.json",
+    "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "modules": [
+      {
+        "label": "R9 store",
+        "path": "isolated/active_r9_app/infrastructure/preselection_pool_store.py",
+        "sha256": "aae429b1fc5ed276d9dd97c70b841944d401b0eeedafa257474f13e745fc05d3"
+      },
+      {
+        "label": "R9 facade",
+        "path": "isolated/active_r9_app/infrastructure/scheduling/executor_registry.py",
+        "sha256": "61aab93e92591e17917dd2f880331913e33aa93806500ce1f2596735444e6833"
+      },
+      {
+        "label": "R9 owner module",
+        "path": "isolated/active_r9_app/infrastructure/scheduling/executor_registry_preselection.py",
+        "sha256": "9a9f633eabbb607806d30dd5c22559e6df90f81dfe5c4084dcc7d4c5e757a969"
+      },
+      {
+        "label": "R9 HK publisher",
+        "path": "isolated/active_r9_app/stage_center/hk_universe_preflight.py",
+        "sha256": "2a0cc6772a950487c22a6dbf3a3a4b563c8c234941fba89ebd5cae5ac0a8f4ec"
+      },
+      {
+        "label": "shared HK 0.2 reader",
+        "path": "isolated/active_r9_app/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+        "sha256": "1ffa950c1f13ff1439c4a2b0910fdd1b863609f96c5dd7c91ea43a658eb145a4"
+      },
+      {
+        "label": "shared HK security master",
+        "path": "isolated/active_r9_app/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+        "sha256": "08510cafeb98e55c656f19653793a8658e11c9b8cef2a9040e2982edf017d654"
+      },
+      {
+        "label": "shared store",
+        "path": "isolated/active_r9_app/upstreams/v3_shared_data/shared_data/store.py",
+        "sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16"
+      },
+      {
+        "label": "managed live universe reader",
+        "path": "isolated/active_r9_app/upstreams/v3_shared_data/scripts/live_acquisition/universe.py",
+        "sha256": "b586f0bd93c6d3457a174c3851e2ea7860f223ee95cd4127b0c7728b11a3040b"
+      }
+    ]
+  },
+  "facade_helper_rebinding": {
+    "status": "PASS",
+    "evidence": "review/dependency_probe_r4.json",
+    "detail": "Loaded actual R9 FixedExecutorRegistry; _preselection_pools.__globals__ is the facade module globals and its code object matches the owner source. Invoked the actual rebound _preselection_pools and nested _verified_formal_pool_reuse methods with an empty synthetic store; both helper imports resolved, then the owner failed closed before producer/subprocess execution."
+  },
+  "synthetic_and_live_limits": {
+    "actual_code_exercised": [
+      "R9 store and hash-bound trio",
+      "R9 FixedExecutorRegistry facade",
+      "R9 publisher implementation",
+      "isolated shared HK 0.2 and eligibility readers",
+      "Stage strict HK D1 validation"
+    ],
+    "synthetic_boundaries": [
+      "Futu quote context and clock",
+      "D1 and membership source rows",
+      "subprocess runner",
+      "R4 contract test provenance fixture"
+    ],
+    "external_provider_calls": false,
+    "live_data_acceptance": false,
+    "original_history_probe": "Not run by this reviewer; owned by the parent review. The code acceptance does not establish historical restoration.",
+    "natural_execution": "Not run; CANNOT_CONFIRM."
+  },
+  "effects": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "deployment_or_service_operations": false,
+    "source_or_test_edits": false,
+    "writes": "Only synthetic review evidence under ROOT/review."
+  }
+}
