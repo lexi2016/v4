@@ -1,0 +1,12 @@
+F.FFFF.FFF                                                               [100%]
+=================================== FAILURES ===================================
+test_two_official_deltas_are_accepted_in_order: ValueError: manual recovery requires exactly one explicit delta code
+test_natural_verified_true_is_rejected: Failed: DID NOT RAISE <class 'ValueError'>
+test_false_natural_flag_is_required: Failed: DID NOT RAISE <class 'ValueError'>
+test_history_capture_uses_retrieval_time_not_historical_capture: AttributeError: history recovery not implemented
+test_history_evidence_rejects_time_travel: AttributeError: history recovery not implemented
+test_exact_capture_cannot_be_backdated_or_late: Failed: DID NOT RAISE <class 'ValueError'>
+test_prior_connect_eligibility_is_distinct_from_price_date: ValueError: eligibility source must equal price
+test_wrong_eligibility_date_is_rejected: Failed: DID NOT RAISE <class 'ValueError'>
+=========================== short test summary info ============================
+8 failed, 2 passed in 0.06s

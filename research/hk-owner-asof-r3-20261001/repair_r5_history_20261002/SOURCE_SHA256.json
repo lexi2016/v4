@@ -1,0 +1,98 @@
+{
+  "schema_version": "v4.hk_history_r5.source_identity.v1",
+  "input_commit": "7ec9bceedceb56af97f4d365451d8560860cbc09",
+  "prior_mac_acceptance": {
+    "tests": 27,
+    "passed": 27,
+    "rerun": false
+  },
+  "files": [
+    {
+      "root": "preselection_app",
+      "path": "stage_center/hk_universe_preflight.py",
+      "before_blob": "af1e0b46c3645219dc0ccb1c195ce620e36064a2",
+      "before_sha256": "2a0cc6772a950487c22a6dbf3a3a4b563c8c234941fba89ebd5cae5ac0a8f4ec",
+      "after_blob": "93ed48353866800bd5a699109d83473651859106",
+      "after_sha256": "20f5ff51562907c09334f66eed9c488036698b4ae369111e79b049f91b7281a8"
+    },
+    {
+      "root": "preselection_app",
+      "path": "ops/macos_research_panel_daily_collectors.py",
+      "before_blob": "a9d70e5a3ed96f71c0b8cf6a49fc84ed0a5bbc09",
+      "before_sha256": "afd6a4fa768a59e2ebe85c82482a593bb40203bd53abc81036af57f3a8e61f87",
+      "after_blob": "8278836f8b632319c3cdb5da7133b61c397c6223",
+      "after_sha256": "8a2a7b3ab905b58e1ac99ef8a50c3f64a653454cc75de617bed0158cdd284bad"
+    },
+    {
+      "root": "preselection_app",
+      "path": "ops/macos_research_panel_daily_gate.py",
+      "before_blob": "ae85109bd049de368b9f223baf3485c609daecb4",
+      "before_sha256": "fc852dcbbcde3e3a6bfcf9ea6af46ea773cefe32e00355594edc1a4816665b34",
+      "after_blob": "dfe4b5e26ed664a4f4d8509360aae1d34f63cd39",
+      "after_sha256": "f9fc415e8fcdb93daad70f55f08e548f4a059380d1f692551e2dcf755b5e3d68"
+    },
+    {
+      "root": "preselection_app",
+      "path": "domains/preselection_materializer.py",
+      "before_blob": "c055ee43332eede15f4d1c059efc17deb61d771e",
+      "before_sha256": "661f78ea8764e7ce54aea39702532890e8522c44c479a0f90ebd783ee232ecc5",
+      "after_blob": "bd81c90b56865f41a1fcefa3027d128b26f147aa",
+      "after_sha256": "b5692e2229b5c844a1674e77aa04e7beb7648bd4cad18022f9456c17c1fcf283"
+    },
+    {
+      "root": "preselection_app",
+      "path": "infrastructure/scheduling/executor_registry_preselection.py",
+      "before_blob": "893071f8faff83c2b78ebfd12cf525e9fa03c223",
+      "before_sha256": "9a9f633eabbb607806d30dd5c22559e6df90f81dfe5c4084dcc7d4c5e757a969",
+      "after_blob": "3d81324fd2e7641c125067e725dd6ad7b911be01",
+      "after_sha256": "589219ae5539137dd45f4de2971ae820e16bf7c2c457e38f2d40607678920674"
+    },
+    {
+      "root": "preselection_app",
+      "path": "infrastructure/preselection_pool_store.py",
+      "before_blob": "135057d81fd19633d179a70d9b1bedf2d2e4c820",
+      "before_sha256": "aae429b1fc5ed276d9dd97c70b841944d401b0eeedafa257474f13e745fc05d3",
+      "after_blob": "08a265cfdf45c1f14015345e356b109353291b95",
+      "after_sha256": "19d040c5e785ead8a670d593446b0b786369de445ff75a54693978ecc1f28d57"
+    },
+    {
+      "root": "shared_package",
+      "path": "scripts/live_acquisition/universe.py",
+      "before_blob": "9bc54df93826271bc8f36c7ab7fe8b6fe0536072",
+      "before_sha256": "b586f0bd93c6d3457a174c3851e2ea7860f223ee95cd4127b0c7728b11a3040b",
+      "after_blob": "645f786b6748aa5dfc05cf563eeec69d85cd9964",
+      "after_sha256": "05bf0c0b0be74ef31c969400bbd7ffabea157db899e5380d86f205ba53d0e427"
+    },
+    {
+      "root": "shared_package",
+      "path": "shared_data/hk_security_master.py",
+      "before_blob": "ae18d7e6878237035908e0bf71ab2606c3502a78",
+      "before_sha256": "08510cafeb98e55c656f19653793a8658e11c9b8cef2a9040e2982edf017d654",
+      "after_blob": "a6d4a1e921672f01434720072a2f4141cbfc2d86",
+      "after_sha256": "32e5b9b0bbd3442e3f13f577af3e4db3a3fe0b97f17440dd904cecd4c0c87fc0"
+    },
+    {
+      "root": "shared_package",
+      "path": "shared_data/hk_0_2.py",
+      "before_blob": "a9bfe7251ad20a2a4f21880138577e7b41461128",
+      "before_sha256": "1ffa950c1f13ff1439c4a2b0910fdd1b863609f96c5dd7c91ea43a658eb145a4",
+      "after_blob": "1ee894aeb244efeb7ac091fc1550297afc8c0758",
+      "after_sha256": "3e57bfed43b570c4f8df7483ebaa6f44b6dfc79ec267531384312af01fca1de7"
+    },
+    {
+      "root": "stage_app",
+      "path": "stage_center/_runner_parts/hk_input_validation.py",
+      "before_blob": "682b9e41ae85410ea5dcebd4e3b1767e80c1ed73",
+      "before_sha256": "5f3d4cf5bb869e08269f27178096947d15fef96f532723f3d8597563fae1e519",
+      "after_blob": "ec5b8ab77336d8b318e51bfb835dc73de6f4a0d8",
+      "after_sha256": "3270d4e4a1b66e7a1d843b6a52e0d4c1fd3be70b054ab6b16f7655ace306928f"
+    }
+  ],
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "real_history_restored": false,
+  "real_selection_executed": false
+}

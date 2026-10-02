@@ -1,0 +1,52 @@
+{
+  "schema_version": "v4.hk_history_r5.results.v1",
+  "fixed_input_commit": "7ec9bceedceb56af97f4d365451d8560860cbc09",
+  "reused_mac_r4": {
+    "tests": 27,
+    "passed": 27,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "exit_code": 0,
+    "rerun": false
+  },
+  "author_contract_tdd": {
+    "red": {
+      "tests": 10,
+      "passed": 2,
+      "failed": 8,
+      "exit_code": 1
+    },
+    "green": {
+      "tests": 10,
+      "passed": 10,
+      "failed": 0,
+      "exit_code": 0
+    },
+    "environment": "Python 3.13.5 Linux author harness",
+    "scope": "contract-only; not exact 10-module Mac composition"
+  },
+  "mac_target": {
+    "test_file": "tests/test_hk_history_r5_target.py",
+    "status": "NOT_RUN",
+    "required_python": "current Mac service Python 3.14.6",
+    "includes": [
+      "two-delta official recovery self-verification",
+      "real retrieval timestamps",
+      "prior Connect as-of separate from price date",
+      "R9 natural_verified=true rejection"
+    ]
+  },
+  "real_history": {
+    "futu_single_stock_canary": "AVAILABLE_HK.00005_20260929",
+    "batch_20260929": "NOT_RUN",
+    "membership_20260929": "NOT_MATERIALIZED",
+    "d1_20260930": "NOT_MATERIALIZED",
+    "stage_api_ui": "NOT_RUN"
+  },
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
