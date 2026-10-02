@@ -1,0 +1,37 @@
+--- a/apps/web/src/api/managerWorkspace.ts
++++ b/apps/web/src/api/managerWorkspace.ts
+@@ -645,7 +645,7 @@
+ 
+ function validateAttentionLaneEvidence(
+-  card: JsonObject, lanes: string[], start: number | null, cutoff: number | null, screenSession: string | null,
++  card: JsonObject, lanes: string[], start: number | null, cutoff: number | null, screenSession: string | null, date: string,
+ ): {
+   companyStrength: number; marketStrength: number; contextStrength: number;
+ } {
+@@ -683,7 +683,7 @@
+ }
+ 
+ function validateAttentionDecision(
+-  raw: unknown, card: JsonObject, start: number | null, cutoff: number | null, screenSession: string | null,
++  raw: unknown, card: JsonObject, start: number | null, cutoff: number | null, screenSession: string | null, date: string,
+ ): ResearchAttentionDecision {
+   try {
+     const decision = object(raw);
+@@ -715,7 +715,7 @@
+     const hasScreenClassification = classification === 'STRICT_REBOUND' || classification === 'NEAR_CONDITION';
+     if ((classification !== null && !hasScreenClassification) || hasMarketScreenLane !== hasScreenClassification)
+       throw new Error('decision screen mapping');
+-    const laneEvidence = validateAttentionLaneEvidence(card, lanes, start, cutoff, screenSession);
++    const laneEvidence = validateAttentionLaneEvidence(card, lanes, start, cutoff, screenSession, date);
+     const expectedCompanyStrength = laneEvidence.companyStrength;
+     const expectedMarketStrength = laneEvidence.marketStrength;
+     const expectedContextStrength = laneEvidence.contextStrength;
+@@ -816,7 +816,7 @@
+       if (previousCard && card.research_attention_score > previousCard.research_attention_score)
+         throw new Error('WORKSPACE_RESEARCH_ATTENTION_ORDER_INVALID');
+     } else {
+-      const decision=validateAttentionDecision(card.decision,card,start,cutoff,screenSession);
++      const decision=validateAttentionDecision(card.decision,card,start,cutoff,screenSession,date);
+       if (previousCard) {
+         const previousDecision=previousCard.decision as ResearchAttentionDecision;
+         const currentKey=decision.research_priority_key;

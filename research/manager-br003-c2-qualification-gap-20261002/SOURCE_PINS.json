@@ -1,0 +1,25 @@
+{
+  "feedback_commit": "660e1e8e97027f70865d2df84ccf132c90c8c278",
+  "failed_candidate_sha256": "6eef36501d05334c60e052ec0e344240ce310c6a0a1444a7ce6b8c61be33f9fa",
+  "fixed_candidate_sha256": "415f55cb4fcc14cc33ac451b3c3d7a154cffe56d4986b81e82fb40a9a71e91c3",
+  "failed_candidate_bytes": 67513,
+  "fixed_candidate_bytes": 67552,
+  "patch_sha256": "883f5fb4c09436cb1feeb49fd0f2fa97751bcb42b76b23cfd288ddfa218b6926",
+  "patch_bytes": 2123,
+  "unchanged_companion_files": {
+    "v4/manager_research/workspace_announcements.py": "f741def292593fa07c4151b9c9f60dd3e347861be680c55427c051ca993a067c",
+    "v4/manager_research/issuer_us_relations.py": "75fdca7a3c8bc1e8f385a023d47df640f002096921d6a0f3af8ea6cc466ee00f",
+    "v4/manager_research/research_attention.py": "c77c8f2f109b018547622a5afbb0ac8c6fb0b949bab77a42190fcadea8cb5206",
+    "apps/web/src/manager-selection/researchAttention.ts": "2490663c6002fd496212ae20cf9f7641d5070fc85cfa6170aab62d470cbaec51"
+  },
+  "test_inputs": {
+    "original_39": "research/manager-bi-contract-fix-20261001/tests/test_cross_boundary.py",
+    "br003_2": "research/manager-br003-owner-continuation-20261002/tests/test_br003_target_date.py"
+  },
+  "expected_cases": 41,
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
