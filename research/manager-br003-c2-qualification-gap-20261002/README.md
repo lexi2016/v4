@@ -14,7 +14,7 @@
 相对失败候选：
 - before SHA256: `6eef36501d05334c60e052ec0e344240ce310c6a0a1444a7ce6b8c61be33f9fa` (67513 bytes)
 - after SHA256: `415f55cb4fcc14cc33ac451b3c3d7a154cffe56d4986b81e82fb40a9a71e91c3` (67552 bytes)
-- patch SHA256: `883f5fb4c09436cb1feeb49fd0f2fa97751bcb42b76b23cfd288ddfa218b6926`
+- patch SHA256: `054b5857a47071192efe3e7f0635a5b53ccd1b5663488bdef9d5e6dbd5d74070`
 
 没有再改 mirror date 语义；合法 20260929 historical capture 仍应通过，projected owner-document target 与 workspace request 不一致仍应拒绝。
 

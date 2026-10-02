@@ -1,6 +1,6 @@
 --- a/apps/web/src/api/managerWorkspace.ts
 +++ b/apps/web/src/api/managerWorkspace.ts
-@@ -645,7 +645,7 @@
+@@ -646,7 +646,7 @@
  
  function validateAttentionLaneEvidence(
 -  card: JsonObject, lanes: string[], start: number | null, cutoff: number | null, screenSession: string | null,
