@@ -1,0 +1,96 @@
+{
+  "status": "FINAL_OWNER_READBACK_VERIFIED_PARTIAL",
+  "endpoint": "http://127.0.0.1:8873/api/v4/manager/research/announcements?date=20261002",
+  "raw_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_BR003_CONTINUATION_20261002/announcement_evidence/official_final_readback.json",
+  "raw_bytes": 91862606,
+  "raw_sha256": "28310bf559efeb2407b44c4e823fde7c0ffb4fffffeb111ae5420d9e51b17d00",
+  "receipt_matches_product": true,
+  "coverage": {
+    "native_master_count": 696,
+    "queried_issuer_count": 270,
+    "pending_document_count": 0,
+    "failed_issuers": [
+      {
+        "symbol": "HK.00001",
+        "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+      },
+      {
+        "symbol": "HK.00002",
+        "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+      },
+      {
+        "symbol": "HK.00004",
+        "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+      },
+      {
+        "symbol": "HK.00006",
+        "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+      },
+      {
+        "symbol": "HK.00008",
+        "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+      },
+      {
+        "symbol": "HK.00012",
+        "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+      },
+      {
+        "symbol": "HK.00014",
+        "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+      },
+      {
+        "symbol": "HK.00016",
+        "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+      },
+      {
+        "symbol": "HK.01651",
+        "reason": "HKEX_RESPONSE_TIME_BUDGET_EXCEEDED"
+      },
+      {
+        "symbol": "HK.01658",
+        "reason": "HKEX_RESPONSE_TIME_BUDGET_EXCEEDED"
+      },
+      {
+        "symbol": "HK.01672",
+        "reason": "HKEX_RESPONSE_TIME_BUDGET_EXCEEDED"
+      },
+      {
+        "symbol": "HK.01675",
+        "reason": "HKEX_RESPONSE_TIME_BUDGET_EXCEEDED"
+      },
+      {
+        "symbol": "HK.01681",
+        "reason": "HKEX_RESPONSE_TIME_BUDGET_EXCEEDED"
+      },
+      {
+        "symbol": "HK.01686",
+        "reason": "HKEX_RESPONSE_TIME_BUDGET_EXCEEDED"
+      }
+    ],
+    "observed_document_count": 204,
+    "event_group_count": 156,
+    "positive_observation_count": 9,
+    "risk_count": 0,
+    "clarification_count": 17,
+    "directory_exhaustion": "UNVERIFIED",
+    "all_official_announcements_captured": false,
+    "can_resume": true,
+    "natural_run_verified": false
+  },
+  "product_identity": {
+    "run_id": "3350299e0a9b42a3977dcf5d9be4c02c",
+    "revision": 106,
+    "sha256": "efa8177dad4842dbd686b97d902eb1a736470dd82e72b3874c86f3ede3800645",
+    "generated_at": "2026-10-02T02:24:00.237979+00:00",
+    "query_since": "2026-09-29T16:10:00+08:00",
+    "query_as_of": "2026-10-01T08:46:37.748536+08:00",
+    "consumer_cutoff": "2026-10-02T10:25:13.143224+08:00",
+    "consumed": true
+  },
+  "document_count": 204,
+  "original_query_window_preserved": true,
+  "same_run_preserved": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

@@ -1,5 +1,13 @@
 # BR003 与既有 owner 本地接续反馈
 
+**最终更新：官方采集已因连续两批来源时间预算失败而停止。本文件早期B段和检查点保留原貌；当前终态以本段及最终receipt为准。**
+
+最终已查询270/696，未查询426，排队正文0。查询失败14项：原8项目录/空结果未核，加6家HKEX_RESPONSE_TIME_BUDGET_EXCEEDED（HK.01651/01658/01672/01675/01681/01686）。保留可恢复的同一run和旧查询窗口，没有盲重试、重开窗口或改BATCH_SIZE。
+
+204条已观察文档中，156篇BODY_PARSED、25篇FAILED、23篇BODY_UNREADABLE；204不能称为全部成功解析的正文。25项正文失败含18项PDF页数预算、5项PDF字节预算、1项响应体积预算、1项响应时间预算；23项不可读原因为NO_READABLE_PDF_BODY。完整计数和原件SHA/URL样例见DOCUMENT_BODY_STATUS_AND_SAMPLE.json。
+
+最终原入口GET读回与保存产品run/revision/SHA一致；原始91,862,606字节JSON留在本地并记录SHA。实际页面刷新后显示PARTIAL、270/696和204条记录。停止仅证明来源预算阻碍，未证明具体根因，不自动扩大成新抓取器或预算放宽。早期“继续采集”的安排已结束，B不再后台运行。
+
 固定输入：80d4c41ec75aef41a642f1e27d32e472368f4675；其父提交为34e1dc6912100830f42cf0fc90eec72f624afc9a。只反馈实际本地结果，不修改业务代码、不部署失败候选。
 
 ## A：精确补丁应用成功，41项验收失败
@@ -14,7 +22,7 @@ source/failed_candidate/提供本地精确after源码；evidence/junit.xml、pyt
 
 部署计划曾误选旧com.lexi.v35.local.plist；evidence/DEPLOYMENT_PLAN_SCOPE_CORRECTION.json已纠正。当前8873使用api-only配置，五个前像均存在且匹配。不得将旧plist缺文件/manifest漂移当作当前部署阻碍；真实阻碍是编译失败。
 
-## B：原公告入口正在推进，不需要新抓取器
+## B：原公告入口的早期推进记录（最终停止见文件首段）
 
 当前日期20261002，既有官方run_id=3350299e0a9b42a3977dcf5d9be4c02c保持不变。查询窗口固定为2026-09-29T16:10:00+08:00至2026-10-01T08:46:37.748536+08:00；不代表10月2日全部新公告。每次原入口最多推进3家，或先处理排队正文。上传时的精确覆盖、已观察正文数和失败项见evidence/OFFICIAL_CHECKPOINT.json，状态明确为RUNNING_CHECKPOINT_NOT_FINAL；Codex继续原owner，不回滚数据、不改BATCH_SIZE、不重开窗口。即使696家全部查询结束，也不得宣称目录翻页穷尽。
 
@@ -36,6 +44,6 @@ Scheduler的5项HK bindings均存在并解析成功，research_panel_daily_hk也
 
 1. A只补遗漏的两个中间函数参数和对应调用；严格TS编译先通过，再跑原39+新增2项。没有执行能力则标NOT_RUN，不声称41通过。
 2. C只依据补齐源码提出或实现原owner的最小资格发布连接，给出准确入口、参数、before/after pins和现有V2 reader读回测试；日线更新逻辑及scheduler配置不扩修。若依旧缺源字节，一次列出准确文件与调用理由。
-3. B由Codex继续原入口；最终覆盖收据另按同一run保存，不要求Chat改公告抓取器。
+3. B已按连续两批来源失败停止；最终收据已封存，不自动扩修抓取器或放宽预算。
 
 仍排除日历、BI04、日线补采、BUY、A股Stage、R3A写集合及Vibe8910。Issue8/17保持开放；RESEARCH_ONLY=true、production_allowed=false、buy_gate_updated=false、orders_sent=false。

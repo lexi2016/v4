@@ -1,0 +1,71 @@
+{
+  "status": "OBSERVED_RECORDS_NOT_ALL_PARSED_BODIES",
+  "observed_document_count": 204,
+  "body_status_counts": {
+    "BODY_PARSED": 156,
+    "FAILED": 25,
+    "BODY_UNREADABLE": 23
+  },
+  "body_reason_counts": {
+    "None": 156,
+    "PDF_PAGE_BUDGET_EXCEEDED": 18,
+    "PDF_BYTE_BUDGET_EXCEEDED": 5,
+    "HKEX_RESPONSE_SIZE_BUDGET_EXCEEDED": 1,
+    "HKEX_RESPONSE_TIME_BUDGET_EXCEEDED": 1,
+    "NO_READABLE_PDF_BODY": 23
+  },
+  "sample": {
+    "document": {
+      "symbol": "HK.00003",
+      "name": "香港中华煤气",
+      "event_id": "671021365c1024218a3bd2ff35cbf14bb75902c2e1cac42e48da77b91f48b0ab",
+      "title": "Notice of Listing on The Stock Exchange of Hong Kong Limited - HKCG (Finance) Limited - U.S.$7,000,000,000 Medium Term Note Programme",
+      "source_url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0929/2026092901409.pdf",
+      "published_at": "2026-09-29T18:51+08:00",
+      "available_at": "2026-10-01T00:47:01+00:00",
+      "retrieved_at": "2026-10-01T00:47:03+00:00",
+      "body_status": "BODY_PARSED",
+      "body_reason": null,
+      "document_sha256": "1dbb7d058a86c98e6ec82047da8cc93b2b02be8658d8c629da25747cd7ecb708",
+      "capture_run_id": "3350299e0a9b42a3977dcf5d9be4c02c",
+      "capture_revision": 106,
+      "query_cutoff": "2026-10-01T08:46:37.748536+08:00",
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    "source_refs": [
+      {
+        "blob_sha256": "d0866d8477e31e67a58454a2174392265216f4d39f95b26b7d9441fbf054e364",
+        "body_sha256": "c97a02acb337895c663f94c96a6baac92931d12b0425f6d51a0eb72f5c985e1c",
+        "final_url": "https://www1.hkexnews.hk/search/titlesearch.xhtml",
+        "http_status": 200,
+        "retrieved_at": "2026-10-01T00:47:01+00:00",
+        "source_key": "hkex-announcement-request:140d7927d535c4f674cd443ba6fbee8ebc34c9bc37a9723eaf02689dc41a0123"
+      },
+      {
+        "blob_sha256": "ac8d7c722634755d760c4bd72c196e06c058ae3fea14576a0925a61012869fc6",
+        "body_sha256": "28935f66b0439e443ea4a7513d4971558cc6ccb3cfc824d1b7953b0f6960324c",
+        "final_url": "https://www1.hkexnews.hk/ncms/script/eds/activestock_sehk_e.json",
+        "http_status": 200,
+        "retrieved_at": "2026-10-01T00:46:42+00:00",
+        "source_key": "hkex-announcement-request:e2a37dc986efc4a6c1b6e535c4e782f5226b7d3ead60db0ad244570d1376a293"
+      },
+      {
+        "blob_sha256": "6d7128aa9c0e66f27f01d939c0c7b521cc2a766ffbfa8f0b54f7c4fe97ba3af5",
+        "body_sha256": "1dbb7d058a86c98e6ec82047da8cc93b2b02be8658d8c629da25747cd7ecb708",
+        "final_url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0929/2026092901409.pdf",
+        "http_status": 200,
+        "retrieved_at": "2026-10-01T00:47:03+00:00",
+        "source_key": "hkex-announcement-request:e1e2d25ad075b766c1b62b60a7dba8dae3abe624794f5f1f984fc69154b1a9ea"
+      }
+    ],
+    "document_source_url_matches_original_ref": true,
+    "document_sha256_matches_body_ref": true
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

@@ -1,0 +1,86 @@
+{
+  "status": "STOPPED_WITH_OWNER_NO_PROGRESS_OR_SOURCE_FAILURE",
+  "calls_this_session": 36,
+  "same_run_and_window": true,
+  "queried": 270,
+  "total": 696,
+  "pending_issuer_count": 426,
+  "pending_document_count": 0,
+  "failed_issuer_count": 14,
+  "failed_issuers": [
+    {
+      "symbol": "HK.00001",
+      "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+    },
+    {
+      "symbol": "HK.00002",
+      "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+    },
+    {
+      "symbol": "HK.00004",
+      "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+    },
+    {
+      "symbol": "HK.00006",
+      "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+    },
+    {
+      "symbol": "HK.00008",
+      "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+    },
+    {
+      "symbol": "HK.00012",
+      "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+    },
+    {
+      "symbol": "HK.00014",
+      "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+    },
+    {
+      "symbol": "HK.00016",
+      "reason": "ANNOUNCEMENT_DIRECTORY_LAYOUT_OR_EMPTY_UNVERIFIED"
+    },
+    {
+      "symbol": "HK.01651",
+      "reason": "HKEX_RESPONSE_TIME_BUDGET_EXCEEDED"
+    },
+    {
+      "symbol": "HK.01658",
+      "reason": "HKEX_RESPONSE_TIME_BUDGET_EXCEEDED"
+    },
+    {
+      "symbol": "HK.01672",
+      "reason": "HKEX_RESPONSE_TIME_BUDGET_EXCEEDED"
+    },
+    {
+      "symbol": "HK.01675",
+      "reason": "HKEX_RESPONSE_TIME_BUDGET_EXCEEDED"
+    },
+    {
+      "symbol": "HK.01681",
+      "reason": "HKEX_RESPONSE_TIME_BUDGET_EXCEEDED"
+    },
+    {
+      "symbol": "HK.01686",
+      "reason": "HKEX_RESPONSE_TIME_BUDGET_EXCEEDED"
+    }
+  ],
+  "observed_document_count": 204,
+  "can_resume": true,
+  "directory_exhaustion": "UNVERIFIED",
+  "all_official_announcements_captured": false,
+  "product_identity": {
+    "run_id": "3350299e0a9b42a3977dcf5d9be4c02c",
+    "revision": 106,
+    "sha256": "efa8177dad4842dbd686b97d902eb1a736470dd82e72b3874c86f3ede3800645",
+    "generated_at": "2026-10-02T02:24:00.237979+00:00",
+    "query_since": "2026-09-29T16:10:00+08:00",
+    "query_as_of": "2026-10-01T08:46:37.748536+08:00",
+    "consumer_cutoff": "2026-10-02T10:24:07.261262+08:00",
+    "consumed": true
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

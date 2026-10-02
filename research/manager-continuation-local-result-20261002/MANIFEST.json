@@ -1,12 +1,13 @@
 {
   "input_commit": "80d4c41ec75aef41a642f1e27d32e472368f4675",
+  "checkpoint_commit": "d2edc623ecd2d6d2f8f03b47e06fc5a853f3b888",
   "kind": "SOURCE_AND_LOCAL_FAILURE_EVIDENCE_NOT_ACCEPTED_REPAIR",
   "files": [
     {
       "path": "CHAT_FEEDBACK.md",
-      "bytes": 5477,
-      "sha256": "df6348e4372faef8f7587b1044145f2fd4ecdf9b08dbd5591e752ef849aacaaa",
-      "git_blob_sha": "cc3df16486ff6298561613feaa041c9fdd5cfc94"
+      "bytes": 6696,
+      "sha256": "57e14c78bb64e9f16e5a8865129347dd96841d8b8d30b5571950abad0f3e285e",
+      "git_blob_sha": "4651439c6f05472ee02cf660f5d90a3e6507dc9c"
     },
     {
       "path": "evidence/API_SUMMARY.json",
@@ -19,6 +20,12 @@
       "bytes": 1710,
       "sha256": "786b4adac112273c625cadb3181088418ba9afccdad490aebeb3387155d3d82b",
       "git_blob_sha": "3951aa68b16658aec2b76678c84a985084ff53ec"
+    },
+    {
+      "path": "evidence/DOCUMENT_BODY_STATUS_AND_SAMPLE.json",
+      "bytes": 3141,
+      "sha256": "97a2c9c974b66897a4967352852fb9589224c32fcf2ca84a7d01153b60c6b768",
+      "git_blob_sha": "a70d8df978ed4792ac52eed5adf6de53464ffb7c"
     },
     {
       "path": "evidence/EASTMONEY_ONCE_RECEIPT.json",
@@ -39,16 +46,40 @@
       "git_blob_sha": "3fa678fca41255766cfa34b65184e1924d4758bd"
     },
     {
+      "path": "evidence/LOCAL_FINAL_STATE.json",
+      "bytes": 4020,
+      "sha256": "b1c9ac249c2e2099de726327a32ac5058ec37caafdb6353dab980bfdae4b2057",
+      "git_blob_sha": "20bebed10087cfdfe4581cd13d5e4f1ca9de709f"
+    },
+    {
       "path": "evidence/OFFICIAL_CHECKPOINT.json",
       "bytes": 5481,
       "sha256": "a5a13036d29752f52478ca17389c301f5259f898591a97f53ea92bce5dc5f86f",
       "git_blob_sha": "0f9c1f0ec1fdef5415c388ae8259e5989b108372"
     },
     {
+      "path": "evidence/OFFICIAL_FINAL_READBACK.json",
+      "bytes": 3040,
+      "sha256": "06c331d21a9cbcde8c02bcc4ba3a86c08b68a978eb8c5febf5e750082e40f649",
+      "git_blob_sha": "144be3d67c607ff52b26b110a828c8def5073f2b"
+    },
+    {
+      "path": "evidence/OFFICIAL_FINAL_RECEIPT.json",
+      "bytes": 2387,
+      "sha256": "8d88ab1f7eb82b63c6144b5271371a545bd911e35707f17b555eeacabf769220",
+      "git_blob_sha": "f58fc9b1679f5e4ed85ed02ac5127fa8ba7bb72b"
+    },
+    {
       "path": "evidence/current_workbench_ax.txt",
       "bytes": 10255,
       "sha256": "a94944b02e8f78b505fc4901aa619b6656bd486c50c3d5d55e8dd704a01f62ea",
       "git_blob_sha": "99c9e83a0914d1c33d3081324fc3da6700650763"
+    },
+    {
+      "path": "evidence/final_workbench_ax.txt",
+      "bytes": 10255,
+      "sha256": "1adef1019494b0c14565dbbde4cab7146335848c2ec6d4b9cd15b44466c03717",
+      "git_blob_sha": "2901b1175259eebae3a54a3bde223d4afd5c6f4a"
     },
     {
       "path": "evidence/independent_tsc.log",
@@ -67,6 +98,12 @@
       "bytes": 25744,
       "sha256": "936c9dd6fc6e74bcb2d9bd062badc28e3ae52a2d2c80e3d9ce6585b7de72ce3d",
       "git_blob_sha": "8395771e673105ad7dcf5c68615465b638f05f54"
+    },
+    {
+      "path": "evidence/official_resume_progress_final.jsonl",
+      "bytes": 35994,
+      "sha256": "fd8a32ccc85c6fa3efaddc6783b852c07867012fa33db91d55d745cae5a4b544",
+      "git_blob_sha": "fc1cc7e3418a02e90865295dd8ff094c468a12ac"
     },
     {
       "path": "evidence/pytest.log",
