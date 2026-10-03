@@ -1,0 +1,49 @@
+{
+  "started_at": "2026-10-03T15:56:03.385755+08:00",
+  "release_id": "manager-readback-r9-20261003-issue24-r1",
+  "review_sha256": "ba01e5b3e39e06fc467dc2ce81ba00bf088b2952856707d6008a47460cceaf97",
+  "manifest_sha256": "967f4a4be1564be6413d76c0ed82432bc2254c944fffd8fc71a8a01b7056188c",
+  "events": [
+    {
+      "args": [
+        "launchctl",
+        "bootout",
+        "gui/501/com.lexi.v35.api-only"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "launchctl",
+        "bootstrap",
+        "gui/501",
+        "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "launchctl",
+        "print",
+        "gui/501/com.lexi.v35.api-only"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    }
+  ],
+  "status": "DEPLOYED",
+  "health": {
+    "healthz": {
+      "status": "ok"
+    },
+    "readyz": {
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    }
+  },
+  "active_plist_sha256": "b07ebab987bcad61228475d7545abde8f5d7a6f12dbf8ffb2f83a15c312a6979",
+  "finished_at": "2026-10-03T15:56:04.207017+08:00"
+}
