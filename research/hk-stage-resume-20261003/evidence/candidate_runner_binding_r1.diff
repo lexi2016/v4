@@ -1,0 +1,135 @@
+--- candidate R1 runner preimage
++++ candidate R1 runner postimage
+@@ -542,16 +542,128 @@
+     *,
+     preselection_source_root: Path | str | None = None,
+ ) -> StageUniverseBinding:
+-    """Bind only the strict canonical HK D-1 pool for this target date."""
++    """Bind the exact HK D-1 pool or its exact prior Connect observation."""
+     from infrastructure.preselection_pool_store import PreselectionSourceResolver
+ 
+     resolver = PreselectionSourceResolver(root, source_root=preselection_source_root)
++    open_states = {
++        TradingDayState.FULL_TRADING_DAY,
++        TradingDayState.HALF_TRADING_DAY_AM,
++    }
+     try:
+-        with resolver.source_read_lease(trade_date, timeout_seconds=0):
+-            return _build_hk_d1_binding(
++        target_states = resolve_market_states(trade_date)
++        securities_state = target_states["hk_securities"]
++        connect_state = target_states["hk_connect"]
++        if securities_state is TradingDayState.UNKNOWN or connect_state is TradingDayState.UNKNOWN:
++            raise RunnerError("HK D1 target calendar CANNOT_CONFIRM")
++        if securities_state not in open_states:
++            raise RunnerError(
++                f"HK D1 binding unavailable: HK securities market is closed on {trade_date}"
++            )
++
++        if connect_state in open_states:
++            # An open Connect date always binds only its own exact-date pool.
++            with resolver.source_read_lease(trade_date, timeout_seconds=0):
++                return _build_hk_d1_binding(
++                    root,
++                    trade_date,
++                    preselection_source_root=preselection_source_root,
++                )
++
++        if connect_state is not TradingDayState.NON_TRADING_DAY:
++            raise RunnerError("HK D1 Connect calendar CANNOT_CONFIRM")
++
++        def previous_session(market: str) -> str:
++            cursor = datetime.strptime(trade_date, "%Y%m%d")
++            for _ in range(45):
++                cursor -= timedelta(days=1)
++                candidate_date = cursor.strftime("%Y%m%d")
++                state = resolve_market_states(candidate_date)[market]
++                if state is TradingDayState.UNKNOWN:
++                    raise RunnerError("HK D1 previous-session calendar CANNOT_CONFIRM")
++                if state in open_states:
++                    return candidate_date
++            raise RunnerError("HK D1 previous-session calendar CANNOT_CONFIRM")
++
++        price_signal_date = previous_session("hk_securities")
++        source_date = previous_session("hk_connect")
++        if source_date >= trade_date:
++            raise RunnerError("HK D1 prior Connect session identity CANNOT_CONFIRM")
++
++        with resolver.source_read_lease(source_date, timeout_seconds=0):
++            owner = resolver.root_for_date(source_date)
++            snapshot = resolver.read_pool_snapshot(
++                source_date, "hkconnect_d1_top100"
++            )
++            if snapshot.get("physical_source_root") != str(owner):
++                raise RunnerError("HK D1 prior source owner changed during binding")
++            source_binding = _build_hk_d1_binding(
+                 root,
+-                trade_date,
++                source_date,
+                 preselection_source_root=preselection_source_root,
++            )
++            source_sha = str(snapshot.get("artifact_raw_sha256") or "")
++            source_path = owner / str(snapshot.get("artifact_relative") or "")
++            if (
++                source_binding.sha256 != source_sha
++                or _evidence_value(source_binding.evidence, "hk_d1_json") != str(source_path)
++                or _evidence_value(source_binding.evidence, "hk_d1_sha256") != source_sha
++            ):
++                raise RunnerError("HK D1 prior artifact identity changed during binding")
++
++            confirmed = resolver.read_pool_snapshot(
++                source_date, "hkconnect_d1_top100"
++            )
++            identity_keys = (
++                "artifact_raw_sha256",
++                "manifest_raw_sha256",
++                "receipt_raw_sha256",
++                "physical_source_root",
++                "artifact_relative",
++                "manifest_relative",
++                "receipt_relative",
++            )
++            if (
++                any(confirmed.get(key) != snapshot.get(key) for key in identity_keys)
++                or confirmed.get("artifact") != snapshot.get("artifact")
++            ):
++                raise RunnerError("HK D1 prior source trio changed during binding")
++
++            source_rows = snapshot["artifact"].get(
++                "rows", snapshot["artifact"].get("data", ())
++            )
++            source_signal_dates = {
++                str(row.get("signal_date") or "")
++                for row in source_rows
++                if isinstance(row, Mapping)
++            }
++            if len(source_signal_dates) != 1:
++                raise RunnerError("HK D1 prior signal date identity CANNOT_CONFIRM")
++            source_signal_date = next(iter(source_signal_dates))
++            if (
++                not re.fullmatch(r"\d{8}", source_signal_date)
++                or source_signal_date >= source_date
++            ):
++                raise RunnerError("HK D1 prior signal date is outside its PIT boundary")
++
++            return StageUniverseBinding.ready(
++                market="HK_CONNECT",
++                trade_date=trade_date,
++                role="HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION",
++                codes=source_binding.codes,
++                source_run_id=f"hk-d1-{source_date}-{source_sha[:16]}",
++                sha256=source_sha,
++                evidence=(
++                    *source_binding.evidence,
++                    f"hk_d1_source_trade_date={source_date}",
++                    f"hk_d1_source_signal_date={source_signal_date}",
++                    f"hk_d1_source_manifest_sha256={snapshot['manifest_raw_sha256']}",
++                    f"hk_d1_source_receipt_sha256={snapshot['receipt_raw_sha256']}",
++                    f"hk_observation_trade_date={trade_date}",
++                    f"hk_observation_eligibility_source_date={source_date}",
++                    f"hk_observation_price_signal_date={price_signal_date}",
++                    "hk_observation_mode=HK_SECURITIES_OPEN_HK_CONNECT_CLOSED",
++                ),
+             )
+     except RunnerError:
+         raise

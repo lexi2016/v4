@@ -1,0 +1,92 @@
+{
+  "schema_version": "HK_STAGE_PRIOR_OBSERVATION_BINDING_WRITER_RECEIPT_R1.v1",
+  "writer": {
+    "identity": "/root/hk_stage_display_writer",
+    "model": "gpt-6-luna",
+    "reasoning_effort": "max",
+    "independent_reviewer": "pending"
+  },
+  "milestone": "Candidate-only R1 HK prior Connect session observation binding repair.",
+  "goal": "On an HK securities-open / HK Connect-closed target, bind only the exact previous HK Connect session verified D1 Top100 three-artifact snapshot from the configured source root as an observation. Keep its original source trade/signal dates and SHA; do not make it current eligibility or rewrite source price/available_at fields.",
+  "scope": {
+    "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+    "candidate_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/stage_binding_candidate",
+    "allowed_touched": [
+      "stage_center/runner.py",
+      "tests/test_hk_prior_observation_source_binding.py",
+      "stage_binding_writer_evidence"
+    ],
+    "candidate_source_paths_changed": [
+      "stage_center/runner.py"
+    ],
+    "candidate_test_paths_added": [
+      "tests/test_hk_prior_observation_source_binding.py"
+    ],
+    "canonical_source_changed": false,
+    "canonical_binding_merge": false,
+    "forbidden_touched": []
+  },
+  "implementation": {
+    "calendar_routing": "Reject UNKNOWN/closed HK securities target; exact target-date D1 binding remains mandatory when Connect is open; prior observation branch runs only when HK securities is open and Connect is explicitly NON_TRADING_DAY.",
+    "prior_date": "Compute previous HK securities price-signal date and previous HK Connect session from the existing frozen calendar, then resolve only that exact Connect source date. No nearest-file/latest-pool scan.",
+    "source_contract": "Use the existing PreselectionSourceResolver, source read lease, exact _build_hk_d1_binding validator, and configured preselection_source_root. Verify source owner, artifact SHA/path, manifest/receipt SHA, stable second snapshot, single prior signal date, and preserve source payload unchanged.",
+    "observation_identity": "Return role HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION with target observation date, exact eligibility source date, separate HK price-signal date, original source signal date, source trio SHA identity, and prior-observation mode evidence. Existing validation keeps it distinct from exact-date current qualification.",
+    "tests": "Synthetic dual-root source lock mirrors the deployed released-lock contract. Tests cover exact 20260924 secondary trio for 20260925, newer non-Connect pool exclusion, Connect-open exact-date requirement, missing exact prior no fallback, primary incomplete date owner suppression, missing/tampered receipt, invalid signal date, split-date missing/late-date provenance, HK-closed fail-closed, source artifact/available_at byte-equivalence, and safety flags false."
+  },
+  "sha_manifest": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/stage_binding_writer_evidence/binding_r1_sha_manifest.json",
+    "sha256": "a2b9605776544465b8e5321b1a4b16a4c24dce7f7505ebad1af921575a5c6a1a",
+    "parent_preimage_manifest_sha256": "b2bfdf95de1d3853fad7d742d999fde1133cce2f0c0f2645619a532664722be9"
+  },
+  "diffs": [
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/stage_binding_writer_evidence/candidate_runner_binding_r1.diff",
+      "sha256": "399ad8f9c6f1b3a3ed545e6ca9b35e0f81c2a63bdfbb59ee22a7885d8fea619a"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/stage_binding_writer_evidence/candidate_test_hk_prior_observation_source_binding.diff",
+      "sha256": "3f8a21b1db35e2a227d9794a8489b9e2fa68b3ae763ebf586d9f56a3011bf6cf"
+    }
+  ],
+  "commands": [
+    {
+      "command": "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python -m pytest -q --tb=short --basetemp=/tmp/hk-stage-binding-red-20261003 tests/test_hk_observation_calendar_20260925.py::test_hk_observation_binding_keeps_prior_pool_date_signal_and_sha",
+      "result": "RED reproduced before the runner edit: 1 failed because the runner requested missing target date 20260925 instead of the exact prior Connect source date 20260924."
+    },
+    {
+      "command": "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python -m pytest -q --tb=short --basetemp=/tmp/hk-binding-r3-new tests/test_hk_prior_observation_source_binding.py",
+      "result": "PASS: 12 passed."
+    },
+    {
+      "command": "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python -m pytest -q --tb=short --basetemp=/tmp/hk-binding-r3-focused tests/test_hk_prior_observation_source_binding.py tests/test_hk_observation_bound_authority_r4.py tests/test_hk_observation_calendar_20260925.py::test_hk_observation_binding_keeps_prior_pool_date_signal_and_sha tests/test_hk_observation_calendar_20260925.py::test_hk_observation_binding_without_verified_prior_pool_fails_closed tests/test_hk_observation_calendar_20260925.py::test_invalid_latest_prior_pool_does_not_silently_use_older_pool tests/test_hk_observation_calendar_20260925.py::test_hk_observation_binding_fails_closed_when_secondary_materializer_holds_lease",
+      "result": "PASS: 20 passed."
+    },
+    {
+      "command": "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python -m pytest -q --tb=short --basetemp=/tmp/hk-binding-r3-existing tests/test_hk_observation_calendar_20260925.py tests/test_hk_observation_bound_authority_r4.py",
+      "result": "13 passed, 1 unrelated failure: test_date_catalog_keeps_hk_open_today_navigable_without_promoting_it_as_a_pool expected navigation_date 20260925 but observed 20260924. This test is outside the touched files and the binding-related subset passed separately."
+    }
+  ],
+  "status": {
+    "IMPLEMENTED": "PASS_CANDIDATE_ONLY",
+    "TESTED": "PASS_WRITER_FOCUSED_ONLY_20",
+    "REVIEWED": "PENDING_INDEPENDENT_LUNA_MAX_REVIEWER",
+    "BEHAVIOR_VERIFIED": "PENDING_INDEPENDENT_REVIEW",
+    "INTEGRATED": "NO_CANONICAL_MERGE",
+    "DEPLOYED": "NO",
+    "API_VERIFIED": "CANNOT_CONFIRM_NOT_RUN",
+    "UI_VERIFIED": "CANNOT_CONFIRM_NOT_RUN",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM_NO_NATURAL_SLOT",
+    "PASS_SIGNAL": "CANDIDATE_RED_GREEN_AND_FOCUSED_REGRESSIONS_PASS; INDEPENDENT_REVIEW_REQUIRED"
+  },
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "unresolved_gaps": [
+    "The V3.5 preselection-pool artifact schema has no general capture_at/cutoff_at field. Existing HK D1 validation enforces exact source/target/signal dates and requires historical_provenance, including eligibility capture-date equality, when price-signal and eligibility-source calendars split; it cannot independently verify an intraday capture after a stage cutoff when no such field is present. No new timestamp contract was invented.",
+    "One broad adjacent calendar test failed outside touched scope: test_date_catalog_keeps_hk_open_today_navigable_without_promoting_it_as_a_pool (navigation_date expected 20260925, actual 20260924). The exact prior-binding and R4 readback tests passed in the 20-test focused command.",
+    "Independent reviewer verdict, live runtime/API/UI, and natural-slot evidence remain pending/CANNOT_CONFIRM."
+  ],
+  "review_boundary": "Writer receipt is handoff only. Do not claim REVIEWED or BEHAVIOR_VERIFIED."
+}

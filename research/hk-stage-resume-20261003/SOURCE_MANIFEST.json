@@ -1,0 +1,131 @@
+{
+  "purpose": "Reference-only source slices; not a runnable or deployable app. No business changes.",
+  "files": [
+    {
+      "path": "candidate/domains/preselection.py",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/stage_binding_candidate/domains/preselection.py",
+      "sha256": "f08f4620da6570ae2c8e48783dfb454237c958f0bbcfd8e92dfa4d096bc26809",
+      "bytes": 49558
+    },
+    {
+      "path": "candidate/contracts/trading_calendar.py",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/stage_binding_candidate/contracts/trading_calendar.py",
+      "sha256": "584f28d18273a8824c5f68a701aa4404123b5c71900caada3e2772828991ee8f",
+      "bytes": 9291
+    },
+    {
+      "path": "candidate/contracts/market_calendar_2026.json",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/stage_binding_candidate/contracts/market_calendar_2026.json",
+      "sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+      "bytes": 3473
+    },
+    {
+      "path": "candidate/contracts/trading_calendar_2026.json",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/stage_binding_candidate/contracts/trading_calendar_2026.json",
+      "sha256": "703bafff4c81f23e0b4a52418a34f78a8f79fad76064040c18e02031a36e6eb2",
+      "bytes": 660
+    },
+    {
+      "path": "candidate/tests/test_hk_observation_calendar_20260925.py",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/stage_binding_candidate/tests/test_hk_observation_calendar_20260925.py",
+      "sha256": "321bf0aec9b12c5b10acbe85817342ea964b009a375d46aaa96224e9afcdf54f",
+      "bytes": 9525
+    },
+    {
+      "path": "candidate/stage_center/runner.py",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/stage_binding_candidate/stage_center/runner.py",
+      "sha256": "f4c9043c948212b9d586b86a5b0c5c4924d7ffcd0bbc3d99c237988d508c9e20",
+      "bytes": 42239
+    },
+    {
+      "path": "candidate/stage_center/_runner_parts/hk_input_validation.py",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/stage_binding_candidate/stage_center/_runner_parts/hk_input_validation.py",
+      "sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+      "bytes": 23786
+    },
+    {
+      "path": "candidate/tests/test_hk_prior_observation_source_binding.py",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/stage_binding_candidate/tests/test_hk_prior_observation_source_binding.py",
+      "sha256": "518a7c8271aedaf37e1df02119ebf42d9dbbcc98596684d97d90dc1816987b30",
+      "bytes": 10634
+    },
+    {
+      "path": "candidate/tests/test_hk_observation_bound_authority_r4.py",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/stage_binding_candidate/tests/test_hk_observation_bound_authority_r4.py",
+      "sha256": "b36a7d478f631e1a0e2e12c18716a59d8c670cb7c58f57c7a63ce60f67ed0592",
+      "bytes": 10202
+    },
+    {
+      "path": "deployed_stage_baseline/stage_center/runner.py",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1/app/stage_center/runner.py",
+      "sha256": "50da5908c98330df9ad3dee6d44ad1042f559883815507be28a4257bf0f03f67",
+      "bytes": 36866
+    },
+    {
+      "path": "deployed_stage_baseline/domains/preselection.py",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1/app/domains/preselection.py",
+      "sha256": "f08f4620da6570ae2c8e48783dfb454237c958f0bbcfd8e92dfa4d096bc26809",
+      "bytes": 49558
+    },
+    {
+      "path": "canonical_reference/domains/preselection.py",
+      "source": "/Users/lexi/Desktop/学习/v4_app/domains/preselection.py",
+      "sha256": "3d35e4274c564b826c248367e5bef6f24409b742966723ebeb5f60b726b7f106",
+      "bytes": 14533
+    },
+    {
+      "path": "canonical_reference/domains/_preselection_parts/date_catalog.py",
+      "source": "/Users/lexi/Desktop/学习/v4_app/domains/_preselection_parts/date_catalog.py",
+      "sha256": "091a38cfd07a4c7a2da2e1e9f2de885df1420683fa5ae5e986d1f546e0cd1a0d",
+      "bytes": 13887
+    },
+    {
+      "path": "canonical_reference/domains/_preselection_parts/_namespace.py",
+      "source": "/Users/lexi/Desktop/学习/v4_app/domains/_preselection_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "bytes": 527
+    },
+    {
+      "path": "canonical_reference/domains/_preselection_parts/__init__.py",
+      "source": "/Users/lexi/Desktop/学习/v4_app/domains/_preselection_parts/__init__.py",
+      "sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "bytes": 70
+    },
+    {
+      "path": "canonical_reference/contracts/trading_calendar.py",
+      "source": "/Users/lexi/Desktop/学习/v4_app/contracts/trading_calendar.py",
+      "sha256": "eca22a1e45271df45fc0a3b7cec28cec4e448d1af97b80371cc5c3c1953ec0f1",
+      "bytes": 10239
+    },
+    {
+      "path": "canonical_reference/contracts/market_calendar_2026.json",
+      "source": "/Users/lexi/Desktop/学习/v4_app/contracts/market_calendar_2026.json",
+      "sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+      "bytes": 3473
+    },
+    {
+      "path": "canonical_reference/contracts/trading_calendar_2026.json",
+      "source": "/Users/lexi/Desktop/学习/v4_app/contracts/trading_calendar_2026.json",
+      "sha256": "703bafff4c81f23e0b4a52418a34f78a8f79fad76064040c18e02031a36e6eb2",
+      "bytes": 660
+    },
+    {
+      "path": "evidence/writer_receipt.json",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/stage_binding_writer_evidence/writer_receipt.json",
+      "sha256": "4c61cee65fcd9947370b1015b0607bdc8f0cb41528ca8af9641a6dbb414479db",
+      "bytes": 7419
+    },
+    {
+      "path": "evidence/binding_r1_sha_manifest.json",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/stage_binding_writer_evidence/binding_r1_sha_manifest.json",
+      "sha256": "a2b9605776544465b8e5321b1a4b16a4c24dce7f7505ebad1af921575a5c6a1a",
+      "bytes": 2491
+    },
+    {
+      "path": "evidence/candidate_runner_binding_r1.diff",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/stage_binding_writer_evidence/candidate_runner_binding_r1.diff",
+      "sha256": "399ad8f9c6f1b3a3ed545e6ca9b35e0f81c2a63bdfbb59ee22a7885d8fea619a",
+      "bytes": 6436
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "schema_version": "HK_STAGE_BINDING_R1_SHA_MANIFEST.v1",
+  "preimage_manifest_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/stage_binding_writer_evidence/preimage_manifest.json",
+  "preimage_manifest_sha256": "b2bfdf95de1d3853fad7d742d999fde1133cce2f0c0f2645619a532664722be9",
+  "red_reproduction_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/stage_binding_writer_evidence/binding_red_repro_r1.json",
+  "red_reproduction_sha256": "2fa42c69fe26c98ba4bf1d5ed377463d782655212525e0d5ce35bc35ed7d70d3",
+  "files": {
+    "candidate:stage_center/runner.py": {
+      "preimage_sha256": "50da5908c98330df9ad3dee6d44ad1042f559883815507be28a4257bf0f03f67",
+      "postimage_sha256": "f4c9043c948212b9d586b86a5b0c5c4924d7ffcd0bbc3d99c237988d508c9e20",
+      "preimage_source_sha256_from_parent_manifest": "50da5908c98330df9ad3dee6d44ad1042f559883815507be28a4257bf0f03f67",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/stage_binding_writer_evidence/candidate_runner_binding_r1.diff",
+      "diff_sha256": "399ad8f9c6f1b3a3ed545e6ca9b35e0f81c2a63bdfbb59ee22a7885d8fea619a"
+    },
+    "candidate:tests/test_hk_prior_observation_source_binding.py": {
+      "preimage": "ABSENT",
+      "postimage_sha256": "518a7c8271aedaf37e1df02119ebf42d9dbbcc98596684d97d90dc1816987b30",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/stage_binding_writer_evidence/candidate_test_hk_prior_observation_source_binding.diff",
+      "diff_sha256": "3f8a21b1db35e2a227d9794a8489b9e2fa68b3ae763ebf586d9f56a3011bf6cf"
+    },
+    "candidate:stage_center/_runner_parts/hk_input_validation.py": {
+      "preimage_sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+      "postimage_sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+      "changed": false
+    },
+    "candidate:stage_center_tick_config.json": {
+      "preimage_sha256": "bfc0f35b16d3f77da16e8d4a5c848180a8a2afcdd5dd5a6c390d85d5126d0d81",
+      "postimage_sha256": "bfc0f35b16d3f77da16e8d4a5c848180a8a2afcdd5dd5a6c390d85d5126d0d81",
+      "changed": false
+    },
+    "canonical:stage_center/runner.py": {
+      "preimage_sha256": "edc9798767a5c3882cea20ebed8decf95710f390c4d70fecb7d85c276af03671",
+      "postimage_sha256": "edc9798767a5c3882cea20ebed8decf95710f390c4d70fecb7d85c276af03671",
+      "changed": false,
+      "matches_preimage": true
+    }
+  }
+}
