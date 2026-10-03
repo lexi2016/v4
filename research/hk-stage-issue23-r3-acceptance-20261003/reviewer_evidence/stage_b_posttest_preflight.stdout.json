@@ -1,0 +1,142 @@
+{
+  "active_config_sha256": "bfc0f35b16d3f77da16e8d4a5c848180a8a2afcdd5dd5a6c390d85d5126d0d81",
+  "active_environment": {
+    "BUY_GATE_UPDATED": "false",
+    "HK_UNIVERSE_POLICY": "FIXED_D1_TOP100_ONLY",
+    "HTTPS_PROXY": "http://127.0.0.1:7890",
+    "HTTP_PROXY": "http://127.0.0.1:7890",
+    "NODE_CALENDAR_WAIT_MAX_SECONDS": "5",
+    "NODE_MAX_ATTEMPTS": "3",
+    "NODE_RETRY_BACKOFF_SECONDS": "60",
+    "NODE_SCHEDULE_VERSION": "20260907-node-schedule-v1",
+    "NO_PROXY": "127.0.0.1,localhost,::1",
+    "ORDERS_SENT": "false",
+    "PRODUCTION_ALLOWED": "false",
+    "PYTHONPATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1/app/upstreams:/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1/app",
+    "PYTHONPYCACHEPREFIX": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/pycache",
+    "RESEARCH_ONLY": "1",
+    "REVIEW_CORE_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1/app/upstreams",
+    "REVIEW_CORE_STAGE7_POOL_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/stage7_store",
+    "STAGE_CENTER_CONFIG": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1/app/stage_center_tick_config.json",
+    "STAGE_CENTER_RUNTIME_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime",
+    "V35_RELEASE_ID": "20261002-hk-open-stage-r1",
+    "V35_RELEASE_MANIFEST_PATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1/release-manifest.json",
+    "V35_RELEASE_MANIFEST_SHA256": "cf2e695d21c14a9e451d7c8b9790d6e102949d32ab5f8a90bc29e0496c0845da",
+    "V35_REVIEW_CORE_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1/app/upstreams",
+    "V35_REVIEW_CORE_STAGE7_STORE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/stage7_store",
+    "V4_STAGE_DEADLINE_POLICY": "observe",
+    "buy_gate_updated": "false",
+    "http_proxy": "http://127.0.0.1:7890",
+    "https_proxy": "http://127.0.0.1:7890",
+    "no_proxy": "127.0.0.1,localhost,::1",
+    "orders_sent": "false",
+    "production_allowed": "false"
+  },
+  "active_plist_sha256": "9cfeef77dc9293ad93fc1a56abe182e65b99f446181282e452f94c325303cf57",
+  "active_program_arguments": [
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "-B",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1/app/ops/run_stage_center_nodes.py",
+    "--config",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1/app/stage_center_tick_config.json"
+  ],
+  "active_r1_inventory": {
+    "count": 914,
+    "manifest_count": 914,
+    "manifest_inventory_exact": true,
+    "manifest_sha256": "dbe82acd4e3bbbee02d36a647d57ea19d54f557a3ac3c82d70b639aa8897e0a3",
+    "sha256": "dbe82acd4e3bbbee02d36a647d57ea19d54f557a3ac3c82d70b639aa8897e0a3"
+  },
+  "active_r1_manifest_sha256": "cf2e695d21c14a9e451d7c8b9790d6e102949d32ab5f8a90bc29e0496c0845da",
+  "candidate_activation_status": "NOT_ACTIVATED",
+  "candidate_config_leaf_diffs": [
+    "release_id",
+    "shared_data_root"
+  ],
+  "candidate_config_sha256": "ef5f49cb4efc35ec76e718415662cece51abb327b6ea7d5ccaa45df2b91869f7",
+  "candidate_inventory": {
+    "count": 914,
+    "manifest_count": 914,
+    "manifest_inventory_exact": true,
+    "manifest_sha256": "3916d2fe6936de786e7a80730a4edce4d01c170f04c352278b3b57813e7917cc",
+    "sha256": "3916d2fe6936de786e7a80730a4edce4d01c170f04c352278b3b57813e7917cc"
+  },
+  "candidate_manifest_sha256": "f642954ebcb2c7af86e9c7ea84674e485ab82530503474536167766624895434",
+  "candidate_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3",
+  "candidate_staged_plist_sha256": "9c7199ca1fcfedc09397255c932d25c6edc15779952bbd5b5bec2671e883d3f5",
+  "candidate_vs_active_r1": {
+    "active_count": 914,
+    "added_paths": [],
+    "candidate_count": 914,
+    "changed_paths": [
+      "stage_center/runner.py",
+      "stage_center_tick_config.json"
+    ],
+    "removed_paths": [],
+    "same_path_count": 912
+  },
+  "candidate_wrapper_smoke_script_matches": [],
+  "checks": {
+    "active_r1_actual_inventory_matches_stage_a": true,
+    "candidate_actual_inventory_matches_manifest": true,
+    "candidate_config_rebind_only": true,
+    "candidate_inventory_matches_receipt": true,
+    "candidate_manifest_sha_matches_writer": true,
+    "candidate_not_activated_safety_flags_false": true,
+    "candidate_runner_hash_expected": true,
+    "candidate_wrapper_smoke_file_present": false,
+    "failed_r2_actual_identity_matches_stage_a": true,
+    "inventory_delta_exact_runner_and_config": true,
+    "protected_workspace_files_match_stage_a_and_stage_b": true,
+    "r1_helper_and_dispatcher_hashes_match": true,
+    "stage_a_reviewer_receipt_matches_stage_b_writer": true,
+    "writer_receipt_sha_matches_assignment": true
+  },
+  "failed_r2_activation_status": "NOT_ACTIVATED",
+  "failed_r2_inventory": {
+    "count": 914,
+    "manifest_count": 914,
+    "manifest_inventory_exact": true,
+    "manifest_sha256": "6f18dda4f714ec85cfa8400162f29af2bd7bf427c8afcedb7491f5060555dbfc",
+    "sha256": "6f18dda4f714ec85cfa8400162f29af2bd7bf427c8afcedb7491f5060555dbfc"
+  },
+  "failed_r2_manifest_sha256": "e94d5507bb7f629c0b41b5fd6334d96b0dae61a9fc3c15f80983fa48b038e7d5",
+  "failed_r2_staged_plist_sha256": "2591d9d936d5c9b899c9d9162e9b60eb143fcf94fad696c6b0aeab34c3e07625",
+  "helper_hashes": {
+    "ops/_run_stage_center_nodes_parts/node_entry.py": {
+      "active_r1": "f9530f010055476e17d87e93198e28d3f4943ed34255a2419130eb9f39deb6ed",
+      "candidate": "f9530f010055476e17d87e93198e28d3f4943ed34255a2419130eb9f39deb6ed"
+    },
+    "ops/_run_stage_center_nodes_parts/stage_dispatch.py": {
+      "active_r1": "d7ea89f5467fb4d62af6b43c59d9dcd7cfcd020a1ee1ce07a9fae8525f735f86",
+      "candidate": "d7ea89f5467fb4d62af6b43c59d9dcd7cfcd020a1ee1ce07a9fae8525f735f86"
+    },
+    "stage_center/_runner_parts/slot_execution.py": {
+      "active_r1": "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a",
+      "candidate": "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a"
+    },
+    "stage_center/_runner_parts/tick_planning.py": {
+      "active_r1": "c27cb9717ec2940364d1e1186529e6df1b37b07aae0c56f65334f6f9bf06dd15",
+      "candidate": "c27cb9717ec2940364d1e1186529e6df1b37b07aae0c56f65334f6f9bf06dd15"
+    }
+  },
+  "launchctl_called": false,
+  "protected_workspace_hashes": {
+    "actual": {
+      "domains/task_status.py": "42a355b113a07b6d0c6c42b995ec9a123ca8608e74f8a6d11258a6bd130ebb97",
+      "ops/_run_stage_center_nodes_parts/node_entry.py": "2343cd5e250aaa05acc698ba2daf34220f13ffb5543c655df799fdb3bd7fe464",
+      "ops/_run_stage_center_nodes_parts/stage_dispatch.py": "06548184a4b09b0ae94053f2308eefb3bf5c31afc9f04abaeb805db7cebe8adb",
+      "stage_center/consumer.py": "865c2ea8183e5e6aeb9145ce2bfbb3e5b442825904b14c47fe024593a9205489"
+    },
+    "expected": {
+      "domains/task_status.py": "42a355b113a07b6d0c6c42b995ec9a123ca8608e74f8a6d11258a6bd130ebb97",
+      "ops/_run_stage_center_nodes_parts/node_entry.py": "2343cd5e250aaa05acc698ba2daf34220f13ffb5543c655df799fdb3bd7fe464",
+      "ops/_run_stage_center_nodes_parts/stage_dispatch.py": "06548184a4b09b0ae94053f2308eefb3bf5c31afc9f04abaeb805db7cebe8adb",
+      "stage_center/consumer.py": "865c2ea8183e5e6aeb9145ce2bfbb3e5b442825904b14c47fe024593a9205489"
+    }
+  },
+  "release_id": "20261003-hk-binding-wrapper-r3",
+  "result": "PASS_STATIC_INVENTORY_AND_BINDING_PREFLIGHT",
+  "schema_version": "ISSUE23_R3_STAGE_B_INDEPENDENT_PREFLIGHT_V1",
+  "writer_receipt_sha256": "3b9790b4642e06a7a964bfdbb10f2f429e00f60c2df69b1d53374b9ac9152afb"
+}

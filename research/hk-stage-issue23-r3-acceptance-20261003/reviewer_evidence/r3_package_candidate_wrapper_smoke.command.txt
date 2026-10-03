@@ -1,0 +1,12 @@
+cd /tmp
+PY='/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python'
+PACKAGE='/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_r3_landing/delivery/V4_ISSUE23_RUNNER_COMPAT_R3'
+NEW_CANDIDATE='/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3'
+OUT='/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/reviewer_evidence'
+PYTHONDONTWRITEBYTECODE=1 \
+PYTHONPATH="$NEW_CANDIDATE/app/upstreams:$NEW_CANDIDATE/app" \
+  "$PY" -B "$PACKAGE/verification/candidate_wrapper_smoke.py" \
+  --app-root "$NEW_CANDIDATE/app" \
+  > "$OUT/r3_package_candidate_wrapper_smoke.stdout.log" \
+  2> "$OUT/r3_package_candidate_wrapper_smoke.stderr.log"
+printf '%s\n' "$?" > "$OUT/r3_package_candidate_wrapper_smoke.exit"

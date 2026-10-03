@@ -1,0 +1,116 @@
+{
+  "issue": 23,
+  "freeze_commit": "11f460327acb7e48052e15256c7ea4a424ff469b",
+  "source_packet": "research/hk-stage-issue23-r2-candidate-20261003",
+  "files": [
+    {
+      "path": "ops/stage_service_overlay_contract.py",
+      "kind": "identity_only",
+      "before_sha256": "54e0d66e907d296a56a5886e9e7fc1920d22461a9a6a4b88423c0862708a5f91",
+      "before_state": "PRESENT",
+      "after_sha256": "36eb27395bfd10cc78c6f0ba237eb67afe22716f653e56b5dec2ab3827e22838",
+      "before_bytes": 17695,
+      "after_bytes": 17695,
+      "before_git_blob_sha1": "bbc4a49a6eb7b961a7e21ee3315509d4e1384ebd",
+      "after_git_blob_sha1": "093eb0d78ff23969ffa0cf5f2a28110063d509ee",
+      "added_lines": 1,
+      "removed_lines": 1
+    },
+    {
+      "path": "stage_center/runner.py",
+      "kind": "runtime",
+      "before_sha256": "7e6e958df4d64a8f7324d96bb09548f29c9da3ba206a4548420fa021da47d34f",
+      "before_state": "PRESENT",
+      "after_sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232",
+      "before_bytes": 43895,
+      "after_bytes": 44615,
+      "before_git_blob_sha1": "7b290828712e58c6dc6e99cd4847d640420441f6",
+      "after_git_blob_sha1": "b0aa8badf3cbe4c5e9b6e758044f3403c57c2ee3",
+      "added_lines": 7,
+      "removed_lines": 0
+    },
+    {
+      "path": "tests/test_issue23_runner_helper_compat.py",
+      "kind": "new_regression",
+      "before_sha256": null,
+      "before_state": "ABSENT",
+      "after_sha256": "039c0cd47a12315d06266586b2ed29a8348cc1b0e6a23369520eaebb73a167e4",
+      "before_bytes": null,
+      "after_bytes": 8651,
+      "before_git_blob_sha1": null,
+      "after_git_blob_sha1": "00d9d4cc2e24d09c0841cff2716a99f994374a49",
+      "added_lines": 187,
+      "removed_lines": 0
+    },
+    {
+      "path": "tests/test_stage_service_overlay_closure.py",
+      "kind": "identity_only",
+      "before_sha256": "adb9586e241df491137ac1b924dfb05c2be8575ef8f812dfe702e264ee08fe1f",
+      "before_state": "PRESENT",
+      "after_sha256": "0e1a074e9fd0684484382f7b552578e795c26d65408b4e45fe921954ba86e193",
+      "before_bytes": 42393,
+      "after_bytes": 42393,
+      "before_git_blob_sha1": "775690ca2a972acab44ca5480358181557fec504",
+      "after_git_blob_sha1": "287438726af0cee30595a5e676b36f7319363cb5",
+      "added_lines": 2,
+      "removed_lines": 2
+    }
+  ],
+  "patch_sha256": "0413bcad3841529d65ab08ed4906796117ffe8e98450b93c26bf0171d9bdeed9",
+  "existing_files_diff": {
+    "added": 10,
+    "removed": 3
+  },
+  "runner_runtime_lines_added": 7,
+  "runner_runtime_lines_removed": 0,
+  "necessary_identity_literals_changed": {
+    "ops/stage_service_overlay_contract.py": 1,
+    "tests/test_stage_service_overlay_closure.py": 2
+  },
+  "total_pins": 50,
+  "other_pins_unchanged": 49,
+  "binding_source_sha256_unchanged": "85ad46832672a386273788edcddbc6908370ba62c43b3d77d9027601de8b07df",
+  "reference_helpers": {
+    "reference/_namespace.py": {
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "bytes": 527
+    },
+    "reference/canonical/tick_planning.py": {
+      "sha256": "b4faf61c9b750538d714a23fae1b565c3d387a236f42cee379dcf8c966194711",
+      "bytes": 4803
+    },
+    "reference/r1/slot_execution.py": {
+      "sha256": "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a",
+      "bytes": 46386
+    },
+    "reference/r1/_namespace.py": {
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "bytes": 527
+    },
+    "reference/r1/tick_planning.py": {
+      "sha256": "c27cb9717ec2940364d1e1186529e6df1b37b07aae0c56f65334f6f9bf06dd15",
+      "bytes": 3985
+    }
+  },
+  "source_authority": {
+    "runner": "Exact whole frozen canonical/candidate runner bytes; SHA256 and Git blob verified in this container",
+    "contract": "Mounted R1 delivery postimage; matches current Mac R2 independent receipt SHA",
+    "existing_closure_test": "Mounted R2 delivery after-image; matches frozen Stage A independent receipt SHA; R2 appended tests retained",
+    "r1_helpers": "Exact whole candidate helper files at frozen commit, same as actual active R1 per manifest and prior independent inventory",
+    "namespace": "Read-only namespace implementation from earlier frozen reference with matching SHA; no runtime overlay"
+  },
+  "production_overlay_paths": [
+    "stage_center/runner.py"
+  ],
+  "unmodified_protected_workspace_sources": {
+    "ops/_run_stage_center_nodes_parts/node_entry.py": "2343cd5e250aaa05acc698ba2daf34220f13ffb5543c655df799fdb3bd7fe464",
+    "ops/_run_stage_center_nodes_parts/stage_dispatch.py": "06548184a4b09b0ae94053f2308eefb3bf5c31afc9f04abaeb805db7cebe8adb",
+    "stage_center/consumer.py": "865c2ea8183e5e6aeb9145ce2bfbb3e5b442825904b14c47fe024593a9205489",
+    "domains/task_status.py": "42a355b113a07b6d0c6c42b995ec9a123ca8608e74f8a6d11258a6bd130ebb97"
+  },
+  "protected_source_identity_basis": "Frozen Mac receipts, not live Mac reread in this turn",
+  "new_candidate_config_or_inventory_sha256": "NOT_YET_BUILT_DO_NOT_INVENT",
+  "mac_landing": "NOT_RUN",
+  "github_write_performed": false,
+  "deployed": false
+}

@@ -1,0 +1,49 @@
+{
+  "activation_status": "NOT_ACTIVATED",
+  "application_inventory_sha256": "3916d2fe6936de786e7a80730a4edce4d01c170f04c352278b3b57813e7917cc",
+  "baseline_release_manifest_sha256": "cf2e695d21c14a9e451d7c8b9790d6e102949d32ab5f8a90bc29e0496c0845da",
+  "baseline_release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1",
+  "candidate_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3",
+  "candidate_status": "READY_FOR_REVIEW_WITH_GAPS",
+  "deployment_status": "CANNOT_CONFIRM",
+  "generated_at": "2026-10-03T11:13:10+00:00",
+  "guard": "Offline Stage candidate from verified active-release baseline plus explicit Stage overlays; no launchd, formal release, or data root was changed.",
+  "manifest_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/release-manifest.json",
+  "manifest_sha256": "f642954ebcb2c7af86e9c7ea84674e485ab82530503474536167766624895434",
+  "schema_version": "v4.stage_service_candidate_receipt.v2",
+  "service_binding": {
+    "activation_status": "NOT_ACTIVATED",
+    "calendar_wait_seconds": 5,
+    "config_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center_tick_config.json",
+    "config_sha256": "ef5f49cb4efc35ec76e718415662cece51abb327b6ea7d5ccaa45df2b91869f7",
+    "deadline_only": false,
+    "deadline_policy": "observe",
+    "label": "com.lexi.stage-center.scheduler",
+    "launchctl_called": false,
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/config/com.lexi.stage-center.scheduler.plist",
+    "runtime_python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "sha256": "9c7199ca1fcfedc09397255c932d25c6edc15779952bbd5b5bec2671e883d3f5",
+    "shared_data_root_rebased_to_candidate_package": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/upstreams/v3_shared_data",
+    "source_config_roots_preserved": {
+      "a_auction_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/stage_inputs",
+      "a_research_panel_receipt_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/research_panel_daily/receipts",
+      "candidate_acquisition_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+      "hk_auction_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/opening_second_filter",
+      "hk_d1_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+      "hk_full_universe_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+      "hk_second_filter_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/opening_second_filter",
+      "hk_stage_replay_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/stage_references",
+      "preselection_source_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+      "raw_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw",
+      "receipt_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts",
+      "selection_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+      "v4_research_data_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data"
+    },
+    "source_runtime_python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python"
+  },
+  "source_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "stage_overlay_manifest_sha256": "bce9bcc783e1abce6e16e61debb7a39a1de8bdab8593f6c78b21e3949c966b47",
+  "stage_overlay_paths": [
+    "stage_center/runner.py"
+  ]
+}

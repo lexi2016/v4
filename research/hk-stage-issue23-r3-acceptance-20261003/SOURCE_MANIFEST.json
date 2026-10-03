@@ -1,0 +1,126 @@
+{
+  "status": "R3_FROZEN_OFFLINE_CANDIDATE_ACCEPTANCE_PASS",
+  "candidate_activated": false,
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 2094,
+      "sha256": "4e739f6bc71f3f61cd587091d569c5f520f1058b7ab7eb0f70239b157a58208b"
+    },
+    {
+      "path": "canonical/ops/stage_service_overlay_contract.py",
+      "bytes": 17695,
+      "sha256": "36eb27395bfd10cc78c6f0ba237eb67afe22716f653e56b5dec2ab3827e22838"
+    },
+    {
+      "path": "canonical/stage_center/runner.py",
+      "bytes": 44615,
+      "sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232"
+    },
+    {
+      "path": "canonical/tests/test_issue23_runner_helper_compat.py",
+      "bytes": 8651,
+      "sha256": "039c0cd47a12315d06266586b2ed29a8348cc1b0e6a23369520eaebb73a167e4"
+    },
+    {
+      "path": "canonical/tests/test_stage_service_overlay_closure.py",
+      "bytes": 42393,
+      "sha256": "0e1a074e9fd0684484382f7b552578e795c26d65408b4e45fe921954ba86e193"
+    },
+    {
+      "path": "delivery/PACKAGE_MANIFEST.json",
+      "bytes": 5349,
+      "sha256": "fac717a85d939346c7c26ae871aa0af9e3ea74c877360d89101560fd0ef9d04c"
+    },
+    {
+      "path": "delivery/SHA_RECEIPT.json",
+      "bytes": 5095,
+      "sha256": "57a5a6736850bd6ce19eeaf2df64eb50e10da26979fba76e8547e7b1e252c844"
+    },
+    {
+      "path": "delivery/patches/issue23-r3.patch",
+      "bytes": 13385,
+      "sha256": "0413bcad3841529d65ab08ed4906796117ffe8e98450b93c26bf0171d9bdeed9"
+    },
+    {
+      "path": "delivery/verification/candidate_wrapper_smoke.py",
+      "bytes": 5462,
+      "sha256": "167050638e9ddbdde70bcf1e76a101e73caaef4b67d46d698d99c5f2f0233b3f"
+    },
+    {
+      "path": "evidence/issue23_r3_stage_a_reviewer_receipt.json",
+      "bytes": 13618,
+      "sha256": "d58273480c5ec2fbca8f3831a750bf754d73e6a569b8d78fd6280210ee7df660"
+    },
+    {
+      "path": "evidence/issue23_r3_stage_a_reviewer_report.md",
+      "bytes": 1336,
+      "sha256": "3fd1e4cb2bf71677092e0b274aea30eab0971f7b79d805ef025d884fb0ebd1f6"
+    },
+    {
+      "path": "evidence/issue23_r3_stage_a_writer_receipt.json",
+      "bytes": 19238,
+      "sha256": "5be889f61f611b1d34cfccd3273d5e0a1272f7ede09a1395c8b2e5975ca062fe"
+    },
+    {
+      "path": "evidence/issue23_r3_stage_b_writer_receipt.json",
+      "bytes": 17549,
+      "sha256": "3b9790b4642e06a7a964bfdbb10f2f429e00f60c2df69b1d53374b9ac9152afb"
+    },
+    {
+      "path": "evidence/stage-build-receipt.json",
+      "bytes": 4071,
+      "sha256": "ec08aaf1c0969ddbc52e1501b0d228150bdf92dd37be6a603dbeb54cfaa4c044"
+    },
+    {
+      "path": "reviewer_evidence/candidate_wrapper_smoke_independent.stdout.log",
+      "bytes": 2244,
+      "sha256": "53b3c1f3b7a47fcbccce91fb9b5e015d34e9d4494748ff33efe926f26190b79d"
+    },
+    {
+      "path": "reviewer_evidence/issue23_r3_stage_b_reviewer_receipt.json",
+      "bytes": 35973,
+      "sha256": "72d44ecb8eaa837a2b5d1c7d547552181ecfb94d34d47e76b68544f2f76a3786"
+    },
+    {
+      "path": "reviewer_evidence/issue23_r3_stage_b_reviewer_report.md",
+      "bytes": 3265,
+      "sha256": "c4051f43ad12aeb37f13d50f90378082a8c8c85b692053aea3068d661223319a"
+    },
+    {
+      "path": "reviewer_evidence/r3_package_candidate_wrapper_smoke.command.txt",
+      "bytes": 877,
+      "sha256": "45c93c3e9c22b7ba66403dfd6b49927001b769ef4b59def9d0af7845cfadb785"
+    },
+    {
+      "path": "reviewer_evidence/r3_package_candidate_wrapper_smoke.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "reviewer_evidence/r3_package_candidate_wrapper_smoke.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "reviewer_evidence/r3_package_candidate_wrapper_smoke.stdout.log",
+      "bytes": 2622,
+      "sha256": "a3a4c1c0124e8664ce431088b320d045f4e0fc343ef70ec9bfea25dbd7398c59"
+    },
+    {
+      "path": "reviewer_evidence/r3_package_candidate_wrapper_smoke_independent_result.json",
+      "bytes": 3081,
+      "sha256": "8847722a589a1480bc400ecd46aab18ac091b710de573ba763be73425a3977b3"
+    },
+    {
+      "path": "reviewer_evidence/r3_stage_b_package_smoke_manifest_identity.json",
+      "bytes": 1261,
+      "sha256": "f85d9400da3811666e1166779f397d083d6434b793810c083ae7eda09be602e4"
+    },
+    {
+      "path": "reviewer_evidence/stage_b_posttest_preflight.stdout.json",
+      "bytes": 7950,
+      "sha256": "5ae4bf23b4ed70af8e3d2f2348a73b6f0bd7ed1a4fd4044797dc92af74ecd311"
+    }
+  ]
+}

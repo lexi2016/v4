@@ -1,0 +1,82 @@
+{
+  "candidate_module": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/runner.py",
+  "case_count": 10,
+  "cases": [
+    {
+      "case": "omitted_default",
+      "entry": "_run_one",
+      "probe_calls": [],
+      "status": "PASS_SAFE_OLD_HELPER_BRANCH"
+    },
+    {
+      "case": "explicit_none",
+      "entry": "_run_one",
+      "probe_calls": [],
+      "status": "PASS_SAFE_OLD_HELPER_BRANCH"
+    },
+    {
+      "case": "explicit_hk",
+      "entry": "_run_one",
+      "probe_calls": [],
+      "status": "PASS_EXPECTED_PRE_BODY_REJECTION"
+    },
+    {
+      "case": "explicit_empty_tuple",
+      "entry": "_run_one",
+      "probe_calls": [],
+      "status": "PASS_EXPECTED_PRE_BODY_REJECTION"
+    },
+    {
+      "case": "explicit_empty_list",
+      "entry": "_run_one",
+      "probe_calls": [],
+      "status": "PASS_EXPECTED_PRE_BODY_REJECTION"
+    },
+    {
+      "case": "omitted_default",
+      "entry": "tick",
+      "probe_calls": [
+        "prepare",
+        "due"
+      ],
+      "status": "PASS_SAFE_OLD_HELPER_BRANCH"
+    },
+    {
+      "case": "explicit_none",
+      "entry": "tick",
+      "probe_calls": [
+        "prepare",
+        "due"
+      ],
+      "status": "PASS_SAFE_OLD_HELPER_BRANCH"
+    },
+    {
+      "case": "explicit_hk",
+      "entry": "tick",
+      "probe_calls": [],
+      "status": "PASS_EXPECTED_PRE_BODY_REJECTION"
+    },
+    {
+      "case": "explicit_empty_tuple",
+      "entry": "tick",
+      "probe_calls": [],
+      "status": "PASS_EXPECTED_PRE_BODY_REJECTION"
+    },
+    {
+      "case": "explicit_empty_list",
+      "entry": "tick",
+      "probe_calls": [],
+      "status": "PASS_EXPECTED_PRE_BODY_REJECTION"
+    }
+  ],
+  "collection_called": false,
+  "data_write_performed": false,
+  "module_sha256": {
+    "runner": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232",
+    "slot_execution": "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a",
+    "tick_planning": "c27cb9717ec2940364d1e1186529e6df1b37b07aae0c56f65334f6f9bf06dd15"
+  },
+  "result": "PASS_REVIEWER_10_CASE_CANDIDATE_WRAPPER_BEHAVIOR",
+  "selection_called": false,
+  "unexpected_attribute_error_is_failure": true
+}

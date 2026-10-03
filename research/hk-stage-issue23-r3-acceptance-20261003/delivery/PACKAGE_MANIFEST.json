@@ -1,0 +1,166 @@
+{
+  "schema": "ISSUE23_R3_DELIVERY_MANIFEST_V1",
+  "files": [
+    {
+      "path": "MAC_ACCEPTANCE_ZH.md",
+      "bytes": 12063,
+      "sha256": "70aff383eb24d49e4d6644f5906301cf5f503a353952a95dfb4e48cb8e1c0179"
+    },
+    {
+      "path": "README_ZH.md",
+      "bytes": 5180,
+      "sha256": "503ce665e106eedaab5faa3de1f1318b57e968f304d84561416faeb7118cd85d"
+    },
+    {
+      "path": "SHA_RECEIPT.json",
+      "bytes": 5095,
+      "sha256": "57a5a6736850bd6ce19eeaf2df64eb50e10da26979fba76e8547e7b1e252c844"
+    },
+    {
+      "path": "TEST_RESULTS.json",
+      "bytes": 3018,
+      "sha256": "695dd90eebd7358a5d282f54ef8966dd9d4cc40677a4d009bded814827e3dc5b"
+    },
+    {
+      "path": "after/ops/stage_service_overlay_contract.py",
+      "bytes": 17695,
+      "sha256": "36eb27395bfd10cc78c6f0ba237eb67afe22716f653e56b5dec2ab3827e22838"
+    },
+    {
+      "path": "after/stage_center/runner.py",
+      "bytes": 44615,
+      "sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232"
+    },
+    {
+      "path": "after/tests/test_issue23_runner_helper_compat.py",
+      "bytes": 8651,
+      "sha256": "039c0cd47a12315d06266586b2ed29a8348cc1b0e6a23369520eaebb73a167e4"
+    },
+    {
+      "path": "after/tests/test_stage_service_overlay_closure.py",
+      "bytes": 42393,
+      "sha256": "0e1a074e9fd0684484382f7b552578e795c26d65408b4e45fe921954ba86e193"
+    },
+    {
+      "path": "before/ops/stage_service_overlay_contract.py",
+      "bytes": 17695,
+      "sha256": "54e0d66e907d296a56a5886e9e7fc1920d22461a9a6a4b88423c0862708a5f91"
+    },
+    {
+      "path": "before/stage_center/runner.py",
+      "bytes": 43895,
+      "sha256": "7e6e958df4d64a8f7324d96bb09548f29c9da3ba206a4548420fa021da47d34f"
+    },
+    {
+      "path": "before/tests/test_stage_service_overlay_closure.py",
+      "bytes": 42393,
+      "sha256": "adb9586e241df491137ac1b924dfb05c2be8575ef8f812dfe702e264ee08fe1f"
+    },
+    {
+      "path": "logs/green_delivery.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "logs/green_delivery.log",
+      "bytes": 179,
+      "sha256": "193ff35712dbd681c8cffdd6a5e3a8e45608f4ff1d9a4d8fcff06dfdb7cd6959"
+    },
+    {
+      "path": "logs/green_full.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "logs/green_full.log",
+      "bytes": 179,
+      "sha256": "5a7c181f8daf38cd28cf51fd5d6ecd0f84e37e134420f2aae4b112566d412676"
+    },
+    {
+      "path": "logs/patch_roundtrip.json",
+      "bytes": 870,
+      "sha256": "25cfbff52c5b51d189b3ac5b1fcc821581fff244ab5893d2e88d6338f0699224"
+    },
+    {
+      "path": "logs/red_full.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "logs/red_full.log",
+      "bytes": 14029,
+      "sha256": "b1643ff1cf3a75c667b0510679375a71279d4591430c68ff24b61fc2925e7c42"
+    },
+    {
+      "path": "logs/structure.json",
+      "bytes": 541,
+      "sha256": "7d4f4670fbc53b223f19c569a47f4279b7052fffbf4b731aedd789afb2a2dfa1"
+    },
+    {
+      "path": "logs/structure.stdout.log",
+      "bytes": 541,
+      "sha256": "7d4f4670fbc53b223f19c569a47f4279b7052fffbf4b731aedd789afb2a2dfa1"
+    },
+    {
+      "path": "patches/issue23-r3-existing-files.patch",
+      "bytes": 4344,
+      "sha256": "cb075a70c451b336a269b8a3601f98d5da916c6056c7d58699ce2e8242f5e026"
+    },
+    {
+      "path": "patches/issue23-r3.patch",
+      "bytes": 13385,
+      "sha256": "0413bcad3841529d65ab08ed4906796117ffe8e98450b93c26bf0171d9bdeed9"
+    },
+    {
+      "path": "reference/_namespace.py",
+      "bytes": 527,
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1"
+    },
+    {
+      "path": "reference/canonical/tick_planning.py",
+      "bytes": 4803,
+      "sha256": "b4faf61c9b750538d714a23fae1b565c3d387a236f42cee379dcf8c966194711"
+    },
+    {
+      "path": "reference/r1/_namespace.py",
+      "bytes": 527,
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1"
+    },
+    {
+      "path": "reference/r1/slot_execution.py",
+      "bytes": 46386,
+      "sha256": "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a"
+    },
+    {
+      "path": "reference/r1/tick_planning.py",
+      "bytes": 3985,
+      "sha256": "c27cb9717ec2940364d1e1186529e6df1b37b07aae0c56f65334f6f9bf06dd15"
+    },
+    {
+      "path": "tests/test_issue23_runner_helper_compat.py",
+      "bytes": 8651,
+      "sha256": "039c0cd47a12315d06266586b2ed29a8348cc1b0e6a23369520eaebb73a167e4"
+    },
+    {
+      "path": "verification/candidate_wrapper_smoke.py",
+      "bytes": 5462,
+      "sha256": "167050638e9ddbdde70bcf1e76a101e73caaef4b67d46d698d99c5f2f0233b3f"
+    },
+    {
+      "path": "verification/check_structure.py",
+      "bytes": 3301,
+      "sha256": "057f72675b4173122a9563f83fce177ab3c3c78ec43d21857e7e9ecbba2f5ee4"
+    },
+    {
+      "path": "verification/run_isolated.py",
+      "bytes": 2250,
+      "sha256": "faf944b09e5056e5d125aa33ebdbf2e250ba82c3e6fce2e1e06e77ffeef478b4"
+    },
+    {
+      "path": "verification/test_canonical_tick.py",
+      "bytes": 2166,
+      "sha256": "d71fec4ebdde04fe2a0c4b47efce92fccd789871dd6b14ea985ffb6840897496"
+    }
+  ],
+  "not_a_deployable_application": true
+}

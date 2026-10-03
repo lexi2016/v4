@@ -1,0 +1,79 @@
+{
+  "status": "PASS_WRAPPER_COMPATIBILITY_ONLY",
+  "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+  "python_version": "3.14.6 (main, Jul 18 2026, 17:05:49) [Clang 22.1.3 ]",
+  "app_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app",
+  "modules": {
+    "stage_center.runner": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/runner.py",
+      "sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232"
+    },
+    "stage_center._runner_parts.slot_execution": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/_runner_parts/slot_execution.py",
+      "sha256": "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a"
+    },
+    "stage_center._runner_parts.tick_planning": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/_runner_parts/tick_planning.py",
+      "sha256": "c27cb9717ec2940364d1e1186529e6df1b37b07aae0c56f65334f6f9bf06dd15"
+    }
+  },
+  "cases": [
+    {
+      "entry": "_run_one",
+      "explicit_none": false,
+      "status": "PASS"
+    },
+    {
+      "entry": "_run_one",
+      "explicit_none": true,
+      "status": "PASS"
+    },
+    {
+      "entry": "_run_one",
+      "explicit_markets": [
+        "HK_CONNECT"
+      ],
+      "status": "PASS_EXPECTED_PRE_BODY_REJECTION"
+    },
+    {
+      "entry": "_run_one",
+      "explicit_markets": [],
+      "status": "PASS_EXPECTED_PRE_BODY_REJECTION"
+    },
+    {
+      "entry": "_run_one",
+      "explicit_markets": [],
+      "status": "PASS_EXPECTED_PRE_BODY_REJECTION"
+    },
+    {
+      "entry": "tick",
+      "explicit_none": false,
+      "status": "PASS"
+    },
+    {
+      "entry": "tick",
+      "explicit_none": true,
+      "status": "PASS"
+    },
+    {
+      "entry": "tick",
+      "explicit_markets": [
+        "HK_CONNECT"
+      ],
+      "status": "PASS_EXPECTED_PRE_BODY_REJECTION"
+    },
+    {
+      "entry": "tick",
+      "explicit_markets": [],
+      "status": "PASS_EXPECTED_PRE_BODY_REJECTION"
+    },
+    {
+      "entry": "tick",
+      "explicit_markets": [],
+      "status": "PASS_EXPECTED_PRE_BODY_REJECTION"
+    }
+  ],
+  "collection_or_selection_called": false,
+  "data_write_performed": false,
+  "NATURAL_VERIFIED": "NATURAL_SLOT_UNVERIFIED"
+}

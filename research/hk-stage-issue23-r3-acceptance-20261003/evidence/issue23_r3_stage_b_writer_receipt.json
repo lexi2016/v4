@@ -1,0 +1,362 @@
+{
+  "CANNOT_CONFIRM": [
+    "Service activation/deployment, API/UI behavior, full Stage execution, and natural scheduled behavior.",
+    "Independent Stage B candidate reviewer verdict.",
+    "Historical collection or selection remains unrun and out of scope."
+  ],
+  "builder": {
+    "activation_status": "NOT_ACTIVATED",
+    "builder_receipt": {
+      "bytes": 4071,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage-build-receipt.json",
+      "sha256": "ec08aaf1c0969ddbc52e1501b0d228150bdf92dd37be6a603dbeb54cfaa4c044"
+    },
+    "candidate_application_inventory_count": 914,
+    "candidate_application_inventory_sha256": "3916d2fe6936de786e7a80730a4edce4d01c170f04c352278b3b57813e7917cc",
+    "candidate_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3",
+    "candidate_status": "READY_FOR_REVIEW_WITH_GAPS",
+    "command": "PYTHONDONTWRITEBYTECODE=1 '$PY' -B '$WORK/ops/build_release_candidate.py' --source-root '$WORK' --candidate-root '$NEW_CANDIDATE' --release-id '20261003-hk-binding-wrapper-r3' --stage-service-candidate --stage-plist '$PLIST' --stage-runtime-python '$PY' --stage-overlay-path stage_center/runner.py --receipt-path '$OUT/stage-build-receipt.json'",
+    "config_sha256": "ef5f49cb4efc35ec76e718415662cece51abb327b6ea7d5ccaa45df2b91869f7",
+    "exit_code": 0,
+    "invocation_count": 1,
+    "launchctl_called": false,
+    "overlay_manifest_sha256": "bce9bcc783e1abce6e16e61debb7a39a1de8bdab8593f6c78b21e3949c966b47",
+    "release_manifest_sha256": "f642954ebcb2c7af86e9c7ea84674e485ab82530503474536167766624895434",
+    "stage_overlay_paths": [
+      "stage_center/runner.py"
+    ],
+    "staged_plist_sha256": "9c7199ca1fcfedc09397255c932d25c6edc15779952bbd5b5bec2671e883d3f5",
+    "working_directory": "/Users/lexi/Desktop/学习/v4_app"
+  },
+  "evidence_files": [
+    {
+      "bytes": 4212,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/writer_evidence/builder.stdout.log",
+      "sha256": "e95347cf6a7b644b97a9d05c0ec1888679ae7e3386319bc3ff211ab935c04380"
+    },
+    {
+      "bytes": 0,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/writer_evidence/builder.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 2,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/writer_evidence/builder.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "bytes": 4011,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/writer_evidence/candidate_inventory.stdout.json",
+      "sha256": "71bc579b4e8fabbcb8668e396e856484b900c8654fb780fc069866e8b2736413"
+    },
+    {
+      "bytes": 0,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/writer_evidence/candidate_inventory.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 2,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/writer_evidence/candidate_inventory.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "bytes": 453,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/writer_evidence/candidate_import.stdout.log",
+      "sha256": "a90f9770799d29fbad9dc89f34c829a853a28959c9e46491222590a55a4d3215"
+    },
+    {
+      "bytes": 0,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/writer_evidence/candidate_import.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 2,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/writer_evidence/candidate_import.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "bytes": 2622,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/writer_evidence/candidate-wrapper.stdout.log",
+      "sha256": "a3a4c1c0124e8664ce431088b320d045f4e0fc343ef70ec9bfea25dbd7398c59"
+    },
+    {
+      "bytes": 0,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/writer_evidence/candidate-wrapper.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 2,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/writer_evidence/candidate-wrapper.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "bytes": 1411,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/writer_evidence/candidate_binding.stdout.log",
+      "sha256": "90b21fb853e75f8d0dcd2d8271068a2e1fb70d508a7216d55d14f460c8ba3a32"
+    },
+    {
+      "bytes": 0,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/writer_evidence/candidate_binding.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 2,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/writer_evidence/candidate_binding.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    }
+  ],
+  "phase": "STAGE_B",
+  "safety": {
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "ISSUE23_R3_STAGE_B_WRITER_RECEIPT_V1",
+  "scope": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_r3_landing/SCOPE.md",
+  "stage_a_review": {
+    "findings": {
+      "P0": [],
+      "P1": [],
+      "P2": []
+    },
+    "receipt": {
+      "bytes": 13618,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/reviewer_evidence/issue23_r3_stage_a_reviewer_receipt.json",
+      "sha256": "d58273480c5ec2fbca8f3831a750bf754d73e6a569b8d78fd6280210ee7df660"
+    },
+    "stage_a_writer_receipt": {
+      "bytes": 19238,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/writer_evidence/issue23_r3_stage_a_writer_receipt.json",
+      "sha256": "5be889f61f611b1d34cfccd3273d5e0a1272f7ede09a1395c8b2e5975ca062fe"
+    },
+    "verdict": {
+      "BEHAVIOR_VERIFIED": "PASS for Stage A wrapper/helper compatibility in the deterministic test harness",
+      "REVIEWED": "PASS",
+      "STAGE_A": "PASS",
+      "STAGE_B": "NOT_RUN",
+      "TESTED": "PASS",
+      "candidate_acceptance": "CANNOT_CONFIRM until the separately frozen Stage B criteria run"
+    }
+  },
+  "status": {
+    "API_VERIFIED": "CANNOT_CONFIRM_NOT_RUN",
+    "BEHAVIOR_VERIFIED": "CANNOT_CONFIRM pending independent Stage B reviewer.",
+    "DEPLOYED": "NO",
+    "IMPLEMENTED": "R3 Stage B offline candidate built with one runner overlay.",
+    "INTEGRATED": "NO; candidate is not activated.",
+    "NATURAL_VERIFIED": "NATURAL_SLOT_UNVERIFIED",
+    "REVIEWED": "Stage A PASS; independent Stage B candidate review pending.",
+    "TESTED": "Builder and candidate inventory PASS; cold import PASS; candidate wrapper smoke 10/10 PASS; candidate-root read-only dual-root binding PASS.",
+    "UI_VERIFIED": "CANNOT_CONFIRM_NOT_RUN"
+  },
+  "verification": {
+    "candidate_cold_import": {
+      "exit_code": 0,
+      "module_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/runner.py",
+      "python_executable": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "python_version": "3.14.6",
+      "result": "PASS",
+      "runner_sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232"
+    },
+    "candidate_read_only_dual_root_binding": {
+      "candidate_config_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center_tick_config.json",
+      "candidate_config_sha256": "ef5f49cb4efc35ec76e718415662cece51abb327b6ea7d5ccaa45df2b91869f7",
+      "candidate_module_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/runner.py",
+      "candidate_runner_sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232",
+      "collection_called": false,
+      "exit_code": 0,
+      "market": "HK_CONNECT",
+      "member_count": 100,
+      "price_signal_date": "20260930",
+      "result": "PASS",
+      "role": "HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION",
+      "selection_called": false,
+      "source_artifact_sha256": "f45233cd1d30d04a8e89c3a08ba8dab4ff63f1d787809b3323307f6f96cb5901",
+      "source_manifest_sha256": "edd1e184dc540273ccfc098e1e998e466848c0e689e0458e0834ee6e0ee99359",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20260930/hkconnect_d1_top100.json",
+      "source_receipt_sha256": "49386238fdae8ca6687ee1a65ba58a3a008c8cf030b0142010ec5737f5f365dc",
+      "source_signal_date": "20260929",
+      "source_trade_date": "20260930",
+      "status": "READY",
+      "target_trade_date": "20261002",
+      "unique_member_count": 100
+    },
+    "candidate_vs_actual_active_r1_inventory": {
+      "active_r1": {
+        "config_sha256": "bfc0f35b16d3f77da16e8d4a5c848180a8a2afcdd5dd5a6c390d85d5126d0d81",
+        "inventory_count": 914,
+        "inventory_sha256": "dbe82acd4e3bbbee02d36a647d57ea19d54f557a3ac3c82d70b639aa8897e0a3",
+        "live_plist_sha256": "9cfeef77dc9293ad93fc1a56abe182e65b99f446181282e452f94c325303cf57",
+        "manifest_sha256": "cf2e695d21c14a9e451d7c8b9790d6e102949d32ab5f8a90bc29e0496c0845da",
+        "release_id": "20261002-hk-open-stage-r1"
+      },
+      "candidate": {
+        "added_paths": [],
+        "changed_paths": [
+          "stage_center/runner.py",
+          "stage_center_tick_config.json"
+        ],
+        "inventory_count": 914,
+        "inventory_sha256": "3916d2fe6936de786e7a80730a4edce4d01c170f04c352278b3b57813e7917cc",
+        "manifest_sha256": "f642954ebcb2c7af86e9c7ea84674e485ab82530503474536167766624895434",
+        "non_overlay_active_release_bytes_preserved": true,
+        "non_overlay_path_count": 912,
+        "overlay_allowlist": [
+          "stage_center/runner.py"
+        ],
+        "release_id": "20261003-hk-binding-wrapper-r3",
+        "removed_paths": [],
+        "runner_sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232"
+      },
+      "config": {
+        "changed_keys": [
+          "release_id",
+          "shared_data_root"
+        ],
+        "runtime_python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "safety": {
+          "buy_gate_updated": false,
+          "orders_sent": false,
+          "production_allowed": false
+        },
+        "sha256": "ef5f49cb4efc35ec76e718415662cece51abb327b6ea7d5ccaa45df2b91869f7",
+        "shared_data_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/upstreams/v3_shared_data"
+      },
+      "failed_r2_unchanged": {
+        "activation_status": "NOT_ACTIVATED",
+        "inventory_count": 914,
+        "inventory_sha256": "6f18dda4f714ec85cfa8400162f29af2bd7bf427c8afcedb7491f5060555dbfc",
+        "launchctl_called": false,
+        "manifest_sha256": "e94d5507bb7f629c0b41b5fd6334d96b0dae61a9fc3c15f80983fa48b038e7d5"
+      },
+      "r1_helpers_and_dispatchers": {
+        "ops/_run_stage_center_nodes_parts/node_entry.py": {
+          "active_r1_sha256": "f9530f010055476e17d87e93198e28d3f4943ed34255a2419130eb9f39deb6ed",
+          "candidate_sha256": "f9530f010055476e17d87e93198e28d3f4943ed34255a2419130eb9f39deb6ed"
+        },
+        "ops/_run_stage_center_nodes_parts/stage_dispatch.py": {
+          "active_r1_sha256": "d7ea89f5467fb4d62af6b43c59d9dcd7cfcd020a1ee1ce07a9fae8525f735f86",
+          "candidate_sha256": "d7ea89f5467fb4d62af6b43c59d9dcd7cfcd020a1ee1ce07a9fae8525f735f86"
+        },
+        "stage_center/_runner_parts/slot_execution.py": {
+          "active_r1_sha256": "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a",
+          "candidate_sha256": "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a"
+        },
+        "stage_center/_runner_parts/tick_planning.py": {
+          "active_r1_sha256": "c27cb9717ec2940364d1e1186529e6df1b37b07aae0c56f65334f6f9bf06dd15",
+          "candidate_sha256": "c27cb9717ec2940364d1e1186529e6df1b37b07aae0c56f65334f6f9bf06dd15"
+        }
+      },
+      "result": "PASS",
+      "staged_service": {
+        "activation_status": "NOT_ACTIVATED",
+        "launchctl_called": false,
+        "plist_sha256": "9c7199ca1fcfedc09397255c932d25c6edc15779952bbd5b5bec2671e883d3f5",
+        "safety_flags": {
+          "BUY_GATE_UPDATED": "false",
+          "ORDERS_SENT": "false",
+          "PRODUCTION_ALLOWED": "false",
+          "buy_gate_updated": "false",
+          "orders_sent": "false",
+          "production_allowed": "false"
+        }
+      },
+      "workspace_protected_sources": {
+        "domains/task_status.py": "42a355b113a07b6d0c6c42b995ec9a123ca8608e74f8a6d11258a6bd130ebb97",
+        "ops/_run_stage_center_nodes_parts/node_entry.py": "2343cd5e250aaa05acc698ba2daf34220f13ffb5543c655df799fdb3bd7fe464",
+        "ops/_run_stage_center_nodes_parts/stage_dispatch.py": "06548184a4b09b0ae94053f2308eefb3bf5c31afc9f04abaeb805db7cebe8adb",
+        "stage_center/consumer.py": "865c2ea8183e5e6aeb9145ce2bfbb3e5b442825904b14c47fe024593a9205489"
+      }
+    },
+    "candidate_wrapper_smoke": {
+      "case_count": 10,
+      "cases": [
+        {
+          "entry": "_run_one",
+          "explicit_none": false,
+          "status": "PASS"
+        },
+        {
+          "entry": "_run_one",
+          "explicit_none": true,
+          "status": "PASS"
+        },
+        {
+          "entry": "_run_one",
+          "explicit_markets": [
+            "HK_CONNECT"
+          ],
+          "status": "PASS_EXPECTED_PRE_BODY_REJECTION"
+        },
+        {
+          "entry": "_run_one",
+          "explicit_markets": [],
+          "status": "PASS_EXPECTED_PRE_BODY_REJECTION"
+        },
+        {
+          "entry": "_run_one",
+          "explicit_markets": [],
+          "status": "PASS_EXPECTED_PRE_BODY_REJECTION"
+        },
+        {
+          "entry": "tick",
+          "explicit_none": false,
+          "status": "PASS"
+        },
+        {
+          "entry": "tick",
+          "explicit_none": true,
+          "status": "PASS"
+        },
+        {
+          "entry": "tick",
+          "explicit_markets": [
+            "HK_CONNECT"
+          ],
+          "status": "PASS_EXPECTED_PRE_BODY_REJECTION"
+        },
+        {
+          "entry": "tick",
+          "explicit_markets": [],
+          "status": "PASS_EXPECTED_PRE_BODY_REJECTION"
+        },
+        {
+          "entry": "tick",
+          "explicit_markets": [],
+          "status": "PASS_EXPECTED_PRE_BODY_REJECTION"
+        }
+      ],
+      "collection_or_selection_called": false,
+      "data_write_performed": false,
+      "exit_code": 0,
+      "modules": {
+        "stage_center._runner_parts.slot_execution": {
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/_runner_parts/slot_execution.py",
+          "sha256": "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a"
+        },
+        "stage_center._runner_parts.tick_planning": {
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/_runner_parts/tick_planning.py",
+          "sha256": "c27cb9717ec2940364d1e1186529e6df1b37b07aae0c56f65334f6f9bf06dd15"
+        },
+        "stage_center.runner": {
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/runner.py",
+          "sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232"
+        }
+      },
+      "result": "PASS_WRAPPER_COMPATIBILITY_ONLY"
+    },
+    "source_trio_matches_previously_verified_r2_read_only_binding": {
+      "comparison_receipt": {
+        "bytes": 14607,
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_only_r2/issue23_r2_stage_b_writer_receipt.json",
+        "sha256": "5130a25693c42c652b962a816834d05b6ac72f2b58a49064542cb37b3549d674"
+      },
+      "exact_match": true
+    }
+  },
+  "writer": {
+    "identity": "/root/issue23_lander",
+    "model": "gpt-6-luna",
+    "reasoning_effort": "max"
+  }
+}
