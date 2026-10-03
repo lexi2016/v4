@@ -1,0 +1,96 @@
+{
+  "schema_version": "ISSUE23_LANDING_RUNNER_PIN_RECEIPT_V1",
+  "generated_at_utc": "2026-10-03T05:49:30Z",
+  "scope": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_landing_20261003/SCOPE.md",
+  "repository": "/Users/lexi/Desktop/学习/v4_app",
+  "source_identity": {
+    "git_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "canonical_runner_path": "stage_center/runner.py",
+    "canonical_runner_sha256": "7e6e958df4d64a8f7324d96bb09548f29c9da3ba206a4548420fa021da47d34f",
+    "identity_basis": "Current repository HEAD plus verified current canonical runner SHA; candidate was not built."
+  },
+  "files_changed_by_this_batch": [
+    {
+      "path": "ops/stage_service_overlay_contract.py",
+      "status_at_start": "untracked pre-existing batch file",
+      "sha256_before": "a9ac2c1270b349152eaa56ca305aa42ab48abe2f43515f452a691e572ba24681",
+      "sha256_after": "54e0d66e907d296a56a5886e9e7fc1920d22461a9a6a4b88423c0862708a5f91",
+      "replacement": {
+        "line": 85,
+        "before": "    'stage_center/runner.py': '648fe7af52df1b4eba31802361f9af2d03decbbebb3286ecc7a5dc0b06523205',",
+        "after": "    'stage_center/runner.py': '7e6e958df4d64a8f7324d96bb09548f29c9da3ba206a4548420fa021da47d34f',"
+      }
+    },
+    {
+      "path": "tests/test_stage_service_overlay_closure.py",
+      "status_at_start": "untracked pre-existing batch file",
+      "sha256_before": "3877ce2c865d6bea671e0982800b55656d978c78697e43553f048643736bbefd",
+      "sha256_after": "2ad2e98b6784eb4beba9f50a1a7d01073183272b24ff36b4c3f16d3d56cfa850",
+      "replacement": {
+        "line": 58,
+        "before": "    \"stage_center/runner.py\": \"648fe7af52df1b4eba31802361f9af2d03decbbebb3286ecc7a5dc0b06523205\",",
+        "after": "    \"stage_center/runner.py\": \"7e6e958df4d64a8f7324d96bb09548f29c9da3ba206a4548420fa021da47d34f\","
+      }
+    }
+  ],
+  "exact_diff": "@@ ops/stage_service_overlay_contract.py:85 @@\n-    'stage_center/runner.py': '648fe7af52df1b4eba31802361f9af2d03decbbebb3286ecc7a5dc0b06523205',\n+    'stage_center/runner.py': '7e6e958df4d64a8f7324d96bb09548f29c9da3ba206a4548420fa021da47d34f',\n@@ tests/test_stage_service_overlay_closure.py:58 @@\n-    \"stage_center/runner.py\": \"648fe7af52df1b4eba31802361f9af2d03decbbebb3286ecc7a5dc0b06523205\",\n+    \"stage_center/runner.py\": \"7e6e958df4d64a8f7324d96bb09548f29c9da3ba206a4548420fa021da47d34f\",",
+  "test": {
+    "command": "env PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q --tb=short -p no:cacheprovider --basetemp=/tmp/issue23-stage-service-overlay-closure-20261003 tests/test_stage_service_overlay_closure.py",
+    "working_directory": "/Users/lexi/Desktop/学习/v4_app",
+    "exit_code": 1,
+    "result": "FAIL: 20 failed, 1 passed in 0.22s",
+    "captured_output_complete": false,
+    "captured_output_note": "The original tool response was truncated; no full test log was written to disk and this batch did not rerun the suite.",
+    "available_output_excerpt": [
+      "FFFFFFFFFFFFFFFFFFFF.                                                    [100%]",
+      "test_strict_cluster_rejects_incomplete_source_overlay_before_package_build failed while _copy_strict_source asserted the pinned source hash.",
+      "expected stage_center/consumer.py SHA256: 9e3a864c74eaec6c616b911b09c167c8cb407db8435343c1b522de4f4c9459eb",
+      "actual stage_center/consumer.py SHA256:   865c2ea8183e5e6aeb9145ce2bfbb3e5b442825904b14c47fe024593a9205489",
+      "20 failed, 1 passed in 0.22s"
+    ]
+  },
+  "other_closure_mismatch": {
+    "path": "stage_center/consumer.py",
+    "expected_sha256": "9e3a864c74eaec6c616b911b09c167c8cb407db8435343c1b522de4f4c9459eb",
+    "actual_sha256": "865c2ea8183e5e6aeb9145ce2bfbb3e5b442825904b14c47fe024593a9205489",
+    "action": "Reported only; its pin was not changed, refreshed, or bypassed."
+  },
+  "active_release_readback_after_test": {
+    "plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist",
+    "plist_sha256": "9cfeef77dc9293ad93fc1a56abe182e65b99f446181282e452f94c325303cf57",
+    "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1/app",
+    "stage_entrypoint": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1/app/ops/run_stage_center_nodes.py",
+    "active_runner_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1/app/stage_center/runner.py",
+    "active_runner_sha256": "50da5908c98330df9ad3dee6d44ad1042f559883815507be28a4257bf0f03f67",
+    "comparison": "Matches the pre-build binding_integration_receipt.json baseline; no service, plist, or active release write was performed."
+  },
+  "candidate": {
+    "builder_command": "NOT_RUN",
+    "status": "NOT_BUILT_STOP_RULE",
+    "reason": "The required closure test did not pass and exposed a different pinned-path expected/actual mismatch; SCOPE requires reporting it without refreshing other pins.",
+    "candidate_directory_created": false,
+    "candidate_base_full_file_diff": "CANNOT_CONFIRM: no candidate exists.",
+    "source_and_candidate_identity": "CANNOT_CONFIRM: builder did not produce a candidate receipt or manifest.",
+    "publish_and_rollback_steps": "CANNOT_CONFIRM: no candidate package or staged service binding exists; active R1 remains the observed baseline."
+  },
+  "git_status_observation": {
+    "stage_center/runner.py": "M; pre-existing integration change, not modified by this batch",
+    "ops/stage_service_overlay_contract.py": "??; pre-existing batch file, modified by this batch at the specified pin",
+    "tests/test_stage_service_overlay_closure.py": "??; pre-existing batch file, modified by this batch at the specified pin"
+  },
+  "status": {
+    "IMPLEMENTED": "Two runner pin replacements applied and both resulting file SHA256 values match SCOPE.",
+    "TESTED": "FAIL; 20 failed, 1 passed due to stage_center/consumer.py pin mismatch.",
+    "REVIEWED": "Pending independent reviewer assigned by controller.",
+    "CANDIDATE_INTEGRATED": "NO; stopped before builder per SCOPE STOP_RULE.",
+    "DEPLOYED": "NO; active plist and service were not switched.",
+    "API_VERIFIED": "CANNOT_CONFIRM_NOT_RUN",
+    "UI_VERIFIED": "CANNOT_CONFIRM_NOT_RUN",
+    "NATURAL_VERIFIED": "NATURAL_SLOT_UNVERIFIED"
+  },
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

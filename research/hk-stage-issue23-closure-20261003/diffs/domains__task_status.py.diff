@@ -1,0 +1,11 @@
+--- prior_handoff/domains/task_status.py
++++ current/domains/task_status.py
+@@ -44,6 +44,8 @@
+         return states.get("hk_connect") in open_states
+     if policy is RunPolicy.A_OR_HK_CONNECT_TRADE_DAY:
+         return any(states.get(market) in open_states for market in ("a_share", "hk_connect"))
++    if policy is RunPolicy.A_OR_HK_SECURITIES_TRADE_DAY:
++        return any(states.get(market) in open_states for market in ("a_share", "hk_securities"))
+     return False
+ 
+ 

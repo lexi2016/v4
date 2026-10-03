@@ -1,0 +1,101 @@
+--- prior_handoff/ops/_run_stage_center_nodes_parts/node_entry.py
++++ current/ops/_run_stage_center_nodes_parts/node_entry.py
+@@ -378,8 +378,8 @@
+     exhausted = [item for item in results if item.get("status") == "SKIPPED_RETRY_EXHAUSTED"]
+     if exhausted:
+         overall = "RETRY_EXHAUSTED"
+-    elif statuses <= {"SKIPPED_ALREADY_SETTLED", "SKIPPED_RETRY_BACKOFF", "SKIPPED_SLOT_LOCKED"}:
+-        overall = "RECOVERY_COMPLETE" if _v4_global(_v4_scope, 'any')(item.get("dispatch_mode") == "RECOVERY" for item in results) else "NODES_SKIPPED"
++    elif statuses <= {"SKIPPED_ALREADY_SETTLED", "SKIPPED_RETRY_BACKOFF", "SKIPPED_SLOT_LOCKED", "SKIPPED_RECEIPT_CHANGED", "SKIPPED_DEPENDENCY_NOT_READY", "SKIPPED_NON_TRADING_DAY", "SKIPPED_SETTLED_RECOVERY_NOT_DUE", "SKIPPED_SETTLED_RECOVERY_ALREADY_CONSUMED"}:
++        overall = "RECOVERY_SKIPPED" if _v4_global(_v4_scope, 'any')(item.get("dispatch_mode") == "RECOVERY" for item in results) else "NODES_SKIPPED"
+     elif statuses & _v4_global(_v4_scope, 'TRANSIENT_STATUSES'):
+         overall = "CANNOT_CONFIRM"
+     else:
+@@ -431,9 +431,26 @@
+         # Keep failures ahead of successful PREP nodes. Full diagnostics remain
+         # in the dated receipt; stdout has a strict launchd envelope budget.
+         node_rows = _v4_global(_v4_scope, 'list')(payload.get("nodes") or [])
++        def market_items(node):
++            markets = node.get("markets")
++            if _v4_global(_v4_scope, 'isinstance')(markets, _v4_global(_v4_scope, 'Mapping')):
++                return tuple(
++                    (market, lane)
++                    for market, lane in markets.items()
++                    if _v4_global(_v4_scope, 'isinstance')(lane, _v4_global(_v4_scope, 'Mapping'))
++                )
++            if _v4_global(_v4_scope, 'isinstance')(markets, (_v4_global(_v4_scope, 'list'), _v4_global(_v4_scope, 'tuple'))):
++                summary = {"status": node.get("status"), "first_error": node.get("error")}
++                return tuple(
++                    (market, summary)
++                    for market in markets
++                    if _v4_global(_v4_scope, 'isinstance')(market, _v4_global(_v4_scope, 'str'))
++                )
++            return ()
++
+         node_rows.sort(key=lambda node: not (node.get("error") or _v4_global(_v4_scope, 'any')(
+             lane.get("first_error") or lane.get("cannot_confirm")
+-            for lane in (node.get("markets") or {}).values())))
++            for _market, lane in market_items(node))))
+         compact = {
+             "schema_version": _v4_global(_v4_scope, 'SCHEMA_VERSION'),
+             "status": _v4_global(_v4_scope, 'str')(payload.get("status") or "CANNOT_CONFIRM"),
+@@ -446,7 +463,7 @@
+                        "first_failed_layer": node.get("first_failed_layer"),
+                        "markets": {market: {"status": lane.get("status", lane.get("selection_status")),
+                                     "first_error": _v4_global(_v4_scope, 'str')(lane.get("first_error") or _v4_global(_v4_scope, 'next')(_v4_global(_v4_scope, 'iter')(lane.get("cannot_confirm") or []), ""))[:120]}
+-                                   for market, lane in (node.get("markets") or {}).items()
++                                   for market, lane in market_items(node)
+                                    if market in {"A_SHARE", "HK_CONNECT"}}}
+                       for node in node_rows[:2]],
+             **_v4_global(_v4_scope, '_safe_flags')(),
+@@ -461,6 +478,7 @@
+         "NODES_COMPLETE",
+         "NODES_SKIPPED",
+         "RECOVERY_COMPLETE",
++        "RECOVERY_SKIPPED",
+         "NO_NODE_DUE",
+         "TOO_EARLY",
+         "SKIPPED_NON_TRADING_DAY",
+@@ -484,6 +502,7 @@
+     parser.add_argument("--check", action="store_true")
+     parser.add_argument("--deadline-only", action="store_true")
+     parser.add_argument("--historical-backfill", action="store_true")
++    parser.add_argument("--settled-hk-recovery-authorization", type=_v4_global(_v4_scope, 'Path'))
+     args = parser.parse_args(argv)
+     trace = None
+     try:
+@@ -496,6 +515,7 @@
+         _v4_global(_v4_scope, '_deadline').checkpoint("IMPORTS_ARGUMENTS_DONE")
+         config = _v4_global(_v4_scope, '_load_config')(args.config)
+         _v4_global(_v4_scope, '_deadline').checkpoint("CONFIG_LOADED")
++        config.pop("_settled_hk_recovery_authorization_path", None)
+         now = _v4_global(_v4_scope, 'datetime').now(_v4_global(_v4_scope, 'SHANGHAI'))
+         evaluated = (
+             _v4_global(_v4_scope, '_as_shanghai')(_v4_global(_v4_scope, 'datetime').fromisoformat(args.evaluated_at))
+@@ -503,7 +523,25 @@
+             else now
+         )
+         trade_date = args.trade_date or evaluated.strftime("%Y%m%d")
+-        if args.check:
++        authorization_error = None
++        if args.settled_hk_recovery_authorization is not None:
++            authorization_path = args.settled_hk_recovery_authorization.expanduser()
++            if (not authorization_path.is_absolute() or args.node != "STAGE_1445_1500"
++                    or args.trade_date != "20261002" or args.historical_backfill
++                    or args.check or args.deadline_only):
++                authorization_error = "SETTLED_HK_RECOVERY_REQUIRES_EXPLICIT_20261002_STAGE_1445_1500_RECOVERY"
++            else:
++                config["_settled_hk_recovery_authorization_path"] = str(authorization_path)
++        if authorization_error is not None:
++            result = {
++                "schema_version": _v4_global(_v4_scope, 'SCHEMA_VERSION'),
++                "status": "CANNOT_CONFIRM",
++                "trade_date": trade_date,
++                "error": authorization_error,
++                "write_performed": False,
++                **_v4_global(_v4_scope, '_safe_flags')(),
++            }
++        elif args.check:
+             result = {
+                 "schema_version": _v4_global(_v4_scope, 'SCHEMA_VERSION'),
+                 "status": "CHECK_OK",

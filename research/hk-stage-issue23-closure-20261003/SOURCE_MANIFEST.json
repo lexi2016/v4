@@ -1,0 +1,92 @@
+{
+  "baseline_github_commit": "97468793ff0cb50c60121916c1057d9ac4fa4a5f",
+  "local_git_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "files": [
+    {
+      "path": "current/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "sha256": "2343cd5e250aaa05acc698ba2daf34220f13ffb5543c655df799fdb3bd7fe464",
+      "bytes": 33168
+    },
+    {
+      "path": "prior_handoff/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "sha256": "54defb0f45adbafcf4b661611f41d0b43d89abf492d89d587c28962eff9b36fe",
+      "bytes": 30940
+    },
+    {
+      "path": "diffs/ops___run_stage_center_nodes_parts__node_entry.py.diff",
+      "sha256": "5d286a425a132a16e330ef57e462ce9011003537434fd2a7848b92332d21f202",
+      "bytes": 5952
+    },
+    {
+      "path": "current/ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+      "sha256": "06548184a4b09b0ae94053f2308eefb3bf5c31afc9f04abaeb805db7cebe8adb",
+      "bytes": 34834
+    },
+    {
+      "path": "prior_handoff/ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+      "sha256": "df6221a177d82f0fd683896b3ef21cd66cd7a8a4b6c6c8b95571f277108d52fe",
+      "bytes": 10851
+    },
+    {
+      "path": "diffs/ops___run_stage_center_nodes_parts__stage_dispatch.py.diff",
+      "sha256": "2bf0ec3446f3667ed0374ccd8177d047b1aa5217a66acb68b28a84a969ae5a1b",
+      "bytes": 25375
+    },
+    {
+      "path": "current/stage_center/consumer.py",
+      "sha256": "865c2ea8183e5e6aeb9145ce2bfbb3e5b442825904b14c47fe024593a9205489",
+      "bytes": 32471
+    },
+    {
+      "path": "prior_handoff/stage_center/consumer.py",
+      "sha256": "9e3a864c74eaec6c616b911b09c167c8cb407db8435343c1b522de4f4c9459eb",
+      "bytes": 20718
+    },
+    {
+      "path": "diffs/stage_center__consumer.py.diff",
+      "sha256": "5fb399da7882c65bcc60c932a3dc53af9a04689c05202589d5ef258f61c25c17",
+      "bytes": 15833
+    },
+    {
+      "path": "current/domains/task_status.py",
+      "sha256": "42a355b113a07b6d0c6c42b995ec9a123ca8608e74f8a6d11258a6bd130ebb97",
+      "bytes": 22132
+    },
+    {
+      "path": "prior_handoff/domains/task_status.py",
+      "sha256": "047cfb2b6a8c165857b2841f137a86c9587a1a6e81199efdf71d508d05589300",
+      "bytes": 21978
+    },
+    {
+      "path": "diffs/domains__task_status.py.diff",
+      "sha256": "0ffabf5f6d8c12dedd81feeaac8e2b7948040d4bfdfe55573ab39cc2478f68c7",
+      "bytes": 478
+    },
+    {
+      "path": "current/ops/stage_service_overlay_contract.py",
+      "sha256": "54e0d66e907d296a56a5886e9e7fc1920d22461a9a6a4b88423c0862708a5f91",
+      "bytes": 17695
+    },
+    {
+      "path": "current/tests/test_stage_service_overlay_closure.py",
+      "sha256": "2ad2e98b6784eb4beba9f50a1a7d01073183272b24ff36b4c3f16d3d56cfa850",
+      "bytes": 34244
+    },
+    {
+      "path": "evidence/issue23_landing_receipt_20261003.json",
+      "sha256": "b1a4be02e738894421499f5c339e4bdbcbc7584ff811f4a057cabd0c26bb3aa7",
+      "bytes": 6542
+    },
+    {
+      "path": "evidence/ISSUE23_INDEPENDENT_REVIEW_20261003.md",
+      "sha256": "77f64e6d44e273c18ab467fc235be7994276f88d9499d9950275584ab85672bd",
+      "bytes": 5640
+    },
+    {
+      "path": "active_release/stage_center_tick_config.json",
+      "sha256": "bfc0f35b16d3f77da16e8d4a5c848180a8a2afcdd5dd5a6c390d85d5126d0d81",
+      "bytes": 2840
+    }
+  ],
+  "note": "prior_handoff contains historical canonical bytes, not automatically the pinned authority; compare hashes before use. No candidate built."
+}
