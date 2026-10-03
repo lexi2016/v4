@@ -1,0 +1,44 @@
+{
+  "checked_at": "2026-10-03T16:00:09.705755+08:00",
+  "release": "manager-readback-r9-20261003-issue24-r1",
+  "statuses": {
+    "IMPLEMENTED": "PASS",
+    "TESTED": "PASS_34_INDEPENDENT",
+    "REVIEWED": "PASS_SCOPE_ONLY",
+    "DEPLOYED": "PASS",
+    "API_VERIFIED": "PASS_EXISTING_PLAN_CURRENT_CONSUMED",
+    "UI_VERIFIED": "PASS_SAVED_RESEARCH_DRAFT",
+    "BEHAVIOR_VERIFIED": "PASS_INDEPENDENT_CANDIDATE_READ",
+    "NATURAL_VERIFIED": "NATURAL_SLOT_UNVERIFIED"
+  },
+  "plan_product": {
+    "status": "CURRENT",
+    "run_id": "d205d038a88e4b0e9775639a965172a6",
+    "generated_at": "2026-10-03T04:18:29.034528+00:00",
+    "sha256": "0db7a63e23a515e481b75e999ecb0c1ebdf71d647f004553e2ad14a283680eb0",
+    "execution_kind": "MANUAL_REFRESH",
+    "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
+    "last_checked_at": "2026-10-03T15:56:47.663674+08:00",
+    "consumed": true
+  },
+  "read_context": {
+    "mode": "CURRENT_DYNAMIC_PREVIEW",
+    "status": "VERIFIED_WITH_GAPS",
+    "as_of": "2026-10-03T12:18:06.597568+08:00",
+    "candidate_count_known": false,
+    "contract": "20260923.workspace-history-read.r1"
+  },
+  "get_elapsed_seconds": 31.005,
+  "protected_files_unchanged": true,
+  "post_requests_this_phase": 0,
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "limitations": [
+    "333 MB payload retained; volume optimization not claimed",
+    "single GET 31.005 seconds; concurrent service memory not verified",
+    "research VERIFIED_WITH_GAPS; manual draft is not natural preopen capture"
+  ]
+}
