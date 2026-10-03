@@ -1,0 +1,52 @@
+{
+  "method": "POST",
+  "url": "http://127.0.0.1:8873/api/v4/manager/research/workspace/refresh?date=20261002",
+  "request_body": "",
+  "started_at": "2026-10-03T04:18:06.552548+00:00",
+  "before_paths": {
+    "workspace_plans": [
+      "workspace_plans/20261002/12d7d96d57794afbab646c070a500e52.json",
+      "workspace_plans/20261002/b6fc4032513a4ed89b6bcdfaf26de3ff.json",
+      "workspace_plans/20261002/e2d05c8ecfdb4fd78c037502c736ba35.json",
+      "workspace_plans/20261002/e44683bfd7c542a48e7f7b05ed03427a.json",
+      "workspace_plans/20261002/latest.json"
+    ],
+    "workspace_plan_runs": [
+      "workspace_plan_runs/20261002/12d7d96d57794afbab646c070a500e52.json",
+      "workspace_plan_runs/20261002/b6fc4032513a4ed89b6bcdfaf26de3ff.json",
+      "workspace_plan_runs/20261002/e2d05c8ecfdb4fd78c037502c736ba35.json",
+      "workspace_plan_runs/20261002/e44683bfd7c542a48e7f7b05ed03427a.json",
+      "workspace_plan_runs/20261002/latest.json"
+    ]
+  },
+  "execution_intent": "MANUAL_REFRESH; current retrospective research; not historical/natural",
+  "http_status": 200,
+  "response_sha256": "ae10c3f5a8127240f5033fa69a598ba79a09c753817d5b4d12bd30019684db26",
+  "finished_at": "2026-10-03T04:18:39.721086+00:00",
+  "after_paths": {
+    "workspace_plans": [
+      "workspace_plans/20261002/12d7d96d57794afbab646c070a500e52.json",
+      "workspace_plans/20261002/b6fc4032513a4ed89b6bcdfaf26de3ff.json",
+      "workspace_plans/20261002/d205d038a88e4b0e9775639a965172a6.json",
+      "workspace_plans/20261002/e2d05c8ecfdb4fd78c037502c736ba35.json",
+      "workspace_plans/20261002/e44683bfd7c542a48e7f7b05ed03427a.json",
+      "workspace_plans/20261002/latest.json"
+    ],
+    "workspace_plan_runs": [
+      "workspace_plan_runs/20261002/12d7d96d57794afbab646c070a500e52.json",
+      "workspace_plan_runs/20261002/b6fc4032513a4ed89b6bcdfaf26de3ff.json",
+      "workspace_plan_runs/20261002/d205d038a88e4b0e9775639a965172a6.json",
+      "workspace_plan_runs/20261002/e2d05c8ecfdb4fd78c037502c736ba35.json",
+      "workspace_plan_runs/20261002/e44683bfd7c542a48e7f7b05ed03427a.json",
+      "workspace_plan_runs/20261002/latest.json"
+    ]
+  },
+  "new_paths": {
+    "workspace_plans": [
+      "workspace_plans/20261002/d205d038a88e4b0e9775639a965172a6.json"
+    ],
+    "workspace_plan_runs": [
+      "workspace_plan_runs/20261002/d205d038a88e4b0e9775639a965172a6.json"
+    ]
+  }
+}
