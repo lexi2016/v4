@@ -1,0 +1,76 @@
+{
+  "schema_version": "issue24.independent_review_receipt.v1",
+  "reviewed_at_utc": "2026-10-03T07:31:01Z",
+  "status": "PASS_SCOPE_ONLY",
+  "reviewed": true,
+  "tested": {
+    "status": "PASS",
+    "selected_tests": [
+      "tests/test_manager_plan_readback_issue24.py",
+      "tests/test_manager_plan_identity_r2.py::test_saved_plan_from_later_cutoff_not_consumed_in_earlier_read",
+      "tests/test_manager_plan_identity_r2.py::test_scheduled_existing_plan_is_not_reused_when_inputs_changed",
+      "tests/test_manager_plan_identity_r2.py::test_scheduled_same_inputs_do_not_double_publish"
+    ],
+    "passed": 34,
+    "failed": 0,
+    "exit_code": 0,
+    "python_executable": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "python_version": "3.14.6",
+    "stdout": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue24_r1/reviewer/pytest_focused_stdout.log",
+    "stdout_sha256": "97dab7f4f52a6c92af98b7f4d4c66c89dcf7c6586b233998685c308c2b9cea9f",
+    "stderr": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue24_r1/reviewer/pytest_focused_stderr.log",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "behavior_verified": {
+    "status": "PASS",
+    "scope": "Candidate _read_plan successfully read and validated the exact frozen existing 20261002 workspace plan (333005411 bytes) with matching date, run_id, input_identity, embedded canonical checksum validation, and unchanged on-disk raw SHA/stat before and after. No service/API/UI/deployment claim.",
+    "receipt": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue24_r1/reviewer/INDEPENDENT_REAL_PLAN_READ_RECEIPT.json",
+    "receipt_sha256": "5e9c320dec456db7d98b856ad3beeddbfafc40d375242c044756664ed0633255",
+    "read_elapsed_seconds": 7.291408,
+    "peak_rss_bytes": 5083037696
+  },
+  "diff_review": {
+    "status": "PASS",
+    "candidate_app": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue24_r1/candidate/r8_issue24_candidate_app",
+    "actual_diff": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue24_r1/evidence/ISSUE24_ACTUAL_CANDIDATE_DIFF.patch",
+    "actual_diff_sha256": "1f1d52da4f06d9794eb1a317ecbbddcaddfc6bc9209095977739b5e46094758f",
+    "manifest": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue24_r1/package/V4_ISSUE24_READBACK_R1_20261003/manifest.json",
+    "manifest_sha256": "e22893edcddf3fae669395d4d8ed5cd730f4e68b2d08b4f19a2d5b8ba043b959",
+    "writer_candidate_receipt_sha256": "35c2588736eee1d3756cae1db570118a10f58f12d262b0984a755cb060cdbe09",
+    "source_hashes": {
+      "v4/manager_research/store.py": "79e077d2133f8c0bd33dde253e752bc6482423565ec11e9217d88b86f02cc07e",
+      "v4/manager_research/workspace.py": "d9c11573c91b4e7404fd076d7f378128167e4d9d8e62ccc78b5db180e50558c6",
+      "tests/test_manager_plan_identity_r2.py": "47ee321a3bccf987cf449559723264ea52f98e1f2e214ee33b3d33451d31d730",
+      "tests/test_manager_plan_readback_issue24.py": "1d7866fb800b3d9bff235c09159f169f3debe777a710a7d688f59217e45b5989",
+      "infrastructure/owned_io.py": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0"
+    },
+    "scope_check_receipt": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue24_r1/reviewer/INDEPENDENT_SCOPE_CHECK.json",
+    "scope_check_sha256": "61ca295b40eb58794d1543b9a6817582d2b97aa8bc91e7b90ae4b81727e2cbbc"
+  },
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "risk_note": {
+    "severity": "NON_BLOCKING_CAPACITY_OBSERVATION",
+    "evidence": "One candidate read of the real 333 MB plan took 7.291 seconds and peaked at 5,083,037,696 bytes RSS on the current 128-GiB Mac (prior frozen profile receipt records 93% free before read).",
+    "boundary": "Concurrent requests, active-service memory headroom, API latency, deployment, UI, and natural-run behavior remain CANNOT_CONFIRM and are outside this frozen candidate review."
+  },
+  "contract_checks": {
+    "special_byte_budget": "Exact workspace_plans/YYYYMMDD/(latest|32-lowercase-hex.json) reader/writer paths only use fixed 320 MiB; oversize rejected before publication/JSON parse; shared SafeRoot default remains 64 MiB.",
+    "serialization_and_identity": "Existing schema, canonical JSON/digest, date/run/input identity, execution_kind and legacy manual compatibility checks are retained.",
+    "run_protection": "Run ID collision is checked before first RUNNING write; immutable run file publication uses require_absent.",
+    "success_state": "Successful terminal attempt/last_success_at is written only after CURRENT, consumed, run_id, SHA readback matches; terminal attempt read back/validated before return.",
+    "source_boundary": "owned_io.py unchanged; no production files modified by reviewer; review outputs only under issue24_r1/reviewer."
+  },
+  "acceptance_gaps": {
+    "live_runtime": "CANNOT_CONFIRM",
+    "api": "CANNOT_CONFIRM",
+    "ui": "CANNOT_CONFIRM",
+    "deployment": "NOT_DEPLOYED",
+    "natural_run": "CANNOT_CONFIRM",
+    "resource_on_other_hosts": "CANNOT_CONFIRM"
+  },
+  "diagnostic_note": "The raw first-pass readback attempt file records a reviewer script assertion mistake: it compared the plan row canonical checksum to the raw file byte-stream SHA. The corrected receipt distinguishes both; no second plan read was performed."
+}
