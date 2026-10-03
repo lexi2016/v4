@@ -1,0 +1,399 @@
+{
+  "authorization": "User explicitly authorized local publication and testing: 可以你发布并测试吧。",
+  "candidate": {
+    "application_inventory_sha256": "3916d2fe6936de786e7a80730a4edce4d01c170f04c352278b3b57813e7917cc",
+    "config_sha256": "ef5f49cb4efc35ec76e718415662cece51abb327b6ea7d5ccaa45df2b91869f7",
+    "manifest_sha256": "f642954ebcb2c7af86e9c7ea84674e485ab82530503474536167766624895434",
+    "release_id": "20261003-hk-binding-wrapper-r3",
+    "root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3",
+    "runner_sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232",
+    "stage_b_independent_reviewer_receipt": {
+      "findings": {
+        "P0": [],
+        "P1": [],
+        "P2": []
+      },
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/reviewer_evidence/issue23_r3_stage_b_reviewer_receipt.json",
+      "sha256": "72d44ecb8eaa837a2b5d1c7d547552181ecfb94d34d47e76b68544f2f76a3786",
+      "verdict": "PASS for frozen offline Stage B acceptance only; service activation/deployment and actual stage selection remain outside this verdict."
+    },
+    "staged_plist_sha256": "9c7199ca1fcfedc09397255c932d25c6edc15779952bbd5b5bec2671e883d3f5"
+  },
+  "evidence_files": [
+    {
+      "bytes": 5586,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/installed_r3_stage_scheduler_after.plist",
+      "sha256": "9c7199ca1fcfedc09397255c932d25c6edc15779952bbd5b5bec2671e883d3f5"
+    },
+    {
+      "bytes": 2,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/launchctl_bootout_r1.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "bytes": 0,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/launchctl_bootout_r1.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/launchctl_bootout_r1.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 2,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/launchctl_bootstrap_r3.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "bytes": 0,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/launchctl_bootstrap_r3.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/launchctl_bootstrap_r3.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 2,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/launchctl_kickstart_r3.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "bytes": 0,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/launchctl_kickstart_r3.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/launchctl_kickstart_r3.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 2,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/launchctl_postbootstrap.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "bytes": 0,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/launchctl_postbootstrap.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 6790,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/launchctl_postbootstrap.stdout.log",
+      "sha256": "6c822b621652721b1a1e0e53d337179ec18de4ee46096d916c4c4e6af86878a2"
+    },
+    {
+      "bytes": 2,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/launchctl_postkickstart.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "bytes": 0,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/launchctl_postkickstart.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 7049,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/launchctl_postkickstart.stdout.log",
+      "sha256": "0a08e06905a4664f76784bd04a68c2a13cf07f2e88ea902ba3c5cfae64b87088"
+    },
+    {
+      "bytes": 2,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/launchctl_predeploy.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "bytes": 0,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/launchctl_predeploy.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 6758,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/launchctl_predeploy.stdout.log",
+      "sha256": "d69f79e0c3bbb7ec70767d6d54791ef6d63b45fb2bfecb96e9e6e2be2d71edeb"
+    },
+    {
+      "bytes": 2,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/postdeploy_readonly_binding.exit",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "bytes": 1870,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/postdeploy_readonly_binding.py",
+      "sha256": "e6fdb573ac44080c5af06c806b079ab7baf4aa081c1644bbca65f4874dd7c585"
+    },
+    {
+      "bytes": 1260,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/postdeploy_readonly_binding.stderr.log",
+      "sha256": "28d6c6b7ed9a9e7ef9c22068d158ed5470813c57d0a47ceaefd5e3d5e51e77ad"
+    },
+    {
+      "bytes": 0,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/postdeploy_readonly_binding.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 2,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/postdeploy_readonly_binding_v2.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "bytes": 2219,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/postdeploy_readonly_binding_v2.py",
+      "sha256": "c8ddd6098532155bae66a911844219a24cbfd7779befefa74d51cb300a0d0ee5"
+    },
+    {
+      "bytes": 0,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/postdeploy_readonly_binding_v2.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1453,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/postdeploy_readonly_binding_v2.stdout.log",
+      "sha256": "8f37fdfb478718cbfcd82c99eb1724f9f015c93aef27494e25a6679579d86031"
+    },
+    {
+      "bytes": 0,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/r3_safe_branch_stderr_delta.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 743,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/r3_safe_branch_stdout_delta.log",
+      "sha256": "32e5a1e2c0d37613d4c4e74d37fa34eb2c9968f58d2a75647847890f585a751b"
+    },
+    {
+      "bytes": 5293,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/rollback_original_r1_stage_scheduler.plist",
+      "sha256": "9cfeef77dc9293ad93fc1a56abe182e65b99f446181282e452f94c325303cf57"
+    },
+    {
+      "bytes": 51157,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/scheduler_stderr_postdeploy_after_kickstart.log",
+      "sha256": "a95742a0071104113fcc642703329922fa77095d51158005d708f4ad49640be4"
+    },
+    {
+      "bytes": 51157,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/scheduler_stderr_predeploy.log",
+      "sha256": "a95742a0071104113fcc642703329922fa77095d51158005d708f4ad49640be4"
+    },
+    {
+      "bytes": 257864,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/scheduler_stdout_postdeploy_after_kickstart.log",
+      "sha256": "8d114a207c4cada2859b1bf272bda1b868459ee8bd658dd39575592a6821defd"
+    },
+    {
+      "bytes": 257121,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/scheduler_stdout_predeploy.log",
+      "sha256": "9759488615f2a487fa1139b7b02d1d285b87e164a915b4db354c8c1f22b077e4"
+    },
+    {
+      "bytes": 5586,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/stage_r3_candidate_scheduler.plist",
+      "sha256": "9c7199ca1fcfedc09397255c932d25c6edc15779952bbd5b5bec2671e883d3f5"
+    },
+    {
+      "bytes": 3931,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/stagec_activation_receipt.json",
+      "sha256": "3098c8a2916b3ce7fb6e2d380f6c1ee60d36fd2cce6765663acf431f7fa4f9af"
+    },
+    {
+      "bytes": 2790,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/stagec_postdeploy_binding_receipt.json",
+      "sha256": "75af425c2d9186586233692691c111e3d868840278b363de447086cfeca4ee94"
+    },
+    {
+      "bytes": 6262,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/stagec_preflight_receipt.json",
+      "sha256": "83c19cf082c461b624d667e3a0ff7919413359c6d85b36812fe65758328d66df"
+    }
+  ],
+  "evidence_limits": {
+    "actual_stage_selection": "CANNOT_CONFIRM_NOT_RUN; weekend no-op is not selection",
+    "evaluated_at_field": "CANNOT_CONFIRM_FROM_COMPACT_STDOUT; stdout append mtime captured",
+    "first_binding_receipt_assembly": "Initial evidence assembly assumed a non-existent binding.source_trade_date field after the read-only helper returned; a corrected fresh service-Python call produced the attached PASS receipt. No service operation was repeated.",
+    "initial_stage_log_receipt_assembly": "Initial summarizer expected an evaluated_at and per-row safety field omitted by compact log output; raw delta and launchctl status are preserved; kickstart was not repeated.",
+    "natural_slot": "NATURAL_SLOT_UNVERIFIED",
+    "service_stdout_uses_compact_summary": "output_truncated=true; only two node rows retained; source calendar gates precede collectors and runner construction"
+  },
+  "postdeploy_readonly_binding": {
+    "collection_or_selection_called": false,
+    "data_write_performed": false,
+    "market": "HK_CONNECT",
+    "member_count": 100,
+    "receipt": {
+      "bytes": 2790,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/stagec_postdeploy_binding_receipt.json",
+      "sha256": "75af425c2d9186586233692691c111e3d868840278b363de447086cfeca4ee94"
+    },
+    "role": "HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION",
+    "runner_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/runner.py",
+    "runner_sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232",
+    "source_artifact_sha256": "f45233cd1d30d04a8e89c3a08ba8dab4ff63f1d787809b3323307f6f96cb5901",
+    "source_manifest_sha256": "edd1e184dc540273ccfc098e1e998e466848c0e689e0458e0834ee6e0ee99359",
+    "source_receipt_sha256": "49386238fdae8ca6687ee1a65ba58a3a008c8cf030b0142010ec5737f5f365dc",
+    "source_signal_date": "20260929",
+    "source_trade_date": "20260930",
+    "status": "READY",
+    "target_trade_date": "20261002",
+    "unique_member_count": 100
+  },
+  "preservation_checks": {
+    "active_r1_config_sha256": "bfc0f35b16d3f77da16e8d4a5c848180a8a2afcdd5dd5a6c390d85d5126d0d81",
+    "active_r1_release_manifest_sha256": "cf2e695d21c14a9e451d7c8b9790d6e102949d32ab5f8a90bc29e0496c0845da",
+    "active_r1_runner_sha256": "50da5908c98330df9ad3dee6d44ad1042f559883815507be28a4257bf0f03f67",
+    "api_ui_vibe_changed": false,
+    "buy_gate_updated": false,
+    "failed_r2_release_manifest_sha256": "e94d5507bb7f629c0b41b5fd6334d96b0dae61a9fc3c15f80983fa48b038e7d5",
+    "failed_r2_writer_receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_only_r2/issue23_r2_stage_b_writer_receipt.json",
+    "orders_sent": false,
+    "other_service_or_schedule_commands_invoked": false,
+    "production_allowed": false,
+    "source_code_modified_by_stage_c": false
+  },
+  "publication": {
+    "activation_receipt": {
+      "bytes": 3931,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/stagec_activation_receipt.json",
+      "sha256": "3098c8a2916b3ce7fb6e2d380f6c1ee60d36fd2cce6765663acf431f7fa4f9af"
+    },
+    "installed_plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist",
+    "installed_plist_sha256": "9c7199ca1fcfedc09397255c932d25c6edc15779952bbd5b5bec2671e883d3f5",
+    "launchctl_uid": 501,
+    "loaded_service_label": "com.lexi.stage-center.scheduler",
+    "method": "Use the reviewed candidate Stage plist as the sole existing LaunchAgent binding: save R1 bytes; bootout only com.lexi.stage-center.scheduler; atomically replace installed plist with byte-identical reviewed candidate plist; bootstrap the same label from its existing LaunchAgents path. No formal release relocation was needed because the accepted R3 plist already binds candidate app/config paths.",
+    "rollback_backup": {
+      "bytes": 5293,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/rollback_original_r1_stage_scheduler.plist",
+      "sha256": "9cfeef77dc9293ad93fc1a56abe182e65b99f446181282e452f94c325303cf57"
+    },
+    "rollback_commands": [
+      "launchctl bootout gui/501/com.lexi.stage-center.scheduler",
+      "cp -p '/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/rollback_original_r1_stage_scheduler.plist' '/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist'",
+      "launchctl bootstrap gui/501 '/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist'"
+    ]
+  },
+  "real_entrypoint_smoke": {
+    "arguments_overridden": false,
+    "command": [
+      "launchctl",
+      "kickstart",
+      "gui/501/com.lexi.stage-center.scheduler"
+    ],
+    "explicit_node_override_passed": false,
+    "historical_backfill_flag_passed": false,
+    "launchctl_kickstart_exit_file": {
+      "bytes": 2,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/launchctl_kickstart_r3.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "observed_result": {
+      "actual_date_weekday": "Saturday",
+      "all_current_date_stage_receipts_absent_after_run": true,
+      "interpretation": "The current-date launchd entrypoint reached the closed-market branch. Its compact service log intentionally omits evaluated_at, row-level safety fields and all node rows after the first two; no stage selection, backfill, or natural run is claimed.",
+      "output_truncated": true,
+      "overall_status": "NODES_COMPLETE",
+      "retained_market_statuses": [
+        {
+          "A_SHARE": {
+            "first_error": "",
+            "status": "SKIPPED_NON_TRADING_DAY"
+          }
+        },
+        {
+          "A_SHARE": {
+            "first_error": "",
+            "status": "SKIPPED_NON_TRADING_DAY"
+          },
+          "HK_CONNECT": {
+            "first_error": "",
+            "status": "SKIPPED_NON_TRADING_DAY"
+          }
+        }
+      ],
+      "retained_node_rows": 2,
+      "retained_node_statuses": [
+        "SKIPPED_NON_TRADING_DAY",
+        "SKIPPED_NON_TRADING_DAY"
+      ],
+      "row_level_safety_flags": "CANNOT_CONFIRM_FROM_COMPACT_OUTPUT; top-level flags all false",
+      "safety_flags": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "trade_date": "20261003"
+    },
+    "stderr_delta": {
+      "bytes": 0,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/r3_safe_branch_stderr_delta.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr_log_after": {
+      "bytes": 51157,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/scheduler_stderr_postdeploy_after_kickstart.log",
+      "sha256": "a95742a0071104113fcc642703329922fa77095d51158005d708f4ad49640be4"
+    },
+    "stderr_log_before": {
+      "bytes": 51157,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/scheduler_stderr_predeploy.log",
+      "sha256": "a95742a0071104113fcc642703329922fa77095d51158005d708f4ad49640be4"
+    },
+    "stdout_delta": {
+      "bytes": 743,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/r3_safe_branch_stdout_delta.log",
+      "sha256": "32e5a1e2c0d37613d4c4e74d37fa34eb2c9968f58d2a75647847890f585a751b"
+    },
+    "stdout_last_append_mtime_shanghai": "2026-10-03T20:59:49.238662+08:00",
+    "stdout_log_after": {
+      "bytes": 257864,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/scheduler_stdout_postdeploy_after_kickstart.log",
+      "sha256": "8d114a207c4cada2859b1bf272bda1b868459ee8bd658dd39575592a6821defd"
+    },
+    "stdout_log_before": {
+      "bytes": 257121,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/scheduler_stdout_predeploy.log",
+      "sha256": "9759488615f2a487fa1139b7b02d1d285b87e164a915b4db354c8c1f22b077e4"
+    }
+  },
+  "runtime": {
+    "captured_at_shanghai": "2026-10-03T21:18:10.866831+08:00",
+    "config_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center_tick_config.json",
+    "config_sha256": "ef5f49cb4efc35ec76e718415662cece51abb327b6ea7d5ccaa45df2b91869f7",
+    "import_roots": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/upstreams:/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app",
+    "job_state_after_completion": "loaded, not running (one-shot scheduled job exited normally)",
+    "last_exit_code": 0,
+    "post_kickstart_launchctl_readback": {
+      "bytes": 7049,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/launchctl_postkickstart.stdout.log",
+      "sha256": "0a08e06905a4664f76784bd04a68c2a13cf07f2e88ea902ba3c5cfae64b87088"
+    },
+    "program_arguments": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "-B",
+      "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/ops/run_stage_center_nodes.py",
+      "--config",
+      "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center_tick_config.json"
+    ],
+    "runs_after_rebootstrap": 1,
+    "service_python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "service_python_version": "Python 3.14.6",
+    "working_directory": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app"
+  },
+  "schema_version": "v4.issue23.stage_c_deployment_receipt.v1",
+  "stage_c_goal": "Publish independently accepted R3 locally and verify real service entrypoint within research-only boundaries.",
+  "status": {
+    "API_VERIFIED": "CANNOT_CONFIRM_NOT_IN_SCOPE",
+    "BEHAVIOR_VERIFIED": "PENDING_INDEPENDENT_REVIEW",
+    "DEPLOYED": "LOCAL_STAGE_SERVICE_LOADED",
+    "IMPLEMENTED": "R3 candidate LaunchAgent binding installed for the single Stage scheduler label.",
+    "INTEGRATED": "Stage scheduler LaunchAgent, program arguments, config, and import roots now resolve to R3 candidate.",
+    "NATURAL_VERIFIED": "NATURAL_SLOT_UNVERIFIED",
+    "REVIEWED": "PENDING_INDEPENDENT_RUNTIME_REVIEW",
+    "TESTED": "One R3 kickstart exit 0; current-date closed-market branch observed; service-Python read-only binding PASS.",
+    "UI_VERIFIED": "CANNOT_CONFIRM_NOT_IN_SCOPE"
+  }
+}

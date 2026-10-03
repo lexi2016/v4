@@ -1,0 +1,43 @@
+{
+  "command": [
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "-B",
+    "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/deployment_evidence/postdeploy_readonly_binding_v2.py"
+  ],
+  "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app",
+  "environment_source": "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist",
+  "exit_code": 0,
+  "prior_receipt_assembly_attempt": "v1 invoked the read-only helper but assumed non-existent binding.source_trade_date field; actual helper returned normally; no service or source data was changed. v2 reads source dates and trio hashes from binding.evidence.",
+  "result": {
+    "collection_or_selection_called": false,
+    "config_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center_tick_config.json",
+    "config_sha256": "ef5f49cb4efc35ec76e718415662cece51abb327b6ea7d5ccaa45df2b91869f7",
+    "data_write_performed": false,
+    "market": "HK_CONNECT",
+    "member_count": 100,
+    "price_signal_date": "20260930",
+    "role": "HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION",
+    "runner_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/runner.py",
+    "runner_sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232",
+    "safety_flags": {
+      "buy_gate_updated": false,
+      "orders_sent": false,
+      "production_allowed": false
+    },
+    "source_artifact_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20260930/hkconnect_d1_top100.json",
+    "source_artifact_sha256": "f45233cd1d30d04a8e89c3a08ba8dab4ff63f1d787809b3323307f6f96cb5901",
+    "source_manifest_sha256": "edd1e184dc540273ccfc098e1e998e466848c0e689e0458e0834ee6e0ee99359",
+    "source_receipt_sha256": "49386238fdae8ca6687ee1a65ba58a3a008c8cf030b0142010ec5737f5f365dc",
+    "source_run_id": "hk-d1-20260930-f45233cd1d30d04a",
+    "source_signal_date": "20260929",
+    "source_trade_date": "20260930",
+    "status": "READY",
+    "target_trade_date": "20261002",
+    "unique_member_count": 100
+  },
+  "schema_version": "v4.issue23.stage_c_postdeploy_binding_receipt.v1",
+  "service_python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+  "service_python_version": "Python 3.14.6",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "8f37fdfb478718cbfcd82c99eb1724f9f015c93aef27494e25a6679579d86031"
+}
