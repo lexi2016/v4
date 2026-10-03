@@ -1,0 +1,31 @@
+name: Issue8 R2 compatible isolated test tools
+on:
+  push:
+    branches: [codex/issue8-r2-ui-20261003]
+    paths: [.github/workflows/issue8-r2-test-tools-compatible.yml]
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Pin compatible disposable Vite Vitest transport
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir tools
+          cd tools
+          npm init -y
+          npm install --ignore-scripts --save-exact vitest@4.0.0 vite@7.0.0 jsdom@28.0.0 typescript@5.9.3
+          npm ls --depth=0 > TOOL_VERSIONS.txt
+          tar czf ../test-tools-compatible.tar.gz node_modules package.json package-lock.json TOOL_VERSIONS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: issue8-r2-linux-test-tools-compatible
+          path: test-tools-compatible.tar.gz
+          retention-days: 1
+          if-no-files-found: error
