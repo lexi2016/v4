@@ -1,0 +1,323 @@
+{
+  "evidence_identity": {
+    "candidate_changed_source_files": [
+      {
+        "bytes": 5599,
+        "expected_sha256": "8e58cab8e9e398d7c628c2f994a5005442d3a6c5ba5f218a155d949b8af74f54",
+        "matches": true,
+        "path": "v4/manager_research/announcement_observation.py",
+        "sha256": "8e58cab8e9e398d7c628c2f994a5005442d3a6c5ba5f218a155d949b8af74f54"
+      },
+      {
+        "bytes": 16296,
+        "expected_sha256": "6b8ad578c2f47ddd134961a25fd2f52de4a2965d8c9a7bc422e2bf37f7236929",
+        "matches": true,
+        "path": "v4/manager_research/connect_selection.py",
+        "sha256": "6b8ad578c2f47ddd134961a25fd2f52de4a2965d8c9a7bc422e2bf37f7236929"
+      },
+      {
+        "bytes": 23711,
+        "expected_sha256": "3fee4ee494f7f62c68f4bcaadf131286787243e6336f7ca304094a822dbad791",
+        "matches": true,
+        "path": "v4/manager_research/research_attention.py",
+        "sha256": "3fee4ee494f7f62c68f4bcaadf131286787243e6336f7ca304094a822dbad791"
+      }
+    ],
+    "frozen_input_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/package/V4_ISSUE8_R9_SELECTION_GAPS_R1_20261003/input",
+    "frozen_input_selection_fixture_sha256": "e1a91587c972b22c7118cc7dec07c9d88c57d090814dab2b15e97fa8e19f73be",
+    "native_calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+    "phase1_static_review_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/reviewer/PHASE1_CODE_REVIEW.json",
+    "phase1_static_review_sha256": "2943314933751cebd5e00ebb83265041a81ac99b2d0aca417da2603e2912ca4e",
+    "relevant_test_files": [
+      {
+        "bytes": 16293,
+        "path": "tests/test_issue8_selection_gaps.py",
+        "sha256": "c9f242bc64b0b31a16cef0a6f732df45fabfa80654d4aace4cc405b8ec98c9a8"
+      },
+      {
+        "bytes": 4234,
+        "path": "tests/test_issue8_readback_invariants.py",
+        "sha256": "c198ca0a13450cf5e2bbf6f8f19b42da93111f21cb5bd1d320e64359e796f440"
+      },
+      {
+        "bytes": 5454,
+        "path": "tests/test_us_relation_assessment_state.py",
+        "sha256": "6dadd629f76b4ff5f8d677225e7af1bdf11485eecf994dd9fb9266a831a26992"
+      },
+      {
+        "bytes": 7821,
+        "path": "tests/test_manager_research_attention_r5_1_contract.py",
+        "sha256": "810f09cb91bd10e92305d237f6cd1b49806be71181b725dc0a80fc1c9fb12684"
+      },
+      {
+        "bytes": 16346,
+        "path": "tests/test_us_relation_pipeline_r2.py",
+        "sha256": "c08e333d2f2d29d6af52800a6f0e2d075a52c863acff4d3d4abcc1e21eb7ac33"
+      }
+    ],
+    "runtime_patch_sha256": "8b1b614b59f06f62b8a64b4fd738f0d2ed82cb6b460f9b359ddd7ad952de8c88",
+    "writer_receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/evidence/ISSUE8_R9_CANDIDATE_WRITER_RECEIPT.json",
+    "writer_receipt_sha256": "66b93d303a37840c1a94b4a40f146ef96507814070b9424e86906792b0ed88fd"
+  },
+  "independent_tested": {
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONPATH": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/candidate/r9_issue8_candidate_app",
+      "V4_INPUT_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/package/V4_ISSUE8_R9_SELECTION_GAPS_R1_20261003/input",
+      "V4_NATIVE_IMPORT": "1",
+      "V4_TEST_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/candidate/r9_issue8_candidate_app"
+    },
+    "exit_code": 0,
+    "harness_setup_attempt": {
+      "status": "NOT_A_CODE_FAILURE",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "6240a71fc4faa4ce020599136ccb8e99188227f6c036d68b97cccc4e9655c646",
+      "summary": "110 passed, 3 failed with KeyError because V4_TEST_ROOT and V4_INPUT_ROOT were omitted from the first invocation. Corrected by supplying both roots; valid rerun above passed all 113."
+    },
+    "native_import_mode": true,
+    "pytest_args": [
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--tb=short",
+      "--basetemp",
+      "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/reviewer/pytest_tmp_issue8_independent_02",
+      "-o",
+      "tmp_path_retention_policy=all",
+      "tests/test_issue8_selection_gaps.py",
+      "tests/test_issue8_readback_invariants.py",
+      "tests/test_us_relation_assessment_state.py",
+      "tests/test_manager_research_attention_r5_1_contract.py",
+      "tests/test_us_relation_pipeline_r2.py"
+    ],
+    "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "status": "PASS",
+    "stderr_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/reviewer/native113_valid_stderr.log",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/reviewer/native113_valid_stdout.log",
+    "stdout_sha256": "48b21706015618704364e81a0c29f069938d7aa4f637c1ba8b1272ca5a4d66cd",
+    "summary": "113 passed in 0.70s",
+    "working_directory": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/candidate/r9_issue8_candidate_app"
+  },
+  "layer_status": {
+    "API_VERIFIED": "CANNOT_CONFIRM",
+    "BEHAVIOR_VERIFIED": "PASS_OFFLINE_BOUNDED",
+    "DEPLOYED": "NOT_ATTEMPTED",
+    "IMPLEMENTED": "candidate source copied/patched per manifest; not active deployment",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM",
+    "REVIEWED": "PASS_BOUNDED",
+    "TESTED": "PASS 113/113 native focused tests",
+    "UI_VERIFIED": "CANNOT_CONFIRM"
+  },
+  "non_acceptance_probe_attempts": [
+    {
+      "bytes": 180,
+      "label": "native113_stdout",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/reviewer/native113_valid_stdout.log",
+      "sha256": "48b21706015618704364e81a0c29f069938d7aa4f637c1ba8b1272ca5a4d66cd"
+    },
+    {
+      "bytes": 0,
+      "label": "native113_stderr",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/reviewer/native113_valid_stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1924,
+      "label": "native113_setup_failure_stdout",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/reviewer/native113_stdout.log",
+      "sha256": "6240a71fc4faa4ce020599136ccb8e99188227f6c036d68b97cccc4e9655c646"
+    },
+    {
+      "bytes": 0,
+      "label": "native113_setup_failure_stderr",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/reviewer/native113_stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 2002,
+      "label": "native_behavior_probe",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/reviewer/native_behavior_probe_v3.stdout.json",
+      "sha256": "051d31b84a3e2c1aee22cfbdb55eab46a47be49b11df9dc2cea503959b47ba77"
+    },
+    {
+      "bytes": 0,
+      "label": "native_behavior_probe_stderr",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/reviewer/native_behavior_probe_v3.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 104,
+      "label": "probe_attempt_fixture_key_error_stderr",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/reviewer/native_behavior_probe.stderr.log",
+      "sha256": "4048725cc1071fb5fef23b480da50c97e827980aade980445a08bf61ed37be0f"
+    },
+    {
+      "bytes": 0,
+      "label": "probe_attempt_fixture_key_error_stdout",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/reviewer/native_behavior_probe.stdout.json",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 390,
+      "label": "probe_attempt_syntax_stderr",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/reviewer/native_behavior_probe_valid.stderr.log",
+      "sha256": "533712a83d49efbbbe91652a10cf3cce20350ea3248e0845e35e7d9a008d6493"
+    },
+    {
+      "bytes": 0,
+      "label": "probe_attempt_syntax_stdout",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/reviewer/native_behavior_probe_valid.stdout.json",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 173,
+      "label": "probe_attempt_wrong_cwd_stderr",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/reviewer/native_behavior_probe_v2.stderr.log",
+      "sha256": "dbe51c94346b89d72347789bc694d868b5247f826b27cfc5162294435ad7e8eb"
+    },
+    {
+      "bytes": 0,
+      "label": "probe_attempt_wrong_cwd_stdout",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/reviewer/native_behavior_probe_v2.stdout.json",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "offline_behavior_verified": {
+    "actual_calendar_current_read": {
+      "calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+      "hk_connect_state": "NON_TRADING_DAY",
+      "hk_securities_state": "FULL_TRADING_DAY",
+      "reason": "HK_CONNECT_NON_TRADING_DAY",
+      "semantics": "CURRENT_READ_NOT_HISTORICAL_CAPTURE",
+      "status": "NOT_APPLICABLE",
+      "target_trade_date": "20261002"
+    },
+    "frozen_positive_observation_behavior": {
+      "announcement_coverage_preserved": true,
+      "attention_status": "READY_WITH_GAPS",
+      "frozen_focus_symbols": 0,
+      "frozen_stocks": 0,
+      "input_positive_observations": 9,
+      "membership_per_card": "CANNOT_CONFIRM",
+      "output_observation_only_cards": 9,
+      "scored_cards": 0,
+      "unique_symbols": 5
+    },
+    "membership_and_formal_selection": {
+      "buy_allowed": false,
+      "candidate_count": 0,
+      "formal_selection": "NOT_APPLICABLE",
+      "gap": "HK_CONNECT_TARGET_AUTHORITY_ROOT_NOT_BOUND",
+      "membership_status": "CANNOT_CONFIRM",
+      "qualified": false
+    },
+    "owner_reads_in_probe": false,
+    "probe_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/reviewer/native_behavior_probe_v3.stdout.json",
+    "probe_sha256": "051d31b84a3e2c1aee22cfbdb55eab46a47be49b11df9dc2cea503959b47ba77",
+    "status": "PASS_BOUNDED",
+    "targeted_regression_assertions": [
+      "test_closed_connect_is_not_applicable_even_when_membership_root_absent",
+      "test_frozen_positive_subtree_preserved_without_promoting_five_stocks",
+      "test_research_relation_copies_pre_connect_cards_with_membership_unverified",
+      "test_true_archive_clock_mapping_and_missing_clock_branches[None/available_at/retrieved_at/both]",
+      "test_legal_clocks_do_not_replace_independent_business_relationship",
+      "test_two_source_join_still_needs_ready_us_evidence_with_legal_issuer_times",
+      "test_frozen_us_card_hashes_match_exact_archive_ingestion_gap_ids"
+    ]
+  },
+  "overall_verdict": "PASS for the frozen Issue8 backend candidate offline acceptance; no claim of user-visible, live API, deployed, or natural-session acceptance.",
+  "review_findings": {
+    "P0": [],
+    "P1": [],
+    "P2": [
+      "Known user-visible integration gap: active R9 frontend does not semantically validate or render observation_only/input_diagnostics/selection_diagnostics.formal_selection. This remains outside the three-file backend candidate; UI behavior is CANNOT_CONFIRM."
+    ],
+    "candidate_source_review": "PASS_BOUNDED; see PHASE1_CODE_REVIEW.json for actual diff review and active-R9 baseline identity.",
+    "known_gaps": [
+      "Target HK Connect membership remains CANNOT_CONFIRM because authority root/artifact is unbound/missing.",
+      "US acquisition clock source/alias semantics remain CANNOT_CONFIRM from the owner row.",
+      "No dynamic API/UI or natural-slot verification of this inactive candidate."
+    ]
+  },
+  "review_identity": "Independent Luna Max reviewer; read-only",
+  "schema_version": "issue8.r9_independent_review_receipt.v1",
+  "scope": {
+    "business_source_writes": false,
+    "candidate_app": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue8_r1/candidate/r9_issue8_candidate_app",
+    "deployment_or_service_actions": false,
+    "full_333mb_plan_reread": false,
+    "http_or_post": false,
+    "issue": "Issue8 R9 frozen candidate"
+  },
+  "scope_incident": {
+    "description": "A stale Issue24 checkpoint was briefly resumed after the active assignment had changed to Issue8, and one isolated 34-test Issue24 candidate pytest command wrote two logs under the Issue24 reviewer directory. The tests read candidate source as expected; the separately planned saved-plan replay and any service action were not run. No business-source write occurred. These logs are excluded from Issue8 acceptance and were not edited again.",
+    "files": [
+      {
+        "bytes": 99,
+        "contents_summary": "34 passed in 0.87s; unrelated old-scope run",
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue24_r1/reviewer/pytest_focused_stdout.log",
+        "sha256": "09f9bb030bbb0602f678eb72dc4fe4e307ba6bca041fc290e46cd43ee6acaae9"
+      },
+      {
+        "bytes": 0,
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/issue24_r1/reviewer/pytest_focused_stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "preexisting_file_status": "CANNOT_CONFIRM; no pre-write snapshot/hash was captured."
+  },
+  "us_owner_gap": {
+    "article_id": "935c5711e5ec57d3645381231afa8ebc577c94c52b5d7bcb72d78559789a03c5",
+    "gap": "ARCHIVE_ARTICLE_ACQUISITION_TIME_MISSING",
+    "manifest_path": "manifest.json",
+    "manifest_sha256": "05e3f7a8a2e2d263196e113a16f90ece5420d667e1d0276c05864b6c042edae0",
+    "payload_path": "research/archives/20260929.json",
+    "payload_sha256": "d73b3faa4c35bef3d0f78b0fa7c06edd818fda17a36da792cc96d9fec4eeba2e",
+    "projected_fields": {
+      "available_at": {
+        "present": true,
+        "type": "NoneType",
+        "value": null
+      },
+      "retrieved_at": {
+        "present": true,
+        "type": "NoneType",
+        "value": null
+      }
+    },
+    "receipt_path": "receipts/research/archives/20260929.json",
+    "receipt_sha256": "b6e9f6ea74ec267450c7af660406de702e71cb5a488722cee8dfde9b4f8f2a22",
+    "remaining": "Exact acquisition clock source field/legal alias mapping is CANNOT_CONFIRM; collected_at and first_seen_at semantics remain unknown.",
+    "source_fields": {
+      "available_at": {
+        "present": false,
+        "type": null,
+        "value": null
+      },
+      "collected_at": {
+        "present": true,
+        "type": "str",
+        "value": "2026-09-29T21:03:02+08:00"
+      },
+      "first_seen_at": {
+        "present": true,
+        "type": "str",
+        "value": "2026-09-29T21:03:02+08:00"
+      },
+      "published_at": {
+        "present": true,
+        "type": "str",
+        "value": "2026-09-29T20:36:06+08:00"
+      },
+      "retrieved_at": {
+        "present": false,
+        "type": null,
+        "value": null
+      }
+    },
+    "source_id": "V35_RESEARCH_DATA_ROOT",
+    "source_row_status": "OWNER_VERIFIED_IN_WRITER_RECEIPT; NOT_REREAD_BY_THIS_REVIEW",
+    "symbol": "HK.00300"
+  }
+}
