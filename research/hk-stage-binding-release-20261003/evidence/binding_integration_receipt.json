@@ -1,0 +1,117 @@
+{
+  "schema_version": "HK_STAGE_BINDING_INTEGRATION_RECEIPT_V1",
+  "date": "2026-10-03",
+  "scope": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/binding_integration_20261003",
+  "writer": {
+    "identity": "/root/binding_integrator",
+    "model": "gpt-6-luna",
+    "reasoning_effort": "max"
+  },
+  "source_inputs": {
+    "scope": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/binding_integration_20261003/SCOPE.md",
+    "candidate_writer_receipt": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/stage_binding_writer_evidence/writer_receipt.json",
+    "independent_candidate_review": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/resume_20261003/package/evidence/independent_binding_review.json"
+  },
+  "preimages": {
+    "active_release_id": "20261002-hk-open-stage-r1",
+    "active_release_runner_sha256": "50da5908c98330df9ad3dee6d44ad1042f559883815507be28a4257bf0f03f67",
+    "active_stage_plist": "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist",
+    "active_stage_plist_sha256": "9cfeef77dc9293ad93fc1a56abe182e65b99f446181282e452f94c325303cf57",
+    "independently_reviewed_candidate_runner_sha256": "f4c9043c948212b9d586b86a5b0c5c4924d7ffcd0bbc3d99c237988d508c9e20",
+    "canonical_runner_before_sha256": "edc9798767a5c3882cea20ebed8decf95710f390c4d70fecb7d85c276af03671",
+    "canonical_runner_before_reference": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/resume_20261003/package/canonical_reference/stage_center/runner.py",
+    "shared_hk_input_validation_helper_sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735"
+  },
+  "integration_diff": {
+    "runner_diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/binding_integration_20261003/canonical_runner_binding_integration.diff",
+    "runner_diff_sha256": "258fd329a02f4f84e49b1ac0edb1cb4a958a986fa4053513cd0927da6893a20c",
+    "runner_final_path": "/Users/lexi/Desktop/学习/v4_app/stage_center/runner.py",
+    "runner_final_sha256": "7e6e958df4d64a8f7324d96bb09548f29c9da3ba206a4548420fa021da47d34f",
+    "added_test_diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/binding_integration_20261003/test_hk_prior_observation_source_binding_added.diff",
+    "added_test_diff_sha256": "95b604b6b83cc97592f0c55a4f9bc4b98d8491b2c3b7467af46e3079a900eda3",
+    "added_test_path": "/Users/lexi/Desktop/学习/v4_app/tests/test_hk_prior_observation_source_binding.py",
+    "added_test_sha256": "518a7c8271aedaf37e1df02119ebf42d9dbbcc98596684d97d90dc1816987b30",
+    "added_test_matches_independently_reviewed_candidate": true
+  },
+  "verification": {
+    "canonical_focused_tests": {
+      "command": ".venv/bin/python -m pytest -q --tb=short --basetemp=/tmp/hk-binding-canonical-20261003 tests/test_hk_prior_observation_source_binding.py",
+      "result": "PASS: 12 passed in 0.19s"
+    },
+    "candidate_prior_independent_review": {
+      "result": "REVIEWED PASS; 20 focused tests independently passed; not a review of this canonical adaptation"
+    },
+    "canonical_helper_matches_active_helper": true,
+    "date_catalog_adjacent_failure": "Reused from candidate review; not rerun per scope; known baseline failure remains out of scope."
+  },
+  "actual_read_only_binding": {
+    "entrypoint": "stage_center.runner._build_hk_stage_binding",
+    "module_source": "/Users/lexi/Desktop/学习/v4_app/stage_center/runner.py",
+    "python_executable": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "python_version": "3.14.6",
+    "config_source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1/app/stage_center_tick_config.json",
+    "hk_d1_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+    "preselection_source_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+    "target_date": "20261002",
+    "market_states": {
+      "a_share": "NON_TRADING_DAY",
+      "hk_connect": "NON_TRADING_DAY",
+      "hk_securities": "FULL_TRADING_DAY"
+    },
+    "status": "READY",
+    "market": "HK_CONNECT",
+    "role": "HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION",
+    "member_count": 100,
+    "source_trade_date": "20260930",
+    "source_signal_date": "20260929",
+    "source_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20260930/hkconnect_d1_top100.json",
+    "source_artifact_sha256": "f45233cd1d30d04a8e89c3a08ba8dab4ff63f1d787809b3323307f6f96cb5901",
+    "source_manifest_sha256": "edd1e184dc540273ccfc098e1e998e466848c0e689e0458e0834ee6e0ee99359",
+    "source_receipt_sha256": "49386238fdae8ca6687ee1a65ba58a3a008c8cf030b0142010ec5737f5f365dc",
+    "price_signal_date": "20260930",
+    "source_payload_modified": false,
+    "collection_or_selection_called": false,
+    "source_payload_safety": {
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false,
+      "stage_selection_eligible": true,
+      "row_count": 100
+    }
+  },
+  "stage_release_candidate": {
+    "build_method": "ops/build_release_candidate.py --stage-service-candidate --stage-overlay-path stage_center/runner.py",
+    "candidate_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/binding_integration_20261003/stage_r1_binding_candidate",
+    "result": "REFUSED_BY_EXISTING_STAGE_OVERLAY_SHA_CONTRACT",
+    "expected_runner_sha256": "648fe7af52df1b4eba31802361f9af2d03decbbebb3286ecc7a5dc0b06523205",
+    "integrated_runner_sha256": "7e6e958df4d64a8f7324d96bb09548f29c9da3ba206a4548420fa021da47d34f",
+    "independent_candidate_runner_sha256": "f4c9043c948212b9d586b86a5b0c5c4924d7ffcd0bbc3d99c237988d508c9e20",
+    "reason": "Existing require_stage_overlay_source_hashes refuses both available runner sources; contract modification or bypass is outside the frozen allowed paths.",
+    "candidate_root_created": false,
+    "service_or_plist_modified": false,
+    "publication_and_rollback_steps": {
+      "status": "CANNOT_CONFIRM_NOT_PREPARED; package builder refused before candidate creation",
+      "active_plist_change": "not performed; active plist SHA remains recorded baseline",
+      "publish_steps": "not prepared because there is no validated candidate package or generated staged service binding",
+      "rollback_steps": "not applicable to a nonexistent release candidate; local source inverse can be reviewed from canonical_runner_binding_integration.diff"
+    }
+  },
+  "status": {
+    "IMPLEMENTED": "canonical runner adapter applied",
+    "TESTED": "writer focused 12 PASS; independent reviewer rerun pending",
+    "REVIEWED": "candidate prior-observation behavior PASS only; canonical integration pending independent review",
+    "INTEGRATED": "NO; release candidate not built due fixed overlay SHA gate",
+    "DEPLOYED": "NO",
+    "API_VERIFIED": "CANNOT_CONFIRM_NOT_RUN",
+    "UI_VERIFIED": "CANNOT_CONFIRM_NOT_RUN",
+    "BEHAVIOR_VERIFIED": "CANNOT_CONFIRM_BY_INDEPENDENT_REVIEWER",
+    "NATURAL_VERIFIED": "NATURAL_SLOT_UNVERIFIED; 2026-10-03 weekend and no original historical capture invoked",
+    "PIT_CUTOFF": "CANNOT_CONFIRM; no capture_at/cutoff_at schema field, not extended"
+  },
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "needed_controller_decision": "Choose an authorized packaging route that preserves the fixed overlay SHA guard. Current scope forbids changing the release hash contract; writer did not bypass it or create a hand-built package."
+}

@@ -1,0 +1,98 @@
+{
+  "schema_version": "HK_STAGE_BINDING_INDEPENDENT_REVIEW_V1",
+  "reviewer": "/root/integration_review",
+  "review_date": "2026-10-03",
+  "scope": {
+    "source": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/binding_integration_20261003/SCOPE.md",
+    "verdict": "ADAPTATION_PASS_RELEASE_GATE_BLOCKED",
+    "reason": "Canonical binding adapter and actual read-only binding pass. Frozen PASS_SIGNAL remains incomplete because no stage release candidate was built; the existing pinned source hash guard rejects the reviewed adapter and its predecessor candidate."
+  },
+  "diff_review": {
+    "canonical_preimage": "edc9798767a5c3882cea20ebed8decf95710f390c4d70fecb7d85c276af03671",
+    "canonical_runner_postimage": "7e6e958df4d64a8f7324d96bb09548f29c9da3ba206a4548420fa021da47d34f",
+    "runner_diff": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/binding_integration_20261003/canonical_runner_binding_integration.diff",
+    "runner_diff_sha256": "258fd329a02f4f84e49b1ac0edb1cb4a958a986fa4053513cd0927da6893a20c",
+    "reviewed_change": "Only _build_hk_stage_binding differs from the recorded canonical preimage; its function source is byte-identical to both the previously reviewed candidate and stage_binding_candidate.",
+    "function_source_sha256": "85ad46832672a386273788edcddbc6908370ba62c43b3d77d9027601de8b07df",
+    "added_test_path": "/Users/lexi/Desktop/学习/v4_app/tests/test_hk_prior_observation_source_binding.py",
+    "added_test_sha256": "518a7c8271aedaf37e1df02119ebf42d9dbbcc98596684d97d90dc1816987b30",
+    "test_diff_sha256": "95b604b6b83cc97592f0c55a4f9bc4b98d8491b2c3b7467af46e3079a900eda3",
+    "test_matches_reviewed_candidate": true
+  },
+  "verification": {
+    "focused_tests": {
+      "interpreter": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "python_version": "3.14.6",
+      "command": "PYTHONDONTWRITEBYTECODE=1 <service-python> -m pytest -q --tb=short -p no:cacheprovider --basetemp=/tmp/hk-binding-independent-review-20261003 tests/test_hk_prior_observation_source_binding.py",
+      "result": "PASS: 12 passed in 0.17s"
+    },
+    "actual_read_only_binding": {
+      "entrypoint": "stage_center.runner._build_hk_stage_binding",
+      "config": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1/app/stage_center_tick_config.json",
+      "d1_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+      "preselection_source_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+      "target_date": "20261002",
+      "market_states": {
+        "a_share": "NON_TRADING_DAY",
+        "hk_connect": "NON_TRADING_DAY",
+        "hk_securities": "FULL_TRADING_DAY"
+      },
+      "status": "READY",
+      "market": "HK_CONNECT",
+      "role": "HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION",
+      "member_count": 100,
+      "unique_member_count": 100,
+      "source_trade_date": "20260930",
+      "source_signal_date": "20260929",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20260930/hkconnect_d1_top100.json",
+      "artifact_sha256": "f45233cd1d30d04a8e89c3a08ba8dab4ff63f1d787809b3323307f6f96cb5901",
+      "manifest_sha256": "edd1e184dc540273ccfc098e1e998e466848c0e689e0458e0834ee6e0ee99359",
+      "receipt_sha256": "49386238fdae8ca6687ee1a65ba58a3a008c8cf030b0142010ec5737f5f365dc",
+      "collection_or_selection_called": false,
+      "interpretation": "Confirms present-day binding from the configured two roots for 20261002 only; it does not prove historical cutoff compliance, a generated selection, or natural-run behavior."
+    }
+  },
+  "findings": {
+    "P0": [],
+    "P1": [
+      {
+        "id": "STAGE_RELEASE_CANDIDATE_BLOCKED_BY_PINNED_RUNNER_SHA",
+        "kind": "release_gate_blocker_not_binding_logic_defect",
+        "evidence": "ops/build_release_candidate.py --stage-service-candidate routes to build_stage_service_candidate; ops/build_release_candidate_stage.py invokes require_stage_overlay_source_hashes before candidate_root.mkdir; ops/stage_service_overlay_contract.py pins stage_center/runner.py to 648fe7af52df1b4eba31802361f9af2d03decbbebb3286ecc7a5dc0b06523205. Current canonical runner is 7e6e958df4d64a8f7324d96bb09548f29c9da3ba206a4548420fa021da47d34f; independently reviewed candidate is f4c9043c948212b9d586b86a5b0c5c4924d7ffcd0bbc3d99c237988d508c9e20. Both differ from the required pin.",
+        "result": "REFUSED_BY_EXISTING_STAGE_OVERLAY_SHA_CONTRACT; candidate root absent; active plist remains 9cfeef77dc9293ad93fc1a56abe182e65b99f446181282e452f94c325303cf57; active release runner remains 50da5908c98330df9ad3dee6d44ad1042f559883815507be28a4257bf0f03f67.",
+        "chat_minimum_scope": [
+          "ops/stage_service_overlay_contract.py"
+        ],
+        "test_to_rerun_after_authorization": "tests/test_stage_service_overlay_closure.py",
+        "alternate_route": "No alternate stage-only source-overlay route found in the inspected repository; automatic and explicit overlays both reach the same source hash gate. An out-of-repository or manual route is CANNOT_CONFIRM."
+      }
+    ],
+    "P2": [
+      {
+        "id": "HISTORICAL_INTRADAY_PIT_CUTOFF",
+        "status": "CANNOT_CONFIRM",
+        "reason": "Existing source schema has no general capture_at/cutoff_at field; binding-only verification cannot establish stage-time cutoff."
+      },
+      {
+        "id": "DATE_CATALOG_BASELINE_FAILURE",
+        "status": "REUSED_NOT_RERUN_OR_FIXED",
+        "reason": "The prior independent review recorded the same navigation-date failure on candidate and baseline; it is outside this frozen batch."
+      }
+    ]
+  },
+  "status": {
+    "IMPLEMENTED": "PASS canonical adapter applied",
+    "TESTED": "PASS independent 12 focused tests on service Python 3.14.6",
+    "REVIEWED": "PASS for the frozen adapter diff and binding contract",
+    "BEHAVIOR_VERIFIED": "PASS for current 20261002 read-only binding only",
+    "INTEGRATED": "NO stage candidate; blocked before candidate creation",
+    "DEPLOYED": "NO",
+    "API_VERIFIED": "CANNOT_CONFIRM_NOT_RUN",
+    "UI_VERIFIED": "CANNOT_CONFIRM_NOT_RUN",
+    "NATURAL_VERIFIED": "NATURAL_SLOT_UNVERIFIED",
+    "PIT_CUTOFF": "CANNOT_CONFIRM",
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
