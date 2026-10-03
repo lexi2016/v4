@@ -1,0 +1,238 @@
+{
+  "schema": "v4.manager_research.independent_review.v1",
+  "reviewer": "/root/manager_resume_review (independent Luna Max reviewer; read-only business source)",
+  "reviewed_at_local": "2026-10-03 Asia/Shanghai",
+  "frozen_scope": "US discovery -> relation assessment state -> canonical integration, plus classification of three prior business-status test failures and selected-date announcement unqueried-count display.",
+  "review_decision": "FAIL_P2_POSITIVE_RELATION_DETAIL_CONTRADICTION",
+  "acceptance": {
+    "REVIEWED": "FAIL: actionable P2 in frozen business-status projection",
+    "TESTED": "PASS_FOR_FROZEN_PYTHON_SCOPE; frontend focused suite 32/33 with one inherited exact-string assertion mismatch; targeted TS check passes",
+    "BEHAVIOR_VERIFIED": "FAIL_FOR_POSITIVE_RELATION_DETAIL; offline saved-input replay itself passes all 10 frozen checks",
+    "API_VERIFIED": "CANNOT_CONFIRM_CURRENT_R7",
+    "UI_VERIFIED": "R6.1 receipt confirms selected-date UI and UNKNOWN unqueried display; CANNOT_CONFIRM_CURRENT_R7_UI",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM",
+    "deployment_or_service_release": "NOT_IN_FROZEN_SCOPE; no deployment or service action was performed",
+    "source_delta_publishability": "BLOCKED_PENDING_TARGETED_FIX_AND_INDEPENDENT_RECHECK"
+  },
+  "severity_summary": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 1,
+    "P2_note": "Positive relation is labeled correctly but its detail says evidence is missing; this is contradictory in-scope behavior."
+  },
+  "findings": [
+    {
+      "id": "P2-POSITIVE-RELATION-DISPLAYED-AS-MISSING-EVIDENCE",
+      "classification": "ACTIONABLE_FROZEN_SCOPE_BEHAVIOR_DEFECT",
+      "evidence": {
+        "producer": "v4/manager_research/research_evidence.py:471 emits assessment_state=ASSESSED_WITH_RELATIONS with assessment_reasons=[VERIFIED_RELATIONS_PASSED_TWO_SOURCE_PIT] when a verified relation is accepted.",
+        "consumer": "apps/web/src/manager-selection/businessStatus.ts:27-37 omits that reason from US_REASON_LABELS; :39-45 maps unknown reasons to 来源、主体或时点证据仍有缺口; :128-129 appends that reason to the rendered detail.",
+        "reproduction": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/resume_20261003_review/positive_relation_detail_repro.log",
+        "reproduction_sha256": "946aa619420d8f955769b1f69b05976b05a27186ab527b49507d2fa263ca0f33",
+        "observed": "With ASSESSED_WITH_RELATIONS, accepted count 1, complete material input, and the exact producer reason, output is state 已有合格关系 but detail 美股来源已就绪；行业上涨 1 个／个股上涨 0 个；合格关系 1 条；来源、主体或时点证据仍有缺口.",
+        "test_gap": "apps/web/src/manager-selection/__tests__/businessChainR2.spec.ts:15-17 asserts positive state and next boundary but does not assert detail text."
+      },
+      "impact": "The UI simultaneously reports a verified relation and that source/entity/time evidence is still missing. This can confuse review of the positive research result.",
+      "minimal_fix": "Map VERIFIED_RELATIONS_PASSED_TWO_SOURCE_PIT to a success explanation or suppress the generic gap fallback for this known positive reason; add an assertion that the positive detail does not claim missing evidence.",
+      "required_recheck": "Rerun the focused positive-state UI test and saved-input replay against the updated final source hashes.",
+      "blocks_frozen_scope_pass": true
+    },
+    {
+      "id": "INFO-INHERITED-ANNOUNCEMENT-PHRASE-ASSERTION",
+      "classification": "NONBLOCKING_INHERITED_TEST_MISMATCH",
+      "evidence": "Current focused Vitest fails only apps/web/src/manager-selection/__tests__/businessChainR2.spec.ts:27 because it expects literal 不是0公告 while businessStatus emits 不能解释为未运行或 0 条公告. The copied canonical preimage reproduces the same one failure (5 pass/1 fail).",
+      "behavior_assessment": "The emitted text preserves unknown versus zero; no false-zero behavior demonstrated.",
+      "action": "If a completely green frontend suite is required, assert the semantic unknown/zero distinction or align the literal. This inherited mismatch is separate from the blocking P2.",
+      "introduced_by_frozen_delta": false
+    }
+  ],
+  "three_candidate_failure_classification": [
+    {
+      "candidate_failure": "businessChainR2.spec.ts:27 no announcement attempt is not no announcements",
+      "classification": "INHERITED_LITERAL_ASSERTION_MISMATCH",
+      "evidence": "Same assertion fails against copied pre-integration canonical preimage and current canonical code; current output explicitly says it cannot be interpreted as unrun or zero announcements.",
+      "functional_regression": false
+    },
+    {
+      "candidate_failure": "businessCompletionR3.spec.ts:32 shows NOT_RUN and NOT_MATERIALIZED as business states rather than zero success",
+      "classification": "OLD_ANNOUNCEMENT_FIXTURE_EXPECTS_UNPROVEN_NOT_RUN; FAIL_CLOSED_UNKNOWN_IS_CORRECT_FOR_MISSING_SAME_DATE_OFFICIAL_OWNER_COVERAGE",
+      "evidence": "Old candidate expected announcement state 未运行, but output was 无法确认 with ANNOUNCEMENT_COVERAGE_NOT_VERIFIED. The same test failed in the earlier announcement candidate baseline; it does not recur in current canonical focused tests after source/test adaptation.",
+      "current_release_blocker": "NO",
+      "current_runtime_state": "CANNOT_CONFIRM"
+    },
+    {
+      "candidate_failure": "businessCompletionR3.spec.ts:122 (old candidate line 88) surfaces an Eastmoney owner run in the top announcement status without claiming HKEX ran",
+      "classification": "OLD_FIXTURE_LACKS_AUTHORITATIVE_SAME_DATE_HKEX_NOT_RUN_BINDING; UNKNOWN_IS_FAIL_CLOSED; BASELINE_FAILURE",
+      "evidence": "Old candidate expected 部分完成（Eastmoney 港股镜像） but returned 无法确认; the same failure appears in the earlier announcement candidate baseline. Current canonical businessCompletionR3 focused tests pass after fixture/contract adaptation; current R7 UI row readback is CANNOT_CONFIRM.",
+      "current_release_blocker": "NO",
+      "current_runtime_state": "CANNOT_CONFIRM"
+    }
+  ],
+  "target_behavior_review": {
+    "assessment_states": [
+      "NOT_EVALUATED",
+      "INSUFFICIENT",
+      "ASSESSED_ZERO",
+      "ASSESSED_WITH_RELATIONS"
+    ],
+    "legacy_computed_zero_without_completeness": "INSUFFICIENT, not successful zero",
+    "accepted_count_when_not_evaluated": "null",
+    "two_source_pit_gate": "TWO_SOURCE_PIT_VERIFIED_REQUIRED",
+    "research_only_boundary": {
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    "offline_replay": {
+      "result": "PASS",
+      "checks": {
+        "pre_connect_cards_80": true,
+        "post_connect_cards_0": true,
+        "connect_rejections_80": true,
+        "relation_cards_preserved_80": true,
+        "all_membership_unverified": true,
+        "us_snapshot_not_ready": true,
+        "explicit_not_evaluated": true,
+        "accepted_count_null": true,
+        "explicit_quote_gate_reason": true,
+        "relation_gate_retained": true
+      },
+      "saved_trade_date": "20261002",
+      "expected_us_session": "20261001",
+      "material_record_count": 2592,
+      "pre_connect_cards": 80,
+      "post_connect_cards": 0,
+      "research_relation_cards_retained": 80,
+      "target_connect_membership": "CANNOT_CONFIRM",
+      "us_snapshot": "CANNOT_CONFIRM",
+      "assessment_state": "NOT_EVALUATED",
+      "accepted_hk_mapping_count": null,
+      "relation_gate": "TWO_SOURCE_PIT_VERIFIED_REQUIRED",
+      "scope_limit": "Saved-input offline propagation only; no live API/UI/service/scheduler/store/Stage/BUY was invoked."
+    }
+  },
+  "announcement_unqueried_display": {
+    "response_sha256": "46a61e86808e9b443180c24669d6d4c5d4f1eac680b4eb0c7f824bb6efbaf3a0",
+    "status": "PARTIAL",
+    "selected_date_observed_documents": 243,
+    "queried_issuer_count": 675,
+    "successfully_observed_issuer_count": 672,
+    "failed_issuer_count": 3,
+    "pending_document_count": 429,
+    "directory_exhaustion": "UNVERIFIED",
+    "explicit_daily_unqueried_count": "ABSENT; nested source-product scope_count does not authorize subtraction as a count of unqueried issuers",
+    "display_classification": "UNKNOWN",
+    "existing_r61_ui_receipt": {
+      "result": "PASS_FOR_R61_SELECTED_DATE_DISPLAY",
+      "unqueried_display": "UNKNOWN; daily response lacks explicit count; classification pending",
+      "sha256": "fb5d25d3818f5db93ed6cf68416fcdb4f6725e858786d52229a9f5681694ea3c"
+    },
+    "current_r7_ui": "CANNOT_CONFIRM",
+    "source_evidence": "apps/web/src/manager-selection/announcementObservation.ts:133 renders pending_issuers.length only when the array exists, otherwise 未知; it does not derive 696-675."
+  },
+  "typecheck": {
+    "targeted_vue_tsc": "PASS",
+    "full_npm_run_typecheck": "FAILS_ONLY_WITH_TS2578_AT_apps/web/src/views/ManagerSelectionView.spec.ts_LINES_4_AND_6",
+    "pre_us_and_candidate_logs": "show the same two TS2578 diagnostics",
+    "exact_current_r7_preimage_identity": "CANNOT_CONFIRM; this file is outside the ten-file frozen delta and its exact R7 preimage is not represented in the integration receipt."
+  },
+  "test_results": {
+    "frozen_python": "76 passed",
+    "current_focused_vitest": "32 passed, 1 inherited literal assertion failed",
+    "preimage_businessChainR2": "5 passed, 1 same literal assertion failed",
+    "targeted_vue_tsc": "passed",
+    "full_typecheck": "2 TS2578 diagnostics, not in the frozen 10-file delta",
+    "positive_relation_detail_reproduction": "REPRODUCED: exit 0; output has positive state and contradictory missing-evidence detail"
+  },
+  "artifacts": {
+    "canonical_integration_receipt": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/us_chain_evidence/canonical_integration/CANONICAL_INTEGRATION_RECEIPT.json",
+    "canonical_integration_receipt_sha256": "3943783d5081b28a05c4461233bd7b15d5659e7db4c00f14892194ab9a46d3f0",
+    "canonical_integration_diff": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/us_chain_evidence/canonical_integration/CANONICAL_INTEGRATION.diff",
+    "canonical_integration_diff_sha256": "fc9be937877f1e0871ea87a9d70d66a49aa671521d8bdf313663ee1c74a67c7c",
+    "candidate_patch": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/us_chain_evidence/US_CHAIN_PATCH.diff",
+    "candidate_patch_sha256": "a3b2d959b2ce278ba2d418a03fffe91a18f6c264c499653d5c1f6d4396566f2c",
+    "candidate_post_patch_receipt": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/us_chain_evidence/US_CHAIN_POST_PATCH_RECEIPT.json",
+    "candidate_post_patch_receipt_sha256": "2ffb7935bff6c5ace55a6420179ce9d21ef63162052307d825933e69f24d4cf9",
+    "frozen_input_replay_receipt": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/resume_20261003_review/R5_POST_PATCH_REPLAY.json",
+    "frozen_input_replay_receipt_sha256": "7649a6970b5a72317201d8e3542757513a12c2a46955c7a9b37f1f31ba22b295",
+    "saved_input": "/Users/lexi/Desktop/学习/v4_manager_workbench_acceptance_20261002/api_integration/manager_final_r5_deployment/ACTIVE_WORKSPACE.json",
+    "saved_input_sha256": "e08884c13b0f04cfbb059e37c45c39275afaca1449f6d59848c83d22323bf0a9",
+    "announcement_response": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/announcement_r61_deployment/ANNOUNCEMENTS_20261002.json",
+    "announcement_response_sha256": "46a61e86808e9b443180c24669d6d4c5d4f1eac680b4eb0c7f824bb6efbaf3a0",
+    "r61_ui_readback": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/announcement_r61_deployment/UI_READBACK_RECEIPT.json",
+    "r61_ui_readback_sha256": "fb5d25d3818f5db93ed6cf68416fcdb4f6725e858786d52229a9f5681694ea3c"
+  },
+  "log_sha256": {
+    "python_frozen_scope.log": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/resume_20261003_review/python_frozen_scope.log",
+      "sha256": "34773a4ba9902600c5c80f59cf3383acb9ef538d29de984aef3562f1b3899f8e"
+    },
+    "vitest_business_status.log": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/resume_20261003_review/vitest_business_status.log",
+      "sha256": "f6f895f1be062bcb29cfab49714397f4547697b04c3661d76a35687e97ef1c9c"
+    },
+    "vitest_preimage_business_chain_r2.log": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/resume_20261003_review/vitest_preimage_business_chain_r2.log",
+      "sha256": "f4208197117c6c3a8b934755475db3dab7fb8992d9f46716b206b39d2bcb263e"
+    },
+    "vitest_preimage_business_status.log": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/resume_20261003_review/vitest_preimage_business_status.log",
+      "sha256": "c3b4e317dd38b58afd21e201d0e5b527d6e460f53dbad1f9f100100182a969eb"
+    },
+    "vue_tsc_targeted.log": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/resume_20261003_review/vue_tsc_targeted.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "vue_tsc_full.log": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/resume_20261003_review/vue_tsc_full.log",
+      "sha256": "bf748f4ea59de4bc848fae9f2e5466fcd5554c4e5e5d94e5130506623e4d4e2d"
+    },
+    "frozen_r5_replay_stdout.log": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/resume_20261003_review/frozen_r5_replay_stdout.log",
+      "sha256": "2ec8b645ec29f4927acc69dca89951ad588cd1b4d353e0aea0aae84f2588e25d"
+    },
+    "typescript_business_status_full.log": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/us_chain_evidence/typescript_business_status_full.log",
+      "sha256": "e1321b01e75eaa3eee66fd2c8d108534bacc2617f6eda54f0050a2c55a6f10cc"
+    },
+    "typescript_inherited_announcement_status_baseline.log": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/us_chain_evidence/typescript_inherited_announcement_status_baseline.log",
+      "sha256": "7ab190b1f13b3bf0e6e2243b0dc7fc02743d8ac31fc36e5f95c48d3a54561279"
+    },
+    "typescript_us_status_regression.log": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/us_chain_evidence/typescript_us_status_regression.log",
+      "sha256": "e5f8fd23b253f98b66e4529095bc1c3fded69a266cb34f4b5308639123214670"
+    },
+    "typescript_candidate_targeted_tsc.log": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/us_chain_evidence/typescript_candidate_targeted_tsc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "positive_relation_detail_repro.log": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/resume_20261003_review/positive_relation_detail_repro.log",
+      "sha256": "946aa619420d8f955769b1f69b05976b05a27186ab527b49507d2fa263ca0f33"
+    }
+  },
+  "canonical_final_source_sha256": {
+    "v4/manager_research/workspace.py": "1e610245a61b14627b1b02ce082101a464555e4516794702751ba50dd151bd0e",
+    "v4/manager_research/research_evidence.py": "d2539b676d5779d9369fd8aba187c0565fcc38dbb0e89596d1248668fda4a7d5",
+    "apps/web/src/api/managerWorkspace.ts": "55e4719c4306c88c08e65bc30124ea3e3aa741df70f034f7d88f56ce5fc744f4",
+    "apps/web/src/api/managerWorkspace.attention.spec.ts": "273ababbc4248a4acb00145897157b69be1a422e02ff8d3c43241b27248375ae",
+    "apps/web/src/manager-selection/businessStatus.ts": "ca0b66fe9820b86aa99c347e227f355add7d98b0d46bfae657f3b5218f05c8cc",
+    "apps/web/src/manager-selection/__tests__/businessChainR2.spec.ts": "00ea4a0e4caa5bb68bd722cc598fc782df89f17627b4ee95bf4c0bc099b50219",
+    "apps/web/src/manager-selection/__tests__/businessCompletionR3.spec.ts": "0fa2b06db9f00dfecce4a8be3be5eca868594efa30b27b2879209cbe2f74d2f8",
+    "tests/test_us_relation_assessment_state.py": "6dadd629f76b4ff5f8d677225e7af1bdf11485eecf994dd9fb9266a831a26992",
+    "tests/test_us_relation_pipeline_r2.py": "c08e333d2f2d29d6af52800a6f0e2d075a52c863acff4d3d4abcc1e21eb7ac33",
+    "tests/test_manager_business_completion_b.py": "4e760b7fb47a3bf448315568b0a94b8c4882c5836dbd09e81e5cb958dfeb9e80"
+  },
+  "diff_sha256": {
+    "canonical_integration": "fc9be937877f1e0871ea87a9d70d66a49aa671521d8bdf313663ee1c74a67c7c",
+    "candidate_patch": "a3b2d959b2ce278ba2d418a03fffe91a18f6c264c499653d5c1f6d4396566f2c"
+  },
+  "limitations": [
+    "No current R7 API/UI readback or natural-period evidence; CANNOT_CONFIRM.",
+    "The payload includes incomplete announcement coverage and does not provide an explicit pending issuer count; 696-675 is not accepted as authoritative.",
+    "Review applies only to the frozen US relation-state delta and the requested related status classification.",
+    "Frozen delta is not PASS/publishable yet because the positive relation UI detail has a reproducible contradictory explanation; live R7 API/UI and natural-run evidence also remain CANNOT_CONFIRM."
+  ]
+}
