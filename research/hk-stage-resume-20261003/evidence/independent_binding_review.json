@@ -1,0 +1,29 @@
+{
+  "schema": "HK_STAGE_RESUME_INDEPENDENT_REVIEW_SUMMARY_V1",
+  "reviewer": "/root/binding_review",
+  "model": "gpt-6-luna",
+  "reasoning_effort": "max",
+  "transcribed_by": "controller from independent reviewer final",
+  "scope": "Frozen stage_binding_candidate versus deployed 20261002-hk-open-stage-r1; no edits or integration",
+  "TESTED": "20 focused tests passed independently; adjacent 13 passed and 1 failed",
+  "REVIEWED": "PASS for exact prior Connect date/source binding scope",
+  "BEHAVIOR_VERIFIED": "PASS synthetic exact-date/source-identity cases only; PIT cutoff compliance CANNOT_CONFIRM",
+  "P0": [],
+  "P1": [],
+  "P2": [
+    {"id": "PIT_CUTOFF_UNCONFIRMED", "status": "CANNOT_CONFIRM", "detail": "runner.py:632-647 validates source signal dates, not stage-time capture. Unchanged hk_input_validation.py:203-220 checks split-date eligibility capture-day equality, not intraday cutoff. No general capture_at/cutoff_at schema contract. Do not invent timestamps or promote observations to formal results."},
+    {"id": "EXISTING_HK_NAVIGATION_FAILURE", "status": "REPRODUCED_ON_CANDIDATE_AND_BASELINE", "test": "test_date_catalog_keeps_hk_open_today_navigable_without_promoting_it_as_a_pool", "expected": "navigation_date=20260925 and hk_observation_only_dates contains 20260925", "actual": "navigation_date=20260924", "detail": "Deployed/candidate domains/preselection.py:104-108,126,1075-1078 uses generic non-trading dates. contracts/trading_calendar_2026.json marks 20260925 closed globally, while per-market calendar distinguishes HK securities open from Connect closed. date_catalog return lacks hk_observation_only_dates. Canonical is split; these line references are to deployed/candidate monolith only."}
+  ],
+  "baseline_prior_binding": "RED reproduced: exact-date input missing hkconnect_d1_top100.json for target 20260925",
+  "hashes": {
+    "candidate_runner": "f4c9043c948212b9d586b86a5b0c5c4924d7ffcd0bbc3d99c237988d508c9e20",
+    "baseline_runner": "50da5908c98330df9ad3dee6d44ad1042f559883815507be28a4257bf0f03f67",
+    "canonical_runner": "edc9798767a5c3882cea20ebed8decf95710f390c4d70fecb7d85c276af03671",
+    "candidate_test": "518a7c8271aedaf37e1df02119ebf42d9dbbcc98596684d97d90dc1816987b30",
+    "candidate_and_baseline_preselection": "f08f4620da6570ae2c8e48783dfb454237c958f0bbcfd8e92dfa4d096bc26809"
+  },
+  "INTEGRATED": false,
+  "DEPLOYED": false,
+  "SAFE_TO_APPLY_ON_CURRENT_CANONICAL_HEAD": "CANNOT_CONFIRM",
+  "NATURAL_VERIFIED": "NATURAL_SLOT_UNVERIFIED"
+}

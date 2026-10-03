@@ -1,0 +1,42 @@
+{
+  "schema": "HK_STAGE_UI_REVIEW_20261003_V1",
+  "reviewer": "/root/page_verify",
+  "model": "gpt-6-luna",
+  "transcribed_by": "controller from reviewer final and supplemental final",
+  "UI_VERIFIED": "FAIL based on prior stable accessibility readback",
+  "latest_supplemental_readback": "CANNOT_CONFIRM: Browser is not available: 3; no retry",
+  "steps": [
+    "Open and reload http://127.0.0.1:8873/?date=20260930&stage=STAGE_0930_0935",
+    "Initial page: 当前请求日期：未指定; default stage 09:25",
+    "Set labelled date field to 2026-09-30; displayed request date becomes 20260930 and selected stage 09:30-09:35",
+    "Set date to 2026-09-28; selected stage remains 09:30-09:35",
+    "Initial transition had other sections loading; without further action take another full AX readback; selected stage no longer loading and shows 历史回补读取失败 · CANNOT_CONFIRM"
+  ],
+  "observed_stable_HK_panel": {
+    "heading": "港股通观察行",
+    "reasons": "Six unverified reasons shown, matching API display_reasons",
+    "body": "历史回补读取失败 · CANNOT_CONFIRM。",
+    "observation_count_or_names_visible": false
+  },
+  "api_comparison": {
+    "route": "/api/v3/workbench/stage?date=20260928&stage=STAGE_0930_0935&limit=50",
+    "HK_status": "PARTIAL_WITH_ROWS",
+    "display_mode": "OBSERVATION_UNVERIFIED",
+    "observation_count": 10,
+    "rows_length": 10,
+    "selected_rows": null,
+    "runner_receipt_status": "CANNOT_CONFIRM",
+    "first_rows": [
+      {"name": "多点数智", "formal_eligible": false, "decision": "WATCH_ONLY"},
+      {"name": "伟禄科技股份", "formal_eligible": false, "decision": "NO_TRADE"}
+    ]
+  },
+  "missing_case_20260930": "PASS: 待确认/缺少正式产物 and SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID; missing result not presented as real zero",
+  "date_controls": "20260930 and 20261002 manually selectable",
+  "limitations": [
+    "Supplemental browser read failed; stable AX findings above are from the earlier successful readback, not a new snapshot",
+    "Only 9/30 top-controls screenshot was emitted inline; no file saved and no screenshot of 9/28 panel",
+    "Page version says V4 · 运行版本 CANNOT_CONFIRM; browser alone cannot verify release identity",
+    "This file is a reviewer evidence summary, not a raw AX export"
+  ]
+}
