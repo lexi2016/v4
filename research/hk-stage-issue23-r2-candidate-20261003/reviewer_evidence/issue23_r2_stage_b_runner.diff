@@ -1,0 +1,226 @@
+--- /Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1/app/stage_center/runner.py	2026-10-02 14:54:10
++++ /Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_only_r2/stage_r1_binding_candidate/app/stage_center/runner.py	2026-10-03 11:21:10
+@@ -458,16 +458,46 @@
+ def _stage_markets_for_date(stage_id: str, trade_date: str) -> tuple[str, ...]:
+     """Keep stage lanes isolated by their own securities-market calendar."""
+     try:
+         return eligible_stage_markets(_stage_markets(stage_id), trade_date)
+     except ValueError as error:
+         raise RunnerError(str(error)) from error
+ 
+ 
++def _resolve_stage_market_scope(
++    stage_id: str,
++    trade_date: str,
++    *,
++    historical_backfill: bool,
++    historical_markets: Sequence[str] | None,
++) -> tuple[str, ...]:
++    """Apply an optional, historical-only lane allowlist to calendar output."""
++    eligible = _stage_markets_for_date(stage_id, trade_date)
++    if historical_markets is None:
++        return eligible
++    if not historical_backfill:
++        raise RunnerError("historical market allowlist requires historical_backfill")
++    if isinstance(historical_markets, (str, bytes)):
++        raise RunnerError("historical market allowlist must be a sequence of market ids")
++    try:
++        requested = tuple(historical_markets)
++    except TypeError as error:
++        raise RunnerError("historical market allowlist is invalid") from error
++    scheduled = _stage_markets(stage_id)
++    if any(not isinstance(market, str) or market not in scheduled for market in requested):
++        raise RunnerError("historical market allowlist contains a market outside the stage contract")
++    if not requested or len(requested) != len(set(requested)):
++        raise RunnerError("historical market allowlist must be non-empty and unique")
++    if any(market not in eligible for market in requested):
++        raise RunnerError("historical market allowlist contains a market closed by the date calendar")
++    requested_set = set(requested)
++    return tuple(market for market in eligible if market in requested_set)
++
++
+ def _latest_entry(root: Path, filename: str, key: str) -> Mapping[str, Any] | None:
+     from stage_center._runner_parts.row_evidence import __latest_entry_body as _v4_impl
+     return _v4_impl(globals(), root, filename, key)
+ 
+ 
+ def _read_verified_raw_source(root: Path, verified: Mapping[str, Any]) -> SourceResult:
+     """Rehydrate a SourceResult from one already verified immutable raw run."""
+     from stage_center._runner_parts.row_evidence import __read_verified_raw_source_body as _v4_impl
+@@ -537,26 +567,138 @@
+ 
+ 
+ def _build_hk_stage_binding(
+     root: Path,
+     trade_date: str,
+     *,
+     preselection_source_root: Path | str | None = None,
+ ) -> StageUniverseBinding:
+-    """Bind only the strict canonical HK D-1 pool for this target date."""
++    """Bind the exact HK D-1 pool or its exact prior Connect observation."""
+     from infrastructure.preselection_pool_store import PreselectionSourceResolver
+ 
+     resolver = PreselectionSourceResolver(root, source_root=preselection_source_root)
++    open_states = {
++        TradingDayState.FULL_TRADING_DAY,
++        TradingDayState.HALF_TRADING_DAY_AM,
++    }
+     try:
+-        with resolver.source_read_lease(trade_date, timeout_seconds=0):
+-            return _build_hk_d1_binding(
+-                root,
+-                trade_date,
++        target_states = resolve_market_states(trade_date)
++        securities_state = target_states["hk_securities"]
++        connect_state = target_states["hk_connect"]
++        if securities_state is TradingDayState.UNKNOWN or connect_state is TradingDayState.UNKNOWN:
++            raise RunnerError("HK D1 target calendar CANNOT_CONFIRM")
++        if securities_state not in open_states:
++            raise RunnerError(
++                f"HK D1 binding unavailable: HK securities market is closed on {trade_date}"
++            )
++
++        if connect_state in open_states:
++            # An open Connect date always binds only its own exact-date pool.
++            with resolver.source_read_lease(trade_date, timeout_seconds=0):
++                return _build_hk_d1_binding(
++                    root,
++                    trade_date,
++                    preselection_source_root=preselection_source_root,
++                )
++
++        if connect_state is not TradingDayState.NON_TRADING_DAY:
++            raise RunnerError("HK D1 Connect calendar CANNOT_CONFIRM")
++
++        def previous_session(market: str) -> str:
++            cursor = datetime.strptime(trade_date, "%Y%m%d")
++            for _ in range(45):
++                cursor -= timedelta(days=1)
++                candidate_date = cursor.strftime("%Y%m%d")
++                state = resolve_market_states(candidate_date)[market]
++                if state is TradingDayState.UNKNOWN:
++                    raise RunnerError("HK D1 previous-session calendar CANNOT_CONFIRM")
++                if state in open_states:
++                    return candidate_date
++            raise RunnerError("HK D1 previous-session calendar CANNOT_CONFIRM")
++
++        price_signal_date = previous_session("hk_securities")
++        source_date = previous_session("hk_connect")
++        if source_date >= trade_date:
++            raise RunnerError("HK D1 prior Connect session identity CANNOT_CONFIRM")
++
++        with resolver.source_read_lease(source_date, timeout_seconds=0):
++            owner = resolver.root_for_date(source_date)
++            snapshot = resolver.read_pool_snapshot(
++                source_date, "hkconnect_d1_top100"
++            )
++            if snapshot.get("physical_source_root") != str(owner):
++                raise RunnerError("HK D1 prior source owner changed during binding")
++            source_binding = _build_hk_d1_binding(
++                root,
++                source_date,
+                 preselection_source_root=preselection_source_root,
++            )
++            source_sha = str(snapshot.get("artifact_raw_sha256") or "")
++            source_path = owner / str(snapshot.get("artifact_relative") or "")
++            if (
++                source_binding.sha256 != source_sha
++                or _evidence_value(source_binding.evidence, "hk_d1_json") != str(source_path)
++                or _evidence_value(source_binding.evidence, "hk_d1_sha256") != source_sha
++            ):
++                raise RunnerError("HK D1 prior artifact identity changed during binding")
++
++            confirmed = resolver.read_pool_snapshot(
++                source_date, "hkconnect_d1_top100"
++            )
++            identity_keys = (
++                "artifact_raw_sha256",
++                "manifest_raw_sha256",
++                "receipt_raw_sha256",
++                "physical_source_root",
++                "artifact_relative",
++                "manifest_relative",
++                "receipt_relative",
++            )
++            if (
++                any(confirmed.get(key) != snapshot.get(key) for key in identity_keys)
++                or confirmed.get("artifact") != snapshot.get("artifact")
++            ):
++                raise RunnerError("HK D1 prior source trio changed during binding")
++
++            source_rows = snapshot["artifact"].get(
++                "rows", snapshot["artifact"].get("data", ())
++            )
++            source_signal_dates = {
++                str(row.get("signal_date") or "")
++                for row in source_rows
++                if isinstance(row, Mapping)
++            }
++            if len(source_signal_dates) != 1:
++                raise RunnerError("HK D1 prior signal date identity CANNOT_CONFIRM")
++            source_signal_date = next(iter(source_signal_dates))
++            if (
++                not re.fullmatch(r"\d{8}", source_signal_date)
++                or source_signal_date >= source_date
++            ):
++                raise RunnerError("HK D1 prior signal date is outside its PIT boundary")
++
++            return StageUniverseBinding.ready(
++                market="HK_CONNECT",
++                trade_date=trade_date,
++                role="HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION",
++                codes=source_binding.codes,
++                source_run_id=f"hk-d1-{source_date}-{source_sha[:16]}",
++                sha256=source_sha,
++                evidence=(
++                    *source_binding.evidence,
++                    f"hk_d1_source_trade_date={source_date}",
++                    f"hk_d1_source_signal_date={source_signal_date}",
++                    f"hk_d1_source_manifest_sha256={snapshot['manifest_raw_sha256']}",
++                    f"hk_d1_source_receipt_sha256={snapshot['receipt_raw_sha256']}",
++                    f"hk_observation_trade_date={trade_date}",
++                    f"hk_observation_eligibility_source_date={source_date}",
++                    f"hk_observation_price_signal_date={price_signal_date}",
++                    "hk_observation_mode=HK_SECURITIES_OPEN_HK_CONNECT_CLOSED",
++                ),
+             )
+     except RunnerError:
+         raise
+     except (OSError, ValueError) as error:
+         raise RunnerError(
+             f"HK D1 source read lease CANNOT_CONFIRM for {trade_date}: {error}"
+         ) from error
+ 
+@@ -811,28 +953,30 @@
+         return _v4_impl(globals(), self, trade_date, stage_id, markets, candidate_sha_by_market)
+ 
+     def _run_one(
+         self,
+         decision: DueDecision,
+         *,
+         historical_backfill: bool = False,
+         backfill_run_id: str | None = None,
++        historical_markets: Sequence[str] | None = None,
+     ) -> dict[str, Any]:
+         from stage_center._runner_parts.slot_execution import _StageCenterRunner__run_one_body as _v4_impl
+-        return _v4_impl(globals(), self, decision, historical_backfill=historical_backfill, backfill_run_id=backfill_run_id)
++        return _v4_impl(globals(), self, decision, historical_backfill=historical_backfill, backfill_run_id=backfill_run_id, historical_markets=historical_markets)
+ 
+     def tick(
+         self,
+         trade_date: str,
+         evaluated_at: datetime,
+         *,
+         stage_id: str | None = None,
+         historical_backfill: bool = False,
++        historical_markets: Sequence[str] | None = None,
+         _skip_precapture: bool = False,
+     ) -> dict[str, Any]:
+         # Capture once per outer scheduler tick, before due work can spend
+         # time in another provider. Recursive stage dispatches reuse it.
+         from stage_center._runner_parts.tick_planning import _StageCenterRunner_tick_body as _v4_impl
+-        return _v4_impl(globals(), self, trade_date, evaluated_at, stage_id=stage_id, historical_backfill=historical_backfill, _skip_precapture=_skip_precapture)
++        return _v4_impl(globals(), self, trade_date, evaluated_at, stage_id=stage_id, historical_backfill=historical_backfill, historical_markets=historical_markets, _skip_precapture=_skip_precapture)
+ 
+ 
+ __all__ = ["RunnerConfig", "RunnerError", "SlotLock", "StageCenterRunner", "build_production_config"]

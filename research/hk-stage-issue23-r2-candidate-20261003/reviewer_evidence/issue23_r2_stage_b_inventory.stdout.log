@@ -1,0 +1,185 @@
+{
+  "active": {
+    "config_sha256": "bfc0f35b16d3f77da16e8d4a5c848180a8a2afcdd5dd5a6c390d85d5126d0d81",
+    "inventory_count": 914,
+    "inventory_sha256": "dbe82acd4e3bbbee02d36a647d57ea19d54f557a3ac3c82d70b639aa8897e0a3",
+    "plist_sha256": "9cfeef77dc9293ad93fc1a56abe182e65b99f446181282e452f94c325303cf57",
+    "release_manifest_sha256": "cf2e695d21c14a9e451d7c8b9790d6e102949d32ab5f8a90bc29e0496c0845da",
+    "stage_a_plist_sha256": "9cfeef77dc9293ad93fc1a56abe182e65b99f446181282e452f94c325303cf57",
+    "stage_a_release_manifest_sha256": "cf2e695d21c14a9e451d7c8b9790d6e102949d32ab5f8a90bc29e0496c0845da"
+  },
+  "active_release_id": "20261002-hk-open-stage-r1",
+  "candidate": {
+    "activation_status": "NOT_ACTIVATED",
+    "app_inventory_count": 914,
+    "app_inventory_sha256": "6f18dda4f714ec85cfa8400162f29af2bd7bf427c8afcedb7491f5060555dbfc",
+    "candidate_status": "READY_FOR_REVIEW_WITH_GAPS",
+    "deployment_status": "CANNOT_CONFIRM",
+    "inner_app_manifest_sha256": "4f96be93d8e1ee5a1b1a009a0b033ff95863f4063bdb4064289d31b42a2b8f19",
+    "manifest_inventory_count": 914,
+    "manifest_inventory_sha256": "6f18dda4f714ec85cfa8400162f29af2bd7bf427c8afcedb7491f5060555dbfc",
+    "receipt_inventory_sha256": "6f18dda4f714ec85cfa8400162f29af2bd7bf427c8afcedb7491f5060555dbfc",
+    "receipt_manifest_sha256": "e94d5507bb7f629c0b41b5fd6334d96b0dae61a9fc3c15f80983fa48b038e7d5",
+    "release_manifest_sha256": "e94d5507bb7f629c0b41b5fd6334d96b0dae61a9fc3c15f80983fa48b038e7d5"
+  },
+  "candidate_release_id": "20261003-hk-stage-binding-runner-r2",
+  "candidate_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_only_r2/stage_r1_binding_candidate",
+  "config": {
+    "active_python_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "buy_gate_updated": false,
+    "candidate_python_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "candidate_shared_data_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_only_r2/stage_r1_binding_candidate/app/upstreams/v3_shared_data",
+    "changed_keys": [
+      "release_id",
+      "shared_data_root"
+    ],
+    "expected_candidate_shared_data_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_only_r2/stage_r1_binding_candidate/app/upstreams/v3_shared_data",
+    "expected_changed_keys": [
+      "release_id",
+      "shared_data_root"
+    ],
+    "only_expected_keys_changed": true,
+    "orders_sent": false,
+    "production_allowed": false,
+    "safety": {
+      "buy_gate_updated": false,
+      "orders_sent": false,
+      "production_allowed": false
+    }
+  },
+  "four_nonoverlay_paths": {
+    "domains/task_status.py": {
+      "active_matches_stage_a": true,
+      "active_sha256_now": "17254ea0e50e9f14cf28bebf64cf867494d434bc527f112e99e00cc81cfbe363",
+      "candidate_matches_active": true,
+      "candidate_sha256_now": "17254ea0e50e9f14cf28bebf64cf867494d434bc527f112e99e00cc81cfbe363",
+      "workspace_matches_stage_a": true,
+      "workspace_sha256_now": "42a355b113a07b6d0c6c42b995ec9a123ca8608e74f8a6d11258a6bd130ebb97"
+    },
+    "ops/_run_stage_center_nodes_parts/node_entry.py": {
+      "active_matches_stage_a": true,
+      "active_sha256_now": "f9530f010055476e17d87e93198e28d3f4943ed34255a2419130eb9f39deb6ed",
+      "candidate_matches_active": true,
+      "candidate_sha256_now": "f9530f010055476e17d87e93198e28d3f4943ed34255a2419130eb9f39deb6ed",
+      "workspace_matches_stage_a": true,
+      "workspace_sha256_now": "2343cd5e250aaa05acc698ba2daf34220f13ffb5543c655df799fdb3bd7fe464"
+    },
+    "ops/_run_stage_center_nodes_parts/stage_dispatch.py": {
+      "active_matches_stage_a": true,
+      "active_sha256_now": "d7ea89f5467fb4d62af6b43c59d9dcd7cfcd020a1ee1ce07a9fae8525f735f86",
+      "candidate_matches_active": true,
+      "candidate_sha256_now": "d7ea89f5467fb4d62af6b43c59d9dcd7cfcd020a1ee1ce07a9fae8525f735f86",
+      "workspace_matches_stage_a": true,
+      "workspace_sha256_now": "06548184a4b09b0ae94053f2308eefb3bf5c31afc9f04abaeb805db7cebe8adb"
+    },
+    "stage_center/consumer.py": {
+      "active_matches_stage_a": true,
+      "active_sha256_now": "9e3a864c74eaec6c616b911b09c167c8cb407db8435343c1b522de4f4c9459eb",
+      "candidate_matches_active": true,
+      "candidate_sha256_now": "9e3a864c74eaec6c616b911b09c167c8cb407db8435343c1b522de4f4c9459eb",
+      "workspace_matches_stage_a": true,
+      "workspace_sha256_now": "865c2ea8183e5e6aeb9145ce2bfbb3e5b442825904b14c47fe024593a9205489"
+    }
+  },
+  "inventory_diff": {
+    "active_count": 914,
+    "added": [],
+    "candidate_count": 914,
+    "candidate_entries_match_manifest": true,
+    "changed_paths": [
+      "stage_center/runner.py",
+      "stage_center_tick_config.json"
+    ],
+    "changed_paths_are_runner_and_config": true,
+    "differences": [
+      {
+        "active": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center/runner.py",
+          "sha256": "50da5908c98330df9ad3dee6d44ad1042f559883815507be28a4257bf0f03f67",
+          "size": 36866
+        },
+        "candidate": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center/runner.py",
+          "sha256": "7e6e958df4d64a8f7324d96bb09548f29c9da3ba206a4548420fa021da47d34f",
+          "size": 43895
+        },
+        "path": "stage_center/runner.py"
+      },
+      {
+        "active": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center_tick_config.json",
+          "sha256": "bfc0f35b16d3f77da16e8d4a5c848180a8a2afcdd5dd5a6c390d85d5126d0d81",
+          "size": 2840
+        },
+        "candidate": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center_tick_config.json",
+          "sha256": "c9f9e3448de50cd6b05c621dfbb4c4e08f4ec5b4c67591de9a10ae0f0717839f",
+          "size": 2844
+        },
+        "path": "stage_center_tick_config.json"
+      }
+    ],
+    "removed": []
+  },
+  "overlay": {
+    "active_inventory_identity_matches": true,
+    "active_manifest_identity_matches": true,
+    "allowlist": [
+      "stage_center/runner.py"
+    ],
+    "digest_actual": "07ecaa272dba3f360581f40cf0a6b280a908404ba9313402cc79ac07d1478efe",
+    "digest_manifest_value": "07ecaa272dba3f360581f40cf0a6b280a908404ba9313402cc79ac07d1478efe",
+    "digest_receipt_value": "07ecaa272dba3f360581f40cf0a6b280a908404ba9313402cc79ac07d1478efe",
+    "entries": [
+      {
+        "action": "OVERLAY_EXPLICIT_STAGE_SOURCE_DEPENDENCY",
+        "active_baseline_sha256": "50da5908c98330df9ad3dee6d44ad1042f559883815507be28a4257bf0f03f67",
+        "candidate_sha256": "7e6e958df4d64a8f7324d96bb09548f29c9da3ba206a4548420fa021da47d34f",
+        "path": "stage_center/runner.py",
+        "source_workspace_sha256": "7e6e958df4d64a8f7324d96bb09548f29c9da3ba206a4548420fa021da47d34f"
+      }
+    ],
+    "exact_single_runner_entry": true,
+    "non_overlay_path_count": 912,
+    "non_overlay_preserved": true,
+    "workspace_overlay_sha_matches_candidate": true
+  },
+  "protected_workspace_sources": {
+    "ops/build_release_candidate.py": {
+      "current_sha256": "368315e070f546d2b63d0e6ae4a67380185663c8b5d04aa35ac63b47c8b8c15b",
+      "matches": true,
+      "stage_a_sha256": "368315e070f546d2b63d0e6ae4a67380185663c8b5d04aa35ac63b47c8b8c15b"
+    },
+    "ops/build_release_candidate_stage.py": {
+      "current_sha256": "79cbb7ab98ca894594c2f80f802d9ed410bf64489decad469fdf3fc9d6b402df",
+      "matches": true,
+      "stage_a_sha256": "79cbb7ab98ca894594c2f80f802d9ed410bf64489decad469fdf3fc9d6b402df"
+    },
+    "ops/stage_service_overlay_contract.py": {
+      "current_sha256": "54e0d66e907d296a56a5886e9e7fc1920d22461a9a6a4b88423c0862708a5f91",
+      "matches": true,
+      "stage_a_sha256": "54e0d66e907d296a56a5886e9e7fc1920d22461a9a6a4b88423c0862708a5f91"
+    },
+    "stage_center/runner.py": {
+      "current_sha256": "7e6e958df4d64a8f7324d96bb09548f29c9da3ba206a4548420fa021da47d34f",
+      "matches": true,
+      "stage_a_sha256": "7e6e958df4d64a8f7324d96bb09548f29c9da3ba206a4548420fa021da47d34f"
+    }
+  },
+  "python_executable": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+  "service_binding": {
+    "activation_status": null,
+    "label": "com.lexi.stage-center.scheduler",
+    "launchctl_called": null,
+    "plist_sha256": null,
+    "receipt_plist_sha256": "2591d9d936d5c9b899c9d9162e9b60eb143fcf94fad696c6b0aeab34c3e07625"
+  }
+}

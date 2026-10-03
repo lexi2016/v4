@@ -1,0 +1,45 @@
+{
+  "candidate_module_paths": {
+    "runner": {
+      "inside_candidate": true,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_only_r2/stage_r1_binding_candidate/app/stage_center/runner.py",
+      "sha256": "7e6e958df4d64a8f7324d96bb09548f29c9da3ba206a4548420fa021da47d34f"
+    },
+    "slot_execution": {
+      "inside_candidate": true,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_only_r2/stage_r1_binding_candidate/app/stage_center/_runner_parts/slot_execution.py",
+      "sha256": "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a"
+    },
+    "tick_planning": {
+      "inside_candidate": true,
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_only_r2/stage_r1_binding_candidate/app/stage_center/_runner_parts/tick_planning.py",
+      "sha256": "c27cb9717ec2940364d1e1186529e6df1b37b07aae0c56f65334f6f9bf06dd15"
+    }
+  },
+  "cwd": "/private/tmp",
+  "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+  "python_version": "3.14.6 (main, Jul 18 2026, 17:05:49) [Clang 22.1.3 ]",
+  "reproductions": [
+    {
+      "error": "_StageCenterRunner_tick_body() got an unexpected keyword argument 'historical_markets'. Did you mean 'historical_backfill'?",
+      "error_type": "TypeError",
+      "operation": "candidate StageCenterRunner.tick wrapper with historical_markets defaulting to None",
+      "result": "ERROR",
+      "traceback": "Traceback (most recent call last):\n  File \"/tmp/issue23_r2_stage_b_compat_repro.py\", line 38, in <module>\n    operation()\n    ~~~~~~~~~^^\n  File \"/tmp/issue23_r2_stage_b_compat_repro.py\", line 27, in <lambda>\n    lambda: runner.StageCenterRunner.tick(\n            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^\n        object(), \"20261002\", datetime(2026, 10, 2, 9, 25),\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n        stage_id=\"STAGE_0925\",\n        ^^^^^^^^^^^^^^^^^^^^^^\n    ),\n    ^\n  File \"/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_only_r2/stage_r1_binding_candidate/app/stage_center/runner.py\", line 979, in tick\n    return _v4_impl(globals(), self, trade_date, evaluated_at, stage_id=stage_id, historical_backfill=historical_backfill, historical_markets=historical_markets, _skip_precapture=_skip_precapture)\nTypeError: _StageCenterRunner_tick_body() got an unexpected keyword argument 'historical_markets'. Did you mean 'historical_backfill'?\n"
+    },
+    {
+      "error": "_StageCenterRunner__run_one_body() got an unexpected keyword argument 'historical_markets'. Did you mean 'historical_backfill'?",
+      "error_type": "TypeError",
+      "operation": "candidate StageCenterRunner._run_one wrapper with historical_markets defaulting to None",
+      "result": "ERROR",
+      "traceback": "Traceback (most recent call last):\n  File \"/tmp/issue23_r2_stage_b_compat_repro.py\", line 38, in <module>\n    operation()\n    ~~~~~~~~~^^\n  File \"/tmp/issue23_r2_stage_b_compat_repro.py\", line 34, in <lambda>\n    lambda: runner.StageCenterRunner._run_one(object(), None),\n            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File \"/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_only_r2/stage_r1_binding_candidate/app/stage_center/runner.py\", line 964, in _run_one\n    return _v4_impl(globals(), self, decision, historical_backfill=historical_backfill, backfill_run_id=backfill_run_id, historical_markets=historical_markets)\nTypeError: _StageCenterRunner__run_one_body() got an unexpected keyword argument 'historical_markets'. Did you mean 'historical_backfill'?\n"
+    }
+  ],
+  "service_or_collection_invoked": false,
+  "signatures": {
+    "R1_slot_helper": "(_v4_scope, /, self, decision, *, historical_backfill, backfill_run_id)",
+    "R1_tick_helper": "(_v4_scope, /, self, trade_date, evaluated_at, *, stage_id, historical_backfill, _skip_precapture)",
+    "candidate_run_one_wrapper": "(self, decision: 'DueDecision', *, historical_backfill: 'bool' = False, backfill_run_id: 'str | None' = None, historical_markets: 'Sequence[str] | None' = None) -> 'dict[str, Any]'",
+    "candidate_tick_wrapper": "(self, trade_date: 'str', evaluated_at: 'datetime', *, stage_id: 'str | None' = None, historical_backfill: 'bool' = False, historical_markets: 'Sequence[str] | None' = None, _skip_precapture: 'bool' = False) -> 'dict[str, Any]'"
+  }
+}

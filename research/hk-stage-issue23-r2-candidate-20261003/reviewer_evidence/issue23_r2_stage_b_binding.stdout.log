@@ -1,0 +1,64 @@
+{
+  "binding": {
+    "evidence": {
+      "hk_d1_json": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20260930/hkconnect_d1_top100.json",
+      "hk_d1_membership": "exact_date_top100",
+      "hk_d1_sha256": "f45233cd1d30d04a8e89c3a08ba8dab4ff63f1d787809b3323307f6f96cb5901",
+      "hk_d1_source_manifest_sha256": "edd1e184dc540273ccfc098e1e998e466848c0e689e0458e0834ee6e0ee99359",
+      "hk_d1_source_receipt_sha256": "49386238fdae8ca6687ee1a65ba58a3a008c8cf030b0142010ec5737f5f365dc",
+      "hk_d1_source_signal_date": "20260929",
+      "hk_d1_source_trade_date": "20260930",
+      "hk_observation_eligibility_source_date": "20260930",
+      "hk_observation_mode": "HK_SECURITIES_OPEN_HK_CONNECT_CLOSED",
+      "hk_observation_price_signal_date": "20260930",
+      "hk_observation_trade_date": "20261002"
+    },
+    "market": "HK_CONNECT",
+    "member_count": 100,
+    "role": "HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION",
+    "sha256": "f45233cd1d30d04a8e89c3a08ba8dab4ff63f1d787809b3323307f6f96cb5901",
+    "source_run_id": "hk-d1-20260930-f45233cd1d30d04a",
+    "status": "READY",
+    "unique_member_count": 100
+  },
+  "called_entrypoint": "candidate stage_center.runner._build_hk_stage_binding",
+  "candidate_module_paths": {
+    "pool_store": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_only_r2/stage_r1_binding_candidate/app/infrastructure/preselection_pool_store.py",
+    "runner": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_only_r2/stage_r1_binding_candidate/app/stage_center/runner.py"
+  },
+  "collection_or_selection_called": false,
+  "configured_roots": {
+    "hk_d1_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+    "preselection_source_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data"
+  },
+  "cwd": "/private/tmp",
+  "owner_after": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+  "owner_before": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+  "owner_is_configured_secondary": true,
+  "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+  "read_only_unchanged": {
+    "date_tree_after": {
+      "file_count": 15,
+      "sha256": "9dfc326043e51344e42fad8a8ffe544ed612fb9918ed9c4ad8eba858a1f7600f"
+    },
+    "date_tree_before": {
+      "file_count": 15,
+      "sha256": "9dfc326043e51344e42fad8a8ffe544ed612fb9918ed9c4ad8eba858a1f7600f"
+    },
+    "date_tree_same": true,
+    "producer_lock_after": {
+      "mtime_ns": 1790940596081344587,
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/.materialize.lock",
+      "sha256": "f6b84553ef5af80bf83837e9252cba14132246df239e0e473f279bb5b430580e",
+      "size": 82
+    },
+    "producer_lock_before": {
+      "mtime_ns": 1790940596081344587,
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/.materialize.lock",
+      "sha256": "f6b84553ef5af80bf83837e9252cba14132246df239e0e473f279bb5b430580e",
+      "size": 82
+    },
+    "producer_lock_same": true
+  },
+  "target_trade_date": "20261002"
+}

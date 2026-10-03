@@ -1,0 +1,181 @@
+{
+  "schema_version": "ISSUE23_R2_STAGE_A_WRITER_RECEIPT_V1",
+  "generated_at_utc": "2026-10-03T06:37:39Z",
+  "scope_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_r2_landing/SCOPE.md",
+  "repository_root": "/Users/lexi/Desktop/学习/v4_app",
+  "source_identity": {
+    "git_head_before_and_after": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "package_evidence_commit": "49b9e9b03ba93ddc736ed193a563e9377dd966ad",
+    "original_builder_reference_commit": "97468793ff0cb50c60121916c1057d9ac4fa4a5f",
+    "writer_runtime_python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "writer_runtime_python_version": "3.14.6 (main, Jul 18 2026, 17:05:49) [Clang 22.1.3 ]"
+  },
+  "delivery_verification": {
+    "package_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_r2_landing/delivery/V4_ISSUE23_RUNNER_ONLY_R2",
+    "package_manifest_entries": 16,
+    "package_manifest_files_verified": 16,
+    "package_manifest_hash_or_size_mismatches": [],
+    "unlisted_or_missing_package_files": [],
+    "sha_receipt_sha256": "a064a2bfd17e041d339a81673f6ae941a63fd0c411523dbe4df41d715d5ae0d4",
+    "patch_path": "delivery/V4_ISSUE23_RUNNER_ONLY_R2/patches/issue23-r2-tests.patch",
+    "patch_sha256": "cab73069599866738b75f35e21dd7da91d09e8a928139e2bc56b839c58e00a75",
+    "preimage_check": "PASS: current test SHA matches package before SHA; fixture was absent; protected sources and builder SHA values match SHA_RECEIPT.",
+    "dry_run_command": "git apply --check /Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_r2_landing/delivery/V4_ISSUE23_RUNNER_ONLY_R2/patches/issue23-r2-tests.patch",
+    "dry_run_exit_code": 0,
+    "apply_command": "git apply /Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_r2_landing/delivery/V4_ISSUE23_RUNNER_ONLY_R2/patches/issue23-r2-tests.patch",
+    "apply_exit_code": 0,
+    "patch_application_method": "git apply exact package patch; partial append only, no whole-file replacement."
+  },
+  "canonical_changes": [
+    {
+      "path": "tests/test_stage_service_overlay_closure.py",
+      "preimage_state": "PRESENT_REGULAR_FILE",
+      "sha256_before": "2ad2e98b6784eb4beba9f50a1a7d01073183272b24ff36b4c3f16d3d56cfa850",
+      "sha256_after": "adb9586e241df491137ac1b924dfb05c2be8575ef8f812dfe702e264ee08fe1f",
+      "bytes_before": 34244,
+      "bytes_after": 42393,
+      "diff": "Append exactly 159 lines (+159/-0): five parametrized runner-only CLI cases, unchanged existing tests retained.",
+      "diff_authority": "The exact applied unified diff is delivery/V4_ISSUE23_RUNNER_ONLY_R2/patches/issue23-r2-tests.patch with SHA256 cab73069599866738b75f35e21dd7da91d09e8a928139e2bc56b839c58e00a75. The landed bytes match the package after-file SHA."
+    },
+    {
+      "path": "tests/fixtures/issue23/r1_stage_config.json",
+      "preimage_state": "ABSENT",
+      "sha256_before": null,
+      "sha256_after": "bfc0f35b16d3f77da16e8d4a5c848180a8a2afcdd5dd5a6c390d85d5126d0d81",
+      "bytes_after": 2840,
+      "diff": "Add exact 41-line R1 config test fixture; JSON parses; publication_mode remains absent."
+    }
+  ],
+  "protected_workspace_sources_after": [
+    {
+      "path": "ops/stage_service_overlay_contract.py",
+      "sha256": "54e0d66e907d296a56a5886e9e7fc1920d22461a9a6a4b88423c0862708a5f91"
+    },
+    {
+      "path": "stage_center/runner.py",
+      "sha256": "7e6e958df4d64a8f7324d96bb09548f29c9da3ba206a4548420fa021da47d34f"
+    },
+    {
+      "path": "ops/_run_stage_center_nodes_parts/node_entry.py",
+      "sha256": "2343cd5e250aaa05acc698ba2daf34220f13ffb5543c655df799fdb3bd7fe464"
+    },
+    {
+      "path": "ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+      "sha256": "06548184a4b09b0ae94053f2308eefb3bf5c31afc9f04abaeb805db7cebe8adb"
+    },
+    {
+      "path": "stage_center/consumer.py",
+      "sha256": "865c2ea8183e5e6aeb9145ce2bfbb3e5b442825904b14c47fe024593a9205489"
+    },
+    {
+      "path": "domains/task_status.py",
+      "sha256": "42a355b113a07b6d0c6c42b995ec9a123ca8608e74f8a6d11258a6bd130ebb97"
+    }
+  ],
+  "builder_identity": {
+    "ops/build_release_candidate.py": "368315e070f546d2b63d0e6ae4a67380185663c8b5d04aa35ac63b47c8b8c15b",
+    "ops/build_release_candidate_stage.py": "79cbb7ab98ca894594c2f80f802d9ed410bf64489decad469fdf3fc9d6b402df",
+    "active_release_readback_entrypoint": "ops.build_release_candidate._active_stage_release",
+    "effective_config_selection_rule": "With an explicit runner-only overlay and no selected stage_center_tick_config.json source overlay, _effective_stage_config returns active_config. The actual active plist config was independently read and matches the frozen R1 config SHA."
+  },
+  "active_stage_readback": {
+    "plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist",
+    "plist_sha256": "9cfeef77dc9293ad93fc1a56abe182e65b99f446181282e452f94c325303cf57",
+    "plist_label": "com.lexi.stage-center.scheduler",
+    "program_arguments": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "-B",
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1/app/ops/run_stage_center_nodes.py",
+      "--config",
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1/app/stage_center_tick_config.json"
+    ],
+    "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1/app",
+    "active_release_id": "20261002-hk-open-stage-r1",
+    "active_release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1",
+    "active_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1/app",
+    "active_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1/release-manifest.json",
+    "active_manifest_sha256": "cf2e695d21c14a9e451d7c8b9790d6e102949d32ab5f8a90bc29e0496c0845da",
+    "active_inventory_validation": {
+      "method": "The current original builder _active_stage_release read-only validator checked the plist binding, manifest identity, manifest inventory digest, and actual app inventory equality.",
+      "entry_count": 914,
+      "inventory_sha256": "dbe82acd4e3bbbee02d36a647d57ea19d54f557a3ac3c82d70b639aa8897e0a3",
+      "result": "PASS before and after the five targeted tests."
+    },
+    "active_runner_sha256": "50da5908c98330df9ad3dee6d44ad1042f559883815507be28a4257bf0f03f67",
+    "effective_config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1/app/stage_center_tick_config.json",
+    "effective_config_sha256": "bfc0f35b16d3f77da16e8d4a5c848180a8a2afcdd5dd5a6c390d85d5126d0d81",
+    "effective_config_identity": {
+      "release_id": "20261002-hk-open-stage-r1",
+      "python_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "shared_data_root": "/Users/lexi/Desktop/学习/agents调试/v4_stage_root_hk_fix_20260928/line_fix_r1/today_combined_stage_fix_20260930/candidate/app/upstreams/v3_shared_data",
+      "candidate_acquisition_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+      "hk_d1_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+      "preselection_source_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+      "v4_research_data_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+      "publication_mode_present": false,
+      "safety": {
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    "active_non_overlay_paths": [
+      {
+        "path": "ops/_run_stage_center_nodes_parts/node_entry.py",
+        "state": "PRESENT_REGULAR_FILE",
+        "sha256": "f9530f010055476e17d87e93198e28d3f4943ed34255a2419130eb9f39deb6ed"
+      },
+      {
+        "path": "ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+        "state": "PRESENT_REGULAR_FILE",
+        "sha256": "d7ea89f5467fb4d62af6b43c59d9dcd7cfcd020a1ee1ce07a9fae8525f735f86"
+      },
+      {
+        "path": "stage_center/consumer.py",
+        "state": "PRESENT_REGULAR_FILE",
+        "sha256": "9e3a864c74eaec6c616b911b09c167c8cb407db8435343c1b522de4f4c9459eb"
+      },
+      {
+        "path": "domains/task_status.py",
+        "state": "PRESENT_REGULAR_FILE",
+        "sha256": "17254ea0e50e9f14cf28bebf64cf867494d434bc527f112e99e00cc81cfbe363"
+      }
+    ],
+    "active_state_change": false
+  },
+  "writer_test": {
+    "command": "ISSUE23_R2_EVIDENCE='/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_r2_landing/evidence'\nmkdir -p \"$ISSUE23_R2_EVIDENCE\"\nset +e\nenv PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q --tb=short -p no:cacheprovider --basetemp=/tmp/issue23-r2-stageA-writer-20261003 tests/test_stage_service_overlay_closure.py -k issue23_r2 > \"$ISSUE23_R2_EVIDENCE/issue23_r2_writer_pytest.stdout.log\" 2> \"$ISSUE23_R2_EVIDENCE/issue23_r2_writer_pytest.stderr.log\"\nissue23_r2_test_rc=$?\nset -e\nprintf '%s\\n' \"$issue23_r2_test_rc\" > \"$ISSUE23_R2_EVIDENCE/issue23_r2_writer_pytest.exit\"\nprintf 'pytest_exit=%s\\n' \"$issue23_r2_test_rc\"\nexit \"$issue23_r2_test_rc\"",
+    "working_directory": "/Users/lexi/Desktop/学习/v4_app",
+    "interpreter": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "interpreter_version": "3.14.6 (main, Jul 18 2026, 17:05:49) [Clang 22.1.3 ]",
+    "bytecode_and_pytest_cache": "disabled (-B, PYTHONDONTWRITEBYTECODE=1, -p no:cacheprovider)",
+    "basetemp": "/tmp/issue23-r2-stageA-writer-20261003",
+    "result": "PASS: 5 passed, 21 deselected in 0.08s",
+    "exit_code": 0,
+    "full_logs": {
+      "stdout_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_r2_landing/evidence/issue23_r2_writer_pytest.stdout.log",
+      "stdout_sha256": "cc8c2f87c4d97b269bafd3416bfde4b4807b30c7879b6895b15228dbf300c20c",
+      "stdout_bytes": 113,
+      "stderr_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_r2_landing/evidence/issue23_r2_writer_pytest.stderr.log",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_bytes": 0,
+      "exit_code_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_r2_landing/evidence/issue23_r2_writer_pytest.exit",
+      "exit_code_file_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "not_run": ["full closure suite", "candidate builder", "service switch"]
+  },
+  "stage_a_status": {
+    "IMPLEMENTED": "Exact R2 test append and config fixture landed; both match SHA_RECEIPT after SHA.",
+    "TESTED": "Writer PASS: 5/5 issue23_r2 tests; independent Reviewer rerun pending.",
+    "ACTIVE_IDENTITY_VERIFIED": "PASS: current plist binds the R1 base; manifest, 914-entry inventory, effective config and four active non-overlay paths read back.",
+    "REVIEWED": "PENDING independent Luna Max Reviewer.",
+    "CANDIDATE_BUILT": "NO; forbidden before Reviewer pass by SCOPE.",
+    "DEPLOYED": "NO; plist and active release unchanged.",
+    "NATURAL_VERIFIED": "NATURAL_SLOT_UNVERIFIED"
+  },
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

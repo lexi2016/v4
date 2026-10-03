@@ -1,0 +1,49 @@
+{
+  "activation_status": "NOT_ACTIVATED",
+  "application_inventory_sha256": "6f18dda4f714ec85cfa8400162f29af2bd7bf427c8afcedb7491f5060555dbfc",
+  "baseline_release_manifest_sha256": "cf2e695d21c14a9e451d7c8b9790d6e102949d32ab5f8a90bc29e0496c0845da",
+  "baseline_release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20261002-hk-open-stage-r1",
+  "candidate_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_only_r2/stage_r1_binding_candidate",
+  "candidate_status": "READY_FOR_REVIEW_WITH_GAPS",
+  "deployment_status": "CANNOT_CONFIRM",
+  "generated_at": "2026-10-03T07:04:43+00:00",
+  "guard": "Offline Stage candidate from verified active-release baseline plus explicit Stage overlays; no launchd, formal release, or data root was changed.",
+  "manifest_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_only_r2/stage_r1_binding_candidate/release-manifest.json",
+  "manifest_sha256": "e94d5507bb7f629c0b41b5fd6334d96b0dae61a9fc3c15f80983fa48b038e7d5",
+  "schema_version": "v4.stage_service_candidate_receipt.v2",
+  "service_binding": {
+    "activation_status": "NOT_ACTIVATED",
+    "calendar_wait_seconds": 5,
+    "config_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_only_r2/stage_r1_binding_candidate/app/stage_center_tick_config.json",
+    "config_sha256": "c9f9e3448de50cd6b05c621dfbb4c4e08f4ec5b4c67591de9a10ae0f0717839f",
+    "deadline_only": false,
+    "deadline_policy": "observe",
+    "label": "com.lexi.stage-center.scheduler",
+    "launchctl_called": false,
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_only_r2/stage_r1_binding_candidate/config/com.lexi.stage-center.scheduler.plist",
+    "runtime_python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "sha256": "2591d9d936d5c9b899c9d9162e9b60eb143fcf94fad696c6b0aeab34c3e07625",
+    "shared_data_root_rebased_to_candidate_package": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_only_r2/stage_r1_binding_candidate/app/upstreams/v3_shared_data",
+    "source_config_roots_preserved": {
+      "a_auction_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/stage_inputs",
+      "a_research_panel_receipt_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/research_panel_daily/receipts",
+      "candidate_acquisition_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+      "hk_auction_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/opening_second_filter",
+      "hk_d1_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+      "hk_full_universe_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+      "hk_second_filter_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/opening_second_filter",
+      "hk_stage_replay_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/stage_references",
+      "preselection_source_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+      "raw_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw",
+      "receipt_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts",
+      "selection_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+      "v4_research_data_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data"
+    },
+    "source_runtime_python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python"
+  },
+  "source_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "stage_overlay_manifest_sha256": "07ecaa272dba3f360581f40cf0a6b280a908404ba9313402cc79ac07d1478efe",
+  "stage_overlay_paths": [
+    "stage_center/runner.py"
+  ]
+}

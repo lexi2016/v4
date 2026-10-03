@@ -1,0 +1,42 @@
+{
+  "calls": {
+    "run_one_wrapper": {
+      "error": "_StageCenterRunner__run_one_body() got an unexpected keyword argument 'historical_markets'. Did you mean 'historical_backfill'?",
+      "result": "TYPE_ERROR"
+    },
+    "tick_wrapper": {
+      "error": "_StageCenterRunner_tick_body() got an unexpected keyword argument 'historical_markets'. Did you mean 'historical_backfill'?",
+      "result": "TYPE_ERROR"
+    }
+  },
+  "candidate_run_one_signature": "(self, decision: 'DueDecision', *, historical_backfill: 'bool' = False, backfill_run_id: 'str | None' = None, historical_markets: 'Sequence[str] | None' = None) -> 'dict[str, Any]'",
+  "candidate_tick_signature": "(self, trade_date: 'str', evaluated_at: 'datetime', *, stage_id: 'str | None' = None, historical_backfill: 'bool' = False, historical_markets: 'Sequence[str] | None' = None, _skip_precapture: 'bool' = False) -> 'dict[str, Any]'",
+  "cwd": "/private/tmp",
+  "module_sha256": {
+    "slot_execution": "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a",
+    "stage_center.runner": "7e6e958df4d64a8f7324d96bb09548f29c9da3ba206a4548420fa021da47d34f",
+    "tick_planning": "c27cb9717ec2940364d1e1186529e6df1b37b07aae0c56f65334f6f9bf06dd15"
+  },
+  "modules": {
+    "slot_execution": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_only_r2/stage_r1_binding_candidate/app/stage_center/_runner_parts/slot_execution.py",
+    "stage_center.runner": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_only_r2/stage_r1_binding_candidate/app/stage_center/runner.py",
+    "tick_planning": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_only_r2/stage_r1_binding_candidate/app/stage_center/_runner_parts/tick_planning.py"
+  },
+  "modules_from_candidate": {
+    "slot_execution": true,
+    "stage_center.runner": true,
+    "tick_planning": true
+  },
+  "no_service_or_collectors_called": true,
+  "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+  "python_version": "3.14.6 (main, Jul 18 2026, 17:05:49) [Clang 22.1.3 ]",
+  "slot_helper_signature": "(_v4_scope, /, self, decision, *, historical_backfill, backfill_run_id)",
+  "sys_path_head": [
+    "",
+    "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_only_r2/stage_r1_binding_candidate/app/upstreams",
+    "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_only_r2/stage_r1_binding_candidate/app",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/python/cpython-3.14.6-macos-aarch64-none/lib/python314.zip",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/python/cpython-3.14.6-macos-aarch64-none/lib/python3.14"
+  ],
+  "tick_helper_signature": "(_v4_scope, /, self, trade_date, evaluated_at, *, stage_id, historical_backfill, _skip_precapture)"
+}
