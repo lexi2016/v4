@@ -1,0 +1,99 @@
+{
+  "schema": "v4.manager_research.us_chain_replay.v1",
+  "phase": "POST_PATCH_FROZEN_REPLAY",
+  "mode": "READ_ONLY_OFFLINE_SAVED_INPUT_REPLAY",
+  "candidate": "/Users/lexi/Desktop/学习/v4_app",
+  "active_workspace": "/Users/lexi/Desktop/学习/agents调试/v4_manager_workbench_acceptance_20261002/api_integration/manager_final_r5_deployment/ACTIVE_WORKSPACE.json",
+  "active_workspace_sha256": "e08884c13b0f04cfbb059e37c45c39275afaca1449f6d59848c83d22323bf0a9",
+  "target_trade_date": "20261002",
+  "expected_us_session": "20261001",
+  "raw_material_record_count": 2592,
+  "material_discovery_status": "READY",
+  "reference_identity": {
+    "artifact": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20260930/49ffde1ebebdc85e4680e701/artifact.csv",
+    "artifact_sha256": "754794679937494dc8dc6cdc8dfbd14dfa4b070ea709f551874e39006aa712dd",
+    "manifest": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/runs/20260930/49ffde1ebebdc85e4680e701/manifest.json",
+    "manifest_sha256": "acb3308410a8601651818b14fb519ff39a019adadc37ac3beec86c8cad5d5eb5",
+    "role": "REFERENCE_SESSION_IDENTITY_NOT_TARGET_CONNECT_MEMBERSHIP"
+  },
+  "connect_membership_status": "CANNOT_CONFIRM",
+  "connect_membership_gaps": [
+    "HK_CONNECT_TARGET_AUTHORITY_UNVERIFIED:HK_UNIVERSE_V2_ARTIFACT_MISSING"
+  ],
+  "pre_connect_card_count": 80,
+  "post_connect_card_count": 0,
+  "research_relation_card_count": 80,
+  "connect_rejection_count": 80,
+  "connect_rejection_reasons": {
+    "TARGET_HK_CONNECT_MEMBERSHIP_UNVERIFIED": 80
+  },
+  "relation_material_input": {
+    "status": "READY",
+    "complete": true,
+    "source_material_record_count": 2592,
+    "pre_connect_material_card_count": 80,
+    "post_connect_material_card_count": 0,
+    "research_relation_material_card_count": 80,
+    "connect_rejection_count": 80,
+    "target_connect_scope_status": "CANNOT_CONFIRM",
+    "target_connect_membership_counts": {
+      "CANNOT_CONFIRM": 80
+    },
+    "connect_rejection_reasons": {
+      "TARGET_HK_CONNECT_MEMBERSHIP_UNVERIFIED": 80
+    },
+    "gaps": [],
+    "input_identity": "a6ee195e8cc354cdc0af86a8a7223e37dc2e5cb428c440fc9c553de2fdd55812",
+    "relation_use": "RESEARCH_ONLY_NOT_FORMAL_SELECTION_FOCUS_OR_BUY",
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "us_snapshot": {
+    "status": "CANNOT_CONFIRM",
+    "expected_us_session": "20261001",
+    "mapping_eligible": false,
+    "gaps": [
+      "US_MARKET_SNAPSHOT_NOT_READY"
+    ]
+  },
+  "relation_assessment": {
+    "assessment_state": "NOT_EVALUATED",
+    "accepted_hk_mapping_count": null,
+    "assessment_reasons": [
+      "US_MARKET_SNAPSHOT_NOT_READY"
+    ],
+    "relation_gate": "TWO_SOURCE_PIT_VERIFIED_REQUIRED",
+    "source_material_card_count": 80,
+    "candidate_relation_count": 0
+  },
+  "checks": {
+    "pre_connect_cards_80": true,
+    "post_connect_cards_0": true,
+    "connect_rejections_80": true,
+    "relation_cards_preserved_80": true,
+    "all_membership_unverified": true,
+    "us_snapshot_not_ready": true,
+    "explicit_not_evaluated": true,
+    "accepted_count_null": true,
+    "explicit_quote_gate_reason": true,
+    "relation_gate_retained": true
+  },
+  "frozen_code_sha256": {
+    "v4/manager_research/workspace.py": "1e610245a61b14627b1b02ce082101a464555e4516794702751ba50dd151bd0e",
+    "v4/manager_research/research_evidence.py": "d2539b676d5779d9369fd8aba187c0565fcc38dbb0e89596d1248668fda4a7d5",
+    "apps/web/src/api/managerWorkspace.ts": "55e4719c4306c88c08e65bc30124ea3e3aa741df70f034f7d88f56ce5fc744f4",
+    "apps/web/src/manager-selection/businessStatus.ts": "ca0b66fe9820b86aa99c347e227f355add7d98b0d46bfae657f3b5218f05c8cc"
+  },
+  "reproduction": "PASS",
+  "limitations": [
+    "Replay consumes the saved ACTIVE_WORKSPACE, its saved target Connect membership state, and the SHA-verified reference-session identity master.",
+    "No live API, network, collector, service, scheduler, formal store, Stage, or BUY gate was invoked or written.",
+    "Replay proves frozen offline input propagation and explicit NOT_EVALUATED only; live API/UI/natural execution remain unverified."
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
