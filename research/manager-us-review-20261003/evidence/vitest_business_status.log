@@ -1,0 +1,30 @@
+
+ RUN  v4.1.10 /Users/lexi/Desktop/学习/v4_app/apps/web
+
+ ❯ src/manager-selection/__tests__/businessChainR2.spec.ts (6 tests | 1 failed) 4ms
+     × no announcement attempt is not no announcements 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/manager-selection/__tests__/businessChainR2.spec.ts > business chain R2 zero/unknown/due distinctions > no announcement attempt is not no announcements
+AssertionError: expected '当前历史响应未提供 HKEX 公告 owner observation；不…' to contain '不是0公告'
+
+Expected: "不是0公告"
+Received: "当前历史响应未提供 HKEX 公告 owner observation；不能解释为未运行或 0 条公告。"
+
+ ❯ src/manager-selection/__tests__/businessChainR2.spec.ts:27:43
+     25|   });
+     26|   it('no announcement attempt is not no announcements',()=>{
+     27|     const x=row({},'公告');expect(x.detail).toContain('不是0公告');expect(x.…
+       |                                           ^
+     28|   });
+     29| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 3 passed (4)
+      Tests  1 failed | 32 passed (33)
+   Start at  09:28:20
+   Duration  602ms (transform 190ms, setup 0ms, import 245ms, tests 57ms, environment 1.70s)
+
