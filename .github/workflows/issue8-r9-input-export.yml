@@ -1,0 +1,38 @@
+name: Issue8 R9 pinned input export only
+on:
+  push:
+    branches: [codex/issue8-r9-selection-gaps-20261003-r1]
+    paths: [.github/workflows/issue8-r9-input-export.yml]
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: bf67872941cf1e8abd946af40b46d3c880331159
+          persist-credentials: false
+      - name: Reassemble and verify immutable archive only
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64, hashlib, io, pathlib, zipfile
+          root = pathlib.Path('research/manager-selection-gaps-20261003')
+          parts = [root / f'PACKAGE.zip.b64.part{i}' for i in range(1, 5)]
+          data = base64.b64decode(b''.join(p.read_bytes() for p in parts), validate=True)
+          assert len(data) == 1492256, 'input size mismatch'
+          assert hashlib.sha256(data).hexdigest() == '8bed74231d352c0cb1daf4ee05117daede0e79345dd0022ef86983fd404717b7', 'input SHA mismatch'
+          with zipfile.ZipFile(io.BytesIO(data)) as z:
+              assert z.testzip() is None, 'input CRC mismatch'
+          pathlib.Path('V4_SELECTION_GAPS_R1_20261003.zip').write_bytes(data)
+          print('Verified immutable input: 1492256 bytes, SHA256 8bed74231d352c0cb1daf4ee05117daede0e79345dd0022ef86983fd404717b7')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: issue8-r9-input-bf678729
+          path: V4_SELECTION_GAPS_R1_20261003.zip
+          if-no-files-found: error
+          retention-days: 1
