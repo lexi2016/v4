@@ -1,0 +1,31 @@
+name: Issue8 R2 pinned input export only
+on:
+  push:
+    branches: [codex/issue8-r2-ui-20261003]
+    paths: [.github/workflows/issue8-r2-input-export.yml]
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dd64c02dbe93e0be9fda2abf60328e5ff7c7d69f
+          persist-credentials: false
+          sparse-checkout: research/manager-selection-gaps-20261003/mac-r1-r2-input
+      - name: Decode and verify exact input only
+        shell: bash
+        run: |
+          set -euo pipefail
+          base64 --decode research/manager-selection-gaps-20261003/mac-r1-r2-input/PACKAGE.zip.b64 > R2_INPUT.zip
+          test "$(wc -c < R2_INPUT.zip)" -eq 72036
+          echo 'fa66a170c499018c81e26cfacb48fc8c6e7b43c8dc78ad14d63e46112856a675  R2_INPUT.zip' | sha256sum -c -
+          unzip -t R2_INPUT.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: issue8-r2-pinned-dd64c02
+          path: R2_INPUT.zip
+          retention-days: 1
+          if-no-files-found: error
