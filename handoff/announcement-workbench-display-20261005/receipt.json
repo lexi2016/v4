@@ -1,0 +1,70 @@
+{
+  "schema_version": "v4.announcement_workbench_delivery.v1",
+  "created_at": "2026-10-05T07:32:36.069522+00:00",
+  "base_commit": "b3ff2be73138caacd287fc3ba57d0e3db1f5a56b",
+  "canonical_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+  "runtime_base": "hk-day25-stage0930-r13-20261005-ui-r1",
+  "candidate": "manager-announcement-r14-20261005-page-results-r1",
+  "source_hashes": {
+    "apps/api/v35_api/manager_research_router.py": {
+      "candidate_sha256": "b5f56eb99b478ee4b1255afddc26d442e5a6d6fbcdc773c194aa6c9bdf38714e",
+      "r11_before_sha256": "f44dcc735f6f20191bb1400ee54c9f19a0ed104a72626755051d2032895d9e7a"
+    },
+    "apps/web/src/api/managerAnnouncementAnalysis.ts": {
+      "candidate_sha256": "bcfcbe18ba5029e0c411f849eee5417fbae277885f3b81e95d65e7b28e47f943",
+      "r11_before_sha256": null
+    },
+    "apps/web/src/manager-selection/announcementAnalysis.ts": {
+      "candidate_sha256": "69fac76760927443d01ece784ec5a1543eecb0fde9901e22e3e80c9732d68bfd",
+      "r11_before_sha256": null
+    },
+    "apps/web/src/manager-selection/businessStatus.ts": {
+      "candidate_sha256": "36228506f199f26dc59c7919634e4c347171d156ec89b3d6b2359c764ed45d90",
+      "r11_before_sha256": "7eb96077f9c4c76c926b452dc0c4c581d3e35f777be8cde9d2c789b344bd6089"
+    },
+    "apps/web/src/manager-selection/catalystObservationPanel.ts": {
+      "candidate_sha256": "c2ff702c8da2bd6cbf35e979f652c18f4278e2310d07713dc2d8dd200843a83e",
+      "r11_before_sha256": "5b3a026a4910242ee06861555a8984f0b99bf5d4aad3cfba8b54d3e1ef4815c8"
+    },
+    "v4/manager_research/announcement_analysis.py": {
+      "candidate_sha256": "1bd7da0ae8a4e14b604c8a9e8ddfe845bf15a2f675bf3f82b0f224dc64da8c80",
+      "r11_before_sha256": null
+    },
+    "v4/manager_research/service.py": {
+      "candidate_sha256": "14aa81a3245556b4da91fe62256171560f0b414e0e73002278a92d3450efc4df",
+      "r11_before_sha256": "0522b7a8922ac20be2945d72aeb705018275efadf1e855951ae400cfc90a7225"
+    }
+  },
+  "status": {
+    "IMPLEMENTED": true,
+    "TESTED": "independent 6 backend +24 frontend +3 import helper",
+    "REVIEWED": "PASS core and helper delta; R13 integration PASS",
+    "INTEGRATED": "derived same-owner state imported and candidate release staged",
+    "DEPLOYED": false,
+    "API_VERIFIED": "isolated candidate only",
+    "UI_VERIFIED": "temporary candidate loopback8874 only; closed after test",
+    "NATURAL_VERIFIED": false
+  },
+  "counts": {
+    "directory": 744,
+    "pages": 39,
+    "manager_documents": 234,
+    "manager_issuers": 140,
+    "complete_api_body": 207,
+    "pdf_focus_read": 22,
+    "insufficient": 5
+  },
+  "typecheck": "two unchanged baseline TS2578 errors ManagerSelectionView.spec.ts lines4,6",
+  "first_publication_cutoff_novelty_historical_pit": "CANNOT_CONFIRM",
+  "release_blocker": "parallel HK chat is modifying same8873 service; awaiting user-authorized cross-chat coordination before activation",
+  "source_catalog_run": "f42f992f8705491492d065673bde9e9e",
+  "source_catalog_sha256": "ed8ea9da93a484a3fb722d78ad1bfbe8265d20c72aca0af52d3768e69120a27a",
+  "analysis_raw_file_sha256": "79f385f528400ff43c829d190748bb53df978729183ce80d5c62fdf0cb4b8892",
+  "analysis_product_sha256": "84090d130d1e19f714c8c0d63340e5eaae00f2506d5885af5afd385a3bc64486",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "excluded": "raw source corpus, PDF, full product, state, credentials, plist, screenshots, dist, dependencies"
+}

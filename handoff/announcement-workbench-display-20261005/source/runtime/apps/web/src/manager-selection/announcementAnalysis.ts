@@ -1,0 +1,117 @@
+/** Readable view for the previously reviewed, date-bound Eastmoney analysis. */
+import type { ManagerAnnouncementAnalysis, AnnouncementAnalysisObject } from '../api/managerAnnouncementAnalysis.js';
+
+const text=(value:unknown,fallback='未提供')=>typeof value==='string'&&value?value:
+  typeof value==='number'&&Number.isFinite(value)?String(value):fallback;
+const object=(value:unknown):AnnouncementAnalysisObject=>
+  value&&typeof value==='object'&&!Array.isArray(value)?value as AnnouncementAnalysisObject:{};
+const list=(value:unknown):AnnouncementAnalysisObject[]=>
+  Array.isArray(value)?value.filter((row):row is AnnouncementAnalysisObject=>Boolean(row)&&typeof row==='object'&&!Array.isArray(row)):[];
+const issuerNames=(value:unknown)=>Array.isArray(value)?value.map(item=>{
+  if(typeof item==='string')return item;
+  const issuer=object(item);const code=text(issuer.code,'');const name=text(issuer.name,'');
+  return code&&name?`${code} ${name}`:code||name;
+}).filter(Boolean).join('、'):'未提供';
+const dateToken=(value:string)=>/^\d{4}-\d{2}-\d{2}$/.test(value)?value.replaceAll('-',''):'';
+const element=<K extends keyof HTMLElementTagNameMap>(tag:K,content='')=>{
+  const node=document.createElement(tag);node.textContent=content;return node;
+};
+function sourceLink(value:unknown,label:string):HTMLAnchorElement|null{
+  if(typeof value!=='string')return null;
+  try{
+    const url=new URL(value);
+    if(url.protocol!=='https:'||url.username||url.password||
+        !['np-cnotice-stock.eastmoney.com','np-anotice-stock.eastmoney.com','pdf.dfcfw.com'].includes(url.hostname))return null;
+    const link=element('a',label);link.href=url.href;link.target='_blank';link.rel='noopener noreferrer';return link;
+  }catch{return null;}
+}
+function details(label:string,value:unknown):HTMLDetailsElement{
+  const node=element('details');node.append(element('summary',label));
+  const pre=element('pre',JSON.stringify(value,null,2));node.append(pre);return node;
+}
+function recordView(row:AnnouncementAnalysisObject):HTMLDetailsElement{
+  const article=element('details');article.dataset.announcementAnalysisCode=text(row.art_code,'UNKNOWN');
+  const kind=text(row.analysis_kind);
+  const kindLabel=kind==='COMPLETE_API_BODY'?'完整内容接口正文':
+    kind==='LONG_PDF_KEY_SECTION_READ'?'长 PDF 重点章节回看':
+    kind==='TEXT_INSUFFICIENT_UNASSESSED'?'文本不足，未判定':'状态未识别';
+  article.append(element('summary',`${text(row.title,'未提供标题')} ｜ ${text(row.art_code)} ｜ ${kindLabel}`));
+  article.append(element('p',`研究分类：${text(row.classification)}；证券范围：${text(row.security_scope)}；关联发行人：${issuerNames(row.issuer_codes)}。`));
+  article.append(element('p',`事实摘要：${text(row.factual_summary,'未提供已复核摘要')}。`));
+  if(typeof row.why_useful==='string')article.append(element('p',`研究用途：${row.why_useful}`));
+  article.append(element('p',`时点边界：首次发布时间/截止 ${text(object(row.date_semantics).first_publication_timestamp,'CANNOT_CONFIRM')}；目标日可用性 ${text(object(row.date_semantics).available_at_for_target_cutoff,'CANNOT_CONFIRM')}；历史 PIT ${text(object(row.cutoff_boundary).status,'CANNOT_CONFIRM')}。这些是事后研究解释。`));
+  const listing=object(row.listing_source),listingRef=object(listing.source_ref);
+  article.append(element('p',`目录日期：${text(listing.notice_date)}；显示时间：${text(listing.display_time)}；目录页 ${text(listing.page_index,'未知')} / 项 ${text(listing.item_index,'未知')}；原目录正文 SHA：${text(listing.raw_body_sha256)}。`));
+  const listingLink=sourceLink(listingRef.url,'打开逐篇目录来源');if(listingLink)article.append(listingLink);
+  const quote=typeof row.exact_quote==='string'?row.exact_quote:'';
+  if(quote&&!quote.startsWith('CANNOT_CONFIRM'))article.append(element('blockquote',`原文引句：${quote}`));
+  else article.append(element('p','原文短引句未核定；保留逐页来源引用与摘要，不补造引文。'));
+  if(row.quote_location&&typeof row.quote_location==='object')article.append(element('p',`引文位置：${JSON.stringify(row.quote_location)}。`));
+  const bodyPages=list(row.body_page_citations);
+  if(bodyPages.length){
+    const pages=element('div');pages.append(element('strong',`内容接口页引用（${bodyPages.length}）`));
+    for(const page of bodyPages){
+      const source=object(page.source_ref),link=sourceLink(source.url,`正文页 ${text(page.page_index,'?')} · SHA ${text(page.text_sha256)}`);
+      if(link)pages.append(link,element('span',' '));
+    }
+    article.append(pages);
+  }
+  const pdf=object(row.pdf_focus),pdfPages=Array.isArray(pdf.physical_pages_reviewed)?pdf.physical_pages_reviewed:[];
+  if(kind==='LONG_PDF_KEY_SECTION_READ'){
+    article.append(element('p',`重点阅读的 PDF 物理页：${pdfPages.join('、')||'未提供'}；引文页：${text(pdf.quote_page,'未提供')}；PDF SHA：${text(pdf.sha256)}。这是重点页回看，不代表全文解读。`));
+    const pdfLink=sourceLink(pdf.source_url,'打开公告 PDF 原件');if(pdfLink)article.append(pdfLink);
+  }else if(kind==='TEXT_INSUFFICIENT_UNASSESSED'){
+    article.append(element('p','可读文本不足，维持未判定；不按标题推断公告事项。'));
+  }
+  const evidence=object(row.evidence);
+  if(Object.keys(evidence).length)article.append(details('引文、正文页与原始证据 SHA',evidence));
+  return article;
+}
+
+export function renderAnnouncementAnalysis(
+  host:HTMLElement,
+  value:ManagerAnnouncementAnalysis|undefined,
+  selectedPublicationDate:string|undefined,
+  failure:string|undefined,
+  onDateChange:(publicationDate:string|undefined)=>void,
+):void{
+  host.replaceChildren(element('h3','历史公告解析成果（Eastmoney HK 日期目录）'));
+  host.setAttribute('aria-label','历史公告解析成果');
+  const label=element('label','公告日期：'),input=element('input');input.type='date';input.setAttribute('aria-label','公告日期');
+  const displayDate=selectedPublicationDate||(value?dateToken(value.publication_date):'');
+  input.value=displayDate?`${displayDate.slice(0,4)}-${displayDate.slice(4,6)}-${displayDate.slice(6,8)}`:'';
+  input.addEventListener('change',()=>onDateChange(input.value?dateToken(input.value)||undefined:undefined));
+  label.append(input,element('small','留空时按计划日前一 HK 交易日读取；日期选择独立于计划日。'));
+  host.append(label);
+  if(!value){
+    const status=element('p',failure?`公告解析结果未能读回；覆盖数量未知（${failure}）。`:'正在读取公告解析结果；覆盖数量未知。');
+    status.setAttribute('role','status');host.append(status);return;
+  }
+  const catalog=value.source_catalog,analysis=value.analysis;
+  const statusName=analysis.status==='VERIFIED'?'已读回复核后的离线派生解读':
+    analysis.status==='NOT_IMPORTED'?'尚未导入该日期的解析结果':
+    '目录或派生结果未通过读回校验';
+  const status=element('p',`${value.publication_date}（${value.date_selection_basis==='PREVIOUS_HK_TRADING_SESSION'?'计划日前一 HK 交易日':'手动选择'}）｜${statusName}`);
+  status.setAttribute('role','status');host.append(status);
+  if(catalog.status==='COMPLETE'&&catalog.readback_status==='VERIFIED'){
+    host.append(element('p',`目录 ${text(catalog.source_scope)}：${text(catalog.directory_record_count)} 条 / ${text(catalog.directory_page_count)} 页；经理样本 ${text(catalog.manager_announcement_count)} 篇 / ${text(catalog.manager_issuer_count)} 个发行人。目录 run ${text(catalog.catalog_run_id)}；目录 SHA ${text(catalog.catalog_product_sha256)}。`));
+  }else{
+    host.append(element('p',`所选公告日期的目录尚无可核验读回（${text(catalog.status)} / ${text(catalog.readback_status)}）；数量未知，不显示为 0 条。`));
+  }
+  if(analysis.status==='VERIFIED'){
+    const summary=object(analysis.summary);
+    host.append(element('p',`${text(summary.complete_api_bodies)} 篇完整内容接口正文；${text(summary.long_pdf_focus_reads)} 篇长 PDF 重点章节回看；${text(summary.text_insufficient_unassessed)} 篇文本不足、未判定。`),
+      element('p','来源为 Eastmoney 港股日期目录；不是 HKEX 官方目录全量认定。首次发布时间与截止、新颖性、历史 PIT 均为 CANNOT_CONFIRM。离线解读只作事后研究参考。'));
+    if(typeof analysis.interpretation_boundary==='string')host.append(element('p',analysis.interpretation_boundary));
+    const records=list(analysis.records),items=element('details');items.dataset.announcementAnalysisRecords='true';
+    items.append(element('summary',`查看全部 ${records.length} 篇逐条内容与出处`));
+    for(const record of records)items.append(recordView(record));
+    host.append(items,details('目录/语料/解析产品来源 SHA 与导入清单',{
+      source_manifest:analysis.source_manifest,source_manifest_sha256:analysis.source_manifest_sha256,
+      product_sha256:analysis.product_sha256,gaps:analysis.gaps,
+    }));
+  }else{
+    const gaps=Array.isArray(analysis.gaps)?analysis.gaps.join('；'):'解析缺口未提供';
+    host.append(element('p',`所选日期没有已校验的完整解析产物；不能解释为零公告或零解析。缺口：${gaps}。`));
+  }
+}

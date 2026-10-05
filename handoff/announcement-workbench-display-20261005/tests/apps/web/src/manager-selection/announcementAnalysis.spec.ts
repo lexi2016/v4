@@ -1,0 +1,65 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { ManagerAnnouncementAnalysis } from '../api/managerAnnouncementAnalysis.js';
+import { renderAnnouncementAnalysis } from './announcementAnalysis.js';
+
+const row=(index:number,kind:string)=>({art_code:`AN20260929${String(index).padStart(6,'0')}`,
+  title:`Reviewed notice ${index}`,analysis_kind:kind,classification:'BUSINESS_EVENT',
+  factual_summary:`Reviewed summary ${index}`,security_scope:'Issuer shares',issuer_codes:[{code:'HK.00001',name:'Issuer'}],
+  date_semantics:{first_publication_timestamp:'CANNOT_CONFIRM',available_at_for_target_cutoff:'CANNOT_CONFIRM'},
+  cutoff_boundary:'CANNOT_CONFIRM',listing_source:{notice_date:'2026-09-29',display_time:'2026-09-29 09:00:00',
+    page_index:1,item_index:index,raw_body_sha256:'a'.repeat(64),source_ref:{url:'https://np-anotice-stock.eastmoney.com/api/security/ann?page_index=1'}},
+  exact_quote:'Sample verified quote',body_page_citations:[{page_index:1,text_sha256:'b'.repeat(64),
+    source_ref:{url:'https://np-cnotice-stock.eastmoney.com/api/content/ann?art_code=sample&page_index=1'}}],
+  pdf_focus:{source_url:'https://pdf.dfcfw.com/pdf/sample.pdf',sha256:'c'.repeat(64),
+    physical_pages_reviewed:kind==='LONG_PDF_KEY_SECTION_READ'?[2,4]:[],quote_page:2,derivative:{derivative_sha256:'d'.repeat(64)}},
+  evidence:{exact_excerpt:'Sample source-linked excerpt'}});
+function verified():ManagerAnnouncementAnalysis{
+  const kinds=['COMPLETE_API_BODY','LONG_PDF_KEY_SECTION_READ','TEXT_INSUFFICIENT_UNASSESSED'];
+  const records=Array.from({length:234},(_,i)=>row(i,i<207?kinds[0]:i<229?kinds[1]:kinds[2]));
+  return {schema_version:'v4.manager_research.eastmoney_hk_announcement_analysis_read.v1',
+    target_trade_date:'20260930',publication_date:'2026-09-29',date_selection_basis:'PREVIOUS_HK_TRADING_SESSION',
+    source_catalog:{status:'COMPLETE',readback_status:'VERIFIED',source_scope:'EASTMONEY_HK_DATE_CATALOG',
+      directory_record_count:744,directory_page_count:39,manager_announcement_count:234,
+      manager_issuer_count:140,catalog_run_id:'a'.repeat(32),catalog_product_sha256:'b'.repeat(64)},
+    analysis:{status:'VERIFIED',summary:{complete_api_bodies:207,long_pdf_focus_reads:22,
+      text_insufficient_unassessed:5},records,first_publication_and_cutoff_status:'CANNOT_CONFIRM',
+      novelty_vs_prior_status:'CANNOT_CONFIRM',point_in_time_status:'CANNOT_CONFIRM',
+      interpretation_boundary:'Retrospective research only; no PIT or BUY use.',source_manifest:{},
+      source_manifest_sha256:'c'.repeat(64),product_sha256:'d'.repeat(64),gaps:[]}} as unknown as ManagerAnnouncementAnalysis;
+}
+
+describe('renderAnnouncementAnalysis',()=>{
+  it('shows frozen totals, PIT gaps, date selection and all item citations',()=>{
+    const host=document.createElement('section'),onDate=vi.fn();
+    renderAnnouncementAnalysis(host,verified(),undefined,undefined,onDate);
+    expect(host.textContent).toContain('744 条 / 39 页');
+    expect(host.textContent).toContain('207 篇完整内容接口正文');
+    expect(host.textContent).toContain('22 篇长 PDF 重点章节回看');
+    expect(host.textContent).toContain('5 篇文本不足、未判定');
+    expect(host.textContent).toContain('首次发布时间与截止、新颖性、历史 PIT 均为 CANNOT_CONFIRM');
+    expect(host.textContent).toContain('Eastmoney 港股日期目录');
+    const input=host.querySelector<HTMLInputElement>('input[type="date"]');
+    expect(input?.value).toBe('2026-09-29');
+    input!.value='2026-09-30';input!.dispatchEvent(new Event('change'));
+    expect(onDate).toHaveBeenCalledWith('20260930');
+    const list=host.querySelector<HTMLDetailsElement>('details[data-announcement-analysis-records="true"]');
+    expect(list?.querySelectorAll('details[data-announcement-analysis-code]')).toHaveLength(234);
+    const first=list?.querySelector('details[data-announcement-analysis-code]');
+    expect(first?.textContent).toContain('事实摘要：Reviewed summary 0');
+    expect(first?.textContent).toContain('关联发行人：HK.00001 Issuer');
+    expect(first?.textContent).not.toContain('[object Object]');
+    expect(first?.querySelector('a[href^="https://np-anotice-stock.eastmoney.com/"]')?.textContent)
+      .toContain('打开逐篇目录来源');
+    expect(first?.querySelector('a[href^="https://np-cnotice-stock.eastmoney.com/"]')?.textContent)
+      .toContain('正文页 1');
+  });
+
+  it('keeps a missing analysis visibly unknown instead of rendering zero results',()=>{
+    const host=document.createElement('section');
+    const value=verified();value.analysis={status:'NOT_IMPORTED',summary:null,records:[],gaps:['ANNOUNCEMENT_ANALYSIS_NOT_IMPORTED']} as never;
+    renderAnnouncementAnalysis(host,value,undefined,undefined,()=>{});
+    expect(host.textContent).toContain('尚未导入该日期的解析结果');
+    expect(host.textContent).toContain('不能解释为零公告或零解析');
+    expect(host.textContent).not.toContain('0 篇完整内容接口正文');
+  });
+});
