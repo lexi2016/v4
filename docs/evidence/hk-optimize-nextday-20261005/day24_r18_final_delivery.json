@@ -1,0 +1,87 @@
+{
+  "schema_version": "v4.day24.final_delivery.v1",
+  "recorded_by": "/root",
+  "recorded_at": "2026-10-05T17:26:56.489593+00:00",
+  "scope": "20260924 STAGE_0930_0935 only; not full-day completion",
+  "canonical_source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "baseline_commit": "7e9504927891c3eba32dd3a91085040786c54260",
+  "runtime_release": "hk-day24-stage0930-r18-20261006-api-r1",
+  "runtime_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-day24-stage0930-r18-20261006-api-r1/app",
+  "runtime_manifest_sha256": "ceafc0ae313b4016142e90bd84fea64885cbf54de886916ab5ec301f85244151",
+  "runtime_pid": 61257,
+  "independent_reviewer": "/root/day25_stage_publish_review",
+  "REVIEWED": "PASS",
+  "TESTED": "PASS: prior independent core tests plus 14 independent R3 wrapper assertions",
+  "BEHAVIOR_VERIFIED": "PASS for bounded historical observation and wrapper scope",
+  "INTEGRATED": true,
+  "DEPLOYED": true,
+  "API_VERIFIED": true,
+  "UI_VERIFIED": true,
+  "NATURAL_VERIFIED": "NATURAL_SLOT_UNVERIFIED",
+  "ui_url": "http://127.0.0.1:8873/?date=20260924&stage=STAGE_0930_0935",
+  "a_share": {
+    "preselection_rows": 193,
+    "source_rows": 189,
+    "stage_rows": 10,
+    "reused_existing_result": true,
+    "missing_codes": [
+      "SZ.920961",
+      "SZ.920083",
+      "SZ.920275",
+      "SZ.920207"
+    ],
+    "name_overlay": "CANNOT_CONFIRM"
+  },
+  "hk_connect": {
+    "preselection_rows": 100,
+    "source_rows": 100,
+    "observation_rows": 10,
+    "backfill_run_id": "1d3ab9f9bd3a44c3811bf1fed2b74108",
+    "display_mode": "OBSERVATION_UNVERIFIED",
+    "rank45_d1_gap": "HK.02915 CANNOT_CONFIRM",
+    "formal_pit": false,
+    "action": "NO_BUY"
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "preserved_us_mapping": {
+    "target_date": "20260930",
+    "cards": 5,
+    "priority": 3,
+    "watch": 2,
+    "daily_run": "NOT_RUN"
+  },
+  "failures_preserved": [
+    "R1: run-scoped artifacts missing from actual shared stage, corrected by exact 7-file publication",
+    "R2: wrapper incorrectly required optional HK child safety keys; corrected to permit missing, reject present non-false values; top-level flags and row checks preserved"
+  ],
+  "ledger": [
+    {
+      "worker": "day25_stage_publish_writer",
+      "milestone": "R3 wrapper handoff",
+      "lifecycle_status": "completed",
+      "final_received_consumed": true,
+      "receipt_verified": true
+    },
+    {
+      "worker": "day25_stage_publish_review",
+      "milestone": "R3 independent readiness and 14 targeted assertions",
+      "lifecycle_status": "completed",
+      "final_received_consumed": true,
+      "receipt_verified": true
+    }
+  ],
+  "evidence_sha256": {
+    "r18_direct_process_switch_receipt.json": "3ae1e7096d946b31fdb2ebf3dfc14e70acd8441c8a853377b751407e53f234ae",
+    "r18_direct_process_switch_receipt_r2.json": "915357cfb228545b05b747b247e0b3ac926abd06938d89a998aceb639f576588",
+    "r18_direct_process_switch_receipt_r3.json": "cffa3eba9cd9ca4315a469bd899c0585f2b2adc852d364f30bb1ba0dbc3e64d3",
+    "r18_shared_stage_artifact_publication_receipt_r2.json": "b7b37f97b88ecd9a6ed7f2fb976210781a8f94bb178fcc3cee0aac34a93f331b",
+    "r18_actual_roots_api_readback_r2.json": "060565bf30b33e46549de1c38df09011c378a26085a5767d6cd77197d0e9d87e",
+    "r18_wrapper_assertion_diagnostic_r2.json": "4bacac4f81bd739a599a6910aee3741b72bb0ad811f462e12e0d3f7b7f6e8492",
+    "r18_process_switch_r3.py": "81622a87b88097fc84890dd7e5b9e0cc5be2f49055fa7ddaccb23dfcd996d1d4",
+    "r18_launch_specs_r3.json": "49d6fd6d8f013bed462028c03c0ae209dd139b22a0e2f3246b1d8b85c6c36837",
+    "day24_r18_ui.png": "aedf9942d6f7c023bfb66a015c8a103374b790ea23f8f4f75f2928256341c9cc"
+  }
+}

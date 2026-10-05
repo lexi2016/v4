@@ -1,0 +1,47 @@
+{
+  "finished_at_utc": "2026-10-05T17:25:35Z",
+  "metadata": {
+    "candidate_release": "hk-day24-stage0930-r18-20261006-api-r1",
+    "launch_specs_sha256": "49d6fd6d8f013bed462028c03c0ae209dd139b22a0e2f3246b1d8b85c6c36837",
+    "rollback_release": "manager-us-mapping-r17-20261006-page-r1"
+  },
+  "result": {
+    "api_acceptance": {
+      "execution_verified": false,
+      "natural_verified": false,
+      "safety_flags_false": true,
+      "same_page_stage": {
+        "a_rows": 10,
+        "display_mode": "OBSERVATION_UNVERIFIED",
+        "hk_backfill_run_id": "1d3ab9f9bd3a44c3811bf1fed2b74108",
+        "hk_observations": 10,
+        "markets": [
+          "A",
+          "HK"
+        ]
+      },
+      "us_mapping": {
+        "cards": 5,
+        "daily_run_status": "NOT_RUN",
+        "priority": 3,
+        "target_trade_date": "20260930",
+        "watch": 2
+      }
+    },
+    "listener": "python3.1 61257 lexi    6u  IPv4 0xf5740b9ef26000e3      0t0  TCP 127.0.0.1:8873 (LISTEN)",
+    "new_pid": 61257,
+    "old_pid": 60616,
+    "runtime_identity": {
+      "application": "V4",
+      "manifest_sha256": "ceafc0ae313b4016142e90bd84fea64885cbf54de886916ab5ec301f85244151",
+      "process_status": "CANNOT_CONFIRM",
+      "release_id": "hk-day24-stage0930-r18-20261006-api-r1",
+      "status": "MANIFEST_EXECUTION_FILES_VERIFIED"
+    },
+    "status": "PASS"
+  },
+  "safety_controls_unchanged": true,
+  "schema_version": "v4.direct_api_process_switch_receipt.v1",
+  "started_at_utc": "2026-10-05T17:25:32Z",
+  "state_roots_unchanged": true
+}
