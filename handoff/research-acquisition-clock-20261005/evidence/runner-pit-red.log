@@ -1,0 +1,66 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____ test_original_hourly_runner_checks_source_sha_and_keeps_retry_bytes ______
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-11/test_original_hourly_runner_ch0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f48077d8140>
+
+    def test_original_hourly_runner_checks_source_sha_and_keeps_retry_bytes(tmp_path, monkeypatch):
+        produce(tmp_path, monkeypatch)
+        result = build_hourly_research_input(data_root=tmp_path, business_date=DAY, slot='0900')
+        source_path = tmp_path/result['source_path']; source_bytes = source_path.read_bytes()
+        arguments = dict(data_root=tmp_path, source=source_path, business_date=DAY,
+            target_date=DAY, slot='0900', mode='LIVE', expected_source_sha256=result['source_sha256'])
+        with pytest.raises(ValueError, match='SOURCE_SHA_MISMATCH'):
+            run_hourly_research_file(**{**arguments, 'expected_source_sha256':'0'*64})
+>       run = run_hourly_research_file(**arguments)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_research_acquisition_clock_pipeline.py:145: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+ops/run_hourly_research.py:315: in run_hourly_research_file
+    validate_hourly_stage_source(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+source = {'buy_gate_effect': 'none', 'cannot_confirm': [{'module': 'research_intelligence', 'reason': 'RESEARCH_ONLY_NO_BUY_GAT...arch_slot': '0900', 'latest_slot': '0900', 'row_count': 1, 'schema_version': 'hourly_research_dashboard.v1', ...}, ...}
+trade_date = '20260925', slot = '0900'
+cutoff = datetime.datetime(2026, 9, 25, 9, 0, 59, 999999, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+allow_late_observations = False
+
+    def validate_hourly_stage_source(
+        source: Mapping[str, Any], *, trade_date: str, slot: str, cutoff: datetime,
+        allow_late_observations: bool = False,
+    ) -> None:
+        """Validate source identity and times that the archive projection discards.
+    
+        A late-observation exception is only used by the original CLI recovery path.
+        The stage reader never uses it: every observed timestamp must precede the
+        actual stage cutoff.  No date, timestamp, score or delta flag is repaired.
+        """
+        manifest = source.get("source_manifest")
+        if (source.get("trade_date") != trade_date or not isinstance(manifest, Mapping)
+                or manifest.get("hourly_slot") != slot):
+            raise ValueError("HOURLY_SOURCE_DATE_SLOT_MISMATCH")
+        if source.get("slot", slot) != slot or manifest.get("trade_date", trade_date) != trade_date:
+            raise ValueError("HOURLY_SOURCE_DATE_SLOT_MISMATCH")
+        declared_pit_cutoff = manifest.get("pit_cutoff")
+        # New producer snapshots carry an explicit PIT declaration.  Bind it to
+        # the slot-derived cutoff before projecting any rows.  A few older unit
+        # fixtures predate this field and remain compatible when they have none;
+        # once the producer identity (or a declaration itself) is present, a
+        # missing declaration is an invalid source rather than an inferred time.
+        requires_pit_cutoff = bool(
+            source.get("slot") == slot
+            or manifest.get("producer") == "ops.collect_hourly_research_input"
+            or manifest.get("capture_origin") == "ORIGINAL_SLOT"
+            or declared_pit_cutoff not in (None, "")
+        )
+        if declared_pit_cutoff in (None, ""):
+            if requires_pit_cutoff:
+>               raise ValueError("HOURLY_SOURCE_MANIFEST_PIT_CUTOFF_MISSING")
+E               ValueError: HOURLY_SOURCE_MANIFEST_PIT_CUTOFF_MISSING
+
+domains/research_hourly.py:881: ValueError
+=========================== short test summary info ============================
+FAILED tests/test_research_acquisition_clock_pipeline.py::test_original_hourly_runner_checks_source_sha_and_keeps_retry_bytes
+1 failed, 18 deselected in 0.17s

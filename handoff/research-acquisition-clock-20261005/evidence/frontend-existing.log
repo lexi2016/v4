@@ -1,0 +1,102 @@
+
+ RUN  v4.1.10 /workspace/candidate-acquisition-clock/api/apps/web
+
+ ❯ src/manager-selection/__tests__/businessCompletionR3.spec.ts (10 tests | 2 failed) 18ms
+     × shows NOT_RUN and NOT_MATERIALIZED as business states rather than zero success 9ms
+     × surfaces an Eastmoney owner run in the top announcement status without claiming HKEX ran 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/manager-selection/__tests__/businessCompletionR3.spec.ts > manager business completion R3 > shows NOT_RUN and NOT_MATERIALIZED as business states rather than zero success
+AssertionError: expected [ { label: '计划', …(3) }, …(6) ] to deeply equal ArrayContaining{…}
+
+- Expected
++ Received
+
+- ArrayContaining [
+-   ObjectContaining {
++ [
++   {
++     "detail": "NOT_MATERIALIZED；执行类型或运行身份未匹配；读取 VERIFIED_WITH_GAPS",
++     "label": "计划",
++     "next": "在合法盘前冻结窗口由现有 Manager owner 物化；晚间不得补成盘前。",
++     "state": "未冻结",
++   },
++   {
++     "detail": "公告覆盖无法确认；原因 ANNOUNCEMENT_COVERAGE_NOT_VERIFIED；不能归为未运行或 0 条公告。",
+      "label": "公告",
++     "next": "按同一目标日期与保存 cutoff 核对 HKEX 官方 owner 回执；Vibe RSS 与 Eastmoney 镜像不能替代。",
++     "state": "无法确认",
++   },
++   {
++     "detail": "美股来源已就绪；行业上涨 未知 个／个股上涨 未知 个；合格关系尚未计算",
++     "label": "美股",
++     "next": "等待同一目标日期的完整美股时段快照与关系材料输入，再开始评估；缺失输入不代表合格关系为零。",
++     "state": "尚未评估",
++   },
++   {
++     "detail": "只读研究优先级；原screen/Stage/BUY不变。",
++     "label": "研究关注",
++     "next": "继续核对证据时间、来源与缺口；不把分数当买入排名。",
++     "state": "READY_WITH_GAPS",
++   },
++   {
++     "detail": "UNVERIFIED；产物状态 未知；时段 未知；最近成功 未记录；最近尝试 未记录；原因 SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
++     "label": "Stage",
++     "next": "按原owner补齐/复验该lane产物；历史缺件不得用当前输入回填。",
++     "state": "未核实",
++   },
++   {
++     "detail": "NOT_RUN；最近成功 未记录；最近尝试 未记录；原因 INPUT_MISSING",
++     "label": "材料",
++     "next": "按原owner补齐/复验该lane产物；历史缺件不得用当前输入回填。",
+      "state": "未运行",
+    },
+-   ObjectContaining {
+-     "label": "计划",
+-     "state": "未冻结",
++   {
++     "detail": "UNVERIFIED；最近成功 未记录；最近尝试 2026-09-25T15:30:00+08:00；原因 NO_HK_CONNECT_1530_SESSION",
++     "label": "15:30",
++     "next": "按原owner补齐/复验该lane产物；历史缺件不得用当前输入回填。",
++     "state": "未核实",
+    },
+  ]
+
+ ❯ src/manager-selection/__tests__/businessCompletionR3.spec.ts:32:18
+     30|       ],
+     31|     } as any);
+     32|     expect(rows).toEqual(expect.arrayContaining([
+       |                  ^
+     33|       expect.objectContaining({label:'公告',state:'未运行'}),
+     34|       expect.objectContaining({label:'计划',state:'未冻结'}),
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/manager-selection/__tests__/businessCompletionR3.spec.ts > manager business completion R3 > surfaces an Eastmoney owner run in the top announcement status without claiming HKEX ran
+AssertionError: expected '无法确认' to be '部分完成（Eastmoney 港股镜像）' // Object.is equality
+
+Expected: "部分完成（Eastmoney 港股镜像）"
+Received: "无法确认"
+
+ ❯ src/manager-selection/__tests__/businessCompletionR3.spec.ts:122:23
+    120|     } as any);
+    121|     const row=rows.find(item=>item.label==='公告')!;
+    122|     expect(row.state).toBe('部分完成（Eastmoney 港股镜像）');
+       |                       ^
+    123|     expect(row.detail).toContain('HKEX目录未运行');
+    124|     expect(row.detail).toContain('已读回 1 条');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  2 failed | 18 passed (20)
+   Start at  08:35:39
+   Duration  922ms (transform 277ms, setup 0ms, import 328ms, tests 47ms, environment 1.14s)
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice
