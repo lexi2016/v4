@@ -1,0 +1,50 @@
+{
+  "schema_version": "v4.root_recorded_independent_review.v1",
+  "recorded_by": "/root",
+  "reviewer": "/root/day25_stage_publish_review",
+  "verdict": "PASS",
+  "candidate_app_sha256": "e7f6a1a581494c5bd9eaf31edf1daa6f530f8fe4df94c3e88950c6ebbf45d49b",
+  "review_scope": "Actual R2-to-R3 candidate source comparison and independent same-page TestClient readback, plus canonical focused regression",
+  "independent_canonical_tests_passed": 15,
+  "canonical_app_sha_prefix_at_review": "111fc07e",
+  "canonical_tests": "tests/test_hk_stage0930_exact_backfill_binding.py",
+  "ordinary_request": "/api/v3/workbench/stage?date=20260924&stage=STAGE_0930_0935&limit=50",
+  "a_share": {
+    "requested_rows": 193,
+    "source_rows": 189,
+    "rows": 10,
+    "RESEARCH_ONLY": true,
+    "missing_rows": 4,
+    "formal_eligible": false
+  },
+  "hk_connect": {
+    "requested_rows": 100,
+    "source_rows": 100,
+    "observation_rows": 10,
+    "backfill_run_id": "1d3ab9f9bd3a44c3811bf1fed2b74108",
+    "RESEARCH_ONLY": true,
+    "formal_eligible": false,
+    "action": "NO_BUY",
+    "display_mode": "OBSERVATION_UNVERIFIED",
+    "runner_receipt_verified": true
+  },
+  "execution_evidence": {
+    "status": "SELECTION_REFERENCES_PARTIALLY_BOUND_EXECUTION_UNVERIFIED",
+    "execution_verified": false,
+    "natural_verified": false,
+    "cannot_confirm": [
+      "NO_SINGLE_A_HK_EXECUTION_RECEIPT_FOR_MARKET_SCOPED_READBACK"
+    ]
+  },
+  "top_RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "day25_exact_scope_preserved": true,
+  "shared_selection_pointer_and_day25_receipt_hashes_unchanged": true,
+  "API_VERIFIED": "ISOLATED_TESTCLIENT_ONLY",
+  "UI_VERIFIED": "NOT_RUN_FOR_THIS_CANDIDATE",
+  "NATURAL_VERIFIED": "CANNOT_CONFIRM",
+  "delivery_patch_note": "Reviewer found inherited R2 patch stale, but reviewed actual R3 source difference independently. Root regenerated exact R15-to-R3 app diff without modifying candidate code.",
+  "delivery_patch_sha256": "55804dd90808bdc51f3cf693542f4765e21047e77d2b93e121a869c7447a1827"
+}
