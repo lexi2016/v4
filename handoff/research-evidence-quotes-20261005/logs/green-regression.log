@@ -1,0 +1,31 @@
+
+ RUN  v4.1.10 /workspace/candidate-evidence-quotes/app/apps/web
+
+ ❯ src/manager-selection/catalystObservationPanel.runtime.spec.ts (10 tests | 1 failed) 230ms
+     × renders the actual Eastmoney owner workspace readback instead of reporting a network failure 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.runtime.spec.ts > catalyst workspace runtime boundary > renders the actual Eastmoney owner workspace readback instead of reporting a network failure
+Error: ENOENT: no such file or directory, open '/Users/lexi/Desktop/学习/agents调试/EASTMONEY_HK_ANN_20260929/integration/workspace_after.json'
+ ❯ src/manager-selection/catalystObservationPanel.runtime.spec.ts:336:28
+    334|
+    335|   it("renders the actual Eastmoney owner workspace readback instead of…
+    336|     const raw = JSON.parse(readFileSync(
+       |                            ^
+    337|       "/Users/lexi/Desktop/学习/agents调试/EASTMONEY_HK_ANN_20260929/integ…
+    338|       "utf8",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 4 passed (5)
+      Tests  1 failed | 112 passed (113)
+   Start at  05:20:15
+   Duration  1.81s (transform 574ms, setup 0ms, import 920ms, tests 711ms, environment 2.13s)
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

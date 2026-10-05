@@ -1,0 +1,16 @@
+--- a/apps/web/src/manager-selection/researchAttention.ts
++++ b/apps/web/src/manager-selection/researchAttention.ts
+@@ -17,6 +17,13 @@
+ function evidenceDetails(row:JsonObject):HTMLElement{
+   const node=el('details');node.append(el('summary',`${text(row.evidence_lane,text(row.evidence_class,'证据'))} · ${text(row.published_at,text(row.issuer_published_at,'时间未知'))}`));
+   const body=el('div');const acquired=acquiredTime(row);body.append(el('p',`公开/证据时间：${text(row.published_at,text(row.issuer_published_at,'UNKNOWN'))}；系统取得：${acquired??'未记录（不以当前时间补写）'}`));
++  if(row.evidence_lane==='COMPANY_MATERIAL'){
++    body.append(el('p',`材料标题：${text(row.title,'未提供')}`));
++    const quote=text(row.evidence_quote,'');
++    if(quote){
++      body.append(el('p','原文摘录（既有研究依据；不据此确认事件发生在本次窗口）'),el('blockquote',quote));
++    }else body.append(el('p','未提供可展示正文摘录；标题不代替正文依据。'));
++  }
+   const link=sourceLink(row.source_url);if(link)body.append(link);
+   const us=row.us_mover as JsonObject|undefined;if(us)body.append(el('p',`US：${text(us.label,text(us.symbol))} ${String(us.pct_change??us.change_pct??'')}%；此处只表示已核关系后的研究映射。`));
+   node.append(body);return node;

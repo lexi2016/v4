@@ -1,0 +1,123 @@
+
+ RUN  v4.1.10 /workspace/candidate-evidence-quotes/app/apps/web
+
+ ❯ src/manager-selection/__tests__/researchEvidenceQuote.spec.ts (11 tests | 9 failed) 1110ms
+     × preserves and displays the exact producer quote with its source title and clocks 28ms
+     × runs the real panel request decoder and renderer with the Python payload 1050ms
+     × does not invent an excerpt from a title or invalid quote undefined 7ms
+     × does not invent an excerpt from a title or invalid quote null 4ms
+     × does not invent an excerpt from a title or invalid quote     4ms
+     × does not invent an excerpt from a title or invalid quote 42 3ms
+     × does not invent an excerpt from a title or invalid quote { text: 'not a quote' } 4ms
+     × renders historical/negative words literally without inventing a current positive event 2ms
+     × escapes both title and quote and still rejects unsafe source links 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/manager-selection/__tests__/researchEvidenceQuote.spec.ts > synthetic Python body -> research reason -> real DOM > preserves and displays the exact producer quote with its source title and clocks
+AssertionError: expected undefined to be '合成甲公司签署了设备供应合同' // Object.is equality
+
+- Expected:
+"合成甲公司签署了设备供应合同"
+
++ Received:
+undefined
+
+ ❯ src/manager-selection/__tests__/researchEvidenceQuote.spec.ts:28:59
+     26|     const x=fresh(),before=structuredClone(x),row=evidence(x),host=ren…
+     27|     const card=host.querySelector('.research-attention-card')!;
+     28|     expect(card.querySelector('blockquote')?.textContent).toBe(row.evi…
+       |                                                           ^
+     29|     expect(card.textContent).toContain(row.title);
+     30|     expect(card.textContent).toContain(row.published_at);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  src/manager-selection/__tests__/researchEvidenceQuote.spec.ts > synthetic Python body -> research reason -> real DOM > runs the real panel request decoder and renderer with the Python payload
+AssertionError: expected undefined to be '合成甲公司签署了设备供应合同' // Object.is equality
+
+- Expected:
+"合成甲公司签署了设备供应合同"
+
++ Received:
+undefined
+
+ ❯ src/manager-selection/__tests__/researchEvidenceQuote.spec.ts:49:107
+     47|     const dispose=mountCatalystObservations(host,date);
+     48|     try{
+     49|       await vi.waitFor(()=>expect(host.querySelector('.research-attent…
+       |                                                                                                           ^
+     50|       expect(host.querySelector('.manager-catalyst-observations')?.get…
+     51|       const details=host.querySelector('.research-attention-card block…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+ FAIL  src/manager-selection/__tests__/researchEvidenceQuote.spec.ts > synthetic Python body -> research reason -> real DOM > does not invent an excerpt from a title or invalid quote undefined
+ FAIL  src/manager-selection/__tests__/researchEvidenceQuote.spec.ts > synthetic Python body -> research reason -> real DOM > does not invent an excerpt from a title or invalid quote null
+ FAIL  src/manager-selection/__tests__/researchEvidenceQuote.spec.ts > synthetic Python body -> research reason -> real DOM > does not invent an excerpt from a title or invalid quote    
+ FAIL  src/manager-selection/__tests__/researchEvidenceQuote.spec.ts > synthetic Python body -> research reason -> real DOM > does not invent an excerpt from a title or invalid quote 42
+ FAIL  src/manager-selection/__tests__/researchEvidenceQuote.spec.ts > synthetic Python body -> research reason -> real DOM > does not invent an excerpt from a title or invalid quote { text: 'not a quote' }
+AssertionError: expected '合成甲公司 · HK.01234 · 公司证据，待市场确认 · 24分原量…' to contain '未提供可展示正文摘录'
+
+Expected: "未提供可展示正文摘录"
+Received: "合成甲公司 · HK.01234 · 公司证据，待市场确认 · 24分原量价分类：不在strict/near；原near/strict内部rank：无。研究结论：已有截止时点内的公司证据，但现有量价/趋势通道尚未确认；先等市场确认，不因事件本身升级为交易准入。为什么现在看：公司特异材料下一步核什么：等待既有 strict/near/趋势通道出现同窗确认；盘前不能用盘后或未来行情回填。什么时候降级/撤销：若公司证据被更正、主体关系失效或证明当时不可见，则撤销该公司证据优先级。查看原分数构成（仅解释，不是BUY分）COMPANY_MATERIAL 24 = 24。证据时点：公开 2026-09-30T08:00:00+08:00；系统取得 2026-09-30T08:02:00+08:00。两类时间不互相替代。仍缺：NO_CUTOFF_BOUND_OFFICIAL_ANNOUNCEMENT；NO_VERIFIED_US_TO_HK_MAPPINGCOMPANY_MATERIAL · 2026-09-30T08:00:00+08:00公开/证据时间：2026-09-30T08:00:00+08:00；系统取得：2026-09-30T08:02:00+08:00来源"
+
+ ❯ src/manager-selection/__tests__/researchEvidenceQuote.spec.ts:61:30
+     59|     const card=render(x).querySelector('.research-attention-card')!;
+     60|     expect(card.querySelector('blockquote')).toBeNull();
+     61|     expect(card.textContent).toContain('未提供可展示正文摘录');
+       |                              ^
+     62|     expect(card.textContent).toContain(evidence(x).title);
+     63|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯
+
+ FAIL  src/manager-selection/__tests__/researchEvidenceQuote.spec.ts > synthetic Python body -> research reason -> real DOM > renders historical/negative words literally without inventing a current positive event
+AssertionError: expected undefined to be '合成展示边界：去年签署；本次尚未获批。' // Object.is equality
+
+- Expected:
+"合成展示边界：去年签署；本次尚未获批。"
+
++ Received:
+undefined
+
+ ❯ src/manager-selection/__tests__/researchEvidenceQuote.spec.ts:67:59
+     65|     const x=fresh();const row=evidence(x);row.evidence_quote='合成展示边界：去…
+     66|     const before=structuredClone(x),host=render(x);
+     67|     expect(host.querySelector('blockquote')?.textContent).toBe(row.evi…
+       |                                                           ^
+     68|     expect(host.textContent).toContain('不据此确认事件发生在本次窗口');expect(x).toE…
+     69|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯
+
+ FAIL  src/manager-selection/__tests__/researchEvidenceQuote.spec.ts > synthetic Python body -> research reason -> real DOM > escapes both title and quote and still rejects unsafe source links
+AssertionError: expected undefined to be '<script>alert(1)</script>' // Object.is equality
+
+- Expected:
+"<script>alert(1)</script>"
+
++ Received:
+undefined
+
+ ❯ src/manager-selection/__tests__/researchEvidenceQuote.spec.ts:74:59
+     72|     row.evidence_quote='<script>alert(1)</script>';row.source_url='jav…
+     73|     const host=render(x);expect(host.querySelector('img,script,a')).to…
+     74|     expect(host.querySelector('blockquote')?.textContent).toBe(row.evi…
+       |                                                           ^
+     75|     expect(host.textContent).toContain(row.title);
+     76|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  9 failed | 2 passed (11)
+   Start at  05:20:50
+   Duration  1.89s (transform 144ms, setup 0ms, import 273ms, tests 1.11s, environment 398ms)
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice
