@@ -1,0 +1,1424 @@
+--- a/stage_center/runner.py
++++ b/stage_center/runner.py
+@@ -35,7 +35,16 @@
+     resolve_market_states,
+ )
+ from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+-from .raw_store import RAW_FIELDS, RawStore, RawStoreError, publish_raw_artifact, validate_rows
++from .raw_store import (
++    HK_0930_TDX_RESEARCH_CONTRACT,
++    HK_0930_TDX_RESEARCH_MODE_EVIDENCE,
++    RAW_FIELDS,
++    RawStore,
++    RawStoreError,
++    _allows_hk_0930_tdx_temporal_false_observation,
++    publish_raw_artifact,
++    validate_rows,
++)
+ from .scheduler import DueDecision, evaluate_due
+ from .selection import SelectionError, SelectionStore
+ 
+@@ -55,9 +64,143 @@
+ _HK_0930_RESEARCH_DATE = "20260925"
+ _HK_0930_RESEARCH_SIGNAL_DATE = "20260924"
+ _HK_0930_RESEARCH_D1_SHA256 = "c6202648a73d0103b2ec43e393618ca31e67183c730a4df4db018eced2cfacd0"
++_HK_0930_TDX_RESEARCH_DATE = "20260924"
++_HK_0930_TDX_RESEARCH_SIGNAL_DATE = "20260923"
++_HK_0930_TDX_D1_PROJECTION_SHA256 = "fda1cd4b334699fc4df59658b443a01388f6bb4dfd29470d9c1baabd75ad72fc"
++_HK_0930_TDX_D1_CODE_SET_SHA256 = "4395dcad079830e90c6dfafc401ebf8687a13dff31156aeb73bd8d37d2e747ae"
++_HK_0930_TDX_D1_PRODUCER = {
++    "run_id": "20260924-hk-connect-d1-top100-0-2-625bd55a46b4",
++    "artifact_sha256": "30576eee9f0370c6956da6e41725d0720253e917a8e3741cce20f875b5e28f89",
++    "manifest_sha256": "c10ecc440585f0546a28dc8faf52bcf3e198c378216e5164c022b96d4d428465",
++    "receipt_sha256": "a96626f926b53a461039fce732658f765eea5383a63fe0830cbb21d7d780c73d",
++}
++_HK_0930_TDX_GAP_RECEIPT_SHA256 = "e3ea5b867f591d83a65e59aa855275d83dae188a7de8634dfa8b6fc9b605cf6a"
++_HK_0930_TDX_INPUT_PAGE_SET_SHA256 = "43de2248f4a8360ef82eae6ea7829d9847f8d824834dbc631cfdde26f2bde9c8"
+ _HK_HISTORICAL_RESEARCH_CONTRACT: ContextVar[str | None] = ContextVar(
+     "stage_center_hk_historical_research_contract", default=None
+ )
++_HK_TDX_AFTERFACT_RESEARCH_CONTRACT: ContextVar[str | None] = ContextVar(
++    "stage_center_hk_tdx_afterfact_research_contract", default=None
++)
++
++
++def _authorize_hk_0930_tdx_temporal_false_observation(
++    source: SourceResult,
++    plan: AcquisitionPlan,
++    *,
++    binding: StageUniverseBinding | None,
++    market: str,
++    historical_backfill: bool,
++) -> tuple[SourceResult, str | None]:
++    """Bind the one truthful false-temporal observation to its exact D1 and inputs."""
++    if _HK_TDX_AFTERFACT_RESEARCH_CONTRACT.get() != HK_0930_TDX_RESEARCH_CONTRACT:
++        return source, None
++    if (
++        not historical_backfill
++        or (plan.trade_date, plan.stage_id, market)
++        != (_HK_0930_TDX_RESEARCH_DATE, "STAGE_0930_0935", "HK_CONNECT")
++        or source.source_id != "pytdx_exhq"
++        or source.status != "PARTIAL_WITH_ROWS"
++        or source.requested_rows != 100
++        or len(source.rows) != 100
++        or source.missing_symbols
++        or binding is None
++        or binding.status != "READY"
++        or binding.market != "HK_CONNECT"
++        or binding.trade_date != _HK_0930_TDX_RESEARCH_DATE
++        or binding.sha256 != _HK_0930_TDX_D1_PROJECTION_SHA256
++        or len(binding.codes) != 100
++    ):
++        raise RunnerError("exact HK 09:30 temporal-false research source or D1 binding mismatch")
++
++    binding_codes_sha = hashlib.sha256(
++        json.dumps(
++            tuple(sorted(str(code).upper() for code in binding.codes)),
++            ensure_ascii=False,
++            sort_keys=True,
++            separators=(",", ":"),
++        ).encode("utf-8")
++    ).hexdigest()
++    d1_path = _evidence_value(binding.evidence, "hk_d1_json")
++    if (
++        binding_codes_sha != _HK_0930_TDX_D1_CODE_SET_SHA256
++        or _evidence_value(binding.evidence, "hk_d1_sha256") != _HK_0930_TDX_D1_PROJECTION_SHA256
++        or _evidence_value(binding.evidence, "hk_d1_membership") != "exact_date_top100"
++        or not d1_path
++        or _sha(Path(d1_path)) != _HK_0930_TDX_D1_PROJECTION_SHA256
++    ):
++        raise RunnerError("HK 09:30 D1 projection identity changed before research observation")
++    try:
++        projection = json.loads(Path(d1_path).read_text(encoding="utf-8"))
++    except (OSError, UnicodeError, ValueError) as error:
++        raise RunnerError("HK 09:30 D1 projection is unavailable for temporal-false research") from error
++    projection_rows = projection.get("rows") if isinstance(projection, Mapping) else None
++    projection_codes = tuple(
++        sorted(
++            str(row.get("code") or "").upper()
++            for row in projection_rows
++            if isinstance(row, Mapping)
++        )
++    ) if isinstance(projection_rows, list) else ()
++    projection_codes_sha = hashlib.sha256(
++        json.dumps(projection_codes, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
++    ).hexdigest()
++    expected_projection_lineage = (
++        ("source_run_id", _HK_0930_TDX_D1_PRODUCER["run_id"]),
++        ("source_artifact_sha256", _HK_0930_TDX_D1_PRODUCER["artifact_sha256"]),
++        ("source_manifest_sha256", _HK_0930_TDX_D1_PRODUCER["manifest_sha256"]),
++        ("source_receipt_sha256", _HK_0930_TDX_D1_PRODUCER["receipt_sha256"]),
++    )
++    if (
++        projection.get("trade_date") != _HK_0930_TDX_RESEARCH_DATE
++        or projection.get("target_date") != _HK_0930_TDX_RESEARCH_DATE
++        or projection.get("signal_date") != _HK_0930_TDX_RESEARCH_SIGNAL_DATE
++        or projection.get("pool_id") != "hkconnect_d1_top100"
++        or projection.get("stage_selection_eligible") is not True
++        or len(projection_codes) != 100
++        or projection_codes_sha != _HK_0930_TDX_D1_CODE_SET_SHA256
++        or set(projection_codes) != set(binding.codes)
++        or any(projection.get(key) != value for key, value in expected_projection_lineage)
++        or any(projection.get(key) is not False for key in ("production_allowed", "buy_gate_updated", "orders_sent"))
++    ):
++        raise RunnerError("HK 09:30 D1 target/signal/producer lineage mismatch")
++
++    row_codes = tuple(sorted(str(row.get("code") or "").upper() for row in source.rows))
++    row_codes_sha = hashlib.sha256(
++        json.dumps(row_codes, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
++    ).hexdigest()
++    if (
++        row_codes_sha != _HK_0930_TDX_D1_CODE_SET_SHA256
++        or set(row_codes) != set(binding.codes)
++        or any(row.get("temporal_cutoff_safe") is not False for row in source.rows)
++    ):
++        raise RunnerError("HK 09:30 TDX rows do not preserve the exact false-temporal D1 observation")
++
++    evidence = tuple(
++        dict.fromkeys(
++            (
++                *source.source_evidence,
++                "due_status=HISTORICAL_BACKFILL",
++                HK_0930_TDX_RESEARCH_MODE_EVIDENCE,
++            )
++        )
++    )
++    authorized_source = replace(source, source_evidence=evidence)
++    if not _allows_hk_0930_tdx_temporal_false_observation(
++        enabled=True,
++        trade_date=plan.trade_date,
++        stage_id=plan.stage_id,
++        market=market,
++        source_id=authorized_source.source_id,
++        source_status=authorized_source.status,
++        rows=authorized_source.rows,
++        requested_rows=authorized_source.requested_rows,
++        missing_symbols=authorized_source.missing_symbols,
++        cannot_confirm=authorized_source.cannot_confirm,
++        source_evidence=authorized_source.source_evidence,
++    ):
++        raise RunnerError("HK 09:30 TDX evidence or safety contract is incomplete")
++    return authorized_source, HK_0930_TDX_RESEARCH_CONTRACT
+ 
+ 
+ def lane_status_bundle(
+@@ -976,7 +1119,10 @@
+     return _v4_impl(globals(), result, candidate, extra, candidate_sha=candidate_sha, candidate_run_id=candidate_run_id)
+ 
+ 
+-def _project_raw_rows(rows: Sequence[Mapping[str, Any]], *, trade_date: str, stage_id: str, market: str) -> tuple[dict[str, Any], ...]:
++def _project_raw_rows(
++    rows: Sequence[Mapping[str, Any]], *, trade_date: str, stage_id: str,
++    market: str, research_observation_contract: str | None = None,
++) -> tuple[dict[str, Any], ...]:
+     """Project collector rows to the immutable SafeRootStore 19-field shape.
+ 
+     Collector rows are intentionally richer than raw storage: auction rank,
+@@ -987,7 +1133,10 @@
+     CANNOT_CONFIRM latest pointer or leave an incomplete bundle behind.
+     """
+     from stage_center._runner_parts.row_evidence import __project_raw_rows_body as _v4_impl
+-    return _v4_impl(globals(), rows, trade_date=trade_date, stage_id=stage_id, market=market)
++    return _v4_impl(
++        globals(), rows, trade_date=trade_date, stage_id=stage_id, market=market,
++        research_observation_contract=research_observation_contract,
++    )
+ 
+ 
+ class StageCenterRunner:
+@@ -1076,6 +1225,7 @@
+         historical_backfill: bool = False,
+         historical_markets: Sequence[str] | None = None,
+         historical_research_contract: str | None = None,
++        historical_observation_contract: str | None = None,
+         _skip_precapture: bool = False,
+     ) -> dict[str, Any]:
+         if historical_research_contract is not None and (
+@@ -1086,8 +1236,22 @@
+             or tuple(historical_markets or ()) != ("HK_CONNECT",)
+         ):
+             raise RunnerError("HK historical research D1 binding context mismatch")
++        if historical_observation_contract is not None and (
++            historical_observation_contract != HK_0930_TDX_RESEARCH_CONTRACT
++            or not historical_backfill
++            or trade_date != _HK_0930_TDX_RESEARCH_DATE
++            or stage_id != "STAGE_0930_0935"
++            or tuple(historical_markets or ()) != ("HK_CONNECT",)
++            or not _skip_precapture
++        ):
++            raise RunnerError("HK historical temporal-false research observation context mismatch")
+         context_token = _HK_HISTORICAL_RESEARCH_CONTRACT.set(
+             historical_research_contract
++        )
++        observation_context_token = _HK_TDX_AFTERFACT_RESEARCH_CONTRACT.set(
++            historical_observation_contract
++            if historical_observation_contract is not None
++            else _HK_TDX_AFTERFACT_RESEARCH_CONTRACT.get()
+         )
+         try:
+             # Capture once per outer scheduler tick, before due work can spend
+@@ -1098,6 +1262,7 @@
+                 return _v4_impl(globals(), self, trade_date, evaluated_at, stage_id=stage_id, historical_backfill=historical_backfill, _skip_precapture=_skip_precapture)
+             return _v4_impl(globals(), self, trade_date, evaluated_at, stage_id=stage_id, historical_backfill=historical_backfill, historical_markets=historical_markets, _skip_precapture=_skip_precapture)
+         finally:
++            _HK_TDX_AFTERFACT_RESEARCH_CONTRACT.reset(observation_context_token)
+             _HK_HISTORICAL_RESEARCH_CONTRACT.reset(context_token)
+ 
+ 
+--- a/stage_center/_runner_parts/slot_execution.py
++++ b/stage_center/_runner_parts/slot_execution.py
+@@ -293,6 +293,7 @@
+         )
+         sources: dict[str, SourceResult] = {}
+         selection_sources: dict[str, SourceResult] = {}
++        temporal_false_observation_contracts: dict[str, str] = {}
+         for market in markets:
+             if market in exact_input_errors:
+                 error = exact_input_errors[market]
+@@ -321,6 +322,32 @@
+                 result = _v4_global(_v4_scope, 'replace')(result, status="PARTIAL_WITH_ROWS")
+             elif result.rows and result.missing_symbols and result.status == "READY":
+                 result = _v4_global(_v4_scope, 'replace')(result, status="PARTIAL_WITH_ROWS")
++            observation_contract: str | None = None
++            try:
++                result, observation_contract = _v4_global(
++                    _v4_scope, '_authorize_hk_0930_tdx_temporal_false_observation'
++                )(
++                    result,
++                    plan,
++                    binding=universe_bindings.get("HK_CONNECT") if market == "HK_CONNECT" else None,
++                    market=market,
++                    historical_backfill=historical_backfill,
++                )
++                if observation_contract is not None:
++                    temporal_false_observation_contracts[market] = observation_contract
++            except _v4_global(_v4_scope, 'RunnerError') as error:
++                exact_input_errors[market] = _v4_global(_v4_scope, 'str')(error)
++                result = _v4_global(_v4_scope, 'replace')(
++                    result,
++                    status="CANNOT_CONFIRM",
++                    rows=(),
++                    cannot_confirm=_v4_global(_v4_scope, 'tuple')(
++                        _v4_global(_v4_scope, 'dict').fromkeys(
++                            (*result.cannot_confirm, _v4_global(_v4_scope, 'str')(error))
++                        )
++                    ),
++                    source_evidence=(*result.source_evidence, f"exact_input_error={error}"),
++                )
+             # Stage8 selection recovery must re-read the exact replay
+             # provider, never rebuild LIVE lanes from a current Futu
+             # snapshot.  Raw publication intentionally excludes lane
+@@ -458,6 +485,19 @@
+                             )
+                         )
+                     )
++            if observation_contract is not None:
++                # RawStore binds PARTIAL_WITH_ROWS status reasons into the
++                # raw manifest's source_evidence. Mirror that immutable
++                # evidence on the selection input so its exact raw/source
++                # parity check remains true after the readback boundary.
++                result = _v4_global(_v4_scope, 'replace')(
++                    result,
++                    source_evidence=_v4_global(_v4_scope, 'tuple')(
++                        _v4_global(_v4_scope, 'dict').fromkeys(
++                            (*result.source_evidence, *result.cannot_confirm)
++                        )
++                    ),
++                )
+             sources[market] = _v4_global(_v4_scope, '_with_candidate_evidence')(
+                 result,
+                 candidate,
+@@ -566,6 +606,7 @@
+                 trade_date=trade_date,
+                 stage_id=stage_id,
+                 market=market,
++                research_observation_contract=temporal_false_observation_contracts.get(market),
+             )
+         for market in markets:
+             source = sources[market]
+@@ -594,25 +635,50 @@
+                 missing_symbols=source.missing_symbols,
+                 window=window,
+                 cutoff_at=cutoff_at,
++                research_observation_contract=temporal_false_observation_contracts.get(market),
+             )
+             write_performed = True
+             _v4_global(_v4_scope, '_deadline').end_write("RAW_PUBLISH", market=market, artifact_sha256=raw_markets[market].get("artifact_sha256"))
+         raw_bundle: dict[str, Any] = {"markets": raw_markets}
+         if not raw_markets:
+             raise _v4_global(_v4_scope, 'RunnerError')("all market collectors returned zero-row CANNOT_CONFIRM")
++        single_market_research_bundle_evidence: str | None = None
+         if _v4_global(_v4_scope, 'set')(raw_markets) == _v4_global(_v4_scope, 'set')(markets):
+-            try:
+-                _v4_global(_v4_scope, '_deadline').begin_write("BUNDLE_PUBLISH", stage_id=stage_id)
+-                raw_bundle.update(raw_store.publish_bundle(trade_date=trade_date, stage_id=stage_id, status=("READY" if _v4_global(_v4_scope, 'all')(item["status"] == "READY" for item in raw_markets.values()) else "PARTIAL_WITH_ROWS"), markets=raw_markets))
+-                _v4_global(_v4_scope, '_deadline').end_write("BUNDLE_PUBLISH", stage_id=stage_id)
+-            except _v4_global(_v4_scope, 'RawStoreError') as error:
+-                # An immutable raw bundle may have been left absent after
+-                # a prior selection-only failure.  Re-read an identical
+-                # bundle if the store reports a conflict; any differing
+-                # market identity remains fail-closed.
+-                if "bundle slot conflict" not in _v4_global(_v4_scope, 'str')(error):
+-                    raise
+-                raw_bundle.update(raw_store.read_verified_bundle(trade_date, stage_id))
++            exact_hk_only_research_backfill = (
++                historical_backfill is True
++                and trade_date == "20260924"
++                and stage_id == "STAGE_0930_0935"
++                and tuple(stage_spec.markets) == ("A_SHARE", "HK_CONNECT")
++                and tuple(markets) == ("HK_CONNECT",)
++                and tuple(raw_markets) == ("HK_CONNECT",)
++                and temporal_false_observation_contracts.get("HK_CONNECT")
++                == _v4_global(_v4_scope, 'HK_0930_TDX_RESEARCH_CONTRACT')
++            )
++            if exact_hk_only_research_backfill:
++                # The raw bundle contract requires every StageSpec market.
++                # This one explicitly HK-only historical observation must
++                # not fabricate an A_SHARE artifact to satisfy that contract.
++                # The verified single-market raw artifact remains the input
++                # to selection and is named as such in both receipts.
++                single_market_research_bundle_evidence = (
++                    "historical_raw_bundle=OMITTED_HK_ONLY_RESEARCH_BACKFILL"
++                )
++                raw_bundle["bundle_publication_status"] = (
++                    "OMITTED_HK_ONLY_RESEARCH_BACKFILL"
++                )
++            else:
++                try:
++                    _v4_global(_v4_scope, '_deadline').begin_write("BUNDLE_PUBLISH", stage_id=stage_id)
++                    raw_bundle.update(raw_store.publish_bundle(trade_date=trade_date, stage_id=stage_id, status=("READY" if _v4_global(_v4_scope, 'all')(item["status"] == "READY" for item in raw_markets.values()) else "PARTIAL_WITH_ROWS"), markets=raw_markets))
++                    _v4_global(_v4_scope, '_deadline').end_write("BUNDLE_PUBLISH", stage_id=stage_id)
++                except _v4_global(_v4_scope, 'RawStoreError') as error:
++                    # An immutable raw bundle may have been left absent after
++                    # a prior selection-only failure.  Re-read an identical
++                    # bundle if the store reports a conflict; any differing
++                    # market identity remains fail-closed.
++                    if "bundle slot conflict" not in _v4_global(_v4_scope, 'str')(error):
++                        raise
++                    raw_bundle.update(raw_store.read_verified_bundle(trade_date, stage_id))
+         published: dict[str, Any] = {}
+         selection_store = _v4_global(_v4_scope, 'SelectionStore')(self.config.selection_root)
+         for market in markets:
+@@ -655,6 +721,7 @@
+                         ),
+                         *exact_evidence_by_market.get(market, ()),
+                         *((f"exact_input_error={exact_input_errors[market]}",) if market in exact_input_errors else ()),
++                        *((single_market_research_bundle_evidence,) if single_market_research_bundle_evidence else ()),
+                         f"due_status={decision.status}",
+                     )
+                 )
+@@ -669,7 +736,7 @@
+         source_evidence = [f"candidate_current_sha256={candidate.current_sha256}", f"candidate_run_id={candidate.run_id}", *exact_evidence]
+         if decision.status in {"LATE_CATCHUP_REPLAY", "HISTORICAL_BACKFILL"}:
+             source_evidence.append(decision.status)
+-        return self._write_receipt({"status": status, "due_status": decision.status, "trade_date": trade_date, "stage_id": stage_id, "candidate_current_sha256": candidate.current_sha256, "candidate_run_id": candidate.run_id, "bundle_id": raw_bundle.get("bundle_id"), "markets": published, "source_evidence": _v4_global(_v4_scope, 'list')(_v4_global(_v4_scope, 'dict').fromkeys(source_evidence)), "write_performed": True}, trade_date, stage_id)
++        return self._write_receipt({"status": status, "due_status": decision.status, "trade_date": trade_date, "stage_id": stage_id, "candidate_current_sha256": candidate.current_sha256, "candidate_run_id": candidate.run_id, "bundle_id": raw_bundle.get("bundle_id"), **({"raw_bundle_publication_status": "OMITTED_HK_ONLY_RESEARCH_BACKFILL"} if single_market_research_bundle_evidence else {}), "markets": published, "source_evidence": _v4_global(_v4_scope, 'list')(_v4_global(_v4_scope, 'dict').fromkeys((*source_evidence, *((single_market_research_bundle_evidence,) if single_market_research_bundle_evidence else ())))), "write_performed": True}, trade_date, stage_id)
+     except (_v4_global(_v4_scope, 'RunnerError'), _v4_global(_v4_scope, 'RawStoreError'), _v4_global(_v4_scope, 'SelectionError'), _v4_global(_v4_scope, 'CandidateInputError'), _v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError')) as error:
+         lane_failures = {}
+         for market in markets:
+--- a/stage_center/_runner_parts/row_evidence.py
++++ b/stage_center/_runner_parts/row_evidence.py
+@@ -143,7 +143,10 @@
+     return _v4_global(_v4_scope, 'replace')(result, source_evidence=evidence)
+ 
+ 
+-def __project_raw_rows_body(_v4_scope, /, rows, *, trade_date, stage_id, market):
++def __project_raw_rows_body(
++    _v4_scope, /, rows, *, trade_date, stage_id, market,
++    research_observation_contract=None,
++):
+     """Project collector rows to the immutable SafeRootStore 19-field shape.
+ 
+     Collector rows are intentionally richer than raw storage: auction rank,
+@@ -159,7 +162,19 @@
+         else _v4_global(_v4_scope, 'dict')(row)
+         for row in rows
+     )
+-    _validated, issues = _v4_global(_v4_scope, 'validate_rows')(projected, trade_date=trade_date, stage_id=stage_id, market=market)
++    if research_observation_contract is not None and research_observation_contract != _v4_global(
++        _v4_scope, 'HK_0930_TDX_RESEARCH_CONTRACT'
++    ):
++        raise _v4_global(_v4_scope, 'RunnerError')(
++            "unknown temporal-false research projection contract"
++        )
++    _validated, issues = _v4_global(_v4_scope, 'validate_rows')(
++        projected,
++        trade_date=trade_date,
++        stage_id=stage_id,
++        market=market,
++        allow_temporal_false_observation=(research_observation_contract is not None),
++    )
+     if issues:
+         raise _v4_global(_v4_scope, 'RunnerError')(f"raw projection validation failed for {market}: {'; '.join(issues[:3])}")
+     return projected
+--- a/stage_center/raw_store.py
++++ b/stage_center/raw_store.py
+@@ -57,6 +57,74 @@
+ RAW_BUNDLE_SCHEMA_VERSION = "stage_center.raw_bundle.v1"
+ RAW_BUNDLE_LATEST_SCHEMA_VERSION = "stage_center.raw_bundle_latest.v1"
+ RAW_STATUSES = frozenset(("READY", "PARTIAL_WITH_ROWS", "READY_EMPTY", "CANNOT_CONFIRM"))
++HK_0930_TDX_RESEARCH_CONTRACT = "HK_STAGE0930_TDX_AFTERFACT_RESEARCH_20260924_R1"
++HK_0930_TDX_RESEARCH_MODE_EVIDENCE = (
++    "stage_center_observation_mode=HK_STAGE0930_TDX_AFTERFACT_RESEARCH_20260924_R1"
++)
++HK_0930_TDX_D1_CODE_SET_SHA256 = "4395dcad079830e90c6dfafc401ebf8687a13dff31156aeb73bd8d37d2e747ae"
++_HK_0930_TDX_RESEARCH_MARKERS = (
++    "due_status=HISTORICAL_BACKFILL",
++    "historical_observation_contract=TDX_EXHQ_AFTERFACT_RESEARCH_ONLY",
++    "historical_provider=pytdx_exhq",
++    "historical_request_method=TdxExHq_API.get_instrument_bars",
++    "historical_category=7",
++    "historical_market=71",
++    "historical_host=119.97.142.130:7721",
++    "historical_fallback_hosts=[]",
++    "historical_retry_count=0",
++    "historical_capture_after_target_cutoff=true",
++    "historical_temporal_cutoff_safe=false",
++    "historical_formal_stage_eligibility=CANNOT_CONFIRM",
++    "historical_natural_time_capture=CANNOT_CONFIRM",
++    "historical_pit_safe=false",
++    "historical_active_snapshot_authority=CANNOT_CONFIRM",
++    "historical_target_date=20260924",
++    "historical_signal_date=20260923",
++    "historical_stage_id=STAGE_0930_0935",
++    "historical_stage_window=09:31:00-09:35:00",
++    "historical_runner_stage_plan_markets=A_SHARE,HK_CONNECT",
++    "historical_runner_market_allowlist=HK_CONNECT",
++    "historical_runner_collector_market=HK_CONNECT",
++    "historical_source_timezone_semantics=naive TDX strings; Asia/Hong_Kong offset not attested",
++    "historical_d1_projection_sha256=fda1cd4b334699fc4df59658b443a01388f6bb4dfd29470d9c1baabd75ad72fc",
++    "historical_d1_projection_receipt_sha256=ffa32388a978691c1a6c1d1ae580e0e69fa4691fb2aee62868eb1f7292d48fa5",
++    "historical_d1_producer_run_id=20260924-hk-connect-d1-top100-0-2-625bd55a46b4",
++    "historical_d1_producer_artifact_sha256=30576eee9f0370c6956da6e41725d0720253e917a8e3741cce20f875b5e28f89",
++    "historical_d1_producer_manifest_sha256=c10ecc440585f0546a28dc8faf52bcf3e198c378216e5164c022b96d4d428465",
++    "historical_d1_producer_receipt_sha256=a96626f926b53a461039fce732658f765eea5383a63fe0830cbb21d7d780c73d",
++    "historical_d1_formal_eligibility=CANNOT_CONFIRM",
++    "historical_rank45_gap_receipt_sha256=e3ea5b867f591d83a65e59aa855275d83dae188a7de8634dfa8b6fc9b605cf6a",
++    "historical_rank45_gap_code=HK.02915",
++    "historical_rank45_gap_rank=45",
++    "historical_rank45_gap_status=CANNOT_CONFIRM",
++    "historical_input_minute_full_coverage_sha256=936d5381445aaf94f6ef11ca91cf219139461dad5df787cb0b781bf07435e20d",
++    "historical_input_minute_batch_receipt_sha256=9eb1e45a668404e480127c62e2fcb42f9e148774ba2e1d53735e758270a69e78",
++    "historical_input_minute_canary_sha256=70f83ef90c5545ce1fd53767b35c7d64dfb8d53f107fa8fd1ed49e6be871dcb0",
++    "historical_input_minute_page_set_sha256=43de2248f4a8360ef82eae6ea7829d9847f8d824834dbc631cfdde26f2bde9c8",
++    "historical_tdx_minute_normalizer_sha256=9ce612fb06f022601841828bb25d11d1850cd4e3ab09de775babd56f7b8d0399",
++    "historical_tdx_minute_aggregator_sha256=af4cc0efea026eb3f6fa084389d6ee8351a286d38765e337147ced88fda150da",
++    "historical_tdx_minute_stage_contract_sha256=776569b71a9db060186362fe04cce3e8b0f707d8b4a77f80288f8031a2f14fcc",
++    "historical_minute_input_codes=100",
++    "historical_minute_input_rows=500",
++    "historical_minute_window_bars_per_code=5",
++    "historical_minute_price_basis=source-reported TDX values; absolute HKD scale not independently confirmed",
++    "historical_turnover_unit=source native; unit mapping not independently confirmed",
++    "historical_candidate_lanes=empty_on_input_rows",
++    "historical_selection_action_boundary=NO_BUY",
++    "production_allowed=false",
++    "buy_gate_updated=false",
++    "orders_sent=false",
++)
++_HK_0930_TDX_RESEARCH_CANNOT_CONFIRM = (
++    "HISTORICAL_CAPTURE_AFTER_TARGET_CUTOFF_NOT_PIT_SAFE",
++    "HISTORICAL_FORMAL_STAGE_ELIGIBILITY_CANNOT_CONFIRM",
++    "HISTORICAL_NATURAL_TIME_CAPTURE_CANNOT_CONFIRM",
++    "HISTORICAL_ACTIVE_SNAPSHOT_AUTHORITY_CANNOT_CONFIRM",
++    "HISTORICAL_SOURCE_TIMEZONE_NOT_ATTESTED",
++    "HISTORICAL_TDX_PRICE_BASIS_AND_VOLUME_TURNOVER_UNITS_NOT_INDEPENDENTLY_CONFIRMED",
++    "HISTORICAL_D1_FORMAL_ELIGIBILITY_CANNOT_CONFIRM",
++    "HISTORICAL_D1_INPUT_GAP_CANNOT_CONFIRM:HK.02915:rank=45",
++)
+ _TIME_FMT = "%Y-%m-%d %H:%M:%S"
+ _SHA_RE = re.compile(r"^[0-9a-f]{64}$")
+ _LOCK_TIMEOUT_SECONDS = 10.0
+@@ -92,6 +160,64 @@
+     return digest.hexdigest()
+ 
+ 
++def _allows_hk_0930_tdx_temporal_false_observation(
++    *,
++    enabled: bool,
++    trade_date: str,
++    stage_id: str,
++    market: str,
++    source_id: str,
++    source_status: str,
++    rows: Sequence[Mapping[str, Any]],
++    requested_rows: int | None,
++    missing_symbols: Sequence[str],
++    cannot_confirm: Sequence[str],
++    source_evidence: Sequence[str],
++) -> bool:
++    """Recognize only the frozen 2026-09-24 TDX research observation contract."""
++    if (
++        enabled is not True
++        or (trade_date, stage_id, market, source_id, source_status)
++        != ("20260924", "STAGE_0930_0935", "HK_CONNECT", "pytdx_exhq", "PARTIAL_WITH_ROWS")
++        or requested_rows != 100
++        or len(rows) != 100
++        or bool(missing_symbols)
++    ):
++        return False
++    evidence = set(str(item) for item in source_evidence)
++    required_evidence = {
++        HK_0930_TDX_RESEARCH_MODE_EVIDENCE,
++        *_HK_0930_TDX_RESEARCH_MARKERS,
++    }
++    if not required_evidence.issubset(evidence):
++        return False
++    if not set(_HK_0930_TDX_RESEARCH_CANNOT_CONFIRM).issubset(
++        set(str(item) for item in cannot_confirm)
++    ):
++        return False
++    codes = [str(row.get("code") or "").upper() for row in rows]
++    if (
++        len(set(codes)) != 100
++        or any(not _MARKET_CODE["HK_CONNECT"].fullmatch(code) for code in codes)
++        or any(row.get("temporal_cutoff_safe") is not False for row in rows)
++        or any(
++            row.get("update_time") != "2026-09-24 09:35:00"
++            or row.get("window_start") != "2026-09-24 09:31:00"
++            or row.get("window_end") != "2026-09-24 09:35:00"
++            or not (
++                (type(row.get("bar_count")) is int and row.get("bar_count") == 5)
++                or (type(row.get("bar_count")) is str and row.get("bar_count") == "5")
++            )
++            for row in rows
++        )
++    ):
++        return False
++    code_set_sha = hashlib.sha256(
++        json.dumps(tuple(sorted(codes)), ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
++    ).hexdigest()
++    return code_set_sha == HK_0930_TDX_D1_CODE_SET_SHA256
++
++
+ def _atomic_write_bytes(path: Path, data: bytes) -> None:
+     from stage_center._raw_store_parts.filesystem_io import __atomic_write_bytes_body as _v4_impl
+     return _v4_impl(globals(), path, data)
+@@ -192,10 +318,14 @@
+     trade_date: str,
+     stage_id: str,
+     market: str,
++    allow_temporal_false_observation: bool = False,
+ ) -> tuple[list[dict[str, Any]], list[str]]:
+     """Validate the frozen 19-field raw shape without dropping evidence."""
+     from stage_center._raw_store_parts.receipt_identity import _validate_rows_body as _v4_impl
+-    return _v4_impl(globals(), rows, trade_date=trade_date, stage_id=stage_id, market=market)
++    return _v4_impl(
++        globals(), rows, trade_date=trade_date, stage_id=stage_id, market=market,
++        allow_temporal_false_observation=allow_temporal_false_observation,
++    )
+ 
+ 
+ def _status(
+@@ -295,9 +425,10 @@
+         missing_symbols: Sequence[str] = (),
+         window: str | None = None,
+         cutoff_at: str | None = None,
++        research_observation_contract: str | None = None,
+     ) -> dict[str, Any]:
+         from stage_center._raw_store_parts.transaction_publish import _RawStore_publish_body as _v4_impl
+-        return _v4_impl(globals(), self, trade_date=trade_date, stage_id=stage_id, market=market, source_id=source_id, source_status=source_status, rows=rows, cannot_confirm=cannot_confirm, source_evidence=source_evidence, requested_rows=requested_rows, missing_symbols=missing_symbols, window=window, cutoff_at=cutoff_at)
++        return _v4_impl(globals(), self, trade_date=trade_date, stage_id=stage_id, market=market, source_id=source_id, source_status=source_status, rows=rows, cannot_confirm=cannot_confirm, source_evidence=source_evidence, requested_rows=requested_rows, missing_symbols=missing_symbols, window=window, cutoff_at=cutoff_at, research_observation_contract=research_observation_contract)
+ 
+     def _load_bundle_latest(self) -> dict[str, Any]:
+         from stage_center._raw_store_parts.codec import _RawStore__load_bundle_latest_body as _v4_impl
+@@ -345,6 +476,7 @@
+     missing_symbols: Sequence[str] = (),
+     window: str | None = None,
+     cutoff_at: str | None = None,
++    research_observation_contract: str | None = None,
+ ) -> dict[str, Any]:
+     from stage_center._raw_store_parts.transaction_publish import _publish_raw_artifact_body as _v4_impl
+-    return _v4_impl(globals(), root, trade_date=trade_date, stage_id=stage_id, market=market, source_id=source_id, source_status=source_status, rows=rows, cannot_confirm=cannot_confirm, source_evidence=source_evidence, requested_rows=requested_rows, missing_symbols=missing_symbols, window=window, cutoff_at=cutoff_at)
++    return _v4_impl(globals(), root, trade_date=trade_date, stage_id=stage_id, market=market, source_id=source_id, source_status=source_status, rows=rows, cannot_confirm=cannot_confirm, source_evidence=source_evidence, requested_rows=requested_rows, missing_symbols=missing_symbols, window=window, cutoff_at=cutoff_at, research_observation_contract=research_observation_contract)
+--- a/stage_center/_raw_store_parts/receipt_identity.py
++++ b/stage_center/_raw_store_parts/receipt_identity.py
+@@ -3,7 +3,10 @@
+ from ._namespace import read_global as _v4_global
+ 
+ 
+-def _validate_rows_body(_v4_scope, /, rows, *, trade_date, stage_id, market):
++def _validate_rows_body(
++    _v4_scope, /, rows, *, trade_date, stage_id, market,
++    allow_temporal_false_observation=False,
++):
+     """Validate the frozen 19-field raw shape without dropping evidence."""
+     _v4_global(_v4_scope, '_validate_date')(trade_date)
+     expected_market = _v4_global(_v4_scope, '_MARKET_CODE').get(market)
+@@ -37,7 +40,10 @@
+         if not lower <= window_start <= window_end <= upper or update != window_end:
+             issues.append(f"row {index}: temporal cutoff/window violation")
+             continue
+-        if row.get("temporal_cutoff_safe") is not True:
++        if row.get("temporal_cutoff_safe") is not True and not (
++            allow_temporal_false_observation is True
++            and row.get("temporal_cutoff_safe") is False
++        ):
+             issues.append(f"row {index}: temporal_cutoff_safe must be true")
+             continue
+         validated.append(row)
+--- a/stage_center/_raw_store_parts/transaction_publish.py
++++ b/stage_center/_raw_store_parts/transaction_publish.py
+@@ -3,14 +3,43 @@
+ from ._namespace import read_global as _v4_global
+ 
+ 
+-def _RawStore_publish_body(_v4_scope, /, self, *, trade_date, stage_id, market, source_id, source_status, rows, cannot_confirm, source_evidence, requested_rows, missing_symbols, window, cutoff_at):
++def _RawStore_publish_body(
++    _v4_scope, /, self, *, trade_date, stage_id, market, source_id,
++    source_status, rows, cannot_confirm, source_evidence, requested_rows,
++    missing_symbols, window, cutoff_at, research_observation_contract=None,
++):
+     _v4_global(_v4_scope, '_validate_date')(trade_date)
+     _v4_global(_v4_scope, '_stage')(stage_id)
+     if market not in _v4_global(_v4_scope, '_stage')(stage_id).markets:
+         raise _v4_global(_v4_scope, 'RawStoreError')(f"market {market!r} is not scheduled for {stage_id!r}")
+     if not _v4_global(_v4_scope, 'isinstance')(source_id, _v4_global(_v4_scope, 'str')) or not source_id or "/" in source_id or "\\" in source_id:
+         raise _v4_global(_v4_scope, 'RawStoreError')("source_id is unsafe")
+-    validated, issues = _v4_global(_v4_scope, 'validate_rows')(rows, trade_date=trade_date, stage_id=stage_id, market=market)
++    allow_temporal_false_observation = _v4_global(
++        _v4_scope, '_allows_hk_0930_tdx_temporal_false_observation'
++    )(
++        enabled=research_observation_contract == _v4_global(_v4_scope, 'HK_0930_TDX_RESEARCH_CONTRACT'),
++        trade_date=trade_date,
++        stage_id=stage_id,
++        market=market,
++        source_id=source_id,
++        source_status=source_status,
++        rows=rows,
++        requested_rows=requested_rows,
++        missing_symbols=missing_symbols,
++        cannot_confirm=cannot_confirm,
++        source_evidence=source_evidence,
++    )
++    if research_observation_contract is not None and not allow_temporal_false_observation:
++        raise _v4_global(_v4_scope, 'RawStoreError')(
++            "explicit HK research temporal-false publication contract mismatch"
++        )
++    validated, issues = _v4_global(_v4_scope, 'validate_rows')(
++        rows,
++        trade_date=trade_date,
++        stage_id=stage_id,
++        market=market,
++        allow_temporal_false_observation=allow_temporal_false_observation,
++    )
+     status = _v4_global(_v4_scope, '_status')(source_status, validated, issues, cannot_confirm)
+     normalized_source_status = {"READ_OK": "READY", "READ_FAILED": "CANNOT_CONFIRM"}.get(source_status, source_status)
+     requested = _v4_global(_v4_scope, 'len')(rows) if requested_rows is None else _v4_global(_v4_scope, 'int')(requested_rows)
+@@ -227,7 +256,11 @@
+         }
+ 
+ 
+-def _publish_raw_artifact_body(_v4_scope, /, root, *, trade_date, stage_id, market, source_id, source_status, rows, cannot_confirm, source_evidence, requested_rows, missing_symbols, window, cutoff_at):
++def _publish_raw_artifact_body(
++    _v4_scope, /, root, *, trade_date, stage_id, market, source_id,
++    source_status, rows, cannot_confirm, source_evidence, requested_rows,
++    missing_symbols, window, cutoff_at, research_observation_contract=None,
++):
+     return _v4_global(_v4_scope, 'RawStore')(root).publish(
+         trade_date=trade_date,
+         stage_id=stage_id,
+@@ -241,4 +274,5 @@
+         missing_symbols=missing_symbols,
+         window=window,
+         cutoff_at=cutoff_at,
+-    )
++        research_observation_contract=research_observation_contract,
++    )
+--- a/stage_center/_raw_store_parts/transaction_read.py
++++ b/stage_center/_raw_store_parts/transaction_read.py
+@@ -53,6 +53,73 @@
+     status = receipt.get("status")
+     if status not in _v4_global(_v4_scope, 'RAW_STATUSES') or manifest.get("status") != status:
+         raise _v4_global(_v4_scope, 'RawStoreError')("raw status mismatch")
++    row_values = []
++    for index, artifact_row in enumerate(rows):
++        raw_flag = artifact_row.get("temporal_cutoff_safe")
++        if raw_flag not in {"True", "False"}:
++            raise _v4_global(_v4_scope, 'RawStoreError')(
++                f"row {index}: temporal_cutoff_safe must be serialized as True or False"
++            )
++        row_values.append({
++            field: (raw_flag == "True" if field == "temporal_cutoff_safe" else artifact_row.get(field))
++            for field in _v4_global(_v4_scope, 'RAW_FIELDS')
++        })
++    source_evidence = manifest.get("source_evidence")
++    cannot_confirm = manifest.get("cannot_confirm")
++    requested_rows = manifest.get("requested_rows")
++    missing_symbols = manifest.get("missing_symbols")
++    if (
++        receipt.get("source_id") != manifest.get("source_id")
++        or receipt.get("source_status") != manifest.get("source_status")
++        or receipt.get("source_evidence") != source_evidence
++        or receipt.get("cannot_confirm") != cannot_confirm
++        or receipt.get("requested_rows") != requested_rows
++        or receipt.get("missing_symbols") != missing_symbols
++    ):
++        raise _v4_global(_v4_scope, 'RawStoreError')("raw source evidence identity mismatch")
++    evidence_items = source_evidence if isinstance(source_evidence, list) else []
++    mode_present = _v4_global(_v4_scope, 'HK_0930_TDX_RESEARCH_MODE_EVIDENCE') in evidence_items
++    has_temporal_false = any(row["temporal_cutoff_safe"] is False for row in row_values)
++    allow_temporal_false_observation = False
++    if mode_present or has_temporal_false:
++        allow_temporal_false_observation = _v4_global(
++            _v4_scope, '_allows_hk_0930_tdx_temporal_false_observation'
++        )(
++            enabled=mode_present,
++            trade_date=trade_date,
++            stage_id=stage_id,
++            market=market,
++            source_id=manifest.get("source_id"),
++            source_status=manifest.get("source_status"),
++            rows=row_values,
++            requested_rows=requested_rows,
++            missing_symbols=missing_symbols or (),
++            cannot_confirm=cannot_confirm or (),
++            source_evidence=evidence_items,
++        )
++        if not allow_temporal_false_observation:
++            raise _v4_global(_v4_scope, 'RawStoreError')(
++                "temporal-false raw rows lack the exact historical research contract"
++            )
++        if (
++            status != "PARTIAL_WITH_ROWS"
++            or manifest.get("temporal_cutoff_safe") is not False
++            or receipt.get("temporal_cutoff_safe") is not False
++        ):
++            raise _v4_global(_v4_scope, 'RawStoreError')(
++                "historical temporal-false observation must remain PARTIAL and unsafe"
++            )
++    _validated_rows, row_issues = _v4_global(_v4_scope, 'validate_rows')(
++        row_values,
++        trade_date=trade_date,
++        stage_id=stage_id,
++        market=market,
++        allow_temporal_false_observation=allow_temporal_false_observation,
++    )
++    if row_issues or len(_validated_rows) != row_count:
++        raise _v4_global(_v4_scope, 'RawStoreError')(
++            "raw artifact row validation failed: " + "; ".join(row_issues[:3])
++        )
+     if status == "READY" and (row_count <= 0 or manifest.get("temporal_cutoff_safe") is not True):
+         raise _v4_global(_v4_scope, 'RawStoreError')("READY lacks rows or temporal proof")
+     if status == "READY_EMPTY" and row_count != 0:
+--- a/stage_center/_live_collectors_parts/selection_builder_registry.py
++++ b/stage_center/_live_collectors_parts/selection_builder_registry.py
+@@ -26,6 +26,87 @@
+         "YAHOO_FINANCE_CHART_1M",
+     }
+ )
++_HK_0930_TDX_RESEARCH_MODE_EVIDENCE = (
++    "stage_center_observation_mode=HK_STAGE0930_TDX_AFTERFACT_RESEARCH_20260924_R1"
++)
++
++
++def _hk_0930_tdx_research_contract_errors(source, plan, raw):
++    """Validate the one after-fact TDX observation before building its watch Top10."""
++    from stage_center.raw_store import (
++        HK_0930_TDX_D1_CODE_SET_SHA256,
++        HK_0930_TDX_RESEARCH_MODE_EVIDENCE,
++        _allows_hk_0930_tdx_temporal_false_observation,
++    )
++
++    evidence = tuple(str(item) for item in source.source_evidence)
++    raw_evidence = tuple(str(item) for item in raw.get("source_evidence", ()))
++    errors = []
++
++    def require(condition, reason):
++        if not condition:
++            errors.append(reason)
++
++    require(plan.trade_date == "20260924", "HK_0930_TDX_RESEARCH_DATE_MISMATCH")
++    require(plan.stage_id == "STAGE_0930_0935", "HK_0930_TDX_RESEARCH_STAGE_MISMATCH")
++    require(source.source_id == "pytdx_exhq", "HK_0930_TDX_RESEARCH_SOURCE_ID_MISMATCH")
++    require(source.status == "PARTIAL_WITH_ROWS", "HK_0930_TDX_RESEARCH_SOURCE_STATUS_MISMATCH")
++    require(source.requested_rows == 100 and len(source.rows) == 100,
++            "HK_0930_TDX_RESEARCH_ROW_COUNT_MISMATCH")
++    require(not source.missing_symbols, "HK_0930_TDX_RESEARCH_MISSING_CODES")
++    require(raw.get("trade_date") == "20260924", "HK_0930_TDX_RESEARCH_RAW_DATE_MISMATCH")
++    require(raw.get("stage_id") == "STAGE_0930_0935", "HK_0930_TDX_RESEARCH_RAW_STAGE_MISMATCH")
++    require(raw.get("market") == "HK_CONNECT", "HK_0930_TDX_RESEARCH_RAW_MARKET_MISMATCH")
++    require(raw.get("source_id") == "pytdx_exhq", "HK_0930_TDX_RESEARCH_RAW_SOURCE_ID_MISMATCH")
++    require(raw.get("status") == "PARTIAL_WITH_ROWS", "HK_0930_TDX_RESEARCH_RAW_STATUS_MISMATCH")
++    require(raw.get("requested_rows") == 100, "HK_0930_TDX_RESEARCH_RAW_REQUESTED_ROWS_MISMATCH")
++    require(_HK_0930_TDX_RESEARCH_MODE_EVIDENCE in evidence,
++            "HK_0930_TDX_RESEARCH_MODE_MISSING")
++    require(_HK_0930_TDX_RESEARCH_MODE_EVIDENCE in raw_evidence,
++            "HK_0930_TDX_RESEARCH_RAW_MODE_MISSING")
++
++    pool_codes = tuple(sorted(str(code).upper() for code in plan.codes_for("HK_CONNECT")))
++    pool_codes_sha256 = hashlib.sha256(
++        json.dumps(pool_codes, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
++    ).hexdigest()
++    row_codes = tuple(sorted(str(row.get("code") or "").upper() for row in source.rows))
++    require(len(pool_codes) == len(set(pool_codes)) == 100
++            and pool_codes_sha256 == HK_0930_TDX_D1_CODE_SET_SHA256,
++            "HK_0930_TDX_RESEARCH_D1_CODE_SET_MISMATCH")
++    require(row_codes == pool_codes, "HK_0930_TDX_RESEARCH_ROW_MEMBERSHIP_MISMATCH")
++    require(all(row.get("temporal_cutoff_safe") is False for row in source.rows),
++            "HK_0930_TDX_RESEARCH_TEMPORAL_FLAG_NOT_FALSE")
++    require(all(not row.get("candidate_lanes") for row in source.rows),
++            "HK_0930_TDX_RESEARCH_CANDIDATE_LANE_PRESENT")
++    require(raw.get("source_evidence") and set(raw_evidence).issubset(set(evidence)),
++            "HK_0930_TDX_RESEARCH_RAW_EVIDENCE_MISMATCH")
++    expected_d1_markers = {
++        "hk_d1_sha256=fda1cd4b334699fc4df59658b443a01388f6bb4dfd29470d9c1baabd75ad72fc",
++        "hk_d1_binding_sha256=fda1cd4b334699fc4df59658b443a01388f6bb4dfd29470d9c1baabd75ad72fc",
++        "hk_d1_json_sha256=fda1cd4b334699fc4df59658b443a01388f6bb4dfd29470d9c1baabd75ad72fc",
++        "hk_d1_membership=exact_date_top100",
++    }
++    require(expected_d1_markers.issubset(set(evidence)),
++            "HK_0930_TDX_RESEARCH_D1_BINDING_MISMATCH")
++    artifact_sha = str(raw.get("artifact_sha256") or "")
++    require(len(artifact_sha) == 64 and all(char in "0123456789abcdef" for char in artifact_sha),
++            "HK_0930_TDX_RESEARCH_RAW_SHA_MISSING")
++
++    if not _allows_hk_0930_tdx_temporal_false_observation(
++        enabled=HK_0930_TDX_RESEARCH_MODE_EVIDENCE in evidence,
++        trade_date=plan.trade_date,
++        stage_id=plan.stage_id,
++        market="HK_CONNECT",
++        source_id=source.source_id,
++        source_status=source.status,
++        rows=source.rows,
++        requested_rows=source.requested_rows,
++        missing_symbols=source.missing_symbols,
++        cannot_confirm=source.cannot_confirm,
++        source_evidence=evidence,
++    ):
++        require(False, "HK_0930_TDX_RESEARCH_SOURCE_CONTRACT_MISMATCH")
++    return tuple(dict.fromkeys(errors))
+ 
+ 
+ def _hk_0930_research_contract_errors(source, plan, raw):
+@@ -438,6 +519,57 @@
+                 cannot_confirm=source.cannot_confirm,
+                 source_evidence=contract_evidence,
+             )
++        if _HK_0930_TDX_RESEARCH_MODE_EVIDENCE in source.source_evidence:
++            contract_errors = _hk_0930_tdx_research_contract_errors(source, plan, raw)
++            contract_evidence = (
++                *raw.get("source_evidence", ()),
++                *source.source_evidence,
++                *d1_evidence,
++                top10_contract_evidence,
++                "hk_selection_mode=HK_STAGE0930_TDX_AFTERFACT_RESEARCH_ONLY",
++                "historical_observation=AFTERFACT_TDX_OBSERVATION_NO_BUY",
++                "formal_pit=false",
++            )
++            if contract_errors:
++                return select_hk_four_lane(
++                    [],
++                    plan.trade_date,
++                    plan.stage_id,
++                    _v4_global(_v4_scope, 'str')(raw.get("artifact_sha256") or ""),
++                    source_status="CANNOT_CONFIRM",
++                    requested_rows=100,
++                    missing_symbols=source.missing_symbols,
++                    cannot_confirm=(*source.cannot_confirm, *contract_errors),
++                    source_evidence=contract_evidence,
++                )
++            envelope = select_hk_four_lane(
++                rows,
++                plan.trade_date,
++                plan.stage_id,
++                _v4_global(_v4_scope, 'str')(raw["artifact_sha256"]),
++                source_status="PARTIAL_WITH_ROWS",
++                requested_rows=100,
++                missing_symbols=source.missing_symbols,
++                cannot_confirm=source.cannot_confirm,
++                source_evidence=contract_evidence,
++            )
++            if any(
++                row.get("action_level") != "NO_BUY"
++                or row.get("candidate_lanes")
++                for row in envelope.get("rows", ())
++            ):
++                return select_hk_four_lane(
++                    [],
++                    plan.trade_date,
++                    plan.stage_id,
++                    _v4_global(_v4_scope, 'str')(raw["artifact_sha256"]),
++                    source_status="CANNOT_CONFIRM",
++                    requested_rows=100,
++                    missing_symbols=source.missing_symbols,
++                    cannot_confirm=(*source.cannot_confirm, "HK_0930_TDX_RESEARCH_ACTION_BOUNDARY_VIOLATION"),
++                    source_evidence=contract_evidence,
++                )
++            return envelope
+         # Full-market ExHQ rows alone do not prove a V3 lane.  Inactive rows
+         # remain in raw acquisition for coverage, but are excluded from the
+         # selection-only copy.  This preserves the old V3 behavior where the
+--- /dev/null
++++ b/tests/test_hk_stage0930_temporal_false_observation.py
+@@ -0,0 +1,511 @@
++from __future__ import annotations
++
++import csv
++import hashlib
++import json
++import sys
++from datetime import datetime
++from pathlib import Path
++from types import SimpleNamespace
++
++import pytest
++
++from stage_center.acquisition import SourceResult, StageUniverseBinding
++from stage_center import raw_store
++from stage_center import runner
++from stage_center._runner_parts import tick_planning
++from stage_center._live_collectors_parts import selection_builder_registry as registry
++from stage_center.live_collectors import production_selection_builders
++
++
++def _case(monkeypatch):
++    codes = tuple(f"HK.{10000 + index:05d}" for index in range(100))
++    code_sha = hashlib.sha256(
++        json.dumps(tuple(sorted(codes)), ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
++    ).hexdigest()
++    monkeypatch.setattr(raw_store, "HK_0930_TDX_D1_CODE_SET_SHA256", code_sha)
++
++    evidence = tuple(
++        dict.fromkeys(
++            (
++                raw_store.HK_0930_TDX_RESEARCH_MODE_EVIDENCE,
++                *raw_store._HK_0930_TDX_RESEARCH_MARKERS,
++            )
++        )
++    )
++    selection_evidence = (
++        *evidence,
++        "hk_d1_sha256=fda1cd4b334699fc4df59658b443a01388f6bb4dfd29470d9c1baabd75ad72fc",
++        "hk_d1_binding_sha256=fda1cd4b334699fc4df59658b443a01388f6bb4dfd29470d9c1baabd75ad72fc",
++        "hk_d1_json_sha256=fda1cd4b334699fc4df59658b443a01388f6bb4dfd29470d9c1baabd75ad72fc",
++        "hk_d1_membership=exact_date_top100",
++    )
++    cannot_confirm = raw_store._HK_0930_TDX_RESEARCH_CANNOT_CONFIRM
++    rows = []
++    raw_rows = []
++    for index, code in enumerate(codes, start=1):
++        rows.append(
++            {
++                "code": code,
++                "name": code,
++                "open_price": 1.0,
++                "last_price": 1.0,
++                "high_price": 1.0,
++                "low_price": 1.0,
++                "prev_close_price": 1.0,
++                "turnover": 1000.0,
++                "volume": 100.0,
++                "update_time": "2026-09-24 09:35:00",
++                "window_start": "2026-09-24 09:31:00",
++                "window_end": "2026-09-24 09:35:00",
++                "bar_count": 5,
++                "temporal_cutoff_safe": False,
++                "candidate_lanes": [],
++                "d1_rank": index,
++                "d1_score": 0.0,
++            }
++        )
++        raw_rows.append(
++            {
++                "batch_index": index,
++                "code": code,
++                "name": code,
++                "update_time": "2026-09-24 09:35:00",
++                "last_price": 1.0,
++                "open_price": 1.0,
++                "high_price": 1.0,
++                "low_price": 1.0,
++                "prev_close_price": 1.0,
++                "turnover": 1000.0,
++                "volume": 100.0,
++                "bid_price": None,
++                "ask_price": None,
++                "bid_vol": None,
++                "ask_vol": None,
++                "window_start": "2026-09-24 09:31:00",
++                "window_end": "2026-09-24 09:35:00",
++                "bar_count": 5,
++                "temporal_cutoff_safe": False,
++            }
++        )
++    source = SourceResult(
++        "pytdx_exhq",
++        "PARTIAL_WITH_ROWS",
++        rows=tuple(rows),
++        requested_rows=100,
++        cannot_confirm=cannot_confirm,
++        source_evidence=selection_evidence,
++    )
++    plan = SimpleNamespace(
++        trade_date="20260924",
++        stage_id="STAGE_0930_0935",
++        codes_for=lambda market: codes if market == "HK_CONNECT" else (),
++    )
++    raw = {
++        "trade_date": "20260924",
++        "stage_id": "STAGE_0930_0935",
++        "market": "HK_CONNECT",
++        "source_id": "pytdx_exhq",
++        "status": "PARTIAL_WITH_ROWS",
++        "requested_rows": 100,
++        "missing_symbols": [],
++        "cannot_confirm": list(cannot_confirm),
++        "artifact_sha256": "a" * 64,
++        "source_evidence": list(evidence),
++        "temporal_cutoff_safe": False,
++    }
++    return codes, source, raw_rows, plan, raw
++
++
++def test_exact_historical_mode_is_scoped_to_20260924_hk_stage(monkeypatch):
++    runner_obj = object.__new__(runner.StageCenterRunner)
++    monkeypatch.setattr(
++        tick_planning,
++        "_StageCenterRunner_tick_body",
++        lambda _scope, _self, trade_date, _evaluated_at, **_kwargs: runner._HK_TDX_AFTERFACT_RESEARCH_CONTRACT.get(),
++    )
++    result = runner_obj.tick(
++        "20260924",
++        datetime(2026, 9, 24, 9, 36),
++        stage_id="STAGE_0930_0935",
++        historical_backfill=True,
++        historical_markets=("HK_CONNECT",),
++        historical_observation_contract=raw_store.HK_0930_TDX_RESEARCH_CONTRACT,
++        _skip_precapture=True,
++    )
++    assert result == raw_store.HK_0930_TDX_RESEARCH_CONTRACT
++    assert runner._HK_TDX_AFTERFACT_RESEARCH_CONTRACT.get() is None
++
++    with pytest.raises(runner.RunnerError, match="context mismatch"):
++        runner_obj.tick(
++            "20260925",
++            datetime(2026, 9, 25, 9, 36),
++            stage_id="STAGE_0930_0935",
++            historical_backfill=True,
++            historical_markets=("HK_CONNECT",),
++            historical_observation_contract=raw_store.HK_0930_TDX_RESEARCH_CONTRACT,
++            _skip_precapture=True,
++        )
++
++
++def test_runner_temporal_false_gate_binds_exact_projection_and_rejects_mismatch(tmp_path, monkeypatch):
++    codes, source, _raw_rows, plan, _raw = _case(monkeypatch)
++    producer = dict(runner._HK_0930_TDX_D1_PRODUCER)
++    projection = {
++        "schema_version": "v3_5.preselection_pool.v1",
++        "trade_date": "20260924",
++        "target_date": "20260924",
++        "signal_date": "20260923",
++        "pool_id": "hkconnect_d1_top100",
++        "stage_selection_eligible": True,
++        "source_run_id": producer["run_id"],
++        "source_artifact_sha256": producer["artifact_sha256"],
++        "source_manifest_sha256": producer["manifest_sha256"],
++        "source_receipt_sha256": producer["receipt_sha256"],
++        "production_allowed": False,
++        "buy_gate_updated": False,
++        "orders_sent": False,
++        "rows": [{"code": code} for code in codes],
++    }
++    path = tmp_path / "d1.json"
++
++    def write_projection(signal_date):
++        projection["signal_date"] = signal_date
++        path.write_text(json.dumps(projection, sort_keys=True, separators=(",", ":")), encoding="utf-8")
++        digest = hashlib.sha256(path.read_bytes()).hexdigest()
++        monkeypatch.setattr(runner, "_HK_0930_TDX_D1_PROJECTION_SHA256", digest)
++        monkeypatch.setattr(runner, "_HK_0930_TDX_D1_CODE_SET_SHA256", raw_store.HK_0930_TDX_D1_CODE_SET_SHA256)
++        marker_values = tuple(
++            f"historical_d1_projection_sha256={digest}"
++            if marker.startswith("historical_d1_projection_sha256=")
++            else marker
++            for marker in raw_store._HK_0930_TDX_RESEARCH_MARKERS
++        )
++        monkeypatch.setattr(raw_store, "_HK_0930_TDX_RESEARCH_MARKERS", marker_values)
++        evidence = tuple(
++            f"historical_d1_projection_sha256={digest}"
++            if marker.startswith("historical_d1_projection_sha256=")
++            else marker
++            for marker in source.source_evidence
++        )
++        bound_source = SourceResult(
++            source.source_id,
++            source.status,
++            rows=source.rows,
++            requested_rows=source.requested_rows,
++            missing_symbols=source.missing_symbols,
++            cannot_confirm=source.cannot_confirm,
++            source_evidence=evidence,
++        )
++        binding = StageUniverseBinding.ready(
++            market="HK_CONNECT",
++            trade_date="20260924",
++            role="HK_CONNECT_D1_TOP100",
++            codes=codes,
++            source_run_id="d1-test",
++            sha256=digest,
++            evidence=(
++                f"hk_d1_json={path}",
++                f"hk_d1_sha256={digest}",
++                "hk_d1_membership=exact_date_top100",
++            ),
++        )
++        return bound_source, binding
++
++    source_with_binding, binding = write_projection("20260923")
++    token = runner._HK_TDX_AFTERFACT_RESEARCH_CONTRACT.set(raw_store.HK_0930_TDX_RESEARCH_CONTRACT)
++    try:
++        authorized, contract = runner._authorize_hk_0930_tdx_temporal_false_observation(
++            source_with_binding,
++            plan,
++            binding=binding,
++            market="HK_CONNECT",
++            historical_backfill=True,
++        )
++        assert contract == raw_store.HK_0930_TDX_RESEARCH_CONTRACT
++        assert all(row["temporal_cutoff_safe"] is False for row in authorized.rows)
++
++        wrong_signal_source, wrong_signal_binding = write_projection("20260922")
++        with pytest.raises(runner.RunnerError, match="target/signal/producer lineage"):
++            runner._authorize_hk_0930_tdx_temporal_false_observation(
++                wrong_signal_source,
++                plan,
++                binding=wrong_signal_binding,
++                market="HK_CONNECT",
++                historical_backfill=True,
++            )
++    finally:
++        runner._HK_TDX_AFTERFACT_RESEARCH_CONTRACT.reset(token)
++
++
++def test_temporal_false_raw_rows_publish_and_verify_only_with_exact_contract(tmp_path, monkeypatch):
++    _codes, source, raw_rows, _plan, _raw = _case(monkeypatch)
++    store = raw_store.RawStore(tmp_path / "raw")
++    published = store.publish(
++        trade_date="20260924",
++        stage_id="STAGE_0930_0935",
++        market="HK_CONNECT",
++        source_id=source.source_id,
++        source_status=source.status,
++        rows=raw_rows,
++        cannot_confirm=source.cannot_confirm,
++        source_evidence=source.source_evidence,
++        requested_rows=100,
++        missing_symbols=(),
++        window="09:31:00-09:35:00",
++        cutoff_at="09:35:00",
++        research_observation_contract=raw_store.HK_0930_TDX_RESEARCH_CONTRACT,
++    )
++
++    verified = store.verify_run("20260924", "STAGE_0930_0935", "HK_CONNECT", published["run_id"])
++    with (store.root / verified["artifact_relative"]).open(encoding="utf-8-sig", newline="") as stream:
++        persisted = list(csv.DictReader(stream))
++    assert verified["status"] == "PARTIAL_WITH_ROWS"
++    assert verified["row_count"] == 100
++    assert {row["temporal_cutoff_safe"] for row in persisted} == {"False"}
++    rehydrated = runner._read_verified_raw_source(store.root, verified)
++    assert rehydrated.status == "PARTIAL_WITH_ROWS"
++    assert all(row["temporal_cutoff_safe"] is False for row in rehydrated.rows)
++
++    _validated, issues = raw_store.validate_rows(
++        raw_rows,
++        trade_date="20260924",
++        stage_id="STAGE_0930_0935",
++        market="HK_CONNECT",
++    )
++    assert len(_validated) == 0
++    assert any("temporal_cutoff_safe must be true" in issue for issue in issues)
++    malformed = [dict(row) for row in raw_rows]
++    malformed[0]["update_time"] = "2026-09-24 09:36:00"
++    malformed[0]["window_end"] = "2026-09-24 09:36:00"
++    _validated, issues = raw_store.validate_rows(
++        malformed,
++        trade_date="20260924",
++        stage_id="STAGE_0930_0935",
++        market="HK_CONNECT",
++        allow_temporal_false_observation=True,
++    )
++    assert len(_validated) == 99
++    assert any("temporal cutoff/window violation" in issue for issue in issues)
++    with pytest.raises(raw_store.RawStoreError, match="contract mismatch"):
++        raw_store.RawStore(tmp_path / "bad-window").publish(
++            trade_date="20260924",
++            stage_id="STAGE_0930_0935",
++            market="HK_CONNECT",
++            source_id=source.source_id,
++            source_status=source.status,
++            rows=malformed,
++            cannot_confirm=source.cannot_confirm,
++            source_evidence=source.source_evidence,
++            requested_rows=100,
++            missing_symbols=(),
++            window="09:31:00-09:35:00",
++            cutoff_at="09:35:00",
++            research_observation_contract=raw_store.HK_0930_TDX_RESEARCH_CONTRACT,
++        )
++
++    with pytest.raises(raw_store.RawStoreError, match="contract mismatch"):
++        store.publish(
++            trade_date="20260924",
++            stage_id="STAGE_0930_0935",
++            market="HK_CONNECT",
++            source_id=source.source_id,
++            source_status="READY",
++            rows=raw_rows,
++            cannot_confirm=source.cannot_confirm,
++            source_evidence=source.source_evidence,
++            requested_rows=100,
++            missing_symbols=(),
++            window="09:31:00-09:35:00",
++            cutoff_at="09:35:00",
++            research_observation_contract=raw_store.HK_0930_TDX_RESEARCH_CONTRACT,
++        )
++
++    incomplete_evidence = tuple(
++        marker
++        for marker in source.source_evidence
++        if not marker.startswith("historical_input_minute_page_set_sha256=")
++    )
++    with pytest.raises(raw_store.RawStoreError, match="contract mismatch"):
++        raw_store.RawStore(tmp_path / "bad-contract").publish(
++            trade_date="20260924",
++            stage_id="STAGE_0930_0935",
++            market="HK_CONNECT",
++            source_id=source.source_id,
++            source_status=source.status,
++            rows=raw_rows,
++            cannot_confirm=source.cannot_confirm,
++            source_evidence=incomplete_evidence,
++            requested_rows=100,
++            missing_symbols=(),
++            window="09:31:00-09:35:00",
++            cutoff_at="09:35:00",
++            research_observation_contract=raw_store.HK_0930_TDX_RESEARCH_CONTRACT,
++        )
++
++
++def test_exact_afterfact_selector_emits_partial_no_buy_top10_and_gap_evidence(monkeypatch):
++    _codes, source, _raw_rows, plan, raw = _case(monkeypatch)
++    envelope = production_selection_builders(plan.stage_id)["HK_CONNECT"](source, plan, raw)
++
++    assert envelope["selection_status"] == "PARTIAL_WITH_ROWS"
++    assert envelope["requested_rows"] == 100
++    assert len(envelope["rows"]) == 10
++    assert all(row["action_level"] == "NO_BUY" for row in envelope["rows"])
++    assert all(not row["candidate_lanes"] and row["formal_eligible"] is False for row in envelope["rows"])
++    assert envelope["production_allowed"] is False
++    assert envelope["buy_gate_updated"] is False
++    assert envelope["orders_sent"] is False
++    assert "hk_selection_mode=HK_STAGE0930_TDX_AFTERFACT_RESEARCH_ONLY" in envelope["source_evidence"]
++    assert "historical_observation=AFTERFACT_TDX_OBSERVATION_NO_BUY" in envelope["source_evidence"]
++    assert "HISTORICAL_D1_INPUT_GAP_CANNOT_CONFIRM:HK.02915:rank=45" in envelope["cannot_confirm"]
++
++    bad_plan = SimpleNamespace(**{**vars(plan), "trade_date": "20260925"})
++    failed = production_selection_builders(plan.stage_id)["HK_CONNECT"](source, bad_plan, raw)
++    assert failed["selection_status"] == "CANNOT_CONFIRM"
++    assert failed["rows"] == []
++    assert "HK_0930_TDX_RESEARCH_DATE_MISMATCH" in failed["cannot_confirm"]
++
++
++def test_hk_only_temporal_false_backfill_skips_full_bundle_and_publishes_selection(
++    tmp_path, monkeypatch
++):
++    codes = tuple(f"HK.{10000 + index:05d}" for index in range(100))
++    code_sha = hashlib.sha256(
++        json.dumps(tuple(sorted(codes)), ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
++    ).hexdigest()
++    monkeypatch.setattr(raw_store, "HK_0930_TDX_D1_CODE_SET_SHA256", code_sha)
++    monkeypatch.setattr(runner, "_HK_0930_TDX_D1_CODE_SET_SHA256", code_sha)
++
++    producer = dict(runner._HK_0930_TDX_D1_PRODUCER)
++    projection = {
++        "schema_version": "v3_5.preselection_pool.v1",
++        "trade_date": "20260924",
++        "target_date": "20260924",
++        "signal_date": "20260923",
++        "pool_id": "hkconnect_d1_top100",
++        "stage_selection_eligible": True,
++        "source_run_id": producer["run_id"],
++        "source_artifact_sha256": producer["artifact_sha256"],
++        "source_manifest_sha256": producer["manifest_sha256"],
++        "source_receipt_sha256": producer["receipt_sha256"],
++        "production_allowed": False,
++        "buy_gate_updated": False,
++        "orders_sent": False,
++        "rows": [{"code": code} for code in codes],
++    }
++    projection_path = tmp_path / "d1_projection.json"
++    projection_path.write_text(
++        json.dumps(projection, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
++        encoding="utf-8",
++    )
++    projection_sha = hashlib.sha256(projection_path.read_bytes()).hexdigest()
++    monkeypatch.setattr(runner, "_HK_0930_TDX_D1_PROJECTION_SHA256", projection_sha)
++    markers = tuple(
++        f"historical_d1_projection_sha256={projection_sha}"
++        if marker.startswith("historical_d1_projection_sha256=")
++        else marker
++        for marker in raw_store._HK_0930_TDX_RESEARCH_MARKERS
++    )
++    monkeypatch.setattr(raw_store, "_HK_0930_TDX_RESEARCH_MARKERS", markers)
++
++    codes, source, raw_rows, _plan, _raw = _case(monkeypatch)
++    selection_rows_by_code = {row["code"]: row for row in source.rows}
++    source = SourceResult(
++        source.source_id,
++        source.status,
++        rows=tuple(
++            {**raw_row, **selection_rows_by_code[raw_row["code"]]}
++            for raw_row in raw_rows
++        ),
++        requested_rows=source.requested_rows,
++        missing_symbols=source.missing_symbols,
++        cannot_confirm=source.cannot_confirm,
++        source_evidence=source.source_evidence,
++    )
++    binding = StageUniverseBinding.ready(
++        market="HK_CONNECT",
++        trade_date="20260924",
++        role="HK_CONNECT_D1_TOP100",
++        codes=codes,
++        source_run_id="d1-test",
++        sha256=projection_sha,
++        evidence=(
++            f"hk_d1_json={projection_path}",
++            f"hk_d1_sha256={projection_sha}",
++            "hk_d1_membership=exact_date_top100",
++        ),
++    )
++    monkeypatch.setattr(
++        runner,
++        "_build_hk_stage_binding",
++        lambda _root, _date, *, preselection_source_root=None: binding,
++    )
++    monkeypatch.setattr(
++        runner,
++        "_validate_exact_selection_inputs",
++        lambda *_args, **_kwargs: (),
++    )
++    monkeypatch.setattr(
++        runner,
++        "_attach_hk_authority",
++        lambda selected_source, **_kwargs: selected_source,
++    )
++
++    config = runner.RunnerConfig(
++        candidate_acquisition_root=tmp_path / "missing_candidate",
++        raw_root=tmp_path / "raw",
++        selection_root=tmp_path / "selection",
++        receipt_root=tmp_path / "receipts",
++        hk_d1_root=tmp_path / "d1_root",
++        preselection_source_root=tmp_path / "d1_source_root",
++        shared_data_root=tmp_path / "shared",
++        python_path=Path(sys.executable),
++    )
++    stage_runner = runner.StageCenterRunner(
++        config,
++        collectors={"HK_CONNECT": lambda _plan, _market: source},
++    )
++    result = stage_runner.tick(
++        "20260924",
++        datetime.fromisoformat("2026-09-24T09:36:00+08:00"),
++        stage_id="STAGE_0930_0935",
++        historical_backfill=True,
++        historical_markets=("HK_CONNECT",),
++        historical_observation_contract=raw_store.HK_0930_TDX_RESEARCH_CONTRACT,
++        _skip_precapture=True,
++    )
++
++    omission_evidence = "historical_raw_bundle=OMITTED_HK_ONLY_RESEARCH_BACKFILL"
++    assert result["status"] == "PARTIAL_WITH_ROWS"
++    assert result["raw_bundle_publication_status"] == "OMITTED_HK_ONLY_RESEARCH_BACKFILL"
++    assert result["bundle_id"] is None
++    assert omission_evidence in result["source_evidence"]
++    assert result["markets"]["HK_CONNECT"]["selection_status"] == "PARTIAL_WITH_ROWS"
++    assert result["markets"]["HK_CONNECT"]["selected_rows"] == 10
++    assert omission_evidence in result["markets"]["HK_CONNECT"]["source_evidence"]
++    assert result["production_allowed"] is False
++    assert result["buy_gate_updated"] is False
++    assert result["orders_sent"] is False
++
++    backfill_raw_root = Path(result["namespace"]["raw_root"])
++    backfill_selection_root = Path(result["namespace"]["selection_root"])
++    verified_raw = raw_store.RawStore(backfill_raw_root).verify_latest(
++        "20260924", "STAGE_0930_0935", "HK_CONNECT"
++    )["verified"]
++    assert verified_raw["status"] == "PARTIAL_WITH_ROWS"
++    assert verified_raw["row_count"] == 100
++    selection = runner.SelectionStore(backfill_selection_root).read_verified(
++        "20260924", "STAGE_0930_0935", "HK_CONNECT"
++    )
++    assert len(selection["rows"]) == 10
++    assert all(row["action_level"] == "NO_BUY" for row in selection["rows"])
++    assert all(row["formal_eligible"] is False for row in selection["rows"])
++    assert selection["production_allowed"] is False
++    assert selection["buy_gate_updated"] is False
++    assert selection["orders_sent"] is False
++    assert omission_evidence in selection["source_evidence"]
++    assert not (backfill_raw_root / "bundle_latest.json").exists()
++    assert not (backfill_raw_root / "bundle_runs").exists()
++    assert not (config.raw_root / "latest.json").exists()
++    assert not (config.selection_root / "selection_latest.json").exists()

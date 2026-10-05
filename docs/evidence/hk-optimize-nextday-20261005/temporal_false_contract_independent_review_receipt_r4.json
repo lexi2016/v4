@@ -1,0 +1,87 @@
+{
+  "schema_version": "independent_review_handoff.v1",
+  "recorded_by": "root",
+  "reviewer": "/root/day25_stage_publish_review",
+  "verdict": "PASS",
+  "reviewed_scope": "Frozen source delta and actual isolated StageCenter raw-selection-runner chain",
+  "patch_sha256": "2ce245bede64ef7133d91a22d10e6ba03bb3160785a81ccd97ab1b258f285786",
+  "files": [
+    {
+      "current_sha256": "fe760a4798b110d63d3eeaba084efb4e84c322c6dd7c44efd63d1d63bba3cb43",
+      "path": "stage_center/runner.py",
+      "preimage_sha256": "b29559fb6ab165b92cf17bf6c8c9c73e525ebb505d0b1252a8b54514c724ea06"
+    },
+    {
+      "current_sha256": "72434b014363a1468b4e49556a08e9685a54374e5a77c71216dad6059047956b",
+      "path": "stage_center/_runner_parts/slot_execution.py",
+      "preimage_sha256": "c9669ffad6eb8424e4b6b30b4dae1bd6807953c6304508bf9fe4b5f5f4a1c7ab"
+    },
+    {
+      "current_sha256": "5933b64d6edecbdf131a55ee3e19d455acb543a7350bbe4aa058d0ac4bc4f677",
+      "path": "stage_center/_runner_parts/row_evidence.py",
+      "preimage_sha256": "f1659b68c8983c789c9306027e3e90d0dcce8c137674a5cf34edfa7d7fdbde3a"
+    },
+    {
+      "current_sha256": "655e7ec293bdb227ad1c3f7d7ecebb9152ea19bcc1e8de3933d0b2dd5bf1ecb4",
+      "path": "stage_center/raw_store.py",
+      "preimage_sha256": "15052b23c62d38b65d65b96bf3b837782ebfa6fca7fe83f7c1d9374400bbdbde"
+    },
+    {
+      "current_sha256": "c0bb3d464b9ffc0e0fa4cb50b3fbb09b32b6eea77ea38c6bad2788f2a1ad99e5",
+      "path": "stage_center/_raw_store_parts/receipt_identity.py",
+      "preimage_sha256": "b33c496a6052b450959a9b886c79ad8d5686230e320dbc99bfd98a3e8265a8f0"
+    },
+    {
+      "current_sha256": "309ed98c534934e9314a061d970ae3af22fe8a412a3899c2f4c7985d2a16bbeb",
+      "path": "stage_center/_raw_store_parts/transaction_publish.py",
+      "preimage_sha256": "4c28d92667428cfeced54e074e800337ca88b7e87d8a5468a9464b668ca9b24e"
+    },
+    {
+      "current_sha256": "909785882d5747e2bad104ecc80b5f93007ea434fc6216e918ad12e0f97cc37d",
+      "path": "stage_center/_raw_store_parts/transaction_read.py",
+      "preimage_sha256": "8b7e88dc5e5f41456e5222f1a5c08c5dcd05f5e5d7f2c179fd26652bff2932b6"
+    },
+    {
+      "current_sha256": "4a56e7843d42e0222c77dd267369f4f9c0256e639cadfbcd937a5950938edec1",
+      "path": "stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "preimage_sha256": "19fef96cedb1c23f1fdeceef2fd4dd8e148057d00f9aba8dd933f56435ac4522"
+    },
+    {
+      "current_sha256": "9773c95f0f5d3088b27ba62b3351f768ab6a3313c0c7c30723155222c64a7332",
+      "path": "tests/test_hk_stage0930_temporal_false_observation.py",
+      "preimage_sha256": null
+    }
+  ],
+  "independent_tests": {
+    "earlier_frozen_contract_suite": 55,
+    "r4_incremental_suite": 7,
+    "runtime": "v3.5 service Python",
+    "same_sha_suite_repeated": false
+  },
+  "actual_run_id": "1d3ab9f9bd3a44c3811bf1fed2b74108",
+  "target_date": "20260924",
+  "stage_id": "STAGE_0930_0935",
+  "market": "HK_CONNECT",
+  "requested_count": 100,
+  "raw_count": 100,
+  "selected_count": 10,
+  "raw_sha256": "709a5d00bb4507bd6cc32ad9bf1b4e0e4615fe702262b39088b6fad3505f10c1",
+  "selection_sha256": "6c0d7edba26455714421a4af7b625573679416fc97ed8accea6a939508081c87",
+  "runner_receipt_sha256": "70a9c5bb6637f14218d99a18c4f02e0cc7c18086f3a89056185c90a589e6bbfa",
+  "BEHAVIOR_VERIFIED": "PASS",
+  "status": "PARTIAL_WITH_ROWS",
+  "temporal_cutoff_safe": false,
+  "formal_eligible": false,
+  "orders_sent": false,
+  "buy_gate_updated": false,
+  "production_allowed": false,
+  "selection_action": "NO_BUY",
+  "gap": "D1 rank45 HK.02915 previous-close/history CANNOT_CONFIRM retained",
+  "bundle": "OMITTED_HK_ONLY_RESEARCH_BACKFILL",
+  "current_updated": false,
+  "global_latest_updated": false,
+  "wrapper_caveat": "Original wrapper exited 1 after successful tick due to post-run readback AttributeError; original runner artifacts independently verified without rerun. Recovery receipt records original failure.",
+  "API_VERIFIED": "NOT_IN_THIS_SCOPE",
+  "UI_VERIFIED": "NOT_IN_THIS_SCOPE",
+  "NATURAL_VERIFIED": "CANNOT_CONFIRM"
+}
