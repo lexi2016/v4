@@ -1,0 +1,756 @@
+--- a/apps/web/src/api/managerWorkspace.ts
++++ b/apps/web/src/api/managerWorkspace.ts
+@@ -36,6 +36,28 @@
+   coverage_scope: string; selection_semantics?: string; selection_threshold_pct?: number; raw_industry_up: JsonObject[]; raw_individual_up: JsonObject[];
+   coverage: JsonObject; source_identity: JsonObject | null; gaps: string[];
+   research_material_input?: UsRelationMaterialInput; mapping_diagnostics?: UsMappingDiagnostics;
++}
++export interface UsMappingSource extends JsonObject {
++  title: string; url: string; published_at?: string;
++}
++export interface UsMappingCard extends JsonObject {
++  hk_symbol: string; hk_code: string; hk_name: string; research_priority: 'PRIORITY' | 'WATCH'; us_symbols: string[]; daily_match_symbols: string[];
++  us_moves: JsonObject[]; theme_label?: string; relationship_type: string; reason: string;
++  maturity: string; limitations: string[]; published_at: string; official_sources: UsMappingSource[];
++}
++export interface UsReviewedMapping extends JsonObject {
++  target_trade_date: string; us_session_date: string; status: string; reviewed_at: string | null; artifact_sha256?: string;
++  report?: JsonObject; source_scope?: JsonObject; cards: UsMappingCard[]; gaps?: string[];
++}
++export interface UsDailyMappingRun extends ResearchReadOnlyFlags {
++  schema_version: 'v4.manager_research.us_mapping_daily_run.v1';
++  target_trade_date: string; status: 'NOT_RUN' | 'FAILED' | 'INPUT_MISSING' | 'CANNOT_CONFIRM' | 'PARTIAL' | 'COMPLETED' | 'VALID_EMPTY';
++  run_id: string | null; generated_at: string | null; us_session_date: string | null; research_cutoff: string | null;
++  coverage: JsonObject; matches: JsonObject[]; gaps: string[]; source_identity: JsonObject | null;
++}
++export interface UsMappingResearch extends ResearchReadOnlyFlags {
++  schema_version: 'v4.manager_research.us_mapping_research.v1'; target_trade_date: string;
++  daily_run: UsDailyMappingRun; reviewed_research: UsReviewedMapping | null;
+ }
+ export type UsMappingAssessmentState = 'NOT_EVALUATED' | 'INSUFFICIENT' | 'ASSESSED_ZERO' | 'ASSESSED_WITH_RELATIONS';
+ export interface UsRelationMaterialInput extends JsonObject {
+@@ -146,6 +168,7 @@
+   summary: {stock_count: number; relation_count: number; theme_count: number; reused_material_count: number; formal_recommendation_count: 0};
+   market_screen?: ReboundScreen; market_screen_evidence?: JsonObject;
+   us_market_attention?: UsMarketAttention; research_attention?: ResearchAttention;
++  us_mapping_research?: UsMappingResearch;
+   selection_diagnostics?: SelectionDiagnostics;
+ }
+ function object(value: unknown): JsonObject {
+@@ -1152,11 +1175,85 @@
+   return value as unknown as ResearchAttention;
+ }
+ 
++function validateUsMappingResearch(raw: unknown, date: string): UsMappingResearch {
++  const mapping=object(raw);safe(mapping);const daily=object(mapping.daily_run);safe(daily);
++  researchContract(mapping.schema_version==='v4.manager_research.us_mapping_research.v1' &&
++    mapping.target_trade_date===date && daily.schema_version==='v4.manager_research.us_mapping_daily_run.v1' &&
++    daily.target_trade_date===date && ['NOT_RUN','FAILED','INPUT_MISSING','CANNOT_CONFIRM','PARTIAL','COMPLETED','VALID_EMPTY'].includes(String(daily.status)),
++    'US_MAPPING_DATE_OR_STATUS');
++  const coverage=object(daily.coverage);records(daily.matches);strings(daily.gaps);
++  for(const key of ['reviewed_us_symbol_count','matched_us_symbol_count','matched_hk_relation_count','configured_us_universe_count',
++    'available_us_universe_count']){
++    const n=coverage[key];if(n!==null)count(n);
++  }
++  researchContract(coverage.full_market_coverage===false,'US_MAPPING_COVERAGE_SCOPE');
++  if(daily.status==='COMPLETED'||daily.status==='VALID_EMPTY'){
++    const identity=object(daily.source_identity);
++    researchContract(daily.source_status==='READY' && typeof daily.run_id==='string' &&
++      typeof daily.us_session_date==='string' && /^\d{8}$/.test(daily.us_session_date) &&
++      researchSha(identity.payload_sha256) && researchSha(identity.receipt_sha256) && researchSha(identity.manifest_sha256) &&
++      coverage.matched_hk_relation_count===daily.matches.length && coverage.matched_us_symbol_count!==null &&
++      (daily.status==='COMPLETED'?daily.matches.length>0:daily.matches.length===0), 'US_MAPPING_COMPLETE_SCOPE');
++  } else if(['NOT_RUN','FAILED','INPUT_MISSING','CANNOT_CONFIRM'].includes(String(daily.status))){
++    researchContract(daily.matches.length===0 && coverage.matched_hk_relation_count===null &&
++      coverage.matched_us_symbol_count===null && (daily.status!=='NOT_RUN'||daily.run_id===null),
++      'US_MAPPING_UNKNOWN_NOT_ZERO');
++  }
++  for(const row of daily.matches){
++    researchContract(typeof row.us_symbol==='string' && /^[A-Z][A-Z0-9.-]{0,9}$/.test(row.us_symbol) &&
++      typeof row.hk_symbol==='string' && /^HK\.(?!00000)\d{5}$/.test(row.hk_symbol) &&
++      row.session_date===daily.us_session_date && row.target_date_eligibility==='CANNOT_CONFIRM' &&
++      typeof row.relationship_type==='string' && typeof row.reason==='string' && typeof row.maturity==='string',
++      'US_MAPPING_MATCH_INVALID');
++    if(row.change_pct!==undefined)researchContract(typeof row.change_pct==='number'&&Number.isFinite(row.change_pct)&&row.change_pct>0,
++      'US_MAPPING_RETURN_INVALID');
++    strings(row.limitations);records(row.official_sources);
++    for(const source of row.official_sources){
++      researchContract(typeof source.url==='string'&&typeof source.title==='string','US_MAPPING_SOURCE_INVALID');
++      const url=new URL(source.url);researchContract(url.protocol==='https:'&&!url.username&&!url.password,'US_MAPPING_SOURCE_URL_INVALID');
++    }
++  }
++  const reviewedRaw=mapping.reviewed_research;
++  if(reviewedRaw!==null){
++    const reviewed=object(reviewedRaw);safe(reviewed);records(reviewed.cards);
++    researchContract(reviewed.target_trade_date===date &&
++      ['REVIEWED_RETROSPECTIVE_RESEARCH','CANNOT_CONFIRM'].includes(String(reviewed.status)), 'US_MAPPING_REVIEW_DATE');
++    if(reviewed.status==='REVIEWED_RETROSPECTIVE_RESEARCH'){
++      researchContract(date==='20260930' && reviewed.reviewed_at==='2026-10-05' && reviewed.us_session_date==='20260929' &&
++        researchSha(reviewed.artifact_sha256) && reviewed.cards.length===5,'US_MAPPING_REVIEWED_IDENTITY');
++      const report=object(reviewed.report),scope=object(reviewed.source_scope);
++      researchContract(researchSha(report.sha256) && scope.original_workspace_plan_status==='SOURCE_FAILED' &&
++        scope.original_us_owner_lineage_status==='CANNOT_CONFIRM' && scope.original_plan_consumed_these_relations===false &&
++        scope.target_date_eligibility==='CANNOT_CONFIRM' && scope.pit_status==='CANNOT_CONFIRM','US_MAPPING_REVIEWED_BOUNDARY');
++      for(const row of reviewed.cards){
++        researchContract(typeof row.hk_code==='string' && /^\d{5}$/.test(row.hk_code) &&
++          row.hk_symbol===`HK.${row.hk_code}` && typeof row.hk_name==='string' &&
++          ['PRIORITY','WATCH'].includes(String(row.research_priority)) &&
++          typeof row.relationship_type==='string' && typeof row.reason==='string' && typeof row.maturity==='string' &&
++          row.published_at!=='' && row.target_date_eligibility==='CANNOT_CONFIRM','US_MAPPING_REVIEW_CARD');
++        const usSymbols=row.us_symbols,usMoves=row.us_moves;
++        strings(usSymbols);strings(row.daily_match_symbols);strings(row.limitations);records(usMoves);records(row.official_sources);
++        researchContract(usMoves.length===0?usSymbols.length===0:usMoves.every(move=>usSymbols.includes(String(move.symbol))),
++          'US_MAPPING_REVIEW_MOVES');
++        if(usMoves.length===0)researchContract(typeof row.theme_label==='string','US_MAPPING_THEME_DRIVER');
++        for(const source of row.official_sources){
++          researchContract(typeof source.url==='string'&&typeof source.title==='string','US_MAPPING_REVIEW_SOURCE');
++          const url=new URL(source.url);researchContract(url.protocol==='https:'&&!url.username&&!url.password,'US_MAPPING_REVIEW_SOURCE_URL');
++        }
++      }
++    }else researchContract(reviewed.cards.length===0,'US_MAPPING_REVIEW_CANNOT_CONFIRM');
++  }
++  if(date==='20260930')researchContract(reviewedRaw!==null,'US_MAPPING_REVIEWED_MISSING');
++  else researchContract(reviewedRaw===null,'US_MAPPING_REVIEW_DATE_LEAK');
++  return mapping as unknown as UsMappingResearch;
++}
++
+ export function validateManagerWorkspace(raw: unknown, date: string): ManagerWorkspace {
+   const value = object(raw); safe(value);
+   if(value.selection_diagnostics!==undefined)validateSelectionDiagnostics(value.selection_diagnostics,date);
+   if(value.announcement_observation!==undefined)validateAnnouncementObservation(value.announcement_observation,date);
+   if(value.us_market_attention!==undefined)validateUsMarketAttention(value.us_market_attention,date);
++  if(value.us_mapping_research!==undefined)validateUsMappingResearch(value.us_mapping_research,date);
+   if (value.schema_version !== 'v4.manager_research.workspace.v1' || value.target_trade_date !== date ||
+       typeof value.input_identity !== 'string' || !/^[0-9a-f]{64}$/.test(value.input_identity)) throw new Error('WORKSPACE_IDENTITY_INVALID');
+   records(value.stocks); records(value.lanes); records(value.themes); records(value.materials); strings(value.gaps);
+--- a/apps/web/src/manager-selection/catalystObservationPanel.ts
++++ b/apps/web/src/manager-selection/catalystObservationPanel.ts
+@@ -1,6 +1,6 @@
+ import { renderAnnouncementReview } from './announcementObservation.js';
+ import { renderResearchAttention } from './researchAttention.js';
+-import type { ResearchAttention, UsMarketAttention } from '../api/managerWorkspace.js';
++import type { ResearchAttention, UsMappingResearch, UsMarketAttention } from '../api/managerWorkspace.js';
+ import { businessStatusRows } from './businessStatus.js';
+ /** Stock-keyed panel inside the EXISTING ManagerSelectionView host.
+  * The original Stage table/rank/BUY gate remain outside this DOM boundary.
+@@ -463,7 +463,8 @@
+   function render(value: ManagerWorkspace): void {
+     // Input identity is retained for audit; it is not a stock ranking.
+     currentValue=value;loadedView=view;
+-    renderResearchAttention(researchAttentionSection,value.research_attention as ResearchAttention|undefined,value.us_market_attention as UsMarketAttention|undefined,value.selection_diagnostics);
++    renderResearchAttention(researchAttentionSection,value.research_attention as ResearchAttention|undefined,value.us_market_attention as UsMarketAttention|undefined,
++      value.selection_diagnostics,value.us_mapping_research as UsMappingResearch|undefined);
+     panel.dataset.inputIdentity=value.input_identity; panel.dataset.targetDate=value.target_trade_date;panel.dataset.readState='READY';
+     renderCloseRecapture(value);
+     const ctx=(value.plan_context || {}) as JsonObject;const product=(value.plan_product || {}) as JsonObject;
+--- a/apps/web/src/manager-selection/researchAttention.ts
++++ b/apps/web/src/manager-selection/researchAttention.ts
+@@ -1,6 +1,7 @@
+-import type { JsonObject, ResearchAttention, ResearchSelectionLedger, UsMarketAttention, SelectionDiagnostics } from '../api/managerWorkspace.js';
++import type { JsonObject, ResearchAttention, ResearchSelectionLedger, UsMappingResearch, UsMarketAttention, SelectionDiagnostics } from '../api/managerWorkspace.js';
+ 
+ const text=(value:unknown,fallback='未知')=>typeof value==='string'&&value.trim()?value:fallback;
++const dateLabel=(value:unknown)=>typeof value==='string'&&/^\d{8}$/.test(value)?`${value.slice(0,4)}-${value.slice(4,6)}-${value.slice(6,8)}`:text(value);
+ const object=(value:unknown):JsonObject=>value&&typeof value==='object'&&!Array.isArray(value)?value as JsonObject:{};
+ const el=<K extends keyof HTMLElementTagNameMap>(tag:K,content='',className='')=>{const node=document.createElement(tag);node.textContent=content;node.className=className;return node;};
+ 
+@@ -163,9 +164,82 @@
+   host.append(box);
+ }
+ 
+-export function renderResearchAttention(host:HTMLElement, attention?:ResearchAttention, us?:UsMarketAttention, selection?:SelectionDiagnostics):void{
++function usMoveLabel(row:JsonObject):string{
++  const moves=Array.isArray(row.us_moves)?row.us_moves.filter(value=>value&&typeof value==='object') as JsonObject[]:[];
++  if(!moves.length&&typeof row.us_symbol==='string'){
++    const pct=typeof row.change_pct==='number'&&Number.isFinite(row.change_pct)?`${row.change_pct>0?'+':''}${row.change_pct}%`:'涨幅未知';
++    return `${row.us_symbol} ${pct}`;
++  }
++  if(!moves.length)return text(row.theme_label,'未指定单只美股驱动或涨幅');
++  return moves.map(move=>{
++    const pct=typeof move.change_pct==='number'&&Number.isFinite(move.change_pct)?`${move.change_pct>0?'+':''}${move.change_pct}%`:'涨幅未知';
++    return `${text(move.symbol)} ${pct}`;
++  }).join('；');
++}
++function renderMappingSources(host:HTMLElement, sources:unknown):void{
++  if(!Array.isArray(sources))return;
++  for(const raw of sources){
++    const source=object(raw);const link=sourceLink(source.url);
++    if(link){link.textContent=`${text(source.title,'官方来源')}（${text(source.published_at,'日期未提供')}）`;host.append(link);}
++  }
++}
++function renderMappingRows(host:HTMLElement, rows:JsonObject[], label:string):void{
++  const table=el('table');table.className='us-mapping-table';table.setAttribute('aria-label',label);
++  const head=el('thead'),header=el('tr');
++  for(const name of ['研究优先级','美股线索','港股代码及名称','关系类别','理由与产品阶段','目标日资格','官方来源'])header.append(el('th',name));
++  head.append(header);table.append(head);const body=el('tbody');
++  for(const row of rows){
++    const tr=el('tr');
++    const priority=row.research_priority==='PRIORITY'?'PRIORITY · 优先核验':row.research_priority==='WATCH'?'WATCH · 观察':'CANNOT_CONFIRM · 未标记';
++    const tier=el('td',priority);
++    const us=el('td',usMoveLabel(row));
++    const code=typeof row.hk_code==='string'?row.hk_code:typeof row.hk_symbol==='string'?row.hk_symbol.match(/^HK\.(\d{5})$/)?.[1]:undefined;
++    const hk=el('td',`${text(code)} ${text(row.hk_name)}`);
++    const relation=el('td',text(row.relationship_type));
++    const maturity=el('td');maturity.append(el('p',text(row.reason)),el('p',text(row.maturity)));
++    const limitations=Array.isArray(row.limitations)?row.limitations.filter(v=>typeof v==='string') as string[]:[];
++    if(limitations.length)maturity.append(el('p',limitations.join('；')));
++    const eligibility=el('td',`CANNOT_CONFIRM · ${text(row.target_date_eligibility,'资格未知')}`);
++    const evidence=el('td');renderMappingSources(evidence,row.official_sources);
++    for(const cell of [tier,us,hk,relation,maturity,eligibility,evidence])tr.append(cell);
++    body.append(tr);
++  }
++  table.append(body);const wrapper=el('div');wrapper.className='us-mapping-table-wrap';wrapper.append(table);host.append(wrapper);
++}
++function renderUsMappingResearch(host:HTMLElement, mapping?:UsMappingResearch):void{
++  const box=el('section');box.className='us-mapping-research';box.dataset.usMappingResearch='';box.setAttribute('aria-label','美股到港股业务关系研究');
++  box.append(el('h4','美股 → 港股业务关系研究（只读研究，不是选股或 BUY）'));
++  if(!mapping){box.append(el('p','映射数据未提供 · CANNOT_CONFIRM；数量未知，不能解释为零。'));host.append(box);return;}
++  const daily=mapping.daily_run;
++  box.append(el('p',`日常流程：${daily.status}；目标港股交易日 ${dateLabel(daily.target_trade_date)}；美股来源日 ${dateLabel(daily.us_session_date)}；cutoff ${text(daily.research_cutoff)}；关系结果按日期单独保存并要求回读。`));
++  if(daily.status==='NOT_RUN')box.append(el('p','该目标日尚无日常映射产物；数量未知，不等于没有匹配。'));
++  else if(daily.status==='VALID_EMPTY')box.append(el('p','完整来源已检查当前4个已审阅美股关系，匹配为0；这只表示该小型已审关系范围为空，不代表全市场或其他关系为空。'));
++  else if(daily.status==='FAILED'||daily.status==='INPUT_MISSING'||daily.status==='CANNOT_CONFIRM')
++    box.append(el('p',`来源或回读未闭环，匹配数量未知；${daily.gaps.join('；')||'CANNOT_CONFIRM'}。`));
++  else if(daily.status==='PARTIAL')
++    box.append(el('p',`输入覆盖不完整，不能把当前行数当作完整匹配数；${daily.gaps.join('；')||'来源部分缺失'}。`));
++  else box.append(el('p',`已评估 ${String(daily.matches.length)} 条已审关系命中。范围来自固定33只配置美股中的4只已审阅关系，不是全市场扫描。目标日Connect资格仍未知。`));
++  if(daily.matches.length)renderMappingRows(box,daily.matches,'按日美股到港股研究映射');
++  const reviewed=mapping.reviewed_research;
++  if(reviewed){
++    const sub=el('section');sub.dataset.reviewedUsMapping='';
++    if(reviewed.status==='REVIEWED_RETROSPECTIVE_RESEARCH'){
++      sub.append(el('h4',`${dateLabel(reviewed.target_trade_date)} 已审阅回顾（事后研究；原盘前计划未消费这些关系）`),
++        el('p',`港股目标日 ${dateLabel(reviewed.target_trade_date)} / 美股来源时段 ${dateLabel(reviewed.us_session_date)} / 审阅于 ${text(reviewed.reviewed_at)}。报告 SHA256 ${text(object(reviewed.report).sha256)}。原计划 ${text(object(reviewed.source_scope).original_workspace_plan_status)}，美股 owner lineage ${text(object(reviewed.source_scope).original_us_owner_lineage_status)}；固定样本 ${String(object(reviewed.source_scope).requested_us_symbols)} 只，不是全市场。`),
++        el('p','这份回顾和原盘前计划失败并列展示；报告中的涨幅不补写成 V4 已验证的历史行情 lineage，也不代表目标日可交易。'));
++      renderMappingRows(sub,reviewed.cards,'9月30日已审阅事后研究五项港股映射');
++    }else sub.append(el('h4','已审阅回顾不可读取 · CANNOT_CONFIRM'),el('p',Array.isArray(reviewed.gaps)?reviewed.gaps.join('；'):'研究卡片未知。'));
++    box.append(sub);
++  }
++  renderGaps(box,'日常映射缺口',daily.gaps);
++  host.append(box);
++}
++
++export function renderResearchAttention(host:HTMLElement, attention?:ResearchAttention, us?:UsMarketAttention, selection?:SelectionDiagnostics,
++    mapping?:UsMappingResearch):void{
+   host.replaceChildren();host.setAttribute('aria-label','证据优先研究');
+   host.append(el('h3','证据优先研究（只读，不是原筛选／focus／BUY 排名）'));
++  renderUsMappingResearch(host,mapping);
+   renderFormalSelection(host,selection);
+   renderResearchSelectionLedger(host,attention?.research_selection);
+   const recheck=object(us?.historical_source_recheck);
+--- a/apps/web/src/styles/manager-selection.css
++++ b/apps/web/src/styles/manager-selection.css
+@@ -1312,6 +1312,16 @@
+ .manager-catalyst-card p, .manager-catalyst-card a { overflow-wrap:anywhere; }
+ .manager-catalyst-card pre { overflow-wrap:anywhere; white-space:pre-wrap; font-size:.75rem; }
+ 
++.us-mapping-research { margin: 1rem 0; padding: 1rem; border: 1px solid #7d8895; border-radius: 8px; }
++.us-mapping-research > h4 { margin-top: 0; }
++.us-mapping-table-wrap { max-width: 100%; overflow-x: auto; margin: .75rem 0; }
++.us-mapping-table { width: 100%; min-width: 760px; border-collapse: collapse; }
++.us-mapping-table th, .us-mapping-table td { border: 1px solid #aeb9c3; padding: .55rem; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
++.us-mapping-table th { background: #eef2f5; }
++.us-mapping-table td p { margin: 0 0 .4rem; }
++.us-mapping-table td a { display: block; margin: .2rem 0; }
++@media (max-width:640px) { .us-mapping-research { padding: .7rem; } }
++
+ 
+ /* Decision UX A1: same Vue host, original source panels are still mounted. */
+ .manager-original-sources { margin: 16px 24px; padding: 12px; background: #fff; border: 1px solid #ccd8e0; border-radius: 10px; }
+--- /dev/null
++++ b/v4/manager_research/us_mapping_research.py
+@@ -0,0 +1,262 @@
++"""Date-scoped, research-only US-to-HK relation projection for the Manager owner.
++
++The reviewed 2026-09-30 report is an immutable retrospective research artifact.
++Daily runs read only the injected exact-session US owner and a small reviewed
++relation registry; they never fetch prices, assert PIT eligibility, or change
++the existing Stage/selection/BUY paths.
++"""
++from __future__ import annotations
++
++from copy import deepcopy
++from datetime import datetime, timezone
++import hashlib
++import json
++from pathlib import Path
++import re
++from typing import Any, Mapping
++from uuid import uuid4
++
++from .contracts import sha256_json, strict_trade_date
++from .workspace_projection import FLAGS, HK, digest
++from .workspace_plan import plan_context
++
++SCHEMA = "v4.manager_research.us_mapping_research.v1"
++DAILY_SCHEMA = "v4.manager_research.us_mapping_daily_run.v1"
++REVIEWED_PATH = Path(__file__).with_name("us_mapping_reviewed_20260930.json")
++_SHA = re.compile(r"^[0-9a-f]{64}$")
++_TARGET_SEED = "20260930"
++_DAILY_RELATION_TYPES = {"DIRECT_NAMED_COMPONENT_SUPPLY", "PRODUCT_PEER", "OPTICAL_TRANSPORT_PEER"}
++
++
++def _now_text(now: datetime) -> str:
++    return now.astimezone(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
++
++
++def _safe_tree(value: Mapping[str, Any]) -> None:
++    for key, expected in FLAGS.items():
++        if value.get(key) is not expected:
++            raise ValueError("US_MAPPING_SAFETY_INVALID")
++
++
++def _read_reviewed() -> dict[str, Any]:
++    raw = REVIEWED_PATH.read_bytes()
++    value = json.loads(raw)
++    if not isinstance(value, dict):
++        raise ValueError("US_MAPPING_REVIEWED_ARTIFACT_INVALID")
++    unsigned = {key: item for key, item in value.items() if key != "artifact_sha256"}
++    if (value.get("schema_version") != "v4.manager_research.us_mapping_reviewed.v1"
++            or value.get("target_trade_date") != _TARGET_SEED
++            or value.get("artifact_sha256") != sha256_json(unsigned)
++            or not isinstance(value.get("cards"), list)):
++        raise ValueError("US_MAPPING_REVIEWED_ARTIFACT_INTEGRITY_FAILED")
++    _safe_tree(value)
++    return value
++
++
++def _read_saved(store: Any, date: str) -> dict[str, Any] | None:
++    path = store.root / "us_mapping_research" / date / "latest.json"
++    pointer = store._read(path)
++    if pointer is None:
++        return None
++    if (pointer.get("schema_version") != "v4.manager_research.us_mapping_daily_pointer.v1"
++            or pointer.get("target_trade_date") != date
++            or not isinstance(pointer.get("run_id"), str)
++            or not _SHA.fullmatch(str(pointer.get("artifact_sha256") or ""))):
++        raise ValueError("US_MAPPING_DAILY_POINTER_INVALID")
++    artifact = store._read(path.parent / "runs" / f"{pointer['run_id']}.json")
++    if artifact is None:
++        raise ValueError("US_MAPPING_DAILY_ARTIFACT_MISSING")
++    unsigned = {key: item for key, item in artifact.items() if key != "artifact_sha256"}
++    if (artifact.get("schema_version") != DAILY_SCHEMA
++            or artifact.get("target_trade_date") != date
++            or artifact.get("run_id") != pointer["run_id"]
++            or artifact.get("artifact_sha256") != pointer["artifact_sha256"]
++            or sha256_json(unsigned) != pointer["artifact_sha256"]):
++        raise ValueError("US_MAPPING_DAILY_ARTIFACT_INTEGRITY_FAILED")
++    _safe_tree(artifact)
++    return artifact
++
++
++def read_workspace_mapping(service: Any, target_trade_date: str) -> dict[str, Any]:
++    date = strict_trade_date(target_trade_date)
++    try:
++        daily = _read_saved(service.store, date)
++    except (OSError, ValueError, KeyError, TypeError):
++        daily = None
++        read_status = "FAILED"
++    else:
++        read_status = "NOT_RUN"
++    if daily is None:
++        daily = {
++            "schema_version": DAILY_SCHEMA,
++            "status": read_status,
++            "target_trade_date": date,
++            "run_id": None,
++            "generated_at": None,
++            "us_session_date": None,
++            "research_cutoff": None,
++            "coverage": {
++                "reviewed_us_symbol_count": 4,
++                "matched_us_symbol_count": None,
++                "matched_hk_relation_count": None,
++                "configured_us_universe_count": None,
++                "available_us_universe_count": None,
++                "full_market_coverage": False,
++            },
++            "matches": [],
++            "gaps": ["DAILY_MAPPING_NOT_MATERIALIZED" if read_status == "NOT_RUN" else "DAILY_MAPPING_READBACK_INVALID"],
++            "source_identity": None,
++            "input_identity": None,
++            **FLAGS,
++        }
++    if date == _TARGET_SEED:
++        try:
++            reviewed = _read_reviewed()
++        except (OSError, ValueError, TypeError, json.JSONDecodeError):
++            reviewed = {
++                "schema_version": "v4.manager_research.us_mapping_reviewed.v1",
++                "target_trade_date": date,
++                "status": "CANNOT_CONFIRM",
++                "reviewed_at": None,
++                "cards": [],
++                "gaps": ["REVIEWED_US_HK_RELATION_ARTIFACT_INVALID"],
++                **FLAGS,
++            }
++    else:
++        reviewed = None
++    return {
++        "schema_version": SCHEMA,
++        "target_trade_date": date,
++        "daily_run": daily,
++        "reviewed_research": reviewed,
++        "RESEARCH_ONLY": True,
++        "production_allowed": False,
++        "buy_gate_updated": False,
++        "orders_sent": False,
++    }
++
++
++def _relation_index() -> dict[str, list[dict[str, Any]]]:
++    reviewed = _read_reviewed()
++    out: dict[str, list[dict[str, Any]]] = {}
++    for card in reviewed["cards"]:
++        if not isinstance(card, Mapping):
++            continue
++        for symbol in card.get("daily_match_symbols", []):
++            if isinstance(symbol, str) and re.fullmatch(r"[A-Z][A-Z0-9.-]{0,9}", symbol):
++                out.setdefault(symbol, []).append(dict(card))
++    return out
++
++
++def build_daily_run(service: Any, target_trade_date: str, *, now: datetime) -> dict[str, Any]:
++    date = strict_trade_date(target_trade_date)
++    if now.tzinfo is None:
++        raise ValueError("US_MAPPING_CLOCK_MUST_BE_AWARE")
++    context = plan_context(date, now=now)
++    from .us_market_bridge import project_us_market
++
++    bridge = project_us_market(getattr(service, "_workspace_us_market_reader", None), date, context)
++    reviewed = _read_reviewed()
++    source_status = bridge.get("status")
++    gaps = list(bridge.get("gaps") or [])
++    matches: list[dict[str, Any]] = []
++    complete_snapshot = source_status == "READY"
++    if complete_snapshot:
++        relations = _relation_index()
++        for row in bridge.get("raw_individual_up") or []:
++            if not isinstance(row, Mapping):
++                continue
++            symbol = str(row.get("symbol") or "").upper()
++            for card in relations.get(symbol, []):
++                matches.append({
++                    "us_symbol": symbol,
++                    "change_pct": row.get("change_pct"),
++                    "session_date": row.get("session_date"),
++                    "hk_symbol": card.get("hk_symbol"),
++                    "hk_name": card.get("hk_name"),
++                    "research_priority": card.get("research_priority"),
++                    "relationship_type": card.get("relationship_type"),
++                    "reason": card.get("reason"),
++                    "maturity": card.get("maturity"),
++                    "limitations": card.get("limitations"),
++                    "official_sources": deepcopy(card.get("official_sources", [])),
++                    "reviewed_relation_artifact_sha256": reviewed.get("artifact_sha256"),
++                    "target_date_eligibility": "CANNOT_CONFIRM",
++                    "source_row": deepcopy(dict(row)),
++                })
++    if source_status == "SOURCE_FAILED":
++        status = "FAILED"
++    elif source_status in {"INPUT_MISSING", "CANNOT_CONFIRM"}:
++        status = "INPUT_MISSING" if source_status == "INPUT_MISSING" else "CANNOT_CONFIRM"
++    elif source_status == "PARTIAL":
++        status = "PARTIAL"
++        gaps.append("US_MARKET_SOURCE_PARTIAL")
++    elif complete_snapshot:
++        status = "COMPLETED" if matches else "VALID_EMPTY"
++    else:
++        status = "CANNOT_CONFIRM"
++        gaps.append("US_MARKET_SOURCE_STATUS_UNRECOGNIZED")
++
++    coverage = bridge.get("coverage") if isinstance(bridge.get("coverage"), Mapping) else {}
++    source_identity = bridge.get("source_identity") if isinstance(bridge.get("source_identity"), Mapping) else None
++    identity = digest([date, bridge.get("expected_us_session"), bridge.get("research_cutoff"), source_identity,
++                       matches, reviewed.get("artifact_sha256")])
++    run_id = uuid4().hex
++    value = {
++        "schema_version": DAILY_SCHEMA,
++        "status": status,
++        "target_trade_date": date,
++        "run_id": run_id,
++        "generated_at": _now_text(now),
++        "us_session_date": bridge.get("expected_us_session"),
++        "research_cutoff": bridge.get("research_cutoff"),
++        "coverage_scope": "FOUR_REVIEWED_US_TICKER_RELATIONS_WITHIN_FIXED_33_CONFIGURED_SYMBOL_SAMPLE_NOT_FULL_MARKET",
++        "coverage": {
++            "reviewed_us_symbol_count": 4,
++            "matched_us_symbol_count": len({row["us_symbol"] for row in matches}) if complete_snapshot else None,
++            "matched_hk_relation_count": len(matches) if complete_snapshot else None,
++            "configured_us_universe_count": coverage.get("requested_symbol_count") if complete_snapshot else None,
++            "available_us_universe_count": coverage.get("available_symbol_count") if complete_snapshot else None,
++            "full_market_coverage": False,
++        },
++        "matches": matches,
++        "source_status": source_status,
++        "source_identity": deepcopy(dict(source_identity)) if source_identity else None,
++        "source_gaps": gaps,
++        "input_identity": identity,
++        "relation_artifact_sha256": reviewed.get("artifact_sha256"),
++        "target_date_eligibility": "CANNOT_CONFIRM",
++        "producer_owner": "ManagerResearchJobService / ResearchPeripheralStore read adapter",
++        "readback_required": True,
++        "gaps": sorted(set(gaps)),
++        **FLAGS,
++    }
++    return value
++
++
++def persist_daily_run(service: Any, target_trade_date: str, *, now: datetime) -> dict[str, Any]:
++    value = build_daily_run(service, target_trade_date, now=now)
++    unsigned = dict(value)
++    value["artifact_sha256"] = sha256_json(unsigned)
++    _safe_tree(value)
++    store = service.store
++    directory = store.root / "us_mapping_research" / value["target_trade_date"]
++    run_path = directory / "runs" / f"{value['run_id']}.json"
++    pointer_path = directory / "latest.json"
++    with store._transaction(value["target_trade_date"], value["input_identity"]):
++        store._write_atomic(run_path, value)
++        pointer = {
++            "schema_version": "v4.manager_research.us_mapping_daily_pointer.v1",
++            "target_trade_date": value["target_trade_date"],
++            "run_id": value["run_id"],
++            "artifact_sha256": value["artifact_sha256"],
++            **FLAGS,
++        }
++        store._write_atomic(pointer_path, pointer)
++    saved = _read_saved(store, value["target_trade_date"])
++    if saved is None or saved.get("artifact_sha256") != value["artifact_sha256"]:
++        raise ValueError("US_MAPPING_DAILY_READBACK_FAILED")
++    return saved
++
++
++__all__ = ["DAILY_SCHEMA", "SCHEMA", "build_daily_run", "persist_daily_run", "read_workspace_mapping"]
+--- /dev/null
++++ b/v4/manager_research/us_mapping_reviewed_20260930.json
+@@ -0,0 +1,209 @@
++{
++  "schema_version": "v4.manager_research.us_mapping_reviewed.v1",
++  "target_trade_date": "20260930",
++  "us_session_date": "20260929",
++  "status": "REVIEWED_RETROSPECTIVE_RESEARCH",
++  "reviewed_at": "2026-10-05",
++  "report": {
++    "name": "RESEARCH_RESULT.md",
++    "sha256": "0c538bc30b48af0d47185b67eb8dcc58dd412b5b92c5fbe050fa08940f97313d"
++  },
++  "source_scope": {
++    "requested_us_symbols": 33,
++    "coverage": "固定33只配置美股，不是全市场扫描",
++    "original_workspace_plan_status": "SOURCE_FAILED",
++    "original_us_owner_lineage_status": "CANNOT_CONFIRM",
++    "original_plan_consumed_these_relations": false,
++    "target_date_eligibility": "CANNOT_CONFIRM",
++    "pit_status": "CANNOT_CONFIRM"
++  },
++  "cards": [
++    {
++      "hk_symbol": "HK.06166",
++      "hk_code": "06166",
++      "hk_name": "剑桥科技（CIG Shanghai）",
++      "research_priority": "PRIORITY",
++      "us_symbols": [
++        "LITE",
++        "COHR"
++      ],
++      "daily_match_symbols": [
++        "LITE",
++        "COHR"
++      ],
++      "us_moves": [
++        {
++          "symbol": "LITE",
++          "change_pct": 5.662528
++        },
++        {
++          "symbol": "COHR",
++          "change_pct": 3.459019
++        }
++      ],
++      "relationship_type": "PRODUCT_PEER",
++      "reason": "高速数通光收发器产品形态相近；官方材料没有披露CIG向LITE或COHR供货。",
++      "maturity": "800G模块已大批量出货；部分1.6T型号完成认证，其他项目仍在开发；CPO处于早期研发/样机阶段。",
++      "limitations": [
++        "同业产品映射，不是已披露客户/供应关系",
++        "不同产品阶段分别保留",
++        "目标日Connect资格未知"
++      ],
++      "published_at": "2026-09-03",
++      "official_sources": [
++        {
++          "title": "剑桥科技2026年中期报告",
++          "url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0903/2026090300698.pdf",
++          "published_at": "2026-09-03"
++        },
++        {
++          "title": "Lumentum Unveils New Transceivers",
++          "url": "https://investor.lumentum.com/financial-news-releases/news-details/2025/Lumentum-Unveils-New-Transceivers-to-Double-Fiber-Capacity-Across-Wide-Range-of-Transmission-Distances/default.aspx",
++          "published_at": "2025-04-01"
++        },
++        {
++          "title": "Coherent multi-rail transport platform",
++          "url": "https://www.coherent.com/news/press-releases/scale-across-networks-multi-rail-transport-platform",
++          "published_at": "2026-03-12"
++        }
++      ],
++      "target_date_eligibility": "CANNOT_CONFIRM"
++    },
++    {
++      "hk_symbol": "HK.06088",
++      "hk_code": "06088",
++      "hk_name": "鸿腾精密（FIT Hon Teng Limited）",
++      "research_priority": "PRIORITY",
++      "us_symbols": [
++        "AVGO"
++      ],
++      "daily_match_symbols": [
++        "AVGO"
++      ],
++      "us_moves": [
++        {
++          "symbol": "AVGO",
++          "change_pct": 1.581944
++        }
++      ],
++      "relationship_type": "DIRECT_NAMED_COMPONENT_SUPPLY",
++      "reason": "公司披露为Broadcom Tomahawk 5 Bailly平台交付LGA插座、远置可插拔激光源接口笼和连接器组件。",
++      "maturity": "披露部件已进入规模生产；交付内容是插座、接口笼和连接器组件。",
++      "limitations": [
++        "不表示FIT供应激光器或光收发器",
++        "不推断价格因果",
++        "目标日Connect资格未知"
++      ],
++      "published_at": "2025-05-13",
++      "official_sources": [
++        {
++          "title": "FIT Hon Teng Bailly platform component release",
++          "url": "https://www.fit-foxconn.com/mainssl/modules/MySpace/BlogInfo.php?xmlid=27625",
++          "published_at": "2025-05-13"
++        }
++      ],
++      "target_date_eligibility": "CANNOT_CONFIRM"
++    },
++    {
++      "hk_symbol": "HK.00763",
++      "hk_code": "00763",
++      "hk_name": "中兴通讯（ZTE Corporation）",
++      "research_priority": "PRIORITY",
++      "us_symbols": [
++        "CIEN"
++      ],
++      "daily_match_symbols": [
++        "CIEN"
++      ],
++      "us_moves": [
++        {
++          "symbol": "CIEN",
++          "change_pct": 3.102937
++        }
++      ],
++      "relationship_type": "OPTICAL_TRANSPORT_PEER",
++      "reason": "OTN与高容量光传输设备属于同市场比较；材料未证明中兴为Ciena供应商。",
++      "maturity": "中兴2025年报披露OTN 800G DCO端口与光传输产品；本映射仅用于市场同业比较。",
++      "limitations": [
++        "同业/竞争映射，不是Ciena供应关系",
++        "不据此判断单日涨幅原因",
++        "目标日Connect资格未知"
++      ],
++      "published_at": "2026-03-26",
++      "official_sources": [
++        {
++          "title": "ZTE 2025 annual report",
++          "url": "https://www.hkexnews.hk/listedco/listconews/sehk/2026/0326/2026032600626.pdf",
++          "published_at": "2026-03-26"
++        },
++        {
++          "title": "Ciena 6500 optical transport platform",
++          "url": "https://www.ciena.com/insights/blog/2025/modernize-with-confidence-cienas-6500-platform-paves-the-way-for-next-gen-telecom-networks",
++          "published_at": "2025-01-14"
++        }
++      ],
++      "target_date_eligibility": "CANNOT_CONFIRM"
++    },
++    {
++      "hk_symbol": "HK.06869",
++      "hk_code": "06869",
++      "hk_name": "长飞光纤光缆（YOFC）",
++      "research_priority": "WATCH",
++      "us_symbols": [],
++      "daily_match_symbols": [],
++      "us_moves": [],
++      "theme_label": "光互联需求主题；未指定单只美股及涨幅",
++      "relationship_type": "BROAD_INFRASTRUCTURE_THEME",
++      "reason": "光纤、光缆、传输组件及部分光模块业务可观察数据中心互联需求；不是已确认的LITE/COHR客户关系。",
++      "maturity": "50G PON模块实现批量交付；400G/800G AEC通过阶段验收；1.6T模块处于方案选型/设计。",
++      "limitations": [
++        "不得补写单只美股驱动或涨幅",
++        "不同产品成熟度分开标注",
++        "没有确认美国客户",
++        "目标日Connect资格未知"
++      ],
++      "published_at": "2026-08-21",
++      "official_sources": [
++        {
++          "title": "YOFC 2026 interim results",
++          "url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0821/2026082101705.pdf",
++          "published_at": "2026-08-21"
++        }
++      ],
++      "target_date_eligibility": "CANNOT_CONFIRM"
++    },
++    {
++      "hk_symbol": "HK.01729",
++      "hk_code": "01729",
++      "hk_name": "汇聚科技（TIME Interconnect Technology Limited）",
++      "research_priority": "WATCH",
++      "us_symbols": [],
++      "daily_match_symbols": [],
++      "us_moves": [],
++      "theme_label": "数据中心光纤布线/高速线缆主题；未指定单只美股及涨幅",
++      "relationship_type": "BROAD_INFRASTRUCTURE_THEME",
++      "reason": "业务涉及数据中心光纤线缆组件和高速线缆；线缆不等于激光器、光收发器或CPO。",
++      "maturity": "2026年中期业绩披露AI相关数据中心光纤线缆组件订单与MPO/多芯光纤面板量产；未核具体模块成熟度。",
++      "limitations": [
++        "不得补写单只美股驱动或涨幅",
++        "不是光收发器/激光器供应证据",
++        "没有点名美国客户",
++        "目标日Connect资格未知"
++      ],
++      "published_at": "2026-08-28",
++      "official_sources": [
++        {
++          "title": "TIME Interconnect 2026 interim results",
++          "url": "https://www.time-interconnect.com/en/aboutus_news_detail.asp?ID=416BACFF-1A97-4528-A4DF-122C589D26E2",
++          "published_at": "2026-08-28"
++        }
++      ],
++      "target_date_eligibility": "CANNOT_CONFIRM"
++    }
++  ],
++  "RESEARCH_ONLY": true,
++  "production_allowed": false,
++  "buy_gate_updated": false,
++  "orders_sent": false,
++  "artifact_sha256": "ee864c45bf59e3130c4a716b6bfbfbf33ce63eb9c6f7446499c64dd8272c95db"
++}
+--- a/v4/manager_research/workspace.py
++++ b/v4/manager_research/workspace.py
+@@ -391,9 +391,16 @@
+         if date >= clock.astimezone(HK).strftime('%Y%m%d'):
+             raise ValueError('WORKSPACE_HISTORICAL_DATE_NOT_PAST')
+         from .workspace_history import read_history
+-        return read_history(service, date)
++        result = read_history(service, date)
++        if include_saved:
++            from .us_mapping_research import read_workspace_mapping
++            result['us_mapping_research'] = read_workspace_mapping(service, date)
++        return result
+     result = _compute_workspace(service, date, include_saved=include_saved,
+                                 context=plan_context(date, now=clock))
++    if include_saved:
++        from .us_mapping_research import read_workspace_mapping
++        result['us_mapping_research'] = read_workspace_mapping(service, date)
+     result['read_context'] = dict(mode='CURRENT_DYNAMIC_PREVIEW',
+         status='VERIFIED_WITH_GAPS' if result['gaps'] else 'VERIFIED',
+         as_of=result['plan_context']['research_cutoff'],

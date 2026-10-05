@@ -1,0 +1,128 @@
+{
+  "schema": "v4.us_mapping_page_delivery.v1",
+  "baseline_commit": "759a1797df28574f73ab90d5005cc14c98ca1c14",
+  "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+  "baseline_release": "manager-announcement-r15-20261005-stock-selection-r1",
+  "active_release": "manager-us-mapping-r17-20261006-page-r1",
+  "active_manifest_sha256": "1e40c351b50c40b8ef997ffc71298f8f9160f82d54d8a3b98d1150f9fa07559c",
+  "files": [
+    {
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "canonical_sha256": "ee52e18f8e0fa9a1a4024d99abd2b1413ba1037bf0bde22d6812e448222d40af",
+      "bytes": 99865,
+      "r15_before_sha256": "9f91437a4c9278df20f65c35ca6dc4b40f8e2dbc3ffcda45fd640ebfad5ea8c7",
+      "deployed_sha256": "6bd208174c650beb1b089058de458643beb601a97455ff472330984e88dd6d7d"
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "canonical_sha256": "461537fb0896ee0c890272a5b97480d0f98d54f07215d833dcdabd7de8a3ac3c",
+      "bytes": 61003,
+      "r15_before_sha256": "c2ff702c8da2bd6cbf35e979f652c18f4278e2310d07713dc2d8dd200843a83e",
+      "deployed_sha256": "6650b7948cdfd7fc7eee81dbe9e47d7b86e9aa64ac476e27a72f726c35749355"
+    },
+    {
+      "path": "apps/web/src/manager-selection/researchAttention.ts",
+      "canonical_sha256": "16bb02dd12c22fd6c55f6c42bb57f8e48ac66864673ba403380381cb2b63f3ef",
+      "bytes": 22383,
+      "r15_before_sha256": "9b9ea7aef33e504da7d99f2b16b1e632448a63dfe0971ae275730e6311c5ce3a",
+      "deployed_sha256": "3ec804fcb248eb50793eff6f237c7e211d75c2e60e138400d4a55f74a57be698"
+    },
+    {
+      "path": "apps/web/src/styles/manager-selection.css",
+      "canonical_sha256": "cebe3431b6f34ccd6525341330f5583b966f75495f472b1410b87e7fef496d65",
+      "bytes": 56957,
+      "r15_before_sha256": "c0ea17ab987fa4ac4aae4b0e48a38641e0629df8362b6b78f7f620f1d08a34d6",
+      "deployed_sha256": "cebe3431b6f34ccd6525341330f5583b966f75495f472b1410b87e7fef496d65"
+    },
+    {
+      "path": "v4/manager_research/us_mapping_research.py",
+      "canonical_sha256": "5d06b07077f4adef851e9c0711e41b406da6e51ce75d989561a93c347a27e2c8",
+      "bytes": 11447,
+      "r15_before_sha256": null,
+      "deployed_sha256": "5d06b07077f4adef851e9c0711e41b406da6e51ce75d989561a93c347a27e2c8"
+    },
+    {
+      "path": "v4/manager_research/us_mapping_reviewed_20260930.json",
+      "canonical_sha256": "e6108eca9f30a44a96674941ffc7b44557d44a4f3cbe17983d96d1de23ca956a",
+      "bytes": 7890,
+      "r15_before_sha256": null,
+      "deployed_sha256": "e6108eca9f30a44a96674941ffc7b44557d44a4f3cbe17983d96d1de23ca956a"
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "canonical_sha256": "7325c773847099a6feae1deba4bc1a4c34d33a0e7c3e49f2374b7db270901227",
+      "bytes": 50132,
+      "r15_before_sha256": "c6c97c9ad3285aab6cc254bc1e49e59a9a58ee04c151bff57f3e84d266790be9",
+      "deployed_sha256": "7325c773847099a6feae1deba4bc1a4c34d33a0e7c3e49f2374b7db270901227"
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.attention.spec.ts",
+      "canonical_sha256": "8a8845208999951116af313ec7e4359514b538d59402cb50727ffd548feabd9c",
+      "bytes": 35910,
+      "r15_before_sha256": null,
+      "deployed_sha256": null
+    },
+    {
+      "path": "tests/test_manager_us_mapping_page.py",
+      "canonical_sha256": "8fde858582af2804933610e4b9952a470098ef6804aa2a6a88047763b33898e0",
+      "bytes": 2412,
+      "r15_before_sha256": null,
+      "deployed_sha256": null
+    }
+  ],
+  "release_overlay_patch_sha256": "898fa3071aa88f2ae605f30dfc77a027386e229aa0eaa98d355af288d99648eb",
+  "status": {
+    "IMPLEMENTED": true,
+    "TESTED": true,
+    "REVIEWED": true,
+    "INTEGRATED": true,
+    "DEPLOYED": true,
+    "API_VERIFIED": true,
+    "UI_VERIFIED": true,
+    "BEHAVIOR_VERIFIED": true,
+    "NATURAL_VERIFIED": false,
+    "daily_workflow": "ISOLATED_CANDIDATE_IN_PROGRESS"
+  },
+  "independent_tests": {
+    "python_page": {
+      "command": "python -B -m pytest -q tests/test_manager_us_mapping_page.py",
+      "environment": "actual service Python 3.14 v3.5-mac runtime",
+      "result": "1 passed"
+    },
+    "frontend": {
+      "command": "npm exec -- vitest run src/api/managerWorkspace.attention.spec.ts",
+      "result": "13 passed"
+    },
+    "build": {
+      "command": "npm exec -- vite build",
+      "result": "PASS; 115 modules"
+    },
+    "actual_owner_to_validator_to_dom": "PASS; store write guard; five cards, 3 priority 2 watch, exact dates"
+  },
+  "browser": {
+    "isolated": "8874 PASS then stopped",
+    "live": "8873 PASS",
+    "missing_date": "20260928 does not display 20260930 research",
+    "announcement_counts_unchanged": [
+      23,
+      10,
+      103,
+      4
+    ]
+  },
+  "retained_failure": {
+    "release": "manager-us-mapping-r16-20261005-page-r1",
+    "cause": "NOT_RUN coverage omitted available_us_universe_count; strict frontend rejected entire response",
+    "action": "Rolled back to R15, fixed producer to explicit null, independently tested, then separately packaged R17",
+    "earlier_callback_failure": "20261001 historical 409 also exists on baseline; replaced acceptance with readable 20260928"
+  },
+  "limitations": [
+    "Target-date eligibility and historical PIT remain CANNOT_CONFIRM",
+    "Daily binding and producer activation are not yet completed",
+    "Canonical preserves prior edits; three frontend files intentionally differ from scoped deployed R15 overlay"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
