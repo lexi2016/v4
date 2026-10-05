@@ -1,0 +1,93 @@
+{
+  "created_at": "2026-10-05T05:26:07.766627+00:00",
+  "status": "CLOUD_CANDIDATE_TARGETED_VERIFIED_NOT_MAC_VERIFIED",
+  "base_commit": "640c77a7f019a1a211faea937b70cc10e4329afc",
+  "snapshot_commit": "d57dbb1b0765333f8b176c641a7356ad9744253b",
+  "branch": "codex/research-evidence-quotes-20261005",
+  "candidate_root": "/workspace/candidate-evidence-quotes/app",
+  "inherited_runtime_identity": "manager-announcement-r11-20261005-date-catalog-r1/app (upstream receipt; no live Mac read)",
+  "file": {
+    "path": "apps/web/src/manager-selection/researchAttention.ts",
+    "before_sha256": "9b9ea7aef33e504da7d99f2b16b1e632448a63dfe0971ae275730e6311c5ce3a",
+    "after_sha256": "e4fb78e633fb693a08e0d92a518377f78a6c7ff95c8f430d0d7e0ad25916c4d2",
+    "added_lines": 7,
+    "removed_lines": 0
+  },
+  "primary_historical_background_classifier_bug": "NOT_CHANGED_OWNER_IN_PROGRESS",
+  "tests": [
+    {
+      "command": "npx vitest run src/manager-selection/__tests__/researchEvidenceQuote.spec.ts",
+      "cwd": "app/apps/web",
+      "source": "before",
+      "exit_code": 1,
+      "passed": 2,
+      "failed": 9,
+      "log": "logs/red-final-fixture.log"
+    },
+    {
+      "command": "npx vitest run src/manager-selection/__tests__/researchEvidenceQuote.spec.ts src/manager-selection/__tests__/issue8R2.spec.ts src/manager-selection/__tests__/researchSelectionLedger.spec.ts src/api/managerWorkspace.attention.spec.ts",
+      "cwd": "app/apps/web",
+      "source": "after",
+      "exit_code": 0,
+      "passed": 103,
+      "failed": 0,
+      "new_tests": 11,
+      "log": "logs/green-final.log"
+    },
+    {
+      "command": "npx vitest run src/manager-selection/__tests__/researchEvidenceQuote.spec.ts src/manager-selection/__tests__/issue8R2.spec.ts src/manager-selection/__tests__/researchSelectionLedger.spec.ts src/api/managerWorkspace.attention.spec.ts src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+      "cwd": "app/apps/web",
+      "source": "after",
+      "exit_code": 1,
+      "passed": 112,
+      "failed": 1,
+      "blocked_reason": "Hardcoded Mac workspace_after.json not available; not substituted",
+      "log": "logs/green-regression.log"
+    },
+    {
+      "command": "python -m pytest -q tests/test_manager_announcement_date_catalog.py tests/test_manager_research_selection_ledger.py",
+      "interpreter": "isolated venv Python3.12.14/pytest9.1.1",
+      "cwd": "app",
+      "source": "after",
+      "exit_code": 0,
+      "passed": 20,
+      "skipped": 1,
+      "skip_reason": "actual Oct2 projection not supplied",
+      "warnings": 1,
+      "log": "logs/python-regression-final.log"
+    },
+    {
+      "command": "npx tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution Bundler --types node,vitest/globals src/manager-selection/researchAttention.ts src/manager-selection/__tests__/researchEvidenceQuote.spec.ts",
+      "cwd": "app/apps/web",
+      "exit_code": 0,
+      "log": "logs/typecheck-scoped.log"
+    }
+  ],
+  "fixture": {
+    "new": "EXPLICIT_SYNTHETIC_BODY_AND_WORKSPACE_SHELL_REAL_PYTHON_OUTPUT_AND_REAL_DECODER_PANEL_JSDOM",
+    "legacy_observation_test_support_source": "V4_SELECTION_GAPS_R1_20261003/evidence/FROZEN_SELECTED_FIELDS.json",
+    "legacy_source_sha256": "e1a91587c972b22c7118cc7dec07c9d88c57d090814dab2b15e97fa8e19f73be",
+    "legacy_subtree": "announcement_review.positive_observations",
+    "legacy_count": 9,
+    "legacy_original_fixture_byte_equivalence": "NOT_CLAIMED",
+    "raw_legacy_subtree_uploaded": false
+  },
+  "candidate_implemented": true,
+  "cloud_targeted_tests": "PASS_WITH_DOCUMENTED_UNAVAILABLE_REAL_ARTIFACT_TESTS",
+  "independent_agent_review": "NOT_RUN",
+  "integrated": false,
+  "deployed": false,
+  "mac_tests": "NOT_RUN",
+  "live_api": "NOT_RUN",
+  "live_browser_ui": "NOT_RUN",
+  "natural_slot": "NOT_RUN",
+  "full_suite": "NOT_RUN",
+  "full_typecheck": "NOT_RUN",
+  "full_build": "NOT_RUN",
+  "large_replay": "NOT_RUN",
+  "collection": "NOT_RUN",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

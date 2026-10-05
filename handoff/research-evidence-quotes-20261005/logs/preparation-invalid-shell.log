@@ -1,0 +1,143 @@
+
+ RUN  v4.1.10 /workspace/candidate-evidence-quotes/app/apps/web
+
+ ❯ src/manager-selection/__tests__/researchEvidenceQuote.spec.ts (11 tests | 11 failed) 1073ms
+     × preserves and displays the exact producer quote with its source title and clocks 8ms
+     × runs the real panel request decoder and renderer with the Python payload 1059ms
+     × does not invent an excerpt from a title or invalid quote undefined 1ms
+     × does not invent an excerpt from a title or invalid quote null 1ms
+     × does not invent an excerpt from a title or invalid quote     0ms
+     × does not invent an excerpt from a title or invalid quote 42 0ms
+     × does not invent an excerpt from a title or invalid quote { text: 'not a quote' } 0ms
+     × renders historical/negative words literally without inventing a current positive event 1ms
+     × escapes both title and quote and still rejects unsafe source links 1ms
+     × keeps rejected after_cutoff synthetic inputs out of research cards 0ms
+     × keeps rejected title_only synthetic inputs out of research cards 1ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 11 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/manager-selection/__tests__/researchEvidenceQuote.spec.ts > synthetic Python body -> research reason -> real DOM > preserves and displays the exact producer quote with its source title and clocks
+Error: WORKSPACE_SAFETY_INVALID
+ ❯ safe src/api/managerWorkspace.ts:157:11
+    155| function safe(row: JsonObject): void {
+    156|   if (row.RESEARCH_ONLY !== true || row.production_allowed !== false |…
+    157|     throw new Error('WORKSPACE_SAFETY_INVALID');
+       |           ^
+    158| }
+    159| function strings(value: unknown): asserts value is string[] {
+ ❯ validateUsRelationMaterialInput src/api/managerWorkspace.ts:492:27
+ ❯ validateUsMappingDiagnostics src/api/managerWorkspace.ts:534:39
+ ❯ validateResearchAttention src/api/managerWorkspace.ts:1075:47
+ ❯ validateManagerWorkspace src/api/managerWorkspace.ts:1282:43
+ ❯ render src/manager-selection/__tests__/researchEvidenceQuote.spec.ts:18:17
+ ❯ src/manager-selection/__tests__/researchEvidenceQuote.spec.ts:26:68
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/11]⎯
+
+ FAIL  src/manager-selection/__tests__/researchEvidenceQuote.spec.ts > synthetic Python body -> research reason -> real DOM > runs the real panel request decoder and renderer with the Python payload
+AssertionError: expected undefined to be '合成甲公司签署了设备供应合同' // Object.is equality
+
+- Expected:
+"合成甲公司签署了设备供应合同"
+
++ Received:
+undefined
+
+ ❯ src/manager-selection/__tests__/researchEvidenceQuote.spec.ts:49:107
+     47|     const dispose=mountCatalystObservations(host,date);
+     48|     try{
+     49|       await vi.waitFor(()=>expect(host.querySelector('.research-attent…
+       |                                                                                                           ^
+     50|       const details=host.querySelector('.research-attention-card block…
+     51|       details.open=true;expect(details.open).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/11]⎯
+
+ FAIL  src/manager-selection/__tests__/researchEvidenceQuote.spec.ts > synthetic Python body -> research reason -> real DOM > does not invent an excerpt from a title or invalid quote undefined
+ FAIL  src/manager-selection/__tests__/researchEvidenceQuote.spec.ts > synthetic Python body -> research reason -> real DOM > does not invent an excerpt from a title or invalid quote null
+ FAIL  src/manager-selection/__tests__/researchEvidenceQuote.spec.ts > synthetic Python body -> research reason -> real DOM > does not invent an excerpt from a title or invalid quote    
+ FAIL  src/manager-selection/__tests__/researchEvidenceQuote.spec.ts > synthetic Python body -> research reason -> real DOM > does not invent an excerpt from a title or invalid quote 42
+ FAIL  src/manager-selection/__tests__/researchEvidenceQuote.spec.ts > synthetic Python body -> research reason -> real DOM > does not invent an excerpt from a title or invalid quote { text: 'not a quote' }
+Error: WORKSPACE_SAFETY_INVALID
+ ❯ safe src/api/managerWorkspace.ts:157:11
+    155| function safe(row: JsonObject): void {
+    156|   if (row.RESEARCH_ONLY !== true || row.production_allowed !== false |…
+    157|     throw new Error('WORKSPACE_SAFETY_INVALID');
+       |           ^
+    158| }
+    159| function strings(value: unknown): asserts value is string[] {
+ ❯ validateUsRelationMaterialInput src/api/managerWorkspace.ts:492:27
+ ❯ validateUsMappingDiagnostics src/api/managerWorkspace.ts:534:39
+ ❯ validateResearchAttention src/api/managerWorkspace.ts:1075:47
+ ❯ validateManagerWorkspace src/api/managerWorkspace.ts:1282:43
+ ❯ render src/manager-selection/__tests__/researchEvidenceQuote.spec.ts:18:17
+ ❯ src/manager-selection/__tests__/researchEvidenceQuote.spec.ts:58:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/11]⎯
+
+ FAIL  src/manager-selection/__tests__/researchEvidenceQuote.spec.ts > synthetic Python body -> research reason -> real DOM > renders historical/negative words literally without inventing a current positive event
+Error: WORKSPACE_SAFETY_INVALID
+ ❯ safe src/api/managerWorkspace.ts:157:11
+    155| function safe(row: JsonObject): void {
+    156|   if (row.RESEARCH_ONLY !== true || row.production_allowed !== false |…
+    157|     throw new Error('WORKSPACE_SAFETY_INVALID');
+       |           ^
+    158| }
+    159| function strings(value: unknown): asserts value is string[] {
+ ❯ validateUsRelationMaterialInput src/api/managerWorkspace.ts:492:27
+ ❯ validateUsMappingDiagnostics src/api/managerWorkspace.ts:534:39
+ ❯ validateResearchAttention src/api/managerWorkspace.ts:1075:47
+ ❯ validateManagerWorkspace src/api/managerWorkspace.ts:1282:43
+ ❯ render src/manager-selection/__tests__/researchEvidenceQuote.spec.ts:18:17
+ ❯ src/manager-selection/__tests__/researchEvidenceQuote.spec.ts:65:42
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/11]⎯
+
+ FAIL  src/manager-selection/__tests__/researchEvidenceQuote.spec.ts > synthetic Python body -> research reason -> real DOM > escapes both title and quote and still rejects unsafe source links
+Error: WORKSPACE_SAFETY_INVALID
+ ❯ safe src/api/managerWorkspace.ts:157:11
+    155| function safe(row: JsonObject): void {
+    156|   if (row.RESEARCH_ONLY !== true || row.production_allowed !== false |…
+    157|     throw new Error('WORKSPACE_SAFETY_INVALID');
+       |           ^
+    158| }
+    159| function strings(value: unknown): asserts value is string[] {
+ ❯ validateUsRelationMaterialInput src/api/managerWorkspace.ts:492:27
+ ❯ validateUsMappingDiagnostics src/api/managerWorkspace.ts:534:39
+ ❯ validateResearchAttention src/api/managerWorkspace.ts:1075:47
+ ❯ validateManagerWorkspace src/api/managerWorkspace.ts:1282:43
+ ❯ render src/manager-selection/__tests__/researchEvidenceQuote.spec.ts:18:17
+ ❯ src/manager-selection/__tests__/researchEvidenceQuote.spec.ts:72:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/11]⎯
+
+ FAIL  src/manager-selection/__tests__/researchEvidenceQuote.spec.ts > synthetic Python body -> research reason -> real DOM > keeps rejected after_cutoff synthetic inputs out of research cards
+ FAIL  src/manager-selection/__tests__/researchEvidenceQuote.spec.ts > synthetic Python body -> research reason -> real DOM > keeps rejected title_only synthetic inputs out of research cards
+Error: WORKSPACE_SAFETY_INVALID
+ ❯ safe src/api/managerWorkspace.ts:157:11
+    155| function safe(row: JsonObject): void {
+    156|   if (row.RESEARCH_ONLY !== true || row.production_allowed !== false |…
+    157|     throw new Error('WORKSPACE_SAFETY_INVALID');
+       |           ^
+    158| }
+    159| function strings(value: unknown): asserts value is string[] {
+ ❯ validateUsRelationMaterialInput src/api/managerWorkspace.ts:492:27
+ ❯ validateUsMappingDiagnostics src/api/managerWorkspace.ts:534:39
+ ❯ validateResearchAttention src/api/managerWorkspace.ts:1075:47
+ ❯ validateManagerWorkspace src/api/managerWorkspace.ts:1282:43
+ ❯ render src/manager-selection/__tests__/researchEvidenceQuote.spec.ts:18:17
+ ❯ src/manager-selection/__tests__/researchEvidenceQuote.spec.ts:77:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/11]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  11 failed (11)
+   Start at  05:17:17
+   Duration  1.93s (transform 160ms, setup 0ms, import 290ms, tests 1.07s, environment 429ms)
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice
