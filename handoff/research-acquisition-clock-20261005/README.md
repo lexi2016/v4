@@ -1,5 +1,7 @@
 # Research acquisition clocks：限定前向修复候选
 
+最新只读诊断见 [ACTUAL_PRODUCER_DIAGNOSIS.md](ACTUAL_PRODUCER_DIAGNOSIS.md)：指定原件实际为A股000333，producer已由父线程定位但三个源码SHA不在当前交付快照中；不能覆盖，也不能单凭A/HK标签不同认定主体错配。
+
 状态（独立审查后修正）：**HK 生产入口未证实，业务验收 BLOCKED。** 原 HK 正例替换了整个 analyzer 并注入代码，只能证明下游协议，不能证明真实 HK 文章进入此 collector，更不能证明历史 HK.00300 的来源。五文件时钟 patch 保留；本次补充不增加 runtime 修改。云端源码和限定合成行为 TESTED；Mac 接入、部署、自然运行、真实 US 关系恢复 CANNOT_CONFIRM。未连接 Mac、未部署/合并、未重写旧档案、未采集真实行情。PR26 已有本机验收不在本轮修改范围。
 
 ## 身份与边界
