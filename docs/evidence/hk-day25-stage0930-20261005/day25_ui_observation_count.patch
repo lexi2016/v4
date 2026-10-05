@@ -1,0 +1,11 @@
+--- R12/app/apps/web/src/App.vue
++++ R13-candidate/app/apps/web/src/App.vue
+@@ -1949,7 +1949,7 @@
+           <p>绑定日期 {{ selectedDate }} · 阶段 {{ selectedStage }} · 市场 {{ backfillMarketName }} · backfill_run_id={{ backfillRunId }}</p>
+           <p>SelectionStore run_id={{ backfillArtifactRunId }} · artifact_id={{ backfillMarketSummary.artifact_id || "CANNOT_CONFIRM" }} · raw_artifact_sha256={{ backfillMarketSummary.raw_artifact_sha256 || "CANNOT_CONFIRM" }}</p>
+           <p>algorithm_id={{ backfillMarketSummary.algorithm_id || "CANNOT_CONFIRM" }} · algorithm_sha256={{ backfillMarketSummary.algorithm_sha256 || "CANNOT_CONFIRM" }}</p>
+-          <p>selection={{ backfillMarketSummary.selection_status || "CANNOT_CONFIRM" }} · source={{ backfillMarketSummary.source_status || "CANNOT_CONFIRM" }} · rows={{ backfillMarketSummary.selected_rows ?? 0 }}/{{ backfillMarketSummary.source_rows ?? "CANNOT_CONFIRM" }}</p>
++          <p>selection={{ backfillMarketSummary.selection_status || "CANNOT_CONFIRM" }} · source={{ backfillMarketSummary.source_status || "CANNOT_CONFIRM" }} · <span v-if="backfillMarketSummary.display_mode === 'OBSERVATION_UNVERIFIED'">观察行={{ backfillMarketSummary.observation_count ?? "CANNOT_CONFIRM" }}</span><span v-else>入选行={{ backfillMarketSummary.selected_rows ?? "CANNOT_CONFIRM" }}</span>/{{ backfillMarketSummary.source_rows ?? "CANNOT_CONFIRM" }}</p>
+           <p>实际取数开始：{{ backfillEvidenceValue("actual_request_started_at") }}</p>
+           <p>实际响应收到：{{ backfillEvidenceValue("actual_response_received_at") }}</p>
+           <p>captured_at 语义：{{ backfillEvidenceValue("captured_at_semantics") }}</p>
