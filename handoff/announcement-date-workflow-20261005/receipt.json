@@ -1,0 +1,107 @@
+{
+  "baseline_commit": "d57dbb1b0765333f8b176c641a7356ad9744253b",
+  "baseline_api_prefix": "handoff/v4-running-source-20261005/api",
+  "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+  "runtime_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-announcement-r11-20261005-date-catalog-r1/app",
+  "runtime_release": "manager-announcement-r11-20261005-date-catalog-r1",
+  "files": [
+    {
+      "base_sha256": "6bcd340917ca69c534720bab6da569fc3c54d953e8fc6975fae029dfe4582afe",
+      "bytes": 94022,
+      "candidate_sha256": "2a5f9c1ed375971440007602b8439821b153e1825e73f2fae02ba3c03d682bac",
+      "canonical_sha256": "8fd692972d7d4fcadd1ebac7037e5cb6f9794b16471d216fddfabba4985ad1c8",
+      "path": "v4/manager_research/workspace_announcements.py"
+    },
+    {
+      "base_sha256": "7c30f372cdd6ed12f84272ce861133a7ff76dda87689b3c39354145fca441027",
+      "bytes": 92301,
+      "candidate_sha256": "0522b7a8922ac20be2945d72aeb705018275efadf1e855951ae400cfc90a7225",
+      "canonical_sha256": "560155c03a4577abd3ed7da906b4a1bd249f1984432735b8aea922ca112e0149",
+      "path": "v4/manager_research/service.py"
+    },
+    {
+      "base_sha256": "d66b0a4184d6490f92eccf6996446f872adef7289b5821aeecc35338145f4410",
+      "bytes": 12077,
+      "candidate_sha256": "f44dcc735f6f20191bb1400ee54c9f19a0ed104a72626755051d2032895d9e7a",
+      "canonical_sha256": "435a8e0537e8229a1531ac91a7d3ed28bfe1fbb9069b01b2adf9d2fc43bec31b",
+      "path": "apps/api/v35_api/manager_research_router.py"
+    },
+    {
+      "base_sha256": null,
+      "bytes": 26860,
+      "candidate_sha256": "3e653ffd4048c29c38c025049f2db04e87c264d6fbad370e031102f78a3656fd",
+      "canonical_sha256": "3e653ffd4048c29c38c025049f2db04e87c264d6fbad370e031102f78a3656fd",
+      "path": "v4/manager_research/announcement_catalog.py"
+    },
+    {
+      "base_sha256": null,
+      "bytes": 3211,
+      "candidate_sha256": "fc2382da51d14ff3052af8cc833733f91b611df328389463678767d2b40a589c",
+      "canonical_sha256": "fc2382da51d14ff3052af8cc833733f91b611df328389463678767d2b40a589c",
+      "path": "docs/announcement_capture_workflow.md"
+    },
+    {
+      "base_sha256": null,
+      "bytes": 18959,
+      "candidate_sha256": "41c21fc88221a23608592e23cf925bfb1060c955f00bdb8391abf847071c49a7",
+      "canonical_sha256": "41c21fc88221a23608592e23cf925bfb1060c955f00bdb8391abf847071c49a7",
+      "path": "tests/test_manager_announcement_date_catalog.py"
+    }
+  ],
+  "status": {
+    "IMPLEMENTED": true,
+    "TESTED": "independent 15 focused + 3 operator tests PASS",
+    "REVIEWED": true,
+    "INTEGRATED": true,
+    "DEPLOYED": true,
+    "API_VERIFIED": true,
+    "BEHAVIOR_VERIFIED": "date-catalog scope only",
+    "UI_VERIFIED": false,
+    "NATURAL_VERIFIED": false
+  },
+  "environment": {
+    "python": "3.14.6",
+    "executable": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python"
+  },
+  "test_commands": [
+    "python -m pytest -q tests/test_manager_announcement_date_catalog.py",
+    "python -m pytest -q test_integrate_saved_date_catalog_refs.py"
+  ],
+  "api_receipt": {
+    "timestamp": "2026-10-05T02:17:40.618889+00:00",
+    "status": "API_VERIFIED",
+    "http_status": 200,
+    "release_id": "manager-announcement-r11-20261005-date-catalog-r1",
+    "configured_working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-announcement-r11-20261005-date-catalog-r1/app",
+    "runtime_state": [
+      "state = running",
+      "working directory = /Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-announcement-r11-20261005-date-catalog-r1/app",
+      "pid = 32890",
+      "state = active",
+      "state = active"
+    ],
+    "GET_response_sha256": "1b74966796f1733ad50c7c8e42671b46ca64ef12e21e1f02970359a1f42f7425",
+    "POST_response_sha256": "1b74966796f1733ad50c7c8e42671b46ca64ef12e21e1f02970359a1f42f7425",
+    "same_run_id": "f42f992f8705491492d065673bde9e9e",
+    "same_catalog_sha256": "ed8ea9da93a484a3fb722d78ad1bfbe8265d20c72aca0af52d3768e69120a27a",
+    "input_coverage": {
+      "captured_page_count": 39,
+      "captured_row_count": 744,
+      "manager_consumer_row_count": 234,
+      "manager_matched_master_code_count": 140,
+      "terminal_empty_seen": true,
+      "total_hits": 744,
+      "unique_art_code_count": 744
+    },
+    "readback": {
+      "source_page_count": 39,
+      "raw_reference_reads": 39,
+      "derivation": "REPARSED_FROM_SHARED_MATERIAL_STORE"
+    },
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "operator_note": "Actual import used reviewed R11 REPO override through runpy. Raw operator default points to canonical source; preserve identity distinction. Body interpretation still in progress; this commit records accepted date catalog only."
+}
