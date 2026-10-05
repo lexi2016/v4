@@ -1,0 +1,168 @@
+--- preexisting-worktree/stage_center/runner.py
++++ stage_center/runner.py
+@@ -16,8 +16,9 @@
+ import re
+ import tempfile
+ import time
+ from contextlib import contextmanager
++from contextvars import ContextVar
+ from dataclasses import dataclass, replace
+ from datetime import datetime, timedelta
+ from inspect import signature as _helper_signature
+ from pathlib import Path
+@@ -48,8 +49,16 @@
+ # boolean marker for compatibility, but it cannot manufacture this identity.
+ # The live selection builder checks this sentinel rather than trusting a
+ # caller-supplied value.
+ _FORMAL_AUTHORITY_OVERLAY_PROOF = object()
++
++_HK_0930_RESEARCH_CONTRACT = "HK_STAGE0930_RESEARCH_ONLY"
++_HK_0930_RESEARCH_DATE = "20260925"
++_HK_0930_RESEARCH_SIGNAL_DATE = "20260924"
++_HK_0930_RESEARCH_D1_SHA256 = "c6202648a73d0103b2ec43e393618ca31e67183c730a4df4db018eced2cfacd0"
++_HK_HISTORICAL_RESEARCH_CONTRACT: ContextVar[str | None] = ContextVar(
++    "stage_center_hk_historical_research_contract", default=None
++)
+ 
+ 
+ def lane_status_bundle(
+     a_share: StageUniverseBinding,
+@@ -576,8 +585,99 @@
+     """Bind the exact HK D-1 pool or its exact prior Connect observation."""
+     from infrastructure.preselection_pool_store import PreselectionSourceResolver
+ 
+     resolver = PreselectionSourceResolver(root, source_root=preselection_source_root)
++    research_contract = _HK_HISTORICAL_RESEARCH_CONTRACT.get()
++    if research_contract is not None:
++        if (
++            research_contract != _HK_0930_RESEARCH_CONTRACT
++            or trade_date != _HK_0930_RESEARCH_DATE
++        ):
++            raise RunnerError("HK historical research D1 binding context mismatch")
++        try:
++            with resolver.source_read_lease(trade_date, timeout_seconds=0):
++                owner = resolver.root_for_date(trade_date)
++                snapshot = resolver.read_pool_snapshot(
++                    trade_date, "hkconnect_d1_top100"
++                )
++                artifact = snapshot.get("artifact")
++                rows = (
++                    artifact.get("rows", artifact.get("data", ()))
++                    if isinstance(artifact, Mapping)
++                    else ()
++                )
++                if (
++                    snapshot.get("physical_source_root") != str(owner)
++                    or snapshot.get("artifact_raw_sha256") != _HK_0930_RESEARCH_D1_SHA256
++                    or snapshot.get("pool_sha256") != _HK_0930_RESEARCH_D1_SHA256
++                    or not isinstance(artifact, Mapping)
++                    or artifact.get("trade_date") != _HK_0930_RESEARCH_DATE
++                    or artifact.get("target_date") != _HK_0930_RESEARCH_DATE
++                    or artifact.get("signal_date") != _HK_0930_RESEARCH_SIGNAL_DATE
++                    or artifact.get("pool_id") != "hkconnect_d1_top100"
++                    or artifact.get("stage_selection_eligible") is not True
++                    or not isinstance(rows, list)
++                    or len(rows) != 100
++                    or any(
++                        not isinstance(row, Mapping)
++                        or row.get("target_date") != _HK_0930_RESEARCH_DATE
++                        or row.get("signal_date") != _HK_0930_RESEARCH_SIGNAL_DATE
++                        for row in rows
++                    )
++                ):
++                    raise RunnerError(
++                        "HK historical research D1 date, signal, or SHA mismatch"
++                    )
++
++                binding = _build_hk_d1_binding(
++                    root,
++                    trade_date,
++                    preselection_source_root=preselection_source_root,
++                )
++                artifact_codes = tuple(
++                    sorted(
++                        str(row.get("code") or row.get("ts_code") or row.get("stock_code") or "").upper()
++                        for row in rows
++                    )
++                )
++                binding_evidence = tuple(binding.evidence)
++                if (
++                    binding.status != "READY"
++                    or binding.market != "HK_CONNECT"
++                    or binding.trade_date != trade_date
++                    or binding.sha256 != _HK_0930_RESEARCH_D1_SHA256
++                    or len(artifact_codes) != 100
++                    or len(set(artifact_codes)) != 100
++                    or set(artifact_codes) != set(binding.codes)
++                    or _evidence_value(binding_evidence, "hk_d1_json")
++                    != str(owner / str(snapshot.get("artifact_relative") or ""))
++                    or _evidence_value(binding_evidence, "hk_d1_sha256")
++                    != _HK_0930_RESEARCH_D1_SHA256
++                ):
++                    raise RunnerError(
++                        "HK historical research D1 binding identity mismatch"
++                    )
++                return replace(
++                    binding,
++                    evidence=tuple(
++                        dict.fromkeys(
++                            (
++                                *binding_evidence,
++                                "hk_observation_mode=HK_SECURITIES_OPEN_HK_CONNECT_CLOSED",
++                                "hk_d1_binding_mode=EXPLICIT_HK_STAGE0930_RESEARCH_TARGET_DATE",
++                                f"hk_research_contract={_HK_0930_RESEARCH_CONTRACT}",
++                                f"hk_d1_source_trade_date={_HK_0930_RESEARCH_DATE}",
++                                f"hk_d1_source_signal_date={_HK_0930_RESEARCH_SIGNAL_DATE}",
++                            )
++                        )
++                    ),
++                )
++        except RunnerError:
++            raise
++        except (OSError, ValueError) as error:
++            raise RunnerError(
++                f"HK historical research D1 source CANNOT_CONFIRM for {trade_date}: {error}"
++            ) from error
+     open_states = {
+         TradingDayState.FULL_TRADING_DAY,
+         TradingDayState.HALF_TRADING_DAY_AM,
+     }
+@@ -974,16 +1074,31 @@
+         *,
+         stage_id: str | None = None,
+         historical_backfill: bool = False,
+         historical_markets: Sequence[str] | None = None,
++        historical_research_contract: str | None = None,
+         _skip_precapture: bool = False,
+     ) -> dict[str, Any]:
+-        # Capture once per outer scheduler tick, before due work can spend
+-        # time in another provider. Recursive stage dispatches reuse it.
+-        from stage_center._runner_parts.tick_planning import _StageCenterRunner_tick_body as _v4_impl
+-        # R1 lacks this keyword; never discard an explicit market allowlist.
+-        if historical_markets is None and "historical_markets" not in _helper_signature(_v4_impl).parameters:
+-            return _v4_impl(globals(), self, trade_date, evaluated_at, stage_id=stage_id, historical_backfill=historical_backfill, _skip_precapture=_skip_precapture)
+-        return _v4_impl(globals(), self, trade_date, evaluated_at, stage_id=stage_id, historical_backfill=historical_backfill, historical_markets=historical_markets, _skip_precapture=_skip_precapture)
++        if historical_research_contract is not None and (
++            historical_research_contract != _HK_0930_RESEARCH_CONTRACT
++            or not historical_backfill
++            or trade_date != _HK_0930_RESEARCH_DATE
++            or stage_id != "STAGE_0930_0935"
++            or tuple(historical_markets or ()) != ("HK_CONNECT",)
++        ):
++            raise RunnerError("HK historical research D1 binding context mismatch")
++        context_token = _HK_HISTORICAL_RESEARCH_CONTRACT.set(
++            historical_research_contract
++        )
++        try:
++            # Capture once per outer scheduler tick, before due work can spend
++            # time in another provider. Recursive stage dispatches reuse it.
++            from stage_center._runner_parts.tick_planning import _StageCenterRunner_tick_body as _v4_impl
++            # R1 lacks this keyword; never discard an explicit market allowlist.
++            if historical_markets is None and "historical_markets" not in _helper_signature(_v4_impl).parameters:
++                return _v4_impl(globals(), self, trade_date, evaluated_at, stage_id=stage_id, historical_backfill=historical_backfill, _skip_precapture=_skip_precapture)
++            return _v4_impl(globals(), self, trade_date, evaluated_at, stage_id=stage_id, historical_backfill=historical_backfill, historical_markets=historical_markets, _skip_precapture=_skip_precapture)
++        finally:
++            _HK_HISTORICAL_RESEARCH_CONTRACT.reset(context_token)
+ 
+ 
+ __all__ = ["RunnerConfig", "RunnerError", "SlotLock", "StageCenterRunner", "build_production_config"]
