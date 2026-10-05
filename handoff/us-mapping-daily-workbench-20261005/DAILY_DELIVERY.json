@@ -1,0 +1,156 @@
+{
+  "schema": "v4.us_mapping_daily_delivery.v1",
+  "baseline_commit": "9cf8b5e7fcb51865e96f8201269fbb6725793bca",
+  "canonical_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+  "runtime_release": "manager-us-mapping-daily-20261006-r2",
+  "runtime_manifest_sha256": "430b774a0157b5bf78c34c1abdd4770df2deb61577642ec8fe3a5c537d74b956",
+  "actual_runtime_pid": 64046,
+  "files": [
+    {
+      "path": "v4/manager_research/us_mapping_research.py",
+      "canonical_sha256": "f9b545202dc0a8865413f4a6bd7742ab6e69d5d9c756fee5ab3abd7070dff2e8",
+      "deployed_sha256": "297dc6f5950d3614437378c22e3157b6866823fbf25fd39cb47f112ffea40da7",
+      "r18_before_sha256": "5d06b07077f4adef851e9c0711e41b406da6e51ce75d989561a93c347a27e2c8",
+      "canonical_before_sha256": "5d06b07077f4adef851e9c0711e41b406da6e51ce75d989561a93c347a27e2c8"
+    },
+    {
+      "path": "v4/manager_research/us_mapping_relation_registry.json",
+      "canonical_sha256": "ffd6ff853eb69a8329c18cf5ac77745ac08f14905279036e494c34eb0b55b3fe",
+      "deployed_sha256": "ffd6ff853eb69a8329c18cf5ac77745ac08f14905279036e494c34eb0b55b3fe",
+      "r18_before_sha256": null,
+      "canonical_before_sha256": null
+    },
+    {
+      "path": "v4/manager_research/service.py",
+      "canonical_sha256": "1e05dbaf7e1c1854f2bc7a56a7c942e5e36341dd3dce769fbf1a60b53e9953b1",
+      "deployed_sha256": "35eda5e33e0f00f4f64049bf43b9af184c6d6849d8e2c7dec4946f7972a04081",
+      "r18_before_sha256": "14aa81a3245556b4da91fe62256171560f0b414e0e73002278a92d3450efc4df",
+      "canonical_before_sha256": "adb63457ae0bd9284c9d406db3f32eccd520cb31cf9cfd91f689d6cfdc7b4a57"
+    },
+    {
+      "path": "v4/manager_research/plan_owner_dispatch.py",
+      "canonical_sha256": "a09d5d0756229c6239b046e0f96bba2aaa0acc0cb7b0c73cfd68ad23f7cd854d",
+      "deployed_sha256": "f4ddb61e341aa48f24aad62e9d0aa7bf2c9a0fc3d07bfae7ec285f78f1467fe3",
+      "r18_before_sha256": null,
+      "canonical_before_sha256": "1c71301b9f49f387ceb8e6243fb645adc72bfea11fa6cfea7f25aeb9d2a2db20"
+    },
+    {
+      "path": "apps/api/v35_api/manager_research_router.py",
+      "canonical_sha256": "bd4091a6dc38453ee74f6a831a0d283ba88deee29b170f06c626859d827f668e",
+      "deployed_sha256": "1876d6482e248ae727cbdc8bf44cacee54082b5a4c1cad41dc2c96dede06aca2",
+      "r18_before_sha256": "b5f56eb99b478ee4b1255afddc26d442e5a6d6fbcdc773c194aa6c9bdf38714e",
+      "canonical_before_sha256": "1de19b1179306101271d286fb8cd9f50ca90d4dc4ceca1ab2ca951a01a9ec27a"
+    },
+    {
+      "path": "ops/run_manager_announcement_cycle.py",
+      "canonical_sha256": "56e9d6d73f48443d4502278f8a00b82faa7974031d75fb4ca6198aa62f627ff8",
+      "deployed_sha256": "cd91604a7f7d7f2f960bbbd337fcd453bf97bb298c14f0a7fb8804fdcbaf0a84",
+      "r18_before_sha256": "d3e5a0b3ebdbe1edc1b2ee8262abcd57a2e2e7d72ffc74ce521e04a5b13faec6",
+      "canonical_before_sha256": "56e9d6d73f48443d4502278f8a00b82faa7974031d75fb4ca6198aa62f627ff8"
+    },
+    {
+      "path": "tests/test_manager_us_mapping_research.py",
+      "canonical_sha256": "1c077f679083252b11d07c1499081304e7a3200b2d170baa682ade18be718dcc",
+      "deployed_sha256": null,
+      "r18_before_sha256": null,
+      "canonical_before_sha256": null
+    },
+    {
+      "path": "ops/run_us_market_slot.py",
+      "canonical_sha256": "16f7895072a66b8a7e6ed0c792f74069101426cfa1194df3bd89e63d95f4d948",
+      "deployed_sha256": "16f7895072a66b8a7e6ed0c792f74069101426cfa1194df3bd89e63d95f4d948",
+      "r18_before_sha256": "e2e9cf1e22844f6375948db2877f9ae73bfd5fdd6bd980bd6bf648dbf6ac43e6",
+      "canonical_before_sha256": "e2e9cf1e22844f6375948db2877f9ae73bfd5fdd6bd980bd6bf648dbf6ac43e6"
+    },
+    {
+      "path": "tests/test_run_us_market_slot.py",
+      "canonical_sha256": "d6cea1187b267d1ca9f5c1847e24edb1531a7ffda99fa9b20f244d2b10f8e8dc",
+      "deployed_sha256": null,
+      "r18_before_sha256": null,
+      "canonical_before_sha256": null
+    }
+  ],
+  "independent_validation": {
+    "daily_source_tests": "8 passed",
+    "canonical_daily_tests": "8 passed",
+    "operator_latest_tests": "2 passed",
+    "slot_runner_tests": "15 passed; identical candidate/canonical bytes",
+    "page_tests": "13 frontend plus 1 Python; actual API to TS to DOM; prior page receipt reused"
+  },
+  "status": {
+    "IMPLEMENTED": true,
+    "TESTED": true,
+    "REVIEWED": true,
+    "BEHAVIOR_VERIFIED": "Independent isolated date/cutoff, shared owner, late-slot boundaries; manual real-state readback confirmed",
+    "INTEGRATED": true,
+    "DEPLOYED": true,
+    "API_VERIFIED": true,
+    "UI_VERIFIED": "Live historical page; final-release actual-entry current-date browser preview",
+    "NATURAL_VERIFIED": false
+  },
+  "actual_manual_canary": {
+    "transport": "ASGI TestClient from final app and actual owner roots; then actual run.py HTTP readback",
+    "state": "PARTIAL",
+    "http": [
+      200,
+      200
+    ],
+    "run_id": "81a2d098c4c0422f870f114cb4b88b1b",
+    "product_sha256": "ab4fadeebc0781757f340b08d9ef5002add152a0f77120f979d94ed64e9c2717",
+    "binding_sha256": "c0fbff52449eb5dbf5c1655f17cf08915bea1214f9499cc8a4df1176d9625951",
+    "actual_entry_status": "CURRENT"
+  },
+  "scheduling": {
+    "manager_binding": "installed and native validated",
+    "preopen_local": "09:27 on eligible existing schedule dates",
+    "US_slots_local": [
+      "04:15",
+      "05:15",
+      "21:00",
+      "22:00"
+    ],
+    "US_job_loaded": true,
+    "US_runner_default_lateness_limit_minutes": 15,
+    "RunAtLoad": false,
+    "global_scheduler_restart": false,
+    "actual_clock_hook": "NOT_DUE, network_requests=0, state_writes=0"
+  },
+  "page_results": {
+    "historical_reviewed_rows": 5,
+    "priority": 3,
+    "watch": 2,
+    "original_plan": "SOURCE_FAILED retained",
+    "announcement_counts": [
+      23,
+      10,
+      103,
+      4
+    ],
+    "current_daily_status": "NOT_RUN at off-window check; no historical rows carried forward"
+  },
+  "retained_failures": [
+    {
+      "candidate": "daily-r1",
+      "result": "actual entry STALE_INPUTS_CHANGED; automatically rolled back R18 and original binding",
+      "repair": "operator now passes same shared stage root as real run.py; R2 actual entry CURRENT"
+    },
+    {
+      "US_old_runner": "US_SLOT_NOT_ALLOWED at observed 2102 and 2213 before dispatch",
+      "repair": "bounded <=15-minute default slot resolver, strict explicit slots, timestamps unchanged"
+    },
+    {
+      "test_deviation": "Two accidental non-dry-run main invocations used only specified temporary roots; both exact paths absent, no materialized outputs found. Full dispatcher/executor result and possible network attempt CANNOT_CONFIRM; not accepted as validation."
+    }
+  ],
+  "limitations": [
+    "NATURAL_SLOT_UNVERIFIED; no natural capture or preopen result claimed",
+    "Fixed configured US universe and reviewed relation registry; no full-market or automatic new-relationship discovery claim",
+    "New relation coverage and target-date eligibility/PIT remain separate evidence gaps",
+    "Manual plan PARTIAL; historical 10/2 and 10/5 full-plan sub-owner timeout retained, not relabeled as successful full plans"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

@@ -17,12 +17,13 @@ from typing import Any, Mapping
 from uuid import uuid4
 
 from .contracts import sha256_json, strict_trade_date
-from .workspace_projection import FLAGS, HK, digest
+from .workspace_projection import FLAGS, HK, digest, timestamp
 from .workspace_plan import plan_context
 
 SCHEMA = "v4.manager_research.us_mapping_research.v1"
 DAILY_SCHEMA = "v4.manager_research.us_mapping_daily_run.v1"
 REVIEWED_PATH = Path(__file__).with_name("us_mapping_reviewed_20260930.json")
+RELATION_REGISTRY_PATH = Path(__file__).with_name("us_mapping_relation_registry.json")
 _SHA = re.compile(r"^[0-9a-f]{64}$")
 _TARGET_SEED = "20260930"
 _DAILY_RELATION_TYPES = {"DIRECT_NAMED_COMPONENT_SUPPLY", "PRODUCT_PEER", "OPTICAL_TRANSPORT_PEER"}
@@ -148,6 +149,37 @@ def _relation_index() -> dict[str, list[dict[str, Any]]]:
     return out
 
 
+def _relation_available_at(reviewed: Mapping[str, Any]) -> tuple[datetime | None, str | None]:
+    """Return only a release-pinned system availability time for reviewed rows.
+
+    The report's ``reviewed_at`` is a retrospective calendar date. It cannot
+    establish when the rows became available inside this application. Daily
+    joins therefore require the separately pinned deployment registry.
+    """
+    try:
+        raw = RELATION_REGISTRY_PATH.read_bytes()
+        registry = json.loads(raw)
+        if not isinstance(registry, Mapping):
+            return None, "US_HK_RELATION_AVAILABILITY_UNVERIFIED"
+        unsigned = {key: item for key, item in registry.items() if key != "artifact_sha256"}
+        seed_sha = hashlib.sha256(REVIEWED_PATH.read_bytes()).hexdigest()
+        availability = timestamp(registry.get("available_at"))
+        if (registry.get("schema_version") != "v4.manager_research.us_mapping_relation_registry.v1"
+                or registry.get("artifact_sha256") != sha256_json(unsigned)
+                or registry.get("source_seed_sha256") != seed_sha
+                or registry.get("source_report_sha256") != (reviewed.get("report") or {}).get("sha256")
+                or not availability
+                or registry.get("availability_basis") != "V4_RELEASE_PUBLICATION"
+                or not isinstance(registry.get("release_id"), str)
+                or not registry.get("release_id")
+                or not _SHA.fullmatch(str(registry.get("release_manifest_sha256") or ""))
+                or not _SHA.fullmatch(str(registry.get("deployment_receipt_sha256") or ""))):
+            return None, "US_HK_RELATION_AVAILABILITY_UNVERIFIED"
+        return availability, None
+    except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError):
+        return None, "US_HK_RELATION_AVAILABILITY_UNVERIFIED"
+
+
 def build_daily_run(service: Any, target_trade_date: str, *, now: datetime) -> dict[str, Any]:
     date = strict_trade_date(target_trade_date)
     if now.tzinfo is None:
@@ -161,7 +193,16 @@ def build_daily_run(service: Any, target_trade_date: str, *, now: datetime) -> d
     gaps = list(bridge.get("gaps") or [])
     matches: list[dict[str, Any]] = []
     complete_snapshot = source_status == "READY"
-    if complete_snapshot:
+    relation_available_at, relation_registry_gap = _relation_available_at(reviewed)
+    cutoff = timestamp(bridge.get("research_cutoff"))
+    relation_available = bool(
+        relation_available_at is not None and cutoff is not None and relation_available_at <= cutoff
+    )
+    if relation_registry_gap:
+        gaps.append(relation_registry_gap)
+    elif not relation_available:
+        gaps.append("US_HK_RELATION_NOT_AVAILABLE_AT_RESEARCH_CUTOFF")
+    if complete_snapshot and relation_available:
         relations = _relation_index()
         for row in bridge.get("raw_individual_up") or []:
             if not isinstance(row, Mapping):
@@ -192,15 +233,16 @@ def build_daily_run(service: Any, target_trade_date: str, *, now: datetime) -> d
         status = "PARTIAL"
         gaps.append("US_MARKET_SOURCE_PARTIAL")
     elif complete_snapshot:
-        status = "COMPLETED" if matches else "VALID_EMPTY"
+        status = "COMPLETED" if matches else "VALID_EMPTY" if relation_available else "PARTIAL"
     else:
         status = "CANNOT_CONFIRM"
         gaps.append("US_MARKET_SOURCE_STATUS_UNRECOGNIZED")
 
     coverage = bridge.get("coverage") if isinstance(bridge.get("coverage"), Mapping) else {}
     source_identity = bridge.get("source_identity") if isinstance(bridge.get("source_identity"), Mapping) else None
+    relation_sha = reviewed.get("artifact_sha256") if relation_available else None
     identity = digest([date, bridge.get("expected_us_session"), bridge.get("research_cutoff"), source_identity,
-                       matches, reviewed.get("artifact_sha256")])
+                       matches, relation_sha])
     run_id = uuid4().hex
     value = {
         "schema_version": DAILY_SCHEMA,
@@ -213,8 +255,8 @@ def build_daily_run(service: Any, target_trade_date: str, *, now: datetime) -> d
         "coverage_scope": "FOUR_REVIEWED_US_TICKER_RELATIONS_WITHIN_FIXED_33_CONFIGURED_SYMBOL_SAMPLE_NOT_FULL_MARKET",
         "coverage": {
             "reviewed_us_symbol_count": 4,
-            "matched_us_symbol_count": len({row["us_symbol"] for row in matches}) if complete_snapshot else None,
-            "matched_hk_relation_count": len(matches) if complete_snapshot else None,
+            "matched_us_symbol_count": len({row["us_symbol"] for row in matches}) if complete_snapshot and relation_available else None,
+            "matched_hk_relation_count": len(matches) if complete_snapshot and relation_available else None,
             "configured_us_universe_count": coverage.get("requested_symbol_count") if complete_snapshot else None,
             "available_us_universe_count": coverage.get("available_symbol_count") if complete_snapshot else None,
             "full_market_coverage": False,
@@ -224,7 +266,7 @@ def build_daily_run(service: Any, target_trade_date: str, *, now: datetime) -> d
         "source_identity": deepcopy(dict(source_identity)) if source_identity else None,
         "source_gaps": gaps,
         "input_identity": identity,
-        "relation_artifact_sha256": reviewed.get("artifact_sha256"),
+        "relation_artifact_sha256": relation_sha,
         "target_date_eligibility": "CANNOT_CONFIRM",
         "producer_owner": "ManagerResearchJobService / ResearchPeripheralStore read adapter",
         "readback_required": True,
