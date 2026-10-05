@@ -1,0 +1,26 @@
+{
+  "schema_version": "v4.announcement_live_ui_receipt.v1",
+  "verified_by": "root actual in-app browser",
+  "url": "http://127.0.0.1:8873/manager-selection/?date=20260930&plan_date=20260930&announcement_date=20260929",
+  "status": "UI_VERIFIED",
+  "checks": [
+    "reload live8873 and display744/39,234/140,207/22/5",
+    "expand234 and AN202609291829976780 fact, quote at APIpage4 and8source-page links",
+    "switch publication_date to20260928 showsNOT_RUN/unknown with no stale234",
+    "restore publication_date20260929 and retain tab"
+  ],
+  "scope": "announcement results panel only",
+  "not_accepted": [
+    "historical plan SOURCE_FAILED",
+    "HKEX full-directory authority",
+    "first-publication/cutoff/novelty/historical PIT",
+    "natural slot",
+    "automatic service supervision"
+  ],
+  "evidence_sha256": {
+    "live_ui_overview.jpg": "629513e1d6a0c90b0acf2607fc6480bde6584479f18e7cb91647e90c2223e0a3",
+    "live_ui_expanded.ax.txt": "539af00ece966a545ab2ffa6b331e900b91e50c44cb2a1f007b0dc947e8fced4",
+    "live_ui_missing.ax.txt": "7429cb384c016b07f00c02869633d4a69dda331cc904bcc8dd5c8f0d825625b8",
+    "live_ui_final.ax.txt": "63f3eacbe21b28c6a36871c737743ac32d21e113a5c9936248fce87956d1c44d"
+  }
+}
