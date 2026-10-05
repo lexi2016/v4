@@ -1,0 +1,26 @@
+{
+  "reviewer": "/root/announcement_page_review",
+  "verdict": "PASS",
+  "API_VERIFIED": "PASS",
+  "BEHAVIOR_VERIFIED": "PASS_API_SCOPE",
+  "release_id": "manager-announcement-r15-20261005-stock-selection-r1",
+  "manifest_sha256": "e31c35c1609f9be2a3b2974e373c9924b3c3496a1924eb189a013b206bc20d09",
+  "process_status": "CANNOT_CONFIRM",
+  "checks": [
+    "healthz 200/ok",
+    "9/30 -> publication9/29 VERIFIED234, all234 source/issuer/hash/scope bindings",
+    "140 issuer groups:23 selected/10 conditional/103 excluded/4 unassessed; reasons and risks match decisions",
+    "ASC30 SELECTED_EVENT; GAC financial report NOT_SELECTED with mixed-result reason",
+    "9/28 -> publication9/25 NOT_IMPORTED/NOT_ASSESSED, null counts/empty records/stocks/decisions"
+  ],
+  "product_sha256": "6eedca28b8af6f40b3e9fcf738079fb454496704a33ede4510d2d7f509ab818b",
+  "selection_sha256": "75a0b9271fbaefb7b6539ef0f85d474f9380e185cbd46b8c738870199728aa49",
+  "attempt1": "Failed acceptance wrapper lookup; rolled back. PASS applies attempt2 only.",
+  "UI_VERIFIED": "ROOT_OWNED_SEPARATE",
+  "NATURAL_VERIFIED": "NOT_RUN",
+  "point_in_time_status": "CANNOT_CONFIRM",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

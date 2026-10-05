@@ -1,0 +1,43 @@
+{
+  "time_utc": "2026-10-05T10:58:01.665294+00:00",
+  "status": "PASS",
+  "result": {
+    "status": "PASS",
+    "old_pid": 30638,
+    "new_pid": 30737,
+    "listener": "python3.1 30737 lexi    6u  IPv4 0x8b1402e44e2b1bda      0t0  TCP 127.0.0.1:8873 (LISTEN)",
+    "runtime_identity": {
+      "application": "V4",
+      "status": "MANIFEST_EXECUTION_FILES_VERIFIED",
+      "release_id": "manager-announcement-r15-20261005-stock-selection-r1",
+      "process_status": "CANNOT_CONFIRM",
+      "manifest_sha256": "e31c35c1609f9be2a3b2974e373c9924b3c3496a1924eb189a013b206bc20d09"
+    },
+    "api_acceptance": {
+      "publication_date": "2026-09-29",
+      "analysis_status": "VERIFIED",
+      "article_count": 234,
+      "product_sha256": "6eedca28b8af6f40b3e9fcf738079fb454496704a33ede4510d2d7f509ab818b",
+      "selection_status": "VERIFIED",
+      "counts": {
+        "stock_count": 140,
+        "selected_stock_count": 23,
+        "conditional_watch_count": 10,
+        "not_selected_stock_count": 103,
+        "not_assessed_stock_count": 4
+      },
+      "selection_sha256": "75a0b9271fbaefb7b6539ef0f85d474f9380e185cbd46b8c738870199728aa49",
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false,
+      "missing_target_20260928": "NOT_IMPORTED"
+    }
+  },
+  "owner_import_status": "APPLIED",
+  "new_manifest_sha256": "e31c35c1609f9be2a3b2974e373c9924b3c3496a1924eb189a013b206bc20d09",
+  "script_sha256": "33abca8a143289fcc1391f141fe202ffe7622218371189ad1dec36accf03bff7",
+  "specs_sha256": "ce350061d5180ef3ed9d4b98422e8aa599e0b3673fbbd61841f04b5f146f770e",
+  "previous_attempt": "live_deployment_receipt.json",
+  "acceptance_correction": "publication_date and safety flags read from API wrapper, not nested analysis"
+}

@@ -1,0 +1,18 @@
+{
+  "reviewer": "/root/announcement_page_review",
+  "verdict": "PASS",
+  "scope": "Delta1 implementation, source binding, import operator, isolated R14 candidate",
+  "candidate_raw_sha256": "61d8d33acba85bf4f10fa8efedfbe6e391a74cb5ae57277decf28514bb6fa465",
+  "source_manifest_sha256": "5becb1eade90fc0856ab15edfd6b5c51a7c80a4d952037a4b111571ce7dc16f7",
+  "independent_tests": {
+    "backend": 12,
+    "frontend": 8,
+    "owner_operator_temporary_files": 4,
+    "canonical_build": "PASS"
+  },
+  "independent_audit": "234 article/source/issuer bindings;140 issuers;23/10/103/4; candidate records match owner; four overlays only;997 candidate app entries;11 dist files; no node_modules symlink",
+  "integration_manifest_sha256": "d4be00c943de5df73e9fcc5541cca0002b93db6413ba7dcdb6da0df7d66f2c9a",
+  "non_blocking_edge": "Receipt write can fail after atomic owner replacement; exact backup and guarded rollback remain available. If command fails, root must inspect actual owner SHA before retry.",
+  "live_api_ui": "NOT_RUN",
+  "natural": "CANNOT_CONFIRM"
+}

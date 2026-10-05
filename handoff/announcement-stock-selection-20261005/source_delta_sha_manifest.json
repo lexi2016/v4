@@ -1,0 +1,140 @@
+{
+  "baseline_release": "manager-announcement-r14-20261005-page-results-r1",
+  "canonical_files": [
+    {
+      "baseline_sha256": "1bd7da0ae8a4e14b604c8a9e8ddfe845bf15a2f675bf3f82b0f224dc64da8c80",
+      "current_sha256": "3efe0d50bc00d0990a9167d3e7abbe48734cf27a4a2bdac00253cab66a7d3c2c",
+      "path": "v4/manager_research/announcement_analysis.py",
+      "state": "CHANGED"
+    },
+    {
+      "baseline_sha256": null,
+      "current_sha256": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21",
+      "path": "v4/manager_research/announcement_selection.py",
+      "state": "NEW"
+    },
+    {
+      "baseline_sha256": "bcfcbe18ba5029e0c411f849eee5417fbae277885f3b81e95d65e7b28e47f943",
+      "current_sha256": "31b1ab21e4c06c05397b179830eeb057f84aaa2fb57d5b168623ce15408c604d",
+      "path": "apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "state": "CHANGED"
+    },
+    {
+      "baseline_sha256": "69fac76760927443d01ece784ec5a1543eecb0fde9901e22e3e80c9732d68bfd",
+      "current_sha256": "ae344d35e44263f35f081fe19a4800bcd50911908158972c383db7e35f133fe0",
+      "path": "apps/web/src/manager-selection/announcementAnalysis.ts",
+      "state": "CHANGED"
+    },
+    {
+      "baseline_sha256": "81182b41d89a03664a804d0ebbbcaca1aaf4856db61c1e086a13a602af7aa494",
+      "current_sha256": "b641b2be6b6145dababfcf392ca979f3cc0c9ee2aee476938f0ecafa4b5d3eeb",
+      "path": "tests/test_manager_announcement_analysis.py",
+      "state": "CHANGED"
+    },
+    {
+      "baseline_sha256": null,
+      "current_sha256": "21397f2b5bd6de02c3cd54c9e84d9e837b26dd2a423681672d89cff766ddde01",
+      "path": "tests/test_manager_announcement_selection.py",
+      "state": "NEW"
+    },
+    {
+      "baseline_sha256": "f5dc342c80e99e6f6e1d13f1e58dde9b0cdeca4f9734f00db5080d80eae3002f",
+      "current_sha256": "ae4a3b2751d6686e87cf4f1e7a35da95ceae21b45503ee86f0f6f63255a060bc",
+      "path": "apps/web/src/manager-selection/announcementAnalysis.spec.ts",
+      "state": "CHANGED"
+    }
+  ],
+  "canonical_web_build_files": [
+    {
+      "bytes": 26611,
+      "path": "web_build_candidate_r1/assets/dailyResearchCommand-BaVMW5CH.js",
+      "sha256": "2212d4d31520d48a07cb0f5c30fb92839aa4be6807b1ce5565d485537ebe2547"
+    },
+    {
+      "bytes": 12281,
+      "path": "web_build_candidate_r1/assets/dailyResearchCommand-D7J2FMsY.css",
+      "sha256": "444542681a3575082c280eb30674e6550766a127bdd6da019b78e8f247125dfa"
+    },
+    {
+      "bytes": 38927,
+      "path": "web_build_candidate_r1/assets/main-BiiXRoI_.css",
+      "sha256": "49540003caea9403acac82bed79d344c40bbdaec5688dad95b65370d3a0eaea7"
+    },
+    {
+      "bytes": 172854,
+      "path": "web_build_candidate_r1/assets/main-Cprhra41.js",
+      "sha256": "a0239b69686556324bbf1e5baedee648b5eb1ababcf469b4429f5863a7ec1b17"
+    },
+    {
+      "bytes": 381988,
+      "path": "web_build_candidate_r1/assets/managerSelection-8OPtsk8-.js",
+      "sha256": "38470a014615692da79d752ecbb5e3d7dcbc6a0c6243c9f288cff3d69a8d5cd7"
+    },
+    {
+      "bytes": 48280,
+      "path": "web_build_candidate_r1/assets/managerSelection-DPqeaKxb.css",
+      "sha256": "937acb35ff2f5318182c43b1c045db2545b98d8486a17319913dde28331e83f5"
+    },
+    {
+      "bytes": 4268,
+      "path": "web_build_candidate_r1/assets/research_lane-t0CPXntR.js",
+      "sha256": "8651472ec9b303719d201e466e997fc2fadfc2f7169ec1a07c6ded932659f95b"
+    },
+    {
+      "bytes": 68961,
+      "path": "web_build_candidate_r1/assets/runtime-dom.esm-bundler-DbWIV8fp.js",
+      "sha256": "dce427bd8b438d0a9302ce5d97742802ea0e5b681993c8b283a41ac09fe2333f"
+    },
+    {
+      "bytes": 606,
+      "path": "web_build_candidate_r1/daily-research-command/index.html",
+      "sha256": "f6f6aaf37a5f0410e4a4d09126a58f56a4b1a4179c75afe9d1fd8082ec38d7e3"
+    },
+    {
+      "bytes": 836,
+      "path": "web_build_candidate_r1/index.html",
+      "sha256": "e2a60d0900c8179b1d8782363bcf463eed94ee8b08f019c71583dab9bc166800"
+    },
+    {
+      "bytes": 678,
+      "path": "web_build_candidate_r1/manager-selection/index.html",
+      "sha256": "f463472f4e819d5aa9e0d1f3c3770e0d1d352303d50600b4e66499a589a40721"
+    }
+  ],
+  "owner_state_after_dry_run": {
+    "candidate_writes_to_owner_state": false,
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_announcements/20260930/eastmoney_date_catalog/20260929/analysis.v1.json",
+    "product_sha256": "84090d130d1e19f714c8c0d63340e5eaae00f2506d5885af5afd385a3bc64486",
+    "raw_sha256": "79f385f528400ff43c829d190748bb53df978729183ce80d5c62fdf0cb4b8892",
+    "selection_extension_present": false
+  },
+  "schema_version": "v4.announcement_selection_writer_source_manifest.v1",
+  "scope_file_sha256": "11fa455aac3ef7c622f44913e36f33fd31bad942d1901d872eaff58ccf5c037d",
+  "task_files": [
+    {
+      "bytes": 7315,
+      "path": "selection_criteria.md",
+      "sha256": "e19bc792817bb9fb676298a49661e4d28b3019af6199161d9cab7f433a51ebbc"
+    },
+    {
+      "bytes": 160273,
+      "path": "selection_judgments_20260929.json",
+      "sha256": "4ec7eb7728e8a78921f18261a4da14f00dfcf6b99d0033a967f9288ef2e87106"
+    },
+    {
+      "bytes": 7387,
+      "path": "build_announcement_selection_candidate.py",
+      "sha256": "943fa692e4c3efe7022767bc0e062dd3e69cc0da325bff14f761795a2c9f0deb"
+    },
+    {
+      "bytes": 1121308,
+      "path": "candidate_announcement_selection_20260929.json",
+      "sha256": "1469903deb5638a32d564a6aebffa2a00996c9d2472ae746b9725ae6db28ee64"
+    },
+    {
+      "bytes": 1680,
+      "path": "announcement_selection_import_dry_run.json",
+      "sha256": "2df14d29858aa6690078b5cc63722467721862dcab0295e4eb19e6c3233ae082"
+    }
+  ]
+}

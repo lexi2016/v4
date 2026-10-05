@@ -1,0 +1,25 @@
+{
+  "reviewer": "/root/announcement_finish_review",
+  "verdict": "FAIL",
+  "scope": "Retrospective source-bound research selection semantics",
+  "judgments_sha256": "4ec7eb7728e8a78921f18261a4da14f00dfcf6b99d0033a967f9288ef2e87106",
+  "candidate_sha256": "1469903deb5638a32d564a6aebffa2a00996c9d2472ae746b9725ae6db28ee64",
+  "findings": [
+    {
+      "priority": "P2",
+      "art_code": "AN202609291829997236",
+      "issue": "ASC30 Phase III start/first dose meets declared event criterion but excluded; issuer already selected via ASC50; exact first-dose date unknown"
+    },
+    {
+      "priority": "P2_BOUNDARY_AMBIGUITY",
+      "art_code": "AN202609291829997763",
+      "issue": "GAC exclusion defensible but mixed-performance weighting and specific reason require clarity"
+    }
+  ],
+  "passed_scope": "234 article decisions -> 140 issuers; selected/watch generally supported with caveats; no clear omitted issuer",
+  "limitations": [
+    "Historical PIT/cutoff/novelty CANNOT_CONFIRM",
+    "No live API/UI or natural verification",
+    "Original full corpus not reread; reused previously reviewed v2 facts"
+  ]
+}

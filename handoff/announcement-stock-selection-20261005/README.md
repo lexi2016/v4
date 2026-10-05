@@ -1,0 +1,13 @@
+# 公告股票研究清单交付
+
+234篇已复核公告现在按发行人聚合为140只股票：23只入选研究、10只条件观察、103只未入选、4只未评估。股票卡显示逐篇理由、相关风险和来源链接；没有该日期产物时明确未评估且不沿用旧名单。
+
+本目录为本轮范围冻结的源码/测试/操作器和精简证据交付，不代表覆盖整个canonical项目或其他并行分支。基线分支commit：0f3494b4cf1a92c0ae91d598332ecb2331f599b6；canonical：/Users/lexi/Desktop/学习/v4_app。运行基底R14；现役R15 manager-announcement-r15-20261005-stock-selection-r1。R15保留R14完整app，仅四个announcement文件及隔离构建dist变化。
+
+独立验收：后端12、前端8、owner临时文件操作4测试通过；独立源码/绑定/语义/库存审查通过。typecheck保留原有ManagerSelectionView.spec.ts第4/6行unused expect-error错误。真实API及API目标行为独立通过，真实UI由主控验证。首次切换因主控验收脚本误读顶层字段而回滚；第二次修正后成功，失败证据保留。
+
+候选product SHA 6eedca28b8af6f40b3e9fcf738079fb454496704a33ede4510d2d7f509ab818b；现役manifest SHA e31c35c1609f9be2a3b2974e373c9924b3c3496a1924eb189a013b206bc20d09。source_delta_sha_manifest记录初始冻结源码；其旧TASK产品引用是delta前版本，最终绑定以semantic_review_final及live receipts为准。
+
+这是基于既有公告的事后研究清单。首次公开、当时cutoff可得性、新颖性及历史PIT仍CANNOT_CONFIRM；自然运行NOT_RUN。RESEARCH_ONLY=true，production_allowed=false，buy_gate_updated=false，orders_sent=false。
+
+未上传原始公告/PDF、完整判断或分析数据、owner state、完整库存、dist、依赖目录、进程argv/环境或配置。操作器的原料仍在本地，不能仅凭本目录重建原始研究数据。没有merge。

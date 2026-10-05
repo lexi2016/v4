@@ -1,0 +1,39 @@
+{
+  "time_utc": "2026-10-05T10:56:28.696565+00:00",
+  "status": "R13_RESTORED",
+  "result": {
+    "status": "R13_RESTORED",
+    "old_pid": 25120,
+    "new_pid": 30638,
+    "error": "AssertionError: ",
+    "recovery": {
+      "status": "R13_RESTORED",
+      "pid": 30638,
+      "listener": "python3.1 30638 lexi    6u  IPv4 0x8b1402e44e2b1bda      0t0  TCP 127.0.0.1:8873 (LISTEN)",
+      "runtime_identity": {
+        "application": "V4",
+        "status": "MANIFEST_EXECUTION_FILES_VERIFIED",
+        "release_id": "manager-announcement-r14-20261005-page-results-r1",
+        "process_status": "CANNOT_CONFIRM",
+        "manifest_sha256": "220406155fc7b556cca64e8ec376abbbf88bc2f499a174905d1503ebbd783fc1"
+      }
+    }
+  },
+  "owner_import_status": "APPLIED",
+  "new_manifest_sha256": "e31c35c1609f9be2a3b2974e373c9924b3c3496a1924eb189a013b206bc20d09",
+  "script_sha256": "33abca8a143289fcc1391f141fe202ffe7622218371189ad1dec36accf03bff7",
+  "specs_sha256": "ce350061d5180ef3ed9d4b98422e8aa599e0b3673fbbd61841f04b5f146f770e",
+  "owner_rollback": {
+    "schema_version": "v4.manager_research.announcement_selection_owner_rollback_receipt.v1",
+    "status": "ROLLED_BACK",
+    "owner_file": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_announcements/20260930/eastmoney_date_catalog/20260929/analysis.v1.json",
+    "restored_owner_raw_sha256": "79f385f528400ff43c829d190748bb53df978729183ce80d5c62fdf0cb4b8892",
+    "restored_owner_product_sha256": "84090d130d1e19f714c8c0d63340e5eaae00f2506d5885af5afd385a3bc64486",
+    "removed_candidate_raw_sha256": "61d8d33acba85bf4f10fa8efedfbe6e391a74cb5ae57277decf28514bb6fa465",
+    "candidate_product_sha256": "6eedca28b8af6f40b3e9fcf738079fb454496704a33ede4510d2d7f509ab818b",
+    "backup_file": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_announcements/20260930/eastmoney_date_catalog/20260929/analysis.v1.json.pre-announcement-selection-79f385f52840.bak",
+    "backup_retained": true,
+    "atomic_replace": true,
+    "owner_state_write": true
+  }
+}

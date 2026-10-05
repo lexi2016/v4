@@ -1,0 +1,33 @@
+{
+  "reviewer": "/root/announcement_finish_review",
+  "verdict": "PASS",
+  "scope": "Retrospective source-bound selection semantics and two-record delta; original full-corpus evidence reused",
+  "judgments_sha256": "04437d5e7ffe21e146bacc020041e8bd9228352ddcb4413645f70fbf0e7025c2",
+  "candidate_raw_sha256": "61d8d33acba85bf4f10fa8efedfbe6e391a74cb5ae57277decf28514bb6fa465",
+  "candidate_product_sha256": "6eedca28b8af6f40b3e9fcf738079fb454496704a33ede4510d2d7f509ab818b",
+  "article_counts": {
+    "SELECTED_EVENT": 8,
+    "SELECTED_PERFORMANCE": 17,
+    "CONDITIONAL_WATCH": 18,
+    "NOT_SELECTED": 186,
+    "NOT_ASSESSED": 5
+  },
+  "issuer_counts": {
+    "selected": 23,
+    "conditional_watch": 10,
+    "not_selected": 103,
+    "not_assessed": 4,
+    "total": 140
+  },
+  "corrections_closed": [
+    "ASC30 event basis restored; exact first-dose date unknown",
+    "GAC mixed-performance exclusion reason clarified",
+    "Two receipt amount strings corrected to RMB7.715bn, candidate already used correct RMB77.15亿元"
+  ],
+  "integration_manifest_sha256": "d4be00c943de5df73e9fcc5541cca0002b93db6413ba7dcdb6da0df7d66f2c9a",
+  "writer_receipt_sha256": "0e6418f75bde6bfd4398d8061c5a65f014da4f7267a3ee9c01e663fef20c94a5",
+  "limitations": [
+    "Historical PIT/cutoff/novelty CANNOT_CONFIRM",
+    "No live API/UI or natural verification"
+  ]
+}
