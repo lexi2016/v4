@@ -1,0 +1,248 @@
+........................................................................ [ 51%]
+...................................................F.........FFFFFF      [100%]
+=================================== FAILURES ===================================
+_ test_hourly_catalog_has_natural_day_every_hour_and_weekend_dry_run_selection _
+
+    def test_hourly_catalog_has_natural_day_every_hour_and_weekend_dry_run_selection():
+        catalog = load_workload_catalog(CATALOG_PATH)
+        hourly = next(row for row in catalog.workloads if row.workload_id == "hourly_research")
+    
+        assert hourly.slots == HOURLY_SLOTS
+        assert hourly.run_policy.value == "NATURAL_DAY"
+        for slot in HOURLY_SLOTS:
+            receipt = dispatch_due(
+                _request(slot, date="20260816"),
+                catalog,
+                lambda *_args: pytest.fail("dry-run must not execute a workload"),
+                dry_run=True,
+            )
+>           assert receipt.status == "DRY_RUN_SELECTED"
+E           AssertionError: assert 'FAILED' == 'DRY_RUN_SELECTED'
+E             
+E             - DRY_RUN_SELECTED
+E             + FAILED
+
+tests/test_hourly_research_v3_parity.py:96: AssertionError
+___________ test_phase6_projection_matches_original_frozen_decisions ___________
+
+    def test_phase6_projection_matches_original_frozen_decisions() -> None:
+        projection = json.loads(CONTRACT.read_text(encoding="utf-8"))
+        freeze_commit = projection["frozen_baseline"]["contract_freeze_commit"]
+>       original = _contract_at_commit(freeze_commit)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_phase6_hourly_research_idempotency.py:122: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_phase6_hourly_research_idempotency.py:95: in _contract_at_commit
+    return json.loads(_fixture_file(commit, relative).read_text(encoding="utf-8"))
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_phase6_hourly_research_idempotency.py:77: in _fixture_file
+    manifest = _fixture_manifest()
+               ^^^^^^^^^^^^^^^^^^^
+tests/test_phase6_hourly_research_idempotency.py:66: in _fixture_manifest
+    manifest = json.loads(FIXTURE_MANIFEST.read_text(encoding="utf-8"))
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1027: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/workspace/candidate-acquisition-clock/api/tests/fixtures/research/manifest.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/workspace/candidate-acquisition-clock/api/tests/fixtures/research/manifest.json'
+
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1013: FileNotFoundError
+_______ test_phase6_business_contract_hashes_match_the_optimized_commit ________
+
+    def test_phase6_business_contract_hashes_match_the_optimized_commit() -> None:
+        contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
+>       evidence = json.loads(EVIDENCE.read_text(encoding="utf-8"))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_phase6_hourly_research_idempotency.py:174: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1027: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/workspace/candidate-acquisition-clock/api/docs/evidence/phase6-hourly-research-idempotency-20260801.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/workspace/candidate-acquisition-clock/api/docs/evidence/phase6-hourly-research-idempotency-20260801.json'
+
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1013: FileNotFoundError
+___________ test_phase6_before_after_evidence_passes_the_frozen_gate ___________
+
+    def test_phase6_before_after_evidence_passes_the_frozen_gate() -> None:
+        contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
+>       evidence = json.loads(EVIDENCE.read_text(encoding="utf-8"))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_phase6_hourly_research_idempotency.py:266: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1027: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/workspace/candidate-acquisition-clock/api/docs/evidence/phase6-hourly-research-idempotency-20260801.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/workspace/candidate-acquisition-clock/api/docs/evidence/phase6-hourly-research-idempotency-20260801.json'
+
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1013: FileNotFoundError
+_________ test_phase6_gate_rejects_rehashed_evidence_tamper[duration] __________
+
+mutation = 'duration'
+
+    @pytest.mark.parametrize(
+        "mutation",
+        ("duration", "source_sha", "code_commit"),
+    )
+    def test_phase6_gate_rejects_rehashed_evidence_tamper(mutation: str) -> None:
+        contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
+>       evidence = json.loads(EVIDENCE.read_text(encoding="utf-8"))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_phase6_hourly_research_idempotency.py:277: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1027: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/workspace/candidate-acquisition-clock/api/docs/evidence/phase6-hourly-research-idempotency-20260801.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/workspace/candidate-acquisition-clock/api/docs/evidence/phase6-hourly-research-idempotency-20260801.json'
+
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1013: FileNotFoundError
+________ test_phase6_gate_rejects_rehashed_evidence_tamper[source_sha] _________
+
+mutation = 'source_sha'
+
+    @pytest.mark.parametrize(
+        "mutation",
+        ("duration", "source_sha", "code_commit"),
+    )
+    def test_phase6_gate_rejects_rehashed_evidence_tamper(mutation: str) -> None:
+        contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
+>       evidence = json.loads(EVIDENCE.read_text(encoding="utf-8"))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_phase6_hourly_research_idempotency.py:277: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1027: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/workspace/candidate-acquisition-clock/api/docs/evidence/phase6-hourly-research-idempotency-20260801.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/workspace/candidate-acquisition-clock/api/docs/evidence/phase6-hourly-research-idempotency-20260801.json'
+
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1013: FileNotFoundError
+________ test_phase6_gate_rejects_rehashed_evidence_tamper[code_commit] ________
+
+mutation = 'code_commit'
+
+    @pytest.mark.parametrize(
+        "mutation",
+        ("duration", "source_sha", "code_commit"),
+    )
+    def test_phase6_gate_rejects_rehashed_evidence_tamper(mutation: str) -> None:
+        contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
+>       evidence = json.loads(EVIDENCE.read_text(encoding="utf-8"))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_phase6_hourly_research_idempotency.py:277: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1027: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/workspace/candidate-acquisition-clock/api/docs/evidence/phase6-hourly-research-idempotency-20260801.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/workspace/candidate-acquisition-clock/api/docs/evidence/phase6-hourly-research-idempotency-20260801.json'
+
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1013: FileNotFoundError
+=============================== warnings summary ===============================
+../../../opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_hourly_research_v3_parity.py::test_hourly_catalog_has_natural_day_every_hour_and_weekend_dry_run_selection
+FAILED tests/test_phase6_hourly_research_idempotency.py::test_phase6_projection_matches_original_frozen_decisions
+FAILED tests/test_phase6_hourly_research_idempotency.py::test_phase6_business_contract_hashes_match_the_optimized_commit
+FAILED tests/test_phase6_hourly_research_idempotency.py::test_phase6_before_after_evidence_passes_the_frozen_gate
+FAILED tests/test_phase6_hourly_research_idempotency.py::test_phase6_gate_rejects_rehashed_evidence_tamper[duration]
+FAILED tests/test_phase6_hourly_research_idempotency.py::test_phase6_gate_rejects_rehashed_evidence_tamper[source_sha]
+FAILED tests/test_phase6_hourly_research_idempotency.py::test_phase6_gate_rejects_rehashed_evidence_tamper[code_commit]
+7 failed, 132 passed, 1 warning in 1.74s

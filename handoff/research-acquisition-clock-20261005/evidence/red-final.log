@@ -1,0 +1,52 @@
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+____ test_real_capture_boundaries_are_preserved_in_status_and_frozen_input _____
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-3/test_real_capture_boundaries_a0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8adc4e9b50>
+
+    def test_real_capture_boundaries_are_preserved_in_status_and_frozen_input(tmp_path, monkeypatch):
+        status = produce(tmp_path, monkeypatch)
+>       receipt = status['acquisition_receipt']
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'acquisition_receipt'
+
+tests/test_research_acquisition_clock_pipeline.py:91: KeyError
+_ test_producer_archive_exact_store_consumers_reach_existing_manager_relation __
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-3/test_producer_archive_exact_st0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8adc4e8e00>
+
+    def test_producer_archive_exact_store_consumers_reach_existing_manager_relation(tmp_path, monkeypatch):
+        produce(tmp_path/'producer', monkeypatch)
+        source = snapshot(tmp_path/'producer'); before = deepcopy(source)
+        payload = archive(source)
+        article = payload['articles'][0]
+>       assert article['retrieved_at'] == RETRIEVED
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'retrieved_at'
+
+tests/test_research_acquisition_clock_pipeline.py:109: KeyError
+______ test_new_acquisition_after_slot_cannot_hide_behind_old_start_clock ______
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-3/test_new_acquisition_after_slo0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8adc5220f0>
+
+    def test_new_acquisition_after_slot_cannot_hide_behind_old_start_clock(tmp_path, monkeypatch):
+        produce(tmp_path, monkeypatch); source = snapshot(tmp_path)
+        source['source_manifest']['pit_cutoff'] = '2026-09-25T09:00:59+08:00'
+        validate_hourly_stage_source(source, trade_date=DAY, slot='0900',
+            cutoff=datetime.fromisoformat('2026-09-25T09:00:59+08:00'))
+        # Actual acquisition becomes later than the slot, while every legacy clock
+        # remains early. Both the existing runner and Stage call this validator.
+        source['stock_research_timeline'][0]['available_at'] = '2026-09-25T09:01:00+08:00'
+>       with pytest.raises(ValueError, match='PIT_MISMATCH:stock_research_timeline.available_at'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_research_acquisition_clock_pipeline.py:130: Failed
+=========================== short test summary info ============================
+FAILED tests/test_research_acquisition_clock_pipeline.py::test_real_capture_boundaries_are_preserved_in_status_and_frozen_input
+FAILED tests/test_research_acquisition_clock_pipeline.py::test_producer_archive_exact_store_consumers_reach_existing_manager_relation
+FAILED tests/test_research_acquisition_clock_pipeline.py::test_new_acquisition_after_slot_cannot_hide_behind_old_start_clock
+3 failed in 0.13s

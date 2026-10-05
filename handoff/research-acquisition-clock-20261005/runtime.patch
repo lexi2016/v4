@@ -1,0 +1,231 @@
+--- a/contracts/research.py
++++ b/contracts/research.py
+@@ -146,6 +146,35 @@
+     if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
+         raise ValueError(f"invalid research {field}")
+     return value
++
++
++def validate_research_acquisition(value: Mapping[str, Any]) -> None:
++    """Optional forward-only receipt; legacy observation clocks are not aliases."""
++    proof = value.get("acquisition_provenance")
++    if not isinstance(proof, Mapping):
++        raise ValueError("research acquisition provenance missing")
++    if (proof.get("schema_version") != "v4.zsxq_summary_acquisition.v1"
++            or proof.get("owner") != "ops.run_zsxq_hourly_delta"
++            or proof.get("retrieval_basis") != "PAGINATED_CLI_COMPLETED"
++            or proof.get("availability_basis") != "DERIVED_SUMMARY_PERSISTED"
++            or not isinstance(proof.get("run_id"), str) or not proof["run_id"]
++            or proof.get("summary_path") != f"external_sources/zsxq_hourly/{proof['run_id']}/zsxq_summary.json"
++            or not re.fullmatch(r"research_module/runtime_outputs/zsxq_hourly/\d{8}/\d{4}/v35_zsxq_hourly_status_\d{8}_\d{4}\.json", str(proof.get("status_path") or ""))):
++        raise ValueError("research acquisition provenance invalid")
++    for field in ("summary_sha256", "status_sha256"):
++        if not _SHA256.fullmatch(str(proof.get(field) or "")):
++            raise ValueError("research acquisition source SHA invalid")
++    for field in ("retrieved_at", "available_at"):
++        _aware_timestamp(value.get(field), field)
++        if value[field] != proof.get(field):
++            raise ValueError("research acquisition clock binding invalid")
++    stamp = lambda raw: datetime.fromisoformat(raw.replace("Z", "+00:00"))
++    if stamp(value["retrieved_at"]) > stamp(value["available_at"]):
++        raise ValueError("research acquisition clock order invalid")
++    if value.get("published_at"):
++        _aware_timestamp(value["published_at"], "published_at")
++        if stamp(value["published_at"]) > stamp(value["retrieved_at"]):
++            raise ValueError("research acquisition precedes publication")
+ 
+ 
+ def _stage_evidence(value: Any, archive_date: str, source_sha: str) -> None:
+@@ -260,8 +289,12 @@
+     article_ids: set[str] = set()
+     dedupe_keys: set[str] = set()
+     for article in articles:
+-        if not isinstance(article, Mapping) or set(article) != _ARTICLE_FIELDS:
++        acquisition_fields = {"retrieved_at", "available_at", "acquisition_provenance"}
++        if not isinstance(article, Mapping) or set(article) not in (
++                _ARTICLE_FIELDS, _ARTICLE_FIELDS | acquisition_fields):
+             raise ValueError("invalid research article fields")
++        if "acquisition_provenance" in article:
++            validate_research_acquisition(article)
+         if article.get("archive_date") != archive_date:
+             raise ValueError("research article date mismatch")
+         for field in ("article_id", "dedupe_key", "source_path_sha256"):
+--- a/domains/research.py
++++ b/domains/research.py
+@@ -15,6 +15,7 @@
+     SCHEMA_VERSION,
+     TIMEZONE,
+     validate_research_archive,
++    validate_research_acquisition,
+ )
+ from infrastructure.data_store import _date
+ 
+@@ -245,6 +246,11 @@
+             grouped[key] = current
+             continue
+         current["duplicate_evidence_count"] += 1
++        # A later/longer merged sentence cannot inherit an earlier receipt.
++        # Ambiguous acquisition remains unknown, with original input retained.
++        if current.get("acquisition_provenance") != source.get("acquisition_provenance"):
++            for field in ("retrieved_at", "available_at", "acquisition_provenance"):
++                current.pop(field, None)
+         if source.get("dedup_key"):
+             current["source_dedup_keys"].append(_text(source.get("dedup_key")))
+         if len(_text(source.get("evidence_sentence"))) > len(_text(current.get("evidence_sentence"))):
+@@ -321,6 +327,15 @@
+             "source_dedup_keys": sorted(set(row.get("source_dedup_keys") or [])),
+             "recommendation_status": "RESEARCH_ONLY",
+         }
++        if row.get("acquisition_provenance"):
++            acquisition = {field: deepcopy(row.get(field)) for field in
++                           ("retrieved_at", "available_at", "acquisition_provenance")}
++            try:
++                validate_research_acquisition({**acquisition, "published_at": published_at})
++            except (TypeError, ValueError):
++                pass  # Consumer reports unknown; never repair from event_time.
++            else:
++                article.update(acquisition)
+         articles.append(article)
+         articles_by_stock[article["stock_code"]].append(article)
+ 
+--- a/domains/research_hourly.py
++++ b/domains/research_hourly.py
+@@ -86,6 +86,9 @@
+     source_confidence: str
+     cannot_confirm: tuple[str, ...]
+     source_entity_receipts: tuple[dict[str, Any], ...] = ()
++    retrieved_at: str = ""
++    available_at: str = ""
++    acquisition_provenance: dict[str, Any] = field(default_factory=dict)
+ 
+ 
+ @dataclass(frozen=True)
+@@ -118,6 +121,9 @@
+     dedup_key: str
+     quality_flags: tuple[str, ...]
+     cannot_confirm: tuple[str, ...]
++    retrieved_at: str = ""
++    available_at: str = ""
++    acquisition_provenance: dict[str, Any] = field(default_factory=dict)
+ 
+ 
+ @dataclass(frozen=True)
+@@ -329,6 +335,9 @@
+             source_confidence=compact_text(raw.raw_payload.get("source_confidence"), 40),
+             cannot_confirm=tuple(dict.fromkeys(cannot)),
+             source_entity_receipts=normalize_entity_receipts(raw.raw_payload),
++            retrieved_at=raw.raw_payload.get("retrieved_at", ""),
++            available_at=raw.raw_payload.get("available_at", ""),
++            acquisition_provenance=raw.raw_payload.get("acquisition_provenance", {}),
+         )
+         dedup.setdefault(dedup_key, item)
+     return list(dedup.values())
+@@ -527,6 +536,9 @@
+                 source_published_at=item.source_published_at,
+                 first_seen_at=item.first_seen_at,
+                 last_checked_at=item.last_checked_at,
++                retrieved_at=item.retrieved_at,
++                available_at=item.available_at,
++                acquisition_provenance=item.acquisition_provenance,
+                 display_event_time=item.display_event_time or item.event_time,
+                 is_new_since_last_slot=item.is_new_since_last_slot,
+                 is_recheck_duplicate=item.is_recheck_duplicate,
+@@ -817,10 +829,12 @@
+ # This is a read-only projection of one already collected source, not a scorer
+ # or another collector.  Keep the original archive/phase6 payload unchanged.
+ _HOURLY_SOURCE_TIMES = (
++    "retrieved_at", "available_at",
+     "event_time", "published_at", "source_published_at", "first_seen_at",
+     "last_checked_at", "crawl_time", "display_event_time", "first_seen_time", "last_seen_time",
+ )
+ _HOURLY_OBSERVATION_TIMES = frozenset({
++    "retrieved_at", "available_at",
+     "first_seen_at", "last_checked_at", "crawl_time", "first_seen_time", "last_seen_time",
+ })
+ 
+--- a/ops/collect_hourly_research_input.py
++++ b/ops/collect_hourly_research_input.py
+@@ -281,6 +281,28 @@
+     summary = _read_json(summary_path) if summary_path.is_file() else {}
+     if not summary:
+         return [], ["ZSXQ_SUMMARY_UNREADABLE"]
++    # Only a new producer receipt bound to these exact persisted summary bytes
++    # supplies acquisition clocks. Never upgrade an old fetched_at/start clock.
++    acquisition: dict[str, Any] = {}
++    receipt = status.get("acquisition_receipt")
++    if isinstance(receipt, Mapping):
++        from contracts.research import validate_research_acquisition
++        try:
++            summary_bytes = summary_path.read_bytes()
++            status_bytes = status_path.read_bytes()
++            if (receipt.get("run_id") != status.get("latest_run_id")
++                    or resolve_owned_path(data_root, str(receipt.get("summary_path") or "")) != summary_path.resolve()
++                    or json.loads(summary_bytes.decode("utf-8-sig")) != summary
++                    or json.loads(status_bytes.decode("utf-8-sig")) != status
++                    or receipt.get("summary_sha256") != hashlib.sha256(summary_bytes).hexdigest()):
++                raise ValueError("ZSXQ_ACQUISITION_SUMMARY_BINDING_INVALID")
++            proof = {**receipt, "status_sha256": hashlib.sha256(status_bytes).hexdigest(),
++                     "status_path": status_path.relative_to(data_root.resolve()).as_posix()}
++            acquisition = {"retrieved_at": proof.get("retrieved_at"),
++                           "available_at": proof.get("available_at"), "acquisition_provenance": proof}
++            validate_research_acquisition(acquisition)
++        except (ValueError, OSError, UnicodeError):
++            acquisition = {}
+     boundary = [
+         str(value)
+         for value in status.get("cannot_confirm") or []
+@@ -359,6 +381,7 @@
+                     "source_published_at": published.isoformat(timespec="seconds"),
+                     "first_seen_at": observed,
+                     "last_checked_at": observed,
++                    **acquisition,
+                     "display_event_time": published.isoformat(timespec="seconds"),
+                     "is_new_since_last_slot": True,
+                     "is_recheck_duplicate": False,
+@@ -402,6 +425,10 @@
+             "producer_oracle_sha256": "850fffdf16b7c0127852cbe9cc374aed353e8d7cb1c2ba73d2eff880c95d022e",
+         }
+     )
++    if any(row.get("acquisition_provenance") for row in rows):
++        # Declared selection boundary, not an acquisition timestamp. The
++        # original hourly validator requires it; actual clocks remain separate.
++        snapshot["source_manifest"]["pit_cutoff"] = _cutoff(business_date, slot).isoformat(timespec="seconds")
+     snapshot["cannot_confirm"] = [
+         *snapshot.get("cannot_confirm", []),
+         *({"module": "research_intelligence", "reason": gap} for gap in gaps),
+--- a/ops/run_zsxq_hourly_delta.py
++++ b/ops/run_zsxq_hourly_delta.py
+@@ -297,6 +297,8 @@
+         max_pages=max_pages,
+         process_runner=process_runner,
+     )
++    # Completion, not the legacy run-start `fetched_at` or requested slot.
++    retrieved_at = datetime.now(SHANGHAI).isoformat()
+     recent = {
+         "success": bool(fetched["topics"]),
+         "count": len(fetched["topics"]),
+@@ -337,6 +339,8 @@
+     NativeDataStore(data_root)._write(
+         f"{output_relative}/zsxq_summary.json", summary_payload
+     )
++    summary_sha256 = hashlib.sha256((output_dir / "zsxq_summary.json").read_bytes()).hexdigest()
++    available_at = datetime.now(SHANGHAI).isoformat()
+     cannot_confirm = (
+         ["ZSXQ_PAGINATION_BOUNDED_HAS_MORE"]
+         if fetched["bounded_has_more"]
+@@ -352,6 +356,15 @@
+         "source_label": "知识星球",
+         "latest_run_id": run_id,
+         "fetched_at": observed.isoformat(timespec="seconds"),
++        "acquisition_receipt": {
++            "schema_version": "v4.zsxq_summary_acquisition.v1",
++            "owner": "ops.run_zsxq_hourly_delta", "run_id": run_id,
++            "retrieval_basis": "PAGINATED_CLI_COMPLETED",
++            "availability_basis": "DERIVED_SUMMARY_PERSISTED",
++            "retrieved_at": retrieved_at, "available_at": available_at,
++            "summary_path": f"{output_relative}/zsxq_summary.json",
++            "summary_sha256": summary_sha256,
++        },
+         "source_since": since.isoformat(timespec="seconds"),
+         "source_cutoff": as_of.isoformat(timespec="seconds"),
+         "status": status,

@@ -1,0 +1,33 @@
+{
+  "baseline": "09a987cec75760aa6665e5529a555af9c3e2e785",
+  "variant": "API snapshot from d57dbb1; not a complete current R13 runtime claim",
+  "files": 881,
+  "unchanged": 876,
+  "changes": [
+    {
+      "path": "contracts/research.py",
+      "before_sha256": "cd71bdd8ac24037627520c3cca6f658e83fc4e51c8a7934f6c6c9222f4b2f3c1",
+      "after_sha256": "8da09092a4c38ee2624bc555d8af9749e743b952f1b5d68dd3d814cf06378be9"
+    },
+    {
+      "path": "domains/research.py",
+      "before_sha256": "2ad669ea58f08338605885547ec065921ec63cc0047460bb2acd153151fb214b",
+      "after_sha256": "d6dbd7d908be0520783c66130ae9c90a46c79e5a1dcdb12ee38aaffdc3089f19"
+    },
+    {
+      "path": "domains/research_hourly.py",
+      "before_sha256": "e0bac61141fbc89a674fc61b54e9c40170c16caa7ea94ad51821e4fcb7201f0e",
+      "after_sha256": "194a89c0ec52af9c8a3c5e2b7e5e23473fe33ea96126a0d3a4749922b356d200"
+    },
+    {
+      "path": "ops/collect_hourly_research_input.py",
+      "before_sha256": "767eaae79e2436284c0cf73626fd114a92448d3aff37b69c378862aae141a7fa",
+      "after_sha256": "2c271a18e0e877443015f440a910e32de2737cacf40bc34617361c118024c045"
+    },
+    {
+      "path": "ops/run_zsxq_hourly_delta.py",
+      "before_sha256": "7b984776bcdb26aec838419f8ce6cbf3cee77d9cdf3785cb46e64481ae5d3d38",
+      "after_sha256": "a4b28056acd50a1727308cf9d24265f134f796bbef0c3a1f59272b7818b6ce2a"
+    }
+  ]
+}
