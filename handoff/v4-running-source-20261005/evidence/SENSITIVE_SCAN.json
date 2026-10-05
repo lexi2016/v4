@@ -1,0 +1,40 @@
+{
+  "hard_token_scan": "zero findings",
+  "URL_credentials_candidates": [
+    {
+      "path": "handoff/v4-running-source-20261005/stage/apps/web/src/views/ResearchView.spec.ts",
+      "line": 245,
+      "context": "negative URL credential rejection fixture in test file",
+      "host": "finance.example",
+      "credentials_are_conventional_test_placeholders": true
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/api/apps/web/src/views/ResearchView.spec.ts",
+      "line": 375,
+      "context": "negative URL credential rejection fixture in test file",
+      "host": "finance.example",
+      "credentials_are_conventional_test_placeholders": true
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/apps/web/src/views/ResearchView.spec.ts",
+      "line": 375,
+      "context": "negative URL credential rejection fixture in test file",
+      "host": "finance.example",
+      "credentials_are_conventional_test_placeholders": true
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/tests/optimization/test_transport_and_resource_bounds.py",
+      "line": 14,
+      "context": "negative URL credential rejection fixture in test file",
+      "host": "www.hkexnews.hk",
+      "credentials_are_conventional_test_placeholders": true
+    }
+  ],
+  "upload_blocking_findings": 0,
+  "not_read": [
+    "auth files",
+    "account/holding stores",
+    "raw market data",
+    "complete process environment"
+  ]
+}

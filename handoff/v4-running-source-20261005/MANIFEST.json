@@ -1,0 +1,200 @@
+{
+  "schema": "v4.running_source_review_bundle.v1",
+  "files": "Load file_shards. Each entry preserves actual root/path and exactSHA.",
+  "exclusions": [],
+  "materialization": "Select variant entries; copy each snapshot_path to exactly path under new destination and verify SHA. Do not copy canonical whole tree as activeAPI/Stage.",
+  "file_shards": [
+    {
+      "path": "manifests/canonical-000.json",
+      "variant": "canonical",
+      "file_count": 100,
+      "sha256": "7e63a6143b83c025d285440eab0cdabd26d91ead051f2504379fabbbd378203e"
+    },
+    {
+      "path": "manifests/canonical-001.json",
+      "variant": "canonical",
+      "file_count": 100,
+      "sha256": "2418d2eccb71c72f1ab23230fee95fe49c85fd328ce6d747597b38c6a90272b8"
+    },
+    {
+      "path": "manifests/canonical-002.json",
+      "variant": "canonical",
+      "file_count": 100,
+      "sha256": "6ba3d05d53a91a3b05dce5c6cf4565966973d48409dfd3b683b2e473a3a1fb41"
+    },
+    {
+      "path": "manifests/canonical-003.json",
+      "variant": "canonical",
+      "file_count": 100,
+      "sha256": "05d0d3e6d8598c7792974b50544af5bb4ca47256d2779ebe9fdb1f7245206629"
+    },
+    {
+      "path": "manifests/canonical-004.json",
+      "variant": "canonical",
+      "file_count": 100,
+      "sha256": "48716a84522ffd30cac77f95fe1c6424706ed18f782b5e4547980802e15584a7"
+    },
+    {
+      "path": "manifests/canonical-005.json",
+      "variant": "canonical",
+      "file_count": 100,
+      "sha256": "6494014c2b31a7b63c339f2ac86f91c9af72f7525ba865ccb38fe94c22b4f504"
+    },
+    {
+      "path": "manifests/canonical-006.json",
+      "variant": "canonical",
+      "file_count": 100,
+      "sha256": "4f8ced345b8a426897deef5a4d4dddc102c6a3287b3d6fe4daa268b227cd9e07"
+    },
+    {
+      "path": "manifests/canonical-007.json",
+      "variant": "canonical",
+      "file_count": 100,
+      "sha256": "40c0941b90341f98f03ed1556eec2ea3948b14f59651585d3b4ebaacc985d266"
+    },
+    {
+      "path": "manifests/canonical-008.json",
+      "variant": "canonical",
+      "file_count": 100,
+      "sha256": "40a109eed41626d219d73388d3f36dea96b80983e89a76a25320b67b3504e04a"
+    },
+    {
+      "path": "manifests/canonical-009.json",
+      "variant": "canonical",
+      "file_count": 100,
+      "sha256": "2ddd078c747727b7fb572ec72a22698008171673d4674d94fed0b8578d4ecc1d"
+    },
+    {
+      "path": "manifests/canonical-010.json",
+      "variant": "canonical",
+      "file_count": 100,
+      "sha256": "dd891b654a411660ab3b32be37d82dfb40ab9938d90bb90a23ee2722021a07e6"
+    },
+    {
+      "path": "manifests/canonical-011.json",
+      "variant": "canonical",
+      "file_count": 100,
+      "sha256": "86c247d78d9576d1a208e9069afbb65ed1b35e5306e2847f57718613611f02e6"
+    },
+    {
+      "path": "manifests/canonical-012.json",
+      "variant": "canonical",
+      "file_count": 100,
+      "sha256": "0201f36c12cfc6324784af61ee03200d84c16bb43735786eaf007d1faa0f7464"
+    },
+    {
+      "path": "manifests/canonical-013.json",
+      "variant": "canonical",
+      "file_count": 54,
+      "sha256": "5c420a4d4fecd7bb29d9eafafc7bcd96e997662cdc271d81634d133c4f796029"
+    },
+    {
+      "path": "manifests/api-000.json",
+      "variant": "api",
+      "file_count": 100,
+      "sha256": "d7f1e36cacee2eac4d35f7e60884e65bc4d512af0c3936c8ecc87f67c72eee9c"
+    },
+    {
+      "path": "manifests/api-001.json",
+      "variant": "api",
+      "file_count": 100,
+      "sha256": "5daa3c79df2456ea14d3978feec96cf4041a4abefff3b8249a76b6839f2a5e84"
+    },
+    {
+      "path": "manifests/api-002.json",
+      "variant": "api",
+      "file_count": 100,
+      "sha256": "6c6b72bd6c2c97eb738cb845ffd7788d3fa08791d8c2f0e329be6304c27b46fe"
+    },
+    {
+      "path": "manifests/api-003.json",
+      "variant": "api",
+      "file_count": 100,
+      "sha256": "759449f33f5ef377bf7346db1e76fbfc60f01d31432f5b61d87fe0629bff300a"
+    },
+    {
+      "path": "manifests/api-004.json",
+      "variant": "api",
+      "file_count": 100,
+      "sha256": "71ff222841ac60415691efc9abe41a64ba40655630b4d4e99e04c99fc1262ae9"
+    },
+    {
+      "path": "manifests/api-005.json",
+      "variant": "api",
+      "file_count": 100,
+      "sha256": "182c85b831a7e0d21a7ef1a4570db8d6ffe91216743db860c1395d252e687274"
+    },
+    {
+      "path": "manifests/api-006.json",
+      "variant": "api",
+      "file_count": 100,
+      "sha256": "5e70e9c2ea117ee7a2525c2dff5bda6e9dfa713f834e7fc2ea49f6d5f80e9857"
+    },
+    {
+      "path": "manifests/api-007.json",
+      "variant": "api",
+      "file_count": 100,
+      "sha256": "96d135ee99ee00fc743f3da7f5ed5873edcae8fef33ad73ba3f31b9ab603e2ad"
+    },
+    {
+      "path": "manifests/api-008.json",
+      "variant": "api",
+      "file_count": 81,
+      "sha256": "68bb3461f6ec1e3ef9eb0abdcaa3474824dc449ae0c57d752ac7d16450cce7df"
+    },
+    {
+      "path": "manifests/stage-000.json",
+      "variant": "stage",
+      "file_count": 100,
+      "sha256": "6829ff97e4436c2b73de9d4b8c8cd60216accac2aea136f582e585b24328534c"
+    },
+    {
+      "path": "manifests/stage-001.json",
+      "variant": "stage",
+      "file_count": 100,
+      "sha256": "41628d2437261d702280a44599f5bf4e71a31f5b125c3262dc8c2c7d7f40e430"
+    },
+    {
+      "path": "manifests/stage-002.json",
+      "variant": "stage",
+      "file_count": 100,
+      "sha256": "ecb338da80f16dcae6b802e85e06a964f8d6ecd143f2da5fcb7a0469d7b06edd"
+    },
+    {
+      "path": "manifests/stage-003.json",
+      "variant": "stage",
+      "file_count": 100,
+      "sha256": "c598eba147fa6a3208079c045914ed255371acc3b26270f677b06a8914985bed"
+    },
+    {
+      "path": "manifests/stage-004.json",
+      "variant": "stage",
+      "file_count": 100,
+      "sha256": "d65420ddb36e15226e1b5f325c2a41abe9005c577582e397a4f5586df3f02a61"
+    },
+    {
+      "path": "manifests/stage-005.json",
+      "variant": "stage",
+      "file_count": 100,
+      "sha256": "12824c69a2b360a8d968908f876ff9508c7612d0fde38a8144e2ce9de8c12b70"
+    },
+    {
+      "path": "manifests/stage-006.json",
+      "variant": "stage",
+      "file_count": 100,
+      "sha256": "86afc7072c5f53a233fbb869d0950dc3f51777f8a6eb7a8c2270002b26a1220a"
+    },
+    {
+      "path": "manifests/stage-007.json",
+      "variant": "stage",
+      "file_count": 100,
+      "sha256": "a2aa298a3c6be0cc8a9ff9e8c30a7d4bbad16ef94b8721d378ea45211cdab377"
+    },
+    {
+      "path": "manifests/stage-008.json",
+      "variant": "stage",
+      "file_count": 40,
+      "sha256": "141a4a5d4b0d35580b22b2353dc35d781b30246fbc67d9fd2a6e286732b8ad88"
+    }
+  ]
+}

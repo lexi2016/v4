@@ -1,0 +1,95 @@
+{
+  "allowed_paths": [
+    "contracts/migration/phase6_current_checkout_rebenchmark_v1.json",
+    "docs/evidence/phase6-current-checkout-rebenchmark-20260801.json",
+    "docs/evidence/phase6-current-checkout-status-20260801.json",
+    "docs/evidence/phase2-stage-0925-v11-remediation-20260801.json",
+    "tests/test_phase6_current_rebenchmark.py",
+    "tests/test_phase6_current_checkout_status.py",
+    "tests/test_phase2_stage_0925_remediation_receipt.py",
+    "tests/test_preselection_optional_pools.py"
+  ],
+  "benchmark": {
+    "derived_input_sha256": "62460168d82c2a0d17cac6d7b32d1052c3744e097fcc3a036f19b6fd8329e13a",
+    "iterations": 7,
+    "metric": "median and p95 wall-clock seconds for an integrity-checked idempotent retry after one materialization and one warm-up",
+    "mode": "REPLAY",
+    "script_path": "ops/benchmarks/benchmark_hourly_research_idempotency.py",
+    "script_raw_sha256": "298524045996769867fa889a0c4a6e91d51c3f47c9298dfe9859f1e77df8c5dd",
+    "slot": "2310",
+    "warmup_iterations": 1
+  },
+  "business_contract_sha256": {
+    "contracts/migration/research_desk_graph_contract_v1.json": "da58ce5d0d44109ae3482f9f3e776b5cdec6a4a56db6b1512d1ff3164d8d166a",
+    "contracts/migration/stage1_core_selection_contract.json": "4530bc9498135d43f738bda1067ec0e7620a47975db3bef3b5b6ccf92ebb35f5",
+    "contracts/migration/stage_0925_tdxpy_frozen_regression_v1.json": "076647baa1f7dbf14616eeefa479351f24ea55f739a692eb630178ef06fb13cd",
+    "contracts/research.py": "d34ea72b4605b64647ee8c0ff9278f8fb1740435c8e3110a2fe4d39d4bb01605",
+    "contracts/runtime_workloads.json": "71b87fe166095dcf3daa991cffb0e9c7459edc11f5d3c81289a5ea81844ee1db",
+    "domains/preselection.py": "22a44bfc920d31bff5196d6764fb2a30a1e534d411985bd53213ec979ed64e41",
+    "domains/research.py": "e89148cf30d313b5839025308f109bd0a963ca5af149437135080e32c5d42abd",
+    "domains/stage_scoring.py": "0ab023b9d109aea109e56c79452539e87699dce2326199e9db08bbc3c294cc5d",
+    "domains/stages.py": "532b8524a2b1a140d00c7d72aa3f3a27480d3cfd71c686bd53d95fbd06061c68"
+  },
+  "frozen_current_checkout": {
+    "git_commit": "8c7ff01ade4f5d82db8adc5cb64c7038698888e5",
+    "graph_baseline_semantic_hash": "8b4b933858f0e573b4d9f34423cd7aceeeb09dbf50cc826de0b18b712a4cbdd7",
+    "implementation_sha256": {
+      "infrastructure/research_store.py": "a53631d4b396622008720919395d366b628ec31b0754470a8b83ebd3fbd945c0",
+      "ops/benchmarks/benchmark_hourly_research_idempotency.py": "298524045996769867fa889a0c4a6e91d51c3f47c9298dfe9859f1e77df8c5dd",
+      "ops/run_hourly_research.py": "b83c0a9d0f985cd9c21661572edef095687cf5c0f22360638a0d77b3ff8401a2"
+    }
+  },
+  "frozen_source": {
+    "bytes": 6311637,
+    "locator": "EXPLICIT_READ_ONLY_SOURCE_ARGUMENT",
+    "path_identity_sha256": "416277288194b49b34270dca22971a7eecf5541877b20c21cc6b84375494ed27",
+    "read_only": true,
+    "sha256": "8ba8b92b6c85b977caac13390533fbf0aec05bfd4e52045229f0964a159be96c"
+  },
+  "goal": "Verify current-checkout hourly-research idempotent retry performance without changing business semantics or implementation.",
+  "pass_signal": {
+    "artifact_canonical_sha256_unchanged": true,
+    "business_contract_sha256_unchanged": true,
+    "current_median_to_v3_success_max_ratio": 1.0,
+    "current_p95_to_v3_success_max_ratio": 1.1,
+    "derived_input_sha256_unchanged": true,
+    "payload_sha256_unchanged": true,
+    "p95_must_be_below_seconds": 18000,
+    "safety_flags_remain_false": true,
+    "source_sha256_unchanged": true
+  },
+  "reference_baselines": {
+    "accepted_optimized_information_only": {
+      "code_commit": "ce9b94199b06c8d489f72dd9ed8697cb9bbcf82f",
+      "median_seconds": 0.6691957000002731,
+      "p95_seconds": 0.731703200013726
+    },
+    "v3_success_gate": {
+      "artifact_canonical_sha256": "bd2a9dd314e7edd47e77935889271bbaf2dd81a75cc77eef37145464f88cb668",
+      "article_count": 336,
+      "code_commit": "a6fbf96e0d422fb1024a3374c37a8ef4a3c72577",
+      "median_seconds": 0.8502880000014557,
+      "p95_seconds": 0.9402375999925425,
+      "payload_sha256": "bd2a9dd314e7edd47e77935889271bbaf2dd81a75cc77eef37145464f88cb668",
+      "stock_pool_count": 205
+    }
+  },
+  "rejection_conditions": [
+    "source, derived input, payload, artifact, article count, stock-pool count, or safety flags change",
+    "any frozen current business-contract or implementation SHA changes",
+    "current median is slower than the frozen V3 successful baseline",
+    "current p95 exceeds 1.1 times the frozen V3 successful p95 or the downstream schedule window",
+    "benchmark writes the external V3 source, V3.5 live data, Windows Tasks, BUY gate, or orders"
+  ],
+  "safety": {
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false,
+    "v3_written": false,
+    "windows_tasks_changed": false
+  },
+  "schema_version": "v3_5.phase6_current_checkout_rebenchmark_contract.v1",
+  "semantic_hash": "65a13051fda998a6e8f571a75f64ec7805ebf6a43c321b586e128a9656b77a5f",
+  "status": "FROZEN_BEFORE_CURRENT_RUN",
+  "writer": "Codex / GPT-5.6 Sol"
+}

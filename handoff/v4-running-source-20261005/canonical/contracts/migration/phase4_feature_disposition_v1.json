@@ -1,0 +1,443 @@
+{
+  "schema_version": "v3_5.phase4_feature_disposition.v1",
+  "graph_baseline_semantic_hash": "8b4b933858f0e573b4d9f34423cd7aceeeb09dbf50cc826de0b18b712a4cbdd7",
+  "inventory_v2_semantic_hash": "35b56c67db16ff6cd8de2ab6acd7d199dad58bb4da05c218c660622c841ae9de",
+  "decision_rule": "GRAPH_EVIDENCE_ONLY_NO_INVENTED_BEHAVIOR",
+  "features": [
+    {
+      "feature_id": "navigation.dates",
+      "proposed_disposition": "KEEP",
+      "decision_status": "VERIFIED_IN_V35_SCOPE",
+      "reachability": "REACHABLE",
+      "inventory_graph_node_count": 0,
+      "inventory_source_gaps": [
+        "GRAPH_NODE_NOT_RECONCILED",
+        "ORIGINAL_ATLAS_038_NOT_PRESENT"
+      ],
+      "evidence_graph_node_ids": [
+        "api:GET /runs/date-list",
+        "api_ref:/api/v1/runs/date-list"
+      ],
+      "replacement_paths": [
+        "apps/api/v35_api/app.py",
+        "apps/web/src/App.vue",
+        "domains/preselection.py"
+      ],
+      "test_paths": [
+        "apps/web/src/App.spec.ts",
+        "tests/test_preselection_slice.py"
+      ],
+      "parity_receipts": [],
+      "cannot_confirm": [
+        "INVENTORY_FEATURE_GRAPH_NODE_NOT_RECONCILED"
+      ],
+      "scope_boundary": "EXACT_DATE_CATALOG_AND_VISIBLE_DATE_NAVIGATION_ONLY",
+      "safety": {
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "feature_id": "orphan.loadConsole",
+      "proposed_disposition": "COMPAT",
+      "decision_status": "CANNOT_CONFIRM_FULL_V3_EQUIVALENCE",
+      "reachability": "LEGACY_V4_REACHABLE",
+      "inventory_graph_node_count": 0,
+      "inventory_source_gaps": [
+        "GRAPH_NODE_NOT_RECONCILED",
+        "NO_REACHABLE_CALL_FROM_LOAD_ACTIVE_VIEW",
+        "ORIGINAL_ATLAS_038_NOT_PRESENT"
+      ],
+      "evidence_graph_node_ids": [
+        "api:GET /preselection-pools",
+        "api:GET /research/lane",
+        "api:GET /review",
+        "api:GET /trading/gates",
+        "api:GET /trading/overview",
+        "api:GET /trading/review",
+        "api:GET /trading/run-cards",
+        "api:GET /trading/signals",
+        "api:GET /workbench/stage"
+      ],
+      "replacement_paths": [
+        "apps/web/src/App.vue"
+      ],
+      "test_paths": [
+        "apps/web/src/App.spec.ts",
+        "tests/test_phase4_feature_dispositions.py"
+      ],
+      "parity_receipts": [],
+      "cannot_confirm": [
+        "GRAPH_NODE_NOT_RECONCILED",
+        "INVENTORY_REACHABILITY_GAP_CONTRADICTED_BY_LEGACY_V4",
+        "ORIGINAL_ATLAS_038_NOT_PRESENT",
+        "TRADING_OVERVIEW_SIGNALS_GATES_RUN_CARDS_NOT_MIGRATED"
+      ],
+      "legacy_reachability": {
+        "source_path": "30_runtime/opening_advisor_8771/frontend/fupan_dashboard_v4.html",
+        "source_sha256": "5a241b312e6db1df4d076980f126fa1916a4ed5338a611d3552433c8f08d9202",
+        "route_source_path": "30_runtime/opening_advisor_8771/backend/main.py",
+        "route_source_sha256": "89daf022ae6b2f96d5d6b518d89710a729036ae00998ba16466d873d6e035319",
+        "definition_count": 1,
+        "reachable_call_count": 2
+      },
+      "scope_boundary": "PARTIAL_MAIN_CONSOLE_COMPAT_NO_TRADING_SIGNAL_CHAIN",
+      "safety": {
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "feature_id": "orphan.loadMorningLane",
+      "proposed_disposition": "REMOVE",
+      "decision_status": "USER_APPROVAL_REQUIRED",
+      "reachability": "UNREACHABLE",
+      "inventory_graph_node_count": 0,
+      "inventory_source_gaps": [
+        "GRAPH_NODE_NOT_RECONCILED",
+        "NO_REACHABLE_CALL_FROM_LOAD_ACTIVE_VIEW",
+        "ORIGINAL_ATLAS_038_NOT_PRESENT"
+      ],
+      "evidence_graph_node_ids": [],
+      "replacement_paths": [],
+      "test_paths": [
+        "tests/test_phase4_feature_dispositions.py"
+      ],
+      "parity_receipts": [],
+      "cannot_confirm": [
+        "GRAPH_NODE_NOT_RECONCILED",
+        "NO_REACHABLE_CALL_FROM_LOAD_ACTIVE_VIEW",
+        "ORIGINAL_ATLAS_038_NOT_PRESENT"
+      ],
+      "legacy_dead_symbol": {
+        "source_path": "30_runtime/opening_advisor_8771/frontend/fupan_dashboard_v3.html",
+        "source_sha256": "be63e4c3890ec96ec81e39cab60048474399da264ae4351763cd18794d2382c5",
+        "definition_count": 1,
+        "reachable_call_count": 0
+      },
+      "scope_boundary": "PROPOSAL_ONLY_NO_CODE_DELETION",
+      "safety": {
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "feature_id": "orphan.loadWechatLane",
+      "proposed_disposition": "REMOVE",
+      "decision_status": "USER_APPROVAL_REQUIRED",
+      "reachability": "UNREACHABLE",
+      "inventory_graph_node_count": 0,
+      "inventory_source_gaps": [
+        "GRAPH_NODE_NOT_RECONCILED",
+        "NO_REACHABLE_CALL_FROM_LOAD_ACTIVE_VIEW",
+        "ORIGINAL_ATLAS_038_NOT_PRESENT"
+      ],
+      "evidence_graph_node_ids": [],
+      "replacement_paths": [],
+      "test_paths": [
+        "tests/test_phase4_feature_dispositions.py"
+      ],
+      "parity_receipts": [],
+      "cannot_confirm": [
+        "GRAPH_NODE_NOT_RECONCILED",
+        "NO_REACHABLE_CALL_FROM_LOAD_ACTIVE_VIEW",
+        "ORIGINAL_ATLAS_038_NOT_PRESENT"
+      ],
+      "legacy_dead_symbol": {
+        "source_path": "30_runtime/opening_advisor_8771/frontend/fupan_dashboard_v3.html",
+        "source_sha256": "be63e4c3890ec96ec81e39cab60048474399da264ae4351763cd18794d2382c5",
+        "definition_count": 1,
+        "reachable_call_count": 0
+      },
+      "scope_boundary": "PROPOSAL_ONLY_NO_CODE_DELETION",
+      "safety": {
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "feature_id": "preselection.pools",
+      "proposed_disposition": "KEEP",
+      "decision_status": "VERIFIED_IN_V35_SCOPE",
+      "reachability": "REACHABLE",
+      "inventory_graph_node_count": 30,
+      "inventory_source_gaps": [
+        "ORIGINAL_ATLAS_038_NOT_PRESENT"
+      ],
+      "evidence_graph_node_ids": [
+        "timeline_node:ashare_v193_slot_selector_premarket",
+        "timeline_node:hkconnect_d1_top100_prob_active"
+      ],
+      "replacement_paths": [
+        "apps/api/v35_api/app.py",
+        "apps/web/src/App.vue",
+        "domains/preselection.py",
+        "infrastructure/preselection_overlay_store.py",
+        "ops/import_preselection_overlays.py"
+      ],
+      "test_paths": [
+        "apps/web/src/App.spec.ts",
+        "tests/test_phase2_preselection_optional_pools_remediation_receipt.py",
+        "tests/test_preselection_optional_pools.py",
+        "tests/test_preselection_slice.py"
+      ],
+      "parity_receipts": [
+        {
+          "path": ".runtime/evidence/phase2/parity/20260730/preselection.pools/preselection_pools_graph_v1/receipt.json",
+          "semantic_hash": "b0921695005c7164cfba38342e9e3d8e26c0ea0f68969cb2f96328f043ea04c2"
+        }
+      ],
+      "cannot_confirm": [
+        "BUSINESS_PARITY_SOURCE_SHA_MISMATCH",
+        "ORIGINAL_ATLAS_038_NOT_PRESENT"
+      ],
+      "scope_boundary": "SEVEN_V3_GRAPH_BACKED_POOLS_REMAIN_SEPARATE_WITH_OPTIONAL_RESEARCH_OVERLAY",
+      "safety": {
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "feature_id": "research.desk",
+      "proposed_disposition": "KEEP",
+      "decision_status": "VERIFIED_IN_V35_SCOPE",
+      "reachability": "REACHABLE",
+      "inventory_graph_node_count": 25,
+      "inventory_source_gaps": [
+        "ORIGINAL_ATLAS_038_NOT_PRESENT"
+      ],
+      "evidence_graph_node_ids": [
+        "timeline_node:hourly_research_delta",
+        "timeline_node:v3_premarket_news_jyg_0830",
+        "timeline_node:v3_zsxq_research_0830"
+      ],
+      "replacement_paths": [
+        "apps/api/v35_api/research_router.py",
+        "apps/web/src/views/ResearchView.vue",
+        "contracts/research.py",
+        "domains/research.py",
+        "infrastructure/research_store.py"
+      ],
+      "test_paths": [
+        "apps/web/src/views/ResearchView.spec.ts",
+        "tests/test_research_archive.py",
+        "tests/test_research_graph_contract.py"
+      ],
+      "parity_receipts": [
+        {
+          "path": ".runtime/evidence/phase3/parity/20260730/research.desk/research_desk_graph_v1/receipt.json",
+          "semantic_hash": "4fa8eec75227620ccf2d6d5259780fd535ca4e267df7d9ab8d09a7ac0df5ef94"
+        }
+      ],
+      "cannot_confirm": [
+        "LEGACY_RESEARCH_MIXED_TIMEZONE_ASSUMED_ASIA_SHANGHAI",
+        "LEGACY_RESEARCH_WEEKEND_AND_HOLIDAY_ARCHIVE_SAMPLES_NOT_FOUND",
+        "LIVE_HOURLY_RESEARCH_PRODUCER_NOT_STARTED",
+        "ORIGINAL_ATLAS_038_NOT_PRESENT"
+      ],
+      "scope_boundary": "EXACT_DATE_ARCHIVE_AND_EXPLICIT_LATEST_ONLY",
+      "safety": {
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "feature_id": "review.close",
+      "proposed_disposition": "COMPAT",
+      "decision_status": "CANNOT_CONFIRM_FULL_V3_EQUIVALENCE",
+      "reachability": "REACHABLE",
+      "inventory_graph_node_count": 33,
+      "inventory_source_gaps": [
+        "ORIGINAL_ATLAS_038_NOT_PRESENT"
+      ],
+      "evidence_graph_node_ids": [
+        "timeline_node:FUPAN_REVIEW_START",
+        "timeline_node:FUPAN_V3_PUBLISH"
+      ],
+      "replacement_paths": [
+        "apps/api/v35_api/review_router.py",
+        "apps/web/src/views/ReviewView.vue",
+        "domains/close_review.py",
+        "infrastructure/review_store.py"
+      ],
+      "test_paths": [
+        "tests/test_close_review_slice.py",
+        "tests/test_review_api_contract.py"
+      ],
+      "parity_receipts": [
+        {
+          "path": ".runtime/evidence/phase2/parity/20260730/review.close/review_close_ah_v1/receipt.json",
+          "semantic_hash": "4613d0a3601e0402d7130da9a8eb6ea6ec00f9a6c5c5e9cab53182805bf56b1c"
+        }
+      ],
+      "cannot_confirm": [
+        "FULL_BILIBILI_ASR_OCR_GAP_GUARD_PUBLISH_CHAIN_NOT_MIGRATED",
+        "ORIGINAL_ATLAS_038_NOT_PRESENT"
+      ],
+      "scope_boundary": "A_SHARE_AND_HK_EXACT_DATE_CLOSE_REVIEW_PROJECTION",
+      "safety": {
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "feature_id": "runtime.status",
+      "proposed_disposition": "KEEP",
+      "decision_status": "VERIFIED_IN_V35_SCOPE",
+      "reachability": "REACHABLE",
+      "inventory_graph_node_count": 0,
+      "inventory_source_gaps": [
+        "GRAPH_NODE_NOT_RECONCILED",
+        "ORIGINAL_ATLAS_038_NOT_PRESENT"
+      ],
+      "evidence_graph_node_ids": [
+        "api:GET /tasks/status"
+      ],
+      "replacement_paths": [
+        "apps/api/v35_api/runtime_router.py",
+        "apps/web/src/views/TaskStatusView.vue",
+        "domains/task_status.py",
+        "infrastructure/scheduling/execution_ledger.py"
+      ],
+      "test_paths": [
+        "apps/web/src/views/TaskStatusView.spec.ts",
+        "tests/test_task_status_api.py"
+      ],
+      "parity_receipts": [],
+      "cannot_confirm": [
+        "INVENTORY_FEATURE_GRAPH_NODE_NOT_RECONCILED",
+        "LIVE_EXECUTION_RECEIPTS_MISSING_FOR_ENABLED_WORKLOADS"
+      ],
+      "scope_boundary": "SAME_DATE_CATALOG_AND_RECEIPT_STATUS_ONLY",
+      "safety": {
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "feature_id": "stage.model_review_close",
+      "proposed_disposition": "COMPAT",
+      "decision_status": "CANNOT_CONFIRM_FULL_V3_EQUIVALENCE",
+      "reachability": "PARTIALLY_REACHABLE",
+      "inventory_graph_node_count": 0,
+      "inventory_source_gaps": [
+        "GRAPH_NODE_NOT_RECONCILED",
+        "ORIGINAL_ATLAS_038_NOT_PRESENT"
+      ],
+      "evidence_graph_node_ids": [],
+      "replacement_paths": [
+        "apps/api/v35_api/review_router.py",
+        "apps/web/src/App.vue",
+        "domains/close_review.py"
+      ],
+      "test_paths": [
+        "apps/web/src/App.spec.ts",
+        "tests/test_close_review_slice.py"
+      ],
+      "parity_receipts": [],
+      "cannot_confirm": [
+        "DISTINCT_MODEL_REVIEW_CLOSE_API_NOT_PRESENT",
+        "GRAPH_NODE_NOT_RECONCILED",
+        "UI_LABEL_USES_UNIFIED_REVIEW_PAYLOAD"
+      ],
+      "scope_boundary": "VISIBLE_COMPAT_SECTION_OVER_UNIFIED_CLOSE_REVIEW_ONLY",
+      "safety": {
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "feature_id": "stage.workbench",
+      "proposed_disposition": "KEEP",
+      "decision_status": "VERIFIED_IN_V35_SCOPE",
+      "reachability": "REACHABLE",
+      "inventory_graph_node_count": 21,
+      "inventory_source_gaps": [
+        "DATA_FUPAN_TIMELINE_BUTTON_HAS_NO_CLICK_HANDLER",
+        "ORIGINAL_ATLAS_038_NOT_PRESENT"
+      ],
+      "evidence_graph_node_ids": [
+        "timeline_node:v3_hkconnect_opening_second_filter_v1_1_morning_check",
+        "timeline_node:v3_opening_intraday_stage_select_0925_1500"
+      ],
+      "replacement_paths": [
+        "apps/api/v35_api/app.py",
+        "apps/web/src/App.vue",
+        "domains/stages.py",
+        "infrastructure/stage_store.py"
+      ],
+      "test_paths": [
+        "apps/web/src/App.spec.ts",
+        "tests/test_stage_0925_frozen_regression.py",
+        "tests/test_stage_runs.py"
+      ],
+      "parity_receipts": [
+        {
+          "path": ".runtime/evidence/phase2/parity/20260730/stage.workbench/stage_0925_tdxpy_v11_v1/receipt.json",
+          "semantic_hash": "523fcef91c9c21eb1ce744398bb96d7ad1d7aee1d803b54896e5eb357e5d6d21"
+        }
+      ],
+      "cannot_confirm": [
+        "DATA_FUPAN_TIMELINE_BUTTON_HAS_NO_CLICK_HANDLER",
+        "ORIGINAL_ATLAS_038_NOT_PRESENT"
+      ],
+      "scope_boundary": "EIGHT_STAGE_SELECTION_WITH_V11_OPENING_REFERENCE",
+      "safety": {
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "feature_id": "tasks.registry",
+      "proposed_disposition": "COMPAT",
+      "decision_status": "CANNOT_CONFIRM_FULL_V3_EQUIVALENCE",
+      "reachability": "INTERNAL_ONLY",
+      "inventory_graph_node_count": 3,
+      "inventory_source_gaps": [
+        "ORIGINAL_ATLAS_038_NOT_PRESENT"
+      ],
+      "evidence_graph_node_ids": [
+        "task_spec:OpeningAdvisorV3_0755_StartupEnsure",
+        "timeline_node:v3_startup_ensure_0_2_hkconnect",
+        "windows_task:OpeningAdvisorV3_0755_StartupEnsure"
+      ],
+      "replacement_paths": [
+        "contracts/runtime_workloads.json",
+        "domains/task_status.py",
+        "infrastructure/scheduling/catalog.py"
+      ],
+      "test_paths": [
+        "tests/test_runtime_workload_catalog.py",
+        "tests/test_task_status_api.py"
+      ],
+      "parity_receipts": [],
+      "cannot_confirm": [
+        "DISABLED_RUNTIME_TASKS_HAVE_NO_EXECUTION_RECEIPTS",
+        "NO_SEPARATE_PUBLIC_REGISTRY_ENDPOINT",
+        "ORIGINAL_ATLAS_038_NOT_PRESENT"
+      ],
+      "scope_boundary": "STRICT_INTERNAL_CATALOG_VISIBLE_THROUGH_TASK_STATUS",
+      "safety": {
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    }
+  ],
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "semantic_hash": "54a4678ddcfbb4f27e988defd24e7ef55db898665cf9d56fe431f9782d3e388a"
+}

@@ -1,0 +1,118 @@
+[
+  {
+    "source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_SELECTION_PATH_DIAG_20261005/LEDGER.json",
+    "source_sha256": "5009af6ad09ded23cfb0932cfd3705f8360d6df9416c2baa2b6b9a921fac945f",
+    "updated_at": "2026-10-04T23:51:27.303673+00:00",
+    "goal": "20260930 one-day HK top-20 gainers sample: verify universe and close-to-prior-close ranking, map announcement/US/oversold evidence and overlap, explain capture/miss and source paths, then bounded repair needed to run this day",
+    "workers": [
+      {
+        "worker": "manager_full_path_20261005",
+        "milestone": "20260930 Top20 three-source candidate flow and evidence attribution",
+        "lifecycle_status": "interrupted",
+        "final_received": false,
+        "final_consumed": false,
+        "receipt_verified": false
+      },
+      {
+        "worker": "manager_history_boundary_20261005",
+        "milestone": "20260930 top-gainer ranking, authority coverage and required 20260929 selection inputs",
+        "lifecycle_status": "interrupted",
+        "final_received": false,
+        "final_consumed": false,
+        "receipt_verified": false
+      },
+      {
+        "worker": "sep30_top20_resume",
+        "milestone": "20260930 Top20 scope and ranking",
+        "lifecycle_status": "completed",
+        "final_received": true,
+        "final_consumed": true,
+        "receipt_verified": true
+      },
+      {
+        "worker": "sep30_sources_resume",
+        "milestone": "20260930 announcement US rebound evidence for fixed sample",
+        "lifecycle_status": "completed",
+        "final_received": true,
+        "final_consumed": true,
+        "receipt_verified": false
+      },
+      {
+        "worker": "sep30_one_day_writer",
+        "milestone": "diagnose actual official HKEX canary response time budget failure",
+        "lifecycle_status": "completed",
+        "final_received": true,
+        "final_consumed": true,
+        "receipt_verified": true
+      },
+      {
+        "worker": "sep30_targeted_review",
+        "milestone": "read-only review canary failure recovery delta",
+        "lifecycle_status": "completed",
+        "final_received": true,
+        "final_consumed": true,
+        "receipt_verified": true
+      }
+    ],
+    "phase2_status": "IMPLEMENTED;TESTED 57 independent;REVIEWED PASS;local BEHAVIOR_VERIFIED;not DEPLOYED",
+    "final_fields": {}
+  },
+  {
+    "source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_CHECKPOINT_20261003/manager_selection_completion/LEDGER.json",
+    "source_sha256": "c0aaf351de9d6c1979256f17f0f9725aee4ec994dfd298a7b90b868a5dce4dea",
+    "updated_at": null,
+    "goal": "Using only existing 20261002 materials, generate traceable research stock candidates with select/exclude reasons and priority in the existing manager workbench, then verify actual API and UI",
+    "workers": [
+      {
+        "worker": "announcement_selection_gaps",
+        "milestone": "reuse existing selection and priority generator; actual candidate blockers",
+        "lifecycle_status": "completed",
+        "final_received": true,
+        "final_consumed": true,
+        "receipt_verified": true
+      },
+      {
+        "worker": "manager_selection_architecture",
+        "milestone": "minimal business contract and existing pipeline integration",
+        "lifecycle_status": "completed",
+        "final_received": true,
+        "final_consumed": true,
+        "receipt_verified": true
+      },
+      {
+        "worker": "issue22_apply",
+        "milestone": "actual Oct2 research selection implementation and real input validation",
+        "lifecycle_status": "completed",
+        "final_received": true,
+        "final_consumed": true,
+        "receipt_verified": true
+      },
+      {
+        "worker": "manager_resume_review",
+        "milestone": "independent actual business diff then native tests/real689 outcome",
+        "lifecycle_status": "completed",
+        "final_received": true,
+        "final_consumed": true,
+        "receipt_verified": true
+      },
+      {
+        "worker": "issue22_apply",
+        "milestone": "canonical targeted integration and R10 reversible release preparation",
+        "lifecycle_status": "completed",
+        "final_received": true,
+        "final_consumed": true,
+        "receipt_verified": true
+      },
+      {
+        "worker": "manager_resume_review",
+        "milestone": "canonical integration and concurrent Issue21 release preservation",
+        "lifecycle_status": "completed",
+        "final_received": true,
+        "final_consumed": true,
+        "receipt_verified": true
+      }
+    ],
+    "phase2_status": null,
+    "final_fields": {}
+  }
+]

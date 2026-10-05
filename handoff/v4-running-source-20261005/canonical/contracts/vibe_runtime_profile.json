@@ -1,0 +1,15 @@
+{
+  "schema": "v4.vibe_runtime_profile.v1",
+  "selector": "cc-switch-deepseek",
+  "provider_id": "deepseek-claude-code",
+  "app_type": "claude",
+  "provider_name": "DeepSeek 1M",
+  "source_base_url": "https://api.deepseek.com/anthropic",
+  "base_url": "https://api.deepseek.com",
+  "quick_model": "deepseek-flash",
+  "deep_model": "deepseek-flash",
+  "temperature": 0.6,
+  "timeout": 180,
+  "max_retries": 2,
+  "prompt_pack": "research"
+}
