@@ -1,0 +1,172 @@
+{
+  "scope": "Local retrospective announcement research artifacts; not historical selection eligibility",
+  "target_research_date": "2026-09-30",
+  "publication_date_filter": "2026-09-29",
+  "source_directory": {
+    "scope": "EASTMONEY_HK_DATE_CATALOG",
+    "articles": 744,
+    "pages_including_empty_terminal": 39,
+    "hkex_authoritative_completeness": "CANNOT_CONFIRM"
+  },
+  "manager_intersection": {
+    "articles": 234,
+    "securities": 140
+  },
+  "coverage": {
+    "short_complete_api_body": 207,
+    "long_pdf_chapter_based_interpretation": 22,
+    "unassessed_missing_long_text": 5,
+    "long_pdf_text_pages": 3153
+  },
+  "classifications": {
+    "BUSINESS_EVENT": 17,
+    "CAPITAL_ACTION": 89,
+    "FINANCIAL_REPORT": 5,
+    "MIXED": 49,
+    "RISK": 14,
+    "ROUTINE": 55,
+    "UNASSESSED_MISSING_TEXT": 5
+  },
+  "first_publication_status": "CANNOT_CONFIRM",
+  "target_cutoff_available_at": "CANNOT_CONFIRM",
+  "novelty_vs_previous_disclosure": "CANNOT_CONFIRM",
+  "artifacts": [
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_SELECTION_PATH_DIAG_20261005/announcement_understanding/body_corpus_20260929_v3.json",
+      "sha256": "fec1257e1a0f8ddc30825591dd15e092b94664e7c6d4448d4c33a82ea2abeea4",
+      "bytes": 9922196,
+      "uploaded": false
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_SELECTION_PATH_DIAG_20261005/announcement_understanding/pdf_text_derivatives_20260929_v3_index.json",
+      "sha256": "ea4cfdb2ef578c6c3fb39fc3b18ec32a18ef3101fb71852ac212295f3b21a3f9",
+      "bytes": 75781,
+      "uploaded": false
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_SELECTION_PATH_DIAG_20261005/announcement_understanding/semantic_catalog_20260929_v1.json",
+      "sha256": "4969d2bd24339e146fc88b709a58c6ba19ed31c4aa45075733c1d5c971a1cd5a",
+      "bytes": 885569,
+      "uploaded": false
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_SELECTION_PATH_DIAG_20261005/announcement_understanding/semantic_catalog_20260929_v2.json",
+      "sha256": "432a37e3617a33da32e9205ac05e3e39eab2eb75aafd20f6fb4647914d3340d7",
+      "bytes": 1318610,
+      "uploaded": false
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_SELECTION_PATH_DIAG_20261005/announcement_understanding/semantic_catalog_20260929_v2.csv",
+      "sha256": "d5713c382c7f7bd04458ed5eedadf712ba9a5a0fc48c7cb8b72476a87eeb0538",
+      "bytes": 194824,
+      "uploaded": false
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_SELECTION_PATH_DIAG_20261005/announcement_understanding/semantic_catalog_20260929_v2.md",
+      "sha256": "e925ae95a22235cbfe9a2ae411dba6ed4af18729fba3f39b6f1adb6bce05d86c",
+      "bytes": 140343,
+      "uploaded": false
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_SELECTION_PATH_DIAG_20261005/announcement_understanding/semantic_catalog_20260929_readout.md",
+      "sha256": "7e92d4196908df59549b23e5efd300fc75df6c8653884f20896c0f5d0a0c4c0c",
+      "bytes": 4303,
+      "uploaded": false
+    }
+  ],
+  "helper_sources": [
+    {
+      "path": "capture_body_corpus.py",
+      "sha256": "de118bd1653e1a714da174b9b5d39c491d1db24a7e1805306f9b6892e8f55a57",
+      "bytes": 48522
+    },
+    {
+      "path": "capture_missing_page1_v2.py",
+      "sha256": "762a8b2949325e76c3b6a5fd1b7bfe4f88c81212fbdd176233738e48a5cf3d55",
+      "bytes": 42501
+    },
+    {
+      "path": "capture_overlimit_pdfs_v3.py",
+      "sha256": "d0b597d98e169837bfbd2d6dd35b1203f86ce23b8e59c8bbd9feb693615da171",
+      "bytes": 13810
+    },
+    {
+      "path": "build_body_corpus_v3.py",
+      "sha256": "26c870deb0a9727ee691a63d5c54ab7fe839cb10c80a592e20c3d55aacb80a0d",
+      "bytes": 18059
+    },
+    {
+      "path": "derive_long_pdf_text_v3.py",
+      "sha256": "993940b04d0edf6fce066547ed56f97a744585bdc26fecbb6314d1f695f76ce5",
+      "bytes": 12614
+    },
+    {
+      "path": "build_semantic_catalog_v1.py",
+      "sha256": "1c42868a2f691baa363b431dc7fb6412794ad30f840f60b4dcf5864d732307e9",
+      "bytes": 20480
+    },
+    {
+      "path": "build_semantic_catalog_final_v2.py",
+      "sha256": "40e40279bff8fd4c7dd3f8766d7a0e3510b755facf65c010651fb195c485d53b",
+      "bytes": 21889
+    }
+  ],
+  "helper_general_unit_test_suite": "NOT_RUN; actual capture/derivation and source-output readback evidence are recorded separately",
+  "review": {
+    "base167": "PASS independent source/fact/quote binding",
+    "new62": "PASS independent cross-review including four corrected records",
+    "final234_merge": "PASS independent final artifact lineage, counts, quote/page bindings, four-record delta and readout boundaries",
+    "reviewers": [
+      "announcement_finish_review",
+      "announcement_long_a",
+      "announcement_long_b"
+    ],
+    "product_runtime_behavior_of_semantic_artifact": "NOT_RUN; local research files only"
+  },
+  "current_api_identity_readback": {
+    "checked_at": "2026-10-05T05:52:38.139480+00:00",
+    "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-announcement-r11-20261005-date-catalog-r1/app",
+    "release_id": null,
+    "app_root": null,
+    "runtime": [
+      "state = running",
+      "working directory = /Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-announcement-r11-20261005-date-catalog-r1/app",
+      "pid = 1166",
+      "state = active",
+      "state = active"
+    ],
+    "http_status": 200,
+    "response_sha256": "1b74966796f1733ad50c7c8e42671b46ca64ef12e21e1f02970359a1f42f7425",
+    "matches_independent_accepted_response": true
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "excluded_from_upload": [
+    "raw announcements and PDF",
+    "full body corpora and derived text",
+    "complete semantic output datasets",
+    "credentials and account data",
+    "service state and runtime dependencies"
+  ],
+  "environment": {
+    "orchestrationPython": "3.14.6",
+    "orchestrationExecutable": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "pytest": "9.1.1",
+    "pdfExtractionExecutable": "/Users/lexi/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "note": "PDF extraction runs in the bundled dependency Python through a subprocess; pypdfium2 is not installed in the service Python.",
+    "pdfExtractionPython": "3.12.14",
+    "pypdfium2": "5.13.0"
+  },
+  "reading_guide": [
+    "广汽拟议重组及审批条件",
+    "埃斯顿A股激励未来条件",
+    "比亚迪A/H股表决差异",
+    "旭阳资助上限及按持股比例反担保",
+    "美团季度与半年盈利差别"
+  ],
+  "code_sync_scope": "Existing private repository lexi2016/v4, branch codex/announcement-date-workflow-20261005; no merge"
+}

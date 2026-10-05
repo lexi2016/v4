@@ -64,8 +64,25 @@
     "executable": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python"
   },
   "test_commands": [
-    "python -m pytest -q tests/test_manager_announcement_date_catalog.py",
-    "python -m pytest -q test_integrate_saved_date_catalog_refs.py"
+    {
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_SELECTION_PATH_DIAG_20261005/TASK/fixed_announcement_workflow/candidate_r10_phase8/app",
+      "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "env": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONPATH": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_SELECTION_PATH_DIAG_20261005/TASK/fixed_announcement_workflow/candidate_r10_phase8/app:/Users/lexi/Desktop/学习/v4_app"
+      },
+      "invocation": "pytest.main(['-q','tests/test_manager_announcement_date_catalog.py','--basetemp=/tmp/phase8-review-pytest-20261005'])",
+      "result": "15 passed"
+    },
+    {
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_SELECTION_PATH_DIAG_20261005/TASK/fixed_announcement_workflow",
+      "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "env": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "invocation": "pytest.main(['-q','test_integrate_saved_date_catalog_refs.py','--basetemp=/tmp/phase8-helper-review-pytest-20261005'])",
+      "result": "3 passed"
+    }
   ],
   "api_receipt": {
     "timestamp": "2026-10-05T02:17:40.618889+00:00",
@@ -103,5 +120,6 @@
     "buy_gate_updated": false,
     "orders_sent": false
   },
-  "operator_note": "Actual import used reviewed R11 REPO override through runpy. Raw operator default points to canonical source; preserve identity distinction. Body interpretation still in progress; this commit records accepted date catalog only."
+  "operator_note": "Actual import used reviewed R11 REPO override through runpy. Raw operator default points to canonical source; preserve identity distinction. Body interpretation still in progress; this commit records accepted date catalog only.",
+  "research_artifact_receipt": "result_receipt.json"
 }
