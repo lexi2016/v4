@@ -1,0 +1,131 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+______________ test_default_production_adapter_market_boundary[A] ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-15/test_default_production_adapte0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f4fcd67aae0>
+market = 'A'
+
+    @pytest.mark.parametrize('market', ['A', 'HK'])
+    def test_default_production_adapter_market_boundary(tmp_path, monkeypatch, market):
+        """Synthetic parquet/topics; actual lookup, analyzer and collector unchanged.
+    
+        This deliberately shows the HK production entry is NOT established by the
+        injected-analyzer tests above. No fabricated HK->A identity conversion.
+        """
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+        panel = tmp_path/'selector.parquet'
+        rows = [dict(trade_date=DAY, ts_code=f'{600000+i:06d}.SH', name=f'合成公司{i}')
+                for i in range(1000)]
+        # Even a supplied HK panel row must be filtered by the actual A-only lookup.
+        rows += [dict(trade_date=DAY, ts_code='00300.HK', name='合成港企'),
+                 dict(trade_date=DAY, ts_code='HK.00300', name='合成港企')]
+        pq.write_table(pa.Table.from_pylist(rows), panel)
+        company = '合成公司0（600000）' if market == 'A' else '合成港企（HK.00300）'
+        monkeypatch.setattr(__import__(__name__, fromlist=['BODY']), 'BODY',
+            (company + '与US.VRT签署数据中心设备供货协议，提供服务器电源及液冷设备，相关订单按合同交付。') * 3)
+        status = produce(tmp_path/'data', monkeypatch, real_selector_panel=panel)
+        summary = json.loads(Path(status['paths']['summary']).read_bytes())
+        assert summary['stock_lookup_health']['ok'] is True
+        assert summary['stock_lookup_health']['master_count'] == 1000
+        assert summary['effective_topics']  # HK text is retained, not a fetch failure.
+        codes = {c['code'] for t in summary['effective_topics'] for c in t['companies'] if c.get('code')}
+        source = snapshot(tmp_path/'data')
+        if market == 'HK':
+            assert not codes
+            assert source['stock_research_timeline'] == []
+            assert archive(source)['articles'] == []
+        else:
+>           assert codes == {'600000.SH'}
+E           AssertionError: assert set() == {'600000.SH'}
+E             
+E             Extra items in the right set:
+E             '600000.SH'
+E             Use -v to get more diff
+
+tests/test_research_acquisition_clock_pipeline.py:287: AssertionError
+_____________ test_default_production_adapter_market_boundary[HK] ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-15/test_default_production_adapte1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f4fb1a37d40>
+market = 'HK'
+
+    @pytest.mark.parametrize('market', ['A', 'HK'])
+    def test_default_production_adapter_market_boundary(tmp_path, monkeypatch, market):
+        """Synthetic parquet/topics; actual lookup, analyzer and collector unchanged.
+    
+        This deliberately shows the HK production entry is NOT established by the
+        injected-analyzer tests above. No fabricated HK->A identity conversion.
+        """
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+        panel = tmp_path/'selector.parquet'
+        rows = [dict(trade_date=DAY, ts_code=f'{600000+i:06d}.SH', name=f'合成公司{i}')
+                for i in range(1000)]
+        # Even a supplied HK panel row must be filtered by the actual A-only lookup.
+        rows += [dict(trade_date=DAY, ts_code='00300.HK', name='合成港企'),
+                 dict(trade_date=DAY, ts_code='HK.00300', name='合成港企')]
+        pq.write_table(pa.Table.from_pylist(rows), panel)
+        company = '合成公司0（600000）' if market == 'A' else '合成港企（HK.00300）'
+        monkeypatch.setattr(__import__(__name__, fromlist=['BODY']), 'BODY',
+            (company + '与US.VRT签署数据中心设备供货协议，提供服务器电源及液冷设备，相关订单按合同交付。') * 3)
+        status = produce(tmp_path/'data', monkeypatch, real_selector_panel=panel)
+        summary = json.loads(Path(status['paths']['summary']).read_bytes())
+        assert summary['stock_lookup_health']['ok'] is True
+        assert summary['stock_lookup_health']['master_count'] == 1000
+        assert summary['effective_topics']  # HK text is retained, not a fetch failure.
+        codes = {c['code'] for t in summary['effective_topics'] for c in t['companies'] if c.get('code')}
+        source = snapshot(tmp_path/'data')
+        if market == 'HK':
+            assert not codes
+            assert source['stock_research_timeline'] == []
+>           assert archive(source)['articles'] == []
+                   ^^^^^^^^^^^^^^^
+
+tests/test_research_acquisition_clock_pipeline.py:285: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_research_acquisition_clock_pipeline.py:75: in archive
+    return build_research_archive(source, source_input_sha256=hashlib.sha256(
+domains/research.py:426: in build_research_archive
+    validate_research_archive(payload)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+payload = {'schema_version': 'v3_5.research_archive.v1', 'archive_date': '20260925', 'status': 'READY', 'timezone': 'Asia/Shanghai', ...}
+
+    def validate_research_archive(payload: Mapping[str, Any]) -> str:
+        if not isinstance(payload, Mapping) or not set(payload).issubset(_TOP_LEVEL_FIELDS | {"stage_evidence_v1"}) or not _TOP_LEVEL_FIELDS.issubset(payload):
+            raise ValueError("invalid research archive fields")
+        if payload.get("schema_version") != SCHEMA_VERSION:
+            raise ValueError("invalid research archive schema")
+        archive_date = _archive_date(payload.get("archive_date"))
+        fixed = {
+            "status": "READY",
+            "timezone": TIMEZONE,
+            "write_policy": "read_only",
+            "recommendation_status": "RESEARCH_ONLY",
+            "production_allowed": False,
+            "buy_gate_updated": False,
+            "orders_sent": False,
+        }
+        if any(payload.get(key) != expected for key, expected in fixed.items()):
+            raise ValueError("unsafe research archive boundary")
+        if not _SHA256.fullmatch(str(payload.get("source_input_sha256") or "")):
+            raise ValueError("invalid research source SHA-256")
+        if not isinstance(payload.get("source_schema_version"), str):
+            raise ValueError("invalid research source schema")
+        _aware_timestamp(payload.get("source_generated_at"), "source_generated_at")
+        if tuple(payload.get("dedupe_key_fields") or ()) != DEDUPE_KEY_FIELDS:
+            raise ValueError("research dedupe contract mismatch")
+    
+        articles = payload.get("articles")
+        stock_pool = payload.get("stock_pool")
+        if not isinstance(articles, list) or not articles:
+>           raise ValueError("research archive requires articles")
+E           ValueError: research archive requires articles
+
+contracts/research.py:281: ValueError
+=========================== short test summary info ============================
+FAILED tests/test_research_acquisition_clock_pipeline.py::test_default_production_adapter_market_boundary[A]
+FAILED tests/test_research_acquisition_clock_pipeline.py::test_default_production_adapter_market_boundary[HK]
+2 failed, 19 deselected in 0.63s

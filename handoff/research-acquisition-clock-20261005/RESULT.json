@@ -2,9 +2,9 @@
   "baseline_commit": "09a987cec75760aa6665e5529a555af9c3e2e785",
   "scope": "API snapshot; forward-only ZSXQ acquisition preservation",
   "runtime_changes": 5,
-  "added_synthetic_tests": 19,
+  "added_synthetic_tests": 25,
   "cloud_targeted": {
-    "passed": 124,
+    "passed": 130,
     "failed": 0,
     "warnings": 1,
     "python": "3.12.14"
@@ -19,5 +19,9 @@
   "deployed": false,
   "raw_market_data_uploaded": false,
   "production_allowed": false,
-  "orders_sent": false
+  "orders_sent": false,
+  "hk_business_acceptance": "BLOCKED_UNPROVEN_PRODUCER",
+  "hk_default_adapter": "EXCLUDED_A_SHARE_ONLY_LOOKUP",
+  "hk_positive_tests": "INJECTED_ANALYZER_OUTPUT_ONLY",
+  "real_adapter_a_share": "PASS_SYNTHETIC_INPUT_UNMOCKED_ADAPTER"
 }

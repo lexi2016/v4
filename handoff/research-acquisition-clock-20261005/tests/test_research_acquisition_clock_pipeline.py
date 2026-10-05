@@ -1,4 +1,6 @@
-"""Synthetic source/clock/master only; real producer, archive store and consumers.
+"""Synthetic source/clock/master; HK positives inject an analyzer result.
+
+Default-adapter tests below establish only A-share entry and HK exclusion.
 
 No network or historical owner data is accessed. Removing receipt propagation
 must make the successful Manager relation test fail, without weakening PIT.
@@ -35,12 +37,12 @@ IDENTITY = dict(status='OWNER_VERIFIED', source_date=DAY, artifact_sha256='a'*64
                 owner='SYNTHETIC_MASTER', manifest_sha256='b'*64)
 
 
-def produce(tmp_path, monkeypatch):
+def produce(tmp_path, monkeypatch, *, real_selector_panel=None, pages=1):
     calls = []
     topic = dict(topic_id='12345678901234567', create_time='2026-09-25T08:30:00+08:00', content=BODY)
     def runner(command, **kwargs):
         calls.append(command)
-        return subprocess.CompletedProcess(command, 0, json.dumps(dict(topics=[topic], has_more=False)), '')
+        return subprocess.CompletedProcess(command, 0, json.dumps(dict(topics=[topic] if len(calls) == 1 else [], has_more=len(calls) < pages)), '')
     # Lookup/analyzer port is synthetic; all time acquisition and persistence
     # remain in the actual collector. Consumer subject parsing is not mocked.
     def analyzer(recent, _panel, _root):
@@ -52,15 +54,18 @@ def produce(tmp_path, monkeypatch):
     class Clock(datetime):
         @classmethod
         def now(cls, tz=None):
+            assert len(calls) == pages  # No acquisition clock before final page returns.
             value = next(clock)
             if value == AVAILABLE:
                 assert list(tmp_path.glob('external_sources/zsxq_hourly/*/zsxq_summary.json'))
             return datetime.fromisoformat(value)
     monkeypatch.setattr(capture, 'datetime', Clock)
     status = capture.materialize_zsxq_hourly_delta(data_root=tmp_path, trade_date=DAY, slot='0900',
-        groups=[('SYNTHETIC', 'SYNTHETIC')], process_runner=runner, analyzer=analyzer,
+        groups=[('SYNTHETIC', 'SYNTHETIC')], process_runner=runner,
+        **(dict(selector_panel=real_selector_panel, refetch_root=Path(capture.__file__).resolve().parents[1]/"upstreams")
+           if real_selector_panel else dict(analyzer=analyzer)),
         now=datetime.fromisoformat(START))
-    assert len(calls) == 1
+    assert len(calls) == pages
     return status
 
 
@@ -108,7 +113,7 @@ def test_real_capture_boundaries_are_preserved_in_status_and_frozen_input(tmp_pa
             (tmp_path/status['status_path']).read_bytes()).hexdigest()
 
 
-def test_producer_archive_exact_store_consumers_reach_existing_manager_relation(tmp_path, monkeypatch):
+def test_injected_hk_analyzer_output_archive_consumers_reach_manager_relation(tmp_path, monkeypatch):
     produce(tmp_path/'producer', monkeypatch)
     source = snapshot(tmp_path/'producer'); before = deepcopy(source)
     payload = archive(source)
@@ -139,7 +144,7 @@ def test_new_acquisition_after_slot_cannot_hide_behind_old_start_clock(tmp_path,
             cutoff=datetime.fromisoformat('2026-09-25T09:00:59+08:00'))
 
 
-def test_original_hourly_runner_checks_source_sha_and_keeps_retry_bytes(tmp_path, monkeypatch):
+def test_injected_hk_output_hourly_runner_checks_sha_and_keeps_retry_bytes(tmp_path, monkeypatch):
     produce(tmp_path, monkeypatch)
     result = build_hourly_research_input(data_root=tmp_path, business_date=DAY, slot='0900')
     source_path = tmp_path/result['source_path']; source_bytes = source_path.read_bytes()
@@ -248,4 +253,85 @@ def test_merged_different_receipts_cannot_lend_earlier_clocks_to_later_text(tmp_
     source['stock_research_timeline'].append(row)
     payload = archive(source)
     assert payload['articles'][0]['duplicate_evidence_count'] == 2
+    assert 'available_at' not in payload['articles'][0]
+
+
+@pytest.mark.parametrize('market', ['A', 'HK'])
+def test_default_production_adapter_market_boundary(tmp_path, monkeypatch, market):
+    """Synthetic parquet/topics; actual lookup, analyzer and collector unchanged.
+
+    This deliberately shows the HK production entry is NOT established by the
+    injected-analyzer tests above. No fabricated HK->A identity conversion.
+    """
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+    panel = tmp_path/'selector.parquet'
+    rows = [dict(trade_date=DAY, ts_code=f'{600000+i:06d}.SH', name=f'合成公司{i}')
+            for i in range(1000)]
+    # Even a supplied HK panel row must be filtered by the actual A-only lookup.
+    rows[0]['name'] = '合成甲企'
+    rows += [dict(trade_date=DAY, ts_code='00300.HK', name='合成港企'),
+             dict(trade_date=DAY, ts_code='HK.00300', name='合成港企')]
+    pq.write_table(pa.Table.from_pylist(rows), panel)
+    company = '合成甲企（600000）' if market == 'A' else '合成港企（HK.00300）'
+    monkeypatch.setattr(__import__(__name__, fromlist=['BODY']), 'BODY',
+        (company + '与US.VRT签署数据中心设备供货协议，提供服务器电源及液冷设备，相关订单按合同交付。') * 3)
+    status = produce(tmp_path/'data', monkeypatch, real_selector_panel=panel)
+    summary = json.loads(Path(status['paths']['summary']).read_bytes())
+    assert summary['stock_lookup_health']['ok'] is True
+    assert summary['stock_lookup_health']['master_count'] == 1000
+    assert summary['effective_topics']  # HK text is retained, not a fetch failure.
+    codes = {c['code'] for t in summary['effective_topics'] for c in t['companies'] if c.get('code')}
+    source = snapshot(tmp_path/'data')
+    if market == 'HK':
+        assert not codes
+        assert source['stock_research_timeline'] == []
+        with pytest.raises(ValueError, match='research archive requires articles'):
+            archive(source)
+    else:
+        assert codes == {'600000.SH'}
+        assert source['stock_research_timeline']
+        result = build_hourly_research_input(data_root=tmp_path/'data', business_date=DAY, slot='0900')
+        run = run_hourly_research_file(data_root=tmp_path/'data',
+            source=tmp_path/'data'/result['source_path'], business_date=DAY, target_date=DAY,
+            slot='0900', mode='LIVE', expected_source_sha256=result['source_sha256'])
+        assert run['status'] == 'SUCCEEDED'
+        materials, gaps, binding = _read_archive(ResearchLaneSource(tmp_path/'data'), DAY, '0900')
+        assert binding['status'] == 'VERIFIED'
+        assert materials and all(row['available_at'] == AVAILABLE for row in materials)
+        assert not any('ACQUISITION_TIME_MISSING' in gap for gap in gaps)
+
+
+def test_receipt_is_recorded_only_after_all_pages_complete(tmp_path, monkeypatch):
+    status = produce(tmp_path, monkeypatch, pages=2)
+    assert status['acquisition_receipt']['retrieved_at'] == RETRIEVED
+    assert snapshot(tmp_path)['stock_research_timeline'][0]['available_at'] == AVAILABLE
+
+
+def test_actual_capture_clock_rollback_never_produces_qualified_pair(tmp_path, monkeypatch):
+    monkeypatch.setattr(__import__(__name__, fromlist=['AVAILABLE']), 'AVAILABLE',
+                        '2026-09-25T08:44:00+08:00')
+    status = produce(tmp_path, monkeypatch)
+    assert status['acquisition_receipt']['retrieved_at'] > status['acquisition_receipt']['available_at']
+    payload = archive(snapshot(tmp_path))
+    assert 'available_at' not in payload['articles'][0]
+
+
+@pytest.mark.parametrize('changed', ['summary', 'status'])
+def test_capture_artifact_change_during_input_read_discards_pair(tmp_path, monkeypatch, changed):
+    from ops import collect_hourly_research_input as collector
+    status = produce(tmp_path, monkeypatch)
+    original = collector._read_json
+    summary_path = Path(status['paths']['summary'])
+    status_path = tmp_path/status['status_path']
+    def read_then_replace(path):
+        value = original(path)
+        if Path(path) == summary_path:
+            target = summary_path if changed == 'summary' else status_path
+            data = json.loads(target.read_bytes())
+            data['synthetic_concurrent_writer'] = True
+            target.write_text(json.dumps(data))
+        return value
+    monkeypatch.setattr(collector, '_read_json', read_then_replace)
+    payload = archive(snapshot(tmp_path))
     assert 'available_at' not in payload['articles'][0]

@@ -1,6 +1,6 @@
 # Research acquisition clocks：限定前向修复候选
 
-状态：云端源码和合成行为 TESTED；Mac 接入、部署、自然运行、真实 US 关系恢复 CANNOT_CONFIRM。未连接 Mac、未部署/合并、未重写旧档案、未采集真实行情。PR26 已有本机验收不在本轮修改范围。
+状态（独立审查后修正）：**HK 生产入口未证实，业务验收 BLOCKED。** 原 HK 正例替换了整个 analyzer 并注入代码，只能证明下游协议，不能证明真实 HK 文章进入此 collector，更不能证明历史 HK.00300 的来源。五文件时钟 patch 保留；本次补充不增加 runtime 修改。云端源码和限定合成行为 TESTED；Mac 接入、部署、自然运行、真实 US 关系恢复 CANNOT_CONFIRM。未连接 Mac、未部署/合并、未重写旧档案、未采集真实行情。PR26 已有本机验收不在本轮修改范围。
 
 ## 身份与边界
 
@@ -26,9 +26,9 @@ Git 基线 `09a987cec75760aa6665e5529a555af9c3e2e785`，源码来自其中 `hand
 
 ## 云端验证
 
-Python 3.12.14 / pytest 9.1.1；工程声明 Python >=3.14，Mac 原生版本待验。测试中的题材、股票、US 来源和时钟全部合成，不是历史/真实行情；只替换外部 CLI 与 analyzer lookup port，其余使用原保存、runner、SHA、archive reader、关系及 Manager 函数。
+Python 3.12.14 / pytest 9.1.1；工程声明 Python >=3.14，Mac 原生版本待验。修订测试另需 pyarrow（云端 25.0.1，用真实 parquet lookup）。测试中的题材、股票、US 来源和时钟全部合成，不是历史/真实行情；最初 19 项替换外部 CLI 和整个 analyzer 函数（包括注入 HK code），不是仅替换 lookup；其余保存、runner、SHA、archive reader、关系及 Manager 函数为原实现。新增真实 adapter 测试不替换 analyzer/lookup，只提供合成 parquet、CLI 输出和时钟。
 
-最终六套：**124 passed，1 个 Starlette deprecation warning**，含新增 19 项。red-final.log 保存最初三项有效 RED；runner-pit-red.log 保存原 runner 缺 PIT 声明的 RED；core-final.log 为最终 GREEN。覆盖真实函数链到 Manager、缺钟/逆序/迟到/坏 SHA/错路径/错 run/错主体/第三方句子、旧 archive、旧 status 重用、来源 SHA 拒绝、重试字节不变、扩展字段完整性与合并不同凭据。
+最初六套：124 passed，含新增 19 项；独立审查后最终六套 **130 passed，1 个 Starlette deprecation warning**，本包新增测试累计 25 项。red-final.log 保存最初三项有效 RED；runner-pit-red.log 保存原 runner 缺 PIT 声明的 RED；core-final.log 为首版 GREEN，core-revised.log 为修订版最终 GREEN。覆盖真实函数链到 Manager、缺钟/逆序/迟到/坏 SHA/错路径/错 run/错主体/第三方句子、旧 archive、旧 status 重用、来源 SHA 拒绝、重试字节不变、扩展字段完整性与合并不同凭据。
 
 ```sh
 python -m pytest -q tests/test_research_acquisition_clock_pipeline.py tests/test_research_archive.py tests/test_hourly_research_runner.py tests/test_research_hourly_regressions.py tests/test_us_relation_pipeline_r2.py tests/test_us_relation_assessment_state.py
@@ -42,7 +42,7 @@ patch 正向、反向分别 5/5 SHA 一致，见 patch-check.log。未运行全�
 
 ## Mac 接续：先身份，再隔离验证
 
-仍缺的最小现场证据：实际 archive producer job/plist 的入口参数与 source root/data root（去除凭证），本五文件及 runner 的真实路径/SHA；一条原 archive 的 source_input_sha256、对应原 source witness，以及那次 capture 的 status/summary/receipt 路径与 SHA。US digest label/runs=0 不能替代此绑定。只读收集这些信息即可，不需要全量 archive/原始行情上传。若 producer 是 canonical 拆分版，按函数差异适配并独立验证，禁止直接覆盖。
+仍缺的最小现场证据：实际 archive producer job/plist 的入口参数与 source root/data root（去除凭证），本五文件、runner **及实际加载的 analyzer** 的真实路径/SHA（七项见 reviewer-followup.json）；一条原 archive 的 source_input_sha256、对应原 source witness，以及那次 capture 的 status/summary/receipt 路径与 SHA。US digest label/runs=0 不能替代此绑定。只读收集这些信息即可，不需要全量 archive/原始行情上传。若 producer 是 canonical 拆分版，按函数差异适配并独立验证，禁止直接覆盖。
 
 本包不包含自动部署脚本。仅在全五前像一致的**新隔离候选根**执行，以下 PACKET、CANDIDATE 均应设置为绝对路径：
 
@@ -69,3 +69,20 @@ python "$PACKET/verify_sources.py" "$CANDIDATE" before
 ```
 
 回滚只处理这五个源码文件；不删除测试或任何数据，不改运行包、plist、端口。对已产生新扩展数据的生产切换/回退必须另行审核 reader 兼容性，本轮未执行或授权此操作。
+
+
+## 独立审查补充：入口诊断与修正结论
+
+静态证据：`ops/run_zsxq_hourly_delta.py::_default_analyzer` 以 isolated loader 加载 `upstreams/shared_research/v3_zsxq_adapter.py`；其 `_load_stock_lookup` 仅接受六位 SH/SZ/BJ，显式代码提取也为六位 A 股。`_zsxq_rows` 跳过无 code 公司。代码接受外部注入 analyzer 的测试端口不构成实际 HK producer。
+
+真实 adapter 限定集成测试使用 1000 个合成 A 股 panel 条目及两种 HK.00300/00300.HK 表达。A 股正常经默认 analyzer → collector → 原 hourly runner → archive → existing_materials，采集凭据保留；HK 文本留在 summary，但 lookup 排除 HK，timeline 为空，archive 拒绝空文章。没有把 A 股代码改成 HK，也没有新增 producer。`real-adapter-final.log` 的 25 项是整个新增文件的运行结果。`real-adapter.log` 保留准备阶段失败：合成公司名含数字被原规则排除，以及测试误以为空 archive 合法；只修合成数据和预期，未改生产规则。
+
+可见的既有路径与证据边界：
+
+- 档案入口为 `ops/import_research_archive.py` 的显式 frozen snapshot 导入，以及 `ops/run_hourly_research.py` 接收显式 source。二者均不揭示那份历史输入由谁采集；日产品聚合也不是新的采集 owner。
+- 可见 HK 公告路径是 `hkex_provider`/material store，以及 `workspace_announcements` → `announcement_materials` → workspace 投影，已有独立来源/时钟合同。这不是证据表明它写入历史 HK.00300 research archive；本轮不跨到公告或 R14 修改。
+- 已有 `ResearchLaneSource`/`existing_materials` 读取精确 daily/hourly archive，不能反推生产 job。仓库可用源码中未找到历史 HK.00300 原 archive/witness。**真实 HK 研究材料实际走哪条原 owner 仍 UNKNOWN**；不能声称已定位另一个入口，更不能推定本 collector 是它的 owner。
+
+结论：首版误把注入 HK 的下游正例当成生产入口证明；现已撤回这一解释。此为既有依赖/业务范围缺口，不是独立审查确认的五文件新增回归。保留时钟修复为候选基础工作，但在实际 HK owner 确认前，不宣称解决 HK 业务，不扩代码识别，不建议切换生产。
+
+补充最小风险验证：两页模拟 CLI 完成前不得记录 retrieved_at；真实采集函数出现 wall-clock 回退后 reader 丢弃非法 pair；在 summary 或 status 初读后、绑定复读前模拟另一 writer 替换原件，pair 被丢弃。它们是确定性合成竞态，不是并发压力测试，也不证明所有并发交错；不新增锁/生产逻辑。旧严格 reader 与新扩展不兼容，仍须协调 producer/reader 版本组合。
