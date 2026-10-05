@@ -1,0 +1,19 @@
+{
+  "release_source": "materialized api variant",
+  "python": "<EXISTING_COMPATIBLE_PYTHON>",
+  "entry_module": "apps.api.v35_api.run",
+  "host": "127.0.0.1",
+  "port": 8873,
+  "environment": {
+    "PYTHONPATH": "<MATERIALIZED_API_ROOT>",
+    "V35_APP_ROOT": "<MATERIALIZED_API_ROOT>",
+    "V35_DATA_ROOT": "<EMPTY_OR_AUTHORIZED_FIXTURE_ROOT>",
+    "V35_STAGE_CENTER_SELECTION_ROOT": "<ISOLATED_STAGE_SELECTION_ROOT>",
+    "V4_MANAGER_RESEARCH_STATE_ROOT": "<ISOLATED_MANAGER_STATE_ROOT>",
+    "RESEARCH_ONLY": "1",
+    "production_allowed": "false",
+    "buy_gate_updated": "false",
+    "orders_sent": "false"
+  },
+  "note": "Example only, no live configuration copied; do not point review at original state, invoke collectors or schedule nodes."
+}

@@ -1,0 +1,46 @@
+{
+  "observed_at_utc": "2026-10-05T00:00:02.605167+00:00",
+  "canonical": {
+    "root": "/Users/lexi/Desktop/学习/v4_app",
+    "head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "branch": "codex/system-consolidation-20260912",
+    "dirty_user_changes": "preserved; no checkout/reset/stash/index mutation"
+  },
+  "api": {
+    "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-selection-r10-20261004-business-r1/app",
+    "release": "manager-selection-r10-20261004-business-r1",
+    "entry": "python -B -m apps.api.v35_api.run --host 127.0.0.1 --port 8873",
+    "plist_sha256": "5e133eedd7d9ff9169ca5d9ff8517a19f2a31c78dbba30a628478c127e13b36a",
+    "label": "com.lexi.v35.api-only",
+    "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-selection-r10-20261004-business-r1/app",
+    "launchctl_read_only": {
+      "state": "running",
+      "pid": 72627
+    }
+  },
+  "stage": {
+    "root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app",
+    "binding": "issue23_runner_helper_r3/stage_r1_binding_candidate_r3",
+    "entry": "python -B ops/run_stage_center_nodes.py --config stage_center_tick_config.json",
+    "plist_sha256": "9c7199ca1fcfedc09397255c932d25c6edc15779952bbd5b5bec2671e883d3f5",
+    "label": "com.lexi.stage-center.scheduler",
+    "working_directory": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app",
+    "launchctl_read_only": {
+      "state": "not running",
+      "runs": 9,
+      "registered_binding": "active"
+    }
+  },
+  "read_only_snapshot_consistency": "all copied source SHA rechecked unchanged",
+  "excludes": [
+    "credentials/auth files",
+    "accounts/holdings",
+    "raw market data",
+    "runtime stores/large responses/plans",
+    "venv/node_modules/dist",
+    ".git",
+    "old8851 as runtime"
+  ],
+  "new_business_tests": "NOT_RUN",
+  "new_API_UI_natural_tests": "NOT_RUN"
+}

@@ -1,0 +1,34 @@
+{
+  "allowed_repository": "lexi2016/v4 private",
+  "new_branch_only": true,
+  "no_merge_or_deployment": true,
+  "source_inclusion": [
+    "domains",
+    "infrastructure",
+    "stage_center",
+    "v4",
+    "ops",
+    "tests",
+    "contracts",
+    "apps/api",
+    "apps/web/src",
+    "upstreams",
+    "v3_shared_data"
+  ],
+  "source_extensions": [
+    ".css",
+    ".html",
+    ".py",
+    ".sh",
+    ".svg",
+    ".toml",
+    ".ts",
+    ".tsx",
+    ".vue"
+  ],
+  "config": "sanitized examples only",
+  "source_blob_deduplication": "exact byteSHA acrosscurrentvariants; any prioruploadedblob reusedonly by gitblobSHA",
+  "data_excluded": true,
+  "credential_pattern_findings": [],
+  "claim": "Not an application fix, validation suite or deployment."
+}

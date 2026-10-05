@@ -1,0 +1,34 @@
+{
+  "source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_SELECTION_PATH_DIAG_20261005/LEDGER.json",
+  "sha256": "5009af6ad09ded23cfb0932cfd3705f8360d6df9416c2baa2b6b9a921fac945f",
+  "fields": {
+    "final_bounded_outcome": {
+      "status": "REVIEWED bounded PASS post-hoc Top20 capture and summary; full manager selection NOT accepted",
+      "sample": "689 observed HK_CONNECT codes out of696 date-master, fixed20; not fullHK market",
+      "announcement": "8 bodies6issuers;3 possible-positive(2beforeopen,1intraday);14 no-doc unknown;1unreadablepostclose;1mixedfinancing;1noclearpositive",
+      "raw_oversold": 12,
+      "numeric_volume_ge1_5": 8,
+      "formal_volume_gate": "CANNOT_CONFIRM",
+      "us_mapping": "0 accepted, full sample uncertain; issuer relations absent",
+      "announcement_oversold_intersection": [
+        "HK.07666"
+      ],
+      "capture": "20queried8docs0collectionpending;49rawrefs independently verified;PARTIALpagination",
+      "automated_readback": "800pending_review(797claims+3documentparsegaps);0positiveobservations;manualclassifications distinct",
+      "IMPLEMENTED": true,
+      "TESTED": "57independent candidate tests plus scoped runner correction no-network check",
+      "REVIEWED": "PASS narrow candidate andposthocartifacts",
+      "BEHAVIOR_VERIFIED": "targeted official source capture + owner persisted readback PARTIAL",
+      "DEPLOYED": false,
+      "API_VERIFIED": "not8873",
+      "UI_VERIFIED": "CANNOT_CONFIRM",
+      "NATURAL_VERIFIED": "CANNOT_CONFIRM",
+      "report_sha256": "47b487e4861dc270a9067e8395bee84abe070f310f8736f18ac5db0098a0e0c6",
+      "safety": {
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    }
+  }
+}

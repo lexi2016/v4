@@ -1,0 +1,914 @@
+{
+  "schema_version": "v3_5.runtime_graph_evidence_bindings.v1",
+  "node_ids": [
+    "bilibili_fupan_nightly",
+    "FUPAN_VIDEO_CHECK",
+    "FUPAN_VIDEO_DOWNLOAD_ASR",
+    "FUPAN_STOCKDICT",
+    "FUPAN_VIDEO_TABLE_OCR_ALIGN",
+    "FUPAN_VIDEO_GAP",
+    "FUPAN_V3_PUBLISH",
+    "FUPAN_8771_VERIFY",
+    "FUPAN_A_SHARE_STRUCTURE",
+    "FUPAN_CLOSE_MATERIALS",
+    "FUPAN_REVIEW_START",
+    "ashare_v193_slot_selector_premarket",
+    "hkconnect_d1_top100_prob_active",
+    "hkconnect_model_selection_review",
+    "v3_opening_intraday_stage_select_0925_1500",
+    "ashare_research_panel",
+    "hkconnect_research_panel"
+  ],
+  "bindings": [
+    {
+      "node_id": "FUPAN_CLOSE_MATERIALS",
+      "expected_outputs": [
+        "{data_root}/a_share_reviews/{date}.json",
+        "{data_root}/a_share_reviews/receipts/{date}.json",
+        "{data_root}/a_share_reviews/manifest.json"
+      ],
+      "status_sources": [
+        {
+          "kind": "v35_artifact",
+          "path": "{data_root}/a_share_reviews/{date}.json",
+          "semantic_alias": "fupan_close_chain_v35",
+          "projection": "close_chain_node",
+          "semantic_fields": {
+            "business_date": "business_date",
+            "trade_date": "trade_date",
+            "task_id": "task_id",
+            "status": "status",
+            "reason": "reason",
+            "row_count": "row_count",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          },
+          "receipt_path": "{data_root}/a_share_reviews/receipts/{date}.json",
+          "manifest_path": "{data_root}/a_share_reviews/manifest.json",
+          "manifest_key": "a_share_reviews/{date}.json",
+          "date_role": "business_date",
+          "expected_schema": "v3_5.a_share_review.v1"
+        },
+        {
+          "kind": "v35_receipt",
+          "path": "{data_root}/a_share_reviews/receipts/{date}.json",
+          "artifact_path": "{data_root}/a_share_reviews/{date}.json",
+          "manifest_path": "{data_root}/a_share_reviews/manifest.json",
+          "manifest_key": "a_share_reviews/{date}.json",
+          "date_role": "business_date"
+        }
+      ],
+      "api_probe": [
+        {
+          "path": "/api/v3/review?date={date}",
+          "kind": "review_close_chain",
+          "date_role": "business_date"
+        }
+      ]
+    },
+    {
+      "node_id": "FUPAN_REVIEW_START",
+      "expected_outputs": [
+        "{data_root}/a_share_reviews/{date}.json",
+        "{data_root}/a_share_reviews/receipts/{date}.json",
+        "{data_root}/a_share_reviews/manifest.json"
+      ],
+      "status_sources": [
+        {
+          "kind": "v35_artifact",
+          "path": "{data_root}/a_share_reviews/{date}.json",
+          "semantic_alias": "fupan_close_chain_v35",
+          "projection": "close_chain_node",
+          "semantic_fields": {
+            "business_date": "business_date",
+            "trade_date": "trade_date",
+            "task_id": "task_id",
+            "status": "status",
+            "reason": "reason",
+            "row_count": "row_count",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          },
+          "receipt_path": "{data_root}/a_share_reviews/receipts/{date}.json",
+          "manifest_path": "{data_root}/a_share_reviews/manifest.json",
+          "manifest_key": "a_share_reviews/{date}.json",
+          "date_role": "business_date",
+          "expected_schema": "v3_5.a_share_review.v1"
+        },
+        {
+          "kind": "v35_receipt",
+          "path": "{data_root}/a_share_reviews/receipts/{date}.json",
+          "artifact_path": "{data_root}/a_share_reviews/{date}.json",
+          "manifest_path": "{data_root}/a_share_reviews/manifest.json",
+          "manifest_key": "a_share_reviews/{date}.json",
+          "date_role": "business_date"
+        }
+      ],
+      "api_probe": [
+        {
+          "path": "/api/v3/review?date={date}",
+          "kind": "review_close_chain",
+          "date_role": "business_date"
+        }
+      ]
+    },
+    {
+      "node_id": "FUPAN_A_SHARE_STRUCTURE",
+      "expected_outputs": [
+        "{data_root}/a_share_reviews/{date}.json",
+        "{data_root}/a_share_reviews/receipts/{date}.json",
+        "{data_root}/a_share_reviews/manifest.json"
+      ],
+      "status_sources": [
+        {
+          "kind": "v35_artifact",
+          "path": "{data_root}/a_share_reviews/{date}.json",
+          "semantic_alias": "fupan_close_chain_v35",
+          "projection": "close_chain_node",
+          "semantic_fields": {
+            "business_date": "business_date",
+            "trade_date": "trade_date",
+            "task_id": "task_id",
+            "status": "status",
+            "reason": "reason",
+            "row_count": "row_count",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          },
+          "receipt_path": "{data_root}/a_share_reviews/receipts/{date}.json",
+          "manifest_path": "{data_root}/a_share_reviews/manifest.json",
+          "manifest_key": "a_share_reviews/{date}.json",
+          "date_role": "business_date",
+          "expected_schema": "v3_5.a_share_review.v1"
+        },
+        {
+          "kind": "v35_receipt",
+          "path": "{data_root}/a_share_reviews/receipts/{date}.json",
+          "artifact_path": "{data_root}/a_share_reviews/{date}.json",
+          "manifest_path": "{data_root}/a_share_reviews/manifest.json",
+          "manifest_key": "a_share_reviews/{date}.json",
+          "date_role": "business_date"
+        }
+      ],
+      "api_probe": [
+        {
+          "path": "/api/v3/review?date={date}",
+          "kind": "review_close_chain",
+          "date_role": "business_date"
+        }
+      ]
+    },
+    {
+      "node_id": "ashare_v193_slot_selector_premarket",
+      "expected_outputs": [
+        "{data_root}/preselection_pools/{target_date}/a_d1_premarket_pool.json",
+        "{data_root}/preselection_pools/{target_date}/receipts/a_d1_premarket_pool.json",
+        "{data_root}/preselection_pools/{target_date}/manifest.json"
+      ],
+      "status_sources": [
+        {
+          "kind": "v35_artifact",
+          "path": "{data_root}/preselection_pools/{target_date}/a_d1_premarket_pool.json",
+          "semantic_alias": "a_selector_v35",
+          "semantic_fields": {
+            "trade_date": "trade_date",
+            "target_date": "target_date",
+            "signal_date": "signal_date",
+            "pool_id": "pool_id",
+            "status": "status",
+            "source_role": "source_role",
+            "row_count": "row_count",
+            "rows": "rows",
+            "research_only": "research_only",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          },
+          "receipt_path": "{data_root}/preselection_pools/{target_date}/receipts/a_d1_premarket_pool.json",
+          "manifest_path": "{data_root}/preselection_pools/{target_date}/manifest.json",
+          "manifest_key": "a_d1_premarket_pool",
+          "date_role": "target_date",
+          "expected_schema": "v3_5.preselection_pool.v1"
+        },
+        {
+          "kind": "v35_receipt",
+          "path": "{data_root}/preselection_pools/{target_date}/receipts/a_d1_premarket_pool.json",
+          "artifact_path": "{data_root}/preselection_pools/{target_date}/a_d1_premarket_pool.json",
+          "manifest_path": "{data_root}/preselection_pools/{target_date}/manifest.json",
+          "manifest_key": "a_d1_premarket_pool",
+          "date_role": "target_date"
+        }
+      ],
+      "api_probe": [
+        {
+          "path": "/api/v3/preselection-pools?date={target_date}&limit=200",
+          "kind": "preselection_pool",
+          "date_role": "target_date",
+          "pool_id": "a_d1_premarket_pool"
+        }
+      ]
+    },
+    {
+      "node_id": "hkconnect_d1_top100_prob_active",
+      "expected_outputs": [
+        "{data_root}/preselection_pools/{target_date}/hkconnect_d1_top100.json",
+        "{data_root}/preselection_pools/{target_date}/receipts/hkconnect_d1_top100.json",
+        "{data_root}/preselection_pools/{target_date}/manifest.json"
+      ],
+      "status_sources": [
+        {
+          "kind": "v35_artifact",
+          "path": "{data_root}/preselection_pools/{target_date}/hkconnect_d1_top100.json",
+          "semantic_alias": "hk_d1_v35",
+          "semantic_fields": {
+            "trade_date": "trade_date",
+            "target_date": "target_date",
+            "signal_date": "signal_date",
+            "pool_id": "pool_id",
+            "status": "status",
+            "source_role": "source_role",
+            "row_count": "row_count",
+            "rows": "rows",
+            "research_only": "research_only",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          },
+          "receipt_path": "{data_root}/preselection_pools/{target_date}/receipts/hkconnect_d1_top100.json",
+          "manifest_path": "{data_root}/preselection_pools/{target_date}/manifest.json",
+          "manifest_key": "hkconnect_d1_top100",
+          "date_role": "target_date",
+          "expected_schema": "v3_5.preselection_pool.v1"
+        },
+        {
+          "kind": "v35_receipt",
+          "path": "{data_root}/preselection_pools/{target_date}/receipts/hkconnect_d1_top100.json",
+          "artifact_path": "{data_root}/preselection_pools/{target_date}/hkconnect_d1_top100.json",
+          "manifest_path": "{data_root}/preselection_pools/{target_date}/manifest.json",
+          "manifest_key": "hkconnect_d1_top100",
+          "date_role": "target_date"
+        }
+      ],
+      "api_probe": [
+        {
+          "path": "/api/v3/preselection-pools?date={target_date}&limit=200",
+          "kind": "preselection_pool",
+          "date_role": "target_date",
+          "pool_id": "hkconnect_d1_top100"
+        }
+      ]
+    },
+    {
+      "node_id": "hkconnect_model_selection_review",
+      "expected_outputs": [
+        "{data_root}/close_reviews/{date}.json",
+        "{data_root}/manifest.json"
+      ],
+      "status_sources": [
+        {
+          "kind": "v35_artifact",
+          "path": "{data_root}/close_reviews/{date}.json",
+          "semantic_alias": "close_review_v35",
+          "semantic_fields": {
+            "trade_date": "trade_date",
+            "status": "status",
+            "write_policy": "write_policy",
+            "evidence_mode": "evidence_mode",
+            "reference_snapshot": "reference_snapshot",
+            "close_top20": "close_top20",
+            "model_rows": "model_rows",
+            "stage_rows": "stage_rows",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          },
+          "receipt_path": "{data_root}/receipts/close_reviews/{date}.json",
+          "manifest_path": "{data_root}/manifest.json",
+          "manifest_key": "close_reviews/{date}.json",
+          "date_role": "business_date",
+          "expected_schema": "v3_5.close_review.v1"
+        },
+        {
+          "kind": "v35_receipt",
+          "path": "{data_root}/receipts/close_reviews/{date}.json",
+          "artifact_path": "{data_root}/close_reviews/{date}.json",
+          "manifest_path": "{data_root}/manifest.json",
+          "manifest_key": "close_reviews/{date}.json",
+          "date_role": "business_date"
+        }
+      ],
+      "api_probe": [
+        {
+          "path": "/api/v3/review?date={date}",
+          "kind": "review_model_selection",
+          "date_role": "business_date"
+        }
+      ]
+    },
+    {
+      "node_id": "v3_opening_intraday_stage_select_0925_1500",
+      "expected_outputs": [
+        "{data_root}/stage_latest/{date}/STAGE_0925.json",
+        "{data_root}/stage_latest/{date}/STAGE_0930_0935.json",
+        "{data_root}/stage_latest/{date}/STAGE_0935_0940.json",
+        "{data_root}/stage_latest/{date}/STAGE_0940_0945.json",
+        "{data_root}/stage_latest/{date}/STAGE_0945_1030.json",
+        "{data_root}/stage_latest/{date}/STAGE_1300_1315.json",
+        "{data_root}/stage_latest/{date}/STAGE_1445_1500.json"
+      ],
+      "status_sources": [
+        {
+          "kind": "stage_latest",
+          "path": "{data_root}/stage_latest/{date}/STAGE_0925.json",
+          "stage_id": "STAGE_0925",
+          "semantic_alias": "stage_latest_v35",
+          "semantic_fields": {
+            "trade_date": "trade_date",
+            "stage_id": "stage.stage_id",
+            "effective_status": "stage.status",
+            "selected_a_rows": "selected_a_rows",
+            "selected_hk_rows": "selected_hk_rows",
+            "selected_total_rows": "selected_total_rows",
+            "a_source_rows": "markets.A.source_rows",
+            "hk_source_rows": "markets.HK.source_rows",
+            "a_candidate_count": "markets.A.candidate_count",
+            "hk_candidate_count": "markets.HK.candidate_count",
+            "write_policy": "materialized_snapshot.write_policy",
+            "buy_gate_effect": "materialized_snapshot.buy_gate_effect",
+            "live_order_effect": "materialized_snapshot.live_order_effect",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          }
+        },
+        {
+          "kind": "stage_latest",
+          "path": "{data_root}/stage_latest/{date}/STAGE_0930_0935.json",
+          "stage_id": "STAGE_0930_0935",
+          "semantic_alias": "stage_latest_v35",
+          "semantic_fields": {
+            "trade_date": "trade_date",
+            "stage_id": "stage.stage_id",
+            "effective_status": "stage.status",
+            "selected_a_rows": "selected_a_rows",
+            "selected_hk_rows": "selected_hk_rows",
+            "selected_total_rows": "selected_total_rows",
+            "a_source_rows": "markets.A.source_rows",
+            "hk_source_rows": "markets.HK.source_rows",
+            "a_candidate_count": "markets.A.candidate_count",
+            "hk_candidate_count": "markets.HK.candidate_count",
+            "write_policy": "materialized_snapshot.write_policy",
+            "buy_gate_effect": "materialized_snapshot.buy_gate_effect",
+            "live_order_effect": "materialized_snapshot.live_order_effect",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          }
+        },
+        {
+          "kind": "stage_latest",
+          "path": "{data_root}/stage_latest/{date}/STAGE_0935_0940.json",
+          "stage_id": "STAGE_0935_0940",
+          "semantic_alias": "stage_latest_v35",
+          "semantic_fields": {
+            "trade_date": "trade_date",
+            "stage_id": "stage.stage_id",
+            "effective_status": "stage.status",
+            "selected_a_rows": "selected_a_rows",
+            "selected_hk_rows": "selected_hk_rows",
+            "selected_total_rows": "selected_total_rows",
+            "a_source_rows": "markets.A.source_rows",
+            "hk_source_rows": "markets.HK.source_rows",
+            "a_candidate_count": "markets.A.candidate_count",
+            "hk_candidate_count": "markets.HK.candidate_count",
+            "write_policy": "materialized_snapshot.write_policy",
+            "buy_gate_effect": "materialized_snapshot.buy_gate_effect",
+            "live_order_effect": "materialized_snapshot.live_order_effect",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          }
+        },
+        {
+          "kind": "stage_latest",
+          "path": "{data_root}/stage_latest/{date}/STAGE_0940_0945.json",
+          "stage_id": "STAGE_0940_0945",
+          "semantic_alias": "stage_latest_v35",
+          "semantic_fields": {
+            "trade_date": "trade_date",
+            "stage_id": "stage.stage_id",
+            "effective_status": "stage.status",
+            "selected_a_rows": "selected_a_rows",
+            "selected_hk_rows": "selected_hk_rows",
+            "selected_total_rows": "selected_total_rows",
+            "a_source_rows": "markets.A.source_rows",
+            "hk_source_rows": "markets.HK.source_rows",
+            "a_candidate_count": "markets.A.candidate_count",
+            "hk_candidate_count": "markets.HK.candidate_count",
+            "write_policy": "materialized_snapshot.write_policy",
+            "buy_gate_effect": "materialized_snapshot.buy_gate_effect",
+            "live_order_effect": "materialized_snapshot.live_order_effect",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          }
+        },
+        {
+          "kind": "stage_latest",
+          "path": "{data_root}/stage_latest/{date}/STAGE_0945_1030.json",
+          "stage_id": "STAGE_0945_1030",
+          "semantic_alias": "stage_latest_v35",
+          "semantic_fields": {
+            "trade_date": "trade_date",
+            "stage_id": "stage.stage_id",
+            "effective_status": "stage.status",
+            "selected_a_rows": "selected_a_rows",
+            "selected_hk_rows": "selected_hk_rows",
+            "selected_total_rows": "selected_total_rows",
+            "a_source_rows": "markets.A.source_rows",
+            "hk_source_rows": "markets.HK.source_rows",
+            "a_candidate_count": "markets.A.candidate_count",
+            "hk_candidate_count": "markets.HK.candidate_count",
+            "write_policy": "materialized_snapshot.write_policy",
+            "buy_gate_effect": "materialized_snapshot.buy_gate_effect",
+            "live_order_effect": "materialized_snapshot.live_order_effect",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          }
+        },
+        {
+          "kind": "stage_latest",
+          "path": "{data_root}/stage_latest/{date}/STAGE_1300_1315.json",
+          "stage_id": "STAGE_1300_1315",
+          "semantic_alias": "stage_latest_v35",
+          "semantic_fields": {
+            "trade_date": "trade_date",
+            "stage_id": "stage.stage_id",
+            "effective_status": "stage.status",
+            "selected_a_rows": "selected_a_rows",
+            "selected_hk_rows": "selected_hk_rows",
+            "selected_total_rows": "selected_total_rows",
+            "a_source_rows": "markets.A.source_rows",
+            "hk_source_rows": "markets.HK.source_rows",
+            "a_candidate_count": "markets.A.candidate_count",
+            "hk_candidate_count": "markets.HK.candidate_count",
+            "write_policy": "materialized_snapshot.write_policy",
+            "buy_gate_effect": "materialized_snapshot.buy_gate_effect",
+            "live_order_effect": "materialized_snapshot.live_order_effect",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          }
+        },
+        {
+          "kind": "stage_latest",
+          "path": "{data_root}/stage_latest/{date}/STAGE_1445_1500.json",
+          "stage_id": "STAGE_1445_1500",
+          "semantic_alias": "stage_latest_v35",
+          "semantic_fields": {
+            "trade_date": "trade_date",
+            "stage_id": "stage.stage_id",
+            "effective_status": "stage.status",
+            "selected_a_rows": "selected_a_rows",
+            "selected_hk_rows": "selected_hk_rows",
+            "selected_total_rows": "selected_total_rows",
+            "a_source_rows": "markets.A.source_rows",
+            "hk_source_rows": "markets.HK.source_rows",
+            "a_candidate_count": "markets.A.candidate_count",
+            "hk_candidate_count": "markets.HK.candidate_count",
+            "write_policy": "materialized_snapshot.write_policy",
+            "buy_gate_effect": "materialized_snapshot.buy_gate_effect",
+            "live_order_effect": "materialized_snapshot.live_order_effect",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          }
+        }
+      ],
+      "api_probe": [
+        {
+          "path": "/api/v3/workbench/stage?date={date}&stage=STAGE_0925&limit=10",
+          "kind": "workbench_stage",
+          "date_role": "business_date",
+          "stage_id": "STAGE_0925"
+        },
+        {
+          "path": "/api/v3/workbench/stage?date={date}&stage=STAGE_0930_0935&limit=10",
+          "kind": "workbench_stage",
+          "date_role": "business_date",
+          "stage_id": "STAGE_0930_0935"
+        },
+        {
+          "path": "/api/v3/workbench/stage?date={date}&stage=STAGE_0935_0940&limit=10",
+          "kind": "workbench_stage",
+          "date_role": "business_date",
+          "stage_id": "STAGE_0935_0940"
+        },
+        {
+          "path": "/api/v3/workbench/stage?date={date}&stage=STAGE_0940_0945&limit=10",
+          "kind": "workbench_stage",
+          "date_role": "business_date",
+          "stage_id": "STAGE_0940_0945"
+        },
+        {
+          "path": "/api/v3/workbench/stage?date={date}&stage=STAGE_0945_1030&limit=10",
+          "kind": "workbench_stage",
+          "date_role": "business_date",
+          "stage_id": "STAGE_0945_1030"
+        },
+        {
+          "path": "/api/v3/workbench/stage?date={date}&stage=STAGE_1300_1315&limit=10",
+          "kind": "workbench_stage",
+          "date_role": "business_date",
+          "stage_id": "STAGE_1300_1315"
+        },
+        {
+          "path": "/api/v3/workbench/stage?date={date}&stage=STAGE_1445_1500&limit=10",
+          "kind": "workbench_stage",
+          "date_role": "business_date",
+          "stage_id": "STAGE_1445_1500"
+        }
+      ]
+    },
+    {
+      "node_id": "bilibili_fupan_nightly",
+      "expected_outputs": [
+        "{data_root}/runtime_graph/evidence/node_action_status/{date}/bilibili_fupan_nightly.json"
+      ],
+      "status_sources": [
+        {
+          "kind": "v35_receipt",
+          "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/bilibili_fupan_nightly.json",
+          "receipt_role": "node_action"
+        },
+        {
+          "kind": "v35_artifact",
+          "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/bilibili_fupan_nightly.json",
+          "artifact_role": "node_receipt",
+          "semantic_alias": "fupan_nightly_receipt_v35",
+          "semantic_fields": {
+            "node_id": "node_id",
+            "trade_date": "date",
+            "status": "status",
+            "reason": "reason",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          },
+          "projection": "root",
+          "receipt_path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/bilibili_fupan_nightly.json",
+          "date_role": "business_date",
+          "expected_schema": "v3_5_close_review_node_receipt.v1"
+        }
+      ]
+    },
+    {
+      "node_id": "FUPAN_VIDEO_CHECK",
+      "expected_outputs": [
+        "{data_root}/close_review_sources/{date}/bilibili/acceptance.json",
+        "{data_root}/close_review_sources/{date}/bilibili/source_index.json",
+        "{data_root}/close_review_sources/{date}/bilibili/manifest.json"
+      ],
+      "status_sources": [
+        {
+          "kind": "v35_receipt",
+          "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_VIDEO_CHECK.json",
+          "receipt_role": "node_action"
+        },
+        {
+          "kind": "v35_artifact",
+          "path": "{data_root}/close_review_sources/{date}/bilibili/acceptance.json",
+          "artifact_role": "bilibili_source",
+          "semantic_alias": "fupan_video_acceptance_v35",
+          "semantic_fields": {
+            "trade_date": "trade_date",
+            "status": "status",
+            "today_bv_status": "today_bv_status",
+            "asr_status": "asr_status",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          },
+          "projection": "root",
+          "receipt_path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_VIDEO_CHECK.json",
+          "manifest_path": "{data_root}/close_review_sources/{date}/bilibili/manifest.json",
+          "manifest_key": "close_review_sources/{date}/bilibili/acceptance.json",
+          "date_role": "business_date",
+          "expected_schema": "v3_5.bilibili_fupan_acceptance.v1"
+        },
+        {
+          "kind": "v35_artifact",
+          "path": "{data_root}/close_review_sources/{date}/bilibili/source_index.json",
+          "artifact_role": "bilibili_source",
+          "semantic_alias": "fupan_video_source_index_v35",
+          "semantic_fields": {
+            "trade_date": "trade_date",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          },
+          "projection": "root",
+          "receipt_path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_VIDEO_CHECK.json",
+          "manifest_path": "{data_root}/close_review_sources/{date}/bilibili/manifest.json",
+          "manifest_key": "close_review_sources/{date}/bilibili/source_index.json",
+          "date_role": "business_date",
+          "expected_schema": "v3_5.bilibili_fupan_source_index.v1"
+        }
+      ]
+    },
+    {
+      "node_id": "FUPAN_VIDEO_DOWNLOAD_ASR",
+      "expected_outputs": [
+        "{data_root}/close_review_sources/{date}/bilibili/capture_manifest.json"
+      ],
+      "status_sources": [
+        {
+          "kind": "v35_receipt",
+          "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_VIDEO_DOWNLOAD_ASR.json",
+          "receipt_role": "node_action"
+        },
+        {
+          "kind": "v35_artifact",
+          "path": "{data_root}/close_review_sources/{date}/bilibili/capture_manifest.json",
+          "artifact_role": "bilibili_source",
+          "semantic_alias": "fupan_capture_manifest_v35",
+          "semantic_fields": {
+            "trade_date": "trade_date",
+            "status": "status",
+            "reason": "reason",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          },
+          "projection": "root",
+          "receipt_path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_VIDEO_DOWNLOAD_ASR.json",
+          "manifest_path": "{data_root}/close_review_sources/{date}/bilibili/manifest.json",
+          "manifest_key": "close_review_sources/{date}/bilibili/capture_manifest.json",
+          "date_role": "business_date",
+          "expected_schema": "v3_5.bilibili_capture_manifest.v1"
+        }
+      ]
+    },
+    {
+      "node_id": "FUPAN_STOCKDICT",
+      "expected_outputs": [
+        "{data_root}/close_review_sources/{date}/bilibili/transcript_stockdict/current_asr_pointer.json",
+        "{data_root}/close_review_sources/{date}/bilibili/transcript_stockdict/stock_mentions.json"
+      ],
+      "status_sources": [
+        {
+          "kind": "v35_receipt",
+          "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_STOCKDICT.json",
+          "receipt_role": "node_action"
+        },
+        {
+          "kind": "v35_artifact",
+          "path": "{data_root}/close_review_sources/{date}/bilibili/transcript_stockdict/current_asr_pointer.json",
+          "artifact_role": "bilibili_source",
+          "semantic_alias": "fupan_asr_pointer_v35",
+          "semantic_fields": {
+            "trade_date": "trade_date",
+            "status": "status",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          },
+          "projection": "root",
+          "receipt_path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_STOCKDICT.json",
+          "manifest_path": "{data_root}/close_review_sources/{date}/bilibili/manifest.json",
+          "manifest_key": "close_review_sources/{date}/bilibili/current_asr_pointer.json",
+          "date_role": "business_date",
+          "expected_schema": "v3_5.current_asr_pointer.v1"
+        },
+        {
+          "kind": "v35_artifact",
+          "path": "{data_root}/close_review_sources/{date}/bilibili/transcript_stockdict/stock_mentions.json",
+          "artifact_role": "bilibili_source",
+          "semantic_alias": "fupan_stock_mentions_v35",
+          "semantic_fields": {
+            "trade_date": "trade_date",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          },
+          "projection": "root",
+          "receipt_path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_STOCKDICT.json",
+          "manifest_path": "{data_root}/close_review_sources/{date}/bilibili/manifest.json",
+          "manifest_key": "close_review_sources/{date}/bilibili/stock_mentions.json",
+          "date_role": "business_date",
+          "expected_schema": "v3_5.asr_stock_mentions.v1"
+        }
+      ]
+    },
+    {
+      "node_id": "FUPAN_VIDEO_TABLE_OCR_ALIGN",
+      "expected_outputs": [
+        "{data_root}/close_review_sources/{date}/bilibili/video_ocr_alignment/alignment_pointer.json"
+      ],
+      "status_sources": [
+        {
+          "kind": "v35_receipt",
+          "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_VIDEO_TABLE_OCR_ALIGN.json",
+          "receipt_role": "node_action"
+        },
+        {
+          "kind": "v35_artifact",
+          "path": "{data_root}/close_review_sources/{date}/bilibili/video_ocr_alignment/alignment_pointer.json",
+          "artifact_role": "bilibili_source",
+          "semantic_alias": "fupan_video_alignment_v35",
+          "semantic_fields": {
+            "trade_date": "trade_date",
+            "status": "status",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          },
+          "projection": "root",
+          "receipt_path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_VIDEO_TABLE_OCR_ALIGN.json",
+          "manifest_path": "{data_root}/close_review_sources/{date}/bilibili/manifest.json",
+          "manifest_key": "close_review_sources/{date}/bilibili/alignment_pointer.json",
+          "date_role": "business_date",
+          "expected_schema": "v3_5.video_ocr_alignment.v1"
+        }
+      ]
+    },
+    {
+      "node_id": "FUPAN_VIDEO_GAP",
+      "expected_outputs": [
+        "{data_root}/close_review_sources/{date}/bilibili/video_gap/video_gap_audit.json"
+      ],
+      "status_sources": [
+        {
+          "kind": "v35_receipt",
+          "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_VIDEO_GAP.json",
+          "receipt_role": "node_action"
+        },
+        {
+          "kind": "v35_artifact",
+          "path": "{data_root}/close_review_sources/{date}/bilibili/video_gap/video_gap_audit.json",
+          "artifact_role": "bilibili_source",
+          "semantic_alias": "fupan_video_gap_v35",
+          "semantic_fields": {
+            "trade_date": "trade_date",
+            "status": "status",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          },
+          "projection": "root",
+          "receipt_path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_VIDEO_GAP.json",
+          "manifest_path": "{data_root}/close_review_sources/{date}/bilibili/manifest.json",
+          "manifest_key": "close_review_sources/{date}/bilibili/video_gap_audit.json",
+          "date_role": "business_date",
+          "expected_schema": "v3_5.video_gap_audit.v1"
+        }
+      ]
+    },
+    {
+      "node_id": "FUPAN_V3_PUBLISH",
+      "expected_outputs": [
+        "{data_root}/a_share_reviews/{date}.json",
+        "{data_root}/a_share_reviews/receipts/{date}.json",
+        "{data_root}/a_share_reviews/manifest.json"
+      ],
+      "status_sources": [
+        {
+          "kind": "v35_receipt",
+          "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_V3_PUBLISH.json",
+          "receipt_role": "node_action"
+        },
+        {
+          "kind": "v35_artifact",
+          "path": "{data_root}/a_share_reviews/{date}.json",
+          "semantic_alias": "fupan_publish_v35",
+          "semantic_fields": {
+            "schema_version": "schema_version",
+            "trade_date": "trade_date",
+            "source_role": "source_role",
+            "write_policy": "write_policy",
+            "close_chain_status": "close_chain.status",
+            "close_chain_nodes": "close_chain.nodes",
+            "model_review_status": "model_review.status",
+            "mainlines": "mainlines",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          },
+          "projection": "root",
+          "receipt_path": "{data_root}/a_share_reviews/receipts/{date}.json",
+          "manifest_path": "{data_root}/a_share_reviews/manifest.json",
+          "manifest_key": "a_share_reviews/{date}.json",
+          "date_role": "business_date",
+          "expected_schema": "v3_5.a_share_review.v1"
+        }
+      ]
+    },
+    {
+      "node_id": "FUPAN_8771_VERIFY",
+      "semantic_validator": "review",
+      "expected_outputs": [
+        "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_8771_VERIFY.json"
+      ],
+      "status_sources": [
+        {
+          "kind": "v35_receipt",
+          "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_8771_VERIFY.json",
+          "receipt_role": "node_action"
+        },
+        {
+          "kind": "v35_artifact",
+          "path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_8771_VERIFY.json",
+          "artifact_role": "node_receipt",
+          "semantic_alias": "fupan_page_verify_receipt_v35",
+          "semantic_fields": {
+            "node_id": "node_id",
+            "trade_date": "date",
+            "status": "status",
+            "reason": "reason",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          },
+          "projection": "root",
+          "receipt_path": "{data_root}/runtime_graph/evidence/node_action_status/{date}/FUPAN_8771_VERIFY.json",
+          "date_role": "business_date",
+          "expected_schema": "v3_5_close_review_node_receipt.v1"
+        }
+      ]
+    },
+    {
+      "node_id": "ashare_research_panel",
+      "expected_outputs": [
+        "{data_root}/runtime_graph/evidence/research_panel_status/{date}/ashare_research_panel.json"
+      ],
+      "status_sources": [
+        {
+          "kind": "v35_artifact",
+          "path": "{data_root}/runtime_graph/evidence/research_panel_status/{date}/ashare_research_panel.json",
+          "artifact_role": "node_receipt",
+          "semantic_alias": "ashare_research_panel_status_v35",
+          "projection": "root",
+          "semantic_fields": {
+            "business_date": "business_date",
+            "node_id": "node_id",
+            "status": "status",
+            "effective_status": "effective_status",
+            "reason": "reason",
+            "row_count": "row_count",
+            "coverage_rate": "coverage_rate",
+            "source_receipt_path": "source_receipt_path",
+            "source_receipt_sha256": "source_receipt_sha256",
+            "selector_artifact_sha256": "selector_artifact_sha256",
+            "backtest_artifact_sha256": "backtest_artifact_sha256",
+            "sync_authority_status": "sync_authority_status",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          },
+          "date_role": "business_date",
+          "expected_schema": "v3_5.runtime_graph.research_panel_status.v1"
+        }
+      ]
+    },
+    {
+      "node_id": "hkconnect_research_panel",
+      "expected_outputs": [
+        "{data_root}/runtime_graph/evidence/research_panel_status/{date}/hkconnect_research_panel.json"
+      ],
+      "status_sources": [
+        {
+          "kind": "v35_artifact",
+          "path": "{data_root}/runtime_graph/evidence/research_panel_status/{date}/hkconnect_research_panel.json",
+          "artifact_role": "node_receipt",
+          "semantic_alias": "hkconnect_research_panel_status_v35",
+          "projection": "root",
+          "semantic_fields": {
+            "business_date": "business_date",
+            "node_id": "node_id",
+            "status": "status",
+            "effective_status": "effective_status",
+            "reason": "reason",
+            "row_count": "row_count",
+            "coverage_rate": "coverage_rate",
+            "source_receipt_path": "source_receipt_path",
+            "source_receipt_sha256": "source_receipt_sha256",
+            "producer_artifact_sha256": "producer_artifact_sha256",
+            "close_review_path": "close_review_path",
+            "close_review_sha256": "close_review_sha256",
+            "close_review_receipt_path": "close_review_receipt_path",
+            "close_review_receipt_sha256": "close_review_receipt_sha256",
+            "production_allowed": "production_allowed",
+            "buy_gate_updated": "buy_gate_updated",
+            "orders_sent": "orders_sent"
+          },
+          "date_role": "business_date",
+          "expected_schema": "v3_5.runtime_graph.research_panel_status.v1"
+        }
+      ]
+    }
+  ]
+}
