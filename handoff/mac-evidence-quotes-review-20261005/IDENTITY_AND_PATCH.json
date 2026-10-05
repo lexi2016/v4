@@ -1,0 +1,29 @@
+{
+  "captured_at": "2026-10-05T05:33:12.024279+00:00",
+  "host": "lexideMacBook-Pro.local",
+  "active_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-announcement-r11-20261005-date-catalog-r1/app",
+  "candidate_root": "/Users/lexi/Documents/Codex/2026-10-02/task/V4_PR26_MAC_REVIEW_20261005/candidate/app",
+  "fixed_commit": "fb23fd159ef5201eef4eafa67c14f247d57c7c98",
+  "before_sha256": "9b9ea7aef33e504da7d99f2b16b1e632448a63dfe0971ae275730e6311c5ce3a",
+  "after_sha256": "e4fb78e633fb693a08e0d92a518377f78a6c7ff95c8f430d0d7e0ad25916c4d2",
+  "canonical_sha256": "b42816d5fe43adcd59bdd14823341a8005455543a949cd1dc5d83d8ab0bb4817",
+  "packet_sha_verified_files": [
+    "README_ZH.md",
+    "after/apps/web/src/manager-selection/researchAttention.ts",
+    "before/apps/web/src/manager-selection/researchAttention.ts",
+    "evidence/R11_OVERLAY.json",
+    "receipt.json",
+    "runtime.patch",
+    "tests/apps/web/src/manager-selection/__tests__/researchEvidenceQuote.spec.ts",
+    "tests/tests/fixtures/research_evidence_quote_pipeline.py"
+  ],
+  "captured_source_files": 810,
+  "unchanged_baseline_files": 809,
+  "changed_baseline_paths": [
+    "apps/web/src/manager-selection/researchAttention.ts"
+  ],
+  "source_drift_during_capture": [],
+  "active_target_matches_before": true,
+  "parallel_worker_lifecycle": "CANNOT_CONFIRM; no target drift observed",
+  "original_work_receipts_preserved": true
+}

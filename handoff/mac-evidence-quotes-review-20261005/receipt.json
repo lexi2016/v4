@@ -1,0 +1,96 @@
+{
+  "completed_at": "2026-10-05T05:38:22.940821+00:00",
+  "status": "MAC_SCOPED_VERIFIED_WITH_PREEXISTING_FAILURE_NOT_DEPLOYED",
+  "input_commit": "fb23fd159ef5201eef4eafa67c14f247d57c7c98",
+  "R11_base_commit": "640c77a7f019a1a211faea937b70cc10e4329afc",
+  "active_release": "manager-announcement-r11-20261005-date-catalog-r1",
+  "candidate_root": "/Users/lexi/Documents/Codex/2026-10-02/task/V4_PR26_MAC_REVIEW_20261005/candidate/app",
+  "host": "lexideMacBook-Pro.local",
+  "python": "3.14.6 (service interpreter via V4_TEST_PYTHON)",
+  "node": "24.19.0",
+  "vitest": "4.1.10",
+  "typescript": "5.9.3",
+  "jsdom": "28.1.0",
+  "dependencies": "copied existing canonical node_modules into isolated candidate; active/canonical package-lock SHA equal; no installation",
+  "R11_six_overlay_files_match": true,
+  "patch_added_lines": 7,
+  "patch_removed_lines": 0,
+  "changed_existing_source_files": [
+    "apps/web/src/manager-selection/researchAttention.ts"
+  ],
+  "source_guard": {
+    "captured_files": 810,
+    "active_source_drift_after_tests": [],
+    "active_target_before_preserved": true,
+    "canonical_target_preserved": true,
+    "launch_plist_sha256": "6b93e1bfd07cd6d185b538bc29dfc112c370c150892c6b653791a558fabc9337",
+    "runtime_selected_fields": [
+      "state = running",
+      "working directory = /Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-announcement-r11-20261005-date-catalog-r1/app",
+      "pid = 1166",
+      "state = active",
+      "state = active"
+    ],
+    "parallel_worker_lifecycle": "CANNOT_CONFIRM; no source drift observed"
+  },
+  "tests": {
+    "new_synthetic": {
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0,
+      "exit_code": 0
+    },
+    "existing_frontend": {
+      "passed": 101,
+      "failed": 1,
+      "skipped": 0,
+      "exit_code": 1
+    },
+    "before_failure_control": {
+      "failed": 1,
+      "skipped_by_target_filter": 9,
+      "exit_code": 1
+    },
+    "strict_scoped_TS": {
+      "exit_code": 0
+    },
+    "saved_sample_DOM": {
+      "passed": 1,
+      "verified_excerpts": 19,
+      "displayed_cards": 30,
+      "source_sha256": "3542bf61014e6dd97b10801c4ebde7d3555e8c928d103955ed160f35a33f1159",
+      "input_unchanged": true,
+      "exit_code": 0
+    }
+  },
+  "preexisting_failure": {
+    "file": "apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+    "line": 347,
+    "assertion": "expected 东方财富港股公告 in rendered page text",
+    "before_same_failure": true,
+    "classification": "PREEXISTING_BASELINE_TEST_FAILURE; not counted PASS; no test/business change"
+  },
+  "visual_UI": "NOT_RUN: no supported browser tool or agent-browser CLI available; CUA not attempted",
+  "live_API": "NOT_RUN",
+  "R11_catalog_retests": "NOT_RUN; original Work receipts retained",
+  "full_suite": "NOT_RUN",
+  "full_build": "NOT_RUN",
+  "deployed": false,
+  "merged": false,
+  "natural_slot": "NOT_RUN",
+  "classification_logic": "UNCHANGED; historical-background positive classification remains owner work",
+  "raw_quotes_and_market_data_uploaded": false,
+  "safety_flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "synchronization_scope": {
+    "latest_delegated_user_instruction": "按已授权每轮GitHub同步规则上传脱敏测试/源码差异回执到私有lexi2016/v4独立分支并远端读回，不上传原始报价/账号/密钥。",
+    "project_rule_file": "/Users/lexi/Desktop/学习/v4_app/AGENTS.md",
+    "project_rule_sha256": "c6802a779319289f0cd0d6a84408be4249d96eb16c9d6c3817e9cd8ddacbdd03",
+    "scope": "Only this reviewed 14-file 42KB Mac receipt bundle; fixed PR26 parent; new independent branch; no merge/deploy; private unchanged",
+    "exclusions": "No raw sample, quotes, prices, auth files, accounts, dependencies or dist"
+  }
+}

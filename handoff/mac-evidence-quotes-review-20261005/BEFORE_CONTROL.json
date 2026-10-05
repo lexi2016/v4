@@ -1,0 +1,22 @@
+{
+  "name": "before-existing-failure-control",
+  "command": [
+    "/Users/lexi/.local/node-v24.19.0/bin/node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+    "-t",
+    "renders the actual Eastmoney owner workspace readback"
+  ],
+  "exit_code": 1,
+  "summary": [
+    " ❯ src/manager-selection/catalystObservationPanel.runtime.spec.ts (10 tests | 1 failed | 9 skipped) 142ms",
+    "     × renders the actual Eastmoney owner workspace readback instead of reporting a network failure 141ms",
+    " Test Files  1 failed (1)",
+    "      Tests  1 failed | 9 skipped (10)",
+    " FAIL  src/manager-selection/catalystObservationPanel.runtime.spec.ts > catalyst workspace runtime boundary > renders the actual Eastmoney owner workspace readback instead of reporting a network failure",
+    "AssertionError: expected '.manager-catalyst-observations{min-wi…' to contain '东方财富港股公告'",
+    " ❯ src/manager-selection/catalystObservationPanel.runtime.spec.ts:347:22"
+  ],
+  "before_sha256": "9b9ea7aef33e504da7d99f2b16b1e632448a63dfe0971ae275730e6311c5ce3a"
+}

@@ -1,0 +1,19 @@
+ ✓ src/api/managerWorkspace.attention.spec.ts (10 tests) 11ms
+ ✓ src/manager-selection/__tests__/researchSelectionLedger.spec.ts (6 tests) 31ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts (76 tests) 49ms
+ ❯ src/manager-selection/catalystObservationPanel.runtime.spec.ts (10 tests | 1 failed) 178ms
+     ✓ accepts the two-gate screen and rejects the frozen four-gate rule version 1ms
+     ✓ labels amount and close-to-low rebound as observations while showing every near candidate 26ms
+     ✓ collapses pending history into complete reason counts while keeping every card expandable 10ms
+     ✓ shows a persisted MANUAL_REFRESH as a next-session draft, not a frozen plan 4ms
+     ✓ shows saved next-session research focus separately from unavailable formal Stage recommendations 4ms
+     ✓ shows late close recapture as a separate observation and cutoff-aware plan context 3ms
+     ✓ merges only identical mapping summaries while retaining every raw relation 0ms
+     ✓ keeps the workspace read alive through the finite 180-second UI deadline 3ms
+     ✓ reuses the validated refresh response instead of issuing a second same-date GET 7ms
+     × renders the actual Eastmoney owner workspace readback instead of reporting a network failure 119ms
+ Test Files  1 failed | 3 passed (4)
+      Tests  1 failed | 101 passed (102)
+ FAIL  src/manager-selection/catalystObservationPanel.runtime.spec.ts > catalyst workspace runtime boundary > renders the actual Eastmoney owner workspace readback instead of reporting a network failure
+AssertionError: expected '.manager-catalyst-observations{min-wi…' to contain '东方财富港股公告'
+ ❯ src/manager-selection/catalystObservationPanel.runtime.spec.ts:347:22

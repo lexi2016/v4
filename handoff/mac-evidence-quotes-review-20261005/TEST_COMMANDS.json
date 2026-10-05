@@ -1,0 +1,55 @@
+[
+  {
+    "name": "new-11",
+    "command": [
+      "/Users/lexi/.local/node-v24.19.0/bin/node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "src/manager-selection/__tests__/researchEvidenceQuote.spec.ts"
+    ],
+    "cwd": "/Users/lexi/Documents/Codex/2026-10-02/task/V4_PR26_MAC_REVIEW_20261005/candidate/app/apps/web",
+    "exit_code": 0,
+    "duration_s": 0.876,
+    "log": "logs/new-11.log"
+  },
+  {
+    "name": "related-frontend",
+    "command": [
+      "/Users/lexi/.local/node-v24.19.0/bin/node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "src/manager-selection/__tests__/issue8R2.spec.ts",
+      "src/manager-selection/__tests__/researchSelectionLedger.spec.ts",
+      "src/api/managerWorkspace.attention.spec.ts",
+      "src/manager-selection/catalystObservationPanel.runtime.spec.ts"
+    ],
+    "cwd": "/Users/lexi/Documents/Codex/2026-10-02/task/V4_PR26_MAC_REVIEW_20261005/candidate/app/apps/web",
+    "exit_code": 1,
+    "duration_s": 0.74,
+    "log": "logs/related-frontend.log"
+  },
+  {
+    "name": "strict-ts",
+    "command": [
+      "/Users/lexi/.local/node-v24.19.0/bin/node",
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--strict",
+      "--skipLibCheck",
+      "--target",
+      "ES2022",
+      "--module",
+      "ESNext",
+      "--moduleResolution",
+      "Bundler",
+      "--types",
+      "node,vitest/globals",
+      "src/manager-selection/researchAttention.ts",
+      "src/manager-selection/__tests__/researchEvidenceQuote.spec.ts"
+    ],
+    "cwd": "/Users/lexi/Documents/Codex/2026-10-02/task/V4_PR26_MAC_REVIEW_20261005/candidate/app/apps/web",
+    "exit_code": 0,
+    "duration_s": 0.475,
+    "log": "logs/strict-ts.log"
+  }
+]
