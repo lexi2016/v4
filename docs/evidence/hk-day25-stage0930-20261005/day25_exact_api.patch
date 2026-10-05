@@ -1,0 +1,171 @@
+--- /Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-announcement-r11-20261005-date-catalog-r1/app/apps/api/v35_api/app.py
++++ /Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-day25-stage0930-r12-20261005-r1/app/apps/api/v35_api/app.py
+@@ -33,6 +33,7 @@
+ from infrastructure.stage_store import StageStore
+ from infrastructure.tdx_minute_replay_provider import TdxMinuteReplayProvider
+ from stage_center.consumer import StageSelectionConsumer
++from stage_center.execution_evidence import read_stage_execution
+ 
+ 
+ _MANAGER_RESEARCH_RUNTIME_PACKAGE = "_v4_manager_research_runtime"
+@@ -102,9 +103,10 @@
+     source_rows: int,
+     cannot_confirm_count: int,
+     required_evidence: tuple[str, ...],
++    trade_date: str = "20260928",
+ ) -> dict[str, Any]:
+     return {
+-        "date": "20260928",
++        "date": trade_date,
+         "backfill_run_id": backfill_run_id,
+         "selection_run_id": selection_run_id,
+         "artifact_id": f"selection-{selection_run_id.removeprefix('run-')}",
+@@ -134,8 +136,9 @@
+     source_rows: int,
+     cannot_confirm_count: int,
+     required_evidence: tuple[str, ...],
++    trade_date: str = "20260928",
+ ) -> None:
+-    key = ("20260928", stage, market, backfill_run_id)
++    key = (trade_date, stage, market, backfill_run_id)
+     _APPROVED_STAGE_BACKFILLS[key] = _stage_backfill_binding(
+         backfill_run_id,
+         selection_run_id,
+@@ -145,6 +148,7 @@
+         source_rows,
+         cannot_confirm_count,
+         required_evidence,
++        trade_date,
+     )
+ 
+ 
+@@ -185,6 +189,45 @@
+         "fa010779e194b06ee9a77799d6b41a8d76a641a047b05b96c4594766e4497506",
+         "PARTIAL_WITH_ROWS", 100, 1, _HK_CONNECT_BACKFILL_EVIDENCE,
+     )
++
++_DAY25_HK0930_BACKFILL_RUN_ID = "55742332ec504f119a54c42ce9cad3cd"
++_DAY25_HK0930_REQUIRED_EVIDENCE = (
++    "historical_observation_contract=HK_STAGE0930_RESEARCH_ONLY",
++    "historical_base_raw_sha256=eabaa273897b0db7261d0e0d3245493e75297e5f148edad665061d90fb5f6070",
++    "historical_gap_fields_sha256=11e256bec4ee181f956bb2792260290b1e2b5784a9838ebef91b3074eebbcc3e",
++    "historical_gap_csv_sha256=d02371d0d8fdb28fad944bc0881943ba1deb4899bf57b11f9a4f3d1adb6a7546",
++    "historical_gap_receipt_sha256=1d1d6cbd74aff12d48cfa250551430ec8e7a046075a8769438c93e974375996a",
++    "historical_base_source_id=futu_request_history_kline_none",
++    "historical_d1_pool_sha256=c6202648a73d0103b2ec43e393618ca31e67183c730a4df4db018eced2cfacd0",
++    "historical_formal_pit=false",
++    "due_status=HISTORICAL_BACKFILL",
++    "hk_observation_mode=HK_SECURITIES_OPEN_HK_CONNECT_CLOSED",
++    "hk_d1_binding_mode=EXPLICIT_HK_STAGE0930_RESEARCH_TARGET_DATE",
++    "hk_d1_source_trade_date=20260925",
++    "hk_d1_source_signal_date=20260924",
++    "hk_d1_binding_sha256=c6202648a73d0103b2ec43e393618ca31e67183c730a4df4db018eced2cfacd0",
++    "selection_contract=V3_TOP10_RECOMMENDATION",
++    "historical_observation=WATCH_ONLY_NO_BUY",
++    "production_allowed=false",
++    "buy_gate_updated=false",
++    "orders_sent=false",
++)
++_register_stage_backfill(
++    "STAGE_0930_0935",
++    "HK_CONNECT",
++    _DAY25_HK0930_BACKFILL_RUN_ID,
++    "run-00ed21b8213cc63c7c1bebc3",
++    "02229d41078a562a3863124dc799c37c1c087759744d4254b640873c1b5adefd",
++    "fa010779e194b06ee9a77799d6b41a8d76a641a047b05b96c4594766e4497506",
++    "PARTIAL_WITH_ROWS",
++    96,
++    12,
++    _DAY25_HK0930_REQUIRED_EVIDENCE,
++    trade_date="20260925",
++)
++_APPROVED_STAGE_BACKFILLS[("20260925", "STAGE_0930_0935", "HK_CONNECT", _DAY25_HK0930_BACKFILL_RUN_ID)][
++    "runner_receipt_sha256"
++] = "57c0ebadf08e372f2165b624d54b9287737451a9545cc11a9c2015e42c51deae"
+ 
+ 
+ def _is_safe_backfill_selection_row(row: Mapping[str, Any], market: str, stage: str) -> bool:
+@@ -851,15 +894,79 @@
+             if configured_selection_root is None:
+                 raise HTTPException(status_code=404, detail="backfill selection namespace is unavailable")
+             scoped_root = _resolve_backfill_selection_root(configured_selection_root, backfill_run_id)
++            expected_runner_receipt_sha256 = binding.get("runner_receipt_sha256")
+             try:
+-                # SelectionStore is the only source for this route. The
+-                # ordinary execution-receipt sibling is outside the isolated
+-                # backfill namespace and is intentionally left unbound.
+-                backfill_consumer = StageSelectionConsumer(scoped_root)
++                # Keep selection reads run-scoped. The exact Day 25 binding
++                # separately points the existing receipt verifier at the
++                # configured stage/receipts sibling.
++                execution_receipt_root = None
++                if expected_runner_receipt_sha256 is not None:
++                    resolved_selection_root = Path(configured_selection_root).expanduser().resolve(strict=True)
++                    execution_receipt_root = resolved_selection_root.parent / "receipts"
++                backfill_consumer = StageSelectionConsumer(
++                    scoped_root,
++                    execution_receipt_root=execution_receipt_root,
++                )
+                 payload = backfill_consumer.get(selected, stage, markets=(market,))
+             except (OSError, ValueError, TypeError) as error:
+                 raise HTTPException(status_code=422, detail="backfill selection identity is invalid") from error
+             market_payload = (payload.get("markets") or {}).get(market) or {}
++            if expected_runner_receipt_sha256 is not None:
++                try:
++                    verified_envelope = backfill_consumer.store.read_verified(selected, stage, market)
++                    runner_receipt_verified, runner_receipt_sha256 = backfill_consumer._verify_backfill_runner_receipt(
++                        trade_date=selected,
++                        stage_id=stage,
++                        market=market,
++                        backfill_run_id=backfill_run_id,
++                        envelope=verified_envelope,
++                    )
++                except (OSError, ValueError, TypeError, KeyError) as error:
++                    raise HTTPException(status_code=409, detail="backfill runner receipt identity is invalid") from error
++                if (
++                    runner_receipt_verified is not True
++                    or runner_receipt_sha256 != expected_runner_receipt_sha256
++                ):
++                    raise HTTPException(status_code=409, detail="backfill runner receipt identity is invalid")
++                market_payload["runner_receipt_verified"] = runner_receipt_verified
++                market_payload["runner_receipt_status"] = "VERIFIED"
++                market_payload["runner_receipt_sha256"] = runner_receipt_sha256
++                provenance = dict(market_payload.get("recovery_provenance") or {})
++                provenance.update(
++                    {
++                        "mode": "BACKFILL",
++                        "backfill_run_id": backfill_run_id,
++                        "selection_manifest_receipt_verified": True,
++                        "runner_receipt_verified": runner_receipt_verified,
++                        "runner_receipt_status": "VERIFIED",
++                        "runner_receipt_sha256": runner_receipt_sha256,
++                    }
++                )
++                market_payload["recovery_provenance"] = provenance
++                execution_evidence = read_stage_execution(
++                    execution_receipt_root / "backfill" / backfill_run_id,
++                    selected,
++                    stage,
++                    payload.get("markets") or {},
++                )
++                execution_market = (execution_evidence.get("markets") or {}).get(market) or {}
++                if (
++                    execution_evidence.get("observed_sha256") != expected_runner_receipt_sha256
++                    or execution_evidence.get("status")
++                    != "SELECTION_REFERENCES_PARTIALLY_BOUND_EXECUTION_UNVERIFIED"
++                    or execution_market.get("selection_binding") != "BOUND_TO_VERIFIED_SELECTION"
++                ):
++                    raise HTTPException(status_code=409, detail="backfill runner receipt identity is invalid")
++                execution_evidence["receipt_sha256_binding"] = {
++                    "status": "VERIFIED",
++                    "sha256": expected_runner_receipt_sha256,
++                    "scope": "EXACT_20260925_HK_CONNECT_STAGE_0930_0935_BACKFILL",
++                }
++                execution_evidence["cannot_confirm"] = [
++                    item for item in execution_evidence.get("cannot_confirm", [])
++                    if item != "NO_INDEPENDENT_RUN_RECEIPT_SHA_BINDING"
++                ]
++                payload["execution_evidence"] = execution_evidence
+             rows = market_payload.get("rows") or []
+             if not isinstance(rows, list):
+                 raise HTTPException(status_code=409, detail="backfill selection rows are invalid")
