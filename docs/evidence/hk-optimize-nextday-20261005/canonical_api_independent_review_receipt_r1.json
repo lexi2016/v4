@@ -1,0 +1,135 @@
+{
+  "acceptance": {
+    "negative_requests": {
+      "missing_market_or_run_pair": 422,
+      "missing_runner_receipt_and_wrong_pinned_sha_test_cases": 409,
+      "wrong_date": 404,
+      "wrong_market": 404,
+      "wrong_run_id": 404
+    },
+    "published_store_testclient": {
+      "buy_gate_updated": false,
+      "display_mode": "OBSERVATION_UNVERIFIED",
+      "observation_count": 10,
+      "orders_sent": false,
+      "production_allowed": false,
+      "research_only": true,
+      "returned_rows": 10,
+      "runner_receipt_sha256": "57c0ebadf08e372f2165b624d54b9287737451a9545cc11a9c2015e42c51deae",
+      "runner_receipt_verified": true,
+      "selected_hk_rows": null,
+      "selected_rows": null,
+      "selected_total_rows": null,
+      "source_rows": 96,
+      "status_code": 200,
+      "write_performed": false
+    },
+    "selection_hash_semantics": {
+      "artifact_file_sha256": "8e32219e33962113527f78f0d0a2bc44276a39345264dd2c968d533bc324ed01",
+      "candidate_and_published_selection_files_byte_identical": true,
+      "manifest_canonical_json_sha256": "8f8fa02aa165d53641f546bc64d6d8cfd43150e1aadfe4c95a21205ea58fbc01",
+      "manifest_file_sha256": "30e5bf2e3c0e9208438670b8327d6264b48f223b1bfd36b239a266528d3cd817",
+      "runner_receipt_file_sha256": "57c0ebadf08e372f2165b624d54b9287737451a9545cc11a9c2015e42c51deae",
+      "selection_receipt_canonical_json_sha256": "00d21a26efa9ff3b960a2765e5a4a4599ff9c7567338f942ffc18676dbbab217",
+      "selection_receipt_file_sha256": "c664e37ec8500c3c47dd536c162fe5532f0a38ce53c245a8450d5532dbb7a281"
+    },
+    "selection_rows": {
+      "action_level_values": [
+        "NO_BUY"
+      ],
+      "count": 10,
+      "formal_eligible_values": [
+        "False"
+      ],
+      "source_mode_values": [
+        "HK_CONNECT_FOUR_LANE"
+      ],
+      "status_values": [
+        "NO_TRADE"
+      ],
+      "trade_status_values": [
+        "NO_TRADE"
+      ]
+    },
+    "target": {
+      "backfill_run_id": "55742332ec504f119a54c42ce9cad3cd",
+      "market": "HK_CONNECT",
+      "stage_id": "STAGE_0930_0935",
+      "trade_date": "20260925"
+    }
+  },
+  "boundary": {
+    "actual_live_service_api_verification": "CANNOT_CONFIRM; in-process TestClient only, per scope.",
+    "deployment_or_reload": "NOT_RUN",
+    "other_date": "NOT_IN_SCOPE",
+    "runtime_mutation": "none by reviewer"
+  },
+  "repo": "/Users/lexi/Desktop/学习/v4_app",
+  "reviewer": "/root/day25_stage_publish_review",
+  "risk_review": {
+    "P0": [],
+    "P1": [],
+    "P2": [
+      {
+        "finding": "Two wide stage-projection assertions still fail on the exact preimage; not introduced by this writer delta. Their deeper origin is outside this frozen batch and remains CANNOT_CONFIRM."
+      },
+      {
+        "finding": "The new selection-root symlink rejection helper has no automated symlink regression cases in the added test file; direct isolated checks of root, backfill namespace, and run symlink rejection passed. Non-blocking for the pinned single-run scope."
+      }
+    ]
+  },
+  "schema_version": "canonical_api_independent_review_receipt.v1",
+  "scope": {
+    "goal": "Independently review the canonical 20260925 HK STAGE_0930_0935 exact-backfill API binding; no later date, deployment, UI, release, service, or plist work.",
+    "reviewed_paths": [
+      "apps/api/v35_api/app.py",
+      "tests/test_hk_stage0930_exact_backfill_binding.py"
+    ],
+    "service_release_plist_mutation_by_reviewer": false,
+    "source_mutation_by_reviewer": false
+  },
+  "source_delta": {
+    "current_app_sha256": "c4834f8239e97a5d27eaec9fd32f2c82c46f4138e90bbfb41a802f6cc5fa33af",
+    "current_test_sha256": "86b8bd6d6d5b62ab8dfed24a7799fa68ccadc309d2e7973f0abff48e682110de",
+    "patch_reconstruction": "PASS: applying the writer delta to the reconstructed preimage reproduced both current file SHA256 values exactly; prior dirty app.py bytes preserved.",
+    "preexisting_patch_sha256": "d0bf0257e0f2f3cedb60696d235850d6e1c054146b147d77fab329409c2dff75",
+    "preimage_app_sha256": "541fc90918f2abba25fd8af6b59d1bb05963a17a0d1ff15d48030da4eeecd824",
+    "writer_delta_patch_sha256": "85abcf9bdb0fe2e4160789c71c44fee93f16fa30b1168e4482906b02c91e877c",
+    "writer_receipt_sha256": "207e416f2dbd1c99524cbfe3358a67a851a1b24ffc26042ea718bc67fc44af7e"
+  },
+  "status": {
+    "BEHAVIOR_VERIFIED": "PASS_IN_PROCESS_TESTCLIENT_AGAINST_PUBLISHED_SHARED_STATE",
+    "DEPLOYED": "NOT_RUN",
+    "NATURAL_VERIFIED": "NOT_RUN",
+    "REVIEWED": "PASS",
+    "TESTED": "PASS_SCOPED",
+    "UI_VERIFIED": "NOT_RUN"
+  },
+  "tests": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 <v3.5-mac-python> -B -m pytest -q -p no:cacheprovider --basetemp=/tmp/day25_review_exact_api tests/test_hk_stage0930_exact_backfill_binding.py",
+      "result": "9 passed"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 <v3.5-mac-python> -B -m pytest -q -p no:cacheprovider --basetemp=/tmp/day25_review_stage_recovery tests/test_stage_historical_recovery.py",
+      "result": "9 passed"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 <v3.5-mac-python> -B -m pytest -q -p no:cacheprovider --basetemp=/tmp/day25_review_wide_current tests/test_stage_historical_recovery.py tests/test_stage_projection_regressions.py",
+      "result": "19 passed, 2 failed; both failures reproduced against exact reconstructed preimage sha256 541fc90918f2abba25fd8af6b59d1bb05963a17a0d1ff15d48030da4eeecd824"
+    }
+  ],
+  "wide_failures_not_introduced_by_writer_delta": [
+    {
+      "failure": "selected_total_rows was None, expected 1",
+      "preimage_result": "same failure",
+      "test": "tests/test_stage_projection_regressions.py::test_stage_projection_keeps_hk_cannot_confirm_reason_when_a_has_rows"
+    },
+    {
+      "failure": "stage.cannot_confirm contains extra HK:SELECTION_ARTIFACT_MISSING_OR_INVALID",
+      "preimage_result": "same failure",
+      "test": "tests/test_stage_projection_regressions.py::test_stage_projection_propagates_partial_market_reason_without_status_upgrade"
+    }
+  ],
+  "writer": "/root/day25_stage_publish_writer"
+}

@@ -1,0 +1,335 @@
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+from typing import Any
+
+import pytest
+from fastapi.testclient import TestClient
+
+from stage_center.selection import SelectionStore
+
+
+TRADE_DATE = "20260925"
+STAGE_ID = "STAGE_0930_0935"
+MARKET = "HK_CONNECT"
+BACKFILL_RUN_ID = "55742332ec504f119a54c42ce9cad3cd"
+RAW_SHA256 = "02229d41078a562a3863124dc799c37c1c087759744d4254b640873c1b5adefd"
+ALGORITHM_SHA256 = "fa010779e194b06ee9a77799d6b41a8d76a641a047b05b96c4594766e4497506"
+
+
+def _selection_envelope() -> dict[str, Any]:
+    from stage_center.contracts import SELECTION_ALGORITHM_ID
+
+    from apps.api.v35_api.app import _APPROVED_EXACT_STAGE_BACKFILLS
+
+    evidence = _APPROVED_EXACT_STAGE_BACKFILLS[
+        (TRADE_DATE, STAGE_ID, MARKET, BACKFILL_RUN_ID)
+    ]["required_evidence"]
+    rows = [
+        {
+            "code": f"HK.{index:05d}",
+            "rank": index,
+            "name": f"Observation {index}",
+            "action_level": "NO_BUY",
+            "trade_status": "WATCH_ONLY",
+            "status": "WATCH_ONLY",
+            "source_mode": "HK_CONNECT_FOUR_LANE",
+            "formal_eligible": False,
+        }
+        for index in range(1, 11)
+    ]
+    return {
+        "schema_version": "stage_center.selection.v2",
+        "trade_date": TRADE_DATE,
+        "stage_id": STAGE_ID,
+        "market": MARKET,
+        "algorithm_id": SELECTION_ALGORITHM_ID,
+        "algorithm_sha256": ALGORITHM_SHA256,
+        "raw_artifact_sha256": RAW_SHA256,
+        "source_status": "PARTIAL_WITH_ROWS",
+        "selection_status": "PARTIAL_WITH_ROWS",
+        "requested_rows": 100,
+        "source_rows": 96,
+        "selected_rows": 10,
+        "coverage_ratio": 0.1,
+        "missing_symbols": [],
+        "rows": rows,
+        "source_evidence": list(evidence),
+        "cannot_confirm": [f"UNKNOWN_{index}" for index in range(12)],
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+    }
+
+
+def _write_runner_receipt(
+    receipt_root: Path,
+    envelope: dict[str, Any],
+    published: dict[str, Any],
+) -> str:
+    receipt_path = (
+        receipt_root
+        / "backfill"
+        / BACKFILL_RUN_ID
+        / TRADE_DATE
+        / STAGE_ID
+        / "receipt.json"
+    )
+    receipt_path.parent.mkdir(parents=True)
+    receipt_path.write_text(
+        json.dumps(
+            {
+                "schema_version": "stage_center.runner.receipt.v1",
+                "runner": "stage_center",
+                "mode": "BACKFILL",
+                "backfill_run_id": BACKFILL_RUN_ID,
+                "due_status": "HISTORICAL_BACKFILL",
+                "trade_date": TRADE_DATE,
+                "stage_id": STAGE_ID,
+                "latest_updated": False,
+                "current_updated": False,
+                "write_performed": True,
+                "markets": {
+                    MARKET: {
+                        "run_id": published["run_id"],
+                        "artifact_id": published["artifact_id"],
+                        "raw_artifact_sha256": envelope["raw_artifact_sha256"],
+                        "selection_status": envelope["selection_status"],
+                    }
+                },
+                "production_allowed": False,
+                "buy_gate_updated": False,
+                "orders_sent": False,
+            },
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+    return hashlib.sha256(receipt_path.read_bytes()).hexdigest()
+
+
+def _catalog_store(root: Path):
+    from infrastructure.data_store import NativeDataStore
+
+    store = NativeDataStore(root / "data")
+    store.import_catalog(
+        {
+            "schema_version": "v3_trade_calendar.v1",
+            "system_date": TRADE_DATE,
+            "stage_dates": [],
+            "future_target_dates": [],
+            "materialized_rows": {},
+        }
+    )
+    return store
+
+
+def _configured_client(
+    tmp_path: Path,
+    monkeypatch: Any,
+    *,
+    include_runner_receipt: bool = True,
+    wrong_expected_runner_sha: bool = False,
+    include_ordinary_selection: bool = False,
+) -> tuple[TestClient, dict[str, Any]]:
+    from apps.api.v35_api import app as app_module
+    from apps.api.v35_api.app import create_app
+
+    selection_root = tmp_path / "stage" / "selection"
+    backfill_store = SelectionStore(
+        selection_root / "backfill" / BACKFILL_RUN_ID
+    )
+    envelope = _selection_envelope()
+    published = backfill_store.publish(envelope, market=MARKET)
+    latest = backfill_store._latest()
+    entry = latest["entries"][backfill_store._key(TRADE_DATE, STAGE_ID, MARKET)]
+    receipt_root = selection_root.parent / "receipts"
+    runner_sha = (
+        _write_runner_receipt(receipt_root, envelope, published)
+        if include_runner_receipt
+        else None
+    )
+    if include_ordinary_selection:
+        ordinary = dict(envelope)
+        ordinary["raw_artifact_sha256"] = "b" * 64
+        ordinary["source_evidence"] = ["ordinary_selection_fixture"]
+        SelectionStore(selection_root).publish(ordinary, market=MARKET)
+
+    binding = {
+        "selection_run_id": published["run_id"],
+        "artifact_id": published["artifact_id"],
+        "raw_artifact_sha256": envelope["raw_artifact_sha256"],
+        "algorithm_id": envelope["algorithm_id"],
+        "algorithm_sha256": envelope["algorithm_sha256"],
+        "selection_status": envelope["selection_status"],
+        "source_status": envelope["source_status"],
+        "selected_rows": envelope["selected_rows"],
+        "source_rows": envelope["source_rows"],
+        "cannot_confirm_count": len(envelope["cannot_confirm"]),
+        "selection_manifest_sha256": entry["manifest_sha256"],
+        "selection_receipt_sha256": entry["receipt_sha256"],
+        "selection_artifact_sha256": entry["artifact_sha256"],
+        "runner_receipt_sha256": (
+            "f" * 64 if wrong_expected_runner_sha else runner_sha or "f" * 64
+        ),
+        "required_evidence": tuple(envelope["source_evidence"]),
+    }
+    monkeypatch.setitem(
+        app_module._APPROVED_EXACT_STAGE_BACKFILLS,
+        (TRADE_DATE, STAGE_ID, MARKET, BACKFILL_RUN_ID),
+        binding,
+    )
+    catalog = _catalog_store(tmp_path)
+    client = TestClient(
+        create_app(
+            data_root=catalog.root,
+            stage_center_selection_root=selection_root,
+            current_date=TRADE_DATE,
+        )
+    )
+    return client, binding
+
+
+def _exact_params(**overrides: str) -> dict[str, str]:
+    params = {
+        "date": TRADE_DATE,
+        "stage": STAGE_ID,
+        "limit": "50",
+        "market": MARKET,
+        "backfill_run_id": BACKFILL_RUN_ID,
+    }
+    params.update(overrides)
+    return params
+
+
+def test_day25_binding_pins_the_published_selection_and_runner_receipts() -> None:
+    from apps.api.v35_api.app import _APPROVED_EXACT_STAGE_BACKFILLS
+
+    binding = _APPROVED_EXACT_STAGE_BACKFILLS[
+        (TRADE_DATE, STAGE_ID, MARKET, BACKFILL_RUN_ID)
+    ]
+    assert binding["selection_run_id"] == "run-00ed21b8213cc63c7c1bebc3"
+    assert binding["artifact_id"] == "selection-00ed21b8213cc63c7c1bebc3"
+    assert binding["raw_artifact_sha256"] == RAW_SHA256
+    assert binding["selection_manifest_sha256"] == (
+        "8f8fa02aa165d53641f546bc64d6d8cfd43150e1aadfe4c95a21205ea58fbc01"
+    )
+    assert binding["selection_receipt_sha256"] == (
+        "00d21a26efa9ff3b960a2765e5a4a4599ff9c7567338f942ffc18676dbbab217"
+    )
+    assert binding["selection_artifact_sha256"] == (
+        "8e32219e33962113527f78f0d0a2bc44276a39345264dd2c968d533bc324ed01"
+    )
+    assert binding["runner_receipt_sha256"] == (
+        "57c0ebadf08e372f2165b624d54b9287737451a9545cc11a9c2015e42c51deae"
+    )
+
+
+def test_exact_hk_backfill_binding_returns_verified_observation_rows(
+    tmp_path: Path, monkeypatch: Any
+) -> None:
+    client, binding = _configured_client(tmp_path, monkeypatch)
+
+    response = client.get("/api/v3/workbench/stage", params=_exact_params())
+
+    assert response.status_code == 200
+    result = response.json()
+    hk = result["markets"]["HK"]
+    assert result["mode"] == "BACKFILL"
+    assert result["backfill_run_id"] == BACKFILL_RUN_ID
+    assert hk["run_id"] == binding["selection_run_id"]
+    assert hk["selection_mode"] == "BACKFILL"
+    assert hk["selection_manifest_sha256"] == binding["selection_manifest_sha256"]
+    assert hk["selection_receipt_sha256"] == binding["selection_receipt_sha256"]
+    assert hk["selection_artifact_sha256"] == binding["selection_artifact_sha256"]
+    assert hk["runner_receipt_verified"] is True
+    assert hk["runner_receipt_sha256"] == binding["runner_receipt_sha256"]
+    assert hk["display_mode"] == "OBSERVATION_UNVERIFIED"
+    assert hk["observation_count"] == 10
+    assert hk["selected_rows"] is None
+    assert len(hk["rows"]) == 10
+    assert result["RESEARCH_ONLY"] is True
+    assert result["write_performed"] is False
+    assert result["production_allowed"] is False
+    assert result["buy_gate_updated"] is False
+    assert result["orders_sent"] is False
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"date": "20260924"},
+        {"market": "A_SHARE"},
+        {"backfill_run_id": "unapproved-run"},
+    ],
+)
+def test_wrong_date_market_or_run_cannot_use_exact_binding(
+    tmp_path: Path, monkeypatch: Any, overrides: dict[str, str]
+) -> None:
+    client, _ = _configured_client(tmp_path, monkeypatch)
+
+    response = client.get(
+        "/api/v3/workbench/stage", params=_exact_params(**overrides)
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "backfill selection identity is unavailable"
+
+
+def test_exact_binding_requires_market_and_run_id_together(
+    tmp_path: Path, monkeypatch: Any
+) -> None:
+    client, _ = _configured_client(tmp_path, monkeypatch)
+    params = _exact_params()
+    params.pop("backfill_run_id")
+
+    response = client.get("/api/v3/workbench/stage", params=params)
+
+    assert response.status_code == 422
+
+
+@pytest.mark.parametrize(
+    ("include_runner_receipt", "wrong_expected_runner_sha"),
+    [(False, False), (True, True)],
+)
+def test_missing_or_wrong_sha_runner_receipt_cannot_verify(
+    tmp_path: Path,
+    monkeypatch: Any,
+    include_runner_receipt: bool,
+    wrong_expected_runner_sha: bool,
+) -> None:
+    client, _ = _configured_client(
+        tmp_path,
+        monkeypatch,
+        include_runner_receipt=include_runner_receipt,
+        wrong_expected_runner_sha=wrong_expected_runner_sha,
+    )
+
+    response = client.get("/api/v3/workbench/stage", params=_exact_params())
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "backfill runner receipt identity is invalid"
+
+
+def test_ordinary_workbench_request_keeps_default_selection_behavior(
+    tmp_path: Path, monkeypatch: Any
+) -> None:
+    client, _ = _configured_client(
+        tmp_path, monkeypatch, include_ordinary_selection=True
+    )
+
+    response = client.get(
+        "/api/v3/workbench/stage",
+        params={"date": TRADE_DATE, "stage": STAGE_ID, "limit": 50},
+    )
+
+    assert response.status_code == 200
+    hk = response.json()["markets"]["HK"]
+    assert "selection_mode" not in hk
+    assert hk.get("backfill_run_id") is None
+    assert hk["raw_artifact_sha256"] == "b" * 64
+    assert hk["display_mode"] == "OBSERVATION_UNVERIFIED"
+    assert hk["observation_count"] == 10
+    assert hk["selected_rows"] is None
