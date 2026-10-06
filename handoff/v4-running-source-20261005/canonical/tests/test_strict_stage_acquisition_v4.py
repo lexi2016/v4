@@ -610,8 +610,9 @@ class StrictStageAcquisitionV4Tests(unittest.TestCase):
                 pool_ids=(good_pool, bad_pool),
                 pool_updates={
                     bad_pool: {
-                        "status": "CANNOT_CONFIRM",
-                        "cannot_confirm": ["BAD_SOURCE"],
+                        "status": "available",
+                        "producer_id": "v3_fupan_watchlist_upstream_v1",
+                        "source_role": "UPSTREAM_PRODUCER_ARTIFACT",
                     }
                 },
             )
@@ -640,13 +641,22 @@ class StrictStageAcquisitionV4Tests(unittest.TestCase):
                 self.assertRegex(bad_provenance[field], r"^[0-9a-f]{64}$")
             self.assertEqual(
                 bad_provenance["producer_id"],
-                a_pool_contract(bad_pool)[1],
+                "v3_fupan_watchlist_upstream_v1",
             )
             self.assertEqual(
                 bad_provenance["source_role"],
-                a_pool_contract(bad_pool)[2],
+                "UPSTREAM_PRODUCER_ARTIFACT",
             )
-            self.assertIn("BAD_SOURCE", " ".join(bad_provenance["diagnostics"]))
+            self.assertIn(
+                "SOURCE_STATUS_REJECTED:available",
+                " ".join(bad_provenance["diagnostics"]),
+            )
+            stored_bad_pool = PreselectionPoolStore(root).read_pool_snapshot(
+                TRADE_DATE, bad_pool
+            )["artifact"]
+            self.assertEqual(len(stored_bad_pool["rows"]), 1)
+            self.assertEqual(stored_bad_pool["rows"][0]["symbol"], "A.000002")
+            self.assertNotIn("A.000002", result["artifact"]["codes"])
             self.assertTrue(_strict_current_path(root).exists())
             candidate = read_candidate_input(root, TRADE_DATE)
             self.assertEqual(candidate.codes, ("A.000001",))

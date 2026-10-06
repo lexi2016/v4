@@ -51,10 +51,26 @@ def __snapshot_pool_provenance_body(_v4_scope, /, snapshot):
             raise _v4_global(_v4_scope, 'StageAcquisitionContractError')(
                 f"strict stage-acquisition source pool {pool_id} contribution count is invalid"
             )
+        source_status = _v4_global(_v4_scope, 'str')(pool.artifact.get("status") or "")
+        provenance_status = source_status
+        if (
+            contribution_count == 0
+            and source_status.casefold() == "available"
+            and any(reason.startswith("SOURCE_REJECTED:") for reason in diagnostics)
+        ):
+            # A physical upstream artifact with the legacy ``available``
+            # status is not an accepted lane status.  Keep the verified
+            # physical identity, but describe its zero-row contribution as
+            # diagnostic-only so the strict aggregate can publish other
+            # valid lanes without admitting these rejected rows.
+            provenance_status = "CANNOT_CONFIRM"
+            rejected_status = f"SOURCE_STATUS_REJECTED:{source_status}"
+            if rejected_status not in diagnostics:
+                diagnostics.append(rejected_status)
         provenance.append(
             {
                 "pool_id": pool_id,
-                "status": _v4_global(_v4_scope, 'str')(pool.artifact.get("status") or ""),
+                "status": provenance_status,
                 "producer_id": _v4_global(_v4_scope, 'str')(pool.artifact.get("producer_id") or ""),
                 "source_role": _v4_global(_v4_scope, 'str')(pool.artifact.get("source_role") or ""),
                 # This is the count of rows that passed contribution
