@@ -989,3 +989,114 @@ def test_r8_real_candidates_have_15_exact_and_15_ordinary_r4_release_readbacks(
     tmp_path: Path,
 ) -> None:
     _run_r8_candidates_through_r4_release_tree(tmp_path, candidate_limit=15)
+
+
+_R9_READBACK_SCRIPT = Path(
+    "/Users/lexi/Desktop/学习/agents调试/V4_MONTH_BACKFILL_20261007/evidence/"
+    "month_hk_backfill_api_r8/r9_p2fix2/run_r9_api_readback_p2fix2.py"
+)
+_R9_INACTIVE_RELEASE_ROOT = Path(
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/"
+    "manager-hk-month-backfill-r9-p2fix2-20261007-api-candidate"
+)
+_R4_BASELINE_RELEASE_ROOT = Path(
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/"
+    "manager-hk-month-backfill-r8-20261007-api-r4"
+)
+
+
+def _run_r9_inactive_release_readback(
+    tmp_path: Path, *, mode: str, limit: int
+) -> dict[str, Any]:
+    release_root = (
+        _R9_INACTIVE_RELEASE_ROOT
+        if mode in {"candidate", "preserve"}
+        else _R4_BASELINE_RELEASE_ROOT
+    )
+    release_app_root = release_root / "app"
+    manifest_path = release_root / "release-manifest.json"
+    app_path = release_app_root / "apps/api/v35_api/app.py"
+    manifest_sha256 = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+    app_sha256 = hashlib.sha256(app_path.read_bytes()).hexdigest()
+    env = dict(os.environ)
+    env.update(
+        {
+            "V35_APP_ROOT": str(release_app_root),
+            "V35_RELEASE_ID": release_root.name,
+            "V35_RELEASE_MANIFEST_PATH": str(manifest_path),
+            "V35_RELEASE_MANIFEST_SHA256": manifest_sha256,
+            "PYTHONPATH": f"{release_app_root / 'upstreams'}:{release_app_root}",
+            "EXPECTED_APP_SHA256": app_sha256,
+            "R9_READBACK_TMP_ROOT": str(tmp_path),
+            "R9_READBACK_MODE": mode,
+            "R9_READBACK_LIMIT": str(limit),
+            "R9_CANARY_DATE": "20260908",
+            "R9_CANARY_STAGE": "STAGE_0930_0935",
+        }
+    )
+    result = subprocess.run(
+        [sys.executable, "-B", str(_R9_READBACK_SCRIPT)],
+        env=env,
+        cwd=release_app_root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    return json.loads(result.stdout)
+
+
+def test_r9_r4_baseline_reproduces_stale_nonempty_ordinary_read(
+    tmp_path: Path,
+) -> None:
+    result = _run_r9_inactive_release_readback(
+        tmp_path, mode="baseline", limit=1
+    )
+    assert result["result"] == "STALE_ORDINARY_REPRODUCED"
+    assert result["exact_status"] == 404
+    assert result["ordinary_status"] == 200
+    assert result["ordinary_rows"] == 10
+    assert result["ordinary_first_code"] == "HK.99001"
+
+
+def test_r9_inactive_release_single_candidate_canary(
+    tmp_path: Path,
+) -> None:
+    result = _run_r9_inactive_release_readback(
+        tmp_path, mode="candidate", limit=1
+    )
+    assert result["result"] == "R9_EXACT_AND_ORDINARY_READBACK_PASS"
+    assert result["checked_candidates"] == 1
+    assert result["exact_reads"] == result["ordinary_reads"] == 1
+
+
+def test_r9_inactive_release_preserves_existing_correct_target_pool_result(
+    tmp_path: Path,
+) -> None:
+    result = _run_r9_inactive_release_readback(
+        tmp_path, mode="preserve", limit=1
+    )
+    assert result["result"] == "R9_EXISTING_TARGET_POOL_PRESERVED"
+    assert result["exact_reads"] == result["ordinary_reads"] == 1
+    assert result["ordinary_first_code"] == "HK.97001"
+    assert result["ordinary_pool_sha256"] == (
+        "9b11fd7f192801552902e406045ee520a19d5a6b373c60a790f6925a30afa3bb"
+    )
+    assert result["candidate_run_id"] != result["ordinary_run_id"]
+
+
+def test_r9_inactive_release_reads_all_87_exact_and_ordinary_candidates(
+    tmp_path: Path,
+) -> None:
+    result = _run_r9_inactive_release_readback(
+        tmp_path, mode="candidate", limit=87
+    )
+    assert result["result"] == "R9_EXACT_AND_ORDINARY_READBACK_PASS"
+    assert result["checked_candidates"] == 87
+    assert result["exact_reads"] == result["ordinary_reads"] == 87
+    assert result["missing_rows_total"] == 80
+    assert result["stale_ordinary_replacements"] == [
+        ["20261002", "STAGE_1300_1315"],
+        ["20261002", "STAGE_1445_1500"],
+        ["20261002", "STAGE_1545_1555"],
+    ]
