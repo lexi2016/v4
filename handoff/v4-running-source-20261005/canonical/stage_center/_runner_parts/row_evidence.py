@@ -143,7 +143,10 @@ def __with_candidate_evidence_body(_v4_scope, /, result, candidate, extra, *, ca
     return _v4_global(_v4_scope, 'replace')(result, source_evidence=evidence)
 
 
-def __project_raw_rows_body(_v4_scope, /, rows, *, trade_date, stage_id, market):
+def __project_raw_rows_body(
+    _v4_scope, /, rows, *, trade_date, stage_id, market,
+    research_observation_contract=None,
+):
     """Project collector rows to the immutable SafeRootStore 19-field shape.
 
     Collector rows are intentionally richer than raw storage: auction rank,
@@ -159,7 +162,33 @@ def __project_raw_rows_body(_v4_scope, /, rows, *, trade_date, stage_id, market)
         else _v4_global(_v4_scope, 'dict')(row)
         for row in rows
     )
-    _validated, issues = _v4_global(_v4_scope, 'validate_rows')(projected, trade_date=trade_date, stage_id=stage_id, market=market)
+    if research_observation_contract is not None:
+        legacy_contract = research_observation_contract == _v4_global(
+            _v4_scope, 'HK_0930_TDX_RESEARCH_CONTRACT'
+        )
+        manifest_contract = (
+            isinstance(research_observation_contract, str)
+            and research_observation_contract.startswith(
+                _v4_global(_v4_scope, 'HISTORICAL_OBSERVATION_CONTRACT_PREFIX')
+            )
+            and _v4_global(_v4_scope, 're').fullmatch(
+                _v4_global(_v4_scope, 're').escape(
+                    _v4_global(_v4_scope, 'HISTORICAL_OBSERVATION_CONTRACT_PREFIX')
+                ) + r"[0-9a-f]{64}",
+                research_observation_contract,
+            ) is not None
+        )
+        if not (legacy_contract or manifest_contract):
+            raise _v4_global(_v4_scope, 'RunnerError')(
+                "unknown temporal-false research projection contract"
+            )
+    _validated, issues = _v4_global(_v4_scope, 'validate_rows')(
+        projected,
+        trade_date=trade_date,
+        stage_id=stage_id,
+        market=market,
+        allow_temporal_false_observation=(research_observation_contract is not None),
+    )
     if issues:
         raise _v4_global(_v4_scope, 'RunnerError')(f"raw projection validation failed for {market}: {'; '.join(issues[:3])}")
     return projected

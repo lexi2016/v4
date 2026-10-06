@@ -3,14 +3,43 @@ from __future__ import annotations
 from ._namespace import read_global as _v4_global
 
 
-def _RawStore_publish_body(_v4_scope, /, self, *, trade_date, stage_id, market, source_id, source_status, rows, cannot_confirm, source_evidence, requested_rows, missing_symbols, window, cutoff_at):
+def _RawStore_publish_body(
+    _v4_scope, /, self, *, trade_date, stage_id, market, source_id,
+    source_status, rows, cannot_confirm, source_evidence, requested_rows,
+    missing_symbols, window, cutoff_at, research_observation_contract=None,
+):
     _v4_global(_v4_scope, '_validate_date')(trade_date)
     _v4_global(_v4_scope, '_stage')(stage_id)
     if market not in _v4_global(_v4_scope, '_stage')(stage_id).markets:
         raise _v4_global(_v4_scope, 'RawStoreError')(f"market {market!r} is not scheduled for {stage_id!r}")
     if not _v4_global(_v4_scope, 'isinstance')(source_id, _v4_global(_v4_scope, 'str')) or not source_id or "/" in source_id or "\\" in source_id:
         raise _v4_global(_v4_scope, 'RawStoreError')("source_id is unsafe")
-    validated, issues = _v4_global(_v4_scope, 'validate_rows')(rows, trade_date=trade_date, stage_id=stage_id, market=market)
+    allow_temporal_false_observation = _v4_global(
+        _v4_scope, '_allows_temporal_false_observation'
+    )(
+        contract=research_observation_contract,
+        trade_date=trade_date,
+        stage_id=stage_id,
+        market=market,
+        source_id=source_id,
+        source_status=source_status,
+        rows=rows,
+        requested_rows=requested_rows,
+        missing_symbols=missing_symbols,
+        cannot_confirm=cannot_confirm,
+        source_evidence=source_evidence,
+    )
+    if research_observation_contract is not None and not allow_temporal_false_observation:
+        raise _v4_global(_v4_scope, 'RawStoreError')(
+            "explicit HK research temporal-false publication contract mismatch"
+        )
+    validated, issues = _v4_global(_v4_scope, 'validate_rows')(
+        rows,
+        trade_date=trade_date,
+        stage_id=stage_id,
+        market=market,
+        allow_temporal_false_observation=allow_temporal_false_observation,
+    )
     status = _v4_global(_v4_scope, '_status')(source_status, validated, issues, cannot_confirm)
     normalized_source_status = {"READ_OK": "READY", "READ_FAILED": "CANNOT_CONFIRM"}.get(source_status, source_status)
     requested = _v4_global(_v4_scope, 'len')(rows) if requested_rows is None else _v4_global(_v4_scope, 'int')(requested_rows)
@@ -227,7 +256,11 @@ def _RawStore_publish_bundle_body(_v4_scope, /, self, *, trade_date, stage_id, s
         }
 
 
-def _publish_raw_artifact_body(_v4_scope, /, root, *, trade_date, stage_id, market, source_id, source_status, rows, cannot_confirm, source_evidence, requested_rows, missing_symbols, window, cutoff_at):
+def _publish_raw_artifact_body(
+    _v4_scope, /, root, *, trade_date, stage_id, market, source_id,
+    source_status, rows, cannot_confirm, source_evidence, requested_rows,
+    missing_symbols, window, cutoff_at, research_observation_contract=None,
+):
     return _v4_global(_v4_scope, 'RawStore')(root).publish(
         trade_date=trade_date,
         stage_id=stage_id,
@@ -241,4 +274,5 @@ def _publish_raw_artifact_body(_v4_scope, /, root, *, trade_date, stage_id, mark
         missing_symbols=missing_symbols,
         window=window,
         cutoff_at=cutoff_at,
+        research_observation_contract=research_observation_contract,
     )

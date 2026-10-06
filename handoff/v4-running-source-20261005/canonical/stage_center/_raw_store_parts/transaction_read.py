@@ -53,6 +53,82 @@ def _RawStore__verify_run_paths_body(_v4_scope, /, self, *, trade_date, stage_id
     status = receipt.get("status")
     if status not in _v4_global(_v4_scope, 'RAW_STATUSES') or manifest.get("status") != status:
         raise _v4_global(_v4_scope, 'RawStoreError')("raw status mismatch")
+    row_values = []
+    for index, artifact_row in enumerate(rows):
+        raw_flag = artifact_row.get("temporal_cutoff_safe")
+        if raw_flag not in {"True", "False"}:
+            raise _v4_global(_v4_scope, 'RawStoreError')(
+                f"row {index}: temporal_cutoff_safe must be serialized as True or False"
+            )
+        row_values.append({
+            field: (raw_flag == "True" if field == "temporal_cutoff_safe" else artifact_row.get(field))
+            for field in _v4_global(_v4_scope, 'RAW_FIELDS')
+        })
+    source_evidence = manifest.get("source_evidence")
+    cannot_confirm = manifest.get("cannot_confirm")
+    requested_rows = manifest.get("requested_rows")
+    missing_symbols = manifest.get("missing_symbols")
+    if (
+        receipt.get("source_id") != manifest.get("source_id")
+        or receipt.get("source_status") != manifest.get("source_status")
+        or receipt.get("source_evidence") != source_evidence
+        or receipt.get("cannot_confirm") != cannot_confirm
+        or receipt.get("requested_rows") != requested_rows
+        or receipt.get("missing_symbols") != missing_symbols
+    ):
+        raise _v4_global(_v4_scope, 'RawStoreError')("raw source evidence identity mismatch")
+    evidence_items = source_evidence if isinstance(source_evidence, list) else []
+    mode_items = [
+        str(item) for item in evidence_items
+        if str(item).startswith(_v4_global(_v4_scope, 'HISTORICAL_OBSERVATION_MODE_EVIDENCE_PREFIX'))
+    ]
+    legacy_mode_present = _v4_global(_v4_scope, 'HK_0930_TDX_RESEARCH_MODE_EVIDENCE') in evidence_items
+    has_temporal_false = any(row["temporal_cutoff_safe"] is False for row in row_values)
+    allow_temporal_false_observation = False
+    if mode_items or legacy_mode_present or has_temporal_false:
+        contract = None
+        if len(mode_items) == 1:
+            contract = mode_items[0].split("=", 1)[1]
+        elif legacy_mode_present:
+            contract = _v4_global(_v4_scope, 'HK_0930_TDX_RESEARCH_CONTRACT')
+        allow_temporal_false_observation = _v4_global(
+            _v4_scope, '_allows_temporal_false_observation'
+        )(
+            contract=contract,
+            trade_date=trade_date,
+            stage_id=stage_id,
+            market=market,
+            source_id=manifest.get("source_id"),
+            source_status=manifest.get("source_status"),
+            rows=row_values,
+            requested_rows=requested_rows,
+            missing_symbols=missing_symbols or (),
+            cannot_confirm=cannot_confirm or (),
+            source_evidence=evidence_items,
+        )
+        if not allow_temporal_false_observation:
+            raise _v4_global(_v4_scope, 'RawStoreError')(
+                "temporal-false raw rows lack the exact historical research contract"
+            )
+        if (
+            status != "PARTIAL_WITH_ROWS"
+            or manifest.get("temporal_cutoff_safe") is not False
+            or receipt.get("temporal_cutoff_safe") is not False
+        ):
+            raise _v4_global(_v4_scope, 'RawStoreError')(
+                "historical temporal-false observation must remain PARTIAL and unsafe"
+            )
+    _validated_rows, row_issues = _v4_global(_v4_scope, 'validate_rows')(
+        row_values,
+        trade_date=trade_date,
+        stage_id=stage_id,
+        market=market,
+        allow_temporal_false_observation=allow_temporal_false_observation,
+    )
+    if row_issues or len(_validated_rows) != row_count:
+        raise _v4_global(_v4_scope, 'RawStoreError')(
+            "raw artifact row validation failed: " + "; ".join(row_issues[:3])
+        )
     if status == "READY" and (row_count <= 0 or manifest.get("temporal_cutoff_safe") is not True):
         raise _v4_global(_v4_scope, 'RawStoreError')("READY lacks rows or temporal proof")
     if status == "READY_EMPTY" and row_count != 0:
