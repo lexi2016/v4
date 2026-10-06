@@ -1,6 +1,7 @@
 from datetime import datetime
 import importlib
 import importlib.util
+import inspect
 import os
 from pathlib import Path
 import sys
@@ -1129,6 +1130,34 @@ def _resolve_exact_backfill_selection_root(selection_root: Path | str, run_id: s
     return run_root
 
 
+def _new_scoped_stage_selection_consumer(
+    root: Path | str,
+    shared_consumer: StageSelectionConsumer,
+) -> StageSelectionConsumer:
+    """Build a run-scoped consumer across supported release constructor names."""
+    parameters = inspect.signature(StageSelectionConsumer).parameters
+    accepts_keywords = any(
+        parameter.kind is inspect.Parameter.VAR_KEYWORD
+        for parameter in parameters.values()
+    )
+    kwargs: dict[str, Any] = {}
+    if "a_name_pool_root" in parameters or accepts_keywords:
+        kwargs["a_name_pool_root"] = shared_consumer.a_name_pool_root
+    else:
+        raise TypeError("StageSelectionConsumer lacks a_name_pool_root support")
+
+    receipt_root = shared_consumer.runner_receipt_root
+    if "runner_receipt_root" in parameters:
+        kwargs["runner_receipt_root"] = receipt_root
+    elif "execution_receipt_root" in parameters:
+        kwargs["execution_receipt_root"] = receipt_root
+    elif accepts_keywords:
+        kwargs["runner_receipt_root"] = receipt_root
+    else:
+        raise TypeError("StageSelectionConsumer lacks a runner receipt root parameter")
+    return StageSelectionConsumer(root, **kwargs)
+
+
 def _resolve_manager_research_state_root(
     manager_research_state_root: Path | str | None,
     data_root: Path | str | None,
@@ -1861,10 +1890,9 @@ def create_app(
             scoped_root = _resolve_exact_backfill_selection_root(
                 configured_selection_root, backfill_run_id
             )
-            backfill_consumer = StageSelectionConsumer(
+            backfill_consumer = _new_scoped_stage_selection_consumer(
                 scoped_root,
-                a_name_pool_root=shared_selection_consumer.a_name_pool_root,
-                runner_receipt_root=shared_selection_consumer.runner_receipt_root,
+                shared_selection_consumer,
             )
             try:
                 envelope = backfill_consumer.store.read_verified(selected, stage, market)

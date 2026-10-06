@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -744,3 +745,247 @@ def test_ordinary_20261005_auction_api_quarantines_only_pinned_wrong_pool_artifa
         assert hk["display_mode"] == "OBSERVATION_UNVERIFIED"
         assert len(hk["rows"]) == 10
         assert "quarantined_source" not in result["selection_markets"]["HK_CONNECT"]
+
+
+def _run_r8_candidates_through_r4_release_tree(
+    tmp_path: Path,
+    candidate_limit: int,
+) -> None:
+    release_id = "manager-hk-month-backfill-r8-20261007-api-r4"
+    release_app_root = Path(
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/"
+        f"{release_id}/app"
+    )
+    candidate_app = release_app_root / "apps/api/v35_api/app.py"
+    manifest_path = release_app_root.parent / "release-manifest.json"
+    assert candidate_app.is_file()
+    assert manifest_path.is_file()
+    app_sha256 = hashlib.sha256(candidate_app.read_bytes()).hexdigest()
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert manifest["candidate"]["release_id"] == release_id
+    assert manifest["candidate"]["app_root"] == str(release_app_root)
+    app_inventory = next(
+        item
+        for item in manifest["application_inventory"]["entries"]
+        if item.get("path") == "apps/api/v35_api/app.py"
+    )
+    assert app_inventory["sha256"] == app_sha256
+    expected_app_sha256 = "109e850d9c3df9e1dfee7b359a64e1dc01f0c2ca1d51cba82f8778a496e4c464"
+    assert app_sha256 == expected_app_sha256
+    manifest_sha256 = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+    inline = r'''
+import hashlib, importlib.util, json, os, shutil, sys, tempfile
+from pathlib import Path
+
+release_root = Path(os.environ["RELEASE_APP_ROOT"]).resolve()
+candidate_app = release_root / "apps/api/v35_api/app.py"
+sys.path.insert(0, str(release_root))
+from stage_center.consumer import StageSelectionConsumer
+from stage_center.selection import SelectionStore
+from infrastructure.data_store import NativeDataStore
+from fastapi.testclient import TestClient
+from infrastructure.scheduling.dispatcher import validate_release_identity
+
+consumer_path = Path(sys.modules[StageSelectionConsumer.__module__].__file__).resolve()
+assert consumer_path == release_root / "stage_center/consumer.py", consumer_path
+assert hashlib.sha256(consumer_path.read_bytes()).hexdigest() == (
+    "61f8a3541aa7a2e698cc4374385e3d20d41b40ffd5a3cd7d87c9494cb8726cf4"
+)
+assert "execution_receipt_root" in __import__("inspect").signature(
+    StageSelectionConsumer
+).parameters
+runtime_identity = validate_release_identity()
+assert runtime_identity["release_id"] == os.environ["V35_RELEASE_ID"]
+assert runtime_identity["release_manifest_sha256"] == os.environ["V35_RELEASE_MANIFEST_SHA256"]
+
+spec = importlib.util.spec_from_file_location("r4_release_tree_candidate_api", candidate_app)
+module = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = module
+spec.loader.exec_module(module)
+assert Path(module.__file__).resolve() == candidate_app.resolve()
+assert hashlib.sha256(candidate_app.read_bytes()).hexdigest() == os.environ["EXPECTED_APP_SHA256"]
+assert len(module._MONTH_HK_AFTERFACT_R8_BINDINGS) == 15
+assert module.StageSelectionConsumer is StageSelectionConsumer
+
+batch_path = Path(os.environ["R8_BATCH_RECEIPT"])
+batch = json.loads(batch_path.read_text(encoding="utf-8"))
+assert batch["status"] == "PASS_15_TARGET_BOUND_CANDIDATES"
+assert len(batch["candidates"]) == 15
+candidate_count = int(os.environ["CANDIDATE_LIMIT"])
+assert candidate_count in {1, 15}
+selected_candidates = batch["candidates"][:candidate_count]
+bindings = {
+    (item["date"], item["stage_id"], item["backfill_run_id"]): item
+    for item in module._MONTH_HK_AFTERFACT_R8_BINDINGS
+}
+
+with tempfile.TemporaryDirectory(dir=os.environ["TEST_TMPDIR"]) as temp:
+    root = Path(temp)
+    data = NativeDataStore(root / "data")
+    data.import_catalog({
+        "schema_version": "v3_trade_calendar.v1",
+        "system_date": "20261007",
+        "stage_dates": [],
+        "future_target_dates": [],
+        "materialized_rows": {},
+    })
+    selection_root = root / "stage" / "selection"
+    ordinary_store = SelectionStore(selection_root)
+
+    for candidate in selected_candidates:
+        date = candidate["trade_date"]
+        stage = candidate["stage_id"]
+        run_id = candidate["backfill_run_id"]
+        key = (date, stage, run_id)
+        binding = bindings[key]
+        assert candidate["candidate_verification"] == "PASS"
+        source_root = (
+            Path(candidate["candidate_root"])
+            / "runtime/selection/backfill"
+            / run_id
+        )
+        source_store = SelectionStore(source_root)
+        envelope = source_store.read_verified(date, stage, "HK_CONNECT")
+        source_entry = source_store._latest()["entries"][
+            source_store._key(date, stage, "HK_CONNECT")
+        ]
+        assert source_entry["run_id"] == binding["selection_run_id"]
+        assert source_entry["manifest_sha256"] == binding["selection_manifest_sha256"]
+        assert source_entry["receipt_sha256"] == binding["selection_receipt_sha256"]
+        assert source_entry["artifact_sha256"] == binding["selection_artifact_sha256"]
+        assert envelope["raw_artifact_sha256"] == binding["raw_artifact_sha256"]
+
+        target_root = selection_root / "backfill" / run_id
+        target_root.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(source_root, target_root)
+        source_runner = (
+            Path(candidate["candidate_root"])
+            / "runtime/receipts/backfill"
+            / run_id / date / stage / "receipt.json"
+        )
+        assert hashlib.sha256(source_runner.read_bytes()).hexdigest() == binding[
+            "runner_receipt_sha256"
+        ]
+        target_runner = (
+            selection_root.parent / "receipts/backfill"
+            / run_id / date / stage / "receipt.json"
+        )
+        target_runner.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source_runner, target_runner)
+
+        stale_rows = [
+            {
+                "code": f"HK.{99000 + i:05d}",
+                "rank": i,
+                "name": f"Superseded {i}",
+                "action_level": "NO_BUY",
+                "trade_status": "WATCH_ONLY",
+                "status": "WATCH_ONLY",
+                "source_mode": "HK_CONNECT_FOUR_LANE",
+                "formal_eligible": False,
+            }
+            for i in range(1, 11)
+        ]
+        ordinary_store.publish(
+            {
+                "schema_version": "stage_center.selection.v2",
+                "trade_date": date,
+                "stage_id": stage,
+                "market": "HK_CONNECT",
+                "algorithm_id": binding["algorithm_id"],
+                "algorithm_sha256": binding["algorithm_sha256"],
+                "raw_artifact_sha256": "a" * 64,
+                "source_status": "PARTIAL_WITH_ROWS",
+                "selection_status": "PARTIAL_WITH_ROWS",
+                "requested_rows": 100,
+                "source_rows": 100,
+                "selected_rows": 10,
+                "coverage_ratio": 0.1,
+                "missing_symbols": [],
+                "rows": stale_rows,
+                "source_evidence": ["canonical_nonempty_source=true"],
+                "cannot_confirm": ["FORMAL", "PIT", "NATURAL"],
+                "formal_eligible": False,
+                "observation_status": "OBSERVATION_UNVERIFIED",
+                "formal_stage_eligibility": "CANNOT_CONFIRM",
+                "natural_time_capture": "CANNOT_CONFIRM",
+                "production_allowed": False,
+                "buy_gate_updated": False,
+                "orders_sent": False,
+            },
+            market="HK_CONNECT",
+        )
+
+    client = TestClient(module.create_app(
+        data_root=data.root,
+        stage_center_selection_root=selection_root,
+        current_date="20261007",
+    ))
+    for candidate in selected_candidates:
+        date = candidate["trade_date"]
+        stage = candidate["stage_id"]
+        run_id = candidate["backfill_run_id"]
+        exact = client.get("/api/v3/workbench/stage", params={
+            "date": date, "stage": stage, "market": "HK_CONNECT",
+            "backfill_run_id": run_id, "limit": 50,
+        })
+        assert exact.status_code == 200, (date, stage, exact.text)
+        exact_result = exact.json()
+        exact_market = exact_result["selection_markets"]["HK_CONNECT"]
+        assert exact_market["backfill_run_id"] == run_id
+        assert exact_market["runner_receipt_verified"] is True
+        assert len(exact_market["rows"]) == 10
+        assert all(exact_result[field] is False for field in (
+            "production_allowed", "buy_gate_updated", "orders_sent"
+        ))
+
+        ordinary = client.get("/api/v3/workbench/stage", params={
+            "date": date, "stage": stage, "limit": 50,
+        })
+        assert ordinary.status_code == 200, (date, stage, ordinary.text)
+        ordinary_result = ordinary.json()
+        ordinary_market = ordinary_result["selection_markets"]["HK_CONNECT"]
+        assert ordinary_market["backfill_run_id"] == run_id
+        assert ordinary_market["run_id"] == exact_market["run_id"]
+        assert ordinary_market["superseded_source"][
+            "status"
+        ] == "SUPERSEDED_BY_EXACT_TARGET_D1_RESEARCH_CANDIDATE"
+        assert len(ordinary_result["markets"]["HK"]["rows"]) == 10
+        assert all(row["action_level"] == "NO_BUY" for row in ordinary_result["markets"]["HK"]["rows"])
+        assert all(ordinary_result[field] is False for field in (
+            "production_allowed", "buy_gate_updated", "orders_sent"
+        ))
+
+print(f"{candidate_count} exact and {candidate_count} ordinary API reads PASS with R4 release app and daily-r2 consumer")
+'''
+    env = dict(os.environ)
+    env["RELEASE_APP_ROOT"] = str(release_app_root)
+    env["R8_BATCH_RECEIPT"] = str(_R8_CANDIDATE_BATCH_RECEIPT)
+    env["TEST_TMPDIR"] = str(tmp_path)
+    env["CANDIDATE_LIMIT"] = str(candidate_limit)
+    env["EXPECTED_APP_SHA256"] = expected_app_sha256
+    env["V35_APP_ROOT"] = str(release_app_root)
+    env["V35_RELEASE_ID"] = release_id
+    env["V35_RELEASE_MANIFEST_PATH"] = str(manifest_path)
+    env["V35_RELEASE_MANIFEST_SHA256"] = manifest_sha256
+    env["PYTHONPATH"] = f"{release_app_root / 'upstreams'}:{release_app_root}"
+    result = subprocess.run(
+        [sys.executable, "-B", "-c", inline],
+        env=env,
+        cwd=release_app_root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert f"{candidate_limit} exact and {candidate_limit} ordinary API reads PASS with R4 release app and daily-r2 consumer" in result.stdout
+
+
+def test_r8_release_tree_single_candidate_canary(tmp_path: Path) -> None:
+    _run_r8_candidates_through_r4_release_tree(tmp_path, candidate_limit=1)
+
+
+def test_r8_real_candidates_have_15_exact_and_15_ordinary_r4_release_readbacks(
+    tmp_path: Path,
+) -> None:
+    _run_r8_candidates_through_r4_release_tree(tmp_path, candidate_limit=15)
