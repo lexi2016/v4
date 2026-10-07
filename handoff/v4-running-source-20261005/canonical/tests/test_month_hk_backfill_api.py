@@ -1100,3 +1100,191 @@ def test_r9_inactive_release_reads_all_87_exact_and_ordinary_candidates(
         ["20261002", "STAGE_1445_1500"],
         ["20261002", "STAGE_1545_1555"],
     ]
+
+
+_R9_PATH_CONTRACT_ROOT = Path(
+    "/Users/lexi/Desktop/学习/agents调试/V4_MONTH_BACKFILL_20261007/evidence/"
+    "month_hk_backfill_api_r8/r9_p3_path_contract"
+)
+_R9_PATH_CONTRACT_SCRIPT = (
+    _R9_PATH_CONTRACT_ROOT / "run_r9_api_readback_p3_plan_targets.py"
+)
+_R9_P2FIX2_CAS_PLAN = (
+    _R9_PATH_CONTRACT_ROOT.parent
+    / "r9_p2fix2/r9_p2fix2_exact_copy_cas_plan_final.json"
+)
+_R9_P3_CAS_PLAN = _R9_PATH_CONTRACT_ROOT / "r9_p3_exact_copy_cas_plan.json"
+
+
+def _run_r9_plan_target_readback(
+    tmp_path: Path,
+    *,
+    plan_path: Path,
+    mode: str,
+    limit: int,
+) -> dict[str, Any]:
+    """Use the actual inactive release and materialize the exact CAS paths."""
+    release_root = _R9_INACTIVE_RELEASE_ROOT
+    release_app_root = release_root / "app"
+    manifest_path = release_root / "release-manifest.json"
+    app_path = release_app_root / "apps/api/v35_api/app.py"
+    manifest_sha256 = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+    app_sha256 = hashlib.sha256(app_path.read_bytes()).hexdigest()
+    env = dict(os.environ)
+    env.update(
+        {
+            "V35_APP_ROOT": str(release_app_root),
+            "V35_RELEASE_ID": release_root.name,
+            "V35_RELEASE_MANIFEST_PATH": str(manifest_path),
+            "V35_RELEASE_MANIFEST_SHA256": manifest_sha256,
+            "PYTHONPATH": f"{release_app_root / 'upstreams'}:{release_app_root}",
+            "EXPECTED_APP_SHA256": app_sha256,
+            "R9_READBACK_TMP_ROOT": str(tmp_path),
+            "R9_READBACK_MODE": mode,
+            "R9_READBACK_LIMIT": str(limit),
+            "R9_CANARY_DATE": "20260908",
+            "R9_CANARY_STAGE": "STAGE_0930_0935",
+            "R9_CAS_PLAN_PATH": str(plan_path),
+        }
+    )
+    result = subprocess.run(
+        [sys.executable, "-B", str(_R9_PATH_CONTRACT_SCRIPT)],
+        env=env,
+        cwd=release_app_root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    return json.loads(result.stdout)
+
+
+def test_r9_p2fix2_cas_targets_reproduce_the_live_selection_identity_409(
+    tmp_path: Path,
+) -> None:
+    result = _run_r9_plan_target_readback(
+        tmp_path,
+        plan_path=_R9_P2FIX2_CAS_PLAN,
+        mode="path_failure",
+        limit=1,
+    )
+    assert result["release_id"] == _R9_INACTIVE_RELEASE_ROOT.name
+    assert result["result"] == "OLD_PLAN_TARGET_PATH_REPRODUCES_409"
+    assert result["direct_exact_status"] == result["ordinary_status"] == 409
+    assert result["direct_exact_detail"] == result["ordinary_detail"] == (
+        "backfill selection identity is invalid"
+    )
+    assert result["materialized_file_count"] == 5
+    mismatches = result["target_contract_failures"]
+    assert {item["role"] for item in mismatches} == {
+        "selection_manifest",
+        "selection_receipt",
+    }
+    assert all(
+        item["plan_target"] != item["SelectionStore_expected_target"]
+        and "SELECTION_STAGE_STAGE_" in item["plan_target"]
+        for item in mismatches
+    )
+
+
+def test_r9_p3_selectionstore_paths_pass_all_87_actual_release_readbacks(
+    tmp_path: Path,
+) -> None:
+    result = _run_r9_plan_target_readback(
+        tmp_path,
+        plan_path=_R9_P3_CAS_PLAN,
+        mode="candidate",
+        limit=87,
+    )
+    assert result["release_id"] == _R9_INACTIVE_RELEASE_ROOT.name
+    assert result["app_sha256"] == "4eceecb8bd078cdf3a2853ccb8339d5c9fbefb47825f70d1fc6f78a292a48af3"
+    assert result["result"] == "R9_EXACT_AND_ORDINARY_READBACK_PASS"
+    assert result["checked_candidates"] == 87
+    assert result["exact_reads"] == result["ordinary_reads"] == 87
+    assert result["source_rows_total"] == 8620
+    assert result["missing_rows_total"] == 80
+    assert result["materialized_file_count"] == 435
+    assert result["target_contract_failure_count"] == 0
+    assert result["stale_ordinary_replacements"] == [
+        ["20261002", "STAGE_1300_1315"],
+        ["20261002", "STAGE_1445_1500"],
+        ["20261002", "STAGE_1545_1555"],
+    ]
+
+
+_R9_LEGACY_COMPAT_ROOT = Path(
+    "/Users/lexi/Desktop/学习/agents调试/V4_MONTH_BACKFILL_20261007/evidence/"
+    "month_hk_backfill_api_r8/r9_legacy_pool_compat_r1"
+)
+_R9_LEGACY_COMPAT_SCRIPT = (
+    _R9_LEGACY_COMPAT_ROOT / "run_r9_legacy_lane_fixture_readback.py"
+)
+_R9_LEGACY_FIXTURE = Path(
+    "/Users/lexi/Desktop/学习/agents调试/V4_MONTH_BACKFILL_20261007/evidence/"
+    "month_hk_backfill_api_r8/r9_p3_path_contract/legacy_lane_fixtures/"
+    "legacy_lane_fixtures.json"
+)
+
+
+def test_r9_real_legacy_lane_fixtures_replace_only_the_nine_exact_stale_lanes(
+    tmp_path: Path,
+) -> None:
+    release_root = Path(
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/"
+        "manager-hk-month-backfill-r9-legacy-pool-compat-20261007-api-candidate/app"
+    )
+    release_manifest = release_root.parent / "release-manifest.json"
+    app_source = release_root / "apps/api/v35_api/app.py"
+    assert release_root.is_dir()
+    assert release_manifest.is_file()
+    assert _R9_LEGACY_COMPAT_SCRIPT.is_file()
+    assert _R9_LEGACY_FIXTURE.is_file()
+    env = dict(os.environ)
+    env.update(
+        {
+            "V35_APP_ROOT": str(release_root),
+            "V35_RELEASE_ID": release_root.parent.name,
+            "V35_RELEASE_MANIFEST_PATH": str(release_manifest),
+            "V35_RELEASE_MANIFEST_SHA256": hashlib.sha256(
+                release_manifest.read_bytes()
+            ).hexdigest(),
+            "PYTHONPATH": f"{release_root / 'upstreams'}:{release_root}",
+            "RELEASE_APP_ROOT": str(release_root),
+            "APP_SOURCE_PATH": str(app_source),
+            "EXPECTED_APP_SHA256": hashlib.sha256(app_source.read_bytes()).hexdigest(),
+            "LEGACY_FIXTURE_PATH": str(_R9_LEGACY_FIXTURE),
+            "EXPECTED_FIXTURE_SHA256": hashlib.sha256(
+                _R9_LEGACY_FIXTURE.read_bytes()
+            ).hexdigest(),
+            "TEST_TMPDIR": str(tmp_path),
+            "CANDIDATE_BATCH_PATHS_JSON": json.dumps(
+                [
+                    "/Users/lexi/Desktop/学习/agents调试/V4_MONTH_BACKFILL_20261007/"
+                    "evidence/hk_observation_candidates_20260907_r2/"
+                    "candidate_batch_receipt_20260907_r2.json",
+                    "/Users/lexi/Desktop/学习/agents调试/V4_MONTH_BACKFILL_20261007/"
+                    "evidence/hk_observation_candidates_legacy_r2/"
+                    "candidate_batch_receipt_legacy_r2.json",
+                ]
+            ),
+            "PREFERENCE_POOL_ROOT": (
+                "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data"
+            ),
+        }
+    )
+    result = subprocess.run(
+        [sys.executable, "-B", str(_R9_LEGACY_COMPAT_SCRIPT)],
+        env=env,
+        cwd=release_root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    receipt = json.loads(result.stdout)
+    assert receipt["status"] == "R9_REAL_LEGACY_LANE_COMPATIBILITY_PASS"
+    assert receipt["ordinary_reads"] == 16
+    assert len(receipt["replaced_exact_stale_pool_lanes"]) == 9
+    assert len(receipt["preserved_exact_matching_pool_lanes"]) == 7
+    assert receipt["conflicting_new_identity_preserved"] is True
+    assert receipt["safety_flags_false"] is True

@@ -3606,6 +3606,131 @@ _HK_R9_BINDING_BY_DATE_STAGE = {
     (item["date"], item["stage_id"]): item
     for item in _MONTH_HK_AFTERFACT_R9_BINDINGS
 }
+
+# These nine legacy observations were captured from the live ordinary reader
+# and its verified SelectionStore entries. Their HK D1 markers consistently
+# identify a different pool from the exact target-date candidate below. Keep
+# the compatibility boundary pinned to each old run, artifact, pool path, and
+# SelectionStore manifest/receipt identity. In particular, candidate_current
+# markers are intentionally not treated as HK D1 pool aliases.
+_HK_R9_LEGACY_STALE_POOL_CONTRACTS = {
+    "20260914": {
+        "pool_sha256": "5efc2b292418f062c9d3acce6bb3c47ded90eff3c80f753311deb1e5b6ca81ed",
+        "pool_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20260914/hkconnect_d1_top100.json",
+        "source_trade_date": None,
+        "source_signal_date": None,
+        "binding_sha256": None,
+    },
+    "20261002": {
+        "pool_sha256": "f45233cd1d30d04a8e89c3a08ba8dab4ff63f1d787809b3323307f6f96cb5901",
+        "pool_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20260930/hkconnect_d1_top100.json",
+        "source_trade_date": "20260930",
+        "source_signal_date": "20260929",
+        "binding_sha256": "f45233cd1d30d04a8e89c3a08ba8dab4ff63f1d787809b3323307f6f96cb5901",
+    },
+}
+_HK_R9_LEGACY_STALE_LANE_IDENTITIES = {
+    ("20260914", "STAGE_0930_0935"): {
+        "run_id": "run-ddebe6065cd641562d3c98cf",
+        "artifact_id": "selection-ddebe6065cd641562d3c98cf",
+        "raw_artifact_sha256": "376143acf36ee74c3c62c799e8f4c533b79fc6a74a3e8581c5cf5d9f1148da94",
+        "selection_artifact_sha256": "5b1603976188ffedaff797973320415a55b6cfec614f53e1b8892df94e2c35b9",
+        "selection_manifest_sha256": "03d9937adaffc40b879b6a173ee95ccefae612c34b92fbe58995ef70b82b4d67",
+        "selection_receipt_sha256": "bfc4f20cb94998c68c5fd71cebf8e9de86693810be416750837ab499cd422c29",
+        "requested_rows": 100,
+        "source_rows": 99,
+        "observation_count": 10,
+    },
+    ("20260914", "STAGE_0935_0940"): {
+        "run_id": "run-f754096694ad081a4c1be700",
+        "artifact_id": "selection-f754096694ad081a4c1be700",
+        "raw_artifact_sha256": "7ce0e02268a5fa2370304dee8645bae0e2093e513d4d15f4411961a98aa16965",
+        "selection_artifact_sha256": "b8635ed884fefe876dfedb85936cb059c8ab551a02bd363af50b7d5bf32f7046",
+        "selection_manifest_sha256": "a0ea55d19a11c2b1086d536d8a4e947714be57140d26b2e2a31de560533e43e0",
+        "selection_receipt_sha256": "15667a53038a19e37729b7ca424adc7e60b0d339f53ca0cb141c684488e3bc2a",
+        "requested_rows": 100,
+        "source_rows": 99,
+        "observation_count": 10,
+    },
+    ("20260914", "STAGE_0940_0945"): {
+        "run_id": "run-762102f832912b5c3eba93c4",
+        "artifact_id": "selection-762102f832912b5c3eba93c4",
+        "raw_artifact_sha256": "d75c50e6579261393ac480e66e0e5e6e5f6c67d20143e7db58c5ca55053c91fd",
+        "selection_artifact_sha256": "6d9afff2d240a67bd67012b414c1b404e7901d4ead7325a12edbb7ad548bc918",
+        "selection_manifest_sha256": "d136b81561d58c3f44c4db801576b5b4c927bcd6ffb29f7d3668bf078d7bb8ca",
+        "selection_receipt_sha256": "8e446c5066e0c15c70a58bdc9d48ead4e8155f1d8d80c7aecce8cec8631ba95d",
+        "requested_rows": 100,
+        "source_rows": 99,
+        "observation_count": 10,
+    },
+    ("20260914", "STAGE_0945_1030"): {
+        "run_id": "run-34cecc7adf0c099e6438f665",
+        "artifact_id": "selection-34cecc7adf0c099e6438f665",
+        "raw_artifact_sha256": "210d90e915de4e495b50545a3b06c803773ec3310d5b74a7a076e1d815fd70ae",
+        "selection_artifact_sha256": "fa0d9a43683c23b1b803a0816d80b0a5b6c48c6cb99114859af98908710f6c6b",
+        "selection_manifest_sha256": "de38f6f660cdd11451009b9c5424e1b9529c85ca2fc0fbbca86af12cf2e42605",
+        "selection_receipt_sha256": "c3c445ee9d321c0245ce7721ec3e57ee95b41b2fbc861c4f937de8718c65e24b",
+        "requested_rows": 100,
+        "source_rows": 99,
+        "observation_count": 10,
+    },
+    ("20260914", "STAGE_1300_1315"): {
+        "run_id": "run-098cfa4c85b2a45cc3bb6f73",
+        "artifact_id": "selection-098cfa4c85b2a45cc3bb6f73",
+        "raw_artifact_sha256": "22cbd1dc00b32a6238840d43ddee3ad163547aeebcb2f27f15f6286dbe5c0d34",
+        "selection_artifact_sha256": "ea990e08437b0a358bdc59877904e8cce8e08a1b70ef10108809df1e3095263d",
+        "selection_manifest_sha256": "c8e0778ebf4ba5209847e106d7fa952c281637384854ccada480e4258d67fc08",
+        "selection_receipt_sha256": "07c1658a3284bddc260e24bfeedfcf0179ea096033b9a1764d09f282059e39ca",
+        "requested_rows": 100,
+        "source_rows": 99,
+        "observation_count": 10,
+    },
+    ("20260914", "STAGE_1445_1500"): {
+        "run_id": "run-6b5e1f0bdea67ed9c2e4ebca",
+        "artifact_id": "selection-6b5e1f0bdea67ed9c2e4ebca",
+        "raw_artifact_sha256": "4b4dae2c8854b39e4b518c1b6bbb023e330ff889699d314300753e527f0f6ee3",
+        "selection_artifact_sha256": "693edb804e828fd3c4ae63b3d97fe5311d6b0ab79463fc740e25527f771fb6cb",
+        "selection_manifest_sha256": "538eab784d1ed420d87e0d322570c5206487242ec7971d2019de6b2afd19b2b0",
+        "selection_receipt_sha256": "6ce094c2613b51e29b01773438d6d7b3955e7c1b7ed7cc25bf81725fc4e645ee",
+        "requested_rows": 100,
+        "source_rows": 99,
+        "observation_count": 10,
+    },
+    ("20261002", "STAGE_1300_1315"): {
+        "run_id": "run-c54d3c6ebf6aab8c3b972491",
+        "artifact_id": "selection-c54d3c6ebf6aab8c3b972491",
+        "raw_artifact_sha256": "8f2a1d886b59d45d3f90d6d26e5a5fc9c7578fed97609ed42e50d134ef7ec13a",
+        "selection_artifact_sha256": "289f8b79fe63f401fb933d4a29bf8a5e0bacead0d6c7234c7e818efe1664c42d",
+        "selection_manifest_sha256": "125c9beb951e5177d67baf2463127b5347599c634c23b5cacf97339f9e8bdaa7",
+        "selection_receipt_sha256": "16fa584e093fedfa8b75669b6ef59ea841ebdaea7d6bc43070fa35c765ee6cc8",
+        "requested_rows": 100,
+        "source_rows": 100,
+        "observation_count": 10,
+    },
+    ("20261002", "STAGE_1445_1500"): {
+        "run_id": "run-7c9d106a75703472c9f1a202",
+        "artifact_id": "selection-7c9d106a75703472c9f1a202",
+        "raw_artifact_sha256": "6b6d739b7d52adebd137f1dfff785d83cd7d3dfc867e37c9957aad904bb28179",
+        "selection_artifact_sha256": "362f43d40b711eb57d821bd447e8dc9fbe23df40ea8d3164b2b4d0b63301d7df",
+        "selection_manifest_sha256": "bc2dd14b8b6947d0e2f2745225734b9c89e26744a6549555d3b8c24cdc8e2ebd",
+        "selection_receipt_sha256": "859346ab581fbae28ea973054011749b286b8de3c29f7fab34f3ea0ce99adc80",
+        "requested_rows": 100,
+        "source_rows": 100,
+        "observation_count": 10,
+    },
+    ("20261002", "STAGE_1545_1555"): {
+        "run_id": "run-d4e2e669cf2bd4fb1f572779",
+        "artifact_id": "selection-d4e2e669cf2bd4fb1f572779",
+        "raw_artifact_sha256": "434ea250c413770aa4f584d737b66666dca21bc37c36fc5da5936052c91a1177",
+        "selection_artifact_sha256": "1f56fa22b1e95c926229e9ea438163186e2b39bc0e2765c001358eaeb637d555",
+        "selection_manifest_sha256": "fa861d31404eb59f8788e3f50e39ea197eb779244e6862469e6df9c984d627e8",
+        "selection_receipt_sha256": "54220679a950ff06c3b94427e61f0f35630ce3e1d51bbc588f3de71d12a23933",
+        "requested_rows": 2,
+        "source_rows": 2,
+        "observation_count": 2,
+    },
+}
+_HK_R9_LEGACY_STALE_POOL_KEYS = frozenset(_HK_R9_LEGACY_STALE_LANE_IDENTITIES)
 for _r9_binding in _MONTH_HK_AFTERFACT_R9_BINDINGS:
     _r9_key = (
         _r9_binding["date"],
@@ -4221,6 +4346,7 @@ def create_app(
         *,
         source_label: str,
         target_pool_sha256: str,
+        superseded_source_reason: str | None = None,
     ) -> dict:
         exact = stage_workbench(
             date=trade_date,
@@ -4238,7 +4364,7 @@ def create_app(
         prior_hk = markets.get("HK_CONNECT")
         hk_market = dict(exact_hk)
         if isinstance(prior_hk, Mapping) and prior_hk.get("run_id") != hk_market.get("run_id"):
-            hk_market["superseded_source"] = {
+            superseded_source = {
                 "status": "SUPERSEDED_BY_EXACT_TARGET_D1_RESEARCH_CANDIDATE",
                 "displayed_as_valid_observation": False,
                 "artifact_id": prior_hk.get("artifact_id"),
@@ -4249,6 +4375,10 @@ def create_app(
                 "selected_rows": prior_hk.get("selected_rows"),
                 "source_evidence": list(prior_hk.get("source_evidence") or ()),
             }
+            if superseded_source_reason is not None:
+                superseded_source["replacement_reason"] = superseded_source_reason
+                superseded_source["target_pool_sha256"] = target_pool_sha256
+            hk_market["superseded_source"] = superseded_source
         markets["HK_CONNECT"] = hk_market
         result = dict(payload)
         result.update(
@@ -4369,6 +4499,10 @@ def create_app(
         markets = payload.get("markets")
         prior_hk = markets.get("HK_CONNECT") if isinstance(markets, Mapping) else None
         rows = prior_hk.get("rows") if isinstance(prior_hk, Mapping) else None
+        legacy_stale = _HK_R9_LEGACY_STALE_LANE_IDENTITIES.get(
+            (trade_date, stage_id)
+        )
+        replace_for_legacy_pool_mismatch = False
         if isinstance(prior_hk, Mapping):
             # R9 may repair a missing lane or replace a verified nonempty lane
             # only when its exact pool provenance proves it belongs to a
@@ -4385,6 +4519,112 @@ def create_app(
                 and prior_hk.get("selected_rows") in (None, 0)
             ):
                 replace_existing = True
+            elif isinstance(rows, list) and rows and legacy_stale is not None:
+                legacy_contract = _HK_R9_LEGACY_STALE_POOL_CONTRACTS.get(trade_date)
+                target_pool = _HK_R9_POOL_EVIDENCE.get(trade_date)
+                evidence = prior_hk.get("source_evidence")
+
+                def marker_values(name: str) -> list[str]:
+                    prefix = f"{name}="
+                    return [
+                        marker.partition("=")[2]
+                        for marker in evidence
+                        if isinstance(marker, str) and marker.startswith(prefix)
+                    ] if isinstance(evidence, list) else []
+
+                def marker_matches(name: str, expected: str | None) -> bool:
+                    values = marker_values(name)
+                    return values == ([expected] if expected is not None else [])
+
+                try:
+                    latest = shared_selection_consumer.store._latest()
+                    latest_key = shared_selection_consumer.store._key(
+                        trade_date, stage_id, "HK_CONNECT"
+                    )
+                    current_entry = latest.get("entries", {}).get(latest_key)
+                except (AttributeError, OSError, ValueError, TypeError, KeyError):
+                    current_entry = None
+
+                observation_count = prior_hk.get("observation_count")
+                selected_rows = prior_hk.get("selected_rows")
+                count_evidence = (
+                    observation_count
+                    if isinstance(observation_count, int)
+                    and not isinstance(observation_count, bool)
+                    else selected_rows
+                )
+                count_matches = (
+                    isinstance(count_evidence, int)
+                    and not isinstance(count_evidence, bool)
+                    and count_evidence == legacy_stale["observation_count"]
+                    and len(rows) == count_evidence
+                    and (
+                        observation_count is None
+                        or observation_count == count_evidence
+                    )
+                    and (selected_rows is None or selected_rows == count_evidence)
+                )
+                entry_matches = isinstance(current_entry, Mapping) and all(
+                    current_entry.get(field) == expected
+                    for field, expected in (
+                        ("trade_date", trade_date),
+                        ("stage_id", stage_id),
+                        ("market", "HK_CONNECT"),
+                        ("run_id", legacy_stale["run_id"]),
+                        ("artifact_sha256", legacy_stale["selection_artifact_sha256"]),
+                        ("manifest_sha256", legacy_stale["selection_manifest_sha256"]),
+                        ("receipt_sha256", legacy_stale["selection_receipt_sha256"]),
+                    )
+                ) and all(
+                    current_entry.get(flag) is False
+                    for flag in ("production_allowed", "buy_gate_updated", "orders_sent")
+                )
+                target_matches = (
+                    isinstance(target_pool, Mapping)
+                    and binding.get("pool_artifact_sha256") == target_pool.get("pool_sha256")
+                    and binding.get("pool_path") == target_pool.get("pool_path")
+                    and binding.get("pool_signal_date") == target_pool.get("signal_date")
+                    and target_pool.get("source_date") == trade_date
+                    and target_pool.get("pool_sha256") != legacy_contract.get("pool_sha256")
+                ) if isinstance(legacy_contract, Mapping) else False
+                legacy_source_matches = (
+                    isinstance(legacy_contract, Mapping)
+                    and marker_matches("hk_d1_sha256", legacy_contract.get("pool_sha256"))
+                    and marker_matches("hk_d1_json_sha256", legacy_contract.get("pool_sha256"))
+                    and marker_matches("hk_d1_json", legacy_contract.get("pool_path"))
+                    and marker_matches(
+                        "hk_d1_source_trade_date",
+                        legacy_contract.get("source_trade_date"),
+                    )
+                    and marker_matches(
+                        "hk_d1_source_signal_date",
+                        legacy_contract.get("source_signal_date"),
+                    )
+                    and marker_matches(
+                        "hk_d1_binding_sha256",
+                        legacy_contract.get("binding_sha256"),
+                    )
+                )
+                optional_display_mode = prior_hk.get("display_mode")
+                replace_for_legacy_pool_mismatch = all(
+                    (
+                        trade_date in _HK_R9_LEGACY_STALE_POOL_CONTRACTS,
+                        prior_hk.get("run_id") == legacy_stale["run_id"],
+                        prior_hk.get("artifact_id") == legacy_stale["artifact_id"],
+                        prior_hk.get("raw_artifact_sha256") == legacy_stale["raw_artifact_sha256"],
+                        prior_hk.get("status") in {"READY", "PARTIAL_WITH_ROWS"},
+                        prior_hk.get("selection_status", "PARTIAL_WITH_ROWS")
+                        in {"READY", "PARTIAL_WITH_ROWS"},
+                        optional_display_mode in (None, "OBSERVATION_UNVERIFIED"),
+                        prior_hk.get("requested_rows") == legacy_stale["requested_rows"],
+                        prior_hk.get("source_rows") == legacy_stale["source_rows"],
+                        entry_matches,
+                        target_matches,
+                        legacy_source_matches,
+                        count_matches,
+                    )
+                )
+                replace_existing = replace_for_legacy_pool_mismatch
             elif (
                 isinstance(rows, list)
                 and rows
@@ -4418,8 +4658,17 @@ def create_app(
             stage_id,
             limit,
             binding,
-            source_label="APPROVED_MONTH_HK_EXACT_TARGET_D1_AFTERFACT_R9",
+            source_label=(
+                "APPROVED_MONTH_HK_EXACT_TARGET_D1_AFTERFACT_R9_LEGACY_POOL_REPAIR"
+                if replace_for_legacy_pool_mismatch
+                else "APPROVED_MONTH_HK_EXACT_TARGET_D1_AFTERFACT_R9"
+            ),
             target_pool_sha256=binding["pool_artifact_sha256"],
+            superseded_source_reason=(
+                "EXACT_PINNED_LEGACY_HK_D1_POOL_MISMATCH"
+                if replace_for_legacy_pool_mismatch
+                else None
+            ),
         )
 
     @app.get("/healthz")
