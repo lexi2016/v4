@@ -20,7 +20,10 @@ from typing import Any, Mapping
 
 from infrastructure.data_store import _sha256 as _canonical_sha256
 from infrastructure.owned_io import SafeRoot
-from domains.research import build_research_archive
+from domains.research import (
+    _exact_v4_20260929_1400_report_role_warnings,
+    build_research_archive,
+)
 from domains.research_hourly import (
     canonical_stage_a_code, hourly_source_time, project_hourly_stage_fields,
     validate_hourly_stage_source,
@@ -301,6 +304,58 @@ def _apply_exact_v4_20260930_1400_role_warning_projection(
     return compatible, evidence
 
 
+def _exact_v4_20260929_1400_role_warning_evidence(
+    projected: Mapping[str, Any],
+    source: Mapping[str, Any],
+    payload: Mapping[str, Any],
+    *,
+    trade_date: str,
+    slot: str,
+    source_input_sha256: str,
+) -> tuple[str, ...]:
+    """Expose the exact source-audit warnings as non-blocking provenance."""
+    warnings = _exact_v4_20260929_1400_report_role_warnings(
+        source,
+        archive_date=trade_date,
+        source_input_sha256=source_input_sha256,
+    )
+    if not warnings:
+        return ()
+    if (
+        trade_date != "20260929"
+        or slot != "1400"
+        or payload.get("archive_date") != "20260929"
+        or payload.get("source_input_sha256") != source_input_sha256
+        or payload.get("schema_version") != "v3_5.research_archive.v1"
+    ):
+        raise ValueError("V4_20260929_1400_ROLE_WARNING_ARCHIVE_IDENTITY_MISMATCH")
+    archived_gaps = payload.get("cannot_confirm")
+    projected_gaps = projected.get("cannot_confirm")
+    warning_set = set(warnings)
+    if (
+        not isinstance(archived_gaps, list)
+        or not isinstance(projected_gaps, list)
+        or {item for item in archived_gaps if isinstance(item, str) and item.startswith("REPORT_ROLE_EVIDENCE_EXCLUDED:")} != warning_set
+        or {item for item in projected_gaps if isinstance(item, str) and item.startswith("REPORT_ROLE_EVIDENCE_EXCLUDED:")} != warning_set
+    ):
+        raise ValueError("V4_20260929_1400_ROLE_WARNING_ARCHIVE_WARNING_SET_MISMATCH")
+
+    warning_sha = hashlib.sha256(
+        json.dumps(warnings, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    source_manifest = source.get("source_manifest")
+    if not isinstance(source_manifest, Mapping):
+        raise ValueError("V4_20260929_1400_ROLE_WARNING_SOURCE_MANIFEST_MISSING")
+    return (
+        "v4_hourly_source_audit_warning_scope=NON_BLOCKING_PROVENANCE_ONLY",
+        f"v4_hourly_source_audit_warning_source_sha256={source_input_sha256}",
+        f"v4_hourly_source_audit_warning_manifest_sha256={_canonical_sha256(source_manifest)}",
+        f"v4_hourly_source_audit_warning_count={len(warnings)}",
+        f"v4_hourly_source_audit_warning_list_sha256={warning_sha}",
+        *(f"v4_hourly_source_audit_warning={warning}" for warning in warnings),
+    )
+
+
 def _source_slot_cutoff(trade_date: str, slot: str) -> datetime:
     """Return the producer cutoff encoded by an exact hourly slot."""
     return datetime.strptime(f"{trade_date}{slot}", "%Y%m%d%H%M").replace(
@@ -455,6 +510,17 @@ def _bound_source_rows(
                 slot=slot,
                 source_input_sha256=paths["source_input_sha256"],
             )
+        )
+        projection_compat_evidence = (
+            *projection_compat_evidence,
+            *_exact_v4_20260929_1400_role_warning_evidence(
+                projected,
+                source,
+                payload,
+                trade_date=trade_date,
+                slot=slot,
+                source_input_sha256=paths["source_input_sha256"],
+            ),
         )
         if _payload_base_sha(projected) != _payload_base_sha(payload):
             raise ValueError("SOURCE_ARCHIVE_PROJECTION_SHA_MISMATCH")

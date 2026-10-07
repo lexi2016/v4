@@ -4,11 +4,13 @@ import csv
 import hashlib
 import json
 import subprocess
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
 
 from contracts.research import validate_research_archive
+from domains import research as research_domain
 from domains.research import build_research_archive
 from stage_center.acquisition import AcquisitionPlan, SourceResult
 from stage_center.candidate_input import CandidateInput
@@ -330,6 +332,101 @@ def test_exact_cutoff_selects_verified_slot_and_preserves_provenance(tmp_path: P
     assert early_payload["stage_evidence_v1"]["items"][0]["item_quality"] == "OK"
     assert early_payload["stage_evidence_v1"]["items"][0]["quality_score_raw"] == "72.5"
     assert early_payload["stage_evidence_v1"]["evidence"][0]["is_new_since_last_slot"] is True
+
+
+def test_exact_20260929_report_role_warnings_are_source_bound_and_non_blocking(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    date = "20260929"
+    source = _source(date, slot="1400", with_stage_evidence=False)
+    source["slot"] = "1400"
+    receipt_path = (
+        "research_module/runtime_outputs/zsxq_hourly/20260929/1400/"
+        "v35_zsxq_hourly_status_20260929_1400.json"
+    )
+    source["source_manifest"].update(
+        {
+            "trade_date": date,
+            "hourly_slot": "1400",
+            "capture_origin": "ORIGINAL_SLOT",
+            "original_time_capture": True,
+            "natural_execution_verified": False,
+            "generated_at": "2026-09-29T14:00:03+08:00",
+            "published_at": "2026-09-29T14:00:03+08:00",
+            "pit_cutoff": "2026-09-29T14:00:59+08:00",
+            "source_receipts": [receipt_path],
+        }
+    )
+    source["cannot_confirm"] = [{"reason": reason} for reason in ("gap-a", "gap-b", "gap-c")]
+    warning_codes = ("002202", "600346", "600875", "601918")
+    source["report_entity_audit"] = {
+        "policy_version": "report_subject_scoring.v1",
+        "affected_codes": list(warning_codes),
+        "excluded_evidence_count": len(warning_codes),
+        "historical_capture_reconstructed": False,
+        "original_entities_retained": True,
+        "score_weights_changed": False,
+        "security_master_attested": False,
+        "excluded_evidence": [
+            {
+                "entity_role": "TITLE_NAME_MARKET_UNCONFIRMED",
+                "evidence_id": f"evidence-{index}",
+                "research_subject_eligible": False,
+                "source_path": receipt_path,
+                "stock_code": code,
+            }
+            for index, code in enumerate(warning_codes)
+        ],
+    }
+    source_bytes = json.dumps(
+        source, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    source_sha = hashlib.sha256(source_bytes).hexdigest()
+
+    baseline = build_research_archive(source, source_input_sha256=source_sha)
+    monkeypatch.setattr(
+        research_domain,
+        "_V4_20260929_1400_REPORT_ROLE_WARNING_SOURCE_SHA256",
+        source_sha,
+    )
+    payload = build_research_archive(source, source_input_sha256=source_sha)
+    expected_warnings = [f"REPORT_ROLE_EVIDENCE_EXCLUDED:{code}" for code in warning_codes]
+    assert set(payload["cannot_confirm"]) - set(baseline["cannot_confirm"]) == set(expected_warnings)
+    assert set(baseline["cannot_confirm"]).issubset(payload["cannot_confirm"])
+    for key in ("articles", "stock_pool", "source_counts", "write_policy", "recommendation_status"):
+        assert payload[key] == baseline[key]
+
+    mismarked_source = deepcopy(source)
+    mismarked_source["report_entity_audit"]["excluded_evidence"][0][
+        "research_subject_eligible"
+    ] = True
+    with pytest.raises(ValueError, match="EXCLUDED_EVIDENCE_INVALID"):
+        build_research_archive(mismarked_source, source_input_sha256=source_sha)
+
+    root = tmp_path / "v4-data"
+    witness = root / "research" / "hourly" / "source" / f"{source_sha}.json"
+    witness.parent.mkdir(parents=True, exist_ok=True)
+    witness.write_bytes(source_bytes)
+    publication = HourlyResearchStore(root).publish(payload, slot="1400", mode="LIVE")
+    assert publication["payload_path"] == "research/hourly/live/20260929/1400.json"
+    morning_root = _write_separate_morning_root(root, date)
+    context = load_research_context(
+        root,
+        trade_date=date,
+        stage_cutoff="14:00:59",
+        morning_root=morning_root,
+    )
+    assert context.selected_slot == "1400"
+    assert all(
+        f"v4_hourly_source_audit_warning={warning}" in context.source_evidence
+        for warning in expected_warnings
+    )
+    assert "v4_hourly_source_audit_warning_scope=NON_BLOCKING_PROVENANCE_ONLY" in context.source_evidence
+    assert not (set(context.cannot_confirm) & set(expected_warnings))
+    assert "RESEARCH_STAGE_EVIDENCE_MISSING" in context.cannot_confirm
+    assert "RESEARCH_ITEM_QUALITY_SCORE_MISSING:A.000001" in context.cannot_confirm
+    assert "RESEARCH_DELTA_FLAGS_MISSING:A.000001" in context.cannot_confirm
 
 
 def test_missing_item_quality_and_delta_do_not_alias_pool_score(tmp_path: Path) -> None:

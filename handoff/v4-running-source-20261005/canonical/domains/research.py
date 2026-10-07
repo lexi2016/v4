@@ -109,6 +109,14 @@ _STAGE_ITEM_FIELDS = (
 )
 
 
+_V4_20260929_1400_REPORT_ROLE_WARNING_SOURCE_SHA256 = (
+    "506c947cad54071a286853df20afc74e10bb544b2b639fea1ea7a443216bc3fc"
+)
+_V4_20260929_1400_REPORT_ROLE_WARNING_CODES = (
+    "002202", "600346", "600875", "601918",
+)
+
+
 def _canonical_payload_sha(value: Mapping[str, Any]) -> str:
     return hashlib.sha256(
         json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -258,6 +266,95 @@ def _dedupe_timeline(rows: list[Any]) -> list[dict[str, Any]]:
     )
 
 
+def _exact_v4_20260929_1400_report_role_warnings(
+    source: Mapping[str, Any],
+    *,
+    archive_date: str,
+    source_input_sha256: str,
+) -> list[str]:
+    """Reproduce the four pinned 2026-09-29 14:00 report-role warnings.
+
+    This narrow compatibility is available only for the exact original-slot
+    source witness.  The report audit must still identify the same four
+    excluded entities, with each exclusion explicitly marked ineligible.
+    Other source identities retain the normal warning projection.
+    """
+    if source_input_sha256.lower() != _V4_20260929_1400_REPORT_ROLE_WARNING_SOURCE_SHA256:
+        return []
+    if (
+        archive_date != "20260929"
+        or source.get("schema_version") != "v3_research_lane.v2"
+        or source.get("trade_date") != "20260929"
+        or source.get("slot") != "1400"
+    ):
+        raise ValueError("V4_20260929_1400_ROLE_WARNING_SOURCE_DATE_SLOT_MISMATCH")
+
+    manifest = source.get("source_manifest")
+    if not isinstance(manifest, Mapping) or (
+        manifest.get("trade_date") != "20260929"
+        or manifest.get("hourly_slot") != "1400"
+        or manifest.get("capture_origin") != "ORIGINAL_SLOT"
+        or manifest.get("original_time_capture") is not True
+        or manifest.get("natural_execution_verified") is not False
+    ):
+        raise ValueError("V4_20260929_1400_ROLE_WARNING_SOURCE_MANIFEST_MISMATCH")
+
+    audit = source.get("report_entity_audit")
+    if not isinstance(audit, Mapping) or audit.get("policy_version") != "report_subject_scoring.v1":
+        raise ValueError("V4_20260929_1400_ROLE_WARNING_REPORT_AUDIT_MISSING_OR_UNKNOWN")
+    affected = audit.get("affected_codes")
+    excluded = audit.get("excluded_evidence")
+    receipts = manifest.get("source_receipts")
+    if (
+        not isinstance(affected, list)
+        or affected != list(_V4_20260929_1400_REPORT_ROLE_WARNING_CODES)
+        or not isinstance(excluded, list)
+        or len(excluded) != len(_V4_20260929_1400_REPORT_ROLE_WARNING_CODES)
+        or audit.get("excluded_evidence_count") != len(excluded)
+        or audit.get("historical_capture_reconstructed") is not False
+        or audit.get("original_entities_retained") is not True
+        or audit.get("score_weights_changed") is not False
+        or audit.get("security_master_attested") is not False
+        or not isinstance(receipts, list)
+        or len(receipts) != 1
+        or not isinstance(receipts[0], str)
+        or not receipts[0].strip()
+    ):
+        raise ValueError("V4_20260929_1400_ROLE_WARNING_REPORT_AUDIT_SHAPE_INVALID")
+
+    excluded_codes: list[str] = []
+    evidence_ids: list[str] = []
+    for item in excluded:
+        if (
+            not isinstance(item, Mapping)
+            or item.get("entity_role") != "TITLE_NAME_MARKET_UNCONFIRMED"
+            or item.get("research_subject_eligible") is not False
+            or item.get("source_path") != receipts[0]
+        ):
+            raise ValueError("V4_20260929_1400_ROLE_WARNING_EXCLUDED_EVIDENCE_INVALID")
+        code = item.get("stock_code")
+        evidence_id = item.get("evidence_id")
+        if (
+            not isinstance(code, str)
+            or re.fullmatch(r"\d{6}", code) is None
+            or not isinstance(evidence_id, str)
+            or not evidence_id.strip()
+        ):
+            raise ValueError("V4_20260929_1400_ROLE_WARNING_EXCLUDED_EVIDENCE_IDENTITY_INVALID")
+        excluded_codes.append(code)
+        evidence_ids.append(evidence_id)
+    if (
+        sorted(excluded_codes) != list(_V4_20260929_1400_REPORT_ROLE_WARNING_CODES)
+        or len(set(excluded_codes)) != len(excluded_codes)
+        or len(set(evidence_ids)) != len(evidence_ids)
+    ):
+        raise ValueError("V4_20260929_1400_ROLE_WARNING_AUDIT_CODE_MISMATCH")
+    return [
+        f"REPORT_ROLE_EVIDENCE_EXCLUDED:{code}"
+        for code in _V4_20260929_1400_REPORT_ROLE_WARNING_CODES
+    ]
+
+
 def build_research_archive(
     source: Mapping[str, Any],
     *,
@@ -379,6 +476,13 @@ def build_research_archive(
         cannot_confirm.append(f"LEGACY_SOURCE_CANNOT_CONFIRM_COUNT:{len(source_gaps)}")
     if path_redactions:
         cannot_confirm.append(f"LEGACY_RUNTIME_PATHS_REDACTED:{path_redactions}")
+    cannot_confirm.extend(
+        _exact_v4_20260929_1400_report_role_warnings(
+            source,
+            archive_date=archive_date,
+            source_input_sha256=source_input_sha256,
+        )
+    )
     payload = {
         "schema_version": SCHEMA_VERSION,
         "archive_date": archive_date,
