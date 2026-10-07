@@ -1,0 +1,379 @@
+diff --git a/contracts/runtime_workloads.json b/contracts/runtime_workloads.json
+index 2d19105f41eeff764b7de3e6b43443047e94bac8..ba5deedcc256029a54648b8b28bae4dee8389c91 100644
+--- a/contracts/runtime_workloads.json
++++ b/contracts/runtime_workloads.json
+@@ -1065,7 +1065,7 @@
+       "enabled": true,
+       "market_scope": "HK_CONNECT",
+       "owner_id": "v35_dispatcher.research_panel_daily_hk",
+-      "run_policy": "HK_CONNECT_TRADE_DAY",
++      "run_policy": "HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -1106,7 +1106,7 @@
+       "enabled": true,
+       "market_scope": "CROSS_MARKET",
+       "owner_id": "v35_dispatcher.research_panel_runtime_evidence",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -1193,7 +1193,7 @@
+       "enabled": true,
+       "market_scope": "CROSS_MARKET",
+       "owner_id": "v35_dispatcher.review_core_pool_pipeline",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -1254,7 +1254,7 @@
+       "enabled": true,
+       "market_scope": "HK_CONNECT",
+       "owner_id": "v35_dispatcher.hk_connect_close_review",
+-      "run_policy": "HK_CONNECT_TRADE_DAY",
++      "run_policy": "HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -1264,7 +1264,7 @@
+       "session_requirement": "POST_CLOSE",
+       "signal_date_role": "BUSINESS_DATE",
+       "slots": [
+-        "1608"
++        "1610"
+       ],
+       "target_date_role": "BUSINESS_DATE",
+       "workload_id": "hk_connect_close_review"
+@@ -1297,7 +1297,7 @@
+       "enabled": true,
+       "market_scope": "CROSS_MARKET",
+       "owner_id": "v35_dispatcher.preselection",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -1335,7 +1335,7 @@
+       "enabled": true,
+       "market_scope": "CROSS_MARKET",
+       "owner_id": "v35_dispatcher.daily_materialize",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -1372,7 +1372,7 @@
+       "enabled": true,
+       "market_scope": "HK_CONNECT",
+       "owner_id": "v35_dispatcher.hk_auction_0920",
+-      "run_policy": "HK_CONNECT_TRADE_DAY",
++      "run_policy": "HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -1405,7 +1405,7 @@
+       "enabled": false,
+       "market_scope": "CROSS_MARKET",
+       "owner_id": "stage_center",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -1482,7 +1482,7 @@
+       "enabled": true,
+       "market_scope": "HK_CONNECT",
+       "owner_id": "v35_dispatcher.fupan_review_start",
+-      "run_policy": "HK_CONNECT_TRADE_DAY",
++      "run_policy": "HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+diff --git a/contracts/trading_calendar.py b/contracts/trading_calendar.py
+index dc18a1ac447242a15a0e543606aa8076ca452fbc..3d77a93af91d330d684f615866e075f13e8659ba 100644
+--- a/contracts/trading_calendar.py
++++ b/contracts/trading_calendar.py
+@@ -27,8 +27,10 @@
+ class RunPolicy(StrEnum):
+     NATURAL_DAY = "NATURAL_DAY"
+     A_SHARE_TRADE_DAY = "A_SHARE_TRADE_DAY"
++    HK_SECURITIES_TRADE_DAY = "HK_SECURITIES_TRADE_DAY"
+     HK_CONNECT_TRADE_DAY = "HK_CONNECT_TRADE_DAY"
+     A_OR_HK_CONNECT_TRADE_DAY = "A_OR_HK_CONNECT_TRADE_DAY"
++    A_OR_HK_SECURITIES_TRADE_DAY = "A_OR_HK_SECURITIES_TRADE_DAY"
+ 
+ 
+ class MarketScope(StrEnum):
+diff --git a/contracts/v35_runtime_graph_topology.json b/contracts/v35_runtime_graph_topology.json
+index 7975d41dd34cc70aed3cdfcb3bba08ee732097d5..880e3c37639d0bf46be03460bf9b04132b7b80ac 100644
+--- a/contracts/v35_runtime_graph_topology.json
++++ b/contracts/v35_runtime_graph_topology.json
+@@ -2061,7 +2061,7 @@
+       "label": "1. 港股通09:20 / A股09:25竞价选股",
+       "node_id": "timeline_01_workload",
+       "owner_id": "v35_dispatcher.stage_workbench",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -2239,7 +2239,7 @@
+       "label": "2. 09:30-09:35",
+       "node_id": "timeline_02_workload",
+       "owner_id": "v35_dispatcher.stage_workbench",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -2417,7 +2417,7 @@
+       "label": "3. 09:35-09:40",
+       "node_id": "timeline_03_workload",
+       "owner_id": "v35_dispatcher.stage_workbench",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -2595,7 +2595,7 @@
+       "label": "4. 09:40-09:45",
+       "node_id": "timeline_04_workload",
+       "owner_id": "v35_dispatcher.stage_workbench",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -2773,7 +2773,7 @@
+       "label": "5. 09:45-10:30",
+       "node_id": "timeline_05_workload",
+       "owner_id": "v35_dispatcher.stage_workbench",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -2951,7 +2951,7 @@
+       "label": "6. 13:00-13:15",
+       "node_id": "timeline_06_workload",
+       "owner_id": "v35_dispatcher.stage_workbench",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -3129,7 +3129,7 @@
+       "label": "7. 14:45-15:00",
+       "node_id": "timeline_07_workload",
+       "owner_id": "v35_dispatcher.stage_workbench",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -3307,7 +3307,7 @@
+       "label": "8. 15:45-15:55港股",
+       "node_id": "timeline_08_workload",
+       "owner_id": "v35_dispatcher.stage_workbench",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -3332,11 +3332,11 @@
+       "type": "API"
+     },
+     {
+-      "artifact": "{data_root}/hk_connect_close_review/1608/artifact/{date}.json",
++      "artifact": "{data_root}/hk_connect_close_review/1610/artifact/{date}.json",
+       "label": "artifact / manifest / receipt",
+-      "manifest": "{data_root}/hk_connect_close_review/1608/manifest/{date}.json",
++      "manifest": "{data_root}/hk_connect_close_review/1610/manifest/{date}.json",
+       "node_id": "timeline_09_artifact_trio",
+-      "receipt": "{dispatcher_root}/receipts/hk_connect_close_review/1608/{date}.json",
++      "receipt": "{dispatcher_root}/receipts/hk_connect_close_review/1610/{date}.json",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -3350,7 +3350,7 @@
+       "cas": true,
+       "label": "current pointer",
+       "node_id": "timeline_09_current",
+-      "path": "{data_root}/hk_connect_close_review/1608/current.json",
++      "path": "{data_root}/hk_connect_close_review/1610/current.json",
+       "role": "current",
+       "safety": {
+         "buy_gate_updated": false,
+@@ -3394,7 +3394,7 @@
+       "cas": true,
+       "label": "latest pointer",
+       "node_id": "timeline_09_latest",
+-      "path": "{data_root}/hk_connect_close_review/1608/latest.json",
++      "path": "{data_root}/hk_connect_close_review/1610/latest.json",
+       "role": "latest",
+       "safety": {
+         "buy_gate_updated": false,
+@@ -3480,16 +3480,16 @@
+         "--date",
+         "{business_date}"
+       ],
+-      "label": "9. 16:08 港股通正式收盘：0.2 × 七阶段 Top20",
++      "label": "9. 16:10 港股通正式收盘：0.2 × 七阶段 Top20",
+       "node_id": "timeline_09_workload",
+       "owner_id": "v35_dispatcher.hk_connect_close_review",
+-      "run_policy": "HK_CONNECT_TRADE_DAY",
+-      "safety": {
+-        "buy_gate_updated": false,
+-        "orders_sent": false,
+-        "production_allowed": false
+-      },
+-      "slot": "1608",
++      "run_policy": "HK_SECURITIES_TRADE_DAY",
++      "safety": {
++        "buy_gate_updated": false,
++        "orders_sent": false,
++        "production_allowed": false
++      },
++      "slot": "1610",
+       "timeline_position": 9,
+       "type": "workload",
+       "workload_id": "hk_connect_close_review"
+@@ -3847,7 +3847,7 @@
+       "label": "11. 15:55 收盘后复盘启动",
+       "node_id": "timeline_11_workload",
+       "owner_id": "v35_dispatcher.fupan_review_start",
+-      "run_policy": "HK_CONNECT_TRADE_DAY",
++      "run_policy": "HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -5304,7 +5304,7 @@
+   },
+   "schema": "v35.runtime_graph.topology",
+   "schema_version": "v35_runtime_graph_topology.v1",
+-  "semantic_sha": "c31337eb64e9b48db419cca1cdb9c5396c085bca93433491b85a6743bab7bdae",
++  "semantic_sha": "5cd7d2480a9afd51bccae50fea90760441921fdb1e2d6ac43dc2a77ce25964aa",
+   "source_inputs": {
+     "app": {
+       "path": "apps/web/src/App.vue",
+@@ -8635,9 +8635,9 @@
+     {
+       "api_route": "/api/v3/review?date={business_date}",
+       "artifact_trio": {
+-        "artifact": "{data_root}/hk_connect_close_review/1608/artifact/{date}.json",
+-        "manifest": "{data_root}/hk_connect_close_review/1608/manifest/{date}.json",
+-        "receipt": "{dispatcher_root}/receipts/hk_connect_close_review/1608/{date}.json",
++        "artifact": "{data_root}/hk_connect_close_review/1610/artifact/{date}.json",
++        "manifest": "{data_root}/hk_connect_close_review/1610/manifest/{date}.json",
++        "receipt": "{dispatcher_root}/receipts/hk_connect_close_review/1610/{date}.json",
+         "sha256_fields": {
+           "artifact": "artifact_sha256",
+           "manifest": "manifest_sha256",
+@@ -8658,12 +8658,12 @@
+         "timeline_09_page",
+         "timeline_09_safety"
+       ],
+-      "current": "{data_root}/hk_connect_close_review/1608/current.json",
++      "current": "{data_root}/hk_connect_close_review/1610/current.json",
+       "dispatcher": "infrastructure/scheduling/dispatcher.py",
+       "executor": "infrastructure/scheduling/executor_registry.py",
+       "id": "CLOSING_01",
+-      "label": "16:08 港股通正式收盘：0.2 × 七阶段 Top20",
+-      "latest": "{data_root}/hk_connect_close_review/1608/latest.json",
++      "label": "16:10 港股通正式收盘：0.2 × 七阶段 Top20",
++      "latest": "{data_root}/hk_connect_close_review/1610/latest.json",
+       "launcher": {
+         "path": "ops/run_v35_macos_scheduler.py",
+         "plist": "~/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+@@ -8682,7 +8682,7 @@
+         ]
+       },
+       "page_consumer": "apps/web/src/views/ReviewView.vue#review",
+-      "planned_slot": "1608",
++      "planned_slot": "1610",
+       "position": 9,
+       "producer": "ops/build_close_review.py",
+       "safety": {
+@@ -8690,13 +8690,13 @@
+         "orders_sent": false,
+         "production_allowed": false
+       },
+-      "slot": "1608",
++      "slot": "1610",
+       "store": "infrastructure/review_store.py",
+-      "timeline": "9. 16:08 港股通正式收盘：0.2 × 七阶段 Top20",
++      "timeline": "9. 16:10 港股通正式收盘：0.2 × 七阶段 Top20",
+       "type": "workload",
+       "workload": {
+         "owner_id": "v35_dispatcher.hk_connect_close_review",
+-        "slot": "1608",
++        "slot": "1610",
+         "workload_id": "hk_connect_close_review"
+       },
+       "workload_id": "hk_connect_close_review"
+diff --git a/domains/runtime_policy.py b/domains/runtime_policy.py
+index f0d3857a0cb63c8f557bd6b2f228a3fdf47b7252..4e0d4186cdf4ca4d3f0d432f5033dea59621b1f1 100644
+--- a/domains/runtime_policy.py
++++ b/domains/runtime_policy.py
+@@ -42,12 +42,22 @@
+ def _requested_markets(policy: RunPolicy, scope: MarketScope) -> tuple[str, ...]:
+     if policy is RunPolicy.A_SHARE_TRADE_DAY and scope is not MarketScope.A_SHARE:
+         raise ValueError("A-share policy requires A_SHARE scope")
++    if policy is RunPolicy.HK_SECURITIES_TRADE_DAY and scope is not MarketScope.HK_CONNECT:
++        raise ValueError("HK securities observation policy requires HK_CONNECT scope")
+     if policy is RunPolicy.HK_CONNECT_TRADE_DAY and scope is not MarketScope.HK_CONNECT:
+         raise ValueError("HK Connect policy requires HK_CONNECT scope")
++    if policy is RunPolicy.A_OR_HK_SECURITIES_TRADE_DAY and scope is not MarketScope.CROSS_MARKET:
++        raise ValueError("A-or-HK-securities policy requires CROSS_MARKET scope")
+     if scope is MarketScope.A_SHARE:
+         return ("a_share",)
+     if scope is MarketScope.HK_CONNECT:
+-        return ("hk_connect",)
++        return (
++            ("hk_securities",)
++            if policy is RunPolicy.HK_SECURITIES_TRADE_DAY
++            else ("hk_connect",)
++        )
++    if policy is RunPolicy.A_OR_HK_SECURITIES_TRADE_DAY:
++        return ("a_share", "hk_securities")
+     return ("a_share", "hk_connect")
+ 
+ 
+@@ -109,6 +119,7 @@
+     resolved = resolve_market_states(calendar, trade_date)
+     market_contracts = {
+         "a_share": calendar.markets["a_share"],
++        "hk_securities": calendar.markets["hk_securities"],
+         "hk_connect": calendar.markets["hk_connect_southbound"],
+     }
+     states = {market: resolved[market] for market in requested}
+diff --git a/infrastructure/runtime_graph/service.py b/infrastructure/runtime_graph/service.py
+index c8e137f6172577f9b95548e3144e310265f1ff99..d00ef2917926f585dcad314ffb4dd1b3ba162c16 100644
+--- a/infrastructure/runtime_graph/service.py
++++ b/infrastructure/runtime_graph/service.py
+@@ -120,7 +120,7 @@
+ 
+ def _next_market_trade_date(business_date: str, market: str) -> str:
+     """Return the next eligible session for one lane's market only."""
+-    if market not in {"a_share", "hk_connect"}:
++    if market not in {"a_share", "hk_connect", "hk_securities"}:
+         raise ValueError("RUNTIME_GRAPH_MARKET_INVALID")
+     parsed = datetime.strptime(business_date, "%Y%m%d").date()
+     calendar = load_market_calendar()
+@@ -249,8 +249,13 @@
+     policy_by_name = {
+         "a_share_trade_day": (RunPolicy.A_SHARE_TRADE_DAY, MarketScope.A_SHARE),
+         "hk_connect_trade_day": (RunPolicy.HK_CONNECT_TRADE_DAY, MarketScope.HK_CONNECT),
++        "hk_securities_trade_day": (RunPolicy.HK_SECURITIES_TRADE_DAY, MarketScope.HK_CONNECT),
+         "a_or_hk_connect_trade_day": (
+             RunPolicy.A_OR_HK_CONNECT_TRADE_DAY,
++            MarketScope.CROSS_MARKET,
++        ),
++        "a_or_hk_securities_trade_day": (
++            RunPolicy.A_OR_HK_SECURITIES_TRADE_DAY,
+             MarketScope.CROSS_MARKET,
+         ),
+     }

@@ -1,0 +1,92 @@
+{
+  "CANNOT_CONFIRM": [
+    "A real launchctl interruption at bootout, plist replacement, and bootstrap boundaries was not induced; recovery tests use a fake backend.",
+    "The independent reviewer has not yet rechecked this updated script and test.",
+    "No service activation, rollback, scheduler start, or Stage action was performed."
+  ],
+  "artifacts": {
+    "cutover_identity_changed": false,
+    "cutover_identity_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/receipts/hk-research-calendar-all-r1-20261007/cutover_identity.json",
+    "cutover_identity_sha256": "e5d3f163aba5725df7948c76f5ce88087bf326eac51e7e7c4b613abc9bb6a919",
+    "handoff_test": {
+      "git_blob_sha1": "52578d7f016557326a23479b49045551af907286",
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/handoff/hk-all-research-calendar-20261007/tooling/tests/test_hk_research_calendar_cutover.py",
+      "sha256": "e5f5dd4fcf7fce71edd61b9ed55c9059f99fdc4fd26cdac7a4f982c1beaa55a5",
+      "size_bytes": 14255
+    },
+    "handoff_tool": {
+      "git_blob_sha1": "85b5b4fb0651f933fa7329a1212c957cbe73b740",
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/handoff/hk-all-research-calendar-20261007/tooling/cutover/hk_research_calendar_cutover.py",
+      "sha256": "1b5a41462b5b11da7fffc768aa6e0aaeba4576524500f3fc0ee763990a689199",
+      "size_bytes": 56770
+    },
+    "test": {
+      "git_blob_sha1": "52578d7f016557326a23479b49045551af907286",
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/scripts/test_hk_research_calendar_cutover.py",
+      "sha256": "e5f5dd4fcf7fce71edd61b9ed55c9059f99fdc4fd26cdac7a4f982c1beaa55a5",
+      "size_bytes": 14255
+    },
+    "tool": {
+      "git_blob_sha1": "85b5b4fb0651f933fa7329a1212c957cbe73b740",
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/scripts/hk_research_calendar_cutover.py",
+      "sha256": "1b5a41462b5b11da7fffc768aa6e0aaeba4576524500f3fc0ee763990a689199",
+      "size_bytes": 56770
+    }
+  },
+  "finding": {
+    "finding_id": "P2-1",
+    "prior_behavior": "KeyboardInterrupt could bypass batch restore/receipt handling and leave API/scheduler in mixed or down state.",
+    "prior_verdict": "FAIL",
+    "source_review_receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/review/runtime_cutover_independent_review_receipt.json",
+    "source_review_receipt_sha256": "d4e3b193ac090c3864e445bee72800cd6630de3f5b0fd0a377a68a998b1efe86"
+  },
+  "fix": {
+    "apply_recovery_order": "reverse of touched services",
+    "bounded_recovery_attempts": 2,
+    "interrupt_receipt_fields": [
+      "interrupted",
+      "failure_type",
+      "recovery_attempts",
+      "recovery_errors",
+      "unresolved_services"
+    ],
+    "launchd_label_absent_recovery": "Use reused helper automatic rollback only when the active plist SHA is exactly the frozen baseline or candidate SHA.",
+    "pre_touch_interrupt": "Propagate KeyboardInterrupt without restore or batch receipt when exact service state remains baseline and no operation receipt exists.",
+    "rollback_recovery_order": [
+      "scheduler",
+      "api"
+    ]
+  },
+  "review_status": {
+    "independent_recheck": "PENDING",
+    "prior_FAIL_receipt_preserved": true,
+    "reviewer_must_inspect_current_tool_and_test_hashes": true
+  },
+  "safety": {
+    "buy_gate_updated": false,
+    "data_root_touched": false,
+    "orders_sent": false,
+    "production_allowed": false,
+    "service_action_performed": false,
+    "stage_labels_restarted": false
+  },
+  "schema_version": "v4.hk_research_calendar_cutover_interrupt_writer_update.v1",
+  "scope": "Bounded repair of the cutover wrapper interrupt handling and its focused tests; no candidate package, business app, service, scheduler, or Stage owner was changed or acted on.",
+  "status": "WRITER_TESTED_PENDING_INDEPENDENT_REVIEW",
+  "verification": {
+    "intermediate_regression": "First green-attempt suite caught rollback execution order mismatch (8 passed, 1 failed); caller order was corrected and final focused suite passed 9/9.",
+    "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python (Python 3.14.6)",
+    "regression_cases": [
+      "API apply succeeds then scheduler raises KeyboardInterrupt: both services returned to baseline and batch receipt written.",
+      "A single touched service raises SystemExit: that service returned to baseline and failure type recorded.",
+      "Pre-touch KeyboardInterrupt: no restore and no batch receipt.",
+      "Rollback KeyboardInterrupt: the other service is recovered, one bounded retry completes, and receipt records the interruption.",
+      "Launchd label absent with exact frozen plist: reused automatic rollback restores and verifies baseline."
+    ],
+    "syntax_command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -c \"import ast,pathlib; [ast.parse(pathlib.Path(p).read_text()) for p in ['scripts/hk_research_calendar_cutover.py','scripts/test_hk_research_calendar_cutover.py']]; print('AST parse: PASS')\"",
+    "syntax_result": "AST parse: PASS",
+    "test_command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH='scripts' '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q -p no:cacheprovider --basetemp='/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/pytest_tmp_interrupt_writer_final2_20261007' scripts/test_hk_research_calendar_cutover.py",
+    "test_exit_code": 0,
+    "test_result": "9 passed in 0.02s"
+  }
+}

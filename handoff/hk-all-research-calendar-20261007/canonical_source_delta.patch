@@ -1,0 +1,902 @@
+diff --git a/contracts/runtime_workloads.json b/contracts/runtime_workloads.json
+index 91655c92035c97cefbb0657af8810e287354d6c8..cda500516786333d5d316899be273ec396f0f98f 100644
+--- a/contracts/runtime_workloads.json
++++ b/contracts/runtime_workloads.json
+@@ -1107,7 +1107,7 @@
+       "enabled": true,
+       "market_scope": "CROSS_MARKET",
+       "owner_id": "v35_dispatcher.research_panel_runtime_evidence",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -1194,7 +1194,7 @@
+       "enabled": true,
+       "market_scope": "CROSS_MARKET",
+       "owner_id": "v35_dispatcher.review_core_pool_pipeline",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -1336,7 +1336,7 @@
+       "enabled": true,
+       "market_scope": "CROSS_MARKET",
+       "owner_id": "v35_dispatcher.daily_materialize",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -1406,7 +1406,7 @@
+       "enabled": false,
+       "market_scope": "CROSS_MARKET",
+       "owner_id": "stage_center",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -1483,7 +1483,7 @@
+       "enabled": true,
+       "market_scope": "HK_CONNECT",
+       "owner_id": "v35_dispatcher.fupan_review_start",
+-      "run_policy": "HK_CONNECT_TRADE_DAY",
++      "run_policy": "HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+diff --git a/contracts/v35_runtime_graph_topology.json b/contracts/v35_runtime_graph_topology.json
+index 7975d41dd34cc70aed3cdfcb3bba08ee732097d5..880e3c37639d0bf46be03460bf9b04132b7b80ac 100644
+--- a/contracts/v35_runtime_graph_topology.json
++++ b/contracts/v35_runtime_graph_topology.json
+@@ -2061,7 +2061,7 @@
+       "label": "1. 港股通09:20 / A股09:25竞价选股",
+       "node_id": "timeline_01_workload",
+       "owner_id": "v35_dispatcher.stage_workbench",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -2239,7 +2239,7 @@
+       "label": "2. 09:30-09:35",
+       "node_id": "timeline_02_workload",
+       "owner_id": "v35_dispatcher.stage_workbench",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -2417,7 +2417,7 @@
+       "label": "3. 09:35-09:40",
+       "node_id": "timeline_03_workload",
+       "owner_id": "v35_dispatcher.stage_workbench",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -2595,7 +2595,7 @@
+       "label": "4. 09:40-09:45",
+       "node_id": "timeline_04_workload",
+       "owner_id": "v35_dispatcher.stage_workbench",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -2773,7 +2773,7 @@
+       "label": "5. 09:45-10:30",
+       "node_id": "timeline_05_workload",
+       "owner_id": "v35_dispatcher.stage_workbench",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -2951,7 +2951,7 @@
+       "label": "6. 13:00-13:15",
+       "node_id": "timeline_06_workload",
+       "owner_id": "v35_dispatcher.stage_workbench",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -3129,7 +3129,7 @@
+       "label": "7. 14:45-15:00",
+       "node_id": "timeline_07_workload",
+       "owner_id": "v35_dispatcher.stage_workbench",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -3307,7 +3307,7 @@
+       "label": "8. 15:45-15:55港股",
+       "node_id": "timeline_08_workload",
+       "owner_id": "v35_dispatcher.stage_workbench",
+-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
++      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -3332,11 +3332,11 @@
+       "type": "API"
+     },
+     {
+-      "artifact": "{data_root}/hk_connect_close_review/1608/artifact/{date}.json",
++      "artifact": "{data_root}/hk_connect_close_review/1610/artifact/{date}.json",
+       "label": "artifact / manifest / receipt",
+-      "manifest": "{data_root}/hk_connect_close_review/1608/manifest/{date}.json",
++      "manifest": "{data_root}/hk_connect_close_review/1610/manifest/{date}.json",
+       "node_id": "timeline_09_artifact_trio",
+-      "receipt": "{dispatcher_root}/receipts/hk_connect_close_review/1608/{date}.json",
++      "receipt": "{dispatcher_root}/receipts/hk_connect_close_review/1610/{date}.json",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -3350,7 +3350,7 @@
+       "cas": true,
+       "label": "current pointer",
+       "node_id": "timeline_09_current",
+-      "path": "{data_root}/hk_connect_close_review/1608/current.json",
++      "path": "{data_root}/hk_connect_close_review/1610/current.json",
+       "role": "current",
+       "safety": {
+         "buy_gate_updated": false,
+@@ -3394,7 +3394,7 @@
+       "cas": true,
+       "label": "latest pointer",
+       "node_id": "timeline_09_latest",
+-      "path": "{data_root}/hk_connect_close_review/1608/latest.json",
++      "path": "{data_root}/hk_connect_close_review/1610/latest.json",
+       "role": "latest",
+       "safety": {
+         "buy_gate_updated": false,
+@@ -3480,16 +3480,16 @@
+         "--date",
+         "{business_date}"
+       ],
+-      "label": "9. 16:08 港股通正式收盘：0.2 × 七阶段 Top20",
++      "label": "9. 16:10 港股通正式收盘：0.2 × 七阶段 Top20",
+       "node_id": "timeline_09_workload",
+       "owner_id": "v35_dispatcher.hk_connect_close_review",
+-      "run_policy": "HK_CONNECT_TRADE_DAY",
+-      "safety": {
+-        "buy_gate_updated": false,
+-        "orders_sent": false,
+-        "production_allowed": false
+-      },
+-      "slot": "1608",
++      "run_policy": "HK_SECURITIES_TRADE_DAY",
++      "safety": {
++        "buy_gate_updated": false,
++        "orders_sent": false,
++        "production_allowed": false
++      },
++      "slot": "1610",
+       "timeline_position": 9,
+       "type": "workload",
+       "workload_id": "hk_connect_close_review"
+@@ -3847,7 +3847,7 @@
+       "label": "11. 15:55 收盘后复盘启动",
+       "node_id": "timeline_11_workload",
+       "owner_id": "v35_dispatcher.fupan_review_start",
+-      "run_policy": "HK_CONNECT_TRADE_DAY",
++      "run_policy": "HK_SECURITIES_TRADE_DAY",
+       "safety": {
+         "buy_gate_updated": false,
+         "orders_sent": false,
+@@ -5304,7 +5304,7 @@
+   },
+   "schema": "v35.runtime_graph.topology",
+   "schema_version": "v35_runtime_graph_topology.v1",
+-  "semantic_sha": "c31337eb64e9b48db419cca1cdb9c5396c085bca93433491b85a6743bab7bdae",
++  "semantic_sha": "5cd7d2480a9afd51bccae50fea90760441921fdb1e2d6ac43dc2a77ce25964aa",
+   "source_inputs": {
+     "app": {
+       "path": "apps/web/src/App.vue",
+@@ -8635,9 +8635,9 @@
+     {
+       "api_route": "/api/v3/review?date={business_date}",
+       "artifact_trio": {
+-        "artifact": "{data_root}/hk_connect_close_review/1608/artifact/{date}.json",
+-        "manifest": "{data_root}/hk_connect_close_review/1608/manifest/{date}.json",
+-        "receipt": "{dispatcher_root}/receipts/hk_connect_close_review/1608/{date}.json",
++        "artifact": "{data_root}/hk_connect_close_review/1610/artifact/{date}.json",
++        "manifest": "{data_root}/hk_connect_close_review/1610/manifest/{date}.json",
++        "receipt": "{dispatcher_root}/receipts/hk_connect_close_review/1610/{date}.json",
+         "sha256_fields": {
+           "artifact": "artifact_sha256",
+           "manifest": "manifest_sha256",
+@@ -8658,12 +8658,12 @@
+         "timeline_09_page",
+         "timeline_09_safety"
+       ],
+-      "current": "{data_root}/hk_connect_close_review/1608/current.json",
++      "current": "{data_root}/hk_connect_close_review/1610/current.json",
+       "dispatcher": "infrastructure/scheduling/dispatcher.py",
+       "executor": "infrastructure/scheduling/executor_registry.py",
+       "id": "CLOSING_01",
+-      "label": "16:08 港股通正式收盘：0.2 × 七阶段 Top20",
+-      "latest": "{data_root}/hk_connect_close_review/1608/latest.json",
++      "label": "16:10 港股通正式收盘：0.2 × 七阶段 Top20",
++      "latest": "{data_root}/hk_connect_close_review/1610/latest.json",
+       "launcher": {
+         "path": "ops/run_v35_macos_scheduler.py",
+         "plist": "~/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+@@ -8682,7 +8682,7 @@
+         ]
+       },
+       "page_consumer": "apps/web/src/views/ReviewView.vue#review",
+-      "planned_slot": "1608",
++      "planned_slot": "1610",
+       "position": 9,
+       "producer": "ops/build_close_review.py",
+       "safety": {
+@@ -8690,13 +8690,13 @@
+         "orders_sent": false,
+         "production_allowed": false
+       },
+-      "slot": "1608",
++      "slot": "1610",
+       "store": "infrastructure/review_store.py",
+-      "timeline": "9. 16:08 港股通正式收盘：0.2 × 七阶段 Top20",
++      "timeline": "9. 16:10 港股通正式收盘：0.2 × 七阶段 Top20",
+       "type": "workload",
+       "workload": {
+         "owner_id": "v35_dispatcher.hk_connect_close_review",
+-        "slot": "1608",
++        "slot": "1610",
+         "workload_id": "hk_connect_close_review"
+       },
+       "workload_id": "hk_connect_close_review"
+diff --git a/ops/daily_materialize.py b/ops/daily_materialize.py
+index 2c2c9b700d4cfabcf19d24646c088e4130fa346d..c22e8451c5806bc09505c8d7754f18578e95d1c7 100644
+--- a/ops/daily_materialize.py
++++ b/ops/daily_materialize.py
+@@ -70,7 +70,7 @@
+     )
+ 
+     decision = evaluate_run_policy(
+-        RunPolicy.A_OR_HK_CONNECT_TRADE_DAY,
++        RunPolicy.A_OR_HK_SECURITIES_TRADE_DAY,
+         trade_date,
+         "2140",
+         market_scope=MarketScope.CROSS_MARKET,
+@@ -562,7 +562,7 @@
+                 "calendar_status": "CALENDAR_ERROR",
+                 "trade_date": business_date,
+                 "slot": "2140",
+-                "policy": "A_OR_HK_CONNECT_TRADE_DAY",
++                "policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+                 "market_scope": "CROSS_MARKET",
+                 "session_requirement": "DAY_ELIGIBILITY_ONLY",
+                 "eligible_markets": [],
+diff --git a/infrastructure/runtime_graph/_service_parts/calendar.py b/infrastructure/runtime_graph/_service_parts/calendar.py
+index 38b1be85717b812ff40e820abf1d55e10cb787fc..b44dbc5406005e5ea1ce04d786f99a41f2a5835b 100644
+--- a/infrastructure/runtime_graph/_service_parts/calendar.py
++++ b/infrastructure/runtime_graph/_service_parts/calendar.py
+@@ -5,7 +5,7 @@
+ 
+ def __next_market_trade_date_body(_v4_scope, /, business_date, market):
+     """Return the next eligible session for one lane's market only."""
+-    if market not in {"a_share", "hk_connect"}:
++    if market not in {"a_share", "hk_connect", "hk_securities"}:
+         raise _v4_global(_v4_scope, 'ValueError')("RUNTIME_GRAPH_MARKET_INVALID")
+     parsed = _v4_global(_v4_scope, 'datetime').strptime(business_date, "%Y%m%d").date()
+     calendar = _v4_global(_v4_scope, 'load_market_calendar')()
+@@ -25,8 +25,13 @@
+     policy_by_name = {
+         "a_share_trade_day": (_v4_global(_v4_scope, 'RunPolicy').A_SHARE_TRADE_DAY, _v4_global(_v4_scope, 'MarketScope').A_SHARE),
+         "hk_connect_trade_day": (_v4_global(_v4_scope, 'RunPolicy').HK_CONNECT_TRADE_DAY, _v4_global(_v4_scope, 'MarketScope').HK_CONNECT),
++        "hk_securities_trade_day": (_v4_global(_v4_scope, 'RunPolicy').HK_SECURITIES_TRADE_DAY, _v4_global(_v4_scope, 'MarketScope').HK_CONNECT),
+         "a_or_hk_connect_trade_day": (
+             _v4_global(_v4_scope, 'RunPolicy').A_OR_HK_CONNECT_TRADE_DAY,
++            _v4_global(_v4_scope, 'MarketScope').CROSS_MARKET,
++        ),
++        "a_or_hk_securities_trade_day": (
++            _v4_global(_v4_scope, 'RunPolicy').A_OR_HK_SECURITIES_TRADE_DAY,
+             _v4_global(_v4_scope, 'MarketScope').CROSS_MARKET,
+         ),
+     }
+diff --git a/tests/test_hk_daily_open_dispatch_20261002.py b/tests/test_hk_daily_open_dispatch_20261002.py
+index 937d596bf75113148241755a77efe832afdcf466..9bee0501297a27e3f934a9cb539d8dee7b011c98 100644
+--- a/tests/test_hk_daily_open_dispatch_20261002.py
++++ b/tests/test_hk_daily_open_dispatch_20261002.py
+@@ -1,16 +1,43 @@
+ from __future__ import annotations
+ 
+-from contracts.trading_calendar import (
+-    MarketScope,
+-    RunPolicy,
+-    SessionRequirement,
+-    TradingDayState,
+-    load_market_calendar,
+-    resolve_market_states,
+-)
+-from domains.runtime_policy import evaluate_run_policy
+-from domains.task_status import _schedule_date_is_eligible
+-from infrastructure.scheduling.catalog import load_workload_catalog
++# Candidate tests inject a no-op registry so dispatcher integration never
++# imports or starts production workload executors.
++from contextlib import contextmanager
++import sys
++import types
++
++_executor_registry_stub = types.ModuleType("infrastructure.scheduling.executor_registry")
++_executor_registry_stub.WorkloadExecutionError = type("WorkloadExecutionError", (Exception,), {})
++_MISSING = object()
++
++
++@contextmanager
++def _temporary_module(module_name, module):
++    previous = sys.modules.get(module_name, _MISSING)
++    if previous is _MISSING:
++        sys.modules[module_name] = module
++    try:
++        yield
++    finally:
++        if previous is _MISSING:
++            sys.modules.pop(module_name, None)
++        else:
++            sys.modules[module_name] = previous
++
++
++with _temporary_module(
++    "infrastructure.scheduling.executor_registry", _executor_registry_stub
++):
++    from contracts.trading_calendar import (
++        MarketScope,
++        RunPolicy,
++        SessionRequirement,
++        TradingDayState,
++        load_market_calendar,
++        resolve_market_states,
++    )
++    from domains.runtime_policy import evaluate_run_policy
++    from infrastructure.scheduling.catalog import load_workload_catalog
+ 
+ 
+ TARGET_DATE = "20261002"
+@@ -52,7 +79,6 @@
+     assert decision.blocked_markets == ()
+     assert decision.market_states == {"hk_securities": "FULL_TRADING_DAY"}
+     assert decision.session_status == "POST_CLOSE_ELIGIBLE"
+-    assert _schedule_date_is_eligible(workload, TARGET_DATE, calendar=calendar) is True
+ 
+     old_connect_decision = evaluate_run_policy(
+         RunPolicy.HK_CONNECT_TRADE_DAY,
+@@ -130,16 +156,16 @@
+     assert unknown.market_states == {"hk_securities": "UNKNOWN"}
+ 
+     fupan_review = workloads["fupan_review_start"]
+-    assert fupan_review.run_policy is RunPolicy.HK_CONNECT_TRADE_DAY
++    assert fupan_review.run_policy is RunPolicy.HK_SECURITIES_TRADE_DAY
+     assert fupan_review.safety.production_allowed is False
+     assert fupan_review.safety.buy_gate_updated is False
+     assert fupan_review.safety.orders_sent is False
+-    connect_decision = evaluate_run_policy(
++    fupan_decision = evaluate_run_policy(
+         fupan_review.run_policy,
+         TARGET_DATE,
+         fupan_review.slots[0],
+         market_scope=fupan_review.market_scope,
+         session_requirement=fupan_review.session_requirement,
+     )
+-    assert connect_decision.eligible is False
+-    assert connect_decision.market_states == {"hk_connect": "NON_TRADING_DAY"}
++    assert fupan_decision.eligible is True
++    assert fupan_decision.market_states == {"hk_securities": "FULL_TRADING_DAY"}
+diff --git a/tests/test_hk_research_calendar_all.py b/tests/test_hk_research_calendar_all.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..2d61a158e137cf945f5c4e84ab525f3e78c816f3
+--- /dev/null
++++ b/tests/test_hk_research_calendar_all.py
+@@ -0,0 +1,503 @@
++from __future__ import annotations
++
++import ast
++from contextlib import contextmanager
++import hashlib
++import json
++import sys
++import types
++from dataclasses import replace
++from datetime import datetime
++from pathlib import Path
++from zoneinfo import ZoneInfo
++
++import pytest
++
++APP = Path(__file__).resolve().parents[1]
++RELEASE_ID = "hk-research-calendar-all-r1-20261007"
++
++# This stub makes the dispatcher integration use the explicit fake executor
++# below; no registered workload module or producer is imported or launched.
++_executor_registry_stub = types.ModuleType("infrastructure.scheduling.executor_registry")
++_executor_registry_stub.WorkloadExecutionError = type("WorkloadExecutionError", (Exception,), {})
++_MISSING = object()
++
++
++@contextmanager
++def _temporary_executor_registry_stub():
++    module_name = "infrastructure.scheduling.executor_registry"
++    previous = sys.modules.get(module_name, _MISSING)
++    if previous is _MISSING:
++        sys.modules[module_name] = _executor_registry_stub
++    try:
++        yield
++    finally:
++        if previous is _MISSING:
++            sys.modules.pop(module_name, None)
++        else:
++            sys.modules[module_name] = previous
++
++
++@contextmanager
++def _temporary_stage_package():
++    prefix = "stage_center"
++    previous = {
++        name: module
++        for name, module in sys.modules.items()
++        if name == prefix or name.startswith(prefix + ".")
++    }
++    if prefix not in sys.modules:
++        stage_package = types.ModuleType(prefix)
++        stage_package.__path__ = [str(APP / prefix)]
++        stage_package.__package__ = prefix
++        sys.modules[prefix] = stage_package
++    try:
++        yield
++    finally:
++        for name in tuple(sys.modules):
++            if (name == prefix or name.startswith(prefix + ".")) and name not in previous:
++                sys.modules.pop(name, None)
++        for name, module in previous.items():
++            sys.modules[name] = module
++
++# Load the Stage scheduler under its real package path without running the
++# package initializer, which imports selection/producer modules outside this
++# candidate's test boundary.
++with _temporary_executor_registry_stub():
++    from contracts.runtime_tasks import DispatchMode, DispatchRequest
++    from contracts.trading_calendar import (
++        MarketScope,
++        RunPolicy,
++        SessionRequirement,
++        TradingDayState,
++        load_market_calendar,
++        resolve_market_states,
++    )
++    from domains.runtime_policy import evaluate_run_policy
++    from infrastructure.runtime_graph._service_parts.calendar import (
++        __calendar_decision_body,
++        __next_market_trade_date_body,
++    )
++    from infrastructure.runtime_graph.v35_topology import load_v35_topology
++    from infrastructure.scheduling.catalog import load_workload_catalog
++    from infrastructure.scheduling.dispatcher import _RUNTIME_IDENTITY_FILES, dispatch_due
++
++with _temporary_stage_package():
++    from stage_center.calendar import eligible_stage_markets
++    from stage_center.scheduler import evaluate_due
++
++
++TARGET_POLICIES = {
++    "research_panel_daily_hk": RunPolicy.HK_SECURITIES_TRADE_DAY,
++    "research_panel_runtime_evidence": RunPolicy.A_OR_HK_SECURITIES_TRADE_DAY,
++    "review_core_pool_pipeline": RunPolicy.A_OR_HK_SECURITIES_TRADE_DAY,
++    "hk_connect_close_review": RunPolicy.HK_SECURITIES_TRADE_DAY,
++    "preselection_pools": RunPolicy.A_OR_HK_SECURITIES_TRADE_DAY,
++    "daily_materialize": RunPolicy.A_OR_HK_SECURITIES_TRADE_DAY,
++    "hk_auction_0920": RunPolicy.HK_SECURITIES_TRADE_DAY,
++    "stage_workbench": RunPolicy.A_OR_HK_SECURITIES_TRADE_DAY,
++    "fupan_review_start": RunPolicy.HK_SECURITIES_TRADE_DAY,
++}
++EXPECTED_BY_SLOT = {
++    "0915": {"hk_auction_0920"},
++    "1555": {"fupan_review_start"},
++    "1610": {"hk_connect_close_review"},
++    "1720": {"research_panel_daily_hk"},
++    "1730": {"research_panel_runtime_evidence", "preselection_pools"},
++    "2115": {"review_core_pool_pipeline"},
++    "2140": {"daily_materialize"},
++}
++HK_ONLY_DATES = ("20261005", "20261006", "20261007")
++A_ONLY_DATE = "20260403"
++NONTRADING_DATE = "20261004"
++
++
++@pytest.fixture
++def candidate_release_identity(monkeypatch, tmp_path):
++    entries = []
++    for relative in sorted(_RUNTIME_IDENTITY_FILES):
++        path = APP / relative
++        content = path.read_bytes()
++        entries.append(
++            {
++                "kind": "file",
++                "path": relative,
++                "sha256": hashlib.sha256(content).hexdigest(),
++                "size": len(content),
++            }
++        )
++    inventory = {
++        "entry_count": len(entries),
++        "aggregate_sha256": hashlib.sha256(
++            json.dumps(
++                entries, ensure_ascii=False, sort_keys=True, separators=(",", ":")
++            ).encode("utf-8")
++        ).hexdigest(),
++        "entries": entries,
++    }
++    manifest = {
++        "schema_version": "v4.release_candidate.v1",
++        "candidate": {"app_root": str(APP), "release_id": RELEASE_ID},
++        "application_inventory": inventory,
++    }
++    receipt_root = tmp_path / "receipts" / RELEASE_ID
++    manifest_path = receipt_root / "release-manifest.json"
++    manifest_path.parent.mkdir(parents=True, exist_ok=True)
++    raw = json.dumps(
++        manifest, ensure_ascii=False, sort_keys=True, separators=(",", ":")
++    ).encode("utf-8")
++    manifest_path.write_bytes(raw)
++    values = {
++        "V35_APP_ROOT": str(APP),
++        "V35_RELEASE_ID": RELEASE_ID,
++        "V35_RELEASE_MANIFEST_PATH": str(manifest_path),
++        "V35_RELEASE_MANIFEST_SHA256": hashlib.sha256(raw).hexdigest(),
++    }
++    for key, value in values.items():
++        monkeypatch.setenv(key, value)
++    return {**values, "receipt_root": str(receipt_root)}
++
++
++def _safe_fake_executor(calls):
++    def execute(workload, request, decision):
++        calls.append(
++            {
++                "workload_id": workload.workload_id,
++                "date": request.business_date,
++                "slot": request.slot,
++                "eligible_markets": list(decision.eligible_markets),
++            }
++        )
++        return {
++            "status": "SUCCEEDED",
++            "production_allowed": False,
++            "buy_gate_updated": False,
++            "orders_sent": False,
++            "executor": "candidate_test_fake_no_process",
++        }
++
++    return execute
++
++
++def _request(date8: str, slot: str) -> DispatchRequest:
++    return DispatchRequest(
++        scheduled_date=date8,
++        business_date=date8,
++        target_date=date8,
++        slot=slot,
++        mode=DispatchMode.LIVE,
++    )
++
++
++def _write_receipt(receipt, *, scenario: str, receipt_root: Path) -> Path:
++    path = receipt_root / "dispatcher" / scenario / receipt.business_date / f"{receipt.slot}.json"
++    path.parent.mkdir(parents=True, exist_ok=True)
++    payload = receipt.to_dict()
++    payload["candidate_only"] = True
++    payload["executor_kind"] = "fake_no_process"
++    path.write_text(
++        json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
++        encoding="utf-8",
++    )
++    return path
++
++
++def _calendar_scope():
++    def valid_date(value):
++        return datetime.strptime(value, "%Y%m%d").strftime("%Y%m%d")
++
++    return {
++        "_valid_date": valid_date,
++        "RunPolicy": RunPolicy,
++        "MarketScope": MarketScope,
++        "SessionRequirement": SessionRequirement,
++        "evaluate_run_policy": evaluate_run_policy,
++        "load_market_calendar": load_market_calendar,
++        "resolve_market_states": resolve_market_states,
++        "TradingDayState": TradingDayState,
++        "datetime": datetime,
++        "timedelta": __import__("datetime").timedelta,
++        "range": range,
++        "ValueError": ValueError,
++        "Exception": Exception,
++        "getattr": getattr,
++        "str": str,
++    }
++
++
++def _daily_materialize_calendar_function():
++    path = APP / "ops/daily_materialize.py"
++    module = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
++    functions = {
++        node.name: node
++        for node in module.body
++        if isinstance(node, ast.FunctionDef)
++        and node.name in {"_serialize_decision", "_evaluate_calendar"}
++    }
++    isolated = ast.Module(
++        body=[functions["_serialize_decision"], functions["_evaluate_calendar"]],
++        type_ignores=[],
++    )
++    namespace = {}
++    exec(compile(isolated, str(path), "exec"), namespace)
++    return namespace["_evaluate_calendar"]
++
++
++def _task_status_schedule_date_function():
++    path = APP / "domains/task_status.py"
++    module = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
++    function = next(
++        node
++        for node in module.body
++        if isinstance(node, ast.FunctionDef)
++        and node.name == "_schedule_date_is_eligible"
++    )
++    namespace = {
++        "RunPolicy": RunPolicy,
++        "TradingDayState": TradingDayState,
++        "load_market_calendar": load_market_calendar,
++        "resolve_market_states": resolve_market_states,
++    }
++    exec(compile(ast.Module(body=[function], type_ignores=[]), str(path), "exec"), namespace)
++    return namespace["_schedule_date_is_eligible"]
++
++
++def _target_date_for_node_function(next_market_trade_date=None):
++    path = APP / "infrastructure/runtime_graph/service.py"
++    module = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
++    function = next(
++        node
++        for node in module.body
++        if isinstance(node, ast.FunctionDef) and node.name == "_target_date_for_node"
++    )
++    scope = _calendar_scope()
++    if next_market_trade_date is None:
++        next_market_trade_date = lambda business_date, market: __next_market_trade_date_body(
++            scope, business_date, market
++        )
++    namespace = {
++        "_next_market_trade_date": next_market_trade_date,
++        "_next_v35_trade_date": lambda business_date: f"v35:{business_date}",
++    }
++    exec(compile(ast.Module(body=[function], type_ignores=[]), str(path), "exec"), namespace)
++    return namespace["_target_date_for_node"]
++
++
++def test_all_hk_research_workloads_dispatch_on_hk_only_dates(candidate_release_identity):
++    receipt_root = Path(candidate_release_identity["receipt_root"])
++    catalog = load_workload_catalog()
++    by_id = {workload.workload_id: workload for workload in catalog.workloads}
++    assert set(TARGET_POLICIES) <= set(by_id)
++    for workload_id, expected_policy in TARGET_POLICIES.items():
++        workload = by_id[workload_id]
++        assert workload.run_policy is expected_policy
++        assert workload.safety.production_allowed is False
++        assert workload.safety.buy_gate_updated is False
++        assert workload.safety.orders_sent is False
++
++    calls = []
++    executor = _safe_fake_executor(calls)
++    selected_across_dates = set()
++    receipts = []
++    for date8 in HK_ONLY_DATES:
++        states = resolve_market_states(load_market_calendar(), date8)
++        assert states["a_share"] is TradingDayState.NON_TRADING_DAY
++        assert states["hk_securities"] is TradingDayState.FULL_TRADING_DAY
++        assert states["hk_connect"] is TradingDayState.NON_TRADING_DAY
++        for slot, expected in EXPECTED_BY_SLOT.items():
++            result = dispatch_due(_request(date8, slot), catalog, executor)
++            selected = set(result.selected_workload_ids)
++            started = set(result.started_workload_ids)
++            assert expected <= selected, (date8, slot, expected, selected, result.to_dict())
++            assert expected <= started, (date8, slot, expected, started, result.to_dict())
++            assert result.status == "SUCCEEDED"
++            assert result.production_allowed is False
++            assert result.buy_gate_updated is False
++            assert result.orders_sent is False
++            selected_across_dates.update(selected)
++            receipts.append(
++                _write_receipt(result, scenario="hk_only", receipt_root=receipt_root)
++            )
++
++    target_ids = set(TARGET_POLICIES) - {"stage_workbench"}
++    assert by_id["stage_workbench"].enabled is False
++    assert target_ids <= selected_across_dates
++    assert all(call["workload_id"] in selected_across_dates for call in calls)
++    assert len(receipts) == len(HK_ONLY_DATES) * len(EXPECTED_BY_SLOT)
++    index = receipt_root / "dispatcher" / "hk_only" / "index.json"
++    index.write_text(
++        json.dumps(
++            {
++                "release_id": RELEASE_ID,
++                "dates": list(HK_ONLY_DATES),
++                "slots": list(EXPECTED_BY_SLOT),
++                "target_workload_ids": sorted(target_ids),
++                "receipt_paths": [
++                    str(path.relative_to(receipt_root.parent.parent)) for path in receipts
++                ],
++                "production_allowed": False,
++                "buy_gate_updated": False,
++                "orders_sent": False,
++            },
++            ensure_ascii=False,
++            sort_keys=True,
++            indent=2,
++        )
++        + "\n",
++        encoding="utf-8",
++    )
++
++
++def test_nontrading_and_a_only_dates_keep_market_boundaries(candidate_release_identity):
++    receipt_root = Path(candidate_release_identity["receipt_root"])
++    catalog = load_workload_catalog()
++    calls = []
++    executor = _safe_fake_executor(calls)
++    target_ids = set(TARGET_POLICIES)
++
++    for slot in EXPECTED_BY_SLOT:
++        result = dispatch_due(_request(NONTRADING_DATE, slot), catalog, executor)
++        assert not (target_ids & set(result.selected_workload_ids))
++        assert not (target_ids & set(result.started_workload_ids))
++        assert result.production_allowed is False
++        assert result.buy_gate_updated is False
++        assert result.orders_sent is False
++        _write_receipt(result, scenario="nontrading", receipt_root=receipt_root)
++
++    states = resolve_market_states(load_market_calendar(), A_ONLY_DATE)
++    assert states["a_share"] is TradingDayState.FULL_TRADING_DAY
++    assert states["hk_securities"] is TradingDayState.NON_TRADING_DAY
++    assert states["hk_connect"] is TradingDayState.NON_TRADING_DAY
++
++    close = dispatch_due(_request(A_ONLY_DATE, "1605"), catalog, executor)
++    assert "a_share_close_review" in close.selected_workload_ids
++    assert "a_share_close_review" in close.started_workload_ids
++    assert "hk_connect_close_review" not in close.selected_workload_ids
++
++    cross = dispatch_due(_request(A_ONLY_DATE, "1730"), catalog, executor)
++    assert {"research_panel_runtime_evidence", "preselection_pools"} <= set(cross.selected_workload_ids)
++    assert {"research_panel_runtime_evidence", "preselection_pools"} <= set(cross.started_workload_ids)
++    assert "research_panel_daily_hk" not in cross.selected_workload_ids
++    assert "fupan_review_start" not in dispatch_due(
++        _request(A_ONLY_DATE, "1555"), catalog, executor
++    ).selected_workload_ids
++    _write_receipt(close, scenario="a_only", receipt_root=receipt_root)
++    _write_receipt(cross, scenario="a_only", receipt_root=receipt_root)
++
++    # Recreate an actual dispatcher request with the old Connect policy to
++    # prove that its closed-day semantics remain independent of HK securities.
++    connect_only = replace(
++        by_workload_id(catalog, "fupan_review_start"),
++        run_policy=RunPolicy.HK_CONNECT_TRADE_DAY,
++    )
++    connect_catalog = replace(catalog, workloads=(connect_only,))
++    call_count = len(calls)
++    connect_result = dispatch_due(_request("20261005", "1555"), connect_catalog, executor)
++    assert connect_result.selected_workload_ids == ()
++    assert connect_result.started_workload_ids == ()
++    assert connect_result.blocked_markets == ("hk_connect",)
++    assert len(calls) == call_count
++    _write_receipt(connect_result, scenario="connect_preserved", receipt_root=receipt_root)
++
++
++def by_workload_id(catalog, workload_id):
++    return next(item for item in catalog.workloads if item.workload_id == workload_id)
++
++
++def test_runtime_graph_calendar_api_and_materializer_internal_gate(candidate_release_identity):
++    scope = _calendar_scope()
++    hk_only = __calendar_decision_body(
++        scope, "hk_securities_trade_day", "20261005", evaluator=evaluate_run_policy
++    )
++    connect_closed = __calendar_decision_body(
++        scope, "hk_connect_trade_day", "20261005", evaluator=evaluate_run_policy
++    )
++    cross_hk_only = __calendar_decision_body(
++        scope, "a_or_hk_securities_trade_day", "20261005", evaluator=evaluate_run_policy
++    )
++    cross_connect = __calendar_decision_body(
++        scope, "a_or_hk_connect_trade_day", "20261005", evaluator=evaluate_run_policy
++    )
++    assert hk_only == {"should_run": True, "status": "TRADING_DAY", "business_date": "20261005"}
++    assert connect_closed == {"should_run": False, "status": "NON_TRADING_DAY"}
++    assert cross_hk_only == {"should_run": True, "status": "PARTIAL_MARKET", "business_date": "20261005"}
++    assert cross_connect == {"should_run": False, "status": "NON_TRADING_DAY"}
++
++    assert __next_market_trade_date_body(scope, "20261001", "hk_securities") == "20261002"
++    assert __next_market_trade_date_body(scope, "20261001", "hk_connect") == "20261008"
++    with pytest.raises(ValueError, match="RUNTIME_GRAPH_MARKET_INVALID"):
++        __next_market_trade_date_body(scope, "20261001", "other")
++
++    evaluate_materializer = _daily_materialize_calendar_function()
++    materialized = evaluate_materializer("20261005")
++    assert materialized["decision"].eligible is True
++    assert materialized["decision"].policy is RunPolicy.A_OR_HK_SECURITIES_TRADE_DAY
++    assert materialized["serialized"]["market_states"] == {
++        "a_share": "NON_TRADING_DAY",
++        "hk_securities": "FULL_TRADING_DAY",
++    }
++    assert materialized["overall_status"] == "COMPLETED"
++
++    no_market = evaluate_materializer(NONTRADING_DATE)
++    assert no_market["decision"].eligible is False
++    assert no_market["overall_status"] == "NON_TRADING_DAY"
++    a_only = evaluate_materializer(A_ONLY_DATE)
++    assert a_only["decision"].eligible is True
++    assert a_only["decision"].eligible_markets == ("a_share",)
++    source_text = (APP / "ops/daily_materialize.py").read_text(encoding="utf-8")
++    assert "A_OR_HK_CONNECT_TRADE_DAY" not in source_text
++
++
++def test_stage_scheduler_and_topology_remain_hk_securities_aware(candidate_release_identity):
++    assert eligible_stage_markets(("HK_CONNECT",), "20261005") == ("HK_CONNECT",)
++    at_cutoff = datetime(2026, 10, 5, 15, 55, 5, tzinfo=ZoneInfo("Asia/Shanghai"))
++    decision = evaluate_due("STAGE_1545_1555", "20261005", at_cutoff)
++    assert decision.status == "DUE"
++    assert decision.calendar["a_share"] == "NON_TRADING_DAY"
++    assert decision.calendar["hk_securities"] == "FULL_TRADING_DAY"
++    assert decision.calendar["hk_connect"] == "NON_TRADING_DAY"
++    closed = evaluate_due(
++        "STAGE_1545_1555",
++        NONTRADING_DATE,
++        datetime(2026, 10, 4, 15, 55, 5, tzinfo=ZoneInfo("Asia/Shanghai")),
++    )
++    assert closed.status == "SKIPPED_NON_TRADING_DAY"
++
++    topology = load_v35_topology()
++    workload_nodes = [
++        node
++        for node in topology["nodes"]
++        if node.get("type") == "workload" and node.get("workload_id") in TARGET_POLICIES
++    ]
++    for node in workload_nodes:
++        assert node["run_policy"] == TARGET_POLICIES[node["workload_id"]].value
++    timeline9 = next(node for node in topology["timeline_nodes"] if node["position"] == 9)
++    assert timeline9["workload_id"] == "hk_connect_close_review"
++    assert timeline9["planned_slot"] == "1610"
++    assert timeline9["workload"]["slot"] == "1610"
++    assert "/1610/" in timeline9["artifact_trio"]["artifact"]
++    assert all(flag is False for flag in topology["safety"].values())
++
++
++def test_task_status_date_gate_uses_hk_securities_and_preserves_connect():
++    catalog = load_workload_catalog()
++    by_id = {workload.workload_id: workload for workload in catalog.workloads}
++    eligible = _task_status_schedule_date_function()
++    calendar = load_market_calendar()
++
++    assert eligible(by_id["research_panel_daily_hk"], "20261002", calendar=calendar)
++    assert not eligible(by_id["research_panel_daily_hk"], NONTRADING_DATE, calendar=calendar)
++    assert eligible(by_id["fupan_review_start"], "20261002", calendar=calendar)
++    assert not eligible(by_id["fupan_review_start"], A_ONLY_DATE, calendar=calendar)
++    assert eligible(by_id["daily_materialize"], A_ONLY_DATE, calendar=calendar)
++    assert not eligible(by_id["daily_materialize"], NONTRADING_DATE, calendar=calendar)
++
++    requested_sessions = []
++    target_date = _target_date_for_node_function(
++        lambda date, market: requested_sessions.append((date, market)) or "next-session"
++    )
++    assert target_date("hkconnect_d1_top100_prob_active", "20260925") == "next-session"
++    assert requested_sessions.pop() == ("20260925", "hk_connect")
++    assert target_date("ashare_v193_slot_selector_premarket", "20260925") == "next-session"
++    assert requested_sessions.pop() == ("20260925", "a_share")
++    assert target_date("other_node", "20260925") == "v35:20260925"

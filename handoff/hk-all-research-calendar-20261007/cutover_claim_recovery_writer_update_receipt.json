@@ -1,0 +1,85 @@
+{
+  "CANNOT_CONFIRM": [
+    "No real launchd service was changed; helper boundary behavior was injected in a temporary filesystem using the exact frozen helper source SHA.",
+    "An actual concurrent process race was simulated by a temporary test hook, not an external process.",
+    "Independent reviewer has not yet inspected the updated wrapper/test or rerun this suite."
+  ],
+  "artifacts": {
+    "cutover_identity_changed": false,
+    "cutover_identity_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/receipts/hk-research-calendar-all-r1-20261007/cutover_identity.json",
+    "cutover_identity_sha256": "e5d3f163aba5725df7948c76f5ce88087bf326eac51e7e7c4b613abc9bb6a919",
+    "handoff_test": {
+      "git_blob_sha1": "d9c7d34abdd74dff59cc0e8f6e901b8851b2747a",
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/handoff/hk-all-research-calendar-20261007/tooling/tests/test_hk_research_calendar_cutover.py",
+      "sha256": "e8873a936f7d5f5c143dfa2093535c740b4b7aa3093d2a3315100fdee251eead",
+      "size_bytes": 22323
+    },
+    "handoff_tool": {
+      "git_blob_sha1": "c8fb402562550f24171052b834c48a866e89d794",
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/handoff/hk-all-research-calendar-20261007/tooling/cutover/hk_research_calendar_cutover.py",
+      "sha256": "1bbfcc64fe27c397a366a0bf8606d3d07d2557a8c8d7e2e23462be01ab7e9068",
+      "size_bytes": 60882
+    },
+    "reused_helper_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_DAILY_20261007/hk_market_calendar/hk_calendar_candidate_cutover.py",
+    "reused_helper_sha256": "264ad2d3f5535e17f6e7471dc12d7e00452104b505795857e9f0637c0a29e816",
+    "test": {
+      "git_blob_sha1": "d9c7d34abdd74dff59cc0e8f6e901b8851b2747a",
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/scripts/test_hk_research_calendar_cutover.py",
+      "sha256": "e8873a936f7d5f5c143dfa2093535c740b4b7aa3093d2a3315100fdee251eead",
+      "size_bytes": 22323
+    },
+    "tool": {
+      "git_blob_sha1": "c8fb402562550f24171052b834c48a866e89d794",
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/scripts/hk_research_calendar_cutover.py",
+      "sha256": "1bbfcc64fe27c397a366a0bf8606d3d07d2557a8c8d7e2e23462be01ab7e9068",
+      "size_bytes": 60882
+    }
+  },
+  "implementation": {
+    "active_and_claim_reads": "Open regular files with O_NOFOLLOW; require exact frozen baseline or candidate SHA.",
+    "claim_acceptance": "Require exactly one recognized claim directory containing only a regular before.plist whose SHA matches the frozen baseline or candidate.",
+    "failure_policy": "Reject unknown/multiple/malformed claims, symlinks, unsupported no-follow reads, unknown active SHA, concurrent destination creation, and mismatched restored SHA without overwriting or invoking rollback.",
+    "recovery": "Restore the claim to the missing active path with same-directory os.link(follow_symlinks=False), which is exclusive and cannot replace a concurrent destination; verify the restored SHA before any existing recovery path.",
+    "service_scope": [
+      "api",
+      "scheduler"
+    ]
+  },
+  "independent_recheck": "PENDING; the prior FAIL receipt is unchanged and must be rechecked against these current hashes.",
+  "previous_writer_update": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/receipts/hk-research-calendar-all-r1-20261007/cutover_interrupt_writer_update_receipt.json",
+    "sha256": "1da43bd557b34a37b64f256a56194bb89a14d24a9539c62e394ee116bab57069"
+  },
+  "review_finding": {
+    "finding": "KeyboardInterrupt after os.rename(target, claim_path) and before os.link(temp, target) leaves the active plist path missing and baseline bytes in claim; wrapper previously raised FileNotFoundError before rollback.",
+    "prior_independent_review_receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/review/runtime_cutover_independent_review_receipt.json",
+    "prior_independent_review_receipt_sha256": "23075e6be56669c8640fcc72f70ba179ce3fbb742176b9717848b02029dfeeee",
+    "prior_independent_verdict_preserved": "FAIL",
+    "source": "Root handoff of incremental independent reviewer P2 probe"
+  },
+  "safety": {
+    "buy_gate_updated": false,
+    "data_root_touched": false,
+    "orders_sent": false,
+    "production_allowed": false,
+    "service_action_performed": false,
+    "stage_labels_restarted": false
+  },
+  "schema_version": "v4.hk_research_calendar_cutover_claim_recovery_writer_update.v1",
+  "scope": "Recover only the HK cutover wrapper after its reused atomic plist writer leaves the exact active path missing and a unique frozen-content claim behind. The reused helper and business app were not modified.",
+  "status": "WRITER_TESTED_PENDING_INDEPENDENT_REVIEW",
+  "verification": {
+    "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python (Python 3.14.6)",
+    "regression_cases": [
+      "Real tempfile helper probe: inject KeyboardInterrupt after target rename and before install link; assert active path is absent and exact baseline claim remains; wrapper restores exact bytes then invokes guarded automatic recovery.",
+      "Existing active path with unknown SHA is rejected before launchd inspection or rollback; bytes remain unchanged.",
+      "Missing active path with unknown claim SHA is rejected; claim remains and target remains missing.",
+      "Concurrent destination creation between missing-path probe and exclusive link is preserved; claim remains and rollback is not invoked."
+    ],
+    "syntax_command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -c \"import ast,pathlib; [ast.parse(pathlib.Path(p).read_text()) for p in ['scripts/hk_research_calendar_cutover.py','scripts/test_hk_research_calendar_cutover.py']]; print('AST parse: PASS')\"",
+    "syntax_result": "AST parse: PASS",
+    "test_command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH='scripts' '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q -p no:cacheprovider --basetemp='/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/pytest_tmp_claim_recovery_writer_final_20261007' scripts/test_hk_research_calendar_cutover.py",
+    "test_exit_code": 0,
+    "test_result": "13 passed in 0.03s"
+  }
+}

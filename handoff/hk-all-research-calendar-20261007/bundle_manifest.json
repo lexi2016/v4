@@ -1,0 +1,523 @@
+{
+  "schema_version": "v4.hk_research_calendar_git_delta_handoff.v2",
+  "created_at_utc": "2026-10-07T14:54:08.598651+00:00",
+  "target": {
+    "branch": "codex/hk-all-research-calendar-20261007",
+    "base_commit": "9ebb2faa954aa6c910d5fc4f4d4e0c418df9ca89",
+    "remote_bundle_root": "handoff/hk-all-research-calendar-20261007/"
+  },
+  "canonical_source_preimage": {
+    "baseline_manifest_local_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/baseline_manifest.json",
+    "baseline_manifest_sha256": "f6d42c8ee02c3c0a64f357df5b6c252f75b119978bbdf092e2754069e091e255",
+    "preimage_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/preimage",
+    "delta_counts": {
+      "modified": 5,
+      "added": 1
+    },
+    "delta_files": [
+      {
+        "path": "contracts/runtime_workloads.json",
+        "change": "M",
+        "before_sha256": "81c6be3b6b9f28f50fd51970e7933d9c39a1c7b49aa2a483c57142a6a1a16cc5",
+        "after_sha256": "0c6e8a7f823bfd2d01104de399593d047e870d18b28ea60269230a1ba88a028b",
+        "before_git_blob_sha1": "91655c92035c97cefbb0657af8810e287354d6c8",
+        "after_git_blob_sha1": "cda500516786333d5d316899be273ec396f0f98f",
+        "base": "baseline_manifest.source_sha256_by_path"
+      },
+      {
+        "path": "contracts/v35_runtime_graph_topology.json",
+        "change": "M",
+        "before_sha256": "6e89c027c9fba952713e60a785140075d2b3f98e7086dcfd5f63edbcffab123d",
+        "after_sha256": "bdaa8dcc598839affbf25d10af8d77293ac45949f11c1d4accae62551bc81458",
+        "before_git_blob_sha1": "7975d41dd34cc70aed3cdfcb3bba08ee732097d5",
+        "after_git_blob_sha1": "880e3c37639d0bf46be03460bf9b04132b7b80ac",
+        "base": "baseline_manifest.source_sha256_by_path"
+      },
+      {
+        "path": "ops/daily_materialize.py",
+        "change": "M",
+        "before_sha256": "e350f409b291bee26e2218dc0ace6436d7a85cc48a20569f7e6f3e987bb265d4",
+        "after_sha256": "d5b8f1f661e88f369f3df33f773fcdac4a79de033845a43639ef098231ad96e6",
+        "before_git_blob_sha1": "2c2c9b700d4cfabcf19d24646c088e4130fa346d",
+        "after_git_blob_sha1": "c22e8451c5806bc09505c8d7754f18578e95d1c7",
+        "base": "baseline_manifest.source_sha256_by_path"
+      },
+      {
+        "path": "infrastructure/runtime_graph/_service_parts/calendar.py",
+        "change": "M",
+        "before_sha256": "7c7dc7614c3e4c37dc8340c015c7bd911c6d1af956f599ed850aa65e14654db7",
+        "after_sha256": "ad252dc0b6dbb061ebdbc8ce820f86665a24bc0a93d0a662b2e45acfc7a647be",
+        "before_git_blob_sha1": "38b1be85717b812ff40e820abf1d55e10cb787fc",
+        "after_git_blob_sha1": "b44dbc5406005e5ea1ce04d786f99a41f2a5835b",
+        "base": "baseline_manifest.source_sha256_by_path"
+      },
+      {
+        "path": "tests/test_hk_daily_open_dispatch_20261002.py",
+        "change": "M",
+        "before_sha256": "abb18bde2b1793c466c950914858f276c65cd14f34e7dfbb020b5ab333ef1c75",
+        "after_sha256": "c7c827ac88158f4c2d5706383ae4a7c03c14407cee12b4d3158ef5d96e16a082",
+        "before_git_blob_sha1": "937d596bf75113148241755a77efe832afdcf466",
+        "after_git_blob_sha1": "9bee0501297a27e3f934a9cb539d8dee7b011c98",
+        "base": "baseline_manifest.source_sha256_by_path"
+      },
+      {
+        "path": "tests/test_hk_research_calendar_all.py",
+        "change": "A",
+        "before_sha256": null,
+        "after_sha256": "ffae895e810c2f3e9b2b3d7b251d29f2a16b367a4513a73d389ab33a4fe2aefa",
+        "before_git_blob_sha1": null,
+        "after_git_blob_sha1": "2d61a158e137cf945f5c4e84ab525f3e78c816f3",
+        "base": "new_in_candidate"
+      }
+    ]
+  },
+  "runtime_candidates": {
+    "independent_review": {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/review/runtime_package_independent_review_receipt.json",
+      "sha256": "c46d062d8f6f04da2795195c033aba3bec3e2d0f0ab28783570ba08e80f351d2",
+      "status": {
+        "REVIEWED": "PASS; exact R2-based app diffs and both package manifests/inventories match the frozen scope",
+        "TESTED": "PASS; independent package verifier returned status PASS; extra direct HK_CONNECT and A_OR_HK_CONNECT closed-date probe passed",
+        "BEHAVIOR_VERIFIED": "PASS for loaded candidate catalog/import/calendar policy behavior; real producer/API endpoint behavior remains CANNOT_CONFIRM",
+        "DEPLOYED": "NO",
+        "API_VERIFIED": "CANNOT_CONFIRM",
+        "UI_VERIFIED": "NOT_IN_SCOPE",
+        "NATURAL_VERIFIED": "CANNOT_CONFIRM"
+      }
+    },
+    "read_only_release_verification": {
+      "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/receipts/hk-research-calendar-all-r1-20261007/release_verification_receipt.json",
+      "sha256": "4b875d37e760f4da8aa98f3875b6e556ef6207b8220023f15b84c9f56981a4bc",
+      "status": "PASS"
+    },
+    "api": {
+      "r2_manifest_sha256": "46727f049c8bd490804f0a67779321dd4722971e0a027cff3dd61a32cb75101c",
+      "r2_app_inventory_sha256": "c0910242b8e1125a27ddc91d9ecbae751f15d5a1f628909f7d910a2b6c958711",
+      "candidate_manifest_sha256": "78af9e2a4d9bd9255de3e367bca8ac922032a4d38cd238f38cd08c971e543cab",
+      "candidate_app_inventory_sha256": "614478ce925dd5d5b6b8a22ad07ecd8f9198ef365df85c713a634041a7604d13",
+      "activation_status": "NOT_ACTIVATED",
+      "deployment_status": "NOT_DEPLOYED",
+      "delta_patch": "runtime_api_r2_delta.patch",
+      "base_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-close-hk-calendar-r2-20261007-api/app",
+      "candidate_app": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/release_candidates/hk-research-calendar-all-r1-20261007/hk-research-calendar-all-r1-20261007-api/app",
+      "delta_files": [
+        {
+          "path": "contracts/runtime_workloads.json",
+          "change": "M",
+          "before_sha256": "46fdbeefd8126dd21c9c45319b74b46bf95d45a11ef0f049a299259bf33519f4",
+          "after_sha256": "bd9ff31db78fa3eb491799fa389eac2d9871602a191cc4885fd75afb9489e29b",
+          "before_git_blob_sha1": "2d19105f41eeff764b7de3e6b43443047e94bac8",
+          "after_git_blob_sha1": "ba5deedcc256029a54648b8b28bae4dee8389c91",
+          "base": "api_actual_R2_preimage"
+        },
+        {
+          "path": "contracts/trading_calendar.py",
+          "change": "M",
+          "before_sha256": "584f28d18273a8824c5f68a701aa4404123b5c71900caada3e2772828991ee8f",
+          "after_sha256": "fa8252537d332cdd649c235c0341bc228595d12a6b788e8c25396d6c70d9bfc8",
+          "before_git_blob_sha1": "dc18a1ac447242a15a0e543606aa8076ca452fbc",
+          "after_git_blob_sha1": "3d77a93af91d330d684f615866e075f13e8659ba",
+          "base": "api_actual_R2_preimage"
+        },
+        {
+          "path": "contracts/v35_runtime_graph_topology.json",
+          "change": "M",
+          "before_sha256": "6e89c027c9fba952713e60a785140075d2b3f98e7086dcfd5f63edbcffab123d",
+          "after_sha256": "bdaa8dcc598839affbf25d10af8d77293ac45949f11c1d4accae62551bc81458",
+          "before_git_blob_sha1": "7975d41dd34cc70aed3cdfcb3bba08ee732097d5",
+          "after_git_blob_sha1": "880e3c37639d0bf46be03460bf9b04132b7b80ac",
+          "base": "api_actual_R2_preimage"
+        },
+        {
+          "path": "domains/runtime_policy.py",
+          "change": "M",
+          "before_sha256": "bb571a0bd431a072f03d051ca919d21aab04f12bc5a0973da4edad61b9424c85",
+          "after_sha256": "0575df80b82b7940505fd4509a09e6ac6588245cc1141143b11ac42b4b84a6d2",
+          "before_git_blob_sha1": "f0d3857a0cb63c8f557bd6b2f228a3fdf47b7252",
+          "after_git_blob_sha1": "4e0d4186cdf4ca4d3f0d432f5033dea59621b1f1",
+          "base": "api_actual_R2_preimage"
+        },
+        {
+          "path": "infrastructure/runtime_graph/service.py",
+          "change": "M",
+          "before_sha256": "4002a3a7fb4c80d44825ed491d2a0be3a94de53d793169a4d5e7751babab9f86",
+          "after_sha256": "328d936990876467d9e652c3fab28541be7d86aaf5d210ec38d4bc978bcb0444",
+          "before_git_blob_sha1": "c8e137f6172577f9b95548e3144e310265f1ff99",
+          "after_git_blob_sha1": "d00ef2917926f585dcad314ffb4dd1b3ba162c16",
+          "base": "api_actual_R2_preimage"
+        }
+      ]
+    },
+    "scheduler": {
+      "r2_manifest_sha256": "2ab5e59af2a381c40fa6553f019c7aecc76af32b6718c4c29fc25f0ce84f818b",
+      "r2_app_inventory_sha256": "585577be17ea5e0b7d661c09b90934603303d407fc5fcd83aac9503ccea69891",
+      "candidate_manifest_sha256": "d3b2731b509011c480cf233a59b3e77abf12e6b0bf72e48e40556b36058653c9",
+      "candidate_app_inventory_sha256": "78d072dd80212dd282cb904080ff404ba2a233becfada3fa400a603f01df518b",
+      "activation_status": "NOT_ACTIVATED",
+      "deployment_status": "NOT_DEPLOYED",
+      "delta_patch": "runtime_scheduler_r2_delta.patch",
+      "base_app": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/hk-close-hk-calendar-r2-20261007-scheduler/app",
+      "candidate_app": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/release_candidates/hk-research-calendar-all-r1-20261007/hk-research-calendar-all-r1-20261007-scheduler/app",
+      "delta_files": [
+        {
+          "path": "contracts/runtime_workloads.json",
+          "change": "M",
+          "before_sha256": "33926615ae64f56bd722609939c0917d6ec9e585210f6f3510da93f8c2879f6b",
+          "after_sha256": "7389cae30de08cf68c31e5b0bb6f5b17fead403366946496b7a4de148229d0ef",
+          "before_git_blob_sha1": "3c84dc21d7d7d617d12fef118173b05b4535db4c",
+          "after_git_blob_sha1": "abdcae3adfcd56b4c33b2752e14c8fffb844f351",
+          "base": "scheduler_actual_R2_preimage"
+        },
+        {
+          "path": "contracts/trading_calendar.py",
+          "change": "M",
+          "before_sha256": "61ad747fcfeedda6a6362fb9f6b45767bea7bbfa9dbeea3753beeb75dc5da577",
+          "after_sha256": "fa8252537d332cdd649c235c0341bc228595d12a6b788e8c25396d6c70d9bfc8",
+          "before_git_blob_sha1": "0a58316da5385e848925bcd63a817f77ddcf76d9",
+          "after_git_blob_sha1": "3d77a93af91d330d684f615866e075f13e8659ba",
+          "base": "scheduler_actual_R2_preimage"
+        },
+        {
+          "path": "contracts/v35_runtime_graph_topology.json",
+          "change": "M",
+          "before_sha256": "6e89c027c9fba952713e60a785140075d2b3f98e7086dcfd5f63edbcffab123d",
+          "after_sha256": "bdaa8dcc598839affbf25d10af8d77293ac45949f11c1d4accae62551bc81458",
+          "before_git_blob_sha1": "7975d41dd34cc70aed3cdfcb3bba08ee732097d5",
+          "after_git_blob_sha1": "880e3c37639d0bf46be03460bf9b04132b7b80ac",
+          "base": "scheduler_actual_R2_preimage"
+        },
+        {
+          "path": "domains/runtime_policy.py",
+          "change": "M",
+          "before_sha256": "4a765d98449a944c990dbb9b1677930c448d9ecc71cba726f3916e48d3863215",
+          "after_sha256": "0575df80b82b7940505fd4509a09e6ac6588245cc1141143b11ac42b4b84a6d2",
+          "before_git_blob_sha1": "0e21da4851db87d06623c07fb58c0149a7c79528",
+          "after_git_blob_sha1": "4e0d4186cdf4ca4d3f0d432f5033dea59621b1f1",
+          "base": "scheduler_actual_R2_preimage"
+        },
+        {
+          "path": "infrastructure/runtime_graph/service.py",
+          "change": "M",
+          "before_sha256": "f8fde4df44e80905426b48f1d6a5083d0ff05b1b866c55e890a10761ca5d9333",
+          "after_sha256": "3fbb73d4a1442c63c4688edc5c46154aa31a76cf326924738dbb32dca292ce65",
+          "before_git_blob_sha1": "4d63ce543d4e09909678435badf0a165537543c2",
+          "after_git_blob_sha1": "3f345fd522fad9ef1795b2b6b1ebb789dc2ef5ff",
+          "base": "scheduler_actual_R2_preimage"
+        },
+        {
+          "path": "ops/daily_materialize.py",
+          "change": "M",
+          "before_sha256": "f2589965b44824ce59a26747bdd2676e8a1d12357292f00f06ff54fc0c1d0223",
+          "after_sha256": "e1fadb0b480c0f79c31a8d46e884aefaeb6f21d4dfe52f22c984902f8f53bebe",
+          "before_git_blob_sha1": "2bc1884f07c15cae78bc40e2ab6cbcce5b8ab5b8",
+          "after_git_blob_sha1": "457bb2d97bd9f89d69d1d238d07f3e5f29f88c24",
+          "base": "scheduler_actual_R2_preimage"
+        }
+      ]
+    }
+  },
+  "cutover": {
+    "status": "BOTH_CANDIDATES_ACTIVE_LIVE_IDENTITY_READBACK_PASS_CALENDAR_SEMANTICS_CANNOT_CONFIRM",
+    "preflight": {
+      "api": "PASS",
+      "scheduler": "PASS",
+      "evidence_source": "Root cutover operation report"
+    },
+    "apply_batch": {
+      "command": "apply-batch",
+      "exit_code": 0,
+      "status": "BOTH_CANDIDATES_ACTIVE",
+      "receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/receipts/hk-research-calendar-all-r1-20261007/api_scheduler_cutover_batch_apply_operation.json",
+      "receipt_sha256": "4a5f48257c573f0beb3877215adfa5b868710246b892ff3a3d7f5fa00098aed5",
+      "attempted_services": [
+        "api",
+        "scheduler"
+      ],
+      "service_action_performed": true,
+      "stage_labels_restarted": false,
+      "data_root_touched": false,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    "independent_cutover_review": {
+      "receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/review/runtime_cutover_independent_review_receipt.json",
+      "receipt_sha256": "aff0d0e07f739fe855397db437bdb2c4e9ede6057f7b3023e97561d97cae2627",
+      "verdict": "PASS",
+      "reviewed_services": [
+        "api",
+        "scheduler"
+      ],
+      "review_scope": "Cutover wrapper and controlled interruption recovery; its DEPLOYED=NO field predates the root switch."
+    },
+    "identity_sha256": "e5d3f163aba5725df7948c76f5ce88087bf326eac51e7e7c4b613abc9bb6a919",
+    "service_operations": {
+      "api": {
+        "receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/receipts/hk-research-calendar-all-r1-20261007/api_hk_calendar_applied_operation.json",
+        "receipt_sha256": "5399e0b150de28b2d578672b5e7d6c3d971d312aac22041f913d6402d18d26de",
+        "action": "APPLIED",
+        "pid_before": 28043,
+        "pid_after": 36518,
+        "release_id": "hk-research-calendar-all-r1-20261007-api",
+        "candidate_manifest_sha256": "a82609515bb91c206e2437b64d09ce5e8a8ae38be144482c425d75a0e7d13f65",
+        "candidate_app_inventory_sha256": "614478ce925dd5d5b6b8a22ad07ecd8f9198ef365df85c713a634041a7604d13",
+        "runtime_module_sha256": "328d936990876467d9e652c3fab28541be7d86aaf5d210ec38d4bc978bcb0444"
+      },
+      "scheduler": {
+        "receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/receipts/hk-research-calendar-all-r1-20261007/scheduler_hk_calendar_applied_operation.json",
+        "receipt_sha256": "9cd944e1f75a13344883835e0c16809b4793aa5fe5efcd120ca1ca59f309f337",
+        "action": "APPLIED",
+        "pid_before": 28070,
+        "pid_after": 36534,
+        "release_id": "hk-research-calendar-all-r1-20261007-scheduler",
+        "candidate_manifest_sha256": "f64f62f50a5dcc8e251ffbad10188946ca6308850d8486eed8e156435b546605",
+        "candidate_app_inventory_sha256": "78d072dd80212dd282cb904080ff404ba2a233becfada3fa400a603f01df518b",
+        "runtime_module_sha256": "3fbb73d4a1442c63c4688edc5c46154aa31a76cf326924738dbb32dca292ce65"
+      }
+    },
+    "api_readback": {
+      "independent_status": "LIVE_IDENTITY_READBACK_PASS; TARGET_DATE_CALENDAR_SEMANTICS_CANNOT_CONFIRM",
+      "api_verified": "PASS for live identity readback only; target-date HTTP calendar semantics remain CANNOT_CONFIRM.",
+      "applied_operation_receipt_http_status": 200,
+      "applied_operation_receipt_runtime_identity_status": "CANNOT_CONFIRM",
+      "runtime_identity_components": {
+        "plist_binding_status": "CANNOT_CONFIRM",
+        "receipt_status": "MISSING",
+        "release_id_status": "DECLARED_ONLY",
+        "runtime_dependency_manifest_status": "MISSING",
+        "runtime_inventory_status": "MISSING"
+      },
+      "live_workload_snapshot_status": "EVIDENCE_GAP",
+      "runtime_identity_payload_sha256": "1513105bc46b2a068c55105ae0e136da2171f8a67543995ccfedd1fb76b9b00c",
+      "independent_receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/review/live_deployment_independent_receipt.json",
+      "independent_receipt_sha256": "382cca5a93af81a83ae3666b09ebcb9c68def772ee0b2c98386068f1f648851e"
+    },
+    "ui_verified": "NOT_IN_SCOPE",
+    "natural_slot": {
+      "status": "NATURAL_SLOT_UNVERIFIED"
+    },
+    "rollback": {
+      "entrypoint": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/scripts/hk_research_calendar_cutover.py",
+      "frozen_helper": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_DAILY_20261007/hk_market_calendar/hk_calendar_candidate_cutover.py",
+      "frozen_helper_sha256": "264ad2d3f5535e17f6e7471dc12d7e00452104b505795857e9f0637c0a29e816"
+    },
+    "service_action_performed": true,
+    "stage_labels_restarted": false,
+    "data_root_touched": false,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "raw_operation_receipts_uploaded": false,
+    "independent_live_readback": {
+      "receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/review/live_deployment_independent_receipt.json",
+      "receipt_sha256": "382cca5a93af81a83ae3666b09ebcb9c68def772ee0b2c98386068f1f648851e",
+      "observed_at_utc": "2026-10-07T15:30:59Z",
+      "DEPLOYED": "PASS: both expected LaunchAgents running with candidate app roots, manifest identities, and PIDs read back.",
+      "API_VERIFIED": "PASS for live identity readback only; target-date HTTP calendar semantics remain CANNOT_CONFIRM.",
+      "BEHAVIOR_VERIFIED": "CANNOT_CONFIRM for target-date live HTTP calendar behavior.",
+      "CANDIDATE_CALENDAR_BEHAVIOR": "PASS from prior independent candidate-package probe only.",
+      "NATURAL_SLOT": "NATURAL_SLOT_UNVERIFIED",
+      "api_pid": 36518,
+      "scheduler_pid": 36534,
+      "stage_labels_restarted": false
+    }
+  },
+  "uploaded_artifacts": [
+    {
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/handoff/hk-all-research-calendar-20261007/tooling/build/build_hk_research_calendar_release.py",
+      "remote_relative_path": "handoff/hk-all-research-calendar-20261007/tooling/build/build_hk_research_calendar_release.py",
+      "sha256": "4b4691336dd9093369d0fda4d3eff84c219829c2bd09f18032c9f690fb946e81",
+      "git_blob_sha1": "4a1b42731f55214cc21b71f5b4effda6089d40af",
+      "size_bytes": 27265,
+      "kind": "build",
+      "source_local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/scripts/build_hk_research_calendar_release.py"
+    },
+    {
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/handoff/hk-all-research-calendar-20261007/tooling/validation/verify_hk_research_calendar_release.py",
+      "remote_relative_path": "handoff/hk-all-research-calendar-20261007/tooling/validation/verify_hk_research_calendar_release.py",
+      "sha256": "cb81221bc8ff8bd4c011a8866678a1594a53eb7aab7e42271ef5ec6e04af97cb",
+      "git_blob_sha1": "a7af9fd1a50dbcd7de382c6a4e5f1bdc01ea7a07",
+      "size_bytes": 10522,
+      "kind": "validation",
+      "source_local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/scripts/verify_hk_research_calendar_release.py"
+    },
+    {
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/handoff/hk-all-research-calendar-20261007/tooling/cutover/hk_research_calendar_cutover.py",
+      "remote_relative_path": "handoff/hk-all-research-calendar-20261007/tooling/cutover/hk_research_calendar_cutover.py",
+      "sha256": "1bbfcc64fe27c397a366a0bf8606d3d07d2557a8c8d7e2e23462be01ab7e9068",
+      "git_blob_sha1": "c8fb402562550f24171052b834c48a866e89d794",
+      "size_bytes": 60882,
+      "kind": "cutover",
+      "source_local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/scripts/hk_research_calendar_cutover.py"
+    },
+    {
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/handoff/hk-all-research-calendar-20261007/tooling/tests/test_hk_research_calendar_cutover.py",
+      "remote_relative_path": "handoff/hk-all-research-calendar-20261007/tooling/tests/test_hk_research_calendar_cutover.py",
+      "sha256": "e8873a936f7d5f5c143dfa2093535c740b4b7aa3093d2a3315100fdee251eead",
+      "git_blob_sha1": "d9c7d34abdd74dff59cc0e8f6e901b8851b2747a",
+      "size_bytes": 22323,
+      "kind": "test",
+      "source_local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/scripts/test_hk_research_calendar_cutover.py"
+    },
+    {
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/handoff/hk-all-research-calendar-20261007/tooling/reused_dependencies/hk_calendar_candidate_cutover.py",
+      "remote_relative_path": "handoff/hk-all-research-calendar-20261007/tooling/reused_dependencies/hk_calendar_candidate_cutover.py",
+      "sha256": "264ad2d3f5535e17f6e7471dc12d7e00452104b505795857e9f0637c0a29e816",
+      "git_blob_sha1": "e26e66c9c4aaf7a12a19f5da736c1dcea6bf0283",
+      "size_bytes": 48843,
+      "kind": "reused_dependency",
+      "source_local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_DAILY_20261007/hk_market_calendar/hk_calendar_candidate_cutover.py"
+    },
+    {
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/handoff/hk-all-research-calendar-20261007/tooling/reused_dependencies/test_hk_calendar_candidate_cutover.py",
+      "remote_relative_path": "handoff/hk-all-research-calendar-20261007/tooling/reused_dependencies/test_hk_calendar_candidate_cutover.py",
+      "sha256": "4563cb17b2eea0bd036854afbfa4b11fb7aea0e4c3425a8145451af9f45b4c36",
+      "git_blob_sha1": "3caa64856ec400f2469419c3381828d05e11ebe3",
+      "size_bytes": 32111,
+      "kind": "reused_dependency_test",
+      "source_local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_DAILY_20261007/hk_market_calendar/test_hk_calendar_candidate_cutover.py"
+    },
+    {
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/handoff/hk-all-research-calendar-20261007/tooling/startup/api_run.py",
+      "remote_relative_path": "handoff/hk-all-research-calendar-20261007/tooling/startup/api_run.py",
+      "sha256": "bcd4e623eabaedcc41a0e438942d755b578dbcc6a60c0ab0cf032af74fdbba43",
+      "git_blob_sha1": "84eef0b4ce0fc308b991a6c4897c74b586012308",
+      "size_bytes": 2616,
+      "kind": "startup_entrypoint",
+      "source_local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/release_candidates/hk-research-calendar-all-r1-20261007/hk-research-calendar-all-r1-20261007-api/app/apps/api/v35_api/run.py"
+    },
+    {
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/handoff/hk-all-research-calendar-20261007/tooling/startup/scheduler_launch_v35_macos_scheduler.sh",
+      "remote_relative_path": "handoff/hk-all-research-calendar-20261007/tooling/startup/scheduler_launch_v35_macos_scheduler.sh",
+      "sha256": "0c577ae83b1f182dabf3b62e642a5bd5f0f8708b48e1806d8c653b691d2ec952",
+      "git_blob_sha1": "7cf865749d521cb73ad000763238c4cc9b402dcd",
+      "size_bytes": 3982,
+      "kind": "startup_entrypoint",
+      "source_local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/release_candidates/hk-research-calendar-all-r1-20261007/hk-research-calendar-all-r1-20261007-scheduler/app/ops/launch_v35_macos_scheduler.sh"
+    },
+    {
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/handoff/hk-all-research-calendar-20261007/tooling/startup/scheduler_run_v35_macos_scheduler.py",
+      "remote_relative_path": "handoff/hk-all-research-calendar-20261007/tooling/startup/scheduler_run_v35_macos_scheduler.py",
+      "sha256": "f707df50c31f03fd51e439eece0d86dd60647d8d989e9a760f2ef1f2222c6f0d",
+      "git_blob_sha1": "9c166092a0f07538c5d5b6957a005b3da0a94e76",
+      "size_bytes": 25218,
+      "kind": "startup_entrypoint",
+      "source_local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/release_candidates/hk-research-calendar-all-r1-20261007/hk-research-calendar-all-r1-20261007-scheduler/app/ops/run_v35_macos_scheduler.py"
+    },
+    {
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/handoff/hk-all-research-calendar-20261007/tooling/startup/scheduler_run_v35_macos_scheduler_daemon.py",
+      "remote_relative_path": "handoff/hk-all-research-calendar-20261007/tooling/startup/scheduler_run_v35_macos_scheduler_daemon.py",
+      "sha256": "19e071da0c6b6748465853c4ad86a80d6060524333e9dab21647b67adc8b49ec",
+      "git_blob_sha1": "3efa5c11eb7e72ea77d4a05e28f44f6a9a559a83",
+      "size_bytes": 34320,
+      "kind": "startup_entrypoint",
+      "source_local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/release_candidates/hk-research-calendar-all-r1-20261007/hk-research-calendar-all-r1-20261007-scheduler/app/ops/run_v35_macos_scheduler_daemon.py"
+    },
+    {
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/handoff/hk-all-research-calendar-20261007/canonical_source_delta.patch",
+      "remote_relative_path": "handoff/hk-all-research-calendar-20261007/canonical_source_delta.patch",
+      "sha256": "9044eec02eb44a84042327fe75846d3b184783055c103ed451b5d9ce32395e8e",
+      "git_blob_sha1": "a215acc7a106a0da900e3ea290fdee261f5819f6",
+      "size_bytes": 38004,
+      "kind": "patch"
+    },
+    {
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/handoff/hk-all-research-calendar-20261007/runtime_api_r2_delta.patch",
+      "remote_relative_path": "handoff/hk-all-research-calendar-20261007/runtime_api_r2_delta.patch",
+      "sha256": "5b9d98c85ff29ea89a7e22c9526384646d04e4d2672db90d5ec1d6dda840b537",
+      "git_blob_sha1": "e8e0716cb15028fc4feaaeb865ca71b7bfe6b59a",
+      "size_bytes": 15734,
+      "kind": "patch"
+    },
+    {
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/handoff/hk-all-research-calendar-20261007/runtime_scheduler_r2_delta.patch",
+      "remote_relative_path": "handoff/hk-all-research-calendar-20261007/runtime_scheduler_r2_delta.patch",
+      "sha256": "ad0b853ff13979d2268b7f46028a83962e8b445d15295f97693eaf4726782c66",
+      "git_blob_sha1": "f500e58cbd15e69d710a27d5dd5337e1aa3d51d4",
+      "size_bytes": 14871,
+      "kind": "patch"
+    },
+    {
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/handoff/hk-all-research-calendar-20261007/HANDOFF.md",
+      "remote_relative_path": "handoff/hk-all-research-calendar-20261007/HANDOFF.md",
+      "sha256": "694ef9ba3c759ee6923e4a4597797ffe038b5e050be6510483ba18cb51e62c35",
+      "git_blob_sha1": "ccb6db6c4e1967640e8cd5c56cf3fad5c38323cc",
+      "size_bytes": 4278,
+      "kind": "handoff_note"
+    },
+    {
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/handoff/hk-all-research-calendar-20261007/cutover_interrupt_writer_update_receipt.json",
+      "remote_relative_path": "handoff/hk-all-research-calendar-20261007/cutover_interrupt_writer_update_receipt.json",
+      "sha256": "1da43bd557b34a37b64f256a56194bb89a14d24a9539c62e394ee116bab57069",
+      "git_blob_sha1": "28cf70a2e6b9d81753a6e65c55f56416cbaf1aaf",
+      "size_bytes": 5783,
+      "kind": "cutover_test_receipt",
+      "source_local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/receipts/hk-research-calendar-all-r1-20261007/cutover_interrupt_writer_update_receipt.json"
+    },
+    {
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/handoff/hk-all-research-calendar-20261007/cutover_claim_recovery_writer_update_receipt.json",
+      "remote_relative_path": "handoff/hk-all-research-calendar-20261007/cutover_claim_recovery_writer_update_receipt.json",
+      "sha256": "009d479dcc50d3011f8f1b30049df6d1ff29dfa10ed670aa6e5aae9a9654e39f",
+      "git_blob_sha1": "ebcd6793a15d5e8cc71a1e7bdde98649ae20f17d",
+      "size_bytes": 6585,
+      "kind": "cutover_test_receipt",
+      "source_local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/receipts/hk-research-calendar-all-r1-20261007/cutover_claim_recovery_writer_update_receipt.json"
+    },
+    {
+      "local_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/handoff/hk-all-research-calendar-20261007/bundle_manifest.json",
+      "remote_relative_path": "handoff/hk-all-research-calendar-20261007/bundle_manifest.json",
+      "sha256": null,
+      "git_blob_sha1": null,
+      "size_bytes": null,
+      "kind": "bundle_manifest",
+      "hash_policy": "SELF_HASH_EXCLUDED_NON_CYCLIC; hash after finalization and record upload in separate local receipt"
+    }
+  ],
+  "excluded_categories": [
+    "release manifests",
+    "active or staged plists",
+    "market/runtime data",
+    "logs",
+    "virtual environments",
+    "node_modules",
+    "dist",
+    "credentials"
+  ],
+  "CANNOT_CONFIRM": [
+    "Live target-date HK calendar eligibility is unavailable through the current read-only API surface: no date-specific calendar-eligibility GET route is exposed and the runtime-graph snapshot is EVIDENCE_GAP / SNAPSHOT_MISSING.",
+    "The scheduler process root, release manifest, launcher, cwd, and first PYTHONPATH entry match the candidate, but loaded-module identity cannot be confirmed because no scheduler module-identity endpoint exists.",
+    "No natural scheduled slot was observed after the local switch; NATURAL_SLOT_UNVERIFIED.",
+    "UI verification was not in scope."
+  ],
+  "updated_at_utc": "2026-10-07T15:34:05Z",
+  "delivery_summary": {
+    "canonical_source": {
+      "base_commit": "9ebb2faa954aa6c910d5fc4f4d4e0c418df9ca89",
+      "baseline_manifest_sha256": "f6d42c8ee02c3c0a64f357df5b6c252f75b119978bbdf092e2754069e091e255",
+      "delta_patch_remote_path": "handoff/hk-all-research-calendar-20261007/canonical_source_delta.patch",
+      "delta_patch_sha256": "9044eec02eb44a84042327fe75846d3b184783055c103ed451b5d9ce32395e8e"
+    },
+    "runtime_candidates": {
+      "api": {
+        "release_id": "hk-research-calendar-all-r1-20261007-api",
+        "manifest_sha256": "a82609515bb91c206e2437b64d09ce5e8a8ae38be144482c425d75a0e7d13f65",
+        "app_inventory_sha256": "614478ce925dd5d5b6b8a22ad07ecd8f9198ef365df85c713a634041a7604d13",
+        "module_sha256": "328d936990876467d9e652c3fab28541be7d86aaf5d210ec38d4bc978bcb0444"
+      },
+      "scheduler": {
+        "release_id": "hk-research-calendar-all-r1-20261007-scheduler",
+        "manifest_sha256": "f64f62f50a5dcc8e251ffbad10188946ca6308850d8486eed8e156435b546605",
+        "app_inventory_sha256": "78d072dd80212dd282cb904080ff404ba2a233becfada3fa400a603f01df518b",
+        "module_sha256": "3fbb73d4a1442c63c4688edc5c46154aa31a76cf326924738dbb32dca292ce65"
+      }
+    },
+    "rollback_entrypoint": "/Users/lexi/Desktop/学习/agents调试/V4_HK_ALL_RESEARCH_CALENDAR_20261007/scripts/hk_research_calendar_cutover.py",
+    "rollback_helper": "/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_DAILY_20261007/hk_market_calendar/hk_calendar_candidate_cutover.py"
+  },
+  "uploaded_artifacts_policy": {
+    "release_manifests_plists_raw_logs_and_market_runtime_data_included": false,
+    "operation_receipts_included": false,
+    "handoff_note_included": true,
+    "bundle_manifest_self_hash": "omitted to avoid recursive hashing; root computes the final manifest hash at upload and records it in a separate local receipt"
+  }
+}
