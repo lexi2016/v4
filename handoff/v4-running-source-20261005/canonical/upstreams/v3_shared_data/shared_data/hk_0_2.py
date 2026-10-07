@@ -7,6 +7,8 @@ materialization reads assets owned by this shared store and never imports V3.
 """
 from __future__ import annotations
 
+import base64
+import binascii
 import csv
 import json
 import math
@@ -56,6 +58,48 @@ def _capture_date_shanghai(value: Any) -> str:
     if parsed.tzinfo is None:
         raise StoreError("HK 0.2 security-master capture time must include a timezone")
     return parsed.astimezone(ZoneInfo("Asia/Shanghai")).strftime("%Y%m%d")
+
+
+_CAPTURE_AT_PROVENANCE_PREFIX = "b64url."
+
+
+def _encode_capture_at_provenance(value: Any) -> str:
+    """Preserve the exact capture timestamp in a path-neutral token.
+
+    Provenance values are deliberately forbidden from containing path
+    separators and colons.  ISO timestamps contain colons, so encode their
+    original UTF-8 bytes with URL-safe Base64 before placing them in a
+    ``SourceSpec``.  The original timestamp remains recoverable without
+    changing its precision, offset, or spelling.
+    """
+
+    text = str(value or "").strip()
+    if not text:
+        raise StoreError("HK 0.2 security-master capture time is invalid")
+    _capture_date_shanghai(text)
+    encoded = base64.urlsafe_b64encode(text.encode("utf-8")).decode("ascii")
+    token = f"{_CAPTURE_AT_PROVENANCE_PREFIX}{encoded}"
+    if any(character in token for character in (":", "/", "\\")):
+        raise StoreError("HK 0.2 capture-time provenance token is not path-neutral")
+    return token
+
+
+def _decode_capture_at_provenance(value: Any) -> str:
+    """Decode new capture-time tokens while accepting legacy raw timestamps."""
+
+    text = str(value or "").strip()
+    if not text.startswith(_CAPTURE_AT_PROVENANCE_PREFIX):
+        # Older receipts stored the timestamp as plain text.  Keep those
+        # readable even though new writes must satisfy SourceSpec's neutral
+        # provenance contract.
+        return text
+    encoded = text[len(_CAPTURE_AT_PROVENANCE_PREFIX) :]
+    try:
+        decoded = base64.b64decode(encoded, altchars=b"-_", validate=True).decode("utf-8")
+    except (binascii.Error, UnicodeDecodeError, ValueError) as error:
+        raise StoreError("HK 0.2 security-master capture provenance is invalid") from error
+    _capture_date_shanghai(decoded)
+    return decoded
 
 _OUTPUT_FIELDS = (
     "trade_date", "bar_time", "rank", "code", "code_norm", "ts_code", "name",
@@ -1058,7 +1102,9 @@ def publish_hk_0_2_rows(
             "security_master_trade_date": eligibility_source_date,
             "security_master_run_id": str(security_master_manifest["run_id"]),
             "security_master_artifact_sha256": str(security_master_manifest["artifact_sha256"]),
-            "security_master_captured_at": security_master_captured_at,
+            "security_master_captured_at": _encode_capture_at_provenance(
+                security_master_captured_at
+            ),
         }
         spec = SourceSpec(
             source_id="hkconnect_0_2_frozen_prob_active",
@@ -1119,14 +1165,19 @@ def read_verified_hk_0_2_pool(
     if eligibility_source_date != expected_signal_date:
         expected.update({
             "eligibility_source_date": eligibility_source_date,
-            "security_master_captured_at": security_master_captured_at,
         })
     elif "eligibility_source_date" in provenance:
         expected["eligibility_source_date"] = eligibility_source_date
-        expected["security_master_captured_at"] = security_master_captured_at
     for key, value in expected.items():
         if provenance.get(key) != value:
             raise StoreError(f"HK 0.2 provenance mismatch: {key}")
+    if (
+        eligibility_source_date != expected_signal_date
+        or "eligibility_source_date" in provenance
+    ) and _decode_capture_at_provenance(
+        provenance.get("security_master_captured_at")
+    ) != security_master_captured_at:
+        raise StoreError("HK 0.2 provenance mismatch: security_master_captured_at")
     rows: list[dict[str, str]] = []
     with open(run.artifact_path, "r", encoding="utf-8-sig", newline="") as handle:
         rows.extend(dict(row) for row in csv.DictReader(handle))

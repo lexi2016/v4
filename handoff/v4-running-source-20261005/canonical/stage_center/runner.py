@@ -1108,6 +1108,130 @@ def _build_hk_stage_binding(
                     f"HK after-fact observation exact target D1 CANNOT_CONFIRM for {trade_date}: {error}"
                 ) from error
 
+        exact_target_failure: str | None = None
+        if connect_state is TradingDayState.NON_TRADING_DAY:
+            # When HK securities are open but Connect is closed, a verified
+            # exact-date pool is the research observation for this HK session.
+            # Keep the observation explicitly research-only; this does not
+            # make Connect open or alter any BUY gate.  If the exact artifact
+            # is absent or fails the existing strict D1 validator, retain the
+            # prior-Connect observation path below.
+            try:
+                with resolver.source_read_lease(trade_date, timeout_seconds=0):
+                    owner = resolver.root_for_date(trade_date)
+                    snapshot = resolver.read_pool_snapshot(
+                        trade_date, "hkconnect_d1_top100"
+                    )
+                    binding = _build_hk_d1_binding(
+                        root,
+                        trade_date,
+                        preselection_source_root=preselection_source_root,
+                    )
+                    artifact = snapshot.get("artifact")
+                    rows = (
+                        artifact.get("rows", artifact.get("data", ()))
+                        if isinstance(artifact, Mapping)
+                        else ()
+                    )
+                    artifact_path = owner / str(snapshot.get("artifact_relative") or "")
+                    signal_dates = {
+                        str(row.get("signal_date") or "")
+                        for row in rows
+                        if isinstance(row, Mapping)
+                    } if isinstance(rows, list) else set()
+                    if (
+                        snapshot.get("physical_source_root") != str(owner)
+                        or binding.status != "READY"
+                        or binding.market != "HK_CONNECT"
+                        or binding.trade_date != trade_date
+                        or binding.role != "HK_CONNECT_D1_TOP100"
+                        or binding.sha256 != snapshot.get("artifact_raw_sha256")
+                        or _evidence_value(binding.evidence, "hk_d1_json") != str(artifact_path)
+                        or _evidence_value(binding.evidence, "hk_d1_sha256") != binding.sha256
+                        or not isinstance(artifact, Mapping)
+                        or artifact.get("trade_date") != trade_date
+                        or artifact.get("target_date") != trade_date
+                        or artifact.get("pool_id") != "hkconnect_d1_top100"
+                        or artifact.get("stage_selection_eligible") is not True
+                        or not isinstance(rows, list)
+                        or len(rows) != 100
+                        or len(signal_dates) != 1
+                        or any(
+                            not isinstance(row, Mapping)
+                            or row.get("trade_date", trade_date) != trade_date
+                            or row.get("target_date", trade_date) != trade_date
+                            for row in rows
+                        )
+                    ):
+                        raise RunnerError(
+                            "HK exact target-date research observation identity mismatch"
+                        )
+                    confirmed = resolver.read_pool_snapshot(
+                        trade_date, "hkconnect_d1_top100"
+                    )
+                    identity_keys = (
+                        "artifact_raw_sha256",
+                        "manifest_raw_sha256",
+                        "receipt_raw_sha256",
+                        "physical_source_root",
+                        "artifact_relative",
+                        "manifest_relative",
+                        "receipt_relative",
+                    )
+                    if (
+                        any(confirmed.get(key) != snapshot.get(key) for key in identity_keys)
+                        or confirmed.get("artifact") != artifact
+                    ):
+                        raise RunnerError(
+                            "HK exact target-date research observation trio changed"
+                        )
+                    source_signal_date = next(iter(signal_dates))
+                    provenance = artifact.get("historical_provenance")
+                    eligibility_source_date = (
+                        str(provenance.get("eligibility_source_date") or "")
+                        if isinstance(provenance, Mapping)
+                        else source_signal_date
+                    )
+                    evidence = [
+                        *binding.evidence,
+                        f"hk_d1_binding_mode=EXACT_TARGET_DATE_RESEARCH_OBSERVATION",
+                        f"hk_d1_source_trade_date={trade_date}",
+                        f"hk_d1_source_signal_date={source_signal_date}",
+                        f"hk_d1_source_manifest_sha256={snapshot['manifest_raw_sha256']}",
+                        f"hk_d1_source_receipt_sha256={snapshot['receipt_raw_sha256']}",
+                        f"hk_observation_trade_date={trade_date}",
+                        f"hk_observation_eligibility_source_date={eligibility_source_date}",
+                        f"hk_observation_price_signal_date={source_signal_date}",
+                        "hk_observation_mode=HK_SECURITIES_OPEN_HK_CONNECT_CLOSED",
+                        "hk_observation_scope=RESEARCH_ONLY",
+                        "hk_observation_capture_time=CANNOT_CONFIRM",
+                        "hk_observation_pit_status=CANNOT_CONFIRM",
+                        "production_allowed=false",
+                        "buy_gate_updated=false",
+                        "orders_sent=false",
+                    ]
+                    for evidence_key, payload_key in (
+                        ("hk_d1_producer_run_id", "source_run_id"),
+                        ("hk_d1_producer_artifact_sha256", "source_sha256"),
+                        ("hk_d1_producer_manifest_sha256", "source_manifest_sha256"),
+                        ("hk_d1_producer_receipt_sha256", "source_receipt_sha256"),
+                    ):
+                        value = artifact.get(payload_key)
+                        if isinstance(value, str) and value:
+                            evidence.append(f"{evidence_key}={value}")
+                    if isinstance(provenance, Mapping):
+                        captured_at = provenance.get("eligibility_source_captured_at")
+                        if isinstance(captured_at, str) and captured_at:
+                            evidence.append(
+                                f"hk_observation_eligibility_source_captured_at={captured_at}"
+                            )
+                    return replace(
+                        binding,
+                        evidence=tuple(dict.fromkeys(evidence)),
+                    )
+            except (RunnerError, OSError, ValueError) as error:
+                exact_target_failure = type(error).__name__
+
         if connect_state in open_states:
             # An open Connect date always binds only its own exact-date pool.
             with resolver.source_read_lease(trade_date, timeout_seconds=0):
@@ -1193,7 +1317,7 @@ def _build_hk_stage_binding(
             ):
                 raise RunnerError("HK D1 prior signal date is outside its PIT boundary")
 
-            return StageUniverseBinding.ready(
+            prior_binding = StageUniverseBinding.ready(
                 market="HK_CONNECT",
                 trade_date=trade_date,
                 role="HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION",
@@ -1212,6 +1336,25 @@ def _build_hk_stage_binding(
                     "hk_observation_mode=HK_SECURITIES_OPEN_HK_CONNECT_CLOSED",
                 ),
             )
+            if exact_target_failure is not None:
+                return replace(
+                    prior_binding,
+                    evidence=tuple(
+                        dict.fromkeys(
+                            (
+                                *prior_binding.evidence,
+                                "hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK",
+                                "hk_d1_exact_target_status=CANNOT_CONFIRM",
+                                f"hk_d1_exact_target_error_type={exact_target_failure}",
+                                "hk_observation_scope=RESEARCH_ONLY",
+                                "production_allowed=false",
+                                "buy_gate_updated=false",
+                                "orders_sent=false",
+                            )
+                        )
+                    ),
+                )
+            return prior_binding
     except RunnerError:
         raise
     except (OSError, ValueError) as error:

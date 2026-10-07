@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from infrastructure.preselection_pool_store import PreselectionPoolStore
+from stage_center.calendar import TradingDayState, resolve_market_states
 from stage_center.runner import RunnerError, _build_hk_d1_binding, _build_hk_stage_binding
 
 
@@ -73,6 +74,137 @@ def _observe_prior_pool(
         trade_date,
         preselection_source_root=source_root,
     )
+
+
+def _split_date_d1_pool(
+    trade_date: str,
+    signal_date: str,
+    eligibility_source_date: str,
+) -> dict[str, object]:
+    payload = _hk_d1_pool(trade_date, signal_date)
+    source_run_id = f"synthetic-hk-d1-{trade_date}-{signal_date}"
+    source_sha256 = hashlib.sha256(f"source:{trade_date}".encode()).hexdigest()
+    source_manifest_sha256 = hashlib.sha256(
+        f"manifest:{trade_date}".encode()
+    ).hexdigest()
+    source_receipt_sha256 = hashlib.sha256(
+        f"receipt:{trade_date}".encode()
+    ).hexdigest()
+    payload.update(
+        {
+            "source_run_id": source_run_id,
+            "source_sha256": source_sha256,
+            "source_manifest_sha256": source_manifest_sha256,
+            "source_receipt_sha256": source_receipt_sha256,
+            "historical_provenance": {
+                "schema_version": "v4.hk_d1_split_date_provenance.v1",
+                "price_signal_date": signal_date,
+                "eligibility_source_date": eligibility_source_date,
+                "eligibility_source_run_id": f"eligibility-{eligibility_source_date}",
+                "eligibility_source_artifact_sha256": "1" * 64,
+                "d1_source_run_id": source_run_id,
+                "d1_source_artifact_sha256": source_sha256,
+                "d1_source_manifest_sha256": source_manifest_sha256,
+                "d1_source_receipt_sha256": source_receipt_sha256,
+                "eligibility_source_captured_at": (
+                    f"{eligibility_source_date[:4]}-{eligibility_source_date[4:6]}-"
+                    f"{eligibility_source_date[6:]}T17:20:08+08:00"
+                ),
+            },
+        }
+    )
+    return payload
+
+
+def test_real_calendar_prefers_verified_exact_target_pool_as_research_observation(
+    tmp_path: Path,
+) -> None:
+    target_date = "20261007"
+    target_signal_date = "20261006"
+    eligibility_source_date = "20260930"
+    states = resolve_market_states(target_date)
+    assert states["hk_securities"] is TradingDayState.FULL_TRADING_DAY
+    assert states["hk_connect"] is TradingDayState.NON_TRADING_DAY
+
+    primary = tmp_path / "v4-primary"
+    source = tmp_path / "v35-source"
+    primary.mkdir()
+    store = PreselectionPoolStore(source)
+    prior_payload = _hk_d1_pool(eligibility_source_date, "20260929")
+    target_codes = tuple(f"HK.{20_000 + rank:05d}" for rank in range(1, 101))
+    target_payload = _split_date_d1_pool(
+        target_date, target_signal_date, eligibility_source_date
+    )
+    target_payload["rows"] = [
+        {
+            **row,
+            "code": code,
+            "symbol": code,
+            "market": "HK",
+            "pool_id": "hkconnect_d1_top100",
+            "target_date": target_date,
+            "trade_date": target_date,
+            "signal_date": target_signal_date,
+        }
+        for row, code in zip(target_payload["rows"], target_codes, strict=True)
+    ]
+    store.materialize(prior_payload)
+    store.materialize(target_payload)
+    _write_released_materializer_lock(source)
+    target_snapshot = store.read_pool_snapshot(target_date, "hkconnect_d1_top100")
+
+    binding = _build_hk_stage_binding(
+        primary,
+        target_date,
+        preselection_source_root=source,
+    )
+
+    assert binding.role == "HK_CONNECT_D1_TOP100"
+    assert binding.sha256 == target_snapshot["artifact_raw_sha256"]
+    assert set(binding.codes) == set(target_codes)
+    assert "hk_d1_binding_mode=EXACT_TARGET_DATE_RESEARCH_OBSERVATION" in binding.evidence
+    assert "hk_d1_source_trade_date=20261007" in binding.evidence
+    assert "hk_d1_source_signal_date=20261006" in binding.evidence
+    assert "hk_observation_mode=HK_SECURITIES_OPEN_HK_CONNECT_CLOSED" in binding.evidence
+    assert "hk_observation_scope=RESEARCH_ONLY" in binding.evidence
+    assert "hk_observation_capture_time=CANNOT_CONFIRM" in binding.evidence
+    assert "hk_observation_pit_status=CANNOT_CONFIRM" in binding.evidence
+    assert all(f"{flag}=false" in binding.evidence for flag in SAFETY_FLAGS)
+
+
+def test_invalid_exact_target_pool_keeps_prior_connect_observation_fallback(
+    tmp_path: Path,
+) -> None:
+    target_date = "20261007"
+    eligibility_source_date = "20260930"
+    states = resolve_market_states(target_date)
+    assert states["hk_securities"] is TradingDayState.FULL_TRADING_DAY
+    assert states["hk_connect"] is TradingDayState.NON_TRADING_DAY
+
+    primary = tmp_path / "v4-primary"
+    source = tmp_path / "v35-source"
+    primary.mkdir()
+    store = PreselectionPoolStore(source)
+    prior = _hk_d1_pool(eligibility_source_date, "20260929")
+    target = _hk_d1_pool(target_date, "20261006")
+    store.materialize(prior)
+    store.materialize(target)
+    _write_released_materializer_lock(source)
+    prior_snapshot = store.read_pool_snapshot(
+        eligibility_source_date, "hkconnect_d1_top100"
+    )
+
+    binding = _build_hk_stage_binding(
+        primary,
+        target_date,
+        preselection_source_root=source,
+    )
+
+    assert binding.role == "HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION"
+    assert binding.sha256 == prior_snapshot["artifact_raw_sha256"]
+    assert f"hk_d1_source_trade_date={eligibility_source_date}" in binding.evidence
+    assert "hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK" in binding.evidence
+    assert "hk_d1_exact_target_status=CANNOT_CONFIRM" in binding.evidence
 
 
 def test_hk_only_observation_binds_exact_previous_connect_trio_from_secondary_root(

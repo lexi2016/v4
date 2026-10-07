@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -165,14 +166,23 @@ def test_hk_open_connect_closed_binds_exact_20261002_pool_and_signal(monkeypatch
     }
 
 
-def test_hk_open_connect_closed_does_not_fall_back_to_older_target_pool(monkeypatch, tmp_path):
-    from stage_center.runner import RunnerError
-
+def test_hk_open_connect_closed_falls_back_to_verified_prior_connect_observation(
+    monkeypatch, tmp_path
+):
     monkeypatch.setattr(stage_runner, "resolve_market_states", _states_for_test)
     _materialize_pool(tmp_path, "20260930", "20260929")
 
-    with pytest.raises(RunnerError):
-        _bind(tmp_path, TARGET_DATE)
+    binding = _bind(tmp_path, TARGET_DATE)
+    prior = PreselectionPoolStore(tmp_path).read_pool_snapshot(
+        "20260930", "hkconnect_d1_top100"
+    )
+
+    assert binding.role == "HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION"
+    assert binding.sha256 == prior["artifact_raw_sha256"]
+    assert "hk_d1_source_trade_date=20260930" in binding.evidence
+    assert "hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK" in binding.evidence
+    assert "hk_observation_mode=HK_SECURITIES_OPEN_HK_CONNECT_CLOSED" in binding.evidence
+    assert all(f"{flag}=false" in binding.evidence for flag in FLAGS)
 
 
 def test_hk_open_exact_pool_rejects_wrong_row_target_date(monkeypatch, tmp_path):
@@ -187,6 +197,10 @@ def test_hk_open_exact_pool_rejects_wrong_row_target_date(monkeypatch, tmp_path)
     )
 
     with pytest.raises(RunnerError, match="row target_date mismatch"):
+        stage_runner._build_hk_d1_binding(
+            tmp_path, TARGET_DATE, preselection_source_root=tmp_path
+        )
+    with pytest.raises(RunnerError, match="CANNOT_CONFIRM"):
         _bind(tmp_path, TARGET_DATE)
 
 
@@ -244,6 +258,10 @@ def test_hk_open_after_connect_closure_rejects_connect_only_signal(monkeypatch, 
     )
 
     with pytest.raises(RunnerError, match="envelope signal_date mismatch"):
+        stage_runner._build_hk_d1_binding(
+            tmp_path, CROSS_DATE_TARGET, preselection_source_root=tmp_path
+        )
+    with pytest.raises(RunnerError, match="CANNOT_CONFIRM"):
         _bind(tmp_path, CROSS_DATE_TARGET)
 
 
@@ -256,6 +274,10 @@ def test_hk_open_after_connect_closure_requires_split_date_provenance(monkeypatc
     PreselectionPoolStore(tmp_path).materialize(payload)
 
     with pytest.raises(RunnerError, match="split-date eligibility provenance missing"):
+        stage_runner._build_hk_d1_binding(
+            tmp_path, CROSS_DATE_TARGET, preselection_source_root=tmp_path
+        )
+    with pytest.raises(RunnerError, match="CANNOT_CONFIRM"):
         _bind(tmp_path, CROSS_DATE_TARGET)
 
 
@@ -270,6 +292,10 @@ def test_hk_open_after_connect_closure_rejects_split_date_provenance_identity_mi
     PreselectionPoolStore(tmp_path).materialize(payload)
 
     with pytest.raises(RunnerError, match="split-date provenance identity mismatch"):
+        stage_runner._build_hk_d1_binding(
+            tmp_path, CROSS_DATE_TARGET, preselection_source_root=tmp_path
+        )
+    with pytest.raises(RunnerError, match="CANNOT_CONFIRM"):
         _bind(tmp_path, CROSS_DATE_TARGET)
 
 
@@ -301,3 +327,105 @@ def test_node_report_compaction_accepts_calendar_gate_market_list(capsys):
         "first_error": message,
     }
     assert all(printed[flag] is False for flag in FLAGS)
+
+
+def test_hk_0_2_projection_restores_encoded_capture_time_for_stage_consumer(
+    monkeypatch, tmp_path
+):
+    from domains.preselection_materializer import build_shared_hk_0_2_pool
+    from upstreams.v3_shared_data.shared_data.hk_0_2 import (
+        _encode_capture_at_provenance,
+    )
+
+    target_date = "20261006"
+    signal_date = "20261005"
+    eligibility_date = "20260930"
+    captured_at = "2026-09-30T17:20:08+08:00"
+    source_run_id = "hk-master-20260930-fixture"
+    source_provenance = {
+        "signal_date": signal_date,
+        "eligibility_source_date": eligibility_date,
+        "security_master_trade_date": eligibility_date,
+        "security_master_run_id": source_run_id,
+        "security_master_artifact_sha256": "a" * 64,
+        "security_master_captured_at": _encode_capture_at_provenance(captured_at),
+    }
+    rows = [
+        {
+            "code_norm": f"{rank:05d}",
+            "ts_code": f"HK.{rank:05d}",
+            "rank": rank,
+            "score_prob_active": 101 - rank,
+            "signal_date": signal_date,
+            "target_date": target_date,
+            "d1_freshness_status": "PASS",
+            "selected_strategy": "prob_active",
+            "name": f"HK {rank:05d}",
+        }
+        for rank in range(1, 101)
+    ]
+    verified_pool = SimpleNamespace(
+        run=SimpleNamespace(
+            verification={
+                "run_id": "hk-d1-20261006-fixture",
+                "artifact_relative": (
+                    "runs/20261006/HK_CONNECT_D1_TOP100_0_2/"
+                    "hk-d1-20261006-fixture/artifact.csv"
+                ),
+                "artifact_sha256": "b" * 64,
+                "manifest_sha256": "c" * 64,
+                "receipt_sha256": "d" * 64,
+                "row_count": 100,
+            },
+            receipt={
+                "production_allowed": False,
+                "buy_gate_updated": False,
+                "orders_sent": False,
+            },
+            manifest={"provenance": source_provenance},
+        ),
+        rows=rows,
+    )
+
+    def reader(_root, **kwargs):
+        assert kwargs == {
+            "target_date": target_date,
+            "expected_signal_date": signal_date,
+            "expected_eligibility_source_date": eligibility_date,
+        }
+        return verified_pool
+
+    projected = build_shared_hk_0_2_pool(
+        tmp_path / "shared",
+        trade_date=target_date,
+        signal_date=signal_date,
+        eligibility_source_date=eligibility_date,
+        reader=reader,
+    )
+    stage_root = tmp_path / "stage"
+    PreselectionPoolStore(stage_root).materialize(projected)
+
+    def split_date_states(date: str):
+        return {
+            "a_share": TradingDayState.NON_TRADING_DAY,
+            "hk_securities": (
+                TradingDayState.FULL_TRADING_DAY
+                if date == signal_date
+                else TradingDayState.NON_TRADING_DAY
+            ),
+            "hk_connect": (
+                TradingDayState.FULL_TRADING_DAY
+                if date == eligibility_date
+                else TradingDayState.NON_TRADING_DAY
+            ),
+        }
+
+    monkeypatch.setattr(stage_runner, "resolve_market_states", split_date_states)
+    binding = stage_runner._build_hk_d1_binding(
+        stage_root,
+        target_date,
+        preselection_source_root=stage_root,
+    )
+    assert binding.status == "READY"
+    assert len(binding.codes) == 100
+    assert projected["historical_provenance"]["eligibility_source_captured_at"] == captured_at

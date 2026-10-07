@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+import importlib
 from copy import deepcopy
 from concurrent.futures import ThreadPoolExecutor
 
@@ -56,6 +57,88 @@ def _materialize_independent_pools(
 def _payload(date: str, rows: list[dict]) -> dict:
     watch_rows = [{**row, "recommendation_status": row.get("recommendation_status", "WATCH_ONLY")} for row in rows]
     return {"schema_version": "v3_preselection_pools.v1", "trade_date": date, "producer_status": "CANONICAL_COMPLETE", "data_status": "READY_WITH_ROWS", "module_id": "unified_preselection_pools", "write_policy": "read_only", "production_allowed": False, "buy_gate_updated": False, "orders_sent": False, "recommendation_status": "WATCH_ONLY_BACKTEST_GATED", "canonical_main_pool_confirmed": True, "source_lane": "CANONICAL_MAIN", "selector_status": "READY", "strict_0_2_status": "STRICT_0_2_READY", "pools": [{"pool_id": "main", "rows": deepcopy(watch_rows)}], "unified_rows": deepcopy(watch_rows), "a_source_only_rows": [], "a_all_pool_rows": deepcopy(watch_rows), "rows": deepcopy(watch_rows), "startup_ensure": {}, "evidence_paths": ["receipts/source.json"], "cannot_confirm": []}
+
+
+def _strict_hk_pool_artifact(date: str, signal_date: str = "20261006") -> dict:
+    rows = [
+        {
+            "symbol": f"HK.{rank:05d}",
+            "code": f"HK.{rank:05d}",
+            "market": "HK",
+            "pool_id": "hkconnect_d1_top100",
+            "pool_rank": rank,
+            "trade_date": date,
+            "target_date": date,
+            "signal_date": signal_date,
+            "recommendation_status": "WATCH_ONLY",
+            "production_allowed": False,
+            "buy_gate_updated": False,
+            "orders_sent": False,
+        }
+        for rank in range(1, 101)
+    ]
+    return {
+        "schema_version": "v3_5.preselection_pool.v1",
+        "trade_date": date,
+        "pool_id": "hkconnect_d1_top100",
+        "display_name": "HK Connect D-1 Top 100",
+        "market": "HK",
+        "status": "STRICT_0_2_READY",
+        "producer_id": "v3_shared_hk_0_2_consumer_v1",
+        "source_role": "SHARED_VERIFIED_HK_0_2",
+        "source_path": f"runs/{date}/HK_CONNECT_D1_TOP100_0_2/run/artifact.csv",
+        "source_sha256": "1" * 64,
+        "source_run_id": f"{date}-hk-connect-d1-top100-test",
+        "source_manifest_sha256": "2" * 64,
+        "source_receipt_sha256": "3" * 64,
+        "signal_date": signal_date,
+        "target_date": date,
+        "stage_selection_eligible": True,
+        "historical_provenance": {
+            "schema_version": "v4.hk_d1_split_date_provenance.v1",
+            "price_signal_date": signal_date,
+            "eligibility_source_date": "20260930",
+            "eligibility_source_run_id": "49ffde1ebebdc85e4680e701",
+            "eligibility_source_artifact_sha256": "4" * 64,
+            "eligibility_source_captured_at": "2026-09-30T17:20:08+08:00",
+            "d1_source_run_id": f"{date}-hk-connect-d1-top100-test",
+            "d1_source_artifact_sha256": "1" * 64,
+            "d1_source_manifest_sha256": "2" * 64,
+            "d1_source_receipt_sha256": "3" * 64,
+        },
+        "rows": rows,
+        "cannot_confirm": [],
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+    }
+
+
+def _install_legacy_preselection_pool_store(monkeypatch) -> None:
+    """Expose the read-only store surface present in the deployed R9 package."""
+    api_module = importlib.import_module("apps.api.v35_api.app")
+
+    class LegacyPreselectionPoolStore:
+        def __init__(self, root) -> None:
+            self._delegate = PreselectionPoolStore(root)
+            self.root = self._delegate.root
+            self._io = self._delegate._io
+
+        def read_all(self, trade_date: str):
+            return self._delegate.read_all(trade_date)
+
+        def read_pool_snapshot(self, trade_date: str, pool_id: str):
+            pending = (
+                self.root
+                / "preselection_pending_commits"
+                / trade_date
+                / f"{pool_id}.json"
+            )
+            if pending.exists():
+                raise AssertionError("legacy snapshot reader called with pending authority")
+            return self._delegate._read_pool_snapshot_unlocked(trade_date, pool_id)
+
+    monkeypatch.setattr(api_module, "PreselectionPoolStore", LegacyPreselectionPoolStore)
 
 
 def test_native_store_and_api_enforce_dates_statuses_limits_and_receipts(tmp_path) -> None:
@@ -231,6 +314,145 @@ def test_mixed_market_preview_applies_limit_per_market_instead_of_hiding_hk(tmp_
         "A.000001",
         "HK.00001",
     ]
+
+
+def test_api_uses_configured_exact_date_hk_pool_as_read_only_fallback(
+    monkeypatch, tmp_path
+) -> None:
+    date = "20261007"
+    local_store = NativeDataStore(tmp_path / "v4-data")
+    authority_root = tmp_path / "configured-authority"
+    _materialize_independent_pools(
+        local_store,
+        date,
+        {"a_d1_premarket_pool": [{"symbol": "A.000001", "market": "A"}]},
+    )
+    source_store = PreselectionPoolStore(authority_root)
+    source_store.materialize(_strict_hk_pool_artifact(date))
+    _install_legacy_preselection_pool_store(monkeypatch)
+
+    client = TestClient(create_app(
+        data_root=local_store.root,
+        preselection_source_root=authority_root,
+        current_date=date,
+    ))
+    response = client.get(
+        "/api/v3/preselection-pools",
+        params={"date": date, "limit": 5, "offset": 3},
+    ).json()
+
+    assert response["data_status"] == "PARTIAL_WITH_ROWS"
+    assert response["daily_readiness_status"] == "PARTIAL_WITH_ROWS"
+    assert response["row_count"] == 101
+    assert response["unified_row_count"] == 1
+    assert response["a_all_pool_row_count"] == 1
+    assert response["market_totals"] == {"A": 1, "HK": 100}
+    assert response["configured_hk_pool_fallback"]["applied"] is True
+    assert response["configured_hk_pool_fallback"]["target_date"] == date
+    hk_pool = next(pool for pool in response["pools"] if pool["pool_id"] == "hkconnect_d1_top100")
+    assert hk_pool["status"] == "STRICT_0_2_READY"
+    assert hk_pool["pool_size"] == 100
+    assert hk_pool["returned_rows"] == 5
+    assert [row["pool_rank"] for row in hk_pool["rows"]] == [4, 5, 6, 7, 8]
+    assert response["pagination"]["pools"]["hkconnect_d1_top100"]["offset"] == 3
+    assert response["pagination"]["pools"]["hkconnect_d1_top100"]["has_more"] is True
+    assert not any("hkconnect_d1_top100" in reason for reason in response["blocking_reasons"])
+    assert response["production_allowed"] is False
+    assert response["buy_gate_updated"] is False
+    assert response["orders_sent"] is False
+    assert response["source_digests"]["hkconnect_d1_top100"] == "1" * 64
+    assert not (local_store.root / "preselection_pools" / date / "hkconnect_d1_top100.json").exists()
+
+    prior_date = client.get(
+        "/api/v3/preselection-pools", params={"date": "20261006"}
+    ).json()
+    assert prior_date["data_status"] == "DATA_BLOCKED_EMPTY"
+    assert "configured_hk_pool_fallback" not in prior_date
+
+    local_hk_pool = _strict_hk_pool_artifact(date)
+    local_hk_pool["source_sha256"] = "9" * 64
+    PreselectionPoolStore(local_store.root).materialize(local_hk_pool)
+    local_ready = client.get(
+        "/api/v3/preselection-pools", params={"date": date}
+    ).json()
+    assert "configured_hk_pool_fallback" not in local_ready
+    assert local_ready["source_digests"]["hkconnect_d1_top100"] == "9" * 64
+
+
+def test_api_fallback_refuses_pending_authority_without_read_recovery(
+    monkeypatch, tmp_path
+) -> None:
+    date = "20261007"
+    local_store = NativeDataStore(tmp_path / "v4-data")
+    authority_root = tmp_path / "configured-authority"
+    _materialize_independent_pools(
+        local_store,
+        date,
+        {"a_d1_premarket_pool": [{"symbol": "A.000001", "market": "A"}]},
+    )
+    source_store = PreselectionPoolStore(authority_root)
+    source_store.materialize(_strict_hk_pool_artifact(date))
+    snapshot = source_store.read_pool_snapshot(date, "hkconnect_d1_top100")
+    source_paths = {
+        key: authority_root / snapshot[f"{key}_relative"]
+        for key in ("artifact", "manifest", "receipt")
+    }
+    source_bytes_before = {key: path.read_bytes() for key, path in source_paths.items()}
+    pending_relative = source_store._pending_relative(
+        trade_date=date,
+        pool_id="hkconnect_d1_top100",
+    )
+    pending_path = authority_root / pending_relative
+    pending_path.parent.mkdir(parents=True, exist_ok=True)
+    pending_bytes = (
+        b'{"schema_version":"v4.preselection_pending_commit.v1",'
+        b'"trade_date":"20261007","pool_id":"hkconnect_d1_top100",'
+        b'"state":"pending"}\n'
+    )
+    pending_path.write_bytes(pending_bytes)
+
+    original_reconcile = PreselectionPoolStore._reconcile_pending_commit_read_unlocked
+
+    def reject_authority_recovery(self, trade_date: str, pool_id: str) -> None:
+        if (
+            self.root.resolve() == authority_root.resolve()
+            and trade_date == date
+            and pool_id == "hkconnect_d1_top100"
+        ):
+            raise AssertionError("configured authority pending read entered recovery")
+        original_reconcile(self, trade_date, pool_id)
+
+    monkeypatch.setattr(
+        PreselectionPoolStore,
+        "_reconcile_pending_commit_read_unlocked",
+        reject_authority_recovery,
+    )
+    _install_legacy_preselection_pool_store(monkeypatch)
+    client = TestClient(
+        create_app(
+            data_root=local_store.root,
+            preselection_source_root=authority_root,
+            current_date=date,
+        )
+    )
+
+    response = client.get(
+        "/api/v3/preselection-pools", params={"date": date}
+    ).json()
+
+    assert response["data_status"] == "PARTIAL_WITH_ROWS"
+    assert response["configured_hk_pool_fallback"] == {
+        "applied": False,
+        "status": "CANNOT_CONFIRM",
+        "reason": "source_pending_commit",
+        "read_policy": "read_only_exact_date",
+        "target_date": date,
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+    }
+    assert all(path.read_bytes() == source_bytes_before[key] for key, path in source_paths.items())
+    assert pending_path.read_bytes() == pending_bytes
 
 
 def test_partial_flat_migration_is_rejected_instead_of_synthesizing_pool_groups(tmp_path) -> None:

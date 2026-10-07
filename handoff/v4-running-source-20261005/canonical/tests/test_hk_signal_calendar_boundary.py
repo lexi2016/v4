@@ -428,8 +428,11 @@ def test_stage_rejects_late_captured_eligibility_master(tmp_path: Path) -> None:
         _materialize_and_validate(tmp_path, artifact, "20260928")
 
 
+@pytest.mark.parametrize("encoded_capture_time", [False, True])
 def test_verified_hk_reader_checks_independent_eligibility_master_date(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    encoded_capture_time: bool,
 ) -> None:
     from upstreams.v3_shared_data.shared_data import hk_0_2
 
@@ -469,7 +472,13 @@ def test_verified_hk_reader_checks_independent_eligibility_master_date(
         "security_master_trade_date": "20260924",
         "security_master_run_id": security_master_manifest["run_id"],
         "security_master_artifact_sha256": security_master_manifest["artifact_sha256"],
-        "security_master_captured_at": security_master_manifest["captured_at"],
+        "security_master_captured_at": (
+            hk_0_2._encode_capture_at_provenance(
+                security_master_manifest["captured_at"]
+            )
+            if encoded_capture_time
+            else security_master_manifest["captured_at"]
+        ),
     }
     run = SimpleNamespace(
         manifest={"provenance": source_provenance},
@@ -513,3 +522,43 @@ def test_verified_hk_reader_checks_independent_eligibility_master_date(
             expected_signal_date="20260925",
             expected_eligibility_source_date="20260924",
         )
+
+
+def test_split_date_capture_time_provenance_is_path_neutral_and_reversible(
+    tmp_path: Path,
+) -> None:
+    from upstreams.v3_shared_data.shared_data.hk_0_2 import (
+        HK_0_2_ROLE,
+        HK_0_2_STAGE_ID,
+        _decode_capture_at_provenance,
+        _encode_capture_at_provenance,
+    )
+    from upstreams.v3_shared_data.shared_data.allowlist import SourceSpec
+
+    captured_at = "2026-09-30T17:20:08+08:00"
+    encoded = _encode_capture_at_provenance(captured_at)
+    assert _decode_capture_at_provenance(encoded) == captured_at
+    assert not any(character in encoded for character in (":", "/", "\\"))
+
+    source_path = tmp_path / "pool.csv"
+    source_path.write_text("rank\n1\n", encoding="utf-8")
+    source = SourceSpec(
+        source_id="hkconnect_0_2_frozen_prob_active",
+        role=HK_0_2_ROLE,
+        trade_date="20261006",
+        market="HK_CONNECT",
+        stages=(HK_0_2_STAGE_ID,),
+        cutoff_at="17:30:00",
+        source_path=source_path,
+        provenance={"security_master_captured_at": encoded},
+    )
+    source.validate()
+
+    legacy = SourceSpec(
+        **{
+            **source.__dict__,
+            "provenance": {"security_master_captured_at": captured_at},
+        }
+    )
+    with pytest.raises(ValueError, match="path-neutral"):
+        legacy.validate()

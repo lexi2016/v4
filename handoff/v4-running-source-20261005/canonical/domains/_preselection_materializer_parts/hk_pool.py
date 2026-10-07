@@ -1,6 +1,32 @@
 """domains.preselection_materializer: hk_pool (review candidate, not deployment)."""
 from __future__ import annotations
+
+import base64
+import binascii
+from datetime import datetime
+
 from ._namespace import read_global as _v4_global
+
+
+_CAPTURE_AT_PROVENANCE_PREFIX = "b64url."
+
+
+def _restore_hk_capture_at(value: object) -> str:
+    """Project encoded shared capture provenance back to its exact ISO value."""
+    text = str(value or "").strip()
+    if not text.startswith(_CAPTURE_AT_PROVENANCE_PREFIX):
+        return text
+    encoded = text[len(_CAPTURE_AT_PROVENANCE_PREFIX) :]
+    try:
+        captured_at = base64.b64decode(
+            encoded, altchars=b"-_", validate=True
+        ).decode("utf-8")
+        parsed = datetime.fromisoformat(captured_at)
+    except (binascii.Error, UnicodeDecodeError, ValueError) as error:
+        raise ValueError("shared HK 0.2 capture-time provenance is invalid") from error
+    if parsed.tzinfo is None:
+        raise ValueError("shared HK 0.2 capture-time provenance must include a timezone")
+    return captured_at
 
 
 def _build_shared_hk_0_2_pool_body(
@@ -105,7 +131,7 @@ def _build_shared_hk_0_2_pool_body(
             "eligibility_source_artifact_sha256": _v4_global(_v4_scope, 'str')(
                 source_provenance.get("security_master_artifact_sha256") or ""
             ),
-            "eligibility_source_captured_at": _v4_global(_v4_scope, 'str')(
+            "eligibility_source_captured_at": _restore_hk_capture_at(
                 source_provenance.get("security_master_captured_at") or ""
             ),
             "d1_source_run_id": _v4_global(_v4_scope, 'str')(verification["run_id"]),

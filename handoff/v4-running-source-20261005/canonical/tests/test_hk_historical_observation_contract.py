@@ -513,17 +513,25 @@ def test_afterfact_closed_connect_uses_exact_target_split_date_pool(monkeypatch,
         )
     )
 
-    # The default Connect-closed path remains unchanged outside after-fact
-    # observation context: it binds the preceding Connect session.
+    # A verified target-date pool is preferred as a research observation when
+    # HK securities are open and Connect is closed, without opening Connect.
     ordinary_binding = runner._build_hk_stage_binding(
         tmp_path, target_date, preselection_source_root=tmp_path
     )
     prior_snapshot = store.read_pool_snapshot(
         connect_eligibility_date, "hkconnect_d1_top100"
     )
-    assert ordinary_binding.role == "HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION"
-    assert ordinary_binding.sha256 == prior_snapshot["artifact_raw_sha256"]
-    assert "HK.02476" in ordinary_binding.codes
+    target_snapshot = store.read_pool_snapshot(target_date, "hkconnect_d1_top100")
+    assert ordinary_binding.role == "HK_CONNECT_D1_TOP100"
+    assert ordinary_binding.sha256 == target_snapshot["artifact_raw_sha256"]
+    assert set(ordinary_binding.codes) == set(target_codes)
+    assert "HK.02476" not in ordinary_binding.codes
+    assert "hk_d1_binding_mode=EXACT_TARGET_DATE_RESEARCH_OBSERVATION" in ordinary_binding.evidence
+    assert "hk_observation_mode=HK_SECURITIES_OPEN_HK_CONNECT_CLOSED" in ordinary_binding.evidence
+    assert "hk_observation_scope=RESEARCH_ONLY" in ordinary_binding.evidence
+    assert "production_allowed=false" in ordinary_binding.evidence
+    assert "buy_gate_updated=false" in ordinary_binding.evidence
+    assert "orders_sent=false" in ordinary_binding.evidence
 
     # A manifest-bound after-fact stage must use the exact target artifact,
     # whose split-date provenance was checked by the existing D1 validator.
@@ -536,7 +544,6 @@ def test_afterfact_closed_connect_uses_exact_target_split_date_pool(monkeypatch,
     finally:
         runner._HK_TDX_AFTERFACT_RESEARCH_CONTRACT.reset(context_token)
 
-    target_snapshot = store.read_pool_snapshot(target_date, "hkconnect_d1_top100")
     assert target_binding.role == "HK_CONNECT_D1_TOP100"
     assert target_binding.sha256 == target_snapshot["artifact_raw_sha256"]
     assert set(target_binding.codes) == set(target_codes)
