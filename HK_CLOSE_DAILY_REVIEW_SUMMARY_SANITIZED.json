@@ -1,0 +1,199 @@
+{
+  "schema_version": "v4.hk_close_daily_review_summary_sanitized.v1",
+  "document_state": "FINAL_CANDIDATE_HANDOFF_REVIEWED_NOT_DEPLOYED",
+  "release_id": "hk-close-daily-r1-20261007-api",
+  "release_manifest_sha256": "af281200af029b4e31f4b1fc653050f623aff3850fde10711a279e5fb346cb8a",
+  "candidate_status": "NOT_ACTIVATED",
+  "candidate_scope": "incremental API package; not a complete independent checkout",
+  "date_evidence": {
+    "20260911": {
+      "status": "MODEL_REVIEW_READY",
+      "row_counts": {
+        "hkconnect_universe": 691,
+        "close_top20": 20,
+        "model_0_2": 100,
+        "stage_rows": 70
+      },
+      "model_hit_count": 15,
+      "stage_union_hit_count": 10,
+      "evidence_layer": "isolated TestClient candidate readback"
+    },
+    "20260930": {
+      "status": "MODEL_0_2_SOURCE_MISSING",
+      "row_counts": {
+        "hkconnect_universe": 696,
+        "close_top20": 20,
+        "model_0_2": 0,
+        "stage_rows": 0
+      },
+      "missing_stage_count": 7,
+      "dispatch_finished_at": "2026-09-30T08:10:57.792853Z",
+      "source_captured_at": null,
+      "source_published_at": null,
+      "pool_available_at_dispatch": "CANNOT_CONFIRM",
+      "late_artifact_point_in_time_validity": "CANNOT_CONFIRM",
+      "action": "preserve missing-source state; do not recompute shared artifacts",
+      "pool_json_pool_receipt_manifest_mtime": "2026-10-02T07:17:41.9Z",
+      "mtime_scope": "only the 20260930 pool JSON, its pool receipt, and its manifest; no close-review artifact mtime claim",
+      "mtime_after_dispatch_elapsed": "about 47h06m44s after process-level dispatch receipt finished_at",
+      "source_run_search_scope": "corresponding V35/V4 data roots checked in this audit",
+      "source_run_search_result": "NOT_FOUND_IN_CHECKED_ROOTS"
+    },
+    "20261002": {
+      "status": "NON_TRADING_DAY",
+      "market": "HK_CONNECT",
+      "result": "empty; no Top20 or row counts"
+    },
+    "20260929": {
+      "status": "CANNOT_CONFIRM",
+      "reason": "CLOSE_REVIEW_ARTIFACT_MISSING",
+      "result": "no fabricated rows"
+    }
+  },
+  "root_binding": {
+    "defect": "candidate API entry did not pass V35_REVIEW_CORE_CLOSE_ROOT, so the reader used the V4 default data root",
+    "candidate_fix": "bind configured V35 review-core root; retain default behavior only when setting is absent",
+    "invalid_explicit_artifact": "fail closed"
+  },
+  "review_history": {
+    "source_package_verdict": "PASS",
+    "prior_wrapper_verdict": "FAIL",
+    "prior_wrapper_findings": [
+      "hash-to-os.replace TOCTOU could overwrite a parallel edit",
+      "plist drift at bootstrap or loaded launchd identity drift after HTTP success could still produce APPLIED"
+    ],
+    "current_wrapper_sha256": "50235fefacb10e3173f060feff2bad8dad7e339351b31ae5e7600f00914c231d",
+    "current_wrapper_test_sha256": "f0da5fddf6597fca2c4c72147fd9ade06790717f115796cd60715f23e0445d95",
+    "current_wrapper_receipt_sha256": "2f7c48184be4adba9eccce15b9632f01b486394d783f5a6cd9d515a0ea18f524",
+    "current_wrapper_incremental_review": "PASS",
+    "writer_isolated_tests": "PASS: 15 tests; subprocess.run blocked in every test",
+    "final_independent_review_receipt_sha256": "50e7925834db9121e1313b64c03774d71c99d2d15d4eaeb9d6df9368114b3689",
+    "final_independent_verdict": "PASS",
+    "independent_behavior_verified": "PASS",
+    "independent_wrapper_tests": "PASS: 15 tests",
+    "p0_count": 0,
+    "p1_count": 0,
+    "known_nonblocking_p2": [
+      {
+        "id": "HKCD-WRAPPER-005",
+        "status": "KNOWN_NON_BLOCKING_TEST_COVERAGE_LIMITATION",
+        "detail": "The successful-fixture test does not assert loaded command arguments or manifest hash in the APPLIED receipt; the reviewer inspected both emitted fields and independently probed incorrect loaded arguments, which were rejected."
+      }
+    ]
+  },
+  "no_clobber_strategy": {
+    "active_target_claim": "atomic rename to unique private same-filesystem claim; retain claim bytes",
+    "claim_verification": "hash the moved target bytes",
+    "install": "os.link staged file to absent target; kernel EEXIST refuses concurrent target",
+    "drift_restore": "no-clobber link only; if target exists preserve claim and target and record drift",
+    "os_replace_used": false
+  },
+  "applied_receipt_gate": {
+    "before_bootstrap": "exact staged plist SHA required",
+    "after_semantic_success_before_receipt": "candidate package and active plist rechecked; launchd PID, command arguments, candidate app root, release ID, and manifest hash must match",
+    "loaded_identity_drift": "record sanitized evidence and stop without automatic service action"
+  },
+  "runtime_and_release": {
+    "active_api_readback": "CANNOT_CONFIRM",
+    "previous_pid_freeze": 1137,
+    "parent_reported_later_pid": 10546,
+    "pid_override": false,
+    "shared_port": 8873,
+    "api_request_by_writer": "NOT_RUN",
+    "ui_readback_by_writer": "NOT_RUN",
+    "service_or_launchctl_action_by_writer": "NOT_RUN",
+    "natural_slot": "CANNOT_CONFIRM; NOT_RUN",
+    "deployment": "NOT_DEPLOYED",
+    "previous_pid_freeze_status": "EXPIRED_STALE",
+    "parent_reported_later_pid_status": "NOT_REVERIFIED",
+    "shared_port_coordination": "ANNOUNCEMENT_FIRST_SERIAL_PLAN",
+    "active_api_identity_reverification": "NOT_RUN_FOR_SUCCESSOR_RELEASE",
+    "current_service_observation": "PARENT_REPORTED_OLD_API_ROOT_PID_10546; not the intended successor release",
+    "announcement_release_plan": "announcement-daily-20261007-r2",
+    "announcement_release_status": "NOT_PREPARED_OR_ACTIVATED",
+    "cross_session_coordination": "serial announcement-first sequence available; no message required from this writer"
+  },
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "sync": {
+    "repository_destination": "handoff/hk-close-daily-20261007/candidate/",
+    "payload_files": 10,
+    "local_only_sync_map": true,
+    "sync_map_must_not_be_uploaded": true,
+    "remote_write": "NOT_PERFORMED",
+    "cross_session_coordination": "PENDING"
+  },
+  "refresh_required_after": [
+    "announcement task final runtime root, plist, and source SHA",
+    "separately scoped integration stage against the actual announcement release"
+  ],
+  "source_delta_provenance": {
+    "repository": "lexi2016/v4",
+    "base_commit": "d6ab71f02f8deb03f45514ce28dc35a983654c47",
+    "release_id": "hk-close-daily-r1-20261007-api",
+    "candidate_manifest_sha256": "af281200af029b4e31f4b1fc653050f623aff3850fde10711a279e5fb346cb8a",
+    "files": [
+      {
+        "path": "apps/api/v35_api/app.py",
+        "before_sha256": "909bdccecadf36c70f791a2c4c0d818371f4da68762e4cff40f9786e4613f80e",
+        "after_sha256": "90a2bf6390c6c0e219aa3d9bb22bc3b3630ecb2d447df494ae69425933424ed7"
+      },
+      {
+        "path": "apps/api/v35_api/review_router.py",
+        "before_sha256": "e751fae943f93a4493cb08428de4d01f0018e1a583bca1d8dfd1e27f63af3a46",
+        "after_sha256": "20a4733dc3a53645796b56be19fe5cd56fd2086968877696965d8e42e7a883a2"
+      },
+      {
+        "path": "apps/web/src/components/review/HkCloseReviewPanel.vue",
+        "before_sha256": "c1461dd73f3fb1ff24673176798b7e77ed9320b6489ba35af00f2e746772c919",
+        "after_sha256": "39fe78bea51890af23ad2cdf013689ff9bc97930c7c16a4b9a646301ec4e42f7"
+      },
+      {
+        "path": "apps/web/src/components/review/HkCloseReviewPanel.spec.ts",
+        "before_sha256": "7d23e86772d2886b2397ecfb73569b4ec921c3b1303420373083d20456a93d13",
+        "after_sha256": "78baf518d0fb0cb053598841b4802260e3af4d5b9706782a23eb418381b99452"
+      },
+      {
+        "path": "tests/test_hk_close_daily_binding.py",
+        "before_status": "ABSENT_AT_BASE",
+        "before_sha256": null,
+        "after_sha256": "a6c606f0bde5e04f63d973d427bb35566f32003800d50918bb37373d02157ec8"
+      }
+    ]
+  },
+  "verification": {
+    "candidate_backend": {
+      "runtime": "Python 3.14.6",
+      "command": "python -B -m pytest -p no:cacheprovider --basetemp=<EVIDENCE_ROOT>/pytest-candidate-app-01 -q tests/test_hk_close_daily_binding.py",
+      "result": "PASS: 6 passed in 0.65s",
+      "scope": "inactive candidate package regression tests"
+    },
+    "candidate_frontend": {
+      "test_command": "npm test -- src/components/review/HkCloseReviewPanel.spec.ts",
+      "test_result": "PASS: 1 file, 3 tests",
+      "build_command": "npm run build",
+      "build_result": "PASS: 110 modules transformed"
+    },
+    "wrapper_guard": {
+      "runtime": "Python 3.14.6",
+      "command": "python -B -m pytest -p no:cacheprovider --basetemp=<EVIDENCE_ROOT>/pytest-wrapper-loadedidentity-final -q test_hk_close_daily_api_cutover.py",
+      "result": "PASS: 15 passed in 0.05s",
+      "subprocess_run_blocked": true
+    }
+  },
+  "independent_review_receipt_sha256": "50e7925834db9121e1313b64c03774d71c99d2d15d4eaeb9d6df9368114b3689",
+  "acceptance_state": {
+    "source_package_reviewed": "PASS",
+    "wrapper_reviewed": "PASS",
+    "tested": "PASS",
+    "isolated_behavior_verified": "PASS",
+    "active_api": "CANNOT_CONFIRM; NOT_RUN for successor release pending announcement final runtime identity and separate integration stage",
+    "ui": "CANNOT_CONFIRM; NOT_RUN",
+    "natural_slot": "CANNOT_CONFIRM; NOT_RUN",
+    "deployed": "NOT_DEPLOYED"
+  },
+  "next_integration_gate": "After the announcement task provides its final runtime root, plist, and source SHA, start a separately scoped integration stage by rebasing the frozen reviewed HK close delta onto that actual release."
+}
