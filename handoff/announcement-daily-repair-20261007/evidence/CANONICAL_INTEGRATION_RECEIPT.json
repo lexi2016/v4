@@ -1,0 +1,98 @@
+{
+  "status": "INTEGRATED_ACCEPTED_BYTES",
+  "started_at": "2026-10-07T04:00:20.017335+00:00",
+  "accepted_aggregate": "b5ea2c12b3c0ad380f308fd7fffc849383bbe9656ea44e0b2f9f8bbcd0f06d49",
+  "baseline_git_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "changed": [
+    {
+      "accepted_candidate_sha256": "ad1f6f4407ce2d0a25c4c938fcbed0af846ae29695f0b5607c9135a9550019a3",
+      "baseline_matches_observed": true,
+      "canonical_baseline_sha256": "db6a745c17da6a36cfc52649b4951f4648d40d5000fb9cb50c292117c844bb69",
+      "canonical_observed_sha256": "db6a745c17da6a36cfc52649b4951f4648d40d5000fb9cb50c292117c844bb69",
+      "path": "apps/web/src/api/managerAnnouncementAnalysis.spec.ts"
+    },
+    {
+      "accepted_candidate_sha256": "f30ec19c2c5b21f79ecfe3a3a23b1cf9d59bc5f5f48d117c7db4bcce39f3e5b5",
+      "baseline_matches_observed": true,
+      "canonical_baseline_sha256": "31b1ab21e4c06c05397b179830eeb057f84aaa2fb57d5b168623ce15408c604d",
+      "canonical_observed_sha256": "31b1ab21e4c06c05397b179830eeb057f84aaa2fb57d5b168623ce15408c604d",
+      "path": "apps/web/src/api/managerAnnouncementAnalysis.ts"
+    },
+    {
+      "accepted_candidate_sha256": "96bfd31c199d17a3e3386308379332423b391cda0bff67f4e0a310512369a093",
+      "baseline_matches_observed": true,
+      "canonical_baseline_sha256": "ae4a3b2751d6686e87cf4f1e7a35da95ceae21b45503ee86f0f6f63255a060bc",
+      "canonical_observed_sha256": "ae4a3b2751d6686e87cf4f1e7a35da95ceae21b45503ee86f0f6f63255a060bc",
+      "path": "apps/web/src/manager-selection/announcementAnalysis.spec.ts"
+    },
+    {
+      "accepted_candidate_sha256": "7365a33cd65c024131844ea7a451bc3d89220f6391a17863f31a3781e0b6e327",
+      "baseline_matches_observed": true,
+      "canonical_baseline_sha256": "ae344d35e44263f35f081fe19a4800bcd50911908158972c383db7e35f133fe0",
+      "canonical_observed_sha256": "ae344d35e44263f35f081fe19a4800bcd50911908158972c383db7e35f133fe0",
+      "path": "apps/web/src/manager-selection/announcementAnalysis.ts"
+    },
+    {
+      "accepted_candidate_sha256": "611758093044e1f4f299be4c8df1f52cffe0f6b43166860cba46df4e9c9eb626",
+      "baseline_matches_observed": true,
+      "canonical_baseline_sha256": "b641b2be6b6145dababfcf392ca979f3cc0c9ee2aee476938f0ecafa4b5d3eeb",
+      "canonical_observed_sha256": "b641b2be6b6145dababfcf392ca979f3cc0c9ee2aee476938f0ecafa4b5d3eeb",
+      "path": "tests/test_manager_announcement_analysis.py"
+    },
+    {
+      "accepted_candidate_sha256": "9d568e27280164194b2b49bf70c27c37feae1fc7941dcf65a0678ece14d8c1ac",
+      "baseline_matches_observed": true,
+      "canonical_baseline_sha256": "ABSENT",
+      "canonical_observed_sha256": "ABSENT",
+      "path": "tests/test_manager_announcement_daily_flow.py"
+    },
+    {
+      "accepted_candidate_sha256": "91b5de0c1db8db6acb5cd6e19962f57377690dc4b5d26eb57cc5ce92499a70e1",
+      "baseline_matches_observed": true,
+      "canonical_baseline_sha256": "41c21fc88221a23608592e23cf925bfb1060c955f00bdb8391abf847071c49a7",
+      "canonical_observed_sha256": "41c21fc88221a23608592e23cf925bfb1060c955f00bdb8391abf847071c49a7",
+      "path": "tests/test_manager_announcement_date_catalog.py"
+    },
+    {
+      "accepted_candidate_sha256": "29cedc701bc94ca1b8e12106432b85639c990bf98a74445dac2144ba05e64903",
+      "baseline_matches_observed": true,
+      "canonical_baseline_sha256": "3efe0d50bc00d0990a9167d3e7abbe48734cf27a4a2bdac00253cab66a7d3c2c",
+      "canonical_observed_sha256": "3efe0d50bc00d0990a9167d3e7abbe48734cf27a4a2bdac00253cab66a7d3c2c",
+      "path": "v4/manager_research/announcement_analysis.py"
+    },
+    {
+      "accepted_candidate_sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68",
+      "baseline_matches_observed": true,
+      "canonical_baseline_sha256": "3e653ffd4048c29c38c025049f2db04e87c264d6fbad370e031102f78a3656fd",
+      "canonical_observed_sha256": "3e653ffd4048c29c38c025049f2db04e87c264d6fbad370e031102f78a3656fd",
+      "path": "v4/manager_research/announcement_catalog.py"
+    },
+    {
+      "accepted_candidate_sha256": "195ad063124a785ec61b828018f7fc12706bf39dbde4898a031187ef4976b5b0",
+      "baseline_matches_observed": true,
+      "canonical_baseline_sha256": "1e05dbaf7e1c1854f2bc7a56a7c942e5e36341dd3dce769fbf1a60b53e9953b1",
+      "canonical_observed_sha256": "1e05dbaf7e1c1854f2bc7a56a7c942e5e36341dd3dce769fbf1a60b53e9953b1",
+      "path": "v4/manager_research/service.py"
+    },
+    {
+      "accepted_candidate_sha256": "0916a0191568e32aee6dd1bd5e17bcdc6a32ae7dbe733a6ce25d5388eacbd9e4",
+      "baseline_matches_observed": true,
+      "canonical_baseline_sha256": "8fd692972d7d4fcadd1ebac7037e5cb6f9794b16471d216fddfabba4985ad1c8",
+      "canonical_observed_sha256": "8fd692972d7d4fcadd1ebac7037e5cb6f9794b16471d216fddfabba4985ad1c8",
+      "path": "v4/manager_research/workspace_announcements.py"
+    }
+  ],
+  "unchanged": [
+    {
+      "accepted_candidate_sha256": "21397f2b5bd6de02c3cd54c9e84d9e837b26dd2a423681672d89cff766ddde01",
+      "baseline_matches_observed": true,
+      "canonical_baseline_sha256": "21397f2b5bd6de02c3cd54c9e84d9e837b26dd2a423681672d89cff766ddde01",
+      "canonical_observed_sha256": "21397f2b5bd6de02c3cd54c9e84d9e837b26dd2a423681672d89cff766ddde01",
+      "path": "tests/test_manager_announcement_selection.py"
+    }
+  ],
+  "deployment": "NOT_RUN",
+  "completed_at": "2026-10-07T04:00:20.030663+00:00",
+  "test_evidence": "Reused independent frozen candidate source/UI acceptance, byte-identical"
+}

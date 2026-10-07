@@ -1,0 +1,9 @@
+# 公告日常研究链修复：源码集成阶段
+
+修复公告日期目录对历史证券主表的强制依赖，以及分析服务和前端对历史日期、数量的硬编码。目录使用原有来源中的证券身份，保存目标日、发布日期与来源哈希；旧日期结果仍按原合同读取。
+
+本目录仅交付12个允许范围内源码和测试文件，以及精简验收/集成回执。基线远端 commit 为 7dd1f638bea9e3a499de74fe73b315331d5ebb3f；canonical 基线为 55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054。冻结源码/测试 aggregate 为 b5ea2c12b3c0ad380f308fd7fffc849383bbe9656ea44e0b2f9f8bbcd0f06d49。主控已对12个本地目标文件校验前后SHA并集成；11个变化、1个保持原字节，未覆盖范围外修改。
+
+独立验收：39个后端测试和13个前端测试通过；前端构建110 modules通过。typecheck仍有两份未修改spec的4条既有诊断，不能称全仓typecheck通过。源码候选与canonical集成已验证；现役服务尚未切换，操作器、逐篇语义判定、owner导入、API/UI与每日自然运行仍待各自验收。不得把本次源码同步视为完整运行链已交付。
+
+原始公告、正文、行情、凭证、账号/持仓、运行数据、构建产物和依赖目录均不在本次同步范围。研究边界维持 RESEARCH_ONLY=true、production_allowed=false、buy_gate_updated=false、orders_sent=false。

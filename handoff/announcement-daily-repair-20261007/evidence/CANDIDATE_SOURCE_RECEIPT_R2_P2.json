@@ -1,0 +1,118 @@
+{
+  "aggregate_recipe": "sha256(utf8(json.dumps(sorted(file_records,key=path),sort_keys=true,separators=(comma,colon))))",
+  "backend_source_files": [
+    {
+      "bytes": 30995,
+      "path": "candidate/v4/manager_research/announcement_catalog.py",
+      "sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68"
+    },
+    {
+      "bytes": 114234,
+      "path": "candidate/v4/manager_research/workspace_announcements.py",
+      "sha256": "0916a0191568e32aee6dd1bd5e17bcdc6a32ae7dbe733a6ce25d5388eacbd9e4"
+    },
+    {
+      "bytes": 56146,
+      "path": "candidate/v4/manager_research/announcement_analysis.py",
+      "sha256": "29cedc701bc94ca1b8e12106432b85639c990bf98a74445dac2144ba05e64903"
+    },
+    {
+      "bytes": 93373,
+      "path": "candidate/v4/manager_research/service.py",
+      "sha256": "195ad063124a785ec61b828018f7fc12706bf39dbde4898a031187ef4976b5b0"
+    }
+  ],
+  "backend_test_files": [
+    {
+      "bytes": 20791,
+      "path": "candidate/tests/test_manager_announcement_date_catalog.py",
+      "sha256": "91b5de0c1db8db6acb5cd6e19962f57377690dc4b5d26eb57cc5ce92499a70e1"
+    },
+    {
+      "bytes": 24223,
+      "path": "candidate/tests/test_manager_announcement_analysis.py",
+      "sha256": "611758093044e1f4f299be4c8df1f52cffe0f6b43166860cba46df4e9c9eb626"
+    },
+    {
+      "bytes": 6767,
+      "path": "candidate/tests/test_manager_announcement_selection.py",
+      "sha256": "21397f2b5bd6de02c3cd54c9e84d9e837b26dd2a423681672d89cff766ddde01"
+    },
+    {
+      "bytes": 5615,
+      "path": "candidate/tests/test_manager_announcement_daily_flow.py",
+      "sha256": "9d568e27280164194b2b49bf70c27c37feae1fc7941dcf65a0678ece14d8c1ac"
+    }
+  ],
+  "baseline_git_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "canary_body_articles": "1 of 580; semantic_analysis NOT_RUN; UI and natural run NOT_VERIFIED",
+  "canary_status": "PASS_SOURCE_AND_BODY_CANARY_CATALOG_IMPORTED_API_READBACK",
+  "candidate_file_count": 12,
+  "candidate_source_test_aggregate_sha256": "b5ea2c12b3c0ad380f308fd7fffc849383bbe9656ea44e0b2f9f8bbcd0f06d49",
+  "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+  "created_at_utc": "2026-10-07T03:08:00+00:00",
+  "focused_backend_tests": {
+    "command": "runtime Python pytest over candidate test_manager_announcement_date_catalog.py, test_manager_announcement_analysis.py, test_manager_announcement_selection.py, test_manager_announcement_daily_flow.py with candidate import overlay and /tmp/v4_announcement_p2_final2",
+    "result": "39 passed"
+  },
+  "focused_frontend_tests": {
+    "command": "npm test -- --run src/api/managerAnnouncementAnalysis.spec.ts src/manager-selection/announcementAnalysis.spec.ts from candidate_live_build/apps/web",
+    "result": "13 passed"
+  },
+  "frontend_build": {
+    "command": "npm run build from candidate_live_build/apps/web",
+    "result": "PASS; 110 modules transformed; taskdir output only"
+  },
+  "frontend_build_base": {
+    "preflight_status": "SOURCE_IDENTITY_MATCHES_BUILD_BASE_SNAPSHOT",
+    "source_aggregate_sha256": "173227dd271b25f8b0afec7f4aa133b190d6fc12cab023024e3d5bdf4eb1968c",
+    "source_file_count": 105,
+    "source_overlays_changed_from_live": [
+      "src/api/managerAnnouncementAnalysis.ts",
+      "src/manager-selection/announcementAnalysis.ts"
+    ],
+    "source_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-hk-month-backfill-r9-legacy-pool-compat-20261007-api-candidate/app/apps/web",
+    "task_build_root": "/Users/lexi/Desktop/学习/agents调试/V4_ANNOUNCEMENT_DAILY_REPAIR_20261007/candidate_live_build/apps/web"
+  },
+  "frontend_source_files": [
+    {
+      "bytes": 19705,
+      "path": "candidate_frontend/apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "sha256": "f30ec19c2c5b21f79ecfe3a3a23b1cf9d59bc5f5f48d117c7db4bcce39f3e5b5"
+    },
+    {
+      "bytes": 17541,
+      "path": "candidate_frontend/apps/web/src/manager-selection/announcementAnalysis.ts",
+      "sha256": "7365a33cd65c024131844ea7a451bc3d89220f6391a17863f31a3781e0b6e327"
+    }
+  ],
+  "frontend_test_files": [
+    {
+      "bytes": 13673,
+      "path": "candidate_frontend/apps/web/src/api/managerAnnouncementAnalysis.spec.ts",
+      "sha256": "ad1f6f4407ce2d0a25c4c938fcbed0af846ae29695f0b5607c9135a9550019a3"
+    },
+    {
+      "bytes": 10352,
+      "path": "candidate_frontend/apps/web/src/manager-selection/announcementAnalysis.spec.ts",
+      "sha256": "96bfd31c199d17a3e3386308379332423b391cda0bff67f4e0a310512369a093"
+    }
+  ],
+  "frontend_typecheck": {
+    "command": "npm run typecheck from candidate_live_build/apps/web",
+    "result": "FAIL on four unchanged diagnostics in src/api/managerWorkspace.attention.spec.ts (2) and src/views/ManagerSelectionView.spec.ts (2); changed API client/spec clean"
+  },
+  "live_api_state": "PRE_INTEGRATION_API_BASELINE_UNCHANGED",
+  "review_handoff": "R2 accepted prior backend/frontend scope except API-client supplementary verified-input row-count predicate; bounded two-file delta frozen here for reviewer delta check.",
+  "reviewer": "independent announcement_daily_review",
+  "schema": "v4.manager_research.announcement_daily_candidate_source_receipt.v2",
+  "scope": "Candidate overlay only; canonical/live source, service, scheduler, deployment and trading state untouched.",
+  "status": "WRITER_TESTED_PENDING_R2_DELTA_REVIEW",
+  "task_artifacts": {
+    "candidate_receipt_r2_p2": "CANDIDATE_SOURCE_RECEIPT_R2_P2.json",
+    "identity_aggregation_amendment": "daily_runs/20261007_20261006/evidence/identity_aggregation_amendment.json",
+    "operator_script_sha256": "c74ade4bb39cd6c14c55713292da15f4b9b5cdf84d86289321036fe2c777e61d",
+    "r2_p2_delta_receipt": "R2_P2_REPAIR_RECEIPT.json"
+  },
+  "task_root": "/Users/lexi/Desktop/学习/agents调试/V4_ANNOUNCEMENT_DAILY_REPAIR_20261007"
+}
