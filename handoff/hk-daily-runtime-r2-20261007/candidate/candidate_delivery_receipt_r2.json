@@ -1,0 +1,82 @@
+{
+  "schema": "v4.hk_daily_stage_candidate_delivery_receipt.v1",
+  "status": "DELIVERY_PACKAGE_PREPARED_NOT_PUSHED",
+  "candidate_status": {
+    "engineering_package": "PASS",
+    "requested_crossdate": "BLOCKED",
+    "selection": "NOT_VERIFIED",
+    "behavior_verified": "CANNOT_CONFIRM",
+    "ready_to_apply": false,
+    "deployment": "NOT_AUTHORIZED_BY_ACCEPTANCE"
+  },
+  "candidate": {
+    "release_id": "hk-daily-runtime-r2-20261007",
+    "release_manifest_sha256": "fdc7dc01d7d37093766cd595fb12c892370545c683a228dc218a72b708c40a49",
+    "inventory_entry_count": 918,
+    "inventory_sha256": "e505a303f53f5d96cd037743d8c81cd438bbbc4a1001c6819b10cbefa6aa543c",
+    "plist_sha256": "53fa0280b50c084e6705f2dcb5c59b2bb4239f4cab711dbe58b16b3f57646513",
+    "runner_sha256": "aafc3f71530deb14b4834f631687ca9e31c3a1fbfe50fd3273b04dea4e2ed4aa",
+    "active_or_deployed": false
+  },
+  "review": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_MONTH_BACKFILL_20261007/evidence/hk_daily_stage_snapshot_r1/release_candidate_r2/independent_review_receipt_20261007_r2.json",
+    "sha256": "2c9697aca108a8581befac1db381109f27533b09d3935aa3c9e6cb44d7e8a751",
+    "status": "REVIEWED_BLOCKED",
+    "findings": [],
+    "final_identity_target_binding": {
+      "status": "PASS",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MONTH_BACKFILL_20261007/evidence/hk_daily_stage_snapshot_r1/release_candidate_r2/candidate_exact_target_binding_readback_20261007_r2_racefix.json",
+      "sha256": "e8c82ecc6478538663d1f35d965be061063e298aeaf6873e61b21d47f9de78c0",
+      "target_date": "20261007",
+      "source_pool_sha256": "29f8118784b892091aa001ae676cd339cb14eef9e80e9406e65cbb3637af57e8",
+      "membership": "100/100",
+      "capture_time": "CANNOT_CONFIRM",
+      "pit_status": "CANNOT_CONFIRM"
+    }
+  },
+  "sync": {
+    "manifest_path": "/Users/lexi/Desktop/学习/agents调试/V4_MONTH_BACKFILL_20261007/evidence/hk_daily_stage_snapshot_r1/release_candidate_r2/candidate_sync_manifest_r2.json",
+    "manifest_sha256": "f366665201fe12c6a54e33c687dd47566b647ad5abe3c9fe6055f1ad04b9bf55",
+    "repository": "lexi2016/v4",
+    "branch": "codex/hk-daily-recovery-20261007",
+    "target_prefix": "handoff/hk-daily-runtime-r2-20261007/candidate/",
+    "mapped_candidate_paths": 21,
+    "sanitized_config_substitution_count": 1,
+    "status": "SYNC_PREPARED_NOT_PUSHED",
+    "remote_commit": "NOT_CREATED"
+  },
+  "handoff": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_MONTH_BACKFILL_20261007/evidence/hk_daily_stage_snapshot_r1/release_candidate_r2/R2_CANDIDATE_HANDOFF.md",
+    "sha256": "f0a40fd1a75bf23f6ad48df8ec844ec6468f1289cfe2a2d6a946d0ce09e72381"
+  },
+  "sanitized_config": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_MONTH_BACKFILL_20261007/evidence/hk_daily_stage_snapshot_r1/release_candidate_r2/stage_center_tick_config.example.json",
+    "sha256": "c06677a67b4ee9b5f60b1d4844b797ef226e55b6394e4582dd306ac4cd5328b3",
+    "json_parse": "PASS",
+    "absolute_path_values": 0
+  },
+  "validation": {
+    "candidate_changed_paths_match_inventory": true,
+    "all_candidate_bytes_match_pinned_inventory": true,
+    "mapped_payload_paths_unique": true,
+    "mapping_count_equals_candidate_changed_paths": true,
+    "only_config_path_is_substituted": true,
+    "external_git_push_performed": false,
+    "service_or_plist_changed": false,
+    "provider_calls_or_stage_nodes_executed": false,
+    "shared_stage_data_or_latest_pointers_changed": false,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "crossdate_evidence": {
+    "requested_dates": [
+      "20260924",
+      "20260930"
+    ],
+    "bar_window": "14:46–14:59",
+    "capture_timing": "captured after target cutoff",
+    "status": "BLOCKED/CANNOT_CONFIRM",
+    "selection": "NOT_VERIFIED"
+  }
+}
