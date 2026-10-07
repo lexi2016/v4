@@ -1,0 +1,55 @@
+{
+  "schema_version": "v4.hk_oct8_sync_manifest.v1",
+  "base_commit": "9ebb2faa954aa6c910d5fc4f4d4e0c418df9ca89",
+  "scope": "new isolated preparation evidence plus close candidate/source snapshots",
+  "files": [
+    {
+      "path": "handoff/hk-oct8-preparation-20261007/close/canonical/infrastructure/preselection_pool_store.py",
+      "sha256": "028298a05ea44e310487c1159acc8147cf652e23ba716989135b178198795a92"
+    },
+    {
+      "path": "handoff/hk-oct8-preparation-20261007/close/canonical/ops/build_close_review.py",
+      "sha256": "a361ae023285392ddf3b0e9674a9c506fae79252cc02c15df221ae09ba28e5aa"
+    },
+    {
+      "path": "handoff/hk-oct8-preparation-20261007/close/canonical/tests/test_close_review_producer.py",
+      "sha256": "c2501b342755bfa97064ceae1a8df0c936f912c9a635fc88c059d660d62b655f"
+    },
+    {
+      "path": "handoff/hk-oct8-preparation-20261007/close/scheduler_candidate/infrastructure/preselection_pool_store.py",
+      "sha256": "73b4adce798db5ee7d94d70a218f1656f01acbaa1c850e09b27ae97d4dd37528"
+    },
+    {
+      "path": "handoff/hk-oct8-preparation-20261007/close/scheduler_candidate/ops/build_close_review.py",
+      "sha256": "26c6a1e6f2d58c7804a0f57eda2d9a60854a58ec377c4664438d939e267f6835"
+    },
+    {
+      "path": "handoff/hk-oct8-preparation-20261007/close/scheduler_candidate/tests/test_close_review_producer.py",
+      "sha256": "c2501b342755bfa97064ceae1a8df0c936f912c9a635fc88c059d660d62b655f"
+    },
+    {
+      "path": "handoff/hk-oct8-preparation-20261007/stage/check_stage_oct8_candidate.py",
+      "sha256": "da60c5dc44998cd988759d1383092a16f120e9d4e1d484fb78a3c08c7e7508e6"
+    },
+    {
+      "path": "handoff/hk-oct8-preparation-20261007/stage/test_stage_oct8_candidate_pins.py",
+      "sha256": "bc91a29ded625a9b61e63ced3077159d26871779659d0533fbbd2542e0263be9"
+    },
+    {
+      "path": "handoff/hk-oct8-preparation-20261007/stage/stage_center_tick_config.example.json",
+      "sha256": "442fb302c409d83424353c4f1495ec3146a3333bb3d7d2ccaa174316aec89bae"
+    },
+    {
+      "path": "handoff/hk-oct8-preparation-20261007/stage/stage_oct8_runtime_dependencies.observed.json",
+      "sha256": "fc4c63e64edddab8d80b1fc38c5fbf847bf4d13bb414ebb88d50624371de6298"
+    }
+  ],
+  "source_stage_commit": "d6ab71f02f8deb03f45514ce28dc35a983654c47",
+  "stage_independent_receipt_sha256": "504cc7f6ea2f7b19798f9449e12bee7692bc1a431347842832626bf2a47b7b29",
+  "close_independent_receipt_sha256": "6ad5f2f26619a998f6ec78cbb384b0cd8935c87c7302229b8e4c4d82b77987e8",
+  "deployed": false,
+  "natural_verified": false,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
