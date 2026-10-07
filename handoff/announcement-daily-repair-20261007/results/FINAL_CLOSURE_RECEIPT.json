@@ -1,0 +1,182 @@
+{
+  "schema": "v4.announcement_daily_closure.v1",
+  "recorded_at_utc": "2026-10-07T11:32:59.739526+00:00",
+  "scope": "same-version old-success/new-date announcement analysis and research-selection delivery",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "source_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "prior_github_source_commit": "199c67a5bcc553bf63df56738c0cc649abf6de0c",
+  "github_branch": "codex/announcement-daily-repair-20261007",
+  "source_test_aggregate_sha256": "b5ea2c12b3c0ad380f308fd7fffc849383bbe9656ea44e0b2f9f8bbcd0f06d49",
+  "source_integrated_file_hashes": [
+    {
+      "path": "apps/web/src/api/managerAnnouncementAnalysis.spec.ts",
+      "canonical_baseline_sha256": "db6a745c17da6a36cfc52649b4951f4648d40d5000fb9cb50c292117c844bb69",
+      "accepted_candidate_sha256": "ad1f6f4407ce2d0a25c4c938fcbed0af846ae29695f0b5607c9135a9550019a3"
+    },
+    {
+      "path": "apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "canonical_baseline_sha256": "31b1ab21e4c06c05397b179830eeb057f84aaa2fb57d5b168623ce15408c604d",
+      "accepted_candidate_sha256": "f30ec19c2c5b21f79ecfe3a3a23b1cf9d59bc5f5f48d117c7db4bcce39f3e5b5"
+    },
+    {
+      "path": "apps/web/src/manager-selection/announcementAnalysis.spec.ts",
+      "canonical_baseline_sha256": "ae4a3b2751d6686e87cf4f1e7a35da95ceae21b45503ee86f0f6f63255a060bc",
+      "accepted_candidate_sha256": "96bfd31c199d17a3e3386308379332423b391cda0bff67f4e0a310512369a093"
+    },
+    {
+      "path": "apps/web/src/manager-selection/announcementAnalysis.ts",
+      "canonical_baseline_sha256": "ae344d35e44263f35f081fe19a4800bcd50911908158972c383db7e35f133fe0",
+      "accepted_candidate_sha256": "7365a33cd65c024131844ea7a451bc3d89220f6391a17863f31a3781e0b6e327"
+    },
+    {
+      "path": "tests/test_manager_announcement_analysis.py",
+      "canonical_baseline_sha256": "b641b2be6b6145dababfcf392ca979f3cc0c9ee2aee476938f0ecafa4b5d3eeb",
+      "accepted_candidate_sha256": "611758093044e1f4f299be4c8df1f52cffe0f6b43166860cba46df4e9c9eb626"
+    },
+    {
+      "path": "tests/test_manager_announcement_daily_flow.py",
+      "canonical_baseline_sha256": "ABSENT",
+      "accepted_candidate_sha256": "9d568e27280164194b2b49bf70c27c37feae1fc7941dcf65a0678ece14d8c1ac"
+    },
+    {
+      "path": "tests/test_manager_announcement_date_catalog.py",
+      "canonical_baseline_sha256": "41c21fc88221a23608592e23cf925bfb1060c955f00bdb8391abf847071c49a7",
+      "accepted_candidate_sha256": "91b5de0c1db8db6acb5cd6e19962f57377690dc4b5d26eb57cc5ce92499a70e1"
+    },
+    {
+      "path": "v4/manager_research/announcement_analysis.py",
+      "canonical_baseline_sha256": "3efe0d50bc00d0990a9167d3e7abbe48734cf27a4a2bdac00253cab66a7d3c2c",
+      "accepted_candidate_sha256": "29cedc701bc94ca1b8e12106432b85639c990bf98a74445dac2144ba05e64903"
+    },
+    {
+      "path": "v4/manager_research/announcement_catalog.py",
+      "canonical_baseline_sha256": "3e653ffd4048c29c38c025049f2db04e87c264d6fbad370e031102f78a3656fd",
+      "accepted_candidate_sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68"
+    },
+    {
+      "path": "v4/manager_research/service.py",
+      "canonical_baseline_sha256": "1e05dbaf7e1c1854f2bc7a56a7c942e5e36341dd3dce769fbf1a60b53e9953b1",
+      "accepted_candidate_sha256": "195ad063124a785ec61b828018f7fc12706bf39dbde4898a031187ef4976b5b0"
+    },
+    {
+      "path": "v4/manager_research/workspace_announcements.py",
+      "canonical_baseline_sha256": "8fd692972d7d4fcadd1ebac7037e5cb6f9794b16471d216fddfabba4985ad1c8",
+      "accepted_candidate_sha256": "0916a0191568e32aee6dd1bd5e17bcdc6a32ae7dbe733a6ce25d5388eacbd9e4"
+    },
+    {
+      "path": "tests/test_manager_announcement_selection.py",
+      "canonical_baseline_sha256": "21397f2b5bd6de02c3cd54c9e84d9e837b26dd2a423681672d89cff766ddde01",
+      "accepted_candidate_sha256": "21397f2b5bd6de02c3cd54c9e84d9e837b26dd2a423681672d89cff766ddde01"
+    }
+  ],
+  "statuses": {
+    "IMPLEMENTED": "PASS",
+    "TESTED": "PASS_TARGETED_INDEPENDENT",
+    "REVIEWED": "PASS",
+    "INTEGRATED": "PASS",
+    "DEPLOYED": "PASS",
+    "API_VERIFIED": "PASS",
+    "UI_VERIFIED": "PASS",
+    "BEHAVIOR_VERIFIED": "PASS_MANUAL_EXACT_DATE",
+    "NATURAL_VERIFIED": "NOT_RUN",
+    "NATURAL_SLOT": "NATURAL_SLOT_UNVERIFIED"
+  },
+  "independent_reviewer": "/root/announcement_daily_review",
+  "test_environment": {
+    "python": "service runtime Python 3.14.6",
+    "python_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "backend": "39 passed; reused independent exact source/test SHA receipt",
+    "frontend": "13 passed; frontend build 110 modules passed",
+    "ops": "25 passed independently",
+    "ops_command": "service Python -m pytest -q test_guarded_announcement_ops.py",
+    "frontend_command": "npm test -- --run src/api/managerAnnouncementAnalysis.spec.ts src/manager-selection/announcementAnalysis.spec.ts",
+    "known_nonblocking_checks": "Five pytest temporary-directory cleanup warnings. Four typecheck diagnostics in two unchanged specs; no typecheck PASS claimed."
+  },
+  "runtime_at_acceptance": {
+    "release_id": "announcement-daily-20261007-r2",
+    "pid": 13550,
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-20261007-r2/app",
+    "manifest_sha256": "dffcde634d7eed5c088b202e9128e11296923b93e2053fd184876be85c638b59",
+    "plist_sha256": "12bd097278f508fbbefaeca295a0da32489130f9d288b2433c55094b6940bea5",
+    "preserved_stage_api_app_sha256": "909bdccecadf36c70f791a2c4c0d818371f4da68762e4cff40f9786e4613f80e",
+    "dist_aggregate_sha256": "efbc2fa26319219afcd465e90733dfd426f5ee96e052a6dd1e8d4060743d0b47"
+  },
+  "dates": {
+    "old_success": {
+      "target_trade_date": "20260930",
+      "publication_date": "2026-09-29",
+      "source_stocks": 140,
+      "selected": 23,
+      "owner_file_sha256": "61d8d33acba85bf4f10fa8efedfbe6e391a74cb5ae57277decf28514bb6fa465"
+    },
+    "new_date": {
+      "target_trade_date": "20261007",
+      "publication_date": "2026-10-06",
+      "catalog_rows": 580,
+      "catalog_pages": 30,
+      "source_code_associations": 584,
+      "distinct_source_codes": 524,
+      "issuer_count": null,
+      "catalog_run_id": "b640f4477a1c43569f225d139cdf8669",
+      "catalog_sha256": "b01d28d9c27e511479b7bcdce45c62918895fd6cdaf782631c50eec45361b7a7",
+      "analysis_product_sha256": "7b27fe7d40e9c12db3d56751cc789c6eb84515bb2392fc1b00a3bc4a5fd38278",
+      "analysis_owner_file_sha256": "4f3a44b730a6476482f4a85402c9d9ee830b0e32f21b31a6d1e72abacce2d485",
+      "api_response_sha256": "e7f53d91af9f9002d54e58afb0e8d6ef58f5d88bc38cb80ce20641dd7c81936f",
+      "selection_counts": {
+        "article_count": 580,
+        "conditional_watch_count": 8,
+        "not_assessed_stock_count": 80,
+        "not_selected_stock_count": 429,
+        "selected_stock_count": 7,
+        "stock_count": 524
+      },
+      "complete_api_bodies": 540,
+      "insufficient_api_bodies": 40
+    }
+  },
+  "daily_reuse_evidence": "The same active source/dist/manifest served both explicit date pairs. No new-date facts or decisions copied from the old success day. Natural daily execution is not proven.",
+  "preserved_failures": [
+    {
+      "status": "FAILED_AND_RESTORED",
+      "scope": "first R1 launchd bootstrap raced label cleanup; old service restored; R2 uses bounded unload wait",
+      "receipt_sha256": "0ae2c2924fa3eed320b770d7c40aa08ec28df75f34dfdba5deea7aa1637a6d8d"
+    },
+    {
+      "status": "IMPORT_INDETERMINATE_NO_RETRY",
+      "scope": "initial catalog owner write created a new run; strict old-run guard rejected; original receipt preserved, no retry",
+      "receipt_sha256": "9e14314393045ffabf651b5019ff1a16a8b41d4c8d405909ce7a06a0f27d7610",
+      "resolution": "Independent full-content equivalence PASS; only 93 run/time/owner-path metadata differences. Reviewed analysis rebound to actual owner run and imported through existing owner method.",
+      "equivalence_receipt_sha256": "7f9c8964c0beebfc742b9cdb50ecb0ba9a661e38489233ffde0d064313c3f6c5"
+    }
+  ],
+  "acceptance_evidence": {
+    "analysis_import_receipt_sha256": "5879c8808728b0496ed6b9b12cb2204d0b05bdf94f9a63875e2e945af7ea2fc7",
+    "product_rebind_review_receipt_sha256": "7cf3876b93dac5b980f881e7cd28c79d3ea7050a44d9447e0094fd215099edb6",
+    "final_api_ui_verdict": "Independent exact-date API/storage identity, unchanged legacy owner, and saved screenshot/AX-to-API binding PASS; no remaining P0/P1/P2 in closure scope",
+    "screenshots": {
+      "UI_20260930_ANNOUNCEMENTS_R2.jpg": "df9aeae66839d673dd403dd912fe5b855b6e7fec8cd555cc8c2c5741b9efc03f",
+      "UI_20261007_ANNOUNCEMENTS_R2_SUMMARY.jpg": "234d641e81cd96ec528d63584fea0b09bd7325f7a5f75b59319a46aa90bd5c6b",
+      "UI_20261007_ANNOUNCEMENTS_R2_SOURCE.jpg": "55ed417bf4d2bc7d5e3f3554f922b63a66011bbe61d152c2812dca35e75eb54f"
+    },
+    "new_date_identity_ax_sha256": "b1981c8ccd65e2dd8975f6ae968bbb675b789183ffe1e8ce8a3a49fe8851caa5"
+  },
+  "remaining": [
+    "40 API bodies remain insufficient and are not replaced with unsupported judgments",
+    "Issuer count unknown; 524 is distinct source codes",
+    "Connect eligibility NOT_ASSESSED",
+    "First publication, novelty and target-date PIT/preopen availability CANNOT_CONFIRM",
+    "PDF printed-page ordinal remains CANNOT_CONFIRM; no long-PDF semantic-use claim in final product",
+    "Natural scheduled run NOT_RUN / NATURAL_SLOT_UNVERIFIED"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "sync_exclusions": [
+    "raw catalogs, bodies, PDFs and full analysis products",
+    "runtime state, accounts, credentials and actual plist",
+    "dist, environments and dependencies"
+  ]
+}
