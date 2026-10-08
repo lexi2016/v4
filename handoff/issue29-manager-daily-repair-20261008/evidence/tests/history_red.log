@@ -1,0 +1,520 @@
+FFFFFFFFFFFFFFFFFFF.FF                                                   [100%]
+=================================== FAILURES ===================================
+_ test_source_comment_change_revalidates_same_contract_at_original_cutoff[20260929] _
+
+service = <v4.manager_research.service.ManagerResearchJobService object at 0x7f599e19b0e0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f599e02ce90>
+date = '20260929'
+
+    @pytest.mark.parametrize('date', ['20260929', '20260930'])
+    def test_source_comment_change_revalidates_same_contract_at_original_cutoff(service, monkeypatch, date):
+        saved = _save(service, monkeypatch, date)
+        current = _source_comment(monkeypatch)
+        assert current != saved['read_contract_sha256']
+        before = _files(service.store)
+        result = service.get_workspace(date, view='historical', now=AFTER)
+>       assert result['plan_product']['consumed'] is True, result['read_context']
+E       AssertionError: {'mode': 'HISTORICAL_AS_OF', 'status': 'SOURCE_FAILED', 'as_of': '2026-09-29T09:27:00+08:00', 'boundary_basis': 'NATIVE_MANAGER_FIRST_CONTINUOUS_STAGE_MAXIMUM', ...}
+E       assert False is True
+
+tests/test_manager_history_contract_20261008.py:78: AssertionError
+_ test_source_comment_change_revalidates_same_contract_at_original_cutoff[20260930] _
+
+service = <v4.manager_research.service.ManagerResearchJobService object at 0x7f599dfc9810>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f599df17650>
+date = '20260930'
+
+    @pytest.mark.parametrize('date', ['20260929', '20260930'])
+    def test_source_comment_change_revalidates_same_contract_at_original_cutoff(service, monkeypatch, date):
+        saved = _save(service, monkeypatch, date)
+        current = _source_comment(monkeypatch)
+        assert current != saved['read_contract_sha256']
+        before = _files(service.store)
+        result = service.get_workspace(date, view='historical', now=AFTER)
+>       assert result['plan_product']['consumed'] is True, result['read_context']
+E       AssertionError: {'mode': 'HISTORICAL_AS_OF', 'status': 'SOURCE_FAILED', 'as_of': '2026-09-30T09:27:00+08:00', 'boundary_basis': 'NATIVE_MANAGER_FIRST_CONTINUOUS_STAGE_MAXIMUM', ...}
+E       assert False is True
+
+tests/test_manager_history_contract_20261008.py:78: AssertionError
+_ test_source_drift_without_supported_saved_contract_rejects_before_owner_replay[None-HISTORY_READ_CONTRACT_UNPROVEN] _
+
+service = <v4.manager_research.service.ManagerResearchJobService object at 0x7f599dfca990>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f599dfc2470>
+contract = None, reason = 'HISTORY_READ_CONTRACT_UNPROVEN'
+
+    @pytest.mark.parametrize('contract, reason', [
+        (None, 'HISTORY_READ_CONTRACT_UNPROVEN'),
+        ('unrecognized-history-contract', 'HISTORY_READ_CONTRACT_UNSUPPORTED'),
+    ])
+    def test_source_drift_without_supported_saved_contract_rejects_before_owner_replay(
+            service, monkeypatch, contract, reason):
+        saved = _save(service, monkeypatch)
+        if contract is None:
+            saved['workspace'].pop('read_context')
+        else:
+            saved['workspace']['read_context']['contract'] = contract
+        _reseal_latest(service, saved)
+        _source_comment(monkeypatch)
+        monkeypatch.setattr(w, '_compute_workspace', lambda *a, **k:pytest.fail('unproven contract replayed'))
+        result = service.get_workspace('20260930', view='historical', now=AFTER)
+        assert result['plan_product']['consumed'] is False
+>       assert result['read_context']['reason'] == reason
+E       AssertionError: assert 'HISTORY_READ...RSION_CHANGED' == 'HISTORY_READ...RACT_UNPROVEN'
+E         
+E         - HISTORY_READ_CONTRACT_UNPROVEN
+E         + HISTORY_READER_VERSION_CHANGED
+
+tests/test_manager_history_contract_20261008.py:116: AssertionError
+_ test_source_drift_without_supported_saved_contract_rejects_before_owner_replay[unrecognized-history-contract-HISTORY_READ_CONTRACT_UNSUPPORTED] _
+
+service = <v4.manager_research.service.ManagerResearchJobService object at 0x7f599df4d810>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f599de5cb50>
+contract = 'unrecognized-history-contract'
+reason = 'HISTORY_READ_CONTRACT_UNSUPPORTED'
+
+    @pytest.mark.parametrize('contract, reason', [
+        (None, 'HISTORY_READ_CONTRACT_UNPROVEN'),
+        ('unrecognized-history-contract', 'HISTORY_READ_CONTRACT_UNSUPPORTED'),
+    ])
+    def test_source_drift_without_supported_saved_contract_rejects_before_owner_replay(
+            service, monkeypatch, contract, reason):
+        saved = _save(service, monkeypatch)
+        if contract is None:
+            saved['workspace'].pop('read_context')
+        else:
+            saved['workspace']['read_context']['contract'] = contract
+        _reseal_latest(service, saved)
+        _source_comment(monkeypatch)
+        monkeypatch.setattr(w, '_compute_workspace', lambda *a, **k:pytest.fail('unproven contract replayed'))
+        result = service.get_workspace('20260930', view='historical', now=AFTER)
+        assert result['plan_product']['consumed'] is False
+>       assert result['read_context']['reason'] == reason
+E       AssertionError: assert 'HISTORY_READ...RSION_CHANGED' == 'HISTORY_READ...T_UNSUPPORTED'
+E         
+E         - HISTORY_READ_CONTRACT_UNSUPPORTED
+E         + HISTORY_READER_VERSION_CHANGED
+
+tests/test_manager_history_contract_20261008.py:116: AssertionError
+________ test_malformed_saved_reader_identity_has_distinct_rejection[] _________
+
+service = <v4.manager_research.service.ManagerResearchJobService object at 0x7f599df4fa80>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f599debc230>
+invalid = ''
+
+    @pytest.mark.parametrize('invalid', ['', 'z'*64, 'A'*64, '1'*63, 123, ['a'*64]])
+    def test_malformed_saved_reader_identity_has_distinct_rejection(service, monkeypatch, invalid):
+        saved = _save(service, monkeypatch)
+        saved['read_contract_sha256'] = invalid
+        _reseal_latest(service, saved)
+        monkeypatch.setattr(w, '_compute_workspace', lambda *a, **k:pytest.fail('malformed identity replayed'))
+        result = service.get_workspace('20260930', view='historical', now=AFTER)
+        assert result['plan_product']['consumed'] is False
+>       assert result['read_context']['reason'] == 'HISTORY_READER_IDENTITY_INVALID'
+E       AssertionError: assert 'HISTORY_READ...RSION_CHANGED' == 'HISTORY_READ...NTITY_INVALID'
+E         
+E         - HISTORY_READER_IDENTITY_INVALID
+E         + HISTORY_READER_VERSION_CHANGED
+
+tests/test_manager_history_contract_20261008.py:127: AssertionError
+_ test_malformed_saved_reader_identity_has_distinct_rejection[zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz] _
+
+service = <v4.manager_research.service.ManagerResearchJobService object at 0x7f599dec08a0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f599dfd9ef0>
+invalid = 'zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz'
+
+    @pytest.mark.parametrize('invalid', ['', 'z'*64, 'A'*64, '1'*63, 123, ['a'*64]])
+    def test_malformed_saved_reader_identity_has_distinct_rejection(service, monkeypatch, invalid):
+        saved = _save(service, monkeypatch)
+        saved['read_contract_sha256'] = invalid
+        _reseal_latest(service, saved)
+        monkeypatch.setattr(w, '_compute_workspace', lambda *a, **k:pytest.fail('malformed identity replayed'))
+        result = service.get_workspace('20260930', view='historical', now=AFTER)
+        assert result['plan_product']['consumed'] is False
+>       assert result['read_context']['reason'] == 'HISTORY_READER_IDENTITY_INVALID'
+E       AssertionError: assert 'HISTORY_READ...RSION_CHANGED' == 'HISTORY_READ...NTITY_INVALID'
+E         
+E         - HISTORY_READER_IDENTITY_INVALID
+E         + HISTORY_READER_VERSION_CHANGED
+
+tests/test_manager_history_contract_20261008.py:127: AssertionError
+_ test_malformed_saved_reader_identity_has_distinct_rejection[AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA] _
+
+service = <v4.manager_research.service.ManagerResearchJobService object at 0x7f599dec0b00>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f599df0a8d0>
+invalid = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+
+    @pytest.mark.parametrize('invalid', ['', 'z'*64, 'A'*64, '1'*63, 123, ['a'*64]])
+    def test_malformed_saved_reader_identity_has_distinct_rejection(service, monkeypatch, invalid):
+        saved = _save(service, monkeypatch)
+        saved['read_contract_sha256'] = invalid
+        _reseal_latest(service, saved)
+        monkeypatch.setattr(w, '_compute_workspace', lambda *a, **k:pytest.fail('malformed identity replayed'))
+        result = service.get_workspace('20260930', view='historical', now=AFTER)
+        assert result['plan_product']['consumed'] is False
+>       assert result['read_context']['reason'] == 'HISTORY_READER_IDENTITY_INVALID'
+E       AssertionError: assert 'HISTORY_READ...RSION_CHANGED' == 'HISTORY_READ...NTITY_INVALID'
+E         
+E         - HISTORY_READER_IDENTITY_INVALID
+E         + HISTORY_READER_VERSION_CHANGED
+
+tests/test_manager_history_contract_20261008.py:127: AssertionError
+_ test_malformed_saved_reader_identity_has_distinct_rejection[111111111111111111111111111111111111111111111111111111111111111] _
+
+service = <v4.manager_research.service.ManagerResearchJobService object at 0x7f599dec09d0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f599deb2d00>
+invalid = '111111111111111111111111111111111111111111111111111111111111111'
+
+    @pytest.mark.parametrize('invalid', ['', 'z'*64, 'A'*64, '1'*63, 123, ['a'*64]])
+    def test_malformed_saved_reader_identity_has_distinct_rejection(service, monkeypatch, invalid):
+        saved = _save(service, monkeypatch)
+        saved['read_contract_sha256'] = invalid
+        _reseal_latest(service, saved)
+        monkeypatch.setattr(w, '_compute_workspace', lambda *a, **k:pytest.fail('malformed identity replayed'))
+        result = service.get_workspace('20260930', view='historical', now=AFTER)
+        assert result['plan_product']['consumed'] is False
+>       assert result['read_context']['reason'] == 'HISTORY_READER_IDENTITY_INVALID'
+E       AssertionError: assert 'HISTORY_READ...RSION_CHANGED' == 'HISTORY_READ...NTITY_INVALID'
+E         
+E         - HISTORY_READER_IDENTITY_INVALID
+E         + HISTORY_READER_VERSION_CHANGED
+
+tests/test_manager_history_contract_20261008.py:127: AssertionError
+_______ test_malformed_saved_reader_identity_has_distinct_rejection[123] _______
+
+service = <v4.manager_research.service.ManagerResearchJobService object at 0x7f599dec0c30>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f599de4b890>
+invalid = 123
+
+    @pytest.mark.parametrize('invalid', ['', 'z'*64, 'A'*64, '1'*63, 123, ['a'*64]])
+    def test_malformed_saved_reader_identity_has_distinct_rejection(service, monkeypatch, invalid):
+        saved = _save(service, monkeypatch)
+        saved['read_contract_sha256'] = invalid
+        _reseal_latest(service, saved)
+        monkeypatch.setattr(w, '_compute_workspace', lambda *a, **k:pytest.fail('malformed identity replayed'))
+        result = service.get_workspace('20260930', view='historical', now=AFTER)
+        assert result['plan_product']['consumed'] is False
+>       assert result['read_context']['reason'] == 'HISTORY_READER_IDENTITY_INVALID'
+E       AssertionError: assert 'HISTORY_READ...RSION_CHANGED' == 'HISTORY_READ...NTITY_INVALID'
+E         
+E         - HISTORY_READER_IDENTITY_INVALID
+E         + HISTORY_READER_VERSION_CHANGED
+
+tests/test_manager_history_contract_20261008.py:127: AssertionError
+____ test_malformed_saved_reader_identity_has_distinct_rejection[invalid5] _____
+
+service = <v4.manager_research.service.ManagerResearchJobService object at 0x7f599df4f820>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f599de3ad50>
+invalid = ['aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa']
+
+    @pytest.mark.parametrize('invalid', ['', 'z'*64, 'A'*64, '1'*63, 123, ['a'*64]])
+    def test_malformed_saved_reader_identity_has_distinct_rejection(service, monkeypatch, invalid):
+        saved = _save(service, monkeypatch)
+        saved['read_contract_sha256'] = invalid
+        _reseal_latest(service, saved)
+        monkeypatch.setattr(w, '_compute_workspace', lambda *a, **k:pytest.fail('malformed identity replayed'))
+        result = service.get_workspace('20260930', view='historical', now=AFTER)
+        assert result['plan_product']['consumed'] is False
+>       assert result['read_context']['reason'] == 'HISTORY_READER_IDENTITY_INVALID'
+E       AssertionError: assert 'HISTORY_READ...RSION_CHANGED' == 'HISTORY_READ...NTITY_INVALID'
+E         
+E         - HISTORY_READER_IDENTITY_INVALID
+E         + HISTORY_READER_VERSION_CHANGED
+
+tests/test_manager_history_contract_20261008.py:127: AssertionError
+_ test_source_drift_does_not_admit_changed_owner_inputs_or_business[input_identity-eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-HISTORY_SOURCE_INPUTS_CHANGED] _
+
+service = <v4.manager_research.service.ManagerResearchJobService object at 0x7f599df4fce0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f599de565d0>
+field = 'input_identity'
+value = 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
+reason = 'HISTORY_SOURCE_INPUTS_CHANGED'
+
+    @pytest.mark.parametrize('field, value, reason', [
+        ('input_identity', 'e'*64, 'HISTORY_SOURCE_INPUTS_CHANGED'),
+        ('briefing', {'headline':'changed decision'}, 'HISTORY_FROZEN_PROJECTION_CHANGED'),
+        ('summary', {'stock_count':99}, 'HISTORY_FROZEN_PROJECTION_CHANGED'),
+        ('announcement_review', {'status':'NOT_RUN'}, 'HISTORY_FROZEN_PROJECTION_CHANGED'),
+    ])
+    def test_source_drift_does_not_admit_changed_owner_inputs_or_business(
+            service, monkeypatch, field, value, reason):
+        _save(service, monkeypatch)
+        _source_comment(monkeypatch)
+        compute = w._compute_workspace
+        def changed(*args, **kwargs):
+            result = compute(*args, **kwargs)
+            result[field] = deepcopy(value)
+            return result
+        monkeypatch.setattr(w, '_compute_workspace', changed)
+        before = _files(service.store)
+        result = service.get_workspace('20260930', view='historical', now=AFTER)
+        assert result['plan_product']['consumed'] is False
+>       assert result['read_context']['reason'] == reason
+E       AssertionError: assert 'HISTORY_READ...RSION_CHANGED' == 'HISTORY_SOUR...NPUTS_CHANGED'
+E         
+E         - HISTORY_SOURCE_INPUTS_CHANGED
+E         + HISTORY_READER_VERSION_CHANGED
+
+tests/test_manager_history_contract_20261008.py:149: AssertionError
+_ test_source_drift_does_not_admit_changed_owner_inputs_or_business[briefing-value1-HISTORY_FROZEN_PROJECTION_CHANGED] _
+
+service = <v4.manager_research.service.ManagerResearchJobService object at 0x7f599df4dba0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f599de5a5f0>
+field = 'briefing', value = {'headline': 'changed decision'}
+reason = 'HISTORY_FROZEN_PROJECTION_CHANGED'
+
+    @pytest.mark.parametrize('field, value, reason', [
+        ('input_identity', 'e'*64, 'HISTORY_SOURCE_INPUTS_CHANGED'),
+        ('briefing', {'headline':'changed decision'}, 'HISTORY_FROZEN_PROJECTION_CHANGED'),
+        ('summary', {'stock_count':99}, 'HISTORY_FROZEN_PROJECTION_CHANGED'),
+        ('announcement_review', {'status':'NOT_RUN'}, 'HISTORY_FROZEN_PROJECTION_CHANGED'),
+    ])
+    def test_source_drift_does_not_admit_changed_owner_inputs_or_business(
+            service, monkeypatch, field, value, reason):
+        _save(service, monkeypatch)
+        _source_comment(monkeypatch)
+        compute = w._compute_workspace
+        def changed(*args, **kwargs):
+            result = compute(*args, **kwargs)
+            result[field] = deepcopy(value)
+            return result
+        monkeypatch.setattr(w, '_compute_workspace', changed)
+        before = _files(service.store)
+        result = service.get_workspace('20260930', view='historical', now=AFTER)
+        assert result['plan_product']['consumed'] is False
+>       assert result['read_context']['reason'] == reason
+E       AssertionError: assert 'HISTORY_READ...RSION_CHANGED' == 'HISTORY_FROZ...CTION_CHANGED'
+E         
+E         - HISTORY_FROZEN_PROJECTION_CHANGED
+E         + HISTORY_READER_VERSION_CHANGED
+
+tests/test_manager_history_contract_20261008.py:149: AssertionError
+_ test_source_drift_does_not_admit_changed_owner_inputs_or_business[summary-value2-HISTORY_FROZEN_PROJECTION_CHANGED] _
+
+service = <v4.manager_research.service.ManagerResearchJobService object at 0x7f599df4e9e0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f599de5acf0>
+field = 'summary', value = {'stock_count': 99}
+reason = 'HISTORY_FROZEN_PROJECTION_CHANGED'
+
+    @pytest.mark.parametrize('field, value, reason', [
+        ('input_identity', 'e'*64, 'HISTORY_SOURCE_INPUTS_CHANGED'),
+        ('briefing', {'headline':'changed decision'}, 'HISTORY_FROZEN_PROJECTION_CHANGED'),
+        ('summary', {'stock_count':99}, 'HISTORY_FROZEN_PROJECTION_CHANGED'),
+        ('announcement_review', {'status':'NOT_RUN'}, 'HISTORY_FROZEN_PROJECTION_CHANGED'),
+    ])
+    def test_source_drift_does_not_admit_changed_owner_inputs_or_business(
+            service, monkeypatch, field, value, reason):
+        _save(service, monkeypatch)
+        _source_comment(monkeypatch)
+        compute = w._compute_workspace
+        def changed(*args, **kwargs):
+            result = compute(*args, **kwargs)
+            result[field] = deepcopy(value)
+            return result
+        monkeypatch.setattr(w, '_compute_workspace', changed)
+        before = _files(service.store)
+        result = service.get_workspace('20260930', view='historical', now=AFTER)
+        assert result['plan_product']['consumed'] is False
+>       assert result['read_context']['reason'] == reason
+E       AssertionError: assert 'HISTORY_READ...RSION_CHANGED' == 'HISTORY_FROZ...CTION_CHANGED'
+E         
+E         - HISTORY_FROZEN_PROJECTION_CHANGED
+E         + HISTORY_READER_VERSION_CHANGED
+
+tests/test_manager_history_contract_20261008.py:149: AssertionError
+_ test_source_drift_does_not_admit_changed_owner_inputs_or_business[announcement_review-value3-HISTORY_FROZEN_PROJECTION_CHANGED] _
+
+service = <v4.manager_research.service.ManagerResearchJobService object at 0x7f599df4df30>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f599de583d0>
+field = 'announcement_review', value = {'status': 'NOT_RUN'}
+reason = 'HISTORY_FROZEN_PROJECTION_CHANGED'
+
+    @pytest.mark.parametrize('field, value, reason', [
+        ('input_identity', 'e'*64, 'HISTORY_SOURCE_INPUTS_CHANGED'),
+        ('briefing', {'headline':'changed decision'}, 'HISTORY_FROZEN_PROJECTION_CHANGED'),
+        ('summary', {'stock_count':99}, 'HISTORY_FROZEN_PROJECTION_CHANGED'),
+        ('announcement_review', {'status':'NOT_RUN'}, 'HISTORY_FROZEN_PROJECTION_CHANGED'),
+    ])
+    def test_source_drift_does_not_admit_changed_owner_inputs_or_business(
+            service, monkeypatch, field, value, reason):
+        _save(service, monkeypatch)
+        _source_comment(monkeypatch)
+        compute = w._compute_workspace
+        def changed(*args, **kwargs):
+            result = compute(*args, **kwargs)
+            result[field] = deepcopy(value)
+            return result
+        monkeypatch.setattr(w, '_compute_workspace', changed)
+        before = _files(service.store)
+        result = service.get_workspace('20260930', view='historical', now=AFTER)
+        assert result['plan_product']['consumed'] is False
+>       assert result['read_context']['reason'] == reason
+E       AssertionError: assert 'HISTORY_READ...RSION_CHANGED' == 'HISTORY_FROZ...CTION_CHANGED'
+E         
+E         - HISTORY_FROZEN_PROJECTION_CHANGED
+E         + HISTORY_READER_VERSION_CHANGED
+
+tests/test_manager_history_contract_20261008.py:149: AssertionError
+____________ test_source_change_during_revalidation_is_not_admitted ____________
+
+service = <v4.manager_research.service.ManagerResearchJobService object at 0x7f599df4f950>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f599de58050>
+
+    def test_source_change_during_revalidation_is_not_admitted(service, monkeypatch):
+        saved = _save(service, monkeypatch)
+        calls = iter([saved['read_contract_sha256'], 'd'*64])
+        monkeypatch.setattr(h, 'contract_identity', lambda:next(calls, 'd'*64))
+        before = _files(service.store)
+        result = service.get_workspace('20260930', view='historical', now=AFTER)
+>       assert result['plan_product']['consumed'] is False
+E       assert True is False
+
+tests/test_manager_history_contract_20261008.py:161: AssertionError
+____________ test_legacy_without_fingerprint_preserves_full_replay _____________
+
+service = <v4.manager_research.service.ManagerResearchJobService object at 0x7f599df4fbb0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f599df97cb0>
+
+    def test_legacy_without_fingerprint_preserves_full_replay(service, monkeypatch):
+        saved = _save(service, monkeypatch)
+        saved.pop('read_contract_sha256')
+        saved['workspace'].pop('read_context')
+        _reseal_latest(service, saved)
+        before = _files(service.store)
+        result = service.get_workspace('20260930', view='historical', now=AFTER)
+        assert result['plan_product']['consumed'] is True
+        assert result['read_context']['legacy_full_revalidation'] is True
+>       assert result['read_context']['reader_compatibility']['mode'] == 'LEGACY_FULL_REVALIDATION'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'reader_compatibility'
+
+tests/test_manager_history_contract_20261008.py:175: KeyError
+__ test_source_drift_still_rejects_saved_evidence_after_cutoff[published_at] ___
+
+service = <v4.manager_research.service.ManagerResearchJobService object at 0x7f599e02c9d0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f599de6b310>
+field = 'published_at'
+
+    @pytest.mark.parametrize('field', ['published_at', 'available_at', 'retrieved_at'])
+    def test_source_drift_still_rejects_saved_evidence_after_cutoff(service, monkeypatch, field):
+        saved = _save(service, monkeypatch)
+        cutoff = saved['workspace']['plan_context']['research_cutoff']
+        material = dict(published_at=cutoff, available_at=cutoff, retrieved_at=cutoff)
+        material[field] = AFTER.isoformat()
+        saved['workspace']['materials'] = [material]
+        _reseal_latest(service, saved)
+        _source_comment(monkeypatch)
+        monkeypatch.setattr(w, '_compute_workspace', lambda *a, **k:pytest.fail('invalid PIT replayed'))
+        result = service.get_workspace('20260930', view='historical', now=AFTER)
+        assert result['plan_product']['consumed'] is False
+>       assert result['read_context']['reason'] == 'HISTORY_MATERIAL_PIT_UNVERIFIED'
+E       AssertionError: assert 'HISTORY_READ...RSION_CHANGED' == 'HISTORY_MATE...IT_UNVERIFIED'
+E         
+E         - HISTORY_MATERIAL_PIT_UNVERIFIED
+E         + HISTORY_READER_VERSION_CHANGED
+
+tests/test_manager_history_contract_20261008.py:193: AssertionError
+__ test_source_drift_still_rejects_saved_evidence_after_cutoff[available_at] ___
+
+service = <v4.manager_research.service.ManagerResearchJobService object at 0x7f599dec1940>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f599de07d20>
+field = 'available_at'
+
+    @pytest.mark.parametrize('field', ['published_at', 'available_at', 'retrieved_at'])
+    def test_source_drift_still_rejects_saved_evidence_after_cutoff(service, monkeypatch, field):
+        saved = _save(service, monkeypatch)
+        cutoff = saved['workspace']['plan_context']['research_cutoff']
+        material = dict(published_at=cutoff, available_at=cutoff, retrieved_at=cutoff)
+        material[field] = AFTER.isoformat()
+        saved['workspace']['materials'] = [material]
+        _reseal_latest(service, saved)
+        _source_comment(monkeypatch)
+        monkeypatch.setattr(w, '_compute_workspace', lambda *a, **k:pytest.fail('invalid PIT replayed'))
+        result = service.get_workspace('20260930', view='historical', now=AFTER)
+        assert result['plan_product']['consumed'] is False
+>       assert result['read_context']['reason'] == 'HISTORY_MATERIAL_PIT_UNVERIFIED'
+E       AssertionError: assert 'HISTORY_READ...RSION_CHANGED' == 'HISTORY_MATE...IT_UNVERIFIED'
+E         
+E         - HISTORY_MATERIAL_PIT_UNVERIFIED
+E         + HISTORY_READER_VERSION_CHANGED
+
+tests/test_manager_history_contract_20261008.py:193: AssertionError
+__ test_source_drift_still_rejects_saved_evidence_after_cutoff[retrieved_at] ___
+
+service = <v4.manager_research.service.ManagerResearchJobService object at 0x7f599dec15b0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f599de05f60>
+field = 'retrieved_at'
+
+    @pytest.mark.parametrize('field', ['published_at', 'available_at', 'retrieved_at'])
+    def test_source_drift_still_rejects_saved_evidence_after_cutoff(service, monkeypatch, field):
+        saved = _save(service, monkeypatch)
+        cutoff = saved['workspace']['plan_context']['research_cutoff']
+        material = dict(published_at=cutoff, available_at=cutoff, retrieved_at=cutoff)
+        material[field] = AFTER.isoformat()
+        saved['workspace']['materials'] = [material]
+        _reseal_latest(service, saved)
+        _source_comment(monkeypatch)
+        monkeypatch.setattr(w, '_compute_workspace', lambda *a, **k:pytest.fail('invalid PIT replayed'))
+        result = service.get_workspace('20260930', view='historical', now=AFTER)
+        assert result['plan_product']['consumed'] is False
+>       assert result['read_context']['reason'] == 'HISTORY_MATERIAL_PIT_UNVERIFIED'
+E       AssertionError: assert 'HISTORY_READ...RSION_CHANGED' == 'HISTORY_MATE...IT_UNVERIFIED'
+E         
+E         - HISTORY_MATERIAL_PIT_UNVERIFIED
+E         + HISTORY_READER_VERSION_CHANGED
+
+tests/test_manager_history_contract_20261008.py:193: AssertionError
+_ test_source_drift_requires_original_scheduled_attempt_and_preserves_kind[SCHEDULED_PREOPEN] _
+
+service = <v4.manager_research.service.ManagerResearchJobService object at 0x7f599dec08a0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f599dd030e0>
+kind = 'SCHEDULED_PREOPEN'
+
+    @pytest.mark.parametrize('kind', ['SCHEDULED_PREOPEN', 'SCHEDULED_MORNING'])
+    def test_source_drift_requires_original_scheduled_attempt_and_preserves_kind(service, monkeypatch, kind):
+        saved = _save(service, monkeypatch, kind=kind)
+        _source_comment(monkeypatch)
+        result = service.get_workspace('20260930', view='historical', now=AFTER)
+>       assert result['plan_product']['consumed'] is True, result['read_context']
+E       AssertionError: {'mode': 'HISTORICAL_AS_OF', 'status': 'SOURCE_FAILED', 'as_of': '2026-09-30T09:27:00+08:00', 'boundary_basis': 'NATIVE_MANAGER_FIRST_CONTINUOUS_STAGE_MAXIMUM', ...}
+E       assert False is True
+
+tests/test_manager_history_contract_20261008.py:212: AssertionError
+_ test_source_drift_requires_original_scheduled_attempt_and_preserves_kind[SCHEDULED_MORNING] _
+
+service = <v4.manager_research.service.ManagerResearchJobService object at 0x7f599dec09d0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f599dd02580>
+kind = 'SCHEDULED_MORNING'
+
+    @pytest.mark.parametrize('kind', ['SCHEDULED_PREOPEN', 'SCHEDULED_MORNING'])
+    def test_source_drift_requires_original_scheduled_attempt_and_preserves_kind(service, monkeypatch, kind):
+        saved = _save(service, monkeypatch, kind=kind)
+        _source_comment(monkeypatch)
+        result = service.get_workspace('20260930', view='historical', now=AFTER)
+>       assert result['plan_product']['consumed'] is True, result['read_context']
+E       AssertionError: {'mode': 'HISTORICAL_AS_OF', 'status': 'SOURCE_FAILED', 'as_of': '2026-09-30T08:00:00+08:00', 'boundary_basis': 'NATIVE_MANAGER_FIRST_CONTINUOUS_STAGE_MAXIMUM', ...}
+E       assert False is True
+
+tests/test_manager_history_contract_20261008.py:212: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_manager_history_contract_20261008.py::test_source_comment_change_revalidates_same_contract_at_original_cutoff[20260929]
+FAILED tests/test_manager_history_contract_20261008.py::test_source_comment_change_revalidates_same_contract_at_original_cutoff[20260930]
+FAILED tests/test_manager_history_contract_20261008.py::test_source_drift_without_supported_saved_contract_rejects_before_owner_replay[None-HISTORY_READ_CONTRACT_UNPROVEN]
+FAILED tests/test_manager_history_contract_20261008.py::test_source_drift_without_supported_saved_contract_rejects_before_owner_replay[unrecognized-history-contract-HISTORY_READ_CONTRACT_UNSUPPORTED]
+FAILED tests/test_manager_history_contract_20261008.py::test_malformed_saved_reader_identity_has_distinct_rejection[]
+FAILED tests/test_manager_history_contract_20261008.py::test_malformed_saved_reader_identity_has_distinct_rejection[zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz]
+FAILED tests/test_manager_history_contract_20261008.py::test_malformed_saved_reader_identity_has_distinct_rejection[AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA]
+FAILED tests/test_manager_history_contract_20261008.py::test_malformed_saved_reader_identity_has_distinct_rejection[111111111111111111111111111111111111111111111111111111111111111]
+FAILED tests/test_manager_history_contract_20261008.py::test_malformed_saved_reader_identity_has_distinct_rejection[123]
+FAILED tests/test_manager_history_contract_20261008.py::test_malformed_saved_reader_identity_has_distinct_rejection[invalid5]
+FAILED tests/test_manager_history_contract_20261008.py::test_source_drift_does_not_admit_changed_owner_inputs_or_business[input_identity-eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-HISTORY_SOURCE_INPUTS_CHANGED]
+FAILED tests/test_manager_history_contract_20261008.py::test_source_drift_does_not_admit_changed_owner_inputs_or_business[briefing-value1-HISTORY_FROZEN_PROJECTION_CHANGED]
+FAILED tests/test_manager_history_contract_20261008.py::test_source_drift_does_not_admit_changed_owner_inputs_or_business[summary-value2-HISTORY_FROZEN_PROJECTION_CHANGED]
+FAILED tests/test_manager_history_contract_20261008.py::test_source_drift_does_not_admit_changed_owner_inputs_or_business[announcement_review-value3-HISTORY_FROZEN_PROJECTION_CHANGED]
+FAILED tests/test_manager_history_contract_20261008.py::test_source_change_during_revalidation_is_not_admitted
+FAILED tests/test_manager_history_contract_20261008.py::test_legacy_without_fingerprint_preserves_full_replay
+FAILED tests/test_manager_history_contract_20261008.py::test_source_drift_still_rejects_saved_evidence_after_cutoff[published_at]
+FAILED tests/test_manager_history_contract_20261008.py::test_source_drift_still_rejects_saved_evidence_after_cutoff[available_at]
+FAILED tests/test_manager_history_contract_20261008.py::test_source_drift_still_rejects_saved_evidence_after_cutoff[retrieved_at]
+FAILED tests/test_manager_history_contract_20261008.py::test_source_drift_requires_original_scheduled_attempt_and_preserves_kind[SCHEDULED_PREOPEN]
+FAILED tests/test_manager_history_contract_20261008.py::test_source_drift_requires_original_scheduled_attempt_and_preserves_kind[SCHEDULED_MORNING]
+21 failed, 1 passed in 1.29s

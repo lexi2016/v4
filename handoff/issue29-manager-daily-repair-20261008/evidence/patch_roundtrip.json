@@ -1,0 +1,32 @@
+{
+  "schema_version": "v4.issue29.patch_roundtrip.v1",
+  "scope": "isolated temporary directory only; no deployed application or business stores",
+  "production_files": 2,
+  "test_files": 5,
+  "commands": [
+    {
+      "patch": "source_delta.patch",
+      "check_exit": 0,
+      "apply_exit": 0
+    },
+    {
+      "patch": "tests_delta.patch",
+      "check_exit": 0,
+      "apply_exit": 0
+    },
+    {
+      "patch": "tests_delta.reverse.patch",
+      "check_exit": 0,
+      "apply_exit": 0
+    },
+    {
+      "patch": "source_delta.reverse.patch",
+      "check_exit": 0,
+      "apply_exit": 0
+    }
+  ],
+  "before_byte_identity": true,
+  "after_byte_identity": true,
+  "reverse_byte_identity": true,
+  "status": "PASS"
+}

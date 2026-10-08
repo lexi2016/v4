@@ -1,0 +1,177 @@
+{
+  "scope": "ISOLATED_TEST_SOURCE_SLICE_NOT_DEPLOYABLE_APP",
+  "remote_baseline": "b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9",
+  "local_assembled_base": "da144fd50eb02f04c8c898f9ebc4661d69f23887",
+  "source_overlays": [
+    {
+      "path": "apps/api/v35_api/manager_research_router.py",
+      "origin": "R1_66339d5_after",
+      "sha256": "84f65a351e1e44171820cb8698e4198b3084e39b8d0cfe82c6b4bc05595f8073"
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "origin": "R1_66339d5_after",
+      "sha256": "703506a0880138122b53de4eeb5f47ed8a790bb6b97b0b56d4bf467de61c68da"
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "origin": "R1_66339d5_after",
+      "sha256": "1e5ad94098c8672efa228e73c447129f49c58fd3dde32242f244f03a216e10e5"
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyChannels.runtime.spec.ts",
+      "origin": "R1_66339d5_after",
+      "sha256": "c300e175a184a6a9e365c5d99a2977ea8cc8c8eed27fbedb3291785a83bd640e"
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyChannels.spec.ts",
+      "origin": "R1_66339d5_after",
+      "sha256": "4bc77f9a73881decf160814b90dc84124d5dc8eede9304f8011047d752f19ef3"
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyChannels.testHelper.ts",
+      "origin": "R1_66339d5_after",
+      "sha256": "ff2e22d33fe61fc8c44e3c524f2a192b55bb5ee1a6330eadc0ca3373c546f3f0"
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyChannels.ts",
+      "origin": "R1_66339d5_after",
+      "sha256": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc"
+    },
+    {
+      "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "origin": "R1_66339d5_after",
+      "sha256": "73eb6a2f7cbf2e2307a87edc3013e355c331f2ce87e6e0ae693b9f78de2dd34a"
+    },
+    {
+      "path": "ops/run_manager_announcement_cycle.py",
+      "origin": "R1_66339d5_after",
+      "sha256": "c6f9cfa57515682b4f076e10f2030196dc9377bdbb9ec4abe737e36d15485c1c"
+    },
+    {
+      "path": "tests/test_manager_announcement_parity_20261008.py",
+      "origin": "R1_66339d5_after",
+      "sha256": "22fccef9d1904c2ea0f52f645e4810cef876574bb8574722109fa37f0a29b4ed"
+    },
+    {
+      "path": "tests/test_manager_daily_channels_20261008.py",
+      "origin": "R1_66339d5_after",
+      "sha256": "0fd82492fbfc87e44e04836a1312c76c5113d12db0c76f7a59c4f5c58b44eace"
+    },
+    {
+      "path": "tests/test_manager_daily_dispatch_20261008.py",
+      "origin": "R1_66339d5_after",
+      "sha256": "f4137ac34bc45c4deec95c5c238cbec12776be4e383e485557c27fc4a24d66b1"
+    },
+    {
+      "path": "tests/test_manager_input_contracts_20261008.py",
+      "origin": "R1_66339d5_after",
+      "sha256": "7622f1a6affa4beb30be9221aa13d9e3ae11f835cddb5014b561840aaca6905f"
+    },
+    {
+      "path": "tests/test_manager_workspace_owner_20261008.py",
+      "origin": "R1_66339d5_after",
+      "sha256": "4c2fdaebd804532121057fdbf9aef07bc440812255802c079558f52209303887"
+    },
+    {
+      "path": "v4/manager_research/connect_selection.py",
+      "origin": "R1_66339d5_after",
+      "sha256": "85786fe9a0381fe55d2bf01d6e0323c3216fca46e31ae9bd877b68367ca19c5a"
+    },
+    {
+      "path": "v4/manager_research/plan_owner_dispatch.py",
+      "origin": "R1_66339d5_after",
+      "sha256": "8fad78ec64b1ff3ab80242fedc93dfcf7cbed25e6839821aab7f024ca297bf75"
+    },
+    {
+      "path": "v4/manager_research/service.py",
+      "origin": "R1_66339d5_after",
+      "sha256": "fe6cb338015eed9299d29bfc842b7e936b750a6246a14dd61049e6fe5da16a19"
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "origin": "R1_66339d5_after",
+      "sha256": "183e3ebd0322883a8f8cef37c0244f424f16c63d3120245e263bb9585133dea3"
+    },
+    {
+      "path": "v4/manager_research/workspace_announcements.py",
+      "origin": "R1_66339d5_after",
+      "sha256": "ea259666727b71c78760d666f3fe7f90350829bdce5f2b55745927528546af04"
+    },
+    {
+      "path": "v4/manager_research/workspace_daily_channels.py",
+      "origin": "R1_66339d5_after",
+      "sha256": "2a0052431a40f337822e3b72c8217992284e4322c26d0238614b5385c6d2c37d"
+    },
+    {
+      "path": "v4/manager_research/workspace_history.py",
+      "origin": "R1_66339d5_after",
+      "sha256": "da5e1223326631cc9070c3059ca606bac3840ef468ad5c06f2f3a51534f82ec1"
+    },
+    {
+      "path": "v4/manager_research/workspace_plan.py",
+      "origin": "R1_66339d5_after",
+      "sha256": "9c45bf3d819c9beebdd3c0313f76ba65a44d7f482135a46f42307b65887d6c93"
+    },
+    {
+      "path": "v4/manager_research/workspace_plan_autorun.py",
+      "origin": "R1_66339d5_after",
+      "sha256": "703bef8d9a04861c6cb4161880427126badd69eece234f9b53eaa5ae59d7c6ef"
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "origin": "b22836ef_source/api_app/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c"
+    },
+    {
+      "path": "v4/manager_research/connect_capture_adapter.py",
+      "origin": "b22836ef_source/api_app/v4/manager_research/connect_capture_adapter.py",
+      "sha256": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b"
+    },
+    {
+      "path": "v4/manager_research/connect_selection.py",
+      "origin": "b22836ef_source/api_app/v4/manager_research/connect_selection.py",
+      "sha256": "eaa01a13d8065b11cc8397a12edaad8b892f183158aa1f9475d29645dee09d83"
+    },
+    {
+      "path": "v4/manager_research/service.py",
+      "origin": "b22836ef_source/api_app/v4/manager_research/service.py",
+      "sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37"
+    },
+    {
+      "path": "v4/manager_research/workspace_daily_channels.py",
+      "origin": "b22836ef_source/api_app/v4/manager_research/workspace_daily_channels.py",
+      "sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f"
+    },
+    {
+      "path": "v4/manager_research/workspace_plan.py",
+      "origin": "b22836ef_source/api_app/v4/manager_research/workspace_plan.py",
+      "sha256": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb"
+    },
+    {
+      "path": "tests/test_manager_research_router_contract.py",
+      "origin": "b22836ef_source/tests/api/test_manager_research_router_contract.py",
+      "sha256": "673349cac3d50bda4abe6a6f1869811d0e5cab4ef95921610e1286cd14163419"
+    },
+    {
+      "path": "tests/test_manager_daily_channels_20261008.py",
+      "origin": "b22836ef_source/tests/backend/test_manager_daily_channels_20261008.py",
+      "sha256": "43688012eb751ac5c63c09e689aa85a82d3dfd147f82274e3e55f3530dacd536"
+    },
+    {
+      "path": "tests/test_security_master_store_error.py",
+      "origin": "b22836ef_source/tests/workspace_failure/test_security_master_store_error.py",
+      "sha256": "f4658693632ab97a8264b6340a859b44ffb2db8c556ac03fe01802fc4f8069a9"
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "origin": "b22836ef_source/web/apps/web/src/api/managerWorkspace.ts",
+      "sha256": "5854af5d1e2b33cc469ba6abd49096bb2f727280161c663edf4b757742f9ce92"
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "origin": "b22836ef_source/web/apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "sha256": "fbb20e417bb4d9ff7cbd25c5aa29f387a1650438d6e638216b3f4d7c1a209497"
+    }
+  ]
+}

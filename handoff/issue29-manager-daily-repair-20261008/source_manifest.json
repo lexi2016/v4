@@ -1,0 +1,241 @@
+{
+  "schema_version": "v4.manager_workbench_repair.delivery.v1",
+  "issue": 29,
+  "base_commit": "b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9",
+  "source_root_kind": "ISOLATED_TEST_SOURCE_SLICE_NOT_DEPLOYABLE_APP",
+  "not_live_release": true,
+  "actual_process_loaded_identity": "NOT_VERIFIED_CURRENT",
+  "local_comparison_commit": "e521e8ebb3119e68095e02b1b54858c0dc0756a9",
+  "files": [
+    {
+      "path": "v4/manager_research/workspace_history.py",
+      "profile": "api",
+      "change": "modified",
+      "before_sha256": "da5e1223326631cc9070c3059ca606bac3840ef468ad5c06f2f3a51534f82ec1",
+      "after_sha256": "d46b84f084af5eb695812a7052520147722a80a6885fb3dfdb4c1a18de3c72b5",
+      "after_bytes": 19976,
+      "after_path": "after/v4/manager_research/workspace_history.py",
+      "before_source_origin": "handoff/manager-workbench-repair-20261008/after/v4/manager_research/workspace_history.py",
+      "before_source_commit": "b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9",
+      "before_git_blob_sha": "4901ce1fb9ab2f73517275ad89fd187b27bff375",
+      "after_git_blob_sha": "e8f8c4376bacfc09a3913b77e4d8129c77e7f883",
+      "reason": "Allow cross-source historical replay only under the contract sealed in the original plan, after unchanged owner/cutoff/PIT/input/frozen-field revalidation; retain source stability and all existing gates.",
+      "targeted_tests": [
+        "tests/test_manager_history_contract_20261008.py",
+        "tests/test_manager_history_readback_r1.py",
+        "tests/test_manager_history_control_r1.py",
+        "tests/test_manager_history_r2_regex_equivalence.py"
+      ]
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "profile": "api",
+      "change": "modified",
+      "before_sha256": "183e3ebd0322883a8f8cef37c0244f424f16c63d3120245e263bb9585133dea3",
+      "after_sha256": "ab25d4856019b10bda1cb73928e5e2e75fad870a8321025019dceeb2cf0b6b52",
+      "after_bytes": 60422,
+      "after_path": "after/v4/manager_research/workspace.py",
+      "before_source_origin": "handoff/manager-workbench-repair-20261008/after/v4/manager_research/workspace.py",
+      "before_source_commit": "b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9",
+      "before_git_blob_sha": "380b3a24ff5c69bef033ccc93f2d131784af8b56",
+      "after_git_blob_sha": "86f40302051b72c7a733351448422057b039834e",
+      "reason": "Isolate ordinary US reader failure with the complete original Mac API DTO; unknown counts and original NOT_CONSUMED plan reference, unchanged successful owner and cutoff path.",
+      "targeted_tests": [
+        "tests/test_manager_us_mapping_isolation_20261008.py",
+        "tests/test_manager_workspace_owner_20261008.py",
+        "apps/web/src/api/managerWorkspace.usIsolation.spec.ts"
+      ]
+    },
+    {
+      "path": "tests/test_manager_history_readback_r1.py",
+      "profile": "tests",
+      "change": "modified",
+      "before_sha256": "6361359568e5cc02cb9b5d9c74461fd0f7d2c1d6c80d3ad3a9bae8628aa997e6",
+      "after_sha256": "aa2109b6cc8fd96e43212c59d30bec754bf51cb9c630e162a7c07ed15b585f26",
+      "after_bytes": 13935,
+      "after_path": "after/tests/test_manager_history_readback_r1.py",
+      "before_source_origin": "handoff/v4-running-source-20261005/canonical/tests/test_manager_history_readback_r1.py",
+      "before_source_commit": "b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9",
+      "before_git_blob_sha": "401f5d0dfd5540f77ba5158e18b54ebed6129f26",
+      "after_git_blob_sha": "3118c1ba68dd9801f32149f4d55393b495b27f2c",
+      "reason": "Targeted synthetic regression for the two production fixes; original baseline failures are retained.",
+      "targeted_tests": [
+        "tests/test_manager_history_readback_r1.py"
+      ]
+    },
+    {
+      "path": "tests/test_manager_workspace_owner_20261008.py",
+      "profile": "tests",
+      "change": "modified",
+      "before_sha256": "4c2fdaebd804532121057fdbf9aef07bc440812255802c079558f52209303887",
+      "after_sha256": "9d1faeee5a0d8e1d9466244023d0a9fbbb3032d7934de40337096a1d35eda13e",
+      "after_bytes": 12208,
+      "after_path": "after/tests/test_manager_workspace_owner_20261008.py",
+      "before_source_origin": "handoff/manager-workbench-repair-20261008/after/tests/test_manager_workspace_owner_20261008.py",
+      "before_source_commit": "b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9",
+      "before_git_blob_sha": "4990ddf27cdc8fb1322faee05218cc2835145a96",
+      "after_git_blob_sha": "b50e9a7c63366d8fbbbb975c6054ec22d0f1e7b0",
+      "reason": "Targeted synthetic regression for the two production fixes; original baseline failures are retained.",
+      "targeted_tests": [
+        "tests/test_manager_workspace_owner_20261008.py"
+      ]
+    },
+    {
+      "path": "tests/test_manager_history_contract_20261008.py",
+      "profile": "tests",
+      "change": "added",
+      "before_sha256": null,
+      "after_sha256": "36eeb5b9f41a927f6b9b19f6d1d1bd6f515986631ccd5754e14bbd423eacd774",
+      "after_bytes": 12978,
+      "after_path": "after/tests/test_manager_history_contract_20261008.py",
+      "before_source_origin": null,
+      "before_source_commit": null,
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "fc7a0f4e8f63c27876ca31d7ccec28310cd41ed6",
+      "reason": "Targeted synthetic regression for the two production fixes; original baseline failures are retained.",
+      "targeted_tests": [
+        "tests/test_manager_history_contract_20261008.py"
+      ]
+    },
+    {
+      "path": "tests/test_manager_us_mapping_isolation_20261008.py",
+      "profile": "tests",
+      "change": "added",
+      "before_sha256": null,
+      "after_sha256": "7f56ea1f22fdd8d229a3377c3185733e32f443ccf0657b24857770c7c0658dbb",
+      "after_bytes": 6712,
+      "after_path": "after/tests/test_manager_us_mapping_isolation_20261008.py",
+      "before_source_origin": null,
+      "before_source_commit": null,
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "cb62f366e4625048457f48949935fd6a6ef28a14",
+      "reason": "Targeted synthetic regression for the two production fixes; original baseline failures are retained.",
+      "targeted_tests": [
+        "tests/test_manager_us_mapping_isolation_20261008.py"
+      ]
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.usIsolation.spec.ts",
+      "profile": "tests",
+      "change": "added",
+      "before_sha256": null,
+      "after_sha256": "36daeae19a3d079f00aec8ec27ca165b4764dadf1448bb241eb1dfb4a3558736",
+      "after_bytes": 4382,
+      "after_path": "after/apps/web/src/api/managerWorkspace.usIsolation.spec.ts",
+      "before_source_origin": null,
+      "before_source_commit": null,
+      "before_git_blob_sha": null,
+      "after_git_blob_sha": "e4692ba14cc4a9e9694b92e4c09c4c7b7615431e",
+      "reason": "Targeted synthetic regression for the two production fixes; original baseline failures are retained.",
+      "targeted_tests": [
+        "apps/web/src/api/managerWorkspace.usIsolation.spec.ts"
+      ]
+    }
+  ],
+  "preserve": [
+    {
+      "path": "v4/manager_research/service.py",
+      "profile": "api",
+      "sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37",
+      "bytes": 93685,
+      "git_blob_sha": "fe21c0ef9674a0dc8e638706071c39ea0a7f3aa6",
+      "source_commit": "b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9",
+      "source_origin": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/service.py",
+      "reason": "Frozen Mac/R1 prerequisite preserved; this package has no replacement bytes for this file."
+    },
+    {
+      "path": "v4/manager_research/workspace_plan.py",
+      "profile": "api",
+      "sha256": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb",
+      "bytes": 106047,
+      "git_blob_sha": "25bdc2c417f28307a4bdd3a05e868ac2285b25c2",
+      "source_commit": "b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9",
+      "source_origin": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/workspace_plan.py",
+      "reason": "Frozen Mac/R1 prerequisite preserved; this package has no replacement bytes for this file."
+    },
+    {
+      "path": "v4/manager_research/workspace_daily_channels.py",
+      "profile": "api",
+      "sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+      "bytes": 12982,
+      "git_blob_sha": "5e6a5a75ab1d1c3bbe8f32e56084356dd57f5984",
+      "source_commit": "b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9",
+      "source_origin": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/workspace_daily_channels.py",
+      "reason": "Frozen Mac/R1 prerequisite preserved; this package has no replacement bytes for this file."
+    },
+    {
+      "path": "v4/manager_research/connect_selection.py",
+      "profile": "api",
+      "sha256": "eaa01a13d8065b11cc8397a12edaad8b892f183158aa1f9475d29645dee09d83",
+      "bytes": 17496,
+      "git_blob_sha": "de85b54d09fe8264b44799679fd11d42accbcd69",
+      "source_commit": "b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9",
+      "source_origin": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/connect_selection.py",
+      "reason": "Frozen Mac/R1 prerequisite preserved; this package has no replacement bytes for this file."
+    },
+    {
+      "path": "v4/manager_research/connect_capture_adapter.py",
+      "profile": "api",
+      "sha256": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b",
+      "bytes": 19841,
+      "git_blob_sha": "9a05b49406e9ff7f6cc35745a6177fdf338dde19",
+      "source_commit": "b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9",
+      "source_origin": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/connect_capture_adapter.py",
+      "reason": "Frozen Mac/R1 prerequisite preserved; this package has no replacement bytes for this file."
+    },
+    {
+      "path": "v4/manager_research/workspace_read_control.py",
+      "profile": "api",
+      "sha256": "491e3569e8f00586ca6f4e9982e182584d2f2a0437f83da66767b7ffdbf1fb25",
+      "bytes": 10927,
+      "git_blob_sha": "2ef88175e1a232d669dc23a05f35c48e27309bcf",
+      "source_commit": "b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9",
+      "source_origin": "handoff/v4-running-source-20261005/canonical/v4/manager_research/workspace_read_control.py",
+      "reason": "Frozen Mac/R1 prerequisite preserved; this package has no replacement bytes for this file."
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "profile": "web",
+      "sha256": "5854af5d1e2b33cc469ba6abd49096bb2f727280161c663edf4b757742f9ce92",
+      "bytes": 101431,
+      "git_blob_sha": "75575be074e82c9df69714d5d956595259ffb14c",
+      "source_commit": "b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9",
+      "source_origin": "handoff/manager-workbench-mac-completion-20261008/source/web/apps/web/src/api/managerWorkspace.ts",
+      "reason": "Frozen Mac/R1 prerequisite preserved; this package has no replacement bytes for this file."
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "profile": "web",
+      "sha256": "fbb20e417bb4d9ff7cbd25c5aa29f387a1650438d6e638216b3f4d7c1a209497",
+      "bytes": 64295,
+      "git_blob_sha": "7404344a5eb6da884352f65804a857fc582f1bf0",
+      "source_commit": "b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9",
+      "source_origin": "handoff/manager-workbench-mac-completion-20261008/source/web/apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "reason": "Frozen Mac/R1 prerequisite preserved; this package has no replacement bytes for this file."
+    },
+    {
+      "path": "apps/web/src/manager-selection/dailyChannels.ts",
+      "profile": "web",
+      "sha256": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc",
+      "bytes": 18449,
+      "git_blob_sha": "4083650551048eabd38662d31b4314f6fb084b74",
+      "source_commit": "b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9",
+      "source_origin": "handoff/manager-workbench-repair-20261008/after/apps/web/src/manager-selection/dailyChannels.ts",
+      "reason": "Frozen Mac/R1 prerequisite preserved; this package has no replacement bytes for this file."
+    }
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "dependencies": {
+    "existing_read_only_verifier": {
+      "source_commit": "b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9",
+      "source_origin": "handoff/manager-workbench-repair-20261008/tools/verify_delivery.py",
+      "git_blob_sha": "3c2d3c975e4a629030ab99cb2554b12827785496",
+      "sha256": "cfc2c28327bc260047ef011bc0b09f8cbba862039c5429d3e9f5a9677e251cfa",
+      "new_bytes_in_this_package": false
+    },
+    "full_app_and_current_process_closure": "NOT_VERIFIED; separate single-integration-owner gate required"
+  }
+}

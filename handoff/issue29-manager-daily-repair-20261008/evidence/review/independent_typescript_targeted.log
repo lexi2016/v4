@@ -1,0 +1,15 @@
+
+ RUN  v4.1.10 /workspace/scratch/a154a3323e32/worktrees/issue29/apps/web
+
+ ✓ src/api/managerWorkspace.usIsolation.spec.ts > Issue 29 original US reader isolation across Python and Mac API contracts > keeps a 20260930 workspace parseable when the US reader is missing_module 250ms
+ ✓ src/api/managerWorkspace.usIsolation.spec.ts > Issue 29 original US reader isolation across Python and Mac API contracts > keeps a 20260930 workspace parseable when the US reader is reader_failed 252ms
+ ✓ src/api/managerWorkspace.usIsolation.spec.ts > Issue 29 original US reader isolation across Python and Mac API contracts > keeps a 20261008 workspace parseable when the US reader is missing_module 236ms
+ ✓ src/api/managerWorkspace.usIsolation.spec.ts > Issue 29 original US reader isolation across Python and Mac API contracts > keeps a 20261008 workspace parseable when the US reader is reader_failed 259ms
+ ✓ src/api/managerWorkspace.usIsolation.spec.ts > Issue 29 original US reader isolation across Python and Mac API contracts > keeps the original announcement row visible through the real request and first-screen renderer 32ms
+ ✓ src/api/managerWorkspace.usIsolation.spec.ts > Issue 29 original US reader isolation across Python and Mac API contracts > still rejects a wrong-day US field and a forged zero-result status 1ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  06:50:16
+   Duration  1.72s (transform 139ms, setup 0ms, import 160ms, tests 1.03s, environment 400ms)
+

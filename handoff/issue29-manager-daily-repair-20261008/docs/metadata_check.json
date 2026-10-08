@@ -1,0 +1,39 @@
+{
+  "checked_at_utc": "2026-10-08T13:32:06Z",
+  "scope": "Read-only boundary metadata; no source modification, thread comment or service action.",
+  "issue28": {
+    "number": 28,
+    "title": "[P1] 阶段选股完整交接 2026-10-08：HK来源阻断、A竞价字段丢失及发布恢复缺陷",
+    "url": "https://github.com/lexi2016/v4/issues/28",
+    "state": "open",
+    "updated_at": "2026-10-08T02:13:47Z",
+    "comments": 0,
+    "frozen_input_commit": "00524e9050fe212f87911b56eea1c2db719dd94b"
+  },
+  "preselection_source_handoff": {
+    "commit": "4ad7cc52257b49470b3004ebfee9649af43189dd",
+    "path": "handoff/a-preselection-source-20261008/HANDOFF_SUMMARY.md",
+    "git_blob_sha": "574c40aeda7d5f04f3ca5cc43c435b6fe19a7217",
+    "observations": [
+      "Canonical source-only test report: 7 new + 3 focused regressions passed; historical report, not rerun in this task.",
+      "Isolated 20261008 canary report: 178 deduplicated A rows and 100 separate HK rows; not live deployment evidence.",
+      "Runtime monolithic domain and canonical split facade differ; launcher unchanged by source fix.",
+      "Two legacy HK fallback tests failed while creating fixtures; not passed.",
+      "Latest Issue28 reports CAS guard pin and missing-active recovery findings; older recovery-module PASS does not resolve these integration findings."
+    ]
+  },
+  "issue29": {
+    "number": 29,
+    "url": "https://github.com/lexi2016/v4/issues/29",
+    "fixed_input_commit": "b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9",
+    "runtime_identity_scope": "Historical R2, not a fresh listener read",
+    "publication_status": "FROZEN_NO_SERVICE_OR_FORMAL_PLAN_EXECUTION"
+  },
+  "references": [
+    "https://github.com/lexi2016/v4/issues/28",
+    "https://github.com/lexi2016/v4/issues/29",
+    "https://github.com/lexi2016/v4/blob/4ad7cc52257b49470b3004ebfee9649af43189dd/handoff/a-preselection-source-20261008/HANDOFF_SUMMARY.md",
+    "https://github.com/lexi2016/v4/blob/b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9/handoff/manager-workbench-mac-completion-20261008/file_map.json",
+    "https://github.com/lexi2016/v4/blob/b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9/handoff/manager-workbench-mac-completion-20261008/evidence/status.json"
+  ]
+}

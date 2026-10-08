@@ -1,0 +1,206 @@
+{
+  "schema_version": "v4.issue29.manager_module_results.v1",
+  "issue": 29,
+  "base_commit": "b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9",
+  "overall": "REVIEWED_TWO_FIX_MODULE_CANDIDATE_DAILY_RESTORATION_INCOMPLETE",
+  "goal_three_flows_daily": "NOT_COMPLETED",
+  "source_manifest": "../source_manifest.json",
+  "source_manifest_sha256": "1288acb285f0fbb204053ed486c54e972178d17c7a9c1423f055e8c5df91efa2",
+  "scope": {
+    "production_files_changed": 2,
+    "test_files_changed_or_added": 5,
+    "preserved_file_pins": 9,
+    "source_root_kind": "ISOLATED_TEST_SOURCE_SLICE_NOT_DEPLOYABLE_APP",
+    "complete_application": false,
+    "actual_mac_accessed": false,
+    "service_started": false,
+    "collector_executed": false,
+    "formal_plan_executed": false,
+    "binding_changed": false,
+    "business_products_changed": false,
+    "shared_app_or_stage_changed": false
+  },
+  "acceptance": {
+    "IMPLEMENTED": {
+      "status": "PASS_SCOPED",
+      "scope": "Supported sealed historical contract full replay and US reader failure DTO isolation only"
+    },
+    "TESTED": {
+      "status": "PASS_SCOPED_WITH_BASELINE_FAILURES",
+      "scope": "New and limited synthetic regressions; extended suites retain two pre-existing reproduced failures, no full-app pass"
+    },
+    "REVIEWED": {
+      "status": "PASS_SCOPED_CODE_REVIEW_WITH_RECORDED_BASELINE_FAILURES",
+      "evidence": "review/independent_review.md"
+    },
+    "INTEGRATED": {
+      "status": "ISOLATED_SOURCE_SLICE_ONLY",
+      "actual_current_combined_app": "NOT_RUN"
+    },
+    "DEPLOYED": {
+      "status": "NOT_RUN",
+      "reason": "Issue29 explicit publication freeze and code/plan-only Chat handoff"
+    },
+    "API_VERIFIED": {
+      "synthetic_original_owner_route_and_dto": "PASS_SCOPED",
+      "live_mac": "NOT_RUN"
+    },
+    "UI_VERIFIED": {
+      "synthetic_request_and_first_screen_renderer": "PASS_SCOPED",
+      "full_mac_parent_page": "NOT_RUN_SOURCE_CLOSURE_MISSING",
+      "live_mac": "NOT_RUN"
+    },
+    "BEHAVIOR_VERIFIED": {
+      "two_failure_mechanisms_synthetic": "PASS_SCOPED",
+      "actual_0930_original": "NOT_RUN",
+      "actual_two_business_dates": "NOT_RUN"
+    },
+    "NATURAL_VERIFIED": {
+      "status": "NATURAL_SLOT_UNVERIFIED"
+    }
+  },
+  "verification": {
+    "history_new": {
+      "passed": 27,
+      "failed": 0,
+      "exit_code": 0,
+      "log": "tests/history_new_green.log"
+    },
+    "us_python_new": {
+      "passed": 7,
+      "failed": 0,
+      "included_in_26_pass_batch": "tests/us_isolation_green_python.log"
+    },
+    "us_typescript_new": {
+      "passed": 6,
+      "failed": 0,
+      "exit_code": 0,
+      "log": "tests/us_isolation_green_typescript.log"
+    },
+    "expanded_backend": {
+      "passed": 160,
+      "failed": 1,
+      "exit_code": 1,
+      "log": "tests/backend_final.log",
+      "baseline_passed": 126,
+      "baseline_failed": 1,
+      "baseline_exit_code": 1,
+      "baseline_log": "tests/backend_baseline.log",
+      "difference": "34 new cases all pass; same original Connect fixture failure"
+    },
+    "history_combined": {
+      "passed": 81,
+      "failed": 1,
+      "exit_code": 1,
+      "log": "tests/history_regression.log",
+      "baseline_passed": 54,
+      "baseline_failed": 1,
+      "baseline_log": "tests/history_baseline.log"
+    },
+    "frontend_scoped": {
+      "passed": 13,
+      "failed": 0,
+      "exit_code": 0,
+      "log": "tests/frontend_final.log"
+    },
+    "typescript_scoped": {
+      "exit_code": 0,
+      "log": "tests/scoped_typescript.log",
+      "command": "./node_modules/.bin/tsc --noEmit --target ES2022 --module ESNext --moduleResolution Bundler --strict --skipLibCheck --types vitest/globals,node src/api/managerWorkspace.ts src/api/managerWorkspace.usIsolation.spec.ts src/manager-selection/dailyChannels.ts src/manager-selection/dailyChannels.spec.ts src/manager-selection/dailyChannels.testHelper.ts",
+      "cwd": "apps/web",
+      "full_project": false
+    },
+    "independent": {
+      "passed_python": 114,
+      "failed_python": 1,
+      "passed_new_typescript": 6,
+      "failed_new_typescript": 0,
+      "report": "review/independent_result.json"
+    },
+    "package_verification": {
+      "frozen_before": "PASS",
+      "isolated_after": "PASS",
+      "package_files_checked": 7,
+      "source_files_checked": 7,
+      "preserve_files_checked": 9,
+      "before_report": "preflight_frozen_before.json",
+      "after_report": "preflight_isolated_after.json",
+      "actual_mac_or_full_runtime_closure": false
+    },
+    "patch_roundtrip": {
+      "status": "PASS",
+      "production_files": 2,
+      "test_files": 5,
+      "report": "patch_roundtrip.json"
+    },
+    "counting_rule": "Batches overlap; never sum their passed counts."
+  },
+  "known_failures": [
+    {
+      "test": "tests/test_manager_history_readback_r1.py::test_exact_panel_selected_without_latest_substitution",
+      "reason": "PLAN_HK_02_PANEL_LATEST_MANIFEST_UNREADABLE",
+      "baseline_reproduced": true,
+      "test_or_rule_modified_to_hide_failure": false
+    },
+    {
+      "test": "tests/test_manager_announcement_parity_20261008.py::test_missing_original_archive_is_not_empty_connect_selection",
+      "reason": "Legacy synthetic fixture expects READY; frozen Mac formal-selection contract returns PARTIAL",
+      "baseline_reproduced": true,
+      "test_or_rule_modified_to_hide_failure": false
+    },
+    {
+      "test": "Original dailyChannels.runtime.spec.ts / full Mac parent page",
+      "reason": "Missing original managerAnnouncementAnalysis / announcementAnalysis modules and corresponding research renderer closure",
+      "log": "review/independent_typescript_combined.log",
+      "tests_executed_from_blocked_suite": 0,
+      "stub_added": false
+    }
+  ],
+  "requirements": {
+    "A_shared_entry_regression": {
+      "status": "PROTECTED_EXTERNAL_OWNER",
+      "owner": "Issue28 and single integration owner",
+      "changed_here": false,
+      "actual_A178_HK100_joint_regression": "NOT_RUN"
+    },
+    "B_history_reader": {
+      "status": "IMPLEMENTED_TESTED_REVIEWED_SCOPED",
+      "actual_run_ba13fba330464300b760fe940ba579a1": "NOT_RUN",
+      "requires_original_sealed_contract_and_owner_replay": true
+    },
+    "C_daily_inputs": {
+      "status": "DIAGNOSED_NOT_REPAIRED",
+      "hk02_20261008_exists": true,
+      "master_20261007_20261008_missing_in_observed_roots": true,
+      "exact_panel_20261007_missing": true,
+      "target_v2_publication_missing": true,
+      "volume_unit": "NOT_PROVEN",
+      "native_finality": "NOT_ATTESTED_BY_PROVIDER",
+      "cause_requires_actual_dispatch_date_roots_and_ensure_receipts": true
+    },
+    "D_daily_execution": {
+      "status": "NOT_COMPLETED",
+      "existing_b228_us_daily_service_entry_found": true,
+      "automatic_us_mapping_owner_call_implemented_this_round": false,
+      "no_bounded_current_dispatch_admitted_from_supplied_identity": true
+    },
+    "US_reader_failure_isolation": {
+      "status": "IMPLEMENTED_TESTED_REVIEWED_SCOPED",
+      "does_not_run_daily_owner": true
+    },
+    "E_accepted_announcement_and_store_error": {
+      "status": "PRESERVED_FIXED_SOURCE_SCOPE",
+      "original_observation": "33 selected / 54 watch / 75 pending at the fixed R2 product, not hardcoded future counts",
+      "reverified_live_this_round": false
+    }
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "reproduction": "../docs/TESTING.md",
+  "owner_and_date_map": "../docs/OWNERS_AND_DATE_RECONCILIATION.md",
+  "joint_acceptance": "../docs/JOINT_REGRESSION.md"
+}

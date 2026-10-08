@@ -1,0 +1,519 @@
+diff --git a/tests/test_manager_history_readback_r1.py b/tests/test_manager_history_readback_r1.py
+index 401f5d0..3118c1b 100644
+--- a/tests/test_manager_history_readback_r1.py
++++ b/tests/test_manager_history_readback_r1.py
+@@ -110,12 +110,19 @@ def test_later_dynamic_saved_plan_does_not_mask_prior_run(service,monkeypatch):
+     assert result['plan_product']['run_id']==first['plan_product']['run_id']
+ 
+ 
+-def test_reader_version_change_rejects_saved_product_before_replay(service,monkeypatch):
++def test_reader_version_change_without_saved_contract_rejects_before_replay(service,monkeypatch):
+     save_legacy_plan(service,monkeypatch)
++    p=service.store.root/'workspace_plans'/DATE/'latest.json'
++    row=service.store._read(p)
++    row['workspace'].pop('read_context')
++    row['sha256']=workspace.digest({k:v for k,v in row.items() if k!='sha256'})
++    service.store._write_atomic(p,row)
+     from v4.manager_research import workspace_history
+     monkeypatch.setattr(workspace_history,'contract_identity',lambda:'0'*64)
++    monkeypatch.setattr(workspace,'_compute_workspace',lambda *a,**k:pytest.fail('unproven contract must not replay'))
+     result=service.get_workspace(DATE,view='historical',now=NOW)
+-    assert result['read_context']['reason']=='HISTORY_READER_VERSION_CHANGED'
++    assert result['plan_product']['consumed'] is False
++    assert result['read_context']['reason']=='HISTORY_READ_CONTRACT_UNPROVEN'
+ 
+ 
+ def test_announcement_invalid_store_cannot_hide_behind_saved_plan(service,monkeypatch):
+diff --git a/tests/test_manager_workspace_owner_20261008.py b/tests/test_manager_workspace_owner_20261008.py
+index 4990ddf..b50e9a7 100644
+--- a/tests/test_manager_workspace_owner_20261008.py
++++ b/tests/test_manager_workspace_owner_20261008.py
+@@ -157,7 +157,8 @@ def test_missing_us_mapping_module_is_only_a_reference_gap(monkeypatch):
+     monkeypatch.setitem(sys.modules,'v4.manager_research.us_mapping_research',None)
+     read, reference, identities=w._daily_mapping_plan_reference(SimpleNamespace(),DAY,current()['plan_context'])
+     assert read['mapping']['status']=='NOT_EVALUATED'
+-    assert read['daily_run']['status']=='NOT_RUN'
++    assert read['daily_run']['status']=='CANNOT_CONFIRM'
++    assert read['daily_run']['coverage']['matched_hk_relation_count'] is None
+     assert reference['status']=='NOT_CONSUMED'
+     assert identities==[]
+     assert reference['reason'].startswith('US_MAPPING_READER_UNAVAILABLE:')
+diff --git a/tests/test_manager_history_contract_20261008.py b/tests/test_manager_history_contract_20261008.py
+new file mode 100644
+index 0000000..fc7a0f4
+--- /dev/null
++++ b/tests/test_manager_history_contract_20261008.py
+@@ -0,0 +1,259 @@
++"""Synthetic original-owner history regressions; no Mac or natural-run claim."""
++from copy import deepcopy
++from datetime import datetime, timedelta
++import io
++from pathlib import Path
++
++import pytest
++
++from v4.manager_research import workspace as w
++from v4.manager_research import workspace_history as h
++from v4.manager_research.service import ManagerResearchJobService
++from v4.manager_research.store import ManagerResearchStore
++
++
++READ_CONTRACT = '20260923.workspace-history-read.r1'
++AFTER = datetime.fromisoformat('2026-10-08T16:00:00+08:00')
++
++
++@pytest.fixture
++def service(tmp_path):
++    owner = ManagerResearchJobService(ManagerResearchStore(tmp_path/'manager'), None, None)
++    try:
++        yield owner
++    finally:
++        owner.close()
++
++
++def _save(service, monkeypatch, date='20260930', *, kind='MANUAL_REFRESH'):
++    hhmm = '08:00:00' if kind == 'SCHEDULED_MORNING' else '09:27:00'
++    cutoff = datetime.fromisoformat(f'{date[:4]}-{date[4:6]}-{date[6:]}T{hhmm}+08:00')
++    options = dict(now=cutoff, execution_kind=kind)
++    if kind != 'MANUAL_REFRESH':
++        deadline = '09:25:00' if kind == 'SCHEDULED_MORNING' else '09:30:00'
++        options['deadline'] = datetime.fromisoformat(
++            f'{date[:4]}-{date[4:6]}-{date[6:]}T{deadline}+08:00')
++    with monkeypatch.context() as clock:
++        clock.setattr(w, '_now', lambda:(cutoff+timedelta(seconds=1)).isoformat())
++        service.refresh_workspace_plan(date, **options)
++    saved = service.store._read(service.store.root/'workspace_plans'/date/'latest.json')
++    # This field is produced and sealed by the original writer, not added by
++    # a compatibility fixture to make an otherwise unknown contract pass.
++    assert saved['workspace']['read_context']['contract'] == READ_CONTRACT
++    return saved
++
++
++def _source_comment(monkeypatch):
++    """Expose changed source bytes to the real hasher without writing code."""
++    target = Path(h.__file__)
++    original = Path.open
++    def opened(path, *args, **kwargs):
++        if path == target and args and args[0] == 'rb':
++            with original(path, 'rb') as handle:
++                raw = handle.read()
++            return io.BytesIO(raw + b'\n# Simulated source comment revision.\n')
++        return original(path, *args, **kwargs)
++    monkeypatch.setattr(Path, 'open', opened)
++    return h.contract_identity()
++
++
++def _files(store):
++    return {str(path.relative_to(store.root)): path.read_bytes()
++            for path in store.root.rglob('*') if path.is_file()}
++
++
++def _reseal_latest(service, saved):
++    saved['sha256'] = w.digest({key:value for key,value in saved.items() if key != 'sha256'})
++    service.store._write_atomic(
++        service.store.root/'workspace_plans'/saved['target_trade_date']/'latest.json', saved)
++
++
++@pytest.mark.parametrize('date', ['20260929', '20260930'])
++def test_source_comment_change_revalidates_same_contract_at_original_cutoff(service, monkeypatch, date):
++    saved = _save(service, monkeypatch, date)
++    current = _source_comment(monkeypatch)
++    assert current != saved['read_contract_sha256']
++    before = _files(service.store)
++    result = service.get_workspace(date, view='historical', now=AFTER)
++    assert result['plan_product']['consumed'] is True, result['read_context']
++    assert result['plan_product']['run_id'] == saved['run_id']
++    assert result['plan_product']['sha256'] == saved['sha256']
++    assert result['plan_product']['generated_at'] == saved['generated_at']
++    assert result['plan_context'] == saved['workspace']['plan_context']
++    assert result['workspace_plan_attempt']['state'] == 'PARTIAL'
++    assert result['read_context']['status'] == 'VERIFIED_WITH_GAPS'
++    assert result['read_context']['candidate_count_known'] is False
++    proof = result['read_context']['reader_compatibility']
++    assert proof['status'] == 'VERIFIED'
++    assert proof['mode'] == 'SAME_CONTRACT_SOURCE_CHANGE'
++    assert proof['saved_read_contract_sha256'] == saved['read_contract_sha256']
++    assert proof['current_read_contract_sha256'] == current
++    assert proof['saved_contract'] == READ_CONTRACT
++    assert proof['source_stable_during_revalidation'] is True
++    assert proof['saved_plan_modified'] is False
++    assert 'historical_owner_revalidation' in result['read_metrics']['stages']
++    assert _files(service.store) == before
++    assert all(channel['natural_run_verified'] is False
++               for channel in result['daily_channels']['channels'])
++
++
++def test_two_saved_dates_never_substitute_each_others_product(service, monkeypatch):
++    earlier = _save(service, monkeypatch, '20260929')
++    later = _save(service, monkeypatch, '20260930')
++    _source_comment(monkeypatch)
++    before = _files(service.store)
++    for expected in (later, earlier, later):
++        date = expected['target_trade_date']
++        result = service.get_workspace(date, view='historical', now=AFTER)
++        assert result['plan_product']['consumed'] is True
++        assert result['target_trade_date'] == date
++        assert result['plan_product']['run_id'] == expected['run_id']
++        assert result['read_context']['as_of'] == expected['workspace']['plan_context']['research_cutoff']
++    absent = service.get_workspace('20260928', view='historical', now=AFTER)
++    assert absent['plan_product']['consumed'] is False
++    assert absent['plan_product']['run_id'] is None
++    assert absent['read_context']['reason'] == 'HISTORY_QUALIFIED_SAVED_PLAN_MISSING'
++    assert _files(service.store) == before
++
++
++def test_cross_date_saved_file_is_rejected_without_replay(service, monkeypatch):
++    _save(service, monkeypatch, '20260929')
++    later = _save(service, monkeypatch, '20260930')
++    # A complete, validly sealed different-day product is still invalid in
++    # this date's directory; neither its SHA nor compatibility can admit it.
++    service.store._write_atomic(service.store.root/'workspace_plans'/'20260929'/'latest.json', later)
++    _source_comment(monkeypatch)
++    monkeypatch.setattr(w, '_compute_workspace', lambda *a, **k:pytest.fail('cross-date product replayed'))
++    before = _files(service.store)
++    result = service.get_workspace('20260929', view='historical', now=AFTER)
++    assert result['plan_product']['consumed'] is False
++    assert result['read_context']['reason'] == 'HISTORY_PLAN_IDENTITY_INVALID'
++    assert _files(service.store) == before
++
++
++@pytest.mark.parametrize('contract, reason', [
++    (None, 'HISTORY_READ_CONTRACT_UNPROVEN'),
++    ('unrecognized-history-contract', 'HISTORY_READ_CONTRACT_UNSUPPORTED'),
++])
++def test_source_drift_without_supported_saved_contract_rejects_before_owner_replay(
++        service, monkeypatch, contract, reason):
++    saved = _save(service, monkeypatch)
++    if contract is None:
++        saved['workspace'].pop('read_context')
++    else:
++        saved['workspace']['read_context']['contract'] = contract
++    _reseal_latest(service, saved)
++    _source_comment(monkeypatch)
++    monkeypatch.setattr(w, '_compute_workspace', lambda *a, **k:pytest.fail('unproven contract replayed'))
++    result = service.get_workspace('20260930', view='historical', now=AFTER)
++    assert result['plan_product']['consumed'] is False
++    assert result['read_context']['reason'] == reason
++
++
++@pytest.mark.parametrize('invalid', ['', 'z'*64, 'A'*64, '1'*63, 123, ['a'*64]])
++def test_malformed_saved_reader_identity_has_distinct_rejection(service, monkeypatch, invalid):
++    saved = _save(service, monkeypatch)
++    saved['read_contract_sha256'] = invalid
++    _reseal_latest(service, saved)
++    monkeypatch.setattr(w, '_compute_workspace', lambda *a, **k:pytest.fail('malformed identity replayed'))
++    result = service.get_workspace('20260930', view='historical', now=AFTER)
++    assert result['plan_product']['consumed'] is False
++    assert result['read_context']['reason'] == 'HISTORY_READER_IDENTITY_INVALID'
++
++
++@pytest.mark.parametrize('field, value, reason', [
++    ('input_identity', 'e'*64, 'HISTORY_SOURCE_INPUTS_CHANGED'),
++    ('briefing', {'headline':'changed decision'}, 'HISTORY_FROZEN_PROJECTION_CHANGED'),
++    ('summary', {'stock_count':99}, 'HISTORY_FROZEN_PROJECTION_CHANGED'),
++    ('announcement_review', {'status':'NOT_RUN'}, 'HISTORY_FROZEN_PROJECTION_CHANGED'),
++])
++def test_source_drift_does_not_admit_changed_owner_inputs_or_business(
++        service, monkeypatch, field, value, reason):
++    _save(service, monkeypatch)
++    _source_comment(monkeypatch)
++    compute = w._compute_workspace
++    def changed(*args, **kwargs):
++        result = compute(*args, **kwargs)
++        result[field] = deepcopy(value)
++        return result
++    monkeypatch.setattr(w, '_compute_workspace', changed)
++    before = _files(service.store)
++    result = service.get_workspace('20260930', view='historical', now=AFTER)
++    assert result['plan_product']['consumed'] is False
++    assert result['read_context']['reason'] == reason
++    assert result['read_context']['reader_compatibility']['status'] == 'FAILED'
++    assert result['read_context']['reader_compatibility']['reason'] == reason
++    assert _files(service.store) == before
++
++
++def test_source_change_during_revalidation_is_not_admitted(service, monkeypatch):
++    saved = _save(service, monkeypatch)
++    calls = iter([saved['read_contract_sha256'], 'd'*64])
++    monkeypatch.setattr(h, 'contract_identity', lambda:next(calls, 'd'*64))
++    before = _files(service.store)
++    result = service.get_workspace('20260930', view='historical', now=AFTER)
++    assert result['plan_product']['consumed'] is False
++    assert result['read_context']['reason'] == 'HISTORY_READER_CHANGED_DURING_REVALIDATION'
++    assert _files(service.store) == before
++
++
++def test_legacy_without_fingerprint_preserves_full_replay(service, monkeypatch):
++    saved = _save(service, monkeypatch)
++    saved.pop('read_contract_sha256')
++    saved['workspace'].pop('read_context')
++    _reseal_latest(service, saved)
++    before = _files(service.store)
++    result = service.get_workspace('20260930', view='historical', now=AFTER)
++    assert result['plan_product']['consumed'] is True
++    assert result['read_context']['legacy_full_revalidation'] is True
++    assert result['read_context']['reader_compatibility']['mode'] == 'LEGACY_FULL_REVALIDATION'
++    assert result['read_context']['reader_compatibility']['saved_read_contract_sha256'] is None
++    assert 'historical_owner_revalidation' in result['read_metrics']['stages']
++    assert _files(service.store) == before
++
++
++@pytest.mark.parametrize('field', ['published_at', 'available_at', 'retrieved_at'])
++@pytest.mark.parametrize('invalid_time', [None, AFTER.isoformat()])
++def test_source_drift_still_rejects_unproven_or_late_saved_evidence(
++        service, monkeypatch, field, invalid_time):
++    saved = _save(service, monkeypatch)
++    cutoff = saved['workspace']['plan_context']['research_cutoff']
++    material = dict(published_at=cutoff, available_at=cutoff, retrieved_at=cutoff)
++    material[field] = invalid_time
++    saved['workspace']['materials'] = [material]
++    _reseal_latest(service, saved)
++    _source_comment(monkeypatch)
++    monkeypatch.setattr(w, '_compute_workspace', lambda *a, **k:pytest.fail('invalid PIT replayed'))
++    result = service.get_workspace('20260930', view='historical', now=AFTER)
++    assert result['plan_product']['consumed'] is False
++    assert result['read_context']['reason'] == 'HISTORY_MATERIAL_PIT_UNVERIFIED'
++
++
++def test_source_drift_still_rejects_changed_semantic_version(service, monkeypatch):
++    saved = _save(service, monkeypatch)
++    saved['workspace']['semantic_version'] = 'incompatible-version'
++    _reseal_latest(service, saved)
++    _source_comment(monkeypatch)
++    monkeypatch.setattr(w, '_compute_workspace', lambda *a, **k:pytest.fail('new semantics replayed'))
++    result = service.get_workspace('20260930', view='historical', now=AFTER)
++    assert result['plan_product']['consumed'] is False
++    assert result['read_context']['reason'] == 'HISTORY_SEMANTIC_VERSION_CHANGED'
++
++
++@pytest.mark.parametrize('kind', ['SCHEDULED_PREOPEN', 'SCHEDULED_MORNING'])
++def test_source_drift_requires_original_scheduled_attempt_and_preserves_kind(service, monkeypatch, kind):
++    saved = _save(service, monkeypatch, kind=kind)
++    _source_comment(monkeypatch)
++    result = service.get_workspace('20260930', view='historical', now=AFTER)
++    assert result['plan_product']['consumed'] is True, result['read_context']
++    assert result['plan_product']['execution_kind'] == kind
++    assert result['workspace_plan_attempt']['execution_kind'] == kind
++    assert result['workspace_plan_attempt']['run_id'] == saved['run_id']
++    path = service.store.root/'workspace_plan_runs'/'20260930'/(saved['run_id']+'.json')
++    attempt = service.store._read(path)
++    attempt['state'] = 'FAILED'
++    attempt['failure_reasons'] = ['SYNTHETIC_ORIGINAL_OWNER_FAILED']
++    service.store._write_atomic(path, w.seal_attempt(attempt))
++    result = service.get_workspace('20260930', view='historical', now=AFTER)
++    assert result['plan_product']['consumed'] is False
++    assert result['read_context']['reason'] == 'HISTORY_PLAN_OWNER_ATTEMPT_INVALID'
+diff --git a/tests/test_manager_us_mapping_isolation_20261008.py b/tests/test_manager_us_mapping_isolation_20261008.py
+new file mode 100644
+index 0000000..cb62f36
+--- /dev/null
++++ b/tests/test_manager_us_mapping_isolation_20261008.py
+@@ -0,0 +1,131 @@
++"""Synthetic original-owner DTOs; no provider calls, Mac service or real plans.
++
++The CLI supplies fresh Python-produced workspaces to the unchanged Mac API
++validator in the TypeScript regression. It does not fabricate an accepted US
++mapping or substitute HK Connect counts for US relationships.
++"""
++from __future__ import annotations
++
++from copy import deepcopy
++from datetime import datetime
++import json
++from pathlib import Path
++import sys
++from tempfile import TemporaryDirectory
++from types import ModuleType, SimpleNamespace
++from unittest.mock import patch
++
++import pytest
++
++from v4.manager_research import workspace
++from v4.manager_research.service import ManagerResearchJobService
++from v4.manager_research.store import ManagerResearchStore
++from v4.manager_research.workspace_projection import FLAGS
++
++
++MAPPING_MODULE = 'v4.manager_research.us_mapping_research'
++
++
++def failed_mapping_module(kind: str):
++    if kind == 'missing_module':
++        return None
++    module = ModuleType(MAPPING_MODULE)
++
++    def read_workspace_mapping(*_args, **_kwargs):
++        raise RuntimeError('synthetic original US reader failure')
++
++    module.read_workspace_mapping = read_workspace_mapping
++    return module
++
++
++def owner_workspace_fixture(date: str, kind: str) -> dict:
++    """Use the existing manager GET owner and an isolated unavailable US reader."""
++    iso = f'{date[:4]}-{date[4:6]}-{date[6:8]}'
++    with TemporaryDirectory(prefix='issue29-us-dto-') as directory:
++        service = ManagerResearchJobService(ManagerResearchStore(Path(directory) / 'manager'), None, None)
++        try:
++            with patch.dict(sys.modules, {MAPPING_MODULE: failed_mapping_module(kind)}):
++                before = {str(p.relative_to(service.store.root)): p.read_bytes()
++                          for p in service.store.root.rglob('*') if p.is_file()}
++                value = service.get_workspace(date, view='dynamic',
++                    now=datetime.fromisoformat(iso + 'T08:30:00+08:00'))
++                after = {str(p.relative_to(service.store.root)): p.read_bytes()
++                         for p in service.store.root.rglob('*') if p.is_file()}
++            assert after == before, 'GET must not create or overwrite US/plan artifacts'
++            return value
++        finally:
++            service.close()
++
++
++@pytest.mark.parametrize('date', ['20260930', '20261008'])
++@pytest.mark.parametrize('kind', ['missing_module', 'reader_failed'])
++def test_us_failure_retains_the_original_mac_dto_and_unknown_counts(date, kind):
++    value = owner_workspace_fixture(date, kind)
++    mapping = value['us_mapping_research']
++    assert mapping['schema_version'] == 'v4.manager_research.us_mapping_research.v1'
++    assert mapping['target_trade_date'] == date
++    daily = mapping['daily_run']
++    assert daily['schema_version'] == 'v4.manager_research.us_mapping_daily_run.v1'
++    assert daily['target_trade_date'] == date
++    # A failed reader cannot prove that the original owner never ran.
++    assert daily['status'] == 'CANNOT_CONFIRM'
++    assert daily['matches'] == []
++    assert all(daily[key] is None for key in
++               ['run_id', 'generated_at', 'us_session_date', 'research_cutoff',
++                'source_identity', 'input_identity', 'artifact_sha256'])
++    assert daily['coverage']['full_market_coverage'] is False
++    assert all(daily['coverage'][key] is None for key in
++               ['reviewed_us_symbol_count', 'matched_us_symbol_count',
++                'matched_hk_relation_count', 'configured_us_universe_count',
++                'available_us_universe_count'])
++    for data in [mapping, daily]:
++        assert all(data[key] is expected for key, expected in FLAGS.items())
++    assert daily['gaps'][0].startswith('US_MAPPING_READER_UNAVAILABLE:')
++    reference = value['owner_chain']['us_mapping_daily_plan_reference']
++    assert reference['status'] == 'NOT_CONSUMED' and reference['matches'] is None
++    assert reference['run_id'] is None and reference['artifact_sha256'] is None
++    assert value['daily_channels']['channels'][0]['channel'] == 'ANNOUNCEMENT'
++    assert value['daily_channels']['channels'][1]['channel'] == 'HK_CONNECT'
++    assert value['daily_channels']['channels'][2]['channel'] == 'OVERSOLD'
++
++
++@pytest.mark.parametrize('date', ['20260930', '20261008'])
++def test_reviewed_reference_failure_is_date_scoped_and_not_an_empty_success(date):
++    mapping = owner_workspace_fixture(date, 'reader_failed')['us_mapping_research']
++    reviewed = mapping['reviewed_research']
++    if date == '20260930':
++        assert reviewed['schema_version'] == 'v4.manager_research.us_mapping_reviewed.v1'
++        assert reviewed['target_trade_date'] == date
++        assert reviewed['status'] == 'CANNOT_CONFIRM'
++        assert reviewed['reviewed_at'] is None and reviewed['cards'] == []
++        assert reviewed['gaps'] == mapping['daily_run']['gaps']
++        assert all(reviewed[key] is expected for key, expected in FLAGS.items())
++    else:
++        assert reviewed is None
++
++
++def test_successful_original_owner_reference_and_cutoff_are_unchanged(monkeypatch):
++    date = '20261008'
++    original = dict(schema_version='v4.manager_research.us_mapping_research.v1',
++        target_trade_date=date, reviewed_research=None, daily_run=dict(
++            status='COMPLETED', target_trade_date=date, generated_at='2026-10-08T08:00:00+08:00',
++            artifact_sha256='a' * 64, run_id='synthetic-us-run', matches=[{'reason': 'original relation'}]), **FLAGS)
++    source_copy = deepcopy(original)
++    module = ModuleType(MAPPING_MODULE)
++    module.read_workspace_mapping = lambda _service, target: deepcopy(original)
++    monkeypatch.setitem(sys.modules, MAPPING_MODULE, module)
++    read, reference, identities = workspace._daily_mapping_plan_reference(
++        SimpleNamespace(), date, {'research_cutoff': '2026-10-08T08:30:00+08:00'})
++    assert read == source_copy and original == source_copy
++    assert reference['status'] == 'CONSUMED' and identities == ['a' * 64]
++    assert reference['matches'] == original['daily_run']['matches']
++    _, late, identities = workspace._daily_mapping_plan_reference(
++        SimpleNamespace(), date, {'research_cutoff': '2026-10-08T07:30:00+08:00'})
++    assert late['status'] == 'NOT_CONSUMED_AFTER_CUTOFF' and identities == []
++    assert original == source_copy
++
++
++if __name__ == '__main__':
++    if len(sys.argv) != 4 or sys.argv[1] != '--fixture' or sys.argv[2] not in {'20260930', '20261008'} or sys.argv[3] not in {'missing_module', 'reader_failed'}:
++        raise SystemExit('Usage: test_manager_us_mapping_isolation_20261008.py --fixture <20260930|20261008> <missing_module|reader_failed>')
++    print(json.dumps(owner_workspace_fixture(sys.argv[2], sys.argv[3]), ensure_ascii=False, allow_nan=False))
+diff --git a/apps/web/src/api/managerWorkspace.usIsolation.spec.ts b/apps/web/src/api/managerWorkspace.usIsolation.spec.ts
+new file mode 100644
+index 0000000..e4692ba
+--- /dev/null
++++ b/apps/web/src/api/managerWorkspace.usIsolation.spec.ts
+@@ -0,0 +1,71 @@
++import { execFileSync } from 'node:child_process';
++import { resolve } from 'node:path';
++import { afterEach, describe, expect, it, vi } from 'vitest';
++import { requestManagerWorkspace, validateManagerWorkspace, type JsonObject } from './managerWorkspace';
++import { renderDailyChannels } from '../manager-selection/dailyChannels';
++import { workspaceFixture } from '../manager-selection/dailyChannels.testHelper';
++
++// The provider failure is synthetic; the DTO is produced by the real Python
++// manager owner and parsed by the unchanged, frozen Mac TypeScript validator.
++// Vitest is invoked from apps/web, like the existing frontend regressions.
++const projectRoot = process.env.V4_TEST_SOURCE_ROOT || resolve(process.cwd(), '../..');
++const fixture = resolve(projectRoot, 'tests/test_manager_us_mapping_isolation_20261008.py');
++const python = process.env.V4_TEST_PYTHON || 'python3';
++const values = new Map<string, JsonObject>();
++function ownerValue(date: string, kind: string): JsonObject {
++  const key = `${date}|${kind}`;
++  if (!values.has(key)) {
++    const text = execFileSync(python, [fixture, '--fixture', date, kind], {
++      cwd: projectRoot, encoding: 'utf8', timeout: 20_000, maxBuffer: 2 * 1024 * 1024,
++      env: { ...process.env, PYTHONPATH: `${projectRoot}:${projectRoot}/upstreams` },
++    });
++    values.set(key, JSON.parse(text) as JsonObject);
++  }
++  return structuredClone(values.get(key)!);
++}
++const response = (value: unknown) => ({ ok: true, status: 200, json: async () => value }) as Response;
++afterEach(() => {
++  vi.unstubAllGlobals();
++  document.body.replaceChildren(); window.history.replaceState({}, '', '/');
++});
++
++describe('Issue 29 original US reader isolation across Python and Mac API contracts', () => {
++  it.each([
++    ['20260930', 'missing_module'], ['20260930', 'reader_failed'],
++    ['20261008', 'missing_module'], ['20261008', 'reader_failed'],
++  ])('keeps a %s workspace parseable when the US reader is %s', (date, kind) => {
++    const value = ownerValue(date, kind);
++    expect(() => validateManagerWorkspace(value, date)).not.toThrow();
++    const mapping = value.us_mapping_research as JsonObject;
++    expect((mapping.daily_run as JsonObject).status).toBe('CANNOT_CONFIRM');
++    expect(((mapping.daily_run as JsonObject).coverage as JsonObject).matched_hk_relation_count).toBeNull();
++  });
++
++  it('keeps the original announcement row visible through the real request and first-screen renderer', async () => {
++    const value = workspaceFixture();
++    value.us_mapping_research = ownerValue('20261008', 'reader_failed').us_mapping_research as never;
++    const fetchMock = vi.fn(async (input: RequestInfo | URL) => String(input).includes('/workspace?')
++      ? response(value) : ({ ok: false, status: 503 } as Response));
++    vi.stubGlobal('fetch', fetchMock);
++    window.history.replaceState({}, '', '/?date=20261006&plan_date=20261008&announcement_date=20261007');
++    const parsed = await requestManagerWorkspace('20261008', new AbortController().signal, 'auto',
++      { selection_date: '20261006', announcement_date: '20261007' });
++    expect(parsed.us_mapping_research?.daily_run.status).toBe('CANNOT_CONFIRM');
++    const host = document.createElement('div'); document.body.append(host);
++    renderDailyChannels(host, parsed.daily_channels, parsed.date_bindings!);
++    expect(host.querySelector('[data-daily-channel="ANNOUNCEMENT"]')?.textContent).toContain('HK.00001');
++    expect(host.querySelector('[data-daily-channel="ANNOUNCEMENT"]')?.textContent).toContain('原研究理由：已审阅的扩产事件。');
++    expect(host.querySelector('[data-daily-channel="OVERSOLD"]')).not.toBeNull();
++    expect(host.querySelector('[data-daily-channel="HK_CONNECT"]')?.textContent).toContain('候选数量未知');
++    expect(host.textContent).not.toContain('WORKSPACE_RESEARCH_US_MAPPING');
++  });
++
++  it('still rejects a wrong-day US field and a forged zero-result status', () => {
++    const wrongDay = ownerValue('20261008', 'reader_failed');
++    (wrongDay.us_mapping_research as JsonObject).target_trade_date = '20260930';
++    expect(() => validateManagerWorkspace(wrongDay, '20261008')).toThrow();
++    const falseZero = ownerValue('20261008', 'reader_failed');
++    ((falseZero.us_mapping_research as JsonObject).daily_run as JsonObject).status = 'VALID_EMPTY';
++    expect(() => validateManagerWorkspace(falseZero, '20261008')).toThrow();
++  });
++});

@@ -1,0 +1,65 @@
+{
+  "schema_version": "v4.issue29.review_path_scope.v1",
+  "purpose": "Review-only path boundary; not a deployment, installer or executable permission policy.",
+  "fixed_input_commit": "b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9",
+  "default_for_unlisted_paths": "PROTECTED",
+  "rule_precedence": [
+    "protected_exact",
+    "protected_globs",
+    "required_final_change_manifest",
+    "manager_module_envelopes"
+  ],
+  "allowed_only_when_listed_in_final_change_manifest": [
+    "v4/manager_research/workspace_history.py",
+    "v4/manager_research/workspace.py",
+    "tests/test_manager_history_contract_20261008.py",
+    "tests/test_manager_history_readback_r1.py",
+    "tests/test_manager_us_mapping_isolation_20261008.py",
+    "tests/test_manager_workspace_owner_20261008.py",
+    "apps/web/src/api/managerWorkspace.usIsolation.spec.ts"
+  ],
+  "regression_test_paths": "Exact five test paths above; no broad tests/** permission.",
+  "manager_module_envelopes_not_copy_allowlists": [
+    "v4/manager_research/",
+    "apps/api/v35_api/manager_research_router.py",
+    "apps/web/src/api/managerWorkspace.ts",
+    "apps/web/src/manager-selection/"
+  ],
+  "protected_exact": [
+    "apps/api/v35_api/app.py",
+    "apps/api/v35_api/run.py",
+    "ops/run_v35_macos_scheduler.py",
+    "ops/run_v35_macos_scheduler_daemon.py",
+    "domains/preselection.py",
+    "domains/preselection_materializer.py",
+    "domains/stages.py",
+    "domains/stage_input_producer.py",
+    "domains/stage_scoring.py",
+    "v4/manager_research/workspace_read_control.py"
+  ],
+  "protected_globs": [
+    "domains/_preselection_parts/**",
+    "stage_center/**",
+    "infrastructure/preselection_pool_*",
+    "infrastructure/stage_*",
+    "v4/manager_research/stage_*",
+    "upstreams/v3_shared_data/**",
+    "v3_shared_data/**"
+  ],
+  "protected_semantic_owners": [
+    "#28 Stage and preselection routes, UI and tests",
+    "shared launcher, CAS, recovery and release helpers",
+    "live plists and enabled bindings",
+    "original producer and persisted business products",
+    "BUY/model gates and Vibe8910"
+  ],
+  "final_manifest_requirements": [
+    "Exact path, before_sha256 (or absent), after_sha256, fixed source URL/commit, reason and associated targeted tests.",
+    "Dependencies are references unless the exact dependency itself is necessary to change.",
+    "No directory-wide or whole-application replacement.",
+    "Shared app.py edits go only to the single integration owner, not this issue29 payload."
+  ],
+  "services_or_business_execution": "FORBIDDEN_BY_CURRENT_PUBLICATION_FREEZE",
+  "final_manifest_status": "EXACT_SEVEN_FILE_SCOPE_REVIEWED_20261008; before/after SHA are recorded in ../evidence/review/independent_result.json and final delivery manifest.",
+  "behavior_required_document": "JOINT_REGRESSION.md"
+}

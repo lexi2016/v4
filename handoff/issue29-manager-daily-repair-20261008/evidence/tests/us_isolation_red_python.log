@@ -1,0 +1,90 @@
+FFFFFF.                                                                  [100%]
+=================================== FAILURES ===================================
+_ test_us_failure_retains_the_original_mac_dto_and_unknown_counts[missing_module-20260930] _
+
+date = '20260930', kind = 'missing_module'
+
+    @pytest.mark.parametrize('date', ['20260930', '20261008'])
+    @pytest.mark.parametrize('kind', ['missing_module', 'reader_failed'])
+    def test_us_failure_retains_the_original_mac_dto_and_unknown_counts(date, kind):
+        value = owner_workspace_fixture(date, kind)
+        mapping = value['us_mapping_research']
+>       assert mapping['schema_version'] == 'v4.manager_research.us_mapping_research.v1'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'schema_version'
+
+tests/test_manager_us_mapping_isolation_20261008.py:65: KeyError
+_ test_us_failure_retains_the_original_mac_dto_and_unknown_counts[missing_module-20261008] _
+
+date = '20261008', kind = 'missing_module'
+
+    @pytest.mark.parametrize('date', ['20260930', '20261008'])
+    @pytest.mark.parametrize('kind', ['missing_module', 'reader_failed'])
+    def test_us_failure_retains_the_original_mac_dto_and_unknown_counts(date, kind):
+        value = owner_workspace_fixture(date, kind)
+        mapping = value['us_mapping_research']
+>       assert mapping['schema_version'] == 'v4.manager_research.us_mapping_research.v1'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'schema_version'
+
+tests/test_manager_us_mapping_isolation_20261008.py:65: KeyError
+_ test_us_failure_retains_the_original_mac_dto_and_unknown_counts[reader_failed-20260930] _
+
+date = '20260930', kind = 'reader_failed'
+
+    @pytest.mark.parametrize('date', ['20260930', '20261008'])
+    @pytest.mark.parametrize('kind', ['missing_module', 'reader_failed'])
+    def test_us_failure_retains_the_original_mac_dto_and_unknown_counts(date, kind):
+        value = owner_workspace_fixture(date, kind)
+        mapping = value['us_mapping_research']
+>       assert mapping['schema_version'] == 'v4.manager_research.us_mapping_research.v1'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'schema_version'
+
+tests/test_manager_us_mapping_isolation_20261008.py:65: KeyError
+_ test_us_failure_retains_the_original_mac_dto_and_unknown_counts[reader_failed-20261008] _
+
+date = '20261008', kind = 'reader_failed'
+
+    @pytest.mark.parametrize('date', ['20260930', '20261008'])
+    @pytest.mark.parametrize('kind', ['missing_module', 'reader_failed'])
+    def test_us_failure_retains_the_original_mac_dto_and_unknown_counts(date, kind):
+        value = owner_workspace_fixture(date, kind)
+        mapping = value['us_mapping_research']
+>       assert mapping['schema_version'] == 'v4.manager_research.us_mapping_research.v1'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'schema_version'
+
+tests/test_manager_us_mapping_isolation_20261008.py:65: KeyError
+_ test_reviewed_reference_failure_is_date_scoped_and_not_an_empty_success[20260930] _
+
+date = '20260930'
+
+    @pytest.mark.parametrize('date', ['20260930', '20261008'])
+    def test_reviewed_reference_failure_is_date_scoped_and_not_an_empty_success(date):
+        mapping = owner_workspace_fixture(date, 'reader_failed')['us_mapping_research']
+>       reviewed = mapping['reviewed_research']
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'reviewed_research'
+
+tests/test_manager_us_mapping_isolation_20261008.py:95: KeyError
+_ test_reviewed_reference_failure_is_date_scoped_and_not_an_empty_success[20261008] _
+
+date = '20261008'
+
+    @pytest.mark.parametrize('date', ['20260930', '20261008'])
+    def test_reviewed_reference_failure_is_date_scoped_and_not_an_empty_success(date):
+        mapping = owner_workspace_fixture(date, 'reader_failed')['us_mapping_research']
+>       reviewed = mapping['reviewed_research']
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'reviewed_research'
+
+tests/test_manager_us_mapping_isolation_20261008.py:95: KeyError
+=========================== short test summary info ============================
+FAILED tests/test_manager_us_mapping_isolation_20261008.py::test_us_failure_retains_the_original_mac_dto_and_unknown_counts[missing_module-20260930]
+FAILED tests/test_manager_us_mapping_isolation_20261008.py::test_us_failure_retains_the_original_mac_dto_and_unknown_counts[missing_module-20261008]
+FAILED tests/test_manager_us_mapping_isolation_20261008.py::test_us_failure_retains_the_original_mac_dto_and_unknown_counts[reader_failed-20260930]
+FAILED tests/test_manager_us_mapping_isolation_20261008.py::test_us_failure_retains_the_original_mac_dto_and_unknown_counts[reader_failed-20261008]
+FAILED tests/test_manager_us_mapping_isolation_20261008.py::test_reviewed_reference_failure_is_date_scoped_and_not_an_empty_success[20260930]
+FAILED tests/test_manager_us_mapping_isolation_20261008.py::test_reviewed_reference_failure_is_date_scoped_and_not_an_empty_success[20261008]
+6 failed, 1 passed in 0.33s

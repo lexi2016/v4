@@ -1,0 +1,32 @@
+
+ RUN  v4.1.10 /workspace/scratch/a154a3323e32/worktrees/issue29/apps/web
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  06:43:57
+   Duration  963ms (transform 148ms, setup 0ms, import 0ms, tests 0ms, environment 417ms)
+
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/api/managerWorkspace.usIsolation.spec.ts [ src/api/managerWorkspace.usIsolation.spec.ts ]
+Error: Failed to resolve import "../api/managerAnnouncementAnalysis.js" from "src/manager-selection/catalystObservationPanel.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /workspace/scratch/a154a3323e32/worktrees/issue29/apps/web/src/manager-selection/catalystObservationPanel.ts:13:51
+  9  |  } from "./dailyChannels.js";
+  10 |  import { requestManagerAnnouncements, refreshManagerAnnouncements, requestManagerWorkspace, refreshManagerWorkspace }...
+  11 |  import { requestManagerAnnouncementAnalysis } from "../api/managerAnnouncementAnalysis.js";
+     |                                                      ^
+  12 |  import { renderAnnouncementAnalysis } from "./announcementAnalysis.js";
+  13 |  import { decisionCards, decisionSummaryCounts, DECISION_GROUPS, screeningStatus, scheduleLabel, conditionText } from ...
+ ❯ TransformPluginContext._formatLog ../../../../candidate/apps/web/node_modules/vite/dist/node/chunks/config.js:29079:43
+ ❯ TransformPluginContext.error ../../../../candidate/apps/web/node_modules/vite/dist/node/chunks/config.js:29076:14
+ ❯ normalizeUrl ../../../../candidate/apps/web/node_modules/vite/dist/node/chunks/config.js:27199:18
+ ❯ ../../../../candidate/apps/web/node_modules/vite/dist/node/chunks/config.js:27257:32
+ ❯ TransformPluginContext.transform ../../../../candidate/apps/web/node_modules/vite/dist/node/chunks/config.js:27225:4
+ ❯ EnvironmentPluginContainer.transform ../../../../candidate/apps/web/node_modules/vite/dist/node/chunks/config.js:28877:14
+ ❯ loadAndTransform ../../../../candidate/apps/web/node_modules/vite/dist/node/chunks/config.js:22746:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+

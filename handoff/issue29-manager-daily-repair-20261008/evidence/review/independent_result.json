@@ -1,0 +1,194 @@
+{
+  "scope": "INDEPENDENT_CODE_REVIEW_AND_LINUX_SYNTHETIC_TESTS",
+  "source_root": "/workspace/scratch/a154a3323e32/worktrees/issue29",
+  "local_assembled_baseline": "e521e8ebb3119e68095e02b1b54858c0dc0756a9",
+  "files": [
+    {
+      "path": "v4/manager_research/workspace_history.py",
+      "before": {
+        "bytes": 17474,
+        "sha256": "da5e1223326631cc9070c3059ca606bac3840ef468ad5c06f2f3a51534f82ec1",
+        "git_blob_sha": "4901ce1fb9ab2f73517275ad89fd187b27bff375"
+      },
+      "after": {
+        "bytes": 19976,
+        "sha256": "d46b84f084af5eb695812a7052520147722a80a6885fb3dfdb4c1a18de3c72b5",
+        "git_blob_sha": "e8f8c4376bacfc09a3913b77e4d8129c77e7f883"
+      }
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "before": {
+        "bytes": 59319,
+        "sha256": "183e3ebd0322883a8f8cef37c0244f424f16c63d3120245e263bb9585133dea3",
+        "git_blob_sha": "380b3a24ff5c69bef033ccc93f2d131784af8b56"
+      },
+      "after": {
+        "bytes": 60422,
+        "sha256": "ab25d4856019b10bda1cb73928e5e2e75fad870a8321025019dceeb2cf0b6b52",
+        "git_blob_sha": "86f40302051b72c7a733351448422057b039834e"
+      }
+    },
+    {
+      "path": "tests/test_manager_history_contract_20261008.py",
+      "before": null,
+      "after": {
+        "bytes": 12978,
+        "sha256": "36eeb5b9f41a927f6b9b19f6d1d1bd6f515986631ccd5754e14bbd423eacd774",
+        "git_blob_sha": "fc7a0f4e8f63c27876ca31d7ccec28310cd41ed6"
+      }
+    },
+    {
+      "path": "tests/test_manager_history_readback_r1.py",
+      "before": {
+        "bytes": 13499,
+        "sha256": "6361359568e5cc02cb9b5d9c74461fd0f7d2c1d6c80d3ad3a9bae8628aa997e6",
+        "git_blob_sha": "401f5d0dfd5540f77ba5158e18b54ebed6129f26"
+      },
+      "after": {
+        "bytes": 13935,
+        "sha256": "aa2109b6cc8fd96e43212c59d30bec754bf51cb9c630e162a7c07ed15b585f26",
+        "git_blob_sha": "3118c1ba68dd9801f32149f4d55393b495b27f2c"
+      }
+    },
+    {
+      "path": "tests/test_manager_us_mapping_isolation_20261008.py",
+      "before": null,
+      "after": {
+        "bytes": 6712,
+        "sha256": "7f56ea1f22fdd8d229a3377c3185733e32f443ccf0657b24857770c7c0658dbb",
+        "git_blob_sha": "cb62f366e4625048457f48949935fd6a6ef28a14"
+      }
+    },
+    {
+      "path": "tests/test_manager_workspace_owner_20261008.py",
+      "before": {
+        "bytes": 12123,
+        "sha256": "4c2fdaebd804532121057fdbf9aef07bc440812255802c079558f52209303887",
+        "git_blob_sha": "4990ddf27cdc8fb1322faee05218cc2835145a96"
+      },
+      "after": {
+        "bytes": 12208,
+        "sha256": "9d1faeee5a0d8e1d9466244023d0a9fbbb3032d7934de40337096a1d35eda13e",
+        "git_blob_sha": "b50e9a7c63366d8fbbbb975c6054ec22d0f1e7b0"
+      }
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.usIsolation.spec.ts",
+      "before": null,
+      "after": {
+        "bytes": 4382,
+        "sha256": "36daeae19a3d079f00aec8ec27ca165b4764dadf1448bb241eb1dfb4a3558736",
+        "git_blob_sha": "e4692ba14cc4a9e9694b92e4c09c4c7b7615431e"
+      }
+    }
+  ],
+  "tracked_and_untracked_code_exact_allowlist": true,
+  "extra_paths": [],
+  "excluded_test_dependency_symlink": "apps/web/node_modules",
+  "workspace_outside_exception_handler_ast_unchanged": true,
+  "commands": [
+    {
+      "name": "python_combined",
+      "cwd": "/workspace/scratch/a154a3323e32/worktrees/issue29",
+      "command": "env PYTHONPATH=.:upstreams PYTHONDONTWRITEBYTECODE=1 /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q tests/test_manager_history_contract_20261008.py tests/test_manager_us_mapping_isolation_20261008.py tests/test_manager_history_readback_r1.py tests/test_manager_history_control_r1.py tests/test_manager_history_r2_regex_equivalence.py tests/test_manager_workspace_owner_20261008.py tests/test_manager_daily_channels_20261008.py",
+      "exit_code": 1,
+      "result": "114 passed, 1 unchanged baseline fixture failure",
+      "log": "independent_python_combined.log"
+    },
+    {
+      "name": "typescript_combined",
+      "cwd": "/workspace/scratch/a154a3323e32/worktrees/issue29/apps/web",
+      "command": "env V4_TEST_SOURCE_ROOT=/workspace/scratch/a154a3323e32/worktrees/issue29 V4_TEST_PYTHON=/workspace/scratch/a154a3323e32/test_env/bin/python ./node_modules/.bin/vitest run src/api/managerWorkspace.usIsolation.spec.ts src/manager-selection/dailyChannels.runtime.spec.ts",
+      "exit_code": 1,
+      "result": "new US spec 6 passed; original dailyChannels suite 0 tests, import blocked by absent parent dependency",
+      "log": "independent_typescript_combined.log"
+    },
+    {
+      "name": "typescript_targeted",
+      "cwd": "/workspace/scratch/a154a3323e32/worktrees/issue29/apps/web",
+      "command": "env V4_TEST_SOURCE_ROOT=/workspace/scratch/a154a3323e32/worktrees/issue29 V4_TEST_PYTHON=/workspace/scratch/a154a3323e32/test_env/bin/python ./node_modules/.bin/vitest run src/api/managerWorkspace.usIsolation.spec.ts --reporter=verbose",
+      "exit_code": 0,
+      "result": "6 passed; repeats the same 6, do not add",
+      "log": "independent_typescript_targeted.log"
+    }
+  ],
+  "logs": [
+    {
+      "path": "independent_python_combined.log",
+      "bytes": 1896,
+      "sha256": "29a693e0e0a2d8d1c90a1ae53174fb61cf85859b7ad794f6e2afc8e5def30387",
+      "git_blob_sha": "45c63a2dedcd84b979c8b27a761186489afd829c"
+    },
+    {
+      "path": "independent_typescript_combined.log",
+      "bytes": 2213,
+      "sha256": "b5f5470e4360e9d38bdb18b158baf043ae60cff2c1a00b5e889cb420b596951b",
+      "git_blob_sha": "3ad464e1a9052cf078b8136bbb1cf0da1dea8967"
+    },
+    {
+      "path": "independent_typescript_targeted.log",
+      "bytes": 1502,
+      "sha256": "8d40855418d67ebecd66c1a727d48c6e4c8f6feacb11984ba6d5aa2d1e96093a",
+      "git_blob_sha": "9ecf4630133b1d993619485f8c837e1c234d475e"
+    }
+  ],
+  "completed_at_utc": "2026-10-08T13:50:50Z",
+  "environment": {
+    "system": "Linux",
+    "python": "/workspace/scratch/a154a3323e32/test_env/bin/python",
+    "python_version": "3.14.6",
+    "vitest": "4.1.10",
+    "source_freeze": "Parent signalled both production files stable before independent execution; no production changes performed by reviewer."
+  },
+  "review_verdict": "NO_NEW_BLOCKING_DEFECT_FOUND_IN_SCOPED_CODE; 114 Python passed with one preserved baseline fixture failure; targeted six TypeScript passed; complete application and live execution not verified.",
+  "known_baseline_failures": [
+    {
+      "test": "tests/test_manager_history_readback_r1.py::test_exact_panel_selected_without_latest_substitution",
+      "reason": "PLAN_HK_02_PANEL_LATEST_MANIFEST_UNREADABLE",
+      "baseline_scope": "author frozen originals: 54 passed / 1 failed",
+      "candidate_scope": "independent 7 files: 114 passed / 1 failed",
+      "baseline_log": "history/baseline_history_regression.log"
+    },
+    {
+      "test": "tests/test_manager_announcement_parity_20261008.py::test_missing_original_archive_is_not_empty_connect_selection",
+      "reason": "Expected READY, frozen Mac rule returned PARTIAL when formal_selection was CANNOT_CONFIRM",
+      "baseline_scope": "root frozen 7 files: 126 passed / 1 failed",
+      "candidate_scope": "root expanded 9 files: 160 passed / 1 failed",
+      "baseline_log": "backend_baseline.log",
+      "candidate_log": "backend_final.log"
+    }
+  ],
+  "related_logs_read_not_reexecuted": [
+    {
+      "path": "history/baseline_history_regression.log",
+      "sha256": "51670599fa25354d130b035f8fab765131cb99cd6eb4886254ef6166fbfd1478"
+    },
+    {
+      "path": "backend_baseline.log",
+      "sha256": "718d318242f177c5927a6afb3e1ab5b56ebdabe5c295d725a9ed57121c370ab0"
+    },
+    {
+      "path": "backend_final.log",
+      "sha256": "6166079e4d7f040e1d19f9695345442bf1160c01354d67680e058fbc493e366b"
+    },
+    {
+      "path": "frontend_final.log",
+      "sha256": "928c5ac059c30c633711fe91ca41cec1649eeccd98e5807874d08780fb3ad7c5"
+    },
+    {
+      "path": "isolation/red_typescript_contract.log",
+      "sha256": "2dbd426793d942e79d74796ea5aa1da7e302ca9d64d976b54f25a883335bea7d"
+    },
+    {
+      "path": "isolation/red_python.log",
+      "sha256": "18c752b666a5bd72cea3318be2024f2846bee9acd471183bb35102b6ea6ef611"
+    }
+  ],
+  "additional_limitations": [
+    "Original full parent UI suite import blocked; no stubs supplied.",
+    "The six targeted TypeScript cases were repeated; do not sum them.",
+    "All Python batches overlap; report each batch separately.",
+    "Actual 9/30 artifacts, two actual business dates, live API/UI, deployment and natural execution not verified."
+  ]
+}

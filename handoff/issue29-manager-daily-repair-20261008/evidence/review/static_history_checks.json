@@ -1,0 +1,48 @@
+{
+  "review_stage": "STATIC_ONLY_NOT_EXECUTED",
+  "before_sha256": "da5e1223326631cc9070c3059ca606bac3840ef468ad5c06f2f3a51534f82ec1",
+  "after_sha256": "d46b84f084af5eb695812a7052520147722a80a6885fb3dfdb4c1a18de3c72b5",
+  "frozen_business_fields": [
+    "schema_version",
+    "semantic_version",
+    "decision_projection_version",
+    "target_trade_date",
+    "stocks",
+    "themes",
+    "materials",
+    "company_events",
+    "focus_symbols",
+    "rejected_relations",
+    "briefing",
+    "summary",
+    "market_screen",
+    "announcement_review"
+  ],
+  "field_count": 14,
+  "business_fields_unchanged": true,
+  "unchanged_gate_functions": {
+    "_read_candidate": true,
+    "select_plan": true,
+    "_pit": true,
+    "unavailable": true,
+    "_attach_historical_us_recheck": true
+  },
+  "protected_snapshot_checks": {
+    "v4/manager_research/workspace_read_control.py": {
+      "unchanged": true,
+      "sha256": "491e3569e8f00586ca6f4e9982e182584d2f2a0437f83da66767b7ffdbf1fb25"
+    },
+    "v4/manager_research/workspace_plan.py": {
+      "unchanged": true,
+      "sha256": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb"
+    },
+    "v4/manager_research/service.py": {
+      "unchanged": true,
+      "sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37"
+    },
+    "apps/web/src/api/managerWorkspace.ts": {
+      "unchanged": true,
+      "sha256": "5854af5d1e2b33cc469ba6abd49096bb2f727280161c663edf4b757742f9ce92"
+    }
+  }
+}

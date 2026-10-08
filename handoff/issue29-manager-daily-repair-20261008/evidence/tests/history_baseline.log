@@ -1,0 +1,28 @@
+...F...................................................                  [100%]
+=================================== FAILURES ===================================
+____________ test_exact_panel_selected_without_latest_substitution _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-114/test_exact_panel_selected_with0')
+
+    def test_exact_panel_selected_without_latest_substitution(tmp_path):
+        asset=tmp_path/'assets/hk_0_2'
+        raw=b'SIMULATED PANEL BYTES, not a parquet'
+        sha=hashlib.sha256(raw).hexdigest()
+        directory=asset/'panels'/f'20260921-{sha[:12]}'
+        directory.mkdir(parents=True)
+        (directory/'hkconnect_vipdoc_daily_panel.parquet').write_bytes(raw)
+        manifest=dict(asset_schema_version='v3_shared_data.hk_0_2_panel_asset.v2',
+            source_contract='tdx_vipdoc_71_day+verified_zero_trade_repairs',panel_max_date='20260921',
+            panel_relative=f'panels/{directory.name}/hkconnect_vipdoc_daily_panel.parquet',panel_sha256=sha,
+            research_only=True,production_allowed=False,buy_gate_updated=False,orders_sent=False)
+        (directory/'manifest.json').write_text(json.dumps(manifest))
+        (asset/'panel_latest.json').write_text(json.dumps({'manifest_relative':'panels/20260922-invalid/manifest.json'}))
+        witness,gaps=workspace_plan._read_hk02_panel_witness(tmp_path,'20260921')
+>       assert witness and witness['panel_max_date']=='20260921',gaps
+E       AssertionError: ['PLAN_HK_02_PANEL_LATEST_MANIFEST_UNREADABLE']
+E       assert (None)
+
+tests/test_manager_history_readback_r1.py:68: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_manager_history_readback_r1.py::test_exact_panel_selected_without_latest_substitution
+1 failed, 54 passed in 2.16s

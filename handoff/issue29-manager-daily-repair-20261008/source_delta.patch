@@ -1,0 +1,125 @@
+diff --git a/v4/manager_research/workspace_history.py b/v4/manager_research/workspace_history.py
+index 4901ce1..e8f8c43 100644
+--- a/v4/manager_research/workspace_history.py
++++ b/v4/manager_research/workspace_history.py
+@@ -243,11 +243,43 @@ def _attach_historical_us_recheck(result: dict, service: Any, date: str,
+     )
+ 
+ 
++def _reader_revalidation(saved: Mapping[str, Any]) -> dict:
++    """Separate source-byte identity from a supported historical read contract.
++
++    A different source fingerprint never admits a plan by itself. Only a
++    contract named in the sealed saved product can enter cross-source replay;
++    the original owners, cutoff, PIT and complete frozen fields decide below.
++    No-fingerprint legacy plans retain their existing full-replay admission.
++    """
++    reader = saved.get('read_contract_sha256')
++    if reader is not None and (not isinstance(reader, str)
++                               or not re.fullmatch(r'[0-9a-f]{64}', reader)):
++        raise ValueError('HISTORY_READER_IDENTITY_INVALID')
++    saved_read = saved['workspace'].get('read_context')
++    if saved_read is not None and not isinstance(saved_read, Mapping):
++        raise ValueError('HISTORY_READ_CONTRACT_UNPROVEN')
++    saved_contract = saved_read.get('contract') if saved_read is not None else None
++    if saved_contract is not None and saved_contract != READ_CONTRACT:
++        raise ValueError('HISTORY_READ_CONTRACT_UNSUPPORTED')
++    current_reader = contract_identity()
++    changed = reader is not None and reader != current_reader
++    if changed and saved_contract != READ_CONTRACT:
++        raise ValueError('HISTORY_READ_CONTRACT_UNPROVEN')
++    return dict(status='REVALIDATION_REQUIRED',
++        mode=('LEGACY_FULL_REVALIDATION' if reader is None else
++              'SAME_CONTRACT_SOURCE_CHANGE' if changed else 'IDENTICAL_SOURCE'),
++        saved_contract=saved_contract, current_contract=READ_CONTRACT,
++        saved_read_contract_sha256=reader, current_read_contract_sha256=current_reader,
++        method='ORIGINAL_OWNERS_EXACT_CUTOFF_FULL_REPLAY',
++        source_stable_during_revalidation=None, saved_plan_modified=False)
++
++
+ def read_history(service: Any, date: str) -> dict:
+     from .workspace import _compute_workspace, _ERROR_TYPES, verified_plan_attempt
+     boundary = boundary_context(date)
+     saved = None
+     ctx = None
++    reader_revalidation = None
+     try:
+         with phase('saved_plan_gate'):
+             saved = select_plan(service.store, date, boundary)
+@@ -262,9 +294,7 @@ def read_history(service: Any, date: str) -> dict:
+             from .workspace_semantics import SEMANTIC_VERSION
+             if saved['workspace'].get('semantic_version') != SEMANTIC_VERSION:
+                 raise ValueError('HISTORY_SEMANTIC_VERSION_CHANGED')
+-            reader = saved.get('read_contract_sha256')
+-            if reader is not None and reader != contract_identity():
+-                raise ValueError('HISTORY_READER_VERSION_CHANGED')
++            reader_revalidation = _reader_revalidation(saved)
+             _pit(saved['workspace'], timestamp(ctx['research_cutoff']))
+         # Mandatory original schema/SHA/safety/source validation. The memo
+         # below _compute_workspace caches ONLY pure projections of these
+@@ -277,6 +307,14 @@ def read_history(service: Any, date: str) -> dict:
+             if any(saved['workspace'].get(k) != verified.get(k) for k in _BUSINESS_FIELDS):
+                 raise ValueError('HISTORY_FROZEN_PROJECTION_CHANGED')
+             _pit(verified, timestamp(ctx['research_cutoff']))
++        # The byte identity still protects this whole replay. A deployment
++        # change during owner validation cannot become a compatible read.
++        with phase('historical_reader_stability'):
++            stable = contract_identity() == reader_revalidation['current_read_contract_sha256']
++            reader_revalidation['source_stable_during_revalidation'] = stable
++            if not stable:
++                raise ValueError('HISTORY_READER_CHANGED_DURING_REVALIDATION')
++            reader_revalidation['status'] = 'VERIFIED'
+         # Return the verified projection, never unchecked saved stock/actions.
+         verified['plan_product'] = dict(status='CURRENT', consumed=True, run_id=saved['run_id'],
+             sha256=saved['sha256'], generated_at=saved['generated_at'],
+@@ -288,7 +326,8 @@ def read_history(service: Any, date: str) -> dict:
+             status='VERIFIED_WITH_GAPS' if verified['gaps'] else 'VERIFIED',
+             as_of=ctx['research_cutoff'], boundary_basis='SAVED_CUTOFF_NOT_LATER_THAN_MANAGER_FIRST_CONTINUOUS_STAGE',
+             candidate_count_known=bool(verified['stocks']) or not verified['gaps'],
+-            contract=READ_CONTRACT, legacy_full_revalidation=reader is None)
++            contract=READ_CONTRACT, legacy_full_revalidation=saved.get('read_contract_sha256') is None,
++            reader_compatibility=reader_revalidation)
+         us_market = verified.get('us_market_attention')
+         if isinstance(us_market, dict):
+             recheck = _mark_historical_us_recheck(us_market, ctx, saved)
+@@ -304,6 +343,9 @@ def read_history(service: Any, date: str) -> dict:
+         # boundary or at the current page time.
+         failed_context = ctx if isinstance(ctx, Mapping) else boundary
+         result = unavailable(date, dict(failed_context), 'SOURCE_FAILED', reason, saved=saved)
++        if reader_revalidation is not None:
++            result['read_context']['reader_compatibility'] = dict(
++                reader_revalidation, status='FAILED', reason=reason)
+         if saved is not None and ctx is not None:
+             _attach_historical_us_recheck(result, service, date, ctx, saved)
+             result['read_context']['as_of'] = ctx['research_cutoff']
+diff --git a/v4/manager_research/workspace.py b/v4/manager_research/workspace.py
+index 380b3a2..86f4030 100644
+--- a/v4/manager_research/workspace.py
++++ b/v4/manager_research/workspace.py
+@@ -46,9 +46,23 @@ def _daily_mapping_plan_reference(service: Any, date: str,
+         # must not prevent the original announcement/market owners from being
+         # read, and it does not prove that zero relationships were assessed.
+         reason = 'US_MAPPING_READER_UNAVAILABLE:' + type(exc).__name__
+-        mapping_read = dict(status='CANNOT_CONFIRM', target_trade_date=date,
+-            mapping={'status':'NOT_EVALUATED'}, daily_run={'status':'NOT_RUN'},
+-            gaps=[reason], **FLAGS)
++        daily = dict(schema_version='v4.manager_research.us_mapping_daily_run.v1',
++            status='CANNOT_CONFIRM', target_trade_date=date,
++            run_id=None, generated_at=None, us_session_date=None, research_cutoff=None,
++            source_identity=None, input_identity=None, artifact_sha256=None,
++            coverage=dict(reviewed_us_symbol_count=None, matched_us_symbol_count=None,
++                matched_hk_relation_count=None, configured_us_universe_count=None,
++                available_us_universe_count=None, full_market_coverage=False),
++            matches=[], gaps=[reason], **FLAGS)
++        # The original API contract scopes the retrospective reference to 9/30.
++        # A failed reader cannot prove that those saved cards or a daily run are absent.
++        reviewed = dict(schema_version='v4.manager_research.us_mapping_reviewed.v1',
++            status='CANNOT_CONFIRM', target_trade_date=date, reviewed_at=None,
++            cards=[], gaps=[reason], **FLAGS) if date == '20260930' else None
++        mapping_read = dict(schema_version='v4.manager_research.us_mapping_research.v1',
++            status='CANNOT_CONFIRM', target_trade_date=date,
++            mapping={'status':'NOT_EVALUATED'}, daily_run=daily,
++            reviewed_research=reviewed, gaps=[reason], **FLAGS)
+         reference = dict(status='NOT_CONSUMED', target_trade_date=date,
+             artifact_sha256=None, run_id=None, available_at=None,
+             plan_cutoff=context.get('research_cutoff'), matches=None,

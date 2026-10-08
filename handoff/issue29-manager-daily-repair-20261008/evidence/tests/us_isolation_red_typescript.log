@@ -1,0 +1,57 @@
+
+ RUN  v4.1.10 /workspace/scratch/a154a3323e32/worktrees/issue29/apps/web
+
+ ❯ src/api/managerWorkspace.usIsolation.spec.ts (6 tests | 5 failed) 1030ms
+     × keeps a 20260930 workspace parseable when the US reader is missing_module 242ms
+     × keeps a 20260930 workspace parseable when the US reader is reader_failed 255ms
+     × keeps a 20261008 workspace parseable when the US reader is missing_module 274ms
+     × keeps a 20261008 workspace parseable when the US reader is reader_failed 248ms
+     × keeps the original announcement row visible through the real request and first-screen renderer 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/api/managerWorkspace.usIsolation.spec.ts > Issue 29 original US reader isolation across Python and Mac API contracts > keeps a 20260930 workspace parseable when the US reader is missing_module
+ FAIL  src/api/managerWorkspace.usIsolation.spec.ts > Issue 29 original US reader isolation across Python and Mac API contracts > keeps a 20260930 workspace parseable when the US reader is reader_failed
+ FAIL  src/api/managerWorkspace.usIsolation.spec.ts > Issue 29 original US reader isolation across Python and Mac API contracts > keeps a 20261008 workspace parseable when the US reader is missing_module
+ FAIL  src/api/managerWorkspace.usIsolation.spec.ts > Issue 29 original US reader isolation across Python and Mac API contracts > keeps a 20261008 workspace parseable when the US reader is reader_failed
+AssertionError: expected [Function] to not throw an error but 'Error: WORKSPACE_SAFETY_INVALID' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"Error: WORKSPACE_SAFETY_INVALID"
+
+ ❯ src/api/managerWorkspace.usIsolation.spec.ts:38:61
+     36|   ])('keeps a %s workspace parseable when the US reader is %s', (date,…
+     37|     const value = ownerValue(date, kind);
+     38|     expect(() => validateManagerWorkspace(value, date)).not.toThrow();
+       |                                                             ^
+     39|     const mapping = value.us_mapping_research as JsonObject;
+     40|     expect((mapping.daily_run as JsonObject).status).toBe('CANNOT_CONF…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  src/api/managerWorkspace.usIsolation.spec.ts > Issue 29 original US reader isolation across Python and Mac API contracts > keeps the original announcement row visible through the real request and first-screen renderer
+Error: WORKSPACE_SAFETY_INVALID
+ ❯ safe src/api/managerWorkspace.ts:154:11
+    152| function safe(row: JsonObject): void {
+    153|   if (row.RESEARCH_ONLY !== true || row.production_allowed !== false |…
+    154|     throw new Error('WORKSPACE_SAFETY_INVALID');
+       |           ^
+    155| }
+    156| function strings(value: unknown): asserts value is string[] {
+ ❯ validateUsMappingResearch src/api/managerWorkspace.ts:1184:81
+ ❯ validateManagerWorkspace src/api/managerWorkspace.ts:1262:44
+ ❯ parseWorkspaceResponse src/api/managerWorkspace.ts:1402:10
+ ❯ requestManagerWorkspace src/api/managerWorkspace.ts:1420:15
+ ❯ src/api/managerWorkspace.usIsolation.spec.ts:51:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 1 passed (6)
+   Start at  06:48:23
+   Duration  1.76s (transform 112ms, setup 0ms, import 135ms, tests 1.03s, environment 446ms)
+
