@@ -1,0 +1,59 @@
+{
+  "observed_at": "2026-10-08T23:46:57.361988+08:00",
+  "request_url": "http://127.0.0.1:8873/api/v4/manager/research/workspace?date=20261008&selection_date=20261007&announcement_date=20261007&view=dynamic",
+  "read_only": true,
+  "target_trade_date": "20261008",
+  "date_bindings": {
+    "selection_date": "20261007",
+    "announcement_date": "20261007",
+    "plan_date": "20261008"
+  },
+  "plan_product": {
+    "status": "NOT_MATERIALIZED",
+    "run_id": null,
+    "generated_at": null,
+    "sha256": null,
+    "execution_kind": null,
+    "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
+    "last_checked_at": "2026-10-08T23:46:56.335344+08:00",
+    "consumed": false
+  },
+  "workspace_plan_attempt_present": false,
+  "us_daily_run": {
+    "status": "NOT_RUN",
+    "target_trade_date": "20261008",
+    "run_id": null,
+    "generated_at": null,
+    "us_session_date": null,
+    "research_cutoff": null
+  },
+  "market_screen": {
+    "status": "CANNOT_CONFIRM",
+    "main_screen_ready": false,
+    "target_trade_date": "20261008",
+    "verified_session": "20261008"
+  },
+  "announcement_reviewed_analysis": {
+    "status": "READY",
+    "product_count": 1,
+    "reference_count": 87
+  },
+  "read_context": {
+    "mode": "CURRENT_DYNAMIC_PREVIEW",
+    "status": "VERIFIED_WITH_GAPS",
+    "as_of": "2026-10-08T23:46:56.335344+08:00",
+    "candidate_count_known": false,
+    "contract": "20260923.workspace-history-read.r1"
+  },
+  "returned_workspace_stock_count": 0,
+  "count_interpretation": "Empty stock array with candidate_count_known=false is not a completed zero-selection result.",
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "observed_runtime": {
+    "plist_sha256": "495a9be82e715979d59c03f5c4dd883a7570c55f15b72fa5ed309cacb3914356",
+    "label": "com.lexi.v35.api-only",
+    "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api-r2/app",
+    "identity_layer": "plist configuration; GET does not independently prove loaded file identity"
+  }
+}

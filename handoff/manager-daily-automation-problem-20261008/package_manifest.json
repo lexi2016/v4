@@ -1,0 +1,39 @@
+{
+  "schema": "v4.manager_daily_problem_package.v1",
+  "parent_commit": "8342862f05ca9f6516f51b3164b6110651e5af77",
+  "goal": "Every applicable trading day: automatic announcement, US mapping and oversold selection -> persisted dated plan -> ordinary manager page",
+  "scope": "Documentation and exact source snapshots only; no implementation, collection, scheduling or deployment",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 12462,
+      "sha256": "ba37ac0dd8455ffce979f99d5908978dbfd2d51ad65fb261b4bfada09bf39bf8",
+      "git_blob_sha": "3abf3ba8838ff770097ceb566a080b69e0440370"
+    },
+    {
+      "path": "current_state.json",
+      "bytes": 2087,
+      "sha256": "7b9acf1d7756df18386023abee4a74274149502c6e6eb30585bfe075ee1f3a53",
+      "git_blob_sha": "ac747d12ac727110a97eeb31e27e35d0c53abcfe"
+    },
+    {
+      "path": "source_index.json",
+      "bytes": 13642,
+      "sha256": "050c1931e71b67f3c357c9bee353dd4e1d048ea33bdad164661ad1dd01d59c09",
+      "git_blob_sha": "1847aa53aee519d25445f5c5146b1b8b8a7fac37"
+    },
+    {
+      "path": "source/scheduler/contracts/runtime_workloads.json",
+      "bytes": 51682,
+      "sha256": "7389cae30de08cf68c31e5b0bb6f5b17fead403366946496b7a4de148229d0ef",
+      "git_blob_sha": "abdcae3adfcd56b4c33b2752e14c8fffb844f351"
+    },
+    {
+      "path": "source/web_snapshot/apps/web/src/manager-selection/researchAttention.ts",
+      "bytes": 22383,
+      "sha256": "16bb02dd12c22fd6c55f6c42bb57f8e48ac66864673ba403380381cb2b63f3ef",
+      "git_blob_sha": "e5eb03dbeac99aaffdc08fec4e7eb4fc07a08390"
+    }
+  ],
+  "raw_business_data_uploaded": false
+}
