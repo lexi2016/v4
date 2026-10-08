@@ -64,6 +64,13 @@ class WorkerPipelineTests(unittest.TestCase):
         p = subprocess.run([sys.executable, '-B', '-c', SCRIPT, str(self.app), str(self.source), 'fixture'],
                            env=self.env, capture_output=True, text=True, timeout=60)
         self.assertEqual(p.returncode, 0, p.stderr)
+        # Successful runs require an explicit input identity. Bind the actual
+        # synthetic fixture bytes, not a made-up digest or real-owner claim.
+        digest = sha256_json(self.source_bytes())
+        self.config['bindings']['rebound_shadow']['input_snapshot_sha256'] = digest
+        self.config_path.write_bytes(canonical_bytes(self.config))
+        self.req.update(input_snapshot_sha256=digest, composition_sha256=sha256_json(self.config))
+        self.req_path.write_bytes(canonical_bytes(self.req))
 
     def run_shadow(self):
         return self.call('run-shadow', '--composition', str(self.config_path), '--request', str(self.req_path),
