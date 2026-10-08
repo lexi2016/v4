@@ -37,8 +37,10 @@ class ReviewBridgeTests(unittest.TestCase):
             for key in ('status','close_top20','model_rows','stage_rows','missing_stages','cannot_confirm'):
                 self.assertEqual(review[key],artifact[key])
             self.assertEqual(result['review']['market_reviews']['A']['status'],'NOT_MATERIALIZED')
-            self.assertFalse(result['natural_verified']);self.assertEqual(result['readback_kind'],'V4_PUBLISHED_ARTIFACT_READBACK')
+            self.assertFalse(result['natural_verified']);self.assertEqual(result['readback_kind'],'BOUND_REVIEW_ARTIFACT_READBACK')
             self.assertEqual(result['input_files'],request['input_files'])
+            self.assertFalse(result['review']['v5_readback']['source_origin_verified'])
+            self.assertNotIn('original_owner_result',result['review']['v5_readback'])
             for name,digest in request['input_files'].items():
                 self.assertEqual(hashlib.sha256((Path(tmp)/name).read_bytes()).hexdigest(),digest)
     def test_catalog_only_claims_verified_review_day(self):
