@@ -1,0 +1,90 @@
+{
+  "scope": "Mac canonical integration only; no deploy",
+  "input_commit": "8a0d6b4368bc134466025a12b1cbcc45ff73cceb",
+  "files": [
+    {
+      "path": "canonical/infrastructure/preselection_pool_store.py",
+      "sha256": "9f1606a977d36c063d9c650e54b9861947eb7b692e779837852e3831b7814bef",
+      "git_blob_sha1": "231c271f3d9333566a7d81981a34d7f2b16bedb7",
+      "bytes": 56638
+    },
+    {
+      "path": "canonical/ops/build_close_review.py",
+      "sha256": "59ac7798bcb1d54bbd11bbc61803997f36881a29cd1b82ecb663166791d5e0f2",
+      "git_blob_sha1": "d1662276cd5020533831cb866e7f05eb7183e7e6",
+      "bytes": 6843
+    },
+    {
+      "path": "canonical/tests/test_issue28_historical_p2_20261008.py",
+      "sha256": "44ab4b2fb6a146ddb4419e82c157796f3cf5af0f8a6e8aff7c6e066dc3db5944",
+      "git_blob_sha1": "8e60ae434bb649bf49098ac27c983fb6c9bab4d1",
+      "bytes": 7568
+    },
+    {
+      "path": "mac_harness/isolated_candidate/before/infrastructure/preselection_pool_store.py",
+      "sha256": "028298a05ea44e310487c1159acc8147cf652e23ba716989135b178198795a92",
+      "git_blob_sha1": "cd05bfc4d0004cd57b5a94527ae46c4dd47cc04e",
+      "bytes": 56442
+    },
+    {
+      "path": "mac_harness/isolated_candidate/before/ops/build_close_review.py",
+      "sha256": "a361ae023285392ddf3b0e9674a9c506fae79252cc02c15df221ae09ba28e5aa",
+      "git_blob_sha1": "88977853aa8941ac69b25bb026516663e3789faf",
+      "bytes": 6601
+    },
+    {
+      "path": "mac_harness/synthetic_tests/candidate_loader.py",
+      "sha256": "c1ca53b0fe6afd0d034f62db585d9013b37202c666df0620d7f621a02f551681",
+      "git_blob_sha1": "2724fa30f4c15abb89c187c28365841e4e754700",
+      "bytes": 2455
+    },
+    {
+      "path": "mac_harness/synthetic_tests/frozen_fixtures.py",
+      "sha256": "9bc1f87691b0787c27c4e0c73bf62c35192d2fc22d88c550abaaceb28186d5dc",
+      "git_blob_sha1": "a8dee4cec1af186fd2829b871f85e9d1885702d2",
+      "bytes": 2535
+    },
+    {
+      "path": "mac_harness/synthetic_tests/harness.py",
+      "sha256": "d732fc727e20bc658260cc274d831872f684b4c60651a9dfe3064b1ed96217a4",
+      "git_blob_sha1": "0d96830db6380128ad0ae66031b48045d262e14d",
+      "bytes": 1885
+    },
+    {
+      "path": "mac_harness/synthetic_tests/references/tests/test_close_review_producer.py",
+      "sha256": "c2501b342755bfa97064ceae1a8df0c936f912c9a635fc88c059d660d62b655f",
+      "git_blob_sha1": "90d7ee09c50b7e472964aeeb597ec6d2a5a93230",
+      "bytes": 21578
+    },
+    {
+      "path": "mac_harness/synthetic_tests/run_mac_suite.py",
+      "sha256": "d421236e4c3dba22ebfc1e5587fc52a15eca56626771bddf5cd7eee08c807c52",
+      "git_blob_sha1": "65bd750c722eec67e69f863bec186b276d9240bd",
+      "bytes": 5467
+    },
+    {
+      "path": "mac_harness/synthetic_tests/test_close_source_pit_warning.py",
+      "sha256": "8d3b89c2faabb892e115a18657f24eddefe75ef5b508156c85d510806f06710c",
+      "git_blob_sha1": "a1e59d8ed0cf117f5397f4ac0d318ca2fb8e8a8b",
+      "bytes": 8408
+    },
+    {
+      "path": "mac_harness/synthetic_tests/test_compatibility.py",
+      "sha256": "a17ee5ab909c2288c35e960b29d14d4d739de58ffa608b90b370a74a16750b89",
+      "git_blob_sha1": "d2931aaf22c71ddbc30a21aa3f5796c93c4b6046",
+      "bytes": 2991
+    },
+    {
+      "path": "mac_harness/synthetic_tests/test_date_upper_bound.py",
+      "sha256": "1169f92f48286b418bf47937fd02b632d3beedb8940fa1c7fccea6b8b48796c7",
+      "git_blob_sha1": "8e54bbd716daaa86359b7d63dadf669ef7a42b30",
+      "bytes": 1313
+    },
+    {
+      "path": "mac_harness/synthetic_tests/test_existing_future_artifact_read.py",
+      "sha256": "533073a6232f2b45a0439d3a1ded7958ae5f65dc37ebd5b0e0778bcd5c217635",
+      "git_blob_sha1": "296410c4b34eba6eca142365cb53939beb8b49ac",
+      "bytes": 2695
+    }
+  ]
+}
