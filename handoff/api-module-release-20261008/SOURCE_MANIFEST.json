@@ -1,0 +1,51 @@
+{
+  "schema": "v4.api_module_release_handoff.v1",
+  "canonical_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "deployment_performed": false,
+  "reviewer_run": false,
+  "writer_reported_tests": "18 passed; not independently verified",
+  "files": [
+    {
+      "package_path": "source/unreviewed_draft/ops/api_release_integration.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/ops/api_release_integration.py",
+      "sha256": "579bb0986404232bb497027705d9d7a0f18ee74ad663a44e8ce0befd0f9cb24a",
+      "status": "UNREVIEWED_DRAFT"
+    },
+    {
+      "package_path": "source/unreviewed_draft/ops/build_release_candidate.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/ops/build_release_candidate.py",
+      "sha256": "86ba30a04df15dad6f15587a3a63597d375d11af9da00b41241fa6b026e73155",
+      "status": "UNREVIEWED_DRAFT"
+    },
+    {
+      "package_path": "source/unreviewed_draft/ops/prepare_api_only_cutover.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/ops/prepare_api_only_cutover.py",
+      "sha256": "2a6cc7972cdf367965001314ee20f459579028accbc132345ab37db99aaee0a6",
+      "status": "UNREVIEWED_DRAFT"
+    },
+    {
+      "package_path": "source/unreviewed_draft/tests/test_api_release_integration.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/tests/test_api_release_integration.py",
+      "sha256": "3c63b4af8dc11fd54939146047784b1e237f26c076bf5a2402b0bdd2cf52c36c",
+      "status": "UNREVIEWED_DRAFT"
+    },
+    {
+      "package_path": "source/unreviewed_draft/tests/test_build_release_candidate.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/tests/test_build_release_candidate.py",
+      "sha256": "d84cf5cb304f5bbf20fa610a7a9a32ea26596edff37a2cfb4e4be03940ab44ae",
+      "status": "UNREVIEWED_DRAFT"
+    },
+    {
+      "package_path": "source/unreviewed_draft/ops/release_candidate_sources.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/ops/release_candidate_sources.py",
+      "sha256": "76d963c71cb388e1f7efc51478078f0f21dd280093646fc9d47e955dfe04a738",
+      "status": "UNCHANGED_DEPENDENCY_REFERENCE"
+    },
+    {
+      "package_path": "source/actual_cutover_reference/api_only_cutover_r2_ready.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/completion_20261008/workspace_failure/staged/api_only_cutover_r2_ready.py",
+      "sha256": "ddb7c5b5b95aed1e2e9fb8a592503b88ec3966f6e34c9350c47648bb0f97ce4a",
+      "status": "ACTUAL_CUTOVER_READONLY_REFERENCE"
+    }
+  ]
+}
