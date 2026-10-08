@@ -79,15 +79,24 @@ def main(argv=None):
             if len(completed.stdout)>MAX_JSON_BYTES:raise ValueError('WORKER_OUTPUT_TOO_LARGE')
             payload=json.loads(completed.stdout)
             if not isinstance(payload,dict) or completed.returncode not in (0,2,3,4):raise ValueError('WORKER_OUTPUT_INVALID')
+            return_code=completed.returncode
             if 'result' in payload and completed.returncode in (0,2):
                 result=parse_result(payload['result'])
                 if result.request!=request or result.runtime.effective_config_sha256!=sha256_json(config):
                     raise ValueError('WORKER_REQUEST_OR_CONFIG_MISMATCH')
                 ref=publish_shadow(root,result)
+                # An idempotent publish may return an earlier committed run.
+                # Return that exact artifact, never a fresh result paired with
+                # another run's reference and checksum.
+                result=read_shadow(root,ref)
+                payload['result']=wire(result)
+                payload['status']=result.business_status
+                payload['reason_codes']=result.legacy_screen.get('gaps',[])
+                return_code=0 if result.business_status in ('COMPLETED','VALID_EMPTY') else 2
                 payload['reference']=wire(ref)
                 payload['natural_verified']=False
                 payload['data_kind']=request.data_kind
-            print(canonical_bytes(payload).decode());return completed.returncode
+            print(canonical_bytes(payload).decode());return return_code
     except (ValueError,KeyError,TypeError,OSError) as error:
         print(canonical_bytes({'status':'REJECTED','reason_codes':[_reason(error)]}).decode());return 3
     except subprocess.TimeoutExpired:
