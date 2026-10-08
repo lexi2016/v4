@@ -45,3 +45,13 @@ source-only 入口已生成合成结果严格 1、接近 2、排除 1，临时�
     python -B run_shadow.py read-result --output-root PRIVATE_SHADOW_ROOT --target-date YYYYMMDD --run-id RUN_ID
 
 所有新的失败保留原日志和 exit code，由代码作者修复；本机测试不修改断言或产品实现来凑通过。
+
+## 后续主表与SDK记录验收（18:29，北京时间）
+
+固定 `3b321022b118e94f828d2f810a622a0a44b23950`：capture_master 22/22 PASS，全套 128/128 PASS，exit 0，17.246 秒。原 4 条 ResourceWarning 保留，74 文件运行后 SHA 不变。
+
+此前 `5d5bc97`：SDK recording 17/17 PASS，主表 21 PASS / 1 ERROR。错误为测试夹具第二个symlink场景遇到第一场景留下的正常锁文件，尚未进入该场景断言。3b仅将两场景隔离到各自临时根，保留原断言并增加链接未被改写断言，产品代码/锁依赖未改。原失败证据保留。
+
+新回执位于原Mac持久测试工作区 evidence-3b32102/RESULT.md 与 full.stderr.log。真实SDK调用、主表生产来源配置、owner切换、页面视觉和自然运行仍未验。
+
+A预选测试 `97559b54ef27233073dd2b5460c0982b020542ec` 在Mac实际10项ERROR/exit1，全部ModuleNotFoundError（缺a_preselection模块），业务断言尚未执行。其新实现不得借用旧128PASS；待独立GREEN。

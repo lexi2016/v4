@@ -10,6 +10,9 @@ V5 位于私有仓库 `lexi2016/v4` 的 `v5/module-isolation-20261008` 分支，
 - 现有链路证明的是合成数据下的原 reader→独立 worker→提交→读回及重复请求一致性。合成页面结果为严格 1、接近 2、排除 1，没有真实股票推荐含义。
 - 浏览器视觉验收、真实 owner 输入准入、真实选股、每日自动运行、独立多模块进程环境及生产切换均未完成。
 
+- 最新已实测候选 [3b32102](https://github.com/lexi2016/v4/commit/3b321022b118e94f828d2f810a622a0a44b23950)：Mac 全套 128/128 PASS，含主表接入 22 项及 SDK 被动记录 17 项；4 条资源警告保留。只证明合成工程路径，不证明实际 SDK 采集。
+- A 预选原函数迁移进入候选实现，10 项测试已真实 RED（missing module），候选 GREEN 待 Mac；见 [模块进展](docs/MODULE_PROGRESS.md)。
+
 ## 阅读顺序
 
 1. [实际验证与接续](docs/ACCEPTANCE.md)
