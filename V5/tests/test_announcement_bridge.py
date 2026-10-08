@@ -78,6 +78,30 @@ class AnnouncementBridgeTests(unittest.TestCase):
             p=Path(r['materials_root'])/name;value=json.loads(p.read_bytes());value['sha256']='0'*64
             raw=json.dumps(value,ensure_ascii=False).encode();p.write_bytes(raw);r['material_files'][name]=hashlib.sha256(raw).hexdigest()
             with self.assertRaises(ValueError):self.run_request(r)
+    def test_default_publication_uses_original_hk_session_rule(self):
+        r=copy.deepcopy(self.request);r['publication_date']=None
+        out=self.run_request(r)
+        self.assertEqual(out['payload']['publication_date'],'2026-10-07')
+        self.assertEqual(out['payload']['date_selection_basis'],'PREVIOUS_HK_TRADING_SESSION')
+    def _reseal_receipt(self,r,mutate):
+        from v5_shadow.digests import sha256_json,canonical_bytes
+        name=self.analysis_path(r).replace('analysis.v1.json','owner_import_receipt.v1.json');p=Path(r['manager_root'])/name
+        value=json.loads(p.read_bytes());mutate(value)
+        value['sha256']=sha256_json({k:v for k,v in value.items() if k!='sha256'})
+        raw=canonical_bytes(value);p.write_bytes(raw);r['manager_files'][name]=hashlib.sha256(raw).hexdigest()
+    def test_resealed_parent_mismatch_preserves_current_v4_rejection(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            r=self.copied(tmp)
+            self._reseal_receipt(r,lambda v:v.update(parent_task_id='DIFFERENT_PARENT_TASK'))
+            with self.assertRaises(ValueError):self.run_request(r)
+    def test_partial_new_binding_group_preserves_current_v4_rejection(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            r=self.copied(tmp)
+            def mutate(value):
+                for key in ('evidence_run_id','handoff_manifest_sha256','agent_judgment_receipt_sha256'):value.pop(key,None)
+                value['source_manifest_sha256']='a'*64
+            self._reseal_receipt(r,mutate)
+            with self.assertRaises(ValueError):self.run_request(r)
     def test_source_files_stay_byte_identical(self):
         r=self.request;self.run_request(r)
         for rootkey,filekey in [('manager_root','manager_files'),('materials_root','material_files')]:
