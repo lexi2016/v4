@@ -1,0 +1,80 @@
+{
+  "aggregate_sha256_before_package_receipt": "ebd7576dbe2e57ed4e3e6e6033e9491a6c1c71b2c758037f1e5c822ce110b886",
+  "file_count_before_package_receipt": 25,
+  "forbidden_payload_check": "PASS",
+  "handoff_root": "handoff/manager-workbench-mac-completion-20261008",
+  "independent_phase3_review": {
+    "activation_status": "NOT_ACTIVATED",
+    "canary_status": "NOT_EXECUTED",
+    "execution_status": "BLOCKED",
+    "path": "completion_20261008/phase3/review/independent_phase3_review.json",
+    "review_status": "BLOCKED_ACTUAL_DIFF_UNAVAILABLE",
+    "sha256": "7944e8b9c8b6c34bdd1a4c4e0c5bebe21ed9df723d54d664e5cbd41d0d67bb9b"
+  },
+  "known_regression": {
+    "app_inventory_sha256": "c371c633437e366d28549a94be35741e8d137d2a0836155695c9d125bb427f05",
+    "candidate_included": false,
+    "current_listener_status": "CANNOT_CONFIRM",
+    "manifest_sha256": "2cc1447a740195c4f50299330d845635ddf762c45eb59586436a527e4f8b75a8",
+    "release_id": "manager-workbench-r1-mac-20261008-api-r2",
+    "status": "KNOWN_PRESELECTION_REGRESSION"
+  },
+  "manifest_sha256": "f264b00cbf651cf908fb267c8aec868672a2a3fe5c1b375a8b0c3059f2041fa0",
+  "product_tests_rerun": false,
+  "readme_sha256": "61991a13efe93f5b511c93db06392806dfda89a66734da35f3e054fabd388a17",
+  "remote_parent_commit": "281f2f39d0f096fa370e9765604dc634f1e9af6e",
+  "schema_version": "v4.manager_workbench_mac_completion_package_receipt.v1",
+  "source_receipt_refs": {
+    "api_candidate_inventory_final": {
+      "path": "receipts/api_candidate_inventory_final.json",
+      "sha256": "e99ec8bcaa462d83161a5873422103f769b6066582660f67b35a3f67d8f8abb3"
+    },
+    "dependency_and_test_compatibility": {
+      "path": "receipts/dependency_and_test_compatibility.json",
+      "sha256": "d442fcb4b86c33ef0e5325436d697473eb6946a14ebca617d9217613aafd5bb3"
+    },
+    "merge_resolution": {
+      "path": "receipts/merge_resolution.json",
+      "sha256": "998cc7880d0373ec04d6479d5565ab4c333cb9ecf92b7c95ec6b2f4a641825ef"
+    },
+    "p2_delta": {
+      "path": "receipts/p2_delta_receipt.json",
+      "sha256": "04535f6bc8c7b97cf585661c96b9327d3928876ffed314725dd2c8ea5f76b547"
+    },
+    "phase2_api_cutover": {
+      "path": "completion_20261008/writer_receipt.json",
+      "sha256": "f4a3be36497c8099f29736226d034b171da12bd8470dbdddc628fb370932e029"
+    },
+    "phase3_independent_review": {
+      "path": "completion_20261008/phase3/review/independent_phase3_review.json",
+      "sha256": "7944e8b9c8b6c34bdd1a4c4e0c5bebe21ed9df723d54d664e5cbd41d0d67bb9b"
+    },
+    "phase3_owner_canary": {
+      "path": "completion_20261008/phase3/phase3_writer_receipt.json",
+      "sha256": "36515fd849c477739f16cdc422bc82eadc5c9cd52528f61382d5f8b2323f8f65"
+    },
+    "prior_24_file_repair_source_manifest": {
+      "path": "incoming/repair/source_manifest.json",
+      "sha256": "ecc428fb1473b90867a5b58abb82d89a094eaec311fa478c69c09dd5abf4f7fb"
+    },
+    "web_candidate_inventory_final": {
+      "path": "receipts/web_candidate_inventory_final.json",
+      "sha256": "c15d93e90c53ebe9b5cce2a328103bb292e707e2eb4c4ccc3d29156f079461c9"
+    },
+    "workspace_store_error_business_fix": {
+      "path": "completion_20261008/workspace_failure/workspace_failure_business_fix_receipt.json",
+      "sha256": "7054dde1e405e2e2bf87d162fab8ad8760e2fc2bb1f874fba0e42b20e0618a61"
+    },
+    "workspace_store_error_independent_review": {
+      "path": "completion_20261008/workspace_failure/review/independent_review.json",
+      "sha256": "f7dacbbc63be34388d37570ec885af8d1625d136ea367b29f16db7144d4f86d4"
+    },
+    "writer_receipt_pre_p2_delta": {
+      "path": "receipts/writer_receipt_pre_p2_delta.json",
+      "sha256": "d16a64629322b554d2fe4752d16d19be96d5f4c51fc12f1a4905844b1e9d4553"
+    }
+  },
+  "source_sha_check": "PASS",
+  "status": "PACKAGE_PREPARED_LOCAL_ONLY_NOT_PUSHED",
+  "status_sha256": "2cf7609a2bf8298b5653a92a06e89fbc309f071317625abef8c61f7e392ab6f2"
+}

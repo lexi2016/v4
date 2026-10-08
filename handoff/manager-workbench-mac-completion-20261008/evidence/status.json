@@ -1,0 +1,219 @@
+{
+  "candidate_code_and_tests": {
+    "api_only_cutover_helper": {
+      "deployment_in_this_bundle": "none",
+      "focused_test": "21 passed",
+      "receipt": {
+        "path": "completion_20261008/writer_receipt.json",
+        "sha256": "f4a3be36497c8099f29736226d034b171da12bd8470dbdddc628fb370932e029"
+      }
+    },
+    "p2_api_web_delta": {
+      "backend_focused": "124 passed",
+      "changed_ui_runtime_full_file": "18 passed, 1 failed because existing manual-observation fixture binding is absent; no fixture added",
+      "daily_channels_frontend": "29 passed",
+      "receipt": {
+        "path": "receipts/p2_delta_receipt.json",
+        "sha256": "04535f6bc8c7b97cf585661c96b9327d3928876ffed314725dd2c8ea5f76b547"
+      },
+      "targeted_ui_red_green": "target passed; 18 skipped",
+      "typecheck_and_build": "scoped/full typecheck passed; full frontend build passed"
+    },
+    "phase3_owner_canary": {
+      "activation_status": "NOT_ACTIVATED",
+      "focused_test": "PASS: 5 passed",
+      "focused_test_status": "TESTED_LOCAL_PASS",
+      "formal_canary": "NOT_EXECUTED",
+      "historical_stage_selection": "CANNOT_CONFIRM; exact stage selection directory selection_runs/20260925 is absent.",
+      "independent_review_decision": "BLOCKED pending actual source diff. After baseline is supplied, a successful PARTIAL owner-chain canary could support only the narrowly scoped owner/readback proof; it cannot establish cross-date normal continuation or Stage completeness.",
+      "independent_review_receipt": {
+        "path": "completion_20261008/phase3/review/independent_phase3_review.json",
+        "sha256": "7944e8b9c8b6c34bdd1a4c4e0c5bebe21ed9df723d54d664e5cbd41d0d67bb9b"
+      },
+      "independent_review_status": "REVIEW_BLOCKED",
+      "local_preparation_status": "PREPARED",
+      "p0_p1_completeness": "CANNOT_CONFIRM because actual baseline delta was unavailable to the reviewer",
+      "p2_findings": [
+        "Successful PARTIAL owner-canary path is not covered by the focused tests; owner readback is not Stage-completeness evidence.",
+        "Failure writing state-preimage.json occurs before execute() failure handling and can strand the one-shot output directory without a failure receipt."
+      ],
+      "r2_dry_run": "PASS: DRY_RUN_NO_HTTP_NO_WRITE",
+      "receipt": {
+        "path": "completion_20261008/phase3/phase3_writer_receipt.json",
+        "sha256": "36515fd849c477739f16cdc422bc82eadc5c9cd52528f61382d5f8b2323f8f65"
+      },
+      "reviewed_statuses": {
+        "API_VERIFIED": "Prior operation receipt records API readback; not a Phase3 canary result",
+        "BEHAVIOR_VERIFIED": "CANNOT_CONFIRM; formal owner canary deliberately not executed",
+        "DEPLOYED": "Parent-provided/receipt-recorded R2 API operation exists; no fresh live query in this review",
+        "IMPLEMENTED": "CANNOT_CONFIRM from independent diff review",
+        "INTEGRATED": "CANNOT_CONFIRM",
+        "NATURAL_VERIFIED": "CANNOT_CONFIRM",
+        "REVIEWED": "PARTIAL; current artifacts inspected, baseline delta unavailable",
+        "TESTED": "PASS for five focused tests, R2 dry-run, and disabled scheduler validator",
+        "UI_VERIFIED": "CANNOT_CONFIRM"
+      },
+      "scheduler_status": "UNCHANGED; plan-only binding disabled; announcement_collection_enabled=false"
+    },
+    "store_error_fix": {
+      "focused_test": "3 passed per business-fix receipt",
+      "independent_review_receipt": {
+        "path": "completion_20261008/workspace_failure/review/independent_review.json",
+        "sha256": "f7dacbbc63be34388d37570ec885af8d1625d136ea367b29f16db7144d4f86d4"
+      },
+      "receipt": {
+        "path": "completion_20261008/workspace_failure/workspace_failure_business_fix_receipt.json",
+        "sha256": "7054dde1e405e2e2bf87d162fab8ad8760e2fc2bb1f874fba0e42b20e0618a61"
+      },
+      "review_status": "PASS",
+      "screen_status": "CANNOT_CONFIRM due missing exact-date security-master input; fail-closed behavior retained",
+      "test_status": "PASS"
+    }
+  },
+  "cross_session_ownership": {
+    "authorization_provenance": "Parent reports human cross-session coordination and the explicit reply: 制定港股阶段修复计划.",
+    "authorized_thread_id": "01a0ff4f-2b8f-7311-add9-cba3f560cc4d",
+    "candidate_included_in_this_package": false,
+    "current_writer_thread_action": "No deployment; continue read-only comparison of the 2026-09-30 three flows.",
+    "pending_scope": "Inherit the current R2 snapshot, prepare only the minimal two-hunk app.py repair, then obtain independent review.",
+    "role": "Sole 8873 follow-up switch owner."
+  },
+  "known_regression": {
+    "deployment_identity": {
+      "app_inventory_sha256": "c371c633437e366d28549a94be35741e8d137d2a0836155695c9d125bb427f05",
+      "manifest_sha256": "2cc1447a740195c4f50299330d845635ddf762c45eb59586436a527e4f8b75a8",
+      "release_id": "manager-workbench-r1-mac-20261008-api-r2"
+    },
+    "evidence_provenance": "Parent-provided cross-session finding; no new application source or product receipt was imported into this package.",
+    "location": "R2 app.py",
+    "observed_deployment_time": "2026-10-08 20:27 Asia/Shanghai",
+    "observed_effect": {
+      "authoritative_pool_inputs": {
+        "A": 178,
+        "HK": 100
+      },
+      "interpretation": "Valid pool data existed, but the R2 preselection path returned zero rows.",
+      "preselection_pool_rows": 0
+    },
+    "omitted_canonical_hunks": [
+      "preselection_source_root parameter",
+      "empty-list [] reaggregation logic (two-hunk regression)"
+    ],
+    "release_id": "manager-workbench-r1-mac-20261008-api-r2",
+    "status": "KNOWN_PRESELECTION_REGRESSION",
+    "status_semantics": "This package records the historical R2 snapshot and known regression; it does not certify the current listener."
+  },
+  "mac_live_state_from_receipts": {
+    "api_manifest_sha256": "2cc1447a740195c4f50299330d845635ddf762c45eb59586436a527e4f8b75a8",
+    "api_r2_release_identity": {
+      "app_inventory_entries": 1016,
+      "app_inventory_sha256": "c371c633437e366d28549a94be35741e8d137d2a0836155695c9d125bb427f05",
+      "identity_source": "completion_20261008/phase3/review/independent_phase3_review.json independent_checks.r2_actual_root_dry_run",
+      "manifest_sha256": "2cc1447a740195c4f50299330d845635ddf762c45eb59586436a527e4f8b75a8",
+      "release_id": "manager-workbench-r1-mac-20261008-api-r2"
+    },
+    "api_release_id": "manager-workbench-r1-mac-20261008-api-r2",
+    "api_snapshot_status": "HISTORICAL_R2_SNAPSHOT",
+    "api_switch_status": "API_ONLY_R2_SWITCHED_AND_READBACK_VERIFIED",
+    "api_switch_status_semantics": "Historical operation receipt only; no fresh live query after the known preselection regression.",
+    "current_listener_status_after_regression": "CANNOT_CONFIRM",
+    "manager_announcement_verification_scope": "Prior local API/UI readback covers manager announcement consumption and gap isolation only; it does not establish full-application preselection correctness or absence of regressions.",
+    "natural_run_verified": false,
+    "next_candidate_natural_slot": {
+      "activation_required_before_slot": true,
+      "date": "20261009",
+      "local_time": "06:30",
+      "market": "HK_SECURITIES",
+      "timezone": "Asia/Hong_Kong"
+    },
+    "operation_receipt": {
+      "embedded_receipt_sha256": "b31d575ac2bdd8cc50140ea1caa9a7b2fc4accb86860bb0fcc5672229e36d8c1",
+      "path": "completion_20261008/workspace_failure/api_only_switch_runs/20261008T122715Z-d74033b1/operation_receipt.json",
+      "physical_file_sha256": "91abe3f47458033206c62e6a0acff93132d5684fb83ee94c88117c49ea569b1f"
+    },
+    "safety": {
+      "RESEARCH_ONLY": true,
+      "buy_gate_updated": false,
+      "orders_sent": false,
+      "production_allowed": false
+    },
+    "scheduler": "UNCHANGED; plan-only binding disabled; announcement_collection_enabled=false",
+    "ui_readback_receipt": {
+      "path": "completion_20261008/ui/live_api_readback.json",
+      "sha256": "839fc584c54534d8ca608c586524f66ce0050caee03eb802a2b5984890ed69dc"
+    },
+    "ui_readback_status": "LIVE_ANNOUNCEMENT_CONSUMPTION_AND_GAP_ISOLATION_VERIFIED"
+  },
+  "mac_merge_source_deltas": [
+    {
+      "bytes": 93685,
+      "candidate_sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37",
+      "incoming_sha256": "fe6cb338015eed9299d29bfc842b7e936b750a6246a14dd61049e6fe5da16a19",
+      "path": "v4/manager_research/service.py"
+    },
+    {
+      "bytes": 101431,
+      "candidate_sha256": "5854af5d1e2b33cc469ba6abd49096bb2f727280161c663edf4b757742f9ce92",
+      "incoming_sha256": "703506a0880138122b53de4eeb5f47ed8a790bb6b97b0b56d4bf467de61c68da",
+      "path": "apps/web/src/api/managerWorkspace.ts"
+    }
+  ],
+  "package_exclusions": [
+    "all apps/web/dist build outputs",
+    "node_modules symlinks/content and Python virtual environments",
+    "raw market data, full API responses, complete business plans, screenshot",
+    "credentials, live plists, enabled bindings, or live scheduler configuration"
+  ],
+  "phase3_terminal": {
+    "current_independent_review": {
+      "path": "completion_20261008/phase3/review/independent_phase3_review.json",
+      "sha256": "7944e8b9c8b6c34bdd1a4c4e0c5bebe21ed9df723d54d664e5cbd41d0d67bb9b"
+    },
+    "natural_slot": "CANNOT_CONFIRM; no natural execution was observed.",
+    "status": "PREPARED_TESTED_REVIEW_BLOCKED_NOT_EXECUTED_NOT_ACTIVATED",
+    "writer_receipt_predates_review": {
+      "path": "completion_20261008/phase3/phase3_writer_receipt.json",
+      "sha256": "36515fd849c477739f16cdc422bc82eadc5c9cd52528f61382d5f8b2323f8f65"
+    }
+  },
+  "remote": {
+    "fixed_parent_commit": "281f2f39d0f096fa370e9765604dc634f1e9af6e",
+    "original_24_file_repair_payload": {
+      "handling": "omitted per parent instruction: already represented in the fixed parent commit",
+      "manifest_declared_base": "0fd5eb374cb155232ed003d5fc4d0d3594252491",
+      "manifest_file_count": 24,
+      "reference_manifest": {
+        "path": "incoming/repair/source_manifest.json",
+        "sha256": "ecc428fb1473b90867a5b58abb82d89a094eaec311fa478c69c09dd5abf4f7fb"
+      }
+    },
+    "repository": "lexi2016/v4",
+    "suggested_new_branch": "codex/manager-workbench-mac-completion-20261008-r1"
+  },
+  "schema_version": "v4.manager_workbench_mac_completion_handoff_status.v1",
+  "status": "SOURCE_HANDOFF_PACKAGE_PREPARED_NOT_PUSHED",
+  "verified_candidate_omissions": [
+    {
+      "basis": "Candidate bytes equal the current canonical source; no merge-resolution, dependency, or P2 candidate-delta receipt identifies a component change.",
+      "candidate_path": "candidate/web/apps/web/src/views/ManagerSelectionView.vue",
+      "candidate_sha256": "3db9731126b88555fecf60ac1a12e952b06ed70f838e078207fad9da32c2bed5",
+      "handling": "No new snapshot bytes added.",
+      "remote_fixed_base_blob": {
+        "status": "CONFIRMED_PRESENT_IN_FIXED_BASE",
+        "fixed_revision": "281f2f39d0f096fa370e9765604dc634f1e9af6e",
+        "base_path": "handoff/v4-running-source-20261005/canonical/apps/web/src/views/ManagerSelectionView.vue",
+        "object_id": "75b848172dd2a3fbc00b44dfb720759867209e42",
+        "bytes": 202767,
+        "sha256": "3db9731126b88555fecf60ac1a12e952b06ed70f838e078207fad9da32c2bed5",
+        "provenance": "Parent-provided remote tree mechanical check; object and bytes match the candidate."
+      }
+    },
+    {
+      "basis": "Exact match to the added file in incoming/repair/source_manifest.json; the parent fixed-base instruction accounts for the prior 24-file payload; no P2 delta changed this file.",
+      "candidate_path": "candidate/web/apps/web/src/manager-selection/dailyChannels.runtime.spec.ts",
+      "candidate_sha256": "c300e175a184a6a9e365c5d99a2977ea8cc8c8eed27fbedb3291785a83bd640e",
+      "handling": "No duplicate snapshot bytes added.",
+      "incoming_repair_sha256": "c300e175a184a6a9e365c5d99a2977ea8cc8c8eed27fbedb3291785a83bd640e"
+    }
+  ]
+}

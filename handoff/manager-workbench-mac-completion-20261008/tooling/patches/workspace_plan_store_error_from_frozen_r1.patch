@@ -1,0 +1,16 @@
+--- frozen-r1/v4/manager_research/workspace_plan.py
++++ candidate-storeerror/v4/manager_research/workspace_plan.py
+@@ -1018,8 +1018,12 @@
+         if panel is None:
+             return _screen_empty(context, ['SCREEN_PANEL_AUTHORITY_UNVERIFIED', *panel_gaps])
+         try:
++            from v3_shared_data.shared_data.store import StoreError
++        except (ImportError, OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
++            return _screen_empty(context, ['SCREEN_SECURITY_MASTER_READ_FAILED:' + type(exc).__name__])
++        try:
+             master, master_manifest = _screen_security_master_witness(root, day)
+-        except (ImportError, OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
++        except (ImportError, OSError, ValueError, KeyError, TypeError, RuntimeError, StoreError) as exc:
+             return _screen_empty(context, ['SCREEN_SECURITY_MASTER_READ_FAILED:' + type(exc).__name__])
+         master_captured_at = timestamp(master.get('captured_at'))
+         if master_captured_at is None or master_captured_at > timestamp(context['research_cutoff']):

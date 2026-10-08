@@ -1,0 +1,431 @@
+{
+  "files": [
+    {
+      "bytes": 35128,
+      "destination": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "kind": "file",
+      "packaged_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+      "purpose": "Receipt-pinned local source dependency required by the candidate; no third-party dependency was added.",
+      "receipt": {
+        "path": "receipts/dependency_and_test_compatibility.json",
+        "sha256": "d442fcb4b86c33ef0e5325436d697473eb6946a14ebca617d9217613aafd5bb3"
+      },
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/candidate/api/app/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "source_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c"
+    },
+    {
+      "bytes": 19841,
+      "destination": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/connect_capture_adapter.py",
+      "kind": "file",
+      "packaged_sha256": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b",
+      "purpose": "Receipt-pinned local source dependency required by the candidate; no third-party dependency was added.",
+      "receipt": {
+        "path": "receipts/dependency_and_test_compatibility.json",
+        "sha256": "d442fcb4b86c33ef0e5325436d697473eb6946a14ebca617d9217613aafd5bb3"
+      },
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/candidate/api/app/v4/manager_research/connect_capture_adapter.py",
+      "source_sha256": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b"
+    },
+    {
+      "bytes": 17496,
+      "destination": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/connect_selection.py",
+      "kind": "file",
+      "packaged_sha256": "eaa01a13d8065b11cc8397a12edaad8b892f183158aa1f9475d29645dee09d83",
+      "purpose": "P2 API/Web merge adaptation; receipt pins before/after source hashes.",
+      "receipt": {
+        "path": "receipts/p2_delta_receipt.json",
+        "sha256": "04535f6bc8c7b97cf585661c96b9327d3928876ffed314725dd2c8ea5f76b547"
+      },
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/candidate/api/app/v4/manager_research/connect_selection.py",
+      "source_sha256": "eaa01a13d8065b11cc8397a12edaad8b892f183158aa1f9475d29645dee09d83"
+    },
+    {
+      "additional_receipts": [
+        {
+          "path": "receipts/merge_resolution.json",
+          "sha256": "998cc7880d0373ec04d6479d5565ab4c333cb9ecf92b7c95ec6b2f4a641825ef"
+        },
+        {
+          "path": "receipts/api_candidate_inventory_final.json",
+          "sha256": "e99ec8bcaa462d83161a5873422103f769b6066582660f67b35a3f67d8f8abb3"
+        },
+        {
+          "path": "incoming/repair/source_manifest.json",
+          "sha256": "ecc428fb1473b90867a5b58abb82d89a094eaec311fa478c69c09dd5abf4f7fb"
+        }
+      ],
+      "bytes": 93685,
+      "candidate_relative_path": "candidate/api/app/v4/manager_research/service.py",
+      "candidate_source_sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37",
+      "destination": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/service.py",
+      "incoming_baseline_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/incoming/repair/after/v4/manager_research/service.py",
+      "incoming_baseline_sha256": "fe6cb338015eed9299d29bfc842b7e936b750a6246a14dd61049e6fe5da16a19",
+      "kind": "mac_merged_candidate_source_snapshot",
+      "packaged_sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37",
+      "purpose": "Current Mac-merged API service candidate; differs from the incoming repair file and is pinned by the final API candidate inventory.",
+      "receipt": {
+        "path": "receipts/writer_receipt_pre_p2_delta.json",
+        "sha256": "d16a64629322b554d2fe4752d16d19be96d5f4c51fc12f1a4905844b1e9d4553"
+      },
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/candidate/api/app/v4/manager_research/service.py",
+      "source_sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37"
+    },
+    {
+      "bytes": 12982,
+      "destination": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/workspace_daily_channels.py",
+      "kind": "file",
+      "packaged_sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+      "purpose": "P2 API/Web merge adaptation; receipt pins before/after source hashes.",
+      "receipt": {
+        "path": "receipts/p2_delta_receipt.json",
+        "sha256": "04535f6bc8c7b97cf585661c96b9327d3928876ffed314725dd2c8ea5f76b547"
+      },
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/candidate/api/app/v4/manager_research/workspace_daily_channels.py",
+      "source_sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f"
+    },
+    {
+      "bytes": 106047,
+      "destination": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/workspace_plan.py",
+      "kind": "file",
+      "packaged_sha256": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb",
+      "purpose": "StoreError fail-closed screen-read fix; full candidate snapshot is handoff-only, with a separate minimal patch from the frozen R1 preimage.",
+      "receipt": {
+        "path": "completion_20261008/workspace_failure/workspace_failure_business_fix_receipt.json",
+        "sha256": "7054dde1e405e2e2bf87d162fab8ad8760e2fc2bb1f874fba0e42b20e0618a61"
+      },
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/candidate/api/app/v4/manager_research/workspace_plan.py",
+      "source_sha256": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb"
+    },
+    {
+      "bytes": 4863,
+      "destination": "handoff/manager-workbench-mac-completion-20261008/source/tests/api/test_manager_research_router_contract.py",
+      "kind": "file",
+      "packaged_sha256": "673349cac3d50bda4abe6a6f1869811d0e5cab4ef95921610e1286cd14163419",
+      "purpose": "Receipt-pinned candidate API router contract test.",
+      "receipt": {
+        "path": "receipts/api_candidate_inventory_final.json",
+        "sha256": "e99ec8bcaa462d83161a5873422103f769b6066582660f67b35a3f67d8f8abb3"
+      },
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/candidate/api/app/tests/test_manager_research_router_contract.py",
+      "source_sha256": "673349cac3d50bda4abe6a6f1869811d0e5cab4ef95921610e1286cd14163419"
+    },
+    {
+      "bytes": 10651,
+      "destination": "handoff/manager-workbench-mac-completion-20261008/source/tests/backend/test_manager_daily_channels_20261008.py",
+      "kind": "file",
+      "packaged_sha256": "43688012eb751ac5c63c09e689aa85a82d3dfd147f82274e3e55f3530dacd536",
+      "purpose": "P2 API/Web merge adaptation; receipt pins before/after source hashes.",
+      "receipt": {
+        "path": "receipts/p2_delta_receipt.json",
+        "sha256": "04535f6bc8c7b97cf585661c96b9327d3928876ffed314725dd2c8ea5f76b547"
+      },
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/tests/backend/test_manager_daily_channels_20261008.py",
+      "source_sha256": "43688012eb751ac5c63c09e689aa85a82d3dfd147f82274e3e55f3530dacd536"
+    },
+    {
+      "bytes": 28502,
+      "destination": "handoff/manager-workbench-mac-completion-20261008/source/tests/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "kind": "file",
+      "packaged_sha256": "73eb6a2f7cbf2e2307a87edc3013e355c331f2ce87e6e0ae693b9f78de2dd34a",
+      "purpose": "Required test-loader copy of the production supervisor helper, pinned by dependency provenance.",
+      "receipt": {
+        "path": "receipts/dependency_and_test_compatibility.json",
+        "sha256": "d442fcb4b86c33ef0e5325436d697473eb6946a14ebca617d9217613aafd5bb3"
+      },
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/tests/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "source_sha256": "73eb6a2f7cbf2e2307a87edc3013e355c331f2ce87e6e0ae693b9f78de2dd34a"
+    },
+    {
+      "bytes": 2796,
+      "destination": "handoff/manager-workbench-mac-completion-20261008/source/tests/workspace_failure/test_security_master_store_error.py",
+      "kind": "file",
+      "packaged_sha256": "f4658693632ab97a8264b6340a859b44ffb2db8c556ac03fe01802fc4f8069a9",
+      "purpose": "Focused regression test for the StoreError screen-read failure path.",
+      "receipt": {
+        "path": "completion_20261008/workspace_failure/workspace_failure_business_fix_receipt.json",
+        "sha256": "7054dde1e405e2e2bf87d162fab8ad8760e2fc2bb1f874fba0e42b20e0618a61"
+      },
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/completion_20261008/workspace_failure/tests/test_security_master_store_error.py",
+      "source_sha256": "f4658693632ab97a8264b6340a859b44ffb2db8c556ac03fe01802fc4f8069a9"
+    },
+    {
+      "bytes": 35923,
+      "destination": "handoff/manager-workbench-mac-completion-20261008/source/web/apps/web/src/api/managerWorkspace.attention.spec.ts",
+      "kind": "file",
+      "packaged_sha256": "6e429317c2ada9d43a947586cc4882fd61dd53c436f13659953236d4a089673f",
+      "purpose": "Minimal candidate-only TypeScript test typing fix; assertions/behavior unchanged.",
+      "receipt": {
+        "path": "receipts/dependency_and_test_compatibility.json",
+        "sha256": "d442fcb4b86c33ef0e5325436d697473eb6946a14ebca617d9217613aafd5bb3"
+      },
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/candidate/web/apps/web/src/api/managerWorkspace.attention.spec.ts",
+      "source_sha256": "6e429317c2ada9d43a947586cc4882fd61dd53c436f13659953236d4a089673f"
+    },
+    {
+      "additional_receipts": [
+        {
+          "path": "receipts/merge_resolution.json",
+          "sha256": "998cc7880d0373ec04d6479d5565ab4c333cb9ecf92b7c95ec6b2f4a641825ef"
+        },
+        {
+          "path": "receipts/web_candidate_inventory_final.json",
+          "sha256": "c15d93e90c53ebe9b5cce2a328103bb292e707e2eb4c4ccc3d29156f079461c9"
+        },
+        {
+          "path": "incoming/repair/source_manifest.json",
+          "sha256": "ecc428fb1473b90867a5b58abb82d89a094eaec311fa478c69c09dd5abf4f7fb"
+        }
+      ],
+      "bytes": 101431,
+      "candidate_relative_path": "candidate/web/apps/web/src/api/managerWorkspace.ts",
+      "candidate_source_sha256": "5854af5d1e2b33cc469ba6abd49096bb2f727280161c663edf4b757742f9ce92",
+      "destination": "handoff/manager-workbench-mac-completion-20261008/source/web/apps/web/src/api/managerWorkspace.ts",
+      "incoming_baseline_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/incoming/repair/after/apps/web/src/api/managerWorkspace.ts",
+      "incoming_baseline_sha256": "703506a0880138122b53de4eeb5f47ed8a790bb6b97b0b56d4bf467de61c68da",
+      "kind": "mac_merged_candidate_source_snapshot",
+      "packaged_sha256": "5854af5d1e2b33cc469ba6abd49096bb2f727280161c663edf4b757742f9ce92",
+      "purpose": "Current Mac-merged managerWorkspace API candidate; differs from the incoming repair file and is pinned by the final web candidate inventory.",
+      "receipt": {
+        "path": "receipts/writer_receipt_pre_p2_delta.json",
+        "sha256": "d16a64629322b554d2fe4752d16d19be96d5f4c51fc12f1a4905844b1e9d4553"
+      },
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/candidate/web/apps/web/src/api/managerWorkspace.ts",
+      "source_sha256": "5854af5d1e2b33cc469ba6abd49096bb2f727280161c663edf4b757742f9ce92"
+    },
+    {
+      "bytes": 40211,
+      "destination": "handoff/manager-workbench-mac-completion-20261008/source/web/apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+      "kind": "file",
+      "packaged_sha256": "9ed39eebf1983c6287b25232839d68c6bfca684b3701a0dab080b8f5ed5e31a4",
+      "purpose": "P2 API/Web merge adaptation; receipt pins before/after source hashes.",
+      "receipt": {
+        "path": "receipts/p2_delta_receipt.json",
+        "sha256": "04535f6bc8c7b97cf585661c96b9327d3928876ffed314725dd2c8ea5f76b547"
+      },
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/candidate/web/apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+      "source_sha256": "9ed39eebf1983c6287b25232839d68c6bfca684b3701a0dab080b8f5ed5e31a4"
+    },
+    {
+      "bytes": 64295,
+      "destination": "handoff/manager-workbench-mac-completion-20261008/source/web/apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "kind": "file",
+      "packaged_sha256": "fbb20e417bb4d9ff7cbd25c5aa29f387a1650438d6e638216b3f4d7c1a209497",
+      "purpose": "P2 API/Web merge adaptation; receipt pins before/after source hashes.",
+      "receipt": {
+        "path": "receipts/p2_delta_receipt.json",
+        "sha256": "04535f6bc8c7b97cf585661c96b9327d3928876ffed314725dd2c8ea5f76b547"
+      },
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/candidate/web/apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "source_sha256": "fbb20e417bb4d9ff7cbd25c5aa29f387a1650438d6e638216b3f4d7c1a209497"
+    },
+    {
+      "bytes": 212456,
+      "destination": "handoff/manager-workbench-mac-completion-20261008/source/web/apps/web/src/views/ManagerSelectionView.spec.ts",
+      "kind": "file",
+      "packaged_sha256": "6c96928161d86f475d970661223d6bc8602bb3ae98fbbeacc68a989f6d360e8b",
+      "purpose": "Minimal candidate-only TypeScript test typing fix; assertions/behavior unchanged.",
+      "receipt": {
+        "path": "receipts/dependency_and_test_compatibility.json",
+        "sha256": "d442fcb4b86c33ef0e5325436d697473eb6946a14ebca617d9217613aafd5bb3"
+      },
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/candidate/web/apps/web/src/views/ManagerSelectionView.spec.ts",
+      "source_sha256": "6c96928161d86f475d970661223d6bc8602bb3ae98fbbeacc68a989f6d360e8b"
+    },
+    {
+      "bytes": 1112,
+      "derived_from": [
+        {
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/completion_20261008/workspace_failure/诊断/pre_fix_workspace_plan.py",
+          "sha256": "52779bb4e43e99fb8a3f03b0a0504cb922167c4a37167e4178636076573918cf"
+        },
+        {
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/candidate/api/app/v4/manager_research/workspace_plan.py",
+          "sha256": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb"
+        }
+      ],
+      "destination": "handoff/manager-workbench-mac-completion-20261008/tooling/patches/workspace_plan_store_error_from_frozen_r1.patch",
+      "kind": "derived_unified_patch",
+      "packaged_sha256": "ca26534fddda111b81494ab177ecd5702c278f1d2baa6b1609877cc19655ede8",
+      "purpose": "Minimal StoreError delta only; verify destination context before applying to a later merged workspace_plan.py.",
+      "receipt": {
+        "path": "completion_20261008/workspace_failure/workspace_failure_business_fix_receipt.json",
+        "sha256": "7054dde1e405e2e2bf87d162fab8ad8760e2fc2bb1f874fba0e42b20e0618a61"
+      },
+      "source_path": "derived from receipt-pinned frozen R1 preimage and StoreError candidate",
+      "source_sha256": null
+    },
+    {
+      "bytes": 90058,
+      "destination": "handoff/manager-workbench-mac-completion-20261008/tooling/phase2/api_only_cutover.py",
+      "kind": "file",
+      "packaged_sha256": "34ad6cfabcac7201d2f874b44539349f3ff10470441119848e9532760da43fac",
+      "purpose": "Phase2 API-only cutover operation helper/runbook/test; receipt-pinned, not a deployment authorization.",
+      "receipt": {
+        "path": "completion_20261008/writer_receipt.json",
+        "sha256": "f4a3be36497c8099f29736226d034b171da12bd8470dbdddc628fb370932e029"
+      },
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/phase2/tools/api_only_cutover.py",
+      "source_sha256": "34ad6cfabcac7201d2f874b44539349f3ff10470441119848e9532760da43fac"
+    },
+    {
+      "bytes": 11074,
+      "destination": "handoff/manager-workbench-mac-completion-20261008/tooling/phase2/api_only_cutover_runbook.md",
+      "kind": "file",
+      "packaged_sha256": "1962d5489c070e7bb35b3206c83019b193f85f08714e03f3939bae4f62e7ead4",
+      "purpose": "Phase2 API-only cutover operation helper/runbook/test; receipt-pinned, not a deployment authorization.",
+      "receipt": {
+        "path": "completion_20261008/writer_receipt.json",
+        "sha256": "f4a3be36497c8099f29736226d034b171da12bd8470dbdddc628fb370932e029"
+      },
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/phase2/drafts/api_only_cutover_runbook.md",
+      "source_sha256": "1962d5489c070e7bb35b3206c83019b193f85f08714e03f3939bae4f62e7ead4"
+    },
+    {
+      "bytes": 41457,
+      "destination": "handoff/manager-workbench-mac-completion-20261008/tooling/phase2/tests/test_api_only_cutover.py",
+      "kind": "file",
+      "packaged_sha256": "211c44f8e6e88ca916dc4a3f8dec1edb50799dda8faafb03309986e3029df7e7",
+      "purpose": "Phase2 API-only cutover operation helper/runbook/test; receipt-pinned, not a deployment authorization.",
+      "receipt": {
+        "path": "completion_20261008/writer_receipt.json",
+        "sha256": "f4a3be36497c8099f29736226d034b171da12bd8470dbdddc628fb370932e029"
+      },
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/phase2/tests/test_api_only_cutover.py",
+      "source_sha256": "211c44f8e6e88ca916dc4a3f8dec1edb50799dda8faafb03309986e3029df7e7"
+    },
+    {
+      "bytes": 39860,
+      "destination": "handoff/manager-workbench-mac-completion-20261008/tooling/phase3/run_plan_only_historical_canary.py",
+      "kind": "file",
+      "packaged_sha256": "64b02a52992fe35ddfdb7d3e41c98e27ab1753a0e15b7ebdcbfa5a0beeb588d3",
+      "purpose": "Exact original-owner historical canary runner; execution remains explicitly gated and was not performed.",
+      "receipt": {
+        "path": "completion_20261008/phase3/phase3_writer_receipt.json",
+        "sha256": "36515fd849c477739f16cdc422bc82eadc5c9cd52528f61382d5f8b2323f8f65"
+      },
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/phase3/tools/run_plan_only_historical_canary.py",
+      "source_sha256": "64b02a52992fe35ddfdb7d3e41c98e27ab1753a0e15b7ebdcbfa5a0beeb588d3"
+    },
+    {
+      "bytes": 7634,
+      "destination": "handoff/manager-workbench-mac-completion-20261008/tooling/phase3/tests/test_plan_only_historical_canary.py",
+      "kind": "file",
+      "packaged_sha256": "c89914f9b4e06cb5ecac80914766e23d77daf014cd6287d35f826b6de98a43f9",
+      "purpose": "Focused canary/preimage/post-POST-failure regression suite.",
+      "receipt": {
+        "path": "completion_20261008/phase3/phase3_writer_receipt.json",
+        "sha256": "36515fd849c477739f16cdc422bc82eadc5c9cd52528f61382d5f8b2323f8f65"
+      },
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/phase3/tests/test_plan_only_historical_canary.py",
+      "source_sha256": "c89914f9b4e06cb5ecac80914766e23d77daf014cd6287d35f826b6de98a43f9"
+    },
+    {
+      "bytes": 7485,
+      "destination": "handoff/manager-workbench-mac-completion-20261008/tooling/phase3/validate_r2_disabled_scheduler_draft.py",
+      "kind": "file",
+      "packaged_sha256": "202c424a0fcc44aa8655106305d2de44fed5a2fba5b65b0224d04fdf5e85aed5",
+      "purpose": "Read-only verifier for the disabled R2 scheduler draft and preserved active scheduler environment.",
+      "receipt": {
+        "path": "completion_20261008/phase3/phase3_writer_receipt.json",
+        "sha256": "36515fd849c477739f16cdc422bc82eadc5c9cd52528f61382d5f8b2323f8f65"
+      },
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/phase3/tools/validate_r2_disabled_scheduler_draft.py",
+      "source_sha256": "202c424a0fcc44aa8655106305d2de44fed5a2fba5b65b0224d04fdf5e85aed5"
+    }
+  ],
+  "mode": "HANDOFF_SNAPSHOT_ONLY_NO_CANONICAL_OVERWRITE",
+  "omitted_existing_base_files": {
+    "file_count": 24,
+    "reason": "Per parent instruction, original 24-file repair payload is already present in fixed parent commit 281f2f39d0f096fa370e9765604dc634f1e9af6e; avoid duplicate/overwriting frozen handoff paths.",
+    "source_manifest_path": "incoming/repair/source_manifest.json",
+    "source_manifest_sha256": "ecc428fb1473b90867a5b58abb82d89a094eaec311fa478c69c09dd5abf4f7fb"
+  },
+  "package_root": "handoff/manager-workbench-mac-completion-20261008",
+  "receipt_refs": {
+    "api_candidate_inventory_final": {
+      "path": "receipts/api_candidate_inventory_final.json",
+      "sha256": "e99ec8bcaa462d83161a5873422103f769b6066582660f67b35a3f67d8f8abb3"
+    },
+    "dependency_and_test_compatibility": {
+      "path": "receipts/dependency_and_test_compatibility.json",
+      "sha256": "d442fcb4b86c33ef0e5325436d697473eb6946a14ebca617d9217613aafd5bb3"
+    },
+    "merge_resolution": {
+      "path": "receipts/merge_resolution.json",
+      "sha256": "998cc7880d0373ec04d6479d5565ab4c333cb9ecf92b7c95ec6b2f4a641825ef"
+    },
+    "p2_delta": {
+      "path": "receipts/p2_delta_receipt.json",
+      "sha256": "04535f6bc8c7b97cf585661c96b9327d3928876ffed314725dd2c8ea5f76b547"
+    },
+    "phase2_api_cutover": {
+      "path": "completion_20261008/writer_receipt.json",
+      "sha256": "f4a3be36497c8099f29736226d034b171da12bd8470dbdddc628fb370932e029"
+    },
+    "phase3_independent_review": {
+      "path": "completion_20261008/phase3/review/independent_phase3_review.json",
+      "sha256": "7944e8b9c8b6c34bdd1a4c4e0c5bebe21ed9df723d54d664e5cbd41d0d67bb9b"
+    },
+    "phase3_owner_canary": {
+      "path": "completion_20261008/phase3/phase3_writer_receipt.json",
+      "sha256": "36515fd849c477739f16cdc422bc82eadc5c9cd52528f61382d5f8b2323f8f65"
+    },
+    "prior_24_file_repair_source_manifest": {
+      "path": "incoming/repair/source_manifest.json",
+      "sha256": "ecc428fb1473b90867a5b58abb82d89a094eaec311fa478c69c09dd5abf4f7fb"
+    },
+    "web_candidate_inventory_final": {
+      "path": "receipts/web_candidate_inventory_final.json",
+      "sha256": "c15d93e90c53ebe9b5cce2a328103bb292e707e2eb4c4ccc3d29156f079461c9"
+    },
+    "workspace_store_error_business_fix": {
+      "path": "completion_20261008/workspace_failure/workspace_failure_business_fix_receipt.json",
+      "sha256": "7054dde1e405e2e2bf87d162fab8ad8760e2fc2bb1f874fba0e42b20e0618a61"
+    },
+    "workspace_store_error_independent_review": {
+      "path": "completion_20261008/workspace_failure/review/independent_review.json",
+      "sha256": "f7dacbbc63be34388d37570ec885af8d1625d136ea367b29f16db7144d4f86d4"
+    },
+    "writer_receipt_pre_p2_delta": {
+      "path": "receipts/writer_receipt_pre_p2_delta.json",
+      "sha256": "d16a64629322b554d2fe4752d16d19be96d5f4c51fc12f1a4905844b1e9d4553"
+    }
+  },
+  "remote_parent_commit": "281f2f39d0f096fa370e9765604dc634f1e9af6e",
+  "safety": {
+    "business_plan_payloads_included": false,
+    "credentials_included": false,
+    "dist_included": false,
+    "full_api_response_bodies_included": false,
+    "live_config_included": false,
+    "node_modules_included": false,
+    "push_performed": false,
+    "raw_market_data_included": false,
+    "venv_included": false
+  },
+  "schema_version": "v4.manager_workbench_mac_completion_file_map.v1",
+  "verified_omissions": [
+    {
+      "basis": "Candidate bytes equal the current canonical source; no merge-resolution, dependency, or P2 candidate-delta receipt identifies a component change.",
+      "candidate_path": "candidate/web/apps/web/src/views/ManagerSelectionView.vue",
+      "candidate_sha256": "3db9731126b88555fecf60ac1a12e952b06ed70f838e078207fad9da32c2bed5",
+      "handling": "No new snapshot bytes added.",
+      "remote_fixed_base_blob": {
+        "status": "CONFIRMED_PRESENT_IN_FIXED_BASE",
+        "fixed_revision": "281f2f39d0f096fa370e9765604dc634f1e9af6e",
+        "base_path": "handoff/v4-running-source-20261005/canonical/apps/web/src/views/ManagerSelectionView.vue",
+        "object_id": "75b848172dd2a3fbc00b44dfb720759867209e42",
+        "bytes": 202767,
+        "sha256": "3db9731126b88555fecf60ac1a12e952b06ed70f838e078207fad9da32c2bed5",
+        "provenance": "Parent-provided remote tree mechanical check; object and bytes match the candidate."
+      }
+    },
+    {
+      "basis": "Exact match to the added file in incoming/repair/source_manifest.json; the parent fixed-base instruction accounts for the prior 24-file payload; no P2 delta changed this file.",
+      "candidate_path": "candidate/web/apps/web/src/manager-selection/dailyChannels.runtime.spec.ts",
+      "candidate_sha256": "c300e175a184a6a9e365c5d99a2977ea8cc8c8eed27fbedb3291785a83bd640e",
+      "handling": "No duplicate snapshot bytes added.",
+      "incoming_repair_sha256": "c300e175a184a6a9e365c5d99a2977ea8cc8c8eed27fbedb3291785a83bd640e"
+    }
+  ]
+}
