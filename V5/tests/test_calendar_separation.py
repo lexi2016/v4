@@ -19,12 +19,12 @@ class CalendarSeparationTests(unittest.TestCase):
         states=self.module.resolve_market_states(self.calendar,'20261007')
         self.assertEqual(states['a_share'].value,'NON_TRADING_DAY')
         self.assertEqual(states['hk_securities'].value,'FULL_TRADING_DAY')
-        self.assertEqual(states['hk_connect_southbound'].value,'NON_TRADING_DAY')
+        self.assertEqual(states['hk_connect'].value,'NON_TRADING_DAY')
     def test_reopening_is_independent(self):
         states=self.module.resolve_market_states(self.calendar,'20261008')
         self.assertEqual(states['a_share'].value,'FULL_TRADING_DAY')
         self.assertEqual(states['hk_securities'].value,'FULL_TRADING_DAY')
-        self.assertEqual(states['hk_connect_southbound'].value,'FULL_TRADING_DAY')
+        self.assertEqual(states['hk_connect'].value,'FULL_TRADING_DAY')
     def test_outside_frozen_year_not_assumed_open(self):
         try:states=self.module.resolve_market_states(self.calendar,'20270104')
         except ValueError:return
