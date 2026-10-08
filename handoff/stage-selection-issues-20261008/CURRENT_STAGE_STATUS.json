@@ -1,0 +1,714 @@
+{
+  "captured_at": "2026-10-08T09:50:54.580614+08:00",
+  "trade_date": "20261008",
+  "scope": "read-only current stage API snapshot; future stages are not classified as failures",
+  "api_runtime_identity": {
+    "application": "V4",
+    "status": "MANIFEST_EXECUTION_FILES_VERIFIED",
+    "release_id": "manager-daily-chain-20261008-r3-api",
+    "process_status": "CANNOT_CONFIRM",
+    "manifest_sha256": "946c49b9c34bd09fbca04644556de3acba1635eb240fa9293f6391e9d46b40e9"
+  },
+  "stages": [
+    {
+      "stage_id": "STAGE_0925",
+      "status": "PARTIAL_WITH_ROWS",
+      "A": {
+        "status": "PARTIAL_WITH_ROWS",
+        "requested_rows": 178,
+        "source_rows": 171,
+        "selected_rows": 10,
+        "run_id": "run-bec636b1708b0ebc26c4c6d3",
+        "artifact_id": "selection-bec636b1708b0ebc26c4c6d3",
+        "algorithm_sha256": "eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2",
+        "raw_artifact_sha256": "9aee2d53b77c5f943e6fb209414eb565530e527e5286d0047fe238edaa781953",
+        "missing_symbol_count": 7
+      },
+      "HK": {
+        "status": "CANNOT_CONFIRM",
+        "requested_rows": null,
+        "source_rows": null,
+        "selected_rows": null,
+        "run_id": null,
+        "artifact_id": null
+      },
+      "hk_execution": {
+        "requested_rows": null,
+        "source_rows": null,
+        "observed_rows": null,
+        "accepted_rows": null,
+        "selected_rows": 0,
+        "status": "CANNOT_CONFIRM",
+        "reasons": [
+          "HK D1 split-date eligibility provenance missing"
+        ],
+        "selection_binding": "NO_VERIFIED_SELECTION_BINDING",
+        "failure_layer": null,
+        "declared_identity": {
+          "run_id": null,
+          "artifact_id": null,
+          "algorithm_sha256": null,
+          "raw_artifact_sha256": null
+        },
+        "write_performed": false
+      },
+      "execution": {
+        "status": "SELECTION_REFERENCES_PARTIALLY_BOUND_EXECUTION_UNVERIFIED",
+        "attempt_mode": "RECOVERY",
+        "due_status": "LATE_CATCHUP_REPLAY",
+        "declared_status": "PARTIAL_WITH_ROWS",
+        "recorded_at": null,
+        "node_attempt_count": 1,
+        "node_outcome": "SETTLED_PARTIAL",
+        "first_failed_layer": null,
+        "error": null,
+        "execution_verified": false,
+        "natural_verified": false,
+        "receipt_path": "<STAGE_RECEIPTS>/20261008/STAGE_0925/receipt.json",
+        "observed_sha256": "804ce7a3885458d4d653bb9ef254fd5148192eee17ac81e86c3564d028d07b23"
+      },
+      "A_reason_categories": [
+        "CANNOT_CONFIRM_NATURAL_0925_CAPTURE_RECOVERY_ONLY",
+        "PYTDX_0925_AUCTION_ROWS_MISSING",
+        "PYTDX_0925_DIAGNOSTICS_V1",
+        "PYTDX_0925_HISTORY_TRANSACTION_L0_NO_ORDER_BOOK"
+      ],
+      "A_selected_field_counts": {
+        "prev_close_price": {
+          "null": 10,
+          "zero": 0,
+          "total": 10
+        },
+        "current_change_pct": {
+          "null": 0,
+          "zero": 10,
+          "total": 10
+        },
+        "news_quality_score": {
+          "null": 10,
+          "zero": 0,
+          "total": 10
+        },
+        "research_quality_score": {
+          "null": 10,
+          "zero": 0,
+          "total": 10
+        },
+        "formal_eligible": {
+          "null": 0,
+          "zero": 10,
+          "total": 10
+        }
+      },
+      "safety": {
+        "write_performed": false,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "stage_id": "STAGE_0930_0935",
+      "status": "PARTIAL_WITH_ROWS",
+      "A": {
+        "status": "PARTIAL_WITH_ROWS",
+        "requested_rows": 178,
+        "source_rows": 172,
+        "selected_rows": 10,
+        "run_id": "run-d056fdcf1354c4f107a89411",
+        "artifact_id": "selection-d056fdcf1354c4f107a89411",
+        "algorithm_sha256": "eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2",
+        "raw_artifact_sha256": "e0ce0ef8d8d564541ec936c3d52ea115dee636e61ad5d8d30509a2c8d05b1c86",
+        "missing_symbol_count": 6
+      },
+      "HK": {
+        "status": "CANNOT_CONFIRM",
+        "requested_rows": null,
+        "source_rows": null,
+        "selected_rows": null,
+        "run_id": null,
+        "artifact_id": null
+      },
+      "hk_execution": {
+        "requested_rows": null,
+        "source_rows": null,
+        "observed_rows": null,
+        "accepted_rows": null,
+        "selected_rows": 0,
+        "status": "CANNOT_CONFIRM",
+        "reasons": [
+          "HK D1 split-date eligibility provenance missing"
+        ],
+        "selection_binding": "NO_VERIFIED_SELECTION_BINDING",
+        "failure_layer": null,
+        "declared_identity": {
+          "run_id": null,
+          "artifact_id": null,
+          "algorithm_sha256": null,
+          "raw_artifact_sha256": null
+        },
+        "write_performed": false
+      },
+      "execution": {
+        "status": "SELECTION_REFERENCES_PARTIALLY_BOUND_EXECUTION_UNVERIFIED",
+        "attempt_mode": "NATURAL",
+        "due_status": "DUE",
+        "declared_status": "PARTIAL_WITH_ROWS",
+        "recorded_at": null,
+        "node_attempt_count": 1,
+        "node_outcome": "SETTLED_PARTIAL",
+        "first_failed_layer": null,
+        "error": null,
+        "execution_verified": false,
+        "natural_verified": false,
+        "receipt_path": "<STAGE_RECEIPTS>/20261008/STAGE_0930_0935/receipt.json",
+        "observed_sha256": "cb8be29778c1d1bb8c2dc44266ce0495b8efc1da094911e84864a9a2bad6193b"
+      },
+      "A_reason_categories": [
+        "FORMAL_OVERLAY_CANNOT_CONFIRM",
+        "MORNING_NEWS_SCORE_MISSING",
+        "PyTDX HQ batch coverage incomplete",
+        "PyTDX HQ exact-date/window coverage incomplete",
+        "RESEARCH_CONTEXT_CODE_MISSING",
+        "RESEARCH_CONTEXT_FIELDS_MISSING",
+        "RESEARCH_ITEM_QUALITY_SCORE_MISSING",
+        "RESEARCH_STAGE_EVIDENCE_MISSING",
+        "STOCK_MENTIONS_CANDIDATE_REGISTRY_MISSING"
+      ],
+      "A_selected_field_counts": {
+        "prev_close_price": {
+          "null": 10,
+          "zero": 0,
+          "total": 10
+        },
+        "current_change_pct": {
+          "null": 0,
+          "zero": 0,
+          "total": 10
+        },
+        "news_quality_score": {
+          "null": 10,
+          "zero": 0,
+          "total": 10
+        },
+        "research_quality_score": {
+          "null": 10,
+          "zero": 0,
+          "total": 10
+        },
+        "formal_eligible": {
+          "null": 0,
+          "zero": 10,
+          "total": 10
+        }
+      },
+      "safety": {
+        "write_performed": false,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "stage_id": "STAGE_0935_0940",
+      "status": "PARTIAL_WITH_ROWS",
+      "A": {
+        "status": "PARTIAL_WITH_ROWS",
+        "requested_rows": 178,
+        "source_rows": 172,
+        "selected_rows": 10,
+        "run_id": "run-8eef00ed33c9aec10414a7e7",
+        "artifact_id": "selection-8eef00ed33c9aec10414a7e7",
+        "algorithm_sha256": "eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2",
+        "raw_artifact_sha256": "c24e396d7061acea013bb7599727e0408de92de11f09c5a8f37da4792383a320",
+        "missing_symbol_count": 6
+      },
+      "HK": {
+        "status": "CANNOT_CONFIRM",
+        "requested_rows": null,
+        "source_rows": null,
+        "selected_rows": null,
+        "run_id": null,
+        "artifact_id": null
+      },
+      "hk_execution": {
+        "requested_rows": null,
+        "source_rows": null,
+        "observed_rows": null,
+        "accepted_rows": null,
+        "selected_rows": 0,
+        "status": "CANNOT_CONFIRM",
+        "reasons": [
+          "HK D1 split-date eligibility provenance missing"
+        ],
+        "selection_binding": "NO_VERIFIED_SELECTION_BINDING",
+        "failure_layer": null,
+        "declared_identity": {
+          "run_id": null,
+          "artifact_id": null,
+          "algorithm_sha256": null,
+          "raw_artifact_sha256": null
+        },
+        "write_performed": false
+      },
+      "execution": {
+        "status": "SELECTION_REFERENCES_PARTIALLY_BOUND_EXECUTION_UNVERIFIED",
+        "attempt_mode": "NATURAL",
+        "due_status": "DUE",
+        "declared_status": "PARTIAL_WITH_ROWS",
+        "recorded_at": null,
+        "node_attempt_count": 1,
+        "node_outcome": "SETTLED_PARTIAL",
+        "first_failed_layer": null,
+        "error": null,
+        "execution_verified": false,
+        "natural_verified": false,
+        "receipt_path": "<STAGE_RECEIPTS>/20261008/STAGE_0935_0940/receipt.json",
+        "observed_sha256": "78b19309e80b1f68856faf9c5512af3c94c28e17921cde7735c5b0e66f8c720e"
+      },
+      "A_reason_categories": [
+        "FORMAL_OVERLAY_CANNOT_CONFIRM",
+        "MORNING_NEWS_SCORE_MISSING",
+        "PyTDX HQ batch coverage incomplete",
+        "PyTDX HQ exact-date/window coverage incomplete",
+        "RESEARCH_CONTEXT_CODE_MISSING",
+        "RESEARCH_CONTEXT_FIELDS_MISSING",
+        "RESEARCH_ITEM_QUALITY_SCORE_MISSING",
+        "RESEARCH_STAGE_EVIDENCE_MISSING",
+        "STOCK_MENTIONS_CANDIDATE_REGISTRY_MISSING"
+      ],
+      "A_selected_field_counts": {
+        "prev_close_price": {
+          "null": 10,
+          "zero": 0,
+          "total": 10
+        },
+        "current_change_pct": {
+          "null": 0,
+          "zero": 0,
+          "total": 10
+        },
+        "news_quality_score": {
+          "null": 10,
+          "zero": 0,
+          "total": 10
+        },
+        "research_quality_score": {
+          "null": 10,
+          "zero": 0,
+          "total": 10
+        },
+        "formal_eligible": {
+          "null": 0,
+          "zero": 10,
+          "total": 10
+        }
+      },
+      "safety": {
+        "write_performed": false,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "stage_id": "STAGE_0940_0945",
+      "status": "PARTIAL_WITH_ROWS",
+      "A": {
+        "status": "PARTIAL_WITH_ROWS",
+        "requested_rows": 178,
+        "source_rows": 172,
+        "selected_rows": 10,
+        "run_id": "run-bb8414e9723876f2b6eecd66",
+        "artifact_id": "selection-bb8414e9723876f2b6eecd66",
+        "algorithm_sha256": "eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2",
+        "raw_artifact_sha256": "7db3e6c7755a32eeae461609e2b4ab392c1f07caf5a6bfbb3ea0c415bce96d43",
+        "missing_symbol_count": 6
+      },
+      "HK": {
+        "status": "CANNOT_CONFIRM",
+        "requested_rows": null,
+        "source_rows": null,
+        "selected_rows": null,
+        "run_id": null,
+        "artifact_id": null
+      },
+      "hk_execution": {
+        "requested_rows": null,
+        "source_rows": null,
+        "observed_rows": null,
+        "accepted_rows": null,
+        "selected_rows": 0,
+        "status": "CANNOT_CONFIRM",
+        "reasons": [
+          "HK D1 split-date eligibility provenance missing"
+        ],
+        "selection_binding": "NO_VERIFIED_SELECTION_BINDING",
+        "failure_layer": null,
+        "declared_identity": {
+          "run_id": null,
+          "artifact_id": null,
+          "algorithm_sha256": null,
+          "raw_artifact_sha256": null
+        },
+        "write_performed": false
+      },
+      "execution": {
+        "status": "SELECTION_REFERENCES_PARTIALLY_BOUND_EXECUTION_UNVERIFIED",
+        "attempt_mode": "RECOVERY",
+        "due_status": "LATE_CATCHUP_REPLAY",
+        "declared_status": "PARTIAL_WITH_ROWS",
+        "recorded_at": null,
+        "node_attempt_count": 1,
+        "node_outcome": "SETTLED_PARTIAL",
+        "first_failed_layer": null,
+        "error": null,
+        "execution_verified": false,
+        "natural_verified": false,
+        "receipt_path": "<STAGE_RECEIPTS>/20261008/STAGE_0940_0945/receipt.json",
+        "observed_sha256": "394ac46a13f7e9b5c7e9c4e35739a2a9c860d2fdf73d3a3e2d47fce62251841d"
+      },
+      "A_reason_categories": [
+        "FORMAL_OVERLAY_CANNOT_CONFIRM",
+        "MORNING_NEWS_SCORE_MISSING",
+        "PyTDX HQ batch coverage incomplete",
+        "PyTDX HQ exact-date/window coverage incomplete",
+        "RESEARCH_CONTEXT_CODE_MISSING",
+        "RESEARCH_CONTEXT_FIELDS_MISSING",
+        "RESEARCH_ITEM_QUALITY_SCORE_MISSING",
+        "RESEARCH_STAGE_EVIDENCE_MISSING",
+        "STOCK_MENTIONS_CANDIDATE_REGISTRY_MISSING"
+      ],
+      "A_selected_field_counts": {
+        "prev_close_price": {
+          "null": 10,
+          "zero": 0,
+          "total": 10
+        },
+        "current_change_pct": {
+          "null": 0,
+          "zero": 0,
+          "total": 10
+        },
+        "news_quality_score": {
+          "null": 10,
+          "zero": 0,
+          "total": 10
+        },
+        "research_quality_score": {
+          "null": 10,
+          "zero": 0,
+          "total": 10
+        },
+        "formal_eligible": {
+          "null": 0,
+          "zero": 10,
+          "total": 10
+        }
+      },
+      "safety": {
+        "write_performed": false,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "stage_id": "STAGE_0945_1030",
+      "status": "CANNOT_CONFIRM",
+      "A": {
+        "status": "CANNOT_CONFIRM",
+        "requested_rows": null,
+        "source_rows": null,
+        "selected_rows": null,
+        "run_id": null,
+        "artifact_id": null,
+        "algorithm_sha256": null,
+        "raw_artifact_sha256": null,
+        "missing_symbol_count": 0
+      },
+      "HK": {
+        "status": "CANNOT_CONFIRM",
+        "requested_rows": null,
+        "source_rows": null,
+        "selected_rows": null,
+        "run_id": null,
+        "artifact_id": null
+      },
+      "hk_execution": {},
+      "execution": {
+        "status": "EXECUTION_RECEIPT_MISSING",
+        "attempt_mode": null,
+        "due_status": null,
+        "declared_status": null,
+        "recorded_at": null,
+        "node_attempt_count": null,
+        "node_outcome": null,
+        "first_failed_layer": null,
+        "error": null,
+        "execution_verified": false,
+        "natural_verified": false,
+        "receipt_path": "<STAGE_RECEIPTS>/20261008/STAGE_0945_1030/receipt.json",
+        "observed_sha256": null
+      },
+      "A_reason_categories": [],
+      "A_selected_field_counts": {
+        "prev_close_price": {
+          "null": 0,
+          "zero": 0,
+          "total": 0
+        },
+        "current_change_pct": {
+          "null": 0,
+          "zero": 0,
+          "total": 0
+        },
+        "news_quality_score": {
+          "null": 0,
+          "zero": 0,
+          "total": 0
+        },
+        "research_quality_score": {
+          "null": 0,
+          "zero": 0,
+          "total": 0
+        },
+        "formal_eligible": {
+          "null": 0,
+          "zero": 0,
+          "total": 0
+        }
+      },
+      "safety": {
+        "write_performed": false,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "stage_id": "STAGE_1300_1315",
+      "status": "CANNOT_CONFIRM",
+      "A": {
+        "status": "CANNOT_CONFIRM",
+        "requested_rows": null,
+        "source_rows": null,
+        "selected_rows": null,
+        "run_id": null,
+        "artifact_id": null,
+        "algorithm_sha256": null,
+        "raw_artifact_sha256": null,
+        "missing_symbol_count": 0
+      },
+      "HK": {
+        "status": "CANNOT_CONFIRM",
+        "requested_rows": null,
+        "source_rows": null,
+        "selected_rows": null,
+        "run_id": null,
+        "artifact_id": null
+      },
+      "hk_execution": {},
+      "execution": {
+        "status": "EXECUTION_RECEIPT_MISSING",
+        "attempt_mode": null,
+        "due_status": null,
+        "declared_status": null,
+        "recorded_at": null,
+        "node_attempt_count": null,
+        "node_outcome": null,
+        "first_failed_layer": null,
+        "error": null,
+        "execution_verified": false,
+        "natural_verified": false,
+        "receipt_path": "<STAGE_RECEIPTS>/20261008/STAGE_1300_1315/receipt.json",
+        "observed_sha256": null
+      },
+      "A_reason_categories": [],
+      "A_selected_field_counts": {
+        "prev_close_price": {
+          "null": 0,
+          "zero": 0,
+          "total": 0
+        },
+        "current_change_pct": {
+          "null": 0,
+          "zero": 0,
+          "total": 0
+        },
+        "news_quality_score": {
+          "null": 0,
+          "zero": 0,
+          "total": 0
+        },
+        "research_quality_score": {
+          "null": 0,
+          "zero": 0,
+          "total": 0
+        },
+        "formal_eligible": {
+          "null": 0,
+          "zero": 0,
+          "total": 0
+        }
+      },
+      "safety": {
+        "write_performed": false,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "stage_id": "STAGE_1445_1500",
+      "status": "CANNOT_CONFIRM",
+      "A": {
+        "status": "CANNOT_CONFIRM",
+        "requested_rows": null,
+        "source_rows": null,
+        "selected_rows": null,
+        "run_id": null,
+        "artifact_id": null,
+        "algorithm_sha256": null,
+        "raw_artifact_sha256": null,
+        "missing_symbol_count": 0
+      },
+      "HK": {
+        "status": "CANNOT_CONFIRM",
+        "requested_rows": null,
+        "source_rows": null,
+        "selected_rows": null,
+        "run_id": null,
+        "artifact_id": null
+      },
+      "hk_execution": {},
+      "execution": {
+        "status": "EXECUTION_RECEIPT_MISSING",
+        "attempt_mode": null,
+        "due_status": null,
+        "declared_status": null,
+        "recorded_at": null,
+        "node_attempt_count": null,
+        "node_outcome": null,
+        "first_failed_layer": null,
+        "error": null,
+        "execution_verified": false,
+        "natural_verified": false,
+        "receipt_path": "<STAGE_RECEIPTS>/20261008/STAGE_1445_1500/receipt.json",
+        "observed_sha256": null
+      },
+      "A_reason_categories": [],
+      "A_selected_field_counts": {
+        "prev_close_price": {
+          "null": 0,
+          "zero": 0,
+          "total": 0
+        },
+        "current_change_pct": {
+          "null": 0,
+          "zero": 0,
+          "total": 0
+        },
+        "news_quality_score": {
+          "null": 0,
+          "zero": 0,
+          "total": 0
+        },
+        "research_quality_score": {
+          "null": 0,
+          "zero": 0,
+          "total": 0
+        },
+        "formal_eligible": {
+          "null": 0,
+          "zero": 0,
+          "total": 0
+        }
+      },
+      "safety": {
+        "write_performed": false,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "stage_id": "STAGE_1545_1555",
+      "status": "CANNOT_CONFIRM",
+      "A": {
+        "status": null,
+        "requested_rows": null,
+        "source_rows": null,
+        "selected_rows": null,
+        "run_id": null,
+        "artifact_id": null,
+        "algorithm_sha256": null,
+        "raw_artifact_sha256": null,
+        "missing_symbol_count": 0
+      },
+      "HK": {
+        "status": "CANNOT_CONFIRM",
+        "requested_rows": null,
+        "source_rows": null,
+        "selected_rows": null,
+        "run_id": null,
+        "artifact_id": null
+      },
+      "hk_execution": {},
+      "execution": {
+        "status": "EXECUTION_RECEIPT_MISSING",
+        "attempt_mode": null,
+        "due_status": null,
+        "declared_status": null,
+        "recorded_at": null,
+        "node_attempt_count": null,
+        "node_outcome": null,
+        "first_failed_layer": null,
+        "error": null,
+        "execution_verified": false,
+        "natural_verified": false,
+        "receipt_path": "<STAGE_RECEIPTS>/20261008/STAGE_1545_1555/receipt.json",
+        "observed_sha256": null
+      },
+      "A_reason_categories": [],
+      "A_selected_field_counts": {
+        "prev_close_price": {
+          "null": 0,
+          "zero": 0,
+          "total": 0
+        },
+        "current_change_pct": {
+          "null": 0,
+          "zero": 0,
+          "total": 0
+        },
+        "news_quality_score": {
+          "null": 0,
+          "zero": 0,
+          "total": 0
+        },
+        "research_quality_score": {
+          "null": 0,
+          "zero": 0,
+          "total": 0
+        },
+        "formal_eligible": {
+          "null": 0,
+          "zero": 0,
+          "total": 0
+        }
+      },
+      "safety": {
+        "write_performed": false,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    }
+  ],
+  "limitations": [
+    "Aggregated diagnostics only; no raw market rows, full receipts, plists, environment variables, credentials, or holdings uploaded.",
+    "Snapshot records declared NATURAL/RECOVERY separately from natural_verified=false.",
+    "Future windows at capture time are pending, not failed."
+  ]
+}
