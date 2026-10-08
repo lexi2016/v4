@@ -60,4 +60,23 @@ class HKPreselectionTests(unittest.TestCase):
         self.assertFalse(any('joblib' in name or 'parquet' in name for name in request['files']))
         self.assertEqual(self.run_request(request)['status'],'ASSEMBLED')
 
+    def test_target_day_master_before_pool_capture_allowed(self):
+        result=self.run_request(self.request(eligibility='20261008',master_capture_time='07:30:00'))
+        self.assertEqual(result['status'],'ASSEMBLED')
+    def test_pool_capture_after_cutoff_or_finish_rejected(self):
+        for value in ('09:30:00','08:10:00'):
+            result=self.run_request(self.request(pool_capture_time=value))
+            self.assertEqual(result['status'],'CANNOT_CONFIRM')
+    def test_invalid_probabilities_fail_closed(self):
+        for value in ('nan','inf','1.2'):
+            result=self.run_request(self.request(score_override=value))
+            self.assertEqual(result['status'],'CANNOT_CONFIRM')
+    def test_ready_but_temporal_false_rejected(self):
+        self.assertEqual(self.run_request(self.request(temporal=False))['status'],'CANNOT_CONFIRM')
+    def test_all100_ranks_and_symbols_preserved(self):
+        rows=self.run_request(self.request())['artifact']['rows']
+        self.assertEqual([r['pool_rank'] for r in rows],list(range(1,101)))
+        self.assertEqual([r['symbol'] for r in rows],[f'HK.{i:05}' for i in range(1,101)])
+        self.assertEqual([r['pool_score'] for r in rows],[1-i/1000 for i in range(1,101)])
+
 if __name__=='__main__':unittest.main()
