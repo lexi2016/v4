@@ -1,0 +1,13 @@
+# 阶段选股录制输入迁移候选
+
+范围：A非09:25的select_a_live_stage，HK非09:25的select_hk_four_lane。复用16个冻结文件，保留公式和稳定排序，不以旧select_a_stage替代A实时公式。竞价入口与Stage8独立回放入口单独拒绝，尚未迁移。
+
+调用run_stage_selection输入：market、target_date、stage_id、data_kind、rows、rows_sha256、source_status、requested_rows、missing_symbols、cannot_confirm。rows以完整JSON规范字节摘要绑定；每行显式trade_date、stage_id、captured_at。日期按市场交易日独立判断，HK证券与Connect状态分别返回。
+
+A要求qmt五价、昨收、成交额、买卖量、显式candidate.score=None和显式news/research分数；formal_eligible目前须False，真实formal authority尚未接线，不将缺失昨收变为0。HK要求四价、涨幅、量比、流通市值、成交额和candidate_lanes。时间必须位于原阶段窗口及截止时间内。精确字段合同仍在静态审查，后续由Mac独立测试核实。
+
+原selector接收完整行集，以原V3_TOP10_RECOMMENDATION合同排序取Top10，保留source_rows与requested_rows。shadow_capture不启用，不调用collector、publisher或模型，不写入生产。
+
+边界：声明行的SHA不证明真实来源；输出input_provenance_verified=false、formal_eligibility_verified=false、natural_verified=false。此候选没有连接真实采集、每日调度、页面或订单；不能据此宣称阶段选股完成。Python审计限制不是OS隔离证明。
+
+本批17项测试定义，仅AST检查；未在云端运行测试，Mac测试尚未执行。历史145PASS不覆盖本批。
