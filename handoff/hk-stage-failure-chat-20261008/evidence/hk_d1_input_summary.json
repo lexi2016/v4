@@ -1,0 +1,85 @@
+{
+  "CANNOT_CONFIRM": [
+    "The source artifact carries no historical_provenance object; separate eligibility-source run/artifact/capture identity cannot be inferred from its pool source_sha256.",
+    "No source rows or names are packaged, so a Chat patch must confirm any upstream price-date source by its real artifact trio before constructing a binding.",
+    "The pool payload lacks source_manifest_sha256 and source_receipt_sha256 fields that the current validator compares against; although physical manifest/receipt file hashes are available, the validator-to-trio identity contract needs an owner-adapted candidate."
+  ],
+  "artifact_bytes": 212912,
+  "artifact_metadata": {
+    "buy_gate_updated": false,
+    "market": "HK",
+    "orders_sent": false,
+    "pool_id": "hkconnect_d1_top100",
+    "producer_id": "v3_shared_hk_0_2_consumer_v1",
+    "production_allowed": false,
+    "row_count": 100,
+    "schema_version": "v3_5.preselection_pool.v1",
+    "source_manifest_sha256_field_present": false,
+    "source_receipt_sha256_field_present": false,
+    "source_role": "SHARED_VERIFIED_HK_0_2",
+    "source_run_id": "20261008-hk-connect-d1-top100-0-2-8a0386afb66b",
+    "source_sha256": "ce4e94229a1f1bf44c22a2390d577dbea3c81f588543221fb1ee12b9464cc040",
+    "status": "STRICT_0_2_READY",
+    "trade_date": "20261008"
+  },
+  "artifact_path": "~/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20261008/hkconnect_d1_top100.json",
+  "artifact_sha256": "62d7716c51978a8e2b55c8aa423ae72691da1385fb80b97df35da714addee09b",
+  "configured_primary_root": "~/Library/Application Support/com.lexi.v4.local/state/data",
+  "configured_secondary_source_root": "~/Library/Application Support/com.lexi.v35.local/state/data",
+  "date_owner_rule": "first configured root with preselection_pools/20261008; whole-date ownership, no per-pool merge",
+  "derived_from_actual_stage_calendar": {
+    "calendar_file_sha256": "31fed97066d9b804a71f15c48d4e0f8baa5d9af621e1d81dc0340fd6619e4099",
+    "eligibility_source_date": "20260930",
+    "price_signal_date": "20261007",
+    "runtime": "~/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python -B",
+    "trade_date": "20261008"
+  },
+  "first_stage_error": "HK D1 split-date eligibility provenance missing",
+  "historical_provenance_row_count": 0,
+  "historical_provenance_top_level_present": false,
+  "manifest_bytes": 681,
+  "manifest_entry_matches_artifact_sha256": true,
+  "manifest_file_sha256": "cc476019362896f89b37ca12b0f5d7c606fe188ef3b0a33b7c8224df21aa8de6",
+  "manifest_path": "~/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20261008/manifest.json",
+  "next_validator_constraint": "if provenance is supplied, each row signal_date must equal the price_signal_date (20261007); current input rows report 20260930",
+  "physical_date_owner": "~/Library/Application Support/com.lexi.v35.local/state/data",
+  "pool_receipt_artifact_sha256_matches": true,
+  "pool_receipt_bytes": 476,
+  "pool_receipt_file_sha256": "1871468dda045659d1786b46576ec6290b92df667bcda7c5b325a62a0af01b28",
+  "pool_receipt_source_run_id_matches": true,
+  "primary_date_directory_exists": false,
+  "raw_rows_or_symbols_copied": false,
+  "receipt_path": "~/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20261008/receipts/hkconnect_d1_top100.json",
+  "required_provenance_fields": [
+    "schema_version=v4.hk_d1_split_date_provenance.v1",
+    "price_signal_date",
+    "eligibility_source_date",
+    "eligibility_source_run_id",
+    "eligibility_source_artifact_sha256",
+    "d1_source_run_id matching pool source_run_id",
+    "d1_source_artifact_sha256 matching pool source_sha256",
+    "d1_source_manifest_sha256 matching source manifest identity",
+    "d1_source_receipt_sha256 matching source receipt identity",
+    "eligibility_source_captured_at in Asia/Shanghai on eligibility_source_date"
+  ],
+  "row_date_fields": {
+    "signal_date": [
+      "20260930"
+    ],
+    "target_date": [
+      "20261008"
+    ],
+    "trade_date": [
+      "20261008"
+    ]
+  },
+  "secondary_date_directory_exists": true,
+  "validator_trio_identity_check": {
+    "both_payload_fields_present": false,
+    "candidate_adaptation_note": "Bind these provenance values to the exact resolver-verified physical trio identity; do not fabricate or append unchecked fields to the source artifact.",
+    "d1_source_manifest_sha256_compared_to": "payload.source_manifest_sha256",
+    "d1_source_receipt_sha256_compared_to": "payload.source_receipt_sha256",
+    "verified_physical_manifest_sha256": "cc476019362896f89b37ca12b0f5d7c606fe188ef3b0a33b7c8224df21aa8de6",
+    "verified_physical_receipt_sha256": "1871468dda045659d1786b46576ec6290b92df667bcda7c5b325a62a0af01b28"
+  }
+}

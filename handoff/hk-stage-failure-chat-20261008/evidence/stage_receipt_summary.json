@@ -1,0 +1,42 @@
+{
+  "a_share": {
+    "recommendation_status": "WATCH_ONLY",
+    "requested_rows": 178,
+    "selected_rows": 10,
+    "source_rows": 172,
+    "source_status": "CANNOT_CONFIRM",
+    "status": "PARTIAL_WITH_ROWS",
+    "symbols_included": false
+  },
+  "attempt_diagnostic": {
+    "relative_path_count": 2,
+    "row_evidence_status": "NOT_OBSERVED",
+    "status": "RECORDED"
+  },
+  "due_status": "DUE",
+  "hk_connect": {
+    "cannot_confirm": [
+      "HK D1 split-date eligibility provenance missing"
+    ],
+    "selected_rows": 0,
+    "selection_status": "CANNOT_CONFIRM",
+    "source_status": "CANNOT_CONFIRM",
+    "status": "CANNOT_CONFIRM",
+    "write_performed": false
+  },
+  "node_outcome": "SETTLED_PARTIAL",
+  "overall_status": "PARTIAL_WITH_ROWS",
+  "overall_write_performed": true,
+  "raw_receipt_copied": false,
+  "runner": "stage_center",
+  "schema_version": "stage_center.runner.receipt.v1",
+  "source_path": "~/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261008/STAGE_0930_0935/receipt.json",
+  "source_receipt_sha256": "cb8be29778c1d1bb8c2dc44266ce0495b8efc1da094911e84864a9a2bad6193b",
+  "stage_id": "STAGE_0930_0935",
+  "trade_date": "20261008",
+  "trading_safety": {
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  }
+}

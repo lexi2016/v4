@@ -1,0 +1,8 @@
+{
+  "branch": "codex/issue28-historical-p2-mac-20261008",
+  "commit": "4c9218789fe320dd42c1946e5dfb5161d8f8ed2a",
+  "deployment_gap": "Prior work did not close actual Stage-owner adaptation/deployment; current Stage launchd points to the 20261003-hk-binding-wrapper-r3 candidate tree while API is a separate 20261008 manager-daily-chain API release.",
+  "interpretation": "Those receipts do not establish the 20261008 HK split-date provenance blocker is fixed.",
+  "reported_result": "two historical P2 items; local integration tests 38/38; not deployed",
+  "source": "user-provided task brief; Git inspection was forbidden and was not performed"
+}
