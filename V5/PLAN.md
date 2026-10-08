@@ -1,6 +1,6 @@
 # V5 版本隔离与超跌影子运行 Implementation Plan
 
-> 状态更新（2026-10-08）：本计划已进入实施。054782a 的 Mac 全套 78 项测试通过，1167ed3 新增 11 项待验。当前由 dot 写代码、原 Mac 会话测试，不用云端 Codex 测试。以下任务描述保留初始设计；实际完成范围以 docs/ACCEPTANCE.md 为准。
+> 状态更新（2026-10-08）：本计划已进入实施。054782a 的 Mac 全套 78 项测试通过，1167ed3 新增 11 项及全套 89 项在 Mac 通过。当前由 dot 写代码、原 Mac 会话测试，不用云端 Codex 测试。以下任务描述保留初始设计；实际完成范围以 docs/ACCEPTANCE.md 为准。
 
 **Goal:** 建立独立版本组合和发布健康检查，封装一个原超跌 reader 在隔离目录影子运行，保持 V4 持续运行。
 
@@ -10,7 +10,7 @@
 
 **Spec:** [V5 架构规格草案](SPEC.md)，尤其第5.1节；[来源与证据基线](BASELINE.md)。本计划仅实现第5.1节，不把14类长期职责全部实施。
 
-**Status:** IMPLEMENTING / SYNTHETIC_BASELINE_MAC_78_PASS / NEW_PROVIDER_TESTS_PENDING / DEPLOYMENT_NOT_RUN。真实输入准入、页面视觉与自然运行仍待验。原配置根的 10/7 panel 和 VIPDOC 增量缺失已只读复核，不能推断全机无原件。
+**Status:** IMPLEMENTING / SYNTHETIC_BASELINE_MAC_78_PASS / PROVIDER_MAC_89_PASS / DEPLOYMENT_NOT_RUN。真实输入准入、页面视觉与自然运行仍待验。原配置根的 10/7 panel 和 VIPDOC 增量缺失已只读复核，不能推断全机无原件。
 
 ## Global Constraints
 

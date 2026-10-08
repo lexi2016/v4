@@ -16,11 +16,11 @@
 
 此前 41→49→54→60→63→68 项结果为历史阶段，不能相加成总测试数。
 
-## 本批待验
+## 本批规范化测试结果
 
 固定候选 `1167ed3ea2aa7e8c8e1b2d79f4e490beec1395fb` 仅新增 provider_evidence.py 和 test_provider_evidence.py，远端两个文件完整内容及 SHA 已核对。
 
-13:30 北京时间预检发现原临时隔离根及 locked-venv 不存在，exit 127；11 项及全套均未运行，原 78 PASS 日志也无法从旧路径重新读取。已在原会话接续持久工作区同锁环境重建，尚无新执行结果。环境恢复后先执行新增 11 项，通过后一次全套（预计 89 项，以实际发现为准），不再单独重复原 78 项，不另建测试任务。
+13:30 北京时间预检发现原临时隔离根及 locked-venv 不存在，exit 127；11 项及全套均未运行，原 78 PASS 日志也无法从旧路径重新读取。随后在原会话恢复持久目录 V5-test-1167ed3 及同锁私有 Python 3.14.6。新增 11/11 PASS，全套 89/89 PASS，均 exit 0；全套于 05:32:58—05:33:30 UTC 实际执行，耗时 31.612 秒。源码及 vendor 18 项运行后 SHA 未变，4 条 HTTPError ResourceWarnings 保留。持久 evidence/RESULT.md 与 full.stderr.log 为本批新回执，不冒称恢复了旧日志。未另外重跑原 78 项，不新建测试会话。
 
 这批只规范化 SDK 原值与语义字段：缺失不填零、普通股票 stock_owner 不适用、衍生品所需 underlying 不得省略。它尚未接入真实 collector/publisher，也不证明目标日成员资格。
 
