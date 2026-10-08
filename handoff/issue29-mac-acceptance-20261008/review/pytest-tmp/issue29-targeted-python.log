@@ -1,0 +1,11 @@
+..............................F......................................... [ 91%]
+.......                                                                  [100%]
+=================================== FAILURES ===================================
+____________ test_exact_panel_selected_without_latest_substitution _____________
+tests/test_manager_history_readback_r1.py:68: in test_exact_panel_selected_without_latest_substitution
+    assert witness and witness['panel_max_date']=='20260921',gaps
+E   AssertionError: ['PLAN_HK_02_PANEL_LATEST_MANIFEST_UNREADABLE']
+E   assert (None)
+=========================== short test summary info ============================
+FAILED tests/test_manager_history_readback_r1.py::test_exact_panel_selected_without_latest_substitution
+1 failed, 78 passed in 1.97s

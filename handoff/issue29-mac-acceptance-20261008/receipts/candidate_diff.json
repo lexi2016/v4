@@ -1,0 +1,118 @@
+{
+  "api_postpatch_aggregate_sha256": "82fa8a14ab74d395454ca8644bee6666fa96f82db6dc3bc7951ac47ad6afe614",
+  "api_postpatch_entry_count": 1020,
+  "base_commit": "b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9",
+  "changed_file_count": 7,
+  "changed_files": [
+    {
+      "after_bytes": 12978,
+      "after_sha256": "36eeb5b9f41a927f6b9b19f6d1d1bd6f515986631ccd5754e14bbd423eacd774",
+      "before_bytes": null,
+      "before_sha256": null,
+      "manifest_profile": "tests",
+      "path": "api/tests/test_manager_history_contract_20261008.py"
+    },
+    {
+      "after_bytes": 13935,
+      "after_sha256": "aa2109b6cc8fd96e43212c59d30bec754bf51cb9c630e162a7c07ed15b585f26",
+      "before_bytes": 13499,
+      "before_sha256": "6361359568e5cc02cb9b5d9c74461fd0f7d2c1d6c80d3ad3a9bae8628aa997e6",
+      "manifest_profile": "tests",
+      "path": "api/tests/test_manager_history_readback_r1.py"
+    },
+    {
+      "after_bytes": 6712,
+      "after_sha256": "7f56ea1f22fdd8d229a3377c3185733e32f443ccf0657b24857770c7c0658dbb",
+      "before_bytes": null,
+      "before_sha256": null,
+      "manifest_profile": "tests",
+      "path": "api/tests/test_manager_us_mapping_isolation_20261008.py"
+    },
+    {
+      "after_bytes": 12208,
+      "after_sha256": "9d1faeee5a0d8e1d9466244023d0a9fbbb3032d7934de40337096a1d35eda13e",
+      "before_bytes": 12123,
+      "before_sha256": "4c2fdaebd804532121057fdbf9aef07bc440812255802c079558f52209303887",
+      "manifest_profile": "tests",
+      "path": "api/tests/test_manager_workspace_owner_20261008.py"
+    },
+    {
+      "after_bytes": 60422,
+      "after_sha256": "ab25d4856019b10bda1cb73928e5e2e75fad870a8321025019dceeb2cf0b6b52",
+      "before_bytes": 59319,
+      "before_sha256": "183e3ebd0322883a8f8cef37c0244f424f16c63d3120245e263bb9585133dea3",
+      "manifest_profile": "api",
+      "path": "api/v4/manager_research/workspace.py"
+    },
+    {
+      "after_bytes": 19976,
+      "after_sha256": "d46b84f084af5eb695812a7052520147722a80a6885fb3dfdb4c1a18de3c72b5",
+      "before_bytes": 17474,
+      "before_sha256": "da5e1223326631cc9070c3059ca606bac3840ef468ad5c06f2f3a51534f82ec1",
+      "manifest_profile": "api",
+      "path": "api/v4/manager_research/workspace_history.py"
+    },
+    {
+      "after_bytes": 4382,
+      "after_sha256": "36daeae19a3d079f00aec8ec27ca165b4764dadf1448bb241eb1dfb4a3558736",
+      "before_bytes": null,
+      "before_sha256": null,
+      "manifest_profile": "tests",
+      "path": "web/apps/web/src/api/managerWorkspace.usIsolation.spec.ts"
+    }
+  ],
+  "preserve_pin_count": 9,
+  "preserve_pins": [
+    {
+      "bytes": 93685,
+      "path": "api/v4/manager_research/service.py",
+      "sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37"
+    },
+    {
+      "bytes": 106047,
+      "path": "api/v4/manager_research/workspace_plan.py",
+      "sha256": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb"
+    },
+    {
+      "bytes": 12982,
+      "path": "api/v4/manager_research/workspace_daily_channels.py",
+      "sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f"
+    },
+    {
+      "bytes": 17496,
+      "path": "api/v4/manager_research/connect_selection.py",
+      "sha256": "eaa01a13d8065b11cc8397a12edaad8b892f183158aa1f9475d29645dee09d83"
+    },
+    {
+      "bytes": 19841,
+      "path": "api/v4/manager_research/connect_capture_adapter.py",
+      "sha256": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b"
+    },
+    {
+      "bytes": 10927,
+      "path": "api/v4/manager_research/workspace_read_control.py",
+      "sha256": "491e3569e8f00586ca6f4e9982e182584d2f2a0437f83da66767b7ffdbf1fb25"
+    },
+    {
+      "bytes": 101431,
+      "path": "web/apps/web/src/api/managerWorkspace.ts",
+      "sha256": "5854af5d1e2b33cc469ba6abd49096bb2f727280161c663edf4b757742f9ce92"
+    },
+    {
+      "bytes": 64295,
+      "path": "web/apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "sha256": "fbb20e417bb4d9ff7cbd25c5aa29f387a1650438d6e638216b3f4d7c1a209497"
+    },
+    {
+      "bytes": 18449,
+      "path": "web/apps/web/src/manager-selection/dailyChannels.ts",
+      "sha256": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc"
+    }
+  ],
+  "source_manifest_sha256": "1288acb285f0fbb204053ed486c54e972178d17c7a9c1423f055e8c5df91efa2",
+  "source_patch_sha256": "df4fbba21977cc3c853568f448abcea14951a735742e91fef099aa01b0db8487",
+  "status": "PASS",
+  "tests_patch_sha256": "f6527d75b6b5ff8640a84a4bc79b2bcf0c68fd052e32471d20f086a0e17027ca",
+  "web_postpatch_aggregate_sha256": "049f6c222b63732ede30dc166cdf6e5862e8a39322a3862a4a325a40fbe129cd",
+  "web_postpatch_entry_count": 334
+}

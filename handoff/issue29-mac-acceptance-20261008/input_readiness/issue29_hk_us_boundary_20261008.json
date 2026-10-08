@@ -1,0 +1,117 @@
+{
+  "boundary_status": {
+    "HK": {
+      "20261007": "CONFIRMED_BLOCKED_BEFORE_CHILD: old 17:20 dispatch stopped at hk_connect non-trading-day gate; no workload result, lane receipt, or exact 10/7 panel manifest found.",
+      "20261008": "DISPATCH_SUCCEEDED_AND_PANEL_READY; capture manifest, same-run membership/master publication, exact master entry and V2 publication are CANNOT_CONFIRM. Expected receipt and API master roots match, so a simple read/write-root mismatch is not supported. Distinct membership count (698) and panel code count (717) cannot be reconciled without the missing capture lineage."
+    },
+    "LEAKAGE": "CANNOT_CONFIRM for raw source-row or model-feature leakage; no rows were inspected. The visible target_trade_date/session_date keys are artifact identity metadata. The mapping artifact contract itself leaves target_date_eligibility=CANNOT_CONFIRM; label_, future_, and post-event feature fields remain hard blockers until their source and availability times are proven.",
+    "US": {
+      "20261008": "SOURCE_SESSION_20261007_PRESENT_WITH_PAYLOAD_RECEIPT_MANIFEST_SHA_CHAIN; exact 20261008 daily mapping run/pointer absent. Active service method exists, but active plan owner explicitly does not invoke it and current binding is proposal-only. The observed peripheral capture phases are source artifacts, not mapping runs."
+    }
+  },
+  "buy_gate_updated": false,
+  "cannot_confirm": [
+    "The 20261008 dispatch receipt does not retain the complete child argv or a run-bound capture path. The expected capture directory is absent; alternate-root, later-removal, and gate-persistence explanations remain unresolved.",
+    "No exact 20261008 ensure_hk_security_master result, security-master manifest/receipt, or HK_CONNECT V2 publication receipt was found; panel success does not prove those later steps.",
+    "The 20261008 daily US mapping run has no persisted research_cutoff; source and reviewed-relation availability cannot be bound to a specific run.",
+    "No source-row/feature-name audit was performed; no claim of PIT or label/future/post-event safety is made.",
+    "This subtask did not re-audit the separate 20260930 historical business products; do not use the 20261008 NOT_RUN state to invalidate older products."
+  ],
+  "evidence_paths": [
+    {
+      "evidence": "20261007 17:20 run 9698f67dad7d4be397d0e16ea47553d7; release r9-hk-child-binding-standard-b1f316ac73f0; NON_TRADING_DAY; blocked_markets=[hk_connect]; zero workload results.",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher/receipts/live/20261007/1720/9698f67dad7d4be397d0e16ea47553d7.dispatch-receipt.json"
+    },
+    {
+      "evidence": "20261008 17:20 run b779a11da3bf4d689c51c20bc728ed7f; current scheduler release; business_date=scheduled_date=20261008; research_panel_daily_hk SUCCEEDED; compact envelope target_date=20261008, requested_lane=HK, READY; lane receipt 524672 bytes, sha256=9263ff2eb7eaaa5b275e0737adb9d4caa99d3878e23984336c3df68c4cbe6461.",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher/receipts/live/20261008/1720/b779a11da3bf4d689c51c20bc728ed7f.dispatch-receipt.json"
+    },
+    {
+      "evidence": "Bound HK child app/module/release/manifest pins and roots. Child module ops/macos_research_panel_daily.py hash matches 07aa9770c6ae0bb0cfd012e57843a37fedda6724a57cd52d7c339d854fc6609b; release manifest raw SHA matches ac239a1c86021da15a321ab7a383822574373bb4f3c976ad27aadc03fb62da91.",
+      "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist"
+    },
+    {
+      "evidence": "Source constructs child args with --date request.business_date and --lane HK, then explicit receipt-root, HK TDX root, updater script, Python executable, and HK asset root. The dispatch receipt preserves the resulting envelope, not the complete child argv.",
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app/infrastructure/scheduling/_executor_registry_parts/panel_execution.py"
+    },
+    {
+      "evidence": "Capture manifest is written under args.receipt_root/hk_capture/<target>/; store_root is hk_asset_root.parent.parent; same captured membership is passed to the master publisher before the later panel/master-bound checks.",
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app/ops/_macos_research_panel_daily_parts/hk_capture_gate.py"
+    },
+    {
+      "evidence": "Exact lane receipt exists, status READY, target_date=20261008, row_count=695, universe_count=698, excluded_count=3; authority updater argv includes --through-date 20261008.",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/hk-20261008.json"
+    },
+    {
+      "evidence": "Expected exact capture directory absent at inspection time; 20261007 lane receipt and capture directory also absent.",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/hk_capture/20261008"
+    },
+    {
+      "evidence": "10/8 HK02 manifest raw SHA a9c75b248d264e2ed78532cbfc1004f8de97b8e8f91c587a66b50f5afa020bee; panel SHA 785212e96f9f088075800f55dfaf09ef83fccdde7c220e24f9f14d8808db5f90; prepared 2026-10-08T09:20:03.352292Z; new_dates=[20261008], requested_after_date=20261002, max_date=20261008, native finality NOT_ATTESTED_BY_PROVIDER, amount/trade units NOT_PROVEN.",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20261008-785212e96f9f/manifest.json"
+    },
+    {
+      "evidence": "Index exists; latest entry date is 20260930; entries for 20261007 and 20261008 absent. This root equals HK_ASSET_ROOT.parent.parent and API V4_MANAGER_SECURITY_MASTER_ROOT.",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/latest.json"
+    },
+    {
+      "evidence": "Exact 20261008 V2 universe publication path absent.",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261008/HK_CONNECT_FULL_MARKET.json"
+    },
+    {
+      "evidence": "Source session 20261007; status and market_snapshot_status READY; captured/fetched 2026-10-07T20:15:00Z; fixed 33/33 configured symbols and 24 industry rows; raw payload SHA 34c529faf0b356afcd47a48d583e18bb63de29beea36fa0fda7af8736c5a8056.",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/research/peripherals/20261007/external_finance.json"
+    },
+    {
+      "evidence": "Owner receipt payload_sha256 matches the 20261007 payload SHA; market_snapshot captured at 2026-10-07T20:15:00Z, status READY.",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/receipts/research/peripherals/20261007/external_finance.json"
+    },
+    {
+      "evidence": "Manifest entry for research/peripherals/20261007/external_finance.json equals the exact payload SHA.",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/research/peripherals/manifest.json"
+    },
+    {
+      "evidence": "Existing daily mapping pointer references run 18d8545f3a1a43958dc4a029f4edda7e, target 20261007, source US session 20261006, status COMPLETED, target_date_eligibility=CANNOT_CONFIRM; scope is four reviewed relations in a fixed 33-symbol sample, not full market.",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/us_mapping_research/20261007/latest.json"
+    },
+    {
+      "evidence": "Exact target date directory and daily run/latest pointer absent.",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/us_mapping_research/20261008"
+    },
+    {
+      "evidence": "refresh_us_mapping_research exists at lines 412-415 and delegates to persist_daily_run.",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api-r2/app/v4/manager_research/service.py"
+    },
+    {
+      "evidence": "_us_mapping_dispatch_status returns NOT_ATTEMPTED with execution_attempted=false and explicitly states there is no independent bounded execution hook in this closure.",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api-r2/app/v4/manager_research/plan_owner_dispatch.py"
+    },
+    {
+      "evidence": "Daily mapping persists runs/<run>.json plus latest.json; exact session is checked against aware cutoff; coverage scope is four reviewed tickers within 33 configured symbols, and target_date_eligibility remains CANNOT_CONFIRM.",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api-r2/app/v4/manager_research/us_mapping_research.py"
+    },
+    {
+      "evidence": "Release-pinned registry sets available_at=2026-10-05T16:18:15.957785Z; this precedes an 20261008 morning cutoff, but no 10/8 run records its actual cutoff.",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api-r2/app/v4/manager_research/us_mapping_relation_registry.json"
+    },
+    {
+      "evidence": "Active plan-owner binding file is enabled=false and policy_status=PROPOSAL_ONLY; preopen plan status is PROPOSAL_ONLY.",
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/staged_config/manager-plan-binding-c1.disabled.final-d1-r2.json"
+    },
+    {
+      "evidence": "Current scheduler registry includes us_market_digest as enabled=false and has no us_mapping_research daily workload. Peripheral captures are not daily mapping receipts.",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/hk-research-calendar-all-r1-20261007-scheduler/app/contracts/runtime_workloads.json"
+    }
+  ],
+  "observed_date": "20261008",
+  "orders_sent": false,
+  "production_allowed": false,
+  "recommended_next_step": [
+    "Ask the original HK owner for the 20261008 run-bound child argv, capture manifest/raw SHA, membership publication result, panel binding, ensure result, and exact master/V2 publication receipts at the bound roots; only then choose the first failed edge. Keep 20261007 classified as a pre-child calendar block.",
+    "Route the existing refresh_us_mapping_research method through one bounded daily owner with an explicit target date and aware cutoff, consuming the existing exact-session ResearchPeripheralStore receipt/manifest. Persist and read back the run/latest pointer; do not count external_finance captures as mapping output.",
+    "Keep all label_, future_, target_, and post-event feature fields blocked until exact source lineage and availability timestamps are verified; retain RESEARCH_ONLY=true and all trading flags false."
+  ],
+  "research_only": true,
+  "schema_version": "v4.manager_read_only_input_boundary.v1",
+  "scope": "Read-only evidence audit of HK dispatch/capture/panel/security-master/V2 and US peripheral-to-daily-mapping boundaries."
+}

@@ -1,0 +1,149 @@
+..............................F.........................FFFFFF.......... [ 70%]
+..............................                                           [100%]
+=================================== FAILURES ===================================
+____________ test_exact_panel_selected_without_latest_substitution _____________
+tests/test_manager_history_readback_r1.py:68: in test_exact_panel_selected_without_latest_substitution
+    assert witness and witness['panel_max_date']=='20260921',gaps
+E   AssertionError: ['PLAN_HK_02_PANEL_LATEST_MANIFEST_UNREADABLE']
+E   assert (None)
+_ test_us_failure_retains_the_original_mac_dto_and_unknown_counts[missing_module-20260930] _
+tests/test_manager_us_mapping_isolation_20261008.py:63: in test_us_failure_retains_the_original_mac_dto_and_unknown_counts
+    value = owner_workspace_fixture(date, kind)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_manager_us_mapping_isolation_20261008.py:45: in owner_workspace_fixture
+    service = ManagerResearchJobService(ManagerResearchStore(Path(directory) / 'manager'), None, None)
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/store.py:82: in __init__
+    self._io.ensure_directory(directory)
+infrastructure/owned_io.py:100: in ensure_directory
+    with self.directory(relative, create=True):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/python/cpython-3.14.6-macos-aarch64-none/lib/python3.14/contextlib.py:141: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+infrastructure/owned_io.py:78: in directory
+    child = self._open_visible(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/owned_io.py:45: in _open_visible
+    return os.open(pathname, flags, mode, dir_fd=dir_fd)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   NotADirectoryError: [Errno 20] Not a directory: 'var'
+_ test_us_failure_retains_the_original_mac_dto_and_unknown_counts[missing_module-20261008] _
+tests/test_manager_us_mapping_isolation_20261008.py:63: in test_us_failure_retains_the_original_mac_dto_and_unknown_counts
+    value = owner_workspace_fixture(date, kind)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_manager_us_mapping_isolation_20261008.py:45: in owner_workspace_fixture
+    service = ManagerResearchJobService(ManagerResearchStore(Path(directory) / 'manager'), None, None)
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/store.py:82: in __init__
+    self._io.ensure_directory(directory)
+infrastructure/owned_io.py:100: in ensure_directory
+    with self.directory(relative, create=True):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/python/cpython-3.14.6-macos-aarch64-none/lib/python3.14/contextlib.py:141: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+infrastructure/owned_io.py:78: in directory
+    child = self._open_visible(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/owned_io.py:45: in _open_visible
+    return os.open(pathname, flags, mode, dir_fd=dir_fd)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   NotADirectoryError: [Errno 20] Not a directory: 'var'
+_ test_us_failure_retains_the_original_mac_dto_and_unknown_counts[reader_failed-20260930] _
+tests/test_manager_us_mapping_isolation_20261008.py:63: in test_us_failure_retains_the_original_mac_dto_and_unknown_counts
+    value = owner_workspace_fixture(date, kind)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_manager_us_mapping_isolation_20261008.py:45: in owner_workspace_fixture
+    service = ManagerResearchJobService(ManagerResearchStore(Path(directory) / 'manager'), None, None)
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/store.py:82: in __init__
+    self._io.ensure_directory(directory)
+infrastructure/owned_io.py:100: in ensure_directory
+    with self.directory(relative, create=True):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/python/cpython-3.14.6-macos-aarch64-none/lib/python3.14/contextlib.py:141: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+infrastructure/owned_io.py:78: in directory
+    child = self._open_visible(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/owned_io.py:45: in _open_visible
+    return os.open(pathname, flags, mode, dir_fd=dir_fd)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   NotADirectoryError: [Errno 20] Not a directory: 'var'
+_ test_us_failure_retains_the_original_mac_dto_and_unknown_counts[reader_failed-20261008] _
+tests/test_manager_us_mapping_isolation_20261008.py:63: in test_us_failure_retains_the_original_mac_dto_and_unknown_counts
+    value = owner_workspace_fixture(date, kind)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_manager_us_mapping_isolation_20261008.py:45: in owner_workspace_fixture
+    service = ManagerResearchJobService(ManagerResearchStore(Path(directory) / 'manager'), None, None)
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/store.py:82: in __init__
+    self._io.ensure_directory(directory)
+infrastructure/owned_io.py:100: in ensure_directory
+    with self.directory(relative, create=True):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/python/cpython-3.14.6-macos-aarch64-none/lib/python3.14/contextlib.py:141: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+infrastructure/owned_io.py:78: in directory
+    child = self._open_visible(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/owned_io.py:45: in _open_visible
+    return os.open(pathname, flags, mode, dir_fd=dir_fd)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   NotADirectoryError: [Errno 20] Not a directory: 'var'
+_ test_reviewed_reference_failure_is_date_scoped_and_not_an_empty_success[20260930] _
+tests/test_manager_us_mapping_isolation_20261008.py:94: in test_reviewed_reference_failure_is_date_scoped_and_not_an_empty_success
+    mapping = owner_workspace_fixture(date, 'reader_failed')['us_mapping_research']
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_manager_us_mapping_isolation_20261008.py:45: in owner_workspace_fixture
+    service = ManagerResearchJobService(ManagerResearchStore(Path(directory) / 'manager'), None, None)
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/store.py:82: in __init__
+    self._io.ensure_directory(directory)
+infrastructure/owned_io.py:100: in ensure_directory
+    with self.directory(relative, create=True):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/python/cpython-3.14.6-macos-aarch64-none/lib/python3.14/contextlib.py:141: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+infrastructure/owned_io.py:78: in directory
+    child = self._open_visible(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/owned_io.py:45: in _open_visible
+    return os.open(pathname, flags, mode, dir_fd=dir_fd)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   NotADirectoryError: [Errno 20] Not a directory: 'var'
+_ test_reviewed_reference_failure_is_date_scoped_and_not_an_empty_success[20261008] _
+tests/test_manager_us_mapping_isolation_20261008.py:94: in test_reviewed_reference_failure_is_date_scoped_and_not_an_empty_success
+    mapping = owner_workspace_fixture(date, 'reader_failed')['us_mapping_research']
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_manager_us_mapping_isolation_20261008.py:45: in owner_workspace_fixture
+    service = ManagerResearchJobService(ManagerResearchStore(Path(directory) / 'manager'), None, None)
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/store.py:82: in __init__
+    self._io.ensure_directory(directory)
+infrastructure/owned_io.py:100: in ensure_directory
+    with self.directory(relative, create=True):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/python/cpython-3.14.6-macos-aarch64-none/lib/python3.14/contextlib.py:141: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+infrastructure/owned_io.py:78: in directory
+    child = self._open_visible(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/owned_io.py:45: in _open_visible
+    return os.open(pathname, flags, mode, dir_fd=dir_fd)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   NotADirectoryError: [Errno 20] Not a directory: 'var'
+=========================== short test summary info ============================
+FAILED tests/test_manager_history_readback_r1.py::test_exact_panel_selected_without_latest_substitution
+FAILED tests/test_manager_us_mapping_isolation_20261008.py::test_us_failure_retains_the_original_mac_dto_and_unknown_counts[missing_module-20260930]
+FAILED tests/test_manager_us_mapping_isolation_20261008.py::test_us_failure_retains_the_original_mac_dto_and_unknown_counts[missing_module-20261008]
+FAILED tests/test_manager_us_mapping_isolation_20261008.py::test_us_failure_retains_the_original_mac_dto_and_unknown_counts[reader_failed-20260930]
+FAILED tests/test_manager_us_mapping_isolation_20261008.py::test_us_failure_retains_the_original_mac_dto_and_unknown_counts[reader_failed-20261008]
+FAILED tests/test_manager_us_mapping_isolation_20261008.py::test_reviewed_reference_failure_is_date_scoped_and_not_an_empty_success[20260930]
+FAILED tests/test_manager_us_mapping_isolation_20261008.py::test_reviewed_reference_failure_is_date_scoped_and_not_an_empty_success[20261008]
+7 failed, 95 passed in 2.41s

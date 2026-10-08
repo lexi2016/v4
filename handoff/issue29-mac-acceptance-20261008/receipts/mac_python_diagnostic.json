@@ -1,0 +1,41 @@
+{
+  "command": [
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "--basetemp",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_ISSUE29_MAC_20261008/evidence/pytest-tmp",
+    "--tb=short",
+    "tests/test_manager_history_contract_20261008.py",
+    "tests/test_manager_history_readback_r1.py",
+    "tests/test_manager_us_mapping_isolation_20261008.py",
+    "tests/test_manager_workspace_owner_20261008.py",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_ISSUE29_MAC_20261008/evidence/test_support/test_manager_history_control_r1.py",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_ISSUE29_MAC_20261008/evidence/test_support/test_manager_history_r2_regex_equivalence.py"
+  ],
+  "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_ISSUE29_MAC_20261008/candidate/api",
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_ISSUE29_MAC_20261008/candidate/api:/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_ISSUE29_MAC_20261008/candidate/api/upstreams",
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "pytest_basetemp": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_ISSUE29_MAC_20261008/evidence/pytest-tmp",
+    "pytest_cache_provider": "disabled",
+    "pytest_traceback": "short",
+    "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "python_version": "Python 3.14.6"
+  },
+  "exit_code": 1,
+  "log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_ISSUE29_MAC_20261008/evidence/tests/mac_python_diagnostic.log",
+  "status": "FAIL",
+  "tests": [
+    "tests/test_manager_history_contract_20261008.py",
+    "tests/test_manager_history_readback_r1.py",
+    "tests/test_manager_us_mapping_isolation_20261008.py",
+    "tests/test_manager_workspace_owner_20261008.py",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_ISSUE29_MAC_20261008/evidence/test_support/test_manager_history_control_r1.py",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_ISSUE29_MAC_20261008/evidence/test_support/test_manager_history_r2_regex_equivalence.py"
+  ]
+}

@@ -1,0 +1,454 @@
+{
+  "schema_version": "v4.manager.issue29.independent_review.v1",
+  "recorded_at_utc": "2026-10-08T15:35:55.999237+00:00",
+  "reviewer": {
+    "agent": "/root/issue29_mac_review",
+    "independent_of_writer": true
+  },
+  "scope": {
+    "input_commit": "0602f34fd10f7daff9bf688a710835d1bda43865",
+    "candidate_base_commit": "b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9",
+    "goal": "Review exact seven-file candidate and focused Mac tests; verify original 20260930 historical plan with one safe read-only probe.",
+    "pass_signal": "Exact seven-file adaptation and preserved pins, independent targeted Mac tests without new failures, read-only 20260930 replay with verified consumption or exact next rejection; no live-state mutation",
+    "forbidden_actions": [
+      "canonical source writes",
+      "live releases",
+      "app.py/shared entry",
+      "LaunchAgents",
+      "scheduler/bindings",
+      "business-data writes",
+      "POST/refresh/producer",
+      "Stage/Vibe8910",
+      "deployment"
+    ]
+  },
+  "diff_review": {
+    "status": "REVIEWED",
+    "result": "PASS_EXACT_MANIFEST_DELTA",
+    "changed_files": [
+      {
+        "path": "api/tests/test_manager_history_contract_20261008.py",
+        "before_sha256": null,
+        "after_sha256": "36eeb5b9f41a927f6b9b19f6d1d1bd6f515986631ccd5754e14bbd423eacd774",
+        "bytes": 12978
+      },
+      {
+        "path": "api/tests/test_manager_history_readback_r1.py",
+        "before_sha256": "6361359568e5cc02cb9b5d9c74461fd0f7d2c1d6c80d3ad3a9bae8628aa997e6",
+        "after_sha256": "aa2109b6cc8fd96e43212c59d30bec754bf51cb9c630e162a7c07ed15b585f26",
+        "bytes": 13935
+      },
+      {
+        "path": "api/tests/test_manager_us_mapping_isolation_20261008.py",
+        "before_sha256": null,
+        "after_sha256": "7f56ea1f22fdd8d229a3377c3185733e32f443ccf0657b24857770c7c0658dbb",
+        "bytes": 6712
+      },
+      {
+        "path": "api/tests/test_manager_workspace_owner_20261008.py",
+        "before_sha256": "4c2fdaebd804532121057fdbf9aef07bc440812255802c079558f52209303887",
+        "after_sha256": "9d1faeee5a0d8e1d9466244023d0a9fbbb3032d7934de40337096a1d35eda13e",
+        "bytes": 12208
+      },
+      {
+        "path": "api/v4/manager_research/workspace.py",
+        "before_sha256": "183e3ebd0322883a8f8cef37c0244f424f16c63d3120245e263bb9585133dea3",
+        "after_sha256": "ab25d4856019b10bda1cb73928e5e2e75fad870a8321025019dceeb2cf0b6b52",
+        "bytes": 60422
+      },
+      {
+        "path": "api/v4/manager_research/workspace_history.py",
+        "before_sha256": "da5e1223326631cc9070c3059ca606bac3840ef468ad5c06f2f3a51534f82ec1",
+        "after_sha256": "d46b84f084af5eb695812a7052520147722a80a6885fb3dfdb4c1a18de3c72b5",
+        "bytes": 19976
+      },
+      {
+        "path": "web/apps/web/src/api/managerWorkspace.usIsolation.spec.ts",
+        "before_sha256": null,
+        "after_sha256": "36daeae19a3d079f00aec8ec27ca165b4764dadf1448bb241eb1dfb4a3558736",
+        "bytes": 4382
+      }
+    ],
+    "candidate_initial_to_final_api_paths": [
+      "tests/test_manager_history_contract_20261008.py",
+      "tests/test_manager_history_readback_r1.py",
+      "tests/test_manager_us_mapping_isolation_20261008.py",
+      "tests/test_manager_workspace_owner_20261008.py",
+      "v4/manager_research/workspace.py",
+      "v4/manager_research/workspace_history.py"
+    ],
+    "candidate_initial_to_final_web_paths": [
+      "apps/web/src/api/managerWorkspace.usIsolation.spec.ts"
+    ],
+    "api_inventory": {
+      "initial_entries": 1016,
+      "prepatch_entries_after_two_exact_test_preimages": 1018,
+      "final_entries": 1020,
+      "aggregate_sha256": "82fa8a14ab74d395454ca8644bee6666fa96f82db6dc3bc7951ac47ad6afe614",
+      "matches_postpatch_receipt": true
+    },
+    "web_inventory": {
+      "initial_entries": 333,
+      "final_entries": 334,
+      "aggregate_sha256": "049f6c222b63732ede30dc166cdf6e5862e8a39322a3862a4a325a40fbe129cd",
+      "matches_postpatch_receipt": true
+    },
+    "test_preimages": [
+      {
+        "path": "tests/test_manager_history_readback_r1.py",
+        "original_preimage_sha256": "6361359568e5cc02cb9b5d9c74461fd0f7d2c1d6c80d3ad3a9bae8628aa997e6",
+        "final_sha256": "aa2109b6cc8fd96e43212c59d30bec754bf51cb9c630e162a7c07ed15b585f26"
+      },
+      {
+        "path": "tests/test_manager_workspace_owner_20261008.py",
+        "original_preimage_sha256": "4c2fdaebd804532121057fdbf9aef07bc440812255802c079558f52209303887",
+        "final_sha256": "9d1faeee5a0d8e1d9466244023d0a9fbbb3032d7934de40337096a1d35eda13e"
+      }
+    ],
+    "preserve_pin_count": 9,
+    "preserve_pins": [
+      {
+        "path": "api/v4/manager_research/service.py",
+        "sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37",
+        "bytes": 93685
+      },
+      {
+        "path": "api/v4/manager_research/workspace_plan.py",
+        "sha256": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb",
+        "bytes": 106047
+      },
+      {
+        "path": "api/v4/manager_research/workspace_daily_channels.py",
+        "sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+        "bytes": 12982
+      },
+      {
+        "path": "api/v4/manager_research/connect_selection.py",
+        "sha256": "eaa01a13d8065b11cc8397a12edaad8b892f183158aa1f9475d29645dee09d83",
+        "bytes": 17496
+      },
+      {
+        "path": "api/v4/manager_research/connect_capture_adapter.py",
+        "sha256": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b",
+        "bytes": 19841
+      },
+      {
+        "path": "api/v4/manager_research/workspace_read_control.py",
+        "sha256": "491e3569e8f00586ca6f4e9982e182584d2f2a0437f83da66767b7ffdbf1fb25",
+        "bytes": 10927
+      },
+      {
+        "path": "web/apps/web/src/api/managerWorkspace.ts",
+        "sha256": "5854af5d1e2b33cc469ba6abd49096bb2f727280161c663edf4b757742f9ce92",
+        "bytes": 101431
+      },
+      {
+        "path": "web/apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "sha256": "fbb20e417bb4d9ff7cbd25c5aa29f387a1650438d6e638216b3f4d7c1a209497",
+        "bytes": 64295
+      },
+      {
+        "path": "web/apps/web/src/manager-selection/dailyChannels.ts",
+        "sha256": "c60254b69de369c8b50ef0ffa14dd49c802a3ae56ac4266dd9fe5f39ea40fecc",
+        "bytes": 18449
+      }
+    ]
+  },
+  "static_review": {
+    "summary": "Historical cross-source replay still requires the supported contract sealed in the saved plan, the original owners at the exact cutoff, PIT and full frozen-field/input checks, and reader stability before returning only the revalidated projection. Ordinary US mapping reader failure preserves the Mac DTO shape, unknown counts, date-scoped CANNOT_CONFIRM and NOT_CONSUMED.",
+    "evidence_locations": [
+      {
+        "path": "candidate/api/v4/manager_research/workspace_history.py",
+        "lines": [
+          246,
+          277,
+          303,
+          313,
+          319,
+          339
+        ]
+      },
+      {
+        "path": "candidate/api/v4/manager_research/workspace.py",
+        "lines": [
+          38,
+          44,
+          49,
+          59,
+          66,
+          187,
+          206
+        ]
+      },
+      {
+        "path": "candidate/api/apps/api/v35_api/manager_research_router.py",
+        "lines": [
+          203,
+          219,
+          243
+        ]
+      },
+      {
+        "path": "tools/probe_20260930_readonly.py",
+        "lines": [
+          78,
+          123,
+          166,
+          186,
+          273,
+          335,
+          394
+        ]
+      }
+    ],
+    "new_findings": {
+      "P0": [],
+      "P1": [],
+      "P2": []
+    },
+    "known_baseline_failure": {
+      "severity": "P2",
+      "introduced_by_issue29": false,
+      "test": "test_exact_panel_selected_without_latest_substitution",
+      "observed": "PLAN_HK_02_PANEL_LATEST_MANIFEST_UNREADABLE",
+      "evidence": [
+        {
+          "path": "incoming/evidence/tests/history_baseline.log",
+          "sha256": "51670599fa25354d130b035f8fab765131cb99cd6eb4886254ef6166fbfd1478",
+          "bytes": 1815
+        },
+        {
+          "path": "review/pytest-tmp/issue29-targeted-python.log",
+          "sha256": "29863161fc6ccb109ccc042f3c77a7b518ced8ff0c38456959dfb35cebac28af",
+          "bytes": 791
+        }
+      ]
+    },
+    "test_environment_risk": {
+      "severity": "P2",
+      "introduced_production_behavior": "CANNOT_CONFIRM",
+      "finding": "Writer diagnostic omitted TMPDIR. Pytest --basetemp does not change tempfile.gettempdir(); six new fixture cases used /var/folders via /var -> private/var, and SafeRoot's O_NOFOLLOW component traversal rejected 'var'. The same cases pass with TMPDIR set to E/review/pytest-tmp.",
+      "evidence": [
+        {
+          "path": "receipts/mac_python_diagnostic.json",
+          "sha256": "ebcd1e477af26adb336ed56300963ec1a9ddc739cb9627d4f760f9b564105adc",
+          "bytes": 2257
+        },
+        {
+          "path": "evidence/tests/mac_python_diagnostic.log",
+          "sha256": "c32aaf18079e2f2a160b136e75171621d486a420f2859eec9127dd3874fa71f1",
+          "bytes": 10641
+        },
+        {
+          "path": "review/pytest-tmp/issue29-new-regressions-python.log",
+          "sha256": "d8fd5058692726fc56cf3c479465ba74e6cc2995f2eaeb546ef2ee32c3f3b89f",
+          "bytes": 99
+        },
+        {
+          "path": "/var symlink observation",
+          "sha256": null,
+          "bytes": null
+        }
+      ]
+    }
+  },
+  "test_results": {
+    "environment": {
+      "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "version": "Python 3.14.6",
+      "platform": "macOS 26.6.2 arm64",
+      "pytest": "9.1.1",
+      "node": "v24.19.0",
+      "vitest": "4.1.10"
+    },
+    "writer_receipt": {
+      "path": "receipts/writer_receipt.json",
+      "sha256_at_review": "819081f919008b457f7e95ab5ad1125dac0240f3e4917ac760aa49cb690693ff",
+      "status": "HANDOFF_READY_WITH_UNRESOLVED_MAC_TEST_FAILURES"
+    },
+    "writer_diagnostic": {
+      "result": "95 passed, 7 failed; one known HK02 failure and six new US mapping fixture path failures.",
+      "new_failure_paths": [
+        "tests/test_manager_us_mapping_isolation_20261008.py::test_us_failure_retains_the_original_mac_dto_and_unknown_counts[missing_module-20260930]",
+        "tests/test_manager_us_mapping_isolation_20261008.py::test_us_failure_retains_the_original_mac_dto_and_unknown_counts[missing_module-20261008]",
+        "tests/test_manager_us_mapping_isolation_20261008.py::test_us_failure_retains_the_original_mac_dto_and_unknown_counts[reader_failed-20260930]",
+        "tests/test_manager_us_mapping_isolation_20261008.py::test_us_failure_retains_the_original_mac_dto_and_unknown_counts[reader_failed-20261008]",
+        "tests/test_manager_us_mapping_isolation_20261008.py::test_reviewed_reference_failure_is_date_scoped_and_not_an_empty_success[20260930]",
+        "tests/test_manager_us_mapping_isolation_20261008.py::test_reviewed_reference_failure_is_date_scoped_and_not_an_empty_success[20261008]"
+      ],
+      "failure_cause": "The fixture builds a ManagerResearchStore below TemporaryDirectory() using an absolute /var/folders/... path; OwnedIO dir-fd traversal then raises NotADirectoryError: var while ensure_directory walks path components."
+    },
+    "independent_runs": [
+      {
+        "name": "writer_diagnostic",
+        "result": "95 passed, 7 failed: one baseline failure plus six TMPDIR-path fixture errors",
+        "command_context": "Writer command omitted TMPDIR; --basetemp was E/evidence/pytest-tmp",
+        "log": {
+          "path": "evidence/tests/mac_python_diagnostic.log",
+          "sha256": "c32aaf18079e2f2a160b136e75171621d486a420f2859eec9127dd3874fa71f1",
+          "bytes": 10641
+        }
+      },
+      {
+        "name": "reviewer_python_targeted",
+        "result": "78 passed, 1 same baseline failure",
+        "command_context": "TMPDIR=E/review/pytest-tmp; PYTHONDONTWRITEBYTECODE=1; PYTHONPATH=.:upstreams; four candidate Python test files; pytest cache disabled",
+        "log": {
+          "path": "review/pytest-tmp/issue29-targeted-python.log",
+          "sha256": "29863161fc6ccb109ccc042f3c77a7b518ced8ff0c38456959dfb35cebac28af",
+          "bytes": 791
+        }
+      },
+      {
+        "name": "reviewer_new_python_regressions",
+        "result": "34 passed, including the six cases that failed under Writer default TMPDIR",
+        "command_context": "TMPDIR=E/review/pytest-tmp; PYTHONDONTWRITEBYTECODE=1; PYTHONPATH=.:upstreams; history-contract and US-isolation tests",
+        "log": {
+          "path": "review/pytest-tmp/issue29-new-regressions-python.log",
+          "sha256": "d8fd5058692726fc56cf3c479465ba74e6cc2995f2eaeb546ef2ee32c3f3b89f",
+          "bytes": 99
+        }
+      },
+      {
+        "name": "reviewer_support_python",
+        "result": "23 passed",
+        "command_context": "TMPDIR=E/review/pytest-tmp; history-control and regex-equivalence support tests",
+        "log": {
+          "path": "review/pytest-tmp/issue29-support-regressions-python.log",
+          "sha256": "38ee0eb6d1e1e7295ca5e9e1456edcc727f3400edf2019fcb8945a795e69f2bb",
+          "bytes": 99
+        }
+      },
+      {
+        "name": "reviewer_vitest",
+        "result": "13 passed across 2 files",
+        "command_context": "V4_TEST_SOURCE_ROOT=E/candidate/api; isolated US validator/renderer and daily channels specs",
+        "log": {
+          "path": "review/pytest-tmp/issue29-targeted-typescript-combined.log",
+          "sha256": "dede67df5dae647f9e3e823a456f782c8a6a21ffe9c290b5ce531c7605be4bb7",
+          "bytes": 282
+        }
+      },
+      {
+        "name": "reviewer_tsc",
+        "result": "exit 0, empty diagnostics",
+        "command_context": "strict scoped tsc --noEmit",
+        "log": {
+          "path": "review/pytest-tmp/issue29-targeted-tsc.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      }
+    ],
+    "comparison": "The six Writer US fixture failures are the same cases exercised by the Reviewer 34-test subset. Difference is TMPDIR: --basetemp alone leaves tempfile.TemporaryDirectory() under /var/folders. With TMPDIR=E/review/pytest-tmp, all 34 passed. The sole remaining failure is identical to the frozen baseline. Counts overlap; do not sum runs."
+  },
+  "behavior_verified": {
+    "synthetic_us_failure_dto": "PASS",
+    "synthetic_us_display": "PASS",
+    "real_20260930_original_plan": "PASS_EXACT_NEXT_REJECTION: SOURCE_FAILED/HISTORY_SOURCE_INPUTS_CHANGED for exact run ba13fba330464300b760fe940ba579a1; successful consumption CANNOT_CONFIRM.",
+    "api_verified": "CANNOT_CONFIRM",
+    "ui_verified": "CANNOT_CONFIRM",
+    "natural_verified": "CANNOT_CONFIRM",
+    "candidate_api_route": "VERIFIED via isolated candidate ASGI GET; live service API remains CANNOT_CONFIRM."
+  },
+  "probe_review": {
+    "first_attempt": {
+      "execution_count": 1,
+      "executed_script_sha256": "9321d44bb017e39513d0617ae109c3385b20f9553341d80e9e6da3f9142566d7",
+      "command": "cd '/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_ISSUE29_MAC_20261008/candidate/api' && PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 PYTHONPATH='/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_ISSUE29_MAC_20261008/candidate/api' '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' '/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_ISSUE29_MAC_20261008/tools/probe_20260930_readonly.py' --active-plist '/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist' --expected-pid 34989",
+      "exit_code": 2,
+      "stdout": {
+        "status": "CANNOT_CONFIRM",
+        "reason": "ACTIVE_LAUNCH_COMMAND_UNSUPPORTED",
+        "target_date": "20260930",
+        "write_performed": false
+      },
+      "reachability": {
+        "candidate_app_constructed": false,
+        "asgi_get_started": false,
+        "live_listener_contacted": false
+      },
+      "interpretation": "The probe stopped at the active LaunchAgent argument allowlist before candidate app construction; this is not an exact historical-data rejection."
+    },
+    "first_attempt_plist_sha256": "495a9be82e715979d59c03f5c4dd883a7570c55f15b72fa5ed309cacb3914356",
+    "program_argument_shape": [
+      "python",
+      "-B",
+      "-m",
+      "apps.api.v35_api.run",
+      "--host",
+      "<value>"
+    ],
+    "probe_revision_currently_observed_sha256": "d92f7d81080b2cabe1400d21519c49008ae45f769961361b6e4d3d3d6a5867b5",
+    "revision_state": "REVIEWED_AND_EXECUTED_ONCE",
+    "final_attempt": {
+      "attempt_count_for_final_probe": 1,
+      "script_sha256": "81a98cc995c4c8d3ccc68a922e574b530a2177f9f336e097e3392a8c1b707aaf",
+      "command": "cd '/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_ISSUE29_MAC_20261008/candidate/api' && PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 PYTHONPATH='/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_ISSUE29_MAC_20261008/candidate/api' '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' '/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_ISSUE29_MAC_20261008/tools/probe_20260930_readonly.py' --active-plist '/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist' --expected-pid 34989",
+      "exit_code": 0,
+      "stdout": {
+        "http_status": 200,
+        "status": "SOURCE_FAILED",
+        "reason": "HISTORY_SOURCE_INPUTS_CHANGED",
+        "run_id": "ba13fba330464300b760fe940ba579a1",
+        "expected_run_id_match": true,
+        "plan_sha256": "3ac5534e6310fd63b6f01f17c5d85ae015460513a967d97f7b142a44717d8ce2",
+        "sealed_contract": "20260923.workspace-history-read.r1",
+        "cutoff": "ecff6df0952445f42ba69d6b78f532d154f3c31522b586247f0169994027e972",
+        "attempt": null,
+        "read_mode": "HISTORICAL_AS_OF",
+        "candidate_count_known": false,
+        "target_inputs_stable": true,
+        "write_performed": false,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      },
+      "interpretation": "The isolated candidate ASGI historical GET reached the exact saved run and returned the exact next rejection HISTORY_SOURCE_INPUTS_CHANGED. It did not verify successful consumption. Cutoff was hashed by the probe sanitizer and attempt was null in the response summary."
+    },
+    "final_probe_sha256": "81a98cc995c4c8d3ccc68a922e574b530a2177f9f336e097e3392a8c1b707aaf",
+    "revision_delta_review": {
+      "status": "PASS_NARROW_SCOPE",
+      "changes": [
+        "accept only the active python -B -m apps.api.v35_api.run command shape",
+        "allowlist the active V4_MANAGER_VIBE_BINDING path without printing its value",
+        "accept current RESEARCH_ONLY=1 while the three transaction safety flags remain false-only"
+      ],
+      "unchanged_guards": [
+        "active plist SHA, label and PID check",
+        "candidate-only app import",
+        "write guards before app import",
+        "in-process ASGI GET only",
+        "exact run id and bounded file identity checks",
+        "sanitized summary; no stock rows"
+      ]
+    }
+  },
+  "cleanup": {
+    "reviewer_generated_pyc_count": 49,
+    "reviewer_generated_pyc_removed_count": 49,
+    "pre_cleanup_inventory": {
+      "entries": 1069,
+      "aggregate_sha256": "13e08ec683bbc5353e2cbea2c9104f9d80a4c9774eece1443af430b7a5c6d971"
+    },
+    "post_cleanup_inventory": {
+      "entries": 1020,
+      "aggregate_sha256": "82fa8a14ab74d395454ca8644bee6666fa96f82db6dc3bc7951ac47ad6afe614",
+      "matches_recorded_postpatch": true
+    }
+  },
+  "state": {
+    "REVIEWED": "PASS_EXACT_SCOPE",
+    "TESTED": "PASS_WITH_ONE_RECORDED_BASELINE_FAILURE; Writer diagnostic had six TMPDIR fixture failures, reproduced as environment-specific and passing with review TMPDIR",
+    "BEHAVIOR_VERIFIED": "PASS_EXACT_NEXT_REJECTION; no source/input write",
+    "INTEGRATED": "CANNOT_CONFIRM; JOINT_NOT_INTEGRATED",
+    "DEPLOYED": "NOT_RUN; RELEASE_FROZEN",
+    "API_VERIFIED": "ISOLATED_CANDIDATE_ASGI_GET_VERIFIED; live API CANNOT_CONFIRM",
+    "UI_VERIFIED": "CANNOT_CONFIRM",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM",
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "release_status": "FROZEN"
+  }
+}
