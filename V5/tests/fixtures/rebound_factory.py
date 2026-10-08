@@ -2,7 +2,7 @@
 import hashlib,json
 from pathlib import Path
 
-def publish_fixture(root:Path, original):
+def publish_fixture(root:Path, original, master_captured_at='2026-10-07T17:00:00+08:00'):
     import pandas as pd
     from v3_shared_data.shared_data.hk_security_master import publish_hk_security_master,LATEST_SCHEMA_VERSION
     day='20261007';sessions=original.rebound_history_sessions(day)
@@ -21,6 +21,6 @@ def publish_fixture(root:Path, original):
     (asset/'panel_latest.json').write_text(json.dumps({'manifest_relative':str((path.parent/'manifest.json').relative_to(asset))}))
     master=root/'assets'/'hk_security_master';master.mkdir(parents=True)
     (master/'latest.json').write_text(json.dumps({'schema_version':LATEST_SCHEMA_VERSION,'entries':{}}))
-    publish_hk_security_master(root,trade_date=day,rows=[dict(code=c,name='SYNTHETIC '+c,outstanding_shares=1000,circular_market_val=10000,listing_date='2020-01-01',lot_size=100,stock_owner='SYNTHETIC',stock_child_type='SYNTHETIC',sec_status='NORMAL') for c in codes],universe_codes_sha256=hashlib.sha256(json.dumps(codes).encode()).hexdigest(),captured_at='2026-10-07T17:00:00+08:00')
+    publish_hk_security_master(root,trade_date=day,rows=[dict(code=c,name='SYNTHETIC '+c,outstanding_shares=1000,circular_market_val=10000,listing_date='2020-01-01',lot_size=100,stock_owner='SYNTHETIC',stock_child_type='SYNTHETIC',sec_status='NORMAL') for c in codes],universe_codes_sha256=hashlib.sha256(json.dumps(codes).encode()).hexdigest(),captured_at=master_captured_at)
     (root/'SYNTHETIC_INPUT.json').write_text(json.dumps({'data_kind':'SYNTHETIC','not_real_prices':True}))
     return str(path.parent/'manifest.json')
