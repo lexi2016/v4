@@ -1,0 +1,48 @@
+{
+  "business_data_accessed": false,
+  "deployment_performed": false,
+  "http_called": false,
+  "launchctl_called": false,
+  "probes_passed": 5,
+  "results": {
+    "probe_inventory_backend_reopen": {
+      "executed_file_sha": "5d6e4dc9b8e5a0f6317e9af830c40d2e5a8fa36e06ad0f7e2a279769033a8449",
+      "executed_marker": "different_bytes_executed",
+      "finding": "PINNED_FILE_IS_REOPENED_AFTER_SHA_CHECK",
+      "sha_checked": "17971b9ea3800efe78d5b0fe25c2f04bc256572e350c1ea3282302702cd43ec7"
+    },
+    "probe_last_check_replace_race": {
+      "finding": "SHA_CHECK_PLUS_RENAME_IS_NOT_CAS_AGAINST_NONCOOPERATING_PUBLISHER",
+      "function_returned_success": true,
+      "rival_pointer_was_overwritten": true,
+      "rival_replacement_injected_after_final_cas_check": true
+    },
+    "probe_missing_pointer_recovery": {
+      "finding": "R2_AUTO_RECOVERY_ALREADY_SUPPORTS_MISSING_ACTIVE_PATH_KEEP_THIS_SEMANTIC",
+      "missing_active_pointer_restored_exactly": true,
+      "real_service_calls": 0,
+      "simulated_actions": [
+        "bootstrap"
+      ],
+      "status": "ROLLED_BACK_TO_PREIMAGE"
+    },
+    "probe_stale_package_preflight": {
+      "candidate_has_api_integration": false,
+      "candidate_inventory_and_staged_plist_validation": "ACTUAL_UNMODIFIED_FUNCTIONS",
+      "candidate_manager_bytes_differ_from_current_active": true,
+      "candidate_omits_accepted_active_file": "preselection.py",
+      "finding": "CURRENT_ACTIVE_CONTENT_PRESERVATION_NOT_CHECKED_BY_ACTUAL_PREFLIGHT",
+      "runtime_review_scheduler_and_http": "SYNTHETIC_STUBS_NO_SERVICE_CALLS",
+      "status": "READY_API_ONLY_R2_CUTOVER"
+    },
+    "probe_task_private_locks": {
+      "different_task_second_lock_acquired_while_first_held": true,
+      "finding": "TASK_PRIVATE_LOCK_DOES_NOT_SERIALIZE_API_PUBLISHERS",
+      "same_active_pointer": true,
+      "same_task_second_lock_rejected": true
+    }
+  },
+  "scope": "OFFLINE_SYNTHETIC_SOURCE_BOUNDARY_PROBES_ONLY",
+  "source_path": "/workspace/scratch/25c09a595aec/issue30/input/baseline/source/actual_cutover_reference/api_only_cutover_r2_ready.py",
+  "source_sha256": "ddb7c5b5b95aed1e2e9fb8a592503b88ec3966f6e34c9350c47648bb0f97ce4a"
+}

@@ -1,0 +1,35 @@
+{
+  "at": "2026-10-08T13:46:59.638945+00:00",
+  "argv": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "-ra",
+    "-p",
+    "no:cacheprovider",
+    "--confcutdir=/workspace/scratch/25c09a595aec/issue30/work/integration_core/draft_run",
+    "--basetemp=/workspace/scratch/25c09a595aec/issue30/work/integration_core/adversarial_red_basetemp",
+    "--junitxml=/workspace/scratch/25c09a595aec/issue30/work/integration_core/adversarial_red.xml",
+    "tests/test_integration_adversarial.py"
+  ],
+  "cwd": "/workspace/scratch/25c09a595aec/issue30/work/integration_core/draft_run",
+  "exit_code": 1,
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "isolation": "synthetic tmp_path; monkeypatched race schedules; no services or business data",
+  "log": "adversarial_red.log",
+  "junit": "adversarial_red.xml",
+  "test_suites": [
+    {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "9",
+      "skipped": "0",
+      "tests": "9",
+      "time": "0.146",
+      "timestamp": "2026-10-08T06:46:59.429094-07:00",
+      "hostname": "5fa05583d26b"
+    }
+  ]
+}

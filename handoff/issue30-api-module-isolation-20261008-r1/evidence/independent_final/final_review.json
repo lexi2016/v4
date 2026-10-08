@@ -1,0 +1,475 @@
+{
+  "schema_version": "v4.issue30.independent_source_review.v1",
+  "checkpoint": "final_source_candidate_review",
+  "verdict": "PASS",
+  "verdict_scope": "SOURCE_CANDIDATE",
+  "verdict_reason": "All seven confirmed Important findings and P1 known-owner correction are independently verified closed on the listed eight product sources. Final same-source suites total 218 passing test executions; exact package forward/reverse SHA and source-mode roundtrip passes. No unresolved Critical/Important finding remains in the reviewed source scope.",
+  "reviewer": "independent reviewer /root/issue30_reviewer",
+  "timestamp_utc": "2026-10-08T14:54:33.837900+00:00",
+  "input_commit": "a0a0b88dc133d14ee5763569272c174bcd7cc445",
+  "candidate_modified_by_reviewer": false,
+  "ReviewedSHAs": {
+    "candidate/ops/api_release_integration.py": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+    "candidate/ops/build_release_candidate.py": "81f4290a6f51e5958048d782c2d4b1eecfc42f892e387e6c1a22bb71912abef6",
+    "candidate/ops/prepare_api_only_cutover.py": "0fee40c13bdb76d8d4d7b5b0068eb8b6e7cade9187a5f3c3154b7d6238a1af4c",
+    "candidate/ops/create_api_module_delta.py": "04e67a3ce948eecf9dac04083277bd919c7ec8880ec5814bbe57e7a5ba8d0072",
+    "work/preselection_revision/after/apps/api/v35_api/app.py": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+    "work/preselection_revision/after/apps/api/v35_api/preselection_router.py": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+    "work/preselection_revision/after/apps/api/v35_api/preselection_service.py": "91eba3ad5d005161d876f9c2f1a69ff51db56f129267cde29394d4581d1a4c95",
+    "work/cutover_analysis/candidate/api_only_cutover_r2_ready.py": "389be853923a72066472ad229129a9a41ef9e9785f1b729aa468ed3e58df19f5"
+  },
+  "initial_review_immutable_sha256": {
+    "review.md": "b97384522d9633f17dc92067e796c9d6c9c3d3d5380ea461963521c75c39bf89",
+    "review.json": "99067cfef64e023394de89928a2e623779e55dc02affa866714a87ad3bacf12f"
+  },
+  "findings": [
+    {
+      "id": "R1",
+      "severity": "Important",
+      "status": "CLOSED_VERIFIED",
+      "title": "Git-tracked module additions cannot use the API builder",
+      "locations": [
+        "candidate/ops/api_release_integration.py:731-734",
+        "candidate/ops/build_release_candidate.py:420-434",
+        "candidate/ops/release_candidate_sources.py:68-78"
+      ],
+      "problem": "The core requires all additions absent from active to equal explicit_untracked_paths, while the builder rejects any tracked path in that list. A reviewed preselection_service.py that has been git added/committed is rejected both with and without the option. Git tracking state should not invalidate a fully pinned, owned module addition.",
+      "expected": "Allow receipt-declared tracked additions; retain explicit approval and exact scope validation for current untracked source files.",
+      "test": "test_release_review_probes.py::test_committed_reviewed_module_addition_can_be_built",
+      "observed": "2 failures: EXACT_UNTRACKED_APPROVAL without option, already tracked with option.",
+      "evidence": [
+        "release_probes.log",
+        "release_probes.xml",
+        "release_probes_run.json"
+      ],
+      "initial_status": "OPEN_ACCEPTED_FOR_REVISION",
+      "closure": {
+        "resolution": "Builder now separates Git tracking from receipt membership. Tracked additions need no untracked approval; redundant tracked requests must still be in the declared delta. Core enforces delta paths are a subset of tracked plus actually approved untracked source paths before copy.",
+        "evidence": [
+          "final_original_release112_probes.log",
+          "final_original_release112_probes.xml",
+          "final_original_release112_probes_run.json",
+          "final_release112.xml"
+        ],
+        "locations": [
+          "candidate/ops/build_release_candidate.py:build_candidate",
+          "candidate/ops/api_release_integration.py:build_integrated_app"
+        ]
+      }
+    },
+    {
+      "id": "R2",
+      "severity": "Important",
+      "status": "CLOSED_VERIFIED",
+      "title": "Scheduler staging follows a late candidate config symlink outside the candidate",
+      "locations": [
+        "candidate/ops/build_release_candidate.py:569-571",
+        "candidate/ops/build_release_candidate_stage.py:181-184"
+      ],
+      "problem": "After render_cutover has safely staged config, replacing candidate/config with a symlink causes the subsequent historical scheduler helper to mkdir/open through it and write com.lexi.v35.scheduler.plist outside the candidate. Final API integration only checks app, and the builder can return success. The historical helper is an active write dependency of this product entrypoint.",
+      "expected": "Keep every builder output write anchored to verified candidate directory descriptors and reject an aliased/replaced config before any outside write.",
+      "test": "test_release_review_probes.py::test_scheduler_staging_cannot_follow_late_config_symlink",
+      "observed": "1 failure: outside-config/com.lexi.v35.scheduler.plist exists after the build.",
+      "evidence": [
+        "config_escape.log",
+        "config_escape.xml",
+        "config_escape_run.json"
+      ],
+      "initial_status": "OPEN_ACCEPTED_FOR_REVISION",
+      "closure": {
+        "resolution": "API builder owns its scheduler staging and reuses prepare directory descriptors and exclusive writes. The original late config alias probe now raises before any outside scheduler plist write. Historical Stage helper remains unchanged.",
+        "evidence": [
+          "final_original_release112_probes.log",
+          "final_original_release112_probes.xml",
+          "final_original_release112_probes_run.json"
+        ],
+        "locations": [
+          "candidate/ops/build_release_candidate.py:_stage_scheduler_identity",
+          "candidate/ops/prepare_api_only_cutover.py:_candidate_directory",
+          "candidate/ops/prepare_api_only_cutover.py:_write_exclusive_at"
+        ]
+      }
+    },
+    {
+      "id": "R3",
+      "severity": "Important",
+      "status": "CLOSED_VERIFIED",
+      "title": "Non-delta directory preservation is not bound by candidate verification",
+      "locations": [
+        "candidate/ops/api_release_integration.py:_inventory_snapshot",
+        "candidate/ops/api_release_integration.py:_verify_delta_files",
+        "candidate/ops/api_release_integration.py:_candidate_identity"
+      ],
+      "problem": "Directory modes are copied at build time but omitted from manifest inventory and base-versus-candidate comparison. A post-build chmod of candidate/app/apps/api from 0755 to 0777 passes verification with unchanged files, manifest and receipt. Current-call physical snapshots only establish self-consistency. Empty directory set preservation has the same structural omission; the recorded minimal runtime probe tests mode changes.",
+      "expected": "Bind and compare original directory set and mode, including app root and empty directories; allow only clearly scoped new ancestors required by allowed additions.",
+      "test": "test_release_review_probes.py::test_verifier_rejects_undeclared_directory_mode_change",
+      "observed": "1 failure: expected rejection, verify_api_release_candidate returned PASS.",
+      "evidence": [
+        "release_probes.log",
+        "release_probes.xml",
+        "release_probes_run.json"
+      ],
+      "initial_status": "OPEN_ACCEPTED_FOR_REVISION",
+      "closure": {
+        "resolution": "Directory preservation proof includes app root, directory set, empty directories and modes. Base modes are retained; only missing ancestors necessary for declared additions may be created, fixed at 0755. Candidate verification compares actual directory sets/modes to the base and bound proof; active v2 identity also verifies its recorded candidate directory digest. Legacy base file-inventory fields remain compatible.",
+        "evidence": [
+          "final_original_release112_probes.xml",
+          "final_release112.xml",
+          "final_release112_run.json"
+        ],
+        "locations": [
+          "candidate/ops/api_release_integration.py:_directory_preservation",
+          "candidate/ops/api_release_integration.py:_expected_directory_modes",
+          "candidate/ops/api_release_integration.py:_release_identity",
+          "candidate/ops/api_release_integration.py:verify_api_release_candidate"
+        ]
+      }
+    },
+    {
+      "id": "R4",
+      "severity": "Important",
+      "status": "CLOSED_VERIFIED",
+      "title": "Legacy SHA recovery promotes inconsistent market/code identities as valid A rows",
+      "locations": [
+        "work/preselection_scope/after/apps/api/v35_api/preselection_service.py:316-325"
+      ],
+      "problem": "The newly reachable recovery calls the historical _canonical_a_symbol helper, which can ignore contradictory market or symbol fields. A row with market=US and symbol=A.000020, or market=A plus symbol=HK.00700 and code=000020, is accepted as the only valid A input after another pool SHA failure. Both return PARTIAL_WITH_ROWS and A count 1; the contradictory HK symbol can be rewritten to A.000020. Strict trio SHA does not prove semantic identity consistency.",
+      "expected": "Validate every present market/code identity field as a consistent A identity before counting/recovering; quarantine inconsistent inputs, retain the original block if no valid A remains, and preserve all source bytes.",
+      "test": "test_preselection_review_probes.py::test_sha_recovery_does_not_promote_inconsistent_market_identity",
+      "observed": "2 failures: both inconsistent rows promoted; source JSON hashes unchanged.",
+      "evidence": [
+        "preselection_identity_probes.log",
+        "preselection_identity_probes.xml",
+        "preselection_identity_probes_run.json"
+      ],
+      "initial_status": "OPEN_ACCEPTED_FOR_REVISION",
+      "closure": {
+        "resolution": "Legacy SHA recovery validates explicit market and every nonempty symbol/normalized_code/code/stock_code/ts_code independently against one canonical A identity, as well as row date/pool. Inconsistent pools are quarantined; valid separate A pools survive. Original US-market and HK-symbol/A-code probes now block with no valid A; sources remain unchanged.",
+        "evidence": [
+          "final_original_preselection_probes.log",
+          "final_original_preselection_probes.xml",
+          "final_original_preselection_probes_run.json",
+          "final_preselection.xml"
+        ],
+        "locations": [
+          "work/preselection_revision/after/apps/api/v35_api/preselection_service.py:_is_consistent_a_row",
+          "work/preselection_revision/after/apps/api/v35_api/preselection_service.py:_recover_legacy_sha_block"
+        ]
+      }
+    },
+    {
+      "id": "R5",
+      "severity": "Important",
+      "status": "CLOSED_VERIFIED",
+      "title": "An interrupted automatic rollback has no protected operator recovery continuation",
+      "locations": [
+        "work/cutover_analysis/candidate/api_only_cutover_r2_ready.py:1570-1578",
+        "work/cutover_analysis/candidate/api_only_cutover_r2_ready.py:1721-1722"
+      ],
+      "problem": "A simulated candidate bootstrap failure followed by a transient restore rename failure leaves the candidate plist and no loaded service, with an intact original backup. The operation receipt is overwritten as ROLLBACK_INCOMPLETE without the full prepared before/after/integration/base contract. After the transient fault clears, the public rollback entrypoint rejects that receipt because it accepts only successful switches. Execute cannot resume from the candidate pointer either.",
+      "expected": "Preserve the prepared transaction and exact original base contract across failures. Provide an explicit guarded continuation for prepared/incomplete operations that still validates the shared lease, receipt, backup, known pointer and known/unloaded runtime; keep unknown identities rejected. Interface details belong to the writer.",
+      "test": "test_actual_review_probes.py::test_operator_can_resume_after_transient_automatic_restore_failure",
+      "observed": "1 failure: API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID after both injected faults are removed; preimage is intact and current pointer is still the known candidate.",
+      "evidence": [
+        "actual_recovery_probe.log",
+        "actual_recovery_probe.xml",
+        "actual_recovery_probe_run.json"
+      ],
+      "closure": {
+        "resolution": "Public rollback now resumes PREPARED/ABORTED/INCOMPLETE/restored receipts through a once-written prepared transaction with exact raw SHA, plan/base/backup contract, explicit current SHA or literal ABSENT, source receipt snapshot and the same shared lease. Unknown pointer/runtime rejected; retries retain the original prepared/backup; incomplete CLI status exits 2. Original bootstrap plus transient restore failure now recovers. R6/R7 receipt parsing and exact metadata follow-up defects are also verified closed on final 389be.",
+        "evidence": [
+          "final_actual76.log",
+          "final_actual76.xml",
+          "final_actual76_run.json",
+          "final_actual_revision.diff"
+        ],
+        "locations": [
+          "work/cutover_analysis/candidate/api_only_cutover_r2_ready.py:_load_prepared_transaction",
+          "work/cutover_analysis/candidate/api_only_cutover_r2_ready.py:_run_rollback_locked",
+          "work/cutover_analysis/candidate/api_only_cutover_r2_ready.py:_restore_after_failure"
+        ]
+      }
+    },
+    {
+      "id": "R6",
+      "severity": "Important",
+      "status": "CLOSED_VERIFIED",
+      "title": "Public recovery accepts ambiguous duplicate-key operation receipts",
+      "locations": [
+        "work/cutover_analysis/candidate/api_only_cutover_r2_ready.py:_signed_receipt",
+        "work/cutover_analysis/candidate/api_only_cutover_r2_ready.py:_read_json"
+      ],
+      "problem": "The new _signed_receipt parser uses ordinary json.loads. Prefixing a valid operation receipt with a contradictory status field leaves the canonical object checksum valid under last-key-wins parsing. Public _run_rollback accepts it and proceeds instead of rejecting ambiguous JSON. This violates the task strict duplicate-key input requirement.",
+      "expected": "Use one strict JSON object parser that rejects duplicate keys at every object nesting level for transaction/plan readers, before interpretation or mutations.",
+      "observed": "1 failed acceptance test: DID NOT RAISE ValueError for a duplicate status receipt on actual 1f41.",
+      "test": "test_actual_duplicate_receipt_probe.py::test_recovery_rejects_duplicate_status_in_operation_receipt",
+      "evidence": [
+        "actual_duplicate_receipt_probe.log",
+        "actual_duplicate_receipt_probe.xml",
+        "actual_duplicate_receipt_probe_run.json"
+      ],
+      "probe_sha256": "afd68bf43600d805f264708f27edf682d45b4e16f28dda90c1b5fa8ff9213218",
+      "prior_status": "OPEN_CONFIRMED",
+      "closure": {
+        "resolution": "All actual JSON readers now use one ordered object-pairs parser. Duplicate keys at root or nested levels and nonstandard NaN/Infinity constants reject before interpretation. The sole raw_decode slice helper strictly validates the entire same byte sequence first. Original duplicate-status public recovery probe now rejects with no pointer or service action.",
+        "evidence": [
+          "final_actual76.log",
+          "final_actual76.xml",
+          "final_actual76_run.json",
+          "final_actual_r6_r7.diff",
+          "final_actual_static_identity.json"
+        ],
+        "locations": [
+          "work/cutover_analysis/candidate/api_only_cutover_r2_ready.py:_json_loads",
+          "work/cutover_analysis/candidate/api_only_cutover_r2_ready.py:_signed_receipt",
+          "work/cutover_analysis/candidate/api_only_cutover_r2_ready.py:_strip_top_level_json_member"
+        ]
+      }
+    },
+    {
+      "id": "R7",
+      "severity": "Important",
+      "status": "CLOSED_VERIFIED",
+      "title": "Recovery reports exact preimage restored while original-byte plist permissions remain changed",
+      "locations": [
+        "work/cutover_analysis/candidate/api_only_cutover_r2_ready.py:_restore_after_failure"
+      ],
+      "problem": "For current_sha equal to the original before SHA, recovery skips replacement and only checks bytes. With an intact 0644 backup, original active bytes, an unloaded known job and active mode changed to 0777, recovery bootstraps and reports ROLLED_BACK_TO_PREIMAGE while mode remains 0777. Recorded full preimage metadata is not actually restored or checked at success.",
+      "expected": "Restore mismatching original metadata through the guarded preimage path, or refuse; success requires original bytes and metadata, including modes.",
+      "observed": "1 failed acceptance test: success status then mode511 (0777) != backup mode420 (0644); other five metadata fields matched.",
+      "test": "test_actual_preimage_metadata_probe.py::test_recovery_restores_original_metadata_when_pointer_bytes_are_already_original",
+      "evidence": [
+        "actual_preimage_metadata_probe.log",
+        "actual_preimage_metadata_probe.xml",
+        "actual_preimage_metadata_probe_run.json"
+      ],
+      "probe_sha256": "c4a1c7ef339da777e4ab2f533e768bd5ba3b6ee62c996e76b9532fc848c13df8",
+      "prior_status": "OPEN_CONFIRMED",
+      "closure": {
+        "resolution": "When active bytes already equal the original but metadata differs, recovery restores the recorded backup metadata through the same shared lease and exact-SHA atomic replacement. It checks full metadata before bootstrap and before success; final metadata drift produces ROLLBACK_INCOMPLETE. Original 0777-versus-0644 probe now restores exact metadata.",
+        "evidence": [
+          "final_actual76.log",
+          "final_actual76.xml",
+          "final_actual76_run.json",
+          "final_actual_r6_r7.diff"
+        ],
+        "locations": [
+          "work/cutover_analysis/candidate/api_only_cutover_r2_ready.py:_restore_after_failure",
+          "work/cutover_analysis/candidate/api_only_cutover_r2_ready.py:_atomic_replace_bytes"
+        ]
+      }
+    }
+  ],
+  "confirmed_critical_findings": [],
+  "supplemental_corrections": [
+    {
+      "id": "P1",
+      "status": "CLOSED_VERIFIED",
+      "title": "Known manager service ownership path v4/manager_research/",
+      "source_evidence": [
+        "exact R2 app.py _load_manager_research_components directory construction",
+        "manager_repair_reference router v4.manager_research.store and workspace_read_control imports"
+      ],
+      "change": "Only POLICY.manager gains v4/manager_research/. No broad v4/ grant and no business service changed.",
+      "diff": "final_manager_policy.diff",
+      "tests": "test_manager_actual_ownership.py: manager accepted, preselection cross-owner rejected; included in independent 112 PASS"
+    }
+  ],
+  "executed_runs": [
+    {
+      "name": "final_release112",
+      "executions": 112,
+      "passed": 112,
+      "failed": 0,
+      "skipped": 0,
+      "metadata_file": "final_release112_run.json",
+      "log": "final_release112.log",
+      "junit": "final_release112.xml",
+      "same_assertion_rerun_not_added_to_unique_suite_total": false
+    },
+    {
+      "name": "final_preselection",
+      "executions": 30,
+      "passed": 30,
+      "failed": 0,
+      "skipped": 0,
+      "metadata_file": "final_preselection_run.json",
+      "log": "final_preselection.log",
+      "junit": "final_preselection.xml",
+      "same_assertion_rerun_not_added_to_unique_suite_total": false
+    },
+    {
+      "name": "final_original_release112_probes",
+      "executions": 4,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "metadata_file": "final_original_release112_probes_run.json",
+      "log": "final_original_release112_probes.log",
+      "junit": "final_original_release112_probes.xml",
+      "same_assertion_rerun_not_added_to_unique_suite_total": true
+    },
+    {
+      "name": "final_original_preselection_probes",
+      "executions": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "metadata_file": "final_original_preselection_probes_run.json",
+      "log": "final_original_preselection_probes.log",
+      "junit": "final_original_preselection_probes.xml",
+      "same_assertion_rerun_not_added_to_unique_suite_total": true
+    },
+    {
+      "name": "final_actual63",
+      "executions": 63,
+      "passed": 63,
+      "failed": 0,
+      "classification": "same-source original21+new41+unchanged original R5 probe",
+      "metadata_file": "final_actual63_run.json",
+      "log": "final_actual63.log",
+      "junit": "final_actual63.xml"
+    },
+    {
+      "name": "actual_duplicate_receipt_probe",
+      "executions": 1,
+      "passed": 0,
+      "failed": 1,
+      "classification": "independent revision acceptance RED",
+      "metadata_file": "actual_duplicate_receipt_probe_run.json",
+      "log": "actual_duplicate_receipt_probe.log",
+      "junit": "actual_duplicate_receipt_probe.xml"
+    },
+    {
+      "name": "actual_preimage_metadata_probe",
+      "executions": 1,
+      "passed": 0,
+      "failed": 1,
+      "classification": "independent revision acceptance RED",
+      "metadata_file": "actual_preimage_metadata_probe_run.json",
+      "log": "actual_preimage_metadata_probe.log",
+      "junit": "actual_preimage_metadata_probe.xml"
+    },
+    {
+      "name": "final_actual76",
+      "executions": 76,
+      "passed": 76,
+      "failed": 0,
+      "skipped": 0,
+      "metadata_file": "final_actual76_run.json",
+      "log": "final_actual76.log",
+      "junit": "final_actual76.xml"
+    }
+  ],
+  "earlier_revision_runs_preserved": [
+    "final_release_run.json",
+    "final_original_release_probes_run.json"
+  ],
+  "unique_final_release_suite_cases": 112,
+  "unique_final_preselection_suite_cases": 30,
+  "shared_app_proof": {
+    "file": "final_shared_app_preservation.json",
+    "script": "verify_shared_app_preservation.py",
+    "run": "final_shared_app_preservation_run.json",
+    "non_preselection_create_app_statements": 54,
+    "unrelated_ast_identical": true,
+    "statement_source_text_identical": true,
+    "manager_service_wiring_sha256": "022417f603c182a870e8e64f3f7efcbad649c6a2b3a2d78825008c84d6b5b0db",
+    "entire_manager_section_sha256": "13c00931d4a3b33371e292cb732a8cb292f2f1723d2ac9704bd2ad787a2dac0b",
+    "manager_state_and_service_initialization_sha256": "23c0ffdad6d54d7b508cd48b3846f15a86b0a770c88c66c247e3426b2a410d55",
+    "full_runtime_startup_run": false
+  },
+  "support_identity": {
+    "record": "revision_preselection_support.json",
+    "same_old_and_revision_files": 21,
+    "historical_support_is_not_current_complete_R2": true
+  },
+  "pending": [],
+  "DeclinedToJudge": [
+    "Any source byte revision after the exact ReviewedSHAs and package patch SHA in this report.",
+    "Complete current R2 runtime and 1016-entry app closure. Only the exact R2 app.py and bounded historical dependencies were available; current runtime was not reconstructed.",
+    "Full R2 create_app startup, real manager announcement/workspace/date-isolation business regressions, real A=178/HK=100 canary, live API/UI reload and natural-time execution: NOT_RUN.",
+    "Mac launchd runtime and Mac-specific filesystem flags/xattrs behavior. Tests are Linux synthetic fixtures with service/HTTP stubs; Linux file-mode and metadata contracts were exercised.",
+    "Current Mac absence of the three added files and current Mac source/deployment modes. Package roundtrip verifies the declared synthetic source baseline and Git source modes.",
+    "Global retirement of publisher entrypoints outside this candidate. Persistent shared flock coordinates cooperating migrated publishers only.",
+    "Arbitrary untrusted Python code monkeypatching interpreter state or bypassing the lock. Exact-byte loading and cooperative lease checking are not an OS sandbox.",
+    "New release runtime pins or an operational R3 adapter. The actual script deliberately retains historical R2 task pins except the updated integration core pin, so source approval is not direct new-release activation approval.",
+    "Merge, deployment, trade/BUY changes, producer/data repair and unrelated Issue #28 PIT/data issues were not performed or approved."
+  ],
+  "policy_identity": {
+    "file": "final_policy_identity.json",
+    "policy_sha256": "c55f4f09269661e0db05fa566aa1be9a96b2aa681912223c38fb802c4127e1b6",
+    "core_imports_standard_library_only": true
+  },
+  "source_file_count": 8,
+  "open_findings": [],
+  "final_independent_suites": [
+    {
+      "name": "final_release112",
+      "executions": 112,
+      "passed": 112,
+      "failed": 0,
+      "skipped": 0,
+      "metadata_file": "final_release112_run.json",
+      "log": "final_release112.log",
+      "junit": "final_release112.xml"
+    },
+    {
+      "name": "final_preselection",
+      "executions": 30,
+      "passed": 30,
+      "failed": 0,
+      "skipped": 0,
+      "metadata_file": "final_preselection_run.json",
+      "log": "final_preselection.log",
+      "junit": "final_preselection.xml"
+    },
+    {
+      "name": "final_actual76",
+      "executions": 76,
+      "passed": 76,
+      "failed": 0,
+      "skipped": 0,
+      "metadata_file": "final_actual76_run.json",
+      "log": "final_actual76.log",
+      "junit": "final_actual76.xml"
+    }
+  ],
+  "final_independent_suite_executions": 218,
+  "counting_note": "112 release + 30 preselection + 76 actual test executions. Earlier revision suites and standalone repeats of original release/preselection probes are not added to this total.",
+  "final_delivery_source_shas": {
+    "actual_cutover_reference/api_only_cutover_r2_ready.py": "389be853923a72066472ad229129a9a41ef9e9785f1b729aa468ed3e58df19f5",
+    "apps/api/v35_api/app.py": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+    "apps/api/v35_api/preselection_router.py": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+    "apps/api/v35_api/preselection_service.py": "91eba3ad5d005161d876f9c2f1a69ff51db56f129267cde29394d4581d1a4c95",
+    "ops/api_release_integration.py": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+    "ops/build_release_candidate.py": "81f4290a6f51e5958048d782c2d4b1eecfc42f892e387e6c1a22bb71912abef6",
+    "ops/create_api_module_delta.py": "04e67a3ce948eecf9dac04083277bd919c7ec8880ec5814bbe57e7a5ba8d0072",
+    "ops/prepare_api_only_cutover.py": "0fee40c13bdb76d8d4d7b5b0068eb8b6e7cade9187a5f3c3154b7d6238a1af4c"
+  },
+  "source_manifest_sha256": "baac33ad9e1f8b2d89f1817d00dd3c6e28c612a00c37586773dc50dadb6bada1",
+  "all_product_changes_patch_sha256": "6caf2d02546e17aabfeb06c721fa3ac8748aaf0e1f73aeb13ffd7c9de3dfc86e",
+  "package_roundtrip": {
+    "status": "PASS",
+    "source_file_count": 8,
+    "script": "verify_final_package_roundtrip.py",
+    "proof": "final_package_roundtrip.json",
+    "log": "final_package_roundtrip.log",
+    "command_metadata": "final_package_roundtrip_run.json",
+    "script_output": "final_package_roundtrip_script.log",
+    "forward_exact_bytes_and_source_modes": true,
+    "reverse_exact_before_bytes_and_source_modes": true,
+    "three_added_files_absent_after_reverse": true,
+    "no_extra_product_paths": true,
+    "actual_core_pin_matches_packaged_core": true
+  },
+  "actual_static_identity": "final_actual_static_identity.json",
+  "preselection_final_identity": "final_preselection_identity.json",
+  "revision_1f41_checkpoint_sha256": {
+    "revision_1f41_review.md": "813841d50b7cf8ca3c4fe2f0a4e0d270c8bfd5e103f0125f412456e1b92d95c3",
+    "revision_1f41_review.json": "5f9d54fe79b73672e0bd861da60bd892667ba3c339a515b44e36443d2912b869"
+  },
+  "receipt_authority_boundary": "Module and prepared-transaction SHA records are integrity evidence, not user authorization or a cryptographic signing authority.",
+  "final_evidence_index": "FINAL_EVIDENCE_INDEX.json",
+  "final_evidence_copy_list": "FINAL_EVIDENCE_FILES.txt"
+}

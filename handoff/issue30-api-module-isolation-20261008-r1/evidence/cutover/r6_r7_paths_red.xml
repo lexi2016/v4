@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="11" skipped="0" tests="11" time="0.886" timestamp="2026-10-08T07:42:24.044423-07:00" hostname="5fa05583d26b"><testcase classname="issue30.work.cutover_analysis.tests.test_actual_json_inputs" name="test_read_json_rejects_duplicate_keys_at_any_depth[{&quot;identity&quot;:0,&quot;identity&quot;:1}]" time="0.073"><failure message="Failed: DID NOT RAISE ValueError">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-2kzv38kc/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+raw = b'{"identity":0,"identity":1}'
+
+    @pytest.mark.parametrize("raw", [b'{"identity":0,"identity":1}', b'{"outer":{"identity":0,"identity":1}}'])
+    def test_read_json_rejects_duplicate_keys_at_any_depth(setup_actual, raw):
+        harness, _ = setup_actual
+        path = harness.root / "ambiguous.json"
+        path.write_bytes(raw)
+&gt;       with pytest.raises(ValueError, match="DUPLICATE|JSON_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+issue30/work/cutover_analysis/tests/test_actual_json_inputs.py:15: Failed</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_actual_json_inputs" name="test_read_json_rejects_duplicate_keys_at_any_depth[{&quot;outer&quot;:{&quot;identity&quot;:0,&quot;identity&quot;:1}}]" time="0.062"><failure message="Failed: DID NOT RAISE ValueError">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-1fwz212i/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+raw = b'{"outer":{"identity":0,"identity":1}}'
+
+    @pytest.mark.parametrize("raw", [b'{"identity":0,"identity":1}', b'{"outer":{"identity":0,"identity":1}}'])
+    def test_read_json_rejects_duplicate_keys_at_any_depth(setup_actual, raw):
+        harness, _ = setup_actual
+        path = harness.root / "ambiguous.json"
+        path.write_bytes(raw)
+&gt;       with pytest.raises(ValueError, match="DUPLICATE|JSON_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+issue30/work/cutover_analysis/tests/test_actual_json_inputs.py:15: Failed</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_actual_json_inputs" name="test_signed_receipt_rejects_nested_duplicates_even_when_canonical_sha_matches" time="0.065"><failure message="Failed: DID NOT RAISE ValueError">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-pn0q30sd/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+
+    def test_signed_receipt_rejects_nested_duplicates_even_when_canonical_sha_matches(setup_actual):
+        harness, _ = setup_actual
+        m = harness.m
+        raw = m._receipt_bytes({"before": {"identity": "recorded"}})
+        ambiguous = raw.replace(b'"before": {', b'"before": {"identity":"unreviewed",', 1)
+        path = harness.root / "ambiguous-receipt.json"
+        path.write_bytes(ambiguous)
+&gt;       with pytest.raises(ValueError, match="DUPLICATE|JSON_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+issue30/work/cutover_analysis/tests/test_actual_json_inputs.py:26: Failed</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_actual_json_inputs" name="test_prepared_nested_duplicate_is_rejected_even_with_new_raw_sha_reference" time="0.085"><failure message="Failed: DID NOT RAISE ValueError">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-rirkoaek/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f35d0f22b10&gt;
+
+    def test_prepared_nested_duplicate_is_rejected_even_with_new_raw_sha_reference(setup_actual, monkeypatch):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        token = _set_state(harness, fixture, "candidate", "unloaded")
+        receipt = json.loads(receipt_path.read_text())
+        prepared_path = Path(receipt["prepared_receipt"]["path"])
+        raw = prepared_path.read_bytes()
+        ambiguous = raw.replace(b'"base": {', b'"base": {"api_plist_sha256":"unreviewed",', 1)
+        assert ambiguous != raw
+        prepared_path.chmod(0o600)
+        prepared_path.write_bytes(ambiguous)
+        receipt["prepared_receipt"]["sha256"] = m._sha(ambiguous)
+        m._write_receipt(receipt_path, receipt)
+        current = m.ACTIVE_API_PLIST.read_bytes()
+&gt;       with pytest.raises(ValueError, match="DUPLICATE|JSON_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+issue30/work/cutover_analysis/tests/test_actual_json_inputs.py:45: Failed</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_actual_json_inputs" name="test_stage_plan_input_cannot_normalize_away_duplicate_guard_values" time="0.073"><failure message="Failed: DID NOT RAISE ValueError">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-ok3cbz4q/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+
+    def test_stage_plan_input_cannot_normalize_away_duplicate_guard_values(setup_actual):
+        harness, fixture = setup_actual
+        m = harness.m
+        original = m.PLAN_PATH.read_bytes()
+        ambiguous = b'{"before":{},' + original[1:]
+        m.PLAN_PATH.write_bytes(ambiguous)
+&gt;       with pytest.raises(ValueError, match="DUPLICATE|JSON_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+issue30/work/cutover_analysis/tests/test_actual_json_inputs.py:57: Failed</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_actual_json_inputs" name="test_disabled_binding_rejects_duplicates_despite_pinned_raw_sha" time="0.060"><failure message="Failed: DID NOT RAISE ValueError">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-sr1u2ncn/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+
+    def test_disabled_binding_rejects_duplicates_despite_pinned_raw_sha(setup_actual):
+        harness, fixture = setup_actual
+        m = harness.m
+        original = m.DISABLED_BINDING_PATH.read_bytes()
+        ambiguous = b'{"enabled":true,' + original[1:]
+        m.DISABLED_BINDING_PATH.write_bytes(ambiguous)
+        fixture["plan"]["guards"]["disabled_binding_sha256"] = m._sha(ambiguous)
+&gt;       with pytest.raises(ValueError, match="DUPLICATE|JSON_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+issue30/work/cutover_analysis/tests/test_actual_json_inputs.py:70: Failed</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_actual_json_inputs" name="test_openapi_json_uses_same_duplicate_rejection" time="0.057"><failure message="Failed: DID NOT RAISE ValueError">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-j9o5yjy4/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f35d0f69eb0&gt;
+
+    def test_openapi_json_uses_same_duplicate_rejection(setup_actual, monkeypatch):
+        harness, _ = setup_actual
+        m = harness.m
+        original = json.dumps({"paths": {m.MANAGER_WORKSPACE_ROUTE: {"get": {}}}}).encode()
+        ambiguous = b'{"paths":{},' + original[1:]
+        monkeypatch.setattr(m, "_http_get", lambda path: (200, ambiguous))
+&gt;       with pytest.raises(ValueError, match="DUPLICATE|JSON_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+issue30/work/cutover_analysis/tests/test_actual_json_inputs.py:80: Failed</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_actual_json_inputs" name="test_nonstandard_nan_constant_is_rejected_like_core_json" time="0.056"><failure message="Failed: DID NOT RAISE ValueError">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-hmptj52t/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+
+    def test_nonstandard_nan_constant_is_rejected_like_core_json(setup_actual):
+        harness, _ = setup_actual
+        path = harness.root / "nan.json"
+        path.write_bytes(b'{"identity":NaN}')
+&gt;       with pytest.raises(ValueError, match="JSON_CONSTANT_INVALID|JSON_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+issue30/work/cutover_analysis/tests/test_actual_json_inputs.py:88: Failed</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_actual_json_inputs" name="test_raw_json_member_stripping_keeps_order_but_rejects_nested_ambiguity" time="0.054"><failure message="Failed: DID NOT RAISE ValueError">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-jvzavgds/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+
+    def test_raw_json_member_stripping_keeps_order_but_rejects_nested_ambiguity(setup_actual):
+        harness, _ = setup_actual
+        m = harness.m
+        assert m._strip_top_level_json_member(
+            b'{"b":2,"consumption_validation":{"x":1},"a":1}', "consumption_validation"
+        ) == (b'{"b":2,"a":1}', 1)
+&gt;       with pytest.raises(ValueError, match="DUPLICATE|JSON_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+issue30/work/cutover_analysis/tests/test_actual_json_inputs.py:98: Failed</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_metadata" name="test_original_runtime_recovery_repairs_original_pointer_metadata_without_service_action" time="0.079"><failure message="AssertionError: assert {'uid': 0, 'g...lags': 0, ...} == {'flags': 0, ...02571519, ...}&#10;  &#10;  Omitting 4 identical items, use -vv to show&#10;  Differing items:&#10;  {'mode': 511} != {'mode': 420}&#10;  {'mtime_ns': 1791470544836442995} != {'mtime_ns': 1791470544802571519}&#10;  Use -v to get more diff">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-g__5gqj6/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f35d0e606b0&gt;
+
+    def test_original_runtime_recovery_repairs_original_pointer_metadata_without_service_action(setup_actual, monkeypatch):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        expected_metadata = json.loads(receipt_path.read_text())["backup_metadata"]
+        token = _set_state(harness, fixture, "original", "original")
+        m.ACTIVE_API_PLIST.chmod(0o777)
+        result = _resume(harness, fixture, receipt_path, token)
+        assert result["status"] == "ROLLED_BACK_TO_PREIMAGE"
+&gt;       assert m._file_metadata(m.ACTIVE_API_PLIST) == expected_metadata
+E       AssertionError: assert {'uid': 0, 'g...lags': 0, ...} == {'flags': 0, ...02571519, ...}
+E         
+E         Omitting 4 identical items, use -vv to show
+E         Differing items:
+E         {'mode': 511} != {'mode': 420}
+E         {'mtime_ns': 1791470544836442995} != {'mtime_ns': 1791470544802571519}
+E         Use -v to get more diff
+
+issue30/work/cutover_analysis/tests/test_recovery_metadata.py:16: AssertionError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_metadata" name="test_recovery_cannot_report_success_if_metadata_drifts_after_bootstrap" time="0.078"><failure message="AssertionError: assert 'ROLLED_BACK_TO_PREIMAGE' == 'ROLLBACK_INCOMPLETE'&#10;  &#10;  - ROLLBACK_INCOMPLETE&#10;  + ROLLED_BACK_TO_PREIMAGE">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-s_7_d930/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f35d0b61550&gt;
+
+    def test_recovery_cannot_report_success_if_metadata_drifts_after_bootstrap(setup_actual, monkeypatch):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        token = _set_state(harness, fixture, "candidate", "unloaded")
+    
+        def drift_after_bootstrap(action):
+            if action == "bootstrap":
+                m.ACTIVE_API_PLIST.chmod(0o777)
+    
+        fixture["runtime"]["hook"] = drift_after_bootstrap
+        result = _resume(harness, fixture, receipt_path, token)
+&gt;       assert result["status"] == "ROLLBACK_INCOMPLETE"
+E       AssertionError: assert 'ROLLED_BACK_TO_PREIMAGE' == 'ROLLBACK_INCOMPLETE'
+E         
+E         - ROLLBACK_INCOMPLETE
+E         + ROLLED_BACK_TO_PREIMAGE
+
+issue30/work/cutover_analysis/tests/test_recovery_metadata.py:33: AssertionError</failure></testcase></testsuite></testsuites>

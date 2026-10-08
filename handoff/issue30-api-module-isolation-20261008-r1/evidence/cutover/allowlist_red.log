@@ -1,0 +1,14 @@
+test_execute_requires_shared_lock_path_in_frozen_allowlist_before_create (test_actual_api_cutover.ActualCutoverTests.test_execute_requires_shared_lock_path_in_frozen_allowlist_before_create) ... FAIL
+
+======================================================================
+FAIL: test_execute_requires_shared_lock_path_in_frozen_allowlist_before_create (test_actual_api_cutover.ActualCutoverTests.test_execute_requires_shared_lock_path_in_frozen_allowlist_before_create)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/tests/test_actual_api_cutover.py", line 494, in test_execute_requires_shared_lock_path_in_frozen_allowlist_before_create
+    self.assertFalse(lock_path.exists(), "an undeclared publication lock was created")
+AssertionError: True is not false : an undeclared publication lock was created
+
+----------------------------------------------------------------------
+Ran 1 test in 0.034s
+
+FAILED (failures=1)

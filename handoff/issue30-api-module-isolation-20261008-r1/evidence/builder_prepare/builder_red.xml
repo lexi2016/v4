@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="4" skipped="0" tests="4" time="0.572" timestamp="2026-10-08T06:52:11.403903-07:00" hostname="5fa05583d26b"><testcase classname="tests.test_builder_issue30" name="test_builder_does_not_erase_supplied_aliases[source_root]" time="0.119"><failure message="Failed: DID NOT RAISE ValueError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/builder_prepare/builder_red_tmp/test_builder_does_not_erase_su0')
+aliased = 'source_root'
+
+    @pytest.mark.parametrize('aliased', ['source_root', 'api_plist_path', 'api_integration_delta_receipt_path'])
+    def test_builder_does_not_erase_supplied_aliases(tmp_path, aliased):
+        args = _build_args(tmp_path)
+        original = args[aliased]
+        alias = tmp_path/'alias'/original.name
+        alias.parent.mkdir()
+        alias.symlink_to(original, target_is_directory=original.is_dir())
+        args[aliased] = alias
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_builder_issue30.py:38: Failed</failure></testcase><testcase classname="tests.test_builder_issue30" name="test_builder_does_not_erase_supplied_aliases[api_plist_path]" time="0.110"><failure message="Failed: DID NOT RAISE ValueError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/builder_prepare/builder_red_tmp/test_builder_does_not_erase_su1')
+aliased = 'api_plist_path'
+
+    @pytest.mark.parametrize('aliased', ['source_root', 'api_plist_path', 'api_integration_delta_receipt_path'])
+    def test_builder_does_not_erase_supplied_aliases(tmp_path, aliased):
+        args = _build_args(tmp_path)
+        original = args[aliased]
+        alias = tmp_path/'alias'/original.name
+        alias.parent.mkdir()
+        alias.symlink_to(original, target_is_directory=original.is_dir())
+        args[aliased] = alias
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_builder_issue30.py:38: Failed</failure></testcase><testcase classname="tests.test_builder_issue30" name="test_builder_does_not_erase_supplied_aliases[api_integration_delta_receipt_path]" time="0.117"><failure message="Failed: DID NOT RAISE ValueError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/builder_prepare/builder_red_tmp/test_builder_does_not_erase_su2')
+aliased = 'api_integration_delta_receipt_path'
+
+    @pytest.mark.parametrize('aliased', ['source_root', 'api_plist_path', 'api_integration_delta_receipt_path'])
+    def test_builder_does_not_erase_supplied_aliases(tmp_path, aliased):
+        args = _build_args(tmp_path)
+        original = args[aliased]
+        alias = tmp_path/'alias'/original.name
+        alias.parent.mkdir()
+        alias.symlink_to(original, target_is_directory=original.is_dir())
+        args[aliased] = alias
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_builder_issue30.py:38: Failed</failure></testcase><testcase classname="tests.test_builder_issue30" name="test_builder_rechecks_active_after_staging_before_marking_complete" time="0.120"><failure message="Failed: DID NOT RAISE ValueError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/builder_prepare/builder_red_tmp/test_builder_rechecks_active_a0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f54c68008a0&gt;
+
+    def test_builder_rechecks_active_after_staging_before_marking_complete(tmp_path, monkeypatch):
+        args = _build_args(tmp_path)
+        pointer = args['api_plist_path']
+        original = BUILDER._stage_scheduler_identity
+        def drift(**kwargs):
+            result = original(**kwargs)
+            payload = plistlib.loads(pointer.read_bytes())
+            payload['ProgramArguments'].insert(1, 'V35_DATA_ROOT=/synthetic/new-source')
+            pointer.write_bytes(plistlib.dumps(payload, fmt=plistlib.FMT_XML, sort_keys=True))
+            return result
+        monkeypatch.setattr(BUILDER, '_stage_scheduler_identity', drift)
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_builder_issue30.py:54: Failed</failure></testcase></testsuite></testsuites>

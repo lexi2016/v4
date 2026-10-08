@@ -1,0 +1,28 @@
+
+==================================== ERRORS ====================================
+____________ ERROR collecting tests/test_build_release_candidate.py ____________
+tests/test_build_release_candidate.py:28: in <module>
+    BUILDER = _load("build_release_candidate", OPS_ROOT / "build_release_candidate.py")
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_build_release_candidate.py:23: in _load
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:759: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+ops/build_release_candidate.py:96: in <module>
+    _release_audit = _load_refactor_component("release_candidate_audit")
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ops/build_release_candidate.py:88: in _load_refactor_component
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:755: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:892: in get_code
+    ???
+<frozen importlib._bootstrap_external>:950: in get_data
+    ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/25c09a595aec/issue30/work/integration_core/draft_run/ops/release_candidate_audit.py'
+=========================== short test summary info ============================
+ERROR tests/test_build_release_candidate.py - FileNotFoundError: [Errno 2] No...
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.16s

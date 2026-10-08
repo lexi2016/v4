@@ -1,0 +1,23 @@
+[
+  {
+    "source": "/workspace/scratch/25c09a595aec/issue30/work/integration_core/draft_run/tests/test_api_release_integration.py",
+    "target": "/workspace/scratch/25c09a595aec/issue30/work/integration_core/candidate/tests/test_api_release_integration.py",
+    "before_sha256": "3c63b4af8dc11fd54939146047784b1e237f26c076bf5a2402b0bdd2cf52c36c",
+    "after_sha256": "89b5e9e58cc1e1c8686892561d6dcf17b81d1adc30243300d8a58050de145135",
+    "changes": "migrate fixture receipt to v2: mode pins and static module_scope, base now contains pointer bytes pin; original assertions unchanged"
+  },
+  {
+    "source": "/workspace/scratch/25c09a595aec/issue30/work/integration_core/draft_run/tests/test_integration_adversarial.py",
+    "target": "/workspace/scratch/25c09a595aec/issue30/work/integration_core/candidate/tests/test_integration_adversarial.py",
+    "before_sha256": "7ef68f7640200044f25c748d674e8d72f3af889d7f8298ddb35be3ed238fc136",
+    "after_sha256": "7ef68f7640200044f25c748d674e8d72f3af889d7f8298ddb35be3ed238fc136",
+    "changes": "unchanged nine RED assertions; v2 fixture helper is migrated separately"
+  },
+  {
+    "source": null,
+    "target": "/workspace/scratch/25c09a595aec/issue30/work/integration_core/candidate/tests/test_api_release_v2_contract.py",
+    "before_sha256": null,
+    "after_sha256": "429d70fddd4d691d0afbfa7b622c0e1b568a251b6eb93448360816900427ea5f",
+    "changes": "new v2 strict-schema, ownership, snapshot, real multiprocess lock regression suite"
+  }
+]

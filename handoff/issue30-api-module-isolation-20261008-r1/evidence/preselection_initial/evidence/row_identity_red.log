@@ -1,0 +1,58 @@
+.FF                                                                      [100%]
+=================================== FAILURES ===================================
+______ test_sha_recovery_rejects_inconsistent_a_row_identity[trade_date] _______
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/preselection_scope/evidence/pytest-row-identity-red/test_sha_recovery_rejects_inco1')
+wrong_field = 'trade_date'
+
+    @pytest.mark.parametrize("wrong_field", ["market", "trade_date", "target_date"])
+    def test_sha_recovery_rejects_inconsistent_a_row_identity(tmp_path: Path, wrong_field: str) -> None:
+        client, source = _client(tmp_path, ["A.000001"])
+        invalid = _pool_artifact("a_share_research_recommendation_pool", [{"symbol": "A.000020"}])
+        invalid["rows"][0][wrong_field] = "HK" if wrong_field == "market" else "20261007"
+        # The historical generic artifact writer validates the pool identity and
+        # trio. The new recovery path must also respect explicit per-row identity.
+        PreselectionPoolStore(source).materialize(invalid)
+        _corrupt_manifest(source)
+        before = _hashes(source)
+        payload = client.get("/api/v3/preselection-pools", params={"date": DATE}).json()
+>       assert payload["data_status"] == "DATA_BLOCKED_EMPTY"
+E       AssertionError: assert 'PARTIAL_WITH_ROWS' == 'DATA_BLOCKED_EMPTY'
+E         
+E         - DATA_BLOCKED_EMPTY
+E         + PARTIAL_WITH_ROWS
+
+tests/test_issue30_preselection_module.py:219: AssertionError
+______ test_sha_recovery_rejects_inconsistent_a_row_identity[target_date] ______
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/preselection_scope/evidence/pytest-row-identity-red/test_sha_recovery_rejects_inco2')
+wrong_field = 'target_date'
+
+    @pytest.mark.parametrize("wrong_field", ["market", "trade_date", "target_date"])
+    def test_sha_recovery_rejects_inconsistent_a_row_identity(tmp_path: Path, wrong_field: str) -> None:
+        client, source = _client(tmp_path, ["A.000001"])
+        invalid = _pool_artifact("a_share_research_recommendation_pool", [{"symbol": "A.000020"}])
+        invalid["rows"][0][wrong_field] = "HK" if wrong_field == "market" else "20261007"
+        # The historical generic artifact writer validates the pool identity and
+        # trio. The new recovery path must also respect explicit per-row identity.
+        PreselectionPoolStore(source).materialize(invalid)
+        _corrupt_manifest(source)
+        before = _hashes(source)
+        payload = client.get("/api/v3/preselection-pools", params={"date": DATE}).json()
+>       assert payload["data_status"] == "DATA_BLOCKED_EMPTY"
+E       AssertionError: assert 'PARTIAL_WITH_ROWS' == 'DATA_BLOCKED_EMPTY'
+E         
+E         - DATA_BLOCKED_EMPTY
+E         + PARTIAL_WITH_ROWS
+
+tests/test_issue30_preselection_module.py:219: AssertionError
+=============================== warnings summary ===============================
+../../../issue28/references/work/test-venv/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/25c09a595aec/issue28/references/work/test-venv/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_issue30_preselection_module.py::test_sha_recovery_rejects_inconsistent_a_row_identity[trade_date]
+FAILED tests/test_issue30_preselection_module.py::test_sha_recovery_rejects_inconsistent_a_row_identity[target_date]
+2 failed, 1 passed, 1 warning in 0.74s

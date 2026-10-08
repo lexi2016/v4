@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.191" timestamp="2026-10-08T07:39:37.328434-07:00" hostname="5fa05583d26b"><testcase classname="test_actual_preimage_metadata_probe" name="test_recovery_restores_original_metadata_when_pointer_bytes_are_already_original" time="0.103"><failure message="AssertionError: assert {'uid': 0, 'g...lags': 0, ...} == {'flags': 0, ...47288904, ...}&#10;  &#10;  Omitting 5 identical items, use -vv to show&#10;  Differing items:&#10;  {'mode': 511} != {'mode': 420}&#10;  Use -v to get more diff">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/issue30_reviewer/cutover-test-_aaq6avz/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7ff016c136f0&gt;
+
+    def test_recovery_restores_original_metadata_when_pointer_bytes_are_already_original(setup_actual, monkeypatch):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        prepared = json.loads(receipt_path.read_text())
+        expected_metadata = prepared["backup_metadata"]
+        assert m.ACTIVE_API_PLIST.read_bytes() == fixture["original"]
+        original_mode = m.ACTIVE_API_PLIST.stat().st_mode &amp; 0o7777
+        m.ACTIVE_API_PLIST.chmod(0o777 if original_mode != 0o777 else 0o640)
+        fixture["runtime"]["identity"] = None
+        result = _resume(harness, fixture, receipt_path, prepared["backup_sha256"])
+        assert result["status"] == "ROLLED_BACK_TO_PREIMAGE"
+&gt;       assert m._file_metadata(m.ACTIVE_API_PLIST) == expected_metadata
+E       AssertionError: assert {'uid': 0, 'g...lags': 0, ...} == {'flags': 0, ...47288904, ...}
+E         
+E         Omitting 5 identical items, use -vv to show
+E         Differing items:
+E         {'mode': 511} != {'mode': 420}
+E         Use -v to get more diff
+
+test_actual_preimage_metadata_probe.py:22: AssertionError</failure></testcase></testsuite></testsuites>

@@ -1,0 +1,16 @@
+{
+  "command": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "tests/test_builder_issue30.py",
+    "--junitxml=/workspace/scratch/25c09a595aec/issue30/work/builder_prepare/builder_red.xml",
+    "--basetemp=/workspace/scratch/25c09a595aec/issue30/work/builder_prepare/builder_red_tmp"
+  ],
+  "cwd": "/workspace/scratch/25c09a595aec/issue30/work/builder_prepare/baseline_run",
+  "exit_code": 1
+}

@@ -1,0 +1,40 @@
+{
+  "status": "PASS",
+  "test_and_harness_shas_unchanged_from_pre_run_snapshot": {
+    "work/preselection_revision/tests/scope_api_harness.py": "ba8a9e2a8093ba45a8d26383ba45811691eca8f1c86d87d57b3e77d3c8e63cac",
+    "work/preselection_revision/tests/test_issue28_preselection_hk_fallback.py": "82d83435d6f1229cd12056c23c02d8908fd244e9245ced80c2f582d819cfa2d0",
+    "work/preselection_revision/tests/test_preselection_review_probes.py": "c5018db1e0c5adf45b2056d2bd231d9debe87ca647575c15aff8d08e0247b1bb",
+    "work/preselection_revision/tests/test_issue30_preselection_module.py": "1726f8ab7cd24ee20890d5fcd2300c3cfd3b4d4ebff1571902d1ff218f6a2574",
+    "work/preselection_revision/tests/test_preselection_source_root_20261008.py": "d1e605f9f6d4a0a024a4d104f8cd5dddc9fbbe154914ab4eae76107586c5cc75"
+  },
+  "historical_support_file_count": 21,
+  "historical_support_sha256": {
+    "domains/preselection.py": "8a21fa2caf27e06ea4b6526ff0dd7db99390dda007936aaf99ef8772e6e4305a",
+    "infrastructure/preselection_pool_sources.py": "cc683561201453e3f7ca975b2b7cdb6a3836b1ecbe63e001a5abd181f38813d6",
+    "infrastructure/scope_gate.py": "5620d1ee89fbae998d4c801c2a7c4cffac50f890ad0b6951f99230c591dcff68",
+    "infrastructure/owned_path.py": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+    "infrastructure/trading_safety.py": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+    "infrastructure/owned_io.py": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+    "infrastructure/review_core_stage7_pool_source.py": "60b19cc775866245d589db7fcae144621f92144248022045d0adb1e6408c4cdc",
+    "infrastructure/preselection_pool_readers.py": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+    "infrastructure/preselection_pool_store.py": "028298a05ea44e310487c1159acc8147cf652e23ba716989135b178198795a92",
+    "infrastructure/preselection_pool_transactions.py": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+    "infrastructure/review_core_fupan_pool_source.py": "59676076abc2844dbae5c09f683b56473d43df66c5de4bf0b2c3bdf2a95e8182",
+    "infrastructure/data_store.py": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+    "infrastructure/interprocess_lock.py": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+    "infrastructure/isolated_package_loader.py": "c714d4b95c03da061f592e076cd12188dbeefcd9f0fae7aeaae18c0450e915eb",
+    "infrastructure/market_time.py": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+    "contracts/trading_safety.py": "e2773e0a5b586c810b46d19219b5f96f465e29e36783d6be5e30abaf4d56b33b",
+    "contracts/stages.py": "d0ac1771a1005888e53e9a322da65f959cfbcbcc665357b8783d5eb4eda9c6df",
+    "contracts/trading_calendar.py": "eca22a1e45271df45fc0a3b7cec28cec4e448d1af97b80371cc5c3c1953ec0f1",
+    "stage_center/calendar.py": "681aae5b50acb89620998acda372531971bd26ae346f0334f37ea6e5b1de8124",
+    "stage_center/contracts.py": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+    "stage_center/selection.py": "31e80e068890be03957920870719030463262c78911953541be3074f8650d4c9"
+  },
+  "product_shas": {
+    "work/preselection_revision/after/apps/api/v35_api/app.py": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+    "work/preselection_revision/after/apps/api/v35_api/preselection_router.py": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+    "work/preselection_revision/after/apps/api/v35_api/preselection_service.py": "91eba3ad5d005161d876f9c2f1a69ff51db56f129267cde29394d4581d1a4c95"
+  },
+  "historical_support_not_current_complete_R2": true
+}

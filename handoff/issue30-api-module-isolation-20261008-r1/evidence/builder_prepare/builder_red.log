@@ -1,0 +1,83 @@
+FFFF                                                                     [100%]
+=================================== FAILURES ===================================
+__________ test_builder_does_not_erase_supplied_aliases[source_root] ___________
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/builder_prepare/builder_red_tmp/test_builder_does_not_erase_su0')
+aliased = 'source_root'
+
+    @pytest.mark.parametrize('aliased', ['source_root', 'api_plist_path', 'api_integration_delta_receipt_path'])
+    def test_builder_does_not_erase_supplied_aliases(tmp_path, aliased):
+        args = _build_args(tmp_path)
+        original = args[aliased]
+        alias = tmp_path/'alias'/original.name
+        alias.parent.mkdir()
+        alias.symlink_to(original, target_is_directory=original.is_dir())
+        args[aliased] = alias
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_builder_issue30.py:38: Failed
+_________ test_builder_does_not_erase_supplied_aliases[api_plist_path] _________
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/builder_prepare/builder_red_tmp/test_builder_does_not_erase_su1')
+aliased = 'api_plist_path'
+
+    @pytest.mark.parametrize('aliased', ['source_root', 'api_plist_path', 'api_integration_delta_receipt_path'])
+    def test_builder_does_not_erase_supplied_aliases(tmp_path, aliased):
+        args = _build_args(tmp_path)
+        original = args[aliased]
+        alias = tmp_path/'alias'/original.name
+        alias.parent.mkdir()
+        alias.symlink_to(original, target_is_directory=original.is_dir())
+        args[aliased] = alias
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_builder_issue30.py:38: Failed
+_ test_builder_does_not_erase_supplied_aliases[api_integration_delta_receipt_path] _
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/builder_prepare/builder_red_tmp/test_builder_does_not_erase_su2')
+aliased = 'api_integration_delta_receipt_path'
+
+    @pytest.mark.parametrize('aliased', ['source_root', 'api_plist_path', 'api_integration_delta_receipt_path'])
+    def test_builder_does_not_erase_supplied_aliases(tmp_path, aliased):
+        args = _build_args(tmp_path)
+        original = args[aliased]
+        alias = tmp_path/'alias'/original.name
+        alias.parent.mkdir()
+        alias.symlink_to(original, target_is_directory=original.is_dir())
+        args[aliased] = alias
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_builder_issue30.py:38: Failed
+______ test_builder_rechecks_active_after_staging_before_marking_complete ______
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/builder_prepare/builder_red_tmp/test_builder_rechecks_active_a0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f54c68008a0>
+
+    def test_builder_rechecks_active_after_staging_before_marking_complete(tmp_path, monkeypatch):
+        args = _build_args(tmp_path)
+        pointer = args['api_plist_path']
+        original = BUILDER._stage_scheduler_identity
+        def drift(**kwargs):
+            result = original(**kwargs)
+            payload = plistlib.loads(pointer.read_bytes())
+            payload['ProgramArguments'].insert(1, 'V35_DATA_ROOT=/synthetic/new-source')
+            pointer.write_bytes(plistlib.dumps(payload, fmt=plistlib.FMT_XML, sort_keys=True))
+            return result
+        monkeypatch.setattr(BUILDER, '_stage_scheduler_identity', drift)
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_builder_issue30.py:54: Failed
+=========================== short test summary info ============================
+FAILED tests/test_builder_issue30.py::test_builder_does_not_erase_supplied_aliases[source_root]
+FAILED tests/test_builder_issue30.py::test_builder_does_not_erase_supplied_aliases[api_plist_path]
+FAILED tests/test_builder_issue30.py::test_builder_does_not_erase_supplied_aliases[api_integration_delta_receipt_path]
+FAILED tests/test_builder_issue30.py::test_builder_rechecks_active_after_staging_before_marking_complete
+4 failed in 0.57s

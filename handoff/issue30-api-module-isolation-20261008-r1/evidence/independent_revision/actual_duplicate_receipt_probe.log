@@ -1,0 +1,26 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_________ test_recovery_rejects_duplicate_status_in_operation_receipt __________
+
+setup_actual = (<test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base>...ec/issue30/work/issue30_reviewer/cutover-test-8d7cvwa8/releases/base-accepted/app</string>\n</dict>\n</plist>\n', ...})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fdaa0f4f6f0>
+
+    def test_recovery_rejects_duplicate_status_in_operation_receipt(setup_actual, monkeypatch):
+        harness, fixture = setup_actual
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        expected = _set_state(harness, fixture, "candidate", "unloaded")
+        original = receipt_path.read_text()
+        assert original.startswith("{")
+        # The existing canonical object digest remains valid under last-key-wins
+        # parsing. A strict reader must reject the duplicate even though the final
+        # decoded status is the original PREPARED value.
+        receipt_path.write_text('{"status":"FOREIGN_UNREVIEWED_STATUS",' + original[1:])
+        current = harness.m.ACTIVE_API_PLIST.read_bytes()
+>       with pytest.raises(ValueError, match="DUPLICATE|JSON_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+test_actual_duplicate_receipt_probe.py:22: Failed
+=========================== short test summary info ============================
+FAILED test_actual_duplicate_receipt_probe.py::test_recovery_rejects_duplicate_status_in_operation_receipt
+1 failed in 0.20s

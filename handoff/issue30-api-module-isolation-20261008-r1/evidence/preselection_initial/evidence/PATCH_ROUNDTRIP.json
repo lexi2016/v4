@@ -1,0 +1,48 @@
+{
+  "status": "PASS",
+  "patch_sha256": "cae930d7758ea514f45e4bcc576c85c964dec132fa05bcd3dd42b074c9768380",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "apply",
+        "--check",
+        "/workspace/scratch/25c09a595aec/issue30/work/preselection_scope/patches/preselection_module.patch"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "/workspace/scratch/25c09a595aec/issue30/work/preselection_scope/patches/preselection_module.patch"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "--reverse",
+        "--check",
+        "/workspace/scratch/25c09a595aec/issue30/work/preselection_scope/patches/preselection_module.patch"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "--reverse",
+        "/workspace/scratch/25c09a595aec/issue30/work/preselection_scope/patches/preselection_module.patch"
+      ],
+      "exit_code": 0,
+      "output": ""
+    }
+  ],
+  "forward_exact_after": true,
+  "reverse_exact_before_and_new_files_absent": true
+}

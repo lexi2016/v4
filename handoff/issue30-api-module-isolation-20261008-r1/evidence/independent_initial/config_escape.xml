@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.237" timestamp="2026-10-08T07:07:26.321359-07:00" hostname="5fa05583d26b"><testcase classname="work.issue30_reviewer.test_release_review_probes" name="test_scheduler_staging_cannot_follow_late_config_symlink" time="0.134"><failure message="AssertionError: builder wrote through config symlink outside its candidate&#10;assert not True&#10; +  where True = exists()&#10; +    where exists = (PosixPath('/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/config_escape_tmp/test_scheduler_staging_cannot_0/outside-config') / 'com.lexi.v35.scheduler.plist').exists">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/config_escape_tmp/test_scheduler_staging_cannot_0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f8840abd810&gt;
+
+    def test_scheduler_staging_cannot_follow_late_config_symlink(tmp_path, monkeypatch):
+        args = _build_args(tmp_path)
+        candidate = args["candidate_root"]
+        outside = tmp_path / "outside-config"
+        original = BUILDER.render_cutover
+    
+        def swap_config_after_prepare(**kwargs):
+            plan = original(**kwargs)
+            (candidate / "config").rename(outside)
+            (candidate / "config").symlink_to(outside, target_is_directory=True)
+            return plan
+    
+        monkeypatch.setattr(BUILDER, "render_cutover", swap_config_after_prepare)
+        refused = False
+        try:
+            BUILDER.build_candidate(**args)
+        except (ValueError, OSError):
+            refused = True
+&gt;       assert not (outside / "com.lexi.v35.scheduler.plist").exists(), "builder wrote through config symlink outside its candidate"
+E       AssertionError: builder wrote through config symlink outside its candidate
+E       assert not True
+E        +  where True = exists()
+E        +    where exists = (PosixPath('/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/config_escape_tmp/test_scheduler_staging_cannot_0/outside-config') / 'com.lexi.v35.scheduler.plist').exists
+
+../work/issue30_reviewer/test_release_review_probes.py:69: AssertionError</failure></testcase></testsuite></testsuites>

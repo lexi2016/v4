@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.254" timestamp="2026-10-08T07:16:24.827944-07:00" hostname="5fa05583d26b"><testcase classname="issue30.work.cutover_analysis.test_actual_review_probes" name="test_operator_can_resume_after_transient_automatic_restore_failure" time="0.134"><failure message="ValueError: API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-3gn6zz51/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f5b3f92aea0&gt;
+
+    def test_operator_can_resume_after_transient_automatic_restore_failure(setup_actual, monkeypatch):
+        harness, fixture = setup_actual
+        m, plan = harness.m, fixture["plan"]
+        replace = m._atomic_replace_bytes
+    
+        def fail_candidate_bootstrap(action):
+            if action == "bootstrap":
+                fixture["runtime"]["identity"] = None
+                raise ValueError("SYNTHETIC_CANDIDATE_BOOTSTRAP_FAILURE")
+    
+        def fail_restore_once(path, raw, metadata_source, expected_current_sha, **kwargs):
+            if raw == fixture["original"]:
+                raise OSError("SYNTHETIC_TRANSIENT_RESTORE_RENAME_FAILURE")
+            return replace(path, raw, metadata_source, expected_current_sha, **kwargs)
+    
+        fixture["runtime"]["hook"] = fail_candidate_bootstrap
+        with monkeypatch.context() as scoped:
+            scoped.setattr(m, "_atomic_replace_bytes", fail_restore_once)
+            with pytest.raises(ValueError, match="ROLLBACK_INCOMPLETE"):
+                m._run_switch(plan, confirmation=m.CONFIRM_SWITCH,
+                    expected_current_sha=actual_helpers.digest(fixture["original"]),
+                    expected_staged_sha=plan["target"]["staged_api_plist_sha256"])
+    
+        fixture["runtime"]["hook"] = None
+        receipts = list((m.EVIDENCE_ROOT / "api_only_switch_runs").glob("*/operation_receipt.json"))
+        assert len(receipts) == 1
+        receipt = json.loads(receipts[0].read_text())
+        assert receipt["status"] == "ROLLBACK_INCOMPLETE"
+        assert m.ACTIVE_API_PLIST.read_bytes() == m.STAGED_API_PLIST_PATH.read_bytes()
+        assert fixture["runtime"]["identity"] is None
+        assert Path(receipt["backup_path"]).read_bytes() == fixture["original"]
+    
+&gt;       result = m._run_rollback(plan, receipt_path=receipts[0],
+            confirmation=m.CONFIRM_ROLLBACK,
+            expected_current_sha=plan["target"]["staged_api_plist_sha256"])
+
+issue30/work/cutover_analysis/test_actual_review_probes.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+issue30/work/cutover_analysis/initial/candidate/api_only_cutover_r2_ready.py:1701: in _run_rollback
+    return _run_rollback_locked(plan, receipt_path=receipt_path, confirmation=confirmation,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+plan = {'allowed_paths': ['/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-3gn6zz51/LaunchAgents/c...: False, 'launchctl_mutation_called': False, 'launchctl_readonly_prints': True, 'staged_api_plist_written': True}, ...}
+receipt_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-3gn6zz51/task/evidence/api_only_switch_runs/20261008T141624Z-f7a1dceb/operation_receipt.json')
+confirmation = 'ROLLBACK_API_ONLY_TO_RECORDED_PREIMAGE'
+expected_current_sha = '1f57a0cd685c1ef003c5260e97857c87781e6728dc538c0e5ee446705b0a6d08'
+lock_lease = &lt;_v4_api_guard_0b9d3b678dc7e875_c6cb2925e2c645e1ba48350b5d1ee201._APILockLease object at 0x7f5b3f79ac00&gt;
+
+    def _run_rollback_locked(plan: Mapping[str, Any], *, receipt_path: Path,
+                             confirmation: str, expected_current_sha: str,
+                             lock_lease: object) -&gt; dict[str, Any]:
+        _require_release_lock(lock_lease)
+        if confirmation != CONFIRM_ROLLBACK:
+            raise ValueError("EXPLICIT_API_ONLY_ROLLBACK_CONFIRMATION_REQUIRED")
+        task_root = TASK_ROOT.resolve(strict=True)
+        operation_root = _operation_root().resolve(strict=True)
+        if (receipt_path.is_symlink() or not receipt_path.is_file()
+                or task_root not in receipt_path.resolve(strict=True).parents
+                or operation_root not in receipt_path.resolve(strict=True).parents):
+            raise ValueError("API_ONLY_ROLLBACK_RECEIPT_OUTSIDE_TASK_ROOT")
+        receipt = _read_json(receipt_path, "API_ONLY_SWITCH_RECEIPT")
+        claimed = receipt.pop("receipt_sha256", None)
+        if claimed != _canonical_sha(receipt):
+            raise ValueError("API_ONLY_ROLLBACK_RECEIPT_SHA_MISMATCH")
+        if receipt.get("schema_version") != RECEIPT_SCHEMA or receipt.get("status") != "API_ONLY_R2_SWITCHED_AND_READBACK_VERIFIED":
+&gt;           raise ValueError("API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID")
+E           ValueError: API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID
+
+issue30/work/cutover_analysis/initial/candidate/api_only_cutover_r2_ready.py:1722: ValueError</failure></testcase></testsuite></testsuites>

@@ -1,0 +1,186 @@
+FFFF                                                                     [100%]
+=================================== FAILURES ===================================
+_ test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_d1_premarket_pool-manifest_sha] _
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/preselection_scope/evidence/pytest-reference/test_bad_source_pool_is_quaran0')
+a_rows = {'a_d1_premarket_pool': [{'symbol': 'A.000001'}, {'symbol': 'A.000002'}, {'symbol': 'A.000003'}], 'a_share_research_recommendation_pool': [{'symbol': 'A.000002'}, {'symbol': 'A.000004'}, {'symbol': 'A.000005'}]}
+bad_pool_id = 'a_d1_premarket_pool', tamper = 'manifest_sha'
+
+    @pytest.mark.parametrize(
+        ("bad_pool_id", "tamper"),
+        [
+            ("a_d1_premarket_pool", "manifest_sha"),
+            ("a_share_research_recommendation_pool", "receipt_sha"),
+            ("a_share_baimao_research_map", "manifest_sha"),
+            ("a_share_baimao_research_map", "receipt_sha"),
+        ],
+    )
+    def test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows(
+        tmp_path: Path,
+        a_rows: dict[str, list[dict[str, object]]],
+        bad_pool_id: str,
+        tamper: str,
+    ) -> None:
+        pools = {**a_rows, "a_share_baimao_research_map": [{"symbol": "A.000006"}]}
+        client, source_root = _client(tmp_path, pools)
+        pool_dir = source_root / "preselection_pools" / DATE
+        if tamper == "manifest_sha":
+            path = pool_dir / "manifest.json"
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload[bad_pool_id] = "0" * 64
+        else:
+            path = pool_dir / "receipts" / f"{bad_pool_id}.json"
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload["artifact_sha256"] = "0" * 64
+        path.write_bytes(_canonical_bytes(payload))
+    
+        response = client.get(
+            "/api/v3/preselection-pools",
+            params={"date": DATE, "limit": 200},
+        ).json()
+>       quarantined = next(pool for pool in response["pools"] if pool["pool_id"] == bad_pool_id)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       StopIteration
+
+tests/test_preselection_source_root_20261008.py:317: StopIteration
+_ test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_share_research_recommendation_pool-receipt_sha] _
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/preselection_scope/evidence/pytest-reference/test_bad_source_pool_is_quaran1')
+a_rows = {'a_d1_premarket_pool': [{'symbol': 'A.000001'}, {'symbol': 'A.000002'}, {'symbol': 'A.000003'}], 'a_share_research_recommendation_pool': [{'symbol': 'A.000002'}, {'symbol': 'A.000004'}, {'symbol': 'A.000005'}]}
+bad_pool_id = 'a_share_research_recommendation_pool', tamper = 'receipt_sha'
+
+    @pytest.mark.parametrize(
+        ("bad_pool_id", "tamper"),
+        [
+            ("a_d1_premarket_pool", "manifest_sha"),
+            ("a_share_research_recommendation_pool", "receipt_sha"),
+            ("a_share_baimao_research_map", "manifest_sha"),
+            ("a_share_baimao_research_map", "receipt_sha"),
+        ],
+    )
+    def test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows(
+        tmp_path: Path,
+        a_rows: dict[str, list[dict[str, object]]],
+        bad_pool_id: str,
+        tamper: str,
+    ) -> None:
+        pools = {**a_rows, "a_share_baimao_research_map": [{"symbol": "A.000006"}]}
+        client, source_root = _client(tmp_path, pools)
+        pool_dir = source_root / "preselection_pools" / DATE
+        if tamper == "manifest_sha":
+            path = pool_dir / "manifest.json"
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload[bad_pool_id] = "0" * 64
+        else:
+            path = pool_dir / "receipts" / f"{bad_pool_id}.json"
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload["artifact_sha256"] = "0" * 64
+        path.write_bytes(_canonical_bytes(payload))
+    
+        response = client.get(
+            "/api/v3/preselection-pools",
+            params={"date": DATE, "limit": 200},
+        ).json()
+>       quarantined = next(pool for pool in response["pools"] if pool["pool_id"] == bad_pool_id)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       StopIteration
+
+tests/test_preselection_source_root_20261008.py:317: StopIteration
+_ test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_share_baimao_research_map-manifest_sha] _
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/preselection_scope/evidence/pytest-reference/test_bad_source_pool_is_quaran2')
+a_rows = {'a_d1_premarket_pool': [{'symbol': 'A.000001'}, {'symbol': 'A.000002'}, {'symbol': 'A.000003'}], 'a_share_research_recommendation_pool': [{'symbol': 'A.000002'}, {'symbol': 'A.000004'}, {'symbol': 'A.000005'}]}
+bad_pool_id = 'a_share_baimao_research_map', tamper = 'manifest_sha'
+
+    @pytest.mark.parametrize(
+        ("bad_pool_id", "tamper"),
+        [
+            ("a_d1_premarket_pool", "manifest_sha"),
+            ("a_share_research_recommendation_pool", "receipt_sha"),
+            ("a_share_baimao_research_map", "manifest_sha"),
+            ("a_share_baimao_research_map", "receipt_sha"),
+        ],
+    )
+    def test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows(
+        tmp_path: Path,
+        a_rows: dict[str, list[dict[str, object]]],
+        bad_pool_id: str,
+        tamper: str,
+    ) -> None:
+        pools = {**a_rows, "a_share_baimao_research_map": [{"symbol": "A.000006"}]}
+        client, source_root = _client(tmp_path, pools)
+        pool_dir = source_root / "preselection_pools" / DATE
+        if tamper == "manifest_sha":
+            path = pool_dir / "manifest.json"
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload[bad_pool_id] = "0" * 64
+        else:
+            path = pool_dir / "receipts" / f"{bad_pool_id}.json"
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload["artifact_sha256"] = "0" * 64
+        path.write_bytes(_canonical_bytes(payload))
+    
+        response = client.get(
+            "/api/v3/preselection-pools",
+            params={"date": DATE, "limit": 200},
+        ).json()
+>       quarantined = next(pool for pool in response["pools"] if pool["pool_id"] == bad_pool_id)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       StopIteration
+
+tests/test_preselection_source_root_20261008.py:317: StopIteration
+_ test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_share_baimao_research_map-receipt_sha] _
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/preselection_scope/evidence/pytest-reference/test_bad_source_pool_is_quaran3')
+a_rows = {'a_d1_premarket_pool': [{'symbol': 'A.000001'}, {'symbol': 'A.000002'}, {'symbol': 'A.000003'}], 'a_share_research_recommendation_pool': [{'symbol': 'A.000002'}, {'symbol': 'A.000004'}, {'symbol': 'A.000005'}]}
+bad_pool_id = 'a_share_baimao_research_map', tamper = 'receipt_sha'
+
+    @pytest.mark.parametrize(
+        ("bad_pool_id", "tamper"),
+        [
+            ("a_d1_premarket_pool", "manifest_sha"),
+            ("a_share_research_recommendation_pool", "receipt_sha"),
+            ("a_share_baimao_research_map", "manifest_sha"),
+            ("a_share_baimao_research_map", "receipt_sha"),
+        ],
+    )
+    def test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows(
+        tmp_path: Path,
+        a_rows: dict[str, list[dict[str, object]]],
+        bad_pool_id: str,
+        tamper: str,
+    ) -> None:
+        pools = {**a_rows, "a_share_baimao_research_map": [{"symbol": "A.000006"}]}
+        client, source_root = _client(tmp_path, pools)
+        pool_dir = source_root / "preselection_pools" / DATE
+        if tamper == "manifest_sha":
+            path = pool_dir / "manifest.json"
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload[bad_pool_id] = "0" * 64
+        else:
+            path = pool_dir / "receipts" / f"{bad_pool_id}.json"
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload["artifact_sha256"] = "0" * 64
+        path.write_bytes(_canonical_bytes(payload))
+    
+        response = client.get(
+            "/api/v3/preselection-pools",
+            params={"date": DATE, "limit": 200},
+        ).json()
+>       quarantined = next(pool for pool in response["pools"] if pool["pool_id"] == bad_pool_id)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       StopIteration
+
+tests/test_preselection_source_root_20261008.py:317: StopIteration
+=============================== warnings summary ===============================
+../../../issue28/references/work/test-venv/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/25c09a595aec/issue28/references/work/test-venv/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_preselection_source_root_20261008.py::test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_d1_premarket_pool-manifest_sha]
+FAILED tests/test_preselection_source_root_20261008.py::test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_share_research_recommendation_pool-receipt_sha]
+FAILED tests/test_preselection_source_root_20261008.py::test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_share_baimao_research_map-manifest_sha]
+FAILED tests/test_preselection_source_root_20261008.py::test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_share_baimao_research_map-receipt_sha]
+4 failed, 3 deselected, 1 warning in 0.78s

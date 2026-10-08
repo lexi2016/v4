@@ -1,0 +1,32 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______ test_sha_quarantine_recovery_preserves_good_a_and_pending_hk_bytes ______
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/preselection_scope/evidence/pytest-quarantine-red/test_sha_quarantine_recovery_p0')
+
+    def test_sha_quarantine_recovery_preserves_good_a_and_pending_hk_bytes(tmp_path: Path) -> None:
+        client, source = _client(tmp_path, ["A.000001"], with_hk=True)
+        pool_store = PreselectionPoolStore(source)
+        pool_store.materialize(_pool_artifact("a_share_research_recommendation_pool", [{"symbol": "A.000020"}]))
+        _corrupt_manifest(source)
+        pending = source / pool_store._pending_relative(trade_date=DATE, pool_id="hkconnect_d1_top100")
+        pending.parent.mkdir(parents=True, exist_ok=True)
+        pending.write_text('{"test_only_pending":true}\n')
+        before = _hashes(source)
+        payload = client.get("/api/v3/preselection-pools", params={"date": DATE}).json()
+>       assert payload["data_status"] == "PARTIAL_WITH_ROWS"
+E       AssertionError: assert 'DATA_BLOCKED_EMPTY' == 'PARTIAL_WITH_ROWS'
+E         
+E         - PARTIAL_WITH_ROWS
+E         + DATA_BLOCKED_EMPTY
+
+tests/test_issue30_preselection_module.py:130: AssertionError
+=============================== warnings summary ===============================
+../../../issue28/references/work/test-venv/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/25c09a595aec/issue28/references/work/test-venv/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_issue30_preselection_module.py::test_sha_quarantine_recovery_preserves_good_a_and_pending_hk_bytes
+1 failed, 1 warning in 0.64s

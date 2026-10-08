@@ -1,0 +1,47 @@
+{
+  "command": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "tests",
+    "--junitxml=/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/final_release112.xml",
+    "--basetemp=/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/final_release112_tmp"
+  ],
+  "cwd": "/workspace/scratch/25c09a595aec/issue30/candidate",
+  "env_overrides": {
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "timestamp_utc": "2026-10-08T14:26:54.436525+00:00",
+  "exit_code": 0,
+  "source_and_test_shas": {
+    "candidate/ops/api_release_integration.py": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+    "candidate/ops/build_release_candidate.py": "81f4290a6f51e5958048d782c2d4b1eecfc42f892e387e6c1a22bb71912abef6",
+    "candidate/ops/build_release_candidate_stage.py": "79cbb7ab98ca894594c2f80f802d9ed410bf64489decad469fdf3fc9d6b402df",
+    "candidate/ops/create_api_module_delta.py": "04e67a3ce948eecf9dac04083277bd919c7ec8880ec5814bbe57e7a5ba8d0072",
+    "candidate/ops/prepare_api_only_cutover.py": "0fee40c13bdb76d8d4d7b5b0068eb8b6e7cade9187a5f3c3154b7d6238a1af4c",
+    "candidate/ops/release_candidate_audit.py": "84d30676cf88d244f930eb0abc1f8184db20e53ec2e0ad7a4f32590086673cdf",
+    "candidate/ops/release_candidate_ports.py": "1b70ef9725335c1570b96b937753917ac9d5114cfa66359ee08178eb282fd7d4",
+    "candidate/ops/release_candidate_sources.py": "76d963c71cb388e1f7efc51478078f0f21dd280093646fc9d47e955dfe04a738",
+    "candidate/ops/stage_service_overlay_contract.py": "36eb27395bfd10cc78c6f0ba237eb67afe22716f653e56b5dec2ab3827e22838",
+    "candidate/tests/test_api_release_integration.py": "89b5e9e58cc1e1c8686892561d6dcf17b81d1adc30243300d8a58050de145135",
+    "candidate/tests/test_api_release_v2_contract.py": "429d70fddd4d691d0afbfa7b622c0e1b568a251b6eb93448360816900427ea5f",
+    "candidate/tests/test_build_release_candidate.py": "3db7bf532492f87f95c200bea505ae99e3293244bcb875c4e2618e02373afe71",
+    "candidate/tests/test_builder_issue30.py": "5f4a0d1ad426b960e0598d70a7152ece48f370fa357b8ef19e0b9ffbb9f7ce89",
+    "candidate/tests/test_builder_module_additions.py": "25fa8f26586e88007ee091116d8af42d0e5e1f1d746fc1cd488571ccaccee850",
+    "candidate/tests/test_builder_source_scope.py": "d9c17c5ee135412a276a54bed54e8401b83d742a17c8cd7e286843c87c96d900",
+    "candidate/tests/test_core_review_revision.py": "24e231d98ce7318e05f9593e6326b45df6a2a7cffe0d115b5da8b2a8dbe3d5d5",
+    "candidate/tests/test_integration_adversarial.py": "7ef68f7640200044f25c748d674e8d72f3af889d7f8298ddb35be3ed238fc136",
+    "candidate/tests/test_manager_actual_ownership.py": "023f646b550e11b7552b068053e0f1450a61f35cef4698f4c71aabe2c3163e35",
+    "candidate/tests/test_module_delta_cli.py": "9ac653f2c78c8860daf87c6eb07201fe70fa7e5fd8e866920856bba02c7f7ce9",
+    "candidate/tests/test_prepare_issue30.py": "9fddb5ff7fb61c735f6e5ece6c2da855318c8870b60884aae8cc0160c1ee7af4",
+    "candidate/tests/test_release_review_probes.py": "360bd74e1b87d9479b7fbebfde1c90cfdec3acd7ab69f77b20e2de4bf1cf956a"
+  },
+  "source_bytes_unchanged_across_run": true
+}

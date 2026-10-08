@@ -1,0 +1,36 @@
+{
+  "at": "2026-10-08T14:00:27.351520+00:00",
+  "argv": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "-ra",
+    "-p",
+    "no:cacheprovider",
+    "--confcutdir=/workspace/scratch/25c09a595aec/issue30/work/integration_core/core_full_run",
+    "--basetemp=/workspace/scratch/25c09a595aec/issue30/work/integration_core/core_full_basetemp",
+    "--junitxml=/workspace/scratch/25c09a595aec/issue30/work/integration_core/core_full.xml",
+    "tests"
+  ],
+  "cwd": "/workspace/scratch/25c09a595aec/issue30/work/integration_core/core_full_run",
+  "exit_code": 0,
+  "log": "core_full.log",
+  "junit": "core_full.xml",
+  "core_sha256": "0b9d3b678dc7e875b9514bd8b66b7e8fc69229759c366ef0df776126746180bf",
+  "prepare_origin": "/workspace/scratch/25c09a595aec/issue30/work/builder_prepare/candidate/ops/prepare_api_only_cutover.py",
+  "prepare_sha256": "0fee40c13bdb76d8d4d7b5b0068eb8b6e7cade9187a5f3c3154b7d6238a1af4c",
+  "test_suites": [
+    {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0",
+      "tests": "54",
+      "time": "0.814",
+      "timestamp": "2026-10-08T07:00:26.487831-07:00",
+      "hostname": "5fa05583d26b"
+    }
+  ]
+}

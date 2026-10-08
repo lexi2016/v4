@@ -1,0 +1,44 @@
+{
+  "frozen_utc": "2026-10-08T14:58:14.230590+00:00",
+  "handoff": "PROMPT_FOR_MAC.md",
+  "important_review_findings_closed": 7,
+  "independent_review": "evidence/independent_final/final_review.json",
+  "input_commit": "a0a0b88dc133d14ee5763569272c174bcd7cc445",
+  "milestones": {
+    "API_VERIFIED": "NOT_RUN_REAL_ENVIRONMENT",
+    "CANDIDATE_ASSEMBLED": "PASS",
+    "DEPLOYED": "NOT_RUN",
+    "HISTORICAL_DATA_REBUILT": "NOT_RUN",
+    "IMPLEMENTED": "PASS",
+    "MAC_INTEGRATED": "NOT_RUN",
+    "NATURAL_VERIFIED": "NOT_RUN",
+    "REVIEWED": "PASS_SOURCE_CANDIDATE",
+    "TESTED": "PASS_218_OF_218",
+    "UI_VERIFIED": "NOT_RUN"
+  },
+  "open_items": "OPEN_ITEMS.md",
+  "planned_sync": {
+    "allowed_prefix": "handoff/issue30-api-module-isolation-20261008-r1",
+    "new_independent_branch": "chat/issue30-api-module-isolation-20261008-r1",
+    "parent_commit": "a0a0b88dc133d14ee5763569272c174bcd7cc445",
+    "post_commit_readback_receipt": "GITHUB_SYNC_RECEIPT.json is added to the final ZIP after immutable commit/readback; it is not part of that commit.",
+    "repository": "lexi2016/v4"
+  },
+  "product_files": 8,
+  "runtime_input_files": 64,
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "deployed": false,
+    "full_r2_runtime_tested": false,
+    "live_api_ui_tested": false,
+    "natural_period_acceptance": "NOT_RUN",
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "v4.issue30.delivery_status.v1",
+  "scope": "SOURCE_CANDIDATE_HANDOFF",
+  "source_manifest": "SOURCE_MANIFEST.json",
+  "source_review_not_activation_approval": true,
+  "test_results": "TEST_RESULTS.json"
+}

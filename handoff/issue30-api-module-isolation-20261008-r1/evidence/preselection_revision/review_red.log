@@ -1,0 +1,87 @@
+FF.F                                                                     [100%]
+=================================== FAILURES ===================================
+_ test_sha_recovery_does_not_promote_inconsistent_market_identity[unknown_explicit_market] _
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/preselection_revision/red_tmp/test_sha_recovery_does_not_pro0')
+damage = 'unknown_explicit_market'
+
+    @pytest.mark.parametrize("damage", ["unknown_explicit_market", "conflicting_hk_symbol"])
+    def test_sha_recovery_does_not_promote_inconsistent_market_identity(tmp_path, damage):
+        client, source = _client(tmp_path, ["A.000001"])
+        invalid = _pool_artifact("a_share_research_recommendation_pool", [{"symbol": "A.000020"}])
+        if damage == "unknown_explicit_market":
+            invalid["rows"][0]["market"] = "US"
+        else:
+            invalid["rows"][0]["symbol"] = "HK.00700"
+            invalid["rows"][0]["code"] = "000020"
+        PreselectionPoolStore(source).materialize(invalid)
+        _corrupt_manifest(source)
+        before = _hashes(source)
+        payload = client.get("/api/v3/preselection-pools", params={"date": DATE}).json()
+        assert _hashes(source) == before
+>       assert payload["data_status"] == "DATA_BLOCKED_EMPTY", payload
+E       AssertionError: {'pools': [{'pool_id': 'a_d1_premarket_pool', 'display_name': 'A股 D-1 主预选池', 'market': 'A', 'status': 'CANNOT_CONFIRM'...e_updated': False, 'market': 'US', 'orders_sent': False, 'pool_id': 'a_share_research_recommendation_pool', ...}], ...}
+E       assert 'PARTIAL_WITH_ROWS' == 'DATA_BLOCKED_EMPTY'
+E         
+E         - DATA_BLOCKED_EMPTY
+E         + PARTIAL_WITH_ROWS
+
+tests/test_preselection_review_probes.py:26: AssertionError
+_ test_sha_recovery_does_not_promote_inconsistent_market_identity[conflicting_hk_symbol] _
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/preselection_revision/red_tmp/test_sha_recovery_does_not_pro1')
+damage = 'conflicting_hk_symbol'
+
+    @pytest.mark.parametrize("damage", ["unknown_explicit_market", "conflicting_hk_symbol"])
+    def test_sha_recovery_does_not_promote_inconsistent_market_identity(tmp_path, damage):
+        client, source = _client(tmp_path, ["A.000001"])
+        invalid = _pool_artifact("a_share_research_recommendation_pool", [{"symbol": "A.000020"}])
+        if damage == "unknown_explicit_market":
+            invalid["rows"][0]["market"] = "US"
+        else:
+            invalid["rows"][0]["symbol"] = "HK.00700"
+            invalid["rows"][0]["code"] = "000020"
+        PreselectionPoolStore(source).materialize(invalid)
+        _corrupt_manifest(source)
+        before = _hashes(source)
+        payload = client.get("/api/v3/preselection-pools", params={"date": DATE}).json()
+        assert _hashes(source) == before
+>       assert payload["data_status"] == "DATA_BLOCKED_EMPTY", payload
+E       AssertionError: {'pools': [{'pool_id': 'a_d1_premarket_pool', 'display_name': 'A股 D-1 主预选池', 'market': 'A', 'status': 'CANNOT_CONFIRM'....}], 'a_all_pool_rows': [{'buy_gate_updated': False, 'code': '000020', 'market': 'A', 'orders_sent': False, ...}], ...}
+E       assert 'PARTIAL_WITH_ROWS' == 'DATA_BLOCKED_EMPTY'
+E         
+E         - DATA_BLOCKED_EMPTY
+E         + PARTIAL_WITH_ROWS
+
+tests/test_preselection_review_probes.py:26: AssertionError
+_ test_inconsistent_pool_is_quarantined_without_blocking_another_valid_a_pool __
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/preselection_revision/red_tmp/test_inconsistent_pool_is_quar0')
+
+    def test_inconsistent_pool_is_quarantined_without_blocking_another_valid_a_pool(tmp_path):
+        client, source = _client(tmp_path, ["A.000001"])
+        invalid = _pool_artifact("a_share_research_recommendation_pool", [{"symbol": "A.000020"}])
+        invalid["rows"][0]["market"] = "US"
+        pools = PreselectionPoolStore(source)
+        pools.materialize(invalid)
+        pools.materialize(_pool_artifact("a_share_baimao_research_map", [{"symbol": "A.000030"}]))
+        _corrupt_manifest(source)
+        before = _hashes(source)
+        payload = client.get("/api/v3/preselection-pools", params={"date": DATE}).json()
+        assert _hashes(source) == before
+        assert payload["data_status"] == "PARTIAL_WITH_ROWS"
+>       assert payload["a_all_pool_row_count"] == 1
+E       assert 2 == 1
+
+tests/test_preselection_review_probes.py:58: AssertionError
+=============================== warnings summary ===============================
+../../../issue28/references/work/test-venv/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/25c09a595aec/issue28/references/work/test-venv/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_preselection_review_probes.py::test_sha_recovery_does_not_promote_inconsistent_market_identity[unknown_explicit_market]
+FAILED tests/test_preselection_review_probes.py::test_sha_recovery_does_not_promote_inconsistent_market_identity[conflicting_hk_symbol]
+FAILED tests/test_preselection_review_probes.py::test_inconsistent_pool_is_quarantined_without_blocking_another_valid_a_pool
+3 failed, 1 passed, 1 warning in 0.74s

@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "method": "AST parse only; explicit allowed deltas removed; remaining AST and 54 create_app statement bytes compared",
+  "before_app_sha256": "90a2bf6390c6c0e219aa3d9bb22bc3b3630ecb2d447df494ae69425933424ed7",
+  "after_app_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+  "unrelated_ast_identical": true,
+  "exact_registration_verified": true,
+  "entire_manager_section_through_return_byte_exact": true,
+  "entire_manager_section_sha256": "13c00931d4a3b33371e292cb732a8cb292f2f1723d2ac9704bd2ad787a2dac0b",
+  "manager_service_wiring_through_return_byte_exact": true,
+  "manager_state_and_service_initialization_sha256": "23c0ffdad6d54d7b508cd48b3846f15a86b0a770c88c66c247e3426b2a410d55",
+  "manager_service_wiring_sha256": "022417f603c182a870e8e64f3f7efcbad649c6a2b3a2d78825008c84d6b5b0db",
+  "author_reported_manager_wiring_sha256_independently_matched": true,
+  "runtime_business_equivalence": "NOT_RUN; byte preservation is not a manager business regression"
+}

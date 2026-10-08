@@ -1,0 +1,1462 @@
+{
+  "collection_errors": 0,
+  "deselected": 0,
+  "exitstatus": 0,
+  "failed_calls": 0,
+  "failed_setup_teardown": 0,
+  "node_ids": [
+    "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_active_replace_without_lease_refuses_before_writing",
+    "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_apply_rechecks_active_base_after_bootout_before_pointer_write",
+    "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_apply_refuses_active_inventory_drift_before_bootout",
+    "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_apply_switches_exact_integrated_package_and_preserves_other_module",
+    "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_automatic_recovery_without_lease_refuses_before_runtime_observation",
+    "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_direct_run_rollback_acquires_shared_lock_before_receipt_reads",
+    "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_direct_run_switch_acquires_shared_lock_before_preflight",
+    "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_execute_requires_shared_lock_path_in_frozen_allowlist_before_create",
+    "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_failed_bootstrap_recovers_using_same_lock_and_exact_base",
+    "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_guard_cache_does_not_mask_changed_file",
+    "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_guard_executes_exact_bytes_checked_even_if_path_replaced",
+    "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_guard_hash_mismatch_refuses_before_executing",
+    "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_guard_ignores_import_path_and_module_shadow",
+    "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_inventory_provenance_backend_is_not_executed",
+    "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_legacy_candidate_is_refused_by_actual_preflight",
+    "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_missing_active_restore_without_lease_refuses_before_writing",
+    "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_missing_pointer_recovery_uses_recorded_base_without_forward_check",
+    "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_operator_rollback_restores_recorded_legacy_base_from_candidate",
+    "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_recovery_keeps_verified_guard_if_helper_changes_during_transaction",
+    "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_recovery_refuses_unknown_pointer_before_service_mutation",
+    "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_task_private_roots_still_contend_on_one_pointer_lock",
+    "work/cutover_analysis/tests/test_actual_duplicate_receipt_probe.py::test_recovery_rejects_duplicate_status_in_operation_receipt",
+    "work/cutover_analysis/tests/test_actual_json_inputs.py::test_read_json_rejects_duplicate_keys_at_any_depth[{\"identity\":0,\"identity\":1}]",
+    "work/cutover_analysis/tests/test_actual_json_inputs.py::test_read_json_rejects_duplicate_keys_at_any_depth[{\"outer\":{\"identity\":0,\"identity\":1}}]",
+    "work/cutover_analysis/tests/test_actual_json_inputs.py::test_signed_receipt_rejects_nested_duplicates_even_when_canonical_sha_matches",
+    "work/cutover_analysis/tests/test_actual_json_inputs.py::test_prepared_nested_duplicate_is_rejected_even_with_new_raw_sha_reference",
+    "work/cutover_analysis/tests/test_actual_json_inputs.py::test_stage_plan_input_cannot_normalize_away_duplicate_guard_values",
+    "work/cutover_analysis/tests/test_actual_json_inputs.py::test_disabled_binding_rejects_duplicates_despite_pinned_raw_sha",
+    "work/cutover_analysis/tests/test_actual_json_inputs.py::test_openapi_json_uses_same_duplicate_rejection",
+    "work/cutover_analysis/tests/test_actual_json_inputs.py::test_nonstandard_nan_constant_is_rejected_like_core_json",
+    "work/cutover_analysis/tests/test_actual_json_inputs.py::test_raw_json_member_stripping_keeps_order_but_rejects_nested_ambiguity",
+    "work/cutover_analysis/tests/test_actual_preimage_metadata_probe.py::test_recovery_restores_original_metadata_when_pointer_bytes_are_already_original",
+    "work/cutover_analysis/tests/test_actual_review_probes.py::test_operator_can_resume_after_transient_automatic_restore_failure",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_candidate_hardpins_final_core_bytes",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_incomplete_receipt_retains_original_prepared_contract",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[original-original]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[original-candidate]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[original-absent]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-original]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-candidate]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-absent]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-original]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-candidate]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-absent]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_existing_cli_rollback_resumes_failure_under_shared_lease",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_requires_explicit_exact_current_cas[candidate-ABSENT]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_requires_explicit_exact_current_cas[original-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_requires_explicit_exact_current_cas[absent-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_requires_explicit_exact_current_cas[absent-]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_requires_explicit_exact_current_cas[absent-absent]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_unknown_pointer_even_with_matching_operator_sha",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_unknown_runtime_before_mutation[UNKNOWN]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_unknown_runtime_before_mutation[LOADED_UNVERIFIED]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_unknown_runtime_before_mutation[FOREIGN]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_unknown_runtime_before_mutation[MISSING_PID]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_rehashed_mutable_receipt_cannot_change_prepared_contract[before]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_rehashed_mutable_receipt_cannot_change_prepared_contract[after]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_rehashed_mutable_receipt_cannot_change_prepared_contract[api_release_integration]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_rehashed_mutable_receipt_cannot_change_prepared_contract[backup_path]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_rehashed_mutable_receipt_cannot_change_prepared_contract[backup_metadata]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_bytes_cannot_change_even_after_rehashing_itself",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_reference_cannot_redirect_outside_origin_contract",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_changed_original_backup[bytes]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_changed_original_backup[metadata]",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_source_receipt_change_during_continuation_cannot_lower_cas",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_repeat_failure_can_resume_from_latest_receipt_same_original_contract",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_does_not_require_healthy_candidate_to_restore_known_base",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_cannot_select_a_different_base_with_rehashed_records",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_bare_status_receipt_without_prepared_binding_is_not_recoverable",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_runtime_change_during_last_backup_check_refuses_bootout",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_success_requires_original_runtime_at_final_readback",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_cli_reports_incomplete_continuation_with_nonzero_exit",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_launchctl_adapter_uses_frozen_service_target_for_missing_pointer",
+    "work/cutover_analysis/tests/test_recovery_continuation.py::test_aborted_before_bootout_retains_contract_and_can_resume",
+    "work/cutover_analysis/tests/test_recovery_metadata.py::test_original_runtime_recovery_repairs_original_pointer_metadata_without_service_action",
+    "work/cutover_analysis/tests/test_recovery_metadata.py::test_recovery_cannot_report_success_if_metadata_drifts_after_bootstrap"
+  ],
+  "node_ids_sha256": "03ba0eb248f4c814bea35ddd8b70efb7a7254152ab2ad95b9d6add7ecd55a7ce",
+  "passed_calls": 76,
+  "reports": [
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_active_replace_without_lease_refuses_before_writing",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_active_replace_without_lease_refuses_before_writing",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_active_replace_without_lease_refuses_before_writing",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_apply_rechecks_active_base_after_bootout_before_pointer_write",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_apply_rechecks_active_base_after_bootout_before_pointer_write",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_apply_rechecks_active_base_after_bootout_before_pointer_write",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_apply_refuses_active_inventory_drift_before_bootout",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_apply_refuses_active_inventory_drift_before_bootout",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_apply_refuses_active_inventory_drift_before_bootout",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_apply_switches_exact_integrated_package_and_preserves_other_module",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_apply_switches_exact_integrated_package_and_preserves_other_module",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_apply_switches_exact_integrated_package_and_preserves_other_module",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_automatic_recovery_without_lease_refuses_before_runtime_observation",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_automatic_recovery_without_lease_refuses_before_runtime_observation",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_automatic_recovery_without_lease_refuses_before_runtime_observation",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_direct_run_rollback_acquires_shared_lock_before_receipt_reads",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_direct_run_rollback_acquires_shared_lock_before_receipt_reads",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_direct_run_rollback_acquires_shared_lock_before_receipt_reads",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_direct_run_switch_acquires_shared_lock_before_preflight",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_direct_run_switch_acquires_shared_lock_before_preflight",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_direct_run_switch_acquires_shared_lock_before_preflight",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_execute_requires_shared_lock_path_in_frozen_allowlist_before_create",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_execute_requires_shared_lock_path_in_frozen_allowlist_before_create",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_execute_requires_shared_lock_path_in_frozen_allowlist_before_create",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_failed_bootstrap_recovers_using_same_lock_and_exact_base",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_failed_bootstrap_recovers_using_same_lock_and_exact_base",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_failed_bootstrap_recovers_using_same_lock_and_exact_base",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_guard_cache_does_not_mask_changed_file",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_guard_cache_does_not_mask_changed_file",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_guard_cache_does_not_mask_changed_file",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_guard_executes_exact_bytes_checked_even_if_path_replaced",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_guard_executes_exact_bytes_checked_even_if_path_replaced",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_guard_executes_exact_bytes_checked_even_if_path_replaced",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_guard_hash_mismatch_refuses_before_executing",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_guard_hash_mismatch_refuses_before_executing",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_guard_hash_mismatch_refuses_before_executing",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_guard_ignores_import_path_and_module_shadow",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_guard_ignores_import_path_and_module_shadow",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_guard_ignores_import_path_and_module_shadow",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_inventory_provenance_backend_is_not_executed",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_inventory_provenance_backend_is_not_executed",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_inventory_provenance_backend_is_not_executed",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_legacy_candidate_is_refused_by_actual_preflight",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_legacy_candidate_is_refused_by_actual_preflight",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_legacy_candidate_is_refused_by_actual_preflight",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_missing_active_restore_without_lease_refuses_before_writing",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_missing_active_restore_without_lease_refuses_before_writing",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_missing_active_restore_without_lease_refuses_before_writing",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_missing_pointer_recovery_uses_recorded_base_without_forward_check",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_missing_pointer_recovery_uses_recorded_base_without_forward_check",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_missing_pointer_recovery_uses_recorded_base_without_forward_check",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_operator_rollback_restores_recorded_legacy_base_from_candidate",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_operator_rollback_restores_recorded_legacy_base_from_candidate",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_operator_rollback_restores_recorded_legacy_base_from_candidate",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_recovery_keeps_verified_guard_if_helper_changes_during_transaction",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_recovery_keeps_verified_guard_if_helper_changes_during_transaction",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_recovery_keeps_verified_guard_if_helper_changes_during_transaction",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_recovery_refuses_unknown_pointer_before_service_mutation",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_recovery_refuses_unknown_pointer_before_service_mutation",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_recovery_refuses_unknown_pointer_before_service_mutation",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_task_private_roots_still_contend_on_one_pointer_lock",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_task_private_roots_still_contend_on_one_pointer_lock",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_api_cutover.py::ActualCutoverTests::test_task_private_roots_still_contend_on_one_pointer_lock",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_duplicate_receipt_probe.py::test_recovery_rejects_duplicate_status_in_operation_receipt",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_duplicate_receipt_probe.py::test_recovery_rejects_duplicate_status_in_operation_receipt",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_duplicate_receipt_probe.py::test_recovery_rejects_duplicate_status_in_operation_receipt",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_read_json_rejects_duplicate_keys_at_any_depth[{\"identity\":0,\"identity\":1}]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_read_json_rejects_duplicate_keys_at_any_depth[{\"identity\":0,\"identity\":1}]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_read_json_rejects_duplicate_keys_at_any_depth[{\"identity\":0,\"identity\":1}]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_read_json_rejects_duplicate_keys_at_any_depth[{\"outer\":{\"identity\":0,\"identity\":1}}]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_read_json_rejects_duplicate_keys_at_any_depth[{\"outer\":{\"identity\":0,\"identity\":1}}]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_read_json_rejects_duplicate_keys_at_any_depth[{\"outer\":{\"identity\":0,\"identity\":1}}]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_signed_receipt_rejects_nested_duplicates_even_when_canonical_sha_matches",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_signed_receipt_rejects_nested_duplicates_even_when_canonical_sha_matches",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_signed_receipt_rejects_nested_duplicates_even_when_canonical_sha_matches",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_prepared_nested_duplicate_is_rejected_even_with_new_raw_sha_reference",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_prepared_nested_duplicate_is_rejected_even_with_new_raw_sha_reference",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_prepared_nested_duplicate_is_rejected_even_with_new_raw_sha_reference",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_stage_plan_input_cannot_normalize_away_duplicate_guard_values",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_stage_plan_input_cannot_normalize_away_duplicate_guard_values",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_stage_plan_input_cannot_normalize_away_duplicate_guard_values",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_disabled_binding_rejects_duplicates_despite_pinned_raw_sha",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_disabled_binding_rejects_duplicates_despite_pinned_raw_sha",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_disabled_binding_rejects_duplicates_despite_pinned_raw_sha",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_openapi_json_uses_same_duplicate_rejection",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_openapi_json_uses_same_duplicate_rejection",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_openapi_json_uses_same_duplicate_rejection",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_nonstandard_nan_constant_is_rejected_like_core_json",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_nonstandard_nan_constant_is_rejected_like_core_json",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_nonstandard_nan_constant_is_rejected_like_core_json",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_raw_json_member_stripping_keeps_order_but_rejects_nested_ambiguity",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_raw_json_member_stripping_keeps_order_but_rejects_nested_ambiguity",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_json_inputs.py::test_raw_json_member_stripping_keeps_order_but_rejects_nested_ambiguity",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_preimage_metadata_probe.py::test_recovery_restores_original_metadata_when_pointer_bytes_are_already_original",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_preimage_metadata_probe.py::test_recovery_restores_original_metadata_when_pointer_bytes_are_already_original",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_preimage_metadata_probe.py::test_recovery_restores_original_metadata_when_pointer_bytes_are_already_original",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_review_probes.py::test_operator_can_resume_after_transient_automatic_restore_failure",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_review_probes.py::test_operator_can_resume_after_transient_automatic_restore_failure",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_actual_review_probes.py::test_operator_can_resume_after_transient_automatic_restore_failure",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_candidate_hardpins_final_core_bytes",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_candidate_hardpins_final_core_bytes",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_candidate_hardpins_final_core_bytes",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_incomplete_receipt_retains_original_prepared_contract",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_incomplete_receipt_retains_original_prepared_contract",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_incomplete_receipt_retains_original_prepared_contract",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[original-original]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[original-original]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[original-original]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[original-candidate]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[original-candidate]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[original-candidate]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[original-absent]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[original-absent]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[original-absent]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-original]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-original]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-original]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-candidate]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-candidate]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-candidate]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-absent]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-absent]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-absent]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-original]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-original]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-original]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-candidate]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-candidate]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-candidate]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-absent]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-absent]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-absent]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_existing_cli_rollback_resumes_failure_under_shared_lease",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_existing_cli_rollback_resumes_failure_under_shared_lease",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_existing_cli_rollback_resumes_failure_under_shared_lease",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_requires_explicit_exact_current_cas[candidate-ABSENT]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_requires_explicit_exact_current_cas[candidate-ABSENT]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_requires_explicit_exact_current_cas[candidate-ABSENT]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_requires_explicit_exact_current_cas[original-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_requires_explicit_exact_current_cas[original-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_requires_explicit_exact_current_cas[original-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_requires_explicit_exact_current_cas[absent-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_requires_explicit_exact_current_cas[absent-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_requires_explicit_exact_current_cas[absent-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_requires_explicit_exact_current_cas[absent-]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_requires_explicit_exact_current_cas[absent-]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_requires_explicit_exact_current_cas[absent-]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_requires_explicit_exact_current_cas[absent-absent]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_requires_explicit_exact_current_cas[absent-absent]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_requires_explicit_exact_current_cas[absent-absent]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_unknown_pointer_even_with_matching_operator_sha",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_unknown_pointer_even_with_matching_operator_sha",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_unknown_pointer_even_with_matching_operator_sha",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_unknown_runtime_before_mutation[UNKNOWN]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_unknown_runtime_before_mutation[UNKNOWN]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_unknown_runtime_before_mutation[UNKNOWN]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_unknown_runtime_before_mutation[LOADED_UNVERIFIED]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_unknown_runtime_before_mutation[LOADED_UNVERIFIED]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_unknown_runtime_before_mutation[LOADED_UNVERIFIED]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_unknown_runtime_before_mutation[FOREIGN]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_unknown_runtime_before_mutation[FOREIGN]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_unknown_runtime_before_mutation[FOREIGN]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_unknown_runtime_before_mutation[MISSING_PID]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_unknown_runtime_before_mutation[MISSING_PID]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_unknown_runtime_before_mutation[MISSING_PID]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_rehashed_mutable_receipt_cannot_change_prepared_contract[before]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_rehashed_mutable_receipt_cannot_change_prepared_contract[before]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_rehashed_mutable_receipt_cannot_change_prepared_contract[before]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_rehashed_mutable_receipt_cannot_change_prepared_contract[after]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_rehashed_mutable_receipt_cannot_change_prepared_contract[after]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_rehashed_mutable_receipt_cannot_change_prepared_contract[after]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_rehashed_mutable_receipt_cannot_change_prepared_contract[api_release_integration]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_rehashed_mutable_receipt_cannot_change_prepared_contract[api_release_integration]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_rehashed_mutable_receipt_cannot_change_prepared_contract[api_release_integration]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_rehashed_mutable_receipt_cannot_change_prepared_contract[backup_path]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_rehashed_mutable_receipt_cannot_change_prepared_contract[backup_path]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_rehashed_mutable_receipt_cannot_change_prepared_contract[backup_path]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_rehashed_mutable_receipt_cannot_change_prepared_contract[backup_metadata]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_rehashed_mutable_receipt_cannot_change_prepared_contract[backup_metadata]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_rehashed_mutable_receipt_cannot_change_prepared_contract[backup_metadata]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_bytes_cannot_change_even_after_rehashing_itself",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_bytes_cannot_change_even_after_rehashing_itself",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_bytes_cannot_change_even_after_rehashing_itself",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_reference_cannot_redirect_outside_origin_contract",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_reference_cannot_redirect_outside_origin_contract",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_prepared_reference_cannot_redirect_outside_origin_contract",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_changed_original_backup[bytes]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_changed_original_backup[bytes]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_changed_original_backup[bytes]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_changed_original_backup[metadata]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_changed_original_backup[metadata]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_refuses_changed_original_backup[metadata]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_source_receipt_change_during_continuation_cannot_lower_cas",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_source_receipt_change_during_continuation_cannot_lower_cas",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_source_receipt_change_during_continuation_cannot_lower_cas",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_repeat_failure_can_resume_from_latest_receipt_same_original_contract",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_repeat_failure_can_resume_from_latest_receipt_same_original_contract",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_repeat_failure_can_resume_from_latest_receipt_same_original_contract",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_does_not_require_healthy_candidate_to_restore_known_base",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_does_not_require_healthy_candidate_to_restore_known_base",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_does_not_require_healthy_candidate_to_restore_known_base",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_cannot_select_a_different_base_with_rehashed_records",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_cannot_select_a_different_base_with_rehashed_records",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_cannot_select_a_different_base_with_rehashed_records",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_bare_status_receipt_without_prepared_binding_is_not_recoverable",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_bare_status_receipt_without_prepared_binding_is_not_recoverable",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_bare_status_receipt_without_prepared_binding_is_not_recoverable",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_runtime_change_during_last_backup_check_refuses_bootout",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_runtime_change_during_last_backup_check_refuses_bootout",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_runtime_change_during_last_backup_check_refuses_bootout",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_success_requires_original_runtime_at_final_readback",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_success_requires_original_runtime_at_final_readback",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_success_requires_original_runtime_at_final_readback",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_cli_reports_incomplete_continuation_with_nonzero_exit",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_cli_reports_incomplete_continuation_with_nonzero_exit",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_cli_reports_incomplete_continuation_with_nonzero_exit",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_launchctl_adapter_uses_frozen_service_target_for_missing_pointer",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_launchctl_adapter_uses_frozen_service_target_for_missing_pointer",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_launchctl_adapter_uses_frozen_service_target_for_missing_pointer",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_aborted_before_bootout_retains_contract_and_can_resume",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_aborted_before_bootout_retains_contract_and_can_resume",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_continuation.py::test_aborted_before_bootout_retains_contract_and_can_resume",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_metadata.py::test_original_runtime_recovery_repairs_original_pointer_metadata_without_service_action",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_metadata.py::test_original_runtime_recovery_repairs_original_pointer_metadata_without_service_action",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_metadata.py::test_original_runtime_recovery_repairs_original_pointer_metadata_without_service_action",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_metadata.py::test_recovery_cannot_report_success_if_metadata_drifts_after_bootstrap",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_metadata.py::test_recovery_cannot_report_success_if_metadata_drifts_after_bootstrap",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "work/cutover_analysis/tests/test_recovery_metadata.py::test_recovery_cannot_report_success_if_metadata_drifts_after_bootstrap",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    }
+  ],
+  "schema_version": "v4.issue30.pytest_metrics.v1",
+  "skipped_reports": 0,
+  "testscollected": 76,
+  "unique_node_ids": 76,
+  "xfail_or_xpass_reports": 0
+}

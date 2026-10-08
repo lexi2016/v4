@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="4" time="0.737" timestamp="2026-10-08T07:12:49.525820-07:00" hostname="5fa05583d26b"><testcase classname="tests.test_preselection_review_probes" name="test_sha_recovery_does_not_promote_inconsistent_market_identity[unknown_explicit_market]" time="0.172"><failure message="AssertionError: {'pools': [{'pool_id': 'a_d1_premarket_pool', 'display_name': 'A股 D-1 主预选池', 'market': 'A', 'status': 'CANNOT_CONFIRM'...e_updated': False, 'market': 'US', 'orders_sent': False, 'pool_id': 'a_share_research_recommendation_pool', ...}], ...}&#10;assert 'PARTIAL_WITH_ROWS' == 'DATA_BLOCKED_EMPTY'&#10;  &#10;  - DATA_BLOCKED_EMPTY&#10;  + PARTIAL_WITH_ROWS">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/preselection_revision/red_tmp/test_sha_recovery_does_not_pro0')
+damage = 'unknown_explicit_market'
+
+    @pytest.mark.parametrize("damage", ["unknown_explicit_market", "conflicting_hk_symbol"])
+    def test_sha_recovery_does_not_promote_inconsistent_market_identity(tmp_path, damage):
+        client, source = _client(tmp_path, ["A.000001"])
+        invalid = _pool_artifact("a_share_research_recommendation_pool", [{"symbol": "A.000020"}])
+        if damage == "unknown_explicit_market":
+            invalid["rows"][0]["market"] = "US"
+        else:
+            invalid["rows"][0]["symbol"] = "HK.00700"
+            invalid["rows"][0]["code"] = "000020"
+        PreselectionPoolStore(source).materialize(invalid)
+        _corrupt_manifest(source)
+        before = _hashes(source)
+        payload = client.get("/api/v3/preselection-pools", params={"date": DATE}).json()
+        assert _hashes(source) == before
+&gt;       assert payload["data_status"] == "DATA_BLOCKED_EMPTY", payload
+E       AssertionError: {'pools': [{'pool_id': 'a_d1_premarket_pool', 'display_name': 'A股 D-1 主预选池', 'market': 'A', 'status': 'CANNOT_CONFIRM'...e_updated': False, 'market': 'US', 'orders_sent': False, 'pool_id': 'a_share_research_recommendation_pool', ...}], ...}
+E       assert 'PARTIAL_WITH_ROWS' == 'DATA_BLOCKED_EMPTY'
+E         
+E         - DATA_BLOCKED_EMPTY
+E         + PARTIAL_WITH_ROWS
+
+tests/test_preselection_review_probes.py:26: AssertionError</failure></testcase><testcase classname="tests.test_preselection_review_probes" name="test_sha_recovery_does_not_promote_inconsistent_market_identity[conflicting_hk_symbol]" time="0.045"><failure message="AssertionError: {'pools': [{'pool_id': 'a_d1_premarket_pool', 'display_name': 'A股 D-1 主预选池', 'market': 'A', 'status': 'CANNOT_CONFIRM'....}], 'a_all_pool_rows': [{'buy_gate_updated': False, 'code': '000020', 'market': 'A', 'orders_sent': False, ...}], ...}&#10;assert 'PARTIAL_WITH_ROWS' == 'DATA_BLOCKED_EMPTY'&#10;  &#10;  - DATA_BLOCKED_EMPTY&#10;  + PARTIAL_WITH_ROWS">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/preselection_revision/red_tmp/test_sha_recovery_does_not_pro1')
+damage = 'conflicting_hk_symbol'
+
+    @pytest.mark.parametrize("damage", ["unknown_explicit_market", "conflicting_hk_symbol"])
+    def test_sha_recovery_does_not_promote_inconsistent_market_identity(tmp_path, damage):
+        client, source = _client(tmp_path, ["A.000001"])
+        invalid = _pool_artifact("a_share_research_recommendation_pool", [{"symbol": "A.000020"}])
+        if damage == "unknown_explicit_market":
+            invalid["rows"][0]["market"] = "US"
+        else:
+            invalid["rows"][0]["symbol"] = "HK.00700"
+            invalid["rows"][0]["code"] = "000020"
+        PreselectionPoolStore(source).materialize(invalid)
+        _corrupt_manifest(source)
+        before = _hashes(source)
+        payload = client.get("/api/v3/preselection-pools", params={"date": DATE}).json()
+        assert _hashes(source) == before
+&gt;       assert payload["data_status"] == "DATA_BLOCKED_EMPTY", payload
+E       AssertionError: {'pools': [{'pool_id': 'a_d1_premarket_pool', 'display_name': 'A股 D-1 主预选池', 'market': 'A', 'status': 'CANNOT_CONFIRM'....}], 'a_all_pool_rows': [{'buy_gate_updated': False, 'code': '000020', 'market': 'A', 'orders_sent': False, ...}], ...}
+E       assert 'PARTIAL_WITH_ROWS' == 'DATA_BLOCKED_EMPTY'
+E         
+E         - DATA_BLOCKED_EMPTY
+E         + PARTIAL_WITH_ROWS
+
+tests/test_preselection_review_probes.py:26: AssertionError</failure></testcase><testcase classname="tests.test_preselection_review_probes" name="test_consistent_a_code_aliases_survive_sha_quarantine" time="0.046" /><testcase classname="tests.test_preselection_review_probes" name="test_inconsistent_pool_is_quarantined_without_blocking_another_valid_a_pool" time="0.050"><failure message="assert 2 == 1">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/preselection_revision/red_tmp/test_inconsistent_pool_is_quar0')
+
+    def test_inconsistent_pool_is_quarantined_without_blocking_another_valid_a_pool(tmp_path):
+        client, source = _client(tmp_path, ["A.000001"])
+        invalid = _pool_artifact("a_share_research_recommendation_pool", [{"symbol": "A.000020"}])
+        invalid["rows"][0]["market"] = "US"
+        pools = PreselectionPoolStore(source)
+        pools.materialize(invalid)
+        pools.materialize(_pool_artifact("a_share_baimao_research_map", [{"symbol": "A.000030"}]))
+        _corrupt_manifest(source)
+        before = _hashes(source)
+        payload = client.get("/api/v3/preselection-pools", params={"date": DATE}).json()
+        assert _hashes(source) == before
+        assert payload["data_status"] == "PARTIAL_WITH_ROWS"
+&gt;       assert payload["a_all_pool_row_count"] == 1
+E       assert 2 == 1
+
+tests/test_preselection_review_probes.py:58: AssertionError</failure></testcase></testsuite></testsuites>

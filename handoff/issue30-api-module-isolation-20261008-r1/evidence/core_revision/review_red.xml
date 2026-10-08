@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="3" time="0.236" timestamp="2026-10-08T07:10:06.982964-07:00" hostname="5fa05583d26b"><testcase classname="work.issue30_reviewer.test_release_review_probes" name="test_committed_reviewed_module_addition_can_be_built[False]" time="0.036"><failure message="ValueError: API_RELEASE_DELTA_ADDED_PATHS_REQUIRE_EXACT_UNTRACKED_APPROVAL">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/review_red_temp/test_committed_reviewed_module0')
+explicit_include = False
+
+    @pytest.mark.parametrize("explicit_include", [False, True])
+    def test_committed_reviewed_module_addition_can_be_built(tmp_path, explicit_include):
+        args = _build_args(tmp_path)
+        source = args["source_root"]
+        relative = "apps/api/v35_api/preselection_service.py"
+        (source / relative).write_bytes(b"REVIEWED_MODULE = True\n")
+        subprocess.run(["git", "add", relative], cwd=source, check=True)
+        subprocess.run(["git", "commit", "-qm", "reviewed module addition"], cwd=source, check=True)
+        receipt_path = _write_delta_receipt(tmp_path / "committed-delta.json",
+            api_plist=args["api_plist_path"], source_root=source,
+            relative_paths=["apps/api/v35_api/app.py", relative])
+        args["api_integration_delta_receipt_path"] = receipt_path
+        if explicit_include:
+            args["include_untracked_paths"] = [relative]
+&gt;       result = BUILDER.build_candidate(**args)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+work/issue30_reviewer/test_release_review_probes.py:36: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+candidate/ops/build_release_candidate.py:428: in build_candidate
+    api_integration = build_integrated_app(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+active_api_plist_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/review_red_temp/test_committed_reviewed_module0/LaunchAgents/com.lexi.v35.api-only.plist')
+source_root = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/review_red_temp/test_committed_reviewed_module0/source')
+candidate_root = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/review_red_temp/test_committed_reviewed_module0/candidate')
+delta_receipt_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/review_red_temp/test_committed_reviewed_module0/committed-delta.json')
+explicit_untracked_paths = []
+
+    def build_integrated_app(
+        *, active_api_plist_path: Path, source_root: Path, candidate_root: Path,
+        delta_receipt_path: Path, explicit_untracked_paths: Sequence[str] = (),
+    ) -&gt; dict[str, Any]:
+        active = read_active_release(active_api_plist_path)
+        source_root = _exact_path(source_root, kind="directory", label="API_RELEASE_DELTA_SOURCE_ROOT")
+        candidate_root = _exact_path(candidate_root, kind="directory", label="API_RELEASE_CANDIDATE_ROOT")
+        for other_root in (source_root, Path(active["release_root"])):
+            if candidate_root.is_relative_to(other_root) or other_root.is_relative_to(candidate_root):
+                raise ValueError("API_RELEASE_CANDIDATE_OVERLAPS_INPUT_ROOT")
+        source_root_token = _directory_token(source_root)
+        candidate_token = _directory_token(candidate_root)
+        receipt_raw, receipt_token = _read_file(_exact_path(delta_receipt_path, kind="file", label="API_RELEASE_DELTA_RECEIPT"))
+        receipt = _json_object(receipt_raw, "API_RELEASE_DELTA_RECEIPT")
+        entries = _validate_delta_receipt(receipt, base_identity=active)
+        added = {str(entry["path"]) for entry in entries if entry.get("before_sha256") is None}
+        if added != set(explicit_untracked_paths):
+&gt;           raise ValueError("API_RELEASE_DELTA_ADDED_PATHS_REQUIRE_EXACT_UNTRACKED_APPROVAL")
+E           ValueError: API_RELEASE_DELTA_ADDED_PATHS_REQUIRE_EXACT_UNTRACKED_APPROVAL
+
+candidate/ops/api_release_integration.py:734: ValueError</failure></testcase><testcase classname="work.issue30_reviewer.test_release_review_probes" name="test_committed_reviewed_module_addition_can_be_built[True]" time="0.033"><failure message="ValueError: explicit untracked include path(s) are already tracked: apps/api/v35_api/preselection_service.py">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/review_red_temp/test_committed_reviewed_module1')
+explicit_include = True
+
+    @pytest.mark.parametrize("explicit_include", [False, True])
+    def test_committed_reviewed_module_addition_can_be_built(tmp_path, explicit_include):
+        args = _build_args(tmp_path)
+        source = args["source_root"]
+        relative = "apps/api/v35_api/preselection_service.py"
+        (source / relative).write_bytes(b"REVIEWED_MODULE = True\n")
+        subprocess.run(["git", "add", relative], cwd=source, check=True)
+        subprocess.run(["git", "commit", "-qm", "reviewed module addition"], cwd=source, check=True)
+        receipt_path = _write_delta_receipt(tmp_path / "committed-delta.json",
+            api_plist=args["api_plist_path"], source_root=source,
+            relative_paths=["apps/api/v35_api/app.py", relative])
+        args["api_integration_delta_receipt_path"] = receipt_path
+        if explicit_include:
+            args["include_untracked_paths"] = [relative]
+&gt;       result = BUILDER.build_candidate(**args)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+work/issue30_reviewer/test_release_review_probes.py:36: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+candidate/ops/build_release_candidate.py:422: in build_candidate
+    included_untracked_paths = _validate_explicit_untracked_paths(
+candidate/ops/build_release_candidate.py:192: in _validate_explicit_untracked_paths
+    return _release_sources._validate_explicit_untracked_paths(source_root, requested_paths, tracked_paths=tracked_paths, untracked_paths=untracked_paths, _api=sys.modules[__name__])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+source_root = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/review_red_temp/test_committed_reviewed_module1/source')
+requested_paths = ['apps/api/v35_api/preselection_service.py']
+tracked_paths = ['.gitignore', 'apps/api/v35_api/app.py', 'apps/api/v35_api/preselection_service.py', 'apps/web/index.html', 'apps/web/src/main.js', 'ops/entry.py']
+untracked_paths = []
+_api = &lt;module 'build_release_candidate' from '/workspace/scratch/25c09a595aec/issue30/work/core_revision/baseline/candidate/ops/build_release_candidate.py'&gt;
+
+    def _validate_explicit_untracked_paths(source_root: Path, requested_paths: Sequence[str | Path], *, tracked_paths: Sequence[str], untracked_paths: Sequence[str], _api: BuilderAPI) -&gt; list[str]:
+        """Validate the bounded untracked include list before copying anything."""
+    
+        normalised = [_api._normalise_relative(path) for path in requested_paths]
+        if len(normalised) != len(set(normalised)):
+            raise ValueError("explicit untracked include paths must be unique")
+        tracked = set(tracked_paths)
+        tracked_overlap = sorted(set(normalised) &amp; tracked)
+        if tracked_overlap:
+&gt;           raise ValueError(
+                "explicit untracked include path(s) are already tracked: "
+                + ", ".join(tracked_overlap)
+            )
+E           ValueError: explicit untracked include path(s) are already tracked: apps/api/v35_api/preselection_service.py
+
+candidate/ops/release_candidate_sources.py:74: ValueError</failure></testcase><testcase classname="work.issue30_reviewer.test_release_review_probes" name="test_verifier_rejects_undeclared_directory_mode_change" time="0.016"><failure message="Failed: DID NOT RAISE ValueError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/review_red_temp/test_verifier_rejects_undeclar0')
+
+    def test_verifier_rejects_undeclared_directory_mode_change(tmp_path):
+        active, candidate, _ = _integrated_candidate(tmp_path)
+        directory = candidate / "app/apps/api"
+        baseline_mode = (Path(active["app_root"]) / "apps/api").stat().st_mode &amp; 0o7777
+        directory.chmod(0o777 if baseline_mode != 0o777 else 0o755)
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+work/issue30_reviewer/test_release_review_probes.py:46: Failed</failure></testcase></testsuite></testsuites>

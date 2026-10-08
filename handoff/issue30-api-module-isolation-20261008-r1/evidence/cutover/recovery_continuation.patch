@@ -1,0 +1,721 @@
+--- initial-931a/api_only_cutover_r2_ready.py
++++ candidate/api_only_cutover_r2_ready.py
+@@ -65,7 +65,7 @@
+ # TASK_ROOT and the frozen R2 evidence paths above retain their original layout.
+ # The guard has one trusted location and no environment/plan/import-path override.
+ INTEGRATION_GUARD_PATH = Path("/Users/lexi/Desktop/学习/v4_app/ops/api_release_integration.py")
+-INTEGRATION_GUARD_SHA256 = "0b9d3b678dc7e875b9514bd8b66b7e8fc69229759c366ef0df776126746180bf"
++INTEGRATION_GUARD_SHA256 = "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050"
+ _INTEGRATION_GUARD_CACHE: tuple[tuple[str, str], Any] | None = None
+ _INTEGRATION_GUARD_LEASES: dict[int, tuple[object, Any]] = {}
+ ACTIVE_SCHEDULER_PLIST = Path("/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist")
+@@ -163,9 +163,26 @@
+         raise ValueError(label + "_NOT_EXACT_DIRECTORY")
+ 
+ 
++def _json_loads(raw: bytes, label: str) -> Any:
++    """One JSON policy for plans, evidence and readback; preserve key order."""
++    def unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
++        value: dict[str, Any] = {}
++        for key, item in pairs:
++            if key in value:
++                raise ValueError(label + "_JSON_DUPLICATE_KEY:" + key)
++            value[key] = item
++        return value
++
++    def invalid_constant(value: str) -> None:
++        raise ValueError(label + "_JSON_CONSTANT_INVALID:" + value)
++
++    return json.loads(raw.decode("utf-8"), object_pairs_hook=unique_object,
++                      parse_constant=invalid_constant)
++
++
+ def _read_json(path: Path, label: str) -> dict[str, Any]:
+     try:
+-        value = json.loads(_regular_file(path, label).decode("utf-8"))
++        value = _json_loads(_regular_file(path, label), label)
+     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+         raise ValueError(label + "_JSON_INVALID") from exc
+     if not isinstance(value, dict):
+@@ -560,7 +577,7 @@
+     manifest_sha = _sha(manifest_raw)
+     if manifest_sha != manifest_expected:
+         raise ValueError("R2_API_RELEASE_MANIFEST_SHA_MISMATCH")
+-    manifest = json.loads(manifest_raw.decode("utf-8"))
++    manifest = _json_loads(manifest_raw, "R2_API_RELEASE_MANIFEST")
+     if (manifest.get("schema_version") != "v4.release_candidate.v1"
+             or manifest.get("activation_status") != "NOT_ACTIVATED"
+             or manifest.get("candidate", {}).get("release_id") != target.get("release_id")
+@@ -673,7 +690,7 @@
+     expected = plan["guards"].get("disabled_binding_sha256")
+     if not isinstance(expected, str) or _sha(raw) != expected:
+         raise ValueError("DISABLED_PLAN_BINDING_SHA_MISMATCH")
+-    binding = json.loads(raw.decode("utf-8"))
++    binding = _json_loads(raw, "DISABLED_PLAN_BINDING")
+     if (binding.get("enabled") is not False
+             or binding.get("announcement_collection_enabled") is not False
+             or binding.get("plan_material_refresh_only") is not False
+@@ -731,7 +748,11 @@
+ def _launchctl_action(action: str) -> None:
+     if action not in {"bootout", "bootstrap"}:
+         raise ValueError("LAUNCHCTL_ACTION_NOT_ALLOWED")
+-    result = subprocess.run([str(LAUNCHCTL), action, f"gui/{os.getuid()}", str(ACTIVE_API_PLIST)],
++    # An interrupted switch can leave the plist absent while its known job is
++    # still loaded. The frozen service label remains the exact bootout target.
++    target = ([f"gui/{os.getuid()}/{LABEL}"] if action == "bootout"
++              else [f"gui/{os.getuid()}", str(ACTIVE_API_PLIST)])
++    result = subprocess.run([str(LAUNCHCTL), action, *target],
+                             capture_output=True, text=True, timeout=30)
+     if result.returncode != 0:
+         raise ValueError("LAUNCHCTL_ACTION_FAILED:" + action + ":" +
+@@ -797,7 +818,7 @@
+         raise ValueError("API_ONLY_STAGED_PLIST_MISMATCH")
+     diff = _staged_plist_diff(active_raw, staged_raw, candidate)
+     diff_raw = _regular_file(STAGED_API_PLIST_DIFF_PATH, "STAGED_API_PLIST_DIFF")
+-    if _sha(diff_raw) != expected_diff_sha or json.loads(diff_raw.decode("utf-8")) != diff:
++    if _sha(diff_raw) != expected_diff_sha or _json_loads(diff_raw, "STAGED_API_PLIST_DIFF") != diff:
+         raise ValueError("API_ONLY_STAGED_PLIST_DIFF_MISMATCH")
+     historical_products = _verify_historical_product_readback()
+     return {
+@@ -853,7 +874,7 @@
+ 
+ def _stage_api_plist(plan: Mapping[str, Any]) -> dict[str, Any]:
+     plan_raw = _regular_file(PLAN_PATH, "API_ONLY_PLAN")
+-    if json.loads(plan_raw.decode("utf-8")) != dict(plan):
++    if _json_loads(plan_raw, "API_ONLY_PLAN") != dict(plan):
+         raise ValueError("API_ONLY_PLAN_CHANGED_BEFORE_STAGING")
+     integration = _verify_api_integration(plan, active_pointer="base")
+     _validate_p2_review(plan)
+@@ -1118,7 +1139,7 @@
+     if status != 200:
+         raise ValueError("API_OPENAPI_HTTP_STATUS:" + str(status))
+     try:
+-        value = json.loads(raw.decode("utf-8"))
++        value = _json_loads(raw, "API_OPENAPI")
+     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+         raise ValueError("API_OPENAPI_JSON_INVALID") from exc
+     method = value.get("paths", {}).get(MANAGER_WORKSPACE_ROUTE, {}).get("get")
+@@ -1133,7 +1154,7 @@
+     if _sha(raw) != PRODUCT_BASELINE_SHA256:
+         raise ValueError("PRE_SWITCH_PRODUCT_BASELINE_SHA_MISMATCH")
+     try:
+-        baseline = json.loads(raw.decode("utf-8"))
++        baseline = _json_loads(raw, "PRE_SWITCH_PRODUCT_BASELINE")
+     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+         raise ValueError("PRE_SWITCH_PRODUCT_BASELINE_JSON_INVALID") from exc
+     if not isinstance(baseline, dict) or baseline.get("scope") != "ROOT_READ_ONLY_PRE_SWITCH_PRODUCT_BASELINE":
+@@ -1163,6 +1184,9 @@
+     This lets the post-switch oracle compare the complete pinned R3 response
+     byte-for-byte after excluding only the approved additive R1 projection.
+     """
++    # raw_decode below locates byte ranges only after the whole same byte
++    # sequence has passed the shared duplicate/non-finite validation policy.
++    _json_loads(raw, "HISTORICAL_ANALYSIS")
+     text = raw.decode("utf-8")
+     decoder = json.JSONDecoder()
+     pos = 0
+@@ -1272,7 +1296,7 @@
+         if status != 200:
+             raise ValueError("HISTORICAL_ANALYSIS_HTTP_STATUS:" + name + ":" + str(status))
+         try:
+-            payload = json.loads(raw.decode("utf-8"))
++            payload = _json_loads(raw, "HISTORICAL_ANALYSIS:" + name)
+         except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+             raise ValueError("HISTORICAL_ANALYSIS_JSON_INVALID:" + name) from exc
+         if not isinstance(payload, dict):
+@@ -1339,7 +1363,7 @@
+     expected_workspace = baseline["rows"]["current_workspace"]
+     status, raw = _http_get(expected_workspace["path"])
+     try:
+-        workspace_payload = json.loads(raw.decode("utf-8"))
++        workspace_payload = _json_loads(raw, "HISTORICAL_WORKSPACE")
+     except (UnicodeDecodeError, json.JSONDecodeError):
+         workspace_payload = None
+     workspace = workspace_payload.get("announcement_reviewed_analysis", {}) if isinstance(workspace_payload, dict) else {}
+@@ -1450,15 +1474,169 @@
+     return path
+ 
+ 
+-def _record(path: Path, status: str, details: Mapping[str, Any]) -> dict[str, Any]:
+-    receipt = {"schema_version": RECEIPT_SCHEMA, "status": status,
+-               "recorded_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+-               "active_api_plist": str(ACTIVE_API_PLIST), "active_label": LABEL,
+-               "scheduler_action": "UNCHANGED", "formal_manager_state_action": "READ_ONLY",
+-               "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
+-               **dict(details)}
++_PREPARED_CONTRACT_KEYS = (
++    "before", "after", "candidate_release", "api_release_integration",
++    "backup_path", "backup_sha256", "backup_metadata", "origin_operation_dir",
++    "plan_sha256", "scheduler_preimage_sha256",
++    "stage_center_scheduler_preimage_sha256", "disabled_binding_sha256",
++)
++
++
++def _receipt_record(status: str, details: Mapping[str, Any]) -> dict[str, Any]:
++    return {"schema_version": RECEIPT_SCHEMA, "status": status,
++            "recorded_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
++            "active_api_plist": str(ACTIVE_API_PLIST), "active_label": LABEL,
++            "scheduler_action": "UNCHANGED", "formal_manager_state_action": "READ_ONLY",
++            "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
++            **dict(details)}
++
++
++def _contract_value_matches(key: str, value: Any, prepared: Mapping[str, Any]) -> bool:
++    if key == "after" and isinstance(value, dict) and isinstance(prepared.get(key), dict):
++        # Successful runtime readback may append this observation. It cannot
++        # replace any part of the already-frozen candidate identity.
++        return ({k: v for k, v in value.items() if k != "loaded_identity"} == prepared[key])
++    return key in prepared and value == prepared[key]
++
++
++def _record(path: Path, status: str, details: Mapping[str, Any], *,
++            prepared_transaction: Mapping[str, Any] | None = None) -> dict[str, Any]:
++    payload = dict(details)
++    if prepared_transaction is not None:
++        prepared = prepared_transaction["record"]
++        for key in _PREPARED_CONTRACT_KEYS:
++            if key in payload and not _contract_value_matches(key, payload[key], prepared):
++                raise ValueError("API_ONLY_PREPARED_CONTRACT_MISMATCH:" + key)
++            payload.setdefault(key, prepared[key])
++        payload["prepared_receipt"] = dict(prepared_transaction["reference"])
++        if prepared_transaction.get("source_receipt_path") is not None:
++            payload["resumed_from_receipt"] = {
++                "path": prepared_transaction["source_receipt_path"],
++                "sha256": prepared_transaction["source_receipt_sha256"],
++            }
++            payload["recovery_expected_current_plist_sha256"] = prepared_transaction["expected_current_sha"]
++    receipt = _receipt_record(status, payload)
+     _write_receipt(path, receipt)
+     return _read_json(path, "API_ONLY_OPERATION_RECEIPT")
++
++
++def _create_prepared_transaction(plan: Mapping[str, Any], operation_dir: Path,
++                                  details: Mapping[str, Any], *,
++                                  lock_lease: object) -> dict[str, Any]:
++    _require_release_lock(lock_lease)
++    prepared = _receipt_record("PREPARED", {**dict(details),
++        "plan_sha256": _canonical_sha(plan), "origin_operation_dir": str(operation_dir)})
++    if any(key not in prepared for key in _PREPARED_CONTRACT_KEYS):
++        raise ValueError("API_ONLY_PREPARED_CONTRACT_INCOMPLETE")
++    path = operation_dir / "prepared_receipt.json"
++    raw = _receipt_bytes(prepared)
++    # Write once, before any service mutation. Status updates never rewrite
++    # this file, and every continuation binds its exact bytes as well as plan.
++    _write_exclusive(path, raw, mode=0o400)
++    _fsync_directory(operation_dir)
++    return {"record": _json_loads(raw, "API_ONLY_PREPARED_RECEIPT"),
++            "reference": {"path": str(path), "sha256": _sha(raw)}}
++
++
++def _signed_receipt(path: Path, label: str) -> tuple[dict[str, Any], str]:
++    raw = _regular_file(path, label)
++    try:
++        receipt = _json_loads(raw, label)
++    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
++        raise ValueError(label + "_JSON_INVALID") from exc
++    if not isinstance(receipt, dict):
++        raise ValueError(label + "_JSON_OBJECT_REQUIRED")
++    unsigned = {key: value for key, value in receipt.items() if key != "receipt_sha256"}
++    if receipt.get("receipt_sha256") != _canonical_sha(unsigned):
++        raise ValueError(label + "_SHA_MISMATCH")
++    return receipt, _sha(raw)
++
++
++def _assert_prepared_transaction(transaction: Mapping[str, Any] | None,
++                                 lock_lease: object | None) -> None:
++    _require_release_lock(lock_lease)
++    if transaction is None:
++        return
++    reference = transaction["reference"]
++    raw = _regular_file(Path(reference["path"]), "API_ONLY_PREPARED_RECEIPT")
++    if _sha(raw) != reference["sha256"]:
++        raise ValueError("API_ONLY_PREPARED_RECEIPT_SHA_MISMATCH")
++    if transaction.get("source_receipt_path") is not None:
++        source = _regular_file(Path(transaction["source_receipt_path"]), "API_ONLY_RECOVERY_SOURCE_RECEIPT")
++        if _sha(source) != transaction["source_receipt_sha256"]:
++            raise ValueError("API_ONLY_RECOVERY_SOURCE_RECEIPT_CHANGED")
++
++
++def _load_prepared_transaction(plan: Mapping[str, Any], receipt_path: Path, *,
++                                lock_lease: object) -> tuple[dict[str, Any], dict[str, Any]]:
++    _require_release_lock(lock_lease)
++    operation_root = _operation_root()
++    if (receipt_path.name != "operation_receipt.json" or receipt_path.parent.parent != operation_root
++            or TASK_ROOT.resolve(strict=True) not in receipt_path.parents):
++        raise ValueError("API_ONLY_ROLLBACK_RECEIPT_OUTSIDE_TASK_ROOT")
++    receipt, receipt_sha = _signed_receipt(receipt_path, "API_ONLY_ROLLBACK_RECEIPT")
++    if (receipt.get("schema_version") != RECEIPT_SCHEMA or receipt.get("status") not in {
++            "API_ONLY_R2_SWITCHED_AND_READBACK_VERIFIED", "PREPARED", "ABORTED_BEFORE_BOOTOUT",
++            "ROLLBACK_INCOMPLETE", "ROLLED_BACK_TO_PREIMAGE"}):
++        raise ValueError("API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID")
++    if receipt.get("active_api_plist") != str(ACTIVE_API_PLIST) or receipt.get("active_label") != LABEL:
++        raise ValueError("API_ONLY_ROLLBACK_RECEIPT_POINTER_MISMATCH")
++    reference = receipt.get("prepared_receipt")
++    if (not isinstance(reference, dict) or set(reference) != {"path", "sha256"}
++            or not isinstance(reference.get("path"), str)
++            or not isinstance(reference.get("sha256"), str)
++            or re.fullmatch(r"[0-9a-f]{64}", reference["sha256"]) is None):
++        raise ValueError("API_ONLY_PREPARED_RECEIPT_REQUIRED")
++    prepared_path = Path(reference["path"])
++    if (prepared_path.name != "prepared_receipt.json"
++            or prepared_path.parent.parent != operation_root):
++        raise ValueError("API_ONLY_PREPARED_RECEIPT_OUTSIDE_OPERATION_ROOT")
++    prepared, prepared_sha = _signed_receipt(prepared_path, "API_ONLY_PREPARED_RECEIPT")
++    if prepared_sha != reference["sha256"]:
++        raise ValueError("API_ONLY_PREPARED_RECEIPT_SHA_MISMATCH")
++    if (prepared.get("origin_operation_dir") != str(prepared_path.parent)
++            or prepared.get("backup_path") != str(prepared_path.parent / "active_api_only.preimage.plist")):
++        raise ValueError("API_ONLY_PREPARED_RECEIPT_ORIGIN_MISMATCH")
++    if (prepared.get("schema_version") != RECEIPT_SCHEMA or prepared.get("status") != "PREPARED"
++            or prepared.get("active_api_plist") != str(ACTIVE_API_PLIST)
++            or prepared.get("active_label") != LABEL or prepared.get("plan_sha256") != _canonical_sha(plan)):
++        raise ValueError("API_ONLY_PREPARED_RECEIPT_PLAN_BINDING_MISMATCH")
++    for key in _PREPARED_CONTRACT_KEYS:
++        if key not in receipt or not _contract_value_matches(key, receipt[key], prepared):
++            raise ValueError("API_ONLY_PREPARED_CONTRACT_MISMATCH:" + key)
++    before, after, candidate = prepared["before"], prepared["after"], prepared["candidate_release"]
++    if not all(isinstance(value, dict) for value in (before, after, candidate)):
++        raise ValueError("API_ONLY_PREPARED_RELEASE_IDENTITY_MISMATCH")
++    target = plan["target"]
++    expected_candidate = {"release_id": target["release_id"], "release_root": target["release_root"],
++        "app_root": target["app_root"], "manifest_path": str(Path(target["release_root"]) / "release-manifest.json"),
++        "manifest_sha256": target["release_manifest_sha256"], "inventory_sha256": target["application_inventory_sha256"]}
++    expected_after = {"release_id": target["release_id"], "app_root": target["app_root"],
++        "release_manifest_sha256": target["release_manifest_sha256"],
++        "application_inventory_sha256": target["application_inventory_sha256"],
++        "staged_api_plist_path": str(STAGED_API_PLIST_PATH),
++        "staged_api_plist_sha256": target["staged_api_plist_sha256"]}
++    if (any(candidate.get(key) != value for key, value in expected_candidate.items())
++            or any(after.get(key) != value for key, value in expected_after.items())
++            or before.get("active_api_plist_path") != str(ACTIVE_API_PLIST)
++            or before.get("active_api_plist_sha256") != plan["before"]["active_api_plist_sha256"]
++            or not _identity_matches(before.get("loaded_identity"), plan["before"]["loaded_identity"])
++            or prepared["backup_sha256"] != plan["before"]["active_api_plist_sha256"]
++            or prepared["backup_metadata"] != before.get("active_api_plist_metadata")):
++        raise ValueError("API_ONLY_PREPARED_RELEASE_IDENTITY_MISMATCH")
++    integration = prepared["api_release_integration"]
++    if (not isinstance(integration, dict) or integration.get("status") != "PASS"
++            or integration.get("active_pointer") != "base"
++            or integration.get("active_api_plist_sha256") != before["active_api_plist_sha256"]
++            or integration.get("shared_lock_required") is not True
++            or integration.get("guard_path") != str(INTEGRATION_GUARD_PATH)
++            or integration.get("guard_sha256") != INTEGRATION_GUARD_SHA256
++            or not isinstance(integration.get("base"), dict)):
++        raise ValueError("API_ONLY_PREPARED_INTEGRATION_IDENTITY_MISMATCH")
++    transaction = {"record": prepared, "reference": dict(reference),
++                   "source_receipt_path": str(receipt_path), "source_receipt_sha256": receipt_sha}
++    _assert_prepared_transaction(transaction, lock_lease)
++    return receipt, transaction
+ 
+ 
+ def _identity_matches(identity: Mapping[str, Any] | None,
+@@ -1469,78 +1647,132 @@
+         "V35_APP_ROOT", "V35_RELEASE_ID", "V35_RELEASE_MANIFEST_SHA256"))
+ 
+ 
++def _recovery_state(plan: Mapping[str, Any], candidate_plist_sha: str, *,
++                     expected_current_sha: str | None = None) -> tuple[str, dict[str, Any], str]:
++    if (ACTIVE_API_PLIST.is_symlink()
++            or (ACTIVE_API_PLIST.exists() and not ACTIVE_API_PLIST.is_file())):
++        raise ValueError("API_ONLY_ROLLBACK_ACTIVE_PLIST_PATH_UNAVAILABLE")
++    current_sha = (_sha(_regular_file(ACTIVE_API_PLIST, "API_ONLY_ROLLBACK_ACTIVE_PLIST"))
++                   if ACTIVE_API_PLIST.exists() else "ABSENT")
++    if current_sha not in {"ABSENT", plan["before"]["active_api_plist_sha256"], candidate_plist_sha}:
++        raise ValueError("API_ONLY_ROLLBACK_ACTIVE_PLIST_UNEXPECTED_SHA")
++    if expected_current_sha is not None:
++        if (not isinstance(expected_current_sha, str)
++                or (expected_current_sha != "ABSENT"
++                    and re.fullmatch(r"[0-9a-f]{64}", expected_current_sha) is None)):
++            raise ValueError("API_ONLY_ROLLBACK_EXPECTED_CURRENT_SHA_INVALID")
++        if current_sha != expected_current_sha:
++            raise ValueError("API_ONLY_ROLLBACK_CURRENT_PLIST_PREIMAGE_MISMATCH")
++    observed = _observe_loaded()
++    if observed.get("state") == "NOT_LOADED":
++        return current_sha, observed, "unloaded"
++    if observed.get("state") != "LOADED":
++        raise ValueError("API_ONLY_ROLLBACK_RUNTIME_STATE_UNVERIFIED:" + str(observed))
++    identity = observed.get("identity")
++    if not isinstance(identity, dict) or not identity.get("pid"):
++        raise ValueError("API_ONLY_ROLLBACK_RUNTIME_STATE_UNVERIFIED:" + str(observed))
++    if _identity_matches(identity, plan["before"]["loaded_identity"]):
++        return current_sha, observed, "original"
++    candidate_identity = {"state": "running", "V35_RELEASE_ID": plan["target"]["release_id"],
++        "V35_APP_ROOT": plan["target"]["app_root"],
++        "V35_RELEASE_MANIFEST_SHA256": plan["target"]["release_manifest_sha256"]}
++    if _identity_matches(identity, candidate_identity):
++        return current_sha, observed, "candidate"
++    raise ValueError("API_ONLY_ROLLBACK_REFUSES_UNKNOWN_LOADED_IDENTITY")
++
++
++def _verify_recovery_backup(plan: Mapping[str, Any], backup_path: Path, original_raw: bytes,
++                             backup_metadata: Mapping[str, Any] | None,
++                             base_record: Mapping[str, Any] | None, *,
++                             lock_lease: object | None) -> tuple[dict[str, Any], dict[str, Any]]:
++    _require_release_lock(lock_lease)
++    if (_sha(original_raw) != plan["before"]["active_api_plist_sha256"]
++            or _regular_file(backup_path, "API_ONLY_ROLLBACK_BACKUP") != original_raw):
++        raise ValueError("API_ONLY_ROLLBACK_BACKUP_SHA_MISMATCH")
++    actual_metadata = _file_metadata(backup_path)
++    if backup_metadata is not None and actual_metadata != dict(backup_metadata):
++        raise ValueError("API_ONLY_ROLLBACK_BACKUP_METADATA_MISMATCH")
++    base = _verify_rollback_base(plan, original_raw, base_record, lock_lease)
++    return base, actual_metadata
++
++
+ def _restore_after_failure(plan: Mapping[str, Any], backup_path: Path, original_raw: bytes,
+                            candidate_plist_sha: str, operation_dir: Path,
+                            original_error: str,
+                            backup_metadata: Mapping[str, Any] | None = None, *,
+                            lock_lease: object | None = None,
+-                           base_record: Mapping[str, Any] | None = None) -> dict[str, Any]:
++                           base_record: Mapping[str, Any] | None = None,
++                           prepared_transaction: Mapping[str, Any] | None = None,
++                           expected_current_sha: str | None = None) -> dict[str, Any]:
+     _require_release_lock(lock_lease)
+     receipt_path = operation_dir / "operation_receipt.json"
+     try:
+-        recorded_base = _verify_rollback_base(plan, original_raw, base_record, lock_lease)
+-        if _sha(original_raw) != plan["before"]["active_api_plist_sha256"]:
+-            raise ValueError("API_ONLY_ROLLBACK_PREIMAGE_CONTENT_MISMATCH")
+-        if _sha_file(backup_path) != plan["before"]["active_api_plist_sha256"]:
+-            raise ValueError("API_ONLY_ROLLBACK_BACKUP_SHA_MISMATCH")
+-        actual_backup_metadata = _file_metadata(backup_path)
+-        if backup_metadata is not None and any(
+-                actual_backup_metadata.get(key) != backup_metadata.get(key)
+-                for key in ("uid", "gid", "mode", "flags", "mtime_ns", "xattr_sha256")):
+-            raise ValueError("API_ONLY_ROLLBACK_BACKUP_METADATA_MISMATCH")
++        _assert_prepared_transaction(prepared_transaction, lock_lease)
++        recorded_base, actual_backup_metadata = _verify_recovery_backup(
++            plan, backup_path, original_raw, backup_metadata, base_record, lock_lease=lock_lease)
+         old_identity = plan["before"]["loaded_identity"]
+-        observed = _observe_loaded()
+-        if ACTIVE_API_PLIST.is_symlink() or (ACTIVE_API_PLIST.exists() and not ACTIVE_API_PLIST.is_file()):
+-            raise ValueError("API_ONLY_ROLLBACK_ACTIVE_PLIST_PATH_UNAVAILABLE")
+-        current_sha = _sha_file(ACTIVE_API_PLIST) if ACTIVE_API_PLIST.is_file() else None
+-        if current_sha not in {None, plan["before"]["active_api_plist_sha256"], candidate_plist_sha}:
+-            raise ValueError("API_ONLY_ROLLBACK_ACTIVE_PLIST_UNEXPECTED_SHA")
+-        if observed.get("state") == "LOADED" and _identity_matches(observed.get("identity"), old_identity) \
+-                and current_sha == plan["before"]["active_api_plist_sha256"]:
+-            result = {"status": "ROLLED_BACK_TO_PREIMAGE", "recovery_action": "OLD_API_REMAINS_LOADED",
+-                      "runtime_verification": {"runtime": observed["identity"],
+-                                                "http": _verify_openapi(require_manager_route=False)},
+-                      "historical_product_readback": "CANNOT_CONFIRM_NOT_RECHECKED_DURING_RECOVERY"}
+-            _record(receipt_path, result["status"], {"original_error": original_error,
+-                "backup_path": str(backup_path), "backup_sha256": _sha_file(backup_path),
+-                "backup_metadata": actual_backup_metadata, "rollback_base": recorded_base, **result})
+-            return result
+-        if observed.get("state") == "LOADED":
+-            identity = observed.get("identity") or {}
+-            candidate_identity = {"state": "running",
+-                "V35_RELEASE_ID": plan["target"]["release_id"],
+-                "V35_APP_ROOT": plan["target"]["app_root"],
+-                "V35_RELEASE_MANIFEST_SHA256": plan["target"]["release_manifest_sha256"]}
+-            if not _identity_matches(identity, candidate_identity):
+-                raise ValueError("API_ONLY_ROLLBACK_REFUSES_UNKNOWN_LOADED_IDENTITY")
++        current_sha, observed, runtime_role = _recovery_state(
++            plan, candidate_plist_sha, expected_current_sha=expected_current_sha)
++        # Freeze this attempt's observed state as an exact CAS. ABSENT is an
++        # explicit state, never a wildcard permitting replacement of a file.
++        attempt_pointer_sha = current_sha
++        if runtime_role == "candidate":
++            _assert_prepared_transaction(prepared_transaction, lock_lease)
++            _verify_recovery_backup(plan, backup_path, original_raw, backup_metadata,
++                                    recorded_base, lock_lease=lock_lease)
++            _, _, checked_role = _recovery_state(
++                plan, candidate_plist_sha, expected_current_sha=attempt_pointer_sha)
++            if checked_role != "candidate":
++                raise ValueError("API_ONLY_ROLLBACK_RUNTIME_CHANGED_BEFORE_BOOTOUT")
+             try:
+                 _require_release_lock(lock_lease)
+                 _launchctl_action("bootout")
+             except Exception:
+                 pass
+             observed = _observe_loaded()
+-        if observed.get("state") != "NOT_LOADED":
+-            raise ValueError("API_ONLY_ROLLBACK_COULD_NOT_CONFIRM_JOB_UNLOADED:" + str(observed))
++            if observed.get("state") != "NOT_LOADED":
++                raise ValueError("API_ONLY_ROLLBACK_COULD_NOT_CONFIRM_JOB_UNLOADED:" + str(observed))
+         # Recovery validates the recorded base; it must not require a healthy
+         # candidate or demand that a missing active pointer already be the base.
+-        _verify_rollback_base(plan, original_raw, recorded_base, lock_lease)
++        _assert_prepared_transaction(prepared_transaction, lock_lease)
++        _verify_recovery_backup(plan, backup_path, original_raw, backup_metadata,
++                                recorded_base, lock_lease=lock_lease)
++        current_sha, observed, runtime_role = _recovery_state(
++            plan, candidate_plist_sha, expected_current_sha=attempt_pointer_sha)
++        if runtime_role == "candidate":
++            raise ValueError("API_ONLY_ROLLBACK_CANDIDATE_REAPPEARED_BEFORE_RESTORE")
+         if current_sha == candidate_plist_sha:
+             _atomic_replace_bytes(ACTIVE_API_PLIST, original_raw, backup_path,
+                                   expected_current_sha=candidate_plist_sha, lock_lease=lock_lease)
+-        elif current_sha is None:
++        elif current_sha == "ABSENT":
+             _create_preimage_exclusive(ACTIVE_API_PLIST, original_raw, backup_path,
+                                        lock_lease=lock_lease)
++        elif _file_metadata(ACTIVE_API_PLIST) != actual_backup_metadata:
++            # Original bytes alone are not the full preimage. Restore mode,
++            # ownership, mtime and xattrs through the same leased atomic CAS.
++            _atomic_replace_bytes(ACTIVE_API_PLIST, original_raw, backup_path,
++                                  expected_current_sha=current_sha, lock_lease=lock_lease)
+         if _sha_file(ACTIVE_API_PLIST) != plan["before"]["active_api_plist_sha256"]:
+             raise ValueError("API_ONLY_ROLLBACK_PREIMAGE_RESTORE_FAILED")
++        if _file_metadata(ACTIVE_API_PLIST) != actual_backup_metadata:
++            raise ValueError("API_ONLY_ROLLBACK_PREIMAGE_METADATA_MISMATCH")
++        _assert_prepared_transaction(prepared_transaction, lock_lease)
++        _verify_recovery_backup(plan, backup_path, original_raw, backup_metadata,
++                                recorded_base, lock_lease=lock_lease)
++        _, observed, runtime_role = _recovery_state(plan, candidate_plist_sha,
++            expected_current_sha=plan["before"]["active_api_plist_sha256"])
++        if runtime_role == "candidate":
++            raise ValueError("API_ONLY_ROLLBACK_CANDIDATE_REAPPEARED_BEFORE_BOOTSTRAP")
+         bootstrap_error = None
+-        try:
+-            _require_release_lock(lock_lease)
+-            _launchctl_action("bootstrap")
+-        except Exception as exc:
+-            bootstrap_error = str(exc)
+-            observed = _observe_loaded()
+-            if observed.get("state") != "LOADED" or not _identity_matches(observed.get("identity"), old_identity):
+-                raise ValueError("API_ONLY_ROLLBACK_BOOTSTRAP_STATE_UNRESOLVED") from exc
++        if runtime_role == "unloaded":
++            try:
++                _require_release_lock(lock_lease)
++                _launchctl_action("bootstrap")
++            except Exception as exc:
++                bootstrap_error = str(exc)
++                observed = _observe_loaded()
++                if observed.get("state") != "LOADED" or not _identity_matches(observed.get("identity"), old_identity):
++                    raise ValueError("API_ONLY_ROLLBACK_BOOTSTRAP_STATE_UNRESOLVED") from exc
+         deadline = time.monotonic() + 30
+         verified = None
+         while time.monotonic() < deadline:
+@@ -1556,25 +1788,36 @@
+             historical_products: Any = _verify_historical_product_readback()
+         except Exception as exc:
+             historical_products = {"status": "CANNOT_CONFIRM", "reason": str(exc)}
+-        _record(receipt_path, "ROLLED_BACK_TO_PREIMAGE", {
++        _assert_prepared_transaction(prepared_transaction, lock_lease)
++        _, _, final_role = _recovery_state(plan, candidate_plist_sha,
++            expected_current_sha=plan["before"]["active_api_plist_sha256"])
++        if final_role != "original":
++            raise ValueError("API_ONLY_ROLLBACK_FINAL_RUNTIME_NOT_ORIGINAL")
++        if _file_metadata(ACTIVE_API_PLIST) != actual_backup_metadata:
++            raise ValueError("API_ONLY_ROLLBACK_PREIMAGE_METADATA_MISMATCH")
++        final = _record(receipt_path, "ROLLED_BACK_TO_PREIMAGE", {
+             "original_error": original_error, "backup_path": str(backup_path),
+             "backup_sha256": _sha_file(backup_path), "backup_metadata": actual_backup_metadata,
+             "rollback_base": recorded_base,
+-            "recovery_action": "PREIMAGE_RESTORED_AND_BOOTSTRAPPED",
++            "recovery_action": ("ORIGINAL_API_ALREADY_LOADED" if runtime_role == "original"
++                                else "PREIMAGE_RESTORED_AND_BOOTSTRAPPED"),
+             "runtime_verification": verified, "bootstrap_error": bootstrap_error,
+             "historical_product_readback": historical_products,
+             "scheduler_post_sha256": _sha_file(ACTIVE_SCHEDULER_PLIST),
+             "stage_center_scheduler_post_sha256": _sha_file(STAGE_CENTER_SCHEDULER_PLIST),
+-            "scheduler_action": "UNCHANGED"})
+-        return {"status": "ROLLED_BACK_TO_PREIMAGE", "runtime_verification": verified}
++            "scheduler_action": "UNCHANGED"}, prepared_transaction=prepared_transaction)
++        return {"status": "ROLLED_BACK_TO_PREIMAGE", "runtime_verification": verified,
++                "receipt_path": str(receipt_path), "receipt_sha256": final["receipt_sha256"]}
+     except Exception as recovery_error:
+         result = {"status": "ROLLBACK_INCOMPLETE", "reason": str(recovery_error),
+                   "original_error": original_error, "backup_path": str(backup_path),
+-                  "backup_sha256": _sha_file(backup_path) if backup_path.is_file() else "CANNOT_CONFIRM",
++                  "observed_backup_sha256": _sha_file(backup_path) if backup_path.is_file() else "CANNOT_CONFIRM",
+                   "active_api_plist_sha256": _sha_file(ACTIVE_API_PLIST) if ACTIVE_API_PLIST.is_file() and not ACTIVE_API_PLIST.is_symlink() else None,
+                   "scheduler_post_sha256": _sha_file(ACTIVE_SCHEDULER_PLIST) if ACTIVE_SCHEDULER_PLIST.is_file() else "CANNOT_CONFIRM",
+                   "stage_center_scheduler_post_sha256": _sha_file(STAGE_CENTER_SCHEDULER_PLIST) if STAGE_CENTER_SCHEDULER_PLIST.is_file() else "CANNOT_CONFIRM"}
+-        _record(receipt_path, "ROLLBACK_INCOMPLETE", result)
++        final = _record(receipt_path, "ROLLBACK_INCOMPLETE", result,
++                        prepared_transaction=prepared_transaction)
++        result.update(receipt_path=str(receipt_path), receipt_sha256=final["receipt_sha256"])
+         return result
+ 
+ 
+@@ -1618,7 +1861,7 @@
+         raise ValueError("API_ONLY_BACKUP_SHA_MISMATCH")
+     _write_exclusive(operation_dir / "preflight.json",
+                      (json.dumps(preflight, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode())
+-    _record(receipt_path, "PREPARED", {
++    prepared_transaction = _create_prepared_transaction(plan, operation_dir, {
+         "before": preflight["before"], "after": preflight["after"],
+         "candidate_release": preflight["candidate_release"],
+         "api_release_integration": preflight["api_release_integration"],
+@@ -1627,7 +1870,8 @@
+         "scheduler_preimage_sha256": preflight["readonly_guards"]["scheduler_plist_sha256"],
+         "stage_center_scheduler_preimage_sha256": preflight["readonly_guards"]["stage_center_scheduler_plist_sha256"],
+         "disabled_binding_sha256": preflight["disabled_binding"]["sha256"],
+-    })
++    }, lock_lease=lock_lease)
++    _record(receipt_path, "PREPARED", {}, prepared_transaction=prepared_transaction)
+     bootout_started = False
+     try:
+         # Revalidate the loaded API PID, plist CAS, immutable package, binding,
+@@ -1637,6 +1881,9 @@
+                 or second["after"]["staged_api_plist_sha256"] != staged_sha
+                 or second["api_release_integration"] != preflight["api_release_integration"]):
+             raise ValueError("API_ONLY_SWITCH_IDENTITY_CHANGED_AFTER_BACKUP")
++        _assert_prepared_transaction(prepared_transaction, lock_lease)
++        _verify_recovery_backup(plan, backup_path, source_raw, backup_metadata,
++                                base_record, lock_lease=lock_lease)
+         _require_release_lock(lock_lease)
+         bootout_started = True
+         _launchctl_action("bootout")
+@@ -1652,6 +1899,7 @@
+                                                require_shared_lock=True)
+         if integration != preflight["api_release_integration"]:
+             raise ValueError("API_ONLY_SWITCH_INTEGRATION_CHANGED_BEFORE_POINTER_WRITE")
++        _assert_prepared_transaction(prepared_transaction, lock_lease)
+         _atomic_replace_bytes(ACTIVE_API_PLIST, staged_raw, ACTIVE_API_PLIST,
+                               expected_current_sha=before_sha, lock_lease=lock_lease)
+         if _sha_file(ACTIVE_API_PLIST) != staged_sha:
+@@ -1675,18 +1923,20 @@
+             "runtime_verification": verification,
+             "ui_status": "STATIC_HTTP_BUNDLE_READBACK_VERIFIED; BROWSER_RELOAD_CANNOT_CONFIRM",
+             "owner_import_or_plan_refresh": "NOT_RUN",
+-        })
++        }, prepared_transaction=prepared_transaction)
+         return {"status": final["status"], "receipt_path": str(receipt_path),
+                 "receipt_sha256": final["receipt_sha256"], "runtime_verification": verification}
+     except Exception as exc:
+         if not bootout_started:
+             _record(receipt_path, "ABORTED_BEFORE_BOOTOUT", {
+                 "reason": str(exc), "before": preflight["before"],
+-                "backup_path": str(backup_path), "backup_sha256": before_sha})
++                "backup_path": str(backup_path), "backup_sha256": before_sha},
++                prepared_transaction=prepared_transaction)
+             raise
+         recovery = _restore_after_failure(plan, backup_path, source_raw, staged_sha,
+                                           operation_dir, str(exc), backup_metadata,
+-                                          lock_lease=lock_lease, base_record=base_record)
++                                          lock_lease=lock_lease, base_record=base_record,
++                                          prepared_transaction=prepared_transaction)
+         if recovery.get("status") != "ROLLED_BACK_TO_PREIMAGE":
+             raise ValueError("API_ONLY_SWITCH_FAILED_ROLLBACK_INCOMPLETE:" + str(recovery.get("reason"))) from exc
+         raise ValueError("API_ONLY_SWITCH_FAILED_AND_ROLLED_BACK:" + str(exc)) from exc
+@@ -1708,62 +1958,53 @@
+     _require_release_lock(lock_lease)
+     if confirmation != CONFIRM_ROLLBACK:
+         raise ValueError("EXPLICIT_API_ONLY_ROLLBACK_CONFIRMATION_REQUIRED")
+-    task_root = TASK_ROOT.resolve(strict=True)
+-    operation_root = _operation_root().resolve(strict=True)
+-    if (receipt_path.is_symlink() or not receipt_path.is_file()
+-            or task_root not in receipt_path.resolve(strict=True).parents
+-            or operation_root not in receipt_path.resolve(strict=True).parents):
+-        raise ValueError("API_ONLY_ROLLBACK_RECEIPT_OUTSIDE_TASK_ROOT")
+-    receipt = _read_json(receipt_path, "API_ONLY_SWITCH_RECEIPT")
+-    claimed = receipt.pop("receipt_sha256", None)
+-    if claimed != _canonical_sha(receipt):
+-        raise ValueError("API_ONLY_ROLLBACK_RECEIPT_SHA_MISMATCH")
+-    if receipt.get("schema_version") != RECEIPT_SCHEMA or receipt.get("status") != "API_ONLY_R2_SWITCHED_AND_READBACK_VERIFIED":
+-        raise ValueError("API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID")
+-    if receipt.get("active_api_plist") != str(ACTIVE_API_PLIST) or receipt.get("active_label") != LABEL:
+-        raise ValueError("API_ONLY_ROLLBACK_RECEIPT_POINTER_MISMATCH")
+-    target = _load_candidate_release(plan, lock_lease=lock_lease)
+-    integration = _verify_api_integration(plan, active_pointer="candidate", lock_lease=lock_lease,
+-                                           require_shared_lock=True)
+-    recorded_integration = receipt.get("api_release_integration")
+-    if (not isinstance(recorded_integration, dict)
+-            or recorded_integration.get("base") != integration.get("base")
+-            or recorded_integration.get("candidate") != integration.get("candidate")
+-            or recorded_integration.get("delta_receipt_sha256") != integration.get("delta_receipt_sha256")):
+-        raise ValueError("API_ONLY_ROLLBACK_RECEIPT_INTEGRATION_MISMATCH")
+-    base_record = integration["base"]
+-    expected_after = {"release_id": plan["target"]["release_id"],
+-                      "app_root": plan["target"]["app_root"],
+-                      "release_manifest_sha256": target["manifest_sha256"]}
+-    if (receipt.get("before", {}).get("active_api_plist_sha256")
+-            != plan["before"]["active_api_plist_sha256"]
+-            or any(receipt.get("after", {}).get(key) != value for key, value in expected_after.items())):
+-        raise ValueError("API_ONLY_ROLLBACK_RECEIPT_RELEASE_IDENTITY_MISMATCH")
+-    backup_path = Path(str(receipt.get("backup_path", "")))
+-    if backup_path.is_symlink() or not backup_path.is_file() or backup_path.resolve(strict=True).parent != receipt_path.resolve(strict=True).parent:
+-        raise ValueError("API_ONLY_ROLLBACK_BACKUP_INVALID")
++    receipt, prepared_transaction = _load_prepared_transaction(plan, receipt_path, lock_lease=lock_lease)
++    prepared = prepared_transaction["record"]
++    target = prepared["candidate_release"]
++    recorded_integration = prepared["api_release_integration"]
++    base_record = recorded_integration["base"]
++    backup_path = Path(prepared["backup_path"])
+     original_raw = _regular_file(backup_path, "API_ONLY_BACKUP")
+-    _verify_rollback_base(plan, original_raw, base_record, lock_lease)
++    _verify_recovery_backup(plan, backup_path, original_raw, prepared["backup_metadata"],
++                            base_record, lock_lease=lock_lease)
+     candidate_raw = _candidate_plist_bytes(original_raw, plan, target)
+     candidate_sha = _sha(candidate_raw)
+-    if (candidate_sha != plan["target"].get("staged_api_plist_sha256")
+-            or expected_current_sha != candidate_sha or ACTIVE_API_PLIST.is_symlink()
+-            or _sha_file(ACTIVE_API_PLIST) != candidate_sha):
+-        raise ValueError("API_ONLY_ROLLBACK_CURRENT_PLIST_PREIMAGE_MISMATCH")
++    if candidate_sha != plan["target"].get("staged_api_plist_sha256"):
++        raise ValueError("API_ONLY_ROLLBACK_PREPARED_CANDIDATE_PLIST_MISMATCH")
++    if expected_current_sha is None:
++        raise ValueError("API_ONLY_ROLLBACK_EXPECTED_CURRENT_SHA_INVALID")
++    current_sha, _, runtime_role = _recovery_state(plan, candidate_sha,
++                                                   expected_current_sha=expected_current_sha)
++    if receipt["status"] == "API_ONLY_R2_SWITCHED_AND_READBACK_VERIFIED":
++        # Ordinary rollback of a successful publication retains the full
++        # current-candidate guard. Interrupted recovery instead relies on the
++        # immutable prepared transaction and revalidated exact original base.
++        if current_sha != candidate_sha or runtime_role != "candidate":
++            raise ValueError("API_ONLY_ROLLBACK_SUCCESS_RECEIPT_NOT_CURRENT_CANDIDATE")
++        if _load_candidate_release(plan, lock_lease=lock_lease) != target:
++            raise ValueError("API_ONLY_ROLLBACK_CANDIDATE_RECEIPT_MISMATCH")
++        integration = _verify_api_integration(plan, active_pointer="candidate", lock_lease=lock_lease,
++                                               require_shared_lock=True)
++        if any(recorded_integration.get(key) != integration.get(key) for key in (
++                "base", "candidate", "module_scope", "delta_receipt_sha256", "delta_paths",
++                "non_delta_entry_count", "non_delta_inventory_sha256",
++                "non_delta_active_release_bytes_preserved", "directory_preservation")):
++            raise ValueError("API_ONLY_ROLLBACK_RECEIPT_INTEGRATION_MISMATCH")
+     guards = _verify_readonly_guards(plan)
+-    expected_runtime = {"V35_APP_ROOT": str(plan["target"]["app_root"]),
+-                        "V35_RELEASE_ID": str(plan["target"]["release_id"]),
+-                        "V35_RELEASE_MANIFEST_SHA256": target["manifest_sha256"]}
+-    loaded = _loaded_identity(_launchctl_print())
+-    if any(loaded.get(key) != value for key, value in expected_runtime.items()):
+-        raise ValueError("API_ONLY_ROLLBACK_LOADED_RUNTIME_NOT_CANDIDATE")
+-    if _sha(original_raw) != plan["before"]["active_api_plist_sha256"]:
+-        raise ValueError("API_ONLY_ROLLBACK_BACKUP_SHA_MISMATCH")
++    _assert_prepared_transaction(prepared_transaction, lock_lease)
++    _recovery_state(plan, candidate_sha, expected_current_sha=expected_current_sha)
++    prepared_transaction["expected_current_sha"] = expected_current_sha
+     operation_dir = _new_operation_dir("-rollback")
++    _record(operation_dir / "operation_receipt.json", "PREPARED", {
++        "resumed_from_receipt": {"path": str(receipt_path),
++            "sha256": prepared_transaction["source_receipt_sha256"]},
++        "recovery_expected_current_plist_sha256": expected_current_sha,
++    }, prepared_transaction=prepared_transaction)
+     recovery = _restore_after_failure(plan, backup_path, original_raw, candidate_sha,
+                                       operation_dir, "OPERATOR_REQUESTED_ROLLBACK",
+-                                      receipt.get("backup_metadata"), lock_lease=lock_lease,
+-                                      base_record=base_record)
++                                      prepared["backup_metadata"], lock_lease=lock_lease,
++                                      base_record=base_record, prepared_transaction=prepared_transaction,
++                                      expected_current_sha=expected_current_sha)
+     recovery["readonly_guards"] = guards
+     return recovery
+ 
+@@ -1814,10 +2055,11 @@
+     execute.add_argument("--confirm", required=True)
+     execute.add_argument("--expected-current-plist-sha256", required=True)
+     execute.add_argument("--expected-staged-plist-sha256", required=True)
+-    rollback = sub.add_parser("rollback", help="restore the exact API plist preimage from a successful receipt")
++    rollback = sub.add_parser("rollback", help="restore or resume the exact preimage from its prepared transaction")
+     rollback.add_argument("--receipt", required=True, type=Path)
+     rollback.add_argument("--confirm", required=True)
+-    rollback.add_argument("--expected-current-plist-sha256", required=True)
++    rollback.add_argument("--expected-current-plist-sha256", required=True,
++                          help="exact current plist SHA256; use literal ABSENT only when the pointer is missing")
+     args = parser.parse_args(argv)
+     try:
+         plan = _load_plan()
+@@ -1836,7 +2078,7 @@
+                 confirmation=args.confirm,
+                 expected_current_sha=args.expected_current_plist_sha256)
+         print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+-        return 0
++        return 2 if result.get("status") == "ROLLBACK_INCOMPLETE" else 0
+     except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as exc:
+         mutating = args.command in {"execute", "rollback"}
+         print(json.dumps({"status": "FAILED_CLOSED", "reason": str(exc),

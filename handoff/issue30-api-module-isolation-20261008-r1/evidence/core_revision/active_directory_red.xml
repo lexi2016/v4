@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.092" timestamp="2026-10-08T07:13:06.217885-07:00" hostname="5fa05583d26b"><testcase classname="tests.test_core_review_revision" name="test_a_new_active_v2_release_keeps_its_recorded_directory_identity" time="0.013"><failure message="Failed: DID NOT RAISE ValueError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/active_directory_red_temp/test_a_new_active_v2_release_k0')
+
+    def test_a_new_active_v2_release_keeps_its_recorded_directory_identity(tmp_path):
+        _, kwargs = _candidate_with_empty_directory(tmp_path)
+        candidate = kwargs["candidate_root"]
+        pointer = kwargs["active_api_plist_path"]
+        payload = plistlib.loads(pointer.read_bytes())
+        values = {
+            "V35_APP_ROOT": str(candidate / "app"),
+            "V35_RELEASE_ID": candidate.name,
+            "V35_RELEASE_MANIFEST_PATH": str(candidate / "release-manifest.json"),
+            "V35_RELEASE_MANIFEST_SHA256": integration.sha256_bytes((candidate / "release-manifest.json").read_bytes()),
+        }
+        payload["ProgramArguments"] = [
+            key + "=" + values[key] if "=" in arg and (key := arg.split("=", 1)[0]) in values else arg
+            for arg in payload["ProgramArguments"]
+        ]
+        pointer.write_bytes(plistlib.dumps(payload))
+        (candidate / "app/retained/empty").chmod(0o777)
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_core_review_revision.py:215: Failed</failure></testcase></testsuite></testsuites>

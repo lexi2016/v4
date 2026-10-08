@@ -1,0 +1,1790 @@
+diff --git a/ops/api_release_integration.py b/ops/api_release_integration.py
+index 734142f..9525da2 100644
+--- a/ops/api_release_integration.py
++++ b/ops/api_release_integration.py
+@@ -5,21 +5,174 @@
+ import difflib
+ import hashlib
+ import json
++import math
+ import os
+ from pathlib import Path, PurePosixPath, PureWindowsPath
+ import plistlib
+-import shutil
++import re
++import secrets
+ import stat
+-import sys
++import threading
++import time
+ from typing import Any, Iterator, Mapping, Sequence
+ 
+ 
+-SCHEMA_VERSION = "v4.api_release_integration.v1"
+-DELTA_SCHEMA_VERSION = "v4.api_release_delta_receipt.v1"
++SCHEMA_VERSION = "v4.api_release_integration.v2"
++DELTA_SCHEMA_VERSION = "v4.api_release_delta_receipt.v2"
+ DELTA_RECEIPT_NAME = "api-integration-delta-receipt.json"
+-REPO_ROOT = Path(__file__).resolve().parents[1]
+-if str(REPO_ROOT) not in sys.path:
+-    sys.path.insert(0, str(REPO_ROOT))
++DIRECTORY_SCHEMA_VERSION = "v4.api_release_directory_preservation.v1"
++NEW_DIRECTORY_MODE = "0755"
++
++# Reviewed ownership is code, not caller-supplied data or an unpinned import.
++# Unknown paths require an explicit policy review before a module may ship them.
++POLICY = {
++    "version": "v4.api_module_ownership.v1",
++    "modules": {
++        "preselection": {"exact": [
++            "apps/api/v35_api/preselection_router.py",
++            "apps/api/v35_api/preselection_service.py", "domains/preselection_pools.py",
++            "domains/preselection.py",
++        ], "prefixes": []},
++        "manager": {"exact": [], "prefixes": [
++            "domains/manager_research/", "v4/manager_research/", "apps/api/v35_api/manager_",
++        ]},
++        "research_review": {"exact": [
++            "apps/api/v35_api/review_router.py", "domains/daily_research_review.py",
++        ], "prefixes": ["domains/research_review_generation/"]},
++        "api_platform": {"exact": [], "prefixes": []},
++    },
++    "shared": {
++        "apps/api/v35_api/app.py": ["preselection", "manager", "research_review", "api_platform"],
++        "apps/api/v35_api/config.py": ["preselection", "manager", "research_review", "api_platform"],
++        "apps/api/v35_api/run.py": ["preselection", "manager", "research_review", "api_platform"],
++        "ops/build_release_candidate.py": ["api_platform"],
++        "ops/prepare_api_only_cutover.py": ["api_platform"],
++        "ops/api_release_integration.py": ["api_platform"],
++        "ops/create_api_module_delta.py": ["api_platform"],
++    },
++}
++POLICY_SHA256 = hashlib.sha256(json.dumps(
++    POLICY, ensure_ascii=False, sort_keys=True, separators=(",", ":")
++).encode("utf-8")).hexdigest()
++_RELEASE_KEYS = (
++    "release_root", "app_root", "release_id", "release_manifest_path",
++    "release_manifest_sha256", "application_inventory_sha256",
++    "application_inventory_entry_count",
++)
++_BASE_KEYS = (*_RELEASE_KEYS, "api_plist_path", "api_plist_sha256")
++_ENTRY_KEYS = {
++    "path", "before_sha256", "after_sha256", "before_mode", "after_mode",
++    "unified_diff_sha256", "unified_diff_hunk_count",
++}
++
++
++def _absolute_path(path: Path) -> Path:
++    supplied = Path(path).expanduser()
++    if ".." in supplied.parts:
++        raise ValueError("API_RELEASE_PATH_NOT_CANONICAL")
++    return Path(os.path.abspath(supplied))
++
++
++@contextmanager
++def _directory_fd(path: Path) -> Iterator[int]:
++    """Open every ancestry component without following links."""
++    if os.name != "posix" or not hasattr(os, "O_NOFOLLOW"):
++        raise ValueError("API_RELEASE_POSIX_NOFOLLOW_REQUIRED")
++    path = _absolute_path(path)
++    fd = os.open("/", os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
++    try:
++        for part in path.parts[1:]:
++            child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
++            os.close(fd)
++            fd = child
++        yield fd
++    except OSError as exc:
++        if isinstance(exc, FileNotFoundError):
++            raise
++        raise ValueError("API_RELEASE_DIRECTORY_PATH_UNSAFE") from exc
++    finally:
++        os.close(fd)
++
++
++def _file_token(info: os.stat_result) -> tuple[int, ...]:
++    return (info.st_dev, info.st_ino, info.st_mode, info.st_size,
++            info.st_mtime_ns, info.st_ctime_ns, info.st_nlink)
++
++
++def _directory_token(path: Path) -> tuple[int, int]:
++    with _directory_fd(path) as fd:
++        info = os.fstat(fd)
++        return info.st_dev, info.st_ino
++
++
++def _read_regular_at(parent: int, name: str) -> tuple[bytes, tuple[int, ...]]:
++    try:
++        fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent)
++    except OSError as exc:
++        if isinstance(exc, FileNotFoundError):
++            raise
++        raise ValueError("API_RELEASE_FILE_PATH_UNSAFE") from exc
++    try:
++        before = os.fstat(fd)
++        if not stat.S_ISREG(before.st_mode):
++            raise ValueError("API_RELEASE_NOT_REGULAR_FILE")
++        chunks = []
++        while chunk := os.read(fd, 1024 * 1024):
++            chunks.append(chunk)
++        raw = b"".join(chunks)
++        token = _file_token(before)
++        if (_file_token(os.fstat(fd)) != token
++                or _file_token(os.stat(name, dir_fd=parent, follow_symlinks=False)) != token
++                or len(raw) != before.st_size):
++            raise ValueError("API_RELEASE_FILE_CHANGED_DURING_READ")
++        return raw, token
++    finally:
++        os.close(fd)
++
++
++def _read_file(path: Path) -> tuple[bytes, tuple[object, ...]]:
++    path = _absolute_path(path)
++    with _directory_fd(path.parent) as parent:
++        parent_identity = (os.fstat(parent).st_dev, os.fstat(parent).st_ino)
++        raw, token = _read_regular_at(parent, path.name)
++    if _directory_token(path.parent) != parent_identity:
++        raise ValueError("API_RELEASE_FILE_PARENT_REPLACED")
++    return raw, (parent_identity, token)
++
++
++def _assert_file_snapshot(path: Path, sha256: str, token: tuple[object, ...]) -> None:
++    raw, current_token = _read_file(path)
++    if current_token != token or sha256_bytes(raw) != sha256:
++        raise ValueError("API_RELEASE_FILE_SNAPSHOT_CHANGED")
++
++
++def _json_object(raw: bytes, label: str) -> dict[str, Any]:
++    def unique(pairs):
++        result = {}
++        for key, value in pairs:
++            if key in result:
++                raise ValueError(label + "_JSON_DUPLICATE_KEY")
++            result[key] = value
++        return result
++
++    def invalid_constant(value):
++        raise ValueError(label + "_JSON_CONSTANT_INVALID")
++
++    try:
++        value = json.loads(raw.decode("utf-8"), object_pairs_hook=unique, parse_constant=invalid_constant)
++    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
++        raise ValueError(label + "_JSON_INVALID") from exc
++    if not isinstance(value, dict):
++        raise ValueError(label + "_JSON_OBJECT_REQUIRED")
++    return value
++
++
++def _is_sha(value: object) -> bool:
++    return isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value) is not None
++
++
++def _is_mode(value: object) -> bool:
++    return isinstance(value, str) and re.fullmatch(r"[0-7]{4}", value) is not None
+ 
+ 
+ def sha256_bytes(raw: bytes) -> str:
+@@ -27,7 +180,7 @@
+ 
+ 
+ def _exact_path(path: Path, *, kind: str, label: str) -> Path:
+-    path = Path(os.path.abspath(Path(path).expanduser()))
++    path = _absolute_path(path)
+     if path.is_symlink() or path.resolve(strict=True) != path:
+         raise ValueError(label + "_PATH_SYMLINK_OR_ALIAS")
+     if kind == "file" and not path.is_file():
+@@ -39,6 +192,11 @@
+         raise ValueError(label + "_NOT_REGULAR_FILE")
+     if kind == "directory" and not stat.S_ISDIR(info.st_mode):
+         raise ValueError(label + "_NOT_DIRECTORY")
++    if kind == "directory":
++        _directory_token(path)
++    else:
++        with _directory_fd(path.parent):
++            pass
+     return path
+ 
+ 
+@@ -47,12 +205,21 @@
+         raise ValueError("API_RELEASE_DELTA_PATH_INVALID")
+     posix = PurePosixPath(value)
+     windows = PureWindowsPath(value)
+-    if posix.is_absolute() or windows.drive or windows.root or any(part in {"", ".", ".."} for part in posix.parts):
++    if not posix.parts or posix.is_absolute() or windows.drive or windows.root or any(part in {"", ".", ".."} for part in posix.parts):
+         raise ValueError("API_RELEASE_DELTA_PATH_INVALID")
+     normalized = posix.as_posix()
+     if normalized != value:
+         raise ValueError("API_RELEASE_DELTA_PATH_NOT_CANONICAL")
+     return normalized
++
++
++def _path_set(values: Sequence[str], *, label: str) -> set[str]:
++    if isinstance(values, (str, bytes)):
++        raise ValueError(label + "_LIST_REQUIRED")
++    normalized = [_normalise_relative(value) for value in values]
++    if len(set(normalized)) != len(normalized):
++        raise ValueError(label + "_DUPLICATE_PATH")
++    return set(normalized)
+ 
+ 
+ def _safe_child(root: Path, relative: str, *, allow_missing: bool) -> Path:
+@@ -91,29 +258,72 @@
+     return {
+         "path": relative,
+         "kind": "file",
+-        "sha256": sha256_bytes(path.read_bytes()),
++        "sha256": sha256_bytes(_read_file(path)[0]),
+         "mode": f"{stat.S_IMODE(info.st_mode):04o}",
+         "size": info.st_size,
+     }
+ 
+ 
+ def inventory_tree(root: Path) -> list[dict[str, object]]:
++    return _inventory_snapshot(root)["entries"]
++
++
++def _inventory_snapshot(root: Path) -> dict[str, Any]:
+     root = _exact_path(root, kind="directory", label="API_RELEASE_INVENTORY_ROOT")
+-    paths: list[str] = []
+-    for directory, directories, filenames in os.walk(root, followlinks=False):
+-        directories.sort()
+-        filenames.sort()
+-        safe_directories: list[str] = []
+-        for name in directories:
+-            path = Path(directory) / name
+-            relative = path.relative_to(root).as_posix()
+-            if path.is_symlink():
+-                paths.append(relative)
++    entries: list[dict[str, object]] = []
++    physical: list[tuple[object, ...]] = []
++
++    def walk(directory: int, prefix: str) -> None:
++        directory_info = os.fstat(directory)
++        names = sorted(os.listdir(directory))
++        physical.append((prefix, "directory", directory_info.st_dev, directory_info.st_ino,
++                         directory_info.st_mode))
++        for name in names:
++            relative = _normalise_relative(prefix + name)
++            info = os.stat(name, dir_fd=directory, follow_symlinks=False)
++            if stat.S_ISDIR(info.st_mode):
++                child = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=directory)
++                try:
++                    opened = os.fstat(child)
++                    if (opened.st_dev, opened.st_ino) != (info.st_dev, info.st_ino):
++                        raise ValueError("API_RELEASE_INVENTORY_DIRECTORY_REPLACED")
++                    walk(child, relative + "/")
++                finally:
++                    os.close(child)
++            elif stat.S_ISLNK(info.st_mode):
++                target = os.readlink(name, dir_fd=directory)
++                entries.append({"path": relative, "kind": "symlink", "target": target,
++                                "target_exists": (root / relative).exists()})
++                physical.append((relative, "symlink", *_file_token(info), target))
++            elif stat.S_ISREG(info.st_mode):
++                raw, token = _read_regular_at(directory, name)
++                if token != _file_token(info):
++                    raise ValueError("API_RELEASE_INVENTORY_FILE_REPLACED")
++                entries.append({"path": relative, "kind": "file", "sha256": sha256_bytes(raw),
++                                "mode": f"{stat.S_IMODE(info.st_mode):04o}", "size": len(raw)})
++                physical.append((relative, "file", *token))
+             else:
+-                safe_directories.append(name)
+-        directories[:] = safe_directories
+-        paths.extend((Path(directory) / name).relative_to(root).as_posix() for name in filenames)
+-    return [_entry_for_path(root, relative) for relative in sorted(paths)]
++                raise ValueError("API_RELEASE_UNSUPPORTED_ENTRY_TYPE:" + relative)
++            if _file_token(os.stat(name, dir_fd=directory, follow_symlinks=False)) != _file_token(info):
++                raise ValueError("API_RELEASE_INVENTORY_ENTRY_CHANGED")
++        if sorted(os.listdir(directory)) != names:
++            raise ValueError("API_RELEASE_INVENTORY_DIRECTORY_CHANGED")
++        after = os.fstat(directory)
++        if (after.st_dev, after.st_ino, after.st_mode) != (
++                directory_info.st_dev, directory_info.st_ino, directory_info.st_mode):
++            raise ValueError("API_RELEASE_INVENTORY_DIRECTORY_CHANGED")
++
++    with _directory_fd(root) as descriptor:
++        root_info = os.fstat(descriptor)
++        walk(descriptor, "")
++    if _directory_token(root) != (root_info.st_dev, root_info.st_ino):
++        raise ValueError("API_RELEASE_INVENTORY_ROOT_REPLACED")
++    return {"entries": sorted(entries, key=lambda item: str(item["path"])), "physical": physical}
++
++
++def _assert_inventory_snapshot(root: Path, snapshot: Mapping[str, Any]) -> None:
++    if _inventory_snapshot(root) != snapshot:
++        raise ValueError("API_RELEASE_APPLICATION_SNAPSHOT_CHANGED")
+ 
+ 
+ def inventory_digest(entries: Sequence[Mapping[str, object]]) -> str:
+@@ -121,15 +331,78 @@
+     return sha256_bytes(raw)
+ 
+ 
++def _directory_entries(snapshot: Mapping[str, Any]) -> list[dict[str, str]]:
++    """Keep directory identity separate from historical file-only inventories."""
++    return sorted([
++        {"path": row[0].rstrip("/") or ".", "mode": f"{stat.S_IMODE(row[4]):04o}"}
++        for row in snapshot["physical"] if row[1] == "directory"
++    ], key=lambda row: row["path"])
++
++
++def _expected_directory_modes(
++    base_snapshot: Mapping[str, Any], entries: Sequence[Mapping[str, Any]],
++) -> dict[str, str]:
++    expected = {row["path"]: row["mode"] for row in _directory_entries(base_snapshot)}
++    for entry in entries:
++        if entry["before_sha256"] is None:
++            for parent in PurePosixPath(entry["path"]).parents:
++                if parent.as_posix() != ".":
++                    expected.setdefault(parent.as_posix(), NEW_DIRECTORY_MODE)
++    return expected
++
++
++def _directory_inventory_record(snapshot: Mapping[str, Any]) -> dict[str, Any]:
++    rows = _directory_entries(snapshot)
++    return {"entry_count": len(rows), "aggregate_sha256": inventory_digest(rows)}
++
++
++def _validate_directory_proof(proof: object) -> dict[str, Any]:
++    if not isinstance(proof, dict) or set(proof) != {
++            "schema_version", "base", "candidate", "added_paths", "new_directory_mode"}:
++        raise ValueError("API_RELEASE_DIRECTORY_PROOF_FIELDS_INVALID")
++    if (proof["schema_version"] != DIRECTORY_SCHEMA_VERSION
++            or proof["new_directory_mode"] != NEW_DIRECTORY_MODE):
++        raise ValueError("API_RELEASE_DIRECTORY_PROOF_POLICY_INVALID")
++    for owner in ("base", "candidate"):
++        record = proof[owner]
++        if (not isinstance(record, dict) or set(record) != {"entry_count", "aggregate_sha256"}
++                or type(record["entry_count"]) is not int or record["entry_count"] < 1
++                or not _is_sha(record["aggregate_sha256"])):
++            raise ValueError("API_RELEASE_DIRECTORY_PROOF_INVENTORY_INVALID")
++    paths = proof["added_paths"]
++    if not isinstance(paths, list) or paths != sorted(_path_set(paths, label="API_RELEASE_DIRECTORY_PROOF")):
++        raise ValueError("API_RELEASE_DIRECTORY_PROOF_PATHS_INVALID")
++    return proof
++
++
++def _directory_preservation(
++    base_snapshot: Mapping[str, Any], candidate_snapshot: Mapping[str, Any],
++    entries: Sequence[Mapping[str, Any]],
++) -> dict[str, Any]:
++    base = {row["path"]: row["mode"] for row in _directory_entries(base_snapshot)}
++    candidate = {row["path"]: row["mode"] for row in _directory_entries(candidate_snapshot)}
++    expected = _expected_directory_modes(base_snapshot, entries)
++    removed = sorted(set(expected) - set(candidate))
++    if removed:
++        raise ValueError("API_RELEASE_INTEGRATION_DIRECTORY_REMOVED:" + ",".join(removed[:8]))
++    added_unlisted = sorted(set(candidate) - set(expected))
++    if added_unlisted:
++        raise ValueError("API_RELEASE_INTEGRATION_UNLISTED_DIRECTORY_ADDED:" + ",".join(added_unlisted[:8]))
++    changed_modes = sorted(path for path in expected if expected[path] != candidate[path])
++    if changed_modes:
++        raise ValueError("API_RELEASE_INTEGRATION_DIRECTORY_MODE_MISMATCH:" + ",".join(changed_modes[:8]))
++    return {
++        "schema_version": DIRECTORY_SCHEMA_VERSION,
++        "base": _directory_inventory_record(base_snapshot),
++        "candidate": _directory_inventory_record(candidate_snapshot),
++        "added_paths": sorted(set(candidate) - set(base)),
++        "new_directory_mode": NEW_DIRECTORY_MODE,
++    }
++
++
+ def _read_json(path: Path, label: str) -> tuple[dict[str, Any], bytes]:
+-    raw = _exact_path(path, kind="file", label=label).read_bytes()
+-    try:
+-        value = json.loads(raw.decode("utf-8"))
+-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+-        raise ValueError(label + "_JSON_INVALID") from exc
+-    if not isinstance(value, dict):
+-        raise ValueError(label + "_JSON_OBJECT_REQUIRED")
+-    return value, raw
++    raw, _ = _read_file(_exact_path(path, kind="file", label=label))
++    return _json_object(raw, label), raw
+ 
+ 
+ def _plist_environment(payload: Mapping[str, Any]) -> dict[str, str]:
+@@ -169,33 +442,42 @@
+     manifest_path = _exact_path(manifest_path, kind="file", label="API_RELEASE_MANIFEST")
+     if app_root.name != "app" or app_root.parent != release_root or manifest_path != release_root / "release-manifest.json":
+         raise ValueError("API_RELEASE_ROOT_BINDING_INVALID")
+-    manifest_raw = manifest_path.read_bytes()
++    if not _is_sha(manifest_sha256):
++        raise ValueError("API_RELEASE_MANIFEST_SHA_INVALID")
++    if application_inventory_sha256 is not None and not _is_sha(application_inventory_sha256):
++        raise ValueError("API_RELEASE_MANIFEST_INVENTORY_SHA_INVALID")
++    manifest_raw, manifest_token = _read_file(manifest_path)
+     observed_manifest_sha = sha256_bytes(manifest_raw)
+     if observed_manifest_sha != manifest_sha256:
+         raise ValueError("API_RELEASE_MANIFEST_SHA_MISMATCH")
+-    try:
+-        manifest = json.loads(manifest_raw.decode("utf-8"))
+-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+-        raise ValueError("API_RELEASE_MANIFEST_JSON_INVALID") from exc
+-    if not isinstance(manifest, dict):
+-        raise ValueError("API_RELEASE_MANIFEST_OBJECT_REQUIRED")
++    manifest = _json_object(manifest_raw, "API_RELEASE_MANIFEST")
+     if manifest.get("schema_version") != "v4.release_candidate.v1":
+         raise ValueError("API_RELEASE_MANIFEST_SCHEMA_UNSUPPORTED")
+     candidate = manifest.get("candidate")
+     inventory = manifest.get("application_inventory")
+     if not isinstance(candidate, dict) or not isinstance(inventory, dict):
+         raise ValueError("API_RELEASE_MANIFEST_IDENTITY_OR_INVENTORY_MISSING")
+-    if candidate.get("release_id") != release_id or candidate.get("app_root") != str(app_root):
++    if (not isinstance(release_id, str) or not release_id or "/" in release_id or "\\" in release_id
++            or candidate.get("release_id") != release_id or candidate.get("app_root") != str(app_root)
++            or candidate.get("root") != str(release_root)):
+         raise ValueError("API_RELEASE_MANIFEST_IDENTITY_MISMATCH")
+     entries = inventory.get("entries")
+     aggregate = inventory.get("aggregate_sha256")
+-    if not isinstance(entries, list) or inventory_digest(entries) != aggregate:
++    if (not isinstance(entries, list) or not _is_sha(aggregate) or inventory_digest(entries) != aggregate
++            or type(inventory.get("entry_count")) is not int or inventory["entry_count"] != len(entries)):
+         raise ValueError("API_RELEASE_MANIFEST_INVENTORY_DIGEST_MISMATCH")
+-    actual = inventory_tree(app_root)
++    snapshot = _inventory_snapshot(app_root)
++    actual = snapshot["entries"]
+     if actual != entries:
+         raise ValueError("API_RELEASE_ACTIVE_APPLICATION_INVENTORY_DRIFT")
++    integration = manifest.get("api_integration")
++    if isinstance(integration, dict) and integration.get("schema_version") == SCHEMA_VERSION:
++        directories = _validate_directory_proof(integration.get("directory_preservation"))
++        if directories["candidate"] != _directory_inventory_record(snapshot):
++            raise ValueError("API_RELEASE_ACTIVE_DIRECTORY_INVENTORY_DRIFT")
+     if application_inventory_sha256 is not None and aggregate != application_inventory_sha256:
+         raise ValueError("API_RELEASE_MANIFEST_INVENTORY_BINDING_MISMATCH")
++    _assert_file_snapshot(manifest_path, observed_manifest_sha, manifest_token)
+     return {
+         "release_root": str(release_root),
+         "app_root": str(app_root),
+@@ -206,13 +488,16 @@
+         "application_inventory_entry_count": len(entries),
+         "manifest": manifest,
+         "inventory": actual,
++        "_application_snapshot": snapshot,
++        "_manifest_token": manifest_token,
+     }
+ 
+ 
+ def read_active_release(api_plist_path: Path) -> dict[str, Any]:
+     api_plist_path = _exact_path(api_plist_path, kind="file", label="API_RELEASE_ACTIVE_PLIST")
++    plist_raw, plist_token = _read_file(api_plist_path)
+     try:
+-        payload = plistlib.loads(api_plist_path.read_bytes())
++        payload = plistlib.loads(plist_raw)
+     except (plistlib.InvalidFileException, ValueError) as exc:
+         raise ValueError("API_RELEASE_ACTIVE_PLIST_INVALID") from exc
+     if not isinstance(payload, dict) or payload.get("Label") != "com.lexi.v35.api-only":
+@@ -232,20 +517,90 @@
+         manifest_sha256=manifest_expected,
+     )
+     identity["api_plist_path"] = str(api_plist_path)
+-    identity["api_plist_sha256"] = sha256_bytes(api_plist_path.read_bytes())
++    identity["api_plist_sha256"] = sha256_bytes(plist_raw)
+     identity["identity_from_plist"] = {key: values[key] for key in sorted(values)}
++    identity["_plist_token"] = plist_token
++    _assert_release_snapshot(identity)
++    _assert_file_snapshot(api_plist_path, identity["api_plist_sha256"], plist_token)
+     return identity
+ 
+ 
+ def _base_binding(identity: Mapping[str, Any]) -> dict[str, Any]:
+-    return {
+-        key: identity[key]
+-        for key in (
+-            "release_root", "app_root", "release_id", "release_manifest_path",
+-            "release_manifest_sha256", "application_inventory_sha256",
+-            "application_inventory_entry_count",
+-        )
+-    }
++    return {key: identity[key] for key in _BASE_KEYS}
++
++
++def _assert_release_snapshot(identity: Mapping[str, Any]) -> None:
++    _assert_inventory_snapshot(Path(identity["app_root"]), identity["_application_snapshot"])
++    _assert_file_snapshot(Path(identity["release_manifest_path"]),
++                          identity["release_manifest_sha256"], identity["_manifest_token"])
++
++
++def _assert_active_snapshot(identity: Mapping[str, Any]) -> None:
++    _assert_release_snapshot(identity)
++    _assert_file_snapshot(Path(identity["api_plist_path"]), identity["api_plist_sha256"],
++                          identity["_plist_token"])
++
++
++def verify_recorded_base(base_record: Mapping[str, Any]) -> dict[str, Any]:
++    """Verify immutable recorded base bytes without reading the active pointer.
++
++    A rollback caller may use this while the active pointer is absent or has
++    changed. Recorded pointer SHA is syntax-checked only in this function.
++    """
++    if not isinstance(base_record, Mapping) or set(base_record) != set(_BASE_KEYS):
++        raise ValueError("API_RELEASE_INTEGRATION_BASE_RECORD_INVALID")
++    for key in ("release_root", "app_root", "release_manifest_path", "api_plist_path"):
++        value = base_record[key]
++        if not isinstance(value, str) or not value.startswith("/") or str(_absolute_path(Path(value))) != value:
++            raise ValueError("API_RELEASE_INTEGRATION_BASE_PATH_INVALID")
++    if (not _is_sha(base_record["api_plist_sha256"])
++            or type(base_record["application_inventory_entry_count"]) is not int
++            or base_record["application_inventory_entry_count"] < 0):
++        raise ValueError("API_RELEASE_INTEGRATION_BASE_RECORD_INVALID")
++    identity = _release_identity(
++        release_root=Path(base_record["release_root"]), app_root=Path(base_record["app_root"]),
++        release_id=base_record["release_id"], manifest_path=Path(base_record["release_manifest_path"]),
++        manifest_sha256=base_record["release_manifest_sha256"],
++        application_inventory_sha256=base_record["application_inventory_sha256"],
++    )
++    identity.update({key: base_record[key] for key in ("api_plist_path", "api_plist_sha256")})
++    if _base_binding(identity) != dict(base_record):
++        raise ValueError("API_RELEASE_INTEGRATION_BASE_RECORD_MISMATCH")
++    _assert_release_snapshot(identity)
++    return identity
++
++
++def module_scope(module: str, shared_paths: Sequence[str] = ()) -> dict[str, Any]:
++    if not isinstance(module, str) or module not in POLICY["modules"]:
++        raise ValueError("API_RELEASE_MODULE_UNKNOWN")
++    if isinstance(shared_paths, (str, bytes)):
++        raise ValueError("API_RELEASE_MODULE_SHARED_PATHS_INVALID")
++    paths = [_normalise_relative(value) for value in shared_paths]
++    if len(set(paths)) != len(paths):
++        raise ValueError("API_RELEASE_MODULE_SHARED_PATH_DUPLICATE")
++    if any(module not in POLICY["shared"].get(path, ()) for path in paths):
++        raise ValueError("API_RELEASE_MODULE_SHARED_PATH_NOT_ALLOWED")
++    return {"module": module, "shared_paths": sorted(paths), "policy_sha256": POLICY_SHA256}
++
++
++def _validate_module_scope(value: object, paths: Sequence[str]) -> dict[str, Any]:
++    if not isinstance(value, dict) or set(value) != {"module", "shared_paths", "policy_sha256"}:
++        raise ValueError("API_RELEASE_MODULE_SCOPE_REQUIRED")
++    if not isinstance(value["shared_paths"], list):
++        raise ValueError("API_RELEASE_MODULE_SHARED_PATHS_INVALID")
++    expected = module_scope(value["module"], value["shared_paths"])
++    if value != expected:
++        raise ValueError("API_RELEASE_MODULE_SCOPE_POLICY_MISMATCH")
++    shared = sorted(path for path in paths if path in POLICY["shared"])
++    if shared != expected["shared_paths"]:
++        raise ValueError("API_RELEASE_MODULE_SHARED_PATHS_NOT_EXACT")
++    ownership = POLICY["modules"][expected["module"]]
++    for path in paths:
++        if path in shared:
++            continue
++        if path not in ownership["exact"] and not any(path.startswith(prefix) for prefix in ownership["prefixes"]):
++            raise ValueError("API_RELEASE_MODULE_PATH_NOT_OWNED:" + path)
++    return expected
+ 
+ 
+ def _diff_proof(before: bytes, after: bytes) -> tuple[str | None, int | None]:
+@@ -267,6 +622,8 @@
+ ) -> list[dict[str, Any]]:
+     if receipt.get("schema_version") != DELTA_SCHEMA_VERSION:
+         raise ValueError("API_RELEASE_DELTA_RECEIPT_SCHEMA_INVALID")
++    if set(receipt) != {"schema_version", "base", "module_scope", "entries"}:
++        raise ValueError("API_RELEASE_DELTA_RECEIPT_FIELDS_INVALID")
+     if receipt.get("base") != _base_binding(base_identity):
+         raise ValueError("API_RELEASE_DELTA_BASE_IDENTITY_MISMATCH")
+     raw_entries = receipt.get("entries")
+@@ -275,7 +632,7 @@
+     entries: list[dict[str, Any]] = []
+     seen: set[str] = set()
+     for raw in raw_entries:
+-        if not isinstance(raw, dict):
++        if not isinstance(raw, dict) or set(raw) != _ENTRY_KEYS:
+             raise ValueError("API_RELEASE_DELTA_ENTRY_INVALID")
+         relative = _normalise_relative(raw.get("path"))
+         if relative in seen:
+@@ -283,31 +640,40 @@
+         seen.add(relative)
+         before_sha = raw.get("before_sha256")
+         after_sha = raw.get("after_sha256")
+-        if before_sha is not None and (not isinstance(before_sha, str) or len(before_sha) != 64):
++        if before_sha is not None and not _is_sha(before_sha):
+             raise ValueError("API_RELEASE_DELTA_BEFORE_SHA_INVALID:" + relative)
+-        if not isinstance(after_sha, str) or len(after_sha) != 64:
++        if not _is_sha(after_sha):
+             raise ValueError("API_RELEASE_DELTA_AFTER_SHA_REQUIRED:" + relative)
+-        if before_sha == after_sha:
++        if before_sha == after_sha and raw["before_mode"] == raw["after_mode"]:
+             raise ValueError("API_RELEASE_DELTA_HAS_NO_CHANGE:" + relative)
++        if not _is_mode(raw["after_mode"]):
++            raise ValueError("API_RELEASE_DELTA_AFTER_MODE_INVALID:" + relative)
++        if (before_sha is None and raw["before_mode"] is not None
++                or before_sha is not None and not _is_mode(raw["before_mode"])):
++            raise ValueError("API_RELEASE_DELTA_BEFORE_MODE_INVALID:" + relative)
+         proof_sha = raw.get("unified_diff_sha256")
+         hunk_count = raw.get("unified_diff_hunk_count")
+         if before_sha is None:
+             if proof_sha is not None or hunk_count is not None:
+                 raise ValueError("API_RELEASE_DELTA_ADDITION_PROOF_INVALID:" + relative)
+-        elif (not isinstance(proof_sha, str) or len(proof_sha) != 64
++        elif (not _is_sha(proof_sha)
+               or not isinstance(hunk_count, int) or isinstance(hunk_count, bool) or hunk_count < 0):
+             raise ValueError("API_RELEASE_DELTA_DIFF_PROOF_REQUIRED:" + relative)
+         entries.append(dict(raw, path=relative))
+     if [entry["path"] for entry in entries] != sorted(entry["path"] for entry in entries):
+         raise ValueError("API_RELEASE_DELTA_ENTRIES_NOT_SORTED")
++    _validate_module_scope(receipt.get("module_scope"), [entry["path"] for entry in entries])
+     return entries
+ 
+ 
+ def _verify_delta_files(
+     *, base_app: Path, candidate_app: Path, entries: Sequence[Mapping[str, Any]],
+ ) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
+-    base_inventory = inventory_tree(base_app)
+-    candidate_inventory = inventory_tree(candidate_app)
++    base_snapshot = _inventory_snapshot(base_app)
++    candidate_snapshot = _inventory_snapshot(candidate_app)
++    _directory_preservation(base_snapshot, candidate_snapshot, entries)
++    base_inventory = base_snapshot["entries"]
++    candidate_inventory = candidate_snapshot["entries"]
+     base_by_path = {str(item["path"]): item for item in base_inventory}
+     candidate_by_path = {str(item["path"]): item for item in candidate_inventory}
+     delta_paths = {str(entry["path"]) for entry in entries}
+@@ -329,14 +695,20 @@
+         relative = str(entry["path"])
+         before_path = _safe_child(base_app, relative, allow_missing=True)
+         after_path = _safe_child(candidate_app, relative, allow_missing=False)
+-        before_sha = sha256_bytes(before_path.read_bytes()) if before_path.exists() else None
+-        after_sha = sha256_bytes(after_path.read_bytes())
++        before_raw = _read_file(before_path)[0] if before_path.exists() else None
++        after_raw = _read_file(after_path)[0]
++        before_sha = sha256_bytes(before_raw) if before_raw is not None else None
++        after_sha = sha256_bytes(after_raw)
+         if before_sha != entry.get("before_sha256") or after_sha != entry.get("after_sha256"):
+             raise ValueError("API_RELEASE_INTEGRATION_DELTA_SHA_MISMATCH:" + relative)
++        before_mode = base_by_path.get(relative, {}).get("mode")
++        after_mode = candidate_by_path.get(relative, {}).get("mode")
++        if before_mode != entry.get("before_mode") or after_mode != entry.get("after_mode"):
++            raise ValueError("API_RELEASE_INTEGRATION_DELTA_MODE_MISMATCH:" + relative)
+         diff_sha = None
+         hunk_count = None
+         if before_sha is not None:
+-            diff_sha, hunk_count = _diff_proof(before_path.read_bytes(), after_path.read_bytes())
++            diff_sha, hunk_count = _diff_proof(before_raw, after_raw)
+             if (diff_sha != entry.get("unified_diff_sha256")
+                     or hunk_count != entry.get("unified_diff_hunk_count")):
+                 raise ValueError("API_RELEASE_INTEGRATION_DELTA_DIFF_MISMATCH:" + relative)
+@@ -344,6 +716,8 @@
+             "path": relative,
+             "before_sha256": before_sha,
+             "after_sha256": after_sha,
++            "before_mode": before_mode,
++            "after_mode": after_mode,
+             "unified_diff_sha256": diff_sha,
+             "unified_diff_hunk_count": hunk_count,
+         })
+@@ -354,54 +728,165 @@
+     return delta_records, preserved
+ 
+ 
++@contextmanager
++def _child_parent_fd(root: Path, relative: str) -> Iterator[tuple[int, str]]:
++    parts = PurePosixPath(_normalise_relative(relative)).parts
++    with _directory_fd(root) as root_fd:
++        parent = os.dup(root_fd)
++        try:
++            for part in parts[:-1]:
++                try:
++                    os.mkdir(part, mode=0o700, dir_fd=parent)
++                except FileExistsError:
++                    pass
++                child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=parent)
++                os.close(parent)
++                parent = child
++            yield parent, parts[-1]
++        finally:
++            os.close(parent)
++
++
++def _write_candidate_bytes(root: Path, relative: str, raw: bytes, mode: int, *, exclusive: bool) -> None:
++    """Publish checked bytes using one anchored destination directory fd."""
++    with _child_parent_fd(root, relative) as (parent, name):
++        temporary = ".api-release-" + secrets.token_hex(16)
++        descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
++                             0o600, dir_fd=parent)
++        try:
++            with os.fdopen(descriptor, "wb") as handle:
++                handle.write(raw)
++                handle.flush()
++                os.fchmod(handle.fileno(), mode)
++                os.fsync(handle.fileno())
++            if exclusive:
++                os.link(temporary, name, src_dir_fd=parent, dst_dir_fd=parent, follow_symlinks=False)
++            else:
++                os.replace(temporary, name, src_dir_fd=parent, dst_dir_fd=parent)
++            os.fsync(parent)
++        finally:
++            try:
++                os.unlink(temporary, dir_fd=parent)
++            except FileNotFoundError:
++                pass
++
++
++def _copy_active_app(active: Mapping[str, Any], candidate_root: Path) -> tuple[int, int]:
++    with _directory_fd(candidate_root) as parent:
++        os.mkdir("app", mode=0o700, dir_fd=parent)
++    app = candidate_root / "app"
++    app_identity = _directory_token(app)
++    # Copy only entries enumerated by the verified baseline. Reading source
++    # bytes and creating destination entries both use NOFOLLOW ancestry.
++    for entry in active["inventory"]:
++        relative = entry["path"]
++        if entry["kind"] == "symlink":
++            with _child_parent_fd(app, relative) as (parent, name):
++                os.symlink(entry["target"], name, dir_fd=parent)
++        else:
++            raw, _ = _read_file(Path(active["app_root"]) / relative)
++            if sha256_bytes(raw) != entry["sha256"]:
++                raise ValueError("API_RELEASE_ACTIVE_BASE_COPY_DRIFT")
++            _write_candidate_bytes(app, relative, raw, int(entry["mode"], 8), exclusive=True)
++    # Empty directories and directory modes are retained too, although the
++    # historical manifest's application inventory lists files and links only.
++    directories = [row for row in active["_application_snapshot"]["physical"] if row[1] == "directory"]
++    for row in sorted(directories, key=lambda item: len(item[0]), reverse=True):
++        relative = row[0].rstrip("/")
++        if relative:
++            with _child_parent_fd(app, relative + "/.directory-reservation"):
++                pass
++    return app_identity
++
++
++def _restore_directory_modes(
++    active: Mapping[str, Any], candidate_app: Path, entries: Sequence[Mapping[str, Any]],
++) -> None:
++    expected = _expected_directory_modes(active["_application_snapshot"], entries)
++    # Complete writes before restoring read-only baseline ancestors. New
++    # directories have a fixed mode; source directory modes are not copied.
++    for relative in sorted(expected, key=len, reverse=True):
++        with _directory_fd(candidate_app / relative) as descriptor:
++            os.fchmod(descriptor, int(expected[relative], 8))
++
++
+ def build_integrated_app(
+     *, active_api_plist_path: Path, source_root: Path, candidate_root: Path,
+     delta_receipt_path: Path, explicit_untracked_paths: Sequence[str] = (),
++    source_path_allowlist: Sequence[str] | None = None,
+ ) -> dict[str, Any]:
+     active = read_active_release(active_api_plist_path)
+     source_root = _exact_path(source_root, kind="directory", label="API_RELEASE_DELTA_SOURCE_ROOT")
+     candidate_root = _exact_path(candidate_root, kind="directory", label="API_RELEASE_CANDIDATE_ROOT")
+-    receipt, receipt_raw = _read_json(delta_receipt_path, "API_RELEASE_DELTA_RECEIPT")
++    for other_root in (source_root, Path(active["release_root"])):
++        if candidate_root.is_relative_to(other_root) or other_root.is_relative_to(candidate_root):
++            raise ValueError("API_RELEASE_CANDIDATE_OVERLAPS_INPUT_ROOT")
++    source_root_token = _directory_token(source_root)
++    candidate_token = _directory_token(candidate_root)
++    receipt_raw, receipt_token = _read_file(_exact_path(delta_receipt_path, kind="file", label="API_RELEASE_DELTA_RECEIPT"))
++    receipt = _json_object(receipt_raw, "API_RELEASE_DELTA_RECEIPT")
+     entries = _validate_delta_receipt(receipt, base_identity=active)
+-    added = {str(entry["path"]) for entry in entries if entry.get("before_sha256") is None}
+-    if added != set(explicit_untracked_paths):
+-        raise ValueError("API_RELEASE_DELTA_ADDED_PATHS_REQUIRE_EXACT_UNTRACKED_APPROVAL")
++    delta_paths = {str(entry["path"]) for entry in entries}
++    # A file can be tracked in the source Git repository while absent from the
++    # active release. Conversely, source-untracked bytes can replace an active
++    # file. The receipt authorizes release changes; the caller classifies Git.
++    approved_untracked = _path_set(explicit_untracked_paths, label="API_RELEASE_EXPLICIT_UNTRACKED")
++    if not approved_untracked <= delta_paths:
++        raise ValueError("API_RELEASE_EXPLICIT_UNTRACKED_PATH_NOT_IN_DELTA")
++    if source_path_allowlist is not None:
++        source_allowed = _path_set(source_path_allowlist, label="API_RELEASE_SOURCE_ALLOWLIST")
++        forbidden = sorted(delta_paths - source_allowed)
++        if forbidden:
++            raise ValueError("API_RELEASE_DELTA_SOURCE_PATH_NOT_ALLOWED:" + ",".join(forbidden[:8]))
+     candidate_app = candidate_root / "app"
+     if candidate_app.exists() or candidate_app.is_symlink():
+         raise FileExistsError("refusing to overwrite API integration candidate app")
+-    shutil.copytree(active["app_root"], candidate_app, symlinks=True)
++    candidate_app_token = _copy_active_app(active, candidate_root)
+     if inventory_tree(candidate_app) != active["inventory"]:
+         raise ValueError("API_RELEASE_ACTIVE_BASE_COPY_DRIFT")
+     for entry in entries:
+         relative = str(entry["path"])
+         source = _safe_child(source_root, relative, allow_missing=False)
+-        source_raw = source.read_bytes()
++        source_raw, source_token = _read_file(source)
+         if sha256_bytes(source_raw) != entry.get("after_sha256"):
+             raise ValueError("API_RELEASE_DELTA_SOURCE_SHA_MISMATCH:" + relative)
++        if f"{stat.S_IMODE(source_token[1][2]):04o}" != entry["after_mode"]:
++            raise ValueError("API_RELEASE_DELTA_SOURCE_MODE_MISMATCH:" + relative)
+         base_path = _safe_child(Path(active["app_root"]), relative, allow_missing=True)
+-        base_raw = base_path.read_bytes() if base_path.exists() else None
++        base_raw = _read_file(base_path)[0] if base_path.exists() else None
+         before_sha = sha256_bytes(base_raw) if base_raw is not None else None
+         if before_sha != entry.get("before_sha256"):
+             raise ValueError("API_RELEASE_DELTA_BEFORE_SHA_MISMATCH:" + relative)
++        before_mode = f"{stat.S_IMODE(base_path.lstat().st_mode):04o}" if base_raw is not None else None
++        if before_mode != entry["before_mode"]:
++            raise ValueError("API_RELEASE_DELTA_BEFORE_MODE_MISMATCH:" + relative)
+         if base_raw is not None:
+             diff_sha, hunk_count = _diff_proof(base_raw, source_raw)
+             if (diff_sha != entry.get("unified_diff_sha256")
+                     or hunk_count != entry.get("unified_diff_hunk_count")):
+                 raise ValueError("API_RELEASE_DELTA_SOURCE_DIFF_MISMATCH:" + relative)
+-        target = _safe_child(candidate_app, relative, allow_missing=True)
+-        target.parent.mkdir(parents=True, exist_ok=True)
+-        shutil.copy2(source, target, follow_symlinks=False)
++        _safe_child(candidate_app, relative, allow_missing=True)
++        _write_candidate_bytes(candidate_app, relative, source_raw, int(entry["after_mode"], 8), exclusive=False)
++        _assert_file_snapshot(source, entry["after_sha256"], source_token)
++    _restore_directory_modes(active, candidate_app, entries)
++    candidate_snapshot = _inventory_snapshot(candidate_app)
++    directories = _directory_preservation(active["_application_snapshot"], candidate_snapshot, entries)
+     records, preserved = _verify_delta_files(
+         base_app=Path(active["app_root"]), candidate_app=candidate_app, entries=entries
+     )
+-    receipt_copy = candidate_root / DELTA_RECEIPT_NAME
+-    with receipt_copy.open("xb") as handle:
+-        handle.write(receipt_raw)
+-        handle.flush()
+-        os.fsync(handle.fileno())
++    _assert_active_snapshot(active)
++    _assert_file_snapshot(delta_receipt_path, sha256_bytes(receipt_raw), receipt_token)
++    if (_directory_token(candidate_root) != candidate_token
++            or _directory_token(candidate_app) != candidate_app_token
++            or _directory_token(source_root) != source_root_token):
++        raise ValueError("API_RELEASE_CANDIDATE_ROOT_REPLACED")
++    _write_candidate_bytes(candidate_root, DELTA_RECEIPT_NAME, receipt_raw, 0o600, exclusive=True)
++    _assert_inventory_snapshot(candidate_app, candidate_snapshot)
++    _assert_active_snapshot(active)
+     return {
+         "schema_version": SCHEMA_VERSION,
+         "base": _base_binding(active),
++        "module_scope": receipt["module_scope"],
+         "delta_receipt_source_path": str(Path(delta_receipt_path).expanduser().absolute()),
+         "delta_receipt_file": DELTA_RECEIPT_NAME,
+         "delta_receipt_sha256": sha256_bytes(receipt_raw),
+@@ -411,6 +896,7 @@
+         "non_delta_inventory_sha256": inventory_digest(preserved),
+         "active_application_inventory_sha256": active["application_inventory_sha256"],
+         "source_workspace_full_tree_copied": False,
++        "directory_preservation": directories,
+     }
+ 
+ 
+@@ -422,12 +908,17 @@
+     app_root = _exact_path(candidate_root / "app", kind="directory", label="API_RELEASE_CANDIDATE_APP")
+     if candidate.get("root") != str(candidate_root) or candidate.get("app_root") != str(app_root):
+         raise ValueError("API_RELEASE_INTEGRATION_CANDIDATE_ROOT_MISMATCH")
++    release_id = candidate.get("release_id")
++    if not isinstance(release_id, str) or not release_id or "/" in release_id or "\\" in release_id:
++        raise ValueError("API_RELEASE_INTEGRATION_CANDIDATE_RELEASE_ID_INVALID")
+     entries = inventory.get("entries")
+     if not isinstance(entries, list):
+         raise ValueError("API_RELEASE_INTEGRATION_CANDIDATE_INVENTORY_MISSING")
+-    actual = inventory_tree(app_root)
++    snapshot = _inventory_snapshot(app_root)
++    actual = snapshot["entries"]
+     digest = inventory_digest(actual)
+-    if actual != entries or inventory.get("aggregate_sha256") != digest:
++    if (actual != entries or inventory.get("aggregate_sha256") != digest
++            or type(inventory.get("entry_count")) is not int or inventory["entry_count"] != len(entries)):
+         raise ValueError("API_RELEASE_INTEGRATION_CANDIDATE_INVENTORY_DRIFT")
+     return {
+         "release_root": str(candidate_root),
+@@ -437,6 +928,7 @@
+         "release_manifest_sha256": manifest_sha,
+         "application_inventory_sha256": digest,
+         "application_inventory_entry_count": len(actual),
++        "_application_snapshot": snapshot,
+     }
+ 
+ 
+@@ -445,31 +937,41 @@
+     expected_manifest_sha256: str | None = None, active_pointer: str = "base",
+     lock_lease: object | None = None, require_shared_lock: bool = False,
+ ) -> dict[str, Any]:
++    if require_shared_lock and lock_lease is None:
++        raise ValueError("API_RELEASE_SHARED_LOCK_REQUIRED")
++    if lock_lease is not None:
++        assert_api_release_lock(lock_lease, active_api_plist_path)
+     candidate_root = _exact_path(candidate_root, kind="directory", label="API_RELEASE_CANDIDATE_ROOT")
++    candidate_root_token = _directory_token(candidate_root)
+     manifest_path = _exact_path(candidate_root / "release-manifest.json", kind="file", label="API_RELEASE_CANDIDATE_MANIFEST")
+-    manifest, manifest_raw = _read_json(manifest_path, "API_RELEASE_CANDIDATE_MANIFEST")
++    manifest_raw, manifest_token = _read_file(manifest_path)
++    manifest = _json_object(manifest_raw, "API_RELEASE_CANDIDATE_MANIFEST")
+     manifest_sha = sha256_bytes(manifest_raw)
+     if expected_manifest_sha256 is not None and expected_manifest_sha256 != manifest_sha:
+         raise ValueError("API_RELEASE_INTEGRATION_MANIFEST_SHA_MISMATCH")
+     if manifest.get("schema_version") != "v4.release_candidate.v1":
+         raise ValueError("API_RELEASE_INTEGRATION_LEGACY_PACKAGE_REJECTED")
++    if manifest.get("activation_status") != "NOT_ACTIVATED":
++        raise ValueError("API_RELEASE_INTEGRATION_CANDIDATE_ACTIVATION_INVALID")
+     integration = manifest.get("api_integration")
+     if not isinstance(integration, dict) or integration.get("schema_version") != SCHEMA_VERSION:
+         raise ValueError("API_RELEASE_INTEGRATION_BASE_AND_DELTA_REQUIRED")
++    integration_keys = {
++        "schema_version", "base", "module_scope", "delta_receipt_source_path",
++        "delta_receipt_file", "delta_receipt_sha256", "delta_entries",
++        "non_delta_active_release_bytes_preserved", "non_delta_entry_count",
++        "non_delta_inventory_sha256", "active_application_inventory_sha256",
++        "source_workspace_full_tree_copied", "directory_preservation",
++    }
++    if set(integration) != integration_keys:
++        raise ValueError("API_RELEASE_INTEGRATION_FIELDS_INVALID")
+     base = integration.get("base")
+     if not isinstance(base, dict):
+         raise ValueError("API_RELEASE_INTEGRATION_BASE_MISSING")
+-    base_identity = _release_identity(
+-        release_root=Path(str(base.get("release_root", ""))),
+-        app_root=Path(str(base.get("app_root", ""))),
+-        release_id=str(base.get("release_id", "")),
+-        manifest_path=Path(str(base.get("release_manifest_path", ""))),
+-        manifest_sha256=str(base.get("release_manifest_sha256", "")),
+-        application_inventory_sha256=str(base.get("application_inventory_sha256", "")),
+-    )
+-    if _base_binding(base_identity) != base:
+-        raise ValueError("API_RELEASE_INTEGRATION_BASE_RECORD_MISMATCH")
++    base_identity = verify_recorded_base(base)
+     current = read_active_release(active_api_plist_path)
++    if current["api_plist_path"] != base["api_plist_path"]:
++        raise ValueError("API_RELEASE_INTEGRATION_ACTIVE_POINTER_PATH_MISMATCH")
+     candidate_identity = _candidate_identity(manifest, candidate_root, manifest_sha)
+     if active_pointer == "base":
+         if _base_binding(current) != base:
+@@ -481,19 +983,23 @@
+             raise ValueError("API_RELEASE_INTEGRATION_ACTIVE_CANDIDATE_MISMATCH")
+     else:
+         raise ValueError("API_RELEASE_INTEGRATION_POINTER_MODE_INVALID")
+-    if require_shared_lock and lock_lease is None:
+-        raise ValueError("API_RELEASE_SHARED_LOCK_REQUIRED")
+-    if lock_lease is not None:
+-        assert_api_release_lock(lock_lease, active_api_plist_path)
+ 
+     receipt_relative = integration.get("delta_receipt_file")
+     if receipt_relative != DELTA_RECEIPT_NAME:
+         raise ValueError("API_RELEASE_INTEGRATION_DELTA_RECEIPT_PATH_INVALID")
+     receipt_path = _exact_path(candidate_root / DELTA_RECEIPT_NAME, kind="file", label="API_RELEASE_DELTA_RECEIPT_COPY")
+-    receipt, receipt_raw = _read_json(receipt_path, "API_RELEASE_DELTA_RECEIPT_COPY")
++    receipt_raw, receipt_token = _read_file(receipt_path)
++    receipt = _json_object(receipt_raw, "API_RELEASE_DELTA_RECEIPT_COPY")
+     if sha256_bytes(receipt_raw) != integration.get("delta_receipt_sha256"):
+         raise ValueError("API_RELEASE_INTEGRATION_DELTA_RECEIPT_SHA_MISMATCH")
+     entries = _validate_delta_receipt(receipt, base_identity=base_identity)
++    if integration["module_scope"] != receipt["module_scope"]:
++        raise ValueError("API_RELEASE_INTEGRATION_MODULE_SCOPE_MISMATCH")
++    directories = _directory_preservation(
++        base_identity["_application_snapshot"], candidate_identity["_application_snapshot"], entries,
++    )
++    if _validate_directory_proof(integration["directory_preservation"]) != directories:
++        raise ValueError("API_RELEASE_INTEGRATION_DIRECTORY_PROOF_MISMATCH")
+     records, preserved = _verify_delta_files(
+         base_app=Path(base_identity["app_root"]),
+         candidate_app=Path(candidate_identity["app_root"]),
+@@ -502,26 +1008,44 @@
+     if records != integration.get("delta_entries"):
+         raise ValueError("API_RELEASE_INTEGRATION_DELTA_RECORD_MISMATCH")
+     if (integration.get("non_delta_active_release_bytes_preserved") is not True
++            or type(integration.get("non_delta_entry_count")) is not int
+             or integration.get("non_delta_entry_count") != len(preserved)
+             or integration.get("non_delta_inventory_sha256") != inventory_digest(preserved)):
+         raise ValueError("API_RELEASE_INTEGRATION_NON_DELTA_PROOF_MISMATCH")
++    if (integration["active_application_inventory_sha256"] != base["application_inventory_sha256"]
++            or integration["source_workspace_full_tree_copied"] is not False):
++        raise ValueError("API_RELEASE_INTEGRATION_COPY_POLICY_INVALID")
++
++    # These are observed snapshots under the caller's shared publication lock,
++    # not a claim that later arbitrary filesystem operations are atomic.
++    _assert_inventory_snapshot(Path(candidate_identity["app_root"]), candidate_identity["_application_snapshot"])
++    _assert_release_snapshot(base_identity)
++    _assert_file_snapshot(receipt_path, integration["delta_receipt_sha256"], receipt_token)
++    _assert_file_snapshot(manifest_path, manifest_sha, manifest_token)
++    if _directory_token(candidate_root) != candidate_root_token:
++        raise ValueError("API_RELEASE_CANDIDATE_ROOT_REPLACED")
++    _assert_active_snapshot(current)
++    if lock_lease is not None:
++        assert_api_release_lock(lock_lease, active_api_plist_path)
+     return {
+         "status": "PASS",
+         "active_pointer": active_pointer,
+         "active_api_plist_sha256": current["api_plist_sha256"],
+         "base": _base_binding(base_identity),
+-        "candidate": candidate_identity,
++        "candidate": {key: candidate_identity[key] for key in _RELEASE_KEYS},
++        "module_scope": receipt["module_scope"],
+         "delta_receipt_sha256": integration["delta_receipt_sha256"],
+         "delta_paths": [row["path"] for row in records],
+         "non_delta_entry_count": len(preserved),
+         "non_delta_inventory_sha256": inventory_digest(preserved),
+         "non_delta_active_release_bytes_preserved": True,
++        "directory_preservation": directories,
+         "shared_lock_path": str(api_release_lock_path(active_api_plist_path)),
+     }
+ 
+ 
+ def api_release_lock_path(active_api_plist_path: Path) -> Path:
+-    api_plist = Path(os.path.abspath(Path(active_api_plist_path).expanduser()))
++    api_plist = _absolute_path(active_api_plist_path)
+     if api_plist.name != "com.lexi.v35.api-only.plist":
+         raise ValueError("API_RELEASE_LOCK_POINTER_PATH_INVALID")
+     if api_plist.parent.is_symlink() or api_plist.parent.resolve(strict=True) != api_plist.parent:
+@@ -529,22 +1053,100 @@
+     return api_plist.with_name(".com.lexi.v35.api-only.release.lock")
+ 
+ 
++class _APILockLease:
++    __slots__ = ("path", "fd", "identity", "parent_identity", "pid", "thread_id")
++
++
++_ACTIVE_LEASES: dict[int, _APILockLease] = {}
++_LEASE_GUARD = threading.Lock()
++
++
++def _clear_leases_after_fork() -> None:
++    global _ACTIVE_LEASES, _LEASE_GUARD
++    _ACTIVE_LEASES = {}
++    _LEASE_GUARD = threading.Lock()
++
++
++if hasattr(os, "register_at_fork"):
++    os.register_at_fork(after_in_child=_clear_leases_after_fork)
++
++
+ @contextmanager
+ def shared_api_release_lock(
+     active_api_plist_path: Path, *, timeout_seconds: float = 2.0,
+ ) -> Iterator[object]:
+-    from infrastructure.interprocess_lock import owned_interprocess_lock
+-
++    """One persistent POSIX lock inode shared by migrated API publishers.
++
++    The file is never unlinked, renamed, or used as an age-based lock. Older
++    publishers that do not take this exact lock must be retired by their owner.
++    """
++    if isinstance(timeout_seconds, bool) or not isinstance(timeout_seconds, (int, float)) or not math.isfinite(timeout_seconds) or timeout_seconds < 0:
++        raise ValueError("API_RELEASE_LOCK_TIMEOUT_INVALID")
++    try:
++        import fcntl
++    except ImportError as exc:
++        raise ValueError("API_RELEASE_POSIX_FLOCK_REQUIRED") from exc
+     lock_path = api_release_lock_path(active_api_plist_path)
+-    with owned_interprocess_lock(
+-        lock_path,
+-        timeout_seconds=timeout_seconds,
+-        timeout_message="API_RELEASE_SHARED_LOCK_BUSY",
+-    ) as lease:
+-        yield lease
++    with _directory_fd(lock_path.parent) as parent:
++        try:
++            fd = os.open(lock_path.name, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK,
++                         0o600, dir_fd=parent)
++        except OSError as exc:
++            raise ValueError("API_RELEASE_LOCK_PATH_UNSAFE") from exc
++        acquired = False
++        lease = None
++        try:
++            info = os.fstat(fd)
++            if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
++                raise ValueError("API_RELEASE_LOCK_NOT_EXCLUSIVE_REGULAR_FILE")
++            deadline = time.monotonic() + timeout_seconds
++            while True:
++                try:
++                    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
++                    acquired = True
++                    break
++                except BlockingIOError as exc:
++                    if time.monotonic() >= deadline:
++                        raise ValueError("API_RELEASE_SHARED_LOCK_BUSY") from exc
++                    time.sleep(min(0.02, max(0.0, deadline - time.monotonic())))
++            lease = _APILockLease()
++            lease.path = lock_path
++            lease.fd = fd
++            lease.identity = info.st_dev, info.st_ino
++            lease.parent_identity = os.fstat(parent).st_dev, os.fstat(parent).st_ino
++            lease.pid = os.getpid()
++            lease.thread_id = threading.get_ident()
++            with _LEASE_GUARD:
++                _ACTIVE_LEASES[id(lease)] = lease
++            assert_api_release_lock(lease, active_api_plist_path)
++            yield lease
++        finally:
++            if lease is not None:
++                with _LEASE_GUARD:
++                    _ACTIVE_LEASES.pop(id(lease), None)
++            if acquired:
++                fcntl.flock(fd, fcntl.LOCK_UN)
++            os.close(fd)
+ 
+ 
+ def assert_api_release_lock(lease: object, active_api_plist_path: Path) -> None:
+-    from infrastructure.interprocess_lock import assert_owned_interprocess_lock
+-
+-    assert_owned_interprocess_lock(lease, api_release_lock_path(active_api_plist_path))
++    if (type(lease) is not _APILockLease or lease.pid != os.getpid()
++            or lease.thread_id != threading.get_ident()):
++        raise ValueError("API_RELEASE_LOCK_LEASE_NOT_OWNED")
++    with _LEASE_GUARD:
++        if _ACTIVE_LEASES.get(id(lease)) is not lease:
++            raise ValueError("API_RELEASE_LOCK_LEASE_NOT_ACTIVE")
++    if lease.path != api_release_lock_path(active_api_plist_path):
++        raise ValueError("API_RELEASE_LOCK_LEASE_PATH_MISMATCH")
++    try:
++        with _directory_fd(lease.path.parent) as parent:
++            actual = os.stat(lease.path.name, dir_fd=parent, follow_symlinks=False)
++            held = os.fstat(lease.fd)
++            if (not stat.S_ISREG(actual.st_mode) or actual.st_nlink != 1
++                    or not stat.S_ISREG(held.st_mode) or held.st_nlink != 1
++                    or (actual.st_dev, actual.st_ino) != lease.identity
++                    or (held.st_dev, held.st_ino) != lease.identity
++                    or (os.fstat(parent).st_dev, os.fstat(parent).st_ino) != lease.parent_identity):
++                raise ValueError("API_RELEASE_LOCK_LEASE_IDENTITY_CHANGED")
++    except OSError as exc:
++        raise ValueError("API_RELEASE_LOCK_LEASE_IDENTITY_UNAVAILABLE") from exc
+diff --git a/ops/build_release_candidate.py b/ops/build_release_candidate.py
+index 8bab59c..28b62f3 100644
+--- a/ops/build_release_candidate.py
++++ b/ops/build_release_candidate.py
+@@ -25,10 +25,10 @@
+ from typing import Any, Iterable, Mapping, Sequence
+ 
+ try:
+-    from .api_release_integration import build_integrated_app, inventory_tree as integration_inventory_tree
++    from .api_release_integration import build_integrated_app, verify_api_release_candidate, inventory_tree as integration_inventory_tree
+ except ImportError:
+     try:
+-        from api_release_integration import build_integrated_app, inventory_tree as integration_inventory_tree
++        from api_release_integration import build_integrated_app, verify_api_release_candidate, inventory_tree as integration_inventory_tree
+     except ImportError:
+         _integration_spec = importlib.util.spec_from_file_location(
+             "_v4_api_release_integration", Path(__file__).with_name("api_release_integration.py")
+@@ -39,6 +39,7 @@
+         sys.modules[_integration_spec.name] = _integration_module
+         _integration_spec.loader.exec_module(_integration_module)
+         build_integrated_app = _integration_module.build_integrated_app
++        verify_api_release_candidate = _integration_module.verify_api_release_candidate
+         integration_inventory_tree = _integration_module.inventory_tree
+ 
+ try:  # Running as ``python ops/build_release_candidate.py``.
+@@ -48,6 +49,9 @@
+         describe_preserved_environment,
+         render_cutover,
+         sha256_file,
++        _candidate_directory,
++        _read_exact_file,
++        _write_exclusive_at,
+     )
+ except ImportError:  # Imported as ``ops.build_release_candidate`` in tests.
+     try:
+@@ -57,6 +61,9 @@
+             describe_preserved_environment,
+             render_cutover,
+             sha256_file,
++            _candidate_directory,
++            _read_exact_file,
++            _write_exclusive_at,
+         )
+     except ImportError:  # Loaded directly with importlib in a focused test.
+         _helper_path = Path(__file__).with_name("prepare_api_only_cutover.py")
+@@ -72,6 +79,9 @@
+         describe_preserved_environment = _helper.describe_preserved_environment
+         render_cutover = _helper.render_cutover
+         sha256_file = _helper.sha256_file
++        _candidate_directory = _helper._candidate_directory
++        _read_exact_file = _helper._read_exact_file
++        _write_exclusive_at = _helper._write_exclusive_at
+ 
+ 
+ def _load_refactor_component(name: str):
+@@ -147,6 +157,13 @@
+ def _absolute_preserving_symlink(path: Path) -> Path:
+     """Make an executable binding absolute without discarding venv identity."""
+     return Path(os.path.abspath(os.path.expanduser(str(path))))
++
++
++def _unaliased_input(path: Path) -> Path:
++    literal = _absolute_preserving_symlink(path)
++    if literal.is_symlink() or literal.resolve(strict=False) != literal:
++        raise ValueError("API_BUILD_PATH_SYMLINK_OR_ALIAS")
++    return literal
+ 
+ 
+ def _is_within(path: Path, root: Path) -> bool:
+@@ -342,7 +359,7 @@
+         _stage_spec.loader.exec_module(_stage_builders)
+ _stage_builders.bind_core(sys.modules[__name__])
+ for _stage_name in (
+-    "_guard_candidate_root", "_candidate_file_summary", "_stage_scheduler_identity",
++    "_guard_candidate_root", "_candidate_file_summary",
+     "STAGE_SERVICE_LABEL", "STAGE_SERVICE_OVERLAY_PATHS", "STAGE_DATA_PATH_KEYS",
+     "STAGE_DISTRIBUTIONS", "_active_stage_release", "_merge_active_stage_config",
+     "_copy_stage_overlay", "_git_tracked_modes", "_copy_stage_source_tree",
+@@ -350,6 +367,59 @@
+     "_render_stage_service_binding", "build_stage_service_candidate",
+ ):
+     globals()[_stage_name] = getattr(_stage_builders, _stage_name)
++
++
++def _stage_scheduler_identity(*, source_plist: Path, candidate_root: Path, release_id: str,
++                              manifest_path: Path, manifest_sha256: str) -> dict[str, object]:
++    """Render an inactive copy through an anchored candidate directory.
++
++    The historical Stage helper remains unchanged. The API builder owns this
++    write and must not follow a config directory replaced after API preparation.
++    """
++    raw, _ = _read_exact_file(source_plist)
++    payload = plistlib.loads(raw)
++    env = payload.get("EnvironmentVariables")
++    args = payload.get("ProgramArguments")
++    if (not isinstance(env, dict) or not isinstance(args, list) or len(args) != 2
++            or args[0] != "/bin/bash" or Path(str(args[1])).name != "launch_v35_macos_scheduler.sh"
++            or not Path(str(env.get("V35_APP_ROOT", ""))).is_absolute()):
++        raise ValueError("explicit scheduler launcher/app binding is required")
++    old_app = Path(env["V35_APP_ROOT"])
++    app = candidate_root / "app"
++    staged = deepcopy(payload)
++    new_env = staged["EnvironmentVariables"]
++    rebound_paths = []
++    for key, value in list(new_env.items()):
++        if isinstance(value, str) and Path(value).is_absolute():
++            try:
++                relative = Path(value).relative_to(old_app)
++            except ValueError:
++                continue
++            new_env[key] = str(app / relative)
++            rebound_paths.append(new_env[key])
++    new_env.update({"V35_APP_ROOT": str(app), "V35_RELEASE_ID": release_id,
++        "V35_RELEASE_MANIFEST_PATH": str(manifest_path), "V35_RELEASE_MANIFEST_SHA256": manifest_sha256,
++        "PYTHONPATH": str(app / "upstreams") + ":" + str(app)})
++    launcher = app / "ops/launch_v35_macos_scheduler.sh"
++    staged["ProgramArguments"] = ["/bin/bash", str(launcher)]
++    staged["WorkingDirectory"] = str(app)
++    for key in ("production_allowed", "buy_gate_updated", "orders_sent", "PRODUCTION_ALLOWED", "BUY_GATE_UPDATED", "ORDERS_SENT"):
++        if key in new_env and str(new_env[key]).lower() not in {"false", "0"}:
++            raise ValueError("unsafe scheduler source environment")
++        new_env[key] = "false"
++    target = candidate_root / "config/com.lexi.v35.scheduler.plist"
++    staged_raw = plistlib.dumps(staged, fmt=plistlib.FMT_XML, sort_keys=True)
++    with _candidate_directory(candidate_root, target.parent) as (directory_fd, assert_current):
++        assert_current()
++        _write_exclusive_at(directory_fd, target.name, staged_raw)
++    actual_raw, _ = _read_exact_file(target)
++    if actual_raw != staged_raw:
++        raise ValueError("API_BUILD_SCHEDULER_STAGING_CHANGED")
++    return {"activation_status": "NOT_ACTIVATED", "launchctl_called": False,
++            "path": str(target), "sha256": hashlib.sha256(staged_raw).hexdigest(),
++            "release_id": release_id, "release_manifest_sha256": manifest_sha256,
++            "missing_rebound_paths": sorted({str(path) for path in [launcher, *map(Path, rebound_paths)] if not path.exists()}),
++            "external_runtime_bindings": "PRESERVED_REQUIRE_LOCAL_REVIEW"}
+ 
+ 
+ def build_candidate(
+@@ -369,25 +439,25 @@
+     receipt_path: Path | None = None,
+     include_untracked_paths: Sequence[str | Path] = (),
+ ) -> dict[str, object]:
+-    source_root = _resolved(source_root)
++    source_root = _unaliased_input(source_root)
+     candidate_root = _guard_candidate_root(
+-        candidate_root, source_root=source_root, formal_release_root=formal_release_root
++        _unaliased_input(candidate_root), source_root=source_root, formal_release_root=formal_release_root
+     )
+-    api_plist_path = _resolved(api_plist_path)
+-    scheduler_plist_path = _resolved(scheduler_plist_path)
++    api_plist_path = _unaliased_input(api_plist_path)
++    scheduler_plist_path = _unaliased_input(scheduler_plist_path)
+     if not source_root.is_dir():
+         raise FileNotFoundError(source_root)
+     if not api_plist_path.is_file():
+         raise FileNotFoundError(api_plist_path)
+     if not scheduler_plist_path.is_file():
+         raise FileNotFoundError(scheduler_plist_path)
+-    api_integration_delta_receipt_path = _resolved(api_integration_delta_receipt_path)
++    api_integration_delta_receipt_path = _unaliased_input(api_integration_delta_receipt_path)
+     if not api_integration_delta_receipt_path.is_file() or api_integration_delta_receipt_path.is_symlink():
+         raise FileNotFoundError(api_integration_delta_receipt_path)
+ 
+     if receipt_path is None:
+         receipt_path = candidate_root.parent / f"{candidate_root.name}-build-receipt.json"
+-    receipt_path = _resolved(receipt_path)
++    receipt_path = _unaliased_input(receipt_path)
+     if _is_within(receipt_path, source_root) or _is_within(receipt_path, formal_release_root):
+         raise ValueError("receipt path must not be in source or formal release root")
+     if receipt_path.exists() or receipt_path.is_symlink():
+@@ -403,6 +473,7 @@
+     # Reserve the destination before any source content is written.  A
+     # marker makes an interrupted build visibly incomplete and prevents a
+     # later invocation from treating it as an overwriteable target.
++    active_plist_sha_before_build = sha256_file(api_plist_path)
+     candidate_root.mkdir()
+     marker = candidate_root / ".candidate-build-in-progress"
+     marker.write_text(f"created_at={utc_now()}\n")
+@@ -410,9 +481,16 @@
+         candidate_app = candidate_root / "app"
+         tracked_paths = _git_tracked_paths(source_root)
+         untracked_paths = _git_untracked_paths(source_root)
++        requested_delta_paths = [_normalise_relative(path) for path in include_untracked_paths]
++        if len(requested_delta_paths) != len(set(requested_delta_paths)):
++            raise ValueError("explicit include paths must be unique")
++        # A receipt may add a file that is already committed in the source
++        # checkout. Only actual Git-untracked source files need extra approval.
++        # Redundant declarations of tracked files are accepted only when the
++        # core also verifies they belong to this exact reviewed delta.
+         included_untracked_paths = _validate_explicit_untracked_paths(
+             source_root,
+-            include_untracked_paths,
++            sorted(set(requested_delta_paths) - set(tracked_paths)),
+             tracked_paths=tracked_paths,
+             untracked_paths=untracked_paths,
+         )
+@@ -421,7 +499,8 @@
+             source_root=source_root,
+             candidate_root=candidate_root,
+             delta_receipt_path=api_integration_delta_receipt_path,
+-            explicit_untracked_paths=included_untracked_paths,
++            explicit_untracked_paths=requested_delta_paths,
++            source_path_allowlist=sorted(set(tracked_paths) | set(included_untracked_paths)),
+         )
+         app_inventory = inventory_tree(candidate_app)
+         if app_inventory != integration_inventory_tree(candidate_app):
+@@ -560,6 +639,13 @@
+         scheduler_candidate = _stage_scheduler_identity(
+             source_plist=scheduler_plist_path, candidate_root=candidate_root,
+             release_id=release_id, manifest_path=manifest_path, manifest_sha256=manifest_sha)
++        final_integration = verify_api_release_candidate(
++            candidate_root=candidate_root, active_api_plist_path=api_plist_path,
++            expected_manifest_sha256=manifest_sha, active_pointer="base",
++        )
++        if (sha256_file(api_plist_path) != active_plist_sha_before_build
++                or final_integration["active_api_plist_sha256"] != active_plist_sha_before_build):
++            raise ValueError("API_RELEASE_INTEGRATION_ACTIVE_POINTER_CHANGED_DURING_BUILD")
+         marker.unlink()
+         receipt = {
+             "schema_version": "v4.release_candidate_receipt.v1",
+diff --git a/ops/prepare_api_only_cutover.py b/ops/prepare_api_only_cutover.py
+index d77463d..0e9e45c 100644
+--- a/ops/prepare_api_only_cutover.py
++++ b/ops/prepare_api_only_cutover.py
+@@ -10,12 +10,14 @@
+ from __future__ import annotations
+ 
+ import argparse
++from contextlib import contextmanager
+ import hashlib
+ import importlib.util
+ import json
+ import os
+ import plistlib
+ import re
++import stat
+ import sys
+ from datetime import datetime, timezone
+ from pathlib import Path
+@@ -74,6 +76,94 @@
+     return path.expanduser().resolve(strict=False)
+ 
+ 
++def _unaliased(path: Path, *, kind: str | None = None) -> Path:
++    """Do not erase a supplied symlink before validating a write boundary."""
++    result = Path(os.path.abspath(Path(path).expanduser()))
++    if result.is_symlink() or result.resolve(strict=False) != result:
++        raise ValueError("API_PREPARE_PATH_SYMLINK_OR_ALIAS")
++    if kind == "file" and not result.is_file():
++        raise FileNotFoundError(result)
++    if kind == "directory" and not result.is_dir():
++        raise FileNotFoundError(result)
++    return result
++
++
++def _identity(path: Path) -> tuple[int, int]:
++    info = path.lstat()
++    return info.st_dev, info.st_ino
++
++
++def _read_exact_file(path: Path) -> tuple[bytes, tuple[int, int]]:
++    path = _unaliased(path, kind="file")
++    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC)
++    try:
++        before = os.fstat(fd)
++        if not stat.S_ISREG(before.st_mode):
++            raise ValueError("API_PREPARE_NOT_REGULAR_FILE")
++        with os.fdopen(os.dup(fd), "rb") as handle:
++            raw = handle.read()
++        after = os.fstat(fd)
++        token = before.st_dev, before.st_ino
++        if (token != _identity(path) or
++                (before.st_size, before.st_mtime_ns, before.st_ctime_ns) !=
++                (after.st_size, after.st_mtime_ns, after.st_ctime_ns)):
++            raise ValueError("API_PREPARE_FILE_CHANGED_DURING_READ")
++        return raw, token
++    finally:
++        os.close(fd)
++
++
++@contextmanager
++def _candidate_directory(root: Path, directory: Path):
++    """Create/open only descendant directories, never following links."""
++    root = _unaliased(root, kind="directory")
++    directory = _unaliased(directory)
++    try:
++        parts = directory.relative_to(root).parts
++    except ValueError as exc:
++        raise ValueError("API_PREPARE_DIRECTORY_OUTSIDE_CANDIDATE") from exc
++    fds: list[int] = []
++    identities: list[tuple[Path, tuple[int, int]]] = []
++    current = root
++    try:
++        fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC)
++        fds.append(fd)
++        info = os.fstat(fd)
++        identities.append((root, (info.st_dev, info.st_ino)))
++        for part in parts:
++            try:
++                os.mkdir(part, mode=0o700, dir_fd=fd)
++            except FileExistsError:
++                pass
++            fd = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC, dir_fd=fd)
++            fds.append(fd)
++            current = current / part
++            info = os.fstat(fd)
++            identities.append((current, (info.st_dev, info.st_ino)))
++        def assert_current() -> None:
++            for path, token in identities:
++                if _unaliased(path, kind="directory") != path or _identity(path) != token:
++                    raise ValueError("API_PREPARE_DIRECTORY_CHANGED")
++        assert_current()
++        yield fd, assert_current
++        assert_current()
++    except OSError as exc:
++        raise ValueError("API_PREPARE_DIRECTORY_UNSAFE") from exc
++    finally:
++        for fd in reversed(fds):
++            os.close(fd)
++
++
++def _write_exclusive_at(directory_fd: int, name: str, raw: bytes) -> None:
++    fd = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_CLOEXEC,
++        0o600, dir_fd=directory_fd)
++    with os.fdopen(fd, "wb") as handle:
++        handle.write(raw)
++        handle.flush()
++        os.fsync(handle.fileno())
++    os.fsync(directory_fd)
++
++
+ def _is_within(path: Path, root: Path) -> bool:
+     try:
+         _resolved(path).relative_to(_resolved(root))
+@@ -90,7 +180,7 @@
+ ) -> None:
+     """Reject a candidate path that could overwrite an app or formal release."""
+ 
+-    candidate = _resolved(candidate_root)
++    candidate = _unaliased(candidate_root)
+     if source_root is not None and (
+         _is_within(candidate, source_root) or _is_within(source_root, candidate)
+     ):
+@@ -301,22 +391,18 @@
+ ) -> dict[str, object]:
+     """Write staged plist and rollback plan below ``candidate_root`` only."""
+ 
+-    source_plist_path = _resolved(source_plist_path)
+-    candidate_root = _resolved(candidate_root)
++    source_plist_path = _unaliased(source_plist_path, kind="file")
++    candidate_root = _unaliased(candidate_root, kind="directory")
+     assert_safe_candidate_path(
+         candidate_root, source_root=source_root, formal_release_root=formal_release_root
+     )
+-    if not source_plist_path.is_file():
+-        raise FileNotFoundError(source_plist_path)
+-    if not candidate_root.is_dir():
+-        raise FileNotFoundError(f"candidate root does not exist: {candidate_root}")
+-    manifest_path = _resolved(manifest_path)
+-    if not _is_within(manifest_path, candidate_root):
+-        raise ValueError("manifest path must be below candidate root")
+-    if not manifest_path.is_file():
+-        raise FileNotFoundError(f"candidate manifest does not exist: {manifest_path}")
+-    manifest_actual_sha = sha256_file(manifest_path)
+-    if manifest_actual_sha != manifest_sha256:
++    root_identity = _identity(candidate_root)
++    source_raw, source_identity = _read_exact_file(source_plist_path)
++    source_sha = hashlib.sha256(source_raw).hexdigest()
++    manifest_path = _unaliased(manifest_path, kind="file")
++    if manifest_path != candidate_root / "release-manifest.json":
++        raise ValueError("API_PREPARE_MANIFEST_ROOT_MISMATCH")
++    if sha256_file(manifest_path) != manifest_sha256:
+         raise ValueError("API_RELEASE_INTEGRATION_MANIFEST_SHA_MISMATCH")
+     api_integration = verify_api_release_candidate(
+         candidate_root=candidate_root,
+@@ -324,9 +410,22 @@
+         expected_manifest_sha256=manifest_sha256,
+         active_pointer="base",
+     )
+-
+-    current_manager_state_root = _resolved(current_manager_state_root)
+-    candidate_manager_state_root = _resolved(
++    if api_integration["candidate"]["release_id"] != release_id:
++        raise ValueError("API_PREPARE_RELEASE_ID_MISMATCH")
++    if api_integration["active_api_plist_sha256"] != source_sha:
++        raise ValueError("API_PREPARE_SOURCE_CHANGED")
++
++    def assert_inputs_current() -> None:
++        current_raw, current_identity = _read_exact_file(source_plist_path)
++        if current_raw != source_raw or current_identity != source_identity:
++            raise ValueError("API_PREPARE_SOURCE_CHANGED")
++        if (_unaliased(candidate_root, kind="directory") != candidate_root
++                or _identity(candidate_root) != root_identity):
++            raise ValueError("API_PREPARE_CANDIDATE_ROOT_CHANGED")
++
++    assert_inputs_current()
++    current_manager_state_root = _unaliased(current_manager_state_root, kind="directory")
++    candidate_manager_state_root = _unaliased(
+         candidate_manager_state_root or (candidate_root / "state" / "manager_auto_research")
+     )
+     if _is_within(candidate_manager_state_root, current_manager_state_root) or _is_within(
+@@ -337,22 +436,8 @@
+         candidate_manager_state_root, candidate_root
+     ):
+         raise ValueError("candidate manager state root must be below candidate root")
+-    if not current_manager_state_root.exists() and not current_manager_state_root.is_symlink():
+-        raise FileNotFoundError(
+-            f"current manager state root is unavailable: {current_manager_state_root}"
+-        )
+-    candidate_manager_state_root.mkdir(parents=True, exist_ok=True)
+-    (candidate_manager_state_root / ".commits").mkdir(exist_ok=True)
+-
+-    config_dir = candidate_root / "config"
+-    config_dir.mkdir(exist_ok=True)
+-    staged_path = config_dir / "com.lexi.v35.api-only.plist"
+-    plan_path = config_dir / "api-only-cutover-plan.json"
+-    if staged_path.exists() or staged_path.is_symlink() or plan_path.exists() or plan_path.is_symlink():
+-        raise FileExistsError("refusing to overwrite staged api-only configuration")
+-
+-    with source_plist_path.open("rb") as handle:
+-        source_plist = plistlib.load(handle)
++
++    source_plist = plistlib.loads(source_raw)
+     staged = rewrite_api_only_plist(
+         source_plist,
+         candidate_app_root=candidate_root / "app",
+@@ -361,36 +446,35 @@
+         manifest_sha256=manifest_sha256,
+         candidate_manager_state_root=candidate_manager_state_root,
+     )
+-    with staged_path.open("wb") as handle:
+-        plistlib.dump(staged, handle, fmt=plistlib.FMT_XML, sort_keys=True)
+-    staged_sha = sha256_file(staged_path)
+-    current_sha = sha256_file(source_plist_path)
++    staged_raw = plistlib.dumps(staged, fmt=plistlib.FMT_XML, sort_keys=True)
++    staged_sha = hashlib.sha256(staged_raw).hexdigest()
++    config_dir = _unaliased(candidate_root / "config")
++    staged_path = config_dir / "com.lexi.v35.api-only.plist"
++    plan_path = config_dir / "api-only-cutover-plan.json"
++    if staged_path.exists() or staged_path.is_symlink() or plan_path.exists() or plan_path.is_symlink():
++        raise FileExistsError("refusing to overwrite staged api-only configuration")
++
+     backup_sha = None
++    backup = None
+     if backup_plist_path is not None:
+-        backup = _resolved(backup_plist_path)
+-        if backup.is_file():
+-            backup_sha = sha256_file(backup)
+-        else:
+-            backup = None
+-    else:
+-        backup = None
+-
++        backup_path = _unaliased(backup_plist_path)
++        if backup_path.is_file():
++            backup_raw, _ = _read_exact_file(backup_path)
++            backup_sha = hashlib.sha256(backup_raw).hexdigest()
++            backup = backup_path
+     label = str(source_plist.get("Label", "com.lexi.v35.api-only"))
+-    current_path = str(source_plist_path)
+-    staged_str = str(staged_path)
+-    rollback_source = str(backup or source_plist_path)
+     plan: dict[str, object] = {
+         "schema_version": SCHEMA_VERSION,
+         "generated_at": utc_now(),
+         "activation_status": "NOT_ACTIVATED",
+         "launchctl_called": False,
+-        "source_plist": {"path": current_path, "sha256": current_sha, "label": label},
+-        "candidate_plist": {"path": staged_str, "sha256": staged_sha},
++        "source_plist": {"path": str(source_plist_path), "sha256": source_sha, "label": label},
++        "candidate_plist": {"path": str(staged_path), "sha256": staged_sha},
+         "candidate_manifest": {"path": str(manifest_path), "sha256": manifest_sha256},
+         "api_release_integration": {
+             **api_integration,
+             "preflight_revalidation_required_under_shared_lock": True,
+-            "shared_lock_protocol": "infrastructure.owned_interprocess_lock; lock file adjacent to active API plist",
++            "shared_lock_protocol": "persistent flock adjacent to active API plist; never unlink",
+         },
+         "manager_state": {
+             "current_root": str(current_manager_state_root),
+@@ -401,25 +485,39 @@
+             "shared_writer_guard": "Old and new writers must never run concurrently against one manager root.",
+         },
+         "rollback_backup": (
+-            {"path": rollback_source, "sha256": backup_sha}
++            {"path": str(backup), "sha256": backup_sha}
+             if backup is not None
+-            else {"path": rollback_source, "sha256": current_sha, "kind": "current_source_fallback"}
++            else {"path": str(source_plist_path), "sha256": source_sha, "kind": "current_source_fallback"}
+         ),
+         "preserved_environment": describe_preserved_environment(source_plist),
+-        "future_commands": {
+-            "activate_candidate": [
+-                f"launchctl bootout gui/$(id -u)/{label}",
+-                f"launchctl bootstrap gui/$(id -u) {staged_str!r}",
+-            ],
+-            "rollback": [
+-                f"launchctl bootout gui/$(id -u)/{label}",
+-                f"cp {rollback_source!r} {current_path!r}",
+-                f"launchctl bootstrap gui/$(id -u) {current_path!r}",
+-            ],
++        "activation_protocol": {
++            "shared_lock_required": True,
++            "integration_revalidation_required": True,
++            "automatic_activation": False,
++            "publisher": "reviewed actual API publisher with pinned api_release_integration.py",
++            "required_action": "Generate and review the current release adapter; direct launchctl/cp commands are not a protected publication path.",
+         },
+-        "guard": "This plan is descriptive. No service, plist in Library, or scheduled task was changed.",
++        "guard": "Staged plan only; actual API publisher must revalidate under its shared lock before any service or pointer change.",
+     }
+-    plan_path.write_text(json.dumps(plan, indent=2, ensure_ascii=False, sort_keys=True) + "\n")
++    # Revalidate after all rendering work and before any output file is written.
++    final_integration = verify_api_release_candidate(
++        candidate_root=candidate_root, active_api_plist_path=source_plist_path,
++        expected_manifest_sha256=manifest_sha256, active_pointer="base",
++    )
++    if final_integration != api_integration:
++        raise ValueError("API_PREPARE_INTEGRATION_CHANGED")
++    assert_inputs_current()
++    with _candidate_directory(candidate_root, candidate_manager_state_root / ".commits"):
++        pass
++    with _candidate_directory(candidate_root, config_dir) as (directory_fd, assert_directory):
++        assert_inputs_current()
++        assert_directory()
++        _write_exclusive_at(directory_fd, staged_path.name, staged_raw)
++        assert_inputs_current()
++        assert_directory()
++        _write_exclusive_at(directory_fd, plan_path.name,
++            (json.dumps(plan, indent=2, ensure_ascii=False, sort_keys=True) + "\n").encode("utf-8"))
++        assert_inputs_current()
+     return plan
+ 
+ 
+diff --git a/ops/create_api_module_delta.py b/ops/create_api_module_delta.py
+new file mode 100644
+index 0000000..3441ab6
+--- /dev/null
++++ b/ops/create_api_module_delta.py
+@@ -0,0 +1,118 @@
++#!/usr/bin/env python3
++"""Bind a reviewed module change set to the current API release.
++
++Reads the active pointer/app and reviewed after files. Writes one new delta
++receipt; does not build a full app, activate a service, or change business data.
++The receipt is an integrity contract, not deployment authorization.
++"""
++from __future__ import annotations
++
++import argparse
++import hashlib
++import json
++from pathlib import Path
++import stat
++from typing import Any, Sequence
++
++if __package__:
++    from . import api_release_integration as integration
++else:
++    import api_release_integration as integration
++
++if Path(integration.__file__).resolve() != Path(__file__).resolve().with_name('api_release_integration.py'):
++    raise ImportError('API_MODULE_DELTA_ADJACENT_GUARD_REQUIRED')
++
++CHANGE_SET_SCHEMA = 'v4.api_module_change_set.v1'
++FILE_KEYS = {'path', 'before_sha256', 'after_sha256', 'before_mode', 'after_mode'}
++
++
++def create_module_delta(*, active_api_plist_path: Path, after_root: Path,
++                        change_set_path: Path, output_path: Path) -> dict[str, Any]:
++    after_root = integration._exact_path(after_root, kind='directory', label='API_MODULE_DELTA_AFTER_ROOT')
++    change_set_path = integration._exact_path(change_set_path, kind='file', label='API_MODULE_DELTA_CHANGE_SET')
++    raw, change_token = integration._read_file(change_set_path)
++    changes = integration._json_object(raw, 'API_MODULE_DELTA_CHANGE_SET')
++    if (set(changes) != {'schema_version', 'module', 'shared_paths', 'files'}
++            or changes['schema_version'] != CHANGE_SET_SCHEMA
++            or not isinstance(changes['files'], list) or not changes['files']):
++        raise ValueError('API_MODULE_DELTA_CHANGE_SET_INVALID')
++    scope = integration.module_scope(changes['module'], changes['shared_paths'])
++    active = integration.read_active_release(active_api_plist_path)
++    base_app = Path(active['app_root'])
++    base_entries = {row['path']: row for row in active['inventory']}
++    entries = []
++    after_snapshots = []
++    paths = []
++    for change in changes['files']:
++        if not isinstance(change, dict) or set(change) != FILE_KEYS:
++            raise ValueError('API_MODULE_DELTA_FILE_FIELDS_INVALID')
++        relative = integration._normalise_relative(change['path'])
++        paths.append(relative)
++        before_entry = base_entries.get(relative)
++        if change['before_sha256'] is None:
++            if before_entry is not None or change['before_mode'] is not None:
++                raise ValueError('API_MODULE_DELTA_ADDITION_ALREADY_EXISTS:' + relative)
++            before_raw = None
++        else:
++            if (before_entry is None or before_entry.get('kind') != 'file'
++                    or before_entry.get('sha256') != change['before_sha256']
++                    or before_entry.get('mode') != change['before_mode']):
++                raise ValueError('API_MODULE_DELTA_REVIEWED_BEFORE_MISMATCH:' + relative)
++            before_path = integration._safe_child(base_app, relative, allow_missing=False)
++            before_raw, _ = integration._read_file(before_path)
++            if hashlib.sha256(before_raw).hexdigest() != change['before_sha256']:
++                raise ValueError('API_MODULE_DELTA_BEFORE_CHANGED:' + relative)
++        after_path = integration._safe_child(after_root, relative, allow_missing=False)
++        after_raw, after_token = integration._read_file(after_path)
++        after_sha = hashlib.sha256(after_raw).hexdigest()
++        after_mode = f'{stat.S_IMODE(after_token[1][2]):04o}'
++        if after_sha != change['after_sha256'] or after_mode != change['after_mode']:
++            raise ValueError('API_MODULE_DELTA_REVIEWED_AFTER_MISMATCH:' + relative)
++        after_snapshots.append((after_path, after_sha, after_token))
++        proof, hunks = (None, None) if before_raw is None else integration._diff_proof(before_raw, after_raw)
++        entries.append({**change, 'unified_diff_sha256': proof, 'unified_diff_hunk_count': hunks})
++    if paths != sorted(set(paths)):
++        raise ValueError('API_MODULE_DELTA_PATHS_MUST_BE_UNIQUE_AND_SORTED')
++    receipt = {'schema_version': integration.DELTA_SCHEMA_VERSION,
++        'base': integration._base_binding(active), 'module_scope': scope, 'entries': entries}
++    integration._validate_delta_receipt(receipt, base_identity=active)
++    output_path = integration._absolute_path(output_path)
++    output_parent = integration._exact_path(output_path.parent, kind='directory', label='API_MODULE_DELTA_OUTPUT_PARENT')
++    for protected in (Path(active['release_root']), after_root):
++        if output_path == protected or protected in output_path.parents:
++            raise ValueError('API_MODULE_DELTA_OUTPUT_INSIDE_INPUT_ROOT')
++    if output_path.exists() or output_path.is_symlink():
++        raise ValueError('API_MODULE_DELTA_OUTPUT_ALREADY_EXISTS')
++    integration._assert_file_snapshot(change_set_path, hashlib.sha256(raw).hexdigest(), change_token)
++    for path, digest, token in after_snapshots:
++        integration._assert_file_snapshot(path, digest, token)
++    integration._assert_active_snapshot(active)
++    receipt_raw = (json.dumps(receipt, ensure_ascii=False, sort_keys=True, indent=2) + '\n').encode('utf-8')
++    integration._write_candidate_bytes(output_parent, output_path.name, receipt_raw, 0o600, exclusive=True)
++    # The builder and actual publisher independently verify the same base again.
++    integration._assert_active_snapshot(active)
++    return {'status': 'DELTA_READY_FOR_REVIEW', 'module': scope['module'],
++        'delta_path': str(output_path), 'delta_sha256': hashlib.sha256(receipt_raw).hexdigest(),
++        'file_count': len(entries), 'automatic_activation': False}
++
++
++def main(argv: Sequence[str] | None = None) -> int:
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--active-api-plist', type=Path, required=True)
++    parser.add_argument('--after-root', type=Path, required=True)
++    parser.add_argument('--change-set', type=Path, required=True)
++    parser.add_argument('--output', type=Path, required=True)
++    args = parser.parse_args(argv)
++    try:
++        result = create_module_delta(active_api_plist_path=args.active_api_plist,
++            after_root=args.after_root, change_set_path=args.change_set, output_path=args.output)
++    except (ValueError, OSError, TypeError, KeyError) as exc:
++        import sys
++        print('API_MODULE_DELTA_REJECTED: ' + str(exc), file=sys.stderr)
++        return 2
++    print(json.dumps(result, ensure_ascii=False, sort_keys=True))
++    return 0
++
++
++if __name__ == '__main__':
++    raise SystemExit(main())

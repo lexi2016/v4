@@ -1,0 +1,2146 @@
+{
+  "collection_errors": 0,
+  "deselected": 0,
+  "exitstatus": 0,
+  "failed_calls": 0,
+  "failed_setup_teardown": 0,
+  "node_ids": [
+    "tests/test_api_release_integration.py::test_prepare_refuses_legacy_api_candidate_without_integration_lineage",
+    "tests/test_api_release_integration.py::test_candidate_is_active_base_plus_exact_delta_and_prepare_pins_it",
+    "tests/test_api_release_integration.py::test_wrong_before_sha_and_active_base_drift_are_rejected",
+    "tests/test_api_release_integration.py::test_candidate_rejects_unlisted_changes_and_deletions[unlisted_change]",
+    "tests/test_api_release_integration.py::test_candidate_rejects_unlisted_changes_and_deletions[delete_file]",
+    "tests/test_api_release_integration.py::test_shared_lock_is_required_and_blocks_a_second_publisher",
+    "tests/test_api_release_v2_contract.py::test_unknown_contract_fields_are_refused_before_copy[receipt]",
+    "tests/test_api_release_v2_contract.py::test_unknown_contract_fields_are_refused_before_copy[entry]",
+    "tests/test_api_release_v2_contract.py::test_unknown_contract_fields_are_refused_before_copy[base]",
+    "tests/test_api_release_v2_contract.py::test_unknown_contract_fields_are_refused_before_copy[scope]",
+    "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[after_sha256-GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG]",
+    "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[before_sha256-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]",
+    "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[unified_diff_sha256-FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF]",
+    "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[unified_diff_hunk_count-True]",
+    "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[before_mode-644]",
+    "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[after_mode-0899]",
+    "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[after_mode-416]",
+    "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[after_sha256-None]",
+    "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[path-../escape.py]",
+    "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[path-.]",
+    "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[path-C:\\\\escape.py]",
+    "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[path-apps//api/v35_api/app.py]",
+    "tests/test_api_release_v2_contract.py::test_module_scope_cannot_expand_ownership[unknown_module]",
+    "tests/test_api_release_v2_contract.py::test_module_scope_cannot_expand_ownership[policy_mismatch]",
+    "tests/test_api_release_v2_contract.py::test_module_scope_cannot_expand_ownership[missing_shared]",
+    "tests/test_api_release_v2_contract.py::test_module_scope_cannot_expand_ownership[extra_shared]",
+    "tests/test_api_release_v2_contract.py::test_module_scope_cannot_expand_ownership[platform_as_preselection]",
+    "tests/test_api_release_v2_contract.py::test_other_module_file_is_refused_even_with_valid_policy_hash",
+    "tests/test_api_release_v2_contract.py::test_duplicate_json_key_is_refused_before_copy",
+    "tests/test_api_release_v2_contract.py::test_declared_addition_preserves_existing_file_and_exact_mode",
+    "tests/test_api_release_v2_contract.py::test_declared_before_mode_must_match_active_file",
+    "tests/test_api_release_v2_contract.py::test_declared_after_mode_must_match_source_file",
+    "tests/test_api_release_v2_contract.py::test_build_rejects_non_delta_change_after_delta_verification",
+    "tests/test_api_release_v2_contract.py::test_verify_rechecks_all_pinned_metadata_at_return[candidate_manifest]",
+    "tests/test_api_release_v2_contract.py::test_verify_rechecks_all_pinned_metadata_at_return[base_manifest]",
+    "tests/test_api_release_v2_contract.py::test_verify_rechecks_all_pinned_metadata_at_return[delta_receipt]",
+    "tests/test_api_release_v2_contract.py::test_recorded_base_can_be_verified_while_active_pointer_absent",
+    "tests/test_api_release_v2_contract.py::test_real_child_process_is_blocked_until_lock_released",
+    "tests/test_api_release_v2_contract.py::test_forged_expired_and_replaced_lock_leases_are_rejected",
+    "tests/test_api_release_v2_contract.py::test_lock_path_symlink_is_refused_without_touching_target",
+    "tests/test_api_release_v2_contract.py::test_lock_lease_is_rechecked_after_delta_validation",
+    "tests/test_api_release_v2_contract.py::test_candidate_cannot_be_built_inside_an_input_root[active]",
+    "tests/test_api_release_v2_contract.py::test_candidate_cannot_be_built_inside_an_input_root[source]",
+    "tests/test_api_release_v2_contract.py::test_readonly_active_directories_are_preserved_after_applying_delta",
+    "tests/test_api_release_v2_contract.py::test_an_explicit_mode_only_delta_is_bound_and_preserves_content",
+    "tests/test_build_release_candidate.py::test_rewrite_preserves_safety_and_runtime_roots_and_adds_isolated_manager_root",
+    "tests/test_build_release_candidate.py::test_render_cutover_is_staged_only_and_refuses_shared_manager_root",
+    "tests/test_build_release_candidate.py::test_render_cutover_requires_source_root_and_refuses_source_overlap",
+    "tests/test_build_release_candidate.py::test_render_cutover_requires_candidate_manager_root_below_candidate",
+    "tests/test_build_release_candidate.py::test_build_candidate_copies_current_dist_and_writes_manifest_and_plan",
+    "tests/test_build_release_candidate.py::test_v2_rejects_mixed_owner_and_scheduler_delta",
+    "tests/test_build_release_candidate.py::test_unlisted_generation_path_remains_excluded",
+    "tests/test_build_release_candidate.py::test_existing_candidate_is_never_overwritten",
+    "tests/test_build_release_candidate.py::test_candidate_under_formal_release_root_is_rejected",
+    "tests/test_build_release_candidate.py::test_explicit_reviewed_new_paths_not_limited_to_old_m3_three",
+    "tests/test_build_release_candidate.py::test_explicit_untracked_ancestor_symlink_is_rejected",
+    "tests/test_build_release_candidate.py::test_candidate_stages_scheduler_with_identical_api_manifest_pin",
+    "tests/test_builder_issue30.py::test_builder_does_not_erase_supplied_aliases[source_root]",
+    "tests/test_builder_issue30.py::test_builder_does_not_erase_supplied_aliases[api_plist_path]",
+    "tests/test_builder_issue30.py::test_builder_does_not_erase_supplied_aliases[api_integration_delta_receipt_path]",
+    "tests/test_builder_issue30.py::test_builder_rechecks_active_after_staging_before_marking_complete",
+    "tests/test_builder_module_additions.py::test_preselection_delta_adds_only_its_reviewed_router_and_service",
+    "tests/test_builder_source_scope.py::test_untracked_receipt_file_still_requires_explicit_include",
+    "tests/test_builder_source_scope.py::test_untracked_source_may_modify_an_existing_active_file",
+    "tests/test_builder_source_scope.py::test_tracked_flag_cannot_authorize_an_undeclared_file",
+    "tests/test_core_review_revision.py::test_receipt_authorizes_active_addition_without_untracked_flag",
+    "tests/test_core_review_revision.py::test_source_untracked_approval_can_cover_an_active_modification",
+    "tests/test_core_review_revision.py::test_untracked_flags_must_be_unique_receipt_paths_before_copy[flags0]",
+    "tests/test_core_review_revision.py::test_untracked_flags_must_be_unique_receipt_paths_before_copy[flags1]",
+    "tests/test_core_review_revision.py::test_source_allowlist_refuses_unapproved_receipt_file_before_copy",
+    "tests/test_core_review_revision.py::test_source_allowlist_does_not_copy_unlisted_files",
+    "tests/test_core_review_revision.py::test_verifier_rejects_existing_directory_mode_drift[.]",
+    "tests/test_core_review_revision.py::test_verifier_rejects_existing_directory_mode_drift[apps/api]",
+    "tests/test_core_review_revision.py::test_verifier_rejects_removal_of_preserved_empty_directory",
+    "tests/test_core_review_revision.py::test_verifier_rejects_undeclared_empty_directory",
+    "tests/test_core_review_revision.py::test_verifier_binds_base_directories_even_if_candidate_matches_drift[mode]",
+    "tests/test_core_review_revision.py::test_verifier_binds_base_directories_even_if_candidate_matches_drift[remove]",
+    "tests/test_core_review_revision.py::test_verifier_binds_base_directories_even_if_candidate_matches_drift[add]",
+    "tests/test_core_review_revision.py::test_new_directories_are_only_required_ancestors_with_fixed_mode",
+    "tests/test_core_review_revision.py::test_verifier_rejects_mode_change_to_a_declared_new_ancestor",
+    "tests/test_core_review_revision.py::test_readonly_base_directories_are_retained_while_new_directory_is_added",
+    "tests/test_core_review_revision.py::test_directory_proof_is_required_and_unknown_fields_are_rejected",
+    "tests/test_core_review_revision.py::test_a_new_active_v2_release_keeps_its_recorded_directory_identity",
+    "tests/test_integration_adversarial.py::test_read_active_rejects_plist_change_during_identity_read",
+    "tests/test_integration_adversarial.py::test_verify_rejects_active_switch_during_delta_verification",
+    "tests/test_integration_adversarial.py::test_build_rejects_active_switch_during_delta_verification",
+    "tests/test_integration_adversarial.py::test_verify_rejects_non_delta_mutation_after_verification",
+    "tests/test_integration_adversarial.py::test_verify_rejects_delta_mode_not_bound_by_receipt",
+    "tests/test_integration_adversarial.py::test_prepare_rejects_config_directory_symlink",
+    "tests/test_integration_adversarial.py::test_prepare_rejects_source_pointer_symlink",
+    "tests/test_integration_adversarial.py::test_verify_rejects_candidate_root_replacement_during_verification",
+    "tests/test_integration_adversarial.py::test_verify_binds_exact_active_pointer_bytes",
+    "tests/test_manager_actual_ownership.py::test_actual_manager_service_path_has_its_own_module_owner[manager-True]",
+    "tests/test_manager_actual_ownership.py::test_actual_manager_service_path_has_its_own_module_owner[preselection-False]",
+    "tests/test_module_delta_cli.py::test_delta_cli_creates_v2_candidate_receipt_without_changing_inputs",
+    "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[before]",
+    "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[after]",
+    "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[mode]",
+    "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[module]",
+    "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[extra_field]",
+    "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[duplicate_key]",
+    "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[source_alias]",
+    "tests/test_module_delta_cli.py::test_delta_cli_never_overwrites_an_existing_receipt",
+    "tests/test_prepare_issue30.py::test_prepare_rejects_release_id_different_from_verified_manifest",
+    "tests/test_prepare_issue30.py::test_prepare_rejects_pointer_change_after_initial_verification",
+    "tests/test_prepare_issue30.py::test_prepare_rejects_state_directory_symlink_before_writing",
+    "tests/test_prepare_issue30.py::test_prepare_config_swap_after_rewrite_cannot_write_outside",
+    "tests/test_prepare_issue30.py::test_prepare_plan_has_no_unguarded_launchctl_or_copy_path",
+    "tests/test_release_review_probes.py::test_committed_reviewed_module_addition_can_be_built[False]",
+    "tests/test_release_review_probes.py::test_committed_reviewed_module_addition_can_be_built[True]",
+    "tests/test_release_review_probes.py::test_verifier_rejects_undeclared_directory_mode_change",
+    "tests/test_release_review_probes.py::test_scheduler_staging_cannot_follow_late_config_symlink"
+  ],
+  "node_ids_sha256": "13dce4b2c4bc60f2d14e1cfa881627f35aca674a161950112b703a9b0b71f53b",
+  "passed_calls": 112,
+  "reports": [
+    {
+      "node_id": "tests/test_api_release_integration.py::test_prepare_refuses_legacy_api_candidate_without_integration_lineage",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_integration.py::test_prepare_refuses_legacy_api_candidate_without_integration_lineage",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_integration.py::test_prepare_refuses_legacy_api_candidate_without_integration_lineage",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_integration.py::test_candidate_is_active_base_plus_exact_delta_and_prepare_pins_it",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_integration.py::test_candidate_is_active_base_plus_exact_delta_and_prepare_pins_it",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_integration.py::test_candidate_is_active_base_plus_exact_delta_and_prepare_pins_it",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_integration.py::test_wrong_before_sha_and_active_base_drift_are_rejected",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_integration.py::test_wrong_before_sha_and_active_base_drift_are_rejected",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_integration.py::test_wrong_before_sha_and_active_base_drift_are_rejected",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_integration.py::test_candidate_rejects_unlisted_changes_and_deletions[unlisted_change]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_integration.py::test_candidate_rejects_unlisted_changes_and_deletions[unlisted_change]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_integration.py::test_candidate_rejects_unlisted_changes_and_deletions[unlisted_change]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_integration.py::test_candidate_rejects_unlisted_changes_and_deletions[delete_file]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_integration.py::test_candidate_rejects_unlisted_changes_and_deletions[delete_file]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_integration.py::test_candidate_rejects_unlisted_changes_and_deletions[delete_file]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_integration.py::test_shared_lock_is_required_and_blocks_a_second_publisher",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_integration.py::test_shared_lock_is_required_and_blocks_a_second_publisher",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_integration.py::test_shared_lock_is_required_and_blocks_a_second_publisher",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_unknown_contract_fields_are_refused_before_copy[receipt]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_unknown_contract_fields_are_refused_before_copy[receipt]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_unknown_contract_fields_are_refused_before_copy[receipt]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_unknown_contract_fields_are_refused_before_copy[entry]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_unknown_contract_fields_are_refused_before_copy[entry]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_unknown_contract_fields_are_refused_before_copy[entry]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_unknown_contract_fields_are_refused_before_copy[base]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_unknown_contract_fields_are_refused_before_copy[base]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_unknown_contract_fields_are_refused_before_copy[base]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_unknown_contract_fields_are_refused_before_copy[scope]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_unknown_contract_fields_are_refused_before_copy[scope]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_unknown_contract_fields_are_refused_before_copy[scope]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[after_sha256-GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[after_sha256-GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[after_sha256-GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[before_sha256-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[before_sha256-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[before_sha256-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[unified_diff_sha256-FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[unified_diff_sha256-FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[unified_diff_sha256-FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[unified_diff_hunk_count-True]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[unified_diff_hunk_count-True]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[unified_diff_hunk_count-True]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[before_mode-644]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[before_mode-644]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[before_mode-644]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[after_mode-0899]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[after_mode-0899]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[after_mode-0899]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[after_mode-416]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[after_mode-416]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[after_mode-416]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[after_sha256-None]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[after_sha256-None]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[after_sha256-None]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[path-../escape.py]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[path-../escape.py]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[path-../escape.py]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[path-.]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[path-.]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[path-.]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[path-C:\\\\escape.py]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[path-C:\\\\escape.py]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[path-C:\\\\escape.py]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[path-apps//api/v35_api/app.py]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[path-apps//api/v35_api/app.py]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_malformed_entry_contract_is_refused[path-apps//api/v35_api/app.py]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_module_scope_cannot_expand_ownership[unknown_module]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_module_scope_cannot_expand_ownership[unknown_module]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_module_scope_cannot_expand_ownership[unknown_module]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_module_scope_cannot_expand_ownership[policy_mismatch]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_module_scope_cannot_expand_ownership[policy_mismatch]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_module_scope_cannot_expand_ownership[policy_mismatch]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_module_scope_cannot_expand_ownership[missing_shared]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_module_scope_cannot_expand_ownership[missing_shared]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_module_scope_cannot_expand_ownership[missing_shared]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_module_scope_cannot_expand_ownership[extra_shared]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_module_scope_cannot_expand_ownership[extra_shared]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_module_scope_cannot_expand_ownership[extra_shared]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_module_scope_cannot_expand_ownership[platform_as_preselection]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_module_scope_cannot_expand_ownership[platform_as_preselection]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_module_scope_cannot_expand_ownership[platform_as_preselection]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_other_module_file_is_refused_even_with_valid_policy_hash",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_other_module_file_is_refused_even_with_valid_policy_hash",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_other_module_file_is_refused_even_with_valid_policy_hash",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_duplicate_json_key_is_refused_before_copy",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_duplicate_json_key_is_refused_before_copy",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_duplicate_json_key_is_refused_before_copy",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_declared_addition_preserves_existing_file_and_exact_mode",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_declared_addition_preserves_existing_file_and_exact_mode",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_declared_addition_preserves_existing_file_and_exact_mode",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_declared_before_mode_must_match_active_file",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_declared_before_mode_must_match_active_file",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_declared_before_mode_must_match_active_file",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_declared_after_mode_must_match_source_file",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_declared_after_mode_must_match_source_file",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_declared_after_mode_must_match_source_file",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_build_rejects_non_delta_change_after_delta_verification",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_build_rejects_non_delta_change_after_delta_verification",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_build_rejects_non_delta_change_after_delta_verification",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_verify_rechecks_all_pinned_metadata_at_return[candidate_manifest]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_verify_rechecks_all_pinned_metadata_at_return[candidate_manifest]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_verify_rechecks_all_pinned_metadata_at_return[candidate_manifest]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_verify_rechecks_all_pinned_metadata_at_return[base_manifest]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_verify_rechecks_all_pinned_metadata_at_return[base_manifest]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_verify_rechecks_all_pinned_metadata_at_return[base_manifest]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_verify_rechecks_all_pinned_metadata_at_return[delta_receipt]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_verify_rechecks_all_pinned_metadata_at_return[delta_receipt]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_verify_rechecks_all_pinned_metadata_at_return[delta_receipt]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_recorded_base_can_be_verified_while_active_pointer_absent",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_recorded_base_can_be_verified_while_active_pointer_absent",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_recorded_base_can_be_verified_while_active_pointer_absent",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_real_child_process_is_blocked_until_lock_released",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_real_child_process_is_blocked_until_lock_released",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_real_child_process_is_blocked_until_lock_released",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_forged_expired_and_replaced_lock_leases_are_rejected",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_forged_expired_and_replaced_lock_leases_are_rejected",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_forged_expired_and_replaced_lock_leases_are_rejected",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_lock_path_symlink_is_refused_without_touching_target",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_lock_path_symlink_is_refused_without_touching_target",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_lock_path_symlink_is_refused_without_touching_target",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_lock_lease_is_rechecked_after_delta_validation",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_lock_lease_is_rechecked_after_delta_validation",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_lock_lease_is_rechecked_after_delta_validation",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_candidate_cannot_be_built_inside_an_input_root[active]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_candidate_cannot_be_built_inside_an_input_root[active]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_candidate_cannot_be_built_inside_an_input_root[active]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_candidate_cannot_be_built_inside_an_input_root[source]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_candidate_cannot_be_built_inside_an_input_root[source]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_candidate_cannot_be_built_inside_an_input_root[source]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_readonly_active_directories_are_preserved_after_applying_delta",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_readonly_active_directories_are_preserved_after_applying_delta",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_readonly_active_directories_are_preserved_after_applying_delta",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_an_explicit_mode_only_delta_is_bound_and_preserves_content",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_an_explicit_mode_only_delta_is_bound_and_preserves_content",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_release_v2_contract.py::test_an_explicit_mode_only_delta_is_bound_and_preserves_content",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_rewrite_preserves_safety_and_runtime_roots_and_adds_isolated_manager_root",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_rewrite_preserves_safety_and_runtime_roots_and_adds_isolated_manager_root",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_rewrite_preserves_safety_and_runtime_roots_and_adds_isolated_manager_root",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_render_cutover_is_staged_only_and_refuses_shared_manager_root",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_render_cutover_is_staged_only_and_refuses_shared_manager_root",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_render_cutover_is_staged_only_and_refuses_shared_manager_root",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_render_cutover_requires_source_root_and_refuses_source_overlap",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_render_cutover_requires_source_root_and_refuses_source_overlap",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_render_cutover_requires_source_root_and_refuses_source_overlap",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_render_cutover_requires_candidate_manager_root_below_candidate",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_render_cutover_requires_candidate_manager_root_below_candidate",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_render_cutover_requires_candidate_manager_root_below_candidate",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_build_candidate_copies_current_dist_and_writes_manifest_and_plan",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_build_candidate_copies_current_dist_and_writes_manifest_and_plan",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_build_candidate_copies_current_dist_and_writes_manifest_and_plan",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_v2_rejects_mixed_owner_and_scheduler_delta",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_v2_rejects_mixed_owner_and_scheduler_delta",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_v2_rejects_mixed_owner_and_scheduler_delta",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_unlisted_generation_path_remains_excluded",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_unlisted_generation_path_remains_excluded",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_unlisted_generation_path_remains_excluded",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_existing_candidate_is_never_overwritten",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_existing_candidate_is_never_overwritten",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_existing_candidate_is_never_overwritten",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_candidate_under_formal_release_root_is_rejected",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_candidate_under_formal_release_root_is_rejected",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_candidate_under_formal_release_root_is_rejected",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_explicit_reviewed_new_paths_not_limited_to_old_m3_three",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_explicit_reviewed_new_paths_not_limited_to_old_m3_three",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_explicit_reviewed_new_paths_not_limited_to_old_m3_three",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_explicit_untracked_ancestor_symlink_is_rejected",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_explicit_untracked_ancestor_symlink_is_rejected",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_explicit_untracked_ancestor_symlink_is_rejected",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_candidate_stages_scheduler_with_identical_api_manifest_pin",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_candidate_stages_scheduler_with_identical_api_manifest_pin",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_build_release_candidate.py::test_candidate_stages_scheduler_with_identical_api_manifest_pin",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_builder_issue30.py::test_builder_does_not_erase_supplied_aliases[source_root]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_builder_issue30.py::test_builder_does_not_erase_supplied_aliases[source_root]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_builder_issue30.py::test_builder_does_not_erase_supplied_aliases[source_root]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_builder_issue30.py::test_builder_does_not_erase_supplied_aliases[api_plist_path]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_builder_issue30.py::test_builder_does_not_erase_supplied_aliases[api_plist_path]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_builder_issue30.py::test_builder_does_not_erase_supplied_aliases[api_plist_path]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_builder_issue30.py::test_builder_does_not_erase_supplied_aliases[api_integration_delta_receipt_path]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_builder_issue30.py::test_builder_does_not_erase_supplied_aliases[api_integration_delta_receipt_path]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_builder_issue30.py::test_builder_does_not_erase_supplied_aliases[api_integration_delta_receipt_path]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_builder_issue30.py::test_builder_rechecks_active_after_staging_before_marking_complete",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_builder_issue30.py::test_builder_rechecks_active_after_staging_before_marking_complete",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_builder_issue30.py::test_builder_rechecks_active_after_staging_before_marking_complete",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_builder_module_additions.py::test_preselection_delta_adds_only_its_reviewed_router_and_service",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_builder_module_additions.py::test_preselection_delta_adds_only_its_reviewed_router_and_service",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_builder_module_additions.py::test_preselection_delta_adds_only_its_reviewed_router_and_service",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_builder_source_scope.py::test_untracked_receipt_file_still_requires_explicit_include",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_builder_source_scope.py::test_untracked_receipt_file_still_requires_explicit_include",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_builder_source_scope.py::test_untracked_receipt_file_still_requires_explicit_include",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_builder_source_scope.py::test_untracked_source_may_modify_an_existing_active_file",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_builder_source_scope.py::test_untracked_source_may_modify_an_existing_active_file",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_builder_source_scope.py::test_untracked_source_may_modify_an_existing_active_file",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_builder_source_scope.py::test_tracked_flag_cannot_authorize_an_undeclared_file",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_builder_source_scope.py::test_tracked_flag_cannot_authorize_an_undeclared_file",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_builder_source_scope.py::test_tracked_flag_cannot_authorize_an_undeclared_file",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_receipt_authorizes_active_addition_without_untracked_flag",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_receipt_authorizes_active_addition_without_untracked_flag",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_receipt_authorizes_active_addition_without_untracked_flag",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_source_untracked_approval_can_cover_an_active_modification",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_source_untracked_approval_can_cover_an_active_modification",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_source_untracked_approval_can_cover_an_active_modification",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_untracked_flags_must_be_unique_receipt_paths_before_copy[flags0]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_untracked_flags_must_be_unique_receipt_paths_before_copy[flags0]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_untracked_flags_must_be_unique_receipt_paths_before_copy[flags0]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_untracked_flags_must_be_unique_receipt_paths_before_copy[flags1]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_untracked_flags_must_be_unique_receipt_paths_before_copy[flags1]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_untracked_flags_must_be_unique_receipt_paths_before_copy[flags1]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_source_allowlist_refuses_unapproved_receipt_file_before_copy",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_source_allowlist_refuses_unapproved_receipt_file_before_copy",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_source_allowlist_refuses_unapproved_receipt_file_before_copy",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_source_allowlist_does_not_copy_unlisted_files",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_source_allowlist_does_not_copy_unlisted_files",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_source_allowlist_does_not_copy_unlisted_files",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_rejects_existing_directory_mode_drift[.]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_rejects_existing_directory_mode_drift[.]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_rejects_existing_directory_mode_drift[.]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_rejects_existing_directory_mode_drift[apps/api]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_rejects_existing_directory_mode_drift[apps/api]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_rejects_existing_directory_mode_drift[apps/api]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_rejects_removal_of_preserved_empty_directory",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_rejects_removal_of_preserved_empty_directory",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_rejects_removal_of_preserved_empty_directory",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_rejects_undeclared_empty_directory",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_rejects_undeclared_empty_directory",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_rejects_undeclared_empty_directory",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_binds_base_directories_even_if_candidate_matches_drift[mode]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_binds_base_directories_even_if_candidate_matches_drift[mode]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_binds_base_directories_even_if_candidate_matches_drift[mode]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_binds_base_directories_even_if_candidate_matches_drift[remove]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_binds_base_directories_even_if_candidate_matches_drift[remove]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_binds_base_directories_even_if_candidate_matches_drift[remove]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_binds_base_directories_even_if_candidate_matches_drift[add]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_binds_base_directories_even_if_candidate_matches_drift[add]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_binds_base_directories_even_if_candidate_matches_drift[add]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_new_directories_are_only_required_ancestors_with_fixed_mode",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_new_directories_are_only_required_ancestors_with_fixed_mode",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_new_directories_are_only_required_ancestors_with_fixed_mode",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_rejects_mode_change_to_a_declared_new_ancestor",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_rejects_mode_change_to_a_declared_new_ancestor",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_verifier_rejects_mode_change_to_a_declared_new_ancestor",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_readonly_base_directories_are_retained_while_new_directory_is_added",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_readonly_base_directories_are_retained_while_new_directory_is_added",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_readonly_base_directories_are_retained_while_new_directory_is_added",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_directory_proof_is_required_and_unknown_fields_are_rejected",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_directory_proof_is_required_and_unknown_fields_are_rejected",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_directory_proof_is_required_and_unknown_fields_are_rejected",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_a_new_active_v2_release_keeps_its_recorded_directory_identity",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_a_new_active_v2_release_keeps_its_recorded_directory_identity",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_core_review_revision.py::test_a_new_active_v2_release_keeps_its_recorded_directory_identity",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_read_active_rejects_plist_change_during_identity_read",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_read_active_rejects_plist_change_during_identity_read",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_read_active_rejects_plist_change_during_identity_read",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_verify_rejects_active_switch_during_delta_verification",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_verify_rejects_active_switch_during_delta_verification",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_verify_rejects_active_switch_during_delta_verification",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_build_rejects_active_switch_during_delta_verification",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_build_rejects_active_switch_during_delta_verification",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_build_rejects_active_switch_during_delta_verification",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_verify_rejects_non_delta_mutation_after_verification",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_verify_rejects_non_delta_mutation_after_verification",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_verify_rejects_non_delta_mutation_after_verification",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_verify_rejects_delta_mode_not_bound_by_receipt",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_verify_rejects_delta_mode_not_bound_by_receipt",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_verify_rejects_delta_mode_not_bound_by_receipt",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_prepare_rejects_config_directory_symlink",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_prepare_rejects_config_directory_symlink",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_prepare_rejects_config_directory_symlink",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_prepare_rejects_source_pointer_symlink",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_prepare_rejects_source_pointer_symlink",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_prepare_rejects_source_pointer_symlink",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_verify_rejects_candidate_root_replacement_during_verification",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_verify_rejects_candidate_root_replacement_during_verification",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_verify_rejects_candidate_root_replacement_during_verification",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_verify_binds_exact_active_pointer_bytes",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_verify_binds_exact_active_pointer_bytes",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_integration_adversarial.py::test_verify_binds_exact_active_pointer_bytes",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_manager_actual_ownership.py::test_actual_manager_service_path_has_its_own_module_owner[manager-True]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_manager_actual_ownership.py::test_actual_manager_service_path_has_its_own_module_owner[manager-True]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_manager_actual_ownership.py::test_actual_manager_service_path_has_its_own_module_owner[manager-True]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_manager_actual_ownership.py::test_actual_manager_service_path_has_its_own_module_owner[preselection-False]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_manager_actual_ownership.py::test_actual_manager_service_path_has_its_own_module_owner[preselection-False]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_manager_actual_ownership.py::test_actual_manager_service_path_has_its_own_module_owner[preselection-False]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_creates_v2_candidate_receipt_without_changing_inputs",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_creates_v2_candidate_receipt_without_changing_inputs",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_creates_v2_candidate_receipt_without_changing_inputs",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[before]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[before]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[before]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[after]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[after]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[after]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[mode]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[mode]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[mode]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[module]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[module]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[module]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[extra_field]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[extra_field]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[extra_field]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[duplicate_key]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[duplicate_key]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[duplicate_key]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[source_alias]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[source_alias]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_rejects_unreviewed_or_invalid_change_set[source_alias]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_never_overwrites_an_existing_receipt",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_never_overwrites_an_existing_receipt",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_module_delta_cli.py::test_delta_cli_never_overwrites_an_existing_receipt",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_prepare_issue30.py::test_prepare_rejects_release_id_different_from_verified_manifest",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_prepare_issue30.py::test_prepare_rejects_release_id_different_from_verified_manifest",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_prepare_issue30.py::test_prepare_rejects_release_id_different_from_verified_manifest",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_prepare_issue30.py::test_prepare_rejects_pointer_change_after_initial_verification",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_prepare_issue30.py::test_prepare_rejects_pointer_change_after_initial_verification",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_prepare_issue30.py::test_prepare_rejects_pointer_change_after_initial_verification",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_prepare_issue30.py::test_prepare_rejects_state_directory_symlink_before_writing",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_prepare_issue30.py::test_prepare_rejects_state_directory_symlink_before_writing",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_prepare_issue30.py::test_prepare_rejects_state_directory_symlink_before_writing",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_prepare_issue30.py::test_prepare_config_swap_after_rewrite_cannot_write_outside",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_prepare_issue30.py::test_prepare_config_swap_after_rewrite_cannot_write_outside",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_prepare_issue30.py::test_prepare_config_swap_after_rewrite_cannot_write_outside",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_prepare_issue30.py::test_prepare_plan_has_no_unguarded_launchctl_or_copy_path",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_prepare_issue30.py::test_prepare_plan_has_no_unguarded_launchctl_or_copy_path",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_prepare_issue30.py::test_prepare_plan_has_no_unguarded_launchctl_or_copy_path",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_release_review_probes.py::test_committed_reviewed_module_addition_can_be_built[False]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_release_review_probes.py::test_committed_reviewed_module_addition_can_be_built[False]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_release_review_probes.py::test_committed_reviewed_module_addition_can_be_built[False]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_release_review_probes.py::test_committed_reviewed_module_addition_can_be_built[True]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_release_review_probes.py::test_committed_reviewed_module_addition_can_be_built[True]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_release_review_probes.py::test_committed_reviewed_module_addition_can_be_built[True]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_release_review_probes.py::test_verifier_rejects_undeclared_directory_mode_change",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_release_review_probes.py::test_verifier_rejects_undeclared_directory_mode_change",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_release_review_probes.py::test_verifier_rejects_undeclared_directory_mode_change",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_release_review_probes.py::test_scheduler_staging_cannot_follow_late_config_symlink",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_release_review_probes.py::test_scheduler_staging_cannot_follow_late_config_symlink",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_release_review_probes.py::test_scheduler_staging_cannot_follow_late_config_symlink",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    }
+  ],
+  "schema_version": "v4.issue30.pytest_metrics.v1",
+  "skipped_reports": 0,
+  "testscollected": 112,
+  "unique_node_ids": 112,
+  "xfail_or_xpass_reports": 0
+}

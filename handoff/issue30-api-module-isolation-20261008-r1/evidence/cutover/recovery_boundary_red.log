@@ -1,0 +1,90 @@
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+_________ test_runtime_change_during_last_backup_check_refuses_bootout _________
+
+setup_actual = (<test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base>...ec/issue30/work/cutover_analysis/cutover-test-u4jj2p9x/releases/base-accepted/app</string>\n</dict>\n</plist>\n', ...})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f6f83b1fe10>
+
+    def test_runtime_change_during_last_backup_check_refuses_bootout(setup_actual, monkeypatch):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        token = _set_state(harness, fixture, "candidate", "candidate")
+        verify_backup = m._verify_recovery_backup
+        calls = 0
+    
+        def change_runtime_at_bootout_boundary(*args, **kwargs):
+            nonlocal calls
+            result = verify_backup(*args, **kwargs)
+            calls += 1
+            # public validation, restore validation, then the pre-bootout guard.
+            if calls == 3:
+                fixture["runtime"]["identity"] = dict(fixture["plan"]["before"]["loaded_identity"])
+            return result
+    
+        monkeypatch.setattr(m, "_verify_recovery_backup", change_runtime_at_bootout_boundary)
+        result = _resume(harness, fixture, receipt_path, token)
+>       assert result["status"] == "ROLLBACK_INCOMPLETE"
+E       AssertionError: assert 'ROLLED_BACK_TO_PREIMAGE' == 'ROLLBACK_INCOMPLETE'
+E         
+E         - ROLLBACK_INCOMPLETE
+E         + ROLLED_BACK_TO_PREIMAGE
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:405: AssertionError
+______ test_recovery_success_requires_original_runtime_at_final_readback _______
+
+setup_actual = (<test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base>...ec/issue30/work/cutover_analysis/cutover-test-95cgsi_u/releases/base-accepted/app</string>\n</dict>\n</plist>\n', ...})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f6f83b72d50>
+
+    def test_recovery_success_requires_original_runtime_at_final_readback(setup_actual, monkeypatch):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        token = _set_state(harness, fixture, "candidate", "unloaded")
+    
+        def drift_during_readback(**kwargs):
+            fixture["runtime"]["identity"] = {"state": "running", "pid": "9111",
+                **m._identity_from_plist(m.STAGED_API_PLIST_PATH.read_bytes())}
+            return {"status": "SYNTHETIC_PRODUCT_READBACK"}
+    
+        monkeypatch.setattr(m, "_verify_historical_product_readback", drift_during_readback)
+        result = _resume(harness, fixture, receipt_path, token)
+>       assert result["status"] == "ROLLBACK_INCOMPLETE"
+E       AssertionError: assert 'ROLLED_BACK_TO_PREIMAGE' == 'ROLLBACK_INCOMPLETE'
+E         
+E         - ROLLBACK_INCOMPLETE
+E         + ROLLED_BACK_TO_PREIMAGE
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:424: AssertionError
+__________ test_cli_reports_incomplete_continuation_with_nonzero_exit __________
+
+setup_actual = (<test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base>...ec/issue30/work/cutover_analysis/cutover-test-klvv8s73/releases/base-accepted/app</string>\n</dict>\n</plist>\n', ...})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f6f83aef240>
+capsys = <_pytest.capture.CaptureFixture object at 0x7f6f839b5e80>
+
+    def test_cli_reports_incomplete_continuation_with_nonzero_exit(setup_actual, monkeypatch, capsys):
+        harness, fixture = setup_actual
+        m, plan = harness.m, fixture["plan"]
+        receipt_path = _make_incomplete(harness, fixture, monkeypatch)
+    
+        def fail_old_bootstrap(action):
+            if action == "bootstrap":
+                fixture["runtime"]["identity"] = None
+                raise ValueError("SYNTHETIC_OLD_BOOTSTRAP_FAILURE")
+    
+        fixture["runtime"]["hook"] = fail_old_bootstrap
+        monkeypatch.setattr(m, "_load_plan", lambda: plan)
+>       assert m.main(["rollback", "--receipt", str(receipt_path), "--confirm", m.CONFIRM_ROLLBACK,
+                       "--expected-current-plist-sha256", plan["target"]["staged_api_plist_sha256"]]) == 2
+E       AssertionError: assert 0 == 2
+E        +  where 0 = <function main at 0x7f6f83888ca0>(['rollback', '--receipt', '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-klvv8s73/task/ev...operation_receipt.json', '--confirm', 'ROLLBACK_API_ONLY_TO_RECORDED_PREIMAGE', '--expected-current-plist-sha256', ...])
+E        +    where <function main at 0x7f6f83888ca0> = <module '_test_cutover_1fae467e0e564e82b125cfb8e1283782' from '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/candidate/api_only_cutover_r2_ready.py'>.main
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:441: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"active_api_plist_sha256": "b5e5be91c1104c7f81e95875036179566b7124b637af9587e1eaa2ff0c802c89", "backup_path": "/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-klvv8s73/task/evidence/api_only_switch_runs/20261008T143304Z-d3d7dff8/active_api_only.preimage.plist", "observed_backup_sha256": "b5e5be91c1104c7f81e95875036179566b7124b637af9587e1eaa2ff0c802c89", "original_error": "OPERATOR_REQUESTED_ROLLBACK", "readonly_guards": {"disabled_binding_sha256": "a76b50478c23a9fa3c6eefe7a0f3deb76ac75a9282324a6fbb9ff01745143b3c", "scheduler_plist_sha256": "f8f40997bd17edd089f9686035569f670e0b4421643a715e32a449d359b6714e", "stage_center_scheduler_plist_sha256": "077493901e953b9a6bfa16ae82e43536d18d46abfc7e3c33840f21aad3f3cb88"}, "reason": "API_ONLY_ROLLBACK_BOOTSTRAP_STATE_UNRESOLVED", "receipt_path": "/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-klvv8s73/task/evidence/api_only_switch_runs/20261008T143304Z-rollback-b0b71de8/operation_receipt.json", "receipt_sha256": "b7ddcd9f1b6f82ec949f52a42f1b859924fa8ced12b0bd41be7e02bd84ffabd0", "scheduler_post_sha256": "f8f40997bd17edd089f9686035569f670e0b4421643a715e32a449d359b6714e", "stage_center_scheduler_post_sha256": "077493901e953b9a6bfa16ae82e43536d18d46abfc7e3c33840f21aad3f3cb88", "status": "ROLLBACK_INCOMPLETE"}
+=========================== short test summary info ============================
+FAILED issue30/work/cutover_analysis/tests/test_recovery_continuation.py::test_runtime_change_during_last_backup_check_refuses_bootout
+FAILED issue30/work/cutover_analysis/tests/test_recovery_continuation.py::test_recovery_success_requires_original_runtime_at_final_readback
+FAILED issue30/work/cutover_analysis/tests/test_recovery_continuation.py::test_cli_reports_incomplete_continuation_with_nonzero_exit
+3 failed, 38 deselected in 0.39s

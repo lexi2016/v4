@@ -1,0 +1,826 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="36" skipped="0" tests="36" time="2.868" timestamp="2026-10-08T07:26:52.143480-07:00" hostname="5fa05583d26b"><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_candidate_hardpins_final_core_bytes" time="0.045"><failure message="AssertionError: assert '0b9d3b678dc7...76126746180bf' == '1f4afc70d7e5...19a097b9dd050'&#10;  &#10;  - 1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050&#10;  + 0b9d3b678dc7e875b9514bd8b66b7e8fc69229759c366ef0df776126746180bf">def test_candidate_hardpins_final_core_bytes():
+        m = actual_helpers.load(actual_helpers.SOURCE)
+&gt;       assert m.INTEGRATION_GUARD_SHA256 == actual_helpers.digest(actual_helpers.CORE.read_bytes())
+E       AssertionError: assert '0b9d3b678dc7...76126746180bf' == '1f4afc70d7e5...19a097b9dd050'
+E         
+E         - 1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050
+E         + 0b9d3b678dc7e875b9514bd8b66b7e8fc69229759c366ef0df776126746180bf
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:132: AssertionError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_incomplete_receipt_retains_original_prepared_contract" time="0.113"><failure message="KeyError: 'prepared_receipt'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-ca7q9y4x/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e926c0180&gt;
+
+    def test_incomplete_receipt_retains_original_prepared_contract(setup_actual, monkeypatch):
+        harness, fixture = setup_actual
+        receipt_path = _make_incomplete(harness, fixture, monkeypatch)
+&gt;       receipt, _ = _assert_contract(harness.m, receipt_path, fixture)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:138: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+m = &lt;module '_test_cutover_c9279109293b4125bea7fe01f81b05e3' from '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/initial/candidate/api_only_cutover_r2_ready.py'&gt;
+receipt_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-ca7q9y4x/task/evidence/api_only_switch_runs/20261008T142652Z-cf266614/operation_receipt.json')
+fixture = {'plan': {'allowed_paths': ['/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-ca7q9y4x/Launc...aec/issue30/work/cutover_analysis/cutover-test-ca7q9y4x/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...}
+
+    def _assert_contract(m, receipt_path, fixture):
+        receipt = json.loads(receipt_path.read_text())
+&gt;       reference = receipt["prepared_receipt"]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prepared_receipt'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:112: KeyError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_prepared_recovery_known_pointer_and_runtime_matrix[original-original]" time="0.073"><failure message="KeyError: 'prepared_receipt'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-w4sp250n/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e9279bad0&gt;
+pointer = 'original', runtime = 'original'
+
+    @pytest.mark.parametrize("pointer", ["original", "candidate", "absent"])
+    @pytest.mark.parametrize("runtime", ["original", "candidate", "unloaded"])
+    def test_prepared_recovery_known_pointer_and_runtime_matrix(setup_actual, monkeypatch, pointer, runtime):
+        harness, fixture = setup_actual
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+&gt;       _, prepared_path = _assert_contract(harness.m, receipt_path, fixture)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:148: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+m = &lt;module '_test_cutover_d71fa412b9f14099b23cfb99ddc87eb4' from '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/initial/candidate/api_only_cutover_r2_ready.py'&gt;
+receipt_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-w4sp250n/task/evidence/api_only_switch_runs/20261008T142652Z-0d80c0b7/operation_receipt.json')
+fixture = {'plan': {'allowed_paths': ['/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-w4sp250n/Launc...aec/issue30/work/cutover_analysis/cutover-test-w4sp250n/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...}
+
+    def _assert_contract(m, receipt_path, fixture):
+        receipt = json.loads(receipt_path.read_text())
+&gt;       reference = receipt["prepared_receipt"]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prepared_receipt'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:112: KeyError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_prepared_recovery_known_pointer_and_runtime_matrix[original-candidate]" time="0.064"><failure message="KeyError: 'prepared_receipt'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-ee8ts9ln/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e927b0e20&gt;
+pointer = 'candidate', runtime = 'original'
+
+    @pytest.mark.parametrize("pointer", ["original", "candidate", "absent"])
+    @pytest.mark.parametrize("runtime", ["original", "candidate", "unloaded"])
+    def test_prepared_recovery_known_pointer_and_runtime_matrix(setup_actual, monkeypatch, pointer, runtime):
+        harness, fixture = setup_actual
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+&gt;       _, prepared_path = _assert_contract(harness.m, receipt_path, fixture)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:148: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+m = &lt;module '_test_cutover_26fd8ce05f1a4a0585b695ea2b492864' from '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/initial/candidate/api_only_cutover_r2_ready.py'&gt;
+receipt_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-ee8ts9ln/task/evidence/api_only_switch_runs/20261008T142652Z-9bf1f1a0/operation_receipt.json')
+fixture = {'plan': {'allowed_paths': ['/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-ee8ts9ln/Launc...aec/issue30/work/cutover_analysis/cutover-test-ee8ts9ln/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...}
+
+    def _assert_contract(m, receipt_path, fixture):
+        receipt = json.loads(receipt_path.read_text())
+&gt;       reference = receipt["prepared_receipt"]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prepared_receipt'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:112: KeyError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_prepared_recovery_known_pointer_and_runtime_matrix[original-absent]" time="0.067"><failure message="KeyError: 'prepared_receipt'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-n87ibykh/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e92658250&gt;
+pointer = 'absent', runtime = 'original'
+
+    @pytest.mark.parametrize("pointer", ["original", "candidate", "absent"])
+    @pytest.mark.parametrize("runtime", ["original", "candidate", "unloaded"])
+    def test_prepared_recovery_known_pointer_and_runtime_matrix(setup_actual, monkeypatch, pointer, runtime):
+        harness, fixture = setup_actual
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+&gt;       _, prepared_path = _assert_contract(harness.m, receipt_path, fixture)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:148: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+m = &lt;module '_test_cutover_c86aee46882c4acc9c41d59e7ac0ce12' from '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/initial/candidate/api_only_cutover_r2_ready.py'&gt;
+receipt_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-n87ibykh/task/evidence/api_only_switch_runs/20261008T142652Z-6d6a0dca/operation_receipt.json')
+fixture = {'plan': {'allowed_paths': ['/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-n87ibykh/Launc...aec/issue30/work/cutover_analysis/cutover-test-n87ibykh/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...}
+
+    def _assert_contract(m, receipt_path, fixture):
+        receipt = json.loads(receipt_path.read_text())
+&gt;       reference = receipt["prepared_receipt"]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prepared_receipt'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:112: KeyError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-original]" time="0.076"><failure message="KeyError: 'prepared_receipt'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-vrzn1rcz/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e9265f6b0&gt;
+pointer = 'original', runtime = 'candidate'
+
+    @pytest.mark.parametrize("pointer", ["original", "candidate", "absent"])
+    @pytest.mark.parametrize("runtime", ["original", "candidate", "unloaded"])
+    def test_prepared_recovery_known_pointer_and_runtime_matrix(setup_actual, monkeypatch, pointer, runtime):
+        harness, fixture = setup_actual
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+&gt;       _, prepared_path = _assert_contract(harness.m, receipt_path, fixture)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:148: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+m = &lt;module '_test_cutover_681a1b7fce9b430e8b90e9d007d3ae42' from '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/initial/candidate/api_only_cutover_r2_ready.py'&gt;
+receipt_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-vrzn1rcz/task/evidence/api_only_switch_runs/20261008T142652Z-5ce48c4d/operation_receipt.json')
+fixture = {'plan': {'allowed_paths': ['/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-vrzn1rcz/Launc...aec/issue30/work/cutover_analysis/cutover-test-vrzn1rcz/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...}
+
+    def _assert_contract(m, receipt_path, fixture):
+        receipt = json.loads(receipt_path.read_text())
+&gt;       reference = receipt["prepared_receipt"]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prepared_receipt'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:112: KeyError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-candidate]" time="0.070"><failure message="KeyError: 'prepared_receipt'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-wo8_e8nh/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e92603a10&gt;
+pointer = 'candidate', runtime = 'candidate'
+
+    @pytest.mark.parametrize("pointer", ["original", "candidate", "absent"])
+    @pytest.mark.parametrize("runtime", ["original", "candidate", "unloaded"])
+    def test_prepared_recovery_known_pointer_and_runtime_matrix(setup_actual, monkeypatch, pointer, runtime):
+        harness, fixture = setup_actual
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+&gt;       _, prepared_path = _assert_contract(harness.m, receipt_path, fixture)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:148: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+m = &lt;module '_test_cutover_6321ecd7fd46435db1f85f00d32dc26c' from '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/initial/candidate/api_only_cutover_r2_ready.py'&gt;
+receipt_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-wo8_e8nh/task/evidence/api_only_switch_runs/20261008T142652Z-61007178/operation_receipt.json')
+fixture = {'plan': {'allowed_paths': ['/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-wo8_e8nh/Launc...aec/issue30/work/cutover_analysis/cutover-test-wo8_e8nh/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...}
+
+    def _assert_contract(m, receipt_path, fixture):
+        receipt = json.loads(receipt_path.read_text())
+&gt;       reference = receipt["prepared_receipt"]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prepared_receipt'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:112: KeyError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-absent]" time="0.060"><failure message="KeyError: 'prepared_receipt'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-4585r_dx/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e925a8050&gt;
+pointer = 'absent', runtime = 'candidate'
+
+    @pytest.mark.parametrize("pointer", ["original", "candidate", "absent"])
+    @pytest.mark.parametrize("runtime", ["original", "candidate", "unloaded"])
+    def test_prepared_recovery_known_pointer_and_runtime_matrix(setup_actual, monkeypatch, pointer, runtime):
+        harness, fixture = setup_actual
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+&gt;       _, prepared_path = _assert_contract(harness.m, receipt_path, fixture)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:148: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+m = &lt;module '_test_cutover_4c2a89ecf98f493eb9ebb82cd66e18f6' from '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/initial/candidate/api_only_cutover_r2_ready.py'&gt;
+receipt_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-4585r_dx/task/evidence/api_only_switch_runs/20261008T142652Z-e40f8f44/operation_receipt.json')
+fixture = {'plan': {'allowed_paths': ['/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-4585r_dx/Launc...aec/issue30/work/cutover_analysis/cutover-test-4585r_dx/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...}
+
+    def _assert_contract(m, receipt_path, fixture):
+        receipt = json.loads(receipt_path.read_text())
+&gt;       reference = receipt["prepared_receipt"]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prepared_receipt'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:112: KeyError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-original]" time="0.061"><failure message="KeyError: 'prepared_receipt'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-jqhfxynp/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e92505a70&gt;
+pointer = 'original', runtime = 'unloaded'
+
+    @pytest.mark.parametrize("pointer", ["original", "candidate", "absent"])
+    @pytest.mark.parametrize("runtime", ["original", "candidate", "unloaded"])
+    def test_prepared_recovery_known_pointer_and_runtime_matrix(setup_actual, monkeypatch, pointer, runtime):
+        harness, fixture = setup_actual
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+&gt;       _, prepared_path = _assert_contract(harness.m, receipt_path, fixture)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:148: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+m = &lt;module '_test_cutover_1b741d8f9d4e47d192f5644757207971' from '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/initial/candidate/api_only_cutover_r2_ready.py'&gt;
+receipt_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-jqhfxynp/task/evidence/api_only_switch_runs/20261008T142652Z-16feee92/operation_receipt.json')
+fixture = {'plan': {'allowed_paths': ['/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-jqhfxynp/Launc...aec/issue30/work/cutover_analysis/cutover-test-jqhfxynp/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...}
+
+    def _assert_contract(m, receipt_path, fixture):
+        receipt = json.loads(receipt_path.read_text())
+&gt;       reference = receipt["prepared_receipt"]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prepared_receipt'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:112: KeyError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-candidate]" time="0.060"><failure message="KeyError: 'prepared_receipt'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-sjiwv_we/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e925582d0&gt;
+pointer = 'candidate', runtime = 'unloaded'
+
+    @pytest.mark.parametrize("pointer", ["original", "candidate", "absent"])
+    @pytest.mark.parametrize("runtime", ["original", "candidate", "unloaded"])
+    def test_prepared_recovery_known_pointer_and_runtime_matrix(setup_actual, monkeypatch, pointer, runtime):
+        harness, fixture = setup_actual
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+&gt;       _, prepared_path = _assert_contract(harness.m, receipt_path, fixture)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:148: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+m = &lt;module '_test_cutover_e3cbb28fafea4f57a1ce3c36a2931454' from '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/initial/candidate/api_only_cutover_r2_ready.py'&gt;
+receipt_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-sjiwv_we/task/evidence/api_only_switch_runs/20261008T142653Z-986a8452/operation_receipt.json')
+fixture = {'plan': {'allowed_paths': ['/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-sjiwv_we/Launc...aec/issue30/work/cutover_analysis/cutover-test-sjiwv_we/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...}
+
+    def _assert_contract(m, receipt_path, fixture):
+        receipt = json.loads(receipt_path.read_text())
+&gt;       reference = receipt["prepared_receipt"]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prepared_receipt'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:112: KeyError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-absent]" time="0.059"><failure message="KeyError: 'prepared_receipt'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-qezyamx2/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e92a71640&gt;
+pointer = 'absent', runtime = 'unloaded'
+
+    @pytest.mark.parametrize("pointer", ["original", "candidate", "absent"])
+    @pytest.mark.parametrize("runtime", ["original", "candidate", "unloaded"])
+    def test_prepared_recovery_known_pointer_and_runtime_matrix(setup_actual, monkeypatch, pointer, runtime):
+        harness, fixture = setup_actual
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+&gt;       _, prepared_path = _assert_contract(harness.m, receipt_path, fixture)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:148: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+m = &lt;module '_test_cutover_9bdc243e027749779e5c73c5c7d09e7e' from '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/initial/candidate/api_only_cutover_r2_ready.py'&gt;
+receipt_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-qezyamx2/task/evidence/api_only_switch_runs/20261008T142653Z-1ca274ae/operation_receipt.json')
+fixture = {'plan': {'allowed_paths': ['/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-qezyamx2/Launc...aec/issue30/work/cutover_analysis/cutover-test-qezyamx2/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...}
+
+    def _assert_contract(m, receipt_path, fixture):
+        receipt = json.loads(receipt_path.read_text())
+&gt;       reference = receipt["prepared_receipt"]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prepared_receipt'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:112: KeyError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_existing_cli_rollback_resumes_failure_under_shared_lease" time="0.083"><failure message="AssertionError: assert 2 == 0&#10; +  where 2 = &lt;function main at 0x7f9e92408e00&gt;(['rollback', '--receipt', '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-2248vmwj/task/ev...operation_receipt.json', '--confirm', 'ROLLBACK_API_ONLY_TO_RECORDED_PREIMAGE', '--expected-current-plist-sha256', ...])&#10; +    where &lt;function main at 0x7f9e92408e00&gt; = &lt;module '_test_cutover_c080b85a79ad4da08438d072fa7e512e' from '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/initial/candidate/api_only_cutover_r2_ready.py'&gt;.main">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-2248vmwj/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e9245ecd0&gt;
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x7f9e923c82f0&gt;
+
+    def test_existing_cli_rollback_resumes_failure_under_shared_lease(setup_actual, monkeypatch, capsys):
+        harness, fixture = setup_actual
+        m, plan = harness.m, fixture["plan"]
+        receipt_path = _make_incomplete(harness, fixture, monkeypatch)
+        original_action = m._launchctl_action
+    
+        def assert_shared_lock(action):
+            with pytest.raises((ValueError, TimeoutError, BlockingIOError), match="LOCK.*BUSY"):
+                with fixture["core"].shared_api_release_lock(m.ACTIVE_API_PLIST, timeout_seconds=0):
+                    pytest.fail("continuation released its shared lock")
+            return original_action(action)
+    
+        monkeypatch.setattr(m, "_launchctl_action", assert_shared_lock)
+        monkeypatch.setattr(m, "_load_plan", lambda: plan)
+&gt;       assert m.main(["rollback", "--receipt", str(receipt_path), "--confirm", m.CONFIRM_ROLLBACK,
+                       "--expected-current-plist-sha256", plan["target"]["staged_api_plist_sha256"]]) == 0
+E       AssertionError: assert 2 == 0
+E        +  where 2 = &lt;function main at 0x7f9e92408e00&gt;(['rollback', '--receipt', '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-2248vmwj/task/ev...operation_receipt.json', '--confirm', 'ROLLBACK_API_ONLY_TO_RECORDED_PREIMAGE', '--expected-current-plist-sha256', ...])
+E        +    where &lt;function main at 0x7f9e92408e00&gt; = &lt;module '_test_cutover_c080b85a79ad4da08438d072fa7e512e' from '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/initial/candidate/api_only_cutover_r2_ready.py'&gt;.main
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:179: AssertionError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_recovery_requires_explicit_exact_current_cas[candidate-ABSENT]" time="0.060"><failure message="AssertionError: Regex pattern did not match.&#10;  Expected regex: 'CURRENT_PLIST_PREIMAGE_MISMATCH|EXPECTED_CURRENT_SHA_INVALID'&#10;  Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-4t38_5u2/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e923f0600&gt;
+pointer = 'candidate', wrong_token = 'ABSENT'
+
+    @pytest.mark.parametrize("pointer,wrong_token", [
+        ("candidate", "ABSENT"), ("original", "f" * 64), ("absent", "f" * 64),
+        ("absent", ""), ("absent", "absent"),
+    ])
+    def test_recovery_requires_explicit_exact_current_cas(setup_actual, monkeypatch, pointer, wrong_token):
+        harness, fixture = setup_actual
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        _set_state(harness, fixture, pointer, "unloaded")
+&gt;       with pytest.raises(ValueError, match="CURRENT_PLIST_PREIMAGE_MISMATCH|EXPECTED_CURRENT_SHA_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'CURRENT_PLIST_PREIMAGE_MISMATCH|EXPECTED_CURRENT_SHA_INVALID'
+E         Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:194: AssertionError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_recovery_requires_explicit_exact_current_cas[original-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]" time="0.061"><failure message="AssertionError: Regex pattern did not match.&#10;  Expected regex: 'CURRENT_PLIST_PREIMAGE_MISMATCH|EXPECTED_CURRENT_SHA_INVALID'&#10;  Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-7ntqr_oj/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e923a88a0&gt;
+pointer = 'original'
+wrong_token = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+
+    @pytest.mark.parametrize("pointer,wrong_token", [
+        ("candidate", "ABSENT"), ("original", "f" * 64), ("absent", "f" * 64),
+        ("absent", ""), ("absent", "absent"),
+    ])
+    def test_recovery_requires_explicit_exact_current_cas(setup_actual, monkeypatch, pointer, wrong_token):
+        harness, fixture = setup_actual
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        _set_state(harness, fixture, pointer, "unloaded")
+&gt;       with pytest.raises(ValueError, match="CURRENT_PLIST_PREIMAGE_MISMATCH|EXPECTED_CURRENT_SHA_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'CURRENT_PLIST_PREIMAGE_MISMATCH|EXPECTED_CURRENT_SHA_INVALID'
+E         Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:194: AssertionError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_recovery_requires_explicit_exact_current_cas[absent-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]" time="0.058"><failure message="AssertionError: Regex pattern did not match.&#10;  Expected regex: 'CURRENT_PLIST_PREIMAGE_MISMATCH|EXPECTED_CURRENT_SHA_INVALID'&#10;  Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-fbuqrzc5/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e922caac0&gt;
+pointer = 'absent'
+wrong_token = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+
+    @pytest.mark.parametrize("pointer,wrong_token", [
+        ("candidate", "ABSENT"), ("original", "f" * 64), ("absent", "f" * 64),
+        ("absent", ""), ("absent", "absent"),
+    ])
+    def test_recovery_requires_explicit_exact_current_cas(setup_actual, monkeypatch, pointer, wrong_token):
+        harness, fixture = setup_actual
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        _set_state(harness, fixture, pointer, "unloaded")
+&gt;       with pytest.raises(ValueError, match="CURRENT_PLIST_PREIMAGE_MISMATCH|EXPECTED_CURRENT_SHA_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'CURRENT_PLIST_PREIMAGE_MISMATCH|EXPECTED_CURRENT_SHA_INVALID'
+E         Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:194: AssertionError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_recovery_requires_explicit_exact_current_cas[absent-]" time="0.057"><failure message="AssertionError: Regex pattern did not match.&#10;  Expected regex: 'CURRENT_PLIST_PREIMAGE_MISMATCH|EXPECTED_CURRENT_SHA_INVALID'&#10;  Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-t36kvwl6/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e922fb9a0&gt;
+pointer = 'absent', wrong_token = ''
+
+    @pytest.mark.parametrize("pointer,wrong_token", [
+        ("candidate", "ABSENT"), ("original", "f" * 64), ("absent", "f" * 64),
+        ("absent", ""), ("absent", "absent"),
+    ])
+    def test_recovery_requires_explicit_exact_current_cas(setup_actual, monkeypatch, pointer, wrong_token):
+        harness, fixture = setup_actual
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        _set_state(harness, fixture, pointer, "unloaded")
+&gt;       with pytest.raises(ValueError, match="CURRENT_PLIST_PREIMAGE_MISMATCH|EXPECTED_CURRENT_SHA_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'CURRENT_PLIST_PREIMAGE_MISMATCH|EXPECTED_CURRENT_SHA_INVALID'
+E         Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:194: AssertionError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_recovery_requires_explicit_exact_current_cas[absent-absent]" time="0.062"><failure message="AssertionError: Regex pattern did not match.&#10;  Expected regex: 'CURRENT_PLIST_PREIMAGE_MISMATCH|EXPECTED_CURRENT_SHA_INVALID'&#10;  Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-hk9pzj_1/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e92263e00&gt;
+pointer = 'absent', wrong_token = 'absent'
+
+    @pytest.mark.parametrize("pointer,wrong_token", [
+        ("candidate", "ABSENT"), ("original", "f" * 64), ("absent", "f" * 64),
+        ("absent", ""), ("absent", "absent"),
+    ])
+    def test_recovery_requires_explicit_exact_current_cas(setup_actual, monkeypatch, pointer, wrong_token):
+        harness, fixture = setup_actual
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        _set_state(harness, fixture, pointer, "unloaded")
+&gt;       with pytest.raises(ValueError, match="CURRENT_PLIST_PREIMAGE_MISMATCH|EXPECTED_CURRENT_SHA_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'CURRENT_PLIST_PREIMAGE_MISMATCH|EXPECTED_CURRENT_SHA_INVALID'
+E         Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:194: AssertionError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_recovery_refuses_unknown_pointer_even_with_matching_operator_sha" time="0.062"><failure message="AssertionError: Regex pattern did not match.&#10;  Expected regex: 'ACTIVE_PLIST_UNEXPECTED_SHA'&#10;  Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-f3est6a6/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e921bbe00&gt;
+
+    def test_recovery_refuses_unknown_pointer_even_with_matching_operator_sha(setup_actual, monkeypatch):
+        harness, fixture = setup_actual
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        unknown = b"unknown publisher pointer\n"
+        harness.m.ACTIVE_API_PLIST.write_bytes(unknown)
+&gt;       with pytest.raises(ValueError, match="ACTIVE_PLIST_UNEXPECTED_SHA"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'ACTIVE_PLIST_UNEXPECTED_SHA'
+E         Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:205: AssertionError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_recovery_refuses_unknown_runtime_before_mutation[UNKNOWN]" time="0.061"><failure message="AssertionError: Regex pattern did not match.&#10;  Expected regex: 'REFUSES_UNKNOWN_LOADED_IDENTITY|RUNTIME_STATE_UNVERIFIED'&#10;  Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-rx2n1kvy/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e923f2cf0&gt;
+runtime_state = 'UNKNOWN'
+
+    @pytest.mark.parametrize("runtime_state", ["UNKNOWN", "LOADED_UNVERIFIED", "FOREIGN", "MISSING_PID"])
+    def test_recovery_refuses_unknown_runtime_before_mutation(setup_actual, monkeypatch, runtime_state):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        token = _set_state(harness, fixture, "candidate", "candidate")
+        identity = dict(fixture["runtime"]["identity"])
+        if runtime_state == "FOREIGN":
+            identity["V35_RELEASE_ID"] = "unrecognized-job"
+            observed = {"state": "LOADED", "identity": identity}
+        elif runtime_state == "MISSING_PID":
+            identity.pop("pid")
+            observed = {"state": "LOADED", "identity": identity}
+        else:
+            observed = {"state": runtime_state, "identity": None}
+        monkeypatch.setattr(m, "_observe_loaded", lambda: observed)
+&gt;       with pytest.raises(ValueError, match="REFUSES_UNKNOWN_LOADED_IDENTITY|RUNTIME_STATE_UNVERIFIED"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'REFUSES_UNKNOWN_LOADED_IDENTITY|RUNTIME_STATE_UNVERIFIED'
+E         Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:227: AssertionError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_recovery_refuses_unknown_runtime_before_mutation[LOADED_UNVERIFIED]" time="0.065"><failure message="AssertionError: Regex pattern did not match.&#10;  Expected regex: 'REFUSES_UNKNOWN_LOADED_IDENTITY|RUNTIME_STATE_UNVERIFIED'&#10;  Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-o1y9hust/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e9260f770&gt;
+runtime_state = 'LOADED_UNVERIFIED'
+
+    @pytest.mark.parametrize("runtime_state", ["UNKNOWN", "LOADED_UNVERIFIED", "FOREIGN", "MISSING_PID"])
+    def test_recovery_refuses_unknown_runtime_before_mutation(setup_actual, monkeypatch, runtime_state):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        token = _set_state(harness, fixture, "candidate", "candidate")
+        identity = dict(fixture["runtime"]["identity"])
+        if runtime_state == "FOREIGN":
+            identity["V35_RELEASE_ID"] = "unrecognized-job"
+            observed = {"state": "LOADED", "identity": identity}
+        elif runtime_state == "MISSING_PID":
+            identity.pop("pid")
+            observed = {"state": "LOADED", "identity": identity}
+        else:
+            observed = {"state": runtime_state, "identity": None}
+        monkeypatch.setattr(m, "_observe_loaded", lambda: observed)
+&gt;       with pytest.raises(ValueError, match="REFUSES_UNKNOWN_LOADED_IDENTITY|RUNTIME_STATE_UNVERIFIED"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'REFUSES_UNKNOWN_LOADED_IDENTITY|RUNTIME_STATE_UNVERIFIED'
+E         Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:227: AssertionError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_recovery_refuses_unknown_runtime_before_mutation[FOREIGN]" time="0.068"><failure message="AssertionError: Regex pattern did not match.&#10;  Expected regex: 'REFUSES_UNKNOWN_LOADED_IDENTITY|RUNTIME_STATE_UNVERIFIED'&#10;  Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-n93cuojl/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e925e0210&gt;
+runtime_state = 'FOREIGN'
+
+    @pytest.mark.parametrize("runtime_state", ["UNKNOWN", "LOADED_UNVERIFIED", "FOREIGN", "MISSING_PID"])
+    def test_recovery_refuses_unknown_runtime_before_mutation(setup_actual, monkeypatch, runtime_state):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        token = _set_state(harness, fixture, "candidate", "candidate")
+        identity = dict(fixture["runtime"]["identity"])
+        if runtime_state == "FOREIGN":
+            identity["V35_RELEASE_ID"] = "unrecognized-job"
+            observed = {"state": "LOADED", "identity": identity}
+        elif runtime_state == "MISSING_PID":
+            identity.pop("pid")
+            observed = {"state": "LOADED", "identity": identity}
+        else:
+            observed = {"state": runtime_state, "identity": None}
+        monkeypatch.setattr(m, "_observe_loaded", lambda: observed)
+&gt;       with pytest.raises(ValueError, match="REFUSES_UNKNOWN_LOADED_IDENTITY|RUNTIME_STATE_UNVERIFIED"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'REFUSES_UNKNOWN_LOADED_IDENTITY|RUNTIME_STATE_UNVERIFIED'
+E         Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:227: AssertionError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_recovery_refuses_unknown_runtime_before_mutation[MISSING_PID]" time="0.061"><failure message="AssertionError: Regex pattern did not match.&#10;  Expected regex: 'REFUSES_UNKNOWN_LOADED_IDENTITY|RUNTIME_STATE_UNVERIFIED'&#10;  Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-bbmtoiht/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e921c3f50&gt;
+runtime_state = 'MISSING_PID'
+
+    @pytest.mark.parametrize("runtime_state", ["UNKNOWN", "LOADED_UNVERIFIED", "FOREIGN", "MISSING_PID"])
+    def test_recovery_refuses_unknown_runtime_before_mutation(setup_actual, monkeypatch, runtime_state):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        token = _set_state(harness, fixture, "candidate", "candidate")
+        identity = dict(fixture["runtime"]["identity"])
+        if runtime_state == "FOREIGN":
+            identity["V35_RELEASE_ID"] = "unrecognized-job"
+            observed = {"state": "LOADED", "identity": identity}
+        elif runtime_state == "MISSING_PID":
+            identity.pop("pid")
+            observed = {"state": "LOADED", "identity": identity}
+        else:
+            observed = {"state": runtime_state, "identity": None}
+        monkeypatch.setattr(m, "_observe_loaded", lambda: observed)
+&gt;       with pytest.raises(ValueError, match="REFUSES_UNKNOWN_LOADED_IDENTITY|RUNTIME_STATE_UNVERIFIED"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'REFUSES_UNKNOWN_LOADED_IDENTITY|RUNTIME_STATE_UNVERIFIED'
+E         Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:227: AssertionError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_rehashed_mutable_receipt_cannot_change_prepared_contract[before]" time="0.063"><failure message="AssertionError: Regex pattern did not match.&#10;  Expected regex: 'PREPARED_CONTRACT_MISMATCH'&#10;  Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-rqn5y34v/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e920c3310&gt;
+field = 'before'
+
+    @pytest.mark.parametrize("field", ["before", "after", "api_release_integration", "backup_path", "backup_metadata"])
+    def test_rehashed_mutable_receipt_cannot_change_prepared_contract(setup_actual, monkeypatch, field):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        receipt = json.loads(receipt_path.read_text())
+        if isinstance(receipt[field], dict):
+            receipt[field]["unapproved_change"] = True
+        else:
+            receipt[field] += ".unapproved"
+        m._write_receipt(receipt_path, receipt)
+&gt;       with pytest.raises(ValueError, match="PREPARED_CONTRACT_MISMATCH"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'PREPARED_CONTRACT_MISMATCH'
+E         Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:244: AssertionError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_rehashed_mutable_receipt_cannot_change_prepared_contract[after]" time="0.067"><failure message="AssertionError: Regex pattern did not match.&#10;  Expected regex: 'PREPARED_CONTRACT_MISMATCH'&#10;  Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-0jlplh5y/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e9203d550&gt;
+field = 'after'
+
+    @pytest.mark.parametrize("field", ["before", "after", "api_release_integration", "backup_path", "backup_metadata"])
+    def test_rehashed_mutable_receipt_cannot_change_prepared_contract(setup_actual, monkeypatch, field):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        receipt = json.loads(receipt_path.read_text())
+        if isinstance(receipt[field], dict):
+            receipt[field]["unapproved_change"] = True
+        else:
+            receipt[field] += ".unapproved"
+        m._write_receipt(receipt_path, receipt)
+&gt;       with pytest.raises(ValueError, match="PREPARED_CONTRACT_MISMATCH"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'PREPARED_CONTRACT_MISMATCH'
+E         Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:244: AssertionError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_rehashed_mutable_receipt_cannot_change_prepared_contract[api_release_integration]" time="0.068"><failure message="AssertionError: Regex pattern did not match.&#10;  Expected regex: 'PREPARED_CONTRACT_MISMATCH'&#10;  Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-ihhy1vt2/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e9203bd90&gt;
+field = 'api_release_integration'
+
+    @pytest.mark.parametrize("field", ["before", "after", "api_release_integration", "backup_path", "backup_metadata"])
+    def test_rehashed_mutable_receipt_cannot_change_prepared_contract(setup_actual, monkeypatch, field):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        receipt = json.loads(receipt_path.read_text())
+        if isinstance(receipt[field], dict):
+            receipt[field]["unapproved_change"] = True
+        else:
+            receipt[field] += ".unapproved"
+        m._write_receipt(receipt_path, receipt)
+&gt;       with pytest.raises(ValueError, match="PREPARED_CONTRACT_MISMATCH"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'PREPARED_CONTRACT_MISMATCH'
+E         Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:244: AssertionError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_rehashed_mutable_receipt_cannot_change_prepared_contract[backup_path]" time="0.061"><failure message="AssertionError: Regex pattern did not match.&#10;  Expected regex: 'PREPARED_CONTRACT_MISMATCH'&#10;  Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-vf35girb/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e91f85780&gt;
+field = 'backup_path'
+
+    @pytest.mark.parametrize("field", ["before", "after", "api_release_integration", "backup_path", "backup_metadata"])
+    def test_rehashed_mutable_receipt_cannot_change_prepared_contract(setup_actual, monkeypatch, field):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        receipt = json.loads(receipt_path.read_text())
+        if isinstance(receipt[field], dict):
+            receipt[field]["unapproved_change"] = True
+        else:
+            receipt[field] += ".unapproved"
+        m._write_receipt(receipt_path, receipt)
+&gt;       with pytest.raises(ValueError, match="PREPARED_CONTRACT_MISMATCH"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'PREPARED_CONTRACT_MISMATCH'
+E         Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:244: AssertionError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_rehashed_mutable_receipt_cannot_change_prepared_contract[backup_metadata]" time="0.065"><failure message="AssertionError: Regex pattern did not match.&#10;  Expected regex: 'PREPARED_CONTRACT_MISMATCH'&#10;  Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-_syl5ouc/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e91f77e00&gt;
+field = 'backup_metadata'
+
+    @pytest.mark.parametrize("field", ["before", "after", "api_release_integration", "backup_path", "backup_metadata"])
+    def test_rehashed_mutable_receipt_cannot_change_prepared_contract(setup_actual, monkeypatch, field):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        receipt = json.loads(receipt_path.read_text())
+        if isinstance(receipt[field], dict):
+            receipt[field]["unapproved_change"] = True
+        else:
+            receipt[field] += ".unapproved"
+        m._write_receipt(receipt_path, receipt)
+&gt;       with pytest.raises(ValueError, match="PREPARED_CONTRACT_MISMATCH"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'PREPARED_CONTRACT_MISMATCH'
+E         Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:244: AssertionError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_prepared_bytes_cannot_change_even_after_rehashing_itself" time="0.060"><failure message="KeyError: 'prepared_receipt'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-uabxvdcp/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e91edd0f0&gt;
+
+    def test_prepared_bytes_cannot_change_even_after_rehashing_itself(setup_actual, monkeypatch):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+&gt;       receipt, prepared_path = _assert_contract(m, receipt_path, fixture)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:253: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+m = &lt;module '_test_cutover_dd2d22ddee584e0ab096a4ac4cda87d0' from '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/initial/candidate/api_only_cutover_r2_ready.py'&gt;
+receipt_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-uabxvdcp/task/evidence/api_only_switch_runs/20261008T142654Z-3b4c8c11/operation_receipt.json')
+fixture = {'plan': {'allowed_paths': ['/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-uabxvdcp/Launc...aec/issue30/work/cutover_analysis/cutover-test-uabxvdcp/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...}
+
+    def _assert_contract(m, receipt_path, fixture):
+        receipt = json.loads(receipt_path.read_text())
+&gt;       reference = receipt["prepared_receipt"]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prepared_receipt'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:112: KeyError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_prepared_reference_cannot_redirect_outside_origin_contract" time="0.063"><failure message="KeyError: 'prepared_receipt'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-fk4yfd88/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e91ec3310&gt;
+
+    def test_prepared_reference_cannot_redirect_outside_origin_contract(setup_actual, monkeypatch):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+&gt;       receipt, prepared_path = _assert_contract(m, receipt_path, fixture)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:268: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+m = &lt;module '_test_cutover_1307d553368c4667b0be2d33f91c9e7e' from '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/initial/candidate/api_only_cutover_r2_ready.py'&gt;
+receipt_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-fk4yfd88/task/evidence/api_only_switch_runs/20261008T142654Z-6890c188/operation_receipt.json')
+fixture = {'plan': {'allowed_paths': ['/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-fk4yfd88/Launc...aec/issue30/work/cutover_analysis/cutover-test-fk4yfd88/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...}
+
+    def _assert_contract(m, receipt_path, fixture):
+        receipt = json.loads(receipt_path.read_text())
+&gt;       reference = receipt["prepared_receipt"]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prepared_receipt'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:112: KeyError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_recovery_refuses_changed_original_backup[bytes]" time="0.059"><failure message="KeyError: 'prepared_receipt'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-tx83lf7g/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e91ec4050&gt;
+change = 'bytes'
+
+    @pytest.mark.parametrize("change", ["bytes", "metadata"])
+    def test_recovery_refuses_changed_original_backup(setup_actual, monkeypatch, change):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+&gt;       receipt, _ = _assert_contract(m, receipt_path, fixture)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:283: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+m = &lt;module '_test_cutover_a68777c8adfe473697e3827f01c19755' from '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/initial/candidate/api_only_cutover_r2_ready.py'&gt;
+receipt_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-tx83lf7g/task/evidence/api_only_switch_runs/20261008T142654Z-5c2b03fe/operation_receipt.json')
+fixture = {'plan': {'allowed_paths': ['/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-tx83lf7g/Launc...aec/issue30/work/cutover_analysis/cutover-test-tx83lf7g/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...}
+
+    def _assert_contract(m, receipt_path, fixture):
+        receipt = json.loads(receipt_path.read_text())
+&gt;       reference = receipt["prepared_receipt"]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prepared_receipt'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:112: KeyError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_recovery_refuses_changed_original_backup[metadata]" time="0.061"><failure message="KeyError: 'prepared_receipt'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-ywdn5e9j/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e91ff9b70&gt;
+change = 'metadata'
+
+    @pytest.mark.parametrize("change", ["bytes", "metadata"])
+    def test_recovery_refuses_changed_original_backup(setup_actual, monkeypatch, change):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+&gt;       receipt, _ = _assert_contract(m, receipt_path, fixture)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:283: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+m = &lt;module '_test_cutover_298bf98ccb98438d8b0484fb925a6757' from '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/initial/candidate/api_only_cutover_r2_ready.py'&gt;
+receipt_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-ywdn5e9j/task/evidence/api_only_switch_runs/20261008T142654Z-7338bc9f/operation_receipt.json')
+fixture = {'plan': {'allowed_paths': ['/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-ywdn5e9j/Launc...aec/issue30/work/cutover_analysis/cutover-test-ywdn5e9j/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...}
+
+    def _assert_contract(m, receipt_path, fixture):
+        receipt = json.loads(receipt_path.read_text())
+&gt;       reference = receipt["prepared_receipt"]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prepared_receipt'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:112: KeyError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_source_receipt_change_during_continuation_cannot_lower_cas" time="0.063"><failure message="AssertionError: Regex pattern did not match.&#10;  Expected regex: 'SOURCE_RECEIPT_CHANGED'&#10;  Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-_n4up642/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e9203edd0&gt;
+
+    def test_source_receipt_change_during_continuation_cannot_lower_cas(setup_actual, monkeypatch):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        token = _set_state(harness, fixture, "candidate", "candidate")
+        guards = m._verify_readonly_guards
+        changed = False
+    
+        def change_receipt_after_checks(plan):
+            nonlocal changed
+            result = guards(plan)
+            if not changed:
+                changed = True
+                receipt = json.loads(receipt_path.read_text())
+                receipt["status"] = "ROLLBACK_INCOMPLETE"
+                m._write_receipt(receipt_path, receipt)
+            return result
+    
+        monkeypatch.setattr(m, "_verify_readonly_guards", change_receipt_after_checks)
+&gt;       with pytest.raises(ValueError, match="SOURCE_RECEIPT_CHANGED"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'SOURCE_RECEIPT_CHANGED'
+E         Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:313: AssertionError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_repeat_failure_can_resume_from_latest_receipt_same_original_contract" time="0.088"><failure message="KeyError: 'prepared_receipt'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-jxxpqltb/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e922fa900&gt;
+
+    def test_repeat_failure_can_resume_from_latest_receipt_same_original_contract(setup_actual, monkeypatch):
+        harness, fixture = setup_actual
+        m = harness.m
+        first_path = _make_incomplete(harness, fixture, monkeypatch)
+&gt;       first, prepared_path = _assert_contract(m, first_path, fixture)
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:323: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+m = &lt;module '_test_cutover_f86844fd8bf6416999f93f1f9a0abc72' from '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/initial/candidate/api_only_cutover_r2_ready.py'&gt;
+receipt_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-jxxpqltb/task/evidence/api_only_switch_runs/20261008T142654Z-e630d1b7/operation_receipt.json')
+fixture = {'plan': {'allowed_paths': ['/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-jxxpqltb/Launc...aec/issue30/work/cutover_analysis/cutover-test-jxxpqltb/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...}
+
+    def _assert_contract(m, receipt_path, fixture):
+        receipt = json.loads(receipt_path.read_text())
+&gt;       reference = receipt["prepared_receipt"]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prepared_receipt'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:112: KeyError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_recovery_does_not_require_healthy_candidate_to_restore_known_base" time="0.088"><failure message="ValueError: API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-4y0kehai/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e91f38520&gt;
+
+    def test_recovery_does_not_require_healthy_candidate_to_restore_known_base(setup_actual, monkeypatch):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_incomplete(harness, fixture, monkeypatch)
+        (fixture["release"] / "app/domains/preselection_pools.py").write_bytes(b"broken candidate bytes\n")
+&gt;       result = _resume(harness, fixture, receipt_path, fixture["plan"]["target"]["staged_api_plist_sha256"])
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:352: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:105: in _resume
+    return harness.m._run_rollback(fixture["plan"], receipt_path=receipt_path,
+issue30/work/cutover_analysis/initial/candidate/api_only_cutover_r2_ready.py:1701: in _run_rollback
+    return _run_rollback_locked(plan, receipt_path=receipt_path, confirmation=confirmation,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+plan = {'allowed_paths': ['/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-4y0kehai/LaunchAgents/c...: False, 'launchctl_mutation_called': False, 'launchctl_readonly_prints': True, 'staged_api_plist_written': True}, ...}
+receipt_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-4y0kehai/task/evidence/api_only_switch_runs/20261008T142654Z-e51114a6/operation_receipt.json')
+confirmation = 'ROLLBACK_API_ONLY_TO_RECORDED_PREIMAGE'
+expected_current_sha = '5de82001151d373f985d7b74b2ded7b0c28023caa5d37854bf76b352572f012f'
+lock_lease = &lt;_v4_api_guard_1f4afc70d7e5920b_f6f4518f4117477c9620e4b73fc038b4._APILockLease object at 0x7f9e91e3ea70&gt;
+
+    def _run_rollback_locked(plan: Mapping[str, Any], *, receipt_path: Path,
+                             confirmation: str, expected_current_sha: str,
+                             lock_lease: object) -&gt; dict[str, Any]:
+        _require_release_lock(lock_lease)
+        if confirmation != CONFIRM_ROLLBACK:
+            raise ValueError("EXPLICIT_API_ONLY_ROLLBACK_CONFIRMATION_REQUIRED")
+        task_root = TASK_ROOT.resolve(strict=True)
+        operation_root = _operation_root().resolve(strict=True)
+        if (receipt_path.is_symlink() or not receipt_path.is_file()
+                or task_root not in receipt_path.resolve(strict=True).parents
+                or operation_root not in receipt_path.resolve(strict=True).parents):
+            raise ValueError("API_ONLY_ROLLBACK_RECEIPT_OUTSIDE_TASK_ROOT")
+        receipt = _read_json(receipt_path, "API_ONLY_SWITCH_RECEIPT")
+        claimed = receipt.pop("receipt_sha256", None)
+        if claimed != _canonical_sha(receipt):
+            raise ValueError("API_ONLY_ROLLBACK_RECEIPT_SHA_MISMATCH")
+        if receipt.get("schema_version") != RECEIPT_SCHEMA or receipt.get("status") != "API_ONLY_R2_SWITCHED_AND_READBACK_VERIFIED":
+&gt;           raise ValueError("API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID")
+E           ValueError: API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID
+
+issue30/work/cutover_analysis/initial/candidate/api_only_cutover_r2_ready.py:1722: ValueError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_recovery_cannot_select_a_different_base_with_rehashed_records" time="0.060"><failure message="KeyError: 'prepared_receipt'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-nky373z7/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e91d6cf30&gt;
+
+    def test_recovery_cannot_select_a_different_base_with_rehashed_records(setup_actual, monkeypatch):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+&gt;       receipt, prepared_path = _assert_contract(m, receipt_path, fixture)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:361: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+m = &lt;module '_test_cutover_fb0daf5f74124616b07a8a2810e7be1f' from '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/initial/candidate/api_only_cutover_r2_ready.py'&gt;
+receipt_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-nky373z7/task/evidence/api_only_switch_runs/20261008T142654Z-77ab7371/operation_receipt.json')
+fixture = {'plan': {'allowed_paths': ['/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-nky373z7/Launc...aec/issue30/work/cutover_analysis/cutover-test-nky373z7/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...}
+
+    def _assert_contract(m, receipt_path, fixture):
+        receipt = json.loads(receipt_path.read_text())
+&gt;       reference = receipt["prepared_receipt"]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prepared_receipt'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:112: KeyError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_bare_status_receipt_without_prepared_binding_is_not_recoverable" time="0.063"><failure message="AssertionError: Regex pattern did not match.&#10;  Expected regex: 'PREPARED_RECEIPT_REQUIRED'&#10;  Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-1r8x1b3d/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f9e91ce7f50&gt;
+
+    def test_bare_status_receipt_without_prepared_binding_is_not_recoverable(setup_actual, monkeypatch):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        receipt = json.loads(receipt_path.read_text())
+        receipt.pop("prepared_receipt", None)
+        m._write_receipt(receipt_path, receipt)
+&gt;       with pytest.raises(ValueError, match="PREPARED_RECEIPT_REQUIRED"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'PREPARED_RECEIPT_REQUIRED'
+E         Actual message: 'API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID'
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:381: AssertionError</failure></testcase></testsuite></testsuites>

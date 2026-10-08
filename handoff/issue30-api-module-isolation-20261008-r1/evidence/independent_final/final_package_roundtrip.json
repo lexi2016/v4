@@ -1,0 +1,220 @@
+{
+  "schema_version": "v4.issue30.independent_package_roundtrip.v1",
+  "status": "PASS",
+  "source_file_count": 8,
+  "source_manifest_sha256": "baac33ad9e1f8b2d89f1817d00dd3c6e28c612a00c37586773dc50dadb6bada1",
+  "patch_sha256": "6caf2d02546e17aabfeb06c721fa3ac8748aaf0e1f73aeb13ffd7c9de3dfc86e",
+  "actual_publisher_core_pin": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+  "module_ownership_policy_sha256": "c55f4f09269661e0db05fa566aa1be9a96b2aa681912223c38fb802c4127e1b6",
+  "source_checks": [
+    {
+      "path": "actual_cutover_reference/api_only_cutover_r2_ready.py",
+      "before_sha256": "ddb7c5b5b95aed1e2e9fb8a592503b88ec3966f6e34c9350c47648bb0f97ce4a",
+      "after_sha256": "389be853923a72066472ad229129a9a41ef9e9785f1b729aa468ed3e58df19f5",
+      "before_mode": "0644",
+      "after_mode": "0644",
+      "reviewed_source_sha_exact": true
+    },
+    {
+      "path": "apps/api/v35_api/app.py",
+      "before_sha256": "90a2bf6390c6c0e219aa3d9bb22bc3b3630ecb2d447df494ae69425933424ed7",
+      "after_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "before_mode": "0644",
+      "after_mode": "0644",
+      "reviewed_source_sha_exact": true
+    },
+    {
+      "path": "apps/api/v35_api/preselection_router.py",
+      "before_sha256": null,
+      "after_sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "before_mode": null,
+      "after_mode": "0644",
+      "reviewed_source_sha_exact": true
+    },
+    {
+      "path": "apps/api/v35_api/preselection_service.py",
+      "before_sha256": null,
+      "after_sha256": "91eba3ad5d005161d876f9c2f1a69ff51db56f129267cde29394d4581d1a4c95",
+      "before_mode": null,
+      "after_mode": "0644",
+      "reviewed_source_sha_exact": true
+    },
+    {
+      "path": "ops/api_release_integration.py",
+      "before_sha256": "579bb0986404232bb497027705d9d7a0f18ee74ad663a44e8ce0befd0f9cb24a",
+      "after_sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+      "before_mode": "0644",
+      "after_mode": "0644",
+      "reviewed_source_sha_exact": true
+    },
+    {
+      "path": "ops/build_release_candidate.py",
+      "before_sha256": "86ba30a04df15dad6f15587a3a63597d375d11af9da00b41241fa6b026e73155",
+      "after_sha256": "81f4290a6f51e5958048d782c2d4b1eecfc42f892e387e6c1a22bb71912abef6",
+      "before_mode": "0644",
+      "after_mode": "0644",
+      "reviewed_source_sha_exact": true
+    },
+    {
+      "path": "ops/create_api_module_delta.py",
+      "before_sha256": null,
+      "after_sha256": "04e67a3ce948eecf9dac04083277bd919c7ec8880ec5814bbe57e7a5ba8d0072",
+      "before_mode": null,
+      "after_mode": "0644",
+      "reviewed_source_sha_exact": true
+    },
+    {
+      "path": "ops/prepare_api_only_cutover.py",
+      "before_sha256": "2a6cc7972cdf367965001314ee20f459579028accbc132345ab37db99aaee0a6",
+      "after_sha256": "0fee40c13bdb76d8d4d7b5b0068eb8b6e7cade9187a5f3c3154b7d6238a1af4c",
+      "before_mode": "0644",
+      "after_mode": "0644",
+      "reviewed_source_sha_exact": true
+    }
+  ],
+  "forward": [
+    {
+      "path": "actual_cutover_reference/api_only_cutover_r2_ready.py",
+      "sha256": "389be853923a72066472ad229129a9a41ef9e9785f1b729aa468ed3e58df19f5",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/v35_api/app.py",
+      "sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/v35_api/preselection_router.py",
+      "sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/v35_api/preselection_service.py",
+      "sha256": "91eba3ad5d005161d876f9c2f1a69ff51db56f129267cde29394d4581d1a4c95",
+      "mode": "0644"
+    },
+    {
+      "path": "ops/api_release_integration.py",
+      "sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+      "mode": "0644"
+    },
+    {
+      "path": "ops/build_release_candidate.py",
+      "sha256": "81f4290a6f51e5958048d782c2d4b1eecfc42f892e387e6c1a22bb71912abef6",
+      "mode": "0644"
+    },
+    {
+      "path": "ops/create_api_module_delta.py",
+      "sha256": "04e67a3ce948eecf9dac04083277bd919c7ec8880ec5814bbe57e7a5ba8d0072",
+      "mode": "0644"
+    },
+    {
+      "path": "ops/prepare_api_only_cutover.py",
+      "sha256": "0fee40c13bdb76d8d4d7b5b0068eb8b6e7cade9187a5f3c3154b7d6238a1af4c",
+      "mode": "0644"
+    }
+  ],
+  "reverse": [
+    {
+      "path": "actual_cutover_reference/api_only_cutover_r2_ready.py",
+      "sha256": "ddb7c5b5b95aed1e2e9fb8a592503b88ec3966f6e34c9350c47648bb0f97ce4a",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/v35_api/app.py",
+      "sha256": "90a2bf6390c6c0e219aa3d9bb22bc3b3630ecb2d447df494ae69425933424ed7",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/v35_api/preselection_router.py",
+      "absent": true
+    },
+    {
+      "path": "apps/api/v35_api/preselection_service.py",
+      "absent": true
+    },
+    {
+      "path": "ops/api_release_integration.py",
+      "sha256": "579bb0986404232bb497027705d9d7a0f18ee74ad663a44e8ce0befd0f9cb24a",
+      "mode": "0644"
+    },
+    {
+      "path": "ops/build_release_candidate.py",
+      "sha256": "86ba30a04df15dad6f15587a3a63597d375d11af9da00b41241fa6b026e73155",
+      "mode": "0644"
+    },
+    {
+      "path": "ops/create_api_module_delta.py",
+      "absent": true
+    },
+    {
+      "path": "ops/prepare_api_only_cutover.py",
+      "sha256": "2a6cc7972cdf367965001314ee20f459579028accbc132345ab37db99aaee0a6",
+      "mode": "0644"
+    }
+  ],
+  "commands": [
+    {
+      "command": [
+        "git",
+        "init",
+        "-q"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/independent-package-roundtrip-68va_ae2",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "--check",
+        "--whitespace=nowarn",
+        "/workspace/scratch/25c09a595aec/issue30/delivery_api_module_r1/patches/all_product_changes.patch"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/independent-package-roundtrip-68va_ae2",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "--whitespace=nowarn",
+        "/workspace/scratch/25c09a595aec/issue30/delivery_api_module_r1/patches/all_product_changes.patch"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/independent-package-roundtrip-68va_ae2",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "--reverse",
+        "--check",
+        "--whitespace=nowarn",
+        "/workspace/scratch/25c09a595aec/issue30/delivery_api_module_r1/patches/all_product_changes.patch"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/independent-package-roundtrip-68va_ae2",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "--reverse",
+        "--whitespace=nowarn",
+        "/workspace/scratch/25c09a595aec/issue30/delivery_api_module_r1/patches/all_product_changes.patch"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/independent-package-roundtrip-68va_ae2",
+      "exit_code": 0
+    }
+  ],
+  "new_files_absent_after_reverse": true,
+  "no_extra_product_paths": true,
+  "package_bytes_unchanged": true,
+  "process_umask": "0022",
+  "scope": "source-only synthetic baseline; not current Mac file absence or modes",
+  "timestamp_utc": "2026-10-08T14:51:03.889883+00:00",
+  "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "script_sha256": "27aa6718ea36340097dc1cd2322d1e5c3b719747c5800539c64b0becaa0ac66e"
+}

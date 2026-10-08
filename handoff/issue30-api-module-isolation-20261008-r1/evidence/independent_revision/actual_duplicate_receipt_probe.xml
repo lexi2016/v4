@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.204" timestamp="2026-10-08T07:37:22.825183-07:00" hostname="5fa05583d26b"><testcase classname="test_actual_duplicate_receipt_probe" name="test_recovery_rejects_duplicate_status_in_operation_receipt" time="0.098"><failure message="Failed: DID NOT RAISE ValueError">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/issue30_reviewer/cutover-test-8d7cvwa8/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7fdaa0f4f6f0&gt;
+
+    def test_recovery_rejects_duplicate_status_in_operation_receipt(setup_actual, monkeypatch):
+        harness, fixture = setup_actual
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        expected = _set_state(harness, fixture, "candidate", "unloaded")
+        original = receipt_path.read_text()
+        assert original.startswith("{")
+        # The existing canonical object digest remains valid under last-key-wins
+        # parsing. A strict reader must reject the duplicate even though the final
+        # decoded status is the original PREPARED value.
+        receipt_path.write_text('{"status":"FOREIGN_UNREVIEWED_STATUS",' + original[1:])
+        current = harness.m.ACTIVE_API_PLIST.read_bytes()
+&gt;       with pytest.raises(ValueError, match="DUPLICATE|JSON_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+test_actual_duplicate_receipt_probe.py:22: Failed</failure></testcase></testsuite></testsuites>

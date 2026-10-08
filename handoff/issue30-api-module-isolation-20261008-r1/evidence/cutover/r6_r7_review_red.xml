@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="2" time="0.359" timestamp="2026-10-08T07:41:05.108702-07:00" hostname="5fa05583d26b"><testcase classname="issue30.work.cutover_analysis.test_actual_duplicate_receipt_probe" name="test_recovery_rejects_duplicate_status_in_operation_receipt" time="0.089"><failure message="Failed: DID NOT RAISE ValueError">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-dtvauhtf/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f59fd6bf820&gt;
+
+    def test_recovery_rejects_duplicate_status_in_operation_receipt(setup_actual, monkeypatch):
+        harness, fixture = setup_actual
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        expected = _set_state(harness, fixture, "candidate", "unloaded")
+        original = receipt_path.read_text()
+        assert original.startswith("{")
+        # The existing canonical object digest remains valid under last-key-wins
+        # parsing. A strict reader must reject the duplicate even though the final
+        # decoded status is the original PREPARED value.
+        receipt_path.write_text('{"status":"FOREIGN_UNREVIEWED_STATUS",' + original[1:])
+        current = harness.m.ACTIVE_API_PLIST.read_bytes()
+&gt;       with pytest.raises(ValueError, match="DUPLICATE|JSON_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+issue30/work/cutover_analysis/test_actual_duplicate_receipt_probe.py:22: Failed</failure></testcase><testcase classname="issue30.work.cutover_analysis.test_actual_preimage_metadata_probe" name="test_recovery_restores_original_metadata_when_pointer_bytes_are_already_original" time="0.109"><failure message="AssertionError: assert {'uid': 0, 'g...lags': 0, ...} == {'flags': 0, ...93672389, ...}&#10;  &#10;  Omitting 5 identical items, use -vv to show&#10;  Differing items:&#10;  {'mode': 511} != {'mode': 420}&#10;  Use -v to get more diff">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-d57f99u6/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f59fd4d2690&gt;
+
+    def test_recovery_restores_original_metadata_when_pointer_bytes_are_already_original(setup_actual, monkeypatch):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        prepared = json.loads(receipt_path.read_text())
+        expected_metadata = prepared["backup_metadata"]
+        assert m.ACTIVE_API_PLIST.read_bytes() == fixture["original"]
+        original_mode = m.ACTIVE_API_PLIST.stat().st_mode &amp; 0o7777
+        m.ACTIVE_API_PLIST.chmod(0o777 if original_mode != 0o777 else 0o640)
+        fixture["runtime"]["identity"] = None
+        result = _resume(harness, fixture, receipt_path, prepared["backup_sha256"])
+        assert result["status"] == "ROLLED_BACK_TO_PREIMAGE"
+&gt;       assert m._file_metadata(m.ACTIVE_API_PLIST) == expected_metadata
+E       AssertionError: assert {'uid': 0, 'g...lags': 0, ...} == {'flags': 0, ...93672389, ...}
+E         
+E         Omitting 5 identical items, use -vv to show
+E         Differing items:
+E         {'mode': 511} != {'mode': 420}
+E         Use -v to get more diff
+
+issue30/work/cutover_analysis/test_actual_preimage_metadata_probe.py:22: AssertionError</failure></testcase></testsuite></testsuites>

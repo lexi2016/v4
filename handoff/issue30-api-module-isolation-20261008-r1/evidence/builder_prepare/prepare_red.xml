@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="6" skipped="0" tests="7" time="0.182" timestamp="2026-10-08T06:49:47.955345-07:00" hostname="5fa05583d26b"><testcase classname="tests.test_prepare_issue30" name="test_prepare_rejects_release_id_different_from_verified_manifest" time="0.015"><failure message="Failed: DID NOT RAISE ValueError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/builder_prepare/prepare_red_tmp/test_prepare_rejects_release_i0')
+
+    def test_prepare_rejects_release_id_different_from_verified_manifest(tmp_path):
+        active, candidate, _ = _integrated_candidate(tmp_path)
+        args = _args(active, candidate, tmp_path)
+        args['release_id'] = 'wrong-release'
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_prepare_issue30.py:24: Failed</failure></testcase><testcase classname="tests.test_prepare_issue30" name="test_prepare_rejects_pointer_change_after_initial_verification" time="0.015"><failure message="Failed: DID NOT RAISE ValueError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/builder_prepare/prepare_red_tmp/test_prepare_rejects_pointer_c0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7fd7bb89e9e0&gt;
+
+    def test_prepare_rejects_pointer_change_after_initial_verification(tmp_path, monkeypatch):
+        active, candidate, _ = _integrated_candidate(tmp_path)
+        pointer = Path(active['api_plist'])
+        original = prepare.verify_api_release_candidate
+        def drift(**kwargs):
+            result = original(**kwargs)
+            payload = plistlib.loads(pointer.read_bytes())
+            payload['ProgramArguments'].insert(1, 'V35_DATA_ROOT=/synthetic/new-data')
+            pointer.write_bytes(plistlib.dumps(payload, fmt=plistlib.FMT_XML, sort_keys=True))
+            return result
+        monkeypatch.setattr(prepare, 'verify_api_release_candidate', drift)
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_prepare_issue30.py:40: Failed</failure></testcase><testcase classname="tests.test_prepare_issue30" name="test_prepare_rejects_state_directory_symlink_before_writing" time="0.011" /><testcase classname="tests.test_prepare_issue30" name="test_prepare_config_swap_after_rewrite_cannot_write_outside" time="0.011"><failure message="Failed: DID NOT RAISE ValueError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/builder_prepare/prepare_red_tmp/test_prepare_config_swap_after0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7fd7bb89e520&gt;
+
+    def test_prepare_config_swap_after_rewrite_cannot_write_outside(tmp_path, monkeypatch):
+        active, candidate, _ = _integrated_candidate(tmp_path)
+        outside = tmp_path/'outside-config'
+        outside.mkdir()
+        original = prepare.rewrite_api_only_plist
+        def swap(*args, **kwargs):
+            result = original(*args, **kwargs)
+            config = candidate/'config'
+            if config.exists():
+                config.rename(candidate/'parked-config')
+            config.symlink_to(outside, target_is_directory=True)
+            return result
+        monkeypatch.setattr(prepare, 'rewrite_api_only_plist', swap)
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_prepare_issue30.py:68: Failed</failure></testcase><testcase classname="tests.test_prepare_issue30" name="test_prepare_plan_has_no_unguarded_launchctl_or_copy_path" time="0.012"><failure message="AssertionError: assert 'future_commands' not in {'schema_version': 'v4.api_only_cutover_plan.v1', 'generated_at': '2026-10-08T13:49:48+00:00', 'activation_status': 'NOT_ACTIVATED', 'launchctl_called': False, ...}">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/builder_prepare/prepare_red_tmp/test_prepare_plan_has_no_ungua0')
+
+    def test_prepare_plan_has_no_unguarded_launchctl_or_copy_path(tmp_path):
+        active, candidate, _ = _integrated_candidate(tmp_path)
+        plan = prepare.render_cutover(**_args(active, candidate, tmp_path))
+&gt;       assert 'future_commands' not in plan
+E       AssertionError: assert 'future_commands' not in {'schema_version': 'v4.api_only_cutover_plan.v1', 'generated_at': '2026-10-08T13:49:48+00:00', 'activation_status': 'NOT_ACTIVATED', 'launchctl_called': False, ...}
+
+tests/test_prepare_issue30.py:76: AssertionError</failure></testcase><testcase classname="tests.test_integration_adversarial" name="test_prepare_rejects_config_directory_symlink" time="0.010"><failure message="Failed: DID NOT RAISE ValueError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/builder_prepare/prepare_red_tmp/test_prepare_rejects_config_di0')
+
+    def test_prepare_rejects_config_directory_symlink(tmp_path):
+        active, candidate, _ = _integrated_candidate(tmp_path)
+        outside = tmp_path / "outside-candidate"
+        outside.mkdir()
+        (candidate / "config").symlink_to(outside, target_is_directory=True)
+        manifest = candidate / "release-manifest.json"
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_integration_adversarial.py:126: Failed</failure></testcase><testcase classname="tests.test_integration_adversarial" name="test_prepare_rejects_source_pointer_symlink" time="0.014"><failure message="Failed: DID NOT RAISE ValueError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/builder_prepare/prepare_red_tmp/test_prepare_rejects_source_po0')
+
+    def test_prepare_rejects_source_pointer_symlink(tmp_path):
+        active, candidate, _ = _integrated_candidate(tmp_path)
+        alias_parent = tmp_path / "AliasLaunchAgents"
+        alias_parent.mkdir()
+        alias = alias_parent / "com.lexi.v35.api-only.plist"
+        alias.symlink_to(Path(active["api_plist"]))
+        manifest = candidate / "release-manifest.json"
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_integration_adversarial.py:141: Failed</failure></testcase></testsuite></testsuites>

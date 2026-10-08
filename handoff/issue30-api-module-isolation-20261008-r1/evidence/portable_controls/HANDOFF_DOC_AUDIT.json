@@ -1,0 +1,123 @@
+{
+  "checked_utc": "2026-10-08T14:29:07.053705+00:00",
+  "confirmed": [
+    "README, PROMPT_FOR_MAC and OPEN_ITEMS explicitly do not claim deployed, real API/UI recovery, or natural-period acceptance.",
+    "Historical preselection support closure, app-only matching identity, unavailable full current R2 inventory, and AST-only app registration boundary are explicit.",
+    "test_support is explicitly prohibited from overwriting canonical/API/Stage/scheduler; historical P2 canonical Mac 38/38 is correctly recorded as integrated but not deployed, with nested P2 and reconstruction open.",
+    "Physical pool trio and upstream run trio are distinguished; HK 10/7 underlying source and 9/30 eligibility binding gaps remain open.",
+    "The standalone create_api_module_delta.py --help command succeeded with the two adjacent product files; documented flags match parser and require a new output in an existing evidence directory.",
+    "Builder instructions first require integration with verified local adjacent helpers and explicitly provide the V4 formal-release-root; they do not advertise an executable full builder command from the helper-incomplete after/ops directory.",
+    "Mac flow proceeds through actual identity, source integration, portable and full-closure tests, real source canary, manager behavior, publisher inventory, and concrete cutover/rollback review before checking deployment authorization.",
+    "Current runtime_mapping validation found 57 required/mapped source files with author cutover baseline and probe paths intact. Additional flat test .py files are supported. This is path-layout validation only, not final input SHA completeness or final actual R5 validation."
+  ],
+  "deferred_by_parent_instruction": [
+    "Final actual R5 bytes/tests and pin",
+    "Final SOURCE_MANIFEST and patches",
+    "Final TEST_INPUTS/TEST_RESULTS and portable replay",
+    "Final independent review files",
+    "Final change-set generation and complete package integrity"
+  ],
+  "findings": [
+    {
+      "current_text": "每个通过的 A 行都必须同时满足日期、pool、市场和全部已提供代码字段的一致性。… HK 仍要求原完整 100 行、来源、日期与 split-date provenance 合同；物理存储 trio 与上游 run trio 分开记录。",
+      "effect": "Unqualified wording can be read as a new guarantee for every normal API A/HK row, broader than the implemented and tested recovery/fallback scope.",
+      "evidence": [
+        "after/apps/api/v35_api/preselection_service.py:242 defines _is_consistent_a_row; its only product call is at 346 within _recover_legacy_sha_block.",
+        "The recovery begins only for DATA_BLOCKED_EMPTY with exactly the known legacy SHA blocking reason.",
+        "_is_exact_configured_hk_pool is used in the legacy recovery and configured HK fallback branches; ordinary domain reads retain their own existing rules."
+      ],
+      "id": "D1",
+      "line": 46,
+      "path": "README.zh-CN.md",
+      "required_replacement": "在新增的旧 SHA 故障恢复路径中，每个拟恢复的 A 行都必须同时满足日期、pool、市场和全部已提供代码字段的一致性。market=US 或 symbol=HK.00700 不能被另一个 A code 掩盖；坏池被隔离，其他有效 A 池继续保留。配置来源补 HK 的分支及上述恢复路径中的 HK，继续使用原完整 100 行、来源、日期与 split-date provenance 合同；物理存储 trio 与上游 run trio 分开记录。常规 domain 读取沿用其既有合同。",
+      "severity": "Important wording correction"
+    },
+    {
+      "current_text": "Spec cites issue30/DESIGN.md, issue30/input/ISSUE30.json and input/baseline/README.md; completed implementation/probes still carry unchecked boxes without an archival-status label.",
+      "effect": "A recipient may mistake the archived work plan for the final task status or try to follow unavailable workspace-relative pointers.",
+      "evidence": [
+        "These source-workspace paths do not exist in this package layout.",
+        "README and retained initial review provide concrete evidence that these implementation/probe steps already happened."
+      ],
+      "id": "D2",
+      "lines": [
+        11,
+        33,
+        41,
+        54
+      ],
+      "path": "design/IMPLEMENTATION_PLAN.md",
+      "recommended_replacement": "Add at top: 本文件为实施前冻结的工作计划，保留当时路径及勾选状态供复盘，不代表最终完成状态。接手步骤以 ../PROMPT_FOR_MAC.md 为准；最终源码/测试/审查状态以 ../README.zh-CN.md、../TEST_RESULTS.json 及最终独审为准。 Link current design/reference paths where useful; keep original plan as evidence.",
+      "severity": "Minor documentation consistency"
+    }
+  ],
+  "operations": {
+    "business_data_access": false,
+    "delivery_documents_modified": false,
+    "github_write": false,
+    "new_product_tests_run": false,
+    "product_files_modified": false,
+    "service_actions": false
+  },
+  "package_root": "/workspace/scratch/25c09a595aec/issue30/delivery_api_module_r1",
+  "schema_version": "v4.issue30.handoff_document_audit.v1",
+  "scope": "Read-only handoff consistency audit; no product changes, no new product tests, no real service or business data access",
+  "snapshot_files": [
+    {
+      "path": "README.zh-CN.md",
+      "sha256": "602d13b8d75b8e984eff6ca21ed3e3ca92dc38699a76c606d4afb63a6f113af1",
+      "size": 9211
+    },
+    {
+      "path": "PROMPT_FOR_MAC.md",
+      "sha256": "1d70b60b7e6c9cfaa7e2b9a022caa87feb003e26c19a3580749a3ae11c4be0a2",
+      "size": 8985
+    },
+    {
+      "path": "OPEN_ITEMS.md",
+      "sha256": "d73455893fa1626f47b83ec283ed063c31d3ec81edddc30aa633e19bf36c9aa1",
+      "size": 3694
+    },
+    {
+      "path": "design/MODULE_OWNERSHIP.md",
+      "sha256": "8a1b24c9e2dc3d791186aaa31bd19fc6e9220d84a313c105c0bd5ac26ec3ce1a",
+      "size": 4986
+    },
+    {
+      "path": "design/DESIGN.md",
+      "sha256": "f8505f77b5d867f1729d7d2560e2197267e812fe04455ffd7f51b8e836398d17",
+      "size": 4452
+    },
+    {
+      "path": "design/IMPLEMENTATION_PLAN.md",
+      "sha256": "56526476379b014d3ff5ea596bbed7587ed66eb37fc5d062cec6dc10fd42a952",
+      "size": 3783
+    },
+    {
+      "path": "run_tests.py",
+      "sha256": "73069ef34a74a5eddb47ccaab59ab142a7e518841511441e3e20016770811409",
+      "size": 34918
+    },
+    {
+      "path": "after/ops/create_api_module_delta.py",
+      "sha256": "04e67a3ce948eecf9dac04083277bd919c7ec8880ec5814bbe57e7a5ba8d0072",
+      "size": 6580
+    },
+    {
+      "path": "after/ops/build_release_candidate.py",
+      "sha256": "81f4290a6f51e5958048d782c2d4b1eecfc42f892e387e6c1a22bb71912abef6",
+      "size": 36367
+    },
+    {
+      "path": "after/apps/api/v35_api/preselection_service.py",
+      "sha256": "91eba3ad5d005161d876f9c2f1a69ff51db56f129267cde29394d4581d1a4c95",
+      "size": 28197
+    },
+    {
+      "path": "original/issue30/README.md",
+      "sha256": "7010acf0deb3dd201ffe1eaa627ec5f8bcc3c18249966b2c01064e9234d1f702",
+      "size": 11062
+    }
+  ],
+  "status": "DOC_SCOPE_CLARIFICATION_REQUESTED"
+}

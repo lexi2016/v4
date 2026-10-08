@@ -1,0 +1,45 @@
+{
+  "command": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "tests",
+    "test_actual_review_probes.py",
+    "test_actual_duplicate_receipt_probe.py",
+    "test_actual_preimage_metadata_probe.py",
+    "--junitxml=/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/final_actual76.xml",
+    "--basetemp=/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/final_actual76_tmp"
+  ],
+  "cwd": "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer",
+  "env_overrides": {
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "CUTOVER_SOURCE": "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/frozen_actual_389be/api_only_cutover_r2_ready.py",
+    "INTEGRATION_SOURCE": "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/frozen_final/api_release_integration.py"
+  },
+  "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "timestamp_utc": "2026-10-08T14:47:07.287688+00:00",
+  "exit_code": 0,
+  "source_and_test_shas": {
+    "work/issue30_reviewer/frozen_actual_389be/api_only_cutover_r2_ready.py": "389be853923a72066472ad229129a9a41ef9e9785f1b729aa468ed3e58df19f5",
+    "work/issue30_reviewer/frozen_final/api_release_integration.py": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+    "work/issue30_reviewer/tests/test_actual_api_cutover.py": "dbff595c9c64c7846449f2c5a1148a2eee3049d3d51e3f18d8464440b8b16726",
+    "work/issue30_reviewer/tests/test_actual_json_inputs.py": "2a8817907d95bb5fd3b37cb7581410e0e46c6027a350a568e54df9867e7a83d5",
+    "work/issue30_reviewer/tests/test_recovery_continuation.py": "65207c207f3ffca4c0a5091717036532f318937a846a05dcb6340a2ec15ca242",
+    "work/issue30_reviewer/tests/test_recovery_metadata.py": "2c8b755bde1429a10ec7d5892ed566cc9f217b0a2a6e39b75c28bbfaef70418f",
+    "work/issue30_reviewer/test_actual_review_probes.py": "82e50515934e66d0445b9f444adddcf7b7a8218c7e5985dd8ae54232a06f6684",
+    "work/issue30_reviewer/test_actual_duplicate_receipt_probe.py": "afd68bf43600d805f264708f27edf682d45b4e16f28dda90c1b5fa8ff9213218",
+    "work/issue30_reviewer/test_actual_preimage_metadata_probe.py": "c4a1c7ef339da777e4ab2f533e768bd5ba3b6ee62c996e76b9532fc848c13df8",
+    "work/issue30_reviewer/probe_cutover_boundaries.py": "d4dd61e63aa720b8753ce9d471ba0294904f0f240e1b27678e28b937ec99ee96"
+  },
+  "source_bytes_unchanged_across_run": true,
+  "original_21_and_41_test_bytes_unchanged": true,
+  "original_R5_R6_R7_probe_bytes_unchanged": true,
+  "junit_execution_count": 76,
+  "scope": "temporary synthetic fixtures only; launchctl and HTTP use explicit mocks/forbidden calls"
+}

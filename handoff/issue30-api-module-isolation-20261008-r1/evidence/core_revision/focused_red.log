@@ -1,0 +1,326 @@
+FFF.FFFFFFFFFFFFF                                                        [100%]
+=================================== FAILURES ===================================
+________ test_receipt_authorizes_active_addition_without_untracked_flag ________
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_receipt_authorizes_active0')
+
+    def test_receipt_authorizes_active_addition_without_untracked_flag(tmp_path):
+        _, _, kwargs = receipt_fixture(tmp_path, relative=ADDITION, addition=True)
+        kwargs["explicit_untracked_paths"] = []
+>       details = integration.build_integrated_app(**kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_core_review_revision.py:59: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+active_api_plist_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_receipt_authorizes_active0/LaunchAgents/com.lexi.v35.api-only.plist')
+source_root = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_receipt_authorizes_active0/source')
+candidate_root = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_receipt_authorizes_active0/candidate')
+delta_receipt_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_receipt_authorizes_active0/receipt.json')
+explicit_untracked_paths = []
+
+    def build_integrated_app(
+        *, active_api_plist_path: Path, source_root: Path, candidate_root: Path,
+        delta_receipt_path: Path, explicit_untracked_paths: Sequence[str] = (),
+    ) -> dict[str, Any]:
+        active = read_active_release(active_api_plist_path)
+        source_root = _exact_path(source_root, kind="directory", label="API_RELEASE_DELTA_SOURCE_ROOT")
+        candidate_root = _exact_path(candidate_root, kind="directory", label="API_RELEASE_CANDIDATE_ROOT")
+        for other_root in (source_root, Path(active["release_root"])):
+            if candidate_root.is_relative_to(other_root) or other_root.is_relative_to(candidate_root):
+                raise ValueError("API_RELEASE_CANDIDATE_OVERLAPS_INPUT_ROOT")
+        source_root_token = _directory_token(source_root)
+        candidate_token = _directory_token(candidate_root)
+        receipt_raw, receipt_token = _read_file(_exact_path(delta_receipt_path, kind="file", label="API_RELEASE_DELTA_RECEIPT"))
+        receipt = _json_object(receipt_raw, "API_RELEASE_DELTA_RECEIPT")
+        entries = _validate_delta_receipt(receipt, base_identity=active)
+        added = {str(entry["path"]) for entry in entries if entry.get("before_sha256") is None}
+        if added != set(explicit_untracked_paths):
+>           raise ValueError("API_RELEASE_DELTA_ADDED_PATHS_REQUIRE_EXACT_UNTRACKED_APPROVAL")
+E           ValueError: API_RELEASE_DELTA_ADDED_PATHS_REQUIRE_EXACT_UNTRACKED_APPROVAL
+
+baseline/candidate/ops/api_release_integration.py:734: ValueError
+_______ test_source_untracked_approval_can_cover_an_active_modification ________
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_source_untracked_approval0')
+
+    def test_source_untracked_approval_can_cover_an_active_modification(tmp_path):
+        _, _, kwargs = receipt_fixture(tmp_path)
+        kwargs["explicit_untracked_paths"] = [MODIFICATION]
+>       details = integration.build_integrated_app(**kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_core_review_revision.py:68: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+active_api_plist_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_source_untracked_approval0/LaunchAgents/com.lexi.v35.api-only.plist')
+source_root = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_source_untracked_approval0/source')
+candidate_root = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_source_untracked_approval0/candidate')
+delta_receipt_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_source_untracked_approval0/receipt.json')
+explicit_untracked_paths = ['apps/api/v35_api/app.py']
+
+    def build_integrated_app(
+        *, active_api_plist_path: Path, source_root: Path, candidate_root: Path,
+        delta_receipt_path: Path, explicit_untracked_paths: Sequence[str] = (),
+    ) -> dict[str, Any]:
+        active = read_active_release(active_api_plist_path)
+        source_root = _exact_path(source_root, kind="directory", label="API_RELEASE_DELTA_SOURCE_ROOT")
+        candidate_root = _exact_path(candidate_root, kind="directory", label="API_RELEASE_CANDIDATE_ROOT")
+        for other_root in (source_root, Path(active["release_root"])):
+            if candidate_root.is_relative_to(other_root) or other_root.is_relative_to(candidate_root):
+                raise ValueError("API_RELEASE_CANDIDATE_OVERLAPS_INPUT_ROOT")
+        source_root_token = _directory_token(source_root)
+        candidate_token = _directory_token(candidate_root)
+        receipt_raw, receipt_token = _read_file(_exact_path(delta_receipt_path, kind="file", label="API_RELEASE_DELTA_RECEIPT"))
+        receipt = _json_object(receipt_raw, "API_RELEASE_DELTA_RECEIPT")
+        entries = _validate_delta_receipt(receipt, base_identity=active)
+        added = {str(entry["path"]) for entry in entries if entry.get("before_sha256") is None}
+        if added != set(explicit_untracked_paths):
+>           raise ValueError("API_RELEASE_DELTA_ADDED_PATHS_REQUIRE_EXACT_UNTRACKED_APPROVAL")
+E           ValueError: API_RELEASE_DELTA_ADDED_PATHS_REQUIRE_EXACT_UNTRACKED_APPROVAL
+
+baseline/candidate/ops/api_release_integration.py:734: ValueError
+____ test_untracked_flags_must_be_unique_receipt_paths_before_copy[flags0] _____
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_untracked_flags_must_be_u0')
+flags = ['apps/api/v35_api/preselection_service.py', 'apps/api/v35_api/preselection_service.py']
+
+    @pytest.mark.parametrize("flags", [[ADDITION, ADDITION], ["not-in-receipt.py"]])
+    def test_untracked_flags_must_be_unique_receipt_paths_before_copy(tmp_path, flags):
+        _, _, kwargs = receipt_fixture(tmp_path, relative=ADDITION, addition=True)
+        kwargs["explicit_untracked_paths"] = flags
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_core_review_revision.py:77: Failed
+______ test_source_allowlist_refuses_unapproved_receipt_file_before_copy _______
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_source_allowlist_refuses_0')
+
+    def test_source_allowlist_refuses_unapproved_receipt_file_before_copy(tmp_path):
+        _, _, kwargs = receipt_fixture(tmp_path, relative=ADDITION, addition=True)
+        kwargs["source_path_allowlist"] = ["stable-module.py"]
+        with pytest.raises(ValueError, match="SOURCE_PATH_NOT_ALLOWED"):
+>           integration.build_integrated_app(**kwargs)
+E           TypeError: build_integrated_app() got an unexpected keyword argument 'source_path_allowlist'
+
+tests/test_core_review_revision.py:86: TypeError
+______________ test_source_allowlist_does_not_copy_unlisted_files ______________
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_source_allowlist_does_not0')
+
+    def test_source_allowlist_does_not_copy_unlisted_files(tmp_path):
+        _, _, kwargs = receipt_fixture(tmp_path, relative=ADDITION, addition=True)
+        kwargs["explicit_untracked_paths"] = []
+        extra = kwargs["source_root"] / "unrelated.py"
+        extra.write_bytes(b"DO_NOT_COPY = True\n")
+        kwargs["source_path_allowlist"] = [ADDITION, "unrelated.py"]
+>       details = integration.build_integrated_app(**kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: build_integrated_app() got an unexpected keyword argument 'source_path_allowlist'
+
+tests/test_core_review_revision.py:96: TypeError
+____________ test_verifier_rejects_existing_directory_mode_drift[.] ____________
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_verifier_rejects_existing0')
+relative = '.'
+
+    @pytest.mark.parametrize("relative", [".", "apps/api"])
+    def test_verifier_rejects_existing_directory_mode_drift(tmp_path, relative):
+        active, kwargs = _candidate_with_empty_directory(tmp_path)
+        before_mode = stat.S_IMODE((Path(active["app_root"]) / relative).stat().st_mode)
+        (kwargs["candidate_root"] / "app" / relative).chmod(0o777 if before_mode != 0o777 else 0o755)
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_core_review_revision.py:107: Failed
+________ test_verifier_rejects_existing_directory_mode_drift[apps/api] _________
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_verifier_rejects_existing1')
+relative = 'apps/api'
+
+    @pytest.mark.parametrize("relative", [".", "apps/api"])
+    def test_verifier_rejects_existing_directory_mode_drift(tmp_path, relative):
+        active, kwargs = _candidate_with_empty_directory(tmp_path)
+        before_mode = stat.S_IMODE((Path(active["app_root"]) / relative).stat().st_mode)
+        (kwargs["candidate_root"] / "app" / relative).chmod(0o777 if before_mode != 0o777 else 0o755)
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_core_review_revision.py:107: Failed
+__________ test_verifier_rejects_removal_of_preserved_empty_directory __________
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_verifier_rejects_removal_0')
+
+    def test_verifier_rejects_removal_of_preserved_empty_directory(tmp_path):
+        _, kwargs = _candidate_with_empty_directory(tmp_path)
+        (kwargs["candidate_root"] / "app/retained/empty").rmdir()
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_core_review_revision.py:114: Failed
+_______________ test_verifier_rejects_undeclared_empty_directory _______________
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_verifier_rejects_undeclar0')
+
+    def test_verifier_rejects_undeclared_empty_directory(tmp_path):
+        _, kwargs = _candidate_with_empty_directory(tmp_path)
+        (kwargs["candidate_root"] / "app/undeclared-empty").mkdir()
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_core_review_revision.py:121: Failed
+__ test_verifier_binds_base_directories_even_if_candidate_matches_drift[mode] __
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_verifier_binds_base_direc0')
+drift = 'mode'
+
+    @pytest.mark.parametrize("drift", ["mode", "remove", "add"])
+    def test_verifier_binds_base_directories_even_if_candidate_matches_drift(tmp_path, drift):
+        active, kwargs = _candidate_with_empty_directory(tmp_path)
+        for app in (Path(active["app_root"]), kwargs["candidate_root"] / "app"):
+            if drift == "mode":
+                (app / "retained/empty").chmod(0o555)
+            elif drift == "remove":
+                (app / "retained/empty").rmdir()
+            else:
+                (app / "unrecorded-base-directory").mkdir()
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_core_review_revision.py:135: Failed
+_ test_verifier_binds_base_directories_even_if_candidate_matches_drift[remove] _
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_verifier_binds_base_direc1')
+drift = 'remove'
+
+    @pytest.mark.parametrize("drift", ["mode", "remove", "add"])
+    def test_verifier_binds_base_directories_even_if_candidate_matches_drift(tmp_path, drift):
+        active, kwargs = _candidate_with_empty_directory(tmp_path)
+        for app in (Path(active["app_root"]), kwargs["candidate_root"] / "app"):
+            if drift == "mode":
+                (app / "retained/empty").chmod(0o555)
+            elif drift == "remove":
+                (app / "retained/empty").rmdir()
+            else:
+                (app / "unrecorded-base-directory").mkdir()
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_core_review_revision.py:135: Failed
+__ test_verifier_binds_base_directories_even_if_candidate_matches_drift[add] ___
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_verifier_binds_base_direc2')
+drift = 'add'
+
+    @pytest.mark.parametrize("drift", ["mode", "remove", "add"])
+    def test_verifier_binds_base_directories_even_if_candidate_matches_drift(tmp_path, drift):
+        active, kwargs = _candidate_with_empty_directory(tmp_path)
+        for app in (Path(active["app_root"]), kwargs["candidate_root"] / "app"):
+            if drift == "mode":
+                (app / "retained/empty").chmod(0o555)
+            elif drift == "remove":
+                (app / "retained/empty").rmdir()
+            else:
+                (app / "unrecorded-base-directory").mkdir()
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_core_review_revision.py:135: Failed
+_______ test_new_directories_are_only_required_ancestors_with_fixed_mode _______
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_new_directories_are_only_0')
+
+    def test_new_directories_are_only_required_ancestors_with_fixed_mode(tmp_path):
+        _, _, kwargs = receipt_fixture(tmp_path, relative=ADDITION, addition=True)
+        for directory in (kwargs["source_root"] / "apps", kwargs["source_root"] / "apps/api",
+                          kwargs["source_root"] / "apps/api/v35_api"):
+            directory.chmod(0o777)
+        details = integration.build_integrated_app(**kwargs)
+        _seal(kwargs, details)
+        app = kwargs["candidate_root"] / "app"
+        expected = ["apps", "apps/api", "apps/api/v35_api"]
+        assert sorted(str(p.relative_to(app)) for p in app.rglob("*") if p.is_dir()) == expected
+>       assert all(stat.S_IMODE((app / p).stat().st_mode) == 0o755 for p in expected)
+E       assert False
+E        +  where False = all(<generator object test_new_directories_are_only_required_ancestors_with_fixed_mode.<locals>.<genexpr> at 0x7f57e09053f0>)
+
+tests/test_core_review_revision.py:149: AssertionError
+_________ test_verifier_rejects_mode_change_to_a_declared_new_ancestor _________
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_verifier_rejects_mode_cha0')
+
+    def test_verifier_rejects_mode_change_to_a_declared_new_ancestor(tmp_path):
+        _, _, kwargs = receipt_fixture(tmp_path, relative=ADDITION, addition=True)
+        details = integration.build_integrated_app(**kwargs)
+        _seal(kwargs, details)
+        (kwargs["candidate_root"] / "app/apps/api").chmod(0o777)
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_core_review_revision.py:161: Failed
+___ test_readonly_base_directories_are_retained_while_new_directory_is_added ___
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_readonly_base_directories0')
+
+    def test_readonly_base_directories_are_retained_while_new_directory_is_added(tmp_path):
+        relative = "domains/manager_research/new_job.py"
+        active, _, kwargs = receipt_fixture(tmp_path, relative=relative, addition=True, module="manager")
+        root = Path(active["app_root"])
+        (root / "domains").mkdir()
+        (root / "domains").chmod(0o555)
+        root.chmod(0o555)
+        details = integration.build_integrated_app(**kwargs)
+        _seal(kwargs, details)
+        app = kwargs["candidate_root"] / "app"
+        assert stat.S_IMODE(app.stat().st_mode) == 0o555
+        assert stat.S_IMODE((app / "domains").stat().st_mode) == 0o555
+>       assert stat.S_IMODE((app / "domains/manager_research").stat().st_mode) == 0o755
+E       AssertionError: assert 448 == 493
+E        +  where 448 = <built-in function S_IMODE>(16832)
+E        +    where <built-in function S_IMODE> = stat.S_IMODE
+E        +    and   16832 = os.stat_result(st_mode=16832, st_ino=1451119, st_dev=27, st_nlink=2, st_uid=0, st_gid=0, st_size=4096, st_atime=1791468707, st_mtime=1791468707, st_ctime=1791468707).st_mode
+E        +      where os.stat_result(st_mode=16832, st_ino=1451119, st_dev=27, st_nlink=2, st_uid=0, st_gid=0, st_size=4096, st_atime=1791468707, st_mtime=1791468707, st_ctime=1791468707) = stat()
+E        +        where stat = (PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_readonly_base_directories0/candidate/app') / 'domains/manager_research').stat
+
+tests/test_core_review_revision.py:177: AssertionError
+_______ test_directory_proof_is_required_and_unknown_fields_are_rejected _______
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp/test_directory_proof_is_requir0')
+
+    def test_directory_proof_is_required_and_unknown_fields_are_rejected(tmp_path):
+        _, kwargs = _candidate_with_empty_directory(tmp_path)
+        path = kwargs["candidate_root"] / "release-manifest.json"
+        manifest = json.loads(path.read_text())
+>       proof = manifest["api_integration"].pop("directory_preservation")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'directory_preservation'
+
+tests/test_core_review_revision.py:186: KeyError
+=========================== short test summary info ============================
+FAILED tests/test_core_review_revision.py::test_receipt_authorizes_active_addition_without_untracked_flag
+FAILED tests/test_core_review_revision.py::test_source_untracked_approval_can_cover_an_active_modification
+FAILED tests/test_core_review_revision.py::test_untracked_flags_must_be_unique_receipt_paths_before_copy[flags0]
+FAILED tests/test_core_review_revision.py::test_source_allowlist_refuses_unapproved_receipt_file_before_copy
+FAILED tests/test_core_review_revision.py::test_source_allowlist_does_not_copy_unlisted_files
+FAILED tests/test_core_review_revision.py::test_verifier_rejects_existing_directory_mode_drift[.]
+FAILED tests/test_core_review_revision.py::test_verifier_rejects_existing_directory_mode_drift[apps/api]
+FAILED tests/test_core_review_revision.py::test_verifier_rejects_removal_of_preserved_empty_directory
+FAILED tests/test_core_review_revision.py::test_verifier_rejects_undeclared_empty_directory
+FAILED tests/test_core_review_revision.py::test_verifier_binds_base_directories_even_if_candidate_matches_drift[mode]
+FAILED tests/test_core_review_revision.py::test_verifier_binds_base_directories_even_if_candidate_matches_drift[remove]
+FAILED tests/test_core_review_revision.py::test_verifier_binds_base_directories_even_if_candidate_matches_drift[add]
+FAILED tests/test_core_review_revision.py::test_new_directories_are_only_required_ancestors_with_fixed_mode
+FAILED tests/test_core_review_revision.py::test_verifier_rejects_mode_change_to_a_declared_new_ancestor
+FAILED tests/test_core_review_revision.py::test_readonly_base_directories_are_retained_while_new_directory_is_added
+FAILED tests/test_core_review_revision.py::test_directory_proof_is_required_and_unknown_fields_are_rejected
+16 failed, 1 passed in 0.35s

@@ -1,0 +1,395 @@
+{
+  "status": "PASS",
+  "method": "AST parse only; explicit allowed deltas removed; remaining AST and 54 create_app statement bytes compared",
+  "before_app_sha256": "90a2bf6390c6c0e219aa3d9bb22bc3b3630ecb2d447df494ae69425933424ed7",
+  "after_app_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+  "unrelated_ast_identical": true,
+  "non_preselection_create_app_statements": [
+    {
+      "type": "Assign",
+      "name": null,
+      "sha256": "5808843169fc59da6d889aa646a47822e3146f4a418e121ee72dd3062fb62f5b",
+      "before_line": 4104,
+      "after_line": 3917
+    },
+    {
+      "type": "Assign",
+      "name": null,
+      "sha256": "891ef4e6bf0230de62ecdd0b6ca7690768336fd03a19bdf460094c36383f30c1",
+      "before_line": 4105,
+      "after_line": 3918
+    },
+    {
+      "type": "Assign",
+      "name": null,
+      "sha256": "0f28aa7f7751ea2a83cb280d8a8de90d041cf9e3e3191d52357e2b3a02ff3d67",
+      "before_line": 4106,
+      "after_line": 3919
+    },
+    {
+      "type": "Assign",
+      "name": null,
+      "sha256": "0b595e8849b62accbb020f130752468b06b269a2996b7dd24d355ad553c9c548",
+      "before_line": 4107,
+      "after_line": 3920
+    },
+    {
+      "type": "Assign",
+      "name": null,
+      "sha256": "a23adaffd46e0a0dfd311088afb993568f39a439df6f6892f58b66858225b886",
+      "before_line": 4108,
+      "after_line": 3921
+    },
+    {
+      "type": "Assign",
+      "name": null,
+      "sha256": "cd34cc217892f2dfac456f78e00cecf225e296204d2bb7e5ea7f0250691283c7",
+      "before_line": 4109,
+      "after_line": 3922
+    },
+    {
+      "type": "Assign",
+      "name": null,
+      "sha256": "53c76c66d89479e0fbe6d3301bf00286fb375940e8dcf73e1fa61fe87081d044",
+      "before_line": 4112,
+      "after_line": 3925
+    },
+    {
+      "type": "Assign",
+      "name": null,
+      "sha256": "6894d8d03599722c602bec256209fc7c27c836b1433d51a337378113165efc44",
+      "before_line": 4117,
+      "after_line": 3930
+    },
+    {
+      "type": "Assign",
+      "name": null,
+      "sha256": "508f828639be39ee9a3bf69c083ea871dce30fd1bee3994ce3a04265a2001813",
+      "before_line": 4120,
+      "after_line": 3933
+    },
+    {
+      "type": "If",
+      "name": null,
+      "sha256": "e5c43752a47d17be3d5aef3b038605b0e756bbc6e36a9305335547ba350d96f5",
+      "before_line": 4121,
+      "after_line": 3934
+    },
+    {
+      "type": "Assign",
+      "name": null,
+      "sha256": "1efb0e661291331a8890c65a5fcf969e221348ec8b95a02603eceeadc561aa63",
+      "before_line": 4129,
+      "after_line": 3942
+    },
+    {
+      "type": "Assign",
+      "name": null,
+      "sha256": "929b71b26bd35c5db4be95e177f284c75417a2e97315e748a117ee857151467b",
+      "before_line": 4133,
+      "after_line": 3946
+    },
+    {
+      "type": "Assign",
+      "name": null,
+      "sha256": "84668c45276d6303ab235bed3b3927da64ce08cc00553fd377570aa12ae763a5",
+      "before_line": 4134,
+      "after_line": 3947
+    },
+    {
+      "type": "If",
+      "name": null,
+      "sha256": "ddbaec125ea6c78c7a697991776aecda76a7932cbf9dc8644493ddb267c3e881",
+      "before_line": 4142,
+      "after_line": 3955
+    },
+    {
+      "type": "FunctionDef",
+      "name": "shared_selection_unconfigured",
+      "sha256": "4507359acb7153986877af88079d5d7d85c690a665b77e8706688d735f4ae586",
+      "before_line": 4164,
+      "after_line": 3977
+    },
+    {
+      "type": "FunctionDef",
+      "name": "_catalog",
+      "sha256": "eedfd2325dad43ac15ef5fefa5ba2ae0b1623f133da478612a28bba5f0cfa81d",
+      "before_line": 4184,
+      "after_line": 3997
+    },
+    {
+      "type": "FunctionDef",
+      "name": "_stage_projection_status",
+      "sha256": "6cfd3b32d7f617fc120afbdc0ed5107edd570db8e5c69d58924765a12f37199e",
+      "before_line": 4191,
+      "after_line": 4004
+    },
+    {
+      "type": "FunctionDef",
+      "name": "_hk_display_mode",
+      "sha256": "7d4769065ee1e3d433ec6bd4b51ebf2724e0520cd0538d47e813061b715916cf",
+      "before_line": 4210,
+      "after_line": 4023
+    },
+    {
+      "type": "FunctionDef",
+      "name": "project_shared_selection",
+      "sha256": "7a03b46b0703759d1e660bc4205854fa8ab47cbcb1046a4cae0f33cf78fa5cd3",
+      "before_line": 4299,
+      "after_line": 4112
+    },
+    {
+      "type": "FunctionDef",
+      "name": "_quarantine_known_hk_auction_pool_mismatch",
+      "sha256": "7ae1da00b655f9dacf4186307c46c3faaf9ce30546bdfda2b34772b5ad427a72",
+      "before_line": 4454,
+      "after_line": 4267
+    },
+    {
+      "type": "FunctionDef",
+      "name": "_read_exact_target_hk_override",
+      "sha256": "d187f0ffbee6c1f4ed4327b919bf9b76859a73035b0e1899be29239bbcdf7003",
+      "before_line": 4529,
+      "after_line": 4342
+    },
+    {
+      "type": "FunctionDef",
+      "name": "_read_r8_exact_target_hk_override",
+      "sha256": "18e2348a6e138667d892f5cd81cb9abaf04a9b06740b304b21e6eb3b3dbf29ec",
+      "before_line": 4666,
+      "after_line": 4479
+    },
+    {
+      "type": "FunctionDef",
+      "name": "_read_r9_exact_target_hk_override",
+      "sha256": "aee0fe7d957bc1a997765a82520620282371635165a29506ba83813ba950f73e",
+      "before_line": 4682,
+      "after_line": 4495
+    },
+    {
+      "type": "FunctionDef",
+      "name": "healthz",
+      "sha256": "061fa6e69625f298c594e7c3f88d50f1baf1c3f4e65d1560a3d6e688e79e5fd8",
+      "before_line": 4864,
+      "after_line": 4677
+    },
+    {
+      "type": "FunctionDef",
+      "name": "readyz",
+      "sha256": "24902199911d6817f7f0d1f88d117a9d8e135492706ca91307fe3983e3154785",
+      "before_line": 4868,
+      "after_line": 4681
+    },
+    {
+      "type": "FunctionDef",
+      "name": "stage_metadata",
+      "sha256": "11dbb693fec00419f15e0e7a43ce1e05b046f96dccb988a553d48dd92ecfde95",
+      "before_line": 4872,
+      "after_line": 4685
+    },
+    {
+      "type": "FunctionDef",
+      "name": "run_date_list",
+      "sha256": "58e2ac2df0e37ee9fbeb5868ba638222b4b28d9ac4adc9a92f9935485fba13cd",
+      "before_line": 4882,
+      "after_line": 4695
+    },
+    {
+      "type": "FunctionDef",
+      "name": "stage_workbench",
+      "sha256": "a269291e6c41cc8e28e6455645e75b5d962e89f651b5ba8f417f2191dd5e0214",
+      "before_line": 5048,
+      "after_line": 4731
+    },
+    {
+      "type": "FunctionDef",
+      "name": "stage_workbench_ensure",
+      "sha256": "323cca08061eae6024da550016a56e5fd6145581057b456a63ec35e808587a0c",
+      "before_line": 5389,
+      "after_line": 5072
+    },
+    {
+      "type": "FunctionDef",
+      "name": "shared_stage_selection",
+      "sha256": "e6b0b593199edf1781899227efa6e9676474c75d522ac1a1746f3c39b3b14780",
+      "before_line": 5408,
+      "after_line": 5091
+    },
+    {
+      "type": "FunctionDef",
+      "name": "manager_stage_selection",
+      "sha256": "4c0ebec4cabf6db290967b31a6f8b6b1b7806b15ebad7975f748598457361a58",
+      "before_line": 5427,
+      "after_line": 5110
+    },
+    {
+      "type": "FunctionDef",
+      "name": "shared_stage_selection_ensure",
+      "sha256": "694ae319ef8dea49d1bcfeb7240673970c6771e89b90001f026dcc4d5d016ad8",
+      "before_line": 5455,
+      "after_line": 5138
+    },
+    {
+      "type": "Expr",
+      "name": null,
+      "sha256": "07215d3fb145a978135c50676a6fb952fd7ca24617f6c89602e485ff34ee31a9",
+      "before_line": 5473,
+      "after_line": 5156
+    },
+    {
+      "type": "Expr",
+      "name": null,
+      "sha256": "4104c59824dfb513db26be252f884385219a8a57c6586fa6d41ada747638b3fb",
+      "before_line": 5481,
+      "after_line": 5164
+    },
+    {
+      "type": "Expr",
+      "name": null,
+      "sha256": "1fc8c39ebf68752adec01fab417882394c5423107841b740cadef2701adafe75",
+      "before_line": 5482,
+      "after_line": 5165
+    },
+    {
+      "type": "Expr",
+      "name": null,
+      "sha256": "4163ec878228a70fd7f9171f0202ed01cdfda705250d4f30632cca0e19d3e692",
+      "before_line": 5490,
+      "after_line": 5173
+    },
+    {
+      "type": "Expr",
+      "name": null,
+      "sha256": "b6ba8a78aaedfdfaa88ed85ea19fb0c0bce4a469e71f059a2628a07ec5137ab6",
+      "before_line": 5505,
+      "after_line": 5188
+    },
+    {
+      "type": "Expr",
+      "name": null,
+      "sha256": "85f0eaea41c7df679b10c61c481e5f3d1217f8bb914243fed93a205dd501244d",
+      "before_line": 5506,
+      "after_line": 5189
+    },
+    {
+      "type": "If",
+      "name": null,
+      "sha256": "887d3de72805ead06bf15f4ab14c89baee814ff67db6e413715f56f65eea988e",
+      "before_line": 5524,
+      "after_line": 5207
+    },
+    {
+      "type": "Assign",
+      "name": null,
+      "sha256": "596606874a104a3697ca194d1073f38d3a9e390de2f67f310099c8e5c1205cec",
+      "before_line": 5539,
+      "after_line": 5222
+    },
+    {
+      "type": "Assign",
+      "name": null,
+      "sha256": "bd66819b82d294d263dd5a6f0769059e30c26cfe18f20dd3cd983369beb61eb6",
+      "before_line": 5543,
+      "after_line": 5226
+    },
+    {
+      "type": "Assign",
+      "name": null,
+      "sha256": "202726bba07e28d46004a540be9371d75cdbfa37d90ac08b081c7cfe72d4b4af",
+      "before_line": 5552,
+      "after_line": 5235
+    },
+    {
+      "type": "If",
+      "name": null,
+      "sha256": "9993554129044db8dd1ae0818dd17963b2f575d93c824c6b255da521d5f9c8b7",
+      "before_line": 5555,
+      "after_line": 5238
+    },
+    {
+      "type": "Assign",
+      "name": null,
+      "sha256": "73b4d5ac7a369e9f20367acc45a9aadf3277da8a46ff4cc16de65e7570cd9567",
+      "before_line": 5559,
+      "after_line": 5242
+    },
+    {
+      "type": "Assign",
+      "name": null,
+      "sha256": "26691f3e7f8b0bd815051cc62bc929e18528359dad3292e3db79fdc44008eb6e",
+      "before_line": 5562,
+      "after_line": 5245
+    },
+    {
+      "type": "Assign",
+      "name": null,
+      "sha256": "9f3267346baac278c7391c204096433df1a96cd3b530394cdfe41681c681e9d7",
+      "before_line": 5563,
+      "after_line": 5246
+    },
+    {
+      "type": "Assign",
+      "name": null,
+      "sha256": "4387faef9034aeca33bb4448dc5a74a71baddfd4856d8cb22f70fdb16155859b",
+      "before_line": 5585,
+      "after_line": 5268
+    },
+    {
+      "type": "Expr",
+      "name": null,
+      "sha256": "3fdc3e047b3ac0a6418e9f75a2bde3fa024aaef33eb627ad1aebafa649df01d4",
+      "before_line": 5586,
+      "after_line": 5269
+    },
+    {
+      "type": "Expr",
+      "name": null,
+      "sha256": "53618b6144469d8d2e9d4faba97112bdce80ec2a2de2dd47ce03dc49bf6f955f",
+      "before_line": 5587,
+      "after_line": 5270
+    },
+    {
+      "type": "Assign",
+      "name": null,
+      "sha256": "fc37b68edf6244c17f82ca8c63a68234cdcab0080e1d3330c6fef98083b9c11e",
+      "before_line": 5589,
+      "after_line": 5272
+    },
+    {
+      "type": "If",
+      "name": null,
+      "sha256": "ecb0e15fe371eb830bb4667510eb10781f1c364bcb39d2141e6fc2de23454078",
+      "before_line": 5590,
+      "after_line": 5273
+    },
+    {
+      "type": "Assign",
+      "name": null,
+      "sha256": "4ea14f8418acf5b8ef88631949c94ca7a3c4d8e9b90ce77832a3260482bd3695",
+      "before_line": 5593,
+      "after_line": 5276
+    },
+    {
+      "type": "If",
+      "name": null,
+      "sha256": "1af389ef63817f3c58ecc1cc1fd9da94b13ebc9baac13e16ee1a899eedd43872",
+      "before_line": 5594,
+      "after_line": 5277
+    },
+    {
+      "type": "Return",
+      "name": null,
+      "sha256": "d1d974f5ed79429f5db0cef32397197701d383b3a4e9dfc61498f3d39111c211",
+      "before_line": 5597,
+      "after_line": 5280
+    }
+  ],
+  "exact_registration_verified": true,
+  "entire_manager_section_through_return_byte_exact": true,
+  "entire_manager_section_sha256": "13c00931d4a3b33371e292cb732a8cb292f2f1723d2ac9704bd2ad787a2dac0b",
+  "manager_service_wiring_through_return_byte_exact": true,
+  "manager_state_and_service_initialization_sha256": "23c0ffdad6d54d7b508cd48b3846f15a86b0a770c88c66c247e3426b2a410d55",
+  "manager_service_wiring_sha256": "022417f603c182a870e8e64f3f7efcbad649c6a2b3a2d78825008c84d6b5b0db",
+  "author_reported_manager_wiring_sha256_independently_matched": true,
+  "runtime_business_equivalence": "NOT_RUN; byte preservation is not a manager business regression"
+}

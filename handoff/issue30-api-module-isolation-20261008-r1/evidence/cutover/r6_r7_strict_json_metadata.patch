@@ -1,0 +1,154 @@
+--- reviewed-r5-1f41/api_only_cutover_r2_ready.py
++++ candidate/api_only_cutover_r2_ready.py
+@@ -163,9 +163,26 @@
+         raise ValueError(label + "_NOT_EXACT_DIRECTORY")
+ 
+ 
++def _json_loads(raw: bytes, label: str) -> Any:
++    """One JSON policy for plans, evidence and readback; preserve key order."""
++    def unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
++        value: dict[str, Any] = {}
++        for key, item in pairs:
++            if key in value:
++                raise ValueError(label + "_JSON_DUPLICATE_KEY:" + key)
++            value[key] = item
++        return value
++
++    def invalid_constant(value: str) -> None:
++        raise ValueError(label + "_JSON_CONSTANT_INVALID:" + value)
++
++    return json.loads(raw.decode("utf-8"), object_pairs_hook=unique_object,
++                      parse_constant=invalid_constant)
++
++
+ def _read_json(path: Path, label: str) -> dict[str, Any]:
+     try:
+-        value = json.loads(_regular_file(path, label).decode("utf-8"))
++        value = _json_loads(_regular_file(path, label), label)
+     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+         raise ValueError(label + "_JSON_INVALID") from exc
+     if not isinstance(value, dict):
+@@ -560,7 +577,7 @@
+     manifest_sha = _sha(manifest_raw)
+     if manifest_sha != manifest_expected:
+         raise ValueError("R2_API_RELEASE_MANIFEST_SHA_MISMATCH")
+-    manifest = json.loads(manifest_raw.decode("utf-8"))
++    manifest = _json_loads(manifest_raw, "R2_API_RELEASE_MANIFEST")
+     if (manifest.get("schema_version") != "v4.release_candidate.v1"
+             or manifest.get("activation_status") != "NOT_ACTIVATED"
+             or manifest.get("candidate", {}).get("release_id") != target.get("release_id")
+@@ -673,7 +690,7 @@
+     expected = plan["guards"].get("disabled_binding_sha256")
+     if not isinstance(expected, str) or _sha(raw) != expected:
+         raise ValueError("DISABLED_PLAN_BINDING_SHA_MISMATCH")
+-    binding = json.loads(raw.decode("utf-8"))
++    binding = _json_loads(raw, "DISABLED_PLAN_BINDING")
+     if (binding.get("enabled") is not False
+             or binding.get("announcement_collection_enabled") is not False
+             or binding.get("plan_material_refresh_only") is not False
+@@ -801,7 +818,7 @@
+         raise ValueError("API_ONLY_STAGED_PLIST_MISMATCH")
+     diff = _staged_plist_diff(active_raw, staged_raw, candidate)
+     diff_raw = _regular_file(STAGED_API_PLIST_DIFF_PATH, "STAGED_API_PLIST_DIFF")
+-    if _sha(diff_raw) != expected_diff_sha or json.loads(diff_raw.decode("utf-8")) != diff:
++    if _sha(diff_raw) != expected_diff_sha or _json_loads(diff_raw, "STAGED_API_PLIST_DIFF") != diff:
+         raise ValueError("API_ONLY_STAGED_PLIST_DIFF_MISMATCH")
+     historical_products = _verify_historical_product_readback()
+     return {
+@@ -857,7 +874,7 @@
+ 
+ def _stage_api_plist(plan: Mapping[str, Any]) -> dict[str, Any]:
+     plan_raw = _regular_file(PLAN_PATH, "API_ONLY_PLAN")
+-    if json.loads(plan_raw.decode("utf-8")) != dict(plan):
++    if _json_loads(plan_raw, "API_ONLY_PLAN") != dict(plan):
+         raise ValueError("API_ONLY_PLAN_CHANGED_BEFORE_STAGING")
+     integration = _verify_api_integration(plan, active_pointer="base")
+     _validate_p2_review(plan)
+@@ -1122,7 +1139,7 @@
+     if status != 200:
+         raise ValueError("API_OPENAPI_HTTP_STATUS:" + str(status))
+     try:
+-        value = json.loads(raw.decode("utf-8"))
++        value = _json_loads(raw, "API_OPENAPI")
+     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+         raise ValueError("API_OPENAPI_JSON_INVALID") from exc
+     method = value.get("paths", {}).get(MANAGER_WORKSPACE_ROUTE, {}).get("get")
+@@ -1137,7 +1154,7 @@
+     if _sha(raw) != PRODUCT_BASELINE_SHA256:
+         raise ValueError("PRE_SWITCH_PRODUCT_BASELINE_SHA_MISMATCH")
+     try:
+-        baseline = json.loads(raw.decode("utf-8"))
++        baseline = _json_loads(raw, "PRE_SWITCH_PRODUCT_BASELINE")
+     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+         raise ValueError("PRE_SWITCH_PRODUCT_BASELINE_JSON_INVALID") from exc
+     if not isinstance(baseline, dict) or baseline.get("scope") != "ROOT_READ_ONLY_PRE_SWITCH_PRODUCT_BASELINE":
+@@ -1167,6 +1184,9 @@
+     This lets the post-switch oracle compare the complete pinned R3 response
+     byte-for-byte after excluding only the approved additive R1 projection.
+     """
++    # raw_decode below locates byte ranges only after the whole same byte
++    # sequence has passed the shared duplicate/non-finite validation policy.
++    _json_loads(raw, "HISTORICAL_ANALYSIS")
+     text = raw.decode("utf-8")
+     decoder = json.JSONDecoder()
+     pos = 0
+@@ -1276,7 +1296,7 @@
+         if status != 200:
+             raise ValueError("HISTORICAL_ANALYSIS_HTTP_STATUS:" + name + ":" + str(status))
+         try:
+-            payload = json.loads(raw.decode("utf-8"))
++            payload = _json_loads(raw, "HISTORICAL_ANALYSIS:" + name)
+         except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+             raise ValueError("HISTORICAL_ANALYSIS_JSON_INVALID:" + name) from exc
+         if not isinstance(payload, dict):
+@@ -1343,7 +1363,7 @@
+     expected_workspace = baseline["rows"]["current_workspace"]
+     status, raw = _http_get(expected_workspace["path"])
+     try:
+-        workspace_payload = json.loads(raw.decode("utf-8"))
++        workspace_payload = _json_loads(raw, "HISTORICAL_WORKSPACE")
+     except (UnicodeDecodeError, json.JSONDecodeError):
+         workspace_payload = None
+     workspace = workspace_payload.get("announcement_reviewed_analysis", {}) if isinstance(workspace_payload, dict) else {}
+@@ -1514,14 +1534,14 @@
+     # this file, and every continuation binds its exact bytes as well as plan.
+     _write_exclusive(path, raw, mode=0o400)
+     _fsync_directory(operation_dir)
+-    return {"record": json.loads(raw.decode("utf-8")),
++    return {"record": _json_loads(raw, "API_ONLY_PREPARED_RECEIPT"),
+             "reference": {"path": str(path), "sha256": _sha(raw)}}
+ 
+ 
+ def _signed_receipt(path: Path, label: str) -> tuple[dict[str, Any], str]:
+     raw = _regular_file(path, label)
+     try:
+-        receipt = json.loads(raw.decode("utf-8"))
++        receipt = _json_loads(raw, label)
+     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+         raise ValueError(label + "_JSON_INVALID") from exc
+     if not isinstance(receipt, dict):
+@@ -1727,8 +1747,15 @@
+         elif current_sha == "ABSENT":
+             _create_preimage_exclusive(ACTIVE_API_PLIST, original_raw, backup_path,
+                                        lock_lease=lock_lease)
++        elif _file_metadata(ACTIVE_API_PLIST) != actual_backup_metadata:
++            # Original bytes alone are not the full preimage. Restore mode,
++            # ownership, mtime and xattrs through the same leased atomic CAS.
++            _atomic_replace_bytes(ACTIVE_API_PLIST, original_raw, backup_path,
++                                  expected_current_sha=current_sha, lock_lease=lock_lease)
+         if _sha_file(ACTIVE_API_PLIST) != plan["before"]["active_api_plist_sha256"]:
+             raise ValueError("API_ONLY_ROLLBACK_PREIMAGE_RESTORE_FAILED")
++        if _file_metadata(ACTIVE_API_PLIST) != actual_backup_metadata:
++            raise ValueError("API_ONLY_ROLLBACK_PREIMAGE_METADATA_MISMATCH")
+         _assert_prepared_transaction(prepared_transaction, lock_lease)
+         _verify_recovery_backup(plan, backup_path, original_raw, backup_metadata,
+                                 recorded_base, lock_lease=lock_lease)
+@@ -1766,6 +1793,8 @@
+             expected_current_sha=plan["before"]["active_api_plist_sha256"])
+         if final_role != "original":
+             raise ValueError("API_ONLY_ROLLBACK_FINAL_RUNTIME_NOT_ORIGINAL")
++        if _file_metadata(ACTIVE_API_PLIST) != actual_backup_metadata:
++            raise ValueError("API_ONLY_ROLLBACK_PREIMAGE_METADATA_MISMATCH")
+         final = _record(receipt_path, "ROLLED_BACK_TO_PREIMAGE", {
+             "original_error": original_error, "backup_path": str(backup_path),
+             "backup_sha256": _sha_file(backup_path), "backup_metadata": actual_backup_metadata,

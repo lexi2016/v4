@@ -1,0 +1,24 @@
+{
+  "url": "https://github.com/lexi2016/v4/issues/30",
+  "title": "[P1] API按模块交付与发布隔离：整包覆盖丢失修复事故及全部剩余问题交接",
+  "issue_number": 30,
+  "body": "用户要求：记录“为什么单独模块发布会替换整个 API”，把其他已发现问题列出，交由 Chat 写代码。本机后续实施/测试/候选生成/部署已停止，已有修改保留为未验收草稿。\n\n## Chat 接手入口\n\n- **[完整交接：原因、全部问题清单、模块化方向、验收标准](https://github.com/lexi2016/v4/blob/a0a0b88dc133d14ee5763569272c174bcd7cc445/handoff/api-module-release-20261008/README.md)**\n- [实际切换工具与未完成代码草稿](https://github.com/lexi2016/v4/tree/a0a0b88dc133d14ee5763569272c174bcd7cc445/handoff/api-module-release-20261008/source)\n- [来源、状态与逐文件 SHA](https://github.com/lexi2016/v4/blob/a0a0b88dc133d14ee5763569272c174bcd7cc445/handoff/api-module-release-20261008/SOURCE_MANIFEST.json)\n\n分支 `codex/api-module-release-handoff-20261008`；固定 commit `a0a0b88dc133d14ee5763569272c174bcd7cc445`。全部 9 个文件已从远端读回核对 blob SHA。该包仅为精确切片，不是完整应用，不得整树部署。\n\n## 最先解决的问题\n\n经理工作台发布采用整个 API release 切换，旧候选遗漏预选池已修复的两处代码，导致 10/8 预选池接口返回 HTTP 200 / DATA_BLOCKED_EMPTY。原池数据仍在，去重 A=178、HK=100。不是重新补采能解决的问题。\n\n用户希望 API 按模块拆分。请给清晰的模块 router/service、共享装配入口、文件 ownership 和模块差异发布方式，保留 8873 统一入口。仅把源文件拆开还不足以阻止旧整包覆盖；必须把当前集成基线、模块 delta 和非本模块保留纳入实际发布入口。\n\n## 已发现问题列表\n\n1. **P1 模块发布仍替换整个 app**，未保障其他模块的已有修改。\n2. **P1 候选只验证包自身一致**，没有绑定当前 active 集成基线及逐文件 before/after。\n3. **P1 切换 CAS 不能发现候选代码过时**；构建、准备和切换前的基线检查未闭合。\n4. **P1 发布锁是任务私有锁**，不是跨会话所有 API 发布者共享的锁。\n5. **P1 源码修复与运行身份脱节**，本次预选池回归；局部经理验收未证明其他模块功能保留。\n6. **P2 多套临时构建/切换入口、canonical/API/Stage/scheduler 版本漂移**，需要明确 owner 和唯一受保护发布路径。\n7. **旧发布工具独立 P1**：外部 CAS guard 未 pin；双 link 故障可能留下隐藏 claim、丢失 active 路径且恢复 helper 拒绝。临时故障注入已证实，不是本次真实服务事故。\n8. **HK P1**：10/8 Top100 仍是 9/30 signal，缺合法 10/7 价格信号与 9/30 Connect 资格绑定；上游 trio 已找到，本地 trio 不能替代上游身份，另有底层来源缺口。\n9. **A P1/P2**：09:25 昨收传递/持久化丢失、缺值显示 0；行情覆盖缺 6–7 行、研究/新闻合同未闭环。这些是 #28 已核问题，本次未重复晚间复验。\n10. **证据与历史 P2**：自然结果/不可变运行身份未闭环；历史嵌套 provenance 未知字段约束未解；旧 UI 项不能未经复现一概算现存故障。\n\n## 已完成部分勿重复做\n\n- 预选池两处原修复此前已有独立源码/隔离 canary；需合入最新经理基线，而不是再造 producer。\n- 历史 P2 两项 Mac canonical 已集成、独立 38/38 PASS，但未部署；剩余嵌套 P2 保留。\n- HK trio 合成当前依赖闭包两个 owner 各 15/15 PASS；不等于真实历史输入、完整 Stage 或上线通过。\n- 详细证据与固定链接在交接文档；关联 #28，旧上午运行身份不可冒充晚间 R2。\n\n## 停止点和交付要求\n\n本轮草稿改了 5 个文件，Writer 报告聚焦测试 18 passed；**独立 Reviewer NOT_RUN，真实 R2 delta/candidate/canary NOT_RUN，实际切换入口接线未完成，未部署、API/UI 未恢复**。草稿仅供参考，可按用户模块化方向选更简单的方案，不默认沿用。\n\n交付按模块/共享边界列最小 diff 和精确前像；验收过时整包、错误前像、未声明修改、基线漂移、并发发布被拒绝；合法候选同时保留经理功能并恢复预选池。数据与自然缺口分别处理，不靠删校验或填零掩盖。\n\n保持 V4/8873 唯一入口、A/HK 分离、有效 A 汇总不全局阻断、Vibe8910 不动；`RESEARCH_ONLY=true; production_allowed=false; buy_gate_updated=false; orders_sent=false`。不包含 merge 或自动部署授权，不上传原始行情、凭证、账户或完整运行配置。",
+  "state": "open",
+  "user": {
+    "login": "lexi2016",
+    "name": "lexi2016",
+    "email": null,
+    "avatar_url": "https://avatars.githubusercontent.com/u/265476996?v=4",
+    "id": 265476996
+  },
+  "assignees": null,
+  "labels": null,
+  "milestone": null,
+  "state_reason": null,
+  "comments": 0,
+  "created_at": "2026-10-08T13:34:44Z",
+  "updated_at": "2026-10-08T13:34:44Z",
+  "closed_at": null,
+  "display_url": "https://github.com/lexi2016/v4/issues/30",
+  "display_title": "[P1] API按模块交付与发布隔离：整包覆盖丢失修复事故及全部剩余问题交接"
+}

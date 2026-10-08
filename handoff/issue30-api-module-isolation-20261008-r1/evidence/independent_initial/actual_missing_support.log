@@ -1,0 +1,40 @@
+..............F......                                                    [100%]
+=================================== FAILURES ===================================
+___ ActualCutoverTests.test_legacy_candidate_is_refused_by_actual_preflight ____
+
+self = <test_actual_api_cutover.ActualCutoverTests testMethod=test_legacy_candidate_is_refused_by_actual_preflight>
+
+    def test_legacy_candidate_is_refused_by_actual_preflight(self):
+        self.guard()
+>       probe = load(WORK / "probe_cutover_boundaries.py")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_actual_api_cutover.py:331: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_actual_api_cutover.py:34: in load
+    exec(compile(path.read_bytes(), str(path), "exec"), module.__dict__)
+                 ^^^^^^^^^^^^^^^^^
+../../../../29f34dd56853/issue28/work/python/cpython-3.14.7-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py:777: in read_bytes
+    with self.open(mode='rb', buffering=0) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/probe_cutover_boundaries.py')
+mode = 'rb', buffering = 0, encoding = None, errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/probe_cutover_boundaries.py'
+
+../../../../29f34dd56853/issue28/work/python/cpython-3.14.7-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+=========================== short test summary info ============================
+FAILED tests/test_actual_api_cutover.py::ActualCutoverTests::test_legacy_candidate_is_refused_by_actual_preflight
+1 failed, 20 passed in 7.11s

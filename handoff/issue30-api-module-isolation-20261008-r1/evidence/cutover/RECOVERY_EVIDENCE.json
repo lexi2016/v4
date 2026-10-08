@@ -1,0 +1,1434 @@
+{
+  "actual_business_data_read": false,
+  "actual_mac_version": "CANNOT_CONFIRM_NOT_READ",
+  "actual_services_executed": false,
+  "candidate_sha256": "389be853923a72066472ad229129a9a41ef9e9785f1b729aa468ed3e58df19f5",
+  "core_sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+  "exact_preimage_metadata_restored_and_verified": true,
+  "execution_scope": "OFFLINE_SYNTHETIC_FILESYSTEM_AND_SIMULATED_LAUNCHD_HTTP",
+  "final_command": "CUTOVER_SOURCE=/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/candidate/api_only_cutover_r2_ready.py INTEGRATION_SOURCE=/workspace/scratch/25c09a595aec/issue30/candidate/ops/api_release_integration.py PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 /workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python -B -m pytest -q -p no:cacheprovider issue30/work/cutover_analysis/tests issue30/work/cutover_analysis/test_actual_review_probes.py issue30/work/cutover_analysis/test_actual_duplicate_receipt_probe.py issue30/work/cutover_analysis/test_actual_preimage_metadata_probe.py --basetemp=/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/final_all_green_tmp --junitxml=/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/final_all_green.xml",
+  "final_count_breakdown": {
+    "new_JSON_R6": 9,
+    "new_metadata_R7": 2,
+    "new_recovery_R5": 41,
+    "original_reviewer_R5_R6_R7_unchanged": 3,
+    "original_unchanged": 21
+  },
+  "final_passed": 76,
+  "limits": [
+    "Self-hashed receipts are not cryptographic signatures against an attacker able to rewrite the entire plan/evidence tree.",
+    "Shared flock serializes cooperating publishers only; unprovided publishers are not claimed protected.",
+    "Original 47 top-level Name assignment values and sys.dont_write_bytecode remain unchanged.",
+    "Old R2 artifacts without real v2 delta are rejected; new Mac release/plan/pins must be independently generated and reviewed.",
+    "No deployment, launchctl, HTTP, Mac metadata, full R2 business or natural-window verification."
+  ],
+  "manual_sources": [
+    {
+      "kind": "HTML_EXPORT_OF_APPLE_XCODE_BUNDLED_SYSTEM_MANUAL",
+      "sections": [
+        "SUBCOMMANDS target specifier gui/<uid>/[service-name]",
+        "SUBCOMMANDS bootstrap/bootout service-target form"
+      ],
+      "url": "https://keith.github.io/xcode-man-pages/launchctl.1.html",
+      "used_for": "syntax basis only; target Mac runtime NOT_RUN"
+    },
+    {
+      "kind": "EXPORT_PROVENANCE",
+      "url": "https://github.com/keith/xcode-man-pages",
+      "used_for": "repository states HTML export of Apple man pages bundled with Xcode"
+    }
+  ],
+  "original_21_test_file_sha256": "dbff595c9c64c7846449f2c5a1148a2eee3049d3d51e3f18d8464440b8b16726",
+  "original_source_sha256": "ddb7c5b5b95aed1e2e9fb8a592503b88ec3966f6e34c9350c47648bb0f97ce4a",
+  "recover_interface": {
+    "absent_token": "ABSENT",
+    "accepted_states": [
+      "API_ONLY_R2_SWITCHED_AND_READBACK_VERIFIED",
+      "PREPARED",
+      "ABORTED_BEFORE_BOOTOUT",
+      "ROLLBACK_INCOMPLETE",
+      "ROLLED_BACK_TO_PREIMAGE"
+    ],
+    "current_sha_required": true,
+    "entry": "rollback / _run_rollback",
+    "expected_target": "original prepared base only",
+    "failed_or_prepared_recovery_does_not_require_healthy_candidate": true,
+    "incomplete_cli_exit_code": 2,
+    "mutable_source_receipt_raw_sha_rechecked_per_attempt": true,
+    "normal_success_receipt_still_requires_current_candidate_package_proof": true,
+    "prepared_file_written_once": true,
+    "shared_lock_internal": true
+  },
+  "red_green": [
+    {
+      "candidate_sha256": "931a9e2749adee74ad4b7021b9f7451aaf9c905c586003250adec9cc14a9a364",
+      "cases": [
+        {
+          "classname": "issue30.work.cutover_analysis.test_actual_review_probes",
+          "name": "test_operator_can_resume_after_transient_automatic_restore_failure",
+          "status": "FAIL"
+        }
+      ],
+      "core_sha256": "0b9d3b678dc7e875b9514bd8b66b7e8fc69229759c366ef0df776126746180bf",
+      "errors": 0,
+      "failed": 1,
+      "passed": 0,
+      "phase": "original_reviewer_R5_red",
+      "skipped": 0,
+      "tests": 1,
+      "xml": "recovery_review_red.xml",
+      "xml_sha256": "13fdbc1c5daa3aea0d1a7a03864fcaaa9cafb2555c0bb8646eaf4a40839a7d77"
+    },
+    {
+      "candidate_sha256": "931a9e2749adee74ad4b7021b9f7451aaf9c905c586003250adec9cc14a9a364",
+      "cases": [
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_candidate_hardpins_final_core_bytes",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_incomplete_receipt_retains_original_prepared_contract",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[original-original]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[original-candidate]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[original-absent]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-original]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-candidate]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-absent]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-original]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-candidate]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-absent]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_existing_cli_rollback_resumes_failure_under_shared_lease",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_requires_explicit_exact_current_cas[candidate-ABSENT]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_requires_explicit_exact_current_cas[original-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_requires_explicit_exact_current_cas[absent-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_requires_explicit_exact_current_cas[absent-]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_requires_explicit_exact_current_cas[absent-absent]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_unknown_pointer_even_with_matching_operator_sha",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_unknown_runtime_before_mutation[UNKNOWN]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_unknown_runtime_before_mutation[LOADED_UNVERIFIED]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_unknown_runtime_before_mutation[FOREIGN]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_unknown_runtime_before_mutation[MISSING_PID]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_rehashed_mutable_receipt_cannot_change_prepared_contract[before]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_rehashed_mutable_receipt_cannot_change_prepared_contract[after]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_rehashed_mutable_receipt_cannot_change_prepared_contract[api_release_integration]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_rehashed_mutable_receipt_cannot_change_prepared_contract[backup_path]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_rehashed_mutable_receipt_cannot_change_prepared_contract[backup_metadata]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_bytes_cannot_change_even_after_rehashing_itself",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_reference_cannot_redirect_outside_origin_contract",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_changed_original_backup[bytes]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_changed_original_backup[metadata]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_source_receipt_change_during_continuation_cannot_lower_cas",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_repeat_failure_can_resume_from_latest_receipt_same_original_contract",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_does_not_require_healthy_candidate_to_restore_known_base",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_cannot_select_a_different_base_with_rehashed_records",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_bare_status_receipt_without_prepared_binding_is_not_recoverable",
+          "status": "FAIL"
+        }
+      ],
+      "core_sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+      "errors": 0,
+      "failed": 36,
+      "passed": 0,
+      "phase": "36_new_expectations_red",
+      "skipped": 0,
+      "tests": 36,
+      "xml": "recovery_cases_red.xml",
+      "xml_sha256": "7c50c1572c3ca2c769d20de5df3f5fa1d446c6993856d36f53d2e6c6989efee9"
+    },
+    {
+      "candidate_sha256": "9ef4d39a1be5beef85b105619c0d0aef8f600d012fa3293699b2cb1f4359f9f3",
+      "cases": [
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_active_replace_without_lease_refuses_before_writing",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_apply_rechecks_active_base_after_bootout_before_pointer_write",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_apply_refuses_active_inventory_drift_before_bootout",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_apply_switches_exact_integrated_package_and_preserves_other_module",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_automatic_recovery_without_lease_refuses_before_runtime_observation",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_direct_run_rollback_acquires_shared_lock_before_receipt_reads",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_direct_run_switch_acquires_shared_lock_before_preflight",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_execute_requires_shared_lock_path_in_frozen_allowlist_before_create",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_failed_bootstrap_recovers_using_same_lock_and_exact_base",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_guard_cache_does_not_mask_changed_file",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_guard_executes_exact_bytes_checked_even_if_path_replaced",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_guard_hash_mismatch_refuses_before_executing",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_guard_ignores_import_path_and_module_shadow",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_inventory_provenance_backend_is_not_executed",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_legacy_candidate_is_refused_by_actual_preflight",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_missing_active_restore_without_lease_refuses_before_writing",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_missing_pointer_recovery_uses_recorded_base_without_forward_check",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_operator_rollback_restores_recorded_legacy_base_from_candidate",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_recovery_keeps_verified_guard_if_helper_changes_during_transaction",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_recovery_refuses_unknown_pointer_before_service_mutation",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_task_private_roots_still_contend_on_one_pointer_lock",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_candidate_hardpins_final_core_bytes",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_incomplete_receipt_retains_original_prepared_contract",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[original-original]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[original-candidate]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[original-absent]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-original]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-candidate]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-absent]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-original]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-candidate]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-absent]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_existing_cli_rollback_resumes_failure_under_shared_lease",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_requires_explicit_exact_current_cas[candidate-ABSENT]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_requires_explicit_exact_current_cas[original-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_requires_explicit_exact_current_cas[absent-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_requires_explicit_exact_current_cas[absent-]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_requires_explicit_exact_current_cas[absent-absent]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_unknown_pointer_even_with_matching_operator_sha",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_unknown_runtime_before_mutation[UNKNOWN]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_unknown_runtime_before_mutation[LOADED_UNVERIFIED]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_unknown_runtime_before_mutation[FOREIGN]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_unknown_runtime_before_mutation[MISSING_PID]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_rehashed_mutable_receipt_cannot_change_prepared_contract[before]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_rehashed_mutable_receipt_cannot_change_prepared_contract[after]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_rehashed_mutable_receipt_cannot_change_prepared_contract[api_release_integration]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_rehashed_mutable_receipt_cannot_change_prepared_contract[backup_path]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_rehashed_mutable_receipt_cannot_change_prepared_contract[backup_metadata]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_bytes_cannot_change_even_after_rehashing_itself",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_reference_cannot_redirect_outside_origin_contract",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_changed_original_backup[bytes]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_changed_original_backup[metadata]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_source_receipt_change_during_continuation_cannot_lower_cas",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_repeat_failure_can_resume_from_latest_receipt_same_original_contract",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_does_not_require_healthy_candidate_to_restore_known_base",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_cannot_select_a_different_base_with_rehashed_records",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_bare_status_receipt_without_prepared_binding_is_not_recoverable",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.test_actual_review_probes",
+          "name": "test_operator_can_resume_after_transient_automatic_restore_failure",
+          "status": "PASS"
+        }
+      ],
+      "core_sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+      "errors": 0,
+      "failed": 0,
+      "passed": 58,
+      "phase": "first_recovery_green",
+      "skipped": 0,
+      "tests": 58,
+      "xml": "recovery_green_initial.xml",
+      "xml_sha256": "8241cf4a2141b5f4e64110822b9587f4f6a0cddfb26adf814377f73961f6bd7c"
+    },
+    {
+      "candidate_sha256": "9ef4d39a1be5beef85b105619c0d0aef8f600d012fa3293699b2cb1f4359f9f3",
+      "cases": [
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_runtime_change_during_last_backup_check_refuses_bootout",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_success_requires_original_runtime_at_final_readback",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_cli_reports_incomplete_continuation_with_nonzero_exit",
+          "status": "FAIL"
+        }
+      ],
+      "core_sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+      "errors": 0,
+      "failed": 3,
+      "passed": 0,
+      "phase": "three_specific_boundary_regressions_red",
+      "skipped": 0,
+      "tests": 3,
+      "xml": "recovery_boundary_red.xml",
+      "xml_sha256": "abdbb8819be817f68d4c73f3f5af1a5eb545a704babb3e279dfcf7faef363ee1"
+    },
+    {
+      "candidate_sha256": "1f41fe707ee7a24c0e2ba2143431d6c7c628ef9631b7b05e06f09fed415ff4c9",
+      "cases": [
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_active_replace_without_lease_refuses_before_writing",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_apply_rechecks_active_base_after_bootout_before_pointer_write",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_apply_refuses_active_inventory_drift_before_bootout",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_apply_switches_exact_integrated_package_and_preserves_other_module",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_automatic_recovery_without_lease_refuses_before_runtime_observation",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_direct_run_rollback_acquires_shared_lock_before_receipt_reads",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_direct_run_switch_acquires_shared_lock_before_preflight",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_execute_requires_shared_lock_path_in_frozen_allowlist_before_create",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_failed_bootstrap_recovers_using_same_lock_and_exact_base",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_guard_cache_does_not_mask_changed_file",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_guard_executes_exact_bytes_checked_even_if_path_replaced",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_guard_hash_mismatch_refuses_before_executing",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_guard_ignores_import_path_and_module_shadow",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_inventory_provenance_backend_is_not_executed",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_legacy_candidate_is_refused_by_actual_preflight",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_missing_active_restore_without_lease_refuses_before_writing",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_missing_pointer_recovery_uses_recorded_base_without_forward_check",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_operator_rollback_restores_recorded_legacy_base_from_candidate",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_recovery_keeps_verified_guard_if_helper_changes_during_transaction",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_recovery_refuses_unknown_pointer_before_service_mutation",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_task_private_roots_still_contend_on_one_pointer_lock",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_candidate_hardpins_final_core_bytes",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_incomplete_receipt_retains_original_prepared_contract",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[original-original]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[original-candidate]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[original-absent]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-original]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-candidate]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-absent]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-original]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-candidate]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-absent]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_existing_cli_rollback_resumes_failure_under_shared_lease",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_requires_explicit_exact_current_cas[candidate-ABSENT]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_requires_explicit_exact_current_cas[original-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_requires_explicit_exact_current_cas[absent-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_requires_explicit_exact_current_cas[absent-]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_requires_explicit_exact_current_cas[absent-absent]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_unknown_pointer_even_with_matching_operator_sha",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_unknown_runtime_before_mutation[UNKNOWN]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_unknown_runtime_before_mutation[LOADED_UNVERIFIED]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_unknown_runtime_before_mutation[FOREIGN]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_unknown_runtime_before_mutation[MISSING_PID]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_rehashed_mutable_receipt_cannot_change_prepared_contract[before]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_rehashed_mutable_receipt_cannot_change_prepared_contract[after]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_rehashed_mutable_receipt_cannot_change_prepared_contract[api_release_integration]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_rehashed_mutable_receipt_cannot_change_prepared_contract[backup_path]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_rehashed_mutable_receipt_cannot_change_prepared_contract[backup_metadata]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_bytes_cannot_change_even_after_rehashing_itself",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_reference_cannot_redirect_outside_origin_contract",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_changed_original_backup[bytes]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_changed_original_backup[metadata]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_source_receipt_change_during_continuation_cannot_lower_cas",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_repeat_failure_can_resume_from_latest_receipt_same_original_contract",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_does_not_require_healthy_candidate_to_restore_known_base",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_cannot_select_a_different_base_with_rehashed_records",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_bare_status_receipt_without_prepared_binding_is_not_recoverable",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_runtime_change_during_last_backup_check_refuses_bootout",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_success_requires_original_runtime_at_final_readback",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_cli_reports_incomplete_continuation_with_nonzero_exit",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_launchctl_adapter_uses_frozen_service_target_for_missing_pointer",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_aborted_before_bootout_retains_contract_and_can_resume",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.test_actual_review_probes",
+          "name": "test_operator_can_resume_after_transient_automatic_restore_failure",
+          "status": "PASS"
+        }
+      ],
+      "core_sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+      "errors": 0,
+      "failed": 0,
+      "passed": 63,
+      "phase": "r5_green_before_R6_R7_review",
+      "skipped": 0,
+      "tests": 63,
+      "xml": "recovery_final.xml",
+      "xml_sha256": "c8b64672850e9c6b2ef46e67a4a910aafa1c8c12b892eb2f59e9eb6646c44d7c"
+    },
+    {
+      "candidate_sha256": "1f41fe707ee7a24c0e2ba2143431d6c7c628ef9631b7b05e06f09fed415ff4c9",
+      "cases": [
+        {
+          "classname": "issue30.work.cutover_analysis.test_actual_duplicate_receipt_probe",
+          "name": "test_recovery_rejects_duplicate_status_in_operation_receipt",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.test_actual_preimage_metadata_probe",
+          "name": "test_recovery_restores_original_metadata_when_pointer_bytes_are_already_original",
+          "status": "FAIL"
+        }
+      ],
+      "core_sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+      "errors": 0,
+      "failed": 2,
+      "passed": 0,
+      "phase": "original_reviewer_R6_R7_red",
+      "skipped": 0,
+      "tests": 2,
+      "xml": "r6_r7_review_red.xml",
+      "xml_sha256": "425f2509a7075fef2298b02f7fb09754c834813369f265c32412e6acb96ae311"
+    },
+    {
+      "candidate_sha256": "1f41fe707ee7a24c0e2ba2143431d6c7c628ef9631b7b05e06f09fed415ff4c9",
+      "cases": [
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_json_inputs",
+          "name": "test_read_json_rejects_duplicate_keys_at_any_depth[{\"identity\":0,\"identity\":1}]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_json_inputs",
+          "name": "test_read_json_rejects_duplicate_keys_at_any_depth[{\"outer\":{\"identity\":0,\"identity\":1}}]",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_json_inputs",
+          "name": "test_signed_receipt_rejects_nested_duplicates_even_when_canonical_sha_matches",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_json_inputs",
+          "name": "test_prepared_nested_duplicate_is_rejected_even_with_new_raw_sha_reference",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_json_inputs",
+          "name": "test_stage_plan_input_cannot_normalize_away_duplicate_guard_values",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_json_inputs",
+          "name": "test_disabled_binding_rejects_duplicates_despite_pinned_raw_sha",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_json_inputs",
+          "name": "test_openapi_json_uses_same_duplicate_rejection",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_json_inputs",
+          "name": "test_nonstandard_nan_constant_is_rejected_like_core_json",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_json_inputs",
+          "name": "test_raw_json_member_stripping_keeps_order_but_rejects_nested_ambiguity",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_metadata",
+          "name": "test_original_runtime_recovery_repairs_original_pointer_metadata_without_service_action",
+          "status": "FAIL"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_metadata",
+          "name": "test_recovery_cannot_report_success_if_metadata_drifts_after_bootstrap",
+          "status": "FAIL"
+        }
+      ],
+      "core_sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+      "errors": 0,
+      "failed": 11,
+      "passed": 0,
+      "phase": "json_metadata_paths_red",
+      "skipped": 0,
+      "tests": 11,
+      "xml": "r6_r7_paths_red.xml",
+      "xml_sha256": "befe9e509dc468415117217dfa5af2e307c3a4ccb4bccba6a93dccfbc81cae55"
+    },
+    {
+      "candidate_sha256": "389be853923a72066472ad229129a9a41ef9e9785f1b729aa468ed3e58df19f5",
+      "cases": [
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_active_replace_without_lease_refuses_before_writing",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_apply_rechecks_active_base_after_bootout_before_pointer_write",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_apply_refuses_active_inventory_drift_before_bootout",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_apply_switches_exact_integrated_package_and_preserves_other_module",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_automatic_recovery_without_lease_refuses_before_runtime_observation",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_direct_run_rollback_acquires_shared_lock_before_receipt_reads",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_direct_run_switch_acquires_shared_lock_before_preflight",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_execute_requires_shared_lock_path_in_frozen_allowlist_before_create",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_failed_bootstrap_recovers_using_same_lock_and_exact_base",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_guard_cache_does_not_mask_changed_file",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_guard_executes_exact_bytes_checked_even_if_path_replaced",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_guard_hash_mismatch_refuses_before_executing",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_guard_ignores_import_path_and_module_shadow",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_inventory_provenance_backend_is_not_executed",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_legacy_candidate_is_refused_by_actual_preflight",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_missing_active_restore_without_lease_refuses_before_writing",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_missing_pointer_recovery_uses_recorded_base_without_forward_check",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_operator_rollback_restores_recorded_legacy_base_from_candidate",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_recovery_keeps_verified_guard_if_helper_changes_during_transaction",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_recovery_refuses_unknown_pointer_before_service_mutation",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_api_cutover.ActualCutoverTests",
+          "name": "test_task_private_roots_still_contend_on_one_pointer_lock",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_json_inputs",
+          "name": "test_read_json_rejects_duplicate_keys_at_any_depth[{\"identity\":0,\"identity\":1}]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_json_inputs",
+          "name": "test_read_json_rejects_duplicate_keys_at_any_depth[{\"outer\":{\"identity\":0,\"identity\":1}}]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_json_inputs",
+          "name": "test_signed_receipt_rejects_nested_duplicates_even_when_canonical_sha_matches",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_json_inputs",
+          "name": "test_prepared_nested_duplicate_is_rejected_even_with_new_raw_sha_reference",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_json_inputs",
+          "name": "test_stage_plan_input_cannot_normalize_away_duplicate_guard_values",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_json_inputs",
+          "name": "test_disabled_binding_rejects_duplicates_despite_pinned_raw_sha",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_json_inputs",
+          "name": "test_openapi_json_uses_same_duplicate_rejection",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_json_inputs",
+          "name": "test_nonstandard_nan_constant_is_rejected_like_core_json",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_actual_json_inputs",
+          "name": "test_raw_json_member_stripping_keeps_order_but_rejects_nested_ambiguity",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_candidate_hardpins_final_core_bytes",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_incomplete_receipt_retains_original_prepared_contract",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[original-original]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[original-candidate]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[original-absent]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-original]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-candidate]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[candidate-absent]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-original]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-candidate]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_recovery_known_pointer_and_runtime_matrix[unloaded-absent]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_existing_cli_rollback_resumes_failure_under_shared_lease",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_requires_explicit_exact_current_cas[candidate-ABSENT]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_requires_explicit_exact_current_cas[original-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_requires_explicit_exact_current_cas[absent-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_requires_explicit_exact_current_cas[absent-]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_requires_explicit_exact_current_cas[absent-absent]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_unknown_pointer_even_with_matching_operator_sha",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_unknown_runtime_before_mutation[UNKNOWN]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_unknown_runtime_before_mutation[LOADED_UNVERIFIED]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_unknown_runtime_before_mutation[FOREIGN]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_unknown_runtime_before_mutation[MISSING_PID]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_rehashed_mutable_receipt_cannot_change_prepared_contract[before]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_rehashed_mutable_receipt_cannot_change_prepared_contract[after]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_rehashed_mutable_receipt_cannot_change_prepared_contract[api_release_integration]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_rehashed_mutable_receipt_cannot_change_prepared_contract[backup_path]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_rehashed_mutable_receipt_cannot_change_prepared_contract[backup_metadata]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_bytes_cannot_change_even_after_rehashing_itself",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_prepared_reference_cannot_redirect_outside_origin_contract",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_changed_original_backup[bytes]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_refuses_changed_original_backup[metadata]",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_source_receipt_change_during_continuation_cannot_lower_cas",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_repeat_failure_can_resume_from_latest_receipt_same_original_contract",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_does_not_require_healthy_candidate_to_restore_known_base",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_cannot_select_a_different_base_with_rehashed_records",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_bare_status_receipt_without_prepared_binding_is_not_recoverable",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_runtime_change_during_last_backup_check_refuses_bootout",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_recovery_success_requires_original_runtime_at_final_readback",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_cli_reports_incomplete_continuation_with_nonzero_exit",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_launchctl_adapter_uses_frozen_service_target_for_missing_pointer",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_continuation",
+          "name": "test_aborted_before_bootout_retains_contract_and_can_resume",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_metadata",
+          "name": "test_original_runtime_recovery_repairs_original_pointer_metadata_without_service_action",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.tests.test_recovery_metadata",
+          "name": "test_recovery_cannot_report_success_if_metadata_drifts_after_bootstrap",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.test_actual_review_probes",
+          "name": "test_operator_can_resume_after_transient_automatic_restore_failure",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.test_actual_duplicate_receipt_probe",
+          "name": "test_recovery_rejects_duplicate_status_in_operation_receipt",
+          "status": "PASS"
+        },
+        {
+          "classname": "issue30.work.cutover_analysis.test_actual_preimage_metadata_probe",
+          "name": "test_recovery_restores_original_metadata_when_pointer_bytes_are_already_original",
+          "status": "PASS"
+        }
+      ],
+      "core_sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+      "errors": 0,
+      "failed": 0,
+      "passed": 76,
+      "phase": "final_green",
+      "skipped": 0,
+      "tests": 76,
+      "xml": "final_all_green.xml",
+      "xml_sha256": "9a5bf0e278e1b7cc7b44de9facba098281ae13cee56a40b93b189db0f0d761dd"
+    }
+  ],
+  "schema": "v4.issue30.actual_cutover_recovery_evidence.v1",
+  "strict_json_all_input_paths": true,
+  "unchanged_original_reviewer_probe_sha256": "82e50515934e66d0445b9f444adddcf7b7a8218c7e5985dd8ae54232a06f6684",
+  "unchanged_reviewer_probe_sha256": {
+    "test_actual_duplicate_receipt_probe.py": "afd68bf43600d805f264708f27edf682d45b4e16f28dda90c1b5fa8ff9213218",
+    "test_actual_preimage_metadata_probe.py": "c4a1c7ef339da777e4ab2f533e768bd5ba3b6ee62c996e76b9532fc848c13df8",
+    "test_actual_review_probes.py": "82e50515934e66d0445b9f444adddcf7b7a8218c7e5985dd8ae54232a06f6684"
+  }
+}

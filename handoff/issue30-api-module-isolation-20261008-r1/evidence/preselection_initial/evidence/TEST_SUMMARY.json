@@ -1,0 +1,90 @@
+{
+  "status": "PASS_SCOPED_REAL_MODULES_AND_HISTORICAL_DEPENDENCY_CLOSURE",
+  "command": "env -i PATH=/usr/bin:/bin PYTHONDONTWRITEBYTECODE=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ISSUE30_ROUTE_MODE=candidate PYTHONPATH=after:test_support /workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python -B -m pytest -q -p no:cacheprovider -W error -W default::starlette.exceptions.StarletteDeprecationWarning --basetemp evidence/pytest-clean-env tests",
+  "command_workdir": "/workspace/scratch/25c09a595aec/issue30/work/preselection_scope",
+  "exit_code": 0,
+  "log": "evidence/clean_env_scoped_tests.log",
+  "log_sha256": "1bad2ef2910cafc48e7fcb9d190e9b13cfd2b1825e54697ff922a7652580a2b5",
+  "passed": 26,
+  "failed": 0,
+  "warnings": 1,
+  "interpreter": "Python 3.14.7",
+  "package_versions": {
+    "pytest": "9.1.1",
+    "fastapi": "0.142.4",
+    "httpx": "0.28.1"
+  },
+  "test_counting": {
+    "reused_issue28_cases": 11,
+    "issue30_file_collected": 15,
+    "existing_contract_recheck_in_issue30_file": 1,
+    "new_module_and_compatibility_cases": 14
+  },
+  "execution_boundary": "Complete new router/service modules plus exact app registration AST, real historical store/domain imports and synthetic filesystem fixtures; full R2 create_app NOT imported",
+  "historical_failures_preserved": [
+    {
+      "phase": "pure_extraction",
+      "log": "evidence/candidate_all_tests.log",
+      "passed": 12,
+      "failed": 4
+    },
+    {
+      "phase": "unchanged_435d_same_historical_domain_control",
+      "log": "evidence/unmodified_two_hunk_old_domain_comparison.log",
+      "failed": 4
+    },
+    {
+      "phase": "consumer_quarantine_tdd_red",
+      "log": "evidence/quarantine_red.log"
+    },
+    {
+      "phase": "explicit_a_row_date_tdd_red",
+      "log": "evidence/row_identity_red.log",
+      "failed": 2
+    }
+  ],
+  "confirmed_legacy_failure_cause": "Historical PreselectionSourceResolver.read_all catches FileNotFoundError only; per-pool SHA ValueError propagates to monolithic domain and blocks all rows. Double-read hypothesis not established.",
+  "candidate_files": [
+    {
+      "path": "apps/api/v35_api/app.py",
+      "change": "modify",
+      "before_sha256": "90a2bf6390c6c0e219aa3d9bb22bc3b3630ecb2d447df494ae69425933424ed7",
+      "before_state": "SHA_PINNED",
+      "after_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "after_bytes": 324648,
+      "owner": "api_assembly_shared"
+    },
+    {
+      "path": "apps/api/v35_api/preselection_router.py",
+      "change": "add",
+      "before_sha256": null,
+      "before_state": "ABSENCE_REQUIRED_AT_ACTUAL_INTEGRATION",
+      "after_sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "after_bytes": 1322,
+      "owner": "preselection"
+    },
+    {
+      "path": "apps/api/v35_api/preselection_service.py",
+      "change": "add",
+      "before_sha256": null,
+      "before_state": "ABSENCE_REQUIRED_AT_ACTUAL_INTEGRATION",
+      "after_sha256": "ecf1c410e5c4671297d2054e695abe41fd32edd44caa24b2276e8c714108500f",
+      "after_bytes": 27233,
+      "owner": "preselection"
+    }
+  ],
+  "not_established": [
+    "Current R2 domain SHA and full 1016-file inventory",
+    "Complete current R2 create_app import/runtime",
+    "Manager announcement/workspace/date-isolation business execution",
+    "Live A178/HK100 source canary",
+    "Deployment or actual API/UI"
+  ],
+  "safety": {
+    "real_network_api_calls": false,
+    "producer_run": false,
+    "real_data_mutated": false,
+    "github_written": false,
+    "deployed": false
+  }
+}

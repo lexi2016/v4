@@ -1,0 +1,11 @@
+--- reviewed_f79
++++ final_1f4
+@@ -34,7 +34,7 @@
+             "domains/preselection.py",
+         ], "prefixes": []},
+         "manager": {"exact": [], "prefixes": [
+-            "domains/manager_research/", "apps/api/v35_api/manager_",
++            "domains/manager_research/", "v4/manager_research/", "apps/api/v35_api/manager_",
+         ]},
+         "research_review": {"exact": [
+             "apps/api/v35_api/review_router.py", "domains/daily_research_review.py",

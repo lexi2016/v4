@@ -1,0 +1,42 @@
+{
+  "actual_sha256": "389be853923a72066472ad229129a9a41ef9e9785f1b729aa468ed3e58df19f5",
+  "original_reviewed_actual_sha256": "931a9e2749adee74ad4b7021b9f7451aaf9c905c586003250adec9cc14a9a364",
+  "changed_existing_top_level_assignments": [
+    "INTEGRATION_GUARD_SHA256"
+  ],
+  "added_assignments": [
+    "_PREPARED_CONTRACT_KEYS"
+  ],
+  "removed_assignments": [],
+  "historical_R2_top_level_pins_other_than_core_unchanged": true,
+  "all_imports_standard_library": true,
+  "imports": [
+    "__future__",
+    "argparse",
+    "contextlib",
+    "datetime",
+    "errno",
+    "hashlib",
+    "html.parser",
+    "json",
+    "os",
+    "pathlib",
+    "plistlib",
+    "re",
+    "stat",
+    "subprocess",
+    "sys",
+    "time",
+    "types",
+    "typing",
+    "urllib.error",
+    "urllib.parse",
+    "urllib.request",
+    "uuid"
+  ],
+  "direct_json_loads_occurs_only_in_shared_strict_reader": [
+    "_json_loads"
+  ],
+  "raw_decoder_slice_function_validates_whole_same_raw_first": true,
+  "source_pin_is_exact_byte_integrity_not_general_python_sandbox": true
+}

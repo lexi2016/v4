@@ -1,0 +1,434 @@
+{
+  "checked_utc": "2026-10-08T15:01:07.845483+00:00",
+  "cli_flags": [
+    {
+      "flags": [
+        "--output-root",
+        "--python",
+        "--timeout-seconds"
+      ],
+      "path": "run_tests.py",
+      "sha256": "73069ef34a74a5eddb47ccaab59ab142a7e518841511441e3e20016770811409"
+    },
+    {
+      "flags": [
+        "--active-api-plist",
+        "--after-root",
+        "--change-set",
+        "--output"
+      ],
+      "path": "after/ops/create_api_module_delta.py",
+      "sha256": "04e67a3ce948eecf9dac04083277bd919c7ec8880ec5814bbe57e7a5ba8d0072"
+    },
+    {
+      "flags": [
+        "--api-integration-delta-receipt",
+        "--api-plist",
+        "--backup-plist",
+        "--candidate-root",
+        "--formal-release-root",
+        "--include-untracked-path",
+        "--legacy-evidence-root",
+        "--legacy-repo",
+        "--python",
+        "--receipt-path",
+        "--release-id",
+        "--scheduler-plist",
+        "--source-root",
+        "--stage-overlay-path",
+        "--stage-plist",
+        "--stage-runtime-python",
+        "--stage-service-candidate"
+      ],
+      "path": "after/ops/build_release_candidate.py",
+      "sha256": "81f4290a6f51e5958048d782c2d4b1eecfc42f892e387e6c1a22bb71912abef6"
+    }
+  ],
+  "cli_review": {
+    "actual_commands": "Read-only parser/source inspection confirms execute and rollback public mutation commands; rollback --receipt and --expected-current-plist-sha256 (literal ABSENT only for a missing pointer) handle protected continuation. Main handoff offers no unapproved live execution command and now names the interfaces accurately.",
+    "builder_command": "Instructions require local helper verification and source-workspace integration before invoking --help/build; explicit V4 formal root and non-overlapping new candidate requirement match parser/guard.",
+    "delta_command": "Documented four flags match standalone script; adjacent core dependency exists. Prior read-only --help completed with exit 0; no extra product tests were run this round.",
+    "portable_command": "Documented --python and --output-root match the runner; fresh unaliased output root, isolated imports and no installation boundary retained."
+  },
+  "evidence_scope_review": [
+    "core_initial and preselection_initial directory names and explicit source SHAs identify prior checkpoints, without deployment or full-R2 claims.",
+    "core_revision report explicitly limits its frozen f79… core and 103-case intermediate checkpoint; it does not claim final 1f4… module-owner additions were included.",
+    "independent_initial retains CHANGES_REQUESTED and seven failing executions; README directs closure to independent_final rather than treating original regression passes as approval.",
+    "portable_controls checks are clearly launcher-only controls and are not included as additional product acceptance cases.",
+    "Main README/PROMPT/OPEN_ITEMS preserve no-deployment/no-real-API-UI/no-natural-period boundary, historical support limits, and separate physical/upstream provenance.",
+    "Final independent review now read back as PASS for SOURCE_CANDIDATE only; all R1-R7 are CLOSED_VERIFIED and all eight reviewed file SHAs agree with final SOURCE_MANIFEST/TEST_RESULTS. Forty-eight copied evidence files match reviewer originals exactly; historical workspace references have explicit package mappings."
+  ],
+  "final_recheck_pending": [],
+  "frozen_identity_and_results": {
+    "actual_guard_pin": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+    "author_cutover_report_matches_final_source_core_and_76_count": true,
+    "case_executions": 218,
+    "change_set_matches_product_manifest": true,
+    "module_policy_sha256": "c55f4f09269661e0db05fa566aa1be9a96b2aa681912223c38fb802c4127e1b6",
+    "new_behavior_claims": false,
+    "patch_record_sha_verified": "6caf2d02546e17aabfeb06c721fa3ac8748aaf0e1f73aeb13ffd7c9de3dfc86e",
+    "result_artifact_hashes_checked": 18,
+    "runner_sha256": "73069ef34a74a5eddb47ccaab59ab142a7e518841511441e3e20016770811409",
+    "runtime_input_count": 64,
+    "runtime_mapping_count": 64,
+    "scope": "READ_ONLY_FROZEN_INPUT_AND_RECORDED_RESULT_CONSISTENCY",
+    "source_product_checks": [
+      {
+        "after_mode": "PASS",
+        "before_after_sha_size_git_blob": "PASS",
+        "path": "actual_cutover_reference/api_only_cutover_r2_ready.py"
+      },
+      {
+        "after_mode": "PASS",
+        "before_after_sha_size_git_blob": "PASS",
+        "path": "apps/api/v35_api/app.py"
+      },
+      {
+        "after_mode": "PASS",
+        "before_after_sha_size_git_blob": "PASS",
+        "path": "apps/api/v35_api/preselection_router.py"
+      },
+      {
+        "after_mode": "PASS",
+        "before_after_sha_size_git_blob": "PASS",
+        "path": "apps/api/v35_api/preselection_service.py"
+      },
+      {
+        "after_mode": "PASS",
+        "before_after_sha_size_git_blob": "PASS",
+        "path": "ops/api_release_integration.py"
+      },
+      {
+        "after_mode": "PASS",
+        "before_after_sha_size_git_blob": "PASS",
+        "path": "ops/build_release_candidate.py"
+      },
+      {
+        "after_mode": "PASS",
+        "before_after_sha_size_git_blob": "PASS",
+        "path": "ops/create_api_module_delta.py"
+      },
+      {
+        "after_mode": "PASS",
+        "before_after_sha_size_git_blob": "PASS",
+        "path": "ops/prepare_api_only_cutover.py"
+      }
+    ],
+    "source_test_suites_executed_by_this_check": false,
+    "status": "PASS",
+    "suites": [
+      {
+        "collected": 112,
+        "expected": 112,
+        "junit_testcases": 112,
+        "name": "release",
+        "node_id_set_matches_passed_calls": true,
+        "passed": 112,
+        "status": "PASS"
+      },
+      {
+        "collected": 76,
+        "expected": 76,
+        "junit_testcases": 76,
+        "name": "cutover",
+        "node_id_set_matches_passed_calls": true,
+        "passed": 76,
+        "status": "PASS"
+      },
+      {
+        "collected": 30,
+        "expected": 30,
+        "junit_testcases": 30,
+        "name": "preselection",
+        "node_id_set_matches_passed_calls": true,
+        "passed": 30,
+        "status": "PASS"
+      }
+    ],
+    "test_inputs_sha256": "7f846c242af93aac814456a9567d10eec1b18915601791b01c326774ecdd8a2e"
+  },
+  "independent_final_readback": {
+    "all_product_changes_patch_sha256": "6caf2d02546e17aabfeb06c721fa3ac8748aaf0e1f73aeb13ffd7c9de3dfc86e",
+    "closed_review_finding_ids": [
+      "R1",
+      "R2",
+      "R3",
+      "R4",
+      "R5",
+      "R6",
+      "R7"
+    ],
+    "closed_review_status": "CLOSED_VERIFIED",
+    "copied_files_unchanged_readback": 48,
+    "delivery_source_shas_match_source_manifest_and_test_results": true,
+    "final_review_json_sha256": "9bb6428f895b9591db8381740eecfce2fe6a3a3958157bb9bdc4d9bf08ee4bbd",
+    "final_review_md_sha256": "12cf34341abf65dfe9bc13f3c7803e5dc8b893844e53dc4192aa0feb2364d9db",
+    "historical_reference_mappings_present": 5,
+    "independent_recorded_executions": 218,
+    "index_sha256": "dcc5fb7c8b44867047dc588b829e953da1d5a697c1d30665de028ee4287fa6b9",
+    "indexed_file_hashes_verified": 47,
+    "open_findings": [],
+    "package_mapping_sha256": "8390c1bee0c1a348b8a00718f62c8deb6a3a954c5bd33f79e0f27ff8bad5d6f2",
+    "pending": [],
+    "policy_sha256_matches_source_manifest": true,
+    "readback_not_new_test_execution": true,
+    "reviewed_shas_match_all_8_after_files": true,
+    "scope_exclusions_preserved": [
+      "DEPLOYMENT",
+      "LIVE_API_UI",
+      "CURRENT_FULL_R2_RUNTIME",
+      "MAC_SERVICE_USER_AND_METADATA",
+      "NATURAL_PERIOD"
+    ],
+    "source_manifest_sha256": "baac33ad9e1f8b2d89f1817d00dd3c6e28c612a00c37586773dc50dadb6bada1",
+    "status": "PASS",
+    "verdict": "PASS",
+    "verdict_scope": "SOURCE_CANDIDATE"
+  },
+  "links": {
+    "external_count_not_checked": 18,
+    "local": [
+      {
+        "line": 3,
+        "resolved": "SOURCE_MANIFEST.json",
+        "source": "EVIDENCE_INDEX.md",
+        "status": "PRESENT",
+        "target": "SOURCE_MANIFEST.json"
+      },
+      {
+        "line": 3,
+        "resolved": "TEST_RESULTS.json",
+        "source": "EVIDENCE_INDEX.md",
+        "status": "PRESENT",
+        "target": "TEST_RESULTS.json"
+      },
+      {
+        "line": 3,
+        "resolved": "evidence/independent_final/final_review.md",
+        "source": "EVIDENCE_INDEX.md",
+        "status": "PRESENT",
+        "target": "evidence/independent_final/final_review.md"
+      },
+      {
+        "line": 7,
+        "resolved": "README.zh-CN.md",
+        "source": "README.md",
+        "status": "PRESENT",
+        "target": "README.zh-CN.md"
+      },
+      {
+        "line": 8,
+        "resolved": "PROMPT_FOR_MAC.md",
+        "source": "README.md",
+        "status": "PRESENT",
+        "target": "PROMPT_FOR_MAC.md"
+      },
+      {
+        "line": 9,
+        "resolved": "TEST_RESULTS.json",
+        "source": "README.md",
+        "status": "PRESENT",
+        "target": "TEST_RESULTS.json"
+      },
+      {
+        "line": 10,
+        "resolved": "evidence/independent_final/final_review.md",
+        "source": "README.md",
+        "status": "PRESENT",
+        "target": "evidence/independent_final/final_review.md"
+      },
+      {
+        "line": 11,
+        "resolved": "OPEN_ITEMS.md",
+        "source": "README.md",
+        "status": "PRESENT",
+        "target": "OPEN_ITEMS.md"
+      },
+      {
+        "line": 11,
+        "resolved": "SOURCE_MANIFEST.json",
+        "source": "README.md",
+        "status": "PRESENT",
+        "target": "SOURCE_MANIFEST.json"
+      },
+      {
+        "line": 5,
+        "resolved": "OPEN_ITEMS.md",
+        "source": "README.zh-CN.md",
+        "status": "PRESENT",
+        "target": "OPEN_ITEMS.md"
+      },
+      {
+        "line": 5,
+        "resolved": "PROMPT_FOR_MAC.md",
+        "source": "README.zh-CN.md",
+        "status": "PRESENT",
+        "target": "PROMPT_FOR_MAC.md"
+      },
+      {
+        "line": 5,
+        "resolved": "TEST_RESULTS.json",
+        "source": "README.zh-CN.md",
+        "status": "PRESENT",
+        "target": "TEST_RESULTS.json"
+      },
+      {
+        "line": 5,
+        "resolved": "evidence/independent_final/final_review.md",
+        "source": "README.zh-CN.md",
+        "status": "PRESENT",
+        "target": "evidence/independent_final/final_review.md"
+      },
+      {
+        "line": 26,
+        "resolved": "SOURCE_MANIFEST.json",
+        "source": "README.zh-CN.md",
+        "status": "PRESENT",
+        "target": "SOURCE_MANIFEST.json"
+      },
+      {
+        "line": 54,
+        "resolved": "EVIDENCE_INDEX.md",
+        "source": "README.zh-CN.md",
+        "status": "PRESENT",
+        "target": "EVIDENCE_INDEX.md"
+      }
+    ],
+    "local_count": 15,
+    "missing": []
+  },
+  "main_document_boundaries": "PASS: source candidate, historical dependencies, physical/upstream provenance, original P2 progress, fresh active requirements, no-deployment authorization and separate future acceptance remain explicit.",
+  "markdown_snapshots": [
+    {
+      "path": "EVIDENCE_INDEX.md",
+      "sha256": "bfa288bde326d8b49f648e31df86b65fbb0022c009a11e554c459bedb315a54f",
+      "size": 2743
+    },
+    {
+      "path": "OPEN_ITEMS.md",
+      "sha256": "f908536f16fd5fdbaf22880a403293b7035d60eebef8dd5b1999feed261eb5c8",
+      "size": 3838
+    },
+    {
+      "path": "PROMPT_FOR_MAC.md",
+      "sha256": "346806c8ed7319d87dd405864dd921df26a4da94f74326d39a4154088338d29b",
+      "size": 9010
+    },
+    {
+      "path": "README.md",
+      "sha256": "d6b86f75f57331e098394f69b78ac5677770452b29dfef486a8c4d7a81abf87e",
+      "size": 1103
+    },
+    {
+      "path": "README.zh-CN.md",
+      "sha256": "7b46f4d1ecabd90491baadd6371f9278dc28f44d84309a1b2eae62c51f4d1ee3",
+      "size": 10384
+    },
+    {
+      "path": "TEST_LAYOUT.md",
+      "sha256": "fd72b2d8904343135a7c16537970d09be479aebd9d9f0c27175a04fbb7cdb0d5",
+      "size": 8656
+    },
+    {
+      "path": "design/DESIGN.md",
+      "sha256": "f8505f77b5d867f1729d7d2560e2197267e812fe04455ffd7f51b8e836398d17",
+      "size": 4452
+    },
+    {
+      "path": "design/IMPLEMENTATION_PLAN.md",
+      "sha256": "dff6e3ecfc6e87e5284fad165b5cb2e21b14f26f16971a4b818ab4b177dd038a",
+      "size": 4141
+    },
+    {
+      "path": "design/MODULE_OWNERSHIP.md",
+      "sha256": "8a1b24c9e2dc3d791186aaa31bd19fc6e9220d84a313c105c0bd5ac26ec3ce1a",
+      "size": 4986
+    },
+    {
+      "path": "evidence/core_initial/REVIEW.zh-CN.md",
+      "sha256": "ece3b942b0edab388101bb9b2b55f2c629cfcdbdb84a3e7489d1bcdd798cb925",
+      "size": 7531
+    },
+    {
+      "path": "evidence/core_revision/REVIEW.zh-CN.md",
+      "sha256": "06990ead8dfa422c3528a7a5a3d8215ea8fdab5eafeb0da4d7642532a68c4f0f",
+      "size": 6537
+    },
+    {
+      "path": "evidence/cutover/CUTOVER_ANALYSIS.md",
+      "sha256": "cdcc24809f37886ae98d6a5ccdb8086a17a57ad1d93d61632f8e80a797c66ef3",
+      "size": 28368
+    },
+    {
+      "path": "evidence/cutover/initial/CUTOVER_ANALYSIS.md",
+      "sha256": "6c048496a95d47a2560bcaaa107a6282a628ec65a194d79c14b5ac083989b54b",
+      "size": 16756
+    },
+    {
+      "path": "evidence/cutover/initial/R5_CUTOVER_ANALYSIS.md",
+      "sha256": "b896dc001bbb5e89360cd9590d52f91ae77afe261558bf97515773b29de0fa9c",
+      "size": 25415
+    },
+    {
+      "path": "evidence/independent_final/final_review.md",
+      "sha256": "12cf34341abf65dfe9bc13f3c7803e5dc8b893844e53dc4192aa0feb2364d9db",
+      "size": 12565
+    },
+    {
+      "path": "evidence/independent_initial/review.md",
+      "sha256": "b97384522d9633f17dc92067e796c9d6c9c3d3d5380ea461963521c75c39bf89",
+      "size": 11932
+    },
+    {
+      "path": "evidence/independent_revision/review.md",
+      "sha256": "813841d50b7cf8ca3c4fe2f0a4e0d270c8bfd5e103f0125f412456e1b92d95c3",
+      "size": 8361
+    },
+    {
+      "path": "evidence/preselection_initial/README.md",
+      "sha256": "532563f1eecfeac814cd6e11e3503655b52fad9960681099061ecc1164da1d58",
+      "size": 10429
+    },
+    {
+      "path": "original/AGENTS.md",
+      "sha256": "fd790799d7ae8913088eb716ebe29da51c21e57681966240691542978e2d84c0",
+      "size": 3152
+    },
+    {
+      "path": "original/issue30/README.md",
+      "sha256": "7010acf0deb3dd201ffe1eaa627ec5f8bcc3c18249966b2c01064e9234d1f702",
+      "size": 11062
+    }
+  ],
+  "not_adjudicated": [
+    "No independent re-execution of the 218 source cases or patch operations in this audit",
+    "No current Mac/runtime/deployment/API/UI/natural acceptance",
+    "Root final FILE_MANIFEST, GitHub remote readback and ZIP integrity are outside this audit scope"
+  ],
+  "observations": [
+    {
+      "evidence": "Final report now identifies actual389be853, core1f4afc70 and76 cases; initial21 and R5 checkpoint63 are separately named, with old reports in initial/. CHANGESET agrees with SOURCE_MANIFEST and final result counts.",
+      "id": "P1",
+      "path": "evidence/cutover/CUTOVER_ANALYSIS.md",
+      "status": "CLOSED"
+    }
+  ],
+  "operations": {
+    "delivery_docs_modified": false,
+    "github_written": false,
+    "products_modified": false,
+    "runner_modified": false,
+    "service_or_business_data_actions": false,
+    "source_test_suites_rerun": false
+  },
+  "package_root": "/workspace/scratch/25c09a595aec/issue30/delivery_api_module_r1",
+  "phase": "FINAL",
+  "previous_findings": {
+    "D1_A_HK_validation_scope": "CLOSED: README now confines new identity checks to the legacy SHA recovery and configured HK fallback, and disclaims full ordinary-domain acceptance.",
+    "D2_archived_plan": "CLOSED: implementation plan now explains its archived checkboxes and original workspace paths.",
+    "D3_public_entry_count": "CLOSED: PROMPT now names execute/rollback as the two public mutation interfaces and identifies continuation as a rollback branch."
+  },
+  "schema_version": "v4.issue30.final_package_structure_audit.v1",
+  "scope": "Read-only local Markdown/link/CLI/evidence-scope and frozen source/result/review identity consistency. No duplicate source test or patch execution; no final archive/remote certification.",
+  "status": "PASS_READ_ONLY_DELIVERY_STRUCTURE_AND_EVIDENCE_CONSISTENCY"
+}

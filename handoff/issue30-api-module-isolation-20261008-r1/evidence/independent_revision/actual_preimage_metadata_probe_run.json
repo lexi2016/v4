@@ -1,0 +1,27 @@
+{
+  "command": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/test_actual_preimage_metadata_probe.py",
+    "--junitxml=/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/actual_preimage_metadata_probe.xml",
+    "--basetemp=/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/actual_preimage_metadata_probe_tmp"
+  ],
+  "cwd": "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer",
+  "env_overrides": {
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "CUTOVER_SOURCE": "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/frozen_final/api_only_cutover_r2_ready.py",
+    "INTEGRATION_SOURCE": "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/frozen_final/api_release_integration.py"
+  },
+  "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "timestamp_utc": "2026-10-08T14:39:37.598937+00:00",
+  "exit_code": 1,
+  "probe_sha256": "c4a1c7ef339da777e4ab2f533e768bd5ba3b6ee62c996e76b9532fc848c13df8",
+  "actual_sha256": "1f41fe707ee7a24c0e2ba2143431d6c7c628ef9631b7b05e06f09fed415ff4c9"
+}

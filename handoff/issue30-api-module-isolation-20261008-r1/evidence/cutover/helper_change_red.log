@@ -1,0 +1,30 @@
+test_recovery_keeps_verified_guard_if_helper_changes_during_transaction (test_actual_api_cutover.ActualCutoverTests.test_recovery_keeps_verified_guard_if_helper_changes_during_transaction) ... FAIL
+
+======================================================================
+FAIL: test_recovery_keeps_verified_guard_if_helper_changes_during_transaction (test_actual_api_cutover.ActualCutoverTests.test_recovery_keeps_verified_guard_if_helper_changes_during_transaction)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/candidate/api_only_cutover_r2_ready.py", line 1641, in _run_switch_locked
+    _launchctl_action("bootstrap")
+  File "/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/tests/test_actual_api_cutover.py", line 218, in launch_action
+    runtime["hook"](action)
+  File "/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/tests/test_actual_api_cutover.py", line 431, in replace_helper_and_fail_bootstrap
+    raise ValueError("SYNTHETIC_BOOTSTRAP_FAILURE")
+ValueError: SYNTHETIC_BOOTSTRAP_FAILURE
+
+During handling of the above exception, another exception occurred:
+
+ValueError: API_ONLY_INTEGRATION_GUARD_SHA_MISMATCH
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/tests/test_actual_api_cutover.py", line 434, in test_recovery_keeps_verified_guard_if_helper_changes_during_transaction
+    with self.assertRaisesRegex(ValueError, "FAILED_AND_ROLLED_BACK"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "FAILED_AND_ROLLED_BACK" does not match "API_ONLY_INTEGRATION_GUARD_SHA_MISMATCH"
+
+----------------------------------------------------------------------
+Ran 1 test in 0.101s
+
+FAILED (failures=1)

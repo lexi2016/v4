@@ -1,0 +1,49 @@
+{
+  "checked_files": [
+    {
+      "path": "README.zh-CN.md",
+      "sha256": "7b46f4d1ecabd90491baadd6371f9278dc28f44d84309a1b2eae62c51f4d1ee3",
+      "size": 10384
+    },
+    {
+      "path": "design/IMPLEMENTATION_PLAN.md",
+      "sha256": "dff6e3ecfc6e87e5284fad165b5cb2e21b14f26f16971a4b818ab4b177dd038a",
+      "size": 4141
+    },
+    {
+      "path": "PROMPT_FOR_MAC.md",
+      "sha256": "346806c8ed7319d87dd405864dd921df26a4da94f74326d39a4154088338d29b",
+      "size": 9010
+    },
+    {
+      "path": "evidence/cutover/CUTOVER_ANALYSIS.md",
+      "sha256": "cdcc24809f37886ae98d6a5ccdb8086a17a57ad1d93d61632f8e80a797c66ef3",
+      "size": 28368
+    }
+  ],
+  "final_rechecked_utc": "2026-10-08T14:58:14.230590+00:00",
+  "original_report": "evidence/portable_controls/HANDOFF_DOC_AUDIT.json",
+  "resolutions": [
+    {
+      "id": "D1",
+      "resolution": "A row identity is explicitly limited to new legacy SHA recovery; HK strict checking limited to configured fallback and that recovery. Ordinary domain paths are not newly certified.",
+      "status": "CLOSED"
+    },
+    {
+      "id": "D2",
+      "resolution": "Implementation plan is explicitly archived; original paths/checklists are not final state. Current handoff and results are named.",
+      "status": "CLOSED"
+    },
+    {
+      "id": "D3_INTERFACE",
+      "resolution": "PROMPT_FOR_MAC names execute and rollback as two public commands; continuation is the rollback branch.",
+      "status": "CLOSED"
+    },
+    {
+      "id": "CUTOVER_CHECKPOINT_LABELS",
+      "resolution": "Current cutover report binds actual389be/core1f4 and final76; initial21 and intermediate63 explicitly remain historical.",
+      "status": "CLOSED"
+    }
+  ],
+  "schema_version": "v4.issue30.document_audit_resolution.v1"
+}

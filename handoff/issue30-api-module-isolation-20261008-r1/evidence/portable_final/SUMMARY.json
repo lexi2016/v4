@@ -1,0 +1,60 @@
+{
+  "expected_tests_total": 218,
+  "finished_utc": "2026-10-08T14:44:53.471357+00:00",
+  "limitations": [
+    "Source tests use isolated synthetic filesystem fixtures and simulated service/HTTP responses.",
+    "Preselection loads real router/service modules and exact app registration AST with a historical dependency closure.",
+    "The complete current R2 app, live sources, deployment, API/UI, and natural periods are NOT tested.",
+    "Verified source and explicit dependencies are trusted code; this launcher is not an OS sandbox.",
+    "No network access, dependency installation, publication, or service action is requested by the launcher."
+  ],
+  "passed_tests_total": 218,
+  "problems": [],
+  "runner_sha256": "73069ef34a74a5eddb47ccaab59ab142a7e518841511441e3e20016770811409",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "deployed": false,
+    "full_r2_runtime_tested": false,
+    "live_api_ui_tested": false,
+    "natural_period_acceptance": "NOT_RUN",
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "v4.issue30.portable_test_result.v1",
+  "started_utc": "2026-10-08T14:44:33.033930+00:00",
+  "status": "PASS",
+  "suites": [
+    {
+      "expected_tests": 112,
+      "name": "release",
+      "result": {
+        "path": "results/release/result.json",
+        "sha256": "d10fee53aa6e035980749e8a321c59d130759e8a2a8b2e4fdb98de57d73b8fbb",
+        "size": 4876
+      },
+      "status": "PASS"
+    },
+    {
+      "expected_tests": 76,
+      "name": "cutover",
+      "result": {
+        "path": "results/cutover/result.json",
+        "sha256": "85ec56338b45f73f011ca73bbf84c8b8f35cf85b088ddb6c376644d3ea674215",
+        "size": 4911
+      },
+      "status": "PASS"
+    },
+    {
+      "expected_tests": 30,
+      "name": "preselection",
+      "result": {
+        "path": "results/preselection/result.json",
+        "sha256": "45e5b8e078e8316d3c4dc6b6c627cde1736069dc12d5b1a2eeabdf6649454470",
+        "size": 6047
+      },
+      "status": "PASS"
+    }
+  ],
+  "test_inputs_sha256": "7f846c242af93aac814456a9567d10eec1b18915601791b01c326774ecdd8a2e"
+}

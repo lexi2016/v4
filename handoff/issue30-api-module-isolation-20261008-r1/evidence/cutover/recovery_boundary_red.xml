@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="3" time="0.394" timestamp="2026-10-08T07:33:03.871951-07:00" hostname="5fa05583d26b"><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_runtime_change_during_last_backup_check_refuses_bootout" time="0.096"><failure message="AssertionError: assert 'ROLLED_BACK_TO_PREIMAGE' == 'ROLLBACK_INCOMPLETE'&#10;  &#10;  - ROLLBACK_INCOMPLETE&#10;  + ROLLED_BACK_TO_PREIMAGE">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-u4jj2p9x/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f6f83b1fe10&gt;
+
+    def test_runtime_change_during_last_backup_check_refuses_bootout(setup_actual, monkeypatch):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        token = _set_state(harness, fixture, "candidate", "candidate")
+        verify_backup = m._verify_recovery_backup
+        calls = 0
+    
+        def change_runtime_at_bootout_boundary(*args, **kwargs):
+            nonlocal calls
+            result = verify_backup(*args, **kwargs)
+            calls += 1
+            # public validation, restore validation, then the pre-bootout guard.
+            if calls == 3:
+                fixture["runtime"]["identity"] = dict(fixture["plan"]["before"]["loaded_identity"])
+            return result
+    
+        monkeypatch.setattr(m, "_verify_recovery_backup", change_runtime_at_bootout_boundary)
+        result = _resume(harness, fixture, receipt_path, token)
+&gt;       assert result["status"] == "ROLLBACK_INCOMPLETE"
+E       AssertionError: assert 'ROLLED_BACK_TO_PREIMAGE' == 'ROLLBACK_INCOMPLETE'
+E         
+E         - ROLLBACK_INCOMPLETE
+E         + ROLLED_BACK_TO_PREIMAGE
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:405: AssertionError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_recovery_success_requires_original_runtime_at_final_readback" time="0.072"><failure message="AssertionError: assert 'ROLLED_BACK_TO_PREIMAGE' == 'ROLLBACK_INCOMPLETE'&#10;  &#10;  - ROLLBACK_INCOMPLETE&#10;  + ROLLED_BACK_TO_PREIMAGE">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-95cgsi_u/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f6f83b72d50&gt;
+
+    def test_recovery_success_requires_original_runtime_at_final_readback(setup_actual, monkeypatch):
+        harness, fixture = setup_actual
+        m = harness.m
+        receipt_path = _make_prepared(harness, fixture, monkeypatch)
+        token = _set_state(harness, fixture, "candidate", "unloaded")
+    
+        def drift_during_readback(**kwargs):
+            fixture["runtime"]["identity"] = {"state": "running", "pid": "9111",
+                **m._identity_from_plist(m.STAGED_API_PLIST_PATH.read_bytes())}
+            return {"status": "SYNTHETIC_PRODUCT_READBACK"}
+    
+        monkeypatch.setattr(m, "_verify_historical_product_readback", drift_during_readback)
+        result = _resume(harness, fixture, receipt_path, token)
+&gt;       assert result["status"] == "ROLLBACK_INCOMPLETE"
+E       AssertionError: assert 'ROLLED_BACK_TO_PREIMAGE' == 'ROLLBACK_INCOMPLETE'
+E         
+E         - ROLLBACK_INCOMPLETE
+E         + ROLLED_BACK_TO_PREIMAGE
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:424: AssertionError</failure></testcase><testcase classname="issue30.work.cutover_analysis.tests.test_recovery_continuation" name="test_cli_reports_incomplete_continuation_with_nonzero_exit" time="0.108"><failure message="AssertionError: assert 0 == 2&#10; +  where 0 = &lt;function main at 0x7f6f83888ca0&gt;(['rollback', '--receipt', '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-klvv8s73/task/ev...operation_receipt.json', '--confirm', 'ROLLBACK_API_ONLY_TO_RECORDED_PREIMAGE', '--expected-current-plist-sha256', ...])&#10; +    where &lt;function main at 0x7f6f83888ca0&gt; = &lt;module '_test_cutover_1fae467e0e564e82b125cfb8e1283782' from '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/candidate/api_only_cutover_r2_ready.py'&gt;.main">setup_actual = (&lt;test_actual_api_cutover.ActualCutoverTests testMethod=test_failed_bootstrap_recovers_using_same_lock_and_exact_base&gt;...ec/issue30/work/cutover_analysis/cutover-test-klvv8s73/releases/base-accepted/app&lt;/string&gt;\n&lt;/dict&gt;\n&lt;/plist&gt;\n', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f6f83aef240&gt;
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x7f6f839b5e80&gt;
+
+    def test_cli_reports_incomplete_continuation_with_nonzero_exit(setup_actual, monkeypatch, capsys):
+        harness, fixture = setup_actual
+        m, plan = harness.m, fixture["plan"]
+        receipt_path = _make_incomplete(harness, fixture, monkeypatch)
+    
+        def fail_old_bootstrap(action):
+            if action == "bootstrap":
+                fixture["runtime"]["identity"] = None
+                raise ValueError("SYNTHETIC_OLD_BOOTSTRAP_FAILURE")
+    
+        fixture["runtime"]["hook"] = fail_old_bootstrap
+        monkeypatch.setattr(m, "_load_plan", lambda: plan)
+&gt;       assert m.main(["rollback", "--receipt", str(receipt_path), "--confirm", m.CONFIRM_ROLLBACK,
+                       "--expected-current-plist-sha256", plan["target"]["staged_api_plist_sha256"]]) == 2
+E       AssertionError: assert 0 == 2
+E        +  where 0 = &lt;function main at 0x7f6f83888ca0&gt;(['rollback', '--receipt', '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/cutover-test-klvv8s73/task/ev...operation_receipt.json', '--confirm', 'ROLLBACK_API_ONLY_TO_RECORDED_PREIMAGE', '--expected-current-plist-sha256', ...])
+E        +    where &lt;function main at 0x7f6f83888ca0&gt; = &lt;module '_test_cutover_1fae467e0e564e82b125cfb8e1283782' from '/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/candidate/api_only_cutover_r2_ready.py'&gt;.main
+
+issue30/work/cutover_analysis/tests/test_recovery_continuation.py:441: AssertionError</failure></testcase></testsuite></testsuites>

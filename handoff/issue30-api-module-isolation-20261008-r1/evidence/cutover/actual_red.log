@@ -1,0 +1,118 @@
+test_active_replace_without_lease_refuses_before_writing (test_actual_api_cutover.ActualCutoverTests.test_active_replace_without_lease_refuses_before_writing) ... FAIL
+test_automatic_recovery_without_lease_refuses_before_runtime_observation (test_actual_api_cutover.ActualCutoverTests.test_automatic_recovery_without_lease_refuses_before_runtime_observation) ... FAIL
+test_direct_run_rollback_acquires_shared_lock_before_receipt_reads (test_actual_api_cutover.ActualCutoverTests.test_direct_run_rollback_acquires_shared_lock_before_receipt_reads) ... FAIL
+test_direct_run_switch_acquires_shared_lock_before_preflight (test_actual_api_cutover.ActualCutoverTests.test_direct_run_switch_acquires_shared_lock_before_preflight) ... FAIL
+test_guard_executes_exact_bytes_checked_even_if_path_replaced (test_actual_api_cutover.ActualCutoverTests.test_guard_executes_exact_bytes_checked_even_if_path_replaced) ... FAIL
+test_guard_hash_mismatch_refuses_before_executing (test_actual_api_cutover.ActualCutoverTests.test_guard_hash_mismatch_refuses_before_executing) ... FAIL
+test_guard_ignores_import_path_and_module_shadow (test_actual_api_cutover.ActualCutoverTests.test_guard_ignores_import_path_and_module_shadow) ... FAIL
+test_inventory_provenance_backend_is_not_executed (test_actual_api_cutover.ActualCutoverTests.test_inventory_provenance_backend_is_not_executed) ... FAIL
+test_legacy_candidate_is_refused_by_actual_preflight (test_actual_api_cutover.ActualCutoverTests.test_legacy_candidate_is_refused_by_actual_preflight) ... FAIL
+test_missing_active_restore_without_lease_refuses_before_writing (test_actual_api_cutover.ActualCutoverTests.test_missing_active_restore_without_lease_refuses_before_writing) ... FAIL
+test_task_private_roots_still_contend_on_one_pointer_lock (test_actual_api_cutover.ActualCutoverTests.test_task_private_roots_still_contend_on_one_pointer_lock) ... FAIL
+
+======================================================================
+FAIL: test_active_replace_without_lease_refuses_before_writing (test_actual_api_cutover.ActualCutoverTests.test_active_replace_without_lease_refuses_before_writing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/tests/test_actual_api_cutover.py", line 78, in test_active_replace_without_lease_refuses_before_writing
+    with self.assertRaisesRegex(ValueError, "SHARED_LOCK_REQUIRED"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_automatic_recovery_without_lease_refuses_before_runtime_observation (test_actual_api_cutover.ActualCutoverTests.test_automatic_recovery_without_lease_refuses_before_runtime_observation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/tests/test_actual_api_cutover.py", line 96, in test_automatic_recovery_without_lease_refuses_before_runtime_observation
+    with self.assertRaisesRegex(ValueError, "SHARED_LOCK_REQUIRED"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_direct_run_rollback_acquires_shared_lock_before_receipt_reads (test_actual_api_cutover.ActualCutoverTests.test_direct_run_rollback_acquires_shared_lock_before_receipt_reads)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/tests/test_actual_api_cutover.py", line 152, in test_direct_run_rollback_acquires_shared_lock_before_receipt_reads
+    guard = self.guard()
+            ^^^^^^^^^^^^
+  File "/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/tests/test_actual_api_cutover.py", line 57, in guard
+    self.assertTrue(hasattr(self.m, "_load_integration_guard"), "actual executable must pin and load the shared guard")
+AssertionError: False is not true : actual executable must pin and load the shared guard
+
+======================================================================
+FAIL: test_direct_run_switch_acquires_shared_lock_before_preflight (test_actual_api_cutover.ActualCutoverTests.test_direct_run_switch_acquires_shared_lock_before_preflight)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/tests/test_actual_api_cutover.py", line 144, in test_direct_run_switch_acquires_shared_lock_before_preflight
+    guard = self.guard()
+            ^^^^^^^^^^^^
+  File "/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/tests/test_actual_api_cutover.py", line 57, in guard
+    self.assertTrue(hasattr(self.m, "_load_integration_guard"), "actual executable must pin and load the shared guard")
+AssertionError: False is not true : actual executable must pin and load the shared guard
+
+======================================================================
+FAIL: test_guard_executes_exact_bytes_checked_even_if_path_replaced (test_actual_api_cutover.ActualCutoverTests.test_guard_executes_exact_bytes_checked_even_if_path_replaced)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/tests/test_actual_api_cutover.py", line 108, in test_guard_executes_exact_bytes_checked_even_if_path_replaced
+    self.assertTrue(hasattr(self.m, "_load_integration_guard"), "actual executable lacks a pinned integration guard")
+AssertionError: False is not true : actual executable lacks a pinned integration guard
+
+======================================================================
+FAIL: test_guard_hash_mismatch_refuses_before_executing (test_actual_api_cutover.ActualCutoverTests.test_guard_hash_mismatch_refuses_before_executing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/tests/test_actual_api_cutover.py", line 101, in test_guard_hash_mismatch_refuses_before_executing
+    self.assertTrue(hasattr(self.m, "_load_integration_guard"), "actual executable lacks a pinned integration guard")
+AssertionError: False is not true : actual executable lacks a pinned integration guard
+
+======================================================================
+FAIL: test_guard_ignores_import_path_and_module_shadow (test_actual_api_cutover.ActualCutoverTests.test_guard_ignores_import_path_and_module_shadow)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/tests/test_actual_api_cutover.py", line 123, in test_guard_ignores_import_path_and_module_shadow
+    self.assertTrue(hasattr(self.m, "_load_integration_guard"), "actual executable lacks a pinned integration guard")
+AssertionError: False is not true : actual executable lacks a pinned integration guard
+
+======================================================================
+FAIL: test_inventory_provenance_backend_is_not_executed (test_actual_api_cutover.ActualCutoverTests.test_inventory_provenance_backend_is_not_executed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/tests/test_actual_api_cutover.py", line 165, in test_inventory_provenance_backend_is_not_executed
+    self.assertTrue(hasattr(self.m, "_load_integration_guard"), "actual executable lacks a pinned integration guard")
+AssertionError: False is not true : actual executable lacks a pinned integration guard
+
+======================================================================
+FAIL: test_legacy_candidate_is_refused_by_actual_preflight (test_actual_api_cutover.ActualCutoverTests.test_legacy_candidate_is_refused_by_actual_preflight)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/tests/test_actual_api_cutover.py", line 159, in test_legacy_candidate_is_refused_by_actual_preflight
+    self.guard()
+  File "/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/tests/test_actual_api_cutover.py", line 57, in guard
+    self.assertTrue(hasattr(self.m, "_load_integration_guard"), "actual executable must pin and load the shared guard")
+AssertionError: False is not true : actual executable must pin and load the shared guard
+
+======================================================================
+FAIL: test_missing_active_restore_without_lease_refuses_before_writing (test_actual_api_cutover.ActualCutoverTests.test_missing_active_restore_without_lease_refuses_before_writing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/tests/test_actual_api_cutover.py", line 86, in test_missing_active_restore_without_lease_refuses_before_writing
+    with self.assertRaisesRegex(ValueError, "SHARED_LOCK_REQUIRED"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_task_private_roots_still_contend_on_one_pointer_lock (test_actual_api_cutover.ActualCutoverTests.test_task_private_roots_still_contend_on_one_pointer_lock)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/tests/test_actual_api_cutover.py", line 132, in test_task_private_roots_still_contend_on_one_pointer_lock
+    guard = self.guard()
+            ^^^^^^^^^^^^
+  File "/workspace/scratch/25c09a595aec/issue30/work/cutover_analysis/tests/test_actual_api_cutover.py", line 57, in guard
+    self.assertTrue(hasattr(self.m, "_load_integration_guard"), "actual executable must pin and load the shared guard")
+AssertionError: False is not true : actual executable must pin and load the shared guard
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.155s
+
+FAILED (failures=11)

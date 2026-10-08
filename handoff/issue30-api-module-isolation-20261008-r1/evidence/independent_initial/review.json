@@ -1,0 +1,409 @@
+{
+  "schema_version": "v4.issue30.independent_source_review.v1",
+  "checkpoint": "initial_review_changes_requested",
+  "verdict": "CHANGES_REQUESTED",
+  "verdict_scope": "SOURCE_CANDIDATE",
+  "reviewer": "fresh independent reviewer /root/issue30_reviewer",
+  "timestamp_utc": "2026-10-08T14:14:01.574810+00:00",
+  "input_commit": "a0a0b88dc133d14ee5763569272c174bcd7cc445",
+  "candidate_modified_by_reviewer": false,
+  "ReviewedSHAs": {
+    "candidate/ops/api_release_integration.py": "0b9d3b678dc7e875b9514bd8b66b7e8fc69229759c366ef0df776126746180bf",
+    "candidate/ops/build_release_candidate.py": "2645e7c4923df1d78eeaaf086ce90a01202852c9063a6e0e0f109add3b0f107d",
+    "candidate/ops/prepare_api_only_cutover.py": "0fee40c13bdb76d8d4d7b5b0068eb8b6e7cade9187a5f3c3154b7d6238a1af4c",
+    "candidate/ops/create_api_module_delta.py": "04e67a3ce948eecf9dac04083277bd919c7ec8880ec5814bbe57e7a5ba8d0072",
+    "work/cutover_analysis/candidate/api_only_cutover_r2_ready.py": "931a9e2749adee74ad4b7021b9f7451aaf9c905c586003250adec9cc14a9a364",
+    "work/preselection_scope/after/apps/api/v35_api/app.py": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+    "work/preselection_scope/after/apps/api/v35_api/preselection_router.py": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+    "work/preselection_scope/after/apps/api/v35_api/preselection_service.py": "ecf1c410e5c4671297d2054e695abe41fd32edd44caa24b2276e8c714108500f"
+  },
+  "historical_support_and_test_initial_shas": {
+    "candidate/ops/api_release_integration.py": "0b9d3b678dc7e875b9514bd8b66b7e8fc69229759c366ef0df776126746180bf",
+    "candidate/ops/build_release_candidate.py": "2645e7c4923df1d78eeaaf086ce90a01202852c9063a6e0e0f109add3b0f107d",
+    "candidate/ops/build_release_candidate_stage.py": "79cbb7ab98ca894594c2f80f802d9ed410bf64489decad469fdf3fc9d6b402df",
+    "candidate/ops/create_api_module_delta.py": "04e67a3ce948eecf9dac04083277bd919c7ec8880ec5814bbe57e7a5ba8d0072",
+    "candidate/ops/prepare_api_only_cutover.py": "0fee40c13bdb76d8d4d7b5b0068eb8b6e7cade9187a5f3c3154b7d6238a1af4c",
+    "candidate/ops/release_candidate_audit.py": "84d30676cf88d244f930eb0abc1f8184db20e53ec2e0ad7a4f32590086673cdf",
+    "candidate/ops/release_candidate_ports.py": "1b70ef9725335c1570b96b937753917ac9d5114cfa66359ee08178eb282fd7d4",
+    "candidate/ops/release_candidate_sources.py": "76d963c71cb388e1f7efc51478078f0f21dd280093646fc9d47e955dfe04a738",
+    "candidate/ops/stage_service_overlay_contract.py": "36eb27395bfd10cc78c6f0ba237eb67afe22716f653e56b5dec2ab3827e22838",
+    "candidate/tests/test_api_release_integration.py": "89b5e9e58cc1e1c8686892561d6dcf17b81d1adc30243300d8a58050de145135",
+    "candidate/tests/test_api_release_v2_contract.py": "429d70fddd4d691d0afbfa7b622c0e1b568a251b6eb93448360816900427ea5f",
+    "candidate/tests/test_build_release_candidate.py": "3db7bf532492f87f95c200bea505ae99e3293244bcb875c4e2618e02373afe71",
+    "candidate/tests/test_builder_issue30.py": "5f4a0d1ad426b960e0598d70a7152ece48f370fa357b8ef19e0b9ffbb9f7ce89",
+    "candidate/tests/test_builder_module_additions.py": "25fa8f26586e88007ee091116d8af42d0e5e1f1d746fc1cd488571ccaccee850",
+    "candidate/tests/test_integration_adversarial.py": "7ef68f7640200044f25c748d674e8d72f3af889d7f8298ddb35be3ed238fc136",
+    "candidate/tests/test_module_delta_cli.py": "9ac653f2c78c8860daf87c6eb07201fe70fa7e5fd8e866920856bba02c7f7ce9",
+    "candidate/tests/test_prepare_issue30.py": "9fddb5ff7fb61c735f6e5ece6c2da855318c8870b60884aae8cc0160c1ee7af4"
+  },
+  "findings": [
+    {
+      "id": "R1",
+      "severity": "Important",
+      "status": "OPEN_ACCEPTED_FOR_REVISION",
+      "title": "Git-tracked module additions cannot use the API builder",
+      "locations": [
+        "candidate/ops/api_release_integration.py:731-734",
+        "candidate/ops/build_release_candidate.py:420-434",
+        "candidate/ops/release_candidate_sources.py:68-78"
+      ],
+      "problem": "The core requires all additions absent from active to equal explicit_untracked_paths, while the builder rejects any tracked path in that list. A reviewed preselection_service.py that has been git added/committed is rejected both with and without the option. Git tracking state should not invalidate a fully pinned, owned module addition.",
+      "expected": "Allow receipt-declared tracked additions; retain explicit approval and exact scope validation for current untracked source files.",
+      "test": "test_release_review_probes.py::test_committed_reviewed_module_addition_can_be_built",
+      "observed": "2 failures: EXACT_UNTRACKED_APPROVAL without option, already tracked with option.",
+      "evidence": [
+        "release_probes.log",
+        "release_probes.xml",
+        "release_probes_run.json"
+      ]
+    },
+    {
+      "id": "R2",
+      "severity": "Important",
+      "status": "OPEN_ACCEPTED_FOR_REVISION",
+      "title": "Scheduler staging follows a late candidate config symlink outside the candidate",
+      "locations": [
+        "candidate/ops/build_release_candidate.py:569-571",
+        "candidate/ops/build_release_candidate_stage.py:181-184"
+      ],
+      "problem": "After render_cutover has safely staged config, replacing candidate/config with a symlink causes the subsequent historical scheduler helper to mkdir/open through it and write com.lexi.v35.scheduler.plist outside the candidate. Final API integration only checks app, and the builder can return success. The historical helper is an active write dependency of this product entrypoint.",
+      "expected": "Keep every builder output write anchored to verified candidate directory descriptors and reject an aliased/replaced config before any outside write.",
+      "test": "test_release_review_probes.py::test_scheduler_staging_cannot_follow_late_config_symlink",
+      "observed": "1 failure: outside-config/com.lexi.v35.scheduler.plist exists after the build.",
+      "evidence": [
+        "config_escape.log",
+        "config_escape.xml",
+        "config_escape_run.json"
+      ]
+    },
+    {
+      "id": "R3",
+      "severity": "Important",
+      "status": "OPEN_ACCEPTED_FOR_REVISION",
+      "title": "Non-delta directory preservation is not bound by candidate verification",
+      "locations": [
+        "candidate/ops/api_release_integration.py:_inventory_snapshot",
+        "candidate/ops/api_release_integration.py:_verify_delta_files",
+        "candidate/ops/api_release_integration.py:_candidate_identity"
+      ],
+      "problem": "Directory modes are copied at build time but omitted from manifest inventory and base-versus-candidate comparison. A post-build chmod of candidate/app/apps/api from 0755 to 0777 passes verification with unchanged files, manifest and receipt. Current-call physical snapshots only establish self-consistency. Empty directory set preservation has the same structural omission; the recorded minimal runtime probe tests mode changes.",
+      "expected": "Bind and compare original directory set and mode, including app root and empty directories; allow only clearly scoped new ancestors required by allowed additions.",
+      "test": "test_release_review_probes.py::test_verifier_rejects_undeclared_directory_mode_change",
+      "observed": "1 failure: expected rejection, verify_api_release_candidate returned PASS.",
+      "evidence": [
+        "release_probes.log",
+        "release_probes.xml",
+        "release_probes_run.json"
+      ]
+    },
+    {
+      "id": "R4",
+      "severity": "Important",
+      "status": "OPEN_ACCEPTED_FOR_REVISION",
+      "title": "Legacy SHA recovery promotes inconsistent market/code identities as valid A rows",
+      "locations": [
+        "work/preselection_scope/after/apps/api/v35_api/preselection_service.py:316-325"
+      ],
+      "problem": "The newly reachable recovery calls the historical _canonical_a_symbol helper, which can ignore contradictory market or symbol fields. A row with market=US and symbol=A.000020, or market=A plus symbol=HK.00700 and code=000020, is accepted as the only valid A input after another pool SHA failure. Both return PARTIAL_WITH_ROWS and A count 1; the contradictory HK symbol can be rewritten to A.000020. Strict trio SHA does not prove semantic identity consistency.",
+      "expected": "Validate every present market/code identity field as a consistent A identity before counting/recovering; quarantine inconsistent inputs, retain the original block if no valid A remains, and preserve all source bytes.",
+      "test": "test_preselection_review_probes.py::test_sha_recovery_does_not_promote_inconsistent_market_identity",
+      "observed": "2 failures: both inconsistent rows promoted; source JSON hashes unchanged.",
+      "evidence": [
+        "preselection_identity_probes.log",
+        "preselection_identity_probes.xml",
+        "preselection_identity_probes_run.json"
+      ]
+    },
+    {
+      "id": "R5",
+      "severity": "Important",
+      "status": "OPEN_ACCEPTED_FOR_REVISION",
+      "title": "An interrupted automatic rollback has no protected operator recovery continuation",
+      "locations": [
+        "work/cutover_analysis/candidate/api_only_cutover_r2_ready.py:1570-1578",
+        "work/cutover_analysis/candidate/api_only_cutover_r2_ready.py:1721-1722"
+      ],
+      "problem": "A simulated candidate bootstrap failure followed by a transient restore rename failure leaves the candidate plist and no loaded service, with an intact original backup. The operation receipt is overwritten as ROLLBACK_INCOMPLETE without the full prepared before/after/integration/base contract. After the transient fault clears, the public rollback entrypoint rejects that receipt because it accepts only successful switches. Execute cannot resume from the candidate pointer either.",
+      "expected": "Preserve the prepared transaction and exact original base contract across failures. Provide an explicit guarded continuation for prepared/incomplete operations that still validates the shared lease, receipt, backup, known pointer and known/unloaded runtime; keep unknown identities rejected. Interface details belong to the writer.",
+      "test": "test_actual_review_probes.py::test_operator_can_resume_after_transient_automatic_restore_failure",
+      "observed": "1 failure: API_ONLY_ROLLBACK_RECEIPT_IDENTITY_INVALID after both injected faults are removed; preimage is intact and current pointer is still the known candidate.",
+      "evidence": [
+        "actual_recovery_probe.log",
+        "actual_recovery_probe.xml",
+        "actual_recovery_probe_run.json"
+      ]
+    }
+  ],
+  "confirmed_critical_findings": [],
+  "executed_runs": [
+    {
+      "name": "release",
+      "passed": 85,
+      "failed": 0,
+      "classification": "existing release regression",
+      "metadata_file": "release_run.json",
+      "log": "release.log",
+      "junit": "release.xml",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests",
+        "--junitxml=/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/release.xml",
+        "--basetemp=/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/release_tmp"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue30/candidate",
+      "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]",
+      "executable": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+      "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+      "timestamp_utc": "2026-10-08T14:04:48.670816+00:00",
+      "scope": "temporary synthetic release tests; no Mac paths or services",
+      "exit_code": 0
+    },
+    {
+      "name": "preselection",
+      "passed": 26,
+      "failed": 0,
+      "classification": "bounded real router/service and historical dependency regression",
+      "metadata_file": "preselection_run.json",
+      "log": "preselection.log",
+      "junit": "preselection.xml",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "-W",
+        "error",
+        "-W",
+        "default::starlette.exceptions.StarletteDeprecationWarning",
+        "tests",
+        "--junitxml=/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/preselection.xml",
+        "--basetemp=/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/preselection_tmp"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue30/work/preselection_scope",
+      "env_overrides": {
+        "ISSUE30_ROUTE_MODE": "candidate",
+        "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+        "PYTHONPATH": "/workspace/scratch/25c09a595aec/issue30/work/preselection_scope/after:/workspace/scratch/25c09a595aec/issue30/work/preselection_scope/test_support"
+      },
+      "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]",
+      "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+      "timestamp_utc": "2026-10-08T14:09:10.211215+00:00",
+      "exit_code": 0
+    },
+    {
+      "name": "actual",
+      "passed": 21,
+      "failed": 0,
+      "classification": "synthetic publisher state machine with frozen core",
+      "metadata_file": "actual_run.json",
+      "log": "actual.log",
+      "junit": "actual.xml",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/test_actual_api_cutover.py",
+        "--junitxml=/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/actual.xml",
+        "--basetemp=/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/actual_recheck_tmp"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer",
+      "env_overrides": {
+        "CUTOVER_SOURCE": "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/frozen_initial/api_only_cutover_r2_ready.py",
+        "INTEGRATION_SOURCE": "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/frozen_initial/api_release_integration.py",
+        "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]",
+      "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+      "timestamp_utc": "2026-10-08T14:09:50.279106+00:00",
+      "exit_code": 0,
+      "copied_test_sha256": "dbff595c9c64c7846449f2c5a1148a2eee3049d3d51e3f18d8464440b8b16726",
+      "copied_probe_sha256": "d4dd61e63aa720b8753ce9d471ba0294904f0f240e1b27678e28b937ec99ee96"
+    },
+    {
+      "name": "release_probes",
+      "passed": 0,
+      "failed": 3,
+      "classification": "independent acceptance probes",
+      "metadata_file": "release_probes_run.json",
+      "log": "release_probes.log",
+      "junit": "release_probes.xml",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/test_release_review_probes.py",
+        "--junitxml=/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/release_probes.xml",
+        "--basetemp=/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/release_probes_tmp"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue30/candidate",
+      "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]",
+      "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+      "timestamp_utc": "2026-10-08T14:06:32.888848+00:00",
+      "exit_code": 1
+    },
+    {
+      "name": "config_escape",
+      "passed": 0,
+      "failed": 1,
+      "classification": "independent acceptance probe",
+      "metadata_file": "config_escape_run.json",
+      "log": "config_escape.log",
+      "junit": "config_escape.xml",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/test_release_review_probes.py::test_scheduler_staging_cannot_follow_late_config_symlink",
+        "--junitxml=/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/config_escape.xml",
+        "--basetemp=/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/config_escape_tmp"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue30/candidate",
+      "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]",
+      "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+      "timestamp_utc": "2026-10-08T14:07:26.666299+00:00",
+      "exit_code": 1
+    },
+    {
+      "name": "preselection_identity_probes",
+      "passed": 0,
+      "failed": 2,
+      "classification": "independent acceptance probes",
+      "metadata_file": "preselection_identity_probes_run.json",
+      "log": "preselection_identity_probes.log",
+      "junit": "preselection_identity_probes.xml",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "test_preselection_review_probes.py",
+        "--junitxml=/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/preselection_identity_probes.xml",
+        "--basetemp=/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/preselection_identity_probes_tmp"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer",
+      "env_overrides": {
+        "ISSUE30_ROUTE_MODE": "candidate",
+        "PYTHONPATH": "/workspace/scratch/25c09a595aec/issue30/work/preselection_scope/after:/workspace/scratch/25c09a595aec/issue30/work/preselection_scope/test_support",
+        "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1"
+      },
+      "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]",
+      "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+      "timestamp_utc": "2026-10-08T14:11:31.481984+00:00",
+      "exit_code": 1
+    },
+    {
+      "name": "actual_recovery_probe",
+      "passed": 0,
+      "failed": 1,
+      "classification": "independent acceptance probe",
+      "metadata_file": "actual_recovery_probe_run.json",
+      "log": "actual_recovery_probe.log",
+      "junit": "actual_recovery_probe.xml",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "test_actual_review_probes.py",
+        "--junitxml=/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/actual_recovery_probe.xml",
+        "--basetemp=/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/actual_recovery_probe_tmp"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer",
+      "env_overrides": {
+        "CUTOVER_SOURCE": "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/frozen_initial/api_only_cutover_r2_ready.py",
+        "INTEGRATION_SOURCE": "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/frozen_initial/api_release_integration.py",
+        "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1"
+      },
+      "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]",
+      "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+      "timestamp_utc": "2026-10-08T14:11:30.981307+00:00",
+      "exit_code": 1
+    },
+    {
+      "name": "actual_missing_support",
+      "passed": 20,
+      "failed": 1,
+      "classification": "reviewer setup error: probe dependency missing before candidate execution",
+      "metadata_file": "actual_missing_support_run.json",
+      "log": "actual_missing_support.log",
+      "junit": "actual_missing_support.xml",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/test_actual_api_cutover.py",
+        "--junitxml=/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/actual.xml",
+        "--basetemp=/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/actual_tmp"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer",
+      "env_overrides": {
+        "CUTOVER_SOURCE": "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/frozen_initial/api_only_cutover_r2_ready.py",
+        "INTEGRATION_SOURCE": "/workspace/scratch/25c09a595aec/issue30/work/issue30_reviewer/frozen_initial/api_release_integration.py",
+        "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1"
+      },
+      "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]",
+      "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+      "timestamp_utc": "2026-10-08T14:09:15.074921+00:00",
+      "exit_code": 1
+    }
+  ],
+  "original_probe_sha256": {
+    "test_release_review_probes.py": "9084266edbc5a4e1aa7204e7d09e185c99952d7a48b744001e0127f06f70a0dc",
+    "test_preselection_review_probes.py": "d946f235313e1a58bc07f5c05e441ea5f464fce4e1ad86495dbc25baafa51e44",
+    "test_actual_review_probes.py": "82e50515934e66d0445b9f444adddcf7b7a8218c7e5985dd8ae54232a06f6684"
+  },
+  "DeclinedToJudge": [
+    "Any revision after the ReviewedSHAs below. Writers are revising the accepted findings; no item is closed by this checkpoint.",
+    "Complete current R2 runtime identity and 1016-entry app closure: only one exact R2 app.py byte identity and bounded historical supports are available.",
+    "Full R2 create_app startup, real manager announcement/workspace/date-isolation business behavior, real source A=178/HK=100 canary, API/UI reload, and natural-time execution: NOT_RUN.",
+    "Mac launchd, filesystem flags/xattrs semantics and deployed publishers on the user machine: no Mac paths or live services were operated.",
+    "Global retirement/migration of unpublished publisher entrypoints: shared flock coordinates only cooperating migrated publishers.",
+    "Untrusted-code adversaries able to monkeypatch arbitrary interpreter state or ignore publication locks: same-byte pinning and cooperative locking are not an OS sandbox.",
+    "New release/R3 runtime pins and an executable deployment adapter: frozen actual script intentionally retains R2 pins and is not directly usable for a new release.",
+    "The complete shared-file byte preservation proof and final patch/package roundtrip will be checked against the final revision; this checkpoint reviewed extracted implementation and documented proof but does not independently certify full business equivalence.",
+    "Merge, deployment, trade/BUY changes, producer/data repair, and unrelated Issue #28 data/PIT problems: out of scope and not authorized by this review."
+  ],
+  "status_boundary": {
+    "existing_suites": "85, 26 and 21 PASS in distinct bounded runs; not review approval",
+    "independent_acceptance_probes": "7 failing executions across 5 accepted findings",
+    "integration": "NOT_RUN",
+    "deployment": "NOT_RUN",
+    "live_api_ui": "NOT_RUN",
+    "natural_execution": "NOT_RUN",
+    "merge": "NOT_RUN"
+  },
+  "preserved_setup_failure": "actual_missing_support files contain reviewer relocation dependency failure; exact helper copied and full 21 rerun passed. It is not classified as a product defect.",
+  "followup": "Re-review final writer revisions against the same acceptance probes and relevant existing suites; update pin identities and close only actually verified findings."
+}

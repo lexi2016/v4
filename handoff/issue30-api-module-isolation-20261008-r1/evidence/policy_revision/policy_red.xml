@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="2" time="0.113" timestamp="2026-10-08T07:25:27.556903-07:00" hostname="5fa05583d26b"><testcase classname="tests.test_manager_actual_ownership" name="test_actual_manager_service_path_has_its_own_module_owner[manager-True]" time="0.005"><failure message="ValueError: API_RELEASE_MODULE_PATH_NOT_OWNED:v4/manager_research/service.py">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/policy_revision/red_tmp/test_actual_manager_service_pa0')
+module = 'manager', allowed = True
+
+    @pytest.mark.parametrize("module, allowed", [("manager", True), ("preselection", False)])
+    def test_actual_manager_service_path_has_its_own_module_owner(tmp_path, module, allowed):
+        relative = "v4/manager_research/service.py"
+        _, _, arguments = receipt_fixture(tmp_path, relative=relative, addition=True, module=module)
+        if allowed:
+&gt;           record = integration.build_integrated_app(**arguments)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_actual_ownership.py:15: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+ops/api_release_integration.py:828: in build_integrated_app
+    entries = _validate_delta_receipt(receipt, base_identity=active)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ops/api_release_integration.py:665: in _validate_delta_receipt
+    _validate_module_scope(receipt.get("module_scope"), [entry["path"] for entry in entries])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = {'module': 'manager', 'policy_sha256': '37284595be87b99025d1e282ee64958adbc52c0376df899f6de93b78f228d775', 'shared_paths': []}
+paths = ['v4/manager_research/service.py']
+
+    def _validate_module_scope(value: object, paths: Sequence[str]) -&gt; dict[str, Any]:
+        if not isinstance(value, dict) or set(value) != {"module", "shared_paths", "policy_sha256"}:
+            raise ValueError("API_RELEASE_MODULE_SCOPE_REQUIRED")
+        if not isinstance(value["shared_paths"], list):
+            raise ValueError("API_RELEASE_MODULE_SHARED_PATHS_INVALID")
+        expected = module_scope(value["module"], value["shared_paths"])
+        if value != expected:
+            raise ValueError("API_RELEASE_MODULE_SCOPE_POLICY_MISMATCH")
+        shared = sorted(path for path in paths if path in POLICY["shared"])
+        if shared != expected["shared_paths"]:
+            raise ValueError("API_RELEASE_MODULE_SHARED_PATHS_NOT_EXACT")
+        ownership = POLICY["modules"][expected["module"]]
+        for path in paths:
+            if path in shared:
+                continue
+            if path not in ownership["exact"] and not any(path.startswith(prefix) for prefix in ownership["prefixes"]):
+&gt;               raise ValueError("API_RELEASE_MODULE_PATH_NOT_OWNED:" + path)
+E               ValueError: API_RELEASE_MODULE_PATH_NOT_OWNED:v4/manager_research/service.py
+
+ops/api_release_integration.py:602: ValueError</failure></testcase><testcase classname="tests.test_manager_actual_ownership" name="test_actual_manager_service_path_has_its_own_module_owner[preselection-False]" time="0.006" /></testsuite></testsuites>

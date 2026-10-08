@@ -1,0 +1,272 @@
+{
+  "collection_errors": 0,
+  "deselected": 0,
+  "executor_euid": 0,
+  "expected_case_executions": 218,
+  "failed": 0,
+  "finished_utc": "2026-10-08T14:44:53.471357+00:00",
+  "input_commit": "a0a0b88dc133d14ee5763569272c174bcd7cc445",
+  "isolated_copy_bytes_rechecked_after_execution": true,
+  "limitations": [
+    "Source tests use isolated synthetic filesystem fixtures and simulated service/HTTP responses.",
+    "Preselection loads real router/service modules and exact app registration AST with a historical dependency closure.",
+    "The complete current R2 app, live sources, deployment, API/UI, and natural periods are NOT tested.",
+    "Verified source and explicit dependencies are trusted code; this launcher is not an OS sandbox.",
+    "No network access, dependency installation, publication, or service action is requested by the launcher.",
+    "Linux execution used EUID 0; permission behavior is not Mac service-user acceptance.",
+    "Preselection support files are historical snapshots and are not production replacement files.",
+    "The actual publisher retains all 47 historical R2 top-level assignments; a new release needs a separately frozen local plan and runtime pins."
+  ],
+  "not_run": [
+    "MAC_CANONICAL_INTEGRATION",
+    "CURRENT_COMPLETE_R2_CREATE_APP",
+    "ACTUAL_A178_HK100_SOURCE_CANARY",
+    "LIVE_MANAGER_BEHAVIOR_REGRESSION",
+    "MAC_LAUNCHD_AND_METADATA_SEMANTICS",
+    "ALL_PUBLISHER_ADOPTION",
+    "DEPLOYMENT",
+    "LIVE_API",
+    "LIVE_UI",
+    "NATURAL_PERIOD",
+    "HISTORICAL_DATA_RECONSTRUCTION"
+  ],
+  "original_failure_evidence": [
+    "evidence/independent_initial/",
+    "evidence/independent_revision/",
+    "evidence/core_initial/",
+    "evidence/core_revision/",
+    "evidence/cutover/",
+    "evidence/preselection_revision/"
+  ],
+  "passed_case_executions": 218,
+  "product_file_count": 8,
+  "product_shas": {
+    "actual_cutover_reference/api_only_cutover_r2_ready.py": "389be853923a72066472ad229129a9a41ef9e9785f1b729aa468ed3e58df19f5",
+    "apps/api/v35_api/app.py": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+    "apps/api/v35_api/preselection_router.py": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+    "apps/api/v35_api/preselection_service.py": "91eba3ad5d005161d876f9c2f1a69ff51db56f129267cde29394d4581d1a4c95",
+    "ops/api_release_integration.py": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+    "ops/build_release_candidate.py": "81f4290a6f51e5958048d782c2d4b1eecfc42f892e387e6c1a22bb71912abef6",
+    "ops/create_api_module_delta.py": "04e67a3ce948eecf9dac04083277bd919c7ec8880ec5814bbe57e7a5ba8d0072",
+    "ops/prepare_api_only_cutover.py": "0fee40c13bdb76d8d4d7b5b0068eb8b6e7cade9187a5f3c3154b7d6238a1af4c"
+  },
+  "runner_command": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-B",
+    "/workspace/scratch/25c09a595aec/issue30/delivery_api_module_r1/run_tests.py",
+    "--python",
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "--output-root",
+    "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run"
+  ],
+  "runner_sha256": "73069ef34a74a5eddb47ccaab59ab142a7e518841511441e3e20016770811409",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "deployed": false,
+    "full_r2_runtime_tested": false,
+    "live_api_ui_tested": false,
+    "natural_period_acceptance": "NOT_RUN",
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "v4.issue30.final_source_test_results.v1",
+  "scope": "FROZEN_SOURCE_CANDIDATE_ISOLATED_SYNTHETIC_TESTS",
+  "skipped": 0,
+  "source_bytes_rechecked_after_execution": true,
+  "started_utc": "2026-10-08T14:44:33.033930+00:00",
+  "status": "PASS",
+  "suites": [
+    {
+      "collected": 112,
+      "collection_errors": 0,
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "-p",
+        "_issue30_portable_metrics",
+        "-c",
+        "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/release/pytest.ini",
+        "--rootdir",
+        "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/release",
+        "--confcutdir",
+        "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/release",
+        "--basetemp",
+        "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/release/tmp/pytest",
+        "--junitxml",
+        "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/results/release/junit.xml",
+        "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/release/tests"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/release",
+      "deselected": 0,
+      "elapsed_seconds": 4.025289,
+      "evidence": "evidence/portable_final/results/release/result.json",
+      "failed": 0,
+      "name": "release",
+      "passed": 112,
+      "runtime": {
+        "errors": [],
+        "executable": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "git": "/usr/bin/git",
+        "packages": {
+          "pytest": {
+            "origin": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/lib/python3.14/site-packages/pytest/__init__.py",
+            "version": "9.1.1"
+          }
+        },
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+        "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]"
+      },
+      "skipped": 0,
+      "status": "PASS",
+      "unique_node_ids": 112,
+      "xfail_or_xpass": 0
+    },
+    {
+      "collected": 76,
+      "collection_errors": 0,
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "-p",
+        "_issue30_portable_metrics",
+        "-c",
+        "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/cutover/pytest.ini",
+        "--rootdir",
+        "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/cutover",
+        "--confcutdir",
+        "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/cutover",
+        "--basetemp",
+        "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/cutover/tmp/pytest",
+        "--junitxml",
+        "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/results/cutover/junit.xml",
+        "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/cutover/work/cutover_analysis/tests"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/cutover/work/cutover_analysis",
+      "deselected": 0,
+      "elapsed_seconds": 12.305864,
+      "evidence": "evidence/portable_final/results/cutover/result.json",
+      "failed": 0,
+      "name": "cutover",
+      "passed": 76,
+      "runtime": {
+        "errors": [],
+        "executable": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "packages": {
+          "pytest": {
+            "origin": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/lib/python3.14/site-packages/pytest/__init__.py",
+            "version": "9.1.1"
+          }
+        },
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+        "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]"
+      },
+      "skipped": 0,
+      "status": "PASS",
+      "unique_node_ids": 76,
+      "xfail_or_xpass": 0
+    },
+    {
+      "collected": 30,
+      "collection_errors": 0,
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "-p",
+        "_issue30_portable_metrics",
+        "-c",
+        "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/preselection/pytest.ini",
+        "--rootdir",
+        "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/preselection",
+        "--confcutdir",
+        "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/preselection",
+        "--basetemp",
+        "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/preselection/tmp/pytest",
+        "--junitxml",
+        "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/results/preselection/junit.xml",
+        "-W",
+        "error",
+        "-W",
+        "default::starlette.exceptions.StarletteDeprecationWarning",
+        "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/preselection/tests"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/preselection",
+      "deselected": 0,
+      "elapsed_seconds": 3.130432,
+      "evidence": "evidence/portable_final/results/preselection/result.json",
+      "failed": 0,
+      "name": "preselection",
+      "passed": 30,
+      "runtime": {
+        "errors": [],
+        "executable": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "packages": {
+          "anyio": {
+            "origin": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/lib/python3.14/site-packages/anyio/__init__.py",
+            "version": "4.15.1"
+          },
+          "fastapi": {
+            "origin": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/lib/python3.14/site-packages/fastapi/__init__.py",
+            "version": "0.142.4"
+          },
+          "httpx": {
+            "origin": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/lib/python3.14/site-packages/httpx/__init__.py",
+            "version": "0.28.1"
+          },
+          "pydantic": {
+            "origin": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/lib/python3.14/site-packages/pydantic/__init__.py",
+            "version": "2.13.5"
+          },
+          "pytest": {
+            "origin": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/lib/python3.14/site-packages/pytest/__init__.py",
+            "version": "9.1.1"
+          },
+          "starlette": {
+            "origin": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/lib/python3.14/site-packages/starlette/__init__.py",
+            "version": "1.7.0"
+          }
+        },
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+        "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]"
+      },
+      "skipped": 0,
+      "status": "PASS",
+      "unique_node_ids": 30,
+      "xfail_or_xpass": 0
+    }
+  ],
+  "supplementary_verification": {
+    "independent_reruns_included_as_additional_cases": false,
+    "independent_review": "evidence/independent_final/final_review.json",
+    "patch_roundtrip": "PATCH_VERIFICATION.json",
+    "portable_control_checks": 24,
+    "portable_controls": "evidence/portable_controls/CONTROL_CHECKS.json",
+    "portable_controls_included_in_218": false
+  },
+  "test_inputs_sha256": "7f846c242af93aac814456a9567d10eec1b18915601791b01c326774ecdd8a2e",
+  "verified_runtime_files": 64,
+  "warnings": [
+    {
+      "count": 1,
+      "detail": "Starlette 1.7.0 warns that its httpx TestClient adapter is deprecated. Kept as a recorded warning; all other warnings were errors. No dependency change was made.",
+      "suite": "preselection",
+      "type": "starlette.exceptions.StarletteDeprecationWarning"
+    }
+  ],
+  "xfail_or_xpass": 0
+}

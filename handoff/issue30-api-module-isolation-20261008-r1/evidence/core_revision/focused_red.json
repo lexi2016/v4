@@ -1,0 +1,96 @@
+{
+  "command": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "/workspace/scratch/25c09a595aec/issue30/work/core_revision/tests/test_core_review_revision.py",
+    "--junitxml=/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red.xml",
+    "--basetemp=/workspace/scratch/25c09a595aec/issue30/work/core_revision/focused_red_temp"
+  ],
+  "cwd": "/workspace/scratch/25c09a595aec/issue30/work/core_revision",
+  "returncode": 1,
+  "junit": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "16",
+    "skipped": "0",
+    "tests": "17",
+    "time": "0.349",
+    "timestamp": "2026-10-08T07:11:46.968693-07:00",
+    "hostname": "5fa05583d26b"
+  },
+  "case_status": [
+    {
+      "name": "test_receipt_authorizes_active_addition_without_untracked_flag",
+      "failure": true
+    },
+    {
+      "name": "test_source_untracked_approval_can_cover_an_active_modification",
+      "failure": true
+    },
+    {
+      "name": "test_untracked_flags_must_be_unique_receipt_paths_before_copy[flags0]",
+      "failure": true
+    },
+    {
+      "name": "test_untracked_flags_must_be_unique_receipt_paths_before_copy[flags1]",
+      "failure": false
+    },
+    {
+      "name": "test_source_allowlist_refuses_unapproved_receipt_file_before_copy",
+      "failure": true
+    },
+    {
+      "name": "test_source_allowlist_does_not_copy_unlisted_files",
+      "failure": true
+    },
+    {
+      "name": "test_verifier_rejects_existing_directory_mode_drift[.]",
+      "failure": true
+    },
+    {
+      "name": "test_verifier_rejects_existing_directory_mode_drift[apps/api]",
+      "failure": true
+    },
+    {
+      "name": "test_verifier_rejects_removal_of_preserved_empty_directory",
+      "failure": true
+    },
+    {
+      "name": "test_verifier_rejects_undeclared_empty_directory",
+      "failure": true
+    },
+    {
+      "name": "test_verifier_binds_base_directories_even_if_candidate_matches_drift[mode]",
+      "failure": true
+    },
+    {
+      "name": "test_verifier_binds_base_directories_even_if_candidate_matches_drift[remove]",
+      "failure": true
+    },
+    {
+      "name": "test_verifier_binds_base_directories_even_if_candidate_matches_drift[add]",
+      "failure": true
+    },
+    {
+      "name": "test_new_directories_are_only_required_ancestors_with_fixed_mode",
+      "failure": true
+    },
+    {
+      "name": "test_verifier_rejects_mode_change_to_a_declared_new_ancestor",
+      "failure": true
+    },
+    {
+      "name": "test_readonly_base_directories_are_retained_while_new_directory_is_added",
+      "failure": true
+    },
+    {
+      "name": "test_directory_proof_is_required_and_unknown_fields_are_rejected",
+      "failure": true
+    }
+  ]
+}

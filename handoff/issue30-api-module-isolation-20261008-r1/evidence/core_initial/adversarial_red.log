@@ -1,0 +1,191 @@
+FFFFFFFFF                                                                [100%]
+=================================== FAILURES ===================================
+__________ test_read_active_rejects_plist_change_during_identity_read __________
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/integration_core/adversarial_red_basetemp/test_read_active_rejects_plist0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f14b16fe2c0>
+
+    def test_read_active_rejects_plist_change_during_identity_read(tmp_path, monkeypatch):
+        active = _write_active_release(tmp_path, tmp_path / "LaunchAgents" / "com.lexi.v35.api-only.plist")
+        other = _alternate_release(tmp_path)
+        pointer = Path(active["api_plist"])
+        replacement = Path(other["api_plist"]).read_bytes()
+        original = integration._release_identity
+    
+        def change_after_identity(**kwargs):
+            result = original(**kwargs)
+            pointer.write_bytes(replacement)
+            return result
+    
+        monkeypatch.setattr(integration, "_release_identity", change_after_identity)
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_integration_adversarial.py:50: Failed
+_________ test_verify_rejects_active_switch_during_delta_verification __________
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/integration_core/adversarial_red_basetemp/test_verify_rejects_active_swi0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f14b16fdf30>
+
+    def test_verify_rejects_active_switch_during_delta_verification(tmp_path, monkeypatch):
+        active, candidate, _ = _integrated_candidate(tmp_path)
+        other = _alternate_release(tmp_path)
+        pointer = Path(active["api_plist"])
+        replacement = Path(other["api_plist"]).read_bytes()
+        original = integration._verify_delta_files
+    
+        def change_after_delta(**kwargs):
+            result = original(**kwargs)
+            pointer.write_bytes(replacement)
+            return result
+    
+        monkeypatch.setattr(integration, "_verify_delta_files", change_after_delta)
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_integration_adversarial.py:67: Failed
+__________ test_build_rejects_active_switch_during_delta_verification __________
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/integration_core/adversarial_red_basetemp/test_build_rejects_active_swit0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f14b170f2f0>
+
+    def test_build_rejects_active_switch_during_delta_verification(tmp_path, monkeypatch):
+        active = _write_active_release(tmp_path, tmp_path / "LaunchAgents" / "com.lexi.v35.api-only.plist")
+        other = _alternate_release(tmp_path)
+        pointer = Path(active["api_plist"])
+        replacement = Path(other["api_plist"]).read_bytes()
+        source = tmp_path / "source"
+        changed = source / "apps/api/v35_api/app.py"
+        changed.parent.mkdir(parents=True)
+        changed.write_bytes(b"VALUE = 2\n")
+        receipt = _delta_receipt(active, source)
+        candidate = tmp_path / "candidate"
+        candidate.mkdir()
+        original = integration._verify_delta_files
+    
+        def change_after_delta(**kwargs):
+            result = original(**kwargs)
+            pointer.write_bytes(replacement)
+            return result
+    
+        monkeypatch.setattr(integration, "_verify_delta_files", change_after_delta)
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_integration_adversarial.py:91: Failed
+__________ test_verify_rejects_non_delta_mutation_after_verification ___________
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/integration_core/adversarial_red_basetemp/test_verify_rejects_non_delta_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f14b1702e00>
+
+    def test_verify_rejects_non_delta_mutation_after_verification(tmp_path, monkeypatch):
+        active, candidate, _ = _integrated_candidate(tmp_path)
+        original = integration._verify_delta_files
+    
+        def change_after_delta(**kwargs):
+            result = original(**kwargs)
+            (candidate / "app/stable-module.py").write_bytes(b"STABLE = False\n")
+            return result
+    
+        monkeypatch.setattr(integration, "_verify_delta_files", change_after_delta)
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_integration_adversarial.py:106: Failed
+_____________ test_verify_rejects_delta_mode_not_bound_by_receipt ______________
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/integration_core/adversarial_red_basetemp/test_verify_rejects_delta_mode0')
+
+    def test_verify_rejects_delta_mode_not_bound_by_receipt(tmp_path):
+        active, candidate, manifest = _integrated_candidate(tmp_path)
+        (candidate / "app/apps/api/v35_api/app.py").chmod(0o777)
+        _refresh_candidate_inventory(candidate, manifest)
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_integration_adversarial.py:115: Failed
+________________ test_prepare_rejects_config_directory_symlink _________________
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/integration_core/adversarial_red_basetemp/test_prepare_rejects_config_di0')
+
+    def test_prepare_rejects_config_directory_symlink(tmp_path):
+        active, candidate, _ = _integrated_candidate(tmp_path)
+        outside = tmp_path / "outside-candidate"
+        outside.mkdir()
+        (candidate / "config").symlink_to(outside, target_is_directory=True)
+        manifest = candidate / "release-manifest.json"
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_integration_adversarial.py:126: Failed
+_________________ test_prepare_rejects_source_pointer_symlink __________________
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/integration_core/adversarial_red_basetemp/test_prepare_rejects_source_po0')
+
+    def test_prepare_rejects_source_pointer_symlink(tmp_path):
+        active, candidate, _ = _integrated_candidate(tmp_path)
+        alias_parent = tmp_path / "AliasLaunchAgents"
+        alias_parent.mkdir()
+        alias = alias_parent / "com.lexi.v35.api-only.plist"
+        alias.symlink_to(Path(active["api_plist"]))
+        manifest = candidate / "release-manifest.json"
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_integration_adversarial.py:141: Failed
+______ test_verify_rejects_candidate_root_replacement_during_verification ______
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/integration_core/adversarial_red_basetemp/test_verify_rejects_candidate_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f14b1703570>
+
+    def test_verify_rejects_candidate_root_replacement_during_verification(tmp_path, monkeypatch):
+        active, candidate, _ = _integrated_candidate(tmp_path)
+        original = integration._verify_delta_files
+    
+        def change_after_delta(**kwargs):
+            result = original(**kwargs)
+            parked = tmp_path / "parked-candidate"
+            candidate.rename(parked)
+            shutil.copytree(parked, candidate, symlinks=True)
+            return result
+    
+        monkeypatch.setattr(integration, "_verify_delta_files", change_after_delta)
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_integration_adversarial.py:160: Failed
+_________________ test_verify_binds_exact_active_pointer_bytes _________________
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue30/work/integration_core/adversarial_red_basetemp/test_verify_binds_exact_active0')
+
+    def test_verify_binds_exact_active_pointer_bytes(tmp_path):
+        import plistlib
+        active, candidate, _ = _integrated_candidate(tmp_path)
+        pointer = Path(active["api_plist"])
+        payload = plistlib.loads(pointer.read_bytes())
+        payload["ProgramArguments"].insert(1, "V35_DATA_ROOT=/isolated/new-source")
+        pointer.write_bytes(plistlib.dumps(payload, fmt=plistlib.FMT_XML, sort_keys=True))
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_integration_adversarial.py:172: Failed
+=========================== short test summary info ============================
+FAILED tests/test_integration_adversarial.py::test_read_active_rejects_plist_change_during_identity_read
+FAILED tests/test_integration_adversarial.py::test_verify_rejects_active_switch_during_delta_verification
+FAILED tests/test_integration_adversarial.py::test_build_rejects_active_switch_during_delta_verification
+FAILED tests/test_integration_adversarial.py::test_verify_rejects_non_delta_mutation_after_verification
+FAILED tests/test_integration_adversarial.py::test_verify_rejects_delta_mode_not_bound_by_receipt
+FAILED tests/test_integration_adversarial.py::test_prepare_rejects_config_directory_symlink
+FAILED tests/test_integration_adversarial.py::test_prepare_rejects_source_pointer_symlink
+FAILED tests/test_integration_adversarial.py::test_verify_rejects_candidate_root_replacement_during_verification
+FAILED tests/test_integration_adversarial.py::test_verify_binds_exact_active_pointer_bytes
+9 failed in 0.15s

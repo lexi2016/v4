@@ -1,0 +1,162 @@
+{
+  "checks": [
+    {
+      "name": "input_byte_tamper_rejected",
+      "rejected_as": "ReplayError: TEST_INPUT_SHA_OR_SIZE_MISMATCH:after/ops/create_api_module_delta.py",
+      "status": "PASS"
+    },
+    {
+      "name": "missing_input_rejected",
+      "rejected_as": "FileNotFoundError: [Errno 2] No such file or directory: 'create_api_module_delta.py'",
+      "status": "PASS"
+    },
+    {
+      "name": "leaf_symlink_rejected",
+      "rejected_as": "OSError: [Errno 40] Too many levels of symbolic links: 'create_api_module_delta.py'",
+      "status": "PASS"
+    },
+    {
+      "name": "hardlink_rejected",
+      "rejected_as": "ReplayError: REGULAR_NON_HARDLINK_FILE_REQUIRED:after/ops/create_api_module_delta.py",
+      "status": "PASS"
+    },
+    {
+      "name": "directory_symlink_rejected",
+      "rejected_as": "NotADirectoryError: [Errno 20] Not a directory: 'ops'",
+      "status": "PASS"
+    },
+    {
+      "name": "unlisted_runtime_file_rejected",
+      "rejected_as": "ReplayError: UNLISTED_RUNTIME_FILES:tests/release/test_unlisted.py",
+      "status": "PASS"
+    },
+    {
+      "name": "required_input_without_pin_rejected",
+      "rejected_as": "ReplayError: REQUIRED_TEST_INPUT_MISSING:after/ops/create_api_module_delta.py",
+      "status": "PASS"
+    },
+    {
+      "name": "duplicate_json_key_rejected",
+      "rejected_as": "DUPLICATE_JSON_KEY:a",
+      "status": "PASS"
+    },
+    {
+      "name": "manifest_traversal_rejected",
+      "rejected_as": "INVALID_RELATIVE_PATH:../outside.py",
+      "status": "PASS"
+    },
+    {
+      "exit_code": 2,
+      "name": "existing_output_not_overwritten",
+      "rejected_as": "FileExistsError: [Errno 17] File exists: 'selfcheck_run'",
+      "status": "PASS"
+    },
+    {
+      "exit_code": 2,
+      "name": "output_inside_package_rejected",
+      "rejected_as": "ReplayError: OUTPUT_ROOT_MUST_BE_OUTSIDE_PACKAGE",
+      "status": "PASS"
+    },
+    {
+      "exit_code": 2,
+      "name": "output_ancestor_symlink_rejected",
+      "rejected_as": "NotADirectoryError: [Errno 20] Not a directory: 'output-parent-alias'",
+      "status": "PASS"
+    },
+    {
+      "exit_code": 2,
+      "name": "package_ancestor_symlink_rejected",
+      "rejected_as": "NotADirectoryError: [Errno 20] Not a directory: 'source-parent-alias'",
+      "status": "PASS"
+    },
+    {
+      "name": "strict_evaluator_accepts_verified_110_case_result",
+      "problem_count": 0,
+      "status": "PASS"
+    },
+    {
+      "name": "nonzero_deselected_rejected",
+      "problems": [
+        "METRICS_NOT_ZERO:deselected"
+      ],
+      "status": "PASS"
+    },
+    {
+      "name": "nonzero_collection_errors_rejected",
+      "problems": [
+        "METRICS_NOT_ZERO:collection_errors"
+      ],
+      "status": "PASS"
+    },
+    {
+      "name": "nonzero_failed_calls_rejected",
+      "problems": [
+        "METRICS_NOT_ZERO:failed_calls"
+      ],
+      "status": "PASS"
+    },
+    {
+      "name": "nonzero_failed_setup_teardown_rejected",
+      "problems": [
+        "METRICS_NOT_ZERO:failed_setup_teardown"
+      ],
+      "status": "PASS"
+    },
+    {
+      "name": "nonzero_skipped_reports_rejected",
+      "problems": [
+        "METRICS_NOT_ZERO:skipped_reports"
+      ],
+      "status": "PASS"
+    },
+    {
+      "name": "nonzero_xfail_or_xpass_reports_rejected",
+      "problems": [
+        "METRICS_NOT_ZERO:xfail_or_xpass_reports"
+      ],
+      "status": "PASS"
+    },
+    {
+      "name": "expected_collection_count_mismatch_rejected",
+      "problems": [
+        "METRICS_COUNT_MISMATCH:testscollected",
+        "METRICS_COUNT_MISMATCH:unique_node_ids",
+        "METRICS_COUNT_MISMATCH:passed_calls",
+        "COLLECTED_NODE_COUNT_MISMATCH",
+        "JUNIT_COUNT_MISMATCH:tests",
+        "JUNIT_COUNT_MISMATCH:testcase_elements"
+      ],
+      "status": "PASS"
+    },
+    {
+      "name": "junit_declaration_element_mismatch_rejected",
+      "problems": [
+        "JUNIT_COUNT_MISMATCH:testcase_elements"
+      ],
+      "status": "PASS"
+    },
+    {
+      "name": "nonzero_exit_rejected_despite_pass_counters",
+      "problems": [
+        "PYTEST_PROCESS_FAILED_OR_TIMED_OUT"
+      ],
+      "status": "PASS"
+    },
+    {
+      "inherited_poison_not_forwarded": true,
+      "name": "inherited_pytest_python_runtime_environment_not_forwarded",
+      "status": "PASS",
+      "verified_suites": [
+        "release",
+        "cutover",
+        "preselection"
+      ]
+    }
+  ],
+  "failed": 0,
+  "passed": 24,
+  "portable_smoke_summary": "e4d1a7cd2cea7fe6b46c4a3866b1933acc29f0c88de84407bd9dad324b09973b",
+  "runner_sha256": "73069ef34a74a5eddb47ccaab59ab142a7e518841511441e3e20016770811409",
+  "scope": "Portable launcher control checks only; not additional product acceptance cases",
+  "status": "PASS"
+}

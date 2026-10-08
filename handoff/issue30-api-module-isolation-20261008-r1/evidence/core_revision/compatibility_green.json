@@ -1,0 +1,26 @@
+{
+  "command": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "tests",
+    "--junitxml=/workspace/scratch/25c09a595aec/issue30/work/core_revision/compatibility_green.xml",
+    "--basetemp=/workspace/scratch/25c09a595aec/issue30/work/core_revision/compatibility_green_temp"
+  ],
+  "cwd": "/workspace/scratch/25c09a595aec/issue30/work/core_revision/run/candidate",
+  "returncode": 0,
+  "junit": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "103",
+    "time": "2.701",
+    "timestamp": "2026-10-08T07:14:34.318104-07:00",
+    "hostname": "5fa05583d26b"
+  }
+}

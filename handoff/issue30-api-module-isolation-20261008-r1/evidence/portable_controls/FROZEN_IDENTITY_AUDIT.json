@@ -1,0 +1,88 @@
+{
+  "actual_guard_pin": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+  "author_cutover_report_matches_final_source_core_and_76_count": true,
+  "case_executions": 218,
+  "change_set_matches_product_manifest": true,
+  "module_policy_sha256": "c55f4f09269661e0db05fa566aa1be9a96b2aa681912223c38fb802c4127e1b6",
+  "new_behavior_claims": false,
+  "patch_record_sha_verified": "6caf2d02546e17aabfeb06c721fa3ac8748aaf0e1f73aeb13ffd7c9de3dfc86e",
+  "result_artifact_hashes_checked": 18,
+  "runner_sha256": "73069ef34a74a5eddb47ccaab59ab142a7e518841511441e3e20016770811409",
+  "runtime_input_count": 64,
+  "runtime_mapping_count": 64,
+  "scope": "READ_ONLY_FROZEN_INPUT_AND_RECORDED_RESULT_CONSISTENCY",
+  "source_product_checks": [
+    {
+      "after_mode": "PASS",
+      "before_after_sha_size_git_blob": "PASS",
+      "path": "actual_cutover_reference/api_only_cutover_r2_ready.py"
+    },
+    {
+      "after_mode": "PASS",
+      "before_after_sha_size_git_blob": "PASS",
+      "path": "apps/api/v35_api/app.py"
+    },
+    {
+      "after_mode": "PASS",
+      "before_after_sha_size_git_blob": "PASS",
+      "path": "apps/api/v35_api/preselection_router.py"
+    },
+    {
+      "after_mode": "PASS",
+      "before_after_sha_size_git_blob": "PASS",
+      "path": "apps/api/v35_api/preselection_service.py"
+    },
+    {
+      "after_mode": "PASS",
+      "before_after_sha_size_git_blob": "PASS",
+      "path": "ops/api_release_integration.py"
+    },
+    {
+      "after_mode": "PASS",
+      "before_after_sha_size_git_blob": "PASS",
+      "path": "ops/build_release_candidate.py"
+    },
+    {
+      "after_mode": "PASS",
+      "before_after_sha_size_git_blob": "PASS",
+      "path": "ops/create_api_module_delta.py"
+    },
+    {
+      "after_mode": "PASS",
+      "before_after_sha_size_git_blob": "PASS",
+      "path": "ops/prepare_api_only_cutover.py"
+    }
+  ],
+  "source_test_suites_executed_by_this_check": false,
+  "status": "PASS",
+  "suites": [
+    {
+      "collected": 112,
+      "expected": 112,
+      "junit_testcases": 112,
+      "name": "release",
+      "node_id_set_matches_passed_calls": true,
+      "passed": 112,
+      "status": "PASS"
+    },
+    {
+      "collected": 76,
+      "expected": 76,
+      "junit_testcases": 76,
+      "name": "cutover",
+      "node_id_set_matches_passed_calls": true,
+      "passed": 76,
+      "status": "PASS"
+    },
+    {
+      "collected": 30,
+      "expected": 30,
+      "junit_testcases": 30,
+      "name": "preselection",
+      "node_id_set_matches_passed_calls": true,
+      "passed": 30,
+      "status": "PASS"
+    }
+  ],
+  "test_inputs_sha256": "7f846c242af93aac814456a9567d10eec1b18915601791b01c326774ecdd8a2e"
+}

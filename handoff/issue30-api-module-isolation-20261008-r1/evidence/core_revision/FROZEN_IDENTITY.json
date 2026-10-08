@@ -1,0 +1,26 @@
+{
+  "schema_version": "v4.issue30.core_revision_identity.v1",
+  "baseline_sha256": "0b9d3b678dc7e875b9514bd8b66b7e8fc69229759c366ef0df776126746180bf",
+  "files": [
+    {
+      "path": "candidate/ops/api_release_integration.py",
+      "size": 57757,
+      "sha256": "f79e774cfaf1d02a323b402ec9f2a52d938e8197af9914a7efc331a7b716ca18",
+      "git_blob_sha1": "372dba58f86c5bf9374fb0b9f614a31766488ac1"
+    },
+    {
+      "path": "tests/test_core_review_revision.py",
+      "size": 9193,
+      "sha256": "24e231d98ce7318e05f9593e6326b45df6a2a7cffe0d115b5da8b2a8dbe3d5d5",
+      "git_blob_sha1": "09cec6923a724eb2932581c514dc6037f6a58d82"
+    }
+  ],
+  "compatibility_tests": {
+    "passed": 103,
+    "failed": 0,
+    "includes_previous": 85,
+    "new_unique": 18
+  },
+  "independent_review": "PENDING",
+  "deployment": "NOT_RUN"
+}

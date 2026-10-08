@@ -1,0 +1,112 @@
+{
+  "artifacts": [
+    {
+      "path": "results/cutover/dependency_probe.log",
+      "sha256": "c96b72e7c5cd144a337dea7651b347206ed4c08fdac211739c83d79b95f80f86",
+      "size": 399
+    },
+    {
+      "path": "results/cutover/environment.json",
+      "sha256": "686a1d31b1e3cf9cb159f3d589e4032e90e55853a8cc062c4c8e211940b3b47c",
+      "size": 1528
+    },
+    {
+      "path": "results/cutover/junit.xml",
+      "sha256": "01bcdeab33bafe0cabfa32441f0ca5ce91cb50ef78a29f2b9bc07d538671bf7e",
+      "size": 13322
+    },
+    {
+      "path": "results/cutover/metrics.json",
+      "sha256": "4a5d9441959950d1333f1951522967da2ad78ac6d5c3f74e7832f398d9f95e7c",
+      "size": 65784
+    },
+    {
+      "path": "results/cutover/pytest.log",
+      "sha256": "82d2b593c8ea9829bb58ceb7133b54e57ab2983537d7d287ac96284c26d05eb7",
+      "size": 180
+    }
+  ],
+  "dependency_probe": {
+    "command": [
+      "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+      "-B",
+      "-c",
+      "import importlib\nimport importlib.metadata\nimport json\nimport platform\nimport shutil\nimport sys\nrequirements = json.loads(sys.argv[1])\nresult = {\"python\": sys.version, \"executable\": sys.executable,\n          \"platform\": platform.platform(), \"packages\": {}, \"errors\": []}\nif sys.version_info < (3, 11):\n    result[\"errors\"].append(\"Python 3.11 or newer is required\")\ntry:\n    import fcntl\nexcept ImportError as error:\n    result[\"errors\"].append(\"POSIX fcntl is required: \" + str(error))\nfor name in requirements:\n    try:\n        module = importlib.import_module(name)\n        try:\n            version = importlib.metadata.version(name)\n        except importlib.metadata.PackageNotFoundError:\n            version = \"UNKNOWN\"\n        result[\"packages\"][name] = {\"version\": version, \"origin\": getattr(module, \"__file__\", None)}\n    except Exception as error:\n        result[\"errors\"].append(name + \": \" + type(error).__name__ + \": \" + str(error))\nif sys.argv[2] == \"release\":\n    result[\"git\"] = shutil.which(\"git\")\n    if result[\"git\"] is None:\n        result[\"errors\"].append(\"git is required for isolated source fixtures\")\nprint(json.dumps(result, sort_keys=True))\nraise SystemExit(2 if result[\"errors\"] else 0)\n",
+      "[\"pytest\"]",
+      "cutover"
+    ],
+    "cwd": "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/cutover/work/cutover_analysis",
+    "elapsed_seconds": 0.164285,
+    "exit_code": 0,
+    "timed_out": false
+  },
+  "expected_tests": 76,
+  "junit": {
+    "error_elements": 0,
+    "errors": 0,
+    "failure_elements": 0,
+    "failures": 0,
+    "skipped": 0,
+    "skipped_elements": 0,
+    "testcase_elements": 76,
+    "tests": 76
+  },
+  "metrics": {
+    "collection_errors": 0,
+    "deselected": 0,
+    "exitstatus": 0,
+    "failed_calls": 0,
+    "failed_setup_teardown": 0,
+    "node_ids_sha256": "03ba0eb248f4c814bea35ddd8b70efb7a7254152ab2ad95b9d6add7ecd55a7ce",
+    "passed_calls": 76,
+    "schema_version": "v4.issue30.pytest_metrics.v1",
+    "skipped_reports": 0,
+    "testscollected": 76,
+    "unique_node_ids": 76,
+    "xfail_or_xpass_reports": 0
+  },
+  "problems": [],
+  "pytest": {
+    "command": [
+      "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "-p",
+      "_issue30_portable_metrics",
+      "-c",
+      "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/cutover/pytest.ini",
+      "--rootdir",
+      "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/cutover",
+      "--confcutdir",
+      "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/cutover",
+      "--basetemp",
+      "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/cutover/tmp/pytest",
+      "--junitxml",
+      "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/results/cutover/junit.xml",
+      "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/cutover/work/cutover_analysis/tests"
+    ],
+    "cwd": "/workspace/scratch/25c09a595aec/issue30/work/portable_final_run/isolated/cutover/work/cutover_analysis",
+    "elapsed_seconds": 12.305864,
+    "exit_code": 0,
+    "timed_out": false
+  },
+  "runtime": {
+    "errors": [],
+    "executable": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "packages": {
+      "pytest": {
+        "origin": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/lib/python3.14/site-packages/pytest/__init__.py",
+        "version": "9.1.1"
+      }
+    },
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]"
+  },
+  "scope": "ISOLATED_SYNTHETIC_SOURCE_TEST",
+  "status": "PASS",
+  "suite": "cutover"
+}

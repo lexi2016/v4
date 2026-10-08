@@ -1,0 +1,30 @@
+{
+  "core_sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+  "policy_sha256": "c55f4f09269661e0db05fa566aa1be9a96b2aa681912223c38fb802c4127e1b6",
+  "policy_literal_ast_read_only": true,
+  "imports": [
+    "__future__",
+    "contextlib",
+    "difflib",
+    "fcntl",
+    "hashlib",
+    "json",
+    "math",
+    "os",
+    "pathlib",
+    "plistlib",
+    "re",
+    "secrets",
+    "stat",
+    "threading",
+    "time",
+    "typing"
+  ],
+  "all_imports_standard_library": true,
+  "manager_prefixes": [
+    "domains/manager_research/",
+    "v4/manager_research/",
+    "apps/api/v35_api/manager_"
+  ],
+  "unknown_v4_siblings_granted": false
+}
