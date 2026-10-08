@@ -37,10 +37,24 @@ Exact batch patch digest: ac5e7322940fb858d09de5d72942b677fe4fdf5a9d6202fec8e169
 
 IMPLEMENTED and source TESTED/REVIEWED/isolated BEHAVIOR_VERIFIED are established. DEPLOYED, live API_VERIFIED, and UI_VERIFIED are not established.
 
-The first runtime candidate independently passed the isolated target-date canary. Its cutover plan failed review for a service-recovery gap, and a concurrent manager-workbench release invalidated its frozen active baseline. It must not be activated. Recovery tooling is being corrected and the source fix must be integrated on top of the newer active release, preserving all unrelated changes.
+The first runtime candidate independently passed the isolated target-date canary. Its cutover plan failed review for a service-recovery gap, and a concurrent manager-workbench release invalidated its frozen active baseline. It must not be activated. The parameterized recovery module has since passed independent review, but has not been bound to a new stable candidate. The source fix must still be integrated on top of the newer active release, preserving all unrelated changes.
 
 Candidate review digest: e9e37ba5edfd58cd2a8cb0168bcbfadba9912267c0ed8669c7517c8ca017398a.
 Stage readiness, PIT/feature exclusion, and natural-slot behavior remain CANNOT_CONFIRM/out of scope.
 RESEARCH_ONLY=true; production_allowed=false; buy_gate_updated=false; orders_sent=false.
 
 Excluded from this snapshot: credentials, plist/config bindings, raw receipts, complete runtime inventories, market data, business responses, dist, virtual environments, and node_modules.
+
+## Reviewed recovery-module follow-up
+
+The ops/ directory contains a parameterized recovery module and its focused tests, not an active service configuration.
+- Independent verdict: PASS for the R2 gate/module scope.
+- Tests: 17 focused unittest cases passed; 8 additional independent negative probes all rejected incomplete review evidence.
+- Covered recovery states include a pre-swap failure with the baseline plist and an absent service, candidate plist with an absent or waiting/PID-zero service, and fail-closed PID drift or ambiguous port results.
+- Review permission requires explicit complete findings, empty P0/P1 findings, DEPLOYABLE=READY, and exact nonempty candidate manifest/plist pins.
+- api_candidate_recovery.py SHA-256: d42975f459858ed697805c3043090a82102cd2e0d6c28eef07bb4c440e955fbb.
+- test_api_candidate_recovery.py SHA-256: 871bbf1bf97a537bd40bf0461a00e7702ab9ae2c01d3a558a5bba5716bf77bf8.
+- Independent follow-up receipt SHA-256: b3ca3da42baec0ded8cd5b0d46750e7364a23124706a290af83459896547f7b0.
+- Command: python -B -m unittest -v test_api_candidate_recovery, using the existing runtime Python from the ops directory.
+
+The earlier FAIL receipts are retained. This follow-up does not approve the stale R1 candidate, prove live recovery, or establish deployment/API/UI/natural verification. No service operation was performed by this repair task. A newer shared API release was installed by another chat while review was in progress; publication coordination and a fresh candidate binding remain pending.
