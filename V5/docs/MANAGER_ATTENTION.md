@@ -1,0 +1,13 @@
+# 经理研究汇总候选
+
+复用8份冻结原源码的 build_research_attention；不重写评分，不等于整个workspace owner、公告判断或US每日映射已迁移。
+
+plan_date是本次attention目标，selection_date与announcement_publication_date独立保留；context.plan_trade_date存在时必须匹配plan_date。输入四路为screen、announcement、us、materials，逐路绑定payload原摘要和available_at。缺失、坏摘要、坏结构或超cutoff只拒该路，其他可用研究输入继续。
+
+原payload允许旧额外字段、整数session；公告最新attempt失败不等于已保留产品失败。原原始数据不改写，原评分与卡片保留；materials完整性未有owner证明时，传入US的有效副本撤销complete声明，避免未知映射变0。返回明确实际输入差异和原摘要。
+
+所有输入仍是SYNTHETIC或RECORDED_INPUT_REPLAY；摘要与声明时间不是原owner的真实性证明。V5 artifact.status统一CANNOT_CONFIRM、legacy_status保留原状态，authority_binding_status=NOT_CONNECTED。不能从attention纯投影取得正式资格或BUY权限。
+
+13项测试定义，尚待Mac实际运行；root仅AST/文件摘要与静态审查。尚缺完整非空screen/US正例、真实owner四重准入与原前端workspace API接线；不把本候选称完整经理系统。
+
+前端明确沿用V4。该候选提供后端独立模块能力，不生成另一套页面。
