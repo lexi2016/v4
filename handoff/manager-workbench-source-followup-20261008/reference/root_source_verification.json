@@ -1,0 +1,28 @@
+{
+  "remote_patch_checks": [
+    {
+      "original_patch": "page",
+      "git_blob": "61852de6fb4466e4603fb9db8ecf34c301227f93",
+      "bytes": 41157,
+      "sha256": "898fa3071aa88f2ae605f30dfc77a027386e229aa0eaa98d355af288d99648eb",
+      "extracted_section": "us_mapping_research.page_base.patch",
+      "section_exact_unique_match": true
+    },
+    {
+      "original_patch": "daily",
+      "git_blob": "b9f4bcf846925b14bcab1a12d28d21de3f0035e9",
+      "bytes": 27224,
+      "sha256": "6243854d149a4b1f2827326de6fb77237c0e64e7d612d24b34833e6ead99c965",
+      "extracted_section": "us_mapping_research.daily_r2.patch",
+      "section_exact_unique_match": true
+    }
+  ],
+  "page_preimage_bytes": 11447,
+  "page_preimage_exact": true,
+  "runtime_bytes": 14052,
+  "runtime_sha256": "297dc6f5950d3614437378c22e3157b6866823fbf25fd39cb47f112ffea40da7",
+  "source_executed": false,
+  "checked_at_utc": "2026-10-08 04:00:01 UTC",
+  "source_commit": "840b9538c45c9ba8fd56f8e89048aff230df0f0f",
+  "scope": "HISTORICAL_R2_SOURCE_PROVENANCE_ONLY"
+}
