@@ -1,0 +1,122 @@
+{
+  "base_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+  "candidate_zip_sha256": "1dd6f3f5ea4ce3afa3693f586ecb0c662d4b28242088a05d5f69057df62d1013",
+  "source_roots": {
+    "wechat": "<WORKSPACE>/v3_system/选股池/微信公众号",
+    "v4_app": "<WORKSPACE>/v4_app"
+  },
+  "reviewer_receipt_sha256": "89152bdbabaaee967d232d625daeb58a3c601d9bc83d860898fb3992d64f42d7",
+  "task": "Independent Mac review of frozen WX-01 through WX-11 R1 scope",
+  "reviewer": {
+    "identity": "independent Luna Max Reviewer",
+    "model": "gpt-6-luna",
+    "reasoning_effort": "max"
+  },
+  "verdict": "PASS_WITHIN_FROZEN_SCOPE",
+  "states": {
+    "REVIEWED": "PASS",
+    "TESTED": "INDEPENDENT_PASS",
+    "BEHAVIOR_VERIFIED": "PASS_FOR_ISOLATED_TARGET_REGRESSIONS_ONLY",
+    "DEPLOYED": false,
+    "API_VERIFIED": "CANNOT_CONFIRM",
+    "UI_VERIFIED": "CANNOT_CONFIRM",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM"
+  },
+  "scope": {
+    "allowed_product_test_paths": [
+      "source/v4_app/infrastructure/wechat_research_archive.py",
+      "source/v4_app/ops/index_wechat_research.py",
+      "source/wechat/scripts/wechat_chat_handoff.py",
+      "source/wechat/scripts/wechat_yesterday_performance.py",
+      "source/wechat/tests/test_chat_review_regressions.py",
+      "source/wechat/tests/test_prior_mentions_performance_appendix.py"
+    ],
+    "actual_diff_sections": 6,
+    "current_file_sha256": {
+      "source/v4_app/infrastructure/wechat_research_archive.py": "b5d23f521dbcad34a79a6757c455c3418e185aaeda29f49dbf4cd923f22d0016",
+      "source/v4_app/ops/index_wechat_research.py": "e741b6de83e231bc9940576d714854c038069326fd44ca7a1e8b8339d665c176",
+      "source/wechat/scripts/wechat_chat_handoff.py": "4b8b358883cac5538df244126bd42efc70ff358681f7512afda5242833981fdf",
+      "source/wechat/scripts/wechat_yesterday_performance.py": "364d441853fd8e0ab977cd35c173143e2639bd77e2a9363d8e1bf6e04f07e51d",
+      "source/wechat/tests/test_chat_review_regressions.py": "baf72d48c13b27629caf2399a59db974b7b9697b3568d02fe7b9b6aa8c753698",
+      "source/wechat/tests/test_prior_mentions_performance_appendix.py": "621c9d7163595e89f26ed2a818358513a6674992b8e30d175dc124a9cf9aa3ca"
+    },
+    "matches_writer_after_sha256": true,
+    "actual_diff_patch_sha256": "7db22726bc29d6a7870662ae7561b4aab5e4202334ed3412a9e9849922061493",
+    "CRLF_note": "W source/test files retain CRLF; LF-normalized content is the recorded candidate after-image."
+  },
+  "findings": [],
+  "risk_review": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "target_behavior": {
+    "WX-01": "PASS: unmanifested body image rejected before ZIP publication",
+    "WX-02": "PASS: re-import after archived-byte corruption emits a receipt bound to new immutable archived filenames; repeat is idempotent",
+    "WX-03": "PASS: RESEARCH_ONLY, WATCH_ONLY, NO_BUY_GATE are not accepted as completion statuses",
+    "WX-04": "PASS: summary bytes must match import receipt SHA",
+    "WX-05": "PASS: present ZIP must be a structurally valid frozen package and match receipt identity",
+    "WX-06": "PASS: invalid HK prices including zero/bool/NaN/Inf yield per-row CANNOT_CONFIRM and preserve other rows",
+    "WX-07": "PASS: dangling symlink outputs are rejected without external write; immutable versions remain intact",
+    "WX-08": "PASS: same-day prior article rejected",
+    "WX-09": "PASS: all-closed market is NO_TRADING_SESSION",
+    "WX-10": "PASS: BODY source and valid header-only mentions are accepted; isolated route returns exact raw bytes",
+    "WX-11": "PASS: stale V4 idempotent reference with corrupted artifact raises IDEMPOTENT_SOURCE_UNAVAILABLE"
+  },
+  "tests": {
+    "environment": {
+      "python": "3.12.14",
+      "executable": "<E>/test_venv/bin/python",
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "packages": {
+        "pytest": "9.0.2",
+        "Pillow": "12.3.0",
+        "fastapi": "0.128.2",
+        "httpx": "0.28.1",
+        "pandas": "2.2.3",
+        "pyarrow": "25.0.1"
+      }
+    },
+    "commands": {
+      "affected": "TMPDIR=<E>/tmp PYTHONDONTWRITEBYTECODE=1 WECHAT_REVIEW_V4_ROOT=<V> PYTHONPATH=<W>/scripts:<W>/tests:<V> <E>/test_venv/bin/python -m pytest -q -rs -p no:cacheprovider --basetemp=<E>/tmp/reviewer_core --junitxml=<E>/reviewer_pytest_affected.xml <W>/tests/test_wechat_chat_handoff.py <W>/tests/test_wechat_handoff_v2.py <W>/tests/test_prior_mentions_performance_appendix.py <W>/tests/test_chat_review_regressions.py <V>/tests/test_wechat_stage_a.py",
+      "original_boundaries": "TMPDIR=<E>/tmp PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=<W>/scripts:<W>/tests <E>/test_venv/bin/python -m pytest -q -rs -p no:cacheprovider --basetemp=<E>/tmp/reviewer_original --junitxml=<E>/reviewer_pytest_original.xml <W>/tests/test_review_wechat_boundaries.py <W>/tests/test_wechat_macos_ocr_cache.py <W>/tests/test_wechat_prepare_ocr_manifest.py"
+    },
+    "affected": {
+      "passed": 156,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "subtests_passed": 18,
+      "exit_code": 0
+    },
+    "original_boundaries": {
+      "passed": 37,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "exit_code": 0
+    },
+    "warnings": [
+      "PytestConfigWarning: cache_dir unknown with cacheprovider disabled",
+      "Starlette/AnyIO BlockingPortal deprecation (affected suite only)"
+    ],
+    "log_sha256": {
+      "reviewer_pytest_affected.log": "e74d3d7a87bf182a27c418bdd3ef1116b08a016df7e84f1298f385bf35a9f6a6",
+      "reviewer_pytest_affected.xml": "61640297de807776b1e0a255df100acca634dd52dafedcc0a5b21c495e1347fd",
+      "reviewer_pytest_original.log": "1bbe8767ba0bf6c33af66cf3610675dac3514a23e5f7afd9e09ab85358adb688",
+      "reviewer_pytest_original.xml": "775b4962ce7fa10a8ff0b841519111ab2e6233de09212dfdc8fc45f5f9c7d8a9",
+      "reviewer_repair_consumption.log": "f546aabfdc3da4b3b0e779154b853909b74fe839a5e8989cd1974d24e56dee70",
+      "ACTUAL_DIFF.patch": "7db22726bc29d6a7870662ae7561b4aab5e4202334ed3412a9e9849922061493"
+    }
+  },
+  "scope_limitations": [
+    "No collector, real article/OCR, market panels, loaded scheduler, full create_app, service, Drive, deployment, browser UI, or natural-slot behavior was run; these remain CANNOT_CONFIRM by scope.",
+    "Confirmed recovery-path observation, requirement CANNOT_CONFIRM: after WX-02 creates IMPORT_RECEIPT.v2.*.json and summary.v2.*.json, the prior-mentions loader still reads fixed IMPORT_RECEIPT.json and summary.json (wechat_yesterday_performance.py:436-450; CLI accepts only --prior-article-dir at line 1344). An isolated repro logs PerformanceAppendixError: summary.json bytes do not match the trusted archive receipt. This is not counted as a finding because versioned repaired-archive consumption is outside the frozen WX-01..11 PASS criteria."
+  ],
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "receipt_sha256_excludes_self": true
+}
