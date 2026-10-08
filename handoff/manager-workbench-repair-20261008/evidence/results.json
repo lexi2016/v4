@@ -1,0 +1,196 @@
+{
+  "schema_version": "v4.manager_workbench_repair.results.v1",
+  "base_commit": "0fd5eb374cb155232ed003d5fc4d0d3594252491",
+  "overall": "REVIEWED_CODE_CANDIDATE_EXTERNAL_ACCEPTANCE_PENDING",
+  "goal_of_three_channels_running_daily": "NOT_YET_VERIFIED",
+  "source_manifest": "../source_manifest.json",
+  "source_manifest_sha256": "ecc428fb1473b90867a5b58abb82d89a094eaec311fa478c69c09dd5abf4f7fb",
+  "scope": {
+    "production_source_files_changed": 15,
+    "new_test_and_helper_files": 8,
+    "separate_existing_scheduler_prerequisite_files": 1,
+    "source_root_kind": "ASSEMBLED_FROZEN_HANDOFF_COMPARISON_NOT_A_LIVE_RELEASE",
+    "remote_root_is_a_complete_application": false,
+    "actual_mac_accessed": false,
+    "actual_process_loaded_identity": "NOT_VERIFIED",
+    "binding_or_service_mutated": false,
+    "business_data_mutated": false
+  },
+  "verification": {
+    "targeted_backend": {
+      "status": "PASS",
+      "passed": 123,
+      "failed": 0,
+      "warnings": 1,
+      "warning": "Existing Starlette/httpx deprecation; dependencies unchanged",
+      "exit_code": 0,
+      "working_directory": "candidate",
+      "reproduction_command": "PYTHONPATH=.:upstreams python -m pytest -q tests/test_manager_announcement_parity_20261008.py tests/test_manager_input_contracts_20261008.py tests/test_manager_daily_dispatch_20261008.py tests/test_manager_workspace_owner_20261008.py tests/test_manager_daily_channels_20261008.py tests/test_manager_research_router_contract.py",
+      "log": "tests/backend_final.log",
+      "cases": "tests/backend_cases.json",
+      "fixture_boundary": "Original routing, store, owner and workspace code; temporary state, synthetic source catalogs, test bindings and clocks. No actual Mac data or live scheduled execution."
+    },
+    "targeted_frontend": {
+      "status": "PASS",
+      "passed": 29,
+      "failed": 0,
+      "test_files": 2,
+      "exit_code": 0,
+      "working_directory": "candidate/apps/web",
+      "command": "npm test -- src/manager-selection/dailyChannels.spec.ts src/manager-selection/dailyChannels.runtime.spec.ts --reporter=verbose",
+      "log": "tests/frontend_final.log",
+      "fixture_boundary": "Vitest/jsdom with explicitly synthetic payloads; not a production browser or deployed bundle."
+    },
+    "scoped_typescript": {
+      "status": "PASS",
+      "exit_code": 0,
+      "working_directory": "candidate/apps/web",
+      "command": "./node_modules/.bin/tsc --noEmit --target ES2022 --module ESNext --moduleResolution Bundler --strict --skipLibCheck --types vitest/globals src/api/managerWorkspace.ts src/manager-selection/catalystObservationPanel.ts src/manager-selection/dailyChannels.ts src/manager-selection/dailyChannels.spec.ts src/manager-selection/dailyChannels.runtime.spec.ts src/manager-selection/dailyChannels.testHelper.ts",
+      "log": "tests/scoped_typescript.log",
+      "configuration": "Explicit source files and compiler options, no temporary tsconfig and no repository tsconfig; full-project typecheck reported separately."
+    },
+    "independent_review": {
+      "status": "REVIEWED_CANDIDATE_ACCEPTABLE",
+      "important_findings_reproduced_and_closed": 7,
+      "critical_findings_identified": 0,
+      "consequential_candidate_findings_open": 0,
+      "report": "independent_review.md",
+      "additional_contract_check": "Five actual Python-generated synthetic workspace payload classes accepted by the actual TypeScript validator.",
+      "counting_rule": "Reviewer test batches overlap each other and the final root verification. Do not add their counts."
+    },
+    "delivery_verifier": {
+      "status": "PASS",
+      "stdlib_selftests_passed": 17,
+      "log": "tests/delivery_verifier_report_guard.log",
+      "initial_13_test_log": "tests/delivery_verifier.log",
+      "independent_report_guard_review": "delivery_review.md",
+      "actual_package_api_before": "PASS",
+      "actual_package_api_after": "PASS",
+      "scheduler_before_frozen_snapshot_only": "PASS",
+      "web_after_assembled_snapshot": "FAIL",
+      "web_failure": "PRESERVE_SHA_MISMATCH for businessStatus.ts: frozen repository provides older bytes than the current SHA recorded by source_map. Preserve pin remains strict; no override performed.",
+      "reports": [
+        "preflight_api_before.json",
+        "preflight_api_after.json",
+        "preflight_scheduler_frozen_snapshot.json",
+        "preflight_web_snapshot.json"
+      ],
+      "boundary": "Checks all 24 payload identities and selected source/preserve pins, not full runtime closure or process-loaded identity."
+    },
+    "patch_roundtrip": {
+      "status": "PASS",
+      "main_file_count": 23,
+      "scheduler_prerequisite_file_count": 1,
+      "forward_and_reverse_byte_exact": true,
+      "report": "patch_roundtrip.json",
+      "boundary": "Isolated copies only; not deployment."
+    },
+    "deployment": {"status": "NOT_RUN", "reason": "No access to actual Mac, current complete releases, loaded-process identity or fresh exact-root canary."},
+    "api": {"synthetic_original_route_integration": "PASS", "deployed_api": "NOT_RUN", "actual_failing_product_pair_identified": false},
+    "page": {"synthetic_dom_and_request_contract": "PASS", "actual_browser_reload": "NOT_RUN", "actual_screenshot": "NOT_RUN"},
+    "natural_run": {"status": "NOT_RUN", "scheduler_future_slot": "NOT_RUN", "original_heartbeat_reader_reviewer_chain": "NOT_RUN", "joint_api_page_product_evidence": "NOT_RUN"}
+  },
+  "issues": [
+    {
+      "id": "ISSUE-01",
+      "code_status": "CANDIDATE_PLAN_OWNER_DISPATCH_REPAIRED",
+      "changes": "Existing hook to fixed bound API owner; real morning/preopen identities, sealed same-run attempt, persistent receipts, serialized dispatch, bounded retry and completion deadlines.",
+      "live_acceptance": "NOT_RUN",
+      "remaining": "Actual binding and current scheduler integration, fresh canary, original heartbeat reader/reviewer, real future slots and joint readback. A persisted schedule definition or manual run is insufficient."
+    },
+    {
+      "id": "ISSUE-02",
+      "code_status": "CANDIDATE_CONSUMPTION_PARITY_REPAIRED",
+      "changes": "Shared exact-product consumption validation; invalid neighboring legacy pair cannot hide a valid product; default evening target/publication pair included; NOT_ASSESSED remains pending.",
+      "live_acceptance": "NOT_RUN",
+      "remaining": "Compare actual existing imported product and workspace by exact dates, source/product/judgment/handoff/owner SHA, evidence run and cutoff. Synthetic reproduction proves a code mechanism, not the specific live rejected pair."
+    },
+    {
+      "id": "ISSUE-03",
+      "code_status": "TARGET_V2_GATE_REPAIRED_AND_ORIGINAL_D1_CONSUMER_MAPPED",
+      "changes": "D-1 capture remains separately labelled and cannot grant target-day V2 authority; missing original focus inputs cannot become confirmed empty selection; original Top100 Stage consumer mapped without edits.",
+      "live_acceptance": "NOT_RUN",
+      "remaining": "Actual target-day HK_UNIVERSE_V2, original focus input lineage and the real separate D-1 Top100 artifact/run."
+    },
+    {
+      "id": "ISSUE-04",
+      "code_status": "COMPLETED_SESSION_AND_SUPPLEMENT_CONSUMER_REPAIRED",
+      "changes": "Separate screen context from original planning context using the native HK calendar; exact panel_available_at forwarded to the original supplement pointer validator.",
+      "live_acceptance": "NOT_RUN",
+      "remaining": "Actual completed-session panel, manifest, security master, sidecar, availability time and cutoff. A missing input is not proof of a producer failure."
+    },
+    {
+      "id": "ISSUE-05",
+      "code_status": "UNKNOWN_VOLUME_GATE_CORRECTED",
+      "changes": "Numeric observations retained; unproved unit/scale cannot decide the strict quantity gate, near gate or confirmed exclusion; original 0.80 and 1.5 thresholds unchanged.",
+      "live_acceptance": "BLOCKED_SOURCE_PROOF_MISSING",
+      "remaining": "Positive authoritative native volume unit/scale and six-session identity attestation is absent from the frozen owner contract. No attestation, conversion or true-volume candidate has been invented."
+    },
+    {
+      "id": "ISSUE-06",
+      "code_status": "INDEPENDENT_CHANNEL_FAILURE_AND_DISPATCH_ISOLATION_REPAIRED",
+      "changes": "Ordinary US reader failure is isolated; no synchronous US mutation in the timed plan RPC; existing outputs still consumed by original readers. Missing mapping is unknown, not zero or eligibility.",
+      "live_acceptance": "NOT_RUN",
+      "remaining": "Original us_mapping_research implementation and separately bounded natural owner dispatch were not supplied. Preparation remains NOT_ATTEMPTED/NOT_EVALUATED when no such dispatch exists."
+    },
+    {
+      "id": "ISSUE-07",
+      "code_status": "REAL_ROUTE_SAME_PRODUCT_REGRESSION_PASS",
+      "changes": "Original import POST, analysis GET and full workspace GET use one synthetic registered source/product/run; invalid receipt, date, cutoff, unassessed and legacy compatibility cases covered.",
+      "live_acceptance": "NOT_RUN",
+      "remaining": "The same read-only comparison against current real immutable products is separate from this code regression."
+    },
+    {
+      "id": "ISSUE-08",
+      "code_status": "THREE_CHANNEL_FIRST_SCREEN_AND_DATE_BINDINGS_REPAIRED",
+      "changes": "Stocks, original reasons, actual data dates, run and status rendered independently; plan/selection/announcement dates retain separate bindings; publication_date alias and stale/aborted responses covered.",
+      "live_acceptance": "NOT_RUN",
+      "remaining": "Preserve current businessStatus.ts, restore authoritative full frontend build closure, deploy and reload the actual page against the real API and future natural products."
+    }
+  ],
+  "known_failures_and_limits": [
+    {
+      "check": "Full npm run typecheck",
+      "status": "FAIL_BASELINE_REPRODUCED",
+      "details": "Five diagnostics; baseline and candidate logs byte-identical. Three from absent issue8R2.ownerObservations.json, two existing unused ts-expect-error directives.",
+      "evidence": ["known_failures/frontend_typecheck_baseline.log", "known_failures/frontend_typecheck_candidate.log"]
+    },
+    {
+      "check": "Full npm run build",
+      "status": "FAIL_MISSING_ORIGINAL_ENTRY",
+      "details": "daily-research-command/index.html missing; fails with zero transformed modules. Remote tree also lacks manager-selection/index.html. No fake entry or production bundle supplied.",
+      "evidence": ["known_failures/frontend_build.log"]
+    },
+    {
+      "check": "Existing frontend panel runtime suite",
+      "status": "FAIL_BASELINE_REPRODUCED",
+      "details": "Both baseline and candidate: 14 passed, 2 failed. Missing original FIXTURE_BINDING.json and a hardcoded Mac workspace_after.json fixture.",
+      "evidence": ["known_failures/frontend_legacy_baseline.log", "known_failures/frontend_legacy_candidate.log"]
+    },
+    {
+      "check": "Earlier baseline and legacy Python suites",
+      "status": "NOT_FULL_SUITE_PASS",
+      "details": "Frozen source lacks private PDF DEPENDENCY_MANIFEST.json and original split Stage namespace modules; older mocks have incompatible signatures or omit real owner transaction/attempt contracts. Two legacy input expectations admit D-1 capture as formal target eligibility and intentionally no longer pass. Existing tests were not changed to hide these gaps. Targeted 123-pass evidence is scoped; full application import and all original tests are not certified."
+    },
+    {
+      "check": "Current source identity and runtime closure",
+      "status": "NOT_VERIFIED_ON_MAC",
+      "details": "11 of 13 source-map canonical SHAs match assembled frozen sources. Explicit R3 announcement compatibility is preserved. Current businessStatus bytes are not supplied. Keep actual scheduler launcher/runner/due.py/native dependencies; only the separately pinned daemon prerequisite is overlaid.",
+      "evidence": ["source_identity_comparison.json", "scheduler_closure.json", "preflight_web_snapshot.json"]
+    },
+    {
+      "check": "Delivery verifier report source containment",
+      "status": "REPRODUCED_AND_FIXED",
+      "details": "A source-root symlink rejected during verification could previously still permit report creation inside the actual source tree. Report writing now requires nofollow validation of the source root and compares opened directory device/inode ancestry, then creates reports exclusively. Four real CLI regressions preserve the existing 13 tests; final 17 pass. Independent reviewer rechecked source alias, nested source report, external failure report and no-overwrite behavior. This is a delivery-tool finding, separate from the seven business-code findings.",
+      "evidence": ["known_failures/delivery_verifier_report_guard_red.log", "tests/delivery_verifier_report_guard.log", "delivery_review.md"]
+    },
+    {
+      "check": "Delivery verifier initial package layout",
+      "status": "REPRODUCED_AND_FIXED",
+      "details": "Initial validator rejected the separate scheduler prerequisite payload directory. A profile-specific safe prefix and regression were added; pins and no-symlink checks were retained. Original failed reports are preserved; final API and scheduler checks pass.",
+      "evidence": ["known_failures/preflight_api_before_initial_manifest_layout.json", "known_failures/preflight_api_after_initial_manifest_layout.json", "known_failures/preflight_web_snapshot_initial_manifest_layout.json"]
+    }
+  ],
+  "safety": {"RESEARCH_ONLY": true, "production_allowed": false, "buy_gate_updated": false, "orders_sent": false},
+  "acceptance_rule": "Code tests, independent review, complete build, deployment, real API, real page and natural execution are separate levels. Manual, historical and simulated results never upgrade natural_run_verified."
+}

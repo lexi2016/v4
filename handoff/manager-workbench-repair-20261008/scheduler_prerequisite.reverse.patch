@@ -1,0 +1,305 @@
+diff --git a/ops/run_v35_macos_scheduler_daemon.py b/ops/run_v35_macos_scheduler_daemon.py
+index 6864941..3efa5c1 100644
+--- a/ops/run_v35_macos_scheduler_daemon.py
++++ b/ops/run_v35_macos_scheduler_daemon.py
+@@ -10,19 +10,17 @@ from __future__ import annotations
+ import argparse
+ import contextlib
+ import hashlib
+-import importlib.util
+ import io
+ import json
+ import os
+ import signal
+-import stat
+ import subprocess
+ import sys
+ import threading
+ import time
+ from datetime import datetime, timedelta
+ from pathlib import Path
+-from typing import Any, Callable, Iterable, Mapping
++from typing import Any, Callable, Iterable
+ from zoneinfo import ZoneInfo
+ 
+ from ops import run_v35_macos_scheduler as scheduler
+@@ -222,159 +220,6 @@ def _unique_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+     return result
+ 
+ 
+-def _release_inventory_entries(root: Path) -> list[dict[str, Any]]:
+-    """Recompute the release builder's closed app inventory for a pinned root."""
+-    entries: list[dict[str, Any]] = []
+-    for directory, child_dirs, filenames in os.walk(root, followlinks=False):
+-        child_dirs.sort()
+-        filenames.sort()
+-        base = Path(directory)
+-        ordinary_dirs: list[str] = []
+-        for name in child_dirs:
+-            path = base / name
+-            relative = path.relative_to(root).as_posix()
+-            if path.is_symlink():
+-                entries.append({"path": relative, "kind": "symlink", "target": os.readlink(path),
+-                                "target_exists": path.exists()})
+-            else:
+-                ordinary_dirs.append(name)
+-        child_dirs[:] = ordinary_dirs
+-        for name in filenames:
+-            path = base / name
+-            relative = path.relative_to(root).as_posix()
+-            info = path.lstat()
+-            if stat.S_ISLNK(info.st_mode):
+-                entries.append({"path": relative, "kind": "symlink", "target": os.readlink(path),
+-                                "target_exists": path.exists()})
+-            elif stat.S_ISREG(info.st_mode):
+-                entries.append({"path": relative, "kind": "file", "sha256": _sha256_file(path),
+-                                "mode": f"{stat.S_IMODE(info.st_mode):04o}", "size": info.st_size})
+-            else:
+-                raise DaemonConfigurationError("plan canary app contains an unsupported file type")
+-    return sorted(entries, key=lambda item: item["path"])
+-
+-
+-def _json_identity_sha(value: Any) -> str:
+-    return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True,
+-        separators=(",", ":")).encode("utf-8")).hexdigest()
+-
+-
+-def _validate_candidate_app_plan_binding(binding: Mapping[str, Any], app_root: Path) -> None:
+-    """Run the original API-root binding validator against the exact pinned app."""
+-    supervisor_path = app_root / "infrastructure/scheduling/manager_announcement_supervisor.py"
+-    cycle_path = app_root / "ops/run_manager_announcement_cycle.py"
+-    owned_io_path = app_root / "infrastructure/owned_io.py"
+-    calendar_path = app_root / "contracts/trading_calendar.py"
+-    if any(not path.is_file() or path.resolve(strict=True) != path
+-           for path in (supervisor_path, cycle_path, owned_io_path, calendar_path)):
+-        raise DaemonConfigurationError("plan canary candidate validator sources are unavailable")
+-
+-    # The scheduler process may already have imported its own `ops` and
+-    # `contracts` packages. Temporarily pin the API root's cycle, SafeRoot,
+-    # and historical-session calendar modules while invoking the API app's
+-    # original validator, then restore all import state.
+-    names = (
+-        "ops.run_manager_announcement_cycle",
+-        "infrastructure.owned_io",
+-        "contracts.trading_calendar",
+-    )
+-    missing = object()
+-    saved_modules = {name: sys.modules.get(name, missing) for name in names}
+-    parent_attrs: dict[tuple[str, str], Any] = {}
+-    original_path = list(sys.path)
+-    sys.path.insert(0, str(app_root))
+-    try:
+-        for qualified, path in (
+-            (names[0], cycle_path),
+-            (names[1], owned_io_path),
+-            (names[2], calendar_path),
+-        ):
+-            spec = importlib.util.spec_from_file_location(qualified, path)
+-            if spec is None or spec.loader is None:
+-                raise DaemonConfigurationError("plan canary candidate validator source is unreadable")
+-            module = importlib.util.module_from_spec(spec)
+-            sys.modules[qualified] = module
+-            parent_name, attribute = qualified.rsplit(".", 1)
+-            parent = sys.modules.get(parent_name)
+-            if parent is None:
+-                parent = importlib.import_module(parent_name)
+-            parent_attrs[(parent_name, attribute)] = getattr(parent, attribute, missing)
+-            setattr(parent, attribute, module)
+-            spec.loader.exec_module(module)
+-
+-        spec = importlib.util.spec_from_file_location(
+-            "_v4_candidate_manager_announcement_supervisor", supervisor_path)
+-        if spec is None or spec.loader is None:
+-            raise DaemonConfigurationError("plan canary candidate validator source is unreadable")
+-        validator = importlib.util.module_from_spec(spec)
+-        spec.loader.exec_module(validator)
+-        validator.validate_binding(dict(binding), expected_app=app_root)
+-    except DaemonConfigurationError:
+-        raise
+-    except Exception as error:
+-        raise DaemonConfigurationError("plan canary owner evidence failed API supervisor validation") from error
+-    finally:
+-        sys.path[:] = original_path
+-        for name, value in saved_modules.items():
+-            if value is missing:
+-                sys.modules.pop(name, None)
+-            else:
+-                sys.modules[name] = value
+-        for (parent_name, attribute), value in parent_attrs.items():
+-            parent = sys.modules.get(parent_name)
+-            if parent is None:
+-                continue
+-            if value is missing:
+-                try:
+-                    delattr(parent, attribute)
+-                except AttributeError:
+-                    pass
+-            else:
+-                setattr(parent, attribute, value)
+-
+-
+-def _validate_same_root_plan_canary_inventory(
+-    canary: Mapping[str, Any], binding: Mapping[str, Any], app_root: Path,
+-) -> None:
+-    """Require a same-root canary to pin this release and both source inventories."""
+-    manifest_path = app_root.parent / "release-manifest.json"
+-    try:
+-        if (manifest_path.is_symlink() or not manifest_path.is_file()
+-                or manifest_path.resolve(strict=True) != manifest_path):
+-            raise ValueError("manifest path is not an exact regular file")
+-        manifest_bytes = manifest_path.read_bytes()
+-        manifest_sha = hashlib.sha256(manifest_bytes).hexdigest()
+-        manifest = json.loads(manifest_bytes)
+-        candidate = manifest.get("candidate") if isinstance(manifest, dict) else None
+-        stored_inventory = manifest.get("application_inventory") if isinstance(manifest, dict) else None
+-        entries = stored_inventory.get("entries") if isinstance(stored_inventory, dict) else None
+-        if (not isinstance(candidate, dict) or not isinstance(stored_inventory, dict)
+-                or not isinstance(entries, list) or stored_inventory.get("entry_count") != len(entries)
+-                or candidate.get("app_root") != str(app_root)
+-                or manifest.get("schema_version") != "v4.release_candidate.v1"):
+-            raise ValueError("manifest identity is invalid")
+-        actual_entries = _release_inventory_entries(app_root)
+-        inventory_sha = _json_identity_sha(entries)
+-        if (entries != actual_entries or inventory_sha != stored_inventory.get("aggregate_sha256")
+-                or inventory_sha != _json_identity_sha(actual_entries)):
+-            raise ValueError("manifest inventory does not match app bytes")
+-        binding_files = binding.get("files")
+-        if not isinstance(binding_files, dict):
+-            raise ValueError("binding source inventory is missing")
+-        source_inventory_sha = _json_identity_sha(binding_files)
+-        expected = {
+-            "candidate_release_id": candidate.get("release_id"),
+-            "candidate_release_manifest_path": str(manifest_path),
+-            "candidate_release_manifest_sha256": manifest_sha,
+-            "candidate_application_inventory_sha256": inventory_sha,
+-            "candidate_manager_source_inventory_sha256": source_inventory_sha,
+-        }
+-        if any(canary.get(field) != value for field, value in expected.items()):
+-            raise ValueError("canary release or source inventory pin is stale")
+-    except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:
+-        raise DaemonConfigurationError("same-root plan canary release or source inventory pin is invalid") from error
+-
+-
+ def _load_announcement_binding(environment: dict[str, str]) -> dict[str, Any] | None:
+     binding_text = environment.get(ANNOUNCEMENT_BINDING_ENV, "").strip()
+     if not binding_text:
+@@ -506,14 +351,6 @@ def _load_announcement_binding(environment: dict[str, str]) -> dict[str, Any] |
+                 or canary.get("buy_gate_updated") is not False
+                 or canary.get("orders_sent") is not False):
+             raise DaemonConfigurationError("plan canary contract does not match this binding")
+-        owner_app_root=_exact_path(canary.get("owner_execution_app_root"))
+-        if owner_app_root==app_root:
+-            _validate_same_root_plan_canary_inventory(canary,binding,app_root)
+-        # The API root owns the authoritative closed inventory and manual
+-        # refresh/readback validator. Cross-root evidence remains subject to
+-        # its exact owner-source migration proof; same-root evidence receives
+-        # that same full validation after its release and inventory pins pass.
+-        _validate_candidate_app_plan_binding(binding,app_root)
+     elif canary_ref is not None or canary_sha_env:
+         raise DaemonConfigurationError("disabled plan canary has an unexpected receipt")
+ 
+@@ -528,7 +365,6 @@ def _load_announcement_binding(environment: dict[str, str]) -> dict[str, Any] |
+         "policy": binding["policy"],
+         "enabled": binding["enabled"],
+         "plan_material_refresh_only":plan_only,
+-        "announcement_collection_enabled": collection,
+     }
+ 
+ 
+@@ -881,82 +717,26 @@ def run_daemon(
+             return 2
+ 
+     announcement_hook: AnnouncementCycleHook | None = None
+-    announcement_cycle_state = {
+-        "status": "DISABLED",
+-        "reason": "ANNOUNCEMENT_BINDING_NOT_CONFIGURED",
+-    }
+-    announcement_collection_state = {
+-        "status": "UNAVAILABLE",
+-        "reason": "ANNOUNCEMENT_BINDING_NOT_CONFIGURED",
+-    }
+-    plan_material_refresh_only: bool | None = None
+     try:
+         announcement_hook = AnnouncementCycleHook.from_environment(clock=now)
+-        if announcement_hook is None:
+-            reason = ("ANNOUNCEMENT_BINDING_DISABLED"
+-                      if os.environ.get(ANNOUNCEMENT_BINDING_ENV, "").strip()
+-                      else "ANNOUNCEMENT_BINDING_NOT_CONFIGURED")
+-            announcement_cycle_state = {"status": "DISABLED", "reason": reason}
+-            announcement_collection_state = {"status": "UNAVAILABLE", "reason": reason}
+-        else:
+-            identity = announcement_hook.identity
+-            plan_material_refresh_only = identity["plan_material_refresh_only"]
+-            announcement_cycle_state = {"status": "ACTIVE", "reason": None}
+-            collection_enabled = identity["announcement_collection_enabled"]
+-            if collection_enabled:
+-                announcement_collection_state = {"status": "ENABLED", "reason": None}
+-            elif plan_material_refresh_only:
+-                announcement_collection_state = {
+-                    "status": "DISABLED_PLAN_REFRESH_ONLY",
+-                    "reason": "PLAN_MATERIAL_REFRESH_ONLY",
+-                }
+-            else:
+-                announcement_collection_state = {
+-                    "status": "DISABLED",
+-                    "reason": "ANNOUNCEMENT_COLLECTION_DISABLED",
+-                }
+     except DaemonConfigurationError as error:
+-        reason = _bounded_error(error)
+-        announcement_cycle_state = {"status": "DISABLED", "reason": reason}
+-        announcement_collection_state = {"status": "UNAVAILABLE", "reason": reason}
+         _emit(
+             {
+                 "schema_version": DAEMON_SCHEMA,
+                 "status": "ANNOUNCEMENT_HOOK_DISABLED",
+-                "error": reason,
++                "error": _bounded_error(error),
+                 "release_id": release_id,
+             }
+         )
+     except Exception as error:
+-        reason = _bounded_error(error)
+-        announcement_cycle_state = {"status": "DISABLED", "reason": reason}
+-        announcement_collection_state = {"status": "UNAVAILABLE", "reason": reason}
+         _emit(
+             {
+                 "schema_version": DAEMON_SCHEMA,
+                 "status": "ANNOUNCEMENT_HOOK_DISABLED",
+-                "error": reason,
++                "error": _bounded_error(error),
+                 "release_id": release_id,
+             }
+         )
+-    # Readiness reports distinguish static ownership/configuration from the
+-    # latest semantic run. This daemon has no heartbeat receipt reader, so it
+-    # must not infer a success or gap from hook configuration.
+-    announcement_collection_state = {
+-        **announcement_collection_state,
+-        "execution_owner": "HEARTBEAT",
+-        "ownership_status": "HEARTBEAT_OWNED",
+-        "scheduler_hook_enabled": bool(
+-            announcement_hook is not None
+-            and announcement_hook.identity.get("announcement_collection_enabled") is True
+-        ),
+-        "configuration_status": announcement_collection_state.get("status"),
+-        "configuration_reason": announcement_collection_state.get("reason"),
+-        "latest_execution_status": "NOT_RUN",
+-        "latest_success_status": "CANNOT_CONFIRM",
+-        "latest_gap_status": "CANNOT_CONFIRM",
+-        "latest_receipt_status": "NOT_OBSERVED",
+-    }
+     cycles = 0
+     last_minute: str | None = None
+     try:
+@@ -968,11 +748,6 @@ def run_daemon(
+                 "pid": os.getpid(),
+                 "heartbeat_seconds": heartbeat_seconds,
+                 "timezone": "Asia/Shanghai",
+-                "critical_task_states": {
+-                    "announcement_cycle_hook": announcement_cycle_state,
+-                    "announcement_collection": announcement_collection_state,
+-                    "plan_material_refresh_only": plan_material_refresh_only,
+-                },
+                 "production_allowed": False,
+                 "buy_gate_updated": False,
+                 "orders_sent": False,

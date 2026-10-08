@@ -1,0 +1,45 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> v3-5-web@0.1.0 test
+> vitest run src/manager-selection/catalystObservationPanel.runtime.spec.ts
+
+
+ RUN  v4.1.10 /workspace/scratch/a154a3323e32/investigation/inputs/frontend_baseline/apps/web
+
+ ❯ src/manager-selection/catalystObservationPanel.runtime.spec.ts (16 tests | 2 failed) 255ms
+     × keeps the requested-day manual HK observation compact until all 100 rows are expanded 4ms
+     × renders Eastmoney evidence from the selected-date daily owner review 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.runtime.spec.ts > catalyst workspace runtime boundary > keeps the requested-day manual HK observation compact until all 100 rows are expanded
+Error: ENOENT: no such file or directory, open '/workspace/scratch/a154a3323e32/investigation/inputs/frontend_baseline/tests/fixtures/manager_current_observation_20261002/FIXTURE_BINDING.json'
+ ❯ readPinnedManualObservationFixture src/manager-selection/catalystObservationPanel.runtime.spec.ts:103:30
+    101| const readPinnedManualObservationFixture = (name: "close_recapture.jso…
+    102|   const fixtureRoot = resolve(dirname(fileURLToPath(import.meta.url)),…
+    103|   const binding = JSON.parse(readFileSync(resolve(fixtureRoot, "FIXTUR…
+       |                              ^
+    104|   const bytes = readFileSync(resolve(fixtureRoot, name));
+    105|   expect(createHash("sha256").update(bytes).digest("hex")).toBe(bindin…
+ ❯ src/manager-selection/catalystObservationPanel.runtime.spec.ts:400:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/manager-selection/catalystObservationPanel.runtime.spec.ts > catalyst workspace runtime boundary > renders Eastmoney evidence from the selected-date daily owner review
+Error: ENOENT: no such file or directory, open '/Users/lexi/Desktop/学习/agents调试/EASTMONEY_HK_ANN_20260929/integration/workspace_after.json'
+ ❯ src/manager-selection/catalystObservationPanel.runtime.spec.ts:538:28
+    536|
+    537|   it("renders Eastmoney evidence from the selected-date daily owner re…
+    538|     const raw = JSON.parse(readFileSync(
+       |                            ^
+    539|       "/Users/lexi/Desktop/学习/agents调试/EASTMONEY_HK_ANN_20260929/integ…
+    540|       "utf8",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 14 passed (16)
+   Start at  19:42:16
+   Duration  1.33s (transform 296ms, setup 0ms, import 463ms, tests 255ms, environment 434ms)
+

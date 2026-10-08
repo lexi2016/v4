@@ -1,0 +1,231 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> v3-5-web@0.1.0 test
+> vitest run src/manager-selection/dailyChannels.runtime.spec.ts -t keeps cancellation effective
+
+
+ RUN  v4.1.10 /workspace/scratch/a154a3323e32/candidate/apps/web
+
+ ❯ src/manager-selection/dailyChannels.runtime.spec.ts (22 tests | 1 failed | 21 skipped) 1133ms
+     × keeps cancellation effective while the one-time legacy binding read is pending 1132ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/manager-selection/dailyChannels.runtime.spec.ts > first-screen independent research channels > keeps cancellation effective while the one-time legacy binding read is pending
+AssertionError: expected 'READY' to be 'FAILED' // Object.is equality
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"本计划研究关注"[39m
+        [33mclass[39m=[32m"manager-catalyst-observations"[39m
+        [33mdata-input-identity[39m=[32m"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"[39m
+        [33mdata-read-state[39m=[32m"READY"[39m
+        [33mdata-target-date[39m=[32m"20261008"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m""[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m本计划研究关注[0m
+          [36m</h2>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m计划目标日：[0m
+            [36m<input[39m
+              [33maria-label[39m=[32m"计划目标日"[39m
+              [33mclass[39m=[32m""[39m
+              [33mtype[39m=[32m"date"[39m
+            [36m/>[39m
+            [36m<small[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0m独立于原Stage来源日期；URL用 plan_date 保存计划日，date 仍表示Stage来源日。[0m
+            [36m</small>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m读取更新[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mtitle[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m用既有材料生成计划[0m
+          [36m</button>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m读取口径：[0m
+            [36m<select[39m
+              [33maria-label[39m=[32m"历史或现在回看"[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"auto"[39m
+              [36m>[39m
+                [0m当时历史 / 当日预览[0m
+              [36m</option>[39m
+              [36m<option[39m
+                [33mclass[39m=[32m""[39m
+                [33mvalue[39m=[32m"dynamic"[39m
+              [36m>[39m
+                [0m现在回看（可能含后续消息）[0m
+              [36m</option>[39m
+            [36m</select>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+            [33mhidden[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m取消本次读取[0m
+          [36m</button>[39m
+        [36m</header>[39m
+        [36m<p[39m
+          [33maria-live[39m=[32m"polite"[39m
+          [33mclass[39m=[32m""[39m
+          [33mrole[39m=[32m"status"[39m
+        [36m>[39m
+          [0m计划 20261008 · 当日动态预览（非历史冻结计划） ｜ 材料截至 10-08 08:00 港时 ｜ 行情基准 20261007，原行情未核（非晚间实时行情）。[0m
+        [36m</p>[39m
+        [36m<section[39m
+          [33maria-label[39m=[32m"每日三路研究结果"[39m
+          [33mclass[39m=[32m""[39m
+          [33mdata-daily-channels[39m=[32m"true"[39m
+        [36m>[39m
+          [36m<h3[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m每日三路研究结果[0m
+          [36m</h3>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m""[39m
+            [33mdata-daily-bindings[39m=[32m"true"[39m
+          [36m>[39m
+            [0m来源/选股日 20261006 · 公告日 20261006 · 计划日 20261008[0m
+          [36m</p>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [0m来源/选股日用于展示；港股通资格仍核对计划日的权威输入。[0m
+          [36m</p>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"manager-daily-grid"[39m
+          [36m>[39m
+            [36m<article[39m
+              [33mclass[39m=[32m""[39m
+              [33mdata-daily-channel[39m=[32m"ANNOUNCEMENT"[39m
+              [33mdata-daily-status[39m=[32m"READY"[39m
+            [36m>[39m
+              [36m<h4[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0m公告研究[0m
+              [36m</h4>[39m
+              [36m<strong[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0m结果已核[0m
+              [36m</strong>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [0m候选 1 只 · 观察 0 · 待核数量未知[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m数据日 20261006[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m运行编号 synthetic-import-run · 原公告 owner 导入，触发方式未分类[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m产物时间 2026-10-08T07:05:00+08:00[0m
+              [36m</p>[39m
+              [36m<ol[39m
+                [33mclass[39m=[32m"manager-daily-rows"[39m
+              [36m>[39m
+                [36m<li[39m
+                  [33mclass[39m=[32m""[39m
+                  [33mdata-daily-symbol[39m=[32m"HK.00001"[39m
+                [36m>[39m
+                  [36m<h5[39m
+                    [33mclass[39m=[32m""[39m
+                  [36m>[39m
+                    [0m合成公告公司 · HK.00001[0m
+                  [36m</h5>[39m
+                  [36m<p[39m
+                    [33mclass[39m=[32m""[39m
+                  [36m>[39m
+                    [0m研究候选[0m
+                  [36m</p>[39m
+                  [36m<p[39m
+                    [33mclass[39m=[32m""[39m
+                  [36m>[39m
+                    [0m原研究理由：已审阅的扩产事件。[0m
+                  [36m</p>[39m
+                  [36m<p[39m
+                    [33mclass[39m=[32m"manager-daily-meta"[39m
+                  [36m>[39m
+                    [0m数据日 20261006 · 运行编号 synthetic-import-run[0m
+                  [36m</p>[39m
+                [36m</li>[39m
+              [36m</ol>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"manager-daily-meta"[39m
+              [36m>[39m
+                [0m自然时段运行验收：未核实。[0m
+              [36m</p>[39m
+              [36m<details[39m
+                [33mclass[39m=[32m""[39m
+              [36m>[39m
+                [36m<summary[39m
+                  [33mclass[39m=[32m""[39m
+                [36m>[39m
+                  [0m来源、运行与缺件详情[0m
+                [36m</summary>[39m
+              [36m</details>[39m
+            [36m</article>[39m
+            [36m<article[39m
+              [33mclass[39m=[32m""[39m
+              [33mdata-daily-channel[39m=[32m"HK_CONNECT"[39m
+              [33mdata-d...
+
+Expected: "FAILED"
+Received: "READY"
+
+ ❯ src/manager-selection/dailyChannels.runtime.spec.ts:170:119
+    168|     await fireEvent.click(cancel); expect(boundSignal?.aborted).toBe(t…
+    169|     resolveBound(ok(workspaceFixture({ ...testBindings, announcement_d…
+    170|     await waitFor(() => expect(host.querySelector('.manager-catalyst-o…
+       |                                                                                                                       ^
+    171|     expect(host.textContent).toContain('已取消本次读取');
+    172|     expect(host.querySelector('[data-daily-symbol]')).toBeNull();
+ ❯ runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 21 skipped (22)
+   Start at  19:43:22
+   Duration  1.96s (transform 195ms, setup 0ms, import 328ms, tests 1.13s, environment 375ms)
+

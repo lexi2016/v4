@@ -1,0 +1,91 @@
+{
+  "schema_version": "v4.manager_workbench.scheduler_deployment_closure.v1",
+  "scope": "PINNED_REMOTE_SOURCE_COMPARISON_NOT_MAC_PROCESS_READBACK",
+  "repository": "lexi2016/v4",
+  "ref": "0fd5eb374cb155232ed003d5fc4d0d3594252491",
+  "reported_active_scheduler": "hk-research-calendar-all-r1-20261007-scheduler",
+  "reported_configured_api": "manager-daily-chain-20261008-r3-api",
+  "reported_inactive_scheduler": "manager-daily-chain-20261008-r2-scheduler",
+  "binding_modified": false,
+  "services_started_or_stopped": false,
+  "active_hook_exists": true,
+  "hook_ast_unchanged": true,
+  "daemon_definition_delta": {
+    "added": [
+      "_json_identity_sha",
+      "_release_inventory_entries",
+      "_validate_candidate_app_plan_binding",
+      "_validate_same_root_plan_canary_inventory"
+    ],
+    "removed": [],
+    "changed": [
+      "_load_announcement_binding",
+      "run_daemon"
+    ]
+  },
+  "files": [
+    {
+      "release_relative_path": "ops/run_v35_macos_scheduler_daemon.py",
+      "active_snapshot_path": "remote/handoff/hk-all-research-calendar-20261007/tooling/startup/scheduler_run_v35_macos_scheduler_daemon.py",
+      "active_snapshot": {
+        "sha256": "19e071da0c6b6748465853c4ad86a80d6060524333e9dab21647b67adc8b49ec",
+        "bytes": 34320
+      },
+      "assembled_baseline": {
+        "sha256": "7e3ead4e646a599981878e7b5eca66ecde01217de83f0f3039637a411cfa1f5c",
+        "bytes": 46094
+      },
+      "candidate": {
+        "sha256": "7e3ead4e646a599981878e7b5eca66ecde01217de83f0f3039637a411cfa1f5c",
+        "bytes": 46094
+      },
+      "candidate_changed_from_assembled_baseline": false
+    },
+    {
+      "release_relative_path": "ops/launch_v35_macos_scheduler.sh",
+      "active_snapshot_path": "remote/handoff/hk-all-research-calendar-20261007/tooling/startup/scheduler_launch_v35_macos_scheduler.sh",
+      "active_snapshot": {
+        "sha256": "0c577ae83b1f182dabf3b62e642a5bd5f0f8708b48e1806d8c653b691d2ec952",
+        "bytes": 3982
+      },
+      "assembled_baseline": {
+        "sha256": "2634b60f718e4c94fec0d731d12102e27d85847d8e0b9e8bb6f5ab499ae6d9d5",
+        "bytes": 3537
+      },
+      "candidate": {
+        "sha256": "2634b60f718e4c94fec0d731d12102e27d85847d8e0b9e8bb6f5ab499ae6d9d5",
+        "bytes": 3537
+      },
+      "candidate_changed_from_assembled_baseline": false
+    },
+    {
+      "release_relative_path": "ops/run_v35_macos_scheduler.py",
+      "active_snapshot_path": "remote/handoff/hk-all-research-calendar-20261007/tooling/startup/scheduler_run_v35_macos_scheduler.py",
+      "active_snapshot": {
+        "sha256": "f707df50c31f03fd51e439eece0d86dd60647d8d989e9a760f2ef1f2222c6f0d",
+        "bytes": 25218
+      },
+      "assembled_baseline": {
+        "sha256": "dd704a5ade7dd1f8a818dbeb94a9b3c7407cb403c8221373d899fdb4741f79b9",
+        "bytes": 11112
+      },
+      "candidate": {
+        "sha256": "dd704a5ade7dd1f8a818dbeb94a9b3c7407cb403c8221373d899fdb4741f79b9",
+        "bytes": 11112
+      },
+      "candidate_changed_from_assembled_baseline": false
+    }
+  ],
+  "required_prerequisite": "Explicitly include old-active to R2 daemon overlay if deploying this R2-based validation/readiness contract; it is unchanged in candidate and would be omitted from an after-only repair diff.",
+  "preserve_from_current_active_scheduler": [
+    "ops/launch_v35_macos_scheduler.sh",
+    "ops/run_v35_macos_scheduler.py",
+    "ops/run_v35_macos_scheduler_due.py",
+    "ops/launch_hk_0_2_python_nosite.sh",
+    "existing native scheduler dependency closure and data/runtime bindings"
+  ],
+  "do_not_deploy_assembled_scheduler_wholesale": true,
+  "us_preparation": "No synchronous mutation from plan RPC. Original workspace consumes existing US results; independent bounded original-owner dispatch remains required.",
+  "native_heartbeat_definition": "NOT_SUPPLIED; automation-3 is metadata only",
+  "deployment_and_natural_validation": "NOT_RUN"
+}

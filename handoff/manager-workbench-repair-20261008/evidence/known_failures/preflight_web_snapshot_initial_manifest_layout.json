@@ -1,0 +1,21 @@
+{
+  "against": "after",
+  "base_commit": null,
+  "failures": [
+    {
+      "code": "MANIFEST_INVALID",
+      "detail": "unsafe or noncanonical relative path",
+      "path": "source_manifest.json",
+      "scope": "package"
+    }
+  ],
+  "manifest_sha256": null,
+  "package_files_checked": 0,
+  "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-workbench-repair-20261008",
+  "preserve_files_checked": 0,
+  "profile": "web",
+  "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+  "source_files_checked": 0,
+  "source_root": "/workspace/scratch/a154a3323e32/candidate",
+  "status": "FAIL"
+}

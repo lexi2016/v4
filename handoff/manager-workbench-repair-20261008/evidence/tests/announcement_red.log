@@ -1,0 +1,76 @@
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+_____ test_import_analysis_get_and_real_workspace_get_share_exact_product ______
+
+owner = <test_manager_announcement_parity_20261008._FixtureService object at 0x7f34f8517cb0>
+
+    def test_import_analysis_get_and_real_workspace_get_share_exact_product(owner):
+        product, registered = _fixture(owner)
+        with _client(owner) as client:
+            imported = _import(client, registered)
+>           assert imported['consumption_validation']['validation_status'] == 'VERIFIED'
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           KeyError: 'consumption_validation'
+
+tests/test_manager_announcement_parity_20261008.py:262: KeyError
+___ test_valid_current_product_isolated_from_invalid_legacy_window_neighbor ____
+
+owner = <test_manager_announcement_parity_20261008._FixtureService object at 0x7f34f8013750>
+
+    def test_valid_current_product_isolated_from_invalid_legacy_window_neighbor(owner):
+        product, registered = _fixture(owner)
+        with _client(owner) as client:
+            _import(client, registered)
+            legacy, _ = _fixture(owner, target='20261007', publication='2026-10-06',
+                run_id='2' * 32, reviewed=False,
+                listing_at='2026-10-06T21:00:00+00:00', body_at='2026-10-06T21:01:00+00:00')
+            path = analysis.product_path(owner.store, '20261007', '2026-10-06')
+            owner.store._write_atomic(path, legacy)
+            before = path.read_bytes()
+            old = client.get('/api/v4/manager/research/announcements/analysis',
+                params={'date': '20261007', 'publication_date': '2026-10-06'}).json()
+            assert old['analysis']['status'] == 'VERIFIED'
+            assert old['analysis']['product_sha256'] == legacy['sha256']
+            assert old['owner_import_receipt'] is None
+            result = consumer.read_reviewed_analysis_references(owner, plan_context(TARGET, now=NOW))
+>           assert result['status'] == 'PARTIAL'
+E           AssertionError: assert 'CANNOT_CONFIRM' == 'PARTIAL'
+E             
+E             - PARTIAL
+E             + CANNOT_CONFIRM
+
+tests/test_manager_announcement_parity_20261008.py:310: AssertionError
+_______ test_resealed_owner_parent_run_mismatch_rejected_by_shared_read ________
+
+owner = <test_manager_announcement_parity_20261008._FixtureService object at 0x7f34f7ecbb10>
+
+    def test_resealed_owner_parent_run_mismatch_rejected_by_shared_read(owner):
+        _, registered = _fixture(owner)
+        with _client(owner) as client:
+            _import(client, registered)
+            path = analysis.product_path(owner.store, TARGET, PUBLICATION).with_name('owner_import_receipt.v1.json')
+            receipt = owner.store._read(path)
+            receipt['parent_run_id'] = '3' * 32
+            receipt['sha256'] = digest({key: value for key, value in receipt.items() if key != 'sha256'})
+            owner.store._write_atomic(path, receipt)
+            result = consumer.read_reviewed_analysis_references(owner, {
+                **plan_context(TARGET, now=NOW), 'announcement_publication_date': PUBLICATION})
+            rejected = result['products'][0]
+>           assert rejected['status'] == 'NOT_CONSUMED_INVALID'
+E           AssertionError: assert 'CONSUMED' == 'NOT_CONSUMED_INVALID'
+E             
+E             - NOT_CONSUMED_INVALID
+E             + CONSUMED
+
+tests/test_manager_announcement_parity_20261008.py:337: AssertionError
+=============================== warnings summary ===============================
+../test_env/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_manager_announcement_parity_20261008.py::test_import_analysis_get_and_real_workspace_get_share_exact_product
+FAILED tests/test_manager_announcement_parity_20261008.py::test_valid_current_product_isolated_from_invalid_legacy_window_neighbor
+FAILED tests/test_manager_announcement_parity_20261008.py::test_resealed_owner_parent_run_mismatch_rejected_by_shared_read
+3 failed, 1 warning in 0.40s

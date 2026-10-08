@@ -1,0 +1,23 @@
+COMMAND: /workspace/scratch/a154a3323e32/test_env/bin/python -B -m unittest discover -s tools -p 'test_*.py' -v
+test_added_before_file_must_be_absent_including_dangling_symlink (test_verify_delivery.DeliveryVerifierTests.test_added_before_file_must_be_absent_including_dangling_symlink) ... ok
+test_after_mode_uses_after_identity (test_verify_delivery.DeliveryVerifierTests.test_after_mode_uses_after_identity) ... ok
+test_after_size_is_independent_of_hash (test_verify_delivery.DeliveryVerifierTests.test_after_size_is_independent_of_hash) ... ok
+test_before_selection_checks_all_package_files_without_source_writes (test_verify_delivery.DeliveryVerifierTests.test_before_selection_checks_all_package_files_without_source_writes) ... ok
+test_cli_report_beneath_source_ancestor_is_rejected (test_verify_delivery.DeliveryVerifierTests.test_cli_report_beneath_source_ancestor_is_rejected) ... ok
+test_cli_report_outside_source_is_created_exclusively (test_verify_delivery.DeliveryVerifierTests.test_cli_report_outside_source_is_created_exclusively) ... ok
+test_cli_source_alias_cannot_create_report_in_real_source (test_verify_delivery.DeliveryVerifierTests.test_cli_source_alias_cannot_create_report_in_real_source) ... ok
+test_cli_source_mismatch_may_write_failure_report_outside_source (test_verify_delivery.DeliveryVerifierTests.test_cli_source_mismatch_may_write_failure_report_outside_source) ... ok
+test_manifest_rejects_unsafe_or_noncanonical_relative_paths (test_verify_delivery.DeliveryVerifierTests.test_manifest_rejects_unsafe_or_noncanonical_relative_paths) ... ok
+test_manifest_symlink_and_duplicate_record_are_rejected (test_verify_delivery.DeliveryVerifierTests.test_manifest_symlink_and_duplicate_record_are_rejected) ... ok
+test_package_file_or_parent_symlink_is_rejected (test_verify_delivery.DeliveryVerifierTests.test_package_file_or_parent_symlink_is_rejected) ... ok
+test_preserve_pins_are_profile_specific_and_never_relaxed (test_verify_delivery.DeliveryVerifierTests.test_preserve_pins_are_profile_specific_and_never_relaxed) ... ok
+test_report_is_exclusive_and_source_tree_stays_read_only (test_verify_delivery.DeliveryVerifierTests.test_report_is_exclusive_and_source_tree_stays_read_only) ... ok
+test_scheduler_prerequisite_payload_prefix_is_profile_bound (test_verify_delivery.DeliveryVerifierTests.test_scheduler_prerequisite_payload_prefix_is_profile_bound) ... ok
+test_source_file_and_root_symlinks_are_rejected (test_verify_delivery.DeliveryVerifierTests.test_source_file_and_root_symlinks_are_rejected) ... ok
+test_unselected_package_after_file_is_still_verified (test_verify_delivery.DeliveryVerifierTests.test_unselected_package_after_file_is_still_verified) ... ok
+test_wrong_source_preimage_fails (test_verify_delivery.DeliveryVerifierTests.test_wrong_source_preimage_fails) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 0.258s
+
+OK

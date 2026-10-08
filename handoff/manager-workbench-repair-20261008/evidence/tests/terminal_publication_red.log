@@ -1,0 +1,62 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_ test_slow_terminal_journal_cannot_cross_boundary_and_leave_success[SCHEDULED_PREOPEN-2026-10-08T09:28:00+08:00-2026-10-08T09:30:00+08:00] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-36/test_slow_terminal_journal_can0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fad7022ce90>
+kind = 'SCHEDULED_PREOPEN', begin = '2026-10-08T09:28:00+08:00'
+end = '2026-10-08T09:30:00+08:00'
+
+    @pytest.mark.parametrize('kind,begin,end', [
+        ('SCHEDULED_PREOPEN','2026-10-08T09:28:00+08:00','2026-10-08T09:30:00+08:00'),
+        ('SCHEDULED_MORNING','2026-10-08T08:00:00+08:00','2026-10-08T09:25:00+08:00'),
+    ])
+    def test_slow_terminal_journal_cannot_cross_boundary_and_leave_success(tmp_path,monkeypatch,kind,begin,end):
+        svc=owner(tmp_path,monkeypatch);deadline=datetime.fromisoformat(end)
+        clock={'now':deadline-timedelta(seconds=2)}
+        monkeypatch.setattr(w,'_now',lambda:clock['now'].isoformat())
+        monkeypatch.setattr(w,'get_workspace',lambda *a,**k:dict(current(),plan_context={'research_cutoff':begin}))
+        original_write=svc.store._write_atomic
+        def slow_terminal(path,value):
+            result=original_write(path,value)
+            if value.get('state')=='SUCCEEDED_EMPTY':
+                clock['now']=deadline+timedelta(seconds=2)
+            return result
+        monkeypatch.setattr(svc.store,'_write_atomic',slow_terminal)
+>       with pytest.raises(TimeoutError,match='WORKSPACE_PLAN_SCHEDULED_TERMINAL_DEADLINE_EXCEEDED'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE TimeoutError
+
+tests/test_manager_workspace_owner_20261008.py:114: Failed
+_ test_slow_terminal_journal_cannot_cross_boundary_and_leave_success[SCHEDULED_MORNING-2026-10-08T08:00:00+08:00-2026-10-08T09:25:00+08:00] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-36/test_slow_terminal_journal_can1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fad70508fc0>
+kind = 'SCHEDULED_MORNING', begin = '2026-10-08T08:00:00+08:00'
+end = '2026-10-08T09:25:00+08:00'
+
+    @pytest.mark.parametrize('kind,begin,end', [
+        ('SCHEDULED_PREOPEN','2026-10-08T09:28:00+08:00','2026-10-08T09:30:00+08:00'),
+        ('SCHEDULED_MORNING','2026-10-08T08:00:00+08:00','2026-10-08T09:25:00+08:00'),
+    ])
+    def test_slow_terminal_journal_cannot_cross_boundary_and_leave_success(tmp_path,monkeypatch,kind,begin,end):
+        svc=owner(tmp_path,monkeypatch);deadline=datetime.fromisoformat(end)
+        clock={'now':deadline-timedelta(seconds=2)}
+        monkeypatch.setattr(w,'_now',lambda:clock['now'].isoformat())
+        monkeypatch.setattr(w,'get_workspace',lambda *a,**k:dict(current(),plan_context={'research_cutoff':begin}))
+        original_write=svc.store._write_atomic
+        def slow_terminal(path,value):
+            result=original_write(path,value)
+            if value.get('state')=='SUCCEEDED_EMPTY':
+                clock['now']=deadline+timedelta(seconds=2)
+            return result
+        monkeypatch.setattr(svc.store,'_write_atomic',slow_terminal)
+>       with pytest.raises(TimeoutError,match='WORKSPACE_PLAN_SCHEDULED_TERMINAL_DEADLINE_EXCEEDED'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE TimeoutError
+
+tests/test_manager_workspace_owner_20261008.py:114: Failed
+=========================== short test summary info ============================
+FAILED tests/test_manager_workspace_owner_20261008.py::test_slow_terminal_journal_cannot_cross_boundary_and_leave_success[SCHEDULED_PREOPEN-2026-10-08T09:28:00+08:00-2026-10-08T09:30:00+08:00]
+FAILED tests/test_manager_workspace_owner_20261008.py::test_slow_terminal_journal_cannot_cross_boundary_and_leave_success[SCHEDULED_MORNING-2026-10-08T08:00:00+08:00-2026-10-08T09:25:00+08:00]
+2 failed, 14 deselected in 0.09s

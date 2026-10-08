@@ -1,0 +1,502 @@
+<frozen site>:101: RuntimeWarning: Unexpected value in sys.prefix, expected /workspace/scratch/a154a3323e32/test_env, got /workspace/scratch/a154a3323e32/candidate/../test_env
+<frozen site>:101: RuntimeWarning: Unexpected value in sys.exec_prefix, expected /workspace/scratch/a154a3323e32/test_env, got /workspace/scratch/a154a3323e32/candidate/../test_env
+FFFFFFFFFFFFFFFFFFFFF..                                                  [100%]
+=================================== FAILURES ===================================
+_ test_screen_context_selects_only_completed_full_hk_session[20261008-2026-10-08T08:00:00+08:00-20261007-PREOPEN_COMPLETED_SESSION] _
+
+target = '20261008', clock = '2026-10-08T08:00:00+08:00', session = '20261007'
+phase = 'PREOPEN_COMPLETED_SESSION'
+
+    @pytest.mark.parametrize(
+        ("target", "clock", "session", "phase"),
+        [
+            (TARGET, "2026-10-08T08:00:00+08:00", DAY, "PREOPEN_COMPLETED_SESSION"),
+            (TARGET, "2026-10-08T16:09:59+08:00", DAY, "INTRADAY_COMPLETED_SESSION"),
+            (TARGET, "2026-10-08T16:10:00+08:00", TARGET, "POST_CLOSE_COMPLETED_SESSION"),
+            ("20261009", "2026-10-08T17:00:00+08:00", TARGET, "PREOPEN_COMPLETED_SESSION"),
+            ("20261005", "2026-10-05T08:00:00+08:00", "20261002", "PREOPEN_COMPLETED_SESSION"),
+            ("20261020", "2026-10-20T08:00:00+08:00", "20261016", "PREOPEN_COMPLETED_SESSION"),
+            ("20261224", "2026-12-24T12:10:00+08:00", "20261223", "POST_CLOSE_COMPLETED_SESSION"),
+            ("20261228", "2026-12-28T08:00:00+08:00", "20261223", "PREOPEN_COMPLETED_SESSION"),
+        ],
+    )
+    def test_screen_context_selects_only_completed_full_hk_session(target, clock, session, phase):
+        planning = workspace_plan.plan_context(target, now=datetime.fromisoformat(clock))
+        original = deepcopy(planning)
+>       context = workspace_plan.screen_context(planning)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'v4.manager_research.workspace_plan' has no attribute 'screen_context'
+
+tests/test_manager_input_contracts_20261008.py:164: AttributeError
+_ test_screen_context_selects_only_completed_full_hk_session[20261008-2026-10-08T16:09:59+08:00-20261007-INTRADAY_COMPLETED_SESSION] _
+
+target = '20261008', clock = '2026-10-08T16:09:59+08:00', session = '20261007'
+phase = 'INTRADAY_COMPLETED_SESSION'
+
+    @pytest.mark.parametrize(
+        ("target", "clock", "session", "phase"),
+        [
+            (TARGET, "2026-10-08T08:00:00+08:00", DAY, "PREOPEN_COMPLETED_SESSION"),
+            (TARGET, "2026-10-08T16:09:59+08:00", DAY, "INTRADAY_COMPLETED_SESSION"),
+            (TARGET, "2026-10-08T16:10:00+08:00", TARGET, "POST_CLOSE_COMPLETED_SESSION"),
+            ("20261009", "2026-10-08T17:00:00+08:00", TARGET, "PREOPEN_COMPLETED_SESSION"),
+            ("20261005", "2026-10-05T08:00:00+08:00", "20261002", "PREOPEN_COMPLETED_SESSION"),
+            ("20261020", "2026-10-20T08:00:00+08:00", "20261016", "PREOPEN_COMPLETED_SESSION"),
+            ("20261224", "2026-12-24T12:10:00+08:00", "20261223", "POST_CLOSE_COMPLETED_SESSION"),
+            ("20261228", "2026-12-28T08:00:00+08:00", "20261223", "PREOPEN_COMPLETED_SESSION"),
+        ],
+    )
+    def test_screen_context_selects_only_completed_full_hk_session(target, clock, session, phase):
+        planning = workspace_plan.plan_context(target, now=datetime.fromisoformat(clock))
+        original = deepcopy(planning)
+>       context = workspace_plan.screen_context(planning)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'v4.manager_research.workspace_plan' has no attribute 'screen_context'
+
+tests/test_manager_input_contracts_20261008.py:164: AttributeError
+_ test_screen_context_selects_only_completed_full_hk_session[20261008-2026-10-08T16:10:00+08:00-20261008-POST_CLOSE_COMPLETED_SESSION] _
+
+target = '20261008', clock = '2026-10-08T16:10:00+08:00', session = '20261008'
+phase = 'POST_CLOSE_COMPLETED_SESSION'
+
+    @pytest.mark.parametrize(
+        ("target", "clock", "session", "phase"),
+        [
+            (TARGET, "2026-10-08T08:00:00+08:00", DAY, "PREOPEN_COMPLETED_SESSION"),
+            (TARGET, "2026-10-08T16:09:59+08:00", DAY, "INTRADAY_COMPLETED_SESSION"),
+            (TARGET, "2026-10-08T16:10:00+08:00", TARGET, "POST_CLOSE_COMPLETED_SESSION"),
+            ("20261009", "2026-10-08T17:00:00+08:00", TARGET, "PREOPEN_COMPLETED_SESSION"),
+            ("20261005", "2026-10-05T08:00:00+08:00", "20261002", "PREOPEN_COMPLETED_SESSION"),
+            ("20261020", "2026-10-20T08:00:00+08:00", "20261016", "PREOPEN_COMPLETED_SESSION"),
+            ("20261224", "2026-12-24T12:10:00+08:00", "20261223", "POST_CLOSE_COMPLETED_SESSION"),
+            ("20261228", "2026-12-28T08:00:00+08:00", "20261223", "PREOPEN_COMPLETED_SESSION"),
+        ],
+    )
+    def test_screen_context_selects_only_completed_full_hk_session(target, clock, session, phase):
+        planning = workspace_plan.plan_context(target, now=datetime.fromisoformat(clock))
+        original = deepcopy(planning)
+>       context = workspace_plan.screen_context(planning)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'v4.manager_research.workspace_plan' has no attribute 'screen_context'
+
+tests/test_manager_input_contracts_20261008.py:164: AttributeError
+_ test_screen_context_selects_only_completed_full_hk_session[20261009-2026-10-08T17:00:00+08:00-20261008-PREOPEN_COMPLETED_SESSION] _
+
+target = '20261009', clock = '2026-10-08T17:00:00+08:00', session = '20261008'
+phase = 'PREOPEN_COMPLETED_SESSION'
+
+    @pytest.mark.parametrize(
+        ("target", "clock", "session", "phase"),
+        [
+            (TARGET, "2026-10-08T08:00:00+08:00", DAY, "PREOPEN_COMPLETED_SESSION"),
+            (TARGET, "2026-10-08T16:09:59+08:00", DAY, "INTRADAY_COMPLETED_SESSION"),
+            (TARGET, "2026-10-08T16:10:00+08:00", TARGET, "POST_CLOSE_COMPLETED_SESSION"),
+            ("20261009", "2026-10-08T17:00:00+08:00", TARGET, "PREOPEN_COMPLETED_SESSION"),
+            ("20261005", "2026-10-05T08:00:00+08:00", "20261002", "PREOPEN_COMPLETED_SESSION"),
+            ("20261020", "2026-10-20T08:00:00+08:00", "20261016", "PREOPEN_COMPLETED_SESSION"),
+            ("20261224", "2026-12-24T12:10:00+08:00", "20261223", "POST_CLOSE_COMPLETED_SESSION"),
+            ("20261228", "2026-12-28T08:00:00+08:00", "20261223", "PREOPEN_COMPLETED_SESSION"),
+        ],
+    )
+    def test_screen_context_selects_only_completed_full_hk_session(target, clock, session, phase):
+        planning = workspace_plan.plan_context(target, now=datetime.fromisoformat(clock))
+        original = deepcopy(planning)
+>       context = workspace_plan.screen_context(planning)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'v4.manager_research.workspace_plan' has no attribute 'screen_context'
+
+tests/test_manager_input_contracts_20261008.py:164: AttributeError
+_ test_screen_context_selects_only_completed_full_hk_session[20261005-2026-10-05T08:00:00+08:00-20261002-PREOPEN_COMPLETED_SESSION] _
+
+target = '20261005', clock = '2026-10-05T08:00:00+08:00', session = '20261002'
+phase = 'PREOPEN_COMPLETED_SESSION'
+
+    @pytest.mark.parametrize(
+        ("target", "clock", "session", "phase"),
+        [
+            (TARGET, "2026-10-08T08:00:00+08:00", DAY, "PREOPEN_COMPLETED_SESSION"),
+            (TARGET, "2026-10-08T16:09:59+08:00", DAY, "INTRADAY_COMPLETED_SESSION"),
+            (TARGET, "2026-10-08T16:10:00+08:00", TARGET, "POST_CLOSE_COMPLETED_SESSION"),
+            ("20261009", "2026-10-08T17:00:00+08:00", TARGET, "PREOPEN_COMPLETED_SESSION"),
+            ("20261005", "2026-10-05T08:00:00+08:00", "20261002", "PREOPEN_COMPLETED_SESSION"),
+            ("20261020", "2026-10-20T08:00:00+08:00", "20261016", "PREOPEN_COMPLETED_SESSION"),
+            ("20261224", "2026-12-24T12:10:00+08:00", "20261223", "POST_CLOSE_COMPLETED_SESSION"),
+            ("20261228", "2026-12-28T08:00:00+08:00", "20261223", "PREOPEN_COMPLETED_SESSION"),
+        ],
+    )
+    def test_screen_context_selects_only_completed_full_hk_session(target, clock, session, phase):
+        planning = workspace_plan.plan_context(target, now=datetime.fromisoformat(clock))
+        original = deepcopy(planning)
+>       context = workspace_plan.screen_context(planning)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'v4.manager_research.workspace_plan' has no attribute 'screen_context'
+
+tests/test_manager_input_contracts_20261008.py:164: AttributeError
+_ test_screen_context_selects_only_completed_full_hk_session[20261020-2026-10-20T08:00:00+08:00-20261016-PREOPEN_COMPLETED_SESSION] _
+
+target = '20261020', clock = '2026-10-20T08:00:00+08:00', session = '20261016'
+phase = 'PREOPEN_COMPLETED_SESSION'
+
+    @pytest.mark.parametrize(
+        ("target", "clock", "session", "phase"),
+        [
+            (TARGET, "2026-10-08T08:00:00+08:00", DAY, "PREOPEN_COMPLETED_SESSION"),
+            (TARGET, "2026-10-08T16:09:59+08:00", DAY, "INTRADAY_COMPLETED_SESSION"),
+            (TARGET, "2026-10-08T16:10:00+08:00", TARGET, "POST_CLOSE_COMPLETED_SESSION"),
+            ("20261009", "2026-10-08T17:00:00+08:00", TARGET, "PREOPEN_COMPLETED_SESSION"),
+            ("20261005", "2026-10-05T08:00:00+08:00", "20261002", "PREOPEN_COMPLETED_SESSION"),
+            ("20261020", "2026-10-20T08:00:00+08:00", "20261016", "PREOPEN_COMPLETED_SESSION"),
+            ("20261224", "2026-12-24T12:10:00+08:00", "20261223", "POST_CLOSE_COMPLETED_SESSION"),
+            ("20261228", "2026-12-28T08:00:00+08:00", "20261223", "PREOPEN_COMPLETED_SESSION"),
+        ],
+    )
+    def test_screen_context_selects_only_completed_full_hk_session(target, clock, session, phase):
+        planning = workspace_plan.plan_context(target, now=datetime.fromisoformat(clock))
+        original = deepcopy(planning)
+>       context = workspace_plan.screen_context(planning)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'v4.manager_research.workspace_plan' has no attribute 'screen_context'
+
+tests/test_manager_input_contracts_20261008.py:164: AttributeError
+_ test_screen_context_selects_only_completed_full_hk_session[20261224-2026-12-24T12:10:00+08:00-20261223-POST_CLOSE_COMPLETED_SESSION] _
+
+target = '20261224', clock = '2026-12-24T12:10:00+08:00', session = '20261223'
+phase = 'POST_CLOSE_COMPLETED_SESSION'
+
+    @pytest.mark.parametrize(
+        ("target", "clock", "session", "phase"),
+        [
+            (TARGET, "2026-10-08T08:00:00+08:00", DAY, "PREOPEN_COMPLETED_SESSION"),
+            (TARGET, "2026-10-08T16:09:59+08:00", DAY, "INTRADAY_COMPLETED_SESSION"),
+            (TARGET, "2026-10-08T16:10:00+08:00", TARGET, "POST_CLOSE_COMPLETED_SESSION"),
+            ("20261009", "2026-10-08T17:00:00+08:00", TARGET, "PREOPEN_COMPLETED_SESSION"),
+            ("20261005", "2026-10-05T08:00:00+08:00", "20261002", "PREOPEN_COMPLETED_SESSION"),
+            ("20261020", "2026-10-20T08:00:00+08:00", "20261016", "PREOPEN_COMPLETED_SESSION"),
+            ("20261224", "2026-12-24T12:10:00+08:00", "20261223", "POST_CLOSE_COMPLETED_SESSION"),
+            ("20261228", "2026-12-28T08:00:00+08:00", "20261223", "PREOPEN_COMPLETED_SESSION"),
+        ],
+    )
+    def test_screen_context_selects_only_completed_full_hk_session(target, clock, session, phase):
+        planning = workspace_plan.plan_context(target, now=datetime.fromisoformat(clock))
+        original = deepcopy(planning)
+>       context = workspace_plan.screen_context(planning)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'v4.manager_research.workspace_plan' has no attribute 'screen_context'
+
+tests/test_manager_input_contracts_20261008.py:164: AttributeError
+_ test_screen_context_selects_only_completed_full_hk_session[20261228-2026-12-28T08:00:00+08:00-20261223-PREOPEN_COMPLETED_SESSION] _
+
+target = '20261228', clock = '2026-12-28T08:00:00+08:00', session = '20261223'
+phase = 'PREOPEN_COMPLETED_SESSION'
+
+    @pytest.mark.parametrize(
+        ("target", "clock", "session", "phase"),
+        [
+            (TARGET, "2026-10-08T08:00:00+08:00", DAY, "PREOPEN_COMPLETED_SESSION"),
+            (TARGET, "2026-10-08T16:09:59+08:00", DAY, "INTRADAY_COMPLETED_SESSION"),
+            (TARGET, "2026-10-08T16:10:00+08:00", TARGET, "POST_CLOSE_COMPLETED_SESSION"),
+            ("20261009", "2026-10-08T17:00:00+08:00", TARGET, "PREOPEN_COMPLETED_SESSION"),
+            ("20261005", "2026-10-05T08:00:00+08:00", "20261002", "PREOPEN_COMPLETED_SESSION"),
+            ("20261020", "2026-10-20T08:00:00+08:00", "20261016", "PREOPEN_COMPLETED_SESSION"),
+            ("20261224", "2026-12-24T12:10:00+08:00", "20261223", "POST_CLOSE_COMPLETED_SESSION"),
+            ("20261228", "2026-12-28T08:00:00+08:00", "20261223", "PREOPEN_COMPLETED_SESSION"),
+        ],
+    )
+    def test_screen_context_selects_only_completed_full_hk_session(target, clock, session, phase):
+        planning = workspace_plan.plan_context(target, now=datetime.fromisoformat(clock))
+        original = deepcopy(planning)
+>       context = workspace_plan.screen_context(planning)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'v4.manager_research.workspace_plan' has no attribute 'screen_context'
+
+tests/test_manager_input_contracts_20261008.py:164: AttributeError
+_______________ test_screen_context_requires_aware_cutoff[None] ________________
+
+cutoff = None
+
+    @pytest.mark.parametrize("cutoff", [None, "2026-10-08T08:00:00", "invalid"])
+    def test_screen_context_requires_aware_cutoff(cutoff):
+        with pytest.raises(ValueError, match="SCREEN_RESEARCH_CUTOFF_UNVERIFIED"):
+>           workspace_plan.screen_context({"plan_trade_date":TARGET, "market_session":DAY,
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                           "research_cutoff":cutoff})
+E           AttributeError: module 'v4.manager_research.workspace_plan' has no attribute 'screen_context'
+
+tests/test_manager_input_contracts_20261008.py:178: AttributeError
+________ test_screen_context_requires_aware_cutoff[2026-10-08T08:00:00] ________
+
+cutoff = '2026-10-08T08:00:00'
+
+    @pytest.mark.parametrize("cutoff", [None, "2026-10-08T08:00:00", "invalid"])
+    def test_screen_context_requires_aware_cutoff(cutoff):
+        with pytest.raises(ValueError, match="SCREEN_RESEARCH_CUTOFF_UNVERIFIED"):
+>           workspace_plan.screen_context({"plan_trade_date":TARGET, "market_session":DAY,
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                           "research_cutoff":cutoff})
+E           AttributeError: module 'v4.manager_research.workspace_plan' has no attribute 'screen_context'
+
+tests/test_manager_input_contracts_20261008.py:178: AttributeError
+______________ test_screen_context_requires_aware_cutoff[invalid] ______________
+
+cutoff = 'invalid'
+
+    @pytest.mark.parametrize("cutoff", [None, "2026-10-08T08:00:00", "invalid"])
+    def test_screen_context_requires_aware_cutoff(cutoff):
+        with pytest.raises(ValueError, match="SCREEN_RESEARCH_CUTOFF_UNVERIFIED"):
+>           workspace_plan.screen_context({"plan_trade_date":TARGET, "market_session":DAY,
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                           "research_cutoff":cutoff})
+E           AttributeError: module 'v4.manager_research.workspace_plan' has no attribute 'screen_context'
+
+tests/test_manager_input_contracts_20261008.py:178: AttributeError
+_ test_sidecar_accepts_actual_panel_witness_timestamp_and_preserves_unit_unknown _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-3/test_sidecar_accepts_actual_pa0')
+
+    def test_sidecar_accepts_actual_panel_witness_timestamp_and_preserves_unit_unknown(tmp_path):
+        root, panel, master, dates = _published_sidecar(tmp_path)
+>       value = workspace_plan._read_hk02_daily_supplement_witness(
+            root, DAY, dates, CUTOFF, panel, master, master["names"])
+
+tests/test_manager_input_contracts_20261008.py:184: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+v4/manager_research/workspace_plan.py:583: in _read_hk02_daily_supplement_witness
+    return read_verified_daily_supplement(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+authority_root = PosixPath('/tmp/pytest-of-root/pytest-3/test_sidecar_accepts_actual_pa0/authority')
+target_date = '20261007'
+requested = ['20260929', '20260930', '20261002', '20261005', '20261006', '20261007']
+research_cutoff = '2026-10-08T08:00:00+08:00'
+expected_panel = {'panel_sha256': '933cc9296690818c18569182aa7366a5e39981b9856105f01b4c08a68a84e139', 'panel_manifest_sha256': '9b7abf5eb54e0ff7cd79224e796e3fb54fe6b821c6e5ee41e96bde225eb41098', 'manifest_prepared_at': None}
+expected_master = {'manifest_sha256': '7430478b03e3821b2ed276d5c24c7a6b2551775b08347055bcd8a159234d241c', 'artifact_sha256': 'a162fcc2b093e75ee4dbc5a32886d0f5fceb3ece256ecdaecfc191a8a6c95bb3', 'captured_at': '2026-10-07T18:01:00+08:00'}
+expected_codes = ['HK.00001']
+
+    def read_verified_daily_supplement(
+        authority_root: Path | str,
+        *,
+        target_date: str,
+        requested: list[str],
+        research_cutoff: str,
+        expected_panel: Mapping[str, Any],
+        expected_master: Mapping[str, Any],
+        expected_codes: list[str],
+    ) -> dict[str, Any] | None:
+        """Read one stable exact-date sidecar; absent pointer returns ``None``."""
+        target_date = validate_date(target_date)
+        cutoff = _timestamp(research_cutoff)
+        exact_sessions, calendar_sha = requested_sessions(target_date)
+        if requested != exact_sessions:
+            raise ValueError("HK_DAILY_SUPPLEMENT_REQUESTED_SESSIONS_INVALID")
+        root = Path(authority_root).expanduser().resolve()
+        asset_root = root / "assets" / "hk_0_2"
+        pointer_rel = f"daily_supplements/pointers/{target_date}.json"
+        pointer_path = resolve_under(asset_root, pointer_rel)
+        try:
+            pointer_raw = pointer_path.read_bytes()
+        except FileNotFoundError:
+            return None
+        pointer = json.loads(pointer_raw)
+        if (pointer.get("schema_version") != POINTER_SCHEMA
+                or pointer.get("target_date") != target_date
+                or pointer.get("production_allowed") is not False
+                or pointer.get("buy_gate_updated") is not False
+                or pointer.get("orders_sent") is not False
+                or pointer.get("research_only") is not True
+                or pointer.get("panel_identity", {}).get("panel_sha256") != expected_panel.get("panel_sha256")
+                or pointer.get("panel_identity", {}).get("panel_manifest_sha256") != expected_panel.get("panel_manifest_sha256")
+                or pointer.get("panel_identity", {}).get("manifest_prepared_at") != expected_panel.get("manifest_prepared_at")
+                or pointer.get("security_master_identity", {}).get("manifest_sha256") != expected_master.get("manifest_sha256")
+                or pointer.get("security_master_identity", {}).get("artifact_sha256") != expected_master.get("artifact_sha256")
+                or pointer.get("security_master_identity", {}).get("captured_at") != expected_master.get("captured_at")):
+>           raise ValueError("HK_DAILY_SUPPLEMENT_POINTER_IDENTITY_INVALID")
+E           ValueError: HK_DAILY_SUPPLEMENT_POINTER_IDENTITY_INVALID
+
+upstreams/v3_shared_data/shared_data/hk_daily_supplement.py:495: ValueError
+_____ test_sidecar_still_rejects_panel_time_mismatch_and_late_publication ______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-3/test_sidecar_still_rejects_pan0')
+
+    def test_sidecar_still_rejects_panel_time_mismatch_and_late_publication(tmp_path):
+        root, panel, master, dates = _published_sidecar(tmp_path)
+        changed = dict(panel, panel_available_at="2026-10-07T17:59:00+08:00")
+        with pytest.raises(ValueError, match="HK_DAILY_SUPPLEMENT_POINTER_IDENTITY_INVALID"):
+            workspace_plan._read_hk02_daily_supplement_witness(
+                root, DAY, dates, CUTOFF, changed, master, master["names"])
+>       with pytest.raises(ValueError, match="HK_DAILY_SUPPLEMENT_POINTER_AFTER_CUTOFF"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'HK_DAILY_SUPPLEMENT_POINTER_AFTER_CUTOFF'
+E         Actual message: 'HK_DAILY_SUPPLEMENT_POINTER_IDENTITY_INVALID'
+
+tests/test_manager_input_contracts_20261008.py:200: AssertionError
+________ test_formal_cards_require_target_day_v2_and_reject_d1_capture _________
+
+    def test_formal_cards_require_target_day_v2_and_reject_d1_capture():
+        card = {"symbol":CODE, "market":"HK", "name":"Synthetic issuer"}
+        accepted, rejected = connect_selection.filter_cards([card], _scope(target_v2=False), target_date=TARGET)
+>       assert accepted == []
+E       AssertionError: assert [{'symbol': '...ERSHIP', ...}] == []
+E         
+E         Left contains one more item: {'symbol': 'HK.00001', 'market': 'HK', 'name': 'Synthetic issuer', 'connect_eligibility': 'VERIFIED_PREVIOUS_FULL_SESSION_CONNECT_MEMBERSHIP', ...}
+E         Use -v to get more diff
+
+tests/test_manager_input_contracts_20261008.py:208: AssertionError
+______ test_read_scope_retains_d1_as_diagnostic_when_target_v2_is_missing ______
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fce3fbc5810>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-3/test_read_scope_retains_d1_as_0')
+
+    def test_read_scope_retains_d1_as_diagnostic_when_target_v2_is_missing(monkeypatch, tmp_path):
+        from domains import manager_research_evidence
+        from v4.manager_research import connect_capture_adapter
+        monkeypatch.setenv("V4_MANAGER_UNIVERSE_ROOT", str(tmp_path))
+        monkeypatch.setenv("V4_MANAGER_UNIVERSE_OWNER_ROOT", str(tmp_path))
+        monkeypatch.setenv("V4_MANAGER_UNIVERSE_OWNER_SHA256", "a" * 64)
+        monkeypatch.setenv("V4_MANAGER_HK_CAPTURE_RECEIPT_ROOT", str(tmp_path / "capture"))
+        monkeypatch.setenv("V4_MANAGER_HK_DISPATCH_RECEIPT_ROOT", str(tmp_path / "dispatch"))
+    
+        def missing(*args, **kwargs):
+            assert kwargs["require_v2"] is True
+            raise ValueError("HK_UNIVERSE_V2_ARTIFACT_MISSING")
+    
+        monkeypatch.setattr(manager_research_evidence, "read_universe_evidence", missing)
+        monkeypatch.setattr(connect_capture_adapter, "read_d1_scope", lambda *args, **kwargs:_scope(target_v2=False))
+        result = connect_selection.read_scope(
+            {"plan_trade_date":TARGET, "market_session":DAY, "research_cutoff":CUTOFF})
+>       assert result["status"] == "CANNOT_CONFIRM"
+E       AssertionError: assert 'OWNER_VERIFIED' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + OWNER_VERIFIED
+
+tests/test_manager_input_contracts_20261008.py:232: AssertionError
+_ test_unproved_volume_is_pending_for_every_numeric_gate_combination[80.0-150.0] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-3/test_unproved_volume_is_pendin0')
+close = 80.0, volume = 150.0
+
+    @pytest.mark.parametrize(("close", "volume"), [(80.0, 150.0), (80.0, 100.0), (81.0, 150.0), (81.0, 100.0)])
+    def test_unproved_volume_is_pending_for_every_numeric_gate_combination(tmp_path, close, volume):
+        root, _, _ = _authority(tmp_path, close=close, volume=volume)
+        planning = workspace_plan.plan_context(TARGET, now=datetime.fromisoformat(CUTOFF))
+        result = workspace_plan.read_rebound_screen(root, planning)
+>       assert result["status"] == "READY_WITH_GAPS", result["gaps"]
+E       AssertionError: []
+E       assert 'READY' == 'READY_WITH_GAPS'
+E         
+E         - READY_WITH_GAPS
+E         + READY
+
+tests/test_manager_input_contracts_20261008.py:243: AssertionError
+_ test_unproved_volume_is_pending_for_every_numeric_gate_combination[80.0-100.0] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-3/test_unproved_volume_is_pendin1')
+close = 80.0, volume = 100.0
+
+    @pytest.mark.parametrize(("close", "volume"), [(80.0, 150.0), (80.0, 100.0), (81.0, 150.0), (81.0, 100.0)])
+    def test_unproved_volume_is_pending_for_every_numeric_gate_combination(tmp_path, close, volume):
+        root, _, _ = _authority(tmp_path, close=close, volume=volume)
+        planning = workspace_plan.plan_context(TARGET, now=datetime.fromisoformat(CUTOFF))
+        result = workspace_plan.read_rebound_screen(root, planning)
+>       assert result["status"] == "READY_WITH_GAPS", result["gaps"]
+E       AssertionError: []
+E       assert 'READY' == 'READY_WITH_GAPS'
+E         
+E         - READY_WITH_GAPS
+E         + READY
+
+tests/test_manager_input_contracts_20261008.py:243: AssertionError
+_ test_unproved_volume_is_pending_for_every_numeric_gate_combination[81.0-150.0] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-3/test_unproved_volume_is_pendin2')
+close = 81.0, volume = 150.0
+
+    @pytest.mark.parametrize(("close", "volume"), [(80.0, 150.0), (80.0, 100.0), (81.0, 150.0), (81.0, 100.0)])
+    def test_unproved_volume_is_pending_for_every_numeric_gate_combination(tmp_path, close, volume):
+        root, _, _ = _authority(tmp_path, close=close, volume=volume)
+        planning = workspace_plan.plan_context(TARGET, now=datetime.fromisoformat(CUTOFF))
+        result = workspace_plan.read_rebound_screen(root, planning)
+>       assert result["status"] == "READY_WITH_GAPS", result["gaps"]
+E       AssertionError: []
+E       assert 'READY' == 'READY_WITH_GAPS'
+E         
+E         - READY_WITH_GAPS
+E         + READY
+
+tests/test_manager_input_contracts_20261008.py:243: AssertionError
+_ test_unproved_volume_is_pending_for_every_numeric_gate_combination[81.0-100.0] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-3/test_unproved_volume_is_pendin3')
+close = 81.0, volume = 100.0
+
+    @pytest.mark.parametrize(("close", "volume"), [(80.0, 150.0), (80.0, 100.0), (81.0, 150.0), (81.0, 100.0)])
+    def test_unproved_volume_is_pending_for_every_numeric_gate_combination(tmp_path, close, volume):
+        root, _, _ = _authority(tmp_path, close=close, volume=volume)
+        planning = workspace_plan.plan_context(TARGET, now=datetime.fromisoformat(CUTOFF))
+        result = workspace_plan.read_rebound_screen(root, planning)
+>       assert result["status"] == "READY_WITH_GAPS", result["gaps"]
+E       AssertionError: []
+E       assert 'READY' == 'READY_WITH_GAPS'
+E         
+E         - READY_WITH_GAPS
+E         + READY
+
+tests/test_manager_input_contracts_20261008.py:243: AssertionError
+__________ test_bare_shares_string_and_lot_size_do_not_attest_volume ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-3/test_bare_shares_string_and_lo0')
+
+    def test_bare_shares_string_and_lot_size_do_not_attest_volume(tmp_path):
+        root, _, _ = _authority(tmp_path, bare_volume_unit="SHARES")
+        result = workspace_plan.read_rebound_screen(root, workspace_plan.plan_context(
+            TARGET, now=datetime.fromisoformat(CUTOFF)))
+>       assert result["cards"] == []
+E       AssertionError: assert [{'classifica...issuer', ...}] == []
+E         
+E         Left contains one more item: {'classification': 'STRICT_REBOUND', 'qualification_status': 'RESEARCH_ONLY_CANDIDATE', 'code': 'HK.00001', 'name': 'Synthetic issuer', ...}
+E         Use -v to get more diff
+
+tests/test_manager_input_contracts_20261008.py:262: AssertionError
+_________ test_rebound_consumer_cannot_read_an_unfinished_target_panel _________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-3/test_rebound_consumer_cannot_r0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fcdffa01a70>
+
+    def test_rebound_consumer_cannot_read_an_unfinished_target_panel(tmp_path, monkeypatch):
+        calls = []
+        monkeypatch.setattr(workspace_plan, "_read_hk02_panel_witness",
+                            lambda root, day, **kwargs:(calls.append(day) or (None, ["SYNTHETIC_MISSING"])))
+        context = {"plan_trade_date":TARGET, "market_session":TARGET,
+                   "research_cutoff":"2026-10-08T16:09:59+08:00"}
+        result = workspace_plan.read_rebound_screen(tmp_path, context)
+>       assert calls == [DAY]
+E       AssertionError: assert ['20261008'] == ['20261007']
+E         
+E         At index 0 diff: '20261008' != '20261007'
+E         Use -v to get more diff
+
+tests/test_manager_input_contracts_20261008.py:276: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_manager_input_contracts_20261008.py::test_screen_context_selects_only_completed_full_hk_session[20261008-2026-10-08T08:00:00+08:00-20261007-PREOPEN_COMPLETED_SESSION]
+FAILED tests/test_manager_input_contracts_20261008.py::test_screen_context_selects_only_completed_full_hk_session[20261008-2026-10-08T16:09:59+08:00-20261007-INTRADAY_COMPLETED_SESSION]
+FAILED tests/test_manager_input_contracts_20261008.py::test_screen_context_selects_only_completed_full_hk_session[20261008-2026-10-08T16:10:00+08:00-20261008-POST_CLOSE_COMPLETED_SESSION]
+FAILED tests/test_manager_input_contracts_20261008.py::test_screen_context_selects_only_completed_full_hk_session[20261009-2026-10-08T17:00:00+08:00-20261008-PREOPEN_COMPLETED_SESSION]
+FAILED tests/test_manager_input_contracts_20261008.py::test_screen_context_selects_only_completed_full_hk_session[20261005-2026-10-05T08:00:00+08:00-20261002-PREOPEN_COMPLETED_SESSION]
+FAILED tests/test_manager_input_contracts_20261008.py::test_screen_context_selects_only_completed_full_hk_session[20261020-2026-10-20T08:00:00+08:00-20261016-PREOPEN_COMPLETED_SESSION]
+FAILED tests/test_manager_input_contracts_20261008.py::test_screen_context_selects_only_completed_full_hk_session[20261224-2026-12-24T12:10:00+08:00-20261223-POST_CLOSE_COMPLETED_SESSION]
+FAILED tests/test_manager_input_contracts_20261008.py::test_screen_context_selects_only_completed_full_hk_session[20261228-2026-12-28T08:00:00+08:00-20261223-PREOPEN_COMPLETED_SESSION]
+FAILED tests/test_manager_input_contracts_20261008.py::test_screen_context_requires_aware_cutoff[None]
+FAILED tests/test_manager_input_contracts_20261008.py::test_screen_context_requires_aware_cutoff[2026-10-08T08:00:00]
+FAILED tests/test_manager_input_contracts_20261008.py::test_screen_context_requires_aware_cutoff[invalid]
+FAILED tests/test_manager_input_contracts_20261008.py::test_sidecar_accepts_actual_panel_witness_timestamp_and_preserves_unit_unknown
+FAILED tests/test_manager_input_contracts_20261008.py::test_sidecar_still_rejects_panel_time_mismatch_and_late_publication
+FAILED tests/test_manager_input_contracts_20261008.py::test_formal_cards_require_target_day_v2_and_reject_d1_capture
+FAILED tests/test_manager_input_contracts_20261008.py::test_read_scope_retains_d1_as_diagnostic_when_target_v2_is_missing
+FAILED tests/test_manager_input_contracts_20261008.py::test_unproved_volume_is_pending_for_every_numeric_gate_combination[80.0-150.0]
+FAILED tests/test_manager_input_contracts_20261008.py::test_unproved_volume_is_pending_for_every_numeric_gate_combination[80.0-100.0]
+FAILED tests/test_manager_input_contracts_20261008.py::test_unproved_volume_is_pending_for_every_numeric_gate_combination[81.0-150.0]
+FAILED tests/test_manager_input_contracts_20261008.py::test_unproved_volume_is_pending_for_every_numeric_gate_combination[81.0-100.0]
+FAILED tests/test_manager_input_contracts_20261008.py::test_bare_shares_string_and_lot_size_do_not_attest_volume
+FAILED tests/test_manager_input_contracts_20261008.py::test_rebound_consumer_cannot_read_an_unfinished_target_panel
+21 failed, 2 passed in 0.57s

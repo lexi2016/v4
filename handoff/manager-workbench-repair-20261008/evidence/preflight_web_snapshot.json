@@ -1,0 +1,22 @@
+{
+  "against": "after",
+  "base_commit": "0fd5eb374cb155232ed003d5fc4d0d3594252491",
+  "failures": [
+    {
+      "actual": "7eb96077f9c4c76c926b452dc0c4c581d3e35f777be8cde9d2c789b344bd6089",
+      "code": "PRESERVE_SHA_MISMATCH",
+      "expected": "36228506f199f26dc59c7919634e4c347171d156ec89b3d6b2359c764ed45d90",
+      "path": "apps/web/src/manager-selection/businessStatus.ts",
+      "scope": "preserve"
+    }
+  ],
+  "manifest_sha256": "ecc428fb1473b90867a5b58abb82d89a094eaec311fa478c69c09dd5abf4f7fb",
+  "package_files_checked": 24,
+  "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-workbench-repair-20261008",
+  "preserve_files_checked": 1,
+  "profile": "web",
+  "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+  "source_files_checked": 3,
+  "source_root": "/workspace/scratch/a154a3323e32/candidate",
+  "status": "FAIL"
+}

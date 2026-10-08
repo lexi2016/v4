@@ -1,0 +1,34 @@
+{
+  "against": "before",
+  "base_commit": "0fd5eb374cb155232ed003d5fc4d0d3594252491",
+  "evidence_scope": "FROZEN_SNAPSHOT_ONLY",
+  "failures": [],
+  "frozen_inputs": [
+    {
+      "path": "ops/run_v35_macos_scheduler_daemon.py",
+      "sha256": "19e071da0c6b6748465853c4ad86a80d6060524333e9dab21647b67adc8b49ec",
+      "source": "remote/handoff/hk-all-research-calendar-20261007/tooling/startup/scheduler_run_v35_macos_scheduler_daemon.py"
+    },
+    {
+      "path": "ops/launch_v35_macos_scheduler.sh",
+      "sha256": "0c577ae83b1f182dabf3b62e642a5bd5f0f8708b48e1806d8c653b691d2ec952",
+      "source": "remote/handoff/hk-all-research-calendar-20261007/tooling/startup/scheduler_launch_v35_macos_scheduler.sh"
+    },
+    {
+      "path": "ops/run_v35_macos_scheduler.py",
+      "sha256": "f707df50c31f03fd51e439eece0d86dd60647d8d989e9a760f2ef1f2222c6f0d",
+      "source": "remote/handoff/hk-all-research-calendar-20261007/tooling/startup/scheduler_run_v35_macos_scheduler.py"
+    }
+  ],
+  "live_process_identity": "NOT_VERIFIED",
+  "manifest_sha256": "ecc428fb1473b90867a5b58abb82d89a094eaec311fa478c69c09dd5abf4f7fb",
+  "package_files_checked": 24,
+  "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-workbench-repair-20261008",
+  "preserve_files_checked": 2,
+  "profile": "scheduler_prerequisite",
+  "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+  "source_copy_lifetime": "TEMPORARY_COPY_REMOVED_AFTER_VERIFICATION",
+  "source_files_checked": 1,
+  "source_root": "/tmp/v4-frozen-scheduler-preflight-zjrqrrhu",
+  "status": "PASS"
+}

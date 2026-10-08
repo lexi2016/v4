@@ -1,0 +1,431 @@
+FFFFFFFFFFFFF                                                            [100%]
+=================================== FAILURES ===================================
+________________ test_partial_owner_remains_partial_in_preopen _________________
+
+    def test_partial_owner_remains_partial_in_preopen():
+        value = owner_value(state="PARTIAL")
+        service = SimpleNamespace(refresh_workspace_plan=lambda *_, **__: deepcopy(value))
+        result = autorun.run_scheduled_preopen_plan(service, DATE, now=PREOPEN)
+>       assert result["status"] == "PARTIAL"
+E       AssertionError: assert 'MATERIALIZED' == 'PARTIAL'
+E         
+E         - PARTIAL
+E         + MATERIALIZED
+
+tests/test_manager_daily_dispatch_20261008.py:96: AssertionError
+_ test_preopen_never_invents_or_accepts_mismatched_owner_identity[manual_kind] _
+
+damage = 'manual_kind'
+
+    @pytest.mark.parametrize("damage", ["manual_kind", "missing_kind", "wrong_run", "bad_attempt_sha"])
+    def test_preopen_never_invents_or_accepts_mismatched_owner_identity(damage):
+        value = owner_value(kind="MANUAL_REFRESH" if damage == "manual_kind" else "SCHEDULED_PREOPEN")
+        if damage == "missing_kind":
+            value["plan_product"].pop("execution_kind")
+        elif damage == "wrong_run":
+            value["workspace_plan_attempt"] = workspace.seal_attempt({
+                **value["workspace_plan_attempt"], "run_id": "4" * 32})
+        elif damage == "bad_attempt_sha":
+            value["workspace_plan_attempt"]["sha256"] = "0" * 64
+        service = SimpleNamespace(refresh_workspace_plan=lambda *_, **__: value)
+        result = autorun.run_scheduled_preopen_plan_safe(service, DATE, now=PREOPEN)
+>       assert result["status"] == "FAILED"
+E       AssertionError: assert 'MATERIALIZED' == 'FAILED'
+E         
+E         - FAILED
+E         + MATERIALIZED
+
+tests/test_manager_daily_dispatch_20261008.py:114: AssertionError
+_ test_preopen_never_invents_or_accepts_mismatched_owner_identity[missing_kind] _
+
+damage = 'missing_kind'
+
+    @pytest.mark.parametrize("damage", ["manual_kind", "missing_kind", "wrong_run", "bad_attempt_sha"])
+    def test_preopen_never_invents_or_accepts_mismatched_owner_identity(damage):
+        value = owner_value(kind="MANUAL_REFRESH" if damage == "manual_kind" else "SCHEDULED_PREOPEN")
+        if damage == "missing_kind":
+            value["plan_product"].pop("execution_kind")
+        elif damage == "wrong_run":
+            value["workspace_plan_attempt"] = workspace.seal_attempt({
+                **value["workspace_plan_attempt"], "run_id": "4" * 32})
+        elif damage == "bad_attempt_sha":
+            value["workspace_plan_attempt"]["sha256"] = "0" * 64
+        service = SimpleNamespace(refresh_workspace_plan=lambda *_, **__: value)
+        result = autorun.run_scheduled_preopen_plan_safe(service, DATE, now=PREOPEN)
+>       assert result["status"] == "FAILED"
+E       AssertionError: assert 'MATERIALIZED' == 'FAILED'
+E         
+E         - FAILED
+E         + MATERIALIZED
+
+tests/test_manager_daily_dispatch_20261008.py:114: AssertionError
+__ test_preopen_never_invents_or_accepts_mismatched_owner_identity[wrong_run] __
+
+damage = 'wrong_run'
+
+    @pytest.mark.parametrize("damage", ["manual_kind", "missing_kind", "wrong_run", "bad_attempt_sha"])
+    def test_preopen_never_invents_or_accepts_mismatched_owner_identity(damage):
+        value = owner_value(kind="MANUAL_REFRESH" if damage == "manual_kind" else "SCHEDULED_PREOPEN")
+        if damage == "missing_kind":
+            value["plan_product"].pop("execution_kind")
+        elif damage == "wrong_run":
+            value["workspace_plan_attempt"] = workspace.seal_attempt({
+                **value["workspace_plan_attempt"], "run_id": "4" * 32})
+        elif damage == "bad_attempt_sha":
+            value["workspace_plan_attempt"]["sha256"] = "0" * 64
+        service = SimpleNamespace(refresh_workspace_plan=lambda *_, **__: value)
+        result = autorun.run_scheduled_preopen_plan_safe(service, DATE, now=PREOPEN)
+>       assert result["status"] == "FAILED"
+E       AssertionError: assert 'MATERIALIZED' == 'FAILED'
+E         
+E         - FAILED
+E         + MATERIALIZED
+
+tests/test_manager_daily_dispatch_20261008.py:114: AssertionError
+_ test_preopen_never_invents_or_accepts_mismatched_owner_identity[bad_attempt_sha] _
+
+damage = 'bad_attempt_sha'
+
+    @pytest.mark.parametrize("damage", ["manual_kind", "missing_kind", "wrong_run", "bad_attempt_sha"])
+    def test_preopen_never_invents_or_accepts_mismatched_owner_identity(damage):
+        value = owner_value(kind="MANUAL_REFRESH" if damage == "manual_kind" else "SCHEDULED_PREOPEN")
+        if damage == "missing_kind":
+            value["plan_product"].pop("execution_kind")
+        elif damage == "wrong_run":
+            value["workspace_plan_attempt"] = workspace.seal_attempt({
+                **value["workspace_plan_attempt"], "run_id": "4" * 32})
+        elif damage == "bad_attempt_sha":
+            value["workspace_plan_attempt"]["sha256"] = "0" * 64
+        service = SimpleNamespace(refresh_workspace_plan=lambda *_, **__: value)
+        result = autorun.run_scheduled_preopen_plan_safe(service, DATE, now=PREOPEN)
+>       assert result["status"] == "FAILED"
+E       AssertionError: assert 'MATERIALIZED' == 'FAILED'
+E         
+E         - FAILED
+E         + MATERIALIZED
+
+tests/test_manager_daily_dispatch_20261008.py:114: AssertionError
+_______________ test_existing_morning_branch_reaches_same_owner ________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-5/test_existing_morning_branch_r0')
+
+    def test_existing_morning_branch_reaches_same_owner(tmp_path):
+        service = SyntheticOwner(tmp_path)
+>       result = cycle.run_scheduled_plan_target(
+            service, DATE, DATE, now=MORNING, plan_config=EVENING,
+            morning_plan_config=MORNING_CONFIG)
+E       TypeError: run_scheduled_plan_target() got an unexpected keyword argument 'morning_plan_config'
+
+tests/test_manager_daily_dispatch_20261008.py:120: TypeError
+_ test_missing_us_dependency_does_not_block_independent_plan_owner[now0-SCHEDULED_MORNING] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-5/test_missing_us_dependency_doe0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f3b3a6422c0>
+now = datetime.datetime(2026, 10, 8, 7, 0, tzinfo=zoneinfo.ZoneInfo(key='Asia/Hong_Kong'))
+kind = 'SCHEDULED_MORNING'
+
+    @pytest.mark.parametrize("now,kind", [(MORNING, "SCHEDULED_MORNING"), (PREOPEN, "SCHEDULED_PREOPEN")])
+    def test_missing_us_dependency_does_not_block_independent_plan_owner(tmp_path, monkeypatch, now, kind):
+        service, sha, _ = bound_service(tmp_path, monkeypatch, now=now)
+>       result = dispatch.execute_bound_plan_cycle(service, DATE, sha)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_daily_dispatch_20261008.py:132: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+service = <test_manager_daily_dispatch_20261008.SyntheticOwner object at 0x7f3b3a7c1a90>
+target_date = '20261008'
+binding_sha256 = '2bf6d978075b324dcc3370cef0bedfce15221e9ee1453dd06e3c6cf1de474023'
+
+    def execute_bound_plan_cycle(service: Any, target_date: str, binding_sha256: str) -> dict[str, Any]:
+        binding_path = os.environ.get("V4_MANAGER_PLAN_OWNER_BINDING_PATH", "").strip()
+        if not binding_path:
+            raise ValueError("PLAN_OWNER_SERVER_BINDING_NOT_CONFIGURED")
+        raw = _raw_binding(binding_path)
+        actual_sha = hashlib.sha256(raw).hexdigest()
+        if not re.fullmatch(r"[0-9a-f]{64}", str(binding_sha256 or "")) or actual_sha != binding_sha256:
+            raise ValueError("PLAN_OWNER_BINDING_SHA_MISMATCH")
+        try:
+            binding_value = json.loads(raw)
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ValueError("PLAN_OWNER_BINDING_JSON_INVALID") from exc
+        from infrastructure.scheduling.manager_announcement_supervisor import validate_binding
+        binding = validate_binding(binding_value, expected_app=APP_ROOT)
+        if not binding.get("enabled"):
+            raise ValueError("PLAN_OWNER_BINDING_DISABLED")
+        state_root = Path(str(binding.get("manager_state_root") or "")).resolve()
+        master_root = Path(str(binding.get("security_master_root") or "")).resolve()
+        service_master = getattr(service, "_workspace_security_master_root", None)
+        if Path(service.store.root).resolve() != state_root or service_master is None or Path(service_master).resolve() != master_root:
+            raise ValueError("PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH")
+        if (getattr(service, "_existing_research_source", None) is None
+                or getattr(service, "_workspace_us_market_reader", None) is None):
+>           raise ValueError("PLAN_OWNER_FULL_READERS_REQUIRED")
+E           ValueError: PLAN_OWNER_FULL_READERS_REQUIRED
+
+v4/manager_research/plan_owner_dispatch.py:216: ValueError
+_ test_missing_us_dependency_does_not_block_independent_plan_owner[now1-SCHEDULED_PREOPEN] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-5/test_missing_us_dependency_doe1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f3b3a642650>
+now = datetime.datetime(2026, 10, 8, 9, 27, tzinfo=zoneinfo.ZoneInfo(key='Asia/Hong_Kong'))
+kind = 'SCHEDULED_PREOPEN'
+
+    @pytest.mark.parametrize("now,kind", [(MORNING, "SCHEDULED_MORNING"), (PREOPEN, "SCHEDULED_PREOPEN")])
+    def test_missing_us_dependency_does_not_block_independent_plan_owner(tmp_path, monkeypatch, now, kind):
+        service, sha, _ = bound_service(tmp_path, monkeypatch, now=now)
+>       result = dispatch.execute_bound_plan_cycle(service, DATE, sha)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_daily_dispatch_20261008.py:132: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+service = <test_manager_daily_dispatch_20261008.SyntheticOwner object at 0x7f3b3a694410>
+target_date = '20261008'
+binding_sha256 = '4a925859a492de6521589a1f4c08c70ed5ba1b04079eab6db8b4e1cdc860f974'
+
+    def execute_bound_plan_cycle(service: Any, target_date: str, binding_sha256: str) -> dict[str, Any]:
+        binding_path = os.environ.get("V4_MANAGER_PLAN_OWNER_BINDING_PATH", "").strip()
+        if not binding_path:
+            raise ValueError("PLAN_OWNER_SERVER_BINDING_NOT_CONFIGURED")
+        raw = _raw_binding(binding_path)
+        actual_sha = hashlib.sha256(raw).hexdigest()
+        if not re.fullmatch(r"[0-9a-f]{64}", str(binding_sha256 or "")) or actual_sha != binding_sha256:
+            raise ValueError("PLAN_OWNER_BINDING_SHA_MISMATCH")
+        try:
+            binding_value = json.loads(raw)
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ValueError("PLAN_OWNER_BINDING_JSON_INVALID") from exc
+        from infrastructure.scheduling.manager_announcement_supervisor import validate_binding
+        binding = validate_binding(binding_value, expected_app=APP_ROOT)
+        if not binding.get("enabled"):
+            raise ValueError("PLAN_OWNER_BINDING_DISABLED")
+        state_root = Path(str(binding.get("manager_state_root") or "")).resolve()
+        master_root = Path(str(binding.get("security_master_root") or "")).resolve()
+        service_master = getattr(service, "_workspace_security_master_root", None)
+        if Path(service.store.root).resolve() != state_root or service_master is None or Path(service_master).resolve() != master_root:
+            raise ValueError("PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH")
+        if (getattr(service, "_existing_research_source", None) is None
+                or getattr(service, "_workspace_us_market_reader", None) is None):
+>           raise ValueError("PLAN_OWNER_FULL_READERS_REQUIRED")
+E           ValueError: PLAN_OWNER_FULL_READERS_REQUIRED
+
+v4/manager_research/plan_owner_dispatch.py:216: ValueError
+___________ test_us_owner_exception_is_lane_failure_not_global_exit ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-5/test_us_owner_exception_is_lan0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f3b3a603e30>
+
+    def test_us_owner_exception_is_lane_failure_not_global_exit(tmp_path, monkeypatch):
+        service, sha, _ = bound_service(tmp_path, monkeypatch)
+        service._workspace_us_market_reader = object()
+        def failed_mapping(*_, **__):
+            raise ImportError("synthetic missing owner dependency")
+        monkeypatch.setattr(dispatch, "_prepare_us_mapping", failed_mapping)
+>       result = dispatch.execute_bound_plan_cycle(service, DATE, sha)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_daily_dispatch_20261008.py:152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+v4/manager_research/plan_owner_dispatch.py:229: in execute_bound_plan_cycle
+    daily = _prepare_us_mapping(service, date, now)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+_ = (<test_manager_daily_dispatch_20261008.SyntheticOwner object at 0x7f3b3a642b10>, '20261008', datetime.datetime(2026, 10, 8, 9, 27, tzinfo=zoneinfo.ZoneInfo(key='Asia/Hong_Kong')))
+__ = {}
+
+    def failed_mapping(*_, **__):
+>       raise ImportError("synthetic missing owner dependency")
+E       ImportError: synthetic missing owner dependency
+
+tests/test_manager_daily_dispatch_20261008.py:150: ImportError
+____ test_evening_attempt_budget_does_not_reset_when_input_identity_changes ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-5/test_evening_attempt_budget_do0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f3b3a64dd00>
+
+    def test_evening_attempt_budget_does_not_reset_when_input_identity_changes(tmp_path, monkeypatch):
+        service = SyntheticOwner(tmp_path)
+        monkeypatch.setattr(workspace, "_read_plan", lambda *args: None)
+        monkeypatch.setattr(workspace, "get_workspace", lambda *args, **kwargs: {"input_identity": "a" * 64})
+        failed = {"state": "FAILED", "input_identity": "b" * 64,
+                  "started_at": "2026-10-08T16:00:00+08:00", "finished_at": "2026-10-08T16:00:01+08:00"}
+        monkeypatch.setattr(cycle, "_attempts_today", lambda *args: [failed, failed, failed])
+>       result = cycle.run_next_hk_session_plan_material_refresh(
+            service, DATE, now=PREOPEN.replace(hour=18, minute=0), config=EVENING)
+
+tests/test_manager_daily_dispatch_20261008.py:166: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+service = <test_manager_daily_dispatch_20261008.SyntheticOwner object at 0x7f3b3a643100>
+source_date = '20261008'
+now = datetime.datetime(2026, 10, 8, 18, 0, tzinfo=zoneinfo.ZoneInfo(key='Asia/Hong_Kong'))
+config = {'enabled': True, 'max_attempts_per_target_date': 3, 'retry_backoff_seconds': 600}
+
+    def run_next_hk_session_plan_material_refresh(service:Any,source_date:str,*,now:datetime,
+                                                   config:Mapping[str,Any] | None=None) -> dict[str,Any]:
+        """Persist a next-session MANUAL_REFRESH through the existing workspace-plan owner."""
+        cfg=_plan_refresh_config(config)
+        if now.tzinfo is None:raise ValueError('PLAN_MATERIAL_REFRESH_CLOCK_MUST_BE_AWARE')
+        local=now.astimezone(ZoneInfo('Asia/Hong_Kong'))
+        if not cfg['enabled']:return {'status':'DISABLED','policy_status':'PROPOSAL_ONLY'}
+        if local.strftime('%Y%m%d')!=source_date:
+            raise ValueError('PLAN_MATERIAL_REFRESH_SOURCE_DATE_CLOCK_MISMATCH')
+        if local.timetz().replace(tzinfo=None)<cfg['start_local']:
+            return {'status':'NOT_DUE','policy_status':'PROPOSAL_ONLY'}
+        if local.timetz().replace(tzinfo=None)>=cfg['end_local']:
+            return {'status':'EXPIRED_NO_BACKFILL','policy_status':'PROPOSAL_ONLY'}
+        target=next_hk_session_date(source_date)
+        from v4.manager_research import workspace
+        saved=workspace._read_plan(service.store,target)
+        if saved and saved.get('execution_kind')=='SCHEDULED_PREOPEN':
+            return {'status':'PRESERVED_SCHEDULED_PREOPEN','target_trade_date':target,
+                'run_id':saved.get('run_id'),'product_sha256':saved.get('sha256'),
+                'input_identity':saved.get('input_identity'),'execution_kind':saved.get('execution_kind'),
+                'execution_kind_source':'OWNER_READBACK','owner':saved.get('owner'),
+                'policy_status':'PROPOSAL_ONLY'}
+        current=workspace.get_workspace(service,target,include_saved=False,now=local)
+        current_identity=current.get('input_identity')
+        if not re.fullmatch(r'[0-9a-f]{64}',str(current_identity or '')):
+            raise ValueError('PLAN_MATERIAL_REFRESH_INPUT_IDENTITY_INVALID')
+        if (saved and saved.get('input_identity')==current_identity
+                and saved.get('workspace',{}).get('semantic_version')==current.get('semantic_version')):
+            return {'status':'ALREADY_CURRENT','target_trade_date':target,'run_id':saved.get('run_id'),
+                'product_sha256':saved.get('sha256'),'input_identity':current_identity,
+                'execution_kind':saved.get('execution_kind','MANUAL_REFRESH'),
+                'execution_kind_source':'OWNER_READBACK','policy_status':'PROPOSAL_ONLY'}
+        attempts=_attempts_today(service,target,local)
+        matching=[row for row in attempts if row.get('input_identity')==current_identity]
+        unknown_failures=[row for row in attempts if row.get('state')=='FAILED' and not row.get('input_identity')]
+        relevant=matching+unknown_failures
+        if relevant:
+            last=max(relevant,key=lambda row:row.get('started_at',''))
+            if last.get('state')=='FAILED':
+                finished=datetime.fromisoformat(str(last.get('finished_at') or last['started_at']))
+                if (local-finished.astimezone(local.tzinfo)).total_seconds()<cfg['retry_backoff_seconds']:
+                    return {'status':'RETRY_BACKOFF','target_trade_date':target,'attempts':len(relevant),
+                        'retry_after_seconds':cfg['retry_backoff_seconds'],'policy_status':'PROPOSAL_ONLY'}
+        if len(relevant)>=cfg['max_attempts_per_target_date']:
+            return {'status':'RETRY_LIMIT_REACHED','target_trade_date':target,'attempts':len(relevant),
+                'policy_status':'PROPOSAL_ONLY'}
+        result=service.refresh_workspace_plan(target,execution_kind='MANUAL_REFRESH',now=local)
+        saved=workspace._read_plan(service.store,target)
+        if not saved or saved.get('execution_kind')!='MANUAL_REFRESH':
+>           raise ValueError('PLAN_MATERIAL_REFRESH_READBACK_INVALID')
+E           ValueError: PLAN_MATERIAL_REFRESH_READBACK_INVALID
+
+ops/run_manager_announcement_cycle.py:155: ValueError
+_____________ test_repeated_dispatch_failures_are_durably_bounded ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-5/test_repeated_dispatch_failure0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f3b3a64de10>
+
+    def test_repeated_dispatch_failures_are_durably_bounded(tmp_path, monkeypatch):
+        service, sha, _ = bound_service(tmp_path, monkeypatch)
+        calls = []
+        def broken_owner(*args, **kwargs):
+            calls.append(1)
+            raise RuntimeError("synthetic owner failure")
+        service.refresh_workspace_plan = broken_owner
+        results = []
+        for seconds in (0, 60, 120, 179):
+            monkeypatch.setattr(dispatch, "clock_now", lambda seconds=seconds: PREOPEN + timedelta(seconds=seconds))
+>           results.append(dispatch.execute_bound_plan_cycle(service, DATE, sha))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_daily_dispatch_20261008.py:182: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+service = <test_manager_daily_dispatch_20261008.SyntheticOwner object at 0x7f3b3a678290>
+target_date = '20261008'
+binding_sha256 = '8e078a6c44c1ff2c544c1126ab47fad0618a23c8fd56a42ef386860e4ef203f1'
+
+    def execute_bound_plan_cycle(service: Any, target_date: str, binding_sha256: str) -> dict[str, Any]:
+        binding_path = os.environ.get("V4_MANAGER_PLAN_OWNER_BINDING_PATH", "").strip()
+        if not binding_path:
+            raise ValueError("PLAN_OWNER_SERVER_BINDING_NOT_CONFIGURED")
+        raw = _raw_binding(binding_path)
+        actual_sha = hashlib.sha256(raw).hexdigest()
+        if not re.fullmatch(r"[0-9a-f]{64}", str(binding_sha256 or "")) or actual_sha != binding_sha256:
+            raise ValueError("PLAN_OWNER_BINDING_SHA_MISMATCH")
+        try:
+            binding_value = json.loads(raw)
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ValueError("PLAN_OWNER_BINDING_JSON_INVALID") from exc
+        from infrastructure.scheduling.manager_announcement_supervisor import validate_binding
+        binding = validate_binding(binding_value, expected_app=APP_ROOT)
+        if not binding.get("enabled"):
+            raise ValueError("PLAN_OWNER_BINDING_DISABLED")
+        state_root = Path(str(binding.get("manager_state_root") or "")).resolve()
+        master_root = Path(str(binding.get("security_master_root") or "")).resolve()
+        service_master = getattr(service, "_workspace_security_master_root", None)
+        if Path(service.store.root).resolve() != state_root or service_master is None or Path(service_master).resolve() != master_root:
+            raise ValueError("PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH")
+        if (getattr(service, "_existing_research_source", None) is None
+                or getattr(service, "_workspace_us_market_reader", None) is None):
+>           raise ValueError("PLAN_OWNER_FULL_READERS_REQUIRED")
+E           ValueError: PLAN_OWNER_FULL_READERS_REQUIRED
+
+v4/manager_research/plan_owner_dispatch.py:216: ValueError
+______________ test_wrong_date_or_closed_window_never_calls_owner ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-5/test_wrong_date_or_closed_wind0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f3b3a5faa50>
+
+    def test_wrong_date_or_closed_window_never_calls_owner(tmp_path, monkeypatch):
+        service, sha, _ = bound_service(tmp_path, monkeypatch, now=PREOPEN.replace(minute=30))
+>       with pytest.raises(ValueError, match="TARGET_DATE_OR_WINDOW_MISMATCH"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'TARGET_DATE_OR_WINDOW_MISMATCH'
+E         Actual message: 'PLAN_OWNER_FULL_READERS_REQUIRED'
+
+tests/test_manager_daily_dispatch_20261008.py:190: AssertionError
+____________ test_client_does_not_accept_manual_product_as_preopen _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-5/test_client_does_not_accept_ma0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f3b3a5fb250>
+
+    def test_client_does_not_accept_manual_product_as_preopen(tmp_path, monkeypatch):
+        _, sha, path = bound_service(tmp_path, monkeypatch)
+        identity = dispatch._parent_trigger_identity(DATE, DATE, "PREOPEN", sha)
+        plan = {"status": "MATERIALIZED", "run_id": "1" * 32, "product_sha256": "2" * 64,
+                "input_identity": "3" * 64, "execution_kind": "MANUAL_REFRESH",
+                "execution_kind_source": "OWNER_READBACK", "owner_attempt_state": "SUCCEEDED",
+                "owner_attempt_run_id": "1" * 32}
+        result = {"schema_version": dispatch.SCHEMA, "owner": OWNER, "binding_sha256": sha,
+                  "target_trade_date": DATE, "status": "SUCCEEDED", "branch": "PREOPEN",
+                  "plan_result": plan, **FLAGS}
+        result["parent_trigger_receipt"] = dispatch._parent_trigger_receipt(identity, now=PREOPEN, result=result)
+        raw = json.dumps(result).encode()
+        class Connection:
+            def __init__(self, *args, **kwargs): pass
+            def request(self, *args, **kwargs): pass
+            def getresponse(self):
+                return SimpleNamespace(status=200, getheader=lambda *args: "application/json", read=lambda *args: raw)
+            def close(self): pass
+        monkeypatch.setattr(dispatch.http.client, "HTTPConnection", Connection)
+        returned = dispatch.request_bound_plan_cycle(path, DATE)
+>       assert returned["status"] == "FAILED"
+E       AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E         
+E         - FAILED
+E         + SUCCEEDED
+
+tests/test_manager_daily_dispatch_20261008.py:215: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_manager_daily_dispatch_20261008.py::test_partial_owner_remains_partial_in_preopen
+FAILED tests/test_manager_daily_dispatch_20261008.py::test_preopen_never_invents_or_accepts_mismatched_owner_identity[manual_kind]
+FAILED tests/test_manager_daily_dispatch_20261008.py::test_preopen_never_invents_or_accepts_mismatched_owner_identity[missing_kind]
+FAILED tests/test_manager_daily_dispatch_20261008.py::test_preopen_never_invents_or_accepts_mismatched_owner_identity[wrong_run]
+FAILED tests/test_manager_daily_dispatch_20261008.py::test_preopen_never_invents_or_accepts_mismatched_owner_identity[bad_attempt_sha]
+FAILED tests/test_manager_daily_dispatch_20261008.py::test_existing_morning_branch_reaches_same_owner
+FAILED tests/test_manager_daily_dispatch_20261008.py::test_missing_us_dependency_does_not_block_independent_plan_owner[now0-SCHEDULED_MORNING]
+FAILED tests/test_manager_daily_dispatch_20261008.py::test_missing_us_dependency_does_not_block_independent_plan_owner[now1-SCHEDULED_PREOPEN]
+FAILED tests/test_manager_daily_dispatch_20261008.py::test_us_owner_exception_is_lane_failure_not_global_exit
+FAILED tests/test_manager_daily_dispatch_20261008.py::test_evening_attempt_budget_does_not_reset_when_input_identity_changes
+FAILED tests/test_manager_daily_dispatch_20261008.py::test_repeated_dispatch_failures_are_durably_bounded
+FAILED tests/test_manager_daily_dispatch_20261008.py::test_wrong_date_or_closed_window_never_calls_owner
+FAILED tests/test_manager_daily_dispatch_20261008.py::test_client_does_not_accept_manual_product_as_preopen
+13 failed in 0.18s
