@@ -1,0 +1,61 @@
+{
+  "repository": "lexi2016/v4",
+  "frozen_commit": "00524e9050fe212f87911b56eea1c2db719dd94b",
+  "status": "CANDIDATE_SOURCE_ONLY_NOT_DEPLOYABLE",
+  "changes": [
+    {
+      "source_owner": "canonical",
+      "relative_path": "stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "before_package_path": "source/canonical/stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "before_sha256": "8b3552498b125ae90c56964799f3cf0e644a077243f7be4c37ea23261214379a",
+      "before_bytes": 44965,
+      "after_path": "after/canonical/stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "after_sha256": "7fa71ee1a4b96f6f53d49467fcb296969104e851949234849fd256a5372d5725",
+      "after_bytes": 45034,
+      "identity_note": "distinct owner preimage preserved"
+    },
+    {
+      "source_owner": "canonical",
+      "relative_path": "stage_center/_selection_parts/a_auction.py",
+      "before_package_path": "source/canonical/stage_center/_selection_parts/a_auction.py",
+      "before_sha256": "d0a96edcb4d87f223b117917a8f0d68276bd088a88abe8f787d245c8e1c669ad",
+      "before_bytes": 7957,
+      "after_path": "after/canonical/stage_center/_selection_parts/a_auction.py",
+      "after_sha256": "defb01fca7d0a067bf214e794810fac7d19fdbd3fbcd78b8263fe93603952e93",
+      "after_bytes": 8746,
+      "identity_note": "distinct owner preimage preserved"
+    },
+    {
+      "source_owner": "active_stage_reference",
+      "relative_path": "stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "before_package_path": "source/active_stage_reference/stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "before_sha256": "5b315c482723f4bbfb187e36241ea422f2a59518a2056be037d1fdbe2f00eb22",
+      "before_bytes": 21870,
+      "after_path": "after/active_stage_reference/stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "after_sha256": "409274a2adace19f22ef6d19cdbc7e5291b58fd9944d39239abbffd90ab1f6e4",
+      "after_bytes": 21939,
+      "identity_note": "distinct owner preimage preserved"
+    },
+    {
+      "source_owner": "active_stage_reference",
+      "relative_path": "stage_center/_selection_parts/a_auction.py",
+      "before_package_path": "source/canonical/stage_center/_selection_parts/a_auction.py",
+      "before_sha256": "d0a96edcb4d87f223b117917a8f0d68276bd088a88abe8f787d245c8e1c669ad",
+      "before_bytes": 7957,
+      "after_path": "after/active_stage_reference/stage_center/_selection_parts/a_auction.py",
+      "after_sha256": "defb01fca7d0a067bf214e794810fac7d19fdbd3fbcd78b8263fe93603952e93",
+      "after_bytes": 8746,
+      "identity_note": "canonical shared preimage reused for active via explicit SOURCE_MANIFEST mapping"
+    }
+  ],
+  "unchanged_contract_files": [
+    {
+      "relative_path": "stage_center/_selection_parts/schema_values.py",
+      "sha256": "80b0c21556c78c89132a08ca24eb80b5a211791719cb54801497dbe74472e458"
+    },
+    {
+      "relative_path": "stage_center/_selection_parts/artifact_codec.py",
+      "sha256": "6c0ddaed1dfe7a066be9aeb1c726e2357f5c1814b0baca834c37bb1879aeeb9d"
+    }
+  ]
+}

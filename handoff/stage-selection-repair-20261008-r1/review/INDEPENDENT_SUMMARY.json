@@ -1,0 +1,423 @@
+{
+  "schema_version": "v4.issue28.independent_source_review.v1",
+  "reviewer_identity": "/root/independent_review",
+  "review_date": "2026-10-08",
+  "repository": "lexi2016/v4",
+  "baseline_commit": "00524e9050fe212f87911b56eea1c2db719dd94b",
+  "review_result": "NO_UNRESOLVED_CANDIDATE_DEFECT_FOUND_IN_BOUNDED_REVIEW",
+  "candidate_source_next_step": "ACTUAL_OWNER_ADAPTATION_AND_SEPARATE_EXACT_PACKAGE_REVIEW",
+  "deployment_review": "NOT_PERFORMED",
+  "deployability": "NOT_DEPLOYABLE_PENDING_MAC_OWNER_CLOSURE_AND_EXACT_PACKAGE_REVIEW",
+  "is_installation_receipt": false,
+  "merge_permission_issued": false,
+  "new_candidate_findings": {
+    "Critical": [],
+    "P1": [],
+    "P2": []
+  },
+  "author_corrections_requested": [],
+  "open_evidence_gaps": [
+    {
+      "priority": "P1",
+      "id": "HK_ACTIVE_DEPENDENCY_CLOSURE",
+      "status": "CANNOT_CONFIRM_ACTIVE_DEPENDENCY_CLOSURE",
+      "reference": "delivery/OPEN_ITEMS.md:13-24",
+      "required": "Actual scheduler executor/caller, loaded shared HK owner, active producer/Stage store and support SHAs; canonical fixtures cannot substitute."
+    },
+    {
+      "priority": "P1",
+      "id": "HK_REAL_SOURCE_AND_CAPTURE",
+      "status": "CANNOT_CONFIRM",
+      "reference": "delivery/OPEN_ITEMS.md:26-28",
+      "required": "Real 20261007 price and 20260930 eligibility trios, run/SHA/capture evidence; no availability or PIT claim."
+    },
+    {
+      "priority": "P1",
+      "id": "RELEASE_REAL_PACKAGE_MIGRATION",
+      "status": "NOT_RUN",
+      "reference": "delivery/release/source/blocked_candidate_ops/api_candidate_install_r2.py:178-198,306-348",
+      "required": "Actual guard/path, new identity digest, final plan and 21-field exact scope plus independent real-package reviewer receipt."
+    }
+  ],
+  "test_environment": {
+    "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "pytest": "9.1.1",
+    "bytecode_writes_disabled": true,
+    "pytest_plugin_autoload_disabled": true,
+    "host_service_commands": false
+  },
+  "fresh_test_results": [
+    {
+      "area": "auction",
+      "owner": "canonical",
+      "phase": "candidate",
+      "passed": 24,
+      "failed": 0,
+      "scope": "21 real import/persistence cases; 3 AST API projection cases"
+    },
+    {
+      "area": "auction",
+      "owner": "active_stage_reference",
+      "phase": "candidate",
+      "passed": 24,
+      "failed": 0,
+      "scope": "Same 24-case suite on distinct owner builder"
+    },
+    {
+      "area": "auction",
+      "owner": "active_stage_reference",
+      "phase": "baseline",
+      "passed": 6,
+      "failed": 18,
+      "expected_failures": true
+    },
+    {
+      "area": "hk",
+      "phase": "candidate",
+      "passed": 19,
+      "failed": 0,
+      "scope": "Actual monolithic adapter/CLI plus canonical synthetic publisher/store and unmodified active validator body"
+    },
+    {
+      "area": "hk",
+      "phase": "baseline_focus",
+      "passed": 2,
+      "failed": 2,
+      "expected_failures": true
+    },
+    {
+      "area": "pool",
+      "phase": "candidate_reused_source",
+      "passed": 4,
+      "failed": 0,
+      "warnings": 1,
+      "scope": "Original route/helper AST and real storage; full original create_app NOT_RUN"
+    },
+    {
+      "area": "release",
+      "suite": "focused",
+      "passed": 25,
+      "failed": 0,
+      "scope": "Real files/package guards, in-process service fake"
+    },
+    {
+      "area": "release",
+      "suite": "supplied_existing",
+      "passed": 26,
+      "failed": 0,
+      "scope": "All supplied assertions retained; synthetic small release package and synthetic old FAIL receipt"
+    },
+    {
+      "area": "release",
+      "suite": "independent_extra_lifecycle_probes",
+      "passed": 2,
+      "failed": 0,
+      "scope": "Post-restore receipt ENOSPC then ordinary recovery; full rollback double failure then claim retry; not counted in authored suite counts"
+    }
+  ],
+  "fresh_commands": [
+    {
+      "name": "hk_after",
+      "command": "/workspace/scratch/29f34dd56853/issue28/work/test-venv/bin/python /workspace/scratch/29f34dd56853/issue28/delivery/hk/tests/run_focused.py --issue-root /workspace/scratch/29f34dd56853/issue28 --owner-root /workspace/scratch/29f34dd56853/issue28/delivery/hk/after/active_producer_reference --support-root /workspace/scratch/29f34dd56853/issue28/delivery/hk/test_support",
+      "exit_code": 0,
+      "log": "logs/hk_after.log"
+    },
+    {
+      "name": "hk_before",
+      "command": "/workspace/scratch/29f34dd56853/issue28/work/test-venv/bin/python /workspace/scratch/29f34dd56853/issue28/delivery/hk/tests/run_focused.py --issue-root /workspace/scratch/29f34dd56853/issue28 --owner-root /workspace/scratch/29f34dd56853/issue28/baseline/source/active_producer_reference --support-root /workspace/scratch/29f34dd56853/issue28/delivery/hk/test_support --baseline-focus",
+      "exit_code": 1,
+      "log": "logs/hk_before.log"
+    },
+    {
+      "name": "pool",
+      "command": "/workspace/scratch/29f34dd56853/issue28/work/test-venv/bin/python /workspace/scratch/29f34dd56853/issue28/delivery/pool/isolated/run_route_tests.py",
+      "exit_code": 0,
+      "log": "logs/pool.log"
+    },
+    {
+      "name": "auction_canonical_after",
+      "command": "/workspace/scratch/29f34dd56853/issue28/work/test-venv/bin/python /workspace/scratch/29f34dd56853/issue28/delivery/auction/reproduce.py --repo-root /workspace/scratch/29f34dd56853/issue28/work/auction/frozen_test_support --owner canonical --phase after --log-root /workspace/scratch/29f34dd56853/issue28/delivery/review/logs/auction",
+      "exit_code": 0,
+      "log": "logs/auction_canonical_after.log"
+    },
+    {
+      "name": "auction_active_after",
+      "command": "/workspace/scratch/29f34dd56853/issue28/work/test-venv/bin/python /workspace/scratch/29f34dd56853/issue28/delivery/auction/reproduce.py --repo-root /workspace/scratch/29f34dd56853/issue28/work/auction/frozen_test_support --owner active_stage_reference --phase after --log-root /workspace/scratch/29f34dd56853/issue28/delivery/review/logs/auction",
+      "exit_code": 0,
+      "log": "logs/auction_active_after.log"
+    },
+    {
+      "name": "auction_active_before",
+      "command": "/workspace/scratch/29f34dd56853/issue28/work/test-venv/bin/python /workspace/scratch/29f34dd56853/issue28/delivery/auction/reproduce.py --repo-root /workspace/scratch/29f34dd56853/issue28/work/auction/frozen_test_support --owner active_stage_reference --phase before --log-root /workspace/scratch/29f34dd56853/issue28/delivery/review/logs/auction",
+      "exit_code": 1,
+      "log": "logs/auction_active_before.log"
+    }
+  ],
+  "fresh_release_commands": [
+    {
+      "name": "test_release_regressions",
+      "command": [
+        "/workspace/scratch/29f34dd56853/issue28/work/test-venv/bin/python",
+        "-B",
+        "/workspace/scratch/29f34dd56853/issue28/work/review/release_tests/test_release_regressions.py"
+      ],
+      "release_source_root": "/workspace/scratch/29f34dd56853/issue28/delivery/release/source",
+      "exit_code": 0,
+      "log": "/workspace/scratch/29f34dd56853/issue28/delivery/review/logs/release_test_release_regressions.log",
+      "test_script_sha256": "2485fc656dfd853ea8cecfdea6b54936ae4b055fb98cbd7bd2d1e501302da8fc"
+    },
+    {
+      "name": "run_existing_suites",
+      "command": [
+        "/workspace/scratch/29f34dd56853/issue28/work/test-venv/bin/python",
+        "-B",
+        "/workspace/scratch/29f34dd56853/issue28/work/review/release_tests/run_existing_suites.py"
+      ],
+      "release_source_root": "/workspace/scratch/29f34dd56853/issue28/delivery/release/source",
+      "exit_code": 0,
+      "log": "/workspace/scratch/29f34dd56853/issue28/delivery/review/logs/release_run_existing_suites.log",
+      "test_script_sha256": "33d99e13f6e037551aa864fba271e9e966b0c11cc15800962022c60252b03fd3"
+    }
+  ],
+  "command_environment": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+    "PYTEST_ADDOPTS": "-p no:cacheprovider",
+    "initial_tests_cwd": "/workspace/scratch/29f34dd56853/issue28/work/review"
+  },
+  "baseline_identity_checks": {
+    "files": 27,
+    "sha256": "PASS",
+    "size": "PASS",
+    "git_blob_sha1": "PASS",
+    "log": "logs/INDEPENDENT_BYTE_AUDIT.json"
+  },
+  "patch_checks": [
+    {
+      "area": "auction",
+      "owner": "canonical",
+      "patch": "delivery/auction/patches/canonical.patch",
+      "sha256": "a88b89440281e4e20464951d106aa0f64dc0e4ea51172955616a421cdce49c29",
+      "forward_check": "PASS",
+      "after_match": "PASS",
+      "reverse_before_match": "PASS"
+    },
+    {
+      "area": "auction",
+      "owner": "active_stage_reference",
+      "patch": "delivery/auction/patches/active_stage_reference.patch",
+      "sha256": "b67ba222831c9a45737d99b26cfcb65e8c6632c7a7a9259b2f253ee47990222e",
+      "forward_check": "PASS",
+      "after_match": "PASS",
+      "reverse_before_match": "PASS"
+    },
+    {
+      "area": "hk",
+      "patch": "delivery/hk/patches/active_producer_reference.patch",
+      "sha256": "53de7caeae7cedfc26222412a12434522345a3043f2a91455c76d41bf31eee0d",
+      "forward_check": "PASS",
+      "after_match": "PASS",
+      "reverse_before_match": "PASS"
+    },
+    {
+      "area": "release",
+      "patch": "delivery/release/release_p1.patch",
+      "sha256": "539b64cc5ca67a2aef7d27eeb2565abe77fb2a2c6760fea65b008df8ceaca152",
+      "forward_check": "PASS",
+      "after_match": "PASS",
+      "reverse_before_match": "PASS"
+    }
+  ],
+  "reviewed_after_files": [
+    {
+      "area": "auction",
+      "owner": "canonical",
+      "path": "delivery/auction/after/canonical/stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "sha256": "7fa71ee1a4b96f6f53d49467fcb296969104e851949234849fd256a5372d5725",
+      "bytes": 45034
+    },
+    {
+      "area": "auction",
+      "owner": "canonical",
+      "path": "delivery/auction/after/canonical/stage_center/_selection_parts/a_auction.py",
+      "sha256": "defb01fca7d0a067bf214e794810fac7d19fdbd3fbcd78b8263fe93603952e93",
+      "bytes": 8746
+    },
+    {
+      "area": "auction",
+      "owner": "active_stage_reference",
+      "path": "delivery/auction/after/active_stage_reference/stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "sha256": "409274a2adace19f22ef6d19cdbc7e5291b58fd9944d39239abbffd90ab1f6e4",
+      "bytes": 21939
+    },
+    {
+      "area": "auction",
+      "owner": "active_stage_reference",
+      "path": "delivery/auction/after/active_stage_reference/stage_center/_selection_parts/a_auction.py",
+      "sha256": "defb01fca7d0a067bf214e794810fac7d19fdbd3fbcd78b8263fe93603952e93",
+      "bytes": 8746
+    },
+    {
+      "area": "hk",
+      "owner": "active_producer_reference",
+      "path": "delivery/hk/after/active_producer_reference/domains/preselection_materializer.py",
+      "sha256": "521a66cd5018806197d99e40f7261f817345d3951761ccc280f89d25a8214110",
+      "bytes": 55382
+    },
+    {
+      "area": "hk",
+      "owner": "active_producer_reference",
+      "path": "delivery/hk/after/active_producer_reference/ops/materialize_scheduled_preselection.py",
+      "sha256": "9ef7d07fa3fafbb8a63637fe80edb2488e795f52a48baf2abaec135468d0acfe",
+      "bytes": 12148
+    },
+    {
+      "area": "release",
+      "owner": "blocked_candidate_ops",
+      "path": "delivery/release/source/blocked_candidate_ops/api_candidate_install_r2.py",
+      "sha256": "3ddeb297d36f7b825103b8462cd610a14613b73ef95f6940f5a93498339733d6",
+      "bytes": 24830
+    },
+    {
+      "area": "release",
+      "owner": "blocked_candidate_ops",
+      "path": "delivery/release/source/blocked_candidate_ops/api_candidate_recovery.py",
+      "sha256": "8a162ce38478c292bf811c827c7616909a91a23a2bb3a1f95c71f208f9a08741",
+      "bytes": 25754
+    },
+    {
+      "area": "release",
+      "owner": "blocked_candidate_ops",
+      "path": "delivery/release/source/blocked_candidate_ops/test_api_candidate_install_r2.py",
+      "sha256": "95c71fd7a4ec38828a5e5c44eff7f65bd23e588b943fe7205403b759ee3a45b0",
+      "bytes": 6544
+    },
+    {
+      "area": "release",
+      "owner": "blocked_candidate_ops",
+      "path": "delivery/release/source/blocked_candidate_ops/test_api_candidate_recovery.py",
+      "sha256": "a4b06db6f9b32cc5f8b4d35eceb3910cacb993bba1d4e772acd5491a6c88cd35",
+      "bytes": 14904
+    },
+    {
+      "area": "release",
+      "owner": "external_guard_reference",
+      "path": "delivery/release/source/external_guard_reference/hk_calendar_candidate_cutover.py",
+      "sha256": "1fd041a3da7f21893ecc70b9d4d0d79936b58cc884cbc17367711917ba798367",
+      "bytes": 53062
+    },
+    {
+      "area": "release",
+      "owner": "test_support",
+      "path": "delivery/release/tests/test_release_regressions.py",
+      "sha256": "2485fc656dfd853ea8cecfdea6b54936ae4b055fb98cbd7bd2d1e501302da8fc",
+      "bytes": 24535
+    },
+    {
+      "area": "release",
+      "owner": "test_support",
+      "path": "delivery/release/tests/release_test_fixture.py",
+      "sha256": "ee14380b32dbfd3b4131773c01b076af0b56fafd6686558beb685028018d7259",
+      "bytes": 8962
+    },
+    {
+      "area": "release",
+      "owner": "test_support",
+      "path": "delivery/release/tests/run_existing_suites.py",
+      "sha256": "33d99e13f6e037551aa864fba271e9e966b0c11cc15800962022c60252b03fd3",
+      "bytes": 1510
+    },
+    {
+      "area": "pool",
+      "owner": "reused_4ad7cc52257b49470b3004ebfee9649af43189dd",
+      "path": "delivery/pool/isolated/reference/apps/api/v35_api/app.py",
+      "sha256": "435dcedd3beb43bf4a0ccb35ff6fc033ba536a940990c36f5f23358f5492b590",
+      "bytes": 342253
+    },
+    {
+      "area": "pool",
+      "owner": "reused_4ad7cc52257b49470b3004ebfee9649af43189dd",
+      "path": "delivery/pool/isolated/reference/domains/preselection.py",
+      "sha256": "f209ceb037515586883dc669d830fb44afcf778b67971951bde69c5eab8b67a0",
+      "bytes": 17178
+    },
+    {
+      "area": "pool",
+      "owner": "reused_4ad7cc52257b49470b3004ebfee9649af43189dd",
+      "path": "delivery/pool/isolated/reference/tests/test_preselection_source_root_20261008.py",
+      "sha256": "46330d42709005822e381c5566d7097cc54cc841193bee738fca151b9a8af5ff",
+      "bytes": 11767
+    },
+    {
+      "area": "auction",
+      "owner": "test_or_harness",
+      "path": "delivery/auction/tests/test_api_projection_partial.py",
+      "sha256": "3d81dbbbade842b4b80774fcb5cee5ee343a88aceba7c49b4a208b2ebef7f49f",
+      "bytes": 2602
+    },
+    {
+      "area": "auction",
+      "owner": "test_or_harness",
+      "path": "delivery/auction/tests/test_a_auction_prev_close.py",
+      "sha256": "2e01ab11ccef442e10b0c5dd7cec85c4abaef941f30177aa8f7f69dc9159320c",
+      "bytes": 10440
+    },
+    {
+      "area": "hk",
+      "owner": "test_or_harness",
+      "path": "delivery/hk/tests/run_focused.py",
+      "sha256": "452ffb68b68ef30c6b16b6f3ad83d5b7a51dc728bcde7637e58c5476e78b3340",
+      "bytes": 1339
+    },
+    {
+      "area": "hk",
+      "owner": "test_or_harness",
+      "path": "delivery/hk/tests/test_hk_split_date_binding.py",
+      "sha256": "5352c95c0cc57ba540f60bc82bbb4ef763d9484c463132f235f002ab259830a1",
+      "bytes": 15409
+    },
+    {
+      "area": "pool",
+      "owner": "test_or_harness",
+      "path": "delivery/pool/tests/test_issue28_preselection_hk_fallback.py",
+      "sha256": "81b1f6108698461c54c99370092ea2ff1d659450a28610cc71dcc2311f14920d",
+      "bytes": 5924
+    },
+    {
+      "area": "pool",
+      "owner": "test_or_harness",
+      "path": "delivery/pool/isolated/run_route_tests.py",
+      "sha256": "8f3b2b5134f9f26f669ddedcb96bf6e7f62a13d6782b8d8662ce6cc05ba434d5",
+      "bytes": 4664
+    }
+  ],
+  "report": {
+    "path": "INDEPENDENT_REVIEW.md",
+    "sha256": "0c249c4bb533fa50f78b9c5a70d0dea5857f2116637a3c05e64d28968d252841"
+  },
+  "declined_to_judge": [
+    "Actual HK scheduler/shared/store closure and real source availability/capture/PIT",
+    "Mac CPython 3.14.6 and real APFS/launchd/lsof behavior",
+    "Complete current-owner Stage/API imports and full repository suite",
+    "Full original FastAPI create_app/startup/middleware and live 8873 API/UI",
+    "Real 171/178-row auction output, historical 178-A/100-HK canary, full Stage input integration",
+    "Real singleton Stage execution, natural-slot evidence and historical execution identities",
+    "Existing coverage/news-quality/historical-close P2s",
+    "Unrelated complete external HK cutover CLI paths, manager/model/BUY/Vibe",
+    "Installation, merge or deployment permission"
+  ],
+  "not_independently_rerun": [
+    "author canonical auction baseline suite",
+    "author release baseline suites"
+  ],
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "DEPLOYED": false,
+  "business_data_modified": false,
+  "baseline_or_candidate_source_modified": false,
+  "github_writes": false,
+  "support_log": "logs/SUPPORT_BYTE_CHECKS.json",
+  "extra_lifecycle_log": "logs/INDEPENDENT_EDGE_PROBES.json"
+}

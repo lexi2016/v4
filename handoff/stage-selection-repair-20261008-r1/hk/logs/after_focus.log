@@ -1,0 +1,8 @@
+SCOPE: SYNTHETIC OFFLINE ONLY; no live Stage, source acquisition, or market data.
+HK_OWNER_ROOT=/workspace/scratch/29f34dd56853/issue28/work/hk/after/active_producer_reference
+HK_SUPPORT_ROOT=/workspace/scratch/29f34dd56853/issue28/work/hk/references/canonical (canonical reference only)
+COMMAND: ['/workspace/scratch/29f34dd56853/issue28/work/test-venv/bin/python', '-m', 'pytest', '-q', '/workspace/scratch/29f34dd56853/issue28/work/hk/tests/test_hk_split_date_binding.py', '--tb=short']
+...................                                                      [100%]
+19 passed in 0.72s
+
+EXIT_CODE=0

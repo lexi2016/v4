@@ -1,0 +1,26 @@
+[
+  {
+    "name": "test_release_regressions",
+    "command": [
+      "/workspace/scratch/29f34dd56853/issue28/work/test-venv/bin/python",
+      "-B",
+      "/workspace/scratch/29f34dd56853/issue28/work/review/release_tests/test_release_regressions.py"
+    ],
+    "release_source_root": "/workspace/scratch/29f34dd56853/issue28/delivery/release/source",
+    "exit_code": 0,
+    "log": "/workspace/scratch/29f34dd56853/issue28/delivery/review/logs/release_test_release_regressions.log",
+    "test_script_sha256": "2485fc656dfd853ea8cecfdea6b54936ae4b055fb98cbd7bd2d1e501302da8fc"
+  },
+  {
+    "name": "run_existing_suites",
+    "command": [
+      "/workspace/scratch/29f34dd56853/issue28/work/test-venv/bin/python",
+      "-B",
+      "/workspace/scratch/29f34dd56853/issue28/work/review/release_tests/run_existing_suites.py"
+    ],
+    "release_source_root": "/workspace/scratch/29f34dd56853/issue28/delivery/release/source",
+    "exit_code": 0,
+    "log": "/workspace/scratch/29f34dd56853/issue28/delivery/review/logs/release_run_existing_suites.log",
+    "test_script_sha256": "33d99e13f6e037551aa864fba271e9e966b0c11cc15800962022c60252b03fd3"
+  }
+]

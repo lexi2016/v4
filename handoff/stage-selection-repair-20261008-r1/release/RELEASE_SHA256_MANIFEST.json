@@ -1,0 +1,73 @@
+{
+  "repository": "lexi2016/v4",
+  "frozen_commit": "00524e9050fe212f87911b56eea1c2db719dd94b",
+  "scope": "Issue 28 section 5: isolated release P1 candidate only",
+  "before_source_verification": "PASS: all five preimages match SOURCE_MANIFEST bytes/SHA and untouched baseline",
+  "guard_after_sha256": "1fd041a3da7f21893ecc70b9d4d0d79936b58cc884cbc17367711917ba798367",
+  "exact_review_scope_items": 21,
+  "old_scope_items": 19,
+  "deployment_status": "NOT_DEPLOYABLE_PENDING_MAC_ADAPTATION_AND_EXACT_REVIEW",
+  "files": [
+    {
+      "path": "source/blocked_candidate_ops/api_candidate_install_r2.py",
+      "before_sha256": "b326d2f68843e1673169bc8d6e36965786f513e19ef2671a64d113284e944200",
+      "after_sha256": "3ddeb297d36f7b825103b8462cd610a14613b73ef95f6940f5a93498339733d6",
+      "before_bytes": 23651,
+      "after_bytes": 24830,
+      "before_git_blob_sha1": "8225fe0e98fb66a9bf79344b932173bbbcdd46b1"
+    },
+    {
+      "path": "source/blocked_candidate_ops/api_candidate_recovery.py",
+      "before_sha256": "d42975f459858ed697805c3043090a82102cd2e0d6c28eef07bb4c440e955fbb",
+      "after_sha256": "8a162ce38478c292bf811c827c7616909a91a23a2bb3a1f95c71f208f9a08741",
+      "before_bytes": 18007,
+      "after_bytes": 25754,
+      "before_git_blob_sha1": "dfcabbceef16bef3c92be58093fe04a1714592c1"
+    },
+    {
+      "path": "source/blocked_candidate_ops/test_api_candidate_install_r2.py",
+      "before_sha256": "167a43a3b81f1cac11995c107ad1c6a8f09fc7d008aaa157753b46e5ca5c59b6",
+      "after_sha256": "95c71fd7a4ec38828a5e5c44eff7f65bd23e588b943fe7205403b759ee3a45b0",
+      "before_bytes": 6436,
+      "after_bytes": 6544,
+      "before_git_blob_sha1": "600d8125763be3462c5ac12332368b6998efaa78"
+    },
+    {
+      "path": "source/blocked_candidate_ops/test_api_candidate_recovery.py",
+      "before_sha256": "871bbf1bf97a537bd40bf0461a00e7702ab9ae2c01d3a558a5bba5716bf77bf8",
+      "after_sha256": "a4b06db6f9b32cc5f8b4d35eceb3910cacb993bba1d4e772acd5491a6c88cd35",
+      "before_bytes": 14705,
+      "after_bytes": 14904,
+      "before_git_blob_sha1": "c223d7a89bb29c615bb07c4ef0638371e0caa74b"
+    },
+    {
+      "path": "source/external_guard_reference/hk_calendar_candidate_cutover.py",
+      "before_sha256": "264ad2d3f5535e17f6e7471dc12d7e00452104b505795857e9f0637c0a29e816",
+      "after_sha256": "1fd041a3da7f21893ecc70b9d4d0d79936b58cc884cbc17367711917ba798367",
+      "before_bytes": 48843,
+      "after_bytes": 53062,
+      "before_git_blob_sha1": "e26e66c9c4aaf7a12a19f5da736c1dcea6bf0283"
+    },
+    {
+      "path": "tests/test_release_regressions.py",
+      "before_sha256": null,
+      "after_sha256": "2485fc656dfd853ea8cecfdea6b54936ae4b055fb98cbd7bd2d1e501302da8fc",
+      "before_bytes": null,
+      "after_bytes": 24535
+    },
+    {
+      "path": "tests/release_test_fixture.py",
+      "before_sha256": null,
+      "after_sha256": "ee14380b32dbfd3b4131773c01b076af0b56fafd6686558beb685028018d7259",
+      "before_bytes": null,
+      "after_bytes": 8962
+    },
+    {
+      "path": "tests/run_existing_suites.py",
+      "before_sha256": null,
+      "after_sha256": "33d99e13f6e037551aa864fba271e9e966b0c11cc15800962022c60252b03fd3",
+      "before_bytes": null,
+      "after_bytes": 1510
+    }
+  ]
+}

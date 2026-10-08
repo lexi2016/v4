@@ -1,0 +1,36 @@
+{
+  "repository": "lexi2016/v4",
+  "frozen_commit": "00524e9050fe212f87911b56eea1c2db719dd94b",
+  "scope": "RESEARCH_ONLY_CANDIDATE_NOT_DEPLOYABLE_AS_STANDALONE",
+  "changes": [
+    {
+      "owner": "active_producer_reference",
+      "source_relative_path": "domains/preselection_materializer.py",
+      "before_sha256": "f090146f39eaaf1ea5baaa5da60cddc2aefe738be16eb1609f166b643953d84e",
+      "before_git_blob_sha1": "8d7f68924163ce5ca48c85b6b33b9b1e3c950e20",
+      "after_sha256": "521a66cd5018806197d99e40f7261f817345d3951761ccc280f89d25a8214110",
+      "before_bytes": 51134,
+      "after_bytes": 55382
+    },
+    {
+      "owner": "active_producer_reference",
+      "source_relative_path": "ops/materialize_scheduled_preselection.py",
+      "before_sha256": "2aac77c9a995c8e97488be5324e8dd105e19e68a08bfb71cceb2df670aaa5478",
+      "before_git_blob_sha1": "d5d7f3be800ac49b9abc5d2f222a39b73bf896cd",
+      "after_sha256": "9ef7d07fa3fafbb8a63637fe80edb2488e795f52a48baf2abaec135468d0acfe",
+      "before_bytes": 11468,
+      "after_bytes": 12148
+    }
+  ],
+  "unchanged_canonical_sha256": {
+    "upstreams/v3_shared_data/shared_data/hk_0_2.py": "27da90f0e623e45fa1a27af7dcc3b6e5e1ff2320bae1c61bd903ed82050beb89",
+    "domains/preselection_materializer.py": "50d48cdfc5beaf4f3eeb9cd2eaa93b37684a731bca2fa189f2ba246534b268f8",
+    "domains/_preselection_materializer_parts/hk_pool.py": "c62dc3c81f9ba98f1363f0ad307fb91e9ae0d79b80db2d874ca95a044acbefcd",
+    "ops/materialize_scheduled_preselection.py": "8e90cabbac847946151f8c6bba2696c94b556ff3d56543f0058d74e406d3dab5",
+    "stage_center/_runner_parts/hk_input_validation.py": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+    "infrastructure/preselection_pool_store.py": "028298a05ea44e310487c1159acc8147cf652e23ba716989135b178198795a92",
+    "ops/build_close_review.py": "a361ae023285392ddf3b0e9674a9c506fae79252cc02c15df221ae09ba28e5aa",
+    "tests/test_close_review_producer.py": "c2501b342755bfa97064ceae1a8df0c936f912c9a635fc88c059d660d62b655f"
+  },
+  "strict_active_validator_sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735"
+}

@@ -1,0 +1,34 @@
+F.F.                                                                     [100%]
+=================================== FAILURES ===================================
+___ test_actual_materializer_to_unchanged_strict_validator_with_split_dates ____
+../../delivery/hk/tests/test_hk_split_date_binding.py:161: in test_actual_materializer_to_unchanged_strict_validator_with_split_dates
+    artifact = _build(source)
+               ^^^^^^^^^^^^^^
+../../delivery/hk/tests/test_hk_split_date_binding.py:150: in _build
+    return adapter.build_shared_hk_0_2_pool(
+E   TypeError: build_shared_hk_0_2_pool() got an unexpected keyword argument 'eligibility_source_date'
+____ test_actual_cli_forwards_independent_hk_dates_and_persists_bound_trio _____
+../../delivery/hk/tests/test_hk_split_date_binding.py:287: in test_actual_cli_forwards_independent_hk_dates_and_persists_bound_trio
+    result = scheduled.main([
+../../baseline/source/active_producer_reference/ops/materialize_scheduled_preselection.py:269: in main
+    args = parser.parse_args(argv)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+../python/cpython-3.14.7-linux-x86_64-gnu/lib/python3.14/argparse.py:2012: in parse_args
+    self.error(msg)
+../python/cpython-3.14.7-linux-x86_64-gnu/lib/python3.14/argparse.py:2785: in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+../python/cpython-3.14.7-linux-x86_64-gnu/lib/python3.14/argparse.py:2772: in exit
+    _sys.exit(status)
+E   SystemExit: 2
+----------------------------- Captured stderr call -----------------------------
+usage: python -m pytest [-h] --trade-date TRADE_DATE --signal-date SIGNAL_DATE
+                        [--selector SELECTOR] --input-root INPUT_ROOT
+                        [--data-root DATA_ROOT]
+                        --shared-data-root SHARED_DATA_ROOT
+                        --shared-package-root SHARED_PACKAGE_ROOT
+                        [--reuse-formal-pools]
+python -m pytest: error: unrecognized arguments: --hk-signal-date 20261007 --hk-eligibility-source-date 20260930
+=========================== short test summary info ============================
+FAILED ../../delivery/hk/tests/test_hk_split_date_binding.py::test_actual_materializer_to_unchanged_strict_validator_with_split_dates
+FAILED ../../delivery/hk/tests/test_hk_split_date_binding.py::test_actual_cli_forwards_independent_hk_dates_and_persists_bound_trio
+2 failed, 2 passed, 15 deselected in 0.35s

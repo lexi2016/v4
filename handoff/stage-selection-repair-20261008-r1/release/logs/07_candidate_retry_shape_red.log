@@ -1,0 +1,55 @@
+test_failed_claim_recovery_returns_a_receipt_that_can_be_retried (__main__.ReleaseP1Tests.test_failed_claim_recovery_returns_a_receipt_that_can_be_retried) ... FAIL
+test_malformed_claim_receipt_phase_fails_closed_with_controlled_error (__main__.ReleaseP1Tests.test_malformed_claim_receipt_phase_fails_closed_with_controlled_error) ... FAIL
+
+======================================================================
+FAIL: test_failed_claim_recovery_returns_a_receipt_that_can_be_retried (__main__.ReleaseP1Tests.test_failed_claim_recovery_returns_a_receipt_that_can_be_retried)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/work/release/tests/test_release_regressions.py", line 360, in test_failed_claim_recovery_returns_a_receipt_that_can_be_retried
+    result = self.recover_claim(retry_path, retry_sha)
+  File "/workspace/scratch/29f34dd56853/issue28/work/release/tests/test_release_regressions.py", line 143, in recover_claim
+    return recovery.recover_baseline(identity, ops, **options)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/29f34dd56853/issue28/work/release/source/blocked_candidate_ops/api_candidate_recovery.py", line 301, in recover_baseline
+    claim_recovery = validate_claim_receipt(identity, guard, claim_receipt_path, claim_receipt_sha256)
+  File "/workspace/scratch/29f34dd56853/issue28/work/release/source/blocked_candidate_ops/api_candidate_recovery.py", line 272, in validate_claim_receipt
+    raise RecoveryError('claim receipt is not an approved failed API CAS recovery phase')
+api_candidate_recovery.RecoveryError: claim receipt is not an approved failed API CAS recovery phase
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/work/release/tests/test_release_regressions.py", line 362, in test_failed_claim_recovery_returns_a_receipt_that_can_be_retried
+    self.fail('returned recovery receipt cannot be retried: ' + str(exc))
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: returned recovery receipt cannot be retried: claim receipt is not an approved failed API CAS recovery phase
+
+======================================================================
+FAIL: test_malformed_claim_receipt_phase_fails_closed_with_controlled_error (__main__.ReleaseP1Tests.test_malformed_claim_receipt_phase_fails_closed_with_controlled_error)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/work/release/tests/test_release_regressions.py", line 374, in test_malformed_claim_receipt_phase_fails_closed_with_controlled_error
+    self.recover_claim(receipt, digest(receipt.read_bytes()))
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/29f34dd56853/issue28/work/release/tests/test_release_regressions.py", line 143, in recover_claim
+    return recovery.recover_baseline(identity, ops, **options)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/29f34dd56853/issue28/work/release/source/blocked_candidate_ops/api_candidate_recovery.py", line 301, in recover_baseline
+    claim_recovery = validate_claim_receipt(identity, guard, claim_receipt_path, claim_receipt_sha256)
+  File "/workspace/scratch/29f34dd56853/issue28/work/release/source/blocked_candidate_ops/api_candidate_recovery.py", line 271, in validate_claim_receipt
+    if not isinstance(value, dict) or value.get('phase') not in phases:
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: cannot use 'list' as a dict key (unhashable type: 'list')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/work/release/tests/test_release_regressions.py", line 378, in test_malformed_claim_receipt_phase_fails_closed_with_controlled_error
+    self.fail(f'malformed receipt leaked an uncontrolled {type(exc).__name__}')
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: malformed receipt leaked an uncontrolled TypeError
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.055s
+
+FAILED (failures=2)

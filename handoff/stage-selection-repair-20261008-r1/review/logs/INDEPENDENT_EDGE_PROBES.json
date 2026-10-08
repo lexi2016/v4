@@ -1,0 +1,16 @@
+{
+  "scope": "INDEPENDENT_EXTRA_LIFECYCLE_PROBES; REAL_FILES_AND_SOURCE; FAKE_SERVICE_RUNNER; NOT_HOST_RECOVERY",
+  "probes": [
+    {
+      "probe": "successful_claim_link_then_receipt_ENOSPC",
+      "result": "PASS",
+      "observed": "Exact baseline restored; no bootstrap on missing success receipt; original claim and failed-CAS receipt retained; ordinary baseline recovery succeeds."
+    },
+    {
+      "probe": "full_recover_baseline_double_failure_then_retry",
+      "result": "PASS",
+      "observed": "Actual recover_baseline/SystemRecoveryOps path returns failed rollback claim/receipt; retry restores candidate snapshot, rolls to exact baseline, then bootstraps through fake service protocol."
+    }
+  ],
+  "service_operations_on_host": false
+}

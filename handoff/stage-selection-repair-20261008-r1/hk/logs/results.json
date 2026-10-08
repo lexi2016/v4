@@ -1,0 +1,46 @@
+{
+  "scope": "SYNTHETIC_OFFLINE_ONLY",
+  "before_focus": {
+    "failed": 2,
+    "passed": 2,
+    "deselected": 15,
+    "exit_code": 1
+  },
+  "after_focus": {
+    "passed": 19,
+    "exit_code": 0
+  },
+  "after_delivery_copy": {
+    "passed": 19,
+    "exit_code": 0
+  },
+  "baseline_source_sha_unchanged_files": 27,
+  "runtime": "Linux CPython 3.14.7 / pytest 9.1.1",
+  "full_active_import_closure": "CANNOT_CONFIRM",
+  "real_20261007_price_source_and_original_capture": "CANNOT_CONFIRM",
+  "actual_scheduler_caller_shared_module_and_store_pins": "CANNOT_CONFIRM",
+  "stage_run": "NOT_RUN",
+  "api_ui": "NOT_RUN",
+  "deployment": "NOT_RUN",
+  "natural_slot": "NOT_RUN",
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "logs": [
+    {
+      "path": "logs/after_delivery_smoke.log",
+      "sha256": "28517852b07cc05c86a432627b98b081615e924f4a42a1e9657b8a3364594cad",
+      "bytes": 577
+    },
+    {
+      "path": "logs/after_focus.log",
+      "sha256": "a956cff91c4475eb3cd6c58a5a8efc921f981d519e639405e269ab6d1344a91a",
+      "bytes": 602
+    },
+    {
+      "path": "logs/before_focus.log",
+      "sha256": "a6c614bf5326157a1e39991447db90da9c510a939d179844b5eb4f5e0fdb1416",
+      "bytes": 2962
+    }
+  ]
+}

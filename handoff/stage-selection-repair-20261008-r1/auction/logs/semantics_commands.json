@@ -1,0 +1,58 @@
+[
+  {
+    "command": [
+      "/workspace/scratch/29f34dd56853/issue28/work/test-venv/bin/python",
+      "/workspace/scratch/29f34dd56853/issue28/delivery/auction/capture_semantics.py",
+      "--owner",
+      "canonical",
+      "--phase",
+      "before"
+    ],
+    "PYTHONPATH": "/workspace/scratch/29f34dd56853/issue28/work/auction/runroots/canonical_before",
+    "ISSUE28_API_REFERENCE": "/workspace/scratch/29f34dd56853/issue28/reuse/a_pool/canonical/apps/api/v35_api/app.py",
+    "exit_code": 0,
+    "raw_log": "/workspace/scratch/29f34dd56853/issue28/delivery/auction/logs/canonical_before_semantics.json"
+  },
+  {
+    "command": [
+      "/workspace/scratch/29f34dd56853/issue28/work/test-venv/bin/python",
+      "/workspace/scratch/29f34dd56853/issue28/delivery/auction/capture_semantics.py",
+      "--owner",
+      "canonical",
+      "--phase",
+      "after"
+    ],
+    "PYTHONPATH": "/workspace/scratch/29f34dd56853/issue28/work/auction/runroots/canonical_after",
+    "ISSUE28_API_REFERENCE": "/workspace/scratch/29f34dd56853/issue28/reuse/a_pool/canonical/apps/api/v35_api/app.py",
+    "exit_code": 0,
+    "raw_log": "/workspace/scratch/29f34dd56853/issue28/delivery/auction/logs/canonical_after_semantics.json"
+  },
+  {
+    "command": [
+      "/workspace/scratch/29f34dd56853/issue28/work/test-venv/bin/python",
+      "/workspace/scratch/29f34dd56853/issue28/delivery/auction/capture_semantics.py",
+      "--owner",
+      "active_stage_reference",
+      "--phase",
+      "before"
+    ],
+    "PYTHONPATH": "/workspace/scratch/29f34dd56853/issue28/work/auction/runroots/active_stage_reference_before",
+    "ISSUE28_API_REFERENCE": "/workspace/scratch/29f34dd56853/issue28/reuse/a_pool/canonical/apps/api/v35_api/app.py",
+    "exit_code": 0,
+    "raw_log": "/workspace/scratch/29f34dd56853/issue28/delivery/auction/logs/active_stage_reference_before_semantics.json"
+  },
+  {
+    "command": [
+      "/workspace/scratch/29f34dd56853/issue28/work/test-venv/bin/python",
+      "/workspace/scratch/29f34dd56853/issue28/delivery/auction/capture_semantics.py",
+      "--owner",
+      "active_stage_reference",
+      "--phase",
+      "after"
+    ],
+    "PYTHONPATH": "/workspace/scratch/29f34dd56853/issue28/work/auction/runroots/active_stage_reference_after",
+    "ISSUE28_API_REFERENCE": "/workspace/scratch/29f34dd56853/issue28/reuse/a_pool/canonical/apps/api/v35_api/app.py",
+    "exit_code": 0,
+    "raw_log": "/workspace/scratch/29f34dd56853/issue28/delivery/auction/logs/active_stage_reference_after_semantics.json"
+  }
+]

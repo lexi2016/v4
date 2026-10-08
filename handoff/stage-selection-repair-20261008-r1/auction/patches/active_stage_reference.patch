@@ -1,0 +1,58 @@
+--- a/stage_center/_live_collectors_parts/selection_builder_registry.py
++++ b/stage_center/_live_collectors_parts/selection_builder_registry.py
+@@ -28,6 +28,7 @@
+                     "amount": row.get("turnover"),
+                     "open_price": row.get("open_price"),
+                     "last_price": row.get("last_price"),
++                    "prev_close_price": row.get("prev_close_price"),
+                     "high_price": row.get("high_price"),
+                     "low_price": row.get("low_price"),
+                     "update_time": row.get("update_time"),
+--- a/stage_center/_selection_parts/a_auction.py
++++ b/stage_center/_selection_parts/a_auction.py
+@@ -43,10 +43,15 @@
+             raise _v4_global(_v4_scope, 'SelectionError')("A 09:25 auction row code is required")
+         amount = _v4_global(_v4_scope, '_number')(_v4_global(_v4_scope, '_a_row_value')(source, "amount_yuan", "auction_amount_est_yuan", "amount"))
+         price = _v4_global(_v4_scope, '_optional_number')(_v4_global(_v4_scope, '_a_row_value')(source, "price", "open_price", "last_price"))
+-        prev_close = _v4_global(_v4_scope, '_optional_number')(
+-            _v4_global(_v4_scope, '_a_row_value')(source, "prev_close_price", "prev_close", "last_close")
+-        )
++        prev_close_value = _v4_global(_v4_scope, '_a_row_value')(source, "prev_close_price", "prev_close", "last_close")
++        prev_close = _v4_global(_v4_scope, '_optional_number')(prev_close_value)
++        change_missing_reason = None
++        if prev_close is None or prev_close <= 0:
++            prev_close = None
++            change_missing_reason = "PREV_CLOSE_PRICE_MISSING" if prev_close_value is None else "PREV_CLOSE_PRICE_INVALID"
+         current_change = _v4_global(_v4_scope, '_live_pct_change')(price, prev_close)
++        if current_change is None and change_missing_reason is None:
++            change_missing_reason = "AUCTION_PRICE_MISSING_OR_INVALID"
+         qmt = {
+             "open": price,
+             "lastPrice": price,
+@@ -83,8 +88,7 @@
+                 "status": "集合竞价成交代理观察",
+                 "formal_eligible": False,
+                 "prev_close_price": prev_close,
+-                "current_change_pct": None if current_change is None else _v4_global(_v4_scope, 'round')(current_change, 4),
+-                "qmt_gap_pct": 0.0 if current_change is None else _v4_global(_v4_scope, 'round')(current_change, 6),
++                "qmt_gap_pct": None if current_change is None else _v4_global(_v4_scope, 'round')(current_change, 6),
+                 "qmt_amount": amount,
+                 "stage_score": _v4_global(_v4_scope, 'round')(bounded_score, 6),
+                 "support": price,
+@@ -98,11 +102,16 @@
+                     "formula=windows_v3_live_stage_quality_score",
+                     "score_bounded_0_100=true",
+                     "current_change_pct_basis=AUCTION_PRICE_VS_PREV_CLOSE",
++                    *([f"current_change_pct_missing_reason={change_missing_reason}"] if change_missing_reason else []),
+                 ],
+                 "action_level": "NO_BUY",
+                 "trade_status": "WATCH_ONLY",
+                 "bar_order": index,
+                 **card,
++                # The generic card fallback is last/open, not the auction's
++                # daily change. Preserve an unknown previous-close return.
++                "current_change_pct": None if current_change is None else _v4_global(_v4_scope, 'round')(current_change, 4),
++                **({"current_change_pct_missing_reason": change_missing_reason} if change_missing_reason else {}),
+             }
+         )
+     normalized = _v4_global(_v4_scope, '_cap_recommendations')(_v4_global(_v4_scope, 'sorted')(normalized, key=lambda item: item["score"], reverse=True))

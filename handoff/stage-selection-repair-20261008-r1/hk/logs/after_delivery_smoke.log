@@ -1,0 +1,6 @@
+SCOPE: SYNTHETIC OFFLINE ONLY; no live Stage, source acquisition, or market data.
+CAPTURE: direct exec_command result from the final delivery copy, not a new test run.
+COMMAND: work/test-venv/bin/python delivery/hk/tests/run_focused.py --issue-root /workspace/scratch/29f34dd56853/issue28 --owner-root /workspace/scratch/29f34dd56853/issue28/delivery/hk/after/active_producer_reference --support-root /workspace/scratch/29f34dd56853/issue28/delivery/hk/test_support
+...................                                                      [100%]
+19 passed in 0.79s
+EXIT_CODE=0

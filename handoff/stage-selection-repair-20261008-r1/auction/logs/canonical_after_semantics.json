@@ -1,0 +1,163 @@
+{
+  "scope": "SYNTHETIC_SOURCE_HARNESS; API_PROJECTION_AST_PARTIAL; NO_REAL_DATA_OR_STAGE_RUN",
+  "owner_variant": "canonical",
+  "phase": "after",
+  "algorithm_sha256": "eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2",
+  "market_quality_source_sha256": "726cd4987a070bf78ac7416756f3cbba86633b1176f6f43535ac747263474b3f",
+  "input_description": "previous close 100, auction prices 95/105/100, amount 10000000 each, in input order A.000101/A.000102/A.000103",
+  "adapter_selection": [
+    {
+      "code": "A.000102",
+      "prev_close_price": 100.0,
+      "current_change_pct": 5.0,
+      "qmt_gap_pct": 5.0,
+      "current_change_pct_missing_reason": null,
+      "score": 100.0,
+      "rank": 1
+    },
+    {
+      "code": "A.000103",
+      "prev_close_price": 100.0,
+      "current_change_pct": 0.0,
+      "qmt_gap_pct": 0.0,
+      "current_change_pct_missing_reason": null,
+      "score": 50.25,
+      "rank": 2
+    },
+    {
+      "code": "A.000101",
+      "prev_close_price": 100.0,
+      "current_change_pct": -5.0,
+      "qmt_gap_pct": -5.0,
+      "current_change_pct_missing_reason": null,
+      "score": 0.25,
+      "rank": 3
+    }
+  ],
+  "verified_persisted_selection": [
+    {
+      "code": "A.000102",
+      "prev_close_price": 100.0,
+      "current_change_pct": 5.0,
+      "qmt_gap_pct": 5.0,
+      "current_change_pct_missing_reason": null,
+      "score": 100.0,
+      "rank": 1
+    },
+    {
+      "code": "A.000103",
+      "prev_close_price": 100.0,
+      "current_change_pct": 0.0,
+      "qmt_gap_pct": 0.0,
+      "current_change_pct_missing_reason": null,
+      "score": 50.25,
+      "rank": 2
+    },
+    {
+      "code": "A.000101",
+      "prev_close_price": 100.0,
+      "current_change_pct": -5.0,
+      "qmt_gap_pct": -5.0,
+      "current_change_pct_missing_reason": null,
+      "score": 0.25,
+      "rank": 3
+    }
+  ],
+  "partial_api_projection": [
+    {
+      "code": "A.000102",
+      "prev_close_price": 100.0,
+      "current_change_pct": 5.0,
+      "qmt_gap_pct": 5.0,
+      "current_change_pct_missing_reason": null,
+      "score": 100.0,
+      "rank": 1
+    },
+    {
+      "code": "A.000103",
+      "prev_close_price": 100.0,
+      "current_change_pct": 0.0,
+      "qmt_gap_pct": 0.0,
+      "current_change_pct_missing_reason": null,
+      "score": 50.25,
+      "rank": 2
+    },
+    {
+      "code": "A.000101",
+      "prev_close_price": 100.0,
+      "current_change_pct": -5.0,
+      "qmt_gap_pct": -5.0,
+      "current_change_pct_missing_reason": null,
+      "score": 0.25,
+      "rank": 3
+    }
+  ],
+  "csv_header": [
+    "code",
+    "score",
+    "rank",
+    "status",
+    "formal_eligible",
+    "support",
+    "pressure",
+    "invalidation",
+    "source_mode",
+    "lane_evidence",
+    "action_level",
+    "trade_status"
+  ],
+  "synthetic_csv_sha256": "2cf03b6f287cf72daee5321689a727d169af869d7c902a5a0c533211018af40c",
+  "run_id": "run-7723c19d03b808a902e8cdce",
+  "direct_valid_selector_control": [
+    {
+      "code": "A.000102",
+      "prev_close_price": 100.0,
+      "current_change_pct": 5.0,
+      "qmt_gap_pct": 5.0,
+      "current_change_pct_missing_reason": null,
+      "score": 100.0,
+      "rank": 1
+    },
+    {
+      "code": "A.000103",
+      "prev_close_price": 100.0,
+      "current_change_pct": 0.0,
+      "qmt_gap_pct": 0.0,
+      "current_change_pct_missing_reason": null,
+      "score": 50.25,
+      "rank": 2
+    },
+    {
+      "code": "A.000101",
+      "prev_close_price": 100.0,
+      "current_change_pct": -5.0,
+      "qmt_gap_pct": -5.0,
+      "current_change_pct_missing_reason": null,
+      "score": 0.25,
+      "rank": 3
+    }
+  ],
+  "direct_valid_envelope_sha256": "f6270f52e2d422a72e47758aeeefd6e35eedca73997270c0754b224276f2afaa",
+  "missing_baseline": [
+    {
+      "code": "A.000101",
+      "prev_close_price": null,
+      "current_change_pct": null,
+      "qmt_gap_pct": null,
+      "current_change_pct_missing_reason": "PREV_CLOSE_PRICE_MISSING",
+      "score": 50.25,
+      "rank": 1
+    }
+  ],
+  "invalid_negative_baseline_direct_control": [
+    {
+      "code": "A.000101",
+      "prev_close_price": null,
+      "current_change_pct": null,
+      "qmt_gap_pct": null,
+      "current_change_pct_missing_reason": "PREV_CLOSE_PRICE_INVALID",
+      "score": 50.25,
+      "rank": 1
+    }
+  ]
+}

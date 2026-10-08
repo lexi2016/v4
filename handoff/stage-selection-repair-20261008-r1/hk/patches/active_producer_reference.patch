@@ -1,0 +1,196 @@
+--- a/domains/preselection_materializer.py
++++ b/domains/preselection_materializer.py
+@@ -1,6 +1,8 @@
+ """Graph-bound V3 preselection producers, without final-API imports."""
+ from __future__ import annotations
+ 
++import base64
++import binascii
+ import csv
+ import hashlib
+ import json
+@@ -404,24 +406,49 @@
+     return module.read_verified_hk_0_2_pool
+ 
+ 
++_CAPTURE_AT_PROVENANCE_PREFIX = "b64url."
++
++
++def _restore_hk_capture_at(value: object) -> str:
++    """Project encoded shared capture provenance back to its exact ISO value."""
++    text = str(value or "").strip()
++    if not text.startswith(_CAPTURE_AT_PROVENANCE_PREFIX):
++        return text
++    encoded = text[len(_CAPTURE_AT_PROVENANCE_PREFIX) :]
++    try:
++        captured_at = base64.b64decode(
++            encoded, altchars=b"-_", validate=True
++        ).decode("utf-8")
++        parsed = datetime.fromisoformat(captured_at)
++    except (binascii.Error, UnicodeDecodeError, ValueError) as error:
++        raise ValueError("shared HK 0.2 capture-time provenance is invalid") from error
++    if parsed.tzinfo is None:
++        raise ValueError("shared HK 0.2 capture-time provenance must include a timezone")
++    return captured_at
++
++
+ def build_shared_hk_0_2_pool(
+     shared_data_root: Path,
+     *,
+     trade_date: str,
+     signal_date: str,
++    eligibility_source_date: str | None = None,
+     shared_package_root: Path | None = None,
+     reader=None,
+ ) -> dict[str, Any]:
+     """Map the verified shared HK 0.2 Top100 into the V3.5 pool contract."""
++    eligibility_source_date = eligibility_source_date or signal_date
+     if reader is None:
+         if shared_package_root is None:
+             raise ValueError("shared_package_root is required for HK 0.2 verification")
+         reader = _shared_hk_0_2_reader(shared_package_root)
+-    pool = reader(
+-        Path(shared_data_root),
+-        target_date=trade_date,
+-        expected_signal_date=signal_date,
+-    )
++    reader_args = {
++        "target_date": trade_date,
++        "expected_signal_date": signal_date,
++    }
++    if eligibility_source_date != signal_date:
++        reader_args["expected_eligibility_source_date"] = eligibility_source_date
++    pool = reader(Path(shared_data_root), **reader_args)
+     verification = pool.run.verification
+     receipt = pool.run.receipt
+     for key in ("production_allowed", "buy_gate_updated", "orders_sent"):
+@@ -473,6 +500,75 @@
+     )
+     artifact["source_run_id"] = str(verification["run_id"])
+     artifact["source_row_count"] = int(verification["row_count"])
++    source_manifest_sha256 = str(
++        verification.get("manifest_sha256") or ""
++    )
++    source_receipt_sha256 = str(
++        verification.get("receipt_sha256") or ""
++    )
++    if source_manifest_sha256:
++        artifact["source_manifest_sha256"] = source_manifest_sha256
++    if source_receipt_sha256:
++        artifact["source_receipt_sha256"] = source_receipt_sha256
++    artifact["signal_date"] = signal_date
++    artifact["target_date"] = trade_date
++    artifact["stage_selection_eligible"] = True
++    if eligibility_source_date != signal_date:
++        source_provenance = dict(
++            pool.run.manifest.get("provenance") or {}
++        )
++        historical_provenance = {
++            "schema_version": "v4.hk_d1_split_date_provenance.v1",
++            "price_signal_date": signal_date,
++            "eligibility_source_date": eligibility_source_date,
++            "eligibility_source_run_id": str(
++                source_provenance.get("security_master_run_id") or ""
++            ),
++            "eligibility_source_artifact_sha256": str(
++                source_provenance.get("security_master_artifact_sha256") or ""
++            ),
++            "eligibility_source_captured_at": _restore_hk_capture_at(
++                source_provenance.get("security_master_captured_at") or ""
++            ),
++            "d1_source_run_id": str(verification["run_id"]),
++            "d1_source_artifact_relative": str(
++                verification.get("artifact_relative") or ""
++            ),
++            "d1_source_artifact_sha256": str(
++                verification["artifact_sha256"]
++            ),
++            "d1_source_manifest_sha256": str(
++                verification.get("manifest_sha256") or ""
++            ),
++            "d1_source_receipt_sha256": str(
++                verification.get("receipt_sha256") or ""
++            ),
++        }
++        if (
++            source_provenance.get("signal_date") != signal_date
++            or source_provenance.get("eligibility_source_date") != eligibility_source_date
++            or source_provenance.get("security_master_trade_date") != eligibility_source_date
++            or not historical_provenance["eligibility_source_run_id"]
++            or not re.fullmatch(
++                r"[0-9a-f]{64}", historical_provenance["eligibility_source_artifact_sha256"]
++            )
++            or not historical_provenance["eligibility_source_captured_at"]
++            or historical_provenance["d1_source_artifact_relative"]
++            != str(verification.get("artifact_relative") or "")
++            or not re.fullmatch(
++                r"[0-9a-f]{64}", historical_provenance["d1_source_artifact_sha256"]
++            )
++            or not re.fullmatch(
++                r"[0-9a-f]{64}", historical_provenance["d1_source_manifest_sha256"]
++            )
++            or not re.fullmatch(
++                r"[0-9a-f]{64}", historical_provenance["d1_source_receipt_sha256"]
++            )
++        ):
++            raise ValueError(
++                "shared HK 0.2 split-date eligibility provenance is incomplete"
++            )
++        artifact["historical_provenance"] = historical_provenance
+     return artifact
+ 
+ 
+--- a/ops/materialize_scheduled_preselection.py
++++ b/ops/materialize_scheduled_preselection.py
+@@ -114,6 +114,8 @@
+     *,
+     trade_date: str,
+     signal_date: str,
++    hk_signal_date: str | None = None,
++    hk_eligibility_source_date: str | None = None,
+     selector: Path | None,
+     input_root: Path,
+     shared_data_root: Path,
+@@ -123,6 +125,8 @@
+     hk_pool_reader=None,
+     reuse_formal_pools: Mapping[str, Mapping] | None = None,
+ ) -> list[dict]:
++    hk_signal_date = hk_signal_date or signal_date
++    hk_eligibility_source_date = hk_eligibility_source_date or signal_date
+     day = Path(input_root) / trade_date
+     fupan = day / "fupan.csv"
+     fupan_manifest = day / "fupan.manifest.json"
+@@ -187,7 +191,8 @@
+             hk_0_2 = build_shared_hk_0_2_pool(
+                 shared_data_root,
+                 trade_date=trade_date,
+-                signal_date=signal_date,
++                signal_date=hk_signal_date,
++                eligibility_source_date=hk_eligibility_source_date,
+                 shared_package_root=shared_package_root,
+                 reader=hk_pool_reader,
+             )
+@@ -253,6 +258,14 @@
+     parser = argparse.ArgumentParser()
+     parser.add_argument("--trade-date", required=True)
+     parser.add_argument("--signal-date", required=True)
++    parser.add_argument(
++        "--hk-signal-date",
++        help="HK securities price session; defaults to --signal-date",
++    )
++    parser.add_argument(
++        "--hk-eligibility-source-date",
++        help="verified HK Connect eligibility date; defaults to --signal-date",
++    )
+     # The selector is an A-share research-preview fallback only.  HK 0.2
+     # materialization has its own exact-date source and must not be gated by
+     # this optional A-share input.
+@@ -280,6 +293,8 @@
+     artifacts = build_scheduled_artifacts(
+         trade_date=args.trade_date,
+         signal_date=args.signal_date,
++        hk_signal_date=args.hk_signal_date,
++        hk_eligibility_source_date=args.hk_eligibility_source_date,
+         selector=args.selector,
+         input_root=args.input_root,
+         shared_data_root=args.shared_data_root,

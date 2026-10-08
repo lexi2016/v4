@@ -1,0 +1,80 @@
+{
+  "executions": [
+    {
+      "owner": "canonical",
+      "command": [
+        "git",
+        "apply",
+        "--check",
+        "/workspace/scratch/29f34dd56853/issue28/delivery/auction/patches/canonical.patch"
+      ],
+      "cwd": "/tmp/issue28-auction-patchcheck-ouschqqj",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "owner": "canonical",
+      "command": [
+        "git",
+        "apply",
+        "/workspace/scratch/29f34dd56853/issue28/delivery/auction/patches/canonical.patch"
+      ],
+      "cwd": "/tmp/issue28-auction-patchcheck-ouschqqj",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "owner": "active_stage_reference",
+      "command": [
+        "git",
+        "apply",
+        "--check",
+        "/workspace/scratch/29f34dd56853/issue28/delivery/auction/patches/active_stage_reference.patch"
+      ],
+      "cwd": "/tmp/issue28-auction-patchcheck-m0q1h6z7",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "owner": "active_stage_reference",
+      "command": [
+        "git",
+        "apply",
+        "/workspace/scratch/29f34dd56853/issue28/delivery/auction/patches/active_stage_reference.patch"
+      ],
+      "cwd": "/tmp/issue28-auction-patchcheck-m0q1h6z7",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "results": [
+    {
+      "owner": "canonical",
+      "relative_path": "stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "after_sha256": "7fa71ee1a4b96f6f53d49467fcb296969104e851949234849fd256a5372d5725",
+      "matches_complete_after": true
+    },
+    {
+      "owner": "canonical",
+      "relative_path": "stage_center/_selection_parts/a_auction.py",
+      "after_sha256": "defb01fca7d0a067bf214e794810fac7d19fdbd3fbcd78b8263fe93603952e93",
+      "matches_complete_after": true
+    },
+    {
+      "owner": "active_stage_reference",
+      "relative_path": "stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "after_sha256": "409274a2adace19f22ef6d19cdbc7e5291b58fd9944d39239abbffd90ab1f6e4",
+      "matches_complete_after": true
+    },
+    {
+      "owner": "active_stage_reference",
+      "relative_path": "stage_center/_selection_parts/a_auction.py",
+      "after_sha256": "defb01fca7d0a067bf214e794810fac7d19fdbd3fbcd78b8263fe93603952e93",
+      "matches_complete_after": true
+    }
+  ]
+}

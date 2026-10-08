@@ -1,0 +1,97 @@
+{
+  "scope": "SYNTHETIC_SOURCE_CANDIDATE_ONLY",
+  "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "commands": [
+    {
+      "name": "auction_canonical",
+      "command": [
+        "/workspace/scratch/29f34dd56853/issue28/work/test-venv/bin/python",
+        "/workspace/scratch/29f34dd56853/issue28/delivery/auction/reproduce.py",
+        "--repo-root",
+        "/workspace/scratch/29f34dd56853/issue28/delivery/test_support/frozen_repo",
+        "--owner",
+        "canonical",
+        "--phase",
+        "after",
+        "--log-root",
+        "/workspace/scratch/29f34dd56853/issue28/delivery/evidence/packaged_focused/auction_canonical"
+      ],
+      "exit_code": 0,
+      "log": "/workspace/scratch/29f34dd56853/issue28/delivery/evidence/packaged_focused/auction_canonical.log",
+      "log_sha256": "e2ffe84d8a598eef96a18a62d7fe74c62decf0d13a4774d58accedc8f9087aba"
+    },
+    {
+      "name": "auction_active_stage",
+      "command": [
+        "/workspace/scratch/29f34dd56853/issue28/work/test-venv/bin/python",
+        "/workspace/scratch/29f34dd56853/issue28/delivery/auction/reproduce.py",
+        "--repo-root",
+        "/workspace/scratch/29f34dd56853/issue28/delivery/test_support/frozen_repo",
+        "--owner",
+        "active_stage_reference",
+        "--phase",
+        "after",
+        "--log-root",
+        "/workspace/scratch/29f34dd56853/issue28/delivery/evidence/packaged_focused/auction_active_stage"
+      ],
+      "exit_code": 0,
+      "log": "/workspace/scratch/29f34dd56853/issue28/delivery/evidence/packaged_focused/auction_active_stage.log",
+      "log_sha256": "e6dd34c105632fcaffb1ef2294d53db73fac8a4d87e29c08b9d42d5389dab3c0"
+    },
+    {
+      "name": "hk_split_dates",
+      "command": [
+        "/workspace/scratch/29f34dd56853/issue28/work/test-venv/bin/python",
+        "/workspace/scratch/29f34dd56853/issue28/delivery/hk/tests/run_focused.py",
+        "--issue-root",
+        "/workspace/scratch/29f34dd56853/issue28/delivery",
+        "--baseline-root",
+        "/workspace/scratch/29f34dd56853/issue28/delivery/test_support/frozen_repo/handoff/stage-selection-issues-20261008/source",
+        "--owner-root",
+        "/workspace/scratch/29f34dd56853/issue28/delivery/hk/after/active_producer_reference",
+        "--support-root",
+        "/workspace/scratch/29f34dd56853/issue28/delivery/hk/test_support"
+      ],
+      "exit_code": 0,
+      "log": "/workspace/scratch/29f34dd56853/issue28/delivery/evidence/packaged_focused/hk_split_dates.log",
+      "log_sha256": "e493844ff5347c1e745841e6c8f7de85b76cd19a39c1198ce29659aaf637ac41"
+    },
+    {
+      "name": "release_existing",
+      "command": [
+        "/workspace/scratch/29f34dd56853/issue28/work/test-venv/bin/python",
+        "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/run_existing_suites.py"
+      ],
+      "exit_code": 0,
+      "log": "/workspace/scratch/29f34dd56853/issue28/delivery/evidence/packaged_focused/release_existing.log",
+      "log_sha256": "3d969ba14df3f80ec52aac44b0659373b0372684abff79c764a86f6a28b3de3a"
+    },
+    {
+      "name": "release_p1",
+      "command": [
+        "/workspace/scratch/29f34dd56853/issue28/work/test-venv/bin/python",
+        "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py"
+      ],
+      "exit_code": 0,
+      "log": "/workspace/scratch/29f34dd56853/issue28/delivery/evidence/packaged_focused/release_p1.log",
+      "log_sha256": "49f43d948a6a55fe3330111530cf96fcd0a25dff58793bce941368fb82d7a663"
+    },
+    {
+      "name": "pool_route_storage",
+      "command": [
+        "/workspace/scratch/29f34dd56853/issue28/work/test-venv/bin/python",
+        "/workspace/scratch/29f34dd56853/issue28/delivery/pool/isolated/run_route_tests.py"
+      ],
+      "exit_code": 0,
+      "log": "/workspace/scratch/29f34dd56853/issue28/delivery/evidence/packaged_focused/pool_route_storage.log",
+      "log_sha256": "45054140fe7c6b9414ec8e10d0b268d1acd01272619699300f9cada0d3a5c9b7"
+    }
+  ],
+  "full_active_app": "NOT_RUN",
+  "mac": "NOT_RUN",
+  "live_api_ui": "NOT_RUN",
+  "natural_slot": "NOT_RUN",
+  "deployment": "NOT_RUN",
+  "passed": true
+}

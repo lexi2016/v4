@@ -1,0 +1,1218 @@
+--- a/source/blocked_candidate_ops/api_candidate_install_r2.py
++++ b/source/blocked_candidate_ops/api_candidate_install_r2.py
+@@ -12,7 +12,6 @@
+ import argparse
+ import copy
+ import hashlib
+-import importlib.util
+ import json
+ import os
+ import plistlib
+@@ -49,6 +48,7 @@
+     'V35_RELEASE_MANIFEST_PATH', 'V35_RELEASE_MANIFEST_SHA256',
+ })
+ EXPECTED = {
++    'guard_sha256': '1fd041a3da7f21893ecc70b9d4d0d79936b58cc884cbc17367711917ba798367',
+     'active_plist_sha256': '72050bf4c7f00c8271cf9226ea866683a8e9e459d2875547b08f69fad30bfdf5',
+     'active_manifest_sha256': '946c49b9c34bd09fbca04644556de3acba1635eb240fa9293f6391e9d46b40e9',
+     'active_app_sha256': '90a2bf6390c6c0e219aa3d9bb22bc3b3630ecb2d447df494ae69425933424ed7',
+@@ -68,7 +68,9 @@
+ 
+ 
+ class InstallError(RuntimeError):
+-    pass
++    def __init__(self, message: str, *, recovery: dict[str, Any] | None = None) -> None:
++        self.recovery = recovery
++        super().__init__(message)
+ 
+ 
+ def sha_bytes(raw: bytes) -> str:
+@@ -173,8 +175,20 @@
+     return baseline, candidate
+ 
+ 
++def verify_guard_binding(identity: dict[str, Any]) -> None:
++    from api_candidate_recovery import RecoveryError, reviewed_guard_bytes
++
++    if identity.get('guard_path') != str(GUARD) or identity.get('guard_sha256') != EXPECTED['guard_sha256']:
++        raise InstallError('recovery identity lacks the exact reviewed guard path and SHA pin')
++    try:
++        reviewed_guard_bytes(GUARD, EXPECTED['guard_sha256'])
++    except RecoveryError as exc:
++        raise InstallError(str(exc)) from exc
++
++
+ def verify_package(*, require_active_baseline: bool = True) -> dict[str, Any]:
+     identity = load_json(IDENTITY)
++    verify_guard_binding(identity)
+     if sha(IDENTITY) != EXPECTED['candidate_id_sha256']:
+         raise InstallError('frozen R2 candidate identity SHA drift')
+     if sha(BASELINE) != EXPECTED['active_plist_sha256'] or identity.get('baseline_sha256') != EXPECTED['active_plist_sha256']:
+@@ -265,6 +279,7 @@
+         'status': 'R2_CANDIDATE_PACKAGE_VERIFY_PASS',
+         'release_id': EXPECTED['release_id'],
+         'candidate_manifest_sha256': EXPECTED['candidate_manifest_sha256'],
++        'guard_path': str(GUARD), 'guard_sha256': EXPECTED['guard_sha256'],
+         'candidate_app_sha256': EXPECTED['candidate_app_sha256'],
+         'staged_plist_sha256': EXPECTED['candidate_plist_sha256'],
+         'changed_app_paths_vs_r3': changed,
+@@ -294,6 +309,10 @@
+         raise InstallError('final plan is not frozen for independent review')
+     if plan.get('candidate', {}).get('manifest_sha256') != EXPECTED['candidate_manifest_sha256']:
+         raise InstallError('final plan candidate manifest pin mismatch')
++    if (plan.get('writer_artifacts', {}).get('guard_path') != str(GUARD)
++            or plan.get('writer_artifacts', {}).get('guard_sha256') != EXPECTED['guard_sha256']):
++        raise InstallError('final plan lacks the exact reviewed guard path and SHA pin')
++    verify_guard_binding(load_json(IDENTITY))
+     if plan.get('writer_artifacts', {}).get('install_helper_sha256') != sha(Path(__file__)):
+         raise InstallError('installer helper hash differs from frozen plan')
+     if plan.get('writer_artifacts', {}).get('recovery_helper_sha256') != sha(RECOVERY):
+@@ -302,6 +321,8 @@
+         raise InstallError('installer test hash differs from frozen plan')
+     expected_scope = {
+         'plan_sha256': sha(PLAN),
++        'guard_path': str(GUARD),
++        'guard_sha256': EXPECTED['guard_sha256'],
+         'install_helper_sha256': sha(Path(__file__)),
+         'install_tests_sha256': sha(R2 / 'test_api_candidate_install_r2.py'),
+         'recovery_helper_sha256': sha(RECOVERY),
+@@ -329,14 +350,12 @@
+ 
+ 
+ def import_guard():
+-    spec = importlib.util.spec_from_file_location('v4_reviewed_api_cutover_guard_r2', GUARD)
+-    if spec is None or spec.loader is None:
+-        raise InstallError('reviewed no-clobber cutover guard unavailable')
+-    module = importlib.util.module_from_spec(spec)
+-    sys.modules[spec.name] = module
+-    spec.loader.exec_module(module)
+-    module.EVIDENCE_ROOT = R2
+-    return module
++    from api_candidate_recovery import RecoveryError, import_reviewed_guard
++
++    try:
++        return import_reviewed_guard(GUARD, EXPECTED['guard_sha256'], R2)
++    except RecoveryError as exc:
++        raise InstallError(str(exc)) from exc
+ 
+ 
+ def require_install_slot() -> None:
+@@ -399,7 +418,7 @@
+             phase='API_PRESELECTION_R2_INSTALL',
+         )
+     except Exception as exc:
+-        raise InstallError(f'R2 candidate plist CAS install failed: {exc}') from exc
++        raise InstallError(f'R2 candidate plist CAS install failed: {exc}', recovery=getattr(exc, 'recovery', None)) from exc
+     if sha(ACTIVE) != EXPECTED['candidate_plist_sha256']:
+         raise InstallError('candidate plist CAS did not read back at its frozen SHA')
+     return {
+@@ -446,5 +465,6 @@
+     try:
+         raise SystemExit(main())
+     except (OSError, ValueError, KeyError, InstallError) as exc:
+-        print(json.dumps({'status': 'STOP_CANNOT_CONFIRM', 'error': str(exc)}, ensure_ascii=False), file=sys.stderr)
++        print(json.dumps({'status': 'STOP_CANNOT_CONFIRM', 'error': str(exc),
++                          'claim_recovery': getattr(exc, 'recovery', None)}, ensure_ascii=False), file=sys.stderr)
+         raise SystemExit(2)
+--- a/source/blocked_candidate_ops/api_candidate_recovery.py
++++ b/source/blocked_candidate_ops/api_candidate_recovery.py
+@@ -13,6 +13,7 @@
+ import json
+ import os
+ import re
++import stat
+ import subprocess
+ import sys
+ import time
+@@ -22,13 +23,16 @@
+ 
+ 
+ DEFAULT_GUARD = Path('/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_DAILY_20261007/hk_market_calendar/hk_calendar_candidate_cutover.py')
++REVIEWED_GUARD_SHA256 = '1fd041a3da7f21893ecc70b9d4d0d79936b58cc884cbc17367711917ba798367'
+ RECOVER_CONFIRMATION = 'RECOVER_API_CANDIDATE_TO_BASELINE_R2'
+ ALLOWED_DEPLOYABLE_STATUSES = frozenset({'READY'})
+ REQUIRED_REVIEW_SCOPE_IDENTITY_KEYS = ('candidate_manifest_sha256', 'staged_plist_sha256')
+ 
+ 
+ class RecoveryError(RuntimeError):
+-    pass
++    def __init__(self, message: str, *, recovery: dict[str, Any] | None = None) -> None:
++        self.recovery = recovery
++        super().__init__(message)
+ 
+ 
+ @dataclass(frozen=True)
+@@ -49,6 +53,7 @@
+     baseline_sha256: str
+     candidate_sha256: str
+     guard_path: Path = DEFAULT_GUARD
++    guard_sha256: str = REVIEWED_GUARD_SHA256
+     lsof_path: Path = Path('/usr/sbin/lsof')
+ 
+     @classmethod
+@@ -58,11 +63,15 @@
+             raise RecoveryError('recovery identity must be a JSON object')
+         required = (
+             'active_plist', 'baseline_backup', 'candidate_plist', 'evidence_root',
+-            'label', 'domain', 'baseline_sha256', 'candidate_sha256',
++            'label', 'domain', 'baseline_sha256', 'candidate_sha256', 'guard_path', 'guard_sha256',
+         )
+         missing = [key for key in required if not value.get(key)]
+         if missing:
+             raise RecoveryError('recovery identity missing: ' + ', '.join(missing))
++        if value['guard_sha256'] != REVIEWED_GUARD_SHA256:
++            raise RecoveryError('recovery identity guard SHA pin is not the reviewed guard')
++        if not isinstance(value['guard_path'], str) or not Path(value['guard_path']).is_absolute():
++            raise RecoveryError('recovery identity guard path must be absolute')
+         return cls(
+             active_plist=Path(value['active_plist']),
+             baseline_backup=Path(value['baseline_backup']),
+@@ -72,7 +81,8 @@
+             domain=str(value['domain']),
+             baseline_sha256=str(value['baseline_sha256']),
+             candidate_sha256=str(value['candidate_sha256']),
+-            guard_path=Path(value.get('guard_path', DEFAULT_GUARD)),
++            guard_path=Path(value['guard_path']),
++            guard_sha256=value['guard_sha256'],
+             lsof_path=Path(value.get('lsof_path', '/usr/sbin/lsof')),
+         )
+ 
+@@ -83,6 +93,39 @@
+ 
+ def sha256_file(path: Path) -> str:
+     return sha256_bytes(path.read_bytes())
++
++
++def _read_regular_bytes(path: Path, name: str) -> bytes:
++    try:
++        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
++        with os.fdopen(fd, 'rb') as handle:
++            if not stat.S_ISREG(os.fstat(handle.fileno()).st_mode):
++                raise RecoveryError(f'{name} must be a regular file')
++            return handle.read()
++    except OSError as exc:
++        raise RecoveryError(f'{name} cannot be read as a regular file: {path}') from exc
++
++
++def reviewed_guard_bytes(path: Path, expected_sha256: str) -> bytes:
++    if expected_sha256 != REVIEWED_GUARD_SHA256:
++        raise RecoveryError('guard SHA pin is not the reviewed guard')
++    raw = _read_regular_bytes(path, 'guard')
++    if sha256_bytes(raw) != expected_sha256:
++        raise RecoveryError('guard SHA drift; refusing to execute external code')
++    return raw
++
++
++def import_reviewed_guard(path: Path, expected_sha256: str, evidence_root: Path):
++    raw = reviewed_guard_bytes(path, expected_sha256)
++    spec = importlib.util.spec_from_file_location('reviewed_api_cutover_guard_r2', path)
++    if spec is None:
++        raise RecoveryError('reviewed atomic cutover guard is unavailable')
++    guard = importlib.util.module_from_spec(spec)
++    # Compile the exact bytes that passed the SHA check. exec_module would
++    # reopen the external path (or use cached bytecode) after verification.
++    exec(compile(raw, str(path), 'exec'), guard.__dict__)
++    guard.EVIDENCE_ROOT = evidence_root
++    return guard
+ 
+ 
+ def _plist_identity(raw: bytes, *, expected_label: str, name: str) -> tuple[dict[str, Any], tuple[str, str, str]]:
+@@ -139,9 +182,10 @@
+ 
+ 
+ def verify_reviewer_receipt(path: Path, expected_sha256: str, expected_scope: dict[str, Any]) -> dict[str, Any]:
+-    if sha256_file(path) != expected_sha256:
++    raw = _read_regular_bytes(path, 'independent reviewer receipt')
++    if sha256_bytes(raw) != expected_sha256:
+         raise RecoveryError('independent reviewer receipt SHA mismatch')
+-    value = json.loads(path.read_text(encoding='utf-8'))
++    value = json.loads(raw)
+     if not isinstance(value, dict):
+         raise RecoveryError('independent reviewer receipt must be a JSON object')
+     status = value.get('status')
+@@ -174,12 +218,18 @@
+     ]
+     if invalid_identity_pins:
+         raise RecoveryError('expected scope lacks required nonempty candidate identity pins: ' + ', '.join(invalid_identity_pins))
++    if (expected_scope.get('guard_sha256') != REVIEWED_GUARD_SHA256
++            or not isinstance(expected_scope.get('guard_path'), str)
++            or not Path(expected_scope['guard_path']).is_absolute()):
++        raise RecoveryError('expected scope lacks the exact reviewed guard path and SHA pin')
+     scope = value.get('scope')
+     if not isinstance(scope, dict):
+         raise RecoveryError('independent reviewer candidate scope is missing')
+     mismatches = [key for key, expected in expected_scope.items() if key not in scope or scope[key] != expected]
+     if mismatches:
+         raise RecoveryError('independent reviewer receipt does not match frozen candidate: ' + ', '.join(mismatches))
++    if scope != expected_scope:
++        raise RecoveryError('reviewer receipt scope is not an exact match to the frozen scope')
+     identity = value.get('review_identity')
+     if not isinstance(identity, str) or not identity.strip():
+         raise RecoveryError('independent reviewer identity is missing')
+@@ -206,11 +256,71 @@
+         raise RecoveryError(f'launchd state is not an owned waiting/pid=0 state for {owner}')
+ 
+ 
+-def recover_baseline(identity: RecoveryIdentity, ops: RecoveryOps) -> dict[str, Any]:
++def validate_claim_receipt(identity: RecoveryIdentity, guard: Any, path: Path, expected_sha256: str) -> dict[str, Any]:
++    if (not path.is_absolute() or path != Path(os.path.abspath(path))
++            or path.parent != identity.evidence_root):
++        raise RecoveryError('claim receipt path must be in the frozen evidence directory')
++    raw = _read_regular_bytes(path, 'claim receipt')
++    if sha256_bytes(raw) != expected_sha256:
++        raise RecoveryError('claim receipt SHA mismatch')
++    value = json.loads(raw)
++    phases = {
++        'API_PRESELECTION_R2_INSTALL_INSTALL_FAILURE_RESTORE_FAILED': (identity.baseline_sha256, identity.candidate_sha256),
++        'API_R2_ROLLBACK_RESTORE_INSTALL_FAILURE_RESTORE_FAILED': (identity.candidate_sha256, identity.baseline_sha256),
++    }
++    if not isinstance(value, dict) or not isinstance(value.get('phase'), str) or value['phase'] not in phases:
++        raise RecoveryError('claim receipt is not an approved failed API CAS recovery phase')
++    claim_sha, intended_sha = phases[value['phase']]
++    if (value.get('schema_version') != 'v4.hk_calendar_cutover_drift.v1'
++            or value.get('service') != 'api' or value.get('path') != str(identity.active_plist)
++            or value.get('expected_sha256') != claim_sha
++            or value.get('service_action_performed_by_recording') is not False):
++        raise RecoveryError('claim receipt does not bind the exact active plist and frozen identity')
++    details = value.get('details')
++    if (not isinstance(details, dict) or details.get('claim_sha256') != claim_sha
++            or details.get('candidate_sha256') != intended_sha
++            or not isinstance(details.get('claim_path'), str)):
++        raise RecoveryError('claim receipt does not bind the exact claim and intended plist SHA')
++    claim_path = Path(details['claim_path'])
++    try:
++        guard.read_claim(identity.active_plist, claim_path, claim_sha)
++    except (OSError, guard.GateError) as exc:
++        raise RecoveryError(str(exc)) from exc
++    return {'claim_path': str(claim_path), 'claim_sha256': claim_sha,
++            'claim_receipt_path': str(path), 'claim_receipt_sha256': expected_sha256}
++
++
++def recover_baseline(identity: RecoveryIdentity, ops: RecoveryOps, *, claim_receipt_path: Path | None = None, claim_receipt_sha256: str | None = None) -> dict[str, Any]:
+     baseline, candidate, baseline_tokens, candidate_tokens = _validate_pins(identity)
++    reviewed_guard_bytes(identity.guard_path, identity.guard_sha256)
++    if (claim_receipt_path is None) != (claim_receipt_sha256 is None):
++        raise RecoveryError('claim receipt path and exact SHA must be supplied together')
++    claim_recovery = None
++    if claim_receipt_path is not None:
++        guard = import_reviewed_guard(identity.guard_path, identity.guard_sha256, identity.evidence_root)
++        claim_recovery = validate_claim_receipt(identity, guard, claim_receipt_path, claim_receipt_sha256)
++        if os.path.lexists(identity.active_plist):
++            raise RecoveryError('claim recovery requires a missing active path; parallel path preserved')
++        if ops.launchd_status() is not None:
++            raise RecoveryError('exact launchd label must be absent before claim restore')
++        ops.require_port_free()
++        try:
++            restore_receipt = guard.restore_claim_no_clobber('api', identity.active_plist,
++                Path(claim_recovery['claim_path']), expected_claim_sha256=claim_recovery['claim_sha256'],
++                phase='API_R2_CLAIM_RECOVERY')
++        except (OSError, guard.GateError) as exc:
++            # Keep the original authorization receipt usable for a retry. The
++            # failed attempt's receipt is additional evidence, not a new phase
++            # that can authorize a broader recovery operation.
++            failure = dict(claim_recovery)
++            failure['failed_attempt'] = getattr(exc, 'recovery', None)
++            raise RecoveryError(str(exc), recovery=failure) from exc
++        if sha256_bytes(_read_regular_bytes(identity.active_plist, 'restored active plist')) != claim_recovery['claim_sha256']:
++            raise RecoveryError('claim restore active plist SHA drift; refusing bootstrap')
++        claim_recovery.update(restore_receipt_path=str(restore_receipt), restore_receipt_sha256=sha256_file(restore_receipt))
+     if not identity.active_plist.is_file():
+         raise RecoveryError('active plist is missing')
+-    active = identity.active_plist.read_bytes()
++    active = _read_regular_bytes(identity.active_plist, 'active plist')
+     if active not in (baseline, candidate):
+         raise RecoveryError('active plist is neither exact frozen baseline nor exact candidate; refusing recovery')
+     status = ops.launchd_status()
+@@ -218,8 +328,13 @@
+     if active == baseline:
+         if status is None:
+             ops.require_port_free()
++            if _read_regular_bytes(identity.active_plist, 'active plist') != baseline:
++                raise RecoveryError('baseline plist drift before bootstrap')
+             ops.bootstrap()
+             loaded = ops.wait_for_baseline(baseline_tokens)
++            if claim_recovery is not None:
++                return {'status': 'CLAIM_RESTORED_BASELINE_BOOTSTRAPPED', 'plist_sha256': identity.baseline_sha256,
++                        'loaded_identity': loaded, 'claim_recovery': claim_recovery}
+             return {'status': 'BASELINE_REBOOTSTRAPPED', 'plist_sha256': identity.baseline_sha256, 'loaded_identity': loaded}
+         _require_owned_status(status, baseline_tokens, 'baseline')
+         loaded = ops.wait_for_baseline(baseline_tokens)
+@@ -246,8 +361,13 @@
+     if ops.launchd_status() is not None:
+         raise RecoveryError('exact launchd label reappeared before baseline bootstrap')
+     ops.require_port_free()
++    if _read_regular_bytes(identity.active_plist, 'active plist') != baseline:
++        raise RecoveryError('baseline plist drift before bootstrap')
+     ops.bootstrap()
+     loaded = ops.wait_for_baseline(baseline_tokens)
++    if claim_recovery is not None:
++        return {'status': 'CLAIM_RESTORED_BASELINE_BOOTSTRAPPED', 'plist_sha256': identity.baseline_sha256,
++                'loaded_identity': loaded, 'claim_recovery': claim_recovery}
+     return {'status': 'CANDIDATE_ROLLED_BACK_BASELINE_BOOTSTRAPPED', 'plist_sha256': identity.baseline_sha256, 'loaded_identity': loaded}
+ 
+ 
+@@ -294,14 +414,11 @@
+             time.sleep(min(self.poll_interval_seconds, remaining))
+ 
+     def atomic_restore(self, baseline_bytes: bytes) -> None:
+-        spec = importlib.util.spec_from_file_location('reviewed_api_cutover_guard_r2', self.identity.guard_path)
+-        if spec is None or spec.loader is None:
+-            raise RecoveryError('reviewed atomic cutover guard is unavailable')
+-        guard = importlib.util.module_from_spec(spec)
+-        sys.modules[spec.name] = guard
+-        spec.loader.exec_module(guard)
+-        guard.EVIDENCE_ROOT = self.identity.evidence_root
+-        guard.atomic_write_no_clobber('api', self.identity.active_plist, baseline_bytes, expected_current_sha256=self.identity.candidate_sha256, phase='API_R2_ROLLBACK_RESTORE')
++        guard = import_reviewed_guard(self.identity.guard_path, self.identity.guard_sha256, self.identity.evidence_root)
++        try:
++            guard.atomic_write_no_clobber('api', self.identity.active_plist, baseline_bytes, expected_current_sha256=self.identity.candidate_sha256, phase='API_R2_ROLLBACK_RESTORE')
++        except (OSError, guard.GateError) as exc:
++            raise RecoveryError(str(exc), recovery=getattr(exc, 'recovery', None)) from exc
+ 
+     def bootstrap(self) -> None:
+         result = self.runner(['/bin/launchctl', 'bootstrap', self.identity.domain, str(self.identity.active_plist)], capture_output=True, text=True, check=False)
+@@ -337,6 +454,8 @@
+     recover = sub.add_parser('recover-baseline')
+     recover.add_argument('--identity-json', type=Path, required=True)
+     recover.add_argument('--confirm', required=True)
++    recover.add_argument('--claim-receipt-path', type=Path)
++    recover.add_argument('--claim-receipt-sha256')
+     args = parser.parse_args()
+     if args.action == 'review-check':
+         expected_scope = json.loads(args.expected_scope_json.read_text(encoding='utf-8'))
+@@ -346,7 +465,8 @@
+     if args.confirm != RECOVER_CONFIRMATION:
+         raise RecoveryError('exact r2 recovery confirmation string is required')
+     identity = RecoveryIdentity.from_json(args.identity_json)
+-    result = recover_baseline(identity, SystemRecoveryOps(identity))
++    result = recover_baseline(identity, SystemRecoveryOps(identity),
++                             claim_receipt_path=args.claim_receipt_path, claim_receipt_sha256=args.claim_receipt_sha256)
+     print(json.dumps({**result, 'service_operation_performed': True, 'other_service_touched': False, 'data_root_touched': False, 'production_allowed': False, 'buy_gate_updated': False, 'orders_sent': False}, ensure_ascii=False, indent=2, sort_keys=True))
+     return 0
+ 
+@@ -355,5 +475,6 @@
+     try:
+         raise SystemExit(main())
+     except (OSError, ValueError, KeyError, RecoveryError) as exc:
+-        print(json.dumps({'status': 'STOP_CANNOT_CONFIRM', 'error': str(exc)}, ensure_ascii=False), file=sys.stderr)
++        print(json.dumps({'status': 'STOP_CANNOT_CONFIRM', 'error': str(exc),
++                          'claim_recovery': getattr(exc, 'recovery', None)}, ensure_ascii=False), file=sys.stderr)
+         raise SystemExit(2)
+--- a/source/blocked_candidate_ops/test_api_candidate_install_r2.py
++++ b/source/blocked_candidate_ops/test_api_candidate_install_r2.py
+@@ -61,6 +61,8 @@
+ 
+     def test_exact_review_scope_and_hash_are_required(self) -> None:
+         scope = {
++            'guard_path': str(install.GUARD),
++            'guard_sha256': install.EXPECTED['guard_sha256'],
+             'candidate_manifest_sha256': 'a' * 64,
+             'staged_plist_sha256': 'b' * 64,
+             'plan_sha256': 'c' * 64,
+--- a/source/blocked_candidate_ops/test_api_candidate_recovery.py
++++ b/source/blocked_candidate_ops/test_api_candidate_recovery.py
+@@ -9,6 +9,8 @@
+ from pathlib import Path
+ 
+ from api_candidate_recovery import (
++    DEFAULT_GUARD,
++    REVIEWED_GUARD_SHA256,
+     LaunchdStatus,
+     RecoveryError,
+     RecoveryIdentity,
+@@ -19,6 +21,7 @@
+ 
+ 
+ E = Path('/Users/lexi/Desktop/学习/agents调试/V4_A_POOL_SOURCE_FIX_20261008')
++GUARD_SCOPE = {'guard_path': str(DEFAULT_GUARD), 'guard_sha256': REVIEWED_GUARD_SHA256}
+ 
+ 
+ def sha(value: bytes) -> str:
+@@ -107,6 +110,7 @@
+             domain='gui/501',
+             baseline_sha256=sha(self.base_raw),
+             candidate_sha256=sha(self.candidate_raw),
++            guard_path=DEFAULT_GUARD,
+         )
+         self.base_tokens = ('/releases/base/app', 'base-r2', 'b' * 64)
+         self.candidate_tokens = ('/releases/candidate/app', 'candidate-r2', 'c' * 64)
+@@ -192,6 +196,7 @@
+     def test_passing_review_must_match_frozen_candidate_scope(self) -> None:
+         path = self.root / 'review.json'
+         expected_scope = {
++            **GUARD_SCOPE,
+             'candidate_manifest_sha256': 'a' * 64,
+             'staged_plist_sha256': 'b' * 64,
+         }
+--- a/source/external_guard_reference/hk_calendar_candidate_cutover.py
++++ b/source/external_guard_reference/hk_calendar_candidate_cutover.py
+@@ -52,6 +52,13 @@
+ 
+ class GateError(RuntimeError):
+     pass
++
++
++class ClaimRecoveryError(GateError):
++    """A retained claim is identifiable even if receipt persistence failed."""
++    def __init__(self, message: str, recovery: dict[str, Any]) -> None:
++        self.recovery = recovery
++        super().__init__(message + '; recovery=' + json.dumps(recovery, sort_keys=True))
+ 
+ 
+ class RuntimeIdentityDrift(GateError):
+@@ -442,6 +449,75 @@
+     drift(service=service, phase=phase, path=path, expected=expected, observed=observed, details=details)
+ 
+ 
++def claim_failure(service: str, phase: str, target: Path, claim_path: Path, *, expected: str, claim_sha256: str, candidate_sha256: str, install_error: OSError, restore_error: OSError) -> ClaimRecoveryError:
++    details = {
++        'claim_path': str(claim_path), 'claim_sha256': claim_sha256,
++        'candidate_sha256': candidate_sha256,
++        'install_error_type': type(install_error).__name__,
++        'restore_error_type': type(restore_error).__name__,
++    }
++    recovery = {**details, 'active_plist_path': str(target), 'phase': phase}
++    try:
++        observed = sha256_file(target) if target.is_file() and not target.is_symlink() else None
++    except OSError:
++        observed = None
++    try:
++        receipt = drift(service=service, phase=phase, path=target, expected=expected, observed=observed, details=details)
++        recovery.update(claim_receipt_path=str(receipt), claim_receipt_sha256=sha256_file(receipt))
++    except (OSError, GateError) as receipt_error:
++        recovery['receipt_error'] = f'{type(receipt_error).__name__}: {receipt_error}'
++    return ClaimRecoveryError(f'{phase}: original claim retained at {claim_path}; automatic restore failed', recovery)
++
++
++def read_claim(target: Path, claim_path: Path, expected_sha256: str) -> tuple[bytes, int]:
++    """Read a regular, same-directory claim; never follow a supplied symlink."""
++    if (not target.is_absolute() or not claim_path.is_absolute()
++            or claim_path != Path(os.path.abspath(claim_path))
++            or claim_path.name != 'before.plist'
++            or claim_path.parent.parent != target.parent
++            or re.fullmatch(re.escape(f'.{target.name}.claim-') + r'[0-9a-f]{32}', claim_path.parent.name) is None):
++        raise GateError('claim path is not a reserved claim for the exact active plist')
++    directory_mode = claim_path.parent.lstat().st_mode
++    if not stat.S_ISDIR(directory_mode) or stat.S_IMODE(directory_mode) != 0o700:
++        raise GateError('claim directory must be a private regular directory')
++    fd = os.open(claim_path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
++    with os.fdopen(fd, 'rb') as handle:
++        mode = os.fstat(handle.fileno()).st_mode
++        if not stat.S_ISREG(mode):
++            raise GateError('claim must be a regular file')
++        raw = handle.read()
++    if sha256_bytes(raw) != expected_sha256:
++        raise GateError('claim plist SHA mismatch')
++    return raw, stat.S_IMODE(mode)
++
++
++def restore_claim_no_clobber(service: str, target: Path, claim_path: Path, *, expected_claim_sha256: str, phase: str) -> Path:
++    """Restore a validated snapshot by exclusive link, preserving the claim."""
++    raw, mode = read_claim(target, claim_path, expected_claim_sha256)
++    fd, name = tempfile.mkstemp(prefix=f'.{target.name}.claim-restore-', suffix='.tmp', dir=target.parent)
++    temp_path = Path(name)
++    try:
++        with os.fdopen(fd, 'wb') as handle:
++            handle.write(raw)
++            handle.flush()
++            os.fchmod(handle.fileno(), mode)
++            os.fsync(handle.fileno())
++        # Detect claim drift before publication; publish the verified snapshot,
++        # so a subsequent source-path replacement cannot publish foreign bytes.
++        read_claim(target, claim_path, expected_claim_sha256)
++        try:
++            os.link(temp_path, target)
++        except OSError as exc:
++            raise claim_failure(service, phase + '_LINK_FAILED', target, claim_path,
++                expected=expected_claim_sha256, claim_sha256=expected_claim_sha256,
++                candidate_sha256=expected_claim_sha256, install_error=exc, restore_error=exc) from exc
++        return drift(service=service, phase=phase + '_RESTORED', path=target,
++                     expected=expected_claim_sha256, observed=sha256_file(target),
++                     details={'claim_path': str(claim_path), 'claim_sha256': expected_claim_sha256})
++    finally:
++        temp_path.unlink(missing_ok=True)
++
++
+ def atomic_write_no_clobber(service: str, target: Path, candidate_bytes: bytes, *, expected_current_sha256: str, phase: str) -> Path:
+     """Claim exact old bytes, then install with link(2); never overwrite drift."""
+     if sha256_bytes(candidate_bytes) == expected_current_sha256:
+@@ -491,10 +567,11 @@
+         except OSError as exc:
+             try:
+                 os.link(claim_path, target)
+-            except FileExistsError:
+-                observed = sha256_file(target) if target.exists() else None
+-                record_drift(service, f"{phase}_INSTALL_FAILURE_RESTORE_CONFLICT", target, expected_current_sha256, observed, {"claim_path": str(claim_path)})
+-                raise GateError(f"{phase}: install failed and a parallel target exists; original claim retained") from exc
++            except OSError as restore_error:
++                raise claim_failure(service, f'{phase}_INSTALL_FAILURE_RESTORE_FAILED', target, claim_path,
++                    expected=expected_current_sha256, claim_sha256=actual,
++                    candidate_sha256=sha256_bytes(candidate_bytes),
++                    install_error=exc, restore_error=restore_error) from exc
+             record_drift(service, f"{phase}_INSTALL_FAILURE_RESTORED", target, expected_current_sha256, expected_current_sha256, {"claim_path": str(claim_path), "error_type": type(exc).__name__})
+             raise GateError(f"{phase}: install failed; exact original bytes were restored without overwrite") from exc
+         return claim_path
+--- /dev/null
++++ b/tests/test_release_regressions.py
+@@ -0,0 +1,475 @@
++"""Offline release-P1 tests. Every filesystem mutation stays in a temp fixture.
++
++RELEASE_SOURCE_ROOT selects the unmodified or candidate source slice. The only
++subprocess interface used by recovery is the in-process ServiceRunner below.
++"""
++from __future__ import annotations
++
++import dataclasses
++import errno
++import hashlib
++import importlib.util
++import inspect
++import json
++import os
++import plistlib
++import stat
++import subprocess
++import sys
++import tempfile
++import unittest
++from pathlib import Path
++from unittest.mock import patch
++
++from release_test_fixture import synthetic_package
++
++
++TEST_ROOT = Path(__file__).resolve().parent
++SOURCE_ROOT = Path(os.environ.get('RELEASE_SOURCE_ROOT', TEST_ROOT.parent / 'source')).resolve()
++OPS_ROOT = SOURCE_ROOT / 'blocked_candidate_ops'
++GUARD_PATH = SOURCE_ROOT / 'external_guard_reference/hk_calendar_candidate_cutover.py'
++sys.path.insert(0, str(OPS_ROOT))
++import api_candidate_install_r2 as installer
++import api_candidate_recovery as recovery
++
++
++def digest(raw: bytes) -> str:
++    return hashlib.sha256(raw).hexdigest()
++
++
++def load_guard():
++    spec = importlib.util.spec_from_file_location('release_p1_test_guard', GUARD_PATH)
++    module = importlib.util.module_from_spec(spec)
++    sys.modules[spec.name] = module
++    spec.loader.exec_module(module)
++    return module
++
++
++def plist(release: str) -> bytes:
++    return plistlib.dumps({
++        'Label': 'com.lexi.v35.api-only',
++        'ProgramArguments': ['/usr/bin/env', f'V35_APP_ROOT=/releases/{release}/app',
++                             f'V35_RELEASE_ID={release}',
++                             'V35_RELEASE_MANIFEST_SHA256=' + ('b' if release == 'baseline' else 'c') * 64],
++    })
++
++
++class ServiceRunner:
++    """Exact protocol fake; no subprocess or service call reaches the host."""
++    def __init__(self, fixture):
++        self.fixture = fixture
++        self.loaded = False
++        self.calls = []
++
++    def __call__(self, argv, **kwargs):
++        self.calls.append(argv)
++        target = 'gui/501/com.lexi.v35.api-only'
++        if argv == ['/bin/launchctl', 'print', target]:
++            if self.loaded:
++                return subprocess.CompletedProcess(argv, 0,
++                    'state = running\npid = 123\n/releases/baseline/app\nbaseline\n' + 'b' * 64, '')
++            return subprocess.CompletedProcess(argv, 113, '',
++                'Could not find service "com.lexi.v35.api-only" in domain for user gui: 501')
++        if argv == ['/usr/sbin/lsof', '-nP', '-iTCP:8873', '-sTCP:LISTEN']:
++            return subprocess.CompletedProcess(argv, 1, '', '')
++        if argv == ['/bin/launchctl', 'bootstrap', 'gui/501', str(self.fixture.active)]:
++            if self.fixture.active.read_bytes() != self.fixture.baseline_raw:
++                raise AssertionError('attempted bootstrap with non-baseline bytes')
++            self.loaded = True
++            return subprocess.CompletedProcess(argv, 0, '', '')
++        raise AssertionError('unexpected service command: ' + repr(argv))
++
++
++class ReleaseP1Tests(unittest.TestCase):
++    def setUp(self):
++        temp_root = TEST_ROOT / 'tmp'
++        temp_root.mkdir(exist_ok=True)
++        self.temp = tempfile.TemporaryDirectory(prefix='release-p1-', dir=temp_root)
++        self.root = Path(self.temp.name)
++        self.active = self.root / 'active.plist'
++        self.baseline = self.root / 'baseline.plist'
++        self.candidate = self.root / 'candidate.plist'
++        self.baseline_raw, self.candidate_raw = plist('baseline'), plist('candidate')
++        self.baseline.write_bytes(self.baseline_raw)
++        self.candidate.write_bytes(self.candidate_raw)
++        self.active.write_bytes(self.baseline_raw)
++        self.active.chmod(0o640)
++        self.guard = load_guard()
++        self.guard.EVIDENCE_ROOT = self.root
++        self.runner = ServiceRunner(self)
++
++    def tearDown(self):
++        self.temp.cleanup()
++
++    def identity(self, guard_path=GUARD_PATH):
++        value = dict(active_plist=self.active, baseline_backup=self.baseline,
++                     candidate_plist=self.candidate, evidence_root=self.root,
++                     label='com.lexi.v35.api-only', domain='gui/501',
++                     baseline_sha256=digest(self.baseline_raw),
++                     candidate_sha256=digest(self.candidate_raw), guard_path=guard_path)
++        if 'guard_sha256' in {field.name for field in dataclasses.fields(recovery.RecoveryIdentity)}:
++            value['guard_sha256'] = digest(GUARD_PATH.read_bytes())
++        return recovery.RecoveryIdentity(**value)
++
++    def double_failure(self):
++        with patch.object(self.guard.os, 'link', side_effect=OSError(errno.EIO, 'injected link failure')):
++            try:
++                self.guard.atomic_write_no_clobber('api', self.active, self.candidate_raw,
++                    expected_current_sha256=digest(self.baseline_raw), phase='API_PRESELECTION_R2_INSTALL')
++            except Exception as exc:
++                error = exc
++            else:
++                self.fail('injected install/restore double failure was accepted')
++        self.assertFalse(os.path.lexists(self.active))
++        claims = list(self.root.glob('.active.plist.claim-*/before.plist'))
++        self.assertEqual(len(claims), 1)
++        self.assertEqual(claims[0].read_bytes(), self.baseline_raw)
++        return error, claims[0]
++
++    def claim_receipt(self, error):
++        details = getattr(error, 'recovery', {})
++        self.assertTrue(details.get('claim_receipt_path'),
++                        'double link failure did not return its claim path and drift receipt')
++        return Path(details['claim_receipt_path']), details['claim_receipt_sha256']
++
++    def recover_claim(self, receipt_path, receipt_sha, *, runner=None):
++        identity = self.identity()
++        ops = recovery.SystemRecoveryOps(identity, runner=runner or self.runner)
++        # Baseline has no receipt interface; exercising it still proves the
++        # observed failure is "active plist is missing", not a test TypeError.
++        options = {}
++        if 'claim_receipt_path' in inspect.signature(recovery.recover_baseline).parameters:
++            options = dict(claim_receipt_path=receipt_path, claim_receipt_sha256=receipt_sha)
++        return recovery.recover_baseline(identity, ops, **options)
++
++    def test_installer_rejects_guard_drift_before_module_side_effect(self):
++        marker = self.root / 'unreviewed-module-ran'
++        bad = self.root / 'unreviewed.py'
++        bad.write_text(f'from pathlib import Path\nPath({str(marker)!r}).write_text("executed")\n')
++        with patch.object(installer, 'GUARD', bad), patch.dict(installer.EXPECTED, {'guard_sha256': digest(GUARD_PATH.read_bytes())}):
++            try:
++                installer.import_guard()
++            except installer.InstallError as exc:
++                self.assertRegex(str(exc), 'guard.*SHA|guard.*pin')
++            else:
++                self.fail('installer executed an unpinned external guard')
++        self.assertFalse(marker.exists())
++        self.assertEqual(self.active.read_bytes(), self.baseline_raw)
++
++    def test_recovery_rejects_guard_drift_before_module_side_effect(self):
++        marker = self.root / 'unreviewed-module-ran'
++        bad = self.root / 'unreviewed.py'
++        bad.write_text(f'from pathlib import Path\nPath({str(marker)!r}).write_text("executed")\n'
++                       'def atomic_write_no_clobber(*args, **kwargs): pass\n')
++        ops = recovery.SystemRecoveryOps(self.identity(bad), runner=self.runner)
++        try:
++            ops.atomic_restore(self.baseline_raw)
++        except recovery.RecoveryError as exc:
++            self.assertRegex(str(exc), 'guard.*SHA|guard.*pin')
++        else:
++            self.fail('recovery executed an unpinned external guard')
++        self.assertFalse(marker.exists())
++        self.assertEqual(self.active.read_bytes(), self.baseline_raw)
++
++    def test_legacy_recovery_identity_without_guard_pin_is_rejected(self):
++        value = {key: str(val) if isinstance(val, Path) else val
++                 for key, val in dataclasses.asdict(self.identity()).items()}
++        value.pop('guard_sha256', None)
++        path = self.root / 'identity.json'
++        path.write_text(json.dumps(value))
++        with self.assertRaisesRegex(recovery.RecoveryError, 'guard'):
++            recovery.RecoveryIdentity.from_json(path)
++
++    def test_recovery_identity_cannot_approve_a_different_guard_by_rehashing_it(self):
++        value = {key: str(val) if isinstance(val, Path) else val
++                 for key, val in dataclasses.asdict(self.identity()).items()}
++        bad = self.root / 'self-approved-guard.py'
++        bad.write_text('raise RuntimeError("must never run")\n')
++        value.update(guard_path=str(bad), guard_sha256=digest(bad.read_bytes()))
++        path = self.root / 'identity.json'
++        path.write_text(json.dumps(value))
++        with self.assertRaisesRegex(recovery.RecoveryError, 'guard'):
++            recovery.RecoveryIdentity.from_json(path)
++
++    def test_review_receipt_without_guard_binding_is_rejected(self):
++        scope = {'candidate_manifest_sha256': 'a' * 64, 'staged_plist_sha256': 'b' * 64}
++        path = self.root / 'old-review.json'
++        path.write_text(json.dumps({
++            'review_identity': 'offline-fixture-reviewer', 'scope': scope,
++            'status': {'REVIEWED': 'PASS', 'BEHAVIOR_VERIFIED': 'PASS_FIXTURE', 'DEPLOYABLE': 'READY'},
++            'findings': {'P0': [], 'P1': [], 'P2': []},
++        }))
++        with self.assertRaisesRegex(recovery.RecoveryError, 'guard'):
++            recovery.verify_reviewer_receipt(path, digest(path.read_bytes()), scope)
++
++    def test_double_link_failure_returns_claim_and_bound_drift_receipt(self):
++        error, claim = self.double_failure()
++        receipt, receipt_sha = self.claim_receipt(error)
++        self.assertEqual(digest(receipt.read_bytes()), receipt_sha)
++        value = json.loads(receipt.read_text())
++        self.assertEqual(value['path'], str(self.active))
++        self.assertEqual(value['expected_sha256'], digest(self.baseline_raw))
++        self.assertEqual(value['details']['claim_path'], str(claim))
++        self.assertEqual(value['details']['claim_sha256'], digest(self.baseline_raw))
++        self.assertIn(str(claim), str(error))
++
++    def test_missing_active_recovers_exact_claim_then_bootstraps_baseline(self):
++        error, claim = self.double_failure()
++        # Give baseline a literal claim receipt too: it must still fail because
++        # the recovery state machine refuses a missing active path.
++        if not getattr(error, 'recovery', {}):
++            receipt = self.root / 'baseline-red-receipt.json'
++            receipt.write_text('{}')
++            receipt_sha = digest(receipt.read_bytes())
++        else:
++            receipt, receipt_sha = self.claim_receipt(error)
++        try:
++            result = self.recover_claim(receipt, receipt_sha)
++        except Exception as exc:
++            self.fail(f'no usable claim recovery path: {type(exc).__name__}: {exc}')
++        self.assertEqual(result['status'], 'CLAIM_RESTORED_BASELINE_BOOTSTRAPPED')
++        self.assertEqual(self.active.read_bytes(), self.baseline_raw)
++        self.assertEqual(stat.S_IMODE(self.active.stat().st_mode), 0o640)
++        self.assertEqual(claim.read_bytes(), self.baseline_raw)
++        self.assertTrue(self.runner.loaded)
++        self.assertEqual(result['claim_recovery']['claim_path'], str(claim))
++
++    def test_claim_recovery_preserves_intervening_path_and_does_not_bootstrap(self):
++        error, claim = self.double_failure()
++        receipt, receipt_sha = self.claim_receipt(error)
++        real_link = os.link
++
++        def intrude(source, target, *args, **kwargs):
++            if Path(target) == self.active:
++                self.active.write_bytes(b'parallel-owner')
++            return real_link(source, target, *args, **kwargs)
++
++        with patch('os.link', side_effect=intrude):
++            with self.assertRaises(recovery.RecoveryError):
++                self.recover_claim(receipt, receipt_sha)
++        self.assertEqual(self.active.read_bytes(), b'parallel-owner')
++        self.assertEqual(claim.read_bytes(), self.baseline_raw)
++        self.assertFalse(self.runner.loaded)
++
++    def test_claim_recovery_rejects_modified_receipt_before_service_access(self):
++        error, claim = self.double_failure()
++        receipt, receipt_sha = self.claim_receipt(error)
++        receipt.write_text(receipt.read_text() + ' ')
++        with self.assertRaisesRegex(recovery.RecoveryError, 'receipt.*SHA'):
++            self.recover_claim(receipt, receipt_sha)
++        self.assertFalse(os.path.lexists(self.active))
++        self.assertEqual(self.runner.calls, [])
++        self.assertEqual(claim.read_bytes(), self.baseline_raw)
++
++    def test_claim_recovery_rejects_drifted_claim_before_service_access(self):
++        error, claim = self.double_failure()
++        receipt, receipt_sha = self.claim_receipt(error)
++        claim.write_bytes(b'not-the-baseline')
++        with self.assertRaisesRegex(recovery.RecoveryError, 'claim.*SHA'):
++            self.recover_claim(receipt, receipt_sha)
++        self.assertFalse(os.path.lexists(self.active))
++        self.assertEqual(self.runner.calls, [])
++
++    def test_claim_recovery_rejects_symlink_claim_without_touching_target(self):
++        error, claim = self.double_failure()
++        receipt, receipt_sha = self.claim_receipt(error)
++        claim.unlink()
++        claim.symlink_to(self.baseline)
++        with self.assertRaises(recovery.RecoveryError):
++            self.recover_claim(receipt, receipt_sha)
++        self.assertFalse(os.path.lexists(self.active))
++        self.assertEqual(self.baseline.read_bytes(), self.baseline_raw)
++        self.assertEqual(self.runner.calls, [])
++
++    def test_claim_recovery_rejects_redirected_claim_even_with_rehashed_receipt(self):
++        error, claim = self.double_failure()
++        receipt, _ = self.claim_receipt(error)
++        value = json.loads(receipt.read_text())
++        value['details']['claim_path'] = str(self.baseline)
++        receipt.write_text(json.dumps(value))
++        with self.assertRaisesRegex(recovery.RecoveryError, 'claim.*path|claim.*directory'):
++            self.recover_claim(receipt, digest(receipt.read_bytes()))
++        self.assertFalse(os.path.lexists(self.active))
++        self.assertEqual(self.runner.calls, [])
++        self.assertEqual(claim.read_bytes(), self.baseline_raw)
++
++    def test_failure_still_reports_claim_if_drift_receipt_cannot_be_written(self):
++        with patch.object(self.guard, 'drift', side_effect=OSError(errno.ENOSPC, 'injected receipt write failure')):
++            error, claim = self.double_failure()
++        details = getattr(error, 'recovery', {})
++        self.assertEqual(details.get('claim_path'), str(claim))
++        self.assertEqual(details.get('claim_sha256'), digest(self.baseline_raw))
++        self.assertIn('receipt_error', details)
++        self.assertNotIn('claim_receipt_sha256', details)
++
++    def test_rollback_double_link_failure_can_recover_its_candidate_claim(self):
++        self.active.write_bytes(self.candidate_raw)
++        ops = recovery.SystemRecoveryOps(self.identity(), runner=self.runner)
++        with patch('os.link', side_effect=OSError(errno.EIO, 'injected rollback link failure')):
++            with self.assertRaises(Exception) as caught:
++                ops.atomic_restore(self.baseline_raw)
++        receipt, receipt_sha = self.claim_receipt(caught.exception)
++        claim = Path(caught.exception.recovery['claim_path'])
++        self.assertEqual(claim.read_bytes(), self.candidate_raw)
++        result = self.recover_claim(receipt, receipt_sha)
++        self.assertEqual(result['status'], 'CLAIM_RESTORED_BASELINE_BOOTSTRAPPED')
++        self.assertEqual(self.active.read_bytes(), self.baseline_raw)
++        self.assertEqual(claim.read_bytes(), self.candidate_raw)
++
++    def test_claim_recovery_preserves_preexisting_dangling_symlink(self):
++        error, claim = self.double_failure()
++        receipt, receipt_sha = self.claim_receipt(error)
++        self.active.symlink_to(self.root / 'absent-intruder-target')
++        with self.assertRaisesRegex(recovery.RecoveryError, 'parallel path preserved'):
++            self.recover_claim(receipt, receipt_sha)
++        self.assertTrue(self.active.is_symlink())
++        self.assertEqual(self.runner.calls, [])
++        self.assertEqual(claim.read_bytes(), self.baseline_raw)
++
++    def test_claim_receipt_cannot_redirect_recovery_to_another_active_path(self):
++        error, claim = self.double_failure()
++        receipt, _ = self.claim_receipt(error)
++        value = json.loads(receipt.read_text())
++        value['path'] = str(self.root / 'another-owner.plist')
++        receipt.write_text(json.dumps(value))
++        with self.assertRaisesRegex(recovery.RecoveryError, 'exact active plist'):
++            self.recover_claim(receipt, digest(receipt.read_bytes()))
++        self.assertFalse(os.path.lexists(self.active))
++        self.assertEqual(self.runner.calls, [])
++        self.assertEqual(claim.read_bytes(), self.baseline_raw)
++
++    def test_claim_recovery_link_failure_is_traceable_and_does_not_bootstrap(self):
++        error, claim = self.double_failure()
++        receipt, receipt_sha = self.claim_receipt(error)
++        with patch('os.link', side_effect=OSError(errno.EIO, 'injected claim recovery link failure')):
++            with self.assertRaises(recovery.RecoveryError) as caught:
++                self.recover_claim(receipt, receipt_sha)
++        self.assertEqual(caught.exception.recovery['claim_path'], str(claim))
++        self.assertFalse(os.path.lexists(self.active))
++        self.assertFalse(self.runner.loaded)
++        self.assertEqual(claim.read_bytes(), self.baseline_raw)
++
++    def test_failed_claim_recovery_returns_a_receipt_that_can_be_retried(self):
++        error, claim = self.double_failure()
++        receipt, receipt_sha = self.claim_receipt(error)
++        with patch('os.link', side_effect=OSError(errno.EIO, 'injected first recovery failure')):
++            with self.assertRaises(recovery.RecoveryError) as caught:
++                self.recover_claim(receipt, receipt_sha)
++        retry_path, retry_sha = self.claim_receipt(caught.exception)
++        try:
++            result = self.recover_claim(retry_path, retry_sha)
++        except recovery.RecoveryError as exc:
++            self.fail('returned recovery receipt cannot be retried: ' + str(exc))
++        self.assertEqual(result['status'], 'CLAIM_RESTORED_BASELINE_BOOTSTRAPPED')
++        self.assertEqual(self.active.read_bytes(), self.baseline_raw)
++        self.assertEqual(claim.read_bytes(), self.baseline_raw)
++
++    def test_malformed_claim_receipt_phase_fails_closed_with_controlled_error(self):
++        error, claim = self.double_failure()
++        receipt, _ = self.claim_receipt(error)
++        value = json.loads(receipt.read_text())
++        value['phase'] = ['API_PRESELECTION_R2_INSTALL_INSTALL_FAILURE_RESTORE_FAILED']
++        receipt.write_text(json.dumps(value))
++        try:
++            self.recover_claim(receipt, digest(receipt.read_bytes()))
++        except recovery.RecoveryError:
++            pass
++        except Exception as exc:
++            self.fail(f'malformed receipt leaked an uncontrolled {type(exc).__name__}')
++        else:
++            self.fail('malformed receipt was accepted')
++        self.assertEqual(self.runner.calls, [])
++        self.assertFalse(os.path.lexists(self.active))
++        self.assertEqual(claim.read_bytes(), self.baseline_raw)
++
++    def test_guard_loader_executes_verified_buffer_after_path_changes(self):
++        guarded = self.root / 'guard.py'
++        good_bytes = GUARD_PATH.read_bytes()
++        guarded.write_bytes(good_bytes)
++        marker = self.root / 'reopened-module-ran'
++        replacement = f'from pathlib import Path\nPath({str(marker)!r}).write_text("executed")\n'.encode()
++        original_sha256 = hashlib.sha256
++
++        def change_after_hash(raw=b'', **kwargs):
++            result = original_sha256(raw, **kwargs)
++            if raw == good_bytes:
++                guarded.write_bytes(replacement)
++            return result
++
++        with patch.object(installer, 'GUARD', guarded), patch('hashlib.sha256', side_effect=change_after_hash):
++            module = installer.import_guard()
++        self.assertTrue(callable(module.atomic_write_no_clobber))
++        self.assertFalse(marker.exists())
++        self.assertEqual(guarded.read_bytes(), replacement)
++
++    def test_guard_symlink_is_rejected_without_execution(self):
++        link = self.root / 'guard-link.py'
++        link.symlink_to(GUARD_PATH)
++        with patch.object(installer, 'GUARD', link):
++            with self.assertRaisesRegex(installer.InstallError, 'regular file'):
++                installer.import_guard()
++
++    def test_guard_drift_blocks_recovery_before_service_commands(self):
++        bad = self.root / 'drifted-guard.py'
++        bad.write_bytes(GUARD_PATH.read_bytes() + b'\n# changed after review\n')
++        self.active.write_bytes(self.candidate_raw)
++        identity = self.identity(bad)
++        with self.assertRaisesRegex(recovery.RecoveryError, 'guard SHA drift'):
++            recovery.recover_baseline(identity, recovery.SystemRecoveryOps(identity, runner=self.runner))
++        self.assertEqual(self.runner.calls, [])
++        self.assertEqual(self.active.read_bytes(), self.candidate_raw)
++
++    def _review_for_current_scope(self):
++        scope = json.loads(installer.REVIEW_SCOPE.read_text())
++        path = self.root / 'fixture-review.json'
++        path.write_text(json.dumps({
++            'review_identity': 'offline-synthetic-reviewer', 'scope': scope,
++            'status': {'REVIEWED': 'PASS', 'BEHAVIOR_VERIFIED': 'PASS_FIXTURE', 'DEPLOYABLE': 'READY'},
++            'findings': {'P0': [], 'P1': [], 'P2': []},
++        }))
++        return path, digest(path.read_bytes())
++
++    def test_final_plan_without_guard_pin_is_rejected_even_with_fresh_scope_hash(self):
++        with synthetic_package(installer, SOURCE_ROOT, self.root):
++            plan = json.loads(installer.PLAN.read_text())
++            plan['writer_artifacts'].pop('guard_path', None)
++            plan['writer_artifacts'].pop('guard_sha256', None)
++            installer.PLAN.write_text(json.dumps(plan))
++            scope = json.loads(installer.REVIEW_SCOPE.read_text())
++            scope['plan_sha256'] = digest(installer.PLAN.read_bytes())
++            installer.REVIEW_SCOPE.write_text(json.dumps(scope))
++            receipt, receipt_sha = self._review_for_current_scope()
++            with self.assertRaisesRegex(installer.InstallError, 'final plan.*guard'):
++                installer.verify_review_receipt(receipt, receipt_sha)
++
++    def test_old_19_item_scope_cannot_authorize_installation(self):
++        with synthetic_package(installer, SOURCE_ROOT, self.root):
++            scope = json.loads(installer.REVIEW_SCOPE.read_text())
++            scope.pop('guard_path', None)
++            scope.pop('guard_sha256', None)
++            self.assertEqual(len(scope), 19)
++            installer.REVIEW_SCOPE.write_text(json.dumps(scope))
++            receipt, receipt_sha = self._review_for_current_scope()
++            with self.assertRaisesRegex(installer.InstallError, 'scope'):
++                installer.verify_review_receipt(receipt, receipt_sha)
++
++    def test_install_wrapper_preserves_claim_receipt_on_double_failure(self):
++        from argparse import Namespace
++        with synthetic_package(installer, SOURCE_ROOT, self.root):
++            receipt, receipt_sha = self._review_for_current_scope()
++            args = Namespace(confirm='INSTALL_API_PRESELECTION_SOURCE_R2_20261008',
++                             reviewer_receipt=receipt, reviewer_sha256=receipt_sha)
++            # Slot probes are external; all review, package, guard and filesystem
++            # operations remain real. The system-recovery tests cover its probes.
++            with patch.object(installer, 'require_install_slot'), patch('os.link', side_effect=OSError(errno.EIO, 'injected install link failure')):
++                with self.assertRaises(installer.InstallError) as caught:
++                    installer.install(args)
++            details = getattr(caught.exception, 'recovery', {})
++            self.assertTrue(details.get('claim_path'), 'installer wrapper discarded retained claim identity')
++            self.assertEqual(Path(details['claim_path']).read_bytes(), installer.BASELINE.read_bytes())
++            self.assertEqual(digest(Path(details['claim_receipt_path']).read_bytes()), details['claim_receipt_sha256'])
++            self.assertFalse(os.path.lexists(installer.ACTIVE))
++
++
++if __name__ == '__main__':
++    unittest.main(verbosity=2)
+--- /dev/null
++++ b/tests/release_test_fixture.py
+@@ -0,0 +1,148 @@
++"""Synthetic package for the supplied 17+9 unit tests; never a deploy package.
++
++All PASS/READY receipt strings here are parser fixtures. The context is removed
++when the test finishes; it contains no real business data or host configuration.
++"""
++from __future__ import annotations
++
++import contextlib
++import difflib
++import hashlib
++import json
++import plistlib
++import shutil
++from pathlib import Path
++from unittest.mock import patch
++
++
++def sha(path):
++    return hashlib.sha256(path.read_bytes()).hexdigest()
++
++
++def write_json(path, value):
++    path.parent.mkdir(parents=True, exist_ok=True)
++    path.write_text(json.dumps(value, sort_keys=True, indent=2) + '\n')
++
++
++@contextlib.contextmanager
++def synthetic_package(install, source_root, root):
++    r2 = root / 'synthetic-r2'
++    r2.mkdir()
++    base = root / 'synthetic-r3'
++    candidate = root / 'synthetic-candidate'
++    for path in (base, candidate):
++        (path / 'app/apps/api/v35_api').mkdir(parents=True)
++        (path / 'app/v4/manager_research').mkdir(parents=True)
++        (path / 'app/v4/manager_research/announcement_analysis.py').write_text('# unchanged synthetic manager\n')
++    old = 'first = "old"\n' + '# fixture context\n' * 20 + 'second = "old"\n'
++    new = old.replace('"old"', '"new"')
++    (base / 'app/apps/api/v35_api/app.py').write_text(old)
++    (candidate / 'app/apps/api/v35_api/app.py').write_text(new)
++    mapping = {
++        'E': root, 'R2': r2, 'R3': base, 'CANDIDATE': candidate,
++        'ACTIVE': root / 'active.plist', 'BASELINE': r2 / 'baseline.plist',
++        'IDENTITY': r2 / 'identity.json', 'STAGED': r2 / 'candidate.plist',
++        'CANARY': r2 / 'canary.json', 'SOURCE_MAP': r2 / 'source-map.json',
++        'SOURCE_DIFF': r2 / 'source.diff', 'PLAN': r2 / 'plan.json',
++        'REVIEW_SCOPE': r2 / 'scope.json',
++        'RECOVERY': source_root / 'blocked_candidate_ops/api_candidate_recovery.py',
++        'RECOVERY_TESTS': source_root / 'blocked_candidate_ops/test_api_candidate_recovery.py',
++        'CANARY_SCRIPT': r2 / 'canary.py', 'GATE_RECEIPT': r2 / 'gate.json',
++        'GUARD': source_root / 'external_guard_reference/hk_calendar_candidate_cutover.py',
++    }
++    expected = dict(install.EXPECTED)
++    expected['manager_binding_path'] = str(root / 'synthetic-manager-binding.json')
++    write_json(Path(expected['manager_binding_path']), {'synthetic_fixture': True})
++    mapping['SOURCE_DIFF'].write_text(''.join(difflib.unified_diff(old.splitlines(True), new.splitlines(True), fromfile='before.py', tofile='after.py')))
++    write_json(mapping['SOURCE_MAP'], {'synthetic_fixture': True})
++    mapping['CANARY_SCRIPT'].write_text('# synthetic hash-only canary fixture; never executed\n')
++    write_json(mapping['GATE_RECEIPT'], {'status': {'REVIEWED': 'PASS'}, 'synthetic_fixture': True})
++    write_json(base / 'release-manifest.json', {'synthetic_fixture': True, 'version': 'base'})
++    expected.update(
++        active_manifest_sha256=sha(base / 'release-manifest.json'),
++        active_app_sha256=sha(base / 'app/apps/api/v35_api/app.py'),
++        candidate_app_sha256=sha(candidate / 'app/apps/api/v35_api/app.py'),
++        manager_code_sha256=sha(base / 'app/v4/manager_research/announcement_analysis.py'),
++        manager_binding_sha256=sha(Path(expected['manager_binding_path'])),
++        source_diff_sha256=sha(mapping['SOURCE_DIFF']), source_map_sha256=sha(mapping['SOURCE_MAP']),
++        gate_receipt_sha256=sha(mapping['GATE_RECEIPT']),
++    )
++    rows = install.inventory(candidate / 'app')
++    aggregate = hashlib.sha256(json.dumps(rows, sort_keys=True).encode()).hexdigest()
++    write_json(candidate / 'release-manifest.json', {
++        'synthetic_fixture': True,
++        'candidate_status': 'READY_FOR_INDEPENDENT_REVIEW', 'activation_status': 'NOT_ACTIVATED',
++        'deployment_status': 'NOT_DEPLOYED',
++        'safety': {'RESEARCH_ONLY': True, 'production_allowed': False, 'buy_gate_updated': False, 'orders_sent': False},
++        'candidate': {'release_id': expected['release_id'], 'app_root': str(candidate / 'app')},
++        'source': {'a_pool_preselection_source_fix': {
++            'base_manifest_sha256': expected['active_manifest_sha256'],
++            'base_sha256': expected['active_app_sha256'], 'result_sha256': expected['candidate_app_sha256'],
++            'patch_sha256': expected['source_diff_sha256'], 'hunks': 2,
++            'changed_app_paths': ['apps/api/v35_api/app.py'], 'review_status': 'PENDING_INDEPENDENT_REVIEW',
++        }},
++        'application_inventory': {'entries': rows, 'aggregate_sha256': aggregate},
++    })
++    expected['candidate_manifest_sha256'] = sha(candidate / 'release-manifest.json')
++    for output, release, release_id, manifest_sha in (
++        (mapping['BASELINE'], base, 'manager-daily-chain-20261008-r3-api', expected['active_manifest_sha256']),
++        (mapping['STAGED'], candidate, expected['release_id'], expected['candidate_manifest_sha256']),
++    ):
++        env = {
++            'V35_APP_ROOT': str(release / 'app'), 'V35_RELEASE_ID': release_id,
++            'PYTHONPATH': str(release / 'app'),
++            'V35_RELEASE_MANIFEST_PATH': str(release / 'release-manifest.json'),
++            'V35_RELEASE_MANIFEST_SHA256': manifest_sha,
++            'V4_MANAGER_PLAN_OWNER_BINDING_PATH': expected['manager_binding_path'],
++            **{key: 'false' for key in ('production_allowed', 'PRODUCTION_ALLOWED', 'buy_gate_updated', 'BUY_GATE_UPDATED', 'orders_sent', 'ORDERS_SENT')},
++        }
++        output.write_bytes(plistlib.dumps({'Label': 'com.lexi.v35.api-only',
++            'WorkingDirectory': str(release / 'app'),
++            'ProgramArguments': ['/usr/bin/env', *(f'{key}={value}' for key, value in env.items()), '/python', '-B', '-m', 'apps.api.v35_api.run'],
++        }))
++    mapping['ACTIVE'].write_bytes(mapping['BASELINE'].read_bytes())
++    expected['active_plist_sha256'], expected['candidate_plist_sha256'] = sha(mapping['BASELINE']), sha(mapping['STAGED'])
++    write_json(mapping['IDENTITY'], {
++        'active_plist': str(mapping['ACTIVE']), 'baseline_backup': str(mapping['BASELINE']),
++        'candidate_plist': str(mapping['STAGED']), 'evidence_root': str(r2),
++        'label': 'com.lexi.v35.api-only', 'domain': 'gui/501',
++        'baseline_sha256': expected['active_plist_sha256'], 'candidate_sha256': expected['candidate_plist_sha256'],
++        'candidate_manifest_sha256': expected['candidate_manifest_sha256'],
++        'guard_path': str(mapping['GUARD']), 'guard_sha256': sha(mapping['GUARD']),
++    })
++    expected['candidate_id_sha256'] = sha(mapping['IDENTITY'])
++    write_json(mapping['CANARY'], {
++        'synthetic_fixture': True, 'status': 'PASS_ISOLATED_CANDIDATE_API_CANARY',
++        'observed': {'synthetic_rows': 1}, 'oracle': {'synthetic_rows': 1},
++        'candidate': {'manifest_sha256': expected['candidate_manifest_sha256']},
++    })
++    expected['candidate_canary_sha256'] = sha(mapping['CANARY'])
++    shutil.copyfile(source_root / 'blocked_candidate_ops/test_api_candidate_install_r2.py', r2 / 'test_api_candidate_install_r2.py')
++    writer = {'install_helper_sha256': sha(Path(install.__file__)),
++              'recovery_helper_sha256': sha(mapping['RECOVERY']),
++              'install_tests_sha256': sha(r2 / 'test_api_candidate_install_r2.py')}
++    guard_scope = ({'guard_path': str(mapping['GUARD']), 'guard_sha256': sha(mapping['GUARD'])}
++                   if 'guard_sha256' in expected else {})
++    write_json(mapping['PLAN'], {
++        'plan_status': 'READY_FOR_INDEPENDENT_REVIEW',
++        'candidate': {'manifest_sha256': expected['candidate_manifest_sha256']},
++        'writer_artifacts': {**writer, **guard_scope},
++    })
++    scope = {
++        'plan_sha256': sha(mapping['PLAN']), **writer, **guard_scope,
++        'recovery_tests_sha256': sha(mapping['RECOVERY_TESTS']),
++        'canary_script_sha256': sha(mapping['CANARY_SCRIPT']), 'canary_receipt_sha256': sha(mapping['CANARY']),
++        'candidate_manifest_sha256': expected['candidate_manifest_sha256'],
++        'candidate_app_sha256': expected['candidate_app_sha256'], 'candidate_app_inventory_sha256': aggregate,
++        'staged_plist_sha256': expected['candidate_plist_sha256'], 'recovery_identity_sha256': sha(mapping['IDENTITY']),
++        'baseline_plist_sha256': expected['active_plist_sha256'], 'baseline_manifest_sha256': expected['active_manifest_sha256'],
++        'source_diff_sha256': expected['source_diff_sha256'], 'source_map_sha256': expected['source_map_sha256'],
++        'r2_gate_reviewer_receipt_sha256': expected['gate_receipt_sha256'],
++        'manager_source_sha256': expected['manager_code_sha256'], 'manager_binding_sha256': expected['manager_binding_sha256'],
++    }
++    write_json(mapping['REVIEW_SCOPE'], scope)
++    write_json(root / '全证据/api_candidate_review_receipt.json', {
++        'synthetic_fixture': True, 'status': {'REVIEWED': 'FAIL'}, 'scope': scope,
++    })
++    with patch.multiple(install, **mapping), patch.object(install, 'EXPECTED', expected):
++        yield scope
+--- /dev/null
++++ b/tests/run_existing_suites.py
+@@ -0,0 +1,32 @@
++"""Reuse all supplied 17 recovery + 9 install tests with synthetic disk fixtures."""
++import importlib
++import os
++import platform
++import sys
++import tempfile
++import unittest
++from pathlib import Path
++
++from release_test_fixture import synthetic_package
++
++test_root = Path(__file__).resolve().parent
++source_root = Path(os.environ.get('RELEASE_SOURCE_ROOT', test_root.parent / 'source')).resolve()
++sys.path.insert(0, str(source_root / 'blocked_candidate_ops'))
++import api_candidate_install_r2 as install
++
++temp_root = test_root / 'tmp'
++temp_root.mkdir(exist_ok=True)
++with tempfile.TemporaryDirectory(prefix='existing-26-', dir=temp_root) as name:
++    root = Path(name)
++    with synthetic_package(install, source_root, root) as scope:
++        test_install = importlib.import_module('test_api_candidate_install_r2')
++        test_recovery = importlib.import_module('test_api_candidate_recovery')
++        test_recovery.E = root
++        if hasattr(test_recovery, 'DEFAULT_GUARD'):
++            test_recovery.DEFAULT_GUARD = install.GUARD
++        print(f'Python {platform.python_version()}; source={source_root}', flush=True)
++        print(f'SYNTHETIC_UNIT_FIXTURE_ONLY; scope_items={len(scope)}; no host service operations', flush=True)
++        suite = unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromModule(module)
++                                   for module in (test_recovery, test_install))
++        result = unittest.TextTestRunner(verbosity=2).run(suite)
++        sys.exit(0 if result.wasSuccessful() else 1)

@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    from stage_center.live_collectors import production_selection_builders; from stage_center.selection import SelectionStore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/issue28-auction-import-test-x7j2v5zm/stage_center/__init__.py", line 6, in <module>
+    from .selection import (
+    ...<11 lines>...
+    )
+  File "/tmp/issue28-auction-import-test-x7j2v5zm/stage_center/selection.py", line 35, in <module>
+    from stage_center._selection_parts import schema_values as _v4_definitions
+  File "/tmp/issue28-auction-import-test-x7j2v5zm/stage_center/_selection_parts/schema_values.py", line 2, in <module>
+    from ._namespace import read_global as _v4_global
+ModuleNotFoundError: No module named 'stage_center._selection_parts._namespace'

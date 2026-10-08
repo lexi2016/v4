@@ -1,0 +1,89 @@
+{
+  "topic": "A_SHARE_STAGE_0925_PREV_CLOSE_SEMANTICS",
+  "repository": "lexi2016/v4",
+  "frozen_commit": "00524e9050fe212f87911b56eea1c2db719dd94b",
+  "status": "CANDIDATE_SOURCE_TESTED_IN_BOUNDED_HARNESS",
+  "source_scope": "2 owner builder variants + shared selector; canonical/active kept separate",
+  "changes_manifest": "CHANGE_MANIFEST.json",
+  "support_index": "SUPPORT_INDEX.json",
+  "reproducer": "reproduce.py",
+  "validation": {
+    "canonical_before": {
+      "failed": 18,
+      "passed": 6,
+      "exit_code": 1,
+      "log": "logs/canonical_before.log"
+    },
+    "canonical_after": {
+      "failed": 0,
+      "passed": 24,
+      "exit_code": 0,
+      "log": "logs/canonical_after.log"
+    },
+    "active_stage_before": {
+      "failed": 18,
+      "passed": 6,
+      "exit_code": 1,
+      "log": "logs/active_stage_reference_before.log"
+    },
+    "active_stage_after": {
+      "failed": 0,
+      "passed": 24,
+      "exit_code": 0,
+      "log": "logs/active_stage_reference_after.log"
+    },
+    "per_variant_test_composition": {
+      "actual_module_import_source_harness_cases": 21,
+      "AST_isolated_API_projection_partial_cases": 3
+    },
+    "python": "3.14.7",
+    "pytest": "9.1.1",
+    "platform": "Linux",
+    "source_harness_limit": "historic 20261005 support; read_global namespace utility substituted explicitly from other frozen API package; not current-owner closure proof",
+    "patch_application": "both owner patches applied to exact before images in isolated directories; all 4 emitted after files SHA-match"
+  },
+  "data_semantics": {
+    "previous_100_auction_105_after_persistence": {
+      "prev_close_price": 100,
+      "current_change_pct": 5
+    },
+    "missing_previous": {
+      "prev_close_price": null,
+      "current_change_pct": null,
+      "qmt_gap_pct": null,
+      "current_change_pct_missing_reason": "PREV_CLOSE_PRICE_MISSING"
+    },
+    "invalid_previous": {
+      "prev_close_price": null,
+      "current_change_pct": null,
+      "qmt_gap_pct": null,
+      "current_change_pct_missing_reason": "PREV_CLOSE_PRICE_INVALID"
+    },
+    "missing_auction_price": "AUCTION_PRICE_MISSING_OR_INVALID",
+    "legacy_csv": "unchanged 12-column V1; full price fields verified through manifest envelope; missing reason also retained in lane_evidence CSV column"
+  },
+  "ranking": {
+    "algorithm_changed": false,
+    "algorithm_sha256": "eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2",
+    "rank_effect": "Synthetic adapter fixture changes from input-order 50.25/50.25/50.25 to +5% score100 rank1, flat score50.25 rank2, -5% score0.25 rank3",
+    "valid_direct_selector_complete_envelope_sha_before_after": "f6270f52e2d422a72e47758aeeefd6e35eedca73997270c0754b224276f2afaa",
+    "real_20261008_rank_effect": "NOT_RUN"
+  },
+  "not_run": [
+    "complete project suite",
+    "current active owner dependency closure",
+    "full FastAPI HTTP/app startup/middleware",
+    "8873 API/UI",
+    "target Mac CPython3.14.6",
+    "real collection or Stage runner",
+    "scheduler or natural slot",
+    "171-row real ranking recalculation",
+    "deployment"
+  ],
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "DEPLOYED": false,
+  "business_data_modified": false,
+  "github_writes": false
+}

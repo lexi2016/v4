@@ -1,0 +1,40 @@
+SCOPE: SYNTHETIC OFFLINE ONLY; no live Stage, source acquisition, or market data.
+HK_OWNER_ROOT=/workspace/scratch/29f34dd56853/issue28/baseline/source/active_producer_reference
+HK_SUPPORT_ROOT=/workspace/scratch/29f34dd56853/issue28/work/hk/references/canonical (canonical reference only)
+COMMAND: ['/workspace/scratch/29f34dd56853/issue28/work/test-venv/bin/python', '-m', 'pytest', '-q', '/workspace/scratch/29f34dd56853/issue28/work/hk/tests/test_hk_split_date_binding.py', '--tb=short', '-k', 'actual_materializer_to or actual_cli_forwards or legacy_equal_dates or frozen_baseline_reproduces']
+F.F.                                                                     [100%]
+=================================== FAILURES ===================================
+___ test_actual_materializer_to_unchanged_strict_validator_with_split_dates ____
+work/hk/tests/test_hk_split_date_binding.py:161: in test_actual_materializer_to_unchanged_strict_validator_with_split_dates
+    artifact = _build(source)
+               ^^^^^^^^^^^^^^
+work/hk/tests/test_hk_split_date_binding.py:150: in _build
+    return adapter.build_shared_hk_0_2_pool(
+E   TypeError: build_shared_hk_0_2_pool() got an unexpected keyword argument 'eligibility_source_date'
+____ test_actual_cli_forwards_independent_hk_dates_and_persists_bound_trio _____
+work/hk/tests/test_hk_split_date_binding.py:287: in test_actual_cli_forwards_independent_hk_dates_and_persists_bound_trio
+    result = scheduled.main([
+baseline/source/active_producer_reference/ops/materialize_scheduled_preselection.py:269: in main
+    args = parser.parse_args(argv)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+work/python/cpython-3.14.7-linux-x86_64-gnu/lib/python3.14/argparse.py:2012: in parse_args
+    self.error(msg)
+work/python/cpython-3.14.7-linux-x86_64-gnu/lib/python3.14/argparse.py:2785: in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+work/python/cpython-3.14.7-linux-x86_64-gnu/lib/python3.14/argparse.py:2772: in exit
+    _sys.exit(status)
+E   SystemExit: 2
+----------------------------- Captured stderr call -----------------------------
+usage: python -m pytest [-h] --trade-date TRADE_DATE --signal-date SIGNAL_DATE
+                        [--selector SELECTOR] --input-root INPUT_ROOT
+                        [--data-root DATA_ROOT]
+                        --shared-data-root SHARED_DATA_ROOT
+                        --shared-package-root SHARED_PACKAGE_ROOT
+                        [--reuse-formal-pools]
+python -m pytest: error: unrecognized arguments: --hk-signal-date 20261007 --hk-eligibility-source-date 20260930
+=========================== short test summary info ============================
+FAILED work/hk/tests/test_hk_split_date_binding.py::test_actual_materializer_to_unchanged_strict_validator_with_split_dates
+FAILED work/hk/tests/test_hk_split_date_binding.py::test_actual_cli_forwards_independent_hk_dates_and_persists_bound_trio
+2 failed, 2 passed, 15 deselected in 0.29s
+
+EXIT_CODE=1

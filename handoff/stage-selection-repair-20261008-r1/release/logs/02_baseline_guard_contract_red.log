@@ -1,0 +1,35 @@
+test_legacy_recovery_identity_without_guard_pin_is_rejected (__main__.ReleaseP1Tests.test_legacy_recovery_identity_without_guard_pin_is_rejected) ... FAIL
+test_recovery_identity_cannot_approve_a_different_guard_by_rehashing_it (__main__.ReleaseP1Tests.test_recovery_identity_cannot_approve_a_different_guard_by_rehashing_it) ... FAIL
+test_review_receipt_without_guard_binding_is_rejected (__main__.ReleaseP1Tests.test_review_receipt_without_guard_binding_is_rejected) ... FAIL
+
+======================================================================
+FAIL: test_legacy_recovery_identity_without_guard_pin_is_rejected (__main__.ReleaseP1Tests.test_legacy_recovery_identity_without_guard_pin_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/work/release/tests/test_release_regressions.py", line 178, in test_legacy_recovery_identity_without_guard_pin_is_rejected
+    with self.assertRaisesRegex(recovery.RecoveryError, 'guard'):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RecoveryError not raised
+
+======================================================================
+FAIL: test_recovery_identity_cannot_approve_a_different_guard_by_rehashing_it (__main__.ReleaseP1Tests.test_recovery_identity_cannot_approve_a_different_guard_by_rehashing_it)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/work/release/tests/test_release_regressions.py", line 189, in test_recovery_identity_cannot_approve_a_different_guard_by_rehashing_it
+    with self.assertRaisesRegex(recovery.RecoveryError, 'guard'):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RecoveryError not raised
+
+======================================================================
+FAIL: test_review_receipt_without_guard_binding_is_rejected (__main__.ReleaseP1Tests.test_review_receipt_without_guard_binding_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/work/release/tests/test_release_regressions.py", line 200, in test_review_receipt_without_guard_binding_is_rejected
+    with self.assertRaisesRegex(recovery.RecoveryError, 'guard'):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RecoveryError not raised
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.080s
+
+FAILED (failures=3)

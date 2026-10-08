@@ -1,0 +1,327 @@
+test_claim_receipt_cannot_redirect_recovery_to_another_active_path (__main__.ReleaseP1Tests.test_claim_receipt_cannot_redirect_recovery_to_another_active_path) ... FAIL
+test_claim_recovery_link_failure_is_traceable_and_does_not_bootstrap (__main__.ReleaseP1Tests.test_claim_recovery_link_failure_is_traceable_and_does_not_bootstrap) ... FAIL
+test_claim_recovery_preserves_intervening_path_and_does_not_bootstrap (__main__.ReleaseP1Tests.test_claim_recovery_preserves_intervening_path_and_does_not_bootstrap) ... FAIL
+test_claim_recovery_preserves_preexisting_dangling_symlink (__main__.ReleaseP1Tests.test_claim_recovery_preserves_preexisting_dangling_symlink) ... FAIL
+test_claim_recovery_rejects_drifted_claim_before_service_access (__main__.ReleaseP1Tests.test_claim_recovery_rejects_drifted_claim_before_service_access) ... FAIL
+test_claim_recovery_rejects_modified_receipt_before_service_access (__main__.ReleaseP1Tests.test_claim_recovery_rejects_modified_receipt_before_service_access) ... FAIL
+test_claim_recovery_rejects_redirected_claim_even_with_rehashed_receipt (__main__.ReleaseP1Tests.test_claim_recovery_rejects_redirected_claim_even_with_rehashed_receipt) ... FAIL
+test_claim_recovery_rejects_symlink_claim_without_touching_target (__main__.ReleaseP1Tests.test_claim_recovery_rejects_symlink_claim_without_touching_target) ... FAIL
+test_double_link_failure_returns_claim_and_bound_drift_receipt (__main__.ReleaseP1Tests.test_double_link_failure_returns_claim_and_bound_drift_receipt) ... FAIL
+test_failed_claim_recovery_returns_a_receipt_that_can_be_retried (__main__.ReleaseP1Tests.test_failed_claim_recovery_returns_a_receipt_that_can_be_retried) ... FAIL
+test_failure_still_reports_claim_if_drift_receipt_cannot_be_written (__main__.ReleaseP1Tests.test_failure_still_reports_claim_if_drift_receipt_cannot_be_written) ... FAIL
+test_final_plan_without_guard_pin_is_rejected_even_with_fresh_scope_hash (__main__.ReleaseP1Tests.test_final_plan_without_guard_pin_is_rejected_even_with_fresh_scope_hash) ... FAIL
+test_guard_drift_blocks_recovery_before_service_commands (__main__.ReleaseP1Tests.test_guard_drift_blocks_recovery_before_service_commands) ... FAIL
+test_guard_loader_executes_verified_buffer_after_path_changes (__main__.ReleaseP1Tests.test_guard_loader_executes_verified_buffer_after_path_changes) ... FAIL
+test_guard_symlink_is_rejected_without_execution (__main__.ReleaseP1Tests.test_guard_symlink_is_rejected_without_execution) ... FAIL
+test_install_wrapper_preserves_claim_receipt_on_double_failure (__main__.ReleaseP1Tests.test_install_wrapper_preserves_claim_receipt_on_double_failure) ... FAIL
+test_installer_rejects_guard_drift_before_module_side_effect (__main__.ReleaseP1Tests.test_installer_rejects_guard_drift_before_module_side_effect) ... FAIL
+test_legacy_recovery_identity_without_guard_pin_is_rejected (__main__.ReleaseP1Tests.test_legacy_recovery_identity_without_guard_pin_is_rejected) ... FAIL
+test_malformed_claim_receipt_phase_fails_closed_with_controlled_error (__main__.ReleaseP1Tests.test_malformed_claim_receipt_phase_fails_closed_with_controlled_error) ... FAIL
+test_missing_active_recovers_exact_claim_then_bootstraps_baseline (__main__.ReleaseP1Tests.test_missing_active_recovers_exact_claim_then_bootstraps_baseline) ... FAIL
+test_old_19_item_scope_cannot_authorize_installation (__main__.ReleaseP1Tests.test_old_19_item_scope_cannot_authorize_installation) ... FAIL
+test_recovery_identity_cannot_approve_a_different_guard_by_rehashing_it (__main__.ReleaseP1Tests.test_recovery_identity_cannot_approve_a_different_guard_by_rehashing_it) ... FAIL
+test_recovery_rejects_guard_drift_before_module_side_effect (__main__.ReleaseP1Tests.test_recovery_rejects_guard_drift_before_module_side_effect) ... FAIL
+test_review_receipt_without_guard_binding_is_rejected (__main__.ReleaseP1Tests.test_review_receipt_without_guard_binding_is_rejected) ... FAIL
+test_rollback_double_link_failure_can_recover_its_candidate_claim (__main__.ReleaseP1Tests.test_rollback_double_link_failure_can_recover_its_candidate_claim) ... FAIL
+
+======================================================================
+FAIL: test_claim_receipt_cannot_redirect_recovery_to_another_active_path (__main__.ReleaseP1Tests.test_claim_receipt_cannot_redirect_recovery_to_another_active_path)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 331, in test_claim_receipt_cannot_redirect_recovery_to_another_active_path
+    receipt, _ = self.claim_receipt(error)
+                 ~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 131, in claim_receipt
+    self.assertTrue(details.get('claim_receipt_path'),
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    'double link failure did not return its claim path and drift receipt')
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None is not true : double link failure did not return its claim path and drift receipt
+
+======================================================================
+FAIL: test_claim_recovery_link_failure_is_traceable_and_does_not_bootstrap (__main__.ReleaseP1Tests.test_claim_recovery_link_failure_is_traceable_and_does_not_bootstrap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 343, in test_claim_recovery_link_failure_is_traceable_and_does_not_bootstrap
+    receipt, receipt_sha = self.claim_receipt(error)
+                           ~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 131, in claim_receipt
+    self.assertTrue(details.get('claim_receipt_path'),
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    'double link failure did not return its claim path and drift receipt')
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None is not true : double link failure did not return its claim path and drift receipt
+
+======================================================================
+FAIL: test_claim_recovery_preserves_intervening_path_and_does_not_bootstrap (__main__.ReleaseP1Tests.test_claim_recovery_preserves_intervening_path_and_does_not_bootstrap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 239, in test_claim_recovery_preserves_intervening_path_and_does_not_bootstrap
+    receipt, receipt_sha = self.claim_receipt(error)
+                           ~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 131, in claim_receipt
+    self.assertTrue(details.get('claim_receipt_path'),
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    'double link failure did not return its claim path and drift receipt')
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None is not true : double link failure did not return its claim path and drift receipt
+
+======================================================================
+FAIL: test_claim_recovery_preserves_preexisting_dangling_symlink (__main__.ReleaseP1Tests.test_claim_recovery_preserves_preexisting_dangling_symlink)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 321, in test_claim_recovery_preserves_preexisting_dangling_symlink
+    receipt, receipt_sha = self.claim_receipt(error)
+                           ~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 131, in claim_receipt
+    self.assertTrue(details.get('claim_receipt_path'),
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    'double link failure did not return its claim path and drift receipt')
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None is not true : double link failure did not return its claim path and drift receipt
+
+======================================================================
+FAIL: test_claim_recovery_rejects_drifted_claim_before_service_access (__main__.ReleaseP1Tests.test_claim_recovery_rejects_drifted_claim_before_service_access)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 266, in test_claim_recovery_rejects_drifted_claim_before_service_access
+    receipt, receipt_sha = self.claim_receipt(error)
+                           ~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 131, in claim_receipt
+    self.assertTrue(details.get('claim_receipt_path'),
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    'double link failure did not return its claim path and drift receipt')
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None is not true : double link failure did not return its claim path and drift receipt
+
+======================================================================
+FAIL: test_claim_recovery_rejects_modified_receipt_before_service_access (__main__.ReleaseP1Tests.test_claim_recovery_rejects_modified_receipt_before_service_access)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 256, in test_claim_recovery_rejects_modified_receipt_before_service_access
+    receipt, receipt_sha = self.claim_receipt(error)
+                           ~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 131, in claim_receipt
+    self.assertTrue(details.get('claim_receipt_path'),
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    'double link failure did not return its claim path and drift receipt')
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None is not true : double link failure did not return its claim path and drift receipt
+
+======================================================================
+FAIL: test_claim_recovery_rejects_redirected_claim_even_with_rehashed_receipt (__main__.ReleaseP1Tests.test_claim_recovery_rejects_redirected_claim_even_with_rehashed_receipt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 286, in test_claim_recovery_rejects_redirected_claim_even_with_rehashed_receipt
+    receipt, _ = self.claim_receipt(error)
+                 ~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 131, in claim_receipt
+    self.assertTrue(details.get('claim_receipt_path'),
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    'double link failure did not return its claim path and drift receipt')
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None is not true : double link failure did not return its claim path and drift receipt
+
+======================================================================
+FAIL: test_claim_recovery_rejects_symlink_claim_without_touching_target (__main__.ReleaseP1Tests.test_claim_recovery_rejects_symlink_claim_without_touching_target)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 275, in test_claim_recovery_rejects_symlink_claim_without_touching_target
+    receipt, receipt_sha = self.claim_receipt(error)
+                           ~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 131, in claim_receipt
+    self.assertTrue(details.get('claim_receipt_path'),
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    'double link failure did not return its claim path and drift receipt')
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None is not true : double link failure did not return its claim path and drift receipt
+
+======================================================================
+FAIL: test_double_link_failure_returns_claim_and_bound_drift_receipt (__main__.ReleaseP1Tests.test_double_link_failure_returns_claim_and_bound_drift_receipt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 207, in test_double_link_failure_returns_claim_and_bound_drift_receipt
+    receipt, receipt_sha = self.claim_receipt(error)
+                           ~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 131, in claim_receipt
+    self.assertTrue(details.get('claim_receipt_path'),
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    'double link failure did not return its claim path and drift receipt')
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None is not true : double link failure did not return its claim path and drift receipt
+
+======================================================================
+FAIL: test_failed_claim_recovery_returns_a_receipt_that_can_be_retried (__main__.ReleaseP1Tests.test_failed_claim_recovery_returns_a_receipt_that_can_be_retried)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 354, in test_failed_claim_recovery_returns_a_receipt_that_can_be_retried
+    receipt, receipt_sha = self.claim_receipt(error)
+                           ~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 131, in claim_receipt
+    self.assertTrue(details.get('claim_receipt_path'),
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    'double link failure did not return its claim path and drift receipt')
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None is not true : double link failure did not return its claim path and drift receipt
+
+======================================================================
+FAIL: test_failure_still_reports_claim_if_drift_receipt_cannot_be_written (__main__.ReleaseP1Tests.test_failure_still_reports_claim_if_drift_receipt_cannot_be_written)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 300, in test_failure_still_reports_claim_if_drift_receipt_cannot_be_written
+    self.assertEqual(details.get('claim_path'), str(claim))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None != '/workspace/scratch/29f34dd56853/issue28/[108 chars]list'
+
+======================================================================
+FAIL: test_final_plan_without_guard_pin_is_rejected_even_with_fresh_scope_hash (__main__.ReleaseP1Tests.test_final_plan_without_guard_pin_is_rejected_even_with_fresh_scope_hash)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 442, in test_final_plan_without_guard_pin_is_rejected_even_with_fresh_scope_hash
+    with self.assertRaisesRegex(installer.InstallError, 'final plan.*guard'):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: InstallError not raised
+
+======================================================================
+FAIL: test_guard_drift_blocks_recovery_before_service_commands (__main__.ReleaseP1Tests.test_guard_drift_blocks_recovery_before_service_commands)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 417, in test_guard_drift_blocks_recovery_before_service_commands
+    with self.assertRaisesRegex(recovery.RecoveryError, 'guard SHA drift'):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RecoveryError not raised
+
+======================================================================
+FAIL: test_guard_loader_executes_verified_buffer_after_path_changes (__main__.ReleaseP1Tests.test_guard_loader_executes_verified_buffer_after_path_changes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 403, in test_guard_loader_executes_verified_buffer_after_path_changes
+    self.assertEqual(guarded.read_bytes(), replacement)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'#!/usr/bin/env python3\n"""Gated, per-ser[49757 chars]))\n' != b'from pathlib import Path\nPath(\'/workspa[122 chars]")\n'
+
+======================================================================
+FAIL: test_guard_symlink_is_rejected_without_execution (__main__.ReleaseP1Tests.test_guard_symlink_is_rejected_without_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 409, in test_guard_symlink_is_rejected_without_execution
+    with self.assertRaisesRegex(installer.InstallError, 'regular file'):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: InstallError not raised
+
+======================================================================
+FAIL: test_install_wrapper_preserves_claim_receipt_on_double_failure (__main__.ReleaseP1Tests.test_install_wrapper_preserves_claim_receipt_on_double_failure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 468, in test_install_wrapper_preserves_claim_receipt_on_double_failure
+    self.assertTrue(details.get('claim_path'), 'installer wrapper discarded retained claim identity')
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None is not true : installer wrapper discarded retained claim identity
+
+======================================================================
+FAIL: test_installer_rejects_guard_drift_before_module_side_effect (__main__.ReleaseP1Tests.test_installer_rejects_guard_drift_before_module_side_effect)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 155, in test_installer_rejects_guard_drift_before_module_side_effect
+    self.fail('installer executed an unpinned external guard')
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: installer executed an unpinned external guard
+
+======================================================================
+FAIL: test_legacy_recovery_identity_without_guard_pin_is_rejected (__main__.ReleaseP1Tests.test_legacy_recovery_identity_without_guard_pin_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 180, in test_legacy_recovery_identity_without_guard_pin_is_rejected
+    with self.assertRaisesRegex(recovery.RecoveryError, 'guard'):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RecoveryError not raised
+
+======================================================================
+FAIL: test_malformed_claim_receipt_phase_fails_closed_with_controlled_error (__main__.ReleaseP1Tests.test_malformed_claim_receipt_phase_fails_closed_with_controlled_error)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 369, in test_malformed_claim_receipt_phase_fails_closed_with_controlled_error
+    receipt, _ = self.claim_receipt(error)
+                 ~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 131, in claim_receipt
+    self.assertTrue(details.get('claim_receipt_path'),
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    'double link failure did not return its claim path and drift receipt')
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None is not true : double link failure did not return its claim path and drift receipt
+
+======================================================================
+FAIL: test_missing_active_recovers_exact_claim_then_bootstraps_baseline (__main__.ReleaseP1Tests.test_missing_active_recovers_exact_claim_then_bootstraps_baseline)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 227, in test_missing_active_recovers_exact_claim_then_bootstraps_baseline
+    result = self.recover_claim(receipt, receipt_sha)
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 143, in recover_claim
+    return recovery.recover_baseline(identity, ops, **options)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/29f34dd56853/issue28/work/release/before/blocked_candidate_ops/api_candidate_recovery.py", line 212, in recover_baseline
+    raise RecoveryError('active plist is missing')
+api_candidate_recovery.RecoveryError: active plist is missing
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 229, in test_missing_active_recovers_exact_claim_then_bootstraps_baseline
+    self.fail(f'no usable claim recovery path: {type(exc).__name__}: {exc}')
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: no usable claim recovery path: RecoveryError: active plist is missing
+
+======================================================================
+FAIL: test_old_19_item_scope_cannot_authorize_installation (__main__.ReleaseP1Tests.test_old_19_item_scope_cannot_authorize_installation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 453, in test_old_19_item_scope_cannot_authorize_installation
+    with self.assertRaisesRegex(installer.InstallError, 'scope'):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: InstallError not raised
+
+======================================================================
+FAIL: test_recovery_identity_cannot_approve_a_different_guard_by_rehashing_it (__main__.ReleaseP1Tests.test_recovery_identity_cannot_approve_a_different_guard_by_rehashing_it)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 191, in test_recovery_identity_cannot_approve_a_different_guard_by_rehashing_it
+    with self.assertRaisesRegex(recovery.RecoveryError, 'guard'):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RecoveryError not raised
+
+======================================================================
+FAIL: test_recovery_rejects_guard_drift_before_module_side_effect (__main__.ReleaseP1Tests.test_recovery_rejects_guard_drift_before_module_side_effect)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 170, in test_recovery_rejects_guard_drift_before_module_side_effect
+    self.fail('recovery executed an unpinned external guard')
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: recovery executed an unpinned external guard
+
+======================================================================
+FAIL: test_review_receipt_without_guard_binding_is_rejected (__main__.ReleaseP1Tests.test_review_receipt_without_guard_binding_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 202, in test_review_receipt_without_guard_binding_is_rejected
+    with self.assertRaisesRegex(recovery.RecoveryError, 'guard'):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RecoveryError not raised
+
+======================================================================
+FAIL: test_rollback_double_link_failure_can_recover_its_candidate_claim (__main__.ReleaseP1Tests.test_rollback_double_link_failure_can_recover_its_candidate_claim)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 311, in test_rollback_double_link_failure_can_recover_its_candidate_claim
+    receipt, receipt_sha = self.claim_receipt(caught.exception)
+                           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/29f34dd56853/issue28/delivery/release/tests/test_release_regressions.py", line 131, in claim_receipt
+    self.assertTrue(details.get('claim_receipt_path'),
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    'double link failure did not return its claim path and drift receipt')
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None is not true : double link failure did not return its claim path and drift receipt
+
+----------------------------------------------------------------------
+Ran 25 tests in 0.299s
+
+FAILED (failures=25)
