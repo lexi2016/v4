@@ -1,0 +1,47 @@
+{
+  "excluded_from_bundle": true,
+  "purpose": "Records test-only fixture dependencies excluded from this handoff bundle; these bytes contain prior announcement/analysis material and remain in the task-local preimage only.",
+  "raw_announcement_body_or_response_bytes_copied": false,
+  "schema_version": "v4.manager_daily_chain.non_portable_test_fixtures.v1",
+  "screenshot_bytes_copied": false,
+  "status": "NOT_PORTABLE_WITHOUT_LOCAL_FIXTURES_AND_RUNTIME_ROOTS",
+  "tests": [
+    {
+      "bundle_path": "compat_r3/tests/test_announcement_analysis_read_compat.py",
+      "dependencies": [
+        {
+          "canonical_product_sha256": "7b27fe7d40e9c12db3d56751cc789c6eb84515bb2392fc1b00a3bc4a5fd38278",
+          "file_sha256": "4f3a44b730a6476482f4a85402c9d9ee830b0e32f21b31a6d1e72abacce2d485",
+          "kind": "excluded_test_fixture",
+          "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/candidate/analysis-readback-compat/preimage/fixtures/legacy_analysis_20261007_20261006.json",
+          "size_bytes": 6415626,
+          "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_announcements/20261007/eastmoney_date_catalog/20261006/analysis.v1.json"
+        },
+        {
+          "file_sha256": "f89ac52a93c54771722a78ef52169f1405814c54d5ed91da2842fcbc748a1123",
+          "kind": "excluded_test_fixture",
+          "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/candidate/analysis-readback-compat/preimage/fixtures/legacy_catalog_20261007_20261006.json",
+          "size_bytes": 2759689,
+          "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_announcements/20261007/eastmoney_date_catalog/20261006/latest.json"
+        },
+        {
+          "kind": "external_runtime_dependency",
+          "local_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app",
+          "purpose": "The readback test imports the unchanged manager research router and service-side dependency context from the pinned R2 API root."
+        }
+      ],
+      "status": "NOT_PORTABLE"
+    },
+    {
+      "bundle_path": "compat_r3/tests/test_switch_api_only_announcement.py",
+      "dependencies": [
+        {
+          "kind": "machine_local_cutover_preimage",
+          "local_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/candidate/analysis-readback-compat",
+          "purpose": "The real staged-plist guard references task-local R2/R3 release paths, preimage files, and the disabled plan binding; do not run against a different live installation."
+        }
+      ],
+      "status": "NOT_PORTABLE"
+    }
+  ]
+}

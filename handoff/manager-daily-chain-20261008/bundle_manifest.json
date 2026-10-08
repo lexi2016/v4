@@ -1,0 +1,586 @@
+{
+  "bundle_revision": 4,
+  "bundle_status": "LOCAL_PREPARATION_ONLY_ROOT_R3_RUNTIME_OBSERVED_AND_INDEPENDENTLY_REVIEWED",
+  "canonical_checkout_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "content_scope": {
+    "compatibility_test_support_modules": 6,
+    "generated_metadata_files": 5,
+    "readme_files": 2,
+    "source_api_app_entries": 14,
+    "source_scheduler_app_entries": 2,
+    "standalone_test_modules": 18,
+    "switch_helper_files": 2,
+    "task_local_runbook_files": 2,
+    "task_local_tool_modules": 3,
+    "test_import_helper_files": 1
+  },
+  "entries": [
+    {
+      "base_sha256": null,
+      "bundle_path": "README.md",
+      "local_source": "generated in this authorized sync-bundle preparation",
+      "provenance": "handoff README updated with root-observed R3 runtime/API/UI evidence and remaining limits",
+      "remote_path": "handoff/manager-daily-chain-20261008/README.md",
+      "sha256": "2bc8082a398eaf4ca360cc5b05af4df0e9babc148e58320ab18b80a7020159df",
+      "size_bytes": 4522
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "compat_r3/README.md",
+      "local_source": "generated in this authorized sync-bundle preparation",
+      "provenance": "R3 compatibility package README; separates source/package review from final live review and test portability",
+      "remote_path": "handoff/manager-daily-chain-20261008/compat_r3/README.md",
+      "sha256": "5a78e585d9a167805887da4be6bae71a85aa4abf4858aa20cb4841b5ce579006",
+      "size_bytes": 903
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "compat_r3/candidate_app/v4/__init__.py",
+      "local_source": "generated in this authorized sync-bundle preparation",
+      "provenance": "empty namespace shim for the isolated compatibility test import tree; test support only",
+      "remote_path": "handoff/manager-daily-chain-20261008/compat_r3/candidate_app/v4/__init__.py",
+      "sha256": "4032724b98ed267185b12b8ec78dd9bcb0423ab1c89a6f0dad99397fd51159d9",
+      "size_bytes": 75
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "compat_r3/candidate_app/v4/manager_research/__init__.py",
+      "local_source": "generated in this authorized sync-bundle preparation",
+      "provenance": "empty namespace shim for isolated compatibility test imports; test support only",
+      "remote_path": "handoff/manager-daily-chain-20261008/compat_r3/candidate_app/v4/manager_research/__init__.py",
+      "sha256": "4032724b98ed267185b12b8ec78dd9bcb0423ab1c89a6f0dad99397fd51159d9",
+      "size_bytes": 75
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "compat_r3/candidate_app/v4/manager_research/announcement_analysis.py",
+      "local_source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r3-api/app/v4/manager_research/announcement_analysis.py",
+      "provenance": "exact R3 API module used by the compatibility test harness; its runtime source copy is also under source/api_app",
+      "remote_path": "handoff/manager-daily-chain-20261008/compat_r3/candidate_app/v4/manager_research/announcement_analysis.py",
+      "sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+      "size_bytes": 68733
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "compat_r3/candidate_app/v4/manager_research/announcement_catalog.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/candidate/analysis-readback-compat/candidate_app/v4/manager_research/announcement_catalog.py",
+      "provenance": "support dependency copied from the exact R2 app preimage for the isolated R3 compatibility tests",
+      "remote_path": "handoff/manager-daily-chain-20261008/compat_r3/candidate_app/v4/manager_research/announcement_catalog.py",
+      "sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68",
+      "size_bytes": 30995
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "compat_r3/candidate_app/v4/manager_research/announcement_selection.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/candidate/analysis-readback-compat/candidate_app/v4/manager_research/announcement_selection.py",
+      "provenance": "support dependency copied from the exact R2 app preimage for the isolated R3 compatibility tests",
+      "remote_path": "handoff/manager-daily-chain-20261008/compat_r3/candidate_app/v4/manager_research/announcement_selection.py",
+      "sha256": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21",
+      "size_bytes": 16007
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "compat_r3/candidate_app/v4/manager_research/workspace_projection.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/candidate/analysis-readback-compat/candidate_app/v4/manager_research/workspace_projection.py",
+      "provenance": "support dependency copied from the exact R2 app preimage for the isolated R3 compatibility tests",
+      "remote_path": "handoff/manager-daily-chain-20261008/compat_r3/candidate_app/v4/manager_research/workspace_projection.py",
+      "sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+      "size_bytes": 30841
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "compat_r3/helpers/switch_api_only_announcement.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/candidate/analysis-readback-compat/helpers/switch_api_only_announcement.py",
+      "provenance": "separate R2-to-R3 guarded API-only switch helper; no longer targets the R2-to-R2 cutover",
+      "remote_path": "handoff/manager-daily-chain-20261008/compat_r3/helpers/switch_api_only_announcement.py",
+      "sha256": "0ba862a9551e5a7d5f5b9a75543e5516b7a3f3d295efc3bb8baf5355f91121dc",
+      "size_bytes": 51170
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "compat_r3/metadata/r3_readonly_preflight.json",
+      "local_source": "generated in this authorized sync-bundle preparation",
+      "provenance": "concise pre-switch read-only R3 package preflight summary; no raw API response or screenshot",
+      "remote_path": "handoff/manager-daily-chain-20261008/compat_r3/metadata/r3_readonly_preflight.json",
+      "sha256": "2d25d27b08e7fc788edb6e94fcaa533876694668fa75555763919e8005085b29",
+      "size_bytes": 4163
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "compat_r3/tests/test_announcement_analysis_read_compat.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/candidate/analysis-readback-compat/tests/test_announcement_analysis_read_compat.py",
+      "provenance": "R3 compatibility behavior tests; fixture and runtime limitations recorded in metadata/non_portable_test_fixtures.json",
+      "remote_path": "handoff/manager-daily-chain-20261008/compat_r3/tests/test_announcement_analysis_read_compat.py",
+      "sha256": "501356d2a0ed3d4a4b03a1f6d8a3c226f7801d4cc60120c9e8d51cf747d604e7",
+      "size_bytes": 7274
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "compat_r3/tests/test_switch_api_only_announcement.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/candidate/analysis-readback-compat/tests/test_switch_api_only_announcement.py",
+      "provenance": "R2-to-R3 switch-helper guard tests; machine-local preimage requirements recorded in metadata/non_portable_test_fixtures.json",
+      "remote_path": "handoff/manager-daily-chain-20261008/compat_r3/tests/test_switch_api_only_announcement.py",
+      "sha256": "44f317e72f111dc601ec0cbaa43fea5f9d2fcf84afb26c05ac178311972f90ed",
+      "size_bytes": 26946
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "docs/api_only_announcement_cutover_runbook.md",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/staged_config/api_only_announcement_cutover_runbook.md",
+      "provenance": "task-local operator runbook for API-only announcement import and rollback; no activation run",
+      "remote_path": "handoff/manager-daily-chain-20261008/docs/api_only_announcement_cutover_runbook.md",
+      "sha256": "d1d55ddb0617c3cd960f59bf90db6e5f4e72a6e01dad2724698b80faa580d738",
+      "size_bytes": 6485
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "docs/api_only_announcement_r2_to_r3_compat_runbook.md",
+      "local_source": "generated in this authorized sync-bundle preparation",
+      "provenance": "operator runbook for the already reviewed R2-to-R3 package; root executed separately",
+      "remote_path": "handoff/manager-daily-chain-20261008/docs/api_only_announcement_r2_to_r3_compat_runbook.md",
+      "sha256": "897847e5e9fdb04e87f15a8a2eca27e0abe79604c55509b383473fc524f25136",
+      "size_bytes": 6681
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "metadata/binding.example.json",
+      "local_source": "generated in this authorized sync-bundle preparation",
+      "provenance": "sanitized excerpt from disabled D1 R2 binding; explicitly non-loadable example",
+      "remote_path": "handoff/manager-daily-chain-20261008/metadata/binding.example.json",
+      "sha256": "0980cbe6bbdc212dec56106a030f3c42a78e2f654e5f9b6fbb04f60e03a39c9c",
+      "size_bytes": 1158
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "metadata/dependency_entrypoints.json",
+      "local_source": "generated in this authorized sync-bundle preparation",
+      "provenance": "active R3 API root, unchanged R2 scheduler root, disabled binding, and current immutable release identities",
+      "remote_path": "handoff/manager-daily-chain-20261008/metadata/dependency_entrypoints.json",
+      "sha256": "3f6b56071ecccab4d2485b69b84ad6f1f6ac16142b31eab5db4a0426bb8f42a1",
+      "size_bytes": 6819
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "metadata/non_portable_test_fixtures.json",
+      "local_source": "generated in this authorized sync-bundle preparation",
+      "provenance": "exact local fixture hashes and runtime roots excluded from the portable handoff",
+      "remote_path": "handoff/manager-daily-chain-20261008/metadata/non_portable_test_fixtures.json",
+      "sha256": "5ae30bb8bc5fd12f56532388db1f5b9f291a380764629c813e972e66fc234265",
+      "size_bytes": 2872
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "metadata/results.json",
+      "local_source": "generated in this authorized sync-bundle preparation",
+      "provenance": "concise result ledger including independent final R3 live behavior receipt; raw response and screenshot bytes excluded",
+      "remote_path": "handoff/manager-daily-chain-20261008/metadata/results.json",
+      "sha256": "1a4b2aae368f94fbd7dd7b9d62ebfe519e195305f2a8c841515c363eff6a2d37",
+      "size_bytes": 23354
+    },
+    {
+      "base_sha256": "1876d6482e248ae727cbdc8bf44cacee54082b5a4c1cad41dc2c96dede06aca2",
+      "bundle_path": "source/api_app/apps/api/v35_api/manager_research_router.py",
+      "local_source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app/apps/api/v35_api/manager_research_router.py",
+      "provenance": "R2 API release file; C1+D1 actual runtime delta versus frozen actual API base inventory",
+      "remote_path": "handoff/manager-daily-chain-20261008/source/api_app/apps/api/v35_api/manager_research_router.py",
+      "sha256": "18b718fa67bb74937f885f47e1ab587bc4bf7be3ce612b3d0731ce05eac7be8c",
+      "size_bytes": 25261
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "source/api_app/docs/manager_daily_research.md",
+      "local_source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app/docs/manager_daily_research.md",
+      "provenance": "R2 API release file; C1+D1 actual runtime delta versus frozen actual API base inventory",
+      "remote_path": "handoff/manager-daily-chain-20261008/source/api_app/docs/manager_daily_research.md",
+      "sha256": "84763ac3e271d749154a8980b1547231e1ed496fc80d861a7ef6d30ad8482d78",
+      "size_bytes": 9160
+    },
+    {
+      "base_sha256": "fd41e7ae1ba82429fb75364d42e96c435aa5855fb471c4fb55a0d38c962aa22a",
+      "bundle_path": "source/api_app/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "local_source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "provenance": "R2 API release file; C1+D1 actual runtime delta versus frozen actual API base inventory",
+      "remote_path": "handoff/manager-daily-chain-20261008/source/api_app/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "sha256": "bb7f4d40a5cda21c2deb215c2f51edfaa36da9f14d79d3d01987d13b7161b8ee",
+      "size_bytes": 28382
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "source/api_app/ops/manager_announcement_body_batch.py",
+      "local_source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app/ops/manager_announcement_body_batch.py",
+      "provenance": "R2 API release file; C1+D1 actual runtime delta versus frozen actual API base inventory",
+      "remote_path": "handoff/manager-daily-chain-20261008/source/api_app/ops/manager_announcement_body_batch.py",
+      "sha256": "7e37ed7e904d80c135a51bdff1aaa95aec02012eecfcfdc8a1770fa31297cbdb",
+      "size_bytes": 42252
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "source/api_app/ops/prepare_manager_daily_chain_release.py",
+      "local_source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app/ops/prepare_manager_daily_chain_release.py",
+      "provenance": "R2 API release file; C1+D1 actual runtime delta versus frozen actual API base inventory",
+      "remote_path": "handoff/manager-daily-chain-20261008/source/api_app/ops/prepare_manager_daily_chain_release.py",
+      "sha256": "e22ab01f9d21b5c8b66dcd6cce1b893fa58f458d03f85d0c926d37bc9c975efa",
+      "size_bytes": 26788
+    },
+    {
+      "base_sha256": "cd91604a7f7d7f2f960bbbd337fcd453bf97bb298c14f0a7fb8804fdcbaf0a84",
+      "bundle_path": "source/api_app/ops/run_manager_announcement_cycle.py",
+      "local_source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app/ops/run_manager_announcement_cycle.py",
+      "provenance": "R2 API release file; C1+D1 actual runtime delta versus frozen actual API base inventory",
+      "remote_path": "handoff/manager-daily-chain-20261008/source/api_app/ops/run_manager_announcement_cycle.py",
+      "sha256": "b0bccc02f465c4bfd4bfec1303b66e668d7f6c025050823224711e652a84d9ac",
+      "size_bytes": 20319
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "source/api_app/ops/run_manager_daily_announcement.py",
+      "local_source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app/ops/run_manager_daily_announcement.py",
+      "provenance": "R2 API release file; C1+D1 actual runtime delta versus frozen actual API base inventory",
+      "remote_path": "handoff/manager-daily-chain-20261008/source/api_app/ops/run_manager_daily_announcement.py",
+      "sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee",
+      "size_bytes": 42929
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "source/api_app/tests/test_manager_announcement_supervisor.py",
+      "local_source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app/tests/test_manager_announcement_supervisor.py",
+      "provenance": "R2 API release file; C1+D1 actual runtime delta versus frozen actual API base inventory",
+      "remote_path": "handoff/manager-daily-chain-20261008/source/api_app/tests/test_manager_announcement_supervisor.py",
+      "sha256": "a48b4d8de4721b02d82d4ef1f1e6e7f5a74e58d3671055bee21e9efc72ec5d3c",
+      "size_bytes": 16108
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "source/api_app/tests/test_manager_us_mapping_research.py",
+      "local_source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app/tests/test_manager_us_mapping_research.py",
+      "provenance": "R2 API release file; C1+D1 actual runtime delta versus frozen actual API base inventory",
+      "remote_path": "handoff/manager-daily-chain-20261008/source/api_app/tests/test_manager_us_mapping_research.py",
+      "sha256": "1c077f679083252b11d07c1499081304e7a3200b2d170baa682ade18be718dcc",
+      "size_bytes": 19113
+    },
+    {
+      "base_sha256": "29cedc701bc94ca1b8e12106432b85639c990bf98a74445dac2144ba05e64903",
+      "bundle_path": "source/api_app/v4/manager_research/announcement_analysis.py",
+      "local_source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r3-api/app/v4/manager_research/announcement_analysis.py",
+      "provenance": "R3 immutable API release source; only app module delta versus actual R2 base, independently reviewed and live-verified.",
+      "remote_path": "handoff/manager-daily-chain-20261008/source/api_app/v4/manager_research/announcement_analysis.py",
+      "sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+      "size_bytes": 68733
+    },
+    {
+      "base_sha256": "f4ddb61e341aa48f24aad62e9d0aa7bf2c9a0fc3d07bfae7ec285f78f1467fe3",
+      "bundle_path": "source/api_app/v4/manager_research/plan_owner_dispatch.py",
+      "local_source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app/v4/manager_research/plan_owner_dispatch.py",
+      "provenance": "R2 API release file; C1+D1 actual runtime delta versus frozen actual API base inventory",
+      "remote_path": "handoff/manager-daily-chain-20261008/source/api_app/v4/manager_research/plan_owner_dispatch.py",
+      "sha256": "8b61945d8ee8d96fd188053278cbb320a23bd68923f3d5f6bd5dc0dbfc0bee24",
+      "size_bytes": 17832
+    },
+    {
+      "base_sha256": "7325c773847099a6feae1deba4bc1a4c34d33a0e7c3e49f2374b7db270901227",
+      "bundle_path": "source/api_app/v4/manager_research/workspace.py",
+      "local_source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app/v4/manager_research/workspace.py",
+      "provenance": "R2 API release file; C1+D1 actual runtime delta versus frozen actual API base inventory",
+      "remote_path": "handoff/manager-daily-chain-20261008/source/api_app/v4/manager_research/workspace.py",
+      "sha256": "54410b60fda347489b3b45299388d96e12177a5a20d004e4359aec532d99c10d",
+      "size_bytes": 53013
+    },
+    {
+      "base_sha256": "0916a0191568e32aee6dd1bd5e17bcdc6a32ae7dbe733a6ce25d5388eacbd9e4",
+      "bundle_path": "source/api_app/v4/manager_research/workspace_announcements.py",
+      "local_source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app/v4/manager_research/workspace_announcements.py",
+      "provenance": "R2 API release file; C1+D1 actual runtime delta versus frozen actual API base inventory",
+      "remote_path": "handoff/manager-daily-chain-20261008/source/api_app/v4/manager_research/workspace_announcements.py",
+      "sha256": "60839e20df9b61be04629481752ab3072a1088d229c87980e83059b590548e50",
+      "size_bytes": 155798
+    },
+    {
+      "base_sha256": "e785ae1d465175bec0517e7c3b4a8d6e16593967cba554aa0428817a85cd079b",
+      "bundle_path": "source/api_app/v4/manager_research/workspace_plan_autorun.py",
+      "local_source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app/v4/manager_research/workspace_plan_autorun.py",
+      "provenance": "R2 API release file; C1+D1 actual runtime delta versus frozen actual API base inventory",
+      "remote_path": "handoff/manager-daily-chain-20261008/source/api_app/v4/manager_research/workspace_plan_autorun.py",
+      "sha256": "edc6eeb05ff239f34276c2ae4b716622632b7faaae4fb0883c816c54df0d13c3",
+      "size_bytes": 9950
+    },
+    {
+      "base_sha256": "19e071da0c6b6748465853c4ad86a80d6060524333e9dab21647b67adc8b49ec",
+      "bundle_path": "source/scheduler_app/ops/run_v35_macos_scheduler_daemon.py",
+      "local_source": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/manager-daily-chain-20261008-r2-scheduler/app/ops/run_v35_macos_scheduler_daemon.py",
+      "provenance": "R2 scheduler release file; C1+D1 actual runtime delta versus frozen actual scheduler base inventory",
+      "remote_path": "handoff/manager-daily-chain-20261008/source/scheduler_app/ops/run_v35_macos_scheduler_daemon.py",
+      "sha256": "7e3ead4e646a599981878e7b5eca66ecde01217de83f0f3039637a411cfa1f5c",
+      "size_bytes": 46094
+    },
+    {
+      "base_sha256": "5d374c098a2bf308b5cd61f573c394532ff99077dcfcb6e711cca498feaf6260",
+      "bundle_path": "source/scheduler_app/tests/test_v35_macos_scheduler_announcement_hook.py",
+      "local_source": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/manager-daily-chain-20261008-r2-scheduler/app/tests/test_v35_macos_scheduler_announcement_hook.py",
+      "provenance": "R2 scheduler release file; C1+D1 actual runtime delta versus frozen actual scheduler base inventory",
+      "remote_path": "handoff/manager-daily-chain-20261008/source/scheduler_app/tests/test_v35_macos_scheduler_announcement_hook.py",
+      "sha256": "815bd1a5f4859cc89a121f413f211c2a4562a7711647e8f89a39f823d0297516",
+      "size_bytes": 19093
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "tests/c1/test_c1_body_batch.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/candidate/c1/tests/test_c1_body_batch.py",
+      "provenance": "c1 scoped targeted/evidence test source",
+      "remote_path": "handoff/manager-daily-chain-20261008/tests/c1/test_c1_body_batch.py",
+      "sha256": "9ccb015ff707f6eaa7cd835b2504cec99715b5b11c4bba2c142e01b3149765f9",
+      "size_bytes": 4460
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "tests/c1/test_c1_daily_cli_readback.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/candidate/c1/tests/test_c1_daily_cli_readback.py",
+      "provenance": "c1 scoped targeted/evidence test source",
+      "remote_path": "handoff/manager-daily-chain-20261008/tests/c1/test_c1_daily_cli_readback.py",
+      "sha256": "d444c48ed279eb00f12f836ca4fc5028f07516e83110d2ab5b7a7937863df420",
+      "size_bytes": 6029
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "tests/c1/test_c1_handoff.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/candidate/c1/tests/test_c1_handoff.py",
+      "provenance": "c1 scoped targeted/evidence test source",
+      "remote_path": "handoff/manager-daily-chain-20261008/tests/c1/test_c1_handoff.py",
+      "sha256": "12a22cf1825bac816e5e2adbc8cf136393c3253346e3b540a241fd4933df2c9c",
+      "size_bytes": 10107
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "tests/c1/test_c1_release_stage.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/candidate/c1/tests/test_c1_release_stage.py",
+      "provenance": "c1 scoped targeted/evidence test source",
+      "remote_path": "handoff/manager-daily-chain-20261008/tests/c1/test_c1_release_stage.py",
+      "sha256": "17b4be5e0667908647c26f8f6127f2612bc873465d982d90afeb55f6e6d2fac9",
+      "size_bytes": 6337
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "tests/c1/test_c1_scheduler_readiness.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/candidate/c1/tests/test_c1_scheduler_readiness.py",
+      "provenance": "c1 scoped targeted/evidence test source",
+      "remote_path": "handoff/manager-daily-chain-20261008/tests/c1/test_c1_scheduler_readiness.py",
+      "sha256": "9f0cc0314136f5d53a8e4c00f29202804bfe83d10d760d64054358d2f856e51e",
+      "size_bytes": 1728
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "tests/c1_repair/test_c1_explicit_handoff_repair.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/candidate/c1_repair/tests/test_c1_explicit_handoff_repair.py",
+      "provenance": "c1_repair scoped targeted/evidence test source",
+      "remote_path": "handoff/manager-daily-chain-20261008/tests/c1_repair/test_c1_explicit_handoff_repair.py",
+      "sha256": "c9e8a2c33edb9bc77d09c2338898cd28853cef5b250067cdc5dd5acd98ecf7f9",
+      "size_bytes": 11817
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "tests/c1_repair/test_c1_release_stage_final3.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/candidate/c1_repair/tests/test_c1_release_stage_final3.py",
+      "provenance": "c1_repair scoped targeted/evidence test source",
+      "remote_path": "handoff/manager-daily-chain-20261008/tests/c1_repair/test_c1_release_stage_final3.py",
+      "sha256": "269f087911d8fed57dca9647ae66ea5f74ac4dd6210ecc587d3760843ef24864",
+      "size_bytes": 4454
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "tests/d1/test_body_batch_hk_identities.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/tests/test_body_batch_hk_identities.py",
+      "provenance": "d1 scoped targeted/evidence test source",
+      "remote_path": "handoff/manager-daily-chain-20261008/tests/d1/test_body_batch_hk_identities.py",
+      "sha256": "67b79b2c9fc8151d1901bc3edfe0e8f74df7a233fbd19ffb5606f2a19a0edb94",
+      "size_bytes": 6627
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "tests/d1/test_daily_announcement_resume.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/tests/test_daily_announcement_resume.py",
+      "provenance": "d1 scoped targeted/evidence test source",
+      "remote_path": "handoff/manager-daily-chain-20261008/tests/d1/test_daily_announcement_resume.py",
+      "sha256": "54295ec4a6de22e9f6d5b1ad390ee2e632228967c4099872cc3c46f793db5b85",
+      "size_bytes": 8583
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "tests/d1/test_plan_canary_historical_scope.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/tests/test_plan_canary_historical_scope.py",
+      "provenance": "d1 scoped targeted/evidence test source",
+      "remote_path": "handoff/manager-daily-chain-20261008/tests/d1/test_plan_canary_historical_scope.py",
+      "sha256": "f37d3f623df26f9096b5720a325ee70a5faec37e669598b6ea83d5b153c6d621",
+      "size_bytes": 11271
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "tests/d1/test_plan_canary_python_identity.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/tests/test_plan_canary_python_identity.py",
+      "provenance": "D1 actual staged API plist Python and API runtime-root resolution regression",
+      "remote_path": "handoff/manager-daily-chain-20261008/tests/d1/test_plan_canary_python_identity.py",
+      "sha256": "a21efd509cd29e37df94d12342a53e7d03cd7fb512ed31f9375e21524dec0f35",
+      "size_bytes": 6165
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "tests/d1/test_plan_canary_runtime_validator.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/tests/test_plan_canary_runtime_validator.py",
+      "provenance": "d1 scoped targeted/evidence test source",
+      "remote_path": "handoff/manager-daily-chain-20261008/tests/d1/test_plan_canary_runtime_validator.py",
+      "sha256": "370f6dc098f8ae8f246e6b1520db563a788e4ace7e190e4869c7c615e4ccbdb7",
+      "size_bytes": 8922
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "tests/d1/test_postcanary_release.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/tests/test_postcanary_release.py",
+      "provenance": "D1 post-canary config staging guards and synthetic receipt validation",
+      "remote_path": "handoff/manager-daily-chain-20261008/tests/d1/test_postcanary_release.py",
+      "sha256": "8c76006a2fbe231b88a0512baee9b57cb284562aba60d8f50c1fb2bb30979c3d",
+      "size_bytes": 15826
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "tests/d1/test_prepare_final_release.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/tests/test_prepare_final_release.py",
+      "provenance": "d1 scoped targeted/evidence test source",
+      "remote_path": "handoff/manager-daily-chain-20261008/tests/d1/test_prepare_final_release.py",
+      "sha256": "743c3fea064e8ba09baa598052648652360e691cb145e73ccc925e9275db3227",
+      "size_bytes": 10904
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "tests/d1/test_switch_api_only_announcement.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/tests/test_switch_api_only_announcement.py",
+      "provenance": "task-local focused tests for API-only announcement switch guards and pinned handoff",
+      "remote_path": "handoff/manager-daily-chain-20261008/tests/d1/test_switch_api_only_announcement.py",
+      "sha256": "9bfbeb7eed0cb0575ae90141e1eb9ca7c3a3d24db6c5a3e521bdeaafcc02a701",
+      "size_bytes": 26946
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "tests/d1/test_terminal_body_capture.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/tests/test_terminal_body_capture.py",
+      "provenance": "d1 scoped targeted/evidence test source",
+      "remote_path": "handoff/manager-daily-chain-20261008/tests/d1/test_terminal_body_capture.py",
+      "sha256": "7b70a3768d98e4154795c8bb937469f9e09bedfd651e47e5225c4488d90cbe6e",
+      "size_bytes": 32384
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "tests/helpers/switch_api_only_announcement.py",
+      "local_source": "generated in this authorized sync-bundle preparation",
+      "provenance": "test import support copy matching the R2 switch helper used by tests/d1/test_switch_api_only_announcement.py",
+      "remote_path": "handoff/manager-daily-chain-20261008/tests/helpers/switch_api_only_announcement.py",
+      "sha256": "7267c7b1a01670c07a5477f3bed62e906892c09d09e8c1c68fdc93072e3be0f0",
+      "size_bytes": 51041
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "tools/ops/prepare_final_release.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/prepare_final_release.py",
+      "provenance": "D1 task-local split-root release preparer; candidate package only",
+      "remote_path": "handoff/manager-daily-chain-20261008/tools/ops/prepare_final_release.py",
+      "sha256": "2e6c01d6ab4d6dfd0a644a4ea8769fcbcbf9009eed8e254f3e1c72e7c37f3015",
+      "size_bytes": 39937
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "tools/ops/prepare_postcanary_release.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/prepare_postcanary_release.py",
+      "provenance": "D1 task-local enabled-config stager; default dry-run; reuses SHA-pinned non-activating API plist renderer",
+      "remote_path": "handoff/manager-daily-chain-20261008/tools/ops/prepare_postcanary_release.py",
+      "sha256": "907d49b68d9ecf2f6211cc1c2fbf097227982e27793b041a519c2136775c05f1",
+      "size_bytes": 38379
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "tools/ops/run_plan_only_historical_canary.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/run_plan_only_historical_canary.py",
+      "provenance": "D1 task-local historical owner canary; exact API binding Python and R2 run.py roots; execution requires explicit --execute",
+      "remote_path": "handoff/manager-daily-chain-20261008/tools/ops/run_plan_only_historical_canary.py",
+      "sha256": "b96d23db9263c3e87631c1e81c2d986af8ff35dafc903264bb0ef4656b413e2d",
+      "size_bytes": 31375
+    },
+    {
+      "base_sha256": null,
+      "bundle_path": "tools/ops/switch_api_only_announcement.py",
+      "local_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/helpers/switch_api_only_announcement.py",
+      "provenance": "task-local reversible API-only announcement switch executor; no activation run",
+      "remote_path": "handoff/manager-daily-chain-20261008/tools/ops/switch_api_only_announcement.py",
+      "sha256": "7267c7b1a01670c07a5477f3bed62e906892c09d09e8c1c68fdc93072e3be0f0",
+      "size_bytes": 51041
+    }
+  ],
+  "entry_count": 55,
+  "exclusion_audit": {
+    "checked_scope": [
+      "all 41 revision-3 payload paths remain present exactly once; their SHA and byte size are recalculated in this manifest",
+      "R3 API source module replaces the prior R2 module in the source handoff; the immutable R3 app differs from R2 only at v4/manager_research/announcement_analysis.py",
+      "the R3 compatibility package contains isolated support modules, a separate switch helper/test, compatibility test, preflight summary, README, and runbook",
+      "results report root-observed and independently reviewed two-date API behavior, root-reloaded UI captures, unchanged scheduler/Stage Center/disabled binding, and natural-slot limits",
+      "legacy product/catalog fixture hashes are recorded as NOT_PORTABLE but the fixture bytes are excluded",
+      "active scheduler release identity is the legacy hk-research-calendar-all-r1-20261007-scheduler path; manager-daily-chain R2 scheduler is recorded only as an inactive candidate"
+    ],
+    "deletions_or_replacements": "Not represented as a canonical patch; bundle is an add/modify source snapshot under handoff because the remote base is not the full repository.",
+    "git_or_network_actions": "NO_COMMIT_OR_PUSH_BY_WRITER; root sync is a separate authorized step. No network action was performed by this bundle update.",
+    "manifest_self_hash": "excluded; calculate SHA-256 after final manifest write",
+    "not_copied": [
+      "complete release app trees, full release manifests, and inventories",
+      "intermediate release manifest files, web dist, build output, pycache, .pyc, pytest caches, and candidate scratch roots",
+      "legacy product/catalog test fixture bytes and all raw announcement listing/body/semantic content",
+      "raw post-switch API response JSON, screenshots, and image captures; only concise status values and receipt hashes are recorded",
+      "formal owner state, owner receipt body, market data, account data, positions, credentials, and authentication files",
+      "fresh formal owner canary output and all formal manager state"
+    ]
+  },
+  "manifest_revision_note": "Revision 4 preserves the revision-3 manifest byte-for-byte, updates source/runtime/status metadata for the root-observed R3 API runtime, adds the isolated R3 compatibility package and explicit non-portable fixture ledger, and records the independently reviewed two-date API behavior. It is still a local handoff bundle; no writer commit, push, or remote write occurred. Scheduler identity is corrected: the active legacy scheduler was never switched; manager-daily-chain R2 scheduler is an inactive candidate only.",
+  "payload_size_bytes": 1274231,
+  "previous_manifest": {
+    "entry_count": 41,
+    "path": "bundle_manifest.v3.json",
+    "sha256": "aa34c524ca18705f9a9677c325336f90f9392b64ac5d65af243cbe54e2cd2dfe"
+  },
+  "remote_path_prefix": "handoff/manager-daily-chain-20261008/",
+  "runtime_source_roots": {
+    "api": {
+      "active_plist_sha256": "72050bf4c7f00c8271cf9226ea866683a8e9e459d2875547b08f69fad30bfdf5",
+      "base_manifest_sha256": "ab8cc247bced7cfceae7fdad35ba20535a4af1778d4d2fb36705a78485ee160d",
+      "base_release_id": "manager-daily-chain-20261008-r2-api",
+      "base_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app",
+      "inventory_entries": 1013,
+      "inventory_sha256": "07ff61bc18f66f7e92eb45f57a20aecf3885eaa79c1bdb705b8f805fdbb95bd8",
+      "manifest_sha256": "946c49b9c34bd09fbca04644556de3acba1635eb240fa9293f6391e9d46b40e9",
+      "release_id": "manager-daily-chain-20261008-r3-api",
+      "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r3-api/app",
+      "source_delta": [
+        "v4/manager_research/announcement_analysis.py"
+      ]
+    },
+    "plan_binding": {
+      "sha256": "f3b7cbfa1709b2b27816d294e599cb1ae82ff918ba41ec148644f1a1751f5fd6",
+      "state": "DISABLED"
+    },
+    "scheduler": {
+      "active_plist_sha256": "c478c87e7866fa50154df674ea7cb570197251aaa5da3014b3666e7f22914da2",
+      "inactive_candidate": {
+        "inventory_sha256": "58e51a7472e012f0c749cc909bdd85c634f5c31ae48f97fe8094af1e404eaf01",
+        "manifest_sha256": "503a28a5bb2befe49997e30998bab1765a5302dfc59adda71deb214355780247",
+        "release_id": "manager-daily-chain-20261008-r2-scheduler",
+        "root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/manager-daily-chain-20261008-r2-scheduler/app",
+        "state": "INACTIVE_CANDIDATE_ONLY"
+      },
+      "release_id": "hk-research-calendar-all-r1-20261007-scheduler",
+      "root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/hk-research-calendar-all-r1-20261007-scheduler/app",
+      "state": "ACTIVE_UNCHANGED_NEVER_SWITCHED_TO_MANAGER_DAILY_CHAIN_R2"
+    },
+    "stage_center_scheduler": {
+      "plist_sha256": "9c7199ca1fcfedc09397255c932d25c6edc15779952bbd5b5bec2671e883d3f5",
+      "state": "UNCHANGED"
+    }
+  },
+  "schema_version": "v4.manager_daily_chain.github_sync_bundle_manifest.v1",
+  "target_base_commit": "13be85685ab5d6d27f9ae5e5d7df07691163cc2f",
+  "target_base_tree": "f244143a2c5264ff924b023910a7741ada537071",
+  "target_branch": "codex/manager-daily-chain-20261008",
+  "target_repo": "lexi2016/v4"
+}

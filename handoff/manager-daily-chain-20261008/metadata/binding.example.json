@@ -1,0 +1,33 @@
+{
+  "announcement_collection_enabled": false,
+  "announcement_execution_owner": {
+    "automation_ref": "automation-3",
+    "execution_owner": "HEARTBEAT",
+    "latest_execution_status": "NOT_RUN",
+    "latest_gap_status": "CANNOT_CONFIRM",
+    "latest_receipt_status": "NOT_OBSERVED",
+    "latest_success_status": "CANNOT_CONFIRM",
+    "ownership_status": "HEARTBEAT_OWNED",
+    "scheduler_hook_enabled": false
+  },
+  "app_root": "<API_RELEASE_APP_ROOT>",
+  "buy_gate_updated": false,
+  "enabled": false,
+  "example_only": true,
+  "files": "<omitted from this sanitized non-loadable example; use release manifest inventory>",
+  "loadable": false,
+  "manager_state_root": "<ISOLATED_OR_APPROVED_MANAGER_STATE_ROOT>",
+  "orders_sent": false,
+  "policy": "BALANCED_V1",
+  "policy_status": "PROPOSAL_ONLY",
+  "preopen_plan": {
+    "enabled": true,
+    "lead_seconds": 180,
+    "status": "PROPOSAL_ONLY"
+  },
+  "production_allowed": false,
+  "python": "<PINNED_V4_RUNTIME_PYTHON>",
+  "python_sha256": "839b22560e27f02d716009a2d6bcd377cb6197ff70888787e3097919120e32aa",
+  "research_only": true,
+  "schema_version": "v4.manager_research.announcement_binding.v1"
+}

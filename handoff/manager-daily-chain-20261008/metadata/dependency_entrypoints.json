@@ -1,0 +1,123 @@
+{
+  "activation_status": "API_R3_ACTIVE_SCHEDULER_R2_UNCHANGED_PLAN_BINDING_DISABLED",
+  "canonical_checkout_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "compatibility_test_portability": "NOT_PORTABLE_WITHOUT_LOCAL_FIXTURES_AND_RUNTIME_ROOTS; see metadata/non_portable_test_fixtures.json",
+  "dependency_inventory_scope": [
+    "separate API and scheduler app roots",
+    "each root carries its own stage_center dependency version",
+    "stage_center/** and ops/daily_materialize.py included in respective release inventories",
+    "no canonical PYTHONPATH fallback in the packaged runtime contract"
+  ],
+  "entrypoints": {
+    "announcement_cli": {
+      "script": "<API_APP_ROOT>/ops/run_manager_daily_announcement.py",
+      "subcommands": [
+        "capture",
+        "prepare",
+        "register-handoff",
+        "build-reviewed",
+        "import",
+        "readback"
+      ]
+    },
+    "api": {
+      "active_plist_sha256": "72050bf4c7f00c8271cf9226ea866683a8e9e459d2875547b08f69fad30bfdf5",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r3-api/app",
+      "args": [
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8873"
+      ],
+      "base_release_id": "manager-daily-chain-20261008-r2-api",
+      "base_release_manifest_sha256": "ab8cc247bced7cfceae7fdad35ba20535a4af1778d4d2fb36705a78485ee160d",
+      "compatibility_delta": [
+        "v4/manager_research/announcement_analysis.py"
+      ],
+      "module": "apps.api.v35_api.run",
+      "release_id": "manager-daily-chain-20261008-r3-api"
+    },
+    "api_only_announcement_switch": {
+      "active_api_plist_sha256": "72050bf4c7f00c8271cf9226ea866683a8e9e459d2875547b08f69fad30bfdf5",
+      "current_release_id": "manager-daily-chain-20261008-r3-api",
+      "current_release_inventory_sha256": "07ff61bc18f66f7e92eb45f57a20aecf3885eaa79c1bdb705b8f805fdbb95bd8",
+      "current_release_manifest_sha256": "946c49b9c34bd09fbca04644556de3acba1635eb240fa9293f6391e9d46b40e9",
+      "post_switch_reimport": false,
+      "r2_preimage_plist_sha256": "b2eb9828645538863571ea9cdb0d830ac76afcafba551faf127a16752db2eee3",
+      "review_status": "R3_SOURCE_PASS; R3_PACKAGE_PASS; LIVE_BEHAVIOR_PASS",
+      "switch_operation_receipt_sha256": "aca41c24552f57321bc21da717c28d33678e101f5d93c35da2c110bb04b9a376"
+    },
+    "historical_plan_canary": {
+      "default": "dry-run only; validates immutable R2 API root, exact staged API plist/binding, Python identity, and runtime roots",
+      "execution_flag": "--execute",
+      "formal_state_effect_if_executed": "writes workspace_plan_runs/20260925 and workspace_plans/20260925 owner artifacts after strict preflight; not invoked during bundle preparation",
+      "interpreter": "must equal the Python pinned in the R2 API binding and staged API ProgramArguments",
+      "runtime_root_contract": "mirrors R2 apps.api.v35_api.run CLI-over-environment precedence; missing V35_DISPATCH_LEDGER_ROOT is valid and resolves to None",
+      "script": "tools/ops/run_plan_only_historical_canary.py",
+      "target_trade_date": "20260925",
+      "transport": "httpx.ASGITransport; no network socket"
+    },
+    "postcanary_config_stager": {
+      "activation_status": "NOT_ACTIVATED",
+      "current_real_default_result": "BLOCKED_FRESH_CANARY_REQUIRED; exit 3; no writes",
+      "default": "read-only dry-run; verifies actual R2 manifests, disabled binding, staged API/scheduler plists, current live plist preimages, exact interpreter, and fresh canary pair",
+      "enabled_config_flag": "--stage-enabled --expected-canary-sha256 <sha256>",
+      "script": "tools/ops/prepare_postcanary_release.py",
+      "write_boundary": "task-local staged_config/postcanary/<canary-sha256>/ only; no live file, state, process, or launchctl mutation"
+    },
+    "same_root_cutover_backend": {
+      "backend_path": "<R2_API_APP_ROOT>/ops/prepare_api_only_cutover.py",
+      "backend_sha256": "4747df35c3d7922bd1122256565e1136d5740d942ebb03d925ef870d056df22e",
+      "high_level_render_cutover": "not used; requires isolated manager state root",
+      "reused_operation": "rewrite_api_only_plist only, for non-activating staged API plist generation",
+      "same_root_activation_executor": "NOT_FOUND_IN_REVIEWED_HELPERS"
+    },
+    "scheduler_launchagent": {
+      "script": "<SCHEDULER_APP_ROOT>/ops/launch_v35_macos_scheduler.sh"
+    }
+  },
+  "plan_binding_state": {
+    "announcement_collection_enabled": false,
+    "enabled": false,
+    "plan_material_refresh_only": false,
+    "sha256": "f3b7cbfa1709b2b27816d294e599cb1ae82ff918ba41ec148644f1a1751f5fd6",
+    "status": "DISABLED"
+  },
+  "release_identity": {
+    "api_base_manifest_sha256": "ab8cc247bced7cfceae7fdad35ba20535a4af1778d4d2fb36705a78485ee160d",
+    "api_base_release_id": "manager-daily-chain-20261008-r2-api",
+    "api_inventory_entries": 1013,
+    "api_inventory_sha256": "07ff61bc18f66f7e92eb45f57a20aecf3885eaa79c1bdb705b8f805fdbb95bd8",
+    "api_manifest_sha256": "946c49b9c34bd09fbca04644556de3acba1635eb240fa9293f6391e9d46b40e9",
+    "api_release_id": "manager-daily-chain-20261008-r3-api",
+    "scheduler_inventory_entries": 591,
+    "scheduler_inventory_sha256": "58e51a7472e012f0c749cc909bdd85c634f5c31ae48f97fe8094af1e404eaf01",
+    "scheduler_manifest_sha256": "503a28a5bb2befe49997e30998bab1765a5302dfc59adda71deb214355780247",
+    "scheduler_release_id": "manager-daily-chain-20261008-r2-scheduler"
+  },
+  "root_acceptance": {
+    "API_VERIFIED": "PASS_TWO_DATE_PAIRS",
+    "BEHAVIOR_VERIFIED": "PASS",
+    "DEPLOYED": "CONFIRMED_R3_API_LAUNCHAGENT_RUNNING",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM_NO_NATURAL_SLOT_EVIDENCE",
+    "UI_VERIFIED": "PASS_TWO_POST_SWITCH_CAPTURES_VISUALLY_MATCH_API_RESULTS",
+    "review_receipt_sha256": "308f6fbb5bdc2cd060430d4967d9af72ef42aeb7dde2eb90c3e948bbfa3a71cb"
+  },
+  "runtime": {
+    "api_binding_interpreter_identity": "must match the exact disabled R2 API binding and ProgramArguments interpreter",
+    "dependency_policy": "No dependency manifest or package version was changed by C1/D1; use the pinned V4 runtime and per-release app/upstreams roots. This bundle is not a full environment lock or deployable checkout.",
+    "python_executable": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "python_version": "3.14.6",
+    "pythonpath": [
+      "<API_APP_ROOT>/upstreams",
+      "<API_APP_ROOT>"
+    ],
+    "resolved_python_sha256": "839b22560e27f02d716009a2d6bcd377cb6197ff70888787e3097919120e32aa"
+  },
+  "schema_version": "v4.manager_daily_chain.sync_entrypoints.v1",
+  "source_release_ids": {
+    "api": "manager-daily-chain-20261008-r3-api",
+    "api_base": "manager-daily-chain-20261008-r2-api",
+    "scheduler": "manager-daily-chain-20261008-r2-scheduler"
+  }
+}
