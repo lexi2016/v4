@@ -166,10 +166,16 @@ class CaptureMasterTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'SOURCE_OUTPUT_OVERLAP'):
             prepare_futu_master(self.records,self.receipt,replace(self.binding,protected_roots=(self.root.parent,)))
         outside=self.root.parent/'outside';outside.mkdir()
-        for part in ('generations','.master.lock'):
-            path=self.root/part;path.symlink_to(outside,target_is_directory=True)
-            with self.assertRaises(ValueError):publish_futu_master(self.prepare(),self.binding)
-            path.unlink()
+        for index,part in enumerate(('generations','.master.lock')):
+            # Each negative owns a fresh root: the first failure legitimately
+            # creates its regular lock before rejecting the generations link.
+            case=self.root/f'case-{index}';case.mkdir()
+            (case/'.v5-master-root').write_text('v5.master-root.v1\n')
+            binding=replace(self.binding,root=case)
+            path=case/part;path.symlink_to(outside,target_is_directory=True)
+            prepared=prepare_futu_master(self.records,self.receipt,binding)
+            with self.assertRaises(ValueError):publish_futu_master(prepared,binding)
+            self.assertTrue(path.is_symlink())
     def test_pre_rename_failure_is_invisible_and_retry_recovers(self):
         from v5_shadow import capture_master as module
         prepared=self.prepare()
