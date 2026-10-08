@@ -1,0 +1,518 @@
+--- a/v4/manager_research/workspace.py
++++ b/v4/manager_research/workspace.py
+@@ -35,6 +35,43 @@
+     return datetime.now(timezone.utc).isoformat(timespec='microseconds')
+ 
+ 
++def _plan_execution_context(value: Mapping[str, Any] | None, *, execution_kind: str,
++                           started_at: datetime) -> dict | None:
++    if value is None and execution_kind not in {'SCHEDULED_PREOPEN','SCHEDULED_MORNING'}:
++        return None
++    supplied = dict(value or {})
++    allowed = {'trigger_kind','timing','scheduled_for','natural_run_verified','trigger_id'}
++    if set(supplied) - allowed:
++        raise ValueError('WORKSPACE_PLAN_EXECUTION_CONTEXT_FIELDS_INVALID')
++    trigger_kind = supplied.get('trigger_kind', 'SCHEDULED' if execution_kind.startswith('SCHEDULED_') else 'UNKNOWN')
++    timing = supplied.get('timing', 'ON_TIME' if execution_kind.startswith('SCHEDULED_') else 'UNCLASSIFIED')
++    if trigger_kind not in {'SCHEDULED','MANUAL','UNKNOWN'}:
++        raise ValueError('WORKSPACE_PLAN_EXECUTION_TRIGGER_KIND_INVALID')
++    if timing not in {'ON_TIME','LATE_CATCHUP','RETROSPECTIVE','UNCLASSIFIED'}:
++        raise ValueError('WORKSPACE_PLAN_EXECUTION_TIMING_INVALID')
++    if supplied.get('natural_run_verified', False) is not False:
++        raise ValueError('WORKSPACE_PLAN_NATURAL_RUN_CANNOT_BE_INFERRED')
++    scheduled_for = supplied.get('scheduled_for')
++    if scheduled_for is not None:
++        parsed = timestamp(scheduled_for)
++        if parsed is None:
++            raise ValueError('WORKSPACE_PLAN_SCHEDULED_FOR_MUST_BE_AWARE')
++        scheduled_for = parsed.isoformat()
++    if trigger_kind == 'SCHEDULED' and scheduled_for is None:
++        scheduled_for = started_at.isoformat()
++    trigger_id = supplied.get('trigger_id')
++    if trigger_id is not None and not re.fullmatch(r'[0-9a-f]{64}',str(trigger_id)):
++        raise ValueError('WORKSPACE_PLAN_TRIGGER_ID_INVALID')
++    result = {'trigger_kind':trigger_kind,'timing':timing,'scheduled_for':scheduled_for,
++        'started_at':started_at.isoformat(timespec='microseconds'),
++        'natural_run_verified':False}
++    if timing == 'RETROSPECTIVE':
++        result['research_cutoff_policy'] = 'ACTUAL_OWNER_EXECUTION_CUTOFF_RETROSPECTIVE'
++    if trigger_id is not None:
++        result['trigger_id'] = trigger_id
++    return result
++
++
+ def _daily_mapping_plan_reference(service: Any, date: str,
+                                   context: Mapping[str, Any]) -> tuple[dict, dict, list[str]]:
+     """Bind a saved US mapping to this plan only when it precedes its cutoff."""
+@@ -46,9 +83,23 @@
+         # must not prevent the original announcement/market owners from being
+         # read, and it does not prove that zero relationships were assessed.
+         reason = 'US_MAPPING_READER_UNAVAILABLE:' + type(exc).__name__
+-        mapping_read = dict(status='CANNOT_CONFIRM', target_trade_date=date,
+-            mapping={'status':'NOT_EVALUATED'}, daily_run={'status':'NOT_RUN'},
+-            gaps=[reason], **FLAGS)
++        daily = dict(schema_version='v4.manager_research.us_mapping_daily_run.v1',
++            status='CANNOT_CONFIRM', target_trade_date=date,
++            run_id=None, generated_at=None, us_session_date=None, research_cutoff=None,
++            source_identity=None, input_identity=None, artifact_sha256=None,
++            coverage=dict(reviewed_us_symbol_count=None, matched_us_symbol_count=None,
++                matched_hk_relation_count=None, configured_us_universe_count=None,
++                available_us_universe_count=None, full_market_coverage=False),
++            matches=[], gaps=[reason], **FLAGS)
++        # The original API contract scopes the retrospective reference to 9/30.
++        # A failed reader cannot prove that those saved cards or a daily run are absent.
++        reviewed = dict(schema_version='v4.manager_research.us_mapping_reviewed.v1',
++            status='CANNOT_CONFIRM', target_trade_date=date, reviewed_at=None,
++            cards=[], gaps=[reason], **FLAGS) if date == '20260930' else None
++        mapping_read = dict(schema_version='v4.manager_research.us_mapping_research.v1',
++            status='CANNOT_CONFIRM', target_trade_date=date,
++            mapping={'status':'NOT_EVALUATED'}, daily_run=daily,
++            reviewed_research=reviewed, gaps=[reason], **FLAGS)
+         reference = dict(status='NOT_CONSUMED', target_trade_date=date,
+             artifact_sha256=None, run_id=None, available_at=None,
+             plan_cutoff=context.get('research_cutoff'), matches=None,
+@@ -428,7 +479,8 @@
+ 
+ def get_workspace(service: Any,target_trade_date: str, *, include_saved: bool = True,
+                   view: str = 'dynamic', now: datetime | None = None,
+-                  selection_date: str | None = None, announcement_date: str | None = None) -> dict:
++                  selection_date: str | None = None, announcement_date: str | None = None,
++                  us_market_request_context: Mapping[str, Any] | None = None) -> dict:
+     date = date_token(target_trade_date)
+     selection = date_token(selection_date) if selection_date is not None else date
+     from .announcement_analysis import previous_hk_session
+@@ -450,11 +502,27 @@
+         from .workspace_daily_channels import build_daily_channels
+         result['daily_channels'] = build_daily_channels(result)
+         return result
+-    context = plan_context(date, now=clock)
+-    if announcement_date is not None:
++    # A dynamic page read is re-evaluated from the original owners. When the
++    # complete date binding matches the sealed plan, use that plan's original
++    # as-of context so a few seconds of wall-clock drift do not change the
++    # semantic projection. This is not a cached-success shortcut: all sources
++    # below are still re-read and _readback_plan compares their identities.
++    saved_context = (_saved_plan_context_for_bindings(service, date, bindings)
++                     if include_saved and view == 'dynamic' else None)
++    context = saved_context
++    if context is None:
++        context = plan_context(date, now=clock)
++    if announcement_date is not None and saved_context is None:
+         context['announcement_publication_date'] = datetime.strptime(publication, '%Y%m%d').strftime('%Y-%m-%d')
+-    result = _compute_workspace(service, date, include_saved=include_saved, context=context)
++    if us_market_request_context is not None and (view != 'dynamic' or include_saved):
++        raise ValueError('WORKSPACE_US_REQUEST_CONTEXT_REQUIRES_DYNAMIC_OWNER_READ')
++    # Bind before the saved-product comparison so the comparison can reject a
++    # different selection/publication query and preserve exact page identity.
++    result = _compute_workspace(service, date, include_saved=False, context=context,
++        us_market_request_context=us_market_request_context)
+     result['date_bindings'] = bindings
++    if include_saved:
++        result = _readback_plan(service.store, date, result, read_at=clock)
+     result['read_context'] = dict(mode='CURRENT_DYNAMIC_PREVIEW',
+         status='VERIFIED_WITH_GAPS' if result['gaps'] else 'VERIFIED',
+         as_of=result['plan_context']['research_cutoff'],
+@@ -462,6 +530,36 @@
+     from .workspace_daily_channels import build_daily_channels
+     result['daily_channels'] = build_daily_channels(result)
+     return result
++
++
++def _saved_plan_context_for_bindings(service: Any, date: str,
++                                     bindings: Mapping[str, Any]) -> dict | None:
++    """Return a verified saved cutoff only for an exact full date binding.
++
++    The helper deliberately returns context, not a saved workspace result.
++    ``get_workspace`` continues to execute every existing owner reader at that
++    context, and the normal semantic identity check decides whether the saved
++    product remains current. Unknown legacy bindings never authorize replay.
++    """
++    try:
++        saved = _read_plan(service.store, date)
++    except _ERROR_TYPES:
++        return None
++    if not isinstance(saved, Mapping):
++        return None
++    workspace = saved.get('workspace')
++    if not isinstance(workspace, Mapping):
++        return None
++    saved_bindings = workspace.get('date_bindings')
++    expected = {'plan_date': date, 'selection_date': bindings.get('selection_date'),
++        'announcement_date': bindings.get('announcement_date')}
++    if not isinstance(saved_bindings, Mapping) or dict(saved_bindings) != expected:
++        return None
++    context = workspace.get('plan_context')
++    if (not isinstance(context, Mapping) or context.get('plan_trade_date') != date
++            or timestamp(context.get('research_cutoff')) is None):
++        return None
++    return deepcopy(dict(context))
+ 
+ 
+ def _read_close_recapture_inputs(reader: Any, requested_date: str, context: Mapping[str, Any]) -> tuple[dict, dict]:
+@@ -497,7 +595,74 @@
+     return planning,requested
+ 
+ 
+-def _compute_workspace(service: Any, date: str, *, include_saved: bool = True, context: dict) -> dict:
++_US_OWNER_NON_REENTRY_CODES = frozenset({
++    'US_MAPPING_OWNER_READ_TIMEOUT', 'US_MAPPING_OWNER_READ_BUSY',
++})
++
++
++def _us_mapping_non_reentry_value(date: str, context: Mapping[str, Any], code: str) -> dict:
++    from .us_market_bridge import project_us_market
++    value = project_us_market(None, date, context)
++    value['status'] = 'SOURCE_FAILED'
++    value['gaps'] = [f'US_MARKET_DAILY_OWNER_NOT_RETRIED:{code}']
++    value['bounded_owner_execution_status'] = code
++    return value
++
++
++def _project_us_market_attention(service: Any, date: str, context: Mapping[str, Any], *,
++                                  us_market_request_context: Mapping[str, Any] | None = None) -> dict:
++    """Project exact US evidence while honoring a request-local bounded-owner timeout.
++
++    Only the daily owner may set the narrowly allowlisted suppression context.
++    It prevents the plan from entering the same reader after its bounded build
++    timed out, while preserving a truthful missing/failed DTO and leaving the
++    injected reader untouched for concurrent requests.
++    """
++    from .us_market_bridge import project_us_market
++
++    request = us_market_request_context
++    if request is not None:
++        _validate_us_market_request_context(date, request)
++        code = str(request['execution_status'])
++        return _us_mapping_non_reentry_value(date, context, code)
++
++    reader = getattr(service, '_workspace_us_market_reader', None)
++    leave_workspace_reader = None
++    try:
++        from .us_mapping_research import (
++            leave_workspace_reader, try_enter_workspace_reader, workspace_reader_busy,
++        )
++        if workspace_reader_busy(reader) or not try_enter_workspace_reader(reader):
++            return _us_mapping_non_reentry_value(date, context, 'US_MAPPING_OWNER_READ_BUSY')
++    except ImportError:
++        # The raw bridge remains readable if the optional daily owner package
++        # is absent; its exact reader contract still controls the result.
++        leave_workspace_reader = None
++    try:
++        return project_us_market(reader, date, context)
++    except (WorkspaceReadError, TimeoutError):
++        raise
++    except (ImportError, OSError, ValueError, KeyError, TypeError, RuntimeError, AttributeError) as exc:
++        value = project_us_market(None, date, context)
++        value['status'] = 'SOURCE_FAILED'
++        value['gaps'] = ['US_MARKET_READER_FAILED:' + type(exc).__name__]
++        return value
++    finally:
++        if callable(leave_workspace_reader):
++            leave_workspace_reader(reader)
++
++
++def _validate_us_market_request_context(date: str, request: Mapping[str, Any]) -> None:
++    if (not isinstance(request, Mapping)
++            or set(request) != {'target_trade_date', 'execution_status', 'bypass_reader'}
++            or request.get('target_trade_date') != date
++            or request.get('bypass_reader') is not True
++            or request.get('execution_status') not in _US_OWNER_NON_REENTRY_CODES):
++        raise ValueError('WORKSPACE_US_REQUEST_CONTEXT_INVALID')
++
++
++def _compute_workspace(service: Any, date: str, *, include_saved: bool = True, context: dict,
++                       us_market_request_context: Mapping[str, Any] | None = None) -> dict:
+     from copy import deepcopy
+     context = deepcopy(context)
+     try:
+@@ -649,19 +814,12 @@
+     from .announcement_observation import event_lane
+     value['announcement_observation'] = event_lane(announcement_review, market_screen, context)
+     # US evidence is read from the existing exact-session peripheral store.
+-    # This GET never fetches or materializes US data.
+-    from .us_market_bridge import project_us_market
++    # A bounded daily-owner timeout is passed through this one request only so
++    # the plan cannot re-enter a still-blocked reader; no shared service reader
++    # is replaced and no source values are synthesized.
+     with phase('us_market_exact_read'):
+-        try:
+-            us_market = project_us_market(
+-                getattr(service, '_workspace_us_market_reader', None), date, context
+-            )
+-        except (WorkspaceReadError, TimeoutError):
+-            raise
+-        except (ImportError, OSError, ValueError, KeyError, TypeError, RuntimeError, AttributeError) as exc:
+-            us_market = project_us_market(None, date, context)
+-            us_market['status'] = 'SOURCE_FAILED'
+-            us_market['gaps'] = ['US_MARKET_READER_FAILED:' + type(exc).__name__]
++        us_market = _project_us_market_attention(service, date, context,
++            us_market_request_context=us_market_request_context)
+     us_market['research_material_input']=deepcopy(relation_material_input)
+     value['us_market_attention'] = us_market
+     from .research_attention import build_research_attention
+@@ -767,6 +925,47 @@
+     return row
+ 
+ 
++def _overlay_us_mapping_attempt(saved_workspace: Mapping[str, Any],
++                                current_workspace: Mapping[str, Any],
++                                plan_cutoff: Any) -> dict:
++    """Expose fresh attempt status while keeping the saved plan's consumed run immutable."""
++    saved_mapping = saved_workspace.get('us_mapping_research')
++    current_mapping = current_workspace.get('us_mapping_research')
++    base = deepcopy(dict(saved_mapping if isinstance(saved_mapping, Mapping)
++                         else current_mapping if isinstance(current_mapping, Mapping) else {}))
++    current_daily = current_mapping.get('daily_run') if isinstance(current_mapping, Mapping) else None
++    saved_daily = base.get('daily_run')
++    if not isinstance(saved_daily, Mapping):
++        saved_daily = deepcopy(dict(current_daily)) if isinstance(current_daily, Mapping) else {}
++        base['daily_run'] = saved_daily
++    else:
++        saved_daily = deepcopy(dict(saved_daily))
++        base['daily_run'] = saved_daily
++    latest_attempt = (current_daily.get('latest_attempt')
++                      if isinstance(current_daily, Mapping) else None)
++    if isinstance(latest_attempt, Mapping):
++        cutoff = timestamp(plan_cutoff)
++        attempt_finished = timestamp(latest_attempt.get('finished_at'))
++        saved_daily['latest_attempt'] = deepcopy(dict(latest_attempt))
++        saved_daily['latest_attempt_after_plan_cutoff'] = bool(
++            cutoff is not None and attempt_finished is not None and attempt_finished > cutoff)
++        saved_daily['latest_attempt_affects_saved_plan'] = False
++        base['latest_attempt'] = deepcopy(dict(latest_attempt))
++    else:
++        saved_run = saved_daily.get('run_id') if isinstance(saved_daily, Mapping) else None
++        saved_generated = timestamp(saved_daily.get('generated_at')) if isinstance(saved_daily, Mapping) else None
++        cutoff = timestamp(plan_cutoff)
++        if saved_run is None and isinstance(current_daily, Mapping):
++            current_generated = timestamp(current_daily.get('generated_at'))
++            if cutoff is not None and current_generated is not None and current_generated > cutoff:
++                saved_daily.update({"status":"NOT_CONSUMED_AFTER_CUTOFF", "run_id":None,
++                    "generated_at":None, "matches":[], "artifact_sha256":None,
++                    "input_identity":None,
++                    "gaps":sorted(set([*(saved_daily.get('gaps') or []),
++                                         "US_MAPPING_DAILY_RUN_AFTER_PLAN_CUTOFF"]))})
++    return base
++
++
+ def verified_plan_attempt(store: Any, saved: Mapping[str, Any]) -> dict | None:
+     """Read the exact product's sealed journal, independently of latest.json."""
+     from .workspace_plan_autorun import owner_plan_readback, morning_window, preopen_window
+@@ -774,10 +973,11 @@
+     kind = saved.get('execution_kind', 'MANUAL_REFRESH')
+     attempt = store._read(store.root/'workspace_plan_runs'/date/(saved['run_id']+'.json'))
+     if attempt is None and kind == 'MANUAL_REFRESH':
+-        return None  # Legacy manual plans still require full source replay.
++        raise ValueError('WORKSPACE_PLAN_ATTEMPT_MISSING')
+     product = dict(status='CURRENT', consumed=True, run_id=saved['run_id'],
+         sha256=saved['sha256'], generated_at=saved['generated_at'],
+-        execution_kind=kind, original_owner=saved['owner'])
++        execution_kind=kind, original_owner=saved['owner'],
++        execution_context=deepcopy(saved.get('execution_context')))
+     owner_plan_readback(dict(target_trade_date=date,input_identity=saved['input_identity'],
+         plan_product=product,workspace_plan_attempt=attempt),date,expected_kind=kind)
+     if kind in {'SCHEDULED_MORNING','SCHEDULED_PREOPEN'}:
+@@ -787,7 +987,29 @@
+     return dict(attempt)
+ 
+ 
+-def _readback_plan(store: Any,date: str,current: dict) -> dict:
++def _plan_run_readback(saved: Mapping[str, Any] | None, attempt: Mapping[str, Any] | None,
++                       *, read_at: Any, verified: bool) -> dict:
++    """Expose live verification without writing into the immutable plan product."""
++    owner = 'ManagerResearchJobService.refresh_workspace_plan'
++    attempt = attempt if isinstance(attempt, Mapping) else {}
++    read_time = timestamp(read_at)
++    saved = saved if isinstance(saved, Mapping) else {}
++    return {
++        'status': 'VERIFIED' if verified else 'CANNOT_CONFIRM',
++        'target_trade_date': saved.get('target_trade_date'),
++        'run_id': saved.get('run_id'),
++        'artifact_sha256': saved.get('sha256'),
++        'input_identity': saved.get('input_identity'),
++        'owner': owner,
++        'read_at': read_time.isoformat() if read_time is not None else _now(),
++        'owner_attempt_run_id': attempt.get('run_id') if verified else None,
++        'owner_attempt_sha256': attempt.get('sha256') if verified else None,
++        'owner_attempt_state': attempt.get('state') if verified else None,
++        'owner_finished_at': attempt.get('finished_at') if verified else None,
++    }
++
++
++def _readback_plan(store: Any,date: str,current: dict, *, read_at: Any = None) -> dict:
+     from copy import deepcopy
+     try:
+         saved=_read_plan(store,date)
+@@ -798,15 +1020,27 @@
+         # projection, and are NOT presented as successfully read back.
+         current['plan_product']=dict(status='READBACK_FAILED',reason=type(exc).__name__)
+         return current
++    read_time = (read_at.astimezone(HK) if isinstance(read_at, datetime)
++                 and read_at.tzinfo is not None and read_at.utcoffset() is not None
++                 else timestamp(read_at) if read_at is not None else timestamp(_now()))
++    if read_time is None:
++        read_time = timestamp(_now())
+     saved_cutoff=timestamp(((saved or {}).get('workspace') or {}).get('plan_context',{}).get('research_cutoff'))
+     current_cutoff=timestamp(current.get('plan_context',{}).get('research_cutoff'))
+     after_cutoff=bool(saved is not None and (saved_cutoff is None or current_cutoff is None or saved_cutoff>current_cutoff))
++    saved_bindings = ((saved or {}).get('workspace') or {}).get('date_bindings')
++    current_bindings = current.get('date_bindings')
++    bindings_match = (saved_bindings is None and current_bindings is None) or (
++        isinstance(saved_bindings, Mapping) and isinstance(current_bindings, Mapping)
++        and dict(saved_bindings) == dict(current_bindings))
+     same=(saved is not None and not after_cutoff and saved['input_identity']==current['input_identity']
+-          and saved['workspace'].get('semantic_version')==current.get('semantic_version'))
++          and saved['workspace'].get('semantic_version')==current.get('semantic_version')
++          and bindings_match)
+     plan_attempt_error = None
++    verified_attempt = None
+     if same:
+         try:
+-            verified_plan_attempt(store,saved)
++            verified_attempt=verified_plan_attempt(store,saved)
+         except _ERROR_TYPES as exc:
+             plan_attempt_error = str(exc) if re.fullmatch(r'[A-Z][A-Z0-9_]{0,127}',str(exc)) else type(exc).__name__
+             same = False
+@@ -817,24 +1051,35 @@
+         # Eligibility diagnostics describe this read's owner binding, not the
+         # saved plan's binding. Refresh them without changing its identity,
+         # run_id or sealed bytes; the existing deep-copy overlay stays read-only.
+-        for key in ('lanes','runtime_gaps','run_accounting','continuity_gap','market_screen','market_screen_evidence','owner_chain','announcement_review','announcement_observation','announcement_reviewed_analysis','us_market_attention','research_attention','stage_read_timing','repair_contract','selection_diagnostics','date_bindings','daily_channels'):
++        for key in ('lanes','runtime_gaps','run_accounting','continuity_gap','market_screen','market_screen_evidence','owner_chain','announcement_review','announcement_observation','announcement_reviewed_analysis','us_market_attention','research_attention','stage_read_timing','repair_contract','selection_diagnostics','date_bindings'):
+             if key in current:value[key]=deepcopy(current[key])
+-        value['runtime_status_read_at']=current['plan_context']['research_cutoff']
++        value['us_mapping_research'] = _overlay_us_mapping_attempt(
++            saved['workspace'], current, saved['workspace'].get('plan_context', {}).get('research_cutoff'))
++        value['runtime_status_read_at']=read_time.isoformat() if read_time is not None else _now()
+     value['plan_product']=dict(status='CURRENT' if same else ('OWNER_ATTEMPT_UNVERIFIED' if plan_attempt_error else 'PLAN_AFTER_READ_CUTOFF' if after_cutoff else 'STALE_INPUTS_CHANGED' if saved else 'NOT_MATERIALIZED'),
+         run_id=saved.get('run_id') if saved else None,generated_at=saved.get('generated_at') if saved else None,
+         sha256=saved.get('sha256') if saved else None,
+         execution_kind=saved.get('execution_kind','MANUAL_REFRESH') if saved else None,
++        execution_context=deepcopy(saved.get('execution_context')) if saved else None,
+         original_owner='ManagerResearchJobService.refresh_workspace_plan',
+-        last_checked_at=current['plan_context']['research_cutoff'],consumed=same)
++        last_checked_at=read_time.isoformat() if read_time is not None else _now(),consumed=same,
++        run_readback=_plan_run_readback(saved,verified_attempt,
++            read_at=read_time.isoformat() if read_time is not None else _now(),verified=same))
+     if plan_attempt_error:
+         value['plan_product']['reason'] = plan_attempt_error
+     value['workspace_plan_attempt']=attempt
+     value['observation_mode']='EXACT_DATE_PLAN_READBACK' if same else 'READ_ONLY_EXISTING_OWNER_PREVIEW'
++    if same:
++        from .workspace_daily_channels import build_daily_channels
++        value['daily_channels']=build_daily_channels(value)
+     return value
+ 
+ 
+ def refresh_workspace_plan(service: Any,target_trade_date: str, *, execution_kind: str = 'MANUAL_REFRESH',
+-                           now: datetime | None = None, deadline: datetime | None = None) -> dict:
++                           now: datetime | None = None, deadline: datetime | None = None,
++                           execution_context: Mapping[str, Any] | None = None,
++                           us_market_request_context: Mapping[str, Any] | None = None,
++                           workspace_date_bindings: Mapping[str, Any] | None = None) -> dict:
+     """Persist an exact-date plan from existing verified owners only.
+ 
+     ``SCHEDULED_PREOPEN`` is reserved for the bounded pre-open autorun.  It
+@@ -855,6 +1100,29 @@
+     if scheduled and now.astimezone(timezone.utc) >= deadline.astimezone(timezone.utc):
+         raise ValueError('WORKSPACE_PLAN_SCHEDULED_DEADLINE_EXPIRED')
+     date=date_token(target_trade_date)
++    workspace_dates: dict[str, str] = {}
++    if workspace_date_bindings is not None:
++        if not isinstance(workspace_date_bindings, Mapping) or set(workspace_date_bindings)-{'selection_date','announcement_date'}:
++            raise ValueError('WORKSPACE_PLAN_DATE_BINDINGS_INVALID')
++        if 'selection_date' in workspace_date_bindings:
++            workspace_dates['selection_date'] = date_token(workspace_date_bindings['selection_date'])
++        if 'announcement_date' in workspace_date_bindings:
++            workspace_dates['announcement_date'] = date_token(str(workspace_date_bindings['announcement_date']).replace('-',''))
++        if not workspace_dates:
++            raise ValueError('WORKSPACE_PLAN_DATE_BINDINGS_INVALID')
++    if us_market_request_context is not None:
++        _validate_us_market_request_context(date, us_market_request_context)
++    context_start = now if now is not None else datetime.now(HK)
++    if context_start.tzinfo is None or context_start.utcoffset() is None:
++        raise ValueError('WORKSPACE_PLAN_EXECUTION_CLOCK_MUST_BE_AWARE')
++    plan_execution_context = _plan_execution_context(execution_context,
++        execution_kind=execution_kind, started_at=context_start)
++    plan_read_now = now
++    if plan_execution_context is not None and plan_execution_context.get('timing') == 'RETROSPECTIVE':
++        target_day = datetime.strptime(date,'%Y%m%d').date()
++        actual_day = context_start.astimezone(HK).date()
++        if target_day >= actual_day or execution_kind != 'MANUAL_REFRESH':
++            raise ValueError('WORKSPACE_PLAN_RETROSPECTIVE_TARGET_INVALID')
+     if execution_kind == 'SCHEDULED_MORNING':
+         from .workspace_plan_autorun import morning_window
+         start, freeze = morning_window(date)
+@@ -882,13 +1150,19 @@
+                     and prior_product_attempt.get('execution_kind') == existing.get('execution_kind')
+                     and prior_product_attempt.get('state') in {'SUCCEEDED','SUCCEEDED_EMPTY','PARTIAL'}
+                     and prior_product_attempt.get('input_identity') == existing['input_identity'])
++                if same_owner_attempt:
++                    try:
++                        prior_product_attempt = verified_plan_attempt(service.store, existing)
++                    except _ERROR_TYPES:
++                        same_owner_attempt = False
+                 existing_workspace=existing['workspace']
+                 existing_context=existing_workspace.get('plan_context') if isinstance(existing_workspace.get('plan_context'),dict) else {}
+                 existing_generated=timestamp(existing.get('generated_at'))
+                 existing_cutoff=timestamp(existing_context.get('research_cutoff'))
+                 open_at=deadline.astimezone(timezone.utc)
+                 try:
+-                    prepared=get_workspace(service,date,include_saved=False,now=now)
++                        prepared=get_workspace(service,date,include_saved=False,now=plan_read_now,
++                            us_market_request_context=us_market_request_context,**workspace_dates)
+                 except _ERROR_TYPES as exc:
+                     preparation_error=exc
+                 if (prepared is not None and same_owner_attempt
+@@ -900,12 +1174,14 @@
+                         and existing_generated<=now
+                         and existing_generated.astimezone(timezone.utc)<open_at
+                         and existing_cutoff.astimezone(timezone.utc)<=open_at):
+-                    from copy import deepcopy
+                     value=deepcopy(prepared)
+                     value['plan_product']=dict(status='ALREADY_MATERIALIZED',run_id=existing.get('run_id'),
+                         generated_at=existing.get('generated_at'),sha256=existing.get('sha256'),
+                         execution_kind=existing['execution_kind'], consumed=True,
+-                        original_owner='ManagerResearchJobService.refresh_workspace_plan')
++                        original_owner='ManagerResearchJobService.refresh_workspace_plan',
++                        execution_context=deepcopy(existing.get('execution_context')),
++                        run_readback=_plan_run_readback(existing,prior_product_attempt,
++                            read_at=now,verified=True))
+                     value['workspace_plan_attempt']=deepcopy(prior_product_attempt)
+                     from .workspace_daily_channels import build_daily_channels
+                     value['daily_channels']=build_daily_channels(value)
+@@ -922,6 +1198,8 @@
+         attempt=dict(schema_version=ATTEMPT_SCHEMA,target_trade_date=date,run_id=run_id,
+             owner='ManagerResearchJobService.refresh_workspace_plan',state='RUNNING',execution_kind=execution_kind,
+             started_at=(now.astimezone(timezone.utc).isoformat(timespec='microseconds') if now is not None else _now()),last_success_at=(prior or {}).get('last_success_at'),failure_reasons=[],**FLAGS)
++        if plan_execution_context is not None:
++            attempt['execution_context'] = deepcopy(plan_execution_context)
+         def write_attempt() -> None:
+             sealed=validate_attempt(seal_attempt(attempt),date)
+             service.store._write_atomic(run_root/(run_id+'.json'),sealed)
+@@ -930,16 +1208,23 @@
+         try:
+             if preparation_error is not None:
+                 raise preparation_error
+-            value=prepared if prepared is not None else get_workspace(service,date,include_saved=False,now=now)
++            value=prepared if prepared is not None else get_workspace(service,date,include_saved=False,
++                now=plan_read_now,us_market_request_context=us_market_request_context,**workspace_dates)
++            completed_at=_now()
++            if plan_execution_context is not None:
++                plan_execution_context['finished_at'] = completed_at
++                value['execution_context'] = deepcopy(plan_execution_context)
+             failures=sorted(set(value['gaps']))
+             state='PARTIAL' if failures else ('SUCCEEDED' if value['stocks'] else 'SUCCEEDED_EMPTY')
+             checkpoint()
+-            completed_at=_now()
+             if deadline is not None and timestamp(completed_at) >= deadline.astimezone(timezone.utc):
+                 raise TimeoutError('WORKSPACE_PLAN_SCHEDULED_COMPLETION_DEADLINE_EXCEEDED')
+             product=dict(schema_version=PLAN_SCHEMA,target_trade_date=date,run_id=run_id,
+                 generated_at=completed_at,owner='ManagerResearchJobService.refresh_workspace_plan',
+                 execution_kind=execution_kind,input_identity=value['input_identity'],workspace=value,**FLAGS)
++            if plan_execution_context is not None:
++                product['execution_context'] = deepcopy(plan_execution_context)
++                attempt['execution_context'] = deepcopy(plan_execution_context)
+             product['read_contract_sha256'] = contract_identity()
+             product['sha256']=digest(product)
+             root=service.store.root/'workspace_plans'/date

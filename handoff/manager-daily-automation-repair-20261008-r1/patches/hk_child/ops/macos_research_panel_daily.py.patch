@@ -1,0 +1,69 @@
+--- a/ops/macos_research_panel_daily.py
++++ b/ops/macos_research_panel_daily.py
+@@ -960,7 +960,8 @@
+ ) -> bool:
+     """Require the exact HK date receipt and a non-empty verified snapshot."""
+ 
+-    receipt = payload or _read_lane_receipt(receipt_root, "HK", target_date)
++    target = _date(target_date)
++    receipt = payload or _read_lane_receipt(receipt_root, "HK", target)
+     if not isinstance(receipt, Mapping):
+         return False
+     try:
+@@ -969,15 +970,30 @@
+     except (TypeError, ValueError):
+         return False
+     digest = receipt.get("sha256")
+-    return bool(
++    basic_ready = bool(
+         receipt.get("status") == "READY"
+-        and str(receipt.get("target_date") or "") == _date(target_date)
++        and str(receipt.get("target_date") or "") == target
+         and _receipt_safety_is_false(receipt)
+         and isinstance(digest, str)
+         and bool(digest.strip())
+         and row_count > 0
+         and coverage_rate > 0.0
+     )
++    if not basic_ready:
++        return False
++    chain_ref = receipt.get("publication_chain")
++    if not isinstance(chain_ref, Mapping):
++        return False
++    try:
++        gate = importlib.import_module("ops._macos_research_panel_daily_parts.hk_capture_gate")
++        verified = gate.read_verified_chain(globals(), receipt_root, target)
++    except (ImportError, OSError, TypeError, ValueError, UnicodeError, json.JSONDecodeError):
++        return False
++    return bool(verified is not None
++        and chain_ref.get("status") == "VERIFIED"
++        and chain_ref.get("chain_id") == verified["terminal"].get("chain_id")
++        and chain_ref.get("terminal_relative") == verified.get("terminal_relative")
++        and chain_ref.get("terminal_sha256") == verified.get("terminal_sha256"))
+ 
+ 
+ def ensure_after_1700(
+@@ -2141,16 +2157,14 @@
+         return {"status": "READY", "target_date": target, "bootstrap": bootstrap, "sync": sync, "formula": formula, "sha256": formula.get("authority", {}).get("source_sha256", ""), **SAFETY_FLAGS}
+ 
+     def run_hk(target: str) -> dict[str, Any]:
+-        collected = collect_hk_futu_rows(target, minimum_universe_count=600, required_coverage_ratio=0.0)
+-        packed = pack_hk_day(args.hk_tdx_root, collected["rows"], target_date=target, minimum_rows=600)
+-        authority = run_hk_0_2_authority(
+-            authority_paths["--hk-updater-script"],
+-            python_executable,
+-            authority_paths["--hk-asset-root"],
+-            args.hk_tdx_root,
+-            target,
++        from ops._macos_research_panel_daily_parts.hk_capture_gate import run_hk_capture_gate
++        return run_hk_capture_gate(
++            globals(),
++            target_date=target,
++            args=args,
++            authority_paths=authority_paths,
++            python_executable=python_executable,
+         )
+-        return {**collected, **packed, "authority": authority, "source_sha256": collected["source_sha256"]}
+ 
+     # Existing authorities can print arbitrarily large diagnostics. Keep stdout
+     # exclusively for the bounded machine protocol consumed by the registry.

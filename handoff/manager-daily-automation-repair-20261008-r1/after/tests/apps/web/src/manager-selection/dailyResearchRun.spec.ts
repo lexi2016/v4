@@ -1,0 +1,164 @@
+import { execFileSync } from 'node:child_process';
+import { resolve } from 'node:path';
+import { describe, expect, it } from 'vitest';
+import { validateManagerWorkspace, type JsonObject } from '../api/managerWorkspace';
+import { workspaceFixture } from './dailyChannels.testHelper';
+import { mayKeepWorkspaceResult, projectDailyResearchSummary, renderDailyResearchRun,
+  workspaceRequestStillCurrent, type DailyResearchBindings } from './dailyResearchRun';
+
+const projectRoot = process.env.V4_TEST_SOURCE_ROOT || resolve(process.cwd(), '../..');
+const fixtureScript = resolve(projectRoot, 'tests/manager_daily_ui_owner_fixture.py');
+const routeFixtureScript = resolve(projectRoot, 'tests/manager_daily_ui_route_fixture.py');
+const python = process.env.V4_TEST_PYTHON || 'python3';
+let ownerFields: JsonObject | undefined;
+function actualOwnerWorkspace(): JsonObject {
+  if (!ownerFields) {
+    const text = execFileSync(python, [fixtureScript, '--fixture'], {
+      cwd: projectRoot, encoding: 'utf8', timeout: 30_000, maxBuffer: 2 * 1024 * 1024,
+      env: { ...process.env, PYTHONPATH: `${projectRoot}:${projectRoot}/upstreams:${projectRoot}/tests` },
+    });
+    ownerFields = JSON.parse(text) as JsonObject;
+  }
+  return { ...(workspaceFixture() as unknown as JsonObject), ...structuredClone(ownerFields) };
+}
+const bindings: DailyResearchBindings = {
+  plan_date: '20261008', selection_date: '20261008', announcement_date: '20261008',
+};
+
+describe('ordinary page daily research and saved product summary', () => {
+  it('projects the actual refresh-to-ordinary-GET DTO with a truthful post-generation read time', () => {
+    const text = execFileSync(python, [routeFixtureScript], {
+      cwd: projectRoot, encoding: 'utf8', timeout: 30_000, maxBuffer: 2 * 1024 * 1024,
+      env: { ...process.env, PYTHONPATH: `${projectRoot}:${projectRoot}/upstreams:${projectRoot}/tests` },
+    });
+    const routeDto = JSON.parse(text) as JsonObject;
+    const routeBindings: DailyResearchBindings = {
+      plan_date: '20261008', selection_date: '20261008', announcement_date: '20261007',
+    };
+    expect(() => validateManagerWorkspace(routeDto, routeBindings.plan_date, routeBindings)).not.toThrow();
+    const summary = projectDailyResearchSummary(routeDto, routeBindings);
+    expect(summary.plan.status).toBe('VERIFIED_SAVED');
+    expect(summary.plan.readAt).toBe('2026-10-08T10:00:03+08:00');
+    expect(Date.parse(summary.plan.readAt!)).toBeGreaterThanOrEqual(Date.parse(summary.plan.generatedAt!));
+  });
+
+  it('projects actual US owner matches and original plan readback separately from a later failure', () => {
+    const workspace = actualOwnerWorkspace();
+    const summary = projectDailyResearchSummary(workspace, bindings);
+    expect(summary.plan.status).toBe('VERIFIED_SAVED');
+    expect(summary.plan.latestAttempt?.state).toBe('FAILED');
+    expect(summary.plan.runId).toBe((workspace.plan_product as JsonObject).run_id);
+    expect(summary.us.status).toBe('COMPLETED');
+    expect(summary.us.rows.map(row => row.us_symbol)).toEqual(['LITE']);
+    expect(summary.us.rows[0].reason).toBe('TEST_FIXTURE_ORIGINAL_OWNER_RELATION_REASON');
+    expect(summary.us.usSessionDate).toBe('20261007');
+    expect(summary.us.executionLabel).toContain('调度晚到续跑');
+    expect(summary.us.executionLabel).toContain('自然时段验收未核实');
+  });
+
+  it('renders separate plan and US cards, with real source date, coverage, owner and immutable identities', () => {
+    const workspace = actualOwnerWorkspace();
+    const host = document.createElement('section');
+    renderDailyResearchRun(host, workspace, bindings);
+    const plan = host.querySelector<HTMLElement>('[data-plan-readback]')!;
+    const us = host.querySelector<HTMLElement>('[data-us-daily-run]')!;
+    expect(plan.textContent).toContain('保存产物已读回核验');
+    expect(plan.textContent).toContain('最近尝试失败');
+    expect(plan.textContent).toContain((workspace.plan_product as JsonObject).run_id as string);
+    expect(us.textContent).toContain('美股 → 港股业务关系日常映射');
+    expect(us.textContent).toContain('2026-10-07');
+    expect(us.textContent).toContain('HK.06166');
+    expect(us.textContent).toContain('TEST_FIXTURE_ORIGINAL_OWNER_RELATION_REASON');
+    expect(us.textContent).toContain('自然时段验收未核实');
+    expect(us.querySelector(':scope > details')?.textContent).toContain('"natural_run_verified": false');
+    expect(host.textContent).not.toContain('HK_CONNECT即US');
+  });
+
+  it('uses reported coverage counts instead of historical fixed values and preserves unknown', () => {
+    const workspace = actualOwnerWorkspace();
+    const mapping = workspace.us_mapping_research as JsonObject;
+    const daily = mapping.daily_run as JsonObject;
+    const coverage = daily.coverage as JsonObject;
+    coverage.reviewed_us_symbol_count = null;
+    coverage.configured_us_universe_count = null;
+    const projection = projectDailyResearchSummary(workspace, bindings).us;
+    expect(projection.coverageLabel).toContain('已审阅关系范围 未知');
+    expect(projection.coverageLabel).toContain('配置美股范围 未知');
+    expect(projection.coverageLabel).not.toContain('4 个');
+    expect(projection.coverageLabel).not.toContain('配置美股范围 33 只');
+  });
+
+  it('keeps original rows and reasons literal and ordered without creating HTML', () => {
+    const workspace = actualOwnerWorkspace();
+    const daily = ((workspace.us_mapping_research as JsonObject).daily_run as JsonObject);
+    const matches = daily.matches as JsonObject[];
+    matches.push({ ...matches[0], us_symbol: 'AVGO', hk_symbol: 'HK.06088', reason: '<script>unsafe()</script>' });
+    const before = JSON.stringify(matches);
+    const host = document.createElement('section');
+    renderDailyResearchRun(host, workspace, bindings);
+    expect([...host.querySelectorAll('[data-us-symbol]')].map(node => node.getAttribute('data-us-symbol')))
+      .toEqual(['LITE', 'AVGO']);
+    expect(host.querySelector('[data-us-daily-run]')?.textContent).toContain('<script>unsafe()</script>');
+    expect(host.querySelector('script')).toBeNull();
+    expect(JSON.stringify(matches)).toBe(before);
+  });
+
+  it('does not present unknown plan or US status as a verified zero-result', () => {
+    const workspace = workspaceFixture() as unknown as JsonObject;
+    workspace.plan_product = { status: 'OWNER_ATTEMPT_UNVERIFIED', consumed: false, run_id: 'unverified-run' };
+    workspace.us_mapping_research = {
+      schema_version: 'v4.manager_research.us_mapping_research.v1', target_trade_date: bindings.plan_date,
+      RESEARCH_ONLY: true, production_allowed: false, buy_gate_updated: false, orders_sent: false,
+      daily_run: {
+        schema_version: 'v4.manager_research.us_mapping_daily_run.v1', target_trade_date: bindings.plan_date,
+        status: 'INPUT_MISSING', run_id: null, generated_at: null, us_session_date: null, research_cutoff: null,
+        coverage: { reviewed_us_symbol_count: null, matched_us_symbol_count: null, matched_hk_relation_count: null,
+          configured_us_universe_count: null, available_us_universe_count: null, full_market_coverage: false },
+        matches: [], gaps: ['INPUT_MISSING'], source_identity: null,
+        RESEARCH_ONLY: true, production_allowed: false, buy_gate_updated: false, orders_sent: false,
+      }, reviewed_research: null,
+    };
+    const projection = projectDailyResearchSummary(workspace, bindings);
+    expect(projection.plan.status).toBe('READBACK_UNVERIFIED');
+    expect(projection.us.matchedCount).toBeNull();
+    const host = document.createElement('section'); renderDailyResearchRun(host, workspace, bindings);
+    expect(host.textContent).toContain('匹配数量未知');
+    expect(host.textContent).not.toContain('匹配 0 条');
+  });
+
+  it('does not invent trigger timing or natural-run evidence when an older DTO omits context', () => {
+    const workspace = actualOwnerWorkspace();
+    const daily = ((workspace.us_mapping_research as JsonObject).daily_run as JsonObject);
+    delete daily.execution_context;
+    const summary = projectDailyResearchSummary(workspace, bindings);
+    expect(summary.us.executionLabel).toContain('未提供可核验的触发方式或执行时段');
+    const host = document.createElement('section'); renderDailyResearchRun(host, workspace, bindings);
+    const details = host.querySelector('[data-us-daily-run] > details:last-child')!;
+    expect(details.textContent).toContain('"natural_run_verified": null');
+    expect(details.textContent).not.toContain('"natural_run_verified": false');
+  });
+
+  it('retains an old result only for the exact plan, selection, publication and view snapshot', () => {
+    const current = actualOwnerWorkspace() as never;
+    expect(mayKeepWorkspaceResult({ current, loadedBindings: bindings, loadedView: 'auto',
+      requestedBindings: bindings, requestedView: 'auto' })).toBe(true);
+    for (const changed of [
+      { ...bindings, plan_date: '20261009' },
+      { ...bindings, selection_date: '20261007' },
+      { ...bindings, announcement_date: '20261007' },
+    ]) expect(mayKeepWorkspaceResult({ current, loadedBindings: bindings, loadedView: 'auto',
+      requestedBindings: changed, requestedView: 'auto' })).toBe(false);
+    expect(mayKeepWorkspaceResult({ current, loadedBindings: bindings, loadedView: 'auto',
+      requestedBindings: bindings, requestedView: 'dynamic' })).toBe(false);
+  });
+
+  it('rejects a late response after any date binding or request sequence changes', () => {
+    const common = { disposed: false, currentSequence: 4, requestSequence: 4,
+      requestedBindings: bindings, currentBindings: bindings,
+      requestedView: 'auto' as const, currentView: 'auto' as const };
+    expect(workspaceRequestStillCurrent(common)).toBe(true);
+    expect(workspaceRequestStillCurrent({ ...common, currentBindings: { ...bindings, announcement_date: '20261007' } })).toBe(false);
+    expect(workspaceRequestStillCurrent({ ...common, currentSequence: 5 })).toBe(false);
+    expect(workspaceRequestStillCurrent({ ...common, disposed: true })).toBe(false);
+  });
+});

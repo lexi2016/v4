@@ -1,0 +1,29 @@
+{
+  "scope": "ISOLATED_TEST_SOURCE_SLICE_NOT_DEPLOYABLE_APP",
+  "local_test_baseline": "3f2aa6c92d87da098d33b5349698e55d337fd165",
+  "parent_reused_fix_commit_local": "e221ca3",
+  "prior_remote_fix_commit": "0602f34fd10f7daff9bf688a710835d1bda43865",
+  "source_authority_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+  "prior_source_assembly_receipt": {
+    "source_commit": "0602f34fd10f7daff9bf688a710835d1bda43865",
+    "repository_path": "handoff/issue29-manager-daily-repair-20261008/evidence/assembled_overlays.json",
+    "sha256": "ee1c85fe0d5c8bdbaf4ae9c58259be5c2d144fb9e8a13ecdb11d925e797d19ef"
+  },
+  "final_baseline_overlays": [
+    {
+      "path": "v4/manager_research/us_mapping_research.py",
+      "sha256": "297dc6f5950d3614437378c22e3157b6866823fbf25fd39cb47f112ffea40da7",
+      "bytes": 14052,
+      "origin": "source_index.json exact confirmed active bytes at 09f82ac665e36a002e7f67f949b7e38f4e0598bf"
+    },
+    {
+      "path": "apps/web/src/manager-selection/researchAttention.ts",
+      "sha256": "16bb02dd12c22fd6c55f6c42bb57f8e48ac66864673ba403380381cb2b63f3ef",
+      "bytes": 22383,
+      "origin": "source_index.json layer=web_snapshot: supplied isolated-candidate web bytes at 09f82ac665e36a002e7f67f949b7e38f4e0598bf; current process-loaded UI identity not proven"
+    }
+  ],
+  "full_dependency_closure": false,
+  "current_mac_loaded_identity": "NOT_QUERIED_THIS_ROUND",
+  "reproduction": "Use the exact source-layer preimages and reused accepted fix bytes; apply only the manifest delta in an isolated or protected integrated candidate. The frozen GitHub repository is a handoff repository, not a source-root app checkout. Do not claim that git checkout followed by root-relative patches reconstructs a complete runnable app."
+}

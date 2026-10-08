@@ -1,0 +1,56 @@
+--- a/infrastructure/scheduling/manager_announcement_supervisor.py
++++ b/infrastructure/scheduling/manager_announcement_supervisor.py
+@@ -33,6 +33,14 @@
+     'v4/manager_research/workspace_plan_autorun.py',
+ )
+ PLAN_OWNER='ManagerResearchJobService.refresh_workspace_plan'
++DAILY_CATCHUP_SLOTS_LOCAL=('10:00','12:30','15:45','18:30','22:30')
++DAILY_AUTOMATION_DEFAULTS={
++    'enabled':False,
++    'same_day_catchup_slots_local':list(DAILY_CATCHUP_SLOTS_LOCAL),
++    'us_mapping_budget_seconds':5,
++    'max_attempts_per_target_date':5,
++    'status':'PROPOSAL_ONLY',
++}
+ REQUIRED_FILES=(
+     'ops/run_manager_announcement_cycle.py',
+     'ops/run_manager_daily_announcement.py',
+@@ -59,6 +67,28 @@
+     if not path.is_absolute() or '..' in path.parts or path.resolve()!=path:
+         raise ValueError('ANNOUNCEMENT_BINDING_PATH_NOT_EXACT')
+     return path
++
++
++def daily_automation_config(value: Any=None) -> dict[str,Any]:
++    config=dict(DAILY_AUTOMATION_DEFAULTS)
++    config['same_day_catchup_slots_local']=list(DAILY_CATCHUP_SLOTS_LOCAL)
++    if value is not None:
++        if not isinstance(value,dict) or set(value)-set(DAILY_AUTOMATION_DEFAULTS):
++            raise ValueError('DAILY_AUTOMATION_CONFIG_INVALID')
++        config.update(value)
++    if type(config['enabled']) is not bool or config['status']!='PROPOSAL_ONLY':
++        raise ValueError('DAILY_AUTOMATION_CONFIG_INVALID')
++    slots=config['same_day_catchup_slots_local']
++    if (not isinstance(slots,list) or tuple(slots)!=DAILY_CATCHUP_SLOTS_LOCAL
++            or any(not re.fullmatch(r'\d{2}:\d{2}',str(slot)) for slot in slots)):
++        raise ValueError('DAILY_AUTOMATION_SLOT_SEQUENCE_INVALID')
++    budget=config['us_mapping_budget_seconds']
++    if isinstance(budget,bool) or not isinstance(budget,(int,float)) or not 0<budget<=5:
++        raise ValueError('DAILY_AUTOMATION_US_BUDGET_INVALID')
++    attempts=config['max_attempts_per_target_date']
++    if isinstance(attempts,bool) or not isinstance(attempts,int) or not 1<=attempts<=len(slots):
++        raise ValueError('DAILY_AUTOMATION_ATTEMPT_LIMIT_INVALID')
++    return config
+ 
+ 
+ def binding_inventory(app: Path) -> dict[str,str]:
+@@ -349,6 +379,9 @@
+         raise ValueError('ANNOUNCEMENT_PREOPEN_PLAN_CONFIG_INVALID')
+     from v4.manager_research.workspace_plan_autorun import morning_config
+     morning_config(value.get('morning_plan'))
++    daily = daily_automation_config(value.get('daily_automation'))
++    if daily['enabled'] and not plan_only:
++        raise ValueError('DAILY_AUTOMATION_REQUIRES_PLAN_ONLY_MODE')
+     if plan_only:
+         from ops.run_manager_announcement_cycle import _plan_refresh_config
+         refresh=_plan_refresh_config(value.get('plan_material_refresh'))

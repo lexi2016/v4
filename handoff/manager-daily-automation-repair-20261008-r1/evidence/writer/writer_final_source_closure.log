@@ -1,0 +1,20 @@
+COMMAND: inspect required inventory markers and parent web modules in worktree/HEAD
+WORKDIR: /workspace/scratch/a154a3323e32/worktrees/manager_automation
+--- worktree existence ---
+MISSING apps/__init__.py
+apps/api/__init__.py size=41 bytes
+MISSING apps/web/src/api/managerAnnouncementAnalysis.ts
+MISSING apps/web/src/manager-selection/announcementAnalysis.ts
+MISSING stage_center/_selection_parts/_namespace.py
+--- canonical apps/api marker in HEAD ---
+ba6c324cbd4be60367b15bd3d6035c8165ee11c8ef9950d3282a0bb75849c991  -
+41
+--- canonical apps root marker in HEAD ---
+NOT_PRESENT_IN_HEAD
+
+EXIT_CODE=0
+
+FOLLOW-UP IMPORT/PATH VERIFICATION
+apps/web/src/manager-selection/catalystObservationPanel.ts:14 imports ../api/managerAnnouncementAnalysis.js; its source module is MISSING at apps/web/src/api/managerAnnouncementAnalysis.ts.
+apps/web/src/manager-selection/catalystObservationPanel.ts:15 imports ./announcementAnalysis.js; its source module is MISSING at apps/web/src/manager-selection/announcementAnalysis.ts.
+The first MISSING path above has been corrected from the earlier wrong directory after checking the exact import.

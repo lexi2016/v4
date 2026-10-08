@@ -1,0 +1,7 @@
+COMMAND: PYTHONPATH=.:upstreams /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q tests/test_manager_owner_namespace_contracts.py
+WORKDIR: /workspace/scratch/a154a3323e32/worktrees/manager_automation
+--- pytest output ---
+..                                                                       [100%]
+2 passed in 0.02s
+
+EXIT_CODE=0

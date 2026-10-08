@@ -1,0 +1,165 @@
+{
+  "schema_version": "v4.manager_daily_automation.acceptance_status.v1",
+  "recorded_at_utc": "2026-10-08T18:54:53.417692+00:00",
+  "problem_pack": {
+    "commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+    "path": "handoff/manager-daily-automation-problem-20261008/README.md"
+  },
+  "business_goal": "Each applicable trading day automatically complete announcement selection, US-to-HK mapping and oversold selection, save a dated plan and read stocks/reasons/dates/status in the ordinary manager page.",
+  "business_goal_complete": false,
+  "code_delivery_scope": "Source deltas, author tests, independent tests/review and Mac execution handoff only. Not a complete deployable application tree.",
+  "levels": [
+    {
+      "level": "IMPLEMENTED",
+      "status": "SOURCE_DELTA_IMPLEMENTED",
+      "scope": "20 production modules and 13 implementation test/fixture files; original owners, immutable runs, source/PIT gates and existing selection rules preserved.",
+      "evidence": [
+        "source_manifest.json",
+        "docs/OWNER_AND_DATE_CONTRACTS.md",
+        "docs/REVIEW_CONTRACT_DECISIONS.md"
+      ]
+    },
+    {
+      "level": "TESTED",
+      "status": "SCOPED_PASS_WITH_KNOWN_FAILURES_AND_CLOSURE_BLOCKERS",
+      "scope": "Writer Python main 112 passed; writer web 34 passed; scoped strict tsc exit 0. Separate independent daily 14, US 18, HK 4, exact route 1, source-window 1, UI projection 2 passed. Groups overlap and are not summed. HK supplement full file has 13 passed / 2 independently reproduced pre-existing failures. Original renderer/full application closure remains blocked.",
+      "evidence": [
+        "TESTING.md",
+        "evidence/writer/writer_final_report.json",
+        "independent_tests/final_review.json"
+      ]
+    },
+    {
+      "level": "REVIEWED",
+      "status": "PASS_WITH_SCOPED_SOURCE_CLOSURE_BLOCKERS",
+      "scope": "Independent behavioral reviewer bound the final source SHA set; separate packaging reviewer verified exact frozen origins, target roots and patch reconstruction. Packaging review does not substitute for behavioral or live acceptance.",
+      "evidence": [
+        "independent_tests/final_review.json",
+        "evidence/package/review_source_binding.json",
+        "evidence/package/final_packaging_source_review.json"
+      ]
+    },
+    {
+      "level": "INTEGRATED",
+      "status": "SHARED_ENTRY_INTEGRATION_UNVERIFIED",
+      "scope": "Local combined delta and reversible application checked; no protected cumulative host baseline or Issue #28 joint preservation acceptance. Issue #30 unique integration owner must reconcile current source identities and shared entry ownership.",
+      "evidence": [
+        "evidence/package/patch_verification.json",
+        "evidence/package/source_scope_audit.json",
+        "docs/HOST_EXECUTION.md"
+      ]
+    },
+    {
+      "level": "DEPLOYED",
+      "status": "NOT_DEPLOYED_THIS_ROUND",
+      "scope": "No Mac copy, source enable, POST, service start/stop, binding activation or deployment performed. GitHub handoff publication is not deployment.",
+      "evidence": [
+        "docs/HOST_EXECUTION.md"
+      ]
+    },
+    {
+      "level": "API_VERIFIED",
+      "status": "IN_PROCESS_CONTRACT_TESTED_LIVE_API_UNVERIFIED",
+      "scope": "Original FastAPI TestClient routes exercised with explicit synthetic sources; no deployed 8873 service queried this round.",
+      "evidence": [
+        "independent_tests/final_review.json",
+        "independent_tests/daily_exact_page_binding_final.log",
+        "docs/HOST_EXECUTION.md"
+      ]
+    },
+    {
+      "level": "UI_VERIFIED",
+      "status": "LOCAL_DTO_AND_PROJECTION_TESTED_LIVE_PAGE_UNVERIFIED",
+      "scope": "Actual in-process route DTO reaches original TypeScript API validator and saved-plan projection. Full parent build/mount/browser reload unavailable because original dependencies were not provided.",
+      "evidence": [
+        "independent_tests/ui_reviewer_final.log",
+        "TESTING.md",
+        "docs/HOST_EXECUTION.md"
+      ]
+    },
+    {
+      "level": "BEHAVIOR_VERIFIED",
+      "status": "OFFLINE_CHAIN_TESTED_REAL_20261008_UNVERIFIED",
+      "scope": "Offline original-owner late-input catchup, immutable replay/recovery, exact page binding and D2-to-D1 HK readback verified. No real 10/8 retrospective executed; no historical source result fabricated.",
+      "evidence": [
+        "independent_tests/final_review.json",
+        "docs/REVIEW_CONTRACT_DECISIONS.md",
+        "docs/HOST_EXECUTION.md"
+      ]
+    },
+    {
+      "level": "NATURAL_VERIFIED",
+      "status": "NATURAL_SLOT_UNVERIFIED",
+      "scope": "Zero live natural trading dates observed this round. Need at least two consecutive applicable trading dates with original scheduler, inputs, US/plan receipts, immutable products, API and ordinary-page readback. Manual calls and simulated dates do not count.",
+      "evidence": [
+        "docs/HOST_EXECUTION.md"
+      ]
+    }
+  ],
+  "required_real_acceptance": {
+    "retrospective_20261008": {
+      "status": "NOT_EXECUTED_THIS_ROUND",
+      "actual_target": "20261008",
+      "actual_execution_timestamp": null,
+      "stocks": null,
+      "stock_count": null,
+      "note": "If executed on 10/9, retain true execution time and retrospective semantics. Do not label the result a 10/8 preopen plan. Use the original dynamic read mode for retrospective readback."
+    },
+    "cross_day": {
+      "offline_original_owner_chain": "TESTED_WITH_EXPLICIT_SYNTHETIC_BOUNDARIES",
+      "actual_host": "UNVERIFIED",
+      "required": "After day two advances shared latest, reread day one exact HK chain/master entry/artifacts and prior plan; verify immutable bytes and readability."
+    },
+    "consecutive_natural_days": {
+      "minimum_required": 2,
+      "observed_in_this_round": 0,
+      "date_evidence": [],
+      "status": "NATURAL_SLOT_UNVERIFIED"
+    }
+  },
+  "open_gaps": [
+    "Protected Issue #30 cumulative integration, actual root/module SHAs and Issue #28 joint preservation acceptance.",
+    "Actual us_market_digest workload remains disabled in the supplied runtime source; actual us_digest executor bytes and enabled continuous supply are not proven.",
+    "Continuous enabled announcement Reader/Reviewer product production is not proven; legal imported products are consumed without inventing research decisions.",
+    "Real 10/8 same-capture HK membership/V2/master closure and historical qualification, price units/finality are not proven; 698 versus 700/717 lineage remains unresolved.",
+    "Provided source slices lack clean Stage selection namespace, original parent apps marker, two ordinary-page dependencies and actual US executor; current host may have them but its closure must be verified."
+  ],
+  "research_safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "historical_results_fabricated": false
+  },
+  "evidence_identity": {
+    "source_manifest.json": {
+      "sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+      "bytes": 47944
+    },
+    "evidence/writer/writer_final_report.json": {
+      "sha256": "fb649a0b2cc992ec2e01ccc2d51a61376176f203a1604a9e764694efd4d0b1c1",
+      "bytes": 13955
+    },
+    "independent_tests/final_review.json": {
+      "sha256": "359d56ad0702c8cdbcf7f71156da0837e884a7ccab64e1c21f5b12c39f2ef045",
+      "bytes": 34905
+    },
+    "evidence/package/review_source_binding.json": {
+      "sha256": "ec781577124839d15c579f021b551df96ecd878fecd5c5d4a08be916e09410af",
+      "bytes": 6011
+    },
+    "evidence/package/final_packaging_source_review.json": {
+      "sha256": "f1367f2ab1fb7f7eb76f1a21ebe6c9426ee321919a746d8bceaa01b3c6d4fa43",
+      "bytes": 71848
+    },
+    "evidence/package/patch_verification.json": {
+      "sha256": "60749db2d28159ddb2cdfa494497b457fbd24a304b9fbeb160fc27e8f20ed697",
+      "bytes": 73183
+    },
+    "evidence/package/source_scope_audit.json": {
+      "sha256": "2d7dfaca88a3dfa67cd4a9980e6c75b3a23ee2fa7629c1fb99dd9c9dea551f99",
+      "bytes": 8160
+    }
+  },
+  "publication_note": "This receipt is frozen before an append-only independent GitHub handoff commit. Remote readback identity is recorded separately to avoid self-reference. No shared branch merge or service deployment is implied."
+}

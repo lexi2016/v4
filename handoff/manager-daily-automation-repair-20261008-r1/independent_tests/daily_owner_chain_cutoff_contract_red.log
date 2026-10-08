@@ -1,0 +1,44 @@
+F.............                                                           [100%]
+=================================== FAILURES ===================================
+_ test_daily_rpc_consumes_original_reviewed_import_and_preserves_preopen_history _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-310/test_daily_rpc_consumes_origin0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe5f8fa3ce0>
+
+    def test_daily_rpc_consumes_original_reviewed_import_and_preserves_preopen_history(
+            tmp_path, monkeypatch):
+        value, binding_path, binding_sha = _unvalidated_daily_binding(tmp_path)
+        _accept_test_binding(monkeypatch)
+        state = Path(value["manager_state_root"])
+        service = announcement_fixture._FixtureService(state)
+        service._workspace_security_master_root = Path(value["security_master_root"])
+        monkeypatch.setenv("V4_MANAGER_PLAN_OWNER_BINDING_PATH", str(binding_path))
+        monkeypatch.setattr(dispatch, "clock_now", lambda: datetime(2026, 10, 8, 10, 0, tzinfo=HK))
+    
+        preopen_at = datetime(2026, 10, 8, 9, 27, tzinfo=HK)
+        monkeypatch.setattr(workspace_owner, "_now", lambda: "2026-10-08T01:28:00+00:00")
+        preopen = service.refresh_workspace_plan("20261008", execution_kind="SCHEDULED_PREOPEN",
+            now=preopen_at, deadline=datetime(2026, 10, 8, 9, 30, tzinfo=HK))
+        old_run = preopen["plan_product"]["run_id"]
+        old_path = state / "workspace_plans" / "20261008" / f"{old_run}.json"
+        old_bytes = old_path.read_bytes()
+        before = service.get_workspace("20261008", view="dynamic", now=preopen_at)
+    
+        imported_at = datetime(2026, 10, 8, 9, 45, tzinfo=HK)
+        _freeze_api_clock(monkeypatch, imported_at)
+        product, registration, import_client = _import_reviewed_product(service)
+        assert registration["product_sha256"] == product["sha256"]
+        after_import = service.get_workspace("20261008", view="dynamic", now=imported_at)
+>       assert after_import["input_identity"] != before["input_identity"]
+E       AssertionError: assert '1b4a298deb120dca0a65595d84f05c78ce838b9f5b5d6850ea31b480028285fe' != '1b4a298deb120dca0a65595d84f05c78ce838b9f5b5d6850ea31b480028285fe'
+
+../../investigation/automation/reviewer/test_daily_full_chain_independent.py:278: AssertionError
+=============================== warnings summary ===============================
+../../test_env/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED ../../investigation/automation/reviewer/test_daily_full_chain_independent.py::test_daily_rpc_consumes_original_reviewed_import_and_preserves_preopen_history
+1 failed, 13 passed, 1 deselected, 1 warning in 1.64s

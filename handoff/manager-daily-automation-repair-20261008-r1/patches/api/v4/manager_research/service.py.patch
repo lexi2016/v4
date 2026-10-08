@@ -1,0 +1,68 @@
+--- a/v4/manager_research/service.py
++++ b/v4/manager_research/service.py
+@@ -5,6 +5,7 @@
+ from concurrent.futures import Future, ThreadPoolExecutor, TimeoutError as FutureTimeoutError, as_completed
+ from datetime import datetime, timezone
+ from decimal import Decimal, InvalidOperation
++import json
+ import re
+ import os
+ from uuid import uuid4
+@@ -392,7 +393,8 @@
+ 
+     def get_workspace(self, target_trade_date: str, *, view: str = "dynamic",
+                       now: datetime | None = None, cancel_event: threading.Event | None = None,
+-                      selection_date: str | None = None, announcement_date: str | None = None) -> dict[str, Any]:
++                      selection_date: str | None = None, announcement_date: str | None = None,
++                      us_market_request_context: Mapping[str, Any] | None = None) -> dict[str, Any]:
+         # Legacy internal callers retain dynamic semantics. The browser GET
+         # explicitly supplies auto (historical for past HK dates).
+         from .workspace import get_workspace
+@@ -404,15 +406,25 @@
+             options['selection_date'] = strict_trade_date(selection_date)
+         if announcement_date is not None:
+             options['announcement_date'] = strict_trade_date(announcement_date.replace('-', ''))
++        if us_market_request_context is not None:
++            options['us_market_request_context'] = dict(us_market_request_context)
+         key = (target_trade_date, view, now.isoformat() if now is not None else "SERVER_CLOCK",
+-               options.get('selection_date'), options.get('announcement_date'))
++               options.get('selection_date'), options.get('announcement_date'),
++               json.dumps(options.get('us_market_request_context'), sort_keys=True))
+         return self._workspace_reads.run(key,
+             lambda: get_workspace(self, target_trade_date, view=view, now=now, **options), cancelled=cancel_event)
+ 
+-    def refresh_us_mapping_research(self, target_trade_date: str, *, now: datetime) -> dict[str, Any]:
+-        """Persist a daily US-to-HK projection from the already injected owners."""
++    def refresh_us_mapping_research(self, target_trade_date: str, *, now: datetime,
++                                    timeout_seconds: float | None = None,
++                                    execution_context: Mapping[str, Any] | None = None) -> dict[str, Any]:
++        """Persist a bounded daily US-to-HK projection from the injected owner.
++
++        The builder runs in a single non-queueing read lane; only this caller
++        can publish its accepted result. A timed-out reader can never write.
++        """
+         from .us_mapping_research import persist_daily_run
+-        return persist_daily_run(self, target_trade_date, now=now)
++        return persist_daily_run(self, target_trade_date, now=now,
++            timeout_seconds=timeout_seconds, execution_context=execution_context)
+ 
+     def refresh_announcements(self, target_trade_date: str, *, resume: bool = False,
+                               schedule: Mapping[str, Any] | None = None,
+@@ -455,9 +467,15 @@
+         return _read_plan(self.store, strict_trade_date(target_trade_date))
+ 
+     def refresh_workspace_plan(self, target_trade_date: str, *, execution_kind: str = 'MANUAL_REFRESH',
+-                               now: datetime | None = None, deadline: datetime | None = None) -> dict[str, Any]:
++                               now: datetime | None = None, deadline: datetime | None = None,
++                               execution_context: Mapping[str, Any] | None = None,
++                               us_market_request_context: Mapping[str, Any] | None = None,
++                               workspace_date_bindings: Mapping[str, Any] | None = None) -> dict[str, Any]:
+         from .workspace import refresh_workspace_plan
+-        return refresh_workspace_plan(self, target_trade_date, execution_kind=execution_kind, now=now, deadline=deadline)
++        return refresh_workspace_plan(self, target_trade_date, execution_kind=execution_kind, now=now,
++                                      deadline=deadline, execution_context=execution_context,
++                                      us_market_request_context=us_market_request_context,
++                                      workspace_date_bindings=workspace_date_bindings)
+ 
+     def _read_input(self, target_trade_date: str) -> dict[str, Any]:
+         target_trade_date = strict_trade_date(target_trade_date)

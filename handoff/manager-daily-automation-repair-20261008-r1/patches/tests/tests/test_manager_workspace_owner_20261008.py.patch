@@ -1,0 +1,158 @@
+--- a/tests/test_manager_workspace_owner_20261008.py
++++ b/tests/test_manager_workspace_owner_20261008.py
+@@ -51,6 +51,155 @@
+     assert second['workspace_plan_attempt']==first['workspace_plan_attempt']
+     assert second['daily_channels']['channels'][1]['execution_kind']=='SCHEDULED_PREOPEN'
+     assert second['daily_channels']['channels'][1]['run_id']==first['plan_product']['run_id']
++    assert first['plan_product']['run_readback']['status']=='VERIFIED'
++    assert first['plan_product']['run_readback']['owner_attempt_run_id']==first['plan_product']['run_id']
++    assert 'RESEARCH_ONLY' not in first['plan_product']['run_readback']
++    assert second['plan_product']['run_readback']['run_id']==first['plan_product']['run_readback']['run_id']
++    assert second['plan_product']['run_readback']['owner_attempt_sha256']==first['plan_product']['run_readback']['owner_attempt_sha256']
++
++
++def test_saved_plan_readback_stays_separate_from_a_later_failed_attempt(tmp_path, monkeypatch):
++    svc=owner(tmp_path,monkeypatch)
++    first=w.refresh_workspace_plan(svc,DAY)
++    saved_run=first['plan_product']['run_id']
++    latest_path=svc.store.root/'workspace_plan_runs'/DAY/'latest.json'
++    latest=svc.store._read(latest_path)
++    failed=w.seal_attempt({**latest,'run_id':'9'*32,'state':'FAILED',
++        'started_at':'2026-10-08T01:30:00+00:00','finished_at':'2026-10-08T01:30:01+00:00',
++        'failure_reasons':['SYNTHETIC_LATER_FAILURE']})
++    svc.store._write_atomic(latest_path,failed)
++    current_value=current()
++    read=w._readback_plan(svc.store,DAY,current_value)
++    product=read['plan_product'];attempt=read['workspace_plan_attempt']
++    assert product['run_readback']['status']=='VERIFIED'
++    assert product['run_readback']['run_id']==saved_run
++    assert product['run_readback']['owner_attempt_run_id']==saved_run
++    assert product['run_readback']['artifact_sha256']==product['sha256']
++    assert attempt['state']=='FAILED' and attempt['run_id']=='9'*32
++
++
++def test_late_catchup_plan_preserves_server_execution_context(tmp_path, monkeypatch):
++    svc=owner(tmp_path,monkeypatch)
++    started=datetime.fromisoformat('2026-10-08T10:00:00+08:00')
++    finished='2026-10-08T02:00:01+00:00'
++    monkeypatch.setattr(w,'_now',lambda:finished)
++    context={'trigger_kind':'SCHEDULED','timing':'LATE_CATCHUP',
++        'scheduled_for':'2026-10-08T10:00:00+08:00','natural_run_verified':False}
++    result=w.refresh_workspace_plan(svc,DAY,execution_kind='MANUAL_REFRESH',now=started,
++        execution_context=context)
++    saved=svc.store._read(svc.store.root/'workspace_plans'/DAY/'latest.json')
++    attempt=svc.store._read(svc.store.root/'workspace_plan_runs'/DAY/(saved['run_id']+'.json'))
++    assert saved['execution_context']=={
++        **context,'started_at':started.isoformat(timespec='microseconds'),'finished_at':finished}
++    assert attempt['execution_context']==saved['execution_context']
++    assert result['plan_product']['execution_context']==saved['execution_context']
++
++
++def test_same_plan_us_attempt_overlay_keeps_saved_matches_and_exposes_late_failure():
++    saved={'us_mapping_research':{'daily_run':{'status':'COMPLETED','run_id':'old',
++        'generated_at':'2026-10-08T06:00:00+08:00','matches':[{'us_symbol':'NVDA'}]}}}
++    current={'us_mapping_research':{'daily_run':{'status':'FAILED','run_id':'old',
++        'generated_at':'2026-10-08T06:00:00+08:00','matches':[{'us_symbol':'NVDA'}],
++        'latest_attempt':{'status':'FAILED','trigger_id':'a'*64,
++            'finished_at':'2026-10-08T10:00:00+08:00','execution_context':{'trigger_id':'a'*64}}}}}
++    merged=w._overlay_us_mapping_attempt(saved,current,'2026-10-08T09:30:00+08:00')
++    assert merged['daily_run']['matches']==[{'us_symbol':'NVDA'}]
++    assert merged['daily_run']['latest_attempt']['trigger_id']=='a'*64
++    assert merged['daily_run']['latest_attempt_after_plan_cutoff'] is True
++    assert merged['daily_run']['latest_attempt_affects_saved_plan'] is False
++
++
++def test_saved_plan_attempt_overlay_uses_saved_cutoff_not_current_get_cutoff(tmp_path, monkeypatch):
++    svc=owner(tmp_path,monkeypatch)
++    saved_cutoff='2026-10-08T09:00:00+08:00'
++    current_cutoff='2026-10-08T10:00:00+08:00'
++    saved_at=datetime.fromisoformat(saved_cutoff)
++    def read_at(_service,date,*,include_saved,now,**kwargs):
++        value=current()
++        value['plan_context']={'research_cutoff':saved_cutoff if now==saved_at else current_cutoff}
++        value['us_mapping_research']={'daily_run':{'status':'COMPLETED','run_id':'1'*32,
++            'generated_at':'2026-10-08T08:00:00+08:00','artifact_sha256':'2'*64,
++            'matches':[{'us_symbol':'NVDA'}], 'latest_attempt':{
++                'status':'FAILED','trigger_id':'3'*64,
++                'finished_at':'2026-10-08T09:30:00+08:00',
++                'execution_context':{'trigger_id':'3'*64}}}}
++        return value
++    monkeypatch.setattr(w,'get_workspace',read_at)
++    monkeypatch.setattr(w,'_now',lambda:'2026-10-08T01:00:01+00:00')
++    w.refresh_workspace_plan(svc,DAY,execution_kind='MANUAL_REFRESH',now=saved_at)
++    latest=read_at(svc,DAY,include_saved=False,now=datetime.fromisoformat(current_cutoff))
++    result=w._readback_plan(svc.store,DAY,latest)
++    daily=result['us_mapping_research']['daily_run']
++    assert daily['latest_attempt_after_plan_cutoff'] is True
++    assert daily['latest_attempt_affects_saved_plan'] is False
++
++
++def test_retrospective_plan_keeps_real_read_and_generation_time_explicit(tmp_path, monkeypatch):
++    svc=owner(tmp_path,monkeypatch)
++    actual=datetime.fromisoformat('2026-10-09T10:00:00+08:00')
++    observed=[]
++    def capture_read(service,date,*,include_saved,now,**kwargs):
++        observed.append(now)
++        return {**current(),'plan_context':{'research_cutoff':now.isoformat()}}
++    monkeypatch.setattr(w,'get_workspace',capture_read)
++    monkeypatch.setattr(w,'_now',lambda:'2026-10-09T02:00:01+00:00')
++    result=w.refresh_workspace_plan(svc,'20261008',execution_kind='MANUAL_REFRESH',now=actual,
++        execution_context={'trigger_kind':'MANUAL','timing':'RETROSPECTIVE',
++            'scheduled_for':None,'natural_run_verified':False})
++    cutoff=datetime.fromisoformat(result['plan_context']['research_cutoff'])
++    generated=datetime.fromisoformat(result['plan_product']['generated_at'].replace('Z','+00:00'))
++    assert observed==[actual]
++    assert cutoff==actual
++    assert generated>=actual.astimezone(generated.tzinfo)
++    assert result['plan_product']['execution_context']['research_cutoff_policy']==\
++        'ACTUAL_OWNER_EXECUTION_CUTOFF_RETROSPECTIVE'
++
++
++def test_timeout_suppression_is_request_scoped_and_skips_second_us_reader_call(monkeypatch):
++    class Reader:
++        def __init__(self): self.calls = 0
++        def read_exact_session(self, session_date):
++            self.calls += 1
++            raise AssertionError('timed-out reader must not be entered by plan projection')
++
++    reader = Reader()
++    service = SimpleNamespace(_workspace_us_market_reader=reader)
++    request = {
++        'target_trade_date': DAY,
++        'execution_status': 'US_MAPPING_OWNER_READ_TIMEOUT',
++        'bypass_reader': True,
++    }
++    result = w._project_us_market_attention(service, DAY,
++        {'research_cutoff': '2026-10-08T08:00:00+08:00'},
++        us_market_request_context=request)
++    assert reader.calls == 0
++    assert result['status'] == 'SOURCE_FAILED'
++    assert result['gaps'] == ['US_MARKET_DAILY_OWNER_NOT_RETRIED:US_MAPPING_OWNER_READ_TIMEOUT']
++    assert result['bounded_owner_execution_status'] == 'US_MAPPING_OWNER_READ_TIMEOUT'
++
++
++def test_workspace_us_projection_skips_reader_busy_in_bounded_owner_lane(monkeypatch):
++    import threading
++    from v4.manager_research import us_mapping_research
++
++    class Reader:
++        def __init__(self): self.calls = 0
++        def read_exact_session(self, session_date):
++            self.calls += 1
++            raise AssertionError('reader already held by bounded US owner lane')
++
++    reader = Reader()
++    active = SimpleNamespace(
++        service=SimpleNamespace(_workspace_us_market_reader=reader),
++        done=threading.Event())
++    monkeypatch.setattr(us_mapping_research, '_ACTIVE_BUILD', active)
++    service = SimpleNamespace(_workspace_us_market_reader=reader)
++    result = w._project_us_market_attention(service, DAY,
++        {'research_cutoff': '2026-10-08T08:00:00+08:00'})
++    assert reader.calls == 0
++    assert result['status'] == 'SOURCE_FAILED'
++    assert result['gaps'] == ['US_MARKET_DAILY_OWNER_NOT_RETRIED:US_MAPPING_OWNER_READ_BUSY']
++    assert result['bounded_owner_execution_status'] == 'US_MAPPING_OWNER_READ_BUSY'
+ 
+ 
+ def test_saved_plan_wrong_owner_is_rejected_even_with_consistent_hash(tmp_path, monkeypatch):

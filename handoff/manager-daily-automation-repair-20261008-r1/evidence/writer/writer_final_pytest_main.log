@@ -1,0 +1,14 @@
+COMMAND: PYTHONPATH=.:upstreams:tests /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q tests/test_manager_workspace_exact_page_binding_20261008.py tests/test_manager_workspace_owner_20261008.py tests/test_manager_history_contract_20261008.py tests/test_manager_daily_automation_20261008.py tests/test_manager_daily_dispatch_20261008.py tests/test_manager_us_daily_automation_20261008.py tests/test_hk_daily_publication_chain.py
+WORKDIR: /workspace/scratch/a154a3323e32/worktrees/manager_automation
+--- pytest output ---
+........................................................................ [ 64%]
+........................................                                 [100%]
+=============================== warnings summary ===============================
+../../test_env/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+112 passed, 1 warning in 5.16s
+
+EXIT_CODE=0

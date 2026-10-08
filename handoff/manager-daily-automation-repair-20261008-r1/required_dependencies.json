@@ -1,0 +1,202 @@
+{
+  "schema_version": "manager_daily_original_dependency_map.v1",
+  "scope": "Selected original modules directly reused by the delta; not a complete app dependency graph",
+  "full_dependency_closure": "NOT_PROVIDED",
+  "files": [
+    {
+      "profile": "hk_child",
+      "path": "ops/_macos_research_panel_daily_parts/hk_market_capture.py",
+      "local_test_path": "ops/_macos_research_panel_daily_parts/hk_market_capture.py",
+      "supplied_sha256": "0a9651f88bc8a50d4b5e8ec4b6775a5291918f9f2556cf37c05b80a55cdfd84a",
+      "bytes": 31474,
+      "git_blob_sha": "41abd49f836ab0e118b1eec3c68001e9915c415b",
+      "source_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "source_origin": "handoff/v4-running-source-20261005/canonical/ops/_macos_research_panel_daily_parts/hk_market_capture.py",
+      "actual_host_pin": "NOT_PROVEN_BY_THIS_CHECK",
+      "action": "Verify existing original owner module and imported __file__ at the bound host root; if absent or different, resolve through protected integration before activation. No automatic replacement in this delta."
+    },
+    {
+      "profile": "hk_child",
+      "path": "stage_center/hk_universe_preflight.py",
+      "local_test_path": "stage_center/hk_universe_preflight.py",
+      "supplied_sha256": "9d3d2c2d5ff3bd1c7713a9485e88000ae882f58b0a457b734656094606ba2941",
+      "bytes": 40555,
+      "git_blob_sha": "be2e34e43b09cbce549aec6f45828c3fcca1baa6",
+      "source_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "source_origin": "handoff/v4-running-source-20261005/canonical/stage_center/hk_universe_preflight.py",
+      "actual_host_pin": "NOT_PROVEN_BY_THIS_CHECK",
+      "action": "Verify existing original owner module and imported __file__ at the bound host root; if absent or different, resolve through protected integration before activation. No automatic replacement in this delta."
+    },
+    {
+      "profile": "hk_child",
+      "path": "infrastructure/isolated_package_loader.py",
+      "local_test_path": "infrastructure/isolated_package_loader.py",
+      "supplied_sha256": "c714d4b95c03da061f592e076cd12188dbeefcd9f0fae7aeaae18c0450e915eb",
+      "bytes": 6946,
+      "git_blob_sha": "c351e33930bb5e7b8321940ec88afc42c34038fc",
+      "source_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "source_origin": "handoff/v4-running-source-20261005/canonical/infrastructure/isolated_package_loader.py",
+      "actual_host_pin": "NOT_PROVEN_BY_THIS_CHECK",
+      "action": "Verify existing original owner module and imported __file__ at the bound host root; if absent or different, resolve through protected integration before activation. No automatic replacement in this delta."
+    },
+    {
+      "profile": "hk_upstream",
+      "path": "scripts/acquire_hk_security_master.py",
+      "local_test_path": "upstreams/v3_shared_data/scripts/acquire_hk_security_master.py",
+      "supplied_sha256": "9d65e7016df3529f10c34a9532da3b2ac9236c4446a3bf7adea1531281e6c6ad",
+      "bytes": 8873,
+      "git_blob_sha": "8d79f6c205ab208c5252c39150dfe249c9e820db",
+      "source_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "source_origin": "handoff/v4-running-source-20261005/canonical/upstreams/v3_shared_data/scripts/acquire_hk_security_master.py",
+      "actual_host_pin": "NOT_PROVEN_BY_THIS_CHECK",
+      "action": "Verify existing original owner module and imported __file__ at the bound host root; if absent or different, resolve through protected integration before activation. No automatic replacement in this delta."
+    },
+    {
+      "profile": "hk_upstream",
+      "path": "shared_data/hk_security_master.py",
+      "local_test_path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "supplied_sha256": "ac2c16669236d24d6d03cac183238ca8dccd8fd23895ae14ad34cef40c049008",
+      "bytes": 14396,
+      "git_blob_sha": "36262bcd4fb9a8a52be8c6791180ee450c2d63b8",
+      "source_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "source_origin": "handoff/v4-running-source-20261005/canonical/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "actual_host_pin": "NOT_PROVEN_BY_THIS_CHECK",
+      "action": "Verify existing original owner module and imported __file__ at the bound host root; if absent or different, resolve through protected integration before activation. No automatic replacement in this delta."
+    },
+    {
+      "profile": "hk_upstream",
+      "path": "shared_data/hk_0_2.py",
+      "local_test_path": "upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "supplied_sha256": "27da90f0e623e45fa1a27af7dcc3b6e5e1ff2320bae1c61bd903ed82050beb89",
+      "bytes": 67647,
+      "git_blob_sha": "b2b366c2cbfd89ba9fed437620057fdb01f1e561",
+      "source_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "source_origin": "handoff/v4-running-source-20261005/canonical/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "actual_host_pin": "NOT_PROVEN_BY_THIS_CHECK",
+      "action": "Verify existing original owner module and imported __file__ at the bound host root; if absent or different, resolve through protected integration before activation. No automatic replacement in this delta."
+    },
+    {
+      "profile": "hk_upstream",
+      "path": "scripts/update_hk_0_2_panel.py",
+      "local_test_path": "upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+      "supplied_sha256": "e54266676520eaf3ff59340758891a0abc1807a4afff65ed2b2536b144f5e1ec",
+      "bytes": 3621,
+      "git_blob_sha": "cab70a41286686e3307d688ff62b51a2672caf45",
+      "source_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "source_origin": "handoff/v4-running-source-20261005/canonical/upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+      "actual_host_pin": "NOT_PROVEN_BY_THIS_CHECK",
+      "action": "Verify existing original owner module and imported __file__ at the bound host root; if absent or different, resolve through protected integration before activation. No automatic replacement in this delta."
+    },
+    {
+      "profile": "api",
+      "path": "infrastructure/research_peripheral_store.py",
+      "local_test_path": "infrastructure/research_peripheral_store.py",
+      "supplied_sha256": "ec5ca1e32232946bacf04834d0ec0e0ed6e772ce1d3470fdb65b35522dc2faab",
+      "bytes": 15114,
+      "git_blob_sha": "9bc740c094697370208b4e84a07e724648a80a8a",
+      "source_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "source_origin": "handoff/v4-running-source-20261005/canonical/infrastructure/research_peripheral_store.py",
+      "actual_host_pin": "NOT_PROVEN_BY_THIS_CHECK",
+      "action": "Verify existing original owner module and imported __file__ at the bound host root; if absent or different, resolve through protected integration before activation. No automatic replacement in this delta."
+    },
+    {
+      "profile": "api",
+      "path": "v4/manager_research/us_market_bridge.py",
+      "local_test_path": "v4/manager_research/us_market_bridge.py",
+      "supplied_sha256": "18d4ede4267a446d235267c71cecd1208f30ae3fdfe9ff02d9354d1b5a18de06",
+      "bytes": 18974,
+      "git_blob_sha": "6b79f476e1251d2ac55d03e832de76ebbef1c72d",
+      "source_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "source_origin": "handoff/v4-running-source-20261005/canonical/v4/manager_research/us_market_bridge.py",
+      "actual_host_pin": "NOT_PROVEN_BY_THIS_CHECK",
+      "action": "Verify existing original owner module and imported __file__ at the bound host root; if absent or different, resolve through protected integration before activation. No automatic replacement in this delta."
+    },
+    {
+      "profile": "api",
+      "path": "contracts/us_equity_calendar_2026.json",
+      "local_test_path": "contracts/us_equity_calendar_2026.json",
+      "supplied_sha256": "cd8eac440e985be8fe9700983584dd1108873b68d5cc91cae2cbe8f7283a422f",
+      "bytes": 603,
+      "git_blob_sha": "58ac5e41c1d3ed8c0be5616ec316c955f35afb63",
+      "source_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "source_origin": "handoff/v4-running-source-20261005/canonical/contracts/us_equity_calendar_2026.json",
+      "actual_host_pin": "NOT_PROVEN_BY_THIS_CHECK",
+      "action": "Verify existing original owner module and imported __file__ at the bound host root; if absent or different, resolve through protected integration before activation. No automatic replacement in this delta."
+    },
+    {
+      "profile": "api",
+      "path": "contracts/trading_calendar.py",
+      "local_test_path": "contracts/trading_calendar.py",
+      "supplied_sha256": "eca22a1e45271df45fc0a3b7cec28cec4e448d1af97b80371cc5c3c1953ec0f1",
+      "bytes": 10239,
+      "git_blob_sha": "b0a6a32d8b2e14c7bb054a1ded35d93da1bc504c",
+      "source_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "source_origin": "handoff/v4-running-source-20261005/canonical/contracts/trading_calendar.py",
+      "actual_host_pin": "NOT_PROVEN_BY_THIS_CHECK",
+      "action": "Verify existing original owner module and imported __file__ at the bound host root; if absent or different, resolve through protected integration before activation. No automatic replacement in this delta."
+    },
+    {
+      "profile": "api",
+      "path": "v4/manager_research/store.py",
+      "local_test_path": "v4/manager_research/store.py",
+      "supplied_sha256": "79e077d2133f8c0bd33dde253e752bc6482423565ec11e9217d88b86f02cc07e",
+      "bytes": 19988,
+      "git_blob_sha": "c9af9a6ae87858ebee111766d4db0fd0639943b5",
+      "source_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "source_origin": "handoff/v4-running-source-20261005/canonical/v4/manager_research/store.py",
+      "actual_host_pin": "NOT_PROVEN_BY_THIS_CHECK",
+      "action": "Verify existing original owner module and imported __file__ at the bound host root; if absent or different, resolve through protected integration before activation. No automatic replacement in this delta."
+    },
+    {
+      "profile": "api",
+      "path": "v4/manager_research/workspace_projection.py",
+      "local_test_path": "v4/manager_research/workspace_projection.py",
+      "supplied_sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+      "bytes": 30841,
+      "git_blob_sha": "5799baef183dd4a93bdbc24c817a5df3d9e3cc33",
+      "source_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "source_origin": "handoff/manager-daily-chain-20261008/compat_r3/candidate_app/v4/manager_research/workspace_projection.py",
+      "actual_host_pin": "NOT_PROVEN_BY_THIS_CHECK",
+      "action": "Verify existing original owner module and imported __file__ at the bound host root; if absent or different, resolve through protected integration before activation. No automatic replacement in this delta."
+    },
+    {
+      "profile": "api",
+      "path": "v4/manager_research/workspace_plan.py",
+      "local_test_path": "v4/manager_research/workspace_plan.py",
+      "supplied_sha256": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb",
+      "bytes": 106047,
+      "git_blob_sha": "25bdc2c417f28307a4bdd3a05e868ac2285b25c2",
+      "source_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "source_origin": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/workspace_plan.py",
+      "actual_host_pin": "NOT_PROVEN_BY_THIS_CHECK",
+      "action": "Verify existing original owner module and imported __file__ at the bound host root; if absent or different, resolve through protected integration before activation. No automatic replacement in this delta."
+    },
+    {
+      "profile": "api",
+      "path": "v4/manager_research/announcement_analysis.py",
+      "local_test_path": "v4/manager_research/announcement_analysis.py",
+      "supplied_sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+      "bytes": 68733,
+      "git_blob_sha": "879c4bd6f963dba2fc34457a06b4622d758408d2",
+      "source_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "source_origin": "handoff/manager-daily-chain-20261008/compat_r3/candidate_app/v4/manager_research/announcement_analysis.py",
+      "actual_host_pin": "NOT_PROVEN_BY_THIS_CHECK",
+      "action": "Verify existing original owner module and imported __file__ at the bound host root; if absent or different, resolve through protected integration before activation. No automatic replacement in this delta."
+    }
+  ],
+  "unprovided_required_sources": [
+    "apps/__init__.py",
+    "stage_center/_selection_parts/_namespace.py",
+    "apps/web/src/api/managerAnnouncementAnalysis.ts",
+    "apps/web/src/manager-selection/announcementAnalysis.ts",
+    "actual scheduler infrastructure/scheduling/_executor_registry_parts/us_digest.py"
+  ],
+  "metadata_only_business_dependencies": "Use frozenproblem source_index metadata for actual US registry and reviewed seed; rawbusiness bytes not uploaded or substituted. Original frozen HK model/oracle and actual SDK/TDX installations must be verified in their original package.",
+  "actual_hk_upstream_root": "resolve(actual V35_RESEARCH_PANEL_HK_UPDATER_SCRIPT).parents[1]; HOST_ROOT_MAPPING_UNVERIFIED",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

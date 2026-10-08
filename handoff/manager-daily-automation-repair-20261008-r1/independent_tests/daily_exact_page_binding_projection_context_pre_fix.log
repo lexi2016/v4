@@ -1,0 +1,174 @@
+SEMANTIC_PROJECTION_INPUT_PATH_DIFFS={"capture_count": 6, "captured_identities": ["1edfecbb83c53ad145e705ca95adce81dba427e081ff8f7991e021585f9e240e", "2b0028385e754b19655519193d78aeded2b211a6ddbb9dcf7a06337324998802", "1edfecbb83c53ad145e705ca95adce81dba427e081ff8f7991e021585f9e240e", "b5e63da12045e4909896e8a93ba1169f344013df2f6896d42f7461f866ba5491", "1edfecbb83c53ad145e705ca95adce81dba427e081ff8f7991e021585f9e240e", "d4c1d2dab430407c185e99ee39c7f3761070f170025e8411b82ca98736176ffa"], "captured_projection_contexts": [{"catalyst_status": "NOT_MATERIALIZED", "close_status": "CANNOT_CONFIRM", "discovered_card_count": 0, "discovery_rejection_count": 0, "identity": "1edfecbb83c53ad145e705ca95adce81dba427e081ff8f7991e021585f9e240e", "market_screen_data_context": null, "material_count": 0, "plan_context": null, "quote_count": 0, "stage_status": "CANNOT_CONFIRM"}, {"catalyst_status": "NOT_MATERIALIZED", "close_status": "CANNOT_CONFIRM", "discovered_card_count": 0, "discovery_rejection_count": 0, "identity": "2b0028385e754b19655519193d78aeded2b211a6ddbb9dcf7a06337324998802", "market_screen_data_context": {"market_session": "20261007", "market_session_close": "2026-10-07T16:10:00+08:00", "plan_trade_date": "20261008", "planning_market_session": "20261007", "research_cutoff": "2026-10-08T10:00:00+08:00", "screen_calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb", "screen_phase": "INTRADAY_COMPLETED_SESSION", "screen_session_policy": "COMPLETED_FULL_HK_SECURITIES_SESSION", "screen_session_status": "EXPECTED_COMPLETED_SESSION_NOT_DATA_VERIFICATION", "screen_target_trade_date": "20261008"}, "material_count": 0, "plan_context": {"RESEARCH_ONLY": true, "buy_gate_updated": false, "calendar_owner": "contracts.trading_calendar / hk_securities", "calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb", "focus_window_basis": "TWO_COMPLETED_HK_SESSIONS_POST_CLOSE_WINDOW", "focus_window_start": "2026-10-06T16:10:00+08:00", "market_data_verified": false, "market_session": "20261007", "market_session_close": "2026-10-07T16:10:00+08:00", "observation_phase": "AS_OF_RESEARCH_REVIEW", "orders_sent": false, "plan_trade_date": "20261008", "price_session_status": "EXPECTED_COMPLETED_SESSION_NOT_QUOTE_VERIFICATION", "production_allowed": false, "source_dates": ["20261006", "20261007", "20261008"], "us_market_coverage": "NOT_VERIFIED", "us_market_session": null}, "quote_count": 0, "stage_status": "CANNOT_CONFIRM"}, {"catalyst_status": "NOT_MATERIALIZED", "close_status": "CANNOT_CONFIRM", "discovered_card_count": 0, "discovery_rejection_count": 0, "identity": "1edfecbb83c53ad145e705ca95adce81dba427e081ff8f7991e021585f9e240e", "market_screen_data_context": null, "material_count": 0, "plan_context": null, "quote_count": 0, "stage_status": "CANNOT_CONFIRM"}, {"catalyst_status": "NOT_MATERIALIZED", "close_status": "CANNOT_CONFIRM", "discovered_card_count": 0, "discovery_rejection_count": 0, "identity": "b5e63da12045e4909896e8a93ba1169f344013df2f6896d42f7461f866ba5491", "market_screen_data_context": {"market_session": "20261007", "market_session_close": "2026-10-07T16:10:00+08:00", "plan_trade_date": "20261008", "planning_market_session": "20261007", "research_cutoff": "2026-10-08T10:00:03+08:00", "screen_calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb", "screen_phase": "INTRADAY_COMPLETED_SESSION", "screen_session_policy": "COMPLETED_FULL_HK_SECURITIES_SESSION", "screen_session_status": "EXPECTED_COMPLETED_SESSION_NOT_DATA_VERIFICATION", "screen_target_trade_date": "20261008"}, "material_count": 0, "plan_context": {"RESEARCH_ONLY": true, "buy_gate_updated": false, "calendar_owner": "contracts.trading_calendar / hk_securities", "calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb", "focus_window_basis": "TWO_COMPLETED_HK_SESSIONS_POST_CLOSE_WINDOW", "focus_window_start": "2026-10-06T16:10:00+08:00", "market_data_verified": false, "market_session": "20261007", "market_session_close": "2026-10-07T16:10:00+08:00", "observation_phase": "AS_OF_RESEARCH_REVIEW", "orders_sent": false, "plan_trade_date": "20261008", "price_session_status": "EXPECTED_COMPLETED_SESSION_NOT_QUOTE_VERIFICATION", "production_allowed": false, "source_dates": ["20261006", "20261007", "20261008"], "us_market_coverage": "NOT_VERIFIED", "us_market_session": null}, "quote_count": 0, "stage_status": "CANNOT_CONFIRM"}, {"catalyst_status": "NOT_MATERIALIZED", "close_status": "CANNOT_CONFIRM", "discovered_card_count": 0, "discovery_rejection_count": 0, "identity": "1edfecbb83c53ad145e705ca95adce81dba427e081ff8f7991e021585f9e240e", "market_screen_data_context": null, "material_count": 0, "plan_context": null, "quote_count": 0, "stage_status": "CANNOT_CONFIRM"}, {"catalyst_status": "NOT_MATERIALIZED", "close_status": "CANNOT_CONFIRM", "discovered_card_count": 0, "discovery_rejection_count": 0, "identity": "d4c1d2dab430407c185e99ee39c7f3761070f170025e8411b82ca98736176ffa", "market_screen_data_context": {"market_session": "20261007", "market_session_close": "2026-10-07T16:10:00+08:00", "plan_trade_date": "20261008", "planning_market_session": "20261007", "research_cutoff": "2026-10-08T10:00:03+08:00", "screen_calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb", "screen_phase": "INTRADAY_COMPLETED_SESSION", "screen_session_policy": "COMPLETED_FULL_HK_SECURITIES_SESSION", "screen_session_status": "EXPECTED_COMPLETED_SESSION_NOT_DATA_VERIFICATION", "screen_target_trade_date": "20261008"}, "material_count": 0, "plan_context": {"RESEARCH_ONLY": true, "announcement_publication_date": "2026-10-07", "buy_gate_updated": false, "calendar_owner": "contracts.trading_calendar / hk_securities", "calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb", "focus_window_basis": "TWO_COMPLETED_HK_SESSIONS_POST_CLOSE_WINDOW", "focus_window_start": "2026-10-06T16:10:00+08:00", "market_data_verified": false, "market_session": "20261007", "market_session_close": "2026-10-07T16:10:00+08:00", "observation_phase": "AS_OF_RESEARCH_REVIEW", "orders_sent": false, "plan_trade_date": "20261008", "price_session_status": "EXPECTED_COMPLETED_SESSION_NOT_QUOTE_VERIFICATION", "production_allowed": false, "source_dates": ["20261006", "20261007", "20261008"], "us_market_coverage": "NOT_VERIFIED", "us_market_session": null}, "quote_count": 0, "stage_status": "CANNOT_CONFIRM"}], "saved_vs_default": [], "saved_vs_explicit": []}
+SAVED_DEFAULT_EXPLICIT_IDENTITY_DIAGNOSTIC={"default_get": {"announcement_observation": {"captures": null, "gaps": ["ANNOUNCEMENT_OWNER_NOT_RUN"], "input_identity": null, "latest_attempt": null, "status": "NOT_RUN"}, "announcement_review": {"gaps": ["ANNOUNCEMENT_OWNER_NOT_RUN"], "latest_attempt": null, "product_identity": null, "status": "NOT_RUN", "target_trade_date": "20261008"}, "announcement_selection": {"body_material_count": 0, "captures": [], "gaps": ["ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW"], "input_identity": "b7b433aa6f48afdb84f9f79972228ae37051b65bcdf63689890adf06047c6848", "rejections": [], "status": "CANNOT_CONFIRM"}, "attention_identity": "7e1ef58d89f139cfead71a3ec49b2e5171acdc17c2bc2fe299d2d2f124fc4c1c", "input_identity": "5659c676be87b85db71b212d6554f24ca45ba5ca8fe84f28cd407d34be8e7bd5", "market_screen": {"authority": null, "coverage": {"history_complete_count": 0, "history_pending_count": 0, "input_candidate_count": 0, "near_candidate_count": 0, "near_count": 0, "panel_code_count": 0, "panel_row_count": 0, "selected_count": 0, "strict_count": 0}, "data_context": {"market_session": "20261007", "market_session_close": "2026-10-07T16:10:00+08:00", "plan_trade_date": "20261008", "planning_market_session": "20261007", "research_cutoff": "2026-10-08T10:00:03+08:00", "screen_calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb", "screen_phase": "INTRADAY_COMPLETED_SESSION", "screen_session_policy": "COMPLETED_FULL_HK_SECURITIES_SESSION", "screen_session_status": "EXPECTED_COMPLETED_SESSION_NOT_DATA_VERIFICATION", "screen_target_trade_date": "20261008"}, "gaps": ["SCREEN_AUTHORITY_ROOT_NOT_BOUND"], "input_identity": null, "research_cutoff": null, "screen_phase": null, "source_identity": null, "source_manifest_sha256": null, "status": "CANNOT_CONFIRM", "verified_at": null, "verified_session": "20261007"}, "materials": [], "plan_context": {"RESEARCH_ONLY": true, "buy_gate_updated": false, "calendar_owner": "contracts.trading_calendar / hk_securities", "calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb", "focus_window_basis": "TWO_COMPLETED_HK_SESSIONS_POST_CLOSE_WINDOW", "focus_window_start": "2026-10-06T16:10:00+08:00", "market_data_verified": false, "market_session": "20261007", "market_session_close": "2026-10-07T16:10:00+08:00", "observation_phase": "AS_OF_RESEARCH_REVIEW", "orders_sent": false, "plan_trade_date": "20261008", "price_session_status": "EXPECTED_COMPLETED_SESSION_NOT_QUOTE_VERIFICATION", "production_allowed": false, "research_cutoff": "2026-10-08T10:00:03+08:00", "source_dates": ["20261006", "20261007", "20261008"], "us_market_coverage": "NOT_VERIFIED", "us_market_session": null}, "reviewed_analysis": {"consumed_product_sha256s": [], "gaps": ["ANNOUNCEMENT_ANALYSIS_NOT_IMPORTED_IN_PLAN_WINDOW"], "input_identity": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "products": [], "status": "PARTIAL"}, "semantic_projection_identity": "9f9709a0c67c108a9fa4df3274f7e33402ce511feac99d07fb1ed9146be16260", "us_mapping_daily_plan_reference": {"gaps": null, "input_identity": null, "payload_sha256": null, "reason": "DAILY_MAPPING_OWNER_STATUS_NOT_CONSUMABLE", "research_cutoff": null, "source_identity": null, "status": "NOT_RUN", "target_trade_date": "20261008"}, "us_mapping_research": {"RESEARCH_ONLY": true, "buy_gate_updated": false, "daily_run": {"RESEARCH_ONLY": true, "buy_gate_updated": false, "coverage": {"available_us_universe_count": null, "configured_us_universe_count": null, "full_market_coverage": false, "matched_hk_relation_count": null, "matched_us_symbol_count": null, "reviewed_us_symbol_count": 4}, "gaps": ["DAILY_MAPPING_NOT_MATERIALIZED"], "generated_at": null, "input_identity": null, "matches": [], "orders_sent": false, "production_allowed": false, "research_cutoff": null, "run_id": null, "run_readback": {"artifact_sha256": null, "artifact_status": null, "owner": "ManagerResearchJobService.refresh_us_mapping_research", "read_at": "2026-10-09T01:56:34.046673+08:00", "run_id": null, "status": "CANNOT_CONFIRM", "target_trade_date": "20261008"}, "schema_version": "v4.manager_research.us_mapping_daily_run.v1", "source_identity": null, "status": "NOT_RUN", "target_trade_date": "20261008", "us_session_date": null}, "orders_sent": false, "production_allowed": false, "reviewed_research": null, "schema_version": "v4.manager_research.us_mapping_research.v1", "target_trade_date": "20261008"}, "us_market_attention": {"coverage": {"available_symbol_count": 0, "industry_proxy_count": 24, "requested_symbol_count": 33}, "expected_us_session": "20261007", "gaps": ["US_MARKET_OWNER_READER_NOT_BOUND"], "input_identity": null, "source_identity": null, "status": "INPUT_MISSING"}}, "explicit_get": {"announcement_observation": {"captures": null, "gaps": ["ANNOUNCEMENT_OWNER_NOT_RUN"], "input_identity": null, "latest_attempt": null, "status": "NOT_RUN"}, "announcement_review": {"gaps": ["ANNOUNCEMENT_OWNER_NOT_RUN"], "latest_attempt": null, "product_identity": null, "status": "NOT_RUN", "target_trade_date": "20261008"}, "announcement_selection": {"body_material_count": 0, "captures": [], "gaps": ["ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW"], "input_identity": "b7b433aa6f48afdb84f9f79972228ae37051b65bcdf63689890adf06047c6848", "rejections": [], "status": "CANNOT_CONFIRM"}, "attention_identity": "7e1ef58d89f139cfead71a3ec49b2e5171acdc17c2bc2fe299d2d2f124fc4c1c", "input_identity": "8f1d3ccc5f1250da836a19da0133960f6209bc2f3d1d9febf5f448a35162c8f7", "market_screen": {"authority": null, "coverage": {"history_complete_count": 0, "history_pending_count": 0, "input_candidate_count": 0, "near_candidate_count": 0, "near_count": 0, "panel_code_count": 0, "panel_row_count": 0, "selected_count": 0, "strict_count": 0}, "data_context": {"market_session": "20261007", "market_session_close": "2026-10-07T16:10:00+08:00", "plan_trade_date": "20261008", "planning_market_session": "20261007", "research_cutoff": "2026-10-08T10:00:03+08:00", "screen_calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb", "screen_phase": "INTRADAY_COMPLETED_SESSION", "screen_session_policy": "COMPLETED_FULL_HK_SECURITIES_SESSION", "screen_session_status": "EXPECTED_COMPLETED_SESSION_NOT_DATA_VERIFICATION", "screen_target_trade_date": "20261008"}, "gaps": ["SCREEN_AUTHORITY_ROOT_NOT_BOUND"], "input_identity": null, "research_cutoff": null, "screen_phase": null, "source_identity": null, "source_manifest_sha256": null, "status": "CANNOT_CONFIRM", "verified_at": null, "verified_session": "20261007"}, "materials": [], "plan_context": {"RESEARCH_ONLY": true, "announcement_publication_date": "2026-10-07", "buy_gate_updated": false, "calendar_owner": "contracts.trading_calendar / hk_securities", "calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb", "focus_window_basis": "TWO_COMPLETED_HK_SESSIONS_POST_CLOSE_WINDOW", "focus_window_start": "2026-10-06T16:10:00+08:00", "market_data_verified": false, "market_session": "20261007", "market_session_close": "2026-10-07T16:10:00+08:00", "observation_phase": "AS_OF_RESEARCH_REVIEW", "orders_sent": false, "plan_trade_date": "20261008", "price_session_status": "EXPECTED_COMPLETED_SESSION_NOT_QUOTE_VERIFICATION", "production_allowed": false, "research_cutoff": "2026-10-08T10:00:03+08:00", "source_dates": ["20261006", "20261007", "20261008"], "us_market_coverage": "NOT_VERIFIED", "us_market_session": null}, "reviewed_analysis": {"consumed_product_sha256s": [], "gaps": ["ANNOUNCEMENT_ANALYSIS_NOT_CONSUMED:ANNOUNCEMENT_ANALYSIS_NOT_IMPORTED"], "input_identity": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "products": [{"RESEARCH_ONLY": true, "agent_judgment_receipt_sha256": null, "buy_gate_updated": false, "catalog_product_sha256": null, "conditional_watch_count": null, "consumed": false, "cutoff_status": "NOT_EVALUATED", "decision_status": null, "evidence_run_id": null, "failure_stage": null, "gaps": ["ANNOUNCEMENT_ANALYSIS_NOT_IMPORTED"], "handoff_manifest_sha256": null, "latest_source_or_review_at": null, "not_assessed_stock_count": null, "not_selected_stock_count": null, "orders_sent": false, "owner_available_at": null, "owner_handoff_binding_status": "NOT_VERIFIED", "owner_import_receipt_sha256": null, "plan_cutoff": "2026-10-08T10:00:03+08:00", "product_sha256": null, "production_allowed": false, "publication_date": "2026-10-07", "research_references": [], "reviewed_at": null, "schema_version": "v4.manager_research.announcement_analysis_consumption.v1", "selected_stock_count": null, "selection_status": "NOT_ASSESSED", "source_manifest_sha256": null, "source_run_id": null, "status": "NOT_IMPORTED", "stock_count": null, "target_trade_date": "20261008", "validation_status": "NOT_IMPORTED"}], "status": "PARTIAL"}, "semantic_projection_identity": "b1c3f978aaa6d2dd749cb994b60e96d9c764207218baa15114b91652e4194fb4", "us_mapping_daily_plan_reference": {"gaps": null, "input_identity": null, "payload_sha256": null, "reason": "DAILY_MAPPING_OWNER_STATUS_NOT_CONSUMABLE", "research_cutoff": null, "source_identity": null, "status": "NOT_RUN", "target_trade_date": "20261008"}, "us_mapping_research": {"RESEARCH_ONLY": true, "buy_gate_updated": false, "daily_run": {"RESEARCH_ONLY": true, "buy_gate_updated": false, "coverage": {"available_us_universe_count": null, "configured_us_universe_count": null, "full_market_coverage": false, "matched_hk_relation_count": null, "matched_us_symbol_count": null, "reviewed_us_symbol_count": 4}, "gaps": ["DAILY_MAPPING_NOT_MATERIALIZED"], "generated_at": null, "input_identity": null, "matches": [], "orders_sent": false, "production_allowed": false, "research_cutoff": null, "run_id": null, "run_readback": {"artifact_sha256": null, "artifact_status": null, "owner": "ManagerResearchJobService.refresh_us_mapping_research", "read_at": "2026-10-09T01:56:34.064771+08:00", "run_id": null, "status": "CANNOT_CONFIRM", "target_trade_date": "20261008"}, "schema_version": "v4.manager_research.us_mapping_daily_run.v1", "source_identity": null, "status": "NOT_RUN", "target_trade_date": "20261008", "us_session_date": null}, "orders_sent": false, "production_allowed": false, "reviewed_research": null, "schema_version": "v4.manager_research.us_mapping_research.v1", "target_trade_date": "20261008"}, "us_market_attention": {"coverage": {"available_symbol_count": 0, "industry_proxy_count": 24, "requested_symbol_count": 33}, "expected_us_session": "20261007", "gaps": ["US_MARKET_OWNER_READER_NOT_BOUND"], "input_identity": null, "source_identity": null, "status": "INPUT_MISSING"}}, "saved": {"announcement_observation": {"captures": null, "gaps": ["ANNOUNCEMENT_OWNER_NOT_RUN"], "input_identity": null, "latest_attempt": null, "status": "NOT_RUN"}, "announcement_review": {"gaps": ["ANNOUNCEMENT_OWNER_NOT_RUN"], "latest_attempt": null, "product_identity": null, "status": "NOT_RUN", "target_trade_date": "20261008"}, "announcement_selection": {"body_material_count": 0, "captures": [], "gaps": ["ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW"], "input_identity": "b7b433aa6f48afdb84f9f79972228ae37051b65bcdf63689890adf06047c6848", "rejections": [], "status": "CANNOT_CONFIRM"}, "attention_identity": "7e1ef58d89f139cfead71a3ec49b2e5171acdc17c2bc2fe299d2d2f124fc4c1c", "input_identity": "814ff2cf9b72158a72f383400a19e259fe948893ed805bda6bd41113617a9ac4", "market_screen": {"authority": null, "coverage": {"history_complete_count": 0, "history_pending_count": 0, "input_candidate_count": 0, "near_candidate_count": 0, "near_count": 0, "panel_code_count": 0, "panel_row_count": 0, "selected_count": 0, "strict_count": 0}, "data_context": {"market_session": "20261007", "market_session_close": "2026-10-07T16:10:00+08:00", "plan_trade_date": "20261008", "planning_market_session": "20261007", "research_cutoff": "2026-10-08T10:00:00+08:00", "screen_calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb", "screen_phase": "INTRADAY_COMPLETED_SESSION", "screen_session_policy": "COMPLETED_FULL_HK_SECURITIES_SESSION", "screen_session_status": "EXPECTED_COMPLETED_SESSION_NOT_DATA_VERIFICATION", "screen_target_trade_date": "20261008"}, "gaps": ["SCREEN_AUTHORITY_ROOT_NOT_BOUND"], "input_identity": null, "research_cutoff": null, "screen_phase": null, "source_identity": null, "source_manifest_sha256": null, "status": "CANNOT_CONFIRM", "verified_at": null, "verified_session": "20261007"}, "materials": [], "plan_context": {"RESEARCH_ONLY": true, "buy_gate_updated": false, "calendar_owner": "contracts.trading_calendar / hk_securities", "calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb", "focus_window_basis": "TWO_COMPLETED_HK_SESSIONS_POST_CLOSE_WINDOW", "focus_window_start": "2026-10-06T16:10:00+08:00", "market_data_verified": false, "market_session": "20261007", "market_session_close": "2026-10-07T16:10:00+08:00", "observation_phase": "AS_OF_RESEARCH_REVIEW", "orders_sent": false, "plan_trade_date": "20261008", "price_session_status": "EXPECTED_COMPLETED_SESSION_NOT_QUOTE_VERIFICATION", "production_allowed": false, "research_cutoff": "2026-10-08T10:00:00+08:00", "source_dates": ["20261006", "20261007", "20261008"], "us_market_coverage": "NOT_VERIFIED", "us_market_session": null}, "reviewed_analysis": {"consumed_product_sha256s": [], "gaps": ["ANNOUNCEMENT_ANALYSIS_NOT_IMPORTED_IN_PLAN_WINDOW"], "input_identity": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "products": [], "status": "PARTIAL"}, "semantic_projection_identity": "95d6096560781dfbf0ab607fdb9c15a6c00cb0a230cc8651c6f4332de62f0fb6", "us_mapping_daily_plan_reference": {"gaps": null, "input_identity": null, "payload_sha256": null, "reason": "DAILY_MAPPING_OWNER_STATUS_NOT_CONSUMABLE", "research_cutoff": null, "source_identity": null, "status": "NOT_RUN", "target_trade_date": "20261008"}, "us_mapping_research": {"RESEARCH_ONLY": true, "buy_gate_updated": false, "daily_run": {"RESEARCH_ONLY": true, "buy_gate_updated": false, "coverage": {"available_us_universe_count": null, "configured_us_universe_count": null, "full_market_coverage": false, "matched_hk_relation_count": null, "matched_us_symbol_count": null, "reviewed_us_symbol_count": 4}, "gaps": ["DAILY_MAPPING_NOT_MATERIALIZED"], "generated_at": null, "input_identity": null, "matches": [], "orders_sent": false, "production_allowed": false, "research_cutoff": null, "run_id": null, "run_readback": {"artifact_sha256": null, "artifact_status": null, "owner": "ManagerResearchJobService.refresh_us_mapping_research", "read_at": "2026-10-09T01:56:34.011852+08:00", "run_id": null, "status": "CANNOT_CONFIRM", "target_trade_date": "20261008"}, "schema_version": "v4.manager_research.us_mapping_daily_run.v1", "source_identity": null, "status": "NOT_RUN", "target_trade_date": "20261008", "us_session_date": null}, "orders_sent": false, "production_allowed": false, "reviewed_research": null, "schema_version": "v4.manager_research.us_mapping_research.v1", "target_trade_date": "20261008"}, "us_market_attention": {"coverage": {"available_symbol_count": 0, "industry_proxy_count": 24, "requested_symbol_count": 33}, "expected_us_session": "20261007", "gaps": ["US_MARKET_OWNER_READER_NOT_BOUND"], "input_identity": null, "source_identity": null, "status": "INPUT_MISSING"}}}
+F
+=================================== FAILURES ===================================
+_ test_actual_manual_refresh_plan_is_current_on_the_exact_ordinary_page_bindings _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-280/test_actual_manual_refresh_pla0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa15691e060>
+
+    def test_actual_manual_refresh_plan_is_current_on_the_exact_ordinary_page_bindings(
+            tmp_path, monkeypatch):
+        """POST has no announcement_date, while the ordinary GET supplies all three dates."""
+        actual = datetime(2026, 10, 8, 10, 0, tzinfo=HK)
+        import test_manager_announcement_parity_20261008 as fixture_module
+    
+        class FrozenRouterClock(datetime):
+            @classmethod
+            def now(cls, tz=None):
+                return actual.astimezone(tz) if tz else actual.replace(tzinfo=None)
+    
+        monkeypatch.setattr(fixture_module.api, "datetime", FrozenRouterClock)
+        monkeypatch.setattr(workspace_owner, "_now", lambda: "2026-10-08T02:00:02+00:00")
+        monkeypatch.setattr(fixture_module, "NOW", datetime(2026, 10, 8, 10, 0, 3, tzinfo=HK))
+        projection_calls = []
+        original_build_workspace = workspace_owner.build_workspace
+    
+        def capture_projection(date, **kwargs):
+            projected = original_build_workspace(date, **kwargs)
+            identity_material = {
+                "decision_projection_version": "20260921.manager-decision-ux.a1",
+                "semantic_version": projected.get("semantic_version"),
+                **{key: deepcopy(kwargs.get(key)) for key in (
+                    "catalyst", "materials", "stage", "close", "discovered_cards",
+                    "discovery_rejections", "price_quotes", "market_screen")},
+                "plan_context": ({key: deepcopy(value) for key, value in kwargs.get("plan_context", {}).items()
+                                  if key != "research_cutoff"}
+                                 if kwargs.get("plan_context") else None),
+            }
+            projection_calls.append({
+                "identity": projected.get("input_identity"),
+                "basis": identity_material,
+            })
+            return projected
+    
+        monkeypatch.setattr(workspace_owner, "build_workspace", capture_projection)
+        service = _FixtureService(tmp_path / "manager-state")
+        try:
+            with _client(service) as client:
+                refresh = client.post("/api/v4/manager/research/workspace/refresh",
+                    params={"date": "20261008"}, headers={"Origin": "http://testserver"})
+                assert refresh.status_code == 200, refresh.text
+                saved_run = refresh.json()["plan_product"]["run_id"]
+    
+                default_read = client.get("/api/v4/manager/research/workspace",
+                    params={"date": "20261008", "view": "dynamic"})
+                assert default_read.status_code == 200, default_read.text
+                explicit_read = client.get("/api/v4/manager/research/workspace",
+                    params={"date": "20261008", "view": "dynamic",
+                        "selection_date": "20261008", "announcement_date": "20261007"})
+                assert explicit_read.status_code == 200, explicit_read.text
+    
+            default = default_read.json()
+            explicit = explicit_read.json()
+            saved = workspace_owner._read_plan(service.store, "20261008")
+    
+            def path_diffs(left, right, path=""):
+                if isinstance(left, dict) and isinstance(right, dict):
+                    diffs = []
+                    for key in sorted(set(left) | set(right)):
+                        child = f"{path}.{key}" if path else key
+                        if key not in left or key not in right:
+                            diffs.append({"path": child, "saved": left.get(key, "<MISSING>"),
+                                          "current": right.get(key, "<MISSING>")})
+                        else:
+                            diffs.extend(path_diffs(left[key], right[key], child))
+                    return diffs
+                if isinstance(left, list) and isinstance(right, list):
+                    if left == right:
+                        return []
+                    return [{"path": path, "saved_count": len(left), "current_count": len(right),
+                             "saved_sha256": workspace_owner.digest(left),
+                             "current_sha256": workspace_owner.digest(right)}]
+                if left != right:
+                    return [{"path": path, "saved": left, "current": right}]
+                return []
+    
+            captured_by_identity = {item["identity"]: item["basis"] for item in projection_calls}
+            saved_semantic_identity = ((saved["workspace"].get("owner_chain") or {}).get("semantic_projection") or {}).get("input_identity")
+            default_semantic_identity = ((default.get("owner_chain") or {}).get("semantic_projection") or {}).get("input_identity")
+            explicit_semantic_identity = ((explicit.get("owner_chain") or {}).get("semantic_projection") or {}).get("input_identity")
+            print("SEMANTIC_PROJECTION_INPUT_PATH_DIFFS=" + json.dumps({
+                "saved_vs_default": path_diffs(captured_by_identity.get(saved_semantic_identity, {}),
+                                                 captured_by_identity.get(default_semantic_identity, {})),
+                "saved_vs_explicit": path_diffs(captured_by_identity.get(saved_semantic_identity, {}),
+                                                  captured_by_identity.get(explicit_semantic_identity, {})),
+                "capture_count": len(projection_calls),
+                "captured_identities": [item["identity"] for item in projection_calls],
+                "captured_projection_contexts": [{
+                    "identity": item["identity"],
+                    "plan_context": item["basis"].get("plan_context"),
+                    "market_screen_data_context": (item["basis"].get("market_screen") or {}).get("data_context"),
+                    "material_count": len(item["basis"].get("materials") or []),
+                    "catalyst_status": (item["basis"].get("catalyst") or {}).get("status"),
+                    "stage_status": (item["basis"].get("stage") or {}).get("status"),
+                    "close_status": (item["basis"].get("close") or {}).get("status"),
+                    "discovered_card_count": len(item["basis"].get("discovered_cards") or []),
+                    "discovery_rejection_count": len(item["basis"].get("discovery_rejections") or []),
+                    "quote_count": len(item["basis"].get("price_quotes") or {}),
+                } for item in projection_calls],
+            }, ensure_ascii=False, sort_keys=True, default=str))
+    
+            def summary(value):
+                screen = value.get("market_screen") or {}
+                analysis = value.get("announcement_reviewed_analysis") or {}
+                chain = value.get("owner_chain") or {}
+                selection = chain.get("announcement_selection") or {}
+                us_plan_ref = chain.get("us_mapping_daily_plan_reference") or {}
+                us_attention = value.get("us_market_attention") or {}
+                announcement_review = value.get("announcement_review") or {}
+                return {
+                    "input_identity": value.get("input_identity"),
+                    "plan_context": value.get("plan_context"),
+                    "semantic_projection_identity": (chain.get("semantic_projection") or {}).get("input_identity"),
+                    "market_screen": {key: screen.get(key) for key in (
+                        "status", "input_identity", "verified_session", "screen_phase",
+                        "research_cutoff", "coverage", "gaps", "source_identity", "authority",
+                        "data_context", "source_manifest_sha256", "verified_at")},
+                    "attention_identity": (value.get("research_attention") or {}).get("input_identity"),
+                    "announcement_selection": {key: selection.get(key) for key in (
+                        "status", "input_identity", "captures", "body_material_count", "rejections", "gaps")},
+                    "announcement_review": {key: announcement_review.get(key) for key in (
+                        "status", "product_identity", "target_trade_date", "latest_attempt", "gaps")},
+                    "reviewed_analysis": {key: analysis.get(key) for key in (
+                        "status", "input_identity", "products", "consumed_product_sha256s", "gaps")},
+                    "us_market_attention": {key: us_attention.get(key) for key in (
+                        "status", "expected_us_session", "source_identity", "input_identity", "coverage", "gaps")},
+                    "us_mapping_daily_plan_reference": {key: us_plan_ref.get(key) for key in (
+                        "status", "source_identity", "payload_sha256", "input_identity", "target_trade_date",
+                        "research_cutoff", "gaps", "reason")},
+                    "us_mapping_research": value.get("us_mapping_research"),
+                    "announcement_observation": {
+                        key: (value.get("announcement_observation") or {}).get(key)
+                        for key in ("status", "input_identity", "latest_attempt", "captures", "gaps")},
+                    "materials": [(row.get("source_identity"), row.get("source_sha256"), row.get("material_id"))
+                                  for row in value.get("materials", []) if isinstance(row, dict)],
+                }
+            print("SAVED_DEFAULT_EXPLICIT_IDENTITY_DIAGNOSTIC=" + json.dumps({
+                "saved": summary(saved["workspace"]), "default_get": summary(default),
+                "explicit_get": summary(explicit)}, ensure_ascii=False, sort_keys=True, default=str))
+            assert default["plan_product"]["run_id"] == saved_run
+            assert explicit["date_bindings"] == {
+                "plan_date": "20261008", "selection_date": "20261008",
+                "announcement_date": "20261007",
+            }
+            assert explicit["plan_product"]["run_id"] == saved_run
+>           assert explicit["plan_product"]["consumed"] is True, (
+                {"default_status": default["plan_product"]["status"],
+                 "default_consumed": default["plan_product"]["consumed"],
+                 "explicit_product": explicit["plan_product"],
+                 "explicit_input_identity": explicit["input_identity"],
+                 "saved_input_identity": refresh.json()["input_identity"]})
+E                AssertionError: {'default_status': 'STALE_INPUTS_CHANGED', 'default_consumed': False, 'explicit_product': {'status': 'STALE_INPUTS_CHA...fe6e631a49a', ...}, 'explicit_input_identity': '8f1d3ccc5f1250da836a19da0133960f6209bc2f3d1d9febf5f448a35162c8f7', ...}
+E                assert False is True
+
+../../investigation/automation/reviewer/test_daily_exact_page_binding_independent.py:177: AssertionError
+=============================== warnings summary ===============================
+../../test_env/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED ../../investigation/automation/reviewer/test_daily_exact_page_binding_independent.py::test_actual_manual_refresh_plan_is_current_on_the_exact_ordinary_page_bindings
+1 failed, 1 warning in 0.39s

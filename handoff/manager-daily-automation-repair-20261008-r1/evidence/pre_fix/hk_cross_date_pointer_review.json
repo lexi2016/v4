@@ -1,0 +1,181 @@
+{
+  "schema_version": "v4.manager_daily_automation.hk_cross_date_pointer_review.v1",
+  "recorded_at_utc": "2026-10-08 18:03:34 UTC",
+  "reviewer": {
+    "agent": "/root/automation_hk_publish",
+    "role": "Independent read-only source reviewer"
+  },
+  "status": "OPEN_FOR_WRITER_AND_REVIEWER",
+  "finding_id": "HK-CROSS-DATE-01",
+  "title": "Normal shared latest-pointer advancement invalidates a previous day's exact HK publication chain",
+  "evidence_type": "STATIC_SOURCE_REVIEW_ONLY",
+  "dynamic_validation_performed": false,
+  "host_or_network_access": false,
+  "production_or_test_changes": false,
+  "source_identity_basis": "Local supplied owner sources and in-progress candidate after sources; these identities do not attest deployed or loaded Mac bytes.",
+  "observed_source_identities": [
+    {
+      "path": "worktrees/manager_automation/ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "bytes": 69787,
+      "sha256": "9e0308ee503c962230e1687595b621503598d2054fac8e3f5f73d745b305c5cd",
+      "role": "candidate gate"
+    },
+    {
+      "path": "worktrees/manager_automation/runtime_layers/hk_child/ops/macos_research_panel_daily.py",
+      "bytes": 98276,
+      "sha256": "1963990fcde99b2681c837b8b66ea12f1ab066aba47729af5d0900073bc79ef3",
+      "role": "exact HK child candidate after; host target ops/macos_research_panel_daily.py",
+      "actual_entry_before_sha256": "07aa9770c6ae0bb0cfd012e57843a37fedda6724a57cd52d7c339d854fc6609b"
+    },
+    {
+      "path": "worktrees/manager_automation/ops/ensure_hk_security_master.py",
+      "bytes": 44249,
+      "sha256": "495ced4f0f06f170606ee576e035dafc99b540cd9fad0a28f2f2a36e5989ddb9",
+      "role": "candidate original ensure wrapper"
+    },
+    {
+      "path": "worktrees/manager_automation/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "bytes": 14396,
+      "sha256": "ac2c16669236d24d6d03cac183238ca8dccd8fd23895ae14ad34cef40c049008",
+      "role": "supplied original master publisher/reader"
+    },
+    {
+      "path": "worktrees/manager_automation/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "bytes": 67647,
+      "sha256": "27da90f0e623e45fa1a27af7dcc3b6e5e1ff2320bae1c61bd903ed82050beb89",
+      "role": "supplied original panel publisher/reader"
+    }
+  ],
+  "original_owner_contracts": [
+    {
+      "owner": "shared_data.hk_security_master",
+      "publisher": {
+        "symbol": "publish_hk_security_master",
+        "lines": [
+          95,
+          175
+        ],
+        "facts": [
+          "Run artifacts are under assets/hk_security_master/runs/{trade_date}/{run_id}.",
+          "The publisher reads shared assets/hk_security_master/latest.json, changes entries[trade_date], then atomically writes the complete latest object.",
+          "Publishing the next date changes latest bytes while retaining the previous date entry and its date-specific artifact/manifest/receipt."
+        ]
+      },
+      "reader": {
+        "symbol": "load_verified_hk_security_master",
+        "lines": [
+          275,
+          316
+        ],
+        "facts": [
+          "Selects latest.entries[requested_trade_date], resolves that run's manifest, receipt and artifact, and checks date/run/SHA/safety/row contracts.",
+          "It does not pin the entire latest file hash. A valid unrelated next-date entry does not by itself invalidate previous-date master readback."
+        ]
+      }
+    },
+    {
+      "owner": "shared_data.hk_0_2",
+      "publisher": {
+        "symbol": "update_hk_0_2_panel_from_vipdoc",
+        "lines": [
+          576,
+          695
+        ],
+        "facts": [
+          "For a newer through_date, writes a content-identified panels/{through_date}-{sha-prefix} artifact and manifest, then advances shared panel_latest.json.",
+          "The new panel records parent_panel_sha256 and the normal next-date path does not overwrite the previous dated panel artifact.",
+          "For through_date <= current_max, returns the current panel manifest/SHA after verifying the requested date exists in it; it does not reselect the older exact panel."
+        ]
+      },
+      "reader": {
+        "symbol": "load_frozen_hk_0_2_assets",
+        "lines": [
+          708,
+          730
+        ],
+        "facts": [
+          "Loads the current panel through panel_latest.json and verifies its panel artifact hash."
+        ]
+      }
+    }
+  ],
+  "faulty_binding_chain": [
+    {
+      "file": "ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "symbol": "_artifact_refs",
+      "lines": [
+        563,
+        643
+      ],
+      "fact": "Lines 614 and 630 add the full live panel_latest.json and master latest.json to artifact_refs as HK_PANEL_LATEST_POINTER and HK_SECURITY_MASTER_LATEST_POINTER; _file_ref records current whole-file bytes and SHA."
+    },
+    {
+      "file": "ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "symbol": "read_verified_chain",
+      "lines": [
+        408,
+        430
+      ],
+      "fact": "Rechecks every artifact reference against its current path without excluding mutable pointer roles. Changed size raises HK_PUBLICATION_CHAIN_ARTIFACT_MISSING; changed digest raises HK_PUBLICATION_CHAIN_ARTIFACT_SHA_MISMATCH."
+    },
+    {
+      "file": "ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "symbol": "_verify_chain_artifact_contract",
+      "lines": [
+        240,
+        329
+      ],
+      "fact": "Also dereferences current panel_latest and requires it to link the previous chain's panel manifest/max date. The master branch reads the current global pointer and selects the requested date entry. Merely skipping whole-pointer SHA checks does not resolve the panel branch."
+    },
+    {
+      "file": "ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "symbol": "run_hk_capture_gate",
+      "lines": [
+        1096,
+        1106
+      ],
+      "fact": "Any cached-chain read failure returns CANNOT_CONFIRM, failed_stage FINAL_READBACK and public reason HK_PUBLICATION_CHAIN_POINTER_INVALID. The code explicitly refuses to downgrade it to cache miss. Return occurs before new chain_id/start evidence or any capture/publisher invocation."
+    },
+    {
+      "file": "runtime_layers/hk_child/ops/macos_research_panel_daily.py",
+      "symbol": "_hk_lane_receipt_ready",
+      "lines": [
+        956,
+        997
+      ],
+      "fact": "Calls the gate's exact reader; the same failure returns false and invalidates yesterday's lane-ready fast path."
+    }
+  ],
+  "static_cross_day_scenario": [
+    "Day 1: original owners publish a valid 20261008 master/panel and gate seals a READY chain including current shared latest pointer bytes.",
+    "Day 2: original master publisher adds a valid 20261009 entry and/or original panel updater advances panel_latest to a valid 20261009 panel.",
+    "No Day 1 immutable artifact needs to change for the Day 1 artifact_refs comparison to fail.",
+    "Direct original master loading of 20261008 remains allowed by its entry-level contract; the new gate's 20261008 exact reader fails at the global-pointer comparison.",
+    "The candidate gate does not automatically republish historical membership/master in response to that failure."
+  ],
+  "cache_miss_boundary": {
+    "conclusion": "Not a harmless cache miss and not evidence of observed historical data pollution.",
+    "facts": [
+      "The current early failure prevents a new chain or publisher call; no old immutable run overwrite is reached on this path.",
+      "Changing the exception handling to cache miss alone still does not produce a valid historical rebind: the original panel updater returns the newer current manifest, while ops.ensure_hk_security_master._read_verified_hk_panel_authority at lines 97-140 requires the live pointer/authority identity and panel_max_date == requested old date.",
+      "The already-sealed exact capture/run/artifact identities must remain the basis of any eventual solution. This review does not authorize republishing historical eligibility, rewriting old chains or bypassing original owner checks."
+    ]
+  },
+  "impact_limits": [
+    "Previous-day exact-chain verification, cache reuse and HK lane-ready fail after ordinary next-day shared pointer progress.",
+    "A new target date uses its own hk_publication/{target}/latest.json; no dependency on the previous chain was found in this entry, so this finding alone does not establish that Day 2 execution is blocked.",
+    "Previous master artifacts can still pass the original exact-date master reader. This review does not establish failure of every manager historical plan or reader.",
+    "The failure can break two-day acceptance even when all previous immutable run bytes remain unchanged.",
+    "No runtime reproduction, canary, Mac command, test execution or natural-day observation was performed by this reviewer."
+  ],
+  "handoff": {
+    "notified": [
+      "/root",
+      "/root/luna_daily_writer",
+      "/root/luna_daily_reviewer"
+    ],
+    "independent_probe": "Reviewer was sent the existing full original-owner test setup and a two-day same-root reproduction blueprint. The reviewer owns execution and results; none are claimed here.",
+    "implementation_status": "OPEN; later candidate changes require separate Writer and Reviewer evidence.",
+    "related_hh_01": "The earlier ordinary-page plan context finding remains in host_handoff_command_review.json; this report neither closes nor changes it."
+  }
+}

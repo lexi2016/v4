@@ -1,0 +1,254 @@
+--- a/ops/run_manager_announcement_cycle.py
++++ b/ops/run_manager_announcement_cycle.py
+@@ -245,11 +245,138 @@
+             else source_date if branch is not None else None)
+ 
+ 
++def daily_cycle_branch(source_date:str,*,now:datetime,plan_config:Mapping[str,Any] | None,
++                       preopen_config:Mapping[str,Any] | None=None,
++                       morning_plan_config:Mapping[str,Any] | None=None,
++                       daily_config:Mapping[str,Any] | None=None) -> tuple[str | None,str | None]:
++    """Keep original windows and add only the sealed finite same-day catch-up slots."""
++    from infrastructure.scheduling.manager_announcement_supervisor import daily_automation_config
++    from v4.manager_research.workspace_projection import HK,date_token
++    from contracts.trading_calendar import load_market_calendar,resolve_market_states,TradingDayState
++    source=date_token(source_date)
++    if now.tzinfo is None or now.astimezone(HK).strftime('%Y%m%d')!=source:
++        raise ValueError('PLAN_OWNER_SOURCE_DATE_CLOCK_MISMATCH')
++    original=scheduled_cycle_branch(source,now=now,plan_config=plan_config,
++        preopen_config=preopen_config,morning_plan_config=morning_plan_config)
++    if original in {'MORNING','PREOPEN'}:
++        return original,None
++    cfg=daily_automation_config(daily_config)
++    if not cfg['enabled']:
++        return original,None
++    state=resolve_market_states(load_market_calendar(),source)['hk_securities']
++    if state not in {TradingDayState.FULL_TRADING_DAY,TradingDayState.HALF_TRADING_DAY_AM}:
++        return None,None
++    local=now.astimezone(HK)
++    slot=local.strftime('%H:%M')
++    if slot in cfg['same_day_catchup_slots_local']:
++        return 'SAME_DAY_CATCHUP',local.strftime('%Y%m%dT%H%M')
++    return original,None
++
++
++def daily_cycle_target(source_date:str,*,now:datetime,plan_config:Mapping[str,Any] | None,
++                       preopen_config:Mapping[str,Any] | None=None,
++                       morning_plan_config:Mapping[str,Any] | None=None,
++                       daily_config:Mapping[str,Any] | None=None) -> str | None:
++    branch,_=daily_cycle_branch(source_date,now=now,plan_config=plan_config,
++        preopen_config=preopen_config,morning_plan_config=morning_plan_config,
++        daily_config=daily_config)
++    return (next_hk_session_date(source_date) if branch=='EVENING_NEXT_SESSION'
++            else source_date if branch is not None else None)
++
++
++def daily_admitted_branch_is_live(source_date:str,target_date:str,branch:str,*,scheduled_slot:str | None,
++                                  now:datetime,plan_config:Mapping[str,Any] | None,
++                                  preopen_config:Mapping[str,Any] | None=None,
++                                  morning_plan_config:Mapping[str,Any] | None=None,
++                                  daily_config:Mapping[str,Any] | None=None) -> bool:
++    """Revalidate an already-admitted daily slot without losing minute-rollover work.
++
++    Admission happens once in the bound RPC. The bounded US preparation and
++    plan call can cross a wall-clock minute, so the original slot is retained
++    for up to two minutes while still requiring the same Hong Kong trade date.
++    A fresh child cannot use this grace period: its RPC must first pass the
++    exact-minute ``daily_cycle_branch`` admission above.
++    """
++    from datetime import timedelta
++    from v4.manager_research.workspace_projection import HK,date_token
++    source=date_token(source_date);target=date_token(target_date)
++    if now.tzinfo is None or now.astimezone(HK).strftime('%Y%m%d')!=source:
++        return False
++    local=now.astimezone(HK)
++    if branch in {'MORNING','SAME_DAY_CATCHUP'}:
++        if not isinstance(scheduled_slot,str) or not re.fullmatch(source+r'T\d{4}',scheduled_slot):
++            return False
++        slot_time=datetime.strptime(scheduled_slot,'%Y%m%dT%H%M').replace(tzinfo=HK)
++        if local < slot_time or local >= slot_time+timedelta(seconds=120):
++            return False
++        if branch=='MORNING':
++            from v4.manager_research.workspace_plan_autorun import morning_config,morning_window
++            cfg=morning_config(morning_plan_config)
++            start,freeze=morning_window(source)
++            return bool(target==source and cfg['enabled'] and start<=slot_time<freeze
++                and (slot_time.hour*60+slot_time.minute)%(cfg['interval_seconds']//60)==0)
++        from infrastructure.scheduling.manager_announcement_supervisor import daily_automation_config
++        cfg=daily_automation_config(daily_config)
++        return bool(target==source and cfg['enabled']
++            and slot_time.strftime('%H:%M') in cfg['same_day_catchup_slots_local'])
++    expected_branch,expected_slot=daily_cycle_branch(source,now=local,plan_config=plan_config,
++        preopen_config=preopen_config,morning_plan_config=morning_plan_config,daily_config=daily_config)
++    expected_target=daily_cycle_target(source,now=local,plan_config=plan_config,
++        preopen_config=preopen_config,morning_plan_config=morning_plan_config,daily_config=daily_config)
++    return bool(expected_branch==branch and expected_target==target and expected_slot==scheduled_slot)
++
++
++def run_same_day_catchup_plan(service:Any,target_trade_date:str,*,now:datetime,
++                              scheduled_slot:str,trigger_id:str,
++                              us_market_request_context:Mapping[str,Any] | None=None) -> dict[str,Any]:
++    """Refresh only through the original manual plan owner with truthful late timing."""
++    from v4.manager_research.workspace import _read_plan
++    from v4.manager_research.workspace_plan_autorun import owner_plan_readback
++    from v4.manager_research.workspace_projection import HK,date_token
++    from v4.manager_research.workspace import get_workspace
++    from v4.manager_research.workspace import verified_plan_attempt
++    from datetime import datetime as _datetime
++    target=date_token(target_trade_date);local=now.astimezone(HK)
++    if local.strftime('%Y%m%d')!=target or not re.fullmatch(target+r'T\d{4}',scheduled_slot):
++        raise ValueError('SAME_DAY_CATCHUP_IDENTITY_INVALID')
++    scheduled_for=_datetime.strptime(scheduled_slot,'%Y%m%dT%H%M').replace(tzinfo=HK)
++    execution_context={'trigger_kind':'SCHEDULED','timing':'LATE_CATCHUP',
++        'scheduled_for':scheduled_for.isoformat(),'trigger_id':trigger_id,
++        'natural_run_verified':False}
++    saved=_read_plan(service.store,target)
++    current=get_workspace(service,target,include_saved=False,now=local,
++        us_market_request_context=us_market_request_context)
++    unchanged=bool(saved is not None and saved.get('input_identity')==current.get('input_identity')
++        and saved.get('workspace',{}).get('semantic_version')==current.get('semantic_version'))
++    if unchanged and saved.get('execution_kind')=='SCHEDULED_PREOPEN':
++        result=_saved_owner_readback(service,target,saved)
++        plan=owner_plan_readback(result,target,expected_kind='SCHEDULED_PREOPEN')
++        plan={**plan,'status':'PRESERVED_SCHEDULED_PREOPEN',
++            'owner_product_status':'PRESERVED_SCHEDULED_PREOPEN'}
++    elif (unchanged and saved.get('execution_kind')=='MANUAL_REFRESH'
++          and isinstance(saved.get('execution_context'),Mapping)):
++        result=_saved_owner_readback(service,target,saved)
++        plan=owner_plan_readback(result,target,expected_kind='MANUAL_REFRESH')
++    else:
++        value=service.refresh_workspace_plan(target,execution_kind='MANUAL_REFRESH',now=local,
++            execution_context=execution_context,
++            us_market_request_context=us_market_request_context)
++        plan=owner_plan_readback(value,target,expected_kind='MANUAL_REFRESH')
++    valid=valid_owner_plan_result(plan,'SAME_DAY_CATCHUP')
++    state=plan.get('status')
++    status=('PARTIAL' if valid and state=='PARTIAL' else 'SUCCEEDED' if valid else 'FAILED')
++    reasons=plan.get('failure_reasons') if isinstance(plan.get('failure_reasons'),list) else None
++    return {'status':status,'branch':'SAME_DAY_CATCHUP','target_trade_date':target,
++        'plan_result':plan,'failure_reasons':reasons,
++        'owner':'ManagerResearchJobService.refresh_workspace_plan','policy_status':'PROPOSAL_ONLY',
++        'RESEARCH_ONLY':True,'production_allowed':False,'buy_gate_updated':False,'orders_sent':False}
++
++
+ def valid_owner_plan_result(plan:Mapping[str,Any],branch:str) -> bool:
+     """The wire receipt preserves the same owner/run/attempt contract as the wrapper."""
+     expected={'MORNING':'SCHEDULED_MORNING','PREOPEN':'SCHEDULED_PREOPEN',
+-              'EVENING_NEXT_SESSION':'MANUAL_REFRESH'}.get(branch)
+-    preserved=(branch in {'MORNING','EVENING_NEXT_SESSION'}
++              'EVENING_NEXT_SESSION':'MANUAL_REFRESH','SAME_DAY_CATCHUP':'MANUAL_REFRESH'}.get(branch)
++    preserved=(branch in {'MORNING','EVENING_NEXT_SESSION','SAME_DAY_CATCHUP'}
+         and plan.get('owner_product_status')=='PRESERVED_SCHEDULED_PREOPEN'
+         and plan.get('execution_kind')=='SCHEDULED_PREOPEN')
+     return bool(expected and (plan.get('execution_kind')==expected or preserved)
+@@ -272,29 +399,71 @@
+ def run_scheduled_plan_target(service:Any,target_trade_date:str,source_date:str,*,now:datetime,
+                               plan_config:Mapping[str,Any] | None,
+                               preopen_config:Mapping[str,Any] | None=None,
+-                              morning_plan_config:Mapping[str,Any] | None=None) -> dict[str,Any]:
++                              morning_plan_config:Mapping[str,Any] | None=None,
++                              daily_config:Mapping[str,Any] | None=None,
++                              daily_branch:str | None=None,scheduled_slot:str | None=None,
++                              trigger_id:str | None=None,
++                              us_market_request_context:Mapping[str,Any] | None=None) -> dict[str,Any]:
+     """Execute one target-date branch through the injected Manager owner."""
+     from v4.manager_research.workspace_plan_autorun import run_scheduled_preopen_plan_safe,run_scheduled_morning_plan
+     from v4.manager_research.workspace_projection import HK,date_token
+     source=date_token(source_date);target=date_token(target_trade_date)
+-    if scheduled_cycle_target(source,now=now,plan_config=plan_config,preopen_config=preopen_config,
+-                              morning_plan_config=morning_plan_config)!=target:
+-        raise ValueError('PLAN_OWNER_TARGET_DATE_OR_WINDOW_MISMATCH')
+-    branch=scheduled_cycle_branch(source,now=now,plan_config=plan_config,preopen_config=preopen_config,
+-                                  morning_plan_config=morning_plan_config)
++    if daily_branch is None:
++        if scheduled_cycle_target(source,now=now,plan_config=plan_config,preopen_config=preopen_config,
++                                  morning_plan_config=morning_plan_config)!=target:
++            raise ValueError('PLAN_OWNER_TARGET_DATE_OR_WINDOW_MISMATCH')
++        branch=scheduled_cycle_branch(source,now=now,plan_config=plan_config,preopen_config=preopen_config,
++                                      morning_plan_config=morning_plan_config)
++    else:
++        if not daily_admitted_branch_is_live(source,target,daily_branch,scheduled_slot=scheduled_slot,
++                now=now,plan_config=plan_config,preopen_config=preopen_config,
++                morning_plan_config=morning_plan_config,daily_config=daily_config):
++            raise ValueError('PLAN_OWNER_DAILY_TARGET_OR_WINDOW_MISMATCH')
++        branch=daily_branch
+     if branch=='MORNING':
+-        plan=run_scheduled_morning_plan(service,target,now=now,config=morning_plan_config)
++        execution_context=None
++        if daily_branch is not None:
++            from datetime import datetime as _datetime
++            scheduled_for=_datetime.strptime(str(scheduled_slot),'%Y%m%dT%H%M').replace(tzinfo=HK)
++            execution_context={'trigger_kind':'SCHEDULED','timing':'ON_TIME',
++                'scheduled_for':scheduled_for.isoformat(),'trigger_id':trigger_id,
++                'natural_run_verified':False}
++        plan=run_scheduled_morning_plan(service,target,now=now,config=morning_plan_config,
++            execution_context=execution_context,us_market_request_context=us_market_request_context)
++        branch_status_override=None
++        branch_failure_override=None
+     elif branch=='PREOPEN':
+         plan=run_scheduled_preopen_plan_safe(service,target,now=now,config=preopen_config)
++        branch_status_override=None
++        branch_failure_override=None
++    elif branch=='SAME_DAY_CATCHUP':
++        if scheduled_slot is None or trigger_id is None:
++            raise ValueError('SAME_DAY_CATCHUP_IDENTITY_REQUIRED')
++        catchup=run_same_day_catchup_plan(service,target,now=now,scheduled_slot=scheduled_slot,
++            trigger_id=trigger_id,us_market_request_context=us_market_request_context)
++        plan=catchup.get('plan_result') if isinstance(catchup,Mapping) else None
++        if not isinstance(plan,Mapping):
++            raise ValueError('SAME_DAY_CATCHUP_OWNER_READBACK_MISSING')
++        plan=dict(plan)
++        branch_status_override=catchup.get('status')
++        branch_failure_override=catchup.get('failure_reasons')
+     else:
+         plan=run_next_hk_session_plan_material_refresh(service,source,now=now,config=plan_config)
+         if plan.get('target_trade_date')!=target:raise ValueError('PLAN_OWNER_EVENING_TARGET_MISMATCH')
+         branch='EVENING_NEXT_SESSION'
++        branch_status_override=None
++        branch_failure_override=None
+     state=plan.get('status')
+     successful={'MATERIALIZED','ALREADY_MATERIALIZED','ALREADY_CURRENT','PRESERVED_SCHEDULED_PREOPEN'}
+     status='SUCCEEDED' if state in successful else 'PARTIAL' if state in {'PARTIAL','RETRY_BACKOFF'} else 'FAILED'
+     reasons=plan.get('failure_reasons') if isinstance(plan.get('failure_reasons'),list) else None
+     owner_readback_valid=valid_owner_plan_result(plan,branch)
++    if branch_status_override=='FAILED' and status=='SUCCEEDED':
++        status='FAILED'
++        reasons=branch_failure_override if isinstance(branch_failure_override,list) else ['PLAN_BRANCH_STATUS_INVALID']
++    elif branch_status_override=='PARTIAL' and status=='SUCCEEDED':
++        status='PARTIAL'
++        reasons=branch_failure_override if isinstance(branch_failure_override,list) else reasons
+     if status=='SUCCEEDED' and not owner_readback_valid:
+         status='FAILED'
+         reasons=['PLAN_OWNER_PRODUCT_READBACK_INVALID']
+@@ -332,9 +501,16 @@
+         raise ValueError('ANNOUNCEMENT_WORKER_UNSAFE_ENVIRONMENT')
+     from v4.manager_research.workspace_projection import HK
+     now=datetime.now(HK)
+-    plan_target=(scheduled_cycle_target(now.strftime('%Y%m%d'),now=now,
+-        plan_config=value.get('plan_material_refresh'),preopen_config=value.get('preopen_plan'),
+-        morning_plan_config=value.get('morning_plan')) if value['enabled'] else None)
++    from infrastructure.scheduling.manager_announcement_supervisor import daily_automation_config
++    daily_config=daily_automation_config(value.get('daily_automation'))
++    if value['enabled'] and daily_config['enabled']:
++        plan_target=daily_cycle_target(now.strftime('%Y%m%d'),now=now,
++            plan_config=value.get('plan_material_refresh'),preopen_config=value.get('preopen_plan'),
++            morning_plan_config=value.get('morning_plan'),daily_config=value.get('daily_automation'))
++    else:
++        plan_target=(scheduled_cycle_target(now.strftime('%Y%m%d'),now=now,
++            plan_config=value.get('plan_material_refresh'),preopen_config=value.get('preopen_plan'),
++            morning_plan_config=value.get('morning_plan')) if value['enabled'] else None)
+     if args.dry_run:
+         print(json.dumps(dict(status='DRY_RUN',dry_run=True,network_requests=0,state_writes=0,
+             plan_material_refresh_only=plan_only,plan_target_trade_date=plan_target,
+@@ -349,8 +525,9 @@
+                 buy_gate_updated=False,orders_sent=False)))
+             return 0
+         try:
+-            from v4.manager_research.plan_owner_dispatch import request_bound_plan_cycle
+-            result=request_bound_plan_cycle(args.binding,plan_target)
++            from v4.manager_research.plan_owner_dispatch import request_bound_daily_cycle,request_bound_plan_cycle
++            result=(request_bound_daily_cycle(args.binding,plan_target) if daily_config['enabled']
++                    else request_bound_plan_cycle(args.binding,plan_target))
+         except (ValueError,OSError,TimeoutError) as exc:
+             message=str(exc)
+             safe_reason=message if re.fullmatch(r'[A-Z][A-Z0-9_]{0,95}',message) else type(exc).__name__.upper()

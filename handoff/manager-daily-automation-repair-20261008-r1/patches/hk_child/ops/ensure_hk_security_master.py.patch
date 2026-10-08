@@ -1,0 +1,62 @@
+--- a/ops/ensure_hk_security_master.py
++++ b/ops/ensure_hk_security_master.py
+@@ -782,6 +782,41 @@
+     if not isinstance(store_error, type) or not issubclass(store_error, Exception):
+         raise ValueError("trusted acquire module has invalid StoreError")
+ 
++    def verify_captured_master_readback(result, validated_capture, expected_codes):
++        """Independently read the exact master after a captured-input publication."""
++        rows, manifest = load_verified_hk_security_master(store_root, trade_date)
++        _validate_security_master_rows(rows, expected_codes=expected_codes)
++        if (manifest.get("trade_date") != trade_date
++                or manifest.get("run_id") != result.get("security_master_run_id")
++                or manifest.get("artifact_sha256") != result.get("security_master_artifact_sha256")
++                or manifest.get("universe_codes_sha256") != _canonical_sha(expected_codes)
++                or not _capture_rows_match(rows, validated_capture["security_master_rows"])):
++            raise ValueError("HK security-master final readback identity mismatch")
++        manifest_sha256 = _canonical_sha(manifest)
++        if result.get("security_master_manifest_sha256") != manifest_sha256:
++            raise ValueError("HK security-master final manifest SHA mismatch")
++        if (result.get("panel_sha256") != panel_sha256
++                or result.get("panel_capture_binding_sha256")
++                != _panel_capture_binding_sha256(validated_capture, panel_sha256)):
++            raise ValueError("HK security-master final panel binding mismatch")
++        asset_root = store_root.expanduser().resolve() / "assets" / "hk_security_master"
++        latest = json.loads((asset_root / "latest.json").read_text(encoding="utf-8"))
++        entry = latest.get("entries", {}).get(trade_date)
++        if (not isinstance(entry, Mapping) or entry.get("run_id") != manifest.get("run_id")
++                or entry.get("manifest_relative") is None or entry.get("receipt_relative") is None):
++            raise ValueError("HK security-master final latest entry mismatch")
++        manifest_path = (asset_root / str(entry["manifest_relative"])).resolve()
++        receipt_path = (asset_root / str(entry["receipt_relative"])).resolve()
++        manifest_path.relative_to(asset_root)
++        receipt_path.relative_to(asset_root)
++        result["security_master_manifest_relative"] = str(manifest_path.relative_to(asset_root))
++        result["security_master_receipt_relative"] = str(receipt_path.relative_to(asset_root))
++        result["security_master_artifact_relative"] = manifest.get("artifact_relative")
++        result["security_master_manifest_sha256"] = manifest_sha256
++        result["security_master_readback_status"] = "VERIFIED"
++        result["security_master_readback_row_count"] = len(rows)
++        return result
++
+     if validated_capture is not None:
+         codes = list(validated_capture["codes"])
+         try:
+@@ -819,7 +854,7 @@
+                     trade_date=trade_date,
+                     capture=validated_capture,
+                 )
+-            return result
++            return verify_captured_master_readback(result, validated_capture, codes)
+ 
+         publish_hk_security_master = getattr(acquire_module, "publish_hk_security_master")
+         _validate_security_master_rows(
+@@ -853,7 +888,7 @@
+                 trade_date=trade_date,
+                 capture=validated_capture,
+             )
+-        return result
++        return verify_captured_master_readback(result, validated_capture, codes)
+ 
+     resolve_stage_universe = getattr(acquire_module, "resolve_stage_universe", None)
+ 

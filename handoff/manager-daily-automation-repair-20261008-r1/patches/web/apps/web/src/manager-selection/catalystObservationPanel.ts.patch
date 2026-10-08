@@ -1,0 +1,128 @@
+--- a/apps/web/src/manager-selection/catalystObservationPanel.ts
++++ b/apps/web/src/manager-selection/catalystObservationPanel.ts
+@@ -4,6 +4,7 @@
+ import { businessStatusRows } from './businessStatus.js';
+ import { normalizedWorkspaceDay, readDailyDateBindings, renderDailyChannels, sameDailyDateBindings,
+   type WorkspaceDateBindings } from './dailyChannels.js';
++import { mayKeepWorkspaceResult, projectPlanReadback, renderDailyResearchRun, workspaceRequestStillCurrent } from './dailyResearchRun.js';
+ /** Stock-keyed panel inside the EXISTING ManagerSelectionView host.
+  * The original Stage table/rank/BUY gate remain outside this DOM boundary.
+  * Cross-date/view and source failures clear cards. Same-view re-read may retain
+@@ -103,6 +104,7 @@
+   let currentValue: ManagerWorkspace | null = null;
+   let view: 'auto'|'dynamic' = 'auto';
+   let loadedView: 'auto'|'dynamic' | null = null;
++  let loadedBindings: WorkspaceDateBindings | null = null;
+   let sourceFilter: 'ALL'|'STAGE'|'MATERIAL'|'CLOSE' = 'ALL';
+   const el = <K extends keyof HTMLElementTagNameMap>(tag: K, content = '', className = '') => {
+     const node = document.createElement(tag); node.textContent = content; node.className = className; return node;
+@@ -129,6 +131,7 @@
+   const cancelButton=el('button','取消本次读取');cancelButton.type='button';cancelButton.hidden=true;
+   header.append(dateLabel,readButton,refreshButton,viewLabel,cancelButton);
+   const status = el('p'); status.setAttribute('role','status'); status.setAttribute('aria-live','polite');
++  const dailyResearchRun=el('section');renderDailyResearchRun(dailyResearchRun,undefined,displayBindings());
+   const dailyChannels=el('section');renderDailyChannels(dailyChannels,undefined,displayBindings());
+   const runs = el('div','','manager-catalyst-cards'); runs.setAttribute('aria-label','三路运行状态');
+   const runSummary=el('p');runSummary.setAttribute('aria-label','三路状态摘要');
+@@ -166,7 +169,7 @@
+   const themeDetails=el('details');themeDetails.dataset.policyDetails='true';themeDetails.append(el('summary','政策与产业线索：适用公司、原文及缺口'),themes);
+   const provenance=el('details');provenance.append(el('summary','原owner状态与公司原始分类'),runSummary,runDetails,companyEvents);
+   // One entry for stock attention. Source lists remain audit/context, not rivals.
+-  panel.append(style,header,status,dailyChannels,announcementAnalysisSection,businessStatus,researchFocus,closeRecapture,decisionSummary,filters,stocks,background,researchAttentionSection,themeDetails,strategy,announcementSection,provenance,
++  panel.append(style,header,status,dailyResearchRun,dailyChannels,announcementAnalysisSection,businessStatus,researchFocus,closeRecapture,decisionSummary,filters,stocks,background,researchAttentionSection,themeDetails,strategy,announcementSection,provenance,
+     el('p','仅研究：事件成立与行情承接、BUY准入分开。未核同口径量价不报触发价；不因高开远离可靠参考位追入，也不预设一定回踩。未读取仓位、未发订单。','decision-safety'),audit);
+   host.replaceChildren(panel);
+ 
+@@ -466,8 +469,12 @@
+     screen.append(details('筛选覆盖、权威面板与研究边界',value));
+   }
+   function render(value: ManagerWorkspace): void {
++    if(value.target_trade_date!==displayBindings().plan_date ||
++        value.date_bindings!==undefined&&!sameDailyDateBindings(value.date_bindings,displayBindings()))
++      throw new Error('WORKSPACE_DISPLAY_BINDING_MISMATCH');
+     // Input identity is retained for audit; it is not a stock ranking.
+-    currentValue=value;loadedView=view;
++    currentValue=value;loadedView=view;loadedBindings={...displayBindings()};
++    renderDailyResearchRun(dailyResearchRun,value,displayBindings());
+     renderDailyChannels(dailyChannels,value.daily_channels,displayBindings());
+     renderResearchAttention(researchAttentionSection,value.research_attention as ResearchAttention|undefined,value.us_market_attention as UsMarketAttention|undefined,value.selection_diagnostics as SelectionDiagnostics|undefined,value.us_mapping_research as UsMappingResearch|undefined);
+     panel.dataset.inputIdentity=value.input_identity; panel.dataset.targetDate=value.target_trade_date;panel.dataset.readState='READY';
+@@ -477,9 +484,10 @@
+     const planAttempt=(value.workspace_plan_attempt || {}) as JsonObject;
+     const historical=read.mode==='HISTORICAL_AS_OF';
+     const missing=read.status==='NOT_MATERIALIZED';const sourceFailed=read.status==='SOURCE_FAILED';
+-    const attemptMatches=typeof product.run_id==='string'&&product.run_id===planAttempt.run_id;
+-    const savedDraft=!historical&&view!=='dynamic'&&product.status==='CURRENT'&&attemptMatches&&planAttempt.execution_kind==='MANUAL_REFRESH';
+-    const savedFreeze=!historical&&product.status==='CURRENT'&&attemptMatches&&planAttempt.execution_kind==='SCHEDULED_PREOPEN';
++    const planReadback=projectPlanReadback(value,displayBindings());
++    const verifiedSaved=planReadback.status==='VERIFIED_SAVED';
++    const savedDraft=!historical&&view!=='dynamic'&&verifiedSaved&&product.execution_kind==='MANUAL_REFRESH';
++    const savedFreeze=!historical&&verifiedSaved&&product.execution_kind==='SCHEDULED_PREOPEN';
+     renderResearchFocus(value,savedDraft,savedFreeze,historical);
+     const label=historical ? (missing?'当时历史：缺少合格保存计划':sourceFailed?'当时历史：来源校验失败，拒绝旧计划':'当时历史：保存计划已重验') :
+       (view==='dynamic'?'现在回看（含后续信息，非当时已知）':savedDraft?'次日研究预览（已保存草案；未正式冻结）':
+@@ -544,9 +552,10 @@
+     }));
+   }
+   function clearResults(): void {
+-    currentValue=null;loadedView=null;decisionSummary.textContent='候选和风险数量未知';
++    currentValue=null;loadedView=null;loadedBindings=null;decisionSummary.textContent='候选和风险数量未知';
+     filterCount.textContent='读取中 · 数量未知';background.hidden=true;runSummary.textContent='';
+     for(const node of [stocks,backgroundBody,companyEvents,runs,themes,auditBody,businessStatus,researchFocus,closeRecapture])node.replaceChildren();
++    renderDailyResearchRun(dailyResearchRun,undefined,displayBindings());
+     renderDailyChannels(dailyChannels,undefined,displayBindings());
+     renderScreen(undefined);
+     renderResearchAttention(researchAttentionSection,undefined,undefined);
+@@ -643,11 +652,11 @@
+     const id=++sequence;controller?.abort();clearTimeout(timer);controller=new AbortController();const current=controller;
+     const requestedDate=date;const requestedView=view;let timedOut=false;
+     const requestedBindings:WorkspaceDateBindings={plan_date:requestedDate,selection_date:selectionDate,announcement_date:publicationDate};
++    const stillCurrent=()=>workspaceRequestStillCurrent({disposed,currentSequence:sequence,requestSequence:id,
++      requestedBindings,currentBindings:displayBindings(),requestedView,currentView:view});
+     const hadDailyExtension=currentValue?.daily_channels!==undefined;
+     timer=setTimeout(()=>{timedOut=true;current.abort();},WORKSPACE_REQUEST_TIMEOUT_MS);
+-    const priorRead=(currentValue?.read_context || {}) as JsonObject;
+-    const keep=!!currentValue && currentValue.target_trade_date===date && loadedView===view &&
+-      ['VERIFIED','VERIFIED_WITH_GAPS'].includes(String(priorRead.status));
++    const keep=mayKeepWorkspaceResult({current:currentValue,loadedBindings,loadedView,requestedBindings,requestedView});
+     if(!keep)clearResults();
+     panel.dataset.readState=keep?'UPDATING':'LOADING';
+     if(keep)filterCount.textContent='上次结果 · 正在更新';
+@@ -657,10 +666,12 @@
+     let refreshFailure='';let refreshedValue: ManagerWorkspace | null = null;
+     try {
+       if(refresh){
+-        try { refreshedValue=await refreshManagerWorkspace(requestedDate,current.signal); }
++        const refreshBindings=selectedDates.explicit
++          ? {selection_date,announcement_date:publicationDate} : undefined;
++        try { refreshedValue=await refreshManagerWorkspace(requestedDate,current.signal,refreshBindings); }
+         catch(error){if(current.signal.aborted)throw error;refreshFailure=failureKind(error,false,false)[0];}
+       }
+-      if(disposed || id!==sequence)return;
++      if(!stillCurrent())return;
+       if(current.signal.aborted)throw new DOMException('Workspace read aborted','AbortError');
+       // Legacy callers keep their 3-argument read and legacy successful POST.
+       // Once the optional projection is available, its selected dates must be
+@@ -670,18 +681,18 @@
+       let value=refreshedValue && !requireCanonical ? refreshedValue : bindFirstRead
+         ? await requestManagerWorkspace(requestedDate,current.signal,requestedView,requestedBindings)
+         : await requestManagerWorkspace(requestedDate,current.signal,requestedView);
+-      if(disposed || id!==sequence)return;
++      if(!stillCurrent())return;
+       if(current.signal.aborted)throw new DOMException('Workspace read aborted','AbortError');
+-      if(value.daily_channels!==undefined && !sameDailyDateBindings(value.date_bindings,requestedBindings)){
++      if(value.date_bindings!==undefined && !sameDailyDateBindings(value.date_bindings,requestedBindings)){
+         if(bindFirstRead)throw new Error('WORKSPACE_DAILY_DATE_BINDING_MISMATCH');
+         value=await requestManagerWorkspace(requestedDate,current.signal,requestedView,requestedBindings);
+       }
+       if(current.signal.aborted)throw new DOMException('Workspace read aborted','AbortError');
+-      if(!disposed && id===sequence && date===requestedDate && view===requestedView){
++      if(stillCurrent()){
+         render(value);if(refreshFailure)status.textContent+=` 本次生成失败：${refreshFailure} 以下仅为重新核验的读取状态。`;
+       }
+     } catch(error){
+-      if(!disposed && id===sequence && date===requestedDate && view===requestedView){
++      if(stillCurrent()){
+         const [message,sourceFailure]=failureKind(error,timedOut,current.signal.aborted);
+         if(sourceFailure || !keep){clearResults();panel.dataset.readState='FAILED';filterCount.textContent='读取未完成 · 数量未知';}
+         else {panel.dataset.readState='STALE';filterCount.textContent='上次结果 · 本次读取未完成';}

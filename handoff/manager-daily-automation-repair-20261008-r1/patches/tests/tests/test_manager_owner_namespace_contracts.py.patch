@@ -1,0 +1,32 @@
+--- /dev/null
++++ b/tests/test_manager_owner_namespace_contracts.py
+@@ -0,0 +1,29 @@
++from __future__ import annotations
++
++import builtins
++
++import pytest
++
++
++def test_research_peripheral_namespace_resolves_facade_then_builtins():
++    from infrastructure._research_peripheral_store_parts._namespace import read_global
++
++    scope = {"str": lambda value: f"facade:{value}", "__builtins__": builtins.__dict__}
++    assert read_global(scope, "str")("x") == "facade:x"
++    assert read_global(scope, "list") is list
++    with pytest.raises(NameError) as error:
++        read_global(scope, "not_a_real_owner_name")
++    assert error.value.name == "not_a_real_owner_name"
++
++
++def test_hk_child_namespace_resolves_actual_entry_scope_without_mutating_it():
++    from ops._macos_research_panel_daily_parts._namespace import read_global
++
++    scope = {"marker": object(), "__builtins__": builtins.__dict__}
++    marker = scope["marker"]
++    assert read_global(scope, "marker") is marker
++    assert read_global(scope, "max") is max
++    with pytest.raises(NameError) as error:
++        read_global(scope, "missing_actual_entry_global")
++    assert error.value.name == "missing_actual_entry_global"
++    assert set(scope) == {"marker", "__builtins__"}

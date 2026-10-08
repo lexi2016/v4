@@ -1,0 +1,19 @@
+{
+  "schema_version": "manager_daily_automation.shared_import_gate.v1",
+  "observed_at": "2026-10-08T16:44:12.039315+00:00",
+  "command": [
+    "/workspace/scratch/a154a3323e32/test_env/bin/python",
+    "-c",
+    "import infrastructure.scheduling.manager_announcement_supervisor"
+  ],
+  "cwd": "/workspace/scratch/a154a3323e32/worktrees/manager_automation",
+  "PYTHONPATH": ".:upstreams",
+  "exit_code": 1,
+  "status": "CLOUD_SHARED_IMPORT_CLOSURE_BLOCKED",
+  "missing_dependency": "stage_center._selection_parts._namespace",
+  "log": "clean_scheduler_import.log",
+  "log_sha256": "3260d6276d335bd032a765c3ea826bc97186bb55e4a6cf0cd09f51d988e0b638",
+  "scope": "Supplied assembled source slice; not a claim about the running Mac import closure",
+  "no_stub_added": true,
+  "no_stage_modification": true
+}

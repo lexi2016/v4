@@ -1,0 +1,206 @@
+{
+  "artifact_path": "/workspace/scratch/a154a3323e32/investigation/automation/writer_final_report.json",
+  "changed_source_and_test_sha256": {
+    "apps/api/v35_api/manager_research_router.py": "c3ec90ffb88f1378c4d9a1912fc78747f4440d0331696de4f1a015ad72946f4c",
+    "apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts": "b5b57a45102775d2f57b1af14456f8a9bf2b23c6a8a96f4b30c87da245f9ac0d",
+    "apps/web/src/api/managerWorkspace.ts": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+    "apps/web/src/manager-selection/catalystObservationPanel.ts": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6",
+    "apps/web/src/manager-selection/dailyResearchRun.spec.ts": "1fed6bbd4454e77c8b0e67e41c4b3d7fac0f4a1cae67893f1e3d438d29366501",
+    "apps/web/src/manager-selection/dailyResearchRun.ts": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d",
+    "apps/web/src/manager-selection/researchAttention.ts": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c",
+    "infrastructure/_research_peripheral_store_parts/_namespace.py": "04d71a71d33cdc90ec362289095dd2ac6e357f79af1528f8c573f6ddcc24e68d",
+    "infrastructure/scheduling/manager_announcement_supervisor.py": "2ed9640b7c1568df065884f9f71a1df82b288c342bc94135ef4fd06b4c510373",
+    "ops/_macos_research_panel_daily_parts/_namespace.py": "d9d742f198bf1fb011d20e630ef9961a7b5e6a476f3d52c92584fc3e7b487be6",
+    "ops/_macos_research_panel_daily_parts/hk_capture_gate.py": "d07be30a40c35aee9d710fcdcc7ae66b031488cc4c5e7029824e3c76ed3fd71c",
+    "ops/ensure_hk_security_master.py": "495ced4f0f06f170606ee576e035dafc99b540cd9fad0a28f2f2a36e5989ddb9",
+    "ops/render_manager_announcement_binding.py": "78049be0625c15539dcd44c1924ba8f89d5dd5a06a074c723a84d68fb45b3f39",
+    "ops/run_manager_announcement_cycle.py": "ac05519d31be2ad5de640190d9219335e14cd70e6273bdc652b32b85e929ffa1",
+    "runtime_layers/hk_child/ops/macos_research_panel_daily.py": "1963990fcde99b2681c837b8b66ea12f1ab066aba47729af5d0900073bc79ef3",
+    "tests/manager_daily_ui_owner_fixture.py": "59e78904ca76deaa381799719cbeb6c1841bd7df318d354c2e5ad6298e768020",
+    "tests/manager_daily_ui_route_fixture.py": "8d1d4ee850d70213b210941faf8c46cdd8741ca05102dfb36794dae4f40df104",
+    "tests/test_hk_daily_publication_chain.py": "5e70c7f2943df396b0d8dde48c8adcc0153962306d71c0ececb72af17e04eec3",
+    "tests/test_hk_daily_supplement_r4.py": "7085f61af64c20f3153ca5e6d7948c0e0e54c3236e2e5ec364b9662d5d1dfc94",
+    "tests/test_manager_daily_automation_20261008.py": "32d1baf5f79672d94fbcc2053e16aa4dfaefd8637cd153c4dfadf3fc6e43a45e",
+    "tests/test_manager_daily_dispatch_20261008.py": "5751d7831d10d9c21767e7e5b47199b98aea877ab76badcff36246e12f3eb6ac",
+    "tests/test_manager_history_contract_20261008.py": "ba8b74490c9fcb248bc102c0c22aa76ec121f268730ab13ac14c2f69e013d188",
+    "tests/test_manager_owner_namespace_contracts.py": "5a3203582a4857e9d5a269976b43aaff604f374ffc10ce94d8c8d843e2d5c1a0",
+    "tests/test_manager_us_daily_automation_20261008.py": "619afccbc08dba0c151939991e7cb7e636359bf6ab99b623ea64b9ec50cd1ba4",
+    "tests/test_manager_workspace_exact_page_binding_20261008.py": "9717711ce8eb3aca116b1ded70f3c833a573b6cb95f522468390eefb1e4d03a9",
+    "tests/test_manager_workspace_owner_20261008.py": "46ebbea9f71baf052ebbd1185d2dc25bcd4bc92d3e2e6da8ebd96c41135294ea",
+    "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+    "v4/manager_research/plan_owner_dispatch.py": "d896359dbfd39f41ed3e316d54424c6f1172d935aa1d77a47463167d7bf1ed90",
+    "v4/manager_research/service.py": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+    "v4/manager_research/us_mapping_research.py": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+    "v4/manager_research/workspace.py": "58a471c5ce7ece837c66948392ec2e6d73459343515225e19d694749c45ab1a4",
+    "v4/manager_research/workspace_history.py": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+    "v4/manager_research/workspace_plan_autorun.py": "14d168300bba42124649f56b79ae65b41359bcfa6928b59fea4a36beb2b511f5"
+  },
+  "counting_policy": {
+    "main_group_passes": 112,
+    "overlapping_counts_are_not_added": true,
+    "page_binding_cross_check_passes": 25,
+    "separate_namespace_tests_passes": 2,
+    "supplement_failures_are_reported_separately": true,
+    "vitest_tests_passed": 34
+  },
+  "independent_reviewer_evidence": [
+    {
+      "check": "Two-target-date original HK updater pointer-advance/readback probe",
+      "note": "No reviewer log file was provided to the writer; this is identified as relayed reviewer evidence rather than a locally captured log.",
+      "result": "1/1 passed, reported by the independent reviewer",
+      "saved_log_path": null
+    }
+  ],
+  "known_source_closure_limits": {
+    "clean_python_package_import": {
+      "cause": "ModuleNotFoundError: stage_center._selection_parts._namespace while importing infrastructure.scheduling.manager_announcement_supervisor through the existing scheduling package closure.",
+      "command_log": "/workspace/scratch/a154a3323e32/investigation/automation/writer_final_clean_import_blocker.log",
+      "exit_code": 1,
+      "note": "No Stage namespace shim was added.",
+      "status": "BLOCKED"
+    },
+    "inventory_markers": {
+      "apps/__init__.py": {
+        "effect": "The existing renderer binding inventory requires this marker; the actual renderer inventory path cannot be reported as passing.",
+        "status": "MISSING in worktree and baseline HEAD"
+      },
+      "apps/api/__init__.py": {
+        "note": "Do not classify this file as missing.",
+        "sha256": "ba6c324cbd4be60367b15bd3d6035c8165ee11c8ef9950d3282a0bb75849c991",
+        "size_bytes": 41,
+        "status": "PRESENT canonical baseline file"
+      }
+    },
+    "source_closure_inventory_evidence_log": "/workspace/scratch/a154a3323e32/investigation/automation/writer_final_source_closure.log",
+    "web_parent_modules": {
+      "effect": "The full UI parent-page import/mount cannot be verified from this frozen source slice; the standalone DTO/parser/projection tests and focused typecheck are the verified scope.",
+      "missing": [
+        "apps/web/src/api/managerAnnouncementAnalysis.ts",
+        "apps/web/src/manager-selection/announcementAnalysis.ts"
+      ]
+    }
+  },
+  "report_schema_version": "manager_daily_automation_writer_verification.v1",
+  "saved_log_sha256": {
+    "/workspace/scratch/a154a3323e32/investigation/automation/writer_final_clean_import_blocker.log": "6e96afad1991ab5605df5d123f204679044dda8d0338a9f53e64f7d03cb55769",
+    "/workspace/scratch/a154a3323e32/investigation/automation/writer_final_diff_check.log": "a72f735364b6d06dde50fa72d3b54767ebb9f547bf78e8287453af29379ca385",
+    "/workspace/scratch/a154a3323e32/investigation/automation/writer_final_pytest_hk_supplement.log": "04af27f00c52c9f557d485568b56dac9f7473e1011359b01d62431a3a8f732bd",
+    "/workspace/scratch/a154a3323e32/investigation/automation/writer_final_pytest_main.log": "03520ec8852c79498c3c8361d0d4f04be52e46d96e4680875d7788fca80c56dc",
+    "/workspace/scratch/a154a3323e32/investigation/automation/writer_final_pytest_namespace.log": "c0b4c0d1918c72183ef8f5c14af5264b55de245150819923b6017ce6f42d151c",
+    "/workspace/scratch/a154a3323e32/investigation/automation/writer_final_pytest_page_overlap.log": "36b44fa973ff644f9040e7b25e10393f6c62d65dda8c64d0194d787ea10fee9a",
+    "/workspace/scratch/a154a3323e32/investigation/automation/writer_final_source_closure.log": "7d66e07ef4a1e8d56d95db0c7c4de6ee5d56fde7f6edfa87803957f3a6b8ea91",
+    "/workspace/scratch/a154a3323e32/investigation/automation/writer_final_tsc.log": "940fc4b3234fda3643f02459311fc3a385a65f0ae7380c0668c232dc33de1de7",
+    "/workspace/scratch/a154a3323e32/investigation/automation/writer_final_vitest.log": "bccd7cf0ee5d13b8c0e017f0b9a140624620435c6fc0c5bf6d41b549f6544994"
+  },
+  "verification": [
+    {
+      "command": "PYTHONPATH=.:upstreams:tests /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q tests/test_manager_workspace_exact_page_binding_20261008.py tests/test_manager_workspace_owner_20261008.py tests/test_manager_history_contract_20261008.py tests/test_manager_daily_automation_20261008.py tests/test_manager_daily_dispatch_20261008.py tests/test_manager_us_daily_automation_20261008.py tests/test_hk_daily_publication_chain.py",
+      "exit_code": 0,
+      "log": "/workspace/scratch/a154a3323e32/investigation/automation/writer_final_pytest_main.log",
+      "name": "Focused manager daily/workspace/history/US/HK publication Python suite",
+      "result": {
+        "failed": 0,
+        "passed": 112,
+        "warnings": 1
+      },
+      "working_directory": "/workspace/scratch/a154a3323e32/worktrees/manager_automation"
+    },
+    {
+      "command": "PYTHONPATH=.:upstreams:tests /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q tests/test_manager_workspace_exact_page_binding_20261008.py tests/test_manager_workspace_owner_20261008.py /workspace/scratch/a154a3323e32/investigation/automation/reviewer/test_daily_exact_page_binding_independent.py",
+      "counting_note": "Overlaps with the 112-test main group; counts are not additive.",
+      "exit_code": 0,
+      "log": "/workspace/scratch/a154a3323e32/investigation/automation/writer_final_pytest_page_overlap.log",
+      "name": "Independent exact page binding route cross-check",
+      "result": {
+        "failed": 0,
+        "passed": 25,
+        "warnings": 1
+      },
+      "working_directory": "/workspace/scratch/a154a3323e32/worktrees/manager_automation"
+    },
+    {
+      "command": "PYTHONPATH=.:upstreams /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q tests/test_manager_owner_namespace_contracts.py",
+      "exit_code": 0,
+      "log": "/workspace/scratch/a154a3323e32/investigation/automation/writer_final_pytest_namespace.log",
+      "name": "Owner namespace closure tests",
+      "result": {
+        "failed": 0,
+        "passed": 2
+      },
+      "working_directory": "/workspace/scratch/a154a3323e32/worktrees/manager_automation"
+    },
+    {
+      "command": "V4_TEST_PYTHON=/workspace/scratch/a154a3323e32/test_env/bin/python ./node_modules/.bin/vitest run src/manager-selection/dailyResearchRun.spec.ts src/api/managerWorkspace.dailyAutomation.spec.ts src/api/managerWorkspace.usIsolation.spec.ts src/manager-selection/dailyChannels.spec.ts",
+      "dependency_note": "Used the existing candidate node_modules through a temporary symlink for this run; the symlink was removed afterward.",
+      "exit_code": 0,
+      "log": "/workspace/scratch/a154a3323e32/investigation/automation/writer_final_vitest.log",
+      "name": "Daily research frontend Vitest suites",
+      "result": {
+        "files_passed": 4,
+        "tests_failed": 0,
+        "tests_passed": 34
+      },
+      "working_directory": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web"
+    },
+    {
+      "command": "/workspace/scratch/a154a3323e32/candidate/apps/web/node_modules/.bin/tsc --noEmit --strict --target ES2022 --module ESNext --moduleResolution Bundler --lib ES2022,DOM src/api/managerWorkspace.ts src/manager-selection/dailyResearchRun.ts src/manager-selection/researchAttention.ts",
+      "exit_code": 0,
+      "log": "/workspace/scratch/a154a3323e32/investigation/automation/writer_final_tsc.log",
+      "name": "Focused strict TypeScript check",
+      "result": {
+        "diagnostics": 0
+      },
+      "working_directory": "/workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web"
+    },
+    {
+      "command": "PYTHONPATH=.:upstreams /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q tests/test_hk_daily_supplement_r4.py",
+      "exit_code": 1,
+      "log": "/workspace/scratch/a154a3323e32/investigation/automation/writer_final_pytest_hk_supplement.log",
+      "name": "HK daily supplement suite",
+      "result": {
+        "failed": 2,
+        "failure_summary": "Both existing HK02 fixture scenarios return input_candidate_count=0 where the fixture expects 3 and 1, respectively; the rules were not relaxed to force these fixtures green.",
+        "known_failures": [
+          "test_screen_uses_master_universe_sidecar_volume_and_missing_only_price_overlay",
+          "test_complete_panel_history_skips_sidecar_and_preserves_canonical_baseline"
+        ],
+        "passed": 13
+      },
+      "working_directory": "/workspace/scratch/a154a3323e32/worktrees/manager_automation"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "log": "/workspace/scratch/a154a3323e32/investigation/automation/writer_final_diff_check.log",
+      "name": "Whitespace/error check",
+      "result": {
+        "issues": 0
+      },
+      "working_directory": "/workspace/scratch/a154a3323e32/worktrees/manager_automation"
+    }
+  ],
+  "worktree": {
+    "apps_web_node_modules_symlink_removed": true,
+    "branch": "manager-daily-automation-r1",
+    "committed": false,
+    "head": "3f2aa6c92d87da098d33b5349698e55d337fd165",
+    "head_unchanged_from_required_baseline": true,
+    "path": "/workspace/scratch/a154a3323e32/worktrees/manager_automation",
+    "report_is_outside_code_worktree": true,
+    "verification_artifacts_location": "/workspace/scratch/a154a3323e32/investigation/automation"
+  },
+  "writer": {
+    "assigned_role": "Luna Max Writer; sole production and implementation-test writer for this work package",
+    "inherited_identity_text": {
+      "interpretation": "Shared developer identity text; it is not evidence of the root-dispatched agent runtime model.",
+      "text": "GPT-6 Astra Pro"
+    },
+    "root_dispatch_config": {
+      "fork_turns": "none",
+      "model": "gpt-6-luna",
+      "reasoning_effort": "max",
+      "source": "Root agent dispatch configuration."
+    },
+    "runtime_model_status": "NOT_INDEPENDENTLY_PROVEN"
+  }
+}

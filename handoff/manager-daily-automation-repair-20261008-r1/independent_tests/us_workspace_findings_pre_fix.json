@@ -1,0 +1,63 @@
+{
+  "captured_at_utc": "2026-10-08T16:48:28.024184+00:00",
+  "clean_renderer_import": {
+    "command": "PYTHONPATH=.:upstreams /workspace/scratch/a154a3323e32/test_env/bin/python -c 'import ops.render_manager_announcement_binding'",
+    "reason": "ModuleNotFoundError: stage_center._selection_parts._namespace via scheduling.__init__ → dispatcher → executor_registry → ops.daily_materialize → stage_center.consumer",
+    "status": "CLOUD_SHARED_IMPORT_CLOSURE_BLOCKED"
+  },
+  "findings": [
+    {
+      "evidence": "same-trigger terminal replay raises KeyError for schema_version; first timeout response had DAILY_SCHEMA, target, matches=[], and null unknown coverage",
+      "id": "US_TIMEOUT_REPLAY_DTO_INCOMPLETE",
+      "status": "FAIL",
+      "test": "test_same_trigger_timeout_retry_preserves_full_unknown_dto"
+    },
+    {
+      "evidence": "SafeRoot latest pointer write was durably completed, then 0.05s owner budget expired; owner returned FAILED/US_MAPPING_OWNER_BUDGET_EXHAUSTED but ordinary mapping read returned status COMPLETED and VERIFIED run_readback with no latest_attempt",
+      "id": "POINTER_PUBLISH_TIMEOUT_READBACK_MISSTATES_COMPLETION",
+      "status": "FAIL",
+      "test": "test_pointer_publish_budget_timeout_does_not_look_like_verified_daily_success"
+    },
+    {
+      "evidence": "saved plan cutoff 09:00, current GET cutoff 10:00, attempt finished 09:30; latest_attempt_after_plan_cutoff returned false though it should be true; saved product bytes and latest_attempt_affects_saved_plan=false invariant held",
+      "id": "SAVED_CUTOFF_OVERLAY_USES_CURRENT_GET_CUTOFF",
+      "status": "FAIL",
+      "test": "test_saved_plan_attempt_overlay_uses_saved_cutoff_not_current_get_cutoff"
+    },
+    {
+      "evidence": "bounded US timeout followed by real original SCHEDULED_PREOPEN plan owner did not re-enter the reader in the latest full run",
+      "id": "TIMED_OUT_US_READER_REENTERS_REAL_PLAN_OWNER",
+      "status": "PASS_AFTER_WRITER_CHANGE",
+      "test": "test_timed_out_us_owner_does_not_reenter_reader_from_real_plan_owner_or_miss_deadline"
+    }
+  ],
+  "formal_api_ui_or_mac_verification": "NOT_RUN",
+  "log_file": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/us_workspace_pre_fix_failures.log",
+  "log_sha256": "b88568842229a5659b62a5573a9243c868a71306b1363d0d59a4401511928e4e",
+  "natural_run_verified": false,
+  "repo_head": "3f2aa6c92d87da098d33b5349698e55d337fd165",
+  "reviewer": "independent_luna_max_reviewer",
+  "runtime": {
+    "command": "PYTHONPATH=.:upstreams /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q /workspace/scratch/a154a3323e32/investigation/automation/reviewer/test_us_daily_owner_independent.py",
+    "python": "3.14.6"
+  },
+  "source_sha256_capture_after_suite": {
+    "infrastructure/_research_peripheral_store_parts/_namespace.py": "04d71a71d33cdc90ec362289095dd2ac6e357f79af1528f8c573f6ddcc24e68d",
+    "infrastructure/research_peripheral_store.py": "ec5ca1e32232946bacf04834d0ec0e0ed6e772ce1d3470fdb65b35522dc2faab",
+    "infrastructure/scheduling/manager_announcement_supervisor.py": "2ed9640b7c1568df065884f9f71a1df82b288c342bc94135ef4fd06b4c510373",
+    "ops/render_manager_announcement_binding.py": "78049be0625c15539dcd44c1924ba8f89d5dd5a06a074c723a84d68fb45b3f39",
+    "ops/run_manager_announcement_cycle.py": "2f2e411b53728d13df47793c4a949acce117311b852426256639b41a7ab34dd9",
+    "v4/manager_research/plan_owner_dispatch.py": "333cd59f8a93580f7df7bde5079e38865fce9124b4b94b10ba3fb73ad487f0f2",
+    "v4/manager_research/service.py": "e0c1b425dd740fa6e9b034739c91081abd95dba91325f335b00ed332fabb6c93",
+    "v4/manager_research/us_mapping_research.py": "fa34cff80f7405b257c977cf08c4f312e247f8b777bf5ee57b9653e6056023ce",
+    "v4/manager_research/us_market_bridge.py": "18d4ede4267a446d235267c71cecd1208f30ae3fdfe9ff02d9354d1b5a18de06",
+    "v4/manager_research/workspace.py": "d21a86515a469d3d66435d61f5e03e7d80ef4c2acee79c27a24dfc48f7a87926",
+    "v4/manager_research/workspace_history.py": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af"
+  },
+  "suite_result": {
+    "exit_code": 1,
+    "failed": 3,
+    "passed": 15,
+    "scope": "synthetic fixtures; no live sources; no API/UI/natural runtime verification"
+  }
+}

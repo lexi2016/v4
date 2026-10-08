@@ -1,0 +1,26 @@
+{
+  "scope": "SYNTHETIC_DISPOSABLE_PACKAGE_VALIDATION_ONLY",
+  "captured_at_utc": "2026-10-08T17:32:34.670968+00:00",
+  "status": "PASS",
+  "cases": [
+    {
+      "case": "declared single-file forward/reverse",
+      "status": "PASS"
+    },
+    {
+      "case": "extra add-file hunk",
+      "status": "REJECTED_AS_REQUIRED",
+      "reason": "Undeclared or duplicate patch target: ['v4/example.py', 'ops/unrequested.py']"
+    },
+    {
+      "case": "duplicate target diff",
+      "status": "REJECTED_AS_REQUIRED",
+      "reason": "Undeclared or duplicate patch target: ['v4/example.py', 'v4/example.py']"
+    },
+    {
+      "case": "complete snapshot detects additional file",
+      "status": "PASS"
+    }
+  ],
+  "tool_sha256": "e501e990dfbbf91612b5586b2b808299a4efcb4cb980aa27ea91264baa204513"
+}

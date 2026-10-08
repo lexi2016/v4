@@ -1,0 +1,54 @@
+--- /dev/null
++++ b/tests/manager_daily_ui_route_fixture.py
+@@ -0,0 +1,51 @@
++"""Emit a real refresh→ordinary GET DTO for the browser readback projector."""
++from __future__ import annotations
++
++from datetime import datetime
++import json
++from pathlib import Path
++from tempfile import TemporaryDirectory
++from zoneinfo import ZoneInfo
++
++from test_manager_announcement_parity_20261008 import _FixtureService, _client
++from v4.manager_research import workspace as workspace_owner
++
++
++TARGET = '20261008'
++HK = ZoneInfo('Asia/Hong_Kong')
++
++
++def main() -> None:
++    actual = datetime(2026, 10, 8, 10, 0, tzinfo=HK)
++    import test_manager_announcement_parity_20261008 as fixture_module
++
++    class FrozenRouterClock(datetime):
++        @classmethod
++        def now(cls, tz=None):
++            return actual.astimezone(tz) if tz else actual.replace(tzinfo=None)
++
++    fixture_module.api.datetime = FrozenRouterClock
++    fixture_module.NOW = datetime(2026, 10, 8, 10, 0, 3, tzinfo=HK)
++    workspace_owner._now = lambda: '2026-10-08T02:00:02+00:00'
++    with TemporaryDirectory(prefix='manager-daily-route-fixture-') as directory:
++        service = _FixtureService(Path(directory) / 'manager-state')
++        with _client(service) as client:
++            post = client.post('/api/v4/manager/research/workspace/refresh',
++                params={'date': TARGET}, headers={'Origin': 'http://testserver'})
++            if post.status_code != 200:
++                raise RuntimeError(f'route fixture POST failed: {post.status_code}')
++            response = client.get('/api/v4/manager/research/workspace', params={
++                'date': TARGET, 'view': 'dynamic', 'selection_date': TARGET,
++                'announcement_date': '20261007'})
++            if response.status_code != 200:
++                raise RuntimeError(f'route fixture GET failed: {response.status_code}')
++            value = response.json()
++            if (value.get('plan_product', {}).get('status') != 'CURRENT'
++                    or value.get('plan_product', {}).get('consumed') is not True):
++                raise RuntimeError('route fixture did not verify the saved exact page plan')
++            print(json.dumps(value, ensure_ascii=False, sort_keys=True))
++        service.close()
++
++
++if __name__ == '__main__':
++    main()

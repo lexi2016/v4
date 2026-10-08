@@ -1,0 +1,57 @@
+Independent final review — 2026-10-08
+Candidate status: PASS_WITH_SCOPED_SOURCE_CLOSURE_BLOCKERS
+Source manifest: /workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/source_manifest.json
+Source manifest SHA-256: 3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560
+Manifest path identities: 33/33 match the current worktree.
+Production paths SHA-bound: 20
+
+Test groups (counts are separate and must not be summed):
+- independent_daily_owner_chain: PASS — 14 passed, 1 deselected; log SHA-256 29c4f5ecd77575de8bbc59b218f720609dd3095bfcfb060b5d51b3cfc5e5605a
+- independent_us_workspace_owner_regression: PASS — 18 passed; log SHA-256 fa8ec2af8c4186577f1329e302227e76254deceaf1f0bec74097c3559c90a360
+- independent_exact_page_route_binding: PASS — 1 passed; log SHA-256 ee9ba897028dd90bccda27a72f7d78d021d6b12fdc400b2b764d5ed757b2327d
+- independent_reviewed_source_expansion_in_multiday_window: PASS — 1 passed; log SHA-256 933d8d3b05346c35a6143004574e5f9ed4d1f6d9aadb25ef23d8d429305bca25
+- independent_ui_actual_route_and_readback_projection: PASS — 2 passed; log SHA-256 431bcee1bf5bf470c26f53932c92f0a7aa6055d707931d6633994792675b1e68
+- independent_hk_publication_chain: PASS_LIMITED_SYNTHETIC_BOUNDARIES — 4 passed; log SHA-256 bd5e1513c46a08be4625afb61a2fcf77cc32bf1e084547ee549232181c921db6
+- writer_hk_full_chain_suite: PASS — 11 passed; log SHA-256 f64e8ca5a394238463b506e4f30abf5615ead0e5a4351c650865a1a4ca65696d
+- hk_daily_supplement_r4_full_file: 13_PASS_2_REPRODUCED_PREEXISTING_FAILURES — 13 passed, 2 failed; log SHA-256 d8291b1e5fa7212b6744b49499c16e2f5703912e6ed2995528061b49406ad3c7
+- actual_renderer_and_binding_import_closure: BLOCKED_NOT_VERIFIED — 0 passed, 1 blocked; log SHA-256 d0cca2e4a5cdff32ebf1832ba05b5bee250bfee3c2d72aceafb63f26027b455b
+
+Important limits:
+- All fixtures and source data are synthetic/offline; natural_run_verified=false.
+- Exact API behavior is in-process TestClient; UI projection tests are Vitest/DOM-free projection and validators, not browser/page mount.
+- Actual renderer/binding validation and clean shared import remain blocked by the source closure; no shims were created.
+- No live API, network collection, Mac worker, or deployment was run.
+
+Source SHA-256 at review:
+- apps/api/v35_api/manager_research_router.py: c3ec90ffb88f1378c4d9a1912fc78747f4440d0331696de4f1a015ad72946f4c
+- apps/web/src/api/managerWorkspace.ts: 27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb
+- apps/web/src/manager-selection/catalystObservationPanel.ts: 516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6
+- apps/web/src/manager-selection/dailyResearchRun.ts: 5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d
+- apps/web/src/manager-selection/researchAttention.ts: a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c
+- infrastructure/_research_peripheral_store_parts/_namespace.py: 04d71a71d33cdc90ec362289095dd2ac6e357f79af1528f8c573f6ddcc24e68d
+- infrastructure/scheduling/manager_announcement_supervisor.py: 2ed9640b7c1568df065884f9f71a1df82b288c342bc94135ef4fd06b4c510373
+- ops/_macos_research_panel_daily_parts/_namespace.py: d9d742f198bf1fb011d20e630ef9961a7b5e6a476f3d52c92584fc3e7b487be6
+- ops/_macos_research_panel_daily_parts/hk_capture_gate.py: d07be30a40c35aee9d710fcdcc7ae66b031488cc4c5e7029824e3c76ed3fd71c
+- ops/ensure_hk_security_master.py: 495ced4f0f06f170606ee576e035dafc99b540cd9fad0a28f2f2a36e5989ddb9
+- ops/render_manager_announcement_binding.py: 78049be0625c15539dcd44c1924ba8f89d5dd5a06a074c723a84d68fb45b3f39
+- ops/run_manager_announcement_cycle.py: ac05519d31be2ad5de640190d9219335e14cd70e6273bdc652b32b85e929ffa1
+- runtime_layers/hk_child/ops/macos_research_panel_daily.py: 1963990fcde99b2681c837b8b66ea12f1ab066aba47729af5d0900073bc79ef3
+- upstreams/v3_shared_data/shared_data/hk_daily_supplement.py: f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862
+- v4/manager_research/plan_owner_dispatch.py: d896359dbfd39f41ed3e316d54424c6f1172d935aa1d77a47463167d7bf1ed90
+- v4/manager_research/service.py: d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4
+- v4/manager_research/us_mapping_research.py: f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7
+- v4/manager_research/workspace.py: 58a471c5ce7ece837c66948392ec2e6d73459343515225e19d694749c45ab1a4
+- v4/manager_research/workspace_history.py: 75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af
+- v4/manager_research/workspace_plan_autorun.py: 14d168300bba42124649f56b79ae65b41359bcfa6928b59fea4a36beb2b511f5
+
+Relevant reviewer artifacts:
+- README.md: b30a88b96ad4b2858eedebf5b93aa55010fa8607b5309a0ca5a04be4a771df66
+- _source_root.py: ae00fff740eb2949de92f54388a1f385fc1cde6fd1be654eb03331882d02a422
+- run_ui_actual_route_probe.py: f9c1848168d1dfecac20139db351383df775e8a7d180ec5adc004c93e3f00a44
+- test_daily_exact_page_binding_independent.py: e6fdeca1bf1bf0aacac984a112b7b7ab8c15bacbc395066355b995087bc1078b
+- test_daily_full_chain_independent.py: 3603b91575d88a30914ff96d58f47c7ac631f3954ebd29667a0c3ff7137114ea
+- test_daily_reviewed_source_window_independent.py: cbd030ad32927dc78a4547c896c9cc16f992200fb6920abde958cd64098ce205
+- test_hk_publication_chain_independent.py: b95d65d416d442cf220c228c39e8f4f9b3f6e937e097e9f0b666565cd13160e0
+- test_us_daily_owner_independent.py: 36076a8eea66b07b903647f244cc429bcf5d2bafff32a7e8cf5ef68ab6d884c5
+- ui_actual_route_readback_independent.spec.ts: 7e9657b4228b8eff92f3d5cf91dbf6b525673dbcec8e7a280b9344adaf2a4acc
+- ui_readback_contract_probe.spec.ts: 72e54b503d15a385f76be3cf1769832e4fd99e4a48447489fffc8d8485743126

@@ -1,0 +1,93 @@
+--- a/v4/manager_research/workspace_plan_autorun.py
++++ b/v4/manager_research/workspace_plan_autorun.py
+@@ -42,6 +42,26 @@
+     product_sha = str(product.get("sha256") or "")
+     identity = str(value.get("input_identity") or "")
+     generated = timestamp(product.get("generated_at"))
++    execution_context = product.get("execution_context")
++    attempt_context = attempt.get("execution_context")
++    execution_context_valid = True
++    if execution_context is not None or attempt_context is not None:
++        if not isinstance(execution_context, Mapping) or not isinstance(attempt_context, Mapping):
++            execution_context_valid = False
++        elif dict(execution_context) != dict(attempt_context):
++            execution_context_valid = False
++        else:
++            start = timestamp(execution_context.get("started_at"))
++            finish = timestamp(execution_context.get("finished_at"))
++            scheduled_for = timestamp(execution_context.get("scheduled_for")) if execution_context.get("scheduled_for") else None
++            execution_context_valid = bool(
++                execution_context.get("trigger_kind") in {"SCHEDULED","MANUAL","UNKNOWN"}
++                and execution_context.get("timing") in {"ON_TIME","LATE_CATCHUP","RETROSPECTIVE","UNCLASSIFIED"}
++                and execution_context.get("natural_run_verified") is False
++                and start is not None and finish is not None and generated is not None
++                and start <= generated <= finish
++                and (scheduled_for is None or scheduled_for <= start)
++                and (execution_context.get("trigger_kind") != "SCHEDULED" or scheduled_for is not None))
+     if (value.get("target_trade_date") != date
+             or product_status not in {"CURRENT", "ALREADY_MATERIALIZED", "PRESERVED_SCHEDULED_PREOPEN"}
+             or product.get("consumed") is not True
+@@ -54,6 +74,7 @@
+             or attempt.get("input_identity") != identity
+             or attempt.get("state") not in {"SUCCEEDED", "SUCCEEDED_EMPTY", "PARTIAL"}
+             or (attempt.get("state") == "PARTIAL") != bool(attempt.get("failure_reasons"))
++            or not execution_context_valid
+             or timestamp(attempt.get("started_at")) > generated
+             or timestamp(attempt.get("finished_at")) < generated):
+         raise ValueError("PLAN_OWNER_PRODUCT_ATTEMPT_READBACK_MISMATCH")
+@@ -64,6 +85,7 @@
+         "target_trade_date": date, "owner": PLAN_OWNER,
+         "run_id": run_id, "product_sha256": product_sha, "input_identity": identity,
+         "generated_at": product["generated_at"], "execution_kind": kind,
++        "execution_context": dict(execution_context) if isinstance(execution_context, Mapping) else None,
+         "execution_kind_source": "OWNER_READBACK",
+         "owner_attempt_run_id": attempt["run_id"], "owner_attempt_sha256": attempt["sha256"],
+         "owner_attempt_state": attempt["state"], "owner_finished_at": attempt["finished_at"],
+@@ -202,6 +224,8 @@
+     *,
+     now: datetime,
+     config: Mapping[str, Any] | None = None,
++    execution_context: Mapping[str, Any] | None = None,
++    us_market_request_context: Mapping[str, Any] | None = None,
+ ) -> dict[str, Any]:
+     cfg = morning_config(config)
+     if now.tzinfo is None:
+@@ -213,15 +237,31 @@
+     if local.strftime("%Y%m%d") != date:
+         raise ValueError("MORNING_PLAN_DATE_CLOCK_MISMATCH")
+     start, freeze = morning_window(date)
+-    if local < start:
+-        return {"status": "NOT_DUE", "target_trade_date": date, "policy_status": "PROPOSAL_ONLY"}
+-    if local >= freeze:
+-        return {"status": "EXPIRED_NO_BACKFILL", "target_trade_date": date, "policy_status": "PROPOSAL_ONLY"}
+-    if (local.hour * 60 + local.minute) % (cfg["interval_seconds"] // 60):
+-        return {"status": "INTERVAL_NOT_DUE", "target_trade_date": date, "policy_status": "PROPOSAL_ONLY"}
++    admitted_schedule = None
++    if isinstance(execution_context, Mapping) and execution_context.get("trigger_kind") == "SCHEDULED":
++        admitted_schedule = timestamp(execution_context.get("scheduled_for"))
++        if (admitted_schedule is None or admitted_schedule.astimezone(HK).strftime("%Y%m%d") != date
++                or admitted_schedule.tzinfo is None):
++            raise ValueError("MORNING_PLAN_SCHEDULED_CONTEXT_INVALID")
++        scheduled_local = admitted_schedule.astimezone(HK)
++        if (scheduled_local.second or scheduled_local.microsecond
++                or not start <= scheduled_local < freeze
++                or (scheduled_local.hour * 60 + scheduled_local.minute) % (cfg["interval_seconds"] // 60)
++                or local < scheduled_local or local >= scheduled_local + timedelta(seconds=120)):
++            return {"status": "EXPIRED_NO_BACKFILL", "target_trade_date": date,
++                    "policy_status": "PROPOSAL_ONLY"}
++    else:
++        if local < start:
++            return {"status": "NOT_DUE", "target_trade_date": date, "policy_status": "PROPOSAL_ONLY"}
++        if local >= freeze:
++            return {"status": "EXPIRED_NO_BACKFILL", "target_trade_date": date, "policy_status": "PROPOSAL_ONLY"}
++        if (local.hour * 60 + local.minute) % (cfg["interval_seconds"] // 60):
++            return {"status": "INTERVAL_NOT_DUE", "target_trade_date": date, "policy_status": "PROPOSAL_ONLY"}
+ 
+     value = service.refresh_workspace_plan(
+-        date, execution_kind="SCHEDULED_MORNING", now=local, deadline=freeze
++        date, execution_kind="SCHEDULED_MORNING", now=local, deadline=freeze,
++        execution_context=execution_context,
++        us_market_request_context=us_market_request_context,
+     )
+     readback = owner_plan_readback(value, date, expected_kind="SCHEDULED_MORNING",
+                                   allow_preserved_preopen=True)

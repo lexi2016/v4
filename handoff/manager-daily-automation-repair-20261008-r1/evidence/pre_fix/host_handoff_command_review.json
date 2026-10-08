@@ -1,0 +1,187 @@
+{
+  "schema_version": "v4.manager_daily_automation.host_handoff_command_review.v1",
+  "recorded_at_utc": "2026-10-08 17:49:54 UTC",
+  "reviewer": {
+    "agent": "/root/automation_hk_publish",
+    "role": "Independent static handoff command reviewer; no production/test ownership"
+  },
+  "status": "OPEN_FINDING_FORWARDED_TO_IMPLEMENTATION",
+  "workspace_root": "/workspace/scratch/a154a3323e32",
+  "reviewed_document": "delivery/manager-daily-automation-repair-20261008-r1/docs/HOST_EXECUTION.md",
+  "review_method": "Local targeted source/document reads with sed/rg; stdlib SHA256 and byte counts. This records the bytes observed during this review, not final frozen or loaded host identities.",
+  "confirmed_interfaces": [
+    {
+      "id": "renderer",
+      "result": "FLAGS_MATCH_STATIC_SOURCE",
+      "detail": "cd API root + explicit PYTHONPATH + -m ops.render_manager_announcement_binding matches current entry. --enabled --plan-material-refresh-only --daily-automation --plan-activation-receipt are accepted together. Source inventory, exact genuine canary, root and Python checks precede configuration output; no renderer command was executed."
+    },
+    {
+      "id": "runtime_python",
+      "result": "REQUIREMENTS_DISTINGUISHED",
+      "detail": "Original announcement worker rejects Python below 3.14 and mismatched cwd. The standalone POSIX delivery verifier declares Python 3.10+. Actual interpreters, absolute state/master roots, genuine canary and output path remain host integration inputs."
+    },
+    {
+      "id": "manual_routes",
+      "result": "METHOD_PATH_BODY_ORIGIN_MATCH",
+      "detail": "POST /workspace/us-mapping/refresh?date=20261008 then POST /workspace/refresh?date=20261008 under /api/v4/manager/research match router signatures. Empty bodies and Origin http://127.0.0.1:8873 match the documented local origin. US uses original refresh_us_mapping_research; plan uses original refresh_workspace_plan and independent persisted store readback."
+    },
+    {
+      "id": "get_query",
+      "result": "PARAMETERS_VALID_BUT_PLAN_CONTEXT_FINDING_OPEN",
+      "detail": "date, selection_date, announcement_date and view=dynamic are accepted; announcement date normalizes to YYYY-MM-DD. Syntactic acceptance does not prove the explicit publication query can consume the default-context saved plan; see HH-01."
+    },
+    {
+      "id": "budgets",
+      "result": "CLIENT_LIMITS_ARE_NOT_SERVER_STOP_RECEIPTS",
+      "detail": "US manual route passes timeout_seconds=5.0, the preparation budget. Manual plan POST supplies no scheduled deadline and does not enter the dispatcher's 30s coordinator budget. GET service uses ReadCoordinator default 175s with cooperative cancellation; blocked native work retains its bounded slot. curl max-time 15/45/40 only bounds client waiting; documented read-before-retry guidance is appropriate."
+    },
+    {
+      "id": "cutoffs",
+      "result": "STATIC_POLICIES_MATCH_DOCUMENT",
+      "detail": "Both manual routes stamp real server time and natural_run_verified=false. Past-target US mapping caps research cutoff at target HK end-of-day; original completed US session calendar/reader therefore selects 20261007 for target 20261008 executed on 20261009. Plan retains real owner execution cutoff for retrospective work; raw US attention and target-bound saved daily mapping remain distinct. No historical or natural result was executed or observed."
+    },
+    {
+      "id": "profiles_and_ownership",
+      "result": "MAPPINGS_MATCH_BUILDER_NOT_HOST_PROOF",
+      "detail": "API owns supervisor, worker and renderer. Exact HK07aa after source runtime_layers/hk_child/ops/... maps to target ops/... in original HK child root. Local upstreams/v3_shared_data/shared_data/hk_daily_supplement.py maps to shared_data/hk_daily_supplement.py under resolve(actual updater).parents[1], pending actual updater/imported __file__ proof. Supplied original scheduler hook loads the bound app's supervisor/cycle; actual hook bytes, binding and enabled identity remain unverified. scheduler_prerequisite is preservation-only. Never combine roots with profile all; empty profiles reject."
+    }
+  ],
+  "open_findings": [
+    {
+      "id": "HH-01",
+      "status": "OPEN_FORWARDED_TO_WRITER_AND_INDEPENDENT_REVIEWER_BY_ROOT",
+      "title": "Default manual plan and ordinary-page explicit publication query use different plan input context",
+      "static_chain": [
+        "refresh_workspace_plan calls get_workspace(include_saved=False) without announcement_date.",
+        "get_workspace adds context.announcement_publication_date only for an explicit announcement_date.",
+        "Original workspace_projection hashes all plan_context keys except research_cutoff; the added explicit-publication key changes the input identity even when its date equals the default binding.",
+        "Original workspace_announcements._analysis_pairs and explicit_pair processing also distinguish explicit publication from the default plan source window.",
+        "_readback_plan requires saved.input_identity == current.input_identity for CURRENT/consumed=true; the documented explicit-date GET can therefore return STALE_INPUTS_CHANGED instead of consuming that saved plan."
+      ],
+      "consequence": "This affects the ordinary page's saved-plan connection as well as the handoff curl. Merely relabeling the explicit query as preview or omitting it from the handoff does not establish resolution.",
+      "resolution_required": "Writer/reviewer must verify the correct existing-owner continuation using the real route and exact ordinary-page query while preserving original hash and explicit_pair semantics. No reproduction test or production change was made by this reviewer."
+    }
+  ],
+  "operations_performed": {
+    "static_local_reads": true,
+    "source_hashing": true,
+    "receipt_write": true,
+    "tests": false,
+    "http_requests": false,
+    "renderer_execution": false,
+    "service_operations": false,
+    "mac_access": false,
+    "network": false,
+    "canary_creation": false,
+    "production_or_test_edits": false
+  },
+  "limitations": [
+    "No full package assembly, final scope audit or host before/after verification is claimed.",
+    "Candidate code and UI were still being edited. Hashes bind this observation only; later deltas require their own review.",
+    "Supplied missing apps/__init__.py identity, Stage import closure and original web parents remain unresolved; no shim or fabricated marker was created.",
+    "Actual disabled US capture/missing executor and an unproven automatic reviewed-announcement producer remain external runtime/input closure conditions.",
+    "UI descriptions are expected behavior only. No UI success, real 10/8 owner run, natural slot, two-day acceptance, protected integration or #28 preservation is claimed."
+  ],
+  "observed_file_identities": [
+    {
+      "path": "delivery/manager-daily-automation-repair-20261008-r1/docs/HOST_EXECUTION.md",
+      "bytes": 10958,
+      "sha256": "fe5a00eeb1bf74c2774883c64c99c1324d123029e14a45f2bd9687df5cfd5d66"
+    },
+    {
+      "path": "delivery/manager-daily-automation-repair-20261008-r1/docs/INPUT_AND_RUNTIME_GAPS.md",
+      "bytes": 7229,
+      "sha256": "c58da3c82dccee1fc450b6cc1bed62c97ce73906968765d651071de17c287b21"
+    },
+    {
+      "path": "delivery/manager-daily-automation-repair-20261008-r1/tools/verify_delivery.py",
+      "bytes": 17769,
+      "sha256": "6cdd78d754ba0b997beb8ab33356afcac8027f24af6e822c69062ada0940a51d"
+    },
+    {
+      "path": "investigation/automation/build_delivery.py",
+      "bytes": 13506,
+      "sha256": "859a993df33fed1191e6f3a6d82d958367ef7098d6bb775e89fa02d550b89363"
+    },
+    {
+      "path": "worktrees/manager_automation/ops/render_manager_announcement_binding.py",
+      "bytes": 5380,
+      "sha256": "78049be0625c15539dcd44c1924ba8f89d5dd5a06a074c723a84d68fb45b3f39"
+    },
+    {
+      "path": "worktrees/manager_automation/ops/run_manager_announcement_cycle.py",
+      "bytes": 36743,
+      "sha256": "ac05519d31be2ad5de640190d9219335e14cd70e6273bdc652b32b85e929ffa1"
+    },
+    {
+      "path": "worktrees/manager_automation/ops/run_v35_macos_scheduler_daemon.py",
+      "bytes": 46094,
+      "sha256": "7e3ead4e646a599981878e7b5eca66ecde01217de83f0f3039637a411cfa1f5c"
+    },
+    {
+      "path": "worktrees/manager_automation/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "bytes": 30208,
+      "sha256": "2ed9640b7c1568df065884f9f71a1df82b288c342bc94135ef4fd06b4c510373"
+    },
+    {
+      "path": "worktrees/manager_automation/apps/api/v35_api/manager_research_router.py",
+      "bytes": 29992,
+      "sha256": "215d4313c0fde12f8102301a1b1abf42923e6fdf17f741537beda6fd7d829f51"
+    },
+    {
+      "path": "worktrees/manager_automation/v4/manager_research/service.py",
+      "bytes": 94745,
+      "sha256": "e0c1b425dd740fa6e9b034739c91081abd95dba91325f335b00ed332fabb6c93"
+    },
+    {
+      "path": "worktrees/manager_automation/v4/manager_research/workspace.py",
+      "bytes": 72179,
+      "sha256": "98084aed8b0b150d2e6c222e5c743e13c12158f4c9a251012fbfd9d8247cab82"
+    },
+    {
+      "path": "worktrees/manager_automation/v4/manager_research/workspace_plan.py",
+      "bytes": 106047,
+      "sha256": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb"
+    },
+    {
+      "path": "worktrees/manager_automation/v4/manager_research/workspace_projection.py",
+      "bytes": 30841,
+      "sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200"
+    },
+    {
+      "path": "worktrees/manager_automation/v4/manager_research/workspace_announcements.py",
+      "bytes": 162906,
+      "sha256": "ea259666727b71c78760d666f3fe7f90350829bdce5f2b55745927528546af04"
+    },
+    {
+      "path": "worktrees/manager_automation/v4/manager_research/workspace_read_control.py",
+      "bytes": 10927,
+      "sha256": "491e3569e8f00586ca6f4e9982e182584d2f2a0437f83da66767b7ffdbf1fb25"
+    },
+    {
+      "path": "worktrees/manager_automation/v4/manager_research/us_mapping_research.py",
+      "bytes": 57938,
+      "sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7"
+    },
+    {
+      "path": "worktrees/manager_automation/v4/manager_research/us_market_bridge.py",
+      "bytes": 18974,
+      "sha256": "18d4ede4267a446d235267c71cecd1208f30ae3fdfe9ff02d9354d1b5a18de06"
+    },
+    {
+      "path": "worktrees/manager_automation/v4/manager_research/plan_owner_dispatch.py",
+      "bytes": 46210,
+      "sha256": "d896359dbfd39f41ed3e316d54424c6f1172d935aa1d77a47463167d7bf1ed90"
+    },
+    {
+      "path": "worktrees/manager_automation/contracts/us_equity_calendar.py",
+      "bytes": 3603,
+      "sha256": "73f223fb032e6c3a3a9f462f41b29fd029365ecfc98942bc5413a911faeba452"
+    },
+    {
+      "path": "worktrees/manager_automation/contracts/us_equity_calendar_2026.json",
+      "bytes": 603,
+      "sha256": "cd8eac440e985be8fe9700983584dd1108873b68d5cc91cae2cbe8f7283a422f"
+    }
+  ]
+}

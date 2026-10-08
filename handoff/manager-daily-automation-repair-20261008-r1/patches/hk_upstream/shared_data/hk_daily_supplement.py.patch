@@ -1,0 +1,42 @@
+--- a/shared_data/hk_daily_supplement.py
++++ b/shared_data/hk_daily_supplement.py
+@@ -378,6 +378,29 @@
+         prior_pointer = _pointer_bytes(pointer_path)
+         prior_doc = json.loads(prior_pointer) if prior_pointer is not None else None
+         prior_manifest_sha = str((prior_doc or {}).get("manifest_sha256") or "") or None
++        # Reuse only a fully verified exact-parent READY sidecar. Malformed or
++        # mismatched existing pointers fail in the reader; they are never
++        # treated as a cache miss and overwritten by a fresh provider call.
++        if prior_pointer is not None:
++            cached = read_verified_daily_supplement(
++                root, target_date=target_date, requested=sessions,
++                research_cutoff=_time_text(clock()), expected_panel=panel,
++                expected_master=master, expected_codes=codes,
++            )
++            if cached is not None and cached.get("status") == "READY":
++                manifest = cached["manifest"]
++                pointer = cached["pointer"]
++                return {
++                    "status": "READY", "target_date": target_date,
++                    "run_id": manifest["run_id"],
++                    "manifest_relative": pointer["manifest_relative"],
++                    "manifest_sha256": cached["manifest_sha256"],
++                    "raw_capture_sha256": cached["raw_capture_sha256"],
++                    "code_count": manifest["code_count"],
++                    "record_status_counts": dict(manifest["record_status_counts"]),
++                    "published_at": pointer["published_at"], "reused": True,
++                    **SAFETY,
++                }
+     else:
+         prior_pointer = None
+         prior_manifest_sha = None
+@@ -532,7 +555,8 @@
+     return {"status": status, "target_date": target_date, "run_id": run_id,
+             "manifest_relative": manifest_rel, "manifest_sha256": manifest_sha,
+             "raw_capture_sha256": raw_sha, "code_count": len(selected_codes),
+-            "record_status_counts": manifest["record_status_counts"], **SAFETY}
++            "record_status_counts": manifest["record_status_counts"],
++            "published_at": pointer["published_at"], **SAFETY}
+ 
+ 
+ def read_verified_daily_supplement(

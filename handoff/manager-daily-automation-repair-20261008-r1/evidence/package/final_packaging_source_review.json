@@ -1,0 +1,1318 @@
+{
+  "schema_version": "v4.manager_daily_automation.final_packaging_source_review.v1",
+  "recorded_at_utc": "2026-10-08 18:24:18 UTC",
+  "reviewer": {
+    "agent": "/root/automation_hk_publish",
+    "role": "Independent packaging/source reviewer; no production/test write ownership"
+  },
+  "status": "PASS_SOURCE_PACKAGING_REVIEW_ONLY",
+  "scope": "Frozen handoff source provenance, exact after/worktree bytes, read-only patch-content reconstruction, profile/root mappings and execution-document wording. Not production, UI, host or natural-run testing.",
+  "manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+  "conclusions": {
+    "declared_files": "33 = 20 production + 13 tests",
+    "preimages": "21 non-null preimages match exact supplied frozen-tree origin, Git blob ID, byte count and recomputed SHA256. 12 additions have no matching target suffix in the complete supplied tree and retain required host absence gates.",
+    "after_payloads": "All 33 packaged after files exactly equal the designated frozen worktree files and their manifest byte/SHA/Git blob identities.",
+    "patches": "All 33 main patches and 2 incremental patches match manifest byte/SHA identities. Every main patch names exactly one declared target; independent in-memory parsing reconstructs the exact after bytes from the verified before. Both incremental patches reconstruct the same final after from accepted 0602 bytes.",
+    "declared_scope": "after/ contains exactly 33 declared files; patches/ contains exactly 35 declared files. Source/test worktree delta matches the manifest exactly after excluding root plan documentation. No additional after or patch files found.",
+    "preservation": "Three preservation records match supplied frozen index/tree/bytes and do not overlap delivered mutations. They do not establish currently loaded host identity or Issue #28 preservation.",
+    "docs": "HOST_EXECUTION.md and INPUT_AND_RUNTIME_GAPS.md accurately preserve distinct roots, host before gates, undeployed cumulative baseline, retrospective/auto/dynamic semantics and outstanding natural acceptance."
+  },
+  "findings": [],
+  "mapping_review": [
+    {
+      "profile": "api",
+      "file_count": 11,
+      "root": "Protected cumulative candidate corresponding to currently bound 8873 API application",
+      "notes": "Includes supervisor, worker and renderer. Supplied original hook loads helpers from V4_MANAGER_ANNOUNCEMENT_APP_ROOT; no duplicate supervisor delivery to scheduler root was found. Actual hook/binding identity and whether worker/API share a root remain host verification conditions."
+    },
+    {
+      "profile": "web",
+      "file_count": 4,
+      "root": "Actual complete ordinary manager web source candidate",
+      "notes": "Three modified preimages are frozen web_snapshot candidate bytes. The source manifest does not claim they are currently deployed web bytes. One new helper has a host absence gate."
+    },
+    {
+      "profile": "hk_child",
+      "file_count": 4,
+      "root": "Original scheduler-selected HK child application candidate",
+      "critical_entry": {
+        "target": "ops/macos_research_panel_daily.py",
+        "worktree_source": "runtime_layers/hk_child/ops/macos_research_panel_daily.py",
+        "before_sha256": "07aa9770c6ae0bb0cfd012e57843a37fedda6724a57cd52d7c339d854fc6609b",
+        "after_sha256": "1963990fcde99b2681c837b8b66ea12f1ab066aba47729af5d0900073bc79ef3"
+      },
+      "notes": "Main entry uses the exact actual-source layer preimage. Its frozen actual identity is recorded in supplied boundaries.json and prior HK bridge evidence, rather than an entry in the compact source index. Gate/ensure bytes may have canonical repository origins but match explicit hk_child source-index hashes. Canonical ops/macos_research_panel_daily.py is not delivered."
+    },
+    {
+      "profile": "hk_upstream",
+      "file_count": 1,
+      "root": "resolve(actual V35_RESEARCH_PANEL_HK_UPDATER_SCRIPT).parents[1]",
+      "target": "shared_data/hk_daily_supplement.py",
+      "worktree_source": "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "before_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+      "notes": "Original supplied Mac bytes came from the v3_shared_data package layout. Local upstreams/ is stripped from the target. HOST_ROOT_MAPPING_UNVERIFIED is explicit; actual updater identity, package root and imported supplement __file__ must be verified before host application."
+    },
+    {
+      "profile": "scheduler_prerequisite",
+      "file_count": 0,
+      "preserve_count": 1,
+      "root": "Original scheduler application candidate",
+      "preserve_sha256": "7389cae30de08cf68c31e5b0bb6f5b17fead403366946496b7a4de148229d0ef",
+      "notes": "No runtime_workloads replacement is delivered. Frozen us_market_digest.enabled is false; owner_id is v35_dispatcher.us_market_digest. A canonical enabled workload or daemon replacement is not substituted."
+    },
+    {
+      "profile": "tests",
+      "file_count": 13,
+      "root": "Isolated assembled source worktree only",
+      "notes": "Packaging identities checked as files. No test was executed in this review."
+    }
+  ],
+  "baseline_review": {
+    "remote_frozen_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+    "local_comparison_commit": "3f2aa6c92d87da098d33b5349698e55d337fd165",
+    "reused_accepted_fix_commit": "0602f34fd10f7daff9bf688a710835d1bda43865",
+    "workspace_history_contract": "Both cumulative patches begin at old R2, not at the undeployed 0602 candidate. Verified prior delivery after bytes equal the local BASE objects and declared incremental preimage hashes. Both paths reconstruct the identical final payload. This proves packaging composition, not runtime deployment.",
+    "source_basis_distinctions": [
+      "Supervisor before is a supplied R1 candidate baseline, not a pinned current scheduler module.",
+      "Renderer before is canonical tooling, not a pinned current host module.",
+      "New-file absence refers to supplied source closure; actual host absence is still required.",
+      "No preserved app.py pin or assertion of actual Issue #28 runtime preservation was introduced."
+    ]
+  },
+  "execution_document_review": {
+    "host_doc_sha256": "163642f3c14ccf8ca3e4248678da1375d1f434b6ebc3d5d1e75b7e6b54e7ddca",
+    "result": "NO_MAPPING_OR_SCOPE_ERROR_FOUND_IN_REVIEWED_TEXT",
+    "observed_boundaries": [
+      "Separate source-root/profile before and after verification; no profile all on mixed roots, and empty profiles reject.",
+      "Finite delta integration by Issue #30 owner with current preimages and protected cumulative baseline; no whole-tree rollback/copy.",
+      "Manual US/plan calls do not supply HK capture or reviewed-announcement inputs; HTTP200 does not establish three-lane completion.",
+      "Past-date auto history and retrospective dynamic view are distinct; native historical eligibility remains intact.",
+      "Day 2 latest advancement is followed by Day 1 exact-chain and immutable-artifact readback.",
+      "Natural acceptance requires original dispatch and receipts over two applicable HK sessions; NATURAL_SLOT_UNVERIFIED until actual evidence is complete."
+    ]
+  },
+  "independently_executed_read_only_checks": {
+    "command_family": "PYTHONDONTWRITEBYTECODE=1 /workspace/scratch/a154a3323e32/test_env/bin/python -B - (stdlib-only inline source/patch identity programs); git show; git diff --name-only; git ls-files; git apply --numstat -z",
+    "primary_check_output_chunk": "42ebc2",
+    "dependency_check_output_chunk": "9d9ffc",
+    "method": "No business module imports. Hash exact source bytes, recompute Git blob IDs, compare supplied tree entries, parse unified diffs in memory against preimages, and inspect diff target metadata without applying patches to any source directory.",
+    "local_frozen_commit_object_check": {
+      "command": "git cat-file -t 09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "exit_code": 128,
+      "result": "OBJECT_NOT_PRESENT_LOCALLY; supplied complete frozen-tree metadata used for origin membership checks"
+    },
+    "production_tests_run": false,
+    "renderer_run": false,
+    "http_requests": false,
+    "business_store_writes": false,
+    "host_operations": false,
+    "network_or_github_mutation": false,
+    "production_test_or_document_edits": false,
+    "only_written_artifact": "investigation/automation/final_packaging_source_review.json"
+  },
+  "root_owned_evidence_read_not_reexecuted": [
+    {
+      "path": "delivery/manager-daily-automation-repair-20261008-r1/evidence/package/patch_verification.json",
+      "sha256": "60749db2d28159ddb2cdfa494497b457fbd24a304b9fbeb160fc27e8f20ed697",
+      "manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+      "status": "PASS_IN_SUPPLIED_ROOT_RECEIPT",
+      "recorded_scope": "6 profiles forward/reverse; 2 incremental patches",
+      "independently_reexecuted": false
+    },
+    {
+      "path": "delivery/manager-daily-automation-repair-20261008-r1/evidence/package/source_scope_audit.json",
+      "sha256": "2d7dfaca88a3dfa67cd4a9980e6c75b3a23ee2fa7629c1fb99dd9c9dea551f99",
+      "manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+      "status": "PASS_IN_SUPPLIED_ROOT_RECEIPT",
+      "recorded_scope": "17 unchanged local paths; actual HK only _hk_lane_receipt_ready/main top-level deltas, main outside HK runner and nested run_a unchanged",
+      "independently_reexecuted": false
+    }
+  ],
+  "limitations": [
+    "Frozen tree evidence is the supplied non-truncated local snapshot (2152 entries); no fresh remote Git fetch or independent current-host inspection was performed.",
+    "Selected dependency checks do not prove a complete runnable app closure. Missing original marker/Stage/web/executor sources remain listed in required_dependencies.json and docs.",
+    "Actual host roots, loaded Python/module identities, deployment CAS/ownership, enabling original producers and Issue #28 joint acceptance remain external integration gates.",
+    "Final TESTING and independent behavioral review tables were still being finalized and are excluded from this review's PASS scope.",
+    "This receipt does not close earlier functional findings by itself or claim real 10/8, UI, service, two-day or natural-run success."
+  ],
+  "source_packaging_checks": {
+    "status": "PASS_SOURCE_PACKAGING_CHECKS",
+    "issues": [],
+    "manifest": {
+      "path": "delivery/manager-daily-automation-repair-20261008-r1/source_manifest.json",
+      "bytes": 47944,
+      "sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560"
+    },
+    "frozen_tree": {
+      "path": "investigation/automation/frozen_git_tree.json",
+      "bytes": 451539,
+      "sha256": "a75cef3ccaecafd2ff6777fc00fa372967f321505b7f0fa8049aebbde46c3860",
+      "root_tree_sha": "ab5a5163deae914636c868f4abbb0d2b4e428fd7",
+      "truncated": false,
+      "entries": 2152,
+      "declared_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+      "local_commit_object_available": false
+    },
+    "source_index": {
+      "path": "investigation/automation/index.json",
+      "bytes": 13642,
+      "sha256": "050c1931e71b67f3c357c9bee353dd4e1d048ea33bdad164661ad1dd01d59c09"
+    },
+    "prior_0602_source_manifest": {
+      "path": "delivery/issue29-manager-daily-repair-20261008/source_manifest.json",
+      "bytes": 12775,
+      "sha256": "1288acb285f0fbb204053ed486c54e972178d17c7a9c1423f055e8c5df91efa2"
+    },
+    "counts": {
+      "files": 33,
+      "production": 20,
+      "tests": 13,
+      "non_null_preimages": 21,
+      "absent_in_supplied_tree": 12,
+      "after_files": 33,
+      "patches_including_incremental": 35,
+      "incremental": 2,
+      "preserve": 3
+    },
+    "profile_counts": {
+      "api": 11,
+      "tests": 13,
+      "web": 4,
+      "hk_child": 4,
+      "hk_upstream": 1
+    },
+    "files": [
+      {
+        "profile": "api",
+        "path": "apps/api/v35_api/manager_research_router.py",
+        "worktree_path": "apps/api/v35_api/manager_research_router.py",
+        "before_source_origin": "handoff/manager-workbench-repair-20261008/after/apps/api/v35_api/manager_research_router.py",
+        "before_source_basis": "PROBLEM_PACKAGE_FROZEN_SOURCE_PIN",
+        "before_sha256": "84f65a351e1e44171820cb8698e4198b3084e39b8d0cfe82c6b4bc05595f8073",
+        "before_git_blob_sha": "8d8fb5cc5ea95d35041b280ab410f1ca207e9bca",
+        "before_bytes_source": "/workspace/scratch/a154a3323e32/delivery/manager-workbench-repair-20261008/after/apps/api/v35_api/manager_research_router.py",
+        "after_sha256": "c3ec90ffb88f1378c4d9a1912fc78747f4440d0331696de4f1a015ad72946f4c",
+        "after_bytes": 30588,
+        "patch_sha256": "1859021775ba89725a608af7e0fd71da6fc5e39ab0363f22458141f1d70544ce",
+        "checks": {
+          "before": "EXACT_BYTES_SHA256_GIT_BLOB_AND_TREE_ORIGIN_MATCH",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "tests",
+        "path": "apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts",
+        "worktree_path": "apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts",
+        "before_source_origin": null,
+        "before_source_basis": "ABSENT_IN_SUPPLIED_SOURCE_CLOSURE_HOST_ABSENCE_GATE_REQUIRED",
+        "before_sha256": null,
+        "before_git_blob_sha": null,
+        "before_bytes_source": null,
+        "after_sha256": "b5b57a45102775d2f57b1af14456f8a9bf2b23c6a8a96f4b30c87da245f9ac0d",
+        "after_bytes": 6248,
+        "patch_sha256": "21349f9afd3e62d7e97efdca21fd2cc69feb0196c40ba47be4d33de6ac38d1a9",
+        "checks": {
+          "before": "ABSENT_FROM_SUPPLIED_TREE; HOST_ABSENCE_NOT_PROVEN",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "web",
+        "path": "apps/web/src/api/managerWorkspace.ts",
+        "worktree_path": "apps/web/src/api/managerWorkspace.ts",
+        "before_source_origin": "handoff/manager-workbench-mac-completion-20261008/source/web/apps/web/src/api/managerWorkspace.ts",
+        "before_source_basis": "PROBLEM_PACKAGE_FROZEN_SOURCE_PIN",
+        "before_sha256": "5854af5d1e2b33cc469ba6abd49096bb2f727280161c663edf4b757742f9ce92",
+        "before_git_blob_sha": "75575be074e82c9df69714d5d956595259ffb14c",
+        "before_bytes_source": "git:3f2aa6c92d87da098d33b5349698e55d337fd165:apps/web/src/api/managerWorkspace.ts",
+        "after_sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+        "after_bytes": 109062,
+        "patch_sha256": "f78932fe411e41876fb8e29f670219b9cbb2c795be45b4f2a13bca5014ee8597",
+        "checks": {
+          "before": "EXACT_BYTES_SHA256_GIT_BLOB_AND_TREE_ORIGIN_MATCH",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "web",
+        "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "worktree_path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "before_source_origin": "handoff/manager-workbench-mac-completion-20261008/source/web/apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "before_source_basis": "PROBLEM_PACKAGE_FROZEN_SOURCE_PIN",
+        "before_sha256": "fbb20e417bb4d9ff7cbd25c5aa29f387a1650438d6e638216b3f4d7c1a209497",
+        "before_git_blob_sha": "7404344a5eb6da884352f65804a857fc582f1bf0",
+        "before_bytes_source": "git:3f2aa6c92d87da098d33b5349698e55d337fd165:apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "after_sha256": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6",
+        "after_bytes": 65108,
+        "patch_sha256": "005e0fad041e3628f77401714053f9baeaa3ecc11777d20cb1df407bc665fb15",
+        "checks": {
+          "before": "EXACT_BYTES_SHA256_GIT_BLOB_AND_TREE_ORIGIN_MATCH",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "tests",
+        "path": "apps/web/src/manager-selection/dailyResearchRun.spec.ts",
+        "worktree_path": "apps/web/src/manager-selection/dailyResearchRun.spec.ts",
+        "before_source_origin": null,
+        "before_source_basis": "ABSENT_IN_SUPPLIED_SOURCE_CLOSURE_HOST_ABSENCE_GATE_REQUIRED",
+        "before_sha256": null,
+        "before_git_blob_sha": null,
+        "before_bytes_source": null,
+        "after_sha256": "1fed6bbd4454e77c8b0e67e41c4b3d7fac0f4a1cae67893f1e3d438d29366501",
+        "after_bytes": 10147,
+        "patch_sha256": "0c840243fbb2dea1ea4cae63aa5329112821644200df34e30de9a39b2f487d36",
+        "checks": {
+          "before": "ABSENT_FROM_SUPPLIED_TREE; HOST_ABSENCE_NOT_PROVEN",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "web",
+        "path": "apps/web/src/manager-selection/dailyResearchRun.ts",
+        "worktree_path": "apps/web/src/manager-selection/dailyResearchRun.ts",
+        "before_source_origin": null,
+        "before_source_basis": "ABSENT_IN_SUPPLIED_SOURCE_CLOSURE_HOST_ABSENCE_GATE_REQUIRED",
+        "before_sha256": null,
+        "before_git_blob_sha": null,
+        "before_bytes_source": null,
+        "after_sha256": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d",
+        "after_bytes": 19519,
+        "patch_sha256": "977d10b964a2036329e80d3f9849503a042efbc8f16210ebdfdb7a5e34f6e092",
+        "checks": {
+          "before": "ABSENT_FROM_SUPPLIED_TREE; HOST_ABSENCE_NOT_PROVEN",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "web",
+        "path": "apps/web/src/manager-selection/researchAttention.ts",
+        "worktree_path": "apps/web/src/manager-selection/researchAttention.ts",
+        "before_source_origin": "handoff/manager-daily-automation-problem-20261008/source/web_snapshot/apps/web/src/manager-selection/researchAttention.ts",
+        "before_source_basis": "PROBLEM_PACKAGE_FROZEN_SOURCE_PIN",
+        "before_sha256": "16bb02dd12c22fd6c55f6c42bb57f8e48ac66864673ba403380381cb2b63f3ef",
+        "before_git_blob_sha": "e5eb03dbeac99aaffdc08fec4e7eb4fc07a08390",
+        "before_bytes_source": "git:3f2aa6c92d87da098d33b5349698e55d337fd165:apps/web/src/manager-selection/researchAttention.ts",
+        "after_sha256": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c",
+        "after_bytes": 23801,
+        "patch_sha256": "b5a8f3019c0d3a9b975cbe4c1697a4a2337a96fee5270b2c86b14bb1b8a01037",
+        "checks": {
+          "before": "EXACT_BYTES_SHA256_GIT_BLOB_AND_TREE_ORIGIN_MATCH",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "api",
+        "path": "infrastructure/_research_peripheral_store_parts/_namespace.py",
+        "worktree_path": "infrastructure/_research_peripheral_store_parts/_namespace.py",
+        "before_source_origin": null,
+        "before_source_basis": "ABSENT_IN_SUPPLIED_SOURCE_CLOSURE_HOST_ABSENCE_GATE_REQUIRED",
+        "before_sha256": null,
+        "before_git_blob_sha": null,
+        "before_bytes_source": null,
+        "after_sha256": "04d71a71d33cdc90ec362289095dd2ac6e357f79af1528f8c573f6ddcc24e68d",
+        "after_bytes": 534,
+        "patch_sha256": "e0912de19fdaec0858d222e434f46ecbd2cd90ea19a4388c687c454ede9b8b7c",
+        "checks": {
+          "before": "ABSENT_FROM_SUPPLIED_TREE; HOST_ABSENCE_NOT_PROVEN",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "api",
+        "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+        "worktree_path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+        "before_source_origin": "handoff/manager-workbench-repair-20261008/after/infrastructure/scheduling/manager_announcement_supervisor.py",
+        "before_source_basis": "SUPPLIED_R1_CANDIDATE_BASELINE_NOT_CURRENT_SCHEDULER_PIN",
+        "before_sha256": "73eb6a2f7cbf2e2307a87edc3013e355c331f2ce87e6e0ae693b9f78de2dd34a",
+        "before_git_blob_sha": "c6dc099e5021f71780cde33046549c8d07e32d11",
+        "before_bytes_source": "/workspace/scratch/a154a3323e32/delivery/manager-workbench-repair-20261008/after/infrastructure/scheduling/manager_announcement_supervisor.py",
+        "after_sha256": "2ed9640b7c1568df065884f9f71a1df82b288c342bc94135ef4fd06b4c510373",
+        "after_bytes": 30208,
+        "patch_sha256": "036de7009164601852d0be8be3566d7c4a5939fefae6e7f20f82c5405adef71f",
+        "checks": {
+          "before": "EXACT_BYTES_SHA256_GIT_BLOB_AND_TREE_ORIGIN_MATCH",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "hk_child",
+        "path": "ops/_macos_research_panel_daily_parts/_namespace.py",
+        "worktree_path": "ops/_macos_research_panel_daily_parts/_namespace.py",
+        "before_source_origin": null,
+        "before_source_basis": "ABSENT_IN_SUPPLIED_SOURCE_CLOSURE_HOST_ABSENCE_GATE_REQUIRED",
+        "before_sha256": null,
+        "before_git_blob_sha": null,
+        "before_bytes_source": null,
+        "after_sha256": "d9d742f198bf1fb011d20e630ef9961a7b5e6a476f3d52c92584fc3e7b487be6",
+        "after_bytes": 528,
+        "patch_sha256": "a10b6eceb57d6aa206d45ec36f52eab2de1122f5987966025f27d59794960fa7",
+        "checks": {
+          "before": "ABSENT_FROM_SUPPLIED_TREE; HOST_ABSENCE_NOT_PROVEN",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "hk_child",
+        "path": "ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+        "worktree_path": "ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+        "before_source_origin": "handoff/v4-running-source-20261005/canonical/ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+        "before_source_basis": "PROBLEM_PACKAGE_FROZEN_SOURCE_PIN",
+        "before_sha256": "d3db5b9644bbf2fb1f4e245717907862ebe1cee2d0f650a8d45d732fd4a71940",
+        "before_git_blob_sha": "57fa7f9dcd5ee6485c70c757add8c40f11344ca4",
+        "before_bytes_source": "/workspace/scratch/a154a3323e32/remote/handoff/v4-running-source-20261005/canonical/ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+        "after_sha256": "d07be30a40c35aee9d710fcdcc7ae66b031488cc4c5e7029824e3c76ed3fd71c",
+        "after_bytes": 72911,
+        "patch_sha256": "e2a2316684ad2ae8bde072b2d42fcc21e810a302b06f32856574bc7d231b0c84",
+        "checks": {
+          "before": "EXACT_BYTES_SHA256_GIT_BLOB_AND_TREE_ORIGIN_MATCH",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "hk_child",
+        "path": "ops/ensure_hk_security_master.py",
+        "worktree_path": "ops/ensure_hk_security_master.py",
+        "before_source_origin": "handoff/v4-running-source-20261005/canonical/ops/ensure_hk_security_master.py",
+        "before_source_basis": "PROBLEM_PACKAGE_FROZEN_SOURCE_PIN",
+        "before_sha256": "6c341a33c0283b023219c46cc2a1c6aaca49cf4b5dcb88aa2fb5527a13145601",
+        "before_git_blob_sha": "ec79858502ef793766b71755a037500f0eb2e991",
+        "before_bytes_source": "/workspace/scratch/a154a3323e32/remote/handoff/v4-running-source-20261005/canonical/ops/ensure_hk_security_master.py",
+        "after_sha256": "495ced4f0f06f170606ee576e035dafc99b540cd9fad0a28f2f2a36e5989ddb9",
+        "after_bytes": 44249,
+        "patch_sha256": "507a8fdf4768daa6fa39a94e164a8d420b00893fea42c64dcb2d5fa06270d3a5",
+        "checks": {
+          "before": "EXACT_BYTES_SHA256_GIT_BLOB_AND_TREE_ORIGIN_MATCH",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "api",
+        "path": "ops/render_manager_announcement_binding.py",
+        "worktree_path": "ops/render_manager_announcement_binding.py",
+        "before_source_origin": "handoff/v4-running-source-20261005/canonical/ops/render_manager_announcement_binding.py",
+        "before_source_basis": "CANONICAL_TOOLING_BASELINE_NOT_CURRENT_HOST_PIN",
+        "before_sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a",
+        "before_git_blob_sha": "6e1062dbe2a2c8d6cb4bec1178fef395dc1cfe02",
+        "before_bytes_source": "/workspace/scratch/a154a3323e32/remote/handoff/v4-running-source-20261005/canonical/ops/render_manager_announcement_binding.py",
+        "after_sha256": "78049be0625c15539dcd44c1924ba8f89d5dd5a06a074c723a84d68fb45b3f39",
+        "after_bytes": 5380,
+        "patch_sha256": "7633c5837a4561a32da922a52995c439bbbfccd66ddc9eeac9a06871a1a5c45c",
+        "checks": {
+          "before": "EXACT_BYTES_SHA256_GIT_BLOB_AND_TREE_ORIGIN_MATCH",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "api",
+        "path": "ops/run_manager_announcement_cycle.py",
+        "worktree_path": "ops/run_manager_announcement_cycle.py",
+        "before_source_origin": "handoff/manager-workbench-repair-20261008/after/ops/run_manager_announcement_cycle.py",
+        "before_source_basis": "PROBLEM_PACKAGE_FROZEN_SOURCE_PIN",
+        "before_sha256": "c6f9cfa57515682b4f076e10f2030196dc9377bdbb9ec4abe737e36d15485c1c",
+        "before_git_blob_sha": "365749fd9622cf32e1c8416e88468d7226c25437",
+        "before_bytes_source": "/workspace/scratch/a154a3323e32/delivery/manager-workbench-repair-20261008/after/ops/run_manager_announcement_cycle.py",
+        "after_sha256": "ac05519d31be2ad5de640190d9219335e14cd70e6273bdc652b32b85e929ffa1",
+        "after_bytes": 36743,
+        "patch_sha256": "79e19b09d3fa6b9b671986fdebbe31cbe810c0ef17d20ae3e7fc0e7ab7743371",
+        "checks": {
+          "before": "EXACT_BYTES_SHA256_GIT_BLOB_AND_TREE_ORIGIN_MATCH",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "hk_child",
+        "path": "ops/macos_research_panel_daily.py",
+        "worktree_path": "runtime_layers/hk_child/ops/macos_research_panel_daily.py",
+        "before_source_origin": "handoff/v4-running-source-20261005/api/ops/macos_research_panel_daily.py",
+        "before_source_basis": "FROZEN_ACTUAL_HK_CHILD_SOURCE",
+        "before_sha256": "07aa9770c6ae0bb0cfd012e57843a37fedda6724a57cd52d7c339d854fc6609b",
+        "before_git_blob_sha": "0fd228db36da3af1c1ae4d130c856bae479a2bba",
+        "before_bytes_source": "/workspace/scratch/a154a3323e32/investigation/automation/remote/hk_child/ops/macos_research_panel_daily.py",
+        "after_sha256": "1963990fcde99b2681c837b8b66ea12f1ab066aba47729af5d0900073bc79ef3",
+        "after_bytes": 98276,
+        "patch_sha256": "19a1cf9ea3954d061e8cf499dacfed1e57002e34c136718831389af40e055c8e",
+        "checks": {
+          "before": "EXACT_BYTES_SHA256_GIT_BLOB_AND_TREE_ORIGIN_MATCH",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "tests",
+        "path": "tests/manager_daily_ui_owner_fixture.py",
+        "worktree_path": "tests/manager_daily_ui_owner_fixture.py",
+        "before_source_origin": null,
+        "before_source_basis": "ABSENT_IN_SUPPLIED_SOURCE_CLOSURE_HOST_ABSENCE_GATE_REQUIRED",
+        "before_sha256": null,
+        "before_git_blob_sha": null,
+        "before_bytes_source": null,
+        "after_sha256": "59e78904ca76deaa381799719cbeb6c1841bd7df318d354c2e5ad6298e768020",
+        "after_bytes": 10401,
+        "patch_sha256": "cfce07b882f52667d5cbe8228d3eb2a3c9125fe1bf2bc55296c129147d5f02f7",
+        "checks": {
+          "before": "ABSENT_FROM_SUPPLIED_TREE; HOST_ABSENCE_NOT_PROVEN",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "tests",
+        "path": "tests/manager_daily_ui_route_fixture.py",
+        "worktree_path": "tests/manager_daily_ui_route_fixture.py",
+        "before_source_origin": null,
+        "before_source_basis": "ABSENT_IN_SUPPLIED_SOURCE_CLOSURE_HOST_ABSENCE_GATE_REQUIRED",
+        "before_sha256": null,
+        "before_git_blob_sha": null,
+        "before_bytes_source": null,
+        "after_sha256": "8d1d4ee850d70213b210941faf8c46cdd8741ca05102dfb36794dae4f40df104",
+        "after_bytes": 2188,
+        "patch_sha256": "3109b146ad382ebc6dc7ffb2124a1ef564fdc5685a240fc651f996ad516c764e",
+        "checks": {
+          "before": "ABSENT_FROM_SUPPLIED_TREE; HOST_ABSENCE_NOT_PROVEN",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_hk_daily_publication_chain.py",
+        "worktree_path": "tests/test_hk_daily_publication_chain.py",
+        "before_source_origin": null,
+        "before_source_basis": "ABSENT_IN_SUPPLIED_SOURCE_CLOSURE_HOST_ABSENCE_GATE_REQUIRED",
+        "before_sha256": null,
+        "before_git_blob_sha": null,
+        "before_bytes_source": null,
+        "after_sha256": "5e70c7f2943df396b0d8dde48c8adcc0153962306d71c0ececb72af17e04eec3",
+        "after_bytes": 35275,
+        "patch_sha256": "90c0ce1b719fc64d2bef91ef31de811d646870f721258b690586603beb6de670",
+        "checks": {
+          "before": "ABSENT_FROM_SUPPLIED_TREE; HOST_ABSENCE_NOT_PROVEN",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_hk_daily_supplement_r4.py",
+        "worktree_path": "tests/test_hk_daily_supplement_r4.py",
+        "before_source_origin": "handoff/v4-running-source-20261005/canonical/tests/test_hk_daily_supplement_r4.py",
+        "before_source_basis": "ISOLATED_BASELINE_REPOSITORY_SOURCE_HOST_PREIMAGE_GATE_REQUIRED",
+        "before_sha256": "6e28ec956e048517b6312f57d6a351253717ee50a5f5f6d20079787e8bc819b6",
+        "before_git_blob_sha": "5513695c3d4ccd5a03868a0f88aebf0612b7a09e",
+        "before_bytes_source": "/workspace/scratch/a154a3323e32/remote/handoff/v4-running-source-20261005/canonical/tests/test_hk_daily_supplement_r4.py",
+        "after_sha256": "7085f61af64c20f3153ca5e6d7948c0e0e54c3236e2e5ec364b9662d5d1dfc94",
+        "after_bytes": 24793,
+        "patch_sha256": "a982d395dd9262523e92f4301e673b3993ad8482cbc9fda5c3e211a06bd4c9d7",
+        "checks": {
+          "before": "EXACT_BYTES_SHA256_GIT_BLOB_AND_TREE_ORIGIN_MATCH",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_manager_daily_automation_20261008.py",
+        "worktree_path": "tests/test_manager_daily_automation_20261008.py",
+        "before_source_origin": null,
+        "before_source_basis": "ABSENT_IN_SUPPLIED_SOURCE_CLOSURE_HOST_ABSENCE_GATE_REQUIRED",
+        "before_sha256": null,
+        "before_git_blob_sha": null,
+        "before_bytes_source": null,
+        "after_sha256": "32d1baf5f79672d94fbcc2053e16aa4dfaefd8637cd153c4dfadf3fc6e43a45e",
+        "after_bytes": 21642,
+        "patch_sha256": "fc447ddf762d64ff8f27cc25b671dc11f87ded7a95595aab8ef20a90bb44bd72",
+        "checks": {
+          "before": "ABSENT_FROM_SUPPLIED_TREE; HOST_ABSENCE_NOT_PROVEN",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_manager_daily_dispatch_20261008.py",
+        "worktree_path": "tests/test_manager_daily_dispatch_20261008.py",
+        "before_source_origin": "handoff/manager-workbench-repair-20261008/after/tests/test_manager_daily_dispatch_20261008.py",
+        "before_source_basis": "ISOLATED_BASELINE_REPOSITORY_SOURCE_HOST_PREIMAGE_GATE_REQUIRED",
+        "before_sha256": "f4137ac34bc45c4deec95c5c238cbec12776be4e383e485557c27fc4a24d66b1",
+        "before_git_blob_sha": "c3501504cb1d9a72d5d081dba3971c2769d82748",
+        "before_bytes_source": "/workspace/scratch/a154a3323e32/delivery/manager-workbench-repair-20261008/after/tests/test_manager_daily_dispatch_20261008.py",
+        "after_sha256": "5751d7831d10d9c21767e7e5b47199b98aea877ab76badcff36246e12f3eb6ac",
+        "after_bytes": 28067,
+        "patch_sha256": "c90e6e8930f99c2794b3bd98ad58bb6fd3a7910f3be96607e0d3235dee11b74d",
+        "checks": {
+          "before": "EXACT_BYTES_SHA256_GIT_BLOB_AND_TREE_ORIGIN_MATCH",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_manager_history_contract_20261008.py",
+        "worktree_path": "tests/test_manager_history_contract_20261008.py",
+        "before_source_origin": "handoff/issue29-manager-daily-repair-20261008/after/tests/test_manager_history_contract_20261008.py",
+        "before_source_basis": "ISOLATED_BASELINE_REPOSITORY_SOURCE_HOST_PREIMAGE_GATE_REQUIRED",
+        "before_sha256": "36eeb5b9f41a927f6b9b19f6d1d1bd6f515986631ccd5754e14bbd423eacd774",
+        "before_git_blob_sha": "fc7a0f4e8f63c27876ca31d7ccec28310cd41ed6",
+        "before_bytes_source": "git:3f2aa6c92d87da098d33b5349698e55d337fd165:tests/test_manager_history_contract_20261008.py",
+        "after_sha256": "ba8b74490c9fcb248bc102c0c22aa76ec121f268730ab13ac14c2f69e013d188",
+        "after_bytes": 15113,
+        "patch_sha256": "114ced11e125a33f78bdebf657cf1708474a3a4dcf482baed5a2497c32e26d58",
+        "checks": {
+          "before": "EXACT_BYTES_SHA256_GIT_BLOB_AND_TREE_ORIGIN_MATCH",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_manager_owner_namespace_contracts.py",
+        "worktree_path": "tests/test_manager_owner_namespace_contracts.py",
+        "before_source_origin": null,
+        "before_source_basis": "ABSENT_IN_SUPPLIED_SOURCE_CLOSURE_HOST_ABSENCE_GATE_REQUIRED",
+        "before_sha256": null,
+        "before_git_blob_sha": null,
+        "before_bytes_source": null,
+        "after_sha256": "5a3203582a4857e9d5a269976b43aaff604f374ffc10ce94d8c8d843e2d5c1a0",
+        "after_bytes": 1135,
+        "patch_sha256": "11e6560505c99653d4cefcd1ce1d23873607dadb64630f0090c00692409bf504",
+        "checks": {
+          "before": "ABSENT_FROM_SUPPLIED_TREE; HOST_ABSENCE_NOT_PROVEN",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_manager_us_daily_automation_20261008.py",
+        "worktree_path": "tests/test_manager_us_daily_automation_20261008.py",
+        "before_source_origin": null,
+        "before_source_basis": "ABSENT_IN_SUPPLIED_SOURCE_CLOSURE_HOST_ABSENCE_GATE_REQUIRED",
+        "before_sha256": null,
+        "before_git_blob_sha": null,
+        "before_bytes_source": null,
+        "after_sha256": "619afccbc08dba0c151939991e7cb7e636359bf6ab99b623ea64b9ec50cd1ba4",
+        "after_bytes": 24638,
+        "patch_sha256": "964213fe6ad7bca531697a88f603c6d143a9c71bd42ed61b8a17f05a0c72b5f1",
+        "checks": {
+          "before": "ABSENT_FROM_SUPPLIED_TREE; HOST_ABSENCE_NOT_PROVEN",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_manager_workspace_exact_page_binding_20261008.py",
+        "worktree_path": "tests/test_manager_workspace_exact_page_binding_20261008.py",
+        "before_source_origin": null,
+        "before_source_basis": "ABSENT_IN_SUPPLIED_SOURCE_CLOSURE_HOST_ABSENCE_GATE_REQUIRED",
+        "before_sha256": null,
+        "before_git_blob_sha": null,
+        "before_bytes_source": null,
+        "after_sha256": "9717711ce8eb3aca116b1ded70f3c833a573b6cb95f522468390eefb1e4d03a9",
+        "after_bytes": 4746,
+        "patch_sha256": "b3fda87c02f4f59a23a29e875b8e5b8ad75954760d9cfadcaf3c0b3e64bf2496",
+        "checks": {
+          "before": "ABSENT_FROM_SUPPLIED_TREE; HOST_ABSENCE_NOT_PROVEN",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_manager_workspace_owner_20261008.py",
+        "worktree_path": "tests/test_manager_workspace_owner_20261008.py",
+        "before_source_origin": "handoff/issue29-manager-daily-repair-20261008/after/tests/test_manager_workspace_owner_20261008.py",
+        "before_source_basis": "ISOLATED_BASELINE_REPOSITORY_SOURCE_HOST_PREIMAGE_GATE_REQUIRED",
+        "before_sha256": "9d1faeee5a0d8e1d9466244023d0a9fbbb3032d7934de40337096a1d35eda13e",
+        "before_git_blob_sha": "b50e9a7c63366d8fbbbb975c6054ec22d0f1e7b0",
+        "before_bytes_source": "git:3f2aa6c92d87da098d33b5349698e55d337fd165:tests/test_manager_workspace_owner_20261008.py",
+        "after_sha256": "46ebbea9f71baf052ebbd1185d2dc25bcd4bc92d3e2e6da8ebd96c41135294ea",
+        "after_bytes": 20390,
+        "patch_sha256": "e11d3a74003975c328a0b115d84166d6c8cb9a778aff0dcbe9ac15a93a4d8409",
+        "checks": {
+          "before": "EXACT_BYTES_SHA256_GIT_BLOB_AND_TREE_ORIGIN_MATCH",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "hk_upstream",
+        "path": "shared_data/hk_daily_supplement.py",
+        "worktree_path": "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+        "before_source_origin": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v3_shared_data/shared_data/hk_daily_supplement.py",
+        "before_source_basis": "PRIOR_MAC_SUPPLIED_UPSTREAM_BYTES_HOST_PACKAGE_ROOT_BINDING_REQUIRED",
+        "before_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+        "before_git_blob_sha": "3d2913f5386c4a0d7d1033f3dcbca9521a2e5880",
+        "before_bytes_source": "git:3f2aa6c92d87da098d33b5349698e55d337fd165:upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+        "after_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+        "after_bytes": 36498,
+        "patch_sha256": "d73931bbbd585341581ce645246650e4ee4f5ce40415e39a94eb5a234dea37e4",
+        "checks": {
+          "before": "EXACT_BYTES_SHA256_GIT_BLOB_AND_TREE_ORIGIN_MATCH",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/plan_owner_dispatch.py",
+        "worktree_path": "v4/manager_research/plan_owner_dispatch.py",
+        "before_source_origin": "handoff/manager-workbench-repair-20261008/after/v4/manager_research/plan_owner_dispatch.py",
+        "before_source_basis": "PROBLEM_PACKAGE_FROZEN_SOURCE_PIN",
+        "before_sha256": "8fad78ec64b1ff3ab80242fedc93dfcf7cbed25e6839821aab7f024ca297bf75",
+        "before_git_blob_sha": "e196a8cc1d5c8c6867cf254eba326d8de1e510ef",
+        "before_bytes_source": "/workspace/scratch/a154a3323e32/delivery/manager-workbench-repair-20261008/after/v4/manager_research/plan_owner_dispatch.py",
+        "after_sha256": "d896359dbfd39f41ed3e316d54424c6f1172d935aa1d77a47463167d7bf1ed90",
+        "after_bytes": 46210,
+        "patch_sha256": "3f50faa0fd7f8fcfe73e5b0d8657c96d7c956a645eedf91689f30a6be670aedc",
+        "checks": {
+          "before": "EXACT_BYTES_SHA256_GIT_BLOB_AND_TREE_ORIGIN_MATCH",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/service.py",
+        "worktree_path": "v4/manager_research/service.py",
+        "before_source_origin": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/service.py",
+        "before_source_basis": "PROBLEM_PACKAGE_FROZEN_SOURCE_PIN",
+        "before_sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37",
+        "before_git_blob_sha": "fe21c0ef9674a0dc8e638706071c39ea0a7f3aa6",
+        "before_bytes_source": "git:3f2aa6c92d87da098d33b5349698e55d337fd165:v4/manager_research/service.py",
+        "after_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+        "after_bytes": 94921,
+        "patch_sha256": "832e05543fa80664a763344e0d6f1a89c2d2947dd7d0be209f9e8707db171c35",
+        "checks": {
+          "before": "EXACT_BYTES_SHA256_GIT_BLOB_AND_TREE_ORIGIN_MATCH",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/us_mapping_research.py",
+        "worktree_path": "v4/manager_research/us_mapping_research.py",
+        "before_source_origin": "handoff/manager-workbench-source-followup-20261008/reference/us_mapping_research.runtime_r2.py",
+        "before_source_basis": "PROBLEM_PACKAGE_FROZEN_SOURCE_PIN",
+        "before_sha256": "297dc6f5950d3614437378c22e3157b6866823fbf25fd39cb47f112ffea40da7",
+        "before_git_blob_sha": "d5c1b0cd5bad6fd522ad1a060548d4520b631e58",
+        "before_bytes_source": "git:3f2aa6c92d87da098d33b5349698e55d337fd165:v4/manager_research/us_mapping_research.py",
+        "after_sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+        "after_bytes": 57938,
+        "patch_sha256": "961afaf6851a795c96757cef46c41d80e9ac7413665668cf27ce0ee3e3a77e57",
+        "checks": {
+          "before": "EXACT_BYTES_SHA256_GIT_BLOB_AND_TREE_ORIGIN_MATCH",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/workspace.py",
+        "worktree_path": "v4/manager_research/workspace.py",
+        "before_source_origin": "handoff/manager-workbench-repair-20261008/after/v4/manager_research/workspace.py",
+        "before_source_basis": "FROZEN_R2_PLUS_REUSED_UNDEPLOYED_0602_FIX",
+        "before_sha256": "183e3ebd0322883a8f8cef37c0244f424f16c63d3120245e263bb9585133dea3",
+        "before_git_blob_sha": "380b3a24ff5c69bef033ccc93f2d131784af8b56",
+        "before_bytes_source": "/workspace/scratch/a154a3323e32/delivery/manager-workbench-repair-20261008/after/v4/manager_research/workspace.py",
+        "after_sha256": "58a471c5ce7ece837c66948392ec2e6d73459343515225e19d694749c45ab1a4",
+        "after_bytes": 76020,
+        "patch_sha256": "4a4608d63bde45269f9bd44da29afd20d47d711f2678304bff7ff47ce984e31b",
+        "checks": {
+          "before": "EXACT_BYTES_SHA256_GIT_BLOB_AND_TREE_ORIGIN_MATCH",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/workspace_history.py",
+        "worktree_path": "v4/manager_research/workspace_history.py",
+        "before_source_origin": "handoff/manager-workbench-repair-20261008/after/v4/manager_research/workspace_history.py",
+        "before_source_basis": "FROZEN_R2_PLUS_REUSED_UNDEPLOYED_0602_FIX",
+        "before_sha256": "da5e1223326631cc9070c3059ca606bac3840ef468ad5c06f2f3a51534f82ec1",
+        "before_git_blob_sha": "4901ce1fb9ab2f73517275ad89fd187b27bff375",
+        "before_bytes_source": "/workspace/scratch/a154a3323e32/delivery/manager-workbench-repair-20261008/after/v4/manager_research/workspace_history.py",
+        "after_sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+        "after_bytes": 21208,
+        "patch_sha256": "e92e53f845b34359aac5560a8535459116b867c88efeebd3fc951e01a87e9c34",
+        "checks": {
+          "before": "EXACT_BYTES_SHA256_GIT_BLOB_AND_TREE_ORIGIN_MATCH",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/workspace_plan_autorun.py",
+        "worktree_path": "v4/manager_research/workspace_plan_autorun.py",
+        "before_source_origin": "handoff/manager-workbench-repair-20261008/after/v4/manager_research/workspace_plan_autorun.py",
+        "before_source_basis": "ISOLATED_BASELINE_REPOSITORY_SOURCE_HOST_PREIMAGE_GATE_REQUIRED",
+        "before_sha256": "703bef8d9a04861c6cb4161880427126badd69eece234f9b53eaa5ae59d7c6ef",
+        "before_git_blob_sha": "aeb0bdaa1a335aafe072c278a8059ceca5849b52",
+        "before_bytes_source": "/workspace/scratch/a154a3323e32/delivery/manager-workbench-repair-20261008/after/v4/manager_research/workspace_plan_autorun.py",
+        "after_sha256": "14d168300bba42124649f56b79ae65b41359bcfa6928b59fea4a36beb2b511f5",
+        "after_bytes": 14055,
+        "patch_sha256": "51c68c0aa5d13f02b8d0754ebca7b63e21f1d2e22f353af820620da906b3278e",
+        "checks": {
+          "before": "EXACT_BYTES_SHA256_GIT_BLOB_AND_TREE_ORIGIN_MATCH",
+          "after": "SHA256_BYTES_BLOB_AND_WORKTREE_MATCH",
+          "patch": "HASH_BYTES_SINGLE_TARGET_AND_IN_MEMORY_BEFORE_TO_AFTER_MATCH"
+        }
+      }
+    ],
+    "preserve": [
+      {
+        "profile": "api",
+        "path": "v4/manager_research/workspace_announcements.py",
+        "sha256": "ea259666727b71c78760d666f3fe7f90350829bdce5f2b55745927528546af04",
+        "bytes": 162906,
+        "source_layer": "active_api",
+        "source_origin": "handoff/manager-workbench-repair-20261008/after/v4/manager_research/workspace_announcements.py",
+        "bytes_source": "/workspace/scratch/a154a3323e32/investigation/automation/remote/active_api/v4/manager_research/workspace_announcements.py",
+        "checks": "EXACT_FROZEN_INDEX_TREE_AND_BYTES_MATCH; NO_REPLACEMENT_DELTA"
+      },
+      {
+        "profile": "hk_child",
+        "path": "infrastructure/scheduling/_executor_registry_parts/panel_execution.py",
+        "sha256": "eef66ed8934e958ac4efb5b8821eec8b48206b5fc978ecdfbc59801ae36ed098",
+        "bytes": 8914,
+        "source_layer": "hk_child",
+        "source_origin": "handoff/v4-running-source-20261005/api/infrastructure/scheduling/_executor_registry_parts/panel_execution.py",
+        "bytes_source": "/workspace/scratch/a154a3323e32/investigation/automation/remote/hk_child/infrastructure/scheduling/_executor_registry_parts/panel_execution.py",
+        "checks": "EXACT_FROZEN_INDEX_TREE_AND_BYTES_MATCH; NO_REPLACEMENT_DELTA"
+      },
+      {
+        "profile": "scheduler_prerequisite",
+        "path": "contracts/runtime_workloads.json",
+        "sha256": "7389cae30de08cf68c31e5b0bb6f5b17fead403366946496b7a4de148229d0ef",
+        "bytes": 51682,
+        "source_layer": "scheduler",
+        "source_origin": "handoff/manager-daily-automation-problem-20261008/source/scheduler/contracts/runtime_workloads.json",
+        "bytes_source": "/workspace/scratch/a154a3323e32/investigation/automation/remote/scheduler/contracts/runtime_workloads.json",
+        "checks": "EXACT_FROZEN_INDEX_TREE_AND_BYTES_MATCH; NO_REPLACEMENT_DELTA",
+        "us_market_digest_observation": {
+          "workload_id": "us_market_digest",
+          "enabled": false,
+          "owner_id": "v35_dispatcher.us_market_digest",
+          "command": [
+            "python",
+            "-m",
+            "ops.us_market_digest",
+            "--data-root",
+            "{data_root}",
+            "--trade-date",
+            "{business_date}",
+            "--capture-phase",
+            "{capture_phase}"
+          ]
+        }
+      }
+    ],
+    "incremental_cumulative_checks": [
+      {
+        "path": "v4/manager_research/workspace.py",
+        "before_r2_sha256": "183e3ebd0322883a8f8cef37c0244f424f16c63d3120245e263bb9585133dea3",
+        "accepted_0602_after_sha256": "ab25d4856019b10bda1cb73928e5e2e75fad870a8321025019dceeb2cf0b6b52",
+        "final_after_sha256": "58a471c5ce7ece837c66948392ec2e6d73459343515225e19d694749c45ab1a4",
+        "incremental_sha256": "c03ba2fed258fe53e233612024f6c51313704da80e70c18edff81a52416293e4",
+        "checks": "PASS_IN_MEMORY_R2_AND_ACCEPTED_BASE_TO_SAME_FINAL_AFTER"
+      },
+      {
+        "path": "v4/manager_research/workspace_history.py",
+        "before_r2_sha256": "da5e1223326631cc9070c3059ca606bac3840ef468ad5c06f2f3a51534f82ec1",
+        "accepted_0602_after_sha256": "d46b84f084af5eb695812a7052520147722a80a6885fb3dfdb4c1a18de3c72b5",
+        "final_after_sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+        "incremental_sha256": "5e59713ee22a9cf105a3838497b251b68d7436a731a0873970dd536af0c61ae8",
+        "checks": "PASS_IN_MEMORY_R2_AND_ACCEPTED_BASE_TO_SAME_FINAL_AFTER"
+      }
+    ],
+    "excluded_worktree_paths": [
+      "docs/superpowers/plans/2026-10-08-manager-daily-automation.md",
+      "docs/superpowers/plans/manager-daily-host-acceptance-contract.md"
+    ],
+    "package_after_and_patch_file_sets_exact": true,
+    "worktree_delta_set_exact": true
+  },
+  "selected_dependency_checks": {
+    "status": "PASS_SELECTED_SOURCE_IDENTITIES_ONLY",
+    "file_count": 15,
+    "full_dependency_closure": "NOT_PROVIDED",
+    "files": [
+      {
+        "profile": "hk_child",
+        "path": "ops/_macos_research_panel_daily_parts/hk_market_capture.py",
+        "local_test_path": "ops/_macos_research_panel_daily_parts/hk_market_capture.py",
+        "sha256": "0a9651f88bc8a50d4b5e8ec4b6775a5291918f9f2556cf37c05b80a55cdfd84a",
+        "bytes": 31474,
+        "source_origin": "handoff/v4-running-source-20261005/canonical/ops/_macos_research_panel_daily_parts/hk_market_capture.py",
+        "git_blob_sha": "41abd49f836ab0e118b1eec3c68001e9915c415b",
+        "result": "EXACT_FROZEN_SOURCE_AND_LOCAL_BYTES_MATCH"
+      },
+      {
+        "profile": "hk_child",
+        "path": "stage_center/hk_universe_preflight.py",
+        "local_test_path": "stage_center/hk_universe_preflight.py",
+        "sha256": "9d3d2c2d5ff3bd1c7713a9485e88000ae882f58b0a457b734656094606ba2941",
+        "bytes": 40555,
+        "source_origin": "handoff/v4-running-source-20261005/canonical/stage_center/hk_universe_preflight.py",
+        "git_blob_sha": "be2e34e43b09cbce549aec6f45828c3fcca1baa6",
+        "result": "EXACT_FROZEN_SOURCE_AND_LOCAL_BYTES_MATCH"
+      },
+      {
+        "profile": "hk_child",
+        "path": "infrastructure/isolated_package_loader.py",
+        "local_test_path": "infrastructure/isolated_package_loader.py",
+        "sha256": "c714d4b95c03da061f592e076cd12188dbeefcd9f0fae7aeaae18c0450e915eb",
+        "bytes": 6946,
+        "source_origin": "handoff/v4-running-source-20261005/canonical/infrastructure/isolated_package_loader.py",
+        "git_blob_sha": "c351e33930bb5e7b8321940ec88afc42c34038fc",
+        "result": "EXACT_FROZEN_SOURCE_AND_LOCAL_BYTES_MATCH"
+      },
+      {
+        "profile": "hk_upstream",
+        "path": "scripts/acquire_hk_security_master.py",
+        "local_test_path": "upstreams/v3_shared_data/scripts/acquire_hk_security_master.py",
+        "sha256": "9d65e7016df3529f10c34a9532da3b2ac9236c4446a3bf7adea1531281e6c6ad",
+        "bytes": 8873,
+        "source_origin": "handoff/v4-running-source-20261005/canonical/upstreams/v3_shared_data/scripts/acquire_hk_security_master.py",
+        "git_blob_sha": "8d79f6c205ab208c5252c39150dfe249c9e820db",
+        "result": "EXACT_FROZEN_SOURCE_AND_LOCAL_BYTES_MATCH"
+      },
+      {
+        "profile": "hk_upstream",
+        "path": "shared_data/hk_security_master.py",
+        "local_test_path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+        "sha256": "ac2c16669236d24d6d03cac183238ca8dccd8fd23895ae14ad34cef40c049008",
+        "bytes": 14396,
+        "source_origin": "handoff/v4-running-source-20261005/canonical/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+        "git_blob_sha": "36262bcd4fb9a8a52be8c6791180ee450c2d63b8",
+        "result": "EXACT_FROZEN_SOURCE_AND_LOCAL_BYTES_MATCH"
+      },
+      {
+        "profile": "hk_upstream",
+        "path": "shared_data/hk_0_2.py",
+        "local_test_path": "upstreams/v3_shared_data/shared_data/hk_0_2.py",
+        "sha256": "27da90f0e623e45fa1a27af7dcc3b6e5e1ff2320bae1c61bd903ed82050beb89",
+        "bytes": 67647,
+        "source_origin": "handoff/v4-running-source-20261005/canonical/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+        "git_blob_sha": "b2b366c2cbfd89ba9fed437620057fdb01f1e561",
+        "result": "EXACT_FROZEN_SOURCE_AND_LOCAL_BYTES_MATCH"
+      },
+      {
+        "profile": "hk_upstream",
+        "path": "scripts/update_hk_0_2_panel.py",
+        "local_test_path": "upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+        "sha256": "e54266676520eaf3ff59340758891a0abc1807a4afff65ed2b2536b144f5e1ec",
+        "bytes": 3621,
+        "source_origin": "handoff/v4-running-source-20261005/canonical/upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+        "git_blob_sha": "cab70a41286686e3307d688ff62b51a2672caf45",
+        "result": "EXACT_FROZEN_SOURCE_AND_LOCAL_BYTES_MATCH"
+      },
+      {
+        "profile": "api",
+        "path": "infrastructure/research_peripheral_store.py",
+        "local_test_path": "infrastructure/research_peripheral_store.py",
+        "sha256": "ec5ca1e32232946bacf04834d0ec0e0ed6e772ce1d3470fdb65b35522dc2faab",
+        "bytes": 15114,
+        "source_origin": "handoff/v4-running-source-20261005/canonical/infrastructure/research_peripheral_store.py",
+        "git_blob_sha": "9bc740c094697370208b4e84a07e724648a80a8a",
+        "result": "EXACT_FROZEN_SOURCE_AND_LOCAL_BYTES_MATCH"
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/us_market_bridge.py",
+        "local_test_path": "v4/manager_research/us_market_bridge.py",
+        "sha256": "18d4ede4267a446d235267c71cecd1208f30ae3fdfe9ff02d9354d1b5a18de06",
+        "bytes": 18974,
+        "source_origin": "handoff/v4-running-source-20261005/canonical/v4/manager_research/us_market_bridge.py",
+        "git_blob_sha": "6b79f476e1251d2ac55d03e832de76ebbef1c72d",
+        "result": "EXACT_FROZEN_SOURCE_AND_LOCAL_BYTES_MATCH"
+      },
+      {
+        "profile": "api",
+        "path": "contracts/us_equity_calendar_2026.json",
+        "local_test_path": "contracts/us_equity_calendar_2026.json",
+        "sha256": "cd8eac440e985be8fe9700983584dd1108873b68d5cc91cae2cbe8f7283a422f",
+        "bytes": 603,
+        "source_origin": "handoff/v4-running-source-20261005/canonical/contracts/us_equity_calendar_2026.json",
+        "git_blob_sha": "58ac5e41c1d3ed8c0be5616ec316c955f35afb63",
+        "result": "EXACT_FROZEN_SOURCE_AND_LOCAL_BYTES_MATCH"
+      },
+      {
+        "profile": "api",
+        "path": "contracts/trading_calendar.py",
+        "local_test_path": "contracts/trading_calendar.py",
+        "sha256": "eca22a1e45271df45fc0a3b7cec28cec4e448d1af97b80371cc5c3c1953ec0f1",
+        "bytes": 10239,
+        "source_origin": "handoff/v4-running-source-20261005/canonical/contracts/trading_calendar.py",
+        "git_blob_sha": "b0a6a32d8b2e14c7bb054a1ded35d93da1bc504c",
+        "result": "EXACT_FROZEN_SOURCE_AND_LOCAL_BYTES_MATCH"
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/store.py",
+        "local_test_path": "v4/manager_research/store.py",
+        "sha256": "79e077d2133f8c0bd33dde253e752bc6482423565ec11e9217d88b86f02cc07e",
+        "bytes": 19988,
+        "source_origin": "handoff/v4-running-source-20261005/canonical/v4/manager_research/store.py",
+        "git_blob_sha": "c9af9a6ae87858ebee111766d4db0fd0639943b5",
+        "result": "EXACT_FROZEN_SOURCE_AND_LOCAL_BYTES_MATCH"
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/workspace_projection.py",
+        "local_test_path": "v4/manager_research/workspace_projection.py",
+        "sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+        "bytes": 30841,
+        "source_origin": "handoff/manager-daily-chain-20261008/compat_r3/candidate_app/v4/manager_research/workspace_projection.py",
+        "git_blob_sha": "5799baef183dd4a93bdbc24c817a5df3d9e3cc33",
+        "result": "EXACT_FROZEN_SOURCE_AND_LOCAL_BYTES_MATCH"
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/workspace_plan.py",
+        "local_test_path": "v4/manager_research/workspace_plan.py",
+        "sha256": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb",
+        "bytes": 106047,
+        "source_origin": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/workspace_plan.py",
+        "git_blob_sha": "25bdc2c417f28307a4bdd3a05e868ac2285b25c2",
+        "result": "EXACT_FROZEN_SOURCE_AND_LOCAL_BYTES_MATCH"
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/announcement_analysis.py",
+        "local_test_path": "v4/manager_research/announcement_analysis.py",
+        "sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+        "bytes": 68733,
+        "source_origin": "handoff/manager-daily-chain-20261008/compat_r3/candidate_app/v4/manager_research/announcement_analysis.py",
+        "git_blob_sha": "879c4bd6f963dba2fc34457a06b4622d758408d2",
+        "result": "EXACT_FROZEN_SOURCE_AND_LOCAL_BYTES_MATCH"
+      }
+    ],
+    "unprovided_required_sources": [
+      "apps/__init__.py",
+      "stage_center/_selection_parts/_namespace.py",
+      "apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "apps/web/src/manager-selection/announcementAnalysis.ts",
+      "actual scheduler infrastructure/scheduling/_executor_registry_parts/us_digest.py"
+    ]
+  },
+  "source_index_pin_matches": [
+    {
+      "path": "apps/api/v35_api/manager_research_router.py",
+      "matches": [
+        {
+          "layer": "active_api",
+          "repository_path": "handoff/manager-workbench-repair-20261008/after/apps/api/v35_api/manager_research_router.py",
+          "status": "PRESENT"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "matches": [
+        {
+          "layer": "web_snapshot",
+          "repository_path": "handoff/manager-workbench-mac-completion-20261008/source/web/apps/web/src/api/managerWorkspace.ts",
+          "status": "PRESENT"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "matches": [
+        {
+          "layer": "web_snapshot",
+          "repository_path": "handoff/manager-workbench-mac-completion-20261008/source/web/apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "status": "PRESENT"
+        }
+      ]
+    },
+    {
+      "path": "apps/web/src/manager-selection/researchAttention.ts",
+      "matches": [
+        {
+          "layer": "web_snapshot",
+          "repository_path": "handoff/manager-daily-automation-problem-20261008/source/web_snapshot/apps/web/src/manager-selection/researchAttention.ts",
+          "status": "PRESENT"
+        }
+      ]
+    },
+    {
+      "path": "ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "matches": [
+        {
+          "layer": "hk_child",
+          "repository_path": "handoff/v4-running-source-20261005/canonical/ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+          "status": "PRESENT"
+        }
+      ]
+    },
+    {
+      "path": "ops/ensure_hk_security_master.py",
+      "matches": [
+        {
+          "layer": "hk_child",
+          "repository_path": "handoff/v4-running-source-20261005/canonical/ops/ensure_hk_security_master.py",
+          "status": "PRESENT"
+        }
+      ]
+    },
+    {
+      "path": "ops/run_manager_announcement_cycle.py",
+      "matches": [
+        {
+          "layer": "active_api",
+          "repository_path": "handoff/manager-workbench-repair-20261008/after/ops/run_manager_announcement_cycle.py",
+          "status": "PRESENT"
+        }
+      ]
+    },
+    {
+      "path": "v4/manager_research/plan_owner_dispatch.py",
+      "matches": [
+        {
+          "layer": "active_api",
+          "repository_path": "handoff/manager-workbench-repair-20261008/after/v4/manager_research/plan_owner_dispatch.py",
+          "status": "PRESENT"
+        }
+      ]
+    },
+    {
+      "path": "v4/manager_research/service.py",
+      "matches": [
+        {
+          "layer": "active_api",
+          "repository_path": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/service.py",
+          "status": "PRESENT"
+        }
+      ]
+    },
+    {
+      "path": "v4/manager_research/us_mapping_research.py",
+      "matches": [
+        {
+          "layer": "active_api",
+          "repository_path": "handoff/manager-workbench-source-followup-20261008/reference/us_mapping_research.runtime_r2.py",
+          "status": "PRESENT"
+        }
+      ]
+    }
+  ],
+  "read_file_identities": [
+    {
+      "path": "delivery/manager-daily-automation-repair-20261008-r1/docs/HOST_EXECUTION.md",
+      "bytes": 12186,
+      "sha256": "163642f3c14ccf8ca3e4248678da1375d1f434b6ebc3d5d1e75b7e6b54e7ddca"
+    },
+    {
+      "path": "delivery/manager-daily-automation-repair-20261008-r1/docs/INPUT_AND_RUNTIME_GAPS.md",
+      "bytes": 7229,
+      "sha256": "c58da3c82dccee1fc450b6cc1bed62c97ce73906968765d651071de17c287b21"
+    },
+    {
+      "path": "investigation/automation/build_delivery.py",
+      "bytes": 13506,
+      "sha256": "859a993df33fed1191e6f3a6d82d958367ef7098d6bb775e89fa02d550b89363"
+    },
+    {
+      "path": "investigation/automation/verify_final_delivery.py",
+      "bytes": 9349,
+      "sha256": "e501e990dfbbf91612b5586b2b808299a4efcb4cb980aa27ea91264baa204513"
+    },
+    {
+      "path": "delivery/manager-daily-automation-repair-20261008-r1/tools/verify_delivery.py",
+      "bytes": 17769,
+      "sha256": "6cdd78d754ba0b997beb8ab33356afcac8027f24af6e822c69062ada0940a51d"
+    },
+    {
+      "path": "investigation/automation/boundaries.json",
+      "bytes": 11339,
+      "sha256": "53ad50519573ee8257e3079540683d4177259aa68daadee6965e706dcf7a6d8e"
+    },
+    {
+      "path": "investigation/issue29/owners/refs/hkbridge.json",
+      "bytes": 21760,
+      "sha256": "2e13d82a9669bf1186abb0433777b6b1b315e7840304be02df3e0e16f5dc6ae3"
+    },
+    {
+      "path": "delivery/manager-daily-automation-repair-20261008-r1/required_dependencies.json",
+      "bytes": 13266,
+      "sha256": "0dc76114c45a6606f23e9755250c15618c720318bb1ae2424ab1d3d518a2bb16"
+    },
+    {
+      "path": "delivery/manager-daily-automation-repair-20261008-r1/evidence/package/patch_verification.json",
+      "bytes": 73183,
+      "sha256": "60749db2d28159ddb2cdfa494497b457fbd24a304b9fbeb160fc27e8f20ed697"
+    },
+    {
+      "path": "delivery/manager-daily-automation-repair-20261008-r1/evidence/package/source_scope_audit.json",
+      "bytes": 8160,
+      "sha256": "2d7dfaca88a3dfa67cd4a9980e6c75b3a23ee2fa7629c1fb99dd9c9dea551f99"
+    }
+  ],
+  "root_evidence_receipt_refresh": {
+    "reviewed_at_utc": "2026-10-08T18:54:31.245092+00:00",
+    "receipt_path": "delivery/manager-daily-automation-repair-20261008-r1/evidence/package/source_scope_audit.json",
+    "previous_receipt_sha256": "8824d08cf943ed719008562614e5c198c149e035c01c6973193e548a811f639a",
+    "current_receipt_sha256": "2d7dfaca88a3dfa67cd4a9980e6c75b3a23ee2fa7629c1fb99dd9c9dea551f99",
+    "current_receipt_bytes": 8160,
+    "root_receipt_captured_at_utc": "2026-10-08T18:28:38.950389+00:00",
+    "status": "ROOT_RERUN_RECEIPT_REREAD_IDENTITY_AND_CONCLUSION_CONSISTENT",
+    "confirmed_fields": [
+      "same source_manifest_sha256",
+      "same local baseline commit",
+      "17 unchanged local paths",
+      "33 changed source paths",
+      "actual HK 07aa before and 196399 after identity",
+      "only _hk_lane_receipt_ready/main top-level AST deltas",
+      "other top-level AST and main outside HK runner unchanged",
+      "nested non-HK run_a unchanged",
+      "Issue #28 live preservation not verified",
+      "Mac runtime untouched"
+    ],
+    "independently_reexecuted": false,
+    "explanation": "Only the supplied Root-owned scope receipt reference was refreshed after Root reran its audit. This reviewer reread that receipt and checked its identity, conclusions and scope limits; did not execute audit_final_scope.py, rerun source-scope checks, business tests or patch checks in this follow-up. Earlier independently executed packaging checks retain their original recorded scope."
+  },
+  "final_document_consistency_review": {
+    "reviewed_at_utc": "2026-10-08T18:54:31.245092+00:00",
+    "status": "PASS_CONTENT_AND_RELATIVE_LINKS_PENDING_ROOT_EVIDENCE_IDENTITY_REFRESH",
+    "scope": "README.md, TESTING.md, independent_tests/EVIDENCE_INDEX.md, acceptance_status.json and the final independent_tests/final_review.json only; read-only document/metadata checks, no production/test/source_manifest edits and no business tests, renderer, POST, service, Mac, network or patch reruns.",
+    "read_time_document_identities": [
+      {
+        "path": "README.md",
+        "sha256": "965c42e1071661dc141540b627c82c1e67aba1f36c5e703453608a8d07fe6a45",
+        "bytes": 7947,
+        "role": "read-time document snapshot"
+      },
+      {
+        "path": "TESTING.md",
+        "sha256": "02e8f2b77bc577763a90b29aaa8ec84cf8e07317e66dae28c6a0fa10b7f46aeb",
+        "bytes": 11605,
+        "role": "read-time document snapshot"
+      },
+      {
+        "path": "independent_tests/EVIDENCE_INDEX.md",
+        "sha256": "b54168221e2c7c204db861b4c2dee03ca57761a351d29e717283a1eb07c2af58",
+        "bytes": 5103,
+        "role": "read-time document snapshot"
+      },
+      {
+        "path": "acceptance_status.json",
+        "sha256": "e5e16d0707ea7a9961e7e618455c1bd676a5d71b7101f1a6ded636a02d9f86ee",
+        "bytes": 8303,
+        "role": "read-time document snapshot; acceptance evidence identity is awaiting the explicit Root refresh below"
+      },
+      {
+        "path": "independent_tests/final_review.json",
+        "sha256": "359d56ad0702c8cdbcf7f71156da0837e884a7ccab64e1c21f5b12c39f2ef045",
+        "bytes": 34905,
+        "role": "read-time document snapshot"
+      }
+    ],
+    "consistent_counts": {
+      "writer_python_main_passed": 112,
+      "writer_web_passed": 34,
+      "writer_web_files": 4,
+      "writer_namespace_passed": 2,
+      "writer_overlap_group_passed": 25,
+      "independent_daily_passed": 14,
+      "independent_us_passed": 18,
+      "independent_hk_passed": 4,
+      "independent_exact_route_passed": 1,
+      "independent_source_window_passed": 1,
+      "independent_ts_projection_passed": 2,
+      "independently_rerun_writer_hk_group_passed": 11,
+      "hk_supplement_passed": 13,
+      "hk_supplement_failed": 2,
+      "writer_log_copies": 9,
+      "final_review_log_copies_hash_matched": 16,
+      "natural_live_dates_observed": 0
+    },
+    "no_test_count_sum": "Overlapping groups and reruns are explicitly not added together.",
+    "nine_levels": [
+      {
+        "level": "IMPLEMENTED",
+        "status": "SOURCE_DELTA_IMPLEMENTED"
+      },
+      {
+        "level": "TESTED",
+        "status": "SCOPED_PASS_WITH_KNOWN_FAILURES_AND_CLOSURE_BLOCKERS"
+      },
+      {
+        "level": "REVIEWED",
+        "status": "PASS_WITH_SCOPED_SOURCE_CLOSURE_BLOCKERS"
+      },
+      {
+        "level": "INTEGRATED",
+        "status": "SHARED_ENTRY_INTEGRATION_UNVERIFIED"
+      },
+      {
+        "level": "DEPLOYED",
+        "status": "NOT_DEPLOYED_THIS_ROUND"
+      },
+      {
+        "level": "API_VERIFIED",
+        "status": "IN_PROCESS_CONTRACT_TESTED_LIVE_API_UNVERIFIED"
+      },
+      {
+        "level": "UI_VERIFIED",
+        "status": "LOCAL_DTO_AND_PROJECTION_TESTED_LIVE_PAGE_UNVERIFIED"
+      },
+      {
+        "level": "BEHAVIOR_VERIFIED",
+        "status": "OFFLINE_CHAIN_TESTED_REAL_20261008_UNVERIFIED"
+      },
+      {
+        "level": "NATURAL_VERIFIED",
+        "status": "NATURAL_SLOT_UNVERIFIED"
+      }
+    ],
+    "consistent_limits": [
+      "Two supplement baseline failures remain disclosed, with baseline/current same-value reproduction; not all-tests-pass.",
+      "Renderer/full application closure remains blocked.",
+      "Only local DTO/render/DOM/projection and in-process route linkage; full parent-page build/mount/browser and live API/UI are not verified.",
+      "Real 2026-10-08 retrospective, protected cumulative integration and deployment are not verified.",
+      "Zero natural dates observed; at least two consecutive applicable trading days are still required.",
+      "Only independent_tests/final_review.json is final frozen-source behavioral evidence; earlier stage *_final* reports and classified invalid/cutoff red probes retain historical roles."
+    ],
+    "relative_links": {
+      "markdown_links_seen": 66,
+      "existing_local_targets_checked": 63,
+      "missing_targets": [],
+      "explicitly_excluded_pending_package_manifest_links": [
+        "package_manifest.json"
+      ],
+      "all_nine_level_evidence_targets_exist": true
+    },
+    "resolved_document_precision_finding": {
+      "location": "README.md delivery composition paragraph",
+      "prior_issue": "Blanket statement that every file has before SHA and frozen preimage did not distinguish additions.",
+      "resolution_observed": "Root revised the paragraph to 21 existing files with before SHA/frozen origin and 12 additions with no supplied-tree preimage plus required actual-target absence gate.",
+      "status": "RESOLVED_IN_READ_SNAPSHOT"
+    },
+    "pending_root_metadata_refresh": {
+      "status": "KNOWN_ASSEMBLY_STEP_NOT_PRODUCTION_DEFECT",
+      "details": "At read time acceptance_status evidence_identity still points to the previous source_scope_audit SHA 8824d08c...; Root explicitly will replace it with 2d7dfaca... and update this packaging report identity after copying this revised report. No claim that those later Root writes have already occurred. package_manifest.json is explicitly pending generation and excluded from missing-link findings.",
+      "requires_rewriting_source_manifest": false
+    },
+    "unresolved_content_or_link_findings": []
+  }
+}

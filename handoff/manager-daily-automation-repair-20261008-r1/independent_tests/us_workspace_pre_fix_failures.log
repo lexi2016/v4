@@ -1,0 +1,127 @@
+.........FF...F...                                                       [100%]
+=================================== FAILURES ===================================
+__________ test_same_trigger_timeout_retry_preserves_full_unknown_dto __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-169/test_same_trigger_timeout_retr0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f7ba99498d0>
+
+    def test_same_trigger_timeout_retry_preserves_full_unknown_dto(tmp_path, monkeypatch):
+        """Terminal dispatch replay must retain the original failure DTO contract."""
+        _fixture_relations(monkeypatch, available_at=datetime(2026, 10, 5, 16, 18, tzinfo=HK))
+        blocked = _CountingBlockingReader(_populated_reader())
+        service = _service(tmp_path, blocked)
+        target = "20261008"
+        trigger_id = "7" * 64
+        now = datetime(2026, 10, 8, 6, 31, tzinfo=HK)
+        try:
+            first = _call_owner(service, target, now, trigger_id, timeout_seconds=0.05)
+            assert blocked.started.wait(0.5)
+            assert first["schema_version"] == us_mapping_research.DAILY_SCHEMA
+            assert first["target_trade_date"] == target
+            assert first["matches"] == []
+            assert first["coverage"]["matched_us_symbol_count"] is None
+            assert first["coverage"]["matched_hk_relation_count"] is None
+    
+            replay = _call_owner(service, target, now, trigger_id, timeout_seconds=0.05)
+>           assert replay["schema_version"] == us_mapping_research.DAILY_SCHEMA
+                   ^^^^^^^^^^^^^^^^^^^^^^^^
+E           KeyError: 'schema_version'
+
+../../investigation/automation/reviewer/test_us_daily_owner_independent.py:549: KeyError
+_ test_pointer_publish_budget_timeout_does_not_look_like_verified_daily_success _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-169/test_pointer_publish_budget_ti0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f7ba994a190>
+
+    def test_pointer_publish_budget_timeout_does_not_look_like_verified_daily_success(tmp_path, monkeypatch):
+        """A committed pointer without terminal owner receipt is not a completed attempt."""
+        _fixture_relations(monkeypatch, available_at=datetime(2026, 10, 5, 16, 18, tzinfo=HK))
+        service = _service(tmp_path, _populated_reader())
+        original_write = service.store._io.write_bytes
+        pointer_path = "us_mapping_research/20261008/latest.json"
+    
+        def delayed_pointer_write(relative, data, **kwargs):
+            result = original_write(relative, data, **kwargs)
+            if relative == pointer_path:
+                # SafeRoot's single write is not preemptible. Expire the very
+                # short synthetic owner budget after the durable pointer write.
+                time.sleep(0.08)
+            return result
+    
+        monkeypatch.setattr(service.store._io, "write_bytes", delayed_pointer_write)
+        try:
+            owner = _call_owner(
+                service, "20261008", datetime(2026, 10, 8, 6, 31, tzinfo=HK), "b" * 64,
+                timeout_seconds=0.05)
+            readback = us_mapping_research.read_workspace_mapping(service, "20261008")["daily_run"]
+    
+            assert owner["status"] == "FAILED"
+            assert owner["execution_status"] == "US_MAPPING_OWNER_BUDGET_EXHAUSTED"
+            assert readback["run_id"] is not None
+            assert readback["run_readback"]["status"] == "VERIFIED"
+            saved = us_mapping_research._read_exact_run(
+                service.store, "20261008", readback["run_id"], readback["artifact_sha256"])
+            assert saved["execution_context"]["trigger_id"] == "b" * 64
+>           assert readback["status"] != "COMPLETED", (
+                "a durable but unterminalized dispatch must not be presented as a completed owner attempt")
+E               AssertionError: a durable but unterminalized dispatch must not be presented as a completed owner attempt
+E               assert 'COMPLETED' != 'COMPLETED'
+
+../../investigation/automation/reviewer/test_us_daily_owner_independent.py:592: AssertionError
+___ test_saved_plan_attempt_overlay_uses_saved_cutoff_not_current_get_cutoff ___
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-169/test_saved_plan_attempt_overla0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f7ba8e33cd0>
+
+    def test_saved_plan_attempt_overlay_uses_saved_cutoff_not_current_get_cutoff(tmp_path, monkeypatch):
+        """A 09:30 attempt follows a 09:00 saved plan even when GET runs at 10:00."""
+        plan_store = ManagerResearchStore(tmp_path / "manager")
+        plan_service = SimpleNamespace(store=plan_store)
+        saved_cutoff = datetime(2026, 10, 8, 9, 0, tzinfo=HK)
+        current_cutoff = datetime(2026, 10, 8, 10, 0, tzinfo=HK)
+        monkeypatch.setattr(workspace_module, "_now", lambda: "2026-10-08T01:01:00+00:00")
+        saved_daily = {
+            "schema_version": "v4.manager_research.us_mapping_daily_run.v1",
+            "status": "COMPLETED", "target_trade_date": "20261008",
+            "run_id": "a" * 32, "artifact_sha256": "b" * 64,
+            "generated_at": "2026-10-08T08:45:00+08:00",
+            "matches": [{"us_symbol": "NVDA", "hk_symbol": "0981"}],
+            "gaps": [], **FLAGS,
+        }
+        saved_workspace = {
+            "target_trade_date": "20261008", "input_identity": "c" * 64,
+            "semantic_version": "TEST_FIXTURE",
+            "plan_context": {"research_cutoff": saved_cutoff.isoformat()},
+            "gaps": [], "stocks": [], "existing_material_coverage": {}, "summary": {},
+            "lanes": [], "us_mapping_research": {"daily_run": saved_daily}, **FLAGS,
+        }
+        monkeypatch.setattr(workspace_module, "get_workspace", lambda *_a, **_kw: saved_workspace)
+        stored = workspace_module.refresh_workspace_plan(
+            plan_service, "20261008", now=saved_cutoff)
+        run_path = plan_store.root / "workspace_plans" / "20261008" / (
+            stored["plan_product"]["run_id"] + ".json")
+        before = run_path.read_bytes()
+    
+        current = dict(saved_workspace)
+        current["plan_context"] = {"research_cutoff": current_cutoff.isoformat()}
+        current["us_mapping_research"] = {"daily_run": {
+            **saved_daily,
+            "latest_attempt": {
+                "status": "FAILED", "trigger_id": "d" * 64,
+                "finished_at": "2026-10-08T09:30:00+08:00",
+                "execution_context": {"trigger_id": "d" * 64, "timing": "LATE_CATCHUP"},
+            },
+        }}
+        result = workspace_module._readback_plan(plan_store, "20261008", current)
+    
+        daily = result["us_mapping_research"]["daily_run"]
+        assert daily["latest_attempt"]["trigger_id"] == "d" * 64
+>       assert daily["latest_attempt_after_plan_cutoff"] is True
+E       assert False is True
+
+../../investigation/automation/reviewer/test_us_daily_owner_independent.py:779: AssertionError
+=========================== short test summary info ============================
+FAILED ../../investigation/automation/reviewer/test_us_daily_owner_independent.py::test_same_trigger_timeout_retry_preserves_full_unknown_dto
+FAILED ../../investigation/automation/reviewer/test_us_daily_owner_independent.py::test_pointer_publish_budget_timeout_does_not_look_like_verified_daily_success
+FAILED ../../investigation/automation/reviewer/test_us_daily_owner_independent.py::test_saved_plan_attempt_overlay_uses_saved_cutoff_not_current_get_cutoff
+3 failed, 15 passed in 0.95s

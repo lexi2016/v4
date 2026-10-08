@@ -1,0 +1,179 @@
+{
+  "schema_version": "manager_daily_local_scope_audit.v1",
+  "status": "PASS",
+  "captured_at_utc": "2026-10-08T18:28:38.950389+00:00",
+  "scope": "LOCAL_ASSEMBLED_BASELINE_AND_EXACT_HK_ENTRY_ONLY_NOT_LIVE_PRESERVATION",
+  "local_baseline_commit": "3f2aa6c92d87da098d33b5349698e55d337fd165",
+  "source_manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+  "unchanged_local_files": [
+    {
+      "path": "apps/api/v35_api/app.py",
+      "sha256": "909bdccecadf36c70f791a2c4c0d818371f4da68762e4cff40f9786e4613f80e",
+      "bytes": 342071,
+      "purpose": "preserve existing original algorithm/entry or separately mapped runtime layer",
+      "status": "UNCHANGED_LOCAL_BASELINE"
+    },
+    {
+      "path": "apps/api/v35_api/manager_workbench_router.py",
+      "sha256": "95ccda85ff50d44cffbb18fc655e417f926c14b27a60cfa4c5fad17a3cbd1b5e",
+      "bytes": 57619,
+      "purpose": "preserve existing original algorithm/entry or separately mapped runtime layer",
+      "status": "UNCHANGED_LOCAL_BASELINE"
+    },
+    {
+      "path": "ops/run_v35_macos_scheduler_daemon.py",
+      "sha256": "7e3ead4e646a599981878e7b5eca66ecde01217de83f0f3039637a411cfa1f5c",
+      "bytes": 46094,
+      "purpose": "preserve existing original algorithm/entry or separately mapped runtime layer",
+      "status": "UNCHANGED_LOCAL_BASELINE"
+    },
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/panel_execution.py",
+      "sha256": "0224f525a8f3e5b5ab3c32b871d486ca3568208881da7ba6e99e1573d4142a74",
+      "bytes": 15726,
+      "purpose": "preserve existing original algorithm/entry or separately mapped runtime layer",
+      "status": "UNCHANGED_LOCAL_BASELINE"
+    },
+    {
+      "path": "contracts/runtime_workloads.json",
+      "sha256": "0c6e8a7f823bfd2d01104de399593d047e870d18b28ea60269230a1ba88a028b",
+      "bytes": 52461,
+      "purpose": "preserve existing original algorithm/entry or separately mapped runtime layer",
+      "status": "UNCHANGED_LOCAL_BASELINE"
+    },
+    {
+      "path": "contracts/market_calendar_2026.json",
+      "sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+      "bytes": 3473,
+      "purpose": "preserve existing original algorithm/entry or separately mapped runtime layer",
+      "status": "UNCHANGED_LOCAL_BASELINE"
+    },
+    {
+      "path": "contracts/us_equity_calendar_2026.json",
+      "sha256": "cd8eac440e985be8fe9700983584dd1108873b68d5cc91cae2cbe8f7283a422f",
+      "bytes": 603,
+      "purpose": "preserve existing original algorithm/entry or separately mapped runtime layer",
+      "status": "UNCHANGED_LOCAL_BASELINE"
+    },
+    {
+      "path": "v4/manager_research/workspace_plan.py",
+      "sha256": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb",
+      "bytes": 106047,
+      "purpose": "preserve existing original algorithm/entry or separately mapped runtime layer",
+      "status": "UNCHANGED_LOCAL_BASELINE"
+    },
+    {
+      "path": "v4/manager_research/workspace_read_control.py",
+      "sha256": "491e3569e8f00586ca6f4e9982e182584d2f2a0437f83da66767b7ffdbf1fb25",
+      "bytes": 10927,
+      "purpose": "preserve existing original algorithm/entry or separately mapped runtime layer",
+      "status": "UNCHANGED_LOCAL_BASELINE"
+    },
+    {
+      "path": "v4/manager_research/workspace_daily_channels.py",
+      "sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+      "bytes": 12982,
+      "purpose": "preserve existing original algorithm/entry or separately mapped runtime layer",
+      "status": "UNCHANGED_LOCAL_BASELINE"
+    },
+    {
+      "path": "v4/manager_research/connect_selection.py",
+      "sha256": "eaa01a13d8065b11cc8397a12edaad8b892f183158aa1f9475d29645dee09d83",
+      "bytes": 17496,
+      "purpose": "preserve existing original algorithm/entry or separately mapped runtime layer",
+      "status": "UNCHANGED_LOCAL_BASELINE"
+    },
+    {
+      "path": "v4/manager_research/connect_capture_adapter.py",
+      "sha256": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b",
+      "bytes": 19841,
+      "purpose": "preserve existing original algorithm/entry or separately mapped runtime layer",
+      "status": "UNCHANGED_LOCAL_BASELINE"
+    },
+    {
+      "path": "v4/manager_research/announcement_analysis.py",
+      "sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+      "bytes": 68733,
+      "purpose": "preserve existing original algorithm/entry or separately mapped runtime layer",
+      "status": "UNCHANGED_LOCAL_BASELINE"
+    },
+    {
+      "path": "v4/manager_research/workspace_announcements.py",
+      "sha256": "ea259666727b71c78760d666f3fe7f90350829bdce5f2b55745927528546af04",
+      "bytes": 162906,
+      "purpose": "preserve existing original algorithm/entry or separately mapped runtime layer",
+      "status": "UNCHANGED_LOCAL_BASELINE"
+    },
+    {
+      "path": "ops/run_manager_daily_announcement.py",
+      "sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee",
+      "bytes": 42929,
+      "purpose": "preserve existing original algorithm/entry or separately mapped runtime layer",
+      "status": "UNCHANGED_LOCAL_BASELINE"
+    },
+    {
+      "path": "ops/macos_research_panel_daily.py",
+      "sha256": "bb4db8d0cafaf43c7080439a60b986bf0ed02d4e4cb3295bde3f7ad8a266377f",
+      "bytes": 31048,
+      "purpose": "preserve existing original algorithm/entry or separately mapped runtime layer",
+      "status": "UNCHANGED_LOCAL_BASELINE"
+    },
+    {
+      "path": "v4/manager_research/workspace_projection.py",
+      "sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+      "bytes": 30841,
+      "status": "UNCHANGED_LOCAL_BASELINE"
+    }
+  ],
+  "actual_hk_entry": {
+    "before_sha256": "07aa9770c6ae0bb0cfd012e57843a37fedda6724a57cd52d7c339d854fc6609b",
+    "after_sha256": "1963990fcde99b2681c837b8b66ea12f1ab066aba47729af5d0900073bc79ef3",
+    "only_top_level_function_deltas": [
+      "_hk_lane_receipt_ready",
+      "main"
+    ],
+    "unchanged_other_top_level_ast": true,
+    "unchanged_main_outside_hk_runner": true,
+    "unchanged_nested_non_hk_owners": [
+      "run_a"
+    ]
+  },
+  "changed_source_paths": [
+    "apps/api/v35_api/manager_research_router.py",
+    "apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts",
+    "apps/web/src/api/managerWorkspace.ts",
+    "apps/web/src/manager-selection/catalystObservationPanel.ts",
+    "apps/web/src/manager-selection/dailyResearchRun.spec.ts",
+    "apps/web/src/manager-selection/dailyResearchRun.ts",
+    "apps/web/src/manager-selection/researchAttention.ts",
+    "infrastructure/_research_peripheral_store_parts/_namespace.py",
+    "infrastructure/scheduling/manager_announcement_supervisor.py",
+    "ops/_macos_research_panel_daily_parts/_namespace.py",
+    "ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+    "ops/ensure_hk_security_master.py",
+    "ops/render_manager_announcement_binding.py",
+    "ops/run_manager_announcement_cycle.py",
+    "runtime_layers/hk_child/ops/macos_research_panel_daily.py",
+    "tests/manager_daily_ui_owner_fixture.py",
+    "tests/manager_daily_ui_route_fixture.py",
+    "tests/test_hk_daily_publication_chain.py",
+    "tests/test_hk_daily_supplement_r4.py",
+    "tests/test_manager_daily_automation_20261008.py",
+    "tests/test_manager_daily_dispatch_20261008.py",
+    "tests/test_manager_history_contract_20261008.py",
+    "tests/test_manager_owner_namespace_contracts.py",
+    "tests/test_manager_us_daily_automation_20261008.py",
+    "tests/test_manager_workspace_exact_page_binding_20261008.py",
+    "tests/test_manager_workspace_owner_20261008.py",
+    "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+    "v4/manager_research/plan_owner_dispatch.py",
+    "v4/manager_research/service.py",
+    "v4/manager_research/us_mapping_research.py",
+    "v4/manager_research/workspace.py",
+    "v4/manager_research/workspace_history.py",
+    "v4/manager_research/workspace_plan_autorun.py"
+  ],
+  "diff_whitespace": "PASS",
+  "issue_28_live_preservation": "NOT_VERIFIED_REQUIRES_PROTECTED_INTEGRATION",
+  "mac_runtime_touched": false
+}

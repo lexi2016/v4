@@ -1,0 +1,36 @@
+--- a/tests/test_hk_daily_supplement_r4.py
++++ b/tests/test_hk_daily_supplement_r4.py
+@@ -189,6 +189,33 @@
+     assert _read(root, cutoff="2026-10-01T03:11:00+00:00") is not None
+     with pytest.raises(ValueError, match="HK_DAILY_SUPPLEMENT_POINTER_AFTER_CUTOFF"):
+         _read(root, cutoff="2026-10-01T03:09:59+00:00")
++
++
++def test_capture_reuses_verified_ready_cache_without_connector_or_republication(tmp_path, monkeypatch):
++    _patch_capture_inputs(monkeypatch)
++    root = tmp_path / "authority"
++    api = FakeAPI(variant="complete")
++    first = supplement.capture_daily_supplement(
++        root, target_date=TARGET,
++        connector=lambda: (api, f"{supplement.SOURCE_HOST}:{supplement.SOURCE_PORT}"),
++        clock=_clock(datetime(2026, 10, 1, 3, 0, tzinfo=timezone.utc)),
++    )
++    assert first["status"] == "READY"
++    pointer_path = root / "assets" / "hk_0_2" / "daily_supplements" / "pointers" / f"{TARGET}.json"
++    pointer_bytes = pointer_path.read_bytes()
++    calls_before = list(api.calls)
++
++    second = supplement.capture_daily_supplement(
++        root, target_date=TARGET,
++        connector=lambda: pytest.fail("verified READY cache must bypass the provider"),
++        clock=_clock(datetime(2026, 10, 1, 3, 10, tzinfo=timezone.utc)),
++    )
++
++    assert second["status"] == "READY" and second["reused"] is True
++    assert second["run_id"] == first["run_id"]
++    assert second["published_at"] == first["published_at"]
++    assert pointer_path.read_bytes() == pointer_bytes
++    assert api.calls == calls_before
+ 
+ 
+ def test_capture_rejects_parent_revision_published_after_actual_capture_start(tmp_path, monkeypatch):

@@ -1,0 +1,1249 @@
+--- a/ops/_macos_research_panel_daily_parts/hk_capture_gate.py
++++ b/ops/_macos_research_panel_daily_parts/hk_capture_gate.py
+@@ -1,10 +1,727 @@
+ """HK capture, manifest, panel, and security-master authority gate."""
+ from __future__ import annotations
+ 
++from datetime import datetime, timezone
++import hashlib
++import json
++from pathlib import Path
++import re
++from zoneinfo import ZoneInfo
++from uuid import uuid4
++
+ from ._namespace import read_global as _v4_global
+ 
+ 
+-def run_hk_capture_gate(
++CHAIN_SCHEMA = "v3.macos.hk_publication_chain.v1"
++CHAIN_REQUIRED_STAGES = (
++    "CAPTURE", "MEMBERSHIP_PUBLICATION", "PANEL_PACK", "PANEL_AUTHORITY",
++    "PANEL_CAPTURE_BINDING", "SECURITY_MASTER_PUBLICATION", "FINAL_READBACK",
++)
++SAFETY_KEYS = ("production_allowed", "buy_gate_updated", "orders_sent")
++
++
++def _canonical(value):
++    return json.dumps(value, ensure_ascii=False, sort_keys=True,
++        separators=(",", ":"), allow_nan=False).encode("utf-8")
++
++
++def _seal(value):
++    body = {key: item for key, item in value.items() if key != "sha256"}
++    return {**body, "sha256": hashlib.sha256(_canonical(body)).hexdigest()}
++
++
++def _safe_regular_file(path: Path) -> bool:
++    """Reject symlinks in every path component before reading a referenced file."""
++    absolute = Path(path).absolute()
++    current = Path(absolute.anchor)
++    for component in absolute.parts[1:]:
++        current = current / component
++        if current.is_symlink():
++            return False
++    return current.is_file()
++
++
++def _safe_directory(path: Path) -> bool:
++    absolute = Path(path).absolute()
++    current = Path(absolute.anchor)
++    for component in absolute.parts[1:]:
++        current = current / component
++        if current.is_symlink():
++            return False
++    return current.is_dir()
++
++
++def _sha256_path(path: Path) -> str:
++    digest = hashlib.sha256()
++    with path.open("rb") as handle:
++        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
++            digest.update(chunk)
++    return digest.hexdigest()
++
++
++def _file_ref(path: Path, *, role: str, expected_sha256: str | None = None,
++              expected_bytes: int | None = None) -> dict:
++    if not _safe_regular_file(path):
++        raise ValueError("HK_PUBLICATION_ARTIFACT_UNSAFE")
++    absolute = Path(path).absolute()
++    size = absolute.stat().st_size
++    digest = _sha256_path(absolute)
++    if ((expected_sha256 is not None and digest != expected_sha256)
++            or (expected_bytes is not None and size != expected_bytes)):
++        raise ValueError("HK_PUBLICATION_ARTIFACT_READBACK_MISMATCH")
++    return {"path": str(absolute), "bytes": size, "sha256": digest, "role": role}
++
++
++def _read_chain_artifact_json(reference, code):
++    path = Path(reference["path"])
++    if path.stat().st_size > 16 * 1024 * 1024:
++        raise ValueError(code)
++    try:
++        value = json.loads(path.read_text(encoding="utf-8-sig"))
++    except (OSError, UnicodeError, json.JSONDecodeError) as error:
++        raise ValueError(code) from error
++    if not isinstance(value, dict):
++        raise ValueError(code)
++    return value
++
++
++def _resolve_chain_relative(root: Path, relative, code) -> Path:
++    if (not isinstance(relative, str) or not relative or Path(relative).is_absolute()
++            or ".." in Path(relative).parts or "\\" in relative):
++        raise ValueError(code)
++    resolved_root = root.resolve()
++    candidate = (resolved_root / relative).resolve()
++    try:
++        candidate.relative_to(resolved_root)
++    except ValueError as error:
++        raise ValueError(code) from error
++    if not _safe_regular_file(candidate):
++        raise ValueError(code)
++    return candidate
++
++
++def _valid_sha256(value):
++    return isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value) is not None
++
++
++def _verify_chain_artifact_contract(target, terminal, stage_values, artifact_refs, summary):
++    """Bind every READY stage to the exact capture and publication artifacts."""
++    by_role = {}
++    paths = set()
++    for reference in artifact_refs:
++        role = reference.get("role")
++        path = str(Path(reference["path"]).resolve())
++        if not isinstance(role, str) or not role or path in paths:
++            raise ValueError("HK_PUBLICATION_CHAIN_ARTIFACT_ROLES_INVALID")
++        by_role.setdefault(role, []).append(reference)
++        paths.add(path)
++
++    required_roles = {
++        "HK_SDK_CAPTURE_MANIFEST", "HK_SDK_CAPTURE_RAW",
++        "HK_CONNECT_V2_PUBLICATION", "HK_CONNECT_V2_JSON",
++        "HK_PANEL_LATEST_POINTER", "HK_PANEL_MANIFEST", "HK_PANEL_PARQUET",
++        "HK_SECURITY_MASTER_LATEST_POINTER", "HK_SECURITY_MASTER_MANIFEST",
++        "HK_SECURITY_MASTER_ARTIFACT", "HK_SECURITY_MASTER_RECEIPT",
++    }
++    if (not required_roles.issubset(by_role)
++            or any(len(by_role[role]) != 1 for role in required_roles - {"HK_CONNECT_V2_JSON"})
++            or not by_role.get("HK_CONNECT_V2_JSON")):
++        raise ValueError("HK_PUBLICATION_CHAIN_ARTIFACT_ROLES_INVALID")
++
++    def one(role):
++        return by_role[role][0]
++
++    def same_path(reference, expected):
++        if not isinstance(expected, (str, Path)) or not expected:
++            return False
++        return Path(reference["path"]).resolve() == Path(expected).resolve()
++
++    capture_manifest_ref = one("HK_SDK_CAPTURE_MANIFEST")
++    capture_raw_ref = one("HK_SDK_CAPTURE_RAW")
++    capture_manifest = _read_chain_artifact_json(
++        capture_manifest_ref, "HK_PUBLICATION_CHAIN_CAPTURE_MANIFEST_INVALID")
++    capture = _read_chain_artifact_json(
++        capture_raw_ref, "HK_PUBLICATION_CHAIN_CAPTURE_RAW_INVALID")
++    if (capture_manifest.get("schema_version")
++            != "v3.macos.research_panel_hk_capture_manifest.v1"
++            or capture_manifest.get("status") != "READY"
++            or capture_manifest.get("target_date") != target
++            or capture_manifest.get("capture") != capture
++            or capture_manifest.get("capture_raw_sha256") != capture_raw_ref["sha256"]
++            or capture.get("target_date") != target
++            or capture.get("status") != "READY"
++            or capture.get("membership_status") != "READY"
++            or capture.get("capture_run_id") != terminal.get("capture_run_id")
++            or capture.get("capture_run_id") != summary.get("capture_run_id")
++            or capture.get("capture_sha256") != summary.get("capture_sha256")
++            or capture_manifest.get("capture_run_id") != capture.get("capture_run_id")
++            or capture_manifest.get("capture_sha256") != capture.get("capture_sha256")
++            or capture.get("source_sha256") != summary.get("source_sha256")
++            or not _valid_sha256(capture.get("capture_sha256"))
++            or capture.get("code_count") != summary.get("universe_count")):
++        raise ValueError("HK_PUBLICATION_CHAIN_CAPTURE_IDENTITY_INVALID")
++    capture_result = stage_values["CAPTURE"].get("result")
++    if (not isinstance(capture_result, dict)
++            or capture_result.get("capture_run_id") != capture.get("capture_run_id")
++            or capture_result.get("capture_sha256") != capture.get("capture_sha256")
++            or capture_result.get("source_sha256") != capture.get("source_sha256")
++            or capture_result.get("capture_raw_sha256") != capture_raw_ref["sha256"]
++            or capture_result.get("row_count") != summary.get("row_count")
++            or not same_path(capture_manifest_ref, capture_result.get("capture_manifest_path"))):
++        raise ValueError("HK_PUBLICATION_CHAIN_CAPTURE_STAGE_MISMATCH")
++
++    membership = stage_values["MEMBERSHIP_PUBLICATION"].get("result")
++    publication_ref = one("HK_CONNECT_V2_PUBLICATION")
++    publication = _read_chain_artifact_json(
++        publication_ref, "HK_PUBLICATION_CHAIN_MEMBERSHIP_PUBLICATION_INVALID")
++    if (not isinstance(membership, dict) or membership.get("status") != "READY"
++            or membership.get("trade_date") != target
++            or membership.get("authority_run_id") != summary.get("membership_run_id")
++            or membership.get("authority_capture_run_id") != capture.get("capture_run_id")
++            or membership.get("authority_capture_sha256") != capture.get("capture_sha256")
++            or membership.get("capture_sha256") != capture.get("capture_sha256")
++            or publication.get("schema_version") != "v3_shared_data.hk_connect.authority.publication.v2"
++            or publication.get("status") != "READY"
++            or publication.get("target_date") != target
++            or publication.get("trade_date") != target
++            or publication.get("effective_date") != target
++            or publication.get("market") != "HK_CONNECT"
++            or publication.get("run_id") != membership.get("authority_run_id")
++            or publication.get("capture_run_id") != capture.get("capture_run_id")
++            or publication.get("capture_sha256") != capture.get("capture_sha256")
++            or not _valid_sha256(publication.get("artifact_sha256"))):
++        raise ValueError("HK_PUBLICATION_CHAIN_MEMBERSHIP_STAGE_MISMATCH")
++    publication_path = Path(publication_ref["path"]).resolve()
++    if len(publication_path.parents) < 5:
++        raise ValueError("HK_PUBLICATION_CHAIN_MEMBERSHIP_PUBLICATION_INVALID")
++    membership_root = publication_path.parents[4]
++    expected_publication_path = _resolve_chain_relative(
++        membership_root, membership.get("publication_relative"),
++        "HK_PUBLICATION_CHAIN_MEMBERSHIP_STAGE_MISMATCH")
++    if not same_path(publication_ref, expected_publication_path):
++        raise ValueError("HK_PUBLICATION_CHAIN_MEMBERSHIP_STAGE_MISMATCH")
++    membership_files = membership.get("written_files")
++    if not isinstance(membership_files, dict) or not membership_files:
++        raise ValueError("HK_PUBLICATION_CHAIN_MEMBERSHIP_STAGE_MISMATCH")
++    json_refs_by_path = {
++        str(Path(reference["path"]).resolve()): reference
++        for reference in by_role.get("HK_CONNECT_V2_JSON", [])
++    }
++    for relative, metadata in membership_files.items():
++        candidate = _resolve_chain_relative(
++            membership_root, relative, "HK_PUBLICATION_CHAIN_MEMBERSHIP_STAGE_MISMATCH")
++        artifact_ref = json_refs_by_path.get(str(candidate))
++        if (artifact_ref is None or not isinstance(metadata, dict)
++                or metadata.get("sha256") != artifact_ref.get("sha256")
++                or metadata.get("size_bytes") != artifact_ref.get("bytes")):
++            raise ValueError("HK_PUBLICATION_CHAIN_MEMBERSHIP_STAGE_MISMATCH")
++    if publication.get("manifest_relative") not in membership_files:
++        raise ValueError("HK_PUBLICATION_CHAIN_MEMBERSHIP_STAGE_MISMATCH")
++    publication_artifact = _resolve_chain_relative(
++        membership_root, publication.get("artifact_relative"),
++        "HK_PUBLICATION_CHAIN_MEMBERSHIP_PUBLICATION_INVALID")
++    main_universe_ref = json_refs_by_path.get(str(publication_artifact))
++    if (main_universe_ref is None
++            or publication.get("artifact_sha256") != main_universe_ref.get("sha256")):
++        raise ValueError("HK_PUBLICATION_CHAIN_MEMBERSHIP_PUBLICATION_INVALID")
++    universe = _read_chain_artifact_json(
++        main_universe_ref, "HK_PUBLICATION_CHAIN_MEMBERSHIP_ARTIFACT_INVALID")
++    if (universe.get("schema_version") != "v3_shared_data.stage_universe.capture.v2"
++            or universe.get("market") != "HK_CONNECT"
++            or universe.get("target_date") != target
++            or universe.get("trade_date") != target
++            or universe.get("effective_date") != target
++            or universe.get("capture_run_id") != capture.get("capture_run_id")
++            or universe.get("capture_sha256") != capture.get("capture_sha256")
++            or universe.get("source_sha256") != membership.get("source_sha256")
++            or universe.get("code_count") != summary.get("universe_count")):
++        raise ValueError("HK_PUBLICATION_CHAIN_MEMBERSHIP_ARTIFACT_INVALID")
++
++    panel_pointer_ref = one("HK_PANEL_LATEST_POINTER")
++    panel_manifest_ref = one("HK_PANEL_MANIFEST")
++    panel_ref = one("HK_PANEL_PARQUET")
++    panel_pointer = _read_chain_artifact_json(
++        panel_pointer_ref, "HK_PUBLICATION_CHAIN_PANEL_POINTER_INVALID")
++    panel_manifest = _read_chain_artifact_json(
++        panel_manifest_ref, "HK_PUBLICATION_CHAIN_PANEL_MANIFEST_INVALID")
++    panel_pointer_source = panel_pointer_ref.get("source_path") or panel_pointer_ref["path"]
++    panel_asset_root = Path(panel_pointer_source).resolve().parent
++    linked_panel_manifest = _resolve_chain_relative(
++        panel_asset_root, panel_pointer.get("manifest_relative"),
++        "HK_PUBLICATION_CHAIN_PANEL_POINTER_INVALID")
++    linked_panel = _resolve_chain_relative(
++        panel_asset_root, panel_manifest.get("panel_relative"),
++        "HK_PUBLICATION_CHAIN_PANEL_MANIFEST_INVALID")
++    panel_authority = stage_values["PANEL_AUTHORITY"].get("result")
++    binding = stage_values["PANEL_CAPTURE_BINDING"].get("result")
++    if (not same_path(panel_manifest_ref, linked_panel_manifest)
++            or not same_path(panel_ref, linked_panel)
++            or panel_manifest.get("asset_schema_version") != "v3_shared_data.hk_0_2_panel_asset.v2"
++            or panel_manifest.get("panel_max_date") != target
++            or panel_manifest.get("panel_sha256") != panel_ref.get("sha256")
++            or panel_manifest.get("through_date_code_count") != summary.get("universe_count")
++            or not isinstance(panel_authority, dict)
++            or panel_authority.get("panel_sha256") != panel_manifest.get("panel_sha256")
++            or panel_authority.get("manifest_relative") != panel_pointer.get("manifest_relative")
++            or panel_authority.get("through_date_code_count") != summary.get("universe_count")
++            or not isinstance(binding, dict)
++            or binding.get("capture_run_id") != capture.get("capture_run_id")
++            or binding.get("capture_sha256") != capture.get("capture_sha256")
++            or binding.get("panel_sha256") != panel_manifest.get("panel_sha256")
++            or binding.get("panel_capture_binding_sha256") != summary.get("panel_capture_binding_sha256")
++            or binding.get("code_count") != summary.get("universe_count")
++            or panel_manifest.get("panel_sha256") != summary.get("panel_sha256")):
++        raise ValueError("HK_PUBLICATION_CHAIN_PANEL_IDENTITY_INVALID")
++    pack = stage_values["PANEL_PACK"].get("result")
++    if (not isinstance(pack, dict) or pack.get("row_count") != summary.get("row_count")
++            or pack.get("coverage_rate") != summary.get("coverage_rate")):
++        raise ValueError("HK_PUBLICATION_CHAIN_PANEL_PACK_MISMATCH")
++
++    master_pointer_ref = one("HK_SECURITY_MASTER_LATEST_POINTER")
++    master_manifest_ref = one("HK_SECURITY_MASTER_MANIFEST")
++    master_artifact_ref = one("HK_SECURITY_MASTER_ARTIFACT")
++    master_receipt_ref = one("HK_SECURITY_MASTER_RECEIPT")
++    master_pointer = _read_chain_artifact_json(
++        master_pointer_ref, "HK_PUBLICATION_CHAIN_SECURITY_MASTER_POINTER_INVALID")
++    master_manifest = _read_chain_artifact_json(
++        master_manifest_ref, "HK_PUBLICATION_CHAIN_SECURITY_MASTER_MANIFEST_INVALID")
++    master_receipt = _read_chain_artifact_json(
++        master_receipt_ref, "HK_PUBLICATION_CHAIN_SECURITY_MASTER_RECEIPT_INVALID")
++    master_pointer_source = master_pointer_ref.get("source_path") or master_pointer_ref["path"]
++    master_root = Path(master_pointer_source).resolve().parent
++    entry = (master_pointer.get("entries") or {}).get(target)
++    if not isinstance(entry, dict):
++        raise ValueError("HK_PUBLICATION_CHAIN_SECURITY_MASTER_POINTER_INVALID")
++    linked_master_manifest = _resolve_chain_relative(
++        master_root, entry.get("manifest_relative"),
++        "HK_PUBLICATION_CHAIN_SECURITY_MASTER_POINTER_INVALID")
++    linked_master_receipt = _resolve_chain_relative(
++        master_root, entry.get("receipt_relative"),
++        "HK_PUBLICATION_CHAIN_SECURITY_MASTER_POINTER_INVALID")
++    linked_master_artifact = _resolve_chain_relative(
++        master_root, master_manifest.get("artifact_relative"),
++        "HK_PUBLICATION_CHAIN_SECURITY_MASTER_MANIFEST_INVALID")
++    master_stage = stage_values["SECURITY_MASTER_PUBLICATION"].get("result")
++    if (not same_path(master_manifest_ref, linked_master_manifest)
++            or not same_path(master_receipt_ref, linked_master_receipt)
++            or not same_path(master_artifact_ref, linked_master_artifact)
++            or entry.get("run_id") != summary.get("security_master_run_id")
++            or master_manifest.get("schema_version") != "v3_shared_data.hk_security_master_manifest.v1"
++            or master_manifest.get("trade_date") != target
++            or master_manifest.get("run_id") != entry.get("run_id")
++            or master_manifest.get("artifact_sha256") != master_artifact_ref.get("sha256")
++            or master_receipt.get("schema_version") != "v3_shared_data.hk_security_master_receipt.v1"
++            or master_receipt.get("status") != "READY"
++            or master_receipt.get("trade_date") != target
++            or master_receipt.get("run_id") != entry.get("run_id")
++            or master_receipt.get("artifact_sha256") != master_artifact_ref.get("sha256")
++            or master_receipt.get("manifest_sha256") != master_manifest_ref.get("sha256")
++            or not isinstance(master_stage, dict)
++            or master_stage.get("status") != "READY"
++            or master_stage.get("run_id") != entry.get("run_id")
++            or master_stage.get("row_count") != summary.get("row_count")
++            or master_stage.get("capture_run_id") != capture.get("capture_run_id")
++            or master_stage.get("capture_sha256") != capture.get("capture_sha256")
++            or master_stage.get("panel_sha256") != summary.get("panel_sha256")
++            or master_stage.get("panel_capture_binding_sha256") != summary.get("panel_capture_binding_sha256")
++            or master_stage.get("security_master_artifact_sha256") != master_artifact_ref.get("sha256")
++            or master_stage.get("security_master_manifest_sha256") != master_manifest_ref.get("sha256")
++            or master_manifest.get("row_count") != summary.get("row_count")
++            or master_artifact_ref.get("sha256") != summary.get("security_master_artifact_sha256")):
++        raise ValueError("HK_PUBLICATION_CHAIN_SECURITY_MASTER_IDENTITY_INVALID")
++
++    final = stage_values["FINAL_READBACK"].get("result")
++    if (not isinstance(final, dict) or final.get("publication_chain_status") != "READY"
++            or final.get("artifact_count") != len(artifact_refs)
++            or final.get("lane_summary") != summary):
++        raise ValueError("HK_PUBLICATION_CHAIN_FINAL_READBACK_MISMATCH")
++
++
++def read_verified_chain(_v4_scope, /, receipt_root, target_date, *, _pointer_override=None):
++    """Read the exact terminal pointer and each immutable successful stage."""
++    target = str(target_date)
++    root = Path(receipt_root).expanduser().resolve()
++    safe = _v4_global(_v4_scope, "SafeRoot")(root)
++    pointer_relative = f"hk_publication/{target}/latest.json"
++    if _pointer_override is None:
++        try:
++            pointer_raw = safe.read_bytes(pointer_relative, max_bytes=1024 * 1024)
++        except FileNotFoundError:
++            return None
++        pointer = json.loads(pointer_raw.decode("utf-8"))
++    else:
++        pointer = dict(_pointer_override)
++        pointer_raw = _canonical(pointer) + b"\n"
++    pointer_body = {key: value for key, value in pointer.items() if key != "sha256"}
++    if (pointer.get("schema_version") != CHAIN_SCHEMA or pointer.get("status") != "READY"
++            or pointer.get("target_date") != target
++            or not re.fullmatch(r"[0-9a-f]{32}", str(pointer.get("chain_id") or ""))
++            or pointer.get("sha256") != hashlib.sha256(_canonical(pointer_body)).hexdigest()
++            or any(pointer.get(key) is not False for key in
++                   ("production_allowed", "buy_gate_updated", "orders_sent"))):
++        raise ValueError("HK_PUBLICATION_CHAIN_POINTER_INVALID")
++    terminal_relative = pointer.get("terminal_relative")
++    if (not isinstance(terminal_relative, str) or terminal_relative.startswith("/")
++            or ".." in Path(terminal_relative).parts or "\\" in terminal_relative):
++        raise ValueError("HK_PUBLICATION_CHAIN_TERMINAL_PATH_INVALID")
++    if not terminal_relative.startswith(f"hk_publication/{target}/{pointer['chain_id']}/"):
++        raise ValueError("HK_PUBLICATION_CHAIN_TERMINAL_IDENTITY_INVALID")
++    terminal_raw = safe.read_bytes(terminal_relative, max_bytes=2 * 1024 * 1024)
++    terminal = json.loads(terminal_raw.decode("utf-8"))
++    if (hashlib.sha256(terminal_raw).hexdigest() != pointer.get("terminal_sha256")
++            or terminal.get("schema_version") != CHAIN_SCHEMA
++            or terminal.get("status") != "READY" or terminal.get("target_date") != target
++            or terminal.get("chain_id") != pointer.get("chain_id")
++            or not re.fullmatch(r"[0-9a-f]{32}", str(terminal.get("capture_run_id") or ""))
++            or terminal.get("sha256") != _seal(terminal)["sha256"]
++            or any(terminal.get(key) is not False for key in
++                   ("production_allowed", "buy_gate_updated", "orders_sent"))):
++        raise ValueError("HK_PUBLICATION_CHAIN_TERMINAL_INVALID")
++    stages = terminal.get("stages")
++    if not isinstance(stages, list) or len(stages) != len(CHAIN_REQUIRED_STAGES):
++        raise ValueError("HK_PUBLICATION_CHAIN_STAGES_INVALID")
++    stage_names = []
++    stage_values = {}
++    for reference in stages:
++        if not isinstance(reference, dict):
++            raise ValueError("HK_PUBLICATION_CHAIN_STAGE_REFERENCE_INVALID")
++        relative = reference.get("path")
++        if (not isinstance(relative, str) or relative.startswith("/")
++                or ".." in Path(relative).parts or "\\" in relative):
++            raise ValueError("HK_PUBLICATION_CHAIN_STAGE_PATH_INVALID")
++        raw = safe.read_bytes(relative, max_bytes=2 * 1024 * 1024)
++        stage = json.loads(raw.decode("utf-8"))
++        if (len(raw) != reference.get("bytes")
++                or hashlib.sha256(raw).hexdigest() != reference.get("sha256")
++                or stage.get("schema_version") != CHAIN_SCHEMA
++                or stage.get("target_date") != target
++                or stage.get("chain_id") != terminal.get("chain_id")
++                or stage.get("capture_run_id") != terminal.get("capture_run_id")
++                or stage.get("status") != "READY"
++                or stage.get("stage") != reference.get("stage")
++                or stage.get("sha256") != _seal(stage)["sha256"]
++                or any(stage.get(key) is not False for key in
++                       ("production_allowed", "buy_gate_updated", "orders_sent"))):
++            raise ValueError("HK_PUBLICATION_CHAIN_STAGE_READBACK_INVALID")
++        stage_names.append(stage.get("stage"))
++        stage_values[stage.get("stage")] = stage
++    if tuple(stage_names) != CHAIN_REQUIRED_STAGES:
++        raise ValueError("HK_PUBLICATION_CHAIN_STAGE_ORDER_INVALID")
++    artifacts = terminal.get("artifact_refs")
++    if not isinstance(artifacts, list) or not artifacts or len(artifacts) > 4096:
++        raise ValueError("HK_PUBLICATION_CHAIN_ARTIFACT_REFERENCES_INVALID")
++    total_artifact_bytes = 0
++    for reference in artifacts:
++        if not isinstance(reference, dict):
++            raise ValueError("HK_PUBLICATION_CHAIN_ARTIFACT_REFERENCE_INVALID")
++        path = Path(str(reference.get("path") or "")).expanduser()
++        if (not path.is_absolute() or not _safe_regular_file(path)
++                or isinstance(reference.get("bytes"), bool)
++                or not isinstance(reference.get("bytes"), int)
++                or path.stat().st_size != reference.get("bytes")):
++            raise ValueError("HK_PUBLICATION_CHAIN_ARTIFACT_MISSING")
++        total_artifact_bytes += reference["bytes"]
++        if reference["bytes"] > 256 * 1024 * 1024 or total_artifact_bytes > 1024 * 1024 * 1024:
++            raise ValueError("HK_PUBLICATION_CHAIN_ARTIFACT_BUDGET_EXCEEDED")
++        if _sha256_path(path) != reference.get("sha256"):
++            raise ValueError("HK_PUBLICATION_CHAIN_ARTIFACT_SHA_MISMATCH")
++    chain_root = (root / Path(terminal_relative).parent).resolve()
++    pointer_snapshots = {
++        "HK_PANEL_LATEST_POINTER": ("panel_latest.snapshot.json", "panel_latest.json", "hk_0_2"),
++        "HK_SECURITY_MASTER_LATEST_POINTER": (
++            "security_master_latest.snapshot.json", "latest.json", "hk_security_master"),
++    }
++    for reference in artifacts:
++        spec = pointer_snapshots.get(reference.get("role"))
++        if spec is None or "source_path" not in reference:
++            continue  # Legacy, direct-path pointer refs remain readable until their bytes move.
++        snapshot_name, source_name, source_root_name = spec
++        path = Path(reference["path"]).resolve()
++        expected_snapshot = (chain_root / "snapshots" / snapshot_name).resolve()
++        source_path = Path(str(reference.get("source_path") or ""))
++        if (path != expected_snapshot or not source_path.is_absolute()
++                or source_path.name != source_name
++                or source_path.parent.name != source_root_name
++                or reference.get("snapshot_kind") != "IMMUTABLE_POINTER_BYTES"
++                or reference.get("source_sha256") != reference.get("sha256")
++                or reference.get("source_bytes") != reference.get("bytes")):
++            raise ValueError("HK_PUBLICATION_CHAIN_POINTER_SNAPSHOT_INVALID")
++    summary = terminal.get("lane_summary")
++    if (not isinstance(summary, dict) or summary.get("status") != "READY"
++            or summary.get("target_date") != target or summary.get("row_count", 0) < 1
++            or summary.get("coverage_rate", 0) <= 0):
++        raise ValueError("HK_PUBLICATION_CHAIN_LANE_SUMMARY_INVALID")
++    _verify_chain_artifact_contract(target, terminal, stage_values, artifacts, summary)
++    return {"terminal": terminal, "terminal_sha256": hashlib.sha256(terminal_raw).hexdigest(),
++            "terminal_relative": terminal_relative, "pointer": pointer, "lane_summary": summary}
++
++
++def _read_exact_capture(_v4_scope, /, target, receipt_root, ensure_module):
++    root = Path(receipt_root).expanduser().resolve()
++    directory = root / "hk_capture" / target
++    if not directory.exists():
++        return None
++    if not _safe_directory(directory):
++        raise ValueError("HK_CAPTURE_DIRECTORY_UNSAFE")
++    manifests = sorted(directory.glob("*.json"), key=lambda path: path.stat().st_mtime_ns, reverse=True)
++    if len(manifests) > 2048:
++        raise ValueError("HK_CAPTURE_MANIFEST_BOUND_EXCEEDED")
++    valid = []
++    for path in manifests:
++        if not _safe_regular_file(path):
++            raise ValueError("HK_CAPTURE_MANIFEST_UNSAFE")
++        try:
++            raw_manifest = path.read_bytes()
++            envelope = json.loads(raw_manifest.decode("utf-8-sig"))
++        except (OSError, UnicodeError, json.JSONDecodeError) as error:
++            raise ValueError("HK_CAPTURE_MANIFEST_UNREADABLE") from error
++        if not isinstance(envelope, dict) or envelope.get("schema_version") != "v3.macos.research_panel_hk_capture_manifest.v1":
++            continue
++        if envelope.get("target_date") != target:
++            continue
++        if envelope.get("status") not in {"READY", "PENDING"}:
++            continue
++        capture = envelope.get("capture")
++        relative = envelope.get("capture_relative_path") or envelope.get("capture_path")
++        if (not isinstance(capture, dict) or not isinstance(relative, str)
++                or Path(relative).is_absolute() or ".." in Path(relative).parts):
++            raise ValueError("HK_CAPTURE_MANIFEST_CONTRACT_INVALID")
++        raw_path = path.parent / relative
++        if not _safe_regular_file(raw_path):
++            raise ValueError("HK_CAPTURE_RAW_MISSING")
++        try:
++            raw_path.resolve().relative_to(directory.resolve())
++        except ValueError as error:
++            raise ValueError("HK_CAPTURE_RAW_PATH_ESCAPE") from error
++        raw_capture = raw_path.read_bytes()
++        if (json.loads(raw_capture.decode("utf-8-sig")) != capture
++                or hashlib.sha256(raw_capture).hexdigest() != envelope.get("capture_raw_sha256")
++                or capture.get("capture_sha256") != envelope.get("capture_sha256")
++                or capture.get("capture_run_id") != envelope.get("capture_run_id")
++                or capture.get("quote_status") != envelope.get("quote_status")
++                or capture.get("membership_status") != "READY"
++                or capture.get("status") != "READY"
++                or capture.get("quote_status") not in {"READY", "FAILED"}):
++            raise ValueError("HK_CAPTURE_RAW_IDENTITY_INVALID")
++        ensure_module._validated_capture(capture, trade_date=target, panel_sha256=None)
++        _validate_capture_response_date(capture, target)
++        source = capture.get("source_payload")
++        if not isinstance(source, dict):
++            raise ValueError("HK_CAPTURE_SOURCE_PAYLOAD_INVALID")
++        rows = capture.get("rows")
++        collected = {
++            "status": "READY" if capture.get("quote_status") == "READY" else "PARTIAL",
++            "target_date": target, "rows": rows,
++            "universe_count": len(capture["codes"]), "row_count": len(rows),
++            "coverage_rate": len(rows) / max(len(capture["codes"]), 1),
++            "positive_volume_coverage_rate": source.get("positive_volume_coverage_rate"),
++            "positive_turnover_coverage_rate": source.get("positive_turnover_coverage_rate"),
++            "excluded_count": source.get("excluded_count"),
++            "excluded_codes": list(source.get("excluded_codes") or [])[:_v4_global(_v4_scope, "MAX_EXCLUDED_EVIDENCE")],
++            "excluded_reasons": source.get("excluded_reasons"),
++            "source_sha256": capture.get("source_sha256"), "sha256": capture.get("source_sha256"),
++            "capture_manifest_path": str(path), "capture_raw_path": str(raw_path),
++            "capture_raw_sha256": hashlib.sha256(raw_capture).hexdigest(),
++        }
++        valid.append((path.stat().st_mtime_ns, capture, collected, path, raw_path, raw_capture))
++    if not valid:
++        return None
++    _mtime, capture, collected, path, raw_path, raw_capture = max(valid, key=lambda value: value[0])
++    return {"capture": capture, "collected": collected, "manifest_path": path,
++            "raw_path": raw_path, "raw_bytes": raw_capture}
++
++
++def _safe_failure_code(error):
++    text = str(error)
++    if re.fullmatch(r"HK_[A-Z0-9_]{1,120}", text):
++        return text
++    return "HK_OWNER_FAILED_" + type(error).__name__.upper()[:64]
++
++
++def _validate_capture_response_date(capture, target):
++    responses = capture.get("plate_responses") if isinstance(capture, dict) else None
++    if not isinstance(responses, dict) or not responses:
++        raise ValueError("HK_CAPTURE_PLATE_RESPONSES_MISSING")
++    for response in responses.values():
++        if not isinstance(response, dict):
++            raise ValueError("HK_CAPTURE_PLATE_RESPONSE_INVALID")
++        try:
++            requested = datetime.fromisoformat(str(response.get("requested_at") or "").replace("Z", "+00:00"))
++            completed = datetime.fromisoformat(str(response.get("completed_at") or "").replace("Z", "+00:00"))
++        except (TypeError, ValueError) as error:
++            raise ValueError("HK_CAPTURE_RESPONSE_TIME_INVALID") from error
++        if (requested.tzinfo is None or completed.tzinfo is None
++                or completed.astimezone(ZoneInfo("Asia/Shanghai")).strftime("%Y%m%d") != target
++                or completed.astimezone(timezone.utc) < requested.astimezone(timezone.utc)):
++            raise ValueError("HK_CAPTURE_ACQUISITION_DATE_MISMATCH")
++
++
++def _compact_membership(value):
++    authority = value.get("universe_authority") if isinstance(value, dict) else None
++    if not isinstance(authority, dict):
++        return {"status": "CANNOT_CONFIRM"}
++    files = authority.get("written_files")
++    return {
++        "status": value.get("status"), "trade_date": value.get("trade_date"),
++        "row_count": value.get("row_count"), "capture_sha256": value.get("capture_sha256"),
++        "source_sha256": value.get("source_sha256"),
++        "authority_run_id": authority.get("run_id"),
++        "authority_capture_run_id": authority.get("capture_run_id"),
++        "authority_capture_sha256": authority.get("capture_sha256"),
++        "publication_relative": authority.get("publication_relative"),
++        "written_files": files if isinstance(files, dict) else {},
++    }
++
++
++def _write_sealed(safe, relative, value, *, require_absent=True):
++    sealed = _seal(value)
++    encoded = _canonical(sealed) + b"\n"
++    safe.write_bytes(relative, encoded, require_absent=require_absent)
++    raw = safe.read_bytes(relative, max_bytes=4 * 1024 * 1024)
++    if raw != encoded:
++        raise ValueError("HK_PUBLICATION_RECEIPT_READBACK_MISMATCH")
++    return {"path": relative, "sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw)}
++
++
++def _artifact_refs(_v4_scope, target, args, store_root, result, capture, *,
++                   receipt_root, chain_id):
++    refs = []
++    seen = set()
++
++    def add(path, role, expected_sha256=None, expected_bytes=None):
++        ref = _file_ref(Path(path), role=role, expected_sha256=expected_sha256,
++                        expected_bytes=expected_bytes)
++        if ref["path"] not in seen:
++            refs.append(ref)
++            seen.add(ref["path"])
++
++    def add_pointer_snapshot(path, role, filename):
++        source = Path(path).expanduser().resolve()
++        if not _safe_regular_file(source):
++            raise ValueError("HK_PUBLICATION_POINTER_SOURCE_UNSAFE")
++        raw = source.read_bytes()
++        try:
++            pointer = json.loads(raw.decode("utf-8-sig"))
++        except (UnicodeError, json.JSONDecodeError) as error:
++            raise ValueError("HK_PUBLICATION_POINTER_SOURCE_INVALID") from error
++        if not isinstance(pointer, dict):
++            raise ValueError("HK_PUBLICATION_POINTER_SOURCE_INVALID")
++        relative = f"hk_publication/{target}/{chain_id}/snapshots/{filename}"
++        safe = _v4_global(_v4_scope, "SafeRoot")(receipt_root)
++        safe.ensure_directory(f"hk_publication/{target}/{chain_id}/snapshots")
++        safe.write_bytes(relative, raw, require_absent=True)
++        snapshot = Path(receipt_root).expanduser().resolve() / relative
++        ref = _file_ref(snapshot, role=role)
++        source_sha = hashlib.sha256(raw).hexdigest()
++        ref.update(source_path=str(source), source_sha256=source_sha,
++            source_bytes=len(raw), snapshot_kind="IMMUTABLE_POINTER_BYTES")
++        if source_sha != ref["sha256"] or len(raw) != ref["bytes"]:
++            raise ValueError("HK_PUBLICATION_POINTER_SNAPSHOT_READBACK_MISMATCH")
++        refs.append(ref)
++        seen.add(ref["path"])
++        return ref
++
++    manifest_path = result.get("capture_manifest_path")
++    raw_path = result.get("capture_raw_path")
++    if capture is not None and isinstance(manifest_path, str) and isinstance(raw_path, str):
++        add(manifest_path, "HK_SDK_CAPTURE_MANIFEST")
++        add(raw_path, "HK_SDK_CAPTURE_RAW", expected_sha256=result.get("capture_raw_sha256"))
++
++    membership = result.get("membership")
++    authority_v2 = membership.get("universe_authority") if isinstance(membership, dict) else None
++    if isinstance(authority_v2, dict):
++        root = Path(store_root).expanduser().resolve()
++        written = authority_v2.get("written_files")
++        if not isinstance(written, dict) or not written:
++            raise ValueError("HK_MEMBERSHIP_PUBLICATION_REFERENCES_MISSING")
++        for relative, metadata in sorted(written.items()):
++            if not isinstance(metadata, dict):
++                raise ValueError("HK_MEMBERSHIP_PUBLICATION_REFERENCE_INVALID")
++            candidate = (root / str(relative)).resolve()
++            try:
++                candidate.relative_to(root)
++            except ValueError as error:
++                raise ValueError("HK_MEMBERSHIP_PUBLICATION_PATH_INVALID") from error
++            add(candidate, "HK_CONNECT_V2_" + Path(str(relative)).suffix.lstrip(".").upper(),
++                expected_sha256=metadata.get("sha256"), expected_bytes=metadata.get("size_bytes"))
++        publication_rel = authority_v2.get("publication_relative")
++        if not isinstance(publication_rel, str):
++            raise ValueError("HK_MEMBERSHIP_PUBLICATION_RECEIPT_MISSING")
++        add(root / publication_rel, "HK_CONNECT_V2_PUBLICATION")
++
++    panel_authority = result.get("authority")
++    asset_root = Path(args.hk_asset_root).expanduser().resolve()
++    if not isinstance(panel_authority, dict) or not isinstance(panel_authority.get("manifest_relative"), str):
++        raise ValueError("HK_PANEL_AUTHORITY_REFERENCE_MISSING")
++    panel_manifest_path = (asset_root / panel_authority["manifest_relative"]).resolve()
++    panel_manifest_path.relative_to(asset_root)
++    panel_manifest = json.loads(panel_manifest_path.read_text(encoding="utf-8"))
++    panel_relative = panel_manifest.get("panel_relative")
++    if not isinstance(panel_relative, str):
++        raise ValueError("HK_PANEL_ARTIFACT_REFERENCE_MISSING")
++    panel_path = (asset_root / panel_relative).resolve()
++    panel_path.relative_to(asset_root)
++    add_pointer_snapshot(asset_root / "panel_latest.json", "HK_PANEL_LATEST_POINTER",
++        "panel_latest.snapshot.json")
++    add(panel_manifest_path, "HK_PANEL_MANIFEST")
++    add(panel_path, "HK_PANEL_PARQUET", expected_sha256=panel_authority.get("panel_sha256"))
++
++    master = result.get("security_master")
++    if not isinstance(master, dict):
++        raise ValueError("HK_SECURITY_MASTER_REFERENCE_MISSING")
++    master_root = Path(store_root).expanduser().resolve() / "assets" / "hk_security_master"
++    latest_path = master_root / "latest.json"
++    latest = json.loads(latest_path.read_text(encoding="utf-8"))
++    entry = latest.get("entries", {}).get(target)
++    if not isinstance(entry, dict):
++        raise ValueError("HK_SECURITY_MASTER_LATEST_ENTRY_MISSING")
++    master_manifest_path = (master_root / entry["manifest_relative"]).resolve()
++    master_manifest_path.relative_to(master_root.resolve())
++    master_manifest = json.loads(master_manifest_path.read_text(encoding="utf-8"))
++    add_pointer_snapshot(latest_path, "HK_SECURITY_MASTER_LATEST_POINTER",
++        "security_master_latest.snapshot.json")
++    add(master_manifest_path, "HK_SECURITY_MASTER_MANIFEST",
++        expected_sha256=master.get("security_master_manifest_sha256"))
++    add(master_root / master_manifest["artifact_relative"], "HK_SECURITY_MASTER_ARTIFACT",
++        expected_sha256=master.get("security_master_artifact_sha256"))
++    receipt_relative = entry.get("receipt_relative")
++    if not isinstance(receipt_relative, str):
++        raise ValueError("HK_SECURITY_MASTER_RECEIPT_MISSING")
++    add(master_root / receipt_relative, "HK_SECURITY_MASTER_RECEIPT")
++    return refs
++
++
++def _run_daily_supplement(_v4_scope, *, args, authority_paths, target, python_executable):
++    updater = Path(authority_paths["--hk-updater-script"]).expanduser().resolve()
++    package_root = updater.parents[1]
++    original_owner = package_root / "shared_data" / "hk_daily_supplement.py"
++    if not original_owner.is_file():
++        return {"status": "CANNOT_CONFIRM", "target_date": target,
++                "reason_code": "HK_DAILY_SUPPLEMENT_OWNER_UNAVAILABLE"}
++    argv = [str(python_executable), str(updater), "--asset-root",
++        str(Path(args.hk_asset_root).expanduser().resolve()), "--tdx-root",
++        str(Path(args.hk_tdx_root).expanduser().resolve()), "--through-date", target,
++        "--daily-supplement"]
++    try:
++        completed = _v4_global(_v4_scope, "subprocess").run(argv, shell=False,
++            check=False, capture_output=True, text=True, timeout=180)
++        lines = str(completed.stdout or "").splitlines()
++        payload = json.loads(lines[-1]) if lines else {}
++    except Exception as error:
++        return {"status": "FAILED", "target_date": target,
++                "reason_code": _safe_failure_code(error)}
++    if not isinstance(payload, dict):
++        return {"status": "CANNOT_CONFIRM", "target_date": target,
++                "reason_code": "HK_DAILY_SUPPLEMENT_RESULT_INVALID"}
++    return {key: payload.get(key) for key in (
++        "status", "target_date", "through_date", "run_id", "manifest_relative",
++        "manifest_sha256", "raw_capture_sha256", "code_count", "record_status_counts",
++        "published_at", "reused", "volume_unit_status", "price_basis", "error",
++    ) if key in payload} | {"exit_code": int(completed.returncode),
++        "owner_path": str(original_owner)}
++
++
++def _run_hk_capture_gate_body(
+     _v4_scope,
+     /,
+     *,
+@@ -12,13 +729,15 @@
+     args,
+     authority_paths,
+     python_executable,
++    capture_run_id,
++    stage_start,
++    stage_finish,
++    capture_override=None,
++    collected_override=None,
+ ):
+     """Run the existing HK owner chain against one immutable Futu capture."""
+     target = target_date
+-    capture_manifest_path = args.receipt_root / "hk_capture" / target / (
+-        f"{target}-{_v4_global(_v4_scope, 'os').getpid()}-"
+-        f"{_v4_global(_v4_scope, 'os').urandom(12).hex()}.json"
+-    )
++    capture_manifest_path = args.receipt_root / "hk_capture" / target / f"{capture_run_id}.json"
+     env = _v4_global(_v4_scope, 'os').environ
+     ensure_module = _v4_global(_v4_scope, 'importlib').import_module(
+         "ops.ensure_hk_security_master"
+@@ -31,42 +750,56 @@
+     membership_result = {}
+ 
+     def publish_membership(capture):
+-        membership_result.update(ensure_module.ensure_hk_security_master(
+-            store_root=store_root,
+-            universe_root=store_root,
+-            shared_package_root=package_root,
+-            trade_date=target,
+-            futu_python=python_executable,
+-            capture=capture,
+-            membership_only=True,
+-        ))
+-
+-    previous_capture_path = env.get("V35_HK_CAPTURE_PATH")
+-    previous_capture_run_id = env.get("V35_HK_CAPTURE_RUN_ID")
+-    env["V35_HK_CAPTURE_PATH"] = str(capture_manifest_path)
+-    env["V35_HK_CAPTURE_RUN_ID"] = capture_manifest_path.stem
+-    try:
+-        collector = _v4_global(_v4_scope, 'importlib').import_module(
+-            "ops._macos_research_panel_daily_parts.hk_market_capture"
+-        )
+-        collected = collector._collect_hk_futu_rows_body(
+-            _v4_scope,
+-            target,
+-            context_factory=None,
+-            batch_size=200,
+-            minimum_universe_count=600,
+-            required_coverage_ratio=0.0,
+-            membership_ready_callback=publish_membership,
+-        )
+-    finally:
+-        if previous_capture_path is None:
+-            env.pop("V35_HK_CAPTURE_PATH", None)
+-        else:
+-            env["V35_HK_CAPTURE_PATH"] = previous_capture_path
+-        if previous_capture_run_id is None:
+-            env.pop("V35_HK_CAPTURE_RUN_ID", None)
+-        else:
+-            env["V35_HK_CAPTURE_RUN_ID"] = previous_capture_run_id
++        stage_start("MEMBERSHIP_PUBLICATION")
++        try:
++            membership_result.update(ensure_module.ensure_hk_security_master(
++                store_root=store_root,
++                universe_root=store_root,
++                shared_package_root=package_root,
++                trade_date=target,
++                futu_python=python_executable,
++                capture=capture,
++                membership_only=True,
++            ))
++        except Exception as error:
++            stage_finish("MEMBERSHIP_PUBLICATION", "FAILED",
++                failure_code=_safe_failure_code(error), error_type=type(error).__name__)
++            raise
++        stage_finish("MEMBERSHIP_PUBLICATION", "READY", result=_compact_membership(membership_result))
++
++    if capture_override is not None:
++        capture = dict(capture_override)
++        collected = dict(collected_override or {})
++        _v4_scope["_LAST_HK_CAPTURE"] = capture
++        publish_membership(capture)
++    else:
++        previous_capture_path = env.get("V35_HK_CAPTURE_PATH")
++        previous_capture_run_id = env.get("V35_HK_CAPTURE_RUN_ID")
++        env["V35_HK_CAPTURE_PATH"] = str(capture_manifest_path)
++        env["V35_HK_CAPTURE_RUN_ID"] = capture_manifest_path.stem
++        try:
++            collector = _v4_global(_v4_scope, 'importlib').import_module(
++                "ops._macos_research_panel_daily_parts.hk_market_capture"
++            )
++            collected = collector._collect_hk_futu_rows_body(
++                _v4_scope,
++                target,
++                context_factory=None,
++                batch_size=200,
++                minimum_universe_count=600,
++                required_coverage_ratio=0.0,
++                membership_ready_callback=publish_membership,
++            )
++            capture = _v4_scope.get("_LAST_HK_CAPTURE")
++        finally:
++            if previous_capture_path is None:
++                env.pop("V35_HK_CAPTURE_PATH", None)
++            else:
++                env["V35_HK_CAPTURE_PATH"] = previous_capture_path
++            if previous_capture_run_id is None:
++                env.pop("V35_HK_CAPTURE_RUN_ID", None)
++            else:
++                env["V35_HK_CAPTURE_RUN_ID"] = previous_capture_run_id
+ 
+     reported_capture_path = (
+         collected.get("capture_manifest_path")
+@@ -135,8 +868,9 @@
+             raw_candidate == candidate
+             and envelope_data.get("schema_version")
+             == "v3.macos.research_panel_hk_capture_manifest.v1"
+-            and envelope_data.get("status") == "READY"
++            and envelope_data.get("status") in {"READY", "PENDING"}
+             and envelope_data.get("target_date") == target
++            and envelope_data.get("quote_status") == candidate.get("quote_status")
+             and envelope_data.get("capture_raw_sha256") == raw_sha256
+             and envelope_data.get("capture_sha256") == candidate.get("capture_sha256")
+             and envelope_data.get("codes") == candidate.get("codes")
+@@ -176,6 +910,7 @@
+         )
+ 
+     ensure_module._validated_capture(capture, trade_date=target, panel_sha256=None)
++    _validate_capture_response_date(capture, target)
+     source_payload = capture["source_payload"]
+     expected_panel_codes = set(capture["codes"]) - set(source_payload["excluded_codes"])
+     if (
+@@ -187,6 +922,22 @@
+         raise _v4_global(_v4_scope, 'SnapshotGateError')(
+             "HK snapshot coverage mismatch: collector rows differ from capture manifest"
+         )
++    if capture.get("quote_status") != "READY" or collected.get("status") != "READY":
++        stage_finish("CAPTURE", "FAILED", failure_code="HK_CAPTURE_QUOTE_INCOMPLETE",
++            capture_run_id=capture.get("capture_run_id"),
++            capture_sha256=capture.get("capture_sha256"),
++            source_sha256=capture.get("source_sha256"))
++        raise _v4_global(_v4_scope, 'SnapshotGateError')("HK_CAPTURE_QUOTE_INCOMPLETE")
++    stage_finish("CAPTURE", "READY", result={
++        "capture_run_id": capture.get("capture_run_id"),
++        "capture_sha256": capture.get("capture_sha256"),
++        "source_sha256": capture.get("source_sha256"),
++        "row_count": collected.get("row_count"),
++        "capture_manifest_path": str(capture_manifest_path),
++        "capture_raw_sha256": collected.get("capture_raw_sha256"),
++        "reused_exact_capture": capture_override is not None,
++    })
++    stage_start("PANEL_PACK")
+     packed = _v4_global(_v4_scope, 'pack_hk_day')(
+         args.hk_tdx_root,
+         capture["rows"],
+@@ -231,6 +982,12 @@
+             "HK packed panel code set mismatch: "
+             f"actual={len(actual_day_names)},expected={len(expected_day_names)}"
+         )
++    stage_finish("PANEL_PACK", "READY", result={
++        "row_count": packed.get("row_count"), "coverage_rate": packed.get("coverage_rate"),
++        "files": [{"path": str(item.get("path")), "sha256": item.get("sha256"),
++                   "size_bytes": item.get("size_bytes")} for item in packed_files],
++        "already_current": packed.get("already_current"),
++    })
+ 
+     stale_files = []
+     orphan_files = []
+@@ -251,6 +1008,7 @@
+         )
+         bucket.append(entry)
+ 
++    stage_start("PANEL_AUTHORITY")
+     authority = _v4_global(_v4_scope, 'run_hk_0_2_authority')(
+         authority_paths["--hk-updater-script"],
+         python_executable,
+@@ -312,9 +1070,24 @@
+         raise _v4_global(_v4_scope, 'SnapshotGateError')(
+             f"HK panel code set mismatch: actual={len(panel_codes)},expected={len(expected_panel_codes)}"
+         )
++    stage_finish("PANEL_AUTHORITY", "READY", result={
++        "panel_sha256": panel_sha256, "manifest_relative": authority.get("manifest_relative"),
++        "through_date_code_count": authority.get("through_date_code_count"),
++        "target_code_count": len(panel_codes),
++        "already_current": authority.get("already_current"),
++    })
++    stage_start("PANEL_CAPTURE_BINDING")
+     panel_binding_sha256 = ensure_module._panel_capture_binding_sha256(
+         capture, panel_sha256
+     )
++    stage_finish("PANEL_CAPTURE_BINDING", "READY", result={
++        "capture_run_id": capture.get("capture_run_id"),
++        "capture_sha256": capture.get("capture_sha256"),
++        "panel_sha256": panel_sha256,
++        "panel_capture_binding_sha256": panel_binding_sha256,
++        "code_count": len(expected_panel_codes),
++    })
++    stage_start("SECURITY_MASTER_PUBLICATION")
+     security_master = ensure_module.ensure_hk_security_master(
+         store_root=store_root,
+         universe_root=store_root,
+@@ -329,14 +1102,316 @@
+         raise _v4_global(_v4_scope, 'SnapshotGateError')(
+             "HK panel capture binding SHA mismatch"
+         )
++    stage_finish("SECURITY_MASTER_PUBLICATION", "READY", result={
++        "status": security_master.get("status"),
++        "run_id": security_master.get("run_id"),
++        "row_count": security_master.get("row_count"),
++        "capture_run_id": capture.get("capture_run_id"),
++        "capture_sha256": capture.get("capture_sha256"),
++        "panel_sha256": security_master.get("panel_sha256"),
++        "panel_capture_binding_sha256": security_master.get("panel_capture_binding_sha256"),
++        "security_master_artifact_sha256": security_master.get("security_master_artifact_sha256"),
++        "security_master_manifest_sha256": security_master.get("security_master_manifest_sha256"),
++    })
+     return {
+         **collected,
+         **packed,
+         "authority": authority,
++        "membership": membership_result,
+         "security_master": security_master,
++        "capture_manifest_path": str(capture_manifest_path),
++        "capture_raw_path": str(capture_manifest_path.with_name(f"{capture_manifest_path.stem}.capture.json")),
+         "panel_capture_binding_sha256": panel_binding_sha256,
+         "source_sha256": collected["source_sha256"],
+         "persistent_stale_files": stale_files,
+         "persistent_orphan_files": orphan_files,
+         "persistent_out_of_scope_count": len(stale_files) + len(orphan_files),
+     }
++
++
++def _today_shanghai():
++    return datetime.now(ZoneInfo("Asia/Shanghai")).strftime("%Y%m%d")
++
++
++def run_hk_capture_gate(_v4_scope, /, *, target_date, args, authority_paths,
++                        python_executable):
++    """Run the actual HK child through the original capture and publication owners.
++
++    A dated, fully verified immutable chain is the only cache hit. A fresh live
++    Futu membership capture is admitted only for today's Shanghai source date;
++    a prior date can resume only from its own exact immutable capture.
++    """
++    target = _v4_global(_v4_scope, "_date")(target_date)
++    receipt_root = Path(args.receipt_root).expanduser().resolve()
++    SafeRoot = _v4_global(_v4_scope, "SafeRoot")
++    safe = SafeRoot(receipt_root)
++
++    try:
++        cached = read_verified_chain(_v4_scope, receipt_root, target)
++    except (OSError, TypeError, ValueError, UnicodeError, json.JSONDecodeError):
++        # A corrupt latest chain is authoritative evidence of uncertainty. Do
++        # not turn it into a cache miss and overwrite it with another run.
++        return {"status": "CANNOT_CONFIRM", "target_date": target,
++            "failed_stage": "FINAL_READBACK",
++            "failure_reasons": ["HK_PUBLICATION_CHAIN_POINTER_INVALID"],
++            "row_count": 0, "coverage_rate": 0.0, "sha256": "",
++            "runner_called": True, **_v4_global(_v4_scope, "SAFETY_FLAGS")}
++    if cached is not None:
++        terminal = cached["terminal"]
++        summary = dict(cached["lane_summary"])
++        return {
++            **summary, "status": "READY", "target_date": target,
++            "row_count": summary["row_count"], "coverage_rate": summary["coverage_rate"],
++            "sha256": summary["sha256"], "source_sha256": summary["source_sha256"],
++            "publication_chain": {
++                "chain_id": terminal["chain_id"],
++                "terminal_relative": cached["terminal_relative"],
++                "terminal_sha256": cached["terminal_sha256"],
++                "status": "VERIFIED",
++            },
++            "daily_supplement": terminal.get("daily_supplement"),
++            "cache_hit": True, "runner_called": True,
++            **_v4_global(_v4_scope, "SAFETY_FLAGS"),
++        }
++
++    ensure_module = _v4_global(_v4_scope, "importlib").import_module(
++        "ops.ensure_hk_security_master")
++    exact = None
++    capture_error = None
++    try:
++        exact = _read_exact_capture(_v4_scope, target, receipt_root, ensure_module)
++    except (OSError, TypeError, ValueError, UnicodeError, json.JSONDecodeError) as error:
++        capture_error = error
++    today = _today_shanghai()
++    if exact is not None and target == today and exact["capture"].get("quote_status") != "READY":
++        # The old membership is retained as evidence, but today's next legal
++        # slot may retry a failed quote capture with a new immutable run.
++        exact = None
++
++    chain_id = uuid4().hex
++    capture_run_id = (exact["capture"].get("capture_run_id") if exact is not None
++                      else uuid4().hex)
++    base = f"hk_publication/{target}/{chain_id}"
++    date_root = f"hk_publication/{target}"
++    safe.ensure_directory(base)
++    now = datetime.now(timezone.utc).isoformat(timespec="microseconds")
++    start_value = _seal({
++        "schema_version": CHAIN_SCHEMA, "status": "IN_PROGRESS",
++        "target_date": target, "chain_id": chain_id,
++        "capture_run_id": capture_run_id, "started_at": now,
++        **_v4_global(_v4_scope, "SAFETY_FLAGS"),
++    })
++    _write_sealed(safe, f"{base}/started.json", start_value)
++    active = {}
++    stage_refs = {}
++    failed_stage_state = []
++
++    def stage_start(stage):
++        if stage not in CHAIN_REQUIRED_STAGES or stage in active or stage in stage_refs:
++            raise ValueError("HK_PUBLICATION_STAGE_ORDER_INVALID")
++        started_at = datetime.now(timezone.utc).isoformat(timespec="microseconds")
++        slug = stage.lower()
++        relative = f"{base}/{slug}.started.json"
++        ref = _write_sealed(safe, relative, {
++            "schema_version": CHAIN_SCHEMA, "target_date": target,
++            "chain_id": chain_id, "capture_run_id": capture_run_id,
++            "stage": stage, "status": "IN_PROGRESS", "started_at": started_at,
++            **_v4_global(_v4_scope, "SAFETY_FLAGS"),
++        })
++        active[stage] = {"started_at": started_at, "started_ref": ref}
++
++    def stage_finish(stage, status, **details):
++        row = active.pop(stage, None)
++        if row is None or status not in {"READY", "FAILED"}:
++            raise ValueError("HK_PUBLICATION_STAGE_TERMINAL_INVALID")
++        finished_at = datetime.now(timezone.utc).isoformat(timespec="microseconds")
++        slug = stage.lower()
++        relative = f"{base}/{slug}.json"
++        value = {
++            "schema_version": CHAIN_SCHEMA, "target_date": target,
++            "chain_id": chain_id, "capture_run_id": capture_run_id,
++            "stage": stage, "status": status,
++            "started_at": row["started_at"], "finished_at": finished_at,
++            **details, **_v4_global(_v4_scope, "SAFETY_FLAGS"),
++        }
++        ref = _write_sealed(safe, relative, value)
++        stage_refs[stage] = {**ref, "stage": stage}
++        if status == "FAILED":
++            failed_stage_state.append(stage)
++        return value
++
++    def write_latest_attempt(status, terminal_ref, *, failure_code=None, failed_stage=None):
++        safe.ensure_directory(date_root)
++        pointer = {
++            "schema_version": CHAIN_SCHEMA, "status": status,
++            "target_date": target, "chain_id": chain_id,
++            "capture_run_id": capture_run_id,
++            "terminal_relative": terminal_ref["path"],
++            "terminal_sha256": terminal_ref["sha256"],
++            "terminal_bytes": terminal_ref["bytes"],
++            "failed_stage": failed_stage, "failure_code": failure_code,
++            "updated_at": datetime.now(timezone.utc).isoformat(timespec="microseconds"),
++            **_v4_global(_v4_scope, "SAFETY_FLAGS"),
++        }
++        _write_sealed(safe, f"{date_root}/latest_attempt.json", pointer,
++                      require_absent=False)
++        return pointer
++
++    unpublished_ready_ref = None
++
++    def write_terminal(status, *, lane_summary=None, artifact_refs=None,
++                       daily_supplement=None, failure_code=None, failed_stage=None):
++        nonlocal unpublished_ready_ref
++        finished_at = datetime.now(timezone.utc).isoformat(timespec="microseconds")
++        ordered_stages = [stage_refs[name] for name in CHAIN_REQUIRED_STAGES
++                          if name in stage_refs]
++        terminal = _seal({
++            "schema_version": CHAIN_SCHEMA, "status": status,
++            "target_date": target, "chain_id": chain_id,
++            "capture_run_id": capture_run_id, "started_at": now,
++            "finished_at": finished_at, "stages": ordered_stages,
++            "artifact_refs": list(artifact_refs or []),
++            "lane_summary": lane_summary,
++            "daily_supplement": daily_supplement,
++            "failure_code": failure_code, "failed_stage": failed_stage,
++            **_v4_global(_v4_scope, "SAFETY_FLAGS"),
++        })
++        relative = f"{base}/terminal.json"
++        terminal_ref = _write_sealed(safe, relative, terminal)
++        if status == "READY":
++            pointer = {
++                "schema_version": CHAIN_SCHEMA, "status": "READY",
++                "target_date": target, "chain_id": chain_id,
++                "terminal_relative": relative,
++                "terminal_sha256": terminal_ref["sha256"],
++                "terminal_bytes": terminal_ref["bytes"],
++                "published_at": finished_at,
++                **_v4_global(_v4_scope, "SAFETY_FLAGS"),
++            }
++            pointer = _seal(pointer)
++            # Prove the exact immutable terminal and all linked files before
++            # publishing either mutable latest pointer.
++            unpublished_ready_ref = terminal_ref
++            verified = read_verified_chain(_v4_scope, receipt_root, target,
++                _pointer_override=pointer)
++            if verified is None or verified["terminal_sha256"] != terminal_ref["sha256"]:
++                raise ValueError("HK_PUBLICATION_CHAIN_READBACK_UNVERIFIED")
++        attempt = write_latest_attempt(status, terminal_ref,
++            failure_code=failure_code, failed_stage=failed_stage)
++        if status == "READY":
++            _write_sealed(safe, f"{date_root}/latest.json", pointer,
++                          require_absent=False)
++            unpublished_ready_ref = None
++        return terminal, terminal_ref, attempt
++
++    def fail(stage, code):
++        if stage not in active and stage not in stage_refs:
++            stage_start(stage)
++        for active_stage in list(active):
++            stage_finish(active_stage, "FAILED", failure_code=code)
++        if stage in active:
++            stage_finish(stage, "FAILED", failure_code=code)
++        elif stage not in stage_refs:
++            stage_start(stage)
++            stage_finish(stage, "FAILED", failure_code=code)
++        terminal, terminal_ref, attempt = write_terminal("FAILED", failure_code=code,
++            failed_stage=stage)
++        return {
++            "status": "FAILED", "target_date": target, "failed_stage": stage,
++            "failure_reasons": [code], "failure_code": code,
++            "row_count": 0, "coverage_rate": 0.0, "sha256": "",
++            "publication_chain": {"chain_id": chain_id,
++                "terminal_relative": terminal_ref["path"],
++                "terminal_sha256": terminal_ref["sha256"], "status": "FAILED"},
++            "daily_supplement": None, "runner_called": True,
++            **_v4_global(_v4_scope, "SAFETY_FLAGS"),
++        }
++
++    if capture_error is not None:
++        stage_start("CAPTURE")
++        return fail("CAPTURE", _safe_failure_code(capture_error))
++    if exact is None and target != today:
++        stage_start("CAPTURE")
++        failure_code = ("HK_HISTORICAL_MEMBERSHIP_CAPTURE_UNAVAILABLE" if target < today
++                        else "HK_TARGET_NOT_CURRENT_SOURCE_DAY")
++        return fail("CAPTURE", failure_code)
++
++    try:
++        stage_start("CAPTURE")
++        result = _run_hk_capture_gate_body(
++            _v4_scope, target_date=target, args=args,
++            authority_paths=authority_paths,
++            python_executable=python_executable,
++            capture_run_id=capture_run_id,
++            stage_start=stage_start, stage_finish=stage_finish,
++            capture_override=exact["capture"] if exact is not None else None,
++            collected_override=exact["collected"] if exact is not None else None,
++        )
++        capture = _v4_scope.get("_LAST_HK_CAPTURE")
++        if not isinstance(capture, dict) or capture.get("capture_run_id") != capture_run_id:
++            raise ValueError("HK_CAPTURE_RUN_ID_READBACK_MISMATCH")
++        stage_start("FINAL_READBACK")
++        artifact_refs = _artifact_refs(_v4_scope, target, args,
++            Path(args.hk_asset_root).expanduser().resolve().parent.parent,
++            result, capture, receipt_root=receipt_root, chain_id=chain_id)
++        lane_summary = {
++            "status": "READY", "target_date": target,
++            "row_count": int(result.get("row_count") or 0),
++            "universe_count": int(result.get("universe_count") or 0),
++            "coverage_rate": float(result.get("coverage_rate") or 0.0),
++            "sha256": str(result.get("sha256") or ""),
++            "source_sha256": str(result.get("source_sha256") or ""),
++            "capture_run_id": capture_run_id,
++            "capture_sha256": capture.get("capture_sha256"),
++            "membership_run_id": (result.get("membership") or {}).get("universe_authority", {}).get("run_id"),
++            "panel_sha256": (result.get("authority") or {}).get("panel_sha256"),
++            "panel_capture_binding_sha256": result.get("panel_capture_binding_sha256"),
++            "security_master_run_id": (result.get("security_master") or {}).get("run_id"),
++            "security_master_artifact_sha256": (result.get("security_master") or {}).get("security_master_artifact_sha256"),
++        }
++        if (lane_summary["row_count"] < 1 or lane_summary["coverage_rate"] <= 0
++                or not re.fullmatch(r"[0-9a-f]{64}", lane_summary["sha256"])):
++            raise ValueError("HK_FINAL_LANE_SUMMARY_INVALID")
++        supplement = _run_daily_supplement(_v4_scope, args=args,
++            authority_paths=authority_paths, target=target,
++            python_executable=python_executable)
++        stage_finish("FINAL_READBACK", "READY", result={
++            "artifact_count": len(artifact_refs),
++            "lane_summary": lane_summary,
++            "publication_chain_status": "READY",
++        })
++        terminal, terminal_ref, attempt = write_terminal("READY",
++            lane_summary=lane_summary, artifact_refs=artifact_refs,
++            daily_supplement=supplement)
++        return {
++            **result, **lane_summary,
++            "publication_chain": {"chain_id": chain_id,
++                "terminal_relative": terminal_ref["path"],
++                "terminal_sha256": terminal_ref["sha256"],
++                "status": "VERIFIED"},
++            "daily_supplement": supplement, "cache_hit": False,
++            "runner_called": True, **_v4_global(_v4_scope, "SAFETY_FLAGS"),
++        }
++    except Exception as error:
++        if unpublished_ready_ref is not None:
++            code = _safe_failure_code(error)
++            try:
++                write_latest_attempt("CANNOT_CONFIRM", unpublished_ready_ref,
++                    failure_code=code, failed_stage="FINAL_READBACK")
++            except Exception:
++                pass
++            return {
++                "status": "CANNOT_CONFIRM", "target_date": target,
++                "failed_stage": "FINAL_READBACK", "failure_reasons": [code],
++                "failure_code": code, "row_count": 0, "coverage_rate": 0.0,
++                "sha256": "", "publication_chain": {
++                    "chain_id": chain_id, "terminal_relative": unpublished_ready_ref["path"],
++                    "terminal_sha256": unpublished_ready_ref["sha256"],
++                    "status": "CANNOT_CONFIRM"},
++                "daily_supplement": None, "runner_called": True,
++                **_v4_global(_v4_scope, "SAFETY_FLAGS"),
++            }
++        active_stage = failed_stage_state[-1] if failed_stage_state else next(reversed(active), None)
++        if active_stage is None:
++            active_stage = "FINAL_READBACK" if "FINAL_READBACK" in stage_refs else "CAPTURE"
++        return fail(active_stage, _safe_failure_code(error))

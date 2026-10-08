@@ -1,0 +1,59 @@
+--- a/v4/manager_research/workspace_history.py
++++ b/v4/manager_research/workspace_history.py
+@@ -39,7 +39,28 @@
+     return plan_context(date, now=opening)
+ 
+ 
+-def _read_candidate(store: Any, date: str, name: str) -> tuple[dict | None, int]:
++def _execution_context_qualifies(row: Mapping[str, Any], boundary: Mapping[str, Any]) -> bool:
++    """A late or retrospective manual-kind plan can never masquerade as history."""
++    context = row.get('execution_context')
++    if context is None:
++        return True  # Preserve original MANUAL_REFRESH compatibility.
++    if not isinstance(context, Mapping):
++        return False
++    if (context.get('timing') != 'ON_TIME'
++            or context.get('trigger_kind') not in {'SCHEDULED','MANUAL','UNKNOWN'}
++            or context.get('natural_run_verified') is not False):
++        return False
++    scheduled = timestamp(context.get('scheduled_for'))
++    started = timestamp(context.get('started_at'))
++    finished = timestamp(context.get('finished_at'))
++    cutoff = timestamp(boundary.get('research_cutoff'))
++    generated = timestamp(row.get('generated_at'))
++    return bool(scheduled and started and finished and cutoff and generated
++        and scheduled <= started <= finished <= cutoff and generated <= cutoff)
++
++
++def _read_candidate(store: Any, date: str, name: str, *,
++                    boundary: Mapping[str, Any] | None = None) -> tuple[dict | None, int]:
+     from .workspace import PLAN_SCHEMA
+     path = f'workspace_plans/{date}/{name}'
+     try:
+@@ -63,6 +84,8 @@
+         or not timestamp(row.get('generated_at'))
+         or name not in {'latest.json', str(row.get('run_id'))+'.json'}):
+         raise ValueError('HISTORY_PLAN_IDENTITY_INVALID')
++    if boundary is not None and not _execution_context_qualifies(row, boundary):
++        return None, len(raw)
+     if (body.get('schema_version') != SCHEMA
+         or not re.fullmatch(r'[0-9a-f]{64}', str(body.get('input_identity','')))
+         or any(not isinstance(body.get(k), dict) for k in ('summary','briefing','plan_context'))
+@@ -94,7 +117,7 @@
+     def eligible(row: dict | None) -> bool:
+         return bool(row and timestamp(row['generated_at']) <= limit
+             and timestamp(row['workspace']['plan_context']['research_cutoff']) <= limit)
+-    latest, total = _read_candidate(store, date, 'latest.json')
++    latest, total = _read_candidate(store, date, 'latest.json', boundary=boundary)
+     if eligible(latest):
+         return latest
+     # A later dynamic refresh must not mask an earlier exact-date pre-session
+@@ -119,7 +142,7 @@
+     candidates = []
+     for name in sorted(names):
+         checkpoint()
+-        row, size = _read_candidate(store, date, name)
++        row, size = _read_candidate(store, date, name, boundary=boundary)
+         total += size
+         if total > _MAX_SCAN_BYTES:
+             raise ValueError('HISTORY_RUN_BYTES_BOUND_EXCEEDED')

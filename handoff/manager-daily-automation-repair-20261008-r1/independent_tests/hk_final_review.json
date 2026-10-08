@@ -1,0 +1,115 @@
+{
+  "reviewer": "independent_luna_max_reviewer",
+  "captured_at_utc": "2026-10-08T17:41:17Z",
+  "repo_head": "3f2aa6c92d87da098d33b5349698e55d337fd165",
+  "status": "PASS_LIMITED_SYNTHETIC_BOUNDARIES_WITH_TWO_PREEXISTING_SUPPLEMENT_CASE_FAILURES",
+  "source_sha256": {
+    "ops/_macos_research_panel_daily_parts/hk_capture_gate.py": "9e0308ee503c962230e1687595b621503598d2054fac8e3f5f73d745b305c5cd",
+    "ops/_macos_research_panel_daily_parts/hk_market_capture.py": "0a9651f88bc8a50d4b5e8ec4b6775a5291918f9f2556cf37c05b80a55cdfd84a",
+    "ops/_macos_research_panel_daily_parts/_namespace.py": "d9d742f198bf1fb011d20e630ef9961a7b5e6a476f3d52c92584fc3e7b487be6",
+    "runtime_layers/hk_child/ops/macos_research_panel_daily.py": "1963990fcde99b2681c837b8b66ea12f1ab066aba47729af5d0900073bc79ef3",
+    "ops/ensure_hk_security_master.py": "495ced4f0f06f170606ee576e035dafc99b540cd9fad0a28f2f2a36e5989ddb9",
+    "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+    "tests/test_hk_daily_publication_chain.py": "0cda71f3faf76c1c417d40a3caa5204851df684011e9cfbefff1bce0fd4196a8",
+    "tests/test_hk_daily_supplement_r4.py": "7085f61af64c20f3153ca5e6d7948c0e0e54c3236e2e5ec364b9662d5d1dfc94",
+    "investigation/automation/reviewer/test_hk_publication_chain_independent.py": "7fdc4b89c56baea650710590c129881a15f1524095a3c8039c9fc7a99b57c03f"
+  },
+  "test_groups": [
+    {
+      "name": "independent_hk_publication_chain",
+      "command": "/workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q /workspace/scratch/a154a3323e32/investigation/automation/reviewer/test_hk_publication_chain_independent.py",
+      "status": "PASS_LIMITED_SYNTHETIC_BOUNDARIES",
+      "passed": 3,
+      "failed": 0,
+      "log": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/hk_independent.log",
+      "log_sha256": "53cc069672d0c165a301c7e5246ddf54a875ecd65c424d56b766afe44c7cf235"
+    },
+    {
+      "name": "writer_hk_full_chain_suite",
+      "command": "/workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q tests/test_hk_daily_publication_chain.py",
+      "status": "PASS",
+      "passed": 10,
+      "failed": 0,
+      "log": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/hk_writer_chain.log",
+      "log_sha256": "6f1df482ff77a45c8b1bb3ec325c6bdabcc4d9725488d91df0dcc3521ca1d000"
+    },
+    {
+      "name": "supplement_cache_cutoff_and_parent_revision_focus",
+      "command": "/workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q tests/test_hk_daily_supplement_r4.py::test_capture_records_actual_later_times_and_consumer_cutoff_is_separate tests/test_hk_daily_supplement_r4.py::test_capture_reuses_verified_ready_cache_without_connector_or_republication tests/test_hk_daily_supplement_r4.py::test_capture_rejects_parent_revision_published_after_actual_capture_start",
+      "status": "PASS",
+      "passed": 3,
+      "failed": 0,
+      "log": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/hk_supplement_sidecar_focus.log",
+      "log_sha256": "12c13b571d8e8108a46c806d2eb1b853b9b760aa4925f151f6ea89c325c4e808"
+    },
+    {
+      "name": "supplement_r4_current_complete_file",
+      "command": "/workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q tests/test_hk_daily_supplement_r4.py",
+      "status": "FAIL_PREEXISTING_CASES_REPRODUCED",
+      "passed": 13,
+      "failed": 2,
+      "failed_nodeids": [
+        "tests/test_hk_daily_supplement_r4.py::test_screen_uses_master_universe_sidecar_volume_and_missing_only_price_overlay",
+        "tests/test_hk_daily_supplement_r4.py::test_complete_panel_history_skips_sidecar_and_preserves_canonical_baseline"
+      ],
+      "failure_evidence": [
+        {
+          "line": 426,
+          "assertion": "result[\"coverage\"][\"input_candidate_count\"] == 3",
+          "actual": 0
+        },
+        {
+          "line": 485,
+          "assertion": "result[\"coverage\"][\"input_candidate_count\"] == 1",
+          "actual": 0
+        }
+      ],
+      "log": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/hk_supplement_suite_current.log",
+      "log_sha256": "d8291b1e5fa7212b6744b49499c16e2f5703912e6ed2995528061b49406ad3c7"
+    }
+  ],
+  "preimage_attribution": {
+    "preimage_repo_head": "3f2aa6c92d87da098d33b5349698e55d337fd165",
+    "preimage_tree": "/tmp/luna_hk_base3f2aa6c",
+    "preimage_source_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+    "preimage_test_sha256": "6e28ec956e048517b6312f57d6a351253717ee50a5f5f6d20079787e8bc819b6",
+    "preimage_command": "/workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q tests/test_hk_daily_supplement_r4.py::test_screen_uses_master_universe_sidecar_volume_and_missing_only_price_overlay tests/test_hk_daily_supplement_r4.py::test_complete_panel_history_skips_sidecar_and_preserves_canonical_baseline",
+    "preimage_result": "2 failed; both same nodeids and same expected/actual candidate counts (3→0 and 1→0). The current test file diff only adds a separate cache test before them; these two function bodies are unchanged. v4/manager_research/workspace_plan.py containing read_rebound_screen has no diff from the preimage.",
+    "preimage_log": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/hk_supplement_two_failures_base.log",
+    "preimage_log_sha256": "993ef2b67f1bd961243ad47668dc961ed2d9ca28057a4602deaee8f4b9da5662",
+    "current_two_case_log": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/hk_supplement_two_failures_current.log",
+    "current_two_case_log_sha256": "14f749a8a4e8d8bf833f42f1c12e18cac450ff1623440510b500c1344a7ef323",
+    "classification": "PREEXISTING_BASELINE_FAILURE_NOT_CAUSED_BY_THIS_HK_DELTA"
+  },
+  "positive_chain_boundary": {
+    "actual_entry": "runtime_layers/hk_child/ops/macos_research_panel_daily.py actual.main([... --lane HK])",
+    "executed_original_owners": [
+      "HK child collector and capture implementation",
+      "ops.ensure_hk_security_master captured-membership V2 publisher",
+      "original master publication/readback",
+      "original HK publication chain stages, exact role/identity readback, and second-call cache path"
+    ],
+    "injected_boundaries": [
+      "Futu SDK module returns synthetic frames for 700 synthetic securities.",
+      "Frozen HK0.2 model reader is replaced at isolated-package loading boundary with a strict panel-only fixture reader that checks pointer, manifest, parquet hash and target date because frozen model assets are absent.",
+      "The actual entry run_hk_0_2_authority call is replaced by a fixture writer creating a real synthetic parquet, manifest, and pointer; frozen updater algorithm is not exercised.",
+      "TDX daily supplement call is replaced with explicit CANNOT_CONFIRM; no daily supplement publication is claimed.",
+      "Separate decoy and final-readback failure safety cases inject sealed fake stage metadata / controlled final reader failure; they do not count as positive owner-chain execution."
+    ],
+    "observed": [
+      "First full path returns READY and VERIFIED publication-chain/master readback with exact target and linked roles.",
+      "Second actual entry call reuses verified chain; no new synthetic SDK call and no fixture panel publication.",
+      "Capture acquired_at is no later than V2 publication available_at.",
+      "A roleless decoy capture ref is rejected.",
+      "Final readback failure does not leave a READY latest pointer."
+    ]
+  },
+  "limitations": {
+    "all_inputs_synthetic_offline": true,
+    "frozen_hk02_updater_algorithm": "NOT_EXERCISED",
+    "tdx_supplement_publication": "CANNOT_CONFIRM",
+    "natural_run_verified": false,
+    "mac_worker_or_production_source_collection": "NOT_RUN",
+    "full_app_clean_import_or_shared_closure": "NOT_VERIFIED"
+  }
+}

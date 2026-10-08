@@ -1,0 +1,139 @@
+{
+  "schema_version": "manager_daily_package_tool_independent_review.v1",
+  "recorded_at_utc": "2026-10-08T17:35:24Z",
+  "reviewer": {
+    "agent": "/root/automation_hk_publish",
+    "role": "Independent read-only review of root-authored delivery tooling",
+    "tool_author_agent": "/root",
+    "production_writer_agent": "/root/luna_daily_writer",
+    "reviewer_modified_tool_sources": false,
+    "reviewer_modified_production_or_test_sources": false
+  },
+  "scope": {
+    "status": "LIMITED_TOOL_REVIEW_NOT_FULL_DELIVERY_ACCEPTANCE",
+    "package_path": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1",
+    "reviewed_changes": [
+      "Mandatory patch and incremental-patch SHA256/byte identities in the builder and read-only verifier",
+      "All-profile patch payload validation including unselected profiles",
+      "Exact single patch target via git apply --numstat -z",
+      "Complete disposable file-content snapshots after forward application and reverse restoration",
+      "Correction of researchAttention.ts provenance to web_snapshot isolated candidate",
+      "HOST_EXECUTION instruction to select only profiles with file or preserve records"
+    ],
+    "source_manifest_or_after_package_assembly_executed": false,
+    "mac_operations_executed": false,
+    "network_operations_executed": false,
+    "release_or_publication_executed": false
+  },
+  "observed_execution": [
+    {
+      "purpose": "Independent rerun of the existing stdlib delivery-verifier tests",
+      "cwd": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1",
+      "command": "PYTHONDONTWRITEBYTECODE=1 /workspace/scratch/a154a3323e32/test_env/bin/python -B -m unittest discover -s tools -p test_verify_delivery.py -q",
+      "exit_code": 0,
+      "stdout_and_stderr": "----------------------------------------------------------------------\nRan 24 tests in 0.300s\n\nOK\n",
+      "observed_test_count": 24,
+      "result": "PASS",
+      "subtest_count": null,
+      "subtest_count_note": "The independent command output reported 24 tests; no separate subtest count was emitted or independently counted.",
+      "tool_output_chunk_id": "5b316c"
+    },
+    {
+      "purpose": "Independent synthetic disposable-root patch-scope and restoration probe",
+      "cwd": "/workspace/scratch/a154a3323e32",
+      "command": "PYTHONDONTWRITEBYTECODE=1 /workspace/scratch/a154a3323e32/test_env/bin/python -B -",
+      "stdin_python": "from pathlib import Path\nimport importlib.util, tempfile, hashlib, json\nr=Path('/workspace/scratch/a154a3323e32')\ndef load(name,path):\n spec=importlib.util.spec_from_file_location(name,path)\n m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m\nb=load('review_build',r/'investigation/automation/build_delivery.py')\nv=load('review_verify_final',r/'investigation/automation/verify_final_delivery.py')\nresults=[]\nwith tempfile.TemporaryDirectory(prefix='readonly-package-review-') as td:\n tmp=Path(td).resolve();root=tmp/'source';root.mkdir()\n target='ops/example.py';source=root/target;source.parent.mkdir()\n source.write_bytes(b'x = 1')\n untouched=root/'preserved.txt';untouched.write_bytes(b'preserved\\n')\n baseline=v.source_snapshot(root)\n patch=tmp/'change.patch';patch.write_text(b.source_patch(b'x = 1',b'x = 2\\n',target))\n v.patch_scope(root,patch,target);v.run_patch(root,patch,check=True);v.run_patch(root,patch)\n assert v.source_snapshot(root)=={**baseline,target:hashlib.sha256(b'x = 2\\n').hexdigest()}\n v.run_patch(root,patch,reverse=True)\n assert v.source_snapshot(root)==baseline\n results.append({'case':'single target including original missing LF, exact forward/reverse snapshot','status':'PASS'})\n raw=patch.read_text()\n for case,modified in [('undeclared extra addition',raw+b.source_patch(None,b'extra\\n','ops/unrequested.py')),('duplicate target',raw+raw)]:\n  patch.write_text(modified)\n  try:v.patch_scope(root,patch,target)\n  except RuntimeError as e:results.append({'case':case,'status':'REJECTED_AS_REQUIRED','reason':str(e)})\n  else:raise AssertionError(case+' was accepted')\n  assert v.source_snapshot(root)==baseline\n extra=root/'unexpected.txt';extra.write_bytes(b'unknown\\n')\n assert v.source_snapshot(root)!=baseline\n results.append({'case':'unexpected file recognized by complete snapshot','status':'PASS'})\nprint(json.dumps({'scope':'SYNTHETIC_DISPOSABLE_TOOL_REVIEW_ONLY','cases':results,'full_delivery_assembly_run':False,'tool_sha256':hashlib.sha256((r/'investigation/automation/verify_final_delivery.py').read_bytes()).hexdigest()},ensure_ascii=False,indent=2))\n",
+      "exit_code": 0,
+      "result": "PASS",
+      "scope": "SYNTHETIC_DISPOSABLE_TOOL_REVIEW_ONLY",
+      "temporary_directory_prefix": "readonly-package-review-",
+      "temporary_directory_cleanup": "Completed by tempfile.TemporaryDirectory context manager",
+      "cases": [
+        {
+          "case": "single target including original missing LF, exact forward/reverse snapshot",
+          "status": "PASS"
+        },
+        {
+          "case": "undeclared extra addition",
+          "status": "REJECTED_AS_REQUIRED",
+          "reason": "Undeclared or duplicate patch target: ['ops/example.py', 'ops/unrequested.py']"
+        },
+        {
+          "case": "duplicate target",
+          "status": "REJECTED_AS_REQUIRED",
+          "reason": "Undeclared or duplicate patch target: ['ops/example.py', 'ops/example.py']"
+        },
+        {
+          "case": "unexpected file recognized by complete snapshot",
+          "status": "PASS"
+        }
+      ],
+      "tool_sha256_emitted_by_probe": "e501e990dfbbf91612b5586b2b808299a4efcb4cb980aa27ea91264baa204513",
+      "full_delivery_assembly_run": false,
+      "tool_output_chunk_id": "54f52b"
+    }
+  ],
+  "identity_capture": {
+    "captured_at_utc": "2026-10-08T17:35:24Z",
+    "method": "Read-only SHA256 and byte-count capture when writing this record; no tests rerun at record creation",
+    "files": [
+      {
+        "path": "investigation/automation/build_delivery.py",
+        "bytes": 13506,
+        "sha256": "859a993df33fed1191e6f3a6d82d958367ef7098d6bb775e89fa02d550b89363"
+      },
+      {
+        "path": "investigation/automation/verify_final_delivery.py",
+        "bytes": 9349,
+        "sha256": "e501e990dfbbf91612b5586b2b808299a4efcb4cb980aa27ea91264baa204513"
+      },
+      {
+        "path": "delivery/manager-daily-automation-repair-20261008-r1/tools/verify_delivery.py",
+        "bytes": 17769,
+        "sha256": "6cdd78d754ba0b997beb8ab33356afcac8027f24af6e822c69062ada0940a51d"
+      },
+      {
+        "path": "delivery/manager-daily-automation-repair-20261008-r1/tools/test_verify_delivery.py",
+        "bytes": 15826,
+        "sha256": "d13a046265ab06c323053fb3a1a7559d268d377a63c2d8d849031f6f716a33b1"
+      },
+      {
+        "path": "delivery/manager-daily-automation-repair-20261008-r1/evidence/test_baseline_identity.json",
+        "bytes": 1767,
+        "sha256": "72dfba9c6bccde4cae5949f7fc115a715c24355080c364c31e815b26bb677ed4"
+      },
+      {
+        "path": "delivery/manager-daily-automation-repair-20261008-r1/docs/HOST_EXECUTION.md",
+        "bytes": 10898,
+        "sha256": "935ca0b40fff6c5727e0e117ecfbfa9129579c9276290cd9189b1005730f0885"
+      }
+    ],
+    "execution_bound_identity": {
+      "path": "investigation/automation/verify_final_delivery.py",
+      "sha256": "e501e990dfbbf91612b5586b2b808299a4efcb4cb980aa27ea91264baa204513",
+      "matches_independent_probe": true,
+      "matches_root_supplied_patch_scope_probe": true
+    },
+    "timing_note": "The final verifier identity was emitted during the independent probe and matched at recording. Other file identities here were captured at recording; these are not a separately frozen full delivery."
+  },
+  "conclusions": {
+    "status": "PASS_LIMITED_TOOL_REVIEW",
+    "original_patch_validation_gap": "ADDRESSED_IN_REVIEWED_TOOLING",
+    "new_blocking_tool_defects_found": false,
+    "documentation_timing_note_raised": "At review time HOST_EXECUTION used completed wording for full-package forward/reverse verification before the real package was assembled. Root was advised to use tool-behavior wording or retain completed wording only after the final package receipt exists. This record does not claim that the real package was assembled or that final package verification ran.",
+    "natural_runtime_status": "NATURAL_SLOT_UNVERIFIED",
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "exclusions_and_limits": [
+    "No build_delivery.py main execution and no real assembled package verify_final_delivery.py main execution.",
+    "No production business-module acceptance, SDK acquisition, external owner refresh, Mac POST, service changes or deployment.",
+    "No claim that current Mac modules match candidate bytes or that Issue #28 runtime is preserved.",
+    "No actual 2026-10-08 retrospective result or two-day natural-slot acceptance.",
+    "The newly added investigation/automation/audit_final_scope.py was neither read, reviewed nor run by this reviewer and is explicitly outside this receipt.",
+    "This receipt does not assert the new audit's original-16-plus-projection preservation or actual-HK two-function AST scope checks.",
+    "Changes to reviewed tooling or package payloads after the recorded identities require renewed validation.",
+    "Complete final source-manifest, payload, package-hash, and exact forward/reverse checks remain pending until the real delivery is frozen and assembled."
+  ]
+}

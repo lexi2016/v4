@@ -1,0 +1,30 @@
+# Independent daily/US reviewer evidence
+Repository head: 3f2aa6c92d87da098d33b5349698e55d337fd165
+Runtime Python: /workspace/scratch/a154a3323e32/test_env/bin/python (Python 3.14.6)
+Source root override: MANAGER_TEST_SOURCE_ROOT=/workspace/scratch/a154a3323e32/worktrees/manager_automation
+All owner inputs are synthetic/offline. `natural_run_verified` remains false.
+
+## Daily RPC, original owner, restart/recovery and date/slot contracts
+COMMAND: MANAGER_TEST_SOURCE_ROOT=/workspace/scratch/a154a3323e32/worktrees/manager_automation PYTHONPATH=.:upstreams /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q /workspace/scratch/a154a3323e32/investigation/automation/reviewer/test_daily_full_chain_independent.py -k 'not actual_renderer_and_validator'
+..............                                                           [100%]
+14 passed, 1 deselected, 1 warning in 1.82s
+STATUS: PASS (owner/API DTO scope). The GET check is TestClient dynamic workspace GET DTO readback, not browser page reload or visual UI verification.
+
+## US owner/workspace readback
+COMMAND: MANAGER_TEST_SOURCE_ROOT=/workspace/scratch/a154a3323e32/worktrees/manager_automation PYTHONPATH=.:upstreams /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q /workspace/scratch/a154a3323e32/investigation/automation/reviewer/test_us_daily_owner_independent.py
+.................. [100%]
+18 passed in 0.84s
+STATUS: PASS (synthetic offline US original owner/readback scope).
+
+## Actual binding renderer and validator
+COMMAND: MANAGER_TEST_SOURCE_ROOT=/workspace/scratch/a154a3323e32/worktrees/manager_automation PYTHONPATH=.:upstreams /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q /workspace/scratch/a154a3323e32/investigation/automation/reviewer/test_daily_full_chain_independent.py -k actual_renderer_and_validator
+1 failed at `ops/render_manager_announcement_binding.py` → `binding_inventory`: required inventory entry `apps/__init__.py` is absent and SafeRoot raises FileNotFoundError.
+STATUS: BLOCKED / CLOUD_SHARED_IMPORT_CLOSURE_BLOCKED. No source shim or closure file was synthesized; not a renderer behavior pass.
+
+## Contract adjudications retained
+- Actual manual retrospective 10/9 execution/cutoff remains distinct from target-bound US mapping cutoff for target 10/8; target-bound US daily mapping uses 10/8 EOD/10/7 session; late/retro is excluded from qualified preopen history. NOT_DEFECT.
+- Distinct actual slot cutoffs may create distinct immutable same-date plans; cross-cutoff plan reuse is not required. Same-cutoff failed-US trigger metadata alone does not change plan identity. NOT_PROMISED / same-cutoff telemetry probe PASS.
+- Fixed MORNING US phase trigger is stable across its 5-minute slots; a first morning US result replays on subsequent morning slots. The first 10:00 catch-up uses a new slot trigger and can resume the original US owner; this remains the bounded retry behavior.
+
+## Scope limits
+No natural two-day run, actual renderer binding closure, Mac worker, deployed server, external source collection, browser/DOM execution, or production UI verification was performed.

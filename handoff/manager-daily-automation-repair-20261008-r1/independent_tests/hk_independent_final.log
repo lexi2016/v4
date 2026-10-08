@@ -1,0 +1,13 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.6, pytest-9.1.1, pluggy-1.6.0 -- /workspace/scratch/a154a3323e32/test_env/bin/python
+cachedir: .pytest_cache
+rootdir: /workspace/scratch/a154a3323e32
+plugins: anyio-4.14.2
+collecting ... collected 4 items
+
+../../investigation/automation/reviewer/test_hk_publication_chain_independent.py::test_chain_reader_rejects_sealed_ready_stages_with_only_a_decoy_capture_ref PASSED [ 25%]
+../../investigation/automation/reviewer/test_hk_publication_chain_independent.py::test_failed_final_chain_readback_never_leaves_a_ready_latest_pointer PASSED [ 50%]
+../../investigation/automation/reviewer/test_hk_publication_chain_independent.py::test_actual_hk_child_uses_original_collector_v2_master_and_chain_readback PASSED [ 75%]
+../../investigation/automation/reviewer/test_hk_publication_chain_independent.py::test_day_one_chain_survives_day_two_latest_advance_and_still_rejects_immutable_tamper PASSED [100%]
+
+============================== 4 passed in 2.73s ===============================

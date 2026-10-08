@@ -1,0 +1,564 @@
+{
+  "candidate_identity": {
+    "actual_process_loaded_identity": "NOT_VERIFIED_CURRENT",
+    "manifest_all_worktree_hashes_match": true,
+    "manifest_declares_distinct_source_layers_not_deployable_application": true,
+    "manifest_file_count": 33,
+    "manifest_worktree_match_count": 33,
+    "source_manifest_entries_checked": [
+      {
+        "actual_sha256": "c3ec90ffb88f1378c4d9a1912fc78747f4440d0331696de4f1a015ad72946f4c",
+        "expected_sha256": "c3ec90ffb88f1378c4d9a1912fc78747f4440d0331696de4f1a015ad72946f4c",
+        "matches": true,
+        "path": "apps/api/v35_api/manager_research_router.py",
+        "profile": "api"
+      },
+      {
+        "actual_sha256": "b5b57a45102775d2f57b1af14456f8a9bf2b23c6a8a96f4b30c87da245f9ac0d",
+        "expected_sha256": "b5b57a45102775d2f57b1af14456f8a9bf2b23c6a8a96f4b30c87da245f9ac0d",
+        "matches": true,
+        "path": "apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts",
+        "profile": "tests"
+      },
+      {
+        "actual_sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+        "expected_sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+        "matches": true,
+        "path": "apps/web/src/api/managerWorkspace.ts",
+        "profile": "web"
+      },
+      {
+        "actual_sha256": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6",
+        "expected_sha256": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6",
+        "matches": true,
+        "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "profile": "web"
+      },
+      {
+        "actual_sha256": "1fed6bbd4454e77c8b0e67e41c4b3d7fac0f4a1cae67893f1e3d438d29366501",
+        "expected_sha256": "1fed6bbd4454e77c8b0e67e41c4b3d7fac0f4a1cae67893f1e3d438d29366501",
+        "matches": true,
+        "path": "apps/web/src/manager-selection/dailyResearchRun.spec.ts",
+        "profile": "tests"
+      },
+      {
+        "actual_sha256": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d",
+        "expected_sha256": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d",
+        "matches": true,
+        "path": "apps/web/src/manager-selection/dailyResearchRun.ts",
+        "profile": "web"
+      },
+      {
+        "actual_sha256": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c",
+        "expected_sha256": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c",
+        "matches": true,
+        "path": "apps/web/src/manager-selection/researchAttention.ts",
+        "profile": "web"
+      },
+      {
+        "actual_sha256": "04d71a71d33cdc90ec362289095dd2ac6e357f79af1528f8c573f6ddcc24e68d",
+        "expected_sha256": "04d71a71d33cdc90ec362289095dd2ac6e357f79af1528f8c573f6ddcc24e68d",
+        "matches": true,
+        "path": "infrastructure/_research_peripheral_store_parts/_namespace.py",
+        "profile": "api"
+      },
+      {
+        "actual_sha256": "2ed9640b7c1568df065884f9f71a1df82b288c342bc94135ef4fd06b4c510373",
+        "expected_sha256": "2ed9640b7c1568df065884f9f71a1df82b288c342bc94135ef4fd06b4c510373",
+        "matches": true,
+        "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+        "profile": "api"
+      },
+      {
+        "actual_sha256": "d9d742f198bf1fb011d20e630ef9961a7b5e6a476f3d52c92584fc3e7b487be6",
+        "expected_sha256": "d9d742f198bf1fb011d20e630ef9961a7b5e6a476f3d52c92584fc3e7b487be6",
+        "matches": true,
+        "path": "ops/_macos_research_panel_daily_parts/_namespace.py",
+        "profile": "hk_child"
+      },
+      {
+        "actual_sha256": "d07be30a40c35aee9d710fcdcc7ae66b031488cc4c5e7029824e3c76ed3fd71c",
+        "expected_sha256": "d07be30a40c35aee9d710fcdcc7ae66b031488cc4c5e7029824e3c76ed3fd71c",
+        "matches": true,
+        "path": "ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+        "profile": "hk_child"
+      },
+      {
+        "actual_sha256": "495ced4f0f06f170606ee576e035dafc99b540cd9fad0a28f2f2a36e5989ddb9",
+        "expected_sha256": "495ced4f0f06f170606ee576e035dafc99b540cd9fad0a28f2f2a36e5989ddb9",
+        "matches": true,
+        "path": "ops/ensure_hk_security_master.py",
+        "profile": "hk_child"
+      },
+      {
+        "actual_sha256": "78049be0625c15539dcd44c1924ba8f89d5dd5a06a074c723a84d68fb45b3f39",
+        "expected_sha256": "78049be0625c15539dcd44c1924ba8f89d5dd5a06a074c723a84d68fb45b3f39",
+        "matches": true,
+        "path": "ops/render_manager_announcement_binding.py",
+        "profile": "api"
+      },
+      {
+        "actual_sha256": "ac05519d31be2ad5de640190d9219335e14cd70e6273bdc652b32b85e929ffa1",
+        "expected_sha256": "ac05519d31be2ad5de640190d9219335e14cd70e6273bdc652b32b85e929ffa1",
+        "matches": true,
+        "path": "ops/run_manager_announcement_cycle.py",
+        "profile": "api"
+      },
+      {
+        "actual_sha256": "1963990fcde99b2681c837b8b66ea12f1ab066aba47729af5d0900073bc79ef3",
+        "expected_sha256": "1963990fcde99b2681c837b8b66ea12f1ab066aba47729af5d0900073bc79ef3",
+        "matches": true,
+        "path": "runtime_layers/hk_child/ops/macos_research_panel_daily.py",
+        "profile": "hk_child"
+      },
+      {
+        "actual_sha256": "59e78904ca76deaa381799719cbeb6c1841bd7df318d354c2e5ad6298e768020",
+        "expected_sha256": "59e78904ca76deaa381799719cbeb6c1841bd7df318d354c2e5ad6298e768020",
+        "matches": true,
+        "path": "tests/manager_daily_ui_owner_fixture.py",
+        "profile": "tests"
+      },
+      {
+        "actual_sha256": "8d1d4ee850d70213b210941faf8c46cdd8741ca05102dfb36794dae4f40df104",
+        "expected_sha256": "8d1d4ee850d70213b210941faf8c46cdd8741ca05102dfb36794dae4f40df104",
+        "matches": true,
+        "path": "tests/manager_daily_ui_route_fixture.py",
+        "profile": "tests"
+      },
+      {
+        "actual_sha256": "5e70c7f2943df396b0d8dde48c8adcc0153962306d71c0ececb72af17e04eec3",
+        "expected_sha256": "5e70c7f2943df396b0d8dde48c8adcc0153962306d71c0ececb72af17e04eec3",
+        "matches": true,
+        "path": "tests/test_hk_daily_publication_chain.py",
+        "profile": "tests"
+      },
+      {
+        "actual_sha256": "7085f61af64c20f3153ca5e6d7948c0e0e54c3236e2e5ec364b9662d5d1dfc94",
+        "expected_sha256": "7085f61af64c20f3153ca5e6d7948c0e0e54c3236e2e5ec364b9662d5d1dfc94",
+        "matches": true,
+        "path": "tests/test_hk_daily_supplement_r4.py",
+        "profile": "tests"
+      },
+      {
+        "actual_sha256": "32d1baf5f79672d94fbcc2053e16aa4dfaefd8637cd153c4dfadf3fc6e43a45e",
+        "expected_sha256": "32d1baf5f79672d94fbcc2053e16aa4dfaefd8637cd153c4dfadf3fc6e43a45e",
+        "matches": true,
+        "path": "tests/test_manager_daily_automation_20261008.py",
+        "profile": "tests"
+      },
+      {
+        "actual_sha256": "5751d7831d10d9c21767e7e5b47199b98aea877ab76badcff36246e12f3eb6ac",
+        "expected_sha256": "5751d7831d10d9c21767e7e5b47199b98aea877ab76badcff36246e12f3eb6ac",
+        "matches": true,
+        "path": "tests/test_manager_daily_dispatch_20261008.py",
+        "profile": "tests"
+      },
+      {
+        "actual_sha256": "ba8b74490c9fcb248bc102c0c22aa76ec121f268730ab13ac14c2f69e013d188",
+        "expected_sha256": "ba8b74490c9fcb248bc102c0c22aa76ec121f268730ab13ac14c2f69e013d188",
+        "matches": true,
+        "path": "tests/test_manager_history_contract_20261008.py",
+        "profile": "tests"
+      },
+      {
+        "actual_sha256": "5a3203582a4857e9d5a269976b43aaff604f374ffc10ce94d8c8d843e2d5c1a0",
+        "expected_sha256": "5a3203582a4857e9d5a269976b43aaff604f374ffc10ce94d8c8d843e2d5c1a0",
+        "matches": true,
+        "path": "tests/test_manager_owner_namespace_contracts.py",
+        "profile": "tests"
+      },
+      {
+        "actual_sha256": "619afccbc08dba0c151939991e7cb7e636359bf6ab99b623ea64b9ec50cd1ba4",
+        "expected_sha256": "619afccbc08dba0c151939991e7cb7e636359bf6ab99b623ea64b9ec50cd1ba4",
+        "matches": true,
+        "path": "tests/test_manager_us_daily_automation_20261008.py",
+        "profile": "tests"
+      },
+      {
+        "actual_sha256": "9717711ce8eb3aca116b1ded70f3c833a573b6cb95f522468390eefb1e4d03a9",
+        "expected_sha256": "9717711ce8eb3aca116b1ded70f3c833a573b6cb95f522468390eefb1e4d03a9",
+        "matches": true,
+        "path": "tests/test_manager_workspace_exact_page_binding_20261008.py",
+        "profile": "tests"
+      },
+      {
+        "actual_sha256": "46ebbea9f71baf052ebbd1185d2dc25bcd4bc92d3e2e6da8ebd96c41135294ea",
+        "expected_sha256": "46ebbea9f71baf052ebbd1185d2dc25bcd4bc92d3e2e6da8ebd96c41135294ea",
+        "matches": true,
+        "path": "tests/test_manager_workspace_owner_20261008.py",
+        "profile": "tests"
+      },
+      {
+        "actual_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+        "expected_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+        "matches": true,
+        "path": "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+        "profile": "hk_upstream"
+      },
+      {
+        "actual_sha256": "d896359dbfd39f41ed3e316d54424c6f1172d935aa1d77a47463167d7bf1ed90",
+        "expected_sha256": "d896359dbfd39f41ed3e316d54424c6f1172d935aa1d77a47463167d7bf1ed90",
+        "matches": true,
+        "path": "v4/manager_research/plan_owner_dispatch.py",
+        "profile": "api"
+      },
+      {
+        "actual_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+        "expected_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+        "matches": true,
+        "path": "v4/manager_research/service.py",
+        "profile": "api"
+      },
+      {
+        "actual_sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+        "expected_sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+        "matches": true,
+        "path": "v4/manager_research/us_mapping_research.py",
+        "profile": "api"
+      },
+      {
+        "actual_sha256": "58a471c5ce7ece837c66948392ec2e6d73459343515225e19d694749c45ab1a4",
+        "expected_sha256": "58a471c5ce7ece837c66948392ec2e6d73459343515225e19d694749c45ab1a4",
+        "matches": true,
+        "path": "v4/manager_research/workspace.py",
+        "profile": "api"
+      },
+      {
+        "actual_sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+        "expected_sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+        "matches": true,
+        "path": "v4/manager_research/workspace_history.py",
+        "profile": "api"
+      },
+      {
+        "actual_sha256": "14d168300bba42124649f56b79ae65b41359bcfa6928b59fea4a36beb2b511f5",
+        "expected_sha256": "14d168300bba42124649f56b79ae65b41359bcfa6928b59fea4a36beb2b511f5",
+        "matches": true,
+        "path": "v4/manager_research/workspace_plan_autorun.py",
+        "profile": "api"
+      }
+    ],
+    "source_manifest_path": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/source_manifest.json",
+    "source_manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+    "source_sha256_at_review": {
+      "apps/api/v35_api/manager_research_router.py": "c3ec90ffb88f1378c4d9a1912fc78747f4440d0331696de4f1a015ad72946f4c",
+      "apps/web/src/api/managerWorkspace.ts": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+      "apps/web/src/manager-selection/catalystObservationPanel.ts": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6",
+      "apps/web/src/manager-selection/dailyResearchRun.ts": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d",
+      "apps/web/src/manager-selection/researchAttention.ts": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c",
+      "infrastructure/_research_peripheral_store_parts/_namespace.py": "04d71a71d33cdc90ec362289095dd2ac6e357f79af1528f8c573f6ddcc24e68d",
+      "infrastructure/scheduling/manager_announcement_supervisor.py": "2ed9640b7c1568df065884f9f71a1df82b288c342bc94135ef4fd06b4c510373",
+      "ops/_macos_research_panel_daily_parts/_namespace.py": "d9d742f198bf1fb011d20e630ef9961a7b5e6a476f3d52c92584fc3e7b487be6",
+      "ops/_macos_research_panel_daily_parts/hk_capture_gate.py": "d07be30a40c35aee9d710fcdcc7ae66b031488cc4c5e7029824e3c76ed3fd71c",
+      "ops/ensure_hk_security_master.py": "495ced4f0f06f170606ee576e035dafc99b540cd9fad0a28f2f2a36e5989ddb9",
+      "ops/render_manager_announcement_binding.py": "78049be0625c15539dcd44c1924ba8f89d5dd5a06a074c723a84d68fb45b3f39",
+      "ops/run_manager_announcement_cycle.py": "ac05519d31be2ad5de640190d9219335e14cd70e6273bdc652b32b85e929ffa1",
+      "runtime_layers/hk_child/ops/macos_research_panel_daily.py": "1963990fcde99b2681c837b8b66ea12f1ab066aba47729af5d0900073bc79ef3",
+      "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+      "v4/manager_research/plan_owner_dispatch.py": "d896359dbfd39f41ed3e316d54424c6f1172d935aa1d77a47463167d7bf1ed90",
+      "v4/manager_research/service.py": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "v4/manager_research/us_mapping_research.py": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+      "v4/manager_research/workspace.py": "58a471c5ce7ece837c66948392ec2e6d73459343515225e19d694749c45ab1a4",
+      "v4/manager_research/workspace_history.py": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+      "v4/manager_research/workspace_plan_autorun.py": "14d168300bba42124649f56b79ae65b41359bcfa6928b59fea4a36beb2b511f5"
+    }
+  },
+  "captured_at_utc": "2026-10-08T18:21:29Z",
+  "contract_adjudications": [
+    {
+      "detail": "A manual retrospective plan retains true actual execution/generated time and current research cutoff; the separate target-bound US daily owner reads the 20261008 EOD-bound 20261007 US session. Late/retrospective runs remain excluded from qualified preopen history.",
+      "id": "RETROSPECTIVE_PLAN_CONTEXT_VS_TARGET_US_SCOPE",
+      "status": "NOT_DEFECT"
+    },
+    {
+      "detail": "Distinct actual cutoffs may create separate immutable same-date plans. Source membership/material SHA must remain stable and older plan bytes immutable. Same target/cutoff with only failed-US dispatch telemetry changed preserves plan identity.",
+      "id": "DISTINCT_SLOT_CUTOFF_PLAN_REUSE",
+      "status": "NOT_PROMISED"
+    },
+    {
+      "detail": "A reviewed product imported at 09:45 is not retroactively consumed by a 09:27 preopen plan. The same-binding GET replays the sealed cutoff, a fresh 09:45 owner evaluation can consume it, and the 10:00 catchup owner produces/readbacks a new plan that consumes it; preopen history remains selected.",
+      "id": "LATE_SOURCE_AFTER_PREOPEN_CUTOFF",
+      "status": "CONFIRMED_CONTRACT"
+    }
+  ],
+  "historical_red_traces": [
+    {
+      "classification": "RESOLVED_PRODUCTION_FINDING",
+      "detail": "Before the exact saved-context fix, actual refresh followed by ordinary default and explicit-bound GETs returned stale despite unchanged source; projection path diff is separately retained.",
+      "log": {
+        "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/daily_exact_page_binding_pre_fix.log",
+        "sha256": "d991188d7f82335271e6cf37e7784001f99266d382ff839ff05ccb07a4d3d03f"
+      }
+    },
+    {
+      "classification": "SUPERSEDED_TEST_EXPECTATION",
+      "detail": "Initial test expected a same-binding GET at 09:45 to advance beyond sealed 09:27 preopen cutoff. Root contract adjudicated that assertion wrong; test was updated to verify cutoff replay, fresh read, catchup consumption, and preserved history; corrected full group passes 14.",
+      "log": {
+        "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/daily_owner_chain_cutoff_contract_red.log",
+        "sha256": "9e40795889c4bd9973f45c5e1f275b73e99029b5a71de29911c3d7a670d8e8a5"
+      }
+    },
+    {
+      "classification": "INVALID_TEST_PAIR_CORRECTED",
+      "detail": "The first probe used target 20261008/publication 2026-10-06, which is not an entry in the actual plan _analysis_pairs sequence. Correct pair is target 20261006/publication 2026-10-05; corrected source-window test passes.",
+      "log": {
+        "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/daily_reviewed_source_window_pre_fix.log",
+        "sha256": "0c74dce57e21806f0c0c27bea9263d639e05f6591b6371289cac26df5bdc5490"
+      }
+    },
+    {
+      "classification": "INVALID_FIXTURE_ORDERING",
+      "detail": "An initial two-day fixture prewrote TDX records before the original packer, causing the actual pack stage to reject its own duplicate target-date records. The fixture was corrected to let original pack_hk_day create the records; corrected cross-day test passes. This log is not a production defect trace.",
+      "log": {
+        "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/hk_two_day_cross_readback_pre_fix.log",
+        "sha256": "d4774b9ae7e3ce9a5906713a80451f727a7c5dec688a284091ab18547acf2f73"
+      }
+    }
+  ],
+  "limitations": {
+    "Mac_worker_subprocess": "NOT_RUN",
+    "actual_renderer_binding_validation": "BLOCKED_BY_SOURCE_CLOSURE",
+    "all_source_inputs_are_synthetic_offline": true,
+    "deployed_fastapi_server_or_socket_listener": "NOT_RUN",
+    "formal_api_or_ui_release": "NOT_RUN",
+    "full_clean_shared_import": "BLOCKED_BY_SOURCE_CLOSURE",
+    "live_collection_network_api": "NOT_RUN",
+    "natural_run_verified": false,
+    "parent_page_mount_or_browser_reload": "NOT_RUN"
+  },
+  "logs": {
+    "daily_exact_page_binding_current": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/daily_exact_page_binding_final.log",
+      "sha256": "ee9ba897028dd90bccda27a72f7d78d021d6b12fdc400b2b764d5ed757b2327d"
+    },
+    "daily_exact_page_binding_pre_fix": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/daily_exact_page_binding_pre_fix.log",
+      "sha256": "d991188d7f82335271e6cf37e7784001f99266d382ff839ff05ccb07a4d3d03f"
+    },
+    "daily_exact_projection_field_paths_pre_fix": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/daily_exact_page_binding_projection_pathdiff_pre_fix.log",
+      "sha256": "ac6e08b6e9bc9be7843130fd08e68a3f51d438f00fe76686f5d0c42f4bf7b30b"
+    },
+    "daily_owner_chain_current": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/daily_owner_chain_freeze_final.log",
+      "sha256": "29c4f5ecd77575de8bbc59b218f720609dd3095bfcfb060b5d51b3cfc5e5605a"
+    },
+    "daily_owner_chain_superseded_red": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/daily_owner_chain_cutoff_contract_red.log",
+      "sha256": "9e40795889c4bd9973f45c5e1f275b73e99029b5a71de29911c3d7a670d8e8a5"
+    },
+    "daily_renderer_closure_blocked": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/daily_renderer_closure_final.log",
+      "sha256": "d0cca2e4a5cdff32ebf1832ba05b5bee250bfee3c2d72aceafb63f26027b455b"
+    },
+    "daily_reviewed_source_window_current": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/daily_reviewed_source_window_final.log",
+      "sha256": "933d8d3b05346c35a6143004574e5f9ed4d1f6d9aadb25ef23d8d429305bca25"
+    },
+    "daily_reviewed_source_window_invalid_pair_probe": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/daily_reviewed_source_window_pre_fix.log",
+      "sha256": "0c74dce57e21806f0c0c27bea9263d639e05f6591b6371289cac26df5bdc5490"
+    },
+    "hk_independent_current": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/hk_independent_final.log",
+      "sha256": "bd5e1513c46a08be4625afb61a2fcf77cc32bf1e084547ee549232181c921db6"
+    },
+    "hk_supplement_r4_current": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/hk_supplement_suite_current.log",
+      "sha256": "d8291b1e5fa7212b6744b49499c16e2f5703912e6ed2995528061b49406ad3c7"
+    },
+    "hk_supplement_two_case_current": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/hk_supplement_two_failures_current.log",
+      "sha256": "14f749a8a4e8d8bf833f42f1c12e18cac450ff1623440510b500c1344a7ef323"
+    },
+    "hk_supplement_two_case_preimage": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/hk_supplement_two_failures_base.log",
+      "sha256": "993ef2b67f1bd961243ad47668dc961ed2d9ca28057a4602deaee8f4b9da5662"
+    },
+    "hk_two_day_invalid_fixture_attempt": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/hk_two_day_cross_readback_pre_fix.log",
+      "sha256": "d4774b9ae7e3ce9a5906713a80451f727a7c5dec688a284091ab18547acf2f73"
+    },
+    "hk_writer_full_chain_current": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/hk_writer_chain_freeze_final.log",
+      "sha256": "f64e8ca5a394238463b506e4f30abf5615ead0e5a4351c650865a1a4ca65696d"
+    },
+    "ui_actual_route_and_readback_current": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/ui_reviewer_final.log",
+      "sha256": "431bcee1bf5bf470c26f53932c92f0a7aa6055d707931d6633994792675b1e68"
+    },
+    "us_workspace_current": {
+      "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/us_workspace_freeze_final.log",
+      "sha256": "fa8ec2af8c4186577f1329e302227e76254deceaf1f0bec74097c3559c90a360"
+    }
+  },
+  "repo_head": "3f2aa6c92d87da098d33b5349698e55d337fd165",
+  "reviewer": "independent_luna_max_reviewer",
+  "reviewer_artifact_sha256": {
+    "README.md": "b30a88b96ad4b2858eedebf5b93aa55010fa8607b5309a0ca5a04be4a771df66",
+    "_source_root.py": "ae00fff740eb2949de92f54388a1f385fc1cde6fd1be654eb03331882d02a422",
+    "run_ui_actual_route_probe.py": "f9c1848168d1dfecac20139db351383df775e8a7d180ec5adc004c93e3f00a44",
+    "test_daily_exact_page_binding_independent.py": "e6fdeca1bf1bf0aacac984a112b7b7ab8c15bacbc395066355b995087bc1078b",
+    "test_daily_full_chain_independent.py": "3603b91575d88a30914ff96d58f47c7ac631f3954ebd29667a0c3ff7137114ea",
+    "test_daily_reviewed_source_window_independent.py": "cbd030ad32927dc78a4547c896c9cc16f992200fb6920abde958cd64098ce205",
+    "test_hk_publication_chain_independent.py": "b95d65d416d442cf220c228c39e8f4f9b3f6e937e097e9f0b666565cd13160e0",
+    "test_us_daily_owner_independent.py": "36076a8eea66b07b903647f244cc429bcf5d2bafff32a7e8cf5ef68ab6d884c5",
+    "ui_actual_route_readback_independent.spec.ts": "7e9657b4228b8eff92f3d5cf91dbf6b525673dbcec8e7a280b9344adaf2a4acc",
+    "ui_readback_contract_probe.spec.ts": "72e54b503d15a385f76be3cf1769832e4fd99e4a48447489fffc8d8485743126"
+  },
+  "schema_version": "independent-manager-automation-review.v1",
+  "status": "PASS_WITH_SCOPED_SOURCE_CLOSURE_BLOCKERS",
+  "test_results": [
+    {
+      "boundary": "Synthetic/offline inputs; actual FastAPI TestClient, supervisor leaf, daily-cycle route, run_scheduled_plan_target and original workspace plan owner. Synthetic unvalidated binding and supervisor.validate_binding are injected; no live worker.",
+      "command": "MANAGER_TEST_SOURCE_ROOT=/workspace/scratch/a154a3323e32/worktrees/manager_automation PYTHONPATH=.:upstreams /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q /workspace/scratch/a154a3323e32/investigation/automation/reviewer/test_daily_full_chain_independent.py -k 'not actual_renderer_and_validator'",
+      "coverage": [
+        "same-slot replay/restart and interrupted owner reconciliation",
+        "late reviewed import after preopen cutoff is excluded from sealed preopen replay but consumed by later catchup",
+        "qualified history still selects immutable preopen",
+        "slot/phase/budget, same cutoff telemetry identity, two-day/holiday and transport timeout contracts"
+      ],
+      "cwd": "/workspace/scratch/a154a3323e32/worktrees/manager_automation",
+      "deselected": 1,
+      "failed": 0,
+      "log": {
+        "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/daily_owner_chain_freeze_final.log",
+        "sha256": "29c4f5ecd77575de8bbc59b218f720609dd3095bfcfb060b5d51b3cfc5e5605a"
+      },
+      "name": "independent_daily_owner_chain",
+      "passed": 14,
+      "status": "PASS"
+    },
+    {
+      "boundary": "Original injected US reader and store/adapter closure with synthetic owner inputs; no network collection or natural US session.",
+      "command": "MANAGER_TEST_SOURCE_ROOT=/workspace/scratch/a154a3323e32/worktrees/manager_automation PYTHONPATH=.:upstreams /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q /workspace/scratch/a154a3323e32/investigation/automation/reviewer/test_us_daily_owner_independent.py",
+      "cwd": "/workspace/scratch/a154a3323e32/worktrees/manager_automation",
+      "failed": 0,
+      "log": {
+        "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/us_workspace_freeze_final.log",
+        "sha256": "fa8ec2af8c4186577f1329e302227e76254deceaf1f0bec74097c3559c90a360"
+      },
+      "name": "independent_us_workspace_owner_regression",
+      "passed": 18,
+      "status": "PASS"
+    },
+    {
+      "boundary": "In-process TestClient with synthetic empty source fixture; source mutation is covered separately.",
+      "command": "MANAGER_TEST_SOURCE_ROOT=/workspace/scratch/a154a3323e32/worktrees/manager_automation PYTHONPATH=.:upstreams /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q /workspace/scratch/a154a3323e32/investigation/automation/reviewer/test_daily_exact_page_binding_independent.py",
+      "cwd": "/workspace/scratch/a154a3323e32/worktrees/manager_automation",
+      "failed": 0,
+      "log": {
+        "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/daily_exact_page_binding_final.log",
+        "sha256": "ee9ba897028dd90bccda27a72f7d78d021d6b12fdc400b2b764d5ed757b2327d"
+      },
+      "name": "independent_exact_page_route_binding",
+      "observed": "The original POST and default plus exact ordinary-page-binding GET return the same sealed run as CURRENT after a 3-second read-time advance; mismatched publication binding is STALE_INPUTS_CHANGED. Actual readback timestamp is generated at request time, not copied from the research cutoff.",
+      "passed": 1,
+      "status": "PASS"
+    },
+    {
+      "boundary": "Synthetic reviewed notices, original announcement import route, source reader and workspace plan owner. No external collection.",
+      "command": "MANAGER_TEST_SOURCE_ROOT=/workspace/scratch/a154a3323e32/worktrees/manager_automation PYTHONPATH=.:upstreams /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q /workspace/scratch/a154a3323e32/investigation/automation/reviewer/test_daily_reviewed_source_window_independent.py",
+      "cwd": "/workspace/scratch/a154a3323e32/worktrees/manager_automation",
+      "failed": 0,
+      "log": {
+        "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/daily_reviewed_source_window_final.log",
+        "sha256": "933d8d3b05346c35a6143004574e5f9ed4d1f6d9aadb25ef23d8d429305bca25"
+      },
+      "name": "independent_reviewed_source_expansion_in_multiday_window",
+      "observed": "A 20261008 plan with source_dates [20261006, 20261007, 20261008] first consumes the real imported reviewed product for target 20261008/publication 2026-10-07. Importing a second valid product through the original import route for target 20261006/publication 2026-10-05 changes the same ordinary dynamic GET to STALE_INPUTS_CHANGED; it sees both product SHAs and preserves the prior immutable plan and latest bytes.",
+      "passed": 1,
+      "status": "PASS"
+    },
+    {
+      "boundary": "Vitest on pure projection/API validators with Python-generated synthetic actual-owner DTOs. Runner temporarily copies two test specs and creates a node_modules symlink, then removes both. No parent page mount/browser/page reload.",
+      "command": "MANAGER_TEST_SOURCE_ROOT=/workspace/scratch/a154a3323e32/worktrees/manager_automation V4_TEST_SOURCE_ROOT=/workspace/scratch/a154a3323e32/worktrees/manager_automation V4_TEST_PYTHON=/workspace/scratch/a154a3323e32/test_env/bin/python V4_TEST_NODE_MODULES=/workspace/scratch/a154a3323e32/candidate/apps/web/node_modules /workspace/scratch/a154a3323e32/test_env/bin/python /workspace/scratch/a154a3323e32/investigation/automation/reviewer/run_ui_actual_route_probe.py",
+      "cwd": "/workspace/scratch/a154a3323e32",
+      "failed": 0,
+      "log": {
+        "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/ui_reviewer_final.log",
+        "sha256": "431bcee1bf5bf470c26f53932c92f0a7aa6055d707931d6633994792675b1e68"
+      },
+      "name": "independent_ui_actual_route_and_readback_projection",
+      "observed": "Actual refresh→ordinary GET TestClient DTO validates and projects VERIFIED_SAVED; real read_at=2026-10-08T10:00:03+08:00 is >= generated_at=10:00:02 and owner_finished_at=10:00:02. A completed actual-owner DTO with its required daily readback removed is rejected.",
+      "passed": 2,
+      "status": "PASS"
+    },
+    {
+      "command": "MANAGER_TEST_SOURCE_ROOT=/workspace/scratch/a154a3323e32/worktrees/manager_automation PYTHONPATH=.:upstreams /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q /workspace/scratch/a154a3323e32/investigation/automation/reviewer/test_hk_publication_chain_independent.py",
+      "coverage": [
+        "sealed decoy READY chain rejected",
+        "failed terminal readback leaves no READY latest pointer",
+        "one-day original collector/V2/master/chain/readback positive",
+        "20261008→20261009 original updater/publisher advancement keeps D1 chain, D1 master entry and D1 cache readable; D1 immutable bytes remain equal; real immutable artifact mutation is rejected"
+      ],
+      "cwd": "/workspace/scratch/a154a3323e32/worktrees/manager_automation",
+      "failed": 0,
+      "log": {
+        "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/hk_independent_final.log",
+        "sha256": "bd5e1513c46a08be4625afb61a2fcf77cc32bf1e084547ee549232181c921db6"
+      },
+      "name": "independent_hk_publication_chain",
+      "one_day_boundary": "The actual 07aa child entry, original collector, actual V2/master publisher/readback and chain reader run. Futu is synthetic; the frozen HK0.2 updater boundary is replaced by a fixture writer making real parquet/manifest/pointer; daily supplement explicitly CANNOT_CONFIRM.",
+      "passed": 4,
+      "status": "PASS_LIMITED_SYNTHETIC_BOUNDARIES",
+      "two_day_boundary": "The actual 07aa child entry and original collector, pack_hk_day, shared_data.hk_0_2.update_hk_0_2_panel_from_vipdoc algorithm, V2/master publisher/readers, and gate chain reader run over D1=20261008 and D2=20261009. Futu rows and D0 seed panel are synthetic; frozen model seed-loading and isolated frozen-panel reader are strict fixture boundaries; run_hk_0_2_authority is injected to call the original updater function directly rather than launch its subprocess; supplement explicitly CANNOT_CONFIRM."
+    },
+    {
+      "command": "PYTHONPATH=.:upstreams /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q tests/test_hk_daily_publication_chain.py",
+      "cwd": "/workspace/scratch/a154a3323e32/worktrees/manager_automation",
+      "failed": 0,
+      "log": {
+        "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/hk_writer_chain_freeze_final.log",
+        "sha256": "f64e8ca5a394238463b506e4f30abf5615ead0e5a4351c650865a1a4ca65696d"
+      },
+      "name": "writer_hk_full_chain_suite",
+      "note": "Writer-authored suite; separate from reviewer-owned 4-case HK group.",
+      "passed": 11,
+      "status": "PASS"
+    },
+    {
+      "baseline_attribution": "Same two nodeids/assertions/actual counts fail on the isolated preimage; function bodies unchanged. Preserve separate baseline log/report; not caused by this HK gate delta.",
+      "baseline_log": {
+        "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/hk_supplement_two_failures_base.log",
+        "sha256": "993ef2b67f1bd961243ad47668dc961ed2d9ca28057a4602deaee8f4b9da5662"
+      },
+      "command": "PYTHONPATH=.:upstreams /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q tests/test_hk_daily_supplement_r4.py",
+      "cwd": "/workspace/scratch/a154a3323e32/worktrees/manager_automation",
+      "failed": 2,
+      "failures": [
+        {
+          "actual": 0,
+          "assertion": "coverage.input_candidate_count == 3",
+          "nodeid": "tests/test_hk_daily_supplement_r4.py::test_screen_uses_master_universe_sidecar_volume_and_missing_only_price_overlay"
+        },
+        {
+          "actual": 0,
+          "assertion": "coverage.input_candidate_count == 1",
+          "nodeid": "tests/test_hk_daily_supplement_r4.py::test_complete_panel_history_skips_sidecar_and_preserves_canonical_baseline"
+        }
+      ],
+      "log": {
+        "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/hk_supplement_suite_current.log",
+        "sha256": "d8291b1e5fa7212b6744b49499c16e2f5703912e6ed2995528061b49406ad3c7"
+      },
+      "name": "hk_daily_supplement_r4_full_file",
+      "passed": 13,
+      "status": "13_PASS_2_REPRODUCED_PREEXISTING_FAILURES"
+    },
+    {
+      "blocked": 1,
+      "command": "MANAGER_TEST_SOURCE_ROOT=/workspace/scratch/a154a3323e32/worktrees/manager_automation PYTHONPATH=.:upstreams /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q /workspace/scratch/a154a3323e32/investigation/automation/reviewer/test_daily_full_chain_independent.py -k actual_renderer_and_validator",
+      "cwd": "/workspace/scratch/a154a3323e32/worktrees/manager_automation",
+      "failed": 0,
+      "log": {
+        "path": "/workspace/scratch/a154a3323e32/investigation/automation/reviewer/daily_renderer_closure_final.log",
+        "sha256": "d0cca2e4a5cdff32ebf1832ba05b5bee250bfee3c2d72aceafb63f26027b455b"
+      },
+      "name": "actual_renderer_and_binding_import_closure",
+      "passed": 0,
+      "reason": "The actual renderer/binding inventory import is blocked by missing apps/__init__.py in this source closure. The separate canonical apps/api/__init__.py exists (41 bytes, SHA ba6c324cbd4be60367b15bd3d6035c8165ee11c8ef9950d3282a0bb75849c991); it does not fill the absent parent module. Clean shared entry import also remains blocked at the existing Stage selection namespace closure. No shim was created.",
+      "status": "BLOCKED_NOT_VERIFIED"
+    }
+  ]
+}

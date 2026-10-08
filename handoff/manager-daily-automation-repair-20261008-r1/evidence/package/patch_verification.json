@@ -1,0 +1,2014 @@
+{
+  "schema_version": "manager_daily_delivery_patch_verification.v1",
+  "captured_at_utc": "2026-10-08T18:10:33.089416+00:00",
+  "scope": "DISPOSABLE_SOURCE_ROOTS_ONLY_NOT_MAC_INTEGRATION",
+  "source_manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+  "status": "PASS",
+  "profiles": [
+    {
+      "profile": "api",
+      "source_before": {
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "status": "PASS",
+        "profile": "api",
+        "against": "before",
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1",
+        "source_root": "/workspace/scratch/a154a3323e32/investigation/automation/manager-delta-verify-das1lbf9/api",
+        "base_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+        "manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+        "package_files_checked": 33,
+        "source_files_checked": 11,
+        "preserve_files_checked": 1,
+        "package_patches_checked": 35,
+        "failures": []
+      },
+      "source_after": {
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "status": "PASS",
+        "profile": "api",
+        "against": "after",
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1",
+        "source_root": "/workspace/scratch/a154a3323e32/investigation/automation/manager-delta-verify-das1lbf9/api",
+        "base_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+        "manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+        "package_files_checked": 33,
+        "source_files_checked": 11,
+        "preserve_files_checked": 1,
+        "package_patches_checked": 35,
+        "failures": []
+      },
+      "reverse_restored": {
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "status": "PASS",
+        "profile": "api",
+        "against": "before",
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1",
+        "source_root": "/workspace/scratch/a154a3323e32/investigation/automation/manager-delta-verify-das1lbf9/api",
+        "base_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+        "manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+        "package_files_checked": 33,
+        "source_files_checked": 11,
+        "preserve_files_checked": 1,
+        "package_patches_checked": 35,
+        "failures": []
+      },
+      "patch_commands": [
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/apps/api/v35_api/manager_research_router.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "apps/api/v35_api/manager_research_router.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/apps/api/v35_api/manager_research_router.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/apps/api/v35_api/manager_research_router.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/infrastructure/_research_peripheral_store_parts/_namespace.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "infrastructure/_research_peripheral_store_parts/_namespace.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/infrastructure/_research_peripheral_store_parts/_namespace.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/infrastructure/_research_peripheral_store_parts/_namespace.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/infrastructure/scheduling/manager_announcement_supervisor.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "infrastructure/scheduling/manager_announcement_supervisor.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/infrastructure/scheduling/manager_announcement_supervisor.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/infrastructure/scheduling/manager_announcement_supervisor.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/ops/render_manager_announcement_binding.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "ops/render_manager_announcement_binding.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/ops/render_manager_announcement_binding.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/ops/render_manager_announcement_binding.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/ops/run_manager_announcement_cycle.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "ops/run_manager_announcement_cycle.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/ops/run_manager_announcement_cycle.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/ops/run_manager_announcement_cycle.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/plan_owner_dispatch.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "v4/manager_research/plan_owner_dispatch.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/plan_owner_dispatch.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/plan_owner_dispatch.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/service.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "v4/manager_research/service.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/service.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/service.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/us_mapping_research.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "v4/manager_research/us_mapping_research.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/us_mapping_research.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/us_mapping_research.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/workspace.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "v4/manager_research/workspace.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/workspace.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/workspace.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/workspace_history.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "v4/manager_research/workspace_history.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/workspace_history.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/workspace_history.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/workspace_plan_autorun.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "v4/manager_research/workspace_plan_autorun.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/workspace_plan_autorun.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/workspace_plan_autorun.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/workspace_plan_autorun.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/workspace_plan_autorun.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/workspace_history.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/workspace_history.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/workspace.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/workspace.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/us_mapping_research.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/us_mapping_research.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/service.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/service.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/plan_owner_dispatch.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/v4/manager_research/plan_owner_dispatch.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/ops/run_manager_announcement_cycle.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/ops/run_manager_announcement_cycle.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/ops/render_manager_announcement_binding.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/ops/render_manager_announcement_binding.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/infrastructure/scheduling/manager_announcement_supervisor.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/infrastructure/scheduling/manager_announcement_supervisor.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/infrastructure/_research_peripheral_store_parts/_namespace.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/infrastructure/_research_peripheral_store_parts/_namespace.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/apps/api/v35_api/manager_research_router.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/api/apps/api/v35_api/manager_research_router.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        }
+      ],
+      "exact_file_set_after": "PASS",
+      "exact_file_set_restored": "PASS"
+    },
+    {
+      "profile": "hk_child",
+      "source_before": {
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "status": "PASS",
+        "profile": "hk_child",
+        "against": "before",
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1",
+        "source_root": "/workspace/scratch/a154a3323e32/investigation/automation/manager-delta-verify-das1lbf9/hk_child",
+        "base_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+        "manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+        "package_files_checked": 33,
+        "source_files_checked": 4,
+        "preserve_files_checked": 1,
+        "package_patches_checked": 35,
+        "failures": []
+      },
+      "source_after": {
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "status": "PASS",
+        "profile": "hk_child",
+        "against": "after",
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1",
+        "source_root": "/workspace/scratch/a154a3323e32/investigation/automation/manager-delta-verify-das1lbf9/hk_child",
+        "base_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+        "manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+        "package_files_checked": 33,
+        "source_files_checked": 4,
+        "preserve_files_checked": 1,
+        "package_patches_checked": 35,
+        "failures": []
+      },
+      "reverse_restored": {
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "status": "PASS",
+        "profile": "hk_child",
+        "against": "before",
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1",
+        "source_root": "/workspace/scratch/a154a3323e32/investigation/automation/manager-delta-verify-das1lbf9/hk_child",
+        "base_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+        "manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+        "package_files_checked": 33,
+        "source_files_checked": 4,
+        "preserve_files_checked": 1,
+        "package_patches_checked": 35,
+        "failures": []
+      },
+      "patch_commands": [
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_child/ops/_macos_research_panel_daily_parts/_namespace.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "ops/_macos_research_panel_daily_parts/_namespace.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_child/ops/_macos_research_panel_daily_parts/_namespace.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_child/ops/_macos_research_panel_daily_parts/_namespace.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_child/ops/_macos_research_panel_daily_parts/hk_capture_gate.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "ops/_macos_research_panel_daily_parts/hk_capture_gate.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_child/ops/_macos_research_panel_daily_parts/hk_capture_gate.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_child/ops/_macos_research_panel_daily_parts/hk_capture_gate.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_child/ops/ensure_hk_security_master.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "ops/ensure_hk_security_master.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_child/ops/ensure_hk_security_master.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_child/ops/ensure_hk_security_master.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_child/ops/macos_research_panel_daily.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "ops/macos_research_panel_daily.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_child/ops/macos_research_panel_daily.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_child/ops/macos_research_panel_daily.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_child/ops/macos_research_panel_daily.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_child/ops/macos_research_panel_daily.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_child/ops/ensure_hk_security_master.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_child/ops/ensure_hk_security_master.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_child/ops/_macos_research_panel_daily_parts/hk_capture_gate.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_child/ops/_macos_research_panel_daily_parts/hk_capture_gate.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_child/ops/_macos_research_panel_daily_parts/_namespace.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_child/ops/_macos_research_panel_daily_parts/_namespace.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        }
+      ],
+      "exact_file_set_after": "PASS",
+      "exact_file_set_restored": "PASS"
+    },
+    {
+      "profile": "hk_upstream",
+      "source_before": {
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "status": "PASS",
+        "profile": "hk_upstream",
+        "against": "before",
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1",
+        "source_root": "/workspace/scratch/a154a3323e32/investigation/automation/manager-delta-verify-das1lbf9/hk_upstream",
+        "base_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+        "manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+        "package_files_checked": 33,
+        "source_files_checked": 1,
+        "preserve_files_checked": 0,
+        "package_patches_checked": 35,
+        "failures": []
+      },
+      "source_after": {
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "status": "PASS",
+        "profile": "hk_upstream",
+        "against": "after",
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1",
+        "source_root": "/workspace/scratch/a154a3323e32/investigation/automation/manager-delta-verify-das1lbf9/hk_upstream",
+        "base_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+        "manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+        "package_files_checked": 33,
+        "source_files_checked": 1,
+        "preserve_files_checked": 0,
+        "package_patches_checked": 35,
+        "failures": []
+      },
+      "reverse_restored": {
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "status": "PASS",
+        "profile": "hk_upstream",
+        "against": "before",
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1",
+        "source_root": "/workspace/scratch/a154a3323e32/investigation/automation/manager-delta-verify-das1lbf9/hk_upstream",
+        "base_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+        "manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+        "package_files_checked": 33,
+        "source_files_checked": 1,
+        "preserve_files_checked": 0,
+        "package_patches_checked": 35,
+        "failures": []
+      },
+      "patch_commands": [
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_upstream/shared_data/hk_daily_supplement.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "shared_data/hk_daily_supplement.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_upstream/shared_data/hk_daily_supplement.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_upstream/shared_data/hk_daily_supplement.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_upstream/shared_data/hk_daily_supplement.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/hk_upstream/shared_data/hk_daily_supplement.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        }
+      ],
+      "exact_file_set_after": "PASS",
+      "exact_file_set_restored": "PASS"
+    },
+    {
+      "profile": "scheduler_prerequisite",
+      "source_before": {
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "status": "PASS",
+        "profile": "scheduler_prerequisite",
+        "against": "before",
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1",
+        "source_root": "/workspace/scratch/a154a3323e32/investigation/automation/manager-delta-verify-das1lbf9/scheduler_prerequisite",
+        "base_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+        "manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+        "package_files_checked": 33,
+        "source_files_checked": 0,
+        "preserve_files_checked": 1,
+        "package_patches_checked": 35,
+        "failures": []
+      },
+      "source_after": {
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "status": "PASS",
+        "profile": "scheduler_prerequisite",
+        "against": "after",
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1",
+        "source_root": "/workspace/scratch/a154a3323e32/investigation/automation/manager-delta-verify-das1lbf9/scheduler_prerequisite",
+        "base_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+        "manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+        "package_files_checked": 33,
+        "source_files_checked": 0,
+        "preserve_files_checked": 1,
+        "package_patches_checked": 35,
+        "failures": []
+      },
+      "reverse_restored": {
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "status": "PASS",
+        "profile": "scheduler_prerequisite",
+        "against": "before",
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1",
+        "source_root": "/workspace/scratch/a154a3323e32/investigation/automation/manager-delta-verify-das1lbf9/scheduler_prerequisite",
+        "base_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+        "manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+        "package_files_checked": 33,
+        "source_files_checked": 0,
+        "preserve_files_checked": 1,
+        "package_patches_checked": 35,
+        "failures": []
+      },
+      "patch_commands": [],
+      "exact_file_set_after": "PASS",
+      "exact_file_set_restored": "PASS"
+    },
+    {
+      "profile": "tests",
+      "source_before": {
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "status": "PASS",
+        "profile": "tests",
+        "against": "before",
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1",
+        "source_root": "/workspace/scratch/a154a3323e32/investigation/automation/manager-delta-verify-das1lbf9/tests",
+        "base_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+        "manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+        "package_files_checked": 33,
+        "source_files_checked": 13,
+        "preserve_files_checked": 0,
+        "package_patches_checked": 35,
+        "failures": []
+      },
+      "source_after": {
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "status": "PASS",
+        "profile": "tests",
+        "against": "after",
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1",
+        "source_root": "/workspace/scratch/a154a3323e32/investigation/automation/manager-delta-verify-das1lbf9/tests",
+        "base_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+        "manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+        "package_files_checked": 33,
+        "source_files_checked": 13,
+        "preserve_files_checked": 0,
+        "package_patches_checked": 35,
+        "failures": []
+      },
+      "reverse_restored": {
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "status": "PASS",
+        "profile": "tests",
+        "against": "before",
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1",
+        "source_root": "/workspace/scratch/a154a3323e32/investigation/automation/manager-delta-verify-das1lbf9/tests",
+        "base_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+        "manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+        "package_files_checked": 33,
+        "source_files_checked": 13,
+        "preserve_files_checked": 0,
+        "package_patches_checked": 35,
+        "failures": []
+      },
+      "patch_commands": [
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/apps/web/src/manager-selection/dailyResearchRun.spec.ts.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "apps/web/src/manager-selection/dailyResearchRun.spec.ts"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/apps/web/src/manager-selection/dailyResearchRun.spec.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/apps/web/src/manager-selection/dailyResearchRun.spec.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/manager_daily_ui_owner_fixture.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "tests/manager_daily_ui_owner_fixture.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/manager_daily_ui_owner_fixture.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/manager_daily_ui_owner_fixture.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/manager_daily_ui_route_fixture.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "tests/manager_daily_ui_route_fixture.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/manager_daily_ui_route_fixture.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/manager_daily_ui_route_fixture.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_hk_daily_publication_chain.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "tests/test_hk_daily_publication_chain.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_hk_daily_publication_chain.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_hk_daily_publication_chain.py.patch"
+          ],
+          "exit_code": 0,
+          "output": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_hk_daily_publication_chain.py.patch:657: new blank line at EOF.\n+\nwarning: 1 line adds whitespace errors.\n"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_hk_daily_supplement_r4.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "tests/test_hk_daily_supplement_r4.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_hk_daily_supplement_r4.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_hk_daily_supplement_r4.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_daily_automation_20261008.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "tests/test_manager_daily_automation_20261008.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_daily_automation_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_daily_automation_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_daily_dispatch_20261008.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "tests/test_manager_daily_dispatch_20261008.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_daily_dispatch_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_daily_dispatch_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_history_contract_20261008.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "tests/test_manager_history_contract_20261008.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_history_contract_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_history_contract_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_owner_namespace_contracts.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "tests/test_manager_owner_namespace_contracts.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_owner_namespace_contracts.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_owner_namespace_contracts.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_us_daily_automation_20261008.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "tests/test_manager_us_daily_automation_20261008.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_us_daily_automation_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_us_daily_automation_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_workspace_exact_page_binding_20261008.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "tests/test_manager_workspace_exact_page_binding_20261008.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_workspace_exact_page_binding_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_workspace_exact_page_binding_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_workspace_owner_20261008.py.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "tests/test_manager_workspace_owner_20261008.py"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_workspace_owner_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_workspace_owner_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_workspace_owner_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_workspace_owner_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_workspace_exact_page_binding_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_workspace_exact_page_binding_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_us_daily_automation_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_us_daily_automation_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_owner_namespace_contracts.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_owner_namespace_contracts.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_history_contract_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_history_contract_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_daily_dispatch_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_daily_dispatch_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_daily_automation_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_manager_daily_automation_20261008.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_hk_daily_supplement_r4.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_hk_daily_supplement_r4.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_hk_daily_publication_chain.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/test_hk_daily_publication_chain.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/manager_daily_ui_route_fixture.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/manager_daily_ui_route_fixture.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/manager_daily_ui_owner_fixture.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/tests/manager_daily_ui_owner_fixture.py.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/apps/web/src/manager-selection/dailyResearchRun.spec.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/apps/web/src/manager-selection/dailyResearchRun.spec.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/tests/apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        }
+      ],
+      "exact_file_set_after": "PASS",
+      "exact_file_set_restored": "PASS"
+    },
+    {
+      "profile": "web",
+      "source_before": {
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "status": "PASS",
+        "profile": "web",
+        "against": "before",
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1",
+        "source_root": "/workspace/scratch/a154a3323e32/investigation/automation/manager-delta-verify-das1lbf9/web",
+        "base_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+        "manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+        "package_files_checked": 33,
+        "source_files_checked": 4,
+        "preserve_files_checked": 0,
+        "package_patches_checked": 35,
+        "failures": []
+      },
+      "source_after": {
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "status": "PASS",
+        "profile": "web",
+        "against": "after",
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1",
+        "source_root": "/workspace/scratch/a154a3323e32/investigation/automation/manager-delta-verify-das1lbf9/web",
+        "base_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+        "manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+        "package_files_checked": 33,
+        "source_files_checked": 4,
+        "preserve_files_checked": 0,
+        "package_patches_checked": 35,
+        "failures": []
+      },
+      "reverse_restored": {
+        "schema_version": "v4.manager_workbench_repair.delivery_verification.v1",
+        "status": "PASS",
+        "profile": "web",
+        "against": "before",
+        "package_root": "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1",
+        "source_root": "/workspace/scratch/a154a3323e32/investigation/automation/manager-delta-verify-das1lbf9/web",
+        "base_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+        "manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+        "package_files_checked": 33,
+        "source_files_checked": 4,
+        "preserve_files_checked": 0,
+        "package_patches_checked": 35,
+        "failures": []
+      },
+      "patch_commands": [
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/web/apps/web/src/api/managerWorkspace.ts.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "apps/web/src/api/managerWorkspace.ts"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/web/apps/web/src/api/managerWorkspace.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/web/apps/web/src/api/managerWorkspace.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/web/apps/web/src/manager-selection/catalystObservationPanel.ts.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "apps/web/src/manager-selection/catalystObservationPanel.ts"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/web/apps/web/src/manager-selection/catalystObservationPanel.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/web/apps/web/src/manager-selection/catalystObservationPanel.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/web/apps/web/src/manager-selection/dailyResearchRun.ts.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "apps/web/src/manager-selection/dailyResearchRun.ts"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/web/apps/web/src/manager-selection/dailyResearchRun.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/web/apps/web/src/manager-selection/dailyResearchRun.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--numstat",
+            "-z",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/web/apps/web/src/manager-selection/researchAttention.ts.patch"
+          ],
+          "status": "PASS",
+          "exact_target": "apps/web/src/manager-selection/researchAttention.ts"
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/web/apps/web/src/manager-selection/researchAttention.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/web/apps/web/src/manager-selection/researchAttention.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/web/apps/web/src/manager-selection/researchAttention.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/web/apps/web/src/manager-selection/researchAttention.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/web/apps/web/src/manager-selection/dailyResearchRun.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/web/apps/web/src/manager-selection/dailyResearchRun.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/web/apps/web/src/manager-selection/catalystObservationPanel.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/web/apps/web/src/manager-selection/catalystObservationPanel.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/web/apps/web/src/api/managerWorkspace.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "--reverse",
+            "/workspace/scratch/a154a3323e32/delivery/manager-daily-automation-repair-20261008-r1/patches/web/apps/web/src/api/managerWorkspace.ts.patch"
+          ],
+          "exit_code": 0,
+          "output": ""
+        }
+      ],
+      "exact_file_set_after": "PASS",
+      "exact_file_set_restored": "PASS"
+    }
+  ],
+  "incremental_accepted_fix_checks": [
+    {
+      "path": "v4/manager_research/workspace.py",
+      "status": "PASS"
+    },
+    {
+      "path": "v4/manager_research/workspace_history.py",
+      "status": "PASS"
+    }
+  ],
+  "live_source_or_store_touched": false
+}

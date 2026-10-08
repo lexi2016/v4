@@ -1,0 +1,48 @@
+{
+  "schema_version": "manager_daily_automation.final_publication_check.v1",
+  "checked_at_utc": "2026-10-08T18:54:53.417692+00:00",
+  "status": "PASS_LOCAL_ARTIFACT_FREEZE_ONLY",
+  "source_manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+  "source_file_set_exact": true,
+  "source_files": 33,
+  "source_hashes_match_reviewed_manifest": true,
+  "source_head_unchanged": "3f2aa6c92d87da098d33b5349698e55d337fd165",
+  "git_diff_check": "PASS",
+  "markdown_files_checked": 8,
+  "relative_links_checked": 64,
+  "evidence_identities": {
+    "source_manifest.json": {
+      "bytes": 47944,
+      "sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+      "git_blob_sha": "a8c28c5c4026e09d1eddca34fbfe2ad117858969"
+    },
+    "evidence/writer/writer_final_report.json": {
+      "bytes": 13955,
+      "sha256": "fb649a0b2cc992ec2e01ccc2d51a61376176f203a1604a9e764694efd4d0b1c1",
+      "git_blob_sha": "a9a80acb4043612dfca2c86fc7114f4e9730c5ee"
+    },
+    "independent_tests/final_review.json": {
+      "bytes": 34905,
+      "sha256": "359d56ad0702c8cdbcf7f71156da0837e884a7ccab64e1c21f5b12c39f2ef045",
+      "git_blob_sha": "28d360aa7e3e10deb1d5ba230ff7e2a2428e13b5"
+    },
+    "evidence/package/final_packaging_source_review.json": {
+      "bytes": 71848,
+      "sha256": "f1367f2ab1fb7f7eb76f1a21ebe6c9426ee321919a746d8bceaa01b3c6d4fa43",
+      "git_blob_sha": "d1f7333992291d31202f311d33452eef013d1b43"
+    },
+    "evidence/package/source_scope_audit.json": {
+      "bytes": 8160,
+      "sha256": "2d7dfaca88a3dfa67cd4a9980e6c75b3a23ee2fa7629c1fb99dd9c9dea551f99",
+      "git_blob_sha": "4ad8c2935b3bbda6c5a0fdba0c938ad6833c931d"
+    },
+    "acceptance_status.json": {
+      "bytes": 8308,
+      "sha256": "495615713317300dfac168879f92491353b26eb57ee379f970597a5764ed8b5e",
+      "git_blob_sha": "04e50e2817598260b8df96fbc2ed63d6f5bf6c73"
+    }
+  },
+  "symlinks_and_generated_caches": "NONE",
+  "utf8_payloads_only": true,
+  "scope_note": "Artifact checks only. No business tests rerun and no Mac, deployment, live API/UI, retrospective or natural acceptance performed."
+}

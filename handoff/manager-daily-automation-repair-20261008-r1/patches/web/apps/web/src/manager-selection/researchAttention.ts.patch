@@ -1,0 +1,47 @@
+--- a/apps/web/src/manager-selection/researchAttention.ts
++++ b/apps/web/src/manager-selection/researchAttention.ts
+@@ -1,4 +1,5 @@
+ import type { JsonObject, ResearchAttention, ResearchSelectionLedger, SelectionDiagnostics, UsMappingResearch, UsMarketAttention } from '../api/managerWorkspace.js';
++import { researchExecutionLabel } from './dailyResearchRun.js';
+ 
+ const text=(value:unknown,fallback='未知')=>typeof value==='string'&&value.trim()?value:fallback;
+ const dateLabel=(value:unknown)=>typeof value==='string'&&/^\d{8}$/.test(value)?`${value.slice(0,4)}-${value.slice(4,6)}-${value.slice(6,8)}`:text(value);
+@@ -183,14 +184,22 @@
+   box.append(el('h4','美股 → 港股业务关系研究（只读研究，不是选股或 BUY）'));
+   if(!mapping){box.append(el('p','映射数据未提供 · CANNOT_CONFIRM；数量未知，不能解释为零。'));host.append(box);return;}
+   const daily=mapping.daily_run;
+-  box.append(el('p',`日常流程：${daily.status}；目标港股交易日 ${dateLabel(daily.target_trade_date)}；美股来源日 ${dateLabel(daily.us_session_date)}；cutoff ${text(daily.research_cutoff)}；关系结果按日期单独保存并要求回读。`));
++  const coverage=object(daily.coverage);
++  const coverageCount=(raw:unknown)=>typeof raw==='number'&&Number.isSafeInteger(raw)&&raw>=0?String(raw):'未知';
++  const readback=object(daily.run_readback);
++  const context=daily.execution_context;
++  box.append(el('p',`日常关系映射：${daily.status}；目标港股交易日 ${dateLabel(daily.target_trade_date)}；美股来源日 ${dateLabel(daily.us_session_date)}；此映射来源 cutoff ${text(daily.research_cutoff)}。`),
++    el('p',`已审阅关系范围 ${coverageCount(coverage.reviewed_us_symbol_count)} 个；配置美股范围 ${coverageCount(coverage.configured_us_universe_count)} 只；可用美股范围 ${coverageCount(coverage.available_us_universe_count)} 只；匹配关系 ${coverageCount(coverage.matched_hk_relation_count)} 条 / 美股 ${coverageCount(coverage.matched_us_symbol_count)} 只。范围不是全市场。`),
++    el('p',researchExecutionLabel(context)),
++    el('p',`映射 owner 读回 ${text(readback.status,'未提供 · CANNOT_CONFIRM')}；运行 ${text(daily.run_id)}；产物 SHA256 ${text(daily.artifact_sha256)}；回读于 ${text(readback.read_at)}。`));
++  if(context)box.append(el('p',`原 owner 执行时间：${text(context.started_at,'开始时点未提供')} 至 ${text(context.finished_at,'结束时点未提供')}；自然运行核验 ${context.natural_run_verified===false?'未核实':'未提供'}。`));
+   if(daily.status==='NOT_RUN')box.append(el('p','该目标日尚无日常映射产物；数量未知，不等于没有匹配。'));
+-  else if(daily.status==='VALID_EMPTY')box.append(el('p','完整来源已检查当前4个已审阅美股关系，匹配为0；这只表示该小型已审关系范围为空，不代表全市场或其他关系为空。'));
++  else if(daily.status==='VALID_EMPTY')box.append(el('p',`完整来源已核，当前${coverageCount(coverage.reviewed_us_symbol_count)}个已审阅关系范围匹配为0；这不代表全市场或其他关系为空。`));
+   else if(daily.status==='FAILED'||daily.status==='INPUT_MISSING'||daily.status==='CANNOT_CONFIRM')
+     box.append(el('p',`来源或回读未闭环，匹配数量未知；${daily.gaps.join('；')||'CANNOT_CONFIRM'}。`));
+   else if(daily.status==='PARTIAL')
+     box.append(el('p',`输入覆盖不完整，不能把当前行数当作完整匹配数；${daily.gaps.join('；')||'来源部分缺失'}。`));
+-  else box.append(el('p',`已评估 ${String(daily.matches.length)} 条已审关系命中。范围来自固定33只配置美股中的4只已审阅关系，不是全市场扫描。目标日Connect资格仍未知。`));
++  else box.append(el('p',`原 owner 报告匹配港股关系 ${coverageCount(coverage.matched_hk_relation_count)} 条、涉及美股 ${coverageCount(coverage.matched_us_symbol_count)} 只。目标日 Connect 资格仍由独立通道确认。`));
+   if(daily.matches.length)renderMappingRows(box,daily.matches,'按日美股到港股研究映射');
+   const reviewed=mapping.reviewed_research;
+   if(reviewed){
+@@ -245,10 +254,10 @@
+       host.append(article);
+     }
+   }
+-  const raw=el('details');raw.append(el('summary','美股原始上涨发现（即使没有合格港股映射也保留）'));
++  const raw=el('details');raw.append(el('summary','美股原始上涨发现（独立于上述日常关系映射；即使没有合格港股映射也保留）'));
+   if(!us){raw.append(el('p','US owner 未绑定/未读取，覆盖未知。'));}
+   else{
+-    raw.append(el('p',`${text(us.coverage_scope)}；状态 ${text(us.status)}；US session ${text(us.expected_us_session)}；筛选语义 ${text(us.selection_semantics,'未声明')}${recheckLabel}。`));
++    raw.append(el('p',`原始US行情通道：${text(us.coverage_scope)}；状态 ${text(us.status)}；US session ${text(us.expected_us_session)}；此通道 cutoff ${text(us.research_cutoff)}；筛选语义 ${text(us.selection_semantics,'未声明')}${recheckLabel}。它与上方目标日关系映射分别保留各自来源日期和时点。`));
+     const industries=us.raw_industry_up as JsonObject[]||[];const individuals=us.raw_individual_up as JsonObject[]||[];
+     raw.append(el('h4',`行业代理上涨 ${industries.length} 条`));for(const row of industries)raw.append(el('p',`${text(row.label)}：${String(row.pct_change??'')}% · ${text(row.status)}`));
+     raw.append(el('h4',`配置内个股上涨 ${individuals.length} 条`));for(const row of individuals)raw.append(el('p',`${text(row.symbol)}：${String(row.change_pct??'')}% · ${text(row.session_date)}`));

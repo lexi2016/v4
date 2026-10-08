@@ -1,0 +1,45 @@
+# Independent HK reviewer evidence
+
+Repository head: 3f2aa6c92d87da098d33b5349698e55d337fd165
+Python: /workspace/scratch/a154a3323e32/test_env/bin/python (Python 3.14.6)
+Runtime date: synthetic target set from current Asia/Hong_Kong date; this is not a natural production run.
+
+## Independent actual child chain
+COMMAND: /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q /workspace/scratch/a154a3323e32/investigation/automation/reviewer/test_hk_publication_chain_independent.py
+...                                                                      [100%]
+3 passed in 0.79s
+STATUS: PASS_LIMITED_SYNTHETIC_BOUNDARIES
+
+Boundary: actual child entry/main, collector, captured-membership V2 publisher, master publisher/readback, chain stages/readback/cache are exercised. Futu is synthetic. `run_hk_0_2_authority` is replaced by a fixture writer that creates a real parquet/manifest/pointer, and the frozen HK0.2 model reader is replaced with strict panel-only validation because frozen assets are missing; this does not execute the frozen updater algorithm. TDX supplement is explicit CANNOT_CONFIRM. No TDX publication is claimed.
+
+## Writer full-chain suite
+COMMAND: /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q tests/test_hk_daily_publication_chain.py
+..........                                                               [100%]
+10 passed in 1.90s
+STATUS: PASS
+
+## Supplement sidecar focused contract
+COMMAND: /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q tests/test_hk_daily_supplement_r4.py::test_capture_records_actual_later_times_and_consumer_cutoff_is_separate tests/test_hk_daily_supplement_r4.py::test_capture_reuses_verified_ready_cache_without_connector_or_republication tests/test_hk_daily_supplement_r4.py::test_capture_rejects_parent_revision_published_after_actual_capture_start
+...                                                                      [100%]
+3 passed in 0.36s
+STATUS: PASS
+
+## Entire current supplement test file
+COMMAND: /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q tests/test_hk_daily_supplement_r4.py
+.............FF
+13 passed, 2 failed in 0.37s
+STATUS: FAIL_PREEXISTING_CASES_REPRODUCED
+
+Failed cases and exact trace endpoints:
+- test_screen_uses_master_universe_sidecar_volume_and_missing_only_price_overlay: tests/test_hk_daily_supplement_r4.py:426, expected result["coverage"]["input_candidate_count"] == 3, actual 0.
+- test_complete_panel_history_skips_sidecar_and_preserves_canonical_baseline: tests/test_hk_daily_supplement_r4.py:485, expected result["coverage"]["input_candidate_count"] == 1, actual 0.
+
+## Preimage-only attribution
+Temporary extracted repo snapshot: /tmp/luna_hk_base3f2aa6c, HEAD 3f2aa6c92d87da098d33b5349698e55d337fd165.
+COMMAND: /workspace/scratch/a154a3323e32/test_env/bin/python -m pytest -q tests/test_hk_daily_supplement_r4.py::test_screen_uses_master_universe_sidecar_volume_and_missing_only_price_overlay tests/test_hk_daily_supplement_r4.py::test_complete_panel_history_skips_sidecar_and_preserves_canonical_baseline
+FF
+2 failed in 0.41s
+
+The same node IDs failed at the same candidate-count assertions with actual 0 under the preimage source/tests (preimage lines 399 and 458). `v4/manager_research/workspace_plan.py` was unchanged from the source preimage. The only test-file delta is an added cache test before these cases; the two failing cases themselves are unchanged. Classify both as pre-existing baseline failures, not regressions from the current HK delta.
+
+Natural run: NOT_RUN. Real production inputs: NOT_RUN. TDX supplement: CANNOT_CONFIRM. Frozen HK0.2 updater algorithm: NOT_EXERCISED.

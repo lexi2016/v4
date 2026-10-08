@@ -1,0 +1,125 @@
+--- /dev/null
++++ b/apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts
+@@ -0,0 +1,122 @@
++import { execFileSync } from 'node:child_process';
++import { resolve } from 'node:path';
++import { describe, expect, it } from 'vitest';
++import { refreshManagerWorkspace, validateManagerWorkspace, type JsonObject } from './managerWorkspace';
++import { workspaceFixture } from '../manager-selection/dailyChannels.testHelper';
++
++const projectRoot = process.env.V4_TEST_SOURCE_ROOT || resolve(process.cwd(), '../..');
++const fixtureScript = resolve(projectRoot, 'tests/manager_daily_ui_owner_fixture.py');
++const unavailableFixtureScript = resolve(projectRoot, 'tests/test_manager_us_mapping_isolation_20261008.py');
++const python = process.env.V4_TEST_PYTHON || 'python3';
++let ownerDto: JsonObject | undefined;
++function ownerFields(): JsonObject {
++  if (!ownerDto) {
++    const text = execFileSync(python, [fixtureScript, '--fixture'], {
++      cwd: projectRoot,
++      encoding: 'utf8',
++      timeout: 30_000,
++      maxBuffer: 2 * 1024 * 1024,
++      env: { ...process.env, PYTHONPATH: `${projectRoot}:${projectRoot}/upstreams:${projectRoot}/tests` },
++    });
++    ownerDto = JSON.parse(text) as JsonObject;
++  }
++  return structuredClone(ownerDto);
++}
++function unavailableOwnerWorkspace(): JsonObject {
++  const text = execFileSync(python, [unavailableFixtureScript, '--fixture', '20261008', 'reader_failed'], {
++    cwd: projectRoot, encoding: 'utf8', timeout: 30_000, maxBuffer: 2 * 1024 * 1024,
++    env: { ...process.env, PYTHONPATH: `${projectRoot}:${projectRoot}/upstreams:${projectRoot}/tests` },
++  });
++  return JSON.parse(text) as JsonObject;
++}
++
++function originalWorkspace(): JsonObject {
++  const workspace = workspaceFixture() as unknown as JsonObject;
++  const fields = ownerFields();
++  Object.assign(workspace, fields);
++  return workspace;
++}
++
++describe('manager daily DTO execution and exact readback contracts', () => {
++  it('sends explicit page bindings when the refresh action has an explicit query', async () => {
++    const originalFetch = globalThis.fetch;
++    let requested = '';
++    globalThis.fetch = (async input => {
++      requested = String(input);
++      return { ok: false, status: 409 } as Response;
++    }) as typeof fetch;
++    try {
++      await expect(refreshManagerWorkspace('20261008', new AbortController().signal,
++        {selection_date: '20261008', announcement_date: '20261006'}))
++        .rejects.toThrow('WORKSPACE_REFRESH_HTTP_409');
++      const params = new URL(requested, 'http://localhost').searchParams;
++      expect(params.get('date')).toBe('20261008');
++      expect(params.get('selection_date')).toBe('20261008');
++      expect(params.get('announcement_date')).toBe('20261006');
++    } finally {
++      globalThis.fetch = originalFetch;
++    }
++  });
++
++  it('accepts actual daily owner readback and plan owner readback fields', () => {
++    const workspace = originalWorkspace();
++    expect(() => validateManagerWorkspace(workspace, '20261008')).not.toThrow();
++    const mapping = workspace.us_mapping_research as JsonObject;
++    const daily = mapping.daily_run as JsonObject;
++    const matches = daily.matches as JsonObject[];
++    expect(daily.status).toBe('COMPLETED');
++    expect(matches[0].us_symbol).toBe('LITE');
++    expect((daily.run_readback as JsonObject).status).toBe('VERIFIED');
++    expect(((workspace.plan_product as JsonObject).run_readback as JsonObject).status).toBe('VERIFIED');
++    expect((workspace.workspace_plan_attempt as JsonObject).state).toBe('FAILED');
++  });
++
++  it('accepts the real original reader-failure DTO with an unmaterialized null-target readback', () => {
++    const workspace = unavailableOwnerWorkspace();
++    expect((workspace.plan_product as JsonObject).status).toBe('NOT_MATERIALIZED');
++    expect(((workspace.plan_product as JsonObject).run_readback as JsonObject).target_trade_date).toBeNull();
++    expect(() => validateManagerWorkspace(workspace, '20261008')).not.toThrow();
++  });
++
++  it.each([
++    ['naive-start', (daily: JsonObject) => { (daily.execution_context as JsonObject).started_at = '2026-10-08T02:00:00'; }],
++    ['finish-before-start', (daily: JsonObject) => { (daily.execution_context as JsonObject).finished_at = '2026-10-08T01:00:00+00:00'; }],
++    ['natural-inference', (daily: JsonObject) => { (daily.execution_context as JsonObject).natural_run_verified = true; }],
++  ])('rejects invalid daily execution evidence: %s', (_label, mutate) => {
++    const workspace = originalWorkspace();
++    const daily = ((workspace.us_mapping_research as JsonObject).daily_run as JsonObject);
++    mutate(daily);
++    expect(() => validateManagerWorkspace(workspace, '20261008')).toThrow();
++  });
++
++  it.each([
++    ['wrong-target', (readback: JsonObject) => { readback.target_trade_date = '20261007'; }],
++    ['wrong-run', (readback: JsonObject) => { readback.run_id = 'f'.repeat(32); }],
++    ['wrong-sha', (readback: JsonObject) => { readback.artifact_sha256 = 'f'.repeat(64); }],
++  ])('rejects a verified US readback borrowed from another product: %s', (_label, mutate) => {
++    const workspace = originalWorkspace();
++    const daily = ((workspace.us_mapping_research as JsonObject).daily_run as JsonObject);
++    mutate(daily.run_readback as JsonObject);
++    expect(() => validateManagerWorkspace(workspace, '20261008')).toThrow();
++  });
++
++  it('does not let a later failed plan attempt replace or validate the saved product', () => {
++    const workspace = originalWorkspace();
++    const product = workspace.plan_product as JsonObject;
++    const latest = workspace.workspace_plan_attempt as JsonObject;
++    expect((product.run_readback as JsonObject).status).toBe('VERIFIED');
++    expect(product.status).toBe('CURRENT');
++    expect(latest.state).toBe('FAILED');
++    expect(latest.run_id).not.toBe(product.run_id);
++    expect(() => validateManagerWorkspace(workspace, '20261008')).not.toThrow();
++  });
++
++  it.each(['missing', 'malformed'] as const)('requires exact saved-attempt SHA even when latest attempt failed (%s)', kind => {
++    const workspace = originalWorkspace();
++    const product = workspace.plan_product as JsonObject;
++    const readback = product.run_readback as JsonObject;
++    if (kind === 'missing') delete readback.owner_attempt_sha256;
++    else readback.owner_attempt_sha256 = 'not-a-sha';
++    expect(() => validateManagerWorkspace(workspace, '20261008')).toThrow();
++  });
++});

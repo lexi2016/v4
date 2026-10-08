@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import infrastructure.scheduling.manager_announcement_supervisor
+  File "/workspace/scratch/a154a3323e32/worktrees/manager_automation/infrastructure/scheduling/__init__.py", line 4, in <module>
+    from infrastructure.scheduling.dispatcher import DispatchReceipt, dispatch_due
+  File "/workspace/scratch/a154a3323e32/worktrees/manager_automation/infrastructure/scheduling/dispatcher.py", line 25, in <module>
+    from infrastructure.scheduling.executor_registry import WorkloadExecutionError
+  File "/workspace/scratch/a154a3323e32/worktrees/manager_automation/infrastructure/scheduling/executor_registry.py", line 22, in <module>
+    from ops.daily_materialize import resolve_selector_panel
+  File "/workspace/scratch/a154a3323e32/worktrees/manager_automation/ops/daily_materialize.py", line 38, in <module>
+    from stage_center.consumer import StageSelectionConsumer
+  File "/workspace/scratch/a154a3323e32/worktrees/manager_automation/stage_center/__init__.py", line 6, in <module>
+    from .selection import (
+    ...<11 lines>...
+    )
+  File "/workspace/scratch/a154a3323e32/worktrees/manager_automation/stage_center/selection.py", line 35, in <module>
+    from stage_center._selection_parts import schema_values as _v4_definitions
+  File "/workspace/scratch/a154a3323e32/worktrees/manager_automation/stage_center/_selection_parts/schema_values.py", line 2, in <module>
+    from ._namespace import read_global as _v4_global
+ModuleNotFoundError: No module named 'stage_center._selection_parts._namespace'

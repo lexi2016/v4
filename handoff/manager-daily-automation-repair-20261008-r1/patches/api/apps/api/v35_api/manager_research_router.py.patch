@@ -1,0 +1,116 @@
+--- a/apps/api/v35_api/manager_research_router.py
++++ b/apps/api/v35_api/manager_research_router.py
+@@ -9,15 +9,18 @@
+ 
+ import asyncio
+ from datetime import datetime, timezone
++import hashlib
+ import json
+ from threading import Event
+ import re
+ from typing import Any, Literal
++from uuid import uuid4
+ 
+ from starlette.concurrency import run_in_threadpool
+ from fastapi import APIRouter, HTTPException, Query, Request
+ from v4.manager_research.store import StoreError
+ from v4.manager_research.workspace_read_control import WorkspaceReadError
++from v4.manager_research.workspace_projection import HK
+ 
+ 
+ _DATE_RE = re.compile(r"^\d{8}$")
+@@ -241,14 +244,32 @@
+                     pass
+ 
+     @router.post("/workspace/refresh")
+-    async def refresh_manager_workspace(request: Request, date: str | None = None) -> dict[str, Any]:
+-        _same_origin(request)
+-        await _reject_client_body(request)
+-        target = _date(date)
++    async def refresh_manager_workspace(request: Request, date: str | None = None,
++            selection_date: str | None = None,
++            announcement_date: str | None = None) -> dict[str, Any]:
++        _same_origin(request)
++        await _reject_client_body(request)
++        target = _date(date)
++        workspace_date_bindings: dict[str, str] = {}
++        if selection_date is not None:
++            workspace_date_bindings['selection_date'] = _date(selection_date)
++        if announcement_date is not None:
++            normalized_announcement = _announcement_date(announcement_date)
++            assert normalized_announcement is not None
++            workspace_date_bindings['announcement_date'] = normalized_announcement
++        actual_now = datetime.now(HK)
++        target_day = datetime.strptime(target, "%Y%m%d").date()
++        timing = "RETROSPECTIVE" if target_day < actual_now.astimezone(HK).date() else "UNCLASSIFIED"
++        trigger_id = hashlib.sha256(uuid4().bytes).hexdigest()
+         try:
+             # Existing owner projects existing inputs; no catalyst refresh,
+             # quote collection, Stage job or browser-supplied stock list.
+-            result = await run_in_threadpool(service.refresh_workspace_plan, target)
++            result = await run_in_threadpool(service.refresh_workspace_plan, target,
++                execution_kind="MANUAL_REFRESH", now=actual_now,
++                workspace_date_bindings=workspace_date_bindings or None,
++                execution_context={"trigger_kind":"MANUAL","timing":timing,
++                    "scheduled_for":None,"trigger_id":trigger_id,
++                    "natural_run_verified":False})
+             if not isinstance(result, dict) or not isinstance(result.get("plan_product"), dict):
+                 raise ValueError("WORKSPACE_PLAN_REFRESH_RESULT_INVALID")
+             product = result["plan_product"]
+@@ -302,6 +323,34 @@
+         except (ValueError, OSError, KeyError, TypeError, StoreError) as exc:
+             raise HTTPException(status_code=409, detail="WORKSPACE_PLAN_REFRESH_FAILED") from exc
+ 
++    @router.post("/workspace/us-mapping/refresh")
++    async def refresh_us_mapping(request: Request, date: str | None = None) -> dict[str, Any]:
++        """Explicit, bounded recovery through the original US mapping owner."""
++        _same_origin(request)
++        await _reject_client_body(request)
++        target = _date(date)
++        actual_now = datetime.now(HK)
++        target_day = datetime.strptime(target, "%Y%m%d").date()
++        timing = "RETROSPECTIVE" if target_day < actual_now.date() else "UNCLASSIFIED"
++        trigger_id = hashlib.sha256(uuid4().bytes).hexdigest()
++        try:
++            result = await run_in_threadpool(
++                service.refresh_us_mapping_research, target, now=actual_now,
++                timeout_seconds=5.0,
++                execution_context={
++                    "trigger_kind": "MANUAL",
++                    "timing": timing,
++                    "scheduled_for": None,
++                    "trigger_id": trigger_id,
++                    "natural_run_verified": False,
++                },
++            )
++            if not isinstance(result, dict) or result.get("target_trade_date") != target:
++                raise ValueError("US_MAPPING_OWNER_RESULT_INVALID")
++            return {**result, "target_trade_date": target}
++        except (ValueError, OSError, KeyError, TypeError, RuntimeError, TimeoutError, StoreError) as exc:
++            raise HTTPException(status_code=409, detail="US_MAPPING_OWNER_REFRESH_FAILED") from exc
++
+     @router.post("/workspace/scheduled-cycle")
+     async def run_bound_workspace_cycle(request: Request, date: str | None = None,
+             binding_sha256: str | None = None) -> dict[str, Any]:
+@@ -314,6 +363,21 @@
+         try:
+             from v4.manager_research.plan_owner_dispatch import execute_bound_plan_cycle
+             return await run_in_threadpool(execute_bound_plan_cycle, service, target, binding_sha256)
++        except (ValueError, OSError, KeyError, TypeError, RuntimeError, TimeoutError, StoreError) as exc:
++            raise HTTPException(status_code=409, detail="SCHEDULED_WORKSPACE_OWNER_FAILED") from exc
++
++    @router.post("/workspace/daily-cycle")
++    async def run_bound_daily_workspace_cycle(request: Request, date: str | None = None,
++            binding_sha256: str | None = None) -> dict[str, Any]:
++        """Run the fixed daily preparation and one original-plan child."""
++        _same_origin(request)
++        await _reject_client_body(request)
++        target = _date(date)
++        if binding_sha256 is None or re.fullmatch(r"[0-9a-f]{64}", binding_sha256) is None:
++            raise HTTPException(status_code=422, detail="binding_sha256 must be a lowercase SHA256")
++        try:
++            from v4.manager_research.plan_owner_dispatch import execute_bound_daily_cycle
++            return await run_in_threadpool(execute_bound_daily_cycle, service, target, binding_sha256)
+         except (ValueError, OSError, KeyError, TypeError, RuntimeError, TimeoutError, StoreError) as exc:
+             raise HTTPException(status_code=409, detail="SCHEDULED_WORKSPACE_OWNER_FAILED") from exc
+ 

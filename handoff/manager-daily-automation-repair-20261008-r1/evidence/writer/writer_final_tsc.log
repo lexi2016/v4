@@ -1,0 +1,5 @@
+COMMAND: /workspace/scratch/a154a3323e32/candidate/apps/web/node_modules/.bin/tsc --noEmit --strict --target ES2022 --module ESNext --moduleResolution Bundler --lib ES2022,DOM src/api/managerWorkspace.ts src/manager-selection/dailyResearchRun.ts src/manager-selection/researchAttention.ts
+WORKDIR: /workspace/scratch/a154a3323e32/worktrees/manager_automation/apps/web
+--- tsc output ---
+
+EXIT_CODE=0
