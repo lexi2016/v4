@@ -1,0 +1,419 @@
+{
+  "schema_version": "v4.manager_workbench.handoff_evidence.v1",
+  "package_id": "V4_MANAGER_WORKBENCH_HANDOFF_20261008",
+  "observed_date": "2026-10-08",
+  "observed_time": "CANNOT_CONFIRM",
+  "timezone": "Asia/Shanghai",
+  "run_id": "CANNOT_CONFIRM",
+  "scope": {
+    "goal": "恢复并验证经理工作台公告选股、港股通选股、超跌选股的每日自动产出",
+    "entrypoint": "http://127.0.0.1:8873",
+    "page_reproduction": "http://127.0.0.1:8873/manager-selection/?date=20261007&announcement_date=20261007&plan_date=20261008",
+    "date_bindings": {
+      "selection_date": "20261008",
+      "announcement_date": "20261007",
+      "plan_date": "20261008"
+    },
+    "readback_runs_and_receipts": "CANNOT_CONFIRM"
+  },
+  "evidence": [
+    {
+      "id": "EV-01",
+      "kind": "live_api_readback_summary",
+      "date": "20261008",
+      "request": "GET /api/v4/manager/workspace?date=20261008",
+      "observed_fields": {
+        "announcement_reviewed_analysis": "CANNOT_CONFIRM",
+        "gap": "ANNOUNCEMENT_ANALYSIS_NOT_CONSUMED:ANNOUNCEMENT_AGENT_JUDGMENT_RECEIPT_INVALID"
+      },
+      "http_status": "CANNOT_CONFIRM",
+      "response_sha256": "CANNOT_CONFIRM",
+      "run_id": "CANNOT_CONFIRM",
+      "source": "controller-provided live observation on 2026-10-08"
+    },
+    {
+      "id": "EV-02",
+      "kind": "live_api_readback_summary",
+      "selection_date": "20261008",
+      "publication_date": "2026-10-07",
+      "request": "GET /api/v4/manager/research/announcements/analysis?date=20261008&publication_date=2026-10-07",
+      "observed_fields": {
+        "analysis": "VERIFIED",
+        "owner_import_receipt": "VERIFIED"
+      },
+      "http_status": "CANNOT_CONFIRM",
+      "product_sha256": "CANNOT_CONFIRM",
+      "evidence_run_id": "CANNOT_CONFIRM",
+      "source": "controller-provided live observation on 2026-10-08",
+      "limitation": "与 EV-01 工作台消费者状态不一致；根因尚未定位。"
+    },
+    {
+      "id": "EV-03",
+      "kind": "live_api_readback_summary",
+      "selection_date": "20261008",
+      "channel": "market_screen",
+      "status": "CANNOT_CONFIRM",
+      "gaps": [
+        "PLAN_HK_02_EXACT_DATE_PANEL_MISSING",
+        "SCREEN_PANEL_AUTHORITY_UNVERIFIED"
+      ],
+      "panel_identity": "CANNOT_CONFIRM",
+      "expected_panel_session_for_phase": "CANNOT_CONFIRM",
+      "producer_fault_conclusion": "NOT_CLAIMED",
+      "source": "controller-provided live observation on 2026-10-08"
+    },
+    {
+      "id": "EV-04",
+      "kind": "live_api_readback_summary",
+      "selection_date": "20261008",
+      "channel": "formal_connect_eligibility",
+      "status": "CANNOT_CONFIRM",
+      "gaps": [
+        "HK_UNIVERSE_V2_ARTIFACT_MISSING",
+        "TARGET_HK_CONNECT_MEMBERSHIP_UNVERIFIED"
+      ],
+      "target_date_membership_identity": "CANNOT_CONFIRM",
+      "source": "controller-provided live observation on 2026-10-08"
+    },
+    {
+      "id": "EV-05",
+      "kind": "live_api_readback_summary",
+      "selection_date": "20261008",
+      "channel": "us_relation",
+      "statuses": {
+        "source": "READY",
+        "mapping": "NOT_EVALUATED",
+        "daily_run": "NOT_RUN"
+      },
+      "relation_identity": "CANNOT_CONFIRM",
+      "source": "controller-provided live observation on 2026-10-08",
+      "limitation": "来源可读不代表关系评估完成；不得把关系缺失当成零关系或港股通资格。"
+    },
+    {
+      "id": "EV-06",
+      "kind": "live_api_readback_summary",
+      "selection_date": "20261008",
+      "channel": "plan_product",
+      "status": "NOT_MATERIALIZED",
+      "run_id": "CANNOT_CONFIRM",
+      "product_sha256": "CANNOT_CONFIRM",
+      "source": "controller-provided live observation on 2026-10-08"
+    },
+    {
+      "id": "EV-07",
+      "kind": "live_api_readback_summary",
+      "selection_date": "20261008",
+      "channel": "workbench_research",
+      "status": "PENDING_SLOT",
+      "natural_slot_reached": false,
+      "source": "controller-provided live observation on 2026-10-08",
+      "limitation": "检查时自然时段尚未到；该状态不证明故障，也不构成自然运行通过。"
+    },
+    {
+      "id": "EV-08",
+      "kind": "user_screenshot_summary",
+      "page_selection_date": "20261007",
+      "page_announcement_date": "20261007",
+      "page_plan_date": "20261008",
+      "observed_fields": {
+        "hkex": "NOT_RUN / no owner",
+        "us_relation": "NOT_EVALUATED",
+        "plan_product": "NOT_MATERIALIZED",
+        "stage_receipt": "UNKNOWN"
+      },
+      "screenshot_path": "CANNOT_CONFIRM",
+      "capture_sha256": "CANNOT_CONFIRM",
+      "source": "user-provided screenshot summary relayed by controller",
+      "limitation": "不是 20261008 现役页面的重新读回。"
+    },
+    {
+      "id": "EV-09",
+      "kind": "runtime_identity_summary",
+      "observed_date": "2026-10-08",
+      "api_plist_configured_release": "manager-daily-chain-20261008-r3-api",
+      "configured_api_app_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r3-api/app",
+      "running_process_module_fingerprint": "CANNOT_CONFIRM",
+      "actually_loaded_release": "CANNOT_CONFIRM",
+      "api_plist_sha256": "72050bf4c7f00c8271cf9226ea866683a8e9e459d2875547b08f69fad30bfdf5",
+      "api_manifest_sha256": "946c49b9c34bd09fbca04644556de3acba1635eb240fa9293f6391e9d46b40e9",
+      "api_manifest_sha_observation": "previous-round check; not re-read in this packet turn",
+      "scheduler_release": "hk-research-calendar-all-r1-20261007-scheduler",
+      "scheduler_plist_sha256": "c478c87e7866fa50154df674ea7cb570197251aaa5da3014b3666e7f22914da2",
+      "scheduler_plist_path": "CANNOT_CONFIRM",
+      "state_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research",
+      "scheduler_invocation_contract": "CANNOT_CONFIRM",
+      "source": "controller-provided plist configuration identity observation",
+      "limitation": "plist 配置身份不证明进程实际加载的模块版本，也不能证明 scheduler 已触发三路 owner 或自然链路已验收。"
+    },
+    {
+      "id": "EV-12",
+      "kind": "cross_conversation_coordination_report",
+      "observed_date": "2026-10-08",
+      "reported_api_switch_performed": false,
+      "reported_api_release": "manager-daily-chain-20261008-r3-api",
+      "reported_process_id": 87015,
+      "reported_next_release_window": "RELEASED",
+      "independently_verified_by_packet_writer": false,
+      "source": "controller relayed another conversation status",
+      "limitation": "仅为跨会话报告；未用本轮进程模块指纹核实运行身份。"
+    },
+    {
+      "id": "EV-10",
+      "kind": "local_canonical_source_mapping",
+      "repository_path": "/Users/lexi/Desktop/学习/v4_app",
+      "local_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+      "worktree_state": "mapped files include modified or untracked content; see source_map.json",
+      "source_sha_scope": "local file bytes at packet preparation time",
+      "runtime_behavior_proven": false,
+      "functionality_tests_run": false
+    },
+    {
+      "id": "EV-11",
+      "kind": "related_test_inventory",
+      "files_found_in_current_tests": [
+        "tests/test_manager_announcement_api_and_integrity.py",
+        "tests/test_manager_announcement_analysis.py",
+        "tests/test_manager_announcement_daily_flow.py",
+        "tests/test_manager_announcement_autorun.py",
+        "tests/test_manager_connect_capture_adapter_r4.py",
+        "tests/test_manager_rebound_two_gate_screen.py",
+        "tests/test_manager_us_mapping_research.py",
+        "tests/test_manager_plan_identity_r2.py"
+      ],
+      "inspected_cases": [
+        {
+          "path": "tests/test_manager_announcement_analysis.py",
+          "sha256": "611758093044e1f4f299be4c8df1f52cffe0f6b43166860cba46df4e9c9eb626",
+          "ranges": ["140-189", "379-417"],
+          "coverage_summary": "analysis source/input SHA and target-date validation; analysis GET date selection and missing-as-not-zero; internal product import idempotence followed by analysis GET readback"
+        },
+        {
+          "path": "tests/test_manager_announcement_api_and_integrity.py",
+          "sha256": "023140ce735d5cc51725f82c49e6414e4b7b559e9a279e18d9bd03903df699ad",
+          "ranges": ["15-45", "84-125"],
+          "coverage_summary": "isolated router refresh/readback and separate workspace GET/readback behavior with simulated upstream"
+        }
+      ],
+      "duplicate_copy": {
+        "current_path": "tests/test_manager_announcement_api_and_integrity.py",
+        "archive_path": "research/mac-source-handoff-20260930/source/tests/tests/test_manager_announcement_api_and_integrity.py",
+        "same_sha256": true,
+        "sha256": "023140ce735d5cc51725f82c49e6414e4b7b559e9a279e18d9bd03903df699ad"
+      },
+      "same_product_analysis_import_workspace_parity": "NOT_DEMONSTRATED_BY_INSPECTED_CASES_NOT_EXHAUSTIVE",
+      "coverage_note": "现有测试分别覆盖分析/导入和 workspace/router 行为；所检视用例没有证明同一日期、同一产品 SHA 同时贯穿 analysis GET、import readback 与 workspace GET。此结论只描述所检视用例，不主张整个测试库不存在此类覆盖。",
+      "tests_executed": false,
+      "source": "bounded local test inspection and controller mapping"
+    },
+    {
+      "id": "EV-12",
+      "kind": "cross_conversation_coordination_report",
+      "observed_date": "2026-10-08",
+      "reported_api_switch_performed": false,
+      "reported_api_release": "manager-daily-chain-20261008-r3-api",
+      "reported_process_id": 87015,
+      "reported_next_release_window": "RELEASED",
+      "independently_verified_by_packet_writer": false,
+      "source": "controller relayed another conversation status",
+      "limitation": "仅为跨会话报告；未用本轮进程模块指纹核实运行身份。"
+    },
+    {
+      "id": "EV-13",
+      "kind": "previous_round_import_readback_report",
+      "reported_counts": {
+        "stock_codes": 33,
+        "observations": 54
+      },
+      "company_count": "NOT_INCLUDED",
+      "source_kind": "previous-round controller report of manual Eastmoney import/readback",
+      "receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/candidate/analysis-readback-compat/review/compat_live_independent_review.json",
+      "receipt_sha256_provided_by_controller": "308f6fbb5bdc2cd060430d4967d9af72ef42aeb7dde2eb90c3e948bbfa3a71cb",
+      "receipt_sha256_rechecked_by_packet_writer": false,
+      "receipt_path_available_in_current_checkout": false,
+      "remote_base_commit_provided_by_controller": "0382f753929365048d231a7252d9c328d40f8522",
+      "count_rechecked_this_round": false,
+      "independent_review_this_round": false,
+      "raw_data_read": false,
+      "limitation": "这些聚合数量来自前轮报告，不证明全经理工作台、自动链路或自然运行已可用。"
+    }
+  ],
+  "issues": [
+    {
+      "id": "ISSUE-01",
+      "priority": "P0",
+      "finding_type": "EXECUTION_AND_ACCEPTANCE_GAP",
+      "phenomenon": "三路每日自动执行、每路独立产物与自然时段结果尚无可确认的端到端回执。API plist 配置指向 R3，scheduler plist 配置仍指向 20261007 的旧 release；进程实际加载模块版本和 scheduler 调用对象均 CANNOT_CONFIRM。工作台计划未物化，自然时段为 PENDING_SLOT（未到时段，不是故障）。",
+      "evidence_refs": ["EV-06", "EV-07", "EV-09"],
+      "source_refs": [
+        "v4/manager_research/announcement_autorun.py:135-167",
+        "v4/manager_research/workspace_plan_autorun.py:64-105"
+      ],
+      "root_cause": "CANNOT_CONFIRM",
+      "fix_target": "核实当前 scheduler 到公告、港股通、超跌 owner 的真实调用与日期合同；每路采用幂等运行身份、有限重试，允许失败渠道隔离，并为错过窗口记录明确补跑类型。先确认 R3 与 canonical 的对应关系。",
+      "acceptance": [
+        "在目标自然交易日看到 scheduler 触发、每路各自的 run/输入/产物回执及完成或明确失败状态。",
+        "错过自然窗口时显式记录补跑类型，不把人工补跑标为自然运行。",
+        "以实际加载版本、API、重载页面读回与自然时段结果共同验收；PENDING_SLOT 不计失败或通过。"
+      ]
+    },
+    {
+      "id": "ISSUE-02",
+      "priority": "P1",
+      "finding_type": "OBSERVED_CONSUMER_INCONSISTENCY",
+      "phenomenon": "公告分析与 owner 导入 API 显示 VERIFIED，但同一目标日工作台读回仍为 CANNOT_CONFIRM，gap 指向 ANNOUNCEMENT_AGENT_JUDGMENT_RECEIPT_INVALID。",
+      "evidence_refs": ["EV-01", "EV-02"],
+      "source_refs": [
+        "v4/manager_research/workspace_announcements.py:1714-1725",
+        "v4/manager_research/workspace_announcements.py:2232-2304",
+        "apps/api/v35_api/manager_research_router.py:318-347",
+        "apps/api/v35_api/manager_research_router.py:349-413",
+        "v4/manager_research/workspace.py:495-507",
+        "v4/manager_research/workspace.py:648-658"
+      ],
+      "root_cause": "CANNOT_CONFIRM",
+      "fix_target": "逐项核对目标日期、publication_date、product/source manifest SHA、evidence_run_id、handoff manifest、agent judgment receipt、owner import receipt 与 cutoff；让 workspace 消费者和 API 读回遵循同一有效产品合同。",
+      "acceptance": [
+        "同一目标日期和 publication_date 的已导入产品可由工作台同一消费者读到并显示 VERIFIED/CONSUMED，且回执身份 SHA 一致。",
+        "输入不一致时保留具体缺口；不通过只改状态文案或绕过 receipt 校验。",
+        "新增跨消费者回归检查覆盖 analysis GET、owner import 和 workspace GET 的同产品读回。"
+      ]
+    },
+    {
+      "id": "ISSUE-03",
+      "priority": "P1",
+      "finding_type": "INPUT_AUTHORITY_GAP",
+      "phenomenon": "20261008 港股通目标日资格无法确认；同时尚未映射到固定 D-1 canonical Top100 阶段池。目标日 HK_UNIVERSE_V2 资格和 D-1 阶段池是两个合同，不能互相替代。",
+      "evidence_refs": ["EV-04"],
+      "source_refs": [
+        "v4/manager_research/connect_selection.py:17-87",
+        "v4/manager_research/connect_selection.py:136-183",
+        "v4/manager_research/connect_capture_adapter.py:160-168",
+        "v4/manager_research/connect_capture_adapter.py:338-356"
+      ],
+      "root_cause": "CANNOT_CONFIRM",
+      "fix_target": "恢复精确目标日 HK_UNIVERSE_V2 资格 owner 证据，并单独追踪 D-1 canonical Top100 阶段池的 owner、交易日、run、manifest 与消费者；不得用 US 关系或完整市场池替代。",
+      "acceptance": [
+        "目标日资格读回包含同日市场语义、来源 SHA、采集与可用时点，满足研究 cutoff。",
+        "阶段入口仅消费准确前一交易日 canonical Top100，展示可追溯输入身份和行数；缺失时状态为 CANNOT_CONFIRM。",
+        "明确 US relation 不产生港股通资格，也不代替 D-1 阶段池。"
+      ]
+    },
+    {
+      "id": "ISSUE-04",
+      "priority": "P1",
+      "finding_type": "SCREEN_SOURCE_GAP",
+      "phenomenon": "market_screen 对请求的目标日返回 CANNOT_CONFIRM，缺精确日期 HK 0.2 面板且面板权威性未验证；当前没有证据判定该阶段预期应读取哪一个已完成交易日面板，也不能据此断言 producer 故障。",
+      "evidence_refs": ["EV-03"],
+      "source_refs": [
+        "v4/manager_research/workspace.py:532-538",
+        "v4/manager_research/workspace.py:589-596",
+        "v4/manager_research/workspace_plan.py:853-886"
+      ],
+      "root_cause": "CANNOT_CONFIRM",
+      "fix_target": "复用现有权威 HK 0.2 面板及其 manifest、精确 market_session、研究 cutoff 和证券主数据；先按盘前/盘后运行阶段与交易日历确定预期读取的已完成交易日面板，再判断缺口；不要另造行情 producer 或要求未收盘的当日完整数据。",
+      "acceptance": [
+        "明确定义盘前使用哪个已完成交易日面板、盘后使用哪个面板，以及每种面板日期如何映射到目标选股日。",
+        "按对应阶段核对 panel、manifest、交易日、security master 和 source SHA，并确认满足 cutoff。",
+        "期望面板日期尚未到达或来源无法验证时保留 CANNOT_CONFIRM；不据此直接判 producer 故障，也不报告空选股结果。"
+      ]
+    },
+    {
+      "id": "ISSUE-05",
+      "priority": "P1",
+      "finding_type": "METRIC_PROVENANCE_GAP",
+      "phenomenon": "超跌筛选的两道研究门已映射为收盘价不高于此前 60 个完整交易日最高价的 80%，且当前量不少于此前 5 个完整 HK 交易日均量的 1.5 倍；代码输出保留 volume_unit_status=NOT_PROVEN，来源量纲未闭环。",
+      "evidence_refs": ["EV-03", "EV-10"],
+      "source_refs": [
+        "v4/manager_research/workspace_plan.py:1127-1185",
+        "v4/manager_research/workspace_plan.py:1226-1262"
+      ],
+      "root_cause": "CANNOT_CONFIRM",
+      "fix_target": "先确定各运行阶段的面板日期合同：盘前使用哪个已完成交易日面板、盘后面板日期如何映射到目标选股日；再沿对应 HK 0.2 面板与已接入补充源核实当前量及 5 日均量的原始单位、倍率和跨来源一致性。未收盘的当日全量不得作为前提。",
+      "acceptance": [
+        "盘前与盘后各自明确已完成面板日期、交易日历映射和目标选股日。",
+        "通过可追溯来源说明 volume 单位与任何归一化倍率，并用独立样例验证门槛比较。",
+        "仍保持两道准入门和 UNKNOWN/PENDING 语义；不通过标签更名或阈值放宽解决。"
+      ]
+    },
+    {
+      "id": "ISSUE-06",
+      "priority": "P1",
+      "finding_type": "INDEPENDENT_CHANNEL_ACCEPTANCE_GAP",
+      "phenomenon": "美股来源 READY，但关系映射 NOT_EVALUATED、每日关系运行 NOT_RUN。尚无证据证明某个依赖或不依赖美股关系的渠道如何独立运行。",
+      "evidence_refs": ["EV-05"],
+      "source_refs": [
+        "v4/manager_research/workspace.py:618-664",
+        "v4/manager_research/us_market_bridge.py:239-267",
+        "v4/manager_research/us_market_bridge.py:372",
+        "apps/web/src/manager-selection/businessStatus.ts:105-137"
+      ],
+      "root_cause": "CANNOT_CONFIRM",
+      "fix_target": "明确并验证实际依赖图：美股关系只阻断确实消费它的链路；公告、港股通、超跌中的无依赖渠道在美股未评估时仍可分别运行。关系缺失保持 NOT_EVALUATED，不折成零。",
+      "acceptance": [
+        "同一日期上每路有独立状态与依赖记录；只在真实依赖输入缺失时阻断该路。",
+        "美股 source READY 不等于 mapping verified、零关系或港股通资格。"
+      ]
+    },
+    {
+      "id": "ISSUE-07",
+      "priority": "P2",
+      "finding_type": "REGRESSION_COVERAGE_GAP",
+      "phenomenon": "现有测试分别覆盖 analysis 日期/读取/导入和 router/workspace 行为；已检查用例未证明同一日期、同一产品 SHA 贯穿 analysis GET、import readback 与 workspace GET 的三端 parity。这不是整个测试库无此覆盖的断言。",
+      "evidence_refs": ["EV-01", "EV-02", "EV-11"],
+      "source_refs": [
+        "tests/test_manager_announcement_analysis.py:140-189,379-417",
+        "tests/test_manager_announcement_api_and_integrity.py:15-45,84-125",
+        "tests/test_manager_announcement_daily_flow.py",
+        "tests/test_manager_announcement_autorun.py",
+        "tests/test_manager_connect_capture_adapter_r4.py",
+        "tests/test_manager_rebound_two_gate_screen.py",
+        "tests/test_manager_us_mapping_research.py",
+        "tests/test_manager_plan_identity_r2.py"
+      ],
+      "root_cause": "CANNOT_CONFIRM",
+      "fix_target": "为 analysis GET、import readback、workspace GET 增加同日期、同产品、同 SHA 的消费合同回归；保留各端点独立失败语义。",
+      "acceptance": [
+        "同一 fixture 先导入并读取 analysis，再读取 workspace，逐项核对状态和产品 SHA。",
+        "额外覆盖错误日期、cutoff 超时、无效 judgment/handoff/owner receipt；测试应能区分具体失败原因。"
+      ]
+    },
+    {
+      "id": "ISSUE-08",
+      "priority": "P2",
+      "finding_type": "UI_AND_NATURAL_ACCEPTANCE_GAP",
+      "phenomenon": "用户复现参数将 date=20261007、announcement_date=20261007、plan_date=20261008 放在同一请求中；这是需要按合同分别解释的产品日期组合，不能擅自统一。截图不是 20261008 三路股票、理由、目标日期及运行时间的重载 UI 读回，因此首屏行为未验收。",
+      "evidence_refs": ["EV-07", "EV-08"],
+      "source_refs": [
+        "apps/web/src/manager-selection/businessStatus.ts:48-137",
+        "v4/manager_research/workspace.py:577-614"
+      ],
+      "root_cause": "CANNOT_CONFIRM",
+      "fix_target": "恢复首屏按渠道展示实际股票、理由、日期和运行时间；将技术诊断折叠显示，并保留每路独立的未运行、未评估、部分和未知状态。",
+      "acceptance": [
+        "对 date、announcement_date/publication_date、plan_date 分别解释并绑定输入/产物，不把 date=20261007、announcement_date=20261007、plan_date=20261008 擅自改成同一天。",
+        "目标自然运行后重载 /manager-selection/ 并绑定三个独立日期，核对每路股票、理由、生成时间与 run/source SHA。",
+        "缺失字段保持缺失，未执行状态不显示成零只股票；页面文案变化不能代替 API/行为验收。"
+      ]
+    }
+  ],
+  "safety_boundary": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "selection_gate_relaxed": false,
+    "raw_market_or_announcement_data_exported": false,
+    "functional_tests_run": false,
+    "service_or_scheduler_changed": false,
+    "github_commit_or_push_performed": false
+  },
+  "status": {
+    "IMPLEMENTED": "交接材料草稿已写；源/工作流映射已记录为本地 canonical 路径。",
+    "TESTED": "NOT_RUN（功能测试未运行；仅允许的包内 JSON/SHA 完整性核验待执行）。",
+    "API_VERIFIED": "仅采用主控提供的 2026-10-08 live readback 摘要；本 Writer 未重新请求 API。",
+    "UI_VERIFIED": "CANNOT_CONFIRM（本 Writer 未重新加载 UI）。",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM（目标自然运行尚未观察）。",
+    "DEPLOYED": "CANNOT_CONFIRM（plist 配置有主控核验；运行进程实际加载模块指纹未知，本 Writer 未改变服务或调度器）。",
+    "UPLOADED_TO_GITHUB": "NOT_PERFORMED_BY_WRITER（无 commit/push 权限范围）。"
+  }
+}

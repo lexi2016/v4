@@ -1,0 +1,234 @@
+{
+  "schema_version": "v4.manager_workbench.handoff_source_map.v1",
+  "package_id": "V4_MANAGER_WORKBENCH_HANDOFF_20261008",
+  "created_for": "handoff only; no source code copied into this package",
+  "entrypoint": {
+    "application": "V4 unified research workbench",
+    "base_url": "http://127.0.0.1:8873",
+    "page": "/manager-selection/",
+    "reproduction_url": "http://127.0.0.1:8873/manager-selection/?date=20261007&announcement_date=20261007&plan_date=20261008",
+    "selected_date_field": "date",
+    "announcement_date_field": "announcement_date / publication_date",
+    "plan_date_field": "plan_date",
+    "date_contract": "三个日期独立绑定；不得将公告日、选股日、计划日合并"
+  },
+  "local_repository": {
+    "path": "/Users/lexi/Desktop/学习/v4_app",
+    "local_head_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "source_sha_basis": "本包准备时本地工作树文件字节的 SHA-256，不是 commit 中的 blob SHA。",
+    "source_worktree_status": "所列源码包含 modified 或 untracked 文件；这些 SHA 不能证明远端分支或现役 release 使用相同字节。",
+    "repository_root_is_current_runtime": false,
+    "runtime_source_equivalence": "CANNOT_CONFIRM"
+  },
+  "controller_provided_remote_handoff_context": {
+    "repository": "lexi2016/v4",
+    "previously_verified_remote_base_commit": "0382f753929365048d231a7252d9c328d40f8522",
+    "previously_verified_remote_tree": "baef558a192e7c4379e7849d7a8d9295b2b91959",
+    "previous_handoff_path": "handoff/manager-daily-chain-20261008",
+    "planned_new_branch": "codex/manager-workbench-problem-pack-20261008",
+    "planned_new_path": "handoff/manager-workbench-problem-pack-20261008",
+    "new_branch_or_path_created": false,
+    "remote_state_rechecked_by_packet_writer": false,
+    "upload_status": "NOT_PERFORMED",
+    "source_note": "以上 remote 身份由主控提供；此 Writer 未访问 GitHub，也未创建分支、提交或推送。"
+  },
+  "parallel_session_coordination_report": {
+    "reported_api_switch_performed": false,
+    "reported_api_release": "manager-daily-chain-20261008-r3-api",
+    "reported_process_id": 87015,
+    "reported_next_release_window": "RELEASED",
+    "independently_verified_by_packet_writer": false,
+    "followup_boundary": "后续业务改动前核对现役 release、进程与加载模块指纹；不纳入已交接的 A 池 canary 或其他审查问题。"
+  },
+  "runtime_identity": {
+    "api_plist_configuration_observed_by_controller": {
+      "plist_configured_release_id": "manager-daily-chain-20261008-r3-api",
+      "app_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r3-api/app",
+      "plist_sha256": "72050bf4c7f00c8271cf9226ea866683a8e9e459d2875547b08f69fad30bfdf5",
+      "manifest_sha256": "946c49b9c34bd09fbca04644556de3acba1635eb240fa9293f6391e9d46b40e9",
+      "manifest_sha_observation": "previous-round check; this packet writer did not re-read it",
+      "runtime_source_files_and_hashes": "CANNOT_CONFIRM",
+      "running_process_module_fingerprint": "CANNOT_CONFIRM",
+      "actually_loaded_release": "CANNOT_CONFIRM"
+    },
+    "scheduler_plist_configuration_observed_by_controller": {
+      "plist_configured_release_id": "hk-research-calendar-all-r1-20261007-scheduler",
+      "plist_sha256": "c478c87e7866fa50154df674ea7cb570197251aaa5da3014b3666e7f22914da2",
+      "plist_path": "CANNOT_CONFIRM",
+      "actual_targets_and_invocation_contract": "CANNOT_CONFIRM"
+    },
+    "formal_state_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research",
+    "runtime_vs_canonical_binding": "CANNOT_CONFIRM; plist configuration is known but process module fingerprint is not; API publication alone does not prove scheduler, owner chain, or actual loaded code behavior"
+  },
+  "canonical_workflow_map": {
+    "announcement_selection": {
+      "workspace_aggregation": {
+        "repo_path": "v4/manager_research/workspace.py",
+        "lines": "476-538, 561-664",
+        "role": "聚合公告 owner read、公告正文选择输入、Connect 过滤、市场筛选与关系投影；workspace GET 路径保持只读。"
+      },
+      "workspace_announcement_consumer": {
+        "repo_path": "v4/manager_research/workspace_announcements.py",
+        "lines": "1714-1725, 2232-2304",
+        "role": "校验 agent judgment、registered handoff、owner import receipt、产品/source 身份和 plan cutoff，并投影已消费分析。"
+      },
+      "analysis_get_and_import_api": {
+        "repo_path": "apps/api/v35_api/manager_research_router.py",
+        "lines": "318-347, 349-413",
+        "role": "analysis GET 读取产品与 owner receipt；import POST 校验 handoff/judgment、执行 owner import 并读回。",
+        "observation": "该 endpoint 的 VERIFIED 结果不证明 workspace consumer 已消费同一产品。"
+      },
+      "official_vs_mirror_observation_projection": {
+        "repo_path": "v4/manager_research/announcement_observation.py",
+        "lines": "9-76",
+        "role": "将 official_documents 与 eastmoney_hk_documents/status/capture 分列；Eastmoney 镜像不宣称 HKEX 首发，不可代替官方目录。"
+      },
+      "unresolved": "20261008 analysis/import VERIFIED 与 workspace CANNOT_CONFIRM 已复现；workspace consumer 的拒绝根因 CANNOT_CONFIRM。"
+    },
+    "hk_connect_selection": {
+      "target_date_universe_eligibility": {
+        "repo_path": "v4/manager_research/connect_selection.py",
+        "lines": "17-87, 136-183",
+        "role": "对准确 plan_trade_date 读取 HK_UNIVERSE_V2 target-date authority；验证 market、source_date、采集/可用时间与 cutoff，再按资格过滤卡片。"
+      },
+      "previous_full_session_connect_membership_adapter": {
+        "repo_path": "v4/manager_research/connect_capture_adapter.py",
+        "lines": "160-168, 338-356",
+        "role": "读取上一完整交易日 Connect membership capture；membership 语义明确标注为 EXACT_PREVIOUS_FULL_SESSION_CAPTURED_CONNECT_CODES。",
+        "limitation": "此代码只证明 Connect membership 捕获合同，不能冒充 canonical D-1 Top100 阶段池。"
+      },
+      "canonical_d1_top100_stage_pool_reader": {
+        "repo_path": "CANNOT_CONFIRM",
+        "source_sha256": "CANNOT_CONFIRM",
+        "reason": "本轮收到的映射只确认目标日资格与上一完整时段 Connect membership adapter，没有确认固定 D-1 canonical Top100 阶段池的具体 consumer。"
+      },
+      "us_relation_boundary": "美股关系不得产生 Connect 资格或替代 D-1 Top100 阶段池。"
+    },
+    "oversold_selection": {
+      "workspace_call_site": {
+        "repo_path": "v4/manager_research/workspace.py",
+        "lines": "532-538, 589-596",
+        "role": "以确切 workspace context 调用 rebound screen，并将状态、rule version、coverage、gaps、input identity 和 authority 作为 evidence 投影。"
+      },
+      "authoritative_panel_read": {
+        "repo_path": "v4/manager_research/workspace_plan.py",
+        "lines": "853-886",
+        "role": "从目标 market_session、交易日历与现有 HK 0.2 panel witness 读取，不新建 market producer。",
+        "expected_panel_date_by_phase": "CANNOT_CONFIRM",
+        "phase_contract_required": "盘前面板日期与盘后面板日期分别映射到目标选股日；只读取已完成交易日面板，不要求未收盘当日全量。"
+      },
+      "two_gate_logic": {
+        "repo_path": "v4/manager_research/workspace_plan.py",
+        "lines": "1127-1185, 1226-1262",
+        "gates": [
+          "close <= prior 60 complete HK sessions high * 0.80",
+          "current volume >= previous 5 complete HK sessions mean volume * 1.5"
+        ],
+        "code_emits": "volume_unit_status=NOT_PROVEN",
+        "unit_and_scaling_provenance": "CANNOT_CONFIRM",
+        "panel_date_by_phase": "CANNOT_CONFIRM; must distinguish pre-open and post-market completed-session panels"
+      }
+    },
+    "us_relation": {
+      "workspace_projection": {
+        "repo_path": "v4/manager_research/workspace.py",
+        "lines": "618-664",
+        "role": "只读既有 US source，再把关系输入交给研究关系投影。"
+      },
+      "source_bridge": {
+        "repo_path": "v4/manager_research/us_market_bridge.py",
+        "lines": "239-267, 372",
+        "role": "桥接现有 exact-session source；默认 mapping 状态为 NOT_COMPUTED_BY_BRIDGE，关系评估由独立 relation layer 承担。"
+      },
+      "dependency_graph_and_lane_isolation": "CANNOT_CONFIRM",
+      "boundary": "US source READY 不表示关系已评估；关系缺失只可阻断真实依赖该关系的 lane，不得成为无依赖渠道全局门槛。"
+    },
+    "scheduling": {
+      "announcement_owner_scheduled_refresh": {
+        "repo_path": "v4/manager_research/announcement_autorun.py",
+        "lines": "135-167",
+        "role": "公告 owner scheduled refresh 与运行状态路径；源文件映射本身不证明当前 plist 已调用。"
+      },
+      "scheduled_preopen_plan": {
+        "repo_path": "v4/manager_research/workspace_plan_autorun.py",
+        "lines": "64-105",
+        "role": "盘前窗口内调用 scheduled owner；窗口外返回 EXPIRED_NO_BACKFILL。"
+      },
+      "actual_scheduler_target_and_other_lane_triggers": "CANNOT_CONFIRM",
+      "actual_process_loaded_module_fingerprint": "CANNOT_CONFIRM",
+      "recovery_requirement": "错过时段要显式记录补跑类型；不伪装成自然运行；幂等与有限重试需在真实 owner dispatch 层闭环。"
+    },
+    "ui_status_and_projection": {
+      "repo_path": "apps/web/src/manager-selection/businessStatus.ts",
+      "lines": "48-137",
+      "role": "按 owner state 构造业务状态；计划仅当 CURRENT、执行类型为 SCHEDULED_PREOPEN 且 run_id 与 attempt 匹配才显示已冻结；US mapping NOT_EVALUATED 不显示为零关系。"
+    }
+  },
+  "local_source_files": [
+    {"repo_path": "v4/manager_research/workspace.py", "sha256": "54410b60fda347489b3b45299388d96e12177a5a20d004e4359aec532d99c10d", "worktree_status": "untracked", "role": "canonical source candidate; workspace aggregation"},
+    {"repo_path": "v4/manager_research/workspace_announcements.py", "sha256": "60839e20df9b61be04629481752ab3072a1088d229c87980e83059b590548e50", "worktree_status": "untracked", "role": "canonical source candidate; announcement consumer"},
+    {"repo_path": "apps/api/v35_api/manager_research_router.py", "sha256": "18b718fa67bb74937f885f47e1ab587bc4bf7be3ce612b3d0731ce05eac7be8c", "worktree_status": "modified", "role": "canonical API source candidate; analysis GET/import endpoints"},
+    {"repo_path": "v4/manager_research/connect_selection.py", "sha256": "ccc65ccb6eaf3be948652e6fc318305d9b87908826d15e98f208e122441ad5b0", "worktree_status": "untracked", "role": "canonical source candidate; target-date eligibility"},
+    {"repo_path": "v4/manager_research/connect_capture_adapter.py", "sha256": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b", "worktree_status": "untracked", "role": "canonical source candidate; previous-session membership capture only"},
+    {"repo_path": "v4/manager_research/workspace_plan.py", "sha256": "ef0269a8510b9168e2d135de6c1b4d28146a22d0d691aee8dd3fe80f95a698f0", "worktree_status": "untracked", "role": "canonical source candidate; HK02 panel and two-gate screen"},
+    {"repo_path": "v4/manager_research/workspace_plan_autorun.py", "sha256": "edc6eeb05ff239f34276c2ae4b716622632b7faaae4fb0883c816c54df0d13c3", "worktree_status": "untracked", "role": "canonical source candidate; scheduled preopen plan"},
+    {"repo_path": "v4/manager_research/announcement_autorun.py", "sha256": "1221ea84070c16c615079a3bfb462613b4ce183e64e5df7d9fc31896860bdd4d", "worktree_status": "untracked", "role": "canonical source candidate; scheduled announcement refresh"},
+    {"repo_path": "v4/manager_research/us_market_bridge.py", "sha256": "18d4ede4267a446d235267c71cecd1208f30ae3fdfe9ff02d9354d1b5a18de06", "worktree_status": "untracked", "role": "canonical source candidate; US source bridge"},
+    {"repo_path": "v4/manager_research/announcement_analysis.py", "sha256": "21eb0cf37bfa6f3332f17ca7825a69eaa5bf9082b33d2e3de2d293e8bc3f0685", "worktree_status": "untracked", "role": "canonical source candidate; imported analysis product"},
+    {"repo_path": "v4/manager_research/announcement_selection.py", "sha256": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21", "worktree_status": "untracked", "role": "canonical source candidate; announcement selection projection"},
+    {"repo_path": "v4/manager_research/announcement_observation.py", "sha256": "f86f2f0ac90b4e4490a74a27984c84f9c632075c47862d3627493282afef17ed", "worktree_status": "untracked", "role": "canonical source candidate; official HKEX and Eastmoney observation lanes remain distinct"},
+    {"repo_path": "apps/web/src/manager-selection/businessStatus.ts", "sha256": "36228506f199f26dc59c7919634e4c347171d156ec89b3d6b2359c764ed45d90", "worktree_status": "untracked", "role": "canonical UI source candidate; business status mapping"}
+  ],
+  "test_inventory": {
+    "current_test_files_found": [
+      "tests/test_manager_announcement_api_and_integrity.py",
+      "tests/test_manager_announcement_analysis.py",
+      "tests/test_manager_announcement_daily_flow.py",
+      "tests/test_manager_announcement_autorun.py",
+      "tests/test_manager_connect_capture_adapter_r4.py",
+      "tests/test_manager_rebound_two_gate_screen.py",
+      "tests/test_manager_us_mapping_research.py",
+      "tests/test_manager_plan_identity_r2.py"
+    ],
+    "inspected_cases": [
+      {
+        "repo_path": "tests/test_manager_announcement_analysis.py",
+        "sha256": "611758093044e1f4f299be4c8df1f52cffe0f6b43166860cba46df4e9c9eb626",
+        "lines": "140-189, 379-417",
+        "coverage": "日期/来源绑定、analysis GET 与内部 product import idempotence/readback"
+      },
+      {
+        "repo_path": "tests/test_manager_announcement_api_and_integrity.py",
+        "sha256": "023140ce735d5cc51725f82c49e6414e4b7b559e9a279e18d9bd03903df699ad",
+        "lines": "15-45, 84-125",
+        "coverage": "模拟上游的 router refresh/readback 与独立 workspace GET/readback"
+      }
+    ],
+    "duplicate_copy": {
+      "current_repo_path": "tests/test_manager_announcement_api_and_integrity.py",
+      "archive_path": "research/mac-source-handoff-20260930/source/tests/tests/test_manager_announcement_api_and_integrity.py",
+      "same_sha256": true,
+      "sha256": "023140ce735d5cc51725f82c49e6414e4b7b559e9a279e18d9bd03903df699ad"
+    },
+    "same_product_analysis_import_workspace_parity": "NOT_DEMONSTRATED_BY_INSPECTED_CASES_NOT_EXHAUSTIVE",
+    "coverage_note": "现有测试分别覆盖 analysis/import 与 workspace/router 行为；已检视范围未证明同一日期、同一产品 SHA 贯穿 analysis GET、import readback 与 workspace GET。此项不主张整个测试库不存在相关覆盖。",
+    "tests_run": false
+  },
+  "previous_round_import_readback_reference": {
+    "source_kind": "previous-round controller report of manual Eastmoney import/readback",
+    "reported_counts": {"stock_codes": 33, "observations": 54},
+    "receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/candidate/analysis-readback-compat/review/compat_live_independent_review.json",
+    "receipt_sha256_provided_by_controller": "308f6fbb5bdc2cd060430d4967d9af72ef42aeb7dde2eb90c3e948bbfa3a71cb",
+    "receipt_sha256_rechecked_by_packet_writer": false,
+    "receipt_path_available_in_current_checkout": false,
+    "remote_base_commit_provided_by_controller": "0382f753929365048d231a7252d9c328d40f8522",
+    "count_rechecked_this_round": false,
+    "raw_data_read": false
+  },
+  "verification_limits": [
+    "本文件只映射本地 canonical source candidate；未证明当前 R3 immutable release 的文件 SHA 与本地源码一致。",
+    "未读取真实 response body、run id、公告原文、行情原始数据或个人账户数据。",
+    "未重载页面、未执行功能测试、未启动/停止服务、未修改调度器、未部署、未提交、未推送。",
+    "远端旧 handoff 已包含的源码按主控说明不重复打包；接手者须先核远端基线、现役 R3 和 local canonical 的实际差异。"
+  ]
+}

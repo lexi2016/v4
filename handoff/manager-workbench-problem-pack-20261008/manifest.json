@@ -1,0 +1,23 @@
+{
+  "schema_version": "v4.manager_workbench.handoff_manifest.v1",
+  "algorithm": "SHA-256",
+  "scope": "all regular files in this package root except manifest.json itself",
+  "manifest_self_excluded": true,
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "1692edaae5b1059694670e5e2c9ca47319aa4c8c077d6252614dd49313e1461c",
+      "bytes": 10385
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "7fb5417595cedb83d6802ff83800260c501cad59aaefb9308084bff01ab8f748",
+      "bytes": 23034
+    },
+    {
+      "path": "source_map.json",
+      "sha256": "74423dbeb3adf777d3240a0461641dd5ee263a0c1f263678fccf43fdaf082fb7",
+      "bytes": 16451
+    }
+  ]
+}
