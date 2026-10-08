@@ -1,10 +1,15 @@
 """Loopback route dispatcher; business modules own separate API processes."""
 import argparse
 import http.client
+import hashlib
+from pathlib import Path
+from .composition import no_symlinks
 import json
 import math
 import re
 import socket
+import os
+import stat
 import threading
 import time
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
@@ -88,7 +93,31 @@ def validate_config(value):
     return json.loads(canonical_bytes(value))
 
 
-def create_gateway(config,host='127.0.0.1',port=0):
+def load_frontend(root,manifest):
+    root=no_symlinks(root)
+    if not isinstance(manifest,dict) or not 1<=len(manifest)<=1000:raise ValueError('FRONTEND_MANIFEST_INVALID')
+    result={};total=0
+    types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8',
+           '.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8',
+           '.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon','.woff':'font/woff','.woff2':'font/woff2'}
+    for relative,digest in manifest.items():
+        if not isinstance(relative,str) or Path(relative).is_absolute() or '..' in Path(relative).parts or '\\' in relative:raise ValueError('FRONTEND_PATH_INVALID')
+        path=no_symlinks(root/relative)
+        if not path.is_relative_to(root) or path.suffix not in types:raise ValueError('FRONTEND_PATH_INVALID')
+        fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+        try:
+            if not stat.S_ISREG(os.fstat(fd).st_mode):raise ValueError('FRONTEND_FILE_TYPE_INVALID')
+            with os.fdopen(fd,'rb',closefd=False) as stream:data=stream.read(MAX_RESPONSE+1)
+        finally:os.close(fd)
+        total+=len(data)
+        if len(data)>MAX_RESPONSE or total>32*1024*1024:raise ValueError('FRONTEND_SIZE_LIMIT')
+        if hashlib.sha256(data).hexdigest()!=digest:raise ValueError('FRONTEND_BYTES_MISMATCH')
+        result['/'+relative]=(data,types[path.suffix])
+    if '/index.html' not in result:raise ValueError('FRONTEND_INDEX_MISSING')
+    return result
+
+
+def create_gateway(config,host='127.0.0.1',port=0,frontend=None):
     if host!='127.0.0.1':raise ValueError('LOOPBACK_ONLY')
     config=validate_config(config);routes={r['path']:r for r in config['routes']}
     capacities={k:threading.BoundedSemaphore(v['max_inflight']) for k,v in config['modules'].items()}
@@ -129,6 +158,17 @@ def create_gateway(config,host='127.0.0.1',port=0):
             if parsed.path=='/__v5/health' and self.command=='GET':
                 return self.reply(200,dict(status='GATEWAY_ONLY',config_sha256=sha256_json(config),
                     modules={k:dict(release_id=v['release_id'],upstream_health='NOT_PROBED') for k,v in config['modules'].items()}))
+            if frontend is not None and self.command=='GET' and not parsed.path.startswith('/api/'):
+                key=parsed.path+'index.html' if parsed.path.endswith('/') else parsed.path
+                item=frontend.get(key)
+                if item is None:return self.error(404,'FRONTEND_PATH_NOT_FOUND')
+                data,content_type=item
+                self.send_response(200);self.send_header('Content-Type',content_type);self.send_header('Content-Length',str(len(data)))
+                self.send_header('Cache-Control','no-store');self.send_header('X-Content-Type-Options','nosniff');self.send_header('X-V5-Frontend','V4-REUSED')
+                self.end_headers()
+                try:self.wfile.write(data)
+                except OSError:pass
+                return
             route=routes.get(parsed.path)
             if route is None:return self.error(404,'ROUTE_NOT_CONFIGURED')
             name=route['module_id']
@@ -216,9 +256,15 @@ def create_gateway(config,host='127.0.0.1',port=0):
 def main(argv=None):
     parser=argparse.ArgumentParser(description='V5 independent module API dispatcher')
     parser.add_argument('--config',required=True);parser.add_argument('--port',type=int,default=8896)
+    parser.add_argument('--frontend-root');parser.add_argument('--frontend-manifest')
     args=parser.parse_args(argv)
     with open(args.config,encoding='utf-8') as stream:config=json.load(stream)
-    server=create_gateway(config,port=args.port)
+    if bool(args.frontend_root)!=bool(args.frontend_manifest):raise ValueError('FRONTEND_ARGUMENT_PAIR_REQUIRED')
+    frontend=None
+    if args.frontend_root:
+        with open(args.frontend_manifest,encoding='utf-8') as stream:manifest=json.load(stream)
+        frontend=load_frontend(args.frontend_root,manifest)
+    server=create_gateway(config,port=args.port,frontend=frontend)
     print('http://127.0.0.1:'+str(server.server_address[1]),flush=True)
     try:server.serve_forever()
     finally:server.server_close()

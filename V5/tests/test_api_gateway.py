@@ -1,4 +1,7 @@
 import json
+import tempfile
+import hashlib
+from pathlib import Path
 import threading
 import time
 import unittest
@@ -117,5 +120,23 @@ class GatewayTests(unittest.TestCase):
         from v5_shadow.api_gateway import _parse_response
         with self.assertRaises(ValueError):_parse_response('{"x":1}'.encode('utf-16le'))
         with self.assertRaisesRegex(ValueError,'MODULE_JSON_NONFINITE'):_parse_response(b'{"x":1e999}')
+
+    def test_original_frontend_bytes_served_without_api_fallback(self):
+        from v5_shadow.api_gateway import create_gateway,load_frontend
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp).resolve();data=b'<html>original frontend fixture</html>';(root/'index.html').write_bytes(data)
+            frontend=load_frontend(root,{'index.html':hashlib.sha256(data).hexdigest()})
+            server=create_gateway(dict(schema_version='v5.api_gateway.v1',modules={},routes=[]),frontend=frontend)
+            threading.Thread(target=server.serve_forever,daemon=True).start()
+            try:
+                url='http://127.0.0.1:'+str(server.server_address[1])
+                with urlopen(url+'/',timeout=3) as response:self.assertEqual(response.read(),data)
+                self.assertEqual(self.read(url+'/api/v3/preselection-pools?date=20261008')[0],404)
+            finally:server.shutdown();server.server_close()
+    def test_frontend_wrong_hash_rejected(self):
+        from v5_shadow.api_gateway import load_frontend
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp).resolve();(root/'index.html').write_bytes(b'x')
+            with self.assertRaisesRegex(ValueError,'FRONTEND_BYTES_MISMATCH'):load_frontend(root,{'index.html':'a'*64})
 
 if __name__=='__main__':unittest.main()
