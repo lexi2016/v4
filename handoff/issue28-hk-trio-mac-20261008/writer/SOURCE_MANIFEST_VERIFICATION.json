@@ -1,0 +1,79 @@
+{
+  "schema_version": "issue28.source_manifest_verification.v1",
+  "repository": "lexi2016/v4",
+  "commit": "88da6312d3ca1cbe116e87aadb107d7cbd7de2a5",
+  "branch": "chat/issue28-hk-d1-trio-integrity-20261008-r1",
+  "path": "handoff/issue28-hk-d1-trio-integrity-20261008-r1",
+  "package_tree_sha": "de946cc2f8739d4b0037605a1cf467bebc2cd3c7",
+  "source_manifest_sha256": "1b2376bc8f1a076951d4c1ab0acb3d72abb8e1fcddd6dd0d2889494214207c3d",
+  "source_manifest_git_blob_sha1": "943a67e46a127299550a8258e7cbae74f8b44613",
+  "zip_received": false,
+  "zip_sha256_verified": false,
+  "file_count": 160,
+  "manifest_listed_count": 159,
+  "total_bytes_including_manifest": 1574978,
+  "total_bytes_excluding_manifest": 1527968,
+  "initial_tool_attempt": "FAIL_LOCAL_VERIFIER_HEADER_USED_LITERAL_BACKSLASH_ZERO; corrected to Git blob NUL header and rerun",
+  "initial_error_artifact": "SOURCE_MANIFEST_VERIFICATION_INITIAL_ERROR.json",
+  "checks": [
+    {
+      "name": "remote_tree_160_files",
+      "pass": true,
+      "detail": {
+        "declared": 160,
+        "observed": 160
+      }
+    },
+    {
+      "name": "manifest_159_file_count",
+      "pass": true,
+      "detail": {
+        "declared": 159,
+        "observed": 159
+      }
+    },
+    {
+      "name": "exact_manifest_tree_path_set",
+      "pass": true,
+      "detail": {
+        "manifest_only": [],
+        "tree_unlisted": []
+      }
+    },
+    {
+      "name": "all_159_manifest_files_bytes_sha256_git_blob_sha1",
+      "pass": true,
+      "detail": {
+        "count": 159,
+        "bytes": 1527968,
+        "mismatch_count": 0,
+        "first_mismatches": []
+      }
+    },
+    {
+      "name": "manifest_blob_matches_git_tree",
+      "pass": true,
+      "detail": {
+        "bytes": 47010,
+        "tree_bytes": 47010,
+        "blob_sha1": "943a67e46a127299550a8258e7cbae74f8b44613",
+        "tree_blob_sha1": "943a67e46a127299550a8258e7cbae74f8b44613"
+      }
+    },
+    {
+      "name": "manifest_total_bytes_matches",
+      "pass": true,
+      "detail": {
+        "observed": 1527968,
+        "declared": 1527968
+      }
+    },
+    {
+      "name": "all_160_tree_files_present",
+      "pass": true,
+      "detail": null
+    }
+  ],
+  "passed": true,
+  "problems": []
+}

@@ -1,0 +1,54 @@
+{
+  "schema_version": "issue28.current_dependency_clone_recheck.v1",
+  "result_report_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/RESULTS.json",
+  "result_report_sha256": "bf4f504761c19b87721021e44a185e43e23fbb12ef8e8a86891d9941f4ca30ec",
+  "initial_report_error_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/RESULTS_INITIAL_REPORT_ERROR.json",
+  "initial_report_error_sha256": "f0523c1758a04c8a995370250cfd15be00eec7061a2ad597afae994174774fef",
+  "targeted_pass": true,
+  "scope": "ISOLATED_CURRENT_EXERCISED_DEPENDENCY_CLOSURE_NOT_FULL_STAGE_RUNTIME",
+  "owners": [
+    {
+      "owner": "actual_stage_owner",
+      "counts": {
+        "cases": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "clone_files_checked": 30,
+      "clone_mismatch_count": 0,
+      "loaded_modules": 25,
+      "loaded_identity_mismatch_count": 0,
+      "loaded_roles": {
+        "CURRENT_OWNER_DEPENDENCY_COPY": 17,
+        "EXACT_OWNER_SOURCE_SLICE": 8
+      },
+      "dependency_differences_from_pinned": 3,
+      "junit_sha256": "1040850e8cdb2652363ebfa55f5ac6fc9be8c6af6f17497dd5e34cf01d0b8c77",
+      "pytest_log_sha256": "8a2a1da34fd240a2e0198a96637ecd1297d0a9e5f272f0ef221977101ad3ee31",
+      "imports_sha256": "4aacbe3bf390b6f23b98d6867e76940863b12603af87649477050cabe565f8e3"
+    },
+    {
+      "owner": "canonical",
+      "counts": {
+        "cases": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "clone_files_checked": 30,
+      "clone_mismatch_count": 0,
+      "loaded_modules": 25,
+      "loaded_identity_mismatch_count": 0,
+      "loaded_roles": {
+        "CURRENT_OWNER_DEPENDENCY_COPY": 17,
+        "EXACT_OWNER_SOURCE_SLICE": 8
+      },
+      "dependency_differences_from_pinned": 1,
+      "junit_sha256": "4a2fe2b82bb402ed46bf0e7fcc977dbd2e0b30da85d11ad36885a4db826e5a1e",
+      "pytest_log_sha256": "8a2a1da34fd240a2e0198a96637ecd1297d0a9e5f272f0ef221977101ad3ee31",
+      "imports_sha256": "e46b0779569a5d8587fb6ef96ed11c11bf9064c332587f17f203d50fffe8bd66"
+    }
+  ],
+  "runtime_recovery_status": "CANNOT_CONFIRM"
+}

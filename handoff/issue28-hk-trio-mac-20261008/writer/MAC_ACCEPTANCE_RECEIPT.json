@@ -1,0 +1,1804 @@
+{
+  "schema_version": "issue28.mac_acceptance_receipt.v1",
+  "created_at_utc": "2026-10-08T11:49:32.987557+00:00",
+  "status": "WRITER_TESTED_HANDOFF_PENDING_INDEPENDENT_CURRENT_CLOSURE_REVIEW",
+  "scope": "READ_ONLY_OWNER_IDENTITY_AUDIT_AND_ISOLATED_TARGETED_CANDIDATE_ACCEPTANCE",
+  "source": {
+    "repository": "lexi2016/v4",
+    "commit": "88da6312d3ca1cbe116e87aadb107d7cbd7de2a5",
+    "branch": "chat/issue28-hk-d1-trio-integrity-20261008-r1",
+    "path": "handoff/issue28-hk-d1-trio-integrity-20261008-r1",
+    "package_tree_sha": "de946cc2f8739d4b0037605a1cf467bebc2cd3c7",
+    "remote_tree_inventory": {
+      "path": "input/REMOTE_GITHUB_TREE.json",
+      "bytes": 29325,
+      "sha256": "651d0fa8556d8c15ec1e4709ff1a582185d4623f11b334899a97b1a2e783453e"
+    },
+    "source_manifest": {
+      "path": "input/package/SOURCE_MANIFEST.json",
+      "bytes": 47010,
+      "sha256": "1b2376bc8f1a076951d4c1ab0acb3d72abb8e1fcddd6dd0d2889494214207c3d"
+    },
+    "source_manifest_verification": {
+      "path": "writer/SOURCE_MANIFEST_VERIFICATION.json",
+      "bytes": 2224,
+      "sha256": "f539538a5460160fb2d51a93721599265513273f94f03796235da0ff8cdc8531"
+    },
+    "source_manifest_sha256": "1b2376bc8f1a076951d4c1ab0acb3d72abb8e1fcddd6dd0d2889494214207c3d",
+    "file_count": 160,
+    "manifest_listed_count": 159,
+    "bytes_including_manifest": 1574978,
+    "manifest_checks": [
+      {
+        "name": "remote_tree_160_files",
+        "pass": true,
+        "detail": {
+          "declared": 160,
+          "observed": 160
+        }
+      },
+      {
+        "name": "manifest_159_file_count",
+        "pass": true,
+        "detail": {
+          "declared": 159,
+          "observed": 159
+        }
+      },
+      {
+        "name": "exact_manifest_tree_path_set",
+        "pass": true,
+        "detail": {
+          "manifest_only": [],
+          "tree_unlisted": []
+        }
+      },
+      {
+        "name": "all_159_manifest_files_bytes_sha256_git_blob_sha1",
+        "pass": true,
+        "detail": {
+          "count": 159,
+          "bytes": 1527968,
+          "mismatch_count": 0,
+          "first_mismatches": []
+        }
+      },
+      {
+        "name": "manifest_blob_matches_git_tree",
+        "pass": true,
+        "detail": {
+          "bytes": 47010,
+          "tree_bytes": 47010,
+          "blob_sha1": "943a67e46a127299550a8258e7cbae74f8b44613",
+          "tree_blob_sha1": "943a67e46a127299550a8258e7cbae74f8b44613"
+        }
+      },
+      {
+        "name": "manifest_total_bytes_matches",
+        "pass": true,
+        "detail": {
+          "observed": 1527968,
+          "declared": 1527968
+        }
+      },
+      {
+        "name": "all_160_tree_files_present",
+        "pass": true,
+        "detail": null
+      }
+    ],
+    "manifest_passed": true,
+    "zip_received": false,
+    "zip_sha256_verified": false,
+    "source_manifest_verifier": {
+      "path": "writer/verify_source_manifest.py",
+      "bytes": 4685,
+      "sha256": "1184d03f2110138952d2711dc90f288efb93a7bf13d4eb1093039b5c114725b6"
+    },
+    "initial_local_verifier_error": {
+      "path": "writer/SOURCE_MANIFEST_VERIFICATION_INITIAL_ERROR.json",
+      "bytes": 13383,
+      "sha256": "5d74f53c9650e0cfb11e52ecfdbfdeffb650c65df03819ba65baea71f99698b6"
+    }
+  },
+  "environment": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "python": "3.14.6 (main, Jul 18 2026, 17:05:49) [Clang 22.1.3 ]",
+    "pytest": "9.1.1",
+    "configured_v4_python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "actual_stage_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app",
+    "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+    "api_runtime_root_observed_read_only": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r3-api/app",
+    "config_release_id": "20261003-hk-binding-wrapper-r3",
+    "config_sha256": "ef5f49cb4efc35ec76e718415662cece51abb327b6ea7d5ccaa45df2b91869f7",
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "commands": {
+    "source_manifest_check": [
+      "python3",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/writer/verify_source_manifest.py"
+    ],
+    "targeted_top_level": [
+      "ISSUE28_BUNDLE=/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package",
+      "ISSUE28_PY=/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "\"$ISSUE28_PY\" -B \"$ISSUE28_BUNDLE/harness/run_regressions.py\" --owner both --phase after --suite targeted --output-dir /Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test > /Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/writer/targeted_after_stdout.log 2>&1"
+    ],
+    "runtime_identity_audit": {
+      "script": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/acceptance/audit_runtime_identity.py",
+      "argv": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "-B",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/acceptance/audit_runtime_identity.py",
+        "--problem-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/input",
+        "--stage-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app",
+        "--canonical-root",
+        "/Users/lexi/Desktop/学习/v4_app",
+        "--api-root",
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r3-api/app",
+        "--receipt-root",
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts",
+        "--candidate-manifest",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/candidate_identity.json"
+      ],
+      "shell_environment": {
+        "ISSUE28_PROBLEM_DIR": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/input",
+        "ISSUE28_CANDIDATE_DIR": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package",
+        "ISSUE28_ACCEPTANCE_DIR": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/acceptance",
+        "ISSUE28_STAGE_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app",
+        "ISSUE28_CANONICAL_ROOT": "/Users/lexi/Desktop/学习/v4_app",
+        "ISSUE28_API_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r3-api/app",
+        "ISSUE28_RECEIPT_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts",
+        "ISSUE28_PY": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python"
+      },
+      "exit_code": 0
+    },
+    "current_dependency_closure_top_level": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "-B",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/writer/run_current_dependency_closure.py",
+      "--canonical-root",
+      "/Users/lexi/Desktop/学习/v4_app",
+      "--actual-stage-root",
+      "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app",
+      "--python",
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python"
+    ]
+  },
+  "targeted_candidate_acceptance": {
+    "scope": "ISOLATED_SOURCE_SLICES_WITH_PINNED_SUPPLEMENTS_NOT_FULL_MAC_RUNTIME",
+    "result": {
+      "path": "isolated_test/issue28-hk-after-j50xhrmh/RESULTS.json",
+      "bytes": 3776,
+      "sha256": "423b47853a0d3155d58b8fda0d51203e114b8efc281c33ac21a23f5e0b0d70cf"
+    },
+    "runtime_recovery_status": "CANNOT_CONFIRM",
+    "owners": [
+      {
+        "owner": "actual_stage_owner",
+        "phase": "after",
+        "suite": "targeted",
+        "exit_code": 0,
+        "counts": {
+          "cases": 15,
+          "passed": 15,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "failures": [],
+        "errors": [],
+        "skipped": [],
+        "candidate_file_sha256": "b20baa18d0ee9748971db835f6fb3dd9a0e1d66aabd8da8d450aee3a4a528a8e",
+        "exact_argv": [
+          "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+          "-B",
+          "-m",
+          "pytest",
+          "-q",
+          "-ra",
+          "-p",
+          "no:cacheprovider",
+          "-c",
+          "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/pytest.ini",
+          "--confcutdir=/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness",
+          "--basetemp=/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/issue28-hk-after-j50xhrmh/actual_stage_owner/targeted/data",
+          "--junitxml=/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/issue28-hk-after-j50xhrmh/actual_stage_owner/targeted/junit.xml",
+          "tests/test_hk_split_date_identity_closure.py",
+          "tests/test_root_identity_probe.py"
+        ],
+        "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness",
+        "artifacts": {
+          "imports.json": {
+            "path": "isolated_test/issue28-hk-after-j50xhrmh/actual_stage_owner/targeted/imports.json",
+            "bytes": 11391,
+            "sha256": "cebc105647b97d2efdafff9c5656f101f59fbac9ff7b88f8d0dda34048ff48bd"
+          },
+          "junit.xml": {
+            "path": "isolated_test/issue28-hk-after-j50xhrmh/actual_stage_owner/targeted/junit.xml",
+            "bytes": 2633,
+            "sha256": "6cc1682b6314133e802cc50e660c112318ffabde735ad6532db233d68109d2bc"
+          },
+          "pytest.log": {
+            "path": "isolated_test/issue28-hk-after-j50xhrmh/actual_stage_owner/targeted/pytest.log",
+            "bytes": 99,
+            "sha256": "42741f7ed0e38cf1e505a56b792913fdce074f13de67a5716b43cb2da56f5f8b"
+          }
+        },
+        "import_identity_artifact_sha256": "cebc105647b97d2efdafff9c5656f101f59fbac9ff7b88f8d0dda34048ff48bd",
+        "loaded_import_identities": [
+          {
+            "module": "infrastructure.data_store",
+            "path": "support/infrastructure/data_store.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/infrastructure/data_store.py",
+            "sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "infrastructure.interprocess_lock",
+            "path": "support/infrastructure/interprocess_lock.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/infrastructure/interprocess_lock.py",
+            "sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "infrastructure.market_time",
+            "path": "support/infrastructure/market_time.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/infrastructure/market_time.py",
+            "sha256": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "infrastructure.owned_io",
+            "path": "support/infrastructure/owned_io.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/infrastructure/owned_io.py",
+            "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "infrastructure.owned_path",
+            "path": "support/infrastructure/owned_path.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/infrastructure/owned_path.py",
+            "sha256": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "infrastructure.preselection_pool_readers",
+            "path": "app/infrastructure/preselection_pool_readers.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/issue28-hk-after-j50xhrmh/actual_stage_owner/app/infrastructure/preselection_pool_readers.py",
+            "sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "infrastructure.preselection_pool_sources",
+            "path": "app/infrastructure/preselection_pool_sources.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/issue28-hk-after-j50xhrmh/actual_stage_owner/app/infrastructure/preselection_pool_sources.py",
+            "sha256": "cc683561201453e3f7ca975b2b7cdb6a3836b1ecbe63e001a5abd181f38813d6",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "infrastructure.preselection_pool_store",
+            "path": "app/infrastructure/preselection_pool_store.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/issue28-hk-after-j50xhrmh/actual_stage_owner/app/infrastructure/preselection_pool_store.py",
+            "sha256": "a640d28ec54119ae383f5dd838fe467d6ae8b5b0d87fa2c4afbb0646fbfe658a",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "infrastructure.preselection_pool_transactions",
+            "path": "support/infrastructure/preselection_pool_transactions.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/infrastructure/preselection_pool_transactions.py",
+            "sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "infrastructure.scope_gate",
+            "path": "support/infrastructure/scope_gate.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/infrastructure/scope_gate.py",
+            "sha256": "5620d1ee89fbae998d4c801c2a7c4cffac50f890ad0b6951f99230c591dcff68",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "infrastructure.trading_safety",
+            "path": "support/infrastructure/trading_safety.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/infrastructure/trading_safety.py",
+            "sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "stage_center._runner_parts._namespace",
+            "path": "app/stage_center/_runner_parts/_namespace.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/issue28-hk-after-j50xhrmh/actual_stage_owner/app/stage_center/_runner_parts/_namespace.py",
+            "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "stage_center._runner_parts.hk_input_validation",
+            "path": "app/stage_center/_runner_parts/hk_input_validation.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/issue28-hk-after-j50xhrmh/actual_stage_owner/app/stage_center/_runner_parts/hk_input_validation.py",
+            "sha256": "b20baa18d0ee9748971db835f6fb3dd9a0e1d66aabd8da8d450aee3a4a528a8e",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "stage_center._runner_parts.selection_input_validation",
+            "path": "app/stage_center/_runner_parts/selection_input_validation.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/issue28-hk-after-j50xhrmh/actual_stage_owner/app/stage_center/_runner_parts/selection_input_validation.py",
+            "sha256": "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "stage_center._selection_parts._namespace",
+            "path": "support/stage_center/_selection_parts/_namespace.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/stage_center/_selection_parts/_namespace.py",
+            "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "stage_center._selection_parts.schema_values",
+            "path": "support/stage_center/_selection_parts/schema_values.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/stage_center/_selection_parts/schema_values.py",
+            "sha256": "80b0c21556c78c89132a08ca24eb80b5a211791719cb54801497dbe74472e458",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "stage_center.acquisition",
+            "path": "support/stage_center/acquisition.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/stage_center/acquisition.py",
+            "sha256": "33e5003faed8127ec3393eb36af473c0d63ee3a79843418ef1a950ce7b697397",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "stage_center.calendar",
+            "path": "app/stage_center/calendar.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/issue28-hk-after-j50xhrmh/actual_stage_owner/app/stage_center/calendar.py",
+            "sha256": "31fed97066d9b804a71f15c48d4e0f8baa5d9af621e1d81dc0340fd6619e4099",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "stage_center.candidate_input",
+            "path": "support/stage_center/candidate_input.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/stage_center/candidate_input.py",
+            "sha256": "59c6bb0ef13a5aaa576477708385ec4ac68b7d20a69e3fc61d984da4a8284aff",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "stage_center.contracts",
+            "path": "support/stage_center/contracts.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/stage_center/contracts.py",
+            "sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "stage_center.end_to_end_deadline",
+            "path": "support/stage_center/end_to_end_deadline.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/stage_center/end_to_end_deadline.py",
+            "sha256": "f25d91cf1eaf4ea7d1a9a57fc1f8288d14d98536a63dee16467550974b2a812e",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "stage_center.raw_store",
+            "path": "support/stage_center/raw_store.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/stage_center/raw_store.py",
+            "sha256": "2dea717cb65053c48b75468fd61508b3b61b421a6b528aa8ce93395e99aef547",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "stage_center.runner",
+            "path": "app/stage_center/runner.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/issue28-hk-after-j50xhrmh/actual_stage_owner/app/stage_center/runner.py",
+            "sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "stage_center.scheduler",
+            "path": "support/stage_center/scheduler.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/stage_center/scheduler.py",
+            "sha256": "e56651ec7bb481b28e383cb403d60ba48747ddf7426f9fb380f5ae24fc3a37a4",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "stage_center.selection",
+            "path": "support/stage_center/selection.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/stage_center/selection.py",
+            "sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          }
+        ],
+        "import_scope": "SOURCE_SLICES_WITH_PINNED_SUPPLEMENTS_NOT_FULL_MAC_RUNTIME"
+      },
+      {
+        "owner": "canonical",
+        "phase": "after",
+        "suite": "targeted",
+        "exit_code": 0,
+        "counts": {
+          "cases": 15,
+          "passed": 15,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "failures": [],
+        "errors": [],
+        "skipped": [],
+        "candidate_file_sha256": "b20baa18d0ee9748971db835f6fb3dd9a0e1d66aabd8da8d450aee3a4a528a8e",
+        "exact_argv": [
+          "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+          "-B",
+          "-m",
+          "pytest",
+          "-q",
+          "-ra",
+          "-p",
+          "no:cacheprovider",
+          "-c",
+          "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/pytest.ini",
+          "--confcutdir=/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness",
+          "--basetemp=/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/issue28-hk-after-j50xhrmh/canonical/targeted/data",
+          "--junitxml=/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/issue28-hk-after-j50xhrmh/canonical/targeted/junit.xml",
+          "tests/test_hk_split_date_identity_closure.py",
+          "tests/test_root_identity_probe.py"
+        ],
+        "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness",
+        "artifacts": {
+          "imports.json": {
+            "path": "isolated_test/issue28-hk-after-j50xhrmh/canonical/targeted/imports.json",
+            "bytes": 11310,
+            "sha256": "38d894b25d1d7b74dc07d0a0e43ad1ab3018e0d47e71a56c902065ba4a6284ef"
+          },
+          "junit.xml": {
+            "path": "isolated_test/issue28-hk-after-j50xhrmh/canonical/targeted/junit.xml",
+            "bytes": 2633,
+            "sha256": "5a7630799771de67a3e6c512715986e60af0ac9a66c2ae2096db774c2feb63c2"
+          },
+          "pytest.log": {
+            "path": "isolated_test/issue28-hk-after-j50xhrmh/canonical/targeted/pytest.log",
+            "bytes": 99,
+            "sha256": "ec6081cec3685e19924c1fdf4906dd4e5512535c476fa9108eac23edb56b3154"
+          }
+        },
+        "import_identity_artifact_sha256": "38d894b25d1d7b74dc07d0a0e43ad1ab3018e0d47e71a56c902065ba4a6284ef",
+        "loaded_import_identities": [
+          {
+            "module": "infrastructure.data_store",
+            "path": "support/infrastructure/data_store.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/infrastructure/data_store.py",
+            "sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "infrastructure.interprocess_lock",
+            "path": "support/infrastructure/interprocess_lock.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/infrastructure/interprocess_lock.py",
+            "sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "infrastructure.market_time",
+            "path": "support/infrastructure/market_time.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/infrastructure/market_time.py",
+            "sha256": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "infrastructure.owned_io",
+            "path": "support/infrastructure/owned_io.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/infrastructure/owned_io.py",
+            "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "infrastructure.owned_path",
+            "path": "support/infrastructure/owned_path.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/infrastructure/owned_path.py",
+            "sha256": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "infrastructure.preselection_pool_readers",
+            "path": "app/infrastructure/preselection_pool_readers.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/issue28-hk-after-j50xhrmh/canonical/app/infrastructure/preselection_pool_readers.py",
+            "sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "infrastructure.preselection_pool_sources",
+            "path": "app/infrastructure/preselection_pool_sources.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/issue28-hk-after-j50xhrmh/canonical/app/infrastructure/preselection_pool_sources.py",
+            "sha256": "23827109688cabbfb50fc4563cd3c1bdb0220fb6246b349a72836dc0e9b02827",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "infrastructure.preselection_pool_store",
+            "path": "app/infrastructure/preselection_pool_store.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/issue28-hk-after-j50xhrmh/canonical/app/infrastructure/preselection_pool_store.py",
+            "sha256": "9f1606a977d36c063d9c650e54b9861947eb7b692e779837852e3831b7814bef",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "infrastructure.preselection_pool_transactions",
+            "path": "support/infrastructure/preselection_pool_transactions.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/infrastructure/preselection_pool_transactions.py",
+            "sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "infrastructure.scope_gate",
+            "path": "support/infrastructure/scope_gate.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/infrastructure/scope_gate.py",
+            "sha256": "5620d1ee89fbae998d4c801c2a7c4cffac50f890ad0b6951f99230c591dcff68",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "infrastructure.trading_safety",
+            "path": "support/infrastructure/trading_safety.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/infrastructure/trading_safety.py",
+            "sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "stage_center._runner_parts._namespace",
+            "path": "app/stage_center/_runner_parts/_namespace.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/issue28-hk-after-j50xhrmh/canonical/app/stage_center/_runner_parts/_namespace.py",
+            "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "stage_center._runner_parts.hk_input_validation",
+            "path": "app/stage_center/_runner_parts/hk_input_validation.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/issue28-hk-after-j50xhrmh/canonical/app/stage_center/_runner_parts/hk_input_validation.py",
+            "sha256": "b20baa18d0ee9748971db835f6fb3dd9a0e1d66aabd8da8d450aee3a4a528a8e",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "stage_center._runner_parts.selection_input_validation",
+            "path": "app/stage_center/_runner_parts/selection_input_validation.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/issue28-hk-after-j50xhrmh/canonical/app/stage_center/_runner_parts/selection_input_validation.py",
+            "sha256": "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "stage_center._selection_parts._namespace",
+            "path": "support/stage_center/_selection_parts/_namespace.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/stage_center/_selection_parts/_namespace.py",
+            "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "stage_center._selection_parts.schema_values",
+            "path": "support/stage_center/_selection_parts/schema_values.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/stage_center/_selection_parts/schema_values.py",
+            "sha256": "80b0c21556c78c89132a08ca24eb80b5a211791719cb54801497dbe74472e458",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "stage_center.acquisition",
+            "path": "support/stage_center/acquisition.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/stage_center/acquisition.py",
+            "sha256": "33e5003faed8127ec3393eb36af473c0d63ee3a79843418ef1a950ce7b697397",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "stage_center.calendar",
+            "path": "app/stage_center/calendar.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/issue28-hk-after-j50xhrmh/canonical/app/stage_center/calendar.py",
+            "sha256": "31fed97066d9b804a71f15c48d4e0f8baa5d9af621e1d81dc0340fd6619e4099",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "stage_center.candidate_input",
+            "path": "support/stage_center/candidate_input.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/stage_center/candidate_input.py",
+            "sha256": "59c6bb0ef13a5aaa576477708385ec4ac68b7d20a69e3fc61d984da4a8284aff",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "stage_center.contracts",
+            "path": "support/stage_center/contracts.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/stage_center/contracts.py",
+            "sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "stage_center.end_to_end_deadline",
+            "path": "support/stage_center/end_to_end_deadline.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/stage_center/end_to_end_deadline.py",
+            "sha256": "f25d91cf1eaf4ea7d1a9a57fc1f8288d14d98536a63dee16467550974b2a812e",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "stage_center.raw_store",
+            "path": "support/stage_center/raw_store.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/stage_center/raw_store.py",
+            "sha256": "2dea717cb65053c48b75468fd61508b3b61b421a6b528aa8ce93395e99aef547",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "stage_center.runner",
+            "path": "app/stage_center/runner.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/issue28-hk-after-j50xhrmh/canonical/app/stage_center/runner.py",
+            "sha256": "d36cc60c538f23ab0f48c7387523d83ed5cebbdc67c0dd630e671f98ecdffa48",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "stage_center.scheduler",
+            "path": "support/stage_center/scheduler.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/stage_center/scheduler.py",
+            "sha256": "e56651ec7bb481b28e383cb403d60ba48747ddf7426f9fb380f5ae24fc3a37a4",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          },
+          {
+            "module": "stage_center.selection",
+            "path": "support/stage_center/selection.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/input/package/harness/support/stage_center/selection.py",
+            "sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294",
+            "role": "PINNED_SUPPLEMENT_NOT_CURRENT_RUNTIME_IDENTITY"
+          }
+        ],
+        "import_scope": "SOURCE_SLICES_WITH_PINNED_SUPPLEMENTS_NOT_FULL_MAC_RUNTIME"
+      }
+    ],
+    "top_level_stdout": {
+      "path": "writer/targeted_after_stdout.log",
+      "bytes": 2928,
+      "sha256": "8f38d2f86e98b27ddd0bcc54ee6e96e26310dd8e35ed8d5c67958c3988978086"
+    }
+  },
+  "current_exercised_dependency_closure": {
+    "scope": "ISOLATED_CURRENT_EXERCISED_DEPENDENCY_CLOSURE_NOT_FULL_STAGE_RUNTIME",
+    "result": {
+      "path": "isolated_test/current_dependency_closure_retry/RESULTS.json",
+      "bytes": 43279,
+      "sha256": "bf4f504761c19b87721021e44a185e43e23fbb12ef8e8a86891d9941f4ca30ec"
+    },
+    "summary_receipt": {
+      "path": "writer/CURRENT_DEPENDENCY_CLOSURE_RECHECK.json",
+      "bytes": 2253,
+      "sha256": "c1e8b52ee5c57f077775f6c91a9992a2d189c38bd6d06651794c69d8a40d62b5"
+    },
+    "summary_receipt_content_sha256": "bf4f504761c19b87721021e44a185e43e23fbb12ef8e8a86891d9941f4ca30ec",
+    "targeted_pass": true,
+    "owners": [
+      {
+        "owner": "actual_stage_owner",
+        "exit_code": 0,
+        "counts": {
+          "cases": 15,
+          "passed": 15,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "failures": [],
+        "errors": [],
+        "skipped": [],
+        "candidate_file_sha256": "b20baa18d0ee9748971db835f6fb3dd9a0e1d66aabd8da8d450aee3a4a528a8e",
+        "exact_argv": [
+          "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+          "-B",
+          "-m",
+          "pytest",
+          "-q",
+          "-ra",
+          "-p",
+          "no:cacheprovider",
+          "-c",
+          "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/harness/pytest.ini",
+          "--confcutdir=/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/harness",
+          "--basetemp=/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/targeted/data",
+          "--junitxml=/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/targeted/junit.xml",
+          "tests/test_hk_split_date_identity_closure.py",
+          "tests/test_root_identity_probe.py"
+        ],
+        "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/harness",
+        "clone_integrity": {
+          "checked_files": 30,
+          "changes": []
+        },
+        "current_dependency_count": 17,
+        "current_dependencies_differing_from_pinned": 3,
+        "dependency_sources": [
+          {
+            "relative_path": "infrastructure/data_store.py",
+            "current_sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+            "pinned_supplement_sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+            "matches_pinned_supplement": true,
+            "bytes": 10704
+          },
+          {
+            "relative_path": "infrastructure/interprocess_lock.py",
+            "current_sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+            "pinned_supplement_sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+            "matches_pinned_supplement": true,
+            "bytes": 7514
+          },
+          {
+            "relative_path": "infrastructure/market_time.py",
+            "current_sha256": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+            "pinned_supplement_sha256": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+            "matches_pinned_supplement": true,
+            "bytes": 960
+          },
+          {
+            "relative_path": "infrastructure/owned_io.py",
+            "current_sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+            "pinned_supplement_sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+            "matches_pinned_supplement": true,
+            "bytes": 9354
+          },
+          {
+            "relative_path": "infrastructure/owned_path.py",
+            "current_sha256": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+            "pinned_supplement_sha256": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+            "matches_pinned_supplement": true,
+            "bytes": 2251
+          },
+          {
+            "relative_path": "infrastructure/preselection_pool_transactions.py",
+            "current_sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+            "pinned_supplement_sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+            "matches_pinned_supplement": true,
+            "bytes": 15569
+          },
+          {
+            "relative_path": "infrastructure/scope_gate.py",
+            "current_sha256": "5620d1ee89fbae998d4c801c2a7c4cffac50f890ad0b6951f99230c591dcff68",
+            "pinned_supplement_sha256": "5620d1ee89fbae998d4c801c2a7c4cffac50f890ad0b6951f99230c591dcff68",
+            "matches_pinned_supplement": true,
+            "bytes": 16258
+          },
+          {
+            "relative_path": "infrastructure/trading_safety.py",
+            "current_sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+            "pinned_supplement_sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+            "matches_pinned_supplement": true,
+            "bytes": 2597
+          },
+          {
+            "relative_path": "stage_center/acquisition.py",
+            "current_sha256": "2806c63dbe76af9051a3ea655356738d45a67205441c03638fd52ca44087fc1b",
+            "pinned_supplement_sha256": "33e5003faed8127ec3393eb36af473c0d63ee3a79843418ef1a950ce7b697397",
+            "matches_pinned_supplement": false,
+            "bytes": 13711
+          },
+          {
+            "relative_path": "stage_center/candidate_input.py",
+            "current_sha256": "59c6bb0ef13a5aaa576477708385ec4ac68b7d20a69e3fc61d984da4a8284aff",
+            "pinned_supplement_sha256": "59c6bb0ef13a5aaa576477708385ec4ac68b7d20a69e3fc61d984da4a8284aff",
+            "matches_pinned_supplement": true,
+            "bytes": 17567
+          },
+          {
+            "relative_path": "stage_center/contracts.py",
+            "current_sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+            "pinned_supplement_sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+            "matches_pinned_supplement": true,
+            "bytes": 2331
+          },
+          {
+            "relative_path": "stage_center/raw_store.py",
+            "current_sha256": "15052b23c62d38b65d65b96bf3b837782ebfa6fca7fe83f7c1d9374400bbdbde",
+            "pinned_supplement_sha256": "2dea717cb65053c48b75468fd61508b3b61b421a6b528aa8ce93395e99aef547",
+            "matches_pinned_supplement": false,
+            "bytes": 13539
+          },
+          {
+            "relative_path": "stage_center/selection.py",
+            "current_sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294",
+            "pinned_supplement_sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294",
+            "matches_pinned_supplement": true,
+            "bytes": 31705
+          },
+          {
+            "relative_path": "stage_center/_selection_parts/schema_values.py",
+            "current_sha256": "80b0c21556c78c89132a08ca24eb80b5a211791719cb54801497dbe74472e458",
+            "pinned_supplement_sha256": "80b0c21556c78c89132a08ca24eb80b5a211791719cb54801497dbe74472e458",
+            "matches_pinned_supplement": true,
+            "bytes": 3956
+          },
+          {
+            "relative_path": "stage_center/end_to_end_deadline.py",
+            "current_sha256": "f25d91cf1eaf4ea7d1a9a57fc1f8288d14d98536a63dee16467550974b2a812e",
+            "pinned_supplement_sha256": "f25d91cf1eaf4ea7d1a9a57fc1f8288d14d98536a63dee16467550974b2a812e",
+            "matches_pinned_supplement": true,
+            "bytes": 21467
+          },
+          {
+            "relative_path": "stage_center/scheduler.py",
+            "current_sha256": "db110aba2fe504213591330000120b660cff04292728b5325711e2fa6799e7b0",
+            "pinned_supplement_sha256": "e56651ec7bb481b28e383cb403d60ba48747ddf7426f9fb380f5ae24fc3a37a4",
+            "matches_pinned_supplement": false,
+            "bytes": 7099
+          },
+          {
+            "relative_path": "stage_center/_selection_parts/_namespace.py",
+            "current_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+            "pinned_supplement_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+            "matches_pinned_supplement": true,
+            "bytes": 527
+          }
+        ],
+        "artifacts": {
+          "imports.json": {
+            "path": "isolated_test/current_dependency_closure_retry/actual_stage_owner/targeted/imports.json",
+            "bytes": 12063,
+            "sha256": "4aacbe3bf390b6f23b98d6867e76940863b12603af87649477050cabe565f8e3"
+          },
+          "junit.xml": {
+            "path": "isolated_test/current_dependency_closure_retry/actual_stage_owner/targeted/junit.xml",
+            "bytes": 2633,
+            "sha256": "1040850e8cdb2652363ebfa55f5ac6fc9be8c6af6f17497dd5e34cf01d0b8c77"
+          },
+          "pytest.log": {
+            "path": "isolated_test/current_dependency_closure_retry/actual_stage_owner/targeted/pytest.log",
+            "bytes": 99,
+            "sha256": "8a2a1da34fd240a2e0198a96637ecd1297d0a9e5f272f0ef221977101ad3ee31"
+          }
+        },
+        "loaded_import_identities": [
+          {
+            "module": "infrastructure.data_store",
+            "path": "support/infrastructure/data_store.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/harness/support/infrastructure/data_store.py",
+            "sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "infrastructure.interprocess_lock",
+            "path": "support/infrastructure/interprocess_lock.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/harness/support/infrastructure/interprocess_lock.py",
+            "sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "infrastructure.market_time",
+            "path": "support/infrastructure/market_time.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/harness/support/infrastructure/market_time.py",
+            "sha256": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "infrastructure.owned_io",
+            "path": "support/infrastructure/owned_io.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/harness/support/infrastructure/owned_io.py",
+            "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "infrastructure.owned_path",
+            "path": "support/infrastructure/owned_path.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/harness/support/infrastructure/owned_path.py",
+            "sha256": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "infrastructure.preselection_pool_readers",
+            "path": "app/infrastructure/preselection_pool_readers.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/app/infrastructure/preselection_pool_readers.py",
+            "sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "infrastructure.preselection_pool_sources",
+            "path": "app/infrastructure/preselection_pool_sources.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/app/infrastructure/preselection_pool_sources.py",
+            "sha256": "cc683561201453e3f7ca975b2b7cdb6a3836b1ecbe63e001a5abd181f38813d6",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "infrastructure.preselection_pool_store",
+            "path": "app/infrastructure/preselection_pool_store.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/app/infrastructure/preselection_pool_store.py",
+            "sha256": "a640d28ec54119ae383f5dd838fe467d6ae8b5b0d87fa2c4afbb0646fbfe658a",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "infrastructure.preselection_pool_transactions",
+            "path": "support/infrastructure/preselection_pool_transactions.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/harness/support/infrastructure/preselection_pool_transactions.py",
+            "sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "infrastructure.scope_gate",
+            "path": "support/infrastructure/scope_gate.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/harness/support/infrastructure/scope_gate.py",
+            "sha256": "5620d1ee89fbae998d4c801c2a7c4cffac50f890ad0b6951f99230c591dcff68",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "infrastructure.trading_safety",
+            "path": "support/infrastructure/trading_safety.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/harness/support/infrastructure/trading_safety.py",
+            "sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "stage_center._runner_parts._namespace",
+            "path": "app/stage_center/_runner_parts/_namespace.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/app/stage_center/_runner_parts/_namespace.py",
+            "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "stage_center._runner_parts.hk_input_validation",
+            "path": "app/stage_center/_runner_parts/hk_input_validation.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/app/stage_center/_runner_parts/hk_input_validation.py",
+            "sha256": "b20baa18d0ee9748971db835f6fb3dd9a0e1d66aabd8da8d450aee3a4a528a8e",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "stage_center._runner_parts.selection_input_validation",
+            "path": "app/stage_center/_runner_parts/selection_input_validation.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/app/stage_center/_runner_parts/selection_input_validation.py",
+            "sha256": "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "stage_center._selection_parts._namespace",
+            "path": "support/stage_center/_selection_parts/_namespace.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/harness/support/stage_center/_selection_parts/_namespace.py",
+            "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "stage_center._selection_parts.schema_values",
+            "path": "support/stage_center/_selection_parts/schema_values.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/harness/support/stage_center/_selection_parts/schema_values.py",
+            "sha256": "80b0c21556c78c89132a08ca24eb80b5a211791719cb54801497dbe74472e458",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "stage_center.acquisition",
+            "path": "support/stage_center/acquisition.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/harness/support/stage_center/acquisition.py",
+            "sha256": "2806c63dbe76af9051a3ea655356738d45a67205441c03638fd52ca44087fc1b",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "stage_center.calendar",
+            "path": "app/stage_center/calendar.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/app/stage_center/calendar.py",
+            "sha256": "31fed97066d9b804a71f15c48d4e0f8baa5d9af621e1d81dc0340fd6619e4099",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "stage_center.candidate_input",
+            "path": "support/stage_center/candidate_input.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/harness/support/stage_center/candidate_input.py",
+            "sha256": "59c6bb0ef13a5aaa576477708385ec4ac68b7d20a69e3fc61d984da4a8284aff",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "stage_center.contracts",
+            "path": "support/stage_center/contracts.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/harness/support/stage_center/contracts.py",
+            "sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "stage_center.end_to_end_deadline",
+            "path": "support/stage_center/end_to_end_deadline.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/harness/support/stage_center/end_to_end_deadline.py",
+            "sha256": "f25d91cf1eaf4ea7d1a9a57fc1f8288d14d98536a63dee16467550974b2a812e",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "stage_center.raw_store",
+            "path": "support/stage_center/raw_store.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/harness/support/stage_center/raw_store.py",
+            "sha256": "15052b23c62d38b65d65b96bf3b837782ebfa6fca7fe83f7c1d9374400bbdbde",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "stage_center.runner",
+            "path": "app/stage_center/runner.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/app/stage_center/runner.py",
+            "sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "stage_center.scheduler",
+            "path": "support/stage_center/scheduler.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/harness/support/stage_center/scheduler.py",
+            "sha256": "db110aba2fe504213591330000120b660cff04292728b5325711e2fa6799e7b0",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "stage_center.selection",
+            "path": "support/stage_center/selection.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/actual_stage_owner/harness/support/stage_center/selection.py",
+            "sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          }
+        ]
+      },
+      {
+        "owner": "canonical",
+        "exit_code": 0,
+        "counts": {
+          "cases": 15,
+          "passed": 15,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "failures": [],
+        "errors": [],
+        "skipped": [],
+        "candidate_file_sha256": "b20baa18d0ee9748971db835f6fb3dd9a0e1d66aabd8da8d450aee3a4a528a8e",
+        "exact_argv": [
+          "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+          "-B",
+          "-m",
+          "pytest",
+          "-q",
+          "-ra",
+          "-p",
+          "no:cacheprovider",
+          "-c",
+          "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/harness/pytest.ini",
+          "--confcutdir=/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/harness",
+          "--basetemp=/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/targeted/data",
+          "--junitxml=/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/targeted/junit.xml",
+          "tests/test_hk_split_date_identity_closure.py",
+          "tests/test_root_identity_probe.py"
+        ],
+        "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/harness",
+        "clone_integrity": {
+          "checked_files": 30,
+          "changes": []
+        },
+        "current_dependency_count": 17,
+        "current_dependencies_differing_from_pinned": 1,
+        "dependency_sources": [
+          {
+            "relative_path": "infrastructure/data_store.py",
+            "current_sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+            "pinned_supplement_sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+            "matches_pinned_supplement": true,
+            "bytes": 10704
+          },
+          {
+            "relative_path": "infrastructure/interprocess_lock.py",
+            "current_sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+            "pinned_supplement_sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+            "matches_pinned_supplement": true,
+            "bytes": 7514
+          },
+          {
+            "relative_path": "infrastructure/market_time.py",
+            "current_sha256": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+            "pinned_supplement_sha256": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+            "matches_pinned_supplement": true,
+            "bytes": 960
+          },
+          {
+            "relative_path": "infrastructure/owned_io.py",
+            "current_sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+            "pinned_supplement_sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+            "matches_pinned_supplement": true,
+            "bytes": 9354
+          },
+          {
+            "relative_path": "infrastructure/owned_path.py",
+            "current_sha256": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+            "pinned_supplement_sha256": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+            "matches_pinned_supplement": true,
+            "bytes": 2251
+          },
+          {
+            "relative_path": "infrastructure/preselection_pool_transactions.py",
+            "current_sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+            "pinned_supplement_sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+            "matches_pinned_supplement": true,
+            "bytes": 15569
+          },
+          {
+            "relative_path": "infrastructure/scope_gate.py",
+            "current_sha256": "5620d1ee89fbae998d4c801c2a7c4cffac50f890ad0b6951f99230c591dcff68",
+            "pinned_supplement_sha256": "5620d1ee89fbae998d4c801c2a7c4cffac50f890ad0b6951f99230c591dcff68",
+            "matches_pinned_supplement": true,
+            "bytes": 16258
+          },
+          {
+            "relative_path": "infrastructure/trading_safety.py",
+            "current_sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+            "pinned_supplement_sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+            "matches_pinned_supplement": true,
+            "bytes": 2597
+          },
+          {
+            "relative_path": "stage_center/acquisition.py",
+            "current_sha256": "33e5003faed8127ec3393eb36af473c0d63ee3a79843418ef1a950ce7b697397",
+            "pinned_supplement_sha256": "33e5003faed8127ec3393eb36af473c0d63ee3a79843418ef1a950ce7b697397",
+            "matches_pinned_supplement": true,
+            "bytes": 13342
+          },
+          {
+            "relative_path": "stage_center/candidate_input.py",
+            "current_sha256": "59c6bb0ef13a5aaa576477708385ec4ac68b7d20a69e3fc61d984da4a8284aff",
+            "pinned_supplement_sha256": "59c6bb0ef13a5aaa576477708385ec4ac68b7d20a69e3fc61d984da4a8284aff",
+            "matches_pinned_supplement": true,
+            "bytes": 17567
+          },
+          {
+            "relative_path": "stage_center/contracts.py",
+            "current_sha256": "7741d0b977cc9994a0b526b35d6b3a3586bfb3b6c0b2f09f4cf8f05449c2bb18",
+            "pinned_supplement_sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+            "matches_pinned_supplement": false,
+            "bytes": 3665
+          },
+          {
+            "relative_path": "stage_center/raw_store.py",
+            "current_sha256": "2dea717cb65053c48b75468fd61508b3b61b421a6b528aa8ce93395e99aef547",
+            "pinned_supplement_sha256": "2dea717cb65053c48b75468fd61508b3b61b421a6b528aa8ce93395e99aef547",
+            "matches_pinned_supplement": true,
+            "bytes": 33445
+          },
+          {
+            "relative_path": "stage_center/selection.py",
+            "current_sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294",
+            "pinned_supplement_sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294",
+            "matches_pinned_supplement": true,
+            "bytes": 31705
+          },
+          {
+            "relative_path": "stage_center/_selection_parts/schema_values.py",
+            "current_sha256": "80b0c21556c78c89132a08ca24eb80b5a211791719cb54801497dbe74472e458",
+            "pinned_supplement_sha256": "80b0c21556c78c89132a08ca24eb80b5a211791719cb54801497dbe74472e458",
+            "matches_pinned_supplement": true,
+            "bytes": 3956
+          },
+          {
+            "relative_path": "stage_center/end_to_end_deadline.py",
+            "current_sha256": "f25d91cf1eaf4ea7d1a9a57fc1f8288d14d98536a63dee16467550974b2a812e",
+            "pinned_supplement_sha256": "f25d91cf1eaf4ea7d1a9a57fc1f8288d14d98536a63dee16467550974b2a812e",
+            "matches_pinned_supplement": true,
+            "bytes": 21467
+          },
+          {
+            "relative_path": "stage_center/scheduler.py",
+            "current_sha256": "e56651ec7bb481b28e383cb403d60ba48747ddf7426f9fb380f5ae24fc3a37a4",
+            "pinned_supplement_sha256": "e56651ec7bb481b28e383cb403d60ba48747ddf7426f9fb380f5ae24fc3a37a4",
+            "matches_pinned_supplement": true,
+            "bytes": 6849
+          },
+          {
+            "relative_path": "stage_center/_selection_parts/_namespace.py",
+            "current_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+            "pinned_supplement_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+            "matches_pinned_supplement": true,
+            "bytes": 527
+          }
+        ],
+        "artifacts": {
+          "imports.json": {
+            "path": "isolated_test/current_dependency_closure_retry/canonical/targeted/imports.json",
+            "bytes": 11829,
+            "sha256": "e46b0779569a5d8587fb6ef96ed11c11bf9064c332587f17f203d50fffe8bd66"
+          },
+          "junit.xml": {
+            "path": "isolated_test/current_dependency_closure_retry/canonical/targeted/junit.xml",
+            "bytes": 2633,
+            "sha256": "4a2fe2b82bb402ed46bf0e7fcc977dbd2e0b30da85d11ad36885a4db826e5a1e"
+          },
+          "pytest.log": {
+            "path": "isolated_test/current_dependency_closure_retry/canonical/targeted/pytest.log",
+            "bytes": 99,
+            "sha256": "8a2a1da34fd240a2e0198a96637ecd1297d0a9e5f272f0ef221977101ad3ee31"
+          }
+        },
+        "loaded_import_identities": [
+          {
+            "module": "infrastructure.data_store",
+            "path": "support/infrastructure/data_store.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/harness/support/infrastructure/data_store.py",
+            "sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "infrastructure.interprocess_lock",
+            "path": "support/infrastructure/interprocess_lock.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/harness/support/infrastructure/interprocess_lock.py",
+            "sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "infrastructure.market_time",
+            "path": "support/infrastructure/market_time.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/harness/support/infrastructure/market_time.py",
+            "sha256": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "infrastructure.owned_io",
+            "path": "support/infrastructure/owned_io.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/harness/support/infrastructure/owned_io.py",
+            "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "infrastructure.owned_path",
+            "path": "support/infrastructure/owned_path.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/harness/support/infrastructure/owned_path.py",
+            "sha256": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "infrastructure.preselection_pool_readers",
+            "path": "app/infrastructure/preselection_pool_readers.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/app/infrastructure/preselection_pool_readers.py",
+            "sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "infrastructure.preselection_pool_sources",
+            "path": "app/infrastructure/preselection_pool_sources.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/app/infrastructure/preselection_pool_sources.py",
+            "sha256": "23827109688cabbfb50fc4563cd3c1bdb0220fb6246b349a72836dc0e9b02827",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "infrastructure.preselection_pool_store",
+            "path": "app/infrastructure/preselection_pool_store.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/app/infrastructure/preselection_pool_store.py",
+            "sha256": "9f1606a977d36c063d9c650e54b9861947eb7b692e779837852e3831b7814bef",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "infrastructure.preselection_pool_transactions",
+            "path": "support/infrastructure/preselection_pool_transactions.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/harness/support/infrastructure/preselection_pool_transactions.py",
+            "sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "infrastructure.scope_gate",
+            "path": "support/infrastructure/scope_gate.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/harness/support/infrastructure/scope_gate.py",
+            "sha256": "5620d1ee89fbae998d4c801c2a7c4cffac50f890ad0b6951f99230c591dcff68",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "infrastructure.trading_safety",
+            "path": "support/infrastructure/trading_safety.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/harness/support/infrastructure/trading_safety.py",
+            "sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "stage_center._runner_parts._namespace",
+            "path": "app/stage_center/_runner_parts/_namespace.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/app/stage_center/_runner_parts/_namespace.py",
+            "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "stage_center._runner_parts.hk_input_validation",
+            "path": "app/stage_center/_runner_parts/hk_input_validation.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/app/stage_center/_runner_parts/hk_input_validation.py",
+            "sha256": "b20baa18d0ee9748971db835f6fb3dd9a0e1d66aabd8da8d450aee3a4a528a8e",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "stage_center._runner_parts.selection_input_validation",
+            "path": "app/stage_center/_runner_parts/selection_input_validation.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/app/stage_center/_runner_parts/selection_input_validation.py",
+            "sha256": "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "stage_center._selection_parts._namespace",
+            "path": "support/stage_center/_selection_parts/_namespace.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/harness/support/stage_center/_selection_parts/_namespace.py",
+            "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "stage_center._selection_parts.schema_values",
+            "path": "support/stage_center/_selection_parts/schema_values.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/harness/support/stage_center/_selection_parts/schema_values.py",
+            "sha256": "80b0c21556c78c89132a08ca24eb80b5a211791719cb54801497dbe74472e458",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "stage_center.acquisition",
+            "path": "support/stage_center/acquisition.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/harness/support/stage_center/acquisition.py",
+            "sha256": "33e5003faed8127ec3393eb36af473c0d63ee3a79843418ef1a950ce7b697397",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "stage_center.calendar",
+            "path": "app/stage_center/calendar.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/app/stage_center/calendar.py",
+            "sha256": "31fed97066d9b804a71f15c48d4e0f8baa5d9af621e1d81dc0340fd6619e4099",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "stage_center.candidate_input",
+            "path": "support/stage_center/candidate_input.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/harness/support/stage_center/candidate_input.py",
+            "sha256": "59c6bb0ef13a5aaa576477708385ec4ac68b7d20a69e3fc61d984da4a8284aff",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "stage_center.contracts",
+            "path": "support/stage_center/contracts.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/harness/support/stage_center/contracts.py",
+            "sha256": "7741d0b977cc9994a0b526b35d6b3a3586bfb3b6c0b2f09f4cf8f05449c2bb18",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "stage_center.end_to_end_deadline",
+            "path": "support/stage_center/end_to_end_deadline.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/harness/support/stage_center/end_to_end_deadline.py",
+            "sha256": "f25d91cf1eaf4ea7d1a9a57fc1f8288d14d98536a63dee16467550974b2a812e",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "stage_center.raw_store",
+            "path": "support/stage_center/raw_store.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/harness/support/stage_center/raw_store.py",
+            "sha256": "2dea717cb65053c48b75468fd61508b3b61b421a6b528aa8ce93395e99aef547",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "stage_center.runner",
+            "path": "app/stage_center/runner.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/app/stage_center/runner.py",
+            "sha256": "d36cc60c538f23ab0f48c7387523d83ed5cebbdc67c0dd630e671f98ecdffa48",
+            "role": "EXACT_OWNER_SOURCE_SLICE"
+          },
+          {
+            "module": "stage_center.scheduler",
+            "path": "support/stage_center/scheduler.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/harness/support/stage_center/scheduler.py",
+            "sha256": "e56651ec7bb481b28e383cb403d60ba48747ddf7426f9fb380f5ae24fc3a37a4",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          },
+          {
+            "module": "stage_center.selection",
+            "path": "support/stage_center/selection.py",
+            "absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE28_HK_TRIO_MAC_20261008/isolated_test/current_dependency_closure_retry/canonical/harness/support/stage_center/selection.py",
+            "sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294",
+            "role": "CURRENT_OWNER_DEPENDENCY_COPY"
+          }
+        ]
+      }
+    ],
+    "runtime_recovery_status": "CANNOT_CONFIRM",
+    "initial_attempt": {
+      "result": {
+        "path": "isolated_test/current_dependency_closure/RESULTS.json",
+        "bytes": 19492,
+        "sha256": "a42788d1e280a7c3decd4ce64a5f912dbfbb898d5895c28bfab639731b10d184"
+      },
+      "stdout": {
+        "path": "writer/current_dependency_probe_stdout.log",
+        "bytes": 1107,
+        "sha256": "25e0abb7e303e1efba05caaa6c21850294fdf294c5320e868558c29140cbafbc"
+      },
+      "status": "NOT_RUN_NO_CASES",
+      "reason": "helper resolved configured V4 Python venv symlink to base interpreter; pytest was unavailable; no dependencies were installed; retry preserved configured symlink path"
+    },
+    "report_correction_evidence": {
+      "path": "writer/CURRENT_DEPENDENCY_CLOSURE_RECHECK.json",
+      "bytes": 2253,
+      "sha256": "c1e8b52ee5c57f077775f6c91a9992a2d189c38bd6d06651794c69d8a40d62b5"
+    },
+    "helper_script": {
+      "path": "writer/run_current_dependency_closure.py",
+      "bytes": 11638,
+      "sha256": "4260fa390773d3b52a8a0f5333add6f4341fa68d340efebb948316d3558f6041"
+    },
+    "retry_stdout": {
+      "path": "writer/current_dependency_probe_retry_stdout.log",
+      "bytes": 1253,
+      "sha256": "0389a448fa9956d45e34afa3ebf486611626b96795329c197a22d0f8d0e33ccb"
+    }
+  },
+  "runtime_identity_audit": {
+    "status": "SOURCE_MATCH",
+    "audit_scope": "READ_ONLY_SOURCE_CONFIG_AND_ONE_RECEIPT",
+    "artifact": {
+      "path": "writer/runtime_identity_audit.json",
+      "bytes": 15190,
+      "sha256": "a220c3589b72e5baef50ad7c3d8bd23e9ecc1f2b933a01893ac14f6c39c1c801"
+    },
+    "candidate_manifest_sha256": "33cfb3bb769c0e9c2575bfccff932bd5aea47827fb2103d7cd92e40fbd18b67b",
+    "frozen_input_commit": "30ad7bb633f715f30c4e10eb67e9041de92cf036",
+    "owner_source_snapshot": {
+      "source_rows": 30,
+      "status_counts": {
+        "MATCHES_BEFORE": 30
+      },
+      "mismatches": [],
+      "rows": [
+        {
+          "after_sha256": null,
+          "before_sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+          "bytes": 5432,
+          "owner": "actual_stage_owner",
+          "path": "infrastructure/preselection_pool_readers.py",
+          "sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "cc683561201453e3f7ca975b2b7cdb6a3836b1ecbe63e001a5abd181f38813d6",
+          "bytes": 5798,
+          "owner": "actual_stage_owner",
+          "path": "infrastructure/preselection_pool_sources.py",
+          "sha256": "cc683561201453e3f7ca975b2b7cdb6a3836b1ecbe63e001a5abd181f38813d6",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "a640d28ec54119ae383f5dd838fe467d6ae8b5b0d87fa2c4afbb0646fbfe658a",
+          "bytes": 32457,
+          "owner": "actual_stage_owner",
+          "path": "infrastructure/preselection_pool_store.py",
+          "sha256": "a640d28ec54119ae383f5dd838fe467d6ae8b5b0d87fa2c4afbb0646fbfe658a",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "f9530f010055476e17d87e93198e28d3f4943ed34255a2419130eb9f39deb6ed",
+          "bytes": 42295,
+          "owner": "actual_stage_owner",
+          "path": "ops/_run_stage_center_nodes_parts/node_entry.py",
+          "sha256": "f9530f010055476e17d87e93198e28d3f4943ed34255a2419130eb9f39deb6ed",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "2e40c84a30d9cabf047fefb5caec14f8b569d24e54a7f50c16211f0c0fda53ec",
+          "bytes": 2361,
+          "owner": "actual_stage_owner",
+          "path": "ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+          "sha256": "2e40c84a30d9cabf047fefb5caec14f8b569d24e54a7f50c16211f0c0fda53ec",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "d7ea89f5467fb4d62af6b43c59d9dcd7cfcd020a1ee1ce07a9fae8525f735f86",
+          "bytes": 23381,
+          "owner": "actual_stage_owner",
+          "path": "ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+          "sha256": "d7ea89f5467fb4d62af6b43c59d9dcd7cfcd020a1ee1ce07a9fae8525f735f86",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "8e9ca56aca8a21950590abe83ef305e46a022490eb61f48e0c5d19c2493e1772",
+          "bytes": 13421,
+          "owner": "actual_stage_owner",
+          "path": "ops/run_stage_center_nodes.py",
+          "sha256": "8e9ca56aca8a21950590abe83ef305e46a022490eb61f48e0c5d19c2493e1772",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+          "bytes": 527,
+          "owner": "actual_stage_owner",
+          "path": "stage_center/_runner_parts/_namespace.py",
+          "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": "b20baa18d0ee9748971db835f6fb3dd9a0e1d66aabd8da8d450aee3a4a528a8e",
+          "before_sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+          "bytes": 23786,
+          "owner": "actual_stage_owner",
+          "path": "stage_center/_runner_parts/hk_input_validation.py",
+          "sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c",
+          "bytes": 10698,
+          "owner": "actual_stage_owner",
+          "path": "stage_center/_runner_parts/selection_input_validation.py",
+          "sha256": "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a",
+          "bytes": 46386,
+          "owner": "actual_stage_owner",
+          "path": "stage_center/_runner_parts/slot_execution.py",
+          "sha256": "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "31fed97066d9b804a71f15c48d4e0f8baa5d9af621e1d81dc0340fd6619e4099",
+          "bytes": 4805,
+          "owner": "actual_stage_owner",
+          "path": "stage_center/calendar.py",
+          "sha256": "31fed97066d9b804a71f15c48d4e0f8baa5d9af621e1d81dc0340fd6619e4099",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232",
+          "bytes": 44615,
+          "owner": "actual_stage_owner",
+          "path": "stage_center/runner.py",
+          "sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "90a2bf6390c6c0e219aa3d9bb22bc3b3630ecb2d447df494ae69425933424ed7",
+          "bytes": 342147,
+          "owner": "api_runtime",
+          "path": "apps/api/v35_api/app.py",
+          "sha256": "90a2bf6390c6c0e219aa3d9bb22bc3b3630ecb2d447df494ae69425933424ed7",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "bcd4e623eabaedcc41a0e438942d755b578dbcc6a60c0ab0cf032af74fdbba43",
+          "bytes": 2616,
+          "owner": "api_runtime",
+          "path": "apps/api/v35_api/run.py",
+          "sha256": "bcd4e623eabaedcc41a0e438942d755b578dbcc6a60c0ab0cf032af74fdbba43",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "435dcedd3beb43bf4a0ccb35ff6fc033ba536a940990c36f5f23358f5492b590",
+          "bytes": 342253,
+          "owner": "canonical",
+          "path": "apps/api/v35_api/app.py",
+          "sha256": "435dcedd3beb43bf4a0ccb35ff6fc033ba536a940990c36f5f23358f5492b590",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "a0678dc649dffc91c6f60d0614b1ab905dbb289692df6f423a7cb05b68d060e2",
+          "bytes": 2478,
+          "owner": "canonical",
+          "path": "apps/api/v35_api/run.py",
+          "sha256": "a0678dc649dffc91c6f60d0614b1ab905dbb289692df6f423a7cb05b68d060e2",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+          "bytes": 5432,
+          "owner": "canonical",
+          "path": "infrastructure/preselection_pool_readers.py",
+          "sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "23827109688cabbfb50fc4563cd3c1bdb0220fb6246b349a72836dc0e9b02827",
+          "bytes": 6603,
+          "owner": "canonical",
+          "path": "infrastructure/preselection_pool_sources.py",
+          "sha256": "23827109688cabbfb50fc4563cd3c1bdb0220fb6246b349a72836dc0e9b02827",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "9f1606a977d36c063d9c650e54b9861947eb7b692e779837852e3831b7814bef",
+          "bytes": 56638,
+          "owner": "canonical",
+          "path": "infrastructure/preselection_pool_store.py",
+          "sha256": "9f1606a977d36c063d9c650e54b9861947eb7b692e779837852e3831b7814bef",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "b83d35091ddf7566084c1f39e8821a96d72c1297549dcbdb76a1c11dbec655e4",
+          "bytes": 33183,
+          "owner": "canonical",
+          "path": "ops/_run_stage_center_nodes_parts/node_entry.py",
+          "sha256": "b83d35091ddf7566084c1f39e8821a96d72c1297549dcbdb76a1c11dbec655e4",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "2e40c84a30d9cabf047fefb5caec14f8b569d24e54a7f50c16211f0c0fda53ec",
+          "bytes": 2361,
+          "owner": "canonical",
+          "path": "ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+          "sha256": "2e40c84a30d9cabf047fefb5caec14f8b569d24e54a7f50c16211f0c0fda53ec",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "06548184a4b09b0ae94053f2308eefb3bf5c31afc9f04abaeb805db7cebe8adb",
+          "bytes": 34834,
+          "owner": "canonical",
+          "path": "ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+          "sha256": "06548184a4b09b0ae94053f2308eefb3bf5c31afc9f04abaeb805db7cebe8adb",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "b0cde8d66727e16bbf526050a61aea17381f636d2fd96dbb0d2be6964d7f1e13",
+          "bytes": 14050,
+          "owner": "canonical",
+          "path": "ops/run_stage_center_nodes.py",
+          "sha256": "b0cde8d66727e16bbf526050a61aea17381f636d2fd96dbb0d2be6964d7f1e13",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+          "bytes": 527,
+          "owner": "canonical",
+          "path": "stage_center/_runner_parts/_namespace.py",
+          "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": "b20baa18d0ee9748971db835f6fb3dd9a0e1d66aabd8da8d450aee3a4a528a8e",
+          "before_sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+          "bytes": 23786,
+          "owner": "canonical",
+          "path": "stage_center/_runner_parts/hk_input_validation.py",
+          "sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c",
+          "bytes": 10698,
+          "owner": "canonical",
+          "path": "stage_center/_runner_parts/selection_input_validation.py",
+          "sha256": "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "86ea1de7e32e6f29deb6622b4af37b4723e0b086d4c700cd513671ceed719d8a",
+          "bytes": 49370,
+          "owner": "canonical",
+          "path": "stage_center/_runner_parts/slot_execution.py",
+          "sha256": "86ea1de7e32e6f29deb6622b4af37b4723e0b086d4c700cd513671ceed719d8a",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "31fed97066d9b804a71f15c48d4e0f8baa5d9af621e1d81dc0340fd6619e4099",
+          "bytes": 4805,
+          "owner": "canonical",
+          "path": "stage_center/calendar.py",
+          "sha256": "31fed97066d9b804a71f15c48d4e0f8baa5d9af621e1d81dc0340fd6619e4099",
+          "status": "MATCHES_BEFORE"
+        },
+        {
+          "after_sha256": null,
+          "before_sha256": "d36cc60c538f23ab0f48c7387523d83ed5cebbdc67c0dd630e671f98ecdffa48",
+          "bytes": 83846,
+          "owner": "canonical",
+          "path": "stage_center/runner.py",
+          "sha256": "d36cc60c538f23ab0f48c7387523d83ed5cebbdc67c0dd630e671f98ecdffa48",
+          "status": "MATCHES_BEFORE"
+        }
+      ]
+    },
+    "config": {
+      "bytes": 2844,
+      "fields": {
+        "candidate_acquisition_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+        "hk_d1_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+        "preselection_source_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+        "python_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "raw_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw",
+        "receipt_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts",
+        "release_id": "20261003-hk-binding-wrapper-r3",
+        "selection_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection"
+      },
+      "receipt_root_matches_requested_audit_root": true,
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "sha256": "ef5f49cb4efc35ec76e718415662cece51abb327b6ea7d5ccaa45df2b91869f7",
+      "status": "OBSERVED_ONLY"
+    },
+    "observed_receipt": {
+      "bytes": 25615,
+      "date_stage_match": true,
+      "matches_frozen_receipt_sha256": true,
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "sha256": "cb8be29778c1d1bb8c2dc44266ce0495b8efc1da094911e84864a9a2bad6193b",
+      "status": "OBSERVED_ONLY",
+      "summary": {
+        "A_SHARE": {
+          "cannot_confirm_count": 196,
+          "cannot_confirm_sha256": "5dfb198f9db429bde8429267a02e6b052bd683010af01fbc49fb4f23141ceb14",
+          "frozen_provenance_missing_reason_observed": false,
+          "requested_rows": 178,
+          "selected_rows": 10,
+          "selection_status": "PARTIAL_WITH_ROWS",
+          "source_rows": 172,
+          "source_status": "CANNOT_CONFIRM"
+        },
+        "HK_CONNECT": {
+          "cannot_confirm_count": 1,
+          "cannot_confirm_sha256": "6d586354fac3c95f79d13239464e813efef31f8a56edf861b03f563f42228e6e",
+          "frozen_provenance_missing_reason_observed": true,
+          "selected_rows": 0,
+          "selection_status": "CANNOT_CONFIRM",
+          "source_status": "CANNOT_CONFIRM",
+          "status": "CANNOT_CONFIRM",
+          "write_performed": false
+        },
+        "due_status": "DUE",
+        "node_attempt_count": 1,
+        "node_outcome": "SETTLED_PARTIAL",
+        "retry_exhausted": false,
+        "schema_version": "stage_center.runner.receipt.v1",
+        "stage_id": "STAGE_0930_0935",
+        "status": "PARTIAL_WITH_ROWS",
+        "trade_date": "20261008",
+        "write_performed": true
+      }
+    },
+    "runtime_recovery_status": "CANNOT_CONFIRM",
+    "not_executed": [
+      "V4 imports",
+      "pool validation",
+      "upstream provenance validation",
+      "Stage dispatch",
+      "deployment",
+      "service or schedule change",
+      "API GET",
+      "UI",
+      "natural-slot acceptance"
+    ],
+    "limits": [
+      "A source SHA match does not identify loaded process memory or prove a successful Stage run.",
+      "The receipt is one file observation; it is not a newly verified artifact trio.",
+      "No pool rows, price source, eligibility artifact or capture-time evidence is consumed.",
+      "Exit 0 means the inventory reads matched, never that HK recovery succeeded."
+    ]
+  },
+  "acceptance_states": {
+    "source_tree_and_manifest": "PASS",
+    "original_downloaded_zip_sha": "CANNOT_CONFIRM_NOT_RECEIVED",
+    "targeted_isolated_candidates": "PASS",
+    "isolated_current_exercised_dependencies": "PASS",
+    "source_owner_identity_snapshot": "PASS_MATCHES_FROZEN_BEFORE_IMAGE",
+    "actual_loaded_full_stage_runtime": "CANNOT_CONFIRM",
+    "upstream_hk_source_provenance_and_capture_time": "CANNOT_CONFIRM",
+    "stage_dispatch_and_recovery": "CANNOT_CONFIRM",
+    "api_ui_natural_slot": "CANNOT_CONFIRM_NOT_RUN",
+    "integration_or_deployment": "NOT_RUN",
+    "independent_current_closure_review": "PENDING"
+  },
+  "forbidden_actions_confirmed_not_performed": [
+    "no current business source/config edits",
+    "no service or schedule change",
+    "no receipt rewrite or rearm",
+    "no deployment or API/UI/Natural run",
+    "no Git commit/push",
+    "no raw market data copied",
+    "no dependency install"
+  ],
+  "limitations": [
+    "ZIP was absent; GitHub fixed-commit bytes were fetched and checked against SOURCE_MANIFEST, but original ZIP hash cannot be verified.",
+    "Targeted run is isolated candidate source slices with pinned supplements; current exercised-dependency clone is separate and still not a full Stage app/service runtime.",
+    "Runtime identity audit proves a read-only source/config/one-receipt inventory, not in-memory imports or a successful Stage run.",
+    "Current receipt records HK_CONNECT as CANNOT_CONFIRM; these checks do not establish valid upstream source, capture time, API/UI, deployment, or natural-stage behavior."
+  ]
+}

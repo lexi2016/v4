@@ -1,0 +1,124 @@
+{
+  "schema_version": "issue28.mac.source_gap_summary.v1",
+  "reviewer": "/root/hk_trio_source_gap",
+  "scope": "READ_ONLY_EXISTING_AUTHORITY_SOURCE_AND_SETTLED_SLOT",
+  "trade_date": "20261008",
+  "stage_id": "STAGE_0930_0935",
+  "market": "HK_CONNECT",
+  "status": "CANNOT_CONFIRM",
+  "price_signal_date_required": "20261007",
+  "eligibility_source_date_required": "20260930",
+  "evidence_files": {
+    "upstream_artifact": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/runs/20261008/HK_CONNECT_D1_TOP100_0_2/20261008-hk-connect-d1-top100-0-2-8a0386afb66b/artifact.csv",
+      "sha256": "ce4e94229a1f1bf44c22a2390d577dbea3c81f588543221fb1ee12b9464cc040",
+      "bytes": 86640,
+      "exists": true
+    },
+    "upstream_manifest": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/runs/20261008/HK_CONNECT_D1_TOP100_0_2/20261008-hk-connect-d1-top100-0-2-8a0386afb66b/manifest.json",
+      "sha256": "0755d987ea67ab9348dbbf1558a9fe84e877d80127d66dda7f6b5b487e5c8605",
+      "bytes": 1359,
+      "exists": true
+    },
+    "upstream_receipt": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/runs/20261008/HK_CONNECT_D1_TOP100_0_2/20261008-hk-connect-d1-top100-0-2-8a0386afb66b/receipt.json",
+      "sha256": "1766e13c42adea7448e2b368323f26d0173abd85c157f79967c264c2c5a436c6",
+      "bytes": 710,
+      "exists": true
+    },
+    "local_pool": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20261008/hkconnect_d1_top100.json",
+      "sha256": "62d7716c51978a8e2b55c8aa423ae72691da1385fb80b97df35da714addee09b",
+      "bytes": 212912,
+      "exists": true
+    },
+    "local_manifest": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20261008/manifest.json",
+      "sha256": "cc476019362896f89b37ca12b0f5d7c606fe188ef3b0a33b7c8224df21aa8de6",
+      "bytes": 681,
+      "exists": true
+    },
+    "local_receipt": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20261008/receipts/hkconnect_d1_top100.json",
+      "sha256": "1871468dda045659d1786b46576ec6290b92df667bcda7c5b325a62a0af01b28",
+      "bytes": 476,
+      "exists": true
+    },
+    "oct7_close_snapshot": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/hkconnect_close_snapshots/20261007.json",
+      "sha256": "71e1b1f1ca39b2f1e89a9d58ab4d45db9787809846619c60ca573a5c7e9d7e33",
+      "bytes": 133236,
+      "exists": true
+    },
+    "sep30_close_snapshot": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/hkconnect_close_snapshots/20260930.json",
+      "sha256": "923f153f8a269895e672ec4f20643959cfeb04a21d64a282a9dca59dc1abbc0f",
+      "bytes": 133649,
+      "exists": true
+    },
+    "old_panel_manifest": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20260930-151fbe7168ef/manifest.json",
+      "sha256": "a4ae58a8606bc86b85a2200ab08103373d2e204b9ac2bb9778cdc8d6d01c51f2",
+      "bytes": 113416,
+      "exists": true
+    },
+    "new_panel_manifest": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/panels/20261008-785212e96f9f/manifest.json",
+      "sha256": "a9c75b248d264e2ed78532cbfc1004f8de97b8e8f91c587a66b50f5afa020bee",
+      "bytes": 114382,
+      "exists": true
+    },
+    "stage_receipt": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261008/STAGE_0930_0935/receipt.json",
+      "sha256": "cb8be29778c1d1bb8c2dc44266ce0495b8efc1da094911e84864a9a2bad6193b",
+      "bytes": 25615,
+      "exists": true
+    }
+  },
+  "findings": [
+    {
+      "id": "UPSTREAM_EXISTS_WRONG_SIGNAL_DATE",
+      "status": "CONFIRMED",
+      "detail": "The existing upstream 0.2 run trio exists, but all 100 rows use signal_date 20260930; captured_at 2026-09-30T17:30:43+08:00. Its TDX panel ends on 20260930, not 20261007."
+    },
+    {
+      "id": "SOURCE_TRIO_AND_LOCAL_TRIO_DISTINCT",
+      "status": "CONFIRMED",
+      "detail": "Payload upstream source_manifest_sha256/source_receipt_sha256 are absent. These must bind the same upstream run as source_sha256; local snapshot manifest/receipt hashes cannot substitute."
+    },
+    {
+      "id": "PRICE_SCORING_LINEAGE",
+      "status": "CANNOT_CONFIRM",
+      "detail": "20261007 close snapshot exists but lacks run_id/captured_at. Its source_input_sha256 original was not found in the bounded configured source roots. It does not establish a 20261007 TDX Top100 scoring run."
+    },
+    {
+      "id": "ELIGIBILITY_CAPTURE_CHAIN",
+      "status": "CANNOT_CONFIRM",
+      "detail": "20260930 close snapshot exists but lacks independent eligibility run/capture evidence. Security-master or Top100 run capture timestamps cannot be borrowed."
+    },
+    {
+      "id": "LATEST_PANEL_UNSAFE_SUBSTITUTE",
+      "status": "CONFIRMED",
+      "detail": "Current panel includes 20261008 and was prepared at 2026-10-08 17:20 Asia/Shanghai. It cannot substitute for the required 20261007 cutoff or establish the 09:30 natural-slot input."
+    },
+    {
+      "id": "SETTLED_SLOT",
+      "status": "CONFIRMED",
+      "detail": "Receipt remains SETTLED_PARTIAL with one attempt, retry_exhausted=false, A selected_rows=10 and HK provenance missing with no HK write. Ordinary settled replay skips; existing narrowly scoped rearm conditions do not match."
+    }
+  ],
+  "recovery_requirements": [
+    "Recover and validate the authoritative 20261007 scoring input/run trio and independent 20260930 Connect eligibility run/artifact/capture evidence. Do not relabel old rows, mix source layers, use latest fallback, or create a second producer.",
+    "After valid input and independent acceptance, prepare a separately reviewed HK-only historical recovery path that preserves the old receipt, attempt state and successful A result. No deletion/rewrite to force rerun.",
+    "Manual/historical recovery must remain distinct from natural-slot verification."
+  ],
+  "limitations": [
+    "Bounded source search only; does not prove required files never existed or are absent everywhere.",
+    "Tradability, Top100/Top200 cutoffs and weekly overlap not reviewed.",
+    "No source repair, data materialization, integration, deployment or slot recovery performed."
+  ],
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
