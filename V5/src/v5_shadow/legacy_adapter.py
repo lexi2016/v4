@@ -56,14 +56,20 @@ def build_shadow_result(request:ShadowRequest,runtime:RuntimeIdentity,legacy:dic
     return ShadowResult('v5.rebound_shadow.v1',uuid.uuid4().hex,request,runtime,legacy,business,evaluated,'UNVERIFIED',False,started_at,finished_at,SafetyFlags())
 
 
-def run_legacy_screen(request:ShadowRequest,binding:Binding) -> dict:
-    """Called only in the dedicated worker; user requests cannot select code."""
+def load_pinned_reader(binding:Binding):
+    """Load only the byte-verified capsule in a fresh disposable process.
+
+    Static provenance permits attempting the import; successful loading is
+    observed here rather than asserted by a pre-written runtime status flag.
+    This does not admit real inputs or prove the complete business flow.
+    """
     base=Path(__file__).resolve().parents[2]
     root=base/'vendor'/'rebound_baseline'
     descriptor=base/'contracts'/'rebound_source_manifest.json'
     if not descriptor.is_file():raise ValueError('SOURCE_CLOSURE_INCOMPLETE')
     value=json.loads(descriptor.read_text())
-    if value.get('runtime_closure_status')!='VERIFIED':raise ValueError('SOURCE_CLOSURE_INCOMPLETE')
+    if value.get('schema_version')!='v5.rebound_source_capsule.v1' or value.get('source_closure_status')!='STATIC_VERIFIED':
+        raise ValueError('SOURCE_CLOSURE_INCOMPLETE')
     if tuple(map(int,platform.python_version_tuple()[:2]))<(3,14):raise ValueError('LEGACY_PYTHON_REQUIRES_3_14')
     if importlib.util.find_spec('pandas') is None or importlib.util.find_spec('pyarrow') is None:
         raise ValueError('LEGACY_PARQUET_DEPENDENCY_MISSING')
@@ -81,6 +87,12 @@ def run_legacy_screen(request:ShadowRequest,binding:Binding) -> dict:
         module=types.ModuleType(name);module.__path__=[str(root/relative)];module.__package__=name
         sys.modules[name]=module
     original=importlib.import_module('v4.manager_research.workspace_plan')
+    return original
+
+
+def run_legacy_screen(request:ShadowRequest,binding:Binding) -> dict:
+    """Called only in the dedicated worker; user requests cannot select code."""
+    original=load_pinned_reader(binding)
     context=original.plan_context(request.target_trade_date,now=request.research_cutoff)
     if context['calendar_sha256']!=binding.calendar_sha256:raise ValueError('CALENDAR_IDENTITY_MISMATCH')
     if request.data_kind=='OWNER_VERIFIED':
