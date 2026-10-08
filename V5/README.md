@@ -1,19 +1,25 @@
 # V5 独立模块迁移
 
-V5已在现有私有仓库lexi2016/v4建立独立分支v5/module-isolation-20261008，不覆盖V4。此目录目前只有设计与实施计划，不是可运行工程。
+V5 位于私有仓库 `lexi2016/v4` 的 `v5/module-isolation-20261008` 分支，仅修改 V5/，不覆盖 V4。
+
+## 当前可核验状态（2026-10-08）
+
+- 已有版本/输入合同、来源闭包、依赖观测、模块组合、隔离 worker、不可变结果存储、原超跌 reader 适配、命令行和只读本地页面。
+- 固定版本 [054782a](https://github.com/lexi2016/v4/commit/054782a08e8eb701b98714eeb0fadbd60153725c) 在 Mac Python 3.14.6 锁定环境完成 10 项审查回归及全套 78 项测试，exit 0；保留 4 条 HTTPError 资源清理警告。
+- 后续 [1167ed3](https://github.com/lexi2016/v4/commit/1167ed3ea2aa7e8c8e1b2d79f4e490beec1395fb) 新增 SDK 数据规范化及 11 项测试。其测试尚待独立回执；不要沿用上一版通过结论。
+- 现有链路证明的是合成数据下的原 reader→独立 worker→提交→读回及重复请求一致性。合成页面结果为严格 1、接近 2、排除 1，没有真实股票推荐含义。
+- 浏览器视觉验收、真实 owner 输入准入、真实选股、每日自动运行、独立多模块进程环境及生产切换均未完成。
 
 ## 阅读顺序
 
-1. [来源与实际状态](BASELINE.md)
-2. [架构规格与首轮边界](SPEC.md)
-3. [首轮详细实施计划](PLAN.md)
+1. [实际验证与接续](docs/ACCEPTANCE.md)
+2. [来源与历史基线](BASELINE.md)
+3. [架构与首轮边界](SPEC.md)
+4. [首轮实施计划及历史任务说明](PLAN.md)
+5. [审查修复说明](docs/REVIEW_FIX_CANDIDATE.md)
 
-首轮只做独立版本组合/发布健康检查，加一个原超跌reader的隔离影子运行。保留原算法、PIT、日期与资格门；V4继续运行。按用户最新分工，由dot在当前工作中编写代码，云端Codex做定向测试，本地Codex只做后续获批部署、原生兼容验证与反馈。
+用户当前分工：dot 编写代码，原 Mac 测试会话执行独立测试并反馈；不启动新的云端 Codex 编码或测试任务。不因缺真实行情而停止可独立完成的工程实现，也不把合成测试当真实业务验收。
 
-当前状态：实施计划待用户审阅，产品代码/测试/部署均未开始。真实HK02输入缺项仍阻塞对应业务验收；合成数据只能证明工程合同。
-
-本次分支以固定commit c563adc067fcd6a6b95fe756c7618f46d2f4389e为起点，新增文件仅V5/的README、BASELINE、SPEC、PLAN。没有产品代码迁移、merge、部署或其他分支变更。
-
-兼容的云端Python版本可用于开发和合成测试，记录实际解释器与依赖；Mac实际运行环境另做兼容验收，不把此前观察到的3.14.6补丁版本号本身当作禁止开发条件。
+使用 source-only 入口 `python -B run_shadow.py`，具体命令见验收说明。服务未安装；本地页面只能由获准测试显式启动在空闲 loopback 端口，不能接管 V4 的 8873。
 
 不接账户或订单；research_only=true、production_allowed=false、buy_gate_updated=false、orders_sent=false。

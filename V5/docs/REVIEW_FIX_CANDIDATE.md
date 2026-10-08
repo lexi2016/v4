@@ -1,6 +1,8 @@
 # V5 shadow milestone: review-fix candidate
 
-Status: IMPLEMENTED_NOT_TESTED. No deployment, real-owner admission, natural run, or visual acceptance is claimed.
+Status update 2026-10-08: MAC_VERIFIED_78_PASS at 054782a08e8eb701b98714eeb0fadbd60153725c. The 10 review regressions and full 78-test suite passed, exit 0; four HTTPError cleanup ResourceWarnings remain. See ACCEPTANCE.md for current results. No deployment, real-owner admission, natural run, or visual acceptance is claimed.
+
+The following describes the candidate at authoring time; its historical RED remains NOT_RUN.
 
 The preceding product baseline b0532fef13888749acca296b25244dc2ebc0b9ca passed 68 tests on the Mac's isolated locked environment (Python 3.14.6, pandas 2.3.3, pyarrow 24.0.0). That result does not cover this candidate. Review tests at bcffbcc5c84e2f766296ae258aa0aab8d36dac63 have not run: the original Mac execution transport failed. The user explicitly authorized implementation from the static review while deferring execution until the Mac recovers. No cloud replacement test was run.
 
@@ -36,4 +38,4 @@ The web service is read-only and loopback-only. Starting it is a separate explic
 
 ## Still outside completion
 
-Actual Mac verification of these changes, multi-process/fault coverage, real-owner snapshot admission, real volume-unit proof, browser visual acceptance, automatic daily scheduling, independent multi-module environments and production cutover remain outstanding. Existing documentation describing earlier phases is historical and must not override this status.
+Additional multi-process/fault coverage, real-owner snapshot admission, real volume-unit proof, browser visual acceptance, automatic daily scheduling, independent multi-module environments and production cutover remain outstanding. Existing documentation describing earlier phases is historical and must not override this status.
