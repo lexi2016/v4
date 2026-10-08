@@ -13,6 +13,7 @@ from v5_shadow.digests import canonical_bytes,sha256_json
 from v5_shadow.health import observe_runtime,evaluate_health
 from v5_shadow.legacy_adapter import run_legacy_screen,build_shadow_result
 from v5_shadow.shadow_store import publish_shadow,wire
+from v5_shadow.input_snapshot import verify_snapshot
 
 
 def install_python_guards():
@@ -46,10 +47,14 @@ def worker_main(request_json:Path,effective_config_json:Path) -> int:
         if health.identity_status!='MATCH' or health.compatibility_status!='COMPATIBLE':
             print(canonical_bytes({'status':'REJECTED','reason_codes':list(health.reason_codes),'health':wire(health)}).decode());return 3
         if request.data_kind=='OWNER_VERIFIED':raise ValueError('OWNER_INPUT_STABILITY_UNVERIFIED')
+        if request.input_snapshot_sha256 is not None:
+            verify_snapshot(binding.authority_root,request.input_snapshot_sha256)
         # The audit hook is permanent. Read and result-writing are separated into
         # different processes: the worker returns data only; the parent commits.
         install_python_guards()
         with redirect_stdout(io.StringIO()):legacy=run_legacy_screen(request,binding)
+        if request.input_snapshot_sha256 is not None:
+            verify_snapshot(binding.authority_root,request.input_snapshot_sha256)
         finished=datetime.now(timezone.utc)
         result=build_shadow_result(request,observed,legacy,started,finished)
         print(canonical_bytes({'status':result.business_status,'reason_codes':legacy.get('gaps',[]),'result':wire(result),'isolation_status':'PYTHON_GUARDS_ONLY_OS_UNVERIFIED'}).decode())

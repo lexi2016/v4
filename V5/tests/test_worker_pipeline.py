@@ -28,6 +28,8 @@ class WorkerPipelineTests(unittest.TestCase):
             shutil.copytree(BASE / directory, self.app / directory,
                             ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
         shutil.copyfile(BASE / 'uv.lock', self.app / 'uv.lock')
+        if (BASE / 'run_shadow.py').is_file():
+            shutil.copyfile(BASE / 'run_shadow.py', self.app / 'run_shadow.py')
         if (BASE / 'module_release.json').is_file():
             shutil.copyfile(BASE / 'module_release.json', self.app / 'module_release.json')
         self.source = self.root / 'synthetic-source'
@@ -55,7 +57,9 @@ class WorkerPipelineTests(unittest.TestCase):
         self.req_path.write_bytes(canonical_bytes(self.req))
 
     def call(self, *args):
-        p = subprocess.run([sys.executable, '-B', '-m', 'v5_shadow', *args],
+        launcher = self.app / 'run_shadow.py'
+        entry = [str(launcher)] if launcher.is_file() else ['-m', 'v5_shadow']
+        p = subprocess.run([sys.executable, '-B', *entry, *args],
                            env=self.env, capture_output=True, text=True, timeout=90)
         self.assertTrue(p.stdout.strip(), p.stderr)
         return p.returncode, json.loads(p.stdout)

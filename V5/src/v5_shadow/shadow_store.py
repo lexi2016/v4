@@ -46,8 +46,18 @@ def _load(root,relative):
 
 
 def _dir(root,relative):
-    path=checked_path(root,relative);path.mkdir(parents=True,exist_ok=True)
-    return checked_path(root,relative)
+    checked_path(root,relative)
+    parent=root
+    for name in relative.split('/'):
+        child=parent/name
+        checked_path(root,child.relative_to(root).as_posix())
+        child.mkdir(exist_ok=True)
+        checked_path(root,child.relative_to(root).as_posix())
+        fd=os.open(parent,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
+        try:os.fsync(fd)
+        finally:os.close(fd)
+        parent=child
+    return parent
 
 
 def _run_id(value):
@@ -60,9 +70,18 @@ def parse_result(value):
     if value['schema_version']!='v5.rebound_shadow.v1' or value['formal_eligibility_status']!='UNVERIFIED' or value['natural_verified'] is not False:
         raise ValueError('RESULT_SAFETY_INVALID')
     safety=parse_safety(value['safety']);request=parse_request(value['request'])
-    observed=value['runtime'];exact_keys(observed,RuntimeIdentity.__dataclass_fields__)
+    observed=dict(value['runtime'])
+    # Previously committed v1 artifacts remain readable, but new executions
+    # provide the observed dependency fingerprint as part of their identity.
+    observed.setdefault('dependency_environment_sha256','')
+    observed.setdefault('dependency_environment_json','')
+    exact_keys(observed,RuntimeIdentity.__dataclass_fields__)
     if any(not isinstance(observed[k],str) for k in observed if k!='observed_at'):raise ValueError('RUNTIME_IDENTITY_INVALID')
     runtime=RuntimeIdentity(**{**observed,'observed_at':aware(observed['observed_at'])})
+    if runtime.dependency_environment_sha256 or runtime.dependency_environment_json:
+        sha(runtime.dependency_environment_sha256)
+        if hashlib.sha256(runtime.dependency_environment_json.encode()).hexdigest()!=runtime.dependency_environment_sha256:
+            raise ValueError('DEPENDENCY_OBSERVATION_MISMATCH')
     status=value['business_status']
     if status not in ('COMPLETED','VALID_EMPTY','PARTIAL','CANNOT_CONFIRM','FAILED'):raise ValueError('BUSINESS_STATUS_INVALID')
     if status in ('COMPLETED','VALID_EMPTY','PARTIAL'):
@@ -82,11 +101,24 @@ def parse_result(value):
 
 def idempotency_key(request,runtime):
     if request.input_snapshot_sha256 is None:raise ValueError('INPUT_IDENTITY_UNKNOWN')
-    return sha256_json(dict(module_id=runtime.module_id,target_trade_date=request.target_trade_date,
+    identity=dict(module_id=runtime.module_id,target_trade_date=request.target_trade_date,
         research_cutoff=request.research_cutoff.isoformat(),execution_kind=request.execution_kind,data_kind=request.data_kind,
         input_snapshot_sha256=request.input_snapshot_sha256,code_manifest_sha256=runtime.code_manifest_sha256,
         dependency_lock_sha256=runtime.dependency_lock_sha256,source_capsule_sha256=runtime.source_capsule_sha256,
-        effective_config_sha256=runtime.effective_config_sha256,python_version=runtime.python_version,release_id=runtime.release_id))
+        effective_config_sha256=runtime.effective_config_sha256,python_version=runtime.python_version,release_id=runtime.release_id)
+    if runtime.dependency_environment_sha256:
+        identity['dependency_environment_sha256']=runtime.dependency_environment_sha256
+    return sha256_json(identity)
+
+
+def _cacheable(result):
+    # PARTIAL and failed/unknown attempts are retained independently. They must
+    # neither consume nor hit the successful-result cache.
+    return result.request.input_snapshot_sha256 is not None and result.business_status in ('COMPLETED','VALID_EMPTY')
+
+
+def _attempt_key(result,runtime=None):
+    return sha256_json({'attempt':result.run_id,'request':wire(result.request),'runtime':wire(result.runtime) if runtime is None else runtime})
 
 
 def _ref(value):
@@ -110,8 +142,9 @@ def _read_trio(root,target,run_id,key):
         raise ValueError('SHADOW_TRIO_INTEGRITY_FAILED')
     result=parse_result(artifact)
     if result.run_id!=run_id or result.request.target_trade_date!=target:raise ValueError('SHADOW_ARTIFACT_IDENTITY_MISMATCH')
-    expected=(idempotency_key(result.request,result.runtime) if result.request.input_snapshot_sha256 is not None
-        else sha256_json({'attempt':result.run_id,'request':wire(result.request),'runtime':wire(result.runtime)}))
+    legacy_identity='dependency_environment_sha256' not in artifact['runtime']
+    expected=(idempotency_key(result.request,result.runtime) if _cacheable(result) or (legacy_identity and result.request.input_snapshot_sha256 is not None)
+        else _attempt_key(result,artifact['runtime']))
     if key!=expected:raise ValueError('SHADOW_IDEMPOTENCY_MISMATCH')
     return result,RunReference(run_id,ash,msh,rsh,key)
 
@@ -127,8 +160,8 @@ def read_shadow(root:Path,ref:RunReference) -> ShadowResult:
 
 def publish_shadow(root:Path,result:ShadowResult) -> RunReference:
     root=shadow_root(root);result=parse_result(wire(result))
-    known=result.request.input_snapshot_sha256 is not None
-    key=idempotency_key(result.request,result.runtime) if known else sha256_json({'attempt':result.run_id,'request':wire(result.request),'runtime':wire(result.runtime)})
+    known=_cacheable(result)
+    key=idempotency_key(result.request,result.runtime) if known else _attempt_key(result)
     for sub in ('locks','index','claims','refs','runs'):_dir(root,sub)
     lock=checked_path(root,'locks/'+key+'.lock')
     fd=os.open(lock,os.O_CREAT|os.O_RDWR|os.O_NOFOLLOW,0o600)
@@ -138,19 +171,25 @@ def publish_shadow(root:Path,result:ShadowResult) -> RunReference:
         index_rel='index/'+key+'.json';claim_rel='claims/'+key+'.json'
         index_path=checked_path(root,index_rel)
         if known and index_path.exists():
-            previous,_=_load(root,index_rel);ref=_ref(previous['reference']);read_shadow(root,ref)
-            return ref
+            previous,_=_load(root,index_rel);ref=_ref(previous['reference'])
+            if ref.idempotency_key!=key or previous['target_trade_date']!=result.request.target_trade_date:
+                raise ValueError('SHADOW_INDEX_IDENTITY_MISMATCH')
+            old=read_shadow(root,ref)
+            if _cacheable(old):return ref
         claim_path=checked_path(root,claim_rel)
         if known and claim_path.exists():
             previous,_=_load(root,claim_rel)
+            if previous['target_trade_date']!=result.request.target_trade_date:
+                raise ValueError('SHADOW_CLAIM_IDENTITY_MISMATCH')
             # Only missing files indicate a pre-commit crash. A corrupt existing
             # trio is an integrity failure and cannot be silently replaced.
             try:old,ref=_read_trio(root,previous['target_trade_date'],previous['run_id'],key)
             except FileNotFoundError:pass
             else:
-                record={'target_trade_date':old.request.target_trade_date,'reference':wire(ref)}
-                atomic_bytes(checked_path(root,'refs/'+ref.run_id+'.json'),canonical_bytes(record))
-                atomic_bytes(index_path,canonical_bytes(record));return ref
+                if _cacheable(old):
+                    record={'target_trade_date':old.request.target_trade_date,'reference':wire(ref)}
+                    atomic_bytes(checked_path(root,'refs/'+ref.run_id+'.json'),canonical_bytes(record))
+                    atomic_bytes(index_path,canonical_bytes(record));return ref
         target=result.request.target_trade_date;run_id=result.run_id
         directory=checked_path(root,f'runs/{target}/{run_id}')
         if directory.exists():raise ValueError('IMMUTABLE_RUN_ALREADY_EXISTS')

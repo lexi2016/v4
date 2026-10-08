@@ -99,4 +99,13 @@ def run_legacy_screen(request:ShadowRequest,binding:Binding) -> dict:
         # Byte checks alone do not prove an immutable owner snapshot/read lease.
         # No real source-admission protocol was supplied with this first baseline.
         raise ValueError('OWNER_INPUT_STABILITY_UNVERIFIED')
-    return original.read_rebound_screen(binding.authority_root,context)
+    legacy=original.read_rebound_screen(binding.authority_root,context)
+    if legacy.get('main_screen_ready') is True:
+        capture=legacy.get('authority',{}).get('security_master',{}).get('captured_at')
+        try:
+            when=datetime.fromisoformat(capture)
+            if when.tzinfo is None or when.utcoffset() is None:raise ValueError()
+        except (TypeError,ValueError):
+            raise ValueError('MASTER_CAPTURE_UNVERIFIED') from None
+        if when>request.research_cutoff:raise ValueError('MASTER_AFTER_CUTOFF')
+    return legacy

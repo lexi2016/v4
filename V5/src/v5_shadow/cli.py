@@ -53,7 +53,10 @@ def main(argv=None):
             if re.fullmatch('[0-9a-f]{32}',args.run_id) is None:raise ValueError('RUN_ID_INVALID')
             record,_=_load(root,'refs/'+args.run_id+'.json')
             if record['target_trade_date']!=args.target_date:raise ValueError('RUN_TARGET_MISMATCH')
-            result=read_shadow(root,_ref(record['reference']))
+            ref=_ref(record['reference'])
+            if ref.run_id!=args.run_id:raise ValueError('RUN_REFERENCE_MISMATCH')
+            result=read_shadow(root,ref)
+            if result.run_id!=args.run_id:raise ValueError('RUN_REFERENCE_MISMATCH')
             print(canonical_bytes({'status':result.business_status,'reason_codes':result.legacy_screen.get('gaps',[]),'result':wire(result)}).decode())
             return 0 if result.business_status in ('COMPLETED','VALID_EMPTY') else 2
         raw=load_json(args.composition)
@@ -75,7 +78,10 @@ def main(argv=None):
             request_path=Path(temp)/'request.json';config_path=Path(temp)/'config.json'
             request_path.write_bytes(canonical_bytes(request_raw));config_path.write_bytes(canonical_bytes(config))
             worker=Path(__file__).with_name('worker.py')
-            completed=subprocess.run([sys.executable,'-I','-B',str(worker),str(request_path),str(config_path)],capture_output=True,timeout=60,env={'PATH':os.defpath,'OPENBLAS_NUM_THREADS':'1'})
+            # -B alone still reads timestamp caches. A new empty cache prefix
+            # selected before the first import makes this worker source-only.
+            cache_path=Path(temp)/'unused-bytecode';cache_path.mkdir()
+            completed=subprocess.run([sys.executable,'-I','-B','-X','pycache_prefix='+str(cache_path),str(worker),str(request_path),str(config_path)],capture_output=True,timeout=60,env={'PATH':os.defpath,'OPENBLAS_NUM_THREADS':'1'})
             if len(completed.stdout)>MAX_JSON_BYTES:raise ValueError('WORKER_OUTPUT_TOO_LARGE')
             payload=json.loads(completed.stdout)
             if not isinstance(payload,dict) or completed.returncode not in (0,2,3,4):raise ValueError('WORKER_OUTPUT_INVALID')

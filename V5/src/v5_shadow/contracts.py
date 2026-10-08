@@ -86,6 +86,8 @@ class RuntimeIdentity:
     effective_config_sha256: str
     source_capsule_sha256: str
     observed_at: datetime
+    dependency_environment_sha256: str = ''
+    dependency_environment_json: str = ''
 
 LegacyScreen = dict
 
