@@ -1,0 +1,64 @@
+{
+  "captured_at": "2026-10-08T23:56:14.819135+08:00",
+  "read_only": true,
+  "raw_market_rows_uploaded": false,
+  "preselection_api": [
+    {
+      "date": "20261008",
+      "url": "http://127.0.0.1:8873/api/v3/preselection-pools?date=20261008&limit=200",
+      "http_status": 200,
+      "raw_response_sha256": "8cbbc1acde29586352e24c7afa0f1d615ef4311f710ba4aae1b504cfac140dce",
+      "data_status": "DATA_BLOCKED_EMPTY",
+      "pool_count": 0,
+      "a_all_pool_row_count": 0,
+      "row_count": 0,
+      "blocking_reasons": [
+        "V3.5 independent preselection producers have not materialized this date."
+      ],
+      "cannot_confirm": [
+        "V3.5 independent preselection producers have not materialized this date."
+      ],
+      "strict_0_2_status": "CANNOT_CONFIRM",
+      "input_fingerprint": null,
+      "safety": {
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "date": "20261009",
+      "url": "http://127.0.0.1:8873/api/v3/preselection-pools?date=20261009&limit=200",
+      "http_status": 200,
+      "raw_response_sha256": "d6179a5d2447c23b7a16ae8482791817f82faabfcddf1e8e04bd027d26afeda1",
+      "data_status": "DATA_BLOCKED_EMPTY",
+      "pool_count": 0,
+      "a_all_pool_row_count": 0,
+      "row_count": 0,
+      "blocking_reasons": [
+        "V3.5 independent preselection producers have not materialized this date."
+      ],
+      "cannot_confirm": [
+        "V3.5 independent preselection producers have not materialized this date."
+      ],
+      "strict_0_2_status": "CANNOT_CONFIRM",
+      "input_fingerprint": null,
+      "safety": {
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    }
+  ],
+  "ui_observation": {
+    "date": "20261008",
+    "selected_stage": "STAGE_0925",
+    "release_badge": "manager-workbench-r1-mac-20261008-api-r2",
+    "preselection_status": "DATA_BLOCKED_EMPTY",
+    "A_group": "未生成/待补齐",
+    "HK_group": "未生成/待补齐 / CANNOT_CONFIRM",
+    "stage_HK": "待确认/缺少正式产物",
+    "ui_20261009": "NOT_NAVIGATED; target-date API queried separately",
+    "observation_type": "existing page accessibility; not a post-deploy reload"
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "captured_at": "2026-10-09T00:09:59.495764+08:00",
+  "target_date": "20261009",
+  "security_master": {
+    "entry_count": 36,
+    "max_entry_date": "20260930",
+    "target_signal_date": "20261008",
+    "exact_entry_present": false
+  },
+  "hk_pool": {
+    "trade_date": "20261009",
+    "status": "CANNOT_CONFIRM",
+    "source_role": "EXPECTED_MISSING",
+    "producer_id": "graph_expected_missing_v1",
+    "cannot_confirm": [
+      "HK_0_2_EXACT_INPUT_CONTRACT_INVALID:HK security master verification failed: HK security-master metadata invalid: '20261008'"
+    ],
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "hk_pool_row_count": 0,
+  "upstream_target_run_directory_exists": false,
+  "stage_20261008_error": "HK D1 split-date eligibility provenance missing",
+  "stage_20261009_planned_times": [
+    "09:15",
+    "09:25",
+    "09:35",
+    "09:40",
+    "09:45",
+    "10:30",
+    "13:15",
+    "15:00",
+    "15:50",
+    "15:55"
+  ],
+  "stage_20261009_natural_slot_status": "NOT_DUE_AT_CAPTURE",
+  "dispatch_20261008_1730_1800": {
+    "target_date": "20261009",
+    "selected_workload": "preselection_pools",
+    "status": "UPSTREAM_NOT_READY",
+    "started_workload_ids": [],
+    "detailed_gate_reason": "CANNOT_CONFIRM from inspected receipts"
+  },
+  "price_panel_20261008_refresh": "CANNOT_CONFIRM; not established by inspected old 20261008 pool run",
+  "refs": [
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/latest.json",
+      "exists": true,
+      "sha256": "7547d5c65a773ebeb51a81ec0a1ab173dc311ee3009b61088bede48260bcd763"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20261009/hkconnect_d1_top100.json",
+      "exists": true,
+      "sha256": "3d00fc3ebd27df59724d808277d256d4636aedde1d0c3dc620a34c99fa166f7f"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20261009/manifest.json",
+      "exists": true,
+      "sha256": "834728767c54188bd945bd0f90fe7e3393d969d76fc9a07f66aa09e50325bf9c"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20261009/receipts/hkconnect_d1_top100.json",
+      "exists": true,
+      "sha256": "de4422c1367561988f1fa56dfb6cd7215cf65f19e99943f345fbbf4804708f51"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher/receipts/live/20261008/1730/051fe4544acd43fb9d2b9d81a5ffe571.dispatch-receipt.json",
+      "exists": true,
+      "sha256": "436d74bcd2b38ef7cb014e850fd154bc99eb3ae624b317665e016ad15578b3fb"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher/receipts/live/20261008/1800/c053df0d6e3249d3836a3d5a2705124a.dispatch-receipt.json",
+      "exists": true,
+      "sha256": "9786c7860e66a08e55e5eb65d647b3deb066bf3467589ecca7669e1bfeaa934d"
+    }
+  ],
+  "raw_rows_uploaded": false
+}

@@ -1,0 +1,36 @@
+{
+  "captured_at": "2026-10-09T00:01:36.658950+08:00",
+  "source_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20261009",
+  "A_pools": [
+    {
+      "file": "a_d1_premarket_pool.json",
+      "sha256": "bacd31ed71d0e5ce3c2ff97c02265b9cfed75106aca3ed05dbc7b450cdc3f1da",
+      "status": "V192_CANDIDATE_READY",
+      "rows": 37,
+      "unique_raw_code_keys": 37,
+      "trade_date": "20261009",
+      "signal_date": "20261008",
+      "producer_id": "v3_shared_v192_consumer_v1",
+      "declared_stage_selection_eligible": true,
+      "source_run_id": "20261009-a-share-v192-premarket-pool-v3-f049b44b6639",
+      "source_sha256": "6bcb7e59e794a120174dedd6c5b665c18ff90d05cdacf37c610596a747c8f228"
+    },
+    {
+      "file": "a_share_research_recommendation_pool.json",
+      "sha256": "2d0760f6278175e88a9bb086ff10a867de20c4f6ef789a0cd2da8b2a795cb433",
+      "status": "RESEARCH_RECOMMENDATION_POOL_READY",
+      "rows": 186,
+      "unique_raw_code_keys": 186,
+      "trade_date": "20261009",
+      "signal_date": null,
+      "producer_id": "v3_5_hourly_research_window_v1",
+      "declared_stage_selection_eligible": null,
+      "source_run_id": null,
+      "source_sha256": "f1c9c64d5d1c470bbfd82c2d70461cd64e411a77cffd206e870c6221c31a32ea"
+    }
+  ],
+  "acceptance": "ROW_COUNTS_AND_DECLARED_STATUS_OBSERVED; full consumer/provenance validation NOT_RUN",
+  "raw_rows_uploaded": false,
+  "union_stock_code_keys": 216,
+  "union_method": "stock_code then code then symbol; strip A. prefix; count only, not consumer or provenance acceptance"
+}
