@@ -1,0 +1,53 @@
+{
+  "repository": "lexi2016/v4",
+  "issue": 31,
+  "review_snapshot_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+  "r1_overlay_commit": "e7dcf69d342a43d605521d551aafb4dc5c3911af",
+  "retrieved_file_count": 47,
+  "byte_sizes_and_git_blob_sha_verified": true,
+  "r1_overlay_files": [
+    {
+      "path": "source/v4_app/infrastructure/wechat_research_archive.py",
+      "sha256": "b5d23f521dbcad34a79a6757c455c3418e185aaeda29f49dbf4cd923f22d0016",
+      "matched_r1_receipt": true
+    },
+    {
+      "path": "source/v4_app/ops/index_wechat_research.py",
+      "sha256": "e741b6de83e231bc9940576d714854c038069326fd44ca7a1e8b8339d665c176",
+      "matched_r1_receipt": true
+    },
+    {
+      "path": "source/wechat/scripts/wechat_chat_handoff.py",
+      "sha256": "4b8b358883cac5538df244126bd42efc70ff358681f7512afda5242833981fdf",
+      "matched_r1_receipt": true
+    },
+    {
+      "path": "source/wechat/scripts/wechat_yesterday_performance.py",
+      "sha256": "364d441853fd8e0ab977cd35c173143e2639bd77e2a9363d8e1bf6e04f07e51d",
+      "matched_r1_receipt": true
+    },
+    {
+      "path": "source/wechat/tests/test_chat_review_regressions.py",
+      "sha256": "baf72d48c13b27629caf2399a59db974b7b9697b3568d02fe7b9b6aa8c753698",
+      "matched_r1_receipt": true
+    },
+    {
+      "path": "source/wechat/tests/test_prior_mentions_performance_appendix.py",
+      "sha256": "621c9d7163595e89f26ed2a818358513a6674992b8e30d175dc124a9cf9aa3ca",
+      "matched_r1_receipt": true
+    }
+  ],
+  "active_mac_source_readback": "CANNOT_CONFIRM",
+  "unprovided_current_inputs": [
+    "scripts/wechat_pipeline_runner.py",
+    "external wechat_article_intake.py collector",
+    "actual inherited parent AGENTS.md"
+  ],
+  "supplemental_historical_runner": {
+    "context_only": true,
+    "copied_into_candidate": false,
+    "source_saved_date": "2026-09-24",
+    "sha256": "30fb6c178e3247b3aa764c55a7a8512fe56ebf58dfe8f9a737c83b7bde49e604"
+  },
+  "data_scope": "Synthetic offline fixtures only; no actual article, images, OCR, market data, or Drive artifacts read."
+}

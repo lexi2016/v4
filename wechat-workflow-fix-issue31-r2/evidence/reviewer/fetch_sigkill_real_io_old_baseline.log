@@ -1,0 +1,170 @@
+selected_fetch_source=/workspace/scratch/64559d708105/issue31/root_evidence/review_round2_source/wechat/scripts/wechat_article_fetch.py sha256=068fb84876a8cd9da940effc4468e73f0a3f530d626fa7506e8cada528c68a1d
+killed_write={"payload_bytes": 68, "source_sha256": "068fb84876a8cd9da940effc4468e73f0a3f530d626fa7506e8cada528c68a1d", "target": "/tmp/tmpqos1m3_4/run/wechat_article_images/img_01.png", "written_bytes": 34} public_image_exists_before_retry=True child_output=''
+{"status": "ERROR", "error": "ValueError: refusing to replace existing article image: /tmp/tmpqos1m3_4/run/wechat_article_images/img_01.png"}
+F
+=================================== FAILURES ===================================
+_ FetchSigkillRealIOProbe.test_killed_during_real_helper_write_can_roll_forward _
+
+self = <test_fetch_sigkill_real_io_probe.FetchSigkillRealIOProbe testMethod=test_killed_during_real_helper_write_can_roll_forward>
+
+        def test_killed_during_real_helper_write_can_roll_forward(self) -> None:
+            actual_source_sha = hashlib.sha256(Path(fetch.__file__).read_bytes()).hexdigest()
+            self.assertTrue(EXPECTED_SOURCE_SHA, "set ISSUE31_EXPECTED_FETCH_SHA to bind this probe to a frozen source")
+            self.assertEqual(actual_source_sha, EXPECTED_SOURCE_SHA)
+            print(f"selected_fetch_source={Path(fetch.__file__).resolve()} sha256={actual_source_sha}")
+    
+            with tempfile.TemporaryDirectory() as temp:
+                root = Path(temp)
+                run_dir = root / "run"
+                run_dir.mkdir()
+                marker = root / "partial_write_started.json"
+                collector = root / "collector.py"
+                collector.write_text(
+                    '''import argparse, base64, csv, hashlib, json
+    from pathlib import Path
+    from urllib.parse import urlsplit
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--url", required=True)
+    parser.add_argument("--out", required=True)
+    args, _ = parser.parse_known_args()
+    out = Path(args.out)
+    out.mkdir(parents=True, exist_ok=True)
+    body = b'<!doctype html><html><body><div id="js_content">valid body</div></body></html>'
+    (out / "wechat_article_raw.html").write_bytes(body)
+    image_dir = out / "wechat_article_images"
+    image_dir.mkdir(exist_ok=True)
+    image_path = image_dir / "img_01.png"
+    image = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jxh8AAAAASUVORK5CYII=")
+    image_path.write_bytes(image)
+    image_sha = hashlib.sha256(image).hexdigest()
+    url = "https://mmbiz.qpic.cn/fixture/1"
+    manifest = out / "wechat_article_image_manifest.csv"
+    with manifest.open("w", encoding="utf-8-sig", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=["idx", "url", "local_path", "download_status", "sha256"])
+        writer.writeheader()
+        writer.writerow({"idx": 1, "url": url, "local_path": str(image_path), "download_status": "OK", "sha256": image_sha})
+    (out / "wechat_article_image_checkpoint.json").write_text(json.dumps([{"idx": 1, "url": url, "local_path": str(image_path), "sha256": image_sha, "status": "OK"}]))
+    token = urlsplit(args.url).path.rsplit("/", 1)[-1]
+    summary = {"article_url": args.url, "canonical_url": args.url, "canonical_token": token,
+      "title": "offline", "account_name": "fixture", "biz": "fixture-biz", "article_date": "20261008",
+      "content_hash": hashlib.sha256(body).hexdigest(), "http_status": 200, "html_bytes": len(body),
+      "article_body_found": True, "text_preview_length": 10, "image_count": 1, "downloaded_image_count": 1,
+      "final_label": "WECHAT_RESEARCH_INTAKE_PARTIAL_NEED_OCR", "ocr_status": "OCR_IMPORT_ERROR",
+      "fetch_error": "", "html_path": str(out / "wechat_article_raw.html"),
+      "image_manifest_path": str(manifest)}
+    (out / "wechat_article_intake_summary.json").write_text(json.dumps(summary))
+    raise SystemExit(17)
+    ''',
+                    encoding="utf-8",
+                )
+    
+                child = root / "first_attempt.py"
+                child.write_text(
+                    textwrap.dedent(
+                        f'''\
+                        import hashlib, json, os, sys, time
+                        from pathlib import Path
+                        scripts = Path({str(SCRIPTS)!r})
+                        sys.path.insert(0, str(scripts))
+                        import wechat_article_fetch as fetch
+                        source_sha = hashlib.sha256(Path(fetch.__file__).read_bytes()).hexdigest()
+                        if source_sha != {EXPECTED_SOURCE_SHA!r}:
+                            raise RuntimeError(f"unexpected fetch source {{source_sha}}")
+                        fetch._intake_script = lambda: Path({str(collector)!r})
+                        original_helper = fetch._write_bytes_create_only
+                        original_fdopen = os.fdopen
+                        marker = Path({str(marker)!r})
+                        target_image = Path({str(run_dir / 'wechat_article_images' / 'img_01.png')!r})
+    
+                        class PartialWriteHandle:
+                            def __init__(self, real_handle):
+                                self.real_handle = real_handle
+                            def __enter__(self):
+                                self.real_handle.__enter__()
+                                return self
+                            def __exit__(self, *exc):
+                                return self.real_handle.__exit__(*exc)
+                            def __getattr__(self, name):
+                                return getattr(self.real_handle, name)
+                            def write(self, payload):
+                                prefix = payload[:max(1, len(payload) // 2)]
+                                written = self.real_handle.write(prefix)
+                                self.real_handle.flush()
+                                os.fsync(self.real_handle.fileno())
+                                marker.write_text(json.dumps({{
+                                    "source_sha256": source_sha,
+                                    "target": str(target_image),
+                                    "payload_bytes": len(payload),
+                                    "written_bytes": written,
+                                }}), encoding="utf-8")
+                                while True:
+                                    time.sleep(0.05)
+    
+                        def interrupted_fdopen(descriptor, mode, *args, **kwargs):
+                            real_handle = original_fdopen(descriptor, mode, *args, **kwargs)
+                            return PartialWriteHandle(real_handle)
+    
+                        def observe_actual_helper(path, payload, *args, **kwargs):
+                            label = kwargs.get("label")
+                            if label == "article image":
+                                # Keep the candidate helper intact. Only its real fdopen
+                                # result is wrapped so the actual write starts, persists
+                                # half the bytes, and blocks before publication completes.
+                                fetch.os.fdopen = interrupted_fdopen
+                                try:
+                                    return original_helper(path, payload, *args, **kwargs)
+                                finally:
+                                    fetch.os.fdopen = original_fdopen
+                            return original_helper(path, payload, *args, **kwargs)
+    
+                        fetch._write_bytes_create_only = observe_actual_helper
+                        raise SystemExit(fetch.main(["--url", {URL!r}, "--out", {str(run_dir)!r}]))
+                        '''
+                    ),
+                    encoding="utf-8",
+                )
+    
+                env = dict(os.environ)
+                env["PYTHONDONTWRITEBYTECODE"] = "1"
+                shared_scripts = ROOT / "candidate" / "wechat" / "scripts"
+                env["PYTHONPATH"] = f"{ROOT / 'test_deps'}:{SCRIPTS}:{shared_scripts}:{ROOT / 'candidate' / 'wechat' / 'tests'}:{ROOT / 'candidate' / 'v4_app'}"
+                process = subprocess.Popen(
+                    [sys.executable, str(child)], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                )
+                deadline = time.monotonic() + 10
+                while time.monotonic() < deadline and not marker.exists():
+                    if process.poll() is not None:
+                        break
+                    time.sleep(0.02)
+                reached_write = marker.exists()
+                if process.poll() is None:
+                    process.kill()
+                child_output = process.communicate(timeout=5)[0].decode("utf-8", errors="replace")
+                self.assertTrue(reached_write, f"child did not reach the real helper write window; exit={process.returncode}, output={child_output!r}")
+                marker_data = json.loads(marker.read_text(encoding="utf-8"))
+                self.assertEqual(marker_data["source_sha256"], EXPECTED_SOURCE_SHA)
+                self.assertEqual(marker_data["target"], str(run_dir / "wechat_article_images" / "img_01.png"))
+                self.assertEqual(marker_data["payload_bytes"], len(IMAGE))
+                self.assertGreater(marker_data["written_bytes"], 0)
+                self.assertLess(marker_data["written_bytes"], len(IMAGE))
+    
+                public_image = run_dir / "wechat_article_images" / "img_01.png"
+                if public_image.exists():
+                    self.assertLess(public_image.stat().st_size, len(IMAGE), "unexpected complete image existed before retry")
+                print(
+                    "killed_write=" + json.dumps(marker_data, sort_keys=True)
+                    + f" public_image_exists_before_retry={public_image.exists()} child_output={child_output!r}"
+                )
+    
+                with patch.object(fetch, "_intake_script", return_value=collector):
+                    code = fetch.main(["--url", URL, "--out", str(run_dir)])
+>               self.assertEqual(
+                    code, 0,
+                    f"pending attempt did not recover after SIGKILL during the helper's actual write; child output={child_output!r}",
+                )
+E               AssertionError: 2 != 0 : pending attempt did not recover after SIGKILL during the helper's actual write; child output=''
+
+issue31/reviewer_evidence/test_fetch_sigkill_real_io_probe.py:188: AssertionError
+=========================== short test summary info ============================
+FAILED issue31/reviewer_evidence/test_fetch_sigkill_real_io_probe.py::FetchSigkillRealIOProbe::test_killed_during_real_helper_write_can_roll_forward
+1 failed in 0.11s

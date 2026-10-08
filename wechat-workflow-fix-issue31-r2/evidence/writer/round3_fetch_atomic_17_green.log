@@ -1,0 +1,6 @@
+COMMAND: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=issue31/test_deps:issue31/candidate/wechat/scripts:issue31/candidate/wechat/tests:issue31/candidate/v4_app /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest -q issue31/candidate/wechat/tests/test_wechat_article_fetch_recovery.py
+EXIT_CODE: 0
+PHASE: atomic create-only publication and recovery after a real child-process SIGKILL during a partial temp write
+
+.................                                                        [100%]
+17 passed in 1.39s

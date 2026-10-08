@@ -1,0 +1,191 @@
+{
+  "schema_version": "issue31-delivery-status-v1",
+  "generated_at_utc": "2026-10-08T17:15:18.641130+00:00",
+  "issue": {
+    "url": "https://github.com/lexi2016/v4/issues/31",
+    "must_remain_open": true,
+    "eligible_for_closure": false,
+    "closure_boundary": "Article recovery and offline candidate approval do not establish actual Mac defect prevention."
+  },
+  "implemented": "IMPLEMENTED_OFFLINE_CANDIDATE",
+  "tested": "PASS_OFFLINE_SCOPE",
+  "reviewed": "PASS_OFFLINE_SCOPE",
+  "behavior_verified": "CANNOT_CONFIRM",
+  "scope": {
+    "changed_files": 5,
+    "runtime_scripts": 2,
+    "test_files": 2,
+    "workflow_documents": 1,
+    "active_mac_files_changed": false,
+    "source_sha256": {
+      "wechat/scripts/wechat_article_fetch.py": "5d648dac0b712a05be2345d1fe73020d3e99520b8256b003c29120c232dedb17",
+      "wechat/tests/test_wechat_article_fetch_recovery.py": "3d5a55f32c62a1ea250f1bdfef3b41584abcccbb06199000357483acdde2e124",
+      "wechat/scripts/wechat_yesterday_performance.py": "840908dc4350d91abd7b74e94ec4993954ba32edca6bcc7eb8eac646824d3f5c",
+      "wechat/tests/test_prior_mentions_performance_appendix.py": "969e5f05b2ecdc8e65d8de2255336b3a7f8ed275095640da755bac1168609588",
+      "wechat/WORKFLOW_公众号链接固定执行方案.md": "6737f1b37f1bc6f7df90b654296b5f46fe3ee8ac8be06421ee6fbbc342ff592f"
+    }
+  },
+  "fixed_inputs": {
+    "original_review_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+    "accepted_r1_commit": "e7dcf69d342a43d605521d551aafb4dc5c3911af",
+    "retrieved_files_verified_by_git_blob_sha_and_size": 47,
+    "r1_overlay_files_verified_by_acceptance_sha256": 6,
+    "full_running_tree_available": false
+  },
+  "roles": {
+    "writer": {
+      "agent": "/root/luna_max_writer",
+      "model": "gpt-6-luna",
+      "reasoning_effort": "max",
+      "scope": "Sole product, test and workflow writer"
+    },
+    "independent_reviewer": {
+      "agent": "/root/luna_max_reviewer",
+      "model": "gpt-6-luna",
+      "reasoning_effort": "max",
+      "scope": "Sole independent product-code acceptance reviewer"
+    },
+    "root": "Input provenance, evidence coordination, fresh full-suite verification, exact patch round trip and handoff publication; not a second independent product acceptance.",
+    "documentation_contract_check": "Read-only handoff and task-contract check; not product-code acceptance."
+  },
+  "final_verification": {
+    "root_fresh_full_wechat_suite": {
+      "passed": 148,
+      "subtests_passed": 18,
+      "exit_code": 0,
+      "receipt": "evidence/root/FRESH_FINAL_PYTEST.json",
+      "receipt_sha256": "28fe6daaaf9aced4c3858eb6fe97d87a9689da91379404ee8752315c72bc6b39",
+      "log": "evidence/root/FRESH_FINAL_PYTEST.log",
+      "log_sha256": "c5b5960116e8a16800423131bfadd1872c95e2882523a45605c38f6524326fcf",
+      "source_hashes_checked_before_and_after": true
+    },
+    "writer_targeted_suite": {
+      "passed": 103,
+      "subtests_passed": 18,
+      "log": "evidence/writer/round3_targeted_atomic_green.log",
+      "log_sha256": "d28eb7461e7c7ffc9f93323f4c4bca9bb2941f5e4d53b050c84baae18bc63413"
+    },
+    "independent_reviewer": {
+      "decision": "PASS_OFFLINE_SCOPE",
+      "open_findings": {
+        "P0": 0,
+        "P1": 0,
+        "P2": 0
+      },
+      "confirmed_prior_findings_closed": 8,
+      "receipt": "evidence/reviewer/FINAL_REVIEW.json",
+      "receipt_sha256": "9163098d6661bafc2983baabaa5bcac72d046e961eb4f16837955ef24c1a636e",
+      "readable_report": "evidence/reviewer/FINAL_REVIEW.md",
+      "readable_report_sha256": "d9fc5bbe3c5a9173a7fd805693eeab1869dc75d626c855a4548e9115b36150f0",
+      "individual_results": [
+        {
+          "scope": "Final fetch recovery test module",
+          "result": "PASS",
+          "passed": 17,
+          "failed": 0,
+          "exit_code": 0,
+          "test_module": "candidate/wechat/tests/test_wechat_article_fetch_recovery.py",
+          "test_module_sha256": "3d5a55f32c62a1ea250f1bdfef3b41584abcccbb06199000357483acdde2e124",
+          "log": "fetch_tests_round3.log",
+          "log_sha256": "304728422255963bb71e8667ad5f7810e8affd44077ba5fbc4cfa7bbe0158313"
+        },
+        {
+          "scope": "Six independent fetch acceptance risk probes",
+          "result": "PASS",
+          "passed": 6,
+          "failed": 0,
+          "exit_code": 0,
+          "probe": "test_fetch_risk_probes.py",
+          "probe_sha256": "1f797894e15ad4ff6b32997360f9f629aedbe72f500829cf8f0a5f846c91f135",
+          "log": "fetch_risk_probes_round3.log",
+          "log_sha256": "67310d9acd9a1c5a29b924d230c4d19fc83865de935de7ad99e8a5f1ebcbf384"
+        },
+        {
+          "scope": "Actual-helper SIGKILL probe against immutable 068fb8… round-two source",
+          "result": "EXPECTED_BASELINE_FAILURE_REPRODUCED",
+          "passed": 0,
+          "failed": 1,
+          "exit_code": 1,
+          "tested_source_sha256": "068fb84876a8cd9da940effc4468e73f0a3f530d626fa7506e8cada528c68a1d",
+          "probe": "test_fetch_sigkill_real_io_probe.py",
+          "probe_sha256": "218241d2ab7aecfafa78ec95096ccb2d0b280864c1455bcc181afc3135e6ba00",
+          "log": "fetch_sigkill_real_io_old_baseline.log",
+          "log_sha256": "7b3b48ff24fe791bdaa0158ec81382b3ad40fcc78e8ed044b3de9d34d25cff18",
+          "observed": "The real helper wrote and fsynced 34 of 68 image bytes to the public destination before SIGKILL. Retry refused the partial image with ValueError."
+        },
+        {
+          "scope": "Actual-helper SIGKILL probe against final fetch source",
+          "result": "PASS",
+          "passed": 1,
+          "failed": 0,
+          "exit_code": 0,
+          "tested_source_sha256": "5d648dac0b712a05be2345d1fe73020d3e99520b8256b003c29120c232dedb17",
+          "probe": "test_fetch_sigkill_real_io_probe.py",
+          "probe_sha256": "218241d2ab7aecfafa78ec95096ccb2d0b280864c1455bcc181afc3135e6ba00",
+          "log": "fetch_sigkill_real_io_round3.log",
+          "log_sha256": "0eff4e4aff1eeeb141db043497d78fb42345948aa43530a7fb15a8b925430661",
+          "observed": "The incomplete bytes remained private; the public image path did not exist before retry. Recovery removed the private temp, promoted the verified image, and returned SOURCE_RECOVERED_NEED_OCR with the expected image SHA-256."
+        },
+        {
+          "scope": "Final-hash appendix test module",
+          "result": "PASS",
+          "passed": 7,
+          "failed": 0,
+          "exit_code": 0,
+          "test_module": "candidate/wechat/tests/test_prior_mentions_performance_appendix.py",
+          "test_module_sha256": "969e5f05b2ecdc8e65d8de2255336b3a7f8ed275095640da755bac1168609588",
+          "log": "appendix_tests_round2.log",
+          "log_sha256": "b1a8e1edb7a8cdae23b8eaac3a889f25dbc5ac9d0fa5b6559dc7e63eaf16518a"
+        },
+        {
+          "scope": "Independent HK receipt facts after panel-binding failure",
+          "result": "PASS",
+          "passed": 1,
+          "failed": 0,
+          "exit_code": 0,
+          "probe": "test_appendix_read_facts_probe.py",
+          "probe_sha256": "74bf4d4285d731d5691f62e58a7deddcce73c1bb47f9ff48a02c2c252c404929",
+          "log": "appendix_read_facts_probe_round2.log",
+          "log_sha256": "3dd8a455f93386b2d78b9d5605f1c2f52fd55f0962f89b0bd7d602cae0ead952"
+        },
+        {
+          "scope": "R1 adjacent chat-review regressions",
+          "result": "PASS",
+          "passed": 29,
+          "failed": 0,
+          "exit_code": 0,
+          "test_module": "candidate/wechat/tests/test_chat_review_regressions.py",
+          "test_module_sha256": "baf72d48c13b27629caf2399a59db974b7b9697b3568d02fe7b9b6aa8c753698",
+          "warnings": [
+            "One Starlette TestClient deprecation warning from the local test dependency."
+          ],
+          "log": "chat_review_regressions_round2.log",
+          "log_sha256": "9aefe5efd4e0c871a29466958f51e1f81ec060ebe5ddeb43cf70bf8665b1135c"
+        }
+      ]
+    },
+    "writer_receipt": "evidence/writer/writer_receipt.md",
+    "writer_receipt_sha256": "f1221792fca774ac30a458b32bf3a0f9312d7d3fb4040f525fbecd712e67fc09",
+    "counting_rule": "Different runs and overlapping suites are separate evidence; their test counts must not be added.",
+    "sigkill_evidence_rule": "The early helper-replacing harness is superseded, not a finding basis. Corrected real-I/O probe executes the actual helper: immutable prior source red, final source green.",
+    "warning": "One Starlette TestClient deprecation warning in the full-suite dependency environment; no test failure."
+  },
+  "cannot_confirm": [
+    "Current Mac runner, actual parent AGENTS and external collector source identity/compatibility",
+    "Actual daily runner invocation and child argv including --skip-ocr",
+    "Real collector write/checkpoint protocol and every path-bearing field",
+    "Native macOS Vision OCR and recovery on the active Mac filesystem",
+    "One bounded end-to-end Mac recovery, freeze and Drive original-byte verification"
+  ],
+  "required_next_evidence": "MAC_ACCEPTANCE_REQUIRED.md",
+  "safety_scope": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "real_wechat_or_market_inputs_accessed_for_tests": false,
+    "deployment_or_service_restart_performed": false,
+    "shared_panels_scheduler_pointer_latest_formal_pools_changed": false,
+    "issue_closed_or_pull_request_merged": false
+  }
+}

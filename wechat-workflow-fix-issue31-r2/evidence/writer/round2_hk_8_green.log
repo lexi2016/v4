@@ -1,0 +1,6 @@
+COMMAND: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=issue31/test_deps:issue31/candidate/wechat/scripts:issue31/candidate/wechat/tests:issue31/candidate/v4_app /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest -q issue31/candidate/wechat/tests/test_prior_mentions_performance_appendix.py issue31/reviewer_evidence/test_appendix_read_facts_probe.py
+EXIT_CODE: 0
+PHASE: HK receipt facts-retention test and independent reviewer probe
+
+........                                                                 [100%]
+8 passed in 0.54s

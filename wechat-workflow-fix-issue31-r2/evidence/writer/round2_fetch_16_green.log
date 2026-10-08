@@ -1,0 +1,6 @@
+COMMAND: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=issue31/test_deps:issue31/candidate/wechat/scripts:issue31/candidate/wechat/tests:issue31/candidate/v4_app /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m pytest -q issue31/candidate/wechat/tests/test_wechat_article_fetch_recovery.py
+EXIT_CODE: 0
+PHASE: post-review fetch recovery suite at frozen fetch SHA
+
+................                                                         [100%]
+16 passed in 1.15s

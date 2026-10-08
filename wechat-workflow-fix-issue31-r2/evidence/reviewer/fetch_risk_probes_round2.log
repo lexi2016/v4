@@ -1,0 +1,14 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+rootdir: /workspace/scratch/64559d708105
+plugins: anyio-4.15.1
+collecting ... collected 6 items
+
+issue31/reviewer_evidence/test_fetch_risk_probes.py::FrozenFetchRiskProbes::test_changed_image_url_after_prepare_is_not_accepted_as_same_source PASSED [ 16%]
+issue31/reviewer_evidence/test_fetch_risk_probes.py::FrozenFetchRiskProbes::test_changed_raw_html_is_not_accepted_from_stale_http_identity PASSED [ 33%]
+issue31/reviewer_evidence/test_fetch_risk_probes.py::FrozenFetchRiskProbes::test_ocr_ok_summary_without_ocr_artifacts_is_not_package_ready PASSED [ 50%]
+issue31/reviewer_evidence/test_fetch_risk_probes.py::FrozenFetchRiskProbes::test_output_abbreviation_cannot_escape_the_attempt_root PASSED [ 66%]
+issue31/reviewer_evidence/test_fetch_risk_probes.py::FrozenFetchRiskProbes::test_saved_html_promotion_receipt_gap_recovers_after_summary_commit PASSED [ 83%]
+issue31/reviewer_evidence/test_fetch_risk_probes.py::FrozenFetchRiskProbes::test_summary_claim_does_not_replace_real_body_html PASSED [100%]
+
+============================== 6 passed in 0.48s ===============================

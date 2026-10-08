@@ -1,0 +1,18 @@
+{
+  "scope": "Documentation and handoff contract only; not an independent product-code acceptance.",
+  "status": "THREE_MATERIAL_CORRECTIONS_APPLIED",
+  "corrections": [
+    "Separated adapter-confirmed call ordering and synthetic fixture behavior from unobserved external-collector internal write order.",
+    "Required provider Drive metadata, identity and original-byte ZIP SHA readback; unavailable steps remain CANNOT_CONFIRM.",
+    "Made GitHub checkout versus temporary workspace input layouts explicit; added original source input SHA verification."
+  ],
+  "document_sha256": {
+    "README.md": "08c59011da0dda2c765a55886795d69810a3e39df059664c067e17c82d939297",
+    "MAC_ACCEPTANCE_REQUIRED.md": "972e0e8a190614356840eb08faf432e5b3052c3bfbbd4c48392d6b2f4a1febac",
+    "REPRODUCE_OFFLINE.md": "2a860d91246fc15a5caba4aebc3ae7ccd6ee5363894a23ca9ece3166d908b7e1",
+    "INPUT_BASELINE.json": "19258068ab3258de04403d796f39180c443bc31c72ec61f1187cefb85c498531"
+  },
+  "mac_behavior_verified": "CANNOT_CONFIRM",
+  "product_review_owner": "luna_max_reviewer",
+  "dependency_note": "Mac protocol explicitly includes current common BODY parser and R1 handoff OCR validator hashes."
+}

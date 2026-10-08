@@ -1,0 +1,6 @@
+COMMAND: PYTHONPATH=issue31/test_deps:issue31/candidate/wechat/scripts:issue31/candidate/wechat/tests:issue31/candidate/v4_app python -m pytest -q issue31/candidate/wechat/tests/test_wechat_article_fetch_recovery.py issue31/candidate/wechat/tests/test_prior_mentions_performance_appendix.py
+EXIT_CODE: 0
+PHASE: 13 focused core tests (7 fetch recovery functions + 6 appendix functions)
+
+.............                                                            [100%]
+13 passed in 0.86s

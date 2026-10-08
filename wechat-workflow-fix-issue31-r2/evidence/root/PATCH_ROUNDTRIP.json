@@ -1,0 +1,54 @@
+{
+  "status": "PASS",
+  "description": "Exact candidate bytes after forward patch; exact composed baseline bytes and file set after reverse patch.",
+  "all_candidate_files_compared": 33,
+  "all_baseline_files_compared": 32,
+  "actual_diff_sha256": "3217ae34cd7154067279794bcb226137451d3bae0287bb62105155e9e7f75745",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "apply",
+        "--check",
+        "actual_diff.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "actual_diff.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "--reverse",
+        "--check",
+        "actual_diff.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "--reverse",
+        "actual_diff.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "mac_behavior_verified": "CANNOT_CONFIRM"
+}

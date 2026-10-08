@@ -1,0 +1,188 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+rootdir: /workspace/scratch/64559d708105
+plugins: anyio-4.15.1
+collecting ... collected 13 items
+
+issue31/reviewer_evidence/test_fetch_risk_probes.py::WechatArticleFetchRecoveryTests::test_explicit_saved_html_permission_is_bound_to_attempt_and_source_bytes <- issue31/candidate/wechat/tests/test_wechat_article_fetch_recovery.py PASSED [  7%]
+issue31/reviewer_evidence/test_fetch_risk_probes.py::WechatArticleFetchRecoveryTests::test_interrupted_promotion_recovers_the_same_verified_attempt <- issue31/candidate/wechat/tests/test_wechat_article_fetch_recovery.py PASSED [ 15%]
+issue31/reviewer_evidence/test_fetch_risk_probes.py::WechatArticleFetchRecoveryTests::test_malformed_old_summary_with_orphan_images_refuses_new_collector <- issue31/candidate/wechat/tests/test_wechat_article_fetch_recovery.py PASSED [ 23%]
+issue31/reviewer_evidence/test_fetch_risk_probes.py::WechatArticleFetchRecoveryTests::test_module_not_found_after_complete_body_is_source_only_resume <- issue31/candidate/wechat/tests/test_wechat_article_fetch_recovery.py PASSED [ 30%]
+issue31/reviewer_evidence/test_fetch_risk_probes.py::WechatArticleFetchRecoveryTests::test_ocr_failure_preserves_verified_source_and_resume_does_not_refetch <- issue31/candidate/wechat/tests/test_wechat_article_fetch_recovery.py PASSED [ 38%]
+issue31/reviewer_evidence/test_fetch_risk_probes.py::WechatArticleFetchRecoveryTests::test_unknown_exception_retains_source_but_does_not_claim_fetch_pass <- issue31/candidate/wechat/tests/test_wechat_article_fetch_recovery.py PASSED [ 46%]
+issue31/reviewer_evidence/test_fetch_risk_probes.py::WechatArticleFetchRecoveryTests::test_verify_page_is_kept_only_as_attempt_evidence <- issue31/candidate/wechat/tests/test_wechat_article_fetch_recovery.py PASSED [ 53%]
+issue31/reviewer_evidence/test_fetch_risk_probes.py::FrozenFetchRiskProbes::test_changed_image_url_after_prepare_is_not_accepted_as_same_source FAILED [ 61%]
+issue31/reviewer_evidence/test_fetch_risk_probes.py::FrozenFetchRiskProbes::test_changed_raw_html_is_not_accepted_from_stale_http_identity FAILED [ 69%]
+issue31/reviewer_evidence/test_fetch_risk_probes.py::FrozenFetchRiskProbes::test_ocr_ok_summary_without_ocr_artifacts_is_not_package_ready FAILED [ 76%]
+issue31/reviewer_evidence/test_fetch_risk_probes.py::FrozenFetchRiskProbes::test_output_abbreviation_cannot_escape_the_attempt_root FAILED [ 84%]
+issue31/reviewer_evidence/test_fetch_risk_probes.py::FrozenFetchRiskProbes::test_saved_html_promotion_receipt_gap_recovers_after_summary_commit FAILED [ 92%]
+issue31/reviewer_evidence/test_fetch_risk_probes.py::FrozenFetchRiskProbes::test_summary_claim_does_not_replace_real_body_html FAILED [100%]
+
+=================================== FAILURES ===================================
+_ FrozenFetchRiskProbes.test_changed_image_url_after_prepare_is_not_accepted_as_same_source _
+
+self = <test_fetch_risk_probes.FrozenFetchRiskProbes testMethod=test_changed_image_url_after_prepare_is_not_accepted_as_same_source>
+
+    def test_changed_image_url_after_prepare_is_not_accepted_as_same_source(self) -> None:
+        self._seed_source_and_prepare()
+        manifest_path = self.run_dir / "wechat_article_image_manifest.csv"
+        with manifest_path.open("r", encoding="utf-8-sig", newline="") as stream:
+            reader = csv.DictReader(stream)
+            fields = list(reader.fieldnames or [])
+            rows = list(reader)
+        original_url = rows[0]["url"]
+        rows[0]["url"] = "https://mmbiz.qpic.cn/fixture/replaced-url"
+        with manifest_path.open("w", encoding="utf-8-sig", newline="") as stream:
+            writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
+            writer.writeheader()
+            writer.writerows(rows)
+    
+        code = self._call()
+    
+>       self.assertNotEqual(code, 0, f"changed image URL {original_url!r} was accepted as reusable source evidence")
+E       AssertionError: 0 == 0 : changed image URL 'https://mmbiz.qpic.cn/fixture/1' was accepted as reusable source evidence
+
+issue31/reviewer_evidence/test_fetch_risk_probes.py:76: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"schema_version": "wechat-article-fetch-state-v1", "status": "SOURCE_CAPTURED_NEED_OCR", "source_status": "BODY_IDENTITY_VERIFIED", "identity": {"url": "https://mp.weixin.qq.com/s/OfflineFixtureToken", "token": "OfflineFixtureToken", "title": "离线合成文章", "account": "合成公众号", "biz": "fixture-biz", "article_date": "20261008", "content_hash": "100a645e65c2f27100ef1cb967cc6fcd50a84ea0d65b5d42bba66660e4836f00", "http_status": "200", "html_bytes": "97", "image_count": "50"}, "image_count": 50, "ocr_status_from_intake": "OCR_IMPORT_ERROR", "ocr_summary_status": "NOT_PRESENT", "next_missing_stage": "prepare_ocr", "attempt_id": "attempt_20261008T163825Z_73594b65e848", "collector_execution_status": "OCR_IMPORT_ERROR", "continuation_status": "RESUME_VIA_PREPARE_OCR", "production_allowed": false, "buy_gate_updated": false, "orders_sent": false, "collector_returncode": 17}
+{"status": "PREPARED", "run_dir": "/tmp/tmpd6q4hl1c/run", "image_count": 50, "sliced_image_count": 0}
+{"schema_version": "wechat-article-fetch-state-v1", "status": "SOURCE_REUSED_NEED_OCR", "source_status": "BODY_IDENTITY_VERIFIED", "identity": {"url": "https://mp.weixin.qq.com/s/OfflineFixtureToken", "token": "OfflineFixtureToken", "title": "离线合成文章", "account": "合成公众号", "biz": "fixture-biz", "article_date": "20261008", "content_hash": "100a645e65c2f27100ef1cb967cc6fcd50a84ea0d65b5d42bba66660e4836f00", "http_status": "200", "html_bytes": "97", "image_count": "50"}, "image_count": 50, "ocr_status_from_intake": "OCR_IMPORT_ERROR", "ocr_summary_status": "NOT_PRESENT", "next_missing_stage": "prepare_ocr", "attempt_id": null, "collector_execution_status": "NOT_RERUN_SOURCE_REUSED", "continuation_status": "RESUME_FROM_VERIFIED_SOURCE", "production_allowed": false, "buy_gate_updated": false, "orders_sent": false}
+_ FrozenFetchRiskProbes.test_changed_raw_html_is_not_accepted_from_stale_http_identity _
+
+self = <test_fetch_risk_probes.FrozenFetchRiskProbes testMethod=test_changed_raw_html_is_not_accepted_from_stale_http_identity>
+
+    def test_changed_raw_html_is_not_accepted_from_stale_http_identity(self) -> None:
+        self.assertEqual(self._call(), 0)
+        html_path = self.run_dir / "wechat_article_raw.html"
+        original_sha = hashlib.sha256(html_path.read_bytes()).hexdigest()
+        summary = json.loads((self.run_dir / "wechat_article_intake_summary.json").read_text(encoding="utf-8-sig"))
+        self.assertEqual(summary["identity_validation"]["raw_html_sha256"], original_sha)
+        html_path.write_bytes(b"<!doctype html><html><body><div id=\"js_content\">changed source bytes</div></body></html>")
+    
+        code = self._call()
+    
+>       self.assertNotEqual(code, 0, "cached HTTP source with a raw HTML SHA mismatch was reused")
+E       AssertionError: 0 == 0 : cached HTTP source with a raw HTML SHA mismatch was reused
+
+issue31/reviewer_evidence/test_fetch_risk_probes.py:57: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"schema_version": "wechat-article-fetch-state-v1", "status": "SOURCE_CAPTURED_NEED_OCR", "source_status": "BODY_IDENTITY_VERIFIED", "identity": {"url": "https://mp.weixin.qq.com/s/OfflineFixtureToken", "token": "OfflineFixtureToken", "title": "离线合成文章", "account": "合成公众号", "biz": "fixture-biz", "article_date": "20261008", "content_hash": "100a645e65c2f27100ef1cb967cc6fcd50a84ea0d65b5d42bba66660e4836f00", "http_status": "200", "html_bytes": "97", "image_count": "50"}, "image_count": 50, "ocr_status_from_intake": "OCR_IMPORT_ERROR", "ocr_summary_status": "NOT_PRESENT", "next_missing_stage": "prepare_ocr", "attempt_id": "attempt_20261008T163825Z_dd7465448302", "collector_execution_status": "OCR_IMPORT_ERROR", "continuation_status": "RESUME_VIA_PREPARE_OCR", "production_allowed": false, "buy_gate_updated": false, "orders_sent": false, "collector_returncode": 17}
+{"schema_version": "wechat-article-fetch-state-v1", "status": "SOURCE_REUSED_NEED_OCR", "source_status": "BODY_IDENTITY_VERIFIED", "identity": {"url": "https://mp.weixin.qq.com/s/OfflineFixtureToken", "token": "OfflineFixtureToken", "title": "离线合成文章", "account": "合成公众号", "biz": "fixture-biz", "article_date": "20261008", "content_hash": "100a645e65c2f27100ef1cb967cc6fcd50a84ea0d65b5d42bba66660e4836f00", "http_status": "200", "html_bytes": "97", "image_count": "50"}, "image_count": 50, "ocr_status_from_intake": "OCR_IMPORT_ERROR", "ocr_summary_status": "NOT_PRESENT", "next_missing_stage": "prepare_ocr", "attempt_id": null, "collector_execution_status": "NOT_RERUN_SOURCE_REUSED", "continuation_status": "RESUME_FROM_VERIFIED_SOURCE", "production_allowed": false, "buy_gate_updated": false, "orders_sent": false}
+_ FrozenFetchRiskProbes.test_ocr_ok_summary_without_ocr_artifacts_is_not_package_ready _
+
+self = <test_fetch_risk_probes.FrozenFetchRiskProbes testMethod=test_ocr_ok_summary_without_ocr_artifacts_is_not_package_ready>
+
+    def test_ocr_ok_summary_without_ocr_artifacts_is_not_package_ready(self) -> None:
+        self.assertEqual(self._call(), 0)
+        summary_path = self.run_dir / "wechat_article_ocr_summary.json"
+        summary_path.write_text(json.dumps({"status": "OCR_OK", "image_count": 50}), encoding="utf-8")
+        self.assertFalse((self.run_dir / "windows_ocr_results.json").exists())
+        self.assertFalse((self.run_dir / "windows_ocr_checkpoint.json").exists())
+    
+        self.assertEqual(self._call(), 0)
+        state = json.loads((self.run_dir / "wechat_article_fetch_state.json").read_text(encoding="utf-8-sig"))
+    
+>       self.assertNotEqual(state["next_missing_stage"], "package", "OCR summary status alone was treated as complete OCR")
+E       AssertionError: 'package' == 'package' : OCR summary status alone was treated as complete OCR
+
+issue31/reviewer_evidence/test_fetch_risk_probes.py:89: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"schema_version": "wechat-article-fetch-state-v1", "status": "SOURCE_CAPTURED_NEED_OCR", "source_status": "BODY_IDENTITY_VERIFIED", "identity": {"url": "https://mp.weixin.qq.com/s/OfflineFixtureToken", "token": "OfflineFixtureToken", "title": "离线合成文章", "account": "合成公众号", "biz": "fixture-biz", "article_date": "20261008", "content_hash": "100a645e65c2f27100ef1cb967cc6fcd50a84ea0d65b5d42bba66660e4836f00", "http_status": "200", "html_bytes": "97", "image_count": "50"}, "image_count": 50, "ocr_status_from_intake": "OCR_IMPORT_ERROR", "ocr_summary_status": "NOT_PRESENT", "next_missing_stage": "prepare_ocr", "attempt_id": "attempt_20261008T163825Z_2b730bd04a93", "collector_execution_status": "OCR_IMPORT_ERROR", "continuation_status": "RESUME_VIA_PREPARE_OCR", "production_allowed": false, "buy_gate_updated": false, "orders_sent": false, "collector_returncode": 17}
+{"schema_version": "wechat-article-fetch-state-v1", "status": "SOURCE_REUSED_OCR_SUMMARY_OK", "source_status": "BODY_IDENTITY_VERIFIED", "identity": {"url": "https://mp.weixin.qq.com/s/OfflineFixtureToken", "token": "OfflineFixtureToken", "title": "离线合成文章", "account": "合成公众号", "biz": "fixture-biz", "article_date": "20261008", "content_hash": "100a645e65c2f27100ef1cb967cc6fcd50a84ea0d65b5d42bba66660e4836f00", "http_status": "200", "html_bytes": "97", "image_count": "50"}, "image_count": 50, "ocr_status_from_intake": "OCR_IMPORT_ERROR", "ocr_summary_status": "OCR_OK", "next_missing_stage": "package", "attempt_id": null, "collector_execution_status": "NOT_RERUN_SOURCE_REUSED", "continuation_status": "RESUME_FROM_VERIFIED_SOURCE", "production_allowed": false, "buy_gate_updated": false, "orders_sent": false}
+_ FrozenFetchRiskProbes.test_output_abbreviation_cannot_escape_the_attempt_root _
+
+self = <test_fetch_risk_probes.FrozenFetchRiskProbes testMethod=test_output_abbreviation_cannot_escape_the_attempt_root>
+
+    def test_output_abbreviation_cannot_escape_the_attempt_root(self) -> None:
+        outside = self.root / "escaped-output"
+        code = self._call(["--o", str(outside)])
+    
+>       self.assertFalse(
+            (outside / "wechat_article_raw.html").exists(),
+            "argparse --o abbreviation let the child collector write outside the isolated attempt",
+        )
+E       AssertionError: True is not false : argparse --o abbreviation let the child collector write outside the isolated attempt
+
+issue31/reviewer_evidence/test_fetch_risk_probes.py:130: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"schema_version": "wechat-article-fetch-state-v1", "status": "ATTEMPT_REJECTED", "source_status": "CANNOT_CONFIRM", "next_missing_stage": "fetch", "attempt_id": "attempt_20261008T163826Z_edb789734890", "attempt_receipt": "/tmp/tmpj7zu1uze/escaped-output/evidence/wechat_article_fetch_attempts/attempt_20261008T163826Z_edb789734890/ATTEMPT_RESULT.json", "reason": "FileNotFoundError: attempt intake summary does not exist: /tmp/tmpj7zu1uze/escaped-output/evidence/wechat_article_fetch_attempts/attempt_20261008T163826Z_edb789734890/escaped-output/wechat_article_intake_summary.json", "production_allowed": false, "buy_gate_updated": false, "orders_sent": false}
+_ FrozenFetchRiskProbes.test_saved_html_promotion_receipt_gap_recovers_after_summary_commit _
+
+self = <test_fetch_risk_probes.FrozenFetchRiskProbes testMethod=test_saved_html_promotion_receipt_gap_recovers_after_summary_commit>
+
+    def test_saved_html_promotion_receipt_gap_recovers_after_summary_commit(self) -> None:
+        self.collector.with_suffix(".mode").write_text("saved_html", encoding="utf-8")
+        saved_html = self.root / "saved_article.html"
+        saved_html.write_bytes(b"<!doctype html><html><body><div id=\"js_content\">saved offline fixture</div></body></html>")
+        real_write_event = fetch._write_attempt_event
+    
+        def interrupt_before_promotion_receipt(attempt_dir: Path, name: str, value: dict) -> None:
+            if name == "PROMOTION_RECEIPT.json":
+                raise KeyboardInterrupt("reviewer interruption after summary commit")
+            real_write_event(attempt_dir, name, value)
+    
+        with patch.object(fetch, "_intake_script", return_value=self.collector), \
+                patch.object(fetch, "_write_attempt_event", side_effect=interrupt_before_promotion_receipt):
+            with self.assertRaises(KeyboardInterrupt):
+                fetch.main(["--url", URL, "--out", str(self.run_dir), "--html-file", str(saved_html)])
+    
+        self.assertTrue((self.run_dir / "wechat_article_intake_summary.json").is_file())
+        self.assertEqual(list((self.run_dir / "evidence" / "wechat_article_fetch_attempts").glob("*/PROMOTION_RECEIPT.json")), [])
+        with patch.object(fetch, "_intake_script", return_value=self.collector):
+            code = fetch.main(["--url", URL, "--out", str(self.run_dir), "--html-file", str(saved_html)])
+    
+>       self.assertEqual(code, 0, "saved HTML source was permanently rejected before pending-attempt recovery")
+E       AssertionError: 2 != 0 : saved HTML source was permanently rejected before pending-attempt recovery
+
+issue31/reviewer_evidence/test_fetch_risk_probes.py:157: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"status": "ERROR", "error": "ValueError: saved HTML source lacks an immutable promotion receipt"}
+___ FrozenFetchRiskProbes.test_summary_claim_does_not_replace_real_body_html ___
+
+self = <test_fetch_risk_probes.FrozenFetchRiskProbes testMethod=test_summary_claim_does_not_replace_real_body_html>
+
+        def test_summary_claim_does_not_replace_real_body_html(self) -> None:
+            collector = self.root / "empty_body_collector.py"
+            collector.write_text(
+                '''import argparse, csv, hashlib, json
+    from pathlib import Path
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--url", required=True)
+    parser.add_argument("--out", required=True)
+    parser.add_argument("--html-file", default="")
+    args, _ = parser.parse_known_args()
+    out = Path(args.out)
+    out.mkdir(parents=True, exist_ok=True)
+    html = b"<!doctype html><html><head><title>not an article</title></head><body></body></html>"
+    (out / "wechat_article_raw.html").write_bytes(html)
+    manifest = out / "wechat_article_image_manifest.csv"
+    manifest.write_text("idx,url,local_path,download_status\\n", encoding="utf-8")
+    summary = {"article_url": args.url, "canonical_url": args.url, "canonical_token": args.url.rsplit("/", 1)[-1],
+      "title": "自报文章", "account_name": "合成公众号", "biz": "fixture-biz", "article_date": "20261008",
+      "content_hash": hashlib.sha256(html).hexdigest(), "http_status": 200, "html_bytes": len(html),
+      "article_body_found": True, "text_preview_length": 18, "image_count": 0, "downloaded_image_count": 0,
+      "final_label": "WECHAT_RESEARCH_INTAKE_COMPLETE", "fetch_error": "",
+      "html_path": str(out / "wechat_article_raw.html"), "image_manifest_path": str(manifest)}
+    (out / "wechat_article_intake_summary.json").write_text(json.dumps(summary))
+    raise SystemExit(0)
+    ''',
+                encoding="utf-8",
+            )
+    
+            with patch.object(fetch, "_intake_script", return_value=collector):
+                code = fetch.main(["--url", URL, "--out", str(self.run_dir)])
+    
+>           self.assertNotEqual(code, 0, "self-reported article_body_found=true promoted HTML with no article BODY")
+E           AssertionError: 0 == 0 : self-reported article_body_found=true promoted HTML with no article BODY
+
+issue31/reviewer_evidence/test_fetch_risk_probes.py:123: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"schema_version": "wechat-article-fetch-state-v1", "status": "SOURCE_CAPTURED_BODY_READY", "source_status": "BODY_IDENTITY_VERIFIED", "identity": {"url": "https://mp.weixin.qq.com/s/OfflineFixtureToken", "token": "OfflineFixtureToken", "title": "自报文章", "account": "合成公众号", "biz": "fixture-biz", "article_date": "20261008", "content_hash": "4bbf8fda779f91311aaa7bea37f9be485c1222ab2403dfc03333785bc50a1bb0", "http_status": "200", "html_bytes": "83", "image_count": "0"}, "image_count": 0, "ocr_status_from_intake": "UNKNOWN", "ocr_summary_status": "NOT_PRESENT", "next_missing_stage": "body_review_or_package", "attempt_id": "attempt_20261008T163826Z_82188ddbc3b2", "collector_execution_status": "COMPLETE", "continuation_status": "NEXT_STAGE_READY", "production_allowed": false, "buy_gate_updated": false, "orders_sent": false, "collector_returncode": 0}
+=========================== short test summary info ============================
+FAILED issue31/reviewer_evidence/test_fetch_risk_probes.py::FrozenFetchRiskProbes::test_changed_image_url_after_prepare_is_not_accepted_as_same_source - AssertionError: 0 == 0 : changed image URL 'https://mmbiz.qpic.cn/fixture/1' was accepted as reusable source evidence
+FAILED issue31/reviewer_evidence/test_fetch_risk_probes.py::FrozenFetchRiskProbes::test_changed_raw_html_is_not_accepted_from_stale_http_identity - AssertionError: 0 == 0 : cached HTTP source with a raw HTML SHA mismatch was reused
+FAILED issue31/reviewer_evidence/test_fetch_risk_probes.py::FrozenFetchRiskProbes::test_ocr_ok_summary_without_ocr_artifacts_is_not_package_ready - AssertionError: 'package' == 'package' : OCR summary status alone was treated as complete OCR
+FAILED issue31/reviewer_evidence/test_fetch_risk_probes.py::FrozenFetchRiskProbes::test_output_abbreviation_cannot_escape_the_attempt_root - AssertionError: True is not false : argparse --o abbreviation let the child collector write outside the isolated attempt
+FAILED issue31/reviewer_evidence/test_fetch_risk_probes.py::FrozenFetchRiskProbes::test_saved_html_promotion_receipt_gap_recovers_after_summary_commit - AssertionError: 2 != 0 : saved HTML source was permanently rejected before pending-attempt recovery
+FAILED issue31/reviewer_evidence/test_fetch_risk_probes.py::FrozenFetchRiskProbes::test_summary_claim_does_not_replace_real_body_html - AssertionError: 0 == 0 : self-reported article_body_found=true promoted HTML with no article BODY
+========================= 6 failed, 7 passed in 0.87s ==========================

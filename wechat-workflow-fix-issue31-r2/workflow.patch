@@ -1,0 +1,11 @@
+--- a/wechat/WORKFLOW_公众号链接固定执行方案.md
++++ b/wechat/WORKFLOW_公众号链接固定执行方案.md
+@@ -24,6 +24,8 @@
+ package_id应在每个内容版本使用新值；跨目录没有全局ID注册器，验证必须核对(package_id,input_digest,可信ZIP SHA)，不可只认ID。
+ 导入旧报告对照旧冻结ZIP，不对照当前run OCR。发布时间缺失/日期非法、原图不完整、不可解码或OCR切片失败不能PACKAGE_READY。
+ 已有旧OCR无配置指纹可保守复用并标未知，不为新增元数据重跑89图。错误/超时只补缺；空文本终态需原图核查，默认不无穷重试。
++
++日常仍通过现有 `scripts/wechat_pipeline_runner.py` 统一入口，不将 fetch 适配器作为用户默认入口；活动 Mac 验收必须检查 runner 实际传给 adapter 的 argv 是否带 `--skip-ocr`（当前输入快照缺 runner，故尚未确认）。外部采集先写入本次独立 attempt；仅在正文身份、真实 `js_content` 正文、有序图片清单及图片 SHA-256 均通过后，才提升为 run 固定输入。HTTP 失败、验证页、空正文和无效来源只留 attempt 证据。状态按产物记录下一缺失阶段：未准备 OCR 时为 `prepare_ocr`，已有有效 slice manifest 但完整 OCR 尚未通过现有 handoff 校验时为 `ocr_full`；只有完整 OCR 的逐图结果、源 SHA、有序非空文本和切片来源均通过验证后，下一阶段才是 `package`。后续再次调用会复用已验证 BODY、原图及 manifest，不重复请求采集；prepare 合法扩展 manifest 元数据不改变原图字节。未知异常可保留已验证来源，但状态明确标为 continuation 未确认。旧 summary 与遗留图无法相互验证时拒绝自动重抓。该约定说明适配器边界；实际 Mac runner、外部 collector 和 Vision OCR 是否按此执行，仍须在活动 Mac 环境单独核验。
+ 
+ ### 0.2 运行命令
+ ```bash

@@ -1,0 +1,171 @@
+{
+  "issue": 31,
+  "review_round": 1,
+  "reviewer_role": "independent read-only reviewer",
+  "review_date": "2026-10-08",
+  "snapshot": {
+    "status": "FIRST_ROUND_FROZEN_SNAPSHOT; writer later resumed fixes",
+    "baseline_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+    "r1_overlay_commit": "e7dcf69d342a43d605521d551aafb4dc5c3911af",
+    "files": [
+      {
+        "path": "candidate/wechat/scripts/wechat_article_fetch.py",
+        "sha256": "988d6d10acb427c2ba8624443342c22f248cce08348d3bf0e09aff4477d2b597",
+        "bytes": 49555
+      },
+      {
+        "path": "candidate/wechat/tests/test_wechat_article_fetch_recovery.py",
+        "sha256": "cd5fcaaa24b8fa33ba8ee756f70c2b13a45a0e5134e262860405b7b18c5340c4",
+        "bytes": 13499
+      },
+      {
+        "path": "candidate/wechat/scripts/wechat_yesterday_performance.py",
+        "sha256": "6723cb4b57e7c95c6bfe4ed3fce4dc61cbcb588e5d633a8be11bb753f49d6445",
+        "bytes": 88428
+      },
+      {
+        "path": "candidate/wechat/tests/test_prior_mentions_performance_appendix.py",
+        "sha256": "315b78978e0ba8c715d573229a5eeee40c0351cafa6a644430c8288c6ce340df",
+        "bytes": 25364
+      }
+    ]
+  },
+  "environment": {
+    "python": "3.12.14",
+    "pytest": "9.1.1",
+    "platform": "Linux",
+    "pyarrow": "25.0.1",
+    "pandas": "available",
+    "pillow": "available"
+  },
+  "commands": [
+    {
+      "name": "frozen fetch candidate regression tests",
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/workspace/scratch/64559d708105/issue31/test_deps:/workspace/scratch/64559d708105/issue31/candidate/wechat/scripts:/workspace/scratch/64559d708105/issue31/candidate/wechat/tests:/workspace/scratch/64559d708105/issue31/candidate/v4_app python -m pytest -q -p no:cacheprovider --basetemp=/workspace/scratch/64559d708105/issue31/reviewer_evidence/pytest_fetch /workspace/scratch/64559d708105/issue31/candidate/wechat/tests/test_wechat_article_fetch_recovery.py",
+      "exit_code": 0,
+      "result": "7 passed",
+      "log": "reviewer_evidence/fetch_tests.log",
+      "log_sha256": "3d368ba43f0aad60365b9ab3dacfcdcd223774618d864a5e1377e1dd6be19bc8"
+    },
+    {
+      "name": "independent frozen fetch counterexamples",
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/workspace/scratch/64559d708105/issue31/test_deps:/workspace/scratch/64559d708105/issue31/candidate/wechat/scripts:/workspace/scratch/64559d708105/issue31/candidate/wechat/tests:/workspace/scratch/64559d708105/issue31/candidate/v4_app python -m pytest -vv -p no:cacheprovider --basetemp=/workspace/scratch/64559d708105/issue31/reviewer_evidence/pytest_fetch_probes_finalharness /workspace/scratch/64559d708105/issue31/reviewer_evidence/test_fetch_risk_probes.py",
+      "exit_code": 1,
+      "result": "6 counterexample assertions failed; each exposes an unmet invariant",
+      "probe_sha256": "1f797894e15ad4ff6b32997360f9f629aedbe72f500829cf8f0a5f846c91f135",
+      "log": "reviewer_evidence/fetch_risk_probes_harness_fixed.log",
+      "log_sha256": "619d85748272d6a3eaafa1e85142060c0ff87abacdf8a83eb9dc69e9dfc85cac",
+      "harness_note": "Initial probe collection also ran an imported TestCase class; the reviewer-only harness was corrected to reference collector_calls through its fixture, then rerun. The six counterexamples remained. No candidate source or test was changed."
+    },
+    {
+      "name": "frozen appendix regression tests",
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/workspace/scratch/64559d708105/issue31/test_deps:/workspace/scratch/64559d708105/issue31/candidate/wechat/scripts:/workspace/scratch/64559d708105/issue31/candidate/wechat/tests:/workspace/scratch/64559d708105/issue31/candidate/v4_app python -m pytest -q -p no:cacheprovider --basetemp=/workspace/scratch/64559d708105/issue31/reviewer_evidence/pytest_appendix /workspace/scratch/64559d708105/issue31/candidate/wechat/tests/test_prior_mentions_performance_appendix.py",
+      "exit_code": 0,
+      "result": "6 passed",
+      "log": "reviewer_evidence/appendix_tests.log",
+      "log_sha256": "0f18846f02505ee432787dbe3891961c1d8a1fbe2c82d1b7deb7e21dde073c5c"
+    },
+    {
+      "name": "adjacent research regression boundaries",
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/workspace/scratch/64559d708105/issue31/test_deps:/workspace/scratch/64559d708105/issue31/candidate/wechat/scripts:/workspace/scratch/64559d708105/issue31/candidate/wechat/tests:/workspace/scratch/64559d708105/issue31/candidate/v4_app python -m pytest -q -p no:cacheprovider --basetemp=/workspace/scratch/64559d708105/issue31/reviewer_evidence/pytest_chat_review_boundaries /workspace/scratch/64559d708105/issue31/candidate/wechat/tests/test_chat_review_regressions.py",
+      "exit_code": 0,
+      "result": "29 passed; one existing Starlette deprecation warning",
+      "log": "reviewer_evidence/chat_review_regressions.log",
+      "log_sha256": "df12c2e2a7ed8bcd8c411fc5325d244b51370e953dfadb5239162c128a434469"
+    },
+    {
+      "name": "HK receipt-facts retention counterexample",
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/workspace/scratch/64559d708105/issue31/test_deps:/workspace/scratch/64559d708105/issue31/candidate/wechat/scripts:/workspace/scratch/64559d708105/issue31/candidate/wechat/tests:/workspace/scratch/64559d708105/issue31/candidate/v4_app python -m pytest -vv -p no:cacheprovider --basetemp=/workspace/scratch/64559d708105/issue31/reviewer_evidence/pytest_appendix_probe /workspace/scratch/64559d708105/issue31/reviewer_evidence/test_appendix_read_facts_probe.py",
+      "exit_code": 1,
+      "result": "1 counterexample assertion failed",
+      "probe_sha256": "74bf4d4285d731d5691f62e58a7deddcce73c1bb47f9ff48a02c2c252c404929",
+      "log": "reviewer_evidence/appendix_read_facts_probe.log",
+      "log_sha256": "0ae1a3e038366d7a9ed484592401883de7d5488c737842da1824015325f9d027"
+    }
+  ],
+  "findings": [
+    {
+      "id": "R1-FETCH-01",
+      "severity": "P1",
+      "status": "BLOCKING",
+      "finding": "A non-article empty BODY can be promoted when the collector summary self-reports article_body_found=true.",
+      "evidence": "An isolated collector wrote an 83-byte HTML page with an empty body, a header-only image manifest, and a valid-looking identity summary with article_body_found=true and text_preview_length=18. main() returned 0 and reported SOURCE_CAPTURED_BODY_READY / BODY_IDENTITY_VERIFIED.",
+      "repro": "reviewer_evidence/test_fetch_risk_probes.py::test_summary_claim_does_not_replace_real_body_html"
+    },
+    {
+      "id": "R1-FETCH-02",
+      "severity": "P1",
+      "status": "BLOCKING",
+      "finding": "Verified HTTP-source reuse does not compare actual raw HTML bytes to identity_validation.raw_html_sha256.",
+      "evidence": "After a successful candidate capture, raw HTML bytes were replaced while the original summary and recorded raw_html_sha256 remained. A second main() call returned SOURCE_REUSED_NEED_OCR rather than rejecting the stale identity.",
+      "repro": "reviewer_evidence/test_fetch_risk_probes.py::test_changed_raw_html_is_not_accepted_from_stale_http_identity"
+    },
+    {
+      "id": "R1-FETCH-03",
+      "severity": "P1",
+      "status": "BLOCKING",
+      "finding": "A prepared image manifest whose first source URL changed is still accepted as the same reusable article source.",
+      "evidence": "The test created 50 decodable PNGs, ran the real prepare_ocr.main(), then changed only the first manifest URL while retaining image indexes and bytes/SHA. A subsequent fetch returned SOURCE_REUSED_NEED_OCR.",
+      "repro": "reviewer_evidence/test_fetch_risk_probes.py::test_changed_image_url_after_prepare_is_not_accepted_as_same_source"
+    },
+    {
+      "id": "R1-FETCH-04",
+      "severity": "P1",
+      "status": "BLOCKING",
+      "finding": "OCR summary status OCR_OK alone makes the state machine report the package as the next stage without OCR result or checkpoint artifacts.",
+      "evidence": "With 50 source images, the test wrote only {status: OCR_OK, image_count: 50}; windows_ocr_results.json and windows_ocr_checkpoint.json were absent. The next call reported next_missing_stage=package.",
+      "repro": "reviewer_evidence/test_fetch_risk_probes.py::test_ocr_ok_summary_without_ocr_artifacts_is_not_package_ready"
+    },
+    {
+      "id": "R1-FETCH-05",
+      "severity": "P1",
+      "status": "BLOCKING",
+      "finding": "The argparse abbreviation --o bypasses exact --out rewriting and lets the collector write outside the isolated attempt directory.",
+      "evidence": "Calling the adapter with --out <run> --o <escaped-output> caused the isolated fake collector to write wechat_article_raw.html under escaped-output. The adapter later rejected the missing staged summary, but the outside write had already occurred.",
+      "repro": "reviewer_evidence/test_fetch_risk_probes.py::test_output_abbreviation_cannot_escape_the_attempt_root"
+    },
+    {
+      "id": "R1-FETCH-06",
+      "severity": "P1",
+      "status": "BLOCKING",
+      "finding": "A saved-HTML promotion interrupted after the active summary commit but before PROMOTION_RECEIPT cannot recover on the next invocation.",
+      "evidence": "KeyboardInterrupt was injected immediately before PROMOTION_RECEIPT creation. On the next call, _existing_verified_source raised 'saved HTML source lacks an immutable promotion receipt'; main returned 2 before _recover_pending_attempt could finish promotion.",
+      "repro": "reviewer_evidence/test_fetch_risk_probes.py::test_saved_html_promotion_receipt_gap_recovers_after_summary_commit"
+    },
+    {
+      "id": "R1-APPENDIX-01",
+      "severity": "P2",
+      "status": "DISCLOSURE_GAP",
+      "finding": "When the current HK receipt is read but its panel SHA binding fails, the probe drops the readable receipt facts and SHA from the final probe.",
+      "evidence": "The test changed a synthetic current HK Parquet after writing a valid READY receipt. The receipt had READY and row_count=1; the returned probe instead had current_receipt_status=CANNOT_CONFIRM and no current_receipt_sha256. All HK prices remained null, so the failure is disclosure completeness rather than price leakage.",
+      "repro": "reviewer_evidence/test_appendix_read_facts_probe.py::test_current_hk_receipt_facts_and_sha_survive_panel_binding_failure"
+    }
+  ],
+  "positive_results": [
+    "The 108-listing PARTIAL-plus-row_count-mismatch synthetic appendix test preserves all 81 A, 3 BJ, and 24 HK rows; prices remain null and statuses CANNOT_CONFIRM.",
+    "The appendix JSON retains PARTIAL, target_date_file_count=5137, target_count=5800, coverage_rate, row_count=5261, sync authority REBUILD_REQUIRED, and receipt SHA; the Markdown labels 5137/5800 as panel coverage rather than a 108-code match rate.",
+    "The HK missing-prior-session receipt path and date are disclosed; the 24 HK values stay null, and Markdown states that zero valid observations do not mean a 0% return.",
+    "Failed A/BJ and HK probe functions are cached once per appendix generation in the synthetic 108-listing case.",
+    "The adjacent 29-test regression set preserves per-code invalid HK denominator behavior; invalid values do not discard the valid listing."
+  ],
+  "states": {
+    "SOURCE_CANDIDATE_TESTED": "YES_FOR_THE_ROUND1_FROZEN_SOURCE_AND_OFFLINE_FIXTURES_ONLY",
+    "REVIEWED": "BLOCKED_BY_SIX_P1_FETCH_FINDINGS_AND_ONE_P2_APPENDIX_DISCLOSURE_GAP",
+    "BEHAVIOR_VERIFIED": "ISOLATED_SYNTHETIC_REGRESSIONS_AND_COUNTEREXAMPLES_ONLY",
+    "MAC_BEHAVIOR": "CANNOT_CONFIRM",
+    "ACTIVE_RUNNER_INVOCATION": "CANNOT_CONFIRM",
+    "EXTERNAL_COLLECTOR": "CANNOT_CONFIRM",
+    "NATIVE_VISION_OCR": "CANNOT_CONFIRM",
+    "LOADED_SCHEDULER_AND_REAL_PANELS": "CANNOT_CONFIRM",
+    "DRIVE_RECOVERY_AND_END_TO_END_HANDOFF": "CANNOT_CONFIRM",
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "limitations": [
+    "The frozen Mac runner, external collector, parent-level AGENTS.md, and active runtime are absent from the supplied source snapshot.",
+    "No real Mac, Vision OCR, WeChat request, market panel, scheduler, Drive connection, or full recovery-to-Drive flow was run.",
+    "Synthetic offline fixtures do not establish real Mac behavior; those states remain CANNOT_CONFIRM.",
+    "Pytest basetemp directories were temporary and are not deliverables."
+  ]
+}

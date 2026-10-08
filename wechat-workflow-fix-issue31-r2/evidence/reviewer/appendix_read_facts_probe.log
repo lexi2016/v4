@@ -1,0 +1,34 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+rootdir: /workspace/scratch/64559d708105
+plugins: anyio-4.15.1
+collecting ... collected 1 item
+
+issue31/reviewer_evidence/test_appendix_read_facts_probe.py::AppendixReadFactsProbe::test_current_hk_receipt_facts_and_sha_survive_panel_binding_failure FAILED [100%]
+
+=================================== FAILURES ===================================
+_ AppendixReadFactsProbe.test_current_hk_receipt_facts_and_sha_survive_panel_binding_failure _
+
+self = <test_appendix_read_facts_probe.AppendixReadFactsProbe testMethod=test_current_hk_receipt_facts_and_sha_survive_panel_binding_failure>
+
+    def test_current_hk_receipt_facts_and_sha_survive_panel_binding_failure(self) -> None:
+        receipt_path = self.fixture.receipt_root / "hk-20260928.json"
+        receipt_bytes = receipt_path.read_bytes()
+        expected_receipt = json.loads(receipt_bytes)
+        current_panel = self.fixture.hk_asset_root / "panels/20260928-test/current.parquet"
+        current_panel.write_bytes(current_panel.read_bytes() + b"tampered-after-receipt")
+    
+        result = self.fixture._build()
+        probe = result["source_data_probe"]["markets"]["HK"]
+    
+>       self.assertEqual(probe.get("current_receipt_status"), expected_receipt["status"])
+E       AssertionError: 'CANNOT_CONFIRM' != 'READY'
+E       - CANNOT_CONFIRM
+E       + READY
+
+issue31/reviewer_evidence/test_appendix_read_facts_probe.py:35: AssertionError
+=========================== short test summary info ============================
+FAILED issue31/reviewer_evidence/test_appendix_read_facts_probe.py::AppendixReadFactsProbe::test_current_hk_receipt_facts_and_sha_survive_panel_binding_failure - AssertionError: 'CANNOT_CONFIRM' != 'READY'
+- CANNOT_CONFIRM
++ READY
+============================== 1 failed in 0.43s ===============================

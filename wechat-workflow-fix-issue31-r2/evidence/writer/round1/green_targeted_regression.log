@@ -1,0 +1,13 @@
+COMMAND: PYTHONPATH=issue31/test_deps:issue31/candidate/wechat/scripts:issue31/candidate/wechat/tests:issue31/candidate/v4_app python -m pytest -q issue31/candidate/wechat/tests/test_wechat_article_fetch_recovery.py issue31/candidate/wechat/tests/test_wechat_prepare_ocr_manifest.py issue31/candidate/wechat/tests/test_wechat_chat_handoff.py issue31/candidate/wechat/tests/test_wechat_handoff_v2.py issue31/candidate/wechat/tests/test_chat_review_regressions.py issue31/candidate/wechat/tests/test_prior_mentions_performance_appendix.py issue31/candidate/wechat/tests/test_review_wechat_boundaries.py
+EXIT_CODE: 0
+PHASE: targeted identity/source-handoff, new fetch recovery, and R1 appendix regressions
+
+...................................................... [ 45%]
+..................................................................       [100%]
+=============================== warnings summary ===============================
+issue31/candidate/wechat/tests/test_chat_review_regressions.py::test_v4_accepts_valid_body_or_empty_mentions_and_serves_raw_bytes[False]
+  /workspace/scratch/64559d708105/issue31/test_deps/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+120 passed, 1 warning, 18 subtests passed in 2.42s

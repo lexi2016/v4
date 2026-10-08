@@ -1,0 +1,401 @@
+{
+  "schema_version": "issue31-delivery-manifest-v1",
+  "self_excluded": true,
+  "files": [
+    {
+      "path": "IMPLEMENTATION_PLAN.md",
+      "bytes": 2111,
+      "sha256": "a5724edc9d2f04314b1a903069c089447e7a5bb1f80da6904c4506c29f460812"
+    },
+    {
+      "path": "INPUT_BASELINE.json",
+      "bytes": 2057,
+      "sha256": "19258068ab3258de04403d796f39180c443bc31c72ec61f1187cefb85c498531"
+    },
+    {
+      "path": "INPUT_FILES.json",
+      "bytes": 14635,
+      "sha256": "51f6022dc25251fb4b2965839efe7f82811e811dfa5c10dc03950c83b84cc67f"
+    },
+    {
+      "path": "MAC_ACCEPTANCE_REQUIRED.md",
+      "bytes": 7212,
+      "sha256": "972e0e8a190614356840eb08faf432e5b3052c3bfbbd4c48392d6b2f4a1febac"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5039,
+      "sha256": "08c59011da0dda2c765a55886795d69810a3e39df059664c067e17c82d939297"
+    },
+    {
+      "path": "REPRODUCE_OFFLINE.md",
+      "bytes": 4133,
+      "sha256": "2a860d91246fc15a5caba4aebc3ae7ccd6ee5363894a23ca9ece3166d908b7e1"
+    },
+    {
+      "path": "SOURCE_MANIFEST.json",
+      "bytes": 4674,
+      "sha256": "5c6987ae710432e4ad7e2bf88bd1e27d4e79fe3cf23508bd624cfe5b0660e086"
+    },
+    {
+      "path": "STATUS.json",
+      "bytes": 9419,
+      "sha256": "4d60305a3b1b5060925d79be242779205b6ff21aec264985c7d97d802e082064"
+    },
+    {
+      "path": "actual_diff.patch",
+      "bytes": 120526,
+      "sha256": "3217ae34cd7154067279794bcb226137451d3bae0287bb62105155e9e7f75745"
+    },
+    {
+      "path": "before/wechat/WORKFLOW_公众号链接固定执行方案.md",
+      "bytes": 36401,
+      "sha256": "fe549923926d413d3f9ced9bdbaa0bda9e2e31480071c51e4b2e0d57774a8b13"
+    },
+    {
+      "path": "before/wechat/scripts/wechat_article_fetch.py",
+      "bytes": 22258,
+      "sha256": "8c5a2dba2b1dc9c7392d43d9b8023fc2559c62c2dadc99cef8a1e5f3d69381a1"
+    },
+    {
+      "path": "before/wechat/scripts/wechat_yesterday_performance.py",
+      "bytes": 82036,
+      "sha256": "364d441853fd8e0ab977cd35c173143e2639bd77e2a9363d8e1bf6e04f07e51d"
+    },
+    {
+      "path": "before/wechat/tests/test_prior_mentions_performance_appendix.py",
+      "bytes": 17413,
+      "sha256": "621c9d7163595e89f26ed2a818358513a6674992b8e30d175dc124a9cf9aa3ca"
+    },
+    {
+      "path": "evidence/reviewer/FINAL_REVIEW.json",
+      "bytes": 11082,
+      "sha256": "9163098d6661bafc2983baabaa5bcac72d046e961eb4f16837955ef24c1a636e"
+    },
+    {
+      "path": "evidence/reviewer/FINAL_REVIEW.md",
+      "bytes": 6531,
+      "sha256": "d9fc5bbe3c5a9173a7fd805693eeab1869dc75d626c855a4548e9115b36150f0"
+    },
+    {
+      "path": "evidence/reviewer/appendix_read_facts_probe.log",
+      "bytes": 2014,
+      "sha256": "0ae1a3e038366d7a9ed484592401883de7d5488c737842da1824015325f9d027"
+    },
+    {
+      "path": "evidence/reviewer/appendix_read_facts_probe_round2.log",
+      "bytes": 98,
+      "sha256": "3dd8a455f93386b2d78b9d5605f1c2f52fd55f0962f89b0bd7d602cae0ead952"
+    },
+    {
+      "path": "evidence/reviewer/appendix_tests.log",
+      "bytes": 98,
+      "sha256": "0f18846f02505ee432787dbe3891961c1d8a1fbe2c82d1b7deb7e21dde073c5c"
+    },
+    {
+      "path": "evidence/reviewer/appendix_tests_round2.log",
+      "bytes": 98,
+      "sha256": "b1a8e1edb7a8cdae23b8eaac3a889f25dbc5ac9d0fa5b6559dc7e63eaf16518a"
+    },
+    {
+      "path": "evidence/reviewer/chat_review_regressions.log",
+      "bytes": 660,
+      "sha256": "df12c2e2a7ed8bcd8c411fc5325d244b51370e953dfadb5239162c128a434469"
+    },
+    {
+      "path": "evidence/reviewer/chat_review_regressions_round2.log",
+      "bytes": 660,
+      "sha256": "9aefe5efd4e0c871a29466958f51e1f81ec060ebe5ddeb43cf70bf8665b1135c"
+    },
+    {
+      "path": "evidence/reviewer/fetch_risk_probes.log",
+      "bytes": 20708,
+      "sha256": "c8735b920854496913a4ffcffae6dcc42e7892b6ea6f808303d8ed43411730f8"
+    },
+    {
+      "path": "evidence/reviewer/fetch_risk_probes_clean.log",
+      "bytes": 19047,
+      "sha256": "20f6b0ee8fc5b3c06fb04c0d505f56cc7d20976bef5c5a7ee1ecc9ea5224b2d9"
+    },
+    {
+      "path": "evidence/reviewer/fetch_risk_probes_harness_fixed.log",
+      "bytes": 19047,
+      "sha256": "619d85748272d6a3eaafa1e85142060c0ff87abacdf8a83eb9dc69e9dfc85cac"
+    },
+    {
+      "path": "evidence/reviewer/fetch_risk_probes_round2.log",
+      "bytes": 1306,
+      "sha256": "fb2c3e46eeae618c391d29e570126ae0b8dcc47a37424932b4c2f304c58ac93b"
+    },
+    {
+      "path": "evidence/reviewer/fetch_risk_probes_round3.log",
+      "bytes": 98,
+      "sha256": "67310d9acd9a1c5a29b924d230c4d19fc83865de935de7ad99e8a5f1ebcbf384"
+    },
+    {
+      "path": "evidence/reviewer/fetch_sigkill_probe.log",
+      "bytes": 7397,
+      "sha256": "76200eea53676467745cb7564ac08a223b9fabb1bc1d060cd68fdc1d0fa555a3"
+    },
+    {
+      "path": "evidence/reviewer/fetch_sigkill_real_io_old_baseline.log",
+      "bytes": 10802,
+      "sha256": "7b3b48ff24fe791bdaa0158ec81382b3ad40fcc78e8ed044b3de9d34d25cff18"
+    },
+    {
+      "path": "evidence/reviewer/fetch_sigkill_real_io_round3.log",
+      "bytes": 1404,
+      "sha256": "0eff4e4aff1eeeb141db043497d78fb42345948aa43530a7fb15a8b925430661"
+    },
+    {
+      "path": "evidence/reviewer/fetch_tests.log",
+      "bytes": 98,
+      "sha256": "3d368ba43f0aad60365b9ab3dacfcdcd223774618d864a5e1377e1dd6be19bc8"
+    },
+    {
+      "path": "evidence/reviewer/fetch_tests_round2.log",
+      "bytes": 99,
+      "sha256": "cb5663735f637ffd0b8d4f4562d5b9fc32ef88a21a4dd11d9badf96e169d62f5"
+    },
+    {
+      "path": "evidence/reviewer/fetch_tests_round3.log",
+      "bytes": 99,
+      "sha256": "304728422255963bb71e8667ad5f7810e8affd44077ba5fbc4cfa7bbe0158313"
+    },
+    {
+      "path": "evidence/reviewer/round1_review.json",
+      "bytes": 12361,
+      "sha256": "a718854c5e825eaf26e3bf2fc780fd9590b4c187d1694fb04d90f1e28151a9a7"
+    },
+    {
+      "path": "evidence/reviewer/round1_review.md",
+      "bytes": 6783,
+      "sha256": "2939c7d1c6625e332827e9cb0acf8d0a3509e0990749e4e4e588e296871daad0"
+    },
+    {
+      "path": "evidence/reviewer/round2_receipt.json",
+      "bytes": 4992,
+      "sha256": "620647743a7f193ac0cdf076d86327b1bc12099f402d1edb659dbe12e26c7c8a"
+    },
+    {
+      "path": "evidence/reviewer/round2_receipt.md",
+      "bytes": 4269,
+      "sha256": "cc8ab9e9c2e83e6b67309b8077ca7286755411f6555acb875ca85180611e469a"
+    },
+    {
+      "path": "evidence/reviewer/test_appendix_read_facts_probe.py",
+      "bytes": 1835,
+      "sha256": "74bf4d4285d731d5691f62e58a7deddcce73c1bb47f9ff48a02c2c252c404929"
+    },
+    {
+      "path": "evidence/reviewer/test_fetch_risk_probes.py",
+      "bytes": 8344,
+      "sha256": "1f797894e15ad4ff6b32997360f9f629aedbe72f500829cf8f0a5f846c91f135"
+    },
+    {
+      "path": "evidence/reviewer/test_fetch_sigkill_probe.py",
+      "bytes": 6291,
+      "sha256": "fa7ff1eb70f6a1ba4fb7a1b4d0207b72fc6ce70841688a2b06274be43d72cb17"
+    },
+    {
+      "path": "evidence/reviewer/test_fetch_sigkill_real_io_probe.py",
+      "bytes": 10356,
+      "sha256": "218241d2ab7aecfafa78ec95096ccb2d0b280864c1455bcc181afc3135e6ba00"
+    },
+    {
+      "path": "evidence/root/DOCUMENT_CONTRACT_CHECK.json",
+      "bytes": 1182,
+      "sha256": "a09ca738350d7876e430d43a909812362502934cccace3e8983c538e71079e03"
+    },
+    {
+      "path": "evidence/root/FRESH_FINAL_PYTEST.json",
+      "bytes": 1759,
+      "sha256": "28fe6daaaf9aced4c3858eb6fe97d87a9689da91379404ee8752315c72bc6b39"
+    },
+    {
+      "path": "evidence/root/FRESH_FINAL_PYTEST.log",
+      "bytes": 815,
+      "sha256": "c5b5960116e8a16800423131bfadd1872c95e2882523a45605c38f6524326fcf"
+    },
+    {
+      "path": "evidence/root/PATCH_ROUNDTRIP.json",
+      "bytes": 1110,
+      "sha256": "ca86d2846d6e0c3f7df67966d8b96f55aedcd9fed1b91be9f798b8637d933f23"
+    },
+    {
+      "path": "evidence/root/REVIEW_ROUND1_SOURCE.json",
+      "bytes": 753,
+      "sha256": "2d66659298a31d3ab7a82b9e3e79c4ad73daf7282890745ef5ac4c92fe51e1c7"
+    },
+    {
+      "path": "evidence/root/REVIEW_ROUND2_SOURCE.json",
+      "bytes": 758,
+      "sha256": "15d17c8052e65408c9ade4cec42a36b2e2e4559f06f3158b728023234a0ed801"
+    },
+    {
+      "path": "evidence/root/review_round1_source/wechat/scripts/wechat_article_fetch.py",
+      "bytes": 49555,
+      "sha256": "988d6d10acb427c2ba8624443342c22f248cce08348d3bf0e09aff4477d2b597"
+    },
+    {
+      "path": "evidence/root/review_round1_source/wechat/scripts/wechat_yesterday_performance.py",
+      "bytes": 88428,
+      "sha256": "6723cb4b57e7c95c6bfe4ed3fce4dc61cbcb588e5d633a8be11bb753f49d6445"
+    },
+    {
+      "path": "evidence/root/review_round1_source/wechat/tests/test_prior_mentions_performance_appendix.py",
+      "bytes": 25364,
+      "sha256": "315b78978e0ba8c715d573229a5eeee40c0351cafa6a644430c8288c6ce340df"
+    },
+    {
+      "path": "evidence/root/review_round1_source/wechat/tests/test_wechat_article_fetch_recovery.py",
+      "bytes": 13499,
+      "sha256": "cd5fcaaa24b8fa33ba8ee756f70c2b13a45a0e5134e262860405b7b18c5340c4"
+    },
+    {
+      "path": "evidence/root/review_round2_source/wechat/scripts/wechat_article_fetch.py",
+      "bytes": 56770,
+      "sha256": "068fb84876a8cd9da940effc4468e73f0a3f530d626fa7506e8cada528c68a1d"
+    },
+    {
+      "path": "evidence/root/review_round2_source/wechat/tests/test_wechat_article_fetch_recovery.py",
+      "bytes": 25247,
+      "sha256": "fa1fa08ea027ce1bacfbd32755269fcc6eff8d7b3a10a9acef74a106239f962a"
+    },
+    {
+      "path": "evidence/writer/full_suite_diagnostic_pre_gate_fix.log",
+      "bytes": 10547,
+      "sha256": "c090fedab499f9eab67c8b190e09bd1262f9ad77fb7c1d53dfd3e7e72fd678ec"
+    },
+    {
+      "path": "evidence/writer/full_suite_failed_5_r1_gate.log",
+      "bytes": 10547,
+      "sha256": "c090fedab499f9eab67c8b190e09bd1262f9ad77fb7c1d53dfd3e7e72fd678ec"
+    },
+    {
+      "path": "evidence/writer/green_core_13.log",
+      "bytes": 485,
+      "sha256": "3643f911160a3c9e072d3d6027d36da4ac771fee23e0a36b68442112e4c094f8"
+    },
+    {
+      "path": "evidence/writer/green_full_wechat_tests.log",
+      "bytes": 1079,
+      "sha256": "9f478fd1d08839fa5122a842486cc79f12b16a86550298b5d8994852040b7004"
+    },
+    {
+      "path": "evidence/writer/green_targeted_regression.log",
+      "bytes": 1447,
+      "sha256": "e9c972d04a190c09015bc6645cb5c838975ca07a88ec973be5c88da0c92fe15a"
+    },
+    {
+      "path": "evidence/writer/red_tests.log",
+      "bytes": 14022,
+      "sha256": "99097d47fad927968f51f04d505dc60a7aed3812c546950c74f6ce869c824a10"
+    },
+    {
+      "path": "evidence/writer/round1/full_suite_diagnostic_pre_gate_fix.log",
+      "bytes": 10547,
+      "sha256": "c090fedab499f9eab67c8b190e09bd1262f9ad77fb7c1d53dfd3e7e72fd678ec"
+    },
+    {
+      "path": "evidence/writer/round1/green_core_13.log",
+      "bytes": 485,
+      "sha256": "3643f911160a3c9e072d3d6027d36da4ac771fee23e0a36b68442112e4c094f8"
+    },
+    {
+      "path": "evidence/writer/round1/green_full_wechat_tests.log",
+      "bytes": 1079,
+      "sha256": "9f478fd1d08839fa5122a842486cc79f12b16a86550298b5d8994852040b7004"
+    },
+    {
+      "path": "evidence/writer/round1/green_targeted_regression.log",
+      "bytes": 1447,
+      "sha256": "e9c972d04a190c09015bc6645cb5c838975ca07a88ec973be5c88da0c92fe15a"
+    },
+    {
+      "path": "evidence/writer/round1/red_tests.log",
+      "bytes": 14022,
+      "sha256": "99097d47fad927968f51f04d505dc60a7aed3812c546950c74f6ce869c824a10"
+    },
+    {
+      "path": "evidence/writer/round1/writer_receipt.md",
+      "bytes": 4102,
+      "sha256": "6545a26c9cd6066a908a00b47bd9f7ee955a5e54041d5fdc45cf6d01ce18a4a2"
+    },
+    {
+      "path": "evidence/writer/round2_fetch_16_green.log",
+      "bytes": 481,
+      "sha256": "282ee09cd498b30693d64d1f4231fd491bdf92a1407e016ba7f33639bc3f43aa"
+    },
+    {
+      "path": "evidence/writer/round2_fetch_red.log",
+      "bytes": 18246,
+      "sha256": "331b3743e143b2d0bf97bc610e1063d68f7b18759ce6dd650f0048845c4af62e"
+    },
+    {
+      "path": "evidence/writer/round2_hk_8_green.log",
+      "bytes": 556,
+      "sha256": "760239585bb53145b11432d93f5eb3746e36aa769d6603f6b14da090738a9ea7"
+    },
+    {
+      "path": "evidence/writer/round2_targeted_green.log",
+      "bytes": 964,
+      "sha256": "77b425e13f20a456c3dad5a60200b99e16eb97536b0a8c7077fc20b07df5f4a1"
+    },
+    {
+      "path": "evidence/writer/round3_fetch_atomic_17_green.log",
+      "bytes": 535,
+      "sha256": "87f99fe0716509ca8dae4fe2e489edf3153c77704cde563fc7686312a922e468"
+    },
+    {
+      "path": "evidence/writer/round3_targeted_atomic_green.log",
+      "bytes": 960,
+      "sha256": "d28eb7461e7c7ffc9f93323f4c4bca9bb2941f5e4d53b050c84baae18bc63413"
+    },
+    {
+      "path": "evidence/writer/writer_receipt.md",
+      "bytes": 9309,
+      "sha256": "f1221792fca774ac30a458b32bf3a0f9312d7d3fb4040f525fbecd712e67fc09"
+    },
+    {
+      "path": "runtime.patch",
+      "bytes": 76006,
+      "sha256": "2d754bf334214a4b41a40831a1625651c6fd4fada88f0f01c2f96007326df462"
+    },
+    {
+      "path": "source/wechat/WORKFLOW_公众号链接固定执行方案.md",
+      "bytes": 37675,
+      "sha256": "6737f1b37f1bc6f7df90b654296b5f46fe3ee8ac8be06421ee6fbbc342ff592f"
+    },
+    {
+      "path": "source/wechat/scripts/wechat_article_fetch.py",
+      "bytes": 58707,
+      "sha256": "5d648dac0b712a05be2345d1fe73020d3e99520b8256b003c29120c232dedb17"
+    },
+    {
+      "path": "source/wechat/scripts/wechat_yesterday_performance.py",
+      "bytes": 89787,
+      "sha256": "840908dc4350d91abd7b74e94ec4993954ba32edca6bcc7eb8eac646824d3f5c"
+    },
+    {
+      "path": "source/wechat/tests/test_prior_mentions_performance_appendix.py",
+      "bytes": 26675,
+      "sha256": "969e5f05b2ecdc8e65d8de2255336b3a7f8ed275095640da755bac1168609588"
+    },
+    {
+      "path": "source/wechat/tests/test_wechat_article_fetch_recovery.py",
+      "bytes": 31535,
+      "sha256": "3d5a55f32c62a1ea250f1bdfef3b41584abcccbb06199000357483acdde2e124"
+    },
+    {
+      "path": "tests.patch",
+      "bytes": 42569,
+      "sha256": "3347d66ee34c9e74c81a3b0770de005956f543de0c023db7aa260c2487392834"
+    },
+    {
+      "path": "workflow.patch",
+      "bytes": 1951,
+      "sha256": "1e7c13bc1fb5a8ac9bc6d135108433ba87380445c7c3a2584dd46fb312d94128"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "status": "REJECTED_BY_INDEPENDENT_REVIEW",
+  "reason": "SIGKILL during an active image write leaves a partial target and blocks pending-attempt recovery.",
+  "source_sha256": {
+    "wechat/scripts/wechat_article_fetch.py": "068fb84876a8cd9da940effc4468e73f0a3f530d626fa7506e8cada528c68a1d",
+    "wechat/tests/test_wechat_article_fetch_recovery.py": "fa1fa08ea027ce1bacfbd32755269fcc6eff8d7b3a10a9acef74a106239f962a"
+  },
+  "evidence_correction": "The first SIGKILL harness replaced the helper and is superseded. The corrected actual-helper real-I/O probe subsequently reproduced the same partial-public-file failure against these exact immutable source bytes. Use FINAL_REVIEW.json and fetch_sigkill_real_io_old_baseline.log as the finding evidence."
+}

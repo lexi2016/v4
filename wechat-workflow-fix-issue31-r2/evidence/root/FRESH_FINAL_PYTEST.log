@@ -1,0 +1,10 @@
+........................................................................ [ 48%]
+...................................................... [ 85%]
+......................                                                   [100%]
+=============================== warnings summary ===============================
+candidate/wechat/tests/test_chat_review_regressions.py::test_v4_accepts_valid_body_or_empty_mentions_and_serves_raw_bytes[False]
+  /workspace/scratch/64559d708105/issue31/test_deps/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+148 passed, 1 warning, 18 subtests passed in 5.75s

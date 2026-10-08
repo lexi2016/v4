@@ -1,0 +1,228 @@
+COMMAND: PYTHONPATH=issue31/test_deps:issue31/candidate/wechat/scripts:issue31/candidate/wechat/tests:issue31/candidate/v4_app python -m pytest -q issue31/candidate/wechat/tests/test_wechat_article_fetch_recovery.py issue31/candidate/wechat/tests/test_prior_mentions_performance_appendix.py
+EXIT_CODE: 1
+PHASE: minimum offline red reproduction before product edits
+
+FFF..F..                                                                 [100%]
+=================================== FAILURES ===================================
+_ WechatArticleFetchRecoveryTests.test_malformed_old_summary_with_orphan_images_refuses_new_collector _
+
+out_dir = PosixPath('/tmp/tmp6xfmswdb/run')
+requested_url = 'https://mp.weixin.qq.com/s/OfflineFixtureToken'
+
+    def _existing_identity_conflict(out_dir: Path, requested_url: str) -> None:
+        snapshots: list[dict[str, str]] = []
+        for name in ("wechat_article_intake_summary.json", "article_research.json"):
+            path = out_dir / name
+            if not path.is_file():
+                continue
+            if path.is_symlink():
+                raise ValueError(f"existing {name} must not be a symlink")
+            _reject_symlink_components(path, f"existing {name}")
+            try:
+>               value = json.loads(path.read_text(encoding="utf-8-sig"))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+issue31/candidate/wechat/scripts/wechat_article_fetch.py:394: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/__init__.py:346: in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/decoder.py:338: in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <json.decoder.JSONDecoder object at 0x7f33255ef560>, s = '{bad json'
+idx = 0
+
+    def raw_decode(self, s, idx=0):
+        """Decode a JSON document from ``s`` (a ``str`` beginning with
+        a JSON document) and return a 2-tuple of the Python
+        representation and the index in ``s`` where the document ended.
+    
+        This can be used to decode a JSON document from a string that may
+        have extraneous data at the end.
+    
+        """
+        try:
+>           obj, end = self.scan_once(s, idx)
+                       ^^^^^^^^^^^^^^^^^^^^^^
+E           json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/decoder.py:354: JSONDecodeError
+
+The above exception was the direct cause of the following exception:
+
+self = <test_wechat_article_fetch_recovery.WechatArticleFetchRecoveryTests testMethod=test_malformed_old_summary_with_orphan_images_refuses_new_collector>
+
+    def test_malformed_old_summary_with_orphan_images_refuses_new_collector(self) -> None:
+        (self.run_dir / "wechat_article_intake_summary.json").write_text("{bad json", encoding="utf-8")
+        image_dir = self.run_dir / "wechat_article_images"
+        image_dir.mkdir()
+        (image_dir / "old.png").write_bytes(b"orphan")
+>       code = self._call()
+               ^^^^^^^^^^^^
+
+issue31/candidate/wechat/tests/test_wechat_article_fetch_recovery.py:160: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+issue31/candidate/wechat/tests/test_wechat_article_fetch_recovery.py:98: in _call
+    return fetch.main(["--url", URL, "--out", str(self.run_dir), "--skip-ocr", "--image-workers", "3"])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+issue31/candidate/wechat/scripts/wechat_article_fetch.py:452: in main
+    _existing_identity_conflict(out_dir, args.url)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+out_dir = PosixPath('/tmp/tmp6xfmswdb/run')
+requested_url = 'https://mp.weixin.qq.com/s/OfflineFixtureToken'
+
+    def _existing_identity_conflict(out_dir: Path, requested_url: str) -> None:
+        snapshots: list[dict[str, str]] = []
+        for name in ("wechat_article_intake_summary.json", "article_research.json"):
+            path = out_dir / name
+            if not path.is_file():
+                continue
+            if path.is_symlink():
+                raise ValueError(f"existing {name} must not be a symlink")
+            _reject_symlink_components(path, f"existing {name}")
+            try:
+                value = json.loads(path.read_text(encoding="utf-8-sig"))
+            except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+>               raise ValueError(f"existing {name} is invalid") from exc
+E               ValueError: existing wechat_article_intake_summary.json is invalid
+
+issue31/candidate/wechat/scripts/wechat_article_fetch.py:396: ValueError
+_ WechatArticleFetchRecoveryTests.test_ocr_failure_preserves_verified_source_and_resume_does_not_refetch _
+
+self = <test_wechat_article_fetch_recovery.WechatArticleFetchRecoveryTests testMethod=test_ocr_failure_preserves_verified_source_and_resume_does_not_refetch>
+
+    def test_ocr_failure_preserves_verified_source_and_resume_does_not_refetch(self) -> None:
+        first_code = self._call()
+        raw_path = self.run_dir / "wechat_article_raw.html"
+        manifest_path = self.run_dir / "wechat_article_image_manifest.csv"
+        summary_path = self.run_dir / "wechat_article_intake_summary.json"
+        image_path = self.run_dir / "wechat_article_images" / "img_01.png"
+>       self.assertEqual(first_code, 0)
+E       AssertionError: 17 != 0
+
+issue31/candidate/wechat/tests/test_wechat_article_fetch_recovery.py:106: AssertionError
+_ WechatArticleFetchRecoveryTests.test_verify_page_is_kept_only_as_attempt_evidence _
+
+self = <test_wechat_article_fetch_recovery.WechatArticleFetchRecoveryTests testMethod=test_verify_page_is_kept_only_as_attempt_evidence>
+
+    def test_verify_page_is_kept_only_as_attempt_evidence(self) -> None:
+        self.collector.with_suffix(".mode").write_text("verify_first", encoding="utf-8")
+>       code = self._call()
+               ^^^^^^^^^^^^
+
+issue31/candidate/wechat/tests/test_wechat_article_fetch_recovery.py:145: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+issue31/candidate/wechat/tests/test_wechat_article_fetch_recovery.py:98: in _call
+    return fetch.main(["--url", URL, "--out", str(self.run_dir), "--skip-ocr", "--image-workers", "3"])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+issue31/candidate/wechat/scripts/wechat_article_fetch.py:460: in main
+    identity = validate_intake_identity(summary, args.url, allow_saved_html=html_file is not None)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+summary = {'article_url': 'https://mp.weixin.qq.com/s/OfflineFixtureToken', 'canonical_url': 'https://mp.weixin.qq.com/s/Offline...oken', 'canonical_token': 'OfflineFixtureToken', 'final_label': 'WECHAT_RESEARCH_INTAKE_BLOCKED_BY_WECHAT_VERIFY', ...}
+requested_url = 'https://mp.weixin.qq.com/s/OfflineFixtureToken'
+allow_saved_html = False
+
+    def validate_intake_identity(
+        summary: dict,
+        requested_url: str,
+        *,
+        allow_saved_html: bool = False,
+    ) -> dict[str, str]:
+        """Require non-blocked, non-partial content and exact article identity."""
+    
+        if not isinstance(summary, dict):
+            raise ValueError("intake summary must be an object")
+        expected_url = canonical_article_url(requested_url)
+        expected_token = canonical_token_from_url(requested_url)
+        observed_url = _consistent(summary, ("article_url", "url"), "article URL", canonical_article_url)
+        if not observed_url or canonical_article_url(observed_url) != expected_url:
+            raise ValueError("intake response URL/token does not match the request")
+        observed_canonical_url = _consistent(summary, ("canonical_url",), "canonical URL", canonical_article_url)
+        if observed_canonical_url and canonical_article_url(observed_canonical_url) != expected_url:
+            raise ValueError("intake canonical URL conflicts with requested URL")
+        observed_token = _consistent(summary, ("canonical_token", "token"), "canonical token")
+        if observed_token and observed_token != expected_token:
+            raise ValueError("intake canonical token conflicts with requested URL")
+    
+        label = _first(summary, "final_label", "decision", "status").upper()
+        if "VERIFY" in label or "BLOCKED" in label:
+>           raise ValueError("WeChat verification/blocked page is not an article")
+E           ValueError: WeChat verification/blocked page is not an article
+
+issue31/candidate/wechat/scripts/wechat_article_fetch.py:184: ValueError
+_ PriorMentionsPerformanceAppendixTests.test_partial_receipt_mismatch_and_missing_hk_parent_keep_108_lineage_facts _
+
+self = <test_prior_mentions_performance_appendix.PriorMentionsPerformanceAppendixTests testMethod=test_partial_receipt_mismatch_and_missing_hk_parent_keep_108_lineage_facts>
+
+    @unittest.skipIf(pd is None, "pandas and pyarrow are required for the parquet integration fixture")
+    def test_partial_receipt_mismatch_and_missing_hk_parent_keep_108_lineage_facts(self) -> None:
+        synthetic_mentions = []
+        a_codes = [f"{600000 + index:06d}.SH" for index in range(81)]
+        bj_codes = [f"{920001 + index:06d}.BJ" for index in range(3)]
+        hk_codes = [f"{index:05d}.HK" for index in range(1, 25)]
+        for market, codes in (("A", a_codes), ("BJ", bj_codes), ("HK", hk_codes)):
+            for index, code in enumerate(codes, 1):
+                synthetic_mentions.append({
+                    "market": market, "code": code, "name": f"synthetic-{market}-{index:03d}",
+                    "source_index": "BODY", "entity_id": f"synthetic-{market}-{index:03d}",
+                })
+        mentions_path = self.article_dir / "mentions.csv"
+        with mentions_path.open("w", encoding="utf-8", newline="") as stream:
+            writer = csv.DictWriter(stream, fieldnames=["market", "code", "name", "source_index", "entity_id"])
+            writer.writeheader()
+            writer.writerows(synthetic_mentions)
+        mentions_sha = _sha(mentions_path.read_bytes())
+        summary_path = self.article_dir / "summary.json"
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+        summary["mentions_counts"] = {"total": 108, "A": 81, "BJ": 3, "HK": 24}
+        summary.setdefault("artifact_sha256", {})["mentions.csv"] = mentions_sha
+        summary_bytes = json.dumps(summary).encode("utf-8")
+        summary_path.write_bytes(summary_bytes)
+        receipt_path = self.article_dir / "IMPORT_RECEIPT.json"
+        archive_receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        archive_receipt["archived_files"]["mentions"]["sha256"] = mentions_sha
+        archive_receipt["archived_files"]["summary"]["sha256"] = _sha(summary_bytes)
+        receipt_path.write_text(json.dumps(archive_receipt), encoding="utf-8")
+    
+        panel_rows = []
+        for code, market_type in [(code, "A_SHARE") for code in a_codes] + [(code, "BJ") for code in bj_codes]:
+            panel_rows.append({
+                "trade_date": "20260928", "ts_code": code, "name": "synthetic",
+                "close": 10.0, "pre_close": 10.0, "pct_chg": 0.0, "market_type": market_type,
+            })
+        self.selector_panel.unlink()
+        pd.DataFrame(panel_rows).to_parquet(self.selector_panel, index=False)
+        selector_sha = _sha(self.selector_panel.read_bytes())
+        a_receipt = {
+            "status": "PARTIAL", "target_date": "20260928", "target_date_file_count": 5137,
+            "target_count": 5800, "accepted_count": 5137,
+            "coverage_rate": 0.8856896551724138, "row_count": 5261,
+            "selector_sha256": selector_sha, "production_allowed": False,
+            "buy_gate_updated": False, "orders_sent": False,
+            "formula": {"status": "READY", "target_date": 20260928,
+                        "selector": str(self.selector_panel), "selector_sha256": selector_sha},
+            "sync": {"authority": {"authority_status": "REBUILD_REQUIRED"}},
+        }
+        (self.receipt_root / "a-20260928.json").write_text(json.dumps(a_receipt), encoding="utf-8")
+        (self.receipt_root / "hk-20260925.json").unlink()
+    
+        with patch.object(yp, "_build_a_bj_panel_probe", wraps=yp._build_a_bj_panel_probe) as a_probe_call, \
+                patch.object(yp, "_build_hk_panel_probe", wraps=yp._build_hk_panel_probe) as hk_probe_call:
+            result = self._build()
+    
+>       self.assertEqual(a_probe_call.call_count, 1)
+E       AssertionError: 84 != 1
+
+issue31/candidate/wechat/tests/test_prior_mentions_performance_appendix.py:401: AssertionError
+=========================== short test summary info ============================
+FAILED issue31/candidate/wechat/tests/test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_malformed_old_summary_with_orphan_images_refuses_new_collector
+FAILED issue31/candidate/wechat/tests/test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_ocr_failure_preserves_verified_source_and_resume_does_not_refetch
+FAILED issue31/candidate/wechat/tests/test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_verify_page_is_kept_only_as_attempt_evidence
+FAILED issue31/candidate/wechat/tests/test_prior_mentions_performance_appendix.py::PriorMentionsPerformanceAppendixTests::test_partial_receipt_mismatch_and_missing_hk_parent_keep_108_lineage_facts
+4 failed, 4 passed in 1.06s
