@@ -1,0 +1,55 @@
+--- a/stage_center/_runner_parts/hk_input_validation.py
++++ b/stage_center/_runner_parts/hk_input_validation.py
+@@ -31,6 +31,7 @@
+ def __validate_hk_d1_body(_v4_scope, /, root, trade_date, *, preselection_source_root):
+     resolved_snapshot: Mapping[str, Any] | None = None
+     source_resolver = None
++    snapshot_store = None
+     if preselection_source_root is not None:
+         from infrastructure.preselection_pool_store import PreselectionSourceResolver
+ 
+@@ -133,7 +134,8 @@
+         if path.parent.name != trade_date or path.parent.parent.name != "preselection_pools":
+             raise _v4_global(_v4_scope, 'RunnerError')("HK D1 canonical snapshot path invalid")
+         try:
+-            snapshot = PreselectionPoolStore(path.parent.parent.parent).read_pool_snapshot(
++            snapshot_store = PreselectionPoolStore(path.parent.parent.parent)
++            snapshot = snapshot_store.read_pool_snapshot(
+                 trade_date, "hkconnect_d1_top100"
+             )
+         except (_v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError')) as error:
+@@ -240,6 +242,34 @@
+         != _v4_global(_v4_scope, 'Path')(_v4_global(_v4_scope, 'str')(resolved_snapshot["physical_source_root"]))
+     ):
+         raise _v4_global(_v4_scope, 'RunnerError')("HK D1 resolved source identity changed during validation")
++    if resolved_snapshot is not None or snapshot_store is not None:
++        # Recheck all members at the return boundary. An unchanged pool file
++        # alone cannot prove that its earlier manifest/receipt are still valid.
++        # These physical digests do not replace the upstream source_* fields
++        # used by the split-date provenance contract above.
++        expected_snapshot = resolved_snapshot if resolved_snapshot is not None else snapshot
++        try:
++            current_snapshot = (
++                source_resolver.read_pool_snapshot(trade_date, "hkconnect_d1_top100")
++                if resolved_snapshot is not None
++                else snapshot_store.read_pool_snapshot(trade_date, "hkconnect_d1_top100")
++            )
++        except (_v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError')) as error:
++            raise _v4_global(_v4_scope, 'RunnerError')(
++                "HK D1 physical trio identity changed during validation"
++            ) from error
++        if (
++            current_snapshot.get("artifact") != payload
++            or digest != expected_snapshot.get("artifact_raw_sha256")
++            or any(current_snapshot.get(key) != expected_snapshot.get(key) for key in (
++                "pool_sha256", "artifact_raw_sha256", "manifest_raw_sha256",
++                "receipt_raw_sha256", "physical_source_root", "artifact_relative",
++                "manifest_relative", "receipt_relative",
++            ))
++        ):
++            raise _v4_global(_v4_scope, 'RunnerError')(
++                "HK D1 physical trio identity changed during validation"
++            )
+     return path, digest
+ 
+ 

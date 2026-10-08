@@ -1,0 +1,145 @@
+F................F.                                                      [100%]
+=================================== FAILURES ===================================
+_ test_real_calendar_prefers_verified_exact_target_pool_as_research_observation _
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/harness_agent/logs/original_baseline/canonical-tmp/test_real_calendar_prefers_ver0')
+
+    def test_real_calendar_prefers_verified_exact_target_pool_as_research_observation(
+        tmp_path: Path,
+    ) -> None:
+        target_date = "20261007"
+        target_signal_date = "20261006"
+        eligibility_source_date = "20260930"
+        states = resolve_market_states(target_date)
+        assert states["hk_securities"] is TradingDayState.FULL_TRADING_DAY
+        assert states["hk_connect"] is TradingDayState.NON_TRADING_DAY
+    
+        primary = tmp_path / "v4-primary"
+        source = tmp_path / "v35-source"
+        primary.mkdir()
+        store = PreselectionPoolStore(source)
+        prior_payload = _hk_d1_pool(eligibility_source_date, "20260929")
+        target_codes = tuple(f"HK.{20_000 + rank:05d}" for rank in range(1, 101))
+        target_payload = _split_date_d1_pool(
+            target_date, target_signal_date, eligibility_source_date
+        )
+        target_payload["rows"] = [
+            {
+                **row,
+                "code": code,
+                "symbol": code,
+                "market": "HK",
+                "pool_id": "hkconnect_d1_top100",
+                "target_date": target_date,
+                "trade_date": target_date,
+                "signal_date": target_signal_date,
+            }
+            for row, code in zip(target_payload["rows"], target_codes, strict=True)
+        ]
+        store.materialize(prior_payload)
+>       store.materialize(target_payload)
+
+tests/test_hk_prior_observation_source_binding.py:182: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+owners/canonical/infrastructure/preselection_pool_store.py:553: in materialize
+    trade_date = validate_pool_artifact(payload)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+owners/canonical/infrastructure/preselection_pool_store.py:1202: in validate_pool_artifact
+    _validate_historical_pool_provenance(payload)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+payload = {'schema_version': 'v3_5.preselection_pool.v1', 'trade_date': '20261007', 'target_date': '20261007', 'signal_date': '20261006', ...}
+
+    def _validate_historical_pool_provenance(payload: Mapping[str, Any]) -> None:
+        for field in ("source_manifest_sha256", "source_receipt_sha256"):
+            if field in payload:
+                _validate_sha256_value(payload[field], field)
+    
+        if "historical_provenance" not in payload:
+            return
+        provenance = payload["historical_provenance"]
+        if not isinstance(provenance, Mapping):
+            raise ValueError("invalid historical pool provenance")
+        schema_version = provenance.get("schema_version")
+        if not isinstance(schema_version, str):
+            raise ValueError("unsupported historical pool provenance schema")
+        allowed_fields = _HISTORICAL_PROVENANCE_FIELDS.get(schema_version)
+        if allowed_fields is None:
+            raise ValueError("unsupported historical pool provenance schema")
+        missing = allowed_fields - set(provenance)
+        unknown = set(provenance) - allowed_fields
+        if missing:
+>           raise ValueError("missing historical pool provenance fields")
+E           ValueError: missing historical pool provenance fields
+
+owners/canonical/infrastructure/preselection_pool_store.py:320: ValueError
+____ test_split_date_provenance_captured_after_eligibility_date_is_rejected ____
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/harness_agent/logs/original_baseline/canonical-tmp/test_split_date_provenance_cap0')
+
+    def test_split_date_provenance_captured_after_eligibility_date_is_rejected(
+        tmp_path: Path,
+    ) -> None:
+        primary = tmp_path / "v4-primary"
+        secondary = tmp_path / "v35-source"
+        primary.mkdir()
+        payload = _hk_d1_pool("20260506", "20260505")
+        payload.update(
+            {
+                "source_run_id": "d1-source-run",
+                "source_manifest_sha256": "a" * 64,
+                "source_receipt_sha256": "b" * 64,
+                "historical_provenance": {
+                    "schema_version": "v4.hk_d1_split_date_provenance.v1",
+                    "price_signal_date": "20260505",
+                    "eligibility_source_date": "20260430",
+                    "eligibility_source_run_id": "eligibility-run",
+                    "eligibility_source_captured_at": "2026-05-01T09:30:00+08:00",
+                    "eligibility_source_artifact_sha256": "c" * 64,
+                    "d1_source_run_id": "d1-source-run",
+                    "d1_source_artifact_sha256": payload["source_sha256"],
+                    "d1_source_manifest_sha256": "a" * 64,
+                    "d1_source_receipt_sha256": "b" * 64,
+                },
+            }
+        )
+>       PreselectionPoolStore(secondary).materialize(payload)
+
+tests/test_hk_prior_observation_source_binding.py:558: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+owners/canonical/infrastructure/preselection_pool_store.py:553: in materialize
+    trade_date = validate_pool_artifact(payload)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+owners/canonical/infrastructure/preselection_pool_store.py:1202: in validate_pool_artifact
+    _validate_historical_pool_provenance(payload)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+payload = {'schema_version': 'v3_5.preselection_pool.v1', 'trade_date': '20260506', 'target_date': '20260506', 'signal_date': '20260505', ...}
+
+    def _validate_historical_pool_provenance(payload: Mapping[str, Any]) -> None:
+        for field in ("source_manifest_sha256", "source_receipt_sha256"):
+            if field in payload:
+                _validate_sha256_value(payload[field], field)
+    
+        if "historical_provenance" not in payload:
+            return
+        provenance = payload["historical_provenance"]
+        if not isinstance(provenance, Mapping):
+            raise ValueError("invalid historical pool provenance")
+        schema_version = provenance.get("schema_version")
+        if not isinstance(schema_version, str):
+            raise ValueError("unsupported historical pool provenance schema")
+        allowed_fields = _HISTORICAL_PROVENANCE_FIELDS.get(schema_version)
+        if allowed_fields is None:
+            raise ValueError("unsupported historical pool provenance schema")
+        missing = allowed_fields - set(provenance)
+        unknown = set(provenance) - allowed_fields
+        if missing:
+>           raise ValueError("missing historical pool provenance fields")
+E           ValueError: missing historical pool provenance fields
+
+owners/canonical/infrastructure/preselection_pool_store.py:320: ValueError
+=========================== short test summary info ============================
+FAILED tests/test_hk_prior_observation_source_binding.py::test_real_calendar_prefers_verified_exact_target_pool_as_research_observation
+FAILED tests/test_hk_prior_observation_source_binding.py::test_split_date_provenance_captured_after_eligibility_date_is_rejected
+2 failed, 17 passed in 0.56s

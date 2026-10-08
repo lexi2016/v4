@@ -1,0 +1,112 @@
+{
+  "scope": "READ_ONLY_REVIEW_OF_SUPPLIED_BEFORE_AFTER_EVIDENCE_NOT_AN_INDEPENDENT_RERUN",
+  "owner_specific_failure_executions": 9,
+  "results": [
+    {
+      "owner": "actual_stage_owner",
+      "independently_executed": false,
+      "assessment": "AUTHOR_BASELINE_AND_AFTER_LOGS_AND_JUNIT_REVIEWED_UNCHANGED",
+      "before": {
+        "cases": 19,
+        "passed": 12,
+        "failures": [
+          "test_real_calendar_prefers_verified_exact_target_pool_as_research_observation",
+          "test_missing_exact_target_pool_keeps_prior_connect_observation_fallback",
+          "test_target_pool_committed_after_absence_probe_cannot_return_prior_fallback",
+          "test_corrupt_existing_exact_target_receipt_fails_closed_without_prior_fallback",
+          "test_pending_exact_target_pool_commit_fails_closed_without_prior_fallback",
+          "test_wrong_identity_on_existing_exact_target_pool_fails_closed[target_date-20261006]",
+          "test_wrong_identity_on_existing_exact_target_pool_fails_closed[market-A]"
+        ],
+        "errors": [],
+        "skipped": []
+      },
+      "after": {
+        "cases": 19,
+        "passed": 12,
+        "failures": [
+          "test_real_calendar_prefers_verified_exact_target_pool_as_research_observation",
+          "test_missing_exact_target_pool_keeps_prior_connect_observation_fallback",
+          "test_target_pool_committed_after_absence_probe_cannot_return_prior_fallback",
+          "test_corrupt_existing_exact_target_receipt_fails_closed_without_prior_fallback",
+          "test_pending_exact_target_pool_commit_fails_closed_without_prior_fallback",
+          "test_wrong_identity_on_existing_exact_target_pool_fails_closed[target_date-20261006]",
+          "test_wrong_identity_on_existing_exact_target_pool_fails_closed[market-A]"
+        ],
+        "errors": [],
+        "skipped": []
+      },
+      "failure_scope": "Separate divergent Connect-closed/prior-observation behavior; not fixed or waived.",
+      "evidence": [
+        {
+          "path": "harness_agent/logs/original_baseline/actual_stage_owner.xml",
+          "sha256": "87aaa3cf566efc61be20233c47bcb5dd739f94ba32f2821abe119971c813fcaf",
+          "bytes": 16663
+        },
+        {
+          "path": "test_run/logs/green/actual_stage_owner_original.xml",
+          "sha256": "33ee9b1ac5d8210d1e2881b80ff588885f39b7494080e27439abf1b68d508dd5",
+          "bytes": 16607
+        },
+        {
+          "path": "harness_agent/logs/original_baseline/actual_stage_owner.log",
+          "sha256": "f36efbe4abca820e05bdacd11d36404795a7c9a0a9e988c5f41a5eb84d50d592",
+          "bytes": 13583
+        },
+        {
+          "path": "test_run/logs/green/actual_stage_owner_original.log",
+          "sha256": "2c9e553e4e0ee0b22fb1334f963c47252697050f3c449d25a7586d10ba475ed5",
+          "bytes": 13527
+        }
+      ]
+    },
+    {
+      "owner": "canonical",
+      "independently_executed": false,
+      "assessment": "AUTHOR_BASELINE_AND_AFTER_LOGS_AND_JUNIT_REVIEWED_UNCHANGED",
+      "before": {
+        "cases": 19,
+        "passed": 17,
+        "failures": [
+          "test_real_calendar_prefers_verified_exact_target_pool_as_research_observation",
+          "test_split_date_provenance_captured_after_eligibility_date_is_rejected"
+        ],
+        "errors": [],
+        "skipped": []
+      },
+      "after": {
+        "cases": 19,
+        "passed": 17,
+        "failures": [
+          "test_real_calendar_prefers_verified_exact_target_pool_as_research_observation",
+          "test_split_date_provenance_captured_after_eligibility_date_is_rejected"
+        ],
+        "errors": [],
+        "skipped": []
+      },
+      "failure_scope": "Original split fixture lacks d1_source_artifact_relative; fails materialization before Stage capture validation.",
+      "evidence": [
+        {
+          "path": "harness_agent/logs/original_baseline/canonical.xml",
+          "sha256": "407b43fa32b3e91e1d30f27448a9a1fb8b5824a9529276670d18d5d07953968e",
+          "bytes": 10439
+        },
+        {
+          "path": "test_run/logs/green/canonical_original.xml",
+          "sha256": "35128fd8ae03d436e5d373e58ee4dbda166cea22f5288fb51b545ab2eb42625b",
+          "bytes": 10423
+        },
+        {
+          "path": "harness_agent/logs/original_baseline/canonical.log",
+          "sha256": "cff5d04a04648c931ef7481dab281720ac91bf73564cc2da8b0c9a413a80c149",
+          "bytes": 7527
+        },
+        {
+          "path": "test_run/logs/green/canonical_original.log",
+          "sha256": "30528502ad3fc0f6d23e6e252aba85ef98e47da19eeb21780911a283bacb20e5",
+          "bytes": 7511
+        }
+      ]
+    }
+  ]
+}

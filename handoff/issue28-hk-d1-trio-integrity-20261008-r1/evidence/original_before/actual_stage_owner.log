@@ -1,0 +1,271 @@
+FFFFFFF............                                                      [100%]
+=================================== FAILURES ===================================
+_ test_real_calendar_prefers_verified_exact_target_pool_as_research_observation _
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/harness_agent/logs/original_baseline/actual_stage_owner-tmp/test_real_calendar_prefers_ver0')
+
+    def test_real_calendar_prefers_verified_exact_target_pool_as_research_observation(
+        tmp_path: Path,
+    ) -> None:
+        target_date = "20261007"
+        target_signal_date = "20261006"
+        eligibility_source_date = "20260930"
+        states = resolve_market_states(target_date)
+        assert states["hk_securities"] is TradingDayState.FULL_TRADING_DAY
+        assert states["hk_connect"] is TradingDayState.NON_TRADING_DAY
+    
+        primary = tmp_path / "v4-primary"
+        source = tmp_path / "v35-source"
+        primary.mkdir()
+        store = PreselectionPoolStore(source)
+        prior_payload = _hk_d1_pool(eligibility_source_date, "20260929")
+        target_codes = tuple(f"HK.{20_000 + rank:05d}" for rank in range(1, 101))
+        target_payload = _split_date_d1_pool(
+            target_date, target_signal_date, eligibility_source_date
+        )
+        target_payload["rows"] = [
+            {
+                **row,
+                "code": code,
+                "symbol": code,
+                "market": "HK",
+                "pool_id": "hkconnect_d1_top100",
+                "target_date": target_date,
+                "trade_date": target_date,
+                "signal_date": target_signal_date,
+            }
+            for row, code in zip(target_payload["rows"], target_codes, strict=True)
+        ]
+        store.materialize(prior_payload)
+        store.materialize(target_payload)
+        _write_released_materializer_lock(source)
+        target_snapshot = store.read_pool_snapshot(target_date, "hkconnect_d1_top100")
+    
+        binding = _build_hk_stage_binding(
+            primary,
+            target_date,
+            preselection_source_root=source,
+        )
+    
+>       assert binding.role == "HK_CONNECT_D1_TOP100"
+E       AssertionError: assert 'HK_CONNECT_D...D_OBSERVATION' == 'HK_CONNECT_D1_TOP100'
+E         
+E         - HK_CONNECT_D1_TOP100
+E         + HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION
+
+tests/test_hk_prior_observation_source_binding.py:192: AssertionError
+___ test_missing_exact_target_pool_keeps_prior_connect_observation_fallback ____
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/harness_agent/logs/original_baseline/actual_stage_owner-tmp/test_missing_exact_target_pool0')
+
+    def test_missing_exact_target_pool_keeps_prior_connect_observation_fallback(
+        tmp_path: Path,
+    ) -> None:
+        target_date = "20261007"
+        eligibility_source_date = "20260930"
+        states = resolve_market_states(target_date)
+        assert states["hk_securities"] is TradingDayState.FULL_TRADING_DAY
+        assert states["hk_connect"] is TradingDayState.NON_TRADING_DAY
+    
+        primary = tmp_path / "v4-primary"
+        source = tmp_path / "v35-source"
+        primary.mkdir()
+        store = PreselectionPoolStore(source)
+        prior = _hk_d1_pool(eligibility_source_date, "20260929")
+        store.materialize(prior)
+        _write_released_materializer_lock(source)
+        prior_snapshot = store.read_pool_snapshot(
+            eligibility_source_date, "hkconnect_d1_top100"
+        )
+    
+        binding = _build_hk_stage_binding(
+            primary,
+            target_date,
+            preselection_source_root=source,
+        )
+    
+        assert binding.role == "HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION"
+        assert binding.sha256 == prior_snapshot["artifact_raw_sha256"]
+        assert f"hk_d1_source_trade_date={eligibility_source_date}" in binding.evidence
+>       assert "hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK" in binding.evidence
+E       AssertionError: assert 'hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK' in ('hk_d1_json=/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/harness_agent/logs/original_baseline/a...l_date=20260929', 'hk_d1_source_manifest_sha256=45d48bc081c13c2a3528de6b4fd8d5e82667eea6e3d582f860bea026820fd3eb', ...)
+E        +  where ('hk_d1_json=/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/harness_agent/logs/original_baseline/a...l_date=20260929', 'hk_d1_source_manifest_sha256=45d48bc081c13c2a3528de6b4fd8d5e82667eea6e3d582f860bea026820fd3eb', ...) = StageUniverseBinding(market='HK_CONNECT', trade_date='20261007', role='HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION...ion_price_signal_date=20261006', 'hk_observation_mode=HK_SECURITIES_OPEN_HK_CONNECT_CLOSED'), status='READY', error='').evidence
+
+tests/test_hk_prior_observation_source_binding.py:234: AssertionError
+_ test_target_pool_committed_after_absence_probe_cannot_return_prior_fallback __
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/harness_agent/logs/original_baseline/actual_stage_owner-tmp/test_target_pool_committed_aft0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f3f5d0d3100>
+
+    def test_target_pool_committed_after_absence_probe_cannot_return_prior_fallback(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        target_date = "20261007"
+        eligibility_source_date = "20260930"
+        primary = tmp_path / "v4-primary"
+        source = tmp_path / "v35-source"
+        primary.mkdir()
+        prior_store = PreselectionPoolStore(source)
+        prior_store.materialize(_hk_d1_pool(eligibility_source_date, "20260929"))
+        _write_released_materializer_lock(source)
+        target_store = PreselectionPoolStore(primary)
+        target_payload = _hk_d1_pool(target_date, "20261006")
+    
+        original_read_bytes = SafeRoot.read_bytes
+        committed = False
+        manifest_relative = f"preselection_pools/{target_date}/manifest.json"
+    
+        def commit_after_missing_manifest(self, relative: str, *args, **kwargs):
+            nonlocal committed
+            try:
+                return original_read_bytes(self, relative, *args, **kwargs)
+            except FileNotFoundError:
+                if (
+                    not committed
+                    and self.root == primary
+                    and relative == manifest_relative
+                ):
+                    committed = True
+                    target_store.materialize(target_payload)
+                raise
+    
+        monkeypatch.setattr(SafeRoot, "read_bytes", commit_after_missing_manifest)
+    
+>       with pytest.raises(RunnerError, match="target pool appeared during prior fallback"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE RunnerError
+
+tests/test_hk_prior_observation_source_binding.py:273: Failed
+_ test_corrupt_existing_exact_target_receipt_fails_closed_without_prior_fallback _
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/harness_agent/logs/original_baseline/actual_stage_owner-tmp/test_corrupt_existing_exact_ta0')
+
+    def test_corrupt_existing_exact_target_receipt_fails_closed_without_prior_fallback(
+        tmp_path: Path,
+    ) -> None:
+        target_date = "20261007"
+        eligibility_source_date = "20260930"
+        primary = tmp_path / "v4-primary"
+        source = tmp_path / "v35-source"
+        primary.mkdir()
+        store = PreselectionPoolStore(source)
+        store.materialize(_hk_d1_pool(eligibility_source_date, "20260929"))
+        store.materialize(_hk_d1_pool(target_date, "20261006"))
+        _write_released_materializer_lock(source)
+    
+        _, receipt_relative = store._relative(target_date, "hkconnect_d1_top100")
+        receipt_path = source / receipt_relative
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        receipt["artifact_sha256"] = "0" * 64
+        receipt_path.write_text(
+            json.dumps(receipt, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
+            encoding="utf-8",
+        )
+    
+>       with pytest.raises(RunnerError, match="exact target.*CANNOT_CONFIRM"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE RunnerError
+
+tests/test_hk_prior_observation_source_binding.py:308: Failed
+__ test_pending_exact_target_pool_commit_fails_closed_without_prior_fallback ___
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/harness_agent/logs/original_baseline/actual_stage_owner-tmp/test_pending_exact_target_pool0')
+
+    def test_pending_exact_target_pool_commit_fails_closed_without_prior_fallback(
+        tmp_path: Path,
+    ) -> None:
+        target_date = "20261007"
+        eligibility_source_date = "20260930"
+        primary = tmp_path / "v4-primary"
+        source = tmp_path / "v35-source"
+        primary.mkdir()
+        store = PreselectionPoolStore(source)
+        store.materialize(_hk_d1_pool(eligibility_source_date, "20260929"))
+        store.materialize(_hk_d1_pool(target_date, "20261006"))
+        _write_released_materializer_lock(source)
+        pending = (
+            source
+            / "preselection_pending_commits"
+            / target_date
+            / "hkconnect_d1_top100.json"
+        )
+        pending.parent.mkdir(parents=True, exist_ok=True)
+        pending.write_text("{}", encoding="utf-8")
+    
+>       with pytest.raises(RunnerError, match="exact target.*CANNOT_CONFIRM"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE RunnerError
+
+tests/test_hk_prior_observation_source_binding.py:337: Failed
+_ test_wrong_identity_on_existing_exact_target_pool_fails_closed[target_date-20261006] _
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/harness_agent/logs/original_baseline/actual_stage_owner-tmp/test_wrong_identity_on_existin0')
+field = 'target_date', value = '20261006'
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        (("target_date", "20261006"), ("market", "A")),
+    )
+    def test_wrong_identity_on_existing_exact_target_pool_fails_closed(
+        tmp_path: Path,
+        field: str,
+        value: str,
+    ) -> None:
+        target_date = "20261007"
+        primary = tmp_path / "v4-primary"
+        source = tmp_path / "v35-source"
+        primary.mkdir()
+        store = PreselectionPoolStore(source)
+        store.materialize(_hk_d1_pool("20260930", "20260929"))
+        target = _hk_d1_pool(target_date, "20261006")
+        store.materialize(target)
+        target[field] = value
+        _rewrite_pool_trio(store, target_date, "hkconnect_d1_top100", target)
+        _write_released_materializer_lock(source)
+    
+>       with pytest.raises(RunnerError, match="exact target.*CANNOT_CONFIRM"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE RunnerError
+
+tests/test_hk_prior_observation_source_binding.py:366: Failed
+___ test_wrong_identity_on_existing_exact_target_pool_fails_closed[market-A] ___
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/harness_agent/logs/original_baseline/actual_stage_owner-tmp/test_wrong_identity_on_existin1')
+field = 'market', value = 'A'
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        (("target_date", "20261006"), ("market", "A")),
+    )
+    def test_wrong_identity_on_existing_exact_target_pool_fails_closed(
+        tmp_path: Path,
+        field: str,
+        value: str,
+    ) -> None:
+        target_date = "20261007"
+        primary = tmp_path / "v4-primary"
+        source = tmp_path / "v35-source"
+        primary.mkdir()
+        store = PreselectionPoolStore(source)
+        store.materialize(_hk_d1_pool("20260930", "20260929"))
+        target = _hk_d1_pool(target_date, "20261006")
+        store.materialize(target)
+        target[field] = value
+        _rewrite_pool_trio(store, target_date, "hkconnect_d1_top100", target)
+        _write_released_materializer_lock(source)
+    
+>       with pytest.raises(RunnerError, match="exact target.*CANNOT_CONFIRM"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE RunnerError
+
+tests/test_hk_prior_observation_source_binding.py:366: Failed
+=========================== short test summary info ============================
+FAILED tests/test_hk_prior_observation_source_binding.py::test_real_calendar_prefers_verified_exact_target_pool_as_research_observation
+FAILED tests/test_hk_prior_observation_source_binding.py::test_missing_exact_target_pool_keeps_prior_connect_observation_fallback
+FAILED tests/test_hk_prior_observation_source_binding.py::test_target_pool_committed_after_absence_probe_cannot_return_prior_fallback
+FAILED tests/test_hk_prior_observation_source_binding.py::test_corrupt_existing_exact_target_receipt_fails_closed_without_prior_fallback
+FAILED tests/test_hk_prior_observation_source_binding.py::test_pending_exact_target_pool_commit_fails_closed_without_prior_fallback
+FAILED tests/test_hk_prior_observation_source_binding.py::test_wrong_identity_on_existing_exact_target_pool_fails_closed[target_date-20261006]
+FAILED tests/test_hk_prior_observation_source_binding.py::test_wrong_identity_on_existing_exact_target_pool_fails_closed[market-A]
+7 failed, 12 passed in 0.77s

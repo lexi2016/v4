@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="2" time="0.150" timestamp="2026-10-08T03:58:44.015038-07:00" hostname="5fa05583d26b"><testcase classname="tests.test_root_identity_probe" name="test_replaced_root_with_identical_trio_is_rejected[False]" time="0.024"><failure message="Failed: DID NOT RAISE RunnerError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/work/before-actual_stage_owner/reviewer-tmp/test_replaced_root_with_identi0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7fb15cc35480&gt;
+secondary = False
+
+    @pytest.mark.parametrize("secondary", [False, True])
+    def test_replaced_root_with_identical_trio_is_rejected(tmp_path, monkeypatch, secondary):
+        primary, source, store = _install(tmp_path, _valid_split_pool(), secondary)
+        snapshot = store.read_pool_snapshot(TARGET, POOL)
+        artifact_path = source / snapshot["artifact_relative"]
+        before_bytes = {
+            key: (source / snapshot[key]).read_bytes()
+            for key in ("artifact_relative", "manifest_relative", "receipt_relative")
+        }
+        old_inode = source.stat().st_ino
+        original_sha = runner._sha
+        replaced = False
+    
+        def replace_root_after_digest(path):
+            nonlocal replaced
+            digest = original_sha(path)
+            if Path(path) == artifact_path and not replaced:
+                replaced = True
+                parked = source.with_name(source.name + "-original-inode")
+                source.rename(parked)
+                shutil.copytree(parked, source)
+                assert source.stat().st_ino != old_inode
+                assert all((source / snapshot[key]).read_bytes() == raw
+                           for key, raw in before_bytes.items())
+            return digest
+    
+        monkeypatch.setattr(runner, "_sha", replace_root_after_digest)
+&gt;       with pytest.raises(runner.RunnerError, match="snapshot|trio|identity changed"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE RunnerError
+
+tests/test_root_identity_probe.py:43: Failed</failure></testcase><testcase classname="tests.test_root_identity_probe" name="test_replaced_root_with_identical_trio_is_rejected[True]" time="0.023"><failure message="Failed: DID NOT RAISE RunnerError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/work/before-actual_stage_owner/reviewer-tmp/test_replaced_root_with_identi1')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7fb15cc35220&gt;
+secondary = True
+
+    @pytest.mark.parametrize("secondary", [False, True])
+    def test_replaced_root_with_identical_trio_is_rejected(tmp_path, monkeypatch, secondary):
+        primary, source, store = _install(tmp_path, _valid_split_pool(), secondary)
+        snapshot = store.read_pool_snapshot(TARGET, POOL)
+        artifact_path = source / snapshot["artifact_relative"]
+        before_bytes = {
+            key: (source / snapshot[key]).read_bytes()
+            for key in ("artifact_relative", "manifest_relative", "receipt_relative")
+        }
+        old_inode = source.stat().st_ino
+        original_sha = runner._sha
+        replaced = False
+    
+        def replace_root_after_digest(path):
+            nonlocal replaced
+            digest = original_sha(path)
+            if Path(path) == artifact_path and not replaced:
+                replaced = True
+                parked = source.with_name(source.name + "-original-inode")
+                source.rename(parked)
+                shutil.copytree(parked, source)
+                assert source.stat().st_ino != old_inode
+                assert all((source / snapshot[key]).read_bytes() == raw
+                           for key, raw in before_bytes.items())
+            return digest
+    
+        monkeypatch.setattr(runner, "_sha", replace_root_after_digest)
+&gt;       with pytest.raises(runner.RunnerError, match="snapshot|trio|identity changed"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE RunnerError
+
+tests/test_root_identity_probe.py:43: Failed</failure></testcase></testsuite></testsuites>

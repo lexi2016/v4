@@ -1,0 +1,23 @@
+--- active API source app.py:5047-5057 ---
+5045:         return response
+5046: 
+5047:     @app.get("/api/v3/workbench/stage")
+5048:     def stage_workbench(
+5049:         date: str | None = None,
+5050:         stage: str = "STAGE_0940_0945",
+5051:         limit: int = Query(default=10, ge=1, le=50),
+5052:         market: str | None = None,
+5053:         backfill_run_id: str | None = None,
+5054:     ) -> dict:
+5055:         selected = _strict_date(date) if date is not None else _catalog()["default_date"]
+5056:         if not selected:
+5057:             selected = _catalog()["system_date"]
+--- active API source app.py:5227-5234 ---
+5227:             payload = shared_selection_consumer.get(
+5228:                 selected, stage, allow_backfill=True
+5229:             )
+5230:             payload = _quarantine_known_hk_auction_pool_mismatch(
+5231:                 payload, selected, stage
+5232:             )
+5233:             r8_override = _read_r8_exact_target_hk_override(
+5234:                 payload, selected, stage, limit

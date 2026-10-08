@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="4" skipped="0" tests="13" time="0.426" timestamp="2026-10-08T03:53:49.609265-07:00" hostname="5fa05583d26b"><testcase classname="tests.test_hk_split_date_identity_closure" name="test_reported_shape_missing_provenance_is_a_failure_not_zero_selection" time="0.035" /><testcase classname="tests.test_hk_split_date_identity_closure" name="test_complete_provenance_does_not_relabel_stale_price_rows" time="0.027" /><testcase classname="tests.test_hk_split_date_identity_closure" name="test_physical_trio_cannot_supply_missing_upstream_identity[source_manifest_sha256]" time="0.015" /><testcase classname="tests.test_hk_split_date_identity_closure" name="test_physical_trio_cannot_supply_missing_upstream_identity[source_receipt_sha256]" time="0.016" /><testcase classname="tests.test_hk_split_date_identity_closure" name="test_capture_time_must_be_existing_valid_eligibility_day_evidence[2026-10-01T00:00:00+08:00]" time="0.021" /><testcase classname="tests.test_hk_split_date_identity_closure" name="test_capture_time_must_be_existing_valid_eligibility_day_evidence[2026-09-30T17:20:08]" time="0.012" /><testcase classname="tests.test_hk_split_date_identity_closure" name="test_capture_time_must_be_existing_valid_eligibility_day_evidence[]" time="0.011" /><testcase classname="tests.test_hk_split_date_identity_closure" name="test_validation_rechecks_whole_physical_trio_at_return[manifest-False]" time="0.018"><failure message="Failed: DID NOT RAISE RunnerError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/test_run/logs/red/canonical-tmp/test_validation_rechecks_whole0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f02abd75350&gt;
+secondary = False, changed_part = 'manifest'
+
+    @pytest.mark.parametrize("secondary", [False, True])
+    @pytest.mark.parametrize("changed_part", ["manifest", "receipt"])
+    def test_validation_rechecks_whole_physical_trio_at_return(tmp_path, monkeypatch, secondary, changed_part):
+        payload = _valid_split_pool()
+        primary, source, store = _install(tmp_path, payload, secondary)
+        snapshot = store.read_pool_snapshot(TARGET, POOL)
+        artifact_path = source / snapshot["artifact_relative"]
+        changed_path = source / snapshot[f"{changed_part}_relative"]
+        original_sha = runner._sha
+        changed = False
+    
+        def change_other_trio_member_after_artifact_hash(path):
+            nonlocal changed
+            digest = original_sha(path)
+            if Path(path) == artifact_path and not changed:
+                changed = True
+                document = json.loads(changed_path.read_text())
+                if changed_part == "manifest":
+                    # Simulate an independently published pool altering the shared
+                    # date manifest while leaving the HK artifact bytes intact.
+                    document["a_d1_premarket_pool"] = hashlib.sha256(b"synthetic concurrent pool").hexdigest()
+                else:
+                    document["source_run_id"] = "synthetic-concurrent-receipt"
+                changed_path.write_text(json.dumps(document, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
+            return digest
+    
+        monkeypatch.setattr(runner, "_sha", change_other_trio_member_after_artifact_hash)
+&gt;       with pytest.raises(runner.RunnerError, match="snapshot|trio|identity changed"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE RunnerError
+
+tests/test_hk_split_date_identity_closure.py:148: Failed</failure></testcase><testcase classname="tests.test_hk_split_date_identity_closure" name="test_validation_rechecks_whole_physical_trio_at_return[manifest-True]" time="0.026"><failure message="Failed: DID NOT RAISE RunnerError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/test_run/logs/red/canonical-tmp/test_validation_rechecks_whole1')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f02abd77950&gt;
+secondary = True, changed_part = 'manifest'
+
+    @pytest.mark.parametrize("secondary", [False, True])
+    @pytest.mark.parametrize("changed_part", ["manifest", "receipt"])
+    def test_validation_rechecks_whole_physical_trio_at_return(tmp_path, monkeypatch, secondary, changed_part):
+        payload = _valid_split_pool()
+        primary, source, store = _install(tmp_path, payload, secondary)
+        snapshot = store.read_pool_snapshot(TARGET, POOL)
+        artifact_path = source / snapshot["artifact_relative"]
+        changed_path = source / snapshot[f"{changed_part}_relative"]
+        original_sha = runner._sha
+        changed = False
+    
+        def change_other_trio_member_after_artifact_hash(path):
+            nonlocal changed
+            digest = original_sha(path)
+            if Path(path) == artifact_path and not changed:
+                changed = True
+                document = json.loads(changed_path.read_text())
+                if changed_part == "manifest":
+                    # Simulate an independently published pool altering the shared
+                    # date manifest while leaving the HK artifact bytes intact.
+                    document["a_d1_premarket_pool"] = hashlib.sha256(b"synthetic concurrent pool").hexdigest()
+                else:
+                    document["source_run_id"] = "synthetic-concurrent-receipt"
+                changed_path.write_text(json.dumps(document, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
+            return digest
+    
+        monkeypatch.setattr(runner, "_sha", change_other_trio_member_after_artifact_hash)
+&gt;       with pytest.raises(runner.RunnerError, match="snapshot|trio|identity changed"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE RunnerError
+
+tests/test_hk_split_date_identity_closure.py:148: Failed</failure></testcase><testcase classname="tests.test_hk_split_date_identity_closure" name="test_validation_rechecks_whole_physical_trio_at_return[receipt-False]" time="0.016"><failure message="Failed: DID NOT RAISE RunnerError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/test_run/logs/red/canonical-tmp/test_validation_rechecks_whole2')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f02ab9b4b90&gt;
+secondary = False, changed_part = 'receipt'
+
+    @pytest.mark.parametrize("secondary", [False, True])
+    @pytest.mark.parametrize("changed_part", ["manifest", "receipt"])
+    def test_validation_rechecks_whole_physical_trio_at_return(tmp_path, monkeypatch, secondary, changed_part):
+        payload = _valid_split_pool()
+        primary, source, store = _install(tmp_path, payload, secondary)
+        snapshot = store.read_pool_snapshot(TARGET, POOL)
+        artifact_path = source / snapshot["artifact_relative"]
+        changed_path = source / snapshot[f"{changed_part}_relative"]
+        original_sha = runner._sha
+        changed = False
+    
+        def change_other_trio_member_after_artifact_hash(path):
+            nonlocal changed
+            digest = original_sha(path)
+            if Path(path) == artifact_path and not changed:
+                changed = True
+                document = json.loads(changed_path.read_text())
+                if changed_part == "manifest":
+                    # Simulate an independently published pool altering the shared
+                    # date manifest while leaving the HK artifact bytes intact.
+                    document["a_d1_premarket_pool"] = hashlib.sha256(b"synthetic concurrent pool").hexdigest()
+                else:
+                    document["source_run_id"] = "synthetic-concurrent-receipt"
+                changed_path.write_text(json.dumps(document, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
+            return digest
+    
+        monkeypatch.setattr(runner, "_sha", change_other_trio_member_after_artifact_hash)
+&gt;       with pytest.raises(runner.RunnerError, match="snapshot|trio|identity changed"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE RunnerError
+
+tests/test_hk_split_date_identity_closure.py:148: Failed</failure></testcase><testcase classname="tests.test_hk_split_date_identity_closure" name="test_validation_rechecks_whole_physical_trio_at_return[receipt-True]" time="0.024"><failure message="Failed: DID NOT RAISE RunnerError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/test_run/logs/red/canonical-tmp/test_validation_rechecks_whole3')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f02abd72cf0&gt;
+secondary = True, changed_part = 'receipt'
+
+    @pytest.mark.parametrize("secondary", [False, True])
+    @pytest.mark.parametrize("changed_part", ["manifest", "receipt"])
+    def test_validation_rechecks_whole_physical_trio_at_return(tmp_path, monkeypatch, secondary, changed_part):
+        payload = _valid_split_pool()
+        primary, source, store = _install(tmp_path, payload, secondary)
+        snapshot = store.read_pool_snapshot(TARGET, POOL)
+        artifact_path = source / snapshot["artifact_relative"]
+        changed_path = source / snapshot[f"{changed_part}_relative"]
+        original_sha = runner._sha
+        changed = False
+    
+        def change_other_trio_member_after_artifact_hash(path):
+            nonlocal changed
+            digest = original_sha(path)
+            if Path(path) == artifact_path and not changed:
+                changed = True
+                document = json.loads(changed_path.read_text())
+                if changed_part == "manifest":
+                    # Simulate an independently published pool altering the shared
+                    # date manifest while leaving the HK artifact bytes intact.
+                    document["a_d1_premarket_pool"] = hashlib.sha256(b"synthetic concurrent pool").hexdigest()
+                else:
+                    document["source_run_id"] = "synthetic-concurrent-receipt"
+                changed_path.write_text(json.dumps(document, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
+            return digest
+    
+        monkeypatch.setattr(runner, "_sha", change_other_trio_member_after_artifact_hash)
+&gt;       with pytest.raises(runner.RunnerError, match="snapshot|trio|identity changed"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE RunnerError
+
+tests/test_hk_split_date_identity_closure.py:148: Failed</failure></testcase><testcase classname="tests.test_hk_split_date_identity_closure" name="test_valid_split_date_binding_preserves_source_identity_without_substitution[False]" time="0.025" /><testcase classname="tests.test_hk_split_date_identity_closure" name="test_valid_split_date_binding_preserves_source_identity_without_substitution[True]" time="0.041" /></testsuite></testsuites>

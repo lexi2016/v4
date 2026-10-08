@@ -1,0 +1,59 @@
+{
+  "phase": "RED_UNMODIFIED_BASELINE",
+  "results": [
+    {
+      "owner": "actual_stage_owner",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "-p",
+        "no:cacheprovider",
+        "--basetemp=/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/test_run/logs/red/actual_stage_owner-tmp",
+        "--junitxml=/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/test_run/logs/red/actual_stage_owner.xml",
+        "tests/test_hk_split_date_identity_closure.py"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/test_run",
+      "exit_code": 1,
+      "cases": 13,
+      "passed": 9,
+      "failures": [
+        "test_validation_rechecks_whole_physical_trio_at_return[manifest-False]",
+        "test_validation_rechecks_whole_physical_trio_at_return[manifest-True]",
+        "test_validation_rechecks_whole_physical_trio_at_return[receipt-False]",
+        "test_validation_rechecks_whole_physical_trio_at_return[receipt-True]"
+      ],
+      "errors": []
+    },
+    {
+      "owner": "canonical",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "-p",
+        "no:cacheprovider",
+        "--basetemp=/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/test_run/logs/red/canonical-tmp",
+        "--junitxml=/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/test_run/logs/red/canonical.xml",
+        "tests/test_hk_split_date_identity_closure.py"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/test_run",
+      "exit_code": 1,
+      "cases": 13,
+      "passed": 9,
+      "failures": [
+        "test_validation_rechecks_whole_physical_trio_at_return[manifest-False]",
+        "test_validation_rechecks_whole_physical_trio_at_return[manifest-True]",
+        "test_validation_rechecks_whole_physical_trio_at_return[receipt-False]",
+        "test_validation_rechecks_whole_physical_trio_at_return[receipt-True]"
+      ],
+      "errors": []
+    }
+  ]
+}

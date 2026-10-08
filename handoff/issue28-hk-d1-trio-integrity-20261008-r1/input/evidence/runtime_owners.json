@@ -1,0 +1,35 @@
+{
+  "api_owner": {
+    "entrypoint": "apps/api/v35_api/run.py",
+    "launchd_label": "com.lexi.v35.api-only",
+    "launchd_state": "running",
+    "listener": "127.0.0.1:8873",
+    "pid_at_readback": 21204,
+    "pid_change_cause": "CANNOT_CONFIRM",
+    "previously_reported_pid": 1297,
+    "role_for_requested_GET": "read shared Stage selection; not the Stage producer",
+    "working_directory": "~/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r3-api/app"
+  },
+  "boundary": "API owner and Stage owner are separate launchd jobs and source trees. The receipt proves the Stage runner; the API GET is a readback only.",
+  "observed_date": "2026-10-08",
+  "stage_owner": {
+    "candidate_acquisition_root": "~/Library/Application Support/com.lexi.v4.local/state/data",
+    "config_path": "~/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center_tick_config.json",
+    "entrypoint": "ops/run_stage_center_nodes.py",
+    "hk_d1_root": "~/Library/Application Support/com.lexi.v4.local/state/data",
+    "last_exit_code": 3,
+    "launchd_label": "com.lexi.stage-center.scheduler",
+    "launchd_state": "not running",
+    "preselection_source_root": "~/Library/Application Support/com.lexi.v35.local/state/data",
+    "raw_root": "~/Library/Application Support/com.lexi.v4.local/state/stage/raw",
+    "receipt_root": "~/Library/Application Support/com.lexi.v4.local/state/stage/receipts",
+    "release_id": "20261003-hk-binding-wrapper-r3",
+    "selection_root": "~/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+    "trading_safety": {
+      "buy_gate_updated": false,
+      "orders_sent": false,
+      "production_allowed": false
+    },
+    "working_directory": "~/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app"
+  }
+}

@@ -1,0 +1,27 @@
+[
+  {
+    "owner": "actual_stage_owner",
+    "before_passed": 12,
+    "after_passed": 12,
+    "unchanged_failure_cases": [
+      "test_real_calendar_prefers_verified_exact_target_pool_as_research_observation",
+      "test_missing_exact_target_pool_keeps_prior_connect_observation_fallback",
+      "test_target_pool_committed_after_absence_probe_cannot_return_prior_fallback",
+      "test_corrupt_existing_exact_target_receipt_fails_closed_without_prior_fallback",
+      "test_pending_exact_target_pool_commit_fails_closed_without_prior_fallback",
+      "test_wrong_identity_on_existing_exact_target_pool_fails_closed[target_date-20261006]",
+      "test_wrong_identity_on_existing_exact_target_pool_fails_closed[market-A]"
+    ],
+    "new_regressions": 0
+  },
+  {
+    "owner": "canonical",
+    "before_passed": 17,
+    "after_passed": 17,
+    "unchanged_failure_cases": [
+      "test_real_calendar_prefers_verified_exact_target_pool_as_research_observation",
+      "test_split_date_provenance_captured_after_eligibility_date_is_rejected"
+    ],
+    "new_regressions": 0
+  }
+]

@@ -1,0 +1,45 @@
+{
+  "schema_version": "issue28.hk_integrity_delivery_status.v1",
+  "baseline_commit": "30ad7bb633f715f30c4e10eb67e9041de92cf036",
+  "target": {
+    "trade_date": "20261008",
+    "stage_id": "STAGE_0930_0935",
+    "market": "HK_CONNECT"
+  },
+  "candidate_implemented": true,
+  "source_integrity_targeted_tests": "PASS_BOTH_OWNER_SLICES_15_OF_15",
+  "independent_review": "TARGETED_SOURCE_INTEGRITY_PASS_WITH_KNOWN_BASELINE_AND_DEPLOYMENT_GAPS",
+  "original_suite": {
+    "actual_stage_owner": {
+      "passed": 12,
+      "failed": 7
+    },
+    "canonical": {
+      "passed": 17,
+      "failed": 2
+    },
+    "regression_comparison": "UNCHANGED"
+  },
+  "owner_adaptation": "SOURCE_SLICE_ONLY",
+  "canonical_integration": "NOT_RUN",
+  "actual_stage_integration": "NOT_RUN",
+  "mac_full_runtime": "NOT_RUN",
+  "deployed": "NOT_RUN",
+  "api_acceptance": "NOT_RUN",
+  "ui_acceptance": "NOT_RUN",
+  "natural_acceptance": "NOT_RUN",
+  "historical_slot_recovery": "NOT_RUN",
+  "business_source_reconstruction": "NOT_RUN",
+  "current_incident": "CANNOT_CONFIRM",
+  "blocking_input_evidence": [
+    "historical_provenance missing",
+    "upstream source manifest/receipt identities missing",
+    "reported 100 row signal dates 20260930; calendar requires 20261007",
+    "original eligibility artifact/run/capture chain not established"
+  ],
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "prior_two_historical_p2": "USER_REPORTED_MAC_38_OF_38_AND_CANONICAL_INTEGRATED_RETAINED_SEPARATELY",
+  "nested_historical_p2": "DEFERRED_UNRESOLVED"
+}

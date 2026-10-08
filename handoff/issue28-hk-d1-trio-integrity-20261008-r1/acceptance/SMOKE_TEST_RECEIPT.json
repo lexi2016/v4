@@ -1,0 +1,22 @@
+{
+  "schema_version": "issue28.readonly_audit_smoke.v1",
+  "command": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-B",
+    "/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/acceptance_agent/test_audit_runtime_identity.py"
+  ],
+  "recorded_at_utc": "2026-10-08T10:57:25.978410+00:00",
+  "environment": {
+    "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]",
+    "executable": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39"
+  },
+  "exit_code": 0,
+  "case_count": 5,
+  "output_sha256": "b1ecdd2be747968e45e094189a625855cfb47b1c98f2828dd75cbb9b5f4305b1",
+  "script_sha256": "07a0ea5c9acde34a9dabd972b920f700cd7f70ed004a4b53eab600caebb7b8ae",
+  "test_sha256": "2e04c9d0e9424cf72413e3d98cb0fad6eaad8892b51a675f1df4fff55954d2d1",
+  "scope": "controlled temporary fixtures only; no V4 import, network, runtime data, services, deployment or business writes",
+  "mac_execution": "NOT_RUN",
+  "fixture_portability": "TemporaryDirectory root resolved for the macOS /var alias; runtime source path symlink rejection unchanged"
+}

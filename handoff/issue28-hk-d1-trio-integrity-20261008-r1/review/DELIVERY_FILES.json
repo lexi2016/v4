@@ -1,0 +1,170 @@
+{
+  "schema_version": "issue28.review_delivery_allowlist.v1",
+  "root": "reviewer_final",
+  "scope": "Review source, concise reports and fresh synthetic test log/JUnit/import receipts only",
+  "excluded": [
+    "independent_execution/work/",
+    "synthetic fixtures",
+    "copied product/support trees",
+    "caches"
+  ],
+  "files": [
+    {
+      "path": "review.md",
+      "bytes": 11215,
+      "sha256": "a92a448a26430ab92ffa544bb740c1694e4108e23ab5af1f75e408a6b94d8804"
+    },
+    {
+      "path": "review.json",
+      "bytes": 9503,
+      "sha256": "000634feebe96a916365f524aa9666b9080c4d4f1d7ad6670a580b00fb42506a"
+    },
+    {
+      "path": "KNOWN_BASELINE_FAILURES.json",
+      "bytes": 4629,
+      "sha256": "cfd15c73101fd10cd7d00ef74a518a978c0cb3151774adb60090448a2fbdfb2b"
+    },
+    {
+      "path": "run_independent_review.py",
+      "bytes": 7733,
+      "sha256": "6be55c73a3037958299f86cf4269819a7b560109693665c51fb4efea5b791af0"
+    },
+    {
+      "path": "review_conftest.py",
+      "bytes": 1437,
+      "sha256": "d449a1d34bfdc6e370f1c54a094a45f2b931796916b45bb28273f55be5f52683"
+    },
+    {
+      "path": "test_root_identity_probe.py",
+      "bytes": 1708,
+      "sha256": "0e196340e16219d95c8518c42a6e6442715acf551e97ae19823f359d3ad30ef7"
+    },
+    {
+      "path": "independent_execution/RESULTS.json",
+      "bytes": 23185,
+      "sha256": "0cc4c69db6684ac3b63ed1cf058c6d512720d328e7d98a3f64f3ad7f5942086b"
+    },
+    {
+      "path": "independent_execution/logs/after-actual_stage_owner-reviewer-imports.json",
+      "bytes": 7226,
+      "sha256": "c8ed32769aaf40ff3313019c0223dc6723ba4a943c986a606f7b712c06a915ce"
+    },
+    {
+      "path": "independent_execution/logs/after-actual_stage_owner-reviewer.log",
+      "bytes": 98,
+      "sha256": "89d3ec78cb0fbd89b7737bfe3078876ad657c2c3b955758b5a26267a44a5d86b"
+    },
+    {
+      "path": "independent_execution/logs/after-actual_stage_owner-reviewer.xml",
+      "bytes": 513,
+      "sha256": "ccc3938b63bcaee5584300a0df07439d594bdbbc3ff4cbe07ed78e8cfa9d478b"
+    },
+    {
+      "path": "independent_execution/logs/after-actual_stage_owner-supplied-imports.json",
+      "bytes": 7035,
+      "sha256": "838d077afe541a595e202f5138e8fd13921ebab0086f5ecb63fc6fc20f04ebd5"
+    },
+    {
+      "path": "independent_execution/logs/after-actual_stage_owner-supplied.log",
+      "bytes": 99,
+      "sha256": "a1d9ed8ac4edfe4f8763057aaded95fb5b7deacd372b5ee8db2a26d5903a0fcd"
+    },
+    {
+      "path": "independent_execution/logs/after-actual_stage_owner-supplied.xml",
+      "bytes": 2357,
+      "sha256": "77795b3469a0fa8210a7bd6c911c653a783682d5f238f713f2b9df4dd94fce7f"
+    },
+    {
+      "path": "independent_execution/logs/after-canonical-reviewer-imports.json",
+      "bytes": 7226,
+      "sha256": "abcc0e3658d8d673ebedcb3331d989168c0361394c401d960c7c6083e5b22fab"
+    },
+    {
+      "path": "independent_execution/logs/after-canonical-reviewer.log",
+      "bytes": 98,
+      "sha256": "89d3ec78cb0fbd89b7737bfe3078876ad657c2c3b955758b5a26267a44a5d86b"
+    },
+    {
+      "path": "independent_execution/logs/after-canonical-reviewer.xml",
+      "bytes": 513,
+      "sha256": "f71bf0bbb3671720a45afe73e1f7dcf26460783297ac7807868a0a3a0a276b4c"
+    },
+    {
+      "path": "independent_execution/logs/after-canonical-supplied-imports.json",
+      "bytes": 7035,
+      "sha256": "1863493a2460289c68bef4124f7974e8155533da719892ba4c57bbc1de062e04"
+    },
+    {
+      "path": "independent_execution/logs/after-canonical-supplied.log",
+      "bytes": 99,
+      "sha256": "d06da282a547631c4165d8042f0f92030f5f3f6c70330063256ec4e8076cdd46"
+    },
+    {
+      "path": "independent_execution/logs/after-canonical-supplied.xml",
+      "bytes": 2357,
+      "sha256": "0e3b5c8af1c1d28e2f09fe075bd6e373e8d9074793747820e07b7bbb213182a1"
+    },
+    {
+      "path": "independent_execution/logs/before-actual_stage_owner-reviewer-imports.json",
+      "bytes": 7226,
+      "sha256": "2e239baac8b8fc006708acc00264fea6dbff85d45817a12667b509054281aa7c"
+    },
+    {
+      "path": "independent_execution/logs/before-actual_stage_owner-reviewer.log",
+      "bytes": 4346,
+      "sha256": "a4207321e9584d67a0e1c2bbcde29708b33d59fe70bcbde1acab83f6b35d6260"
+    },
+    {
+      "path": "independent_execution/logs/before-actual_stage_owner-reviewer.xml",
+      "bytes": 4396,
+      "sha256": "44ed42c86863776dded87afaa2f6843b25600f4d50814942e48bf10c16e48c6f"
+    },
+    {
+      "path": "independent_execution/logs/before-actual_stage_owner-supplied-imports.json",
+      "bytes": 7035,
+      "sha256": "90847b5fe9704b0ac904d7965455c09e562537aeab3e17785ba4328d2e77b5fd"
+    },
+    {
+      "path": "independent_execution/logs/before-actual_stage_owner-supplied.log",
+      "bytes": 9698,
+      "sha256": "a3f6a6ea9c48c668e204ff9f8fc9a254971ebf7752ff02f0d5a055219b30726f"
+    },
+    {
+      "path": "independent_execution/logs/before-actual_stage_owner-supplied.xml",
+      "bytes": 11285,
+      "sha256": "a91311bd555ebc8e7e8b52da1e6ee165c6c28fd8d67db6caa4ac9e265caf2255"
+    },
+    {
+      "path": "independent_execution/logs/before-canonical-reviewer-imports.json",
+      "bytes": 7226,
+      "sha256": "f21a995deac2e8ee08444b2d2895cfc3010ea5426401f2d3bb92c8fc7424e4bd"
+    },
+    {
+      "path": "independent_execution/logs/before-canonical-reviewer.log",
+      "bytes": 4328,
+      "sha256": "eb9173d37938a175a8151f2309c838fc8f00b3677c6db540063379661910b4bf"
+    },
+    {
+      "path": "independent_execution/logs/before-canonical-reviewer.xml",
+      "bytes": 4378,
+      "sha256": "f13eae6a9e32acc5b8c089fed3cb156c128863453be7e8e3a8c0a5ba2d4aba61"
+    },
+    {
+      "path": "independent_execution/logs/before-canonical-supplied-imports.json",
+      "bytes": 7035,
+      "sha256": "704b388381efb1dceddbb9ae5b0c26f91c32ffd381b517b9ef2802de17d6c5e9"
+    },
+    {
+      "path": "independent_execution/logs/before-canonical-supplied.log",
+      "bytes": 9662,
+      "sha256": "f0a1d9208197d4368afafff48e4964c48ab8e8728dc74a991a3fcbdf687efc42"
+    },
+    {
+      "path": "independent_execution/logs/before-canonical-supplied.xml",
+      "bytes": 11249,
+      "sha256": "e70c0d4f262ce0e08c6449317594dc4e8e7f587a0218f6bd79e6a0465c4bdbb3"
+    }
+  ],
+  "file_count_excluding_manifest": 31,
+  "total_bytes_excluding_manifest": 181930
+}

@@ -1,0 +1,19 @@
+{
+  "scope": "READ_ONLY_STATIC_PACKAGING_REVIEW_NO_PRODUCT_TEST_RUN",
+  "owner_inventory_counts": {
+    "actual_stage_owner": 13,
+    "canonical": 13
+  },
+  "support_inventory_count": 17,
+  "verified_manifest_entries": 49,
+  "after_files": [
+    "after/stage_center/_runner_parts/hk_input_validation.py"
+  ],
+  "after_sha256": "b20baa18d0ee9748971db835f6fb3dd9a0e1d66aabd8da8d450aee3a4a528a8e",
+  "original_test_unchanged": true,
+  "symlinks": [],
+  "findings_pending_launcher_revision": [
+    "Unlisted owner initializer may be copied and top-level package audit omitted",
+    "Inherited pytest environment/config can alter test/plugin selection"
+  ]
+}

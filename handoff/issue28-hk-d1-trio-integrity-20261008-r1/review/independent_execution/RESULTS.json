@@ -1,0 +1,542 @@
+{
+  "environment": {
+    "executable": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "python_version": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "machine": "x86_64"
+  },
+  "inputs": {
+    "package": "/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843",
+    "before_helper_sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+    "after_helper_sha256": "b20baa18d0ee9748971db835f6fb3dd9a0e1d66aabd8da8d450aee3a4a528a8e",
+    "source_manifest_sha256": "a9b62f59d62083de3bc969d69b6c14a372e4a7a8ce85c50530dd9ffefd441128",
+    "review_conftest_sha256": "d449a1d34bfdc6e370f1c54a094a45f2b931796916b45bb28273f55be5f52683",
+    "reviewer_probe_sha256": "0e196340e16219d95c8518c42a6e6442715acf551e97ae19823f359d3ad30ef7"
+  },
+  "verified_inputs": [
+    {
+      "path": "baseline/source/actual_stage_owner/infrastructure/preselection_pool_readers.py",
+      "sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+      "bytes": 5432,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/actual_stage_owner/infrastructure/preselection_pool_sources.py",
+      "sha256": "cc683561201453e3f7ca975b2b7cdb6a3836b1ecbe63e001a5abd181f38813d6",
+      "bytes": 5798,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/actual_stage_owner/infrastructure/preselection_pool_store.py",
+      "sha256": "a640d28ec54119ae383f5dd838fe467d6ae8b5b0d87fa2c4afbb0646fbfe658a",
+      "bytes": 32457,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/actual_stage_owner/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "sha256": "f9530f010055476e17d87e93198e28d3f4943ed34255a2419130eb9f39deb6ed",
+      "bytes": 42295,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/actual_stage_owner/ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+      "sha256": "2e40c84a30d9cabf047fefb5caec14f8b569d24e54a7f50c16211f0c0fda53ec",
+      "bytes": 2361,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/actual_stage_owner/ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+      "sha256": "d7ea89f5467fb4d62af6b43c59d9dcd7cfcd020a1ee1ce07a9fae8525f735f86",
+      "bytes": 23381,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/actual_stage_owner/ops/run_stage_center_nodes.py",
+      "sha256": "8e9ca56aca8a21950590abe83ef305e46a022490eb61f48e0c5d19c2493e1772",
+      "bytes": 13421,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/actual_stage_owner/stage_center/_runner_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "bytes": 527,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/actual_stage_owner/stage_center/_runner_parts/hk_input_validation.py",
+      "sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+      "bytes": 23786,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/actual_stage_owner/stage_center/_runner_parts/selection_input_validation.py",
+      "sha256": "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c",
+      "bytes": 10698,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/actual_stage_owner/stage_center/_runner_parts/slot_execution.py",
+      "sha256": "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a",
+      "bytes": 46386,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/actual_stage_owner/stage_center/calendar.py",
+      "sha256": "31fed97066d9b804a71f15c48d4e0f8baa5d9af621e1d81dc0340fd6619e4099",
+      "bytes": 4805,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/actual_stage_owner/stage_center/runner.py",
+      "sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232",
+      "bytes": 44615,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/canonical/infrastructure/preselection_pool_readers.py",
+      "sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+      "bytes": 5432,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/canonical/infrastructure/preselection_pool_sources.py",
+      "sha256": "23827109688cabbfb50fc4563cd3c1bdb0220fb6246b349a72836dc0e9b02827",
+      "bytes": 6603,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/canonical/infrastructure/preselection_pool_store.py",
+      "sha256": "9f1606a977d36c063d9c650e54b9861947eb7b692e779837852e3831b7814bef",
+      "bytes": 56638,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/canonical/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "sha256": "b83d35091ddf7566084c1f39e8821a96d72c1297549dcbdb76a1c11dbec655e4",
+      "bytes": 33183,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/canonical/ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+      "sha256": "2e40c84a30d9cabf047fefb5caec14f8b569d24e54a7f50c16211f0c0fda53ec",
+      "bytes": 2361,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/canonical/ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+      "sha256": "06548184a4b09b0ae94053f2308eefb3bf5c31afc9f04abaeb805db7cebe8adb",
+      "bytes": 34834,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/canonical/ops/run_stage_center_nodes.py",
+      "sha256": "b0cde8d66727e16bbf526050a61aea17381f636d2fd96dbb0d2be6964d7f1e13",
+      "bytes": 14050,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/canonical/stage_center/_runner_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "bytes": 527,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/canonical/stage_center/_runner_parts/hk_input_validation.py",
+      "sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+      "bytes": 23786,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/canonical/stage_center/_runner_parts/selection_input_validation.py",
+      "sha256": "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c",
+      "bytes": 10698,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/canonical/stage_center/_runner_parts/slot_execution.py",
+      "sha256": "86ea1de7e32e6f29deb6622b4af37b4723e0b086d4c700cd513671ceed719d8a",
+      "bytes": 49370,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/canonical/stage_center/calendar.py",
+      "sha256": "31fed97066d9b804a71f15c48d4e0f8baa5d9af621e1d81dc0340fd6619e4099",
+      "bytes": 4805,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/source/canonical/stage_center/runner.py",
+      "sha256": "d36cc60c538f23ab0f48c7387523d83ed5cebbdc67c0dd630e671f98ecdffa48",
+      "bytes": 83846,
+      "role": "EXACT_CURRENT_OWNER_PREIMAGE"
+    },
+    {
+      "path": "baseline/tests/test_hk_prior_observation_source_binding.py",
+      "sha256": "6a48bd3357a97690d5886c03dff9e31fc84ae1a0357087bcca3f4168841cd930",
+      "bytes": 21557,
+      "role": "UNCHANGED_CURRENT_PACKAGE_ORIGINAL_REGRESSION"
+    },
+    {
+      "path": "test_run/support/infrastructure/data_store.py",
+      "sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+      "bytes": 10704,
+      "role": "PINNED_00524_CANONICAL_SUPPLEMENT_NOT_ACTUAL_OWNER_IDENTITY"
+    },
+    {
+      "path": "test_run/support/infrastructure/interprocess_lock.py",
+      "sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+      "bytes": 7514,
+      "role": "PINNED_00524_CANONICAL_SUPPLEMENT_NOT_ACTUAL_OWNER_IDENTITY"
+    },
+    {
+      "path": "test_run/support/infrastructure/market_time.py",
+      "sha256": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+      "bytes": 960,
+      "role": "PINNED_00524_CANONICAL_SUPPLEMENT_NOT_ACTUAL_OWNER_IDENTITY"
+    },
+    {
+      "path": "test_run/support/infrastructure/owned_io.py",
+      "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+      "bytes": 9354,
+      "role": "PINNED_00524_CANONICAL_SUPPLEMENT_NOT_ACTUAL_OWNER_IDENTITY"
+    },
+    {
+      "path": "test_run/support/infrastructure/owned_path.py",
+      "sha256": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+      "bytes": 2251,
+      "role": "PINNED_00524_CANONICAL_SUPPLEMENT_NOT_ACTUAL_OWNER_IDENTITY"
+    },
+    {
+      "path": "test_run/support/infrastructure/preselection_pool_transactions.py",
+      "sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+      "bytes": 15569,
+      "role": "PINNED_00524_CANONICAL_SUPPLEMENT_NOT_ACTUAL_OWNER_IDENTITY"
+    },
+    {
+      "path": "test_run/support/infrastructure/scope_gate.py",
+      "sha256": "5620d1ee89fbae998d4c801c2a7c4cffac50f890ad0b6951f99230c591dcff68",
+      "bytes": 16258,
+      "role": "PINNED_00524_CANONICAL_SUPPLEMENT_NOT_ACTUAL_OWNER_IDENTITY"
+    },
+    {
+      "path": "test_run/support/infrastructure/trading_safety.py",
+      "sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+      "bytes": 2597,
+      "role": "PINNED_00524_CANONICAL_SUPPLEMENT_NOT_ACTUAL_OWNER_IDENTITY"
+    },
+    {
+      "path": "test_run/support/stage_center/acquisition.py",
+      "sha256": "33e5003faed8127ec3393eb36af473c0d63ee3a79843418ef1a950ce7b697397",
+      "bytes": 13342,
+      "role": "PINNED_00524_CANONICAL_SUPPLEMENT_NOT_ACTUAL_OWNER_IDENTITY"
+    },
+    {
+      "path": "test_run/support/stage_center/candidate_input.py",
+      "sha256": "59c6bb0ef13a5aaa576477708385ec4ac68b7d20a69e3fc61d984da4a8284aff",
+      "bytes": 17567,
+      "role": "PINNED_00524_CANONICAL_SUPPLEMENT_NOT_ACTUAL_OWNER_IDENTITY"
+    },
+    {
+      "path": "test_run/support/stage_center/contracts.py",
+      "sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+      "bytes": 2331,
+      "role": "PINNED_00524_CANONICAL_SUPPLEMENT_NOT_ACTUAL_OWNER_IDENTITY"
+    },
+    {
+      "path": "test_run/support/stage_center/raw_store.py",
+      "sha256": "2dea717cb65053c48b75468fd61508b3b61b421a6b528aa8ce93395e99aef547",
+      "bytes": 33445,
+      "role": "PINNED_00524_CANONICAL_SUPPLEMENT_NOT_ACTUAL_OWNER_IDENTITY"
+    },
+    {
+      "path": "test_run/support/stage_center/selection.py",
+      "sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294",
+      "bytes": 31705,
+      "role": "PINNED_00524_CANONICAL_SUPPLEMENT_NOT_ACTUAL_OWNER_IDENTITY"
+    },
+    {
+      "path": "test_run/support/stage_center/_selection_parts/schema_values.py",
+      "sha256": "80b0c21556c78c89132a08ca24eb80b5a211791719cb54801497dbe74472e458",
+      "bytes": 3956,
+      "role": "PINNED_00524_CANONICAL_SUPPLEMENT_NOT_ACTUAL_OWNER_IDENTITY"
+    },
+    {
+      "path": "test_run/support/stage_center/end_to_end_deadline.py",
+      "sha256": "f25d91cf1eaf4ea7d1a9a57fc1f8288d14d98536a63dee16467550974b2a812e",
+      "bytes": 21467,
+      "role": "FRESH_FETCHED_00524_CANONICAL_SUPPLEMENT_NOT_ACTUAL_OWNER_IDENTITY"
+    },
+    {
+      "path": "test_run/support/stage_center/scheduler.py",
+      "sha256": "e56651ec7bb481b28e383cb403d60ba48747ddf7426f9fb380f5ae24fc3a37a4",
+      "bytes": 6849,
+      "role": "FRESH_FETCHED_00524_CANONICAL_SUPPLEMENT_NOT_ACTUAL_OWNER_IDENTITY"
+    },
+    {
+      "path": "test_run/support/stage_center/_selection_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "bytes": 527,
+      "role": "TEST_PACKAGING_ALIAS_OF_CURRENT_COMMON_READ_GLOBAL_HELPER_NOT_SELECTION_OWNER_IDENTITY"
+    },
+    {
+      "path": "candidate/actual_stage_owner/stage_center/_runner_parts/hk_input_validation.py",
+      "sha256": "b20baa18d0ee9748971db835f6fb3dd9a0e1d66aabd8da8d450aee3a4a528a8e",
+      "bytes": 25460,
+      "role": "INDEPENDENTLY_HASHED_CANDIDATE"
+    },
+    {
+      "path": "candidate/canonical/stage_center/_runner_parts/hk_input_validation.py",
+      "sha256": "b20baa18d0ee9748971db835f6fb3dd9a0e1d66aabd8da8d450aee3a4a528a8e",
+      "bytes": 25460,
+      "role": "INDEPENDENTLY_HASHED_CANDIDATE"
+    },
+    {
+      "path": "tests/test_hk_split_date_identity_closure.py",
+      "sha256": "2a821347da08255c001e513205ccf498377e55abbee1a2cf675ec9d24e6754b3",
+      "bytes": 7357,
+      "role": "SUPPLIED_TARGETED_TEST"
+    }
+  ],
+  "results": [
+    {
+      "phase": "before",
+      "owner": "actual_stage_owner",
+      "suite": "supplied",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "-p",
+        "no:cacheprovider",
+        "--basetemp=/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/work/before-actual_stage_owner/supplied-tmp",
+        "--junitxml=/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/logs/before-actual_stage_owner-supplied.xml",
+        "tests/test_hk_split_date_identity_closure.py"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/work/before-actual_stage_owner",
+      "exit_code": 1,
+      "cases": 13,
+      "passed": 9,
+      "failures": [
+        "test_validation_rechecks_whole_physical_trio_at_return[manifest-False]",
+        "test_validation_rechecks_whole_physical_trio_at_return[manifest-True]",
+        "test_validation_rechecks_whole_physical_trio_at_return[receipt-False]",
+        "test_validation_rechecks_whole_physical_trio_at_return[receipt-True]"
+      ],
+      "errors": [],
+      "skipped": [],
+      "log": "logs/before-actual_stage_owner-supplied.log",
+      "junit": "logs/before-actual_stage_owner-supplied.xml",
+      "imports": "logs/before-actual_stage_owner-supplied-imports.json"
+    },
+    {
+      "phase": "before",
+      "owner": "actual_stage_owner",
+      "suite": "reviewer",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "-p",
+        "no:cacheprovider",
+        "--basetemp=/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/work/before-actual_stage_owner/reviewer-tmp",
+        "--junitxml=/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/logs/before-actual_stage_owner-reviewer.xml",
+        "tests/test_root_identity_probe.py"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/work/before-actual_stage_owner",
+      "exit_code": 1,
+      "cases": 2,
+      "passed": 0,
+      "failures": [
+        "test_replaced_root_with_identical_trio_is_rejected[False]",
+        "test_replaced_root_with_identical_trio_is_rejected[True]"
+      ],
+      "errors": [],
+      "skipped": [],
+      "log": "logs/before-actual_stage_owner-reviewer.log",
+      "junit": "logs/before-actual_stage_owner-reviewer.xml",
+      "imports": "logs/before-actual_stage_owner-reviewer-imports.json"
+    },
+    {
+      "phase": "before",
+      "owner": "canonical",
+      "suite": "supplied",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "-p",
+        "no:cacheprovider",
+        "--basetemp=/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/work/before-canonical/supplied-tmp",
+        "--junitxml=/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/logs/before-canonical-supplied.xml",
+        "tests/test_hk_split_date_identity_closure.py"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/work/before-canonical",
+      "exit_code": 1,
+      "cases": 13,
+      "passed": 9,
+      "failures": [
+        "test_validation_rechecks_whole_physical_trio_at_return[manifest-False]",
+        "test_validation_rechecks_whole_physical_trio_at_return[manifest-True]",
+        "test_validation_rechecks_whole_physical_trio_at_return[receipt-False]",
+        "test_validation_rechecks_whole_physical_trio_at_return[receipt-True]"
+      ],
+      "errors": [],
+      "skipped": [],
+      "log": "logs/before-canonical-supplied.log",
+      "junit": "logs/before-canonical-supplied.xml",
+      "imports": "logs/before-canonical-supplied-imports.json"
+    },
+    {
+      "phase": "before",
+      "owner": "canonical",
+      "suite": "reviewer",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "-p",
+        "no:cacheprovider",
+        "--basetemp=/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/work/before-canonical/reviewer-tmp",
+        "--junitxml=/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/logs/before-canonical-reviewer.xml",
+        "tests/test_root_identity_probe.py"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/work/before-canonical",
+      "exit_code": 1,
+      "cases": 2,
+      "passed": 0,
+      "failures": [
+        "test_replaced_root_with_identical_trio_is_rejected[False]",
+        "test_replaced_root_with_identical_trio_is_rejected[True]"
+      ],
+      "errors": [],
+      "skipped": [],
+      "log": "logs/before-canonical-reviewer.log",
+      "junit": "logs/before-canonical-reviewer.xml",
+      "imports": "logs/before-canonical-reviewer-imports.json"
+    },
+    {
+      "phase": "after",
+      "owner": "actual_stage_owner",
+      "suite": "supplied",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "-p",
+        "no:cacheprovider",
+        "--basetemp=/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/work/after-actual_stage_owner/supplied-tmp",
+        "--junitxml=/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/logs/after-actual_stage_owner-supplied.xml",
+        "tests/test_hk_split_date_identity_closure.py"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/work/after-actual_stage_owner",
+      "exit_code": 0,
+      "cases": 13,
+      "passed": 13,
+      "failures": [],
+      "errors": [],
+      "skipped": [],
+      "log": "logs/after-actual_stage_owner-supplied.log",
+      "junit": "logs/after-actual_stage_owner-supplied.xml",
+      "imports": "logs/after-actual_stage_owner-supplied-imports.json"
+    },
+    {
+      "phase": "after",
+      "owner": "actual_stage_owner",
+      "suite": "reviewer",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "-p",
+        "no:cacheprovider",
+        "--basetemp=/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/work/after-actual_stage_owner/reviewer-tmp",
+        "--junitxml=/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/logs/after-actual_stage_owner-reviewer.xml",
+        "tests/test_root_identity_probe.py"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/work/after-actual_stage_owner",
+      "exit_code": 0,
+      "cases": 2,
+      "passed": 2,
+      "failures": [],
+      "errors": [],
+      "skipped": [],
+      "log": "logs/after-actual_stage_owner-reviewer.log",
+      "junit": "logs/after-actual_stage_owner-reviewer.xml",
+      "imports": "logs/after-actual_stage_owner-reviewer-imports.json"
+    },
+    {
+      "phase": "after",
+      "owner": "canonical",
+      "suite": "supplied",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "-p",
+        "no:cacheprovider",
+        "--basetemp=/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/work/after-canonical/supplied-tmp",
+        "--junitxml=/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/logs/after-canonical-supplied.xml",
+        "tests/test_hk_split_date_identity_closure.py"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/work/after-canonical",
+      "exit_code": 0,
+      "cases": 13,
+      "passed": 13,
+      "failures": [],
+      "errors": [],
+      "skipped": [],
+      "log": "logs/after-canonical-supplied.log",
+      "junit": "logs/after-canonical-supplied.xml",
+      "imports": "logs/after-canonical-supplied-imports.json"
+    },
+    {
+      "phase": "after",
+      "owner": "canonical",
+      "suite": "reviewer",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "-p",
+        "no:cacheprovider",
+        "--basetemp=/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/work/after-canonical/reviewer-tmp",
+        "--junitxml=/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/logs/after-canonical-reviewer.xml",
+        "tests/test_root_identity_probe.py"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue28/work/hk_stage_failure_1843/reviewer_final/independent_execution/work/after-canonical",
+      "exit_code": 0,
+      "cases": 2,
+      "passed": 2,
+      "failures": [],
+      "errors": [],
+      "skipped": [],
+      "log": "logs/after-canonical-reviewer.log",
+      "junit": "logs/after-canonical-reviewer.xml",
+      "imports": "logs/after-canonical-reviewer-imports.json"
+    }
+  ]
+}

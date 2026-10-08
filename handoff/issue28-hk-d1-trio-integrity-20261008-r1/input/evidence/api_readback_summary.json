@@ -1,0 +1,33 @@
+{
+  "a_share": {
+    "recommendation_status": "WATCH_ONLY",
+    "requested_rows": 178,
+    "selected_rows": 10,
+    "selection_status": "PARTIAL_WITH_ROWS",
+    "source_rows": 172,
+    "source_status": "CANNOT_CONFIRM",
+    "status": "PARTIAL_WITH_ROWS",
+    "symbols_included": false
+  },
+  "full_response_copied": false,
+  "hk_connect": {
+    "displayed_reason": "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
+    "selected_rows": "not exposed in the API market summary",
+    "selection_status": "CANNOT_CONFIRM",
+    "source_status": "CANNOT_CONFIRM",
+    "status": "CANNOT_CONFIRM"
+  },
+  "http_status": 200,
+  "meaning": "HTTP 200 confirms the read path answered; the HK stage remains CANNOT_CONFIRM and the API reason is coarser than the Stage receipt.",
+  "observed_date": "2026-10-08",
+  "overall_status": "PARTIAL_WITH_ROWS",
+  "request": "GET /api/v3/workbench/stage?date=20261008&stage=STAGE_0930_0935",
+  "response_source": "SHARED_STAGE_CENTER",
+  "selection_mode": "SHARED_STAGE_CENTER_READ_ONLY",
+  "trading_safety": {
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "write_performed": false
+}
