@@ -1,0 +1,33 @@
+{
+  "schema": "split",
+  "future_field": "price_signal_date",
+  "future_date": "20261008",
+  "target_date": "20261007",
+  "before_store_materialize_and_read": "PASS",
+  "after_store_read": "EXPECTED_VALUE_ERROR",
+  "error": "historical pool source date exceeds target date",
+  "artifact_receipt_manifest_bytes_unchanged": true,
+  "before_pool_store_sha256": "028298a05ea44e310487c1159acc8147cf652e23ba716989135b178198795a92",
+  "after_pool_store_sha256": "9f1606a977d36c063d9c650e54b9861947eb7b692e779837852e3831b7814bef",
+  "trio": [
+    {
+      "path": "preselection_pools/20261007/hkconnect_d1_top100.json",
+      "before_sha256": "f38e5598c4e96bc1ccbdcd6e610f348c6dd2388951e5369d1d3d8be3d275904b",
+      "after_sha256": "f38e5598c4e96bc1ccbdcd6e610f348c6dd2388951e5369d1d3d8be3d275904b",
+      "bytes": 12530
+    },
+    {
+      "path": "preselection_pools/20261007/receipts/hkconnect_d1_top100.json",
+      "before_sha256": "07e4d23265f27f0e138d0922587ce7e1bbd5edaa3354d25367ef4de24188fd44",
+      "after_sha256": "07e4d23265f27f0e138d0922587ce7e1bbd5edaa3354d25367ef4de24188fd44",
+      "bytes": 468
+    },
+    {
+      "path": "preselection_pools/20261007/manifest.json",
+      "before_sha256": "01447ec5caf3ce9ebb6bc14fdf227ce4718d167619fb48f3e5a6511fe48250d9",
+      "after_sha256": "01447ec5caf3ce9ebb6bc14fdf227ce4718d167619fb48f3e5a6511fe48250d9",
+      "bytes": 90
+    }
+  ],
+  "data_classification": "SYNTHETIC_FIXTURE_ONLY"
+}

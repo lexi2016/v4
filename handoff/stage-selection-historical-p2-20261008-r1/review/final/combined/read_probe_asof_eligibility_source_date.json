@@ -1,0 +1,33 @@
+{
+  "schema": "asof",
+  "future_field": "eligibility_source_date",
+  "future_date": "20261001",
+  "target_date": "20260930",
+  "before_store_materialize_and_read": "PASS",
+  "after_store_read": "EXPECTED_VALUE_ERROR",
+  "error": "historical pool source date exceeds target date",
+  "artifact_receipt_manifest_bytes_unchanged": true,
+  "before_pool_store_sha256": "028298a05ea44e310487c1159acc8147cf652e23ba716989135b178198795a92",
+  "after_pool_store_sha256": "9f1606a977d36c063d9c650e54b9861947eb7b692e779837852e3831b7814bef",
+  "trio": [
+    {
+      "path": "preselection_pools/20260930/hkconnect_d1_top100.json",
+      "before_sha256": "e46632b84cce4be794760c984b8d291fe8f63f95f8ae5c6bebeb02ed6e35085a",
+      "after_sha256": "e46632b84cce4be794760c984b8d291fe8f63f95f8ae5c6bebeb02ed6e35085a",
+      "bytes": 12842
+    },
+    {
+      "path": "preselection_pools/20260930/receipts/hkconnect_d1_top100.json",
+      "before_sha256": "034c0426b20bf23587b93a0b05ab8150876a475a097bd3e792a0b8b40894592c",
+      "after_sha256": "034c0426b20bf23587b93a0b05ab8150876a475a097bd3e792a0b8b40894592c",
+      "bytes": 468
+    },
+    {
+      "path": "preselection_pools/20260930/manifest.json",
+      "before_sha256": "b5c060f8975c0d7c7f54f04357c1e14dc8a30ed6228821e72cd163236f32eccc",
+      "after_sha256": "b5c060f8975c0d7c7f54f04357c1e14dc8a30ed6228821e72cd163236f32eccc",
+      "bytes": 90
+    }
+  ],
+  "data_classification": "SYNTHETIC_FIXTURE_ONLY"
+}

@@ -1,0 +1,102 @@
+{
+  "scope": "Packaged bytes verified against author/reviewer allowlists; existing JUnit parsed, no additional test executions",
+  "passed": true,
+  "results": [
+    {
+      "name": "date_before",
+      "path": "historical_validation/logs/final/before.xml",
+      "tests": 13,
+      "passed": 8,
+      "failed": 5,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "396225f21bc5f4d6b1f3c91b01fe435ca22b4e01343d9c0b17006ee1fc41bd12"
+    },
+    {
+      "name": "date_after",
+      "path": "historical_validation/logs/final/after.xml",
+      "tests": 13,
+      "passed": 13,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "5c72167b46ec96fa7ab53ccf208e95a759362b578ff446f9bdef3073997ed306"
+    },
+    {
+      "name": "close_before",
+      "path": "close_pit/logs/before.xml",
+      "tests": 14,
+      "passed": 6,
+      "failed": 8,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "340791b87dfd0fa4a1fbf7374e7346b8b773319fae4348888b47e68b77b341c6"
+    },
+    {
+      "name": "close_after",
+      "path": "close_pit/logs/after.xml",
+      "tests": 14,
+      "passed": 14,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "ca461bdf94c7ec9ac29324a3afa867e40e8b732b1a8a4aadfb5d7b60392b6db8"
+    },
+    {
+      "name": "nested_before",
+      "path": "historical_validation/logs/final/nested_before.xml",
+      "tests": 2,
+      "passed": 0,
+      "failed": 2,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "62b4e5633b2b37a7337de75437556b4bdba181b2c582c489f0eb664a3301bb7a"
+    },
+    {
+      "name": "nested_after",
+      "path": "historical_validation/logs/final/nested_after.xml",
+      "tests": 2,
+      "passed": 0,
+      "failed": 2,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "7be6dda593b660ca65c782c170ccc16aa06ff08b6959cb6b42212f6c55f8d608"
+    },
+    {
+      "name": "independent_date",
+      "path": "review/final/historical_validation/after.xml",
+      "tests": 13,
+      "passed": 13,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "730b70d0c9ac224b35d1cb98e3192599593757ecc3e94f27de3387545e907804"
+    },
+    {
+      "name": "independent_close",
+      "path": "review/final/close_pit/after.xml",
+      "tests": 14,
+      "passed": 14,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "dd46d5b1bfde2816c27128093375d665acbd55fd4a9234916b0e76837216bc2d"
+    },
+    {
+      "name": "independent_combined",
+      "path": "review/final/combined/combined.xml",
+      "tests": 16,
+      "passed": 16,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "fb9e89e3cd178fb2a57430124905ee69da915338c6d1151242bfc5f8279c516a"
+    }
+  ],
+  "author_supplied_unique_after_cases": 27,
+  "reviewer_unique_cases": 29,
+  "reviewer_total_passing_executions": 43,
+  "deferred_nested_after_tests_failed": 2,
+  "r1_suites_rerun": false,
+  "source_test_or_review_files_edited_during_assembly": false
+}

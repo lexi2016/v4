@@ -1,0 +1,18 @@
+--- a/ops/build_close_review.py
++++ b/ops/build_close_review.py
+@@ -143,7 +143,14 @@
+         stage_rows=_stage_rows(stage_selection_root, trade_date),
+         close_source_sha256=snapshot_sha,
+     )
+-    if isinstance(preselection, dict) and "historical_provenance" in preselection:
++    # Verified local pool storage does not prove upstream source/PIT availability.
++    if isinstance(preselection, dict) and (
++        "historical_provenance" in preselection
++        or not all(
++            preselection.get(field)
++            for field in ("source_manifest_sha256", "source_receipt_sha256")
++        )
++    ):
+         reason = "HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM"
+         if reason not in review["cannot_confirm"]:
+             review["cannot_confirm"].append(reason)

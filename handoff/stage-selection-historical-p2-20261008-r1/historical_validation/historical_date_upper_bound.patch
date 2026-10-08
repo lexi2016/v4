@@ -1,0 +1,12 @@
+--- a/infrastructure/preselection_pool_store.py
++++ b/infrastructure/preselection_pool_store.py
+@@ -360,6 +360,9 @@
+     )
+     if payload.get("signal_date") != signal_date:
+         raise ValueError("historical pool signal date binding mismatch")
++    target_date = _date(str(payload["trade_date"]))
++    if eligibility_date > target_date or signal_date > target_date:
++        raise ValueError("historical pool source date exceeds target date")
+ 
+     if schema_version == "v4.hk_d1_eligibility_asof.v2":
+         eligibility = provenance.get("eligibility_asof")

@@ -1,0 +1,23 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.7, pytest-9.1.1, pluggy-1.6.0 -- /workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python
+rootdir: /workspace/scratch/25c09a595aec/issue28/work/continuation_1325/close_pit
+plugins: anyio-4.15.1
+collecting ... collected 14 items
+
+tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[manifest-only-20260825] PASSED [  7%]
+tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[manifest-only-20260826] PASSED [ 14%]
+tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[receipt-only-20260825] PASSED [ 21%]
+tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[receipt-only-20260826] PASSED [ 28%]
+tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[both-20260825] PASSED [ 35%]
+tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[both-20260826] PASSED [ 42%]
+tests/test_close_source_pit_warning.py::test_complete_nonhistorical_source_pair_preserves_baseline_output PASSED [ 50%]
+tests/test_close_source_pit_warning.py::test_exact_absent_pool_sentinel_keeps_missing_model_status_and_adds_pit_reason PASSED [ 57%]
+tests/test_close_source_pit_warning.py::test_existing_historical_provenance_reason_is_preserved PASSED [ 64%]
+tests/test_close_source_pit_warning.py::test_pool_native_trio_damage_propagates_without_publishing_review[missing-receipt] PASSED [ 71%]
+tests/test_close_source_pit_warning.py::test_pool_native_trio_damage_propagates_without_publishing_review[corrupt-receipt] PASSED [ 78%]
+tests/test_close_source_pit_warning.py::test_pool_native_trio_damage_propagates_without_publishing_review[missing-manifest] PASSED [ 85%]
+tests/test_close_source_pit_warning.py::test_prior_saved_output_and_receipt_are_unchanged_by_readback PASSED [ 92%]
+tests/test_close_source_pit_warning.py::test_new_missing_source_output_differs_only_by_existing_warning PASSED [100%]
+
+- generated xml file: /workspace/scratch/25c09a595aec/issue28/work/continuation_1325/close_pit/logs/after.xml -
+============================== 14 passed in 0.41s ==============================

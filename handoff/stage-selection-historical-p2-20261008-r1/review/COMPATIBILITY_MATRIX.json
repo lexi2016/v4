@@ -1,0 +1,251 @@
+{
+  "schema_version": "issue28.preimplementation_compatibility_review.v1",
+  "created_utc": "2026-10-08T05:33:29.907509+00:00",
+  "reviewer": "independent_review",
+  "phase": "PREIMPLEMENTATION_CONTRACT_REVIEW",
+  "verdict": "CONTRACT_DEFINED_WITH_NESTED_SCHEMA_INVENTORY_DEPENDENCY",
+  "implementation_review": "NOT_RUN",
+  "new_tests_executed": 0,
+  "scope": "Three original historical P2s in evidence/README section 7; source-only compatibility. Frozen R1 untouched.",
+  "original_sources": [
+    {
+      "path": "baseline/source/canonical/infrastructure/preselection_pool_store.py",
+      "sha256": "028298a05ea44e310487c1159acc8147cf652e23ba716989135b178198795a92",
+      "bytes": 56442,
+      "git_blob_sha1": "cd05bfc4d0004cd57b5a94527ae46c4dd47cc04e",
+      "matches_frozen_manifest": true
+    },
+    {
+      "path": "baseline/source/canonical/ops/build_close_review.py",
+      "sha256": "a361ae023285392ddf3b0e9674a9c506fae79252cc02c15df221ae09ba28e5aa",
+      "bytes": 6601,
+      "git_blob_sha1": "88977853aa8941ac69b25bb026516663e3789faf",
+      "matches_frozen_manifest": true
+    },
+    {
+      "path": "baseline/source/canonical/tests/test_close_review_producer.py",
+      "sha256": "c2501b342755bfa97064ceae1a8df0c936f912c9a635fc88c059d660d62b655f",
+      "bytes": 21578,
+      "git_blob_sha1": "90d7ee09c50b7e472964aeeb597ec6d2a5a93230",
+      "matches_frozen_manifest": true
+    },
+    {
+      "path": "baseline/source/canonical/domains/preselection_materializer.py",
+      "sha256": "50d48cdfc5beaf4f3eeb9cd2eaa93b37684a731bca2fa189f2ba246534b268f8",
+      "bytes": 19924,
+      "git_blob_sha1": "d0f2cda536ae243746c59ded5f4012ee01607e71",
+      "matches_frozen_manifest": true
+    },
+    {
+      "path": "baseline/source/canonical/tests/test_hk_prior_observation_source_binding.py",
+      "sha256": "6a48bd3357a97690d5886c03dff9e31fc84ae1a0357087bcca3f4168841cd930",
+      "bytes": 21557,
+      "git_blob_sha1": "b38fdb014d41d60caba969dc55dda910d28c2d82",
+      "matches_frozen_manifest": true
+    }
+  ],
+  "cases": [
+    {
+      "id": "C01",
+      "case": "Equal-date observation and valid split dates",
+      "expected": "ACCEPT historical pool validation when each provenance source date is <= target/trade date, including equality. Keep signal/nested/source identity bindings. Do not add a strict D-1 rule or require eligibility date == price date.",
+      "focused_acceptance": "Both historical schemas: equality for each source-date field, both equal, and existing split fixture remain valid.",
+      "evidence": [
+        "baseline/source/canonical/infrastructure/preselection_pool_store.py:355-375",
+        "baseline/source/canonical/infrastructure/preselection_pool_store.py:1179-1185",
+        "baseline/source/canonical/tests/test_close_review_producer.py:27-124",
+        "evidence/README.md:118"
+      ]
+    },
+    {
+      "id": "C02",
+      "case": "Future provenance dates",
+      "expected": "REJECT either eligibility_source_date or price_signal_date later than target, even when every nested date, source digest and run binding is otherwise consistent.",
+      "focused_acceptance": "One field future at a time for both schemas; use correctly bound payloads so the new upper-bound check is what rejects. Optional target_date absence still has trade_date as bound.",
+      "evidence": [
+        "baseline/source/canonical/infrastructure/preselection_pool_store.py:355-375",
+        "baseline/source/canonical/infrastructure/preselection_pool_store.py:1179-1185",
+        "evidence/README.md:118"
+      ]
+    },
+    {
+      "id": "C03",
+      "case": "Late capture remains historical recovery",
+      "expected": "ACCEPT the existing valid timezone-bearing late capture in the historical store; retain HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM and false safety/natural flags. This gives no Stage/PIT acceptance.",
+      "focused_acceptance": "Original as-of fixture target 20260930 with capture 2026-10-02T14:02:56+08:00 passes unchanged. Invalid/naive timestamps still reject. Do not modify captured_at.",
+      "evidence": [
+        "baseline/source/canonical/tests/test_close_review_producer.py:81-124",
+        "baseline/source/canonical/tests/test_close_review_producer.py:451-452",
+        "baseline/source/canonical/infrastructure/preselection_pool_store.py:290-298",
+        "baseline/source/canonical/infrastructure/preselection_pool_store.py:376-397",
+        "baseline/source/canonical/ops/build_close_review.py:146-149",
+        "baseline/source/canonical/tests/test_hk_prior_observation_source_binding.py:532-566"
+      ]
+    },
+    {
+      "id": "C04",
+      "case": "Known nested required and optional fields",
+      "expected": "Preserve the current minimum required fields and valid optional fields in exact versioned eligibility_asof and price_recovery objects. Do not derive the full optional allowlist from the minimal fixture.",
+      "focused_acceptance": "Minimal original fixture must pass; any later supported allowlist must preserve full pinned producer/recovery examples and optional omissions. Implementation deferred because full schema/producer bytes are not supplied.",
+      "evidence": [
+        "baseline/source/canonical/infrastructure/preselection_pool_store.py:190-217",
+        "baseline/source/canonical/infrastructure/preselection_pool_store.py:364-397",
+        "baseline/source/canonical/tests/test_close_review_producer.py:103-123",
+        "baseline/source/canonical/domains/preselection_materializer.py:195-234"
+      ]
+    },
+    {
+      "id": "C05",
+      "case": "Unknown nested object fields",
+      "expected": "REJECT an unregistered key in either known versioned nested object. Preserve existing schema/version/date/SHA and false-flag checks.",
+      "focused_acceptance": "Deferred until complete schema inventory is supplied. Then insert unknown scalar, mapping and list keys into each versioned object independently; do not change the already-strict top-level contract.",
+      "evidence": [
+        "baseline/source/canonical/infrastructure/preselection_pool_store.py:221-250",
+        "baseline/source/canonical/infrastructure/preselection_pool_store.py:314-322",
+        "baseline/source/canonical/infrastructure/preselection_pool_store.py:364-397",
+        "baseline/source/canonical/tests/test_close_review_producer.py:474-477",
+        "evidence/README.md:118"
+      ]
+    },
+    {
+      "id": "C06",
+      "case": "Open source-input digest maps",
+      "expected": "ACCEPT arbitrary string source names in source_input_sha256; reject empty maps, non-string names and invalid/non-string digest values by the existing hash contract. Do not apply nested object-key allowlists to these data keys.",
+      "focused_acceptance": "At least two new source labels with valid digests pass; invalid digest/value/type still rejects. Preserve existing digest formats.",
+      "evidence": [
+        "baseline/source/canonical/infrastructure/preselection_pool_store.py:253-278",
+        "baseline/source/canonical/tests/test_close_review_producer.py:114-122"
+      ]
+    },
+    {
+      "id": "C07",
+      "case": "Legacy artifact without historical provenance",
+      "expected": "Keep generic v1 artifacts readable in their original wire shape; lineage fields remain optional. Absence does not prove historical PIT availability.",
+      "focused_acceptance": "Real-store readback equals original payload and artifact/receipt bytes; no injected provenance, capture time, source hash or flags. Existing legacy close-review metrics remain usable.",
+      "evidence": [
+        "baseline/source/canonical/infrastructure/preselection_pool_store.py:71-92",
+        "baseline/source/canonical/infrastructure/preselection_pool_store.py:301-307",
+        "baseline/source/canonical/tests/test_close_review_producer.py:369-440"
+      ]
+    },
+    {
+      "id": "C08",
+      "case": "Missing source evidence in close-review output",
+      "expected": "Use the existing uncertainty reason when historical_provenance is present OR, with provenance absent, either source_manifest_sha256 or source_receipt_sha256 is missing. Complete nonhistorical SHA pair keeps existing output.",
+      "focused_acceptance": "Both missing, each missing independently, complete pair, and historical branch. Marker appears once and survives real ReviewStore readback; unchanged scores, counts, status logic and false safety flags. No date-specific 20260825 branch.",
+      "evidence": [
+        "baseline/source/canonical/ops/build_close_review.py:139-154",
+        "baseline/source/canonical/tests/test_close_review_producer.py:429-440",
+        "evidence/README.md:118"
+      ]
+    },
+    {
+      "id": "C09",
+      "case": "Exact absent-pool sentinel versus corrupt pool",
+      "expected": "Only FileNotFoundError with filename None and args exactly (hkconnect_d1_top100,) becomes a model-source gap. Other read/parse/contract errors propagate before review publication.",
+      "focused_acceptance": "Exact absent pool retains MODEL_0_2_SOURCE_MISSING and 0 model rows plus uncertainty; missing manifest/receipt, bad JSON, wrong receipt or provenance errors never become an empty successful model.",
+      "evidence": [
+        "baseline/source/canonical/ops/build_close_review.py:127-138",
+        "baseline/source/canonical/tests/test_close_review_producer.py:490-547"
+      ]
+    },
+    {
+      "id": "C10",
+      "case": "Preserve source artifact, receipt and manifest",
+      "expected": "Validation and close-review generation do not rewrite source pool bytes, its receipt or its manifest entry. Rejecting a newly disallowed existing artifact leaves the historical evidence intact.",
+      "focused_acceptance": "Hash source trio before/after successful reads, marker generation and rejection. Existing idempotent materialization/conflict behavior remains. No recovery or backfill call introduced.",
+      "evidence": [
+        "baseline/source/canonical/infrastructure/preselection_pool_store.py:549-601",
+        "baseline/source/canonical/ops/build_close_review.py:125-154",
+        "evidence/README.md:116-118"
+      ]
+    },
+    {
+      "id": "C11",
+      "case": "Existing close-review publication contract",
+      "expected": "The unchanged explicit ReviewStore publication path may create or supersede a synthetic review under its existing expected-SHA contract; it does not authorize rerunning or overwriting actual historical outputs.",
+      "focused_acceptance": "Marker persists after publication; current review readback/errors and expected-SHA behavior remain unchanged. Do not require a new publication/store schema or broad archival redesign for this P2.",
+      "evidence": [
+        "baseline/source/canonical/ops/build_close_review.py:150-154",
+        "baseline/source/canonical/tests/test_close_review_producer.py:279-339"
+      ]
+    },
+    {
+      "id": "C12",
+      "case": "Evidence limits and downstream gates",
+      "expected": "Source/test results can demonstrate the missing-evidence class, not restore Aug25/Sep30/Oct7 data or verify natural/PIT execution. Stage validation stays unchanged.",
+      "focused_acceptance": "Report all actual data, current-owner integration, Mac, Stage canary, API/UI and natural execution as NOT_RUN/CANNOT_CONFIRM; preserve frozen R1.",
+      "evidence": [
+        "evidence/README.md:114-118",
+        "evidence/README.md:128-148",
+        "baseline/source/canonical/tests/test_hk_prior_observation_source_binding.py:532-566",
+        "work/continuation_1325/IMPLEMENTATION_PLAN.md:1-33"
+      ]
+    }
+  ],
+  "known_nested_fields": {
+    "eligibility_asof": {
+      "required_by_original_validator": [
+        "schema_version",
+        "source_date",
+        "captured_at"
+      ],
+      "known_optional_in_supplied_fixture_or_consumers": [
+        "source_sha256",
+        "natural_verified",
+        "production_allowed",
+        "buy_gate_updated",
+        "orders_sent",
+        "source_role",
+        "validity"
+      ]
+    },
+    "price_recovery": {
+      "required_by_original_validator": [
+        "schema_version",
+        "source_date"
+      ],
+      "known_optional_in_supplied_fixture_or_consumers": [
+        "source_input_sha256",
+        "source_sha256",
+        "natural_verified",
+        "production_allowed",
+        "buy_gate_updated",
+        "orders_sent",
+        "provider",
+        "adjustment",
+        "volume_unit_status"
+      ]
+    },
+    "inventory_status": "The two supplied recovery tests do not define the nested objects. test_hk_expected_missing_recovery.py:22-33 points to external Mac ACTIVE_BINDINGS, source archive and local_fix/roots/shared_package. No complete schema inventory is established; keep the unknown-field P2 unresolved rather than apply a fixture-only allowlist."
+  },
+  "not_run": [
+    "Any after-candidate independent review or execution",
+    "R1 suites (deliberately not repeated)",
+    "Actual historical Aug25/Sep30/Oct7 input/output reproduction",
+    "Current Mac owner/dependency closure or installation",
+    "Live data writes, services, Stage/API/UI or natural execution",
+    "Comprehensive PIT certification"
+  ],
+  "early_risks_sent_to_parent": [
+    "Do not reject equality or late historical capture.",
+    "Do not confuse optional schema metadata with required fields or open digest-map keys.",
+    "Preserve strict Stage split-date capture gate separately.",
+    "Only exact absent-pool sentinel is a source gap; corruption must propagate."
+  ],
+  "nested_schema_implementation_status": "DEFERRED_MISSING_AUTHORITATIVE_FIELD_INVENTORY",
+  "additional_read_only_references": [
+    {
+      "path": "work/continuation_1325/historical_validation/references/tests/test_hk_expected_missing_recovery.py",
+      "sha256": "6f419e5b0457233ad587b6455ebb12594c807073d92129c046341518b7d0ebab",
+      "bytes": 15931,
+      "review": "read-only reference; inspected for nested-schema definitions; not executed"
+    },
+    {
+      "path": "work/continuation_1325/historical_validation/references/tests/test_hk_settled_pool_recovery_20261002.py",
+      "sha256": "36932ae677b7117bc42926a5bb14dce98f9a76d77fa9f1d62bedd0623a5f43ca",
+      "bytes": 13866,
+      "review": "read-only reference; inspected for nested-schema definitions; not executed"
+    }
+  ]
+}

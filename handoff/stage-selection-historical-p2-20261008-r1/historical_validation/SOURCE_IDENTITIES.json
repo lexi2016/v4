@@ -1,0 +1,212 @@
+{
+  "baseline_commit": "00524e9050fe212f87911b56eea1c2db719dd94b",
+  "scope": "Date upper-bound candidate only. Nested-key P2 remains deferred. No historical data or frozen delivery edited.",
+  "files": [
+    {
+      "path": "after/infrastructure/preselection_pool_store.py",
+      "bytes": 56638,
+      "sha256": "9f1606a977d36c063d9c650e54b9861947eb7b692e779837852e3831b7814bef",
+      "git_blob_sha1": "231c271f3d9333566a7d81981a34d7f2b16bedb7",
+      "role": "ISOLATED_DATE_VALIDATOR_CANDIDATE"
+    },
+    {
+      "path": "before/infrastructure/preselection_pool_store.py",
+      "bytes": 56442,
+      "sha256": "028298a05ea44e310487c1159acc8147cf652e23ba716989135b178198795a92",
+      "git_blob_sha1": "cd05bfc4d0004cd57b5a94527ae46c4dd47cc04e",
+      "role": "unchanged local pinned copy for portable offline validation",
+      "source_repo_path": "handoff/stage-selection-issues-20261008/source/canonical/infrastructure/preselection_pool_store.py"
+    },
+    {
+      "path": "conftest.py",
+      "bytes": 696,
+      "sha256": "4bc4f08927690b1450235fa4cc7f19def9c316b10eb6d501412daef485e12775",
+      "git_blob_sha1": "44786d632c40ead327b60824b12fde61459aa466",
+      "role": "FOCUSED_OFFLINE_TEST_OR_PATCH"
+    },
+    {
+      "path": "frozen_fixtures.py",
+      "bytes": 2535,
+      "sha256": "9bc1f87691b0787c27c4e0c73bf62c35192d2fc22d88c550abaaceb28186d5dc",
+      "git_blob_sha1": "a8dee4cec1af186fd2829b871f85e9d1885702d2",
+      "role": "FOCUSED_OFFLINE_TEST_OR_PATCH"
+    },
+    {
+      "path": "historical_date_upper_bound.patch",
+      "bytes": 565,
+      "sha256": "74b1d4fbd7352a25dd2e80f28c855502d0d0d98a62c7c9ba514a83a243565915",
+      "git_blob_sha1": "bd63af25670c4d590dca4f1648d3dec503bd2edc",
+      "role": "FOCUSED_OFFLINE_TEST_OR_PATCH"
+    },
+    {
+      "path": "probes/test_nested_unknown_keys_contract_gap.py",
+      "bytes": 995,
+      "sha256": "6ece9f3dc7619ce3e8651cfef346eef4dec74c954f80daeab7c989637cd7b119",
+      "git_blob_sha1": "635a0d4035f25deda44299ba55ee09d099205ea0",
+      "role": "FOCUSED_OFFLINE_TEST_OR_PATCH"
+    },
+    {
+      "path": "pytest.ini",
+      "bytes": 41,
+      "sha256": "6a96ba0e2d5a8296fb90f474da9d2f0173d3e41eba18965513f711104155f913",
+      "git_blob_sha1": "0bc51309cf831602b0e926277d12287058aa7435",
+      "role": "FOCUSED_OFFLINE_TEST_OR_PATCH"
+    },
+    {
+      "path": "references/shared_data/hk_d1_evidence.py",
+      "bytes": 4335,
+      "sha256": "08c499732300a0e6026cda7ec7c2257807c542cd989f90a9427285dc34b73850",
+      "git_blob_sha1": "7d53e2dce47b1f33d627eac79d26b7ccef6612c9",
+      "source_repo_path": "handoff/v4-running-source-20261005/canonical/upstreams/v3_shared_data/shared_data/hk_d1_evidence.py",
+      "role": "fresh fetched read-only targeted schema investigation"
+    },
+    {
+      "path": "references/shared_data/hk_daily_supplement.py",
+      "bytes": 32662,
+      "sha256": "fa7dcbce4ee026b0a02c47220820d0407af183553d3304afcc5db425dce33cbd",
+      "git_blob_sha1": "4f215a304c55987ccd2e8ef3755232b4aa9fc477",
+      "source_repo_path": "handoff/v4-running-source-20261005/canonical/upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "role": "fresh fetched read-only targeted schema investigation"
+    },
+    {
+      "path": "references/tests/test_close_review_producer.py",
+      "bytes": 21578,
+      "sha256": "c2501b342755bfa97064ceae1a8df0c936f912c9a635fc88c059d660d62b655f",
+      "git_blob_sha1": "90d7ee09c50b7e472964aeeb597ec6d2a5a93230",
+      "role": "unchanged local pinned copy for portable offline validation"
+    },
+    {
+      "path": "references/tests/test_hk_expected_missing_recovery.py",
+      "bytes": 15931,
+      "sha256": "6f419e5b0457233ad587b6455ebb12594c807073d92129c046341518b7d0ebab",
+      "git_blob_sha1": "b5ef9b68a31fa3c471e5bbd836d27cf1b615c357",
+      "source_repo_path": "handoff/v4-running-source-20261005/canonical/tests/test_hk_expected_missing_recovery.py",
+      "role": "fresh fetched read-only recovery contract investigation; external-path integration tests not executed"
+    },
+    {
+      "path": "references/tests/test_hk_settled_pool_recovery_20261002.py",
+      "bytes": 13866,
+      "sha256": "36932ae677b7117bc42926a5bb14dce98f9a76d77fa9f1d62bedd0623a5f43ca",
+      "git_blob_sha1": "ebe8e1e1e4882e577f1e765f2eca67f283cdcce1",
+      "source_repo_path": "handoff/v4-running-source-20261005/canonical/tests/test_hk_settled_pool_recovery_20261002.py",
+      "role": "fresh fetched read-only recovery contract investigation; external-path integration tests not executed"
+    },
+    {
+      "path": "run_validation.py",
+      "bytes": 5835,
+      "sha256": "5d2750d3929c2d40be1e4058dd379e848e722aaa836f192e9dc38ca944c1fe7e",
+      "git_blob_sha1": "9a79acdc08785b14aa0bf1b377c7d03710109d18",
+      "role": "FOCUSED_OFFLINE_TEST_OR_PATCH"
+    },
+    {
+      "path": "support/infrastructure/data_store.py",
+      "bytes": 10704,
+      "sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+      "git_blob_sha1": "c1cc44f6d6e70a363cf5722b145a805ff73e1e4d",
+      "source_repo_path": "handoff/v4-running-source-20261005/canonical/infrastructure/data_store.py",
+      "role": "pinned unchanged import support; copied from completed local evidence"
+    },
+    {
+      "path": "support/infrastructure/interprocess_lock.py",
+      "bytes": 7514,
+      "sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+      "git_blob_sha1": "a97e733725834235fbcc9129639ae198fa8770cd",
+      "source_repo_path": "handoff/v4-running-source-20261005/canonical/infrastructure/interprocess_lock.py",
+      "role": "pinned unchanged import support; copied from completed local evidence"
+    },
+    {
+      "path": "support/infrastructure/isolated_package_loader.py",
+      "bytes": 6946,
+      "sha256": "c714d4b95c03da061f592e076cd12188dbeefcd9f0fae7aeaae18c0450e915eb",
+      "git_blob_sha1": "c351e33930bb5e7b8321940ec88afc42c34038fc",
+      "source_repo_path": "handoff/v4-running-source-20261005/canonical/infrastructure/isolated_package_loader.py",
+      "role": "pinned unchanged import support; copied from completed local evidence"
+    },
+    {
+      "path": "support/infrastructure/market_time.py",
+      "bytes": 960,
+      "sha256": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+      "git_blob_sha1": "bcac1bd49b6861d60f8820e0bbc7dd7fa42c8fd0",
+      "source_repo_path": "handoff/v4-running-source-20261005/canonical/infrastructure/market_time.py",
+      "role": "pinned unchanged import support; copied from completed local evidence"
+    },
+    {
+      "path": "support/infrastructure/owned_io.py",
+      "bytes": 9354,
+      "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+      "git_blob_sha1": "1b6666551980c44ebb0b05f133c189909d79c7df",
+      "source_repo_path": "handoff/v4-running-source-20261005/canonical/infrastructure/owned_io.py",
+      "role": "pinned unchanged import support; copied from completed local evidence"
+    },
+    {
+      "path": "support/infrastructure/owned_path.py",
+      "bytes": 2251,
+      "sha256": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+      "git_blob_sha1": "2d9873a41c09a05c62975210a13a59bf350a1a5a",
+      "source_repo_path": "handoff/v4-running-source-20261005/canonical/infrastructure/owned_path.py",
+      "role": "pinned unchanged import support; copied from completed local evidence"
+    },
+    {
+      "path": "support/infrastructure/preselection_pool_readers.py",
+      "bytes": 5432,
+      "sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+      "git_blob_sha1": "da6a4cd1f25095a45ebeb356ac58c0e6b5ecd4da",
+      "source_repo_path": "handoff/v4-running-source-20261005/canonical/infrastructure/preselection_pool_readers.py",
+      "role": "pinned unchanged import support; copied from completed local evidence"
+    },
+    {
+      "path": "support/infrastructure/preselection_pool_sources.py",
+      "bytes": 5798,
+      "sha256": "cc683561201453e3f7ca975b2b7cdb6a3836b1ecbe63e001a5abd181f38813d6",
+      "git_blob_sha1": "12790ab2e2815097762d4aa21cd63f2ea5cc76a2",
+      "source_repo_path": "handoff/v4-running-source-20261005/canonical/infrastructure/preselection_pool_sources.py",
+      "role": "pinned unchanged import support; copied from completed local evidence"
+    },
+    {
+      "path": "support/infrastructure/preselection_pool_store.py",
+      "bytes": 56442,
+      "sha256": "028298a05ea44e310487c1159acc8147cf652e23ba716989135b178198795a92",
+      "git_blob_sha1": "cd05bfc4d0004cd57b5a94527ae46c4dd47cc04e",
+      "source_repo_path": "handoff/stage-selection-issues-20261008/source/canonical/infrastructure/preselection_pool_store.py",
+      "role": "pinned unchanged import support; copied from completed local evidence"
+    },
+    {
+      "path": "support/infrastructure/preselection_pool_transactions.py",
+      "bytes": 15569,
+      "sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+      "git_blob_sha1": "6b8ade94068811f6e46fe2d1233938eb9f4c0da5",
+      "source_repo_path": "handoff/v4-running-source-20261005/canonical/infrastructure/preselection_pool_transactions.py",
+      "role": "pinned unchanged import support; copied from completed local evidence"
+    },
+    {
+      "path": "support/infrastructure/scope_gate.py",
+      "bytes": 16258,
+      "sha256": "5620d1ee89fbae998d4c801c2a7c4cffac50f890ad0b6951f99230c591dcff68",
+      "git_blob_sha1": "33539d4b64b5374f8b1b9839ae30c494e30fb5ae",
+      "source_repo_path": "handoff/v4-running-source-20261005/canonical/infrastructure/scope_gate.py",
+      "role": "pinned unchanged import support; copied from completed local evidence"
+    },
+    {
+      "path": "support/infrastructure/trading_safety.py",
+      "bytes": 2597,
+      "sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+      "git_blob_sha1": "5f10cfb51cb3dacd327447475964e0f6867ee89f",
+      "source_repo_path": "handoff/v4-running-source-20261005/canonical/infrastructure/trading_safety.py",
+      "role": "pinned unchanged import support; copied from completed local evidence"
+    },
+    {
+      "path": "tests/test_compatibility.py",
+      "bytes": 2991,
+      "sha256": "a17ee5ab909c2288c35e960b29d14d4d739de58ffa608b90b370a74a16750b89",
+      "git_blob_sha1": "d2931aaf22c71ddbc30a21aa3f5796c93c4b6046",
+      "role": "FOCUSED_OFFLINE_TEST_OR_PATCH"
+    },
+    {
+      "path": "tests/test_date_upper_bound.py",
+      "bytes": 1313,
+      "sha256": "1169f92f48286b418bf47937fd02b632d3beedb8940fa1c7fccea6b8b48796c7",
+      "git_blob_sha1": "8e54bbd716daaa86359b7d63dadf669ef7a42b30",
+      "role": "FOCUSED_OFFLINE_TEST_OR_PATCH"
+    }
+  ]
+}

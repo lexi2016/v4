@@ -1,0 +1,185 @@
+{
+  "scope": "Close-review missing source/PIT marker continuation; all data fixtures synthetic",
+  "files": [
+    {
+      "path": "support/contracts/stages.py",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/contracts/stages.py",
+      "ref": "00524e9050fe212f87911b56eea1c2db719dd94b",
+      "bytes": 2036,
+      "sha256": "d0ac1771a1005888e53e9a322da65f959cfbcbcc665357b8783d5eb4eda9c6df",
+      "git_blob_sha1": "41bf1ba5de290c23a22695d9454b4991976c3e39",
+      "role": "HISTORIC_TEST_SUPPORT_NOT_CURRENT_OWNER"
+    },
+    {
+      "path": "support/domains/close_review.py",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/domains/close_review.py",
+      "ref": "00524e9050fe212f87911b56eea1c2db719dd94b",
+      "bytes": 11014,
+      "sha256": "24dd8ee1394844d464b06b2b46053d3551f9a088acede1031b5f18bf8ee997ab",
+      "git_blob_sha1": "f5714c41e22e50b5e48d2137548a0fe134a24bfa",
+      "role": "HISTORIC_TEST_SUPPORT_NOT_CURRENT_OWNER"
+    },
+    {
+      "path": "support/infrastructure/data_store.py",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/infrastructure/data_store.py",
+      "ref": "00524e9050fe212f87911b56eea1c2db719dd94b",
+      "bytes": 10704,
+      "sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+      "git_blob_sha1": "c1cc44f6d6e70a363cf5722b145a805ff73e1e4d",
+      "role": "HISTORIC_TEST_SUPPORT_NOT_CURRENT_OWNER"
+    },
+    {
+      "path": "support/infrastructure/hkconnect_close_store.py",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/infrastructure/hkconnect_close_store.py",
+      "ref": "00524e9050fe212f87911b56eea1c2db719dd94b",
+      "bytes": 4178,
+      "sha256": "aea05a0ec8b4b42e6c140715fb1bf80ffcf49ded1f25f5bb59bc3c952bce4bf8",
+      "git_blob_sha1": "86f75687daf761f022379f56757c433fc794043a",
+      "role": "HISTORIC_TEST_SUPPORT_NOT_CURRENT_OWNER"
+    },
+    {
+      "path": "support/infrastructure/interprocess_lock.py",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/infrastructure/interprocess_lock.py",
+      "ref": "00524e9050fe212f87911b56eea1c2db719dd94b",
+      "bytes": 7514,
+      "sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+      "git_blob_sha1": "a97e733725834235fbcc9129639ae198fa8770cd",
+      "role": "HISTORIC_TEST_SUPPORT_NOT_CURRENT_OWNER"
+    },
+    {
+      "path": "support/infrastructure/market_time.py",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/infrastructure/market_time.py",
+      "ref": "00524e9050fe212f87911b56eea1c2db719dd94b",
+      "bytes": 960,
+      "sha256": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+      "git_blob_sha1": "bcac1bd49b6861d60f8820e0bbc7dd7fa42c8fd0",
+      "role": "HISTORIC_TEST_SUPPORT_NOT_CURRENT_OWNER"
+    },
+    {
+      "path": "support/infrastructure/owned_io.py",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/infrastructure/owned_io.py",
+      "ref": "00524e9050fe212f87911b56eea1c2db719dd94b",
+      "bytes": 9354,
+      "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+      "git_blob_sha1": "1b6666551980c44ebb0b05f133c189909d79c7df",
+      "role": "HISTORIC_TEST_SUPPORT_NOT_CURRENT_OWNER"
+    },
+    {
+      "path": "support/infrastructure/owned_path.py",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/infrastructure/owned_path.py",
+      "ref": "00524e9050fe212f87911b56eea1c2db719dd94b",
+      "bytes": 2251,
+      "sha256": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+      "git_blob_sha1": "2d9873a41c09a05c62975210a13a59bf350a1a5a",
+      "role": "HISTORIC_TEST_SUPPORT_NOT_CURRENT_OWNER"
+    },
+    {
+      "path": "support/infrastructure/preselection_pool_readers.py",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/infrastructure/preselection_pool_readers.py",
+      "ref": "00524e9050fe212f87911b56eea1c2db719dd94b",
+      "bytes": 5432,
+      "sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1",
+      "git_blob_sha1": "da6a4cd1f25095a45ebeb356ac58c0e6b5ecd4da",
+      "role": "HISTORIC_TEST_SUPPORT_NOT_CURRENT_OWNER"
+    },
+    {
+      "path": "support/infrastructure/preselection_pool_sources.py",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/infrastructure/preselection_pool_sources.py",
+      "ref": "00524e9050fe212f87911b56eea1c2db719dd94b",
+      "bytes": 5798,
+      "sha256": "cc683561201453e3f7ca975b2b7cdb6a3836b1ecbe63e001a5abd181f38813d6",
+      "git_blob_sha1": "12790ab2e2815097762d4aa21cd63f2ea5cc76a2",
+      "role": "HISTORIC_TEST_SUPPORT_NOT_CURRENT_OWNER"
+    },
+    {
+      "path": "support/infrastructure/preselection_pool_transactions.py",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/infrastructure/preselection_pool_transactions.py",
+      "ref": "00524e9050fe212f87911b56eea1c2db719dd94b",
+      "bytes": 15569,
+      "sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+      "git_blob_sha1": "6b8ade94068811f6e46fe2d1233938eb9f4c0da5",
+      "role": "HISTORIC_TEST_SUPPORT_NOT_CURRENT_OWNER"
+    },
+    {
+      "path": "support/infrastructure/review_store.py",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/infrastructure/review_store.py",
+      "ref": "00524e9050fe212f87911b56eea1c2db719dd94b",
+      "bytes": 7378,
+      "sha256": "12278920fe02965163916ac9e1bc8143fb42d7aa4e05e8c90cf02afb9e5d399c",
+      "git_blob_sha1": "b2dc5430823bba1775139d3eae37b21381b7e080",
+      "role": "HISTORIC_TEST_SUPPORT_NOT_CURRENT_OWNER"
+    },
+    {
+      "path": "support/infrastructure/scope_gate.py",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/infrastructure/scope_gate.py",
+      "ref": "00524e9050fe212f87911b56eea1c2db719dd94b",
+      "bytes": 16258,
+      "sha256": "5620d1ee89fbae998d4c801c2a7c4cffac50f890ad0b6951f99230c591dcff68",
+      "git_blob_sha1": "33539d4b64b5374f8b1b9839ae30c494e30fb5ae",
+      "role": "HISTORIC_TEST_SUPPORT_NOT_CURRENT_OWNER"
+    },
+    {
+      "path": "support/infrastructure/stage_store.py",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/infrastructure/stage_store.py",
+      "ref": "00524e9050fe212f87911b56eea1c2db719dd94b",
+      "bytes": 24016,
+      "sha256": "00d3dca6b90f86b7a6f6707f3150f2189e2eb15fcbb7eb5198db4ffd5e0392c4",
+      "git_blob_sha1": "2cc6e6fab3c3ae83f3763349151e9c0b964dfbc6",
+      "role": "HISTORIC_TEST_SUPPORT_NOT_CURRENT_OWNER"
+    },
+    {
+      "path": "support/infrastructure/trading_safety.py",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/infrastructure/trading_safety.py",
+      "ref": "00524e9050fe212f87911b56eea1c2db719dd94b",
+      "bytes": 2597,
+      "sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+      "git_blob_sha1": "5f10cfb51cb3dacd327447475964e0f6867ee89f",
+      "role": "HISTORIC_TEST_SUPPORT_NOT_CURRENT_OWNER"
+    },
+    {
+      "path": "support/tests/test_close_review_verified_inputs.py",
+      "repository_path": "handoff/v4-running-source-20261005/canonical/tests/test_close_review_verified_inputs.py",
+      "ref": "00524e9050fe212f87911b56eea1c2db719dd94b",
+      "bytes": 5156,
+      "sha256": "2be3e11c169faf458055d9767dbe6cf85b01ff8e3b9f91ee296e18473b826d50",
+      "git_blob_sha1": "38cc5643fff23235e0a8ef42a31da0b108f88064",
+      "role": "HISTORIC_TEST_SUPPORT_NOT_CURRENT_OWNER"
+    },
+    {
+      "path": "before/canonical/infrastructure/preselection_pool_store.py",
+      "repository_path": "handoff/stage-selection-issues-20261008/source/canonical/infrastructure/preselection_pool_store.py",
+      "ref": "00524e9050fe212f87911b56eea1c2db719dd94b",
+      "bytes": 56442,
+      "sha256": "028298a05ea44e310487c1159acc8147cf652e23ba716989135b178198795a92",
+      "git_blob_sha1": "cd05bfc4d0004cd57b5a94527ae46c4dd47cc04e",
+      "role": "EXACT_FROZEN_CANONICAL_BASELINE"
+    },
+    {
+      "path": "before/canonical/ops/build_close_review.py",
+      "repository_path": "handoff/stage-selection-issues-20261008/source/canonical/ops/build_close_review.py",
+      "ref": "00524e9050fe212f87911b56eea1c2db719dd94b",
+      "bytes": 6601,
+      "sha256": "a361ae023285392ddf3b0e9674a9c506fae79252cc02c15df221ae09ba28e5aa",
+      "git_blob_sha1": "88977853aa8941ac69b25bb026516663e3789faf",
+      "role": "EXACT_FROZEN_CANONICAL_BASELINE"
+    },
+    {
+      "path": "before/canonical/tests/test_close_review_producer.py",
+      "repository_path": "handoff/stage-selection-issues-20261008/source/canonical/tests/test_close_review_producer.py",
+      "ref": "00524e9050fe212f87911b56eea1c2db719dd94b",
+      "bytes": 21578,
+      "sha256": "c2501b342755bfa97064ceae1a8df0c936f912c9a635fc88c059d660d62b655f",
+      "git_blob_sha1": "90d7ee09c50b7e472964aeeb597ec6d2a5a93230",
+      "role": "EXACT_FROZEN_CANONICAL_BASELINE"
+    },
+    {
+      "path": "after/canonical/ops/build_close_review.py",
+      "source_baseline": "before/canonical/ops/build_close_review.py",
+      "bytes": 6843,
+      "sha256": "59ac7798bcb1d54bbd11bbc61803997f36881a29cd1b82ecb663166791d5e0f2",
+      "git_blob_sha1": "d1662276cd5020533831cb866e7f05eb7183e7e6",
+      "role": "CANDIDATE_ONLY_NO_DEPLOY"
+    }
+  ],
+  "import_seam": "stage_center.consumer import sentinel only; fixtures use stage_selection_root=None and no StageSelectionConsumer executes."
+}

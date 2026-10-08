@@ -1,0 +1,91 @@
+{
+  "scope": "TEMPORARY_SOURCE_PATCH_REPLAY_ONLY",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "records": [
+    {
+      "name": "historical_source_date_upper_bound",
+      "owner_relative_path": "infrastructure/preselection_pool_store.py",
+      "before_sha256": "028298a05ea44e310487c1159acc8147cf652e23ba716989135b178198795a92",
+      "after_sha256": "9f1606a977d36c063d9c650e54b9861947eb7b692e779837852e3831b7814bef",
+      "patch_sha256": "74b1d4fbd7352a25dd2e80f28c855502d0d0d98a62c7c9ba514a83a243565915",
+      "runs": [
+        {
+          "direction": "forward",
+          "command": [
+            "patch",
+            "-t",
+            "-F",
+            "0",
+            "-p1",
+            "-i",
+            "/workspace/scratch/25c09a595aec/issue28/delivery_historical_p2/historical_validation/historical_date_upper_bound.patch"
+          ],
+          "exit_code": 0,
+          "output": "patching file infrastructure/preselection_pool_store.py\n",
+          "exact_expected_bytes": true
+        },
+        {
+          "direction": "reverse",
+          "command": [
+            "patch",
+            "-t",
+            "-F",
+            "0",
+            "-p1",
+            "-i",
+            "/workspace/scratch/25c09a595aec/issue28/delivery_historical_p2/historical_validation/historical_date_upper_bound.patch",
+            "-R"
+          ],
+          "exit_code": 0,
+          "output": "patching file infrastructure/preselection_pool_store.py\n",
+          "exact_expected_bytes": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "close_source_pit_warning",
+      "owner_relative_path": "ops/build_close_review.py",
+      "before_sha256": "a361ae023285392ddf3b0e9674a9c506fae79252cc02c15df221ae09ba28e5aa",
+      "after_sha256": "59ac7798bcb1d54bbd11bbc61803997f36881a29cd1b82ecb663166791d5e0f2",
+      "patch_sha256": "0069476eaf4d73be6cda4ede837cabb8c3e02d55c0934142aee3e697dec7fa5b",
+      "runs": [
+        {
+          "direction": "forward",
+          "command": [
+            "patch",
+            "-t",
+            "-F",
+            "0",
+            "-p1",
+            "-i",
+            "/workspace/scratch/25c09a595aec/issue28/delivery_historical_p2/close_pit/close_pit.patch"
+          ],
+          "exit_code": 0,
+          "output": "patching file ops/build_close_review.py\n",
+          "exact_expected_bytes": true
+        },
+        {
+          "direction": "reverse",
+          "command": [
+            "patch",
+            "-t",
+            "-F",
+            "0",
+            "-p1",
+            "-i",
+            "/workspace/scratch/25c09a595aec/issue28/delivery_historical_p2/close_pit/close_pit.patch",
+            "-R"
+          ],
+          "exit_code": 0,
+          "output": "patching file ops/build_close_review.py\n",
+          "exact_expected_bytes": true
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "Mac_or_business_data_access": false
+}

@@ -1,0 +1,63 @@
+{
+  "schema": "v4.issue28.historical_p2.source_changes.v1",
+  "scope": "Two canonical source candidates, no runtime or business data action",
+  "frozen_source_commit": "00524e9050fe212f87911b56eea1c2db719dd94b",
+  "parent_r1_commit": "d8485e92bed685a1dc38a1f40a05858b9be4765c",
+  "source_root_description": "v4_app working tree at HEAD 55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054 with pre-existing changes",
+  "product_files_changed": 2,
+  "files": [
+    {
+      "repair": "historical_source_date_upper_bound",
+      "canonical_relative_path": "infrastructure/preselection_pool_store.py",
+      "owner_identity": "FROZEN_CANONICAL_ONLY_NOT_CURRENT_RUNTIME",
+      "frozen_repo_path": "handoff/stage-selection-issues-20261008/source/canonical/infrastructure/preselection_pool_store.py",
+      "frozen_commit": "00524e9050fe212f87911b56eea1c2db719dd94b",
+      "before": {
+        "path": "historical_validation/before/infrastructure/preselection_pool_store.py",
+        "bytes": 56442,
+        "sha256": "028298a05ea44e310487c1159acc8147cf652e23ba716989135b178198795a92",
+        "git_blob_sha1": "cd05bfc4d0004cd57b5a94527ae46c4dd47cc04e"
+      },
+      "after": {
+        "path": "historical_validation/after/infrastructure/preselection_pool_store.py",
+        "bytes": 56638,
+        "sha256": "9f1606a977d36c063d9c650e54b9861947eb7b692e779837852e3831b7814bef",
+        "git_blob_sha1": "231c271f3d9333566a7d81981a34d7f2b16bedb7"
+      },
+      "patch": {
+        "path": "historical_validation/historical_date_upper_bound.patch",
+        "bytes": 565,
+        "sha256": "74b1d4fbd7352a25dd2e80f28c855502d0d0d98a62c7c9ba514a83a243565915",
+        "git_blob_sha1": "bd63af25670c4d590dca4f1648d3dec503bd2edc"
+      }
+    },
+    {
+      "repair": "close_source_pit_uncertainty",
+      "canonical_relative_path": "ops/build_close_review.py",
+      "owner_identity": "FROZEN_CANONICAL_ONLY_NOT_CURRENT_RUNTIME",
+      "frozen_repo_path": "handoff/stage-selection-issues-20261008/source/canonical/ops/build_close_review.py",
+      "frozen_commit": "00524e9050fe212f87911b56eea1c2db719dd94b",
+      "before": {
+        "path": "close_pit/before/canonical/ops/build_close_review.py",
+        "bytes": 6601,
+        "sha256": "a361ae023285392ddf3b0e9674a9c506fae79252cc02c15df221ae09ba28e5aa",
+        "git_blob_sha1": "88977853aa8941ac69b25bb026516663e3789faf"
+      },
+      "after": {
+        "path": "close_pit/after/canonical/ops/build_close_review.py",
+        "bytes": 6843,
+        "sha256": "59ac7798bcb1d54bbd11bbc61803997f36881a29cd1b82ecb663166791d5e0f2",
+        "git_blob_sha1": "d1662276cd5020533831cb866e7f05eb7183e7e6"
+      },
+      "patch": {
+        "path": "close_pit/close_pit.patch",
+        "bytes": 792,
+        "sha256": "0069476eaf4d73be6cda4ede837cabb8c3e02d55c0934142aee3e697dec7fa5b",
+        "git_blob_sha1": "f6db6c048ca4c535f9a44d1b216dbb2fee1c3f52"
+      }
+    }
+  ],
+  "nested_unknown_fields": "DEFERRED_PENDING_ORIGINAL_PRODUCER_SCHEMA_AND_OUTPUTS",
+  "Mac_integration": "NOT_RUN",
+  "deployed": false
+}

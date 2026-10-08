@@ -1,0 +1,137 @@
+{
+  "generated_at": "2026-10-08T05:37:17.616912+00:00",
+  "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]",
+  "executable": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "pytest": "9.1.1",
+  "results": [
+    {
+      "mode": "before",
+      "classification": "EXPECTED_DATE_RED",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-o",
+        "cache_dir=/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/before-cache",
+        "--basetemp=/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/before-tmp",
+        "--junitxml=/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/before.xml"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation",
+      "selected_source": "/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/before/infrastructure/preselection_pool_store.py",
+      "selected_source_sha256": "028298a05ea44e310487c1159acc8147cf652e23ba716989135b178198795a92",
+      "pytest_returncode": 1,
+      "tests": 13,
+      "passed": 8,
+      "failed": 5,
+      "failure_names": [
+        "test_future_source_date_is_rejected_before_materialization[asof-eligibility_source_date-20261001]",
+        "test_future_source_date_is_rejected_before_materialization[asof-price_signal_date-20261001]",
+        "test_future_source_date_is_rejected_before_materialization[split-eligibility_source_date-20261008]",
+        "test_future_source_date_is_rejected_before_materialization[split-price_signal_date-20261008]",
+        "test_optional_target_field_does_not_disable_trade_date_upper_bound"
+      ],
+      "errors": [],
+      "skipped": [],
+      "expected_result_observed": true,
+      "log": "/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/before.log",
+      "junit_xml": "/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/before.xml"
+    },
+    {
+      "mode": "after",
+      "classification": "DATE_SUITE_PASS",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-o",
+        "cache_dir=/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/after-cache",
+        "--basetemp=/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/after-tmp",
+        "--junitxml=/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/after.xml"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation",
+      "selected_source": "/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/after/infrastructure/preselection_pool_store.py",
+      "selected_source_sha256": "9f1606a977d36c063d9c650e54b9861947eb7b692e779837852e3831b7814bef",
+      "pytest_returncode": 0,
+      "tests": 13,
+      "passed": 13,
+      "failed": 0,
+      "failure_names": [],
+      "errors": [],
+      "skipped": [],
+      "expected_result_observed": true,
+      "log": "/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/after.log",
+      "junit_xml": "/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/after.xml"
+    },
+    {
+      "mode": "nested_before",
+      "classification": "DEFERRED_P2_REPRODUCED",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-o",
+        "cache_dir=/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/nested_before-cache",
+        "--basetemp=/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/nested_before-tmp",
+        "--junitxml=/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/nested_before.xml",
+        "probes/test_nested_unknown_keys_contract_gap.py"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation",
+      "selected_source": "/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/before/infrastructure/preselection_pool_store.py",
+      "selected_source_sha256": "028298a05ea44e310487c1159acc8147cf652e23ba716989135b178198795a92",
+      "pytest_returncode": 1,
+      "tests": 2,
+      "passed": 0,
+      "failed": 2,
+      "failure_names": [
+        "test_unregistered_nested_object_extension_is_rejected[eligibility_asof]",
+        "test_unregistered_nested_object_extension_is_rejected[price_recovery]"
+      ],
+      "errors": [],
+      "skipped": [],
+      "expected_result_observed": true,
+      "log": "/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/nested_before.log",
+      "junit_xml": "/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/nested_before.xml"
+    },
+    {
+      "mode": "nested_after",
+      "classification": "DEFERRED_P2_REPRODUCED",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-o",
+        "cache_dir=/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/nested_after-cache",
+        "--basetemp=/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/nested_after-tmp",
+        "--junitxml=/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/nested_after.xml",
+        "probes/test_nested_unknown_keys_contract_gap.py"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation",
+      "selected_source": "/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/after/infrastructure/preselection_pool_store.py",
+      "selected_source_sha256": "9f1606a977d36c063d9c650e54b9861947eb7b692e779837852e3831b7814bef",
+      "pytest_returncode": 1,
+      "tests": 2,
+      "passed": 0,
+      "failed": 2,
+      "failure_names": [
+        "test_unregistered_nested_object_extension_is_rejected[eligibility_asof]",
+        "test_unregistered_nested_object_extension_is_rejected[price_recovery]"
+      ],
+      "errors": [],
+      "skipped": [],
+      "expected_result_observed": true,
+      "log": "/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/nested_after.log",
+      "junit_xml": "/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/nested_after.xml"
+    }
+  ],
+  "nested_unknown_key_p2": "DEFERRED_PENDING_ORIGINAL_PRODUCER_SCHEMA_AND_OUTPUTS",
+  "deployed": false
+}

@@ -1,0 +1,207 @@
+{
+  "schema_version": "issue28.historical_p2.independent_final_review.v1",
+  "reviewed_at_utc": "2026-10-08T05:43:46.839365+00:00",
+  "reviewer": "independent_review",
+  "verdict": "PASS_WITH_DEPLOYMENT_GAPS",
+  "verdict_scope": "Only the two supported historical P2 source changes identified below. Nested unknown-key P2 remains unresolved; this is not whole-Issue-28, Mac, data-restoration or deploy approval.",
+  "baseline_commit": "00524e9050fe212f87911b56eea1c2db719dd94b",
+  "products": [
+    {
+      "id": "HIST-P2-DATE",
+      "file": "infrastructure/preselection_pool_store.py",
+      "before": "work/continuation_1325/historical_validation/before/infrastructure/preselection_pool_store.py",
+      "before_sha256": "028298a05ea44e310487c1159acc8147cf652e23ba716989135b178198795a92",
+      "after": "work/continuation_1325/historical_validation/after/infrastructure/preselection_pool_store.py",
+      "after_sha256": "9f1606a977d36c063d9c650e54b9861947eb7b692e779837852e3831b7814bef",
+      "before_bytes": 56442,
+      "after_bytes": 56638,
+      "changed_lines": "363-365",
+      "verdict": "PASS_SOURCE_ONLY",
+      "change": "After canonical source-date validation and signal binding, reject either provenance source date greater than normalized trade_date. The existing outer contract binds optional target_date to trade_date."
+    },
+    {
+      "id": "HIST-P2-CLOSE-PIT",
+      "file": "ops/build_close_review.py",
+      "before": "work/continuation_1325/close_pit/before/canonical/ops/build_close_review.py",
+      "before_sha256": "a361ae023285392ddf3b0e9674a9c506fae79252cc02c15df221ae09ba28e5aa",
+      "after": "work/continuation_1325/close_pit/after/canonical/ops/build_close_review.py",
+      "after_sha256": "59ac7798bcb1d54bbd11bbc61803997f36881a29cd1b82ecb663166791d5e0f2",
+      "before_bytes": 6601,
+      "after_bytes": 6843,
+      "changed_lines": "146-156",
+      "verdict": "PASS_SOURCE_ONLY",
+      "change": "Extend the existing historical PIT-uncertainty branch to a missing source_manifest_sha256 or source_receipt_sha256; append the same reason once. No schema/status/metric/publication or source-read exception change."
+    }
+  ],
+  "environment": {
+    "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]",
+    "executable": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "pytest": "9.1.1"
+  },
+  "findings": [],
+  "new_finding_counts": {
+    "Critical": 0,
+    "Important": 0,
+    "Minor": 0
+  },
+  "validation_counts": {
+    "supplied_unique_cases": 27,
+    "supplied_test_executions": 41,
+    "supplied_repeated_for_combination": 14,
+    "reviewer_authored_unique_cases": 2,
+    "reviewer_authored_executions": 2,
+    "total_unique_cases": 29,
+    "total_passing_executions": 43,
+    "total_failed_executions": 0
+  },
+  "fresh_runs": [
+    {
+      "suite": "Close candidate with frozen PoolStore",
+      "supplied_tests": 14,
+      "reviewer_tests": 0,
+      "passed": 14,
+      "failed": 0,
+      "evidence": "close_pit/after.xml"
+    },
+    {
+      "suite": "Date candidate",
+      "supplied_tests": 13,
+      "reviewer_tests": 0,
+      "passed": 13,
+      "failed": 0,
+      "evidence": "historical_validation/after.xml"
+    },
+    {
+      "suite": "Both candidates plus existing-artifact read probes",
+      "supplied_tests": 14,
+      "reviewer_tests": 2,
+      "passed": 16,
+      "failed": 0,
+      "supplied_cases_repeat_prior_close_run": true,
+      "evidence": "combined/combined.xml"
+    }
+  ],
+  "combined_identity": {
+    "both_actual_module_paths_and_hashes_checked": true,
+    "producer_class_is_new_pool_store_class": true,
+    "evidence": "combined/COMBINED_RUN.json",
+    "before_comparison_limit": "Supplied before_producer comparisons use frozen close code with the new PoolStore; independent read probes explicitly load the exact before PoolStore separately."
+  },
+  "independent_probes": [
+    {
+      "case": "asof future eligibility",
+      "before_materialize_and_read": "PASS",
+      "after_read": "REJECTED_WITH_EXPECTED_VALUE_ERROR",
+      "source_trio_bytes_unchanged": true,
+      "evidence": "combined/read_probe_asof_eligibility_source_date.json"
+    },
+    {
+      "case": "split future price",
+      "before_materialize_and_read": "PASS",
+      "after_read": "REJECTED_WITH_EXPECTED_VALUE_ERROR",
+      "source_trio_bytes_unchanged": true,
+      "evidence": "combined/read_probe_split_price_signal_date.json"
+    }
+  ],
+  "original_failure_evidence": {
+    "execution_owner": "author",
+    "independently_parsed_not_rerun": true,
+    "close_before": {
+      "failed": 8,
+      "passed": 6
+    },
+    "date_before": {
+      "failed": 5,
+      "passed": 8
+    },
+    "nested_before": {
+      "failed": 2,
+      "passed": 0
+    },
+    "nested_after": {
+      "failed": 2,
+      "passed": 0
+    },
+    "nested_status": "DEFERRED_UNRESOLVED_P2",
+    "evidence": "SUPPLIED_FAILURE_EVIDENCE_SUMMARY.json"
+  },
+  "deferred": [
+    {
+      "id": "HIST-P2-NESTED",
+      "priority": "P2",
+      "status": "DEFERRED_UNRESOLVED",
+      "code_location": "work/continuation_1325/historical_validation/after/infrastructure/preselection_pool_store.py:367-400",
+      "observed_gap": "Nested eligibility_asof and price_recovery still accept an unregistered_extension. No key allowlist was added.",
+      "missing_contract": "Exact original nested schema/emitters and representative bound recovery objects from the external recovery shared package/source archive.",
+      "evidence": "SUPPLIED_FAILURE_EVIDENCE_SUMMARY.json"
+    }
+  ],
+  "not_run": [
+    {
+      "id": "N01",
+      "area": "Actual historical data",
+      "status": "NOT_RUN / NOT_SUPPLIED",
+      "reason": "Actual August 25 raw pool/review/receipts, September 30 recovery sources and October 7 upstream source closure were not supplied. Fixtures prove code behavior only; no actual historical output was rebuilt."
+    },
+    {
+      "id": "N02",
+      "area": "Current Mac owner and dependency closure",
+      "status": "NOT_RUN / CANNOT_CONFIRM",
+      "reason": "The reviewed images are frozen canonical source candidates with pinned historic test support; no current loaded Mac owner/process inventory or complete app dependency closure was established."
+    },
+    {
+      "id": "N03",
+      "area": "Stage, API and UI",
+      "status": "NOT_RUN",
+      "reason": "The close fixtures use stage_selection_root=None and an explicit unused Stage consumer import sentinel. No Stage consumer, Stage canary, HTTP API, UI or full application suite was executed."
+    },
+    {
+      "id": "N04",
+      "area": "Natural execution and comprehensive PIT",
+      "status": "NOT_RUN / CANNOT_CONFIRM",
+      "reason": "No original-slot capture, runtime receipt or historical availability was reconstructed. Accepting late recovery or preserving a complete source SHA pair is not a PIT certificate."
+    },
+    {
+      "id": "N05",
+      "area": "Deployment and live services",
+      "status": "NOT_RUN / NOT_AUTHORIZED",
+      "reason": "No Mac access, install, deploy, service control or business-data mutation. Source review is not deployment approval."
+    },
+    {
+      "id": "N06",
+      "area": "Unchanged R1 and unrelated Issue 28 paths",
+      "status": "NOT_RERUN",
+      "reason": "Prior auction/release/HK/pool R1 tests and broader collection/research/runtime questions were outside this bounded continuation. R1 review and closure reports were preserved."
+    },
+    {
+      "id": "N07",
+      "area": "Nested unknown-key compatibility closure",
+      "status": "DEFERRED_UNRESOLVED_P2",
+      "reason": "Original emitters/full nested schemas and actual recovery objects are absent. Known optional metadata and open digest maps cannot supply a complete safe allowlist. Two supplied rejection probes fail in both before and after; this was retained as failing evidence, not counted as PASS."
+    }
+  ],
+  "preservation": {
+    "source_support_pins_rechecked": {
+      "close_batch": 20,
+      "date_batch": 27
+    },
+    "product_or_supplied_test_sources_edited_by_reviewer": false,
+    "preimplementation_matrix_changed": false,
+    "prior_R1_report_or_closure_changed": false,
+    "original_fail_evidence_changed": false,
+    "preserved_files_checked": 16,
+    "evidence": "FINAL_VERIFICATION.json"
+  },
+  "evidence_index": [
+    "TEST_RESULTS.json",
+    "CLOSE_IDENTITY_CHECK.json",
+    "DATE_IDENTITY_CHECK.json",
+    "FINAL_VERIFICATION.json",
+    "SUPPLIED_FAILURE_EVIDENCE_SUMMARY.json",
+    "combined/COMBINED_RUN.json",
+    "combined/read_probe_asof_eligibility_source_date.json",
+    "combined/read_probe_split_price_signal_date.json"
+  ],
+  "next_review_gate": "Integrate only against the actual current owner after fresh identity/dependency checks; preserve deferred nested P2 and all actual data/PIT/Stage/API/UI/natural boundaries. Root packages this source handoff; no deployment is authorized here."
+}

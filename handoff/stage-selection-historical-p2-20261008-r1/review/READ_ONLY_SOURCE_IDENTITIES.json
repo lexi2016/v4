@@ -1,0 +1,41 @@
+{
+  "baseline_commit": "00524e9050fe212f87911b56eea1c2db719dd94b",
+  "manifest": "evidence/SOURCE_MANIFEST.json",
+  "files": [
+    {
+      "path": "baseline/source/canonical/infrastructure/preselection_pool_store.py",
+      "sha256": "028298a05ea44e310487c1159acc8147cf652e23ba716989135b178198795a92",
+      "bytes": 56442,
+      "git_blob_sha1": "cd05bfc4d0004cd57b5a94527ae46c4dd47cc04e",
+      "matches_frozen_manifest": true
+    },
+    {
+      "path": "baseline/source/canonical/ops/build_close_review.py",
+      "sha256": "a361ae023285392ddf3b0e9674a9c506fae79252cc02c15df221ae09ba28e5aa",
+      "bytes": 6601,
+      "git_blob_sha1": "88977853aa8941ac69b25bb026516663e3789faf",
+      "matches_frozen_manifest": true
+    },
+    {
+      "path": "baseline/source/canonical/tests/test_close_review_producer.py",
+      "sha256": "c2501b342755bfa97064ceae1a8df0c936f912c9a635fc88c059d660d62b655f",
+      "bytes": 21578,
+      "git_blob_sha1": "90d7ee09c50b7e472964aeeb597ec6d2a5a93230",
+      "matches_frozen_manifest": true
+    },
+    {
+      "path": "baseline/source/canonical/domains/preselection_materializer.py",
+      "sha256": "50d48cdfc5beaf4f3eeb9cd2eaa93b37684a731bca2fa189f2ba246534b268f8",
+      "bytes": 19924,
+      "git_blob_sha1": "d0f2cda536ae243746c59ded5f4012ee01607e71",
+      "matches_frozen_manifest": true
+    },
+    {
+      "path": "baseline/source/canonical/tests/test_hk_prior_observation_source_binding.py",
+      "sha256": "6a48bd3357a97690d5886c03dff9e31fc84ae1a0357087bcca3f4168841cd930",
+      "bytes": 21557,
+      "git_blob_sha1": "b38fdb014d41d60caba969dc55dda910d28c2d82",
+      "matches_frozen_manifest": true
+    }
+  ]
+}

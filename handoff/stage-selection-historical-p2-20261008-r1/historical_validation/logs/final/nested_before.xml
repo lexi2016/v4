@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="2" time="0.035" timestamp="2026-10-07T22:37:17.155875-07:00" hostname="5fa05583d26b"><testcase classname="probes.test_nested_unknown_keys_contract_gap" name="test_unregistered_nested_object_extension_is_rejected[eligibility_asof]" time="0.007"><failure message="Failed: DID NOT RAISE ValueError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/nested_before-tmp/test_unregistered_nested_objec0')
+nested_field = 'eligibility_asof'
+
+    @pytest.mark.parametrize("nested_field", ["eligibility_asof", "price_recovery"])
+    def test_unregistered_nested_object_extension_is_rejected(tmp_path, nested_field):
+        payload = asof_payload()
+        payload["historical_provenance"][nested_field]["unregistered_extension"] = "value"
+        root = tmp_path / "data"
+    
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+probes/test_nested_unknown_keys_contract_gap.py:22: Failed</failure></testcase><testcase classname="probes.test_nested_unknown_keys_contract_gap" name="test_unregistered_nested_object_extension_is_rejected[price_recovery]" time="0.005"><failure message="Failed: DID NOT RAISE ValueError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/nested_before-tmp/test_unregistered_nested_objec1')
+nested_field = 'price_recovery'
+
+    @pytest.mark.parametrize("nested_field", ["eligibility_asof", "price_recovery"])
+    def test_unregistered_nested_object_extension_is_rejected(tmp_path, nested_field):
+        payload = asof_payload()
+        payload["historical_provenance"][nested_field]["unregistered_extension"] = "value"
+        root = tmp_path / "data"
+    
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+probes/test_nested_unknown_keys_contract_gap.py:22: Failed</failure></testcase></testsuite></testsuites>

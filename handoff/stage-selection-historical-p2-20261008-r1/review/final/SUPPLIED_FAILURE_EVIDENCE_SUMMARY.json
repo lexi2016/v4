@@ -1,0 +1,234 @@
+{
+  "execution_owner": "author",
+  "independently_read_and_parsed": true,
+  "independent_reexecution": "NOT_RUN",
+  "nested_p2": "DEFERRED_UNRESOLVED; not passing tests",
+  "runs": {
+    "close_before": {
+      "path": "work/continuation_1325/close_pit/logs/before.xml",
+      "tests": 14,
+      "passed": 6,
+      "failed": 8,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "name": "test_missing_source_pair_retains_pit_uncertainty_in_stored_review[manifest-only-20260825]",
+          "class": "tests.test_close_source_pit_warning",
+          "outcome": "FAIL",
+          "message": "AssertionError: assert 0 == 1\n +  where 0 = <built-in method count of list object at 0x7f3966546d80>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')\n +    where <built-in method count of list object at 0x7f3966546d80> = ['MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count"
+        },
+        {
+          "name": "test_missing_source_pair_retains_pit_uncertainty_in_stored_review[manifest-only-20260826]",
+          "class": "tests.test_close_source_pit_warning",
+          "outcome": "FAIL",
+          "message": "AssertionError: assert 0 == 1\n +  where 0 = <built-in method count of list object at 0x7f39663116c0>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')\n +    where <built-in method count of list object at 0x7f39663116c0> = ['MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count"
+        },
+        {
+          "name": "test_missing_source_pair_retains_pit_uncertainty_in_stored_review[receipt-only-20260825]",
+          "class": "tests.test_close_source_pit_warning",
+          "outcome": "FAIL",
+          "message": "AssertionError: assert 0 == 1\n +  where 0 = <built-in method count of list object at 0x7f3966441d80>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')\n +    where <built-in method count of list object at 0x7f3966441d80> = ['MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count"
+        },
+        {
+          "name": "test_missing_source_pair_retains_pit_uncertainty_in_stored_review[receipt-only-20260826]",
+          "class": "tests.test_close_source_pit_warning",
+          "outcome": "FAIL",
+          "message": "AssertionError: assert 0 == 1\n +  where 0 = <built-in method count of list object at 0x7f3966546040>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')\n +    where <built-in method count of list object at 0x7f3966546040> = ['MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count"
+        },
+        {
+          "name": "test_missing_source_pair_retains_pit_uncertainty_in_stored_review[both-20260825]",
+          "class": "tests.test_close_source_pit_warning",
+          "outcome": "FAIL",
+          "message": "AssertionError: assert 0 == 1\n +  where 0 = <built-in method count of list object at 0x7f396643c600>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')\n +    where <built-in method count of list object at 0x7f396643c600> = ['MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count"
+        },
+        {
+          "name": "test_missing_source_pair_retains_pit_uncertainty_in_stored_review[both-20260826]",
+          "class": "tests.test_close_source_pit_warning",
+          "outcome": "FAIL",
+          "message": "AssertionError: assert 0 == 1\n +  where 0 = <built-in method count of list object at 0x7f396645b400>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')\n +    where <built-in method count of list object at 0x7f396645b400> = ['MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count"
+        },
+        {
+          "name": "test_complete_nonhistorical_source_pair_preserves_baseline_output",
+          "class": "tests.test_close_source_pit_warning",
+          "outcome": "PASS",
+          "message": ""
+        },
+        {
+          "name": "test_exact_absent_pool_sentinel_keeps_missing_model_status_and_adds_pit_reason",
+          "class": "tests.test_close_source_pit_warning",
+          "outcome": "FAIL",
+          "message": "AssertionError: assert 0 == 1\n +  where 0 = <built-in method count of list object at 0x7f3965ff5f80>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')\n +    where <built-in method count of list object at 0x7f3965ff5f80> = ['MODEL_0_2_TOP100_NOT_READY:0/100', 'MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count"
+        },
+        {
+          "name": "test_existing_historical_provenance_reason_is_preserved",
+          "class": "tests.test_close_source_pit_warning",
+          "outcome": "PASS",
+          "message": ""
+        },
+        {
+          "name": "test_pool_native_trio_damage_propagates_without_publishing_review[missing-receipt]",
+          "class": "tests.test_close_source_pit_warning",
+          "outcome": "PASS",
+          "message": ""
+        },
+        {
+          "name": "test_pool_native_trio_damage_propagates_without_publishing_review[corrupt-receipt]",
+          "class": "tests.test_close_source_pit_warning",
+          "outcome": "PASS",
+          "message": ""
+        },
+        {
+          "name": "test_pool_native_trio_damage_propagates_without_publishing_review[missing-manifest]",
+          "class": "tests.test_close_source_pit_warning",
+          "outcome": "PASS",
+          "message": ""
+        },
+        {
+          "name": "test_prior_saved_output_and_receipt_are_unchanged_by_readback",
+          "class": "tests.test_close_source_pit_warning",
+          "outcome": "PASS",
+          "message": ""
+        },
+        {
+          "name": "test_new_missing_source_output_differs_only_by_existing_warning",
+          "class": "tests.test_close_source_pit_warning",
+          "outcome": "FAIL",
+          "message": "AssertionError: assert 0 == 1\n +  where 0 = <built-in method count of list object at 0x7f3965ff6d80>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')\n +    where <built-in method count of list object at 0x7f3965ff6d80> = ['MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count"
+        }
+      ]
+    },
+    "date_before": {
+      "path": "work/continuation_1325/historical_validation/logs/final/before.xml",
+      "tests": 13,
+      "passed": 8,
+      "failed": 5,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "name": "test_original_historical_contract_checks_unchanged",
+          "class": "tests.test_compatibility",
+          "outcome": "PASS",
+          "message": ""
+        },
+        {
+          "name": "test_source_dates_equal_to_target_remain_accepted[split]",
+          "class": "tests.test_compatibility",
+          "outcome": "PASS",
+          "message": ""
+        },
+        {
+          "name": "test_source_dates_equal_to_target_remain_accepted[asof]",
+          "class": "tests.test_compatibility",
+          "outcome": "PASS",
+          "message": ""
+        },
+        {
+          "name": "test_late_recovery_capture_remains_accepted_and_unverified",
+          "class": "tests.test_compatibility",
+          "outcome": "PASS",
+          "message": ""
+        },
+        {
+          "name": "test_generic_legacy_pool_without_provenance_remains_accepted",
+          "class": "tests.test_compatibility",
+          "outcome": "PASS",
+          "message": ""
+        },
+        {
+          "name": "test_known_optional_nested_consumer_metadata_remains_accepted",
+          "class": "tests.test_compatibility",
+          "outcome": "PASS",
+          "message": ""
+        },
+        {
+          "name": "test_input_hash_map_accepts_dynamic_string_labels",
+          "class": "tests.test_compatibility",
+          "outcome": "PASS",
+          "message": ""
+        },
+        {
+          "name": "test_optional_target_field_remains_optional_for_valid_historical_pool",
+          "class": "tests.test_compatibility",
+          "outcome": "PASS",
+          "message": ""
+        },
+        {
+          "name": "test_future_source_date_is_rejected_before_materialization[split-eligibility_source_date-20261008]",
+          "class": "tests.test_date_upper_bound",
+          "outcome": "FAIL",
+          "message": "Failed: DID NOT RAISE ValueError"
+        },
+        {
+          "name": "test_future_source_date_is_rejected_before_materialization[split-price_signal_date-20261008]",
+          "class": "tests.test_date_upper_bound",
+          "outcome": "FAIL",
+          "message": "Failed: DID NOT RAISE ValueError"
+        },
+        {
+          "name": "test_future_source_date_is_rejected_before_materialization[asof-eligibility_source_date-20261001]",
+          "class": "tests.test_date_upper_bound",
+          "outcome": "FAIL",
+          "message": "Failed: DID NOT RAISE ValueError"
+        },
+        {
+          "name": "test_future_source_date_is_rejected_before_materialization[asof-price_signal_date-20261001]",
+          "class": "tests.test_date_upper_bound",
+          "outcome": "FAIL",
+          "message": "Failed: DID NOT RAISE ValueError"
+        },
+        {
+          "name": "test_optional_target_field_does_not_disable_trade_date_upper_bound",
+          "class": "tests.test_date_upper_bound",
+          "outcome": "FAIL",
+          "message": "Failed: DID NOT RAISE ValueError"
+        }
+      ]
+    },
+    "nested_before": {
+      "path": "work/continuation_1325/historical_validation/logs/final/nested_before.xml",
+      "tests": 2,
+      "passed": 0,
+      "failed": 2,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "name": "test_unregistered_nested_object_extension_is_rejected[eligibility_asof]",
+          "class": "probes.test_nested_unknown_keys_contract_gap",
+          "outcome": "FAIL",
+          "message": "Failed: DID NOT RAISE ValueError"
+        },
+        {
+          "name": "test_unregistered_nested_object_extension_is_rejected[price_recovery]",
+          "class": "probes.test_nested_unknown_keys_contract_gap",
+          "outcome": "FAIL",
+          "message": "Failed: DID NOT RAISE ValueError"
+        }
+      ]
+    },
+    "nested_after": {
+      "path": "work/continuation_1325/historical_validation/logs/final/nested_after.xml",
+      "tests": 2,
+      "passed": 0,
+      "failed": 2,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "name": "test_unregistered_nested_object_extension_is_rejected[eligibility_asof]",
+          "class": "probes.test_nested_unknown_keys_contract_gap",
+          "outcome": "FAIL",
+          "message": "Failed: DID NOT RAISE ValueError"
+        },
+        {
+          "name": "test_unregistered_nested_object_extension_is_rejected[price_recovery]",
+          "class": "probes.test_nested_unknown_keys_contract_gap",
+          "outcome": "FAIL",
+          "message": "Failed: DID NOT RAISE ValueError"
+        }
+      ]
+    }
+  }
+}

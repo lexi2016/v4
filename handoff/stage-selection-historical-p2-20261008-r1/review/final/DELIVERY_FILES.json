@@ -1,0 +1,124 @@
+{
+  "scope": "Independent final historical-P2 review; preserve this directory structure",
+  "root_relative_to_issue28": "work/continuation_1325/review/final",
+  "files": [
+    {
+      "path": "REPORT.md",
+      "bytes": 12274,
+      "sha256": "2268db0c9f61589bcab6f242368eee4b98159494b13345fb449ccf6275b16483"
+    },
+    {
+      "path": "REPORT.json",
+      "bytes": 8950,
+      "sha256": "37d6fafada78cfb951480384f231725566d8f44e9b7e2d450b22fe9ffd2d975f"
+    },
+    {
+      "path": "CLOSE_IDENTITY_CHECK.json",
+      "bytes": 7252,
+      "sha256": "97f2c25f10501b2d7d99f9924e82dc4a9191bd1405e1c2a3b06e7e5301a1f178"
+    },
+    {
+      "path": "DATE_IDENTITY_CHECK.json",
+      "bytes": 8724,
+      "sha256": "749e6b833ae4a80f0d0622c9dc2b73f20221ed84ad19db94efd7261ed2c0598a"
+    },
+    {
+      "path": "PRESERVATION_BEFORE.json",
+      "bytes": 1892,
+      "sha256": "b61ae95043fda216101df912fb26de55b2b5446ba21948212131b6492922fb3e"
+    },
+    {
+      "path": "HISTORICAL_FAIL_EVIDENCE_IDENTITIES.json",
+      "bytes": 1341,
+      "sha256": "6736003aac53eb71f5555687defeaf882cfac1c3acd09ea5fef3fa18c25e855c"
+    },
+    {
+      "path": "FINAL_VERIFICATION.json",
+      "bytes": 3455,
+      "sha256": "8aae33ed50470eb75919dfcb57a9d3cdbb969a90693258012a4899fd38fb5483"
+    },
+    {
+      "path": "TEST_RESULTS.json",
+      "bytes": 11521,
+      "sha256": "43159c0124f1702ac01d01418524271dc280907aeb767b9c14b4ac3ddfcd083d"
+    },
+    {
+      "path": "SUPPLIED_FAILURE_EVIDENCE_SUMMARY.json",
+      "bytes": 12040,
+      "sha256": "4abf2a6139888a626d277952f50cb0523dbdd7d07d46a2fddde86d634e0f84ab"
+    },
+    {
+      "path": "run_combined_review.py",
+      "bytes": 4509,
+      "sha256": "208e1e048950547f1032b2367cb4faebf4339f2b6719f1fb6a27fd5b988140dd"
+    },
+    {
+      "path": "test_existing_future_artifact_read.py",
+      "bytes": 4486,
+      "sha256": "98322e2a449f0a1c07f5a83cec806904fce91237832ae683a868142a3758a85e"
+    },
+    {
+      "path": "close_pit/after.log",
+      "bytes": 2415,
+      "sha256": "772424d7bdbfb5d9658d2fe7299decfaa9a4a679b56089a5a10ddebaa3782c3a"
+    },
+    {
+      "path": "close_pit/after.xml",
+      "bytes": 2466,
+      "sha256": "dd46d5b1bfde2816c27128093375d665acbd55fd4a9234916b0e76837216bc2d"
+    },
+    {
+      "path": "close_pit/after.json",
+      "bytes": 928,
+      "sha256": "9c42405ec51e95cbc07083f5b43052428a130c0793f416f8d99140351a9e9661"
+    },
+    {
+      "path": "historical_validation/after.log",
+      "bytes": 99,
+      "sha256": "327daf92f9ddc2a79c674e8f508f3433cfb113427347bc256a22873f356de818"
+    },
+    {
+      "path": "historical_validation/after.xml",
+      "bytes": 2076,
+      "sha256": "730b70d0c9ac224b35d1cb98e3192599593757ecc3e94f27de3387545e907804"
+    },
+    {
+      "path": "historical_validation/RESULTS.json",
+      "bytes": 1889,
+      "sha256": "3a22b44b896c38ae4a631afd731153fda5b7c2754f71ca5804699c0f2ee7036a"
+    },
+    {
+      "path": "combined/combined.log",
+      "bytes": 3227,
+      "sha256": "29d4fc6b9807c653635346ffd19b20d5abc40fbe8cd29ca6949fe87069950cf9"
+    },
+    {
+      "path": "combined/combined.xml",
+      "bytes": 3361,
+      "sha256": "fb9e89e3cd178fb2a57430124905ee69da915338c6d1151242bfc5f8279c516a"
+    },
+    {
+      "path": "combined/COMBINED_RUN.json",
+      "bytes": 2522,
+      "sha256": "94c6e96d6c43c228c82c51d13eb3405971631138298608762d5bb7b040c15bb8"
+    },
+    {
+      "path": "combined/read_probe_asof_eligibility_source_date.json",
+      "bytes": 1444,
+      "sha256": "eb3ebdfcf5142a1a6f3cf3cf55c2aa559c77135c52fc6d8281641265fe80f0a8"
+    },
+    {
+      "path": "combined/read_probe_split_price_signal_date.json",
+      "bytes": 1439,
+      "sha256": "fe2ee023caf9b3b93b6de44ee362c48c29283d85c1b8b33c4900d95f4798f0b1"
+    }
+  ],
+  "include_manifest_itself": "DELIVERY_FILES.json",
+  "excluded": [
+    "*-tmp directories",
+    "cache directories",
+    "generated synthetic pool/snapshot/review artifacts and receipts",
+    "pycache/bytecode"
+  ],
+  "note": "Listed probe JSON files contain synthetic-case summaries and digests only. Original author source/failure evidence lives in the corresponding author package; no such files are rewritten here."
+}

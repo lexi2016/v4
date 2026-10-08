@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="5" skipped="0" tests="13" time="0.123" timestamp="2026-10-07T22:37:16.219354-07:00" hostname="5fa05583d26b"><testcase classname="tests.test_compatibility" name="test_original_historical_contract_checks_unchanged" time="0.013" /><testcase classname="tests.test_compatibility" name="test_source_dates_equal_to_target_remain_accepted[split]" time="0.006" /><testcase classname="tests.test_compatibility" name="test_source_dates_equal_to_target_remain_accepted[asof]" time="0.007" /><testcase classname="tests.test_compatibility" name="test_late_recovery_capture_remains_accepted_and_unverified" time="0.006" /><testcase classname="tests.test_compatibility" name="test_generic_legacy_pool_without_provenance_remains_accepted" time="0.009" /><testcase classname="tests.test_compatibility" name="test_known_optional_nested_consumer_metadata_remains_accepted" time="0.009" /><testcase classname="tests.test_compatibility" name="test_input_hash_map_accepts_dynamic_string_labels" time="0.007" /><testcase classname="tests.test_compatibility" name="test_optional_target_field_remains_optional_for_valid_historical_pool" time="0.007" /><testcase classname="tests.test_date_upper_bound" name="test_future_source_date_is_rejected_before_materialization[split-eligibility_source_date-20261008]" time="0.004"><failure message="Failed: DID NOT RAISE ValueError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/before-tmp/test_future_source_date_is_rej0')
+schema = 'split', field = 'eligibility_source_date', future_date = '20261008'
+
+    @pytest.mark.parametrize(
+        "schema,field,future_date",
+        [
+            ("split", "eligibility_source_date", "20261008"),
+            ("split", "price_signal_date", "20261008"),
+            ("asof", "eligibility_source_date", "20261001"),
+            ("asof", "price_signal_date", "20261001"),
+        ],
+    )
+    def test_future_source_date_is_rejected_before_materialization(tmp_path, schema, field, future_date):
+        payload = historical_payload(schema)
+        change_source_date(payload, field, future_date)
+        root = tmp_path / "data"
+    
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_date_upper_bound.py:24: Failed</failure></testcase><testcase classname="tests.test_date_upper_bound" name="test_future_source_date_is_rejected_before_materialization[split-price_signal_date-20261008]" time="0.004"><failure message="Failed: DID NOT RAISE ValueError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/before-tmp/test_future_source_date_is_rej1')
+schema = 'split', field = 'price_signal_date', future_date = '20261008'
+
+    @pytest.mark.parametrize(
+        "schema,field,future_date",
+        [
+            ("split", "eligibility_source_date", "20261008"),
+            ("split", "price_signal_date", "20261008"),
+            ("asof", "eligibility_source_date", "20261001"),
+            ("asof", "price_signal_date", "20261001"),
+        ],
+    )
+    def test_future_source_date_is_rejected_before_materialization(tmp_path, schema, field, future_date):
+        payload = historical_payload(schema)
+        change_source_date(payload, field, future_date)
+        root = tmp_path / "data"
+    
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_date_upper_bound.py:24: Failed</failure></testcase><testcase classname="tests.test_date_upper_bound" name="test_future_source_date_is_rejected_before_materialization[asof-eligibility_source_date-20261001]" time="0.005"><failure message="Failed: DID NOT RAISE ValueError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/before-tmp/test_future_source_date_is_rej2')
+schema = 'asof', field = 'eligibility_source_date', future_date = '20261001'
+
+    @pytest.mark.parametrize(
+        "schema,field,future_date",
+        [
+            ("split", "eligibility_source_date", "20261008"),
+            ("split", "price_signal_date", "20261008"),
+            ("asof", "eligibility_source_date", "20261001"),
+            ("asof", "price_signal_date", "20261001"),
+        ],
+    )
+    def test_future_source_date_is_rejected_before_materialization(tmp_path, schema, field, future_date):
+        payload = historical_payload(schema)
+        change_source_date(payload, field, future_date)
+        root = tmp_path / "data"
+    
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_date_upper_bound.py:24: Failed</failure></testcase><testcase classname="tests.test_date_upper_bound" name="test_future_source_date_is_rejected_before_materialization[asof-price_signal_date-20261001]" time="0.006"><failure message="Failed: DID NOT RAISE ValueError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/before-tmp/test_future_source_date_is_rej3')
+schema = 'asof', field = 'price_signal_date', future_date = '20261001'
+
+    @pytest.mark.parametrize(
+        "schema,field,future_date",
+        [
+            ("split", "eligibility_source_date", "20261008"),
+            ("split", "price_signal_date", "20261008"),
+            ("asof", "eligibility_source_date", "20261001"),
+            ("asof", "price_signal_date", "20261001"),
+        ],
+    )
+    def test_future_source_date_is_rejected_before_materialization(tmp_path, schema, field, future_date):
+        payload = historical_payload(schema)
+        change_source_date(payload, field, future_date)
+        root = tmp_path / "data"
+    
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_date_upper_bound.py:24: Failed</failure></testcase><testcase classname="tests.test_date_upper_bound" name="test_optional_target_field_does_not_disable_trade_date_upper_bound" time="0.005"><failure message="Failed: DID NOT RAISE ValueError">tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/logs/final/before-tmp/test_optional_target_field_doe0')
+
+    def test_optional_target_field_does_not_disable_trade_date_upper_bound(tmp_path):
+        payload = historical_payload("asof")
+        del payload["target_date"]
+        change_source_date(payload, "price_signal_date", "20261001")
+        root = tmp_path / "data"
+    
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_date_upper_bound.py:36: Failed</failure></testcase></testsuite></testsuites>

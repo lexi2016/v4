@@ -1,0 +1,25 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.7, pytest-9.1.1, pluggy-1.6.0 -- /workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python
+rootdir: /workspace/scratch/25c09a595aec/issue28
+plugins: anyio-4.15.1
+collecting ... collected 16 items
+
+work/continuation_1325/close_pit/tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[manifest-only-20260825] PASSED [  6%]
+work/continuation_1325/close_pit/tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[manifest-only-20260826] PASSED [ 12%]
+work/continuation_1325/close_pit/tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[receipt-only-20260825] PASSED [ 18%]
+work/continuation_1325/close_pit/tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[receipt-only-20260826] PASSED [ 25%]
+work/continuation_1325/close_pit/tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[both-20260825] PASSED [ 31%]
+work/continuation_1325/close_pit/tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[both-20260826] PASSED [ 37%]
+work/continuation_1325/close_pit/tests/test_close_source_pit_warning.py::test_complete_nonhistorical_source_pair_preserves_baseline_output PASSED [ 43%]
+work/continuation_1325/close_pit/tests/test_close_source_pit_warning.py::test_exact_absent_pool_sentinel_keeps_missing_model_status_and_adds_pit_reason PASSED [ 50%]
+work/continuation_1325/close_pit/tests/test_close_source_pit_warning.py::test_existing_historical_provenance_reason_is_preserved PASSED [ 56%]
+work/continuation_1325/close_pit/tests/test_close_source_pit_warning.py::test_pool_native_trio_damage_propagates_without_publishing_review[missing-receipt] PASSED [ 62%]
+work/continuation_1325/close_pit/tests/test_close_source_pit_warning.py::test_pool_native_trio_damage_propagates_without_publishing_review[corrupt-receipt] PASSED [ 68%]
+work/continuation_1325/close_pit/tests/test_close_source_pit_warning.py::test_pool_native_trio_damage_propagates_without_publishing_review[missing-manifest] PASSED [ 75%]
+work/continuation_1325/close_pit/tests/test_close_source_pit_warning.py::test_prior_saved_output_and_receipt_are_unchanged_by_readback PASSED [ 81%]
+work/continuation_1325/close_pit/tests/test_close_source_pit_warning.py::test_new_missing_source_output_differs_only_by_existing_warning PASSED [ 87%]
+work/continuation_1325/review/final/test_existing_future_artifact_read.py::test_existing_future_artifact_read_rejects_without_changing_trio[asof-eligibility_source_date-20261001] PASSED [ 93%]
+work/continuation_1325/review/final/test_existing_future_artifact_read.py::test_existing_future_artifact_read_rejects_without_changing_trio[split-price_signal_date-20261008] PASSED [100%]
+
+- generated xml file: /workspace/scratch/25c09a595aec/issue28/work/continuation_1325/review/final/combined/combined.xml -
+============================== 16 passed in 0.46s ==============================

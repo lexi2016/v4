@@ -1,0 +1,97 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.7, pytest-9.1.1, pluggy-1.6.0 -- /workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python
+rootdir: /workspace/scratch/25c09a595aec/issue28/work/continuation_1325/close_pit
+plugins: anyio-4.15.1
+collecting ... collected 14 items
+
+tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[manifest-only-20260825] FAILED [  7%]
+tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[manifest-only-20260826] FAILED [ 14%]
+tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[receipt-only-20260825] FAILED [ 21%]
+tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[receipt-only-20260826] FAILED [ 28%]
+tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[both-20260825] FAILED [ 35%]
+tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[both-20260826] FAILED [ 42%]
+tests/test_close_source_pit_warning.py::test_complete_nonhistorical_source_pair_preserves_baseline_output PASSED [ 50%]
+tests/test_close_source_pit_warning.py::test_exact_absent_pool_sentinel_keeps_missing_model_status_and_adds_pit_reason FAILED [ 57%]
+tests/test_close_source_pit_warning.py::test_existing_historical_provenance_reason_is_preserved PASSED [ 64%]
+tests/test_close_source_pit_warning.py::test_pool_native_trio_damage_propagates_without_publishing_review[missing-receipt] PASSED [ 71%]
+tests/test_close_source_pit_warning.py::test_pool_native_trio_damage_propagates_without_publishing_review[corrupt-receipt] PASSED [ 78%]
+tests/test_close_source_pit_warning.py::test_pool_native_trio_damage_propagates_without_publishing_review[missing-manifest] PASSED [ 85%]
+tests/test_close_source_pit_warning.py::test_prior_saved_output_and_receipt_are_unchanged_by_readback PASSED [ 92%]
+tests/test_close_source_pit_warning.py::test_new_missing_source_output_differs_only_by_existing_warning FAILED [100%]
+
+=================================== FAILURES ===================================
+_ test_missing_source_pair_retains_pit_uncertainty_in_stored_review[manifest-only-20260825] _
+tests/test_close_source_pit_warning.py:103: in test_missing_source_pair_retains_pit_uncertainty_in_stored_review
+    assert result["review"]["cannot_confirm"].count(REASON) == 1
+E   AssertionError: assert 0 == 1
+E    +  where 0 = <built-in method count of list object at 0x7f3966546d80>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')
+E    +    where <built-in method count of list object at 0x7f3966546d80> = ['MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count
+_ test_missing_source_pair_retains_pit_uncertainty_in_stored_review[manifest-only-20260826] _
+tests/test_close_source_pit_warning.py:103: in test_missing_source_pair_retains_pit_uncertainty_in_stored_review
+    assert result["review"]["cannot_confirm"].count(REASON) == 1
+E   AssertionError: assert 0 == 1
+E    +  where 0 = <built-in method count of list object at 0x7f39663116c0>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')
+E    +    where <built-in method count of list object at 0x7f39663116c0> = ['MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count
+_ test_missing_source_pair_retains_pit_uncertainty_in_stored_review[receipt-only-20260825] _
+tests/test_close_source_pit_warning.py:103: in test_missing_source_pair_retains_pit_uncertainty_in_stored_review
+    assert result["review"]["cannot_confirm"].count(REASON) == 1
+E   AssertionError: assert 0 == 1
+E    +  where 0 = <built-in method count of list object at 0x7f3966441d80>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')
+E    +    where <built-in method count of list object at 0x7f3966441d80> = ['MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count
+_ test_missing_source_pair_retains_pit_uncertainty_in_stored_review[receipt-only-20260826] _
+tests/test_close_source_pit_warning.py:103: in test_missing_source_pair_retains_pit_uncertainty_in_stored_review
+    assert result["review"]["cannot_confirm"].count(REASON) == 1
+E   AssertionError: assert 0 == 1
+E    +  where 0 = <built-in method count of list object at 0x7f3966546040>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')
+E    +    where <built-in method count of list object at 0x7f3966546040> = ['MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count
+_ test_missing_source_pair_retains_pit_uncertainty_in_stored_review[both-20260825] _
+tests/test_close_source_pit_warning.py:103: in test_missing_source_pair_retains_pit_uncertainty_in_stored_review
+    assert result["review"]["cannot_confirm"].count(REASON) == 1
+E   AssertionError: assert 0 == 1
+E    +  where 0 = <built-in method count of list object at 0x7f396643c600>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')
+E    +    where <built-in method count of list object at 0x7f396643c600> = ['MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count
+_ test_missing_source_pair_retains_pit_uncertainty_in_stored_review[both-20260826] _
+tests/test_close_source_pit_warning.py:103: in test_missing_source_pair_retains_pit_uncertainty_in_stored_review
+    assert result["review"]["cannot_confirm"].count(REASON) == 1
+E   AssertionError: assert 0 == 1
+E    +  where 0 = <built-in method count of list object at 0x7f396645b400>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')
+E    +    where <built-in method count of list object at 0x7f396645b400> = ['MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count
+_ test_exact_absent_pool_sentinel_keeps_missing_model_status_and_adds_pit_reason _
+tests/test_close_source_pit_warning.py:123: in test_exact_absent_pool_sentinel_keeps_missing_model_status_and_adds_pit_reason
+    assert result["review"]["cannot_confirm"].count(REASON) == 1
+E   AssertionError: assert 0 == 1
+E    +  where 0 = <built-in method count of list object at 0x7f3965ff5f80>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')
+E    +    where <built-in method count of list object at 0x7f3965ff5f80> = ['MODEL_0_2_TOP100_NOT_READY:0/100', 'MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count
+_______ test_new_missing_source_output_differs_only_by_existing_warning ________
+tests/test_close_source_pit_warning.py:173: in test_new_missing_source_output_differs_only_by_existing_warning
+    assert candidate["cannot_confirm"].count(REASON) == 1
+E   AssertionError: assert 0 == 1
+E    +  where 0 = <built-in method count of list object at 0x7f3965ff6d80>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')
+E    +    where <built-in method count of list object at 0x7f3965ff6d80> = ['MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count
+- generated xml file: /workspace/scratch/25c09a595aec/issue28/work/continuation_1325/close_pit/logs/before.xml -
+=========================== short test summary info ============================
+FAILED tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[manifest-only-20260825] - AssertionError: assert 0 == 1
+ +  where 0 = <built-in method count of list object at 0x7f3966546d80>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')
+ +    where <built-in method count of list object at 0x7f3966546d80> = ['MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count
+FAILED tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[manifest-only-20260826] - AssertionError: assert 0 == 1
+ +  where 0 = <built-in method count of list object at 0x7f39663116c0>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')
+ +    where <built-in method count of list object at 0x7f39663116c0> = ['MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count
+FAILED tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[receipt-only-20260825] - AssertionError: assert 0 == 1
+ +  where 0 = <built-in method count of list object at 0x7f3966441d80>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')
+ +    where <built-in method count of list object at 0x7f3966441d80> = ['MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count
+FAILED tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[receipt-only-20260826] - AssertionError: assert 0 == 1
+ +  where 0 = <built-in method count of list object at 0x7f3966546040>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')
+ +    where <built-in method count of list object at 0x7f3966546040> = ['MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count
+FAILED tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[both-20260825] - AssertionError: assert 0 == 1
+ +  where 0 = <built-in method count of list object at 0x7f396643c600>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')
+ +    where <built-in method count of list object at 0x7f396643c600> = ['MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count
+FAILED tests/test_close_source_pit_warning.py::test_missing_source_pair_retains_pit_uncertainty_in_stored_review[both-20260826] - AssertionError: assert 0 == 1
+ +  where 0 = <built-in method count of list object at 0x7f396645b400>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')
+ +    where <built-in method count of list object at 0x7f396645b400> = ['MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count
+FAILED tests/test_close_source_pit_warning.py::test_exact_absent_pool_sentinel_keeps_missing_model_status_and_adds_pit_reason - AssertionError: assert 0 == 1
+ +  where 0 = <built-in method count of list object at 0x7f3965ff5f80>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')
+ +    where <built-in method count of list object at 0x7f3965ff5f80> = ['MODEL_0_2_TOP100_NOT_READY:0/100', 'MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count
+FAILED tests/test_close_source_pit_warning.py::test_new_missing_source_output_differs_only_by_existing_warning - AssertionError: assert 0 == 1
+ +  where 0 = <built-in method count of list object at 0x7f3965ff6d80>('HK_MODEL_SOURCE_PIT_AVAILABILITY_CANNOT_CONFIRM')
+ +    where <built-in method count of list object at 0x7f3965ff6d80> = ['MISSING_STAGE:STAGE_0925', 'MISSING_STAGE:STAGE_0930_0935', 'MISSING_STAGE:STAGE_0935_0940', 'MISSING_STAGE:STAGE_0940_0945', 'MISSING_STAGE:STAGE_0945_1030', 'MISSING_STAGE:STAGE_1300_1315', 'MISSING_STAGE:STAGE_1445_1500'].count
+========================= 8 failed, 6 passed in 0.47s ==========================

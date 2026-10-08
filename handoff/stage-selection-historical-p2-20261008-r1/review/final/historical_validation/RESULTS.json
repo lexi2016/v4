@@ -1,0 +1,39 @@
+{
+  "generated_at": "2026-10-08T05:39:47.640354+00:00",
+  "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]",
+  "executable": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "pytest": "9.1.1",
+  "results": [
+    {
+      "mode": "after",
+      "classification": "DATE_SUITE_PASS",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-o",
+        "cache_dir=/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/review/final/historical_validation/after-cache",
+        "--basetemp=/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/review/final/historical_validation/after-tmp",
+        "--junitxml=/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/review/final/historical_validation/after.xml"
+      ],
+      "cwd": "/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation",
+      "selected_source": "/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/historical_validation/after/infrastructure/preselection_pool_store.py",
+      "selected_source_sha256": "9f1606a977d36c063d9c650e54b9861947eb7b692e779837852e3831b7814bef",
+      "pytest_returncode": 0,
+      "tests": 13,
+      "passed": 13,
+      "failed": 0,
+      "failure_names": [],
+      "errors": [],
+      "skipped": [],
+      "expected_result_observed": true,
+      "log": "/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/review/final/historical_validation/after.log",
+      "junit_xml": "/workspace/scratch/25c09a595aec/issue28/work/continuation_1325/review/final/historical_validation/after.xml"
+    }
+  ],
+  "nested_unknown_key_p2": "DEFERRED_PENDING_ORIGINAL_PRODUCER_SCHEMA_AND_OUTPUTS",
+  "deployed": false
+}
