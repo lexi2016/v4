@@ -38,6 +38,8 @@ class AnnouncementBridgeTests(unittest.TestCase):
         self.assertEqual(selection['conditional_watch_count'],54)
         self.assertEqual(selection['not_assessed_stock_count'],75)
         self.assertEqual(payload['owner_import_receipt']['status'],'VERIFIED')
+        self.assertEqual(out['catalog']['readback']['derivation'],'REPARSED_FROM_SHARED_MATERIAL_STORE')
+        self.assertEqual(set(out['original_reader_accesses']['materials']),set(r['material_files']))
         self.assertFalse(out['natural_verified']);self.assertFalse(out['source_origin_verified'])
         self.assertFalse(out['workspace_consumption_verified'])
         self.assertEqual(out['input_files'],{'manager':r['manager_files'],'materials':r['material_files']})
@@ -69,6 +71,12 @@ class AnnouncementBridgeTests(unittest.TestCase):
     def test_symlink_root_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             r=copy.deepcopy(self.request);p=Path(tmp)/'linked';p.symlink_to(r['manager_root'],target_is_directory=True);r['manager_root']=str(p)
+            with self.assertRaises(ValueError):self.run_request(r)
+    def test_changed_index_with_updated_outer_pin_is_rejected_by_original_owner(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            r=self.copied(tmp);name=next(k for k in r['material_files'] if k.startswith('index/'))
+            p=Path(r['materials_root'])/name;value=json.loads(p.read_bytes());value['sha256']='0'*64
+            raw=json.dumps(value,ensure_ascii=False).encode();p.write_bytes(raw);r['material_files'][name]=hashlib.sha256(raw).hexdigest()
             with self.assertRaises(ValueError):self.run_request(r)
     def test_source_files_stay_byte_identical(self):
         r=self.request;self.run_request(r)
