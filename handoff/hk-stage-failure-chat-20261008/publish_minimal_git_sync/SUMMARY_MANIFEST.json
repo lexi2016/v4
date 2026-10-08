@@ -1,0 +1,79 @@
+{
+  "current_blocker": "20261008 HK split-date provenance absent; rows carry signal_date 20260930 while price_signal_date resolves to 20261007.",
+  "entries": [
+    {
+      "bytes": 493,
+      "path": "README.md",
+      "sha256": "7895eeb92b5422855d363f451493bc55fd0852f4b28ab3041a5438ab943c4805"
+    },
+    {
+      "bytes": 5432,
+      "path": "baseline/infrastructure/preselection_pool_readers.py",
+      "sha256": "949b16526e2b55ae23d121ca3909b4d33509483164d1899e65c94aef6d5781c1"
+    },
+    {
+      "bytes": 6603,
+      "path": "baseline/infrastructure/preselection_pool_sources.py",
+      "sha256": "23827109688cabbfb50fc4563cd3c1bdb0220fb6246b349a72836dc0e9b02827"
+    },
+    {
+      "bytes": 56638,
+      "path": "baseline/infrastructure/preselection_pool_store.py",
+      "sha256": "9f1606a977d36c063d9c650e54b9861947eb7b692e779837852e3831b7814bef"
+    },
+    {
+      "bytes": 14050,
+      "path": "baseline/ops/run_stage_center_nodes.py",
+      "sha256": "b0cde8d66727e16bbf526050a61aea17381f636d2fd96dbb0d2be6964d7f1e13"
+    },
+    {
+      "bytes": 527,
+      "path": "baseline/stage_center/_runner_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1"
+    },
+    {
+      "bytes": 23786,
+      "path": "baseline/stage_center/_runner_parts/hk_input_validation.py",
+      "sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735"
+    },
+    {
+      "bytes": 10698,
+      "path": "baseline/stage_center/_runner_parts/selection_input_validation.py",
+      "sha256": "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c"
+    },
+    {
+      "bytes": 49370,
+      "path": "baseline/stage_center/_runner_parts/slot_execution.py",
+      "sha256": "86ea1de7e32e6f29deb6622b4af37b4723e0b086d4c700cd513671ceed719d8a"
+    },
+    {
+      "bytes": 4805,
+      "path": "baseline/stage_center/calendar.py",
+      "sha256": "31fed97066d9b804a71f15c48d4e0f8baa5d9af621e1d81dc0340fd6619e4099"
+    },
+    {
+      "bytes": 83846,
+      "path": "baseline/stage_center/runner.py",
+      "sha256": "d36cc60c538f23ab0f48c7387523d83ed5cebbdc67c0dd630e671f98ecdffa48"
+    },
+    {
+      "bytes": 21557,
+      "path": "tests/test_hk_prior_observation_source_binding.py",
+      "sha256": "6a48bd3357a97690d5886c03dff9e31fc84ae1a0357087bcca3f4168841cd930"
+    }
+  ],
+  "is_deployed_release": false,
+  "is_patch": false,
+  "purpose": "minimal publish/Git-sync baseline only",
+  "runtime_owner_summary": {
+    "api_label": "com.lexi.v35.api-only",
+    "api_release_directory": "manager-daily-chain-20261008-r3-api",
+    "stage_label": "com.lexi.stage-center.scheduler",
+    "stage_release_id": "20261003-hk-binding-wrapper-r3"
+  },
+  "safety": {
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  }
+}

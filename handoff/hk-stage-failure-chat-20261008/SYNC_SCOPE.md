@@ -1,9 +1,9 @@
-# 同步范围
+# 完整问题包同步范围
 
-此分支只同步本轮问题交接说明、脱敏摘要和完整ZIP文件校验清单；source/、tests/ 与 publish_minimal_git_sync/ 文件位于用户收到的本地ZIP，不在本分支新增目录内。没有业务源码修复或部署。
+本目录已包含完整问题包的52个文件：必要源码快照、既有测试、交接提示词、脱敏证据和SHA256SUMS.txt。源码分别标识canonical、actual_stage_owner、api_runtime，不是修复补丁或可部署版本。原始行情、池行、完整API响应、账号和凭证未上传。
 
-ZIP: V4_HK_STAGE_FAILURE_CHAT_20261008.zip
+原始ZIP: V4_HK_STAGE_FAILURE_CHAT_20261008.zip
 SHA256: 5e38cc42aad5614dbb377254c16ed89996f5ba933aea102d579410d0508d4674
-字节数: 221220；文件数: 52。
+字节数221220，52文件；GitHub以解压文件提供全部内容。
 
-独立Luna Max Reviewer包验收PASS：51项checksum、52个ZIP成员、目录逐字节一致、ZIP完整性与最小基线12项检查通过。REVIEWED=PASS仅针对问题包，项目测试NOT_RUN，BEHAVIOR_VERIFIED=CANNOT_CONFIRM。已有测试缺少单独行级signal_date不匹配回归，PROMPT明确要求Chat新增。没有宣称阶段修复成功。
+独立Luna Max Reviewer问题包验收PASS；51项checksum、52个ZIP成员及最小基线12项一致。REVIEWED=PASS仅针对问题包，项目测试NOT_RUN，BEHAVIOR_VERIFIED=CANNOT_CONFIRM。当前HK阶段故障尚未修复，未部署。请从PROMPT_FOR_CHAT.md开始。
