@@ -42,6 +42,18 @@ class AnnouncementBridgeTests(unittest.TestCase):
         self.assertEqual(set(out['original_reader_accesses']['materials']),set(r['material_files']))
         self.assertFalse(out['natural_verified']);self.assertFalse(out['source_origin_verified'])
         self.assertFalse(out['workspace_consumption_verified'])
+        self.assertIn('consumption_validation',payload)
+        self.assertFalse(payload['consumption_validation']['consumed'])
+        self.assertEqual(payload['consumption_validation']['cutoff_status'],'NOT_REQUESTED')
+        validation=payload['consumption_validation']
+        self.assertEqual(validation['validation_status'],'VERIFIED')
+        self.assertEqual(validation['status'],'VERIFIED')
+        self.assertIsNone(validation['failure_stage'])
+        self.assertEqual(validation['gaps'],[])
+        self.assertEqual(validation['product_sha256'],payload['analysis']['product_sha256'])
+        self.assertEqual(validation['owner_import_receipt_sha256'],payload['owner_import_receipt']['sha256'])
+        expected_binding=('PRODUCT_PARENT_HANDOFF_BOUND' if 'handoff_manifest_sha256' in payload['owner_import_receipt'] else 'LEGACY_PRODUCT_PARENT_ONLY_CURRENT_HANDOFF_VERIFIED')
+        self.assertEqual(validation['owner_handoff_binding_status'],expected_binding)
         self.assertEqual(out['input_files'],{'manager':r['manager_files'],'materials':r['material_files']})
     def test_explicit_compact_publication_date_keeps_same_material_day(self):
         r=copy.deepcopy(self.request);r['publication_date']='20261007'
@@ -102,6 +114,41 @@ class AnnouncementBridgeTests(unittest.TestCase):
                 value['source_manifest_sha256']='a'*64
             self._reseal_receipt(r,mutate)
             with self.assertRaises(ValueError):self.run_request(r)
+    def test_handoff_corpus_limit_does_not_expand_other_input_or_output_limits(self):
+        from v5_shadow.announcement_bridge import _input_limit
+        from v5_shadow.digests import MAX_JSON_BYTES
+        run='a'*32
+        self.assertEqual(_input_limit(f'announcement_agent_runs/{run}/evidence/body_corpus.json'),32*1024*1024)
+        self.assertEqual(_input_limit(f'announcement_agent_runs/{run}/evidence/reader_output.json'),16*1024*1024)
+        self.assertEqual(_input_limit('workspace_announcements/20261008/eastmoney_date_catalog/20261007/analysis.v1.json'),16*1024*1024)
+        self.assertEqual(MAX_JSON_BYTES,16*1024*1024)
+    def test_missing_handoff_keeps_analysis_but_not_consumption_verified(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            r=self.copied(tmp)
+            for name in list(r['manager_files']):
+                if name.startswith('announcement_agent_runs/'):
+                    (Path(r['manager_root'])/name).unlink();del r['manager_files'][name]
+            out=self.run_request(r)
+            self.assertEqual(out['payload']['analysis']['status'],'VERIFIED')
+            validation=out['payload']['consumption_validation']
+            self.assertNotEqual(validation['validation_status'],'VERIFIED')
+            self.assertFalse(validation['consumed'])
+    def test_undeclared_handoff_on_disk_under_code_tree_is_not_read(self):
+        base=Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory(prefix='v5-input-boundary-',dir=base) as tmp:
+            r=self.copied(tmp)
+            name=next(k for k in r['manager_files'] if k.endswith('/handoff_manifest.v1.json'))
+            self.assertTrue((Path(r['manager_root'])/name).is_file())
+            del r['manager_files'][name]
+            out=self.run_request(r)
+            self.assertNotEqual(out['payload']['consumption_validation']['validation_status'],'VERIFIED')
+            self.assertNotIn(name,out['original_reader_accesses']['manager'])
+    def test_private_snapshot_view_used_for_complete_handoff(self):
+        out=self.run_request(self.request)
+        self.assertEqual(out['input_view'],'PRIVATE_READ_ONLY_SNAPSHOT')
+        self.assertEqual(out['payload']['consumption_validation']['validation_status'],'VERIFIED')
+        expected={k for k in self.request['manager_files'] if k.startswith('announcement_agent_runs/')}
+        self.assertTrue(expected<=set(out['original_reader_accesses']['manager']))
     def test_source_files_stay_byte_identical(self):
         r=self.request;self.run_request(r)
         for rootkey,filekey in [('manager_root','manager_files'),('materials_root','material_files')]:

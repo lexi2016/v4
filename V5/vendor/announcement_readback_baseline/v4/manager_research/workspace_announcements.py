@@ -2146,6 +2146,11 @@ def validate_registered_handoff(store: Any, run_id: str, manifest_sha256: str,
     from .announcement_analysis import validate_product as validate_analysis_product
     validate_analysis_product(chosen, target_trade_date=chosen.get('target_trade_date'),
         publication_date=chosen.get('publication_date'), catalog=catalog.get('catalog'))
+    # Apply the existing consumer's source-time requirement before owner
+    # import can publish a receipt. Missing acquisition times are not zero.
+    _source_times, source_times_complete = _analysis_time_refs(chosen)
+    if not source_times_complete:
+        raise ValueError('ANNOUNCEMENT_ANALYSIS_SOURCE_OR_REVIEW_TIME_MISSING')
     return {'evidence_root': evidence, 'manifest': manifest, 'product': chosen, 'receipt': receipt}
 
 
@@ -2164,6 +2169,23 @@ def validate_owner_analysis_import_receipt(receipt: Any, product: Mapping[str, A
             or any(receipt.get(key) is not expected for key, expected in FLAGS.items())
             or not _signed_digest(receipt)):
         raise ValueError('ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_BINDING_INVALID')
+    judgment = product.get('agent_judgment_receipt')
+    if isinstance(judgment, Mapping) and (
+            receipt.get('parent_task_id') != judgment.get('parent_task_id')
+            or receipt.get('parent_run_id') != judgment.get('parent_run_id')):
+        raise ValueError('ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_PARENT_BINDING_INVALID')
+    # Existing v1 receipts remain byte-for-byte readable. New imports bind the
+    # four extra identities as a complete group; GET never upgrades old files.
+    binding_keys = {'source_manifest_sha256', 'evidence_run_id',
+                    'handoff_manifest_sha256', 'agent_judgment_receipt_sha256'}
+    if binding_keys.intersection(receipt):
+        if (not binding_keys.issubset(receipt)
+                or not isinstance(judgment, Mapping)
+                or receipt.get('source_manifest_sha256') != product.get('source_manifest_sha256')
+                or receipt.get('evidence_run_id') != judgment.get('evidence_run_id')
+                or receipt.get('agent_judgment_receipt_sha256') != judgment.get('sha256')
+                or re.fullmatch(r'[0-9a-f]{64}', str(receipt.get('handoff_manifest_sha256'))) is None):
+            raise ValueError('ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_HANDOFF_BINDING_INVALID')
     return deepcopy(dict(receipt))
 
 
@@ -2202,10 +2224,20 @@ def _analysis_pairs(context: Mapping[str, Any]) -> list[tuple[str, str]]:
     from contracts.trading_calendar import load_market_calendar, resolve_market_states, TradingDayState
     dates = context.get('source_dates')
     plan_target = date_token(context.get('plan_trade_date'))
+    publication = context.get('announcement_publication_date')
+    if publication is not None:
+        from .announcement_analysis import _publication_date
+        return [(plan_target, _publication_date(publication))]
     if not isinstance(dates, list):
         raise ValueError('ANNOUNCEMENT_ANALYSIS_PLAN_SOURCE_DATES_INVALID')
     calendar = load_market_calendar()
-    pairs: list[tuple[str, str]] = []
+    # Evening plans target the next HK session, which is not yet in the
+    # completed source-date window. Include the same default pair as the
+    # analysis API/date binding, then retain older pairs as separate checks.
+    from .announcement_analysis import previous_hk_session
+    default_publication = previous_hk_session(plan_target)
+    pairs: list[tuple[str, str]] = [(plan_target,
+        datetime.strptime(default_publication, '%Y%m%d').strftime('%Y-%m-%d'))]
     for run_day in dates:
         day = date_token(run_day)
         day_state = resolve_market_states(calendar, day)['hk_securities']
@@ -2229,77 +2261,171 @@ def _analysis_pairs(context: Mapping[str, Any]) -> list[tuple[str, str]]:
     return sorted(set(pairs))
 
 
-def read_reviewed_analysis_references(service: Any, context: Mapping[str, Any]) -> dict[str, Any]:
-    """Read exact imported analysis and expose cutoff-safe research references only."""
-    from .announcement_analysis import product_path
-    cutoff = timestamp(context.get('research_cutoff'))
-    if cutoff is None:
-        return dict(status='CANNOT_CONFIRM', products=[], research_references=[], gaps=['ANNOUNCEMENT_ANALYSIS_PLAN_CUTOFF_INVALID'], input_identity=digest([]), **FLAGS)
-    products=[]; references=[]; gaps=[]; consumed=[]
-    for target, publication in _analysis_pairs(context):
+def read_analysis_consumption(service: Any, target_trade_date: str, publication_date: str,
+                              *, cutoff: str | None = None,
+                              analysis_readback: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    """Validate one exact imported product through the same API/plan read contract.
+
+    This is a read only projection. In particular, a legacy product may remain
+    readable by the R3 analysis API while its missing judgment prevents plan
+    consumption. Observed identities survive rejection so that a failed older
+    pair cannot be confused with the current product.
+    """
+    from .announcement_analysis import _publication_date, product_path
+    target = date_token(target_trade_date)
+    publication = _publication_date(publication_date)
+    item = dict(schema_version='v4.manager_research.announcement_analysis_consumption.v1',
+        target_trade_date=target, publication_date=publication,
+        status='NOT_IMPORTED', validation_status='NOT_IMPORTED', consumed=False,
+        product_sha256=None, source_manifest_sha256=None, catalog_product_sha256=None,
+        source_run_id=None, evidence_run_id=None, handoff_manifest_sha256=None,
+        agent_judgment_receipt_sha256=None, owner_import_receipt_sha256=None,
+        owner_handoff_binding_status='NOT_VERIFIED', decision_status=None,
+        selection_status='NOT_ASSESSED', stock_count=None, selected_stock_count=None,
+        conditional_watch_count=None, not_selected_stock_count=None,
+        not_assessed_stock_count=None, reviewed_at=None, owner_available_at=None,
+        latest_source_or_review_at=None, plan_cutoff=cutoff,
+        cutoff_status='NOT_REQUESTED' if cutoff is None else 'NOT_EVALUATED',
+        failure_stage=None, gaps=[], research_references=[], **FLAGS)
+    stage = 'PRODUCT_READ'
+    try:
         path = product_path(service.store, target, publication)
-        raw = service.store._read(path)
-        if raw is None:
+        product = service.store._read(path)
+        if product is None:
+            item.update(gaps=['ANNOUNCEMENT_ANALYSIS_NOT_IMPORTED'])
+            return item
+        if not isinstance(product, Mapping):
+            raise ValueError('ANNOUNCEMENT_ANALYSIS_PRODUCT_IDENTITY_INVALID')
+        manifest = product.get('source_manifest')
+        manifest = manifest if isinstance(manifest, Mapping) else {}
+        judgment = product.get('agent_judgment_receipt')
+        judgment = judgment if isinstance(judgment, Mapping) else {}
+        item.update(product_sha256=product.get('sha256'),
+            source_manifest_sha256=product.get('source_manifest_sha256'),
+            catalog_product_sha256=manifest.get('catalog_product_sha256'),
+            source_run_id=manifest.get('catalog_run_id'),
+            evidence_run_id=judgment.get('evidence_run_id'),
+            agent_judgment_receipt_sha256=judgment.get('sha256'))
+        stage = 'SOURCE_READBACK'
+        readback = (analysis_readback if analysis_readback is not None
+                    else service.get_announcement_analysis(target, publication))
+        analysis = readback.get('analysis') if isinstance(readback, Mapping) else None
+        if (not isinstance(analysis, Mapping) or analysis.get('status') != 'VERIFIED'
+                or analysis.get('product_sha256') != product.get('sha256')):
+            raise ValueError('ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_INVALID')
+        if (product.get('target_trade_date') != target
+                or product.get('publication_date') != publication
+                or readback.get('target_trade_date') != target
+                or readback.get('publication_date') != publication
+                or analysis.get('source_manifest_sha256') != product.get('source_manifest_sha256')
+                or readback.get('source_catalog', {}).get('catalog_product_sha256') != manifest.get('catalog_product_sha256')):
+            raise ValueError('ANNOUNCEMENT_ANALYSIS_SOURCE_IDENTITY_INVALID')
+        stage = 'JUDGMENT_RECEIPT'
+        agent_receipt = validate_agent_judgment_receipt(product.get('agent_judgment_receipt'), product)
+        item.update(decision_status=agent_receipt['decision_status'], reviewed_at=agent_receipt['reviewed_at'])
+        stage = 'OWNER_IMPORT_RECEIPT'
+        owner_raw = service.store._read(path.with_name('owner_import_receipt.v1.json'))
+        if isinstance(owner_raw, Mapping):
+            item.update(owner_import_receipt_sha256=owner_raw.get('sha256'),
+                owner_available_at=owner_raw.get('available_at'),
+                handoff_manifest_sha256=owner_raw.get('handoff_manifest_sha256'))
+        owner_receipt = validate_owner_analysis_import_receipt(owner_raw, product)
+        stage = 'HANDOFF_MANIFEST'
+        manifest_path = _handoff_root(service.store, agent_receipt['evidence_run_id']) / 'handoff_manifest.v1.json'
+        if manifest_path.is_symlink() or not manifest_path.is_file():
+            raise ValueError('ANNOUNCEMENT_AGENT_HANDOFF_MANIFEST_MISSING')
+        handoff_manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+        expected_manifest_sha = owner_receipt.get('handoff_manifest_sha256') or handoff_manifest.get('sha256')
+        item['handoff_manifest_sha256'] = expected_manifest_sha
+        stage = 'REGISTERED_HANDOFF'
+        validate_registered_handoff(service.store, agent_receipt['evidence_run_id'],
+            expected_manifest_sha, product.get('sha256'), product)
+        item['owner_handoff_binding_status'] = (
+            'PRODUCT_PARENT_HANDOFF_BOUND' if 'handoff_manifest_sha256' in owner_receipt
+            else 'LEGACY_PRODUCT_PARENT_ONLY_CURRENT_HANDOFF_VERIFIED')
+        stage = 'SOURCE_TIME'
+        times, sources_complete = _analysis_time_refs(product)
+        review_time = timestamp(agent_receipt.get('reviewed_at'))
+        import_time = timestamp(owner_receipt.get('available_at'))
+        if not sources_complete or review_time is None or import_time is None:
+            raise ValueError('ANNOUNCEMENT_ANALYSIS_SOURCE_OR_REVIEW_TIME_MISSING')
+        latest = max([*times, review_time, import_time])
+        item.update(validation_status='VERIFIED', latest_source_or_review_at=latest.isoformat(), status='VERIFIED')
+        selection = None
+        if agent_receipt['decision_status'] == 'EXPLICIT_DISPOSITIONS':
+            from .announcement_selection import read_projection
+            selection = read_projection(product)
+            item.update(selection_status=selection.get('status'), stock_count=selection.get('stock_count'),
+                selected_stock_count=selection.get('selected_stock_count'),
+                conditional_watch_count=selection.get('conditional_watch_count'),
+                not_selected_stock_count=selection.get('not_selected_stock_count'),
+                not_assessed_stock_count=selection.get('not_assessed_stock_count'))
+        stage = 'CUTOFF'
+        if cutoff is not None:
+            cutoff_time = timestamp(cutoff)
+            if cutoff_time is None:
+                raise ValueError('ANNOUNCEMENT_ANALYSIS_PLAN_CUTOFF_INVALID')
+            if latest > cutoff_time:
+                item.update(status='NOT_CONSUMED_AFTER_CUTOFF', cutoff_status='AFTER_CUTOFF',
+                    failure_stage=stage, gaps=['ANNOUNCEMENT_ANALYSIS_NOT_AVAILABLE_AT_PLAN_CUTOFF'])
+                return item
+            item.update(status='CONSUMED', consumed=True, cutoff_status='SATISFIED')
+        if selection is not None and item['consumed']:
+            for stock in selection.get('stocks', []):
+                if stock.get('status') not in {'SELECTED', 'CONDITIONAL_WATCH'}:
+                    continue
+                item['research_references'].append(dict(
+                    stock_code=stock.get('stock_code'), stock_name=stock.get('stock_name'),
+                    research_status=stock.get('status'), target_trade_date=target, publication_date=publication,
+                    product_sha256=product['sha256'], source_manifest_sha256=product['source_manifest_sha256'],
+                    evidence_run_id=item['evidence_run_id'], handoff_manifest_sha256=expected_manifest_sha,
+                    owner_import_receipt_sha256=item['owner_import_receipt_sha256'],
+                    reviewed_at=item['reviewed_at'], owner_available_at=item['owner_available_at'],
+                    selection_reasons=deepcopy(stock.get('selection_reasons', [])),
+                    risk_notes=deepcopy(stock.get('risk_notes', [])),
+                    article_refs=[{key: deepcopy(article.get(key)) for key in (
+                        'art_code', 'title', 'disposition', 'reason', 'risk_notes',
+                        'factual_summary', 'source_sha256')}
+                        for article in stock.get('articles', [])
+                        if article.get('disposition') in {'SELECTED_EVENT', 'SELECTED_PERFORMANCE', 'CONDITIONAL_WATCH'}],
+                    point_in_time_status=manifest.get('point_in_time_status'),
+                    connect_eligibility_status=manifest.get('connect_eligibility_status'), **FLAGS))
+        return item
+    except (OSError, ValueError, KeyError, TypeError, RuntimeError, ImportError) as exc:
+        detail = str(exc) if re.fullmatch(r'[A-Z][A-Z0-9_]{0,127}', str(exc) or '') else type(exc).__name__
+        item.update(status='NOT_CONSUMED_INVALID', validation_status='CANNOT_CONFIRM',
+            consumed=False, failure_stage=stage, gaps=[detail], research_references=[])
+        return item
+
+
+def read_reviewed_analysis_references(service: Any, context: Mapping[str, Any]) -> dict[str, Any]:
+    """Consume each valid pair independently and retain exact rejected identities."""
+    cutoff = context.get('research_cutoff')
+    if timestamp(cutoff) is None:
+        return dict(status='CANNOT_CONFIRM', products=[], research_references=[],
+            consumed_product_sha256s=[], gaps=['ANNOUNCEMENT_ANALYSIS_PLAN_CUTOFF_INVALID'],
+            input_identity=digest([]), **FLAGS)
+    products = []
+    references = []
+    gaps = []
+    consumed = []
+    explicit_pair = context.get('announcement_publication_date') is not None
+    for target, publication in _analysis_pairs(context):
+        item = read_analysis_consumption(service, target, publication, cutoff=cutoff)
+        if item['status'] == 'NOT_IMPORTED' and not explicit_pair:
             continue
-        try:
-            readback = service.get_announcement_analysis(target, publication)
-            product = raw
-            analysis = readback.get('analysis') if isinstance(readback, Mapping) else None
-            agent_receipt = validate_agent_judgment_receipt(product.get('agent_judgment_receipt'), product)
-            manifest_path = _handoff_root(service.store, agent_receipt.get('evidence_run_id')) / 'handoff_manifest.v1.json'
-            handoff_manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
-            validate_registered_handoff(service.store, agent_receipt.get('evidence_run_id'),
-                handoff_manifest.get('sha256'), product.get('sha256'), product)
-            owner_path = path.with_name('owner_import_receipt.v1.json')
-            owner_receipt = validate_owner_analysis_import_receipt(service.store._read(owner_path), product)
-            if not isinstance(analysis, Mapping) or analysis.get('status') != 'VERIFIED' or analysis.get('product_sha256') != product.get('sha256'):
-                raise ValueError('ANNOUNCEMENT_ANALYSIS_OWNER_READBACK_INVALID')
-            if (product.get('target_trade_date') != target
-                    or product.get('publication_date') != publication
-                    or readback.get('source_catalog', {}).get('catalog_product_sha256') != product.get('source_manifest', {}).get('catalog_product_sha256')):
-                raise ValueError('ANNOUNCEMENT_ANALYSIS_SOURCE_IDENTITY_INVALID')
-            times, sources_complete = _analysis_time_refs(product)
-            review_time = timestamp(agent_receipt.get('reviewed_at'))
-            import_time = timestamp(owner_receipt.get('available_at'))
-            if not sources_complete or review_time is None or import_time is None:
-                raise ValueError('ANNOUNCEMENT_ANALYSIS_SOURCE_OR_REVIEW_TIME_MISSING')
-            latest = max([*times, review_time, import_time]) if times else max(review_time, import_time)
-            state = 'CONSUMED' if latest <= cutoff else 'NOT_CONSUMED_AFTER_CUTOFF'
-            item = dict(target_trade_date=target, publication_date=publication,
-                product_sha256=product['sha256'], source_manifest_sha256=product['source_manifest_sha256'],
-                catalog_product_sha256=product['source_manifest']['catalog_product_sha256'],
-                decision_status=agent_receipt['decision_status'], reviewed_at=agent_receipt['reviewed_at'],
-                owner_available_at=owner_receipt['available_at'], latest_source_or_review_at=latest.isoformat(),
-                plan_cutoff=context['research_cutoff'], status=state, gaps=[] if state=='CONSUMED' else ['ANNOUNCEMENT_ANALYSIS_NOT_AVAILABLE_AT_PLAN_CUTOFF'],
-                RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=False, orders_sent=False)
-            if state == 'CONSUMED':
-                consumed.append(product['sha256'])
-                if agent_receipt['decision_status'] == 'EXPLICIT_DISPOSITIONS':
-                    from .announcement_selection import read_projection
-                    selection = read_projection(product)
-                    for stock in selection.get('stocks', []):
-                        if stock.get('status') in {'SELECTED', 'CONDITIONAL_WATCH'}:
-                            references.append(dict(stock_code=stock.get('stock_code'), stock_name=stock.get('stock_name'),
-                                research_status=stock.get('status'), target_trade_date=target, publication_date=publication,
-                                product_sha256=product['sha256'], source_manifest_sha256=product['source_manifest_sha256'],
-                                article_refs=[dict(art_code=article.get('art_code'), title=article.get('title'),
-                                    disposition=article.get('disposition'), source_sha256=article.get('source_sha256'))
-                                    for article in stock.get('articles', [])
-                                    if article.get('disposition') in {'SELECTED_EVENT','SELECTED_PERFORMANCE','CONDITIONAL_WATCH'}],
-                                point_in_time_status=product['source_manifest'].get('point_in_time_status'),
-                                connect_eligibility_status=product['source_manifest'].get('connect_eligibility_status'),
-                                RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=False, orders_sent=False))
-            products.append(item)
-        except (OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
-            detail = str(exc) if re.fullmatch(r'[A-Z][A-Z0-9_]{0,95}', str(exc) or '') else type(exc).__name__
-            gaps.append('ANNOUNCEMENT_ANALYSIS_NOT_CONSUMED:'+detail)
-            products.append(dict(target_trade_date=target, publication_date=publication,
-                status='NOT_CONSUMED_INVALID', gaps=['ANNOUNCEMENT_ANALYSIS_OWNER_VALIDATION_FAILED:'+detail], **FLAGS))
+        products.append(item)
+        if item['consumed']:
+            consumed.append(item['product_sha256'])
+            references.extend(item['research_references'])
+        else:
+            gaps.extend('ANNOUNCEMENT_ANALYSIS_NOT_CONSUMED:' + gap for gap in item['gaps'])
     if not products:
         gaps.append('ANNOUNCEMENT_ANALYSIS_NOT_IMPORTED_IN_PLAN_WINDOW')
-    status = 'CANNOT_CONFIRM' if any(p.get('status') == 'NOT_CONSUMED_INVALID' for p in products) else 'PARTIAL' if gaps or any(p.get('status') != 'CONSUMED' for p in products) else 'READY' if references else 'READY_EMPTY'
-    result = dict(status=status, plan_cutoff=context.get('research_cutoff'), products=products,
-        research_references=references, gaps=sorted(set(gaps)),
-        input_identity=digest(consumed), RESEARCH_ONLY=True, production_allowed=False,
-        buy_gate_updated=False, orders_sent=False)
-    return result
+    incomplete = any(item['status'] != 'CONSUMED' for item in products)
+    invalid = any(item['status'] == 'NOT_CONSUMED_INVALID' for item in products)
+    status = ('PARTIAL' if consumed and incomplete else 'CANNOT_CONFIRM' if invalid
+              else 'PARTIAL' if gaps or incomplete else 'READY' if references else 'READY_EMPTY')
+    return dict(status=status, plan_cutoff=cutoff, products=products,
+        research_references=references, gaps=sorted(set(gaps)), consumed_product_sha256s=consumed,
+        input_identity=digest(consumed), **FLAGS)
