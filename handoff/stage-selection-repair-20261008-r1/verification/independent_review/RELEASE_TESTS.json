@@ -1,0 +1,56 @@
+[
+  {
+    "name": "run_original_suites",
+    "command": [
+      "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+      "-B",
+      "/workspace/scratch/25c09a595aec/issue28/work/independent_review/initial_candidate/release/tests/run_original_suites.py"
+    ],
+    "exit_code": 0,
+    "tail": [
+      "test_positive_pid_identity_drift_stops_before_bootout_or_restore (original_recovery_tests.RecoveryTests.test_positive_pid_identity_drift_stops_before_bootout_or_restore) ... ok",
+      "",
+      "----------------------------------------------------------------------",
+      "Ran 26 tests in 0.035s",
+      "",
+      "OK"
+    ],
+    "log": "run_original_suites.log"
+  },
+  {
+    "name": "test_release_regressions",
+    "command": [
+      "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+      "-B",
+      "/workspace/scratch/25c09a595aec/issue28/work/independent_review/initial_candidate/release/tests/test_release_regressions.py"
+    ],
+    "exit_code": 0,
+    "tail": [
+      "test_review_receipt_without_guard_binding_is_rejected (__main__.ReleaseP1Tests.test_review_receipt_without_guard_binding_is_rejected) ... ok",
+      "",
+      "----------------------------------------------------------------------",
+      "Ran 12 tests in 0.212s",
+      "",
+      "OK"
+    ],
+    "log": "test_release_regressions.log"
+  },
+  {
+    "name": "test_release_boundaries",
+    "command": [
+      "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+      "-B",
+      "/workspace/scratch/25c09a595aec/issue28/work/independent_review/initial_candidate/release/tests/test_release_boundaries.py"
+    ],
+    "exit_code": 0,
+    "tail": [
+      "test_symlink_parent_is_rejected (__main__.ReleaseBoundaryTests.test_symlink_parent_is_rejected) ... ok",
+      "",
+      "----------------------------------------------------------------------",
+      "Ran 20 tests in 0.509s",
+      "",
+      "OK"
+    ],
+    "log": "test_release_boundaries.log"
+  }
+]

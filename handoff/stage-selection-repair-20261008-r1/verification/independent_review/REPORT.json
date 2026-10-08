@@ -1,0 +1,234 @@
+{
+  "schema_version": "v4.issue28.independent_source_review.v1",
+  "recorded_at_utc": "2026-10-08T03:39:57.159727+00:00",
+  "reviewer_identity": "ChatGPT delegated independent_review; no candidate implementation authored",
+  "baseline_commit": "00524e9050fe212f87911b56eea1c2db719dd94b",
+  "verdict": "CHANGES_REQUIRED_ON_INITIAL_FROZEN_CANDIDATE",
+  "status": {
+    "INDEPENDENT_SOURCE_REVIEW_COMPLETE": true,
+    "REVIEWED": "FAIL_TWO_IMPORTANT_SOURCE_FINDINGS",
+    "DEPLOYABLE": "NOT_DEPLOYABLE",
+    "DEPLOYED": false,
+    "INDEPENDENT_CORRECTION_REVIEW": "NOT_RUN"
+  },
+  "acceptance_ceiling_after_targeted_fixes": "PASS_WITH_DEPLOYMENT_GAPS only after exact changed hashes and closure evidence; never live ready from these tests.",
+  "findings": [
+    {
+      "id": "IR-01",
+      "severity": "Important",
+      "status": "OPEN_ON_INITIAL_REVIEWED_BYTES",
+      "batch": "release",
+      "title": "Recovery helper executes before its frozen helper hash is checked",
+      "location": {
+        "path": "delivery/release/after/blocked_candidate_ops/api_candidate_install_r2.py",
+        "lines": [
+          180,
+          316,
+          319,
+          320
+        ],
+        "sha256": "74e25d0a3d0b0f40f93c200d98620d1dea4c507dd40e328a510d4a6f9ce13762"
+      },
+      "evidence": "PROBE_RELEASE_LOAD_ORDER.json",
+      "probe": "probe_recovery_load_order.py",
+      "observed": "Modified helper import writes marker before InstallError: recovery helper hash differs from frozen plan.",
+      "impact": "A stop after import cannot undo executable side effects; newly moved import violates reject-drift-before-execution.",
+      "minimal_fix": "Verify guard raw bytes without importing unchecked recovery. Verify recovery pin/path before use and execute exactly checked helper bytes. Add import-side-effect/load-race cases and refreeze affected hashes.",
+      "correction_status": "Sent promptly to coordinator; correction verification is outside this initial-review verdict."
+    },
+    {
+      "id": "IR-02",
+      "severity": "Important",
+      "status": "OPEN_ON_INITIAL_REVIEWED_BYTES",
+      "batch": "hk",
+      "title": "Stale HK reuse aborts the whole batch before valid A artifact materialization",
+      "location": {
+        "path": "delivery/hk/after/active_producer_reference/ops/materialize_scheduled_preselection.py",
+        "lines": [
+          245,
+          249,
+          250,
+          342,
+          357
+        ],
+        "sha256": "25623e0ddd684a9e400aeaea5b9911ff35da7c615bdf3e288dd1fbd76874d331"
+      },
+      "evidence": "PROBE_HK_REUSE_ISOLATION.json",
+      "probe": "probe_hk_reuse_isolation.py",
+      "observed": "Same synthetic source returns stage-eligible A=1 without reuse; missing-provenance reused HK raises ValueError and returns no artifacts.",
+      "impact": "Bad HK blocks valid A, violating DECISION_LOCK and market isolation. Supplied regression expects this global failure.",
+      "minimal_fix": "Quarantine rejected HK reuse and skip its immutable-existing-trio write while continuing every A artifact, including A lanes ordered after HK. CLI+real-store test must preserve old HK bytes and full A materialization.",
+      "related_existing_boundary": "main lines333-341 eager pair read also aborts on absent/corrupt reused HK; pre-existing, handle in same narrow HK quarantine policy.",
+      "correction_status": "Sent promptly to coordinator; correction verification is outside this initial-review verdict."
+    }
+  ],
+  "counts": {
+    "Critical": 0,
+    "Important": 2,
+    "Minor_open": 0,
+    "Minor_corrected_by_coordinator": 1
+  },
+  "corrected_minor": {
+    "id": "IR-M01",
+    "source": "Coordinator-reported and corrected",
+    "path": "delivery/auction/run_focused.py",
+    "line": 24,
+    "issue": "Relative output causes child JUnit path to differ from parent metadata lookup, yielding counts={}.",
+    "fix": "Resolve output against caller cwd before subprocess.",
+    "evidence": "delivery/verification/HARNESS_RELATIVE_OUTPUT_FIX.json",
+    "independent_check": "Read fixed bytes and matching manifest; own absolute-output reruns produce full counts. Coordinator reran exact relative path."
+  },
+  "identity_checks": {
+    "baseline_files_27": "size/SHA256/Git blob PASS",
+    "auction_manifest_entries_76": "PASS",
+    "hk_manifest_entries_35": "PASS",
+    "pool_support_entries_29": "PASS",
+    "detail": "IDENTITY_CHECKS.json"
+  },
+  "patch_replay": {
+    "owner_replays": 4,
+    "forward": "EXACT_BYTES_PASS",
+    "reverse": "EXACT_BYTES_PASS",
+    "detail": "PATCH_REPLAY.json"
+  },
+  "reviewed_product_sha256": {
+    "hk/after/active_producer_reference/domains/preselection_materializer.py": "1187afe30c1f0614ddcd33f52eb3d82511d98ffe62b3fa5d4bf02f661b1ef290",
+    "hk/after/active_producer_reference/ops/materialize_scheduled_preselection.py": "25623e0ddd684a9e400aeaea5b9911ff35da7c615bdf3e288dd1fbd76874d331",
+    "release/after/blocked_candidate_ops/api_candidate_install_r2.py": "74e25d0a3d0b0f40f93c200d98620d1dea4c507dd40e328a510d4a6f9ce13762",
+    "release/after/blocked_candidate_ops/api_candidate_recovery.py": "4db1f38580d972ffe40c08a54e54c671023d18391f854f0b2f09d481e311ce24",
+    "release/after/blocked_candidate_ops/test_api_candidate_install_r2.py": "08fddc52017a7dd2ddba36ae07424a9f8648b4b53c3ba429cf2343946e662fa8",
+    "release/after/blocked_candidate_ops/test_api_candidate_recovery.py": "0954f737240bd4ab2895fbc8d8995ab34352067e13e0914a703d1d457e9251f2",
+    "release/after/external_guard_reference/hk_calendar_candidate_cutover.py": "932c1d1e4d6111faba8cee92f9a3ed0014018f71f986c4237346974260e5e69d"
+  },
+  "independent_test_reruns": [
+    {
+      "batch": "auction canonical",
+      "tests": 31,
+      "passed": 31,
+      "failed": 0,
+      "log": "auction/canonical_after.log"
+    },
+    {
+      "batch": "auction actual Stage",
+      "tests": 31,
+      "passed": 31,
+      "failed": 0,
+      "log": "auction/active_stage_reference_after.log"
+    },
+    {
+      "batch": "release original suites",
+      "tests": 26,
+      "passed": 26,
+      "failed": 0,
+      "log": "run_original_suites.log"
+    },
+    {
+      "batch": "release P1 regressions",
+      "tests": 12,
+      "passed": 12,
+      "failed": 0,
+      "log": "test_release_regressions.log"
+    },
+    {
+      "batch": "release boundaries",
+      "tests": 20,
+      "passed": 20,
+      "failed": 0,
+      "log": "test_release_boundaries.log"
+    },
+    {
+      "batch": "HK",
+      "tests": 51,
+      "passed": 51,
+      "failed": 0,
+      "log": "hk.log"
+    },
+    {
+      "batch": "pool",
+      "tests": 11,
+      "passed": 11,
+      "failed": 0,
+      "log": "pool.log"
+    }
+  ],
+  "supplied_test_instances_rerun": 182,
+  "own_probes": {
+    "count": 2,
+    "concrete_defects_reproduced": 2,
+    "service_calls": 0,
+    "real_active_paths_touched": false
+  },
+  "baseline_behavior_tests_this_reviewer": "NOT_RUN; author red results inspected and not included in new pass counts.",
+  "declined_judgements": [
+    {
+      "item": "Current owner/runtime identity beyond frozen slices",
+      "status": "CANNOT_CONFIRM",
+      "reason": "No current Mac readback."
+    },
+    {
+      "item": "Full auction selection/store/consumer/namespace and current API closure",
+      "status": "NOT_RUN",
+      "reason": "Historical support and exact route AST only; actual owner dependencies absent."
+    },
+    {
+      "item": "Full API create_app/middleware/config startup",
+      "status": "NOT_RUN",
+      "reason": "Bounded route harness, not full app."
+    },
+    {
+      "item": "HK actual scheduler caller/shared owner/calendar/store identity",
+      "status": "CANNOT_CONFIRM",
+      "reason": "Only two actual-owner files supplied."
+    },
+    {
+      "item": "Real 10/7 HK prices and 9/30 original eligibility capture/PIT",
+      "status": "NOT_RUN",
+      "reason": "Original business data/source trios absent; no conclusion about absence on Mac."
+    },
+    {
+      "item": "Actual HK Stage selection or genuine empty selection",
+      "status": "NOT_RUN",
+      "reason": "Strict validator exercised without Stage selection run; blocked input remains null/no run."
+    },
+    {
+      "item": "Actual release identity/manifest/inventory/executable final plan",
+      "status": "CANNOT_CONFIRM",
+      "reason": "Source-only plan; new owner freeze required."
+    },
+    {
+      "item": "Independent deployment approval/macOS launchd/live API/UI",
+      "status": "NOT_RUN_NOT_DEPLOYABLE",
+      "reason": "Synthetic services and Linux tests do not prove deployment."
+    },
+    {
+      "item": "Natural execution/per-run original-slot capture/full PIT chain",
+      "status": "NOT_RUN",
+      "reason": "Original immutable evidence absent."
+    },
+    {
+      "item": "A missing 6-7 rows/research and news numeric semantics",
+      "status": "NOT_RUN",
+      "reason": "Per-symbol data and confirmed owner/quality contract absent."
+    },
+    {
+      "item": "Historical three date gaps and three known P2s",
+      "status": "UNCHANGED_NOT_RECERTIFIED",
+      "reason": "Outside repaired bytes and missing original provenance."
+    },
+    {
+      "item": "Power-loss durability/broader unchanged HK guard CLI/host compromise threat model",
+      "status": "NOT_CERTIFIED",
+      "reason": "Only scoped API load/CAS/claim and process-exit failures tested."
+    }
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "real_service_actions": 0,
+    "actual_business_data_writes": 0,
+    "subagents_dispatched": 0
+  },
+  "markdown": "REPORT.md"
+}

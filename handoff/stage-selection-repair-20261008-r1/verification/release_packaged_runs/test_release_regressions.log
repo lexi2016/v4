@@ -1,0 +1,17 @@
+test_claim_recovery_preserves_intervening_path_and_does_not_bootstrap (__main__.ReleaseP1Tests.test_claim_recovery_preserves_intervening_path_and_does_not_bootstrap) ... ok
+test_claim_recovery_rejects_drifted_claim_before_service_access (__main__.ReleaseP1Tests.test_claim_recovery_rejects_drifted_claim_before_service_access) ... ok
+test_claim_recovery_rejects_modified_receipt_before_service_access (__main__.ReleaseP1Tests.test_claim_recovery_rejects_modified_receipt_before_service_access) ... ok
+test_claim_recovery_rejects_redirected_claim_even_with_rehashed_receipt (__main__.ReleaseP1Tests.test_claim_recovery_rejects_redirected_claim_even_with_rehashed_receipt) ... ok
+test_claim_recovery_rejects_symlink_claim_without_touching_target (__main__.ReleaseP1Tests.test_claim_recovery_rejects_symlink_claim_without_touching_target) ... ok
+test_double_link_failure_returns_claim_and_bound_drift_receipt (__main__.ReleaseP1Tests.test_double_link_failure_returns_claim_and_bound_drift_receipt) ... ok
+test_installer_rejects_guard_drift_before_module_side_effect (__main__.ReleaseP1Tests.test_installer_rejects_guard_drift_before_module_side_effect) ... ok
+test_legacy_recovery_identity_without_guard_pin_is_rejected (__main__.ReleaseP1Tests.test_legacy_recovery_identity_without_guard_pin_is_rejected) ... ok
+test_missing_active_recovers_exact_claim_then_bootstraps_baseline (__main__.ReleaseP1Tests.test_missing_active_recovers_exact_claim_then_bootstraps_baseline) ... ok
+test_recovery_identity_cannot_approve_a_different_guard_by_rehashing_it (__main__.ReleaseP1Tests.test_recovery_identity_cannot_approve_a_different_guard_by_rehashing_it) ... ok
+test_recovery_rejects_guard_drift_before_module_side_effect (__main__.ReleaseP1Tests.test_recovery_rejects_guard_drift_before_module_side_effect) ... ok
+test_review_receipt_without_guard_binding_is_rejected (__main__.ReleaseP1Tests.test_review_receipt_without_guard_binding_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.235s
+
+OK

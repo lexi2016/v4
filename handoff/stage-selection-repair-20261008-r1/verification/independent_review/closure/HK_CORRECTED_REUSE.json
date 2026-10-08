@@ -1,0 +1,23 @@
+{
+  "command": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "/workspace/scratch/25c09a595aec/issue28/delivery/hk/tests/test_hk_split_date_binding.py",
+    "-k",
+    "reuse_quarantines_bad_hk_without_blocking_valid_a or actual_cli_rejected_hk_reuse_materializes_a_and_preserves_old_hk",
+    "--junitxml=/workspace/scratch/25c09a595aec/issue28/work/independent_review/closure/hk_corrected_reuse.xml"
+  ],
+  "environment": {
+    "HK_OWNER_ROOT": "/workspace/scratch/25c09a595aec/issue28/delivery/hk/after/active_producer_reference",
+    "HK_BEFORE_OWNER_ROOT": "/workspace/scratch/25c09a595aec/issue28/delivery/hk/before/active_producer_reference",
+    "HK_SUPPORT_ROOT": "/workspace/scratch/25c09a595aec/issue28/delivery/hk/support/canonical",
+    "HK_FROZEN_ROOT": "/workspace/scratch/25c09a595aec/issue28/delivery/hk/support/frozen"
+  },
+  "exit_code": 0,
+  "output": "........                                                                 [100%]\n8 passed, 47 deselected in 0.47s\n"
+}

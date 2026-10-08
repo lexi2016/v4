@@ -1,0 +1,203 @@
+{
+  "owner": "active_stage_reference",
+  "phase": "after",
+  "scope": "FROZEN_IMPORTS_AND_EXACT_ROUTE_IN_PROCESS_HTTP; NOT_CURRENT_OWNER_APP",
+  "cases": [
+    {
+      "case": "100_to_105",
+      "builder_selector": {
+        "prev_close_price": 100.0,
+        "current_change_pct": 5.0,
+        "qmt_gap_pct": 5.0,
+        "current_change_pct_missing_reason": null,
+        "score": 100.0,
+        "rank": 1
+      },
+      "verified_readback": {
+        "prev_close_price": 100.0,
+        "current_change_pct": 5.0,
+        "qmt_gap_pct": 5.0,
+        "current_change_pct_missing_reason": null,
+        "score": 100.0,
+        "rank": 1
+      },
+      "api_unified_row": {
+        "prev_close_price": 100.0,
+        "current_change_pct": 5.0,
+        "qmt_gap_pct": 5.0,
+        "current_change_pct_missing_reason": null,
+        "score": 100.0,
+        "rank": 1
+      },
+      "run_id": "run-a928ac5bd0bfa871b78301ef",
+      "artifact_id": "selection-a928ac5bd0bfa871b78301ef",
+      "algorithm_sha256": "eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2",
+      "artifact_sha256": "1a80c01c2ea3bbb7a018feee62cfe784c7d1b69da573858207172c41f463f4e3",
+      "manifest_sha256": "df77d8e55a396d48bbb11f46c902cfd9f9f80b53f4fc4d2be574b1ba6044c485",
+      "receipt_sha256": "4817df4da962942dc054c78ba48ebe92b96c6aa9686b563b70f56f582d2660c2",
+      "api_run_matches": true,
+      "source": "SYNTHETIC_FIXTURE_ONLY; NOT_20261008_BUSINESS_ROWS"
+    },
+    {
+      "case": "missing",
+      "builder_selector": {
+        "prev_close_price": null,
+        "current_change_pct": null,
+        "qmt_gap_pct": null,
+        "current_change_pct_missing_reason": "PREV_CLOSE_PRICE_MISSING",
+        "score": 50.25,
+        "rank": 1
+      },
+      "verified_readback": {
+        "prev_close_price": null,
+        "current_change_pct": null,
+        "qmt_gap_pct": null,
+        "current_change_pct_missing_reason": "PREV_CLOSE_PRICE_MISSING",
+        "score": 50.25,
+        "rank": 1
+      },
+      "api_unified_row": {
+        "prev_close_price": null,
+        "current_change_pct": null,
+        "qmt_gap_pct": null,
+        "current_change_pct_missing_reason": "PREV_CLOSE_PRICE_MISSING",
+        "score": 50.25,
+        "rank": 1
+      },
+      "run_id": "run-41eef58faa1ca0af87c58901",
+      "artifact_id": "selection-41eef58faa1ca0af87c58901",
+      "algorithm_sha256": "eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2",
+      "artifact_sha256": "8d96d11881ec408622af8fa978c2b01b8dfc11d068bfdf6e0606d8f4b5b68a9b",
+      "manifest_sha256": "a727f6c94982c657a5418ac29da83321fdae510b7c7d2bc5dde431ced0b5f959",
+      "receipt_sha256": "b849cf41a2ca603f2f783d11e285de0fd4a308bd0bd5843e0e10dd95c686a30f",
+      "api_run_matches": true,
+      "source": "SYNTHETIC_FIXTURE_ONLY; NOT_20261008_BUSINESS_ROWS"
+    },
+    {
+      "case": "zero",
+      "builder_selector": {
+        "prev_close_price": null,
+        "current_change_pct": null,
+        "qmt_gap_pct": null,
+        "current_change_pct_missing_reason": "PREV_CLOSE_PRICE_INVALID",
+        "score": 50.25,
+        "rank": 1
+      },
+      "verified_readback": {
+        "prev_close_price": null,
+        "current_change_pct": null,
+        "qmt_gap_pct": null,
+        "current_change_pct_missing_reason": "PREV_CLOSE_PRICE_INVALID",
+        "score": 50.25,
+        "rank": 1
+      },
+      "api_unified_row": {
+        "prev_close_price": null,
+        "current_change_pct": null,
+        "qmt_gap_pct": null,
+        "current_change_pct_missing_reason": "PREV_CLOSE_PRICE_INVALID",
+        "score": 50.25,
+        "rank": 1
+      },
+      "run_id": "run-7dc771c23a8daa5476065d46",
+      "artifact_id": "selection-7dc771c23a8daa5476065d46",
+      "algorithm_sha256": "eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2",
+      "artifact_sha256": "7b8987204d0f24e09d8125c8ae576ea9ece93275a3add22ea57c47ded9505390",
+      "manifest_sha256": "54e12d0db174340cefe0c41c39288c75c9acc3621cb77d8cc172cc3aae55b125",
+      "receipt_sha256": "b829b5060076daae5ff04b5ce28370bdb23fece041cb095c1b81cb5042e90ac8",
+      "api_run_matches": true,
+      "source": "SYNTHETIC_FIXTURE_ONLY; NOT_20261008_BUSINESS_ROWS"
+    },
+    {
+      "case": "negative",
+      "builder_selector": {
+        "prev_close_price": null,
+        "current_change_pct": null,
+        "qmt_gap_pct": null,
+        "current_change_pct_missing_reason": "PREV_CLOSE_PRICE_INVALID",
+        "score": 50.25,
+        "rank": 1
+      },
+      "verified_readback": {
+        "prev_close_price": null,
+        "current_change_pct": null,
+        "qmt_gap_pct": null,
+        "current_change_pct_missing_reason": "PREV_CLOSE_PRICE_INVALID",
+        "score": 50.25,
+        "rank": 1
+      },
+      "api_unified_row": {
+        "prev_close_price": null,
+        "current_change_pct": null,
+        "qmt_gap_pct": null,
+        "current_change_pct_missing_reason": "PREV_CLOSE_PRICE_INVALID",
+        "score": 50.25,
+        "rank": 1
+      },
+      "run_id": "run-7dc771c23a8daa5476065d46",
+      "artifact_id": "selection-7dc771c23a8daa5476065d46",
+      "algorithm_sha256": "eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2",
+      "artifact_sha256": "7b8987204d0f24e09d8125c8ae576ea9ece93275a3add22ea57c47ded9505390",
+      "manifest_sha256": "54e12d0db174340cefe0c41c39288c75c9acc3621cb77d8cc172cc3aae55b125",
+      "receipt_sha256": "b829b5060076daae5ff04b5ce28370bdb23fece041cb095c1b81cb5042e90ac8",
+      "api_run_matches": true,
+      "source": "SYNTHETIC_FIXTURE_ONLY; NOT_20261008_BUSINESS_ROWS"
+    },
+    {
+      "case": "nonfinite",
+      "builder_selector": {
+        "prev_close_price": null,
+        "current_change_pct": null,
+        "qmt_gap_pct": null,
+        "current_change_pct_missing_reason": "PREV_CLOSE_PRICE_INVALID",
+        "score": 50.25,
+        "rank": 1
+      },
+      "verified_readback": {
+        "prev_close_price": null,
+        "current_change_pct": null,
+        "qmt_gap_pct": null,
+        "current_change_pct_missing_reason": "PREV_CLOSE_PRICE_INVALID",
+        "score": 50.25,
+        "rank": 1
+      },
+      "api_unified_row": {
+        "prev_close_price": null,
+        "current_change_pct": null,
+        "qmt_gap_pct": null,
+        "current_change_pct_missing_reason": "PREV_CLOSE_PRICE_INVALID",
+        "score": 50.25,
+        "rank": 1
+      },
+      "run_id": "run-7dc771c23a8daa5476065d46",
+      "artifact_id": "selection-7dc771c23a8daa5476065d46",
+      "algorithm_sha256": "eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2",
+      "artifact_sha256": "7b8987204d0f24e09d8125c8ae576ea9ece93275a3add22ea57c47ded9505390",
+      "manifest_sha256": "54e12d0db174340cefe0c41c39288c75c9acc3621cb77d8cc172cc3aae55b125",
+      "receipt_sha256": "b829b5060076daae5ff04b5ce28370bdb23fece041cb095c1b81cb5042e90ac8",
+      "api_run_matches": true,
+      "source": "SYNTHETIC_FIXTURE_ONLY; NOT_20261008_BUSINESS_ROWS"
+    }
+  ],
+  "rank_fixture": [
+    {
+      "code": "A.000102",
+      "score": 100.0,
+      "rank": 1
+    },
+    {
+      "code": "A.000103",
+      "score": 50.25,
+      "rank": 2
+    },
+    {
+      "code": "A.000101",
+      "score": 0.25,
+      "rank": 3
+    }
+  ],
+  "algorithm_sha256": "eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2",
+  "business_artifacts_changed": false,
+  "services_changed": false,
+  "orders_sent": false
+}

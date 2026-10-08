@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "/workspace/scratch/25c09a595aec/issue28/delivery/hk/tests/test_hk_split_date_binding.py",
+    "--junitxml=/workspace/scratch/25c09a595aec/issue28/work/independent_review/hk.xml"
+  ],
+  "exit_code": 0,
+  "tail": [
+    "...................................................                      [100%]",
+    "51 passed in 1.15s"
+  ]
+}

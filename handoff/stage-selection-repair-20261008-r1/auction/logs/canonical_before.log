@@ -1,0 +1,284 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.7, pytest-9.1.1, pluggy-1.6.0 -- /workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python
+rootdir: /workspace/scratch/25c09a595aec/issue28/work/auction
+plugins: anyio-4.15.1
+collecting ... collected 31 items
+
+tests/test_a_auction_prev_close.py::test_auction_previous_close_survives_real_adapter_and_verified_persistence FAILED [  3%]
+tests/test_a_auction_prev_close.py::test_missing_or_invalid_baseline_is_null_with_a_specific_reason[absent] FAILED [  6%]
+tests/test_a_auction_prev_close.py::test_missing_or_invalid_baseline_is_null_with_a_specific_reason[null] FAILED [  9%]
+tests/test_a_auction_prev_close.py::test_missing_or_invalid_baseline_is_null_with_a_specific_reason[empty] FAILED [ 12%]
+tests/test_a_auction_prev_close.py::test_missing_or_invalid_baseline_is_null_with_a_specific_reason[zero] FAILED [ 16%]
+tests/test_a_auction_prev_close.py::test_missing_or_invalid_baseline_is_null_with_a_specific_reason[negative] FAILED [ 19%]
+tests/test_a_auction_prev_close.py::test_missing_or_invalid_baseline_is_null_with_a_specific_reason[text] FAILED [ 22%]
+tests/test_a_auction_prev_close.py::test_missing_or_invalid_baseline_is_null_with_a_specific_reason[nan] FAILED [ 25%]
+tests/test_a_auction_prev_close.py::test_missing_or_invalid_baseline_is_null_with_a_specific_reason[infinity] FAILED [ 29%]
+tests/test_a_auction_prev_close.py::test_missing_or_invalid_baseline_is_null_with_a_specific_reason[negative-infinity] FAILED [ 32%]
+tests/test_a_auction_prev_close.py::test_missing_or_invalid_baseline_is_null_with_a_specific_reason[boolean] FAILED [ 35%]
+tests/test_a_auction_prev_close.py::test_actual_flat_auction_keeps_an_observed_zero FAILED [ 38%]
+tests/test_a_auction_prev_close.py::test_auction_change_uses_auction_price_even_when_last_differs PASSED [ 41%]
+tests/test_a_auction_prev_close.py::test_direct_selector_rejects_nonpositive_baseline_for_price_semantics FAILED [ 45%]
+tests/test_a_auction_prev_close.py::test_missing_auction_price_is_not_mislabeled_as_missing_previous_close FAILED [ 48%]
+tests/test_a_auction_prev_close.py::test_restored_gap_changes_ranks_under_the_original_bounded_formula FAILED [ 51%]
+tests/test_a_auction_prev_close.py::test_existing_persisted_run_is_readable_and_never_silently_rewritten PASSED [ 54%]
+tests/test_a_auction_prev_close.py::test_score_ties_keep_input_order_and_existing_top_ten_boundary FAILED [ 58%]
+tests/test_a_auction_prev_close.py::test_existing_v2_csv_codec_keeps_nullable_change_without_header_migration[None] PASSED [ 61%]
+tests/test_a_auction_prev_close.py::test_existing_v2_csv_codec_keeps_nullable_change_without_header_migration[5.0] PASSED [ 64%]
+tests/test_a_auction_prev_close.py::test_existing_v2_csv_codec_keeps_nullable_change_without_header_migration[0.0] PASSED [ 67%]
+tests/test_a_auction_prev_close.py::test_modified_persisted_previous_close_fails_manifest_verification PASSED [ 70%]
+tests/test_a_auction_prev_close.py::test_wrong_date_and_nonauction_window_remain_rejected PASSED [ 74%]
+tests/test_api_projection.py::test_workbench_http_preserves_auction_evidence_and_identity[100-to-105] FAILED [ 77%]
+tests/test_api_projection.py::test_workbench_http_preserves_auction_evidence_and_identity[absent] FAILED [ 80%]
+tests/test_api_projection.py::test_workbench_http_preserves_auction_evidence_and_identity[null] FAILED [ 83%]
+tests/test_api_projection.py::test_workbench_http_preserves_auction_evidence_and_identity[zero] FAILED [ 87%]
+tests/test_api_projection.py::test_workbench_http_preserves_auction_evidence_and_identity[negative] FAILED [ 90%]
+tests/test_api_projection.py::test_workbench_http_preserves_auction_evidence_and_identity[nan] FAILED [ 93%]
+tests/test_api_projection.py::test_workbench_http_preserves_auction_evidence_and_identity[infinite] FAILED [ 96%]
+tests/test_api_projection.py::test_http_flat_auction_keeps_observed_zero FAILED [100%]
+
+=================================== FAILURES ===================================
+__ test_auction_previous_close_survives_real_adapter_and_verified_persistence __
+tests/test_a_auction_prev_close.py:143: in test_auction_previous_close_survives_real_adapter_and_verified_persistence
+    assert row["prev_close_price"] == 100
+E   assert None == 100
+___ test_missing_or_invalid_baseline_is_null_with_a_specific_reason[absent] ____
+tests/test_a_auction_prev_close.py:177: in test_missing_or_invalid_baseline_is_null_with_a_specific_reason
+    assert row["current_change_pct"] is None
+E   assert 0.0 is None
+____ test_missing_or_invalid_baseline_is_null_with_a_specific_reason[null] _____
+tests/test_a_auction_prev_close.py:177: in test_missing_or_invalid_baseline_is_null_with_a_specific_reason
+    assert row["current_change_pct"] is None
+E   assert 0.0 is None
+____ test_missing_or_invalid_baseline_is_null_with_a_specific_reason[empty] ____
+tests/test_a_auction_prev_close.py:177: in test_missing_or_invalid_baseline_is_null_with_a_specific_reason
+    assert row["current_change_pct"] is None
+E   assert 0.0 is None
+____ test_missing_or_invalid_baseline_is_null_with_a_specific_reason[zero] _____
+tests/test_a_auction_prev_close.py:177: in test_missing_or_invalid_baseline_is_null_with_a_specific_reason
+    assert row["current_change_pct"] is None
+E   assert 0.0 is None
+__ test_missing_or_invalid_baseline_is_null_with_a_specific_reason[negative] ___
+tests/test_a_auction_prev_close.py:177: in test_missing_or_invalid_baseline_is_null_with_a_specific_reason
+    assert row["current_change_pct"] is None
+E   assert 0.0 is None
+____ test_missing_or_invalid_baseline_is_null_with_a_specific_reason[text] _____
+tests/test_a_auction_prev_close.py:177: in test_missing_or_invalid_baseline_is_null_with_a_specific_reason
+    assert row["current_change_pct"] is None
+E   assert 0.0 is None
+_____ test_missing_or_invalid_baseline_is_null_with_a_specific_reason[nan] _____
+tests/test_a_auction_prev_close.py:177: in test_missing_or_invalid_baseline_is_null_with_a_specific_reason
+    assert row["current_change_pct"] is None
+E   assert 0.0 is None
+__ test_missing_or_invalid_baseline_is_null_with_a_specific_reason[infinity] ___
+tests/test_a_auction_prev_close.py:177: in test_missing_or_invalid_baseline_is_null_with_a_specific_reason
+    assert row["current_change_pct"] is None
+E   assert 0.0 is None
+_ test_missing_or_invalid_baseline_is_null_with_a_specific_reason[negative-infinity] _
+tests/test_a_auction_prev_close.py:177: in test_missing_or_invalid_baseline_is_null_with_a_specific_reason
+    assert row["current_change_pct"] is None
+E   assert 0.0 is None
+___ test_missing_or_invalid_baseline_is_null_with_a_specific_reason[boolean] ___
+tests/test_a_auction_prev_close.py:177: in test_missing_or_invalid_baseline_is_null_with_a_specific_reason
+    assert row["current_change_pct"] is None
+E   assert 0.0 is None
+_______________ test_actual_flat_auction_keeps_an_observed_zero ________________
+tests/test_a_auction_prev_close.py:191: in test_actual_flat_auction_keeps_an_observed_zero
+    assert row["prev_close_price"] == 100
+E   assert None == 100
+____ test_direct_selector_rejects_nonpositive_baseline_for_price_semantics _____
+tests/test_a_auction_prev_close.py:208: in test_direct_selector_rejects_nonpositive_baseline_for_price_semantics
+    assert selected["prev_close_price"] is None
+E   assert -100.0 is None
+____ test_missing_auction_price_is_not_mislabeled_as_missing_previous_close ____
+tests/test_a_auction_prev_close.py:217: in test_missing_auction_price_is_not_mislabeled_as_missing_previous_close
+    assert row["prev_close_price"] == 100
+E   assert None == 100
+______ test_restored_gap_changes_ranks_under_the_original_bounded_formula ______
+tests/test_a_auction_prev_close.py:233: in test_restored_gap_changes_ranks_under_the_original_bounded_formula
+    assert [(row["code"], row["score"], row["rank"]) for row in selected] == [
+E   AssertionError: assert [('A.000101', 50.25, 1), ('A.000102', 50.25, 2), ('A.000103', 50.25, 3)] == [('A.000102', 100, 1), ('A.000103', 50.25, 2), ('A.000101', 0.25, 3)]
+E     
+E     At index 0 diff: ('A.000101', 50.25, 1) != ('A.000102', 100, 1)
+E     
+E     Full diff:
+E       [
+E           (
+E     +         'A.000101',
+E     +         50.25,
+E     +         1,
+E     +     ),
+E     +     (
+E               'A.000102',
+E     -         100,
+E     ?         ^ ^
+E     +         50.25,
+E     ?         ^ ^^^
+E     -         1,
+E     ?         ^
+E     +         2,
+E     ?         ^
+E           ),
+E           (
+E               'A.000103',
+E               50.25,
+E     -         2,
+E     -     ),
+E     -     (
+E     -         'A.000101',
+E     -         0.25,
+E               3,
+E           ),
+E       ]
+________ test_score_ties_keep_input_order_and_existing_top_ten_boundary ________
+tests/test_a_auction_prev_close.py:273: in test_score_ties_keep_input_order_and_existing_top_ten_boundary
+    assert [row["score"] for row in envelope["rows"]] == [100] * 10
+E   assert [50.25, 50.25, 50.25, 50.25, 50.25, 50.25, 50.25, 50.25, 50.25, 50.25] == [100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
+E     
+E     At index 0 diff: 50.25 != 100
+E     
+E     Full diff:
+E       [
+E     -     100,
+E     -     100,
+E     -     100,
+E     -     100,
+E     -     100,
+E     -     100,
+E     -     100,
+E     -     100,
+E     -     100,
+E     -     100,
+E     +     50.25,
+E     +     50.25,
+E     +     50.25,
+E     +     50.25,
+E     +     50.25,
+E     +     50.25,
+E     +     50.25,
+E     +     50.25,
+E     +     50.25,
+E     +     50.25,
+E       ]
+___ test_workbench_http_preserves_auction_evidence_and_identity[100-to-105] ____
+tests/test_api_projection.py:37: in test_workbench_http_preserves_auction_evidence_and_identity
+    assert row["prev_close_price"] == (100 if pct == 5 else None)
+E   assert None == 100
+_____ test_workbench_http_preserves_auction_evidence_and_identity[absent] ______
+tests/test_api_projection.py:38: in test_workbench_http_preserves_auction_evidence_and_identity
+    assert row["current_change_pct"] == row["qmt_gap_pct"] == pct
+E   assert 0.0 == None
+______ test_workbench_http_preserves_auction_evidence_and_identity[null] _______
+tests/test_api_projection.py:38: in test_workbench_http_preserves_auction_evidence_and_identity
+    assert row["current_change_pct"] == row["qmt_gap_pct"] == pct
+E   assert 0.0 == None
+______ test_workbench_http_preserves_auction_evidence_and_identity[zero] _______
+tests/test_api_projection.py:38: in test_workbench_http_preserves_auction_evidence_and_identity
+    assert row["current_change_pct"] == row["qmt_gap_pct"] == pct
+E   assert 0.0 == None
+____ test_workbench_http_preserves_auction_evidence_and_identity[negative] _____
+tests/test_api_projection.py:38: in test_workbench_http_preserves_auction_evidence_and_identity
+    assert row["current_change_pct"] == row["qmt_gap_pct"] == pct
+E   assert 0.0 == None
+_______ test_workbench_http_preserves_auction_evidence_and_identity[nan] _______
+tests/test_api_projection.py:38: in test_workbench_http_preserves_auction_evidence_and_identity
+    assert row["current_change_pct"] == row["qmt_gap_pct"] == pct
+E   assert 0.0 == None
+____ test_workbench_http_preserves_auction_evidence_and_identity[infinite] _____
+tests/test_api_projection.py:38: in test_workbench_http_preserves_auction_evidence_and_identity
+    assert row["current_change_pct"] == row["qmt_gap_pct"] == pct
+E   assert 0.0 == None
+__________________ test_http_flat_auction_keeps_observed_zero __________________
+tests/test_api_projection.py:57: in test_http_flat_auction_keeps_observed_zero
+    assert row["prev_close_price"] == 100
+E   assert None == 100
+=============================== warnings summary ===============================
+../../references/work/test-venv/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/25c09a595aec/issue28/references/work/test-venv/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /workspace/scratch/25c09a595aec/issue28/work/auction/logs/canonical_before.xml -
+=========================== short test summary info ============================
+FAILED tests/test_a_auction_prev_close.py::test_auction_previous_close_survives_real_adapter_and_verified_persistence - assert None == 100
+FAILED tests/test_a_auction_prev_close.py::test_missing_or_invalid_baseline_is_null_with_a_specific_reason[absent] - assert 0.0 is None
+FAILED tests/test_a_auction_prev_close.py::test_missing_or_invalid_baseline_is_null_with_a_specific_reason[null] - assert 0.0 is None
+FAILED tests/test_a_auction_prev_close.py::test_missing_or_invalid_baseline_is_null_with_a_specific_reason[empty] - assert 0.0 is None
+FAILED tests/test_a_auction_prev_close.py::test_missing_or_invalid_baseline_is_null_with_a_specific_reason[zero] - assert 0.0 is None
+FAILED tests/test_a_auction_prev_close.py::test_missing_or_invalid_baseline_is_null_with_a_specific_reason[negative] - assert 0.0 is None
+FAILED tests/test_a_auction_prev_close.py::test_missing_or_invalid_baseline_is_null_with_a_specific_reason[text] - assert 0.0 is None
+FAILED tests/test_a_auction_prev_close.py::test_missing_or_invalid_baseline_is_null_with_a_specific_reason[nan] - assert 0.0 is None
+FAILED tests/test_a_auction_prev_close.py::test_missing_or_invalid_baseline_is_null_with_a_specific_reason[infinity] - assert 0.0 is None
+FAILED tests/test_a_auction_prev_close.py::test_missing_or_invalid_baseline_is_null_with_a_specific_reason[negative-infinity] - assert 0.0 is None
+FAILED tests/test_a_auction_prev_close.py::test_missing_or_invalid_baseline_is_null_with_a_specific_reason[boolean] - assert 0.0 is None
+FAILED tests/test_a_auction_prev_close.py::test_actual_flat_auction_keeps_an_observed_zero - assert None == 100
+FAILED tests/test_a_auction_prev_close.py::test_direct_selector_rejects_nonpositive_baseline_for_price_semantics - assert -100.0 is None
+FAILED tests/test_a_auction_prev_close.py::test_missing_auction_price_is_not_mislabeled_as_missing_previous_close - assert None == 100
+FAILED tests/test_a_auction_prev_close.py::test_restored_gap_changes_ranks_under_the_original_bounded_formula - AssertionError: assert [('A.000101', 50.25, 1), ('A.000102', 50.25, 2), ('A.000103', 50.25, 3)] == [('A.000102', 100, 1), ('A.000103', 50.25, 2), ('A.000101', 0.25, 3)]
+  
+  At index 0 diff: ('A.000101', 50.25, 1) != ('A.000102', 100, 1)
+  
+  Full diff:
+    [
+        (
+  +         'A.000101',
+  +         50.25,
+  +         1,
+  +     ),
+  +     (
+            'A.000102',
+  -         100,
+  ?         ^ ^
+  +         50.25,
+  ?         ^ ^^^
+  -         1,
+  ?         ^
+  +         2,
+  ?         ^
+        ),
+        (
+            'A.000103',
+            50.25,
+  -         2,
+  -     ),
+  -     (
+  -         'A.000101',
+  -         0.25,
+            3,
+        ),
+    ]
+FAILED tests/test_a_auction_prev_close.py::test_score_ties_keep_input_order_and_existing_top_ten_boundary - assert [50.25, 50.25, 50.25, 50.25, 50.25, 50.25, 50.25, 50.25, 50.25, 50.25] == [100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
+  
+  At index 0 diff: 50.25 != 100
+  
+  Full diff:
+    [
+  -     100,
+  -     100,
+  -     100,
+  -     100,
+  -     100,
+  -     100,
+  -     100,
+  -     100,
+  -     100,
+  -     100,
+  +     50.25,
+  +     50.25,
+  +     50.25,
+  +     50.25,
+  +     50.25,
+  +     50.25,
+  +     50.25,
+  +     50.25,
+  +     50.25,
+  +     50.25,
+    ]
+FAILED tests/test_api_projection.py::test_workbench_http_preserves_auction_evidence_and_identity[100-to-105] - assert None == 100
+FAILED tests/test_api_projection.py::test_workbench_http_preserves_auction_evidence_and_identity[absent] - assert 0.0 == None
+FAILED tests/test_api_projection.py::test_workbench_http_preserves_auction_evidence_and_identity[null] - assert 0.0 == None
+FAILED tests/test_api_projection.py::test_workbench_http_preserves_auction_evidence_and_identity[zero] - assert 0.0 == None
+FAILED tests/test_api_projection.py::test_workbench_http_preserves_auction_evidence_and_identity[negative] - assert 0.0 == None
+FAILED tests/test_api_projection.py::test_workbench_http_preserves_auction_evidence_and_identity[nan] - assert 0.0 == None
+FAILED tests/test_api_projection.py::test_workbench_http_preserves_auction_evidence_and_identity[infinite] - assert 0.0 == None
+FAILED tests/test_api_projection.py::test_http_flat_auction_keeps_observed_zero - assert None == 100
+=================== 24 failed, 7 passed, 1 warning in 0.91s ====================

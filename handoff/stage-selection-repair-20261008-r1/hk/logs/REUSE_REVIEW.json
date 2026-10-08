@@ -1,0 +1,18 @@
+{
+  "finding": "Independent review: rejecting HK reuse globally aborted valid A materialization.",
+  "prior_candidate_ops_sha256": "25623e0ddd684a9e400aeaea5b9911ff35da7c615bdf3e288dd1fbd76874d331",
+  "corrected_candidate_ops_sha256": "e8f412ae44ceb708fb4480a3d20906cfbf057051e14ec49bb70efbca0b82b638",
+  "test_sha256": "11e886deacbc448c546c84650e93107e1ff2eceabe6d3c270204708e90414eec",
+  "red_result": "8 failed, 47 deselected",
+  "red_log": "reuse_isolation_red.log",
+  "red_log_sha256": "7ffdd509edcea392334a0c325df529cb3e8d5f50586e352cd3165ad25055ea2f",
+  "reconstruction_patch": "hk_reuse_isolation_review_fix.patch",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "green_result": "55 passed",
+  "main_patch_forward_reverse_replay": "PASS",
+  "review_fix_patch_forward_reverse_replay": "PASS",
+  "stage_validator_modified": false
+}

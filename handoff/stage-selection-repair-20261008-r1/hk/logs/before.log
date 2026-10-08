@@ -1,0 +1,122 @@
+{
+  "command": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "/workspace/scratch/25c09a595aec/issue28/delivery/hk/tests/test_hk_split_date_binding.py",
+    "-k",
+    "actual_materializer_to_unchanged or actual_cli_forwards or legacy_scheduler_call or frozen_baseline_reproduces or legacy_equal_dates"
+  ],
+  "environment": {
+    "HK_BEFORE_OWNER_ROOT": "/workspace/scratch/25c09a595aec/issue28/delivery/hk/before/active_producer_reference",
+    "HK_SUPPORT_ROOT": "/workspace/scratch/25c09a595aec/issue28/delivery/hk/support/canonical",
+    "HK_FROZEN_ROOT": "/workspace/scratch/25c09a595aec/issue28/delivery/hk/support/frozen",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "HK_OWNER_ROOT": "/workspace/scratch/25c09a595aec/issue28/delivery/hk/before/active_producer_reference"
+  }
+}
+F.F.F                                                                    [100%]
+=================================== FAILURES ===================================
+___ test_actual_materializer_to_unchanged_strict_validator_with_split_dates ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-102/test_actual_materializer_to_un0')
+
+    def test_actual_materializer_to_unchanged_strict_validator_with_split_dates(tmp_path):
+        source = tmp_path / "SYNTHETIC_shared"
+        pool, master, capture = _synthetic_source(source)
+        before = {str(p.relative_to(source)): _sha(p) for p in source.rglob("*") if p.is_file()}
+>       artifact = _build(source)
+                   ^^^^^^^^^^^^^^
+
+delivery/hk/tests/test_hk_split_date_binding.py:161: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+root = PosixPath('/tmp/pytest-of-root/pytest-102/test_actual_materializer_to_un0/SYNTHETIC_shared')
+signal = '20261007', eligibility = '20260930', target = '20261008'
+reader = None
+
+    def _build(root: Path, *, signal="20261007", eligibility="20260930", target="20261008", reader=None):
+>       return adapter.build_shared_hk_0_2_pool(
+            root, trade_date=target, signal_date=signal,
+            eligibility_source_date=eligibility,
+            shared_package_root=SHARED_PACKAGE_ROOT, reader=reader,
+        )
+E       TypeError: build_shared_hk_0_2_pool() got an unexpected keyword argument 'eligibility_source_date'
+
+delivery/hk/tests/test_hk_split_date_binding.py:150: TypeError
+____ test_actual_cli_forwards_independent_hk_dates_and_persists_bound_trio _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-102/test_actual_cli_forwards_indep0')
+isolated_a_lanes = []
+capsys = <_pytest.capture.CaptureFixture object at 0x7fb22152f0e0>
+
+    def test_actual_cli_forwards_independent_hk_dates_and_persists_bound_trio(tmp_path, isolated_a_lanes, capsys):
+        _synthetic_source(tmp_path / "source")
+>       result = scheduled.main([
+            "--trade-date", "20261008", "--signal-date", "20260930",
+            "--hk-target-date", "20261008", "--hk-signal-date", "20261007",
+            "--hk-eligibility-source-date", "20260930", "--input-root", str(tmp_path / "inputs"),
+            "--shared-data-root", str(tmp_path / "source"), "--shared-package-root", str(SHARED_PACKAGE_ROOT),
+            "--data-root", str(tmp_path / "input"),
+        ])
+
+delivery/hk/tests/test_hk_split_date_binding.py:305: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+delivery/hk/before/active_producer_reference/ops/materialize_scheduled_preselection.py:269: in main
+    args = parser.parse_args(argv)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+../../29f34dd56853/issue28/work/python/cpython-3.14.7-linux-x86_64-gnu/lib/python3.14/argparse.py:2012: in parse_args
+    self.error(msg)
+../../29f34dd56853/issue28/work/python/cpython-3.14.7-linux-x86_64-gnu/lib/python3.14/argparse.py:2785: in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = ArgumentParser(prog='python -m pytest', usage=None, description=None, formatter_class=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True)
+status = 2
+message = 'python -m pytest: error: unrecognized arguments: --hk-target-date 20261008 --hk-signal-date 20261007 --hk-eligibility-source-date 20260930\n'
+
+    def exit(self, status=0, message=None):
+        if message:
+            self._print_message(message, _sys.stderr)
+>       _sys.exit(status)
+E       SystemExit: 2
+
+../../29f34dd56853/issue28/work/python/cpython-3.14.7-linux-x86_64-gnu/lib/python3.14/argparse.py:2772: SystemExit
+----------------------------- Captured stderr call -----------------------------
+usage: python -m pytest [-h] --trade-date TRADE_DATE --signal-date SIGNAL_DATE
+                        [--selector SELECTOR] --input-root INPUT_ROOT
+                        [--data-root DATA_ROOT]
+                        --shared-data-root SHARED_DATA_ROOT
+                        --shared-package-root SHARED_PACKAGE_ROOT
+                        [--reuse-formal-pools]
+python -m pytest: error: unrecognized arguments: --hk-target-date 20261008 --hk-signal-date 20261007 --hk-eligibility-source-date 20260930
+________ test_legacy_scheduler_call_does_not_default_hk_price_to_a_date ________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-102/test_legacy_scheduler_call_doe0')
+isolated_a_lanes = [('20261008', '20260930')]
+capsys = <_pytest.capture.CaptureFixture object at 0x7fb2215134d0>
+
+    def test_legacy_scheduler_call_does_not_default_hk_price_to_a_date(tmp_path, isolated_a_lanes, capsys):
+        # A real legacy call carries 9/30 for A; a stale but valid shared HK pool
+        # also exists. The fixed entry must not promote it as the 10/8 HK input.
+        _synthetic_source(tmp_path / "source", signal="20260930")
+        result = scheduled.main([
+            "--trade-date", "20261008", "--signal-date", "20260930",
+            "--input-root", str(tmp_path / "inputs"),
+            "--shared-data-root", str(tmp_path / "source"),
+            "--shared-package-root", str(SHARED_PACKAGE_ROOT),
+            "--data-root", str(tmp_path / "out"),
+        ])
+        report = json.loads(capsys.readouterr().out)
+>       assert result == 1 and report["status"] == "FAILED"
+E       assert (0 == 1)
+
+delivery/hk/tests/test_hk_split_date_binding.py:375: AssertionError
+=========================== short test summary info ============================
+FAILED delivery/hk/tests/test_hk_split_date_binding.py::test_actual_materializer_to_unchanged_strict_validator_with_split_dates
+FAILED delivery/hk/tests/test_hk_split_date_binding.py::test_actual_cli_forwards_independent_hk_dates_and_persists_bound_trio
+FAILED delivery/hk/tests/test_hk_split_date_binding.py::test_legacy_scheduler_call_does_not_default_hk_price_to_a_date
+3 failed, 2 passed, 50 deselected in 0.43s

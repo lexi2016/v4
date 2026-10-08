@@ -1,0 +1,229 @@
+{
+  "schema_version": "v4.issue28.independent_targeted_closure.v1",
+  "recorded_at_utc": "2026-10-08T03:44:56.767715+00:00",
+  "reviewer_identity": "ChatGPT delegated independent_review; no candidate implementation authored",
+  "baseline_commit": "00524e9050fe212f87911b56eea1c2db719dd94b",
+  "scope": "One requested narrowly bounded follow-up of IR-01 and IR-02 on final delivery bytes; no new broad review or repeated full suite.",
+  "source_only_verdict": "PASS_WITH_DEPLOYMENT_GAPS",
+  "status": {
+    "REVIEWED": "PASS_SOURCE_ONLY_AFTER_IR01_IR02_CLOSURE",
+    "DEPLOYABLE": "NOT_DEPLOYABLE_PENDING_ACTUAL_OWNER_FREEZE_AND_DEPLOYMENT_ACCEPTANCE",
+    "DEPLOYED": false,
+    "LIVE_READY": false
+  },
+  "open_finding_counts": {
+    "Critical": 0,
+    "Important": 0,
+    "Minor": 0
+  },
+  "closed_findings": [
+    {
+      "id": "IR-01",
+      "severity": "Important",
+      "closure": "CLOSED",
+      "final_path": "delivery/release/after/blocked_candidate_ops/api_candidate_install_r2.py",
+      "final_sha256": "b348859aa5a0e3e94ecb1bc6b431590adc91c7c3346039ea82543f4487fe561e",
+      "mechanism": "Guard checked locally without recovery import; recovery pin checked before execution; regular-file buffer SHA checked and same bytes compiled, ignoring search-path/cache and post-check file replacements.",
+      "original_probe_result": "Marker false; expected helper pin rejection; service_calls=0.",
+      "focused_tests": "Five helper-load cases PASS.",
+      "evidence": [
+        "closure/PROBE_RELEASE_LOAD_ORDER.json",
+        "closure/RELEASE_HELPER_LOAD.json"
+      ]
+    },
+    {
+      "id": "IR-02",
+      "severity": "Important",
+      "closure": "CLOSED",
+      "final_path": "delivery/hk/after/active_producer_reference/ops/materialize_scheduled_preselection.py",
+      "final_sha256": "e8f412ae44ceb708fb4480a3d20906cfbf057051e14ec49bb70efbca0b82b638",
+      "mechanism": "Missing/invalid/stale HK reuse becomes explicit in-memory CANNOT_CONFIRM and is excluded from publication while all A artifacts continue through original materialization.",
+      "original_probe_result": "Eligible A=1 returned with stale HK reuse.",
+      "focused_tests": "Eight supplied reuse cases PASS; six additional narrowly scoped CLI/real-store cache conditions PASS.",
+      "every_a_lane": "All six A artifacts persist; primary A=1 and actual WeChat builder after HK=2 synthetic rows; other four A lanes retain missing/empty contracts.",
+      "old_hk_state": "Artifact/receipt bytes and manifest HK entry unchanged, including absent/corrupt states; no HK write or relabeling.",
+      "cli_status": "Exit 1 / FAILED for unresolved HK remains truthful while A publication completes.",
+      "evidence": [
+        "closure/PROBE_HK_REUSE_ISOLATION.json",
+        "closure/HK_CORRECTED_REUSE.json",
+        "closure/HK_ALL_A_PUBLICATION.json"
+      ]
+    }
+  ],
+  "final_source_sha256": {
+    "delivery/release/after/blocked_candidate_ops/api_candidate_install_r2.py": "b348859aa5a0e3e94ecb1bc6b431590adc91c7c3346039ea82543f4487fe561e",
+    "delivery/release/after/blocked_candidate_ops/api_candidate_recovery.py": "4db1f38580d972ffe40c08a54e54c671023d18391f854f0b2f09d481e311ce24",
+    "delivery/release/after/external_guard_reference/hk_calendar_candidate_cutover.py": "932c1d1e4d6111faba8cee92f9a3ed0014018f71f986c4237346974260e5e69d",
+    "delivery/hk/after/active_producer_reference/ops/materialize_scheduled_preselection.py": "e8f412ae44ceb708fb4480a3d20906cfbf057051e14ec49bb70efbca0b82b638",
+    "delivery/hk/after/active_producer_reference/domains/preselection_materializer.py": "1187afe30c1f0614ddcd33f52eb3d82511d98ffe62b3fa5d4bf02f661b1ef290"
+  },
+  "preserved_initial_files": {
+    "all_byte_identical": true,
+    "sha256": {
+      "REPORT.md": "edc02d12a763db07903ca626a1342364dab02d5403a506e9e01149f7479288df",
+      "REPORT.json": "09d05a464848c1966ec33a55ef88c61ac25058ffe5f060bf23d853e41a6dfdd6",
+      "PROBE_RELEASE_LOAD_ORDER.json": "a68e6cee6cd3cbabb69753366ee94229dd1e4cadc8696957e2554af16261d910",
+      "PROBE_HK_REUSE_ISOLATION.json": "06e14bfd3c576d602bd2687c07a628111e2a88341eab16820bb62737ad0e3f8a"
+    },
+    "initial_verdict_remains": "CHANGES_REQUIRED_ON_INITIAL_FROZEN_CANDIDATE"
+  },
+  "executed_in_this_followup": {
+    "supplied_helper_load_test_instances": 5,
+    "supplied_hk_reuse_test_instances": 8,
+    "unrelated_hk_tests_deselected": 47,
+    "original_reviewer_probes_rerun": 2,
+    "own_ir02_cli_real_store_conditions": 6,
+    "repeated_initial_full_suite": false,
+    "all_executed_checks_passed": true
+  },
+  "own_ir02_extra_conditions": [
+    "mismatched_cache",
+    "missing_artifact",
+    "corrupt_artifact",
+    "corrupt_receipt",
+    "corrupt_manifest_entry",
+    "absent_cache"
+  ],
+  "own_cli_probe_command": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-B",
+    "/workspace/scratch/25c09a595aec/issue28/work/independent_review/closure/probe_hk_all_a_publication.py"
+  ],
+  "actual_runtime": {
+    "python": "3.14.7",
+    "interpreter": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "platform": "Linux x86_64",
+    "services": "No actual subprocess/service operation; synthetic tests only"
+  },
+  "remaining_declined_judgements": [
+    {
+      "item": "Current owner/runtime identity beyond frozen slices",
+      "status": "CANNOT_CONFIRM",
+      "reason": "No current Mac readback."
+    },
+    {
+      "item": "Full auction selection/store/consumer/namespace and current API closure",
+      "status": "NOT_RUN",
+      "reason": "Historical support and exact route AST only; actual owner dependencies absent."
+    },
+    {
+      "item": "Full API create_app/middleware/config startup",
+      "status": "NOT_RUN",
+      "reason": "Bounded route harness, not full app."
+    },
+    {
+      "item": "HK actual scheduler caller/shared owner/calendar/store identity",
+      "status": "CANNOT_CONFIRM",
+      "reason": "Only two actual-owner files supplied."
+    },
+    {
+      "item": "Real 10/7 HK prices and 9/30 original eligibility capture/PIT",
+      "status": "NOT_RUN",
+      "reason": "Original business data/source trios absent; no conclusion about absence on Mac."
+    },
+    {
+      "item": "Actual HK Stage selection or genuine empty selection",
+      "status": "NOT_RUN",
+      "reason": "Strict validator exercised without Stage selection run; blocked input remains null/no run."
+    },
+    {
+      "item": "Actual release identity/manifest/inventory/executable final plan",
+      "status": "CANNOT_CONFIRM",
+      "reason": "Source-only plan; new owner freeze required."
+    },
+    {
+      "item": "Independent deployment approval/macOS launchd/live API/UI",
+      "status": "NOT_RUN_NOT_DEPLOYABLE",
+      "reason": "Synthetic services and Linux tests do not prove deployment."
+    },
+    {
+      "item": "Natural execution/per-run original-slot capture/full PIT chain",
+      "status": "NOT_RUN",
+      "reason": "Original immutable evidence absent."
+    },
+    {
+      "item": "A missing 6-7 rows/research and news numeric semantics",
+      "status": "NOT_RUN",
+      "reason": "Per-symbol data and confirmed owner/quality contract absent."
+    },
+    {
+      "item": "Historical three date gaps and three known P2s",
+      "status": "UNCHANGED_NOT_RECERTIFIED",
+      "reason": "Outside repaired bytes and missing original provenance."
+    },
+    {
+      "item": "Power-loss durability/broader unchanged HK guard CLI/host compromise threat model",
+      "status": "NOT_CERTIFIED",
+      "reason": "Only scoped API load/CAS/claim and process-exit failures tested."
+    }
+  ],
+  "candidate_code_or_supplied_tests_modified_by_reviewer": false,
+  "reviewer_script_change": "Optional result-directory environment variable only in original probes, preserving original result files; one additional IR-02-only synthetic CLI probe.",
+  "evidence_files": [
+    {
+      "path": "closure/ORIGINAL_PROBES_RERUN.json",
+      "bytes": 1952,
+      "sha256": "cd89990003382ab37818009cdda750cb2f92251a6a0bd698b431fe865b9e34d5"
+    },
+    {
+      "path": "closure/PROBE_RELEASE_LOAD_ORDER.json",
+      "bytes": 301,
+      "sha256": "a68e6cee6cd3cbabb69753366ee94229dd1e4cadc8696957e2554af16261d910"
+    },
+    {
+      "path": "closure/PROBE_HK_REUSE_ISOLATION.json",
+      "bytes": 435,
+      "sha256": "1a252d5137d6938459c31a9da475ab9a9c2c2ce5605a6b15bfba84bd2c057bbd"
+    },
+    {
+      "path": "closure/RELEASE_HELPER_LOAD.json",
+      "bytes": 1448,
+      "sha256": "ca5a1b4d6b1112999d5d8b39956abe98cee0c759e99e03550de636ec9364b281"
+    },
+    {
+      "path": "closure/release_helper_load.log",
+      "bytes": 903,
+      "sha256": "7e366971308a974bb2f8c25d40f3d3dc0ba2a7d62c6a515ac7acfa8e57c18f54"
+    },
+    {
+      "path": "closure/HK_CORRECTED_REUSE.json",
+      "bytes": 1111,
+      "sha256": "014afa93bb13e9a98cf1422dec92cd179340caf36f316f347b53acf3c1fd49bb"
+    },
+    {
+      "path": "closure/hk_corrected_reuse.log",
+      "bytes": 113,
+      "sha256": "1a3c8f20838d5ddbf14bef9f2c8287858bf6c94ba6d76d895855b36539d735c2"
+    },
+    {
+      "path": "closure/hk_corrected_reuse.xml",
+      "bytes": 1586,
+      "sha256": "561891a1ae29d1526e5a7687b2c579c8f4b201272d462eddecb5675a4d40d7ae"
+    },
+    {
+      "path": "closure/HK_ALL_A_PUBLICATION.json",
+      "bytes": 5715,
+      "sha256": "a4a581782e33b0cc46da3cf90b68d98546fe1cd025691ac100d1965c1fe16b25"
+    },
+    {
+      "path": "closure/probe_hk_all_a_publication.py",
+      "bytes": 7679,
+      "sha256": "323e467d13cb8d636ed2e60867ad5eea25c20b58e891d1b5f61babca77475123"
+    },
+    {
+      "path": "closure/PRESERVED_INITIAL_SHA256.json",
+      "bytes": 377,
+      "sha256": "921432766e27fe22e82f426529f58ae6fb5566468c21c0e2675ebaec56c86356"
+    }
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "actual_service_actions": 0,
+    "actual_business_data_writes": 0,
+    "subagents_dispatched": 0
+  },
+  "markdown": "CLOSURE.md"
+}

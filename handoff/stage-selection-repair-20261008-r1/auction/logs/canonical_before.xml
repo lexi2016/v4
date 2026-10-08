@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="24" skipped="0" tests="31" time="0.912" timestamp="2026-10-07T20:24:20.596164-07:00" hostname="5fa05583d26b"><testcase classname="tests.test_a_auction_prev_close" name="test_auction_previous_close_survives_real_adapter_and_verified_persistence" time="0.020"><failure message="assert None == 100">tests/test_a_auction_prev_close.py:143: in test_auction_previous_close_survives_real_adapter_and_verified_persistence
+    assert row["prev_close_price"] == 100
+E   assert None == 100</failure></testcase><testcase classname="tests.test_a_auction_prev_close" name="test_missing_or_invalid_baseline_is_null_with_a_specific_reason[absent]" time="0.005"><failure message="assert 0.0 is None">tests/test_a_auction_prev_close.py:177: in test_missing_or_invalid_baseline_is_null_with_a_specific_reason
+    assert row["current_change_pct"] is None
+E   assert 0.0 is None</failure></testcase><testcase classname="tests.test_a_auction_prev_close" name="test_missing_or_invalid_baseline_is_null_with_a_specific_reason[null]" time="0.005"><failure message="assert 0.0 is None">tests/test_a_auction_prev_close.py:177: in test_missing_or_invalid_baseline_is_null_with_a_specific_reason
+    assert row["current_change_pct"] is None
+E   assert 0.0 is None</failure></testcase><testcase classname="tests.test_a_auction_prev_close" name="test_missing_or_invalid_baseline_is_null_with_a_specific_reason[empty]" time="0.005"><failure message="assert 0.0 is None">tests/test_a_auction_prev_close.py:177: in test_missing_or_invalid_baseline_is_null_with_a_specific_reason
+    assert row["current_change_pct"] is None
+E   assert 0.0 is None</failure></testcase><testcase classname="tests.test_a_auction_prev_close" name="test_missing_or_invalid_baseline_is_null_with_a_specific_reason[zero]" time="0.005"><failure message="assert 0.0 is None">tests/test_a_auction_prev_close.py:177: in test_missing_or_invalid_baseline_is_null_with_a_specific_reason
+    assert row["current_change_pct"] is None
+E   assert 0.0 is None</failure></testcase><testcase classname="tests.test_a_auction_prev_close" name="test_missing_or_invalid_baseline_is_null_with_a_specific_reason[negative]" time="0.005"><failure message="assert 0.0 is None">tests/test_a_auction_prev_close.py:177: in test_missing_or_invalid_baseline_is_null_with_a_specific_reason
+    assert row["current_change_pct"] is None
+E   assert 0.0 is None</failure></testcase><testcase classname="tests.test_a_auction_prev_close" name="test_missing_or_invalid_baseline_is_null_with_a_specific_reason[text]" time="0.005"><failure message="assert 0.0 is None">tests/test_a_auction_prev_close.py:177: in test_missing_or_invalid_baseline_is_null_with_a_specific_reason
+    assert row["current_change_pct"] is None
+E   assert 0.0 is None</failure></testcase><testcase classname="tests.test_a_auction_prev_close" name="test_missing_or_invalid_baseline_is_null_with_a_specific_reason[nan]" time="0.004"><failure message="assert 0.0 is None">tests/test_a_auction_prev_close.py:177: in test_missing_or_invalid_baseline_is_null_with_a_specific_reason
+    assert row["current_change_pct"] is None
+E   assert 0.0 is None</failure></testcase><testcase classname="tests.test_a_auction_prev_close" name="test_missing_or_invalid_baseline_is_null_with_a_specific_reason[infinity]" time="0.004"><failure message="assert 0.0 is None">tests/test_a_auction_prev_close.py:177: in test_missing_or_invalid_baseline_is_null_with_a_specific_reason
+    assert row["current_change_pct"] is None
+E   assert 0.0 is None</failure></testcase><testcase classname="tests.test_a_auction_prev_close" name="test_missing_or_invalid_baseline_is_null_with_a_specific_reason[negative-infinity]" time="0.004"><failure message="assert 0.0 is None">tests/test_a_auction_prev_close.py:177: in test_missing_or_invalid_baseline_is_null_with_a_specific_reason
+    assert row["current_change_pct"] is None
+E   assert 0.0 is None</failure></testcase><testcase classname="tests.test_a_auction_prev_close" name="test_missing_or_invalid_baseline_is_null_with_a_specific_reason[boolean]" time="0.005"><failure message="assert 0.0 is None">tests/test_a_auction_prev_close.py:177: in test_missing_or_invalid_baseline_is_null_with_a_specific_reason
+    assert row["current_change_pct"] is None
+E   assert 0.0 is None</failure></testcase><testcase classname="tests.test_a_auction_prev_close" name="test_actual_flat_auction_keeps_an_observed_zero" time="0.004"><failure message="assert None == 100">tests/test_a_auction_prev_close.py:191: in test_actual_flat_auction_keeps_an_observed_zero
+    assert row["prev_close_price"] == 100
+E   assert None == 100</failure></testcase><testcase classname="tests.test_a_auction_prev_close" name="test_auction_change_uses_auction_price_even_when_last_differs" time="0.001" /><testcase classname="tests.test_a_auction_prev_close" name="test_direct_selector_rejects_nonpositive_baseline_for_price_semantics" time="0.000"><failure message="assert -100.0 is None">tests/test_a_auction_prev_close.py:208: in test_direct_selector_rejects_nonpositive_baseline_for_price_semantics
+    assert selected["prev_close_price"] is None
+E   assert -100.0 is None</failure></testcase><testcase classname="tests.test_a_auction_prev_close" name="test_missing_auction_price_is_not_mislabeled_as_missing_previous_close" time="0.005"><failure message="assert None == 100">tests/test_a_auction_prev_close.py:217: in test_missing_auction_price_is_not_mislabeled_as_missing_previous_close
+    assert row["prev_close_price"] == 100
+E   assert None == 100</failure></testcase><testcase classname="tests.test_a_auction_prev_close" name="test_restored_gap_changes_ranks_under_the_original_bounded_formula" time="0.007"><failure message="AssertionError: assert [('A.000101', 50.25, 1), ('A.000102', 50.25, 2), ('A.000103', 50.25, 3)] == [('A.000102', 100, 1), ('A.000103', 50.25, 2), ('A.000101', 0.25, 3)]&#10;  &#10;  At index 0 diff: ('A.000101', 50.25, 1) != ('A.000102', 100, 1)&#10;  &#10;  Full diff:&#10;    [&#10;        (&#10;  +         'A.000101',&#10;  +         50.25,&#10;  +         1,&#10;  +     ),&#10;  +     (&#10;            'A.000102',&#10;  -         100,&#10;  ?         ^ ^&#10;  +         50.25,&#10;  ?         ^ ^^^&#10;  -         1,&#10;  ?         ^&#10;  +         2,&#10;  ?         ^&#10;        ),&#10;        (&#10;            'A.000103',&#10;            50.25,&#10;  -         2,&#10;  -     ),&#10;  -     (&#10;  -         'A.000101',&#10;  -         0.25,&#10;            3,&#10;        ),&#10;    ]">tests/test_a_auction_prev_close.py:233: in test_restored_gap_changes_ranks_under_the_original_bounded_formula
+    assert [(row["code"], row["score"], row["rank"]) for row in selected] == [
+E   AssertionError: assert [('A.000101', 50.25, 1), ('A.000102', 50.25, 2), ('A.000103', 50.25, 3)] == [('A.000102', 100, 1), ('A.000103', 50.25, 2), ('A.000101', 0.25, 3)]
+E     
+E     At index 0 diff: ('A.000101', 50.25, 1) != ('A.000102', 100, 1)
+E     
+E     Full diff:
+E       [
+E           (
+E     +         'A.000101',
+E     +         50.25,
+E     +         1,
+E     +     ),
+E     +     (
+E               'A.000102',
+E     -         100,
+E     ?         ^ ^
+E     +         50.25,
+E     ?         ^ ^^^
+E     -         1,
+E     ?         ^
+E     +         2,
+E     ?         ^
+E           ),
+E           (
+E               'A.000103',
+E               50.25,
+E     -         2,
+E     -     ),
+E     -     (
+E     -         'A.000101',
+E     -         0.25,
+E               3,
+E           ),
+E       ]</failure></testcase><testcase classname="tests.test_a_auction_prev_close" name="test_existing_persisted_run_is_readable_and_never_silently_rewritten" time="0.011" /><testcase classname="tests.test_a_auction_prev_close" name="test_score_ties_keep_input_order_and_existing_top_ten_boundary" time="0.001"><failure message="assert [50.25, 50.25, 50.25, 50.25, 50.25, 50.25, 50.25, 50.25, 50.25, 50.25] == [100, 100, 100, 100, 100, 100, 100, 100, 100, 100]&#10;  &#10;  At index 0 diff: 50.25 != 100&#10;  &#10;  Full diff:&#10;    [&#10;  -     100,&#10;  -     100,&#10;  -     100,&#10;  -     100,&#10;  -     100,&#10;  -     100,&#10;  -     100,&#10;  -     100,&#10;  -     100,&#10;  -     100,&#10;  +     50.25,&#10;  +     50.25,&#10;  +     50.25,&#10;  +     50.25,&#10;  +     50.25,&#10;  +     50.25,&#10;  +     50.25,&#10;  +     50.25,&#10;  +     50.25,&#10;  +     50.25,&#10;    ]">tests/test_a_auction_prev_close.py:273: in test_score_ties_keep_input_order_and_existing_top_ten_boundary
+    assert [row["score"] for row in envelope["rows"]] == [100] * 10
+E   assert [50.25, 50.25, 50.25, 50.25, 50.25, 50.25, 50.25, 50.25, 50.25, 50.25] == [100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
+E     
+E     At index 0 diff: 50.25 != 100
+E     
+E     Full diff:
+E       [
+E     -     100,
+E     -     100,
+E     -     100,
+E     -     100,
+E     -     100,
+E     -     100,
+E     -     100,
+E     -     100,
+E     -     100,
+E     -     100,
+E     +     50.25,
+E     +     50.25,
+E     +     50.25,
+E     +     50.25,
+E     +     50.25,
+E     +     50.25,
+E     +     50.25,
+E     +     50.25,
+E     +     50.25,
+E     +     50.25,
+E       ]</failure></testcase><testcase classname="tests.test_a_auction_prev_close" name="test_existing_v2_csv_codec_keeps_nullable_change_without_header_migration[None]" time="0.000" /><testcase classname="tests.test_a_auction_prev_close" name="test_existing_v2_csv_codec_keeps_nullable_change_without_header_migration[5.0]" time="0.000" /><testcase classname="tests.test_a_auction_prev_close" name="test_existing_v2_csv_codec_keeps_nullable_change_without_header_migration[0.0]" time="0.000" /><testcase classname="tests.test_a_auction_prev_close" name="test_modified_persisted_previous_close_fails_manifest_verification" time="0.006" /><testcase classname="tests.test_a_auction_prev_close" name="test_wrong_date_and_nonauction_window_remain_rejected" time="0.000" /><testcase classname="tests.test_api_projection" name="test_workbench_http_preserves_auction_evidence_and_identity[100-to-105]" time="0.138"><failure message="assert None == 100">tests/test_api_projection.py:37: in test_workbench_http_preserves_auction_evidence_and_identity
+    assert row["prev_close_price"] == (100 if pct == 5 else None)
+E   assert None == 100</failure></testcase><testcase classname="tests.test_api_projection" name="test_workbench_http_preserves_auction_evidence_and_identity[absent]" time="0.026"><failure message="assert 0.0 == None">tests/test_api_projection.py:38: in test_workbench_http_preserves_auction_evidence_and_identity
+    assert row["current_change_pct"] == row["qmt_gap_pct"] == pct
+E   assert 0.0 == None</failure></testcase><testcase classname="tests.test_api_projection" name="test_workbench_http_preserves_auction_evidence_and_identity[null]" time="0.027"><failure message="assert 0.0 == None">tests/test_api_projection.py:38: in test_workbench_http_preserves_auction_evidence_and_identity
+    assert row["current_change_pct"] == row["qmt_gap_pct"] == pct
+E   assert 0.0 == None</failure></testcase><testcase classname="tests.test_api_projection" name="test_workbench_http_preserves_auction_evidence_and_identity[zero]" time="0.027"><failure message="assert 0.0 == None">tests/test_api_projection.py:38: in test_workbench_http_preserves_auction_evidence_and_identity
+    assert row["current_change_pct"] == row["qmt_gap_pct"] == pct
+E   assert 0.0 == None</failure></testcase><testcase classname="tests.test_api_projection" name="test_workbench_http_preserves_auction_evidence_and_identity[negative]" time="0.025"><failure message="assert 0.0 == None">tests/test_api_projection.py:38: in test_workbench_http_preserves_auction_evidence_and_identity
+    assert row["current_change_pct"] == row["qmt_gap_pct"] == pct
+E   assert 0.0 == None</failure></testcase><testcase classname="tests.test_api_projection" name="test_workbench_http_preserves_auction_evidence_and_identity[nan]" time="0.025"><failure message="assert 0.0 == None">tests/test_api_projection.py:38: in test_workbench_http_preserves_auction_evidence_and_identity
+    assert row["current_change_pct"] == row["qmt_gap_pct"] == pct
+E   assert 0.0 == None</failure></testcase><testcase classname="tests.test_api_projection" name="test_workbench_http_preserves_auction_evidence_and_identity[infinite]" time="0.030"><failure message="assert 0.0 == None">tests/test_api_projection.py:38: in test_workbench_http_preserves_auction_evidence_and_identity
+    assert row["current_change_pct"] == row["qmt_gap_pct"] == pct
+E   assert 0.0 == None</failure></testcase><testcase classname="tests.test_api_projection" name="test_http_flat_auction_keeps_observed_zero" time="0.029"><failure message="assert None == 100">tests/test_api_projection.py:57: in test_http_flat_auction_keeps_observed_zero
+    assert row["prev_close_price"] == 100
+E   assert None == 100</failure></testcase></testsuite></testsuites>

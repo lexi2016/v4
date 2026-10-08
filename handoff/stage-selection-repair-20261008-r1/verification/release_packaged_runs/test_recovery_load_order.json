@@ -1,0 +1,22 @@
+{
+  "name": "test_recovery_load_order",
+  "command": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-B",
+    "release/tests/test_recovery_load_order.py"
+  ],
+  "cwd": "/workspace/scratch/25c09a595aec/issue28/delivery",
+  "RELEASE_SOURCE_ROOT": "/workspace/scratch/25c09a595aec/issue28/delivery/release/after",
+  "exit_code": 0,
+  "tests": 5,
+  "log": "test_recovery_load_order.log",
+  "log_sha256": "2cb8a0867486e807ab2a04f7125f311ca756d4d9dd49ce16c2f93fb1ef38276a",
+  "source_shas": {
+    "blocked_candidate_ops/api_candidate_install_r2.py": "b348859aa5a0e3e94ecb1bc6b431590adc91c7c3346039ea82543f4487fe561e",
+    "blocked_candidate_ops/api_candidate_recovery.py": "4db1f38580d972ffe40c08a54e54c671023d18391f854f0b2f09d481e311ce24",
+    "blocked_candidate_ops/test_api_candidate_install_r2.py": "08fddc52017a7dd2ddba36ae07424a9f8648b4b53c3ba429cf2343946e662fa8",
+    "blocked_candidate_ops/test_api_candidate_recovery.py": "0954f737240bd4ab2895fbc8d8995ab34352067e13e0914a703d1d457e9251f2",
+    "external_guard_reference/hk_calendar_candidate_cutover.py": "932c1d1e4d6111faba8cee92f9a3ed0014018f71f986c4237346974260e5e69d"
+  },
+  "scope": "PORTABLE_PACKAGE_TEMP_FIXTURES_NOT_MAC_OR_SERVICE"
+}

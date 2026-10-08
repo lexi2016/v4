@@ -1,0 +1,30 @@
+[
+  {
+    "command": [
+      "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+      "-B",
+      "/workspace/scratch/25c09a595aec/issue28/work/independent_review/probe_recovery_load_order.py"
+    ],
+    "explicit_environment": {
+      "ISSUE28_REVIEW_INSTALLER": "/workspace/scratch/25c09a595aec/issue28/delivery/release/after/blocked_candidate_ops/api_candidate_install_r2.py",
+      "ISSUE28_REVIEW_PROBE_OUTPUT": "/workspace/scratch/25c09a595aec/issue28/work/independent_review/closure"
+    },
+    "exit_code": 0,
+    "stdout": "{\n  \"active_paths_touched\": false,\n  \"candidate_source_sha256\": \"b348859aa5a0e3e94ecb1bc6b431590adc91c7c3346039ea82543f4487fe561e\",\n  \"drifted_helper_executed_before_rejection\": false,\n  \"error\": \"recovery helper hash differs from frozen plan\",\n  \"helper_drift_rejected\": true,\n  \"service_calls\": 0\n}\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+      "-B",
+      "/workspace/scratch/25c09a595aec/issue28/work/independent_review/probe_hk_reuse_isolation.py"
+    ],
+    "explicit_environment": {
+      "ISSUE28_REVIEW_HK_OWNER": "/workspace/scratch/25c09a595aec/issue28/delivery/hk/after/active_producer_reference",
+      "ISSUE28_REVIEW_PROBE_OUTPUT": "/workspace/scratch/25c09a595aec/issue28/work/independent_review/closure"
+    },
+    "exit_code": 0,
+    "stdout": "{\n  \"scenarios\": [\n    {\n      \"stale_hk_reuse\": false,\n      \"returned_artifacts\": true,\n      \"a_status\": \"V192_CANDIDATE_READY\",\n      \"a_rows\": 1,\n      \"a_stage_selection_eligible\": true\n    },\n    {\n      \"stale_hk_reuse\": true,\n      \"returned_artifacts\": true,\n      \"a_status\": \"V192_CANDIDATE_READY\",\n      \"a_rows\": 1,\n      \"a_stage_selection_eligible\": true\n    }\n  ],\n  \"all_data_synthetic\": true,\n  \"service_calls\": 0\n}\n",
+    "stderr": ""
+  }
+]

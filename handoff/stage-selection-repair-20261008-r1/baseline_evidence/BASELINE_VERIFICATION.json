@@ -1,0 +1,198 @@
+{
+  "baseline_commit": "00524e9050fe212f87911b56eea1c2db719dd94b",
+  "remote_manifest_observed_this_turn": true,
+  "local_source_reuse": "byte-verified immutable slices only",
+  "file_count": 27,
+  "passed": true,
+  "files": [
+    {
+      "path": "source/canonical/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "sha256": "27da90f0e623e45fa1a27af7dcc3b6e5e1ff2320bae1c61bd903ed82050beb89",
+      "git_blob_sha1": "b2b366c2cbfd89ba9fed437620057fdb01f1e561",
+      "bytes": 67647,
+      "passed": true
+    },
+    {
+      "path": "source/canonical/domains/preselection_materializer.py",
+      "sha256": "50d48cdfc5beaf4f3eeb9cd2eaa93b37684a731bca2fa189f2ba246534b268f8",
+      "git_blob_sha1": "d0f2cda536ae243746c59ded5f4012ee01607e71",
+      "bytes": 19924,
+      "passed": true
+    },
+    {
+      "path": "source/canonical/domains/_preselection_materializer_parts/hk_pool.py",
+      "sha256": "c62dc3c81f9ba98f1363f0ad307fb91e9ae0d79b80db2d874ca95a044acbefcd",
+      "git_blob_sha1": "bc2b13a4b0a7655746e40e49d45c85bec9291d99",
+      "bytes": 15630,
+      "passed": true
+    },
+    {
+      "path": "source/canonical/ops/materialize_scheduled_preselection.py",
+      "sha256": "8e90cabbac847946151f8c6bba2696c94b556ff3d56543f0058d74e406d3dab5",
+      "git_blob_sha1": "fef8a947cf18eec02ca2e83d97d8a7d1e3dac085",
+      "bytes": 28774,
+      "passed": true
+    },
+    {
+      "path": "source/canonical/stage_center/runner.py",
+      "sha256": "d36cc60c538f23ab0f48c7387523d83ed5cebbdc67c0dd630e671f98ecdffa48",
+      "git_blob_sha1": "8075ab916e1d9d03c3e22a765d174c37ac73e3bf",
+      "bytes": 83846,
+      "passed": true
+    },
+    {
+      "path": "source/canonical/stage_center/_runner_parts/hk_input_validation.py",
+      "sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+      "git_blob_sha1": "ad07c9a495f363822f294403e0da9ec12d74b26f",
+      "bytes": 23786,
+      "passed": true
+    },
+    {
+      "path": "source/canonical/tests/test_hk_prior_observation_source_binding.py",
+      "sha256": "6a48bd3357a97690d5886c03dff9e31fc84ae1a0357087bcca3f4168841cd930",
+      "git_blob_sha1": "b38fdb014d41d60caba969dc55dda910d28c2d82",
+      "bytes": 21557,
+      "passed": true
+    },
+    {
+      "path": "source/canonical/infrastructure/preselection_pool_store.py",
+      "sha256": "028298a05ea44e310487c1159acc8147cf652e23ba716989135b178198795a92",
+      "git_blob_sha1": "cd05bfc4d0004cd57b5a94527ae46c4dd47cc04e",
+      "bytes": 56442,
+      "passed": true
+    },
+    {
+      "path": "source/canonical/ops/build_close_review.py",
+      "sha256": "a361ae023285392ddf3b0e9674a9c506fae79252cc02c15df221ae09ba28e5aa",
+      "git_blob_sha1": "88977853aa8941ac69b25bb026516663e3789faf",
+      "bytes": 6601,
+      "passed": true
+    },
+    {
+      "path": "source/canonical/tests/test_close_review_producer.py",
+      "sha256": "c2501b342755bfa97064ceae1a8df0c936f912c9a635fc88c059d660d62b655f",
+      "git_blob_sha1": "90d7ee09c50b7e472964aeeb597ec6d2a5a93230",
+      "bytes": 21578,
+      "passed": true
+    },
+    {
+      "path": "source/active_stage_reference/stage_center/runner.py",
+      "sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232",
+      "git_blob_sha1": "b0aa8badf3cbe4c5e9b6e758044f3403c57c2ee3",
+      "bytes": 44615,
+      "passed": true
+    },
+    {
+      "path": "source/active_stage_reference/stage_center/_runner_parts/hk_input_validation.py",
+      "sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+      "git_blob_sha1": "ad07c9a495f363822f294403e0da9ec12d74b26f",
+      "bytes": 23786,
+      "passed": true
+    },
+    {
+      "path": "source/active_stage_reference/ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+      "sha256": "d7ea89f5467fb4d62af6b43c59d9dcd7cfcd020a1ee1ce07a9fae8525f735f86",
+      "git_blob_sha1": "78696ef0dac8a50663becc3224a6021d66377580",
+      "bytes": 23381,
+      "passed": true
+    },
+    {
+      "path": "source/active_producer_reference/ops/materialize_scheduled_preselection.py",
+      "sha256": "2aac77c9a995c8e97488be5324e8dd105e19e68a08bfb71cceb2df670aaa5478",
+      "git_blob_sha1": "d5d7f3be800ac49b9abc5d2f222a39b73bf896cd",
+      "bytes": 11468,
+      "passed": true
+    },
+    {
+      "path": "source/active_producer_reference/domains/preselection_materializer.py",
+      "sha256": "f090146f39eaaf1ea5baaa5da60cddc2aefe738be16eb1609f166b643953d84e",
+      "git_blob_sha1": "8d7f68924163ce5ca48c85b6b33b9b1e3c950e20",
+      "bytes": 51134,
+      "passed": true
+    },
+    {
+      "path": "source/blocked_candidate_ops/api_candidate_install_r2.py",
+      "sha256": "b326d2f68843e1673169bc8d6e36965786f513e19ef2671a64d113284e944200",
+      "git_blob_sha1": "8225fe0e98fb66a9bf79344b932173bbbcdd46b1",
+      "bytes": 23651,
+      "passed": true
+    },
+    {
+      "path": "source/blocked_candidate_ops/test_api_candidate_install_r2.py",
+      "sha256": "167a43a3b81f1cac11995c107ad1c6a8f09fc7d008aaa157753b46e5ca5c59b6",
+      "git_blob_sha1": "600d8125763be3462c5ac12332368b6998efaa78",
+      "bytes": 6436,
+      "passed": true
+    },
+    {
+      "path": "source/blocked_candidate_ops/api_candidate_recovery.py",
+      "sha256": "d42975f459858ed697805c3043090a82102cd2e0d6c28eef07bb4c440e955fbb",
+      "git_blob_sha1": "dfcabbceef16bef3c92be58093fe04a1714592c1",
+      "bytes": 18007,
+      "passed": true
+    },
+    {
+      "path": "source/blocked_candidate_ops/test_api_candidate_recovery.py",
+      "sha256": "871bbf1bf97a537bd40bf0461a00e7702ab9ae2c01d3a558a5bba5716bf77bf8",
+      "git_blob_sha1": "c223d7a89bb29c615bb07c4ef0638371e0caa74b",
+      "bytes": 14705,
+      "passed": true
+    },
+    {
+      "path": "source/external_guard_reference/hk_calendar_candidate_cutover.py",
+      "sha256": "264ad2d3f5535e17f6e7471dc12d7e00452104b505795857e9f0637c0a29e816",
+      "git_blob_sha1": "e26e66c9c4aaf7a12a19f5da736c1dcea6bf0283",
+      "bytes": 48843,
+      "passed": true
+    },
+    {
+      "path": "source/canonical/stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "sha256": "8b3552498b125ae90c56964799f3cf0e644a077243f7be4c37ea23261214379a",
+      "git_blob_sha1": "bcd53fa8be12ff04c00b50ec9566e17449978a3c",
+      "bytes": 44965,
+      "passed": true
+    },
+    {
+      "path": "source/active_stage_reference/stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "sha256": "5b315c482723f4bbfb187e36241ea422f2a59518a2056be037d1fdbe2f00eb22",
+      "git_blob_sha1": "ea28586244319a62396bcbb2357d5e74b65fcf16",
+      "bytes": 21870,
+      "passed": true
+    },
+    {
+      "path": "source/canonical/stage_center/_selection_parts/a_auction.py",
+      "sha256": "d0a96edcb4d87f223b117917a8f0d68276bd088a88abe8f787d245c8e1c669ad",
+      "git_blob_sha1": "0dd8b201d888d4eeadbe6a3b806f44b3c3457f77",
+      "bytes": 7957,
+      "passed": true
+    },
+    {
+      "path": "source/canonical/stage_center/_selection_parts/schema_values.py",
+      "sha256": "80b0c21556c78c89132a08ca24eb80b5a211791719cb54801497dbe74472e458",
+      "git_blob_sha1": "2f5cf40e2197c6af0dddfd2e7ba65a0b6403acb0",
+      "bytes": 3956,
+      "passed": true
+    },
+    {
+      "path": "source/canonical/stage_center/_selection_parts/artifact_codec.py",
+      "sha256": "6c0ddaed1dfe7a066be9aeb1c726e2357f5c1814b0baca834c37bb1879aeeb9d",
+      "git_blob_sha1": "16c5484e950f4cfaade62882aaaa734acfa75984",
+      "bytes": 2997,
+      "passed": true
+    },
+    {
+      "path": "source/canonical/stage_center/research_context.py",
+      "sha256": "b02d7aec8574105f2b1bd4be73c739814153d5011fa18ecc63327bb86c51d3fc",
+      "git_blob_sha1": "b0a9385a8c76e427e2e365aab893d6f387d6bccf",
+      "bytes": 40926,
+      "passed": true
+    },
+    {
+      "path": "source/active_stage_reference/stage_center/research_context.py",
+      "sha256": "3bfaae2b13bc8fdb7658e38047f505a8e4c74c1ce5cfb762d38c912bba23e89e",
+      "git_blob_sha1": "ed853f07366f93cd076edfeaa815abbf7063684c",
+      "bytes": 44454,
+      "passed": true
+    }
+  ]
+}

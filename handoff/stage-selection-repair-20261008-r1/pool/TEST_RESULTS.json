@@ -1,0 +1,20 @@
+{
+  "scope": "EXACT_UNMODIFIED_ROUTE_AST_AND_REAL_FROZEN_POOL_STORAGE",
+  "full_create_app": "NOT_RUN",
+  "mac": "NOT_RUN",
+  "ui": "NOT_RUN",
+  "natural_execution": "NOT_RUN",
+  "command": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-B",
+    "/workspace/scratch/25c09a595aec/issue28/delivery/pool/harness/run_isolated_pool_tests.py"
+  ],
+  "cwd": "/workspace/scratch/25c09a595aec",
+  "exit_code": 0,
+  "passed": 11,
+  "new_tests": 4,
+  "reused_tests": 7,
+  "warnings": "1 existing StarletteDeprecationWarning; no dependency changes",
+  "python": "3.14.7 Linux; Mac 3.14.6 not executed",
+  "product_changes": 0
+}

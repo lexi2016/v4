@@ -1,0 +1,25 @@
+test_active_symlink_is_rejected_before_claim (__main__.ReleaseBoundaryTests.test_active_symlink_is_rejected_before_claim) ... ok
+test_claim_directory_symlink_is_rejected_before_service_access (__main__.ReleaseBoundaryTests.test_claim_directory_symlink_is_rejected_before_service_access) ... ok
+test_claim_fifo_is_rejected_without_blocking (__main__.ReleaseBoundaryTests.test_claim_fifo_is_rejected_without_blocking) ... ok
+test_claim_publication_uses_checked_snapshot_after_source_changes (__main__.ReleaseBoundaryTests.test_claim_publication_uses_checked_snapshot_after_source_changes) ... ok
+test_claim_receipt_wrong_identity_or_path_is_rejected_even_when_rehashed (__main__.ReleaseBoundaryTests.test_claim_receipt_wrong_identity_or_path_is_rejected_even_when_rehashed) ... ok
+test_claim_recovery_preserves_a_dangling_symlink_inserted_at_link (__main__.ReleaseBoundaryTests.test_claim_recovery_preserves_a_dangling_symlink_inserted_at_link) ... ok
+test_claim_recovery_rejects_any_existing_path_without_service_access (__main__.ReleaseBoundaryTests.test_claim_recovery_rejects_any_existing_path_without_service_access) ... ok
+test_double_link_failure_during_rollback_recovers_candidate_claim_then_baseline (__main__.ReleaseBoundaryTests.test_double_link_failure_during_rollback_recovers_candidate_claim_then_baseline) ... ok
+test_guard_source_replaced_after_sha_check_never_executes_new_bytes (__main__.ReleaseBoundaryTests.test_guard_source_replaced_after_sha_check_never_executes_new_bytes) ... ok
+test_install_identity_requires_same_guard_as_plan (__main__.ReleaseBoundaryTests.test_install_identity_requires_same_guard_as_plan) ... ok
+test_install_plan_requires_guard_path_and_sha (__main__.ReleaseBoundaryTests.test_install_plan_requires_guard_path_and_sha) ... ok
+test_installer_rechecks_staged_snapshot_before_cas (__main__.ReleaseBoundaryTests.test_installer_rechecks_staged_snapshot_before_cas) ... ok
+test_intervening_writer_before_claim_is_restored_without_publishing_candidate (__main__.ReleaseBoundaryTests.test_intervening_writer_before_claim_is_restored_without_publishing_candidate) ... ok
+test_later_receipt_failure_retains_preclaim_recovery_witness (__main__.ReleaseBoundaryTests.test_later_receipt_failure_retains_preclaim_recovery_witness) ... ok
+test_preclaim_receipt_write_failure_preserves_active_path (__main__.ReleaseBoundaryTests.test_preclaim_receipt_write_failure_preserves_active_path) ... ok
+test_process_exit_immediately_after_claim_has_recoverable_receipt (__main__.ReleaseBoundaryTests.test_process_exit_immediately_after_claim_has_recoverable_receipt) ... ok
+test_recovery_guard_drift_stops_before_any_service_query (__main__.ReleaseBoundaryTests.test_recovery_guard_drift_stops_before_any_service_query) ... ok
+test_repeated_failed_attempts_keep_every_claim_and_receipt (__main__.ReleaseBoundaryTests.test_repeated_failed_attempts_keep_every_claim_and_receipt) ... ok
+test_single_link_failure_restores_original_snapshot_and_mode (__main__.ReleaseBoundaryTests.test_single_link_failure_restores_original_snapshot_and_mode) ... ok
+test_symlink_parent_is_rejected (__main__.ReleaseBoundaryTests.test_symlink_parent_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 0.488s
+
+OK

@@ -1,0 +1,113 @@
+--- a/ops/materialize_scheduled_preselection.py
++++ b/ops/materialize_scheduled_preselection.py
+@@ -39,6 +39,7 @@
+         {"STRICT_0_2_READY", "HK_0_2_TOP100_READY"}
+     ),
+ }
++_HK_REUSE_REJECTION_CODE = "HK_0_2_REUSE_CONTRACT_INVALID"
+ 
+ 
+ def _formal_pool_gate(artifacts: Sequence[Mapping[str, object]]) -> dict[str, object]:
+@@ -247,8 +248,24 @@
+         # projection also rejects old rows carrying a newer envelope or SHA.
+         reused_hk = dict(reused_formal["hkconnect_d1_top100"])
+         if reused_hk != hk_0_2:
+-            raise ValueError("reused HK pool does not match verified exact-source projection")
+-        hk_0_2 = reused_hk
++            input_reasons = (
++                list(hk_0_2.get("cannot_confirm") or [])
++                if hk_0_2.get("status") != "STRICT_0_2_READY" else []
++            )
++            if reused_hk.get("source_role") == "EXPECTED_MISSING":
++                input_reasons.extend(reused_hk.get("cannot_confirm") or [])
++            hk_0_2 = _missing(
++                hk_artifact_date,
++                pool_id="hkconnect_d1_top100",
++                display_name="港股通 0.2 D-1 Top100",
++                market="HK",
++                reason=(
++                    f"{_HK_REUSE_REJECTION_CODE}:reused HK pool does not match verified exact-source projection"
++                    + (":" + ";".join(str(reason) for reason in input_reasons) if input_reasons else "")
++                ),
++            )
++        else:
++            hk_0_2 = reused_hk
+ 
+     return [
+         a_premarket,
+@@ -323,7 +340,7 @@
+     parser.add_argument(
+         "--reuse-formal-pools",
+         action="store_true",
+-        help="read and reuse the already verified target-date A/HK formal pair",
++        help="reuse existing target-date formal pools; isolate rejected HK reuse",
+     )
+     args = parser.parse_args(argv)
+     day = args.input_root / args.trade_date
+@@ -332,13 +349,23 @@
+     reuse_formal_pools = None
+     if args.reuse_formal_pools:
+         formal_store = PreselectionPoolStore(args.data_root)
+-        reuse_formal_pools = {
+-            pool_id: formal_store.read_pool(
+-                (args.hk_target_date or args.trade_date) if pool_id == "hkconnect_d1_top100" else args.trade_date,
+-                pool_id,
+-            )
+-            for pool_id in ("a_d1_premarket_pool", "hkconnect_d1_top100")
+-        }
++        reuse_formal_pools = {}
++        for pool_id in ("a_d1_premarket_pool", "hkconnect_d1_top100"):
++            pool_date = (args.hk_target_date or args.trade_date) if pool_id == "hkconnect_d1_top100" else args.trade_date
++            try:
++                reuse_formal_pools[pool_id] = formal_store.read_pool(pool_date, pool_id)
++            except Exception as error:
++                if pool_id == "a_d1_premarket_pool" and isinstance(error, FileNotFoundError):
++                    # A missing cached pool still uses its original verified
++                    # builder; HK reuse is not an A production dependency.
++                    continue
++                if pool_id != "hkconnect_d1_top100" or not _is_expected_verified_input_error(error):
++                    raise
++                reuse_formal_pools[pool_id] = _missing(
++                    pool_date, pool_id=pool_id,
++                    display_name="港股通 0.2 D-1 Top100", market="HK",
++                    reason=f"HK_0_2_REUSE_READ_INVALID:{error}",
++                )
+     artifacts = build_scheduled_artifacts(
+         trade_date=args.trade_date,
+         signal_date=args.signal_date,
+@@ -354,8 +381,26 @@
+         hk_pool_reader=hk_pool_reader,
+         reuse_formal_pools=reuse_formal_pools,
+     )
++    hk_reuse_rejection = None
++    publishable_artifacts = []
++    for artifact in artifacts:
++        if args.reuse_formal_pools and artifact.get("pool_id") == "hkconnect_d1_top100" and any(
++            str(reason).startswith(_HK_REUSE_REJECTION_CODE + ":")
++            for reason in artifact.get("cannot_confirm", [])
++        ):
++            # Do not replace an old HK slot with either a missing marker or
++            # newly read rows while claiming reuse. A and all other lanes
++            # continue through the original store's normal materialization.
++            hk_reuse_rejection = {
++                "status": "CANNOT_CONFIRM", "pool_id": "hkconnect_d1_top100",
++                "trade_date": artifact["trade_date"], "reused": False,
++                "publication_status": "NOT_PUBLISHED_EXISTING_SLOT_PRESERVED",
++                "reasons": list(artifact["cannot_confirm"]),
++            }
++        else:
++            publishable_artifacts.append(artifact)
+     results = materialize_preselection_date(
+-        PreselectionPoolStore(args.data_root), artifacts
++        PreselectionPoolStore(args.data_root), publishable_artifacts
+     )
+     if any(path.read_bytes() != content for path, content in before.items()):
+         raise RuntimeError("read-only scheduled preselection input changed")
+@@ -367,6 +412,7 @@
+         "failure_class": "UPSTREAM_NOT_READY" if failed else None,
+         "formal_pool_gate": formal_pool_gate,
+         "artifacts": results,
++        **({"hk_reuse_rejection": hk_reuse_rejection} if hk_reuse_rejection is not None else {}),
+         "production_allowed": False,
+         "buy_gate_updated": False,
+         "orders_sent": False,

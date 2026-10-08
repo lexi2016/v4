@@ -1,0 +1,789 @@
+--- a/blocked_candidate_ops/api_candidate_install_r2.py
++++ b/blocked_candidate_ops/api_candidate_install_r2.py
+@@ -25,7 +25,8 @@
+ 
+ 
+ E = Path('/Users/lexi/Desktop/学习/agents调试/V4_A_POOL_SOURCE_FIX_20261008')
+-R2 = E / 'r2'
++# Fresh operations evidence directory; never mutate the rejected r2 package.
++R2 = E / 'r2-issue28-release-p1-20261008'
+ R3 = Path('/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r3-api')
+ CANDIDATE = Path('/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-preselection-source-r2-20261008-api')
+ ACTIVE = Path('/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist')
+@@ -41,7 +42,7 @@
+ RECOVERY_TESTS = R2 / 'test_api_candidate_recovery.py'
+ CANARY_SCRIPT = R2 / 'r2_candidate_canary.py'
+ GATE_RECEIPT = R2 / 'r2_gate_reviewer_receipt.json'
+-GUARD = Path('/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_DAILY_20261007/hk_market_calendar/hk_calendar_candidate_cutover.py')
++GUARD = R2 / 'hk_calendar_candidate_cutover.py'
+ ACTIVE_LABEL = 'com.lexi.v35.api-only'
+ DOMAIN = 'gui/501'
+ ALLOWED_ENV_DELTA = frozenset({
+@@ -49,6 +50,8 @@
+     'V35_RELEASE_MANIFEST_PATH', 'V35_RELEASE_MANIFEST_SHA256',
+ })
+ EXPECTED = {
++    'recovery_helper_sha256': '4db1f38580d972ffe40c08a54e54c671023d18391f854f0b2f09d481e311ce24',
++    'guard_sha256': '932c1d1e4d6111faba8cee92f9a3ed0014018f71f986c4237346974260e5e69d',
+     'active_plist_sha256': '72050bf4c7f00c8271cf9226ea866683a8e9e459d2875547b08f69fad30bfdf5',
+     'active_manifest_sha256': '946c49b9c34bd09fbca04644556de3acba1635eb240fa9293f6391e9d46b40e9',
+     'active_app_sha256': '90a2bf6390c6c0e219aa3d9bb22bc3b3630ecb2d447df494ae69425933424ed7',
+@@ -68,7 +71,9 @@
+ 
+ 
+ class InstallError(RuntimeError):
+-    pass
++    def __init__(self, message: str, *, recovery: dict[str, Any] | None = None) -> None:
++        self.recovery = recovery
++        super().__init__(message)
+ 
+ 
+ def sha_bytes(raw: bytes) -> str:
+@@ -77,6 +82,42 @@
+ 
+ def sha(path: Path) -> str:
+     return sha_bytes(path.read_bytes())
++
++
++def _read_pinned_source(path: Path, expected_sha256: str, name: str) -> bytes:
++    try:
++        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
++        with os.fdopen(fd, 'rb') as handle:
++            if not stat.S_ISREG(os.fstat(handle.fileno()).st_mode):
++                raise InstallError(f'{name} must be a regular file')
++            raw = handle.read()
++    except OSError as exc:
++        raise InstallError(f'{name} cannot be read as a regular file: {path}') from exc
++    if sha_bytes(raw) != expected_sha256:
++        raise InstallError(f'{name} SHA drift; refusing to execute unreviewed code')
++    return raw
++
++
++def _import_pinned_module(path: Path, expected_sha256: str, name: str):
++    raw = _read_pinned_source(path, expected_sha256, name)
++    spec = importlib.util.spec_from_file_location(name, path)
++    if spec is None:
++        raise InstallError(f'{name} is unavailable')
++    module = importlib.util.module_from_spec(spec)
++    # Dataclasses need their defining module while the checked bytes execute.
++    # Never reuse an import cache entry or reopen the source after checking.
++    sys.modules[name] = module
++    try:
++        exec(compile(raw, str(path), 'exec'), module.__dict__)
++    except BaseException:
++        sys.modules.pop(name, None)
++        raise
++    return module
++
++
++def import_recovery():
++    return _import_pinned_module(RECOVERY, EXPECTED['recovery_helper_sha256'],
++                                 'reviewed_api_candidate_recovery_r2')
+ 
+ 
+ def load_json(path: Path) -> dict[str, Any]:
+@@ -173,8 +214,15 @@
+     return baseline, candidate
+ 
+ 
++def verify_guard_binding(identity: dict[str, Any]) -> None:
++    if identity.get('guard_path') != str(GUARD) or identity.get('guard_sha256') != EXPECTED['guard_sha256']:
++        raise InstallError('recovery identity lacks the exact reviewed guard path and SHA pin')
++    _read_pinned_source(GUARD, EXPECTED['guard_sha256'], 'guard')
++
++
+ def verify_package(*, require_active_baseline: bool = True) -> dict[str, Any]:
+     identity = load_json(IDENTITY)
++    verify_guard_binding(identity)
+     if sha(IDENTITY) != EXPECTED['candidate_id_sha256']:
+         raise InstallError('frozen R2 candidate identity SHA drift')
+     if sha(BASELINE) != EXPECTED['active_plist_sha256'] or identity.get('baseline_sha256') != EXPECTED['active_plist_sha256']:
+@@ -265,6 +313,7 @@
+         'status': 'R2_CANDIDATE_PACKAGE_VERIFY_PASS',
+         'release_id': EXPECTED['release_id'],
+         'candidate_manifest_sha256': EXPECTED['candidate_manifest_sha256'],
++        'guard_path': str(GUARD), 'guard_sha256': EXPECTED['guard_sha256'],
+         'candidate_app_sha256': EXPECTED['candidate_app_sha256'],
+         'staged_plist_sha256': EXPECTED['candidate_plist_sha256'],
+         'changed_app_paths_vs_r3': changed,
+@@ -277,11 +326,10 @@
+ 
+ 
+ def verify_exact_review_receipt(receipt_path: Path, receipt_sha256: str, expected_scope: dict[str, Any]) -> dict[str, Any]:
+-    from api_candidate_recovery import RecoveryError, verify_reviewer_receipt
+-
++    recovery = import_recovery()
+     try:
+-        value = verify_reviewer_receipt(receipt_path, receipt_sha256, expected_scope)
+-    except (OSError, ValueError, KeyError, RecoveryError) as exc:
++        value = recovery.verify_reviewer_receipt(receipt_path, receipt_sha256, expected_scope)
++    except (OSError, ValueError, KeyError, recovery.RecoveryError) as exc:
+         raise InstallError(str(exc)) from exc
+     if value.get('scope') != expected_scope:
+         raise InstallError('reviewer receipt scope is not an exact match to the frozen scope')
+@@ -294,17 +342,24 @@
+         raise InstallError('final plan is not frozen for independent review')
+     if plan.get('candidate', {}).get('manifest_sha256') != EXPECTED['candidate_manifest_sha256']:
+         raise InstallError('final plan candidate manifest pin mismatch')
++    if (plan.get('writer_artifacts', {}).get('guard_path') != str(GUARD)
++            or plan.get('writer_artifacts', {}).get('guard_sha256') != EXPECTED['guard_sha256']):
++        raise InstallError('final plan lacks the exact reviewed guard path and SHA pin')
+     if plan.get('writer_artifacts', {}).get('install_helper_sha256') != sha(Path(__file__)):
+         raise InstallError('installer helper hash differs from frozen plan')
+-    if plan.get('writer_artifacts', {}).get('recovery_helper_sha256') != sha(RECOVERY):
++    if plan.get('writer_artifacts', {}).get('recovery_helper_sha256') != EXPECTED['recovery_helper_sha256']:
+         raise InstallError('recovery helper hash differs from frozen plan')
++    _read_pinned_source(RECOVERY, EXPECTED['recovery_helper_sha256'], 'recovery helper')
++    verify_guard_binding(load_json(IDENTITY))
+     if plan.get('writer_artifacts', {}).get('install_tests_sha256') != sha(R2 / 'test_api_candidate_install_r2.py'):
+         raise InstallError('installer test hash differs from frozen plan')
+     expected_scope = {
+         'plan_sha256': sha(PLAN),
++        'guard_path': str(GUARD),
++        'guard_sha256': EXPECTED['guard_sha256'],
+         'install_helper_sha256': sha(Path(__file__)),
+         'install_tests_sha256': sha(R2 / 'test_api_candidate_install_r2.py'),
+-        'recovery_helper_sha256': sha(RECOVERY),
++        'recovery_helper_sha256': EXPECTED['recovery_helper_sha256'],
+         'recovery_tests_sha256': sha(RECOVERY_TESTS),
+         'canary_script_sha256': sha(CANARY_SCRIPT),
+         'canary_receipt_sha256': sha(CANARY),
+@@ -329,27 +384,21 @@
+ 
+ 
+ def import_guard():
+-    spec = importlib.util.spec_from_file_location('v4_reviewed_api_cutover_guard_r2', GUARD)
+-    if spec is None or spec.loader is None:
+-        raise InstallError('reviewed no-clobber cutover guard unavailable')
+-    module = importlib.util.module_from_spec(spec)
+-    sys.modules[spec.name] = module
+-    spec.loader.exec_module(module)
+-    module.EVIDENCE_ROOT = R2
+-    return module
++    guard = _import_pinned_module(GUARD, EXPECTED['guard_sha256'], 'reviewed_api_cutover_guard_r2')
++    guard.EVIDENCE_ROOT = R2
++    return guard
+ 
+ 
+ def require_install_slot() -> None:
+-    from api_candidate_recovery import RecoveryError, SystemRecoveryOps, RecoveryIdentity
+-
+-    identity = RecoveryIdentity.from_json(IDENTITY)
+-    ops = SystemRecoveryOps(identity)
++    recovery = import_recovery()
++    identity = recovery.RecoveryIdentity.from_json(IDENTITY)
++    ops = recovery.SystemRecoveryOps(identity)
+     try:
+         status = ops.launchd_status()
+         if status is not None:
+             raise InstallError('exact API launchd label must be absent before plist install')
+         ops.require_port_free()
+-    except RecoveryError as exc:
++    except recovery.RecoveryError as exc:
+         raise InstallError(str(exc)) from exc
+ 
+ 
+@@ -392,14 +441,17 @@
+     package = verify_package(require_active_baseline=True)
+     require_install_slot()
+     guard = import_guard()
++    candidate_raw = STAGED.read_bytes()
++    if sha_bytes(candidate_raw) != EXPECTED['candidate_plist_sha256']:
++        raise InstallError('staged candidate plist SHA drift immediately before CAS')
+     try:
+         claim = guard.atomic_write_no_clobber(
+-            'api', ACTIVE, STAGED.read_bytes(),
++            'api', ACTIVE, candidate_raw,
+             expected_current_sha256=EXPECTED['active_plist_sha256'],
+             phase='API_PRESELECTION_R2_INSTALL',
+         )
+     except Exception as exc:
+-        raise InstallError(f'R2 candidate plist CAS install failed: {exc}') from exc
++        raise InstallError(f'R2 candidate plist CAS install failed: {exc}', recovery=getattr(exc, 'recovery', None)) from exc
+     if sha(ACTIVE) != EXPECTED['candidate_plist_sha256']:
+         raise InstallError('candidate plist CAS did not read back at its frozen SHA')
+     return {
+@@ -446,5 +498,6 @@
+     try:
+         raise SystemExit(main())
+     except (OSError, ValueError, KeyError, InstallError) as exc:
+-        print(json.dumps({'status': 'STOP_CANNOT_CONFIRM', 'error': str(exc)}, ensure_ascii=False), file=sys.stderr)
++        print(json.dumps({'status': 'STOP_CANNOT_CONFIRM', 'error': str(exc),
++                          'claim_recovery': getattr(exc, 'recovery', None)}, ensure_ascii=False), file=sys.stderr)
+         raise SystemExit(2)
+--- a/blocked_candidate_ops/api_candidate_recovery.py
++++ b/blocked_candidate_ops/api_candidate_recovery.py
+@@ -13,6 +13,7 @@
+ import json
+ import os
+ import re
++import stat
+ import subprocess
+ import sys
+ import time
+@@ -21,14 +22,17 @@
+ from typing import Any, Callable, Protocol
+ 
+ 
+-DEFAULT_GUARD = Path('/Users/lexi/Desktop/学习/agents调试/V4_HK_CLOSE_DAILY_20261007/hk_market_calendar/hk_calendar_candidate_cutover.py')
++DEFAULT_GUARD = Path(__file__).resolve().with_name('hk_calendar_candidate_cutover.py')
++REVIEWED_GUARD_SHA256 = '932c1d1e4d6111faba8cee92f9a3ed0014018f71f986c4237346974260e5e69d'
+ RECOVER_CONFIRMATION = 'RECOVER_API_CANDIDATE_TO_BASELINE_R2'
+ ALLOWED_DEPLOYABLE_STATUSES = frozenset({'READY'})
+ REQUIRED_REVIEW_SCOPE_IDENTITY_KEYS = ('candidate_manifest_sha256', 'staged_plist_sha256')
+ 
+ 
+ class RecoveryError(RuntimeError):
+-    pass
++    def __init__(self, message: str, *, recovery: dict[str, Any] | None = None) -> None:
++        self.recovery = recovery
++        super().__init__(message)
+ 
+ 
+ @dataclass(frozen=True)
+@@ -49,20 +53,25 @@
+     baseline_sha256: str
+     candidate_sha256: str
+     guard_path: Path = DEFAULT_GUARD
++    guard_sha256: str = REVIEWED_GUARD_SHA256
+     lsof_path: Path = Path('/usr/sbin/lsof')
+ 
+     @classmethod
+     def from_json(cls, path: Path) -> 'RecoveryIdentity':
+-        value = json.loads(path.read_text(encoding='utf-8'))
++        value = json.loads(_read_regular_bytes(path, 'recovery identity'))
+         if not isinstance(value, dict):
+             raise RecoveryError('recovery identity must be a JSON object')
+         required = (
+             'active_plist', 'baseline_backup', 'candidate_plist', 'evidence_root',
+-            'label', 'domain', 'baseline_sha256', 'candidate_sha256',
++            'label', 'domain', 'baseline_sha256', 'candidate_sha256', 'guard_path', 'guard_sha256',
+         )
+         missing = [key for key in required if not value.get(key)]
+         if missing:
+             raise RecoveryError('recovery identity missing: ' + ', '.join(missing))
++        if value['guard_sha256'] != REVIEWED_GUARD_SHA256:
++            raise RecoveryError('recovery identity guard SHA pin is not the reviewed guard')
++        if not isinstance(value['guard_path'], str) or not Path(value['guard_path']).is_absolute():
++            raise RecoveryError('recovery identity guard path must be absolute')
+         return cls(
+             active_plist=Path(value['active_plist']),
+             baseline_backup=Path(value['baseline_backup']),
+@@ -72,7 +81,8 @@
+             domain=str(value['domain']),
+             baseline_sha256=str(value['baseline_sha256']),
+             candidate_sha256=str(value['candidate_sha256']),
+-            guard_path=Path(value.get('guard_path', DEFAULT_GUARD)),
++            guard_path=Path(value['guard_path']),
++            guard_sha256=value['guard_sha256'],
+             lsof_path=Path(value.get('lsof_path', '/usr/sbin/lsof')),
+         )
+ 
+@@ -83,6 +93,39 @@
+ 
+ def sha256_file(path: Path) -> str:
+     return sha256_bytes(path.read_bytes())
++
++
++def _read_regular_bytes(path: Path, name: str) -> bytes:
++    try:
++        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
++        with os.fdopen(fd, 'rb') as handle:
++            if not stat.S_ISREG(os.fstat(handle.fileno()).st_mode):
++                raise RecoveryError(f'{name} must be a regular file')
++            return handle.read()
++    except OSError as exc:
++        raise RecoveryError(f'{name} cannot be read as a regular file: {path}') from exc
++
++
++def reviewed_guard_bytes(path: Path, expected_sha256: str) -> bytes:
++    if expected_sha256 != REVIEWED_GUARD_SHA256:
++        raise RecoveryError('guard SHA pin is not the reviewed guard')
++    raw = _read_regular_bytes(path, 'guard')
++    if sha256_bytes(raw) != expected_sha256:
++        raise RecoveryError('guard SHA drift; refusing to execute external code')
++    return raw
++
++
++def import_reviewed_guard(path: Path, expected_sha256: str, evidence_root: Path):
++    raw = reviewed_guard_bytes(path, expected_sha256)
++    spec = importlib.util.spec_from_file_location('reviewed_api_cutover_guard_r2', path)
++    if spec is None:
++        raise RecoveryError('reviewed atomic cutover guard is unavailable')
++    guard = importlib.util.module_from_spec(spec)
++    # Compile the exact bytes that passed the SHA check. exec_module would
++    # reopen the external path (or use cached bytecode) after verification.
++    exec(compile(raw, str(path), 'exec'), guard.__dict__)
++    guard.EVIDENCE_ROOT = evidence_root
++    return guard
+ 
+ 
+ def _plist_identity(raw: bytes, *, expected_label: str, name: str) -> tuple[dict[str, Any], tuple[str, str, str]]:
+@@ -109,8 +152,8 @@
+ 
+ 
+ def _validate_pins(identity: RecoveryIdentity) -> tuple[bytes, bytes, tuple[str, str, str], tuple[str, str, str]]:
+-    baseline = identity.baseline_backup.read_bytes()
+-    candidate = identity.candidate_plist.read_bytes()
++    baseline = _read_regular_bytes(identity.baseline_backup, 'baseline backup')
++    candidate = _read_regular_bytes(identity.candidate_plist, 'staged candidate')
+     if sha256_bytes(baseline) != identity.baseline_sha256:
+         raise RecoveryError('baseline plist backup SHA mismatch')
+     if sha256_bytes(candidate) != identity.candidate_sha256:
+@@ -139,9 +182,10 @@
+ 
+ 
+ def verify_reviewer_receipt(path: Path, expected_sha256: str, expected_scope: dict[str, Any]) -> dict[str, Any]:
+-    if sha256_file(path) != expected_sha256:
++    raw = _read_regular_bytes(path, 'independent reviewer receipt')
++    if sha256_bytes(raw) != expected_sha256:
+         raise RecoveryError('independent reviewer receipt SHA mismatch')
+-    value = json.loads(path.read_text(encoding='utf-8'))
++    value = json.loads(raw)
+     if not isinstance(value, dict):
+         raise RecoveryError('independent reviewer receipt must be a JSON object')
+     status = value.get('status')
+@@ -174,12 +218,18 @@
+     ]
+     if invalid_identity_pins:
+         raise RecoveryError('expected scope lacks required nonempty candidate identity pins: ' + ', '.join(invalid_identity_pins))
++    if (expected_scope.get('guard_sha256') != REVIEWED_GUARD_SHA256
++            or not isinstance(expected_scope.get('guard_path'), str)
++            or not Path(expected_scope['guard_path']).is_absolute()):
++        raise RecoveryError('expected scope lacks the exact reviewed guard path and SHA pin')
+     scope = value.get('scope')
+     if not isinstance(scope, dict):
+         raise RecoveryError('independent reviewer candidate scope is missing')
+     mismatches = [key for key, expected in expected_scope.items() if key not in scope or scope[key] != expected]
+     if mismatches:
+         raise RecoveryError('independent reviewer receipt does not match frozen candidate: ' + ', '.join(mismatches))
++    if scope != expected_scope:
++        raise RecoveryError('reviewer receipt scope is not an exact match to the frozen scope')
+     identity = value.get('review_identity')
+     if not isinstance(identity, str) or not identity.strip():
+         raise RecoveryError('independent reviewer identity is missing')
+@@ -206,11 +256,70 @@
+         raise RecoveryError(f'launchd state is not an owned waiting/pid=0 state for {owner}')
+ 
+ 
+-def recover_baseline(identity: RecoveryIdentity, ops: RecoveryOps) -> dict[str, Any]:
++def validate_claim_receipt(identity: RecoveryIdentity, guard: Any, path: Path, expected_sha256: str) -> dict[str, Any]:
++    if (not path.is_absolute() or path != Path(os.path.abspath(path))
++            or path.parent != identity.evidence_root):
++        raise RecoveryError('claim receipt path must be in the frozen evidence directory')
++    raw = _read_regular_bytes(path, 'claim receipt')
++    if sha256_bytes(raw) != expected_sha256:
++        raise RecoveryError('claim receipt SHA mismatch')
++    value = json.loads(raw)
++    phases = {
++        base + suffix: pins
++        for base, pins in (
++            ('API_PRESELECTION_R2_INSTALL', (identity.baseline_sha256, identity.candidate_sha256)),
++            ('API_R2_ROLLBACK_RESTORE', (identity.candidate_sha256, identity.baseline_sha256)),
++        )
++        for suffix in ('_CLAIM_RESERVED', '_INSTALL_FAILURE_RESTORE_FAILED', '_NO_CLOBBER_CONFLICT')
++    }
++    if not isinstance(value, dict) or value.get('phase') not in phases:
++        raise RecoveryError('claim receipt is not an approved failed API CAS recovery phase')
++    claim_sha, intended_sha = phases[value['phase']]
++    if (value.get('schema_version') != 'v4.hk_calendar_cutover_drift.v1'
++            or value.get('service') != 'api' or value.get('path') != str(identity.active_plist)
++            or value.get('expected_sha256') != claim_sha
++            or value.get('service_action_performed_by_recording') is not False):
++        raise RecoveryError('claim receipt does not bind the exact active plist and frozen identity')
++    details = value.get('details')
++    if (not isinstance(details, dict) or details.get('claim_sha256') != claim_sha
++            or details.get('candidate_sha256') != intended_sha
++            or not isinstance(details.get('claim_path'), str)):
++        raise RecoveryError('claim receipt does not bind the exact claim and intended plist SHA')
++    claim_path = Path(details['claim_path'])
++    try:
++        guard.read_claim(identity.active_plist, claim_path, claim_sha)
++    except (OSError, guard.GateError) as exc:
++        raise RecoveryError(str(exc)) from exc
++    return {'claim_path': str(claim_path), 'claim_sha256': claim_sha,
++            'claim_receipt_path': str(path), 'claim_receipt_sha256': expected_sha256}
++
++
++def recover_baseline(identity: RecoveryIdentity, ops: RecoveryOps, *, claim_receipt_path: Path | None = None, claim_receipt_sha256: str | None = None) -> dict[str, Any]:
+     baseline, candidate, baseline_tokens, candidate_tokens = _validate_pins(identity)
++    reviewed_guard_bytes(identity.guard_path, identity.guard_sha256)
++    if (claim_receipt_path is None) != (claim_receipt_sha256 is None):
++        raise RecoveryError('claim receipt path and exact SHA must be supplied together')
++    claim_recovery = None
++    if claim_receipt_path is not None:
++        guard = import_reviewed_guard(identity.guard_path, identity.guard_sha256, identity.evidence_root)
++        claim_recovery = validate_claim_receipt(identity, guard, claim_receipt_path, claim_receipt_sha256)
++        if os.path.lexists(identity.active_plist):
++            raise RecoveryError('claim recovery requires a missing active path; parallel path preserved')
++        if ops.launchd_status() is not None:
++            raise RecoveryError('exact launchd label must be absent before claim restore')
++        ops.require_port_free()
++        try:
++            restore_receipt = guard.restore_claim_no_clobber('api', identity.active_plist,
++                Path(claim_recovery['claim_path']), expected_claim_sha256=claim_recovery['claim_sha256'],
++                phase='API_R2_CLAIM_RECOVERY')
++        except (OSError, guard.GateError) as exc:
++            raise RecoveryError(str(exc), recovery=getattr(exc, 'recovery', None)) from exc
++        if sha256_bytes(_read_regular_bytes(identity.active_plist, 'restored active plist')) != claim_recovery['claim_sha256']:
++            raise RecoveryError('claim restore active plist SHA drift; refusing bootstrap')
++        claim_recovery.update(restore_receipt_path=str(restore_receipt), restore_receipt_sha256=sha256_file(restore_receipt))
+     if not identity.active_plist.is_file():
+         raise RecoveryError('active plist is missing')
+-    active = identity.active_plist.read_bytes()
++    active = _read_regular_bytes(identity.active_plist, 'active plist')
+     if active not in (baseline, candidate):
+         raise RecoveryError('active plist is neither exact frozen baseline nor exact candidate; refusing recovery')
+     status = ops.launchd_status()
+@@ -218,8 +327,13 @@
+     if active == baseline:
+         if status is None:
+             ops.require_port_free()
++            if _read_regular_bytes(identity.active_plist, 'active plist') != baseline:
++                raise RecoveryError('baseline plist drift before bootstrap')
+             ops.bootstrap()
+             loaded = ops.wait_for_baseline(baseline_tokens)
++            if claim_recovery is not None:
++                return {'status': 'CLAIM_RESTORED_BASELINE_BOOTSTRAPPED', 'plist_sha256': identity.baseline_sha256,
++                        'loaded_identity': loaded, 'claim_recovery': claim_recovery}
+             return {'status': 'BASELINE_REBOOTSTRAPPED', 'plist_sha256': identity.baseline_sha256, 'loaded_identity': loaded}
+         _require_owned_status(status, baseline_tokens, 'baseline')
+         loaded = ops.wait_for_baseline(baseline_tokens)
+@@ -235,19 +349,24 @@
+             if ops.launchd_status() is not None:
+                 raise
+     ops.wait_for_absence(candidate_tokens)
+-    if identity.active_plist.read_bytes() != candidate:
++    if _read_regular_bytes(identity.active_plist, 'active plist') != candidate:
+         raise RecoveryError('active plist changed before candidate-to-baseline restore')
+     if ops.launchd_status() is not None:
+         raise RecoveryError('exact launchd label is not absent before plist restore')
+     ops.require_port_free()
+     ops.atomic_restore(baseline)
+-    if identity.active_plist.read_bytes() != baseline:
++    if _read_regular_bytes(identity.active_plist, 'active plist') != baseline:
+         raise RecoveryError('baseline plist bytes did not read back after atomic restore')
+     if ops.launchd_status() is not None:
+         raise RecoveryError('exact launchd label reappeared before baseline bootstrap')
+     ops.require_port_free()
++    if _read_regular_bytes(identity.active_plist, 'active plist') != baseline:
++        raise RecoveryError('baseline plist drift before bootstrap')
+     ops.bootstrap()
+     loaded = ops.wait_for_baseline(baseline_tokens)
++    if claim_recovery is not None:
++        return {'status': 'CLAIM_RESTORED_BASELINE_BOOTSTRAPPED', 'plist_sha256': identity.baseline_sha256,
++                'loaded_identity': loaded, 'claim_recovery': claim_recovery}
+     return {'status': 'CANDIDATE_ROLLED_BACK_BASELINE_BOOTSTRAPPED', 'plist_sha256': identity.baseline_sha256, 'loaded_identity': loaded}
+ 
+ 
+@@ -294,14 +413,11 @@
+             time.sleep(min(self.poll_interval_seconds, remaining))
+ 
+     def atomic_restore(self, baseline_bytes: bytes) -> None:
+-        spec = importlib.util.spec_from_file_location('reviewed_api_cutover_guard_r2', self.identity.guard_path)
+-        if spec is None or spec.loader is None:
+-            raise RecoveryError('reviewed atomic cutover guard is unavailable')
+-        guard = importlib.util.module_from_spec(spec)
+-        sys.modules[spec.name] = guard
+-        spec.loader.exec_module(guard)
+-        guard.EVIDENCE_ROOT = self.identity.evidence_root
+-        guard.atomic_write_no_clobber('api', self.identity.active_plist, baseline_bytes, expected_current_sha256=self.identity.candidate_sha256, phase='API_R2_ROLLBACK_RESTORE')
++        guard = import_reviewed_guard(self.identity.guard_path, self.identity.guard_sha256, self.identity.evidence_root)
++        try:
++            guard.atomic_write_no_clobber('api', self.identity.active_plist, baseline_bytes, expected_current_sha256=self.identity.candidate_sha256, phase='API_R2_ROLLBACK_RESTORE')
++        except (OSError, guard.GateError) as exc:
++            raise RecoveryError(str(exc), recovery=getattr(exc, 'recovery', None)) from exc
+ 
+     def bootstrap(self) -> None:
+         result = self.runner(['/bin/launchctl', 'bootstrap', self.identity.domain, str(self.identity.active_plist)], capture_output=True, text=True, check=False)
+@@ -337,6 +453,8 @@
+     recover = sub.add_parser('recover-baseline')
+     recover.add_argument('--identity-json', type=Path, required=True)
+     recover.add_argument('--confirm', required=True)
++    recover.add_argument('--claim-receipt-path', type=Path)
++    recover.add_argument('--claim-receipt-sha256')
+     args = parser.parse_args()
+     if args.action == 'review-check':
+         expected_scope = json.loads(args.expected_scope_json.read_text(encoding='utf-8'))
+@@ -346,7 +464,8 @@
+     if args.confirm != RECOVER_CONFIRMATION:
+         raise RecoveryError('exact r2 recovery confirmation string is required')
+     identity = RecoveryIdentity.from_json(args.identity_json)
+-    result = recover_baseline(identity, SystemRecoveryOps(identity))
++    result = recover_baseline(identity, SystemRecoveryOps(identity),
++                             claim_receipt_path=args.claim_receipt_path, claim_receipt_sha256=args.claim_receipt_sha256)
+     print(json.dumps({**result, 'service_operation_performed': True, 'other_service_touched': False, 'data_root_touched': False, 'production_allowed': False, 'buy_gate_updated': False, 'orders_sent': False}, ensure_ascii=False, indent=2, sort_keys=True))
+     return 0
+ 
+@@ -355,5 +474,6 @@
+     try:
+         raise SystemExit(main())
+     except (OSError, ValueError, KeyError, RecoveryError) as exc:
+-        print(json.dumps({'status': 'STOP_CANNOT_CONFIRM', 'error': str(exc)}, ensure_ascii=False), file=sys.stderr)
++        print(json.dumps({'status': 'STOP_CANNOT_CONFIRM', 'error': str(exc),
++                          'claim_recovery': getattr(exc, 'recovery', None)}, ensure_ascii=False), file=sys.stderr)
+         raise SystemExit(2)
+--- a/blocked_candidate_ops/test_api_candidate_install_r2.py
++++ b/blocked_candidate_ops/test_api_candidate_install_r2.py
+@@ -65,6 +65,8 @@
+             'staged_plist_sha256': 'b' * 64,
+             'plan_sha256': 'c' * 64,
+             'install_helper_sha256': 'd' * 64,
++            'guard_path': str(install.GUARD),
++            'guard_sha256': install.EXPECTED['guard_sha256'],
+         }
+         with tempfile.TemporaryDirectory(prefix='api-r2-install-', dir=install.R2) as temp:
+             path, digest, _ = self._review_receipt(Path(temp), scope)
+--- a/blocked_candidate_ops/test_api_candidate_recovery.py
++++ b/blocked_candidate_ops/test_api_candidate_recovery.py
+@@ -7,6 +7,8 @@
+ import tempfile
+ import unittest
+ from pathlib import Path
++
++import api_candidate_recovery as recovery
+ 
+ from api_candidate_recovery import (
+     LaunchdStatus,
+@@ -194,6 +196,8 @@
+         expected_scope = {
+             'candidate_manifest_sha256': 'a' * 64,
+             'staged_plist_sha256': 'b' * 64,
++            'guard_path': str(recovery.DEFAULT_GUARD),
++            'guard_sha256': recovery.REVIEWED_GUARD_SHA256,
+         }
+         value = {
+             'review_identity': 'independent_read_only_reviewer',
+--- a/external_guard_reference/hk_calendar_candidate_cutover.py
++++ b/external_guard_reference/hk_calendar_candidate_cutover.py
+@@ -52,6 +52,13 @@
+ 
+ class GateError(RuntimeError):
+     pass
++
++
++class ClaimRecoveryError(GateError):
++    """A retained claim is identifiable even if receipt persistence failed."""
++    def __init__(self, message: str, recovery: dict[str, Any]) -> None:
++        self.recovery = recovery
++        super().__init__(message + '; recovery=' + json.dumps(recovery, sort_keys=True))
+ 
+ 
+ class RuntimeIdentityDrift(GateError):
+@@ -442,65 +449,190 @@
+     drift(service=service, phase=phase, path=path, expected=expected, observed=observed, details=details)
+ 
+ 
++def _regular_snapshot(path: Path) -> tuple[bytes, int]:
++    """Read through one descriptor, without following a final symlink."""
++    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
++    with os.fdopen(fd, "rb") as handle:
++        info = os.fstat(handle.fileno())
++        if not stat.S_ISREG(info.st_mode):
++            raise GateError(f"plist must be a regular file: {path}")
++        return handle.read(), stat.S_IMODE(info.st_mode)
++
++
++def _require_target_parent(target: Path) -> None:
++    if (not target.is_absolute() or target != Path(os.path.abspath(target))
++            or target.parent.resolve(strict=True) != target.parent):
++        raise GateError("active plist path must be absolute, normalized and have no symlink parents")
++
++
++def _observed_sha(target: Path) -> str | None:
++    try:
++        return sha256_bytes(_regular_snapshot(target)[0])
++    except (OSError, GateError):
++        return None
++
++
++def claim_failure(service: str, phase: str, target: Path, claim_path: Path, *, expected: str, claim_sha256: str | None, candidate_sha256: str, install_error: Exception, restore_error: Exception, reserved_receipt: tuple[Path, str] | None = None) -> ClaimRecoveryError:
++    details = {
++        'claim_path': str(claim_path), 'claim_sha256': claim_sha256,
++        'candidate_sha256': candidate_sha256,
++        'install_error_type': type(install_error).__name__,
++        'restore_error_type': type(restore_error).__name__,
++    }
++    recovery = {**details, 'active_plist_path': str(target), 'phase': phase}
++    # The pre-claim receipt was persisted before active was moved. Keep it as
++    # a recovery witness if writing the later failure receipt also fails.
++    if reserved_receipt is not None:
++        recovery.update(claim_receipt_path=str(reserved_receipt[0]),
++                        claim_receipt_sha256=reserved_receipt[1])
++    try:
++        receipt = drift(service=service, phase=phase, path=target, expected=expected,
++                        observed=_observed_sha(target), details=details)
++        recovery.update(claim_receipt_path=str(receipt), claim_receipt_sha256=sha256_file(receipt))
++    except (OSError, GateError) as receipt_error:
++        recovery['receipt_error'] = f'{type(receipt_error).__name__}: {receipt_error}'
++    return ClaimRecoveryError(f'{phase}: original claim retained at {claim_path}; no existing active path was overwritten', recovery)
++
++
++def read_claim(target: Path, claim_path: Path, expected_sha256: str) -> tuple[bytes, int]:
++    """Read only an exact private claim next to the pinned active plist."""
++    _require_target_parent(target)
++    if (not claim_path.is_absolute() or claim_path != Path(os.path.abspath(claim_path))
++            or claim_path.name != 'before.plist'
++            or claim_path.parent.parent != target.parent
++            or re.fullmatch(re.escape(f'.{target.name}.claim-') + r'[0-9a-f]{32}', claim_path.parent.name) is None):
++        raise GateError('claim path is not a reserved claim for the exact active plist')
++    directory_fd = os.open(claim_path.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
++    try:
++        directory_info = os.fstat(directory_fd)
++        if (stat.S_IMODE(directory_info.st_mode) != 0o700
++                or directory_info.st_uid != os.geteuid()):
++            raise GateError('claim directory must be private and owned by the executing identity')
++        fd = os.open('before.plist', os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory_fd)
++        with os.fdopen(fd, 'rb') as handle:
++            info = os.fstat(handle.fileno())
++            if not stat.S_ISREG(info.st_mode):
++                raise GateError('claim must be a regular file')
++            raw = handle.read()
++    finally:
++        os.close(directory_fd)
++    if sha256_bytes(raw) != expected_sha256:
++        raise GateError('claim plist SHA mismatch')
++    return raw, stat.S_IMODE(info.st_mode)
++
++
++def _link_snapshot_no_clobber(target: Path, raw: bytes, mode: int) -> None:
++    fd, name = tempfile.mkstemp(prefix=f'.{target.name}.claim-restore-', suffix='.tmp', dir=target.parent)
++    temp_path = Path(name)
++    try:
++        with os.fdopen(fd, 'wb') as handle:
++            handle.write(raw)
++            handle.flush()
++            os.fchmod(handle.fileno(), mode)
++            os.fsync(handle.fileno())
++        # Publish the bytes validated above, not a reopened, mutable claim.
++        # link(2) refuses files, directories, and dangling symlinks at target.
++        os.link(temp_path, target, follow_symlinks=False)
++    finally:
++        temp_path.unlink(missing_ok=True)
++
++
++def restore_claim_no_clobber(service: str, target: Path, claim_path: Path, *, expected_claim_sha256: str, phase: str) -> Path:
++    """Restore a verified snapshot by exclusive link, preserving the claim."""
++    raw, mode = read_claim(target, claim_path, expected_claim_sha256)
++    try:
++        _link_snapshot_no_clobber(target, raw, mode)
++    except OSError as exc:
++        raise claim_failure(service, phase + '_LINK_FAILED', target, claim_path,
++            expected=expected_claim_sha256, claim_sha256=expected_claim_sha256,
++            candidate_sha256=expected_claim_sha256, install_error=exc, restore_error=exc) from exc
++    try:
++        return drift(service=service, phase=phase + '_RESTORED', path=target,
++                     expected=expected_claim_sha256, observed=_observed_sha(target),
++                     details={'claim_path': str(claim_path), 'claim_sha256': expected_claim_sha256})
++    except (OSError, GateError) as exc:
++        raise ClaimRecoveryError('claim was restored; success receipt failed; verify active before retry', {
++            'active_plist_path': str(target), 'claim_path': str(claim_path),
++            'claim_sha256': expected_claim_sha256, 'phase': phase + '_RECEIPT_FAILED',
++            'receipt_error': f'{type(exc).__name__}: {exc}',
++        }) from exc
++
++
+ def atomic_write_no_clobber(service: str, target: Path, candidate_bytes: bytes, *, expected_current_sha256: str, phase: str) -> Path:
+     """Claim exact old bytes, then install with link(2); never overwrite drift."""
++    _require_target_parent(target)
+     if sha256_bytes(candidate_bytes) == expected_current_sha256:
+         raise GateError("candidate and current plist bytes must differ")
++    initial, mode = _regular_snapshot(target)
++    if sha256_bytes(initial) != expected_current_sha256:
++        record_drift(service, f"{phase}_BEFORE_CLAIM_MISMATCH", target, expected_current_sha256, sha256_bytes(initial))
++        raise GateError(f"{phase}: active plist changed before claim; path preserved")
+     fd, temp_name = tempfile.mkstemp(prefix=f".{target.name}.", suffix=".tmp", dir=target.parent)
+     temp_path = Path(temp_name)
+-    claim_dir: Path | None = None
+     claim_path: Path | None = None
++    reserved_receipt: tuple[Path, str] | None = None
+     try:
+         with os.fdopen(fd, "wb") as handle:
+             handle.write(candidate_bytes)
+             handle.flush()
++            os.fchmod(handle.fileno(), mode)
+             os.fsync(handle.fileno())
+-        os.chmod(temp_path, stat.S_IMODE(target.stat().st_mode))
+         for _ in range(100):
+             path = target.parent / f".{target.name}.claim-{uuid.uuid4().hex}"
+             try:
+                 path.mkdir(mode=0o700)
+             except FileExistsError:
+                 continue
+-            claim_dir = path
+             claim_path = path / "before.plist"
+             break
+         if claim_path is None:
+             raise GateError("could not reserve unique plist claim directory")
++        # This small receipt precedes the critical rename. It remains usable
++        # if the process stops after claiming or the later drift write fails.
++        prepared_receipt = drift(service=service, phase=f'{phase}_CLAIM_RESERVED',
++            path=target, expected=expected_current_sha256, observed=expected_current_sha256,
++            details={'claim_path': str(claim_path), 'claim_sha256': expected_current_sha256,
++                     'candidate_sha256': sha256_bytes(candidate_bytes)})
++        reserved_receipt = (prepared_receipt, sha256_file(prepared_receipt))
+         try:
+             os.rename(target, claim_path)
+         except FileNotFoundError:
+             record_drift(service, f"{phase}_CLAIM_MISSING", target, expected_current_sha256, None)
+             raise GateError(f"{phase}: active plist disappeared before claim")
+-        actual = sha256_file(claim_path)
+-        if actual != expected_current_sha256:
+-            record_drift(service, f"{phase}_CLAIM_MISMATCH", target, expected_current_sha256, actual, {"claim_path": str(claim_path)})
++        try:
++            original, original_mode = read_claim(target, claim_path, expected_current_sha256)
++        except (OSError, GateError) as exc:
++            # A drifted or non-regular claim must never become the candidate.
++            # Put back the original directory entry only if active is absent.
+             try:
+-                os.link(claim_path, target)
+-            except FileExistsError:
+-                observed = sha256_file(target) if target.exists() else None
+-                record_drift(service, f"{phase}_RESTORE_CONFLICT", target, expected_current_sha256, observed, {"claim_path": str(claim_path)})
+-                raise GateError(f"{phase}: drifted claim retained and parallel target preserved")
+-            raise GateError(f"{phase}: drifted target restored without overwrite; claim retained at {claim_path}")
++                os.link(claim_path, target, follow_symlinks=False)
++            except OSError as restore_error:
++                raise claim_failure(service, f'{phase}_CLAIM_INVALID_RESTORE_FAILED', target, claim_path,
++                    expected=expected_current_sha256, claim_sha256=_observed_sha(claim_path),
++                    candidate_sha256=sha256_bytes(candidate_bytes), install_error=exc,
++                    restore_error=restore_error, reserved_receipt=reserved_receipt) from exc
++            raise GateError(f'{phase}: invalid claim restored without overwrite; retained at {claim_path}') from exc
+         try:
+-            os.link(temp_path, target)
+-        except FileExistsError:
+-            observed = sha256_file(target) if target.exists() else None
+-            record_drift(service, f"{phase}_NO_CLOBBER_CONFLICT", target, expected_current_sha256, observed, {"claim_path": str(claim_path)})
+-            raise GateError(f"{phase}: parallel target preserved; original claim retained at {claim_path}")
++            os.link(temp_path, target, follow_symlinks=False)
++        except FileExistsError as exc:
++            raise claim_failure(service, f'{phase}_NO_CLOBBER_CONFLICT', target, claim_path,
++                expected=expected_current_sha256, claim_sha256=expected_current_sha256,
++                candidate_sha256=sha256_bytes(candidate_bytes), install_error=exc,
++                restore_error=exc, reserved_receipt=reserved_receipt) from exc
+         except OSError as exc:
+             try:
+-                os.link(claim_path, target)
+-            except FileExistsError:
+-                observed = sha256_file(target) if target.exists() else None
+-                record_drift(service, f"{phase}_INSTALL_FAILURE_RESTORE_CONFLICT", target, expected_current_sha256, observed, {"claim_path": str(claim_path)})
+-                raise GateError(f"{phase}: install failed and a parallel target exists; original claim retained") from exc
+-            record_drift(service, f"{phase}_INSTALL_FAILURE_RESTORED", target, expected_current_sha256, expected_current_sha256, {"claim_path": str(claim_path), "error_type": type(exc).__name__})
+-            raise GateError(f"{phase}: install failed; exact original bytes were restored without overwrite") from exc
++                _link_snapshot_no_clobber(target, original, original_mode)
++            except OSError as restore_error:
++                raise claim_failure(service, f'{phase}_INSTALL_FAILURE_RESTORE_FAILED', target, claim_path,
++                    expected=expected_current_sha256, claim_sha256=expected_current_sha256,
++                    candidate_sha256=sha256_bytes(candidate_bytes), install_error=exc,
++                    restore_error=restore_error, reserved_receipt=reserved_receipt) from exc
++            record_drift(service, f"{phase}_INSTALL_FAILURE_RESTORED", target, expected_current_sha256,
++                         _observed_sha(target), {'claim_path': str(claim_path), 'error_type': type(exc).__name__})
++            raise GateError(f"{phase}: install failed; exact original bytes were restored without overwrite; claim retained at {claim_path}") from exc
+         return claim_path
+     finally:
+-        if temp_path.exists():
+-            temp_path.unlink()
++        temp_path.unlink(missing_ok=True)
+ 
+ 
+ def wait_for_loaded_candidate(

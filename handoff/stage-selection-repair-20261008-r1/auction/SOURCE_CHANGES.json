@@ -1,0 +1,56 @@
+{
+  "frozen_commit": "00524e9050fe212f87911b56eea1c2db719dd94b",
+  "files": [
+    {
+      "owner": "canonical",
+      "relative_path": "stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "before": {
+        "bytes": 44965,
+        "sha256": "8b3552498b125ae90c56964799f3cf0e644a077243f7be4c37ea23261214379a",
+        "git_blob_sha1": "bcd53fa8be12ff04c00b50ec9566e17449978a3c"
+      },
+      "after": {
+        "bytes": 45034,
+        "sha256": "7fa71ee1a4b96f6f53d49467fcb296969104e851949234849fd256a5372d5725",
+        "git_blob_sha1": "7b175c6795089ecd4ee2d25e868bfde9e088cf91"
+      },
+      "candidate_reuse": "Reviewed earlier candidate bytes; fresh before/after tests required."
+    },
+    {
+      "owner": "active_stage_reference",
+      "relative_path": "stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "before": {
+        "bytes": 21870,
+        "sha256": "5b315c482723f4bbfb187e36241ea422f2a59518a2056be037d1fdbe2f00eb22",
+        "git_blob_sha1": "ea28586244319a62396bcbb2357d5e74b65fcf16"
+      },
+      "after": {
+        "bytes": 21939,
+        "sha256": "409274a2adace19f22ef6d19cdbc7e5291b58fd9944d39239abbffd90ab1f6e4",
+        "git_blob_sha1": "19cba46d8b7cf37c048c37944b31683e86a7e1c2"
+      },
+      "candidate_reuse": "Reviewed earlier candidate bytes; fresh before/after tests required."
+    },
+    {
+      "owner": "canonical",
+      "relative_path": "stage_center/_selection_parts/a_auction.py",
+      "before": {
+        "bytes": 7957,
+        "sha256": "d0a96edcb4d87f223b117917a8f0d68276bd088a88abe8f787d245c8e1c669ad",
+        "git_blob_sha1": "0dd8b201d888d4eeadbe6a3b806f44b3c3457f77"
+      },
+      "after": {
+        "bytes": 8707,
+        "sha256": "1a85982c4cc70656f74f5d9b3e0b475425a7eb17645ab014c03bef587ab13bfe",
+        "git_blob_sha1": "3041dfc80fbc1b46f8a18b6d3236c188a74b5b02"
+      },
+      "candidate_reuse": "Reviewed earlier candidate bytes; fresh before/after tests required."
+    }
+  ],
+  "identical_active_stage_mappings": [
+    {
+      "active_relative_path": "stage_center/_selection_parts/a_auction.py",
+      "canonical_relative_path": "stage_center/_selection_parts/a_auction.py"
+    }
+  ]
+}

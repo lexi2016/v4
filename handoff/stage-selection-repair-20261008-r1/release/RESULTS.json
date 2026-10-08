@@ -1,0 +1,199 @@
+{
+  "actual_runtime": {
+    "cwd": "/workspace/scratch/25c09a595aec/issue28",
+    "effective_uid": 0,
+    "machine": "x86_64",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "python_executable": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "python_version": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]"
+  },
+  "corrected_independent_finding": {
+    "author_red_then_green": "5 FAIL on rejected candidate -> 5 PASS on corrected candidate",
+    "corrected_installer_sha256": "b348859aa5a0e3e94ecb1bc6b431590adc91c7c3346039ea82543f4487fe561e",
+    "finding": "Guard verification imported api_candidate_recovery before the helper SHA check; unreviewed top-level marker executed.",
+    "fix": "Installer performs raw guard verification locally; every recovery-helper execution uses its fixed SHA and the same checked source buffer from the exact RECOVERY path.",
+    "guard_bytes_changed_for_this_correction": false,
+    "independent_recheck": "PENDING_ROOT_REVIEW",
+    "original_independent_probe_green": "logs/16_independent_helper_load_order_green.json",
+    "original_independent_probe_red": "logs/09_independent_helper_load_order_red.json",
+    "recovery_helper_sha256": "4db1f38580d972ffe40c08a54e54c671023d18391f854f0b2f09d481e311ce24",
+    "rejected_installer_sha256": "74e25d0a3d0b0f40f93c200d98620d1dea4c507dd40e328a510d4a6f9ce13762",
+    "severity": "Important"
+  },
+  "coverage": [
+    "Guard drift rejected before external module side effects and before recovery service query.",
+    "Install/recovery compile the exact checked source bytes even if the guard path is replaced after SHA verification.",
+    "Guard path and SHA bound in identity, 21-field exact review scope, plan, installer and recovery helper.",
+    "Candidate-link + automatic-restore-link EIO leaves missing active and original claim with bound failure receipt.",
+    "Baseline and rollback candidate claims recover through original guarded state machine with exact mocked label/port checks.",
+    "Pre-claim evidence write failure leaves active; later evidence write failure retains the pre-claim witness.",
+    "Actual POSIX child exit immediately after rename leaves a recoverable pre-claim receipt and claim.",
+    "Existing or intervening regular files, directories and dangling symlinks are preserved.",
+    "Symlink/FIFO claims, redirected paths, wrong target/phase/receipt SHA, guard drift and claim drift stop recovery.",
+    "Claim recovery publishes a verified snapshot even if the original claim source changes before link.",
+    "Repeated failures keep every old claim and receipt; original file modes preserved.",
+    "Independent-review helper load-order regression: no recovery-helper top-level execution before fixed pin, explicit helper path ignores sys.path/cache shadow, and post-check helper replacement executes only the checked bytes."
+  ],
+  "final_author_pass_count": 63,
+  "frozen_input_commit": "00524e9050fe212f87911b56eea1c2db719dd94b",
+  "independent_probe_commands": {
+    "green": "ISSUE28_REVIEW_INSTALLER=delivery/release/after/blocked_candidate_ops/api_candidate_install_r2.py references/work/test-venv/bin/python -B work/independent_review/probe_recovery_load_order.py",
+    "red": "references/work/test-venv/bin/python -B work/independent_review/probe_recovery_load_order.py (before independent probe default was frozen to initial_candidate)"
+  },
+  "initial_boundary_test_failure": {
+    "correction": "Select the new claim by difference from prior claims, keep assertions that exactly one new claim was created.",
+    "failures": 1,
+    "final_rerun": "20 PASS",
+    "log": "logs/05_candidate_boundary_regressions.log",
+    "product_change_for_this_failure": false,
+    "reason": "Test helper asserted one total claim during a repeated-failure case; two preserved claims were correct.",
+    "tests": 20
+  },
+  "not_run": [
+    "Actual owner/app manifest/identity/refrozen deployment plan",
+    "Independent deployment acceptance",
+    "macOS launchd / service bootstrap",
+    "Live API / UI",
+    "Business canary",
+    "Natural execution",
+    "Power-loss/filesystem durability certification"
+  ],
+  "original_suite_porting": {
+    "fixture_changes": [
+      "Absolute Mac paths redirected to temporary files.",
+      "Full-package identity expectations rebound to real hashes of minimal synthetic file fixtures; no verifier, inventory or CAS mocked.",
+      "One unavailable old failed-review artifact replaced only in fixture with literal REVIEWED=FAIL.",
+      "RecoveryIdentity fixture receives candidate guard path and SHA explicitly.",
+      "test_exact_review_scope_and_hash_are_required success scope adds guard_path and guard_sha256.",
+      "test_passing_review_must_match_frozen_candidate_scope success scope adds guard_path and guard_sha256."
+    ],
+    "full_original_mac_package_acceptance": "NOT_RUN",
+    "original_case_counts": {
+      "install": 9,
+      "recovery": 17
+    },
+    "synthetic_passing_receipts_are_not_independent_reviews": true,
+    "unchanged_behavior_assertions": true
+  },
+  "result": "AUTHOR_OFFLINE_REGRESSIONS_PASS_SOURCE_CANDIDATE_ONLY",
+  "schema_version": "v4.issue28.release_p1_author_results.v1",
+  "source_changes": [
+    {
+      "after_bytes": 26457,
+      "after_sha256": "b348859aa5a0e3e94ecb1bc6b431590adc91c7c3346039ea82543f4487fe561e",
+      "before_bytes": 23651,
+      "before_sha256": "b326d2f68843e1673169bc8d6e36965786f513e19ef2671a64d113284e944200",
+      "path": "blocked_candidate_ops/api_candidate_install_r2.py"
+    },
+    {
+      "after_bytes": 25582,
+      "after_sha256": "4db1f38580d972ffe40c08a54e54c671023d18391f854f0b2f09d481e311ce24",
+      "before_bytes": 18007,
+      "before_sha256": "d42975f459858ed697805c3043090a82102cd2e0d6c28eef07bb4c440e955fbb",
+      "path": "blocked_candidate_ops/api_candidate_recovery.py"
+    },
+    {
+      "after_bytes": 6544,
+      "after_sha256": "08fddc52017a7dd2ddba36ae07424a9f8648b4b53c3ba429cf2343946e662fa8",
+      "before_bytes": 6436,
+      "before_sha256": "167a43a3b81f1cac11995c107ad1c6a8f09fc7d008aaa157753b46e5ca5c59b6",
+      "path": "blocked_candidate_ops/test_api_candidate_install_r2.py"
+    },
+    {
+      "after_bytes": 14863,
+      "after_sha256": "0954f737240bd4ab2895fbc8d8995ab34352067e13e0914a703d1d457e9251f2",
+      "before_bytes": 14705,
+      "before_sha256": "871bbf1bf97a537bd40bf0461a00e7702ab9ae2c01d3a558a5bba5716bf77bf8",
+      "path": "blocked_candidate_ops/test_api_candidate_recovery.py"
+    },
+    {
+      "after_bytes": 56214,
+      "after_sha256": "932c1d1e4d6111faba8cee92f9a3ed0014018f71f986c4237346974260e5e69d",
+      "before_bytes": 48843,
+      "before_sha256": "264ad2d3f5535e17f6e7471dc12d7e00452104b505795857e9f0637c0a29e816",
+      "path": "external_guard_reference/hk_calendar_candidate_cutover.py"
+    }
+  ],
+  "status": {
+    "AUTHOR_VERIFIED": "PASS_OFFLINE_CODE_ONLY",
+    "DEPLOYABLE": "NOT_DEPLOYABLE_PENDING_OWNER_FREEZE_AND_INDEPENDENT_REVIEW",
+    "DEPLOYED": false,
+    "RESEARCH_ONLY": true,
+    "REVIEWED": "NOT_RUN_BY_AUTHOR",
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "tests": [
+    {
+      "command": "RELEASE_SOURCE_ROOT=work/release/before references/work/test-venv/bin/python -B work/release/tests/run_original_suites.py",
+      "errors": 0,
+      "exit_code": 0,
+      "failures": 0,
+      "log": "logs/03_baseline_original_suites.log",
+      "log_sha256": "2a5109a2a51833c917cde76f0dda13830befe804f0403d6fdb23a2908d0c8e72",
+      "name": "Original suites / before",
+      "tests": 26
+    },
+    {
+      "command": "references/work/test-venv/bin/python -B work/release/tests/run_original_suites.py",
+      "errors": 0,
+      "exit_code": 0,
+      "failures": 0,
+      "log": "logs/12_original_suites_after_helper_fix.log",
+      "log_sha256": "c4f2bf59cc995b52b2b7a588422c46938fe37d44e3e5c912ff637443545ba600",
+      "name": "Original suites / after",
+      "tests": 26
+    },
+    {
+      "command": "RELEASE_SOURCE_ROOT=work/release/before references/work/test-venv/bin/python -B work/release/tests/test_release_regressions.py",
+      "errors": 0,
+      "exit_code": 1,
+      "failures": 12,
+      "log": "logs/07_baseline_p1_regressions_final.log",
+      "log_sha256": "05e15ebb4ce062e7d35114e46eb35fe0356c610e0b696e9c4064b99f489e5a9a",
+      "name": "P1 regressions / before",
+      "tests": 12
+    },
+    {
+      "command": "references/work/test-venv/bin/python -B work/release/tests/test_release_regressions.py",
+      "errors": 0,
+      "exit_code": 0,
+      "failures": 0,
+      "log": "logs/13_p1_regressions_after_helper_fix.log",
+      "log_sha256": "486fc60a3a8e9efc0f7774456c4c09793eb879ce286520499d1061d7b9285f68",
+      "name": "P1 regressions / after",
+      "tests": 12
+    },
+    {
+      "command": "references/work/test-venv/bin/python -B work/release/tests/test_release_boundaries.py",
+      "errors": 0,
+      "exit_code": 0,
+      "failures": 0,
+      "log": "logs/14_boundary_regressions_after_helper_fix.log",
+      "log_sha256": "ba3d4eecc4f8c1ec08baf7632c288b4a6d04b984adafd520d4cb686e78f16d28",
+      "name": "Additional boundaries / after",
+      "tests": 20
+    },
+    {
+      "command": "RELEASE_INSTALLER_SOURCE=work/release/rejected_review_round1/api_candidate_install_r2.py references/work/test-venv/bin/python -B work/release/tests/test_recovery_load_order.py",
+      "errors": 0,
+      "exit_code": 1,
+      "failures": 5,
+      "log": "logs/10_helper_load_order_regressions_red.log",
+      "log_sha256": "86b3b2bef8f58e5553f06cdda773ab9e9c8b48a6358c748444c87b86c72090ae",
+      "name": "Recovery helper load order / rejected first candidate",
+      "tests": 5
+    },
+    {
+      "command": "references/work/test-venv/bin/python -B work/release/tests/test_recovery_load_order.py",
+      "errors": 0,
+      "exit_code": 0,
+      "failures": 0,
+      "log": "logs/11_helper_load_order_regressions_green.log",
+      "log_sha256": "06c276f3ca41c18e795196c9bd1fcea31e0012db888b86f7622f01f85ee8f1f0",
+      "name": "Recovery helper load order / corrected candidate",
+      "tests": 5
+    }
+  ]
+}

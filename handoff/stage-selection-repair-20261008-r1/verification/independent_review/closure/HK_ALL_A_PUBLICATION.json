@@ -1,0 +1,134 @@
+{
+  "scope": "IR02_HK_REUSE_ISOLATION_CLI_REAL_STORE_ONLY",
+  "candidate_ops_sha256": "e8f412ae44ceb708fb4480a3d20906cfbf057051e14ec49bb70efbca0b82b638",
+  "cases": [
+    {
+      "case": "mismatched_cache",
+      "result": "PASS",
+      "cli_exit_code": 1,
+      "hk_status": "CANNOT_CONFIRM_NOT_PUBLISHED",
+      "all_six_a_artifacts_persisted": true,
+      "a_row_counts": {
+        "a_d1_fupan_watchlist_pool": 0,
+        "a_d1_premarket_pool": 1,
+        "a_d1_stage7_fenshi_review_pool": 0,
+        "a_share_baimao_research_map": 0,
+        "a_share_research_recommendation_pool": 0,
+        "wechat_public_account_v3_preselect": 2
+      },
+      "nonempty_wechat_after_hk_persisted": true,
+      "old_hk_artifact_sha256": "64908d48dfd157f2443bc533fb7cff6a22824aea0808c49e84b6c448bde05a01",
+      "old_hk_receipt_sha256": "8da74e822f59e39159f35407799e1b0cf02884ddd8338cc501ebd8e3f6e4d242",
+      "old_hk_manifest_entry": "64908d48dfd157f2443bc533fb7cff6a22824aea0808c49e84b6c448bde05a01",
+      "old_hk_bytes_and_manifest_entry_preserved": true,
+      "original_shared_source_and_wechat_inputs_unchanged": true
+    },
+    {
+      "case": "missing_artifact",
+      "result": "PASS",
+      "cli_exit_code": 1,
+      "hk_status": "CANNOT_CONFIRM_NOT_PUBLISHED",
+      "all_six_a_artifacts_persisted": true,
+      "a_row_counts": {
+        "a_d1_fupan_watchlist_pool": 0,
+        "a_d1_premarket_pool": 1,
+        "a_d1_stage7_fenshi_review_pool": 0,
+        "a_share_baimao_research_map": 0,
+        "a_share_research_recommendation_pool": 0,
+        "wechat_public_account_v3_preselect": 2
+      },
+      "nonempty_wechat_after_hk_persisted": true,
+      "old_hk_artifact_sha256": null,
+      "old_hk_receipt_sha256": "18c724a8ff6350414f08697ff380db68bec4f27813200108ea47efcef4af055f",
+      "old_hk_manifest_entry": "7897ad52d2569a784e1999f4f9d9ac65e2cff18d3e94dfe493c2eeb8b02504b0",
+      "old_hk_bytes_and_manifest_entry_preserved": true,
+      "original_shared_source_and_wechat_inputs_unchanged": true
+    },
+    {
+      "case": "corrupt_artifact",
+      "result": "PASS",
+      "cli_exit_code": 1,
+      "hk_status": "CANNOT_CONFIRM_NOT_PUBLISHED",
+      "all_six_a_artifacts_persisted": true,
+      "a_row_counts": {
+        "a_d1_fupan_watchlist_pool": 0,
+        "a_d1_premarket_pool": 1,
+        "a_d1_stage7_fenshi_review_pool": 0,
+        "a_share_baimao_research_map": 0,
+        "a_share_research_recommendation_pool": 0,
+        "wechat_public_account_v3_preselect": 2
+      },
+      "nonempty_wechat_after_hk_persisted": true,
+      "old_hk_artifact_sha256": "b81fd7acdcf5b3a74b52aa4b0e546051c7092fc642a34bbc839fe516cb548eb1",
+      "old_hk_receipt_sha256": "18c724a8ff6350414f08697ff380db68bec4f27813200108ea47efcef4af055f",
+      "old_hk_manifest_entry": "7897ad52d2569a784e1999f4f9d9ac65e2cff18d3e94dfe493c2eeb8b02504b0",
+      "old_hk_bytes_and_manifest_entry_preserved": true,
+      "original_shared_source_and_wechat_inputs_unchanged": true
+    },
+    {
+      "case": "corrupt_receipt",
+      "result": "PASS",
+      "cli_exit_code": 1,
+      "hk_status": "CANNOT_CONFIRM_NOT_PUBLISHED",
+      "all_six_a_artifacts_persisted": true,
+      "a_row_counts": {
+        "a_d1_fupan_watchlist_pool": 0,
+        "a_d1_premarket_pool": 1,
+        "a_d1_stage7_fenshi_review_pool": 0,
+        "a_share_baimao_research_map": 0,
+        "a_share_research_recommendation_pool": 0,
+        "wechat_public_account_v3_preselect": 2
+      },
+      "nonempty_wechat_after_hk_persisted": true,
+      "old_hk_artifact_sha256": "7897ad52d2569a784e1999f4f9d9ac65e2cff18d3e94dfe493c2eeb8b02504b0",
+      "old_hk_receipt_sha256": "b5503474d1c038a1fa6bc54ef05fe3d70a3b396acdc021677a384754812e71d2",
+      "old_hk_manifest_entry": "7897ad52d2569a784e1999f4f9d9ac65e2cff18d3e94dfe493c2eeb8b02504b0",
+      "old_hk_bytes_and_manifest_entry_preserved": true,
+      "original_shared_source_and_wechat_inputs_unchanged": true
+    },
+    {
+      "case": "corrupt_manifest_entry",
+      "result": "PASS",
+      "cli_exit_code": 1,
+      "hk_status": "CANNOT_CONFIRM_NOT_PUBLISHED",
+      "all_six_a_artifacts_persisted": true,
+      "a_row_counts": {
+        "a_d1_fupan_watchlist_pool": 0,
+        "a_d1_premarket_pool": 1,
+        "a_d1_stage7_fenshi_review_pool": 0,
+        "a_share_baimao_research_map": 0,
+        "a_share_research_recommendation_pool": 0,
+        "wechat_public_account_v3_preselect": 2
+      },
+      "nonempty_wechat_after_hk_persisted": true,
+      "old_hk_artifact_sha256": "7897ad52d2569a784e1999f4f9d9ac65e2cff18d3e94dfe493c2eeb8b02504b0",
+      "old_hk_receipt_sha256": "18c724a8ff6350414f08697ff380db68bec4f27813200108ea47efcef4af055f",
+      "old_hk_manifest_entry": "0000000000000000000000000000000000000000000000000000000000000000",
+      "old_hk_bytes_and_manifest_entry_preserved": true,
+      "original_shared_source_and_wechat_inputs_unchanged": true
+    },
+    {
+      "case": "absent_cache",
+      "result": "PASS",
+      "cli_exit_code": 1,
+      "hk_status": "CANNOT_CONFIRM_NOT_PUBLISHED",
+      "all_six_a_artifacts_persisted": true,
+      "a_row_counts": {
+        "a_d1_fupan_watchlist_pool": 0,
+        "a_d1_premarket_pool": 1,
+        "a_d1_stage7_fenshi_review_pool": 0,
+        "a_share_baimao_research_map": 0,
+        "a_share_research_recommendation_pool": 0,
+        "wechat_public_account_v3_preselect": 2
+      },
+      "nonempty_wechat_after_hk_persisted": true,
+      "old_hk_artifact_sha256": null,
+      "old_hk_receipt_sha256": null,
+      "old_hk_manifest_entry": null,
+      "old_hk_bytes_and_manifest_entry_preserved": true,
+      "original_shared_source_and_wechat_inputs_unchanged": true
+    }
+  ],
+  "service_calls": 0,
+  "all_inputs_synthetic": true
+}

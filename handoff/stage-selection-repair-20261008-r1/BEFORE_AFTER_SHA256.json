@@ -1,0 +1,283 @@
+{
+  "frozen_input_commit": "00524e9050fe212f87911b56eea1c2db719dd94b",
+  "owner_descriptions_at_handoff": {
+    "canonical": "v4_app working tree at HEAD 55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054 with pre-existing changes",
+    "active_stage_reference": "Issue23 R3 app actually bound by Stage scheduler plist",
+    "active_producer_reference": "hk-research-calendar-all-r1-20261007-scheduler/app",
+    "blocked_candidate_ops": "A preselection R2 candidate NOT_DEPLOYABLE",
+    "external_guard_reference": "observed dynamic CAS dependency, not pinned by candidate"
+  },
+  "actual_current_owner_verified": false,
+  "new_distinct_product_files": 8,
+  "product_owner_targets": 9,
+  "original_tests_extended": 2,
+  "changes": [
+    {
+      "batch": "auction",
+      "owner": "canonical",
+      "owner_relative_path": "stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "kind": "PRODUCT",
+      "before_file": "auction/before/source/canonical/stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "after_file": "auction/after/source/canonical/stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "before": {
+        "bytes": 44965,
+        "sha256": "8b3552498b125ae90c56964799f3cf0e644a077243f7be4c37ea23261214379a",
+        "git_blob_sha1": "bcd53fa8be12ff04c00b50ec9566e17449978a3c"
+      },
+      "after": {
+        "bytes": 45034,
+        "sha256": "7fa71ee1a4b96f6f53d49467fcb296969104e851949234849fd256a5372d5725",
+        "git_blob_sha1": "7b175c6795089ecd4ee2d25e868bfde9e088cf91"
+      },
+      "patch": "auction/patches/canonical.patch",
+      "frozen_repository_path": "handoff/stage-selection-issues-20261008/source/canonical/stage_center/_live_collectors_parts/selection_builder_registry.py"
+    },
+    {
+      "batch": "auction",
+      "owner": "active_stage_reference",
+      "owner_relative_path": "stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "kind": "PRODUCT",
+      "before_file": "auction/before/source/active_stage_reference/stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "after_file": "auction/after/source/active_stage_reference/stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "before": {
+        "bytes": 21870,
+        "sha256": "5b315c482723f4bbfb187e36241ea422f2a59518a2056be037d1fdbe2f00eb22",
+        "git_blob_sha1": "ea28586244319a62396bcbb2357d5e74b65fcf16"
+      },
+      "after": {
+        "bytes": 21939,
+        "sha256": "409274a2adace19f22ef6d19cdbc7e5291b58fd9944d39239abbffd90ab1f6e4",
+        "git_blob_sha1": "19cba46d8b7cf37c048c37944b31683e86a7e1c2"
+      },
+      "patch": "auction/patches/active_stage_reference.patch",
+      "frozen_repository_path": "handoff/stage-selection-issues-20261008/source/active_stage_reference/stage_center/_live_collectors_parts/selection_builder_registry.py"
+    },
+    {
+      "batch": "auction",
+      "owner": "canonical",
+      "owner_relative_path": "stage_center/_selection_parts/a_auction.py",
+      "kind": "PRODUCT",
+      "before_file": "auction/before/source/canonical/stage_center/_selection_parts/a_auction.py",
+      "after_file": "auction/after/source/canonical/stage_center/_selection_parts/a_auction.py",
+      "before": {
+        "bytes": 7957,
+        "sha256": "d0a96edcb4d87f223b117917a8f0d68276bd088a88abe8f787d245c8e1c669ad",
+        "git_blob_sha1": "0dd8b201d888d4eeadbe6a3b806f44b3c3457f77"
+      },
+      "after": {
+        "bytes": 8707,
+        "sha256": "1a85982c4cc70656f74f5d9b3e0b475425a7eb17645ab014c03bef587ab13bfe",
+        "git_blob_sha1": "3041dfc80fbc1b46f8a18b6d3236c188a74b5b02"
+      },
+      "patch": "auction/patches/canonical.patch",
+      "frozen_repository_path": "handoff/stage-selection-issues-20261008/source/canonical/stage_center/_selection_parts/a_auction.py"
+    },
+    {
+      "batch": "auction",
+      "owner": "active_stage_reference",
+      "owner_relative_path": "stage_center/_selection_parts/a_auction.py",
+      "kind": "PRODUCT",
+      "before_file": "auction/before/source/canonical/stage_center/_selection_parts/a_auction.py",
+      "after_file": "auction/after/source/canonical/stage_center/_selection_parts/a_auction.py",
+      "before": {
+        "bytes": 7957,
+        "sha256": "d0a96edcb4d87f223b117917a8f0d68276bd088a88abe8f787d245c8e1c669ad",
+        "git_blob_sha1": "0dd8b201d888d4eeadbe6a3b806f44b3c3457f77"
+      },
+      "after": {
+        "bytes": 8707,
+        "sha256": "1a85982c4cc70656f74f5d9b3e0b475425a7eb17645ab014c03bef587ab13bfe",
+        "git_blob_sha1": "3041dfc80fbc1b46f8a18b6d3236c188a74b5b02"
+      },
+      "patch": "auction/patches/active_stage_reference.patch",
+      "same_bytes_mapping_from_frozen_manifest": true,
+      "frozen_repository_path": "handoff/stage-selection-issues-20261008/source/canonical/stage_center/_selection_parts/a_auction.py"
+    },
+    {
+      "batch": "hk",
+      "owner": "active_producer_reference",
+      "owner_relative_path": "domains/preselection_materializer.py",
+      "kind": "PRODUCT",
+      "before_file": "hk/before/active_producer_reference/domains/preselection_materializer.py",
+      "after_file": "hk/after/active_producer_reference/domains/preselection_materializer.py",
+      "before": {
+        "bytes": 51134,
+        "sha256": "f090146f39eaaf1ea5baaa5da60cddc2aefe738be16eb1609f166b643953d84e",
+        "git_blob_sha1": "8d7f68924163ce5ca48c85b6b33b9b1e3c950e20"
+      },
+      "after": {
+        "bytes": 56867,
+        "sha256": "1187afe30c1f0614ddcd33f52eb3d82511d98ffe62b3fa5d4bf02f661b1ef290",
+        "git_blob_sha1": "83b8f77326023672be071402a2f8139f11e2689b"
+      },
+      "patch": "hk/hk_split_date.patch",
+      "frozen_repository_path": "handoff/stage-selection-issues-20261008/source/active_producer_reference/domains/preselection_materializer.py"
+    },
+    {
+      "batch": "hk",
+      "owner": "active_producer_reference",
+      "owner_relative_path": "ops/materialize_scheduled_preselection.py",
+      "kind": "PRODUCT",
+      "before_file": "hk/before/active_producer_reference/ops/materialize_scheduled_preselection.py",
+      "after_file": "hk/after/active_producer_reference/ops/materialize_scheduled_preselection.py",
+      "before": {
+        "bytes": 11468,
+        "sha256": "2aac77c9a995c8e97488be5324e8dd105e19e68a08bfb71cceb2df670aaa5478",
+        "git_blob_sha1": "d5d7f3be800ac49b9abc5d2f222a39b73bf896cd"
+      },
+      "after": {
+        "bytes": 17180,
+        "sha256": "e8f412ae44ceb708fb4480a3d20906cfbf057051e14ec49bb70efbca0b82b638",
+        "git_blob_sha1": "036c7e88a1ebd418d64085fb041f7dc46aaae70c"
+      },
+      "patch": "hk/hk_split_date.patch",
+      "frozen_repository_path": "handoff/stage-selection-issues-20261008/source/active_producer_reference/ops/materialize_scheduled_preselection.py"
+    },
+    {
+      "batch": "release",
+      "owner": "blocked_candidate_ops",
+      "owner_relative_path": "api_candidate_install_r2.py",
+      "kind": "PRODUCT",
+      "before_file": "release/before/blocked_candidate_ops/api_candidate_install_r2.py",
+      "after_file": "release/after/blocked_candidate_ops/api_candidate_install_r2.py",
+      "before": {
+        "bytes": 23651,
+        "sha256": "b326d2f68843e1673169bc8d6e36965786f513e19ef2671a64d113284e944200",
+        "git_blob_sha1": "8225fe0e98fb66a9bf79344b932173bbbcdd46b1"
+      },
+      "after": {
+        "bytes": 26457,
+        "sha256": "b348859aa5a0e3e94ecb1bc6b431590adc91c7c3346039ea82543f4487fe561e",
+        "git_blob_sha1": "918dfd22ab5fa3efed101b0270567f981080cbdb"
+      },
+      "patch": "release/minimal.patch",
+      "frozen_repository_path": "handoff/stage-selection-issues-20261008/source/blocked_candidate_ops/api_candidate_install_r2.py"
+    },
+    {
+      "batch": "release",
+      "owner": "blocked_candidate_ops",
+      "owner_relative_path": "api_candidate_recovery.py",
+      "kind": "PRODUCT",
+      "before_file": "release/before/blocked_candidate_ops/api_candidate_recovery.py",
+      "after_file": "release/after/blocked_candidate_ops/api_candidate_recovery.py",
+      "before": {
+        "bytes": 18007,
+        "sha256": "d42975f459858ed697805c3043090a82102cd2e0d6c28eef07bb4c440e955fbb",
+        "git_blob_sha1": "dfcabbceef16bef3c92be58093fe04a1714592c1"
+      },
+      "after": {
+        "bytes": 25582,
+        "sha256": "4db1f38580d972ffe40c08a54e54c671023d18391f854f0b2f09d481e311ce24",
+        "git_blob_sha1": "f3a01c92c6b8a459cf5ce6a32abd005f87ba2aa4"
+      },
+      "patch": "release/minimal.patch",
+      "frozen_repository_path": "handoff/stage-selection-issues-20261008/source/blocked_candidate_ops/api_candidate_recovery.py"
+    },
+    {
+      "batch": "release",
+      "owner": "blocked_candidate_ops",
+      "owner_relative_path": "test_api_candidate_install_r2.py",
+      "kind": "ORIGINAL_TEST_SCOPE_EXTENSION",
+      "before_file": "release/before/blocked_candidate_ops/test_api_candidate_install_r2.py",
+      "after_file": "release/after/blocked_candidate_ops/test_api_candidate_install_r2.py",
+      "before": {
+        "bytes": 6436,
+        "sha256": "167a43a3b81f1cac11995c107ad1c6a8f09fc7d008aaa157753b46e5ca5c59b6",
+        "git_blob_sha1": "600d8125763be3462c5ac12332368b6998efaa78"
+      },
+      "after": {
+        "bytes": 6544,
+        "sha256": "08fddc52017a7dd2ddba36ae07424a9f8648b4b53c3ba429cf2343946e662fa8",
+        "git_blob_sha1": "afc6808240b9b9807045cffe596199e96d43cc08"
+      },
+      "patch": "release/minimal.patch",
+      "frozen_repository_path": "handoff/stage-selection-issues-20261008/source/blocked_candidate_ops/test_api_candidate_install_r2.py"
+    },
+    {
+      "batch": "release",
+      "owner": "blocked_candidate_ops",
+      "owner_relative_path": "test_api_candidate_recovery.py",
+      "kind": "ORIGINAL_TEST_SCOPE_EXTENSION",
+      "before_file": "release/before/blocked_candidate_ops/test_api_candidate_recovery.py",
+      "after_file": "release/after/blocked_candidate_ops/test_api_candidate_recovery.py",
+      "before": {
+        "bytes": 14705,
+        "sha256": "871bbf1bf97a537bd40bf0461a00e7702ab9ae2c01d3a558a5bba5716bf77bf8",
+        "git_blob_sha1": "c223d7a89bb29c615bb07c4ef0638371e0caa74b"
+      },
+      "after": {
+        "bytes": 14863,
+        "sha256": "0954f737240bd4ab2895fbc8d8995ab34352067e13e0914a703d1d457e9251f2",
+        "git_blob_sha1": "070283159f2981e90f4a28a64d4139cc9ce2c7a8"
+      },
+      "patch": "release/minimal.patch",
+      "frozen_repository_path": "handoff/stage-selection-issues-20261008/source/blocked_candidate_ops/test_api_candidate_recovery.py"
+    },
+    {
+      "batch": "release",
+      "owner": "external_guard_reference",
+      "owner_relative_path": "hk_calendar_candidate_cutover.py",
+      "kind": "PRODUCT",
+      "before_file": "release/before/external_guard_reference/hk_calendar_candidate_cutover.py",
+      "after_file": "release/after/external_guard_reference/hk_calendar_candidate_cutover.py",
+      "before": {
+        "bytes": 48843,
+        "sha256": "264ad2d3f5535e17f6e7471dc12d7e00452104b505795857e9f0637c0a29e816",
+        "git_blob_sha1": "e26e66c9c4aaf7a12a19f5da736c1dcea6bf0283"
+      },
+      "after": {
+        "bytes": 56214,
+        "sha256": "932c1d1e4d6111faba8cee92f9a3ed0014018f71f986c4237346974260e5e69d",
+        "git_blob_sha1": "bc9d81a5bf1e458b1c0a27c01490b1dcd6b55c68"
+      },
+      "patch": "release/minimal.patch",
+      "frozen_repository_path": "handoff/stage-selection-issues-20261008/source/external_guard_reference/hk_calendar_candidate_cutover.py"
+    }
+  ],
+  "reused_fixed_pool_files": [
+    {
+      "path": "apps/api/v35_api/app.py",
+      "sha256": "435dcedd3beb43bf4a0ccb35ff6fc033ba536a940990c36f5f23358f5492b590",
+      "git_blob_sha1": "8a1c2e0e400e0ae69c97d3d8dad426b35c25d7a7",
+      "frozen_ref": "4ad7cc52257b49470b3004ebfee9649af43189dd",
+      "same_blob_in_fixed_issue_commit": true,
+      "delivered_file": "pool/test_support/reused/apps/api/v35_api/app.py",
+      "identity": {
+        "bytes": 342253,
+        "sha256": "435dcedd3beb43bf4a0ccb35ff6fc033ba536a940990c36f5f23358f5492b590",
+        "git_blob_sha1": "8a1c2e0e400e0ae69c97d3d8dad426b35c25d7a7"
+      },
+      "product_change_this_turn": false
+    },
+    {
+      "path": "domains/preselection.py",
+      "sha256": "f209ceb037515586883dc669d830fb44afcf778b67971951bde69c5eab8b67a0",
+      "git_blob_sha1": "cab62ba936ad377fc7f07dc690fb5d5f2752c9c3",
+      "frozen_ref": "4ad7cc52257b49470b3004ebfee9649af43189dd",
+      "same_blob_in_fixed_issue_commit": true,
+      "delivered_file": "pool/test_support/reused/domains/preselection.py",
+      "identity": {
+        "bytes": 17178,
+        "sha256": "f209ceb037515586883dc669d830fb44afcf778b67971951bde69c5eab8b67a0",
+        "git_blob_sha1": "cab62ba936ad377fc7f07dc690fb5d5f2752c9c3"
+      },
+      "product_change_this_turn": false
+    },
+    {
+      "path": "tests/test_preselection_source_root_20261008.py",
+      "sha256": "46330d42709005822e381c5566d7097cc54cc841193bee738fca151b9a8af5ff",
+      "git_blob_sha1": "c2a181a135a6b2a24fc095d752aa463391a695a0",
+      "frozen_ref": "4ad7cc52257b49470b3004ebfee9649af43189dd",
+      "same_blob_in_fixed_issue_commit": true,
+      "delivered_file": "pool/test_support/reused/tests/test_preselection_source_root_20261008.py",
+      "identity": {
+        "bytes": 11767,
+        "sha256": "46330d42709005822e381c5566d7097cc54cc841193bee738fca151b9a8af5ff",
+        "git_blob_sha1": "c2a181a135a6b2a24fc095d752aa463391a695a0"
+      },
+      "product_change_this_turn": false
+    }
+  ],
+  "source_only_independent_verdict": "PASS_WITH_DEPLOYMENT_GAPS",
+  "deployment": "NOT_DEPLOYABLE_PENDING_ACTUAL_OWNER_FREEZE_AND_DEPLOYMENT_ACCEPTANCE"
+}

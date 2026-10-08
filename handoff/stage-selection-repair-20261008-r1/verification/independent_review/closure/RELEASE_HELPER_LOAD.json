@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-B",
+    "/workspace/scratch/25c09a595aec/issue28/work/independent_review/closure/release_tests/test_recovery_load_order.py"
+  ],
+  "environment": {
+    "RELEASE_SOURCE_ROOT": "/workspace/scratch/25c09a595aec/issue28/delivery/release/after",
+    "RELEASE_INSTALLER_SOURCE": "/workspace/scratch/25c09a595aec/issue28/delivery/release/after/blocked_candidate_ops/api_candidate_install_r2.py"
+  },
+  "exit_code": 0,
+  "output": "test_direct_receipt_check_also_pins_recovery_helper (__main__.RecoveryLoadOrderTests.test_direct_receipt_check_also_pins_recovery_helper) ... ok\ntest_helper_path_swap_after_check_executes_only_checked_bytes (__main__.RecoveryLoadOrderTests.test_helper_path_swap_after_check_executes_only_checked_bytes) ... ok\ntest_package_guard_verification_does_not_import_recovery_helper (__main__.RecoveryLoadOrderTests.test_package_guard_verification_does_not_import_recovery_helper) ... ok\ntest_pinned_helper_path_ignores_import_search_path_and_cache (__main__.RecoveryLoadOrderTests.test_pinned_helper_path_ignores_import_search_path_and_cache) ... ok\ntest_review_check_rejects_helper_drift_before_top_level_code (__main__.RecoveryLoadOrderTests.test_review_check_rejects_helper_drift_before_top_level_code) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.070s\n\nOK\n"
+}

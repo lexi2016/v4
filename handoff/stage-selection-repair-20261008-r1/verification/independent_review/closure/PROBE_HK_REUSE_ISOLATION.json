@@ -1,0 +1,20 @@
+{
+  "scenarios": [
+    {
+      "stale_hk_reuse": false,
+      "returned_artifacts": true,
+      "a_status": "V192_CANDIDATE_READY",
+      "a_rows": 1,
+      "a_stage_selection_eligible": true
+    },
+    {
+      "stale_hk_reuse": true,
+      "returned_artifacts": true,
+      "a_status": "V192_CANDIDATE_READY",
+      "a_rows": 1,
+      "a_stage_selection_eligible": true
+    }
+  ],
+  "all_data_synthetic": true,
+  "service_calls": 0
+}
