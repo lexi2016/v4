@@ -77,6 +77,37 @@ def _call_budget(*, fit_calls: int, fit_entered: bool, fit_returned: int,
     }
 
 
+def _join_truth(scores: Any, truth: Any):
+    """Attach outcomes by this left frame's keys, not global null-label counts.
+
+    A present key with unknown y is valid. Positional assignment preserves all
+    left columns, score bits, row order and index, including a non-unique index.
+    """
+    import pandas as pd
+
+    keys = ["code", "session_id"]
+    outcomes = ["y", "label_status", "first_exact", "episode_state"]
+    if not scores.columns.is_unique or not truth.columns.is_unique or set(outcomes).intersection(scores.columns):
+        raise RFFWorkerError("RFF_TRUTH_JOIN_AMBIGUOUS_COLUMNS")
+    if not set(keys).issubset(scores.columns) or not set(keys + outcomes).issubset(truth.columns):
+        raise RFFWorkerError("RFF_TRUTH_JOIN_SCHEMA_MISMATCH")
+    for name, frame in (("scores", scores), ("truth", truth)):
+        if frame[keys].isna().any().any():
+            raise RFFWorkerError(f"RFF_TRUTH_JOIN_NULL_KEY:{name}")
+        if frame.duplicated(keys).any():
+            raise RFFWorkerError(f"RFF_TRUTH_JOIN_DUPLICATE_KEY:{name}")
+
+    positions = pd.MultiIndex.from_frame(truth[keys]).get_indexer(pd.MultiIndex.from_frame(scores[keys]))
+    if (positions < 0).any():
+        raise RFFWorkerError("RFF_TRUTH_JOIN_UNMATCHED_KEY")
+    joined = scores.copy()
+    for column in outcomes:
+        joined[column] = truth[column].iloc[positions].array
+    if joined["label_status"].isna().any() or joined["episode_state"].isna().any():
+        raise RFFWorkerError("EVALUATION_OUTCOME_METADATA_MISSING")
+    return joined
+
+
 def run_candidate_worker(payload: Mapping[str, Any]) -> dict[str, Any]:
     """Run one classifier fit, one full-S prediction, then the frozen evaluator."""
     import io
@@ -87,7 +118,6 @@ def run_candidate_worker(payload: Mapping[str, Any]) -> dict[str, Any]:
     from candidate_worker import (
         _csv_bytes,
         _deep_equal,
-        _join_truth,
         _load_bound_inputs,
         _load_control_artifacts,
         _read_csv_bytes,
