@@ -1,0 +1,53 @@
+{
+  "schema_version": "v4.manager_four_function_repair.intermediate_tool_failure.v1",
+  "scope": "INTERMEDIATE_TEST_RUNNER_GUARD_ONLY_NOT_PRODUCTION_CODE_CHANGE",
+  "runner_sha256": "bcf93dec4824b96baadc63ba3ea389db5d70d1396bd2deb1cdd24eabb093ae16",
+  "status": "FAIL",
+  "runner_exit_code": 1,
+  "pytest_exit_code": 1,
+  "junit_totals": {
+    "errors": 21,
+    "failures": 19,
+    "skipped": 0,
+    "tests": 57
+  },
+  "reason": "Overbroad relative/descriptor write denial blocked existing owner mkdir(dir_fd=...) and fdopen operations inside isolated fixtures.",
+  "guard_event_sample": [
+    {
+      "event": "os.mkdir",
+      "path": "workspace",
+      "reason": "UNRESOLVED_RELATIVE_WRITE_REJECTED"
+    },
+    {
+      "event": "os.mkdir",
+      "path": "workspace",
+      "reason": "UNRESOLVED_RELATIVE_WRITE_REJECTED"
+    },
+    {
+      "descriptor": 12,
+      "event": "open",
+      "reason": "UNRESOLVED_DESCRIPTOR_WRITE_REJECTED"
+    },
+    {
+      "descriptor": 13,
+      "event": "open",
+      "reason": "UNRESOLVED_DESCRIPTOR_WRITE_REJECTED"
+    }
+  ],
+  "original_source_differences": {
+    "added": [],
+    "changed": [],
+    "missing": []
+  },
+  "execution_source_differences": {
+    "added": [],
+    "changed": [],
+    "missing": []
+  },
+  "original_rawlog_sha256": "0cbc90dcff05db926090f3ede7f2efc2026981440e7222b2fec0737dfe90bf0f",
+  "original_rawlog_bytes": 192010,
+  "original_environment_sha256": "3b57a09d15d87016ed1fdba49243de6a6ba1a5a7bab719eebefc7a4184505369",
+  "final_runner_sha256": "7b74d1bc790becf40e3b8b1b3ff8a084187864f8c40a2ec891e1a050c6ac9d80",
+  "resolution": "Narrowed audit claim to absolute paths; descriptor operation prevention is explicitly false. Fixed-test source copy plus before/after declared source inventory hashes remain the actual acceptance gate. Final 57-test run passes.",
+  "final_evidence": "packaged_runner_environment.json"
+}

@@ -1,0 +1,163 @@
+diff --git a/apps/api/v35_api/app.py b/apps/api/v35_api/app.py
+index f2cdb61eb5689f70bf9f9508e96a0262c0af7389..0bff8edb683d8a23aced3645e7c7b79a382c8c23 100644
+--- a/apps/api/v35_api/app.py
++++ b/apps/api/v35_api/app.py
+@@ -3913,6 +3913,7 @@ def create_app(
+     research_ledger_root: Path | str | None = None,
+     morning_news_data_root: Path | str | None = None,
+     preselection_source_root: Path | str | None = None,
++    workspace_connect_binding: Mapping[str, Any] | None = None,
+ ) -> FastAPI:
+     app = FastAPI(title="V3.5", version="0.1.0")
+     store = NativeDataStore(data_root or Path.cwd() / ".runtime" / "data")
+@@ -5243,6 +5244,16 @@ def create_app(
+         f"{_MANAGER_RESEARCH_RUNTIME_PACKAGE}.us_market_bridge"
+     )
+     manager_us_market_reader = manager_bridge.ResearchPeripheralUsMarketReader(store.root)
++    # Freeze this application's existing authority configuration alongside its
++    # other injected readers. An explicit empty binding must stay unbound.
++    if workspace_connect_binding is None:
++        workspace_connect_binding = {
++            "universe_root": os.environ.get("V4_MANAGER_UNIVERSE_ROOT", ""),
++            "authority_owner_root": os.environ.get("V4_MANAGER_UNIVERSE_OWNER_ROOT", ""),
++            "authority_owner_sha256": os.environ.get("V4_MANAGER_UNIVERSE_OWNER_SHA256", ""),
++            "capture_receipt_root": os.environ.get("V4_MANAGER_HK_CAPTURE_RECEIPT_ROOT", ""),
++            "dispatch_receipt_root": os.environ.get("V4_MANAGER_HK_DISPATCH_RECEIPT_ROOT", ""),
++        }
+     manager_research_service = manager_research_job_service(
+         manager_research_store(resolved_manager_research_state_root),
+         manager_research_observation_reader,
+@@ -5264,6 +5275,7 @@ def create_app(
+         catalyst_news_owner_root=(Path(os.environ["V4_MANAGER_NEWS_OWNER_ROOT"])
+                                   if os.environ.get("V4_MANAGER_NEWS_OWNER_ROOT") else None),
+         workspace_us_market_reader=manager_us_market_reader,
++        workspace_connect_binding=workspace_connect_binding,
+     )
+     app.state.manager_research_service = manager_research_service
+     app.include_router(create_manager_research_router(manager_research_service))
+diff --git a/v4/manager_research/connect_selection.py b/v4/manager_research/connect_selection.py
+index de85b54d09fe8264b44799679fd11d42accbcd69..a6fc9407c7938ceafff1679eab867a0bf5d32d12 100644
+--- a/v4/manager_research/connect_selection.py
++++ b/v4/manager_research/connect_selection.py
+@@ -70,26 +70,53 @@ def formal_selection(scope: Mapping[str, Any], date: str, count: int) -> dict:
+         calendar=deepcopy(calendar), qualified=False, buy_allowed=False, **FLAGS)
+ 
+ 
+-def read_scope(context: Mapping[str, Any]) -> dict:
++def read_scope(context: Mapping[str, Any], *, binding: Mapping[str, Any] | None = None) -> dict:
++    """Read the existing target-date authority from one explicit binding.
++
++    An explicit mapping is complete: absent or invalid fields never borrow
++    values from ambient environment. Legacy direct callers may omit it;
++    application instances supply their construction-time configuration.
++    """
+     date=date_token(context['plan_trade_date'])
+     result=dict(status='CANNOT_CONFIRM',target_trade_date=date,codes=[],source=None,
+                 identity=None,gaps=[],read_only=True,
+                 calendar_applicability=calendar_applicability(context),**FLAGS)
+-    configured=os.environ.get('V4_MANAGER_UNIVERSE_ROOT','').strip()
++    if binding is None:
++        binding=dict(
++            universe_root=os.environ.get('V4_MANAGER_UNIVERSE_ROOT',''),
++            authority_owner_root=os.environ.get('V4_MANAGER_UNIVERSE_OWNER_ROOT',''),
++            authority_owner_sha256=os.environ.get('V4_MANAGER_UNIVERSE_OWNER_SHA256',''),
++            capture_receipt_root=os.environ.get('V4_MANAGER_HK_CAPTURE_RECEIPT_ROOT',''),
++            dispatch_receipt_root=os.environ.get('V4_MANAGER_HK_DISPATCH_RECEIPT_ROOT',''))
++    if not isinstance(binding,Mapping):
++        result['gaps']=['HK_CONNECT_TARGET_AUTHORITY_ROOT_INVALID'];return result
++    binding=dict(binding)
++    configured=binding.get('universe_root')
++    if configured is not None and not isinstance(configured,(str,Path)):
++        result['gaps']=['HK_CONNECT_TARGET_AUTHORITY_ROOT_INVALID'];return result
++    configured=str(configured or '').strip()
+     if not configured:
+         result['gaps']=['HK_CONNECT_TARGET_AUTHORITY_ROOT_NOT_BOUND'];return result
+-    root=Path(configured).expanduser()
+-    if not root.is_absolute() or '..' in root.parts or root.is_symlink():
++    try:
++        root=Path(configured).expanduser()
++        valid_root=(root.is_absolute() and '..' not in root.parts
++            and not root.is_symlink() and root.resolve()==root)
++    except (OSError,ValueError,RuntimeError):
++        valid_root=False
++    if not valid_root:
+         result['gaps']=['HK_CONNECT_TARGET_AUTHORITY_ROOT_INVALID'];return result
+     # Only the exact target-date V2 authority can grant formal eligibility.
+     # A prior-session capture is retained separately as source evidence.
+-    owner_text=os.environ.get('V4_MANAGER_UNIVERSE_OWNER_ROOT','').strip()
+-    owner_sha=os.environ.get('V4_MANAGER_UNIVERSE_OWNER_SHA256','').strip()
++    owner_text=binding.get('authority_owner_root')
++    owner_sha=binding.get('authority_owner_sha256')
+     owner_kwargs={}
+     target_failure='HK_CONNECT_TARGET_AUTHORITY_OWNER_BINDING_REQUIRED'
+     try:
+         if not owner_text or not owner_sha:
+             raise ValueError(target_failure)
++        if not isinstance(owner_text,(str,Path)) or not isinstance(owner_sha,str):
++            raise ValueError('HK_CONNECT_TARGET_AUTHORITY_OWNER_BINDING_INVALID')
++        owner_text=str(owner_text).strip();owner_sha=owner_sha.strip()
+         owner_root=Path(owner_text)
+         valid=(owner_root.is_absolute() and '..' not in owner_root.parts
+             and owner_root.resolve()==owner_root and not owner_root.is_symlink()
+@@ -127,8 +154,8 @@ def read_scope(context: Mapping[str, Any]) -> dict:
+         diagnostic=getattr(exc,'diagnostic',None)
+         if isinstance(diagnostic,Mapping):
+             result['authority_diagnostic']=deepcopy(dict(diagnostic))
+-    capture_root=os.environ.get('V4_MANAGER_HK_CAPTURE_RECEIPT_ROOT','').strip()
+-    dispatch_root=os.environ.get('V4_MANAGER_HK_DISPATCH_RECEIPT_ROOT','').strip()
++    capture_root=binding.get('capture_receipt_root')
++    dispatch_root=binding.get('dispatch_receipt_root')
+     market_session=context.get('market_session')
+     if capture_root and dispatch_root and market_session:
+         from .connect_capture_adapter import read_d1_scope
+@@ -183,10 +210,11 @@ def filter_cards(cards: Sequence[Mapping[str,Any]], scope: Mapping[str,Any], *,
+                 source_refs=deepcopy(raw.get('source_refs',[]))))
+             continue
+         row=deepcopy(dict(raw))
+-        # A witness clock is diagnostic only, not a source clock and not a
+-        # volatile component of input_identity/idempotency.
++        # V2 persists available_at in the verified publication receipt.
++        # Only read_at is a diagnostic witness clock; it must not make the
++        # same authority bytes change input_identity on the next read.
+         row.update(connect_eligibility='VERIFIED_TARGET_UNIVERSE',
+-            membership_source={k:deepcopy(v) for k,v in scope['source'].items() if k!='available_at'},
++            membership_source={k:deepcopy(v) for k,v in scope['source'].items() if k!='read_at'},
+             membership_input_identity=scope['identity'],
+             membership_semantics='TARGET_DATE_AUTHORITY_AS_READ_NOT_HISTORICAL_SELECTION_CAPTURE')
+         out.append(row)
+diff --git a/v4/manager_research/service.py b/v4/manager_research/service.py
+index 141624c44cb7a2b76d6ad1761852396e1fa8f8f2..99ee2e4ef1bcd144e25a07a940d5508951418985 100644
+--- a/v4/manager_research/service.py
++++ b/v4/manager_research/service.py
+@@ -327,6 +327,7 @@ class ManagerResearchJobService:
+         workspace_security_master_root: Path | None = None,
+         workspace_screen_authority_root: Path | None = None,
+         workspace_us_market_reader: Any | None = None,
++        workspace_connect_binding: Mapping[str, Any] | None = None,
+     ) -> None:
+         self.store = store
+         self._instance_id = uuid4().hex
+@@ -350,6 +351,10 @@ class ManagerResearchJobService:
+         self._workspace_security_master_root = workspace_security_master_root
+         self._workspace_screen_authority_root = workspace_screen_authority_root
+         self._workspace_us_market_reader = workspace_us_market_reader
++        self._workspace_connect_binding = (
++            dict(workspace_connect_binding)
++            if isinstance(workspace_connect_binding, Mapping) else workspace_connect_binding
++        )
+         self._material_reader_fetcher: Callable[..., Any] | None = None
+         if material_store is not None and reader_fetcher is None:
+             from .reader_source import material_reader_fetcher
+diff --git a/v4/manager_research/workspace.py b/v4/manager_research/workspace.py
+index e2ec0af87b8b40fe40a4f28c6098cae11f0b636a..6d088d07a2a4bd573229bf104eb25cdf9bcabcec 100644
+--- a/v4/manager_research/workspace.py
++++ b/v4/manager_research/workspace.py
+@@ -695,7 +695,7 @@ def _compute_workspace(service: Any, date: str, *, include_saved: bool = True, c
+             announcement_inputs=dict(materials=[],rejections=[dict(reason=reason)],gaps=[reason],captures=[],
+                 status='CANNOT_CONFIRM',input_identity=digest([reason]),**FLAGS)
+     with phase('target_connect_authority'):
+-        connect_scope=read_scope(context)
++        connect_scope=read_scope(context, binding=getattr(service, '_workspace_connect_binding', None))
+     selection_materials=[*existing['materials'],*announcement_inputs['materials']]
+     with phase('material_discovery'):
+         material_discovery=read_material_discovery(selection_materials,context,

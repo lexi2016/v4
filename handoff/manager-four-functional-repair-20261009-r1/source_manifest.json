@@ -1,0 +1,49 @@
+{
+  "schema_version": "v4.manager_four_function_repair.source_manifest.v1",
+  "repository": "lexi2016/v4",
+  "input_commit": "74478a0e62be215c8527ccc9a14b89b51042d014",
+  "input_prefix": "handoff/manager-four-functional-gaps-20261009",
+  "fixed_r2_candidate_commit": "a7f5d09fb19de10564925757207977aadc080cc1",
+  "fixed_r2_release_manifest_sha256": "f6385dd23e9fda4d2169f20d6dc68b6e1e519b2b1a35e1ceb0bfd3111a079ad5",
+  "target_date": "20261009",
+  "publication_date": "20261008",
+  "runtime_files": [
+    {
+      "path": "apps/api/v35_api/app.py",
+      "before_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "after_sha256": "e9888d03208124b978fb19a7147682ed65cb79f9d465d58a48191c3330f687f2",
+      "before_bytes": 324648,
+      "after_bytes": 325468,
+      "input_snapshot_path": "handoff/manager-four-functional-gaps-20261009/package/code/r2_chat_patch_target/apps/api/v35_api/app.py",
+      "input_source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/apps/api/v35_api/app.py"
+    },
+    {
+      "path": "v4/manager_research/service.py",
+      "before_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "after_sha256": "fead5098a4bf05bd88c41a61296e06029e3153dd6d5add9ebb101a3339f56431",
+      "before_bytes": 94921,
+      "after_bytes": 95180,
+      "input_snapshot_path": "handoff/manager-four-functional-gaps-20261009/package/code/r2_chat_patch_target/v4/manager_research/service.py",
+      "input_source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/v4/manager_research/service.py"
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "before_sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+      "after_sha256": "eb3e8481397dde084daad39c86b8d4b0cb8b152a1fb1e2cc32278c7430e10e6f",
+      "before_bytes": 76034,
+      "after_bytes": 76096,
+      "input_snapshot_path": "handoff/manager-four-functional-gaps-20261009/package/code/r2_chat_patch_target/v4/manager_research/workspace.py",
+      "input_source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/v4/manager_research/workspace.py"
+    },
+    {
+      "path": "v4/manager_research/connect_selection.py",
+      "before_sha256": "eaa01a13d8065b11cc8397a12edaad8b892f183158aa1f9475d29645dee09d83",
+      "after_sha256": "45f33a4531e1f72120155a4cfba92cb7866d1d9c8ee9f5e00c174bb081104553",
+      "before_bytes": 17496,
+      "after_bytes": 19016,
+      "input_snapshot_path": "handoff/manager-four-functional-gaps-20261009/package/code/r2_chat_patch_target/v4/manager_research/connect_selection.py",
+      "input_source_absolute_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r2/app/v4/manager_research/connect_selection.py"
+    }
+  ],
+  "runtime_scope": "4 EXACT R2 FILES ONLY; NO COMPLETE MAC RELEASE RECONSTRUCTION"
+}

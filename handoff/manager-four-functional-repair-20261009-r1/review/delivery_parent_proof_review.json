@@ -1,0 +1,50 @@
+{
+  "status": "PASS",
+  "checked_at": "2026-10-09T16:18:27.271536+00:00",
+  "parent_execution_reviewed_not_rerun": true,
+  "parent_command_receipt": "patch_validation/final_runner_command.json",
+  "parent_source_rollback_current_files_independently_rehashed": 1089,
+  "parent_source_matches_before_tree": true,
+  "parent_rollback_map_sha256": "3f2354f3a918a6d8c729de47767beca37c89664dd978aecc08842649fad94dad",
+  "final_runner_sha256": "7b74d1bc790becf40e3b8b1b3ff8a084187864f8c40a2ec891e1a050c6ac9d80",
+  "original_source_inventory_files": 1089,
+  "execution_source_inventory_files": 1093,
+  "execution_files_independently_rehashed": 1093,
+  "loaded_module_records_independently_rehashed": 218,
+  "junit_independently_parsed": {
+    "tests": 57,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "runner_exit_code": 0,
+  "source_differences": {
+    "added": [],
+    "changed": [],
+    "missing": []
+  },
+  "execution_differences": {
+    "added": [],
+    "changed": [],
+    "missing": []
+  },
+  "guard_events": [],
+  "module_identity_errors": [],
+  "finite_contract": {
+    "write_audit_scope": "ABSOLUTE_PATHS_ONLY",
+    "descriptor_write_prevention": false,
+    "general_security_sandbox": false,
+    "source_preservation_basis": "Before/after SHA256 and byte counts of the declared copied source inventory; excluded dependency/state trees are listed in source_identity.json. This is content verification, not a general filesystem sandbox."
+  },
+  "proof_sha256": {
+    "before_tree_sha256.json": "9b8e8c413e17f30a59a7fbfb5e1e55ac1e5d47251ef28f0ddad3d0f39b3f82ca",
+    "forward_receipt.json": "f89aacaee882f731fc0526aeb3f5f4e04c0cec9a585b0ba859ae37216a992563",
+    "rollback_receipt.json": "89136307467e643b8a5f1d5ed8b14f5e00bbffc49c6adf08a6d8136467a08e22",
+    "regression-02/environment.json": "3b57a09d15d87016ed1fdba49243de6a6ba1a5a7bab719eebefc7a4184505369",
+    "regression-02/pytest.log": "0cbc90dcff05db926090f3ede7f2efc2026981440e7222b2fec0737dfe90bf0f",
+    "regression-03/environment.json": "a5d851c45abf872c0c8ff73c0f99edfd3fbe1e80119218e1c42f18e082403b90",
+    "regression-03/pytest.log": "c2ede0ee3b2db265e1bcf1c17f88184d4542ae67f3d832f7e7828bf5f716ac5f",
+    "regression-03/junit.xml": "50b8debb739fb7d62fbcbfa685a6fa5e7dbb71980946d9a9f2efbe7cee20b521",
+    "regression-03/source_identity.json": "39b93d5ba938acf99257fdbc14b30261b8f694fa7046e7570c07113c22deaa4e"
+  }
+}

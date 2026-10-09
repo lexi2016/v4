@@ -1,0 +1,40 @@
+{
+  "command": [
+    "git",
+    "diff",
+    "--check"
+  ],
+  "cwd": "/workspace/scratch/21926b793c00/four_gaps/app",
+  "exit_code": 0,
+  "output": ""
+}
+{
+  "command": [
+    "git",
+    "rev-parse",
+    "HEAD"
+  ],
+  "cwd": "/workspace/scratch/21926b793c00/four_gaps/app",
+  "exit_code": 0,
+  "output": "cbdf87c7e4c40c65cc71a93b00deaf1208a4f52b\n"
+}
+{
+  "command": [
+    "git",
+    "diff",
+    "--numstat"
+  ],
+  "cwd": "/workspace/scratch/21926b793c00/four_gaps/app",
+  "exit_code": 0,
+  "output": "12\t0\tapps/api/v35_api/app.py\n39\t11\tv4/manager_research/connect_selection.py\n5\t0\tv4/manager_research/service.py\n1\t1\tv4/manager_research/workspace.py\n"
+}
+{
+  "command": [
+    "git",
+    "status",
+    "--short"
+  ],
+  "cwd": "/workspace/scratch/21926b793c00/four_gaps/app",
+  "exit_code": 0,
+  "output": " M apps/api/v35_api/app.py\n M v4/manager_research/connect_selection.py\n M v4/manager_research/service.py\n M v4/manager_research/workspace.py\n?? tests/test_manager_four_announcement_integration.py\n?? tests/test_manager_four_app_wiring.py\n?? tests/test_manager_four_hk_readers.py\n?? tests/test_manager_four_plan_owner_readback.py\n"
+}

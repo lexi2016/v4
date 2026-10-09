@@ -1,0 +1,41 @@
+{
+  "schema": "offline_four_gaps.announcement_source_identity.v1",
+  "repository": "lexi2016/v4",
+  "input_package_commit": "74478a0e62be215c8527ccc9a14b89b51042d014",
+  "fixed_r2_candidate_commit": "a7f5d09fb19de10564925757207977aadc080cc1",
+  "runtime_scope": "LINUX_OFFLINE_SYNTHETIC_CREATE_APP_TEST_ASSEMBLY_NOT_MAC_RELEASE",
+  "r2_announcement_production_files": [
+    {
+      "path": "v4/manager_research/workspace_announcements.py",
+      "before_sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+      "after_sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+      "changed": false
+    },
+    {
+      "path": "v4/manager_research/announcement_analysis.py",
+      "before_sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+      "after_sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+      "changed": false
+    }
+  ],
+  "test_file": {
+    "path": "tests/test_manager_four_announcement_integration.py",
+    "sha256": "d44e07587ea0ee39d88b47eb08f1cca3fba173a952f6fe40d034ee13ce2ba0ce"
+  },
+  "support_dependencies": [
+    {
+      "path": "ops/run_manager_daily_announcement.py",
+      "sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+      "role": "EXISTING_PRIOR_DELIVERED_OFFLINE_TEST_SUPPORT_NOT_R2_MAC_OPS_IDENTITY"
+    },
+    {
+      "path": "ops/manager_announcement_body_batch.py",
+      "sha256": "7e37ed7e904d80c135a51bdff1aaa95aec02012eecfcfdc8a1770fa31297cbdb",
+      "role": "EXISTING_PRIOR_DELIVERED_OFFLINE_TEST_SUPPORT_NOT_R2_MAC_OPS_IDENTITY"
+    }
+  ],
+  "test_config": {
+    "path": "pyproject.toml",
+    "sha256": "4f792160e360aa7947e20e2f8456a5136558dff43356ce89e529cbdef561492e"
+  }
+}

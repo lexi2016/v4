@@ -1,0 +1,228 @@
+{
+  "schema_version": "v4.four_function.independent_delivery_tool_probes.v1",
+  "completed_at": "2026-10-09T16:17:15.624404+00:00",
+  "scope": "Synthetic package and minimal source copies only; zero business test calls",
+  "case_root": "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo",
+  "pristine_package_inventory_sha256": "a262e5391cc349100ba99352767d0c9f52a0536760bb4f4f1d17e2f727a1c826",
+  "tool_sha256": {
+    "verify_delivery.py": "acd4d43b21362aa2e9cb166700279594275857ccc292c53addc21a2e950a0381",
+    "run_regression.py": "7b74d1bc790becf40e3b8b1b3ff8a084187864f8c40a2ec891e1a050c6ac9d80"
+  },
+  "case_count": 11,
+  "cases": [
+    {
+      "case": "valid_inventory_and_20_source_targets",
+      "command": [
+        "/workspace/scratch/21926b793c00/four_gaps/test_env/bin/python",
+        "-B",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/pristine_package/tools/verify_delivery.py",
+        "--source-root",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/minimal_after_source",
+        "--side",
+        "after"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"schema_version\": \"v4.manager_four_function_repair.verification.v1\",\n  \"status\": \"PASS\",\n  \"package_root\": \"/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/pristine_package\",\n  \"input_commit\": \"74478a0e62be215c8527ccc9a14b89b51042d014\",\n  \"target_date\": \"20261009\",\n  \"publication_date\": \"20261008\",\n  \"source_manifest\": {\n    \"sha256\": \"43d432f5d8ff4158b379069f712eed4850f65c0d023aaa128742f44003ec7ea0\",\n    \"bytes\": 3131\n  },\n  \"checksums_inventory\": {\n    \"sha256\": \"a262e5391cc349100ba99352767d0c9f52a0536760bb4f4f1d17e2f727a1c826\",\n    \"bytes\": 10597\n  },\n  \"inventory_file_count\": 62,\n  \"bundled_payload_count\": 8,\n  \"source_root\": \"/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/minimal_after_source\",\n  \"side\": \"after\",\n  \"runtime_checked\": [\n    {\n      \"path\": \"apps/api/v35_api/app.py\",\n      \"sha256\": \"e9888d03208124b978fb19a7147682ed65cb79f9d465d58a48191c3330f687f2\",\n      \"bytes\": 325468\n    },\n    {\n      \"path\": \"v4/manager_research/service.py\",\n      \"sha256\": \"fead5098a4bf05bd88c41a61296e06029e3153dd6d5add9ebb101a3339f56431\",\n      \"bytes\": 95180\n    },\n    {\n      \"path\": \"v4/manager_research/workspace.py\",\n      \"sha256\": \"eb3e8481397dde084daad39c86b8d4b0cb8b152a1fb1e2cc32278c7430e10e6f\",\n      \"bytes\": 76096\n    },\n    {\n      \"path\": \"v4/manager_research/connect_selection.py\",\n      \"sha256\": \"45f33a4531e1f72120155a4cfba92cb7866d1d9c8ee9f5e00c174bb081104553\",\n      \"bytes\": 19016\n    }\n  ],\n  \"unchanged_r2_checked\": [\n    {\n      \"path\": \"apps/api/v35_api/manager_research_router.py\",\n      \"sha256\": \"5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a\",\n      \"bytes\": 35556\n    },\n    {\n      \"path\": \"v4/manager_research/workspace_plan.py\",\n      \"sha256\": \"881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f\",\n      \"bytes\": 107076\n    },\n    {\n      \"path\": \"v4/manager_research/workspace_plan_autorun.py\",\n      \"sha256\": \"d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34\",\n      \"bytes\": 15547\n    },\n    {\n      \"path\": \"v4/manager_research/workspace_daily_channels.py\",\n      \"sha256\": \"de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f\",\n      \"bytes\": 12982\n    },\n    {\n      \"path\": \"v4/manager_research/workspace_announcements.py\",\n      \"sha256\": \"82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b\",\n      \"bytes\": 167803\n    },\n    {\n      \"path\": \"v4/manager_research/announcement_analysis.py\",\n      \"sha256\": \"b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f\",\n      \"bytes\": 68733\n    },\n    {\n      \"path\": \"v4/manager_research/plan_owner_dispatch.py\",\n      \"sha256\": \"e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee\",\n      \"bytes\": 53361\n    },\n    {\n      \"path\": \"v4/manager_research/connect_capture_adapter.py\",\n      \"sha256\": \"6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b\",\n      \"bytes\": 19841\n    },\n    {\n      \"path\": \"v4/manager_research/workspace_history.py\",\n      \"sha256\": \"75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af\",\n      \"bytes\": 21208\n    },\n    {\n      \"path\": \"upstreams/v3_shared_data/shared_data/hk_security_master.py\",\n      \"sha256\": \"aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b\",\n      \"bytes\": 18863\n    },\n    {\n      \"path\": \"upstreams/v3_shared_data/shared_data/hk_d1_evidence.py\",\n      \"sha256\": \"08c499732300a0e6026cda7ec7c2257807c542cd989f90a9427285dc34b73850\",\n      \"bytes\": 4335\n    },\n    {\n      \"path\": \"upstreams/v3_shared_data/shared_data/store.py\",\n      \"sha256\": \"87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16\",\n      \"bytes\": 27895\n    },\n    {\n      \"path\": \"tests/test_manager_plan_readback_issue24.py\",\n      \"sha256\": \"1d7866fb800b3d9bff235c09159f169f3debe777a710a7d688f59217e45b5989\",\n      \"bytes\": 13936\n    },\n    {\n      \"path\": \"tests/test_issue8_selection_gaps.py\",\n      \"sha256\": \"c9f242bc64b0b31a16cef0a6f732df45fabfa80654d4aace4cc405b8ec98c9a8\",\n      \"bytes\": 16293\n    },\n    {\n      \"path\": \"tests/test_manager_announcement_supervisor.py\",\n      \"sha256\": \"a48b4d8de4721b02d82d4ef1f1e6e7f5a74e58d3671055bee21e9efc72ec5d3c\",\n      \"bytes\": 16108\n    },\n    {\n      \"path\": \"tests/test_manager_announcement_date_catalog.py\",\n      \"sha256\": \"41c21fc88221a23608592e23cf925bfb1060c955f00bdb8391abf847071c49a7\",\n      \"bytes\": 18959\n    }\n  ],\n  \"source_writes\": 0,\n  \"business_io\": false,\n  \"deployment_claimed\": false,\n  \"identity_scope\": \"Four runtime files and sixteen preserved R2 targets; not a complete Mac release identity.\"\n}\n",
+      "source_unchanged": true,
+      "package_unchanged": true
+    },
+    {
+      "case": "package_hash_drift",
+      "command": [
+        "/workspace/scratch/21926b793c00/four_gaps/test_env/bin/python",
+        "-B",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/package_hash_drift/tools/verify_delivery.py",
+        "--source-root",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/minimal_after_source",
+        "--side",
+        "after"
+      ],
+      "exit_code": 1,
+      "stdout": "{\"status\": \"FAIL\", \"reason\": \"PACKAGE_CHECKSUM_MISMATCH:after/v4/manager_research/connect_selection.py:expected={\\\"bytes\\\": 19016, \\\"sha256\\\": \\\"45f33a4531e1f72120155a4cfba92cb7866d1d9c8ee9f5e00c174bb081104553\\\"}:actual={\\\"bytes\\\": 19017, \\\"sha256\\\": \\\"853a06c5c8e533feabe4ab421e2925c2b9127d341e47ab504704418c5bfbe530\\\"}\", \"source_writes\": 0}\n",
+      "source_unchanged": true,
+      "package_unchanged": true
+    },
+    {
+      "case": "source_runtime_hash_drift",
+      "command": [
+        "/workspace/scratch/21926b793c00/four_gaps/test_env/bin/python",
+        "-B",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/pristine_package/tools/verify_delivery.py",
+        "--source-root",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/source_runtime_hash_drift",
+        "--side",
+        "after"
+      ],
+      "exit_code": 1,
+      "stdout": "{\"status\": \"FAIL\", \"reason\": \"SOURCE_AFTER_MISMATCH:v4/manager_research/connect_selection.py:expected={\\\"bytes\\\": 19016, \\\"sha256\\\": \\\"45f33a4531e1f72120155a4cfba92cb7866d1d9c8ee9f5e00c174bb081104553\\\"}:actual={\\\"bytes\\\": 19017, \\\"sha256\\\": \\\"853a06c5c8e533feabe4ab421e2925c2b9127d341e47ab504704418c5bfbe530\\\"}\", \"source_writes\": 0}\n",
+      "source_unchanged": true,
+      "package_unchanged": true
+    },
+    {
+      "case": "runner_refuses_runtime_hash_drift_before_tests",
+      "command": [
+        "/workspace/scratch/21926b793c00/four_gaps/test_env/bin/python",
+        "-B",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/pristine_package/tools/run_regression.py",
+        "--source-root",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/source_runtime_hash_drift",
+        "--output-dir",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/runner_refuses_runtime_hash_drift_before_tests_output"
+      ],
+      "exit_code": 1,
+      "stdout": "{\"status\": \"FAIL\", \"runner_exit_code\": 1, \"pytest_exit_code\": null, \"junit_totals\": null, \"output_dir\": \"/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/runner_refuses_runtime_hash_drift_before_tests_output\", \"reason\": \"SOURCE_AFTER_MISMATCH:v4/manager_research/connect_selection.py:expected={\\\"bytes\\\": 19016, \\\"sha256\\\": \\\"45f33a4531e1f72120155a4cfba92cb7866d1d9c8ee9f5e00c174bb081104553\\\"}:actual={\\\"bytes\\\": 19017, \\\"sha256\\\": \\\"853a06c5c8e533feabe4ab421e2925c2b9127d341e47ab504704418c5bfbe530\\\"}\"}\n",
+      "source_unchanged": true,
+      "package_unchanged": true,
+      "runner_environment": {
+        "status": "FAIL",
+        "reason": "SOURCE_AFTER_MISMATCH:v4/manager_research/connect_selection.py:expected={\"bytes\": 19016, \"sha256\": \"45f33a4531e1f72120155a4cfba92cb7866d1d9c8ee9f5e00c174bb081104553\"}:actual={\"bytes\": 19017, \"sha256\": \"853a06c5c8e533feabe4ab421e2925c2b9127d341e47ab504704418c5bfbe530\"}",
+        "pytest_exit_code": null,
+        "worker_exit_code": null,
+        "runner_exit_code": 1,
+        "passed_tests": null,
+        "original_source_differences": null,
+        "execution_source_differences": null
+      }
+    },
+    {
+      "case": "unchanged_r2_hash_drift",
+      "command": [
+        "/workspace/scratch/21926b793c00/four_gaps/test_env/bin/python",
+        "-B",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/pristine_package/tools/verify_delivery.py",
+        "--source-root",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/source_unchanged_hash_drift",
+        "--side",
+        "after"
+      ],
+      "exit_code": 1,
+      "stdout": "{\"status\": \"FAIL\", \"reason\": \"UNCHANGED_R2_SOURCE_MISMATCH:apps/api/v35_api/manager_research_router.py:expected={\\\"bytes\\\": 35556, \\\"sha256\\\": \\\"5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a\\\"}:actual={\\\"bytes\\\": 35557, \\\"sha256\\\": \\\"4c786609804d943f096994c55ee533a030c351db78d6c809bf600cf9b0aff0b5\\\"}\", \"source_writes\": 0}\n",
+      "source_unchanged": true,
+      "package_unchanged": true
+    },
+    {
+      "case": "source_target_symlink_with_identical_bytes",
+      "command": [
+        "/workspace/scratch/21926b793c00/four_gaps/test_env/bin/python",
+        "-B",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/pristine_package/tools/verify_delivery.py",
+        "--source-root",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/source_target_symlink",
+        "--side",
+        "after"
+      ],
+      "exit_code": 1,
+      "stdout": "{\"status\": \"FAIL\", \"reason\": \"SYMLINK_REJECTED:/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/source_target_symlink/v4/manager_research/connect_selection.py\", \"source_writes\": 0}\n",
+      "source_unchanged": true,
+      "package_unchanged": true
+    },
+    {
+      "case": "inventory_path_traversal",
+      "command": [
+        "/workspace/scratch/21926b793c00/four_gaps/test_env/bin/python",
+        "-B",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/inventory_unsafe_path/tools/verify_delivery.py",
+        "--source-root",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/minimal_after_source",
+        "--side",
+        "after"
+      ],
+      "exit_code": 1,
+      "stdout": "{\"status\": \"FAIL\", \"reason\": \"UNSAFE_RELATIVE_PATH:../outside\", \"source_writes\": 0}\n",
+      "source_unchanged": true,
+      "package_unchanged": true
+    },
+    {
+      "case": "unlisted_package_file",
+      "command": [
+        "/workspace/scratch/21926b793c00/four_gaps/test_env/bin/python",
+        "-B",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/inventory_unlisted_file/tools/verify_delivery.py",
+        "--source-root",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/minimal_after_source",
+        "--side",
+        "after"
+      ],
+      "exit_code": 1,
+      "stdout": "{\"status\": \"FAIL\", \"reason\": \"PACKAGE_INVENTORY_SET_MISMATCH:missing=[]:unlisted=[\\\"unlisted_sentinel.txt\\\"]\", \"source_writes\": 0}\n",
+      "source_unchanged": true,
+      "package_unchanged": true
+    },
+    {
+      "case": "runner_output_inside_original_source",
+      "command": [
+        "/workspace/scratch/21926b793c00/four_gaps/test_env/bin/python",
+        "-B",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/pristine_package/tools/run_regression.py",
+        "--source-root",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/minimal_after_source",
+        "--output-dir",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/minimal_after_source/forbidden-output"
+      ],
+      "exit_code": 1,
+      "stdout": "{\"status\": \"FAIL\", \"reason\": \"OUTPUT_MUST_BE_OUTSIDE_SOURCE_ROOT_AND_NOT_ITS_ANCESTOR\"}\n",
+      "source_unchanged": true,
+      "package_unchanged": true
+    },
+    {
+      "case": "runner_rejects_non_target_source_symlink",
+      "command": [
+        "/workspace/scratch/21926b793c00/four_gaps/test_env/bin/python",
+        "-B",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/pristine_package/tools/run_regression.py",
+        "--source-root",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/unexpected_source_symlink",
+        "--output-dir",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/runner_rejects_non_target_source_symlink_output"
+      ],
+      "exit_code": 1,
+      "stdout": "{\"status\": \"FAIL\", \"runner_exit_code\": 1, \"pytest_exit_code\": null, \"junit_totals\": null, \"output_dir\": \"/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/runner_rejects_non_target_source_symlink_output\", \"reason\": \"UNEXPECTED_SOURCE_SYMLINK:unexpected-link\"}\n",
+      "source_unchanged": true,
+      "package_unchanged": true,
+      "runner_environment": {
+        "status": "FAIL",
+        "reason": "UNEXPECTED_SOURCE_SYMLINK:unexpected-link",
+        "pytest_exit_code": null,
+        "worker_exit_code": null,
+        "runner_exit_code": 1,
+        "passed_tests": null,
+        "original_source_differences": null,
+        "execution_source_differences": null
+      }
+    },
+    {
+      "case": "runner_missing_dependency_has_no_ambient_source_fallback",
+      "command": [
+        "/workspace/scratch/21926b793c00/four_gaps/test_env/bin/python",
+        "-B",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/pristine_package/tools/run_regression.py",
+        "--source-root",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/minimal_after_source",
+        "--output-dir",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/runner_missing_dependency_has_no_ambient_source_fallback_output"
+      ],
+      "exit_code": 1,
+      "stdout": "{\"status\": \"FAIL\", \"runner_exit_code\": 1, \"pytest_exit_code\": null, \"junit_totals\": null, \"output_dir\": \"/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_tool_cases_cxrcnlqo/runner_missing_dependency_has_no_ambient_source_fallback_output\", \"reason\": \"No module named 'ops'\"}\n",
+      "source_unchanged": true,
+      "package_unchanged": true,
+      "runner_environment": {
+        "status": "FAIL",
+        "reason": "No module named 'ops'",
+        "pytest_exit_code": null,
+        "worker_exit_code": 1,
+        "runner_exit_code": 1,
+        "passed_tests": null,
+        "original_source_differences": {
+          "added": [],
+          "changed": [],
+          "missing": []
+        },
+        "execution_source_differences": {
+          "added": [],
+          "changed": [],
+          "missing": []
+        }
+      }
+    }
+  ]
+}

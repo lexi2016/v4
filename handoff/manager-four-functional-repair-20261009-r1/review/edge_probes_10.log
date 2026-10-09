@@ -1,0 +1,49 @@
+{
+  "kind": "INDEPENDENT_ADDITIONAL_SYNTHETIC_EDGE_PROBES",
+  "started_at": "2026-10-09T15:57:31.612085+00:00",
+  "command": [
+    "/workspace/scratch/21926b793c00/four_gaps/test_env/bin/python",
+    "-m",
+    "pytest",
+    "-vv",
+    "-ra",
+    "-p",
+    "no:cacheprovider",
+    "--basetemp",
+    "/workspace/scratch/21926b793c00/four_gaps/independent_review/edge_probes_eo0bd4b7",
+    "/workspace/scratch/21926b793c00/four_gaps/independent_review/test_independent_edges.py"
+  ],
+  "cwd": "/workspace/scratch/21926b793c00/four_gaps/app",
+  "basetemp": "/workspace/scratch/21926b793c00/four_gaps/independent_review/edge_probes_eo0bd4b7",
+  "test_sha256": "3f88310008832a83202af42482ac009d14bc8f47f86f0404472f974077e1b277",
+  "source_sha256_before": {
+    "apps/api/v35_api/app.py": "e9888d03208124b978fb19a7147682ed65cb79f9d465d58a48191c3330f687f2",
+    "v4/manager_research/service.py": "fead5098a4bf05bd88c41a61296e06029e3153dd6d5add9ebb101a3339f56431",
+    "v4/manager_research/workspace.py": "eb3e8481397dde084daad39c86b8d4b0cb8b152a1fb1e2cc32278c7430e10e6f",
+    "v4/manager_research/connect_selection.py": "45f33a4531e1f72120155a4cfba92cb7866d1d9c8ee9f5e00c174bb081104553"
+  }
+}
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.6.0 -- /workspace/scratch/21926b793c00/four_gaps/test_env/bin/python
+rootdir: /workspace/scratch/21926b793c00/four_gaps
+plugins: anyio-4.15.1
+collecting ... collected 10 items
+
+../independent_review/test_independent_edges.py::test_app_constructed_unbound_stays_unbound_after_late_environment_binding PASSED [ 10%]
+../independent_review/test_independent_edges.py::test_app_explicit_invalid_configuration_never_borrows_a_valid_environment[false] PASSED [ 20%]
+../independent_review/test_independent_edges.py::test_app_explicit_invalid_configuration_never_borrows_a_valid_environment[string] PASSED [ 30%]
+../independent_review/test_independent_edges.py::test_app_explicit_invalid_configuration_never_borrows_a_valid_environment[owner_root_type] PASSED [ 40%]
+../independent_review/test_independent_edges.py::test_app_explicit_invalid_configuration_never_borrows_a_valid_environment[owner_sha_type] PASSED [ 50%]
+../independent_review/test_independent_edges.py::test_app_explicit_invalid_configuration_never_borrows_a_valid_environment[nul_root] PASSED [ 60%]
+../independent_review/test_independent_edges.py::test_app_explicit_invalid_configuration_never_borrows_a_valid_environment[invalid_d1_roots] PASSED [ 70%]
+../independent_review/test_independent_edges.py::test_real_app_nonempty_plan_keeps_identity_across_midnight_and_get_remains_read_only PASSED [ 80%]
+../independent_review/test_independent_edges.py::test_real_app_corrupted_authority_cannot_reuse_an_earlier_nonempty_current_plan PASSED [ 90%]
+../independent_review/test_independent_edges.py::test_registered_announcement_changes_saved_plan_and_original_post_restores_current PASSED [100%]
+
+=============================== warnings summary ===============================
+../../../6168fe203da9/r3-venv314/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/6168fe203da9/r3-venv314/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 10 passed, 1 warning in 2.68s =========================

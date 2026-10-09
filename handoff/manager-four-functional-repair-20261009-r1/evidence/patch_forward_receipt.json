@@ -1,0 +1,43 @@
+{
+  "source": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/source",
+  "baseline_files": 1089,
+  "changed_files": [
+    "apps/api/v35_api/app.py",
+    "v4/manager_research/connect_selection.py",
+    "v4/manager_research/service.py",
+    "v4/manager_research/workspace.py"
+  ],
+  "commands": [
+    {
+      "command": [
+        "git",
+        "-C",
+        "/workspace/scratch/21926b793c00/four_gaps/patch_validation/source",
+        "apply",
+        "--check",
+        "/workspace/scratch/21926b793c00/four_gaps/delivery/manager-four-functional-repair-20261009-r1/runtime.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "-C",
+        "/workspace/scratch/21926b793c00/four_gaps/patch_validation/source",
+        "apply",
+        "/workspace/scratch/21926b793c00/four_gaps/delivery/manager-four-functional-repair-20261009-r1/runtime.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "after_runtime_sha256": {
+    "apps/api/v35_api/app.py": "e9888d03208124b978fb19a7147682ed65cb79f9d465d58a48191c3330f687f2",
+    "v4/manager_research/connect_selection.py": "45f33a4531e1f72120155a4cfba92cb7866d1d9c8ee9f5e00c174bb081104553",
+    "v4/manager_research/service.py": "fead5098a4bf05bd88c41a61296e06029e3153dd6d5add9ebb101a3339f56431",
+    "v4/manager_research/workspace.py": "eb3e8481397dde084daad39c86b8d4b0cb8b152a1fb1e2cc32278c7430e10e6f"
+  }
+}

@@ -1,0 +1,438 @@
+..............................FFFFF..FFFF...FF.........F.F.............. [ 84%]
+..F.....F.F..                                                            [100%]
+=================================== FAILURES ===================================
+_ test_amount_and_close_to_low_rebound_are_observations_not_gates[HK.02589-15855358-69.95-69.1] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f04c5b40ec0>
+code = 'HK.02589', amount = 15855358, close = 69.95, low = 69.1
+
+    @pytest.mark.parametrize(
+        ('code', 'amount', 'close', 'low'),
+        [
+            ('HK.02589', 15_855_358, 69.95, 69.10),  # below HKD 100m, 1.23% rebound
+            ('HK.09998', 250_000_000, 69.95, 69.95),  # above HKD 200m, exactly 0% rebound
+        ],
+    )
+    def test_amount_and_close_to_low_rebound_are_observations_not_gates(
+        monkeypatch: pytest.MonkeyPatch, code: str, amount: float, close: float, low: float,
+    ) -> None:
+        rows = [*history_rows(code), current_row(code, amount=amount, close=close, low=low)]
+        screen = run_screen(monkeypatch, rows)
+    
+>       assert screen['status'] == 'READY'
+E       AssertionError: assert 'CANNOT_CONFIRM' == 'READY'
+E         
+E         - READY
+E         + CANNOT_CONFIRM
+
+tests/test_manager_rebound_two_gate_screen.py:102: AssertionError
+_ test_amount_and_close_to_low_rebound_are_observations_not_gates[HK.09998-250000000-69.95-69.95] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f04c5b40b40>
+code = 'HK.09998', amount = 250000000, close = 69.95, low = 69.95
+
+    @pytest.mark.parametrize(
+        ('code', 'amount', 'close', 'low'),
+        [
+            ('HK.02589', 15_855_358, 69.95, 69.10),  # below HKD 100m, 1.23% rebound
+            ('HK.09998', 250_000_000, 69.95, 69.95),  # above HKD 200m, exactly 0% rebound
+        ],
+    )
+    def test_amount_and_close_to_low_rebound_are_observations_not_gates(
+        monkeypatch: pytest.MonkeyPatch, code: str, amount: float, close: float, low: float,
+    ) -> None:
+        rows = [*history_rows(code), current_row(code, amount=amount, close=close, low=low)]
+        screen = run_screen(monkeypatch, rows)
+    
+>       assert screen['status'] == 'READY'
+E       AssertionError: assert 'CANNOT_CONFIRM' == 'READY'
+E         
+E         - READY
+E         + CANNOT_CONFIRM
+
+tests/test_manager_rebound_two_gate_screen.py:102: AssertionError
+_ test_near_requires_exactly_one_known_remaining_gate_and_unknown_stays_pending _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f0484533a80>
+
+    def test_near_requires_exactly_one_known_remaining_gate_and_unknown_stays_pending(
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        codes = ['HK.01001', 'HK.01002', 'HK.01003', 'HK.01004']
+        rows = []
+        # Oversold passes; known 5-day ratio is 1.0, so this is near on volume only.
+        rows.extend(history_rows(codes[0]))
+        rows.append(current_row(codes[0], close=79.0, low=78.0, volume=114_216))
+        # Volume passes; close is above 80% of the prior-60 high, so this is near on oversold only.
+        rows.extend(history_rows(codes[1], high=100.0))
+        rows.append(current_row(codes[1], close=81.0, low=80.5, high=82.0,
+                                prev_close=82.5, volume=227_090))
+        # Both known gates fail and should not appear in strict or near candidates.
+        rows.extend(history_rows(codes[2], high=100.0))
+        rows.append(current_row(codes[2], close=81.0, low=80.5, high=82.0,
+                                prev_close=82.5, volume=114_216))
+        # A missing current volume is unknown, not a near pass.
+        rows.extend(history_rows(codes[3]))
+        rows.append(current_row(codes[3], volume=None))
+    
+        screen = run_screen(monkeypatch, rows)
+    
+>       assert screen['coverage']['input_candidate_count'] == 4
+E       assert None == 4
+
+tests/test_manager_rebound_two_gate_screen.py:139: AssertionError
+_________ test_all_near_candidates_are_kept_without_a_top10_fill_limit _________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f0484530f30>
+
+    def test_all_near_candidates_are_kept_without_a_top10_fill_limit(
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        codes = [f'HK.{number:05d}' for number in range(11_100, 11_112)]
+        rows = []
+        for code in codes:
+            rows.extend(history_rows(code))
+            rows.append(current_row(code, close=69.95, low=69.95, volume=114_216))
+    
+        screen = run_screen(monkeypatch, rows)
+    
+>       assert screen['coverage']['input_candidate_count'] == 12
+E       assert None == 12
+
+tests/test_manager_rebound_two_gate_screen.py:166: AssertionError
+____________ test_incomplete_prior_history_is_pending_not_qualified ____________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f04eb453930>
+
+    def test_incomplete_prior_history_is_pending_not_qualified(monkeypatch: pytest.MonkeyPatch) -> None:
+        code = 'HK.01005'
+        screen = run_screen(monkeypatch, [*history_rows(code, count=59), current_row(code)])
+    
+>       assert screen['status'] == 'READY_WITH_GAPS'
+E       AssertionError: assert 'CANNOT_CONFIRM' == 'READY_WITH_GAPS'
+E         
+E         - READY_WITH_GAPS
+E         + CANNOT_CONFIRM
+
+tests/test_manager_rebound_two_gate_screen.py:178: AssertionError
+___________ test_panel_source_date_failure_cannot_produce_candidates ___________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f04c5bb4de0>
+
+    def test_panel_source_date_failure_cannot_produce_candidates(monkeypatch: pytest.MonkeyPatch) -> None:
+        code = 'HK.01006'
+        monkeypatch.setattr(workspace_plan, '_screen_security_master_witness',
+                            lambda *_: pytest.fail('invalid panel must stop before reading the master'))
+        screen = run_screen(monkeypatch, [*history_rows(code), current_row(code)], panel_valid=False)
+        assert screen['status'] == 'CANNOT_CONFIRM'
+        assert screen['main_screen_ready'] is False
+        assert screen['cards'] == []
+>       assert 'SCREEN_PANEL_TARGET_MISMATCH' in screen['gaps']
+E       AssertionError: assert 'SCREEN_PANEL_TARGET_MISMATCH' in ['SCREEN_SESSION_CONTEXT_UNVERIFIED:SCREEN_RESEARCH_CUTOFF_UNVERIFIED']
+
+tests/test_manager_rebound_two_gate_screen.py:210: AssertionError
+_____ test_half_day_is_excluded_from_previous_five_complete_sessions[None] _____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f0484533230>
+missing_full_date = None
+
+    @pytest.mark.parametrize('missing_full_date', [None, '20261223'])
+    def test_half_day_is_excluded_from_previous_five_complete_sessions(
+        monkeypatch: pytest.MonkeyPatch, missing_full_date: str | None,
+    ) -> None:
+        code = 'HK.02222'
+        target_day = '20261229'
+        full_five = ['20261217', '20261218', '20261221', '20261222', '20261223']
+        earlier_full = prior_weekdays(54, before_day=full_five[0])
+        prior60 = [*earlier_full, *full_five, '20261224']
+        assert len(prior60) == 60
+        rows = [{
+            'trade_date_compact': session, 'code_norm': code, 'name': f'{code} synthetic',
+            'open': 99.0, 'high': 100.0, 'low': 98.0, 'close': 99.0,
+            'amount': 10_000_000, 'trade': 1 if session == '20261224' else 1_000,
+            'pre_close': 99.0,
+        } for session in prior60 if session != missing_full_date]
+        rows.append(current_row(code, close=81.0, low=80.5, high=82.0,
+                                volume=1_400, prev_close=82.5, session=target_day))
+        session_spec = {
+            'prior60': prior60,
+            'previous5': full_five,
+            'panel_session': prior60[0],
+            'calendar_sha256': 'f' * 64,
+        }
+    
+        screen = run_screen(monkeypatch, rows, day=target_day, session_spec=session_spec)
+    
+>       assert screen['coverage']['input_candidate_count'] == 1
+E       assert None == 1
+
+tests/test_manager_rebound_two_gate_screen.py:240: AssertionError
+___ test_half_day_is_excluded_from_previous_five_complete_sessions[20261223] ___
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f04c5bb51d0>
+missing_full_date = '20261223'
+
+    @pytest.mark.parametrize('missing_full_date', [None, '20261223'])
+    def test_half_day_is_excluded_from_previous_five_complete_sessions(
+        monkeypatch: pytest.MonkeyPatch, missing_full_date: str | None,
+    ) -> None:
+        code = 'HK.02222'
+        target_day = '20261229'
+        full_five = ['20261217', '20261218', '20261221', '20261222', '20261223']
+        earlier_full = prior_weekdays(54, before_day=full_five[0])
+        prior60 = [*earlier_full, *full_five, '20261224']
+        assert len(prior60) == 60
+        rows = [{
+            'trade_date_compact': session, 'code_norm': code, 'name': f'{code} synthetic',
+            'open': 99.0, 'high': 100.0, 'low': 98.0, 'close': 99.0,
+            'amount': 10_000_000, 'trade': 1 if session == '20261224' else 1_000,
+            'pre_close': 99.0,
+        } for session in prior60 if session != missing_full_date]
+        rows.append(current_row(code, close=81.0, low=80.5, high=82.0,
+                                volume=1_400, prev_close=82.5, session=target_day))
+        session_spec = {
+            'prior60': prior60,
+            'previous5': full_five,
+            'panel_session': prior60[0],
+            'calendar_sha256': 'f' * 64,
+        }
+    
+        screen = run_screen(monkeypatch, rows, day=target_day, session_spec=session_spec)
+    
+>       assert screen['coverage']['input_candidate_count'] == 1
+E       assert None == 1
+
+tests/test_manager_rebound_two_gate_screen.py:240: AssertionError
+_________ test_duplicate_required_full_session_stays_unknown_not_near __________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f04c5bb54e0>
+
+    def test_duplicate_required_full_session_stays_unknown_not_near(
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        code = 'HK.02223'
+        target_day = '20261229'
+        full_five = ['20261217', '20261218', '20261221', '20261222', '20261223']
+        earlier_full = prior_weekdays(54, before_day=full_five[0])
+        prior60 = [*earlier_full, *full_five, '20261224']
+        rows = [{
+            'trade_date_compact': session, 'code_norm': code, 'name': f'{code} synthetic',
+            'open': 99.0, 'high': 100.0, 'low': 98.0, 'close': 99.0,
+            'amount': 10_000_000, 'trade': 1_000,
+            'pre_close': 99.0,
+        } for session in prior60]
+        # A conflicting duplicate for a required full session must invalidate this
+        # stock's history; choosing this last row would create a false near pass.
+        rows.append({
+            'trade_date_compact': '20261223', 'code_norm': code, 'name': f'{code} synthetic',
+            'open': 99.0, 'high': 100.0, 'low': 98.0, 'close': 99.0,
+            'amount': 10_000_000, 'trade': 1,
+            'pre_close': 99.0,
+        })
+        rows.append(current_row(code, close=81.0, low=80.5, high=82.0,
+                                amount=15_000_000, volume=1_400, prev_close=82.5,
+                                session=target_day))
+        session_spec = {
+            'prior60': prior60,
+            'previous5': full_five,
+            'panel_session': prior60[0],
+            'calendar_sha256': 'f' * 64,
+        }
+    
+        screen = run_screen(monkeypatch, rows, day=target_day, session_spec=session_spec)
+    
+>       assert screen['coverage']['input_candidate_count'] == 1
+E       assert None == 1
+
+tests/test_manager_rebound_two_gate_screen.py:288: AssertionError
+_______ test_real_reader_equivalence_preserves_grouped_history_contract ________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f0484531e80>
+
+    def test_real_reader_equivalence_preserves_grouped_history_contract(monkeypatch):
+>       assert hashlib.sha256(BASELINE.read_bytes()).hexdigest() == PREIMAGE_HASH
+                              ^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_rebound_grouping_equivalence.py:165: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py:777: in read_bytes
+    with self.open(mode='rb', buffering=0) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/Users/lexi/Downloads/V4_MANAGER_SUMMARY_PERF_20260924/performance_optimization/preimages/canonical_workspace_plan.py')
+mode = 'rb', buffering = 0, encoding = None, errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/Users/lexi/Downloads/V4_MANAGER_SUMMARY_PERF_20260924/performance_optimization/preimages/canonical_workspace_plan.py'
+
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+_______ test_real_reader_duplicate_target_still_fails_closed_identically _______
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f04c5abe7b0>
+
+    def test_real_reader_duplicate_target_still_fails_closed_identically(monkeypatch):
+>       assert hashlib.sha256(BASELINE.read_bytes()).hexdigest() == PREIMAGE_HASH
+                              ^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_rebound_grouping_equivalence.py:187: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py:777: in read_bytes
+    with self.open(mode='rb', buffering=0) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/Users/lexi/Downloads/V4_MANAGER_SUMMARY_PERF_20260924/performance_optimization/preimages/canonical_workspace_plan.py')
+mode = 'rb', buffering = 0, encoding = None, errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/Users/lexi/Downloads/V4_MANAGER_SUMMARY_PERF_20260924/performance_optimization/preimages/canonical_workspace_plan.py'
+
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+_______ test_open_unknown_membership_not_promoted_and_prior_day_rejected _______
+
+    def test_open_unknown_membership_not_promoted_and_prior_day_rejected():
+        s={**deepcopy(UNKNOWN),'calendar_applicability':scope()['calendar_applicability']}
+        formal=cs.selection_diagnostics({'target_trade_date':'20261002'}, {}, {}, s, [])['formal_selection']
+        assert formal['status']=='CANNOT_CONFIRM'
+        d1=scope();d1['source']['source_date']='20260930'
+        accepted,rejected=cs.filter_cards([{'symbol':'HK.01234'}],d1)
+>       assert accepted==[] and rejected[0]['reason']=='TARGET_HK_CONNECT_MEMBERSHIP_DATE_OR_ROLE_MISMATCH'
+E       AssertionError: assert ([] == []
+E         
+E         Use -v to get more diff and 'HK_CONNECT_M...CS_UNVERIFIED' == 'TARGET_HK_CO...ROLE_MISMATCH'
+E         
+E         - TARGET_HK_CONNECT_MEMBERSHIP_DATE_OR_ROLE_MISMATCH
+E         + HK_CONNECT_MEMBERSHIP_SEMANTICS_UNVERIFIED)
+
+tests/test_issue8_selection_gaps.py:128: AssertionError
+_ test_verified_scope_admits_fresh_official_evidence_only_and_does_not_create_focus _
+
+    def test_verified_scope_admits_fresh_official_evidence_only_and_does_not_create_focus():
+        rv=review();rv['official_documents'].append({**rv['official_documents'][0],'symbol':'HK.09999'})
+        scr,lane=cs.evidence_view({},event_lane(rv,{},CTX),scope())
+        a=attention(lane,scr)
+>       assert [r['symbol'] for r in a['cards']]==['HK.01234']
+E       AssertionError: assert [] == ['HK.01234']
+E         
+E         Right contains one more item: 'HK.01234'
+E         Use -v to get more diff
+
+tests/test_issue8_selection_gaps.py:155: AssertionError
+_____ test_frozen_positive_subtree_preserved_without_promoting_five_stocks _____
+
+    def test_frozen_positive_subtree_preserved_without_promoting_five_stocks():
+>       f=json.loads((Path(os.environ['V4_INPUT_ROOT'])/'evidence/FROZEN_SELECTED_FIELDS.json').read_text())
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_issue8_selection_gaps.py:240: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = environ({'COLORTERM': '', 'no_proxy': 'localhost,127.0.0.1,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16', 'RSYNC_HOST':...': 'tests/test_issue8_selection_gaps.py::test_frozen_positive_subtree_preserved_without_promoting_five_stocks (call)'})
+key = 'V4_INPUT_ROOT'
+
+>   ???
+E   KeyError: 'V4_INPUT_ROOT'
+
+<frozen os>:709: KeyError
+_ test_exact_previous_session_capture_scope_validates_full_link_chain_and_keeps_source_date _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-408/test_exact_previous_session_ca0')
+
+    def test_exact_previous_session_capture_scope_validates_full_link_chain_and_keeps_source_date(tmp_path):
+        context, master_root, capture_root, dispatch_root, codes = _fixture(tmp_path)
+        scope = read_d1_scope(
+            context, security_master_root=master_root,
+            capture_receipt_root=capture_root, dispatch_receipt_root=dispatch_root,
+        )
+        assert scope["status"] == "OWNER_VERIFIED", scope["gaps"]
+        assert scope["target_trade_date"] == TARGET
+        assert scope["source_date"] == DATE
+        assert scope["codes"] == codes
+        assert scope["source"]["source_date"] == DATE
+        assert scope["source"]["dispatch_finished_at"] == FINISHED
+        assert scope["effective_available_at"] == FINISHED
+        assert scope["source"]["availability_semantics"].startswith("SUCCESSFUL_HK_DISPATCH_FINISH")
+        assert "available_at" not in scope["source"]
+    
+        accepted, rejected = filter_cards(
+            [{"symbol": codes[0], "name": "display name is not membership evidence"},
+             {"symbol": "HK.00999", "name": "outside"}],
+            scope, target_date=TARGET,
+        )
+>       assert [row["symbol"] for row in accepted] == [codes[0]]
+E       AssertionError: assert [] == ['HK.00001']
+E         
+E         Right contains one more item: 'HK.00001'
+E         Use -v to get more diff
+
+tests/test_manager_connect_capture_adapter_r4.py:154: AssertionError
+______ test_read_scope_keeps_target_v2_first_then_uses_explicit_d1_roots _______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-408/test_read_scope_keeps_target_v0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f04844d88a0>
+
+    def test_read_scope_keeps_target_v2_first_then_uses_explicit_d1_roots(tmp_path, monkeypatch):
+        import domains.manager_research_evidence as target_evidence
+        import upstreams.v3_shared_data.shared_data.hk_security_master as master_owner
+    
+        context, master_root, capture_root, dispatch_root, codes = _fixture(tmp_path)
+        owner_root = Path(__file__).resolve().parents[1]
+        owner_path = owner_root / "stage_center" / "hk_universe_preflight.py"
+        owner_sha = hashlib.sha256(owner_path.read_bytes()).hexdigest()
+        monkeypatch.setenv("V4_MANAGER_UNIVERSE_ROOT", str(master_root))
+        monkeypatch.setenv("V4_MANAGER_UNIVERSE_OWNER_ROOT", str(owner_root))
+        monkeypatch.setenv("V4_MANAGER_UNIVERSE_OWNER_SHA256", owner_sha)
+        monkeypatch.setenv("V4_MANAGER_HK_CAPTURE_RECEIPT_ROOT", str(capture_root))
+        # Production config binds the exact live receipts directory. The reader
+        # also keeps compatibility with direct callers using its parent root.
+        monkeypatch.setenv("V4_MANAGER_HK_DISPATCH_RECEIPT_ROOT", str(dispatch_root / "live"))
+    
+        def no_target_authority(*_args, **_kwargs):
+            raise ValueError("HK_CONNECT_EXACT_UNIVERSE_MISSING")
+    
+        monkeypatch.setattr(target_evidence, "read_universe_evidence", no_target_authority)
+        scope = read_scope(context)
+>       assert scope["status"] == "OWNER_VERIFIED"
+E       AssertionError: assert 'CANNOT_CONFIRM' == 'OWNER_VERIFIED'
+E         
+E         - OWNER_VERIFIED
+E         + CANNOT_CONFIRM
+
+tests/test_manager_connect_capture_adapter_r4.py:204: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_manager_rebound_two_gate_screen.py::test_amount_and_close_to_low_rebound_are_observations_not_gates[HK.02589-15855358-69.95-69.1]
+FAILED tests/test_manager_rebound_two_gate_screen.py::test_amount_and_close_to_low_rebound_are_observations_not_gates[HK.09998-250000000-69.95-69.95]
+FAILED tests/test_manager_rebound_two_gate_screen.py::test_near_requires_exactly_one_known_remaining_gate_and_unknown_stays_pending
+FAILED tests/test_manager_rebound_two_gate_screen.py::test_all_near_candidates_are_kept_without_a_top10_fill_limit
+FAILED tests/test_manager_rebound_two_gate_screen.py::test_incomplete_prior_history_is_pending_not_qualified
+FAILED tests/test_manager_rebound_two_gate_screen.py::test_panel_source_date_failure_cannot_produce_candidates
+FAILED tests/test_manager_rebound_two_gate_screen.py::test_half_day_is_excluded_from_previous_five_complete_sessions[None]
+FAILED tests/test_manager_rebound_two_gate_screen.py::test_half_day_is_excluded_from_previous_five_complete_sessions[20261223]
+FAILED tests/test_manager_rebound_two_gate_screen.py::test_duplicate_required_full_session_stays_unknown_not_near
+FAILED tests/test_manager_rebound_grouping_equivalence.py::test_real_reader_equivalence_preserves_grouped_history_contract
+FAILED tests/test_manager_rebound_grouping_equivalence.py::test_real_reader_duplicate_target_still_fails_closed_identically
+FAILED tests/test_issue8_selection_gaps.py::test_open_unknown_membership_not_promoted_and_prior_day_rejected
+FAILED tests/test_issue8_selection_gaps.py::test_verified_scope_admits_fresh_official_evidence_only_and_does_not_create_focus
+FAILED tests/test_issue8_selection_gaps.py::test_frozen_positive_subtree_preserved_without_promoting_five_stocks
+FAILED tests/test_manager_connect_capture_adapter_r4.py::test_exact_previous_session_capture_scope_validates_full_link_chain_and_keeps_source_date
+FAILED tests/test_manager_connect_capture_adapter_r4.py::test_read_scope_keeps_target_v2_first_then_uses_explicit_d1_roots
+16 failed, 69 passed in 0.94s

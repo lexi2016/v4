@@ -1,0 +1,3085 @@
+{
+  "before_verification": {
+    "bundled_payload_count": 8,
+    "business_io": false,
+    "checksums_inventory": {
+      "bytes": 10597,
+      "sha256": "a262e5391cc349100ba99352767d0c9f52a0536760bb4f4f1d17e2f727a1c826"
+    },
+    "deployment_claimed": false,
+    "identity_scope": "Four runtime files and sixteen preserved R2 targets; not a complete Mac release identity.",
+    "input_commit": "74478a0e62be215c8527ccc9a14b89b51042d014",
+    "inventory_file_count": 62,
+    "package_root": "/workspace/scratch/21926b793c00/four_gaps/delivery/manager-four-functional-repair-20261009-r1",
+    "publication_date": "20261008",
+    "runtime_checked": [
+      {
+        "bytes": 325468,
+        "path": "apps/api/v35_api/app.py",
+        "sha256": "e9888d03208124b978fb19a7147682ed65cb79f9d465d58a48191c3330f687f2"
+      },
+      {
+        "bytes": 95180,
+        "path": "v4/manager_research/service.py",
+        "sha256": "fead5098a4bf05bd88c41a61296e06029e3153dd6d5add9ebb101a3339f56431"
+      },
+      {
+        "bytes": 76096,
+        "path": "v4/manager_research/workspace.py",
+        "sha256": "eb3e8481397dde084daad39c86b8d4b0cb8b152a1fb1e2cc32278c7430e10e6f"
+      },
+      {
+        "bytes": 19016,
+        "path": "v4/manager_research/connect_selection.py",
+        "sha256": "45f33a4531e1f72120155a4cfba92cb7866d1d9c8ee9f5e00c174bb081104553"
+      }
+    ],
+    "schema_version": "v4.manager_four_function_repair.verification.v1",
+    "side": "after",
+    "source_manifest": {
+      "bytes": 3131,
+      "sha256": "43d432f5d8ff4158b379069f712eed4850f65c0d023aaa128742f44003ec7ea0"
+    },
+    "source_root": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/source",
+    "source_writes": 0,
+    "status": "PASS",
+    "target_date": "20261009",
+    "unchanged_r2_checked": [
+      {
+        "bytes": 35556,
+        "path": "apps/api/v35_api/manager_research_router.py",
+        "sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a"
+      },
+      {
+        "bytes": 107076,
+        "path": "v4/manager_research/workspace_plan.py",
+        "sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f"
+      },
+      {
+        "bytes": 15547,
+        "path": "v4/manager_research/workspace_plan_autorun.py",
+        "sha256": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34"
+      },
+      {
+        "bytes": 12982,
+        "path": "v4/manager_research/workspace_daily_channels.py",
+        "sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f"
+      },
+      {
+        "bytes": 167803,
+        "path": "v4/manager_research/workspace_announcements.py",
+        "sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b"
+      },
+      {
+        "bytes": 68733,
+        "path": "v4/manager_research/announcement_analysis.py",
+        "sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f"
+      },
+      {
+        "bytes": 53361,
+        "path": "v4/manager_research/plan_owner_dispatch.py",
+        "sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee"
+      },
+      {
+        "bytes": 19841,
+        "path": "v4/manager_research/connect_capture_adapter.py",
+        "sha256": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b"
+      },
+      {
+        "bytes": 21208,
+        "path": "v4/manager_research/workspace_history.py",
+        "sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af"
+      },
+      {
+        "bytes": 18863,
+        "path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+        "sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b"
+      },
+      {
+        "bytes": 4335,
+        "path": "upstreams/v3_shared_data/shared_data/hk_d1_evidence.py",
+        "sha256": "08c499732300a0e6026cda7ec7c2257807c542cd989f90a9427285dc34b73850"
+      },
+      {
+        "bytes": 27895,
+        "path": "upstreams/v3_shared_data/shared_data/store.py",
+        "sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16"
+      },
+      {
+        "bytes": 13936,
+        "path": "tests/test_manager_plan_readback_issue24.py",
+        "sha256": "1d7866fb800b3d9bff235c09159f169f3debe777a710a7d688f59217e45b5989"
+      },
+      {
+        "bytes": 16293,
+        "path": "tests/test_issue8_selection_gaps.py",
+        "sha256": "c9f242bc64b0b31a16cef0a6f732df45fabfa80654d4aace4cc405b8ec98c9a8"
+      },
+      {
+        "bytes": 16108,
+        "path": "tests/test_manager_announcement_supervisor.py",
+        "sha256": "a48b4d8de4721b02d82d4ef1f1e6e7f5a74e58d3671055bee21e9efc72ec5d3c"
+      },
+      {
+        "bytes": 18959,
+        "path": "tests/test_manager_announcement_date_catalog.py",
+        "sha256": "41c21fc88221a23608592e23cf925bfb1060c955f00bdb8391abf847071c49a7"
+      }
+    ]
+  },
+  "business_namespace_shims": false,
+  "dependencies": {
+    "Pygments": "2.21.0",
+    "annotated-doc": "0.0.5",
+    "annotated-types": "0.8.0",
+    "anyio": "4.15.1",
+    "certifi": "2026.7.22",
+    "duckdb": "1.5.6",
+    "fastapi": "0.143.0",
+    "h11": "0.16.0",
+    "httpcore": "1.0.9",
+    "httpx": "0.28.1",
+    "idna": "3.20",
+    "iniconfig": "2.3.1",
+    "numpy": "2.5.3",
+    "opentelemetry-api": "1.45.1",
+    "packaging": "26.3",
+    "pandas": "3.0.6",
+    "pluggy": "1.6.0",
+    "pyarrow": "24.0.0",
+    "pydantic": "2.14.0",
+    "pydantic_core": "2.50.0",
+    "pytest": "9.1.1",
+    "python-dateutil": "2.9.0.post0",
+    "six": "1.17.0",
+    "starlette": "1.7.0",
+    "typing-inspection": "0.4.4",
+    "typing_extensions": "4.16.0"
+  },
+  "dependency_installation": "NOT_RUN",
+  "deployment": "NOT_RUN",
+  "descriptor_write_prevention": false,
+  "executed_source_files": [
+    {
+      "bytes": 41,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/__init__.py",
+      "sha256": "ba6c324cbd4be60367b15bd3d6035c8165ee11c8ef9950d3282a0bb75849c991"
+    },
+    {
+      "bytes": 33,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/__init__.py",
+      "sha256": "36be136cf63bbecb7d53d4a7aaf22b0516b4a06523c77f4feaf054cde2d45312"
+    },
+    {
+      "bytes": 325468,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/app.py",
+      "sha256": "e9888d03208124b978fb19a7147682ed65cb79f9d465d58a48191c3330f687f2"
+    },
+    {
+      "bytes": 2708,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/baimao_router.py",
+      "sha256": "ca158864df1506a733c002d2e26bfb271de60eb0a9e34bcaeaea0f97a5192ae8"
+    },
+    {
+      "bytes": 35556,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/manager_research_router.py",
+      "sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a"
+    },
+    {
+      "bytes": 57619,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/manager_workbench_router.py",
+      "sha256": "95ccda85ff50d44cffbb18fc655e417f926c14b27a60cfa4c5fad17a3cbd1b5e"
+    },
+    {
+      "bytes": 1322,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/preselection_router.py",
+      "sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae"
+    },
+    {
+      "bytes": 30761,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/preselection_service.py",
+      "sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044"
+    },
+    {
+      "bytes": 51992,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/research_lane_router.py",
+      "sha256": "4c923e9184f192852f74d3427c980e02d26ce1af2386a2e4d27dd77f06b5939a"
+    },
+    {
+      "bytes": 28231,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/research_router.py",
+      "sha256": "dd141afaa10f5c90c09be4cec093675f44d1030933b04d8b2d0dfbe67af11ea8"
+    },
+    {
+      "bytes": 42184,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/review_router.py",
+      "sha256": "ef6e870077fecd1e025ec1a0741ec3f766b76ef914b60661e4f32937acc9e28d"
+    },
+    {
+      "bytes": 26824,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/runtime_graph_router.py",
+      "sha256": "9cc9be6bc929be53168f4115d808690b9560978129dff8557fb0c0a5d6ff9531"
+    },
+    {
+      "bytes": 1707,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/runtime_router.py",
+      "sha256": "b231a2202ec142ee5dc84dfb2b8b00252af3f85560f9b62c27d29d9fa73b49f2"
+    },
+    {
+      "bytes": 3103,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/wechat_research_router.py",
+      "sha256": "9989c824ec154856857ba1513a0de3ba464420aa0cfed49c8ff0c2397078c091"
+    },
+    {
+      "bytes": 55,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/contracts/__init__.py",
+      "sha256": "6334176641872990a56b559f965a9dc6d65f29ab0a0efc0752ef1a73fe42bc7d"
+    },
+    {
+      "bytes": 261,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/contracts/a_share_review.py",
+      "sha256": "2c6b845aea3186a416eb12ab297bd3c242cc6cc248961b47e32f43d1f1192fa6"
+    },
+    {
+      "bytes": 4750,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/contracts/close_timeline.py",
+      "sha256": "0088a4f5455d78283b8505ac2fed62b7ceb760cce86fb099d0052aee27d9e38e"
+    },
+    {
+      "bytes": 13060,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/contracts/research.py",
+      "sha256": "cd71bdd8ac24037627520c3cca6f658e83fc4e51c8a7934f6c6c9222f4b2f3c1"
+    },
+    {
+      "bytes": 102936,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/contracts/research_day_product.py",
+      "sha256": "f0e4d36e30259db6bf94bb3374241ce9d96ea04a4cf5eb18f74b871decef277d"
+    },
+    {
+      "bytes": 3350,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/contracts/runtime_tasks.py",
+      "sha256": "f9923462342eaaeafba6255e9f8adda54f9852ea4996cf6da0cf82e4faf32965"
+    },
+    {
+      "bytes": 2036,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/contracts/stages.py",
+      "sha256": "d0ac1771a1005888e53e9a322da65f959cfbcbcc665357b8783d5eb4eda9c6df"
+    },
+    {
+      "bytes": 10239,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/contracts/trading_calendar.py",
+      "sha256": "eca22a1e45271df45fc0a3b7cec28cec4e448d1af97b80371cc5c3c1953ec0f1"
+    },
+    {
+      "bytes": 134,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/contracts/trading_safety.py",
+      "sha256": "e2773e0a5b586c810b46d19219b5f96f465e29e36783d6be5e30abaf4d56b33b"
+    },
+    {
+      "bytes": 3603,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/contracts/us_equity_calendar.py",
+      "sha256": "73f223fb032e6c3a3a9f462f41b29fd029365ecfc98942bc5413a911faeba452"
+    },
+    {
+      "bytes": 7038,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/a_share_review.py",
+      "sha256": "90845aa31a4cac828a0be73ff40a65c06d6a016dcdf0e723602e855311afceeb"
+    },
+    {
+      "bytes": 11014,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/close_review.py",
+      "sha256": "24dd8ee1394844d464b06b2b46053d3551f9a088acede1031b5f18bf8ee997ab"
+    },
+    {
+      "bytes": 10549,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/close_review_chain.py",
+      "sha256": "207ed5f9c13531db66a54d0a3fd2f7502612aba3dcce8d5eb5a53f0291b4d63c"
+    },
+    {
+      "bytes": 16330,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/daily_research_review.py",
+      "sha256": "8541ec2696de3aac718979b72658f946ebe5eeda27778e4e627c6b586adeeaea"
+    },
+    {
+      "bytes": 30940,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/manager_condition_evidence.py",
+      "sha256": "9e1c7a9fb04c7a3f00d11ba1c4c3c4922c86b6536190df7caa9d2205804ee3f6"
+    },
+    {
+      "bytes": 30848,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/manager_research_evidence.py",
+      "sha256": "4bfd8ec335eade9a97340fe17fc0742f2dba546d0e254fdfed2833ed324bb73d"
+    },
+    {
+      "bytes": 30730,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/opening_second_filter.py",
+      "sha256": "b413c9892aeddea22f4d35a9292b1cdd8684bfd252c93f80f5b0913ecc22dec7"
+    },
+    {
+      "bytes": 54357,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/preselection.py",
+      "sha256": "8a21fa2caf27e06ea4b6526ff0dd7db99390dda007936aaf99ef8772e6e4305a"
+    },
+    {
+      "bytes": 7899,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/report_subjects.py",
+      "sha256": "2e074143195b675eac110f4b2910bc9b143fe0357afe27a0c7d11013f1d30bf5"
+    },
+    {
+      "bytes": 21832,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/research.py",
+      "sha256": "b77cc0d3c9ec36eeee3e6cab207945a783b0352a703efdb5c8e2f7f17966506f"
+    },
+    {
+      "bytes": 65157,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/research_day_product.py",
+      "sha256": "de085c51b34946aedf9134fdb6edbbd48fee4dfb3386dab1d327768c4b73ea1f"
+    },
+    {
+      "bytes": 4067,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/review_envelope.py",
+      "sha256": "f18cc6f9e8242447ad404255e89918f5a6a399073e13699ffb415235cd33314e"
+    },
+    {
+      "bytes": 24730,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/review_evidence_layers.py",
+      "sha256": "96886aa56318968625bfb57e484fde39ba267388591234fe7ed9e3f2939d77a7"
+    },
+    {
+      "bytes": 6201,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/runtime_policy.py",
+      "sha256": "0575df80b82b7940505fd4509a09e6ac6588245cc1141143b11ac42b4b84a6d2"
+    },
+    {
+      "bytes": 13019,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/stage_input_producer.py",
+      "sha256": "63870feb84b47a20db45083bcc04a97fdd5a7671e5f0e240331ae6d65263ba4b"
+    },
+    {
+      "bytes": 7643,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/stage_scoring.py",
+      "sha256": "dd6e260e9306107f8690d56a48e60922e9e24c7f20ea30f4a5d643d91d1365b0"
+    },
+    {
+      "bytes": 26697,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/stages.py",
+      "sha256": "4471307b06b5ebac34434c61364e59ff4c8f22005dffc8c7a4ddebf8445610c3"
+    },
+    {
+      "bytes": 26140,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/task_status.py",
+      "sha256": "91031c6c671d363cc4fa9b4cab62887e4f9943564ed6128286097586ba83b8d5"
+    },
+    {
+      "bytes": 68,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/__init__.py",
+      "sha256": "46068d69d6783fdcd33b3428ae3c7e8e690d5149f4f00837f6b1d1184dd6f47b"
+    },
+    {
+      "bytes": 10176,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/a_share_review_store.py",
+      "sha256": "ce22b5f217cf5c9ac0f71650ff88b3b17088580f79e9bac670be795ed8894482"
+    },
+    {
+      "bytes": 11106,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/baimao_research_observation_store.py",
+      "sha256": "e14eeecde58efceb5e9158476ff997a952bdb23dc8ae47afba14607e6ee42df7"
+    },
+    {
+      "bytes": 1756,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/baimao_source.py",
+      "sha256": "a16c69cbb01886b9b41020377f1b1f07b9a3d456382208db158cd6b79cb1c07b"
+    },
+    {
+      "bytes": 10704,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/data_store.py",
+      "sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd"
+    },
+    {
+      "bytes": 17448,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/formula_generation.py",
+      "sha256": "0904603912d6257cb02f41dfaf66c080e2f682e690b1c1901a86a7bafe1e74f0"
+    },
+    {
+      "bytes": 3710,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/futu_quote_provider.py",
+      "sha256": "b8ce38b6e255a0048a0028024c6c5bb376762e906a2dc4602c32dcb1ac91faae"
+    },
+    {
+      "bytes": 4178,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/hkconnect_close_store.py",
+      "sha256": "aea05a0ec8b4b42e6c140715fb1bf80ffcf49ded1f25f5bb59bc3c952bce4bf8"
+    },
+    {
+      "bytes": 7649,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/hkconnect_stage_replay_provider.py",
+      "sha256": "cbd6704b33963907262af10d1252de18c394fe1c4d6f3ae91746707a1c16b08f"
+    },
+    {
+      "bytes": 7514,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/interprocess_lock.py",
+      "sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0"
+    },
+    {
+      "bytes": 6946,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/isolated_package_loader.py",
+      "sha256": "c714d4b95c03da061f592e076cd12188dbeefcd9f0fae7aeaae18c0450e915eb"
+    },
+    {
+      "bytes": 10179,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/manager_input_attestation.py",
+      "sha256": "d26211fd83db00c551be6c11d3bbed58d13d1db054d99699fc377ee5c335f3cc"
+    },
+    {
+      "bytes": 960,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/market_time.py",
+      "sha256": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1"
+    },
+    {
+      "bytes": 3721,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/opening_second_filter_store.py",
+      "sha256": "aff6baea4250d109772787a106d934e121af92ce933b13c83cc3baad90653fa8"
+    },
+    {
+      "bytes": 9354,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/owned_io.py",
+      "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0"
+    },
+    {
+      "bytes": 2251,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/owned_path.py",
+      "sha256": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30"
+    },
+    {
+      "bytes": 30341,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/preselection_pool_store.py",
+      "sha256": "c96db1543e8b28e640b3c2d2a64aaae6a96d9a2a4a2401ca2780519233805171"
+    },
+    {
+      "bytes": 24125,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/research_lane_source.py",
+      "sha256": "2a58fe0db5c5d7915e7dbc884b8720e7d32a8c0084fe5e78b0e9e37f9e738cd4"
+    },
+    {
+      "bytes": 73460,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/research_peripheral_store.py",
+      "sha256": "1bcb74e9194932d5ec3d6ac24d7ec42979532cf495b270a1a04b09082706f4fe"
+    },
+    {
+      "bytes": 172644,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/research_store.py",
+      "sha256": "471ad4ceb0c34f080da674d147df5bb96045c5e7998ab41ba2845297ab63ab6f"
+    },
+    {
+      "bytes": 11823,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/review_core_fupan_pool_source.py",
+      "sha256": "59676076abc2844dbae5c09f683b56473d43df66c5de4bf0b2c3bdf2a95e8182"
+    },
+    {
+      "bytes": 14016,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/review_core_stage7_pool_source.py",
+      "sha256": "cc0e4c86935086d6338755e2d97d4f51b2eedc878b514e1fa616ca599a053981"
+    },
+    {
+      "bytes": 7378,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/review_store.py",
+      "sha256": "12278920fe02965163916ac9e1bc8143fb42d7aa4e05e8c90cf02afb9e5d399c"
+    },
+    {
+      "bytes": 40,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/__init__.py",
+      "sha256": "d42d3c1cb4fd90bfbde8f17aa928a7f5526a065bd4ea133c35e0962b69b60099"
+    },
+    {
+      "bytes": 19351,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/bindings.py",
+      "sha256": "2a5aa2ed1dbe349253ae45a2e8fd7ac74ff51af75c719117239c266fa88f459f"
+    },
+    {
+      "bytes": 27149,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/collectors.py",
+      "sha256": "3d0db27410407f9618f7b0f2372e823cd2f841bad6c27ac436a8ee89f0bbecf2"
+    },
+    {
+      "bytes": 5401,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/contracts.py",
+      "sha256": "f67ad4333b9dd329e1b58e871acf4b12f255f1896e1404314eb1a72224596c12"
+    },
+    {
+      "bytes": 1267,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/evidence_requirements.py",
+      "sha256": "ede42401ee123f1414b844d03fcb0c41b6c42b03cf4a409dff03c7ba9afb2adf"
+    },
+    {
+      "bytes": 4019,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/http_client.py",
+      "sha256": "f8b3c3e32d94a7883016f0d6734fac61c6c6c290d83aea59a194917067e7dd13"
+    },
+    {
+      "bytes": 32578,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/repair.py",
+      "sha256": "11eed8d00118177b296be6e7834324c3d189bc0265e25306c88d5daf81d8d55b"
+    },
+    {
+      "bytes": 53489,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/service.py",
+      "sha256": "4002a3a7fb4c80d44825ed491d2a0be3a94de53d793169a4d5e7751babab9f86"
+    },
+    {
+      "bytes": 7054,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/snapshot.py",
+      "sha256": "311d261662de873884ef2425777155719d8ac2981ecc057703acf39021db2bb6"
+    },
+    {
+      "bytes": 47301,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/store.py",
+      "sha256": "0b9d4562730de81fcae5beb4c4594901b9adfce9bddb74068eb2008f42b30d3a"
+    },
+    {
+      "bytes": 17369,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/topology.py",
+      "sha256": "a14b3de14b5d7cb5baf8871e6c96048bf69fad9014b78638fd7c3a2acbb31638"
+    },
+    {
+      "bytes": 16650,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/v35_api_evidence.py",
+      "sha256": "20f0f4ad476a7ecc70d7856ec89da2daf668f17cb4678e2d02503b1180c14432"
+    },
+    {
+      "bytes": 19485,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/v35_native_evidence.py",
+      "sha256": "a35faf786039d541f646d2334ff742144f6b4fa3de4ed5716196d118c5089e84"
+    },
+    {
+      "bytes": 11502,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/v35_validators.py",
+      "sha256": "1033c6f942533481045e568dd7ea7dd81d7b1fb04d1e0ecb1fe58aab5b24ed6b"
+    },
+    {
+      "bytes": 21423,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/validators.py",
+      "sha256": "377ba5dd11b1d5945b2244fba7f8a219f4b86a4e414f9fa7caa3d0cb41ca7a25"
+    },
+    {
+      "bytes": 348,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/scheduling/__init__.py",
+      "sha256": "66f43516bae3998546285e3c757925a2d8c04c157f17309f13d53eef0668a425"
+    },
+    {
+      "bytes": 11044,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/scheduling/catalog.py",
+      "sha256": "96c1b7ec2a3c9a94b7f6ac094a5d0ad12ab3c92287201cc7143b42386846a417"
+    },
+    {
+      "bytes": 18368,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/scheduling/dispatcher.py",
+      "sha256": "7e61cbb234246bd88c9325fb0641c4bbead10debed09b924298e406b06854668"
+    },
+    {
+      "bytes": 22725,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/scheduling/execution_ledger.py",
+      "sha256": "966fba07ec9d32abcab5435441e4e574002bcdd7b63d6494ff94d7a7e7018007"
+    },
+    {
+      "bytes": 101560,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/scheduling/executor_registry.py",
+      "sha256": "f462a3254c15cfe9043783b6e07c88781ea4a3151a652c02509da3f2d9b870c9"
+    },
+    {
+      "bytes": 7976,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/shared_morning_news_reader.py",
+      "sha256": "6f99c9052c93484c6ce6e70b6c2978be53b23f57c0f4e2cd68140982929c1938"
+    },
+    {
+      "bytes": 12082,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/stage_quote_provider.py",
+      "sha256": "5d72b15bb39657289426a83e9f2d819f9f5476dde91e37703c7ee4ab53c53f47"
+    },
+    {
+      "bytes": 24016,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/stage_store.py",
+      "sha256": "00d3dca6b90f86b7a6f6707f3150f2189e2eb15fcbb7eb5198db4ffd5e0392c4"
+    },
+    {
+      "bytes": 13527,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/tdx_minute_replay_provider.py",
+      "sha256": "4bb95a22d880ce2c1074c3888ac9b546219b77a78b453610fc94dbf73221c8e6"
+    },
+    {
+      "bytes": 2597,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/trading_safety.py",
+      "sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df"
+    },
+    {
+      "bytes": 50739,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/wechat_research_archive.py",
+      "sha256": "025052da29182a6136ac2de9168975379e3991583561de8a1f5766ca2eee2abf"
+    },
+    {
+      "bytes": 27110,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/ops/daily_materialize.py",
+      "sha256": "e350f409b291bee26e2218dc0ace6436d7a85cc48a20569f7e6f3e987bb265d4"
+    },
+    {
+      "bytes": 42252,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/ops/manager_announcement_body_batch.py",
+      "sha256": "7e37ed7e904d80c135a51bdff1aaa95aec02012eecfcfdc8a1770fa31297cbdb"
+    },
+    {
+      "bytes": 1098,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/stage_center/__init__.py",
+      "sha256": "f5bc18e6c6143feaa23627ac8b66885810adbf77fb2135a295526fd188949955"
+    },
+    {
+      "bytes": 13342,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/stage_center/acquisition.py",
+      "sha256": "33e5003faed8127ec3393eb36af473c0d63ee3a79843418ef1a950ce7b697397"
+    },
+    {
+      "bytes": 4721,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/stage_center/calendar.py",
+      "sha256": "681aae5b50acb89620998acda372531971bd26ae346f0334f37ea6e5b1de8124"
+    },
+    {
+      "bytes": 17567,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/stage_center/candidate_input.py",
+      "sha256": "59c6bb0ef13a5aaa576477708385ec4ac68b7d20a69e3fc61d984da4a8284aff"
+    },
+    {
+      "bytes": 33874,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/stage_center/consumer.py",
+      "sha256": "61f8a3541aa7a2e698cc4374385e3d20d41b40ffd5a3cd7d87c9494cb8726cf4"
+    },
+    {
+      "bytes": 2331,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/stage_center/contracts.py",
+      "sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d"
+    },
+    {
+      "bytes": 7682,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/stage_center/execution_evidence.py",
+      "sha256": "e4c4ea94d892158383620beab1825014f21e926b57907354475f8c9ff382704b"
+    },
+    {
+      "bytes": 40555,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/stage_center/hk_universe_preflight.py",
+      "sha256": "9d3d2c2d5ff3bd1c7713a9485e88000ae882f58b0a457b734656094606ba2941"
+    },
+    {
+      "bytes": 33445,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/stage_center/raw_store.py",
+      "sha256": "2dea717cb65053c48b75468fd61508b3b61b421a6b528aa8ce93395e99aef547"
+    },
+    {
+      "bytes": 6849,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/stage_center/scheduler.py",
+      "sha256": "e56651ec7bb481b28e383cb403d60ba48747ddf7426f9fb380f5ae24fc3a37a4"
+    },
+    {
+      "bytes": 92532,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/stage_center/selection.py",
+      "sha256": "31e80e068890be03957920870719030463262c78911953541be3074f8650d4c9"
+    },
+    {
+      "bytes": 17508,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/tests/test_manager_four_announcement_integration.py",
+      "sha256": "d44e07587ea0ee39d88b47eb08f1cca3fba173a952f6fe40d034ee13ce2ba0ce"
+    },
+    {
+      "bytes": 8229,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/tests/test_manager_four_app_wiring.py",
+      "sha256": "fc7ce174c2f4e8860174553a5d47f92d16556293f1e7b5eed66a38fa26b34564"
+    },
+    {
+      "bytes": 27976,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/tests/test_manager_four_hk_readers.py",
+      "sha256": "f06188bc8f9d3e03daba8c255c8615c4ebcfafe72c2d8c482210849f6f24b448"
+    },
+    {
+      "bytes": 22594,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/tests/test_manager_four_plan_owner_readback.py",
+      "sha256": "dfb00aa70bea9f36ff700e6c5e0ca8e6fbb30a972b04865c061424ea081e623a"
+    },
+    {
+      "bytes": 446,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/upstreams/v3_shared_data/shared_data/__init__.py",
+      "sha256": "f5925bc479203da8b7f7f81bae26334035b254ee6c2e2b598c81d804f519f9e4"
+    },
+    {
+      "bytes": 3011,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/upstreams/v3_shared_data/shared_data/allowlist.py",
+      "sha256": "a5e307f15416fe422a0ad36f60d6996f6a3f74753581dc589ef93149178dd206"
+    },
+    {
+      "bytes": 8200,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/upstreams/v3_shared_data/shared_data/collectors.py",
+      "sha256": "f59dc7f70939a033fcde715aef33c5e063cb10b20c98caf17ee3a42c4884c159"
+    },
+    {
+      "bytes": 2604,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/upstreams/v3_shared_data/shared_data/constants.py",
+      "sha256": "706ea95054bcfcf3bab12a234e79a1d25bb412ba32ab0e5b5a6f3f3f6b725df8"
+    },
+    {
+      "bytes": 1027,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/upstreams/v3_shared_data/shared_data/hashing.py",
+      "sha256": "d4bce5d9337f07ec8c3594367b0203f4eb8de71b5380f14734b5944cf45dcca6"
+    },
+    {
+      "bytes": 18863,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b"
+    },
+    {
+      "bytes": 3986,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/upstreams/v3_shared_data/shared_data/paths.py",
+      "sha256": "3007691db34aa721cf9549e79d9f9782bf7490ccb5d9f6ca2895f968525afdb3"
+    },
+    {
+      "bytes": 27895,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/upstreams/v3_shared_data/shared_data/store.py",
+      "sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16"
+    },
+    {
+      "bytes": 446,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v3_shared_data/shared_data/__init__.py",
+      "sha256": "f5925bc479203da8b7f7f81bae26334035b254ee6c2e2b598c81d804f519f9e4"
+    },
+    {
+      "bytes": 3011,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v3_shared_data/shared_data/allowlist.py",
+      "sha256": "a5e307f15416fe422a0ad36f60d6996f6a3f74753581dc589ef93149178dd206"
+    },
+    {
+      "bytes": 8200,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v3_shared_data/shared_data/collectors.py",
+      "sha256": "f59dc7f70939a033fcde715aef33c5e063cb10b20c98caf17ee3a42c4884c159"
+    },
+    {
+      "bytes": 2604,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v3_shared_data/shared_data/constants.py",
+      "sha256": "706ea95054bcfcf3bab12a234e79a1d25bb412ba32ab0e5b5a6f3f3f6b725df8"
+    },
+    {
+      "bytes": 1027,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v3_shared_data/shared_data/hashing.py",
+      "sha256": "d4bce5d9337f07ec8c3594367b0203f4eb8de71b5380f14734b5944cf45dcca6"
+    },
+    {
+      "bytes": 3986,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v3_shared_data/shared_data/paths.py",
+      "sha256": "3007691db34aa721cf9549e79d9f9782bf7490ccb5d9f6ca2895f968525afdb3"
+    },
+    {
+      "bytes": 27895,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v3_shared_data/shared_data/store.py",
+      "sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16"
+    },
+    {
+      "bytes": 75,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/__init__.py",
+      "sha256": "4032724b98ed267185b12b8ec78dd9bcb0423ab1c89a6f0dad99397fd51159d9"
+    },
+    {
+      "bytes": 1005,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/__init__.py",
+      "sha256": "7902d6b467cacfa763ca6adef297b823c924c573cdb79df2c2e04ec758c38cc4"
+    },
+    {
+      "bytes": 68733,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/announcement_analysis.py",
+      "sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f"
+    },
+    {
+      "bytes": 30995,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/announcement_catalog.py",
+      "sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68"
+    },
+    {
+      "bytes": 10727,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/announcement_materials.py",
+      "sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1"
+    },
+    {
+      "bytes": 5599,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/announcement_observation.py",
+      "sha256": "8e58cab8e9e398d7c628c2f994a5005442d3a6c5ba5f218a155d949b8af74f54"
+    },
+    {
+      "bytes": 16007,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/announcement_selection.py",
+      "sha256": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21"
+    },
+    {
+      "bytes": 47475,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/announcement_source.py",
+      "sha256": "4e5a03048c3791ef65a4ef4eef37c75f5fc30ebb41615984e302b2b6d6666f2b"
+    },
+    {
+      "bytes": 9179,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/attention_decision.py",
+      "sha256": "4b84e0469a5267771ccfe9f9f5040fc829e82f7a1b24afdeed11ebef0cb7d640"
+    },
+    {
+      "bytes": 1949,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/cache_contract.py",
+      "sha256": "0dabc0d2787fae9af2e3c0fb3f5bf3e49c71d28649ffd30c07c31f5e8d071b7f"
+    },
+    {
+      "bytes": 27868,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/catalyst_observations.py",
+      "sha256": "9b1b4ecabc635c24580ba85fc293911f635ad056b8bf49a5feaa3adc1db5057f"
+    },
+    {
+      "bytes": 15975,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/catalyst_projection.py",
+      "sha256": "f0824db4b6ca7723c0e4ec47d6a34f9c1bb32a7c978974da0149ff525f5e7e13"
+    },
+    {
+      "bytes": 19841,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/connect_capture_adapter.py",
+      "sha256": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b"
+    },
+    {
+      "bytes": 19016,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/connect_selection.py",
+      "sha256": "45f33a4531e1f72120155a4cfba92cb7866d1d9c8ee9f5e00c174bb081104553"
+    },
+    {
+      "bytes": 12756,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/contracts.py",
+      "sha256": "d90f0027a8383f20a299e3058d69716e62737e9e5300afc61a8ef2ed949d402f"
+    },
+    {
+      "bytes": 263,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/errors.py",
+      "sha256": "324e0f53301d4ba1007e1a69c86559472347bb7124f6c216f2b3c18e2c80bc1a"
+    },
+    {
+      "bytes": 92966,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/event_source.py",
+      "sha256": "a61bcc463b5c0cffdd4dbb4b5d6c8fe17315119dd07c221b95911ec1233d5585"
+    },
+    {
+      "bytes": 5276,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/evidence_identity.py",
+      "sha256": "6ff16b31c8e23f3bbceea7acc22cf866afc29db6f9f67158381cec2c23b3d053"
+    },
+    {
+      "bytes": 30245,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/existing_materials.py",
+      "sha256": "88144b666e4a78ef46513f6eaf9846367ad0189478d9b3b85b9ac8124a5ca6e1"
+    },
+    {
+      "bytes": 37491,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/financial_projection.py",
+      "sha256": "c5aec263ae59791fe28e07ab38ac0062b39563a2a7006d6840dde43580e3372c"
+    },
+    {
+      "bytes": 40133,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/hkex_provider.py",
+      "sha256": "7bc565f9c7a210bc4966622cfde60875ec9f002f7b38a5d9063c467a9499d56d"
+    },
+    {
+      "bytes": 15558,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/issuer_us_relations.py",
+      "sha256": "ac3b3e228c3efed4efc7447d2461ac0c63a00b1d0fa9c93a6c0a479076af0b7d"
+    },
+    {
+      "bytes": 7239,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/material_transport.py",
+      "sha256": "497c52c915e5485f34de27cb1fb2caca3971c77f531385a0d1f80d4587fc6ab5"
+    },
+    {
+      "bytes": 9292,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/materials.py",
+      "sha256": "0d3c6c3fa0404c7006e5a8127b6123b99f7fff7c4d99af04b524fc04cb0e1ac2"
+    },
+    {
+      "bytes": 41935,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/pdf_parser.py",
+      "sha256": "0ddf7fd5510333c70060af7de2a25dd4e6c9ac2880a0d8b97d95e84542a03383"
+    },
+    {
+      "bytes": 1569,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/ports.py",
+      "sha256": "d55f0bd6b5ade41ec78c429cbaea3986bb24a4723f473ef94ac0e5ad7d08afea"
+    },
+    {
+      "bytes": 26075,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/reader_source.py",
+      "sha256": "41d1abd481f043ad4309c39c04f179e3b9f2f0c511f89b32c3d4554bd7ac42f4"
+    },
+    {
+      "bytes": 53414,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/recommendation.py",
+      "sha256": "5a26bd6145a30d3314f8268a9fcffc57fc35f329e75492b97d9726b6c3eeffb4"
+    },
+    {
+      "bytes": 43072,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/research_attention.py",
+      "sha256": "3f5385ed850b0336cb85ad85cac3aeab44d2908620c636a4cfc19f5fdf3619aa"
+    },
+    {
+      "bytes": 28636,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/research_evidence.py",
+      "sha256": "d2539b676d5779d9369fd8aba187c0565fcc38dbb0e89596d1248668fda4a7d5"
+    },
+    {
+      "bytes": 3272,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/safety.py",
+      "sha256": "c82fcdee6845e765783584f5ac46a9d4ca6b6b9fda1c3c2e919c17ab17c7f3e8"
+    },
+    {
+      "bytes": 95180,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/service.py",
+      "sha256": "fead5098a4bf05bd88c41a61296e06029e3153dd6d5add9ebb101a3339f56431"
+    },
+    {
+      "bytes": 4332,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/stage_read_timing.py",
+      "sha256": "bfbab170b4e8b32e1bdd0405282825989f0382aeb41e6044fe22d0fdeca6ae38"
+    },
+    {
+      "bytes": 19988,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/store.py",
+      "sha256": "79e077d2133f8c0bd33dde253e752bc6482423565ec11e9217d88b86f02cc07e"
+    },
+    {
+      "bytes": 57938,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/us_mapping_research.py",
+      "sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7"
+    },
+    {
+      "bytes": 14192,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/us_market_bridge.py",
+      "sha256": "46fcf3fce15dfce4ae45e8eefe2c9b619d884f602d4f5b4261f163755debf0ae"
+    },
+    {
+      "bytes": 2936,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/vibe_binding_preflight.py",
+      "sha256": "b5b108f8e327b67ef43fd91ce33da936b2cfc7a67dae3b0f129071dff8c6554d"
+    },
+    {
+      "bytes": 76096,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace.py",
+      "sha256": "eb3e8481397dde084daad39c86b8d4b0cb8b152a1fb1e2cc32278c7430e10e6f"
+    },
+    {
+      "bytes": 14843,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_actions.py",
+      "sha256": "9ae8f53fd261e5a28f97029e76ee0b296d7befb02a32a0f6689229b5000b2ecf"
+    },
+    {
+      "bytes": 167803,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_announcements.py",
+      "sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b"
+    },
+    {
+      "bytes": 32275,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_briefing.py",
+      "sha256": "60a7942e6c2c6a8ed32099ec807c79c35fa393342ed59996798f21da12466ff6"
+    },
+    {
+      "bytes": 12982,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_daily_channels.py",
+      "sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f"
+    },
+    {
+      "bytes": 23129,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_discovery.py",
+      "sha256": "ed9188a44a4adb6bf2fd08836d465ed3ea7e7d2b8dd7075da99b7aaabc5c5c1a"
+    },
+    {
+      "bytes": 107076,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_plan.py",
+      "sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f"
+    },
+    {
+      "bytes": 15547,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_plan_autorun.py",
+      "sha256": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34"
+    },
+    {
+      "bytes": 30841,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_projection.py",
+      "sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200"
+    },
+    {
+      "bytes": 10927,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_read_control.py",
+      "sha256": "491e3569e8f00586ca6f4e9982e182584d2f2a0437f83da66767b7ffdbf1fb25"
+    },
+    {
+      "bytes": 33731,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_semantics.py",
+      "sha256": "dc8d1d330e4fdacf2ef7169a7ac62874bfd3e2658f8b4bcff0773e06e32c4f7f"
+    }
+  ],
+  "execution_source_differences": {
+    "added": [],
+    "changed": [],
+    "missing": []
+  },
+  "execution_source_root": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source",
+  "execution_verification": {
+    "bundled_payload_count": 8,
+    "business_io": false,
+    "checksums_inventory": {
+      "bytes": 10597,
+      "sha256": "a262e5391cc349100ba99352767d0c9f52a0536760bb4f4f1d17e2f727a1c826"
+    },
+    "deployment_claimed": false,
+    "identity_scope": "Four runtime files and sixteen preserved R2 targets; not a complete Mac release identity.",
+    "input_commit": "74478a0e62be215c8527ccc9a14b89b51042d014",
+    "inventory_file_count": 62,
+    "package_root": "/workspace/scratch/21926b793c00/four_gaps/delivery/manager-four-functional-repair-20261009-r1",
+    "publication_date": "20261008",
+    "runtime_checked": [
+      {
+        "bytes": 325468,
+        "path": "apps/api/v35_api/app.py",
+        "sha256": "e9888d03208124b978fb19a7147682ed65cb79f9d465d58a48191c3330f687f2"
+      },
+      {
+        "bytes": 95180,
+        "path": "v4/manager_research/service.py",
+        "sha256": "fead5098a4bf05bd88c41a61296e06029e3153dd6d5add9ebb101a3339f56431"
+      },
+      {
+        "bytes": 76096,
+        "path": "v4/manager_research/workspace.py",
+        "sha256": "eb3e8481397dde084daad39c86b8d4b0cb8b152a1fb1e2cc32278c7430e10e6f"
+      },
+      {
+        "bytes": 19016,
+        "path": "v4/manager_research/connect_selection.py",
+        "sha256": "45f33a4531e1f72120155a4cfba92cb7866d1d9c8ee9f5e00c174bb081104553"
+      }
+    ],
+    "schema_version": "v4.manager_four_function_repair.verification.v1",
+    "side": "after",
+    "source_manifest": {
+      "bytes": 3131,
+      "sha256": "43d432f5d8ff4158b379069f712eed4850f65c0d023aaa128742f44003ec7ea0"
+    },
+    "source_root": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source",
+    "source_writes": 0,
+    "status": "PASS",
+    "target_date": "20261009",
+    "unchanged_r2_checked": [
+      {
+        "bytes": 35556,
+        "path": "apps/api/v35_api/manager_research_router.py",
+        "sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a"
+      },
+      {
+        "bytes": 107076,
+        "path": "v4/manager_research/workspace_plan.py",
+        "sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f"
+      },
+      {
+        "bytes": 15547,
+        "path": "v4/manager_research/workspace_plan_autorun.py",
+        "sha256": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34"
+      },
+      {
+        "bytes": 12982,
+        "path": "v4/manager_research/workspace_daily_channels.py",
+        "sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f"
+      },
+      {
+        "bytes": 167803,
+        "path": "v4/manager_research/workspace_announcements.py",
+        "sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b"
+      },
+      {
+        "bytes": 68733,
+        "path": "v4/manager_research/announcement_analysis.py",
+        "sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f"
+      },
+      {
+        "bytes": 53361,
+        "path": "v4/manager_research/plan_owner_dispatch.py",
+        "sha256": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee"
+      },
+      {
+        "bytes": 19841,
+        "path": "v4/manager_research/connect_capture_adapter.py",
+        "sha256": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b"
+      },
+      {
+        "bytes": 21208,
+        "path": "v4/manager_research/workspace_history.py",
+        "sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af"
+      },
+      {
+        "bytes": 18863,
+        "path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+        "sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b"
+      },
+      {
+        "bytes": 4335,
+        "path": "upstreams/v3_shared_data/shared_data/hk_d1_evidence.py",
+        "sha256": "08c499732300a0e6026cda7ec7c2257807c542cd989f90a9427285dc34b73850"
+      },
+      {
+        "bytes": 27895,
+        "path": "upstreams/v3_shared_data/shared_data/store.py",
+        "sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16"
+      },
+      {
+        "bytes": 13936,
+        "path": "tests/test_manager_plan_readback_issue24.py",
+        "sha256": "1d7866fb800b3d9bff235c09159f169f3debe777a710a7d688f59217e45b5989"
+      },
+      {
+        "bytes": 16293,
+        "path": "tests/test_issue8_selection_gaps.py",
+        "sha256": "c9f242bc64b0b31a16cef0a6f732df45fabfa80654d4aace4cc405b8ec98c9a8"
+      },
+      {
+        "bytes": 16108,
+        "path": "tests/test_manager_announcement_supervisor.py",
+        "sha256": "a48b4d8de4721b02d82d4ef1f1e6e7f5a74e58d3671055bee21e9efc72ec5d3c"
+      },
+      {
+        "bytes": 18959,
+        "path": "tests/test_manager_announcement_date_catalog.py",
+        "sha256": "41c21fc88221a23608592e23cf925bfb1060c955f00bdb8391abf847071c49a7"
+      }
+    ]
+  },
+  "expected_tests": 57,
+  "finished_at": "2026-10-09T16:17:09.731709+00:00",
+  "full_project_gate": "NOT_RUN",
+  "general_security_sandbox": false,
+  "guard_events": [],
+  "identity_scope": "Offline copied dependency assembly; not a complete Mac R2 release identity.",
+  "junit_totals": {
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0,
+    "tests": 57
+  },
+  "live_api": "NOT_RUN",
+  "loaded_modules": [
+    {
+      "bytes": 1005,
+      "module": "_v4_manager_research_runtime",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/__init__.py",
+      "role": "copied_source",
+      "sha256": "7902d6b467cacfa763ca6adef297b823c924c573cdb79df2c2e04ec758c38cc4",
+      "source_relative_path": "v4/manager_research/__init__.py"
+    },
+    {
+      "bytes": 68733,
+      "module": "_v4_manager_research_runtime.announcement_analysis",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/announcement_analysis.py",
+      "role": "copied_source",
+      "sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+      "source_relative_path": "v4/manager_research/announcement_analysis.py"
+    },
+    {
+      "bytes": 30995,
+      "module": "_v4_manager_research_runtime.announcement_catalog",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/announcement_catalog.py",
+      "role": "copied_source",
+      "sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68",
+      "source_relative_path": "v4/manager_research/announcement_catalog.py"
+    },
+    {
+      "bytes": 10727,
+      "module": "_v4_manager_research_runtime.announcement_materials",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/announcement_materials.py",
+      "role": "copied_source",
+      "sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+      "source_relative_path": "v4/manager_research/announcement_materials.py"
+    },
+    {
+      "bytes": 5599,
+      "module": "_v4_manager_research_runtime.announcement_observation",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/announcement_observation.py",
+      "role": "copied_source",
+      "sha256": "8e58cab8e9e398d7c628c2f994a5005442d3a6c5ba5f218a155d949b8af74f54",
+      "source_relative_path": "v4/manager_research/announcement_observation.py"
+    },
+    {
+      "bytes": 16007,
+      "module": "_v4_manager_research_runtime.announcement_selection",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/announcement_selection.py",
+      "role": "copied_source",
+      "sha256": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21",
+      "source_relative_path": "v4/manager_research/announcement_selection.py"
+    },
+    {
+      "bytes": 47475,
+      "module": "_v4_manager_research_runtime.announcement_source",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/announcement_source.py",
+      "role": "copied_source",
+      "sha256": "4e5a03048c3791ef65a4ef4eef37c75f5fc30ebb41615984e302b2b6d6666f2b",
+      "source_relative_path": "v4/manager_research/announcement_source.py"
+    },
+    {
+      "bytes": 9179,
+      "module": "_v4_manager_research_runtime.attention_decision",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/attention_decision.py",
+      "role": "copied_source",
+      "sha256": "4b84e0469a5267771ccfe9f9f5040fc829e82f7a1b24afdeed11ebef0cb7d640",
+      "source_relative_path": "v4/manager_research/attention_decision.py"
+    },
+    {
+      "bytes": 1949,
+      "module": "_v4_manager_research_runtime.cache_contract",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/cache_contract.py",
+      "role": "copied_source",
+      "sha256": "0dabc0d2787fae9af2e3c0fb3f5bf3e49c71d28649ffd30c07c31f5e8d071b7f",
+      "source_relative_path": "v4/manager_research/cache_contract.py"
+    },
+    {
+      "bytes": 27868,
+      "module": "_v4_manager_research_runtime.catalyst_observations",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/catalyst_observations.py",
+      "role": "copied_source",
+      "sha256": "9b1b4ecabc635c24580ba85fc293911f635ad056b8bf49a5feaa3adc1db5057f",
+      "source_relative_path": "v4/manager_research/catalyst_observations.py"
+    },
+    {
+      "bytes": 15975,
+      "module": "_v4_manager_research_runtime.catalyst_projection",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/catalyst_projection.py",
+      "role": "copied_source",
+      "sha256": "f0824db4b6ca7723c0e4ec47d6a34f9c1bb32a7c978974da0149ff525f5e7e13",
+      "source_relative_path": "v4/manager_research/catalyst_projection.py"
+    },
+    {
+      "bytes": 19841,
+      "module": "_v4_manager_research_runtime.connect_capture_adapter",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/connect_capture_adapter.py",
+      "role": "copied_source",
+      "sha256": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b",
+      "source_relative_path": "v4/manager_research/connect_capture_adapter.py"
+    },
+    {
+      "bytes": 19016,
+      "module": "_v4_manager_research_runtime.connect_selection",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/connect_selection.py",
+      "role": "copied_source",
+      "sha256": "45f33a4531e1f72120155a4cfba92cb7866d1d9c8ee9f5e00c174bb081104553",
+      "source_relative_path": "v4/manager_research/connect_selection.py"
+    },
+    {
+      "bytes": 12756,
+      "module": "_v4_manager_research_runtime.contracts",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/contracts.py",
+      "role": "copied_source",
+      "sha256": "d90f0027a8383f20a299e3058d69716e62737e9e5300afc61a8ef2ed949d402f",
+      "source_relative_path": "v4/manager_research/contracts.py"
+    },
+    {
+      "bytes": 263,
+      "module": "_v4_manager_research_runtime.errors",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/errors.py",
+      "role": "copied_source",
+      "sha256": "324e0f53301d4ba1007e1a69c86559472347bb7124f6c216f2b3c18e2c80bc1a",
+      "source_relative_path": "v4/manager_research/errors.py"
+    },
+    {
+      "bytes": 92966,
+      "module": "_v4_manager_research_runtime.event_source",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/event_source.py",
+      "role": "copied_source",
+      "sha256": "a61bcc463b5c0cffdd4dbb4b5d6c8fe17315119dd07c221b95911ec1233d5585",
+      "source_relative_path": "v4/manager_research/event_source.py"
+    },
+    {
+      "bytes": 5276,
+      "module": "_v4_manager_research_runtime.evidence_identity",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/evidence_identity.py",
+      "role": "copied_source",
+      "sha256": "6ff16b31c8e23f3bbceea7acc22cf866afc29db6f9f67158381cec2c23b3d053",
+      "source_relative_path": "v4/manager_research/evidence_identity.py"
+    },
+    {
+      "bytes": 30245,
+      "module": "_v4_manager_research_runtime.existing_materials",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/existing_materials.py",
+      "role": "copied_source",
+      "sha256": "88144b666e4a78ef46513f6eaf9846367ad0189478d9b3b85b9ac8124a5ca6e1",
+      "source_relative_path": "v4/manager_research/existing_materials.py"
+    },
+    {
+      "bytes": 37491,
+      "module": "_v4_manager_research_runtime.financial_projection",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/financial_projection.py",
+      "role": "copied_source",
+      "sha256": "c5aec263ae59791fe28e07ab38ac0062b39563a2a7006d6840dde43580e3372c",
+      "source_relative_path": "v4/manager_research/financial_projection.py"
+    },
+    {
+      "bytes": 40133,
+      "module": "_v4_manager_research_runtime.hkex_provider",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/hkex_provider.py",
+      "role": "copied_source",
+      "sha256": "7bc565f9c7a210bc4966622cfde60875ec9f002f7b38a5d9063c467a9499d56d",
+      "source_relative_path": "v4/manager_research/hkex_provider.py"
+    },
+    {
+      "bytes": 15558,
+      "module": "_v4_manager_research_runtime.issuer_us_relations",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/issuer_us_relations.py",
+      "role": "copied_source",
+      "sha256": "ac3b3e228c3efed4efc7447d2461ac0c63a00b1d0fa9c93a6c0a479076af0b7d",
+      "source_relative_path": "v4/manager_research/issuer_us_relations.py"
+    },
+    {
+      "bytes": 7239,
+      "module": "_v4_manager_research_runtime.material_transport",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/material_transport.py",
+      "role": "copied_source",
+      "sha256": "497c52c915e5485f34de27cb1fb2caca3971c77f531385a0d1f80d4587fc6ab5",
+      "source_relative_path": "v4/manager_research/material_transport.py"
+    },
+    {
+      "bytes": 9292,
+      "module": "_v4_manager_research_runtime.materials",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/materials.py",
+      "role": "copied_source",
+      "sha256": "0d3c6c3fa0404c7006e5a8127b6123b99f7fff7c4d99af04b524fc04cb0e1ac2",
+      "source_relative_path": "v4/manager_research/materials.py"
+    },
+    {
+      "bytes": 41935,
+      "module": "_v4_manager_research_runtime.pdf_parser",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/pdf_parser.py",
+      "role": "copied_source",
+      "sha256": "0ddf7fd5510333c70060af7de2a25dd4e6c9ac2880a0d8b97d95e84542a03383",
+      "source_relative_path": "v4/manager_research/pdf_parser.py"
+    },
+    {
+      "bytes": 1569,
+      "module": "_v4_manager_research_runtime.ports",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/ports.py",
+      "role": "copied_source",
+      "sha256": "d55f0bd6b5ade41ec78c429cbaea3986bb24a4723f473ef94ac0e5ad7d08afea",
+      "source_relative_path": "v4/manager_research/ports.py"
+    },
+    {
+      "bytes": 26075,
+      "module": "_v4_manager_research_runtime.reader_source",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/reader_source.py",
+      "role": "copied_source",
+      "sha256": "41d1abd481f043ad4309c39c04f179e3b9f2f0c511f89b32c3d4554bd7ac42f4",
+      "source_relative_path": "v4/manager_research/reader_source.py"
+    },
+    {
+      "bytes": 53414,
+      "module": "_v4_manager_research_runtime.recommendation",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/recommendation.py",
+      "role": "copied_source",
+      "sha256": "5a26bd6145a30d3314f8268a9fcffc57fc35f329e75492b97d9726b6c3eeffb4",
+      "source_relative_path": "v4/manager_research/recommendation.py"
+    },
+    {
+      "bytes": 43072,
+      "module": "_v4_manager_research_runtime.research_attention",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/research_attention.py",
+      "role": "copied_source",
+      "sha256": "3f5385ed850b0336cb85ad85cac3aeab44d2908620c636a4cfc19f5fdf3619aa",
+      "source_relative_path": "v4/manager_research/research_attention.py"
+    },
+    {
+      "bytes": 28636,
+      "module": "_v4_manager_research_runtime.research_evidence",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/research_evidence.py",
+      "role": "copied_source",
+      "sha256": "d2539b676d5779d9369fd8aba187c0565fcc38dbb0e89596d1248668fda4a7d5",
+      "source_relative_path": "v4/manager_research/research_evidence.py"
+    },
+    {
+      "bytes": 3272,
+      "module": "_v4_manager_research_runtime.safety",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/safety.py",
+      "role": "copied_source",
+      "sha256": "c82fcdee6845e765783584f5ac46a9d4ca6b6b9fda1c3c2e919c17ab17c7f3e8",
+      "source_relative_path": "v4/manager_research/safety.py"
+    },
+    {
+      "bytes": 95180,
+      "module": "_v4_manager_research_runtime.service",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/service.py",
+      "role": "copied_source",
+      "sha256": "fead5098a4bf05bd88c41a61296e06029e3153dd6d5add9ebb101a3339f56431",
+      "source_relative_path": "v4/manager_research/service.py"
+    },
+    {
+      "bytes": 4332,
+      "module": "_v4_manager_research_runtime.stage_read_timing",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/stage_read_timing.py",
+      "role": "copied_source",
+      "sha256": "bfbab170b4e8b32e1bdd0405282825989f0382aeb41e6044fe22d0fdeca6ae38",
+      "source_relative_path": "v4/manager_research/stage_read_timing.py"
+    },
+    {
+      "bytes": 19988,
+      "module": "_v4_manager_research_runtime.store",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/store.py",
+      "role": "copied_source",
+      "sha256": "79e077d2133f8c0bd33dde253e752bc6482423565ec11e9217d88b86f02cc07e",
+      "source_relative_path": "v4/manager_research/store.py"
+    },
+    {
+      "bytes": 57938,
+      "module": "_v4_manager_research_runtime.us_mapping_research",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/us_mapping_research.py",
+      "role": "copied_source",
+      "sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+      "source_relative_path": "v4/manager_research/us_mapping_research.py"
+    },
+    {
+      "bytes": 14192,
+      "module": "_v4_manager_research_runtime.us_market_bridge",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/us_market_bridge.py",
+      "role": "copied_source",
+      "sha256": "46fcf3fce15dfce4ae45e8eefe2c9b619d884f602d4f5b4261f163755debf0ae",
+      "source_relative_path": "v4/manager_research/us_market_bridge.py"
+    },
+    {
+      "bytes": 2936,
+      "module": "_v4_manager_research_runtime.vibe_binding_preflight",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/vibe_binding_preflight.py",
+      "role": "copied_source",
+      "sha256": "b5b108f8e327b67ef43fd91ce33da936b2cfc7a67dae3b0f129071dff8c6554d",
+      "source_relative_path": "v4/manager_research/vibe_binding_preflight.py"
+    },
+    {
+      "bytes": 76096,
+      "module": "_v4_manager_research_runtime.workspace",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace.py",
+      "role": "copied_source",
+      "sha256": "eb3e8481397dde084daad39c86b8d4b0cb8b152a1fb1e2cc32278c7430e10e6f",
+      "source_relative_path": "v4/manager_research/workspace.py"
+    },
+    {
+      "bytes": 167803,
+      "module": "_v4_manager_research_runtime.workspace_announcements",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_announcements.py",
+      "role": "copied_source",
+      "sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+      "source_relative_path": "v4/manager_research/workspace_announcements.py"
+    },
+    {
+      "bytes": 32275,
+      "module": "_v4_manager_research_runtime.workspace_briefing",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_briefing.py",
+      "role": "copied_source",
+      "sha256": "60a7942e6c2c6a8ed32099ec807c79c35fa393342ed59996798f21da12466ff6",
+      "source_relative_path": "v4/manager_research/workspace_briefing.py"
+    },
+    {
+      "bytes": 12982,
+      "module": "_v4_manager_research_runtime.workspace_daily_channels",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_daily_channels.py",
+      "role": "copied_source",
+      "sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+      "source_relative_path": "v4/manager_research/workspace_daily_channels.py"
+    },
+    {
+      "bytes": 23129,
+      "module": "_v4_manager_research_runtime.workspace_discovery",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_discovery.py",
+      "role": "copied_source",
+      "sha256": "ed9188a44a4adb6bf2fd08836d465ed3ea7e7d2b8dd7075da99b7aaabc5c5c1a",
+      "source_relative_path": "v4/manager_research/workspace_discovery.py"
+    },
+    {
+      "bytes": 107076,
+      "module": "_v4_manager_research_runtime.workspace_plan",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_plan.py",
+      "role": "copied_source",
+      "sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+      "source_relative_path": "v4/manager_research/workspace_plan.py"
+    },
+    {
+      "bytes": 15547,
+      "module": "_v4_manager_research_runtime.workspace_plan_autorun",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_plan_autorun.py",
+      "role": "copied_source",
+      "sha256": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34",
+      "source_relative_path": "v4/manager_research/workspace_plan_autorun.py"
+    },
+    {
+      "bytes": 30841,
+      "module": "_v4_manager_research_runtime.workspace_projection",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_projection.py",
+      "role": "copied_source",
+      "sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+      "source_relative_path": "v4/manager_research/workspace_projection.py"
+    },
+    {
+      "bytes": 10927,
+      "module": "_v4_manager_research_runtime.workspace_read_control",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_read_control.py",
+      "role": "copied_source",
+      "sha256": "491e3569e8f00586ca6f4e9982e182584d2f2a0437f83da66767b7ffdbf1fb25",
+      "source_relative_path": "v4/manager_research/workspace_read_control.py"
+    },
+    {
+      "bytes": 33731,
+      "module": "_v4_manager_research_runtime.workspace_semantics",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_semantics.py",
+      "role": "copied_source",
+      "sha256": "dc8d1d330e4fdacf2ef7169a7ac62874bfd3e2658f8b4bcff0773e06e32c4f7f",
+      "source_relative_path": "v4/manager_research/workspace_semantics.py"
+    },
+    {
+      "bytes": null,
+      "module": "apps",
+      "namespace_paths": [
+        "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps"
+      ],
+      "path": null,
+      "role": "source_namespace",
+      "sha256": null
+    },
+    {
+      "bytes": 41,
+      "module": "apps.api",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/__init__.py",
+      "role": "copied_source",
+      "sha256": "ba6c324cbd4be60367b15bd3d6035c8165ee11c8ef9950d3282a0bb75849c991",
+      "source_relative_path": "apps/api/__init__.py"
+    },
+    {
+      "bytes": 33,
+      "module": "apps.api.v35_api",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/__init__.py",
+      "role": "copied_source",
+      "sha256": "36be136cf63bbecb7d53d4a7aaf22b0516b4a06523c77f4feaf054cde2d45312",
+      "source_relative_path": "apps/api/v35_api/__init__.py"
+    },
+    {
+      "bytes": 325468,
+      "module": "apps.api.v35_api.app",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/app.py",
+      "role": "copied_source",
+      "sha256": "e9888d03208124b978fb19a7147682ed65cb79f9d465d58a48191c3330f687f2",
+      "source_relative_path": "apps/api/v35_api/app.py"
+    },
+    {
+      "bytes": 2708,
+      "module": "apps.api.v35_api.baimao_router",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/baimao_router.py",
+      "role": "copied_source",
+      "sha256": "ca158864df1506a733c002d2e26bfb271de60eb0a9e34bcaeaea0f97a5192ae8",
+      "source_relative_path": "apps/api/v35_api/baimao_router.py"
+    },
+    {
+      "bytes": 35556,
+      "module": "apps.api.v35_api.manager_research_router",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/manager_research_router.py",
+      "role": "copied_source",
+      "sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+      "source_relative_path": "apps/api/v35_api/manager_research_router.py"
+    },
+    {
+      "bytes": 57619,
+      "module": "apps.api.v35_api.manager_workbench_router",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/manager_workbench_router.py",
+      "role": "copied_source",
+      "sha256": "95ccda85ff50d44cffbb18fc655e417f926c14b27a60cfa4c5fad17a3cbd1b5e",
+      "source_relative_path": "apps/api/v35_api/manager_workbench_router.py"
+    },
+    {
+      "bytes": 1322,
+      "module": "apps.api.v35_api.preselection_router",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/preselection_router.py",
+      "role": "copied_source",
+      "sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "source_relative_path": "apps/api/v35_api/preselection_router.py"
+    },
+    {
+      "bytes": 30761,
+      "module": "apps.api.v35_api.preselection_service",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/preselection_service.py",
+      "role": "copied_source",
+      "sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+      "source_relative_path": "apps/api/v35_api/preselection_service.py"
+    },
+    {
+      "bytes": 51992,
+      "module": "apps.api.v35_api.research_lane_router",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/research_lane_router.py",
+      "role": "copied_source",
+      "sha256": "4c923e9184f192852f74d3427c980e02d26ce1af2386a2e4d27dd77f06b5939a",
+      "source_relative_path": "apps/api/v35_api/research_lane_router.py"
+    },
+    {
+      "bytes": 28231,
+      "module": "apps.api.v35_api.research_router",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/research_router.py",
+      "role": "copied_source",
+      "sha256": "dd141afaa10f5c90c09be4cec093675f44d1030933b04d8b2d0dfbe67af11ea8",
+      "source_relative_path": "apps/api/v35_api/research_router.py"
+    },
+    {
+      "bytes": 42184,
+      "module": "apps.api.v35_api.review_router",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/review_router.py",
+      "role": "copied_source",
+      "sha256": "ef6e870077fecd1e025ec1a0741ec3f766b76ef914b60661e4f32937acc9e28d",
+      "source_relative_path": "apps/api/v35_api/review_router.py"
+    },
+    {
+      "bytes": 26824,
+      "module": "apps.api.v35_api.runtime_graph_router",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/runtime_graph_router.py",
+      "role": "copied_source",
+      "sha256": "9cc9be6bc929be53168f4115d808690b9560978129dff8557fb0c0a5d6ff9531",
+      "source_relative_path": "apps/api/v35_api/runtime_graph_router.py"
+    },
+    {
+      "bytes": 1707,
+      "module": "apps.api.v35_api.runtime_router",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/runtime_router.py",
+      "role": "copied_source",
+      "sha256": "b231a2202ec142ee5dc84dfb2b8b00252af3f85560f9b62c27d29d9fa73b49f2",
+      "source_relative_path": "apps/api/v35_api/runtime_router.py"
+    },
+    {
+      "bytes": 3103,
+      "module": "apps.api.v35_api.wechat_research_router",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/apps/api/v35_api/wechat_research_router.py",
+      "role": "copied_source",
+      "sha256": "9989c824ec154856857ba1513a0de3ba464420aa0cfed49c8ff0c2397078c091",
+      "source_relative_path": "apps/api/v35_api/wechat_research_router.py"
+    },
+    {
+      "bytes": 55,
+      "module": "contracts",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/contracts/__init__.py",
+      "role": "copied_source",
+      "sha256": "6334176641872990a56b559f965a9dc6d65f29ab0a0efc0752ef1a73fe42bc7d",
+      "source_relative_path": "contracts/__init__.py"
+    },
+    {
+      "bytes": 261,
+      "module": "contracts.a_share_review",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/contracts/a_share_review.py",
+      "role": "copied_source",
+      "sha256": "2c6b845aea3186a416eb12ab297bd3c242cc6cc248961b47e32f43d1f1192fa6",
+      "source_relative_path": "contracts/a_share_review.py"
+    },
+    {
+      "bytes": 4750,
+      "module": "contracts.close_timeline",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/contracts/close_timeline.py",
+      "role": "copied_source",
+      "sha256": "0088a4f5455d78283b8505ac2fed62b7ceb760cce86fb099d0052aee27d9e38e",
+      "source_relative_path": "contracts/close_timeline.py"
+    },
+    {
+      "bytes": 13060,
+      "module": "contracts.research",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/contracts/research.py",
+      "role": "copied_source",
+      "sha256": "cd71bdd8ac24037627520c3cca6f658e83fc4e51c8a7934f6c6c9222f4b2f3c1",
+      "source_relative_path": "contracts/research.py"
+    },
+    {
+      "bytes": 102936,
+      "module": "contracts.research_day_product",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/contracts/research_day_product.py",
+      "role": "copied_source",
+      "sha256": "f0e4d36e30259db6bf94bb3374241ce9d96ea04a4cf5eb18f74b871decef277d",
+      "source_relative_path": "contracts/research_day_product.py"
+    },
+    {
+      "bytes": 3350,
+      "module": "contracts.runtime_tasks",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/contracts/runtime_tasks.py",
+      "role": "copied_source",
+      "sha256": "f9923462342eaaeafba6255e9f8adda54f9852ea4996cf6da0cf82e4faf32965",
+      "source_relative_path": "contracts/runtime_tasks.py"
+    },
+    {
+      "bytes": 2036,
+      "module": "contracts.stages",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/contracts/stages.py",
+      "role": "copied_source",
+      "sha256": "d0ac1771a1005888e53e9a322da65f959cfbcbcc665357b8783d5eb4eda9c6df",
+      "source_relative_path": "contracts/stages.py"
+    },
+    {
+      "bytes": 10239,
+      "module": "contracts.trading_calendar",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/contracts/trading_calendar.py",
+      "role": "copied_source",
+      "sha256": "eca22a1e45271df45fc0a3b7cec28cec4e448d1af97b80371cc5c3c1953ec0f1",
+      "source_relative_path": "contracts/trading_calendar.py"
+    },
+    {
+      "bytes": 134,
+      "module": "contracts.trading_safety",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/contracts/trading_safety.py",
+      "role": "copied_source",
+      "sha256": "e2773e0a5b586c810b46d19219b5f96f465e29e36783d6be5e30abaf4d56b33b",
+      "source_relative_path": "contracts/trading_safety.py"
+    },
+    {
+      "bytes": 3603,
+      "module": "contracts.us_equity_calendar",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/contracts/us_equity_calendar.py",
+      "role": "copied_source",
+      "sha256": "73f223fb032e6c3a3a9f462f41b29fd029365ecfc98942bc5413a911faeba452",
+      "source_relative_path": "contracts/us_equity_calendar.py"
+    },
+    {
+      "bytes": null,
+      "module": "domains",
+      "namespace_paths": [
+        "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains"
+      ],
+      "path": null,
+      "role": "source_namespace",
+      "sha256": null
+    },
+    {
+      "bytes": 7038,
+      "module": "domains.a_share_review",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/a_share_review.py",
+      "role": "copied_source",
+      "sha256": "90845aa31a4cac828a0be73ff40a65c06d6a016dcdf0e723602e855311afceeb",
+      "source_relative_path": "domains/a_share_review.py"
+    },
+    {
+      "bytes": 11014,
+      "module": "domains.close_review",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/close_review.py",
+      "role": "copied_source",
+      "sha256": "24dd8ee1394844d464b06b2b46053d3551f9a088acede1031b5f18bf8ee997ab",
+      "source_relative_path": "domains/close_review.py"
+    },
+    {
+      "bytes": 10549,
+      "module": "domains.close_review_chain",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/close_review_chain.py",
+      "role": "copied_source",
+      "sha256": "207ed5f9c13531db66a54d0a3fd2f7502612aba3dcce8d5eb5a53f0291b4d63c",
+      "source_relative_path": "domains/close_review_chain.py"
+    },
+    {
+      "bytes": 16330,
+      "module": "domains.daily_research_review",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/daily_research_review.py",
+      "role": "copied_source",
+      "sha256": "8541ec2696de3aac718979b72658f946ebe5eeda27778e4e627c6b586adeeaea",
+      "source_relative_path": "domains/daily_research_review.py"
+    },
+    {
+      "bytes": 30940,
+      "module": "domains.manager_condition_evidence",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/manager_condition_evidence.py",
+      "role": "copied_source",
+      "sha256": "9e1c7a9fb04c7a3f00d11ba1c4c3c4922c86b6536190df7caa9d2205804ee3f6",
+      "source_relative_path": "domains/manager_condition_evidence.py"
+    },
+    {
+      "bytes": 30848,
+      "module": "domains.manager_research_evidence",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/manager_research_evidence.py",
+      "role": "copied_source",
+      "sha256": "4bfd8ec335eade9a97340fe17fc0742f2dba546d0e254fdfed2833ed324bb73d",
+      "source_relative_path": "domains/manager_research_evidence.py"
+    },
+    {
+      "bytes": 30730,
+      "module": "domains.opening_second_filter",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/opening_second_filter.py",
+      "role": "copied_source",
+      "sha256": "b413c9892aeddea22f4d35a9292b1cdd8684bfd252c93f80f5b0913ecc22dec7",
+      "source_relative_path": "domains/opening_second_filter.py"
+    },
+    {
+      "bytes": 54357,
+      "module": "domains.preselection",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/preselection.py",
+      "role": "copied_source",
+      "sha256": "8a21fa2caf27e06ea4b6526ff0dd7db99390dda007936aaf99ef8772e6e4305a",
+      "source_relative_path": "domains/preselection.py"
+    },
+    {
+      "bytes": 7899,
+      "module": "domains.report_subjects",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/report_subjects.py",
+      "role": "copied_source",
+      "sha256": "2e074143195b675eac110f4b2910bc9b143fe0357afe27a0c7d11013f1d30bf5",
+      "source_relative_path": "domains/report_subjects.py"
+    },
+    {
+      "bytes": 21832,
+      "module": "domains.research",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/research.py",
+      "role": "copied_source",
+      "sha256": "b77cc0d3c9ec36eeee3e6cab207945a783b0352a703efdb5c8e2f7f17966506f",
+      "source_relative_path": "domains/research.py"
+    },
+    {
+      "bytes": 65157,
+      "module": "domains.research_day_product",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/research_day_product.py",
+      "role": "copied_source",
+      "sha256": "de085c51b34946aedf9134fdb6edbbd48fee4dfb3386dab1d327768c4b73ea1f",
+      "source_relative_path": "domains/research_day_product.py"
+    },
+    {
+      "bytes": 4067,
+      "module": "domains.review_envelope",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/review_envelope.py",
+      "role": "copied_source",
+      "sha256": "f18cc6f9e8242447ad404255e89918f5a6a399073e13699ffb415235cd33314e",
+      "source_relative_path": "domains/review_envelope.py"
+    },
+    {
+      "bytes": 24730,
+      "module": "domains.review_evidence_layers",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/review_evidence_layers.py",
+      "role": "copied_source",
+      "sha256": "96886aa56318968625bfb57e484fde39ba267388591234fe7ed9e3f2939d77a7",
+      "source_relative_path": "domains/review_evidence_layers.py"
+    },
+    {
+      "bytes": 6201,
+      "module": "domains.runtime_policy",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/runtime_policy.py",
+      "role": "copied_source",
+      "sha256": "0575df80b82b7940505fd4509a09e6ac6588245cc1141143b11ac42b4b84a6d2",
+      "source_relative_path": "domains/runtime_policy.py"
+    },
+    {
+      "bytes": 13019,
+      "module": "domains.stage_input_producer",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/stage_input_producer.py",
+      "role": "copied_source",
+      "sha256": "63870feb84b47a20db45083bcc04a97fdd5a7671e5f0e240331ae6d65263ba4b",
+      "source_relative_path": "domains/stage_input_producer.py"
+    },
+    {
+      "bytes": 7643,
+      "module": "domains.stage_scoring",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/stage_scoring.py",
+      "role": "copied_source",
+      "sha256": "dd6e260e9306107f8690d56a48e60922e9e24c7f20ea30f4a5d643d91d1365b0",
+      "source_relative_path": "domains/stage_scoring.py"
+    },
+    {
+      "bytes": 26697,
+      "module": "domains.stages",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/stages.py",
+      "role": "copied_source",
+      "sha256": "4471307b06b5ebac34434c61364e59ff4c8f22005dffc8c7a4ddebf8445610c3",
+      "source_relative_path": "domains/stages.py"
+    },
+    {
+      "bytes": 26140,
+      "module": "domains.task_status",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/domains/task_status.py",
+      "role": "copied_source",
+      "sha256": "91031c6c671d363cc4fa9b4cab62887e4f9943564ed6128286097586ba83b8d5",
+      "source_relative_path": "domains/task_status.py"
+    },
+    {
+      "bytes": 68,
+      "module": "infrastructure",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/__init__.py",
+      "role": "copied_source",
+      "sha256": "46068d69d6783fdcd33b3428ae3c7e8e690d5149f4f00837f6b1d1184dd6f47b",
+      "source_relative_path": "infrastructure/__init__.py"
+    },
+    {
+      "bytes": 10176,
+      "module": "infrastructure.a_share_review_store",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/a_share_review_store.py",
+      "role": "copied_source",
+      "sha256": "ce22b5f217cf5c9ac0f71650ff88b3b17088580f79e9bac670be795ed8894482",
+      "source_relative_path": "infrastructure/a_share_review_store.py"
+    },
+    {
+      "bytes": 11106,
+      "module": "infrastructure.baimao_research_observation_store",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/baimao_research_observation_store.py",
+      "role": "copied_source",
+      "sha256": "e14eeecde58efceb5e9158476ff997a952bdb23dc8ae47afba14607e6ee42df7",
+      "source_relative_path": "infrastructure/baimao_research_observation_store.py"
+    },
+    {
+      "bytes": 1756,
+      "module": "infrastructure.baimao_source",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/baimao_source.py",
+      "role": "copied_source",
+      "sha256": "a16c69cbb01886b9b41020377f1b1f07b9a3d456382208db158cd6b79cb1c07b",
+      "source_relative_path": "infrastructure/baimao_source.py"
+    },
+    {
+      "bytes": 10704,
+      "module": "infrastructure.data_store",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/data_store.py",
+      "role": "copied_source",
+      "sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+      "source_relative_path": "infrastructure/data_store.py"
+    },
+    {
+      "bytes": 17448,
+      "module": "infrastructure.formula_generation",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/formula_generation.py",
+      "role": "copied_source",
+      "sha256": "0904603912d6257cb02f41dfaf66c080e2f682e690b1c1901a86a7bafe1e74f0",
+      "source_relative_path": "infrastructure/formula_generation.py"
+    },
+    {
+      "bytes": 3710,
+      "module": "infrastructure.futu_quote_provider",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/futu_quote_provider.py",
+      "role": "copied_source",
+      "sha256": "b8ce38b6e255a0048a0028024c6c5bb376762e906a2dc4602c32dcb1ac91faae",
+      "source_relative_path": "infrastructure/futu_quote_provider.py"
+    },
+    {
+      "bytes": 4178,
+      "module": "infrastructure.hkconnect_close_store",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/hkconnect_close_store.py",
+      "role": "copied_source",
+      "sha256": "aea05a0ec8b4b42e6c140715fb1bf80ffcf49ded1f25f5bb59bc3c952bce4bf8",
+      "source_relative_path": "infrastructure/hkconnect_close_store.py"
+    },
+    {
+      "bytes": 7649,
+      "module": "infrastructure.hkconnect_stage_replay_provider",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/hkconnect_stage_replay_provider.py",
+      "role": "copied_source",
+      "sha256": "cbd6704b33963907262af10d1252de18c394fe1c4d6f3ae91746707a1c16b08f",
+      "source_relative_path": "infrastructure/hkconnect_stage_replay_provider.py"
+    },
+    {
+      "bytes": 7514,
+      "module": "infrastructure.interprocess_lock",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/interprocess_lock.py",
+      "role": "copied_source",
+      "sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+      "source_relative_path": "infrastructure/interprocess_lock.py"
+    },
+    {
+      "bytes": 6946,
+      "module": "infrastructure.isolated_package_loader",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/isolated_package_loader.py",
+      "role": "copied_source",
+      "sha256": "c714d4b95c03da061f592e076cd12188dbeefcd9f0fae7aeaae18c0450e915eb",
+      "source_relative_path": "infrastructure/isolated_package_loader.py"
+    },
+    {
+      "bytes": 10179,
+      "module": "infrastructure.manager_input_attestation",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/manager_input_attestation.py",
+      "role": "copied_source",
+      "sha256": "d26211fd83db00c551be6c11d3bbed58d13d1db054d99699fc377ee5c335f3cc",
+      "source_relative_path": "infrastructure/manager_input_attestation.py"
+    },
+    {
+      "bytes": 960,
+      "module": "infrastructure.market_time",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/market_time.py",
+      "role": "copied_source",
+      "sha256": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+      "source_relative_path": "infrastructure/market_time.py"
+    },
+    {
+      "bytes": 3721,
+      "module": "infrastructure.opening_second_filter_store",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/opening_second_filter_store.py",
+      "role": "copied_source",
+      "sha256": "aff6baea4250d109772787a106d934e121af92ce933b13c83cc3baad90653fa8",
+      "source_relative_path": "infrastructure/opening_second_filter_store.py"
+    },
+    {
+      "bytes": 9354,
+      "module": "infrastructure.owned_io",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/owned_io.py",
+      "role": "copied_source",
+      "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+      "source_relative_path": "infrastructure/owned_io.py"
+    },
+    {
+      "bytes": 2251,
+      "module": "infrastructure.owned_path",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/owned_path.py",
+      "role": "copied_source",
+      "sha256": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+      "source_relative_path": "infrastructure/owned_path.py"
+    },
+    {
+      "bytes": 30341,
+      "module": "infrastructure.preselection_pool_store",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/preselection_pool_store.py",
+      "role": "copied_source",
+      "sha256": "c96db1543e8b28e640b3c2d2a64aaae6a96d9a2a4a2401ca2780519233805171",
+      "source_relative_path": "infrastructure/preselection_pool_store.py"
+    },
+    {
+      "bytes": 24125,
+      "module": "infrastructure.research_lane_source",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/research_lane_source.py",
+      "role": "copied_source",
+      "sha256": "2a58fe0db5c5d7915e7dbc884b8720e7d32a8c0084fe5e78b0e9e37f9e738cd4",
+      "source_relative_path": "infrastructure/research_lane_source.py"
+    },
+    {
+      "bytes": 73460,
+      "module": "infrastructure.research_peripheral_store",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/research_peripheral_store.py",
+      "role": "copied_source",
+      "sha256": "1bcb74e9194932d5ec3d6ac24d7ec42979532cf495b270a1a04b09082706f4fe",
+      "source_relative_path": "infrastructure/research_peripheral_store.py"
+    },
+    {
+      "bytes": 172644,
+      "module": "infrastructure.research_store",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/research_store.py",
+      "role": "copied_source",
+      "sha256": "471ad4ceb0c34f080da674d147df5bb96045c5e7998ab41ba2845297ab63ab6f",
+      "source_relative_path": "infrastructure/research_store.py"
+    },
+    {
+      "bytes": 11823,
+      "module": "infrastructure.review_core_fupan_pool_source",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/review_core_fupan_pool_source.py",
+      "role": "copied_source",
+      "sha256": "59676076abc2844dbae5c09f683b56473d43df66c5de4bf0b2c3bdf2a95e8182",
+      "source_relative_path": "infrastructure/review_core_fupan_pool_source.py"
+    },
+    {
+      "bytes": 14016,
+      "module": "infrastructure.review_core_stage7_pool_source",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/review_core_stage7_pool_source.py",
+      "role": "copied_source",
+      "sha256": "cc0e4c86935086d6338755e2d97d4f51b2eedc878b514e1fa616ca599a053981",
+      "source_relative_path": "infrastructure/review_core_stage7_pool_source.py"
+    },
+    {
+      "bytes": 7378,
+      "module": "infrastructure.review_store",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/review_store.py",
+      "role": "copied_source",
+      "sha256": "12278920fe02965163916ac9e1bc8143fb42d7aa4e05e8c90cf02afb9e5d399c",
+      "source_relative_path": "infrastructure/review_store.py"
+    },
+    {
+      "bytes": 40,
+      "module": "infrastructure.runtime_graph",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/__init__.py",
+      "role": "copied_source",
+      "sha256": "d42d3c1cb4fd90bfbde8f17aa928a7f5526a065bd4ea133c35e0962b69b60099",
+      "source_relative_path": "infrastructure/runtime_graph/__init__.py"
+    },
+    {
+      "bytes": 19351,
+      "module": "infrastructure.runtime_graph.bindings",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/bindings.py",
+      "role": "copied_source",
+      "sha256": "2a5aa2ed1dbe349253ae45a2e8fd7ac74ff51af75c719117239c266fa88f459f",
+      "source_relative_path": "infrastructure/runtime_graph/bindings.py"
+    },
+    {
+      "bytes": 27149,
+      "module": "infrastructure.runtime_graph.collectors",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/collectors.py",
+      "role": "copied_source",
+      "sha256": "3d0db27410407f9618f7b0f2372e823cd2f841bad6c27ac436a8ee89f0bbecf2",
+      "source_relative_path": "infrastructure/runtime_graph/collectors.py"
+    },
+    {
+      "bytes": 5401,
+      "module": "infrastructure.runtime_graph.contracts",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/contracts.py",
+      "role": "copied_source",
+      "sha256": "f67ad4333b9dd329e1b58e871acf4b12f255f1896e1404314eb1a72224596c12",
+      "source_relative_path": "infrastructure/runtime_graph/contracts.py"
+    },
+    {
+      "bytes": 1267,
+      "module": "infrastructure.runtime_graph.evidence_requirements",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/evidence_requirements.py",
+      "role": "copied_source",
+      "sha256": "ede42401ee123f1414b844d03fcb0c41b6c42b03cf4a409dff03c7ba9afb2adf",
+      "source_relative_path": "infrastructure/runtime_graph/evidence_requirements.py"
+    },
+    {
+      "bytes": 4019,
+      "module": "infrastructure.runtime_graph.http_client",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/http_client.py",
+      "role": "copied_source",
+      "sha256": "f8b3c3e32d94a7883016f0d6734fac61c6c6c290d83aea59a194917067e7dd13",
+      "source_relative_path": "infrastructure/runtime_graph/http_client.py"
+    },
+    {
+      "bytes": 32578,
+      "module": "infrastructure.runtime_graph.repair",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/repair.py",
+      "role": "copied_source",
+      "sha256": "11eed8d00118177b296be6e7834324c3d189bc0265e25306c88d5daf81d8d55b",
+      "source_relative_path": "infrastructure/runtime_graph/repair.py"
+    },
+    {
+      "bytes": 53489,
+      "module": "infrastructure.runtime_graph.service",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/service.py",
+      "role": "copied_source",
+      "sha256": "4002a3a7fb4c80d44825ed491d2a0be3a94de53d793169a4d5e7751babab9f86",
+      "source_relative_path": "infrastructure/runtime_graph/service.py"
+    },
+    {
+      "bytes": 7054,
+      "module": "infrastructure.runtime_graph.snapshot",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/snapshot.py",
+      "role": "copied_source",
+      "sha256": "311d261662de873884ef2425777155719d8ac2981ecc057703acf39021db2bb6",
+      "source_relative_path": "infrastructure/runtime_graph/snapshot.py"
+    },
+    {
+      "bytes": 47301,
+      "module": "infrastructure.runtime_graph.store",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/store.py",
+      "role": "copied_source",
+      "sha256": "0b9d4562730de81fcae5beb4c4594901b9adfce9bddb74068eb2008f42b30d3a",
+      "source_relative_path": "infrastructure/runtime_graph/store.py"
+    },
+    {
+      "bytes": 17369,
+      "module": "infrastructure.runtime_graph.topology",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/topology.py",
+      "role": "copied_source",
+      "sha256": "a14b3de14b5d7cb5baf8871e6c96048bf69fad9014b78638fd7c3a2acbb31638",
+      "source_relative_path": "infrastructure/runtime_graph/topology.py"
+    },
+    {
+      "bytes": 16650,
+      "module": "infrastructure.runtime_graph.v35_api_evidence",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/v35_api_evidence.py",
+      "role": "copied_source",
+      "sha256": "20f0f4ad476a7ecc70d7856ec89da2daf668f17cb4678e2d02503b1180c14432",
+      "source_relative_path": "infrastructure/runtime_graph/v35_api_evidence.py"
+    },
+    {
+      "bytes": 19485,
+      "module": "infrastructure.runtime_graph.v35_native_evidence",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/v35_native_evidence.py",
+      "role": "copied_source",
+      "sha256": "a35faf786039d541f646d2334ff742144f6b4fa3de4ed5716196d118c5089e84",
+      "source_relative_path": "infrastructure/runtime_graph/v35_native_evidence.py"
+    },
+    {
+      "bytes": 11502,
+      "module": "infrastructure.runtime_graph.v35_validators",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/v35_validators.py",
+      "role": "copied_source",
+      "sha256": "1033c6f942533481045e568dd7ea7dd81d7b1fb04d1e0ecb1fe58aab5b24ed6b",
+      "source_relative_path": "infrastructure/runtime_graph/v35_validators.py"
+    },
+    {
+      "bytes": 21423,
+      "module": "infrastructure.runtime_graph.validators",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/runtime_graph/validators.py",
+      "role": "copied_source",
+      "sha256": "377ba5dd11b1d5945b2244fba7f8a219f4b86a4e414f9fa7caa3d0cb41ca7a25",
+      "source_relative_path": "infrastructure/runtime_graph/validators.py"
+    },
+    {
+      "bytes": 348,
+      "module": "infrastructure.scheduling",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/scheduling/__init__.py",
+      "role": "copied_source",
+      "sha256": "66f43516bae3998546285e3c757925a2d8c04c157f17309f13d53eef0668a425",
+      "source_relative_path": "infrastructure/scheduling/__init__.py"
+    },
+    {
+      "bytes": 11044,
+      "module": "infrastructure.scheduling.catalog",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/scheduling/catalog.py",
+      "role": "copied_source",
+      "sha256": "96c1b7ec2a3c9a94b7f6ac094a5d0ad12ab3c92287201cc7143b42386846a417",
+      "source_relative_path": "infrastructure/scheduling/catalog.py"
+    },
+    {
+      "bytes": 18368,
+      "module": "infrastructure.scheduling.dispatcher",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/scheduling/dispatcher.py",
+      "role": "copied_source",
+      "sha256": "7e61cbb234246bd88c9325fb0641c4bbead10debed09b924298e406b06854668",
+      "source_relative_path": "infrastructure/scheduling/dispatcher.py"
+    },
+    {
+      "bytes": 22725,
+      "module": "infrastructure.scheduling.execution_ledger",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/scheduling/execution_ledger.py",
+      "role": "copied_source",
+      "sha256": "966fba07ec9d32abcab5435441e4e574002bcdd7b63d6494ff94d7a7e7018007",
+      "source_relative_path": "infrastructure/scheduling/execution_ledger.py"
+    },
+    {
+      "bytes": 101560,
+      "module": "infrastructure.scheduling.executor_registry",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/scheduling/executor_registry.py",
+      "role": "copied_source",
+      "sha256": "f462a3254c15cfe9043783b6e07c88781ea4a3151a652c02509da3f2d9b870c9",
+      "source_relative_path": "infrastructure/scheduling/executor_registry.py"
+    },
+    {
+      "bytes": 7976,
+      "module": "infrastructure.shared_morning_news_reader",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/shared_morning_news_reader.py",
+      "role": "copied_source",
+      "sha256": "6f99c9052c93484c6ce6e70b6c2978be53b23f57c0f4e2cd68140982929c1938",
+      "source_relative_path": "infrastructure/shared_morning_news_reader.py"
+    },
+    {
+      "bytes": 12082,
+      "module": "infrastructure.stage_quote_provider",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/stage_quote_provider.py",
+      "role": "copied_source",
+      "sha256": "5d72b15bb39657289426a83e9f2d819f9f5476dde91e37703c7ee4ab53c53f47",
+      "source_relative_path": "infrastructure/stage_quote_provider.py"
+    },
+    {
+      "bytes": 24016,
+      "module": "infrastructure.stage_store",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/stage_store.py",
+      "role": "copied_source",
+      "sha256": "00d3dca6b90f86b7a6f6707f3150f2189e2eb15fcbb7eb5198db4ffd5e0392c4",
+      "source_relative_path": "infrastructure/stage_store.py"
+    },
+    {
+      "bytes": 13527,
+      "module": "infrastructure.tdx_minute_replay_provider",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/tdx_minute_replay_provider.py",
+      "role": "copied_source",
+      "sha256": "4bb95a22d880ce2c1074c3888ac9b546219b77a78b453610fc94dbf73221c8e6",
+      "source_relative_path": "infrastructure/tdx_minute_replay_provider.py"
+    },
+    {
+      "bytes": 2597,
+      "module": "infrastructure.trading_safety",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/trading_safety.py",
+      "role": "copied_source",
+      "sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+      "source_relative_path": "infrastructure/trading_safety.py"
+    },
+    {
+      "bytes": 50739,
+      "module": "infrastructure.wechat_research_archive",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/infrastructure/wechat_research_archive.py",
+      "role": "copied_source",
+      "sha256": "025052da29182a6136ac2de9168975379e3991583561de8a1f5766ca2eee2abf",
+      "source_relative_path": "infrastructure/wechat_research_archive.py"
+    },
+    {
+      "bytes": null,
+      "module": "ops",
+      "namespace_paths": [
+        "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/ops"
+      ],
+      "path": null,
+      "role": "source_namespace",
+      "sha256": null
+    },
+    {
+      "bytes": 27110,
+      "module": "ops.daily_materialize",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/ops/daily_materialize.py",
+      "role": "copied_source",
+      "sha256": "e350f409b291bee26e2218dc0ace6436d7a85cc48a20569f7e6f3e987bb265d4",
+      "source_relative_path": "ops/daily_materialize.py"
+    },
+    {
+      "bytes": 42252,
+      "module": "ops.manager_announcement_body_batch",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/ops/manager_announcement_body_batch.py",
+      "role": "copied_source",
+      "sha256": "7e37ed7e904d80c135a51bdff1aaa95aec02012eecfcfdc8a1770fa31297cbdb",
+      "source_relative_path": "ops/manager_announcement_body_batch.py"
+    },
+    {
+      "bytes": 42910,
+      "module": "ops.run_manager_daily_announcement",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/delivery/manager-four-functional-repair-20261009-r1/tests/support/app/ops/run_manager_daily_announcement.py",
+      "role": "test_only_prior_delivered_cli",
+      "sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38"
+    },
+    {
+      "bytes": 1098,
+      "module": "stage_center",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/stage_center/__init__.py",
+      "role": "copied_source",
+      "sha256": "f5bc18e6c6143feaa23627ac8b66885810adbf77fb2135a295526fd188949955",
+      "source_relative_path": "stage_center/__init__.py"
+    },
+    {
+      "bytes": 13342,
+      "module": "stage_center.acquisition",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/stage_center/acquisition.py",
+      "role": "copied_source",
+      "sha256": "33e5003faed8127ec3393eb36af473c0d63ee3a79843418ef1a950ce7b697397",
+      "source_relative_path": "stage_center/acquisition.py"
+    },
+    {
+      "bytes": 4721,
+      "module": "stage_center.calendar",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/stage_center/calendar.py",
+      "role": "copied_source",
+      "sha256": "681aae5b50acb89620998acda372531971bd26ae346f0334f37ea6e5b1de8124",
+      "source_relative_path": "stage_center/calendar.py"
+    },
+    {
+      "bytes": 17567,
+      "module": "stage_center.candidate_input",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/stage_center/candidate_input.py",
+      "role": "copied_source",
+      "sha256": "59c6bb0ef13a5aaa576477708385ec4ac68b7d20a69e3fc61d984da4a8284aff",
+      "source_relative_path": "stage_center/candidate_input.py"
+    },
+    {
+      "bytes": 33874,
+      "module": "stage_center.consumer",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/stage_center/consumer.py",
+      "role": "copied_source",
+      "sha256": "61f8a3541aa7a2e698cc4374385e3d20d41b40ffd5a3cd7d87c9494cb8726cf4",
+      "source_relative_path": "stage_center/consumer.py"
+    },
+    {
+      "bytes": 2331,
+      "module": "stage_center.contracts",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/stage_center/contracts.py",
+      "role": "copied_source",
+      "sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+      "source_relative_path": "stage_center/contracts.py"
+    },
+    {
+      "bytes": 7682,
+      "module": "stage_center.execution_evidence",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/stage_center/execution_evidence.py",
+      "role": "copied_source",
+      "sha256": "e4c4ea94d892158383620beab1825014f21e926b57907354475f8c9ff382704b",
+      "source_relative_path": "stage_center/execution_evidence.py"
+    },
+    {
+      "bytes": 33445,
+      "module": "stage_center.raw_store",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/stage_center/raw_store.py",
+      "role": "copied_source",
+      "sha256": "2dea717cb65053c48b75468fd61508b3b61b421a6b528aa8ce93395e99aef547",
+      "source_relative_path": "stage_center/raw_store.py"
+    },
+    {
+      "bytes": 6849,
+      "module": "stage_center.scheduler",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/stage_center/scheduler.py",
+      "role": "copied_source",
+      "sha256": "e56651ec7bb481b28e383cb403d60ba48747ddf7426f9fb380f5ae24fc3a37a4",
+      "source_relative_path": "stage_center/scheduler.py"
+    },
+    {
+      "bytes": 92532,
+      "module": "stage_center.selection",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/stage_center/selection.py",
+      "role": "copied_source",
+      "sha256": "31e80e068890be03957920870719030463262c78911953541be3074f8650d4c9",
+      "source_relative_path": "stage_center/selection.py"
+    },
+    {
+      "bytes": 27976,
+      "module": "test_manager_four_hk_readers",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/tests/test_manager_four_hk_readers.py",
+      "role": "bundled_regression_test",
+      "sha256": "f06188bc8f9d3e03daba8c255c8615c4ebcfafe72c2d8c482210849f6f24b448",
+      "source_relative_path": "tests/test_manager_four_hk_readers.py"
+    },
+    {
+      "bytes": 19113,
+      "module": "test_manager_us_mapping_research",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/delivery/manager-four-functional-repair-20261009-r1/tests/support/app/tests/test_manager_us_mapping_research.py",
+      "role": "test_only_fixture_helper",
+      "sha256": "1c077f679083252b11d07c1499081304e7a3200b2d170baa682ade18be718dcc"
+    },
+    {
+      "bytes": 17508,
+      "module": "tests.test_manager_four_announcement_integration",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/tests/test_manager_four_announcement_integration.py",
+      "role": "bundled_regression_test",
+      "sha256": "d44e07587ea0ee39d88b47eb08f1cca3fba173a952f6fe40d034ee13ce2ba0ce",
+      "source_relative_path": "tests/test_manager_four_announcement_integration.py"
+    },
+    {
+      "bytes": 8229,
+      "module": "tests.test_manager_four_app_wiring",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/tests/test_manager_four_app_wiring.py",
+      "role": "bundled_regression_test",
+      "sha256": "fc7ce174c2f4e8860174553a5d47f92d16556293f1e7b5eed66a38fa26b34564",
+      "source_relative_path": "tests/test_manager_four_app_wiring.py"
+    },
+    {
+      "bytes": 27976,
+      "module": "tests.test_manager_four_hk_readers",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/tests/test_manager_four_hk_readers.py",
+      "role": "bundled_regression_test",
+      "sha256": "f06188bc8f9d3e03daba8c255c8615c4ebcfafe72c2d8c482210849f6f24b448",
+      "source_relative_path": "tests/test_manager_four_hk_readers.py"
+    },
+    {
+      "bytes": 22594,
+      "module": "tests.test_manager_four_plan_owner_readback",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/tests/test_manager_four_plan_owner_readback.py",
+      "role": "bundled_regression_test",
+      "sha256": "dfb00aa70bea9f36ff700e6c5e0ca8e6fbb30a972b04865c061424ea081e623a",
+      "source_relative_path": "tests/test_manager_four_plan_owner_readback.py"
+    },
+    {
+      "bytes": null,
+      "module": "upstreams",
+      "namespace_paths": [
+        "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/upstreams"
+      ],
+      "path": null,
+      "role": "source_namespace",
+      "sha256": null
+    },
+    {
+      "bytes": null,
+      "module": "upstreams.v3_shared_data",
+      "namespace_paths": [
+        "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/upstreams/v3_shared_data"
+      ],
+      "path": null,
+      "role": "source_namespace",
+      "sha256": null
+    },
+    {
+      "bytes": 446,
+      "module": "upstreams.v3_shared_data.shared_data",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/upstreams/v3_shared_data/shared_data/__init__.py",
+      "role": "copied_source",
+      "sha256": "f5925bc479203da8b7f7f81bae26334035b254ee6c2e2b598c81d804f519f9e4",
+      "source_relative_path": "upstreams/v3_shared_data/shared_data/__init__.py"
+    },
+    {
+      "bytes": 3011,
+      "module": "upstreams.v3_shared_data.shared_data.allowlist",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/upstreams/v3_shared_data/shared_data/allowlist.py",
+      "role": "copied_source",
+      "sha256": "a5e307f15416fe422a0ad36f60d6996f6a3f74753581dc589ef93149178dd206",
+      "source_relative_path": "upstreams/v3_shared_data/shared_data/allowlist.py"
+    },
+    {
+      "bytes": 8200,
+      "module": "upstreams.v3_shared_data.shared_data.collectors",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/upstreams/v3_shared_data/shared_data/collectors.py",
+      "role": "copied_source",
+      "sha256": "f59dc7f70939a033fcde715aef33c5e063cb10b20c98caf17ee3a42c4884c159",
+      "source_relative_path": "upstreams/v3_shared_data/shared_data/collectors.py"
+    },
+    {
+      "bytes": 2604,
+      "module": "upstreams.v3_shared_data.shared_data.constants",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/upstreams/v3_shared_data/shared_data/constants.py",
+      "role": "copied_source",
+      "sha256": "706ea95054bcfcf3bab12a234e79a1d25bb412ba32ab0e5b5a6f3f3f6b725df8",
+      "source_relative_path": "upstreams/v3_shared_data/shared_data/constants.py"
+    },
+    {
+      "bytes": 1027,
+      "module": "upstreams.v3_shared_data.shared_data.hashing",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/upstreams/v3_shared_data/shared_data/hashing.py",
+      "role": "copied_source",
+      "sha256": "d4bce5d9337f07ec8c3594367b0203f4eb8de71b5380f14734b5944cf45dcca6",
+      "source_relative_path": "upstreams/v3_shared_data/shared_data/hashing.py"
+    },
+    {
+      "bytes": 18863,
+      "module": "upstreams.v3_shared_data.shared_data.hk_security_master",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "role": "copied_source",
+      "sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+      "source_relative_path": "upstreams/v3_shared_data/shared_data/hk_security_master.py"
+    },
+    {
+      "bytes": 3986,
+      "module": "upstreams.v3_shared_data.shared_data.paths",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/upstreams/v3_shared_data/shared_data/paths.py",
+      "role": "copied_source",
+      "sha256": "3007691db34aa721cf9549e79d9f9782bf7490ccb5d9f6ca2895f968525afdb3",
+      "source_relative_path": "upstreams/v3_shared_data/shared_data/paths.py"
+    },
+    {
+      "bytes": 27895,
+      "module": "upstreams.v3_shared_data.shared_data.store",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/upstreams/v3_shared_data/shared_data/store.py",
+      "role": "copied_source",
+      "sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+      "source_relative_path": "upstreams/v3_shared_data/shared_data/store.py"
+    },
+    {
+      "bytes": null,
+      "module": "v3_shared_data",
+      "namespace_paths": [
+        "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v3_shared_data"
+      ],
+      "path": null,
+      "role": "source_namespace",
+      "sha256": null
+    },
+    {
+      "bytes": 446,
+      "module": "v3_shared_data.shared_data",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v3_shared_data/shared_data/__init__.py",
+      "role": "copied_source",
+      "sha256": "f5925bc479203da8b7f7f81bae26334035b254ee6c2e2b598c81d804f519f9e4",
+      "source_relative_path": "v3_shared_data/shared_data/__init__.py"
+    },
+    {
+      "bytes": 3011,
+      "module": "v3_shared_data.shared_data.allowlist",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v3_shared_data/shared_data/allowlist.py",
+      "role": "copied_source",
+      "sha256": "a5e307f15416fe422a0ad36f60d6996f6a3f74753581dc589ef93149178dd206",
+      "source_relative_path": "v3_shared_data/shared_data/allowlist.py"
+    },
+    {
+      "bytes": 8200,
+      "module": "v3_shared_data.shared_data.collectors",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v3_shared_data/shared_data/collectors.py",
+      "role": "copied_source",
+      "sha256": "f59dc7f70939a033fcde715aef33c5e063cb10b20c98caf17ee3a42c4884c159",
+      "source_relative_path": "v3_shared_data/shared_data/collectors.py"
+    },
+    {
+      "bytes": 2604,
+      "module": "v3_shared_data.shared_data.constants",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v3_shared_data/shared_data/constants.py",
+      "role": "copied_source",
+      "sha256": "706ea95054bcfcf3bab12a234e79a1d25bb412ba32ab0e5b5a6f3f3f6b725df8",
+      "source_relative_path": "v3_shared_data/shared_data/constants.py"
+    },
+    {
+      "bytes": 1027,
+      "module": "v3_shared_data.shared_data.hashing",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v3_shared_data/shared_data/hashing.py",
+      "role": "copied_source",
+      "sha256": "d4bce5d9337f07ec8c3594367b0203f4eb8de71b5380f14734b5944cf45dcca6",
+      "source_relative_path": "v3_shared_data/shared_data/hashing.py"
+    },
+    {
+      "bytes": 3986,
+      "module": "v3_shared_data.shared_data.paths",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v3_shared_data/shared_data/paths.py",
+      "role": "copied_source",
+      "sha256": "3007691db34aa721cf9549e79d9f9782bf7490ccb5d9f6ca2895f968525afdb3",
+      "source_relative_path": "v3_shared_data/shared_data/paths.py"
+    },
+    {
+      "bytes": 27895,
+      "module": "v3_shared_data.shared_data.store",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v3_shared_data/shared_data/store.py",
+      "role": "copied_source",
+      "sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+      "source_relative_path": "v3_shared_data/shared_data/store.py"
+    },
+    {
+      "bytes": 75,
+      "module": "v4",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/__init__.py",
+      "role": "copied_source",
+      "sha256": "4032724b98ed267185b12b8ec78dd9bcb0423ab1c89a6f0dad99397fd51159d9",
+      "source_relative_path": "v4/__init__.py"
+    },
+    {
+      "bytes": 1005,
+      "module": "v4.manager_research",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/__init__.py",
+      "role": "copied_source",
+      "sha256": "7902d6b467cacfa763ca6adef297b823c924c573cdb79df2c2e04ec758c38cc4",
+      "source_relative_path": "v4/manager_research/__init__.py"
+    },
+    {
+      "bytes": 68733,
+      "module": "v4.manager_research.announcement_analysis",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/announcement_analysis.py",
+      "role": "copied_source",
+      "sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+      "source_relative_path": "v4/manager_research/announcement_analysis.py"
+    },
+    {
+      "bytes": 30995,
+      "module": "v4.manager_research.announcement_catalog",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/announcement_catalog.py",
+      "role": "copied_source",
+      "sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68",
+      "source_relative_path": "v4/manager_research/announcement_catalog.py"
+    },
+    {
+      "bytes": 10727,
+      "module": "v4.manager_research.announcement_materials",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/announcement_materials.py",
+      "role": "copied_source",
+      "sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+      "source_relative_path": "v4/manager_research/announcement_materials.py"
+    },
+    {
+      "bytes": 5599,
+      "module": "v4.manager_research.announcement_observation",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/announcement_observation.py",
+      "role": "copied_source",
+      "sha256": "8e58cab8e9e398d7c628c2f994a5005442d3a6c5ba5f218a155d949b8af74f54",
+      "source_relative_path": "v4/manager_research/announcement_observation.py"
+    },
+    {
+      "bytes": 16007,
+      "module": "v4.manager_research.announcement_selection",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/announcement_selection.py",
+      "role": "copied_source",
+      "sha256": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21",
+      "source_relative_path": "v4/manager_research/announcement_selection.py"
+    },
+    {
+      "bytes": 47475,
+      "module": "v4.manager_research.announcement_source",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/announcement_source.py",
+      "role": "copied_source",
+      "sha256": "4e5a03048c3791ef65a4ef4eef37c75f5fc30ebb41615984e302b2b6d6666f2b",
+      "source_relative_path": "v4/manager_research/announcement_source.py"
+    },
+    {
+      "bytes": 9179,
+      "module": "v4.manager_research.attention_decision",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/attention_decision.py",
+      "role": "copied_source",
+      "sha256": "4b84e0469a5267771ccfe9f9f5040fc829e82f7a1b24afdeed11ebef0cb7d640",
+      "source_relative_path": "v4/manager_research/attention_decision.py"
+    },
+    {
+      "bytes": 1949,
+      "module": "v4.manager_research.cache_contract",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/cache_contract.py",
+      "role": "copied_source",
+      "sha256": "0dabc0d2787fae9af2e3c0fb3f5bf3e49c71d28649ffd30c07c31f5e8d071b7f",
+      "source_relative_path": "v4/manager_research/cache_contract.py"
+    },
+    {
+      "bytes": 27868,
+      "module": "v4.manager_research.catalyst_observations",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/catalyst_observations.py",
+      "role": "copied_source",
+      "sha256": "9b1b4ecabc635c24580ba85fc293911f635ad056b8bf49a5feaa3adc1db5057f",
+      "source_relative_path": "v4/manager_research/catalyst_observations.py"
+    },
+    {
+      "bytes": 15975,
+      "module": "v4.manager_research.catalyst_projection",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/catalyst_projection.py",
+      "role": "copied_source",
+      "sha256": "f0824db4b6ca7723c0e4ec47d6a34f9c1bb32a7c978974da0149ff525f5e7e13",
+      "source_relative_path": "v4/manager_research/catalyst_projection.py"
+    },
+    {
+      "bytes": 19016,
+      "module": "v4.manager_research.connect_selection",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/connect_selection.py",
+      "role": "copied_source",
+      "sha256": "45f33a4531e1f72120155a4cfba92cb7866d1d9c8ee9f5e00c174bb081104553",
+      "source_relative_path": "v4/manager_research/connect_selection.py"
+    },
+    {
+      "bytes": 12756,
+      "module": "v4.manager_research.contracts",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/contracts.py",
+      "role": "copied_source",
+      "sha256": "d90f0027a8383f20a299e3058d69716e62737e9e5300afc61a8ef2ed949d402f",
+      "source_relative_path": "v4/manager_research/contracts.py"
+    },
+    {
+      "bytes": 263,
+      "module": "v4.manager_research.errors",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/errors.py",
+      "role": "copied_source",
+      "sha256": "324e0f53301d4ba1007e1a69c86559472347bb7124f6c216f2b3c18e2c80bc1a",
+      "source_relative_path": "v4/manager_research/errors.py"
+    },
+    {
+      "bytes": 92966,
+      "module": "v4.manager_research.event_source",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/event_source.py",
+      "role": "copied_source",
+      "sha256": "a61bcc463b5c0cffdd4dbb4b5d6c8fe17315119dd07c221b95911ec1233d5585",
+      "source_relative_path": "v4/manager_research/event_source.py"
+    },
+    {
+      "bytes": 5276,
+      "module": "v4.manager_research.evidence_identity",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/evidence_identity.py",
+      "role": "copied_source",
+      "sha256": "6ff16b31c8e23f3bbceea7acc22cf866afc29db6f9f67158381cec2c23b3d053",
+      "source_relative_path": "v4/manager_research/evidence_identity.py"
+    },
+    {
+      "bytes": 30245,
+      "module": "v4.manager_research.existing_materials",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/existing_materials.py",
+      "role": "copied_source",
+      "sha256": "88144b666e4a78ef46513f6eaf9846367ad0189478d9b3b85b9ac8124a5ca6e1",
+      "source_relative_path": "v4/manager_research/existing_materials.py"
+    },
+    {
+      "bytes": 37491,
+      "module": "v4.manager_research.financial_projection",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/financial_projection.py",
+      "role": "copied_source",
+      "sha256": "c5aec263ae59791fe28e07ab38ac0062b39563a2a7006d6840dde43580e3372c",
+      "source_relative_path": "v4/manager_research/financial_projection.py"
+    },
+    {
+      "bytes": 40133,
+      "module": "v4.manager_research.hkex_provider",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/hkex_provider.py",
+      "role": "copied_source",
+      "sha256": "7bc565f9c7a210bc4966622cfde60875ec9f002f7b38a5d9063c467a9499d56d",
+      "source_relative_path": "v4/manager_research/hkex_provider.py"
+    },
+    {
+      "bytes": 15558,
+      "module": "v4.manager_research.issuer_us_relations",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/issuer_us_relations.py",
+      "role": "copied_source",
+      "sha256": "ac3b3e228c3efed4efc7447d2461ac0c63a00b1d0fa9c93a6c0a479076af0b7d",
+      "source_relative_path": "v4/manager_research/issuer_us_relations.py"
+    },
+    {
+      "bytes": 7239,
+      "module": "v4.manager_research.material_transport",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/material_transport.py",
+      "role": "copied_source",
+      "sha256": "497c52c915e5485f34de27cb1fb2caca3971c77f531385a0d1f80d4587fc6ab5",
+      "source_relative_path": "v4/manager_research/material_transport.py"
+    },
+    {
+      "bytes": 9292,
+      "module": "v4.manager_research.materials",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/materials.py",
+      "role": "copied_source",
+      "sha256": "0d3c6c3fa0404c7006e5a8127b6123b99f7fff7c4d99af04b524fc04cb0e1ac2",
+      "source_relative_path": "v4/manager_research/materials.py"
+    },
+    {
+      "bytes": 41935,
+      "module": "v4.manager_research.pdf_parser",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/pdf_parser.py",
+      "role": "copied_source",
+      "sha256": "0ddf7fd5510333c70060af7de2a25dd4e6c9ac2880a0d8b97d95e84542a03383",
+      "source_relative_path": "v4/manager_research/pdf_parser.py"
+    },
+    {
+      "bytes": 1569,
+      "module": "v4.manager_research.ports",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/ports.py",
+      "role": "copied_source",
+      "sha256": "d55f0bd6b5ade41ec78c429cbaea3986bb24a4723f473ef94ac0e5ad7d08afea",
+      "source_relative_path": "v4/manager_research/ports.py"
+    },
+    {
+      "bytes": 26075,
+      "module": "v4.manager_research.reader_source",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/reader_source.py",
+      "role": "copied_source",
+      "sha256": "41d1abd481f043ad4309c39c04f179e3b9f2f0c511f89b32c3d4554bd7ac42f4",
+      "source_relative_path": "v4/manager_research/reader_source.py"
+    },
+    {
+      "bytes": 53414,
+      "module": "v4.manager_research.recommendation",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/recommendation.py",
+      "role": "copied_source",
+      "sha256": "5a26bd6145a30d3314f8268a9fcffc57fc35f329e75492b97d9726b6c3eeffb4",
+      "source_relative_path": "v4/manager_research/recommendation.py"
+    },
+    {
+      "bytes": 43072,
+      "module": "v4.manager_research.research_attention",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/research_attention.py",
+      "role": "copied_source",
+      "sha256": "3f5385ed850b0336cb85ad85cac3aeab44d2908620c636a4cfc19f5fdf3619aa",
+      "source_relative_path": "v4/manager_research/research_attention.py"
+    },
+    {
+      "bytes": 28636,
+      "module": "v4.manager_research.research_evidence",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/research_evidence.py",
+      "role": "copied_source",
+      "sha256": "d2539b676d5779d9369fd8aba187c0565fcc38dbb0e89596d1248668fda4a7d5",
+      "source_relative_path": "v4/manager_research/research_evidence.py"
+    },
+    {
+      "bytes": 3272,
+      "module": "v4.manager_research.safety",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/safety.py",
+      "role": "copied_source",
+      "sha256": "c82fcdee6845e765783584f5ac46a9d4ca6b6b9fda1c3c2e919c17ab17c7f3e8",
+      "source_relative_path": "v4/manager_research/safety.py"
+    },
+    {
+      "bytes": 95180,
+      "module": "v4.manager_research.service",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/service.py",
+      "role": "copied_source",
+      "sha256": "fead5098a4bf05bd88c41a61296e06029e3153dd6d5add9ebb101a3339f56431",
+      "source_relative_path": "v4/manager_research/service.py"
+    },
+    {
+      "bytes": 4332,
+      "module": "v4.manager_research.stage_read_timing",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/stage_read_timing.py",
+      "role": "copied_source",
+      "sha256": "bfbab170b4e8b32e1bdd0405282825989f0382aeb41e6044fe22d0fdeca6ae38",
+      "source_relative_path": "v4/manager_research/stage_read_timing.py"
+    },
+    {
+      "bytes": 19988,
+      "module": "v4.manager_research.store",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/store.py",
+      "role": "copied_source",
+      "sha256": "79e077d2133f8c0bd33dde253e752bc6482423565ec11e9217d88b86f02cc07e",
+      "source_relative_path": "v4/manager_research/store.py"
+    },
+    {
+      "bytes": 57938,
+      "module": "v4.manager_research.us_mapping_research",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/us_mapping_research.py",
+      "role": "copied_source",
+      "sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+      "source_relative_path": "v4/manager_research/us_mapping_research.py"
+    },
+    {
+      "bytes": 14192,
+      "module": "v4.manager_research.us_market_bridge",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/us_market_bridge.py",
+      "role": "copied_source",
+      "sha256": "46fcf3fce15dfce4ae45e8eefe2c9b619d884f602d4f5b4261f163755debf0ae",
+      "source_relative_path": "v4/manager_research/us_market_bridge.py"
+    },
+    {
+      "bytes": 2936,
+      "module": "v4.manager_research.vibe_binding_preflight",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/vibe_binding_preflight.py",
+      "role": "copied_source",
+      "sha256": "b5b108f8e327b67ef43fd91ce33da936b2cfc7a67dae3b0f129071dff8c6554d",
+      "source_relative_path": "v4/manager_research/vibe_binding_preflight.py"
+    },
+    {
+      "bytes": 76096,
+      "module": "v4.manager_research.workspace",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace.py",
+      "role": "copied_source",
+      "sha256": "eb3e8481397dde084daad39c86b8d4b0cb8b152a1fb1e2cc32278c7430e10e6f",
+      "source_relative_path": "v4/manager_research/workspace.py"
+    },
+    {
+      "bytes": 14843,
+      "module": "v4.manager_research.workspace_actions",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_actions.py",
+      "role": "copied_source",
+      "sha256": "9ae8f53fd261e5a28f97029e76ee0b296d7befb02a32a0f6689229b5000b2ecf",
+      "source_relative_path": "v4/manager_research/workspace_actions.py"
+    },
+    {
+      "bytes": 167803,
+      "module": "v4.manager_research.workspace_announcements",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_announcements.py",
+      "role": "copied_source",
+      "sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+      "source_relative_path": "v4/manager_research/workspace_announcements.py"
+    },
+    {
+      "bytes": 32275,
+      "module": "v4.manager_research.workspace_briefing",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_briefing.py",
+      "role": "copied_source",
+      "sha256": "60a7942e6c2c6a8ed32099ec807c79c35fa393342ed59996798f21da12466ff6",
+      "source_relative_path": "v4/manager_research/workspace_briefing.py"
+    },
+    {
+      "bytes": 12982,
+      "module": "v4.manager_research.workspace_daily_channels",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_daily_channels.py",
+      "role": "copied_source",
+      "sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+      "source_relative_path": "v4/manager_research/workspace_daily_channels.py"
+    },
+    {
+      "bytes": 23129,
+      "module": "v4.manager_research.workspace_discovery",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_discovery.py",
+      "role": "copied_source",
+      "sha256": "ed9188a44a4adb6bf2fd08836d465ed3ea7e7d2b8dd7075da99b7aaabc5c5c1a",
+      "source_relative_path": "v4/manager_research/workspace_discovery.py"
+    },
+    {
+      "bytes": 107076,
+      "module": "v4.manager_research.workspace_plan",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_plan.py",
+      "role": "copied_source",
+      "sha256": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+      "source_relative_path": "v4/manager_research/workspace_plan.py"
+    },
+    {
+      "bytes": 15547,
+      "module": "v4.manager_research.workspace_plan_autorun",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_plan_autorun.py",
+      "role": "copied_source",
+      "sha256": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34",
+      "source_relative_path": "v4/manager_research/workspace_plan_autorun.py"
+    },
+    {
+      "bytes": 30841,
+      "module": "v4.manager_research.workspace_projection",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_projection.py",
+      "role": "copied_source",
+      "sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+      "source_relative_path": "v4/manager_research/workspace_projection.py"
+    },
+    {
+      "bytes": 10927,
+      "module": "v4.manager_research.workspace_read_control",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_read_control.py",
+      "role": "copied_source",
+      "sha256": "491e3569e8f00586ca6f4e9982e182584d2f2a0437f83da66767b7ffdbf1fb25",
+      "source_relative_path": "v4/manager_research/workspace_read_control.py"
+    },
+    {
+      "bytes": 33731,
+      "module": "v4.manager_research.workspace_semantics",
+      "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/v4/manager_research/workspace_semantics.py",
+      "role": "copied_source",
+      "sha256": "dc8d1d330e4fdacf2ef7169a7ac62874bfd3e2658f8b4bcff0773e06e32c4f7f",
+      "source_relative_path": "v4/manager_research/workspace_semantics.py"
+    }
+  ],
+  "module_identity_errors": [],
+  "natural_run": "NOT_RUN",
+  "original_source_checked_files": 1089,
+  "original_source_differences": {
+    "added": [],
+    "changed": [],
+    "missing": []
+  },
+  "original_source_root": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/source",
+  "output_root": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03",
+  "package_root": "/workspace/scratch/21926b793c00/four_gaps/delivery/manager-four-functional-repair-20261009-r1",
+  "passed_tests": 57,
+  "patch_applied": false,
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "pytest_arguments": [
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "--noconftest",
+    "--import-mode=importlib",
+    "-c",
+    "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/pytest.ini",
+    "--rootdir",
+    "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source",
+    "--basetemp",
+    "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/pytest_tmp",
+    "--junitxml",
+    "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/junit.xml",
+    "-o",
+    "addopts=",
+    "-o",
+    "junit_family=xunit2",
+    "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/tests/test_manager_four_app_wiring.py",
+    "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/tests/test_manager_four_announcement_integration.py",
+    "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/tests/test_manager_four_hk_readers.py",
+    "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/tests/test_manager_four_plan_owner_readback.py"
+  ],
+  "pytest_exit_code": 0,
+  "python_executable": "/workspace/scratch/21926b793c00/four_gaps/test_env/bin/python",
+  "python_implementation": "CPython",
+  "python_version": "3.14.8 (main, Oct  3 2026, 01:04:31) [Clang 22.1.3 ]",
+  "runner_exit_code": 0,
+  "schema_version": "v4.manager_four_function_repair.regression.v1",
+  "source_preservation_basis": "Before/after SHA256 and byte counts of the declared copied source inventory; excluded dependency/state trees are listed in source_identity.json. This is content verification, not a general filesystem sandbox.",
+  "started_at": "2026-10-09T16:16:56.828300+00:00",
+  "status": "PASS",
+  "sys_path_first": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source",
+  "test_groups": {
+    "test_manager_four_announcement_integration.py": {
+      "collected": 8,
+      "error": 0,
+      "expected": 8,
+      "failed": 0,
+      "not_run": 0,
+      "passed": 8,
+      "skipped": 0
+    },
+    "test_manager_four_app_wiring.py": {
+      "collected": 6,
+      "error": 0,
+      "expected": 6,
+      "failed": 0,
+      "not_run": 0,
+      "passed": 6,
+      "skipped": 0
+    },
+    "test_manager_four_hk_readers.py": {
+      "collected": 30,
+      "error": 0,
+      "expected": 30,
+      "failed": 0,
+      "not_run": 0,
+      "passed": 30,
+      "skipped": 0
+    },
+    "test_manager_four_plan_owner_readback.py": {
+      "collected": 13,
+      "error": 0,
+      "expected": 13,
+      "failed": 0,
+      "not_run": 0,
+      "passed": 13,
+      "skipped": 0
+    }
+  },
+  "test_namespace": {
+    "hk_bare_name_alias": "tests.test_manager_four_hk_readers",
+    "name": "tests",
+    "path": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/source/tests"
+  },
+  "test_only_support": [
+    {
+      "bytes": 42910,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/delivery/manager-four-functional-repair-20261009-r1/tests/support/app/ops/run_manager_daily_announcement.py",
+      "role": "test_only_prior_delivered_cli",
+      "sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38"
+    },
+    {
+      "bytes": 19113,
+      "path": "/workspace/scratch/21926b793c00/four_gaps/delivery/manager-four-functional-repair-20261009-r1/tests/support/app/tests/test_manager_us_mapping_research.py",
+      "role": "test_only_fixture_helper",
+      "sha256": "1c077f679083252b11d07c1499081304e7a3200b2d170baa682ade18be718dcc"
+    }
+  ],
+  "worker_command": [
+    "/workspace/scratch/21926b793c00/four_gaps/test_env/bin/python",
+    "-B",
+    "-I",
+    "/workspace/scratch/21926b793c00/four_gaps/delivery/manager-four-functional-repair-20261009-r1/tools/run_regression.py",
+    "--_worker",
+    "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03"
+  ],
+  "worker_cwd": "/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-03/work",
+  "worker_exit_code": 0,
+  "write_audit_scope": "ABSOLUTE_PATHS_ONLY"
+}

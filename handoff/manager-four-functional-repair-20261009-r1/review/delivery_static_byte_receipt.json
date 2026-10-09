@@ -1,0 +1,171 @@
+{
+  "status": "PASS",
+  "scope": "INDEPENDENT_MINIMAL_20_R2_TARGETS_PLUS_UNRELATED_SENTINEL_PATCH_BYTE_PROOF_NOT_FULL_APP_TEST",
+  "completed_at": "2026-10-09T16:08:31.272902+00:00",
+  "package": "/workspace/scratch/21926b793c00/four_gaps/delivery/manager-four-functional-repair-20261009-r1",
+  "probe_source": "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_patch_probe_dn7_xguy",
+  "patch_sha256": "2ed523c30a0cd9af75b770fbd5c6daaa5376190f6498508e804144d769377fac",
+  "source_manifest_sha256": "43d432f5d8ff4158b379069f712eed4850f65c0d023aaa128742f44003ec7ea0",
+  "unchanged_manifest_sha256": "abe068357709d6611bcfe5bbbdfe164c644a84e35ecab45946b346da574e3d80",
+  "runtime_byte_checks": [
+    {
+      "path": "apps/api/v35_api/app.py",
+      "before_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "after_sha256": "e9888d03208124b978fb19a7147682ed65cb79f9d465d58a48191c3330f687f2",
+      "original_matched": true,
+      "independently_reviewed_after_matched": true
+    },
+    {
+      "path": "v4/manager_research/service.py",
+      "before_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "after_sha256": "fead5098a4bf05bd88c41a61296e06029e3153dd6d5add9ebb101a3339f56431",
+      "original_matched": true,
+      "independently_reviewed_after_matched": true
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "before_sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+      "after_sha256": "eb3e8481397dde084daad39c86b8d4b0cb8b152a1fb1e2cc32278c7430e10e6f",
+      "original_matched": true,
+      "independently_reviewed_after_matched": true
+    },
+    {
+      "path": "v4/manager_research/connect_selection.py",
+      "before_sha256": "eaa01a13d8065b11cc8397a12edaad8b892f183158aa1f9475d29645dee09d83",
+      "after_sha256": "45f33a4531e1f72120155a4cfba92cb7866d1d9c8ee9f5e00c174bb081104553",
+      "original_matched": true,
+      "independently_reviewed_after_matched": true
+    }
+  ],
+  "unchanged_r2_files_checked": 16,
+  "new_tests_identical_to_reviewed": 4,
+  "test_support_files_checked": 2,
+  "test_support_deployed": false,
+  "commands": [
+    {
+      "command": [
+        "git",
+        "-C",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_patch_probe_dn7_xguy",
+        "apply",
+        "--check",
+        "/workspace/scratch/21926b793c00/four_gaps/delivery/manager-four-functional-repair-20261009-r1/runtime.patch"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "git",
+        "-C",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_patch_probe_dn7_xguy",
+        "apply",
+        "/workspace/scratch/21926b793c00/four_gaps/delivery/manager-four-functional-repair-20261009-r1/runtime.patch"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "git",
+        "-C",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_patch_probe_dn7_xguy",
+        "apply",
+        "-R",
+        "--check",
+        "/workspace/scratch/21926b793c00/four_gaps/delivery/manager-four-functional-repair-20261009-r1/runtime.patch"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "git",
+        "-C",
+        "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_patch_probe_dn7_xguy",
+        "apply",
+        "-R",
+        "/workspace/scratch/21926b793c00/four_gaps/delivery/manager-four-functional-repair-20261009-r1/runtime.patch"
+      ],
+      "exit_code": 0,
+      "output": ""
+    }
+  ],
+  "changed_paths": [
+    "apps/api/v35_api/app.py",
+    "v4/manager_research/connect_selection.py",
+    "v4/manager_research/service.py",
+    "v4/manager_research/workspace.py"
+  ],
+  "reverse_complete_tree_restored": true,
+  "before_snapshot": {
+    "review_unrelated_sentinel.txt": "d7e46ede250713a6b0b36d98b58e7d310ffe41dd795d5d3801895aa161b70047",
+    "tests/test_manager_plan_readback_issue24.py": "1d7866fb800b3d9bff235c09159f169f3debe777a710a7d688f59217e45b5989",
+    "tests/test_issue8_selection_gaps.py": "c9f242bc64b0b31a16cef0a6f732df45fabfa80654d4aace4cc405b8ec98c9a8",
+    "tests/test_manager_announcement_date_catalog.py": "41c21fc88221a23608592e23cf925bfb1060c955f00bdb8391abf847071c49a7",
+    "tests/test_manager_announcement_supervisor.py": "a48b4d8de4721b02d82d4ef1f1e6e7f5a74e58d3671055bee21e9efc72ec5d3c",
+    "upstreams/v3_shared_data/shared_data/store.py": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+    "upstreams/v3_shared_data/shared_data/hk_d1_evidence.py": "08c499732300a0e6026cda7ec7c2257807c542cd989f90a9427285dc34b73850",
+    "upstreams/v3_shared_data/shared_data/hk_security_master.py": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+    "v4/manager_research/connect_capture_adapter.py": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b",
+    "v4/manager_research/workspace_plan_autorun.py": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34",
+    "v4/manager_research/announcement_analysis.py": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+    "v4/manager_research/plan_owner_dispatch.py": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+    "v4/manager_research/workspace_announcements.py": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+    "v4/manager_research/service.py": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+    "v4/manager_research/connect_selection.py": "eaa01a13d8065b11cc8397a12edaad8b892f183158aa1f9475d29645dee09d83",
+    "v4/manager_research/workspace_history.py": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+    "v4/manager_research/workspace_plan.py": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+    "v4/manager_research/workspace.py": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+    "v4/manager_research/workspace_daily_channels.py": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+    "apps/api/v35_api/manager_research_router.py": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+    "apps/api/v35_api/app.py": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5"
+  },
+  "after_snapshot": {
+    "review_unrelated_sentinel.txt": "d7e46ede250713a6b0b36d98b58e7d310ffe41dd795d5d3801895aa161b70047",
+    "tests/test_manager_plan_readback_issue24.py": "1d7866fb800b3d9bff235c09159f169f3debe777a710a7d688f59217e45b5989",
+    "tests/test_issue8_selection_gaps.py": "c9f242bc64b0b31a16cef0a6f732df45fabfa80654d4aace4cc405b8ec98c9a8",
+    "tests/test_manager_announcement_date_catalog.py": "41c21fc88221a23608592e23cf925bfb1060c955f00bdb8391abf847071c49a7",
+    "tests/test_manager_announcement_supervisor.py": "a48b4d8de4721b02d82d4ef1f1e6e7f5a74e58d3671055bee21e9efc72ec5d3c",
+    "upstreams/v3_shared_data/shared_data/store.py": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+    "upstreams/v3_shared_data/shared_data/hk_d1_evidence.py": "08c499732300a0e6026cda7ec7c2257807c542cd989f90a9427285dc34b73850",
+    "upstreams/v3_shared_data/shared_data/hk_security_master.py": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+    "v4/manager_research/connect_capture_adapter.py": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b",
+    "v4/manager_research/workspace_plan_autorun.py": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34",
+    "v4/manager_research/announcement_analysis.py": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+    "v4/manager_research/plan_owner_dispatch.py": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+    "v4/manager_research/workspace_announcements.py": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+    "v4/manager_research/service.py": "fead5098a4bf05bd88c41a61296e06029e3153dd6d5add9ebb101a3339f56431",
+    "v4/manager_research/connect_selection.py": "45f33a4531e1f72120155a4cfba92cb7866d1d9c8ee9f5e00c174bb081104553",
+    "v4/manager_research/workspace_history.py": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+    "v4/manager_research/workspace_plan.py": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+    "v4/manager_research/workspace.py": "eb3e8481397dde084daad39c86b8d4b0cb8b152a1fb1e2cc32278c7430e10e6f",
+    "v4/manager_research/workspace_daily_channels.py": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+    "apps/api/v35_api/manager_research_router.py": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+    "apps/api/v35_api/app.py": "e9888d03208124b978fb19a7147682ed65cb79f9d465d58a48191c3330f687f2"
+  },
+  "reverse_snapshot": {
+    "review_unrelated_sentinel.txt": "d7e46ede250713a6b0b36d98b58e7d310ffe41dd795d5d3801895aa161b70047",
+    "tests/test_manager_plan_readback_issue24.py": "1d7866fb800b3d9bff235c09159f169f3debe777a710a7d688f59217e45b5989",
+    "tests/test_issue8_selection_gaps.py": "c9f242bc64b0b31a16cef0a6f732df45fabfa80654d4aace4cc405b8ec98c9a8",
+    "tests/test_manager_announcement_date_catalog.py": "41c21fc88221a23608592e23cf925bfb1060c955f00bdb8391abf847071c49a7",
+    "tests/test_manager_announcement_supervisor.py": "a48b4d8de4721b02d82d4ef1f1e6e7f5a74e58d3671055bee21e9efc72ec5d3c",
+    "upstreams/v3_shared_data/shared_data/store.py": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+    "upstreams/v3_shared_data/shared_data/hk_d1_evidence.py": "08c499732300a0e6026cda7ec7c2257807c542cd989f90a9427285dc34b73850",
+    "upstreams/v3_shared_data/shared_data/hk_security_master.py": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+    "v4/manager_research/connect_capture_adapter.py": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b",
+    "v4/manager_research/workspace_plan_autorun.py": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34",
+    "v4/manager_research/announcement_analysis.py": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+    "v4/manager_research/plan_owner_dispatch.py": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+    "v4/manager_research/workspace_announcements.py": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+    "v4/manager_research/service.py": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+    "v4/manager_research/connect_selection.py": "eaa01a13d8065b11cc8397a12edaad8b892f183158aa1f9475d29645dee09d83",
+    "v4/manager_research/workspace_history.py": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+    "v4/manager_research/workspace_plan.py": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+    "v4/manager_research/workspace.py": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+    "v4/manager_research/workspace_daily_channels.py": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+    "apps/api/v35_api/manager_research_router.py": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+    "apps/api/v35_api/app.py": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5"
+  },
+  "original_app_runtime_sha_preserved": true
+}

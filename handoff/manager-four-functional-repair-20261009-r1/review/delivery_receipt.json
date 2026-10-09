@@ -1,0 +1,187 @@
+{
+  "schema_version": "v4.four_function.independent_delivery_review.v1",
+  "completed_at": "2026-10-09T16:21:28.304018+00:00",
+  "reviewer": "/root/four_independent_review",
+  "status": "PASS_WITH_FINITE_OFFLINE_TOOL_CONTRACT",
+  "package_root_at_review": "/workspace/scratch/21926b793c00/four_gaps/delivery/manager-four-functional-repair-20261009-r1",
+  "input_commit": "74478a0e62be215c8527ccc9a14b89b51042d014",
+  "runtime_patch_sha256": "2ed523c30a0cd9af75b770fbd5c6daaa5376190f6498508e804144d769377fac",
+  "source_manifest_sha256": "43d432f5d8ff4158b379069f712eed4850f65c0d023aaa128742f44003ec7ea0",
+  "tool_sha256": {
+    "verify_delivery.py": "acd4d43b21362aa2e9cb166700279594275857ccc292c53addc21a2e950a0381",
+    "run_regression.py": "7b74d1bc790becf40e3b8b1b3ff8a084187864f8c40a2ec891e1a050c6ac9d80"
+  },
+  "production_source_modified_by_reviewer": false,
+  "original_frozen_report_sha256": "c4d183eb04d250942dfb2e81150a3ec2728747e2cfbc94f7b7ff2c659c2f6db4",
+  "original_frozen_receipt_sha256": "0933b0f5f6ebb6eb35c419de85eedb95951099d2071a0c900cbace0393ff9eec",
+  "independent_patch_probe": {
+    "targets": 20,
+    "unrelated_sentinel": 1,
+    "forward_exact_after": true,
+    "reverse_all_bytes_restored": true
+  },
+  "independent_tool_cases": {
+    "count": 11,
+    "passed_expectations": 11,
+    "business_tests_executed": 0,
+    "all_source_and_package_byte_snapshots_unchanged_by_commands": true
+  },
+  "parent_final_runner_independently_read": {
+    "execution": "regression-03",
+    "tests": 57,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "exit_code": 0,
+    "pytest_seconds": 10.72,
+    "original_source_count": 1089,
+    "execution_source_count": 1093,
+    "source_differences": false,
+    "execution_differences": false,
+    "execution_files_independently_rehashed": 1093,
+    "file_backed_module_records_independently_rehashed": 218
+  },
+  "parent_rollback_independently_rehashed": {
+    "files": 1089,
+    "all_match_before": true,
+    "file_map_sha256": "3f2354f3a918a6d8c729de47767beca37c89664dd978aecc08842649fad94dad"
+  },
+  "finding_history": [
+    {
+      "id": "DELIVERY-P2-001",
+      "severity": "P2",
+      "initial_runner_sha256": "3d61f11380e703786b0cb488fb8a911e5ada894f61dcb0c42c5fc4555ea00b3c",
+      "finding": "Relative dir_fd writes bypassed an overbroad source-write prevention claim",
+      "status": "CLOSED_BY_EXPLICIT_FINITE_CONTRACT_NOT_GENERAL_FD_PREVENTION",
+      "trial_runner_sha256": "bcf93dec4824b96baadc63ba3ea389db5d70d1396bd2deb1cdd24eabb093ae16",
+      "trial_status": "REJECTED_AS_OVERRESTRICTIVE",
+      "trial_business_result": {
+        "passed": 17,
+        "failed": 19,
+        "errors": 21,
+        "exit_code": 1
+      },
+      "final_runner_sha256": "7b74d1bc790becf40e3b8b1b3ff8a084187864f8c40a2ec891e1a050c6ac9d80",
+      "descriptor_write_prevention": false,
+      "general_security_sandbox": false,
+      "source_content_postcheck_required": true
+    }
+  ],
+  "documentation_findings_closed": [
+    "README output variable mismatch",
+    "Frozen receipt package path mapping"
+  ],
+  "finite_contract": {
+    "write_audit_scope": "ABSOLUTE_PATHS_ONLY",
+    "descriptor_write_prevention": false,
+    "general_security_sandbox": false,
+    "source_preservation_basis": "Before/after SHA256 and byte counts of the declared copied source inventory; excluded dependency/state trees are listed in source_identity.json. This is content verification, not a general filesystem sandbox."
+  },
+  "project_gate": {
+    "candidate": "COLLECTION_BLOCKED_EXIT_1",
+    "r2_baseline": "SAME_COLLECTION_BLOCKED_EXIT_1",
+    "symbol": "HK_EXPECTED_MISSING_SOURCE_SHA256",
+    "test": "tests/test_hk_expected_missing_recovery.py",
+    "independent_full_gate_rerun": false
+  },
+  "not_run": [
+    "REAL_MAC",
+    "LIVE_OWNER",
+    "DEPLOYMENT",
+    "LIVE_API",
+    "LIVE_UI",
+    "NATURAL_PERIOD",
+    "COMPLETE_MAC_RELEASE_REBUILD",
+    "GITHUB_WRITE"
+  ],
+  "inventory_seal": "Parent must refresh CHECKSUMS after adding this report and final evidence; independent probe snapshot checksum is recorded separately.",
+  "review_artifacts": {
+    "delivery_REVIEW.md": {
+      "sha256": "d1a49168103561c749e7097799a4b63a440a0ecb3cec60820320531ddd7d436a",
+      "bytes": 13585
+    },
+    "delivery_static_byte_receipt.json": {
+      "sha256": "6fde630a0165945a9f1907a6a06666c841c3e09928aeb4ce65d7f47435ebd325",
+      "bytes": 11398
+    },
+    "delivery_static_byte.rawlog": {
+      "sha256": "6b35004dd576af587fbe03fefcee2252854efa51a778e92786e6ddc710eaaf63",
+      "bytes": 1489
+    },
+    "delivery_tool_probe_receipt.json": {
+      "sha256": "411e7adae790181325fb422626f18e0f4d496363bb142bffafb19ea3e5c1d296",
+      "bytes": 17342
+    },
+    "delivery_tool_probes.rawlog": {
+      "sha256": "624126e34da496a0297666c27774a03ca0d74bd490117eda708173367d46f93d",
+      "bytes": 15791
+    },
+    "delivery_tool_probes.py": {
+      "sha256": "82361138e3ce1d0005577678b4a64ea2feb3e8d8f386f95d12c5e9cc0e1c838c",
+      "bytes": 8079
+    },
+    "delivery_guard_probe.py": {
+      "sha256": "3a18f932a15033ac036f1cadf6d438a754b316f7b5383eff153fb27dcaa2bc61",
+      "bytes": 1184
+    },
+    "delivery_guard_probe.rawlog": {
+      "sha256": "bf5fffdfbcfd579460053e88f1c4717cd46b991ccf765359c30d518f69a123ab",
+      "bytes": 1019
+    },
+    "delivery_guard_probe_fixed.py": {
+      "sha256": "51c3a026086283574b6d1688b3c4f401c61cc8f18095ed626f2d275bc9752b41",
+      "bytes": 1851
+    },
+    "delivery_guard_probe_fixed.rawlog": {
+      "sha256": "f01fdbc5d6eb87a5d62a61785500cfb86f26e06e1384d4bc2385cafc4356040a",
+      "bytes": 1946
+    },
+    "delivery_guard_contract_probe.py": {
+      "sha256": "c9d68bb0720e259563418bc3a038797ccd9b641677daf3b0a3c5a31ef3026e35",
+      "bytes": 2078
+    },
+    "delivery_guard_contract_probe.rawlog": {
+      "sha256": "be07480921c9160b457fc33640c3726e4766e8eeef849586aa89a8bc6331289f",
+      "bytes": 1505
+    },
+    "delivery_docs_review_receipt.json": {
+      "sha256": "2338e9adeeecc4a12e3c09b3b0d805d2642c9b2af862eeff01f725ab920aad33",
+      "bytes": 5305
+    },
+    "delivery_parent_proof_review.json": {
+      "sha256": "a37148e2a15a208c6053b006c0ef6a7bedf58106d92863bd4f881102b9e7d834",
+      "bytes": 2396
+    }
+  },
+  "final_document_sha256": {
+    "README.md": "f1f83ecd87386a9bb5247ad207de6ad759db9e3196de3b544268c1410c2161a7",
+    "HOST_HANDOFF.md": "25286a00a801bd99a136cf00491fd3f67a23de49af0042ec090daa0e9228f97d",
+    "ACCEPTANCE_MATRIX.md": "ea644ca36b676b83a7ebdb527482b0aeeea17df95731173b6ed61986e453ba9e"
+  },
+  "packaged_parent_proofs_matched_to_execution": {
+    "packaged_runner_environment.json": {
+      "execution_path": "regression-03/environment.json",
+      "sha256": "a5d851c45abf872c0c8ff73c0f99edfd3fbe1e80119218e1c42f18e082403b90"
+    },
+    "packaged_runner_source_identity.json": {
+      "execution_path": "regression-03/source_identity.json",
+      "sha256": "39b93d5ba938acf99257fdbc14b30261b8f694fa7046e7570c07113c22deaa4e"
+    },
+    "packaged_runner_57.log": {
+      "execution_path": "regression-03/pytest.log",
+      "sha256": "c2ede0ee3b2db265e1bcf1c17f88184d4542ae67f3d832f7e7828bf5f716ac5f"
+    },
+    "packaged_runner_57.xml": {
+      "execution_path": "regression-03/junit.xml",
+      "sha256": "50b8debb739fb7d62fbcbfa685a6fa5e7dbb71980946d9a9f2efbe7cee20b521"
+    },
+    "patch_forward_receipt.json": {
+      "execution_path": "forward_receipt.json",
+      "sha256": "f89aacaee882f731fc0526aeb3f5f4e04c0cec9a585b0ba859ae37216a992563"
+    },
+    "patch_rollback_receipt.json": {
+      "execution_path": "rollback_receipt.json",
+      "sha256": "89136307467e643b8a5f1d5ed8b14f5e00bbffc49c6adf08a6d8136467a08e22"
+    }
+  }
+}

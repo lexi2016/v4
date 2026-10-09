@@ -1,0 +1,16 @@
+{
+  "source_root": "/workspace/scratch/21926b793c00/four_gaps/announcement/r2_baseline_app",
+  "command": [
+    "/workspace/scratch/21926b793c00/four_gaps/test_env/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "--maxfail=1",
+    "-p",
+    "no:cacheprovider",
+    "--junitxml=/workspace/scratch/21926b793c00/four_gaps/evidence/project_gate_r2_baseline.xml"
+  ],
+  "exit_code": 1,
+  "four_runtime_files": "EXACT_R2_BEFORE_SHA_VERIFIED",
+  "status": "COLLECTION_BLOCKED"
+}

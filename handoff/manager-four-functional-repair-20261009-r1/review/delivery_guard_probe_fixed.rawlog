@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/workspace/scratch/21926b793c00/four_gaps/test_env/bin/python",
+    "-B",
+    "-I",
+    "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_guard_probe_fixed.py",
+    "/workspace/scratch/21926b793c00/four_gaps/delivery/manager-four-functional-repair-20261009-r1/tools/run_regression.py",
+    "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_guard_fixed_probe_9kr5wk1k"
+  ],
+  "exit_code": 0,
+  "runner_sha256": "bcf93dec4824b96baadc63ba3ea389db5d70d1396bd2deb1cdd24eabb093ae16",
+  "probe_sha256": "51c3a026086283574b6d1688b3c4f401c61cc8f18095ed626f2d275bc9752b41",
+  "output": "{\n  \"checks\": {\n    \"absolute_source_write_blocked\": true,\n    \"dir_fd_open_write_blocked\": true,\n    \"dir_fd_unlink_blocked\": true,\n    \"dir_fd_rename_blocked\": true,\n    \"descriptor_chmod_blocked\": true,\n    \"absolute_output_write_allowed\": true,\n    \"original_fixture_bytes_preserved\": true\n  },\n  \"events\": [\n    {\n      \"event\": \"open\",\n      \"reason\": \"PROTECTED_SOURCE_WRITE_ATTEMPT\",\n      \"path\": \"/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_guard_fixed_probe_9kr5wk1k/original/sentinel.txt\"\n    },\n    {\n      \"event\": \"open\",\n      \"reason\": \"UNRESOLVED_RELATIVE_WRITE_REJECTED\",\n      \"path\": \"sentinel.txt\"\n    },\n    {\n      \"event\": \"os.remove\",\n      \"reason\": \"UNRESOLVED_RELATIVE_WRITE_REJECTED\",\n      \"path\": \"sentinel.txt\"\n    },\n    {\n      \"event\": \"os.rename\",\n      \"reason\": \"UNRESOLVED_RELATIVE_WRITE_REJECTED\",\n      \"path\": \"sentinel.txt\"\n    },\n    {\n      \"event\": \"os.chmod\",\n      \"reason\": \"UNRESOLVED_DESCRIPTOR_WRITE_REJECTED\",\n      \"descriptor\": 3\n    }\n  ],\n  \"scope\": \"Python audit guard plus source hashes; not a general sandbox\"\n}\n",
+  "scope": "DIRECT_GUARD_ONLY_SYNTHETIC_ROOTS_NOT_57_REGRESSIONS_NOT_REAL_SOURCE"
+}

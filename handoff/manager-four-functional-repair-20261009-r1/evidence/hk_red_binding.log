@@ -1,0 +1,81 @@
+FFFFF                                                                    [100%]
+=================================== FAILURES ===================================
+_____ test_explicit_empty_connect_binding_cannot_fall_back_to_environment ______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-392/test_explicit_empty_connect_bi0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f45a9f695b0>
+
+    def test_explicit_empty_connect_binding_cannot_fall_back_to_environment(tmp_path, monkeypatch):
+        ambient = tmp_path / "ambient-authority"
+        ambient.mkdir()
+        monkeypatch.setenv("V4_MANAGER_UNIVERSE_ROOT", str(ambient))
+    
+>       result = connect.read_scope(CONTEXT, binding={})
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: read_scope() got an unexpected keyword argument 'binding'
+
+tests/test_manager_four_hk_readers.py:56: TypeError
+____________ test_connect_rejects_a_root_with_a_symlinked_ancestor _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-392/test_connect_rejects_a_root_wi0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f45a9f69220>
+
+    def test_connect_rejects_a_root_with_a_symlinked_ancestor(tmp_path, monkeypatch):
+        actual = tmp_path / "actual"
+        authority = actual / "authority"
+        authority.mkdir(parents=True)
+        alias = tmp_path / "alias"
+        alias.symlink_to(actual, target_is_directory=True)
+        monkeypatch.setenv("V4_MANAGER_UNIVERSE_ROOT", str(alias / "authority"))
+    
+        result = connect.read_scope(CONTEXT)
+    
+        assert result["status"] == "CANNOT_CONFIRM"
+        assert result["codes"] == []
+>       assert result["gaps"] == ["HK_CONNECT_TARGET_AUTHORITY_ROOT_INVALID"]
+E       AssertionError: assert ['HK_CONNECT_...ING_REQUIRED'] == ['HK_CONNECT_...ROOT_INVALID']
+E         
+E         At index 0 diff: 'HK_CONNECT_TARGET_AUTHORITY_UNVERIFIED:HK_CONNECT_TARGET_AUTHORITY_OWNER_BINDING_REQUIRED' != 'HK_CONNECT_TARGET_AUTHORITY_ROOT_INVALID'
+E         Use -v to get more diff
+
+tests/test_manager_four_hk_readers.py:76: AssertionError
+_________ test_invalid_explicit_connect_binding_fails_closed[binding0] _________
+
+binding = {'universe_root': 'relative'}
+
+    @pytest.mark.parametrize("binding", [{"universe_root": "relative"}, {"universe_root": []}, []])
+    def test_invalid_explicit_connect_binding_fails_closed(binding):
+>       result = connect.read_scope(CONTEXT, binding=binding)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: read_scope() got an unexpected keyword argument 'binding'
+
+tests/test_manager_four_hk_readers.py:82: TypeError
+_________ test_invalid_explicit_connect_binding_fails_closed[binding1] _________
+
+binding = {'universe_root': []}
+
+    @pytest.mark.parametrize("binding", [{"universe_root": "relative"}, {"universe_root": []}, []])
+    def test_invalid_explicit_connect_binding_fails_closed(binding):
+>       result = connect.read_scope(CONTEXT, binding=binding)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: read_scope() got an unexpected keyword argument 'binding'
+
+tests/test_manager_four_hk_readers.py:82: TypeError
+_________ test_invalid_explicit_connect_binding_fails_closed[binding2] _________
+
+binding = []
+
+    @pytest.mark.parametrize("binding", [{"universe_root": "relative"}, {"universe_root": []}, []])
+    def test_invalid_explicit_connect_binding_fails_closed(binding):
+>       result = connect.read_scope(CONTEXT, binding=binding)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: read_scope() got an unexpected keyword argument 'binding'
+
+tests/test_manager_four_hk_readers.py:82: TypeError
+=========================== short test summary info ============================
+FAILED tests/test_manager_four_hk_readers.py::test_explicit_empty_connect_binding_cannot_fall_back_to_environment
+FAILED tests/test_manager_four_hk_readers.py::test_connect_rejects_a_root_with_a_symlinked_ancestor
+FAILED tests/test_manager_four_hk_readers.py::test_invalid_explicit_connect_binding_fails_closed[binding0]
+FAILED tests/test_manager_four_hk_readers.py::test_invalid_explicit_connect_binding_fails_closed[binding1]
+FAILED tests/test_manager_four_hk_readers.py::test_invalid_explicit_connect_binding_fails_closed[binding2]
+5 failed, 14 deselected in 0.55s

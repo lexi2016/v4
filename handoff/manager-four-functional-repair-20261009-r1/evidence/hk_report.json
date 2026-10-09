@@ -1,0 +1,141 @@
+{
+  "status": "OFFLINE_CANDIDATE_VERIFIED_WITH_KNOWN_BASELINE_TEST_FAILURES",
+  "fixed_repository_commit": "74478a0e62be215c8527ccc9a14b89b51042d014",
+  "target_baseline": "package/code/r2_chat_patch_target",
+  "source_files": [
+    {
+      "path": "v4/manager_research/connect_selection.py",
+      "before_sha256": "eaa01a13d8065b11cc8397a12edaad8b892f183158aa1f9475d29645dee09d83",
+      "after_sha256": "45f33a4531e1f72120155a4cfba92cb7866d1d9c8ee9f5e00c174bb081104553",
+      "changed": true
+    },
+    {
+      "path": "v4/manager_research/connect_capture_adapter.py",
+      "before_sha256": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b",
+      "after_sha256": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b",
+      "changed": false
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "before_sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+      "after_sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+      "changed": false
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_d1_evidence.py",
+      "before_sha256": "08c499732300a0e6026cda7ec7c2257807c542cd989f90a9427285dc34b73850",
+      "after_sha256": "08c499732300a0e6026cda7ec7c2257807c542cd989f90a9427285dc34b73850",
+      "changed": false
+    }
+  ],
+  "new_test": {
+    "path": "tests/test_manager_four_hk_readers.py",
+    "sha256": "f06188bc8f9d3e03daba8c255c8615c4ebcfafe72c2d8c482210849f6f24b448",
+    "count": 30,
+    "result": "PASS"
+  },
+  "native_authority_owner": {
+    "path": "stage_center/hk_universe_preflight.py",
+    "sha256": "9d3d2c2d5ff3bd1c7713a9485e88000ae882f58b0a457b734656094606ba2941",
+    "origin": "Parent-verified dependency from same fixed repository tree; not a Mac process identity claim"
+  },
+  "native_v2_reader": {
+    "path": "domains/manager_research_evidence.py",
+    "sha256": "4bfd8ec335eade9a97340fe17fc0742f2dba546d0e254fdfed2833ed324bb73d"
+  },
+  "root_causes": [
+    "Connect authority was read from ambient environment during each GET; create_app had no instance Connect authority binding.",
+    "Root guard rejected only a leaf symlink, not a symlinked ancestor.",
+    "V1 clock projection remained in V2 filter_cards: it removed persisted available_at but kept volatile read_at inside discovered_cards hashed by workspace input_identity.",
+    "Actual evidence of missing 20261008 master entry is missing owner data and correctly fails closed; no fallback or fake data repair."
+  ],
+  "changes": [
+    "read_scope keyword-only complete binding; explicit empty or invalid binding does not consult environment; legacy omitted binding remains compatible.",
+    "Reject noncanonical/symlink-ancestor authority root before native read.",
+    "Persist available_at on projected card; exclude only read_at from card input identity. Full scope retains observation diagnostics.",
+    "No changes to native owner, security-master producer/reader, HK D1 helper, capture adapter, selection gates or safety flags."
+  ],
+  "red_green": [
+    {
+      "log": "hk/red_binding.log",
+      "before": "5 failed",
+      "after": "5 passed",
+      "scope": "explicit binding and root boundary"
+    },
+    {
+      "log": "hk/red_v2_card_clock.log",
+      "before": "1 failed",
+      "after": "PASS in complete 30-test suite",
+      "scope": "same V2 artifact, different observation clock must not change cards/workspace identity"
+    }
+  ],
+  "commands": [
+    {
+      "command": "/workspace/scratch/21926b793c00/four_gaps/test_env/bin/python -m pytest -q tests/test_manager_four_hk_readers.py",
+      "result": "30 passed in 0.53s",
+      "log": "hk/green_hk_readers.log"
+    },
+    {
+      "command": "/workspace/scratch/21926b793c00/four_gaps/test_env/bin/python -m pytest -q tests/test_manager_four_hk_readers.py tests/test_manager_rebound_two_gate_screen.py tests/test_security_master_store_error.py tests/test_manager_rebound_grouping_equivalence.py tests/test_issue8_selection_gaps.py tests/test_manager_connect_capture_adapter_r4.py",
+      "result": "69 passed, 16 failed",
+      "log": "hk/related_regression.log"
+    },
+    {
+      "command": "isolated pytest process with exact fixed R2 connect_selection module, same five original test files",
+      "result": "39 passed, same 16 failure nodeids",
+      "log": "hk/baseline_related_regression.log"
+    },
+    {
+      "command": "git diff --check -- v4/manager_research/connect_selection.py",
+      "result": "PASS"
+    }
+  ],
+  "acceptance": {
+    "valid_v2": "Native owner-built artifact/manifest/receipt/current/capture/publication chain verified; explicit authority beats ambient root; daily HK_CONNECT channel READY with one synthetic owner focus row.",
+    "invalid_v2": "Missing exact date, wrong root, wrong owner SHA, manifest run mismatch, publication SHA corruption and cross-root symlink return CANNOT_CONFIRM, zero codes, no identity.",
+    "pit": "Both acquired_at and available_at after cutoff rejected; persisted available_at exactly at cutoff accepted; witness read_at intentionally later than cutoff is diagnostic only.",
+    "valid_master": "Existing publisher creates temporary exact-date artifact; normal snapshot reader returns verified run and manifest/receipt/artifact byte witnesses.",
+    "missing_master": "No exact 20261008 index entry remains MISSING/CANNOT_CONFIRM even if newer and older entries exist.",
+    "invalid_master": "Wrong run/date/safety, SHA corruption and escaped artifact path remain INVALID rather than missing/valid-empty.",
+    "screen": "Exact master/HK02 panel and 60 prior sessions reach real screen and daily channel; numeric history complete but volume provenance NOT_PROVEN remains pending, READY_WITH_GAPS screen and PARTIAL channel.",
+    "panel_exact_date": "Later panel_latest cannot replace requested exact 20261008 immutable panel; late panel/master rejected."
+  },
+  "remaining_real_inputs": [
+    "20261009 same-root captured target membership V2 authority with pinned owner source and persisted publication before actual research cutoff.",
+    "20261008 exact security-master index entry, immutable master manifest/receipt/artifact, same-root HK02 panel and full history/volume provenance.",
+    "Native metadata v1 explicitly does not attest all-six-session volume units/scale; correct numeric data alone cannot establish verified volume qualification.",
+    "Real Mac owner state, API/UI deployment and natural scheduled run remain CANNOT_CONFIRM/NOT_RUN."
+  ],
+  "not_run": [
+    "Mac actual owners/capture",
+    "Live API/UI",
+    "Stage/BUY/Vibe8910",
+    "Services/deployment",
+    "GitHub operations by HK subagent"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "known_baseline_failure_nodeids": [
+    "tests/test_manager_rebound_two_gate_screen.py::test_amount_and_close_to_low_rebound_are_observations_not_gates[HK.02589-15855358-69.95-69.1]",
+    "tests/test_manager_rebound_two_gate_screen.py::test_amount_and_close_to_low_rebound_are_observations_not_gates[HK.09998-250000000-69.95-69.95]",
+    "tests/test_manager_rebound_two_gate_screen.py::test_near_requires_exactly_one_known_remaining_gate_and_unknown_stays_pending",
+    "tests/test_manager_rebound_two_gate_screen.py::test_all_near_candidates_are_kept_without_a_top10_fill_limit",
+    "tests/test_manager_rebound_two_gate_screen.py::test_incomplete_prior_history_is_pending_not_qualified",
+    "tests/test_manager_rebound_two_gate_screen.py::test_panel_source_date_failure_cannot_produce_candidates",
+    "tests/test_manager_rebound_two_gate_screen.py::test_half_day_is_excluded_from_previous_five_complete_sessions[None]",
+    "tests/test_manager_rebound_two_gate_screen.py::test_half_day_is_excluded_from_previous_five_complete_sessions[20261223]",
+    "tests/test_manager_rebound_two_gate_screen.py::test_duplicate_required_full_session_stays_unknown_not_near",
+    "tests/test_manager_rebound_grouping_equivalence.py::test_real_reader_equivalence_preserves_grouped_history_contract",
+    "tests/test_manager_rebound_grouping_equivalence.py::test_real_reader_duplicate_target_still_fails_closed_identically",
+    "tests/test_issue8_selection_gaps.py::test_open_unknown_membership_not_promoted_and_prior_day_rejected",
+    "tests/test_issue8_selection_gaps.py::test_verified_scope_admits_fresh_official_evidence_only_and_does_not_create_focus",
+    "tests/test_issue8_selection_gaps.py::test_frozen_positive_subtree_preserved_without_promoting_five_stocks",
+    "tests/test_manager_connect_capture_adapter_r4.py::test_exact_previous_session_capture_scope_validates_full_link_chain_and_keeps_source_date",
+    "tests/test_manager_connect_capture_adapter_r4.py::test_read_scope_keeps_target_v2_first_then_uses_explicit_d1_roots"
+  ],
+  "baseline_failure_names_identical": true
+}

@@ -1,0 +1,64 @@
+{
+  "schema_version": "offline_plan_owner_consumer_repair.v1",
+  "fixed_input_commit": "74478a0e62be215c8527ccc9a14b89b51042d014",
+  "test_scope": "SYNTHETIC_REAL_ORIGINAL_OWNERS_AND_ROUTER_NOT_CREATE_APP_OR_LIVE",
+  "source": {
+    "path": "v4/manager_research/workspace.py",
+    "before_sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+    "after_sha256": "eb3e8481397dde084daad39c86b8d4b0cb8b152a1fb1e2cc32278c7430e10e6f",
+    "change": "Forward per-service Connect binding into the existing read_scope"
+  },
+  "companion_change_owner": "HK-reader agent: filter_cards removes only observation read_at and preserves persisted available_at",
+  "unchanged_guards": [
+    "STALE_INPUTS_CHANGED",
+    "input identity comparison",
+    "product and attempt SHA validation",
+    "date binding comparison",
+    "cutoff/PIT",
+    "RESEARCH_ONLY and BUY safety"
+  ],
+  "test_file": {
+    "path": "tests/test_manager_four_plan_owner_readback.py",
+    "sha256": "dfb00aa70bea9f36ff700e6c5e0ca8e6fbb30a972b04865c061424ea081e623a"
+  },
+  "command": "/workspace/scratch/21926b793c00/four_gaps/test_env/bin/python -m pytest -q tests/test_manager_four_plan_owner_readback.py --junitxml=../plan/plan_regressions.xml",
+  "runtime": {
+    "executable": "/workspace/scratch/21926b793c00/four_gaps/test_env/bin/python",
+    "python": "3.14.8",
+    "fastapi": "0.143.0",
+    "pytest": "9.1.1",
+    "starlette": "1.7.0"
+  },
+  "result": {
+    "exit_code": 0,
+    "tests": 13,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "time_seconds": "2.502",
+    "warnings": [
+      "Existing Starlette TestClient httpx deprecation"
+    ]
+  },
+  "test_dependencies": [
+    "tests/test_manager_us_mapping_research.py::_synthetic_us_payload",
+    "tests/test_manager_four_hk_readers.py::publish_test_v2",
+    "tests/test_manager_four_hk_readers.py::synthetic_hk_calendar",
+    "tests/test_manager_four_hk_readers.py::synthetic_authority_observation_clock"
+  ],
+  "evidence": {
+    "green_plan_regressions.log": "f4df333d111e8ae7b27f4089721b23ddd91aeb4f9d09877d4548cd442531180d",
+    "plan_regressions.xml": "d1ae8a6a79c2c316d8b4a6648f97de85f1d49bc50636b072231473effe8f25fd",
+    "red_nonempty_plan_r2_filter_counterfactual.log": "5a7f51c32b7ca4589d5b995cba09cc42f8c71785dc6256cee20fd030e4fcc372"
+  },
+  "not_run_or_unconfirmed": [
+    "Real Mac owner state/source availability",
+    "Original 20260930 independent runner receipt",
+    "Real 20261009 observed stale root cause",
+    "Live owner rerun",
+    "Deployment",
+    "Live API/UI",
+    "Natural execution",
+    "Project-wide suite and create_app handled separately by root task"
+  ]
+}

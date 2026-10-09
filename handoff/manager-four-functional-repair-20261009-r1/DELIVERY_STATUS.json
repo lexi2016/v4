@@ -1,0 +1,77 @@
+{
+  "schema_version": "v4.manager_four_function_repair.delivery_status.v1",
+  "recorded_at": "2026-10-09T16:19:23.490825+00:00",
+  "input_commit": "74478a0e62be215c8527ccc9a14b89b51042d014",
+  "target_date": "20261009",
+  "publication_date": "20261008",
+  "runtime_files_changed": 4,
+  "patch_sha256": "2ed523c30a0cd9af75b770fbd5c6daaa5376190f6498508e804144d769377fac",
+  "source_manifest_sha256": "43d432f5d8ff4158b379069f712eed4850f65c0d023aaa128742f44003ec7ea0",
+  "new_tests": {
+    "passed": 57,
+    "failed": 0,
+    "skipped": 0
+  },
+  "independent_rerun": {
+    "passed": 57,
+    "distinct_new_count": false
+  },
+  "independent_additional_edges": {
+    "passed": 10
+  },
+  "final_packaged_runner": {
+    "passed": 57,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "distinct_new_count": false,
+    "runner_sha256": "7b74d1bc790becf40e3b8b1b3ff8a084187864f8c40a2ec891e1a050c6ac9d80",
+    "environment": "evidence/packaged_runner_environment.json"
+  },
+  "existing_hk_tests": {
+    "r2_baseline": {
+      "passed": 39,
+      "failed": 16
+    },
+    "candidate": {
+      "passed": 39,
+      "failed": 16
+    },
+    "same_failure_nodeids": true
+  },
+  "project_gate": {
+    "candidate": "COLLECTION_BLOCKED_EXIT_1",
+    "r2_offline_assembly": "COLLECTION_BLOCKED_EXIT_1",
+    "reason": "ImportError: HK_EXPECTED_MISSING_SOURCE_SHA256"
+  },
+  "patch_rollback": {
+    "status": "PASS",
+    "source_file_count": 1089,
+    "all_recorded_source_file_bytes_restored": true,
+    "baseline_scope": "CLOUD_OFFLINE_ASSEMBLY_NOT_MAC_BASELINE"
+  },
+  "test_runner_guard": {
+    "write_audit_scope": "ABSOLUTE_PATHS_ONLY",
+    "descriptor_write_prevention": false,
+    "general_security_sandbox": false,
+    "actual_source_integrity_gate": "Declared source inventory SHA256 and byte counts before and after the fixed 57 tests"
+  },
+  "acceptance": {
+    "implemented": "YES",
+    "offline_app_contract": "PASS_SYNTHETIC",
+    "mac": "NOT_RUN",
+    "integrated_on_mac": "NOT_RUN",
+    "deployed": "NOT_RUN",
+    "live_api": "NOT_RUN",
+    "ui": "NOT_RUN",
+    "natural": "NOT_RUN",
+    "real_target_day_recovery": "CANNOT_CONFIRM"
+  },
+  "remote_delivery": "New standalone handoff branch; exact commit and complete readback receipt provided outside the immutable commit, in ZIP LOCAL/GITHUB_READBACK.json.",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

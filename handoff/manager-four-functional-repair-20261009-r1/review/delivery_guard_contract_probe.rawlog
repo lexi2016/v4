@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/workspace/scratch/21926b793c00/four_gaps/test_env/bin/python",
+    "-B",
+    "-I",
+    "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_guard_contract_probe.py",
+    "/workspace/scratch/21926b793c00/four_gaps/delivery/manager-four-functional-repair-20261009-r1/tools/run_regression.py",
+    "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_guard_contract_probe_4b7fg6_4"
+  ],
+  "exit_code": 0,
+  "runner_sha256": "7b74d1bc790becf40e3b8b1b3ff8a084187864f8c40a2ec891e1a050c6ac9d80",
+  "probe_sha256": "c9d68bb0720e259563418bc3a038797ccd9b641677daf3b0a3c5a31ef3026e35",
+  "output": "{\n  \"absolute_source_write_blocked\": true,\n  \"absolute_output_write_allowed\": true,\n  \"descriptor_operation_allowed_as_declared\": true,\n  \"content_drift_detected_by_source_postcheck\": true,\n  \"differences\": {\n    \"missing\": [],\n    \"added\": [],\n    \"changed\": [\n      \"sentinel.txt\"\n    ]\n  },\n  \"guard_events\": [\n    {\n      \"event\": \"open\",\n      \"path\": \"/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_guard_contract_probe_4b7fg6_4/original/sentinel.txt\",\n      \"reason\": \"PROTECTED_SOURCE_WRITE_ATTEMPT\"\n    }\n  ],\n  \"meaning\": \"Intentional synthetic descriptor mutation demonstrates limited prevention and content drift detection; not a general security sandbox.\"\n}\n",
+  "scope": "DIRECT_FINITE_GUARD_AND_CONTENT_POSTCHECK_HELPERS_ONLY_SYNTHETIC_ROOTS_NO_BUSINESS_TESTS"
+}

@@ -1,0 +1,57 @@
+{
+  "command": [
+    "git",
+    "-C",
+    "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_patch_probe_dn7_xguy",
+    "apply",
+    "--check",
+    "/workspace/scratch/21926b793c00/four_gaps/delivery/manager-four-functional-repair-20261009-r1/runtime.patch"
+  ],
+  "exit_code": 0,
+  "output": ""
+}
+{
+  "command": [
+    "git",
+    "-C",
+    "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_patch_probe_dn7_xguy",
+    "apply",
+    "/workspace/scratch/21926b793c00/four_gaps/delivery/manager-four-functional-repair-20261009-r1/runtime.patch"
+  ],
+  "exit_code": 0,
+  "output": ""
+}
+{
+  "command": [
+    "git",
+    "-C",
+    "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_patch_probe_dn7_xguy",
+    "apply",
+    "-R",
+    "--check",
+    "/workspace/scratch/21926b793c00/four_gaps/delivery/manager-four-functional-repair-20261009-r1/runtime.patch"
+  ],
+  "exit_code": 0,
+  "output": ""
+}
+{
+  "command": [
+    "git",
+    "-C",
+    "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_patch_probe_dn7_xguy",
+    "apply",
+    "-R",
+    "/workspace/scratch/21926b793c00/four_gaps/delivery/manager-four-functional-repair-20261009-r1/runtime.patch"
+  ],
+  "exit_code": 0,
+  "output": ""
+}
+{
+  "changed_paths": [
+    "apps/api/v35_api/app.py",
+    "v4/manager_research/connect_selection.py",
+    "v4/manager_research/service.py",
+    "v4/manager_research/workspace.py"
+  ],
+  "reverse_complete_tree_restored": true
+}

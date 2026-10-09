@@ -1,0 +1,187 @@
+FFFFFF                                                                   [100%]
+=================================== FAILURES ===================================
+______ test_explicit_app_binding_reaches_existing_reader_and_http_channel ______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-414/test_explicit_app_binding_reac0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f73a3fee8b0>
+build_app = <function build_app.<locals>.build at 0x7f73a3ede2a0>
+
+    def test_explicit_app_binding_reaches_existing_reader_and_http_channel(tmp_path, monkeypatch, build_app):
+        binding, built = publish_test_v2(tmp_path / "explicit-authority")
+        monkeypatch.setenv("V4_MANAGER_UNIVERSE_ROOT", str(tmp_path / "wrong-ambient-root"))
+>       app, service = build_app("explicit-app", workspace_connect_binding=binding)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_four_app_wiring.py:102: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'explicit-app'
+kwargs = {'workspace_connect_binding': {'universe_root': PosixPath('/tmp/pytest-of-root/pytest-414/test_explicit_app_binding_re...b793c00/four_gaps/app'), 'authority_owner_sha256': '9d3d2c2d5ff3bd1c7713a9485e88000ae882f58b0a457b734656094606ba2941'}}
+
+    def build(name, **kwargs):
+        root = tmp_path / name
+>       app = app_module.create_app(
+            data_root=root / "data", shared_data_root=root / "shared",
+            ledger_root=root / "ledger", stage_center_selection_root=root / "stage",
+            manager_research_state_root=root / "manager", current_date=TARGET,
+            research_data_root=root / "research", research_ledger_root=root / "research-ledger",
+            morning_news_data_root=root / "morning-news", preselection_source_root=root / "preselection",
+            **kwargs,
+        )
+E       TypeError: create_app() got an unexpected keyword argument 'workspace_connect_binding'
+
+tests/test_manager_four_app_wiring.py:57: TypeError
+_______ test_each_app_retains_its_construction_time_environment_binding ________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-414/test_each_app_retains_its_cons0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f73a3fee2c0>
+build_app = <function build_app.<locals>.build at 0x7f73a3edf530>
+
+    def test_each_app_retains_its_construction_time_environment_binding(tmp_path, monkeypatch, build_app):
+        a, first = publish_test_v2(tmp_path / "authority-a", codes=("HK.01234",))
+        b, second = publish_test_v2(tmp_path / "authority-b", codes=("HK.05678",))
+        configure_environment(monkeypatch, a)
+        app_a, _ = build_app("app-a")
+        configure_environment(monkeypatch, b)
+        app_b, _ = build_app("app-b")
+    
+>       assert membership(read(app_a))["source"]["run_id"] == first["run_id"]
+E       AssertionError: assert '47780b7a449ef0e61d4b11ee' == '4dde428ea61593e2a9fe4c3c'
+E         
+E         - 4dde428ea61593e2a9fe4c3c
+E         + 47780b7a449ef0e61d4b11ee
+
+tests/test_manager_four_app_wiring.py:124: AssertionError
+_________ test_mutating_callers_binding_does_not_retarget_existing_app _________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-414/test_mutating_callers_binding_0')
+build_app = <function build_app.<locals>.build at 0x7f73a38fdd20>
+
+    def test_mutating_callers_binding_does_not_retarget_existing_app(tmp_path, build_app):
+        binding, first = publish_test_v2(tmp_path / "authority-a", codes=("HK.01234",))
+        other, _ = publish_test_v2(tmp_path / "authority-b", codes=("HK.05678",))
+>       app, _ = build_app("owned-binding", workspace_connect_binding=binding)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_four_app_wiring.py:133: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'owned-binding'
+kwargs = {'workspace_connect_binding': {'universe_root': PosixPath('/tmp/pytest-of-root/pytest-414/test_mutating_callers_bindin...b793c00/four_gaps/app'), 'authority_owner_sha256': '9d3d2c2d5ff3bd1c7713a9485e88000ae882f58b0a457b734656094606ba2941'}}
+
+    def build(name, **kwargs):
+        root = tmp_path / name
+>       app = app_module.create_app(
+            data_root=root / "data", shared_data_root=root / "shared",
+            ledger_root=root / "ledger", stage_center_selection_root=root / "stage",
+            manager_research_state_root=root / "manager", current_date=TARGET,
+            research_data_root=root / "research", research_ledger_root=root / "research-ledger",
+            morning_news_data_root=root / "morning-news", preselection_source_root=root / "preselection",
+            **kwargs,
+        )
+E       TypeError: create_app() got an unexpected keyword argument 'workspace_connect_binding'
+
+tests/test_manager_four_app_wiring.py:57: TypeError
+_______ test_explicit_empty_app_binding_never_borrows_valid_environment ________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-414/test_explicit_empty_app_bindin0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f73a38f6250>
+build_app = <function build_app.<locals>.build at 0x7f73a2fb85c0>
+
+    def test_explicit_empty_app_binding_never_borrows_valid_environment(tmp_path, monkeypatch, build_app):
+        binding, _ = publish_test_v2(tmp_path / "ambient-authority")
+        configure_environment(monkeypatch, binding)
+>       app, _ = build_app("unbound", workspace_connect_binding={})
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_four_app_wiring.py:143: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'unbound', kwargs = {'workspace_connect_binding': {}}
+
+    def build(name, **kwargs):
+        root = tmp_path / name
+>       app = app_module.create_app(
+            data_root=root / "data", shared_data_root=root / "shared",
+            ledger_root=root / "ledger", stage_center_selection_root=root / "stage",
+            manager_research_state_root=root / "manager", current_date=TARGET,
+            research_data_root=root / "research", research_ledger_root=root / "research-ledger",
+            morning_news_data_root=root / "morning-news", preselection_source_root=root / "preselection",
+            **kwargs,
+        )
+E       TypeError: create_app() got an unexpected keyword argument 'workspace_connect_binding'
+
+tests/test_manager_four_app_wiring.py:57: TypeError
+____________________ test_app_preserves_owner_sha_rejection ____________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-414/test_app_preserves_owner_sha_r0')
+build_app = <function build_app.<locals>.build at 0x7f73a38fd590>
+
+    def test_app_preserves_owner_sha_rejection(tmp_path, build_app):
+        binding, _ = publish_test_v2(tmp_path / "authority")
+        binding["authority_owner_sha256"] = "0" * 64
+>       app, _ = build_app("bad-pin", workspace_connect_binding=binding)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_four_app_wiring.py:155: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'bad-pin'
+kwargs = {'workspace_connect_binding': {'universe_root': PosixPath('/tmp/pytest-of-root/pytest-414/test_app_preserves_owner_sha...b793c00/four_gaps/app'), 'authority_owner_sha256': '0000000000000000000000000000000000000000000000000000000000000000'}}
+
+    def build(name, **kwargs):
+        root = tmp_path / name
+>       app = app_module.create_app(
+            data_root=root / "data", shared_data_root=root / "shared",
+            ledger_root=root / "ledger", stage_center_selection_root=root / "stage",
+            manager_research_state_root=root / "manager", current_date=TARGET,
+            research_data_root=root / "research", research_ledger_root=root / "research-ledger",
+            morning_news_data_root=root / "morning-news", preselection_source_root=root / "preselection",
+            **kwargs,
+        )
+E       TypeError: create_app() got an unexpected keyword argument 'workspace_connect_binding'
+
+tests/test_manager_four_app_wiring.py:57: TypeError
+____ test_existing_app_post_saves_plan_and_get_revalidates_same_owner_store ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-414/test_existing_app_post_saves_p0')
+build_app = <function build_app.<locals>.build at 0x7f73a2f6fed0>
+
+    def test_existing_app_post_saves_plan_and_get_revalidates_same_owner_store(tmp_path, build_app):
+        binding, built = publish_test_v2(tmp_path / "authority")
+>       app, service = build_app("same-owner", workspace_connect_binding=binding)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_four_app_wiring.py:166: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'same-owner'
+kwargs = {'workspace_connect_binding': {'universe_root': PosixPath('/tmp/pytest-of-root/pytest-414/test_existing_app_post_saves...b793c00/four_gaps/app'), 'authority_owner_sha256': '9d3d2c2d5ff3bd1c7713a9485e88000ae882f58b0a457b734656094606ba2941'}}
+
+    def build(name, **kwargs):
+        root = tmp_path / name
+>       app = app_module.create_app(
+            data_root=root / "data", shared_data_root=root / "shared",
+            ledger_root=root / "ledger", stage_center_selection_root=root / "stage",
+            manager_research_state_root=root / "manager", current_date=TARGET,
+            research_data_root=root / "research", research_ledger_root=root / "research-ledger",
+            morning_news_data_root=root / "morning-news", preselection_source_root=root / "preselection",
+            **kwargs,
+        )
+E       TypeError: create_app() got an unexpected keyword argument 'workspace_connect_binding'
+
+tests/test_manager_four_app_wiring.py:57: TypeError
+=============================== warnings summary ===============================
+../../../6168fe203da9/r3-venv314/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/6168fe203da9/r3-venv314/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_manager_four_app_wiring.py::test_explicit_app_binding_reaches_existing_reader_and_http_channel
+FAILED tests/test_manager_four_app_wiring.py::test_each_app_retains_its_construction_time_environment_binding
+FAILED tests/test_manager_four_app_wiring.py::test_mutating_callers_binding_does_not_retarget_existing_app
+FAILED tests/test_manager_four_app_wiring.py::test_explicit_empty_app_binding_never_borrows_valid_environment
+FAILED tests/test_manager_four_app_wiring.py::test_app_preserves_owner_sha_rejection
+FAILED tests/test_manager_four_app_wiring.py::test_existing_app_post_saves_plan_and_get_revalidates_same_owner_store
+6 failed, 1 warning in 0.61s

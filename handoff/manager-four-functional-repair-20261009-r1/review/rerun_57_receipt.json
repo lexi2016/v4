@@ -1,0 +1,44 @@
+{
+  "kind": "INDEPENDENT_SYNTHETIC_OFFLINE_RERUN",
+  "started_at": "2026-10-09T15:54:59.121544+00:00",
+  "command": [
+    "/workspace/scratch/21926b793c00/four_gaps/test_env/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "-ra",
+    "-p",
+    "no:cacheprovider",
+    "--basetemp",
+    "/workspace/scratch/21926b793c00/four_gaps/independent_review/review57_rwfzkk6p",
+    "tests/test_manager_four_app_wiring.py",
+    "tests/test_manager_four_announcement_integration.py",
+    "tests/test_manager_four_hk_readers.py",
+    "tests/test_manager_four_plan_owner_readback.py"
+  ],
+  "cwd": "/workspace/scratch/21926b793c00/four_gaps/app",
+  "basetemp": "/workspace/scratch/21926b793c00/four_gaps/independent_review/review57_rwfzkk6p",
+  "python": "3.14.8 (main, Oct  3 2026, 01:04:31) [Clang 22.1.3 ]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "dependencies": {
+    "fastapi": "0.143.0",
+    "starlette": "1.7.0",
+    "pytest": "9.1.1",
+    "pyarrow": "24.0.0"
+  },
+  "source_sha256_before": {
+    "apps/api/v35_api/app.py": "e9888d03208124b978fb19a7147682ed65cb79f9d465d58a48191c3330f687f2",
+    "v4/manager_research/service.py": "fead5098a4bf05bd88c41a61296e06029e3153dd6d5add9ebb101a3339f56431",
+    "v4/manager_research/workspace.py": "eb3e8481397dde084daad39c86b8d4b0cb8b152a1fb1e2cc32278c7430e10e6f",
+    "v4/manager_research/connect_selection.py": "45f33a4531e1f72120155a4cfba92cb7866d1d9c8ee9f5e00c174bb081104553"
+  },
+  "exit_code": 0,
+  "finished_at": "2026-10-09T15:55:05.855367+00:00",
+  "source_sha256_after": {
+    "apps/api/v35_api/app.py": "e9888d03208124b978fb19a7147682ed65cb79f9d465d58a48191c3330f687f2",
+    "v4/manager_research/service.py": "fead5098a4bf05bd88c41a61296e06029e3153dd6d5add9ebb101a3339f56431",
+    "v4/manager_research/workspace.py": "eb3e8481397dde084daad39c86b8d4b0cb8b152a1fb1e2cc32278c7430e10e6f",
+    "v4/manager_research/connect_selection.py": "45f33a4531e1f72120155a4cfba92cb7866d1d9c8ee9f5e00c174bb081104553"
+  },
+  "production_source_unchanged_during_run": true
+}

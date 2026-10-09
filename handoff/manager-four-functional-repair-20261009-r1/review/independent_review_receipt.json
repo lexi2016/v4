@@ -1,0 +1,165 @@
+{
+  "schema_version": "v4.four_function.independent_offline_review.v1",
+  "completed_at": "2026-10-09T16:00:35.870370+00:00",
+  "reviewer": "/root/four_independent_review",
+  "status": "PASS_WITH_EXPLICIT_OFFLINE_SCOPE",
+  "finding_counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "finding_scope": "No reproduced findings in the reviewed four-file production diff and deterministic offline probes; not a universal absence-of-defects claim.",
+  "frozen_repository_commit": "74478a0e62be215c8527ccc9a14b89b51042d014",
+  "remote_commit_live_verified": false,
+  "offline_assembled_head": "cbdf87c7e4c40c65cc71a93b00deaf1208a4f52b",
+  "app_root": "/workspace/scratch/21926b793c00/four_gaps/app",
+  "r2_target_count": 20,
+  "all_r2_head_bytes_match_original": true,
+  "changed_r2_targets": [
+    "apps/api/v35_api/app.py",
+    "v4/manager_research/connect_selection.py",
+    "v4/manager_research/service.py",
+    "v4/manager_research/workspace.py"
+  ],
+  "source_sha256": {
+    "apps/api/v35_api/app.py": "e9888d03208124b978fb19a7147682ed65cb79f9d465d58a48191c3330f687f2",
+    "v4/manager_research/service.py": "fead5098a4bf05bd88c41a61296e06029e3153dd6d5add9ebb101a3339f56431",
+    "v4/manager_research/workspace.py": "eb3e8481397dde084daad39c86b8d4b0cb8b152a1fb1e2cc32278c7430e10e6f",
+    "v4/manager_research/connect_selection.py": "45f33a4531e1f72120155a4cfba92cb7866d1d9c8ee9f5e00c174bb081104553"
+  },
+  "production_source_modified_by_reviewer": false,
+  "source_unchanged_across_all_review_commands": true,
+  "tests": [
+    {
+      "kind": "INDEPENDENT_RERUN",
+      "passed": 57,
+      "failed": 0,
+      "skipped": 0,
+      "warnings": 1,
+      "exit_code": 0,
+      "elapsed_seconds": 5.71,
+      "receipt": "rerun_57_receipt.json",
+      "rawlog": "rerun_57.rawlog"
+    },
+    {
+      "kind": "INDEPENDENT_ADDITIONAL_EDGES",
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "warnings": 1,
+      "exit_code": 0,
+      "elapsed_seconds": 2.68,
+      "receipt": "edge_probe_receipt.json",
+      "rawlog": "edge_probes.rawlog"
+    }
+  ],
+  "issue_status": {
+    "announcement": {
+      "offline": "PASS",
+      "real_mac_owner": "CANNOT_CONFIRM"
+    },
+    "hk_connect": {
+      "offline": "PASS",
+      "real_mac_owner": "CANNOT_CONFIRM"
+    },
+    "oversold": {
+      "offline": "CONTRACT_PASS_EXPECTED_PARTIAL_MISSING_VOLUME_PROVENANCE",
+      "real_mac_owner": "CANNOT_CONFIRM"
+    },
+    "plan_identity": {
+      "offline": "PASS",
+      "real_mac_owner": "CANNOT_CONFIRM"
+    }
+  },
+  "additional_probe_scope": [
+    "actual_create_app_late_env_isolation",
+    "six_actual_create_app_malformed_explicit_bindings",
+    "actual_create_app_nonempty_dynamic_get_across_midnight",
+    "actual_create_app_corruption_revokes_nonempty_current_plan",
+    "original_announcement_register_import_to_stale_then_original_plan_post_then_get"
+  ],
+  "not_run": [
+    "REAL_MAC_STATE",
+    "MARKET_NETWORK",
+    "LIVE_API",
+    "LIVE_UI",
+    "NATURAL_PERIOD",
+    "DEPLOYMENT",
+    "SERVICES_START_STOP",
+    "GITHUB_WRITE",
+    "FULL_REPO_PYTEST_DELEGATED_TO_PARENT",
+    "FRONTEND_VALIDATOR_GATE_PREVIOUS_PARENT_SCOPE",
+    "AUTO_HISTORICAL_CROSS_MIDNIGHT",
+    "PACKAGE_APPLY_ROLLBACK_PENDING_FOLLOWUP"
+  ],
+  "safety_flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "input_files": {
+    "AGENTS.md": "5b0b7c9bd337d3b30b6f5246538214f598a11dae3c32bf4f9890424a3aefedca",
+    "input/remote/package/CHAT_REPAIR_REQUEST.md": "745b8085bc9d4ec9221bb88a6f2f6be3a261b48eef1fffc81d83bbec13ece03a",
+    "input/remote/package/FOUR_ISSUE_MATRIX.md": "1fe29182d57ffee87b0a148d96637836c385fb050c0c40f8555febe92c795559",
+    "input/remote/package/DAY_RUN_REUSE_AND_INTEGRATION.md": "8455e583ffbfb11e7e2c9a1c37f26c53c704969eda25515fb11d4d6e17def6f4",
+    "evidence/assembly.json": "0d6437624998cf1d7b1cc955970c9c34a3ef8701081a3c0d3a53bd75e4b95f32",
+    "evidence/project_gate.log": "204b4058ec40ef38475d6bbc537ee56a1c738d555ea7f866fe59ac9832d41526"
+  },
+  "review_artifacts": {
+    "FINAL_REVIEW.md": {
+      "sha256": "c4d183eb04d250942dfb2e81150a3ec2728747e2cfbc94f7b7ff2c659c2f6db4",
+      "bytes": 13062
+    },
+    "rerun_57_receipt.json": {
+      "sha256": "410732374989cbcb9dfa11ab1ec9d27c6eb3a2750af535c57775552337a10b90",
+      "bytes": 2019
+    },
+    "rerun_57.rawlog": {
+      "sha256": "d19c02ea99b76113a638ef759949205fe7feeaa4800d180148a5965870df07a7",
+      "bytes": 2069
+    },
+    "edge_probe_receipt.json": {
+      "sha256": "cc6d1c0995d7472481a50233161cdfe9f48bd0862e742dd943569251f7b5e86f",
+      "bytes": 1766
+    },
+    "edge_probes.rawlog": {
+      "sha256": "22819f1c7d3d3070d670f4eece66ac942fdeb5d29d1e92a9f36002e61dcb8883",
+      "bytes": 3574
+    },
+    "static_checks.rawlog": {
+      "sha256": "f6a7e8aab8f466013f0e8657137302fd93154403b60d332b8935bd4134b44244",
+      "bytes": 1152
+    },
+    "production_diff.rawlog": {
+      "sha256": "53826565b8ac2830661d1f569ff521fd0ff12129e6e3e1fe759ca8939ce00b4f",
+      "bytes": 9710
+    },
+    "r2_target_hash_review.json": {
+      "sha256": "f2fa8c07ed871f4de5bdbc7408264c799d5129697a74e136c319579987d34f24",
+      "bytes": 8941
+    },
+    "test_independent_edges.py": {
+      "sha256": "3f88310008832a83202af42482ac009d14bc8f47f86f0404472f974077e1b277",
+      "bytes": 10028
+    }
+  },
+  "exclude_from_handoff": [
+    "review57_rwfzkk6p/",
+    "edge_probes_eo0bd4b7/"
+  ],
+  "project_gate": {
+    "executor": "PARENT_ROOT",
+    "status": "BLOCKED_AT_COLLECTION_NOT_PASSED",
+    "exit_code": 1,
+    "exit_code_provenance": "PARENT_REPORT",
+    "log_independently_read": true,
+    "rawlog": "../evidence/project_gate.log",
+    "rawlog_sha256": "204b4058ec40ef38475d6bbc537ee56a1c738d555ea7f866fe59ac9832d41526",
+    "error_test": "tests/test_hk_expected_missing_recovery.py",
+    "error": "ImportError: HK_EXPECTED_MISSING_SOURCE_SHA256",
+    "summary": "1 warning, 1 error in 0.85s",
+    "rerun_by_independent_reviewer": false,
+    "repair_attempted": false
+  }
+}

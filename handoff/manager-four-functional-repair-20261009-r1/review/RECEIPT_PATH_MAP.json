@@ -1,0 +1,70 @@
+{
+  "original_evidence_root": "/workspace/scratch/21926b793c00/four_gaps/independent_review",
+  "notes": [
+    "Frozen original receipts and reports retain execution-time paths and commands; use this mapping to locate unchanged bytes in the handoff package.",
+    "Synthetic fixture directories listed as exclude_from_handoff are intentionally not shipped.",
+    "Earlier PACKAGE_APPLY_ROLLBACK_PENDING_FOLLOWUP in the frozen review receipt records its first review phase. The final delivery followup is separate in DELIVERY_REVIEW.md."
+  ],
+  "files": [
+    {
+      "original_relative_path": "receipt.json",
+      "package_path": "review/independent_review_receipt.json",
+      "sha256": "0933b0f5f6ebb6eb35c419de85eedb95951099d2071a0c900cbace0393ff9eec",
+      "bytes": 6019
+    },
+    {
+      "original_relative_path": "FINAL_REVIEW.md",
+      "package_path": "review/INDEPENDENT_REVIEW.md",
+      "sha256": "c4d183eb04d250942dfb2e81150a3ec2728747e2cfbc94f7b7ff2c659c2f6db4",
+      "bytes": 13062
+    },
+    {
+      "original_relative_path": "rerun_57_receipt.json",
+      "package_path": "review/rerun_57_receipt.json",
+      "sha256": "410732374989cbcb9dfa11ab1ec9d27c6eb3a2750af535c57775552337a10b90",
+      "bytes": 2019
+    },
+    {
+      "original_relative_path": "rerun_57.rawlog",
+      "package_path": "review/rerun_57.log",
+      "sha256": "d19c02ea99b76113a638ef759949205fe7feeaa4800d180148a5965870df07a7",
+      "bytes": 2069
+    },
+    {
+      "original_relative_path": "edge_probe_receipt.json",
+      "package_path": "review/edge_probe_receipt.json",
+      "sha256": "cc6d1c0995d7472481a50233161cdfe9f48bd0862e742dd943569251f7b5e86f",
+      "bytes": 1766
+    },
+    {
+      "original_relative_path": "edge_probes.rawlog",
+      "package_path": "review/edge_probes_10.log",
+      "sha256": "22819f1c7d3d3070d670f4eece66ac942fdeb5d29d1e92a9f36002e61dcb8883",
+      "bytes": 3574
+    },
+    {
+      "original_relative_path": "static_checks.rawlog",
+      "package_path": "review/static_checks.log",
+      "sha256": "f6a7e8aab8f466013f0e8657137302fd93154403b60d332b8935bd4134b44244",
+      "bytes": 1152
+    },
+    {
+      "original_relative_path": "production_diff.rawlog",
+      "package_path": "review/production_diff.log",
+      "sha256": "53826565b8ac2830661d1f569ff521fd0ff12129e6e3e1fe759ca8939ce00b4f",
+      "bytes": 9710
+    },
+    {
+      "original_relative_path": "r2_target_hash_review.json",
+      "package_path": "review/r2_target_hash_review.json",
+      "sha256": "f2fa8c07ed871f4de5bdbc7408264c799d5129697a74e136c319579987d34f24",
+      "bytes": 8941
+    },
+    {
+      "original_relative_path": "test_independent_edges.py",
+      "package_path": "review/test_independent_edges.py",
+      "sha256": "3f88310008832a83202af42482ac009d14bc8f47f86f0404472f974077e1b277",
+      "bytes": 10028
+    }
+  ]
+}

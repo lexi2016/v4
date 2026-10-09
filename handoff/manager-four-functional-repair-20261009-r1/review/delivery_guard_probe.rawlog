@@ -1,0 +1,14 @@
+{
+  "command": [
+    "/workspace/scratch/21926b793c00/four_gaps/test_env/bin/python",
+    "-B",
+    "-I",
+    "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_guard_probe.py",
+    "/workspace/scratch/21926b793c00/four_gaps/delivery/manager-four-functional-repair-20261009-r1/tools/run_regression.py",
+    "/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_guard_probe_8spzpz8m"
+  ],
+  "exit_code": 0,
+  "runner_sha256": "3d61f11380e703786b0cb488fb8a911e5ada894f61dcb0c42c5fc4555ea00b3c",
+  "output": "{\n  \"absolute_write_blocked\": true,\n  \"dir_fd_write_blocked\": false,\n  \"final_fixture_bytes\": \"dir_fd fixture mutation\",\n  \"events\": [\n    {\n      \"event\": \"open\",\n      \"path\": \"/workspace/scratch/21926b793c00/four_gaps/independent_review/delivery_guard_probe_8spzpz8m/original/sentinel.txt\",\n      \"reason\": \"PROTECTED_SOURCE_WRITE_ATTEMPT\"\n    }\n  ]\n}\n",
+  "scope": "DIRECT_GUARD_ONLY_SYNTHETIC_ROOTS_NOT_57_REGRESSIONS_NOT_REAL_SOURCE"
+}

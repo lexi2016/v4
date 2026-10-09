@@ -1,0 +1,182 @@
+EXCERPT — intermediate tooling failure, not a complete raw log. Original identity is in tooling_regression02_failure.json.
+
+/workspace/scratch/6168fe203da9/r3-venv314/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+FFFFFFEEEEEEEE.....FFFFFFFFF.FFFF...........EEEEEEEEEEEEE                [100%]
+==================================== ERRORS ====================================
+_ ERROR at setup of test_r2_create_app_consumes_exact_registered_owner_result[SELECTED_EVENT-READY-1] _
+
+tmp_path = PosixPath('/workspace/scratch/21926b793c00/four_gaps/patch_validation/regression-02/pytest_tmp/test_r2_create_app_consumes_ex0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f712c112b50>
+
+    @pytest.fixture
+    def app_lane(tmp_path, monkeypatch):
+        """Use create_app's real private-package manager injection and readers."""
+        clock = {"now": NOW}
+    
+        class Clock(datetime):
+            @classmethod
+            def now(cls, tz=None):
+                instant = clock["now"]
+                return instant.astimezone(tz) if tz else instant.replace(tzinfo=None)
+    
+        monkeypatch.setattr(api, "datetime", Clock)
+        source_calls = []
+    
+        def forbidden_transport(*args, **kwargs):
+            pytest.fail("Non-fixture announcement transport was attempted")
+    
+        monkeypatch.setattr(socket.socket, "connect", forbidden_transport)
+    
+        def source_transport(url, *, timeout, method="GET", body=None, headers=None,
+                             response_type=SourceResponse):
+            source_calls.append(url)
+            parsed, query = urlparse(url), parse_qs(urlparse(url).query)
+            assert method == "GET"
+            if parsed.hostname == "np-anotice-stock.eastmoney.com":
+                assert query["begin_time"] == [PUBLICATION]
+                assert query["end_time"] == [PUBLICATION]
+                page = int(query["page_index"][0])
+                assert page in {1, 2}
+                row = {"art_code": ARTICLE, "title": TITLE,
+                    "notice_date": PUBLICATION + " 00:00:00",
+                    "display_time": PUBLICATION + " 09:00:00:000",
+                    "codes": [{"market_code": "116", "stock_code": "01234",
+                               "ann_type": "H", "short_name": "Synthetic issuer"}]}
+                value = {"success": 1, "data": {"list": [row] if page == 1 else [],
+                    "page_index": page, "page_size": PAGE_SIZE, "total_hits": 1}}
+                acquired_at = "2026-10-08T21:00:00+00:00"
+            elif parsed.hostname == "np-cnotice-stock.eastmoney.com":
+                assert query["art_code"] == [ARTICLE]
+                assert query["page_index"] == ["1"]
+                value = {"success": 1, "data": {"art_code": ARTICLE,
+                    "notice_title": TITLE, "notice_date": PUBLICATION + " 00:00:00",
+                    "page_size": 1, "notice_content": "Complete synthetic source text for tests.",
+                    "security": [{"market_uni": "116", "stock": "01234"}]}}
+                acquired_at = "2026-10-08T21:01:00+00:00"
+            else:
+                pytest.fail("Unrecognized synthetic source URL: " + url)
+            return response_type(url=url, final_url=url, status_code=200, headers={},
+                body=body_batch.json_bytes(value), retrieved_at=acquired_at)
+    
+        def provider_factory(*, material_store, timeout):
+            return HkexOfficialProvider(transport=forbidden_transport,
+                eastmoney_transport=source_transport, material_store=material_store, timeout=timeout)
+    
+        root = tmp_path / "synthetic-manager-state"
+        # Keep every create_app authority root inside this synthetic fixture.
+        for name, suffix in (("V4_MANAGER_SECURITY_MASTER_ROOT", "master"),
+                             ("V4_MANAGER_SCREEN_AUTHORITY_ROOT", "screen"),
+                             ("V4_MANAGER_NEWS_DATA_ROOT", "news"),
+                             ("V4_MANAGER_NEWS_OWNER_ROOT", "news-owner"),
+                             ("V4_MANAGER_UNIVERSE_ROOT", "universe"),
+                             ("V4_MANAGER_UNIVERSE_OWNER_ROOT", "universe-owner"),
+                             ("V4_MANAGER_HK_CAPTURE_RECEIPT_ROOT", "capture-receipts"),
+                             ("V4_MANAGER_HK_DISPATCH_RECEIPT_ROOT", "dispatch-receipts")):
+            monkeypatch.setenv(name, str(tmp_path / suffix))
+        monkeypatch.delenv("V4_MANAGER_UNIVERSE_OWNER_SHA256", raising=False)
+>       app = app_module.create_app(data_root=tmp_path / "native",
+            shared_data_root=tmp_path / "shared", ledger_root=tmp_path / "ledger",
+            stage_center_selection_root=tmp_path / "stage",
+            manager_research_state_root=root, current_date=TARGET,
+            research_data_root=tmp_path / "research",
+            research_ledger_root=tmp_path / "research-ledger",
+            morning_news_data_root=tmp_path / "morning-news",
+            preselection_source_root=tmp_path / "preselection")
+
+../source/tests/test_manager_four_announcement_integration.py:119: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../source/apps/api/v35_api/app.py:5258: in create_app
+    manager_research_store(resolved_manager_research_state_root),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../source/v4/manager_research/store.py:82: in __init__
+    self._io.ensure_directory(directory)
+../source/infrastructure/owned_io.py:100: in ensure_directory
+    with self.directory(relative, create=True):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/contextlib.py:141: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../source/infrastructure/owned_io.py:75: in directory
+    os.mkdir(part, mode=0o700, dir_fd=fd)
+../../../delivery/manager-four-functional-repair-20261009-r1/tools/run_regression.py:163: in audit
+    check_target(event, args[0], args[2])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'os.mkdir', value = 'workspace', dir_fd = 12, open_fd_unknown = False
+
+    def check_target(event, value, dir_fd=None, *, open_fd_unknown=False):
+        # The open audit event omits os.open's dir_fd. A relative open for
+        # writing therefore cannot safely be interpreted against cwd. Other
+        # mutation events expose dir_fd; reject relative targets when that
+        # descriptor does not unambiguously mean cwd. Absolute fixture/output
+        # paths remain supported. Unresolved descriptor-only targets fail closed.
+        reason = None
+        if isinstance(value, int):
+            reason = "UNRESOLVED_DESCRIPTOR_WRITE_REJECTED"
+            detail = {"descriptor": value}
+        else:
+            raw = os.fsdecode(value)
+            detail = {"path": raw}
+            if not Path(raw).is_absolute() and (open_fd_unknown or dir_fd not in (None, -1)):
+                reason = "UNRESOLVED_RELATIVE_WRITE_REJECTED"
+            elif protected(raw):
+                reason = "PROTECTED_SOURCE_WRITE_ATTEMPT"
+        if reason is not None:
+            events.append({"event": event, "reason": reason, **detail})
+>           raise PermissionError(reason + ":" + str(value))
+E           PermissionError: UNRESOLVED_RELATIVE_WRITE_REJECTED:workspace
+
+../../../delivery/manager-four-functional-repair-20261009-r1/tools/run_regression.py:141: PermissionError
+_ ERROR at setup of test_r2_create_app_consumes_exact_registered_owner_result[NOT_SELECTED-READY_EMPTY-0] _
+
+[Repeated stacks omitted]
+
+        if reason is not None:
+            events.append({"event": event, "reason": reason, **detail})
+>           raise PermissionError(reason + ":" + str(value))
+E           PermissionError: UNRESOLVED_DESCRIPTOR_WRITE_REJECTED:24
+
+../../../delivery/manager-four-functional-repair-20261009-r1/tools/run_regression.py:141: PermissionError
+=========================== short test summary info ============================
+FAILED ../source/tests/test_manager_four_app_wiring.py::test_explicit_app_binding_reaches_existing_reader_and_http_channel
+FAILED ../source/tests/test_manager_four_app_wiring.py::test_each_app_retains_its_construction_time_environment_binding
+FAILED ../source/tests/test_manager_four_app_wiring.py::test_mutating_callers_binding_does_not_retarget_existing_app
+FAILED ../source/tests/test_manager_four_app_wiring.py::test_explicit_empty_app_binding_never_borrows_valid_environment
+FAILED ../source/tests/test_manager_four_app_wiring.py::test_app_preserves_owner_sha_rejection
+FAILED ../source/tests/test_manager_four_app_wiring.py::test_existing_app_post_saves_plan_and_get_revalidates_same_owner_store
+FAILED ../source/tests/test_manager_four_hk_readers.py::test_existing_master_artifact_has_one_exact_run_and_byte_witness
+FAILED ../source/tests/test_manager_four_hk_readers.py::test_master_missing_exact_date_does_not_read_older_or_latest_entry
+FAILED ../source/tests/test_manager_four_hk_readers.py::test_master_invalid_referenced_evidence_is_invalid_not_missing[artifact_sha-HK_SECURITY_MASTER_ARTIFACT_CHECKSUM_MISMATCH]
+FAILED ../source/tests/test_manager_four_hk_readers.py::test_master_invalid_referenced_evidence_is_invalid_not_missing[manifest_sha-HK_SECURITY_MASTER_MANIFEST_CHECKSUM_MISMATCH]
+FAILED ../source/tests/test_manager_four_hk_readers.py::test_master_invalid_referenced_evidence_is_invalid_not_missing[run_id-HK_SECURITY_MASTER_IDENTITY_OR_SAFETY_INVALID]
+FAILED ../source/tests/test_manager_four_hk_readers.py::test_master_invalid_referenced_evidence_is_invalid_not_missing[trade_date-HK_SECURITY_MASTER_IDENTITY_OR_SAFETY_INVALID]
+FAILED ../source/tests/test_manager_four_hk_readers.py::test_master_invalid_referenced_evidence_is_invalid_not_missing[unsafe-HK_SECURITY_MASTER_IDENTITY_OR_SAFETY_INVALID]
+FAILED ../source/tests/test_manager_four_hk_readers.py::test_master_invalid_referenced_evidence_is_invalid_not_missing[outside_root-HK_SECURITY_MASTER_METADATA_INVALID]
+FAILED ../source/tests/test_manager_four_hk_readers.py::test_exact_panel_and_master_read_into_screen_without_inventing_volume_provenance
+FAILED ../source/tests/test_manager_four_hk_readers.py::test_screen_missing_master_stays_cannot_confirm_through_channel[exact_entry]
+FAILED ../source/tests/test_manager_four_hk_readers.py::test_screen_rejects_artifact_available_after_research_cutoff[master]
+FAILED ../source/tests/test_manager_four_hk_readers.py::test_screen_rejects_artifact_available_after_research_cutoff[panel]
+FAILED ../source/tests/test_manager_four_hk_readers.py::test_screen_uses_exact_session_panel_when_latest_points_to_later_date
+ERROR ../source/tests/test_manager_four_announcement_integration.py::test_r2_create_app_consumes_exact_registered_owner_result[SELECTED_EVENT-READY-1]
+ERROR ../source/tests/test_manager_four_announcement_integration.py::test_r2_create_app_consumes_exact_registered_owner_result[NOT_SELECTED-READY_EMPTY-0]
+ERROR ../source/tests/test_manager_four_announcement_integration.py::test_r2_create_app_missing_owner_artifacts_stays_unconfirmed_without_capture
+ERROR ../source/tests/test_manager_four_announcement_integration.py::test_r2_create_app_rejects_changed_original_review_artifact[reader_output.json]
+ERROR ../source/tests/test_manager_four_announcement_integration.py::test_r2_create_app_rejects_changed_original_review_artifact[reviewer_output.json]
+ERROR ../source/tests/test_manager_four_announcement_integration.py::test_r2_create_app_never_substitutes_neighbor_publication
+ERROR ../source/tests/test_manager_four_announcement_integration.py::test_r2_create_app_does_not_consume_import_available_after_cutoff
+ERROR ../source/tests/test_manager_four_announcement_integration.py::test_original_handoff_requires_distinct_reader_and_reviewer
+ERROR ../source/tests/test_manager_four_plan_owner_readback.py::test_original_daily_owner_to_saved_plan_to_get_preserves_exact_sha_chain
+ERROR ../source/tests/test_manager_four_plan_owner_readback.py::test_changed_original_source_stays_stale_until_original_owners_refresh
+ERROR ../source/tests/test_manager_four_plan_owner_readback.py::test_different_selection_or_publication_never_consumes_saved_plan[different0]
+ERROR ../source/tests/test_manager_four_plan_owner_readback.py::test_different_selection_or_publication_never_consumes_saved_plan[different1]
+ERROR ../source/tests/test_manager_four_plan_owner_readback.py::test_different_target_has_no_saved_plan_fallback
+ERROR ../source/tests/test_manager_four_plan_owner_readback.py::test_saved_run_or_product_integrity_failure_cannot_be_current[product_sha-READBACK_FAILED]
+ERROR ../source/tests/test_manager_four_plan_owner_readback.py::test_saved_run_or_product_integrity_failure_cannot_be_current[missing_exact_attempt-OWNER_ATTEMPT_UNVERIFIED]
+ERROR ../source/tests/test_manager_four_plan_owner_readback.py::test_saved_run_or_product_integrity_failure_cannot_be_current[attempt_sha-OWNER_ATTEMPT_UNVERIFIED]
+ERROR ../source/tests/test_manager_four_plan_owner_readback.py::test_get_never_calls_either_original_producer
+ERROR ../source/tests/test_manager_four_plan_owner_readback.py::test_workspace_passes_service_connect_binding_to_original_reader
+ERROR ../source/tests/test_manager_four_plan_owner_readback.py::test_changed_connect_authority_binding_is_stale_until_original_plan_owner_refreshes
+ERROR ../source/tests/test_manager_four_plan_owner_readback.py::test_nonempty_plan_stays_current_when_only_connect_observation_clock_advances
+ERROR ../source/tests/test_manager_four_plan_owner_readback.py::test_nonempty_plan_rechecks_changed_persisted_connect_availability
+19 failed, 17 passed, 21 errors in 8.13s

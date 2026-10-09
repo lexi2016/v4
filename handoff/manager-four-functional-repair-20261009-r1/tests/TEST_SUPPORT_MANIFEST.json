@@ -1,0 +1,28 @@
+{
+  "schema_version": "v4.manager_four_function_repair.test_support.v1",
+  "files": [
+    {
+      "path": "tests/support/app/ops/run_manager_daily_announcement.py",
+      "source_relative_path": "ops/run_manager_daily_announcement.py",
+      "bytes": 42910,
+      "sha256": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38",
+      "input_commit": "74478a0e62be215c8527ccc9a14b89b51042d014",
+      "repository_path": "handoff/manager-three-channel-repair-20261009/after/api_r3_candidate/ops/run_manager_daily_announcement.py",
+      "role": "TEST_ONLY_REFERENCE_DEPENDENCY_NOT_RUNTIME_PATCH_NOT_CURRENT_MAC_OPS_IDENTITY"
+    },
+    {
+      "path": "tests/support/app/tests/test_manager_us_mapping_research.py",
+      "source_relative_path": "tests/test_manager_us_mapping_research.py",
+      "bytes": 19113,
+      "sha256": "1c077f679083252b11d07c1499081304e7a3200b2d170baa682ade18be718dcc",
+      "input_commit": "74478a0e62be215c8527ccc9a14b89b51042d014",
+      "repository_path": "handoff/manager-daily-chain-20261008/source/api_app/tests/test_manager_us_mapping_research.py",
+      "role": "TEST_ONLY_REFERENCE_DEPENDENCY_NOT_RUNTIME_PATCH_NOT_CURRENT_MAC_OPS_IDENTITY"
+    }
+  ],
+  "notes": [
+    "The announcement support CLI is the existing prior delivered repair aee0e5c3, not the original bfb853fb reference in the latest package. It is not installed into the supplied source root.",
+    "The US helper source is imported only for _synthetic_us_payload; its legacy tests are never collected.",
+    "The original body producer, API application, source readers and validators come from the supplied source root; loaded module paths and SHA must be recorded."
+  ]
+}
