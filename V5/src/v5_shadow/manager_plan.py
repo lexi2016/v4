@@ -298,7 +298,7 @@ def _assemble(request):
             observation_error = str(error) if isinstance(error, ValueError) else 'REBOUND_OWNER_READ_FAILED:' + type(error).__name__
     panel_artifact=None; panel_error=None
     if request.get('rebound_observation') is not None:
-        from v5_shadow.rebound_observation import read_rebound_observation, manager_observation, SAFETY as panel_safety
+        from v5_shadow.rebound_observation import read_rebound_observation, SAFETY as panel_safety
         panel_binding=request['rebound_observation']
         try:
             panel_artifact=read_rebound_observation(panel_binding['root'],panel_binding['reference'])
@@ -424,8 +424,9 @@ def _assemble(request):
                 if read_rebound_observation(panel_binding['root'],panel_binding['reference']) != panel_artifact:
                     raise ValueError('PANEL_OBSERVATION_CHANGED_DURING_READ')
                 context=payload.get('plan_context') or {}
-                panel_observation=manager_observation(panel_artifact,target_date=request['target_date'],
-                    market_session=context['market_session'],research_cutoff=context['research_cutoff'])
+                from v5_shadow.manager_panel_observation import current_observation
+                panel_observation=current_observation(panel_artifact,target_date=request['target_date'],
+                    market_session=context['market_session'],plan_research_cutoff=context['research_cutoff'],view=request['view'])
             except (OSError,ValueError,KeyError,TypeError) as error:
                 panel_error=str(error) if isinstance(error,ValueError) else 'PANEL_OBSERVATION_READ_FAILED:'+type(error).__name__
         if panel_error is not None:

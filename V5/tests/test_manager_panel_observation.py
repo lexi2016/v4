@@ -3,6 +3,8 @@ import copy
 import json
 from pathlib import Path
 import unittest
+from datetime import datetime, timezone
+from unittest.mock import patch
 from v5_shadow import rebound_observation as owner
 from v5_shadow.digests import sha256_json
 from v5_shadow.manager_plan import run_manager_plan
@@ -63,11 +65,45 @@ class ManagerPanelObservationTests(unittest.TestCase):
         result=run_manager_plan(self.request)['payload']
         self.assertIsNone(result['rebound_panel_observation']['row_summary']);self.assertIn('daily_channels',result)
 
-    def test_date_and_cutoff_guards_preserved(self):
-        for change,reason in [({'target_date':'20261008'},'OBSERVATION_MANAGER_DATE_MISMATCH'),
-                              ({'now':'2026-10-09T04:00:00+00:00'},'OBSERVATION_MANAGER_AFTER_CUTOFF')]:
-            result=run_manager_plan(dict(self.request,**change))['payload']['rebound_panel_observation']
-            self.assertIn(reason,result['reason_codes']);self.assertIsNone(result['row_summary'])
+    def test_date_guard_preserved_and_caller_now_not_observation_clock(self):
+        result=run_manager_plan(dict(self.request,target_date='20261008'))['payload']['rebound_panel_observation']
+        self.assertIn('OBSERVATION_MANAGER_DATE_MISMATCH',result['reason_codes']);self.assertIsNone(result['row_summary'])
+        result=run_manager_plan(dict(self.request,now='2026-10-09T04:00:00+00:00'))['payload']['rebound_panel_observation']
+        self.assertIsNotNone(result['row_summary'])
+        self.assertEqual(result['time_basis'],'SERVER_CURRENT_READ_NOT_PLAN_PIT')
+        self.assertFalse(result['consumed_by_saved_plan'])
+
+    def current_fixture(self, *, future=False, view='auto'):
+        from v5_shadow.manager_panel_observation import current_observation
+        artifact=copy.deepcopy(self.artifact)
+        observed='2026-10-09T20:53:19+08:00' if not future else '2026-10-09T21:07:00+08:00'
+        artifact.update(started_at=observed,observed_at=observed,finished_at='2026-10-09T20:53:20+08:00' if not future else '2026-10-09T21:07:01+08:00')
+        artifact['context']['research_cutoff']=observed
+        for row in artifact['rows']:row['observed_at']=observed
+        before=copy.deepcopy(artifact)
+        with patch('v5_shadow.manager_panel_observation.datetime') as clock:
+            clock.now.return_value=datetime.fromisoformat('2026-10-09T21:06:00+08:00').astimezone(timezone.utc)
+            result=current_observation(artifact,target_date='20261009',market_session='20261008',
+                plan_research_cutoff='2026-10-09T18:15:54+08:00',view=view)
+        self.assertEqual(artifact,before)
+        return result
+
+    def test_1815_plan_2053_observation_2106_server_read_are_separate(self):
+        result=self.current_fixture()
+        self.assertIsNotNone(result['rows'])
+        self.assertEqual(result['observed_at'],'2026-10-09T20:53:19+08:00')
+        self.assertEqual(result['plan_research_cutoff'],'2026-10-09T18:15:54+08:00')
+        self.assertEqual(result['observation_read_as_of'],'2026-10-09T13:06:00+00:00')
+        self.assertFalse(result['consumed_by_saved_plan']);self.assertIsNone(result['eligible_screen'])
+
+    def test_future_observation_rejected_against_real_read_clock(self):
+        result=self.current_fixture(future=True)
+        self.assertIsNone(result['rows']);self.assertIn('OBSERVATION_MANAGER_AFTER_CUTOFF',result['reason_codes'])
+
+    def test_explicit_historical_view_hides_current_rows(self):
+        result=self.current_fixture(view='historical')
+        self.assertIsNone(result['rows'])
+        self.assertIn('OBSERVATION_CURRENT_READ_HIDDEN_FOR_HISTORICAL_VIEW',result['reason_codes'])
 
     def test_synthetic_kind_cannot_enter_observation(self):
         self.artifact['run_id']='6'*32;self.artifact['request']['data_kind']='SYNTHETIC'

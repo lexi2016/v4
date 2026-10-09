@@ -12,12 +12,13 @@ export function renderReboundPanelObservation(host:HTMLElement, input:unknown):v
   const value=object(input);
   host.append(el('h3','原面板数值观察（未正式评估）'),
     el('p',`输入行情日期 ${day(value.signal_date)}；计划目标日 ${day(value.target_date)}；实际观察时点 ${label(value.observed_at)}。`),
+    el('p',`服务端本次读取时点 ${label(value.observation_read_as_of)}；原计划研究截止 ${label(value.plan_research_cutoff)}。当前观察独立展示，不代表原计划当时已知，未写入保存计划。`),
     el('p','正式资格 CANNOT_CONFIRM；eligible_screen=null。仅当前读取的原生数值，不是正式候选，不代表全市场覆盖。单位、历史尺度、行情终态及目标日资格均未验证。'));
   const reasons=strings(value.reason_codes);
   if(reasons.length)host.append(el('p',`原产物缺口：${reasons.join('；')}`));
   const summary=object(value.row_summary);
   if(value.eligible_screen!==null||value.formal_status!=='CANNOT_CONFIRM'||typeof summary.observed_rows!=='number'||!Number.isInteger(summary.observed_rows)||summary.observed_rows<0){
-    host.append(el('p','观察产物未接通或不适用于本次日期/截止时间；观察记录数未知，正式筛选保持原状态。'));return;
+    host.append(el('p','观察产物未接通或不适用于当前日期、历史视图或服务端读取时点；观察记录数未知，正式筛选保持原状态。'));return;
   }
   host.append(el('p',`观察记录 ${label(summary.observed_rows)} 条；输入不完整 ${label(summary.numeric_input_incomplete)} 条。以上是记录数，不是候选数。`));
   const missing=strings(summary.missing_history_dates);
