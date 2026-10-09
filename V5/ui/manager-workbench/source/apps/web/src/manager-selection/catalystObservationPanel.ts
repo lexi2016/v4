@@ -1,3 +1,4 @@
+import { renderReboundPanelObservation } from './reboundPanelObservation';
 import { renderAnnouncementReview } from './announcementObservation.js';
 import { renderResearchAttention } from './researchAttention.js';
 import type { ResearchAttention, SelectionDiagnostics, UsMappingResearch, UsMarketAttention } from '../api/managerWorkspace.js';
@@ -152,6 +153,7 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
   filters.append(filterCount);
   const runDetails=el('details');runDetails.dataset.runtimeDetails='true';runDetails.append(el('summary','三路原owner运行详情'),runs);
   const stocks = el('div','','manager-catalyst-cards'); stocks.setAttribute('aria-label','去重股票');
+  const panelObservation=el('section');panelObservation.setAttribute('aria-label','原面板数值观察');panelObservation.hidden=true;
   const screen = el('section'); screen.setAttribute('aria-label','REBOUND_V3量价筛选');
   const background=el('details');background.dataset.background='true';const backgroundSummary=el('summary','其余背景与量价观察');const backgroundBody=el('div');background.append(backgroundSummary,backgroundBody);
   const strategySummary=el('summary','超跌反弹选股（独立策略；与15:30尾盘来源分开）');
@@ -169,7 +171,7 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
   const themeDetails=el('details');themeDetails.dataset.policyDetails='true';themeDetails.append(el('summary','政策与产业线索：适用公司、原文及缺口'),themes);
   const provenance=el('details');provenance.append(el('summary','原owner状态与公司原始分类'),runSummary,runDetails,companyEvents);
   // One entry for stock attention. Source lists remain audit/context, not rivals.
-  panel.append(style,header,status,dailyChannels,announcementAnalysisSection,businessStatus,researchFocus,closeRecapture,decisionSummary,filters,stocks,background,researchAttentionSection,themeDetails,strategy,announcementSection,provenance,
+  panel.append(style,header,status,dailyChannels,announcementAnalysisSection,businessStatus,researchFocus,closeRecapture,decisionSummary,filters,stocks,background,researchAttentionSection,themeDetails,strategy,panelObservation,announcementSection,provenance,
     el('p','仅研究：事件成立与行情承接、BUY准入分开。未核同口径量价不报触发价；不因高开远离可靠参考位追入，也不预设一定回踩。未读取仓位、未发订单。','decision-safety'),audit);
   host.replaceChildren(panel);
 
@@ -475,6 +477,7 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
     renderResearchAttention(researchAttentionSection,value.research_attention as ResearchAttention|undefined,value.us_market_attention as UsMarketAttention|undefined,value.selection_diagnostics as SelectionDiagnostics|undefined,value.us_mapping_research as UsMappingResearch|undefined);
     panel.dataset.inputIdentity=value.input_identity; panel.dataset.targetDate=value.target_trade_date;panel.dataset.readState='READY';
     renderCloseRecapture(value);
+    renderReboundPanelObservation(panelObservation,value.rebound_panel_observation);
     const ctx=(value.plan_context || {}) as JsonObject;const product=(value.plan_product || {}) as JsonObject;
     const read=(value.read_context || {}) as JsonObject;
     const planAttempt=(value.workspace_plan_attempt || {}) as JsonObject;
@@ -552,6 +555,7 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
     for(const node of [stocks,backgroundBody,companyEvents,runs,themes,auditBody,businessStatus,researchFocus,closeRecapture])node.replaceChildren();
     renderDailyChannels(dailyChannels,undefined,displayBindings());
     renderScreen(undefined);
+    renderReboundPanelObservation(panelObservation,undefined);
     renderResearchAttention(researchAttentionSection,undefined,undefined);
     delete panel.dataset.inputIdentity;delete panel.dataset.targetDate;panel.dataset.readState='LOADING';
   }

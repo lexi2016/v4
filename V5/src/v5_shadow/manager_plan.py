@@ -93,7 +93,7 @@ def load_owner():
 def _request(value):
     required = ('target_date', 'now', 'action', 'view', 'selection_date',
                 'announcement_date', 'inputs', 'rebound', 'manager_output_root')
-    exact_keys(value, required + tuple(key for key in ('rebound_owner','membership','registry_observation') if key in value))
+    exact_keys(value, required + tuple(key for key in ('rebound_owner','membership','registry_observation','rebound_observation') if key in value))
     trade_date(value['target_date'])
     if aware(value['now']) > datetime.now(timezone.utc):
         raise ValueError('MANAGER_FUTURE_CUTOFF')
@@ -183,6 +183,20 @@ def _request(value):
             common._relative(membership_root,relative);sha(digest)
             if not relative.startswith('universes/'+value['target_date']+'/') or not relative.endswith('.json'):
                 raise ValueError('MANAGER_MEMBERSHIP_PATH')
+    if value.get('rebound_observation') is not None:
+        binding=value['rebound_observation']
+        exact_keys(binding, ('root','reference'))
+        observed_root=no_symlinks(binding['root'])
+        if not Path(binding['root']).is_absolute():raise ValueError('MANAGER_PANEL_OBSERVATION_ROOT')
+        others=[output,*roots]
+        for key in ('rebound','rebound_owner','membership','registry_observation'):
+            if value.get(key) is not None:others.append(no_symlinks(value[key]['root']))
+        if any(observed_root.is_relative_to(other) or other.is_relative_to(observed_root) for other in others):
+            raise ValueError('MANAGER_PANEL_OBSERVATION_ROOT_OVERLAP')
+        exact_keys(binding['reference'], ('run_id','artifact_sha256','manifest_sha256','receipt_sha256'))
+        if not re.fullmatch(r'[0-9a-f]{32}',str(binding['reference']['run_id'])):
+            raise ValueError('MANAGER_PANEL_OBSERVATION_RUN_ID')
+        for key in ('artifact_sha256','manifest_sha256','receipt_sha256'):sha(binding['reference'][key])
     if value.get('registry_observation') is not None:
         registry = value['registry_observation']
         exact_keys(registry, ('root','files','source_date','source_label','format'))
@@ -223,7 +237,7 @@ def _snapshot(binding):
 
 
 def _identity():
-    names = ('registry_observation.py', 'membership_reader.py', 'hk_membership_recovery.py', 'rebound_owner.py', 'health.py', 'module_artifacts.py', 'archive_reader.py', 'announcement_bridge.py', 'manager_plan.py', 'manager_plan_gate.py', 'manager_plan_io.py', 'a_preselection.py',
+    names = ('manager_panel_observation.py', 'rebound_observation.py', 'registry_observation.py', 'membership_reader.py', 'hk_membership_recovery.py', 'rebound_owner.py', 'health.py', 'module_artifacts.py', 'archive_reader.py', 'announcement_bridge.py', 'manager_plan.py', 'manager_plan_gate.py', 'manager_plan_io.py', 'a_preselection.py',
              'contracts.py', 'digests.py', 'composition.py', 'module_api.py', 'api_gateway.py',
              'shadow_store.py', 'legacy_adapter.py', 'source_capsule.py', 'provider_evidence.py', '__init__.py')
     return {name: hashlib.sha256((BASE / 'src/v5_shadow' / name).read_bytes()).hexdigest() for name in names}
@@ -282,6 +296,14 @@ def _assemble(request):
             observation_artifact = read_rebound_owner(observation_binding['root'], observation_binding['reference'])
         except (OSError, ValueError, KeyError, TypeError) as error:
             observation_error = str(error) if isinstance(error, ValueError) else 'REBOUND_OWNER_READ_FAILED:' + type(error).__name__
+    panel_artifact=None; panel_error=None
+    if request.get('rebound_observation') is not None:
+        from v5_shadow.rebound_observation import read_rebound_observation, manager_observation, SAFETY as panel_safety
+        panel_binding=request['rebound_observation']
+        try:
+            panel_artifact=read_rebound_observation(panel_binding['root'],panel_binding['reference'])
+        except (OSError,ValueError,KeyError,TypeError) as error:
+            panel_error=str(error) if isinstance(error,ValueError) else 'PANEL_OBSERVATION_READ_FAILED:'+type(error).__name__
     workspace = load_owner()
     if membership_readback is not None:
         install_transport(roots['membership'],membership_readback)
@@ -396,6 +418,23 @@ def _assemble(request):
         observation['binding_reference'] = copy.deepcopy(observation_binding['reference'])
         observation['scope'] = 'INDEPENDENT_READ_TIME_OBSERVATION_NOT_SAVED_PLAN_OR_FORMAL_SELECTION'
         payload['rebound_research_observation'] = observation
+    if request.get('rebound_observation') is not None:
+        if panel_artifact is not None:
+            try:
+                if read_rebound_observation(panel_binding['root'],panel_binding['reference']) != panel_artifact:
+                    raise ValueError('PANEL_OBSERVATION_CHANGED_DURING_READ')
+                context=payload.get('plan_context') or {}
+                panel_observation=manager_observation(panel_artifact,target_date=request['target_date'],
+                    market_session=context['market_session'],research_cutoff=context['research_cutoff'])
+            except (OSError,ValueError,KeyError,TypeError) as error:
+                panel_error=str(error) if isinstance(error,ValueError) else 'PANEL_OBSERVATION_READ_FAILED:'+type(error).__name__
+        if panel_error is not None:
+            panel_observation=dict(rows=None,computation_status='CANNOT_CONFIRM',reason_codes=[panel_error],
+                source_run_id=panel_binding['reference']['run_id'],**panel_safety)
+        panel_observation['binding_reference']=copy.deepcopy(panel_binding['reference'])
+        panel_observation['scope']='INDEPENDENT_CURRENT_PANEL_OBSERVATION_NOT_SAVED_PLAN_OR_SELECTION'
+        from v5_shadow.manager_panel_observation import summarize
+        payload['rebound_panel_observation']=summarize(panel_observation)
     if request.get('registry_observation') is not None:
         if registry_error is None:
             observation = project(registry_rows, request['registry_observation'], archive_readback, registry_started)

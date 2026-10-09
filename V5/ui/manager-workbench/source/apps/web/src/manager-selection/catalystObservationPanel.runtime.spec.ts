@@ -138,6 +138,22 @@ beforeEach(() => {
 });
 
 describe("catalyst workspace runtime boundary", () => {
+  it("mounts optional panel summary without replacing the formal screen or refreshing a plan", async () => {
+    const value={...workspaceWithScreen(),rebound_panel_observation:{eligible_screen:null,formal_status:"CANNOT_CONFIRM",
+      signal_date:"20261008",target_date:"20261009",observed_at:"2026-10-09T20:53:19+08:00",reason_codes:[],
+      row_summary:{observed_rows:695,numeric_input_incomplete:695,missing_history_dates:["20261005","20261006","20261007"],
+        native_comparison_counts:{close_le_prior60_high_times_0_8:{true:0,false:0,unknown:695},current_to_previous5_ge_1_5:{true:0,false:0,unknown:695}}}}};
+    workspaceMocks.request.mockResolvedValue(value);
+    const host=document.createElement("div");document.body.append(host);
+    const dispose=mountCatalystObservations(host,"20260921");
+    try {
+      await waitFor(()=>expect(host.querySelector('[aria-label="原面板数值观察"]')?.textContent).toContain("观察记录 695 条"));
+      expect(host.querySelector('[aria-label="原面板数值观察"]')?.textContent).toContain("不是候选数");
+      expect(host.querySelector('[aria-label="REBOUND_V3量价筛选"]')).not.toBeNull();
+      expect(workspaceMocks.refresh).not.toHaveBeenCalled();
+    } finally {dispose();}
+  });
+
   it("accepts the two-gate screen and rejects the frozen four-gate rule version", () => {
     const accepted = validateManagerWorkspace(workspaceWithScreen(), "20260921");
     expect(accepted.market_screen?.rule_version).toBe("20260923_REBOUND_TWO_GATE_V1");

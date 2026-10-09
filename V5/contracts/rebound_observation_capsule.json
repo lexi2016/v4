@@ -1,0 +1,85 @@
+{
+  "schema_version": "v5.rebound_observation_capsule.v1",
+  "base_commit": "e11197d5056af80c6f6a2e80579e2cd2c3910b80",
+  "source_path": "vendor/rebound_baseline/v4/manager_research/workspace_plan.py",
+  "source_sha256": "be0d5e69ff72efd07d2caca4e68948245db4900a8c41f467e9c30f6899c044b1",
+  "execution_identity": "FROZEN_NUMERIC_BODY_EXTRACT_NOT_COMPLETE_MASTER_OWNER",
+  "source_function": "read_rebound_screen",
+  "capture_keys": [
+    "code",
+    "close",
+    "prev_close",
+    "day_positive_close_gt_prev_close",
+    "pct_change",
+    "current_volume",
+    "close_position_0_low_1_high",
+    "rebound_close_vs_low_pct",
+    "rebound_ge_3pct",
+    "recent_3_session_return_pct",
+    "recent_5_session_return_pct",
+    "history_status",
+    "history_unknown_reasons",
+    "prior60_session_count",
+    "previous5_session_count",
+    "previous20_session_count",
+    "prior60_session_high",
+    "oversold_cutoff_80pct_prior60_high",
+    "previous5_mean_volume",
+    "volume_ratio_5d",
+    "previous20_mean_volume_background",
+    "volume_ratio_20d_background",
+    "background20_status",
+    "oversold_flag",
+    "volume_flag_5d_ge_1_5",
+    "strict_two_gate_oversold_5dvolume",
+    "near_two_gate_one_missing"
+  ],
+  "extracted_spans": [
+    {
+      "first": 874,
+      "last": 889,
+      "sha256": "477038f8bcffc9610cc795435fa671e8124034082b84374fee3bc255a948dff8"
+    },
+    {
+      "first": 893,
+      "last": 993,
+      "sha256": "93954927dda47970dbb058092473d450cc959549e79e24f19389cd6de1173fa1"
+    },
+    {
+      "first": 997,
+      "last": 1043,
+      "sha256": "16c0feabd51e182bc691942d795b02dbb7eb94a96faf23d882339fa837286b79"
+    },
+    {
+      "first": 1046,
+      "last": 1052,
+      "sha256": "81914409a8ae7f125766ad804b1fb4bbe88cf87ba45b6f191ae680d5f0f43036"
+    }
+  ],
+  "structural_boundaries": {
+    "setup_count": 11,
+    "arithmetic_count": 59,
+    "background_count": 3,
+    "original_loop_line": 893
+  },
+  "bindings": {
+    "src/v5_shadow/rebound_owner.py": "9b454daf67fed315f3d7e204dcc35c961805d929300d56b3a641246a839c8fe3",
+    "contracts/rebound_owner_capsule.json": "0f407ac5206a1c96a29cdfe2bb16c627c026b4fdd1c052833fff9299c70a6e9d",
+    "contracts/rebound_source_manifest.json": "153c6dc8168e61bc73133ea1dd9a3bd1a8a27eb58b9d23c3869b2233623e13cd",
+    "uv.lock": "7cb690f890cc28b6a79311f07e724f61c3dc4411494d480c0041f075f0825bfd",
+    "vendor/rebound_baseline/contracts/market_calendar_2026.json": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb"
+  },
+  "constants": {
+    "oversold_ratio": 0.8,
+    "volume_comparison": 1.5,
+    "background_rebound_pct": 3.0
+  },
+  "runtime_verification": "NOT_RUN",
+  "formal_eligibility": "UNVERIFIED",
+  "notes": [
+    "Original vendor bytes and complete-master owner are untouched.",
+    "Copies original AST statements and selected numeric expressions, not master labels or provenance.",
+    "No source-name/master witness injection. Absolute units, history-wide scale consistency and provider finality remain unproven.",
+    "Current-time panel observation, not historical PIT reconstruction or intraday quote substitution."
+  ]
+}
