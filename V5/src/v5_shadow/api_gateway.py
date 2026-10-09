@@ -19,9 +19,18 @@ from .digests import canonical_bytes,sha256_json
 
 MAX_BODY=1024*1024
 MAX_RESPONSE=16*1024*1024
+DEFAULT_JSON_NODES=200000
+MANAGER_JSON_NODES=300000
+MANAGER_WORKSPACE_PATH='/api/v4/manager/research/workspace'
 
 
-def _precheck_json(data):
+def _manager_response(module_id, path, method='GET', status=200):
+    return (module_id == 'manager' and path == MANAGER_WORKSPACE_PATH
+            and method == 'GET' and status == 200)
+
+
+def _precheck_json(data, *, manager_workspace=False):
+    limit=MANAGER_JSON_NODES if manager_workspace else DEFAULT_JSON_NODES
     depth=nodes=0;quoted=False;escaped=False;scalar=False
     for byte in data:
         if quoted:
@@ -39,10 +48,11 @@ def _precheck_json(data):
         elif byte in (32,9,10,13,44,58):scalar=False
         elif not scalar:
             nodes+=1;scalar=True
-        if depth>64 or nodes>200000:raise ValueError('MODULE_JSON_COMPLEXITY_LIMIT')
+        if depth>64 or nodes>limit:raise ValueError('MODULE_JSON_COMPLEXITY_LIMIT')
 
 
 def _bounded_json(value):
+    limit=DEFAULT_JSON_NODES
     stack=[(iter((value,)),0)];nodes=0
     while stack:
         iterator,depth=stack[-1]
@@ -51,7 +61,7 @@ def _bounded_json(value):
             stack.pop();continue
         nodes+=1
         if isinstance(item,float) and not math.isfinite(item):raise ValueError('MODULE_JSON_NONFINITE')
-        if depth>64 or nodes>200000:raise ValueError('MODULE_JSON_COMPLEXITY_LIMIT')
+        if depth>64 or nodes>limit:raise ValueError('MODULE_JSON_COMPLEXITY_LIMIT')
         if isinstance(item,dict):stack.append((iter(item.values()),depth+1))
         elif isinstance(item,list):stack.append((iter(item),depth+1))
 
@@ -60,9 +70,10 @@ def _invalid_constant(value):
     raise ValueError('MODULE_JSON_NONFINITE')
 
 
-def _parse_response(data):
+def _parse_response(data, *, manager_workspace=False):
+    if len(data)>MAX_RESPONSE:raise ValueError('MODULE_RESPONSE_TOO_LARGE')
     text=data.decode('utf-8')
-    _precheck_json(data)
+    _precheck_json(data, manager_workspace=manager_workspace)
     value=json.loads(text,parse_constant=_invalid_constant)
     _bounded_json(value)
     return value
@@ -223,7 +234,8 @@ def create_gateway(config,host='127.0.0.1',port=0,frontend=None):
                 if expired.is_set() or time.monotonic()>deadline:raise TimeoutError()
                 if declared is not None and size!=declared:return self.error(502,'MODULE_RESPONSE_TRUNCATED',name)
                 data=b''.join(chunks)
-                _parse_response(data)
+                _parse_response(data, manager_workspace=_manager_response(
+                    name, parsed.path, self.command, response.status))
                 self.reply(response.status,data,raw=True)
             except (TimeoutError,socket.timeout):self.error(504,'MODULE_TIMEOUT',name)
             except (OSError,http.client.HTTPException):self.error(504 if expired.is_set() else 502,'MODULE_TIMEOUT' if expired.is_set() else 'MODULE_UNAVAILABLE',name)

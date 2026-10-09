@@ -13,9 +13,8 @@ from uuid import uuid4
 
 from .contracts import sha
 from .digests import canonical_bytes
-from .api_gateway import _parse_response
 from .module_api import (_config, _generation_head, _load_generation, _read_at,
-                         _read_object, _validate_record, response_key)
+                         _read_object, _parse_record, _validate_record, response_key)
 
 MAX_GENERATION_BYTES = 64 * 1024 * 1024
 
@@ -90,7 +89,7 @@ def _load_records(config, root, generation):
     if generation is not None:
         refs = dict(_load_generation(root, config, generation)['records'])
         for key, digest in refs.items():
-            record, raw = _read_object(root, digest)
+            record, raw = _read_object(root, digest, config)
             _validate_ref(config, key, record)
             total += len(raw)
             if total > MAX_GENERATION_BYTES:
@@ -113,7 +112,7 @@ def _load_records(config, root, generation):
         total += len(raw)
         if total > MAX_GENERATION_BYTES:
             raise ValueError('MODULE_GENERATION_SIZE')
-        record = _parse_response(raw)
+        record = _parse_record(raw, config)
         _validate_ref(config, name[:-5], record)
         digest = hashlib.sha256(raw).hexdigest()
         _write_immutable(root, 'objects', digest, raw)
@@ -179,7 +178,7 @@ def publish_generation(config, records, *, expected_generation):
             if key in changes:
                 raise ValueError('MODULE_DUPLICATE_RESPONSE')
             raw = canonical_bytes(record)
-            _parse_response(raw)
+            _parse_record(raw, config)
             changes[key] = (hashlib.sha256(raw).hexdigest(), raw)
         refs = _load_records(config, root, previous)
         for key, (digest, raw) in changes.items():

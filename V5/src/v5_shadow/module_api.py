@@ -15,7 +15,8 @@ from urllib.parse import parse_qs,urlsplit
 from .composition import no_symlinks
 from .contracts import exact_keys,aware,sha
 from .digests import canonical_bytes,sha256_json,MAX_JSON_BYTES
-from .api_gateway import _parse_response
+from .api_gateway import (_parse_response, _precheck_json, _bounded_json,
+                          _manager_response, MANAGER_WORKSPACE_PATH)
 
 
 def response_key(module_id,path,query):
@@ -120,22 +121,39 @@ def _load_generation(root_fd,config,generation):
     return value
 
 
-def _read_object(root_fd,digest):
+def _parse_record(data, config):
+    # Budget comes from trusted module config, never payload-supplied metadata.
+    # Record identity is checked again by _validate_record / _validate_ref.
+    candidate = (config.get('module_id') == 'manager'
+                 and MANAGER_WORKSPACE_PATH in config.get('routes', []))
+    value = _parse_response(data, manager_workspace=candidate)
+    if candidate and not (isinstance(value, dict)
+            and value.get('module_id') == 'manager'
+            and value.get('schema_version') == 'v5.module_response.v1'
+            and value.get('data_kind') == 'OWNER_RESULT'
+            and _manager_response('manager', value.get('path'), status=value.get('status_code'))):
+        # Other records remain subject to the default, including manager errors.
+        _precheck_json(data)
+        _bounded_json(value)
+    return value
+
+
+def _read_object(root_fd,digest,config=None):
     sha(digest)
     try:data=_read_at(root_fd,'objects',digest+'.json')
     except FileNotFoundError as error:raise ValueError('MODULE_OBJECT_MISSING') from error
     if hashlib.sha256(data).hexdigest()!=digest:raise ValueError('MODULE_OBJECT_DIGEST')
-    return _parse_response(data),data
+    return (_parse_record(data,config) if config is not None else _parse_response(data)),data
 
 
 def _read_record(root_fd,key,config):
     generation=_generation_head(root_fd,config)
     if generation is None:
         data=_read_at(root_fd,'responses',key+'.json')
-        return _parse_response(data),hashlib.sha256(data).hexdigest()
+        return _parse_record(data,config),hashlib.sha256(data).hexdigest()
     refs=_load_generation(root_fd,config,generation)['records']
     if key not in refs:raise FileNotFoundError('MODULE_RESULT_NOT_AVAILABLE')
-    record,data=_read_object(root_fd,refs[key])
+    record,data=_read_object(root_fd,refs[key],config)
     return record,hashlib.sha256(data).hexdigest()
 
 
