@@ -31,7 +31,7 @@ def main():
         if digest(source)!=row['after_sha256']:
             raise ValueError('UI_OVERLAY_SOURCE_MISMATCH:'+row['path'])
         actual=digest(target) if target.exists() else None
-        if actual not in (row['before_sha256'],row['after_sha256']):
+        if actual not in (row['before_sha256'],row['after_sha256'],row.get('previous_candidate_sha256', row['before_sha256'])):
             raise ValueError('UI_BASE_FILE_MISMATCH:'+row['path'])
         pending.append((target,source.read_bytes(),row))
     # Validate all original files before any replacement. No dependency install,

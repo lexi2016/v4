@@ -97,3 +97,87 @@ Separately acknowledged: b26e5616 Mac manager8 PASS, announcement6 PASS, full322
 PASS; real new plan dc92c0e960ef4a91b2d9eb52720f232d later CURRENT / consumed=true
 with matching identity and unchanged file SHAs, PARTIAL/natural=false. No P2
 source changes are made in this UI candidate.
+
+## Follow-up to actual 31e2658c Mac results
+
+Mac: designated suites 48 PASS / 2 FAIL / 1 ERROR, exit 1; the original three
+RED tests all passed; typecheck passed. Cancellation still verified abort,
+FAILED, cancellation text and suppression of a late response. No build/deploy.
+
+Both assertion failures described the old behavior intentionally removed:
+- Original dailyChannels runtime now asserts exactly one GET, exact
+  `{date:20261008,view:auto}`, displayed server selection08/publication07/plan08,
+  and unchanged legacy URL date06. It no longer requests two invented dates.
+- Original catalyst runtime keeps its date-change/abort/late-result assertions
+  and now additionally requires the exact fourth argument:
+  `{plan_date:20261002,selection_date:20261001,announcement_date:20261002}`.
+No tests are removed or skipped. Production panel/API bytes are unchanged from
+31e2658c. The overlay accepts the exact prior candidate's runtime-spec SHA as
+well as its original baseline when applying this assertion-only follow-up.
+
+### Missing original observation fixture
+
+The preserved catalyst runtime reads FIXTURE_BINDING.json plus
+close_recapture.json and close_recapture.candidates.json relative to its source
+location: `src/manager-selection/../../../../tests/fixtures/manager_current_observation_20261002`.
+Thus an isolated web root resolves the fixture at
+`<web-root>/../../tests/fixtures/manager_current_observation_20261002`, not inside
+apps/web. The original R1 copy already lacked this fixture: its receipts/p2_delta_receipt.json
+line 121 records the same error. This is not established as a copying regression.
+
+Frozen source `8342862:handoff/v4-running-source-20261005/canonical/tests/test_manager_current_observation.py`
+contains four authoritative original data SHAs (embedded in the installer):
+close_recapture.json, close_recapture.receipt.json,
+close_recapture.candidates.json, inputs/close_recapture_pytdx.json.
+The referenced raw directory and binding JSON are NOT present in this checkout,
+the fixed 8342862 tree, or tracked fixture history available here. The existing
+Mac task located the five verified files at
+`/Users/lexi/Desktop/学习/v4_app/tests/fixtures/manager_current_observation_20261002`. Do not manufacture binding
+JSON, substitute unrelated observation data, skip its test or call it repaired.
+
+`install_observation_fixture.py` accepts the original directory and the binding
+SHA separately obtained by the Mac source lookup. The binding SHA is pinned to
+`9e5fd49a35fa70aa8d2a85b4b06547fecaae5af9f9248fbffa99e5aa48b28c0c`.
+It validates this binding, all four frozen data SHA pins and the two UI-bound hashes,
+then copies the exact bytes into the original relative layout and reports the
+complete installed manifest. It rejects differing existing files. No fixture
+bytes or unverified binding SHA are invented in this candidate.
+
+Mac confirmed the four data files match the binding and original data byte for byte.
+These files are untracked; do not claim they exist at the Git candidate. The
+historical upstream FIXTURE_BINDING referenced by this local binding is missing,
+so its declared `5c8c28ce…` hash cannot be independently checked. The independent
+readback exists and matches `3f9639d8…`. The installer copies the five verified
+local files unchanged; it does not create an upstream binding or close this
+provenance gap. Preserve this limitation in the final Mac report.
+
+Full recheck using the existing Mac fixture (isolated candidate only):
+
+```sh
+python3 /absolute/v4/V5/ui/manager-workbench/apply_candidate.py --web-root /absolute/isolated-web
+python3 /absolute/v4/V5/ui/manager-workbench/install_observation_fixture.py --source "/Users/lexi/Desktop/学习/v4_app/tests/fixtures/manager_current_observation_20261002" --binding-sha256 9e5fd49a35fa70aa8d2a85b4b06547fecaae5af9f9248fbffa99e5aa48b28c0c --web-root /absolute/isolated-web
+cd /absolute/isolated-web
+npm run test -- src/manager-selection/dailyChannels.v5Bindings.spec.ts src/manager-selection/dailyChannels.runtime.spec.ts src/manager-selection/dailyChannels.spec.ts src/manager-selection/catalystObservationPanel.runtime.spec.ts
+npm run typecheck
+```
+
+Cloud checks: Python AST, exact overlay digests, preserved runtime test count,
+production-byte equality to 31e2658c and diff check. No cloud tests. The existing Mac task must perform the recheck; the historical upstream binding
+provenance gap remains and is not an ignored test error.
+
+### Historical view contract
+
+The panel initializes with `view=auto`; it does not read `view=dynamic` from the
+URL. Opening `?date=20261008&view=dynamic` alone therefore does not enable dynamic
+mode. After opening the date08 panel, use the “读取口径” select (accessible name
+“历史或现在回看”) and choose “现在回看（可能含后续消息）”. Its change handler
+sets dynamic and immediately reads the workspace. Verify the actual canonical
+GET query has `date=20261008&view=dynamic` (and explicit date bindings only if
+the user selected those dates). A default auto response is not evidence that
+dynamic mode worked.
+
+The prepared historical plan `2b1f5907eff44341869049532e269709` is reported CURRENT
+with 33/54/75 and an actual generation time of 06:02 UTC; it has not been
+published. Its use is a present-day look back at October 8, not an as-of historical
+plan. Do not backdate generation, relabel October 8 announcement data as today's
+data, or claim that this source candidate publishes the prepared plan.

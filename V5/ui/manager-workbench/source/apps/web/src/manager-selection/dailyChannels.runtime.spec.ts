@@ -64,7 +64,7 @@ describe('first-screen independent research channels', () => {
     expect(fetchMock.mock.calls.some(call => String(call[0]) === `/api/v4/manager/research/announcements?date=${publication}`)).toBe(true);
   });
 
-  it('rebinds one legacy default GET when a new backend returns different display/publication dates', async () => {
+  it('uses one default GET and displays the validated server dates without inventing query bindings', async () => {
     window.history.replaceState({}, '', '/?date=20261006&plan_date=20261008');
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = new URL(String(input), 'http://localhost');
@@ -76,10 +76,13 @@ describe('first-screen independent research channels', () => {
     const host = document.createElement('div'); document.body.append(host); dispose = mountCatalystObservations(host, '20261008');
     await waitFor(() => expect(host.querySelector('[data-daily-channel="ANNOUNCEMENT"]')?.textContent).toContain('HK.00001'));
     const reads = fetchMock.mock.calls.filter(call => String(call[0]).includes('/workspace?'));
-    expect(reads).toHaveLength(2);
-    expect(String(reads[1][0])).toContain('selection_date=20261006');
-    expect(String(reads[1][0])).toContain('announcement_date=20261006');
-    expect(host.querySelector('[data-daily-bindings]')?.textContent).toContain('公告日 20261006');
+    expect(reads).toHaveLength(1);
+    expect(Object.fromEntries(new URL(String(reads[0][0]), 'http://localhost').searchParams))
+      .toEqual({ date: '20261008', view: 'auto' });
+    expect(host.querySelector('[data-daily-bindings]')?.textContent).toContain('来源/选股日 20261008');
+    expect(host.querySelector('[data-daily-bindings]')?.textContent).toContain('公告日 20261007');
+    expect(host.querySelector('[data-daily-bindings]')?.textContent).toContain('计划日 20261008');
+    expect(new URL(window.location.href).searchParams.get('date')).toBe('20261006');
   });
 
   it('renders stock, original reason, data date, run and status without expanding diagnostics', async () => {
