@@ -1,0 +1,61 @@
+{
+  "stage": "initial_candidate_review",
+  "target_date": "20261009",
+  "files": [
+    {
+      "path": "after/source/actual_api/apps/api/v35_api/app.py",
+      "bytes": 324648,
+      "sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5"
+    },
+    {
+      "path": "after/source/actual_api/apps/api/v35_api/preselection_router.py",
+      "bytes": 1322,
+      "sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae"
+    },
+    {
+      "path": "after/source/actual_api/apps/api/v35_api/preselection_service.py",
+      "bytes": 30152,
+      "sha256": "0ed79bc586a099e6c3f0ce603fc2daed02671b11a8d763a345ec11251cefb507"
+    },
+    {
+      "path": "after/source/actual_pool_scheduler/infrastructure/scheduling/dispatcher.py",
+      "bytes": 15246,
+      "sha256": "d186949486f1807c72f4795ff273f1ee886afb536a82e8a328b13bc4cb9f1bf3"
+    },
+    {
+      "path": "after/source/actual_pool_scheduler/infrastructure/scheduling/executor_registry_preselection.py",
+      "bytes": 18213,
+      "sha256": "4a437404e0fe7f4ec09b4019151bb958c5dadd0daefd6884186fe488968ac0e4"
+    },
+    {
+      "path": "after/source/actual_pool_scheduler/ops/ensure_hk_security_master.py",
+      "bytes": 33040,
+      "sha256": "90b80d1f63fbb859956fee45c175e36c3c4756d3780ea45e1ae4482c79ca25bb"
+    },
+    {
+      "path": "after/source/actual_shared_owner/shared_data/hk_security_master.py",
+      "bytes": 18728,
+      "sha256": "3da7b72ef427747ad79d961cccdec7fffe33a34093714db08c59a1829316370d"
+    },
+    {
+      "path": "after/source/canonical_reference/infrastructure/scheduling/_executor_registry_parts/preselection.py",
+      "bytes": 28933,
+      "sha256": "f9958ccde75ec8613e9e48f353e24a9b974ff68339ee597b0126518dc3244d79"
+    },
+    {
+      "path": "after/source/canonical_reference/infrastructure/scheduling/dispatcher.py",
+      "bytes": 24337,
+      "sha256": "aba5d9b3b692d8e4b9bbb9174f6803dab19f33b3d39d7fd202195aca585c5f59"
+    },
+    {
+      "path": "after/source/canonical_reference/ops/ensure_hk_security_master.py",
+      "bytes": 45277,
+      "sha256": "c32df963858d7a3492e4bea75e6cbd754b63579d651a85c7e884bf8cd923c044"
+    },
+    {
+      "path": "after/source/canonical_reference/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "bytes": 18729,
+      "sha256": "0781aa17b9425768fb3af6f5d553678439d5e8e3914267fd86368605dcb9e42e"
+    }
+  ]
+}

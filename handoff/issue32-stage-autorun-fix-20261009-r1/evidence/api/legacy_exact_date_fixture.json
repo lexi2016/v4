@@ -1,0 +1,14 @@
+{
+  "scope": "TEST_ONLY_CONTRACT_FIXTURE_ADAPTATION",
+  "case": "test_primary_a_pool_can_use_only_exact_configured_hk_fallback",
+  "source": "Issue30/tests/preselection/test_preselection_source_root_20261008.py",
+  "before_sha256": "d1e605f9f6d4a0a024a4d104f8cd5dddc9fbbe154914ab4eae76107586c5cc75",
+  "after_sha256": "93e43d4515c8874e83f2066e10912d3a7ebb880f3ace2a9b51f9aaeb397afec5",
+  "patch_sha256": "7eadb54f472d173971828a4d1763b9f311e467c01d829408f4725d9d66524d48",
+  "reason": "Frozen positive Oct8 fallback fixture used Sep30 prices, Sep29 eligibility and Sep30 capture. Issue32 requires Oct7 prices and Sep30 eligibility/capture; keep positive assertions and alter only the constructed fixture in this one case.",
+  "all_other_ast_unchanged": true,
+  "original_issue30_unchanged": true,
+  "frozen_replay_status": "FAIL:70/71; new41passed old29passed",
+  "frozen_replay_evidence": "work/api_combined_r2/results/preselection/result.json",
+  "intermediate_fixture_status": "r3 FAIL71/72: historical store rejects new optional top-level aliases; r4 corrects only existing fields and preserves the unchanged store"
+}

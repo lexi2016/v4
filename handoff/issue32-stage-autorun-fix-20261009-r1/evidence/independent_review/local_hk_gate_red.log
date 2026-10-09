@@ -1,0 +1,22 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_ test_explicit_local_hk_gate_rejection_cannot_settle_success[actual_pool_scheduler] _
+evidence/independent_review/test_local_hk_gate_review.py:30: in test_explicit_local_hk_gate_rejection_cannot_settle_success
+    assert result['status'] == 'FAILED', 'Explicit local HK rejection must not settle a required HK workload'
+E   AssertionError: Explicit local HK rejection must not settle a required HK workload
+E   assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_explicit_local_hk_gate_rejection_cannot_settle_success[canonical_reference] _
+evidence/independent_review/test_local_hk_gate_review.py:30: in test_explicit_local_hk_gate_rejection_cannot_settle_success
+    assert result['status'] == 'FAILED', 'Explicit local HK rejection must not settle a required HK workload'
+E   AssertionError: Explicit local HK rejection must not settle a required HK workload
+E   assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+=========================== short test summary info ============================
+FAILED evidence/independent_review/test_local_hk_gate_review.py::test_explicit_local_hk_gate_rejection_cannot_settle_success[actual_pool_scheduler]
+FAILED evidence/independent_review/test_local_hk_gate_review.py::test_explicit_local_hk_gate_rejection_cannot_settle_success[canonical_reference]
+2 failed in 0.03s

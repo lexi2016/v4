@@ -1,0 +1,73 @@
+FFFFFFFFFF                                                               [100%]
+=================================== FAILURES ===================================
+_ test_existing_exact_master_reuse_rejects_wrong_capture_date[actual-2026-10-09T00:01:00+08:00] _
+tests/test_hk_prepare_restore.py:374: in test_existing_exact_master_reuse_rejects_wrong_capture_date
+    with pytest.raises(ValueError, match="capture"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+_ test_existing_exact_master_reuse_rejects_wrong_capture_date[actual-2026-09-30T17:00:00+08:00] _
+tests/test_hk_prepare_restore.py:374: in test_existing_exact_master_reuse_rejects_wrong_capture_date
+    with pytest.raises(ValueError, match="capture"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+_ test_existing_exact_master_reuse_rejects_wrong_capture_date[actual-2026-10-08T10:00:00] _
+tests/test_hk_prepare_restore.py:374: in test_existing_exact_master_reuse_rejects_wrong_capture_date
+    with pytest.raises(ValueError, match="capture"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+_ test_existing_exact_master_reuse_rejects_wrong_capture_date[canonical-2026-10-09T00:01:00+08:00] _
+tests/test_hk_prepare_restore.py:374: in test_existing_exact_master_reuse_rejects_wrong_capture_date
+    with pytest.raises(ValueError, match="capture"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+_ test_existing_exact_master_reuse_rejects_wrong_capture_date[canonical-2026-09-30T17:00:00+08:00] _
+tests/test_hk_prepare_restore.py:374: in test_existing_exact_master_reuse_rejects_wrong_capture_date
+    with pytest.raises(ValueError, match="capture"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+_ test_existing_exact_master_reuse_rejects_wrong_capture_date[canonical-2026-10-08T10:00:00] _
+tests/test_hk_prepare_restore.py:374: in test_existing_exact_master_reuse_rejects_wrong_capture_date
+    with pytest.raises(ValueError, match="capture"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+____ test_existing_exact_master_reuse_rejects_row_capture_mismatch[actual] _____
+tests/test_hk_prepare_restore.py:403: in test_existing_exact_master_reuse_rejects_row_capture_mismatch
+    with pytest.raises(ValueError, match="capture"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+___ test_existing_exact_master_reuse_rejects_row_capture_mismatch[canonical] ___
+tests/test_hk_prepare_restore.py:403: in test_existing_exact_master_reuse_rejects_row_capture_mismatch
+    with pytest.raises(ValueError, match="capture"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+_______ test_same_root_restore_preserves_unchanged_pointer_bytes[actual] _______
+tests/test_hk_prepare_restore.py:418: in test_same_root_restore_preserves_unchanged_pointer_bytes
+    assert file_bytes(tmp_path) == before
+E   assert {'assets/hk_s...T_SNAPSHOT\n'} == {'assets/hk_s...T_SNAPSHOT\n'}
+E     
+E     Omitting 3 identical items, use -vv to show
+E     Differing items:
+E     {'assets/hk_security_master/latest.json': b'{"entries":{"20261008":{"manifest_relative":"runs/20261008/04166fa6a099360...7/receipt.json","run_id":"04166fa6a099360b80c1cda7"}},"schema_version":"v3_shared_data.hk_security_master_latest.v1"}'} != {'assets/hk_security_master/latest.json': b'{\n    "entries": {\n        "20261008": {\n            "manifest_relative...4166fa6a099360b80c1cda7"\n        }\n    },\n    "schema_version": "v3_shared_data.hk_security_master_latest.v1"\n}\n'}
+E     Use -v to get more diff
+_____ test_same_root_restore_preserves_unchanged_pointer_bytes[canonical] ______
+tests/test_hk_prepare_restore.py:418: in test_same_root_restore_preserves_unchanged_pointer_bytes
+    assert file_bytes(tmp_path) == before
+E   assert {'assets/hk_s...T_SNAPSHOT\n'} == {'assets/hk_s...T_SNAPSHOT\n'}
+E     
+E     Omitting 3 identical items, use -vv to show
+E     Differing items:
+E     {'assets/hk_security_master/latest.json': b'{"entries":{"20261008":{"manifest_relative":"runs/20261008/04166fa6a099360...7/receipt.json","run_id":"04166fa6a099360b80c1cda7"}},"schema_version":"v3_shared_data.hk_security_master_latest.v1"}'} != {'assets/hk_security_master/latest.json': b'{\n    "entries": {\n        "20261008": {\n            "manifest_relative...4166fa6a099360b80c1cda7"\n        }\n    },\n    "schema_version": "v3_shared_data.hk_security_master_latest.v1"\n}\n'}
+E     Use -v to get more diff
+=========================== short test summary info ============================
+FAILED tests/test_hk_prepare_restore.py::test_existing_exact_master_reuse_rejects_wrong_capture_date[actual-2026-10-09T00:01:00+08:00]
+FAILED tests/test_hk_prepare_restore.py::test_existing_exact_master_reuse_rejects_wrong_capture_date[actual-2026-09-30T17:00:00+08:00]
+FAILED tests/test_hk_prepare_restore.py::test_existing_exact_master_reuse_rejects_wrong_capture_date[actual-2026-10-08T10:00:00]
+FAILED tests/test_hk_prepare_restore.py::test_existing_exact_master_reuse_rejects_wrong_capture_date[canonical-2026-10-09T00:01:00+08:00]
+FAILED tests/test_hk_prepare_restore.py::test_existing_exact_master_reuse_rejects_wrong_capture_date[canonical-2026-09-30T17:00:00+08:00]
+FAILED tests/test_hk_prepare_restore.py::test_existing_exact_master_reuse_rejects_wrong_capture_date[canonical-2026-10-08T10:00:00]
+FAILED tests/test_hk_prepare_restore.py::test_existing_exact_master_reuse_rejects_row_capture_mismatch[actual]
+FAILED tests/test_hk_prepare_restore.py::test_existing_exact_master_reuse_rejects_row_capture_mismatch[canonical]
+FAILED tests/test_hk_prepare_restore.py::test_same_root_restore_preserves_unchanged_pointer_bytes[actual]
+FAILED tests/test_hk_prepare_restore.py::test_same_root_restore_preserves_unchanged_pointer_bytes[canonical]
+10 failed, 48 deselected in 0.17s
+

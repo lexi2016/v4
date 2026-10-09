@@ -1,0 +1,17 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_____ test_live_prepare_must_read_back_published_trio_before_ready[actual] _____
+tests/test_hk_prepare_restore.py:283: in test_live_prepare_must_read_back_published_trio_before_ready
+    with pytest.raises(SyntheticStoreError, match="metadata|receipt"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE SyntheticStoreError
+___ test_live_prepare_must_read_back_published_trio_before_ready[canonical] ____
+tests/test_hk_prepare_restore.py:283: in test_live_prepare_must_read_back_published_trio_before_ready
+    with pytest.raises(SyntheticStoreError, match="metadata|receipt"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE SyntheticStoreError
+=========================== short test summary info ============================
+FAILED tests/test_hk_prepare_restore.py::test_live_prepare_must_read_back_published_trio_before_ready[actual]
+FAILED tests/test_hk_prepare_restore.py::test_live_prepare_must_read_back_published_trio_before_ready[canonical]
+2 failed, 38 deselected in 0.06s
+

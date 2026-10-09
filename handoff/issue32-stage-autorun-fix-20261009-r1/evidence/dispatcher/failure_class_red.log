@@ -1,0 +1,18 @@
+FF..                                                                     [100%]
+=================================== FAILURES ===================================
+_ test_blank_child_failure_class_does_not_erase_retryable_hk_gate[actual_pool_scheduler] _
+tests/test_preselection_executor_prerequisites.py:85: in test_blank_child_failure_class_does_not_erase_retryable_hk_gate
+    assert result["failure_class"] == "UPSTREAM_NOT_READY"
+E   AssertionError: assert '' == 'UPSTREAM_NOT_READY'
+E     
+E     - UPSTREAM_NOT_READY
+_ test_blank_child_failure_class_does_not_erase_retryable_hk_gate[canonical_reference] _
+tests/test_preselection_executor_prerequisites.py:85: in test_blank_child_failure_class_does_not_erase_retryable_hk_gate
+    assert result["failure_class"] == "UPSTREAM_NOT_READY"
+E   AssertionError: assert '' == 'UPSTREAM_NOT_READY'
+E     
+E     - UPSTREAM_NOT_READY
+=========================== short test summary info ============================
+FAILED tests/test_preselection_executor_prerequisites.py::test_blank_child_failure_class_does_not_erase_retryable_hk_gate[actual_pool_scheduler]
+FAILED tests/test_preselection_executor_prerequisites.py::test_blank_child_failure_class_does_not_erase_retryable_hk_gate[canonical_reference]
+2 failed, 2 passed, 12 deselected in 0.05s

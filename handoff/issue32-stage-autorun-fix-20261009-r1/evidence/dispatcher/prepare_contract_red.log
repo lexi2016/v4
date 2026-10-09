@@ -1,0 +1,14 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_ test_executor_requires_paired_exact_date_preparation_contract[actual_pool_scheduler] _
+tests/test_preselection_executor_prerequisites.py:68: in test_executor_requires_paired_exact_date_preparation_contract
+    assert "--prepare-exact-date" in arguments
+E   AssertionError: assert '--prepare-exact-date' in ['--store-root', '/tmp/pytest-of-root/pytest-318/test_executor_requires_paired_0/shared', '--universe-root', '/tmp/pyt...ired_0/shared', '--shared-package-root', '/tmp/pytest-of-root/pytest-318/test_executor_requires_paired_0/package', ...]
+_ test_executor_requires_paired_exact_date_preparation_contract[canonical_reference] _
+tests/test_preselection_executor_prerequisites.py:68: in test_executor_requires_paired_exact_date_preparation_contract
+    assert "--prepare-exact-date" in arguments
+E   AssertionError: assert '--prepare-exact-date' in ['--store-root', '/tmp/pytest-of-root/pytest-318/test_executor_requires_paired_1/shared', '--universe-root', '/tmp/pyt...ired_1/shared', '--shared-package-root', '/tmp/pytest-of-root/pytest-318/test_executor_requires_paired_1/package', ...]
+=========================== short test summary info ============================
+FAILED tests/test_preselection_executor_prerequisites.py::test_executor_requires_paired_exact_date_preparation_contract[actual_pool_scheduler]
+FAILED tests/test_preselection_executor_prerequisites.py::test_executor_requires_paired_exact_date_preparation_contract[canonical_reference]
+2 failed, 10 deselected in 0.04s

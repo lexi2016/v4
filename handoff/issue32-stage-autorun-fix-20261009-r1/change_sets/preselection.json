@@ -1,0 +1,30 @@
+{
+  "schema_version": "v4.api_module_change_set.v1",
+  "module": "preselection",
+  "shared_paths": [
+    "apps/api/v35_api/app.py"
+  ],
+  "files": [
+    {
+      "before_sha256": "90a2bf6390c6c0e219aa3d9bb22bc3b3630ecb2d447df494ae69425933424ed7",
+      "before_mode": "0644",
+      "after_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "after_mode": "0644",
+      "path": "apps/api/v35_api/app.py"
+    },
+    {
+      "before_sha256": null,
+      "before_mode": null,
+      "after_sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "after_mode": "0644",
+      "path": "apps/api/v35_api/preselection_router.py"
+    },
+    {
+      "before_sha256": null,
+      "before_mode": null,
+      "after_sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+      "after_mode": "0644",
+      "path": "apps/api/v35_api/preselection_service.py"
+    }
+  ]
+}

@@ -1,0 +1,143 @@
+{
+  "schema_version": "v4.issue32.missing_current_inputs.v1",
+  "target_date": "20261009",
+  "price_signal_date": "20261008",
+  "eligibility_source_date": "20261008",
+  "status": "CURRENT_OWNER_CLOSURE_AND_REAL_INPUTS_REQUIRED",
+  "source_requests": [
+    {
+      "id": "scheduler_gate",
+      "owner": "actual_pool_scheduler",
+      "priority": "HISTORICAL_GATE_CAUSE",
+      "files": [
+        "infrastructure/scheduling/executor_registry.py",
+        "infrastructure/scheduling/execution_ledger.py",
+        "contracts/runtime_tasks.py",
+        "domains/runtime_policy.py"
+      ],
+      "needed": "Actual facade/rebound helpers and result parsing, claim/retry semantics, workload definition. Follow imports only from these current files.",
+      "sha256_status": "NOT_PROVIDED"
+    },
+    {
+      "id": "scheduler_launch",
+      "owner": "actual_pool_scheduler",
+      "priority": "AUTOMATIC_EXECUTION",
+      "files": [],
+      "discover_from": "Actual scheduler launch argv and effective runtime catalog path; do not assume a filename from historical snapshots.",
+      "needed": "Sanitized entrypoint, working directory, interpreter identity, exact source roots, slot/date-role/retry configuration.",
+      "sha256_status": "NOT_PROVIDED"
+    },
+    {
+      "id": "master_owner",
+      "owner": "actual_shared_owner / actual_pool_scheduler",
+      "priority": "EXACT_DATE_PREPARATION",
+      "files": [
+        "scripts/acquire_hk_security_master.py",
+        "scripts/update_hk_0_2_panel.py",
+        "shared_data/store.py",
+        "shared_data/paths.py",
+        "shared_data/hashing.py",
+        "infrastructure/isolated_package_loader.py"
+      ],
+      "path_owner_note": "scripts and shared_data are relative to actual shared package; infrastructure/isolated_package_loader.py is relative to actual scheduler app.",
+      "needed": "Current original collector/updater, universe authority resolved by that collector, master/store interfaces. Historical canonical copies are reference only.",
+      "sha256_status": "NOT_PROVIDED"
+    },
+    {
+      "id": "local_consumer",
+      "owner": "actual_pool_scheduler / actual_shared_owner",
+      "priority": "HK_LOCAL_POOL_AND_SOURCE_BINDING",
+      "files": [
+        "ops/materialize_scheduled_preselection.py",
+        "infrastructure/preselection_pool_store.py",
+        "shared_data/consumer.py"
+      ],
+      "path_owner_note": "ops/infrastructure relative to actual scheduler; shared_data relative to actual shared package.",
+      "discover_from": "Current materializer imports identify the v3_shared_hk_0_2_consumer_v1 adapter and snapshot reader/writer delegates.",
+      "needed": "Verify complete shared-to-local conversion, explicit price_signal_date and eligibility_source_date (or valid nested provenance), source run/artifact/manifest/receipt hashes, local trio integrity.",
+      "sha256_status": "NOT_PROVIDED"
+    },
+    {
+      "id": "api_current_closure",
+      "owner": "actual_api",
+      "priority": "API_REAL_SOURCE_CANARY",
+      "files": [
+        "domains/preselection.py",
+        "contracts/trading_calendar.py",
+        "contracts/market_calendar_2026.json",
+        "infrastructure/preselection_pool_store.py"
+      ],
+      "discover_from": "Current API config and source-reader imports; full active app inventory and manager canary are local prerequisites.",
+      "needed": "New same-date branch needs existing load_market_calendar, previous_session, resolve_market_states and actual authoritative calendar; test fixtures must not be installed. Confirm actual producer date fields, source-root lease and full-input pagination behavior.",
+      "sha256_status": "NOT_PROVIDED"
+    },
+    {
+      "id": "stage_actual_entry",
+      "owner": "actual_stage",
+      "priority": "STAGE_REAL_CANARY",
+      "files": [],
+      "discover_from": "Actual launch argv names executable entrypoint. Supplied stage_center/runner.py is only a facade.",
+      "needed": "Current entrypoint/config/helper closure and isolated raw, selection, receipt roots. Full direct-import audit list in STAGE_CONTRACT_FINDINGS.md; request further source only when needed for a concrete failing gate.",
+      "sha256_status": "NOT_PROVIDED"
+    }
+  ],
+  "local_evidence_requests": [
+    {
+      "id": "old_dispatch_receipts",
+      "source": "2026-10-08 17:30 and 18:00 dispatch receipts",
+      "required_fields": [
+        "run_id",
+        "business_date",
+        "target_date",
+        "slot",
+        "selected_workload_ids",
+        "started_workload_ids",
+        "workload_results: module/status/exit_code/failure_class/reason/sanitized stderr",
+        "attempt",
+        "retry_after",
+        "release_id",
+        "upstream_fingerprint"
+      ],
+      "reason": "Hashes and empty started lists do not establish the failing module. Keep receipts immutable."
+    },
+    {
+      "id": "exact_master",
+      "source": "Original-owner 20261008 master store, if it exists",
+      "required_fields": [
+        "exact entry",
+        "artifact/manifest/receipt SHA256 and run identity",
+        "capture time with timezone",
+        "universe digest and coverage verification",
+        "current destination latest SHA"
+      ],
+      "reason": "No original 10/8 source has been supplied or found in this Chat environment. No current snapshot substitution."
+    },
+    {
+      "id": "hk_price_and_runs",
+      "source": "Actual owner local-only data",
+      "required_fields": [
+        "panel manifest and panel SHA256",
+        "exact20261008 price coverage",
+        "20261009 shared Top100 verified trio/run",
+        "local pool verified trio",
+        "100 unique HK codes validation summary",
+        "explicit date/provenance propagation"
+      ],
+      "reason": "First missing-master error disappearing is insufficient; no raw financial rows need be uploaded."
+    },
+    {
+      "id": "local_acceptance",
+      "source": "Mac candidate, active runtime and natural receipts",
+      "required_fields": [
+        "before/after source and full inventory identity",
+        "independent full-app manager/source canary",
+        "Stage input binding and verified result artifact",
+        "API same-date result summary",
+        "reloaded UI verification",
+        "separate natural-slot receipt"
+      ],
+      "reason": "No source test or manual run proves deployment, real-input readiness or natural completion."
+    }
+  ],
+  "upload_policy": "Necessary source, hashes and sanitized failure summaries only; raw market data, accounts, credentials, full environment/plist, venv and dist remain local."
+}

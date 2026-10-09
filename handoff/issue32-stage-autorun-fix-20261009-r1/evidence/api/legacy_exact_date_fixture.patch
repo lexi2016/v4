@@ -1,0 +1,21 @@
+--- a/tests/test_preselection_source_root_20261008.py
++++ b/tests/test_preselection_source_root_20261008.py
+@@ -258,7 +258,17 @@
+     source_store.materialize(
+         _pool_artifact("a_share_research_recommendation_pool", [{"symbol": "A.000021"}])
+     )
+-    source_store.materialize(_strict_hk_artifact())
++    # Issue 32 date-contract fixture: price 10/7, Connect eligibility 9/30.
++    # Keep the positive fallback assertion and all immutable source bindings.
++    hk_pool = _strict_hk_artifact()
++    hk_pool["signal_date"] = "20261007"
++    hk_pool["historical_provenance"].update(
++        price_signal_date="20261007", eligibility_source_date="20260930",
++        eligibility_source_captured_at="2026-09-30T17:20:08+08:00",
++    )
++    for row in hk_pool["rows"]:
++        row["signal_date"] = "20261007"
++    source_store.materialize(hk_pool)
+     _write_released_materialize_lock(source_root)
+ 
+     client = TestClient(

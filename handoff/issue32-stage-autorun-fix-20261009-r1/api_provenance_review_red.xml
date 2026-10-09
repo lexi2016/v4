@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="8" skipped="0" tests="41" time="0.333" timestamp="2026-10-08T17:23:28.994436-07:00" hostname="5fa05583d26b"><testcase classname="tests.test_api_same_date" name="test_oct9_same_date_pool_without_nested_provenance_is_accepted" time="0.016" /><testcase classname="tests.test_api_same_date" name="test_same_date_requires_explicit_price_and_eligibility[price_signal_date]" time="0.008" /><testcase classname="tests.test_api_same_date" name="test_same_date_requires_explicit_price_and_eligibility[eligibility_source_date]" time="0.006" /><testcase classname="tests.test_api_same_date" name="test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261008-20261007-20260930]" time="0.005" /><testcase classname="tests.test_api_same_date" name="test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261008-20261007-20261007]" time="0.006" /><testcase classname="tests.test_api_same_date" name="test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261009-20261007-20261007]" time="0.006" /><testcase classname="tests.test_api_same_date" name="test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261010-20261009-20261009]" time="0.006" /><testcase classname="tests.test_api_same_date" name="test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261099-20261008-20261008]" time="0.005" /><testcase classname="tests.test_api_same_date" name="test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20271009-20271008-20271008]" time="0.007" /><testcase classname="tests.test_api_same_date" name="test_unavailable_calendar_rejects_same_date_exception[False-missing]" time="0.009" /><testcase classname="tests.test_api_same_date" name="test_unavailable_calendar_rejects_same_date_exception[False-malformed]" time="0.005" /><testcase classname="tests.test_api_same_date" name="test_unavailable_calendar_rejects_same_date_exception[True-missing]" time="0.006"><failure message="AssertionError: assert True is False&#10; +  where True = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e32dc70&gt;({'schema_version': 'v3_5.preselection_pool.v1', 'pool_id': 'hkconnect_d1_top100', 'market': 'HK', 'status': 'STRICT_0_2_READY', ...}, '20261009')">accepts = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e32dc70&gt;
+calendar_authority = &lt;module 'contracts.trading_calendar' from '/workspace/scratch/25c09a595aec/issue32/tests/api_support/contracts/trading_calendar.py'&gt;
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f7e7e42e750&gt;
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-339/test_unavailable_calendar_reje2')
+failure = 'missing', with_provenance = True
+
+    @pytest.mark.parametrize("failure", ["missing", "malformed"])
+    @pytest.mark.parametrize("with_provenance", [False, True])
+    def test_unavailable_calendar_rejects_same_date_exception(
+        accepts, calendar_authority, monkeypatch, tmp_path, failure, with_provenance,
+    ):
+        fixture = tmp_path / "unavailable-calendar.json"
+        if failure == "malformed":
+            fixture.write_text('{"year": 2026}')
+        monkeypatch.setattr(calendar_authority, "CALENDAR_PATH", fixture)
+        pool = _pool()
+        if with_provenance:
+            pool["historical_provenance"] = _provenance(pool)
+            pool["historical_provenance"]["eligibility_source_captured_at"] = "2026-10-08T17:20:08+08:00"
+&gt;       assert accepts(pool, "20261009") is False
+E       AssertionError: assert True is False
+E        +  where True = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e32dc70&gt;({'schema_version': 'v3_5.preselection_pool.v1', 'pool_id': 'hkconnect_d1_top100', 'market': 'HK', 'status': 'STRICT_0_2_READY', ...}, '20261009')
+
+issue32/tests/test_api_same_date.py:130: AssertionError</failure></testcase><testcase classname="tests.test_api_same_date" name="test_unavailable_calendar_rejects_same_date_exception[True-malformed]" time="0.006"><failure message="AssertionError: assert True is False&#10; +  where True = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e277950&gt;({'schema_version': 'v3_5.preselection_pool.v1', 'pool_id': 'hkconnect_d1_top100', 'market': 'HK', 'status': 'STRICT_0_2_READY', ...}, '20261009')">accepts = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e277950&gt;
+calendar_authority = &lt;module 'contracts.trading_calendar' from '/workspace/scratch/25c09a595aec/issue32/tests/api_support/contracts/trading_calendar.py'&gt;
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f7e7e315550&gt;
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-339/test_unavailable_calendar_reje3')
+failure = 'malformed', with_provenance = True
+
+    @pytest.mark.parametrize("failure", ["missing", "malformed"])
+    @pytest.mark.parametrize("with_provenance", [False, True])
+    def test_unavailable_calendar_rejects_same_date_exception(
+        accepts, calendar_authority, monkeypatch, tmp_path, failure, with_provenance,
+    ):
+        fixture = tmp_path / "unavailable-calendar.json"
+        if failure == "malformed":
+            fixture.write_text('{"year": 2026}')
+        monkeypatch.setattr(calendar_authority, "CALENDAR_PATH", fixture)
+        pool = _pool()
+        if with_provenance:
+            pool["historical_provenance"] = _provenance(pool)
+            pool["historical_provenance"]["eligibility_source_captured_at"] = "2026-10-08T17:20:08+08:00"
+&gt;       assert accepts(pool, "20261009") is False
+E       AssertionError: assert True is False
+E        +  where True = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e277950&gt;({'schema_version': 'v3_5.preselection_pool.v1', 'pool_id': 'hkconnect_d1_top100', 'market': 'HK', 'status': 'STRICT_0_2_READY', ...}, '20261009')
+
+issue32/tests/test_api_same_date.py:130: AssertionError</failure></testcase><testcase classname="tests.test_api_same_date" name="test_present_malformed_provenance_is_never_treated_as_absent[None]" time="0.006" /><testcase classname="tests.test_api_same_date" name="test_present_malformed_provenance_is_never_treated_as_absent[value1]" time="0.005" /><testcase classname="tests.test_api_same_date" name="test_present_malformed_provenance_is_never_treated_as_absent[value2]" time="0.005" /><testcase classname="tests.test_api_same_date" name="test_split_date_still_requires_bound_upstream_provenance" time="0.006" /><testcase classname="tests.test_api_same_date" name="test_present_provenance_cannot_bypass_dates_calendar_or_capture[20261009-20260930-2026-09-30T17:20:08+08:00]" time="0.006"><failure message="AssertionError: assert True is False&#10; +  where True = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e168a90&gt;({'schema_version': 'v3_5.preselection_pool.v1', 'pool_id': 'hkconnect_d1_top100', 'market': 'HK', 'status': 'STRICT_0_2_READY', ...}, '20261009')">accepts = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e168a90&gt;
+target = '20261009', price = '20260930'
+captured_at = '2026-09-30T17:20:08+08:00'
+
+    @pytest.mark.parametrize("target,price,captured_at", [
+        ("20261009", "20260930", "2026-09-30T17:20:08+08:00"),
+        ("20261009", "20261008", "2026-09-30T17:20:08+08:00"),
+        ("20261009", "20261008", "not-a-timestamp"),
+        ("20261009", "20261008", "2026-10-08T17:20:08"),
+        ("20261010", "20261009", "2026-10-09T17:20:08+08:00"),
+        ("20271009", "20271008", "2027-10-08T17:20:08+08:00"),
+    ])
+    def test_present_provenance_cannot_bypass_dates_calendar_or_capture(
+        accepts, target, price, captured_at,
+    ):
+        pool = _pool(target=target, price=price, eligibility=price)
+        pool["historical_provenance"] = _provenance(pool)
+        pool["historical_provenance"]["eligibility_source_captured_at"] = captured_at
+&gt;       assert accepts(pool, target) is False
+E       AssertionError: assert True is False
+E        +  where True = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e168a90&gt;({'schema_version': 'v3_5.preselection_pool.v1', 'pool_id': 'hkconnect_d1_top100', 'market': 'HK', 'status': 'STRICT_0_2_READY', ...}, '20261009')
+
+issue32/tests/test_api_same_date.py:162: AssertionError</failure></testcase><testcase classname="tests.test_api_same_date" name="test_present_provenance_cannot_bypass_dates_calendar_or_capture[20261009-20261008-2026-09-30T17:20:08+08:00]" time="0.005"><failure message="AssertionError: assert True is False&#10; +  where True = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e169170&gt;({'schema_version': 'v3_5.preselection_pool.v1', 'pool_id': 'hkconnect_d1_top100', 'market': 'HK', 'status': 'STRICT_0_2_READY', ...}, '20261009')">accepts = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e169170&gt;
+target = '20261009', price = '20261008'
+captured_at = '2026-09-30T17:20:08+08:00'
+
+    @pytest.mark.parametrize("target,price,captured_at", [
+        ("20261009", "20260930", "2026-09-30T17:20:08+08:00"),
+        ("20261009", "20261008", "2026-09-30T17:20:08+08:00"),
+        ("20261009", "20261008", "not-a-timestamp"),
+        ("20261009", "20261008", "2026-10-08T17:20:08"),
+        ("20261010", "20261009", "2026-10-09T17:20:08+08:00"),
+        ("20271009", "20271008", "2027-10-08T17:20:08+08:00"),
+    ])
+    def test_present_provenance_cannot_bypass_dates_calendar_or_capture(
+        accepts, target, price, captured_at,
+    ):
+        pool = _pool(target=target, price=price, eligibility=price)
+        pool["historical_provenance"] = _provenance(pool)
+        pool["historical_provenance"]["eligibility_source_captured_at"] = captured_at
+&gt;       assert accepts(pool, target) is False
+E       AssertionError: assert True is False
+E        +  where True = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e169170&gt;({'schema_version': 'v3_5.preselection_pool.v1', 'pool_id': 'hkconnect_d1_top100', 'market': 'HK', 'status': 'STRICT_0_2_READY', ...}, '20261009')
+
+issue32/tests/test_api_same_date.py:162: AssertionError</failure></testcase><testcase classname="tests.test_api_same_date" name="test_present_provenance_cannot_bypass_dates_calendar_or_capture[20261009-20261008-not-a-timestamp]" time="0.006"><failure message="AssertionError: assert True is False&#10; +  where True = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e1699b0&gt;({'schema_version': 'v3_5.preselection_pool.v1', 'pool_id': 'hkconnect_d1_top100', 'market': 'HK', 'status': 'STRICT_0_2_READY', ...}, '20261009')">accepts = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e1699b0&gt;
+target = '20261009', price = '20261008', captured_at = 'not-a-timestamp'
+
+    @pytest.mark.parametrize("target,price,captured_at", [
+        ("20261009", "20260930", "2026-09-30T17:20:08+08:00"),
+        ("20261009", "20261008", "2026-09-30T17:20:08+08:00"),
+        ("20261009", "20261008", "not-a-timestamp"),
+        ("20261009", "20261008", "2026-10-08T17:20:08"),
+        ("20261010", "20261009", "2026-10-09T17:20:08+08:00"),
+        ("20271009", "20271008", "2027-10-08T17:20:08+08:00"),
+    ])
+    def test_present_provenance_cannot_bypass_dates_calendar_or_capture(
+        accepts, target, price, captured_at,
+    ):
+        pool = _pool(target=target, price=price, eligibility=price)
+        pool["historical_provenance"] = _provenance(pool)
+        pool["historical_provenance"]["eligibility_source_captured_at"] = captured_at
+&gt;       assert accepts(pool, target) is False
+E       AssertionError: assert True is False
+E        +  where True = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e1699b0&gt;({'schema_version': 'v3_5.preselection_pool.v1', 'pool_id': 'hkconnect_d1_top100', 'market': 'HK', 'status': 'STRICT_0_2_READY', ...}, '20261009')
+
+issue32/tests/test_api_same_date.py:162: AssertionError</failure></testcase><testcase classname="tests.test_api_same_date" name="test_present_provenance_cannot_bypass_dates_calendar_or_capture[20261009-20261008-2026-10-08T17:20:08]" time="0.007"><failure message="AssertionError: assert True is False&#10; +  where True = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e16a090&gt;({'schema_version': 'v3_5.preselection_pool.v1', 'pool_id': 'hkconnect_d1_top100', 'market': 'HK', 'status': 'STRICT_0_2_READY', ...}, '20261009')">accepts = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e16a090&gt;
+target = '20261009', price = '20261008', captured_at = '2026-10-08T17:20:08'
+
+    @pytest.mark.parametrize("target,price,captured_at", [
+        ("20261009", "20260930", "2026-09-30T17:20:08+08:00"),
+        ("20261009", "20261008", "2026-09-30T17:20:08+08:00"),
+        ("20261009", "20261008", "not-a-timestamp"),
+        ("20261009", "20261008", "2026-10-08T17:20:08"),
+        ("20261010", "20261009", "2026-10-09T17:20:08+08:00"),
+        ("20271009", "20271008", "2027-10-08T17:20:08+08:00"),
+    ])
+    def test_present_provenance_cannot_bypass_dates_calendar_or_capture(
+        accepts, target, price, captured_at,
+    ):
+        pool = _pool(target=target, price=price, eligibility=price)
+        pool["historical_provenance"] = _provenance(pool)
+        pool["historical_provenance"]["eligibility_source_captured_at"] = captured_at
+&gt;       assert accepts(pool, target) is False
+E       AssertionError: assert True is False
+E        +  where True = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e16a090&gt;({'schema_version': 'v3_5.preselection_pool.v1', 'pool_id': 'hkconnect_d1_top100', 'market': 'HK', 'status': 'STRICT_0_2_READY', ...}, '20261009')
+
+issue32/tests/test_api_same_date.py:162: AssertionError</failure></testcase><testcase classname="tests.test_api_same_date" name="test_present_provenance_cannot_bypass_dates_calendar_or_capture[20261010-20261009-2026-10-09T17:20:08+08:00]" time="0.006"><failure message="AssertionError: assert True is False&#10; +  where True = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e16a6c0&gt;({'schema_version': 'v3_5.preselection_pool.v1', 'pool_id': 'hkconnect_d1_top100', 'market': 'HK', 'status': 'STRICT_0_2_READY', ...}, '20261010')">accepts = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e16a6c0&gt;
+target = '20261010', price = '20261009'
+captured_at = '2026-10-09T17:20:08+08:00'
+
+    @pytest.mark.parametrize("target,price,captured_at", [
+        ("20261009", "20260930", "2026-09-30T17:20:08+08:00"),
+        ("20261009", "20261008", "2026-09-30T17:20:08+08:00"),
+        ("20261009", "20261008", "not-a-timestamp"),
+        ("20261009", "20261008", "2026-10-08T17:20:08"),
+        ("20261010", "20261009", "2026-10-09T17:20:08+08:00"),
+        ("20271009", "20271008", "2027-10-08T17:20:08+08:00"),
+    ])
+    def test_present_provenance_cannot_bypass_dates_calendar_or_capture(
+        accepts, target, price, captured_at,
+    ):
+        pool = _pool(target=target, price=price, eligibility=price)
+        pool["historical_provenance"] = _provenance(pool)
+        pool["historical_provenance"]["eligibility_source_captured_at"] = captured_at
+&gt;       assert accepts(pool, target) is False
+E       AssertionError: assert True is False
+E        +  where True = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e16a6c0&gt;({'schema_version': 'v3_5.preselection_pool.v1', 'pool_id': 'hkconnect_d1_top100', 'market': 'HK', 'status': 'STRICT_0_2_READY', ...}, '20261010')
+
+issue32/tests/test_api_same_date.py:162: AssertionError</failure></testcase><testcase classname="tests.test_api_same_date" name="test_present_provenance_cannot_bypass_dates_calendar_or_capture[20271009-20271008-2027-10-08T17:20:08+08:00]" time="0.006"><failure message="AssertionError: assert True is False&#10; +  where True = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e16ada0&gt;({'schema_version': 'v3_5.preselection_pool.v1', 'pool_id': 'hkconnect_d1_top100', 'market': 'HK', 'status': 'STRICT_0_2_READY', ...}, '20271009')">accepts = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e16ada0&gt;
+target = '20271009', price = '20271008'
+captured_at = '2027-10-08T17:20:08+08:00'
+
+    @pytest.mark.parametrize("target,price,captured_at", [
+        ("20261009", "20260930", "2026-09-30T17:20:08+08:00"),
+        ("20261009", "20261008", "2026-09-30T17:20:08+08:00"),
+        ("20261009", "20261008", "not-a-timestamp"),
+        ("20261009", "20261008", "2026-10-08T17:20:08"),
+        ("20261010", "20261009", "2026-10-09T17:20:08+08:00"),
+        ("20271009", "20271008", "2027-10-08T17:20:08+08:00"),
+    ])
+    def test_present_provenance_cannot_bypass_dates_calendar_or_capture(
+        accepts, target, price, captured_at,
+    ):
+        pool = _pool(target=target, price=price, eligibility=price)
+        pool["historical_provenance"] = _provenance(pool)
+        pool["historical_provenance"]["eligibility_source_captured_at"] = captured_at
+&gt;       assert accepts(pool, target) is False
+E       AssertionError: assert True is False
+E        +  where True = &lt;function _is_exact_configured_hk_pool at 0x7f7e7e16ada0&gt;({'schema_version': 'v3_5.preselection_pool.v1', 'pool_id': 'hkconnect_d1_top100', 'market': 'HK', 'status': 'STRICT_0_2_READY', ...}, '20271009')
+
+issue32/tests/test_api_same_date.py:162: AssertionError</failure></testcase><testcase classname="tests.test_api_same_date" name="test_oct9_valid_present_provenance_uses_shanghai_capture_date[2026-10-08T17:20:08+08:00]" time="0.006" /><testcase classname="tests.test_api_same_date" name="test_oct9_valid_present_provenance_uses_shanghai_capture_date[2026-10-08T09:20:08Z]" time="0.007" /><testcase classname="tests.test_api_same_date" name="test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[trade_date-20261008]" time="0.006" /><testcase classname="tests.test_api_same_date" name="test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[target_date-20261008]" time="0.006" /><testcase classname="tests.test_api_same_date" name="test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[signal_date-20261007]" time="0.006" /><testcase classname="tests.test_api_same_date" name="test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[price_signal_date-20261007]" time="0.006" /><testcase classname="tests.test_api_same_date" name="test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[eligibility_source_date-20260930]" time="0.006" /><testcase classname="tests.test_api_same_date" name="test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[market-A]" time="0.006" /><testcase classname="tests.test_api_same_date" name="test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[code-HK.99999]" time="0.005" /><testcase classname="tests.test_api_same_date" name="test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[pool_rank-0]" time="0.007" /><testcase classname="tests.test_api_same_date" name="test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[production_allowed-True]" time="0.006" /><testcase classname="tests.test_api_same_date" name="test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[buy_gate_updated-True]" time="0.006" /><testcase classname="tests.test_api_same_date" name="test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[orders_sent-True]" time="0.006" /><testcase classname="tests.test_api_same_date" name="test_same_date_keeps_existing_pool_count_source_and_safety_guards[empty]" time="0.005" /><testcase classname="tests.test_api_same_date" name="test_same_date_keeps_existing_pool_count_source_and_safety_guards[duplicate]" time="0.005" /><testcase classname="tests.test_api_same_date" name="test_same_date_keeps_existing_pool_count_source_and_safety_guards[status]" time="0.005" /><testcase classname="tests.test_api_same_date" name="test_same_date_keeps_existing_pool_count_source_and_safety_guards[source_sha]" time="0.005" /><testcase classname="tests.test_api_same_date" name="test_same_date_keeps_existing_pool_count_source_and_safety_guards[safety]" time="0.005" /></testsuite></testsuites>

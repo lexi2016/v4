@@ -1,0 +1,102 @@
+FFFFFFFFFF                                                               [100%]
+=================================== FAILURES ===================================
+_ test_live_prepare_blocks_noncurrent_source_day_without_collection[actual-20261008] _
+tests/test_hk_prepare_restore.py:175: in test_live_prepare_blocks_noncurrent_source_day_without_collection
+    ensure.ensure_hk_security_master(
+after/source/actual_pool_scheduler/ops/ensure_hk_security_master.py:660: in ensure_hk_security_master
+    collected = collect_futu_hk_security_master(futu_python, list(universe_codes))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/hk_prepare_support.py:103: in unexpected_collection
+    raise AssertionError("current Futu collection must not run during verified restore")
+E   AssertionError: current Futu collection must not run during verified restore
+_ test_live_prepare_blocks_noncurrent_source_day_without_collection[actual-20261010] _
+tests/test_hk_prepare_restore.py:175: in test_live_prepare_blocks_noncurrent_source_day_without_collection
+    ensure.ensure_hk_security_master(
+after/source/actual_pool_scheduler/ops/ensure_hk_security_master.py:660: in ensure_hk_security_master
+    collected = collect_futu_hk_security_master(futu_python, list(universe_codes))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/hk_prepare_support.py:103: in unexpected_collection
+    raise AssertionError("current Futu collection must not run during verified restore")
+E   AssertionError: current Futu collection must not run during verified restore
+_ test_live_prepare_blocks_noncurrent_source_day_without_collection[canonical-20261008] _
+tests/test_hk_prepare_restore.py:175: in test_live_prepare_blocks_noncurrent_source_day_without_collection
+    ensure.ensure_hk_security_master(
+after/source/canonical_reference/ops/ensure_hk_security_master.py:924: in ensure_hk_security_master
+    collected = collect_futu_hk_security_master(futu_python, list(universe_codes))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/hk_prepare_support.py:103: in unexpected_collection
+    raise AssertionError("current Futu collection must not run during verified restore")
+E   AssertionError: current Futu collection must not run during verified restore
+_ test_live_prepare_blocks_noncurrent_source_day_without_collection[canonical-20261010] _
+tests/test_hk_prepare_restore.py:175: in test_live_prepare_blocks_noncurrent_source_day_without_collection
+    ensure.ensure_hk_security_master(
+after/source/canonical_reference/ops/ensure_hk_security_master.py:924: in ensure_hk_security_master
+    collected = collect_futu_hk_security_master(futu_python, list(universe_codes))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/hk_prepare_support.py:103: in unexpected_collection
+    raise AssertionError("current Futu collection must not run during verified restore")
+E   AssertionError: current Futu collection must not run during verified restore
+_ test_live_prepare_rechecks_date_after_collection_before_publication[actual] __
+tests/test_hk_prepare_restore.py:187: in test_live_prepare_rechecks_date_after_collection_before_publication
+    with pytest.raises(SyntheticStoreError, match="HK_SECURITY_MASTER_NEEDS_VERIFIED_SOURCE.*20261008"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE SyntheticStoreError
+_ test_live_prepare_rechecks_date_after_collection_before_publication[canonical] _
+tests/test_hk_prepare_restore.py:187: in test_live_prepare_rechecks_date_after_collection_before_publication
+    with pytest.raises(SyntheticStoreError, match="HK_SECURITY_MASTER_NEEDS_VERIFIED_SOURCE.*20261008"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE SyntheticStoreError
+___ test_live_prepare_current_source_day_preserves_observed_capture[actual] ____
+tests/test_hk_prepare_restore.py:206: in test_live_prepare_current_source_day_preserves_observed_capture
+    assert manifest["captured_at"] == "2026-10-08T17:30:02+08:00"
+E   AssertionError: assert '2026-10-08T02:30:00-07:00' == '2026-10-08T17:30:02+08:00'
+E     
+E     - 2026-10-08T17:30:02+08:00
+E     ?            ^^     -- ^
+E     + 2026-10-08T02:30:00-07:00
+E     ?            ^^      ^^^
+__ test_live_prepare_current_source_day_preserves_observed_capture[canonical] __
+tests/test_hk_prepare_restore.py:206: in test_live_prepare_current_source_day_preserves_observed_capture
+    assert manifest["captured_at"] == "2026-10-08T17:30:02+08:00"
+E   AssertionError: assert '2026-10-08T02:30:00-07:00' == '2026-10-08T17:30:02+08:00'
+E     
+E     - 2026-10-08T17:30:02+08:00
+E     ?            ^^     -- ^
+E     + 2026-10-08T02:30:00-07:00
+E     ?            ^^      ^^^
+________ test_cli_explicit_prepare_can_restore_original_source[actual] _________
+tests/test_hk_prepare_restore.py:224: in test_cli_explicit_prepare_can_restore_original_source
+    assert code == 0, "explicit guarded preparation CLI is unavailable or failed"
+E   AssertionError: explicit guarded preparation CLI is unavailable or failed
+E   assert 2 == 0
+----------------------------- Captured stderr call -----------------------------
+usage: python -m pytest [-h] --store-root STORE_ROOT
+                        --universe-root UNIVERSE_ROOT
+                        --shared-package-root SHARED_PACKAGE_ROOT
+                        --trade-date TRADE_DATE --futu-python FUTU_PYTHON
+                        [--reuse-only]
+python -m pytest: error: unrecognized arguments: --prepare-exact-date --verified-source-store-root /tmp/pytest-of-root/pytest-319/test_cli_explicit_prepare_can_0/source
+_______ test_cli_explicit_prepare_can_restore_original_source[canonical] _______
+tests/test_hk_prepare_restore.py:224: in test_cli_explicit_prepare_can_restore_original_source
+    assert code == 0, "explicit guarded preparation CLI is unavailable or failed"
+E   AssertionError: explicit guarded preparation CLI is unavailable or failed
+E   assert 2 == 0
+----------------------------- Captured stderr call -----------------------------
+usage: python -m pytest [-h] --store-root STORE_ROOT
+                        --universe-root UNIVERSE_ROOT
+                        --shared-package-root SHARED_PACKAGE_ROOT
+                        --trade-date TRADE_DATE --futu-python FUTU_PYTHON
+                        [--reuse-only]
+python -m pytest: error: unrecognized arguments: --prepare-exact-date --verified-source-store-root /tmp/pytest-of-root/pytest-319/test_cli_explicit_prepare_can_1/source
+=========================== short test summary info ============================
+FAILED tests/test_hk_prepare_restore.py::test_live_prepare_blocks_noncurrent_source_day_without_collection[actual-20261008]
+FAILED tests/test_hk_prepare_restore.py::test_live_prepare_blocks_noncurrent_source_day_without_collection[actual-20261010]
+FAILED tests/test_hk_prepare_restore.py::test_live_prepare_blocks_noncurrent_source_day_without_collection[canonical-20261008]
+FAILED tests/test_hk_prepare_restore.py::test_live_prepare_blocks_noncurrent_source_day_without_collection[canonical-20261010]
+FAILED tests/test_hk_prepare_restore.py::test_live_prepare_rechecks_date_after_collection_before_publication[actual]
+FAILED tests/test_hk_prepare_restore.py::test_live_prepare_rechecks_date_after_collection_before_publication[canonical]
+FAILED tests/test_hk_prepare_restore.py::test_live_prepare_current_source_day_preserves_observed_capture[actual]
+FAILED tests/test_hk_prepare_restore.py::test_live_prepare_current_source_day_preserves_observed_capture[canonical]
+FAILED tests/test_hk_prepare_restore.py::test_cli_explicit_prepare_can_restore_original_source[actual]
+FAILED tests/test_hk_prepare_restore.py::test_cli_explicit_prepare_can_restore_original_source[canonical]
+10 failed, 24 deselected in 0.14s

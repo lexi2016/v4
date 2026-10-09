@@ -1,0 +1,154 @@
+{
+  "identity": {
+    "repository": "lexi2016/v4",
+    "commit": "b00ca5a658a9de83cf5e54ad39aa68ddd5c23526",
+    "prefix": "handoff/stage-autorun-readiness-20261009"
+  },
+  "status": "PASS",
+  "files": [
+    {
+      "path": "PROMPT_FOR_CAIKAI.md",
+      "bytes": 2332,
+      "sha256": "316344826e5684a01582e3cf9e45ca0afdf72f855dc206db8990221a03be75a7",
+      "git_blob_sha": "8e875fe6b03b9aca187c3c879aab8a7944e37b2e"
+    },
+    {
+      "path": "README.zh-CN.md",
+      "bytes": 11169,
+      "sha256": "67e755b0c51cb9216634c512008adb2d6b07708fa677b05844a49301e7fcf214",
+      "git_blob_sha": "632846ebabb88a643b272df4001ab0fb9c143618"
+    },
+    {
+      "path": "SOURCE_MANIFEST.json",
+      "bytes": 8279,
+      "sha256": "6bc8c198bbe116e23921ef095e1c383664aebdf039d23dc5b761c338e983086e",
+      "git_blob_sha": "58df0a6600ab2b8d8dc690e1bfacdaa85cf943b3"
+    },
+    {
+      "path": "HK_READINESS_STATE.json",
+      "bytes": 3087,
+      "sha256": "519b16009eb6e4cb01b81610425c88fc85e0dd056bbc3a0048772a0cfdb2ff90",
+      "git_blob_sha": "7f2b52e6ec3e68168d4ad31b80d44dcce9a1b64d"
+    },
+    {
+      "path": "A_POOL_SOURCE_STATE.json",
+      "bytes": 1592,
+      "sha256": "6722c800496b5fb14ae60ea3f776a5a1736b8f51c7c4439092305b156d605b8f",
+      "git_blob_sha": "9d6541a85d37e466d92784048c85d43f36f9c566"
+    },
+    {
+      "path": "CURRENT_READBACK.json",
+      "bytes": 2265,
+      "sha256": "c12c63c715f0631c50cc4be7e3c72ee3f00e753316d1e40b66fc23a20038661a",
+      "git_blob_sha": "6a757c5efafab3c718233d23e4f3a111309a6e34"
+    },
+    {
+      "path": "ISSUE30_MAC_STATUS.json",
+      "bytes": 2602,
+      "sha256": "124f4efe13095ad7113b1ee5ea9a5903ed42d0ea95e423c158c2bc0ded291c94",
+      "git_blob_sha": "160cf872f774f51495ccd491d9f53ae302b7df7c"
+    },
+    {
+      "path": "DELIVERY_MANIFEST.json",
+      "bytes": 6113,
+      "sha256": "6f7805e41b3792572ace968992157e1446b9c112a9b6882d79f6717d0bce49f1",
+      "git_blob_sha": "cc71a1c848746babf541ec34e5a1c6087ba61929"
+    },
+    {
+      "path": "source/actual_pool_scheduler/infrastructure/scheduling/dispatcher.py",
+      "bytes": 14626,
+      "sha256": "a93d78461c59065404d240cf8ba5d1b8212e7e3bfebb270ee2df0df05908000f",
+      "git_blob_sha": "9160327d7c76b9f9edc3257978f45998f93467d2"
+    },
+    {
+      "path": "source/actual_pool_scheduler/infrastructure/scheduling/executor_registry_preselection.py",
+      "bytes": 16634,
+      "sha256": "8b3e6a89536192a74f4b6fa9528874146019f86c595f76f074d75c3e8c3c745a",
+      "git_blob_sha": "8aabcf3e34a1f0828d65651b3974cf7e38fac9d0"
+    },
+    {
+      "path": "source/actual_pool_scheduler/ops/ensure_hk_security_master.py",
+      "bytes": 29319,
+      "sha256": "ae6bae7dbd87f03327cf03904beee2e1f8b3e63b262057b49a3f6186eedf21f7",
+      "git_blob_sha": "939d057a40d24c38d394b477737ee709b1ac4e7d"
+    },
+    {
+      "path": "source/actual_shared_owner/scripts/materialize_hk_0_2.py",
+      "bytes": 1512,
+      "sha256": "da2b7ded436badd1406700ba0674324382cc3fa6d5a802178e1ef31fe5e2cdf6",
+      "git_blob_sha": "a9ed64569b59c9ac185c6e36112961304f26c105"
+    },
+    {
+      "path": "source/actual_shared_owner/shared_data/hk_0_2.py",
+      "bytes": 57090,
+      "sha256": "45a5091cb26800b7ccf8d7c3c75b680e951d492ac8ceb5f30b80a1ff9a6eebac",
+      "git_blob_sha": "28d999b680d22f4557fd0c8c40a8e4108f1fc892"
+    },
+    {
+      "path": "source/actual_shared_owner/shared_data/hk_security_master.py",
+      "bytes": 9714,
+      "sha256": "a5e9337559c530283eea4ca36c3535dbb9dbc902c920ae4ccbf0f1a1626ab764",
+      "git_blob_sha": "3e2cce03471e7a7824b698478b13da8da4befb05"
+    },
+    {
+      "path": "source/actual_stage/stage_center/_runner_parts/hk_input_validation.py",
+      "bytes": 23786,
+      "sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+      "git_blob_sha": "ad07c9a495f363822f294403e0da9ec12d74b26f"
+    },
+    {
+      "path": "source/actual_stage/stage_center/runner.py",
+      "bytes": 44615,
+      "sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232",
+      "git_blob_sha": "b0aa8badf3cbe4c5e9b6e758044f3403c57c2ee3"
+    },
+    {
+      "path": "source/canonical_reference/infrastructure/scheduling/_executor_registry_parts/preselection.py",
+      "bytes": 27401,
+      "sha256": "14374bf18cc310eca639a55b7fff1bde75785bc9ee59cbf23a10ae3a736e70c1",
+      "git_blob_sha": "529efeebb8cbc00bb9f22b670963ef39fb0f617d"
+    },
+    {
+      "path": "source/canonical_reference/infrastructure/scheduling/dispatcher.py",
+      "bytes": 23717,
+      "sha256": "64e596ff1c554937c93ac921671a204b889f51acd307c88e1aaa2184daadbc01",
+      "git_blob_sha": "cb5a316d4f099f4d9f00185e91e3a17806e37974"
+    },
+    {
+      "path": "source/canonical_reference/infrastructure/scheduling/executor_registry.py",
+      "bytes": 24448,
+      "sha256": "5c7ec48515dee5927b3a5cf9c5457dea299b2b6280b6c90fa452b945466faef9",
+      "git_blob_sha": "58f2094c687289667598a2d7fb1088ea050289c0"
+    },
+    {
+      "path": "source/canonical_reference/ops/ensure_hk_security_master.py",
+      "bytes": 41556,
+      "sha256": "6c341a33c0283b023219c46cc2a1c6aaca49cf4b5dcb88aa2fb5527a13145601",
+      "git_blob_sha": "ec79858502ef793766b71755a037500f0eb2e991"
+    },
+    {
+      "path": "source/canonical_reference/stage_center/runner.py",
+      "bytes": 83846,
+      "sha256": "d36cc60c538f23ab0f48c7387523d83ed5cebbdc67c0dd630e671f98ecdffa48",
+      "git_blob_sha": "8075ab916e1d9d03c3e22a765d174c37ac73e3bf"
+    },
+    {
+      "path": "source/canonical_reference/upstreams/v3_shared_data/scripts/materialize_hk_0_2.py",
+      "bytes": 3211,
+      "sha256": "e26e880f72271d7ea9e55aee4df937fa1d22564c3d286ead9f9f07e5fa4b6c9d",
+      "git_blob_sha": "5792171e414fc22b5e0788380b65c8da50b2c779"
+    },
+    {
+      "path": "source/canonical_reference/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "bytes": 67647,
+      "sha256": "27da90f0e623e45fa1a27af7dcc3b6e5e1ff2320bae1c61bd903ed82050beb89",
+      "git_blob_sha": "b2b366c2cbfd89ba9fed437620057fdb01f1e561"
+    },
+    {
+      "path": "source/canonical_reference/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "bytes": 14396,
+      "sha256": "ac2c16669236d24d6d03cac183238ca8dccd8fd23895ae14ad34cef40c049008",
+      "git_blob_sha": "36262bcd4fb9a8a52be8c6791180ee450c2d63b8"
+    }
+  ]
+}

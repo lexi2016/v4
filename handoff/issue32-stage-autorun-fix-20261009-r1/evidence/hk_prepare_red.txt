@@ -1,0 +1,170 @@
+Command: /workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python -m pytest -q tests/test_hk_prepare_restore.py --tb=short
+Before production modifications: candidate paths were byte-identical copies of input/baseline.
+FFF.F.F.F.FFFFFFFFFFFFFF                                                 [100%]
+=================================== FAILURES ===================================
+_______ test_missing_exact_entry_names_date_without_falling_back[actual] _______
+tests/test_hk_prepare_restore.py:27: in test_missing_exact_entry_names_date_without_falling_back
+    with pytest.raises(SyntheticStoreError, match="HK_SECURITY_MASTER_EXACT_DATE_MISSING.*20261008.*20260930"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: Regex pattern did not match.
+E     Expected regex: 'HK_SECURITY_MASTER_EXACT_DATE_MISSING.*20261008.*20260930'
+E     Actual message: "HK security-master metadata invalid: '20261008'"
+_____ test_missing_exact_entry_names_date_without_falling_back[canonical] ______
+tests/test_hk_prepare_restore.py:27: in test_missing_exact_entry_names_date_without_falling_back
+    with pytest.raises(SyntheticStoreError, match="HK_SECURITY_MASTER_EXACT_DATE_MISSING.*20261008.*20260930"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: Regex pattern did not match.
+E     Expected regex: 'HK_SECURITY_MASTER_EXACT_DATE_MISSING.*20261008.*20260930'
+E     Actual message: "HK security-master metadata invalid: '20261008'"
+____ test_exact_restore_preserves_trio_bytes_other_dates_and_source[actual] ____
+tests/test_hk_prepare_restore.py:38: in test_exact_restore_preserves_trio_bytes_other_dates_and_source
+    outcome = restore(master, source, target)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_hk_prepare_restore.py:19: in restore
+    assert callable(action), "actual owner lacks its existing canonical exact-source restore path"
+E   AssertionError: actual owner lacks its existing canonical exact-source restore path
+E   assert False
+E    +  where False = callable(None)
+_______ test_restore_same_root_and_repeated_copy_are_idempotent[actual] ________
+tests/test_hk_prepare_restore.py:58: in test_restore_same_root_and_repeated_copy_are_idempotent
+    assert restore(master, source, source)["already_exists"] is True
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_hk_prepare_restore.py:19: in restore
+    assert callable(action), "actual owner lacks its existing canonical exact-source restore path"
+E   AssertionError: actual owner lacks its existing canonical exact-source restore path
+E   assert False
+E    +  where False = callable(None)
+_______________ test_corrupt_source_cannot_write_target[actual] ________________
+tests/test_hk_prepare_restore.py:73: in test_corrupt_source_cannot_write_target
+    restore(master, source, target)
+tests/test_hk_prepare_restore.py:19: in restore
+    assert callable(action), "actual owner lacks its existing canonical exact-source restore path"
+E   AssertionError: actual owner lacks its existing canonical exact-source restore path
+E   assert False
+E    +  where False = callable(None)
+_________ test_restore_does_not_overwrite_different_target_run[actual] _________
+tests/test_hk_prepare_restore.py:84: in test_restore_does_not_overwrite_different_target_run
+    restore(master, source, target)
+tests/test_hk_prepare_restore.py:19: in restore
+    assert callable(action), "actual owner lacks its existing canonical exact-source restore path"
+E   AssertionError: actual owner lacks its existing canonical exact-source restore path
+E   assert False
+E    +  where False = callable(None)
+_ test_restore_rejects_later_old_or_naive_snapshot_capture[actual-2026-10-09T00:01:00+08:00] _
+tests/test_hk_prepare_restore.py:94: in test_restore_rejects_later_old_or_naive_snapshot_capture
+    restore(master, source, target)
+tests/test_hk_prepare_restore.py:19: in restore
+    assert callable(action), "actual owner lacks its existing canonical exact-source restore path"
+E   AssertionError: actual owner lacks its existing canonical exact-source restore path
+E   assert False
+E    +  where False = callable(None)
+_ test_restore_rejects_later_old_or_naive_snapshot_capture[actual-2026-10-08T10:00:00] _
+tests/test_hk_prepare_restore.py:94: in test_restore_rejects_later_old_or_naive_snapshot_capture
+    restore(master, source, target)
+tests/test_hk_prepare_restore.py:19: in restore
+    assert callable(action), "actual owner lacks its existing canonical exact-source restore path"
+E   AssertionError: actual owner lacks its existing canonical exact-source restore path
+E   assert False
+E    +  where False = callable(None)
+_ test_restore_rejects_later_old_or_naive_snapshot_capture[actual-2026-09-30T17:00:00+08:00] _
+tests/test_hk_prepare_restore.py:94: in test_restore_rejects_later_old_or_naive_snapshot_capture
+    restore(master, source, target)
+tests/test_hk_prepare_restore.py:19: in restore
+    assert callable(action), "actual owner lacks its existing canonical exact-source restore path"
+E   AssertionError: actual owner lacks its existing canonical exact-source restore path
+E   assert False
+E    +  where False = callable(None)
+_ test_restore_rejects_later_old_or_naive_snapshot_capture[canonical-2026-10-09T00:01:00+08:00] _
+tests/test_hk_prepare_restore.py:93: in test_restore_rejects_later_old_or_naive_snapshot_capture
+    with pytest.raises(SyntheticStoreError, match="capture"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE SyntheticStoreError
+_ test_restore_rejects_later_old_or_naive_snapshot_capture[canonical-2026-10-08T10:00:00] _
+tests/test_hk_prepare_restore.py:93: in test_restore_rejects_later_old_or_naive_snapshot_capture
+    with pytest.raises(SyntheticStoreError, match="capture"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE SyntheticStoreError
+_ test_restore_rejects_later_old_or_naive_snapshot_capture[canonical-2026-09-30T17:00:00+08:00] _
+tests/test_hk_prepare_restore.py:93: in test_restore_rejects_later_old_or_naive_snapshot_capture
+    with pytest.raises(SyntheticStoreError, match="capture"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE SyntheticStoreError
+_______ test_receipt_wrong_date_fails_exact_source_verification[actual] ________
+tests/test_hk_prepare_restore.py:105: in test_receipt_wrong_date_fails_exact_source_verification
+    with pytest.raises(SyntheticStoreError, match="identity"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE SyntheticStoreError
+______ test_receipt_wrong_date_fails_exact_source_verification[canonical] ______
+tests/test_hk_prepare_restore.py:105: in test_receipt_wrong_date_fails_exact_source_verification
+    with pytest.raises(SyntheticStoreError, match="identity"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE SyntheticStoreError
+___ test_ensure_restores_verified_source_without_current_collection[actual] ____
+tests/test_hk_prepare_restore.py:115: in test_ensure_restores_verified_source_without_current_collection
+    assert "verified_source_store_root" in inspect.signature(action).parameters, "ensure has no explicit exact-source preparation path"
+E   AssertionError: ensure has no explicit exact-source preparation path
+E   assert 'verified_source_store_root' in mappingproxy(OrderedDict({'store_root': <Parameter "store_root: 'Path'">, 'universe_root': <Parameter "universe_root: ...56': <Parameter "panel_binding_sha256: 'str | None' = None">, 'reuse_only': <Parameter "reuse_only: 'bool' = False">}))
+E    +  where mappingproxy(OrderedDict({'store_root': <Parameter "store_root: 'Path'">, 'universe_root': <Parameter "universe_root: ...56': <Parameter "panel_binding_sha256: 'str | None' = None">, 'reuse_only': <Parameter "reuse_only: 'bool' = False">})) = <Signature (*, store_root: 'Path', universe_root: 'Path', shared_package_root: 'Path', trade_date: 'str', futu_python:...56: 'str | None' = None, panel_binding_sha256: 'str | None' = None, reuse_only: 'bool' = False) -> 'dict[str, object]'>.parameters
+E    +    where <Signature (*, store_root: 'Path', universe_root: 'Path', shared_package_root: 'Path', trade_date: 'str', futu_python:...56: 'str | None' = None, panel_binding_sha256: 'str | None' = None, reuse_only: 'bool' = False) -> 'dict[str, object]'> = <function signature at 0x7f89d5bd71c0>(<function ensure_hk_security_master at 0x7f89d494c670>)
+E    +      where <function signature at 0x7f89d5bd71c0> = inspect.signature
+__ test_ensure_restores_verified_source_without_current_collection[canonical] __
+tests/test_hk_prepare_restore.py:115: in test_ensure_restores_verified_source_without_current_collection
+    assert "verified_source_store_root" in inspect.signature(action).parameters, "ensure has no explicit exact-source preparation path"
+E   AssertionError: ensure has no explicit exact-source preparation path
+E   assert 'verified_source_store_root' in mappingproxy(OrderedDict({'store_root': <Parameter "store_root: 'Path'">, 'universe_root': <Parameter "universe_root: ...bership_only': <Parameter "membership_only: 'bool' = False">, 'reuse_only': <Parameter "reuse_only: 'bool' = False">}))
+E    +  where mappingproxy(OrderedDict({'store_root': <Parameter "store_root: 'Path'">, 'universe_root': <Parameter "universe_root: ...bership_only': <Parameter "membership_only: 'bool' = False">, 'reuse_only': <Parameter "reuse_only: 'bool' = False">})) = <Signature (*, store_root: 'Path', universe_root: 'Path', shared_package_root: 'Path', trade_date: 'str', futu_python:...nding_sha256: 'str | None' = None, membership_only: 'bool' = False, reuse_only: 'bool' = False) -> 'dict[str, object]'>.parameters
+E    +    where <Signature (*, store_root: 'Path', universe_root: 'Path', shared_package_root: 'Path', trade_date: 'str', futu_python:...nding_sha256: 'str | None' = None, membership_only: 'bool' = False, reuse_only: 'bool' = False) -> 'dict[str, object]'> = <function signature at 0x7f89d5bd71c0>(<function ensure_hk_security_master at 0x7f89d4daada0>)
+E    +      where <function signature at 0x7f89d5bd71c0> = inspect.signature
+_______ test_ensure_reuse_missing_returns_actionable_date_reason[actual] _______
+tests/test_hk_prepare_restore.py:132: in test_ensure_reuse_missing_returns_actionable_date_reason
+    with pytest.raises(SyntheticStoreError, match="HK_SECURITY_MASTER_NEEDS_VERIFIED_SOURCE.*20261008"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: Regex pattern did not match.
+E     Expected regex: 'HK_SECURITY_MASTER_NEEDS_VERIFIED_SOURCE.*20261008'
+E     Actual message: 'HK security-master exact-date authority unavailable for reuse: 20261008'
+_____ test_ensure_reuse_missing_returns_actionable_date_reason[canonical] ______
+tests/test_hk_prepare_restore.py:132: in test_ensure_reuse_missing_returns_actionable_date_reason
+    with pytest.raises(SyntheticStoreError, match="HK_SECURITY_MASTER_NEEDS_VERIFIED_SOURCE.*20261008"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: Regex pattern did not match.
+E     Expected regex: 'HK_SECURITY_MASTER_NEEDS_VERIFIED_SOURCE.*20261008'
+E     Actual message: 'HK security-master exact-date authority unavailable for reuse: 20261008'
+_________ test_ensure_source_universe_mismatch_cannot_publish[actual] __________
+tests/test_hk_prepare_restore.py:145: in test_ensure_source_universe_mismatch_cannot_publish
+    assert "verified_source_store_root" in inspect.signature(ensure.ensure_hk_security_master).parameters
+E   assert 'verified_source_store_root' in mappingproxy(OrderedDict({'store_root': <Parameter "store_root: 'Path'">, 'universe_root': <Parameter "universe_root: ...56': <Parameter "panel_binding_sha256: 'str | None' = None">, 'reuse_only': <Parameter "reuse_only: 'bool' = False">}))
+E    +  where mappingproxy(OrderedDict({'store_root': <Parameter "store_root: 'Path'">, 'universe_root': <Parameter "universe_root: ...56': <Parameter "panel_binding_sha256: 'str | None' = None">, 'reuse_only': <Parameter "reuse_only: 'bool' = False">})) = <Signature (*, store_root: 'Path', universe_root: 'Path', shared_package_root: 'Path', trade_date: 'str', futu_python:...56: 'str | None' = None, panel_binding_sha256: 'str | None' = None, reuse_only: 'bool' = False) -> 'dict[str, object]'>.parameters
+E    +    where <Signature (*, store_root: 'Path', universe_root: 'Path', shared_package_root: 'Path', trade_date: 'str', futu_python:...56: 'str | None' = None, panel_binding_sha256: 'str | None' = None, reuse_only: 'bool' = False) -> 'dict[str, object]'> = <function signature at 0x7f89d5bd71c0>(<function ensure_hk_security_master at 0x7f89d4953270>)
+E    +      where <function signature at 0x7f89d5bd71c0> = inspect.signature
+E    +      and   <function ensure_hk_security_master at 0x7f89d4953270> = <module '_issue32_hk_ensure_2c25f84e71d74043afd2c790cd6c9243' from '/workspace/scratch/25c09a595aec/issue32/after/source/actual_pool_scheduler/ops/ensure_hk_security_master.py'>.ensure_hk_security_master
+________ test_ensure_source_universe_mismatch_cannot_publish[canonical] ________
+tests/test_hk_prepare_restore.py:145: in test_ensure_source_universe_mismatch_cannot_publish
+    assert "verified_source_store_root" in inspect.signature(ensure.ensure_hk_security_master).parameters
+E   assert 'verified_source_store_root' in mappingproxy(OrderedDict({'store_root': <Parameter "store_root: 'Path'">, 'universe_root': <Parameter "universe_root: ...bership_only': <Parameter "membership_only: 'bool' = False">, 'reuse_only': <Parameter "reuse_only: 'bool' = False">}))
+E    +  where mappingproxy(OrderedDict({'store_root': <Parameter "store_root: 'Path'">, 'universe_root': <Parameter "universe_root: ...bership_only': <Parameter "membership_only: 'bool' = False">, 'reuse_only': <Parameter "reuse_only: 'bool' = False">})) = <Signature (*, store_root: 'Path', universe_root: 'Path', shared_package_root: 'Path', trade_date: 'str', futu_python:...nding_sha256: 'str | None' = None, membership_only: 'bool' = False, reuse_only: 'bool' = False) -> 'dict[str, object]'>.parameters
+E    +    where <Signature (*, store_root: 'Path', universe_root: 'Path', shared_package_root: 'Path', trade_date: 'str', futu_python:...nding_sha256: 'str | None' = None, membership_only: 'bool' = False, reuse_only: 'bool' = False) -> 'dict[str, object]'> = <function signature at 0x7f89d5bd71c0>(<function ensure_hk_security_master at 0x7f89d49ae400>)
+E    +      where <function signature at 0x7f89d5bd71c0> = inspect.signature
+E    +      and   <function ensure_hk_security_master at 0x7f89d49ae400> = <module '_issue32_hk_ensure_997a1808f1fc43e8acb4edb24b5e1bdd' from '/workspace/scratch/25c09a595aec/issue32/after/source/canonical_reference/ops/ensure_hk_security_master.py'>.ensure_hk_security_master
+=========================== short test summary info ============================
+FAILED tests/test_hk_prepare_restore.py::test_missing_exact_entry_names_date_without_falling_back[actual]
+FAILED tests/test_hk_prepare_restore.py::test_missing_exact_entry_names_date_without_falling_back[canonical]
+FAILED tests/test_hk_prepare_restore.py::test_exact_restore_preserves_trio_bytes_other_dates_and_source[actual]
+FAILED tests/test_hk_prepare_restore.py::test_restore_same_root_and_repeated_copy_are_idempotent[actual]
+FAILED tests/test_hk_prepare_restore.py::test_corrupt_source_cannot_write_target[actual]
+FAILED tests/test_hk_prepare_restore.py::test_restore_does_not_overwrite_different_target_run[actual]
+FAILED tests/test_hk_prepare_restore.py::test_restore_rejects_later_old_or_naive_snapshot_capture[actual-2026-10-09T00:01:00+08:00]
+FAILED tests/test_hk_prepare_restore.py::test_restore_rejects_later_old_or_naive_snapshot_capture[actual-2026-10-08T10:00:00]
+FAILED tests/test_hk_prepare_restore.py::test_restore_rejects_later_old_or_naive_snapshot_capture[actual-2026-09-30T17:00:00+08:00]
+FAILED tests/test_hk_prepare_restore.py::test_restore_rejects_later_old_or_naive_snapshot_capture[canonical-2026-10-09T00:01:00+08:00]
+FAILED tests/test_hk_prepare_restore.py::test_restore_rejects_later_old_or_naive_snapshot_capture[canonical-2026-10-08T10:00:00]
+FAILED tests/test_hk_prepare_restore.py::test_restore_rejects_later_old_or_naive_snapshot_capture[canonical-2026-09-30T17:00:00+08:00]
+FAILED tests/test_hk_prepare_restore.py::test_receipt_wrong_date_fails_exact_source_verification[actual]
+FAILED tests/test_hk_prepare_restore.py::test_receipt_wrong_date_fails_exact_source_verification[canonical]
+FAILED tests/test_hk_prepare_restore.py::test_ensure_restores_verified_source_without_current_collection[actual]
+FAILED tests/test_hk_prepare_restore.py::test_ensure_restores_verified_source_without_current_collection[canonical]
+FAILED tests/test_hk_prepare_restore.py::test_ensure_reuse_missing_returns_actionable_date_reason[actual]
+FAILED tests/test_hk_prepare_restore.py::test_ensure_reuse_missing_returns_actionable_date_reason[canonical]
+FAILED tests/test_hk_prepare_restore.py::test_ensure_source_universe_mismatch_cannot_publish[actual]
+FAILED tests/test_hk_prepare_restore.py::test_ensure_source_universe_mismatch_cannot_publish[canonical]
+20 failed, 4 passed in 0.19s
+

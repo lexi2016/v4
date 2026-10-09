@@ -1,0 +1,50 @@
+..................................................................F....  [100%]
+=================================== FAILURES ===================================
+________ test_primary_a_pool_can_use_only_exact_configured_hk_fallback _________
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue32/work/api_combined_r2/isolated/preselection/tmp/pytest/test_primary_a_pool_can_use_on0')
+
+    def test_primary_a_pool_can_use_only_exact_configured_hk_fallback(tmp_path: Path) -> None:
+        api_root = tmp_path / "api-root"
+        local_store = PreselectionPoolStore(api_root)
+        local_store.materialize(
+            _pool_artifact("a_d1_premarket_pool", [{"symbol": "A.000010"}])
+        )
+    
+        source_root = tmp_path / "source-root"
+        source_store = PreselectionPoolStore(source_root)
+        source_store.materialize(
+            _pool_artifact("a_d1_premarket_pool", [{"symbol": "A.000020"}])
+        )
+        source_store.materialize(
+            _pool_artifact("a_share_research_recommendation_pool", [{"symbol": "A.000021"}])
+        )
+        source_store.materialize(_strict_hk_artifact())
+        _write_released_materialize_lock(source_root)
+    
+        client = TestClient(
+            create_app(
+                data_root=api_root,
+                preselection_source_root=source_root,
+                current_date=DATE,
+            )
+        )
+        response = client.get(
+            "/api/v3/preselection-pools",
+            params={"date": DATE, "limit": 200},
+        ).json()
+    
+>       assert response["configured_hk_pool_fallback"]["applied"] is True
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'configured_hk_pool_fallback'
+
+tests/test_preselection_source_root_20261008.py:276: KeyError
+=============================== warnings summary ===============================
+../../../../../issue28/references/work/test-venv/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/25c09a595aec/issue28/references/work/test-venv/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_preselection_source_root_20261008.py::test_primary_a_pool_can_use_only_exact_configured_hk_fallback
+1 failed, 70 passed, 1 warning in 2.78s

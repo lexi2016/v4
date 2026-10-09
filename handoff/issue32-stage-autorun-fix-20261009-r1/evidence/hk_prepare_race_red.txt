@@ -1,0 +1,109 @@
+FFFFFFFF                                                                 [100%]
+=================================== FAILURES ===================================
+____ test_restore_immutable_create_cannot_replace_intervening_file[actual] _____
+tests/test_hk_prepare_restore.py:304: in test_restore_immutable_create_cannot_replace_intervening_file
+    with pytest.raises(SyntheticStoreError, match="conflict"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE SyntheticStoreError
+___ test_restore_immutable_create_cannot_replace_intervening_file[canonical] ___
+tests/test_hk_prepare_restore.py:304: in test_restore_immutable_create_cannot_replace_intervening_file
+    with pytest.raises(SyntheticStoreError, match="conflict"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE SyntheticStoreError
+____ test_restore_rejects_source_pointer_change_after_verification[actual] _____
+tests/test_hk_prepare_restore.py:328: in test_restore_rejects_source_pointer_change_after_verification
+    restore(master, source, target)
+tests/test_hk_prepare_restore.py:21: in restore
+    return action(source, target, trade_date="20261008")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+after/source/actual_shared_owner/shared_data/hk_security_master.py:271: in restore_verified_hk_security_master
+    _, restored_manifest = load_verified_hk_security_master(target_root, trade_date)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_hk_prepare_restore.py:320: in changed_pointer
+    result = original_load(root, trade_date)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+after/source/actual_shared_owner/shared_data/hk_security_master.py:327: in load_verified_hk_security_master
+    if sha256_file(artifact) != manifest.get("artifact_sha256") or receipt.get("artifact_sha256") != manifest.get("artifact_sha256"):
+       ^^^^^^^^^^^^^^^^^^^^^
+tests/hk_prepare_support.py:54: in <lambda>
+    "sha256_file": lambda path: hashlib.sha256(Path(path).read_bytes()).hexdigest(),
+                                               ^^^^^^^^^^^^^^^^^^^^^^^
+../../29f34dd56853/issue28/work/python/cpython-3.14.7-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py:777: in read_bytes
+    with self.open(mode='rb', buffering=0) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../29f34dd56853/issue28/work/python/cpython-3.14.7-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py:771: in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-326/test_restore_rejects_source_po0/target/assets/hk_security_master/runs/20261008/998065982f3e61e5031f51ec/artifact.csv'
+___ test_restore_rejects_source_pointer_change_after_verification[canonical] ___
+tests/test_hk_prepare_restore.py:328: in test_restore_rejects_source_pointer_change_after_verification
+    restore(master, source, target)
+tests/test_hk_prepare_restore.py:21: in restore
+    return action(source, target, trade_date="20261008")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+after/source/canonical_reference/upstreams/v3_shared_data/shared_data/hk_security_master.py:272: in restore_verified_hk_security_master
+    _, restored_manifest = load_verified_hk_security_master(target_root, trade_date)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_hk_prepare_restore.py:320: in changed_pointer
+    result = original_load(root, trade_date)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+after/source/canonical_reference/upstreams/v3_shared_data/shared_data/hk_security_master.py:328: in load_verified_hk_security_master
+    if sha256_file(artifact) != manifest.get("artifact_sha256") or receipt.get("artifact_sha256") != manifest.get("artifact_sha256"):
+       ^^^^^^^^^^^^^^^^^^^^^
+tests/hk_prepare_support.py:54: in <lambda>
+    "sha256_file": lambda path: hashlib.sha256(Path(path).read_bytes()).hexdigest(),
+                                               ^^^^^^^^^^^^^^^^^^^^^^^
+../../29f34dd56853/issue28/work/python/cpython-3.14.7-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py:777: in read_bytes
+    with self.open(mode='rb', buffering=0) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../29f34dd56853/issue28/work/python/cpython-3.14.7-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py:771: in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-326/test_restore_rejects_source_po1/target/assets/hk_security_master/runs/20261008/998065982f3e61e5031f51ec/artifact.csv'
+______ test_restore_rejects_malformed_target_entry_as_store_error[actual] ______
+tests/test_hk_prepare_restore.py:341: in test_restore_rejects_malformed_target_entry_as_store_error
+    restore(master, source, target)
+tests/test_hk_prepare_restore.py:21: in restore
+    return action(source, target, trade_date="20261008")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+after/source/actual_shared_owner/shared_data/hk_security_master.py:253: in restore_verified_hk_security_master
+    if existing is not None and any(
+                                ^^^
+after/source/actual_shared_owner/shared_data/hk_security_master.py:254: in <genexpr>
+    existing.get(key) != source_entry.get(key)
+    ^^^^^^^^^^^^
+E   AttributeError: 'list' object has no attribute 'get'
+____ test_restore_rejects_malformed_target_entry_as_store_error[canonical] _____
+tests/test_hk_prepare_restore.py:341: in test_restore_rejects_malformed_target_entry_as_store_error
+    restore(master, source, target)
+tests/test_hk_prepare_restore.py:21: in restore
+    return action(source, target, trade_date="20261008")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+after/source/canonical_reference/upstreams/v3_shared_data/shared_data/hk_security_master.py:254: in restore_verified_hk_security_master
+    if existing is not None and any(
+                                ^^^
+after/source/canonical_reference/upstreams/v3_shared_data/shared_data/hk_security_master.py:255: in <genexpr>
+    existing.get(key) != source_entry.get(key)
+    ^^^^^^^^^^^^
+E   AttributeError: 'list' object has no attribute 'get'
+_ test_restore_detects_observed_target_pointer_update_without_lost_date[actual] _
+tests/test_hk_prepare_restore.py:361: in test_restore_detects_observed_target_pointer_update_without_lost_date
+    with pytest.raises(SyntheticStoreError, match="target.*changed"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE SyntheticStoreError
+_ test_restore_detects_observed_target_pointer_update_without_lost_date[canonical] _
+tests/test_hk_prepare_restore.py:361: in test_restore_detects_observed_target_pointer_update_without_lost_date
+    with pytest.raises(SyntheticStoreError, match="target.*changed"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE SyntheticStoreError
+=========================== short test summary info ============================
+FAILED tests/test_hk_prepare_restore.py::test_restore_immutable_create_cannot_replace_intervening_file[actual]
+FAILED tests/test_hk_prepare_restore.py::test_restore_immutable_create_cannot_replace_intervening_file[canonical]
+FAILED tests/test_hk_prepare_restore.py::test_restore_rejects_source_pointer_change_after_verification[actual]
+FAILED tests/test_hk_prepare_restore.py::test_restore_rejects_source_pointer_change_after_verification[canonical]
+FAILED tests/test_hk_prepare_restore.py::test_restore_rejects_malformed_target_entry_as_store_error[actual]
+FAILED tests/test_hk_prepare_restore.py::test_restore_rejects_malformed_target_entry_as_store_error[canonical]
+FAILED tests/test_hk_prepare_restore.py::test_restore_detects_observed_target_pointer_update_without_lost_date[actual]
+FAILED tests/test_hk_prepare_restore.py::test_restore_detects_observed_target_pointer_update_without_lost_date[canonical]
+8 failed, 40 deselected in 0.24s
+

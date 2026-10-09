@@ -1,0 +1,58 @@
+{
+  "source_candidate_commit": "2ead7eb9e9f067b69610d24990bc47f792bc75b4",
+  "remote_commit_verified": true,
+  "local_source_commit_object_absent_is_not_a_runtime_blocker": true,
+  "independent_mac_tests": {
+    "expected": 218,
+    "passed": 218,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "deselected": 0,
+    "xfail_or_xpass": 0,
+    "collection_errors": 0,
+    "warnings": 0
+  },
+  "independent_scope": "Frozen stage 1 portable Mac regression replay and source-candidate diff review only; not full R2 runtime acceptance.",
+  "independent_reviewer": "/root/issue30_mac_review",
+  "p0": [],
+  "p1": [],
+  "p2": [],
+  "candidate_status": "BUILT_NOT_INDEPENDENTLY_REVIEWED_NOT_ACTIVATED",
+  "candidate_real_source_canary": "NOT_RUN",
+  "candidate_full_app_manager_joint_behavior": "NOT_RUN",
+  "canonical_integration": "NOT_DONE",
+  "deployment": "NOT_DONE",
+  "live_api_recovery": "NOT_DONE",
+  "live_ui_recovery": "NOT_DONE",
+  "stage_20261009_readiness": "NOT_PROVEN_BY_ISSUE30_TESTS",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "evidence": {
+    "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE30_MAC_20261008/reviewer/portable-r1/MAC_SOURCE_CANDIDATE_REVIEW.json": {
+      "exists": true,
+      "sha256": "de864174cb35497904174775edf2f150cc7840d35e995aa409e62e1c02b4f049"
+    },
+    "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE30_MAC_20261008/reviewer/portable-r1/SUMMARY.json": {
+      "exists": true,
+      "sha256": "c1fa6a87f1e02af0f9cfd33899b8e0b69e474f95053053bf21ca45f17cc603e8"
+    },
+    "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE30_MAC_20261008/candidate/issue30_preselection_mac_20261008_r1/release-manifest.json": {
+      "exists": true,
+      "sha256": "951d18ca249294135905492b289003d275c8d1ad82855637f945160fdbea94e4"
+    },
+    "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE30_MAC_20261008/candidate/issue30_preselection_mac_20261008_r1/config/api-only-cutover-plan.json": {
+      "exists": true,
+      "sha256": "f993d0b3b9e2ff4c179a057a0a6a83df7086eb3d5ccb338eb125d50e88b7a8d0"
+    },
+    "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE30_MAC_20261008/tools/preselection_delta_mac_active_readonly.json": {
+      "exists": true,
+      "sha256": "ae471ae127a67f66a3902afb40a530dd3423712d60d42cbc70f6976bda30c0a4"
+    }
+  },
+  "pending_step": "After returned code fixes, locally verify actual inputs and full app/manager behavior, independently review exact candidate and deploy under latest user authorization; preserve separate Stage readiness checks."
+}

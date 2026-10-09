@@ -1,0 +1,51 @@
+{
+  "schema": "issue32.scheduler_delta.v1",
+  "baseline_commit": "b00ca5a658a9de83cf5e54ad39aa68ddd5c23526",
+  "source_slices_only": true,
+  "not_deployable_alone": true,
+  "files": [
+    {
+      "package_path": "source/actual_pool_scheduler/infrastructure/scheduling/dispatcher.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app/infrastructure/scheduling/dispatcher.py",
+      "before_sha256": "a93d78461c59065404d240cf8ba5d1b8212e7e3bfebb270ee2df0df05908000f",
+      "after_sha256": "d186949486f1807c72f4795ff273f1ee886afb536a82e8a328b13bc4cb9f1bf3",
+      "before_bytes": 14626,
+      "after_bytes": 15246
+    },
+    {
+      "package_path": "source/actual_pool_scheduler/infrastructure/scheduling/executor_registry_preselection.py",
+      "source_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260929-manager-1555-pytdx-r1/app/infrastructure/scheduling/executor_registry_preselection.py",
+      "before_sha256": "8b3e6a89536192a74f4b6fa9528874146019f86c595f76f074d75c3e8c3c745a",
+      "after_sha256": "f965f4ebf42ff38a05af7b7bea8f2db22f5580f4859237cfe9e56492830d905b",
+      "before_bytes": 16634,
+      "after_bytes": 19687
+    },
+    {
+      "package_path": "source/canonical_reference/infrastructure/scheduling/dispatcher.py",
+      "source_path": "/Users/lexi/Desktop/\u5b66\u4e60/v4_app/infrastructure/scheduling/dispatcher.py",
+      "before_sha256": "64e596ff1c554937c93ac921671a204b889f51acd307c88e1aaa2184daadbc01",
+      "after_sha256": "aba5d9b3b692d8e4b9bbb9174f6803dab19f33b3d39d7fd202195aca585c5f59",
+      "before_bytes": 23717,
+      "after_bytes": 24337
+    },
+    {
+      "package_path": "source/canonical_reference/infrastructure/scheduling/_executor_registry_parts/preselection.py",
+      "source_path": "/Users/lexi/Desktop/\u5b66\u4e60/v4_app/infrastructure/scheduling/_executor_registry_parts/preselection.py",
+      "before_sha256": "14374bf18cc310eca639a55b7fff1bde75785bc9ee59cbf23a10ae3a736e70c1",
+      "after_sha256": "e927f266e9977d7e69e4c6b9f72039ebf060597dd2dd1193fd579ff03dc8ddad",
+      "before_bytes": 27401,
+      "after_bytes": 29125
+    }
+  ],
+  "tests": {
+    "targeted": "50 passed plus 2 independent local-gate review probes; 52 combined",
+    "environment": "Python 3.14 test venv provided from Issue28; see exact command in REPORT.md",
+    "scope": "source-slice handler and dispatcher control flow; absent current contracts/calendar/process/ledger imports explicitly stubbed",
+    "real_input_stage_natural_verification": "NOT_RUN",
+    "local_gate_red": "27 failed, 3 passed on previous candidate",
+    "local_gate_green": "52 passed in 0.27s",
+    "final_command": "PYTHONDONTWRITEBYTECODE=1 /workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python -m pytest -q tests/test_dispatcher_receipts.py tests/test_preselection_executor_prerequisites.py tests/test_preselection_executor_local_gate.py evidence/independent_review/test_local_hk_gate_review.py --tb=short"
+  },
+  "historical_gate_cause": "CANNOT_CONFIRM; full workload_results and current facade/catalog/entrypoint absent",
+  "actual_local_gate_compatibility": "BLOCKED/MISSING_CURRENT_INPUTS: current actual _run and materializer output contract absent. Gate absence cannot settle success unless the existing exact verified formal-pair reuse contract succeeds."
+}

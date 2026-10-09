@@ -1,0 +1,143 @@
+{
+  "artifacts": [
+    {
+      "path": "results/preselection/dependency_probe.log",
+      "sha256": "d76173a3be773fe6fe83ac7c41fd57caa6948f2ec40863747a1578fd00452f22",
+      "size": 1207
+    },
+    {
+      "path": "results/preselection/environment.json",
+      "sha256": "1b0c42e24f27021a1705977d8f722e3350ba38e2552e2592d4707730add3c8ab",
+      "size": 1410
+    },
+    {
+      "path": "results/preselection/junit.xml",
+      "sha256": "f6bdf68a48364b1640e67067e3e470ca8e60d2154987b1d2ebef515b28f20322",
+      "size": 14551
+    },
+    {
+      "path": "results/preselection/metrics.json",
+      "sha256": "809c89f01e4c9ec6ae4f8686c810a8e0b02a5b17a57c6cdb5cf26e78ff07072e",
+      "size": 57920
+    },
+    {
+      "path": "results/preselection/pytest.log",
+      "sha256": "d08c9eb25186de6918e4145d4c18fcebf834681385b4b00d708459f282030d93",
+      "size": 3990
+    }
+  ],
+  "dependency_probe": {
+    "command": [
+      "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+      "-B",
+      "-c",
+      "import importlib\nimport importlib.metadata\nimport json\nimport platform\nimport shutil\nimport sys\nrequirements = json.loads(sys.argv[1])\nresult = {\"python\": sys.version, \"executable\": sys.executable,\n          \"platform\": platform.platform(), \"packages\": {}, \"errors\": []}\nif sys.version_info < (3, 11):\n    result[\"errors\"].append(\"Python 3.11 or newer is required\")\ntry:\n    import fcntl\nexcept ImportError as error:\n    result[\"errors\"].append(\"POSIX fcntl is required: \" + str(error))\nfor name in requirements:\n    try:\n        module = importlib.import_module(name)\n        try:\n            version = importlib.metadata.version(name)\n        except importlib.metadata.PackageNotFoundError:\n            version = \"UNKNOWN\"\n        result[\"packages\"][name] = {\"version\": version, \"origin\": getattr(module, \"__file__\", None)}\n    except Exception as error:\n        result[\"errors\"].append(name + \": \" + type(error).__name__ + \": \" + str(error))\nif sys.argv[2] == \"release\":\n    result[\"git\"] = shutil.which(\"git\")\n    if result[\"git\"] is None:\n        result[\"errors\"].append(\"git is required for isolated source fixtures\")\nprint(json.dumps(result, sort_keys=True))\nraise SystemExit(2 if result[\"errors\"] else 0)\n",
+      "[\"pytest\", \"fastapi\", \"httpx\", \"starlette\", \"pydantic\", \"anyio\"]",
+      "preselection"
+    ],
+    "cwd": "/workspace/scratch/25c09a595aec/issue32/work/api_combined_r3/isolated/preselection",
+    "elapsed_seconds": 0.415227,
+    "exit_code": 0,
+    "timed_out": false
+  },
+  "expected_tests": 72,
+  "junit": {
+    "error_elements": 0,
+    "errors": 0,
+    "failure_elements": 1,
+    "failures": 1,
+    "skipped": 0,
+    "skipped_elements": 0,
+    "testcase_elements": 72,
+    "tests": 72
+  },
+  "metrics": {
+    "collection_errors": 0,
+    "deselected": 0,
+    "exitstatus": 1,
+    "failed_calls": 1,
+    "failed_setup_teardown": 0,
+    "node_ids_sha256": "c52b96c9f270951bba0cc13e50649a850891aa085f1fd7da5492c254edcc59e8",
+    "passed_calls": 71,
+    "schema_version": "v4.issue30.pytest_metrics.v1",
+    "skipped_reports": 0,
+    "testscollected": 72,
+    "unique_node_ids": 72,
+    "xfail_or_xpass_reports": 0
+  },
+  "problems": [
+    "PYTEST_PROCESS_FAILED_OR_TIMED_OUT",
+    "METRICS_COUNT_MISMATCH:passed_calls",
+    "METRICS_NOT_ZERO:exitstatus",
+    "METRICS_NOT_ZERO:failed_calls",
+    "JUNIT_NOT_ZERO:failures",
+    "JUNIT_NOT_ZERO:failure_elements"
+  ],
+  "pytest": {
+    "command": [
+      "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "-p",
+      "_issue30_portable_metrics",
+      "-c",
+      "/workspace/scratch/25c09a595aec/issue32/work/api_combined_r3/isolated/preselection/pytest.ini",
+      "--rootdir",
+      "/workspace/scratch/25c09a595aec/issue32/work/api_combined_r3/isolated/preselection",
+      "--confcutdir",
+      "/workspace/scratch/25c09a595aec/issue32/work/api_combined_r3/isolated/preselection",
+      "--basetemp",
+      "/workspace/scratch/25c09a595aec/issue32/work/api_combined_r3/isolated/preselection/tmp/pytest",
+      "--junitxml",
+      "/workspace/scratch/25c09a595aec/issue32/work/api_combined_r3/results/preselection/junit.xml",
+      "-W",
+      "error",
+      "-W",
+      "default::starlette.exceptions.StarletteDeprecationWarning",
+      "/workspace/scratch/25c09a595aec/issue32/work/api_combined_r3/isolated/preselection/tests"
+    ],
+    "cwd": "/workspace/scratch/25c09a595aec/issue32/work/api_combined_r3/isolated/preselection",
+    "elapsed_seconds": 3.175489,
+    "exit_code": 1,
+    "timed_out": false
+  },
+  "runtime": {
+    "errors": [],
+    "executable": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "packages": {
+      "anyio": {
+        "origin": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/lib/python3.14/site-packages/anyio/__init__.py",
+        "version": "4.15.1"
+      },
+      "fastapi": {
+        "origin": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/lib/python3.14/site-packages/fastapi/__init__.py",
+        "version": "0.142.4"
+      },
+      "httpx": {
+        "origin": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/lib/python3.14/site-packages/httpx/__init__.py",
+        "version": "0.28.1"
+      },
+      "pydantic": {
+        "origin": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/lib/python3.14/site-packages/pydantic/__init__.py",
+        "version": "2.13.5"
+      },
+      "pytest": {
+        "origin": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/lib/python3.14/site-packages/pytest/__init__.py",
+        "version": "9.1.1"
+      },
+      "starlette": {
+        "origin": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/lib/python3.14/site-packages/starlette/__init__.py",
+        "version": "1.7.0"
+      }
+    },
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]"
+  },
+  "scope": "ISOLATED_SYNTHETIC_SOURCE_TEST",
+  "status": "FAIL",
+  "suite": "preselection"
+}

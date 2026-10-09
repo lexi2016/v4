@@ -1,0 +1,37 @@
+{
+  "schema_version": "v4.issue32.delivery_status.v1",
+  "target_date": "20261009",
+  "input_commit": "b00ca5a658a9de83cf5e54ad39aa68ddd5c23526",
+  "acceptance": {
+    "SOURCE_TESTED": "PASS",
+    "INDEPENDENT_REVIEWED": "PASS_SOURCE_SLICE_SCOPE_ONLY",
+    "MAC_INTEGRATED": "NOT_RUN",
+    "INPUT_READY": "BLOCKED_REAL_INPUTS_NOT_PROVIDED",
+    "DEPLOYED": "NOT_RUN",
+    "API_VERIFIED": "NOT_RUN",
+    "UI_VERIFIED": "NOT_RUN",
+    "NATURAL_VERIFIED": "NOT_RUN"
+  },
+  "historical_1730_1800_specific_cause": "CANNOT_CONFIRM_MISSING_CURRENT_FACADE_AND_WORKLOAD_RESULTS",
+  "mac_release_authorization": "Task-scoped reversible research-service authorization reported in Issue32; no repeated generic approval required.",
+  "chat_mac_runtime_access": "NOT_CONNECTED",
+  "source_after_file_count": 11,
+  "natural_stage_plan_shanghai": [
+    "09:15",
+    "09:25",
+    "09:35",
+    "09:40",
+    "09:45",
+    "10:30",
+    "13:15",
+    "15:00",
+    "15:50",
+    "15:55"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

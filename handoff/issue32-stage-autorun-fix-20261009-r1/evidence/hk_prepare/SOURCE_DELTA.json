@@ -1,0 +1,38 @@
+{
+  "schema": "issue32.hk_prepare.source_delta.v1",
+  "baseline_commit": "b00ca5a658a9de83cf5e54ad39aa68ddd5c23526",
+  "source_slices_only": true,
+  "actual_owner_integration": "NOT_RUN",
+  "real_target_readiness": "BLOCKED_NEEDS_VERIFIED_20261008_SOURCE_AND_PRICE",
+  "files": [
+    {
+      "package_path": "source/actual_pool_scheduler/ops/ensure_hk_security_master.py",
+      "before_sha256": "ae6bae7dbd87f03327cf03904beee2e1f8b3e63b262057b49a3f6186eedf21f7",
+      "after_sha256": "ff03d294128e9fdbe5c319688bea2b8ae1ff1d63afadd51c5a66041e0300321e",
+      "before_bytes": 29319,
+      "after_bytes": 34014
+    },
+    {
+      "package_path": "source/actual_shared_owner/shared_data/hk_security_master.py",
+      "before_sha256": "a5e9337559c530283eea4ca36c3535dbb9dbc902c920ae4ccbf0f1a1626ab764",
+      "after_sha256": "2703a97e6ac18c03b06184a482857d303d77d49adaf1561a2c82423dea084847",
+      "before_bytes": 9714,
+      "after_bytes": 18794
+    },
+    {
+      "package_path": "source/canonical_reference/ops/ensure_hk_security_master.py",
+      "before_sha256": "6c341a33c0283b023219c46cc2a1c6aaca49cf4b5dcb88aa2fb5527a13145601",
+      "after_sha256": "a0f9fd0e2fb438f03109714a41cf3a10b61a85579498e1ceec87126df2d3c319",
+      "before_bytes": 41556,
+      "after_bytes": 46251
+    },
+    {
+      "package_path": "source/canonical_reference/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "before_sha256": "ac2c16669236d24d6d03cac183238ca8dccd8fd23895ae14ad34cef40c049008",
+      "after_sha256": "1690ee57e4aedbfa93fd57a88666d3d7b86792a012ef55249f6fd17a82b408f7",
+      "before_bytes": 14396,
+      "after_bytes": 18795
+    }
+  ],
+  "revision": "review_capture_reuse_and_immutable_restore_r2"
+}

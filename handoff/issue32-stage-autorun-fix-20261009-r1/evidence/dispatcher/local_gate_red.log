@@ -1,0 +1,222 @@
+FFFFFFFFFFFFFFFFFFFFFFFF..F.FF                                           [100%]
+=================================== FAILURES ===================================
+_ test_present_invalid_hk_local_gate_cannot_settle_success[None-actual_pool_scheduler] _
+tests/test_preselection_executor_local_gate.py:48: in test_present_invalid_hk_local_gate_cannot_settle_success
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_present_invalid_hk_local_gate_cannot_settle_success[None-canonical_reference] _
+tests/test_preselection_executor_local_gate.py:48: in test_present_invalid_hk_local_gate_cannot_settle_success
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_present_invalid_hk_local_gate_cannot_settle_success[gate1-actual_pool_scheduler] _
+tests/test_preselection_executor_local_gate.py:48: in test_present_invalid_hk_local_gate_cannot_settle_success
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_present_invalid_hk_local_gate_cannot_settle_success[gate1-canonical_reference] _
+tests/test_preselection_executor_local_gate.py:48: in test_present_invalid_hk_local_gate_cannot_settle_success
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_present_invalid_hk_local_gate_cannot_settle_success[gate2-actual_pool_scheduler] _
+tests/test_preselection_executor_local_gate.py:48: in test_present_invalid_hk_local_gate_cannot_settle_success
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_present_invalid_hk_local_gate_cannot_settle_success[gate2-canonical_reference] _
+tests/test_preselection_executor_local_gate.py:48: in test_present_invalid_hk_local_gate_cannot_settle_success
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_present_invalid_hk_local_gate_cannot_settle_success[gate3-actual_pool_scheduler] _
+tests/test_preselection_executor_local_gate.py:48: in test_present_invalid_hk_local_gate_cannot_settle_success
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_present_invalid_hk_local_gate_cannot_settle_success[gate3-canonical_reference] _
+tests/test_preselection_executor_local_gate.py:48: in test_present_invalid_hk_local_gate_cannot_settle_success
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_present_invalid_hk_local_gate_cannot_settle_success[gate4-actual_pool_scheduler] _
+tests/test_preselection_executor_local_gate.py:48: in test_present_invalid_hk_local_gate_cannot_settle_success
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_present_invalid_hk_local_gate_cannot_settle_success[gate4-canonical_reference] _
+tests/test_preselection_executor_local_gate.py:48: in test_present_invalid_hk_local_gate_cannot_settle_success
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_present_invalid_hk_local_gate_cannot_settle_success[gate5-actual_pool_scheduler] _
+tests/test_preselection_executor_local_gate.py:48: in test_present_invalid_hk_local_gate_cannot_settle_success
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_present_invalid_hk_local_gate_cannot_settle_success[gate5-canonical_reference] _
+tests/test_preselection_executor_local_gate.py:48: in test_present_invalid_hk_local_gate_cannot_settle_success
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_present_invalid_hk_local_gate_cannot_settle_success[gate6-actual_pool_scheduler] _
+tests/test_preselection_executor_local_gate.py:48: in test_present_invalid_hk_local_gate_cannot_settle_success
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_present_invalid_hk_local_gate_cannot_settle_success[gate6-canonical_reference] _
+tests/test_preselection_executor_local_gate.py:48: in test_present_invalid_hk_local_gate_cannot_settle_success
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_present_invalid_hk_local_gate_cannot_settle_success[gate7-actual_pool_scheduler] _
+tests/test_preselection_executor_local_gate.py:48: in test_present_invalid_hk_local_gate_cannot_settle_success
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_present_invalid_hk_local_gate_cannot_settle_success[gate7-canonical_reference] _
+tests/test_preselection_executor_local_gate.py:48: in test_present_invalid_hk_local_gate_cannot_settle_success
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_present_invalid_hk_local_gate_cannot_settle_success[gate8-actual_pool_scheduler] _
+tests/test_preselection_executor_local_gate.py:48: in test_present_invalid_hk_local_gate_cannot_settle_success
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_present_invalid_hk_local_gate_cannot_settle_success[gate8-canonical_reference] _
+tests/test_preselection_executor_local_gate.py:48: in test_present_invalid_hk_local_gate_cannot_settle_success
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_present_invalid_hk_local_gate_cannot_settle_success[gate9-actual_pool_scheduler] _
+tests/test_preselection_executor_local_gate.py:48: in test_present_invalid_hk_local_gate_cannot_settle_success
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_present_invalid_hk_local_gate_cannot_settle_success[gate9-canonical_reference] _
+tests/test_preselection_executor_local_gate.py:48: in test_present_invalid_hk_local_gate_cannot_settle_success
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_absent_local_hk_contract_keeps_a_materialization_but_fails_closed[actual_pool_scheduler] _
+tests/test_preselection_executor_local_gate.py:62: in test_absent_local_hk_contract_keeps_a_materialization_but_fails_closed
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_absent_local_hk_contract_keeps_a_materialization_but_fails_closed[canonical_reference] _
+tests/test_preselection_executor_local_gate.py:62: in test_absent_local_hk_contract_keeps_a_materialization_but_fails_closed
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_____ test_actual_stdout_alone_cannot_invent_missing_authoritative_parser ______
+tests/test_preselection_executor_local_gate.py:74: in test_actual_stdout_alone_cannot_invent_missing_authoritative_parser
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_literal_ready_local_gate_preserves_verified_success_after_refresh_failure[actual_pool_scheduler] _
+tests/test_preselection_executor_local_gate.py:86: in test_literal_ready_local_gate_preserves_verified_success_after_refresh_failure
+    assert result["status"] == "SUCCEEDED"
+E   AssertionError: assert 'FAILED' == 'SUCCEEDED'
+E     
+E     - SUCCEEDED
+E     + FAILED
+_______ test_actual_verified_formal_pair_is_only_absence_exception[True] _______
+tests/test_preselection_executor_local_gate.py:99: in test_actual_verified_formal_pair_is_only_absence_exception
+    assert result["status"] == ("FAILED" if explicit_rejection else "SUCCEEDED")
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_explicit_local_hk_gate_rejection_cannot_settle_success[actual_pool_scheduler] _
+evidence/independent_review/test_local_hk_gate_review.py:30: in test_explicit_local_hk_gate_rejection_cannot_settle_success
+    assert result['status'] == 'FAILED', 'Explicit local HK rejection must not settle a required HK workload'
+E   AssertionError: Explicit local HK rejection must not settle a required HK workload
+E   assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_explicit_local_hk_gate_rejection_cannot_settle_success[canonical_reference] _
+evidence/independent_review/test_local_hk_gate_review.py:30: in test_explicit_local_hk_gate_rejection_cannot_settle_success
+    assert result['status'] == 'FAILED', 'Explicit local HK rejection must not settle a required HK workload'
+E   AssertionError: Explicit local HK rejection must not settle a required HK workload
+E   assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+=========================== short test summary info ============================
+FAILED tests/test_preselection_executor_local_gate.py::test_present_invalid_hk_local_gate_cannot_settle_success[None-actual_pool_scheduler]
+FAILED tests/test_preselection_executor_local_gate.py::test_present_invalid_hk_local_gate_cannot_settle_success[None-canonical_reference]
+FAILED tests/test_preselection_executor_local_gate.py::test_present_invalid_hk_local_gate_cannot_settle_success[gate1-actual_pool_scheduler]
+FAILED tests/test_preselection_executor_local_gate.py::test_present_invalid_hk_local_gate_cannot_settle_success[gate1-canonical_reference]
+FAILED tests/test_preselection_executor_local_gate.py::test_present_invalid_hk_local_gate_cannot_settle_success[gate2-actual_pool_scheduler]
+FAILED tests/test_preselection_executor_local_gate.py::test_present_invalid_hk_local_gate_cannot_settle_success[gate2-canonical_reference]
+FAILED tests/test_preselection_executor_local_gate.py::test_present_invalid_hk_local_gate_cannot_settle_success[gate3-actual_pool_scheduler]
+FAILED tests/test_preselection_executor_local_gate.py::test_present_invalid_hk_local_gate_cannot_settle_success[gate3-canonical_reference]
+FAILED tests/test_preselection_executor_local_gate.py::test_present_invalid_hk_local_gate_cannot_settle_success[gate4-actual_pool_scheduler]
+FAILED tests/test_preselection_executor_local_gate.py::test_present_invalid_hk_local_gate_cannot_settle_success[gate4-canonical_reference]
+FAILED tests/test_preselection_executor_local_gate.py::test_present_invalid_hk_local_gate_cannot_settle_success[gate5-actual_pool_scheduler]
+FAILED tests/test_preselection_executor_local_gate.py::test_present_invalid_hk_local_gate_cannot_settle_success[gate5-canonical_reference]
+FAILED tests/test_preselection_executor_local_gate.py::test_present_invalid_hk_local_gate_cannot_settle_success[gate6-actual_pool_scheduler]
+FAILED tests/test_preselection_executor_local_gate.py::test_present_invalid_hk_local_gate_cannot_settle_success[gate6-canonical_reference]
+FAILED tests/test_preselection_executor_local_gate.py::test_present_invalid_hk_local_gate_cannot_settle_success[gate7-actual_pool_scheduler]
+FAILED tests/test_preselection_executor_local_gate.py::test_present_invalid_hk_local_gate_cannot_settle_success[gate7-canonical_reference]
+FAILED tests/test_preselection_executor_local_gate.py::test_present_invalid_hk_local_gate_cannot_settle_success[gate8-actual_pool_scheduler]
+FAILED tests/test_preselection_executor_local_gate.py::test_present_invalid_hk_local_gate_cannot_settle_success[gate8-canonical_reference]
+FAILED tests/test_preselection_executor_local_gate.py::test_present_invalid_hk_local_gate_cannot_settle_success[gate9-actual_pool_scheduler]
+FAILED tests/test_preselection_executor_local_gate.py::test_present_invalid_hk_local_gate_cannot_settle_success[gate9-canonical_reference]
+FAILED tests/test_preselection_executor_local_gate.py::test_absent_local_hk_contract_keeps_a_materialization_but_fails_closed[actual_pool_scheduler]
+FAILED tests/test_preselection_executor_local_gate.py::test_absent_local_hk_contract_keeps_a_materialization_but_fails_closed[canonical_reference]
+FAILED tests/test_preselection_executor_local_gate.py::test_actual_stdout_alone_cannot_invent_missing_authoritative_parser
+FAILED tests/test_preselection_executor_local_gate.py::test_literal_ready_local_gate_preserves_verified_success_after_refresh_failure[actual_pool_scheduler]
+FAILED tests/test_preselection_executor_local_gate.py::test_actual_verified_formal_pair_is_only_absence_exception[True]
+FAILED evidence/independent_review/test_local_hk_gate_review.py::test_explicit_local_hk_gate_rejection_cannot_settle_success[actual_pool_scheduler]
+FAILED evidence/independent_review/test_local_hk_gate_review.py::test_explicit_local_hk_gate_rejection_cannot_settle_success[canonical_reference]
+27 failed, 3 passed in 0.15s

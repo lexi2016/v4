@@ -1,0 +1,132 @@
+{
+  "checked": 21,
+  "all_match": true,
+  "checks": [
+    {
+      "path": "input/baseline/source/actual_pool_scheduler/infrastructure/scheduling/executor_registry_preselection.py",
+      "expected_sha256": "8b3e6a89536192a74f4b6fa9528874146019f86c595f76f074d75c3e8c3c745a",
+      "actual_sha256": "8b3e6a89536192a74f4b6fa9528874146019f86c595f76f074d75c3e8c3c745a",
+      "matches": true
+    },
+    {
+      "path": "input/baseline/source/actual_pool_scheduler/ops/ensure_hk_security_master.py",
+      "expected_sha256": "ae6bae7dbd87f03327cf03904beee2e1f8b3e63b262057b49a3f6186eedf21f7",
+      "actual_sha256": "ae6bae7dbd87f03327cf03904beee2e1f8b3e63b262057b49a3f6186eedf21f7",
+      "matches": true
+    },
+    {
+      "path": "input/baseline/source/canonical_reference/ops/ensure_hk_security_master.py",
+      "expected_sha256": "6c341a33c0283b023219c46cc2a1c6aaca49cf4b5dcb88aa2fb5527a13145601",
+      "actual_sha256": "6c341a33c0283b023219c46cc2a1c6aaca49cf4b5dcb88aa2fb5527a13145601",
+      "matches": true
+    },
+    {
+      "path": "input/baseline/source/actual_pool_scheduler/infrastructure/scheduling/dispatcher.py",
+      "expected_sha256": "a93d78461c59065404d240cf8ba5d1b8212e7e3bfebb270ee2df0df05908000f",
+      "actual_sha256": "a93d78461c59065404d240cf8ba5d1b8212e7e3bfebb270ee2df0df05908000f",
+      "matches": true
+    },
+    {
+      "path": "input/baseline/source/canonical_reference/infrastructure/scheduling/dispatcher.py",
+      "expected_sha256": "64e596ff1c554937c93ac921671a204b889f51acd307c88e1aaa2184daadbc01",
+      "actual_sha256": "64e596ff1c554937c93ac921671a204b889f51acd307c88e1aaa2184daadbc01",
+      "matches": true
+    },
+    {
+      "path": "input/baseline/source/actual_shared_owner/shared_data/hk_security_master.py",
+      "expected_sha256": "a5e9337559c530283eea4ca36c3535dbb9dbc902c920ae4ccbf0f1a1626ab764",
+      "actual_sha256": "a5e9337559c530283eea4ca36c3535dbb9dbc902c920ae4ccbf0f1a1626ab764",
+      "matches": true
+    },
+    {
+      "path": "input/baseline/source/canonical_reference/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "expected_sha256": "ac2c16669236d24d6d03cac183238ca8dccd8fd23895ae14ad34cef40c049008",
+      "actual_sha256": "ac2c16669236d24d6d03cac183238ca8dccd8fd23895ae14ad34cef40c049008",
+      "matches": true
+    },
+    {
+      "path": "input/baseline/source/actual_shared_owner/shared_data/hk_0_2.py",
+      "expected_sha256": "45a5091cb26800b7ccf8d7c3c75b680e951d492ac8ceb5f30b80a1ff9a6eebac",
+      "actual_sha256": "45a5091cb26800b7ccf8d7c3c75b680e951d492ac8ceb5f30b80a1ff9a6eebac",
+      "matches": true
+    },
+    {
+      "path": "input/baseline/source/canonical_reference/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "expected_sha256": "27da90f0e623e45fa1a27af7dcc3b6e5e1ff2320bae1c61bd903ed82050beb89",
+      "actual_sha256": "27da90f0e623e45fa1a27af7dcc3b6e5e1ff2320bae1c61bd903ed82050beb89",
+      "matches": true
+    },
+    {
+      "path": "input/baseline/source/actual_shared_owner/scripts/materialize_hk_0_2.py",
+      "expected_sha256": "da2b7ded436badd1406700ba0674324382cc3fa6d5a802178e1ef31fe5e2cdf6",
+      "actual_sha256": "da2b7ded436badd1406700ba0674324382cc3fa6d5a802178e1ef31fe5e2cdf6",
+      "matches": true
+    },
+    {
+      "path": "input/baseline/source/canonical_reference/upstreams/v3_shared_data/scripts/materialize_hk_0_2.py",
+      "expected_sha256": "e26e880f72271d7ea9e55aee4df937fa1d22564c3d286ead9f9f07e5fa4b6c9d",
+      "actual_sha256": "e26e880f72271d7ea9e55aee4df937fa1d22564c3d286ead9f9f07e5fa4b6c9d",
+      "matches": true
+    },
+    {
+      "path": "input/baseline/source/actual_stage/stage_center/runner.py",
+      "expected_sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232",
+      "actual_sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232",
+      "matches": true
+    },
+    {
+      "path": "input/baseline/source/canonical_reference/stage_center/runner.py",
+      "expected_sha256": "d36cc60c538f23ab0f48c7387523d83ed5cebbdc67c0dd630e671f98ecdffa48",
+      "actual_sha256": "d36cc60c538f23ab0f48c7387523d83ed5cebbdc67c0dd630e671f98ecdffa48",
+      "matches": true
+    },
+    {
+      "path": "input/baseline/source/actual_stage/stage_center/_runner_parts/hk_input_validation.py",
+      "expected_sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+      "actual_sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+      "matches": true
+    },
+    {
+      "path": "input/baseline/source/canonical_reference/infrastructure/scheduling/executor_registry.py",
+      "expected_sha256": "5c7ec48515dee5927b3a5cf9c5457dea299b2b6280b6c90fa452b945466faef9",
+      "actual_sha256": "5c7ec48515dee5927b3a5cf9c5457dea299b2b6280b6c90fa452b945466faef9",
+      "matches": true
+    },
+    {
+      "path": "input/baseline/source/canonical_reference/infrastructure/scheduling/_executor_registry_parts/preselection.py",
+      "expected_sha256": "14374bf18cc310eca639a55b7fff1bde75785bc9ee59cbf23a10ae3a736e70c1",
+      "actual_sha256": "14374bf18cc310eca639a55b7fff1bde75785bc9ee59cbf23a10ae3a736e70c1",
+      "matches": true
+    },
+    {
+      "path": "reuse/issue30/after/apps/api/v35_api/app.py",
+      "expected_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "actual_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "matches": true
+    },
+    {
+      "path": "reuse/issue30/after/apps/api/v35_api/preselection_router.py",
+      "expected_sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "actual_sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "matches": true
+    },
+    {
+      "path": "reuse/issue30/after/apps/api/v35_api/preselection_service.py",
+      "expected_sha256": "91eba3ad5d005161d876f9c2f1a69ff51db56f129267cde29394d4581d1a4c95",
+      "actual_sha256": "91eba3ad5d005161d876f9c2f1a69ff51db56f129267cde29394d4581d1a4c95",
+      "matches": true
+    },
+    {
+      "path": "after/source/actual_api/apps/api/v35_api/app.py",
+      "expected_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "actual_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "matches": true
+    },
+    {
+      "path": "after/source/actual_api/apps/api/v35_api/preselection_router.py",
+      "expected_sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "actual_sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "matches": true
+    }
+  ]
+}

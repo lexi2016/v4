@@ -1,0 +1,69 @@
+...................................................................F.... [100%]
+=================================== FAILURES ===================================
+________ test_primary_a_pool_can_use_only_exact_configured_hk_fallback _________
+
+tmp_path = PosixPath('/workspace/scratch/25c09a595aec/issue32/work/api_combined_r3/isolated/preselection/tmp/pytest/test_primary_a_pool_can_use_on0')
+
+    def test_primary_a_pool_can_use_only_exact_configured_hk_fallback(tmp_path: Path) -> None:
+        api_root = tmp_path / "api-root"
+        local_store = PreselectionPoolStore(api_root)
+        local_store.materialize(
+            _pool_artifact("a_d1_premarket_pool", [{"symbol": "A.000010"}])
+        )
+    
+        source_root = tmp_path / "source-root"
+        source_store = PreselectionPoolStore(source_root)
+        source_store.materialize(
+            _pool_artifact("a_d1_premarket_pool", [{"symbol": "A.000020"}])
+        )
+        source_store.materialize(
+            _pool_artifact("a_share_research_recommendation_pool", [{"symbol": "A.000021"}])
+        )
+        # Issue 32 date-contract fixture: price 10/7, Connect eligibility 9/30.
+        # Keep the positive fallback assertion and all immutable source bindings.
+        hk_pool = _strict_hk_artifact()
+        hk_pool.update(signal_date="20261007", price_signal_date="20261007",
+                       eligibility_source_date="20260930")
+        hk_pool["historical_provenance"].update(
+            price_signal_date="20261007", eligibility_source_date="20260930",
+            eligibility_source_captured_at="2026-09-30T17:20:08+08:00",
+        )
+        for row in hk_pool["rows"]:
+            row["signal_date"] = "20261007"
+>       source_store.materialize(hk_pool)
+
+tests/test_preselection_source_root_20261008.py:272: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+test_support/infrastructure/preselection_pool_store.py:550: in materialize
+    trade_date = validate_pool_artifact(payload)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+payload = {'schema_version': 'v3_5.preselection_pool.v1', 'trade_date': '20261008', 'pool_id': 'hkconnect_d1_top100', 'display_name': 'HK Connect D-1 Top 100', ...}
+
+    def validate_pool_artifact(payload: Mapping[str, Any]) -> str:
+        if not isinstance(payload, Mapping):
+            raise ValueError("invalid preselection-pool artifact")
+        required = {
+            "schema_version", "trade_date", "pool_id", "display_name", "market",
+            "status", "producer_id", "source_role", "source_path", "source_sha256",
+            "rows", "cannot_confirm", "production_allowed", "buy_gate_updated", "orders_sent",
+        }
+        missing = required - set(payload)
+        if missing:
+            raise ValueError("missing required preselection-pool fields")
+        unknown = set(payload) - required - POOL_ARTIFACT_OPTIONAL_FIELDS
+        if unknown:
+>           raise ValueError("invalid preselection-pool fields")
+E           ValueError: invalid preselection-pool fields
+
+test_support/infrastructure/preselection_pool_store.py:1151: ValueError
+=============================== warnings summary ===============================
+../../../../../issue28/references/work/test-venv/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/25c09a595aec/issue28/references/work/test-venv/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_preselection_source_root_20261008.py::test_primary_a_pool_can_use_only_exact_configured_hk_fallback
+1 failed, 71 passed, 1 warning in 2.79s

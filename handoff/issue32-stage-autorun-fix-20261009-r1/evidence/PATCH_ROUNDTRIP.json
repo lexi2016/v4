@@ -1,0 +1,194 @@
+{
+  "status": "PASS",
+  "groups": [
+    {
+      "owner": "actual_api",
+      "patch": "patches/actual_api.patch",
+      "sha256": "24633253e795845923b216c89aaf126c72cd2b86285582dec562325c89e8d767",
+      "files": 3,
+      "apply_and_reverse_exact_bytes": "PASS",
+      "commands": [
+        {
+          "argv": [
+            "git",
+            "apply",
+            "--check",
+            "--whitespace=error",
+            "/workspace/scratch/25c09a595aec/issue32/patches/actual_api.patch"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "git",
+            "apply",
+            "--whitespace=error",
+            "/workspace/scratch/25c09a595aec/issue32/patches/actual_api.patch"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "git",
+            "apply",
+            "-R",
+            "--check",
+            "/workspace/scratch/25c09a595aec/issue32/patches/actual_api.patch"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "git",
+            "apply",
+            "-R",
+            "/workspace/scratch/25c09a595aec/issue32/patches/actual_api.patch"
+          ],
+          "exit_code": 0
+        }
+      ]
+    },
+    {
+      "owner": "actual_pool_scheduler",
+      "patch": "patches/actual_pool_scheduler.patch",
+      "sha256": "73a530cb27934a38eb14d1d4a14af064d11302729372dd2dd376d3be96857e4a",
+      "files": 3,
+      "apply_and_reverse_exact_bytes": "PASS",
+      "commands": [
+        {
+          "argv": [
+            "git",
+            "apply",
+            "--check",
+            "--whitespace=error",
+            "/workspace/scratch/25c09a595aec/issue32/patches/actual_pool_scheduler.patch"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "git",
+            "apply",
+            "--whitespace=error",
+            "/workspace/scratch/25c09a595aec/issue32/patches/actual_pool_scheduler.patch"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "git",
+            "apply",
+            "-R",
+            "--check",
+            "/workspace/scratch/25c09a595aec/issue32/patches/actual_pool_scheduler.patch"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "git",
+            "apply",
+            "-R",
+            "/workspace/scratch/25c09a595aec/issue32/patches/actual_pool_scheduler.patch"
+          ],
+          "exit_code": 0
+        }
+      ]
+    },
+    {
+      "owner": "actual_shared_owner",
+      "patch": "patches/actual_shared_owner.patch",
+      "sha256": "552948b469b8deab2cfd5c25d840a8c62de42e01bfc44901fe1c9bea9867771a",
+      "files": 1,
+      "apply_and_reverse_exact_bytes": "PASS",
+      "commands": [
+        {
+          "argv": [
+            "git",
+            "apply",
+            "--check",
+            "--whitespace=error",
+            "/workspace/scratch/25c09a595aec/issue32/patches/actual_shared_owner.patch"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "git",
+            "apply",
+            "--whitespace=error",
+            "/workspace/scratch/25c09a595aec/issue32/patches/actual_shared_owner.patch"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "git",
+            "apply",
+            "-R",
+            "--check",
+            "/workspace/scratch/25c09a595aec/issue32/patches/actual_shared_owner.patch"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "git",
+            "apply",
+            "-R",
+            "/workspace/scratch/25c09a595aec/issue32/patches/actual_shared_owner.patch"
+          ],
+          "exit_code": 0
+        }
+      ]
+    },
+    {
+      "owner": "canonical_reference",
+      "patch": "patches/canonical_reference.patch",
+      "sha256": "2dd630ba303ee4b234657c49806bf987929a8c425be4d39eb8190c68ad6c731f",
+      "files": 4,
+      "apply_and_reverse_exact_bytes": "PASS",
+      "commands": [
+        {
+          "argv": [
+            "git",
+            "apply",
+            "--check",
+            "--whitespace=error",
+            "/workspace/scratch/25c09a595aec/issue32/patches/canonical_reference.patch"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "git",
+            "apply",
+            "--whitespace=error",
+            "/workspace/scratch/25c09a595aec/issue32/patches/canonical_reference.patch"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "git",
+            "apply",
+            "-R",
+            "--check",
+            "/workspace/scratch/25c09a595aec/issue32/patches/canonical_reference.patch"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "git",
+            "apply",
+            "-R",
+            "/workspace/scratch/25c09a595aec/issue32/patches/canonical_reference.patch"
+          ],
+          "exit_code": 0
+        }
+      ]
+    }
+  ],
+  "scope": "Exact source patch applicability and reverse byte recovery only; not application or data rollback verification."
+}

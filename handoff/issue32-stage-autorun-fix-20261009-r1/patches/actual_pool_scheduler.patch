@@ -1,0 +1,356 @@
+--- a/infrastructure/scheduling/dispatcher.py
++++ b/infrastructure/scheduling/dispatcher.py
+@@ -73,6 +73,8 @@
+     production_allowed: bool = False
+     buy_gate_updated: bool = False
+     orders_sent: bool = False
++    invoked_workload_ids: tuple[str, ...] = ()
++    succeeded_workload_ids: tuple[str, ...] = ()
+ 
+     def to_dict(self) -> dict[str, Any]:
+         return {
+@@ -86,6 +88,8 @@
+             "mode": self.mode.value,
+             "selected_workload_ids": list(self.selected_workload_ids),
+             "started_workload_ids": list(self.started_workload_ids),
++            "invoked_workload_ids": list(self.invoked_workload_ids),
++            "succeeded_workload_ids": list(self.succeeded_workload_ids),
+             "eligible_markets": list(self.eligible_markets),
+             "blocked_markets": list(self.blocked_markets),
+             "resolved_dates": self.resolved_dates,
+@@ -125,6 +129,7 @@
+     run_id: str,
+     selected: tuple[str, ...] = (),
+     started: tuple[str, ...] = (),
++    invoked: tuple[str, ...] = (),
+     eligible_markets: tuple[str, ...] = (),
+     blocked_markets: tuple[str, ...] = (),
+     resolved_dates: dict[str, dict[str, str]] | None = None,
+@@ -147,6 +152,8 @@
+         mode=request.mode,
+         selected_workload_ids=selected,
+         started_workload_ids=started,
++        invoked_workload_ids=invoked,
++        succeeded_workload_ids=started,
+         eligible_markets=eligible_markets,
+         blocked_markets=blocked_markets,
+         resolved_dates=resolved_dates or {},
+@@ -277,6 +284,7 @@
+     else:
+         status = "SUCCEEDED"
+     started: list[str] = []
++    invoked: list[str] = []
+     results: list[dict[str, Any]] = []
+     failed: list[str] = []
+     if selected_workloads and not dry_run:
+@@ -290,6 +298,9 @@
+                 if not workload_claim.acquired:
+                     continue
+             try:
++                # Keep the legacy started field's success semantics, while
++                # exposing calls that fail before producing a successful result.
++                invoked.append(workload.workload_id)
+                 output = executor(workload, request, decisions[workload.workload_id])
+                 if isinstance(output, dict):
+                     output = dict(output)
+@@ -377,6 +388,7 @@
+         run_id=run_id,
+         selected=selected_ids,
+         started=tuple(started),
++        invoked=tuple(invoked),
+         eligible_markets=eligible_markets,
+         blocked_markets=blocked_markets,
+         resolved_dates=resolved_dates,
+--- a/infrastructure/scheduling/executor_registry_preselection.py
++++ b/infrastructure/scheduling/executor_registry_preselection.py
+@@ -284,7 +284,7 @@
+                 "--shared-package-root", str(self.shared_package_root),
+                 "--trade-date", request.business_date,
+                 "--futu-python", str(self.shared_futu_python_executable),
+-                "--reuse-only",
++                "--prepare-exact-date",
+             ],
+             cwd=self.repo_root,
+             env=trusted_env,
+@@ -297,6 +297,17 @@
+         if hk_runtime_unavailable:
+             hk_result = dict(update_result)
+             hk_result["modules"] = ["scripts.materialize_hk_0_2"]
++            hk_result["first_gate"] = "HK_RUNTIME"
++        elif update_result["status"] != "SUCCEEDED" or security_result["status"] != "SUCCEEDED":
++            # Preparation may run when its own output is absent. Scoring must
++            # wait until both original-owner prerequisites have succeeded.
++            failed_input = update_result if update_result["status"] != "SUCCEEDED" else security_result
++            hk_result = dict(failed_input)
++            hk_result["modules"] = ["scripts.materialize_hk_0_2"]
++            hk_result["producer_called"] = False
++            hk_result["first_gate"] = (
++                "HK_PRICE_PANEL" if update_result["status"] != "SUCCEEDED" else "HK_SECURITY_MASTER"
++            )
+         else:
+             hk_result = self._run(
+                 "scripts.materialize_hk_0_2",
+@@ -372,6 +383,26 @@
+     if reused is not None:
+         arguments.append("--reuse-formal-pools")
+     result = self._run("ops.materialize_scheduled_preselection", arguments)
++    # The actual facade is not assumed to implement the canonical stdout
++    # decoder. Consume only its existing authoritative-payload boundary.
++    materializer_payload = result.get("_authoritative_payload")
++    local_gate_present = isinstance(materializer_payload, dict) and "formal_pool_gate" in materializer_payload
++    formal_pool_gate = materializer_payload.get("formal_pool_gate") if local_gate_present else None
++    formal_required = (
++        formal_pool_gate.get("required")
++        if isinstance(formal_pool_gate, dict) and isinstance(formal_pool_gate.get("required"), dict)
++        else {}
++    )
++    hk_local_gate = formal_required.get("hkconnect_d1_top100")
++    hk_local_ready = isinstance(hk_local_gate, dict) and hk_local_gate.get("ready") is True
++    # Verified local reuse is the legacy contract when no gate is emitted.
++    # An explicit rejection still wins over a previously verified pair.
++    hk_local_accepted = hk_local_ready or (reused is not None and not local_gate_present)
++    result["hk_local_pool_gate_status"] = (
++        "READY" if hk_local_ready else "CANNOT_CONFIRM" if local_gate_present else "UNAVAILABLE"
++    )
++    if isinstance(formal_pool_gate, dict):
++        result["formal_pool_gate"] = formal_pool_gate
+     result["modules"] = modules
+     result["formal_pool_reuse"] = (
+         reused.get("formal_pool_reuse") if reused is not None else None
+@@ -383,12 +414,9 @@
+     )
+     result["hk_lane_status"] = (
+         "READY"
+-        if reused is not None
+-        else (
+-            "SUCCEEDED"
+-            if hk_result["status"] == "SUCCEEDED" and not hk_lane_degradations
+-            else "CANNOT_CONFIRM"
+-        )
++        if reused is not None and hk_local_accepted
++        else "SUCCEEDED" if hk_local_ready
++        else "CANNOT_CONFIRM"
+     )
+     security_payload = security_result.get("_authoritative_payload")
+     if isinstance(security_payload, dict):
+@@ -409,4 +437,20 @@
+                 "orders_sent": False,
+             }
+         )
++    if not hk_local_accepted:
++        # A/local materialization above remains available to its consumers.
++        # A failed required HK lane must not settle this dispatch as successful
++        # and thereby suppress the existing ledger's recoverable retry path.
++        result["materializer_status"] = result["status"]
++        result["status"] = "FAILED"
++        result["exit_code"] = result.get("exit_code") or 1
++        if not result.get("failure_class"):
++            result["failure_class"] = hk_result.get("failure_class") or "UPSTREAM_NOT_READY"
++        if reused is None and hk_result["status"] != "SUCCEEDED":
++            result["first_gate"] = hk_result.get("first_gate") or "HK_SCORING"
++            detail = str(hk_result.get("stderr") or hk_result.get("reason") or "HK input preparation not ready")
++        else:
++            result["first_gate"] = "HK_LOCAL_POOL" if local_gate_present else "HK_LOCAL_POOL_CONTRACT_UNAVAILABLE"
++            detail = f"{result['first_gate']}: required local HK pool is not verified for target_date={request.target_date}"
++        result["stderr"] = (str(result.get("stderr") or "") + "\n" + detail).strip()
+     return result
+--- a/ops/ensure_hk_security_master.py
++++ b/ops/ensure_hk_security_master.py
+@@ -15,6 +15,7 @@
+ from datetime import datetime
+ from pathlib import Path
+ from typing import Any, Mapping
++from zoneinfo import ZoneInfo
+ 
+ from infrastructure.isolated_package_loader import load_isolated_package_module
+ 
+@@ -274,6 +275,26 @@
+             raise ValueError(f"HK security-master row code mismatch: {code}")
+         if not _non_placeholder_name(row.get("name"), code):
+             raise ValueError(f"HK security-master name missing: {code}")
++
++
++def _validate_security_master_capture(
++    rows: Mapping[str, Mapping[str, Any]],
++    manifest: Mapping[str, Any],
++    *,
++    trade_date: str,
++) -> None:
++    """Bind ordinary snapshot reuse to its observed source day and row captures."""
++    capture = manifest.get("captured_at")
++    try:
++        observed = datetime.fromisoformat(str(capture).replace("Z", "+00:00"))
++    except (TypeError, ValueError) as error:
++        raise ValueError("HK security-master capture invalid") from error
++    if (
++        observed.tzinfo is None
++        or observed.astimezone(ZoneInfo("Asia/Shanghai")).strftime("%Y%m%d") != trade_date
++        or any(row.get("captured_at") != capture for row in rows.values())
++    ):
++        raise ValueError(f"HK security-master capture does not bind exact date: {trade_date}")
+ 
+ 
+ def _normalized_master_value(field: str, value: Any) -> object:
+@@ -497,7 +518,10 @@
+     panel_sha256: str | None = None,
+     panel_binding_sha256: str | None = None,
+     reuse_only: bool = False,
++    verified_source_store_root: Path | None = None,
+ ) -> dict[str, object]:
++    if capture is not None and verified_source_store_root is not None:
++        raise ValueError("HK verified source restore cannot be combined with a capture")
+     package_root = shared_package_root.expanduser().resolve()
+     if not package_root.is_dir():
+         raise ValueError(f"shared package root missing: {package_root}")
+@@ -620,16 +644,45 @@
+         rows, manifest = load_verified_hk_security_master(store_root, trade_date)
+     except store_error:
+         rows, manifest = {}, {}
++    restored_from_verified_source = False
++    if verified_source_store_root is not None and not (
++        manifest.get("universe_codes_sha256") == universe_codes_sha256
++        and manifest.get("valuation_eligibility_field") == "circular_market_val"
++        and set(rows) == set(universe_codes)
++    ):
++        master_module = load_isolated_package_module(
++            package_root,
++            package_directory="shared_data",
++            module_leaf="hk_security_master",
++            namespace_prefix="v35_hk_security_master_restore",
++        )
++        source_root = verified_source_store_root.expanduser().resolve()
++        source_rows, source_manifest = master_module.load_verified_hk_security_master(
++            source_root, trade_date
++        )
++        _validate_security_master_rows(source_rows, expected_codes=universe_codes)
++        if (
++            source_manifest.get("universe_codes_sha256") != universe_codes_sha256
++            or source_manifest.get("valuation_eligibility_field") != "circular_market_val"
++        ):
++            raise store_error("HK security-master verified source universe mismatch")
++        master_module.restore_verified_hk_security_master(
++            source_root, store_root, trade_date=trade_date
++        )
++        rows, manifest = load_verified_hk_security_master(store_root, trade_date)
++        restored_from_verified_source = True
+     if (
+         manifest.get("universe_codes_sha256") == universe_codes_sha256
+         and manifest.get("valuation_eligibility_field") == "circular_market_val"
+         and set(rows) == set(universe_codes)
+     ):
+         _validate_security_master_rows(rows, expected_codes=universe_codes)
++        _validate_security_master_capture(rows, manifest, trade_date=trade_date)
+         result: dict[str, object] = {
+             "ok": True,
+             "status": "READY",
+             "reused": True,
++            "restored_from_verified_source": restored_from_verified_source,
+             "trade_date": trade_date,
+             "row_count": len(rows),
+             "run_id": manifest.get("run_id"),
+@@ -638,26 +691,40 @@
+             "buy_gate_updated": False,
+             "orders_sent": False,
+         }
+-        if reuse_only:
+-            result.update(
+-                {
+-                    "security_master_run_id": manifest.get("run_id"),
+-                    "security_master_artifact_sha256": manifest.get("artifact_sha256"),
+-                    "security_master_manifest_sha256": _canonical_sha(manifest),
+-                }
+-            )
++        result.update(
++            {
++                "security_master_run_id": manifest.get("run_id"),
++                "security_master_artifact_sha256": manifest.get("artifact_sha256"),
++                "security_master_manifest_sha256": _canonical_sha(manifest),
++            }
++        )
+         return result
+ 
+     if reuse_only:
+         raise store_error(
+-            f"HK security-master exact-date authority unavailable for reuse: {trade_date}"
+-        )
+-
++            f"HK_SECURITY_MASTER_NEEDS_VERIFIED_SOURCE: trade_date={trade_date}; "
++            "exact-date authority unavailable for reuse; supply a verified original source store"
++        )
++
++    # The original collector obtains a current OpenD market snapshot, not a
++    # historical snapshot. Never stamp that capture with an earlier/later day.
++    collection_started = datetime.now(ZoneInfo("Asia/Shanghai"))
++    if collection_started.strftime("%Y%m%d") != trade_date:
++        raise store_error(
++            f"HK_SECURITY_MASTER_NEEDS_VERIFIED_SOURCE: trade_date={trade_date}; "
++            f"current_snapshot_date={collection_started.strftime('%Y%m%d')}"
++        )
+     publish_hk_security_master = getattr(acquire_module, "publish_hk_security_master")
+     collect_futu_hk_security_master = getattr(
+         acquire_module, "collect_futu_hk_security_master"
+     )
+     collected = collect_futu_hk_security_master(futu_python, list(universe_codes))
++    captured_at = datetime.now(ZoneInfo("Asia/Shanghai"))
++    if captured_at.strftime("%Y%m%d") != trade_date:
++        raise store_error(
++            f"HK_SECURITY_MASTER_NEEDS_VERIFIED_SOURCE: trade_date={trade_date}; "
++            "current snapshot collection crossed the source-date boundary"
++        )
+     collected_rows = {
+         str(row.get("code") or ""): row
+         for row in collected
+@@ -669,8 +736,17 @@
+         trade_date=trade_date,
+         rows=collected,
+         universe_codes_sha256=universe_codes_sha256,
+-        captured_at=datetime.now().astimezone().isoformat(timespec="seconds"),
+-    )
++        captured_at=captured_at.isoformat(timespec="seconds"),
++    )
++    verified_rows, verified_manifest = load_verified_hk_security_master(store_root, trade_date)
++    _validate_security_master_rows(verified_rows, expected_codes=universe_codes)
++    _validate_security_master_capture(verified_rows, verified_manifest, trade_date=trade_date)
++    if (
++        verified_manifest.get("run_id") != published.get("run_id")
++        or verified_manifest.get("artifact_sha256") != published.get("artifact_sha256")
++        or verified_manifest.get("universe_codes_sha256") != universe_codes_sha256
++    ):
++        raise store_error("HK security-master published identity changed during readback")
+     return {
+         "ok": True,
+         "status": "READY",
+@@ -678,6 +754,9 @@
+         "trade_date": trade_date,
+         "row_count": published["row_count"],
+         "run_id": published["run_id"],
++        "security_master_run_id": verified_manifest["run_id"],
++        "security_master_artifact_sha256": verified_manifest["artifact_sha256"],
++        "security_master_manifest_sha256": _canonical_sha(verified_manifest),
+         "universe_codes_sha256": universe_codes_sha256,
+         "production_allowed": False,
+         "buy_gate_updated": False,
+@@ -693,6 +772,15 @@
+     parser.add_argument("--trade-date", required=True)
+     parser.add_argument("--futu-python", required=True, type=Path)
+     parser.add_argument(
++        "--verified-source-store-root", type=Path,
++        help="Restore one already verified exact-date original-owner master; never relabel captures",
++    )
++    mode = parser.add_mutually_exclusive_group()
++    mode.add_argument(
++        "--prepare-exact-date", action="store_true",
++        help="Reuse/restore exact authority, or collect only on its actual Asia/Shanghai date",
++    )
++    mode.add_argument(
+         "--reuse-only",
+         action="store_true",
+         help="Reuse an exact dated master; never invoke a Futu collector",
+@@ -706,6 +794,7 @@
+             trade_date=args.trade_date,
+             futu_python=args.futu_python,
+             reuse_only=args.reuse_only,
++            verified_source_store_root=args.verified_source_store_root,
+         )
+     except Exception as error:  # scheduler boundary: emit one fail-closed JSON result
+         result = {

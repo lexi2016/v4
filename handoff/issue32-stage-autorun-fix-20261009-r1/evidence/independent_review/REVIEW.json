@@ -1,0 +1,66 @@
+{
+  "schema_version": "v4.issue32.independent_review.v1",
+  "target_date": "20261009",
+  "disposition": "CONDITIONAL_SOURCE_HANDOFF",
+  "open_source_findings": [],
+  "resolved_findings": [
+    {
+      "id": "R1",
+      "priority": "P1",
+      "title": "Existing ordinary master reuse bypassed capture date/timezone binding",
+      "discovered_by": "independent_reviewer",
+      "red": "existing_capture_red.log",
+      "final_probe_cases": 6,
+      "status": "RESOLVED"
+    },
+    {
+      "id": "R2",
+      "priority": "P1",
+      "title": "Explicit required local HK gate rejection could settle success",
+      "discovered_by": "independent_reviewer",
+      "red": "local_hk_gate_red.log",
+      "final_probe_cases": 2,
+      "status": "RESOLVED"
+    },
+    {
+      "id": "R3",
+      "priority": "P1",
+      "title": "Present API provenance could authorize stale dates or invalid capture",
+      "discovered_by": "coordinator_review",
+      "independent_retest": "test_api_provenance_review.py",
+      "final_probe_cases": 5,
+      "status": "RESOLVED"
+    }
+  ],
+  "acceptance": {
+    "SOURCE_TESTED": "PASS",
+    "INDEPENDENT_REVIEWED": "PASS_SOURCE_SLICE_SCOPE_ONLY",
+    "MAC_INTEGRATED": "NOT_RUN",
+    "INPUT_READY": "BLOCKED_REAL_INPUTS_NOT_PROVIDED",
+    "DEPLOYED": "NOT_RUN",
+    "API_VERIFIED": "NOT_RUN",
+    "UI_VERIFIED": "NOT_RUN",
+    "NATURAL_VERIFIED": "NOT_RUN"
+  },
+  "integration_conditions": [
+    "Actual facade authoritative-payload and local materializer gate contracts verified against current code",
+    "Actual consumer must preserve exact price/eligibility dates and separate upstream/local SHA identities",
+    "Current complete runtime calendar/import/process/ledger closure verified",
+    "Restore performed only while original source and target writers are quiescent",
+    "Real target input trios, Stage canary, same-date API/UI and separate natural receipts verified"
+  ],
+  "source_results": "FINAL_RESULTS.json",
+  "source_identity": "source_identity.json",
+  "source_identity_sha256": "70a93bf223fb0ad26be91a5a8a510ea56e4f5e69df9fff89a9b0bac2fd864d81",
+  "final_source_suite": 150,
+  "final_independent_probes": 17,
+  "source_unchanged_during_runs": true,
+  "retained_failed_runs": {
+    "initial_capture_probes": 6,
+    "initial_local_gate_probes": 2,
+    "old_unrestricted_nested_collection_errors": 5,
+    "api_frozen_r2": "70 passed / 1 failed",
+    "api_fixture_r3": "71 passed / 1 failed"
+  },
+  "finished_at_utc": "2026-10-09T00:30:46.229459+00:00"
+}

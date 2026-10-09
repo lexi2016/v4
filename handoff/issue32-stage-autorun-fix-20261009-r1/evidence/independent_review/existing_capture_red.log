@@ -1,0 +1,40 @@
+FFFFFF                                                                   [100%]
+=================================== FAILURES ===================================
+_ test_existing_master_reuse_rejects_wrong_or_unzoned_capture[2026-10-09T00:01:00+08:00-actual] _
+evidence/independent_review/test_existing_capture_review.py:23: in test_existing_master_reuse_rejects_wrong_or_unzoned_capture
+    with pytest.raises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+_ test_existing_master_reuse_rejects_wrong_or_unzoned_capture[2026-10-09T00:01:00+08:00-canonical] _
+evidence/independent_review/test_existing_capture_review.py:23: in test_existing_master_reuse_rejects_wrong_or_unzoned_capture
+    with pytest.raises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+_ test_existing_master_reuse_rejects_wrong_or_unzoned_capture[2026-09-30T17:00:00+08:00-actual] _
+evidence/independent_review/test_existing_capture_review.py:23: in test_existing_master_reuse_rejects_wrong_or_unzoned_capture
+    with pytest.raises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+_ test_existing_master_reuse_rejects_wrong_or_unzoned_capture[2026-09-30T17:00:00+08:00-canonical] _
+evidence/independent_review/test_existing_capture_review.py:23: in test_existing_master_reuse_rejects_wrong_or_unzoned_capture
+    with pytest.raises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+_ test_existing_master_reuse_rejects_wrong_or_unzoned_capture[2026-10-08T10:00:00-actual] _
+evidence/independent_review/test_existing_capture_review.py:23: in test_existing_master_reuse_rejects_wrong_or_unzoned_capture
+    with pytest.raises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+_ test_existing_master_reuse_rejects_wrong_or_unzoned_capture[2026-10-08T10:00:00-canonical] _
+evidence/independent_review/test_existing_capture_review.py:23: in test_existing_master_reuse_rejects_wrong_or_unzoned_capture
+    with pytest.raises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+=========================== short test summary info ============================
+FAILED evidence/independent_review/test_existing_capture_review.py::test_existing_master_reuse_rejects_wrong_or_unzoned_capture[2026-10-09T00:01:00+08:00-actual]
+FAILED evidence/independent_review/test_existing_capture_review.py::test_existing_master_reuse_rejects_wrong_or_unzoned_capture[2026-10-09T00:01:00+08:00-canonical]
+FAILED evidence/independent_review/test_existing_capture_review.py::test_existing_master_reuse_rejects_wrong_or_unzoned_capture[2026-09-30T17:00:00+08:00-actual]
+FAILED evidence/independent_review/test_existing_capture_review.py::test_existing_master_reuse_rejects_wrong_or_unzoned_capture[2026-09-30T17:00:00+08:00-canonical]
+FAILED evidence/independent_review/test_existing_capture_review.py::test_existing_master_reuse_rejects_wrong_or_unzoned_capture[2026-10-08T10:00:00-actual]
+FAILED evidence/independent_review/test_existing_capture_review.py::test_existing_master_reuse_rejects_wrong_or_unzoned_capture[2026-10-08T10:00:00-canonical]
+6 failed in 0.05s

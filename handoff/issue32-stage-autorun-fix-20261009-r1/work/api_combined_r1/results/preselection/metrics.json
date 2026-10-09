@@ -1,0 +1,1177 @@
+{
+  "collection_errors": 0,
+  "deselected": 0,
+  "exitstatus": 0,
+  "failed_calls": 0,
+  "failed_setup_teardown": 0,
+  "node_ids": [
+    "tests/test_api_same_date.py::test_oct9_same_date_pool_without_nested_provenance_is_accepted",
+    "tests/test_api_same_date.py::test_same_date_requires_explicit_price_and_eligibility[price_signal_date]",
+    "tests/test_api_same_date.py::test_same_date_requires_explicit_price_and_eligibility[eligibility_source_date]",
+    "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261008-20261007-20260930]",
+    "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261008-20261007-20261007]",
+    "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261009-20261007-20261007]",
+    "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261010-20261009-20261009]",
+    "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261099-20261008-20261008]",
+    "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20271009-20271008-20271008]",
+    "tests/test_api_same_date.py::test_unavailable_calendar_rejects_same_date_exception[missing]",
+    "tests/test_api_same_date.py::test_unavailable_calendar_rejects_same_date_exception[malformed]",
+    "tests/test_api_same_date.py::test_present_malformed_provenance_is_never_treated_as_absent[None]",
+    "tests/test_api_same_date.py::test_present_malformed_provenance_is_never_treated_as_absent[value1]",
+    "tests/test_api_same_date.py::test_present_malformed_provenance_is_never_treated_as_absent[value2]",
+    "tests/test_api_same_date.py::test_split_date_still_requires_bound_upstream_provenance",
+    "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[trade_date-20261008]",
+    "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[target_date-20261008]",
+    "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[signal_date-20261007]",
+    "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[price_signal_date-20261007]",
+    "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[eligibility_source_date-20260930]",
+    "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[market-A]",
+    "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[code-HK.99999]",
+    "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[pool_rank-0]",
+    "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[production_allowed-True]",
+    "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[buy_gate_updated-True]",
+    "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[orders_sent-True]",
+    "tests/test_api_same_date.py::test_same_date_keeps_existing_pool_count_source_and_safety_guards[empty]",
+    "tests/test_api_same_date.py::test_same_date_keeps_existing_pool_count_source_and_safety_guards[duplicate]",
+    "tests/test_api_same_date.py::test_same_date_keeps_existing_pool_count_source_and_safety_guards[status]",
+    "tests/test_api_same_date.py::test_same_date_keeps_existing_pool_count_source_and_safety_guards[source_sha]",
+    "tests/test_api_same_date.py::test_same_date_keeps_existing_pool_count_source_and_safety_guards[safety]",
+    "tests/test_issue28_preselection_hk_fallback.py::test_local_a_survives_split_date_hk_fallback_pagination_and_repeat_read",
+    "tests/test_issue28_preselection_hk_fallback.py::test_unverified_or_other_date_hk_does_not_replace_valid_local_a[other_target_date]",
+    "tests/test_issue28_preselection_hk_fallback.py::test_unverified_or_other_date_hk_does_not_replace_valid_local_a[manifest_sha]",
+    "tests/test_issue28_preselection_hk_fallback.py::test_unverified_or_other_date_hk_does_not_replace_valid_local_a[receipt_sha]",
+    "tests/test_issue30_preselection_module.py::test_reused_two_hunk_contract_preserves_configured_a_with_empty_local_pools",
+    "tests/test_issue30_preselection_module.py::test_registered_modules_keep_per_app_source_and_catalog_isolation",
+    "tests/test_issue30_preselection_module.py::test_router_page_overrides_offset_without_truncating_full_input_identity",
+    "tests/test_issue30_preselection_module.py::test_router_retains_calendar_validation_and_explicit_date_isolation",
+    "tests/test_issue30_preselection_module.py::test_pending_hk_fallback_does_not_hide_valid_local_a",
+    "tests/test_issue30_preselection_module.py::test_sha_quarantine_recovery_preserves_good_a_and_pending_hk_bytes",
+    "tests/test_issue30_preselection_module.py::test_all_bad_sources_remain_blocked_without_fabricated_success",
+    "tests/test_issue30_preselection_module.py::test_bad_pool_on_other_date_never_recovers_current_request",
+    "tests/test_issue30_preselection_module.py::test_unreleased_source_lease_prevents_sha_quarantine_recovery",
+    "tests/test_issue30_preselection_module.py::test_undeclared_domain_block_is_not_reinterpreted_as_bad_pool",
+    "tests/test_issue30_preselection_module.py::test_undeclared_exception_is_not_swallowed_by_recovery",
+    "tests/test_issue30_preselection_module.py::test_sha_recovery_rejects_inconsistent_a_row_identity[market]",
+    "tests/test_issue30_preselection_module.py::test_sha_recovery_rejects_inconsistent_a_row_identity[trade_date]",
+    "tests/test_issue30_preselection_module.py::test_sha_recovery_rejects_inconsistent_a_row_identity[target_date]",
+    "tests/test_issue30_preselection_module.py::test_unknown_snapshot_error_declines_recovery_with_original_failure_visible",
+    "tests/test_preselection_review_probes.py::test_sha_recovery_does_not_promote_inconsistent_market_identity[unknown_explicit_market]",
+    "tests/test_preselection_review_probes.py::test_sha_recovery_does_not_promote_inconsistent_market_identity[conflicting_hk_symbol]",
+    "tests/test_preselection_review_probes.py::test_consistent_a_code_aliases_survive_sha_quarantine",
+    "tests/test_preselection_review_probes.py::test_inconsistent_pool_is_quarantined_without_blocking_another_valid_a_pool",
+    "tests/test_preselection_source_root_20261008.py::test_api_reads_exact_source_date_dedupes_a_pools_and_keeps_hk_separate",
+    "tests/test_preselection_source_root_20261008.py::test_primary_exact_date_owns_a_pools_when_configured_source_also_has_a_rows",
+    "tests/test_preselection_source_root_20261008.py::test_primary_a_pool_can_use_only_exact_configured_hk_fallback",
+    "tests/test_preselection_source_root_20261008.py::test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_d1_premarket_pool-manifest_sha]",
+    "tests/test_preselection_source_root_20261008.py::test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_share_research_recommendation_pool-receipt_sha]",
+    "tests/test_preselection_source_root_20261008.py::test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_share_baimao_research_map-manifest_sha]",
+    "tests/test_preselection_source_root_20261008.py::test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_share_baimao_research_map-receipt_sha]"
+  ],
+  "node_ids_sha256": "7924f8b53b2fd78d299ce8de1556e13b6a62bb4bea74db24909d32968a7c0ece",
+  "passed_calls": 61,
+  "reports": [
+    {
+      "node_id": "tests/test_api_same_date.py::test_oct9_same_date_pool_without_nested_provenance_is_accepted",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_oct9_same_date_pool_without_nested_provenance_is_accepted",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_oct9_same_date_pool_without_nested_provenance_is_accepted",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_requires_explicit_price_and_eligibility[price_signal_date]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_requires_explicit_price_and_eligibility[price_signal_date]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_requires_explicit_price_and_eligibility[price_signal_date]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_requires_explicit_price_and_eligibility[eligibility_source_date]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_requires_explicit_price_and_eligibility[eligibility_source_date]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_requires_explicit_price_and_eligibility[eligibility_source_date]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261008-20261007-20260930]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261008-20261007-20260930]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261008-20261007-20260930]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261008-20261007-20261007]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261008-20261007-20261007]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261008-20261007-20261007]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261009-20261007-20261007]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261009-20261007-20261007]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261009-20261007-20261007]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261010-20261009-20261009]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261010-20261009-20261009]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261010-20261009-20261009]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261099-20261008-20261008]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261099-20261008-20261008]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20261099-20261008-20261008]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20271009-20271008-20271008]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20271009-20271008-20271008]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_absent_provenance_cannot_hide_split_stale_or_unknown_calendar_dates[20271009-20271008-20271008]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_unavailable_calendar_rejects_same_date_exception[missing]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_unavailable_calendar_rejects_same_date_exception[missing]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_unavailable_calendar_rejects_same_date_exception[missing]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_unavailable_calendar_rejects_same_date_exception[malformed]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_unavailable_calendar_rejects_same_date_exception[malformed]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_unavailable_calendar_rejects_same_date_exception[malformed]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_present_malformed_provenance_is_never_treated_as_absent[None]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_present_malformed_provenance_is_never_treated_as_absent[None]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_present_malformed_provenance_is_never_treated_as_absent[None]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_present_malformed_provenance_is_never_treated_as_absent[value1]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_present_malformed_provenance_is_never_treated_as_absent[value1]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_present_malformed_provenance_is_never_treated_as_absent[value1]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_present_malformed_provenance_is_never_treated_as_absent[value2]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_present_malformed_provenance_is_never_treated_as_absent[value2]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_present_malformed_provenance_is_never_treated_as_absent[value2]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_split_date_still_requires_bound_upstream_provenance",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_split_date_still_requires_bound_upstream_provenance",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_split_date_still_requires_bound_upstream_provenance",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[trade_date-20261008]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[trade_date-20261008]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[trade_date-20261008]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[target_date-20261008]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[target_date-20261008]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[target_date-20261008]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[signal_date-20261007]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[signal_date-20261007]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[signal_date-20261007]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[price_signal_date-20261007]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[price_signal_date-20261007]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[price_signal_date-20261007]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[eligibility_source_date-20260930]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[eligibility_source_date-20260930]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[eligibility_source_date-20260930]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[market-A]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[market-A]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[market-A]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[code-HK.99999]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[code-HK.99999]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[code-HK.99999]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[pool_rank-0]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[pool_rank-0]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[pool_rank-0]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[production_allowed-True]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[production_allowed-True]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[production_allowed-True]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[buy_gate_updated-True]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[buy_gate_updated-True]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[buy_gate_updated-True]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[orders_sent-True]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[orders_sent-True]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_does_not_admit_bad_row_aliases_identity_or_safety[orders_sent-True]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_keeps_existing_pool_count_source_and_safety_guards[empty]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_keeps_existing_pool_count_source_and_safety_guards[empty]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_keeps_existing_pool_count_source_and_safety_guards[empty]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_keeps_existing_pool_count_source_and_safety_guards[duplicate]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_keeps_existing_pool_count_source_and_safety_guards[duplicate]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_keeps_existing_pool_count_source_and_safety_guards[duplicate]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_keeps_existing_pool_count_source_and_safety_guards[status]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_keeps_existing_pool_count_source_and_safety_guards[status]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_keeps_existing_pool_count_source_and_safety_guards[status]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_keeps_existing_pool_count_source_and_safety_guards[source_sha]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_keeps_existing_pool_count_source_and_safety_guards[source_sha]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_keeps_existing_pool_count_source_and_safety_guards[source_sha]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_keeps_existing_pool_count_source_and_safety_guards[safety]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_keeps_existing_pool_count_source_and_safety_guards[safety]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_api_same_date.py::test_same_date_keeps_existing_pool_count_source_and_safety_guards[safety]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_issue28_preselection_hk_fallback.py::test_local_a_survives_split_date_hk_fallback_pagination_and_repeat_read",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_issue28_preselection_hk_fallback.py::test_local_a_survives_split_date_hk_fallback_pagination_and_repeat_read",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_issue28_preselection_hk_fallback.py::test_local_a_survives_split_date_hk_fallback_pagination_and_repeat_read",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_issue28_preselection_hk_fallback.py::test_unverified_or_other_date_hk_does_not_replace_valid_local_a[other_target_date]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_issue28_preselection_hk_fallback.py::test_unverified_or_other_date_hk_does_not_replace_valid_local_a[other_target_date]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_issue28_preselection_hk_fallback.py::test_unverified_or_other_date_hk_does_not_replace_valid_local_a[other_target_date]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_issue28_preselection_hk_fallback.py::test_unverified_or_other_date_hk_does_not_replace_valid_local_a[manifest_sha]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_issue28_preselection_hk_fallback.py::test_unverified_or_other_date_hk_does_not_replace_valid_local_a[manifest_sha]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_issue28_preselection_hk_fallback.py::test_unverified_or_other_date_hk_does_not_replace_valid_local_a[manifest_sha]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_issue28_preselection_hk_fallback.py::test_unverified_or_other_date_hk_does_not_replace_valid_local_a[receipt_sha]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_issue28_preselection_hk_fallback.py::test_unverified_or_other_date_hk_does_not_replace_valid_local_a[receipt_sha]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_issue28_preselection_hk_fallback.py::test_unverified_or_other_date_hk_does_not_replace_valid_local_a[receipt_sha]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_reused_two_hunk_contract_preserves_configured_a_with_empty_local_pools",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_reused_two_hunk_contract_preserves_configured_a_with_empty_local_pools",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_reused_two_hunk_contract_preserves_configured_a_with_empty_local_pools",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_registered_modules_keep_per_app_source_and_catalog_isolation",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_registered_modules_keep_per_app_source_and_catalog_isolation",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_registered_modules_keep_per_app_source_and_catalog_isolation",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_router_page_overrides_offset_without_truncating_full_input_identity",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_router_page_overrides_offset_without_truncating_full_input_identity",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_router_page_overrides_offset_without_truncating_full_input_identity",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_router_retains_calendar_validation_and_explicit_date_isolation",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_router_retains_calendar_validation_and_explicit_date_isolation",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_router_retains_calendar_validation_and_explicit_date_isolation",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_pending_hk_fallback_does_not_hide_valid_local_a",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_pending_hk_fallback_does_not_hide_valid_local_a",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_pending_hk_fallback_does_not_hide_valid_local_a",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_sha_quarantine_recovery_preserves_good_a_and_pending_hk_bytes",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_sha_quarantine_recovery_preserves_good_a_and_pending_hk_bytes",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_sha_quarantine_recovery_preserves_good_a_and_pending_hk_bytes",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_all_bad_sources_remain_blocked_without_fabricated_success",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_all_bad_sources_remain_blocked_without_fabricated_success",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_all_bad_sources_remain_blocked_without_fabricated_success",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_bad_pool_on_other_date_never_recovers_current_request",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_bad_pool_on_other_date_never_recovers_current_request",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_bad_pool_on_other_date_never_recovers_current_request",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_unreleased_source_lease_prevents_sha_quarantine_recovery",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_unreleased_source_lease_prevents_sha_quarantine_recovery",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_unreleased_source_lease_prevents_sha_quarantine_recovery",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_undeclared_domain_block_is_not_reinterpreted_as_bad_pool",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_undeclared_domain_block_is_not_reinterpreted_as_bad_pool",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_undeclared_domain_block_is_not_reinterpreted_as_bad_pool",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_undeclared_exception_is_not_swallowed_by_recovery",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_undeclared_exception_is_not_swallowed_by_recovery",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_undeclared_exception_is_not_swallowed_by_recovery",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_sha_recovery_rejects_inconsistent_a_row_identity[market]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_sha_recovery_rejects_inconsistent_a_row_identity[market]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_sha_recovery_rejects_inconsistent_a_row_identity[market]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_sha_recovery_rejects_inconsistent_a_row_identity[trade_date]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_sha_recovery_rejects_inconsistent_a_row_identity[trade_date]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_sha_recovery_rejects_inconsistent_a_row_identity[trade_date]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_sha_recovery_rejects_inconsistent_a_row_identity[target_date]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_sha_recovery_rejects_inconsistent_a_row_identity[target_date]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_sha_recovery_rejects_inconsistent_a_row_identity[target_date]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_unknown_snapshot_error_declines_recovery_with_original_failure_visible",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_unknown_snapshot_error_declines_recovery_with_original_failure_visible",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_issue30_preselection_module.py::test_unknown_snapshot_error_declines_recovery_with_original_failure_visible",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_preselection_review_probes.py::test_sha_recovery_does_not_promote_inconsistent_market_identity[unknown_explicit_market]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_preselection_review_probes.py::test_sha_recovery_does_not_promote_inconsistent_market_identity[unknown_explicit_market]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_preselection_review_probes.py::test_sha_recovery_does_not_promote_inconsistent_market_identity[unknown_explicit_market]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_preselection_review_probes.py::test_sha_recovery_does_not_promote_inconsistent_market_identity[conflicting_hk_symbol]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_preselection_review_probes.py::test_sha_recovery_does_not_promote_inconsistent_market_identity[conflicting_hk_symbol]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_preselection_review_probes.py::test_sha_recovery_does_not_promote_inconsistent_market_identity[conflicting_hk_symbol]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_preselection_review_probes.py::test_consistent_a_code_aliases_survive_sha_quarantine",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_preselection_review_probes.py::test_consistent_a_code_aliases_survive_sha_quarantine",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_preselection_review_probes.py::test_consistent_a_code_aliases_survive_sha_quarantine",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_preselection_review_probes.py::test_inconsistent_pool_is_quarantined_without_blocking_another_valid_a_pool",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_preselection_review_probes.py::test_inconsistent_pool_is_quarantined_without_blocking_another_valid_a_pool",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_preselection_review_probes.py::test_inconsistent_pool_is_quarantined_without_blocking_another_valid_a_pool",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_preselection_source_root_20261008.py::test_api_reads_exact_source_date_dedupes_a_pools_and_keeps_hk_separate",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_preselection_source_root_20261008.py::test_api_reads_exact_source_date_dedupes_a_pools_and_keeps_hk_separate",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_preselection_source_root_20261008.py::test_api_reads_exact_source_date_dedupes_a_pools_and_keeps_hk_separate",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_preselection_source_root_20261008.py::test_primary_exact_date_owns_a_pools_when_configured_source_also_has_a_rows",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_preselection_source_root_20261008.py::test_primary_exact_date_owns_a_pools_when_configured_source_also_has_a_rows",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_preselection_source_root_20261008.py::test_primary_exact_date_owns_a_pools_when_configured_source_also_has_a_rows",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_preselection_source_root_20261008.py::test_primary_a_pool_can_use_only_exact_configured_hk_fallback",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_preselection_source_root_20261008.py::test_primary_a_pool_can_use_only_exact_configured_hk_fallback",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_preselection_source_root_20261008.py::test_primary_a_pool_can_use_only_exact_configured_hk_fallback",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_preselection_source_root_20261008.py::test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_d1_premarket_pool-manifest_sha]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_preselection_source_root_20261008.py::test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_d1_premarket_pool-manifest_sha]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_preselection_source_root_20261008.py::test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_d1_premarket_pool-manifest_sha]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_preselection_source_root_20261008.py::test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_share_research_recommendation_pool-receipt_sha]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_preselection_source_root_20261008.py::test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_share_research_recommendation_pool-receipt_sha]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_preselection_source_root_20261008.py::test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_share_research_recommendation_pool-receipt_sha]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_preselection_source_root_20261008.py::test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_share_baimao_research_map-manifest_sha]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_preselection_source_root_20261008.py::test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_share_baimao_research_map-manifest_sha]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_preselection_source_root_20261008.py::test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_share_baimao_research_map-manifest_sha]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    },
+    {
+      "node_id": "tests/test_preselection_source_root_20261008.py::test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_share_baimao_research_map-receipt_sha]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "setup"
+    },
+    {
+      "node_id": "tests/test_preselection_source_root_20261008.py::test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_share_baimao_research_map-receipt_sha]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "call"
+    },
+    {
+      "node_id": "tests/test_preselection_source_root_20261008.py::test_bad_source_pool_is_quarantined_without_hiding_valid_a_rows[a_share_baimao_research_map-receipt_sha]",
+      "outcome": "passed",
+      "was_xfail": false,
+      "when": "teardown"
+    }
+  ],
+  "schema_version": "v4.issue30.pytest_metrics.v1",
+  "skipped_reports": 0,
+  "testscollected": 61,
+  "unique_node_ids": 61,
+  "xfail_or_xpass_reports": 0
+}

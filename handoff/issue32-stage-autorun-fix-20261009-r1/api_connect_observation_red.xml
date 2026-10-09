@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="2" time="0.064" timestamp="2026-10-08T17:25:25.628272-07:00" hostname="5fa05583d26b"><testcase classname="tests.test_api_same_date" name="test_split_date_still_requires_bound_upstream_provenance[20261008-20261007]" time="0.018" /><testcase classname="tests.test_api_same_date" name="test_split_date_still_requires_bound_upstream_provenance[20261007-20261006]" time="0.007"><failure message="AssertionError: assert False is True&#10; +  where False = &lt;function _is_exact_configured_hk_pool at 0x7faf56aefed0&gt;({'schema_version': 'v3_5.preselection_pool.v1', 'pool_id': 'hkconnect_d1_top100', 'market': 'HK', 'status': 'STRICT_0_2_READY', ...}, '20261007')">accepts = &lt;function _is_exact_configured_hk_pool at 0x7faf56aefed0&gt;
+target = '20261007', price = '20261006'
+
+    @pytest.mark.parametrize("target,price", [("20261008", "20261007"), ("20261007", "20261006")])
+    def test_split_date_still_requires_bound_upstream_provenance(accepts, target, price):
+        pool = _pool(target=target, price=price, eligibility="20260930")
+        pool["historical_provenance"] = _provenance(pool)
+&gt;       assert accepts(pool, target) is True
+E       AssertionError: assert False is True
+E        +  where False = &lt;function _is_exact_configured_hk_pool at 0x7faf56aefed0&gt;({'schema_version': 'v3_5.preselection_pool.v1', 'pool_id': 'hkconnect_d1_top100', 'market': 'HK', 'status': 'STRICT_0_2_READY', ...}, '20261007')
+
+issue32/tests/test_api_same_date.py:144: AssertionError</failure></testcase></testsuite></testsuites>

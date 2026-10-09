@@ -1,0 +1,92 @@
+FFFFFFFFFFFF....                                                         [100%]
+=================================== FAILURES ===================================
+_ test_failed_invocation_is_visible_without_changing_legacy_started_semantics[actual_pool_scheduler] _
+tests/test_dispatcher_receipts.py:24: in test_failed_invocation_is_visible_without_changing_legacy_started_semantics
+    assert receipt["invoked_workload_ids"] == ["preselection_pools"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'invoked_workload_ids'
+_ test_failed_invocation_is_visible_without_changing_legacy_started_semantics[canonical_reference] _
+tests/test_dispatcher_receipts.py:24: in test_failed_invocation_is_visible_without_changing_legacy_started_semantics
+    assert receipt["invoked_workload_ids"] == ["preselection_pools"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'invoked_workload_ids'
+_ test_successful_and_duplicate_workloads_have_unambiguous_receipts[actual_pool_scheduler] _
+tests/test_dispatcher_receipts.py:41: in test_successful_and_duplicate_workloads_have_unambiguous_receipts
+    assert receipt["invoked_workload_ids"] == ["preselection_pools"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'invoked_workload_ids'
+_ test_successful_and_duplicate_workloads_have_unambiguous_receipts[canonical_reference] _
+tests/test_dispatcher_receipts.py:41: in test_successful_and_duplicate_workloads_have_unambiguous_receipts
+    assert receipt["invoked_workload_ids"] == ["preselection_pools"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'invoked_workload_ids'
+____ test_dry_run_never_reports_executor_invocation[actual_pool_scheduler] _____
+tests/test_dispatcher_receipts.py:56: in test_dry_run_never_reports_executor_invocation
+    assert receipt["invoked_workload_ids"] == []
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'invoked_workload_ids'
+_____ test_dry_run_never_reports_executor_invocation[canonical_reference] ______
+tests/test_dispatcher_receipts.py:56: in test_dry_run_never_reports_executor_invocation
+    assert receipt["invoked_workload_ids"] == []
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'invoked_workload_ids'
+_ test_failed_hk_prerequisite_prevents_scoring_but_preserves_a_materialization[scripts.update_hk_0_2_panel-actual_pool_scheduler] _
+tests/test_preselection_executor_prerequisites.py:16: in test_failed_hk_prerequisite_prevents_scoring_but_preserves_a_materialization
+    assert not boundary.scored.exists(), "HK scoring must wait for both verified prerequisites"
+E   AssertionError: HK scoring must wait for both verified prerequisites
+E   assert not True
+E    +  where True = exists()
+E    +    where exists = PosixPath('/tmp/pytest-of-root/pytest-316/test_failed_hk_prerequisite_pr0/unit-scorer-invoked.txt').exists
+E    +      where PosixPath('/tmp/pytest-of-root/pytest-316/test_failed_hk_prerequisite_pr0/unit-scorer-invoked.txt') = <scheduler_slice_harness.ProcessBoundary object at 0x7fba60463380>.scored
+_ test_failed_hk_prerequisite_prevents_scoring_but_preserves_a_materialization[scripts.update_hk_0_2_panel-canonical_reference] _
+tests/test_preselection_executor_prerequisites.py:16: in test_failed_hk_prerequisite_prevents_scoring_but_preserves_a_materialization
+    assert not boundary.scored.exists(), "HK scoring must wait for both verified prerequisites"
+E   AssertionError: HK scoring must wait for both verified prerequisites
+E   assert not True
+E    +  where True = exists()
+E    +    where exists = PosixPath('/tmp/pytest-of-root/pytest-316/test_failed_hk_prerequisite_pr1/unit-scorer-invoked.txt').exists
+E    +      where PosixPath('/tmp/pytest-of-root/pytest-316/test_failed_hk_prerequisite_pr1/unit-scorer-invoked.txt') = <scheduler_slice_harness.ProcessBoundary object at 0x7fba6048fd90>.scored
+_ test_failed_hk_prerequisite_prevents_scoring_but_preserves_a_materialization[ops.ensure_hk_security_master-actual_pool_scheduler] _
+tests/test_preselection_executor_prerequisites.py:16: in test_failed_hk_prerequisite_prevents_scoring_but_preserves_a_materialization
+    assert not boundary.scored.exists(), "HK scoring must wait for both verified prerequisites"
+E   AssertionError: HK scoring must wait for both verified prerequisites
+E   assert not True
+E    +  where True = exists()
+E    +    where exists = PosixPath('/tmp/pytest-of-root/pytest-316/test_failed_hk_prerequisite_pr2/unit-scorer-invoked.txt').exists
+E    +      where PosixPath('/tmp/pytest-of-root/pytest-316/test_failed_hk_prerequisite_pr2/unit-scorer-invoked.txt') = <scheduler_slice_harness.ProcessBoundary object at 0x7fba6048fb10>.scored
+_ test_failed_hk_prerequisite_prevents_scoring_but_preserves_a_materialization[ops.ensure_hk_security_master-canonical_reference] _
+tests/test_preselection_executor_prerequisites.py:16: in test_failed_hk_prerequisite_prevents_scoring_but_preserves_a_materialization
+    assert not boundary.scored.exists(), "HK scoring must wait for both verified prerequisites"
+E   AssertionError: HK scoring must wait for both verified prerequisites
+E   assert not True
+E    +  where True = exists()
+E    +    where exists = PosixPath('/tmp/pytest-of-root/pytest-316/test_failed_hk_prerequisite_pr3/unit-scorer-invoked.txt').exists
+E    +      where PosixPath('/tmp/pytest-of-root/pytest-316/test_failed_hk_prerequisite_pr3/unit-scorer-invoked.txt') = <scheduler_slice_harness.ProcessBoundary object at 0x7fba60497100>.scored
+_ test_missing_exact_master_is_retryable_and_cannot_settle_as_success[actual_pool_scheduler] _
+tests/test_preselection_executor_prerequisites.py:28: in test_missing_exact_master_is_retryable_and_cannot_settle_as_success
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+_ test_missing_exact_master_is_retryable_and_cannot_settle_as_success[canonical_reference] _
+tests/test_preselection_executor_prerequisites.py:28: in test_missing_exact_master_is_retryable_and_cannot_settle_as_success
+    assert result["status"] == "FAILED"
+E   AssertionError: assert 'SUCCEEDED' == 'FAILED'
+E     
+E     - FAILED
+E     + SUCCEEDED
+=========================== short test summary info ============================
+FAILED tests/test_dispatcher_receipts.py::test_failed_invocation_is_visible_without_changing_legacy_started_semantics[actual_pool_scheduler]
+FAILED tests/test_dispatcher_receipts.py::test_failed_invocation_is_visible_without_changing_legacy_started_semantics[canonical_reference]
+FAILED tests/test_dispatcher_receipts.py::test_successful_and_duplicate_workloads_have_unambiguous_receipts[actual_pool_scheduler]
+FAILED tests/test_dispatcher_receipts.py::test_successful_and_duplicate_workloads_have_unambiguous_receipts[canonical_reference]
+FAILED tests/test_dispatcher_receipts.py::test_dry_run_never_reports_executor_invocation[actual_pool_scheduler]
+FAILED tests/test_dispatcher_receipts.py::test_dry_run_never_reports_executor_invocation[canonical_reference]
+FAILED tests/test_preselection_executor_prerequisites.py::test_failed_hk_prerequisite_prevents_scoring_but_preserves_a_materialization[scripts.update_hk_0_2_panel-actual_pool_scheduler]
+FAILED tests/test_preselection_executor_prerequisites.py::test_failed_hk_prerequisite_prevents_scoring_but_preserves_a_materialization[scripts.update_hk_0_2_panel-canonical_reference]
+FAILED tests/test_preselection_executor_prerequisites.py::test_failed_hk_prerequisite_prevents_scoring_but_preserves_a_materialization[ops.ensure_hk_security_master-actual_pool_scheduler]
+FAILED tests/test_preselection_executor_prerequisites.py::test_failed_hk_prerequisite_prevents_scoring_but_preserves_a_materialization[ops.ensure_hk_security_master-canonical_reference]
+FAILED tests/test_preselection_executor_prerequisites.py::test_missing_exact_master_is_retryable_and_cannot_settle_as_success[actual_pool_scheduler]
+FAILED tests/test_preselection_executor_prerequisites.py::test_missing_exact_master_is_retryable_and_cannot_settle_as_success[canonical_reference]
+12 failed, 4 passed in 0.11s
