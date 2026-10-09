@@ -1,7 +1,7 @@
 {
   "status": "IMPLEMENTED_MAC_REVALIDATION_PENDING",
-  "parent_commit": "8124c9f6cb35ca4385c2e73bcd55482ee8a7bfa8",
-  "red_evidence": "Parent-reported Mac HTTP policy RED at 8124c9f6cb35ca4385c2e73bcd55482ee8a7bfa8: 1 PASS / 8 FAIL / 0 ERROR, exit 1. Prior 31 assertions passed on 79fcdf81be908169ca4f1db331899f07d94a0f65. New owner integration candidate NOT_RUN.",
+  "parent_commit": "db871765422a03e7b74fb467052eaaa25c8ec8ea",
+  "red_evidence": "Parent independent static review: derived output symlinks, returned oversized 429 policy ordering, and date-history reset gaps. Eight new offline regression candidates written before fixes; Mac execution pending; existing 47 tests preserved.",
   "cloud_product_tests": "NOT_RUN",
   "entries": [
     {
@@ -10,8 +10,8 @@
       "source_commit": "0fd5eb374cb155232ed003d5fc4d0d3594252491",
       "preimage_path": "pinned/ops/manager_announcement_body_batch.py",
       "preimage_sha256": "7e37ed7e904d80c135a51bdff1aaa95aec02012eecfcfdc8a1770fa31297cbdb",
-      "previous_candidate_sha256": "28a9860f6270b8189ae4bb49fbea0d052b88ddf4c3031226e31c624bd7150be1",
-      "sha256": "424acb293396d0c1782d64727d237e74a6063a4ed252d50e708cdcac14a16d2d"
+      "previous_candidate_sha256": "424acb293396d0c1782d64727d237e74a6063a4ed252d50e708cdcac14a16d2d",
+      "sha256": "2eca580a8b426118afb5b24a3f276b38853518f4da9d26c14a524001b014ef54"
     },
     {
       "candidate_path": "candidate/v4/manager_research/announcement_source.py",
@@ -19,7 +19,7 @@
       "source_commit": "0fd5eb374cb155232ed003d5fc4d0d3594252491",
       "preimage_path": "pinned/v4/manager_research/announcement_source.py",
       "preimage_sha256": "4e5a03048c3791ef65a4ef4eef37c75f5fc30ebb41615984e302b2b6d6666f2b",
-      "previous_candidate_sha256": "74e4df1391b82d6ce15cac20bd6ced592804d437f966e0873cfea1ce78294315",
+      "previous_candidate_sha256": "525e1d00aabfad407845586e2c59b2c472e15d5391dcf089283e4180ea122c10",
       "sha256": "525e1d00aabfad407845586e2c59b2c472e15d5391dcf089283e4180ea122c10"
     },
     {
@@ -28,8 +28,8 @@
       "source_commit": "0fd5eb374cb155232ed003d5fc4d0d3594252491",
       "preimage_path": "pinned/v4/manager_research/hkex_provider.py",
       "preimage_sha256": "7bc565f9c7a210bc4966622cfde60875ec9f002f7b38a5d9063c467a9499d56d",
-      "previous_candidate_sha256": "2dca6febd36b2845323a562062ac85a0015a0de0eb47541a2488cd32762cfada",
-      "sha256": "f624d9a7e1b60307a512b163427ee5461eca4e6907880439ac9d6030272b0396"
+      "previous_candidate_sha256": "f624d9a7e1b60307a512b163427ee5461eca4e6907880439ac9d6030272b0396",
+      "sha256": "695be83528a047bccd4fba519caf445a1fcb8d07624345bf9b0fd5d5ae604794"
     },
     {
       "candidate_path": "candidate/ops/run_v5_private_announcement.py",
@@ -37,8 +37,17 @@
       "source_commit": null,
       "preimage_path": null,
       "preimage_sha256": null,
+      "previous_candidate_sha256": "2dc5b4d126ece4426117141c6fa630b665d13631c3a83a4bd5ed80262913ff41",
+      "sha256": "5bf534ff90601d1dc2fe4bd349798033836f8335d9ecbbbcdb79d057f8de981a"
+    },
+    {
+      "candidate_path": "candidate/ops/run_manager_daily_announcement.py",
+      "target_app_path": "ops/run_manager_daily_announcement.py",
+      "source_commit": "0fd5eb374cb155232ed003d5fc4d0d3594252491",
+      "preimage_path": "pinned/ops/run_manager_daily_announcement.py",
+      "preimage_sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee",
       "previous_candidate_sha256": null,
-      "sha256": "2dc5b4d126ece4426117141c6fa630b665d13631c3a83a4bd5ed80262913ff41"
+      "sha256": "f2b51313a8696365d120da98224b44d5495925ea42a2974b59414d6de31b8139"
     }
   ]
 }

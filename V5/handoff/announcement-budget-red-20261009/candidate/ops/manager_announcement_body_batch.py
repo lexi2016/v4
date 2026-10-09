@@ -50,6 +50,10 @@ def json_bytes(value: Any) -> bytes:
     return (json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
 
 
+def _mkdir_output(path: Path) -> None:
+    path.mkdir(parents=True, exist_ok=True)
+
+
 def atomic_json(path: Path, value: Any) -> str:
     path.parent.mkdir(parents=True, exist_ok=True)
     raw = json_bytes(value)
@@ -788,7 +792,7 @@ def _run_capture_owned(catalog_read: Mapping[str, Any], material_root: str | Pat
             target_trade_date, publication_date, catalog)
     marker = output / "batch_attempt.json"
     receipt_path = output / "batch_receipt.json"
-    output.mkdir(parents=True, exist_ok=True)
+    _mkdir_output(output)
     if marker.exists() or receipt_path.exists():
         raise RuntimeError("BODY_BATCH_ATTEMPT_EXISTS_NO_RETRY")
     associations = sum(len(row["source_issuer_codes"]) for row in rows)

@@ -581,10 +581,13 @@ class HkexOfficialProvider:
                 raise ProviderError("EASTMONEY_HK_TRANSPORT_RESPONSE_INVALID")
             if response.url != url or response.final_url and not _safe_eastmoney_hk_url(response.final_url):
                 raise ProviderError("EASTMONEY_HK_REDIRECT_TARGET_REFUSED")
+            # Observed bytes above are charged even for oversized returned errors.
+            # Register status policy before size rejection can hide Retry-After.
+            _enforce_http_policy(_byte_budget,
+                _http_capture_policy(response.status_code, response.headers,
+                    response.body if isinstance(response.body, bytes) else None))
             if not isinstance(response.body, bytes) or len(response.body) > 8 * 1024 * 1024:
                 raise ProviderError("EASTMONEY_HK_RESPONSE_SIZE_BUDGET_EXCEEDED")
-            _enforce_http_policy(_byte_budget,
-                _http_capture_policy(response.status_code, response.headers, response.body))
             return response
         except ProviderError:
             raise

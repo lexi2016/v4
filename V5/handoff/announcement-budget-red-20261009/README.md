@@ -1,5 +1,7 @@
 # 公告预算、HTTP 门禁与 V5 私有 owner 候选
 
+最新为 db871765 之后的三项静态审查修复，见 [ISOLATION_REVIEW_FIX.md](ISOLATION_REVIEW_FIX.md)。原 47 项测试未改，新增 8 项，总计 55 项待 Mac 验收。当前五个完整候选包含新增原 CLI IO 接缝；以下为前轮背景。
+
 状态：**IMPLEMENTED_MAC_REVALIDATION_PENDING**。云端只写代码并做静态语法、来源和哈希核验；未执行产品测试、未采集或部署。当前完整交付及 Mac 命令见 [HTTP_OWNER_FIX.md](HTTP_OWNER_FIX.md)。
 
 父任务报告：79fcdf81be908169ca4f1db331899f07d94a0f65 的既有 31 项 Mac 回归通过；8124c9f6cb35ca4385c2e73bcd55482ee8a7bfa8 的 HTTP RED 为 1 PASS / 8 FAIL / 0 ERROR，exit 1。本轮基于该实际 RED 实现 HTTP 策略，既有 40 项测试文件逐字未改，另加 7 项离线私有 owner 验收候选。不能把这些待跑用例写成已通过。

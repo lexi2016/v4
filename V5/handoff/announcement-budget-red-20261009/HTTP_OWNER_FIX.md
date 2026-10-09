@@ -1,5 +1,7 @@
 # HTTP 修复与私有 owner：待 Mac 验收
 
+本文件为 db871765 的背景和原 47 项命令。当前三项审查修复及新增 8 项请同时读取 ISOLATION_REVIEW_FIX.md；当前实际待验共 55 项。
+
 ## 依据与具体变化
 
 父任务返回 8124c9f6cb35ca4385c2e73bcd55482ee8a7bfa8 的实际 HTTP RED：1 PASS / 8 FAIL / 0 ERROR，exit 1。此前 79fcdf81 的 31 项回归已由父任务报告通过。本轮未在云端执行任何产品测试。

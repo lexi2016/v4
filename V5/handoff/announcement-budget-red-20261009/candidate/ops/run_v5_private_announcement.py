@@ -99,6 +99,7 @@ class PrivateOwner:
         self.gate=None
         self._journal_lock=threading.Lock()
         self._capture_meta=None
+        self._capture_history=[]
 
     @contextmanager
     def exclusive(self):
@@ -118,6 +119,7 @@ class PrivateOwner:
             state.update(accounting=snapshot,requests=self.gate.requests,
                 updated_at=datetime.now(timezone.utc).isoformat(),
                 app_manifest_sha256=self.identity['app_manifest_sha256'])
+            state['history']=[*self._capture_history,dict(state)]
             self.io.write_bytes(POLICY,_raw(state))
 
     def begin_capture(self,target: str,publication: str):
@@ -127,10 +129,18 @@ class PrivateOwner:
             MAX_NETWORK_REQUESTS,MAX_RESPONSE_BYTES,REQUEST_INTERVAL_SECONDS)
         from v4.manager_research.announcement_source import MAX_EASTMONEY_RESPONSE_BYTES
         previous=self._read_policy()
+        history=[]
         if previous is not None:
+            history=previous.get('history',[previous])
+            if not isinstance(history,list) or not history or any(not isinstance(item,dict) for item in history):
+                raise ValueError('V5_OWNER_CAPTURE_HISTORY_INVALID')
             if (previous.get('state')!='FINISHED' or previous.get('accounting',{}).get('admission_stop_reason')
-                    or (previous.get('target_trade_date'),previous.get('publication_date'))==(target,publication)):
+                    or any(item.get('state')!='FINISHED'
+                        or item.get('accounting',{}).get('admission_stop_reason')
+                        or item.get('target_trade_date')==target
+                        or item.get('publication_date')==publication for item in history)):
                 raise ValueError('V5_OWNER_PRIOR_CAPTURE_OR_POLICY_REQUIRES_REVIEW')
+        self._capture_history=history
         owner=self
         class OwnerGate(SharedCaptureGate):
             def before_request(self):
@@ -257,6 +267,36 @@ class PrivateOwner:
             return result
         raise ValueError('V5_OWNER_ROUTE_FORBIDDEN')
 
+    def _private_relative(self,path):
+        path=_absolute(path)
+        if path==self.root or not path.is_relative_to(self.root):
+            raise ValueError('V5_OWNER_ARTIFACT_OUTSIDE_PRIVATE_ROOT')
+        return path.relative_to(self.root).as_posix()
+
+    def _check_state_tree(self):
+        # Reject pre-existing links anywhere, including derived paths not in argv.
+        # Actual output operations below also use descriptor-relative O_NOFOLLOW;
+        # this preflight alone is not relied on against a late directory link.
+        _no_symlink(self.root)
+        def fail(error):raise error
+        for directory,dirs,files in os.walk(self.root,followlinks=False,onerror=fail):
+            for name in (*dirs,*files):
+                if (Path(directory)/name).is_symlink():
+                    raise ValueError('V5_OWNER_SYMLINK_FORBIDDEN')
+
+    def _private_mkdir(self,path):
+        if _absolute(path)==self.root:return
+        self.io.ensure_directory(self._private_relative(path))
+
+    def _private_write_new(self,path,raw):
+        self.io.write_bytes(self._private_relative(path),raw,require_absent=True)
+
+    def _private_atomic_json(self,path,value):
+        from ops.manager_announcement_body_batch import json_bytes,digest
+        raw=json_bytes(value)
+        self.io.write_bytes(self._private_relative(path),raw)
+        return digest(raw)
+
     def validate_paths(self,args):
         for name in ('catalog_read','semantic_catalog','body_corpus','body_capture_evidence_root',
                      'review_receipt','reviewer_output','decisions','out'):
@@ -280,12 +320,19 @@ class PrivateOwner:
         if command=='capture' and args.resume_evidence_run_id:
             raise ValueError('V5_OWNER_CAPTURE_RESUME_REQUIRES_REVIEW')
         old_request=daily._request;old_capture=body.run_capture
+        old_mkdir=daily._mkdir;old_write_new=daily._write_new
+        old_body_mkdir=body._mkdir_output;old_atomic_json=body.atomic_json
         def private_body(*args,**kwargs):
             kwargs['capture_gate']=self.gate
             kwargs['api_overrides']={**kwargs.get('api_overrides',{}),'HkexOfficialProvider':self.factory}
             return old_capture(*args,**kwargs)
         with self.exclusive():
+            self._check_state_tree()
             daily._request=self.request
+            daily._mkdir=self._private_mkdir
+            daily._write_new=self._private_write_new
+            body._mkdir_output=self._private_mkdir
+            body.atomic_json=self._private_atomic_json
             body.run_capture=private_body
             started=False
             succeeded=False
@@ -303,6 +350,8 @@ class PrivateOwner:
                 return {**result,'v5_private_owner':self.identity}
             finally:
                 daily._request=old_request
+                daily._mkdir=old_mkdir;daily._write_new=old_write_new
+                body._mkdir_output=old_body_mkdir;body.atomic_json=old_atomic_json
                 body.run_capture=old_capture
                 if started:self.finish_capture(succeeded)
 
