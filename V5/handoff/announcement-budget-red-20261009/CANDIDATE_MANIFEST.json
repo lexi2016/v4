@@ -1,7 +1,7 @@
 {
   "status": "IMPLEMENTED_MAC_REVALIDATION_PENDING",
-  "parent_commit": "3eaf4a5ccc73bb2c368b623509ac4e830a0f1982",
-  "red_evidence": "Parent Mac 3eaf: original55 PASS; recovery file exit1, zero tests executed, cls.run shadowed TestCase.run. Rename to run_id; strict typed JSON comparison and source identity/874 manifest/forbidden-root checks implemented. Recovery15 and full70 await Mac; cloud tests NOT_RUN.",
+  "parent_commit": "6e30a74b268c8f9ebbb2fa50eda5110ee4c3f71a",
+  "red_evidence": "Parent Mac 6e30 recovery15 PASS. Actual offline recovery failed original terminal validator on retained failed prefixes 60/108 and 27/86. Source7536 SHA/BLOCKED unchanged. New11 offline candidates NOT_RUN.",
   "cloud_product_tests": "NOT_RUN",
   "entries": [
     {
@@ -55,8 +55,17 @@
       "source_commit": null,
       "preimage_path": null,
       "preimage_sha256": null,
-      "previous_candidate_sha256": "6046624ec89aa4c39b9e5ab0889cd32d0f758257bebc39e61b53e340ea6027a4",
+      "previous_candidate_sha256": "c35a62d071b19582772b663efb182adf3904ba858a1e972c40ea386b9dfb0c57",
       "sha256": "c35a62d071b19582772b663efb182adf3904ba858a1e972c40ea386b9dfb0c57"
+    },
+    {
+      "candidate_path": "candidate/v4/manager_research/workspace_announcements.py",
+      "target_app_path": "v4/manager_research/workspace_announcements.py",
+      "source_commit": "0382f753929365048d231a7252d9c328d40f8522",
+      "preimage_path": "owner_dependencies/v4/manager_research/workspace_announcements.py",
+      "preimage_sha256": "60839e20df9b61be04629481752ab3072a1088d229c87980e83059b590548e50",
+      "previous_candidate_sha256": null,
+      "sha256": "448258b8aefc8aae5be75f13fd872b4761fdd78dcc01119d03be6fe8a39b342a"
     }
   ]
 }
