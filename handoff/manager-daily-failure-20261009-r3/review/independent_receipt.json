@@ -1,0 +1,55 @@
+{
+  "schema_version": "v4.manager_daily_failure_r3.independent_review.v1",
+  "reviewer": "/root/r3_failure_package_review",
+  "writer": "/root/r3_failure_package_writer",
+  "decision": "PASS",
+  "decision_scope": "frozen package accuracy, evidence integrity, and Chat task contract only",
+  "not_business_repair": true,
+  "reviewed_at_cst": "2026-10-09",
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": [],
+    "resolved": [
+      {
+        "severity": "P1",
+        "issue": "Date-specific auto/dynamic acceptance was ambiguous and could require the 20261008 retrospective run to be consumed by ordinary auto.",
+        "resolution": "CHAT_TASK.md and acceptance.json now require 20261008 explicit dynamic while preserving ordinary auto historical eligibility; 20261009 ordinary auto same-run readback is conditional on a saved plan. Missing inputs retain CANNOT_CONFIRM without a required run/SHA/stock list, and valid complete-input empty results are allowed."
+      }
+    ]
+  },
+  "checks": {
+    "manifest_records": 33,
+    "source_snapshot_sha256": "PASS; 32 available snapshots independently matched source and manifest bytes/SHA",
+    "missing_source_paths": [
+      "infrastructure/_research_peripheral_store_parts/_namespace.py"
+    ],
+    "expected_sha_unset_available_paths": [
+      "ops/run_v35_macos_scheduler_daemon.py",
+      "ops/launch_v35_macos_scheduler.sh",
+      "ops/_macos_research_panel_daily_parts/hk_capture_gate.py"
+    ],
+    "issue32_protected_shas": "PASS; all three source/snapshot SHAs match manifest",
+    "json_parse": "PASS; seven package/evidence JSON files",
+    "high_confidence_secret_scan": "PASS; zero matches across package/evidence/tools",
+    "package_local_links": "PASS; retained E root layout",
+    "targeted_chat_task_acceptance_review": "PASS; date-specific paths, missing-input semantics, valid empty result, synthetic/live evidence boundary",
+    "business_regression_tests": "NOT_RUN; outside frozen package-review scope",
+    "live_api_or_dispatch_reread": "NOT_RUN; no live/business checks rerun after package patch"
+  },
+  "artifact_sha256": {
+    "package/CHAT_TASK.md": "2f60c6cfbde6982457c7f64fd45706ebbc931ad851bd77f8a26027a6b00a06ec",
+    "package/acceptance.json": "6298ffe5bb5f0cfcf3d9d5c64fdfcb817019e5e0e3469cb30c27293b817d7aee",
+    "evidence/validation_receipt.json": "efba9abd62ae7797b16254533859ef5b45d11c3465c2379dc3b6a9a4c88ed064",
+    "tools/validate_package.py": "2eb74d87f7425970e616ebe5f0b45743fd10d8f6a3d43c2952fc75d968ab6e83"
+  },
+  "status": {
+    "REVIEWED": "PASS",
+    "BEHAVIOR_VERIFIED": "CANNOT_CONFIRM",
+    "GITHUB_SYNC_AND_READBACK": "CANNOT_CONFIRM"
+  },
+  "caveats": [
+    "Actual 20261008 and 20261009 plan products, owner dispatch, loaded Python module identity, API/UI readback, and natural-slot behavior remain CANNOT_CONFIRM.",
+    "This receipt accepts the package handoff only; it does not claim business repair."
+  ]
+}

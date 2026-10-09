@@ -1,0 +1,318 @@
+{
+  "schema_version": "v4.manager_daily_failure_r3.publication_manifest.v1",
+  "repository": "lexi2016/v4",
+  "branch": "codex/manager-daily-failure-20261009-r3",
+  "parent_commit": "66bb05a2e12976775ccb997191ce943bae8cc9a5",
+  "scope": "Chat repair problem package only",
+  "package_review": "PASS",
+  "business_repaired": false,
+  "deployed": false,
+  "files": [
+    {
+      "path": "package/source_snapshot/current_api_manager/apps/api/v35_api/manager_research_router.py",
+      "bytes": 26922,
+      "sha256": "84f65a351e1e44171820cb8698e4198b3084e39b8d0cfe82c6b4bc05595f8073",
+      "git_blob_sha": "8d8fb5cc5ea95d35041b280ab410f1ca207e9bca"
+    },
+    {
+      "path": "package/source_snapshot/current_api_manager/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "bytes": 28502,
+      "sha256": "73eb6a2f7cbf2e2307a87edc3013e355c331f2ce87e6e0ae693b9f78de2dd34a",
+      "git_blob_sha": "c6dc099e5021f71780cde33046549c8d07e32d11"
+    },
+    {
+      "path": "package/source_snapshot/current_api_manager/ops/render_manager_announcement_binding.py",
+      "bytes": 3058,
+      "sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a",
+      "git_blob_sha": "6e1062dbe2a2c8d6cb4bec1178fef395dc1cfe02"
+    },
+    {
+      "path": "package/source_snapshot/current_api_manager/ops/run_manager_announcement_cycle.py",
+      "bytes": 25368,
+      "sha256": "c6f9cfa57515682b4f076e10f2030196dc9377bdbb9ec4abe737e36d15485c1c",
+      "git_blob_sha": "365749fd9622cf32e1c8416e88468d7226c25437"
+    },
+    {
+      "path": "package/source_snapshot/current_api_manager/v4/manager_research/plan_owner_dispatch.py",
+      "bytes": 26827,
+      "sha256": "8fad78ec64b1ff3ab80242fedc93dfcf7cbed25e6839821aab7f024ca297bf75",
+      "git_blob_sha": "e196a8cc1d5c8c6867cf254eba326d8de1e510ef"
+    },
+    {
+      "path": "package/source_snapshot/current_api_manager/v4/manager_research/service.py",
+      "bytes": 93685,
+      "sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37",
+      "git_blob_sha": "fe21c0ef9674a0dc8e638706071c39ea0a7f3aa6"
+    },
+    {
+      "path": "package/source_snapshot/current_api_manager/v4/manager_research/us_mapping_research.py",
+      "bytes": 14052,
+      "sha256": "297dc6f5950d3614437378c22e3157b6866823fbf25fd39cb47f112ffea40da7",
+      "git_blob_sha": "d5c1b0cd5bad6fd522ad1a060548d4520b631e58"
+    },
+    {
+      "path": "package/source_snapshot/current_api_manager/v4/manager_research/workspace.py",
+      "bytes": 59319,
+      "sha256": "183e3ebd0322883a8f8cef37c0244f424f16c63d3120245e263bb9585133dea3",
+      "git_blob_sha": "380b3a24ff5c69bef033ccc93f2d131784af8b56"
+    },
+    {
+      "path": "package/source_snapshot/current_api_manager/v4/manager_research/workspace_history.py",
+      "bytes": 17474,
+      "sha256": "da5e1223326631cc9070c3059ca606bac3840ef468ad5c06f2f3a51534f82ec1",
+      "git_blob_sha": "4901ce1fb9ab2f73517275ad89fd187b27bff375"
+    },
+    {
+      "path": "package/source_snapshot/current_api_manager/v4/manager_research/workspace_plan_autorun.py",
+      "bytes": 11309,
+      "sha256": "703bef8d9a04861c6cb4161880427126badd69eece234f9b53eaa5ae59d7c6ef",
+      "git_blob_sha": "aeb0bdaa1a335aafe072c278a8059ceca5849b52"
+    },
+    {
+      "path": "package/source_snapshot/current_api_manager/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "bytes": 35128,
+      "sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+      "git_blob_sha": "3d2913f5386c4a0d7d1033f3dcbca9521a2e5880"
+    },
+    {
+      "path": "package/source_snapshot/issue32_protected/apps/api/v35_api/app.py",
+      "bytes": 324648,
+      "sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "git_blob_sha": "f2cdb61eb5689f70bf9f9508e96a0262c0af7389"
+    },
+    {
+      "path": "package/source_snapshot/issue32_protected/apps/api/v35_api/preselection_router.py",
+      "bytes": 1322,
+      "sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "git_blob_sha": "6cad6dc5428de11b930667c86317a11ae1a3e4e8"
+    },
+    {
+      "path": "package/source_snapshot/issue32_protected/apps/api/v35_api/preselection_service.py",
+      "bytes": 30761,
+      "sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+      "git_blob_sha": "95d37f7d92447b7013dc08301b7b954f2b2f4d61"
+    },
+    {
+      "path": "package/source_snapshot/previous_bound_announcement_worker_20260928/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "bytes": 25925,
+      "sha256": "fd41e7ae1ba82429fb75364d42e96c435aa5855fb471c4fb55a0d38c962aa22a",
+      "git_blob_sha": "365a73dae0c969a93712420cfc41955c17a39596"
+    },
+    {
+      "path": "package/source_snapshot/previous_bound_announcement_worker_20260928/ops/run_manager_announcement_cycle.py",
+      "bytes": 15488,
+      "sha256": "d3e5a0b3ebdbe1edc1b2ee8262abcd57a2e2e7d72ffc74ce521e04a5b13faec6",
+      "git_blob_sha": "620ec5b8f0c008725dbc642af454ca726d35de84"
+    },
+    {
+      "path": "package/source_snapshot/previous_bound_announcement_worker_20260928/ops/render_manager_announcement_binding.py",
+      "bytes": 3058,
+      "sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a",
+      "git_blob_sha": "6e1062dbe2a2c8d6cb4bec1178fef395dc1cfe02"
+    },
+    {
+      "path": "package/source_snapshot/current_shared_scheduler/ops/run_v35_macos_scheduler_daemon.py",
+      "bytes": 34320,
+      "sha256": "19e071da0c6b6748465853c4ad86a80d6060524333e9dab21647b67adc8b49ec",
+      "git_blob_sha": "3efa5c11eb7e72ea77d4a05e28f44f6a9a559a83"
+    },
+    {
+      "path": "package/source_snapshot/current_shared_scheduler/ops/launch_v35_macos_scheduler.sh",
+      "bytes": 3982,
+      "sha256": "0c577ae83b1f182dabf3b62e642a5bd5f0f8708b48e1806d8c653b691d2ec952",
+      "git_blob_sha": "7cf865749d521cb73ad000763238c4cc9b402dcd"
+    },
+    {
+      "path": "package/source_snapshot/current_bound_announcement_worker_20261006/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "bytes": 25925,
+      "sha256": "fd41e7ae1ba82429fb75364d42e96c435aa5855fb471c4fb55a0d38c962aa22a",
+      "git_blob_sha": "365a73dae0c969a93712420cfc41955c17a39596"
+    },
+    {
+      "path": "package/source_snapshot/current_bound_announcement_worker_20261006/ops/run_manager_announcement_cycle.py",
+      "bytes": 18829,
+      "sha256": "cd91604a7f7d7f2f960bbbd337fcd453bf97bb298c14f0a7fb8804fdcbaf0a84",
+      "git_blob_sha": "b87c005ad32ee0348fe3c1d4183c217aa3f66031"
+    },
+    {
+      "path": "package/source_snapshot/current_bound_announcement_worker_20261006/ops/render_manager_announcement_binding.py",
+      "bytes": 3058,
+      "sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a",
+      "git_blob_sha": "6e1062dbe2a2c8d6cb4bec1178fef395dc1cfe02"
+    },
+    {
+      "path": "package/source_snapshot/current_bound_announcement_worker_20261006/v4/manager_research/plan_owner_dispatch.py",
+      "bytes": 7169,
+      "sha256": "f4ddb61e341aa48f24aad62e9d0aa7bf2c9a0fc3d07bfae7ec285f78f1467fe3",
+      "git_blob_sha": "4d57dc6fe4d2785740860aa67c6335141652347e"
+    },
+    {
+      "path": "package/source_snapshot/current_bound_announcement_worker_20261006/v4/manager_research/workspace_plan_autorun.py",
+      "bytes": 9439,
+      "sha256": "e785ae1d465175bec0517e7c3b4a8d6e16593967cba554aa0428817a85cd079b",
+      "git_blob_sha": "668f61984fd67f2a2a9e70cb429afe0a19466b24"
+    },
+    {
+      "path": "package/source_snapshot/hk_child_conflict/ops/macos_research_panel_daily.py",
+      "bytes": 97708,
+      "sha256": "07aa9770c6ae0bb0cfd012e57843a37fedda6724a57cd52d7c339d854fc6609b",
+      "git_blob_sha": "0fd228db36da3af1c1ae4d130c856bae479a2bba"
+    },
+    {
+      "path": "package/source_snapshot/hk_child_conflict/ops/_macos_research_panel_daily_parts/_namespace.py",
+      "bytes": 527,
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "git_blob_sha": "55e1b3f744f80339298ac911073c67f3e549cf3c"
+    },
+    {
+      "path": "package/source_snapshot/hk_child_conflict/ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "bytes": 14219,
+      "sha256": "d3db5b9644bbf2fb1f4e245717907862ebe1cee2d0f650a8d45d732fd4a71940",
+      "git_blob_sha": "57fa7f9dcd5ee6485c70c757add8c40f11344ca4"
+    },
+    {
+      "path": "package/source_snapshot/hk_child_conflict/ops/ensure_hk_security_master.py",
+      "bytes": 41556,
+      "sha256": "6c341a33c0283b023219c46cc2a1c6aaca49cf4b5dcb88aa2fb5527a13145601",
+      "git_blob_sha": "ec79858502ef793766b71755a037500f0eb2e991"
+    },
+    {
+      "path": "package/source_snapshot/hk02_updater_actual/scripts/update_hk_0_2_panel.py",
+      "bytes": 1345,
+      "sha256": "45d31c1e6608d1a9af163ffd56ea111d5caeb40000c58cd140534cf81859634e",
+      "git_blob_sha": "a4f1bc3d9c886eda23e06dc9a149206bf49e482a"
+    },
+    {
+      "path": "package/source_snapshot/hk02_updater_actual/shared_data/hk_0_2.py",
+      "bytes": 57090,
+      "sha256": "45a5091cb26800b7ccf8d7c3c75b680e951d492ac8ceb5f30b80a1ff9a6eebac",
+      "git_blob_sha": "28d999b680d22f4557fd0c8c40a8e4108f1fc892"
+    },
+    {
+      "path": "package/source_snapshot/hk02_updater_actual/shared_data/store.py",
+      "bytes": 27895,
+      "sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+      "git_blob_sha": "273dc301ff7e8fe9d91e9d3e3c7c427817dc3976"
+    },
+    {
+      "path": "package/source_snapshot/issue30_release_policy/ops/api_release_integration.py",
+      "bytes": 57781,
+      "sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+      "git_blob_sha": "9525da2da82355bee380b84a6251a69393b42fcc"
+    },
+    {
+      "path": "package/README.md",
+      "bytes": 2870,
+      "sha256": "47931559e917da45651c929be9dff0a6a2a6852edcb799a6d6482fcd0b61af3f",
+      "git_blob_sha": "a5e9191827574136f97fb805e6aa9536ca2e21f7"
+    },
+    {
+      "path": "package/CHAT_TASK.md",
+      "bytes": 6797,
+      "sha256": "2f60c6cfbde6982457c7f64fd45706ebbc931ad851bd77f8a26027a6b00a06ec",
+      "git_blob_sha": "0f166adca0d8c03197d4d6410c59db2180a9aa36"
+    },
+    {
+      "path": "package/EVIDENCE.md",
+      "bytes": 5300,
+      "sha256": "638c68f863548e6b1b60185149c7f052e6d41d6a993b8e3e2b19af707948ff45",
+      "git_blob_sha": "86dbe7c3a681fa678e70f38318d2e0c05389a064"
+    },
+    {
+      "path": "package/acceptance.json",
+      "bytes": 3026,
+      "sha256": "6298ffe5bb5f0cfcf3d9d5c64fdfcb817019e5e0e3469cb30c27293b817d7aee",
+      "git_blob_sha": "9f2e84de91e7dc7f11ed511f68180f8b7766318a"
+    },
+    {
+      "path": "package/current_vs_candidate.json",
+      "bytes": 25281,
+      "sha256": "1e87b16f096766a5aed90afc979c5cd257f221a6089c666e9d9765f97ddb5511",
+      "git_blob_sha": "5bb432355635c5f4612f2d354735c868cfe7ee78"
+    },
+    {
+      "path": "package/root_cause_matrix.json",
+      "bytes": 6279,
+      "sha256": "9da9421c9d92bcc57550a84a7e3190c783ce109ef48388905af1c20223fec540",
+      "git_blob_sha": "06b4dcee426c036ff1a8b75b1d2619a7eb1c6f75"
+    },
+    {
+      "path": "package/source_manifest.json",
+      "bytes": 29675,
+      "sha256": "22466ca9e1a232d4c57db9a5acddc5271be41c4432fef70aaec57d731f6491dd",
+      "git_blob_sha": "247966055e436b7be37a94c45ffe4f6ad9d70fb1"
+    },
+    {
+      "path": "evidence/runtime_identity.json",
+      "bytes": 10664,
+      "sha256": "b410bbe571df437809fdbb32c4f5bcbc0882a529be5eec2e5f1f11e7d7bfe96a",
+      "git_blob_sha": "c1bb4cca44219eb9bf1ca8f34a0459acfd98a157"
+    },
+    {
+      "path": "evidence/live_get_projection_20261009.json",
+      "bytes": 12517,
+      "sha256": "9c3c93334407c085cea74a0f0051a9c3b4a8ee2c66cada4c9b1bec12e981d037",
+      "git_blob_sha": "dfd311c2606c49daa75c8c33763521dd573a56bb"
+    },
+    {
+      "path": "evidence/validation_receipt.json",
+      "bytes": 11904,
+      "sha256": "efba9abd62ae7797b16254533859ef5b45d11c3465c2379dc3b6a9a4c88ed064",
+      "git_blob_sha": "e78acfe1627e8fbd385b11996a326454a3a4817a"
+    },
+    {
+      "path": "tools/capture_live_state_projection.py",
+      "bytes": 6040,
+      "sha256": "0c34217c6a38dadf410645f3c302a83cad1e005f605c2bbd061d7b6ea0b0b6be",
+      "git_blob_sha": "272dc4399f1d64958e1b7480e7a33459b5cf2e69"
+    },
+    {
+      "path": "tools/capture_runtime_identity.py",
+      "bytes": 9140,
+      "sha256": "72461d5b46670cc9ee56c11c70b183f5b3d2ee36da2f0ab21cb855dd0f4ec4b2",
+      "git_blob_sha": "c00b80259317ebfe18b5df7d4dea1c2791204bf1"
+    },
+    {
+      "path": "tools/validate_package.py",
+      "bytes": 8092,
+      "sha256": "2eb74d87f7425970e616ebe5f0b45743fd10d8f6a3d43c2952fc75d968ab6e83",
+      "git_blob_sha": "335c064314f0d6e98986d433a11d875b96f59170"
+    },
+    {
+      "path": "review/independent_review.md",
+      "bytes": 4445,
+      "sha256": "4a1ebc3b42caf28f28b1d6b9375be259c7e7a7a5321df5fd3654c993e3794658",
+      "git_blob_sha": "4b7d940f51c9aa6972aad9f530b4bb4cc56467c3"
+    },
+    {
+      "path": "review/independent_receipt.json",
+      "bytes": 2923,
+      "sha256": "a0b6a84345001ff2956eb1b99326b527cc718a6b1334c136d511555da85db269",
+      "git_blob_sha": "17054021141f1759ee08a10e55558124f12e3a82"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3395,
+      "sha256": "63aa2fe981ce8a45208aa3546e550d74520bcc1c9dc2492447dbb44e40a291bc",
+      "git_blob_sha": "a26889af1260789907fec42a99d2e08897a2f6a9"
+    }
+  ],
+  "source_records": 33,
+  "source_snapshots": 32,
+  "read_only_observation": "Sequential dated workspace GET projections, limited runtime identity and code source snapshots",
+  "excluded": [
+    "raw market data",
+    "account or holdings",
+    "live plans and business state",
+    "credentials",
+    "node_modules",
+    "dist",
+    "venv",
+    "authoring generators",
+    "unlisted source files"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

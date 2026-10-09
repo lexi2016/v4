@@ -1,0 +1,290 @@
+{
+  "schema_version": "v4.manager_daily_failure_r3.validation_receipt.v1",
+  "validated_at_local": "2026-10-09T11:11:09+08:00",
+  "validator": {
+    "path": "tools/validate_package.py",
+    "sha256": "2eb74d87f7425970e616ebe5f0b45743fd10d8f6a3d43c2952fc75d968ab6e83"
+  },
+  "result": "PASS_WITH_TARGETED_METADATA_REFRESH",
+  "counts": {
+    "manifest_records": 33,
+    "copied_source_files_checked": 32,
+    "missing_source_paths": [
+      "infrastructure/_research_peripheral_store_parts/_namespace.py"
+    ],
+    "expected_sha_unset_paths": [
+      "ops/run_v35_macos_scheduler_daemon.py",
+      "ops/launch_v35_macos_scheduler.sh",
+      "ops/_macos_research_panel_daily_parts/hk_capture_gate.py"
+    ],
+    "json_files_parsed": 7,
+    "secret_matches": 0
+  },
+  "checks": {
+    "source_and_snapshot_bytes_sha256": true,
+    "json_parse": true,
+    "issue32_protected_shas": true,
+    "research_only_flags": true,
+    "high_confidence_secret_scan": true
+  },
+  "secret_scan_matches": [],
+  "json_parse_errors": [],
+  "problems": [],
+  "package_evidence_files": [
+    {
+      "path": "evidence/live_get_projection_20261009.json",
+      "bytes": 12517,
+      "sha256": "9c3c93334407c085cea74a0f0051a9c3b4a8ee2c66cada4c9b1bec12e981d037"
+    },
+    {
+      "path": "evidence/runtime_identity.json",
+      "bytes": 10664,
+      "sha256": "b410bbe571df437809fdbb32c4f5bcbc0882a529be5eec2e5f1f11e7d7bfe96a"
+    },
+    {
+      "path": "package/CHAT_TASK.md",
+      "bytes": 6797,
+      "sha256": "2f60c6cfbde6982457c7f64fd45706ebbc931ad851bd77f8a26027a6b00a06ec"
+    },
+    {
+      "path": "package/EVIDENCE.md",
+      "bytes": 5300,
+      "sha256": "638c68f863548e6b1b60185149c7f052e6d41d6a993b8e3e2b19af707948ff45"
+    },
+    {
+      "path": "package/README.md",
+      "bytes": 2870,
+      "sha256": "47931559e917da45651c929be9dff0a6a2a6852edcb799a6d6482fcd0b61af3f"
+    },
+    {
+      "path": "package/acceptance.json",
+      "bytes": 3026,
+      "sha256": "6298ffe5bb5f0cfcf3d9d5c64fdfcb817019e5e0e3469cb30c27293b817d7aee"
+    },
+    {
+      "path": "package/current_vs_candidate.json",
+      "bytes": 25281,
+      "sha256": "1e87b16f096766a5aed90afc979c5cd257f221a6089c666e9d9765f97ddb5511"
+    },
+    {
+      "path": "package/root_cause_matrix.json",
+      "bytes": 6279,
+      "sha256": "9da9421c9d92bcc57550a84a7e3190c783ce109ef48388905af1c20223fec540"
+    },
+    {
+      "path": "package/source_manifest.json",
+      "bytes": 29675,
+      "sha256": "22466ca9e1a232d4c57db9a5acddc5271be41c4432fef70aaec57d731f6491dd"
+    },
+    {
+      "path": "package/source_snapshot/bound_announcement_worker/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "bytes": 25925,
+      "sha256": "fd41e7ae1ba82429fb75364d42e96c435aa5855fb471c4fb55a0d38c962aa22a"
+    },
+    {
+      "path": "package/source_snapshot/bound_announcement_worker/ops/render_manager_announcement_binding.py",
+      "bytes": 3058,
+      "sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a"
+    },
+    {
+      "path": "package/source_snapshot/bound_announcement_worker/ops/run_manager_announcement_cycle.py",
+      "bytes": 15488,
+      "sha256": "d3e5a0b3ebdbe1edc1b2ee8262abcd57a2e2e7d72ffc74ce521e04a5b13faec6"
+    },
+    {
+      "path": "package/source_snapshot/current_api_manager/apps/api/v35_api/manager_research_router.py",
+      "bytes": 26922,
+      "sha256": "84f65a351e1e44171820cb8698e4198b3084e39b8d0cfe82c6b4bc05595f8073"
+    },
+    {
+      "path": "package/source_snapshot/current_api_manager/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "bytes": 28502,
+      "sha256": "73eb6a2f7cbf2e2307a87edc3013e355c331f2ce87e6e0ae693b9f78de2dd34a"
+    },
+    {
+      "path": "package/source_snapshot/current_api_manager/ops/render_manager_announcement_binding.py",
+      "bytes": 3058,
+      "sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a"
+    },
+    {
+      "path": "package/source_snapshot/current_api_manager/ops/run_manager_announcement_cycle.py",
+      "bytes": 25368,
+      "sha256": "c6f9cfa57515682b4f076e10f2030196dc9377bdbb9ec4abe737e36d15485c1c"
+    },
+    {
+      "path": "package/source_snapshot/current_api_manager/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "bytes": 35128,
+      "sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c"
+    },
+    {
+      "path": "package/source_snapshot/current_api_manager/v4/manager_research/plan_owner_dispatch.py",
+      "bytes": 26827,
+      "sha256": "8fad78ec64b1ff3ab80242fedc93dfcf7cbed25e6839821aab7f024ca297bf75"
+    },
+    {
+      "path": "package/source_snapshot/current_api_manager/v4/manager_research/service.py",
+      "bytes": 93685,
+      "sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37"
+    },
+    {
+      "path": "package/source_snapshot/current_api_manager/v4/manager_research/us_mapping_research.py",
+      "bytes": 14052,
+      "sha256": "297dc6f5950d3614437378c22e3157b6866823fbf25fd39cb47f112ffea40da7"
+    },
+    {
+      "path": "package/source_snapshot/current_api_manager/v4/manager_research/workspace.py",
+      "bytes": 59319,
+      "sha256": "183e3ebd0322883a8f8cef37c0244f424f16c63d3120245e263bb9585133dea3"
+    },
+    {
+      "path": "package/source_snapshot/current_api_manager/v4/manager_research/workspace_history.py",
+      "bytes": 17474,
+      "sha256": "da5e1223326631cc9070c3059ca606bac3840ef468ad5c06f2f3a51534f82ec1"
+    },
+    {
+      "path": "package/source_snapshot/current_api_manager/v4/manager_research/workspace_plan_autorun.py",
+      "bytes": 11309,
+      "sha256": "703bef8d9a04861c6cb4161880427126badd69eece234f9b53eaa5ae59d7c6ef"
+    },
+    {
+      "path": "package/source_snapshot/current_bound_announcement_worker_20261006/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "bytes": 25925,
+      "sha256": "fd41e7ae1ba82429fb75364d42e96c435aa5855fb471c4fb55a0d38c962aa22a"
+    },
+    {
+      "path": "package/source_snapshot/current_bound_announcement_worker_20261006/ops/render_manager_announcement_binding.py",
+      "bytes": 3058,
+      "sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a"
+    },
+    {
+      "path": "package/source_snapshot/current_bound_announcement_worker_20261006/ops/run_manager_announcement_cycle.py",
+      "bytes": 18829,
+      "sha256": "cd91604a7f7d7f2f960bbbd337fcd453bf97bb298c14f0a7fb8804fdcbaf0a84"
+    },
+    {
+      "path": "package/source_snapshot/current_bound_announcement_worker_20261006/v4/manager_research/plan_owner_dispatch.py",
+      "bytes": 7169,
+      "sha256": "f4ddb61e341aa48f24aad62e9d0aa7bf2c9a0fc3d07bfae7ec285f78f1467fe3"
+    },
+    {
+      "path": "package/source_snapshot/current_bound_announcement_worker_20261006/v4/manager_research/workspace_plan_autorun.py",
+      "bytes": 9439,
+      "sha256": "e785ae1d465175bec0517e7c3b4a8d6e16593967cba554aa0428817a85cd079b"
+    },
+    {
+      "path": "package/source_snapshot/current_shared_scheduler/ops/launch_v35_macos_scheduler.sh",
+      "bytes": 3982,
+      "sha256": "0c577ae83b1f182dabf3b62e642a5bd5f0f8708b48e1806d8c653b691d2ec952"
+    },
+    {
+      "path": "package/source_snapshot/current_shared_scheduler/ops/run_v35_macos_scheduler_daemon.py",
+      "bytes": 34320,
+      "sha256": "19e071da0c6b6748465853c4ad86a80d6060524333e9dab21647b67adc8b49ec"
+    },
+    {
+      "path": "package/source_snapshot/hk02_updater_actual/scripts/update_hk_0_2_panel.py",
+      "bytes": 1345,
+      "sha256": "45d31c1e6608d1a9af163ffd56ea111d5caeb40000c58cd140534cf81859634e"
+    },
+    {
+      "path": "package/source_snapshot/hk02_updater_actual/shared_data/hk_0_2.py",
+      "bytes": 57090,
+      "sha256": "45a5091cb26800b7ccf8d7c3c75b680e951d492ac8ceb5f30b80a1ff9a6eebac"
+    },
+    {
+      "path": "package/source_snapshot/hk02_updater_actual/shared_data/store.py",
+      "bytes": 27895,
+      "sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16"
+    },
+    {
+      "path": "package/source_snapshot/hk_child_conflict/ops/_macos_research_panel_daily_parts/_namespace.py",
+      "bytes": 527,
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1"
+    },
+    {
+      "path": "package/source_snapshot/hk_child_conflict/ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "bytes": 14219,
+      "sha256": "d3db5b9644bbf2fb1f4e245717907862ebe1cee2d0f650a8d45d732fd4a71940"
+    },
+    {
+      "path": "package/source_snapshot/hk_child_conflict/ops/ensure_hk_security_master.py",
+      "bytes": 41556,
+      "sha256": "6c341a33c0283b023219c46cc2a1c6aaca49cf4b5dcb88aa2fb5527a13145601"
+    },
+    {
+      "path": "package/source_snapshot/hk_child_conflict/ops/macos_research_panel_daily.py",
+      "bytes": 97708,
+      "sha256": "07aa9770c6ae0bb0cfd012e57843a37fedda6724a57cd52d7c339d854fc6609b"
+    },
+    {
+      "path": "package/source_snapshot/issue30_release_policy/ops/api_release_integration.py",
+      "bytes": 57781,
+      "sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050"
+    },
+    {
+      "path": "package/source_snapshot/issue32_protected/apps/api/v35_api/app.py",
+      "bytes": 324648,
+      "sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5"
+    },
+    {
+      "path": "package/source_snapshot/issue32_protected/apps/api/v35_api/preselection_router.py",
+      "bytes": 1322,
+      "sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae"
+    },
+    {
+      "path": "package/source_snapshot/issue32_protected/apps/api/v35_api/preselection_service.py",
+      "bytes": 30761,
+      "sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044"
+    },
+    {
+      "path": "package/source_snapshot/previous_bound_announcement_worker_20260928/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "bytes": 25925,
+      "sha256": "fd41e7ae1ba82429fb75364d42e96c435aa5855fb471c4fb55a0d38c962aa22a"
+    },
+    {
+      "path": "package/source_snapshot/previous_bound_announcement_worker_20260928/ops/render_manager_announcement_binding.py",
+      "bytes": 3058,
+      "sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a"
+    },
+    {
+      "path": "package/source_snapshot/previous_bound_announcement_worker_20260928/ops/run_manager_announcement_cycle.py",
+      "bytes": 15488,
+      "sha256": "d3e5a0b3ebdbe1edc1b2ee8262abcd57a2e2e7d72ffc74ce521e04a5b13faec6"
+    }
+  ],
+  "boundary": "Read-only validation of package/evidence snapshots; no business code, live configuration, state, service, scheduler, automation, network or Git action.",
+  "metadata_refresh": {
+    "refreshed_at_local": "2026-10-09T11:16:51+08:00",
+    "scope": [
+      "package/CHAT_TASK.md",
+      "package/acceptance.json"
+    ],
+    "updated_file_identities": {
+      "package/CHAT_TASK.md": {
+        "path": "package/CHAT_TASK.md",
+        "bytes": 6797,
+        "sha256": "2f60c6cfbde6982457c7f64fd45706ebbc931ad851bd77f8a26027a6b00a06ec"
+      },
+      "package/acceptance.json": {
+        "path": "package/acceptance.json",
+        "bytes": 3026,
+        "sha256": "6298ffe5bb5f0cfcf3d9d5c64fdfcb817019e5e0e3469cb30c27293b817d7aee"
+      }
+    },
+    "targeted_checks": {
+      "acceptance_json_parse": true,
+      "date_specific_readback_contract": true,
+      "missing_input_and_valid_empty_contract": true,
+      "synthetic_fixture_vs_mac_acceptance_boundary": true,
+      "synthetic_fixture_instructions_match_date_specific_contract": true
+    },
+    "prior_packaging_checks_reused": [
+      "source_and_snapshot_bytes_sha256",
+      "issue32_protected_shas",
+      "research_only_flags",
+      "high_confidence_secret_scan"
+    ],
+    "business_checks_rerun": false,
+    "note": "Only package contract wording and matching acceptance metadata were revised. No live API reads, owner calls, product generation, or business behavior tests were rerun."
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "schema_version": "v4.manager_daily_failure_r3.root_cause_matrix.v1",
+  "target_dates": {
+    "catch_up": "20261008",
+    "current_day": "20261009"
+  },
+  "items": [
+    {
+      "id": "plan_owner_binding_identity_mismatch",
+      "classification": "CONFIRMED_CONFIGURATION_MISMATCH; ACTUAL_DISPATCH_CAUSALITY_CANNOT_CONFIRM",
+      "finding": "The current scheduler has an enabled plan-only binding and a due-capable plan refresh branch. The running API separately pins a disabled plan-owner binding from an older app root. Their binding SHA values and app_root identities differ. Static code shows the worker sends its binding SHA to the API and the API compares it with its own pinned file before validating app_root and enabled. If the scheduled request reaches this API, the first predicted gate is PLAN_OWNER_BINDING_SHA_MISMATCH.",
+      "evidence": [
+        "../evidence/runtime_identity.json",
+        "source_snapshot/current_shared_scheduler/ops/run_v35_macos_scheduler_daemon.py",
+        "source_snapshot/current_bound_announcement_worker_20261006/ops/run_manager_announcement_cycle.py",
+        "source_snapshot/current_bound_announcement_worker_20261006/infrastructure/scheduling/manager_announcement_supervisor.py",
+        "source_snapshot/current_bound_announcement_worker_20261006/v4/manager_research/plan_owner_dispatch.py",
+        "source_snapshot/current_api_manager/v4/manager_research/plan_owner_dispatch.py"
+      ],
+      "actual_dispatch_receipt": "CANNOT_CONFIRM",
+      "boundary": "No POST, cycle invocation, owner state read or dispatch receipt was performed. The activation canary has hook_executed=false and is not a 10/9 scheduled-run receipt."
+    },
+    {
+      "id": "plan_not_materialized",
+      "classification": "VERIFIED_CURRENT_API_READBACK",
+      "finding": "Both sequential 11:00 CST GET responses are HTTP 200 with plan_product.status=NOT_MATERIALIZED and run_id=null; us_mapping_research.daily_run.status=NOT_RUN and run_id=null.",
+      "evidence": [
+        "../evidence/live_get_projection_20261009.json"
+      ],
+      "boundary": "This proves current response state only, not why the owner dispatch was or was not invoked."
+    },
+    {
+      "id": "announcement_not_imported",
+      "classification": "VERIFIED_API_STATUS; CONFIGURATION_CAUSE_CANNOT_CONFIRM",
+      "finding": "Both current GET projections show announcement stages NOT_RUN and reviewed-analysis products NOT_IMPORTED. The prior R2 input audit found no matching enabled 06:30 automation TOML, the historical automation-3 TOML path absent, and 10/8 capture PARTIAL with external identity DECLARED.",
+      "evidence": [
+        "../evidence/live_get_projection_20261009.json",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/input_audit/r2-input-identity-audit.json"
+      ],
+      "boundary": "Do not treat 10/8 Reader/Reviewer artifacts as a 10/9 imported result; current automation configuration remains CANNOT_CONFIRM."
+    },
+    {
+      "id": "us_mapping_source_vs_daily_product",
+      "classification": "VERIFIED_DISTINCT_LAYERS",
+      "finding": "The prior R2 input audit records successful 10/8 and 10/9 04:15 natural source capture by com.lexi.v4.us-market-digest, but the 11:00 workspace API still reports US daily mapping NOT_RUN with null run_id. Source capture does not establish mapping or plan materialization.",
+      "evidence": [
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/coordination/MAC_HANDOFF.md",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/input_audit/r2-input-identity-audit.json",
+        "../evidence/live_get_projection_20261009.json"
+      ],
+      "boundary": "Do not add a second collector or infer a selected stock from source capture."
+    },
+    {
+      "id": "oversold_market_screen",
+      "classification": "10_53_OPERATOR_OBSERVATION; EXACT_ERROR_NOT_RECONFIRMED_BY_11_00_PROJECTION",
+      "finding": "The user-supplied 10:53 CST observation reports SCREEN_SECURITY_MASTER_READ_FAILED:StoreError. The two 11:00 API reads show market_screen.status=CANNOT_CONFIRM, but this compact projection did not retain an exact error code.",
+      "evidence": [
+        "user observation in task brief at 2026-10-09 10:53 CST",
+        "../evidence/live_get_projection_20261009.json"
+      ],
+      "boundary": "Exact current error text and failure cause are CANNOT_CONFIRM."
+    },
+    {
+      "id": "hk_universe_v2",
+      "classification": "VERIFIED_CURRENT_API_DIAGNOSTIC",
+      "finding": "Both 11:00 projections include selection_diagnostics.membership.authority_diagnostic.code=HK_UNIVERSE_V2_ARTIFACT_MISSING. The HK planning pool being READY does not establish exact V2 universe membership or PIT eligibility.",
+      "evidence": [
+        "../evidence/live_get_projection_20261009.json",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/integration_audit/supplement_consumer_map.json"
+      ],
+      "boundary": "Do not bypass with old or full-market inputs; preserve HK date, D-1 Top100 and PIT boundary."
+    },
+    {
+      "id": "r1_r2_candidate_not_live",
+      "classification": "VERIFIED_SOURCE_PREIMAGE",
+      "finding": "The cumulative R1/R2 isolated candidate has an independent PASS for its frozen source and synthetic/local checks, while all 11 existing current API manager paths match their R1 before SHAs and the one R1 namespace addition is absent from that API root. The candidate is not integrated as the current manager behavior.",
+      "evidence": [
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/coordination/ISSUE32_BASELINE_UPDATE_20261009.json",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/review/independent_review.md",
+        "../package/source_manifest.json"
+      ],
+      "boundary": "Do not label R1/R2 candidate PASS as deployed or as manager output recovery."
+    }
+  ],
+  "overall": "The confirmed direct code/config mismatch blocks a scheduled plan-owner request if it reaches the current API. No task-specific dispatch receipt was read, so the exact event (not dispatched versus dispatched and rejected) remains CANNOT_CONFIRM."
+}

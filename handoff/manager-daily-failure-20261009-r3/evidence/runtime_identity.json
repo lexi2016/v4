@@ -1,0 +1,193 @@
+{
+  "schema_version": "v4.manager_daily_failure_r3.runtime_identity.v2",
+  "captured_at_cst": "2026-10-09T11:06:02.969+08:00",
+  "api_8873": {
+    "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+    "sha256": "c88e4069f6deb467a204b4510824e62b15cb8fc11dfa7892a43e5ec8eaed8ec4",
+    "label": "com.lexi.v35.api-only",
+    "working_directory": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+    "launcher": "/usr/bin/env",
+    "launch_policy": {
+      "RunAtLoad": false,
+      "KeepAlive": true
+    },
+    "allowlisted_runtime_values": {
+      "RESEARCH_ONLY": "1",
+      "production_allowed": "false",
+      "buy_gate_updated": "false",
+      "orders_sent": "false",
+      "V35_APP_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+      "V35_RELEASE_ID": "issue32_preselection_api_actual_r4",
+      "V35_RELEASE_MANIFEST_SHA256": "16675f6016d40e8a5eaf7b1e3e37694228364fae544e8a7b73e4bf17e1f5a9e6",
+      "V4_MANAGER_PLAN_OWNER_BINDING_PATH": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/staged_config/manager-plan-binding-c1.disabled.final-d1-r2.json"
+    },
+    "launchd_state": {
+      "pid": "78617",
+      "last_exit_code": "0"
+    },
+    "plan_owner_binding": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/staged_config/manager-plan-binding-c1.disabled.final-d1-r2.json",
+      "sha256": "f3b7cbfa1709b2b27816d294e599cb1ae82ff918ba41ec148644f1a1751f5fd6",
+      "bytes": 44097,
+      "allowlisted_fields": {
+        "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app",
+        "schema_version": "v4.manager_research.announcement_binding.v1",
+        "research_only": true,
+        "announcement_collection_enabled": false,
+        "policy": "BALANCED_V1",
+        "plan_material_refresh_only": false,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "policy_status": "PROPOSAL_ONLY",
+        "enabled": false,
+        "preopen_plan": {
+          "lead_seconds": 180,
+          "status": "PROPOSAL_ONLY",
+          "enabled": true
+        }
+      },
+      "plan_canary": null
+    }
+  },
+  "shared_scheduler": {
+    "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+    "sha256": "b9e9e8361e9ce6eaca58df0688fcd214bf35bdc702f5febe405d07c6ceb05754",
+    "label": "com.lexi.v35.scheduler",
+    "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app",
+    "launcher": "/bin/bash",
+    "launch_policy": {
+      "RunAtLoad": true,
+      "KeepAlive": true
+    },
+    "allowlisted_runtime_values": {
+      "V35_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app",
+      "V35_RESEARCH_PANEL_HK_CHILD_APP_ROOT": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app",
+      "V35_RESEARCH_PANEL_HK_UPDATER_SCRIPT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+      "V4_MANAGER_ANNOUNCEMENT_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app",
+      "V4_MANAGER_ANNOUNCEMENT_BINDING": "/Users/lexi/Desktop/学习/agents调试/MANAGER_DAILY_CHAIN_FIX_20260928/staged_config/manager-daily-plan-hook-r1/manager-plan-binding-r2.json",
+      "V4_MANAGER_ANNOUNCEMENT_CYCLE_SHA256": "cd91604a7f7d7f2f960bbbd337fcd453bf97bb298c14f0a7fb8804fdcbaf0a84",
+      "V4_MANAGER_ANNOUNCEMENT_PLAN_CANARY_SHA256": "f891e74f2bbfed928f36479b0cbea57ab5fdcf2ab4882f9977f82654bfcbba81",
+      "V4_MANAGER_ANNOUNCEMENT_PYTHON": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "V4_MANAGER_ANNOUNCEMENT_PYTHON_SHA256": "839b22560e27f02d716009a2d6bcd377cb6197ff70888787e3097919120e32aa"
+    },
+    "launchd_state": {
+      "pid": "83677",
+      "last_exit_code": "0"
+    },
+    "announcement_plan_binding": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_DAILY_CHAIN_FIX_20260928/staged_config/manager-daily-plan-hook-r1/manager-plan-binding-r2.json",
+      "sha256": "c0fbff52449eb5dbf5c1655f17cf08915bea1214f9499cc8a4df1176d9625951",
+      "bytes": 30715,
+      "allowlisted_fields": {
+        "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app",
+        "schema_version": "v4.manager_research.announcement_binding.v1",
+        "research_only": true,
+        "announcement_collection_enabled": false,
+        "policy": "BALANCED_V1",
+        "plan_material_refresh_only": true,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "policy_status": "PROPOSAL_ONLY",
+        "enabled": true,
+        "plan_material_refresh": {
+          "start_local": "16:00",
+          "retry_backoff_seconds": 600,
+          "max_attempts_per_target_date": 3,
+          "status": "PROPOSAL_ONLY",
+          "end_local": "23:00",
+          "enabled": true
+        },
+        "preopen_plan": {
+          "lead_seconds": 180,
+          "status": "PROPOSAL_ONLY",
+          "enabled": true
+        }
+      },
+      "plan_canary": {
+        "sha256": "f891e74f2bbfed928f36479b0cbea57ab5fdcf2ab4882f9977f82654bfcbba81",
+        "bytes": 2359,
+        "pinned_sha_matches": true,
+        "allowlisted_fields": {
+          "schema_version": "manager_daily_chain.plan_refresh_owner_evidence.v2",
+          "hook_executed": false,
+          "execution_mode": "HISTORICAL_MANUAL_REFRESH_OWNER_HTTP_READBACK",
+          "research_only": true,
+          "announcement_collection_enabled": false,
+          "plan_material_refresh_only": true,
+          "production_allowed": false,
+          "buy_gate_updated": false,
+          "orders_sent": false,
+          "announcement_network_requests": 0,
+          "status": "PASS_OWNER_READBACK_EVIDENCE_FOR_PLAN_BINDING"
+        }
+      }
+    },
+    "announcement_worker_source_identity": {
+      "cycle": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app/ops/run_manager_announcement_cycle.py",
+        "exists": true,
+        "sha256": "cd91604a7f7d7f2f960bbbd337fcd453bf97bb298c14f0a7fb8804fdcbaf0a84",
+        "bytes": 18829
+      },
+      "supervisor": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app/infrastructure/scheduling/manager_announcement_supervisor.py",
+        "exists": true,
+        "sha256": "fd41e7ae1ba82429fb75364d42e96c435aa5855fb471c4fb55a0d38c962aa22a",
+        "bytes": 25925
+      },
+      "worker_dispatch_client": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app/v4/manager_research/plan_owner_dispatch.py",
+        "exists": true,
+        "sha256": "f4ddb61e341aa48f24aad62e9d0aa7bf2c9a0fc3d07bfae7ec285f78f1467fe3",
+        "bytes": 7169
+      }
+    },
+    "scheduler_dispatch_source_identity": {
+      "daemon": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app/ops/run_v35_macos_scheduler_daemon.py",
+        "exists": true,
+        "sha256": "19e071da0c6b6748465853c4ad86a80d6060524333e9dab21647b67adc8b49ec",
+        "bytes": 34320
+      },
+      "launcher": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app/ops/launch_v35_macos_scheduler.sh",
+        "exists": true,
+        "sha256": "0c577ae83b1f182dabf3b62e642a5bd5f0f8708b48e1806d8c653b691d2ec952",
+        "bytes": 3982
+      }
+    }
+  },
+  "binding_identity_comparison": {
+    "scheduler_binding_sha_equals_api_plan_owner_binding_sha": false,
+    "scheduler_binding_app_root_equals_current_api_root": false,
+    "api_plan_owner_binding_app_root_equals_current_api_root": false,
+    "scheduler_binding_app_root_equals_bound_worker_root": true,
+    "scheduler_cycle_sha_pin_matches_bound_worker_file": true
+  },
+  "static_dispatch_path": {
+    "scheduler_daemon": "ops/run_v35_macos_scheduler_daemon.py::_load_announcement_binding validates the current bound scheduler JSON; in plan-only mode it requires enabled=true and plan_material_refresh.enabled=true, then creates the bound cycle child.",
+    "bound_cycle": "ops/run_manager_announcement_cycle.py calls request_bound_plan_cycle(args.binding, plan_target) when the plan-only target is due; otherwise it returns NOT_DUE. This task did not invoke the cycle.",
+    "api_owner": "v4/manager_research/plan_owner_dispatch.py::execute_bound_plan_cycle loads V4_MANAGER_PLAN_OWNER_BINDING_PATH, compares its SHA with the request binding_sha256, validates it against the running API APP_ROOT, then checks enabled.",
+    "predicted_first_gate_if_request_arrives": "PLAN_OWNER_BINDING_SHA_MISMATCH because the current scheduler binding and API owner binding SHA differ. This is a static code/config inference, not an observed dispatch error.",
+    "later_config_gates_if_sha_were_aligned": "API owner binding app_root is not the current API root and enabled=false; neither gate was exercised in this read-only package task."
+  },
+  "owner_dispatch_observation": {
+    "specific_manager_daily_dispatch_receipt": "CANNOT_CONFIRM",
+    "reason": "No owner-specific dispatch receipt was read; launchd state proves only that the scheduler/API processes were running."
+  },
+  "historical_automation_pointer": {
+    "automation_id": "automation-3",
+    "current_exact_toml_path": "/Users/lexi/.codex/automations/automation-3/automation.toml",
+    "exists": false,
+    "basis": "R2 input audit; current configuration and enabled state remain CANNOT_CONFIRM."
+  },
+  "safety_flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "capture_limits": "Only exact plist hashes, selected non-sensitive runtime values, launchd pid/exit codes, selected binding/canary fields, and source identities are included. Full plist, automation prompt, credentials, process environment, and plan/state data are not copied."
+}

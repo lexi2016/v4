@@ -1,0 +1,379 @@
+{
+  "schema_version": "v4.manager_daily_failure_r3.live_get_projection.v1",
+  "captured_at_cst": "2026-10-09T11:00:04.236+08:00",
+  "source": "127.0.0.1:8873; two sequential GET requests; response bodies not persisted",
+  "requests": [
+    {
+      "query": "date=20261009&selection_date=20261008&announcement_date=20261007&view=auto",
+      "request_started_at_cst": "2026-10-09T11:00:03.314+08:00",
+      "method": "GET",
+      "http_status": 200,
+      "response_completed_at_cst": "2026-10-09T11:00:03.732+08:00",
+      "response_bytes": 7617251,
+      "response_sha256": "8a1580c5fc68bd00ab2a0fea00e5b2a528af502fdef2ba95f34f6d072b3292c8",
+      "projection": {
+        "selected": {
+          "plan_product": {
+            "status": "NOT_MATERIALIZED",
+            "run_id": null,
+            "generated_at": null
+          },
+          "us_mapping_research.daily_run": {
+            "status": "NOT_RUN",
+            "run_id": null,
+            "generated_at": null,
+            "research_cutoff": null
+          },
+          "announcement_review": {
+            "status": "NOT_RUN"
+          },
+          "announcement_observation": {
+            "status": "NOT_RUN"
+          },
+          "owner_chain.announcements": {
+            "status": "NOT_RUN"
+          },
+          "owner_chain.announcement_selection": {
+            "status": "CANNOT_CONFIRM"
+          },
+          "owner_chain.us_mapping_daily_plan_reference": {
+            "status": "NOT_RUN",
+            "run_id": null
+          },
+          "market_screen": {
+            "status": "CANNOT_CONFIRM"
+          },
+          "selection_diagnostics": {
+            "status": "PARTIAL"
+          },
+          "date_bindings": {
+            "selection_date": "20261008",
+            "announcement_date": "20261007",
+            "plan_date": "20261009"
+          },
+          "planning_close_recapture_evidence": {
+            "status": "READY"
+          }
+        },
+        "additional_status_fields": [
+          {
+            "path": "lanes[].execution_timing.source_execution_evidence.markets.HK_CONNECT.status",
+            "value": "CANNOT_CONFIRM"
+          },
+          {
+            "path": "planning_close_recapture_evidence.status",
+            "value": "READY"
+          },
+          {
+            "path": "planning_close_recapture_evidence.pool.run_id",
+            "value": "20261008-hk-connect-d1-top100-0-2-8a0386afb66b"
+          },
+          {
+            "path": "market_screen.status",
+            "value": "CANNOT_CONFIRM"
+          },
+          {
+            "path": "market_screen.data_context.research_cutoff",
+            "value": "2026-10-09T11:00:03.317743+08:00"
+          },
+          {
+            "path": "stage_read_timing.source_execution_evidence.markets.HK_CONNECT.status",
+            "value": "CANNOT_CONFIRM"
+          },
+          {
+            "path": "market_screen_evidence.status",
+            "value": "CANNOT_CONFIRM"
+          },
+          {
+            "path": "market_screen_evidence.data_context.research_cutoff",
+            "value": "2026-10-09T11:00:03.317743+08:00"
+          },
+          {
+            "path": "owner_chain.announcement_selection.status",
+            "value": "CANNOT_CONFIRM"
+          },
+          {
+            "path": "owner_chain.announcement_selection.reviewed_analysis.status",
+            "value": "PARTIAL"
+          },
+          {
+            "path": "owner_chain.announcement_selection.reviewed_analysis.products[].status",
+            "value": "NOT_IMPORTED"
+          },
+          {
+            "path": "owner_chain.announcements.status",
+            "value": "NOT_RUN"
+          },
+          {
+            "path": "owner_chain.announcements.official_hkex.status",
+            "value": "NOT_RUN"
+          },
+          {
+            "path": "owner_chain.announcements.eastmoney_hk.status",
+            "value": "NOT_RUN"
+          },
+          {
+            "path": "announcement_review.status",
+            "value": "NOT_RUN"
+          },
+          {
+            "path": "announcement_observation.research_cutoff",
+            "value": "2026-10-09T11:00:03.317743+08:00"
+          },
+          {
+            "path": "announcement_observation.status",
+            "value": "NOT_RUN"
+          },
+          {
+            "path": "research_attention.input_diagnostics.scope.announcements.status",
+            "value": "CANNOT_CONFIRM"
+          },
+          {
+            "path": "research_attention.input_diagnostics.scope.announcements.formal_selection.status",
+            "value": "CANNOT_CONFIRM"
+          },
+          {
+            "path": "research_attention.input_diagnostics.scope.announcements.formal_selection.calendar.status",
+            "value": "APPLICABLE"
+          },
+          {
+            "path": "research_attention.input_diagnostics.official_announcements.status",
+            "value": "NOT_RUN"
+          },
+          {
+            "path": "selection_diagnostics.status",
+            "value": "PARTIAL"
+          },
+          {
+            "path": "selection_diagnostics.formal_selection.status",
+            "value": "CANNOT_CONFIRM"
+          },
+          {
+            "path": "selection_diagnostics.formal_selection.calendar.status",
+            "value": "APPLICABLE"
+          },
+          {
+            "path": "selection_diagnostics.membership.status",
+            "value": "CANNOT_CONFIRM"
+          },
+          {
+            "path": "selection_diagnostics.membership.calendar_applicability.status",
+            "value": "APPLICABLE"
+          },
+          {
+            "path": "selection_diagnostics.membership.authority_diagnostic.code",
+            "value": "HK_UNIVERSE_V2_ARTIFACT_MISSING"
+          },
+          {
+            "path": "announcement_reviewed_analysis.status",
+            "value": "PARTIAL"
+          },
+          {
+            "path": "announcement_reviewed_analysis.products[].status",
+            "value": "NOT_IMPORTED"
+          },
+          {
+            "path": "us_mapping_research.daily_run.status",
+            "value": "NOT_RUN"
+          },
+          {
+            "path": "plan_product.status",
+            "value": "NOT_MATERIALIZED"
+          }
+        ],
+        "research_only_flags": {
+          "RESEARCH_ONLY": true,
+          "production_allowed": false,
+          "buy_gate_updated": false,
+          "orders_sent": false
+        }
+      }
+    },
+    {
+      "query": "date=20261009&selection_date=20261009&announcement_date=20261008&view=auto",
+      "request_started_at_cst": "2026-10-09T11:00:03.779+08:00",
+      "method": "GET",
+      "http_status": 200,
+      "response_completed_at_cst": "2026-10-09T11:00:04.187+08:00",
+      "response_bytes": 7617254,
+      "response_sha256": "acf24ed6bf70333dc7ac456f1d104f73e1d2a2768fb3693c7a3976d1398ac9dc",
+      "projection": {
+        "selected": {
+          "plan_product": {
+            "status": "NOT_MATERIALIZED",
+            "run_id": null,
+            "generated_at": null
+          },
+          "us_mapping_research.daily_run": {
+            "status": "NOT_RUN",
+            "run_id": null,
+            "generated_at": null,
+            "research_cutoff": null
+          },
+          "announcement_review": {
+            "status": "NOT_RUN"
+          },
+          "announcement_observation": {
+            "status": "NOT_RUN"
+          },
+          "owner_chain.announcements": {
+            "status": "NOT_RUN"
+          },
+          "owner_chain.announcement_selection": {
+            "status": "CANNOT_CONFIRM"
+          },
+          "owner_chain.us_mapping_daily_plan_reference": {
+            "status": "NOT_RUN",
+            "run_id": null
+          },
+          "market_screen": {
+            "status": "CANNOT_CONFIRM"
+          },
+          "selection_diagnostics": {
+            "status": "PARTIAL"
+          },
+          "date_bindings": {
+            "selection_date": "20261009",
+            "announcement_date": "20261008",
+            "plan_date": "20261009"
+          },
+          "planning_close_recapture_evidence": {
+            "status": "READY"
+          }
+        },
+        "additional_status_fields": [
+          {
+            "path": "lanes[].execution_timing.source_execution_evidence.markets.HK_CONNECT.status",
+            "value": "CANNOT_CONFIRM"
+          },
+          {
+            "path": "planning_close_recapture_evidence.status",
+            "value": "READY"
+          },
+          {
+            "path": "planning_close_recapture_evidence.pool.run_id",
+            "value": "20261008-hk-connect-d1-top100-0-2-8a0386afb66b"
+          },
+          {
+            "path": "market_screen.status",
+            "value": "CANNOT_CONFIRM"
+          },
+          {
+            "path": "market_screen.data_context.research_cutoff",
+            "value": "2026-10-09T11:00:03.780566+08:00"
+          },
+          {
+            "path": "stage_read_timing.source_execution_evidence.markets.HK_CONNECT.status",
+            "value": "CANNOT_CONFIRM"
+          },
+          {
+            "path": "market_screen_evidence.status",
+            "value": "CANNOT_CONFIRM"
+          },
+          {
+            "path": "market_screen_evidence.data_context.research_cutoff",
+            "value": "2026-10-09T11:00:03.780566+08:00"
+          },
+          {
+            "path": "owner_chain.announcement_selection.status",
+            "value": "CANNOT_CONFIRM"
+          },
+          {
+            "path": "owner_chain.announcement_selection.reviewed_analysis.status",
+            "value": "PARTIAL"
+          },
+          {
+            "path": "owner_chain.announcement_selection.reviewed_analysis.products[].status",
+            "value": "NOT_IMPORTED"
+          },
+          {
+            "path": "owner_chain.announcements.status",
+            "value": "NOT_RUN"
+          },
+          {
+            "path": "owner_chain.announcements.official_hkex.status",
+            "value": "NOT_RUN"
+          },
+          {
+            "path": "owner_chain.announcements.eastmoney_hk.status",
+            "value": "NOT_RUN"
+          },
+          {
+            "path": "announcement_review.status",
+            "value": "NOT_RUN"
+          },
+          {
+            "path": "announcement_observation.research_cutoff",
+            "value": "2026-10-09T11:00:03.780566+08:00"
+          },
+          {
+            "path": "announcement_observation.status",
+            "value": "NOT_RUN"
+          },
+          {
+            "path": "research_attention.input_diagnostics.scope.announcements.status",
+            "value": "CANNOT_CONFIRM"
+          },
+          {
+            "path": "research_attention.input_diagnostics.scope.announcements.formal_selection.status",
+            "value": "CANNOT_CONFIRM"
+          },
+          {
+            "path": "research_attention.input_diagnostics.scope.announcements.formal_selection.calendar.status",
+            "value": "APPLICABLE"
+          },
+          {
+            "path": "research_attention.input_diagnostics.official_announcements.status",
+            "value": "NOT_RUN"
+          },
+          {
+            "path": "selection_diagnostics.status",
+            "value": "PARTIAL"
+          },
+          {
+            "path": "selection_diagnostics.formal_selection.status",
+            "value": "CANNOT_CONFIRM"
+          },
+          {
+            "path": "selection_diagnostics.formal_selection.calendar.status",
+            "value": "APPLICABLE"
+          },
+          {
+            "path": "selection_diagnostics.membership.status",
+            "value": "CANNOT_CONFIRM"
+          },
+          {
+            "path": "selection_diagnostics.membership.calendar_applicability.status",
+            "value": "APPLICABLE"
+          },
+          {
+            "path": "selection_diagnostics.membership.authority_diagnostic.code",
+            "value": "HK_UNIVERSE_V2_ARTIFACT_MISSING"
+          },
+          {
+            "path": "announcement_reviewed_analysis.status",
+            "value": "PARTIAL"
+          },
+          {
+            "path": "announcement_reviewed_analysis.products[].status",
+            "value": "NOT_IMPORTED"
+          },
+          {
+            "path": "us_mapping_research.daily_run.status",
+            "value": "NOT_RUN"
+          },
+          {
+            "path": "plan_product.status",
+            "value": "NOT_MATERIALIZED"
+          }
+        ],
+        "research_only_flags": {
+          "RESEARCH_ONLY": true,
+          "production_allowed": false,
+          "buy_gate_updated": false,
+          "orders_sent": false
+        }
+      }
+    }
+  ]
+}

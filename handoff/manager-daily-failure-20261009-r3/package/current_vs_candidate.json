@@ -1,0 +1,638 @@
+{
+  "schema_version": "v4.manager_daily_failure_r3.current_vs_candidate.v1",
+  "observed_at_cst": "2026-10-09T11:06:02.969+08:00",
+  "current_api": {
+    "service_label": "com.lexi.v35.api-only",
+    "pid": "78617",
+    "release_id": "issue32_preselection_api_actual_r4",
+    "configured_app_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+    "release_manifest_sha256": "16675f6016d40e8a5eaf7b1e3e37694228364fae544e8a7b73e4bf17e1f5a9e6",
+    "plist_sha256": "c88e4069f6deb467a204b4510824e62b15cb8fc11dfa7892a43e5ec8eaed8ec4",
+    "manager_preimage_paths": [
+      {
+        "path": "apps/api/v35_api/manager_research_router.py",
+        "sha256": "84f65a351e1e44171820cb8698e4198b3084e39b8d0cfe82c6b4bc05595f8073",
+        "bytes": 26922,
+        "status": "MATCH_EXPECTED",
+        "expected_r1_before_sha256": "84f65a351e1e44171820cb8698e4198b3084e39b8d0cfe82c6b4bc05595f8073"
+      },
+      {
+        "path": "infrastructure/_research_peripheral_store_parts/_namespace.py",
+        "sha256": null,
+        "bytes": null,
+        "status": "MISSING_IN_SOURCE_ROOT",
+        "expected_r1_before_sha256": null
+      },
+      {
+        "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+        "sha256": "73eb6a2f7cbf2e2307a87edc3013e355c331f2ce87e6e0ae693b9f78de2dd34a",
+        "bytes": 28502,
+        "status": "MATCH_EXPECTED",
+        "expected_r1_before_sha256": "73eb6a2f7cbf2e2307a87edc3013e355c331f2ce87e6e0ae693b9f78de2dd34a"
+      },
+      {
+        "path": "ops/render_manager_announcement_binding.py",
+        "sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a",
+        "bytes": 3058,
+        "status": "MATCH_EXPECTED",
+        "expected_r1_before_sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a"
+      },
+      {
+        "path": "ops/run_manager_announcement_cycle.py",
+        "sha256": "c6f9cfa57515682b4f076e10f2030196dc9377bdbb9ec4abe737e36d15485c1c",
+        "bytes": 25368,
+        "status": "MATCH_EXPECTED",
+        "expected_r1_before_sha256": "c6f9cfa57515682b4f076e10f2030196dc9377bdbb9ec4abe737e36d15485c1c"
+      },
+      {
+        "path": "v4/manager_research/plan_owner_dispatch.py",
+        "sha256": "8fad78ec64b1ff3ab80242fedc93dfcf7cbed25e6839821aab7f024ca297bf75",
+        "bytes": 26827,
+        "status": "MATCH_EXPECTED",
+        "expected_r1_before_sha256": "8fad78ec64b1ff3ab80242fedc93dfcf7cbed25e6839821aab7f024ca297bf75"
+      },
+      {
+        "path": "v4/manager_research/service.py",
+        "sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37",
+        "bytes": 93685,
+        "status": "MATCH_EXPECTED",
+        "expected_r1_before_sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37"
+      },
+      {
+        "path": "v4/manager_research/us_mapping_research.py",
+        "sha256": "297dc6f5950d3614437378c22e3157b6866823fbf25fd39cb47f112ffea40da7",
+        "bytes": 14052,
+        "status": "MATCH_EXPECTED",
+        "expected_r1_before_sha256": "297dc6f5950d3614437378c22e3157b6866823fbf25fd39cb47f112ffea40da7"
+      },
+      {
+        "path": "v4/manager_research/workspace.py",
+        "sha256": "183e3ebd0322883a8f8cef37c0244f424f16c63d3120245e263bb9585133dea3",
+        "bytes": 59319,
+        "status": "MATCH_EXPECTED",
+        "expected_r1_before_sha256": "183e3ebd0322883a8f8cef37c0244f424f16c63d3120245e263bb9585133dea3"
+      },
+      {
+        "path": "v4/manager_research/workspace_history.py",
+        "sha256": "da5e1223326631cc9070c3059ca606bac3840ef468ad5c06f2f3a51534f82ec1",
+        "bytes": 17474,
+        "status": "MATCH_EXPECTED",
+        "expected_r1_before_sha256": "da5e1223326631cc9070c3059ca606bac3840ef468ad5c06f2f3a51534f82ec1"
+      },
+      {
+        "path": "v4/manager_research/workspace_plan_autorun.py",
+        "sha256": "703bef8d9a04861c6cb4161880427126badd69eece234f9b53eaa5ae59d7c6ef",
+        "bytes": 11309,
+        "status": "MATCH_EXPECTED",
+        "expected_r1_before_sha256": "703bef8d9a04861c6cb4161880427126badd69eece234f9b53eaa5ae59d7c6ef"
+      },
+      {
+        "path": "v3_shared_data/shared_data/hk_daily_supplement.py",
+        "sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+        "bytes": 35128,
+        "status": "MATCH_EXPECTED",
+        "expected_r1_before_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c"
+      }
+    ],
+    "manager_preimages_present_matching": {
+      "recorded_paths": 12,
+      "present": 11,
+      "missing": 1,
+      "all_present_match_expected": true
+    },
+    "issue32_protected_paths": [
+      {
+        "path": "apps/api/v35_api/app.py",
+        "sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+        "bytes": 324648,
+        "preserve": true
+      },
+      {
+        "path": "apps/api/v35_api/preselection_router.py",
+        "sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+        "bytes": 1322,
+        "preserve": true
+      },
+      {
+        "path": "apps/api/v35_api/preselection_service.py",
+        "sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+        "bytes": 30761,
+        "preserve": true
+      }
+    ],
+    "module_loaded_identity": "CANNOT_CONFIRM; plist, launchd pid, configured root/manifest and on-disk file SHAs are available, but Python sys.modules was not introspected."
+  },
+  "current_scheduler": {
+    "service_label": "com.lexi.v35.scheduler",
+    "pid": "83677",
+    "plist_sha256": "b9e9e8361e9ce6eaca58df0688fcd214bf35bdc702f5febe405d07c6ceb05754",
+    "scheduler_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app",
+    "bound_worker_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app",
+    "scheduler_binding_sha256": "c0fbff52449eb5dbf5c1655f17cf08915bea1214f9499cc8a4df1176d9625951",
+    "scheduler_binding_fields": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app",
+      "schema_version": "v4.manager_research.announcement_binding.v1",
+      "research_only": true,
+      "announcement_collection_enabled": false,
+      "policy": "BALANCED_V1",
+      "plan_material_refresh_only": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false,
+      "policy_status": "PROPOSAL_ONLY",
+      "enabled": true,
+      "plan_material_refresh": {
+        "start_local": "16:00",
+        "retry_backoff_seconds": 600,
+        "max_attempts_per_target_date": 3,
+        "status": "PROPOSAL_ONLY",
+        "end_local": "23:00",
+        "enabled": true
+      },
+      "preopen_plan": {
+        "lead_seconds": 180,
+        "status": "PROPOSAL_ONLY",
+        "enabled": true
+      }
+    },
+    "plan_canary": {
+      "sha256": "f891e74f2bbfed928f36479b0cbea57ab5fdcf2ab4882f9977f82654bfcbba81",
+      "bytes": 2359,
+      "pinned_sha_matches": true,
+      "allowlisted_fields": {
+        "schema_version": "manager_daily_chain.plan_refresh_owner_evidence.v2",
+        "hook_executed": false,
+        "execution_mode": "HISTORICAL_MANUAL_REFRESH_OWNER_HTTP_READBACK",
+        "research_only": true,
+        "announcement_collection_enabled": false,
+        "plan_material_refresh_only": true,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "announcement_network_requests": 0,
+        "status": "PASS_OWNER_READBACK_EVIDENCE_FOR_PLAN_BINDING"
+      }
+    },
+    "source_identity": {
+      "daemon": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app/ops/run_v35_macos_scheduler_daemon.py",
+        "exists": true,
+        "sha256": "19e071da0c6b6748465853c4ad86a80d6060524333e9dab21647b67adc8b49ec",
+        "bytes": 34320
+      },
+      "launcher": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app/ops/launch_v35_macos_scheduler.sh",
+        "exists": true,
+        "sha256": "0c577ae83b1f182dabf3b62e642a5bd5f0f8708b48e1806d8c653b691d2ec952",
+        "bytes": 3982
+      },
+      "cycle": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app/ops/run_manager_announcement_cycle.py",
+        "exists": true,
+        "sha256": "cd91604a7f7d7f2f960bbbd337fcd453bf97bb298c14f0a7fb8804fdcbaf0a84",
+        "bytes": 18829
+      },
+      "supervisor": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app/infrastructure/scheduling/manager_announcement_supervisor.py",
+        "exists": true,
+        "sha256": "fd41e7ae1ba82429fb75364d42e96c435aa5855fb471c4fb55a0d38c962aa22a",
+        "bytes": 25925
+      },
+      "worker_dispatch_client": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app/v4/manager_research/plan_owner_dispatch.py",
+        "exists": true,
+        "sha256": "f4ddb61e341aa48f24aad62e9d0aa7bf2c9a0fc3d07bfae7ec285f78f1467fe3",
+        "bytes": 7169
+      }
+    },
+    "old_20260928_worker_root": "Historical source map only; superseded by the 2026-10-09 11:03 CST plist readback."
+  },
+  "plan_owner_binding_comparison": {
+    "api_owner_binding": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_DAILY_CHAIN_20261008/deployment/c1_plan_only/staged_config/manager-plan-binding-c1.disabled.final-d1-r2.json",
+      "sha256": "f3b7cbfa1709b2b27816d294e599cb1ae82ff918ba41ec148644f1a1751f5fd6",
+      "bytes": 44097,
+      "allowlisted_fields": {
+        "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-daily-chain-20261008-r2-api/app",
+        "schema_version": "v4.manager_research.announcement_binding.v1",
+        "research_only": true,
+        "announcement_collection_enabled": false,
+        "policy": "BALANCED_V1",
+        "plan_material_refresh_only": false,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "policy_status": "PROPOSAL_ONLY",
+        "enabled": false,
+        "preopen_plan": {
+          "lead_seconds": 180,
+          "status": "PROPOSAL_ONLY",
+          "enabled": true
+        }
+      },
+      "plan_canary": null
+    },
+    "identity_comparison": {
+      "scheduler_binding_sha_equals_api_plan_owner_binding_sha": false,
+      "scheduler_binding_app_root_equals_current_api_root": false,
+      "api_plan_owner_binding_app_root_equals_current_api_root": false,
+      "scheduler_binding_app_root_equals_bound_worker_root": true,
+      "scheduler_cycle_sha_pin_matches_bound_worker_file": true
+    },
+    "static_predicted_first_gate": "PLAN_OWNER_BINDING_SHA_MISMATCH because the current scheduler binding and API owner binding SHA differ. This is a static code/config inference, not an observed dispatch error.",
+    "actual_owner_dispatch_receipt": "CANNOT_CONFIRM"
+  },
+  "r1_r2_candidate": {
+    "r1_fixed_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+    "r2_fixed_commit": "6a2fa48faf1da0a7d0d1715b3a4a40f55249b64c",
+    "cumulative_mac_candidate_commit": "e4b4dfa3a85608f074c0dae34138033dae7c1c3f",
+    "new_shared_baseline_commit": "66bb05a2e12976775ccb997191ce943bae8cc9a5",
+    "independent_review": "PASS for frozen isolated API/web source and synthetic/local checks; no P0/P1; one P2 HK consumer behavior test limitation.",
+    "live_deployment": "NOT_ESTABLISHED; actual API root manager preimages remain R1 before state."
+  },
+  "live_get_projection": {
+    "schema_version": "v4.manager_daily_failure_r3.live_get_projection.v1",
+    "captured_at_cst": "2026-10-09T11:00:04.236+08:00",
+    "source": "127.0.0.1:8873; two sequential GET requests; response bodies not persisted",
+    "requests": [
+      {
+        "query": "date=20261009&selection_date=20261008&announcement_date=20261007&view=auto",
+        "request_started_at_cst": "2026-10-09T11:00:03.314+08:00",
+        "method": "GET",
+        "http_status": 200,
+        "response_completed_at_cst": "2026-10-09T11:00:03.732+08:00",
+        "response_bytes": 7617251,
+        "response_sha256": "8a1580c5fc68bd00ab2a0fea00e5b2a528af502fdef2ba95f34f6d072b3292c8",
+        "projection": {
+          "selected": {
+            "plan_product": {
+              "status": "NOT_MATERIALIZED",
+              "run_id": null,
+              "generated_at": null
+            },
+            "us_mapping_research.daily_run": {
+              "status": "NOT_RUN",
+              "run_id": null,
+              "generated_at": null,
+              "research_cutoff": null
+            },
+            "announcement_review": {
+              "status": "NOT_RUN"
+            },
+            "announcement_observation": {
+              "status": "NOT_RUN"
+            },
+            "owner_chain.announcements": {
+              "status": "NOT_RUN"
+            },
+            "owner_chain.announcement_selection": {
+              "status": "CANNOT_CONFIRM"
+            },
+            "owner_chain.us_mapping_daily_plan_reference": {
+              "status": "NOT_RUN",
+              "run_id": null
+            },
+            "market_screen": {
+              "status": "CANNOT_CONFIRM"
+            },
+            "selection_diagnostics": {
+              "status": "PARTIAL"
+            },
+            "date_bindings": {
+              "selection_date": "20261008",
+              "announcement_date": "20261007",
+              "plan_date": "20261009"
+            },
+            "planning_close_recapture_evidence": {
+              "status": "READY"
+            }
+          },
+          "additional_status_fields": [
+            {
+              "path": "lanes[].execution_timing.source_execution_evidence.markets.HK_CONNECT.status",
+              "value": "CANNOT_CONFIRM"
+            },
+            {
+              "path": "planning_close_recapture_evidence.status",
+              "value": "READY"
+            },
+            {
+              "path": "planning_close_recapture_evidence.pool.run_id",
+              "value": "20261008-hk-connect-d1-top100-0-2-8a0386afb66b"
+            },
+            {
+              "path": "market_screen.status",
+              "value": "CANNOT_CONFIRM"
+            },
+            {
+              "path": "market_screen.data_context.research_cutoff",
+              "value": "2026-10-09T11:00:03.317743+08:00"
+            },
+            {
+              "path": "stage_read_timing.source_execution_evidence.markets.HK_CONNECT.status",
+              "value": "CANNOT_CONFIRM"
+            },
+            {
+              "path": "market_screen_evidence.status",
+              "value": "CANNOT_CONFIRM"
+            },
+            {
+              "path": "market_screen_evidence.data_context.research_cutoff",
+              "value": "2026-10-09T11:00:03.317743+08:00"
+            },
+            {
+              "path": "owner_chain.announcement_selection.status",
+              "value": "CANNOT_CONFIRM"
+            },
+            {
+              "path": "owner_chain.announcement_selection.reviewed_analysis.status",
+              "value": "PARTIAL"
+            },
+            {
+              "path": "owner_chain.announcement_selection.reviewed_analysis.products[].status",
+              "value": "NOT_IMPORTED"
+            },
+            {
+              "path": "owner_chain.announcements.status",
+              "value": "NOT_RUN"
+            },
+            {
+              "path": "owner_chain.announcements.official_hkex.status",
+              "value": "NOT_RUN"
+            },
+            {
+              "path": "owner_chain.announcements.eastmoney_hk.status",
+              "value": "NOT_RUN"
+            },
+            {
+              "path": "announcement_review.status",
+              "value": "NOT_RUN"
+            },
+            {
+              "path": "announcement_observation.research_cutoff",
+              "value": "2026-10-09T11:00:03.317743+08:00"
+            },
+            {
+              "path": "announcement_observation.status",
+              "value": "NOT_RUN"
+            },
+            {
+              "path": "research_attention.input_diagnostics.scope.announcements.status",
+              "value": "CANNOT_CONFIRM"
+            },
+            {
+              "path": "research_attention.input_diagnostics.scope.announcements.formal_selection.status",
+              "value": "CANNOT_CONFIRM"
+            },
+            {
+              "path": "research_attention.input_diagnostics.scope.announcements.formal_selection.calendar.status",
+              "value": "APPLICABLE"
+            },
+            {
+              "path": "research_attention.input_diagnostics.official_announcements.status",
+              "value": "NOT_RUN"
+            },
+            {
+              "path": "selection_diagnostics.status",
+              "value": "PARTIAL"
+            },
+            {
+              "path": "selection_diagnostics.formal_selection.status",
+              "value": "CANNOT_CONFIRM"
+            },
+            {
+              "path": "selection_diagnostics.formal_selection.calendar.status",
+              "value": "APPLICABLE"
+            },
+            {
+              "path": "selection_diagnostics.membership.status",
+              "value": "CANNOT_CONFIRM"
+            },
+            {
+              "path": "selection_diagnostics.membership.calendar_applicability.status",
+              "value": "APPLICABLE"
+            },
+            {
+              "path": "selection_diagnostics.membership.authority_diagnostic.code",
+              "value": "HK_UNIVERSE_V2_ARTIFACT_MISSING"
+            },
+            {
+              "path": "announcement_reviewed_analysis.status",
+              "value": "PARTIAL"
+            },
+            {
+              "path": "announcement_reviewed_analysis.products[].status",
+              "value": "NOT_IMPORTED"
+            },
+            {
+              "path": "us_mapping_research.daily_run.status",
+              "value": "NOT_RUN"
+            },
+            {
+              "path": "plan_product.status",
+              "value": "NOT_MATERIALIZED"
+            }
+          ],
+          "research_only_flags": {
+            "RESEARCH_ONLY": true,
+            "production_allowed": false,
+            "buy_gate_updated": false,
+            "orders_sent": false
+          }
+        }
+      },
+      {
+        "query": "date=20261009&selection_date=20261009&announcement_date=20261008&view=auto",
+        "request_started_at_cst": "2026-10-09T11:00:03.779+08:00",
+        "method": "GET",
+        "http_status": 200,
+        "response_completed_at_cst": "2026-10-09T11:00:04.187+08:00",
+        "response_bytes": 7617254,
+        "response_sha256": "acf24ed6bf70333dc7ac456f1d104f73e1d2a2768fb3693c7a3976d1398ac9dc",
+        "projection": {
+          "selected": {
+            "plan_product": {
+              "status": "NOT_MATERIALIZED",
+              "run_id": null,
+              "generated_at": null
+            },
+            "us_mapping_research.daily_run": {
+              "status": "NOT_RUN",
+              "run_id": null,
+              "generated_at": null,
+              "research_cutoff": null
+            },
+            "announcement_review": {
+              "status": "NOT_RUN"
+            },
+            "announcement_observation": {
+              "status": "NOT_RUN"
+            },
+            "owner_chain.announcements": {
+              "status": "NOT_RUN"
+            },
+            "owner_chain.announcement_selection": {
+              "status": "CANNOT_CONFIRM"
+            },
+            "owner_chain.us_mapping_daily_plan_reference": {
+              "status": "NOT_RUN",
+              "run_id": null
+            },
+            "market_screen": {
+              "status": "CANNOT_CONFIRM"
+            },
+            "selection_diagnostics": {
+              "status": "PARTIAL"
+            },
+            "date_bindings": {
+              "selection_date": "20261009",
+              "announcement_date": "20261008",
+              "plan_date": "20261009"
+            },
+            "planning_close_recapture_evidence": {
+              "status": "READY"
+            }
+          },
+          "additional_status_fields": [
+            {
+              "path": "lanes[].execution_timing.source_execution_evidence.markets.HK_CONNECT.status",
+              "value": "CANNOT_CONFIRM"
+            },
+            {
+              "path": "planning_close_recapture_evidence.status",
+              "value": "READY"
+            },
+            {
+              "path": "planning_close_recapture_evidence.pool.run_id",
+              "value": "20261008-hk-connect-d1-top100-0-2-8a0386afb66b"
+            },
+            {
+              "path": "market_screen.status",
+              "value": "CANNOT_CONFIRM"
+            },
+            {
+              "path": "market_screen.data_context.research_cutoff",
+              "value": "2026-10-09T11:00:03.780566+08:00"
+            },
+            {
+              "path": "stage_read_timing.source_execution_evidence.markets.HK_CONNECT.status",
+              "value": "CANNOT_CONFIRM"
+            },
+            {
+              "path": "market_screen_evidence.status",
+              "value": "CANNOT_CONFIRM"
+            },
+            {
+              "path": "market_screen_evidence.data_context.research_cutoff",
+              "value": "2026-10-09T11:00:03.780566+08:00"
+            },
+            {
+              "path": "owner_chain.announcement_selection.status",
+              "value": "CANNOT_CONFIRM"
+            },
+            {
+              "path": "owner_chain.announcement_selection.reviewed_analysis.status",
+              "value": "PARTIAL"
+            },
+            {
+              "path": "owner_chain.announcement_selection.reviewed_analysis.products[].status",
+              "value": "NOT_IMPORTED"
+            },
+            {
+              "path": "owner_chain.announcements.status",
+              "value": "NOT_RUN"
+            },
+            {
+              "path": "owner_chain.announcements.official_hkex.status",
+              "value": "NOT_RUN"
+            },
+            {
+              "path": "owner_chain.announcements.eastmoney_hk.status",
+              "value": "NOT_RUN"
+            },
+            {
+              "path": "announcement_review.status",
+              "value": "NOT_RUN"
+            },
+            {
+              "path": "announcement_observation.research_cutoff",
+              "value": "2026-10-09T11:00:03.780566+08:00"
+            },
+            {
+              "path": "announcement_observation.status",
+              "value": "NOT_RUN"
+            },
+            {
+              "path": "research_attention.input_diagnostics.scope.announcements.status",
+              "value": "CANNOT_CONFIRM"
+            },
+            {
+              "path": "research_attention.input_diagnostics.scope.announcements.formal_selection.status",
+              "value": "CANNOT_CONFIRM"
+            },
+            {
+              "path": "research_attention.input_diagnostics.scope.announcements.formal_selection.calendar.status",
+              "value": "APPLICABLE"
+            },
+            {
+              "path": "research_attention.input_diagnostics.official_announcements.status",
+              "value": "NOT_RUN"
+            },
+            {
+              "path": "selection_diagnostics.status",
+              "value": "PARTIAL"
+            },
+            {
+              "path": "selection_diagnostics.formal_selection.status",
+              "value": "CANNOT_CONFIRM"
+            },
+            {
+              "path": "selection_diagnostics.formal_selection.calendar.status",
+              "value": "APPLICABLE"
+            },
+            {
+              "path": "selection_diagnostics.membership.status",
+              "value": "CANNOT_CONFIRM"
+            },
+            {
+              "path": "selection_diagnostics.membership.calendar_applicability.status",
+              "value": "APPLICABLE"
+            },
+            {
+              "path": "selection_diagnostics.membership.authority_diagnostic.code",
+              "value": "HK_UNIVERSE_V2_ARTIFACT_MISSING"
+            },
+            {
+              "path": "announcement_reviewed_analysis.status",
+              "value": "PARTIAL"
+            },
+            {
+              "path": "announcement_reviewed_analysis.products[].status",
+              "value": "NOT_IMPORTED"
+            },
+            {
+              "path": "us_mapping_research.daily_run.status",
+              "value": "NOT_RUN"
+            },
+            {
+              "path": "plan_product.status",
+              "value": "NOT_MATERIALIZED"
+            }
+          ],
+          "research_only_flags": {
+            "RESEARCH_ONLY": true,
+            "production_allowed": false,
+            "buy_gate_updated": false,
+            "orders_sent": false
+          }
+        }
+      }
+    ]
+  },
+  "safety_flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

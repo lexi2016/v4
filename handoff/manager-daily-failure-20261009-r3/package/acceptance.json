@@ -1,0 +1,36 @@
+{
+  "schema_version": "v4.manager_daily_failure_r3.acceptance.v1",
+  "package_state": "READY_FOR_TARGETED_RE_REVIEW",
+  "writer_boundary": "Package/evidence/tools only. No canonical/live business source, configuration, service, scheduler, automation, data, Git or external action changed by this writer.",
+  "scope_checks": {
+    "required_target_dates": "PASS; 20261008 catch-up and 20261009 same-day are explicit.",
+    "sequential_get_reproduction": "PASS; exactly two ordered local GETs at 2026-10-09 11:00 CST; bodies represented only by size, SHA-256 and status projection.",
+    "runtime_identity": "PASS; allowlisted plist and binding fields captured at 2026-10-09 11:06 CST.",
+    "source_snapshot_identity": "PASS; 32 copied source files checked; 1 missing source path recorded without stub; 3 expected SHAs unset; 0 validation problem(s).",
+    "machine_json_parse": "PASS",
+    "independent_package_review": "PENDING_TARGETED_RE_REVIEW",
+    "github_sync_and_readback": "PENDING_PARENT",
+    "secret_scan": "PASS",
+    "reviewer_p1_contract_clarification": "PASS; 20261008 catch-up uses explicit view=dynamic while ordinary auto keeps historical qualification; 20261009 ordinary auto same-run check is conditional on a saved plan; missing legal inputs do not require a run/SHA/stock list; valid empty screening is allowed. Synthetic fixtures prove contract only; actual products await Mac acceptance."
+  },
+  "business_acceptance": {
+    "20261008_plan_materialized": "NOT_RUN",
+    "20261009_plan_materialized": "NOT_RUN; if saved, ordinary view=auto must return the same date, run_id, product SHA and input identity.",
+    "per_stock_reason_bound_to_legal_source_and_run": "NOT_RUN; applies to stocks actually selected when valid inputs exist.",
+    "missing_channels_independently_visible": "NOT_RUN",
+    "API_UI_natural_slot": "CANNOT_CONFIRM; outside package-writing scope",
+    "20261008_catchup_product": "NOT_RUN; conditional on lawful inputs and owner save; use explicit view=dynamic for readback.",
+    "20261008_ordinary_auto_catchup_run": "NOT_REQUIRED; preserve ordinary auto historical eligibility and readback behavior.",
+    "20261009_ordinary_auto_same_run_sha_input_identity": "NOT_RUN; conditional on a saved same-day plan.",
+    "missing_legal_input_behavior": "NOT_RUN; must retain CANNOT_CONFIRM and the reason without requiring run_id, product SHA or stock list.",
+    "valid_legal_empty_result_traceable": "NOT_RUN; a complete-input, legitimate zero-stock screen may be saved as a traceable empty result.",
+    "synthetic_fixtures": "CONTRACT_ONLY; actual 20261008 and 20261009 products await separate Mac execution acceptance."
+  },
+  "safety_flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "stop_conditions": "Do not enable or edit any live binding. Do not infer an actual scheduled attempt from a running daemon or activation canary. Treat missing inputs and unobserved dispatch as CANNOT_CONFIRM."
+}
