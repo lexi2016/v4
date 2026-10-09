@@ -248,7 +248,7 @@ def _snapshot(binding):
 
 
 def _identity():
-    names = ('announcement_offline_reader.py', 'manager_panel_observation.py', 'rebound_observation.py', 'registry_observation.py', 'membership_reader.py', 'hk_membership_recovery.py', 'rebound_owner.py', 'health.py', 'module_artifacts.py', 'archive_reader.py', 'announcement_bridge.py', 'manager_plan.py', 'manager_plan_gate.py', 'manager_plan_io.py', 'a_preselection.py',
+    names = ('us_mapping_scope.py', 'announcement_offline_reader.py', 'manager_panel_observation.py', 'rebound_observation.py', 'registry_observation.py', 'membership_reader.py', 'hk_membership_recovery.py', 'rebound_owner.py', 'health.py', 'module_artifacts.py', 'archive_reader.py', 'announcement_bridge.py', 'manager_plan.py', 'manager_plan_gate.py', 'manager_plan_io.py', 'a_preselection.py',
              'contracts.py', 'digests.py', 'composition.py', 'module_api.py', 'api_gateway.py',
              'shadow_store.py', 'legacy_adapter.py', 'source_capsule.py', 'provider_evidence.py', '__init__.py')
     return {name: hashlib.sha256((BASE / 'src/v5_shadow' / name).read_bytes()).hexdigest() for name in names}
@@ -417,6 +417,12 @@ def _assemble(request):
         payload = workspace.get_workspace(service, request['target_date'], now=now, view=request['view'],
             selection_date=request['selection_date'], announcement_date=request['announcement_date'])
         readback = dict(status='READ_ONLY', plan_product=payload.get('plan_product'))
+    from v5_shadow.us_mapping_scope import describe_scope
+    mapping_payload=payload.get('us_mapping_research')
+    if isinstance(mapping_payload,dict):
+        mapping_owner=importlib.import_module('v4.manager_research.us_mapping_research')
+        mapping_payload['coverage_diagnostics']=describe_scope(mapping_payload.get('daily_run') or {},
+            payload.get('us_market_attention') or {},mapping_owner._read_reviewed())
     if request.get('rebound_owner') is not None:
         # Independent read-time observation, never feed legacy_diagnostic into
         # the formal screen, selection algorithm or immutable saved workspace.

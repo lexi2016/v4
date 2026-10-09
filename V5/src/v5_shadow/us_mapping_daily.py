@@ -116,7 +116,7 @@ def _sources():
 
 
 def _identity():
-    names = ('us_mapping_daily.py', 'us_mapping_io.py', 'a_preselection.py', 'contracts.py',
+    names = ('us_mapping_scope.py', 'us_mapping_daily.py', 'us_mapping_io.py', 'a_preselection.py', 'contracts.py',
              'digests.py', 'composition.py', 'module_api.py', 'api_gateway.py', 'provider_evidence.py', '__init__.py')
     return {name: hashlib.sha256((BASE / 'src/v5_shadow' / name).read_bytes()).hexdigest() for name in names}
 
@@ -181,6 +181,8 @@ def _worker(envelope):
     service = SimpleNamespace(store=store, _workspace_us_market_reader=reader)
     persisted = mapping.persist_daily_run(service, target, now=started)
     payload = mapping.read_workspace_mapping(service, target)
+    from v5_shadow.us_mapping_scope import describe_scope
+    scope=describe_scope(persisted,bridge.project_us_market(reader,target,context),mapping._read_reviewed())
     if persisted != payload['daily_run']:
         raise ValueError('US_MAPPING_READBACK_MISMATCH')
     if violations:
@@ -191,7 +193,7 @@ def _worker(envelope):
                 requested_research_cutoff=request['now'], context_sha256=sha256_json(context),
                 actual_started_at=started.isoformat(), actual_finished_at=datetime.now(timezone.utc).isoformat(),
                 source_capsule_sha256=PIN, implementation_identity=_identity(), persisted_daily=persisted, payload=payload,
-                readback_status='MATCHED', input_sha_before=request['us_files'],
+                readback_status='MATCHED', coverage_diagnostics=scope, input_sha_before=request['us_files'],
                 input_sha_after=request['us_files'], source_origin_verified=False,
                 natural_verified=False, isolation='PINNED_OWNER_PYTHON_WRITE_GUARDS_NOT_OS_SANDBOX')
 
