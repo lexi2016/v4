@@ -1,0 +1,162 @@
+diff --git a/apps/web/src/api/managerWorkspace.ts b/apps/web/src/api/managerWorkspace.ts
+--- a/apps/web/src/api/managerWorkspace.ts
++++ b/apps/web/src/api/managerWorkspace.ts
+@@ -140,11 +140,40 @@
+   target_connect_eligibility: 'UNCHANGED_SEPARATE_FORMAL_SELECTION';
+   as_of_claim: 'NONE_RETROSPECTIVE_RESEARCH';
+ }
++export interface IndependentAnnouncementCard extends ResearchReadOnlyFlags {
++  symbol: string; name?: string; title?: string; event_id: string; proposition_id?: string;
++  document_sha256: string; published_at: string; retrieved_at: string; available_at: string;
++  disposition: 'POSITIVE_OBSERVATION'; support: JsonObject; evidence: JsonObject[];
++  observation_role: 'EXISTING_OFFICIAL_STATEMENT_NOT_CONNECT_SELECTION';
++  assertion: 'SOURCE_STATEMENT_NOT_PRICE_PREDICTION_OR_BUY';
++  focus_eligible: false; qualified: false; buy_allowed: false;
++  target_connect_membership: JsonObject;
++}
++export interface IndependentAnnouncementObservations extends ResearchReadOnlyFlags {
++  status: 'OBSERVED_WITH_RESTRICTIONS' | 'CANNOT_CONFIRM'; cards: IndependentAnnouncementCard[];
++  rejections: JsonObject[]; card_count: number; symbol_count: number;
++  scored_attention_input: false; formal_selection_input: false; universe_exhaustive: false;
++}
++export interface ResearchScopeDiagnostics extends JsonObject {
++  status: 'OWNER_VERIFIED' | 'CANNOT_CONFIRM'; target_trade_date: string;
++  membership_identity: string | null; counts: Record<string, {input: number; admitted: number; rejected: number}>;
++  rejection_reasons: Record<string, number>; gaps: string[];
++  count_basis: 'PER_INPUT_LIST_NOT_UNIQUE_SECURITIES'; formal_selection: FormalConnectSelection;
++}
++export interface ResearchInputDiagnostics extends JsonObject {
++  scope: Record<string, ResearchScopeDiagnostics>;
++  official_announcements: {status: string; coverage: JsonObject; gaps: string[]};
++  eastmoney_selection: {status: string; document_count: number; exhaustive: false; gaps: string[]};
++  us_relations: {status: string; assessment_state: UsMappingAssessmentState; acquisition_field_location: string;
++    material_complete: boolean; gaps: string[]};
++}
++
+ export interface ResearchAttention extends JsonObject {
+   schema_version: 'v4.manager_research.research_attention.v1'; target_trade_date: string;
+   research_cutoff: string; status: string; priority_name: string; config: JsonObject;
+   cards: ResearchAttentionCard[]; coverage: JsonObject; gaps: string[]; input_identity: string; ordering_basis?: string;
+   us_mapping_diagnostics?: UsMappingDiagnostics;
++  observation_only?: IndependentAnnouncementObservations; input_diagnostics?: ResearchInputDiagnostics;
+   research_selection?: ResearchSelectionLedger;
+ }
+ export interface ManagerWorkspace extends JsonObject {
+@@ -1044,6 +1073,13 @@
+     }
+   }
+ }
++function observationTime(raw: unknown): number {
++  const m=typeof raw==='string' ? /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/.exec(raw) : null;
++  const stamp=explicitTimestamp(raw);
++  researchContract(m && sessionDay(m[1]+m[2]+m[3]) && Number(m[4])<24 && Number(m[5])<60 &&
++    (m[6]===undefined || Number(m[6])<60) && stamp!==null, 'OBSERVATION_TIME');
++  return stamp;
++}
+ function validateFormalSelection(raw: unknown, date: string): void {
+   const f=object(raw);safe(f);const c=object(f.calendar);
+   researchContract(f.target_trade_date===date && researchText(f.reason) && researchText(f.membership_status) &&
+@@ -1077,6 +1113,86 @@
+     researchContract(m.target_trade_date===date && object(d.formal_selection).membership_status===m.status,'FORMAL_MEMBERSHIP');
+   }
+ }
++function validateIndependentObservations(raw: unknown, date: string, start: number | null, cutoff: number | null): void {
++  const o=object(raw);safe(o);records(o.cards);records(o.rejections);count(o.card_count);count(o.symbol_count);
++  researchContract(o.scored_attention_input===false && o.formal_selection_input===false && o.universe_exhaustive===false &&
++    o.card_count===o.cards.length && o.status===(o.cards.length?'OBSERVED_WITH_RESTRICTIONS':'CANNOT_CONFIRM'),'OBSERVATION_CONTAINER');
++  const seen=new Set<string>(),symbols=new Set<string>();
++  for(const r of o.cards){
++    safe(r);const support=object(r.support);const membership=object(r.target_connect_membership);records(r.evidence);
++    const id=r.proposition_id || r.event_id;
++    researchContract(typeof r.symbol==='string' && /^HK\.(?!00000)\d{5}$/.test(r.symbol) && researchText(id) && researchSha(r.document_sha256) &&
++      r.disposition==='POSITIVE_OBSERVATION' && support.disposition==='POSITIVE_OBSERVATION' && support.polarity==='AFFIRMED' &&
++      support.action_subject===r.symbol && researchText(support.quote) && r.focus_eligible===false && r.qualified===false && r.buy_allowed===false &&
++      r.observation_role==='EXISTING_OFFICIAL_STATEMENT_NOT_CONNECT_SELECTION' && r.assertion==='SOURCE_STATEMENT_NOT_PRICE_PREDICTION_OR_BUY', 'OBSERVATION_CARD');
++    for(const k of ['name','title'])if(r[k]!==undefined)researchContract(typeof r[k]==='string','OBSERVATION_TEXT');
++    const key=JSON.stringify([r.symbol,id,r.document_sha256]);researchContract(!seen.has(key),'OBSERVATION_DUPLICATE');seen.add(key);symbols.add(r.symbol);
++    researchContract(['CANNOT_CONFIRM','NOT_IN_TARGET_UNIVERSE','VERIFIED_TARGET_UNIVERSE'].includes(String(membership.status)) &&
++      researchText(membership.reason) && (membership.target_trade_date===undefined || membership.target_trade_date===date),'OBSERVATION_MEMBERSHIP');
++    if(membership.status!=='CANNOT_CONFIRM')researchContract(membership.target_trade_date===date && researchSha(membership.authority_identity),'OBSERVATION_MEMBERSHIP_IDENTITY');
++    const p=observationTime(r.published_at),ret=observationTime(r.retrieved_at),a=observationTime(r.available_at);
++    researchContract(start!==null && cutoff!==null && start<=p && p<=ret && ret<=a && a<=cutoff,'OBSERVATION_WINDOW');
++    researchContract(r.evidence.some(ref=>isJsonObject(ref.body_ref) && ref.body_ref.body_sha256===r.document_sha256),'OBSERVATION_BODY_BINDING');
++    for(const ref of r.evidence){
++      if(ref.source_url!==undefined){try{officialUrl(ref.source_url);}catch{throw new Error('WORKSPACE_OBSERVATION_SOURCE_URL_INVALID');}}
++      for(const proof of [ref,...['body_ref','directory_ref','mapping_ref'].filter(k=>ref[k]!==undefined).map(k=>object(ref[k]))]){
++        for(const k of ['published_at','available_at','retrieved_at'])if(k in proof)
++          researchContract(cutoff!==null && observationTime(proof[k])<=cutoff,'OBSERVATION_REFERENCE_TIME');
++      }
++    }
++  }
++  researchContract(o.symbol_count===symbols.size,'OBSERVATION_SYMBOL_COUNT');
++  for(const r of o.rejections)researchContract(researchText(r.reason),'OBSERVATION_REJECTION');
++}
++function validateResearchInputDiagnostics(raw: unknown, date: string): void {
++  const d=object(raw),scope=object(d.scope),official=object(d.official_announcements),east=object(d.eastmoney_selection),us=object(d.us_relations);
++  for(const lane of [official,east,us]){researchContract(researchText(lane.status),'INPUT_LANE_STATUS');strings(lane.gaps);}
++  const coverage=object(official.coverage);
++  for(const [key,v] of Object.entries(coverage))if(key.endsWith('_count') && v!==null)count(v);
++  if(coverage.all_official_announcements_captured!==undefined)researchContract(typeof coverage.all_official_announcements_captured==='boolean','INPUT_COVERAGE');
++  count(east.document_count);researchContract(east.exhaustive===false,'EASTMONEY_NON_EXHAUSTIVE');
++  researchContract(typeof us.material_complete==='boolean' && researchText(us.acquisition_field_location) &&
++    ['NOT_EVALUATED','INSUFFICIENT','ASSESSED_ZERO','ASSESSED_WITH_RELATIONS'].includes(String(us.assessment_state)),'US_INPUT_DIAGNOSTICS');
++  if(['ASSESSED_ZERO','ASSESSED_WITH_RELATIONS'].includes(String(us.assessment_state)))
++    researchContract(us.material_complete===true,'US_INPUT_COMPLETENESS');
++  for(const rawScope of Object.values(scope)){
++    const s=object(rawScope);strings(s.gaps);const counts=object(s.counts),reasons=object(s.rejection_reasons);
++    researchContract(s.target_trade_date===date && ['OWNER_VERIFIED','CANNOT_CONFIRM'].includes(String(s.status)) &&
++      s.count_basis==='PER_INPUT_LIST_NOT_UNIQUE_SECURITIES' && (s.membership_identity===null || researchSha(s.membership_identity)),'RESEARCH_SCOPE');
++    if(s.status==='OWNER_VERIFIED')researchContract(researchSha(s.membership_identity),'RESEARCH_SCOPE_IDENTITY');
++    for(const rawCount of Object.values(counts)){const c=object(rawCount);count(c.input);count(c.admitted);count(c.rejected);
++      researchContract(c.input===c.admitted+c.rejected,'RESEARCH_SCOPE_COUNT');}
++    for(const n of Object.values(reasons))count(n);
++    validateFormalSelection(s.formal_selection,date);
++    // R1 exposes the raw owner label in formal_selection even when the scope validator rejects it.
++    if(s.status==='OWNER_VERIFIED')researchContract(object(s.formal_selection).membership_status==='OWNER_VERIFIED','RESEARCH_SCOPE_MEMBERSHIP');
++  }
++}
++
++function validateResearchDisplayConsistency(value: JsonObject): void {
++  const selection=isJsonObject(value.selection_diagnostics)?value.selection_diagnostics:undefined;
++  const attention=isJsonObject(value.research_attention)?value.research_attention:undefined;
++  const input=attention?.input_diagnostics as ResearchInputDiagnostics | undefined;
++  const formal=selection?.formal_selection as FormalConnectSelection | undefined;
++  if(formal && input){
++    for(const scope of Object.values(input.scope)){
++      const scoped=scope.formal_selection;
++      // Scope's count is zero by design; only compare the shared calendar/owner, not focus counts.
++      researchContract(scoped.membership_status===formal.membership_status &&
++        ['status','reason','target_trade_date','calendar_owner','calendar_sha256','hk_securities_state','hk_connect_state']
++          .every(key=>scoped.calendar[key]===formal.calendar[key]), 'RESEARCH_DISPLAY_CALENDAR_BINDING');
++    }
++  }
++  for(const row of (attention?.observation_only as IndependentAnnouncementObservations | undefined)?.cards || []){
++    const m=row.target_connect_membership;
++    if(m.status==='CANNOT_CONFIRM')continue;
++    const membership=selection?.membership as JsonObject | undefined;
++    const witnessed=membership ? membership.status==='OWNER_VERIFIED' && membership.identity===m.authority_identity :
++      Object.values(input?.scope || {}).some(scope=>scope.status==='OWNER_VERIFIED' && scope.membership_identity===m.authority_identity);
++    researchContract(witnessed,'OBSERVATION_MEMBERSHIP_WITNESS');
++  }
++}
++
+ function validateResearchSelectionLedger(raw: unknown, date: string, attentionCards: ResearchAttentionCard[]): ResearchSelectionLedger {
+   const ledger=object(raw);safe(ledger);records(ledger.decisions);strings(ledger.gaps);
+   const coverage=object(ledger.coverage),groupCounts=object(coverage.source_group_counts);
+@@ -1212,6 +1328,8 @@
+   const start=explicitTimestamp(freshness.effective_start);
+   if (evidenceStateOrder && (cutoff === null || start === null || start > cutoff))
+     throw new Error('WORKSPACE_RESEARCH_ATTENTION_CUTOFF_INVALID');
++  if(value.observation_only!==undefined)validateIndependentObservations(value.observation_only,date,start,cutoff);
++  if(value.input_diagnostics!==undefined)validateResearchInputDiagnostics(value.input_diagnostics,date);
+   const timestampForOrder=(raw: unknown): number => {
+     if (raw === null) return Number.NEGATIVE_INFINITY;
+     const parsed=explicitTimestamp(raw);
+@@ -1512,6 +1630,7 @@
+     }
+   }
+   if(value.research_attention!==undefined)validateResearchAttention(value.research_attention,date,verifiedScreenSession);
++  validateResearchDisplayConsistency(value);
+   validateReadContext(value);
+   // This optional projection has its own dates and run references. Legacy
+   // payloads remain readable, but cannot supply a verified three-channel view.

@@ -1,0 +1,6 @@
+cwd: /workspace/scratch/0e089a11ee60/work/repaired/app/apps/web
+V4_TEST_SOURCE_ROOT=/workspace/scratch/0e089a11ee60/work/repaired/app
+V4_TEST_CACHE_DIR=/workspace/scratch/0e089a11ee60/review/final/cache-final
+V4_TEST_PYTHON=/workspace/scratch/0e089a11ee60/work/python_runtime/bin/python
+PYTHONDONTWRITEBYTECODE=1
+node /workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/vitest/vitest.mjs run --config /workspace/scratch/0e089a11ee60/work/vitest.config.mjs --reporter=verbose --reporter=json --outputFile.json=/workspace/scratch/0e089a11ee60/review/final/all109.json src/manager-selection/__tests__/issue8R2.spec.ts src/api/managerWorkspace.threeChannel.spec.ts src/api/managerWorkspace.dailyAutomation.spec.ts src/api/managerWorkspace.validatorRestoration.spec.ts

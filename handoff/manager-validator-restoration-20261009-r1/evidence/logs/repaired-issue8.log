@@ -1,0 +1,86 @@
+
+ RUN  v4.1.10 /workspace/scratch/0e089a11ee60/work/repaired/app/apps/web
+
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > accepts exact owner observations without mutating the envelope 6ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > renders all independent observations without creating scored cards or BUY controls 33ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > does not hardcode nine/five and retains records beyond the scored display limit 11ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > renders the actual formal holiday as not applicable rather than a successful empty scan 18ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > shows unknown formal applicability even with known research observations 56ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > distinguishes a verified trading-day empty result from a holiday 29ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > separates HKEX, Eastmoney and US coverage and exposes rejection counts and reasons 13ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > accepts legacy payloads but shows absent new fields as unknown, never valid zero 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > renders an empty observation container as unconfirmed, not an exhaustive negative 3ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > does not infer acquisition clocks from alternate owner fields 6ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > preserves missing research state and clears previous observation DOM on reread 7ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > escapes titles/quotes and permits only safe http(s) evidence anchors 15ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects container null 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects container wrong shape 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects count mismatch 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects unique symbol count mismatch 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects invalid status 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects scored promotion 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects formal promotion 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects exhaustiveness promotion 8ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects unsafe container 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects duplicate owner identity 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects focus promotion 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects BUY promotion 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects qualified promotion 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects production promotion 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects missing safety 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects invalid symbol 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects cross issuer 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects negated assertion 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects unclassified row 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects blank quote 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects missing body binding 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects wrong body SHA 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects wrong role 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects cross-date membership 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects invalid membership state 2ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects unsafe URL 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects unsafe reference 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects future reference 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > requires an explicit valid published_at 20ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > requires an explicit valid available_at 3ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > requires an explicit valid retrieved_at 3ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects reversed acquisition order and publication before the freshness window 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects null formal 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects cross-date formal 2ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects holiday positive count 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects holiday null count 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects holiday lacks calendar 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects holiday claims trading day 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects calendar wrong date 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects calendar wrong SHA 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects calendar wrong owner 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects unknown masquerading as known 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects unsafe formal 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects unsafe selection 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects membership disagreement 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects null diagnostics 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects missing lane 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects bad gaps type 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects false completeness type 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects invalid US state 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects negative document count 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects mirror exhaustiveness claim 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects bad coverage count 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects bad scope sums 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects unsafe nested formal 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > keeps missing observation_only compatible but unconfirmed 2ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > keeps missing input_diagnostics compatible but unconfirmed 5ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > requires the same calendar identity in formal selection and filtered research input 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > rejects unknown target membership promoted on an independent observation 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > allows independently witnessed target membership but never turns observations into BUY 8ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > rejects assessed-zero in the new US lane when material completeness is false 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > retains exact extra coverage fields without recasting missing counts to zero 5ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > places source coverage before the independent card list 7ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > uses unknown when a diagnostic membership rejection differs from the raw owner status 8ms
+
+ Test Files  1 passed (1)
+      Tests  76 passed (76)
+   Start at  06:25:51
+   Duration  1.30s (transform 254ms, setup 0ms, import 291ms, tests 308ms, environment 527ms)
+
+JSON report written to /workspace/scratch/0e089a11ee60/work/repaired/issue8.json

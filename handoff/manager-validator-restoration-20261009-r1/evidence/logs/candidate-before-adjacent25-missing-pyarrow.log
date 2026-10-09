@@ -1,0 +1,210 @@
+
+ RUN  v4.1.10 /workspace/scratch/0e089a11ee60/work/candidate-before/app/apps/web
+
+Traceback (most recent call last):
+  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py", line 40, in <module>
+    main()
+  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py", line 31, in main
+    _panel(root)
+  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/test_manager_three_channel_hk_reader.py", line 79, in _panel
+    pd.DataFrame(rows).to_parquet(buffer, index=False)
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/util/_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/core/frame.py", line 3113, in to_parquet
+    return to_parquet(
+           ^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/io/parquet.py", line 476, in to_parquet
+    impl = get_engine(engine)
+           ^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/io/parquet.py", line 67, in get_engine
+    raise ImportError(
+ImportError: Unable to find a usable engine; tried using: 'pyarrow', 'fastparquet'.
+A suitable version of pyarrow or fastparquet is required for parquet support.
+Trying to import the above resulted in these errors:
+ - Missing optional dependency 'pyarrow'. pyarrow is required for parquet support. Use pip or conda to install pyarrow.
+ - Missing optional dependency 'fastparquet'. fastparquet is required for parquet support. Use pip or conda to install fastparquet.
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > accepts unknown counts without calling them a successful zero and preserves other channels 63ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: status-ready 2ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: screen-ready 1ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: claims-input-identity 1ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: claims-zero 1ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: claims-input-count 0ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: missing-count 0ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: string-known 1ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: pending-row 4ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > preserves a verified-input legitimate zero and rejects null counts in that branch 2ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > retains compatibility with the older numeric unavailable DTO 1ms
+Traceback (most recent call last):
+  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py", line 40, in <module>
+    main()
+  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py", line 31, in main
+    _panel(root)
+  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/test_manager_three_channel_hk_reader.py", line 79, in _panel
+    pd.DataFrame(rows).to_parquet(buffer, index=False)
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/util/_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/core/frame.py", line 3113, in to_parquet
+    return to_parquet(
+           ^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/io/parquet.py", line 476, in to_parquet
+    impl = get_engine(engine)
+           ^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/io/parquet.py", line 67, in get_engine
+    raise ImportError(
+ImportError: Unable to find a usable engine; tried using: 'pyarrow', 'fastparquet'.
+A suitable version of pyarrow or fastparquet is required for parquet support.
+Trying to import the above resulted in these errors:
+ - Missing optional dependency 'pyarrow'. pyarrow is required for parquet support. Use pip or conda to install pyarrow.
+ - Missing optional dependency 'fastparquet'. fastparquet is required for parquet support. Use pip or conda to install fastparquet.
+ × src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > accepts the actual Python reader DTO for hk_missing 578ms
+   → Command failed: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python /workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py --fixture hk_missing
+Traceback (most recent call last):
+  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py", line 40, in <module>
+    main()
+  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py", line 31, in main
+    _panel(root)
+  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/test_manager_three_channel_hk_reader.py", line 79, in _panel
+    pd.DataFrame(rows).to_parquet(buffer, index=False)
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/util/_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/core/frame.py", line 3113, in to_parquet
+    return to_parquet(
+           ^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/io/parquet.py", line 476, in to_parquet
+    impl = get_engine(engine)
+           ^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/io/parquet.py", line 67, in get_engine
+    raise ImportError(
+ImportError: Unable to find a usable engine; tried using: 'pyarrow', 'fastparquet'.
+A suitable version of pyarrow or fastparquet is required for parquet support.
+Trying to import the above resulted in these errors:
+ - Missing optional dependency 'pyarrow'. pyarrow is required for parquet support. Use pip or conda to install pyarrow.
+ - Missing optional dependency 'fastparquet'. fastparquet is required for parquet support. Use pip or conda to install fastparquet.
+
+ × src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > accepts the actual Python reader DTO for hk_valid 527ms
+   → Command failed: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python /workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py --fixture hk_valid
+Traceback (most recent call last):
+  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py", line 40, in <module>
+    main()
+  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py", line 31, in main
+    _panel(root)
+  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/test_manager_three_channel_hk_reader.py", line 79, in _panel
+    pd.DataFrame(rows).to_parquet(buffer, index=False)
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/util/_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/core/frame.py", line 3113, in to_parquet
+    return to_parquet(
+           ^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/io/parquet.py", line 476, in to_parquet
+    impl = get_engine(engine)
+           ^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/io/parquet.py", line 67, in get_engine
+    raise ImportError(
+ImportError: Unable to find a usable engine; tried using: 'pyarrow', 'fastparquet'.
+A suitable version of pyarrow or fastparquet is required for parquet support.
+Trying to import the above resulted in these errors:
+ - Missing optional dependency 'pyarrow'. pyarrow is required for parquet support. Use pip or conda to install pyarrow.
+ - Missing optional dependency 'fastparquet'. fastparquet is required for parquet support. Use pip or conda to install fastparquet.
+
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > sends explicit page bindings when the refresh action has an explicit query 4ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > accepts actual daily owner readback and plan owner readback fields 319ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > accepts the real original reader-failure DTO with an unmaterialized null-target readback 442ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects invalid daily execution evidence: naive-start 1ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects invalid daily execution evidence: finish-before-start 0ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects invalid daily execution evidence: natural-inference 0ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects a verified US readback borrowed from another product: wrong-target 0ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects a verified US readback borrowed from another product: wrong-run 0ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects a verified US readback borrowed from another product: wrong-sha 1ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > does not let a later failed plan attempt replace or validate the saved product 2ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > requires exact saved-attempt SHA even when latest attempt failed (missing) 1ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > requires exact saved-attempt SHA even when latest attempt failed (malformed) 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > accepts the actual Python reader DTO for hk_missing
+Error: Command failed: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python /workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py --fixture hk_missing
+Traceback (most recent call last):
+  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py", line 40, in <module>
+    main()
+  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py", line 31, in main
+    _panel(root)
+  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/test_manager_three_channel_hk_reader.py", line 79, in _panel
+    pd.DataFrame(rows).to_parquet(buffer, index=False)
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/util/_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/core/frame.py", line 3113, in to_parquet
+    return to_parquet(
+           ^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/io/parquet.py", line 476, in to_parquet
+    impl = get_engine(engine)
+           ^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/io/parquet.py", line 67, in get_engine
+    raise ImportError(
+ImportError: Unable to find a usable engine; tried using: 'pyarrow', 'fastparquet'.
+A suitable version of pyarrow or fastparquet is required for parquet support.
+Trying to import the above resulted in these errors:
+ - Missing optional dependency 'pyarrow'. pyarrow is required for parquet support. Use pip or conda to install pyarrow.
+ - Missing optional dependency 'fastparquet'. fastparquet is required for parquet support. Use pip or conda to install fastparquet.
+
+ ❯ src/api/managerWorkspace.threeChannel.spec.ts:84:17
+     82|   it.each(['hk_missing', 'hk_valid'])('accepts the actual Python reade…
+     83|     const root = process.env.V4_TEST_SOURCE_ROOT || resolve(process.cw…
+     84|     const raw = execFileSync(process.env.V4_TEST_PYTHON || 'python3',
+       |                 ^
+     85|       [resolve(root, 'tests/manager_three_channel_ui_fixture.py'), '--…
+     86|       { cwd: root, encoding: 'utf8', timeout: 30_000,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { status: 1, signal: null, output: [ null, '', 'Traceback (most recent call last):\n  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py", line 40, in <module>\n    main()\n  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py", line 31, in main\n    _panel(root)\n  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/test_manager_three_channel_hk_reader.py", line 79, in _panel\n    pd.DataFrame(rows).to_parquet(buffer, index=False)\n  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/util/_decorators.py", line 333, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/core/frame.py", line 3113, in to_parquet\n    return to_parquet(\n           ^^^^^^^^^^^\n  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/io/parquet.py", line 476, in to_parquet\n    impl = get_engine(engine)\n           ^^^^^^^^^^^^^^^^^^\n  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/io/parquet.py", line 67, in get_engine\n    raise ImportError(\nImportError: Unable to find a usable engine; tried using: \'pyarrow\', \'fastparquet\'.\nA suitable version of pyarrow or fastparquet is required for parquet support.\nTrying to import the above resulted in these errors:\n - Missing optional dependency \'pyarrow\'. pyarrow is required for parquet support. Use pip or conda to install pyarrow.\n - Missing optional dependency \'fastparquet\'. fastparquet is required for parquet support. Use pip or conda to install fastparquet.\n' ], pid: 37, stdout: '', stderr: 'Traceback (most recent call last):\n  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py", line 40, in <module>\n    main()\n  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py", line 31, in main\n    _panel(root)\n  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/test_manager_three_channel_hk_reader.py", line 79, in _panel\n    pd.DataFrame(rows).to_parquet(buffer, index=False)\n  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/util/_decorators.py", line 333, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/core/frame.py", line 3113, in to_parquet\n    return to_parquet(\n           ^^^^^^^^^^^\n  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/io/parquet.py", line 476, in to_parquet\n    impl = get_engine(engine)\n           ^^^^^^^^^^^^^^^^^^\n  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/io/parquet.py", line 67, in get_engine\n    raise ImportError(\nImportError: Unable to find a usable engine; tried using: \'pyarrow\', \'fastparquet\'.\nA suitable version of pyarrow or fastparquet is required for parquet support.\nTrying to import the above resulted in these errors:\n - Missing optional dependency \'pyarrow\'. pyarrow is required for parquet support. Use pip or conda to install pyarrow.\n - Missing optional dependency \'fastparquet\'. fastparquet is required for parquet support. Use pip or conda to install fastparquet.\n' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > accepts the actual Python reader DTO for hk_valid
+Error: Command failed: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python /workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py --fixture hk_valid
+Traceback (most recent call last):
+  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py", line 40, in <module>
+    main()
+  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py", line 31, in main
+    _panel(root)
+  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/test_manager_three_channel_hk_reader.py", line 79, in _panel
+    pd.DataFrame(rows).to_parquet(buffer, index=False)
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/util/_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/core/frame.py", line 3113, in to_parquet
+    return to_parquet(
+           ^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/io/parquet.py", line 476, in to_parquet
+    impl = get_engine(engine)
+           ^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/io/parquet.py", line 67, in get_engine
+    raise ImportError(
+ImportError: Unable to find a usable engine; tried using: 'pyarrow', 'fastparquet'.
+A suitable version of pyarrow or fastparquet is required for parquet support.
+Trying to import the above resulted in these errors:
+ - Missing optional dependency 'pyarrow'. pyarrow is required for parquet support. Use pip or conda to install pyarrow.
+ - Missing optional dependency 'fastparquet'. fastparquet is required for parquet support. Use pip or conda to install fastparquet.
+
+ ❯ src/api/managerWorkspace.threeChannel.spec.ts:84:17
+     82|   it.each(['hk_missing', 'hk_valid'])('accepts the actual Python reade…
+     83|     const root = process.env.V4_TEST_SOURCE_ROOT || resolve(process.cw…
+     84|     const raw = execFileSync(process.env.V4_TEST_PYTHON || 'python3',
+       |                 ^
+     85|       [resolve(root, 'tests/manager_three_channel_ui_fixture.py'), '--…
+     86|       { cwd: root, encoding: 'utf8', timeout: 30_000,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { status: 1, signal: null, output: [ null, '', 'Traceback (most recent call last):\n  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py", line 40, in <module>\n    main()\n  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py", line 31, in main\n    _panel(root)\n  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/test_manager_three_channel_hk_reader.py", line 79, in _panel\n    pd.DataFrame(rows).to_parquet(buffer, index=False)\n  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/util/_decorators.py", line 333, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/core/frame.py", line 3113, in to_parquet\n    return to_parquet(\n           ^^^^^^^^^^^\n  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/io/parquet.py", line 476, in to_parquet\n    impl = get_engine(engine)\n           ^^^^^^^^^^^^^^^^^^\n  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/io/parquet.py", line 67, in get_engine\n    raise ImportError(\nImportError: Unable to find a usable engine; tried using: \'pyarrow\', \'fastparquet\'.\nA suitable version of pyarrow or fastparquet is required for parquet support.\nTrying to import the above resulted in these errors:\n - Missing optional dependency \'pyarrow\'. pyarrow is required for parquet support. Use pip or conda to install pyarrow.\n - Missing optional dependency \'fastparquet\'. fastparquet is required for parquet support. Use pip or conda to install fastparquet.\n' ], pid: 46, stdout: '', stderr: 'Traceback (most recent call last):\n  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py", line 40, in <module>\n    main()\n  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/manager_three_channel_ui_fixture.py", line 31, in main\n    _panel(root)\n  File "/workspace/scratch/0e089a11ee60/work/candidate-before/app/tests/test_manager_three_channel_hk_reader.py", line 79, in _panel\n    pd.DataFrame(rows).to_parquet(buffer, index=False)\n  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/util/_decorators.py", line 333, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/core/frame.py", line 3113, in to_parquet\n    return to_parquet(\n           ^^^^^^^^^^^\n  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/io/parquet.py", line 476, in to_parquet\n    impl = get_engine(engine)\n           ^^^^^^^^^^^^^^^^^^\n  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/pandas/io/parquet.py", line 67, in get_engine\n    raise ImportError(\nImportError: Unable to find a usable engine; tried using: \'pyarrow\', \'fastparquet\'.\nA suitable version of pyarrow or fastparquet is required for parquet support.\nTrying to import the above resulted in these errors:\n - Missing optional dependency \'pyarrow\'. pyarrow is required for parquet support. Use pip or conda to install pyarrow.\n - Missing optional dependency \'fastparquet\'. fastparquet is required for parquet support. Use pip or conda to install fastparquet.\n' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  2 failed | 23 passed (25)
+   Start at  06:22:35
+   Duration  4.12s (transform 605ms, setup 0ms, import 693ms, tests 1.95s, environment 1.16s)
+
+JSON report written to /workspace/scratch/0e089a11ee60/work/candidate-before/adjacent25.json

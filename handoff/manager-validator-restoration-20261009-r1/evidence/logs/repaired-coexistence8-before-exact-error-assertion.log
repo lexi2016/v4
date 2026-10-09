@@ -1,0 +1,18 @@
+
+ RUN  v4.1.10 /workspace/scratch/0e089a11ee60/work/repaired/app/apps/web
+
+ ✓ src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > accepts observations, distinct channel dates and unknown screen counts without mutation 8ms
+ ✓ src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > rejects an unsafe independent observation in the same envelope 2ms
+ ✓ src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > rejects assessed-zero when the US input remains incomplete 2ms
+ ✓ src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > rejects a different calendar SHA in the filtered research scope 2ms
+ ✓ src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > continues rejecting an unknown-count screen that claims zero selected rows 1ms
+ ✓ src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > continues rejecting an announcement date different from the requested binding 2ms
+ ✓ src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > preserves valid minute-only observation clocks with an explicit timezone 2ms
+ ✓ src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > rejects an observation clock that Date.parse would roll from hour 24 to the next day 1ms
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  06:27:15
+   Duration  895ms (transform 195ms, setup 0ms, import 220ms, tests 21ms, environment 512ms)
+
+JSON report written to /workspace/scratch/0e089a11ee60/work/repaired/coexistence8.json

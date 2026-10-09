@@ -1,0 +1,41 @@
+{
+  "before_bytes": 109896,
+  "after_bytes": 119467,
+  "added_lines": 119,
+  "deleted_lines": 0,
+  "non_additive_differences": [],
+  "patch_files": [
+    "diff --git a/apps/web/src/api/managerWorkspace.ts b/apps/web/src/api/managerWorkspace.ts"
+  ],
+  "patch_sha256": "51937766ff6f9e53fc17c831c069ac58b3a62e5982700b90f732e2fb442a4190",
+  "additions": [
+    {
+      "after_start_line": 143,
+      "lines": 28
+    },
+    {
+      "after_start_line": 176,
+      "lines": 1
+    },
+    {
+      "after_start_line": 1076,
+      "lines": 7
+    },
+    {
+      "after_start_line": 1116,
+      "lines": 80
+    },
+    {
+      "after_start_line": 1331,
+      "lines": 2
+    },
+    {
+      "after_start_line": 1633,
+      "lines": 1
+    }
+  ],
+  "exact_context_hunks": 5,
+  "forward_apply_matches_after": true,
+  "reverse_apply_matches_before": true,
+  "method": "Independent in-memory unified-diff parser checked every context byte and hunk length; no source files changed"
+}

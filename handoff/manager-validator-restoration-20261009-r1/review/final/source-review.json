@@ -1,0 +1,523 @@
+{
+  "typescript": "5.9.3",
+  "source_sha256": {
+    "active": "6bd208174c650beb1b089058de458643beb601a97455ff472330984e88dd6d7d",
+    "before": "35a879624032cfffb1c3e4afba3c4ae6298df7d5dffb5db90d9ad42142f496ee",
+    "after": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f",
+    "supplemental": "9b67eaf14ddd5828bb81245ec8aaf1c2861e9b4059a857e4e1ae507be611c2b0"
+  },
+  "syntax_diagnostics": {
+    "active": 0,
+    "before": 0,
+    "after": 0,
+    "supplemental": 0
+  },
+  "restored_declarations": [
+    {
+      "name": "IndependentAnnouncementCard",
+      "missing_before": true,
+      "matches_active": true,
+      "after_line": 143
+    },
+    {
+      "name": "IndependentAnnouncementObservations",
+      "missing_before": true,
+      "matches_active": true,
+      "after_line": 152
+    },
+    {
+      "name": "ResearchScopeDiagnostics",
+      "missing_before": true,
+      "matches_active": true,
+      "after_line": 157
+    },
+    {
+      "name": "ResearchInputDiagnostics",
+      "missing_before": true,
+      "matches_active": true,
+      "after_line": 163
+    },
+    {
+      "name": "observationTime",
+      "missing_before": true,
+      "matches_active": true,
+      "after_line": 1076
+    },
+    {
+      "name": "validateIndependentObservations",
+      "missing_before": true,
+      "matches_active": true,
+      "after_line": 1116
+    },
+    {
+      "name": "validateResearchInputDiagnostics",
+      "missing_before": true,
+      "matches_active": true,
+      "after_line": 1147
+    },
+    {
+      "name": "validateResearchDisplayConsistency",
+      "missing_before": true,
+      "matches_active": true,
+      "after_line": 1172
+    }
+  ],
+  "dependency_equivalence": [
+    {
+      "name": "object",
+      "before_matches_active": true,
+      "after_matches_before": true
+    },
+    {
+      "name": "safe",
+      "before_matches_active": true,
+      "after_matches_before": true
+    },
+    {
+      "name": "strings",
+      "before_matches_active": true,
+      "after_matches_before": true
+    },
+    {
+      "name": "records",
+      "before_matches_active": true,
+      "after_matches_before": true
+    },
+    {
+      "name": "count",
+      "before_matches_active": true,
+      "after_matches_before": true
+    },
+    {
+      "name": "officialUrl",
+      "before_matches_active": true,
+      "after_matches_before": true
+    },
+    {
+      "name": "explicitTimestamp",
+      "before_matches_active": true,
+      "after_matches_before": true
+    },
+    {
+      "name": "sessionDay",
+      "before_matches_active": true,
+      "after_matches_before": true
+    },
+    {
+      "name": "isJsonObject",
+      "before_matches_active": true,
+      "after_matches_before": true
+    },
+    {
+      "name": "researchContract",
+      "before_matches_active": true,
+      "after_matches_before": true
+    },
+    {
+      "name": "researchText",
+      "before_matches_active": true,
+      "after_matches_before": true
+    },
+    {
+      "name": "researchSha",
+      "before_matches_active": true,
+      "after_matches_before": true
+    },
+    {
+      "name": "validateFormalSelection",
+      "before_matches_active": true,
+      "after_matches_before": true
+    },
+    {
+      "name": "validateSelectionDiagnostics",
+      "before_matches_active": true,
+      "after_matches_before": true
+    }
+  ],
+  "candidate_declaration_comparison": [
+    {
+      "name": "JsonObject",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "WorkspaceLane",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "WorkspaceAction",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "WorkspaceStock",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "ReboundScreen",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "UsMarketAttention",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "UsMappingSource",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "UsMappingCard",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "UsReviewedMapping",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "UsDailyMappingRun",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "ResearchTriggerKind",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "ResearchExecutionTiming",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "ResearchExecutionContext",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "ResearchRunReadback",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "UsMappingResearch",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "UsMappingAssessmentState",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "UsRelationMaterialInput",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "UsMappingDiagnostics",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "ResearchAttentionState",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "ResearchAttentionDecision",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "ResearchAttentionCard",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "ResearchReadOnlyFlags",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "FormalConnectSelection",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "SelectionDiagnostics",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "ResearchSelectionDecisionStatus",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "ResearchSelectionDecision",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "ResearchSelectionLedger",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "ResearchAttention",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "ManagerWorkspace",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "object",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "safe",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "strings",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "records",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "count",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validateActions",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "WorkspaceView",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validateReadContext",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "AnnouncementObservation",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "AnnouncementReview",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "announcementTime",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "officialUrl",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "eastmoneyUrl",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validateEastmoneyDocuments",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validateAnnouncementObservation",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "hongKongDate",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validateAnnouncementReview",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validateUsMarketAttention",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validateUsRelationMaterialInput",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validateUsMappingDiagnostics",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "explicitTimestamp",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "sessionDay",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "isJsonObject",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "timestampByWindow",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "hasPersistedAcquisition",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "verifiedNativeRefs",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validMirrorCompanyEvidence",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validNativeRelation",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validCompanyEvidence",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validOfficialEvidence",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validUsSourceIdentity",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "nonEmptyObjectRecords",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validTrendEvidence",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validUsIndustryMapping",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "relatedUsSymbols",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validUsIndividualMapping",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validateAttentionLaneEvidence",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validateAttentionDecision",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "researchContract",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "researchText",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "researchSha",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "researchRun",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "researchAwareEpoch",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validateResearchExecutionContext",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validateResearchRunReadback",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validatePlanProductReadback",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validateFormalSelection",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validateSelectionDiagnostics",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validateResearchSelectionLedger",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validateResearchAttention",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validateUsMappingResearch",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "validateManagerWorkspace",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "parseWorkspaceResponse",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "requestManagerWorkspace",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "requestManagerAnnouncements",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "refreshManagerAnnouncements",
+      "unchanged_except_expected_additions": true
+    },
+    {
+      "name": "refreshManagerWorkspace",
+      "unchanged_except_expected_additions": true
+    }
+  ],
+  "calls": [
+    {
+      "target": "validateIndependentObservations",
+      "counts": {
+        "active": 1,
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "target": "validateResearchInputDiagnostics",
+      "counts": {
+        "active": 1,
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "target": "validateResearchDisplayConsistency",
+      "counts": {
+        "active": 1,
+        "before": 0,
+        "after": 1
+      }
+    }
+  ],
+  "restored_properties": [
+    {
+      "name": "observation_only",
+      "optional": true,
+      "type": "IndependentAnnouncementObservations"
+    },
+    {
+      "name": "input_diagnostics",
+      "optional": true,
+      "type": "ResearchInputDiagnostics"
+    }
+  ],
+  "call_order_valid": true,
+  "pass": true
+}

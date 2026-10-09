@@ -1,0 +1,35 @@
+
+ RUN  v4.1.10 /workspace/scratch/0e089a11ee60/work/repaired/app/apps/web
+
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > accepts unknown counts without calling them a successful zero and preserves other channels 60ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: status-ready 1ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: screen-ready 0ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: claims-input-identity 1ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: claims-zero 0ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: claims-input-count 0ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: missing-count 0ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: string-known 0ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: pending-row 0ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > preserves a verified-input legitimate zero and rejects null counts in that branch 1ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > retains compatibility with the older numeric unavailable DTO 0ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > accepts the actual Python reader DTO for hk_missing 800ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > accepts the actual Python reader DTO for hk_valid 812ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > sends explicit page bindings when the refresh action has an explicit query 3ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > accepts actual daily owner readback and plan owner readback fields 286ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > accepts the real original reader-failure DTO with an unmaterialized null-target readback 560ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects invalid daily execution evidence: naive-start 1ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects invalid daily execution evidence: finish-before-start 0ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects invalid daily execution evidence: natural-inference 1ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects a verified US readback borrowed from another product: wrong-target 0ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects a verified US readback borrowed from another product: wrong-run 0ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects a verified US readback borrowed from another product: wrong-sha 0ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > does not let a later failed plan attempt replace or validate the saved product 1ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > requires exact saved-attempt SHA even when latest attempt failed (missing) 0ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > requires exact saved-attempt SHA even when latest attempt failed (malformed) 0ms
+
+ Test Files  2 passed (2)
+      Tests  25 passed (25)
+   Start at  06:25:51
+   Duration  4.23s (transform 266ms, setup 0ms, import 331ms, tests 2.54s, environment 976ms)
+
+JSON report written to /workspace/scratch/0e089a11ee60/work/repaired/adjacent25.json

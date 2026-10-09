@@ -1,0 +1,101 @@
+{
+  "reference_commit": "63e75b7af02866c2d19a484b9561416cb13efd84",
+  "frozen_handoff_manifest_sha256": "fe5cc5a9716901ece8cd0d8409be8a9406dbba3c75c1d1a8f1339825b89fba0f",
+  "frozen_handoff_payloads_verified": 11,
+  "test_support_copy": {
+    "source_files": 1033,
+    "unmatched_files": 0,
+    "all_matched_blobs_at_reference_commit": true
+  },
+  "renderer_support": {
+    "frozen_repository_path": "handoff/v4-running-source-20261005/api/apps/web/src/manager-selection/researchAttention.ts",
+    "git_blob_sha": "49efec9183302712fa0d394c2f5ac69540f82137",
+    "sha256": "9b9ea7aef33e504da7d99f2b16b1e632448a63dfe0971ae275730e6311c5ce3a",
+    "role": "ISOLATED_TEST_SUPPORT_NOT_PRODUCTION_PATCH"
+  },
+  "test_assets": [
+    {
+      "delivery_path": "tests/apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts",
+      "sha256": "b5b57a45102775d2f57b1af14456f8a9bf2b23c6a8a96f4b30c87da245f9ac0d",
+      "bytes": 6248,
+      "frozen_repository_path": "handoff/manager-three-channel-deploy-20261009/chat_validator_regression/tests/managerWorkspace.dailyAutomation.spec.ts",
+      "git_blob_sha": "67898d9629d13f58766d7587f9525009224ba572"
+    },
+    {
+      "delivery_path": "tests/apps/web/src/api/managerWorkspace.threeChannel.spec.ts",
+      "sha256": "a3f3f5d01cea2d8b2fab55968117af76dc50d0ef87d8552b4aaca9ca1b2895d4",
+      "bytes": 6823,
+      "frozen_repository_path": "handoff/manager-three-channel-deploy-20261009/chat_validator_regression/tests/managerWorkspace.threeChannel.spec.ts",
+      "git_blob_sha": "4f528c782d8771736936421857f3079f5b694b96"
+    },
+    {
+      "delivery_path": "tests/apps/web/src/api/managerWorkspace.validatorRestoration.spec.ts",
+      "sha256": "9b67eaf14ddd5828bb81245ec8aaf1c2861e9b4059a857e4e1ae507be611c2b0",
+      "bytes": 5319,
+      "role": "NEW_COEXISTENCE_TEST"
+    },
+    {
+      "delivery_path": "tests/apps/web/src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts",
+      "sha256": "173d1711fc86fbb392eb616d4dde7bcab21b5b1a74b24372b9314b1297a31525",
+      "bytes": 4410,
+      "frozen_repository_path": "handoff/manager-three-channel-deploy-20261009/chat_validator_regression/tests/fixtures/issue8R2.fixture.ts",
+      "git_blob_sha": "7decbc76298a57a1c0c6e05caeb1125517bbe42a"
+    },
+    {
+      "delivery_path": "tests/apps/web/src/manager-selection/__tests__/fixtures/issue8R2.ownerObservations.json",
+      "sha256": "0a56e12d5a56e7534b9a484e8bc2443677a2abeb5d3a9feea56ac0d641b2dce8",
+      "bytes": 50645,
+      "git_blob_sha": "5ef20fed9a3f31a1ac5df9a2b7b1af71263f7c60",
+      "frozen_repository_path": "handoff/manager-three-channel-deploy-20261009/chat_validator_regression/tests/fixtures/issue8R2.ownerObservations.json"
+    },
+    {
+      "delivery_path": "tests/apps/web/src/manager-selection/__tests__/issue8R2.spec.ts",
+      "sha256": "3b8e004f31135674d63c1affd25cc41d759bfd10187a1dfc318f64c53636f873",
+      "bytes": 16344,
+      "git_blob_sha": "a37994c4a54b4fec2d1a4b5ff8969e17ade60592",
+      "frozen_repository_path": "handoff/manager-three-channel-deploy-20261009/chat_validator_regression/tests/issue8R2.spec.ts"
+    },
+    {
+      "delivery_path": "tests/apps/web/src/manager-selection/dailyChannels.testHelper.ts",
+      "sha256": "ff2e22d33fe61fc8c44e3c524f2a192b55bb5ee1a6330eadc0ca3373c546f3f0",
+      "bytes": 4549,
+      "frozen_repository_path": "handoff/manager-workbench-repair-20261008/after/apps/web/src/manager-selection/dailyChannels.testHelper.ts",
+      "git_blob_sha": "6cb52fd82909fb57943923266d997d021e7ef0da"
+    },
+    {
+      "delivery_path": "tests/tests/manager_daily_ui_owner_fixture.py",
+      "sha256": "59e78904ca76deaa381799719cbeb6c1841bd7df318d354c2e5ad6298e768020",
+      "bytes": 10401,
+      "frozen_repository_path": "handoff/manager-three-channel-repair-20261009/tests/support/app/tests/manager_daily_ui_owner_fixture.py",
+      "git_blob_sha": "d96cefec9fbdb3b01662b7e2f9670c0d43c05c59"
+    },
+    {
+      "delivery_path": "tests/tests/manager_three_channel_ui_fixture.py",
+      "sha256": "1891b76ff2f0f07300831f46878ce416a83aa35441d28e91755eaaadb02ba894",
+      "bytes": 1349,
+      "frozen_repository_path": "handoff/manager-three-channel-repair-20261009/after/test_delta/tests/manager_three_channel_ui_fixture.py",
+      "git_blob_sha": "a8ab525c2a05a028d84390917af7fba48bdd6331"
+    },
+    {
+      "delivery_path": "tests/tests/r3_scoped_loader.py",
+      "sha256": "02366f958e893448b4325f864a9b86151956fb8f480b980193dd2489c82345db",
+      "bytes": 985,
+      "frozen_repository_path": "handoff/v4-running-source-20261005/canonical/tests/r3_scoped_loader.py",
+      "git_blob_sha": "e96721ee552816e5aee74dfbb06beab708f93c97"
+    },
+    {
+      "delivery_path": "tests/tests/test_manager_three_channel_hk_reader.py",
+      "sha256": "d037d4f43559e45d23f92b63a27317f2e5587b1b86649fbb9e6198a62618e7e5",
+      "bytes": 12661,
+      "frozen_repository_path": "handoff/manager-three-channel-repair-20261009/after/test_delta/tests/test_manager_three_channel_hk_reader.py",
+      "git_blob_sha": "fb577af7ccebaa9cce1e26954319715e4a6339aa"
+    },
+    {
+      "delivery_path": "tests/tests/test_manager_us_mapping_isolation_20261008.py",
+      "sha256": "7f56ea1f22fdd8d229a3377c3185733e32f443ccf0657b24857770c7c0658dbb",
+      "bytes": 6712,
+      "frozen_repository_path": "handoff/manager-three-channel-repair-20261009/tests/support/app/tests/test_manager_us_mapping_isolation_20261008.py",
+      "git_blob_sha": "cb62f366e4625048457f48949935fd6a6ef28a14"
+    }
+  ]
+}

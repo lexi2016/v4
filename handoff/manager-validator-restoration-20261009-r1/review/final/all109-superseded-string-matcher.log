@@ -1,0 +1,119 @@
+
+ RUN  v4.1.10 /workspace/scratch/0e089a11ee60/work/repaired/app/apps/web
+
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > accepts exact owner observations without mutating the envelope 7ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > renders all independent observations without creating scored cards or BUY controls 37ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > does not hardcode nine/five and retains records beyond the scored display limit 6ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > renders the actual formal holiday as not applicable rather than a successful empty scan 10ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > shows unknown formal applicability even with known research observations 12ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > distinguishes a verified trading-day empty result from a holiday 5ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > separates HKEX, Eastmoney and US coverage and exposes rejection counts and reasons 5ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > accepts legacy payloads but shows absent new fields as unknown, never valid zero 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > renders an empty observation container as unconfirmed, not an exhaustive negative 2ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > does not infer acquisition clocks from alternate owner fields 4ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > preserves missing research state and clears previous observation DOM on reread 5ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > escapes titles/quotes and permits only safe http(s) evidence anchors 16ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects container null 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects container wrong shape 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects count mismatch 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects unique symbol count mismatch 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects invalid status 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects scored promotion 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects formal promotion 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects exhaustiveness promotion 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects unsafe container 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects duplicate owner identity 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects focus promotion 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects BUY promotion 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects qualified promotion 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects production promotion 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects missing safety 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects invalid symbol 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects cross issuer 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects negated assertion 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects unclassified row 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects blank quote 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects missing body binding 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects wrong body SHA 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects wrong role 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects cross-date membership 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects invalid membership state 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects unsafe URL 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects unsafe reference 4ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects future reference 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > requires an explicit valid published_at 2ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > requires an explicit valid available_at 2ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > requires an explicit valid retrieved_at 2ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects reversed acquisition order and publication before the freshness window 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects null formal 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects cross-date formal 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects holiday positive count 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects holiday null count 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects holiday lacks calendar 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects holiday claims trading day 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects calendar wrong date 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects calendar wrong SHA 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects calendar wrong owner 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects unknown masquerading as known 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects unsafe formal 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects unsafe selection 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects membership disagreement 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects null diagnostics 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects missing lane 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects bad gaps type 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects false completeness type 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects invalid US state 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects negative document count 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects mirror exhaustiveness claim 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects bad coverage count 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects bad scope sums 0ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects unsafe nested formal 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > keeps missing observation_only compatible but unconfirmed 2ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > keeps missing input_diagnostics compatible but unconfirmed 4ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > requires the same calendar identity in formal selection and filtered research input 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > rejects unknown target membership promoted on an independent observation 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > allows independently witnessed target membership but never turns observations into BUY 5ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > rejects assessed-zero in the new US lane when material completeness is false 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > retains exact extra coverage fields without recasting missing counts to zero 3ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > places source coverage before the independent card list 5ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > uses unknown when a diagnostic membership rejection differs from the raw owner status 5ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > accepts unknown counts without calling them a successful zero and preserves other channels 40ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: status-ready 1ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: screen-ready 0ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: claims-input-identity 0ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: claims-zero 1ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: claims-input-count 0ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: missing-count 0ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: string-known 0ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > rejects an unavailable DTO that makes an unsupported claim: pending-row 0ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > preserves a verified-input legitimate zero and rejects null counts in that branch 1ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > retains compatibility with the older numeric unavailable DTO 0ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > accepts the actual Python reader DTO for hk_missing 559ms
+ ✓ src/api/managerWorkspace.threeChannel.spec.ts > three-channel exact-date screen unavailable contract > accepts the actual Python reader DTO for hk_valid 677ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > sends explicit page bindings when the refresh action has an explicit query 4ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > accepts actual daily owner readback and plan owner readback fields 282ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > accepts the real original reader-failure DTO with an unmaterialized null-target readback 447ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects invalid daily execution evidence: naive-start 1ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects invalid daily execution evidence: finish-before-start 1ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects invalid daily execution evidence: natural-inference 0ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects a verified US readback borrowed from another product: wrong-target 0ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects a verified US readback borrowed from another product: wrong-run 0ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > rejects a verified US readback borrowed from another product: wrong-sha 1ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > does not let a later failed plan attempt replace or validate the saved product 1ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > requires exact saved-attempt SHA even when latest attempt failed (missing) 0ms
+ ✓ src/api/managerWorkspace.dailyAutomation.spec.ts > manager daily DTO execution and exact readback contracts > requires exact saved-attempt SHA even when latest attempt failed (malformed) 0ms
+ ✓ src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > accepts observations, distinct channel dates and unknown screen counts without mutation 8ms
+ ✓ src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > rejects an unsafe independent observation in the same envelope 3ms
+ ✓ src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > rejects assessed-zero when the US input remains incomplete 2ms
+ ✓ src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > rejects a different calendar SHA in the filtered research scope 2ms
+ ✓ src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > continues rejecting an unknown-count screen that claims zero selected rows 1ms
+ ✓ src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > continues rejecting an announcement date different from the requested binding 3ms
+ ✓ src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > preserves valid minute-only observation clocks with an explicit timezone 2ms
+ ✓ src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > rejects an observation clock that Date.parse would roll from hour 24 to the next day 2ms
+
+ Test Files  4 passed (4)
+      Tests  109 passed (109)
+   Start at  06:29:02
+   Duration  5.03s (transform 217ms, setup 0ms, import 312ms, tests 2.21s, environment 1.86s)
+
+JSON report written to /workspace/scratch/0e089a11ee60/review/final/all109.json

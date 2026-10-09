@@ -1,0 +1,32 @@
+{
+  "scope": "Read-only review of verifier, README, Mac instructions; MANIFEST not read; no additional tests executed",
+  "files_sha256": {
+    "tools/verify_delivery.py": "f9518fc2ca909db8291c34a5780ac021299729506aeae0cfa078c93a10aa4fa0",
+    "README.md": "d94b4332800c4635c329edd73d9e337953a78cee6b66182d5a13dca5cfa42fe3",
+    "MAC_APPLY_AND_ROLLBACK.md": "da66880e82ede447a31f99df4111f8c1e187b94de972087bfe2a61e7f383d9d3"
+  },
+  "observations": [
+    {
+      "severity": "Important",
+      "file": "MAC_APPLY_AND_ROLLBACK.md",
+      "lines": [
+        17,
+        21,
+        85,
+        88
+      ],
+      "issue": "Apply/rollback block does not enforce stop-on-failure. Failed SHA preflight can fall through to a successful git apply when surrounding diff context still matches.",
+      "requested_fix": "Chain guarded sequences with && or equivalent explicit fail-fast handling."
+    },
+    {
+      "severity": "Minor",
+      "file": "tools/verify_delivery.py",
+      "lines": [
+        31,
+        46
+      ],
+      "issue": "production_change.path is not checked before joining the TemporaryDirectory target and creating parent directories/copying.",
+      "requested_fix": "Enforce the single allowed production path or verify resolved temporary-target containment before writing."
+    }
+  ]
+}

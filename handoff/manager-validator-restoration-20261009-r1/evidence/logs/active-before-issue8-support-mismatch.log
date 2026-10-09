@@ -1,0 +1,268 @@
+
+ RUN  v4.1.10 /workspace/scratch/0e089a11ee60/work/active-before/app/apps/web
+
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > accepts exact owner observations without mutating the envelope 37ms
+ × src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > renders all independent observations without creating scored cards or BUY controls 55ms
+   → expected  to have a length of 9 but got +0
+ × src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > does not hardcode nine/five and retains records beyond the scored display limit 24ms
+   → expected  to have a length of 2 but got +0
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > renders the actual formal holiday as not applicable rather than a successful empty scan 33ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > shows unknown formal applicability even with known research observations 19ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > distinguishes a verified trading-day empty result from a holiday 11ms
+ × src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > separates HKEX, Eastmoney and US coverage and exposes rejection counts and reasons 31ms
+   → expected '证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业…' to contain 'HKEX 官方公告'
+ × src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > accepts legacy payloads but shows absent new fields as unknown, never valid zero 22ms
+   → expected '证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业…' to contain '独立公告观察未提供'
+ × src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > renders an empty observation container as unconfirmed, not an exhaustive negative 20ms
+   → expected '证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业…' to contain '未保留可展示观察；不等于全市场无正向公告'
+ × src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > does not infer acquisition clocks from alternate owner fields 20ms
+   → expected '证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业…' to contain '不以 collected_at／first_seen_at 补造采集时间'
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > preserves missing research state and clears previous observation DOM on reread 24ms
+ × src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > escapes titles/quotes and permits only safe http(s) evidence anchors 6ms
+   → expected '证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业…' to contain '<script>alert(1)</script>'
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects container null 2ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects container wrong shape 2ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects count mismatch 3ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects unique symbol count mismatch 6ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects invalid status 4ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects scored promotion 4ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects formal promotion 3ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects exhaustiveness promotion 3ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects unsafe container 5ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects duplicate owner identity 6ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects focus promotion 4ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects BUY promotion 3ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects qualified promotion 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects production promotion 3ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects missing safety 52ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects invalid symbol 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects cross issuer 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects negated assertion 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects unclassified row 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects blank quote 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects missing body binding 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects wrong body SHA 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects wrong role 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects cross-date membership 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects invalid membership state 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects unsafe URL 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects unsafe reference 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects future reference 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > requires an explicit valid published_at 8ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > requires an explicit valid available_at 22ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > requires an explicit valid retrieved_at 15ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 rejects invalid new observation contracts > rejects reversed acquisition order and publication before the freshness window 5ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects null formal 3ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects cross-date formal 2ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects holiday positive count 2ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects holiday null count 2ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects holiday lacks calendar 2ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects holiday claims trading day 1ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects calendar wrong date 2ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects calendar wrong SHA 2ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects calendar wrong owner 2ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects unknown masquerading as known 2ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects unsafe formal 2ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects unsafe selection 2ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects membership disagreement 2ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects null diagnostics 4ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects missing lane 3ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects bad gaps type 2ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects false completeness type 4ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects invalid US state 4ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects negative document count 3ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects mirror exhaustiveness claim 3ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects bad coverage count 3ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects bad scope sums 4ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 formal and input diagnostics contracts > rejects unsafe nested formal 4ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > keeps missing observation_only compatible but unconfirmed 7ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > keeps missing input_diagnostics compatible but unconfirmed 8ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > requires the same calendar identity in formal selection and filtered research input 4ms
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > rejects unknown target membership promoted on an independent observation 5ms
+ × src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > allows independently witnessed target membership but never turns observations into BUY 16ms
+   → expected '证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业…' to contain '目标日名单已核（仍仅研究观察）'
+ ✓ src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > rejects assessed-zero in the new US lane when material completeness is false 4ms
+ × src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > retains exact extra coverage fields without recasting missing counts to zero 12ms
+   → expected '证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业…' to contain '已观察文档 未知'
+ × src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > places source coverage before the independent card list 13ms
+   → Cannot read properties of null (reading 'compareDocumentPosition')
+ × src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > uses unknown when a diagnostic membership rejection differs from the raw owner status 12ms
+   → expected '证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业…' to contain '研究输入范围 · CANNOT_CONFIRM'
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 11 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > renders all independent observations without creating scored cards or BUY controls
+AssertionError: expected  to have a length of 9 but got +0
+
+- Expected
++ Received
+
+- 9
++ 0
+
+ ❯ src/manager-selection/__tests__/issue8R2.spec.ts:14:92
+     12|   it('accepts exact owner observations without mutating the envelope',…
+     13|   it('renders all independent observations without creating scored car…
+     14|     const x=fixture(),h=render(x);expect(h.querySelectorAll('.research…
+       |                                                                                            ^
+     15|     expect(h.querySelectorAll('.research-attention-card')).toHaveLengt…
+     16|     expect(h.textContent).toContain('独立公告观察');expect(h.textContent).to…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/11]⎯
+
+ FAIL  src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > does not hardcode nine/five and retains records beyond the scored display limit
+AssertionError: expected  to have a length of 2 but got +0
+
+- Expected
++ Received
+
+- 2
++ 0
+
+ ❯ src/manager-selection/__tests__/issue8R2.spec.ts:22:124
+     20|   it('does not hardcode nine/five and retains records beyond the score…
+     21|     const x=fixture();const o=x.research_attention.observation_only;o.…
+     22|     x.research_attention.config.display_limit=1;const h=render(x);expe…
+       |                                                                                                                            ^
+     23|   });
+     24|   it('renders the actual formal holiday as not applicable rather than …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/11]⎯
+
+ FAIL  src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > separates HKEX, Eastmoney and US coverage and exposes rejection counts and reasons
+AssertionError: expected '证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业…' to contain 'HKEX 官方公告'
+
+Expected: "HKEX 官方公告"
+Received: "证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业务关系研究（只读研究，不是选股或 BUY）映射数据未提供 · CANNOT_CONFIRM；数量未知，不能解释为零。正式选股当日不适用（港股通休市）目标日 20261002；原因 HK_CONNECT_NON_TRADING_DAY。休市不表示 Stage 已成功执行。港股证券 FULL_TRADING_DAY；港股通 NON_TRADING_DAY；日历身份 9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb。目标日资格状态 CANNOT_CONFIRM，与是否开市分开判断；不以 D-1 资格替代。目标日资格缺口（1 条）HK_CONNECT_TARGET_AUTHORITY_UNVERIFIED:HK_UNIVERSE_V2_ARTIFACT_MISSING正式选股来源缺口（1 条）HK_CONNECT_TARGET_AUTHORITY_UNVERIFIED:HK_UNIVERSE_V2_ARTIFACT_MISSING研究候选逐股研究选择台账未提供 · CANNOT_CONFIRM；不能解释为0只候选。Connect正式资格与研究观察分开。状态 READY_WITH_GAPS；cutoff 2026-10-03T15:56:47.663674+08:00。评分配置 20260927.research-attention.evidence-state-v2，状态 PROPOSAL_ONLY。研究排序先按证据状态，再用既有proposal分数和PIT时点打破同组并列；不写回原rank/Stage/BUY。美股原始上涨发现（独立于上述日常关系映射；即使没有合格港股映射也保留）US owner 未绑定/未读取，覆盖未知。"
+
+ ❯ src/manager-selection/__tests__/issue8R2.spec.ts:42:264
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/11]⎯
+
+ FAIL  src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > accepts legacy payloads but shows absent new fields as unknown, never valid zero
+AssertionError: expected '证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业…' to contain '独立公告观察未提供'
+
+Expected: "独立公告观察未提供"
+Received: "证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业务关系研究（只读研究，不是选股或 BUY）映射数据未提供 · CANNOT_CONFIRM；数量未知，不能解释为零。正式选股状态未提供 · CANNOT_CONFIRM旧payload或未读取，不能解释为当日适用或有效零结果。研究候选逐股研究选择台账未提供 · CANNOT_CONFIRM；不能解释为0只候选。Connect正式资格与研究观察分开。状态 READY；cutoff 2026-10-03T15:56:47.663674+08:00。评分配置 20260927.research-attention.evidence-state-v2，状态 PROPOSAL_ONLY。研究排序先按证据状态，再用既有proposal分数和PIT时点打破同组并列；不写回原rank/Stage/BUY。美股原始上涨发现（独立于上述日常关系映射；即使没有合格港股映射也保留）US owner 未绑定/未读取，覆盖未知。"
+
+ ❯ src/manager-selection/__tests__/issue8R2.spec.ts:47:46
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/11]⎯
+
+ FAIL  src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > renders an empty observation container as unconfirmed, not an exhaustive negative
+AssertionError: expected '证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业…' to contain '未保留可展示观察；不等于全市场无正向公告'
+
+Expected: "未保留可展示观察；不等于全市场无正向公告"
+Received: "证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业务关系研究（只读研究，不是选股或 BUY）映射数据未提供 · CANNOT_CONFIRM；数量未知，不能解释为零。正式选股当日不适用（港股通休市）目标日 20261002；原因 HK_CONNECT_NON_TRADING_DAY。休市不表示 Stage 已成功执行。港股证券 FULL_TRADING_DAY；港股通 NON_TRADING_DAY；日历身份 9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb。目标日资格状态 CANNOT_CONFIRM，与是否开市分开判断；不以 D-1 资格替代。目标日资格缺口（1 条）HK_CONNECT_TARGET_AUTHORITY_UNVERIFIED:HK_UNIVERSE_V2_ARTIFACT_MISSING正式选股来源缺口（1 条）HK_CONNECT_TARGET_AUTHORITY_UNVERIFIED:HK_UNIVERSE_V2_ARTIFACT_MISSING研究候选逐股研究选择台账未提供 · CANNOT_CONFIRM；不能解释为0只候选。Connect正式资格与研究观察分开。状态 READY_WITH_GAPS；cutoff 2026-10-03T15:56:47.663674+08:00。评分配置 20260927.research-attention.evidence-state-v2，状态 PROPOSAL_ONLY。研究排序先按证据状态，再用既有proposal分数和PIT时点打破同组并列；不写回原rank/Stage/BUY。美股原始上涨发现（独立于上述日常关系映射；即使没有合格港股映射也保留）US owner 未绑定/未读取，覆盖未知。"
+
+ ❯ src/manager-selection/__tests__/issue8R2.spec.ts:52:35
+     50|   it('renders an empty observation container as unconfirmed, not an ex…
+     51|     const x=fixture();Object.assign(x.research_attention.observation_o…
+     52|     expect(render(x).textContent).toContain('未保留可展示观察；不等于全市场无正向公告');
+       |                                   ^
+     53|   });
+     54|   it('does not infer acquisition clocks from alternate owner fields',(…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/11]⎯
+
+ FAIL  src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > does not infer acquisition clocks from alternate owner fields
+AssertionError: expected '证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业…' to contain '不以 collected_at／first_seen_at 补造采集时间'
+
+Expected: "不以 collected_at／first_seen_at 补造采集时间"
+Received: "证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业务关系研究（只读研究，不是选股或 BUY）映射数据未提供 · CANNOT_CONFIRM；数量未知，不能解释为零。正式选股当日不适用（港股通休市）目标日 20261002；原因 HK_CONNECT_NON_TRADING_DAY。休市不表示 Stage 已成功执行。港股证券 FULL_TRADING_DAY；港股通 NON_TRADING_DAY；日历身份 9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb。目标日资格状态 CANNOT_CONFIRM，与是否开市分开判断；不以 D-1 资格替代。目标日资格缺口（1 条）HK_CONNECT_TARGET_AUTHORITY_UNVERIFIED:HK_UNIVERSE_V2_ARTIFACT_MISSING正式选股来源缺口（1 条）HK_CONNECT_TARGET_AUTHORITY_UNVERIFIED:HK_UNIVERSE_V2_ARTIFACT_MISSING研究候选逐股研究选择台账未提供 · CANNOT_CONFIRM；不能解释为0只候选。Connect正式资格与研究观察分开。状态 READY_WITH_GAPS；cutoff 2026-10-03T15:56:47.663674+08:00。评分配置 20260927.research-attention.evidence-state-v2，状态 PROPOSAL_ONLY。研究排序先按证据状态，再用既有proposal分数和PIT时点打破同组并列；不写回原rank/Stage/BUY。美股原始上涨发现（独立于上述日常关系映射；即使没有合格港股映射也保留）US owner 未绑定/未读取，覆盖未知。"
+
+ ❯ src/manager-selection/__tests__/issue8R2.spec.ts:57:110
+     55|     const x=fixture();x.research_attention.input_diagnostics.us_relati…
+     56|     x.research_attention.input_diagnostics.us_relations.first_seen_at=…
+     57|     const h=render(x);expect(h.textContent).not.toContain('2026-09-29T…
+       |                                                                                                              ^
+     58|   });
+     59|   it('preserves missing research state and clears previous observation…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/11]⎯
+
+ FAIL  src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 real-owner observation shape in a synthetic envelope > escapes titles/quotes and permits only safe http(s) evidence anchors
+AssertionError: expected '证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业…' to contain '<script>alert(1)</script>'
+
+Expected: "<script>alert(1)</script>"
+Received: "证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业务关系研究（只读研究，不是选股或 BUY）映射数据未提供 · CANNOT_CONFIRM；数量未知，不能解释为零。正式选股当日不适用（港股通休市）目标日 20261002；原因 HK_CONNECT_NON_TRADING_DAY。休市不表示 Stage 已成功执行。港股证券 FULL_TRADING_DAY；港股通 NON_TRADING_DAY；日历身份 9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb。目标日资格状态 CANNOT_CONFIRM，与是否开市分开判断；不以 D-1 资格替代。目标日资格缺口（1 条）HK_CONNECT_TARGET_AUTHORITY_UNVERIFIED:HK_UNIVERSE_V2_ARTIFACT_MISSING正式选股来源缺口（1 条）HK_CONNECT_TARGET_AUTHORITY_UNVERIFIED:HK_UNIVERSE_V2_ARTIFACT_MISSING研究候选逐股研究选择台账未提供 · CANNOT_CONFIRM；不能解释为0只候选。Connect正式资格与研究观察分开。状态 READY_WITH_GAPS；cutoff 2026-10-03T15:56:47.663674+08:00。评分配置 20260927.research-attention.evidence-state-v2，状态 PROPOSAL_ONLY。研究排序先按证据状态，再用既有proposal分数和PIT时点打破同组并列；不写回原rank/Stage/BUY。美股原始上涨发现（独立于上述日常关系映射；即使没有合格港股映射也保留）US owner 未绑定/未读取，覆盖未知。"
+
+ ❯ src/manager-selection/__tests__/issue8R2.spec.ts:65:94
+     63|   it('escapes titles/quotes and permits only safe http(s) evidence anc…
+     64|     const x=fixture(),r=x.research_attention.observation_only.cards[0]…
+     65|     const h=render(x);expect(h.querySelector('img,script')).toBeNull()…
+       |                                                                                              ^
+     66|     for(const a of h.querySelectorAll('a')){expect(a.href).toMatch(/^h…
+     67|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/11]⎯
+
+ FAIL  src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > allows independently witnessed target membership but never turns observations into BUY
+AssertionError: expected '证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业…' to contain '目标日名单已核（仍仅研究观察）'
+
+Expected: "目标日名单已核（仍仅研究观察）"
+Received: "证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业务关系研究（只读研究，不是选股或 BUY）映射数据未提供 · CANNOT_CONFIRM；数量未知，不能解释为零。正式选股当日不适用（港股通休市）目标日 20261002；原因 HK_CONNECT_NON_TRADING_DAY。休市不表示 Stage 已成功执行。港股证券 FULL_TRADING_DAY；港股通 NON_TRADING_DAY；日历身份 9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb。目标日资格状态 OWNER_VERIFIED，与是否开市分开判断；不以 D-1 资格替代。目标日资格缺口（1 条）HK_CONNECT_TARGET_AUTHORITY_UNVERIFIED:HK_UNIVERSE_V2_ARTIFACT_MISSING正式选股来源缺口（1 条）HK_CONNECT_TARGET_AUTHORITY_UNVERIFIED:HK_UNIVERSE_V2_ARTIFACT_MISSING研究候选逐股研究选择台账未提供 · CANNOT_CONFIRM；不能解释为0只候选。Connect正式资格与研究观察分开。状态 READY_WITH_GAPS；cutoff 2026-10-03T15:56:47.663674+08:00。评分配置 20260927.research-attention.evidence-state-v2，状态 PROPOSAL_ONLY。研究排序先按证据状态，再用既有proposal分数和PIT时点打破同组并列；不写回原rank/Stage/BUY。美股原始上涨发现（独立于上述日常关系映射；即使没有合格港股映射也保留）US owner 未绑定/未读取，覆盖未知。"
+
+ ❯ src/manager-selection/__tests__/issue8R2.spec.ts:154:45
+    152|     for(const r of x.research_attention.observation_only.cards)Object.…
+    153|       {status:'VERIFIED_TARGET_UNIVERSE',authority_identity:'c'.repeat…
+    154|     const h=render(x);expect(h.textContent).toContain('目标日名单已核（仍仅研究观察）…
+       |                                             ^
+    155|     expect(h.querySelector('button')).toBeNull();expect(x.focus_symbol…
+    156|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/11]⎯
+
+ FAIL  src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > retains exact extra coverage fields without recasting missing counts to zero
+AssertionError: expected '证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业…' to contain '已观察文档 未知'
+
+Expected: "已观察文档 未知"
+Received: "证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业务关系研究（只读研究，不是选股或 BUY）映射数据未提供 · CANNOT_CONFIRM；数量未知，不能解释为零。正式选股当日不适用（港股通休市）目标日 20261002；原因 HK_CONNECT_NON_TRADING_DAY。休市不表示 Stage 已成功执行。港股证券 FULL_TRADING_DAY；港股通 NON_TRADING_DAY；日历身份 9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb。目标日资格状态 CANNOT_CONFIRM，与是否开市分开判断；不以 D-1 资格替代。目标日资格缺口（1 条）HK_CONNECT_TARGET_AUTHORITY_UNVERIFIED:HK_UNIVERSE_V2_ARTIFACT_MISSING正式选股来源缺口（1 条）HK_CONNECT_TARGET_AUTHORITY_UNVERIFIED:HK_UNIVERSE_V2_ARTIFACT_MISSING研究候选逐股研究选择台账未提供 · CANNOT_CONFIRM；不能解释为0只候选。Connect正式资格与研究观察分开。状态 READY_WITH_GAPS；cutoff 2026-10-03T15:56:47.663674+08:00。评分配置 20260927.research-attention.evidence-state-v2，状态 PROPOSAL_ONLY。研究排序先按证据状态，再用既有proposal分数和PIT时点打破同组并列；不写回原rank/Stage/BUY。美股原始上涨发现（独立于上述日常关系映射；即使没有合格港股映射也保留）US owner 未绑定/未读取，覆盖未知。"
+
+ ❯ src/manager-selection/__tests__/issue8R2.spec.ts:163:45
+    161|     const x=fixture();const c=x.research_attention.input_diagnostics.o…
+    162|     c.directory_exhaustion='UNVERIFIED';c.failed_issuers=[{symbol:'HK.…
+    163|     const h=render(x);expect(h.textContent).toContain('已观察文档 未知');expe…
+       |                                             ^
+    164|   });
+    165|   it('places source coverage before the independent card list',()=>{
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/11]⎯
+
+ FAIL  src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > places source coverage before the independent card list
+TypeError: Cannot read properties of null (reading 'compareDocumentPosition')
+ ❯ src/manager-selection/__tests__/issue8R2.spec.ts:167:20
+    165|   it('places source coverage before the independent card list',()=>{
+    166|     const h=render(fixture()),sources=h.querySelector('[data-input-dia…
+    167|     expect(sources.compareDocumentPosition(observations)&Node.DOCUMENT…
+       |                    ^
+    168|   });
+    169|   it('uses unknown when a diagnostic membership rejection differs from…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/11]⎯
+
+ FAIL  src/manager-selection/__tests__/issue8R2.spec.ts > Issue8 R2 cross-field and partial payload review > uses unknown when a diagnostic membership rejection differs from the raw owner status
+AssertionError: expected '证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业…' to contain '研究输入范围 · CANNOT_CONFIRM'
+
+Expected: "研究输入范围 · CANNOT_CONFIRM"
+Received: "证据优先研究（只读，不是原筛选／focus／BUY 排名）美股 → 港股业务关系研究（只读研究，不是选股或 BUY）映射数据未提供 · CANNOT_CONFIRM；数量未知，不能解释为零。正式选股当日不适用（港股通休市）目标日 20261002；原因 HK_CONNECT_NON_TRADING_DAY。休市不表示 Stage 已成功执行。港股证券 FULL_TRADING_DAY；港股通 NON_TRADING_DAY；日历身份 9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb。目标日资格状态 OWNER_VERIFIED，与是否开市分开判断；不以 D-1 资格替代。目标日资格缺口（1 条）HK_CONNECT_TARGET_AUTHORITY_UNVERIFIED:HK_UNIVERSE_V2_ARTIFACT_MISSING正式选股来源缺口（1 条）HK_CONNECT_TARGET_AUTHORITY_UNVERIFIED:HK_UNIVERSE_V2_ARTIFACT_MISSING研究候选逐股研究选择台账未提供 · CANNOT_CONFIRM；不能解释为0只候选。Connect正式资格与研究观察分开。状态 READY_WITH_GAPS；cutoff 2026-10-03T15:56:47.663674+08:00。评分配置 20260927.research-attention.evidence-state-v2，状态 PROPOSAL_ONLY。研究排序先按证据状态，再用既有proposal分数和PIT时点打破同组并列；不写回原rank/Stage/BUY。美股原始上涨发现（独立于上述日常关系映射；即使没有合格港股映射也保留）US owner 未绑定/未读取，覆盖未知。"
+
+ ❯ src/manager-selection/__tests__/issue8R2.spec.ts:175:35
+    173|     x.selection_diagnostics.membership.status='OWNER_VERIFIED';x.selec…
+    174|     x.selection_diagnostics.formal_selection.membership_status='OWNER_…
+    175|     expect(render(x).textContent).toContain('研究输入范围 · CANNOT_CONFIRM');
+       |                                   ^
+    176|   });
+    177| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/11]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  11 failed | 65 passed (76)
+   Start at  06:21:25
+   Duration  2.10s (transform 338ms, setup 0ms, import 459ms, tests 617ms, environment 806ms)
+
+JSON report written to /workspace/scratch/0e089a11ee60/work/active-before/issue8.json

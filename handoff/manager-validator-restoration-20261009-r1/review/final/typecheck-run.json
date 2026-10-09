@@ -1,0 +1,23 @@
+{
+  "command": [
+    "node",
+    "/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "--strict",
+    "--skipLibCheck",
+    "--target",
+    "ES2022",
+    "--module",
+    "ESNext",
+    "--moduleResolution",
+    "Bundler",
+    "--lib",
+    "ES2022,DOM",
+    "src/api/managerWorkspace.ts"
+  ],
+  "cwd": "/workspace/scratch/0e089a11ee60/work/repaired/app/apps/web",
+  "exit_code": 0,
+  "elapsed_seconds": 1.079,
+  "scope": "changed managerWorkspace.ts and its transitive TypeScript imports; no full app build",
+  "diagnostics": ""
+}

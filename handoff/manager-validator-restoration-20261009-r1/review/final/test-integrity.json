@@ -1,0 +1,134 @@
+{
+  "original_test_and_fixture_checks": [
+    {
+      "input": "input/tests/issue8R2.spec.ts",
+      "copy": "work/active-before/app/apps/web/src/manager-selection/__tests__/issue8R2.spec.ts",
+      "sha256": "3b8e004f31135674d63c1affd25cc41d759bfd10187a1dfc318f64c53636f873",
+      "matches": true
+    },
+    {
+      "input": "input/tests/issue8R2.spec.ts",
+      "copy": "work/candidate-before/app/apps/web/src/manager-selection/__tests__/issue8R2.spec.ts",
+      "sha256": "3b8e004f31135674d63c1affd25cc41d759bfd10187a1dfc318f64c53636f873",
+      "matches": true
+    },
+    {
+      "input": "input/tests/issue8R2.spec.ts",
+      "copy": "work/repaired/app/apps/web/src/manager-selection/__tests__/issue8R2.spec.ts",
+      "sha256": "3b8e004f31135674d63c1affd25cc41d759bfd10187a1dfc318f64c53636f873",
+      "matches": true
+    },
+    {
+      "input": "input/tests/fixtures/issue8R2.fixture.ts",
+      "copy": "work/active-before/app/apps/web/src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts",
+      "sha256": "173d1711fc86fbb392eb616d4dde7bcab21b5b1a74b24372b9314b1297a31525",
+      "matches": true
+    },
+    {
+      "input": "input/tests/fixtures/issue8R2.fixture.ts",
+      "copy": "work/candidate-before/app/apps/web/src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts",
+      "sha256": "173d1711fc86fbb392eb616d4dde7bcab21b5b1a74b24372b9314b1297a31525",
+      "matches": true
+    },
+    {
+      "input": "input/tests/fixtures/issue8R2.fixture.ts",
+      "copy": "work/repaired/app/apps/web/src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts",
+      "sha256": "173d1711fc86fbb392eb616d4dde7bcab21b5b1a74b24372b9314b1297a31525",
+      "matches": true
+    },
+    {
+      "input": "input/tests/fixtures/issue8R2.ownerObservations.json",
+      "copy": "work/active-before/app/apps/web/src/manager-selection/__tests__/fixtures/issue8R2.ownerObservations.json",
+      "sha256": "0a56e12d5a56e7534b9a484e8bc2443677a2abeb5d3a9feea56ac0d641b2dce8",
+      "matches": true
+    },
+    {
+      "input": "input/tests/fixtures/issue8R2.ownerObservations.json",
+      "copy": "work/candidate-before/app/apps/web/src/manager-selection/__tests__/fixtures/issue8R2.ownerObservations.json",
+      "sha256": "0a56e12d5a56e7534b9a484e8bc2443677a2abeb5d3a9feea56ac0d641b2dce8",
+      "matches": true
+    },
+    {
+      "input": "input/tests/fixtures/issue8R2.ownerObservations.json",
+      "copy": "work/repaired/app/apps/web/src/manager-selection/__tests__/fixtures/issue8R2.ownerObservations.json",
+      "sha256": "0a56e12d5a56e7534b9a484e8bc2443677a2abeb5d3a9feea56ac0d641b2dce8",
+      "matches": true
+    },
+    {
+      "input": "input/tests/managerWorkspace.threeChannel.spec.ts",
+      "copy": "work/active-before/app/apps/web/src/api/managerWorkspace.threeChannel.spec.ts",
+      "sha256": "a3f3f5d01cea2d8b2fab55968117af76dc50d0ef87d8552b4aaca9ca1b2895d4",
+      "matches": true
+    },
+    {
+      "input": "input/tests/managerWorkspace.threeChannel.spec.ts",
+      "copy": "work/candidate-before/app/apps/web/src/api/managerWorkspace.threeChannel.spec.ts",
+      "sha256": "a3f3f5d01cea2d8b2fab55968117af76dc50d0ef87d8552b4aaca9ca1b2895d4",
+      "matches": true
+    },
+    {
+      "input": "input/tests/managerWorkspace.threeChannel.spec.ts",
+      "copy": "work/repaired/app/apps/web/src/api/managerWorkspace.threeChannel.spec.ts",
+      "sha256": "a3f3f5d01cea2d8b2fab55968117af76dc50d0ef87d8552b4aaca9ca1b2895d4",
+      "matches": true
+    },
+    {
+      "input": "input/tests/managerWorkspace.dailyAutomation.spec.ts",
+      "copy": "work/active-before/app/apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts",
+      "sha256": "b5b57a45102775d2f57b1af14456f8a9bf2b23c6a8a96f4b30c87da245f9ac0d",
+      "matches": true
+    },
+    {
+      "input": "input/tests/managerWorkspace.dailyAutomation.spec.ts",
+      "copy": "work/candidate-before/app/apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts",
+      "sha256": "b5b57a45102775d2f57b1af14456f8a9bf2b23c6a8a96f4b30c87da245f9ac0d",
+      "matches": true
+    },
+    {
+      "input": "input/tests/managerWorkspace.dailyAutomation.spec.ts",
+      "copy": "work/repaired/app/apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts",
+      "sha256": "b5b57a45102775d2f57b1af14456f8a9bf2b23c6a8a96f4b30c87da245f9ac0d",
+      "matches": true
+    }
+  ],
+  "final_supplemental_checks": [
+    {
+      "path": "review/managerWorkspace.validatorRestoration.spec.ts",
+      "sha256": "9b67eaf14ddd5828bb81245ec8aaf1c2861e9b4059a857e4e1ae507be611c2b0",
+      "matches_expected": true
+    },
+    {
+      "path": "work/candidate-before/app/apps/web/src/api/managerWorkspace.validatorRestoration.spec.ts",
+      "sha256": "9b67eaf14ddd5828bb81245ec8aaf1c2861e9b4059a857e4e1ae507be611c2b0",
+      "matches_expected": true
+    },
+    {
+      "path": "work/repaired/app/apps/web/src/api/managerWorkspace.validatorRestoration.spec.ts",
+      "sha256": "9b67eaf14ddd5828bb81245ec8aaf1c2861e9b4059a857e4e1ae507be611c2b0",
+      "matches_expected": true
+    },
+    {
+      "path": "v4/handoff/manager-validator-restoration-20261009-r1/tests/apps/web/src/api/managerWorkspace.validatorRestoration.spec.ts",
+      "sha256": "9b67eaf14ddd5828bb81245ec8aaf1c2861e9b4059a857e4e1ae507be611c2b0",
+      "matches_expected": true
+    }
+  ],
+  "renderer_checks": [
+    {
+      "path": "work/active-before/app/apps/web/src/manager-selection/researchAttention.ts",
+      "sha256": "9b9ea7aef33e504da7d99f2b16b1e632448a63dfe0971ae275730e6311c5ce3a",
+      "matches_frozen_active_api_support": true
+    },
+    {
+      "path": "work/candidate-before/app/apps/web/src/manager-selection/researchAttention.ts",
+      "sha256": "9b9ea7aef33e504da7d99f2b16b1e632448a63dfe0971ae275730e6311c5ce3a",
+      "matches_frozen_active_api_support": true
+    },
+    {
+      "path": "work/repaired/app/apps/web/src/manager-selection/researchAttention.ts",
+      "sha256": "9b9ea7aef33e504da7d99f2b16b1e632448a63dfe0971ae275730e6311c5ce3a",
+      "matches_frozen_active_api_support": true
+    }
+  ],
+  "pass": true
+}

@@ -1,0 +1,412 @@
+{
+  "schema_version": "v4.manager_validator_restoration.validation.v1",
+  "scope": "SYNTHETIC_FRONTEND_CONTRACT_ONLY",
+  "reference_commit": "63e75b7af02866c2d19a484b9561416cb13efd84",
+  "candidate_source_sha256": "2c02d4cff38d749fcad91b892da83029c8269287fbb867a2216f09ef8aa2c43f",
+  "original_45_failure_ids_match": true,
+  "runs": [
+    {
+      "total": 76,
+      "passed": 76,
+      "failed": 0,
+      "failed_ids": [],
+      "success": true,
+      "case": "active-before",
+      "suite": "issue8",
+      "exit_code": 0,
+      "log": "logs/active-before-issue8.log",
+      "log_sha256": "8999dc9a20a319387558e6c2c7c27eb07d8b229c582cd24fec2ee06e383c336a",
+      "command": [
+        "node",
+        "/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "/workspace/scratch/0e089a11ee60/work/vitest.config.mjs",
+        "src/manager-selection/__tests__/issue8R2.spec.ts",
+        "--reporter=verbose",
+        "--reporter=json",
+        "--outputFile=/workspace/scratch/0e089a11ee60/work/active-before/issue8.json"
+      ],
+      "cwd": "/workspace/scratch/0e089a11ee60/work/active-before/app/apps/web",
+      "environment": {
+        "V4_TEST_SOURCE_ROOT": "/workspace/scratch/0e089a11ee60/work/active-before/app",
+        "V4_TEST_PYTHON": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "V4_TEST_CACHE_DIR": "/workspace/scratch/0e089a11ee60/work/active-before/vite-cache-issue8-corrected"
+      }
+    },
+    {
+      "total": 76,
+      "passed": 31,
+      "failed": 45,
+      "failed_ids": [
+        "Issue8 R2 rejects invalid new observation contracts rejects container null",
+        "Issue8 R2 rejects invalid new observation contracts rejects container wrong shape",
+        "Issue8 R2 rejects invalid new observation contracts rejects count mismatch",
+        "Issue8 R2 rejects invalid new observation contracts rejects unique symbol count mismatch",
+        "Issue8 R2 rejects invalid new observation contracts rejects invalid status",
+        "Issue8 R2 rejects invalid new observation contracts rejects scored promotion",
+        "Issue8 R2 rejects invalid new observation contracts rejects formal promotion",
+        "Issue8 R2 rejects invalid new observation contracts rejects exhaustiveness promotion",
+        "Issue8 R2 rejects invalid new observation contracts rejects unsafe container",
+        "Issue8 R2 rejects invalid new observation contracts rejects duplicate owner identity",
+        "Issue8 R2 rejects invalid new observation contracts rejects focus promotion",
+        "Issue8 R2 rejects invalid new observation contracts rejects BUY promotion",
+        "Issue8 R2 rejects invalid new observation contracts rejects qualified promotion",
+        "Issue8 R2 rejects invalid new observation contracts rejects production promotion",
+        "Issue8 R2 rejects invalid new observation contracts rejects missing safety",
+        "Issue8 R2 rejects invalid new observation contracts rejects invalid symbol",
+        "Issue8 R2 rejects invalid new observation contracts rejects cross issuer",
+        "Issue8 R2 rejects invalid new observation contracts rejects negated assertion",
+        "Issue8 R2 rejects invalid new observation contracts rejects unclassified row",
+        "Issue8 R2 rejects invalid new observation contracts rejects blank quote",
+        "Issue8 R2 rejects invalid new observation contracts rejects missing body binding",
+        "Issue8 R2 rejects invalid new observation contracts rejects wrong body SHA",
+        "Issue8 R2 rejects invalid new observation contracts rejects wrong role",
+        "Issue8 R2 rejects invalid new observation contracts rejects cross-date membership",
+        "Issue8 R2 rejects invalid new observation contracts rejects invalid membership state",
+        "Issue8 R2 rejects invalid new observation contracts rejects unsafe URL",
+        "Issue8 R2 rejects invalid new observation contracts rejects unsafe reference",
+        "Issue8 R2 rejects invalid new observation contracts rejects future reference",
+        "Issue8 R2 rejects invalid new observation contracts requires an explicit valid published_at",
+        "Issue8 R2 rejects invalid new observation contracts requires an explicit valid available_at",
+        "Issue8 R2 rejects invalid new observation contracts requires an explicit valid retrieved_at",
+        "Issue8 R2 rejects invalid new observation contracts rejects reversed acquisition order and publication before the freshness window",
+        "Issue8 R2 formal and input diagnostics contracts rejects null diagnostics",
+        "Issue8 R2 formal and input diagnostics contracts rejects missing lane",
+        "Issue8 R2 formal and input diagnostics contracts rejects bad gaps type",
+        "Issue8 R2 formal and input diagnostics contracts rejects false completeness type",
+        "Issue8 R2 formal and input diagnostics contracts rejects invalid US state",
+        "Issue8 R2 formal and input diagnostics contracts rejects negative document count",
+        "Issue8 R2 formal and input diagnostics contracts rejects mirror exhaustiveness claim",
+        "Issue8 R2 formal and input diagnostics contracts rejects bad coverage count",
+        "Issue8 R2 formal and input diagnostics contracts rejects bad scope sums",
+        "Issue8 R2 formal and input diagnostics contracts rejects unsafe nested formal",
+        "Issue8 R2 cross-field and partial payload review requires the same calendar identity in formal selection and filtered research input",
+        "Issue8 R2 cross-field and partial payload review rejects unknown target membership promoted on an independent observation",
+        "Issue8 R2 cross-field and partial payload review rejects assessed-zero in the new US lane when material completeness is false"
+      ],
+      "success": false,
+      "case": "candidate-before",
+      "suite": "issue8",
+      "exit_code": 1,
+      "log": "logs/candidate-before-issue8.log",
+      "log_sha256": "64d1fc742a95b9d2aef48a1e394519b92e7a270cd94f894554af0550d0662411",
+      "command": [
+        "node",
+        "/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "/workspace/scratch/0e089a11ee60/work/vitest.config.mjs",
+        "src/manager-selection/__tests__/issue8R2.spec.ts",
+        "--reporter=verbose",
+        "--reporter=json",
+        "--outputFile=/workspace/scratch/0e089a11ee60/work/candidate-before/issue8.json"
+      ],
+      "cwd": "/workspace/scratch/0e089a11ee60/work/candidate-before/app/apps/web",
+      "environment": {
+        "V4_TEST_SOURCE_ROOT": "/workspace/scratch/0e089a11ee60/work/candidate-before/app",
+        "V4_TEST_PYTHON": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "V4_TEST_CACHE_DIR": "/workspace/scratch/0e089a11ee60/work/candidate-before/vite-cache-issue8-corrected"
+      }
+    },
+    {
+      "total": 25,
+      "passed": 25,
+      "failed": 0,
+      "failed_ids": [],
+      "success": true,
+      "case": "candidate-before",
+      "suite": "adjacent25",
+      "exit_code": 0,
+      "log": "logs/candidate-before-adjacent25.log",
+      "log_sha256": "9afa2b0d80f67120574c8376d9f210c90d8db334228f746d24e321a260dde6d0",
+      "command": [
+        "node",
+        "/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "/workspace/scratch/0e089a11ee60/work/vitest.config.mjs",
+        "src/api/managerWorkspace.threeChannel.spec.ts",
+        "src/api/managerWorkspace.dailyAutomation.spec.ts",
+        "--reporter=verbose",
+        "--reporter=json",
+        "--outputFile=/workspace/scratch/0e089a11ee60/work/candidate-before/adjacent25.json"
+      ],
+      "cwd": "/workspace/scratch/0e089a11ee60/work/candidate-before/app/apps/web",
+      "environment": {
+        "V4_TEST_SOURCE_ROOT": "/workspace/scratch/0e089a11ee60/work/candidate-before/app",
+        "V4_TEST_PYTHON": "/workspace/scratch/0e089a11ee60/work/python_runtime/bin/python",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "V4_TEST_CACHE_DIR": "/workspace/scratch/0e089a11ee60/work/candidate-before/vite-cache-adjacent25-final"
+      }
+    },
+    {
+      "total": 76,
+      "passed": 76,
+      "failed": 0,
+      "failed_ids": [],
+      "success": true,
+      "case": "repaired",
+      "suite": "issue8",
+      "exit_code": 0,
+      "log": "logs/repaired-issue8.log",
+      "log_sha256": "6af00df93209476053fea46977be6b07888a6d5d07b22ffdc81aa329acfd2c77",
+      "command": [
+        "node",
+        "/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "/workspace/scratch/0e089a11ee60/work/vitest.config.mjs",
+        "src/manager-selection/__tests__/issue8R2.spec.ts",
+        "--reporter=verbose",
+        "--reporter=json",
+        "--outputFile=/workspace/scratch/0e089a11ee60/work/repaired/issue8.json"
+      ],
+      "cwd": "/workspace/scratch/0e089a11ee60/work/repaired/app/apps/web",
+      "environment": {
+        "V4_TEST_SOURCE_ROOT": "/workspace/scratch/0e089a11ee60/work/repaired/app",
+        "V4_TEST_PYTHON": "/workspace/scratch/0e089a11ee60/work/python_runtime/bin/python",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "V4_TEST_CACHE_DIR": "/workspace/scratch/0e089a11ee60/work/repaired/vite-cache-issue8-final"
+      }
+    },
+    {
+      "total": 25,
+      "passed": 25,
+      "failed": 0,
+      "failed_ids": [],
+      "success": true,
+      "case": "repaired",
+      "suite": "adjacent25",
+      "exit_code": 0,
+      "log": "logs/repaired-adjacent25.log",
+      "log_sha256": "fd81f7c92de1411416d6431883242171a65f7a6feb851e045a13a406b7178162",
+      "command": [
+        "node",
+        "/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "/workspace/scratch/0e089a11ee60/work/vitest.config.mjs",
+        "src/api/managerWorkspace.threeChannel.spec.ts",
+        "src/api/managerWorkspace.dailyAutomation.spec.ts",
+        "--reporter=verbose",
+        "--reporter=json",
+        "--outputFile=/workspace/scratch/0e089a11ee60/work/repaired/adjacent25.json"
+      ],
+      "cwd": "/workspace/scratch/0e089a11ee60/work/repaired/app/apps/web",
+      "environment": {
+        "V4_TEST_SOURCE_ROOT": "/workspace/scratch/0e089a11ee60/work/repaired/app",
+        "V4_TEST_PYTHON": "/workspace/scratch/0e089a11ee60/work/python_runtime/bin/python",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "V4_TEST_CACHE_DIR": "/workspace/scratch/0e089a11ee60/work/repaired/vite-cache-adjacent25-final"
+      }
+    },
+    {
+      "total": 8,
+      "passed": 4,
+      "failed": 4,
+      "failed_ids": [
+        "restored research validators coexist with three-channel contracts rejects an unsafe independent observation in the same envelope",
+        "restored research validators coexist with three-channel contracts rejects assessed-zero when the US input remains incomplete",
+        "restored research validators coexist with three-channel contracts rejects a different calendar SHA in the filtered research scope",
+        "restored research validators coexist with three-channel contracts rejects an observation clock that Date.parse would roll from hour 24 to the next day"
+      ],
+      "success": false,
+      "case": "candidate-before",
+      "suite": "coexistence8",
+      "exit_code": 1,
+      "log": "logs/candidate-before-coexistence8.log",
+      "log_sha256": "b14425379b09baab1689aa6da404258d2414ece04db33afc4475d76be6d97a7c",
+      "command": [
+        "node",
+        "/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "/workspace/scratch/0e089a11ee60/work/vitest.config.mjs",
+        "src/api/managerWorkspace.validatorRestoration.spec.ts",
+        "--reporter=verbose",
+        "--reporter=json",
+        "--outputFile=/workspace/scratch/0e089a11ee60/work/candidate-before/coexistence8.json"
+      ],
+      "cwd": "/workspace/scratch/0e089a11ee60/work/candidate-before/app/apps/web",
+      "environment": {
+        "V4_TEST_SOURCE_ROOT": "/workspace/scratch/0e089a11ee60/work/candidate-before/app",
+        "V4_TEST_PYTHON": "/workspace/scratch/0e089a11ee60/work/python_runtime/bin/python",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "V4_TEST_CACHE_DIR": "/workspace/scratch/0e089a11ee60/work/candidate-before/vite-cache-coexistence8-exact"
+      }
+    },
+    {
+      "total": 8,
+      "passed": 8,
+      "failed": 0,
+      "failed_ids": [],
+      "success": true,
+      "case": "repaired",
+      "suite": "coexistence8",
+      "exit_code": 0,
+      "log": "logs/repaired-coexistence8.log",
+      "log_sha256": "056a45a1db8be50f892c43693ba77ce284559065a612ddcac1b48e1f3ecb0e15",
+      "command": [
+        "node",
+        "/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "/workspace/scratch/0e089a11ee60/work/vitest.config.mjs",
+        "src/api/managerWorkspace.validatorRestoration.spec.ts",
+        "--reporter=verbose",
+        "--reporter=json",
+        "--outputFile=/workspace/scratch/0e089a11ee60/work/repaired/coexistence8.json"
+      ],
+      "cwd": "/workspace/scratch/0e089a11ee60/work/repaired/app/apps/web",
+      "environment": {
+        "V4_TEST_SOURCE_ROOT": "/workspace/scratch/0e089a11ee60/work/repaired/app",
+        "V4_TEST_PYTHON": "/workspace/scratch/0e089a11ee60/work/python_runtime/bin/python",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "V4_TEST_CACHE_DIR": "/workspace/scratch/0e089a11ee60/work/repaired/vite-cache-coexistence8-exact"
+      }
+    }
+  ],
+  "initial_or_superseded_runs": [
+    {
+      "case": "active-before",
+      "run": "issue8-support-mismatch",
+      "passed": 65,
+      "failed": 11,
+      "log": "logs/active-before-issue8-support-mismatch.log",
+      "counted_as_final": false
+    },
+    {
+      "case": "candidate-before",
+      "run": "issue8-support-mismatch",
+      "passed": 20,
+      "failed": 56,
+      "log": "logs/candidate-before-issue8-support-mismatch.log",
+      "counted_as_final": false
+    },
+    {
+      "case": "candidate-before",
+      "run": "adjacent25-missing-pyarrow",
+      "passed": 23,
+      "failed": 2,
+      "log": "logs/candidate-before-adjacent25-missing-pyarrow.log",
+      "counted_as_final": false
+    },
+    {
+      "case": "candidate-before",
+      "run": "coexistence8-before-exact-error-assertion",
+      "passed": 4,
+      "failed": 4,
+      "log": "logs/candidate-before-coexistence8-before-exact-error-assertion.log",
+      "counted_as_final": false
+    },
+    {
+      "case": "repaired",
+      "run": "coexistence8-before-exact-error-assertion",
+      "passed": 8,
+      "failed": 0,
+      "log": "logs/repaired-coexistence8-before-exact-error-assertion.log",
+      "counted_as_final": false
+    }
+  ],
+  "typecheck": {
+    "exit_code": 0,
+    "command": [
+      "node",
+      "/workspace/scratch/0e089a11ee60/work/web_runtime/node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--strict",
+      "--target",
+      "ES2022",
+      "--module",
+      "ESNext",
+      "--moduleResolution",
+      "Bundler",
+      "--lib",
+      "ES2022,DOM,DOM.Iterable",
+      "--skipLibCheck",
+      "src/api/managerWorkspace.ts",
+      "src/manager-selection/researchAttention.ts"
+    ],
+    "log": "logs/repaired-typecheck.log"
+  },
+  "runtime": {
+    "os": "Linux",
+    "machine": "x86_64",
+    "node": "24.19.0",
+    "vitest": "4.1.10",
+    "typescript": "5.9.3",
+    "vite": "7.3.6",
+    "jsdom": "28.1.0",
+    "python": "3.12.14",
+    "pandas": "2.2.3",
+    "pyarrow": "24.0.0",
+    "fixture_kind": "TEMPORARY_SYNTHETIC_ACTUAL_READER_DTO"
+  },
+  "known_frozen_mac_matrix": {
+    "tests": 229,
+    "active_passed": 215,
+    "active_failed": 14,
+    "candidate_passed": 170,
+    "candidate_failed": 59,
+    "this_round_full_matrix": "NOT_RUN",
+    "preexisting_failure_ids": [
+      "FAIL  src/App.spec.ts [ src/App.spec.ts ]",
+      "FAIL  src/manager-selection/catalystObservationPanel.runtime.spec.ts > catalyst workspace runtime boundary > renders the actual Eastmoney owner workspace readback instead of reporting a network failure",
+      "FAIL  src/views/ManagerSelectionView.spec.ts > ManagerSelectionView > reads one exact target date and renders the manager ledger without promotion",
+      "FAIL  src/views/ManagerSelectionView.spec.ts > ManagerSelectionView > binds the workspace screen to the selected date and clears cards on a failed read",
+      "FAIL  src/views/ManagerSelectionView.spec.ts > ManagerSelectionView > renders the exact-stage HK-only candidate panel without using the A-share lane",
+      "FAIL  src/views/ManagerSelectionView.spec.ts > ManagerSelectionView > shows a time-aware pending state for an empty 09:40 stage before the Asia/Shanghai slot",
+      "FAIL  src/views/ManagerSelectionView.spec.ts > R2 readable existing workbench > shows four Chinese indicators before collapsed audit when Stage is missing",
+      "FAIL  src/components/research/GlobalIndustryMap.spec.ts > GlobalIndustryMap > accepts a PARTIAL close from the immediate previous calendar date",
+      "FAIL  src/components/research/GlobalIndustryMap.spec.ts > GlobalIndustryMap > accepts a same-date close",
+      "FAIL  src/components/research/GlobalIndustryMap.spec.ts > GlobalIndustryMap > uses the newest materialized market snapshot when the stage target is historical",
+      "FAIL  src/manager-selection/__tests__/businessChainR2.spec.ts > business chain R2 zero/unknown/due distinctions > no announcement attempt is not no announcements",
+      "FAIL  src/manager-selection/__tests__/businessCompletionR3.spec.ts > manager business completion R3 > shows NOT_RUN and NOT_MATERIALIZED as business states rather than zero success",
+      "FAIL  src/manager-selection/__tests__/businessCompletionR3.spec.ts > manager business completion R3 > shows SUCCEEDED_EMPTY as a completed empty result, distinct from not run or failure",
+      "FAIL  src/manager-selection/__tests__/businessCompletionR3.spec.ts > manager business completion R3 > surfaces an Eastmoney owner run in the top announcement status without claiming HKEX ran",
+      "FAIL  src/manager-selection/adapters/priority.spec.ts > manager priority adapter > retains every stage row and counts explicit NO_BUY without upgrading it"
+    ],
+    "note": "Original receipt counts 14 failed tests plus an App.spec.ts suite-level failure; neither is declared repaired."
+  },
+  "not_run": [
+    "MAC_INDEPENDENT_FINAL_CANDIDATE",
+    "FULL_229_MATCHED_MATRIX",
+    "PRODUCTION_RELEASE_BUILD",
+    "DEPLOYMENT_CUTOVER",
+    "LIVE_API_UI",
+    "NATURAL_SLOT_EXECUTION"
+  ],
+  "independent_final": {
+    "total": 109,
+    "passed": 109,
+    "failed": 0,
+    "exit_code": 0,
+    "source_and_tests_unchanged": true,
+    "report": "../review/final/FINAL_REVIEW.md",
+    "test_run_receipt": "../review/final/test-run.json",
+    "log": "../review/final/all109.log",
+    "open_findings": {
+      "critical": 0,
+      "important": 0,
+      "minor": 0
+    }
+  },
+  "delivery_guard_tests": {
+    "scope": "HANDOFF_TOOL_AND_PASTED_COMMANDS_NOT_PRODUCTION_UI",
+    "red": {
+      "failed": 3,
+      "passed": 0,
+      "log": "logs/delivery_guards_red.log"
+    },
+    "green": {
+      "passed": 3,
+      "failed": 0,
+      "exit_code": 0,
+      "log": "logs/delivery_guards_green.log"
+    },
+    "original_109_frontend_tests_unchanged": true
+  }
+}

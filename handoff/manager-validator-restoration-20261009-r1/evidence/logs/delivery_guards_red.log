@@ -1,0 +1,98 @@
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+_ test_rejects_production_path_before_writing_outside_owned_temporary_directory _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-340/test_rejects_production_path_b0')
+
+    def test_rejects_production_path_before_writing_outside_owned_temporary_directory(tmp_path):
+        package = tmp_path / 'package'
+        shutil.copytree(PACKAGE, package, ignore=shutil.ignore_patterns('__pycache__', '.pytest_cache'))
+        manifest_path = package / 'MANIFEST.json'
+        manifest = json.loads(manifest_path.read_text())
+        manifest['production_change']['path'] = '../escape/managerWorkspace.ts'
+        manifest_path.write_text(json.dumps(manifest))
+        injected = package / 'escape/managerWorkspace.ts'
+        injected.parent.mkdir()
+        injected.write_text('synthetic tampered metadata fixture\n')
+        temporary = tmp_path / 'temporary'
+        temporary.mkdir()
+        result = subprocess.run([sys.executable, str(package / 'tools/verify_delivery.py')],
+                                env={**os.environ, 'TMPDIR': str(temporary)},
+                                text=True, capture_output=True)
+        assert result.returncode != 0
+>       assert 'PRODUCTION_PATH_INVALID' in result.stderr
+E       assert 'PRODUCTION_PATH_INVALID' in 'error: apps/web/src/api/managerWorkspace.ts: No such file or directory\nTraceback (most recent call last):\n  File "/...ytest-of-root/pytest-340/test_rejects_production_path_b0/package/runtime.patch\']\' returned non-zero exit status 1.\n'
+E        +  where 'error: apps/web/src/api/managerWorkspace.ts: No such file or directory\nTraceback (most recent call last):\n  File "/...ytest-of-root/pytest-340/test_rejects_production_path_b0/package/runtime.patch\']\' returned non-zero exit status 1.\n' = CompletedProcess(args=['/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python', '/tmp/pytest-of-roo...test-of-root/pytest-340/test_rejects_production_path_b0/package/runtime.patch\']\' returned non-zero exit status 1.\n').stderr
+
+v4/handoff/manager-validator-restoration-20261009-r1/tools_tests/test_delivery_guards.py:34: AssertionError
+_ test_pasted_commands_stop_before_git_when_target_identity_check_fails[apply] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-340/test_pasted_commands_stop_befo0')
+rollback = False
+
+    @pytest.mark.parametrize('rollback', [False, True], ids=['apply', 'rollback'])
+    def test_pasted_commands_stop_before_git_when_target_identity_check_fails(tmp_path, rollback):
+        blocks = re.findall(r'```sh\n(.*?)\n```', (PACKAGE / 'MAC_APPLY_AND_ROLLBACK.md').read_text(), re.S)
+        block = next(b for b in blocks if 'verify_delivery.py' in b and ('--reverse' in b) == rollback)
+        commands = block[block.index('python3 '):]
+        binaries = tmp_path / 'bin'
+        binaries.mkdir()
+        calls = tmp_path / 'calls.log'
+        for name, body in {
+            'python3': '#!/bin/sh\nprintf "identity-check\\n" >> "$CALL_LOG"\nexit 41\n',
+            'git': '#!/bin/sh\nprintf "git-called\\n" >> "$CALL_LOG"\nexit 0\n',
+        }.items():
+            executable = binaries / name
+            executable.write_text(body)
+            executable.chmod(0o755)
+        result = subprocess.run(['/bin/bash', '-c', commands], cwd=tmp_path,
+                                env={**os.environ, 'PATH': str(binaries), 'CALL_LOG': str(calls),
+                                     'REPAIR_PACKAGE': str(tmp_path / 'fixture-package'),
+                                     'REPAIR_APP': str(tmp_path / 'fixture-app')},
+                                text=True, capture_output=True)
+        assert result.returncode == 41
+>       assert calls.read_text().splitlines() == ['identity-check']
+E       AssertionError: assert ['identity-ch...entity-check'] == ['identity-check']
+E         
+E         Left contains 3 more items, first extra item: 'git-called'
+E         Use -v to get more diff
+
+v4/handoff/manager-validator-restoration-20261009-r1/tools_tests/test_delivery_guards.py:59: AssertionError
+_ test_pasted_commands_stop_before_git_when_target_identity_check_fails[rollback] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-340/test_pasted_commands_stop_befo1')
+rollback = True
+
+    @pytest.mark.parametrize('rollback', [False, True], ids=['apply', 'rollback'])
+    def test_pasted_commands_stop_before_git_when_target_identity_check_fails(tmp_path, rollback):
+        blocks = re.findall(r'```sh\n(.*?)\n```', (PACKAGE / 'MAC_APPLY_AND_ROLLBACK.md').read_text(), re.S)
+        block = next(b for b in blocks if 'verify_delivery.py' in b and ('--reverse' in b) == rollback)
+        commands = block[block.index('python3 '):]
+        binaries = tmp_path / 'bin'
+        binaries.mkdir()
+        calls = tmp_path / 'calls.log'
+        for name, body in {
+            'python3': '#!/bin/sh\nprintf "identity-check\\n" >> "$CALL_LOG"\nexit 41\n',
+            'git': '#!/bin/sh\nprintf "git-called\\n" >> "$CALL_LOG"\nexit 0\n',
+        }.items():
+            executable = binaries / name
+            executable.write_text(body)
+            executable.chmod(0o755)
+        result = subprocess.run(['/bin/bash', '-c', commands], cwd=tmp_path,
+                                env={**os.environ, 'PATH': str(binaries), 'CALL_LOG': str(calls),
+                                     'REPAIR_PACKAGE': str(tmp_path / 'fixture-package'),
+                                     'REPAIR_APP': str(tmp_path / 'fixture-app')},
+                                text=True, capture_output=True)
+        assert result.returncode == 41
+>       assert calls.read_text().splitlines() == ['identity-check']
+E       AssertionError: assert ['identity-ch...entity-check'] == ['identity-check']
+E         
+E         Left contains 3 more items, first extra item: 'git-called'
+E         Use -v to get more diff
+
+v4/handoff/manager-validator-restoration-20261009-r1/tools_tests/test_delivery_guards.py:59: AssertionError
+=========================== short test summary info ============================
+FAILED v4/handoff/manager-validator-restoration-20261009-r1/tools_tests/test_delivery_guards.py::test_rejects_production_path_before_writing_outside_owned_temporary_directory
+FAILED v4/handoff/manager-validator-restoration-20261009-r1/tools_tests/test_delivery_guards.py::test_pasted_commands_stop_before_git_when_target_identity_check_fails[apply]
+FAILED v4/handoff/manager-validator-restoration-20261009-r1/tools_tests/test_delivery_guards.py::test_pasted_commands_stop_before_git_when_target_identity_check_fails[rollback]
+3 failed in 0.16s

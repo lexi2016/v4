@@ -1,0 +1,77 @@
+
+ RUN  v4.1.10 /workspace/scratch/0e089a11ee60/work/candidate-before/app/apps/web
+
+ ✓ src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > accepts observations, distinct channel dates and unknown screen counts without mutation 8ms
+ × src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > rejects an unsafe independent observation in the same envelope 4ms
+   → expected function to throw an error, but it didn't
+ × src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > rejects assessed-zero when the US input remains incomplete 1ms
+   → expected function to throw an error, but it didn't
+ × src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > rejects a different calendar SHA in the filtered research scope 1ms
+   → expected function to throw an error, but it didn't
+ ✓ src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > continues rejecting an unknown-count screen that claims zero selected rows 2ms
+ ✓ src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > continues rejecting an announcement date different from the requested binding 2ms
+ ✓ src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > preserves valid minute-only observation clocks with an explicit timezone 2ms
+ × src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > rejects an observation clock that Date.parse would roll from hour 24 to the next day 1ms
+   → expected function to throw an error, but it didn't
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > rejects an unsafe independent observation in the same envelope
+AssertionError: expected function to throw an error, but it didn't
+ ❯ rejectUnchanged src/api/managerWorkspace.validatorRestoration.spec.ts:54:30
+     52| function rejectUnchanged(value: JsonObject, error: string): void {
+     53|   const before = structuredClone(value);
+     54|   expect(() => check(value)).toThrowError(new Error(error));
+       |                              ^
+     55|   expect(value).toEqual(before);
+     56| }
+ ❯ src/api/managerWorkspace.validatorRestoration.spec.ts:68:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > rejects assessed-zero when the US input remains incomplete
+AssertionError: expected function to throw an error, but it didn't
+ ❯ rejectUnchanged src/api/managerWorkspace.validatorRestoration.spec.ts:54:30
+     52| function rejectUnchanged(value: JsonObject, error: string): void {
+     53|   const before = structuredClone(value);
+     54|   expect(() => check(value)).toThrowError(new Error(error));
+       |                              ^
+     55|   expect(value).toEqual(before);
+     56| }
+ ❯ src/api/managerWorkspace.validatorRestoration.spec.ts:74:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > rejects a different calendar SHA in the filtered research scope
+AssertionError: expected function to throw an error, but it didn't
+ ❯ rejectUnchanged src/api/managerWorkspace.validatorRestoration.spec.ts:54:30
+     52| function rejectUnchanged(value: JsonObject, error: string): void {
+     53|   const before = structuredClone(value);
+     54|   expect(() => check(value)).toThrowError(new Error(error));
+       |                              ^
+     55|   expect(value).toEqual(before);
+     56| }
+ ❯ src/api/managerWorkspace.validatorRestoration.spec.ts:81:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  src/api/managerWorkspace.validatorRestoration.spec.ts > restored research validators coexist with three-channel contracts > rejects an observation clock that Date.parse would roll from hour 24 to the next day
+AssertionError: expected function to throw an error, but it didn't
+ ❯ rejectUnchanged src/api/managerWorkspace.validatorRestoration.spec.ts:54:30
+     52| function rejectUnchanged(value: JsonObject, error: string): void {
+     53|   const before = structuredClone(value);
+     54|   expect(() => check(value)).toThrowError(new Error(error));
+       |                              ^
+     55|   expect(value).toEqual(before);
+     56| }
+ ❯ src/api/managerWorkspace.validatorRestoration.spec.ts:109:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 4 passed (8)
+   Start at  06:30:23
+   Duration  859ms (transform 191ms, setup 0ms, import 217ms, tests 24ms, environment 458ms)
+
+JSON report written to /workspace/scratch/0e089a11ee60/work/candidate-before/coexistence8.json
