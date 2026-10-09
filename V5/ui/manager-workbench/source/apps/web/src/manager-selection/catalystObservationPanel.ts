@@ -85,7 +85,7 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
   // Source/selection display, publication evidence and plan target are separate bindings.
   const params=new URLSearchParams(window.location.search);
   const selectedDates=readDailyDateBindings(params,initialDate);
-  const fallbackAnnouncementDate=normalizedWorkspaceDay(params.get('publication_date'))
+  let fallbackAnnouncementDate=normalizedWorkspaceDay(params.get('publication_date'))
     ?? normalizedWorkspaceDay(params.get('date')) ?? normalizedWorkspaceDay(initialDate)!;
   let publicationDate=selectedDates.bindings.announcement_date;
   let selectionDate=selectedDates.bindings.selection_date;
@@ -102,7 +102,8 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
   let announcementRefreshTimer:ReturnType<typeof setTimeout>|undefined;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let currentValue: ManagerWorkspace | null = null;
-  let view: 'auto'|'dynamic' = 'auto';
+  const readView=(value:string|null):'auto'|'dynamic'=>value==='dynamic'?'dynamic':'auto';
+  let view = readView(params.get('view'));
   let loadedView: 'auto'|'dynamic' | null = null;
   let sourceFilter: 'ALL'|'STAGE'|'MATERIAL'|'CLOSE' = 'ALL';
   const el = <K extends keyof HTMLElementTagNameMap>(tag: K, content = '', className = '') => {
@@ -126,6 +127,7 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
   for(const [key,label] of [['auto','当时历史 / 当日预览'],['dynamic','现在回看（可能含后续消息）']]) {
     const option=el('option',label);option.value=key;viewSelect.append(option);
   }
+  viewSelect.value=view;
   viewLabel.append(viewSelect);
   const cancelButton=el('button','取消本次读取');cancelButton.type='button';cancelButton.hidden=true;
   header.append(dateLabel,readButton,refreshButton,viewLabel,cancelButton);
@@ -727,7 +729,35 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
       void load(false);
     }
   };
-  const viewChange=()=>{view=viewSelect.value==='dynamic'?'dynamic':'auto';void load(false);};
+  const viewChange=()=>{
+    view=readView(viewSelect.value);
+    const url=new URL(window.location.href);
+    if(url.searchParams.get('view')!==view){
+      url.searchParams.set('view',view);
+      window.history.pushState(window.history.state,'',`${url.pathname}${url.search}${url.hash}`);
+    }
+    void load(false);
+  };
+  const navigationChange=()=>{
+    announcementRefreshController?.abort();clearTimeout(announcementRefreshTimer);
+    clearResults();
+    const query=new URLSearchParams(window.location.search);
+    const restored=readDailyDateBindings(query,initialDate);
+    date=restored.bindings.plan_date;
+    selectionDate=restored.bindings.selection_date;
+    publicationDate=restored.bindings.announcement_date;
+    explicitDates=restored.explicit;
+    fallbackAnnouncementDate=normalizedWorkspaceDay(query.get('publication_date'))
+      ?? normalizedWorkspaceDay(query.get('date')) ?? normalizedWorkspaceDay(initialDate)!;
+    const requested=query.get('announcement_date');
+    analysisPublicationDate=requested && /^\d{8}$/.test(requested)?requested:undefined;
+    view=readView(query.get('view'));viewSelect.value=view;
+    planDate.value=`${date.slice(0,4)}-${date.slice(4,6)}-${date.slice(6,8)}`;
+    void loadAnnouncementReview();
+    void loadAnnouncementAnalysis(date);
+    void load(false);
+  };
+  window.addEventListener('popstate',navigationChange);
   const cancelClick=()=>{controller?.abort();};
   planDate.addEventListener('change',dateChange);viewSelect.addEventListener('change',viewChange);cancelButton.addEventListener('click',cancelClick);
   const readClick=()=>{void load(false);};const refreshClick=()=>{void load(true);};
@@ -735,5 +765,5 @@ export function mountCatalystObservations(host: HTMLElement, initialDate: string
   void loadAnnouncementReview();
   void loadAnnouncementAnalysis(date);
   void load(false);
-  return ()=>{disposed=true;++sequence;++analysisSequence;++announcementSequence;controller?.abort();analysisController?.abort();announcementController?.abort();announcementRefreshController?.abort();clearTimeout(announcementRefreshTimer);clearTimeout(timer);planDate.removeEventListener('change',dateChange);viewSelect.removeEventListener('change',viewChange);cancelButton.removeEventListener('click',cancelClick);readButton.removeEventListener('click',readClick);refreshButton.removeEventListener('click',refreshClick);host.replaceChildren();};
+  return ()=>{disposed=true;window.removeEventListener('popstate',navigationChange);++sequence;++analysisSequence;++announcementSequence;controller?.abort();analysisController?.abort();announcementController?.abort();announcementRefreshController?.abort();clearTimeout(announcementRefreshTimer);clearTimeout(timer);planDate.removeEventListener('change',dateChange);viewSelect.removeEventListener('change',viewChange);cancelButton.removeEventListener('click',cancelClick);readButton.removeEventListener('click',readClick);refreshButton.removeEventListener('click',refreshClick);host.replaceChildren();};
 }

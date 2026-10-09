@@ -165,7 +165,7 @@ Cloud checks: Python AST, exact overlay digests, preserved runtime test count,
 production-byte equality to 31e2658c and diff check. No cloud tests. The existing Mac task must perform the recheck; the historical upstream binding
 provenance gap remains and is not an ignored test error.
 
-### Historical view contract
+### Historical view contract at a23 (superseded by navigation follow-up below)
 
 The panel initializes with `view=auto`; it does not read `view=dynamic` from the
 URL. Opening `?date=20261008&view=dynamic` alone therefore does not enable dynamic
@@ -181,3 +181,40 @@ with 33/54/75 and an actual generation time of 06:02 UTC; it has not been
 published. Its use is a present-day look back at October 8, not an as-of historical
 plan. Do not backdate generation, relabel October 8 announcement data as today's
 data, or claim that this source candidate publishes the prepared plan.
+
+## View navigation follow-up after a23
+
+Parent reports a23 Mac 51 PASS, typecheck/build pass and V5 preview switched.
+Real browser displayed historical October 8 dynamic with October 7 announcements
+33/54/75 and expanded Sa Sa International's reason. The observed RED is browser
+refresh resetting dynamic to auto while preserving the date.
+
+This candidate initializes the select/request from URL view (`dynamic` or `auto`;
+unknown/missing values safely use auto). Changing the view pushes a history entry
+while preserving dates, other query parameters, hash and history state. Popstate
+restores the view and existing date-binding contract, clears old results, aborts
+prior reads via the existing request lifecycle and reloads read-only data. It
+removes its listener on disposal. It never creates explicit dates from returned
+server defaults, generates plans on navigation or substitutes an auto response
+for a missing dynamic result. Historical dynamic remains a present-day look back.
+
+The new catalystViewNavigation.spec.ts covers fresh-mount refresh persistence,
+whitelist fallback, actual browser back/forward, query/hash/state preservation,
+disposal and restoring/clearing explicit date intent. This is a candidate with
+static checks only; automated RED/GREEN and build are delegated to the existing
+Mac task. No V4 or backend/data-gate files changed.
+
+Apply the overlay to the existing isolated a23 candidate (same marker), then:
+
+```sh
+cd /absolute/isolated-web
+npm run test -- src/manager-selection/catalystViewNavigation.spec.ts src/manager-selection/dailyChannels.v5Bindings.spec.ts src/manager-selection/dailyChannels.runtime.spec.ts src/manager-selection/dailyChannels.spec.ts src/manager-selection/catalystObservationPanel.runtime.spec.ts
+npm run typecheck
+npm run build -- --outDir /absolute/isolated-dist
+```
+
+Real browser recheck: open October 8 dynamic, refresh, choose auto, go back and
+forward; verify selected control and actual canonical GET view agree at every
+step. Keep explicit dates unchanged, confirm missing results remain unavailable,
+and confirm no plan-generation POST occurs. Mac controls the existing preview
+window; cloud does not build, deploy, test or trigger production.
