@@ -153,7 +153,10 @@ def _request(value):
         binding = value['rebound_owner']
         exact_keys(binding, ('root', 'reference'))
         observed_root = no_symlinks(binding['root'])
-        for other in [output, *roots]:
+        isolated_roots = [output, *roots]
+        if value['rebound'] is not None:
+            isolated_roots.append(rebound_root)
+        for other in isolated_roots:
             if observed_root.is_relative_to(other) or other.is_relative_to(observed_root):
                 raise ValueError('MANAGER_REBOUND_OWNER_ROOT_OVERLAP')
         reference = binding['reference']

@@ -56,6 +56,21 @@ class ManagerReboundObservationTests(unittest.TestCase):
         self.request['rebound_owner']['root']=str(self.output)
         with self.assertRaisesRegex(ValueError,'MANAGER_REBOUND_OWNER_ROOT_OVERLAP'):run_manager_plan(self.request)
 
+    def test_old_shadow_and_new_owner_same_or_nested_roots_are_rejected(self):
+        pair=self.root/'shadow-pair'
+        for old,new in ((pair,pair),(pair,pair/'new'),(pair/'old',pair)):
+            with self.subTest(old=str(old),new=str(new)):
+                request=copy.deepcopy(self.request)
+                request['rebound']={'root':str(old),'reference':{}}
+                request['rebound_owner']['root']=str(new)
+                with self.assertRaisesRegex(ValueError,'MANAGER_REBOUND_OWNER_ROOT_OVERLAP'):
+                    run_manager_plan(request)
+
+    def test_distinct_sibling_shadow_root_passes_path_admission(self):
+        from v5_shadow.manager_plan import _request
+        self.request['rebound']={'root':str(self.root/'legacy-shadow'),'reference':{}}
+        self.assertEqual(_request(self.request),self.request)
+
     def test_refresh_retains_original_plan_readback_and_separate_observation(self):
         self.request['action']='refresh'
         out=run_manager_plan(self.request)

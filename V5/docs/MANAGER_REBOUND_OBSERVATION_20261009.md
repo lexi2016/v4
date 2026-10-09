@@ -13,7 +13,8 @@ Existing manager requests still work. Add this optional top-level binding:
 
 Use the exact committed reference returned by the independent owner, not its
 legacy_diagnostic. The output root must be separate from all manager input/output
-roots. Manager reads/validates original three-file receipt before and after the
+roots, including the optional legacy rebound shadow root (same and ancestor/descendant
+paths are rejected; distinct siblings are allowed). Manager reads/validates original three-file receipt before and after the
 workspace computation; it never starts a rebound calculation. Malformed binding
 identities/overlapping roots reject the request. Missing/corrupt committed bytes
 produce a CANNOT_CONFIRM observation with the original read error, preserving
@@ -58,3 +59,9 @@ Static provenance: manager baseline 73262cb3f7a10414dad459a4b4e9f0dea0623f5e;
 manager_plan.py before SHA 564df49c79527caa874ff041247f98c8b4f48d4e41c3ec2efcf2a5a7dc24817f;
 after SHA cfb8d766eb55bd2af4bfdcd32cca745bb3ee0ca943aff5d906b6c1ebfad0d93d.
 Cloud AST/diff checks only; Mac tests, real integration, API/UI and deployment NOT_RUN.
+
+Follow-up path admission tests add same-root, both nesting directions and distinct
+sibling coverage for legacy shadow versus rebound_owner. This does not change
+legacy-only request behavior or claim pairwise disjointness of pre-existing input
+groups; it requires the NEW observation root to be disjoint from each input/output
+root. Product runtime validation remains delegated to Mac.
