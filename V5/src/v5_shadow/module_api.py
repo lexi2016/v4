@@ -1,5 +1,7 @@
 """One independent, read-only API process for one module's immutable responses."""
 import argparse
+import fcntl
+import time
 import hashlib
 import json
 import os
@@ -63,26 +65,96 @@ def _config(value):
         os.close(root_fd);raise
 
 
-def _read_record(root_fd,key):
-    directory=os.open('responses',os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=root_fd)
-    try:fd=os.open(key+'.json',os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK,dir_fd=directory)
-    finally:os.close(directory)
-    try:
-        data=_read_regular(fd,MAX_JSON_BYTES);record=_parse_response(data)
-        return record,hashlib.sha256(data).hexdigest()
+def _read_at(root_fd,directory,name):
+    parent=root_fd if directory is None else os.open(directory,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=root_fd)
+    try:fd=os.open(name,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK,dir_fd=parent)
+    finally:
+        if directory is not None:os.close(parent)
+    try:return _read_regular(fd,MAX_JSON_BYTES)
     finally:os.close(fd)
 
 
-def read_response(config,root,path,query):
-    record,digest=_read_record(root,response_key(config['module_id'],path,query))
+def _generation_head(root_fd,config,*,publication_locked=False):
+    try:data=_read_at(root_fd,None,'active.json')
+    except FileNotFoundError:
+        try:mode=_read_at(root_fd,None,'.v5-generation-mode')
+        except FileNotFoundError:return None
+        expected=canonical_bytes(dict(schema_version='v5.generation_mode.v1',module_id=config['module_id'],release_id=config['release_id']))
+        if mode!=expected:raise ValueError('MODULE_GENERATION_MODE_IDENTITY')
+        lock=None
+        try:
+            if not publication_locked:
+                lock=os.open('.publication.lock',os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK,dir_fd=root_fd)
+                if not stat.S_ISREG(os.fstat(lock).st_mode):raise ValueError('MODULE_PUBLICATION_LOCK')
+                deadline=time.monotonic()+1
+                while True:
+                    try:fcntl.flock(lock,fcntl.LOCK_SH|fcntl.LOCK_NB);break
+                    except BlockingIOError:
+                        if time.monotonic()>=deadline:raise ValueError('MODULE_PUBLICATION_BUSY')
+                        time.sleep(0.005)
+            # Re-read while protected: the first publisher may have installed
+            # the pointer after our initial ENOENT but before the mode read.
+            data=_read_at(root_fd,None,'active.json')
+        except FileNotFoundError as error:raise ValueError('MODULE_ACTIVE_MISSING') from error
+        finally:
+            if lock is not None:os.close(lock)
+    value=_parse_response(data)
+    exact_keys(value,('schema_version','module_id','release_id','generation_sha256'))
+    if (value['schema_version']!='v5.module_active.v1' or value['module_id']!=config['module_id']
+            or value['release_id']!=config['release_id']):raise ValueError('MODULE_ACTIVE_IDENTITY')
+    return sha(value['generation_sha256'])
+
+
+def _load_generation(root_fd,config,generation):
+    sha(generation)
+    try:data=_read_at(root_fd,'generations',generation+'.json')
+    except FileNotFoundError as error:raise ValueError('MODULE_GENERATION_MISSING') from error
+    if hashlib.sha256(data).hexdigest()!=generation:raise ValueError('MODULE_GENERATION_DIGEST')
+    value=_parse_response(data)
+    exact_keys(value,('schema_version','module_id','release_id','records'))
+    if (value['schema_version']!='v5.module_generation.v1' or value['module_id']!=config['module_id']
+            or value['release_id']!=config['release_id']):raise ValueError('MODULE_GENERATION_IDENTITY')
+    refs=value['records']
+    if not isinstance(refs,dict) or not 1<=len(refs)<=10000:raise ValueError('MODULE_GENERATION_RECORDS')
+    for key,digest in refs.items():sha(key);sha(digest)
+    return value
+
+
+def _read_object(root_fd,digest):
+    sha(digest)
+    try:data=_read_at(root_fd,'objects',digest+'.json')
+    except FileNotFoundError as error:raise ValueError('MODULE_OBJECT_MISSING') from error
+    if hashlib.sha256(data).hexdigest()!=digest:raise ValueError('MODULE_OBJECT_DIGEST')
+    return _parse_response(data),data
+
+
+def _read_record(root_fd,key,config):
+    generation=_generation_head(root_fd,config)
+    if generation is None:
+        data=_read_at(root_fd,'responses',key+'.json')
+        return _parse_response(data),hashlib.sha256(data).hexdigest()
+    refs=_load_generation(root_fd,config,generation)['records']
+    if key not in refs:raise FileNotFoundError('MODULE_RESULT_NOT_AVAILABLE')
+    record,data=_read_object(root_fd,refs[key])
+    return record,hashlib.sha256(data).hexdigest()
+
+
+def _validate_record(config,record,path,query):
     exact_keys(record,('schema_version','module_id','release_id','path','query','payload','payload_sha256','source_input_sha256','data_kind','generated_at','status_code'))
     if (record['schema_version']!='v5.module_response.v1' or record['module_id']!=config['module_id']
         or record['release_id']!=config['release_id'] or record['path']!=path or record['query']!=query):raise ValueError('MODULE_RECORD_IDENTITY')
+    if path not in config['routes']:raise ValueError('MODULE_ROUTE_NOT_CONFIGURED')
+    if (not isinstance(query,dict) or len(query)>128 or any(not isinstance(k,str) or not isinstance(v,str) for k,v in query.items())):raise ValueError('MODULE_QUERY_INVALID')
     if record['data_kind'] not in ('SYNTHETIC','RECORDED_INPUT_REPLAY','OWNER_RESULT'):raise ValueError('MODULE_DATA_KIND')
     if type(record['status_code']) is not int or record['status_code'] not in (200,400,404,409,422,429,499,500,502,503,504):raise ValueError('MODULE_HTTP_STATUS')
     aware(record['generated_at']);sha(record['source_input_sha256']);sha(record['payload_sha256'])
     if not isinstance(record['payload'],dict) or sha256_json(record['payload'])!=record['payload_sha256']:raise ValueError('MODULE_PAYLOAD_DIGEST')
-    return record,digest
+    return record
+
+
+def read_response(config,root,path,query):
+    record,digest=_read_record(root,response_key(config['module_id'],path,query),config)
+    return _validate_record(config,record,path,query),digest
 
 
 def create_module_server(value,host='127.0.0.1',port=0):
@@ -138,7 +210,9 @@ def create_module_server(value,host='127.0.0.1',port=0):
             try:
                 record,digest=read_response(config,root,parsed.path,query);self.reply(record['status_code'],record['payload'],digest)
             except FileNotFoundError:self.error(503,'MODULE_RESULT_NOT_AVAILABLE')
-            except (ValueError,TypeError,KeyError,OSError,RecursionError):self.error(409,'MODULE_RESULT_INVALID')
+            except ValueError as error:
+                self.error(503,'MODULE_BUSY') if str(error)=='MODULE_PUBLICATION_BUSY' else self.error(409,'MODULE_RESULT_INVALID')
+            except (TypeError,KeyError,OSError,RecursionError):self.error(409,'MODULE_RESULT_INVALID')
     class Server(ThreadingHTTPServer):
         daemon_threads=False
         block_on_close=True

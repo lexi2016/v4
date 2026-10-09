@@ -161,6 +161,119 @@ class ModuleArtifactTests(unittest.TestCase):
         self.assertEqual([r[0] for r in results].count('error'), 1)
         self.assertIn('GENERATION_CONFLICT', next(r[1] for r in results if r[0] == 'error'))
 
+    def test_corrupt_inherited_object_blocks_new_date_publication(self):
+        first = self.publish([self.record()])
+        active = (self.root / 'active.json').read_bytes()
+        next((self.root / 'objects').glob('*.json')).write_text('{}')
+        with self.assertRaises(ValueError):
+            self.publish([self.record('20261009')], first)
+        self.assertEqual((self.root / 'active.json').read_bytes(), active)
+
+    def test_rollback_validates_unrequested_historical_object(self):
+        from v5_shadow.module_artifacts import activate_generation
+        first = self.publish([self.record('20261007'), self.record()])
+        second = self.publish([self.record(revision=2)], first)
+        active = (self.root / 'active.json').read_bytes()
+        for path in (self.root / 'objects').glob('*.json'):
+            if json.loads(path.read_bytes())['query']['date'] == '20261007':
+                path.write_text('{}')
+                break
+        else:
+            self.fail('missing historical fixture')
+        with self.assertRaises(ValueError):
+            activate_generation(self.config, first, expected_generation=second)
+        self.assertEqual((self.root / 'active.json').read_bytes(), active)
+
+    def test_rehashed_payload_still_rejected_by_object_digest(self):
+        self.publish([self.record()])
+        path = next((self.root / 'objects').glob('*.json'))
+        changed = self.record(revision=99)
+        path.write_bytes(canonical_bytes(changed))
+        self.assertEqual(self.read(self.api())[0], 409)
+
+    def test_missing_manifest_is_invalid_not_missing_result(self):
+        generation = self.publish([self.record()])
+        (self.root / 'generations' / (generation + '.json')).unlink()
+        self.assertEqual(self.read(self.api())[0], 409)
+
+    def test_failure_before_active_swap_keeps_old_result(self):
+        from unittest.mock import patch
+        first = self.publish([self.record()])
+        active = (self.root / 'active.json').read_bytes()
+        with patch('v5_shadow.module_artifacts.os.replace', side_effect=OSError('injected swap failure')):
+            with self.assertRaises(OSError):
+                self.publish([self.record(revision=2)], first)
+        self.assertEqual((self.root / 'active.json').read_bytes(), active)
+        self.assertEqual(self.read(self.api()), (200, self.record()['payload']))
+        self.assertNotEqual(self.publish([self.record(revision=2)], first), first)
+
+    def test_missing_active_pointer_never_downgrades_to_legacy(self):
+        old = self.record(revision=0)
+        path = self.root / 'responses' / (response_key('manager', old['path'], old['query']) + '.json')
+        path.parent.mkdir()
+        path.write_bytes(canonical_bytes(old))
+        self.publish([self.record()])
+        (self.root / 'active.json').unlink()
+        self.assertEqual(self.read(self.api())[0], 409)
+        with self.assertRaisesRegex(ValueError, 'MODULE_ACTIVE_MISSING'):
+            self.publish([self.record(revision=2)])
+
+    def test_first_activation_interruption_requires_explicit_recovery(self):
+        from unittest.mock import patch
+        from v5_shadow.module_artifacts import activate_generation
+        with patch('v5_shadow.module_artifacts.os.replace', side_effect=OSError('injected swap failure')):
+            with self.assertRaises(OSError):
+                self.publish([self.record()])
+        self.assertEqual(self.read(self.api())[0], 409)
+        paths = list((self.root / 'generations').glob('*.json'))
+        self.assertEqual(len(paths), 1)
+        activate_generation(self.config, paths[0].stem, expected_generation=None)
+        self.assertEqual(self.read(self.api()), (200, self.record()['payload']))
+
+    def test_nonstring_query_is_not_published_as_unreachable_result(self):
+        bad = self.record()
+        bad['query']['date'] = 20261008
+        with self.assertRaisesRegex(ValueError, 'MODULE_QUERY_INVALID'):
+            self.publish([bad])
+        self.assertFalse((self.root / 'active.json').exists())
+
+    def test_first_activation_reader_waits_for_publication(self):
+        import os
+        import time
+        from unittest.mock import patch
+        original_replace = os.replace
+        entering_swap = threading.Event()
+        release_swap = threading.Event()
+        results = []
+        errors = []
+        url = self.api()
+        def delayed_replace(*args, **kwargs):
+            entering_swap.set()
+            if not release_swap.wait(timeout=2):
+                raise RuntimeError('test gate timed out')
+            return original_replace(*args, **kwargs)
+        def publisher():
+            try:
+                self.publish([self.record()])
+            except Exception as error:
+                errors.append(error)
+        with patch('v5_shadow.module_artifacts.os.replace', side_effect=delayed_replace):
+            producer = threading.Thread(target=publisher)
+            producer.start()
+            try:
+                self.assertTrue(entering_swap.wait(timeout=2))
+                reader = threading.Thread(target=lambda: results.append(self.read(url)))
+                reader.start()
+                time.sleep(0.05)
+            finally:
+                release_swap.set()
+            producer.join(timeout=3)
+            reader.join(timeout=3)
+            self.assertFalse(producer.is_alive())
+            self.assertFalse(reader.is_alive())
+        self.assertEqual(errors, [])
+        self.assertEqual(results, [(200, self.record()['payload'])])
+
 
 if __name__ == '__main__':
     unittest.main()
