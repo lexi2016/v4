@@ -1,0 +1,220 @@
+{
+  "schema_version": "v4.stage.patch_roundtrip.v2",
+  "checked_at": "2026-10-09T09:42:52.097193+00:00",
+  "status": "PASS",
+  "checks": [
+    {
+      "role": "actual_stage",
+      "origin": "before",
+      "patch": "patches/actual_stage.restored_to_r2.patch",
+      "patch_sha256": "f6f3e81f9601e30236ddaafa47c45700dff517b524ccbd2355524c59add5f906",
+      "commands": [
+        {
+          "flags": [
+            "--check"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [
+            "--reverse",
+            "--check"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [
+            "--reverse"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "role": "actual_stage",
+      "origin": "r1",
+      "patch": "patches/actual_stage.r1_to_r2.patch",
+      "patch_sha256": "4ef362dc52560039e4ef39d89916720828d9d6cd76ef9239a763f013831ba3dd",
+      "commands": [
+        {
+          "flags": [
+            "--check"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [
+            "--reverse",
+            "--check"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [
+            "--reverse"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "role": "canonical_stage",
+      "origin": "before",
+      "patch": "patches/canonical_stage.restored_to_r2.patch",
+      "patch_sha256": "ad06560e83fdecb6601ec98931183f91376f49d07c19c83be22c594954317744",
+      "commands": [
+        {
+          "flags": [
+            "--check"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [
+            "--reverse",
+            "--check"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [
+            "--reverse"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "role": "canonical_stage",
+      "origin": "r1",
+      "patch": "patches/canonical_stage.r1_to_r2.patch",
+      "patch_sha256": "ec7889ad8af64fefb113c096683944e18fb1e0af3a2e58ab8844ec0267e3df34",
+      "commands": [
+        {
+          "flags": [
+            "--check"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [
+            "--reverse",
+            "--check"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [
+            "--reverse"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "role": "actual_api",
+      "origin": "before",
+      "patch": "patches/actual_api.restored_to_r2.patch",
+      "patch_sha256": "949f35ee70daa2174f31b9d42cff68c7df054e49ed1e63cb0d2b6648001894b7",
+      "commands": [
+        {
+          "flags": [
+            "--check"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [
+            "--reverse",
+            "--check"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [
+            "--reverse"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "role": "actual_api",
+      "origin": "r1",
+      "patch": "patches/actual_api.r1_to_r2.patch",
+      "patch_sha256": "4a9d4cc95aeceed002bff1e05b590636f87d68d86153b080e9bbd5d56d59b8b0",
+      "commands": [
+        {
+          "flags": [
+            "--check"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [
+            "--reverse",
+            "--check"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [
+            "--reverse"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        }
+      ]
+    }
+  ],
+  "problems": [],
+  "source_map_sha256": "9ff05ba04a06794a753343780ee7fa890a4d74081a956dfd0b962d8de0ae2b5e",
+  "active_runtime_updated": false
+}

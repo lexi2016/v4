@@ -1,0 +1,53 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_ test_afternoon_capture_cannot_be_relabelled_to_a_morning_stage_by_changing_metadata_cutoff _
+
+runtime = namespace(selection=<module 'stage_center.selection' from '/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_b...oon_capture_cannot_0/stage/receipts'), tmp=PosixPath('/tmp/pytest-of-root/pytest-156/test_afternoon_capture_cannot_0'))
+
+    def test_afternoon_capture_cannot_be_relabelled_to_a_morning_stage_by_changing_metadata_cutoff(runtime):
+        lane = runtime.client.get(DATE, STAGE)["markets"]["HK_CONNECT"]
+        lane["stage_id"] = "STAGE_0930_0935"
+        metadata = lane["hk_current_day_research"]
+        metadata["stage_id"] = lane["stage_id"]
+        metadata["cutoff_at"] = "15:55:05"
+        lane["source_evidence"] = ["hk_current_day_research=" + canonical(metadata).decode()]
+        projected = runtime.reader.project_hk_current_day_research(lane)
+>       assert projected["research_source_status"] == "CANNOT_CONFIRM"
+E       AssertionError: assert 'VERIFIED_SELECTION_METADATA' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + VERIFIED_SELECTION_METADATA
+
+stage_research_r2/components/api_ui/tests/test_current_research_readback.py:173: AssertionError
+____ test_strict_hk_projection_is_unchanged_when_current_day_mode_is_absent ____
+
+runtime = namespace(selection=<module 'stage_center.selection' from '/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_b..._hk_projection_is_u0/stage/receipts'), tmp=PosixPath('/tmp/pytest-of-root/pytest-156/test_strict_hk_projection_is_u0'))
+route = namespace(client=<starlette.testclient.TestClient object at 0x7f91dc5caba0>, project=<function project_shared_selection at 0x7f91dcb30a90>)
+
+    def test_strict_hk_projection_is_unchanged_when_current_day_mode_is_absent(runtime, route):
+        payload = runtime.client.get(DATE, STAGE)
+        lane = payload["markets"]["HK_CONNECT"]
+        for key in ("hk_current_day_research", "selection_mode", "research_source_status", "research_source_restrictions"):
+            lane.pop(key, None)
+        lane["source_evidence"] = []
+        lane["cannot_confirm"] = []
+        lane["status"] = lane["selection_status"] = "READY"
+        payload["execution_evidence"]["markets"] = {"HK_CONNECT": {"selection_binding": "BOUND_TO_VERIFIED_SELECTION"}}
+        projected = route.project(payload, 50, ordinary_hk_display=True)
+>       assert projected["markets"]["HK"]["display_mode"] == "FORMAL"
+E       AssertionError: assert 'OBSERVATION_UNVERIFIED' == 'FORMAL'
+E         
+E         - FORMAL
+E         + OBSERVATION_UNVERIFIED
+
+stage_research_r2/components/api_ui/tests/test_current_research_readback.py:187: AssertionError
+=============================== warnings summary ===============================
+stage_research_r2/components/api_ui/tests/test_current_research_readback.py::test_strict_hk_projection_is_unchanged_when_current_day_mode_is_absent
+  /workspace/scratch/6168fe203da9/r3-venv314/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED stage_research_r2/components/api_ui/tests/test_current_research_readback.py::test_afternoon_capture_cannot_be_relabelled_to_a_morning_stage_by_changing_metadata_cutoff
+FAILED stage_research_r2/components/api_ui/tests/test_current_research_readback.py::test_strict_hk_projection_is_unchanged_when_current_day_mode_is_absent
+2 failed, 14 deselected, 1 warning in 0.31s

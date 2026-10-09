@@ -1,0 +1,613 @@
+--- a/apps/api/v35_api/app.py
++++ b/apps/api/v35_api/app.py
+@@ -4033,6 +4033,14 @@
+             isinstance(market_payload.get(field), str) and market_payload.get(field)
+             for field in ("artifact_id", "run_id", "raw_artifact_sha256")
+         )
++        if (market_payload.get("selection_mode") == "CURRENT_DAY_RESEARCH_ONLY"
++                or market_payload.get("hk_current_day_research") is not None):
++            # A verified current-day selection is useful research even when
++            # Connect membership/PIT or natural execution is unconfirmed.
++            # This branch can never return FORMAL or a formal empty result.
++            restrictions = list(market_payload.get("research_source_restrictions") or ())
++            restrictions.extend(("CURRENT_CONNECT_ELIGIBILITY_CANNOT_CONFIRM", "CURRENT_DAY_RESEARCH_NOT_FORMAL_D1_PIT"))
++            return ("CURRENT_DAY_RESEARCH_ONLY" if identity_present else "CANNOT_CONFIRM"), list(dict.fromkeys(reasons + restrictions))
+         requested_rows = market_payload.get("requested_rows")
+         source_rows = market_payload.get("source_rows")
+         selected_rows = market_payload.get("selected_rows")
+@@ -4152,6 +4160,12 @@
+                     "algorithm_id",
+                     "algorithm_sha256",
+                     "raw_artifact_sha256",
++                    "trade_date",
++                    "stage_id",
++                    "hk_current_day_research",
++                    "research_source_status",
++                    "research_source_restrictions",
++                    "runtime_source_identity",
+                     "source_status",
+                     "requested_rows",
+                     "source_rows",
+@@ -4240,6 +4254,7 @@
+                     cannot_confirm.append(value)
+         return {
+             **payload,
++            "RESEARCH_ONLY": True,
+             "status": stage_status,
+             "selection_markets": canonical_markets,
+             "markets": frontend_markets,
+@@ -4734,12 +4749,23 @@
+         limit: int = Query(default=10, ge=1, le=50),
+         market: str | None = None,
+         backfill_run_id: str | None = None,
++        selection_run_id: str | None = None,
+     ) -> dict:
+         selected = _strict_date(date) if date is not None else _catalog()["default_date"]
+         if not selected:
+             selected = _catalog()["system_date"]
+         if stage not in FROZEN_STAGE_IDS:
+             raise HTTPException(status_code=422, detail="unknown stage")
++        if selection_run_id is not None:
++            if market not in {"A_SHARE", "HK_CONNECT"} or backfill_run_id is not None:
++                raise HTTPException(status_code=422, detail="selection_run_id requires one market and cannot select a backfill wrapper")
++            if shared_selection_consumer is None:
++                raise HTTPException(status_code=404, detail="selection namespace is unavailable")
++            try:
++                payload = shared_selection_consumer.get(selected, stage, markets=(market,), selection_run_id=selection_run_id)
++            except (OSError, ValueError, TypeError, KeyError) as error:
++                raise HTTPException(status_code=404, detail="selection run is unavailable or invalid") from error
++            return project_shared_selection(payload, limit, ordinary_hk_display=True)
+         if market is not None or backfill_run_id is not None:
+             if market is None or backfill_run_id is None:
+                 raise HTTPException(status_code=422, detail="market and backfill_run_id must be supplied together")
+--- a/apps/web/src/App.vue
++++ b/apps/web/src/App.vue
+@@ -541,7 +541,7 @@
+   if (market === "HK" && !isBackfillReadOnly.value
+       && workbench?.trade_date === selectedDate.value
+       && workbench?.stage?.stage_id === selectedStage.value
+-      && ["CANNOT_CONFIRM", "OBSERVATION_UNVERIFIED", "READY_EMPTY", "FORMAL"]
++      && ["CANNOT_CONFIRM", "OBSERVATION_UNVERIFIED", "READY_EMPTY", "FORMAL", "CURRENT_DAY_RESEARCH_ONLY"]
+         .includes(workbench?.markets?.HK?.display_mode || "")) return undefined;
+   return currentApprovedBackfills.value.find((binding) => approvedMarketKey(binding.market) === market);
+ }
+@@ -575,6 +575,9 @@
+   }
+   if (stageLoading.value) return "读取中";
+   if (stageError.value) return "CANNOT_CONFIRM";
++  if (market === "HK" && hkSummary.value.display_mode === "CURRENT_DAY_RESEARCH_ONLY") {
++    return `${hkSummary.value.selected_rows ?? hkCandidateRows.value.length} 只 · 当日研究 · 港股通资格未确认`;
++  }
+   if (market === "HK" && hkSummary.value.display_mode === "CANNOT_CONFIRM") return "待确认/缺少正式产物";
+   if (market === "HK" && hkSummary.value.display_mode === "OBSERVATION_UNVERIFIED") {
+     return `${hkSummary.value.observation_count ?? 0} 条观察行 · 未验证`;
+@@ -623,6 +626,7 @@
+   return value === undefined || value === null || value === "" ? "未知" : value;
+ }
+ function candidateActionLabel(row: StageRow, market: CandidateMarketKey) {
++  if (market === "HK" && hkSummary.value.display_mode === "CURRENT_DAY_RESEARCH_ONLY") return "当日研究 · 仅观察";
+   if (market === "HK" && hkSummary.value.display_mode === "OBSERVATION_UNVERIFIED") return "观察 · 未验证";
+   if (market === "HK" && hkSummary.value.display_mode === "CANNOT_CONFIRM") return "观察 · 未验证";
+   return candidateRowsAreHistorical(market) ? backfillRowStatusLabel(row) : market === "A"
+@@ -2116,8 +2120,8 @@
+           </article>
+         </section>
+         <section v-else-if="!isBackfillReadOnly" class="market-column" aria-label="A股不适用"><h3>A股：不适用</h3><p>所选15:45—15:55阶段仅适用于港股通，不代表A股零结果或采集失败。</p></section>
+-        <section class="market-column" :aria-label="hkSummary.display_mode === 'OBSERVATION_UNVERIFIED' ? '港股通观察行' : '港股通候选'" data-testid="stage-candidates-HK">
+-          <div class="market-title"><h3>{{ hkSummary.display_mode === "OBSERVATION_UNVERIFIED" ? "港股通观察行" : `港股通${isPreopenStage ? "09:20二筛" : "二筛"}` }}</h3><span>{{ candidateColumnCountLabel("HK") }}<template v-if="candidateRowsAreHistorical('HK')"> · 历史回补·只读</template></span></div>
++        <section class="market-column" :aria-label="hkSummary.display_mode === 'CURRENT_DAY_RESEARCH_ONLY' ? '港股当日研究候选' : hkSummary.display_mode === 'OBSERVATION_UNVERIFIED' ? '港股通观察行' : '港股通候选'" data-testid="stage-candidates-HK">
++          <div class="market-title"><h3>{{ hkSummary.display_mode === "CURRENT_DAY_RESEARCH_ONLY" ? "港股当日研究" : hkSummary.display_mode === "OBSERVATION_UNVERIFIED" ? "港股通观察行" : `港股通${isPreopenStage ? "09:20二筛" : "二筛"}` }}</h3><span>{{ candidateColumnCountLabel("HK") }}<template v-if="candidateRowsAreHistorical('HK')"> · 历史回补·只读</template></span></div>
+           <p v-if="hkSummary.display_mode === 'OBSERVATION_UNVERIFIED'" class="evidence-note">未验证原因：{{ hkSummary.display_reasons?.join("、") || "SelectionStore 或执行绑定不足" }}</p>
+           <div v-if="!hkCandidateRows.length" class="empty-card">
+             <strong>{{ candidateColumnEmptyMessage("HK") }}</strong>
+--- a/apps/web/src/components/review/StageExecutionEvidencePanel.vue
++++ b/apps/web/src/components/review/StageExecutionEvidencePanel.vue
+@@ -43,14 +43,32 @@
+     );
+     const requested = counter(hasSummary ? (available ? result?.requested_rows : null) : lane?.requested_rows);
+     const source = counter(hasSummary ? (available ? result?.source_rows : null) : (lane?.source_rows ?? lane?.observed_rows));
++    const research = result?.selection_mode === "CURRENT_DAY_RESEARCH_ONLY";
++    const metadata = result?.hk_current_day_research;
++    const inputStatus = props.evidence.input_binding_status?.[market]?.status;
+     return {
+-      market, name: market === "A_SHARE" ? "A股" : "港股通",
++      market, name: market === "A_SHARE" ? "A股" : research ? "港股当日研究" : "港股通",
+       headline: available ? (selected === 0 ? "已保存空结果（0 只）" : `已计算 ${selected} 只`)
+         : preselectionBlocked ? "预选池未就绪，未进入算法" : "选股结果待核对",
+       quote: quoteText(requested, source, hasSummary && available ? result?.missing_quote_rows : undefined),
+       countSource: hasSummary ? (available ? "选股产物计数" : "行情计数未绑定") : "回执记录计数",
+       binding: resultBinding(market),
+       blockedAttemptWithSavedResult: available && preselectionBlocked,
++      runId: result?.run_id,
++      research, metadata,
++      researchSourceStatus: result?.research_source_status,
++      inputStatus,
++      inputBinding: market === "A_SHARE"
++        ? inputStatus === "OWNER_DECLARED_INPUT_BOUND_TO_SELECTION"
++          ? "预选输入声明与本结果、原执行记录已绑定；未重新读取当前预选池，未验证历史资格。"
++          : inputStatus === "A_INPUT_BINDING_CONFLICT" ? "预选输入身份冲突，待核对" : "预选输入执行记录尚未完整绑定"
++        : inputStatus === "RESEARCH_INPUT_BOUND_TO_SELECTION_AND_OWNER_HISTORY"
++        ? "研究输入与选股产物、原执行记录已绑定"
++        : inputStatus === "RESEARCH_INPUT_BINDING_CONFLICT" ? "研究输入身份冲突，待核对" : "研究输入执行记录尚未完整绑定",
++      quoteTimes: result?.quote_data_times?.join("、") || "未提供",
++      sourceRestrictions: result?.source_restrictions ?? [],
++      sourceBinding: props.evidence.selection_source_bindings?.[market]?.status,
++      originChanged: props.evidence.selection_source_bindings?.[market]?.invocation_matches_selection === false,
+     };
+   });
+ });
+@@ -59,6 +77,7 @@
+   if (!mode) return "未记录";
+   if (mode === "NATURAL") return "自然触发（NATURAL）";
+   if (mode === "RECOVERY") return "补跑（RECOVERY）";
++  if (mode === "MANUAL_CURRENT_DAY_RESEARCH") return "手动当日研究（MANUAL_CURRENT_DAY_RESEARCH）";
+   return `其他方式（${mode}）`;
+ });
+ const historyText = computed(() => {
+@@ -83,9 +102,26 @@
+       <article v-for="lane in marketViews" :key="lane.market" :data-market="lane.market">
+         <h4>{{ lane.name }}</h4>
+         <p class="execution-result"><strong>{{ lane.headline }}</strong></p>
++        <p v-if="lane.runId">结果 run：{{ lane.runId }}</p>
+         <p>{{ lane.quote }}<small class="execution-count-source">{{ lane.countSource }}</small></p>
++        <template v-if="lane.research">
++          <p><strong>当日研究 · CURRENT_DAY_RESEARCH_ONLY</strong></p>
++          <p>当前港股通资格：不能确认。此结果保留证券资料及成员名单的来源限制。</p>
++          <p>名单日期：{{ lane.metadata?.universe_as_of || "未提供" }}；名单陈旧：{{ lane.metadata?.stale_universe === true ? "是" : lane.metadata?.stale_universe === false ? "否" : "未知" }}。</p>
++          <p>证券资料取得时间：{{ lane.metadata?.captured_at || "未提供" }}；阶段截止：{{ lane.metadata?.cutoff_at || "未提供" }}。</p>
++          <p>选中股行情时间：{{ lane.quoteTimes }}。证券资料取得时间不能作为行情时间。</p>
++          <p v-if="lane.researchSourceStatus !== 'VERIFIED_SELECTION_METADATA'">研究来源元数据待核对。</p>
++          <p>{{ lane.inputBinding }}</p>
++        </template>
++        <p v-if="lane.market === 'A_SHARE' && lane.inputStatus">{{ lane.inputBinding }}</p>
+         <p v-if="lane.blockedAttemptWithSavedResult">当前回执：预选池未就绪，未进入算法。</p>
+         <p>{{ lane.binding }}</p>
++        <p v-if="lane.sourceBinding === 'SELECTION_SOURCE_IDENTITY_BOUND_TO_TRIO_AND_OWNER_HISTORY'">本结果的源码记录已与选股产物绑定；不代表进程或自然时段验收。</p>
++        <p v-else-if="lane.sourceBinding === 'SELECTION_SOURCE_IDENTITY_CONFLICT'">本结果的源码记录存在身份冲突，待核对。</p>
++        <p v-if="lane.originChanged">当前调用的源码记录与本结果原始调用不同；此处保留原结果来源。</p>
++        <details v-if="lane.sourceRestrictions.length"><summary>选股来源限制（{{ lane.sourceRestrictions.length }}）</summary>
++          <ul><li v-for="reason in lane.sourceRestrictions" :key="reason">{{ reason }}</li></ul>
++        </details>
+       </article>
+     </div>
+     <h4>运行记录与验收</h4>
+--- a/apps/web/src/contracts/runtime.ts
++++ b/apps/web/src/contracts/runtime.ts
+@@ -65,6 +65,15 @@
+ };
+ 
+ 
++export type HkCurrentDayResearchMetadata = {
++  input_mode: "CURRENT_DAY_RESEARCH_ONLY"; trade_date: string; stage_id: string;
++  universe_as_of: string; captured_at: string; cutoff_at: string; stale_universe: boolean;
++  current_connect_eligibility: "CANNOT_CONFIRM"; RESEARCH_ONLY: true;
++  production_allowed: false; buy_gate_updated: false; orders_sent: false;
++  input_binding_sha256: string;
++  source_files: Record<string, { file: string; sha256: string }>;
++};
++
+ export type StageExecutionEvidenceReadback = {
+   status: string; execution_verified: boolean; natural_verified: boolean;
+   trade_date: string; stage_id: string; receipt_path?: string; observed_sha256?: string;
+@@ -78,9 +87,21 @@
+     source_rows: number | null; missing_quote_rows?: number | null;
+     quote_coverage_ratio?: number | null; selection_status?: string | null;
+     evidence_scope?: string;
++    trade_date?: string | null; stage_id?: string | null; market?: string;
++    run_id?: string | null; artifact_id?: string | null;
++    algorithm_sha256?: string | null; raw_artifact_sha256?: string | null;
++    selection_mode?: string; research_source_status?: string;
++    hk_current_day_research?: HkCurrentDayResearchMetadata | null;
++    research_source_restrictions?: string[]; quote_data_times?: string[];
++    source_restrictions?: string[];
++    runtime_source_identity?: Record<string, unknown> | null;
+   }>;
+   receipt_history_binding?: string; record_time_status?: string;
+   selection_artifact_bindings?: Record<string, { status: string }>;
++  input_binding_status?: Record<string, { status: string; input_binding_sha256?: string }>;
++  runtime_source_binding?: { status: string; sha256?: string; scope?: string };
++  selection_source_bindings?: Record<string, { status: string; sha256?: string;
++    invocation_sha256?: string; invocation_matches_selection?: boolean | null }>;
+   runner_invoked_at?: string | null; invocation_time_source?: string | null;
+   markets: Record<string, {
+     status?: string | null; selection_binding: string; failure_layer?: string | null;
+--- a/stage_center/consumer.py
++++ b/stage_center/consumer.py
+@@ -17,7 +17,7 @@
+ from infrastructure.preselection_pool_store import PreselectionPoolStore
+ 
+ from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+-from .execution_evidence import read_stage_execution
++from .execution_evidence import read_stage_execution, project_hk_current_day_research
+ from .selection import SelectionError, SelectionStore, _validate_date, _validate_market, _validate_stage
+ 
+ 
+@@ -198,12 +198,16 @@
+     return {
+         "market": market,
+         "status": status,
++        "trade_date": envelope.get("trade_date"),
++        "stage_id": envelope.get("stage_id"),
++        "RESEARCH_ONLY": True,
+         "selection_status": status,
+         "artifact_id": envelope.get("artifact_id"),
+         "run_id": envelope.get("run_id"),
+         "algorithm_id": envelope.get("algorithm_id"),
+         "algorithm_sha256": envelope.get("algorithm_sha256"),
+         "raw_artifact_sha256": envelope.get("raw_artifact_sha256"),
++        "runtime_source_identity": deepcopy(envelope.get("runtime_source_identity")),
+         "source_status": envelope.get("source_status"),
+         "requested_rows": envelope.get("requested_rows", 0),
+         "source_rows": envelope.get("source_rows", 0),
+@@ -213,6 +217,7 @@
+         "source_evidence": list(envelope.get("source_evidence") or []),
+         "rows": projected_rows,
+         "cannot_confirm": list(envelope.get("cannot_confirm") or []),
++        **project_hk_current_day_research(envelope),
+     }
+ 
+ 
+@@ -600,13 +605,19 @@
+         market: str,
+         *,
+         allow_backfill: bool = False,
++        selection_run_id: str | None = None,
+     ) -> dict[str, Any]:
+         try:
+-            natural = _project_market(
+-                market, self.store.read_verified(trade_date, stage_id, market)
+-            )
++            envelope = (self.store._verify_run(trade_date, stage_id, market, selection_run_id)["envelope"]
++                        if selection_run_id is not None else self.store.read_verified(trade_date, stage_id, market))
++            if any(envelope.get(key) != expected for key, expected in (
++                    ("trade_date", trade_date), ("stage_id", stage_id), ("market", market))):
++                raise SelectionError("selection envelope slot differs")
++            natural = _project_market(market, envelope)
+             natural = self._overlay_a_names(natural, trade_date)
+         except (SelectionError, OSError, ValueError, TypeError):
++            if selection_run_id is not None:
++                raise SelectionError("requested selection run is unavailable or invalid")
+             natural = _invalid_market(market)
+ 
+         # A verified ordinary result with rows, READY_EMPTY, or any successful
+@@ -688,11 +699,15 @@
+         *,
+         markets: Sequence[str] | None = None,
+         allow_backfill: bool = False,
++        selection_run_id: str | None = None,
+     ) -> dict[str, Any]:
+         _validate_date(trade_date)
+         _validate_stage(stage_id)
+         scheduled = _scheduled_markets(stage_id)
+         requested_markets = scheduled if markets is None else _dedupe_markets(markets)
++        if selection_run_id is not None and (len(requested_markets) != 1
++                or not re.fullmatch(r"run-[0-9a-f]{24}", selection_run_id) or allow_backfill):
++            raise ValueError("an exact selection run requires one market and the ordinary configured store")
+         for market in requested_markets:
+             if market not in scheduled:
+                 raise ValueError(f"market {market!r} is not scheduled for {stage_id!r}")
+@@ -702,7 +717,8 @@
+         for market in requested_markets:
+             projected.append(
+                 self._market_from_store_or_backfill(
+-                    trade_date, stage_id, market, allow_backfill=allow_backfill
++                    trade_date, stage_id, market, allow_backfill=allow_backfill,
++                    selection_run_id=selection_run_id,
+                 )
+             )
+ 
+@@ -721,10 +737,11 @@
+             "run_id": projected[0].get("run_id") if len({item.get("run_id") for item in projected}) == 1 else None,
+             "cannot_confirm": [READ_ONLY_CANNOT_CONFIRM] if invalid else [],
+             "write_performed": False,
++            "RESEARCH_ONLY": True,
+             **SAFETY_FLAGS,
+         }
+         response["execution_evidence"] = read_stage_execution(
+-            self.execution_receipt_root, trade_date, stage_id, response["markets"]
++            self.execution_receipt_root, trade_date, stage_id, response["markets"], selection_store=self.store
+         )
+         return response
+ 
+--- a/stage_center/execution_evidence.py
++++ b/stage_center/execution_evidence.py
+@@ -8,6 +8,8 @@
+ 
+ import hashlib
+ import json
++from copy import deepcopy
++from datetime import datetime, timedelta
+ from pathlib import Path
+ import re
+ from typing import Any, Mapping
+@@ -58,6 +60,68 @@
+ 
+ def _canonical_bytes(value: Any) -> bytes:
+     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
++
++
++def project_hk_current_day_research(lane: Mapping[str, Any]) -> dict[str, Any]:
++    """Project only metadata bound into a verified selection, never infer PIT.
++
++    Source limitations are independent of row availability. Malformed metadata
++    remains explicitly research/unknown; it cannot promote the saved rows to
++    formal HK Connect even if an older caller labelled their status READY.
++    """
++    raw = lane.get("hk_current_day_research")
++    markers = [item.split("=", 1)[1] for item in lane.get("source_evidence") or ()
++               if isinstance(item, str) and item.startswith("hk_current_day_research=")]
++    if raw is None and not markers and lane.get("selection_mode") != "CURRENT_DAY_RESEARCH_ONLY":
++        return {}
++    reasons = ["CURRENT_CONNECT_ELIGIBILITY_CANNOT_CONFIRM", "CURRENT_DAY_RESEARCH_NOT_FORMAL_D1_PIT"]
++    valid = False
++    try:
++        if not isinstance(raw, dict) or len(markers) != 1 or json.loads(markers[0]) != raw:
++            raise ValueError("RESEARCH_METADATA_NOT_BOUND_TO_SOURCE_EVIDENCE")
++        if (raw.get("input_mode") != "CURRENT_DAY_RESEARCH_ONLY"
++                or raw.get("trade_date") != lane.get("trade_date")
++                or raw.get("stage_id") != lane.get("stage_id")
++                or lane.get("market") != "HK_CONNECT"
++                or raw.get("current_connect_eligibility") != "CANNOT_CONFIRM"
++                or raw.get("RESEARCH_ONLY") is not True
++                or any(raw.get(flag) is not False for flag in ("production_allowed", "buy_gate_updated", "orders_sent"))):
++            raise ValueError("RESEARCH_METADATA_IDENTITY_OR_SAFETY_CONFLICT")
++        trade_date = datetime.strptime(str(raw.get("trade_date")), "%Y%m%d").date()
++        universe_date = datetime.strptime(str(raw.get("universe_as_of")), "%Y%m%d").date()
++        captured = datetime.fromisoformat(str(raw.get("captured_at")))
++        cutoff_text = str(raw.get("cutoff_at"))
++        cutoff = (datetime.fromisoformat(f"{trade_date.isoformat()}T{cutoff_text}+08:00")
++                  if re.fullmatch(r"\d{2}:\d{2}:\d{2}", cutoff_text)
++                  else datetime.fromisoformat(cutoff_text))
++        if (raw["stage_id"] not in STAGE_BY_ID
++                or cutoff.strftime("%H:%M:%S") != STAGE_BY_ID[raw["stage_id"]].cutoff):
++            raise ValueError("RESEARCH_CUTOFF_DIFFERS_FROM_STAGE_CONTRACT")
++        if (captured.utcoffset() != timedelta(hours=8) or cutoff.utcoffset() != timedelta(hours=8)
++                or captured.date() != trade_date or cutoff.date() != trade_date
++                or captured > cutoff or universe_date > trade_date
++                or type(raw.get("stale_universe")) is not bool
++                or raw["stale_universe"] != (universe_date < trade_date)):
++            raise ValueError("RESEARCH_SOURCE_TIME_OR_UNIVERSE_CONFLICT")
++        if not re.fullmatch(r"[0-9a-f]{64}", str(raw.get("input_binding_sha256"))):
++            raise ValueError("RESEARCH_INPUT_SHA_INVALID")
++        files = raw.get("source_files")
++        if not isinstance(files, dict) or set(files) != {"snapshot", "receipt", "reference_codes", "final_receipt"}:
++            raise ValueError("RESEARCH_SOURCE_FILES_INCOMPLETE")
++        for entry in files.values():
++            if (not isinstance(entry, dict) or not re.fullmatch(r"[0-9a-f]{64}", str(entry.get("sha256")))
++                    or not isinstance(entry.get("file"), str) or Path(entry["file"]).name != entry["file"]
++                    or entry["file"] in {"", ".", ".."}):
++                raise ValueError("RESEARCH_SOURCE_FILE_IDENTITY_INVALID")
++        valid = True
++    except (ValueError, TypeError, KeyError, OverflowError, RecursionError) as error:
++        reasons.append(str(error) if str(error).startswith("RESEARCH_") else "RESEARCH_METADATA_INVALID")
++    return {
++        "selection_mode": "CURRENT_DAY_RESEARCH_ONLY", "RESEARCH_ONLY": True,
++        "hk_current_day_research": deepcopy(raw) if isinstance(raw, dict) else None,
++        "research_source_status": "VERIFIED_SELECTION_METADATA" if valid else "CANNOT_CONFIRM",
++        "research_source_restrictions": reasons,
++    }
+ 
+ 
+ def _verified_result_summaries(
+@@ -81,8 +145,129 @@
+             "quote_coverage_ratio": round(source / requested, 6) if available and requested and source is not None and source <= requested else None,
+             "evidence_scope": "VERIFIED_SELECTION_RESULT_NOT_EXECUTION_ATTESTATION",
+             **{key: lane.get(key) if available else None for key in _IDENTITY if key != "selected_rows"},
++            "trade_date": lane.get("trade_date") if available else None,
++            "stage_id": lane.get("stage_id") if available else None,
++            "market": market,
++            "runtime_source_identity": deepcopy(lane.get("runtime_source_identity")) if available else None,
++            "source_restrictions": [item for item in lane.get("cannot_confirm") or () if isinstance(item, str)],
++            "quote_data_times": list(dict.fromkeys(
++                row["source_last_bar_time"] for row in lane.get("rows") or ()
++                if isinstance(row, dict) and isinstance(row.get("source_last_bar_time"), str)
++                and row["source_last_bar_time"]
++            )) if available else [],
++            **project_hk_current_day_research(lane),
+         }
+     return summaries
++
++
++def _a_input_reference(envelope: Mapping[str, Any]) -> dict[str, Any]:
++    """Extract the input reference from the original verified selection only."""
++    def single(prefix: str) -> str | None:
++        values = [item[len(prefix):] for item in envelope.get("source_evidence") or ()
++                  if isinstance(item, str) and item.startswith(prefix)]
++        return values[0] if len(values) == 1 else None
++    return {"trade_date": envelope.get("trade_date"),
++            "run_id": single("candidate_run_id="),
++            "current_bytes_sha256": single("candidate_current_sha256="),
++            "row_count": _counter(envelope.get("requested_rows"))}
++
++
++def _a_input_binding(declared: Any, trio: Mapping[str, Any], history: str) -> dict[str, Any]:
++    base = {"execution_verified": False, "natural_verified": False,
++            "input_reread_performed": False, "candidate_pit_verified": False,
++            "scope": "ORIGINAL_SELECTION_SOURCE_REFERENCE_AND_OWNER_RECORD_NOT_CURRENT_INPUT_REREAD_OR_PIT_ATTESTATION"}
++    if declared is None:
++        return {**base, "status": "A_INPUT_NOT_RECORDED"}
++    if (not isinstance(declared, dict)
++            or declared.get("schema_version") != "stage_center.runner.input_binding.v1"
++            or declared.get("kind") != "A_SHARE_STAGE_ACQUISITION_UNIVERSE"
++            or declared.get("binding_scope") != "INPUT_VALIDATED_FOR_THIS_INVOCATION"):
++        return {**base, "status": "A_INPUT_BINDING_CONFLICT"}
++    reference = trio.get("candidate_input_reference")
++    if not isinstance(reference, dict):
++        return {**base, "status": "A_INPUT_DECLARED_OWNER_OR_SELECTION_UNBOUND"}
++    if (not isinstance(reference.get("run_id"), str) or not reference["run_id"]
++            or not re.fullmatch(r"[0-9a-f]{64}", str(reference.get("current_bytes_sha256")))
++            or not re.fullmatch(r"\d{8}", str(reference.get("trade_date")))
++            or _counter(reference.get("row_count")) is None):
++        return {**base, "status": "A_INPUT_SELECTION_REFERENCE_NOT_RECORDED"}
++    if (_counter(declared.get("row_count")) is None
++            or any(declared.get(key) != value for key, value in reference.items())):
++        return {**base, "status": "A_INPUT_BINDING_CONFLICT"}
++    bound = trio.get("status") == "BOUND_TO_VERIFIED_SELECTION_TRIO" and history == "OWNER_HISTORY_SHA_BOUND"
++    return {**base, **reference, "status": "OWNER_DECLARED_INPUT_BOUND_TO_SELECTION" if bound
++            else "A_INPUT_DECLARED_OWNER_OR_SELECTION_UNBOUND"}
++
++
++def _research_input_binding(declared: Any, lane: Mapping[str, Any], trio: Mapping[str, Any], history: str) -> dict[str, Any]:
++    projected = project_hk_current_day_research(lane)
++    if not projected:
++        return {"status": "NOT_CURRENT_DAY_RESEARCH"}
++    base = {"execution_verified": False, "natural_verified": False}
++    if not isinstance(declared, dict):
++        return {**base, "status": "RESEARCH_INPUT_NOT_RECORDED"}
++    metadata = projected.get("hk_current_day_research")
++    if (projected["research_source_status"] != "VERIFIED_SELECTION_METADATA"
++            or declared.get("role") != "CURRENT_DAY_RESEARCH_ONLY"
++            or declared.get("research_metadata") != metadata
++            or declared.get("input_binding_sha256") != metadata.get("input_binding_sha256")
++            or declared.get("source_files") != metadata.get("source_files")):
++        return {**base, "status": "RESEARCH_INPUT_BINDING_CONFLICT"}
++    if trio.get("status") != "BOUND_TO_VERIFIED_SELECTION_TRIO" or history != "OWNER_HISTORY_SHA_BOUND":
++        return {**base, "status": "RESEARCH_INPUT_DECLARED_OWNER_OR_SELECTION_UNBOUND"}
++    return {**base, "status": "RESEARCH_INPUT_BOUND_TO_SELECTION_AND_OWNER_HISTORY",
++            "input_binding_sha256": metadata["input_binding_sha256"],
++            "source_files": deepcopy(metadata["source_files"]),
++            "scope": "ORIGINAL_SELECTION_AND_OWNER_RECORD_NOT_INDEPENDENT_PIT_ATTESTATION"}
++
++
++def _runtime_source_binding(declared: Any, history: str) -> dict[str, Any]:
++    base = {"execution_verified": False, "natural_verified": False,
++            "scope": "RECEIPT_SOURCE_DECLARATION_NOT_PROCESS_ATTESTATION"}
++    if declared is None:
++        return {**base, "status": "RUNTIME_SOURCE_IDENTITY_NOT_RECORDED"}
++    try:
++        if (not isinstance(declared, dict) or declared.get("schema_version") != "stage_center.runtime_source_identity.v1"
++                or declared.get("status") != "RECORDED" or declared.get("owner") != "STAGE_RUNNER"
++                or declared.get("scope") != "SOURCE_FILES_AT_RUNNER_ENTRY_NOT_PROCESS_ATTESTATION"
++                or declared.get("missing_files") != []):
++            raise ValueError("source identity schema")
++        files = declared.get("files")
++        if not isinstance(files, dict) or not files or len(files) > 256:
++            raise ValueError("source identity files")
++        for relative, entry in files.items():
++            if (not isinstance(relative, str) or Path(relative).is_absolute() or ".." in Path(relative).parts
++                    or not isinstance(entry, dict) or not re.fullmatch(r"[0-9a-f]{64}", str(entry.get("sha256")))
++                    or type(entry.get("bytes")) is not int or entry["bytes"] < 0):
++                raise ValueError("source identity entry")
++        body = {key: value for key, value in declared.items() if key not in {"sha256", "status"}}
++        digest = hashlib.sha256(_canonical_bytes(body)).hexdigest()
++        if digest != declared.get("sha256"):
++            raise ValueError("source identity digest")
++        return {**base, "status": "OWNER_HISTORY_SOURCE_IDENTITY_BOUND" if history == "OWNER_HISTORY_SHA_BOUND"
++                else "RUNTIME_SOURCE_IDENTITY_HISTORY_UNBOUND", "sha256": digest, "files": deepcopy(files)}
++    except (ValueError, TypeError, RecursionError):
++        return {**base, "status": "RUNTIME_SOURCE_IDENTITY_CONFLICT"}
++
++
++def _selection_source_binding(declared: Any, lane: Mapping[str, Any], trio: Mapping[str, Any], history: str, invocation: Any) -> dict[str, Any]:
++    origin = lane.get("runtime_source_identity")
++    base = {"execution_verified": False, "natural_verified": False}
++    if origin is None:
++        return {**base, "status": "SELECTION_SOURCE_IDENTITY_NOT_RECORDED"}
++    if declared != origin or not isinstance(origin, dict):
++        return {**base, "status": "SELECTION_SOURCE_IDENTITY_CONFLICT"}
++    verified = _runtime_source_binding(origin, history)
++    if verified["status"] == "RUNTIME_SOURCE_IDENTITY_CONFLICT":
++        return {**base, "status": "SELECTION_SOURCE_IDENTITY_CONFLICT"}
++    bound = (verified["status"] == "OWNER_HISTORY_SOURCE_IDENTITY_BOUND"
++             and trio.get("status") == "BOUND_TO_VERIFIED_SELECTION_TRIO")
++    invocation_sha = invocation.get("sha256") if isinstance(invocation, dict) else None
++    return {**base, "status": "SELECTION_SOURCE_IDENTITY_BOUND_TO_TRIO_AND_OWNER_HISTORY" if bound
++            else "SELECTION_SOURCE_IDENTITY_OWNER_OR_TRIO_UNBOUND", "sha256": origin.get("sha256"),
++            "invocation_sha256": invocation_sha,
++            "invocation_matches_selection": invocation_sha == origin.get("sha256") if invocation_sha else None,
++            "scope": "SELECTED_RUN_SOURCE_RECORD_NOT_PROCESS_ATTESTATION"}
+ 
+ 
+ def _owner_history_binding(root: Path, receipt: Mapping[str, Any], trade_date: str, stage_id: str) -> tuple[str, str]:
+@@ -142,6 +327,13 @@
+         verified = store._verify_run(trade_date, stage_id, market, declared["run_id"])
+         if any(verified["envelope"].get(key) != declared.get(key) for key in keys):
+             raise ValueError("original store returned another selection")
++        envelope = verified["envelope"]
++        if any(key in envelope and envelope.get(key) != expected for key, expected in (
++                ("trade_date", trade_date), ("stage_id", stage_id), ("market", market))):
++            raise ValueError("selection envelope slot differs")
++        for key in ("hk_current_day_research", "runtime_source_identity"):
++            if envelope.get(key) != verified_lane.get(key):
++                raise ValueError("selection source metadata differs from original store")
+         artifact_relative = verified["artifact_relative"]
+         parent = PurePosixPath(artifact_relative).parent
+         paths = {
+@@ -170,6 +362,7 @@
+         return {
+             "status": "BOUND_TO_VERIFIED_SELECTION_TRIO" if history_bound else "SELECTION_TRIO_MATCHES_CURRENT_RECEIPT_HISTORY_UNBOUND",
+             "run_id": declared["run_id"], **hashes,
++            **({"candidate_input_reference": _a_input_reference(envelope)} if market == "A_SHARE" else {}),
+             "execution_verified": False, "natural_verified": False,
+         }
+     except (OSError, ValueError, TypeError, KeyError, AttributeError, UnicodeError, RecursionError):
+@@ -191,6 +384,9 @@
+         "selection_results": _verified_result_summaries(stage_id, verified_markets),
+         "receipt_history_binding": "OWNER_HISTORY_NOT_RECORDED",
+         "selection_artifact_bindings": {},
++        "input_binding_status": {},
++        "runtime_source_binding": {"status": "RUNTIME_SOURCE_IDENTITY_NOT_RECORDED"},
++        "selection_source_bindings": {},
+     }
+     if root is None:
+         result["cannot_confirm"] = ["EXECUTION_RECEIPT_ROOT_NOT_BOUND"]
+@@ -220,7 +416,7 @@
+     if not isinstance(markets, dict):
+         result.update(status="RECEIPT_IDENTITY_CONFLICT", cannot_confirm=["RECEIPT_MARKETS_NOT_OBJECT"])
+         return result
+-    result.update(status="DECLARED_ONLY", attempt_mode=receipt.get("dispatch_mode"),
++    result.update(status="DECLARED_ONLY", attempt_mode=receipt.get("execution_mode") or receipt.get("dispatch_mode"),
+                   due_status=receipt.get("due_status"), declared_status=receipt.get("status"),
+                   recorded_at=receipt.get("recorded_at"), node_id=receipt.get("node_id"),
+                   node_attempt_count=_counter(receipt.get("node_attempt_count")),
+@@ -236,6 +432,11 @@
+     result.update(receipt_history_binding=history, record_time_status=clock_status,
+                   runner_invoked_at=receipt.get("runner_invoked_at"),
+                   invocation_time_source=receipt.get("runner_clock_source"))
++    result["runtime_source_binding"] = _runtime_source_binding(receipt.get("runtime_source_identity"), history)
++    declared_inputs = receipt.get("input_bindings")
++    declared_inputs = declared_inputs if isinstance(declared_inputs, dict) else {}
++    selected_sources = receipt.get("selection_source_identities")
++    selected_sources = selected_sources if isinstance(selected_sources, dict) else {}
+     if history == "OWNER_HISTORY_SHA_BOUND":
+         result["cannot_confirm"].remove("NO_IMMUTABLE_NATURAL_RECOVERY_HISTORY")
+     elif history == "OWNER_HISTORY_CONFLICT":
+@@ -279,8 +480,23 @@
+             selection_store, declared_artifacts.get(market), original, verified,
+             trade_date, stage_id, market, history == "OWNER_HISTORY_SHA_BOUND",
+         )
++        result["input_binding_status"][market] = (
++            _a_input_binding(declared_inputs.get(market), result["selection_artifact_bindings"][market], history)
++            if market == "A_SHARE" else _research_input_binding(
++                declared_inputs.get(market), verified, result["selection_artifact_bindings"][market], history,
++            )
++        )
++        result["selection_source_bindings"][market] = _selection_source_binding(
++            selected_sources.get(market), verified, result["selection_artifact_bindings"][market],
++            history, receipt.get("runtime_source_identity"),
++        )
+     if bound_count:
+         result["status"] = "SELECTION_REFERENCES_PARTIALLY_BOUND_EXECUTION_UNVERIFIED"
++    a_input = result["input_binding_status"].get("A_SHARE")
++    if a_input and a_input["status"] != "A_INPUT_NOT_RECORDED":
++        result["candidate_binding"] = a_input["status"]
++        if a_input["status"] == "OWNER_DECLARED_INPUT_BOUND_TO_SELECTION":
++            result.update(candidate_run_id=a_input["run_id"], candidate_current_sha256=a_input["current_bytes_sha256"])
+     try:
+         unchanged = _exact_bytes(root, trade_date, stage_id) == raw
+     except (OSError, ValueError):
+@@ -291,4 +507,14 @@
+         for binding in result["selection_artifact_bindings"].values():
+             if binding["status"] == "BOUND_TO_VERIFIED_SELECTION_TRIO":
+                 binding["status"] = "SELECTION_TRIO_MATCHES_OBSERVED_RECEIPT_CURRENT_CHANGED"
++        result["runtime_source_binding"] = _runtime_source_binding(receipt.get("runtime_source_identity"), "OWNER_HISTORY_CONFLICT")
++        for market, binding in result["input_binding_status"].items():
++            if binding["status"] == "RESEARCH_INPUT_BOUND_TO_SELECTION_AND_OWNER_HISTORY":
++                binding["status"] = "RESEARCH_INPUT_DECLARED_OWNER_OR_SELECTION_UNBOUND"
++            elif binding["status"] == "OWNER_DECLARED_INPUT_BOUND_TO_SELECTION":
++                binding["status"] = "A_INPUT_DECLARED_OWNER_OR_SELECTION_UNBOUND"
++                result["candidate_binding"] = binding["status"]
++        for binding in result["selection_source_bindings"].values():
++            if binding["status"] == "SELECTION_SOURCE_IDENTITY_BOUND_TO_TRIO_AND_OWNER_HISTORY":
++                binding["status"] = "SELECTION_SOURCE_IDENTITY_OWNER_OR_TRIO_UNBOUND"
+     return result

@@ -1,0 +1,235 @@
+--- a/stage_center/_live_collectors_parts/collector_registry.py
++++ b/stage_center/_live_collectors_parts/collector_registry.py
+@@ -31,7 +31,8 @@
+         # Returning an A collector here makes the runner reject the stage
+         # before it can publish the HK observation.
+         replay_provider = None
+-        if hk_stage_replay_root is not None:
++        current_day_research = _v4_global(_v4_scope, 'getattr')(plan.universe_bindings.get("HK_CONNECT"), "role", "") == "CURRENT_DAY_RESEARCH_ONLY"
++        if hk_stage_replay_root is not None and not current_day_research:
+             from infrastructure.hkconnect_stage_replay_provider import HkConnectStageReplayProvider
+ 
+             # The root is explicit and date/stage resolution remains inside
+--- a/stage_center/_live_collectors_parts/hk_minute.py
++++ b/stage_center/_live_collectors_parts/hk_minute.py
+@@ -13,7 +13,16 @@
+     selection-only row fields; the immutable raw acquisition rows remain the
+     ExHQ rows.
+     """
+-    if plan.stage_id == "STAGE_1545_1555":
++    research_binding = plan.universe_bindings.get("HK_CONNECT")
++    current_day_research = _v4_global(_v4_scope, 'getattr')(research_binding, "role", "") == "CURRENT_DAY_RESEARCH_ONLY"
++    if current_day_research:
++        from stage_center.hk_current_day_research import research_metadata
++
++        metadata = research_metadata(research_binding)
++        if (metadata["trade_date"] != plan.trade_date or metadata["stage_id"] != plan.stage_id
++                or _v4_global(_v4_scope, 'tuple')(codes) != research_binding.codes):
++            raise _v4_global(_v4_scope, 'ValueError')("HK current-day research quote binding mismatch")
++    if plan.stage_id == "STAGE_1545_1555" and not current_day_research:
+         # Stage 8 is a historical RT_DATA replay contract.  A live ExHQ/Futu
+         # scan is not an equivalent source and must never be used as a
+         # fallback when the exact replay provider is unavailable.
+@@ -29,7 +38,27 @@
+         market="HK_CONNECT",
+         process_runner=scoped_runner,
+     )
+-    source = _v4_global(_v4_scope, '_to_source')(result, source_id="pytdx_exhq", route="shared_pytdx_exhq_hk_exact_d1_top100", requested=_v4_global(_v4_scope, 'len')(codes))
++    route = "shared_pytdx_exhq_hk_current_day_research" if current_day_research else "shared_pytdx_exhq_hk_exact_d1_top100"
++    source = _v4_global(_v4_scope, '_to_source')(result, source_id="pytdx_exhq", route=route, requested=_v4_global(_v4_scope, 'len')(codes))
++    if current_day_research:
++        # The explicit research universe authorizes these exact ExHQ bars,
++        # not a Futu live-gainer/member predicate or the Stage8 RT_DATA
++        # replay contract. Security metadata supplies no quote timestamp.
++        return _v4_global(_v4_scope, 'replace')(
++            source,
++            status="PARTIAL_WITH_ROWS" if source.rows else "CANNOT_CONFIRM",
++            cannot_confirm=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((
++                *source.cannot_confirm,
++                "CURRENT_DAY_RESEARCH_ONLY",
++                "CURRENT_HK_CONNECT_MEMBERSHIP_CANNOT_CONFIRM",
++                *( ("STALE_HK_RESEARCH_UNIVERSE",) if metadata["stale_universe"] else () ),
++            ))),
++            source_evidence=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((
++                *source.source_evidence, *research_binding.evidence,
++                "quote_clock=EXHQ_BAR_UPDATE_TIME",
++                "hk_selection_input_contract=CURRENT_DAY_RESEARCH_ONLY",
++            ))),
++        )
+     if not source.rows:
+         return source
+ 
+--- a/stage_center/_live_collectors_parts/selection_builder_registry.py
++++ b/stage_center/_live_collectors_parts/selection_builder_registry.py
+@@ -30,6 +30,7 @@
+                     "last_price": row.get("last_price"),
+                     "high_price": row.get("high_price"),
+                     "low_price": row.get("low_price"),
++                    "prev_close_price": row.get("prev_close_price"),
+                     "update_time": row.get("update_time"),
+                     "next_validation_time": raw.get("cutoff_at"),
+                     "trade_date": plan.trade_date,
+@@ -39,11 +40,10 @@
+             return select_a_0925_auction(rows, plan.trade_date, _v4_global(_v4_scope, 'str')(raw["artifact_sha256"]), source_status=raw["status"], requested_rows=raw["requested_rows"], missing_symbols=raw["missing_symbols"], cannot_confirm=raw["cannot_confirm"], source_evidence=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((*raw["source_evidence"], *source.source_evidence, top10_contract_evidence))))
+         research_context = None
+         context_root = research_root or raw.get("_v4_research_data_root")
++        optional_context_gaps = []
+         if stage_id in research_stages and context_root is None:
+-            raise _v4_global(_v4_scope, 'ValueError')(
+-                f"V4 research data root is required for {stage_id} A_SHARE"
+-            )
+-        if stage_id in research_stages:
++            optional_context_gaps.append("OPTIONAL_RESEARCH_CONTEXT_UNAVAILABLE:ROOT_MISSING")
++        if stage_id in research_stages and context_root is not None:
+             from stage_center.research_context import ResearchContextError, load_research_context
+ 
+             try:
+@@ -57,11 +57,15 @@
+                         else raw.get("_v4_morning_news_root")
+                     ),
+                 )
+-            except ResearchContextError:
+-                # The runner catches ValueError and publishes a fail-closed
+-                # receipt.  Never fall back to a current V3.5 score or a
+-                # future hourly slot when the frozen V3 evidence is invalid.
+-                raise
++            except ResearchContextError as error:
++                # Invalid optional news/research evidence contributes no
++                # bonus. Preserve the exact failure while the independently
++                # verified candidate and quote rows continue to the original
++                # formula. Raw, universe and result integrity errors are not
++                # caught at this boundary.
++                optional_context_gaps.append(
++                    f"OPTIONAL_RESEARCH_CONTEXT_UNAVAILABLE:{error}"
++                )
+         rows = []
+         for index, row in _v4_global(_v4_scope, 'enumerate')(source.rows, start=1):
+             # ``select_a_live_stage`` is the Windows V3 authority.  Preserve
+@@ -114,7 +118,7 @@
+                         else None
+                     )
+             else:
+-                research_context_gap = None
++                research_context_gap = optional_context_gaps[0] if optional_context_gaps else None
+             rows.append({
+                 "code": row.get("code"),
+                 "name": row.get("name") or row.get("stock_name"),
+@@ -154,6 +158,7 @@
+         research_evidence = research_context.source_evidence if research_context is not None else ()
+         formal_overlay_supplied = _v4_global(_v4_scope, 'any')(_v4_global(_v4_scope, '_has_runner_verified_formal_overlay')(row) for row in source.rows)
+         context_gaps = _v4_global(_v4_scope, 'list')(research_context.cannot_confirm if research_context is not None else ())
++        context_gaps.extend(optional_context_gaps)
+         if not formal_overlay_supplied:
+             context_gaps.append("FORMAL_OVERLAY_CANNOT_CONFIRM")
+         context_gaps.extend(
+@@ -215,6 +220,14 @@
+         return envelope
+ 
+     def hk_builder(source: SourceResult, plan: AcquisitionPlan, raw: Mapping[str, Any]) -> Mapping[str, Any]:
++        research_binding = plan.universe_bindings.get("HK_CONNECT")
++        current_day_research = _v4_global(_v4_scope, 'getattr')(research_binding, "role", "") == "CURRENT_DAY_RESEARCH_ONLY"
++        if current_day_research:
++            from stage_center.hk_current_day_research import research_metadata
++
++            metadata = research_metadata(research_binding)
++            if metadata["trade_date"] != plan.trade_date or metadata["stage_id"] != plan.stage_id:
++                raise _v4_global(_v4_scope, 'ValueError')("HK current-day research selection binding mismatch")
+         rows = []
+         d1_evidence: list[str] = _v4_global(_v4_scope, 'list')(source.source_evidence)
+         for row in source.rows:
+@@ -229,13 +242,13 @@
+                 "code": row.get("code"),
+                 "name": row.get("name") or row.get("stock_name"),
+                 "stock_name": row.get("stock_name") or row.get("name"),
+-                "candidate_lanes": _v4_global(_v4_scope, 'list')(row.get("candidate_lanes") or ()),
+-                "candidate_bucket": row.get("candidate_bucket", ""),
+-                "trade_status_contract": row.get("trade_status_contract", ""),
+-                "second_filter_rank": row.get("second_filter_rank", ""),
+-                "second_filter_score": row.get("second_filter_score", ""),
+-                "second_filter_status": row.get("second_filter_status", ""),
+-                "second_filter_action_level": row.get("second_filter_action_level", ""),
++                "candidate_lanes": [] if current_day_research else _v4_global(_v4_scope, 'list')(row.get("candidate_lanes") or ()),
++                "candidate_bucket": "" if current_day_research else row.get("candidate_bucket", ""),
++                "trade_status_contract": "" if current_day_research else row.get("trade_status_contract", ""),
++                "second_filter_rank": "" if current_day_research else row.get("second_filter_rank", ""),
++                "second_filter_score": "" if current_day_research else row.get("second_filter_score", ""),
++                "second_filter_status": "" if current_day_research else row.get("second_filter_status", ""),
++                "second_filter_action_level": "" if current_day_research else row.get("second_filter_action_level", ""),
+                 "pct_chg": pct,
+                 "turnover": row.get("turnover"),
+                 "turnover_hkd": row.get("turnover"),
+@@ -254,12 +267,12 @@
+                 # These fields are copied from the exact-date D-1 authority
+                 # by the runner. They remain selection-envelope metadata and
+                 # never alter the four-lane score.
+-                "d1_status": row.get("d1_status", row.get("strict_0_2_status", "")),
+-                "d1_model_id": row.get("d1_model_id", row.get("model_id", row.get("model", ""))),
+-                "d1_prob_active": row.get("d1_prob_active", row.get("prob_active", "")),
+-                "d1_rank": row.get("d1_rank", row.get("pool_rank", row.get("rank", ""))),
+-                "d1_score": row.get("d1_score", row.get("pool_score", row.get("score", ""))),
+-                "d1_source_evidence": _v4_global(_v4_scope, 'list')(row.get("d1_source_evidence") or ()),
++                "d1_status": "" if current_day_research else row.get("d1_status", row.get("strict_0_2_status", "")),
++                "d1_model_id": "" if current_day_research else row.get("d1_model_id", row.get("model_id", row.get("model", ""))),
++                "d1_prob_active": "" if current_day_research else row.get("d1_prob_active", row.get("prob_active", "")),
++                "d1_rank": "" if current_day_research else row.get("d1_rank", row.get("pool_rank", row.get("rank", ""))),
++                "d1_score": "" if current_day_research else row.get("d1_score", row.get("pool_score", row.get("score", ""))),
++                "d1_source_evidence": [] if current_day_research else _v4_global(_v4_scope, 'list')(row.get("d1_source_evidence") or ()),
+             })
+             model_id = rows[-1].get("d1_model_id")
+             d1_status = rows[-1].get("d1_status")
+@@ -269,6 +282,55 @@
+                 d1_evidence.append(f"hk_d1_status={d1_status}")
+             d1_evidence.extend(_v4_global(_v4_scope, 'str')(item) for item in rows[-1]["d1_source_evidence"] if _v4_global(_v4_scope, 'str')(item))
+         d1_evidence = _v4_global(_v4_scope, 'list')(_v4_global(_v4_scope, 'dict').fromkeys(d1_evidence))
++        if current_day_research:
++            # Reuse the existing four-lane observation path, which accepts
++            # an empty lane list. The four-lane scorer, ordering and Top10
++            # code remain unchanged; no membership or live-gainer bonus is
++            # manufactured from the current security-metadata snapshot.
++            envelope = select_hk_four_lane(
++                rows, plan.trade_date, plan.stage_id,
++                _v4_global(_v4_scope, 'str')(raw["artifact_sha256"]),
++                source_status="PARTIAL_WITH_ROWS" if rows else "CANNOT_CONFIRM",
++                requested_rows=raw.get("requested_rows", source.requested_rows),
++                missing_symbols=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((*source.missing_symbols, *raw.get("missing_symbols", ())))),
++                cannot_confirm=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((
++                    *source.cannot_confirm, *raw.get("cannot_confirm", ()),
++                    "CURRENT_DAY_RESEARCH_ONLY", "CURRENT_HK_CONNECT_MEMBERSHIP_CANNOT_CONFIRM",
++                ))),
++                source_evidence=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((
++                    *raw.get("source_evidence", ()), *source.source_evidence, *research_binding.evidence,
++                    top10_contract_evidence, "hk_selection_input_contract=CURRENT_DAY_RESEARCH_ONLY",
++                    "formula=UNCHANGED_HK_FOUR_LANE_OBSERVATION",
++                ))),
++            )
++            # Metadata is added only after the original score/order/Top10.
++            # Bind final serialized rows with the existing immutable helper.
++            for selected in envelope["rows"]:
++                selected.update({
++                    "source_mode": "CURRENT_DAY_RESEARCH_ONLY",
++                    "input_mode": "CURRENT_DAY_RESEARCH_ONLY",
++                    "input_binding_sha256": metadata["input_binding_sha256"],
++                    "universe_as_of": metadata["universe_as_of"],
++                    "security_metadata_captured_at": metadata["captured_at"],
++                    "stale_universe": metadata["stale_universe"],
++                    "current_connect_eligibility": "CANNOT_CONFIRM",
++                    "formal_eligible": False,
++                    "RESEARCH_ONLY": True,
++                    "production_allowed": False,
++                    "buy_gate_updated": False,
++                    "orders_sent": False,
++                })
++            from stage_center.selection import _selection_identity_ids
++
++            envelope["artifact_id"], envelope["run_id"] = _selection_identity_ids(
++                plan.trade_date, plan.stage_id, "HK_CONNECT", envelope["raw_artifact_sha256"],
++                envelope["algorithm_sha256"], envelope["rows"],
++            )
++            envelope["hk_current_day_research"] = metadata
++            envelope["input_mode"] = "CURRENT_DAY_RESEARCH_ONLY"
++            envelope["algorithm_input_contract"] = "CURRENT_DAY_RESEARCH_ONLY"
++            envelope["RESEARCH_ONLY"] = True
++            return envelope
+         # Full-market ExHQ rows alone do not prove a V3 lane.  Inactive rows
+         # remain in raw acquisition for coverage, but are excluded from the
+         # selection-only copy.  This preserves the old V3 behavior where the

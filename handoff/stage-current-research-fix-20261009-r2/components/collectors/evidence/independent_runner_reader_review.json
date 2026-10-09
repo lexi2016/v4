@@ -1,0 +1,91 @@
+{
+  "reviewer": "implement_collectors independent cross-component read-only review",
+  "reviewed_at": "2026-10-09T09:35:32.905922+00:00",
+  "scope": "CURRENT_RESEARCH_SAFETY_TIME_A_INPUT_CONTINUATION_RESULT_OWNER_READER_IDENTITIES",
+  "files": [
+    {
+      "path": "components/hk/after/stage_center/hk_current_day_research.py",
+      "sha256": "e5c7385d24c21f116fabf8007d063f6d8395c7b0fda8d30c84167db4aa8c0046"
+    },
+    {
+      "path": "components/hk/after/stage_center/runner.py",
+      "sha256": "14941d742e9c552bad96b7b0c979fdf9c387894b120263c359a49c09a9537865"
+    },
+    {
+      "path": "components/hk/after/stage_center/_runner_parts/selection_input_validation.py",
+      "sha256": "0ca0969d7ddc055495fec453d8a1fe38ac81ffcdb3b47a206e9f8f1beff1ee21"
+    },
+    {
+      "path": "components/hk/after/stage_center/_runner_parts/hk_candidate_authority.py",
+      "sha256": "822ab3c2f03f7296030dd642c4816a484fcf1fa3bcff61db800bb9e0789eda69"
+    },
+    {
+      "path": "components/hk/after/stage_center/_runner_parts/slot_execution.py",
+      "sha256": "16d34ea2bf095769775fb829b3036c65058689b31c7a4262908e10c52f258666"
+    },
+    {
+      "path": "components/receipt/after/actual_stage/stage_center/runtime_source_identity.py",
+      "sha256": "1d66f68d1bfb8c044d42ef64347b17aa4fd0f967bc55e1b71d4276e9e2ae64ae"
+    },
+    {
+      "path": "components/receipt/after/actual_stage/stage_center/_runner_parts/runner_receipts.py",
+      "sha256": "264c3de7e9463508e68b01e24cc12f86e330f14ab92b51120b1ad196e63683e4"
+    },
+    {
+      "path": "components/api_ui/after/stage_center/consumer.py",
+      "sha256": "9c0c566d265a9049119f7e79c967fa1a46877bfc02d05c20c36013f84ad54934"
+    },
+    {
+      "path": "components/api_ui/after/stage_center/execution_evidence.py",
+      "sha256": "e1bc952e942a09d5d7e85d264a8ce9cfe1e0256ea7f870712d86dba099a895b5"
+    },
+    {
+      "path": "components/api_ui/after/apps/api/v35_api/app.py",
+      "sha256": "bc517ea25961fa82fa5981a944445c3a7c5a361b44a815b90c46f1f91da39adc"
+    },
+    {
+      "path": "components/api_ui/after/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "sha256": "14ca64d7a8050424ed53cb45364fa249dbdfabad3c452592acddd329f356ee83"
+    },
+    {
+      "path": "components/hk/tests/raw_store_test_support.py",
+      "sha256": "0fa40e533cc54e9f62b6fb4fea3a73a484fcf712ec4d52935d0223deafea0d1b"
+    },
+    {
+      "path": "runtime_before/actual_stage/stage_center/raw_store.py",
+      "sha256": "2dea717cb65053c48b75468fd61508b3b61b421a6b528aa8ce93395e99aef547"
+    },
+    {
+      "path": "runtime_before/actual_stage/stage_center/_raw_store_parts/receipt_identity.py",
+      "sha256": "b33c496a6052b450959a9b886c79ad8d5686230e320dbc99bfd98a3e8265a8f0"
+    }
+  ],
+  "passed_observations": [
+    "Explicit optional research root only; no implicit fallback from STRICT input failure.",
+    "Four input file digests and same-day metadata cutoff validated; quote source remains original ExHQ timestamps.",
+    "HK input is re-read before raw/selection publication; failures stay HK-local.",
+    "A formal/name/hourly context unavailability does not reject valid acquisition; current pointer and raw/result validation remain.",
+    "Original immutable selection trio byte/canonical digests and owner receipt archive are verified independently.",
+    "Selection origin source identity is retained on NOOP/scoped retry and compared separately with current invocation.",
+    "Saved verified result count and quote coverage survive absent/conflicting execution declarations.",
+    "Research owner writer enforces manual mode and natural false including outer receipt rewrites.",
+    "Reader verifies exact date/stage/market/run and does not turn stored research metadata into formal D1/PIT/member proof.",
+    "Source file hashes are explicitly scoped as disk-at-entry records, not loaded-process or timer attestation."
+  ],
+  "findings_sent_to_root": [
+    {
+      "id": "A_INPUT_READER_BINDING_GAP",
+      "kind": "REQUEST_SCOPE_GAP",
+      "status_at_review": "OPEN_SENT_TO_ROOT_AND_API_OWNER",
+      "detail": "Writer exposes A input identity but reader calls only HK research input binder; A maps to NOT_CURRENT_DAY_RESEARCH. Compare declared date/run/current SHA/count against verified selection source evidence plus trio/owner history without claiming API re-read of original candidate trio."
+    },
+    {
+      "id": "ARCHIVED_RAW_FACADE_HELPER_SIGNATURE",
+      "kind": "TEST_SCOPE_AND_DEPLOY_PREIMAGE_LIMITATION",
+      "status_at_review": "SENT_TO_ROOT_FOR_DISPOSITION",
+      "detail": "Full archived runner tests use strict False-only keyword adapter. Archived raw_store facade forwards allow_temporal_false_observation=False to helper without this parameter. Tests are not unmodified assembled-runtime validation; do not deploy test support or omit this limitation."
+    }
+  ],
+  "executed_new_tests_for_cross_component_review": false,
+  "mac_or_provider_or_natural_validation_performed": false
+}

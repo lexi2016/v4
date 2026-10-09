@@ -1,0 +1,24 @@
+[
+  {
+    "role": "actual_stage",
+    "cmd": "V4_API_TEST_RUNTIME=/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/actual_stage V4_RAW_SIGNATURE_SUPPORT=strict_false STAGE_UI_RUNTIME=/workspace/scratch/25c09a595aec/stage_minimal/work/ui_runtime /workspace/scratch/6168fe203da9/r3-venv314/bin/python -m pytest -q /workspace/scratch/4156d1ebfa78/stage_research_r2/components/api_ui/tests --junitxml=/workspace/scratch/4156d1ebfa78/stage_research_r2/components/api_ui/evidence/portable_actual_stage.xml > /workspace/scratch/4156d1ebfa78/stage_research_r2/components/api_ui/evidence/portable_actual_stage.log 2>&1",
+    "result": {
+      "chunk_id": "26cd11",
+      "wall_time_seconds": 2.658187684,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    }
+  },
+  {
+    "role": "canonical",
+    "cmd": "V4_API_TEST_RUNTIME=/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical V4_RAW_SIGNATURE_SUPPORT=strict_false STAGE_UI_RUNTIME=/workspace/scratch/25c09a595aec/stage_minimal/work/ui_runtime /workspace/scratch/6168fe203da9/r3-venv314/bin/python -m pytest -q /workspace/scratch/4156d1ebfa78/stage_research_r2/components/api_ui/tests --junitxml=/workspace/scratch/4156d1ebfa78/stage_research_r2/components/api_ui/evidence/portable_canonical.xml > /workspace/scratch/4156d1ebfa78/stage_research_r2/components/api_ui/evidence/portable_canonical.log 2>&1",
+    "result": {
+      "chunk_id": "065309",
+      "wall_time_seconds": 2.641322594,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    }
+  }
+]

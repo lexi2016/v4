@@ -1,0 +1,97 @@
+{
+  "status": "PASS_WITH_EXPLICIT_TEST_SUPPORT_LIMITATION",
+  "synthetic_only": true,
+  "mac_inputs_read": false,
+  "unique_tests": 29,
+  "owner_executions": {
+    "actual_stage": 29,
+    "canonical": 29
+  },
+  "tests": [
+    {
+      "label": "actual_after",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "/workspace/scratch/4156d1ebfa78/stage_research_r2/components/hk/tests/test_hk_current_day_research.py",
+        "--tb=short",
+        "--junitxml",
+        "/workspace/scratch/4156d1ebfa78/stage_research_r2/components/hk/evidence/actual_after.xml"
+      ],
+      "extra_environment": {},
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout_sha256": "986474540e4969fafff196954625789e3f451324881f20cc2bc289f3f12beee7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "canonical_after",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "/workspace/scratch/4156d1ebfa78/stage_research_r2/components/hk/tests/test_hk_current_day_research.py",
+        "--tb=short",
+        "--junitxml",
+        "/workspace/scratch/4156d1ebfa78/stage_research_r2/components/hk/evidence/canonical_after.xml"
+      ],
+      "extra_environment": {
+        "V4_HK_TEST_RUNTIME": "/workspace/scratch/4156d1ebfa78/stage_research_r2/components/hk/evidence/runtime_canonical"
+      },
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout_sha256": "5a9efc81d2c070c94fbcd831896261d6cd37fe96300e8c06f6f51fc5295a4fed",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "raw_store_archive_signature_without_adapter",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "/workspace/scratch/4156d1ebfa78/stage_research_r2/components/hk/tests/test_hk_current_day_research.py",
+        "--tb=short",
+        "--junitxml",
+        "/workspace/scratch/4156d1ebfa78/stage_research_r2/components/hk/evidence/raw_store_archive_signature_without_adapter.xml",
+        "-k",
+        "actual_runner_to_original_four_lane_and_immutable_trios and False"
+      ],
+      "extra_environment": {
+        "V4_RAW_SIGNATURE_SUPPORT": "off"
+      },
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "stdout_sha256": "21dc601cc61641d2e824b743c2043478c9f0e580045d3d571c7b884d932813a1",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "missing_explicit_research_mode_before",
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "/workspace/scratch/4156d1ebfa78/stage_research_r2/components/hk/tests/test_hk_current_day_research.py",
+        "--tb=short",
+        "--junitxml",
+        "/workspace/scratch/4156d1ebfa78/stage_research_r2/components/hk/evidence/missing_explicit_research_mode_before.xml",
+        "-k",
+        "explicit_research_root_is_optional_and_forwarded"
+      ],
+      "extra_environment": {
+        "V4_HK_TEST_RUNTIME": "/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_before/actual_stage"
+      },
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "stdout_sha256": "cc71af6dbcc515a058eeb5e5dfd71a3cd5be73f9f078b40453bb38ef730d8144",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "raw_store_support": "tests/raw_store_test_support.py; exact False-only keyword compatibility, original strict validator unchanged",
+  "a_candidate_boundary": "Only CandidateInput reader is injected as prevalidated synthetic dataclass in two A/HK lane tests; no real Mac current-chain validation claimed",
+  "runtime_identity": "Invocation disk source SHA + before-publication stability; not process-loaded-code attestation"
+}

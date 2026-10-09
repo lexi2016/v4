@@ -1,0 +1,60 @@
+{
+  "new_integrated_tests": 25,
+  "legacy_reader_tests": 28,
+  "legacy_vue_tests": 23,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "python": "3.14.8",
+  "pytest": "9.1.1",
+  "fastapi": "0.143.0",
+  "node": "24.19.0",
+  "scope": [
+    "final R2 writer",
+    "native SelectionStore and four-lane algorithm",
+    "full actual Stage runner synthetic provider chain",
+    "existing API route body via FastAPI",
+    "existing Vue SFC compiler and SSR",
+    "A full input reference 216 / quotes 205 / selected 10 with explicit no input reread or PIT claim"
+  ],
+  "not_run": [
+    "Mac input files",
+    "OpenD/PyTDX network quote acquisition",
+    "full current API app startup",
+    "Mac browser/UI",
+    "release deployment",
+    "natural execution"
+  ],
+  "test_support": [
+    "Only the external provider and four security input documents are synthetic for full chain",
+    "V4_RAW_SIGNATURE_SUPPORT=strict_false explicitly enabled only for Linux archived False-only raw keyword adapter; Mac top-level independent rerun sets disabled; not a runtime patch"
+  ],
+  "patch_roundtrip": {
+    "forward": 6,
+    "reverse": 6,
+    "byte_exact": true
+  },
+  "sources": "SOURCE_CHANGES.json",
+  "logs": [
+    "new_api_chain.log",
+    "new_api_chain.xml",
+    "legacy_reader_regression.log",
+    "legacy_reader.xml",
+    "legacy_vue_regression.log",
+    "red_a_input.log",
+    "green_a_input.log",
+    "a_input.xml"
+  ],
+  "a_input_binding_tests": 8,
+  "portable_candidate_matrix": {
+    "actual_stage": {
+      "tests": 25,
+      "status": "PASSED"
+    },
+    "canonical": {
+      "tests": 25,
+      "status": "PASSED"
+    },
+    "scope": "Explicit V4_API_TEST_RUNTIME used as sole Stage source; no actual Stage overlay into canonical; synthetic providers and strict_false reference adapter still declared"
+  }
+}

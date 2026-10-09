@@ -1,0 +1,74 @@
+{
+  "schema_version": "v4.deployment_tools.test_receipt.v1",
+  "status": "PASS",
+  "recorded_at": "2026-10-09T09:49:16.763061+00:00",
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "/workspace/scratch/4156d1ebfa78/stage_research_r2/delivery/tests",
+    "-p",
+    "test_deployment_tools.py",
+    "-v"
+  ],
+  "exit_code": 0,
+  "after_tests": {
+    "passed": 17,
+    "failed": 0,
+    "errors": 0
+  },
+  "before_tests": {
+    "total": 12,
+    "passed": 2,
+    "failed": 6,
+    "errors": 4,
+    "exit_code": 1
+  },
+  "scope": "SYNTHETIC_FILESYSTEM_AND_PROJECTION_TESTS; REAL_LOCAL_PACKAGE_AFTER_SHA_INSPECTION",
+  "mac_inputs_read": false,
+  "provider_calls": 0,
+  "actual_api_calls": 0,
+  "mac_browser_acceptance": false,
+  "natural_verified": false,
+  "tool_sources": {
+    "stage_patch.py": {
+      "before_tool_review_sha256": "0ab4e396837a9f59c3ad057b757dd7a591bca5c9d02699780271d7a00e4c969c",
+      "after_sha256": "ffee3e8440fbcb6e7839e5871fa5d3462bddf8277d024826bdc6ec6c1f8a8788"
+    },
+    "current_research.py": {
+      "before_tool_review_sha256": "1e62cf2761bc56ce23faa90114bd8d9386774817bc1351ac30f2977d39788f1c",
+      "after_sha256": "c124dd3d6bea9417454e72753667b07b621ed804b113d79aced3461918fd0c0a"
+    },
+    "same_run_probe.py": {
+      "before_tool_review_sha256": "4ea2ecbf80865cb3d89a2dd01dfac2c86e4d390d00097a67f122e1bc36d28aff",
+      "after_sha256": "38a490850cea0cb32ec1756f391ab853de865a98e02d0532c08d48e7cecb5383"
+    }
+  },
+  "test_source_sha256": "2c7c0f8570c6700610517eb54f11c38684e9b5de53f038dc29a16cad0f2b4703",
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_sha256": "20b927716428abb3ab3bc890b64a7da23ecf3d8302e8d8e72eea531863ab60d1",
+  "checked_source_map_sha256": "9ff05ba04a06794a753343780ee7fa890a4d74081a956dfd0b962d8de0ae2b5e",
+  "package_after_checks": [
+    {
+      "role": "actual_stage",
+      "status": "MATCH",
+      "checked_files": 18
+    },
+    {
+      "role": "canonical_stage",
+      "status": "MATCH",
+      "checked_files": 18
+    },
+    {
+      "role": "actual_api",
+      "status": "MATCH",
+      "checked_files": 6
+    }
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

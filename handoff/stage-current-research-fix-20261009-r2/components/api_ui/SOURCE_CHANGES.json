@@ -1,0 +1,95 @@
+{
+  "candidate_base": "0fc3e8304e11700230517616ded0c86f83a4b257",
+  "files": [
+    {
+      "relative_path": "apps/api/v35_api/app.py",
+      "target_role": "actual_api",
+      "before_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "after_sha256": "bc517ea25961fa82fa5981a944445c3a7c5a361b44a815b90c46f1f91da39adc",
+      "before_bytes": 324648,
+      "after_bytes": 326548,
+      "source": {
+        "ref": "41a9242d400acec08af3934d1da314b1626a1bcd",
+        "path": "handoff/module-release-isolation-20261009/package/source_snapshot/active_api_issue32/apps/api/v35_api/app.py",
+        "sha": "f2cdb61eb5689f70bf9f9508e96a0262c0af7389",
+        "retrieval": "LOCAL_CACHED_BYTES_MATCH_FRESH_REMOTE_TREE"
+      },
+      "current_source_snapshot": true
+    },
+    {
+      "relative_path": "apps/web/src/App.vue",
+      "target_role": "actual_api",
+      "before_sha256": "e13a92e7f990ef18de0909edf0d2644410ba55194b21b583d43b76d648801dc5",
+      "after_sha256": "8351d35f6c5205e5341f393e76f89ebeadba1adc94177ac5df3cec091913f31c",
+      "before_bytes": 120790,
+      "after_bytes": 121328,
+      "source": {
+        "path": "handoff/stage-minimal-fix-20261009-r1/work/ui_presentation/after/apps/web/src/App.vue",
+        "dst": "before/apps/web/src/App.vue",
+        "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+        "sha": "d5344ee4068dcb7a3d89f406a2b232b90fe2d415"
+      },
+      "current_source_snapshot": false
+    },
+    {
+      "relative_path": "apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "target_role": "actual_api",
+      "before_sha256": "6cb4aecf34fe69a0b95af9075bfabbcd0c504dc29026cb31edd17ef83f764a6a",
+      "after_sha256": "a6df35e056f033ac3c978f37b099472b6eb24b73bb2ca4e213c76c2ad4ffaa9c",
+      "before_bytes": 6369,
+      "after_bytes": 9645,
+      "source": {
+        "path": "handoff/stage-minimal-fix-20261009-r1/work/ui_presentation/after/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+        "dst": "before/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+        "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+        "sha": "f2e0af1a769ae35c40c62343277e189f40e507d4"
+      },
+      "current_source_snapshot": false
+    },
+    {
+      "relative_path": "apps/web/src/contracts/runtime.ts",
+      "target_role": "actual_api",
+      "before_sha256": "c440de3ff964daa01994cbcd04d9b3ce1f417737a39034520c478ef83448bebe",
+      "after_sha256": "884f46b3e54c5bd66e83ac5f8e5aba18712f5703ccf8dfb6959be860bc4b0095",
+      "before_bytes": 3553,
+      "after_bytes": 4858,
+      "source": {
+        "path": "handoff/stage-minimal-fix-20261009-r1/work/ui_presentation/after/apps/web/src/contracts/runtime.ts",
+        "dst": "before/apps/web/src/contracts/runtime.ts",
+        "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+        "sha": "10c97f15afcd72a07086432d561f4591503ef637"
+      },
+      "current_source_snapshot": false
+    },
+    {
+      "relative_path": "stage_center/consumer.py",
+      "target_role": "actual_api",
+      "before_sha256": "61f8a3541aa7a2e698cc4374385e3d20d41b40ffd5a3cd7d87c9494cb8726cf4",
+      "after_sha256": "9c0c566d265a9049119f7e79c967fa1a46877bfc02d05c20c36013f84ad54934",
+      "before_bytes": 33874,
+      "after_bytes": 35180,
+      "source": {
+        "path": "handoff/module-release-isolation-20261009/package/source_snapshot/active_api_issue32/stage_center/consumer.py",
+        "dst": "before/stage_center/consumer.py",
+        "ref": "41a9242d400acec08af3934d1da314b1626a1bcd",
+        "sha": "890c8c183693d1e0bf9b539c81bd65baf919c754"
+      },
+      "current_source_snapshot": true
+    },
+    {
+      "relative_path": "stage_center/execution_evidence.py",
+      "target_role": "actual_api",
+      "before_sha256": "bd79b1844568a79750ccce6c547cfe08f651291f1863e213fb25629d34a67b79",
+      "after_sha256": "23f10554b179dea1be8df4dae7a63d1897faf238913995475f3ffd465583f5fe",
+      "before_bytes": 17382,
+      "after_bytes": 32582,
+      "source": {
+        "path": "handoff/stage-minimal-fix-20261009-r1/work/api_ui/after/source/actual_api/stage_center/execution_evidence.py",
+        "dst": "before/stage_center/execution_evidence.py",
+        "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+        "sha": "9e2788bca3a5d6184c0137fe6b03996780a6aecd"
+      },
+      "current_source_snapshot": false
+    }
+  ]
+}

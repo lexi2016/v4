@@ -1,0 +1,9 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____________ test_explicit_research_root_is_optional_and_forwarded _____________
+stage_research_r2/components/hk/tests/test_hk_current_day_research.py:32: in test_explicit_research_root_is_optional_and_forwarded
+    assert "hk_current_day_research_root" in {arg.arg for arg in declaration.args.kwonlyargs}
+E   AssertionError: assert 'hk_current_day_research_root' in {'a_auction_root', 'a_research_panel_receipt_root', 'candidate_acquisition_root', 'hk_auction_root', 'hk_d1_root', 'hk_full_universe_root', ...}
+=========================== short test summary info ============================
+FAILED stage_research_r2/components/hk/tests/test_hk_current_day_research.py::test_explicit_research_root_is_optional_and_forwarded
+1 failed, 28 deselected in 0.05s

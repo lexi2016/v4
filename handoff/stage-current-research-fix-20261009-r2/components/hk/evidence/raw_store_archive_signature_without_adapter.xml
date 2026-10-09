@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.254" timestamp="2026-10-09T02:32:43.141891-07:00" hostname="f2c20067ed3d"><testcase classname="stage_research_r2.components.hk.tests.test_hk_current_day_research" name="test_actual_runner_to_original_four_lane_and_immutable_trios[False]" time="0.068"><failure message="TypeError: _validate_rows_body() got an unexpected keyword argument 'allow_temporal_false_observation'">stage_research_r2/components/hk/tests/test_hk_current_day_research.py:278: in test_actual_runner_to_original_four_lane_and_immutable_trios
+    result = runner.tick("20261009", datetime.fromisoformat("2026-10-09T17:05:26+08:00"), stage_id="STAGE_1545_1555")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+stage_research_r2/components/hk/evidence/runtime/stage_center/runner.py:1012: in tick
+    return _v4_impl(globals(), self, trade_date, evaluated_at, stage_id=stage_id, historical_backfill=historical_backfill, _skip_precapture=_skip_precapture)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+stage_research_r2/components/hk/evidence/runtime/stage_center/_runner_parts/tick_planning.py:74: in _StageCenterRunner_tick_body
+    return runner._run_one(
+stage_research_r2/components/hk/evidence/runtime/stage_center/runner.py:994: in _run_one
+    return _v4_impl(globals(), self, decision, historical_backfill=historical_backfill, backfill_run_id=backfill_run_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+stage_research_r2/components/hk/evidence/runtime/stage_center/_runner_parts/slot_execution.py:586: in _StageCenterRunner__run_one_body
+    projected_rows[market] = _v4_global(_v4_scope, '_project_raw_rows')(
+stage_research_r2/components/hk/evidence/runtime/stage_center/runner.py:917: in _project_raw_rows
+    return _v4_impl(globals(), rows, trade_date=trade_date, stage_id=stage_id, market=market)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+stage_research_r2/components/hk/evidence/runtime/stage_center/_runner_parts/row_evidence.py:185: in __project_raw_rows_body
+    _validated, issues = _v4_global(_v4_scope, 'validate_rows')(
+stage_research_r2/components/hk/evidence/runtime/stage_center/raw_store.py:642: in validate_rows
+    return _v4_impl(
+E   TypeError: _validate_rows_body() got an unexpected keyword argument 'allow_temporal_false_observation'</failure></testcase></testsuite></testsuites>

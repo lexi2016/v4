@@ -1,0 +1,1614 @@
+FFEEEEEEEEEEEEEEEEEEEFFFFEEEE                                            [100%]
+==================================== ERRORS ====================================
+_ ERROR at setup of test_real_file_bytes_define_research_binding_without_d1_aliases _
+
+    @pytest.fixture
+    def research():
+>       return importlib.import_module("stage_center.hk_current_day_research")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+components/hk/tests/test_hk_current_day_research.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1314: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:763: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+_ ERROR at setup of test_afternoon_capture_cannot_be_used_for_earlier_stage[STAGE_0925] _
+
+    @pytest.fixture
+    def research():
+>       return importlib.import_module("stage_center.hk_current_day_research")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+components/hk/tests/test_hk_current_day_research.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1314: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:763: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+_ ERROR at setup of test_afternoon_capture_cannot_be_used_for_earlier_stage[STAGE_0930_0935] _
+
+    @pytest.fixture
+    def research():
+>       return importlib.import_module("stage_center.hk_current_day_research")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+components/hk/tests/test_hk_current_day_research.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1314: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:763: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+_ ERROR at setup of test_afternoon_capture_cannot_be_used_for_earlier_stage[STAGE_1300_1315] _
+
+    @pytest.fixture
+    def research():
+>       return importlib.import_module("stage_center.hk_current_day_research")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+components/hk/tests/test_hk_current_day_research.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1314: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:763: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+_ ERROR at setup of test_afternoon_capture_cannot_be_used_for_earlier_stage[STAGE_1445_1500] _
+
+    @pytest.fixture
+    def research():
+>       return importlib.import_module("stage_center.hk_current_day_research")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+components/hk/tests/test_hk_current_day_research.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1314: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:763: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+_ ERROR at setup of test_current_day_capture_cannot_be_relabelled_to_another_date[20261008] _
+
+    @pytest.fixture
+    def research():
+>       return importlib.import_module("stage_center.hk_current_day_research")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+components/hk/tests/test_hk_current_day_research.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1314: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:763: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+_ ERROR at setup of test_current_day_capture_cannot_be_relabelled_to_another_date[20261010] _
+
+    @pytest.fixture
+    def research():
+>       return importlib.import_module("stage_center.hk_current_day_research")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+components/hk/tests/test_hk_current_day_research.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1314: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:763: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+__ ERROR at setup of test_every_input_file_is_rechecked_before_use[snapshot] ___
+
+    @pytest.fixture
+    def research():
+>       return importlib.import_module("stage_center.hk_current_day_research")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+components/hk/tests/test_hk_current_day_research.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1314: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:763: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+___ ERROR at setup of test_every_input_file_is_rechecked_before_use[receipt] ___
+
+    @pytest.fixture
+    def research():
+>       return importlib.import_module("stage_center.hk_current_day_research")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+components/hk/tests/test_hk_current_day_research.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1314: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:763: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+_ ERROR at setup of test_every_input_file_is_rechecked_before_use[reference_codes] _
+
+    @pytest.fixture
+    def research():
+>       return importlib.import_module("stage_center.hk_current_day_research")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+components/hk/tests/test_hk_current_day_research.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1314: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:763: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+_ ERROR at setup of test_every_input_file_is_rechecked_before_use[final_receipt] _
+
+    @pytest.fixture
+    def research():
+>       return importlib.import_module("stage_center.hk_current_day_research")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+components/hk/tests/test_hk_current_day_research.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1314: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:763: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+_ ERROR at setup of test_snapshot_must_match_all_695_unique_reference_codes[duplicate] _
+
+    @pytest.fixture
+    def research():
+>       return importlib.import_module("stage_center.hk_current_day_research")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+components/hk/tests/test_hk_current_day_research.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1314: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:763: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+_ ERROR at setup of test_snapshot_must_match_all_695_unique_reference_codes[missing] _
+
+    @pytest.fixture
+    def research():
+>       return importlib.import_module("stage_center.hk_current_day_research")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+components/hk/tests/test_hk_current_day_research.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1314: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:763: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+_ ERROR at setup of test_snapshot_must_match_all_695_unique_reference_codes[foreign] _
+
+    @pytest.fixture
+    def research():
+>       return importlib.import_module("stage_center.hk_current_day_research")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+components/hk/tests/test_hk_current_day_research.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1314: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:763: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+_ ERROR at setup of test_user_pins_are_not_silently_replaced_with_fixture_hashes _
+
+    @pytest.fixture
+    def research():
+>       return importlib.import_module("stage_center.hk_current_day_research")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+components/hk/tests/test_hk_current_day_research.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1314: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:763: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+_______________ ERROR at setup of test_symlink_input_is_rejected _______________
+
+    @pytest.fixture
+    def research():
+>       return importlib.import_module("stage_center.hk_current_day_research")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+components/hk/tests/test_hk_current_day_research.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1314: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:763: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+___ ERROR at setup of test_binding_metadata_detects_code_or_metadata_tamper ____
+
+    @pytest.fixture
+    def research():
+>       return importlib.import_module("stage_center.hk_current_day_research")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+components/hk/tests/test_hk_current_day_research.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1314: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:763: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+_ ERROR at setup of test_rehashed_binding_cannot_move_afternoon_capture_into_morning _
+
+    @pytest.fixture
+    def research():
+>       return importlib.import_module("stage_center.hk_current_day_research")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+components/hk/tests/test_hk_current_day_research.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1314: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:763: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+_ ERROR at setup of test_metadata_overlay_preserves_actual_quotes_and_does_not_create_lane _
+
+    @pytest.fixture
+    def research():
+>       return importlib.import_module("stage_center.hk_current_day_research")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+components/hk/tests/test_hk_current_day_research.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1314: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:763: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+_ ERROR at setup of test_actual_runner_to_original_four_lane_and_immutable_trios[False] _
+
+    @pytest.fixture
+    def research():
+>       return importlib.import_module("stage_center.hk_current_day_research")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+components/hk/tests/test_hk_current_day_research.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1314: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:763: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+_ ERROR at setup of test_actual_runner_to_original_four_lane_and_immutable_trios[True] _
+
+    @pytest.fixture
+    def research():
+>       return importlib.import_module("stage_center.hk_current_day_research")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+components/hk/tests/test_hk_current_day_research.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1314: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:763: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+_ ERROR at setup of test_a_216_lane_keeps_original_top10_when_afternoon_hk_input_cannot_enter_1315[205] _
+
+    @pytest.fixture
+    def research():
+>       return importlib.import_module("stage_center.hk_current_day_research")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+components/hk/tests/test_hk_current_day_research.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1314: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:763: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+_ ERROR at setup of test_a_216_lane_keeps_original_top10_when_afternoon_hk_input_cannot_enter_1315[206] _
+
+    @pytest.fixture
+    def research():
+>       return importlib.import_module("stage_center.hk_current_day_research")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+components/hk/tests/test_hk_current_day_research.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1314: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:763: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+=================================== FAILURES ===================================
+____________ test_explicit_research_root_is_optional_and_forwarded _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-196/test_explicit_research_root_is0')
+
+    def test_explicit_research_root_is_optional_and_forwarded(tmp_path):
+        import ast
+        declaration = next(node for node in ast.parse((RUNTIME / "stage_center/runner.py").read_text()).body
+                           if isinstance(node, ast.FunctionDef) and node.name == "build_production_config")
+        assert "hk_current_day_research_root" in {arg.arg for arg in declaration.args.kwonlyargs}
+>       from stage_center.runner import build_production_config
+
+components/hk/tests/test_hk_current_day_research.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+____ test_new_runner_config_field_preserves_existing_positional_parameters _____
+
+    def test_new_runner_config_field_preserves_existing_positional_parameters():
+        from dataclasses import fields
+>       from stage_center.runner import RunnerConfig
+
+components/hk/tests/test_hk_current_day_research.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+___________ test_explicit_invalid_root_never_falls_back_to_strict_d1 ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-196/test_explicit_invalid_root_nev0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f021c13d350>
+
+    def test_explicit_invalid_root_never_falls_back_to_strict_d1(tmp_path, monkeypatch):
+>       import stage_center.runner as runner
+
+components/hk/tests/test_hk_current_day_research.py:188: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+_____________ test_default_binding_keeps_original_strict_authority _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-196/test_default_binding_keeps_ori0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f021c13c050>
+
+    def test_default_binding_keeps_original_strict_authority(tmp_path, monkeypatch):
+>       import stage_center.runner as runner
+
+components/hk/tests/test_hk_current_day_research.py:200: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+________ test_optional_a_context_roots_do_not_erase_verified_candidate _________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-196/test_optional_a_context_roots_0')
+
+    def test_optional_a_context_roots_do_not_erase_verified_candidate(tmp_path):
+>       import stage_center.runner as runner
+
+components/hk/tests/test_hk_current_day_research.py:209: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+____ test_node_config_accepts_explicit_research_root_without_formal_d1_root ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-196/test_node_config_accepts_expli0')
+
+    def test_node_config_accepts_explicit_research_root_without_formal_d1_root(tmp_path):
+>       from ops.run_stage_center_nodes import REQUIRED_CONFIG_KEYS, _load_config, _build_runner
+
+components/hk/tests/test_hk_current_day_research.py:220: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../runtime_after/canonical/ops/run_stage_center_nodes.py:45: in <module>
+    from stage_center import end_to_end_deadline as _deadline
+../runtime_after/canonical/stage_center/__init__.py:19: in <module>
+    from .consumer import StageSelectionConsumer, read_stage_selection
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Read-only projection of verified stage-center selection artifacts.
+    
+    The consumer deliberately has no producer, scheduler, or persistence path.  It
+    only reads the immutable selection run trio and latest pointer through
+    ``SelectionStore`` and normalizes unavailable or tampered evidence to the same
+    public ``CANNOT_CONFIRM`` response.
+    """
+    from __future__ import annotations
+    
+    from copy import deepcopy
+    import hashlib
+    import json
+    from pathlib import Path
+    import re
+    from typing import Any, Iterable, Mapping, Sequence
+    
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    
+    from .contracts import EIGHT_STAGES, SAFETY_FLAGS
+>   from .execution_evidence import read_stage_execution, project_hk_current_day_research
+E   ImportError: cannot import name 'project_hk_current_day_research' from 'stage_center.execution_evidence' (/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_after/canonical/stage_center/execution_evidence.py)
+
+../runtime_after/canonical/stage_center/consumer.py:20: ImportError
+=========================== short test summary info ============================
+FAILED components/hk/tests/test_hk_current_day_research.py::test_explicit_research_root_is_optional_and_forwarded
+FAILED components/hk/tests/test_hk_current_day_research.py::test_new_runner_config_field_preserves_existing_positional_parameters
+FAILED components/hk/tests/test_hk_current_day_research.py::test_explicit_invalid_root_never_falls_back_to_strict_d1
+FAILED components/hk/tests/test_hk_current_day_research.py::test_default_binding_keeps_original_strict_authority
+FAILED components/hk/tests/test_hk_current_day_research.py::test_optional_a_context_roots_do_not_erase_verified_candidate
+FAILED components/hk/tests/test_hk_current_day_research.py::test_node_config_accepts_explicit_research_root_without_formal_d1_root
+ERROR components/hk/tests/test_hk_current_day_research.py::test_real_file_bytes_define_research_binding_without_d1_aliases
+ERROR components/hk/tests/test_hk_current_day_research.py::test_afternoon_capture_cannot_be_used_for_earlier_stage[STAGE_0925]
+ERROR components/hk/tests/test_hk_current_day_research.py::test_afternoon_capture_cannot_be_used_for_earlier_stage[STAGE_0930_0935]
+ERROR components/hk/tests/test_hk_current_day_research.py::test_afternoon_capture_cannot_be_used_for_earlier_stage[STAGE_1300_1315]
+ERROR components/hk/tests/test_hk_current_day_research.py::test_afternoon_capture_cannot_be_used_for_earlier_stage[STAGE_1445_1500]
+ERROR components/hk/tests/test_hk_current_day_research.py::test_current_day_capture_cannot_be_relabelled_to_another_date[20261008]
+ERROR components/hk/tests/test_hk_current_day_research.py::test_current_day_capture_cannot_be_relabelled_to_another_date[20261010]
+ERROR components/hk/tests/test_hk_current_day_research.py::test_every_input_file_is_rechecked_before_use[snapshot]
+ERROR components/hk/tests/test_hk_current_day_research.py::test_every_input_file_is_rechecked_before_use[receipt]
+ERROR components/hk/tests/test_hk_current_day_research.py::test_every_input_file_is_rechecked_before_use[reference_codes]
+ERROR components/hk/tests/test_hk_current_day_research.py::test_every_input_file_is_rechecked_before_use[final_receipt]
+ERROR components/hk/tests/test_hk_current_day_research.py::test_snapshot_must_match_all_695_unique_reference_codes[duplicate]
+ERROR components/hk/tests/test_hk_current_day_research.py::test_snapshot_must_match_all_695_unique_reference_codes[missing]
+ERROR components/hk/tests/test_hk_current_day_research.py::test_snapshot_must_match_all_695_unique_reference_codes[foreign]
+ERROR components/hk/tests/test_hk_current_day_research.py::test_user_pins_are_not_silently_replaced_with_fixture_hashes
+ERROR components/hk/tests/test_hk_current_day_research.py::test_symlink_input_is_rejected
+ERROR components/hk/tests/test_hk_current_day_research.py::test_binding_metadata_detects_code_or_metadata_tamper
+ERROR components/hk/tests/test_hk_current_day_research.py::test_rehashed_binding_cannot_move_afternoon_capture_into_morning
+ERROR components/hk/tests/test_hk_current_day_research.py::test_metadata_overlay_preserves_actual_quotes_and_does_not_create_lane
+ERROR components/hk/tests/test_hk_current_day_research.py::test_actual_runner_to_original_four_lane_and_immutable_trios[False]
+ERROR components/hk/tests/test_hk_current_day_research.py::test_actual_runner_to_original_four_lane_and_immutable_trios[True]
+ERROR components/hk/tests/test_hk_current_day_research.py::test_a_216_lane_keeps_original_top10_when_afternoon_hk_input_cannot_enter_1315[205]
+ERROR components/hk/tests/test_hk_current_day_research.py::test_a_216_lane_keeps_original_top10_when_afternoon_hk_input_cannot_enter_1315[206]
+6 failed, 23 errors in 1.21s

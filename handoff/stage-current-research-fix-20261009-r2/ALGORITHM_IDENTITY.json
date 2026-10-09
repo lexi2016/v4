@@ -1,0 +1,248 @@
+{
+  "schema_version": "v4.stage.r2.algorithm_preservation.v1",
+  "base_commit": "0fc3e8304e11700230517616ded0c86f83a4b257",
+  "declared_algorithm_sha256": "eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2",
+  "r1_output_projection_changes_retained": true,
+  "items": [
+    {
+      "relative_path": "stage_center/selection.py",
+      "variants": [
+        {
+          "role": "actual_stage",
+          "before_sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294",
+          "after_sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294",
+          "unchanged": true
+        },
+        {
+          "role": "canonical_stage",
+          "before_sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294",
+          "after_sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294",
+          "unchanged": true
+        }
+      ]
+    },
+    {
+      "relative_path": "stage_center/_selection_parts/a_auction.py",
+      "variants": [
+        {
+          "role": "actual_stage",
+          "before_sha256": "01b00f748daa0ef7b0502805d977d883b20616c2070aa35685744af8f9131af1",
+          "after_sha256": "01b00f748daa0ef7b0502805d977d883b20616c2070aa35685744af8f9131af1",
+          "unchanged": true
+        },
+        {
+          "role": "canonical_stage",
+          "before_sha256": "01b00f748daa0ef7b0502805d977d883b20616c2070aa35685744af8f9131af1",
+          "after_sha256": "01b00f748daa0ef7b0502805d977d883b20616c2070aa35685744af8f9131af1",
+          "unchanged": true
+        }
+      ]
+    },
+    {
+      "relative_path": "stage_center/_selection_parts/a_live.py",
+      "variants": [
+        {
+          "role": "actual_stage",
+          "before_sha256": "4225b27df7067663da42b635773bf90e94b4601fc2478b8decb5c635f77d86a0",
+          "after_sha256": "4225b27df7067663da42b635773bf90e94b4601fc2478b8decb5c635f77d86a0",
+          "unchanged": true
+        },
+        {
+          "role": "canonical_stage",
+          "before_sha256": "4225b27df7067663da42b635773bf90e94b4601fc2478b8decb5c635f77d86a0",
+          "after_sha256": "4225b27df7067663da42b635773bf90e94b4601fc2478b8decb5c635f77d86a0",
+          "unchanged": true
+        }
+      ]
+    },
+    {
+      "relative_path": "stage_center/_selection_parts/hk_formula_score.py",
+      "variants": [
+        {
+          "role": "actual_stage",
+          "before_sha256": "4e42a0e6c233f649f8937dc5b5de231ce59fce8363d05025e9df77a78c4f00d7",
+          "after_sha256": "4e42a0e6c233f649f8937dc5b5de231ce59fce8363d05025e9df77a78c4f00d7",
+          "unchanged": true
+        },
+        {
+          "role": "canonical_stage",
+          "before_sha256": "4e42a0e6c233f649f8937dc5b5de231ce59fce8363d05025e9df77a78c4f00d7",
+          "after_sha256": "4e42a0e6c233f649f8937dc5b5de231ce59fce8363d05025e9df77a78c4f00d7",
+          "unchanged": true
+        }
+      ]
+    },
+    {
+      "relative_path": "stage_center/_selection_parts/hk_four_lanes.py",
+      "variants": [
+        {
+          "role": "actual_stage",
+          "before_sha256": "d44cd657b15b806922dd99317cfe759849a0d59884a0e39a533f0204f530ae71",
+          "after_sha256": "d44cd657b15b806922dd99317cfe759849a0d59884a0e39a533f0204f530ae71",
+          "unchanged": true
+        },
+        {
+          "role": "canonical_stage",
+          "before_sha256": "d44cd657b15b806922dd99317cfe759849a0d59884a0e39a533f0204f530ae71",
+          "after_sha256": "d44cd657b15b806922dd99317cfe759849a0d59884a0e39a533f0204f530ae71",
+          "unchanged": true
+        }
+      ]
+    },
+    {
+      "relative_path": "stage_center/_selection_parts/market_quality.py",
+      "variants": [
+        {
+          "role": "actual_stage",
+          "before_sha256": "726cd4987a070bf78ac7416756f3cbba86633b1176f6f43535ac747263474b3f",
+          "after_sha256": "726cd4987a070bf78ac7416756f3cbba86633b1176f6f43535ac747263474b3f",
+          "unchanged": true
+        },
+        {
+          "role": "canonical_stage",
+          "before_sha256": "726cd4987a070bf78ac7416756f3cbba86633b1176f6f43535ac747263474b3f",
+          "after_sha256": "726cd4987a070bf78ac7416756f3cbba86633b1176f6f43535ac747263474b3f",
+          "unchanged": true
+        }
+      ]
+    },
+    {
+      "relative_path": "stage_center/contracts.py",
+      "variants": [
+        {
+          "role": "actual_stage",
+          "before_sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+          "after_sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+          "unchanged": true
+        },
+        {
+          "role": "canonical_stage",
+          "before_sha256": "7741d0b977cc9994a0b526b35d6b3a3586bfb3b6c0b2f09f4cf8f05449c2bb18",
+          "after_sha256": "7741d0b977cc9994a0b526b35d6b3a3586bfb3b6c0b2f09f4cf8f05449c2bb18",
+          "unchanged": true
+        }
+      ]
+    }
+  ],
+  "provider_items": [
+    {
+      "relative_path": "stage_center/_live_collectors_parts/a_minute.py",
+      "variants": [
+        {
+          "role": "actual_stage",
+          "before_sha256": "5d56f92766b9b802c4b403d8f5af25cc82a9ef6b3f82675d1406fb4752c4362e",
+          "after_sha256": "5d56f92766b9b802c4b403d8f5af25cc82a9ef6b3f82675d1406fb4752c4362e",
+          "unchanged": true
+        },
+        {
+          "role": "canonical_stage",
+          "before_sha256": "5d56f92766b9b802c4b403d8f5af25cc82a9ef6b3f82675d1406fb4752c4362e",
+          "after_sha256": "5d56f92766b9b802c4b403d8f5af25cc82a9ef6b3f82675d1406fb4752c4362e",
+          "unchanged": true
+        }
+      ]
+    },
+    {
+      "relative_path": "stage_center/_live_collectors_parts/a_auction.py",
+      "variants": [
+        {
+          "role": "actual_stage",
+          "before_sha256": "2b39ede48161e6be59efc769849a8da2319521faeac3f2985b82de508e7c6aef",
+          "after_sha256": "2b39ede48161e6be59efc769849a8da2319521faeac3f2985b82de508e7c6aef",
+          "unchanged": true
+        },
+        {
+          "role": "canonical_stage",
+          "before_sha256": "0146d4921d77c9df0f791a86e6b343a36d87b06dd248bb48d597d9da47b39cad",
+          "after_sha256": "0146d4921d77c9df0f791a86e6b343a36d87b06dd248bb48d597d9da47b39cad",
+          "unchanged": true
+        }
+      ]
+    },
+    {
+      "relative_path": "stage_center/_live_collectors_parts/temporal_validation.py",
+      "variants": [
+        {
+          "role": "actual_stage",
+          "before_sha256": "61c8fec0021fb66356cf31791a5bc3af576681fa1e576bbf142463b581dc2961",
+          "after_sha256": "61c8fec0021fb66356cf31791a5bc3af576681fa1e576bbf142463b581dc2961",
+          "unchanged": true
+        },
+        {
+          "role": "canonical_stage",
+          "before_sha256": "61c8fec0021fb66356cf31791a5bc3af576681fa1e576bbf142463b581dc2961",
+          "after_sha256": "61c8fec0021fb66356cf31791a5bc3af576681fa1e576bbf142463b581dc2961",
+          "unchanged": true
+        }
+      ]
+    },
+    {
+      "relative_path": "stage_center/live_collectors.py",
+      "variants": [
+        {
+          "role": "actual_stage",
+          "before_sha256": "82a08c2bbe286184e1a224d0a44e576d0f812f1ec2929ded303ab191a1d554bf",
+          "after_sha256": "82a08c2bbe286184e1a224d0a44e576d0f812f1ec2929ded303ab191a1d554bf",
+          "unchanged": true
+        },
+        {
+          "role": "canonical_stage",
+          "before_sha256": "82a08c2bbe286184e1a224d0a44e576d0f812f1ec2929ded303ab191a1d554bf",
+          "after_sha256": "82a08c2bbe286184e1a224d0a44e576d0f812f1ec2929ded303ab191a1d554bf",
+          "unchanged": true
+        }
+      ]
+    },
+    {
+      "relative_path": "upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py",
+      "variants": [
+        {
+          "role": "actual_stage",
+          "before_sha256": "7b5f062e6c1231fa5edc7db0de5406066220e69cfe3605bf5b13fd3e0b8ad18f",
+          "after_sha256": "7b5f062e6c1231fa5edc7db0de5406066220e69cfe3605bf5b13fd3e0b8ad18f",
+          "unchanged": true
+        },
+        {
+          "role": "canonical_stage",
+          "before_sha256": "7b5f062e6c1231fa5edc7db0de5406066220e69cfe3605bf5b13fd3e0b8ad18f",
+          "after_sha256": "7b5f062e6c1231fa5edc7db0de5406066220e69cfe3605bf5b13fd3e0b8ad18f",
+          "unchanged": true
+        }
+      ]
+    },
+    {
+      "relative_path": "upstreams/v3_shared_data/scripts/live_acquisition/pytdx_exhq.py",
+      "variants": [
+        {
+          "role": "actual_stage",
+          "before_sha256": "19946fd9c09033a77b460fe5a68f70969623d3b1c26f058091349e702d482fdd",
+          "after_sha256": "19946fd9c09033a77b460fe5a68f70969623d3b1c26f058091349e702d482fdd",
+          "unchanged": true
+        },
+        {
+          "role": "canonical_stage",
+          "before_sha256": "19946fd9c09033a77b460fe5a68f70969623d3b1c26f058091349e702d482fdd",
+          "after_sha256": "19946fd9c09033a77b460fe5a68f70969623d3b1c26f058091349e702d482fdd",
+          "unchanged": true
+        }
+      ]
+    },
+    {
+      "relative_path": "upstreams/v3_shared_data/scripts/live_acquisition/futu_minute.py",
+      "variants": [
+        {
+          "role": "actual_stage",
+          "before_sha256": "af4cc0efea026eb3f6fa084389d6ee8351a286d38765e337147ced88fda150da",
+          "after_sha256": "af4cc0efea026eb3f6fa084389d6ee8351a286d38765e337147ced88fda150da",
+          "unchanged": true
+        },
+        {
+          "role": "canonical_stage",
+          "before_sha256": "af4cc0efea026eb3f6fa084389d6ee8351a286d38765e337147ced88fda150da",
+          "after_sha256": "af4cc0efea026eb3f6fa084389d6ee8351a286d38765e337147ced88fda150da",
+          "unchanged": true
+        }
+      ]
+    }
+  ]
+}

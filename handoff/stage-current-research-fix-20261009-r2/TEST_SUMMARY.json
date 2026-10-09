@@ -1,0 +1,54 @@
+{
+  "schema_version": "v4.stage.r2.release_test_summary.v1",
+  "prepared_at": "2026-10-09T10:03:17.362041+00:00",
+  "status": "PASS_WITH_DECLARED_REFERENCE_SUPPORT",
+  "source_map_sha256": "9ff05ba04a06794a753343780ee7fa890a4d74081a956dfd0b962d8de0ae2b5e",
+  "fresh_unique_test_cases": 115,
+  "variant_runs": {
+    "actual": {
+      "path": "evidence/frozen_canary_actual/TEST_RECEIPT.json",
+      "sha256": "e5671d1e1a55cdbf57be06e310ff61758b1f42f11bfbceef188345b1a7b2736f",
+      "tests": 115,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "candidate_code_file_count": 1576,
+      "candidate_code_unchanged_during_tests": true,
+      "source_map_sha256": "9ff05ba04a06794a753343780ee7fa890a4d74081a956dfd0b962d8de0ae2b5e"
+    },
+    "canonical": {
+      "path": "evidence/frozen_canary_canonical/TEST_RECEIPT.json",
+      "sha256": "95fa4851c1756c140468f7e5f910adcd117426642fe2c8f8785fab7a75e2ad58",
+      "tests": 115,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "candidate_code_file_count": 1603,
+      "candidate_code_unchanged_during_tests": true,
+      "source_map_sha256": "9ff05ba04a06794a753343780ee7fa890a4d74081a956dfd0b962d8de0ae2b5e"
+    }
+  },
+  "legacy_reader_rerun": 28,
+  "legacy_vue_rerun": 23,
+  "legacy_regressions_included_in_115": false,
+  "patch_roundtrips": 6,
+  "patch_receipt": {
+    "path": "evidence/FINAL_PATCH_VERIFICATION.json",
+    "sha256": "708eeb2b08e17c44596e038a6265a61bc8fe98f2498dda9b37e03754bbd78cd0"
+  },
+  "source_slices_are_full_current_mac_checkout": false,
+  "actual_hk_snapshot_read": false,
+  "real_provider_network_calls": 0,
+  "archive_raw_false_keyword_test_adapter": true,
+  "archive_namespace_helper_test_support": true,
+  "canonical_old_reader_test_support": true,
+  "mac_service_started": false,
+  "browser_acceptance": false,
+  "production_deployment": false,
+  "natural_verified": false,
+  "old_287_or_mac_14_counted": false,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

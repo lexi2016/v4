@@ -1,0 +1,82 @@
+.F.........FFF                                                           [100%]
+=================================== FAILURES ===================================
+________ test_existing_owner_trio_binds_same_research_input_and_runtime ________
+
+runtime = namespace(selection=<module 'stage_center.selection' from '/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_b...ng_owner_trio_binds0/stage/receipts'), tmp=PosixPath('/tmp/pytest-of-root/pytest-144/test_existing_owner_trio_binds0'))
+
+    def test_existing_owner_trio_binds_same_research_input_and_runtime(runtime):
+        runtime.write()
+        response = runtime.client.get(DATE, STAGE)
+        evidence = response["execution_evidence"]
+        assert evidence["receipt_history_binding"] == "OWNER_HISTORY_SHA_BOUND"
+        assert evidence["selection_artifact_bindings"]["HK_CONNECT"]["status"] == "BOUND_TO_VERIFIED_SELECTION_TRIO"
+        assert evidence["input_binding_status"]["HK_CONNECT"]["status"] == "RESEARCH_INPUT_BOUND_TO_SELECTION_AND_OWNER_HISTORY"
+        assert evidence["runtime_source_binding"]["status"] == "OWNER_HISTORY_SOURCE_IDENTITY_BOUND"
+>       origin = evidence["selection_source_bindings"]["HK_CONNECT"]
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'selection_source_bindings'
+
+stage_research_r2/components/api_ui/tests/test_current_research_readback.py:36: KeyError
+_ test_current_invocation_source_can_differ_without_rewriting_original_selection _
+
+runtime = namespace(selection=<module 'stage_center.selection' from '/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_b...t_invocation_source0/stage/receipts'), tmp=PosixPath('/tmp/pytest-of-root/pytest-144/test_current_invocation_source0'))
+
+    def test_current_invocation_source_can_differ_without_rewriting_original_selection(runtime):
+        payload = deepcopy(runtime.payload)
+        identity = payload["runtime_source_identity"]
+        identity["files"]["stage_center/runner.py"]["sha256"] = "c" * 64
+        identity["sha256"] = hashlib.sha256(canonical({k: v for k, v in identity.items() if k not in {"sha256", "status"}})).hexdigest()
+        runtime.write(payload)
+        evidence = runtime.client.get(DATE, STAGE)["execution_evidence"]
+>       assert evidence["selection_results"]["HK_CONNECT"]["runtime_source_identity"] == runtime.stored["runtime_source_identity"]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'runtime_source_identity'
+
+stage_research_r2/components/api_ui/tests/test_current_research_readback.py:134: KeyError
+_ test_forged_selection_origin_does_not_bind_even_when_receipt_history_is_valid _
+
+runtime = namespace(selection=<module 'stage_center.selection' from '/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_b..._selection_origin_d0/stage/receipts'), tmp=PosixPath('/tmp/pytest-of-root/pytest-144/test_forged_selection_origin_d0'))
+
+    def test_forged_selection_origin_does_not_bind_even_when_receipt_history_is_valid(runtime):
+        payload = deepcopy(runtime.payload)
+        payload["selection_source_identities"]["HK_CONNECT"]["files"]["stage_center/runner.py"]["sha256"] = "d" * 64
+        runtime.write(payload)
+        evidence = runtime.client.get(DATE, STAGE)["execution_evidence"]
+        assert evidence["selection_results"]["HK_CONNECT"]["selected_rows"] == 10
+>       assert evidence["selection_source_bindings"]["HK_CONNECT"]["status"] == "SELECTION_SOURCE_IDENTITY_CONFLICT"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'selection_source_bindings'
+
+stage_research_r2/components/api_ui/tests/test_current_research_readback.py:147: KeyError
+_ test_research_metadata_must_match_original_store_even_if_projected_lane_and_receipt_agree _
+
+runtime = namespace(selection=<module 'stage_center.selection' from '/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_b...ch_metadata_must_ma0/stage/receipts'), tmp=PosixPath('/tmp/pytest-of-root/pytest-144/test_research_metadata_must_ma0'))
+
+    def test_research_metadata_must_match_original_store_even_if_projected_lane_and_receipt_agree(runtime):
+        payload = deepcopy(runtime.payload)
+        payload["input_bindings"]["HK_CONNECT"]["research_metadata"]["input_binding_sha256"] = "f" * 64
+        payload["input_bindings"]["HK_CONNECT"]["input_binding_sha256"] = "f" * 64
+        runtime.write(payload)
+        lane = runtime.client.get(DATE, STAGE)["markets"]["HK_CONNECT"]
+        lane["hk_current_day_research"] = deepcopy(payload["input_bindings"]["HK_CONNECT"]["research_metadata"])
+        lane["source_evidence"] = ["hk_current_day_research=" + canonical(lane["hk_current_day_research"]).decode()]
+        result = runtime.reader.read_stage_execution(runtime.receipt_root, DATE, STAGE, {"HK_CONNECT": lane}, selection_store=runtime.store)
+>       assert result["selection_artifact_bindings"]["HK_CONNECT"]["status"] == "SELECTION_TRIO_CONFLICT"
+E       AssertionError: assert 'BOUND_TO_VER...ELECTION_TRIO' == 'SELECTION_TRIO_CONFLICT'
+E         
+E         - SELECTION_TRIO_CONFLICT
+E         + BOUND_TO_VERIFIED_SELECTION_TRIO
+
+stage_research_r2/components/api_ui/tests/test_current_research_readback.py:159: AssertionError
+=============================== warnings summary ===============================
+stage_research_r2/components/api_ui/tests/test_current_research_readback.py::test_exact_run_route_reads_same_original_selection_and_preserves_research_counts
+  /workspace/scratch/6168fe203da9/r3-venv314/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED stage_research_r2/components/api_ui/tests/test_current_research_readback.py::test_existing_owner_trio_binds_same_research_input_and_runtime
+FAILED stage_research_r2/components/api_ui/tests/test_current_research_readback.py::test_current_invocation_source_can_differ_without_rewriting_original_selection
+FAILED stage_research_r2/components/api_ui/tests/test_current_research_readback.py::test_forged_selection_origin_does_not_bind_even_when_receipt_history_is_valid
+FAILED stage_research_r2/components/api_ui/tests/test_current_research_readback.py::test_research_metadata_must_match_original_store_even_if_projected_lane_and_receipt_agree
+4 failed, 10 passed, 1 warning in 1.01s

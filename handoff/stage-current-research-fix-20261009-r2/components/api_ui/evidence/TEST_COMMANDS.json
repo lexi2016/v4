@@ -1,0 +1,35 @@
+[
+  {
+    "label": "new_api_chain",
+    "cmd": "V4_RAW_SIGNATURE_SUPPORT=strict_false STAGE_UI_RUNTIME=/workspace/scratch/25c09a595aec/stage_minimal/work/ui_runtime /workspace/scratch/6168fe203da9/r3-venv314/bin/python -m pytest -q /workspace/scratch/4156d1ebfa78/stage_research_r2/components/api_ui/tests --junitxml=/workspace/scratch/4156d1ebfa78/stage_research_r2/components/api_ui/evidence/new_api_chain.xml > /workspace/scratch/4156d1ebfa78/stage_research_r2/components/api_ui/evidence/new_api_chain.log 2>&1",
+    "result": {
+      "chunk_id": "96723d",
+      "wall_time_seconds": 2.555678986,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    }
+  },
+  {
+    "label": "legacy_reader",
+    "cmd": "STAGE_MINIMAL_READER_FILE=/workspace/scratch/4156d1ebfa78/stage_research_r2/components/api_ui/after/stage_center/execution_evidence.py STAGE_CONSUMER_FILE=/workspace/scratch/4156d1ebfa78/stage_research_r2/components/api_ui/after/stage_center/consumer.py /workspace/scratch/6168fe203da9/r3-venv314/bin/python -m pytest -q /workspace/scratch/4156d1ebfa78/stage_research_r2/components/api_ui/regression/legacy_api/tests/test_execution_evidence.py --junitxml=/workspace/scratch/4156d1ebfa78/stage_research_r2/components/api_ui/evidence/legacy_reader.xml > /workspace/scratch/4156d1ebfa78/stage_research_r2/components/api_ui/evidence/legacy_reader_regression.log 2>&1",
+    "result": {
+      "chunk_id": "d68107",
+      "wall_time_seconds": 0.298219515,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    }
+  },
+  {
+    "label": "legacy_vue",
+    "cmd": "STAGE_UI_RUNTIME=/workspace/scratch/25c09a595aec/stage_minimal/work/ui_runtime node --test /workspace/scratch/4156d1ebfa78/stage_research_r2/components/api_ui/tests/legacy_presentation.test.mjs > /workspace/scratch/4156d1ebfa78/stage_research_r2/components/api_ui/evidence/legacy_vue_regression.log 2>&1",
+    "result": {
+      "chunk_id": "7fdec6",
+      "wall_time_seconds": 0.235288319,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    }
+  }
+]

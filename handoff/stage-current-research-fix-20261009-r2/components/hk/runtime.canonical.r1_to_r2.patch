@@ -1,0 +1,721 @@
+--- a/ops/_run_stage_center_nodes_parts/node_entry.py
++++ b/ops/_run_stage_center_nodes_parts/node_entry.py
+@@ -173,13 +173,15 @@
+ 
+     from stage_center.runner import build_production_config, StageCenterRunner
+ 
+-    if not config.get("hk_d1_root"):
++    if not config.get("hk_d1_root") and config.get("hk_current_day_research_root") is None:
+         raise _v4_global(_v4_scope, 'ValueError')("fixed HK D-1 Top100 root is required")
+     kwargs = {
+         key: _v4_global(_v4_scope, 'Path')(_v4_global(_v4_scope, 'str')(config[key]))
+         for key in _v4_global(_v4_scope, 'REQUIRED_CONFIG_KEYS')
+         if key in config and key != "candidate_source_root"
+     }
++    if config.get("hk_current_day_research_root") is not None:
++        kwargs["hk_current_day_research_root"] = _v4_global(_v4_scope, 'Path')(_v4_global(_v4_scope, 'str')(config["hk_current_day_research_root"]))
+     if config.get("v4_morning_news_root") is not None:
+         kwargs["v4_morning_news_root"] = _v4_global(_v4_scope, 'Path')(_v4_global(_v4_scope, 'str')(config["v4_morning_news_root"]))
+     # The runner's production constructor does not accept arbitrary config
+--- a/ops/_run_stage_center_nodes_parts/runtime_arguments.py
++++ b/ops/_run_stage_center_nodes_parts/runtime_arguments.py
+@@ -8,6 +8,8 @@
+     if not _v4_global(_v4_scope, 'isinstance')(payload, _v4_global(_v4_scope, 'dict')):
+         raise _v4_global(_v4_scope, 'ValueError')("node config must be a JSON object")
+     for key in _v4_global(_v4_scope, 'REQUIRED_CONFIG_KEYS'):
++        if key == "hk_d1_root" and payload.get("hk_current_day_research_root") is not None:
++            continue
+         value = payload.get(key)
+         if not _v4_global(_v4_scope, 'isinstance')(value, _v4_global(_v4_scope, 'str')) or not value.startswith("/"):
+             raise _v4_global(_v4_scope, 'ValueError')(f"explicit absolute config root required: {key}")
+--- a/stage_center/_runner_parts/configuration.py
++++ b/stage_center/_runner_parts/configuration.py
+@@ -3,7 +3,7 @@
+ from ._namespace import read_global as _v4_global
+ 
+ 
+-def _build_production_config_body(_v4_scope, /, *, candidate_acquisition_root, raw_root, selection_root, receipt_root, v3_formal_root, v3_research_root, v4_research_data_root, v4_morning_news_root, hk_d1_root, preselection_source_root, hk_second_filter_root, hk_full_universe_root, a_auction_root, hk_auction_root, hk_stage_replay_root, a_research_panel_receipt_root, shared_data_root, python_path):
++def _build_production_config_body(_v4_scope, /, *, candidate_acquisition_root, raw_root, selection_root, receipt_root, v3_formal_root, v3_research_root, v4_research_data_root, v4_morning_news_root, hk_d1_root, hk_current_day_research_root, preselection_source_root, hk_second_filter_root, hk_full_universe_root, a_auction_root, hk_auction_root, hk_stage_replay_root, a_research_panel_receipt_root, shared_data_root, python_path):
+     """Construct a production-shaped config without starting any collector.
+ 
+     ``v4_research_data_root`` is the explicit V4-owned hourly archive root for
+@@ -24,6 +24,7 @@
+         v4_research_data_root=(_v4_global(_v4_scope, 'Path')(v4_research_data_root) if v4_research_data_root is not None else None),
+         v4_morning_news_root=(_v4_global(_v4_scope, 'Path')(v4_morning_news_root) if v4_morning_news_root is not None else None),
+         hk_d1_root=_v4_global(_v4_scope, 'Path')(hk_d1_root) if hk_d1_root is not None else None,
++        hk_current_day_research_root=(_v4_global(_v4_scope, 'Path')(hk_current_day_research_root) if hk_current_day_research_root is not None else None),
+         preselection_source_root=(_v4_global(_v4_scope, 'Path')(preselection_source_root) if preselection_source_root is not None else None),
+         hk_second_filter_root=_v4_global(_v4_scope, 'Path')(hk_second_filter_root) if hk_second_filter_root is not None else None,
+         hk_full_universe_root=_v4_global(_v4_scope, 'Path')(hk_full_universe_root) if hk_full_universe_root is not None else None,
+--- a/stage_center/_runner_parts/hk_candidate_authority.py
++++ b/stage_center/_runner_parts/hk_candidate_authority.py
+@@ -11,6 +11,12 @@
+     code-bounded snapshot probe.  The 09:25 second-filter is the sole explicit
+     pre-open lane source.
+     """
++    from stage_center.hk_current_day_research import is_current_day_research, attach_security_metadata
++    if is_current_day_research(hk_binding):
++        try:
++            return attach_security_metadata(source, hk_binding)
++        except ValueError as error:
++            raise _v4_global(_v4_scope, 'RunnerError')(str(error)) from error
+     if (
+         hk_binding is not None
+         and hk_binding.role == "HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION"
+--- a/stage_center/_runner_parts/hk_input_validation.py
++++ b/stage_center/_runner_parts/hk_input_validation.py
+@@ -11,6 +11,9 @@
+     only the HK lane's exact D-1 Top100 binding; it is never used to make
+     an A-share selection appear ready.
+     """
++    from stage_center.hk_current_day_research import is_current_day_research, candidate_from_research_binding
++    if is_current_day_research(binding):
++        return candidate_from_research_binding(root, trade_date, binding)
+     from stage_center.candidate_input import CandidateInput
+ 
+     return CandidateInput(
+--- a/stage_center/_runner_parts/selection_input_validation.py
++++ b/stage_center/_runner_parts/selection_input_validation.py
+@@ -82,17 +82,15 @@
+     if unknown:
+         raise _v4_global(_v4_scope, 'RunnerError')(f"unknown exact-input market(s): {_v4_global(_v4_scope, 'sorted')(unknown)!r}")
+     if "A_SHARE" in requested:
+-        if stage_id in _v4_global(_v4_scope, 'V3_RESEARCH_STAGES') and config.v4_research_data_root is None:
+-            raise _v4_global(_v4_scope, 'RunnerError')(
+-                f"V4 research data root is required for {stage_id} A_SHARE"
+-            )
+         if stage_id in _v4_global(_v4_scope, 'V3_RESEARCH_STAGES'):
++            if config.v4_research_data_root is None:
++                evidence.append("a_research_context_unavailable=ROOT_NOT_BOUND")
++            else:
++                evidence.append(f"v4_research_data_root={config.v4_research_data_root}")
+             if config.v4_morning_news_root is None:
+-                raise _v4_global(_v4_scope, 'RunnerError')(
+-                    f"V4 morning-news root is required for {stage_id} A_SHARE"
+-                )
+-            evidence.append(f"v4_research_data_root={config.v4_research_data_root}")
+-            evidence.append(f"v4_morning_news_root={config.v4_morning_news_root}")
++                evidence.append("a_morning_news_context_unavailable=ROOT_NOT_BOUND")
++            else:
++                evidence.append(f"v4_morning_news_root={config.v4_morning_news_root}")
+         # Formal/name metadata are optional overlays, not the acquisition
+         # authority. A's strict current pointer remains mandatory in _run_one.
+         if config.v3_formal_root is None:
+@@ -116,33 +114,45 @@
+             except (_v4_global(_v4_scope, 'RunnerError'), _v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError')) as error:
+                 evidence.append(f"a_name_overlay_unavailable={error}")
+     if "HK_CONNECT" in requested:
+-        if config.hk_d1_root is None:
+-            raise _v4_global(_v4_scope, 'RunnerError')("production HK D1 root is required")
+-        if hk_binding is None:
+-            d1_path, d1_sha = _v4_global(_v4_scope, '_validate_hk_d1')(
+-                config.hk_d1_root,
+-                trade_date,
+-                preselection_source_root=config.preselection_source_root,
+-            )
+-            evidence.extend((f"hk_d1_json={d1_path}", f"hk_d1_sha256={d1_sha}"))
++        if config.hk_current_day_research_root is not None:
++            from stage_center.hk_current_day_research import research_metadata
++            if hk_binding is None:
++                hk_binding = _v4_global(_v4_scope, '_build_configured_hk_binding')(config, trade_date, stage_id)
++            try:
++                metadata = research_metadata(hk_binding)
++                if metadata["trade_date"] != trade_date or metadata["stage_id"] != stage_id:
++                    raise ValueError("HK_CURRENT_DAY_RESEARCH_BINDING_SLOT_MISMATCH")
++            except ValueError as error:
++                raise _v4_global(_v4_scope, 'RunnerError')(str(error)) from error
++            evidence.extend(hk_binding.evidence)
+         else:
+-            evidence.extend(
+-                _v4_global(_v4_scope, '_validated_hk_binding_evidence')(hk_binding, trade_date)
+-            )
+-        evidence.append("hk_acquisition_scope=EXACT_D1_TOP100")
+-        # The opening auction is the only stage whose membership is bound to
+-        # the exact 09:20 second-filter.  Later minute stages use the verified
+-        # D-1 membership and its code-bounded live snapshot, so they must not be
+-        # blocked by a missing pre-open artifact.
+-        if stage_id == "STAGE_0925":
+-            if config.hk_second_filter_root is None:
+-                raise _v4_global(_v4_scope, 'RunnerError')("production HK second-filter root is required for STAGE_0925")
+-            second_csv, second_acceptance, second_sha = _v4_global(_v4_scope, '_validate_hk_second_filter')(config.hk_second_filter_root, trade_date)
+-            evidence.extend((f"hk_second_filter_csv={second_csv}", f"hk_second_filter_acceptance={second_acceptance}", f"hk_second_filter_csv_sha256={second_sha}"))
+-        if stage_id == "STAGE_1545_1555":
+-            if config.hk_stage_replay_root is None:
+-                raise _v4_global(_v4_scope, 'RunnerError')("production HK Stage8 replay root is required for STAGE_1545_1555")
+-            evidence.append(f"hk_stage_replay_root={config.hk_stage_replay_root}")
++            if config.hk_d1_root is None:
++                raise _v4_global(_v4_scope, 'RunnerError')("production HK D1 root is required")
++            if hk_binding is None:
++                d1_path, d1_sha = _v4_global(_v4_scope, '_validate_hk_d1')(
++                    config.hk_d1_root,
++                    trade_date,
++                    preselection_source_root=config.preselection_source_root,
++                )
++                evidence.extend((f"hk_d1_json={d1_path}", f"hk_d1_sha256={d1_sha}"))
++            else:
++                evidence.extend(
++                    _v4_global(_v4_scope, '_validated_hk_binding_evidence')(hk_binding, trade_date)
++                )
++            evidence.append("hk_acquisition_scope=EXACT_D1_TOP100")
++            # The opening auction is the only stage whose membership is bound to
++            # the exact 09:20 second-filter.  Later minute stages use the verified
++            # D-1 membership and its code-bounded live snapshot, so they must not be
++            # blocked by a missing pre-open artifact.
++            if stage_id == "STAGE_0925":
++                if config.hk_second_filter_root is None:
++                    raise _v4_global(_v4_scope, 'RunnerError')("production HK second-filter root is required for STAGE_0925")
++                second_csv, second_acceptance, second_sha = _v4_global(_v4_scope, '_validate_hk_second_filter')(config.hk_second_filter_root, trade_date)
++                evidence.extend((f"hk_second_filter_csv={second_csv}", f"hk_second_filter_acceptance={second_acceptance}", f"hk_second_filter_csv_sha256={second_sha}"))
++            if stage_id == "STAGE_1545_1555":
++                if config.hk_stage_replay_root is None:
++                    raise _v4_global(_v4_scope, 'RunnerError')("production HK Stage8 replay root is required for STAGE_1545_1555")
++                evidence.append(f"hk_stage_replay_root={config.hk_stage_replay_root}")
+     return _v4_global(_v4_scope, 'tuple')(evidence)
+ 
+ 
+--- a/stage_center/_runner_parts/slot_execution.py
++++ b/stage_center/_runner_parts/slot_execution.py
+@@ -13,6 +13,11 @@
+             historical_markets=historical_markets,
+         )
+     trade_date, stage_id = decision.trade_date, decision.stage_id
++    from stage_center.hk_current_day_research import is_current_day_research
++    research_requested = self.config.hk_current_day_research_root is not None
++
++    def _current_hk_binding():
++        return _v4_global(_v4_scope, '_build_configured_hk_binding')(self.config, trade_date, stage_id)
+     markets = _v4_global(_v4_scope, '_resolve_stage_market_scope')(
+         stage_id,
+         trade_date,
+@@ -24,6 +29,8 @@
+     from stage_center._runner_parts.runner_receipts import _candidate_input_bindings, _owner_write_time
+ 
+     runner_invoked_at = _owner_write_time()
++    from stage_center.runtime_source_identity import capture_runtime_source_identity, source_stability
++    runtime_source_identity = capture_runtime_source_identity()
+     input_bindings = {}
+ 
+     def _write_execution_receipt(payload, receipt_date, receipt_stage):
+@@ -31,7 +38,11 @@
+             **payload,
+             "runner_invoked_at": runner_invoked_at,
+             "runner_clock_source": "OWNER_RUNNER_INVOCATION_UTC",
++            "runtime_source_identity": runtime_source_identity,
++            "runtime_source_stability": source_stability(runtime_source_identity),
+             "input_bindings": dict(input_bindings),
++            **({"execution_mode": "MANUAL_CURRENT_DAY_RESEARCH", "natural_execution_verified": False,
++                "RESEARCH_ONLY": True} if research_requested else {}),
+         }, receipt_date, receipt_stage)
+ 
+     candidate_error = ""
+@@ -45,13 +56,9 @@
+         candidate = None
+         candidate_error = _v4_global(_v4_scope, 'str')(error)
+         try:
+-            if "HK_CONNECT" not in markets or self.config.hk_d1_root is None:
+-                raise _v4_global(_v4_scope, 'RunnerError')("production HK D1 root is required")
+-            hk_binding = _v4_global(_v4_scope, '_build_hk_stage_binding')(
+-                self.config.hk_d1_root,
+-                trade_date,
+-                preselection_source_root=self.config.preselection_source_root,
+-            )
++            if "HK_CONNECT" not in markets:
++                raise _v4_global(_v4_scope, 'RunnerError')("HK market is unavailable for this stage")
++            hk_binding = _current_hk_binding()
+         except (_v4_global(_v4_scope, 'RunnerError'), _v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError')) as hk_error:
+             errors = {"A_SHARE": candidate_error, "HK_CONNECT": _v4_global(_v4_scope, 'str')(hk_error)}
+             return _write_execution_receipt({
+@@ -74,13 +81,7 @@
+         and hk_binding is None
+     ):
+         try:
+-            if self.config.hk_d1_root is None:
+-                raise _v4_global(_v4_scope, 'RunnerError')("production HK D1 root is required")
+-            hk_binding = _v4_global(_v4_scope, '_build_hk_stage_binding')(
+-                self.config.hk_d1_root,
+-                trade_date,
+-                preselection_source_root=self.config.preselection_source_root,
+-            )
++            hk_binding = _current_hk_binding()
+         except (_v4_global(_v4_scope, 'RunnerError'), _v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError')) as error:
+             # Keep the HK authority failure lane-local.  A valid A
+             # candidate may still be planned and collected independently.
+@@ -126,7 +127,8 @@
+     exact_input_errors: dict[str, str] = {}
+     sources: dict[str, SourceResult] = {}
+     try:
+-        self._validate_hk_auction_root_binding(stage_id)
++        if not research_requested:
++            self._validate_hk_auction_root_binding(stage_id)
+         existing_state, existing = self._existing_slot(
+             trade_date,
+             stage_id,
+@@ -139,15 +141,10 @@
+             # behind the A pointer's unchanged idempotency identity.
+             if "HK_CONNECT" in markets and not self.config.injected_test_mode:
+                 try:
+-                    if self.config.hk_d1_root is None:
+-                        raise _v4_global(_v4_scope, 'RunnerError')("production HK D1 root is required")
+-                    current_hk = _v4_global(_v4_scope, '_build_hk_stage_binding')(
+-                        self.config.hk_d1_root,
+-                        trade_date,
+-                        preselection_source_root=self.config.preselection_source_root,
+-                    )
++                    current_hk = _current_hk_binding()
+                     raw_hk = existing["raw_verified"].get("HK_CONNECT") or {}
+-                    if not _v4_global(_v4_scope, '_evidence_has')(raw_hk.get("source_evidence", ()), "hk_d1_sha256", current_hk.sha256):
++                    identity_key = "hk_current_day_research_binding_sha256" if is_current_day_research(current_hk) else "hk_d1_sha256"
++                    if not _v4_global(_v4_scope, '_evidence_has')(raw_hk.get("source_evidence", ()), identity_key, current_hk.sha256):
+                         raise _v4_global(_v4_scope, 'RunnerError')("HK D1 source SHA differs from verified slot")
+                 except (_v4_global(_v4_scope, 'RunnerError'), _v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError')) as error:
+                     published = _v4_global(_v4_scope, 'dict')(existing["selections"])
+@@ -213,7 +210,7 @@
+             from stage_center.live_collectors import production_collectors, production_selection_builders
+             if self.collectors:
+                 collectors = self.collectors
+-            elif stage_id == "STAGE_1545_1555":
++            elif stage_id == "STAGE_1545_1555" and not research_requested:
+                 from stage_center.hk_stage8 import production_natural_collectors, should_use_natural_route
+ 
+                 if should_use_natural_route(
+@@ -295,7 +292,7 @@
+                     # Minute stages use the frozen D-1 Top100.  The 09:25
+                     # stage additionally binds the exact 09:20 second-filter
+                     # universe; no current/previous-stage rows can fill it.
+-                    if stage_id == "STAGE_0925":
++                    if stage_id == "STAGE_0925" and not research_requested:
+                         assert self.config.hk_second_filter_root is not None
+                         second_codes, _second_sha = _v4_global(_v4_scope, '_hk_second_filter_codes')(self.config.hk_second_filter_root, trade_date)
+                         selection_membership["HK_CONNECT"] = hk_d1_codes & second_codes
+@@ -378,6 +375,7 @@
+                 and market not in existing_selections
+                 and market not in exact_input_errors
+                 and not self.config.injected_test_mode
++                and not research_requested
+             ):
+                 if self.config.hk_stage_replay_root is None:
+                     raise _v4_global(_v4_scope, 'RunnerError')("HK Stage8 selection recovery requires explicit replay root")
+@@ -397,6 +395,7 @@
+                 and market not in existing_selections
+                 and market not in exact_input_errors
+                 and not self.config.injected_test_mode
++                and not research_requested
+             ):
+                 previous_sha = _v4_global(_v4_scope, '_evidence_value')(result.source_evidence, "active_snapshot_sha256")
+                 previous_codes_sha = _v4_global(_v4_scope, '_evidence_value')(result.source_evidence, "active_snapshot_codes_sha256")
+@@ -555,7 +554,7 @@
+             if (
+                 market == "HK_CONNECT"
+                 and not self.config.injected_test_mode
+-                and self.config.hk_d1_root is not None
++                and (self.config.hk_d1_root is not None or research_requested)
+                 and market not in exact_input_errors
+             ):
+                 try:
+@@ -600,13 +599,9 @@
+             and "HK_CONNECT" not in exact_input_errors
+         ):
+             binding = universe_bindings["HK_CONNECT"]
+-            if binding.status == "READY" and self.config.hk_d1_root is not None:
++            if binding.status == "READY":
+                 try:
+-                    fresh = _v4_global(_v4_scope, '_build_hk_stage_binding')(
+-                        self.config.hk_d1_root,
+-                        trade_date,
+-                        preselection_source_root=self.config.preselection_source_root,
+-                    )
++                    fresh = _current_hk_binding()
+                     if fresh.sha256 != binding.sha256 or fresh.codes != binding.codes:
+                         raise _v4_global(_v4_scope, 'RunnerError')("HK D1 source SHA changed before publication")
+                 except (_v4_global(_v4_scope, 'RunnerError'), _v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError')) as error:
+@@ -756,6 +751,9 @@
+             )
+             envelope["raw_artifact_sha256"] = raw_bundle["markets"][market]["artifact_sha256"]
+             _v4_global(_v4_scope, '_deadline').begin_write("SELECTION_PUBLISH", market=market, stage_id=stage_id)
++            envelope["RESEARCH_ONLY"] = True
++            envelope["runtime_source_identity"] = runtime_source_identity
++            envelope["runtime_source_stability"] = source_stability(runtime_source_identity)
+             published[market] = selection_store.publish(envelope, market=market)
+             _v4_global(_v4_scope, '_deadline').end_write("SELECTION_PUBLISH", market=market, run_id=published[market].get("run_id"))
+             write_performed = True
+--- a/stage_center/_runner_parts/tick_planning.py
++++ b/stage_center/_runner_parts/tick_planning.py
+@@ -36,7 +36,7 @@
+         )
+     precaptures = (
+         []
+-        if _skip_precapture
++        if _skip_precapture or self.config.hk_current_day_research_root is not None
+         else self._prepare_hk_active_snapshots(
+             trade_date,
+             evaluated_at,
+--- /dev/null
++++ b/stage_center/hk_current_day_research.py
+@@ -0,0 +1,273 @@
++"""Read the explicitly authorized current-day HK security snapshot.
++
++This adapter publishes no pool and writes no input.  Its only authority is the
++user's 2026-10-09 acquisition declaration plus four byte SHA256 pins.  The
++snapshot contains security metadata, not quotes or confirmed Connect membership.
++The existing Stage collector and the unchanged selector still own those steps.
++"""
++from __future__ import annotations
++
++from dataclasses import replace
++from datetime import datetime
++import hashlib
++import json
++from pathlib import Path
++import re
++from typing import Any, Mapping
++from zoneinfo import ZoneInfo
++
++ROLE = "CURRENT_DAY_RESEARCH_ONLY"
++EVIDENCE_PREFIX = "hk_current_day_research="
++ROOT_PREFIX = "hk_current_day_research_root="
++_SHANGHAI = ZoneInfo("Asia/Shanghai")
++_MAX_INPUT_BYTES = 16 * 1024 * 1024
++_SECURITY_FIELDS = (
++    "code", "name", "outstanding_shares", "circular_market_val", "listing_date",
++    "lot_size", "stock_owner", "stock_child_type", "sec_status",
++)
++CAPTURE_20261009 = {
++    "schema_version": "stage_center.hk_current_day_research.input.v1",
++    "trade_date": "20261009",
++    "universe_as_of": "20261008",
++    "captured_at": "2026-10-09T15:38:41+08:00",
++    "expected_rows": 695,
++    "declaration_source": "USER_REPORTED_MAC_ACQUISITION_20261009",
++    "source_files": {
++        "snapshot": {"file": "snapshot_rows_projected.json", "sha256": "9c2396530e3de8059d49354a2c330a06829a060bfbac68ff2fb726111d9e0c30"},
++        "receipt": {"file": "receipt.json", "sha256": "f8735ae71437a85067d7bca06b55f451bdd5dbfa7802cf2f680dfcab5f31a3ea"},
++        "reference_codes": {"file": "reference_codes_20261008.json", "sha256": "9b837e801a1fae55893f3aba3548402ac59b4d1027627f6d698a10934027fb95"},
++        "final_receipt": {"file": "FINAL_RECEIPT.json", "sha256": "3242a8ffbc4364ff96ef18a2855037521902617fa21a8c024e6f57445dbcf3f3"},
++    },
++}
++
++
++class CurrentDayResearchError(ValueError):
++    """The explicitly configured research input is unusable for this slot."""
++
++
++def _fail(reason: str) -> None:
++    raise CurrentDayResearchError("HK_CURRENT_DAY_RESEARCH_" + reason)
++
++
++def _canonical(value: Any) -> str:
++    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)
++
++
++def _digest(metadata: Mapping[str, Any], codes: tuple[str, ...]) -> str:
++    return hashlib.sha256(_canonical({"metadata": dict(metadata), "codes": list(codes)}).encode()).hexdigest()
++
++
++def _safe_root(root: Path | str) -> Path:
++    value = Path(root).expanduser().absolute()
++    if any(part.is_symlink() for part in (value, *value.parents)):
++        _fail("INPUT_SYMLINK_FORBIDDEN")
++    if not value.is_dir():
++        _fail("ROOT_MISSING")
++    return value.resolve()
++
++
++def _verified_json(root: Path, spec: Mapping[str, Any], label: str) -> Any:
++    name, expected = spec.get("file"), spec.get("sha256")
++    if (not isinstance(name, str) or Path(name).name != name or name in {"", ".", ".."}
++            or not isinstance(expected, str) or not re.fullmatch(r"[0-9a-f]{64}", expected)):
++        _fail(f"INPUT_DESCRIPTOR_INVALID:{label}")
++    path = root / name
++    if path.is_symlink():
++        _fail(f"INPUT_SYMLINK_FORBIDDEN:{label}")
++    try:
++        with path.open("rb") as stream:
++            raw = stream.read(_MAX_INPUT_BYTES + 1)
++    except OSError as error:
++        raise CurrentDayResearchError(f"HK_CURRENT_DAY_RESEARCH_INPUT_MISSING:{label}") from error
++    if len(raw) > _MAX_INPUT_BYTES:
++        _fail(f"INPUT_TOO_LARGE:{label}")
++    if hashlib.sha256(raw).hexdigest() != expected:
++        _fail(f"INPUT_SHA_MISMATCH:{label}")
++    try:
++        return json.loads(raw.decode("utf-8-sig"))
++    except (UnicodeError, ValueError) as error:
++        raise CurrentDayResearchError(f"HK_CURRENT_DAY_RESEARCH_INPUT_JSON_INVALID:{label}") from error
++
++
++def _code(value: Any) -> str:
++    # This is a security-code format check, never a membership determination.
++    if not isinstance(value, str) or not re.fullmatch(r"HK\.\d{5}", value):
++        _fail("MEMBERSHIP_CODE_INVALID")
++    return value
++
++
++def _slot_cutoff(trade_date: str, stage_id: str) -> tuple[str, datetime]:
++    from .contracts import EIGHT_STAGES
++    stage = next((stage for stage in EIGHT_STAGES if stage.stage_id == stage_id), None)
++    if stage is None or stage_id == "STAGE_0925":
++        # The pinned afternoon snapshot can never replace a 09:20 auction.
++        _fail("CAPTURE_AFTER_STAGE_CUTOFF")
++    try:
++        cutoff = datetime.strptime(trade_date + " " + stage.cutoff, "%Y%m%d %H:%M:%S").replace(tzinfo=_SHANGHAI)
++    except ValueError as error:
++        raise CurrentDayResearchError("HK_CURRENT_DAY_RESEARCH_CAPTURE_DATE_MISMATCH") from error
++    return stage.cutoff, cutoff
++
++
++def read_research_input(root: Path | str, trade_date: str, stage_id: str, *,
++                        declaration: Mapping[str, Any] | None = None) -> dict[str, Any]:
++    """Verify all four files and the slot boundary without writing any bytes.
++
++    ``declaration`` is a narrow value seam for synthetic file-integrity tests.
++    Production configuration exposes only the root and uses the fixed authorized
++    declaration. Neither a root-supplied manifest nor today's date can replace
++    these pins implicitly.
++    """
++    declared = dict(CAPTURE_20261009 if declaration is None else declaration)
++    try:
++        captured = datetime.fromisoformat(str(declared.get("captured_at", "")))
++    except ValueError as error:
++        raise CurrentDayResearchError("HK_CURRENT_DAY_RESEARCH_CAPTURE_DATE_MISMATCH") from error
++    if (declared.get("trade_date") != trade_date or captured.tzinfo is None
++            or captured.astimezone(_SHANGHAI).strftime("%Y%m%d") != trade_date):
++        _fail("CAPTURE_DATE_MISMATCH")
++    cutoff_at, cutoff = _slot_cutoff(trade_date, stage_id)
++    if captured > cutoff:
++        _fail("CAPTURE_AFTER_STAGE_CUTOFF")
++    as_of = declared.get("universe_as_of")
++    expected_rows = declared.get("expected_rows")
++    if (not isinstance(as_of, str) or not re.fullmatch(r"\d{8}", as_of) or as_of > trade_date
++            or type(expected_rows) is not int or expected_rows <= 0):
++        _fail("MEMBERSHIP_DESCRIPTOR_INVALID")
++    files = declared.get("source_files")
++    if not isinstance(files, Mapping) or set(files) != {"snapshot", "receipt", "reference_codes", "final_receipt"}:
++        _fail("INPUT_DESCRIPTOR_INVALID")
++    resolved = _safe_root(root)
++    inputs = {key: _verified_json(resolved, spec, key) for key, spec in files.items()}
++    rows, references = inputs["snapshot"], inputs["reference_codes"]
++    # The code-list file may be the original bare JSON array or its explicitly
++    # named 'codes' envelope. No alternate time or eligibility field is inferred.
++    if isinstance(references, Mapping):
++        references = references.get("codes")
++    if (not isinstance(rows, list) or len(rows) != expected_rows
++            or not isinstance(references, list) or len(references) != expected_rows
++            or not all(isinstance(row, Mapping) for row in rows)):
++        _fail("MEMBERSHIP_ROW_COUNT_MISMATCH")
++    codes = tuple(_code(code) for code in references)
++    observed = tuple(_code(row.get("code")) for row in rows)
++    if len(set(codes)) != expected_rows or len(set(observed)) != expected_rows or set(codes) != set(observed):
++        _fail("MEMBERSHIP_CODE_SET_MISMATCH")
++    if not isinstance(inputs["receipt"], Mapping) or not isinstance(inputs["final_receipt"], Mapping):
++        _fail("RECEIPT_SHAPE_INVALID")
++    metadata = {
++        "schema_version": "stage_center.hk_current_day_research.binding.v1",
++        "input_mode": ROLE,
++        "trade_date": trade_date,
++        "stage_id": stage_id,
++        "cutoff_at": cutoff_at,
++        "universe_as_of": as_of,
++        "captured_at": captured.isoformat(),
++        "stale_universe": as_of != trade_date,
++        "current_connect_eligibility": "CANNOT_CONFIRM",
++        "declaration_source": declared.get("declaration_source"),
++        "receipt_semantics": "SHA_VERIFIED_USER_DECLARED_CAPTURE",
++        "security_snapshot_is_quote": False,
++        "source_rows": expected_rows,
++        "source_files": {key: dict(spec) for key, spec in files.items()},
++        "RESEARCH_ONLY": True,
++        "production_allowed": False,
++        "buy_gate_updated": False,
++        "orders_sent": False,
++    }
++    sha = _digest(metadata, codes)
++    metadata["input_binding_sha256"] = sha
++    evidence = (f"{ROOT_PREFIX}{resolved}", EVIDENCE_PREFIX + _canonical(metadata),
++                f"hk_current_day_research_binding_sha256={sha}",
++                "hk_acquisition_scope=CURRENT_DAY_RESEARCH_REFERENCE_CODES",
++                "hk_connect_eligibility=CANNOT_CONFIRM", "RESEARCH_ONLY=true")
++    return {"metadata": metadata, "sha256": sha, "codes": codes,
++            "rows": tuple({key: row[key] for key in _SECURITY_FIELDS if key in row} for row in rows),
++            "evidence": evidence}
++
++
++def build_research_binding(root: Path | str, trade_date: str, stage_id: str):
++    from .acquisition import StageUniverseBinding
++    value = read_research_input(root, trade_date, stage_id)
++    return StageUniverseBinding.ready(market="HK_CONNECT", trade_date=trade_date, role=ROLE,
++        codes=value["codes"], source_run_id="hk-current-research-" + value["sha256"][:16],
++        sha256=value["sha256"], evidence=value["evidence"])
++
++
++def is_current_day_research(binding: Any) -> bool:
++    return binding is not None and getattr(binding, "role", None) == ROLE
++
++
++def research_metadata(binding: Any) -> dict[str, Any]:
++    if not is_current_day_research(binding):
++        _fail("BINDING_ROLE_INVALID")
++    values = [item[len(EVIDENCE_PREFIX):] for item in binding.evidence if isinstance(item, str) and item.startswith(EVIDENCE_PREFIX)]
++    if len(values) != 1:
++        _fail("BINDING_METADATA_INVALID")
++    try:
++        metadata = json.loads(values[0])
++    except ValueError as error:
++        raise CurrentDayResearchError("HK_CURRENT_DAY_RESEARCH_BINDING_METADATA_INVALID") from error
++    if not isinstance(metadata, dict):
++        _fail("BINDING_METADATA_INVALID")
++    identity = dict(metadata)
++    sha = identity.pop("input_binding_sha256", None)
++    if (binding.status != "READY" or binding.market != "HK_CONNECT" or binding.trade_date != metadata.get("trade_date")
++            or metadata.get("input_mode") != ROLE or metadata.get("current_connect_eligibility") != "CANNOT_CONFIRM"
++            or metadata.get("RESEARCH_ONLY") is not True
++            or any(metadata.get(key) is not False for key in ("production_allowed", "buy_gate_updated", "orders_sent"))
++            or sha != binding.sha256 or sha != _digest(identity, tuple(binding.codes))):
++        _fail("BINDING_IDENTITY_INVALID")
++    cutoff_at, cutoff = _slot_cutoff(metadata["trade_date"], str(metadata.get("stage_id")))
++    try:
++        captured = datetime.fromisoformat(str(metadata.get("captured_at", "")))
++    except ValueError as error:
++        raise CurrentDayResearchError("HK_CURRENT_DAY_RESEARCH_BINDING_CAPTURE_INVALID") from error
++    if (captured.tzinfo is None or captured.astimezone(_SHANGHAI).strftime("%Y%m%d") != binding.trade_date
++            or captured > cutoff or cutoff_at != metadata.get("cutoff_at")):
++        _fail("BINDING_CUTOFF_INVALID")
++    if (binding.source_run_id != "hk-current-research-" + binding.sha256[:16]
++            or metadata.get("source_rows") != len(binding.codes)
++            or len(set(binding.codes)) != len(binding.codes)
++            or metadata.get("stale_universe") is not (metadata.get("universe_as_of") != binding.trade_date)):
++        _fail("BINDING_IDENTITY_INVALID")
++    return metadata
++
++
++def candidate_from_research_binding(root: Path | str, trade_date: str, binding: Any):
++    """Compatibility plan carrier; no fabricated current pointer or D1 trio."""
++    from .candidate_input import CandidateInput
++    metadata = research_metadata(binding)
++    files = metadata["source_files"]
++    return CandidateInput(root=Path(root), trade_date=trade_date,
++        current_relative="", current_sha256=binding.sha256, run_id=binding.source_run_id,
++        codes=tuple(binding.codes), artifact_sha256=files["snapshot"]["sha256"],
++        manifest_sha256="", receipt_sha256=files["receipt"]["sha256"],
++        source_projection_sha256=files["snapshot"]["sha256"],
++        source_evidence=tuple(binding.evidence), strict_schema=ROLE,
++        digest_mode="CURRENT_DAY_RESEARCH_DECLARATION_AND_RAW_FILE_SHA256")
++
++
++def attach_security_metadata(source: Any, binding: Any):
++    """Merge only declared security metadata while preserving actual quote fields."""
++    metadata = research_metadata(binding)
++    roots = [item[len(ROOT_PREFIX):] for item in binding.evidence if isinstance(item, str) and item.startswith(ROOT_PREFIX)]
++    if len(roots) != 1:
++        _fail("BINDING_ROOT_INVALID")
++    snapshot = _verified_json(_safe_root(roots[0]), metadata["source_files"]["snapshot"], "snapshot")
++    securities = {row["code"]: row for row in snapshot}
++    merged_rows = []
++    for row in source.rows:
++        code = _code(row.get("code"))
++        if code not in set(binding.codes) or code not in securities:
++            _fail("MEMBERSHIP_QUOTE_OUTSIDE_BINDING")
++        merged = dict(row)
++        for key in _SECURITY_FIELDS:
++            value = securities[code].get(key)
++            if value is not None and key != "code":
++                merged[key] = value
++        merged["_hk_current_day_research"] = dict(metadata)
++        merged_rows.append(merged)
++    return replace(source, rows=tuple(merged_rows), status="PARTIAL_WITH_ROWS" if merged_rows else "CANNOT_CONFIRM",
++        cannot_confirm=tuple(dict.fromkeys((*source.cannot_confirm, ROLE, "HK_CONNECT_ELIGIBILITY_CANNOT_CONFIRM",
++                                          *(("STALE_UNIVERSE",) if metadata["stale_universe"] else ())))),
++        source_evidence=tuple(dict.fromkeys((*source.source_evidence, *binding.evidence))))
+--- a/stage_center/runner.py
++++ b/stage_center/runner.py
+@@ -522,6 +522,15 @@
+     trade_date: str,
+ ) -> tuple[str, ...]:
+     """Validate the already-read HK universe binding for this exact slot."""
++    from stage_center.hk_current_day_research import is_current_day_research, research_metadata
++    if is_current_day_research(binding):
++        try:
++            metadata = research_metadata(binding)
++            if metadata["trade_date"] != trade_date:
++                raise ValueError("HK_CURRENT_DAY_RESEARCH_BINDING_DATE_MISMATCH")
++        except ValueError as error:
++            raise RunnerError(str(error)) from error
++        return tuple(binding.evidence)
+     if (
+         binding.status != "READY"
+         or binding.market != "HK_CONNECT"
+@@ -703,6 +712,8 @@
+     # namespace.  The field is internal to the runner and never points at a
+     # live current/latest root.
+     backfill_run_id: str | None = None
++    # Appended for positional config compatibility; explicit research opt-in.
++    hk_current_day_research_root: Path | None = None
+ 
+     def __post_init__(self) -> None:
+         candidate = self.candidate_acquisition_root
+@@ -714,7 +725,7 @@
+         object.__setattr__(self, "selection_root", Path(self.selection_root).expanduser().resolve())
+         object.__setattr__(self, "receipt_root", Path(self.receipt_root).expanduser().resolve())
+         object.__setattr__(self, "candidate_input_root", Path(candidate).expanduser().resolve())
+-        for name in ("v3_formal_root", "v3_research_root", "v4_research_data_root", "v4_morning_news_root", "hk_d1_root", "preselection_source_root", "hk_second_filter_root", "hk_full_universe_root", "a_auction_root", "hk_auction_root", "hk_stage_replay_root", "a_research_panel_receipt_root", "shared_data_root", "python_path"):
++        for name in ("v3_formal_root", "v3_research_root", "v4_research_data_root", "v4_morning_news_root", "hk_d1_root", "hk_current_day_research_root", "preselection_source_root", "hk_second_filter_root", "hk_full_universe_root", "a_auction_root", "hk_auction_root", "hk_stage_replay_root", "a_research_panel_receipt_root", "shared_data_root", "python_path"):
+             value = getattr(self, name)
+             if value is not None:
+                 expanded = Path(value).expanduser()
+@@ -743,6 +754,7 @@
+     v4_research_data_root: Path | str | None = None,
+     v4_morning_news_root: Path | str | None = None,
+     hk_d1_root: Path | str | None = None,
++    hk_current_day_research_root: Path | str | None = None,
+     preselection_source_root: Path | str | None = None,
+     hk_second_filter_root: Path | str | None = None,
+     hk_full_universe_root: Path | str | None = None,
+@@ -764,7 +776,7 @@
+     time.
+     """
+     from stage_center._runner_parts.configuration import _build_production_config_body as _v4_impl
+-    return _v4_impl(globals(), candidate_acquisition_root=candidate_acquisition_root, raw_root=raw_root, selection_root=selection_root, receipt_root=receipt_root, v3_formal_root=v3_formal_root, v3_research_root=v3_research_root, v4_research_data_root=v4_research_data_root, v4_morning_news_root=v4_morning_news_root, hk_d1_root=hk_d1_root, preselection_source_root=preselection_source_root, hk_second_filter_root=hk_second_filter_root, hk_full_universe_root=hk_full_universe_root, a_auction_root=a_auction_root, hk_auction_root=hk_auction_root, hk_stage_replay_root=hk_stage_replay_root, a_research_panel_receipt_root=a_research_panel_receipt_root, shared_data_root=shared_data_root, python_path=python_path)
++    return _v4_impl(globals(), candidate_acquisition_root=candidate_acquisition_root, raw_root=raw_root, selection_root=selection_root, receipt_root=receipt_root, v3_formal_root=v3_formal_root, v3_research_root=v3_research_root, v4_research_data_root=v4_research_data_root, v4_morning_news_root=v4_morning_news_root, hk_d1_root=hk_d1_root, hk_current_day_research_root=hk_current_day_research_root, preselection_source_root=preselection_source_root, hk_second_filter_root=hk_second_filter_root, hk_full_universe_root=hk_full_universe_root, a_auction_root=a_auction_root, hk_auction_root=hk_auction_root, hk_stage_replay_root=hk_stage_replay_root, a_research_panel_receipt_root=a_research_panel_receipt_root, shared_data_root=shared_data_root, python_path=python_path)
+ 
+ 
+ class SlotLock:
+@@ -915,6 +927,21 @@
+     """Create the exact fixed D-1 membership shared by acquisition and selection."""
+     from stage_center._runner_parts.hk_input_validation import __build_hk_d1_binding_body as _v4_impl
+     return _v4_impl(globals(), root, trade_date, preselection_source_root=preselection_source_root)
++
++
++
++def _build_configured_hk_binding(config: RunnerConfig, trade_date: str, stage_id: str) -> StageUniverseBinding:
++    """Choose the explicit research input or retain the original STRICT default."""
++    if config.hk_current_day_research_root is not None:
++        from stage_center.hk_current_day_research import build_research_binding
++        try:
++            return build_research_binding(config.hk_current_day_research_root, trade_date, stage_id)
++        except (OSError, ValueError) as error:
++            raise RunnerError(str(error)) from error
++    if config.hk_d1_root is None:
++        raise RunnerError("production HK D1 root is required")
++    return _build_hk_stage_binding(config.hk_d1_root, trade_date,
++                                  preselection_source_root=config.preselection_source_root)
+ 
+ 
+ def _build_hk_stage_binding(
+@@ -1485,12 +1512,12 @@
+     """Bind the hourly archive and morning-news owner roots independently."""
+     if config.injected_test_mode or market != "A_SHARE" or stage_id not in V3_RESEARCH_STAGES:
+         return
+-    if config.v4_research_data_root is None:
+-        raise RunnerError(f"V4 research data root is required for {stage_id} A_SHARE")
+-    if config.v4_morning_news_root is None:
+-        raise RunnerError(f"V4 morning-news root is required for {stage_id} A_SHARE")
+-    builder_raw["_v4_research_data_root"] = config.v4_research_data_root
+-    builder_raw["_v4_morning_news_root"] = config.v4_morning_news_root
++    # These are supplemental scoring contexts, not the candidate universe.
++    # The builder keeps their original reader/witness errors as limitations.
++    if config.v4_research_data_root is not None:
++        builder_raw["_v4_research_data_root"] = config.v4_research_data_root
++    if config.v4_morning_news_root is not None:
++        builder_raw["_v4_morning_news_root"] = config.v4_morning_news_root
+ 
+ 
+ def _normal_code(market: str, value: Any) -> str:

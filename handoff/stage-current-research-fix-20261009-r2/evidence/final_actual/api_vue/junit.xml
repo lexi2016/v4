@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="17" time="1.357" timestamp="2026-10-09T02:42:54.050032-07:00" hostname="f2c20067ed3d"><testcase classname="components.api_ui.tests.test_current_research_readback" name="test_saved_research_result_survives_missing_execution_receipt" time="0.040" /><testcase classname="components.api_ui.tests.test_current_research_readback" name="test_existing_owner_trio_binds_same_research_input_and_runtime" time="0.036" /><testcase classname="components.api_ui.tests.test_current_research_readback" name="test_receipt_input_disagreement_is_visible_without_hiding_saved_rows[input_binding_sha256-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]" time="0.040" /><testcase classname="components.api_ui.tests.test_current_research_readback" name="test_receipt_input_disagreement_is_visible_without_hiding_saved_rows[universe_as_of-20261007]" time="0.040" /><testcase classname="components.api_ui.tests.test_current_research_readback" name="test_receipt_input_disagreement_is_visible_without_hiding_saved_rows[captured_at-2026-10-09T15:39:00+08:00]" time="0.036" /><testcase classname="components.api_ui.tests.test_current_research_readback" name="test_receipt_input_disagreement_is_visible_without_hiding_saved_rows[current_connect_eligibility-CONFIRMED]" time="0.037" /><testcase classname="components.api_ui.tests.test_current_research_readback" name="test_exact_run_route_reads_same_original_selection_and_preserves_research_counts" time="0.264" /><testcase classname="components.api_ui.tests.test_current_research_readback" name="test_exact_run_route_rejects_unknown_run_and_backfill_combination" time="0.074" /><testcase classname="components.api_ui.tests.test_current_research_readback" name="test_production_mode_cannot_be_inferred_from_ready_research_metadata" time="0.063" /><testcase classname="components.api_ui.tests.test_current_research_readback" name="test_real_store_consumer_api_result_renders_same_run_in_existing_vue" time="0.305" /><testcase classname="components.api_ui.tests.test_current_research_readback" name="test_reader_rejects_unsafe_research_metadata_but_keeps_original_result" time="0.029" /><testcase classname="components.api_ui.tests.test_current_research_readback" name="test_current_invocation_source_can_differ_without_rewriting_original_selection" time="0.039" /><testcase classname="components.api_ui.tests.test_current_research_readback" name="test_forged_selection_origin_does_not_bind_even_when_receipt_history_is_valid" time="0.049" /><testcase classname="components.api_ui.tests.test_current_research_readback" name="test_research_metadata_must_match_original_store_even_if_projected_lane_and_receipt_agree" time="0.052" /><testcase classname="components.api_ui.tests.test_current_research_readback" name="test_afternoon_capture_cannot_be_relabelled_to_a_morning_stage_by_changing_metadata_cutoff" time="0.029" /><testcase classname="components.api_ui.tests.test_current_research_readback" name="test_strict_hk_projection_is_unchanged_when_current_day_mode_is_absent" time="0.063" /><testcase classname="components.api_ui.tests.test_current_research_readback" name="test_full_candidate_runner_four_real_files_to_original_algorithm_api_and_vue" time="0.057"><failure message="FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/4156d1ebfa78/stage_research_r2/delivery/runtime_after/actual_stage'">runtime = namespace(selection=&lt;module 'stage_center.selection' from '/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_a...andidate_runner_fou0/stage/receipts'), tmp=PosixPath('/tmp/pytest-of-root/pytest-189/test_full_candidate_runner_fou0'))
+route = namespace(client=&lt;starlette.testclient.TestClient object at 0x7f3b86ebc5f0&gt;, project=&lt;function project_shared_selection at 0x7f3b8c368930&gt;, bind_consumer=&lt;function route.&lt;locals&gt;.bind_consumer at 0x7f3b8c2bfd70&gt;)
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f3b8c3c63f0&gt;
+
+    def test_full_candidate_runner_four_real_files_to_original_algorithm_api_and_vue(runtime, route, monkeypatch):
+        """Only four input documents and the external quote provider are synthetic.
+    
+        Executes final runner/configuration, current research admission, original
+        raw/selection stores, four-lane selector, final owner writer, current
+        consumer, existing HTTP route source and existing Vue SFC in one chain.
+        The supplied archived raw facade/helper mismatch uses the explicitly
+        documented False-only test adapter; no temporal checks are disabled.
+        """
+        from datetime import datetime
+        app_root = runtime.tmp / "complete_candidate"
+&gt;       shutil.copytree(ROOT / "runtime_after/actual_stage", app_root)
+
+components/api_ui/tests/test_current_research_readback.py:230: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/workspace/scratch/4156d1ebfa78/stage_research_r2/delivery/runtime_after/actual_stage')
+dst = PosixPath('/tmp/pytest-of-root/pytest-189/test_full_candidate_runner_fou0/complete_candidate')
+symlinks = False, ignore = None
+copy_function = &lt;function copy2 at 0x7f3b8f68b7f0&gt;
+ignore_dangling_symlinks = False, dirs_exist_ok = False
+
+    def copytree(src, dst, symlinks=False, ignore=None, copy_function=copy2,
+                 ignore_dangling_symlinks=False, dirs_exist_ok=False):
+        """Recursively copy a directory tree and return the destination directory.
+    
+        If exception(s) occur, an Error is raised with a list of reasons.
+    
+        If the optional symlinks flag is true, symbolic links in the
+        source tree result in symbolic links in the destination tree; if
+        it is false, the contents of the files pointed to by symbolic
+        links are copied. If the file pointed to by the symlink doesn't
+        exist, an exception will be added in the list of errors raised in
+        an Error exception at the end of the copy process.
+    
+        You can set the optional ignore_dangling_symlinks flag to true if you
+        want to silence this exception. Notice that this has no effect on
+        platforms that don't support os.symlink.
+    
+        The optional ignore argument is a callable. If given, it
+        is called with the `src` parameter, which is the directory
+        being visited by copytree(), and `names` which is the list of
+        `src` contents, as returned by os.listdir():
+    
+            callable(src, names) -&gt; ignored_names
+    
+        Since copytree() is called recursively, the callable will be
+        called once for each directory that is copied. It returns a
+        list of names relative to the `src` directory that should
+        not be copied.
+    
+        The optional copy_function argument is a callable that will be used
+        to copy each file. It will be called with the source path and the
+        destination path as arguments. By default, copy2() is used, but any
+        function that supports the same signature (like copy()) can be used.
+    
+        If dirs_exist_ok is false (the default) and `dst` already exists, a
+        `FileExistsError` is raised. If `dirs_exist_ok` is true, the copying
+        operation will continue if it encounters existing directories, and files
+        within the `dst` tree will be overwritten by corresponding files from the
+        `src` tree.
+        """
+        sys.audit("shutil.copytree", src, dst)
+&gt;       with os.scandir(src) as itr:
+             ^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/4156d1ebfa78/stage_research_r2/delivery/runtime_after/actual_stage'
+
+../../../6168fe203da9/r3-python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/shutil.py:652: FileNotFoundError</failure></testcase></testsuite></testsuites>

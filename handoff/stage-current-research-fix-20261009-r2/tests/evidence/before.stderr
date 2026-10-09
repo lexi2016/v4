@@ -1,0 +1,116 @@
+test_all_copied_preimages_checked_before_any_patch_write (test_deployment_tools.DeploymentToolsTests.test_all_copied_preimages_checked_before_any_patch_write) ... FAIL
+test_config_keeps_all_source_inputs_and_only_changes_roots_and_safety (test_deployment_tools.DeploymentToolsTests.test_config_keeps_all_source_inputs_and_only_changes_roots_and_safety) ... FAIL
+test_config_rejects_modified_candidate_after_before_mkdir (test_deployment_tools.DeploymentToolsTests.test_config_rejects_modified_candidate_after_before_mkdir) ... FAIL
+test_config_rejects_output_nested_in_active_input_root_before_mkdir (test_deployment_tools.DeploymentToolsTests.test_config_rejects_output_nested_in_active_input_root_before_mkdir) ... FAIL
+test_copied_marker_symlink_cannot_overwrite_external_file (test_deployment_tools.DeploymentToolsTests.test_copied_marker_symlink_cannot_overwrite_external_file) ... FAIL
+test_corrupt_supplied_after_rejected_before_creating_candidate (test_deployment_tools.DeploymentToolsTests.test_corrupt_supplied_after_rejected_before_creating_candidate) ... ok
+test_malformed_http_projection_is_a_reported_issue (test_deployment_tools.DeploymentToolsTests.test_malformed_http_projection_is_a_reported_issue) ... ERROR
+test_one_wrong_preimage_rejects_all_before_creating_candidate (test_deployment_tools.DeploymentToolsTests.test_one_wrong_preimage_rejects_all_before_creating_candidate) ... ok
+test_prepare_changes_only_independent_candidate_and_records_role (test_deployment_tools.DeploymentToolsTests.test_prepare_changes_only_independent_candidate_and_records_role) ... ERROR
+test_report_writer_never_overwrites_existing_owner_receipt (test_deployment_tools.DeploymentToolsTests.test_report_writer_never_overwrites_existing_owner_receipt) ... ERROR
+test_run_rejects_modified_candidate_before_importing_application (test_deployment_tools.DeploymentToolsTests.test_run_rejects_modified_candidate_before_importing_application) ... ERROR
+test_symlink_ancestor_cannot_hide_candidate_inside_active_source (test_deployment_tools.DeploymentToolsTests.test_symlink_ancestor_cannot_hide_candidate_inside_active_source) ... FAIL
+
+======================================================================
+ERROR: test_malformed_http_projection_is_a_reported_issue (test_deployment_tools.DeploymentToolsTests.test_malformed_http_projection_is_a_reported_issue)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/4156d1ebfa78/stage_research_r2/delivery/tests/test_deployment_tools.py", line 183, in test_malformed_http_projection_is_a_reported_issue
+    issues = same_run_probe.projection_issues([], {}, "HK_CONNECT", "exact_run")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'same_run_probe' has no attribute 'projection_issues'
+
+======================================================================
+ERROR: test_prepare_changes_only_independent_candidate_and_records_role (test_deployment_tools.DeploymentToolsTests.test_prepare_changes_only_independent_candidate_and_records_role)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/4156d1ebfa78/stage_research_r2/delivery/tests/test_deployment_tools.py", line 106, in test_prepare_changes_only_independent_candidate_and_records_role
+    self.assertEqual(marker["role"], "actual_stage")
+                     ~~~~~~^^^^^^^^
+KeyError: 'role'
+
+======================================================================
+ERROR: test_report_writer_never_overwrites_existing_owner_receipt (test_deployment_tools.DeploymentToolsTests.test_report_writer_never_overwrites_existing_owner_receipt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/4156d1ebfa78/stage_research_r2/delivery/tests/test_deployment_tools.py", line 179, in test_report_writer_never_overwrites_existing_owner_receipt
+    stage_patch.write_new_report(receipt, "would overwrite\n")
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'stage_patch' has no attribute 'write_new_report'
+
+======================================================================
+ERROR: test_run_rejects_modified_candidate_before_importing_application (test_deployment_tools.DeploymentToolsTests.test_run_rejects_modified_candidate_before_importing_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/4156d1ebfa78/stage_research_r2/delivery/tests/test_deployment_tools.py", line 173, in test_run_rejects_modified_candidate_before_importing_application
+    current_research.run(run_args)
+  File "/workspace/scratch/4156d1ebfa78/stage_research_r2/delivery/tools/current_research.py", line 62, in run
+    from ops.run_stage_center_nodes import _load_config, _build_runner
+ModuleNotFoundError: No module named 'ops'
+
+======================================================================
+FAIL: test_all_copied_preimages_checked_before_any_patch_write (test_deployment_tools.DeploymentToolsTests.test_all_copied_preimages_checked_before_any_patch_write)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/4156d1ebfa78/stage_research_r2/delivery/tests/test_deployment_tools.py", line 129, in test_all_copied_preimages_checked_before_any_patch_write
+    self.assertEqual((self.candidate / "a.py").read_bytes(), b"old a\n")
+AssertionError: b'new a\n' != b'old a\n'
+
+======================================================================
+FAIL: test_config_keeps_all_source_inputs_and_only_changes_roots_and_safety (test_deployment_tools.DeploymentToolsTests.test_config_keeps_all_source_inputs_and_only_changes_roots_and_safety)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/4156d1ebfa78/stage_research_r2/delivery/tests/test_deployment_tools.py", line 145, in test_config_keeps_all_source_inputs_and_only_changes_roots_and_safety
+    self.assertEqual(actual, expected)
+AssertionError: {'raw[338 chars]n', 'unrelated_options': {'threshold': 17}, 's[306 chars]alse} != {'raw[338 chars]n', 'a_0925_recovery_authorization': None, 'ba[370 chars]alse}
+Diff is 865 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_config_rejects_modified_candidate_after_before_mkdir (test_deployment_tools.DeploymentToolsTests.test_config_rejects_modified_candidate_after_before_mkdir)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/4156d1ebfa78/stage_research_r2/delivery/tests/test_deployment_tools.py", line 161, in test_config_rejects_modified_candidate_after_before_mkdir
+    with self.assertRaisesRegex(ValueError, "after|SHA|identity"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_config_rejects_output_nested_in_active_input_root_before_mkdir (test_deployment_tools.DeploymentToolsTests.test_config_rejects_output_nested_in_active_input_root_before_mkdir)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/4156d1ebfa78/stage_research_r2/delivery/tests/test_deployment_tools.py", line 153, in test_config_rejects_output_nested_in_active_input_root_before_mkdir
+    with self.assertRaisesRegex(ValueError, "separate"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_copied_marker_symlink_cannot_overwrite_external_file (test_deployment_tools.DeploymentToolsTests.test_copied_marker_symlink_cannot_overwrite_external_file)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/4156d1ebfa78/stage_research_r2/delivery/tests/test_deployment_tools.py", line 113, in test_copied_marker_symlink_cannot_overwrite_external_file
+    with self.assertRaisesRegex(ValueError, "symlink"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_symlink_ancestor_cannot_hide_candidate_inside_active_source (test_deployment_tools.DeploymentToolsTests.test_symlink_ancestor_cannot_hide_candidate_inside_active_source)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/4156d1ebfa78/stage_research_r2/delivery/tests/test_deployment_tools.py", line 96, in test_symlink_ancestor_cannot_hide_candidate_inside_active_source
+    stage_patch.prepare(self.source, alias / "nested", self.role)
+  File "/workspace/scratch/4156d1ebfa78/stage_research_r2/delivery/tools/stage_patch.py", line 60, in prepare
+    shutil.copytree(source, target, symlinks=True, ignore=shutil.ignore_patterns(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+AssertionError: copy before isolation check
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.028s
+
+FAILED (failures=6, errors=4)

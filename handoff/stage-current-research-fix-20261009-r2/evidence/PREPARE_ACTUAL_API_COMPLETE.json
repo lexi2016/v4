@@ -1,0 +1,63 @@
+{
+  "root": "/workspace/scratch/4156d1ebfa78/stage_research_r2/release_canaries/actual_api",
+  "status": "MATCH",
+  "files": [
+    {
+      "relative_path": "apps/api/v35_api/app.py",
+      "actual_sha256": "bc517ea25961fa82fa5981a944445c3a7c5a361b44a815b90c46f1f91da39adc",
+      "expected_sha256": [
+        "bc517ea25961fa82fa5981a944445c3a7c5a361b44a815b90c46f1f91da39adc"
+      ],
+      "status": "MATCH"
+    },
+    {
+      "relative_path": "apps/web/src/App.vue",
+      "actual_sha256": "8351d35f6c5205e5341f393e76f89ebeadba1adc94177ac5df3cec091913f31c",
+      "expected_sha256": [
+        "8351d35f6c5205e5341f393e76f89ebeadba1adc94177ac5df3cec091913f31c"
+      ],
+      "status": "MATCH"
+    },
+    {
+      "relative_path": "apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "actual_sha256": "a6df35e056f033ac3c978f37b099472b6eb24b73bb2ca4e213c76c2ad4ffaa9c",
+      "expected_sha256": [
+        "a6df35e056f033ac3c978f37b099472b6eb24b73bb2ca4e213c76c2ad4ffaa9c"
+      ],
+      "status": "MATCH"
+    },
+    {
+      "relative_path": "apps/web/src/contracts/runtime.ts",
+      "actual_sha256": "884f46b3e54c5bd66e83ac5f8e5aba18712f5703ccf8dfb6959be860bc4b0095",
+      "expected_sha256": [
+        "884f46b3e54c5bd66e83ac5f8e5aba18712f5703ccf8dfb6959be860bc4b0095"
+      ],
+      "status": "MATCH"
+    },
+    {
+      "relative_path": "stage_center/consumer.py",
+      "actual_sha256": "9c0c566d265a9049119f7e79c967fa1a46877bfc02d05c20c36013f84ad54934",
+      "expected_sha256": [
+        "9c0c566d265a9049119f7e79c967fa1a46877bfc02d05c20c36013f84ad54934"
+      ],
+      "status": "MATCH"
+    },
+    {
+      "relative_path": "stage_center/execution_evidence.py",
+      "actual_sha256": "23f10554b179dea1be8df4dae7a63d1897faf238913995475f3ffd465583f5fe",
+      "expected_sha256": [
+        "23f10554b179dea1be8df4dae7a63d1897faf238913995475f3ffd465583f5fe"
+      ],
+      "status": "MATCH"
+    }
+  ],
+  "source_root": "/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_before/actual_api",
+  "role": "actual_api",
+  "source_map_sha256": "9ff05ba04a06794a753343780ee7fa890a4d74081a956dfd0b962d8de0ae2b5e",
+  "mode": "ISOLATED_CODE_CANDIDATE",
+  "active_runtime_updated": false,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

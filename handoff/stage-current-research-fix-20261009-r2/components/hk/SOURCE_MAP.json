@@ -1,0 +1,378 @@
+[
+  {
+    "owner": "actual_stage",
+    "relative_path": "ops/_run_stage_center_nodes_parts/node_entry.py",
+    "change": "modified",
+    "before_sha256": "3a40b79ecea876997aad9272205ebf61289af2a17162057fa680174c50e74fd2",
+    "after_sha256": "2a02a0a3796a8153998fea7d1270aeb580c17928cc61c9e48bbf77bf84b7aebf",
+    "before_bytes": 42350,
+    "after_bytes": 42617,
+    "source": {
+      "role": "actual_stage",
+      "relative_path": "ops/_run_stage_center_nodes_parts/node_entry.py",
+      "local_path": "/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_before/actual_stage/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "remote_path": "handoff/stage-minimal-fix-20261009-r1/work/entrypoint_clock/after/actual_stage/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "sha256": "3a40b79ecea876997aad9272205ebf61289af2a17162057fa680174c50e74fd2",
+      "conditional_historical_preimage": true,
+      "retrieval": "R1_VERIFIED_AFTER"
+    }
+  },
+  {
+    "owner": "actual_stage",
+    "relative_path": "ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+    "change": "modified",
+    "before_sha256": "2e40c84a30d9cabf047fefb5caec14f8b569d24e54a7f50c16211f0c0fda53ec",
+    "after_sha256": "9a28fd1ff484e88864fc2aed2bddf50804d56a5bb91b2bb10a84be0fbc344e5e",
+    "before_bytes": 2361,
+    "after_bytes": 2474,
+    "source": {
+      "role": "actual_stage",
+      "relative_path": "ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+      "remote_path": "handoff/v4-running-source-20261005/canonical/ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+      "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "git_blob_sha1": "fe88b068c4ed1893b2649bfeaae88abb24a122f6",
+      "size": 2361,
+      "local_path": "/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_before/actual_stage/ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+      "sha256": "2e40c84a30d9cabf047fefb5caec14f8b569d24e54a7f50c16211f0c0fda53ec",
+      "retrieval": "LOCAL_BYTES_MATCH_REMOTE_TREE"
+    }
+  },
+  {
+    "owner": "actual_stage",
+    "relative_path": "stage_center/_runner_parts/configuration.py",
+    "change": "modified",
+    "before_sha256": "713ac5b8ac81fe186904eca38c8e7a28a2edb83a0cf98766546a09f7169c7486",
+    "after_sha256": "410fffc5198803922b97f4f013fccf6ef8510fed04a2435445cee0a02875dbc9",
+    "before_bytes": 3170,
+    "after_bytes": 3354,
+    "source": {
+      "role": "actual_stage",
+      "relative_path": "stage_center/_runner_parts/configuration.py",
+      "remote_path": "handoff/v4-running-source-20261005/canonical/stage_center/_runner_parts/configuration.py",
+      "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "git_blob_sha1": "c42606a7e331483f5055b7c622762bf3ee87685d",
+      "size": 3170,
+      "local_path": "/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_before/actual_stage/stage_center/_runner_parts/configuration.py",
+      "sha256": "713ac5b8ac81fe186904eca38c8e7a28a2edb83a0cf98766546a09f7169c7486",
+      "retrieval": "LOCAL_BYTES_MATCH_REMOTE_TREE"
+    }
+  },
+  {
+    "owner": "actual_stage",
+    "relative_path": "stage_center/_runner_parts/hk_candidate_authority.py",
+    "change": "modified",
+    "before_sha256": "1fd933e8436e4316832c29f89da16c1ccf3ed78b14ee853262ed758e476d2f95",
+    "after_sha256": "822ab3c2f03f7296030dd642c4816a484fcf1fa3bcff61db800bb9e0789eda69",
+    "before_bytes": 9557,
+    "after_bytes": 9895,
+    "source": {
+      "role": "actual_stage",
+      "relative_path": "stage_center/_runner_parts/hk_candidate_authority.py",
+      "remote_path": "handoff/v4-running-source-20261005/canonical/stage_center/_runner_parts/hk_candidate_authority.py",
+      "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "git_blob_sha1": "b4cfee08e5e230303b985c58f49bda1ae16b7b47",
+      "size": 9557,
+      "local_path": "/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_before/actual_stage/stage_center/_runner_parts/hk_candidate_authority.py",
+      "sha256": "1fd933e8436e4316832c29f89da16c1ccf3ed78b14ee853262ed758e476d2f95",
+      "retrieval": "LOCAL_BYTES_MATCH_REMOTE_TREE"
+    }
+  },
+  {
+    "owner": "actual_stage",
+    "relative_path": "stage_center/_runner_parts/hk_input_validation.py",
+    "change": "modified",
+    "before_sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+    "after_sha256": "d9ac01e284bbb9aaf52a7cdca10dde7142be1b3eb9a23bf0c72c319f581f0b3a",
+    "before_bytes": 23786,
+    "after_bytes": 24011,
+    "source": {
+      "role": "actual_stage",
+      "relative_path": "stage_center/_runner_parts/hk_input_validation.py",
+      "remote_path": "handoff/stage-minimal-flow-20261009/source/actual_stage/stage_center/_runner_parts/hk_input_validation.py",
+      "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "git_blob_sha1": "ad07c9a495f363822f294403e0da9ec12d74b26f",
+      "size": 23786,
+      "local_path": "/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_before/actual_stage/stage_center/_runner_parts/hk_input_validation.py",
+      "sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+      "retrieval": "LOCAL_BYTES_MATCH_REMOTE_TREE"
+    }
+  },
+  {
+    "owner": "actual_stage",
+    "relative_path": "stage_center/_runner_parts/selection_input_validation.py",
+    "change": "modified",
+    "before_sha256": "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c",
+    "after_sha256": "0ca0969d7ddc055495fec453d8a1fe38ac81ffcdb3b47a206e9f8f1beff1ee21",
+    "before_bytes": 10698,
+    "after_bytes": 11382,
+    "source": {
+      "role": "actual_stage",
+      "relative_path": "stage_center/_runner_parts/selection_input_validation.py",
+      "remote_path": "handoff/v4-running-source-20261005/canonical/stage_center/_runner_parts/selection_input_validation.py",
+      "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "git_blob_sha1": "4592c30c12dc9962e1c84c5c5eed1f9f53ec2888",
+      "size": 10698,
+      "local_path": "/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_before/actual_stage/stage_center/_runner_parts/selection_input_validation.py",
+      "sha256": "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c",
+      "retrieval": "LOCAL_BYTES_MATCH_REMOTE_TREE"
+    }
+  },
+  {
+    "owner": "actual_stage",
+    "relative_path": "stage_center/_runner_parts/slot_execution.py",
+    "change": "modified",
+    "before_sha256": "447a07af0470b86436f7aba128f782429a7b8e7fcf8dad8b92e6d01b7cfb6d96",
+    "after_sha256": "16d34ea2bf095769775fb829b3036c65058689b31c7a4262908e10c52f258666",
+    "before_bytes": 47067,
+    "after_bytes": 47192,
+    "source": {
+      "role": "actual_stage",
+      "relative_path": "stage_center/_runner_parts/slot_execution.py",
+      "local_path": "/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_before/actual_stage/stage_center/_runner_parts/slot_execution.py",
+      "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "remote_path": "handoff/stage-minimal-fix-20261009-r1/work/receipt_binding/after/source/actual_stage/stage_center/_runner_parts/slot_execution.py",
+      "sha256": "447a07af0470b86436f7aba128f782429a7b8e7fcf8dad8b92e6d01b7cfb6d96",
+      "conditional_historical_preimage": false,
+      "retrieval": "R1_VERIFIED_AFTER"
+    }
+  },
+  {
+    "owner": "actual_stage",
+    "relative_path": "stage_center/_runner_parts/tick_planning.py",
+    "change": "modified",
+    "before_sha256": "c27cb9717ec2940364d1e1186529e6df1b37b07aae0c56f65334f6f9bf06dd15",
+    "after_sha256": "9e8eba3d860c10b7bbfe3e8af242dbf331612b42e070097dab539bfd3e9577be",
+    "before_bytes": 3985,
+    "after_bytes": 4041,
+    "source": {
+      "role": "actual_stage",
+      "relative_path": "stage_center/_runner_parts/tick_planning.py",
+      "remote_path": "handoff/v4-running-source-20261005/stage/stage_center/_runner_parts/tick_planning.py",
+      "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "git_blob_sha1": "80cdb07663d5867af967ab92496a9d455b2cb2c6",
+      "size": 3985,
+      "local_path": "/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_before/actual_stage/stage_center/_runner_parts/tick_planning.py",
+      "sha256": "c27cb9717ec2940364d1e1186529e6df1b37b07aae0c56f65334f6f9bf06dd15",
+      "retrieval": "LOCAL_BYTES_MATCH_REMOTE_TREE"
+    }
+  },
+  {
+    "owner": "actual_stage",
+    "relative_path": "stage_center/hk_current_day_research.py",
+    "change": "new",
+    "before_sha256": null,
+    "after_sha256": "e5c7385d24c21f116fabf8007d063f6d8395c7b0fda8d30c84167db4aa8c0046",
+    "before_bytes": 0,
+    "after_bytes": 13831,
+    "source": null
+  },
+  {
+    "owner": "actual_stage",
+    "relative_path": "stage_center/runner.py",
+    "change": "modified",
+    "before_sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232",
+    "after_sha256": "14941d742e9c552bad96b7b0c979fdf9c387894b120263c359a49c09a9537865",
+    "before_bytes": 44615,
+    "after_bytes": 46159,
+    "source": {
+      "role": "actual_stage",
+      "relative_path": "stage_center/runner.py",
+      "remote_path": "handoff/stage-minimal-flow-20261009/source/actual_stage/stage_center/runner.py",
+      "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "git_blob_sha1": "b0aa8badf3cbe4c5e9b6e758044f3403c57c2ee3",
+      "size": 44615,
+      "local_path": "/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_before/actual_stage/stage_center/runner.py",
+      "sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232",
+      "retrieval": "LOCAL_BYTES_MATCH_REMOTE_TREE"
+    }
+  },
+  {
+    "owner": "canonical",
+    "relative_path": "ops/_run_stage_center_nodes_parts/node_entry.py",
+    "change": "modified",
+    "before_sha256": "0efb31e207a7282eea9308c81c69c7bfd0f4c989d03d03acc9407e430f832fe6",
+    "after_sha256": "3cdf8d10d86119c60bd1416f34935751452712a9e6805d8fbd9948fd26ea33b8",
+    "before_bytes": 33223,
+    "after_bytes": 33490,
+    "source": {
+      "role": "canonical",
+      "relative_path": "ops/_run_stage_center_nodes_parts/node_entry.py",
+      "local_path": "/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_before/canonical/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "remote_path": "handoff/stage-minimal-fix-20261009-r1/work/entrypoint_clock/after/canonical/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "sha256": "0efb31e207a7282eea9308c81c69c7bfd0f4c989d03d03acc9407e430f832fe6",
+      "conditional_historical_preimage": true,
+      "retrieval": "R1_VERIFIED_AFTER"
+    }
+  },
+  {
+    "owner": "canonical",
+    "relative_path": "ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+    "change": "modified",
+    "before_sha256": "2e40c84a30d9cabf047fefb5caec14f8b569d24e54a7f50c16211f0c0fda53ec",
+    "after_sha256": "9a28fd1ff484e88864fc2aed2bddf50804d56a5bb91b2bb10a84be0fbc344e5e",
+    "before_bytes": 2361,
+    "after_bytes": 2474,
+    "source": {
+      "role": "canonical",
+      "relative_path": "ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+      "remote_path": "handoff/v4-running-source-20261005/canonical/ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+      "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "git_blob_sha1": "fe88b068c4ed1893b2649bfeaae88abb24a122f6",
+      "size": 2361,
+      "local_path": "/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_before/canonical/ops/_run_stage_center_nodes_parts/runtime_arguments.py",
+      "sha256": "2e40c84a30d9cabf047fefb5caec14f8b569d24e54a7f50c16211f0c0fda53ec",
+      "retrieval": "LOCAL_BYTES_MATCH_REMOTE_TREE"
+    }
+  },
+  {
+    "owner": "canonical",
+    "relative_path": "stage_center/_runner_parts/configuration.py",
+    "change": "modified",
+    "before_sha256": "713ac5b8ac81fe186904eca38c8e7a28a2edb83a0cf98766546a09f7169c7486",
+    "after_sha256": "410fffc5198803922b97f4f013fccf6ef8510fed04a2435445cee0a02875dbc9",
+    "before_bytes": 3170,
+    "after_bytes": 3354,
+    "source": {
+      "role": "canonical",
+      "relative_path": "stage_center/_runner_parts/configuration.py",
+      "remote_path": "handoff/v4-running-source-20261005/canonical/stage_center/_runner_parts/configuration.py",
+      "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "git_blob_sha1": "c42606a7e331483f5055b7c622762bf3ee87685d",
+      "size": 3170,
+      "local_path": "/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_before/canonical/stage_center/_runner_parts/configuration.py",
+      "sha256": "713ac5b8ac81fe186904eca38c8e7a28a2edb83a0cf98766546a09f7169c7486",
+      "retrieval": "LOCAL_BYTES_MATCH_REMOTE_TREE"
+    }
+  },
+  {
+    "owner": "canonical",
+    "relative_path": "stage_center/_runner_parts/hk_candidate_authority.py",
+    "change": "modified",
+    "before_sha256": "1fd933e8436e4316832c29f89da16c1ccf3ed78b14ee853262ed758e476d2f95",
+    "after_sha256": "822ab3c2f03f7296030dd642c4816a484fcf1fa3bcff61db800bb9e0789eda69",
+    "before_bytes": 9557,
+    "after_bytes": 9895,
+    "source": {
+      "role": "canonical",
+      "relative_path": "stage_center/_runner_parts/hk_candidate_authority.py",
+      "remote_path": "handoff/v4-running-source-20261005/canonical/stage_center/_runner_parts/hk_candidate_authority.py",
+      "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "git_blob_sha1": "b4cfee08e5e230303b985c58f49bda1ae16b7b47",
+      "size": 9557,
+      "local_path": "/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_before/canonical/stage_center/_runner_parts/hk_candidate_authority.py",
+      "sha256": "1fd933e8436e4316832c29f89da16c1ccf3ed78b14ee853262ed758e476d2f95",
+      "retrieval": "LOCAL_BYTES_MATCH_REMOTE_TREE"
+    }
+  },
+  {
+    "owner": "canonical",
+    "relative_path": "stage_center/_runner_parts/hk_input_validation.py",
+    "change": "modified",
+    "before_sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+    "after_sha256": "d9ac01e284bbb9aaf52a7cdca10dde7142be1b3eb9a23bf0c72c319f581f0b3a",
+    "before_bytes": 23786,
+    "after_bytes": 24011,
+    "source": {
+      "role": "canonical",
+      "relative_path": "stage_center/_runner_parts/hk_input_validation.py",
+      "remote_path": "handoff/v4-running-source-20261005/canonical/stage_center/_runner_parts/hk_input_validation.py",
+      "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "git_blob_sha1": "ad07c9a495f363822f294403e0da9ec12d74b26f",
+      "size": 23786,
+      "local_path": "/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_before/canonical/stage_center/_runner_parts/hk_input_validation.py",
+      "sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+      "retrieval": "LOCAL_BYTES_MATCH_REMOTE_TREE"
+    }
+  },
+  {
+    "owner": "canonical",
+    "relative_path": "stage_center/_runner_parts/selection_input_validation.py",
+    "change": "modified",
+    "before_sha256": "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c",
+    "after_sha256": "0ca0969d7ddc055495fec453d8a1fe38ac81ffcdb3b47a206e9f8f1beff1ee21",
+    "before_bytes": 10698,
+    "after_bytes": 11382,
+    "source": {
+      "role": "canonical",
+      "relative_path": "stage_center/_runner_parts/selection_input_validation.py",
+      "remote_path": "handoff/v4-running-source-20261005/canonical/stage_center/_runner_parts/selection_input_validation.py",
+      "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "git_blob_sha1": "4592c30c12dc9962e1c84c5c5eed1f9f53ec2888",
+      "size": 10698,
+      "local_path": "/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_before/canonical/stage_center/_runner_parts/selection_input_validation.py",
+      "sha256": "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c",
+      "retrieval": "LOCAL_BYTES_MATCH_REMOTE_TREE"
+    }
+  },
+  {
+    "owner": "canonical",
+    "relative_path": "stage_center/_runner_parts/slot_execution.py",
+    "change": "modified",
+    "before_sha256": "6e50b9406bc09d9a6c4c73ae1b96a2bd73a7d82a0ae00df30371026edadf7fd8",
+    "after_sha256": "88fa56f999fd0a08efeadd95c584930d8c4ac2ac79bca5d15bae2c37cfb6005e",
+    "before_bytes": 50051,
+    "after_bytes": 50188,
+    "source": {
+      "role": "canonical",
+      "relative_path": "stage_center/_runner_parts/slot_execution.py",
+      "local_path": "/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_before/canonical/stage_center/_runner_parts/slot_execution.py",
+      "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "remote_path": "handoff/stage-minimal-fix-20261009-r1/work/receipt_binding/after/source/canonical/stage_center/_runner_parts/slot_execution.py",
+      "sha256": "6e50b9406bc09d9a6c4c73ae1b96a2bd73a7d82a0ae00df30371026edadf7fd8",
+      "conditional_historical_preimage": false,
+      "retrieval": "R1_VERIFIED_AFTER"
+    }
+  },
+  {
+    "owner": "canonical",
+    "relative_path": "stage_center/_runner_parts/tick_planning.py",
+    "change": "modified",
+    "before_sha256": "b4faf61c9b750538d714a23fae1b565c3d387a236f42cee379dcf8c966194711",
+    "after_sha256": "163151b19c8f06558bb889092c73209a569c569df5aa97c1a86cdfd28dc6d6ac",
+    "before_bytes": 4803,
+    "after_bytes": 4859,
+    "source": {
+      "role": "canonical",
+      "relative_path": "stage_center/_runner_parts/tick_planning.py",
+      "remote_path": "handoff/v4-running-source-20261005/canonical/stage_center/_runner_parts/tick_planning.py",
+      "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "git_blob_sha1": "14a7d44a32127f4b20b0afd41a1e8927a7620e3d",
+      "size": 4803,
+      "local_path": "/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_before/canonical/stage_center/_runner_parts/tick_planning.py",
+      "sha256": "b4faf61c9b750538d714a23fae1b565c3d387a236f42cee379dcf8c966194711",
+      "retrieval": "LOCAL_BYTES_MATCH_REMOTE_TREE"
+    }
+  },
+  {
+    "owner": "canonical",
+    "relative_path": "stage_center/hk_current_day_research.py",
+    "change": "new",
+    "before_sha256": null,
+    "after_sha256": "e5c7385d24c21f116fabf8007d063f6d8395c7b0fda8d30c84167db4aa8c0046",
+    "before_bytes": 0,
+    "after_bytes": 13831,
+    "source": null
+  },
+  {
+    "owner": "canonical",
+    "relative_path": "stage_center/runner.py",
+    "change": "modified",
+    "before_sha256": "d36cc60c538f23ab0f48c7387523d83ed5cebbdc67c0dd630e671f98ecdffa48",
+    "after_sha256": "081961b37939fa431bd6613b892b2358a56a13c78cb54f72fc5cd747fc320073",
+    "before_bytes": 83846,
+    "after_bytes": 85390,
+    "source": {
+      "role": "canonical",
+      "relative_path": "stage_center/runner.py",
+      "remote_path": "handoff/stage-minimal-flow-20261009/source/canonical/stage_center/runner.py",
+      "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+      "git_blob_sha1": "8075ab916e1d9d03c3e22a765d174c37ac73e3bf",
+      "size": 83846,
+      "local_path": "/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_before/canonical/stage_center/runner.py",
+      "sha256": "d36cc60c538f23ab0f48c7387523d83ed5cebbdc67c0dd630e671f98ecdffa48",
+      "retrieval": "LOCAL_BYTES_MATCH_REMOTE_TREE"
+    }
+  }
+]

@@ -1,0 +1,36 @@
+FF
+=================================== FAILURES ===================================
+________ test_saved_research_result_survives_missing_execution_receipt _________
+
+runtime = namespace(selection=<module 'stage_center.selection' from '/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_b...research_result_sur0/stage/receipts'), tmp=PosixPath('/tmp/pytest-of-root/pytest-134/test_saved_research_result_sur0'))
+
+    def test_saved_research_result_survives_missing_execution_receipt(runtime):
+        response = runtime.client.get(DATE, STAGE)
+        lane = response["markets"]["HK_CONNECT"]
+        summary = response["execution_evidence"]["selection_results"]["HK_CONNECT"]
+>       assert lane["hk_current_day_research"] == runtime.metadata
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'hk_current_day_research'
+
+stage_research_r2/components/api_ui/tests/test_current_research_readback.py:17: KeyError
+________ test_existing_owner_trio_binds_same_research_input_and_runtime ________
+
+runtime = namespace(selection=<module 'stage_center.selection' from '/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_b...ng_owner_trio_binds0/stage/receipts'), tmp=PosixPath('/tmp/pytest-of-root/pytest-134/test_existing_owner_trio_binds0'))
+
+    def test_existing_owner_trio_binds_same_research_input_and_runtime(runtime):
+        runtime.write()
+        response = runtime.client.get(DATE, STAGE)
+        evidence = response["execution_evidence"]
+        assert evidence["receipt_history_binding"] == "OWNER_HISTORY_SHA_BOUND"
+>       assert evidence["selection_artifact_bindings"]["HK_CONNECT"]["status"] == "BOUND_TO_VERIFIED_SELECTION_TRIO"
+E       AssertionError: assert 'SELECTION_STORE_NOT_BOUND' == 'BOUND_TO_VER...ELECTION_TRIO'
+E         
+E         - BOUND_TO_VERIFIED_SELECTION_TRIO
+E         + SELECTION_STORE_NOT_BOUND
+
+stage_research_r2/components/api_ui/tests/test_current_research_readback.py:33: AssertionError
+=========================== short test summary info ============================
+FAILED stage_research_r2/components/api_ui/tests/test_current_research_readback.py::test_saved_research_result_survives_missing_execution_receipt
+FAILED stage_research_r2/components/api_ui/tests/test_current_research_readback.py::test_existing_owner_trio_binds_same_research_input_and_runtime
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 2 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+2 failed in 0.10s

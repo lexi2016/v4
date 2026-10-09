@@ -1,0 +1,390 @@
+{
+  "component": "collectors_research_r2",
+  "base_commit": "0fc3e8304e11700230517616ded0c86f83a4b257",
+  "modified_files": [
+    {
+      "relative_path": "stage_center/_live_collectors_parts/collector_registry.py",
+      "before_sha256": "b8c366267f611ff76d0228093a9d826ee7c367b938aa4ab098f022a687245999",
+      "after_sha256": "ffbb149879c549d389ae4cc16e18a0e813808e0269c980e4f5fc9ee8db5d8eeb",
+      "before_bytes": 2962,
+      "after_bytes": 3140,
+      "source_snapshot": {
+        "role": "actual_stage",
+        "relative_path": "stage_center/_live_collectors_parts/collector_registry.py",
+        "remote_path": "handoff/v4-running-source-20261005/canonical/stage_center/_live_collectors_parts/collector_registry.py",
+        "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+        "git_blob_sha1": "ad1359844d5d31020885a6c7bfc2c12d47c8bfa9",
+        "size": 2962,
+        "local_path": "/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_before/actual_stage/stage_center/_live_collectors_parts/collector_registry.py",
+        "sha256": "b8c366267f611ff76d0228093a9d826ee7c367b938aa4ab098f022a687245999",
+        "retrieval": "LOCAL_BYTES_MATCH_REMOTE_TREE"
+      },
+      "canonical_snapshot_sha256": "b8c366267f611ff76d0228093a9d826ee7c367b938aa4ab098f022a687245999",
+      "canonical_same_before": true,
+      "current_mac_preimage": "NOT_READ_CONDITIONAL_SHA_PRECHECK_REQUIRED",
+      "apply_boundary": "EXACT_SNAPSHOT_OR_MANUALLY_REBASED_VERIFIED_CANARY_ONLY",
+      "canonical_policy": "APPLY_SEPARATE_SHA_MATCHED_CANONICAL_PATCH; DO_NOT_COPY_ACTUAL_OVER_CANONICAL"
+    },
+    {
+      "relative_path": "stage_center/_live_collectors_parts/hk_minute.py",
+      "before_sha256": "b6c78a4ffd7193d0e1afeee530a1c4c123e72a20ba3bc9f8183727dcca58a179",
+      "after_sha256": "4225089d076fe3db535b671879ce49f51bb2c453833edcca3f72eda7db86ee4a",
+      "before_bytes": 6947,
+      "after_bytes": 8770,
+      "source_snapshot": {
+        "role": "actual_stage",
+        "relative_path": "stage_center/_live_collectors_parts/hk_minute.py",
+        "remote_path": "handoff/v4-running-source-20261005/stage/stage_center/_live_collectors_parts/hk_minute.py",
+        "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+        "git_blob_sha1": "b81c1336f234cc0d87064ad19eae58dd7db7d78e",
+        "size": 6947,
+        "sha256": "b6c78a4ffd7193d0e1afeee530a1c4c123e72a20ba3bc9f8183727dcca58a179",
+        "local_path": "/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_before/actual_stage/stage_center/_live_collectors_parts/hk_minute.py",
+        "retrieval": "GITHUB_FETCH_EXACT_BYTES"
+      },
+      "canonical_snapshot_sha256": "397818be00edff0d203e3c6763f4e5c0447a61a85142cde232c6724114298ca0",
+      "canonical_same_before": false,
+      "current_mac_preimage": "NOT_READ_CONDITIONAL_SHA_PRECHECK_REQUIRED",
+      "apply_boundary": "EXACT_SNAPSHOT_OR_MANUALLY_REBASED_VERIFIED_CANARY_ONLY",
+      "canonical_policy": "APPLY_SEPARATE_SHA_MATCHED_CANONICAL_PATCH; DO_NOT_COPY_ACTUAL_OVER_CANONICAL"
+    },
+    {
+      "relative_path": "stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "before_sha256": "5b315c482723f4bbfb187e36241ea422f2a59518a2056be037d1fdbe2f00eb22",
+      "after_sha256": "62738552347913633aca16a805a163bf3346cdf8ab0cf79eed3c8be75c9fe522",
+      "before_bytes": 21870,
+      "after_bytes": 26391,
+      "source_snapshot": {
+        "role": "actual_stage",
+        "relative_path": "stage_center/_live_collectors_parts/selection_builder_registry.py",
+        "remote_path": "handoff/stage-selection-issues-20261008/source/active_stage_reference/stage_center/_live_collectors_parts/selection_builder_registry.py",
+        "ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+        "git_blob_sha1": "ea28586244319a62396bcbb2357d5e74b65fcf16",
+        "size": 21870,
+        "local_path": "/workspace/scratch/4156d1ebfa78/stage_research_r2/runtime_before/actual_stage/stage_center/_live_collectors_parts/selection_builder_registry.py",
+        "sha256": "5b315c482723f4bbfb187e36241ea422f2a59518a2056be037d1fdbe2f00eb22",
+        "retrieval": "LOCAL_BYTES_MATCH_REMOTE_TREE"
+      },
+      "canonical_snapshot_sha256": "8b3552498b125ae90c56964799f3cf0e644a077243f7be4c37ea23261214379a",
+      "canonical_same_before": false,
+      "current_mac_preimage": "NOT_READ_CONDITIONAL_SHA_PRECHECK_REQUIRED",
+      "apply_boundary": "EXACT_SNAPSHOT_OR_MANUALLY_REBASED_VERIFIED_CANARY_ONLY",
+      "canonical_policy": "APPLY_SEPARATE_SHA_MATCHED_CANONICAL_PATCH; DO_NOT_COPY_ACTUAL_OVER_CANONICAL"
+    }
+  ],
+  "unchanged_algorithms": [
+    {
+      "path": "stage_center/selection.py",
+      "sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294",
+      "bytes": 31705,
+      "modified_by_component": false
+    },
+    {
+      "path": "stage_center/_selection_parts/a_auction.py",
+      "sha256": "01b00f748daa0ef7b0502805d977d883b20616c2070aa35685744af8f9131af1",
+      "bytes": 9078,
+      "modified_by_component": false
+    },
+    {
+      "path": "stage_center/_selection_parts/a_live.py",
+      "sha256": "4225b27df7067663da42b635773bf90e94b4601fc2478b8decb5c635f77d86a0",
+      "bytes": 9704,
+      "modified_by_component": false
+    },
+    {
+      "path": "stage_center/_selection_parts/hk_formula_score.py",
+      "sha256": "4e42a0e6c233f649f8937dc5b5de231ce59fce8363d05025e9df77a78c4f00d7",
+      "bytes": 6812,
+      "modified_by_component": false
+    },
+    {
+      "path": "stage_center/_selection_parts/hk_four_lanes.py",
+      "sha256": "d44cd657b15b806922dd99317cfe759849a0d59884a0e39a533f0204f530ae71",
+      "bytes": 8428,
+      "modified_by_component": false
+    },
+    {
+      "path": "stage_center/_selection_parts/market_quality.py",
+      "sha256": "726cd4987a070bf78ac7416756f3cbba86633b1176f6f43535ac747263474b3f",
+      "bytes": 5196,
+      "modified_by_component": false
+    },
+    {
+      "path": "stage_center/contracts.py",
+      "sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+      "bytes": 2331,
+      "modified_by_component": false
+    }
+  ],
+  "unchanged_field_sources": [
+    {
+      "path": "stage_center/_live_collectors_parts/a_minute.py",
+      "sha256": "5d56f92766b9b802c4b403d8f5af25cc82a9ef6b3f82675d1406fb4752c4362e",
+      "bytes": 2110,
+      "modified_by_component": false
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/a_auction.py",
+      "sha256": "2b39ede48161e6be59efc769849a8da2319521faeac3f2985b82de508e7c6aef",
+      "bytes": 15073,
+      "modified_by_component": false
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/temporal_validation.py",
+      "sha256": "61c8fec0021fb66356cf31791a5bc3af576681fa1e576bbf142463b581dc2961",
+      "bytes": 6121,
+      "modified_by_component": false
+    },
+    {
+      "path": "stage_center/live_collectors.py",
+      "sha256": "82a08c2bbe286184e1a224d0a44e576d0f812f1ec2929ded303ab191a1d554bf",
+      "bytes": 15004,
+      "modified_by_component": false
+    },
+    {
+      "path": "upstreams/v3_shared_data/scripts/live_acquisition/pytdx_hq.py",
+      "sha256": "7b5f062e6c1231fa5edc7db0de5406066220e69cfe3605bf5b13fd3e0b8ad18f",
+      "bytes": 19952,
+      "modified_by_component": false
+    },
+    {
+      "path": "upstreams/v3_shared_data/scripts/live_acquisition/pytdx_exhq.py",
+      "sha256": "19946fd9c09033a77b460fe5a68f70969623d3b1c26f058091349e702d482fdd",
+      "bytes": 8534,
+      "modified_by_component": false
+    },
+    {
+      "path": "upstreams/v3_shared_data/scripts/live_acquisition/futu_minute.py",
+      "sha256": "af4cc0efea026eb3f6fa084389d6ee8351a286d38765e337147ced88fda150da",
+      "bytes": 4507,
+      "modified_by_component": false
+    }
+  ],
+  "required_new_module_from_hk_component": "stage_center/hk_current_day_research.py",
+  "test_support_namespace": {
+    "path": "support/_namespace.py",
+    "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+    "source_ref": "0fc3e8304e11700230517616ded0c86f83a4b257",
+    "source_path": "handoff/stage-minimal-fix-20261009-r1/work/quote_fields/support/stage_center/_selection_parts/_namespace.py",
+    "role": "TEST_ONLY_NOT_DEPLOY"
+  },
+  "live_mac_data_read": false,
+  "real_provider_network_calls": 0,
+  "mac_api_ui_natural_execution": "NOT_RUN",
+  "tests": {
+    "before": {
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests",
+        "--junitxml=/workspace/scratch/4156d1ebfa78/stage_research_r2/components/collectors/evidence/final_before/junit.xml"
+      ],
+      "cwd": "/workspace/scratch/4156d1ebfa78/stage_research_r2/components/collectors",
+      "phase": "before",
+      "runtime_root": "PINNED_RUNTIME_BEFORE_WITH_COMPONENT_OVERLAYS",
+      "started_at": "2026-10-09T09:24:57.995166+00:00",
+      "finished_at": "2026-10-09T09:24:59.090140+00:00",
+      "exit_code": 1,
+      "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]",
+      "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+      "tests": 36,
+      "failures": 32,
+      "errors": 0,
+      "skipped": 0,
+      "source_files": [
+        {
+          "path": "before/stage_center/_live_collectors_parts/collector_registry.py",
+          "sha256": "b8c366267f611ff76d0228093a9d826ee7c367b938aa4ab098f022a687245999"
+        },
+        {
+          "path": "before/stage_center/_live_collectors_parts/hk_minute.py",
+          "sha256": "b6c78a4ffd7193d0e1afeee530a1c4c123e72a20ba3bc9f8183727dcca58a179"
+        },
+        {
+          "path": "before/stage_center/_live_collectors_parts/selection_builder_registry.py",
+          "sha256": "5b315c482723f4bbfb187e36241ea422f2a59518a2056be037d1fdbe2f00eb22"
+        },
+        {
+          "path": "tests/conftest.py",
+          "sha256": "56d47b5c0f5151ee4561d3ed9365f1ebb41cd9a47ea7d81a5585b08429fa8bf8"
+        },
+        {
+          "path": "tests/test_collector_fields.py",
+          "sha256": "513ea0d0cb349614213a026b0d30c2234ddc97e523a33739b9554ea02720f421"
+        },
+        {
+          "path": "tests/test_hk_current_research_pipeline.py",
+          "sha256": "6e882a8b549c43995204b91047ce74cb89e0925ccf1100b2c2aa0bd5a56fcfa2"
+        },
+        {
+          "path": "support/_namespace.py",
+          "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1"
+        }
+      ],
+      "scope": "SYNTHETIC_PROVIDER_RESPONSES_NATIVE_NORMALIZATION_SOURCE_BUILDER_SELECTORS_STORES_AND_REAL_WITNESS_VALIDATOR",
+      "mac": "NOT_RUN",
+      "provider_network_calls": 0,
+      "real_user_snapshot_read": false,
+      "api_ui": "NOT_RUN",
+      "natural_execution": "NOT_RUN"
+    },
+    "after": {
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests",
+        "--junitxml=/workspace/scratch/4156d1ebfa78/stage_research_r2/components/collectors/evidence/final_after/junit.xml"
+      ],
+      "cwd": "/workspace/scratch/4156d1ebfa78/stage_research_r2/components/collectors",
+      "phase": "after",
+      "runtime_root": "PINNED_RUNTIME_BEFORE_WITH_COMPONENT_OVERLAYS",
+      "started_at": "2026-10-09T09:25:00.056061+00:00",
+      "finished_at": "2026-10-09T09:25:00.814544+00:00",
+      "exit_code": 0,
+      "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]",
+      "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+      "tests": 36,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source_files": [
+        {
+          "path": "after/stage_center/_live_collectors_parts/collector_registry.py",
+          "sha256": "ffbb149879c549d389ae4cc16e18a0e813808e0269c980e4f5fc9ee8db5d8eeb"
+        },
+        {
+          "path": "after/stage_center/_live_collectors_parts/hk_minute.py",
+          "sha256": "4225089d076fe3db535b671879ce49f51bb2c453833edcca3f72eda7db86ee4a"
+        },
+        {
+          "path": "after/stage_center/_live_collectors_parts/selection_builder_registry.py",
+          "sha256": "62738552347913633aca16a805a163bf3346cdf8ab0cf79eed3c8be75c9fe522"
+        },
+        {
+          "path": "tests/conftest.py",
+          "sha256": "56d47b5c0f5151ee4561d3ed9365f1ebb41cd9a47ea7d81a5585b08429fa8bf8"
+        },
+        {
+          "path": "tests/test_collector_fields.py",
+          "sha256": "513ea0d0cb349614213a026b0d30c2234ddc97e523a33739b9554ea02720f421"
+        },
+        {
+          "path": "tests/test_hk_current_research_pipeline.py",
+          "sha256": "6e882a8b549c43995204b91047ce74cb89e0925ccf1100b2c2aa0bd5a56fcfa2"
+        },
+        {
+          "path": "support/_namespace.py",
+          "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1"
+        }
+      ],
+      "scope": "SYNTHETIC_PROVIDER_RESPONSES_NATIVE_NORMALIZATION_SOURCE_BUILDER_SELECTORS_STORES_AND_REAL_WITNESS_VALIDATOR",
+      "mac": "NOT_RUN",
+      "provider_network_calls": 0,
+      "real_user_snapshot_read": false,
+      "api_ui": "NOT_RUN",
+      "natural_execution": "NOT_RUN"
+    },
+    "after_variant_recheck": {
+      "command": [
+        "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests",
+        "--junitxml=/workspace/scratch/4156d1ebfa78/stage_research_r2/components/collectors/evidence/actual_variant_after/junit.xml"
+      ],
+      "cwd": "/workspace/scratch/4156d1ebfa78/stage_research_r2/components/collectors",
+      "phase": "after",
+      "variant": "actual_stage",
+      "runtime_root": "PINNED_RUNTIME_BEFORE_WITH_COMPONENT_OVERLAYS",
+      "started_at": "2026-10-09T09:30:45.423142+00:00",
+      "finished_at": "2026-10-09T09:30:46.195524+00:00",
+      "exit_code": 0,
+      "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]",
+      "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+      "tests": 36,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source_files": [
+        {
+          "path": "after/stage_center/_live_collectors_parts/collector_registry.py",
+          "sha256": "ffbb149879c549d389ae4cc16e18a0e813808e0269c980e4f5fc9ee8db5d8eeb"
+        },
+        {
+          "path": "after/stage_center/_live_collectors_parts/hk_minute.py",
+          "sha256": "4225089d076fe3db535b671879ce49f51bb2c453833edcca3f72eda7db86ee4a"
+        },
+        {
+          "path": "after/stage_center/_live_collectors_parts/selection_builder_registry.py",
+          "sha256": "62738552347913633aca16a805a163bf3346cdf8ab0cf79eed3c8be75c9fe522"
+        },
+        {
+          "path": "tests/conftest.py",
+          "sha256": "9b79cb471c5e123a97cd62e8abf979950ae6a9182274c36b776fe4b0cac7ca5b"
+        },
+        {
+          "path": "tests/test_collector_fields.py",
+          "sha256": "513ea0d0cb349614213a026b0d30c2234ddc97e523a33739b9554ea02720f421"
+        },
+        {
+          "path": "tests/test_hk_current_research_pipeline.py",
+          "sha256": "89f8f3cd0cda43ed0108892c28e420f9b2d0a2e3710c2850e7af3f4901efc892"
+        },
+        {
+          "path": "support/_namespace.py",
+          "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1"
+        }
+      ],
+      "scope": "SYNTHETIC_PROVIDER_RESPONSES_NATIVE_NORMALIZATION_SOURCE_BUILDER_SELECTORS_STORES_AND_REAL_WITNESS_VALIDATOR",
+      "mac": "NOT_RUN",
+      "provider_network_calls": 0,
+      "real_user_snapshot_read": false,
+      "api_ui": "NOT_RUN",
+      "natural_execution": "NOT_RUN"
+    }
+  },
+  "test_commands": {
+    "before": [
+      "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "tests",
+      "--junitxml=/workspace/scratch/4156d1ebfa78/stage_research_r2/components/collectors/evidence/final_before/junit.xml"
+    ],
+    "after": [
+      "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "tests",
+      "--junitxml=/workspace/scratch/4156d1ebfa78/stage_research_r2/components/collectors/evidence/final_after/junit.xml"
+    ]
+  },
+  "test_runner_sha256": "206be1dde138769d3f2e8cad7c699479246d496ec9f4a27f630d21137b9bac64",
+  "canonical_variant": {
+    "manifest": "canonical/COMPONENT_MANIFEST.json",
+    "patch": "canonical/runtime_collectors.patch",
+    "before": "canonical/before",
+    "after": "canonical/after",
+    "tests": {
+      "before": "evidence/canonical_before/execution.json",
+      "after": "evidence/canonical_after/execution.json"
+    }
+  }
+}
