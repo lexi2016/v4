@@ -1,0 +1,27 @@
+{
+  "schema_version": "v4.issue32.canonical_api_modules_addition.v1",
+  "target_date": "20261009",
+  "source_manifest_sha256": "2386a55fc451fd809d4c402ee6df7e83fd979232ea5fd842c98a779c90c8c1e1",
+  "added_files": [
+    {
+      "path": "apps/api/v35_api/preselection_router.py",
+      "sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "bytes": 1322,
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/v35_api/preselection_service.py",
+      "sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+      "bytes": 30761,
+      "mode": "0644"
+    }
+  ],
+  "canonical_app_before_sha256": "435dcedd3beb43bf4a0ccb35ff6fc033ba536a940990c36f5f23358f5492b590",
+  "canonical_app_after_sha256": "435dcedd3beb43bf4a0ccb35ff6fc033ba536a940990c36f5f23358f5492b590",
+  "canonical_app_unchanged": true,
+  "scoped_git_status": [
+    " M apps/api/v35_api/app.py",
+    "?? apps/api/v35_api/preselection_router.py",
+    "?? apps/api/v35_api/preselection_service.py"
+  ]
+}

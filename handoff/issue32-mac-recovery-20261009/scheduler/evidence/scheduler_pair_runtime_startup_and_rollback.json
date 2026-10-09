@@ -1,0 +1,99 @@
+[
+  {
+    "error": "DaemonConfigurationError: announcement app root does not match its explicit pin",
+    "release_id": "issue32-preselection-scheduler-mac-20261009-r1",
+    "schema_version": "v3_5.macos_scheduler_daemon.v1",
+    "status": "ANNOUNCEMENT_HOOK_DISABLED"
+  },
+  {
+    "buy_gate_updated": false,
+    "heartbeat_seconds": 60.0,
+    "orders_sent": false,
+    "pid": 82211,
+    "production_allowed": false,
+    "release_id": "issue32-preselection-scheduler-mac-20261009-r1",
+    "schema_version": "v3_5.macos_scheduler_daemon.v1",
+    "started_at": "2026-10-09T10:51:22.843086+08:00",
+    "status": "DAEMON_READY",
+    "timezone": "Asia/Shanghai"
+  },
+  {
+    "attempt": 0,
+    "business_date": "20261009",
+    "buy_gate_updated": false,
+    "catchup": {
+      "applied": false,
+      "lag_minutes": 0
+    },
+    "failure_class": null,
+    "observed_slot": "1051",
+    "orders_sent": false,
+    "production_allowed": false,
+    "release_id": "issue32-preselection-scheduler-mac-20261009-r1",
+    "retry_after": null,
+    "schema_version": "v3_5.macos_scheduler_result.v1",
+    "status": "NO_DUE_SLOT",
+    "upstream_fingerprint": "tree-89a3e73f7906b6a824691e9206f4bfcf65ce7293ca9dfe1365c21cf825c94a83"
+  },
+  {
+    "buy_gate_updated": false,
+    "cycle": 1,
+    "minute": "2026-10-09T10:51",
+    "orders_sent": false,
+    "pid": 82211,
+    "production_allowed": false,
+    "release_id": "issue32-preselection-scheduler-mac-20261009-r1",
+    "result_status": "NO_DUE_SLOT",
+    "return_code": 0,
+    "schema_version": "v3_5.macos_scheduler_daemon.v1",
+    "status": "DAEMON_CYCLE"
+  },
+  {
+    "buy_gate_updated": false,
+    "cycles": 1,
+    "orders_sent": false,
+    "pid": 82211,
+    "production_allowed": false,
+    "release_id": "issue32-preselection-scheduler-mac-20261009-r1",
+    "schema_version": "v3_5.macos_scheduler_daemon.v1",
+    "status": "DAEMON_STOPPED"
+  },
+  {
+    "buy_gate_updated": false,
+    "heartbeat_seconds": 60.0,
+    "orders_sent": false,
+    "pid": 82246,
+    "production_allowed": false,
+    "release_id": "hk-research-calendar-all-r1-20261007-scheduler",
+    "schema_version": "v3_5.macos_scheduler_daemon.v1",
+    "started_at": "2026-10-09T10:51:52.484080+08:00",
+    "status": "DAEMON_READY",
+    "timezone": "Asia/Shanghai"
+  },
+  {
+    "buy_gate_updated": false,
+    "cycle": 1,
+    "minute": "2026-10-09T10:51",
+    "orders_sent": false,
+    "pid": 82246,
+    "production_allowed": false,
+    "release_id": "hk-research-calendar-all-r1-20261007-scheduler",
+    "result_status": "NO_DUE_SLOT",
+    "return_code": 0,
+    "schema_version": "v3_5.macos_scheduler_daemon.v1",
+    "status": "DAEMON_CYCLE"
+  },
+  {
+    "buy_gate_updated": false,
+    "cycle": 2,
+    "minute": "2026-10-09T10:52",
+    "orders_sent": false,
+    "pid": 82246,
+    "production_allowed": false,
+    "release_id": "hk-research-calendar-all-r1-20261007-scheduler",
+    "result_status": "NO_DUE_SLOT",
+    "return_code": 0,
+    "schema_version": "v3_5.macos_scheduler_daemon.v1",
+    "status": "DAEMON_CYCLE"
+  }
+]

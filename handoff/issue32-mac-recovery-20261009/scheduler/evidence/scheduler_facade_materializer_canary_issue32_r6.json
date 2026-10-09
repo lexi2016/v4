@@ -1,0 +1,275 @@
+{
+  "a_selector_status": "CANNOT_CONFIRM",
+  "active_owner_write_count": 0,
+  "active_scheduler_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/hk-research-calendar-all-r1-20261007-scheduler/app",
+  "actual_facade_child_call_modules": [
+    "scripts.capture_public_fupan",
+    "ops.materialize_shared_v192_preselection",
+    "scripts.update_hk_0_2_panel",
+    "ops.ensure_hk_security_master",
+    "ops.materialize_scheduled_preselection"
+  ],
+  "actual_facade_child_calls": [
+    {
+      "arguments": [
+        "--trade-date",
+        "20261008"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/scheduler_app/upstreams/v3_shared_data",
+      "isolated_root_bindings": {
+        "V35_SHARED_PACKAGE_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/scheduler_app/upstreams/v3_shared_data",
+        "V3_SHARED_DATA_STORE_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/shared_data_root",
+        "V3_SHARED_HK_TDX_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/empty_tdx_root",
+        "V3_SHARED_SELECTOR_READY_PANEL": null
+      },
+      "module": "scripts.capture_public_fupan",
+      "timeout_seconds": 300
+    },
+    {
+      "arguments": [
+        "--signal-date",
+        "20261008",
+        "--target-date",
+        "20261009"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/scheduler_app",
+      "isolated_root_bindings": {
+        "V35_SHARED_PACKAGE_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/scheduler_app/upstreams/v3_shared_data",
+        "V3_SHARED_DATA_STORE_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/shared_data_root",
+        "V3_SHARED_HK_TDX_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/empty_tdx_root",
+        "V3_SHARED_SELECTOR_READY_PANEL": null
+      },
+      "module": "ops.materialize_shared_v192_preselection",
+      "timeout_seconds": 1800
+    },
+    {
+      "arguments": [
+        "--asset-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/shared_data_root/assets/hk_0_2",
+        "--tdx-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/empty_tdx_root",
+        "--through-date",
+        "20261008"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/scheduler_app/upstreams/v3_shared_data",
+      "isolated_root_bindings": {
+        "V35_SHARED_PACKAGE_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/scheduler_app/upstreams/v3_shared_data",
+        "V3_SHARED_DATA_STORE_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/shared_data_root",
+        "V3_SHARED_HK_TDX_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/empty_tdx_root",
+        "V3_SHARED_SELECTOR_READY_PANEL": null
+      },
+      "module": "scripts.update_hk_0_2_panel",
+      "timeout_seconds": 300
+    },
+    {
+      "arguments": [
+        "--store-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/shared_data_root",
+        "--universe-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/empty_universe_root",
+        "--shared-package-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/scheduler_app/upstreams/v3_shared_data",
+        "--trade-date",
+        "20261008",
+        "--futu-python",
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "--prepare-exact-date"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/scheduler_app",
+      "isolated_root_bindings": {
+        "V35_SHARED_PACKAGE_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/scheduler_app/upstreams/v3_shared_data",
+        "V3_SHARED_DATA_STORE_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/shared_data_root",
+        "V3_SHARED_HK_TDX_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/empty_tdx_root",
+        "V3_SHARED_SELECTOR_READY_PANEL": null
+      },
+      "module": "ops.ensure_hk_security_master",
+      "timeout_seconds": 300
+    },
+    {
+      "arguments": [
+        "--trade-date",
+        "20261009",
+        "--signal-date",
+        "20261008",
+        "--data-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/run_data",
+        "--input-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/input_root",
+        "--shared-data-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/shared_data_root",
+        "--shared-package-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/scheduler_app/upstreams/v3_shared_data"
+      ],
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/scheduler_app",
+      "isolated_root_bindings": {
+        "V35_SHARED_PACKAGE_ROOT": null,
+        "V3_SHARED_DATA_STORE_ROOT": null,
+        "V3_SHARED_HK_TDX_ROOT": null,
+        "V3_SHARED_SELECTOR_READY_PANEL": null
+      },
+      "module": "ops.materialize_scheduled_preselection",
+      "timeout_seconds": 300
+    }
+  ],
+  "actual_facade_handler_result": {
+    "a_selector_status": "CANNOT_CONFIRM",
+    "exit_code": 1,
+    "failure_class": "UPSTREAM_NOT_READY",
+    "first_gate": "HK_SECURITY_MASTER",
+    "formal_pool_gate": {
+      "missing_or_invalid": [
+        "hkconnect_d1_top100"
+      ],
+      "required": {
+        "a_d1_premarket_pool": {
+          "ready": true,
+          "row_count": 37,
+          "status": "V192_CANDIDATE_READY"
+        },
+        "hkconnect_d1_top100": {
+          "ready": false,
+          "row_count": 0,
+          "status": "CANNOT_CONFIRM"
+        }
+      },
+      "status": "FAILED"
+    },
+    "hk_lane_status": "CANNOT_CONFIRM",
+    "hk_local_pool_gate_status": "CANNOT_CONFIRM",
+    "materializer_status": "FAILED",
+    "modules": [
+      "scripts.capture_public_fupan",
+      "ops.materialize_shared_v192_preselection",
+      "scripts.update_hk_0_2_panel",
+      "ops.ensure_hk_security_master",
+      "scripts.materialize_hk_0_2",
+      "ops.materialize_d1_review_lanes",
+      "ops.materialize_scheduled_preselection"
+    ],
+    "producer_called": null,
+    "status": "FAILED",
+    "write_performed": null
+  },
+  "actual_facade_loader_check": {
+    "bound_method_code_filename": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/scheduler_app/infrastructure/scheduling/executor_registry_preselection.py",
+    "bound_method_code_resolves_to_candidate_handler": true,
+    "bound_method_globals_are_facade_globals": true,
+    "bound_method_module": "infrastructure.scheduling.executor_registry",
+    "candidate_handler_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/scheduler_app/infrastructure/scheduling/executor_registry_preselection.py",
+    "facade_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/scheduler_app/infrastructure/scheduling/executor_registry.py",
+    "timeout_global_value": 1800
+  },
+  "candidate_full_app": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/scheduler_app",
+  "candidate_full_app_delta": [
+    "infrastructure/scheduling/dispatcher.py",
+    "infrastructure/scheduling/executor_registry_preselection.py",
+    "ops/ensure_hk_security_master.py",
+    "upstreams/v3_shared_data/shared_data/hk_security_master.py"
+  ],
+  "candidate_full_app_delta_sha256": "4357d57b7fac0883a30035b55b1006eca0f34b3c201ebb31c6f6986e15abc902",
+  "external_runner_controlled": true,
+  "harness_iterations": [
+    "First r6 invocation omitted PYTHONPATH and failed import before loading the candidate app.",
+    "Next invocation supplied the pinned package path but an explicit Python 3.14 HK runtime made the unrelated HK_RUNTIME gate win.",
+    "Final invocation used the runner seam without an explicit HK runtime and reached the exact missing-master gate; no materializer was rerun."
+  ],
+  "hk_scorer_called": false,
+  "hourly_source_snapshot": {
+    "exact_source_path_count": 16,
+    "file_count": 48,
+    "inventory_sha256": "2c4f04626f22e72fb4959ae71924c2dae97f167eb96a19222ac54c8e1d997bfe",
+    "no_live_source_root_passed_to_handler": true,
+    "root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/source_snapshot",
+    "source_identity_sha256": "f1c9c64d5d1c470bbfd82c2d70461cd64e411a77cffd206e870c6221c31a32ea",
+    "subset_manifest_sha256": "7a78151e000d92150c0d9f33c114e74603de211848d33bc0d490ae7bc60f8da6"
+  },
+  "input_snapshot": {
+    "original_unchanged_from_api_canary_receipt": true,
+    "source_copy_file_count": 15,
+    "source_copy_inventory_sha256": "19929bb17f5e76eb3f454489b3256dc7cfc1e184fe96f8bae1c3178b44c2e055",
+    "source_copy_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/api_canary_input_r4/preselection_pools/20261009"
+  },
+  "isolated_formal_pools": {
+    "a_d1_premarket_pool": {
+      "row_count": 37,
+      "source_sha256": "6bcb7e59e794a120174dedd6c5b665c18ff90d05cdacf37c610596a747c8f228",
+      "status": "V192_CANDIDATE_READY"
+    },
+    "a_share_research_recommendation_pool": {
+      "row_count": 186,
+      "source_sha256": "f1c9c64d5d1c470bbfd82c2d70461cd64e411a77cffd206e870c6221c31a32ea",
+      "status": "RESEARCH_RECOMMENDATION_POOL_READY"
+    },
+    "hkconnect_d1_top100": {
+      "row_count": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "CANNOT_CONFIRM"
+    }
+  },
+  "launchctl_called": false,
+  "live_shared_store_write_count": 0,
+  "materializer_reexecuted_for_r6": false,
+  "natural_receipt_verified": false,
+  "network_calls": 0,
+  "paired_candidate_manifest_sha256": "112d97dd4714107be7362de8db2a6dc4dd1c0f8621acd587eb5e0bc6952390ca",
+  "probe": {
+    "command": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "-B",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/tools/scheduler_facade_canary_probe_issue32_r6.py",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/scheduler_app",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/run_data",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/input_root",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/shared_data_root",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/scheduler_app/upstreams/v3_shared_data",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/empty_universe_root",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/empty_tdx_root",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/materializer_stdout.jsonl",
+      "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/materializer_stderr.txt"
+    ],
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/tools/scheduler_facade_canary_probe_issue32_r6.py",
+    "returncode": 0,
+    "sha256": "2e39cd027db258708ccdf912ac3d345add40c42020081fb090698e7db6e27b9c",
+    "stderr_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/evidence/scheduler_facade_materializer_canary_issue32_r6_probe_stderr.txt",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/evidence/scheduler_facade_materializer_canary_issue32_r6_probe_stdout.json",
+    "stdout_sha256": "2685a861c93a6cb561c2b62fb9fe6d6ee29ba80b4c43378e26d452660cd364f4"
+  },
+  "reused_actual_materializer": {
+    "formal_pool_gate": {
+      "missing_or_invalid": [
+        "hkconnect_d1_top100"
+      ],
+      "required": {
+        "a_d1_premarket_pool": {
+          "ready": true,
+          "row_count": 37,
+          "status": "V192_CANDIDATE_READY"
+        },
+        "hkconnect_d1_top100": {
+          "ready": false,
+          "row_count": 0,
+          "status": "CANNOT_CONFIRM"
+        }
+      },
+      "status": "FAILED"
+    },
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/canary_r5/materializer_result.json",
+    "returncode": 1,
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_sha256": "1ab8695ceba577e5f24a8c605c013ec0acfb0f7acccd3327336fabd422f91b68"
+  },
+  "safety": {
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false,
+    "research_only": true
+  },
+  "scheduler_mutated": false,
+  "schema_version": "v4.issue32.actual_facade_materializer_canary.v4",
+  "scope_limit": "The formal A premarket pool is verified ready with 37 rows, but the isolated selector-ready panel was absent, so the facade reports a_selector_status=CANNOT_CONFIRM. The exact-date HK security-master input is unavailable, so the actual facade handler returns FAILED/UPSTREAM_NOT_READY at first_gate=HK_SECURITY_MASTER and does not call HK scoring. This proves the bounded facade binding and failure path; it does not prove a Stage run, A Stage acceptance, live scheduler behavior, deployment, or a natural receipt.",
+  "signal_date": "20261008",
+  "stage_run_performed": false,
+  "status": "PASS_ACTUAL_FACADE_BINDING_AND_HK_MASTER_FAIL_CLOSED",
+  "target_date": "20261009"
+}

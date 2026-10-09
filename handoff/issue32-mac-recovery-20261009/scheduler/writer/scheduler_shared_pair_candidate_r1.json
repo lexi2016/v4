@@ -1,0 +1,63 @@
+{
+  "active_before_identities_match": true,
+  "active_write_count": 0,
+  "after_package_identities_match": true,
+  "candidate_after_identities_match": true,
+  "candidate_manifest_sha256": "112d97dd4714107be7362de8db2a6dc4dd1c0f8621acd587eb5e0bc6952390ca",
+  "candidate_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1",
+  "candidate_source_inventory_sha256": "57602177b536d010ad34dce3a956fa73d1082155415550652939872c729d0cc0",
+  "files": [
+    {
+      "active_before_bytes": 14626,
+      "active_before_mode": "0644",
+      "active_before_sha256": "a93d78461c59065404d240cf8ba5d1b8212e7e3bfebb270ee2df0df05908000f",
+      "active_source_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/hk-research-calendar-all-r1-20261007-scheduler/app/infrastructure/scheduling/dispatcher.py",
+      "candidate_after_bytes": 15246,
+      "candidate_after_mode": "0644",
+      "candidate_after_sha256": "d186949486f1807c72f4795ff273f1ee886afb536a82e8a328b13bc4cb9f1bf3",
+      "candidate_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/scheduler_app/infrastructure/scheduling/dispatcher.py",
+      "owner": "actual_pool_scheduler",
+      "product_path": "infrastructure/scheduling/dispatcher.py"
+    },
+    {
+      "active_before_bytes": 16634,
+      "active_before_mode": "0644",
+      "active_before_sha256": "8b3e6a89536192a74f4b6fa9528874146019f86c595f76f074d75c3e8c3c745a",
+      "active_source_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/hk-research-calendar-all-r1-20261007-scheduler/app/infrastructure/scheduling/executor_registry_preselection.py",
+      "candidate_after_bytes": 19687,
+      "candidate_after_mode": "0644",
+      "candidate_after_sha256": "f965f4ebf42ff38a05af7b7bea8f2db22f5580f4859237cfe9e56492830d905b",
+      "candidate_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/scheduler_app/infrastructure/scheduling/executor_registry_preselection.py",
+      "owner": "actual_pool_scheduler",
+      "product_path": "infrastructure/scheduling/executor_registry_preselection.py"
+    },
+    {
+      "active_before_bytes": 29319,
+      "active_before_mode": "0644",
+      "active_before_sha256": "ae6bae7dbd87f03327cf03904beee2e1f8b3e63b262057b49a3f6186eedf21f7",
+      "active_source_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/hk-research-calendar-all-r1-20261007-scheduler/app/ops/ensure_hk_security_master.py",
+      "candidate_after_bytes": 34014,
+      "candidate_after_mode": "0644",
+      "candidate_after_sha256": "ff03d294128e9fdbe5c319688bea2b8ae1ff1d63afadd51c5a66041e0300321e",
+      "candidate_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/scheduler_app/ops/ensure_hk_security_master.py",
+      "owner": "actual_pool_scheduler",
+      "product_path": "ops/ensure_hk_security_master.py"
+    },
+    {
+      "active_before_bytes": 9714,
+      "active_before_mode": "0644",
+      "active_before_sha256": "a5e9337559c530283eea4ca36c3535dbb9dbc902c920ae4ccbf0f1a1626ab764",
+      "active_source_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "candidate_after_bytes": 18794,
+      "candidate_after_mode": "0644",
+      "candidate_after_sha256": "2703a97e6ac18c03b06184a482857d303d77d49adaf1561a2c82423dea084847",
+      "candidate_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/shared_owner/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "owner": "actual_shared_owner",
+      "product_path": "shared_data/hk_security_master.py"
+    }
+  ],
+  "live_owner_mutation_count": 0,
+  "paired_file_count": 4,
+  "source_manifest_sha256": "2386a55fc451fd809d4c402ee6df7e83fd979232ea5fd842c98a779c90c8c1e1",
+  "status": "PAIRED_CANDIDATE_READY_FOR_REVIEW"
+}

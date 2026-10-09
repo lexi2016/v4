@@ -1,0 +1,107 @@
+{
+  "schema_version": "v4.issue32.scheduler_r3_post_publish_readback.v1",
+  "status": "READBACK_PASS_WITH_LAYER_LIMITS",
+  "review_scope": "Independent read-only verification of actual R3 LaunchAgent identity, announcement initialization, and first 11:00 slot receipt",
+  "layers": {
+    "DEPLOYED": "VERIFIED_RUNTIME",
+    "announcement_hook_initialization": "PASS_STARTUP_NO_HOOK_DISABLED_OR_ERROR",
+    "announcement_collection": "NOT_DUE; network_requests=0; state_writes=0",
+    "NATURAL_VERIFIED": "PASS_SCHEDULER_HOURLY_RESEARCH_ONLY",
+    "STAGE_NATURAL_SLOT": "NATURAL_SLOT_UNVERIFIED",
+    "exact_date_hk_readiness": "CANNOT_CONFIRM",
+    "RESEARCH_ONLY": "CANNOT_CONFIRM_NOT_EXPOSED_BY_RUNTIME_ENV_OR_DISPATCH_RECEIPT",
+    "orders_sent": false,
+    "buy_gate_updated": false,
+    "production_allowed": false
+  },
+  "actual_identity": {
+    "launch_agent_label": "com.lexi.v35.scheduler",
+    "launchctl_domain": "gui/501",
+    "launchctl_state": "running",
+    "pid": 83677,
+    "process_command": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/runtime/venvs/v3.5-mac/bin/python -S -m ops.run_v35_macos_scheduler_daemon",
+    "scheduler_app_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app",
+    "release_id": "issue32-preselection-scheduler-mac-20261009-r1",
+    "scheduler_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/release-manifest.json",
+    "scheduler_manifest_sha256": "6ccaa8fcf7e7046b53b2451829a1c4ed805ad274287ae2580eee36391f5f0794",
+    "shared_package_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-hk-security-master-owner-mac-20261009-r1/app/upstreams/v3_shared_data",
+    "shared_release_id": "issue32-hk-security-master-owner-mac-20261009-r1",
+    "shared_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-hk-security-master-owner-mac-20261009-r1/release-manifest.json",
+    "shared_manifest_sha256": "3416b3c0fb02d0dc1abb6bbb2e7449846db8324ec1ba625690366b2b7decbdb3",
+    "announcement_binding_sha256": "c0fbff52449eb5dbf5c1655f17cf08915bea1214f9499cc8a4df1176d9625951",
+    "announcement_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app",
+    "announcement_cycle_sha256": "cd91604a7f7d7f2f960bbbd337fcd453bf97bb298c14f0a7fb8804fdcbaf0a84",
+    "announcement_plan_canary_sha256": "f891e74f2bbfed928f36479b0cbea57ab5fdcf2ab4882f9977f82654bfcbba81",
+    "active_plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+    "active_plist_sha256": "b9e9e8361e9ce6eaca58df0688fcd214bf35bdc702f5febe405d07c6ceb05754",
+    "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app"
+  },
+  "first_scheduler_slot": {
+    "scheduled_slot": "20261009/1100",
+    "receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher/receipts/live/20261009/1100/d5f909e6b3af485099108d60417e17db.dispatch-receipt.json",
+    "receipt_sha256": "8c815d8b0147bfacba2817d929494a1f8bea6eaf8bbd4199dbe5c06d0c65bcd4",
+    "schema_version": "v3_5.dispatch.v1",
+    "status": "SUCCEEDED",
+    "run_id": "d5f909e6b3af485099108d60417e17db",
+    "execution_origin": "ORIGINAL_SLOT",
+    "selected_workload_ids": [
+      "hourly_research"
+    ],
+    "started_workload_ids": [
+      "hourly_research"
+    ],
+    "runtime_status": "READY_WITH_RESEARCH_POOL",
+    "external_source_read_only": true,
+    "natural_execution_verified": false,
+    "shared_acquisition_status": "NOT_STAGE_SLOT",
+    "target_date": "20261009",
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "evidence": {
+    "publish_receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/evidence/scheduler_pair_publish_r3_receipt.json",
+    "publish_receipt_sha256": "7b4a88a0d53e7d7d8537c34dcc152538e6c54909fa05623a284b25f1b310e55a",
+    "startup_events_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/evidence/scheduler_pair_r3_startup_events.json",
+    "startup_events_sha256": "d3720c9b8648c9852eb652a16fd19ae9e5cf9c8b3e90f4bb1ffbfb6c896849e8",
+    "startup_statuses": [
+      "DAEMON_READY",
+      "NO_DUE_SLOT",
+      "DAEMON_CYCLE",
+      "NOT_DUE",
+      "SUCCEEDED"
+    ],
+    "announcement_init_error_absent": true,
+    "announcement_not_due_counts": {
+      "network_requests": 0,
+      "state_writes": 0
+    }
+  },
+  "manifest_state_conflict": {
+    "scheduler_manifest_activation_status": "NOT_ACTIVATED",
+    "scheduler_manifest_deployment_status": "STAGED_IN_E_ONLY_NOT_DEPLOYED",
+    "shared_manifest_activation_status": "NOT_ACTIVATED",
+    "shared_manifest_deployment_status": "STAGED_IN_E_ONLY_NOT_DEPLOYED",
+    "observed_launchd_runtime_is_active": true
+  },
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": [
+      "Scheduler/shared release manifests retain NOT_ACTIVATED and STAGED_IN_E_ONLY_NOT_DEPLOYED labels while those exact roots are loaded by the active LaunchAgent."
+    ]
+  },
+  "cannot_confirm": [
+    "explicit RESEARCH_ONLY runtime environment flag",
+    "Stage natural-slot result",
+    "exact 20261008 HK security-master readiness",
+    "HK Stage selection",
+    "historical un-timestamped ANNOUNCEMENT_BINDING_REVOKED stderr line attribution to PID 83677"
+  ],
+  "actions_by_reviewer": {
+    "services_changed": false,
+    "task_triggered": false,
+    "tests_rerun": false,
+    "files_changed_outside_reviewer_output": false
+  }
+}

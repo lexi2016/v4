@@ -1,0 +1,52 @@
+{
+  "schema_version": "v4.issue32.canonical_patch_application.v1",
+  "target_date": "20261009",
+  "source_manifest_sha256": "2386a55fc451fd809d4c402ee6df7e83fd979232ea5fd842c98a779c90c8c1e1",
+  "input_commit": "b00ca5a658a9de83cf5e54ad39aa68ddd5c23526",
+  "current_git_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "canonical_paths": [
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/preselection.py",
+      "before_sha256": "14374bf18cc310eca639a55b7fff1bde75785bc9ee59cbf23a10ae3a736e70c1",
+      "after_expected_sha256": "e927f266e9977d7e69e4c6b9f72039ebf060597dd2dd1193fd579ff03dc8ddad",
+      "after_observed_sha256": "e927f266e9977d7e69e4c6b9f72039ebf060597dd2dd1193fd579ff03dc8ddad",
+      "after_bytes": 29125,
+      "after_mode": "0644",
+      "matches_after": true
+    },
+    {
+      "path": "infrastructure/scheduling/dispatcher.py",
+      "before_sha256": "64e596ff1c554937c93ac921671a204b889f51acd307c88e1aaa2184daadbc01",
+      "after_expected_sha256": "aba5d9b3b692d8e4b9bbb9174f6803dab19f33b3d39d7fd202195aca585c5f59",
+      "after_observed_sha256": "aba5d9b3b692d8e4b9bbb9174f6803dab19f33b3d39d7fd202195aca585c5f59",
+      "after_bytes": 24337,
+      "after_mode": "0644",
+      "matches_after": true
+    },
+    {
+      "path": "ops/ensure_hk_security_master.py",
+      "before_sha256": "6c341a33c0283b023219c46cc2a1c6aaca49cf4b5dcb88aa2fb5527a13145601",
+      "after_expected_sha256": "a0f9fd0e2fb438f03109714a41cf3a10b61a85579498e1ceec87126df2d3c319",
+      "after_observed_sha256": "a0f9fd0e2fb438f03109714a41cf3a10b61a85579498e1ceec87126df2d3c319",
+      "after_bytes": 46251,
+      "after_mode": "0644",
+      "matches_after": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "before_sha256": "ac2c16669236d24d6d03cac183238ca8dccd8fd23895ae14ad34cef40c049008",
+      "after_expected_sha256": "1690ee57e4aedbfa93fd57a88666d3d7b86792a012ef55249f6fd17a82b408f7",
+      "after_observed_sha256": "1690ee57e4aedbfa93fd57a88666d3d7b86792a012ef55249f6fd17a82b408f7",
+      "after_bytes": 18795,
+      "after_mode": "0644",
+      "matches_after": true
+    }
+  ],
+  "scoped_git_status": [
+    " M infrastructure/scheduling/dispatcher.py",
+    " M ops/ensure_hk_security_master.py",
+    " M upstreams/v3_shared_data/shared_data/hk_security_master.py",
+    "?? infrastructure/scheduling/_executor_registry_parts/preselection.py"
+  ],
+  "all_after_sha_match": true
+}

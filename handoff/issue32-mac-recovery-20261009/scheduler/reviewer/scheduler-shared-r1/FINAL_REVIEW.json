@@ -1,0 +1,185 @@
+{
+  "schema_version": "v4.issue32.scheduler_shared_reviewer.v1",
+  "scope": "Frozen Issue32 scheduler/shared four-file delta; read-only review. No service, release, API, or data writes performed.",
+  "verdict": {
+    "REVIEWED": "PASS",
+    "BEHAVIOR_VERIFIED": "PASS_SCOPED_FAIL_CLOSED_BRANCH",
+    "CAN_DEPLOY": "YES_SCOPED_TO_PAIRED_SCHEDULER_RELEASE_WITH_HK_INPUT_STILL_BLOCKED",
+    "DEPLOYED": false,
+    "P0": [],
+    "P1": [],
+    "P2": [
+      "Optional verified-source restore has an explicit quiescence precondition; no shared writer lock closes the final check-to-replace race. This does not block the staged scheduler path because its child command does not configure a verified source root."
+    ]
+  },
+  "candidate": {
+    "manifest": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/writer/scheduler_shared_pair_candidate_r1.json",
+    "manifest_sha256": "2b50ad89d5c94cb85c06baacc8d5a94eb0897fa7887610201fd7a67247f9349b",
+    "delta_sha256": "112d97dd4714107be7362de8db2a6dc4dd1c0f8621acd587eb5e0bc6952390ca",
+    "files": {
+      "infrastructure/scheduling/dispatcher.py": "d186949486f1807c72f4795ff273f1ee886afb536a82e8a328b13bc4cb9f1bf3",
+      "infrastructure/scheduling/executor_registry_preselection.py": "f965f4ebf42ff38a05af7b7bea8f2db22f5580f4859237cfe9e56492830d905b",
+      "ops/ensure_hk_security_master.py": "ff03d294128e9fdbe5c319688bea2b8ae1ff1d63afadd51c5a66041e0300321e",
+      "shared_data/hk_security_master.py": "2703a97e6ac18c03b06184a482857d303d77d49adaf1561a2c82423dea084847"
+    },
+    "staging_plan_sha256": "1e81329dc485b16223a8ed8fa4c8ee7b14dfe69f1b11578e2bac37ee1110fc1a",
+    "stage_receipt_sha256": "af1587a3e414f131a95e4ff2b0155f4d368694640366899d25562f2ed58a0f72",
+    "stage_verification_sha256": "935557246f716f136a8d6590349d1b073d6b1ffe73763c0cb387fc881b41d9af",
+    "formal_release_roots_written": false,
+    "launchctl_called": false
+  },
+  "verification": {
+    "focused_tests": {
+      "command": "set -o pipefail; '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q -p no:cacheprovider '/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/package/tests/test_dispatcher_receipts.py' '/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/package/tests/test_preselection_executor_prerequisites.py' '/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/package/tests/test_preselection_executor_local_gate.py' '/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/package/tests/test_hk_prepare_restore.py'",
+      "result": "108 passed, 5 warnings in 0.54s",
+      "warnings": "pytest tmp-path cleanup PermissionError/OSError warnings; zero test failures.",
+      "output": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/reviewer/scheduler-shared-r1/focused_pytest.txt"
+    },
+    "actual_facade_probe": {
+      "receipt": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/reviewer/scheduler-shared-r1/probe_stdout.json",
+      "sha256": "2685a861c93a6cb561c2b62fb9fe6d6ee29ba80b4c43378e26d452660cd364f4",
+      "candidate_handler_is_facade_bound": true,
+      "timeout_global_seconds": 1800,
+      "first_gate": "HK_SECURITY_MASTER",
+      "formal_a_rows": 37,
+      "research_a_rows": 186,
+      "hk_rows": 0,
+      "a_selector_status": "CANNOT_CONFIRM",
+      "hk_scoring_calls": 0,
+      "runner": "Controlled child runner stubs; reused the recorded actual materializer output. Not a live subprocess, Stage run, or real HK source canary."
+    },
+    "staged_pair": {
+      "scheduler_inventory_entries": 635,
+      "scheduler_inventory_sha256": "dc76545d1b62d20507a79038fbd9f943797cc46af92026348bd4ea80be14454d",
+      "shared_inventory_entries": 107,
+      "shared_inventory_sha256": "eaf42789717e563fae2046c6cb9588108a415eada3fb2ec835cf9183e3385168",
+      "scheduler_delta": [
+        "infrastructure/scheduling/dispatcher.py",
+        "infrastructure/scheduling/executor_registry_preselection.py",
+        "ops/ensure_hk_security_master.py",
+        "upstreams/v3_shared_data/shared_data/hk_security_master.py"
+      ],
+      "shared_owner_delta": [
+        "shared_data/hk_security_master.py"
+      ],
+      "staged_plist_sha256": "9c395256d7d67a1dd58ba063ada56a13442d19b64fdd3d36aee8344737fa3875",
+      "staged_release_manifest_sha256": "6ccaa8fcf7e7046b53b2451829a1c4ed805ad274287ae2580eee36391f5f0794",
+      "paired_shared_manifest_sha256": "3416b3c0fb02d0dc1abb6bbb2e7449846db8324ec1ba625690366b2b7decbdb3",
+      "active_preimage_plist_sha256": "c478c87e7866fa50154df674ea7cb570197251aaa5da3014b3666e7f22914da2",
+      "result": "Exact 4-file scheduler delta and 1-file paired shared-owner delta; all product bytes/modes match candidate. Formal release paths remain absent."
+    }
+  },
+  "findings": [
+    {
+      "id": "P2-HK-RESTORE-CONCURRENT-WRITER-PRECONDITION",
+      "severity": "P2",
+      "evidence": [
+        {
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/shared_owner/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+          "lines": "218-226, 313-318"
+        },
+        {
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/package/tests/test_hk_prepare_restore.py",
+          "lines": "345-364"
+        },
+        {
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/scheduler_app/infrastructure/scheduling/executor_registry_preselection.py",
+          "lines": "279-290"
+        }
+      ],
+      "finding": "restore_verified_hk_security_master documents that original owner writers must be quiescent. It compares target latest.json bytes at line 314 and then unconditionally replaces the pointer at line 318. A publisher that writes latest.json after the comparison and before replacement can have its other-date entry dropped. The current scheduled child invocation does not pass --verified-source-store-root, so this restore path is not enabled by the staged scheduler binding.",
+      "coverage": "test_restore_detects_observed_target_pointer_update_without_lost_date covers a pointer change during artifact copying, before the final comparison; it does not cover the compare-to-replace interval.",
+      "action": "Before any caller supplies a verified source root while owner writers can run, enforce shared writer quiescence or coordinate all latest.json writers under one lock/CAS protocol. No fix is required to the current fail-closed scheduler path while the optional source restore remains unconfigured.",
+      "deployment_impact": "Non-blocking for the reviewed staged scheduler path; CANNOT_CONFIRM for future restore callers and their quiescence controls."
+    }
+  ],
+  "cannot_confirm": [
+    "Genuine exact-date HK security master for 20261008 is absent; no HK pool or selector-ready panel verified.",
+    "The isolated canary intentionally blocks at HK_SECURITY_MASTER and makes no HK scoring call; no Stage result was produced.",
+    "No formal release directories were written and no scheduler service or plist was changed; deployment/runtime integration is not verified.",
+    "No natural-schedule receipt, live UI/API behavior, or live-source restoration behavior was verified."
+  ],
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "release_id_same_day_replay_review": {
+    "conclusion": "NO_REPLAY_OF_OBSERVED_COMPLETED_SAME_DAY_SLOTS",
+    "observed_at_utc": "2026-10-09T02:49:30Z",
+    "observed_at_shanghai": "2026-10-09T10:49:30+08:00",
+    "can_switch": "YES_NOW_BEFORE_11:00_SHANGHAI; no need to wait until end of day for completed-slot dedup.",
+    "startup_behavior": "The staged plist has RunAtLoad=true. A new daemon executes its first one-shot scheduler cycle immediately on entering the loop. At observed 10:49, the current minute is not a slot; 10:30 and 10:00 are the eligible recent fixed/hourly slots and both have persisted claims. First cycle therefore finds no unclaimed scheduled slot; next scheduled slot is 11:00.",
+    "code_evidence": [
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/staged_pair_r2/scheduler/config/com.lexi.v35.scheduler.plist",
+        "lines": "177-178",
+        "evidence": "RunAtLoad=true"
+      },
+      {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/hk-research-calendar-all-r1-20261007-scheduler/app/ops/run_v35_macos_scheduler_daemon.py",
+        "lines": "740-770, 552-564",
+        "evidence": "At daemon startup last_minute is None, so first loop immediately calls the one-shot scheduler before the wait."
+      },
+      {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/hk-research-calendar-all-r1-20261007-scheduler/app/ops/run_v35_macos_scheduler.py",
+        "lines": "423-426, 443-460",
+        "evidence": "Passes the new release_id into due resolution; unknown current minute returns NO_DUE_SLOT."
+      },
+      {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/hk-research-calendar-all-r1-20261007-scheduler/app/ops/run_v35_macos_scheduler_due.py",
+        "lines": "93-102, 117-135, 253-261, 304-339, 458-527",
+        "evidence": "Checks claim file before receipt identity filtering; release_id filters old receipts, but existing claims still block exact/catch-up slots."
+      },
+      {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/hk-research-calendar-all-r1-20261007-scheduler/app/infrastructure/scheduling/execution_ledger.py",
+        "lines": "190-239, 113-145, 147-168, 306-330",
+        "evidence": "Dispatch claim key is claims/{mode}/{business_date}/{slot}/dispatch.claim.json and carries no release_id; valid non-FAILED receipt keeps a dead claim from being replaced. Failed dispatch alone releases the claim."
+      },
+      {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/hk-research-calendar-all-r1-20261007-scheduler/app/infrastructure/scheduling/dispatcher.py",
+        "lines": "202-208, 406-412",
+        "evidence": "Claim acquisition precedes workload execution; an existing claim returns CONCURRENCY_SKIPPED. Claim release occurs only after FAILED aggregate receipt."
+      },
+      {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/hk-research-calendar-all-r1-20261007-scheduler/app/ops/run_scheduled_slot.py",
+        "lines": "45-54",
+        "evidence": "11:00 is the next fixed slot."
+      }
+    ],
+    "current_same_day_ledger": {
+      "root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher",
+      "business_date": "20261009",
+      "1000": {
+        "claim_exists": true,
+        "run_id": "8159ebd9c7354d5aa084e018a454b972",
+        "receipt_status": "SUCCEEDED",
+        "receipt_release_id": "hk-research-calendar-all-r1-20261007-scheduler"
+      },
+      "1030": {
+        "claim_exists": true,
+        "run_id": "a99ee91f645b490eb42d50ec0bf2a06f",
+        "receipt_status": "NO_DUE_WORKLOADS",
+        "receipt_release_id": "hk-research-calendar-all-r1-20261007-scheduler"
+      },
+      "0901_and_0915": "Claims absent; latest failures are UPSTREAM_NOT_READY. At 10:49, both are outside the 59-minute catch-up window; 09:15 also has an opening-window cutoff at 09:19."
+    },
+    "release_id_effect": "A new release_id intentionally treats prior-release FAILED receipts as a fresh identity for retry/backoff. This can permit a retry of a failed slot after normal due/catch-up gates. It does not replay observed completed slots because their claims persist. A completed receipt with a missing claim could be ignored by the new-identity due filter; no such same-day completed slot was present in the observed ledger.",
+    "service_state": "No launchctl/service state was queried or changed by this supplementary review; parent/controller remains responsible for live handover observation.",
+    "ledger_root_binding": {
+      "active_plist": {
+        "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+        "line": "31-32",
+        "value": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher"
+      },
+      "staged_plist": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/staged_pair_r2/scheduler/config/com.lexi.v35.scheduler.plist",
+        "line": "31-32",
+        "value": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher"
+      },
+      "active_release_id": "hk-research-calendar-all-r1-20261007-scheduler",
+      "staged_release_id": "issue32-preselection-scheduler-mac-20261009-r1"
+    }
+  }
+}

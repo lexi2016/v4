@@ -1,0 +1,55 @@
+{
+  "verified_commit": "47e296611ef31baa55b00ba1c702496bf4b0314f",
+  "source_ancestor": "9c4b868683a8a4547386cef22354c4f2299c2c26",
+  "scope": "Six current canonical file contents already present in inherited fixed source delivery; no redundant source copy or commit.",
+  "files": [
+    {
+      "local_path": "apps/api/v35_api/preselection_router.py",
+      "remote_path": "handoff/issue32-stage-autorun-fix-20261009-r1/after/source/actual_api/apps/api/v35_api/preselection_router.py",
+      "sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "git_sha": "6cad6dc5428de11b930667c86317a11ae1a3e4e8",
+      "remote_git_sha": "6cad6dc5428de11b930667c86317a11ae1a3e4e8",
+      "matches": true
+    },
+    {
+      "local_path": "apps/api/v35_api/preselection_service.py",
+      "remote_path": "handoff/issue32-stage-autorun-fix-20261009-r1/after/source/actual_api/apps/api/v35_api/preselection_service.py",
+      "sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+      "git_sha": "95d37f7d92447b7013dc08301b7b954f2b2f4d61",
+      "remote_git_sha": "95d37f7d92447b7013dc08301b7b954f2b2f4d61",
+      "matches": true
+    },
+    {
+      "local_path": "infrastructure/scheduling/_executor_registry_parts/preselection.py",
+      "remote_path": "handoff/issue32-stage-autorun-fix-20261009-r1/after/source/canonical_reference/infrastructure/scheduling/_executor_registry_parts/preselection.py",
+      "sha256": "e927f266e9977d7e69e4c6b9f72039ebf060597dd2dd1193fd579ff03dc8ddad",
+      "git_sha": "60c49009301f5316203f80e0c52d57acea413535",
+      "remote_git_sha": "60c49009301f5316203f80e0c52d57acea413535",
+      "matches": true
+    },
+    {
+      "local_path": "infrastructure/scheduling/dispatcher.py",
+      "remote_path": "handoff/issue32-stage-autorun-fix-20261009-r1/after/source/canonical_reference/infrastructure/scheduling/dispatcher.py",
+      "sha256": "aba5d9b3b692d8e4b9bbb9174f6803dab19f33b3d39d7fd202195aca585c5f59",
+      "git_sha": "009ca91779ed0ae34cba03022c79f9d27b81cda9",
+      "remote_git_sha": "009ca91779ed0ae34cba03022c79f9d27b81cda9",
+      "matches": true
+    },
+    {
+      "local_path": "ops/ensure_hk_security_master.py",
+      "remote_path": "handoff/issue32-stage-autorun-fix-20261009-r1/after/source/canonical_reference/ops/ensure_hk_security_master.py",
+      "sha256": "a0f9fd0e2fb438f03109714a41cf3a10b61a85579498e1ceec87126df2d3c319",
+      "git_sha": "c24157c7a0185e2bed31b36fdfd9e0d1346ec79a",
+      "remote_git_sha": "c24157c7a0185e2bed31b36fdfd9e0d1346ec79a",
+      "matches": true
+    },
+    {
+      "local_path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "remote_path": "handoff/issue32-stage-autorun-fix-20261009-r1/after/source/canonical_reference/upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "sha256": "1690ee57e4aedbfa93fd57a88666d3d7b86792a012ef55249f6fd17a82b408f7",
+      "git_sha": "14033c432fedab05d56452bb0d9b403a70e7083f",
+      "remote_git_sha": "14033c432fedab05d56452bb0d9b403a70e7083f",
+      "matches": true
+    }
+  ]
+}

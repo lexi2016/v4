@@ -1,70 +1,234 @@
 {
-  "base_commit": "9c4b868683a8a4547386cef22354c4f2299c2c26",
+  "schema_version": "v4.issue32.mac_delivery.v2",
+  "target_date": "20261009",
+  "fixed_source_commit": "9c4b868683a8a4547386cef22354c4f2299c2c26",
+  "parent_api_delivery_commit": "47e296611ef31baa55b00ba1c702496bf4b0314f",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "actual_api_identity": "issue32_preselection_api_actual_r4",
+  "actual_scheduler_identity": "issue32-preselection-scheduler-mac-20261009-r1",
   "files": [
     {
       "path": "API_DEPLOYMENT_RESULT.json",
-      "sha256": "79b71c6cea3977b1b4ebc9cb3c2809776dcff761c4d189613bfcfb7386e0175d",
-      "bytes": 1653
+      "bytes": 1653,
+      "sha256": "79b71c6cea3977b1b4ebc9cb3c2809776dcff761c4d189613bfcfb7386e0175d"
     },
     {
       "path": "INPUT_AUDIT.json",
-      "sha256": "2ba5545f48a73bd61972b9f0e88d5e4e7bca24d6f03bd855c8634990458805b5",
-      "bytes": 1586
+      "bytes": 1586,
+      "sha256": "2ba5545f48a73bd61972b9f0e88d5e4e7bca24d6f03bd855c8634990458805b5"
     },
     {
       "path": "NATURAL_0925_AUDIT.json",
-      "sha256": "209c5607b4acdd687833e398963582029a5261eca61d4095186a4b24c5548907",
-      "bytes": 1983
+      "bytes": 1983,
+      "sha256": "209c5607b4acdd687833e398963582029a5261eca61d4095186a4b24c5548907"
     },
     {
       "path": "README.md",
-      "sha256": "32df6f9fc0c5cc46b4355b23955c5342622f4baf1c26bb33771a0e671cf7bd71",
-      "bytes": 2899
+      "bytes": 5794,
+      "sha256": "088eb619aafe880e80e43454a86367344e4dc8f7b1dae45a1b0b5153f1a694a1"
+    },
+    {
+      "path": "SCHEDULER_DEPLOYMENT_RESULT.json",
+      "bytes": 4472,
+      "sha256": "5236f52883934923346f17c8075eeb563722ec08840aa502fc6aaab5b0729d0f"
     },
     {
       "path": "evidence/api_launchctl_transition_regression_issue32_r4_review_p2.json",
-      "sha256": "f0cd646d5a655ed293a9430300ff6c4fb7f1e0888cac6a1750f8e13415b264e7",
-      "bytes": 1821
+      "bytes": 1821,
+      "sha256": "f0cd646d5a655ed293a9430300ff6c4fb7f1e0888cac6a1750f8e13415b264e7"
     },
     {
       "path": "evidence/publisher_asyncfix_unified.diff",
-      "sha256": "6cf4610eb96d7a7823723e939e572f3528788c0a722f01a26a60caa541b0c791",
-      "bytes": 14896
+      "bytes": 14896,
+      "sha256": "6cf4610eb96d7a7823723e939e572f3528788c0a722f01a26a60caa541b0c791"
     },
     {
       "path": "reviewer/actual-candidate-r1/ANALYSIS_PREFLIGHT_BASELINE_DIAGNOSIS.json",
-      "sha256": "1d8ed98d1ae11a82dcee1073af6d93156e68d51aa2b909b9ad4fced3b3dfe3ec",
-      "bytes": 4246
+      "bytes": 4246,
+      "sha256": "1d8ed98d1ae11a82dcee1073af6d93156e68d51aa2b909b9ad4fced3b3dfe3ec"
     },
     {
       "path": "reviewer/final-r4/ISSUE32_R4_BOOTOUT_TRANSITION_REVIEW.json",
-      "sha256": "1048d9736c2279ef557dcfe2b35b7e438ea336ac72b54d6408430b28257f0a5c",
-      "bytes": 4614
+      "bytes": 4614,
+      "sha256": "1048d9736c2279ef557dcfe2b35b7e438ea336ac72b54d6408430b28257f0a5c"
     },
     {
       "path": "reviewer/final-r4/ISSUE32_R4_CUTOVER_REVIEW.json",
-      "sha256": "27000c41a4d298dff1b59ee1235d4e6205a70e270c941f917a0d69ab3b0b52c2",
-      "bytes": 3875
+      "bytes": 3875,
+      "sha256": "27000c41a4d298dff1b59ee1235d4e6205a70e270c941f917a0d69ab3b0b52c2"
     },
     {
       "path": "reviewer/portable-r1/ISSUE32_MAC_SOURCE_REVIEW.json",
-      "sha256": "109ded344334e66bffbb01ecd33d0b10190c5c04bb510594a1e60b862cf84e5a",
-      "bytes": 7027
+      "bytes": 7027,
+      "sha256": "109ded344334e66bffbb01ecd33d0b10190c5c04bb510594a1e60b862cf84e5a"
+    },
+    {
+      "path": "scheduler/CANONICAL_REMOTE_SOURCE_VERIFICATION.json",
+      "bytes": 3074,
+      "sha256": "f9ae4d61e398d49094438452d3562c1224a6b1b9e05006f2c6d3077512b0a94d"
+    },
+    {
+      "path": "scheduler/evidence/scheduler_announcement_pin_canary_issue32_r3.json",
+      "bytes": 5165,
+      "sha256": "4ef1a9b609c4a37528163269bd016711fef872ec49c828a03dc15e4dbbaee6d7"
+    },
+    {
+      "path": "scheduler/evidence/scheduler_facade_materializer_canary_issue32_r6.json",
+      "bytes": 15647,
+      "sha256": "ed2121893752031378d3820ec59c67cb36ea4e80e02841e48cf5d7778d92bb09"
+    },
+    {
+      "path": "scheduler/evidence/scheduler_pair_formal_stage_receipt.json",
+      "bytes": 1055,
+      "sha256": "fce73155debc339b531b4459836cf538f66fbb963448f57bd0b9dcca9a98d29c"
+    },
+    {
+      "path": "scheduler/evidence/scheduler_pair_publish_r3_receipt.json",
+      "bytes": 1672,
+      "sha256": "7b4a88a0d53e7d7d8537c34dcc152538e6c54909fa05623a284b25f1b310e55a"
+    },
+    {
+      "path": "scheduler/evidence/scheduler_pair_publish_receipt.json",
+      "bytes": 1533,
+      "sha256": "c4a5069c282cec74c9a158366ccb0154c7cc0f9f6f637fd43748541097520771"
+    },
+    {
+      "path": "scheduler/evidence/scheduler_pair_r3_startup_events.json",
+      "bytes": 3755,
+      "sha256": "d3720c9b8648c9852eb652a16fd19ae9e5cf9c8b3e90f4bb1ffbfb6c896849e8"
+    },
+    {
+      "path": "scheduler/evidence/scheduler_pair_rollback_announcement_pin.json",
+      "bytes": 485,
+      "sha256": "34aa719c054229b20f71f4b910216db56fdacc2fec907714a26e37dfccbbdc20"
+    },
+    {
+      "path": "scheduler/evidence/scheduler_pair_runtime_startup_and_rollback.json",
+      "bytes": 3029,
+      "sha256": "989586995fddc33e3b853e7fc94ee7e80940d31de219bdb616697e6e69506981"
+    },
+    {
+      "path": "scheduler/evidence/scheduler_shared_pair_stage_verification_r2.json",
+      "bytes": 3179,
+      "sha256": "935557246f716f136a8d6590349d1b073d6b1ffe73763c0cb387fc881b41d9af"
+    },
+    {
+      "path": "scheduler/reviewer/scheduler-announcement-pin-r3/FINAL_REVIEW.json",
+      "bytes": 6316,
+      "sha256": "0a8fbd0d10a7b3f5f6a2ab42f9a19d24504f5d5a136c17e3e832ff9f848bd551"
+    },
+    {
+      "path": "scheduler/reviewer/scheduler-announcement-pin-r3/FINAL_REVIEW.md",
+      "bytes": 2623,
+      "sha256": "2fe32b7810eb08e217cb67e230b31dad66761873b5e4100fb37e6b20919eb1ec"
+    },
+    {
+      "path": "scheduler/reviewer/scheduler-publish-r3/POST_DEPLOY_REVIEW.json",
+      "bytes": 5750,
+      "sha256": "2d45fe746b574a37f8642740ccdd4e163a699fd1316e30a10909ac95054b0383"
+    },
+    {
+      "path": "scheduler/reviewer/scheduler-publish-r3/POST_DEPLOY_REVIEW.md",
+      "bytes": 2432,
+      "sha256": "7a1f89acd52b5fa3c24affc4e6d275263622379fbda07ac76c41d76e93bbd2ce"
+    },
+    {
+      "path": "scheduler/reviewer/scheduler-shared-r1/FINAL_REVIEW.json",
+      "bytes": 12955,
+      "sha256": "3acbaca301babcfab90b5e8413e038c26b4fc35338bcc0854ce020cae10ceb44"
+    },
+    {
+      "path": "scheduler/reviewer/scheduler-shared-r1/FINAL_REVIEW.md",
+      "bytes": 5822,
+      "sha256": "bda636bcd778d709283cf290c75759f10810d9856bd4437b51cfeffb1bcfbc26"
+    },
+    {
+      "path": "scheduler/tools/build_scheduler_shared_pair_r1.py",
+      "bytes": 7000,
+      "sha256": "e0bf29774dc08ec4e7d01999bfcdc1111f4f9471cb5f82f3303fa48ba600d69a"
+    },
+    {
+      "path": "scheduler/tools/finalize_scheduler_facade_canary_issue32_r6.py",
+      "bytes": 14855,
+      "sha256": "3cd0e251e07f2b28335b869da1f5c5cf20b3b4984a3f25357638a41fc6479b64"
+    },
+    {
+      "path": "scheduler/tools/run_scheduler_facade_materializer_canary_r5.py",
+      "bytes": 25534,
+      "sha256": "d016dcb54fa81f2168ea67ecdbf3aae03a4d38dbc5b124fa17388e9fc2e93153"
+    },
+    {
+      "path": "scheduler/tools/scheduler_facade_canary_probe_issue32_r6.py",
+      "bytes": 6465,
+      "sha256": "2e39cd027db258708ccdf912ac3d345add40c42020081fb090698e7db6e27b9c"
+    },
+    {
+      "path": "scheduler/tools/stage_scheduler_announcement_pin_r3.py",
+      "bytes": 16778,
+      "sha256": "33ca983ef026fa5db0d3a07142df7acc73fb5858562689164227817fa31004c5"
+    },
+    {
+      "path": "scheduler/tools/stage_scheduler_shared_pair_issue32_r2.py",
+      "bytes": 21042,
+      "sha256": "4190bcb19c1917ab7e036210a76c7cdd2759c2a8c25297b1f16a66c211822575"
+    },
+    {
+      "path": "scheduler/tools/verify_staged_scheduler_shared_pair_issue32_r1.py",
+      "bytes": 10965,
+      "sha256": "b3cfdc33e1dee66ea60bbb7f261fd3e28f69e3c66496d89d88848540216aa775"
+    },
+    {
+      "path": "scheduler/writer/canonical_api_modules_addition.json",
+      "bytes": 1013,
+      "sha256": "df64f70d83a56e051a6abe3944fa2080f9763f809df4352a91c9ab4369b193c5"
+    },
+    {
+      "path": "scheduler/writer/canonical_patch_application.json",
+      "bytes": 2458,
+      "sha256": "67dbab978200055df3f941b6d6133720aadecb115d870e12104f6132d5fde94e"
+    },
+    {
+      "path": "scheduler/writer/scheduler_shared_pair_candidate_r1.json",
+      "bytes": 4130,
+      "sha256": "2b50ad89d5c94cb85c06baacc8d5a94eb0897fa7887610201fd7a67247f9349b"
+    },
+    {
+      "path": "scheduler/writer/scheduler_shared_pair_staging_r2.json",
+      "bytes": 3078,
+      "sha256": "af1587a3e414f131a95e4ff2b0155f4d368694640366899d25562f2ed58a0f72"
     },
     {
       "path": "tools/api_only_cutover_issue32_r4.py",
-      "sha256": "864a07b9bdf915a14b877eac89ddc931bb0f4976b70599c242671ff177e9cf25",
-      "bytes": 125029
+      "bytes": 125029,
+      "sha256": "864a07b9bdf915a14b877eac89ddc931bb0f4976b70599c242671ff177e9cf25"
     },
     {
       "path": "tools/test_api_launchctl_transition_r1.py",
-      "sha256": "6f9193000b4ce39458e0c1d97acd85b584615aa2d8c399d30b7d6941b9cb4c08",
-      "bytes": 8083
+      "bytes": 8083,
+      "sha256": "6f9193000b4ce39458e0c1d97acd85b584615aa2d8c399d30b7d6941b9cb4c08"
     },
     {
       "path": "tools/test_api_preflight_r1_extension.py",
-      "sha256": "50421ad88f22a48794b64e1a3d80d8fc48a9cb0f5ffbeaab8491fbc2fa80b15b",
-      "bytes": 4026
+      "bytes": 4026,
+      "sha256": "50421ad88f22a48794b64e1a3d80d8fc48a9cb0f5ffbeaab8491fbc2fa80b15b"
     }
-  ]
+  ],
+  "excludes": [
+    "credentials",
+    "live plists",
+    "raw market data",
+    "full HTTP responses",
+    "full runtime plans",
+    "account/positions",
+    "application bundles"
+  ],
+  "boundaries": {
+    "research_only_task": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "hk_exact_20261008": "CANNOT_CONFIRM",
+    "natural_stage": "NATURAL_SLOT_UNVERIFIED",
+    "natural_scheduler_hourly_1100": "VERIFIED"
+  }
 }

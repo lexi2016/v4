@@ -1,0 +1,126 @@
+[
+  {
+    "buy_gate_updated": false,
+    "cycles": 9,
+    "orders_sent": false,
+    "pid": 82246,
+    "production_allowed": false,
+    "release_id": "hk-research-calendar-all-r1-20261007-scheduler",
+    "schema_version": "v3_5.macos_scheduler_daemon.v1",
+    "status": "DAEMON_STOPPED"
+  },
+  {
+    "buy_gate_updated": false,
+    "heartbeat_seconds": 60.0,
+    "orders_sent": false,
+    "pid": 83677,
+    "production_allowed": false,
+    "release_id": "issue32-preselection-scheduler-mac-20261009-r1",
+    "schema_version": "v3_5.macos_scheduler_daemon.v1",
+    "started_at": "2026-10-09T10:59:59.380266+08:00",
+    "status": "DAEMON_READY",
+    "timezone": "Asia/Shanghai"
+  },
+  {
+    "attempt": 0,
+    "business_date": "20261009",
+    "buy_gate_updated": false,
+    "catchup": {
+      "applied": false,
+      "lag_minutes": 0
+    },
+    "failure_class": null,
+    "observed_slot": "1059",
+    "orders_sent": false,
+    "production_allowed": false,
+    "release_id": "issue32-preselection-scheduler-mac-20261009-r1",
+    "retry_after": null,
+    "schema_version": "v3_5.macos_scheduler_result.v1",
+    "status": "NO_DUE_SLOT",
+    "upstream_fingerprint": "tree-89a3e73f7906b6a824691e9206f4bfcf65ce7293ca9dfe1365c21cf825c94a83"
+  },
+  {
+    "buy_gate_updated": false,
+    "cycle": 1,
+    "minute": "2026-10-09T10:59",
+    "orders_sent": false,
+    "pid": 83677,
+    "production_allowed": false,
+    "release_id": "issue32-preselection-scheduler-mac-20261009-r1",
+    "result_status": "NO_DUE_SLOT",
+    "return_code": 0,
+    "schema_version": "v3_5.macos_scheduler_daemon.v1",
+    "status": "DAEMON_CYCLE"
+  },
+  {
+    "status": "NOT_DUE",
+    "network_requests": 0,
+    "state_writes": 0,
+    "plan_material_refresh_only": true,
+    "announcement_collection": "DISABLED_PLAN_REFRESH_ONLY",
+    "policy_status": "PROPOSAL_ONLY",
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  {
+    "status": "NOT_DUE",
+    "network_requests": 0,
+    "state_writes": 0,
+    "plan_material_refresh_only": true,
+    "announcement_collection": "DISABLED_PLAN_REFRESH_ONLY",
+    "policy_status": "PROPOSAL_ONLY",
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  {
+    "attempt": 1,
+    "business_date": "20261009",
+    "buy_gate_updated": false,
+    "catchup": {
+      "applied": false,
+      "lag_minutes": 0,
+      "scheduled_slot": "1100"
+    },
+    "failure_class": null,
+    "macos_scheduler_schema_version": "v3_5.macos_scheduler_result.v1",
+    "observed_slot": "1100",
+    "orders_sent": false,
+    "production_allowed": false,
+    "receipt_path": "receipts/live/20261009/1100/d5f909e6b3af485099108d60417e17db.dispatch-receipt.json",
+    "release_id": "issue32-preselection-scheduler-mac-20261009-r1",
+    "retry_after": null,
+    "run_id": "d5f909e6b3af485099108d60417e17db",
+    "scheduled_date": "20261009",
+    "schema_version": "v3_5.scheduled_slot_result.v1",
+    "selected_workload_ids": [
+      "hourly_research"
+    ],
+    "shared_acquisition": {
+      "status": "NOT_STAGE_SLOT"
+    },
+    "slot": "1100",
+    "started_workload_ids": [
+      "hourly_research"
+    ],
+    "status": "SUCCEEDED",
+    "target_date": "20261009",
+    "upstream_fingerprint": "tree-89a3e73f7906b6a824691e9206f4bfcf65ce7293ca9dfe1365c21cf825c94a83"
+  },
+  {
+    "buy_gate_updated": false,
+    "cycle": 2,
+    "minute": "2026-10-09T11:00",
+    "orders_sent": false,
+    "pid": 83677,
+    "production_allowed": false,
+    "release_id": "issue32-preselection-scheduler-mac-20261009-r1",
+    "result_status": "SUCCEEDED",
+    "return_code": 0,
+    "schema_version": "v3_5.macos_scheduler_daemon.v1",
+    "status": "DAEMON_CYCLE"
+  }
+]

@@ -1,0 +1,97 @@
+{
+  "schema_version": "v4.issue32.scheduler_announcement_pin_independent_review.v1",
+  "review_scope": "Issue32 R3 staged LaunchAgent announcement environment pin correction only",
+  "verdict": {
+    "REVIEWED": "PASS",
+    "BEHAVIOR_VERIFIED": "PASS_STAGED_PIN_VALIDATION_AND_START_FALSE_CONSTRUCTOR",
+    "CAN_RETRY_PUBLISH": "YES_CONTROLLER_OWNED_LOCAL_SCHEDULER_REPUBLISH",
+    "DEPLOYED": "CANNOT_CONFIRM",
+    "NATURAL_SLOT": "CANNOT_CONFIRM",
+    "stage_behavior": "CANNOT_CONFIRM"
+  },
+  "risk": {
+    "P0": [],
+    "P1": [],
+    "P2": [
+      {
+        "finding": "Announcement hook configuration errors are logged as ANNOUNCEMENT_HOOK_DISABLED while the daemon proceeds to DAEMON_READY.",
+        "evidence": "Formal daemon run_daemon catches DaemonConfigurationError from AnnouncementCycleHook.from_environment and emits ANNOUNCEMENT_HOOK_DISABLED, then emits DAEMON_READY.",
+        "disposition": "Non-blocking for this frozen plist-only correction; no product code changed. Readiness-only monitoring could miss loss of the hook."
+      }
+    ]
+  },
+  "artifacts": {
+    "staged_plist_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/staged_pair_r3/scheduler/config/com.lexi.v35.scheduler.plist",
+    "staged_plist_sha256": "b9e9e8361e9ce6eaca58df0688fcd214bf35bdc702f5febe405d07c6ceb05754",
+    "r2_plist_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_scheduler_shared_pair_r1/staged_pair_r2/scheduler/config/com.lexi.v35.scheduler.plist",
+    "r2_plist_sha256": "9c395256d7d67a1dd58ba063ada56a13442d19b64fdd3d36aee8344737fa3875",
+    "plan_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/plan/scheduler_shared_pair_issue32_r3.json",
+    "plan_sha256": "c8ea2dafaa95eb5f076762e25424e63aeb6b329d0c5de150711e629cfab01bae",
+    "writer_canary_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/evidence/scheduler_announcement_pin_canary_issue32_r3.json",
+    "writer_canary_sha256": "4ef1a9b609c4a37528163269bd016711fef872ec49c828a03dc15e4dbbaee6d7",
+    "restored_active_plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+    "restored_active_plist_sha256": "c478c87e7866fa50154df674ea7cb570197251aaa5da3014b3666e7f22914da2",
+    "binding_path": "/Users/lexi/Desktop/学习/agents调试/MANAGER_DAILY_CHAIN_FIX_20260928/staged_config/manager-daily-plan-hook-r1/manager-plan-binding-r2.json",
+    "binding_sha256": "c0fbff52449eb5dbf5c1655f17cf08915bea1214f9499cc8a4df1176d9625951",
+    "daemon_module_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app/ops/run_v35_macos_scheduler_daemon.py",
+    "daemon_module_sha256": "19e071da0c6b6748465853c4ad86a80d6060524333e9dab21647b67adc8b49ec",
+    "launcher_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app/ops/launch_v35_macos_scheduler.sh",
+    "launcher_sha256": "0c577ae83b1f182dabf3b62e642a5bd5f0f8708b48e1806d8c653b691d2ec952",
+    "cycle_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app/ops/run_manager_announcement_cycle.py",
+    "cycle_sha256": "cd91604a7f7d7f2f960bbbd337fcd453bf97bb298c14f0a7fb8804fdcbaf0a84",
+    "plan_canary_path": "/Users/lexi/Desktop/学习/agents调试/V4_US_MAPPING_DAILY_PAGE_20261005/daily_real_owner_canary_20261006_r2/plan_refresh_owner_evidence.v2.json",
+    "plan_canary_sha256": "f891e74f2bbfed928f36479b0cbea57ab5fdcf2ab4882f9977f82654bfcbba81"
+  },
+  "diff": {
+    "changed_keys": [
+      "V4_MANAGER_ANNOUNCEMENT_APP_ROOT",
+      "V4_MANAGER_ANNOUNCEMENT_CYCLE_SHA256",
+      "V4_MANAGER_ANNOUNCEMENT_PLAN_CANARY_SHA256"
+    ],
+    "all_other_environment_variables_unchanged": true,
+    "all_non_environment_plist_fields_unchanged": true,
+    "active_and_r2_old_announcement_pins_identical": true,
+    "old_values": {
+      "V4_MANAGER_ANNOUNCEMENT_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app",
+      "V4_MANAGER_ANNOUNCEMENT_CYCLE_SHA256": "d3e5a0b3ebdbe1edc1b2ee8262abcd57a2e2e7d72ffc74ce521e04a5b13faec6",
+      "V4_MANAGER_ANNOUNCEMENT_PLAN_CANARY_SHA256": "534321d02f4a1d65533198692eff21e6da6ffa1c12763ffcd22f9fd849ca37e8"
+    },
+    "corrected_values": {
+      "V4_MANAGER_ANNOUNCEMENT_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app",
+      "V4_MANAGER_ANNOUNCEMENT_CYCLE_SHA256": "cd91604a7f7d7f2f960bbbd337fcd453bf97bb298c14f0a7fb8804fdcbaf0a84",
+      "V4_MANAGER_ANNOUNCEMENT_PLAN_CANARY_SHA256": "f891e74f2bbfed928f36479b0cbea57ab5fdcf2ab4882f9977f82654bfcbba81"
+    }
+  },
+  "verification": {
+    "plistlib_parse": "PASS",
+    "plutil_lint": "PASS",
+    "command": "V35_RUNTIME_ROOT/venvs/v3.5-mac/bin/python -S -B; import ops.run_v35_macos_scheduler_daemon using launcher-equivalent PYTHONPATH; call AnnouncementCycleHook.from_environment(start=False)",
+    "scheduler_python": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/runtime/venvs/v3.5-mac/bin/python",
+    "scheduler_python_version": "3.14.6",
+    "module_path_loaded": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app/ops/run_v35_macos_scheduler_daemon.py",
+    "hook_returned": true,
+    "enabled": true,
+    "plan_material_refresh_only": true,
+    "policy": "BALANCED_V1",
+    "hook_thread_started": false,
+    "hook_thread_ident": null,
+    "popen_call_count": 0,
+    "binding_cycle_python_plan_canary_hash_validation": "PASS",
+    "service_or_launchctl_touched": false,
+    "product_source_files_modified_by_reviewer": false,
+    "unrelated_suites_rerun": false
+  },
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "cannot_confirm": [
+    "controller-owned scheduler plist republish/reload",
+    "post-reload loaded process path and announcement-hook readback",
+    "announcement cycle execution",
+    "natural-slot behavior",
+    "Stage behavior and UI"
+  ]
+}

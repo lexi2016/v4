@@ -1,0 +1,13 @@
+# Issue32 R3 announcement-pin review
+
+Verdict: REVIEWED=PASS; BEHAVIOR_VERIFIED=PASS for the staged configuration and constructor; CAN_RETRY_PUBLISH=YES for a controller-owned local scheduler republish of the staged R3 plist.
+
+The R3 change is confined to three announcement environment pins in the staged plist. Relative to R2, the plist's other top-level values and all other environment variables are byte-equivalent after plist parsing. macOS plutil validation returned OK.
+
+The restored active plist and R2 staged plist carry the same older announcement pins: app root `20260928-manager-daily-plan-r2/app`, cycle SHA `d3e5a0b3…faec6`, and plan-canary SHA `534321d0…37e8`. The external binding SHA `c0fbff52…5951` identifies a different, existing owner root, `manager-us-mapping-daily-20261006-r2/app`, and its cycle and canary SHAs. R3 sets exactly those three values from the binding. This supports classifying the observed mismatch as inherited configuration, not a mismatch introduced by the Issue32 business-code delta.
+
+I independently loaded the formal R1 daemon module from the staged plist's V35_APP_ROOT using the staged V35_RUNTIME_ROOT Python 3.14.6 with -S and the launcher-equivalent import paths. The module SHA was `19e071da…b49ec`. `AnnouncementCycleHook.from_environment(start=False)` returned an enabled hook with `plan_material_refresh_only=true`; the returned binding/root/cycle/Python identities matched the explicit pins and their files. Its thread remained unstarted (`ident=null`, `is_alive=false`), and a Popen sentinel recorded zero calls. The launch script uses the same app root and imports `ops.run_v35_macos_scheduler_daemon` under `persistent-minute`. No scheduler service, LaunchAgent, Stage run, or external process was touched by this review.
+
+Risk review: P0 none; P1 none. P2 non-blocking inherited behavior: if announcement-hook configuration fails, the daemon emits `ANNOUNCEMENT_HOOK_DISABLED` but continues to `DAEMON_READY`. The disabled event is explicit; a consumer that checks readiness alone could still miss the lost hook. This code path is outside the frozen plist-only correction and was not changed.
+
+REVIEWED=PASS. BEHAVIOR_VERIFIED=PASS for pin validation and hook construction only. CAN_RETRY_PUBLISH=YES for the staged R3 plist and unchanged formal R1 release roots. DEPLOYED=CANNOT_CONFIRM; the controller-owned retry and loaded-process readback have not occurred. Natural-slot, announcement-cycle execution, Stage behavior, and UI remain CANNOT_CONFIRM. No API tests or unrelated scheduler suite were rerun because the formal product files are unchanged.
