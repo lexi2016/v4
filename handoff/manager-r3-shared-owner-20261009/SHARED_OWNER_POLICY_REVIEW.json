@@ -1,0 +1,28 @@
+{
+  "reviewer": "/root/manager_r3_policy_review",
+  "fixed_commit": "ca01c4d0260fecf7aae3c89e96899f36901bf8f7",
+  "verdict": "PASS_POLICY_ONLY",
+  "P0_P1": [],
+  "current_policy_sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+  "candidate_policy_sha256": "ce74042648405a8de9aa7bd69fd0ac5cbe54e42e29db983d77d7e8519ac4cfac",
+  "exact_shared_paths": [
+    "infrastructure/_research_peripheral_store_parts/_namespace.py",
+    "infrastructure/scheduling/manager_announcement_supervisor.py",
+    "ops/render_manager_announcement_binding.py",
+    "ops/run_manager_announcement_cycle.py",
+    "v3_shared_data/shared_data/hk_daily_supplement.py"
+  ],
+  "broad_prefixes_added": [],
+  "current_guard_identity_verified": true,
+  "automatic_application": false,
+  "P2": [
+    "No focused policy test receipt in fixed review scope; manager candidate TESTED/BEHAVIOR_VERIFIED cannot be confirmed by this review",
+    "Final candidate delta and release_candidate_sources identity must be verified with forthcoming Mac candidate"
+  ],
+  "lock_protocol": "Actual Issue30 API guard uses persistent fcntl.flock; canonical general interprocess_lock uses separate mutex+owner protocol. Do not substitute protocols or delete lock inode. No mixed-protocol writer observed.",
+  "TESTED": "CANNOT_CONFIRM_IN_THIS_REVIEW",
+  "BEHAVIOR_VERIFIED": "CANNOT_CONFIRM_MANAGER_CANDIDATE",
+  "INTEGRATED": "NOT_RUN",
+  "DEPLOYED": "NOT_RUN",
+  "review_completed_at": "2026-10-09T14:12:24.723672+08:00"
+}
