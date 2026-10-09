@@ -114,3 +114,26 @@ and has not been run in the cloud.
   original gaps. No stage/continuity verification is claimed.
 - Python I/O guards constrain pinned owner writes, not an OS sandbox. UI GET is
   immutable record serving; publication and refresh are explicit operations.
+
+## Mac result and OverlayIO correction
+
+Mac tested fixed `7cec9de2ddd40c1572409b8bd3f07b3f01cd90e1`:
+original control 2 PASS / 5 FAIL / 0 ERROR (exit 1, 0.200s); candidate suite
+2 PASS / 6 ERROR (exit 1, 1.899s). All six errors were
+`AttributeError: 'OverlayIO' object has no attribute 'files'`. Real US09 manager
+request execution was not reached; its existing owner artifacts were preserved.
+
+The correction delegates `files(relative=None, *, suffix='.json')` to the
+original SafeRoot selected by the same prefix routing as `read_bytes` and
+`directory`: durable plan directories versus private original-owner inputs.
+It preserves original suffix filtering, sorted regular-file validation and
+missing-directory behavior. No mock, empty-list substitute or assertion change.
+
+Static audit of the frozen manager owner found three overlay read interfaces:
+`read_bytes`, `directory`, `files`. Constructor `ensure_directory` executes before
+the overlay is installed; `_transaction` and `_write_atomic` explicitly delegate
+to the durable original store's own SafeRoot (`kernel_lock` / `write_bytes`).
+MaterialStore and US reader own separate SafeRoot instances. They do not use
+this overlay. The six existing adapter tests remain the regression coverage.
+Cloud validation for the correction: AST parse and git diff check only;
+Mac rerun and real US09 manager request remain NOT_RUN on this correction.

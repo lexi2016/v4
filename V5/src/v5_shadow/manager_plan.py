@@ -210,6 +210,9 @@ def _assemble(request):
         def directory(self, relative=None, **kwargs):
             selected = durable._io if str(relative).split('/')[0] in ('workspace_plans', 'workspace_plan_runs') else private_io
             return selected.directory(relative, **kwargs)
+        def files(self, relative=None, *, suffix='.json'):
+            selected = durable._io if str(relative).split('/')[0] in ('workspace_plans', 'workspace_plan_runs') else private_io
+            return selected.files(relative, suffix=suffix)
     service.store._io = OverlayIO()
     # Consume the independently committed rebound owner, never recompute its
     # algorithm within the manager. Missing evidence retains the original empty
