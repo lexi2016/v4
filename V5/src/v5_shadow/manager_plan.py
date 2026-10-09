@@ -24,6 +24,7 @@ from v5_shadow.contracts import exact_keys, aware, trade_date, sha
 from v5_shadow.digests import canonical_bytes, sha256_json, MAX_JSON_BYTES
 from v5_shadow.module_api import _open_directory, _read_regular
 from v5_shadow.manager_plan_io import install_manager_boundary
+from v5_shadow.announcement_bridge import _input_limit
 
 BASE = Path(__file__).resolve().parents[2]
 CAPSULE = BASE / 'vendor/manager_plan_baseline'
@@ -148,18 +149,18 @@ def _snapshot(binding):
         finally:
             os.close(directory)
         try:
-            raw = _read_regular(fd, 32 * 1024 * 1024)
+            raw = _read_regular(fd, _input_limit(relative))
         finally:
             os.close(fd)
         total += len(raw)
-        if total > 128 * 1024 * 1024 or hashlib.sha256(raw).hexdigest() != digest:
+        if total > 64 * 1024 * 1024 or hashlib.sha256(raw).hexdigest() != digest:
             raise ValueError('MANAGER_INPUT_SHA_OR_LIMIT')
         result[relative] = raw
     return result
 
 
 def _identity():
-    names = ('manager_plan.py', 'manager_plan_gate.py', 'manager_plan_io.py', 'a_preselection.py',
+    names = ('announcement_bridge.py', 'manager_plan.py', 'manager_plan_gate.py', 'manager_plan_io.py', 'a_preselection.py',
              'contracts.py', 'digests.py', 'composition.py', 'module_api.py', 'api_gateway.py',
              'shadow_store.py', 'legacy_adapter.py', 'source_capsule.py', 'provider_evidence.py', '__init__.py')
     return {name: hashlib.sha256((BASE / 'src/v5_shadow' / name).read_bytes()).hexdigest() for name in names}
@@ -219,6 +220,12 @@ def _assemble(request):
         _workspace_us_market_reader=bridge.ResearchPeripheralUsMarketReader(roots['us']) if snapshots['us'] else None,
         get_catalyst_observations=lambda date: dict(status='CANNOT_CONFIRM', target_trade_date=date,
             cards=[], gaps=['V5_CATALYST_OWNER_NOT_BOUND'], **workspace.FLAGS))
+    # Preserve the original analysis -> exact catalog -> handoff/cutoff reader
+    # chain on the same private inputs; no full service or collector is loaded.
+    analysis = importlib.import_module('v4.manager_research.announcement_analysis')
+    announcements = importlib.import_module('v4.manager_research.workspace_announcements')
+    service.get_announcement_date_catalog = lambda date, publication: announcements.read_date_catalog(service, date, publication)
+    service.get_announcement_analysis = lambda date, publication=None: analysis.read(service, date, publication)
     # History enumerates and reads through _io directly. Route those original
     # plan reads to the same durable owner, not to the private input directory.
     service.store._io = OverlayIO(durable._io, service.store._io)

@@ -96,15 +96,17 @@ class ManagerPlanAdapterTests(unittest.TestCase):
 
     def test_saved_plan_context_is_not_replaced_by_current_runtime_overlay(self):
         self.request['action']='refresh';first=run_manager_plan(self.request)['payload']
-        self.request.update(action='read',now='2026-10-09T10:00:01+08:00')
+        before=self.files()
+        self.request.update(action='read',now='2026-10-09T10:05:00+08:00')
         second=run_manager_plan(self.request)['payload']
-        # Missing-source inputs may change identity with cutoff. If the owner
-        # can reuse them, retain its original overlay semantics exactly.
-        if second['plan_product']['consumed']:
-            self.assertEqual(second['plan_context'],first['plan_context'])
-            self.assertEqual(second['runtime_status_read_at'],self.request['now'])
-        else:
-            self.assertEqual(second['plan_product']['status'],'STALE_INPUTS_CHANGED')
+        self.assertEqual(second['plan_product']['status'],'CURRENT')
+        self.assertTrue(second['plan_product']['consumed'])
+        self.assertEqual(second['plan_product']['run_id'],first['plan_product']['run_id'])
+        self.assertEqual(second['input_identity'],first['input_identity'])
+        self.assertEqual(second['plan_context'],first['plan_context'])
+        self.assertEqual(second['runtime_status_read_at'],self.request['now'])
+        self.assertEqual(second['market_screen']['data_context']['research_cutoff'],self.request['now'])
+        self.assertEqual(self.files(),before)
 
     def test_ordinary_auto_get_serves_committed_owner_response_without_computation(self):
         self.request.update(target_date='20261009',view='auto',now='2026-10-09T10:00:00+08:00')

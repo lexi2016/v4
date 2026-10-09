@@ -71,6 +71,40 @@ class ProductionAdmissionTests(unittest.TestCase):
             after = {str(p.relative_to(root)):p.read_bytes() for p in root.rglob('*') if p.is_file()}
             self.assertEqual(after, before)
 
+    def screen_projection(self, context, screen):
+        return self.owner.build_workspace('20261008',
+            catalyst=dict(status='CANNOT_CONFIRM', cards=[], gaps=['FIXTURE_OWNER_NOT_BOUND']),
+            plan_context=context, market_screen=screen)
+
+    def test_screen_cutoff_only_change_preserves_identity_and_payload_timestamps(self):
+        context = self.owner.plan_context('20261008', now=datetime.fromisoformat('2026-10-09T10:00:00+08:00'))
+        screen = self.owner.read_rebound_screen(None, context)
+        later_context = deepcopy(context)
+        later_context['research_cutoff'] = '2026-10-09T10:05:00+08:00'
+        later_screen = deepcopy(screen)
+        later_screen['data_context']['research_cutoff'] = later_context['research_cutoff']
+        before = deepcopy((context, screen, later_context, later_screen))
+        first = self.screen_projection(context, screen)
+        second = self.screen_projection(later_context, later_screen)
+        self.assertEqual(first['market_screen'], screen)
+        self.assertEqual(second['market_screen'], later_screen)
+        self.assertEqual((context, screen, later_context, later_screen), before)
+        self.assertEqual(first['input_identity'], second['input_identity'])
+
+    def test_screen_source_session_phase_and_admission_still_invalidate_identity(self):
+        context = self.owner.plan_context('20261008', now=datetime.fromisoformat('2026-10-09T10:00:00+08:00'))
+        screen = self.owner.read_rebound_screen(None, context)
+        baseline = self.screen_projection(context, screen)['input_identity']
+        variants = []
+        source = deepcopy(screen);source['authority'] = {'source_sha256':'a'*64};variants.append(('source SHA', source))
+        session = deepcopy(screen);session['data_context']['market_session'] = '20261007';variants.append(('daily session', session))
+        phase = deepcopy(screen);phase['data_context']['screen_phase'] = 'PREOPEN_PLAN';variants.append(('phase', phase))
+        admission = deepcopy(screen);admission['gaps'].append('OWNER_ADMISSION_CHANGED');variants.append(('admission', admission))
+        for label, changed in variants:
+            with self.subTest(change=label):
+                self.assertNotEqual(changed, screen)
+                self.assertNotEqual(self.screen_projection(context, changed)['input_identity'], baseline)
+
     def test_same_session_earlier_cutoff_and_truncated_generation_are_accepted(self):
         self.assertIsNone(self.reason())
         self.daily['status']='COMPLETED'
