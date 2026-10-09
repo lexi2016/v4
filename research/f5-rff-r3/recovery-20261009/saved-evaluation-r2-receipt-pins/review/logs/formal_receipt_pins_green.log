@@ -1,0 +1,13 @@
+test_actual_prepare_and_load_accept_original_receipts_with_shipped_pins (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_actual_prepare_and_load_accept_original_receipts_with_shipped_pins) ... ok
+test_decoded_event_field_errors_reach_the_specific_prepare_and_load_guards (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_decoded_event_field_errors_reach_the_specific_prepare_and_load_guards) ... ok
+test_decoded_start_file_chain_errors_reach_the_existing_prepare_and_load_guard (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_decoded_start_file_chain_errors_reach_the_existing_prepare_and_load_guard) ... ok
+test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) ... ok
+test_original_start_file_authenticates_under_shipped_pin (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_original_start_file_authenticates_under_shipped_pin) ... ok
+test_original_terminal_file_authenticates_under_shipped_pin (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_original_terminal_file_authenticates_under_shipped_pin) ... ok
+test_receipt_file_byte_changes_are_rejected_by_prepare_and_load (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_receipt_file_byte_changes_are_rejected_by_prepare_and_load) ... ok
+test_shipped_event_identities_are_separate_from_receipt_file_pins (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_shipped_event_identities_are_separate_from_receipt_file_pins) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.553s
+
+OK

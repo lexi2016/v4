@@ -1,0 +1,500 @@
+diff --git a/candidate/src/rff_saved_eval_contracts.py b/candidate/src/rff_saved_eval_contracts.py
+--- a/candidate/src/rff_saved_eval_contracts.py
++++ b/candidate/src/rff_saved_eval_contracts.py
+@@ -31,15 +31,14 @@
+ CONTROLS = ("FROZEN_UNWEIGHTED_PLUS_PATH", "FROZEN_BASE34")
+ EVALUATION = {"year": 2024, "grid_rows": 169986, "scoreable_rows": 120084,
+               "sessions": 246, "selection_slots": 738, "known_positive_denominator": 126}
+-# Complete file-byte SHA256 values; registry event identities are separate below.
+ PINS = {
+     "accepted_worker": "3ea10757a81207147e5cfb9e68e69750a0579786153e7ce58ccf342a3184058c",
+     "experiment_contract": "e6c1509955730a032d183563d6ffcf2501a587dd5734426f35fc59b222491135",
+     "candidate_binding": "efe96e1d1046d074f545d7d53501d7281d2fad2e24b0a8f9f1ad9199f06f44d7",
+     "candidate_spec": "ec28511f6e2d8567635ed0d7bd5d0a92805e7310e08f944bd1e854a5b99ab3fc",
+     "prediction_seal": "4fc18f9ae2cd47d3a1a23adaadd2ddcc5db9aa97b60a1758d78f2b497cdc8bfa",
+-    "candidate_start": "0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03",
+-    "candidate_terminal": "c8dc367a7acf7196c4951074759e8c8015c071d6c2d7e6cf8b3afd3bf01f6ca1",
++    "candidate_start": "69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af",
++    "candidate_terminal": "5fe5704e4fb63a00e1802a14ba7e09f41985342a89e4f0c301793991b80ff0cf",
+     "candidate_scores": "3b87a52e5b2d2df88e3091a2c8e3b5262f809bf6323363a31047223f91bdc006",
+     "candidate_top3": "273504cc6152dedf2f6f88ae6fb6af5598af84340b2e954241d7b6ff6f63a78e",
+     "FROZEN_BASE34_scores": "b3c1e4dec4f98f84aad466291bb9968aaa1bdc5993892166c0693f54e956edcd",
+@@ -53,10 +52,6 @@
+     "registry_adapter": "8596f2a20c165b5fbc2b92a597cb3e1177f6e40bfefac62753b40b3c7daae17f",
+     "builder": "df4bfc89fa5487966a8c7e1c1c50832e140339c2ccda3a02a9a59e5aaaeb58cf",
+     "validator": "80e49d05d13f33ee7e2cb8d4d10cae0e297bcdf5b113ff857d3bd141dea0f438",
+-}
+-CANDIDATE_EVENT_SHA256 = {
+-    "start": "69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af",
+-    "terminal": "5fe5704e4fb63a00e1802a14ba7e09f41985342a89e4f0c301793991b80ff0cf",
+ }
+ SOURCE_NAMES = ("rff_saved_eval_contracts", "rff_saved_eval_frames",
+                 "rff_saved_eval_registration", "rff_saved_eval_worker",
+@@ -385,10 +380,6 @@
+             or terminal.get("execution_id") != CANDIDATE
+             or terminal.get("start_receipt_sha256") != metadata["candidate_start"]["sha256"]):
+         raise SavedEvaluationError("ORIGINAL_RECEIPT_CHAIN_IDENTITY_MISMATCH")
+-    if start.get("start_event_sha256") != CANDIDATE_EVENT_SHA256["start"]:
+-        raise SavedEvaluationError("ORIGINAL_START_EVENT_SHA_MISMATCH")
+-    if terminal.get("terminal_event_sha256") != CANDIDATE_EVENT_SHA256["terminal"]:
+-        raise SavedEvaluationError("ORIGINAL_TERMINAL_EVENT_SHA_MISMATCH")
+ 
+     native = _old_native_records(old)
+     for name, record in (("native_runtime", helpers["native_runtime"]),
+diff --git a/candidate/tests/test_rff_saved_eval_contracts.py b/candidate/tests/test_rff_saved_eval_contracts.py
+--- a/candidate/tests/test_rff_saved_eval_contracts.py
++++ b/candidate/tests/test_rff_saved_eval_contracts.py
+@@ -1,9 +1,4 @@
+-"""Metadata-only contracts, with explicit synthetic and original-receipt scopes.
+-
+-FrozenReceiptPinsTest authenticates the two unchanged original receipt files
+-under production constants. Its unavailable surrounding dependencies are an
+-explicit, path-allowlisted synthetic seam, not accepted original metadata.
+-"""
++"""Metadata-only contracts; all snapshots and releases in these tests are synthetic."""
+ from __future__ import annotations
+ 
+ import copy
+@@ -220,7 +215,7 @@
+         self.registry = self.project / "contracts/EXPERIMENT_REGISTRY.jsonl"
+         self.events = [{"route_id": contracts.ROUTE, "experiment_id": contracts.ROUTE,
+             "execution_id": contracts.CANDIDATE, "event_type": kind,
+-            "event_sha256": contracts.CANDIDATE_EVENT_SHA256["start" if kind == "RUN_STARTED" else "terminal"]}
++            "event_sha256": contracts.sha256_bytes(("synthetic " + kind).encode())}
+             for kind in ("RUN_STARTED", "DECISION")]
+         self.put(self.registry, b"".join(contracts.canonical_bytes(e) + b"\n" for e in self.events))
+ 
+@@ -583,233 +578,5 @@
+         f.load()
+ 
+ 
+-class OriginalReceiptPreparation(SyntheticPreparation):
+-    """Real receipt bytes/pins with explicitly synthetic surrounding metadata.
+-
+-The old binding/spec/seal and local helper closure are not in this supplement.
+-Only their listed paths may use synthetic bytes under declared identities.
+-Receipt I/O, reference validation, prepare/load and the complete dependency
+-validator remain real. Neither production pin mapping is replaced or edited.
+-"""
+-
+-    FIXTURES = Path(__file__).resolve().parent / "fixtures" / "issue33_receipts"
+-
+-    def __init__(self, root):
+-        super().__init__(root)
+-        production = contracts.PINS
+-        self.original_receipts = {
+-            self.start_path: (self.FIXTURES / "CANDIDATE_START_RECEIPT.json").read_bytes(),
+-            self.terminal_path: (self.FIXTURES / "CANDIDATE_TERMINAL_RECEIPT.json").read_bytes(),
+-        }
+-        start = json.loads(self.original_receipts[self.start_path])
+-        terminal = json.loads(self.original_receipts[self.terminal_path])
+-        self.old_spec["experiment_contract_sha256"] = production["experiment_contract"]
+-        self.old_binding.update(run_spec_sha256=production["candidate_spec"],
+-            experiment_contract_sha256=production["experiment_contract"],
+-            code_sha256=start["source_code_sha256"])
+-        self.old_binding["code_files"]["score_aware_metrics"]["sha256"] = production["score_aware_metrics"]
+-        for name, record in self.official.items():
+-            record["sha256"] = production[name]
+-        self.policy["official_builder"] = dict(self.official["builder"])
+-        for arm in contracts.CONTROLS:
+-            for kind in ("scores", "top3"):
+-                self.old_binding["baseline_artifacts"][arm][kind + "_sha256"] = production[f"{arm}_{kind}"]
+-        for name in ("candidate_scores", "candidate_top3"):
+-            self.seal_doc[name + "_sha256"] = production[name]
+-        for path, document in ((self.spec_path, self.old_spec), (self.binding_path, self.old_binding),
+-                               (self.policy_path, self.policy), (self.seal_path, self.seal_doc)):
+-            self.put_json(path, document)
+-        # Do not call refresh_old_binding: it regenerates receipts and changes
+-        # the historical source declaration instead of preserving these bytes.
+-        for path, raw in self.original_receipts.items():
+-            path.write_bytes(raw)
+-        self.events[0]["event_sha256"] = start["start_event_sha256"]
+-        self.events[1]["event_sha256"] = terminal["terminal_event_sha256"]
+-        self.put(self.registry, b"".join(contracts.canonical_bytes(e) + b"\n" for e in self.events))
+-
+-        peripheral_paths = {
+-            "candidate_binding": self.binding_path, "candidate_spec": self.spec_path,
+-            "experiment_contract": self.contract_path, "prediction_seal": self.seal_path,
+-            "accepted_worker": self.accepted_worker, "frozen_metrics": self.metric_path,
+-            "score_aware_metrics": self.score_aware, "resource_tree": self.resource_tree,
+-            **{name: Path(record["path"]) for name, record in self.official.items()},
+-        }
+-        self.synthetic_records = {}
+-        for name, path in peripheral_paths.items():
+-            actual = contracts.file_record(path)
+-            declared = dict(actual, sha256=production[name])
+-            self.synthetic_records[path] = (actual, declared)
+-        assert not set(self.original_receipts).intersection(self.synthetic_records)
+-        self.receipt_record_calls = []
+-        self.receipt_read_calls = []
+-
+-    @contextlib.contextmanager
+-    def original_receipts_active(self):
+-        """Patch only the enumerated periphery; never patch PINS or validators."""
+-        real_record, real_read, real_open = contracts.file_record, contracts.checked_read, Path.open
+-
+-        def file_record(path, expected_sha=None):
+-            path = Path(path).resolve()
+-            if path in self.original_receipts:
+-                self.receipt_record_calls.append((path, expected_sha))
+-            if path not in self.synthetic_records:
+-                return real_record(path, expected_sha)
+-            actual, declared = self.synthetic_records[path]
+-            real_read(actual, name="explicit_synthetic_periphery")
+-            if expected_sha is not None and expected_sha != declared["sha256"]:
+-                raise AssertionError(f"SYNTHETIC_PERIPHERY_DECLARATION_MISMATCH:{path}")
+-            return dict(declared)
+-
+-        def checked_read(record, *, name="snapshot"):
+-            path = Path(record["path"]).resolve()
+-            if path in self.original_receipts:
+-                self.receipt_read_calls.append((path, record["sha256"]))
+-            if path not in self.synthetic_records:
+-                return real_read(record, name=name)
+-            actual, declared = self.synthetic_records[path]
+-            if any(record.get(key) != declared[key] for key in ("path", "sha256")):
+-                raise AssertionError(f"SYNTHETIC_PERIPHERY_RECORD_MISMATCH:{path}")
+-            return real_read(actual, name="explicit_synthetic_periphery:" + name)
+-
+-        def metadata_open(path, *args, **kwargs):
+-            path = Path(path).resolve()
+-            if path in self.forbidden:
+-                raise AssertionError(f"DATA_OR_MODEL_READ_FORBIDDEN:{path}")
+-            if path.name == "EXPERIMENT_REGISTRY.jsonl" and path != self.registry:
+-                raise AssertionError(f"NON_SYNTHETIC_REGISTRY_READ_FORBIDDEN:{path}")
+-            return real_open(path, *args, **kwargs)
+-
+-        with mock.patch.object(contracts, "file_record", side_effect=file_record), \
+-                mock.patch.object(contracts, "checked_read", side_effect=checked_read), \
+-                mock.patch.object(contracts, "__file__", str(self.sources / "rff_saved_eval_contracts.py")), \
+-                mock.patch.object(contracts, "load_bound_module", side_effect=AssertionError("PREPARE_MUST_NOT_IMPORT_HELPERS")), \
+-                mock.patch.object(Path, "open", metadata_open):
+-            yield self
+-
+-
+-class FrozenReceiptPinsTest(unittest.TestCase):
+-    """Production pins are immutable in every test in this class.
+-
+-File corruption changes only temporary copies. Event/chain rejection tests
+-explicitly inject a decoded in-memory field after authenticating original raw
+-bytes; otherwise the full-file SHA guard would reject before that semantic
+-guard could run. This is not represented as a second original receipt file.
+-"""
+-
+-    FIXTURES = OriginalReceiptPreparation.FIXTURES
+-
+-    def setUp(self):
+-        self.pin_object = contracts.PINS
+-        self.pin_snapshot = copy.deepcopy(contracts.PINS)
+-        self.event_pin_object = getattr(contracts, "CANDIDATE_EVENT_SHA256", None)
+-        self.event_pin_snapshot = copy.deepcopy(self.event_pin_object)
+-        self.temp = tempfile.TemporaryDirectory(prefix="rff-original-receipt-pins-")
+-        self.addCleanup(self.temp.cleanup)
+-        self.addCleanup(self.assert_production_identity_constants_unchanged)
+-        self.root = Path(self.temp.name).resolve()
+-        supplement = json.loads((self.FIXTURES / "ISSUE33_SUPPLEMENT.json").read_bytes())
+-        self.identities = supplement["finding"]["receipt_metadata"]
+-
+-    def assert_production_identity_constants_unchanged(self):
+-        self.assertIs(contracts.PINS, self.pin_object)
+-        self.assertEqual(contracts.PINS, self.pin_snapshot)
+-        self.assertIs(getattr(contracts, "CANDIDATE_EVENT_SHA256", None), self.event_pin_object)
+-        self.assertEqual(getattr(contracts, "CANDIDATE_EVENT_SHA256", None), self.event_pin_snapshot)
+-
+-    def test_original_start_file_authenticates_under_shipped_pin(self):
+-        record = contracts.file_record(self.FIXTURES / "CANDIDATE_START_RECEIPT.json", contracts.PINS["candidate_start"])
+-        self.assertEqual(record["sha256"], self.identities["candidate_start"]["file_sha256"])
+-        self.assertEqual(record["bytes"], 1510)
+-
+-    def test_original_terminal_file_authenticates_under_shipped_pin(self):
+-        record = contracts.file_record(self.FIXTURES / "CANDIDATE_TERMINAL_RECEIPT.json", contracts.PINS["candidate_terminal"])
+-        self.assertEqual(record["sha256"], self.identities["candidate_terminal"]["file_sha256"])
+-        self.assertEqual(record["bytes"], 897)
+-
+-    def test_shipped_event_identities_are_separate_from_receipt_file_pins(self):
+-        events = contracts.CANDIDATE_EVENT_SHA256
+-        for key, kind in (("candidate_start", "start"), ("candidate_terminal", "terminal")):
+-            with self.subTest(receipt=key):
+-                self.assertEqual(events[kind], self.identities[key][kind + "_event_sha256"])
+-                self.assertEqual(contracts.PINS[key], self.identities[key]["file_sha256"])
+-                self.assertNotEqual(events[kind], contracts.PINS[key])
+-
+-    def test_actual_prepare_and_load_accept_original_receipts_with_shipped_pins(self):
+-        f = OriginalReceiptPreparation(self.root)
+-        registry_before = f.registry.read_bytes()
+-        with f.original_receipts_active():
+-            result = f.prepare()
+-            _, binding, _, _ = f.load()
+-        for key, path in (("candidate_start", f.start_path), ("candidate_terminal", f.terminal_path)):
+-            self.assertEqual(path.read_bytes(), f.original_receipts[path])
+-            self.assertEqual(binding["metadata_files"][key]["sha256"], self.identities[key]["file_sha256"])
+-            self.assertIn((path, contracts.PINS[key]), f.receipt_record_calls)
+-            self.assertIn((path, contracts.PINS[key]), f.receipt_read_calls)
+-        self.assertEqual(f.registry.read_bytes(), registry_before)
+-        self.assertFalse(result["data_rows_read"])
+-        self.assertFalse(result["registry_mutated"])
+-        self.assertFalse(result["execution_started"])
+-        self.assertFalse(Path(binding["output_root"]).exists())
+-        self.assertFalse(Path(binding["resource_trace_path"]).exists())
+-        self.assertFalse(any(path.exists() for path in f.forbidden))
+-
+-    def test_receipt_file_byte_changes_are_rejected_by_prepare_and_load(self):
+-        for operation in ("prepare", "load"):
+-            for kind in ("start", "terminal"):
+-                with self.subTest(operation=operation, receipt=kind):
+-                    f = OriginalReceiptPreparation(self.root / (operation + "_" + kind))
+-                    path = getattr(f, kind + "_path")
+-                    with f.original_receipts_active():
+-                        if operation == "load":
+-                            f.prepare()
+-                        path.write_bytes(f.original_receipts[path] + b"\n")
+-                        with self.assertRaisesRegex(contracts.SavedEvaluationError, "BOUND_(FILE|SNAPSHOT)_SHA_MISMATCH"):
+-                            getattr(f, operation)()
+-                    if operation == "prepare":
+-                        self.assertFalse(f.recovery.exists())
+-
+-    def test_decoded_event_field_errors_reach_the_specific_prepare_and_load_guards(self):
+-        cases = (("candidate_start", "start_event_sha256", "ORIGINAL_START_EVENT_SHA_MISMATCH"),
+-                 ("candidate_terminal", "terminal_event_sha256", "ORIGINAL_TERMINAL_EVENT_SHA_MISMATCH"))
+-        self.check_decoded_receipt_rejections(cases)
+-
+-    def test_decoded_start_file_chain_errors_reach_the_existing_prepare_and_load_guard(self):
+-        self.check_decoded_receipt_rejections((("candidate_terminal", "start_receipt_sha256", "ORIGINAL_RECEIPT_CHAIN_IDENTITY_MISMATCH"),))
+-
+-    def test_existing_decoded_receipt_identity_and_source_guards_remain_in_force(self):
+-        cases = [("candidate_start", field, "ORIGINAL_RECEIPT_CHAIN_IDENTITY_MISMATCH")
+-                 for field in ("execution_id", "route_id", "run_spec_sha256", "input_binding_sha256", "source_code_sha256")]
+-        cases.append(("candidate_terminal", "execution_id", "ORIGINAL_RECEIPT_CHAIN_IDENTITY_MISMATCH"))
+-        self.check_decoded_receipt_rejections(cases)
+-
+-    def check_decoded_receipt_rejections(self, cases):
+-        original_json_object = contracts.json_object
+-        for operation in ("prepare", "load"):
+-            for receipt_name, field, error in cases:
+-                with self.subTest(operation=operation, receipt=receipt_name, field=field):
+-                    f = OriginalReceiptPreparation(self.root / (operation + "_" + receipt_name + "_" + field))
+-                    injected = []
+-                    def inject_decoded_field(raw, *, name):
+-                        value = original_json_object(raw, name=name)
+-                        if name == receipt_name:
+-                            path = f.start_path if name == "candidate_start" else f.terminal_path
+-                            self.assertEqual(raw, f.original_receipts[path])
+-                            self.assertEqual(contracts.sha256_bytes(raw), contracts.PINS[name])
+-                            value[field] = "SYNTHETIC_DECODED_FIELD_FAULT"
+-                            injected.append(field)
+-                        return value
+-                    with f.original_receipts_active():
+-                        if operation == "load":
+-                            f.prepare()
+-                        with mock.patch.object(contracts, "json_object", side_effect=inject_decoded_field):
+-                            with self.assertRaisesRegex(contracts.SavedEvaluationError, error):
+-                                getattr(f, operation)()
+-                    self.assertEqual(injected, [field])
+-                    for path, raw in f.original_receipts.items():
+-                        self.assertEqual(path.read_bytes(), raw)
+-                    if operation == "prepare":
+-                        self.assertFalse(f.recovery.exists())
+-
+-
+ if __name__ == "__main__":
+     unittest.main()
+diff --git a/candidate/tests/fixtures/issue33_receipts/CANDIDATE_START_RECEIPT.json b/candidate/tests/fixtures/issue33_receipts/CANDIDATE_START_RECEIPT.json
+deleted file mode 100644
+--- a/candidate/tests/fixtures/issue33_receipts/CANDIDATE_START_RECEIPT.json
++++ /dev/null
+@@ -1,28 +0,0 @@
+-{
+-  "automatic_retry": false,
+-  "calibrator_fit_calls_authorized": 0,
+-  "candidate_fit_calls_authorized": 1,
+-  "control_fit_calls_authorized": 0,
+-  "control_predict_calls_authorized": 0,
+-  "execution_id": "F5_FULL64_RFF_LOGISTIC_R1_20260927_RESUME_20260928_01",
+-  "fit_budget_debit": 1,
+-  "input_binding_sha256": "efe96e1d1046d074f545d7d53501d7281d2fad2e24b0a8f9f1ad9199f06f44d7",
+-  "official_registry_sha256_after_start": "8e4e48f0c84569bb8a95cca6c2a67a032d29d4186fd8910efec9a9ef3b4bc9d9",
+-  "official_registry_sha256_before_start": "77a388bcad69d71479de68cf9b3ad84a6a9cb21c7c6f23a9723e7b8ee3a1f434",
+-  "parent_authorization_id": "F5_RFF_RESUME_AUTH_20260928_02",
+-  "parent_release_sha256": "4036c6485d242ce18af775eb2788be40491081d9b6fcff555e151273e12648c0",
+-  "previous_event_sha256": "0733e416dd35f32a25af70b78b5084529591eb79d053a0b08e2867f3c84df35c",
+-  "reviewer_transcript_sha256": "9d8afd026eb71c577edf2b77fd3d2094d05da5569f1e8173820b2ef9c1235915",
+-  "route_id": "F5_FULL64_RFF_LOGISTIC_R1_20260927",
+-  "run_spec_sha256": "ec28511f6e2d8567635ed0d7bd5d0a92805e7310e08f944bd1e854a5b99ab3fc",
+-  "safety": {
+-    "buy_gate_updated": false,
+-    "orders_sent": false,
+-    "production_allowed": false,
+-    "research_only": true
+-  },
+-  "schema": "F5_FULL64_XENDCG_CANDIDATE_START_RECEIPT_V1",
+-  "source_code_sha256": "bf9ae8ec0352a56106a976e8dc8347f4270837d605e20f117cb534a8d683060e",
+-  "start_event_sha256": "69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af",
+-  "status": "RUN_STARTED_DURABLE"
+-}
+diff --git a/candidate/tests/fixtures/issue33_receipts/CANDIDATE_TERMINAL_RECEIPT.json b/candidate/tests/fixtures/issue33_receipts/CANDIDATE_TERMINAL_RECEIPT.json
+deleted file mode 100644
+--- a/candidate/tests/fixtures/issue33_receipts/CANDIDATE_TERMINAL_RECEIPT.json
++++ /dev/null
+@@ -1,16 +0,0 @@
+-{
+-  "execution_id": "F5_FULL64_RFF_LOGISTIC_R1_20260927_RESUME_20260928_01",
+-  "fit_accounting_reason": "WORKER_STATUS_SNAPSHOT_VALID",
+-  "fit_accounting_source": "DURABLE_WORKER_STATUS",
+-  "fit_accounting_status": "KNOWN",
+-  "fit_call_entered": true,
+-  "official_registry_sha256_after_terminal": "1785e187a6ef1b8897dcebb807b4a0148caf134fafc5b0e38a880d240ae79efa",
+-  "predict_calls": 1,
+-  "previous_event_sha256": "69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af",
+-  "real_fit_returned_count": 1,
+-  "run_receipt_sha256": "725389654c0de48296b6330c5844a6f2bcbec5ceb3df100128e10bc0d1d53b7b",
+-  "schema": "F5_FULL64_XENDCG_CANDIDATE_TERMINAL_RECEIPT_V1",
+-  "start_receipt_sha256": "0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03",
+-  "terminal_event_sha256": "5fe5704e4fb63a00e1802a14ba7e09f41985342a89e4f0c301793991b80ff0cf",
+-  "terminal_status": "CANNOT_CONFIRM"
+-}
+diff --git a/candidate/tests/fixtures/issue33_receipts/ISSUE33_SUPPLEMENT.json b/candidate/tests/fixtures/issue33_receipts/ISSUE33_SUPPLEMENT.json
+deleted file mode 100644
+--- a/candidate/tests/fixtures/issue33_receipts/ISSUE33_SUPPLEMENT.json
++++ /dev/null
+@@ -1,141 +0,0 @@
+-{
+-  "schema": "F5_RFF_SAVED_EVAL_R1_ISSUE33_SUPPLEMENT_V1",
+-  "title": "Issue 33 补充：start/terminal 事件 SHA 被当成 receipt 文件 SHA",
+-  "status": "BLOCKED_P1_CONFIRMED_PENDING_CODE_CORRECTION_AND_NEW_LOCAL_PREPARE_REVIEW",
+-  "as_of_date": "2026-10-09",
+-  "repository": "lexi2016/v4",
+-  "fixed_commit_sha": "3764032a16f3cd9db88ec0d0ca122fd5d01c167b",
+-  "commit_tree_sha": "a4568e573da77422f963ce4cf2c6d46faaaa0cc0",
+-  "after_tree_sha": "f6368e2deafc48100e1baffb9c93985456cec54d",
+-  "execution_id": "F5_FULL64_RFF_LOGISTIC_R1_20260927_SAVED_EVAL_R1_20261009_01",
+-  "prepare_config": {
+-    "path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R1_CODE_20261009/PREPARE_CONFIG_LOCAL.json",
+-    "sha256": "d862b98076dff198572330628e5a559580f94f232b64dae7c0bb6333c72420e9",
+-    "resources": {
+-      "cpu_threads": 4,
+-      "aggregate_process_tree_rss_bytes_max": 34359738368,
+-      "wall_seconds_max": 3600,
+-      "sample_seconds": 1
+-    }
+-  },
+-  "prepare_command": "/Users/lexi/Documents/Codex/2026-08-13/factor-mining-mac/.venv-training-v1/bin/python -B handoffs/F5_RFF_SAVED_EVAL_R1_CODE_20261009/candidate/src/run_rff_saved_evaluation.py prepare --config handoffs/F5_RFF_SAVED_EVAL_R1_CODE_20261009/PREPARE_CONFIG_LOCAL.json",
+-  "prepare_stderr": {
+-    "status": "CANNOT_CONFIRM",
+-    "error_type": "SavedEvaluationError",
+-    "error": "BOUND_FILE_SHA_MISMATCH:/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_RESUME_EXECUTION_20260928/execution/F5_FULL64_RFF_LOGISTIC_R1_20260927_RESUME_20260928_01/candidate_output/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af",
+-    "automatic_retry": false,
+-    "safety": {
+-      "research_only": true,
+-      "production_allowed": false,
+-      "buy_gate_updated": false,
+-      "orders_sent": false
+-    }
+-  },
+-  "reviewer": {
+-    "receipt_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R1_LOCAL_20261009/review/LOCAL_ACCEPTANCE_BLOCKER_RECEIPT.json",
+-    "receipt_sha256": "61d4e579ff139e01eb3ec65d481b51ecd7dead72041bc61db10e9d3d4d05eef1",
+-    "decision": "BLOCKED",
+-    "P0": 0,
+-    "P1": 1,
+-    "P2": 0,
+-    "REVIEWED": "BLOCKED",
+-    "BEHAVIOR_VERIFIED": false,
+-    "TESTED_SYNTHETIC": "PASS",
+-    "test_summary": "Ran 142 synthetic tests in 18.144s; exit 0; OK.",
+-    "test_scope_limit": "Synthetic-only. This does not validate binding the shipped constants to the original receipt files or prove real saved-score evaluation behavior."
+-  },
+-  "finding": {
+-    "id": "RFF_METADATA_EVENT_SHA_USED_AS_RECEIPT_FILE_SHA",
+-    "priority": "P1",
+-    "summary": "Both candidate start and terminal PINS are event identities, while file_record computes a SHA256 over the complete receipt JSON file.",
+-    "source_evidence": [
+-      {
+-        "path": "candidate/src/rff_saved_eval_contracts.py",
+-        "lines": "40-41",
+-        "sha256": "35b9f88b8183f8980333bfe4e06f37b3ef3e2acbea7a0fc6904b1d130ef058b7"
+-      },
+-      {
+-        "path": "candidate/src/rff_saved_eval_contracts.py",
+-        "lines": "98-102,366-367,493-494"
+-      },
+-      {
+-        "path": "inputs/ISSUE33.md",
+-        "lines": "43",
+-        "sha256": "6c6356ad92406f619ef0de01533415dea4ed831d9b823135a4bf620f26fd66a0"
+-      },
+-      {
+-        "path": "candidate/tests/test_rff_saved_eval_contracts.py",
+-        "lines": "299-317",
+-        "sha256": "6d1f0c904caa36cdad219ac609c0a13077ac41796fcf4225b8e972dda1abf3a7"
+-      }
+-    ],
+-    "receipt_metadata": {
+-      "candidate_start": {
+-        "file_sha256": "0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03",
+-        "bytes": 1510,
+-        "start_event_sha256": "69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af"
+-      },
+-      "candidate_terminal": {
+-        "file_sha256": "c8dc367a7acf7196c4951074759e8c8015c071d6c2d7e6cf8b3afd3bf01f6ca1",
+-        "bytes": 897,
+-        "terminal_event_sha256": "5fe5704e4fb63a00e1802a14ba7e09f41985342a89e4f0c301793991b80ff0cf",
+-        "start_receipt_sha256": "0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03"
+-      },
+-      "receipt_chain_consistent": true
+-    },
+-    "prepare_result": "No RUN_SPEC, INPUT_BINDING, new execution output or resource trace produced; error occurred before registry read/append; old receipt files are not shown damaged."
+-  },
+-  "test_gap": {
+-    "path": "candidate/tests/test_rff_saved_eval_contracts.py",
+-    "lines": "299-317",
+-    "detail": "refresh_old_binding records each synthetic receipt file SHA into fixture.pins, then active() patches contracts.PINS with those dynamic values. Synthetic tests therefore do not exercise shipped PINS against frozen original receipt metadata."
+-  },
+-  "minimum_resolution": [
+-    "Separate the full receipt-file SHA256 pins from the RUN_STARTED and terminal event SHA identities.",
+-    "Use full-file SHA pins when checking receipt file bytes.",
+-    "Separately verify start_receipt.start_event_sha256 and terminal_receipt.terminal_event_sha256 against their event identities and verify terminal_receipt.start_receipt_sha256 equals the full start receipt-file SHA.",
+-    "Retain the existing identity and source-hash guards; do not remove or bypass them.",
+-    "Add regression coverage that exercises the shipped pin constants and the frozen original receipt metadata, then produce a new prepare receipt for independent review."
+-  ],
+-  "source_delivery": {
+-    "after_blob_count_verified": 51,
+-    "requested_intake_blob_count_verified": 6,
+-    "manifest_entries_total": 73,
+-    "manifest_entries_verified": 56,
+-    "manifest_hash_mismatches": 0,
+-    "manifest_extra_unreceived_entries": 17,
+-    "tree_receipt_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R1_LOCAL_20261009/intake/GIT_TREE_RECEIPT.json",
+-    "tree_receipt_sha256": "e086ae534d2978e8099ec344239f44e315d601aaca4a1049ba8de07e6b3de1a1"
+-  },
+-  "safety_and_scope": {
+-    "source_modified": false,
+-    "old_candidate_files_modified": false,
+-    "registry_modified": false,
+-    "score_truth_label_rows_read": false,
+-    "fit_predict_model_load": false,
+-    "evaluation_run": false,
+-    "prepare_retried": false,
+-    "orders_sent": false,
+-    "production_allowed": false,
+-    "writer_tests_run": false
+-  },
+-  "attachments": {
+-    "zip": "CODE_ATTACHMENTS.zip",
+-    "manifest": "CODE_ATTACHMENTS_MANIFEST.json",
+-    "zip_sha256": "f5ac6be02447435318b126fd1443940163f52dcfae37bb81160e940528e1c819"
+-  },
+-  "reviewer_receipt_copy_path": "metadata/LOCAL_ACCEPTANCE_BLOCKER_RECEIPT.json",
+-  "reviewer_receipt_copy_sha256": "61d4e579ff139e01eb3ec65d481b51ecd7dead72041bc61db10e9d3d4d05eef1",
+-  "evidence_limitations": [
+-    "The historical real score/truth rows and outcome were not read or evaluated.",
+-    "No fresh RUN_SPEC or INPUT_BINDING exists because preparation failed closed.",
+-    "The remaining 17 manifest entries are unrequested patch/review artifacts; all required after source and six requested intake blobs were received and verified."
+-  ],
+-  "historical_attempt_snapshot": {
+-    "initial_prepare_blocker_path": "../PREPARE_BLOCKER.md",
+-    "initial_prepare_blocker_sha256": "b4bf832c7ac40a64f951099ee926f55c8d22642e8fb13f141f893bf2173d3fdb",
+-    "initial_attempt_receipt_path": "../PREPARE_ATTEMPT_RECEIPT.json",
+-    "initial_attempt_receipt_sha256": "735b08d4a06b865c5e8cd0ea2b3591afa51e29c32611ac76fb8de01064aec889",
+-    "semantics": "These are time-of-attempt records created before the independent Reviewer receipt was available. Their pending-review and not-yet-inspected-terminal wording describes that initial snapshot; this post-review supplement contains the final blocker finding and metadata readback."
+-  }
+-}

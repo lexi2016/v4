@@ -1,0 +1,73 @@
+{
+  "schema": "F5_RFF_SAVED_EVAL_R1_BLOCKER_ATTACHMENT_MANIFEST_V1",
+  "repository": "lexi2016/v4",
+  "source_commit_sha": "3764032a16f3cd9db88ec0d0ca122fd5d01c167b",
+  "scope": "Two frozen source/test files plus issue context and metadata-only receipts/config. No real score, truth, label, model, market-data, or registry files.",
+  "archive_path": "CODE_ATTACHMENTS.zip",
+  "archive_sha256": "f5ac6be02447435318b126fd1443940163f52dcfae37bb81160e940528e1c819",
+  "member_count": 7,
+  "members": [
+    {
+      "archive_path": "inputs/ISSUE33.md",
+      "source_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R1_CODE_20261009/inputs/ISSUE33.md",
+      "origin": "source_commit",
+      "bytes": 11093,
+      "sha256": "6c6356ad92406f619ef0de01533415dea4ed831d9b823135a4bf620f26fd66a0",
+      "git_blob_sha1_content": "601d3cb4318f72e6a425879e0cfbd0c76e8faf30",
+      "commit_sha": "3764032a16f3cd9db88ec0d0ca122fd5d01c167b",
+      "source_git_blob_sha1": "601d3cb4318f72e6a425879e0cfbd0c76e8faf30"
+    },
+    {
+      "archive_path": "candidate/src/rff_saved_eval_contracts.py",
+      "source_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R1_CODE_20261009/candidate/src/rff_saved_eval_contracts.py",
+      "origin": "source_commit",
+      "bytes": 40716,
+      "sha256": "35b9f88b8183f8980333bfe4e06f37b3ef3e2acbea7a0fc6904b1d130ef058b7",
+      "git_blob_sha1_content": "9809e784ef4061b3f09c4a9676b0ef7be95de69d",
+      "commit_sha": "3764032a16f3cd9db88ec0d0ca122fd5d01c167b",
+      "source_git_blob_sha1": "9809e784ef4061b3f09c4a9676b0ef7be95de69d"
+    },
+    {
+      "archive_path": "candidate/tests/test_rff_saved_eval_contracts.py",
+      "source_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R1_CODE_20261009/candidate/tests/test_rff_saved_eval_contracts.py",
+      "origin": "source_commit",
+      "bytes": 33399,
+      "sha256": "6d1f0c904caa36cdad219ac609c0a13077ac41796fcf4225b8e972dda1abf3a7",
+      "git_blob_sha1_content": "3a989b22726b7dca597f74fffb4c0c32a932067c",
+      "commit_sha": "3764032a16f3cd9db88ec0d0ca122fd5d01c167b",
+      "source_git_blob_sha1": "3a989b22726b7dca597f74fffb4c0c32a932067c"
+    },
+    {
+      "archive_path": "local/PREPARE_CONFIG_LOCAL.json",
+      "source_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R1_LOCAL_20261009/blocker/metadata/PREPARE_CONFIG_LOCAL.json",
+      "origin": "local_metadata",
+      "bytes": 964,
+      "sha256": "d862b98076dff198572330628e5a559580f94f232b64dae7c0bb6333c72420e9",
+      "git_blob_sha1_content": "34eca2dcad2d123660b87acc033e06dabb7b7e2f"
+    },
+    {
+      "archive_path": "local/CANDIDATE_START_RECEIPT.json",
+      "source_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R1_LOCAL_20261009/blocker/metadata/CANDIDATE_START_RECEIPT.json",
+      "origin": "local_metadata",
+      "bytes": 1510,
+      "sha256": "0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03",
+      "git_blob_sha1_content": "a5a2d727fc42544183ba6e3168709ef8ca3b5848"
+    },
+    {
+      "archive_path": "local/CANDIDATE_TERMINAL_RECEIPT.json",
+      "source_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R1_LOCAL_20261009/blocker/metadata/CANDIDATE_TERMINAL_RECEIPT.json",
+      "origin": "local_metadata",
+      "bytes": 897,
+      "sha256": "c8dc367a7acf7196c4951074759e8c8015c071d6c2d7e6cf8b3afd3bf01f6ca1",
+      "git_blob_sha1_content": "b317ed4980893208f309c944e194a1e6fdef643f"
+    },
+    {
+      "archive_path": "local/LOCAL_ACCEPTANCE_BLOCKER_RECEIPT.json",
+      "source_path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_R1_LOCAL_20261009/blocker/metadata/LOCAL_ACCEPTANCE_BLOCKER_RECEIPT.json",
+      "origin": "independent_review_receipt",
+      "bytes": 5934,
+      "sha256": "61d4e579ff139e01eb3ec65d481b51ecd7dead72041bc61db10e9d3d4d05eef1",
+      "git_blob_sha1_content": "4d018a27c7c9db5c898346be12e72dd951ebcae0"
+    }
+  ]
+}

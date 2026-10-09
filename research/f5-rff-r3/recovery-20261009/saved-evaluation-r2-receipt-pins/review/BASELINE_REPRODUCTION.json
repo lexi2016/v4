@@ -1,0 +1,31 @@
+{
+  "scope": "ONLY_FROZEN_RECEIPT_METADATA",
+  "baseline_commit_sha": "3764032a16f3cd9db88ec0d0ca122fd5d01c167b",
+  "source_sha256": "35b9f88b8183f8980333bfe4e06f37b3ef3e2acbea7a0fc6904b1d130ef058b7",
+  "pins_patched": false,
+  "cases": [
+    {
+      "pin_name": "candidate_start",
+      "bytes": 1510,
+      "actual_file_sha256": "0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03",
+      "published_r1_pin": "69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af",
+      "event_field": "start_event_sha256",
+      "event_sha256": "69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af",
+      "published_pin_is_event_sha": true,
+      "error": "BOUND_FILE_SHA_MISMATCH:/workspace/scratch/f05cf31db0d4/issue33_r2/inputs/feedback/attachments/local/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af"
+    },
+    {
+      "pin_name": "candidate_terminal",
+      "bytes": 897,
+      "actual_file_sha256": "c8dc367a7acf7196c4951074759e8c8015c071d6c2d7e6cf8b3afd3bf01f6ca1",
+      "published_r1_pin": "5fe5704e4fb63a00e1802a14ba7e09f41985342a89e4f0c301793991b80ff0cf",
+      "event_field": "terminal_event_sha256",
+      "event_sha256": "5fe5704e4fb63a00e1802a14ba7e09f41985342a89e4f0c301793991b80ff0cf",
+      "published_pin_is_event_sha": true,
+      "error": "BOUND_FILE_SHA_MISMATCH:/workspace/scratch/f05cf31db0d4/issue33_r2/inputs/feedback/attachments/local/CANDIDATE_TERMINAL_RECEIPT.json:c8dc367a7acf7196c4951074759e8c8015c071d6c2d7e6cf8b3afd3bf01f6ca1:5fe5704e4fb63a00e1802a14ba7e09f41985342a89e4f0c301793991b80ff0cf"
+    }
+  ],
+  "prepare_called": false,
+  "data_rows_read": false,
+  "registry_read_or_written": false
+}

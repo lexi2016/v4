@@ -1,0 +1,518 @@
+test_actual_prepare_and_load_accept_original_receipts_with_shipped_pins (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_actual_prepare_and_load_accept_original_receipts_with_shipped_pins) ... ERROR
+test_decoded_event_field_errors_reach_the_specific_prepare_and_load_guards (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_decoded_event_field_errors_reach_the_specific_prepare_and_load_guards) ... 
+  test_decoded_event_field_errors_reach_the_specific_prepare_and_load_guards (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_decoded_event_field_errors_reach_the_specific_prepare_and_load_guards) (operation='prepare', receipt='candidate_start', field='start_event_sha256') ... FAIL
+  test_decoded_event_field_errors_reach_the_specific_prepare_and_load_guards (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_decoded_event_field_errors_reach_the_specific_prepare_and_load_guards) (operation='prepare', receipt='candidate_terminal', field='terminal_event_sha256') ... FAIL
+  test_decoded_event_field_errors_reach_the_specific_prepare_and_load_guards (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_decoded_event_field_errors_reach_the_specific_prepare_and_load_guards) (operation='load', receipt='candidate_start', field='start_event_sha256') ... ERROR
+  test_decoded_event_field_errors_reach_the_specific_prepare_and_load_guards (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_decoded_event_field_errors_reach_the_specific_prepare_and_load_guards) (operation='load', receipt='candidate_terminal', field='terminal_event_sha256') ... ERROR
+test_decoded_start_file_chain_errors_reach_the_existing_prepare_and_load_guard (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_decoded_start_file_chain_errors_reach_the_existing_prepare_and_load_guard) ... 
+  test_decoded_start_file_chain_errors_reach_the_existing_prepare_and_load_guard (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_decoded_start_file_chain_errors_reach_the_existing_prepare_and_load_guard) (operation='prepare', receipt='candidate_terminal', field='start_receipt_sha256') ... FAIL
+  test_decoded_start_file_chain_errors_reach_the_existing_prepare_and_load_guard (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_decoded_start_file_chain_errors_reach_the_existing_prepare_and_load_guard) (operation='load', receipt='candidate_terminal', field='start_receipt_sha256') ... ERROR
+test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) ... 
+  test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='prepare', receipt='candidate_start', field='execution_id') ... FAIL
+  test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='prepare', receipt='candidate_start', field='route_id') ... FAIL
+  test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='prepare', receipt='candidate_start', field='run_spec_sha256') ... FAIL
+  test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='prepare', receipt='candidate_start', field='input_binding_sha256') ... FAIL
+  test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='prepare', receipt='candidate_start', field='source_code_sha256') ... FAIL
+  test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='prepare', receipt='candidate_terminal', field='execution_id') ... FAIL
+  test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='load', receipt='candidate_start', field='execution_id') ... ERROR
+  test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='load', receipt='candidate_start', field='route_id') ... ERROR
+  test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='load', receipt='candidate_start', field='run_spec_sha256') ... ERROR
+  test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='load', receipt='candidate_start', field='input_binding_sha256') ... ERROR
+  test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='load', receipt='candidate_start', field='source_code_sha256') ... ERROR
+  test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='load', receipt='candidate_terminal', field='execution_id') ... ERROR
+test_original_start_file_authenticates_under_shipped_pin (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_original_start_file_authenticates_under_shipped_pin) ... ERROR
+test_original_terminal_file_authenticates_under_shipped_pin (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_original_terminal_file_authenticates_under_shipped_pin) ... ERROR
+test_receipt_file_byte_changes_are_rejected_by_prepare_and_load (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_receipt_file_byte_changes_are_rejected_by_prepare_and_load) ... 
+  test_receipt_file_byte_changes_are_rejected_by_prepare_and_load (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_receipt_file_byte_changes_are_rejected_by_prepare_and_load) (operation='load', receipt='start') ... ERROR
+  test_receipt_file_byte_changes_are_rejected_by_prepare_and_load (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_receipt_file_byte_changes_are_rejected_by_prepare_and_load) (operation='load', receipt='terminal') ... ERROR
+test_shipped_event_identities_are_separate_from_receipt_file_pins (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_shipped_event_identities_are_separate_from_receipt_file_pins) ... ERROR
+
+======================================================================
+ERROR: test_actual_prepare_and_load_accept_original_receipts_with_shipped_pins (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_actual_prepare_and_load_accept_original_receipts_with_shipped_pins)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 737, in test_actual_prepare_and_load_accept_original_receipts_with_shipped_pins
+    result = f.prepare()
+             ^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 325, in prepare
+    result = contracts.prepare(self.config)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 493, in prepare
+    "candidate_start": file_record(old["start_receipt_path"], PINS["candidate_start"]),
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1204, in _execute_mock_call
+    result = effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 656, in file_record
+    return real_record(path, expected_sha)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 102, in file_record
+    raise SavedEvaluationError(f"BOUND_FILE_SHA_MISMATCH:{p}:{digest}:{expected_sha}")
+rff_saved_eval_contracts.SavedEvaluationError: BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-kbh4jo77/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af
+
+======================================================================
+ERROR: test_decoded_event_field_errors_reach_the_specific_prepare_and_load_guards (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_decoded_event_field_errors_reach_the_specific_prepare_and_load_guards) (operation='load', receipt='candidate_start', field='start_event_sha256')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 799, in check_decoded_receipt_rejections
+    f.prepare()
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 325, in prepare
+    result = contracts.prepare(self.config)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 493, in prepare
+    "candidate_start": file_record(old["start_receipt_path"], PINS["candidate_start"]),
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1204, in _execute_mock_call
+    result = effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 656, in file_record
+    return real_record(path, expected_sha)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 102, in file_record
+    raise SavedEvaluationError(f"BOUND_FILE_SHA_MISMATCH:{p}:{digest}:{expected_sha}")
+rff_saved_eval_contracts.SavedEvaluationError: BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-9__ishgm/load_candidate_start_start_event_sha256/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af
+
+======================================================================
+ERROR: test_decoded_event_field_errors_reach_the_specific_prepare_and_load_guards (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_decoded_event_field_errors_reach_the_specific_prepare_and_load_guards) (operation='load', receipt='candidate_terminal', field='terminal_event_sha256')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 799, in check_decoded_receipt_rejections
+    f.prepare()
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 325, in prepare
+    result = contracts.prepare(self.config)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 493, in prepare
+    "candidate_start": file_record(old["start_receipt_path"], PINS["candidate_start"]),
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1204, in _execute_mock_call
+    result = effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 656, in file_record
+    return real_record(path, expected_sha)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 102, in file_record
+    raise SavedEvaluationError(f"BOUND_FILE_SHA_MISMATCH:{p}:{digest}:{expected_sha}")
+rff_saved_eval_contracts.SavedEvaluationError: BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-9__ishgm/load_candidate_terminal_terminal_event_sha256/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af
+
+======================================================================
+ERROR: test_decoded_start_file_chain_errors_reach_the_existing_prepare_and_load_guard (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_decoded_start_file_chain_errors_reach_the_existing_prepare_and_load_guard) (operation='load', receipt='candidate_terminal', field='start_receipt_sha256')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 799, in check_decoded_receipt_rejections
+    f.prepare()
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 325, in prepare
+    result = contracts.prepare(self.config)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 493, in prepare
+    "candidate_start": file_record(old["start_receipt_path"], PINS["candidate_start"]),
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1204, in _execute_mock_call
+    result = effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 656, in file_record
+    return real_record(path, expected_sha)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 102, in file_record
+    raise SavedEvaluationError(f"BOUND_FILE_SHA_MISMATCH:{p}:{digest}:{expected_sha}")
+rff_saved_eval_contracts.SavedEvaluationError: BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-aslclccp/load_candidate_terminal_start_receipt_sha256/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af
+
+======================================================================
+ERROR: test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='load', receipt='candidate_start', field='execution_id')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 799, in check_decoded_receipt_rejections
+    f.prepare()
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 325, in prepare
+    result = contracts.prepare(self.config)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 493, in prepare
+    "candidate_start": file_record(old["start_receipt_path"], PINS["candidate_start"]),
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1204, in _execute_mock_call
+    result = effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 656, in file_record
+    return real_record(path, expected_sha)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 102, in file_record
+    raise SavedEvaluationError(f"BOUND_FILE_SHA_MISMATCH:{p}:{digest}:{expected_sha}")
+rff_saved_eval_contracts.SavedEvaluationError: BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-_l3izmve/load_candidate_start_execution_id/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af
+
+======================================================================
+ERROR: test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='load', receipt='candidate_start', field='route_id')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 799, in check_decoded_receipt_rejections
+    f.prepare()
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 325, in prepare
+    result = contracts.prepare(self.config)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 493, in prepare
+    "candidate_start": file_record(old["start_receipt_path"], PINS["candidate_start"]),
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1204, in _execute_mock_call
+    result = effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 656, in file_record
+    return real_record(path, expected_sha)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 102, in file_record
+    raise SavedEvaluationError(f"BOUND_FILE_SHA_MISMATCH:{p}:{digest}:{expected_sha}")
+rff_saved_eval_contracts.SavedEvaluationError: BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-_l3izmve/load_candidate_start_route_id/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af
+
+======================================================================
+ERROR: test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='load', receipt='candidate_start', field='run_spec_sha256')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 799, in check_decoded_receipt_rejections
+    f.prepare()
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 325, in prepare
+    result = contracts.prepare(self.config)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 493, in prepare
+    "candidate_start": file_record(old["start_receipt_path"], PINS["candidate_start"]),
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1204, in _execute_mock_call
+    result = effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 656, in file_record
+    return real_record(path, expected_sha)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 102, in file_record
+    raise SavedEvaluationError(f"BOUND_FILE_SHA_MISMATCH:{p}:{digest}:{expected_sha}")
+rff_saved_eval_contracts.SavedEvaluationError: BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-_l3izmve/load_candidate_start_run_spec_sha256/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af
+
+======================================================================
+ERROR: test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='load', receipt='candidate_start', field='input_binding_sha256')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 799, in check_decoded_receipt_rejections
+    f.prepare()
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 325, in prepare
+    result = contracts.prepare(self.config)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 493, in prepare
+    "candidate_start": file_record(old["start_receipt_path"], PINS["candidate_start"]),
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1204, in _execute_mock_call
+    result = effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 656, in file_record
+    return real_record(path, expected_sha)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 102, in file_record
+    raise SavedEvaluationError(f"BOUND_FILE_SHA_MISMATCH:{p}:{digest}:{expected_sha}")
+rff_saved_eval_contracts.SavedEvaluationError: BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-_l3izmve/load_candidate_start_input_binding_sha256/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af
+
+======================================================================
+ERROR: test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='load', receipt='candidate_start', field='source_code_sha256')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 799, in check_decoded_receipt_rejections
+    f.prepare()
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 325, in prepare
+    result = contracts.prepare(self.config)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 493, in prepare
+    "candidate_start": file_record(old["start_receipt_path"], PINS["candidate_start"]),
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1204, in _execute_mock_call
+    result = effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 656, in file_record
+    return real_record(path, expected_sha)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 102, in file_record
+    raise SavedEvaluationError(f"BOUND_FILE_SHA_MISMATCH:{p}:{digest}:{expected_sha}")
+rff_saved_eval_contracts.SavedEvaluationError: BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-_l3izmve/load_candidate_start_source_code_sha256/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af
+
+======================================================================
+ERROR: test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='load', receipt='candidate_terminal', field='execution_id')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 799, in check_decoded_receipt_rejections
+    f.prepare()
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 325, in prepare
+    result = contracts.prepare(self.config)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 493, in prepare
+    "candidate_start": file_record(old["start_receipt_path"], PINS["candidate_start"]),
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1204, in _execute_mock_call
+    result = effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 656, in file_record
+    return real_record(path, expected_sha)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 102, in file_record
+    raise SavedEvaluationError(f"BOUND_FILE_SHA_MISMATCH:{p}:{digest}:{expected_sha}")
+rff_saved_eval_contracts.SavedEvaluationError: BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-_l3izmve/load_candidate_terminal_execution_id/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af
+
+======================================================================
+ERROR: test_original_start_file_authenticates_under_shipped_pin (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_original_start_file_authenticates_under_shipped_pin)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 716, in test_original_start_file_authenticates_under_shipped_pin
+    record = contracts.file_record(self.FIXTURES / "CANDIDATE_START_RECEIPT.json", contracts.PINS["candidate_start"])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 102, in file_record
+    raise SavedEvaluationError(f"BOUND_FILE_SHA_MISMATCH:{p}:{digest}:{expected_sha}")
+rff_saved_eval_contracts.SavedEvaluationError: BOUND_FILE_SHA_MISMATCH:/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/fixtures/issue33_receipts/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af
+
+======================================================================
+ERROR: test_original_terminal_file_authenticates_under_shipped_pin (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_original_terminal_file_authenticates_under_shipped_pin)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 721, in test_original_terminal_file_authenticates_under_shipped_pin
+    record = contracts.file_record(self.FIXTURES / "CANDIDATE_TERMINAL_RECEIPT.json", contracts.PINS["candidate_terminal"])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 102, in file_record
+    raise SavedEvaluationError(f"BOUND_FILE_SHA_MISMATCH:{p}:{digest}:{expected_sha}")
+rff_saved_eval_contracts.SavedEvaluationError: BOUND_FILE_SHA_MISMATCH:/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/fixtures/issue33_receipts/CANDIDATE_TERMINAL_RECEIPT.json:c8dc367a7acf7196c4951074759e8c8015c071d6c2d7e6cf8b3afd3bf01f6ca1:5fe5704e4fb63a00e1802a14ba7e09f41985342a89e4f0c301793991b80ff0cf
+
+======================================================================
+ERROR: test_receipt_file_byte_changes_are_rejected_by_prepare_and_load (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_receipt_file_byte_changes_are_rejected_by_prepare_and_load) (operation='load', receipt='start')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 760, in test_receipt_file_byte_changes_are_rejected_by_prepare_and_load
+    f.prepare()
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 325, in prepare
+    result = contracts.prepare(self.config)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 493, in prepare
+    "candidate_start": file_record(old["start_receipt_path"], PINS["candidate_start"]),
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1204, in _execute_mock_call
+    result = effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 656, in file_record
+    return real_record(path, expected_sha)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 102, in file_record
+    raise SavedEvaluationError(f"BOUND_FILE_SHA_MISMATCH:{p}:{digest}:{expected_sha}")
+rff_saved_eval_contracts.SavedEvaluationError: BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-701sbrmu/load_start/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af
+
+======================================================================
+ERROR: test_receipt_file_byte_changes_are_rejected_by_prepare_and_load (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_receipt_file_byte_changes_are_rejected_by_prepare_and_load) (operation='load', receipt='terminal')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 760, in test_receipt_file_byte_changes_are_rejected_by_prepare_and_load
+    f.prepare()
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 325, in prepare
+    result = contracts.prepare(self.config)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 493, in prepare
+    "candidate_start": file_record(old["start_receipt_path"], PINS["candidate_start"]),
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1204, in _execute_mock_call
+    result = effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 656, in file_record
+    return real_record(path, expected_sha)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/src/rff_saved_eval_contracts.py", line 102, in file_record
+    raise SavedEvaluationError(f"BOUND_FILE_SHA_MISMATCH:{p}:{digest}:{expected_sha}")
+rff_saved_eval_contracts.SavedEvaluationError: BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-701sbrmu/load_terminal/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af
+
+======================================================================
+ERROR: test_shipped_event_identities_are_separate_from_receipt_file_pins (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_shipped_event_identities_are_separate_from_receipt_file_pins)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 726, in test_shipped_event_identities_are_separate_from_receipt_file_pins
+    events = contracts.CANDIDATE_EVENT_SHA256
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'rff_saved_eval_contracts' has no attribute 'CANDIDATE_EVENT_SHA256'
+
+======================================================================
+FAIL: test_decoded_event_field_errors_reach_the_specific_prepare_and_load_guards (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_decoded_event_field_errors_reach_the_specific_prepare_and_load_guards) (operation='prepare', receipt='candidate_start', field='start_event_sha256')
+----------------------------------------------------------------------
+rff_saved_eval_contracts.SavedEvaluationError: BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-9__ishgm/prepare_candidate_start_start_event_sha256/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 801, in check_decoded_receipt_rejections
+    with self.assertRaisesRegex(contracts.SavedEvaluationError, error):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "ORIGINAL_START_EVENT_SHA_MISMATCH" does not match "BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-9__ishgm/prepare_candidate_start_start_event_sha256/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af"
+
+======================================================================
+FAIL: test_decoded_event_field_errors_reach_the_specific_prepare_and_load_guards (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_decoded_event_field_errors_reach_the_specific_prepare_and_load_guards) (operation='prepare', receipt='candidate_terminal', field='terminal_event_sha256')
+----------------------------------------------------------------------
+rff_saved_eval_contracts.SavedEvaluationError: BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-9__ishgm/prepare_candidate_terminal_terminal_event_sha256/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 801, in check_decoded_receipt_rejections
+    with self.assertRaisesRegex(contracts.SavedEvaluationError, error):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "ORIGINAL_TERMINAL_EVENT_SHA_MISMATCH" does not match "BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-9__ishgm/prepare_candidate_terminal_terminal_event_sha256/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af"
+
+======================================================================
+FAIL: test_decoded_start_file_chain_errors_reach_the_existing_prepare_and_load_guard (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_decoded_start_file_chain_errors_reach_the_existing_prepare_and_load_guard) (operation='prepare', receipt='candidate_terminal', field='start_receipt_sha256')
+----------------------------------------------------------------------
+rff_saved_eval_contracts.SavedEvaluationError: BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-aslclccp/prepare_candidate_terminal_start_receipt_sha256/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 801, in check_decoded_receipt_rejections
+    with self.assertRaisesRegex(contracts.SavedEvaluationError, error):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "ORIGINAL_RECEIPT_CHAIN_IDENTITY_MISMATCH" does not match "BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-aslclccp/prepare_candidate_terminal_start_receipt_sha256/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af"
+
+======================================================================
+FAIL: test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='prepare', receipt='candidate_start', field='execution_id')
+----------------------------------------------------------------------
+rff_saved_eval_contracts.SavedEvaluationError: BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-_l3izmve/prepare_candidate_start_execution_id/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 801, in check_decoded_receipt_rejections
+    with self.assertRaisesRegex(contracts.SavedEvaluationError, error):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "ORIGINAL_RECEIPT_CHAIN_IDENTITY_MISMATCH" does not match "BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-_l3izmve/prepare_candidate_start_execution_id/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af"
+
+======================================================================
+FAIL: test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='prepare', receipt='candidate_start', field='route_id')
+----------------------------------------------------------------------
+rff_saved_eval_contracts.SavedEvaluationError: BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-_l3izmve/prepare_candidate_start_route_id/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 801, in check_decoded_receipt_rejections
+    with self.assertRaisesRegex(contracts.SavedEvaluationError, error):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "ORIGINAL_RECEIPT_CHAIN_IDENTITY_MISMATCH" does not match "BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-_l3izmve/prepare_candidate_start_route_id/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af"
+
+======================================================================
+FAIL: test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='prepare', receipt='candidate_start', field='run_spec_sha256')
+----------------------------------------------------------------------
+rff_saved_eval_contracts.SavedEvaluationError: BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-_l3izmve/prepare_candidate_start_run_spec_sha256/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 801, in check_decoded_receipt_rejections
+    with self.assertRaisesRegex(contracts.SavedEvaluationError, error):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "ORIGINAL_RECEIPT_CHAIN_IDENTITY_MISMATCH" does not match "BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-_l3izmve/prepare_candidate_start_run_spec_sha256/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af"
+
+======================================================================
+FAIL: test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='prepare', receipt='candidate_start', field='input_binding_sha256')
+----------------------------------------------------------------------
+rff_saved_eval_contracts.SavedEvaluationError: BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-_l3izmve/prepare_candidate_start_input_binding_sha256/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 801, in check_decoded_receipt_rejections
+    with self.assertRaisesRegex(contracts.SavedEvaluationError, error):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "ORIGINAL_RECEIPT_CHAIN_IDENTITY_MISMATCH" does not match "BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-_l3izmve/prepare_candidate_start_input_binding_sha256/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af"
+
+======================================================================
+FAIL: test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='prepare', receipt='candidate_start', field='source_code_sha256')
+----------------------------------------------------------------------
+rff_saved_eval_contracts.SavedEvaluationError: BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-_l3izmve/prepare_candidate_start_source_code_sha256/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 801, in check_decoded_receipt_rejections
+    with self.assertRaisesRegex(contracts.SavedEvaluationError, error):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "ORIGINAL_RECEIPT_CHAIN_IDENTITY_MISMATCH" does not match "BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-_l3izmve/prepare_candidate_start_source_code_sha256/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af"
+
+======================================================================
+FAIL: test_existing_decoded_receipt_identity_and_source_guards_remain_in_force (test_rff_saved_eval_contracts.FrozenReceiptPinsTest.test_existing_decoded_receipt_identity_and_source_guards_remain_in_force) (operation='prepare', receipt='candidate_terminal', field='execution_id')
+----------------------------------------------------------------------
+rff_saved_eval_contracts.SavedEvaluationError: BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-_l3izmve/prepare_candidate_terminal_execution_id/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33_r2/candidate/tests/test_rff_saved_eval_contracts.py", line 801, in check_decoded_receipt_rejections
+    with self.assertRaisesRegex(contracts.SavedEvaluationError, error):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "ORIGINAL_RECEIPT_CHAIN_IDENTITY_MISMATCH" does not match "BOUND_FILE_SHA_MISMATCH:/tmp/rff-original-receipt-pins-_l3izmve/prepare_candidate_terminal_execution_id/synthetic 工厂/handoffs/old candidate/CANDIDATE_START_RECEIPT.json:0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03:69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af"
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.266s
+
+FAILED (failures=9, errors=15)

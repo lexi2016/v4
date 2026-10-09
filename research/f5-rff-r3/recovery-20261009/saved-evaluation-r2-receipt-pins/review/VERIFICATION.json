@@ -1,0 +1,110 @@
+{
+  "schema": "RFF_SAVED_EVALUATION_RECEIPT_PIN_FIX_VERIFICATION_V1",
+  "status": "PASS_SYNTHETIC_AND_SCOPED_STATIC_REVIEW_REAL_MAC_PREPARE_PENDING",
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "python_executable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python"
+  },
+  "frozen_production_sha256": "e41ab4b41c8386875b14515e34c7609e108db17b538ed43eebe7f76fc3394ba6",
+  "frozen_test_sha256": "95b1baa54699bd6a791f03f67a9f1f54acc98866783c16db0077ef8b429db4b6",
+  "root_final_suite": {
+    "executor": "/root",
+    "test_count": 150,
+    "seconds": 35.797,
+    "exit_code": 0,
+    "argv": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "candidate/tests",
+      "-p",
+      "test_*.py",
+      "-v"
+    ],
+    "log": "review/logs/full_suite_root.log",
+    "log_sha256": "7b41c38ee7a082df3e0dd6a6c97a646e003ae0062327f8b16b151175ce0f32c6",
+    "counts_by_module": {
+      "test_rff_saved_eval_contracts": 38,
+      "test_rff_saved_eval_frames": 24,
+      "test_rff_saved_eval_monitor": 19,
+      "test_rff_saved_eval_registration": 27,
+      "test_rff_saved_eval_worker": 22,
+      "test_run_rff_saved_evaluation": 20
+    },
+    "uses_final_frozen_source_and_tests": true
+  },
+  "root_cli_help": {
+    "executor": "/root",
+    "exit_code": 0,
+    "argv": [
+      "python",
+      "-B",
+      "candidate/src/run_rff_saved_evaluation.py",
+      "--help"
+    ],
+    "log": "review/logs/cli_help_root.log"
+  },
+  "test_author_evidence": {
+    "executor": "/root/metric_parity",
+    "red": {
+      "production_sha256": "35b9f88b8183f8980333bfe4e06f37b3ef3e2acbea7a0fc6904b1d130ef058b7",
+      "test_methods": 8,
+      "exit_code": 1,
+      "failures_including_subtests": 9,
+      "errors_including_subtests": 15,
+      "log": "review/logs/formal_receipt_pins_red.log",
+      "test_revision_note": "Before final cleanup assertions for immutable event-map identity/content; exact test hash at this run was not retained."
+    },
+    "green_group": {
+      "test_methods": 8,
+      "seconds": 0.553,
+      "exit_code": 0,
+      "log": "review/logs/formal_receipt_pins_green.log",
+      "test_revision_note": "Before final event-map cleanup assertion addition; superseded by frozen 38- and 150-test passes."
+    },
+    "green_module_final": {
+      "test_methods": 38,
+      "seconds": 1.046,
+      "exit_code": 0,
+      "test_sha256": "95b1baa54699bd6a791f03f67a9f1f54acc98866783c16db0077ef8b429db4b6",
+      "log": "review/logs/contracts_module_green.log"
+    },
+    "counts_are_overlapping_subsets_not_additive": true
+  },
+  "independent_review": {
+    "reviewer": "/root/saved_eval_review",
+    "status": "PASS_PIN_FIX_STATIC_WITH_AUTHOR_LOG_REVIEW",
+    "path": "review/INDEPENDENT_PIN_FIX_REVIEW.md",
+    "sha256": "d21d2abcec957c2cfa8583162af7b090600d0fed883cc1094e52ed421bac371c",
+    "reviewer_authored_product_or_tests": false,
+    "reviewer_reran_final_suite": false
+  },
+  "new_regression_scope": {
+    "production_file_and_event_pin_mappings_replaced": false,
+    "both_pin_objects_and_contents_checked_unchanged_after_each_test": true,
+    "raw_receipts": "Byte-exact frozen original start/terminal JSON metadata",
+    "receipt_file_record_and_checked_read": "Real implementations; receipt paths excluded from the synthetic-periphery allowlist",
+    "prepare_and_load_documents": "Actual calls with real receipt validation and explicitly synthetic peripheral dependency closure",
+    "periphery": "Only 12 enumerated synthetic metadata/helper paths may declare frozen identities; real Mac dependency closure is not available",
+    "semantic_guard_faults": "One decoded in-memory field changed only after original raw bytes and SHA authenticated",
+    "byte_corruption_guard": "Append newline only to temporary copies, reject with original SHA guard",
+    "registry": "Temporary generated synthetic registry only; no real registry accessed"
+  },
+  "real_execution": {
+    "mac_prepare_attempted": false,
+    "evaluation_attempted": false,
+    "real_training": false,
+    "real_prediction": false,
+    "model_load": false,
+    "real_scores_or_truth_read": false,
+    "real_registry_read_or_written": false,
+    "release_created": false,
+    "real_hit_rate_produced": false,
+    "improvement_proven": false
+  },
+  "next_mac_gate": "Apply R2 to a verified R1 copy; run targeted contracts tests and CLI help; one metadata-only prepare; review new binding/source and obtain new parent release before real evaluation."
+}

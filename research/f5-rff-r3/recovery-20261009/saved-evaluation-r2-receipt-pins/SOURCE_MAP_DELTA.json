@@ -1,0 +1,146 @@
+{
+  "schema": "RFF_SAVED_EVALUATION_RECEIPT_PIN_FIX_SOURCE_MAP_V1",
+  "repository": "lexi2016/v4",
+  "base_commit_sha": "3764032a16f3cd9db88ec0d0ca122fd5d01c167b",
+  "base_tree_sha": "a4568e573da77422f963ce4cf2c6d46faaaa0cc0",
+  "base_delivery_prefix": "research/f5-rff-r3/recovery-20261009/saved-evaluation-r1/after/",
+  "new_delivery_prefix": "research/f5-rff-r3/recovery-20261009/saved-evaluation-r2-receipt-pins/",
+  "delivery_mode": "INCREMENTAL_COMPLETE_CHANGED_FILES",
+  "production_delta": {
+    "files_modified": 1,
+    "lines_added": 11,
+    "lines_removed": 2
+  },
+  "files": [
+    {
+      "path": "candidate/src/rff_saved_eval_contracts.py",
+      "change": "modified",
+      "before": {
+        "bytes": 40716,
+        "sha256": "35b9f88b8183f8980333bfe4e06f37b3ef3e2acbea7a0fc6904b1d130ef058b7",
+        "git_blob_sha1": "9809e784ef4061b3f09c4a9676b0ef7be95de69d"
+      },
+      "after": {
+        "bytes": 41298,
+        "sha256": "e41ab4b41c8386875b14515e34c7609e108db17b538ed43eebe7f76fc3394ba6",
+        "git_blob_sha1": "4a84c991361a565981458b829f3bb5bb3e1ceeba"
+      }
+    },
+    {
+      "path": "candidate/tests/test_rff_saved_eval_contracts.py",
+      "change": "modified",
+      "before": {
+        "bytes": 33399,
+        "sha256": "6d1f0c904caa36cdad219ac609c0a13077ac41796fcf4225b8e972dda1abf3a7",
+        "git_blob_sha1": "3a989b22726b7dca597f74fffb4c0c32a932067c"
+      },
+      "after": {
+        "bytes": 47272,
+        "sha256": "95b1baa54699bd6a791f03f67a9f1f54acc98866783c16db0077ef8b429db4b6",
+        "git_blob_sha1": "15b2d4b9dda6eef6a9f8d7f70c98283c568a428d"
+      }
+    },
+    {
+      "path": "candidate/tests/fixtures/issue33_receipts/CANDIDATE_START_RECEIPT.json",
+      "change": "added",
+      "before": null,
+      "after": {
+        "bytes": 1510,
+        "sha256": "0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03",
+        "git_blob_sha1": "a5a2d727fc42544183ba6e3168709ef8ca3b5848"
+      }
+    },
+    {
+      "path": "candidate/tests/fixtures/issue33_receipts/CANDIDATE_TERMINAL_RECEIPT.json",
+      "change": "added",
+      "before": null,
+      "after": {
+        "bytes": 897,
+        "sha256": "c8dc367a7acf7196c4951074759e8c8015c071d6c2d7e6cf8b3afd3bf01f6ca1",
+        "git_blob_sha1": "b317ed4980893208f309c944e194a1e6fdef643f"
+      }
+    },
+    {
+      "path": "candidate/tests/fixtures/issue33_receipts/ISSUE33_SUPPLEMENT.json",
+      "change": "added",
+      "before": null,
+      "after": {
+        "bytes": 7708,
+        "sha256": "fc5fe74dc5c36cb4bc254d043a2151da2402e4a3acb1a95323a56aa377cda704",
+        "git_blob_sha1": "55d716c3bd5b67d87aec529e1c15f720b8f5941c"
+      }
+    }
+  ],
+  "unchanged_runtime_files": [
+    {
+      "path": "candidate/src/rff_saved_eval_frames.py",
+      "bytes": 20611,
+      "sha256": "0931cf63d5f779d02025ce5e41ca984aa9541686709b58e2d2367782200e203b",
+      "git_blob_sha1": "d27c53da83848043836f44f92a49856b714ea910"
+    },
+    {
+      "path": "candidate/src/rff_saved_eval_registration.py",
+      "bytes": 22974,
+      "sha256": "e25f3312332547f71f9edab2b76a49e20921ca1fb3c29d0c0face7211fd03ce0",
+      "git_blob_sha1": "1031ff730b5e01758235943939e1b2c81447f851"
+    },
+    {
+      "path": "candidate/src/rff_saved_eval_worker.py",
+      "bytes": 16893,
+      "sha256": "c015246b4b3a21bcb69a1745e41516a9c19f694bf923dfb39553a920a96dfdd8",
+      "git_blob_sha1": "6806affedef92c4347177748afd8017af156c951"
+    },
+    {
+      "path": "candidate/src/run_rff_saved_evaluation.py",
+      "bytes": 49481,
+      "sha256": "115f84e85777a3f002e01c441f62f0fe179adbac72e3c2ecdfaa91adbc5802ba",
+      "git_blob_sha1": "36bd8e60980eb780fef2a880ba1406489e451b9c"
+    }
+  ],
+  "accepted_pr5_worker_unchanged": {
+    "path": "inputs/attachments/rff/pr5_accepted/src/rff_worker.py",
+    "bytes": 28369,
+    "sha256": "3ea10757a81207147e5cfb9e68e69750a0579786153e7ce58ccf342a3184058c",
+    "git_blob_sha1": "b3f028bcc25c5816b21c98de650004130ddad5ac"
+  },
+  "receipt_identity_types": {
+    "candidate_start": {
+      "file_sha256": "0292f37c00181b3447d0cda65f0b24096e9100ace35fb024ff5f579248e64a03",
+      "start_event_sha256": "69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af"
+    },
+    "candidate_terminal": {
+      "file_sha256": "c8dc367a7acf7196c4951074759e8c8015c071d6c2d7e6cf8b3afd3bf01f6ca1",
+      "terminal_event_sha256": "5fe5704e4fb63a00e1802a14ba7e09f41985342a89e4f0c301793991b80ff0cf"
+    }
+  },
+  "feedback": {
+    "commit_sha": "72f5526d4f1358b48d478f5c89a4641b879599de",
+    "comment_url": "https://github.com/lexi2016/v4/issues/33#issuecomment-6073492447",
+    "archive_sha256": "f5ac6be02447435318b126fd1443940163f52dcfae37bb81160e940528e1c819",
+    "archive_member_count": 7,
+    "all_members_crc_bytes_sha256_and_git_blob_verified": true
+  },
+  "mac_config": {
+    "changed_keys": [
+      "accepted_worker_path",
+      "execution_id",
+      "recovery_root"
+    ],
+    "resources_unchanged": {
+      "cpu_threads": 4,
+      "aggregate_process_tree_rss_bytes_max": 34359738368,
+      "wall_seconds_max": 3600,
+      "sample_seconds": 1
+    },
+    "original": {
+      "bytes": 964,
+      "sha256": "d862b98076dff198572330628e5a559580f94f232b64dae7c0bb6333c72420e9",
+      "git_blob_sha1": "34eca2dcad2d123660b87acc033e06dabb7b7e2f"
+    },
+    "example": {
+      "bytes": 964,
+      "sha256": "1cf4824971325b29e42055e823d2434aa0e05ad23144d8cb1d6df6e92eeccac4",
+      "git_blob_sha1": "274fc70c73ea3aaea0626d4864be23aa36cea8f2"
+    }
+  }
+}
