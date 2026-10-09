@@ -53,7 +53,38 @@ class UsMappingDailyTests(unittest.TestCase):
         self.assertRegex(daily['run_id'], r'^[0-9a-f]{32}$')
         self.assertEqual(result['persisted_daily'], daily)
         self.assertEqual(result['readback_status'], 'MATCHED')
-        self.assertIn(daily['status'], ('COMPLETED', 'VALID_EMPTY', 'PARTIAL', 'CANNOT_CONFIRM', 'INPUT_MISSING', 'FAILED'))
+        self.assertEqual(daily['source_status'], 'READY', json.dumps(daily, ensure_ascii=False))
+        self.assertEqual(daily['source_identity']['status'], 'VERIFIED')
+        for relative, digest in request['us_files'].items():
+            field = ('manifest_sha256' if relative.endswith('/manifest.json') else
+                     'receipt_sha256' if relative.startswith('receipts/') else 'payload_sha256')
+            self.assertEqual(daily['source_identity'][field], digest)
+        self.assertEqual(daily['coverage']['configured_us_universe_count'], 33)
+        self.assertEqual(daily['coverage']['available_us_universe_count'], 33)
+        original = json.loads((Path(request['us_data_root']) /
+                               'research/peripherals/20261007/external_finance.json').read_bytes())
+        seed = json.loads((Path(__file__).resolve().parents[1] /
+                           'vendor/us_mapping_baseline/v4/manager_research/us_mapping_reviewed_20260930.json').read_bytes())
+        import math
+        movers = []
+        for quote in original['market_snapshot']['quotes']:
+            value = quote.get('change_pct')
+            if isinstance(value, bool) or quote.get('session_date') != '20261007':
+                continue
+            try:
+                value = float(value)
+            except (ValueError, TypeError):
+                continue
+            if math.isfinite(value) and value > 0:
+                movers.append((str(quote['symbol']).upper(), value))
+        expected = []
+        for symbol, change in sorted(movers, key=lambda row: (-row[1], row[0])):
+            for card in seed['cards']:
+                if symbol in card.get('daily_match_symbols', []):
+                    expected.append((symbol, card['hk_symbol'], change))
+        actual = [(row['us_symbol'], row['hk_symbol'], row['change_pct']) for row in daily['matches']]
+        self.assertEqual(actual, expected)
+        self.assertEqual(daily['status'], 'COMPLETED' if expected else 'VALID_EMPTY')
         self.assertFalse(result['natural_verified'])
         self.assertFalse(result['source_origin_verified'])
         self.assertFalse(daily['production_allowed'])
