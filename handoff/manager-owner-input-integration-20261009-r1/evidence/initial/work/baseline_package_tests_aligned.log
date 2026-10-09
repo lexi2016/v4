@@ -1,0 +1,295 @@
+.........FFF........F.......F......F.F.................FFFFFFFFFFFFF.... [ 69%]
+F.................FFFFFF.......                                          [100%]
+=================================== FAILURES ===================================
+_______ test_open_unknown_membership_not_promoted_and_prior_day_rejected _______
+tests/test_issue8_selection_gaps.py:128: in test_open_unknown_membership_not_promoted_and_prior_day_rejected
+    assert accepted==[] and rejected[0]['reason']=='TARGET_HK_CONNECT_MEMBERSHIP_DATE_OR_ROLE_MISMATCH'
+E   AssertionError: assert ([] == []
+E     
+E     Use -v to get more diff and 'HK_CONNECT_M...CS_UNVERIFIED' == 'TARGET_HK_CO...ROLE_MISMATCH'
+E     
+E     - TARGET_HK_CONNECT_MEMBERSHIP_DATE_OR_ROLE_MISMATCH
+E     + HK_CONNECT_MEMBERSHIP_SEMANTICS_UNVERIFIED)
+_______ test_scope_filter_keeps_counts_gaps_and_original_lane_unchanged ________
+tests/test_issue8_selection_gaps.py:142: in test_scope_filter_keeps_counts_gaps_and_original_lane_unchanged
+    assert len(a['observation_only']['cards'])==1
+E   assert 0 == 1
+E    +  where 0 = len([])
+_ test_verified_scope_admits_fresh_official_evidence_only_and_does_not_create_focus _
+tests/test_issue8_selection_gaps.py:155: in test_verified_scope_admits_fresh_official_evidence_only_and_does_not_create_focus
+    assert [r['symbol'] for r in a['cards']]==['HK.01234']
+E   AssertionError: assert [] == ['HK.01234']
+E     
+E     Right contains one more item: 'HK.01234'
+E     Use -v to get more diff
+__ test_observation_only_never_uses_invalid_or_duplicate_evidence[duplicate] ___
+tests/test_issue8_selection_gaps.py:175: in test_observation_only_never_uses_invalid_or_duplicate_evidence
+    assert len(a['observation_only']['cards'])==(1 if bad=='duplicate' else 0)
+E   assert 0 == 1
+E    +  where 0 = len([])
+_____ test_frozen_positive_subtree_preserved_without_promoting_five_stocks _____
+tests/test_issue8_selection_gaps.py:240: in test_frozen_positive_subtree_preserved_without_promoting_five_stocks
+    f=json.loads((Path(os.environ['V4_INPUT_ROOT'])/'evidence/FROZEN_SELECTED_FIELDS.json').read_text())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen os>:714: in __getitem__
+    ???
+E   KeyError: 'V4_INPUT_ROOT'
+_ test_dynamic_pagination_proves_empty_terminal_and_preserves_display_mismatch _
+tests/test_manager_announcement_date_catalog.py:111: in test_dynamic_pagination_proves_empty_terminal_and_preserves_display_mismatch
+    assert result['manager_consumer_use'] == 'CODE_INTERSECTION_ONLY_NOT_SELECTION_RESULT'
+E   AssertionError: assert 'SOURCE_IDENT...ECTION_RESULT' == 'CODE_INTERSE...ECTION_RESULT'
+E     
+E     - CODE_INTERSECTION_ONLY_NOT_SELECTION_RESULT
+E     + SOURCE_IDENTITY_RESEARCH_REFERENCE_ONLY_NOT_CONNECT_ELIGIBILITY_OR_SELECTION_RESULT
+_ test_source_116_h_identifiers_are_preserved_even_when_not_numeric_master_tickers _
+tests/test_manager_announcement_date_catalog.py:132: in test_source_116_h_identifiers_are_preserved_even_when_not_numeric_master_tickers
+    assert result['manager_consumer_rows'] == []
+E   AssertionError: assert [{'art_code':...es': [], ...}] == []
+E     
+E     Left contains one more item: {'art_code': 'AN202609290000000001', 'blob_sha256': 'd72393331c93624ca280f7b5cff3d59df44490f60d0702b77e729074c4236659', 'display_time': '2026-09-29 09:00:00:000', 'matched_master_codes': [], ...}
+E     Use -v to get more diff
+_ test_binding_inventory_includes_full_stage_and_body_capture_dependency_closure _
+tests/test_manager_announcement_supervisor.py:87: in test_binding_inventory_includes_full_stage_and_body_capture_dependency_closure
+    files=_binding(tmp_path)['files']
+          ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'
+___________ test_complete_bound_source_inventory_and_disabled_config ___________
+tests/test_manager_announcement_supervisor.py:158: in test_complete_bound_source_inventory_and_disabled_config
+    v=_binding(tmp_path);assert validate_binding(v)['enabled'] is False
+      ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'
+____ test_plan_only_binding_requires_separate_matching_manual_owner_canary _____
+tests/test_manager_announcement_supervisor.py:164: in test_plan_only_binding_requires_separate_matching_manual_owner_canary
+    value,_=_plan_only_binding(tmp_path)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:99: in _plan_only_binding
+    value=_binding(tmp_path);app=Path(value['app_root']);state=Path(value['manager_state_root'])
+          ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'
+_ test_plan_only_binding_accepts_fresh_manual_owner_evidence_from_same_api_root _
+tests/test_manager_announcement_supervisor.py:170: in test_plan_only_binding_accepts_fresh_manual_owner_evidence_from_same_api_root
+    value,canary=_plan_only_binding(tmp_path,same_owner_root=True)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:99: in _plan_only_binding
+    value=_binding(tmp_path);app=Path(value['app_root']);state=Path(value['manager_state_root'])
+          ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'
+_________ test_plan_only_binding_rejects_response_body_with_wrong_sha __________
+tests/test_manager_announcement_supervisor.py:178: in test_plan_only_binding_rejects_response_body_with_wrong_sha
+    value,_=_plan_only_binding(tmp_path,tamper_body_sha=True)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:99: in _plan_only_binding
+    value=_binding(tmp_path);app=Path(value['app_root']);state=Path(value['manager_state_root'])
+          ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'
+_________ test_plan_only_binding_rejects_forged_or_announcement_canary _________
+tests/test_manager_announcement_supervisor.py:186: in test_plan_only_binding_rejects_forged_or_announcement_canary
+    value,canary=_plan_only_binding(tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:99: in _plan_only_binding
+    value=_binding(tmp_path);app=Path(value['app_root']);state=Path(value['manager_state_root'])
+          ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'
+________ test_plan_only_binding_rejects_owner_source_migration_mismatch ________
+tests/test_manager_announcement_supervisor.py:201: in test_plan_only_binding_rejects_owner_source_migration_mismatch
+    value,canary=_plan_only_binding(tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:99: in _plan_only_binding
+    value=_binding(tmp_path);app=Path(value['app_root']);state=Path(value['manager_state_root'])
+          ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'
+_________ test_binding_rejects_source_and_root_drift[missing_catalog] __________
+tests/test_manager_announcement_supervisor.py:216: in test_binding_rejects_source_and_root_drift
+    v=_binding(tmp_path);app=Path(v['app_root'])
+      ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'
+_______ test_binding_rejects_source_and_root_drift[unlisted_new_source] ________
+tests/test_manager_announcement_supervisor.py:216: in test_binding_rejects_source_and_root_drift
+    v=_binding(tmp_path);app=Path(v['app_root'])
+      ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'
+__________ test_binding_rejects_source_and_root_drift[changed_source] __________
+tests/test_manager_announcement_supervisor.py:216: in test_binding_rejects_source_and_root_drift
+    v=_binding(tmp_path);app=Path(v['app_root'])
+      ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'
+__________ test_binding_rejects_source_and_root_drift[state_overlap] ___________
+tests/test_manager_announcement_supervisor.py:216: in test_binding_rejects_source_and_root_drift
+    v=_binding(tmp_path);app=Path(v['app_root'])
+      ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'
+__________ test_binding_rejects_source_and_root_drift[python_target] ___________
+tests/test_manager_announcement_supervisor.py:216: in test_binding_rejects_source_and_root_drift
+    v=_binding(tmp_path);app=Path(v['app_root'])
+      ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'
+___________ test_binding_rejects_source_and_root_drift[unsafe_flag] ____________
+tests/test_manager_announcement_supervisor.py:216: in test_binding_rejects_source_and_root_drift
+    v=_binding(tmp_path);app=Path(v['app_root'])
+      ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'
+__________ test_legacy_over_64_mib_is_read_losslessly_without_rewrite __________
+tests/test_manager_plan_readback_issue24.py:59: in test_legacy_over_64_mib_is_read_losslessly_without_rewrite
+    assert w._readback_plan(store, DATE, current())['plan_product']['status'] == 'CURRENT'
+E   AssertionError: assert 'OWNER_ATTEMPT_UNVERIFIED' == 'CURRENT'
+E     
+E     - CURRENT
+E     + OWNER_ATTEMPT_UNVERIFIED
+____ test_failed_save_readback_never_gets_success_journal[READBACK_FAILED] _____
+tests/test_manager_plan_readback_issue24.py:186: in test_failed_save_readback_never_gets_success_journal
+    with pytest.raises(ValueError,match='WORKSPACE_PLAN_SAVE_READBACK_FAILED'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+__ test_failed_save_readback_never_gets_success_journal[STALE_INPUTS_CHANGED] __
+tests/test_manager_plan_readback_issue24.py:186: in test_failed_save_readback_never_gets_success_journal
+    with pytest.raises(ValueError,match='WORKSPACE_PLAN_SAVE_READBACK_FAILED'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+____ test_failed_save_readback_never_gets_success_journal[NOT_MATERIALIZED] ____
+tests/test_manager_plan_readback_issue24.py:186: in test_failed_save_readback_never_gets_success_journal
+    with pytest.raises(ValueError,match='WORKSPACE_PLAN_SAVE_READBACK_FAILED'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+___ test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_RUN] ____
+tests/test_manager_plan_readback_issue24.py:186: in test_failed_save_readback_never_gets_success_journal
+    with pytest.raises(ValueError,match='WORKSPACE_PLAN_SAVE_READBACK_FAILED'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+___ test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_SHA] ____
+tests/test_manager_plan_readback_issue24.py:186: in test_failed_save_readback_never_gets_success_journal
+    with pytest.raises(ValueError,match='WORKSPACE_PLAN_SAVE_READBACK_FAILED'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+__ test_failed_save_readback_never_gets_success_journal[CURRENT_NOT_CONSUMED] __
+tests/test_manager_plan_readback_issue24.py:188: in test_failed_save_readback_never_gets_success_journal
+    assert {r['state'] for r in seen}<={'RUNNING','FAILED'}
+E   AssertionError: assert {'FAILED', 'R...CEEDED_EMPTY'} <= {'FAILED', 'RUNNING'}
+E     
+E     Extra items in the left set:
+E     'SUCCEEDED_EMPTY'
+=============================== warnings summary ===============================
+../../../runtime_locked/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_issue8_selection_gaps.py::test_open_unknown_membership_not_promoted_and_prior_day_rejected
+FAILED tests/test_issue8_selection_gaps.py::test_scope_filter_keeps_counts_gaps_and_original_lane_unchanged
+FAILED tests/test_issue8_selection_gaps.py::test_verified_scope_admits_fresh_official_evidence_only_and_does_not_create_focus
+FAILED tests/test_issue8_selection_gaps.py::test_observation_only_never_uses_invalid_or_duplicate_evidence[duplicate]
+FAILED tests/test_issue8_selection_gaps.py::test_frozen_positive_subtree_preserved_without_promoting_five_stocks
+FAILED tests/test_manager_announcement_date_catalog.py::test_dynamic_pagination_proves_empty_terminal_and_preserves_display_mismatch
+FAILED tests/test_manager_announcement_date_catalog.py::test_source_116_h_identifiers_are_preserved_even_when_not_numeric_master_tickers
+FAILED tests/test_manager_announcement_supervisor.py::test_binding_inventory_includes_full_stage_and_body_capture_dependency_closure
+FAILED tests/test_manager_announcement_supervisor.py::test_complete_bound_source_inventory_and_disabled_config
+FAILED tests/test_manager_announcement_supervisor.py::test_plan_only_binding_requires_separate_matching_manual_owner_canary
+FAILED tests/test_manager_announcement_supervisor.py::test_plan_only_binding_accepts_fresh_manual_owner_evidence_from_same_api_root
+FAILED tests/test_manager_announcement_supervisor.py::test_plan_only_binding_rejects_response_body_with_wrong_sha
+FAILED tests/test_manager_announcement_supervisor.py::test_plan_only_binding_rejects_forged_or_announcement_canary
+FAILED tests/test_manager_announcement_supervisor.py::test_plan_only_binding_rejects_owner_source_migration_mismatch
+FAILED tests/test_manager_announcement_supervisor.py::test_binding_rejects_source_and_root_drift[missing_catalog]
+FAILED tests/test_manager_announcement_supervisor.py::test_binding_rejects_source_and_root_drift[unlisted_new_source]
+FAILED tests/test_manager_announcement_supervisor.py::test_binding_rejects_source_and_root_drift[changed_source]
+FAILED tests/test_manager_announcement_supervisor.py::test_binding_rejects_source_and_root_drift[state_overlap]
+FAILED tests/test_manager_announcement_supervisor.py::test_binding_rejects_source_and_root_drift[python_target]
+FAILED tests/test_manager_announcement_supervisor.py::test_binding_rejects_source_and_root_drift[unsafe_flag]
+FAILED tests/test_manager_plan_readback_issue24.py::test_legacy_over_64_mib_is_read_losslessly_without_rewrite
+FAILED tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[READBACK_FAILED]
+FAILED tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[STALE_INPUTS_CHANGED]
+FAILED tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[NOT_MATERIALIZED]
+FAILED tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_RUN]
+FAILED tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_SHA]
+FAILED tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_NOT_CONSUMED]
+27 failed, 76 passed, 1 warning in 4.69s

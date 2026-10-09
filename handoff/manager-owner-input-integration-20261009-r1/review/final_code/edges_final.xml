@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="7" time="3.646" timestamp="2026-10-09T09:05:53.131777-07:00" hostname="f2c20067ed3d"><testcase classname="review.final_code.test_independent_edges" name="test_same_immutable_inputs_reuse_scheduled_run_with_advancing_native_witness[SCHEDULED_MORNING]" time="1.752"><failure message="AssertionError: assert 'CURRENT' == 'ALREADY_MATERIALIZED'&#10;  &#10;  - ALREADY_MATERIALIZED&#10;  + CURRENT">material_owner = (&lt;_v4_manager_research_runtime.service.ManagerResearchJobService object at 0x7f6f594a94f0&gt;, &lt;starlette.testclient.Test...ation_relative': 'universes/20261009/HK_CONNECT_FULL_MARKET.authority/0bf6e2de0194becca4ad6b0c/publication.json', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f6f5aa5ac30&gt;
+kind = 'SCHEDULED_MORNING'
+
+    @pytest.mark.parametrize("kind", ["SCHEDULED_MORNING", "SCHEDULED_PREOPEN"])
+    def test_same_immutable_inputs_reuse_scheduled_run_with_advancing_native_witness(material_owner, monkeypatch, kind):
+        service, client, roots, witness, _owner, _built = material_owner
+        workspace = importlib.import_module(service.__class__.__module__.rsplit(".", 1)[0] + ".workspace")
+        clock, deadline = clocks(kind)
+        witness[0] = clock
+        monkeypatch.setattr(workspace, "_now", lambda: witness[0].isoformat())
+        first = service.refresh_workspace_plan(DATE, execution_kind=kind, now=clock, deadline=deadline)
+        assert len(first["material_discovery_evidence"]["cards"]) == 1
+        before = {key: _snapshot(roots[key]) for key in ("shared", "research", "manager")}
+        witness[0] += timedelta(seconds=30)
+        repeated = service.refresh_workspace_plan(DATE, execution_kind=kind, now=witness[0], deadline=deadline)
+&gt;       assert repeated["plan_product"]["status"] == "ALREADY_MATERIALIZED"
+E       AssertionError: assert 'CURRENT' == 'ALREADY_MATERIALIZED'
+E         
+E         - ALREADY_MATERIALIZED
+E         + CURRENT
+
+../../../review/final_code/test_independent_edges.py:37: AssertionError</failure></testcase><testcase classname="review.final_code.test_independent_edges" name="test_same_immutable_inputs_reuse_scheduled_run_with_advancing_native_witness[SCHEDULED_PREOPEN]" time="0.293"><failure message="AssertionError: assert 'CURRENT' == 'ALREADY_MATERIALIZED'&#10;  &#10;  - ALREADY_MATERIALIZED&#10;  + CURRENT">material_owner = (&lt;_v4_manager_research_runtime.service.ManagerResearchJobService object at 0x7f6f59153cb0&gt;, &lt;starlette.testclient.Test...ation_relative': 'universes/20261009/HK_CONNECT_FULL_MARKET.authority/0bf6e2de0194becca4ad6b0c/publication.json', ...})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f6f59308dd0&gt;
+kind = 'SCHEDULED_PREOPEN'
+
+    @pytest.mark.parametrize("kind", ["SCHEDULED_MORNING", "SCHEDULED_PREOPEN"])
+    def test_same_immutable_inputs_reuse_scheduled_run_with_advancing_native_witness(material_owner, monkeypatch, kind):
+        service, client, roots, witness, _owner, _built = material_owner
+        workspace = importlib.import_module(service.__class__.__module__.rsplit(".", 1)[0] + ".workspace")
+        clock, deadline = clocks(kind)
+        witness[0] = clock
+        monkeypatch.setattr(workspace, "_now", lambda: witness[0].isoformat())
+        first = service.refresh_workspace_plan(DATE, execution_kind=kind, now=clock, deadline=deadline)
+        assert len(first["material_discovery_evidence"]["cards"]) == 1
+        before = {key: _snapshot(roots[key]) for key in ("shared", "research", "manager")}
+        witness[0] += timedelta(seconds=30)
+        repeated = service.refresh_workspace_plan(DATE, execution_kind=kind, now=witness[0], deadline=deadline)
+&gt;       assert repeated["plan_product"]["status"] == "ALREADY_MATERIALIZED"
+E       AssertionError: assert 'CURRENT' == 'ALREADY_MATERIALIZED'
+E         
+E         - ALREADY_MATERIALIZED
+E         + CURRENT
+
+../../../review/final_code/test_independent_edges.py:37: AssertionError</failure></testcase><testcase classname="review.final_code.test_independent_edges" name="test_corrected_scheduled_binding_preserves_original_immutable_run[selection_date-SCHEDULED_MORNING]" time="0.288" /><testcase classname="review.final_code.test_independent_edges" name="test_corrected_scheduled_binding_preserves_original_immutable_run[selection_date-SCHEDULED_PREOPEN]" time="0.221" /><testcase classname="review.final_code.test_independent_edges" name="test_corrected_scheduled_binding_preserves_original_immutable_run[announcement_date-SCHEDULED_MORNING]" time="0.351" /><testcase classname="review.final_code.test_independent_edges" name="test_corrected_scheduled_binding_preserves_original_immutable_run[announcement_date-SCHEDULED_PREOPEN]" time="0.338" /><testcase classname="review.final_code.test_independent_edges" name="test_legacy_v1_witness_clock_retains_native_meaning_and_cannot_be_target_v2" time="0.293" /></testsuite></testsuites>

@@ -1,0 +1,26 @@
+{
+  "omitted_redundant_snapshots": [
+    {
+      "name": "final_support_source_before.json",
+      "sha256": "f4f304c6fd30270eeff7a7f63aadcfc139a96d40c63798c8f780a4bfece7c66f",
+      "bytes": 262855,
+      "original_workspace_path": "/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code/final_support_source_before.json",
+      "delivered_full_snapshot": false,
+      "reason": "Redundant full baseline+candidate source maps. Original retained; final per-tree source identities and independent compact comparison are delivered."
+    },
+    {
+      "name": "independent_source_before.json",
+      "sha256": "56fc5b3650406209362220a8fa574b3762dba801baecaa9c1adbac91f595cdba",
+      "bytes": 262855,
+      "original_workspace_path": "/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code/independent_source_before.json",
+      "delivered_full_snapshot": false,
+      "reason": "Redundant full baseline+candidate source maps. Original retained; final per-tree source identities and independent compact comparison are delivered."
+    }
+  ],
+  "retained_evidence": [
+    "evidence/final/baseline/source_identity.json",
+    "evidence/final/repaired/source_identity.json",
+    "review/final_code/independent_final_verification.json",
+    "review/final_code/independent_provenance_readback.json"
+  ]
+}

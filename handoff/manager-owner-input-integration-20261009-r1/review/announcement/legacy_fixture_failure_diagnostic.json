@@ -1,0 +1,20 @@
+{
+  "kind": "SUPPORT_TEST_FIXTURE_DIAGNOSTIC_ONLY",
+  "test": "test_missing_original_archive_is_not_empty_connect_selection",
+  "actual_fixed_r2_formal_selection": {
+    "status": "CANNOT_CONFIRM",
+    "reason": "HK_CONNECT_CALENDAR_UNVERIFIED",
+    "target_trade_date": "20261008",
+    "candidate_count": null,
+    "membership_status": "OWNER_VERIFIED",
+    "calendar": {},
+    "qualified": false,
+    "buy_allowed": false,
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "missing_fixture_key": "calendar_applicability",
+  "production_change_required": false
+}

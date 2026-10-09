@@ -1,0 +1,119 @@
+..F..FF.............                                                     [100%]
+=================================== FAILURES ===================================
+______ test_scheduled_dispatch_cannot_reuse_saved_other_selection_binding ______
+
+app_owner = (<_v4_manager_research_runtime.service.ManagerResearchJobService object at 0x7f2408374d40>, <starlette.testclient.Test...h/0e089a11ee60/four_function_gaps/review/final_code/tmp_baseline_focused/test_scheduled_dispatch_cannot0/stage'), ...})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f2408c349e0>
+
+    def test_scheduled_dispatch_cannot_reuse_saved_other_selection_binding(app_owner, monkeypatch):
+        service, client, _workspace, _roots = app_owner
+        from v4.manager_research import plan_owner_dispatch as dispatch
+        from v4.manager_research.workspace_plan_autorun import morning_window
+        _, freeze = morning_window(DATE)
+        old = service.refresh_workspace_plan(DATE, execution_kind="SCHEDULED_MORNING",
+            now=CLOCK, deadline=freeze,
+            workspace_date_bindings={"selection_date": "20261008"})
+        # The admitted dispatch branch calls the real existing ops autorun wrapper
+        # and the create_app-owned service. Binding admission itself is not claimed
+        # as tested; there is no mock owner or mock workspace computation.
+        monkeypatch.setattr(dispatch, "clock_now", lambda: CLOCK)
+        binding = {"morning_plan": {"enabled": True, "interval_seconds": 300, "status": "PROPOSAL_ONLY"},
+            "preopen_plan": {"enabled": True, "lead_seconds": 180, "status": "PROPOSAL_ONLY"},
+            "plan_material_refresh": {"enabled": True, "status": "PROPOSAL_ONLY"}}
+        identity = {"source_trade_date": DATE, "target_trade_date": DATE, "branch": "MORNING",
+                    "trigger_id": "d" * 64}
+        dispatched = dispatch._run_owner_branches(service, binding, identity)
+        stored = service.get_workspace_plan(DATE)
+        current = _get(client)
+        print(json.dumps({"case": "scheduled_dispatch_different_selection_binding",
+            "prior": _projection(old), "dispatch_plan": dispatched.get("plan_result"),
+            "stored_bindings": stored["workspace"].get("date_bindings"),
+            "get": _projection(current)}, sort_keys=True))
+>       assert current["plan_product"]["status"] == "CURRENT"
+E       AssertionError: assert 'STALE_INPUTS_CHANGED' == 'CURRENT'
+E         
+E         - CURRENT
+E         + STALE_INPUTS_CHANGED
+
+tests/test_manager_app_plan_identity_20261009.py:166: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"case": "scheduled_dispatch_different_selection_binding", "dispatch_plan": {"RESEARCH_ONLY": true, "buy_gate_updated": false, "execution_context": {"finished_at": "2026-10-09T08:00:00+08:00", "natural_run_verified": false, "scheduled_for": "2026-10-09T08:00:00+08:00", "started_at": "2026-10-09T08:00:00.000000+08:00", "timing": "ON_TIME", "trigger_kind": "SCHEDULED"}, "execution_kind": "SCHEDULED_MORNING", "execution_kind_source": "OWNER_READBACK", "failure_reasons": ["ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW", "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING", "DISCOVERY_NATIVE_HK_UNIVERSE_ROOT_NOT_BOUND", "HK_CONNECT_TARGET_AUTHORITY_ROOT_NOT_BOUND", "MATERIAL_DISCOVERY_NATIVE_IDENTITY_READ_FAILED:20261008:HKSecurityMasterReadError", "NO_VERIFIED_RESEARCH_ARCHIVE_IN_EXACT_WINDOW", "PLAN_HK_02_EXACT_DATE_PANEL_MISSING", "PLAN_NATIVE_CLOSE_READ_FAILED:20261008:FileNotFoundError", "SCREEN_PANEL_AUTHORITY_UNVERIFIED", "VIBE_OWNER_INPUT_BINDING_NOT_CONFIGURED"], "generated_at": "2026-10-09T08:00:00+08:00", "input_identity": "0d822da21ab0446066ac6da7798c2f96a16f9d6b7328a68004308aae64e4b816", "orders_sent": false, "owner": "ManagerResearchJobService.refresh_workspace_plan", "owner_attempt_run_id": "f0244583e72245b78e0413db66a9e561", "owner_attempt_sha256": "2ba18be1415083d8607453f322c4df5e4cbf94d5e24063f65dcc9114f7f849df", "owner_attempt_state": "PARTIAL", "owner_finished_at": "2026-10-09T08:00:00+08:00", "owner_product_status": "ALREADY_MATERIALIZED", "policy_status": "PROPOSAL_ONLY", "product_sha256": "2710ce1ce85a87e6085474ba91a000b87b4f604e5289faae4bfc3c09977e74a2", "production_allowed": false, "run_id": "f0244583e72245b78e0413db66a9e561", "status": "PARTIAL", "target_trade_date": "20261009"}, "get": {"consumed": false, "date_bindings": {"announcement_date": "20261008", "plan_date": "20261009", "selection_date": "20261009"}, "gaps": ["ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW", "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING", "DISCOVERY_NATIVE_HK_UNIVERSE_ROOT_NOT_BOUND", "HK_CONNECT_TARGET_AUTHORITY_ROOT_NOT_BOUND", "MATERIAL_DISCOVERY_NATIVE_IDENTITY_READ_FAILED:20261008:HKSecurityMasterReadError", "NO_VERIFIED_RESEARCH_ARCHIVE_IN_EXACT_WINDOW", "PLAN_HK_02_EXACT_DATE_PANEL_MISSING", "PLAN_NATIVE_CLOSE_READ_FAILED:20261008:FileNotFoundError", "SCREEN_PANEL_AUTHORITY_UNVERIFIED", "VIBE_OWNER_INPUT_BINDING_NOT_CONFIGURED"], "input_identity": "848e5e48462c190408eb82082e803ddd6c3f88903d41b5023d44f6d8446d8314", "plan_status": "STALE_INPUTS_CHANGED", "run_id": "f0244583e72245b78e0413db66a9e561", "run_readback": "CANNOT_CONFIRM", "stock_count": 0}, "prior": {"consumed": true, "date_bindings": {"announcement_date": "20261008", "plan_date": "20261009", "selection_date": "20261008"}, "gaps": ["ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW", "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING", "DISCOVERY_NATIVE_HK_UNIVERSE_ROOT_NOT_BOUND", "HK_CONNECT_TARGET_AUTHORITY_ROOT_NOT_BOUND", "MATERIAL_DISCOVERY_NATIVE_IDENTITY_READ_FAILED:20261008:HKSecurityMasterReadError", "NO_VERIFIED_RESEARCH_ARCHIVE_IN_EXACT_WINDOW", "PLAN_HK_02_EXACT_DATE_PANEL_MISSING", "PLAN_NATIVE_CLOSE_READ_FAILED:20261008:FileNotFoundError", "SCREEN_PANEL_AUTHORITY_UNVERIFIED", "VIBE_OWNER_INPUT_BINDING_NOT_CONFIGURED"], "input_identity": "0d822da21ab0446066ac6da7798c2f96a16f9d6b7328a68004308aae64e4b816", "plan_status": "CURRENT", "run_id": "f0244583e72245b78e0413db66a9e561", "run_readback": "VERIFIED", "stock_count": 0}, "stored_bindings": {"announcement_date": "20261008", "plan_date": "20261009", "selection_date": "20261008"}}
+_________ test_app_immutable_authority_read_clock_does_not_stale_plan __________
+
+material_owner = (<_v4_manager_research_runtime.service.ManagerResearchJobService object at 0x7f2409977d40>, <starlette.testclient.Test...ation_relative': 'universes/20261009/HK_CONNECT_FULL_MARKET.authority/0bf6e2de0194becca4ad6b0c/publication.json', ...})
+
+    def test_app_immutable_authority_read_clock_does_not_stale_plan(material_owner):
+        service, client, roots, witness, _owner, _published = material_owner
+        before_sources = {key: _snapshot(roots[key]) for key in ("shared", "research")}
+        refreshed = _refresh_material_plan(service)
+        same_clock = _get(client)
+        assert same_clock["plan_product"]["status"] == "CURRENT"
+        witness[0] = datetime.fromisoformat("2026-10-09T08:01:00+08:00")
+        later_read = _get(client)
+        later_scope = later_read["selection_diagnostics"]["membership"]
+        first_scope = refreshed["selection_diagnostics"]["membership"]
+        assert later_scope["identity"] == first_scope["identity"]
+        assert later_scope["source"]["read_at"] != first_scope["source"]["read_at"]
+        assert {key: _snapshot(roots[key]) for key in ("shared", "research")} == before_sources
+        for value in (refreshed, same_clock, later_read):
+            assert all(value[key] is flag for key, flag in FLAGS.items())
+            assert all(channel["natural_run_verified"] is False
+                       for channel in value["daily_channels"]["channels"])
+        print(json.dumps({"case": "immutable_authority_read_clock", "first": _projection(refreshed),
+            "later": _projection(later_read), "first_read_at": first_scope["source"]["read_at"],
+            "later_read_at": later_scope["source"]["read_at"],
+            "authority_identity_unchanged": later_scope["identity"] == first_scope["identity"]}, sort_keys=True))
+>       assert later_read["plan_product"]["status"] == "CURRENT"
+E       AssertionError: assert 'STALE_INPUTS_CHANGED' == 'CURRENT'
+E         
+E         - CURRENT
+E         + STALE_INPUTS_CHANGED
+
+tests/test_manager_app_plan_identity_20261009.py:338: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"authority_identity_unchanged": true, "case": "immutable_authority_read_clock", "first": {"consumed": true, "date_bindings": {"announcement_date": "20261008", "plan_date": "20261009", "selection_date": "20261009"}, "gaps": ["ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW", "ARCHIVE_ARTICLE_ACQUISITION_TIME_MISSING:db1940f5eec0592b6527ec985298eb0fa76954d63eb322a307182ed5f373a62a", "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING", "DISCOVERY_ORIGINAL_NEWS_ROOT_OR_OWNER_NOT_BOUND", "PLAN_HK_02_EXACT_DATE_PANEL_MISSING", "PLAN_NATIVE_CLOSE_READ_FAILED:20261008:FileNotFoundError", "SCREEN_PANEL_AUTHORITY_UNVERIFIED", "TARGET_DATE_HK_CONNECT_ELIGIBILITY_NOT_CHECKED", "VIBE_OWNER_INPUT_BINDING_NOT_CONFIGURED"], "input_identity": "deb55f98ba8a36a151e1b7ed402890eae9fa1df7e786e436f8416ff7505f4454", "plan_status": "CURRENT", "run_id": "17d91a95a45f4d38bab8217211f17820", "run_readback": "VERIFIED", "stock_count": 1}, "first_read_at": "2026-10-09T08:00:00+08:00", "later": {"consumed": false, "date_bindings": {"announcement_date": "20261008", "plan_date": "20261009", "selection_date": "20261009"}, "gaps": ["ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW", "ARCHIVE_ARTICLE_ACQUISITION_TIME_MISSING:db1940f5eec0592b6527ec985298eb0fa76954d63eb322a307182ed5f373a62a", "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING", "DISCOVERY_ORIGINAL_NEWS_ROOT_OR_OWNER_NOT_BOUND", "PLAN_HK_02_EXACT_DATE_PANEL_MISSING", "PLAN_NATIVE_CLOSE_READ_FAILED:20261008:FileNotFoundError", "SCREEN_PANEL_AUTHORITY_UNVERIFIED", "TARGET_DATE_HK_CONNECT_ELIGIBILITY_NOT_CHECKED", "VIBE_OWNER_INPUT_BINDING_NOT_CONFIGURED"], "input_identity": "844fec59314e8cc912d6ca502984489b41a11f4858446308c9107ed6c979ee83", "plan_status": "STALE_INPUTS_CHANGED", "run_id": "17d91a95a45f4d38bab8217211f17820", "run_readback": "CANNOT_CONFIRM", "stock_count": 1}, "later_read_at": "2026-10-09T08:01:00+08:00"}
+___ test_app_persisted_availability_change_stales_plan_with_same_read_clock ____
+
+material_owner = (<_v4_manager_research_runtime.service.ManagerResearchJobService object at 0x7f23fbd1ba70>, <starlette.testclient.Test...ation_relative': 'universes/20261009/HK_CONNECT_FULL_MARKET.authority/0bf6e2de0194becca4ad6b0c/publication.json', ...})
+
+    def test_app_persisted_availability_change_stales_plan_with_same_read_clock(material_owner):
+        service, client, roots, _witness, owner, published = material_owner
+        refreshed = _refresh_material_plan(service)
+        first_scope = refreshed["selection_diagnostics"]["membership"]
+        assert _get(client)["plan_product"]["status"] == "CURRENT"
+        # Persisted availability is actual source provenance, unlike read_at. A
+        # changed, still valid publication receipt must not be normalized away.
+        publication_path = roots["shared"] / published["publication_relative"]
+        publication = json.loads(publication_path.read_bytes())
+        publication["available_at"] = "2026-10-09T07:03:00+08:00"
+        publication.pop("publication_sha256")
+        publication["publication_sha256"] = owner._sha256(publication)
+        publication_path.write_bytes(owner._canonical_json_line(publication))
+        after_publication = {key: _snapshot(roots[key]) for key in ("shared", "research", "manager")}
+        changed_source = _get(client)
+        changed_scope = changed_source["selection_diagnostics"]["membership"]
+        assert changed_scope["status"] == "OWNER_VERIFIED"
+        assert changed_scope["source"]["read_at"] == first_scope["source"]["read_at"]
+        assert changed_scope["source"]["available_at"] != first_scope["source"]["available_at"]
+        assert {key: _snapshot(roots[key]) for key in ("shared", "research", "manager")} == after_publication
+        print(json.dumps({"case": "persisted_availability_change_same_clock", "first": _projection(refreshed),
+            "changed": _projection(changed_source), "read_at": changed_scope["source"]["read_at"],
+            "before_available_at": first_scope["source"]["available_at"],
+            "after_available_at": changed_scope["source"]["available_at"]}, sort_keys=True))
+>       assert changed_source["input_identity"] != refreshed["input_identity"]
+E       AssertionError: assert '410031ce4fc4b0e595c99d890df7ea0c94acf04f533dee747f59120025a3ef6c' != '410031ce4fc4b0e595c99d890df7ea0c94acf04f533dee747f59120025a3ef6c'
+
+tests/test_manager_app_plan_identity_20261009.py:367: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"after_available_at": "2026-10-09T07:03:00+08:00", "before_available_at": "2026-10-09T07:02:00+08:00", "case": "persisted_availability_change_same_clock", "changed": {"consumed": true, "date_bindings": {"announcement_date": "20261008", "plan_date": "20261009", "selection_date": "20261009"}, "gaps": ["ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW", "ARCHIVE_ARTICLE_ACQUISITION_TIME_MISSING:db1940f5eec0592b6527ec985298eb0fa76954d63eb322a307182ed5f373a62a", "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING", "DISCOVERY_ORIGINAL_NEWS_ROOT_OR_OWNER_NOT_BOUND", "PLAN_HK_02_EXACT_DATE_PANEL_MISSING", "PLAN_NATIVE_CLOSE_READ_FAILED:20261008:FileNotFoundError", "SCREEN_PANEL_AUTHORITY_UNVERIFIED", "TARGET_DATE_HK_CONNECT_ELIGIBILITY_NOT_CHECKED", "VIBE_OWNER_INPUT_BINDING_NOT_CONFIGURED"], "input_identity": "410031ce4fc4b0e595c99d890df7ea0c94acf04f533dee747f59120025a3ef6c", "plan_status": "CURRENT", "run_id": "437d2d3b66a14f4f86e4c3e6bf1d0e73", "run_readback": "VERIFIED", "stock_count": 1}, "first": {"consumed": true, "date_bindings": {"announcement_date": "20261008", "plan_date": "20261009", "selection_date": "20261009"}, "gaps": ["ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW", "ARCHIVE_ARTICLE_ACQUISITION_TIME_MISSING:db1940f5eec0592b6527ec985298eb0fa76954d63eb322a307182ed5f373a62a", "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING", "DISCOVERY_ORIGINAL_NEWS_ROOT_OR_OWNER_NOT_BOUND", "PLAN_HK_02_EXACT_DATE_PANEL_MISSING", "PLAN_NATIVE_CLOSE_READ_FAILED:20261008:FileNotFoundError", "SCREEN_PANEL_AUTHORITY_UNVERIFIED", "TARGET_DATE_HK_CONNECT_ELIGIBILITY_NOT_CHECKED", "VIBE_OWNER_INPUT_BINDING_NOT_CONFIGURED"], "input_identity": "410031ce4fc4b0e595c99d890df7ea0c94acf04f533dee747f59120025a3ef6c", "plan_status": "CURRENT", "run_id": "437d2d3b66a14f4f86e4c3e6bf1d0e73", "run_readback": "VERIFIED", "stock_count": 1}, "read_at": "2026-10-09T08:00:00+08:00"}
+=============================== warnings summary ===============================
+../../../runtime_locked/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_manager_app_plan_identity_20261009.py::test_scheduled_dispatch_cannot_reuse_saved_other_selection_binding
+FAILED tests/test_manager_app_plan_identity_20261009.py::test_app_immutable_authority_read_clock_does_not_stale_plan
+FAILED tests/test_manager_app_plan_identity_20261009.py::test_app_persisted_availability_change_stales_plan_with_same_read_clock
+3 failed, 17 passed, 1 warning in 6.50s

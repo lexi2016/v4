@@ -1,0 +1,19 @@
+{
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "executable": "/workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/bin/python",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "sources": {
+    "baseline": {
+      "v4/manager_research/workspace.py": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+      "v4/manager_research/connect_selection.py": "eaa01a13d8065b11cc8397a12edaad8b892f183158aa1f9475d29645dee09d83"
+    },
+    "repaired": {
+      "v4/manager_research/workspace.py": "7a4875f1ab5ba46ac6c18bdaffe2c103a136734fda276fbee918163332844bb0",
+      "v4/manager_research/connect_selection.py": "238f608d8b130aaed6ecfeaea6a66550bf918045c82adeb9aa3ce4f7000ea291"
+    }
+  },
+  "difference_paths": [
+    "v4/manager_research/connect_selection.py",
+    "v4/manager_research/workspace.py"
+  ]
+}

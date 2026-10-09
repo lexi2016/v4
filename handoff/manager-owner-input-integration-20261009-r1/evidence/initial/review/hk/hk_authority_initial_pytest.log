@@ -1,0 +1,169 @@
+.................................FFFF                                    [100%]
+=================================== FAILURES ===================================
+_______________ test_create_app_existing_root_precedence[shared] _______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-400/test_create_app_existing_root_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7efe80467140>
+mode = 'shared'
+
+    @pytest.mark.parametrize("mode", ["shared", "master_env", "screen_env"])
+    def test_create_app_existing_root_precedence(tmp_path, monkeypatch, mode):
+        shared = tmp_path / "shared"
+        master = tmp_path / "master"
+        screen = tmp_path / "screen"
+        if mode in {"master_env", "screen_env"}:
+            monkeypatch.setenv("V4_MANAGER_SECURITY_MASTER_ROOT", str(master))
+        if mode == "screen_env":
+            monkeypatch.setenv("V4_MANAGER_SCREEN_AUTHORITY_ROOT", str(screen))
+>       app = app_for(tmp_path, shared=shared)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+../../../review/hk/test_hk_authority_app_wiring.py:236: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../review/hk/test_hk_authority_app_wiring.py:217: in app_for
+    from apps.api.v35_api.app import create_app
+apps/api/v35_api/app.py:15: in <module>
+    from apps.api.v35_api.preselection_router import create_preselection_router
+apps/api/v35_api/preselection_router.py:9: in <module>
+    from apps.api.v35_api.preselection_service import PreselectionPoolService
+apps/api/v35_api/preselection_service.py:14: in <module>
+    from domains import preselection as preselection_domain
+domains/preselection.py:21: in <module>
+    from stage_center.selection import SelectionError, SelectionStore
+stage_center/__init__.py:6: in <module>
+    from .selection import (
+stage_center/selection.py:35: in <module>
+    from stage_center._selection_parts import schema_values as _v4_definitions
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Multiline schema and keyword values; called at original assignment time."""
+>   from ._namespace import read_global as _v4_global
+E   ModuleNotFoundError: No module named 'stage_center._selection_parts._namespace'
+
+stage_center/_selection_parts/schema_values.py:2: ModuleNotFoundError
+_____________ test_create_app_existing_root_precedence[master_env] _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-400/test_create_app_existing_root_1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7efe38600380>
+mode = 'master_env'
+
+    @pytest.mark.parametrize("mode", ["shared", "master_env", "screen_env"])
+    def test_create_app_existing_root_precedence(tmp_path, monkeypatch, mode):
+        shared = tmp_path / "shared"
+        master = tmp_path / "master"
+        screen = tmp_path / "screen"
+        if mode in {"master_env", "screen_env"}:
+            monkeypatch.setenv("V4_MANAGER_SECURITY_MASTER_ROOT", str(master))
+        if mode == "screen_env":
+            monkeypatch.setenv("V4_MANAGER_SCREEN_AUTHORITY_ROOT", str(screen))
+>       app = app_for(tmp_path, shared=shared)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+../../../review/hk/test_hk_authority_app_wiring.py:236: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../review/hk/test_hk_authority_app_wiring.py:217: in app_for
+    from apps.api.v35_api.app import create_app
+apps/api/v35_api/app.py:15: in <module>
+    from apps.api.v35_api.preselection_router import create_preselection_router
+apps/api/v35_api/preselection_router.py:9: in <module>
+    from apps.api.v35_api.preselection_service import PreselectionPoolService
+apps/api/v35_api/preselection_service.py:14: in <module>
+    from domains import preselection as preselection_domain
+domains/preselection.py:21: in <module>
+    from stage_center.selection import SelectionError, SelectionStore
+stage_center/__init__.py:6: in <module>
+    from .selection import (
+stage_center/selection.py:35: in <module>
+    from stage_center._selection_parts import schema_values as _v4_definitions
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Multiline schema and keyword values; called at original assignment time."""
+>   from ._namespace import read_global as _v4_global
+E   ModuleNotFoundError: No module named 'stage_center._selection_parts._namespace'
+
+stage_center/_selection_parts/schema_values.py:2: ModuleNotFoundError
+_____________ test_create_app_existing_root_precedence[screen_env] _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-400/test_create_app_existing_root_2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7efe7b6077d0>
+mode = 'screen_env'
+
+    @pytest.mark.parametrize("mode", ["shared", "master_env", "screen_env"])
+    def test_create_app_existing_root_precedence(tmp_path, monkeypatch, mode):
+        shared = tmp_path / "shared"
+        master = tmp_path / "master"
+        screen = tmp_path / "screen"
+        if mode in {"master_env", "screen_env"}:
+            monkeypatch.setenv("V4_MANAGER_SECURITY_MASTER_ROOT", str(master))
+        if mode == "screen_env":
+            monkeypatch.setenv("V4_MANAGER_SCREEN_AUTHORITY_ROOT", str(screen))
+>       app = app_for(tmp_path, shared=shared)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+../../../review/hk/test_hk_authority_app_wiring.py:236: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../review/hk/test_hk_authority_app_wiring.py:217: in app_for
+    from apps.api.v35_api.app import create_app
+apps/api/v35_api/app.py:15: in <module>
+    from apps.api.v35_api.preselection_router import create_preselection_router
+apps/api/v35_api/preselection_router.py:9: in <module>
+    from apps.api.v35_api.preselection_service import PreselectionPoolService
+apps/api/v35_api/preselection_service.py:14: in <module>
+    from domains import preselection as preselection_domain
+domains/preselection.py:21: in <module>
+    from stage_center.selection import SelectionError, SelectionStore
+stage_center/__init__.py:6: in <module>
+    from .selection import (
+stage_center/selection.py:35: in <module>
+    from stage_center._selection_parts import schema_values as _v4_definitions
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Multiline schema and keyword values; called at original assignment time."""
+>   from ._namespace import read_global as _v4_global
+E   ModuleNotFoundError: No module named 'stage_center._selection_parts._namespace'
+
+stage_center/_selection_parts/schema_values.py:2: ModuleNotFoundError
+_____ test_create_app_workspace_reads_real_synthetic_v2_master_panel_chain _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-400/test_create_app_workspace_read0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7efe317bd670>
+
+    def test_create_app_workspace_reads_real_synthetic_v2_master_panel_chain(tmp_path, monkeypatch):
+        root = tmp_path / "authority"
+        publish_synthetic_v2(root)
+        master_fixtures._panel(root)
+        published = master_fixtures._publish_master(root)
+        master_fixtures._publish_master(root, TARGET, name="SYNTHETIC LATER MASTER")
+        bind(monkeypatch, root)
+>       app = app_for(tmp_path, shared=root)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+../../../review/hk/test_hk_authority_app_wiring.py:250: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../review/hk/test_hk_authority_app_wiring.py:217: in app_for
+    from apps.api.v35_api.app import create_app
+apps/api/v35_api/app.py:15: in <module>
+    from apps.api.v35_api.preselection_router import create_preselection_router
+apps/api/v35_api/preselection_router.py:9: in <module>
+    from apps.api.v35_api.preselection_service import PreselectionPoolService
+apps/api/v35_api/preselection_service.py:14: in <module>
+    from domains import preselection as preselection_domain
+domains/preselection.py:21: in <module>
+    from stage_center.selection import SelectionError, SelectionStore
+stage_center/__init__.py:6: in <module>
+    from .selection import (
+stage_center/selection.py:35: in <module>
+    from stage_center._selection_parts import schema_values as _v4_definitions
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Multiline schema and keyword values; called at original assignment time."""
+>   from ._namespace import read_global as _v4_global
+E   ModuleNotFoundError: No module named 'stage_center._selection_parts._namespace'
+
+stage_center/_selection_parts/schema_values.py:2: ModuleNotFoundError
+=========================== short test summary info ============================
+FAILED ::test_create_app_existing_root_precedence[shared] - ModuleNotFoundErr...
+FAILED ::test_create_app_existing_root_precedence[master_env] - ModuleNotFoun...
+FAILED ::test_create_app_existing_root_precedence[screen_env] - ModuleNotFoun...
+FAILED ::test_create_app_workspace_reads_real_synthetic_v2_master_panel_chain
+4 failed, 33 passed in 3.03s

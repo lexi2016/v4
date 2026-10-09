@@ -1,0 +1,19 @@
+.......F
+=================================== FAILURES ===================================
+_________ test_missing_original_archive_is_not_empty_connect_selection _________
+tests/test_manager_announcement_parity_20261008.py:381: in test_missing_original_archive_is_not_empty_connect_selection
+    assert value['selection_diagnostics']['status']=='READY'
+E   AssertionError: assert 'PARTIAL' == 'READY'
+E     
+E     - READY
+E     + PARTIAL
+=============================== warnings summary ===============================
+../../../runtime_locked/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_manager_announcement_parity_20261008.py::test_missing_original_archive_is_not_empty_connect_selection
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed, 7 passed, 1 warning in 2.11s

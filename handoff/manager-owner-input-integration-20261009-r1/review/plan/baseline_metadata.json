@@ -1,0 +1,293 @@
+{
+  "role": "SYNTHETIC_OFFLINE_BASELINE_BEHAVIOR",
+  "baseline_commit": "a7f5d09fb19de10564925757207977aadc080cc1",
+  "source_root": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app",
+  "runtime": "runtime_locked/bin/python",
+  "python": "3.12.14",
+  "project_python_requirement": ">=3.14",
+  "result": "3 failed, 4 passed, 1 warning in 3.09s",
+  "source_sha256": {
+    "apps/api/v35_api/app.py": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+    "apps/api/v35_api/manager_research_router.py": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+    "v4/manager_research/service.py": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+    "v4/manager_research/workspace.py": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+    "v4/manager_research/workspace_plan_autorun.py": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34",
+    "v4/manager_research/plan_owner_dispatch.py": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+    "v4/manager_research/connect_selection.py": "eaa01a13d8065b11cc8397a12edaad8b892f183158aa1f9475d29645dee09d83",
+    "domains/manager_research_evidence.py": "4bfd8ec335eade9a97340fe17fc0742f2dba546d0e254fdfed2833ed324bb73d",
+    "ops/run_manager_announcement_cycle.py": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44"
+  },
+  "cases": [
+    {
+      "case": "create_app_same_then_changed_reader",
+      "changed": {
+        "consumed": false,
+        "date_bindings": {
+          "announcement_date": "20261008",
+          "plan_date": "20261009",
+          "selection_date": "20261009"
+        },
+        "gaps": [
+          "ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW",
+          "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING",
+          "DISCOVERY_NATIVE_HK_UNIVERSE_ROOT_NOT_BOUND",
+          "HK_CONNECT_TARGET_AUTHORITY_ROOT_NOT_BOUND",
+          "MATERIAL_DISCOVERY_NATIVE_IDENTITY_READ_FAILED:20261008:HKSecurityMasterReadError",
+          "PLAN_HK_02_EXACT_DATE_PANEL_MISSING",
+          "PLAN_NATIVE_CLOSE_READ_FAILED:20261008:FileNotFoundError",
+          "RESEARCH_ARCHIVE_READER_NOT_BOUND",
+          "SCREEN_PANEL_AUTHORITY_UNVERIFIED",
+          "VIBE_OWNER_INPUT_BINDING_NOT_CONFIGURED"
+        ],
+        "input_identity": "dcc22bc4d8de65591ee3689040e3ae05bc1d079b760d6f7276685e211498ca8a",
+        "plan_status": "STALE_INPUTS_CHANGED",
+        "run_id": "36d960ea84424824ae98f67902e95c4e",
+        "run_readback": "CANNOT_CONFIRM",
+        "stock_count": 0
+      },
+      "current": {
+        "consumed": true,
+        "date_bindings": {
+          "announcement_date": "20261008",
+          "plan_date": "20261009",
+          "selection_date": "20261009"
+        },
+        "gaps": [
+          "ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW",
+          "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING",
+          "DISCOVERY_NATIVE_HK_UNIVERSE_ROOT_NOT_BOUND",
+          "HK_CONNECT_TARGET_AUTHORITY_ROOT_NOT_BOUND",
+          "MATERIAL_DISCOVERY_NATIVE_IDENTITY_READ_FAILED:20261008:HKSecurityMasterReadError",
+          "NO_VERIFIED_RESEARCH_ARCHIVE_IN_EXACT_WINDOW",
+          "PLAN_HK_02_EXACT_DATE_PANEL_MISSING",
+          "PLAN_NATIVE_CLOSE_READ_FAILED:20261008:FileNotFoundError",
+          "SCREEN_PANEL_AUTHORITY_UNVERIFIED",
+          "VIBE_OWNER_INPUT_BINDING_NOT_CONFIGURED"
+        ],
+        "input_identity": "bd40014665c626587945303397688967e05f94f54b00e73dcb09cb2a58b2eb0c",
+        "plan_status": "CURRENT",
+        "run_id": "36d960ea84424824ae98f67902e95c4e",
+        "run_readback": "VERIFIED",
+        "stock_count": 0
+      }
+    },
+    {
+      "case": "scheduled_dispatch_different_selection_binding",
+      "dispatch_plan": {
+        "RESEARCH_ONLY": true,
+        "buy_gate_updated": false,
+        "execution_context": {
+          "finished_at": "2026-10-09T08:00:00+08:00",
+          "natural_run_verified": false,
+          "scheduled_for": "2026-10-09T08:00:00+08:00",
+          "started_at": "2026-10-09T08:00:00.000000+08:00",
+          "timing": "ON_TIME",
+          "trigger_kind": "SCHEDULED"
+        },
+        "execution_kind": "SCHEDULED_MORNING",
+        "execution_kind_source": "OWNER_READBACK",
+        "failure_reasons": [
+          "ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW",
+          "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING",
+          "DISCOVERY_NATIVE_HK_UNIVERSE_ROOT_NOT_BOUND",
+          "HK_CONNECT_TARGET_AUTHORITY_ROOT_NOT_BOUND",
+          "MATERIAL_DISCOVERY_NATIVE_IDENTITY_READ_FAILED:20261008:HKSecurityMasterReadError",
+          "NO_VERIFIED_RESEARCH_ARCHIVE_IN_EXACT_WINDOW",
+          "PLAN_HK_02_EXACT_DATE_PANEL_MISSING",
+          "PLAN_NATIVE_CLOSE_READ_FAILED:20261008:FileNotFoundError",
+          "SCREEN_PANEL_AUTHORITY_UNVERIFIED",
+          "VIBE_OWNER_INPUT_BINDING_NOT_CONFIGURED"
+        ],
+        "generated_at": "2026-10-09T08:00:00+08:00",
+        "input_identity": "0d822da21ab0446066ac6da7798c2f96a16f9d6b7328a68004308aae64e4b816",
+        "orders_sent": false,
+        "owner": "ManagerResearchJobService.refresh_workspace_plan",
+        "owner_attempt_run_id": "6c3f6438075f4044aed46cc9069271dc",
+        "owner_attempt_sha256": "6dc093d6baa711b39224e6b022974b32f4f977ea6fd64103839ebd6c75ed9158",
+        "owner_attempt_state": "PARTIAL",
+        "owner_finished_at": "2026-10-09T08:00:00+08:00",
+        "owner_product_status": "ALREADY_MATERIALIZED",
+        "policy_status": "PROPOSAL_ONLY",
+        "product_sha256": "fb45f0675153300e4ed6b9b57b0047eafc6fa5cf75d97186433d3b3bc08cbff6",
+        "production_allowed": false,
+        "run_id": "6c3f6438075f4044aed46cc9069271dc",
+        "status": "PARTIAL",
+        "target_trade_date": "20261009"
+      },
+      "get": {
+        "consumed": false,
+        "date_bindings": {
+          "announcement_date": "20261008",
+          "plan_date": "20261009",
+          "selection_date": "20261009"
+        },
+        "gaps": [
+          "ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW",
+          "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING",
+          "DISCOVERY_NATIVE_HK_UNIVERSE_ROOT_NOT_BOUND",
+          "HK_CONNECT_TARGET_AUTHORITY_ROOT_NOT_BOUND",
+          "MATERIAL_DISCOVERY_NATIVE_IDENTITY_READ_FAILED:20261008:HKSecurityMasterReadError",
+          "NO_VERIFIED_RESEARCH_ARCHIVE_IN_EXACT_WINDOW",
+          "PLAN_HK_02_EXACT_DATE_PANEL_MISSING",
+          "PLAN_NATIVE_CLOSE_READ_FAILED:20261008:FileNotFoundError",
+          "SCREEN_PANEL_AUTHORITY_UNVERIFIED",
+          "VIBE_OWNER_INPUT_BINDING_NOT_CONFIGURED"
+        ],
+        "input_identity": "ae5f3c89ae7c845367100213a78d3ff905927bf2aa11e674b23a8ba7dd863317",
+        "plan_status": "STALE_INPUTS_CHANGED",
+        "run_id": "6c3f6438075f4044aed46cc9069271dc",
+        "run_readback": "CANNOT_CONFIRM",
+        "stock_count": 0
+      },
+      "prior": {
+        "consumed": true,
+        "date_bindings": {
+          "announcement_date": "20261008",
+          "plan_date": "20261009",
+          "selection_date": "20261008"
+        },
+        "gaps": [
+          "ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW",
+          "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING",
+          "DISCOVERY_NATIVE_HK_UNIVERSE_ROOT_NOT_BOUND",
+          "HK_CONNECT_TARGET_AUTHORITY_ROOT_NOT_BOUND",
+          "MATERIAL_DISCOVERY_NATIVE_IDENTITY_READ_FAILED:20261008:HKSecurityMasterReadError",
+          "NO_VERIFIED_RESEARCH_ARCHIVE_IN_EXACT_WINDOW",
+          "PLAN_HK_02_EXACT_DATE_PANEL_MISSING",
+          "PLAN_NATIVE_CLOSE_READ_FAILED:20261008:FileNotFoundError",
+          "SCREEN_PANEL_AUTHORITY_UNVERIFIED",
+          "VIBE_OWNER_INPUT_BINDING_NOT_CONFIGURED"
+        ],
+        "input_identity": "0d822da21ab0446066ac6da7798c2f96a16f9d6b7328a68004308aae64e4b816",
+        "plan_status": "CURRENT",
+        "run_id": "6c3f6438075f4044aed46cc9069271dc",
+        "run_readback": "VERIFIED",
+        "stock_count": 0
+      },
+      "stored_bindings": {
+        "announcement_date": "20261008",
+        "plan_date": "20261009",
+        "selection_date": "20261008"
+      }
+    },
+    {
+      "authority_identity_unchanged": true,
+      "case": "immutable_authority_read_clock",
+      "first": {
+        "consumed": true,
+        "date_bindings": {
+          "announcement_date": "20261008",
+          "plan_date": "20261009",
+          "selection_date": "20261009"
+        },
+        "gaps": [
+          "ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW",
+          "ARCHIVE_ARTICLE_ACQUISITION_TIME_MISSING:db1940f5eec0592b6527ec985298eb0fa76954d63eb322a307182ed5f373a62a",
+          "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING",
+          "DISCOVERY_ORIGINAL_NEWS_ROOT_OR_OWNER_NOT_BOUND",
+          "PLAN_HK_02_EXACT_DATE_PANEL_MISSING",
+          "PLAN_NATIVE_CLOSE_READ_FAILED:20261008:FileNotFoundError",
+          "SCREEN_PANEL_AUTHORITY_UNVERIFIED",
+          "TARGET_DATE_HK_CONNECT_ELIGIBILITY_NOT_CHECKED",
+          "VIBE_OWNER_INPUT_BINDING_NOT_CONFIGURED"
+        ],
+        "input_identity": "10dcec1915f705466fe3edc7cb9f43724f404e7aa8bbd7b9444b8834d0252729",
+        "plan_status": "CURRENT",
+        "run_id": "efa4a9e8ae5d4cb9b88f95138cf7c286",
+        "run_readback": "VERIFIED",
+        "stock_count": 1
+      },
+      "first_read_at": "2026-10-09T08:00:00+08:00",
+      "later": {
+        "consumed": false,
+        "date_bindings": {
+          "announcement_date": "20261008",
+          "plan_date": "20261009",
+          "selection_date": "20261009"
+        },
+        "gaps": [
+          "ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW",
+          "ARCHIVE_ARTICLE_ACQUISITION_TIME_MISSING:db1940f5eec0592b6527ec985298eb0fa76954d63eb322a307182ed5f373a62a",
+          "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING",
+          "DISCOVERY_ORIGINAL_NEWS_ROOT_OR_OWNER_NOT_BOUND",
+          "PLAN_HK_02_EXACT_DATE_PANEL_MISSING",
+          "PLAN_NATIVE_CLOSE_READ_FAILED:20261008:FileNotFoundError",
+          "SCREEN_PANEL_AUTHORITY_UNVERIFIED",
+          "TARGET_DATE_HK_CONNECT_ELIGIBILITY_NOT_CHECKED",
+          "VIBE_OWNER_INPUT_BINDING_NOT_CONFIGURED"
+        ],
+        "input_identity": "dbb44ed54d6e9f1b85d6dfcc5677f9a6e2df735e2f767e75d862c9b52e0b2578",
+        "plan_status": "STALE_INPUTS_CHANGED",
+        "run_id": "efa4a9e8ae5d4cb9b88f95138cf7c286",
+        "run_readback": "CANNOT_CONFIRM",
+        "stock_count": 1
+      },
+      "later_read_at": "2026-10-09T08:01:00+08:00"
+    },
+    {
+      "after_available_at": "2026-10-09T07:03:00+08:00",
+      "before_available_at": "2026-10-09T07:02:00+08:00",
+      "case": "persisted_availability_change_same_clock",
+      "changed": {
+        "consumed": true,
+        "date_bindings": {
+          "announcement_date": "20261008",
+          "plan_date": "20261009",
+          "selection_date": "20261009"
+        },
+        "gaps": [
+          "ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW",
+          "ARCHIVE_ARTICLE_ACQUISITION_TIME_MISSING:db1940f5eec0592b6527ec985298eb0fa76954d63eb322a307182ed5f373a62a",
+          "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING",
+          "DISCOVERY_ORIGINAL_NEWS_ROOT_OR_OWNER_NOT_BOUND",
+          "PLAN_HK_02_EXACT_DATE_PANEL_MISSING",
+          "PLAN_NATIVE_CLOSE_READ_FAILED:20261008:FileNotFoundError",
+          "SCREEN_PANEL_AUTHORITY_UNVERIFIED",
+          "TARGET_DATE_HK_CONNECT_ELIGIBILITY_NOT_CHECKED",
+          "VIBE_OWNER_INPUT_BINDING_NOT_CONFIGURED"
+        ],
+        "input_identity": "a95e281707644c2b48dd528dc40c80539f79a71765af079e2bc79a3126a92227",
+        "plan_status": "CURRENT",
+        "run_id": "c005766e5b0b40d393aa8fe114faefac",
+        "run_readback": "VERIFIED",
+        "stock_count": 1
+      },
+      "first": {
+        "consumed": true,
+        "date_bindings": {
+          "announcement_date": "20261008",
+          "plan_date": "20261009",
+          "selection_date": "20261009"
+        },
+        "gaps": [
+          "ANNOUNCEMENT_SELECTION_NO_VERIFIED_CAPTURE_IN_WINDOW",
+          "ARCHIVE_ARTICLE_ACQUISITION_TIME_MISSING:db1940f5eec0592b6527ec985298eb0fa76954d63eb322a307182ed5f373a62a",
+          "CURRENT_MARKET_BREADTH_AMOUNT_INDEX_OWNER_INPUT_MISSING",
+          "DISCOVERY_ORIGINAL_NEWS_ROOT_OR_OWNER_NOT_BOUND",
+          "PLAN_HK_02_EXACT_DATE_PANEL_MISSING",
+          "PLAN_NATIVE_CLOSE_READ_FAILED:20261008:FileNotFoundError",
+          "SCREEN_PANEL_AUTHORITY_UNVERIFIED",
+          "TARGET_DATE_HK_CONNECT_ELIGIBILITY_NOT_CHECKED",
+          "VIBE_OWNER_INPUT_BINDING_NOT_CONFIGURED"
+        ],
+        "input_identity": "a95e281707644c2b48dd528dc40c80539f79a71765af079e2bc79a3126a92227",
+        "plan_status": "CURRENT",
+        "run_id": "c005766e5b0b40d393aa8fe114faefac",
+        "run_readback": "VERIFIED",
+        "stock_count": 1
+      },
+      "read_at": "2026-10-09T08:00:00+08:00"
+    }
+  ],
+  "not_run": [
+    "Mac_owner_state",
+    "live_API",
+    "UI",
+    "deployment",
+    "natural_window",
+    "full_regression_suite"
+  ],
+  "test_sha256": "596a372bd9ff426e3b7468beb4d9fbdc94bb1b2e268e9ac975458ac4f0259ca9",
+  "note": "Final test is self-contained; three independent business assertions fail on baseline. Separate witness-clock and persisted-availability tests each reach the assertion. Scheduled MORNING/PREOPEN idempotency positives pass. See audit for retained intermediate environment errors.",
+  "log": "baseline_seven_cases.log"
+}

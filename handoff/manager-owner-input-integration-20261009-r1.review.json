@@ -1,0 +1,105 @@
+{
+  "schema_version": "v4.manager_owner_handoff_independent_final_check.v1",
+  "checked_at": "2026-10-09T16:22:03.663143+00:00",
+  "package": "/workspace/scratch/0e089a11ee60/v4/handoff/manager-owner-input-integration-20261009-r1",
+  "manifest_sha256": "65375e7f9304503286da123cf395d9e80f7dafd7d25270fd920be6015f40cc66",
+  "payload_count": 133,
+  "payload_bytes": 2139402,
+  "payload_hash_size_mismatches": [],
+  "unexpected_physical_paths": [],
+  "excluded_workspace_paths": [
+    "review/final_code/final_support_source_before.json",
+    "review/final_code/independent_source_before.json"
+  ],
+  "excluded_snapshot_checks": [
+    {
+      "name": "final_support_source_before.json",
+      "sha_and_size_match_original": true,
+      "excluded_from_payload": true
+    },
+    {
+      "name": "independent_source_before.json",
+      "sha_and_size_match_original": true,
+      "excluded_from_payload": true
+    }
+  ],
+  "final_cli_diagnostic_source_sha_checks": {
+    "review/announcement/reference_readback_compatibility.py": true,
+    "input/package/code/actual_owner_runner_20261009/ops/run_manager_daily_announcement.py": true,
+    "work/baseline/app/ops/run_manager_daily_announcement.py": true
+  },
+  "minor_findings": {
+    "H1_focused_coverage_label": "RESOLVED: 12 create_app + 8 native consumer explicitly recorded",
+    "H2_redundant_snapshots": "RESOLVED FOR MANIFEST PAYLOAD: originals retained, exact hash/size index, explicit exclusion; Git/ZIP allowlist enforcement still requires publication readback",
+    "H3_historical_cli_command": "RESOLVED: original shorthand record retained, fresh absolute argv/exit/source SHA evidence added, dependency caveat documented, excluded from295"
+  },
+  "validator_runs": [
+    {
+      "source_variant": "baseline",
+      "argv": [
+        "/workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/bin/python",
+        "-B",
+        "/workspace/scratch/0e089a11ee60/v4/handoff/manager-owner-input-integration-20261009-r1/tools/verify_delivery.py",
+        "--source-root",
+        "/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app",
+        "--expect",
+        "before",
+        "--check-r2-context"
+      ],
+      "cwd": "/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code",
+      "environment_overrides": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "TMPDIR": "/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code"
+      },
+      "exit_code": 0,
+      "stdout": "{\"status\": \"PASS\", \"manifest_payloads\": 133, \"production_paths\": [\"v4/manager_research/connect_selection.py\", \"v4/manager_research/workspace.py\"], \"patch_apply\": \"PASS\", \"patch_rollback\": \"PASS\", \"target_check\": \"before\", \"r2_context_files_checked\": 16, \"target_writes\": false}",
+      "stderr": ""
+    },
+    {
+      "source_variant": "repaired",
+      "argv": [
+        "/workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/bin/python",
+        "-B",
+        "/workspace/scratch/0e089a11ee60/v4/handoff/manager-owner-input-integration-20261009-r1/tools/verify_delivery.py",
+        "--source-root",
+        "/workspace/scratch/0e089a11ee60/four_function_gaps/work/repaired/app",
+        "--expect",
+        "after",
+        "--check-r2-context"
+      ],
+      "cwd": "/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code",
+      "environment_overrides": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "TMPDIR": "/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code"
+      },
+      "exit_code": 0,
+      "stdout": "{\"status\": \"PASS\", \"manifest_payloads\": 133, \"production_paths\": [\"v4/manager_research/connect_selection.py\", \"v4/manager_research/workspace.py\"], \"patch_apply\": \"PASS\", \"patch_rollback\": \"PASS\", \"target_check\": \"after\", \"r2_context_files_checked\": 16, \"target_writes\": false}",
+      "stderr": ""
+    }
+  ],
+  "actual_target_source_unchanged": {
+    "baseline": true,
+    "repaired": true
+  },
+  "production_after_sha256": {
+    "v4/manager_research/connect_selection.py": "238f608d8b130aaed6ecfeaea6a66550bf918045c82adeb9aa3ce4f7000ea291",
+    "v4/manager_research/workspace.py": "7a4875f1ab5ba46ac6c18bdaffe2c103a136734fda276fbee918163332844bb0"
+  },
+  "business_tests_rerun_in_handoff_final_check": false,
+  "main_suite_totals_previously_recomputed_from_junit": {
+    "baseline": {
+      "tests": 295,
+      "pass": 265,
+      "fail": 30
+    },
+    "candidate": {
+      "tests": 295,
+      "pass": 268,
+      "fail": 27
+    },
+    "candidate_only_failed_nodes": []
+  },
+  "source_and_handoff_status": "PASS_SCOPED_CANDIDATE_WITH_RECORDED_LIMITATIONS",
+  "remote_publication_review": "PENDING_REMOTE_COMMIT_TREE_AND_CRITICAL_SHA_READBACK",
+  "mac_runtime_integration_deployment_api_ui_natural": "NOT_RUN_CANNOT_CONFIRM"
+}

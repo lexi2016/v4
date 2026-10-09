@@ -1,0 +1,44 @@
+{
+  "group": "app_wiring",
+  "variant": "baseline",
+  "source_root": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app",
+  "started_at": "2026-10-09T16:05:47.051470+00:00",
+  "elapsed_seconds": 7.573,
+  "command": [
+    "/workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/bin/python",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "--tb=short",
+    "--color=no",
+    "-p",
+    "no:cacheprovider",
+    "--basetemp=/workspace/scratch/0e089a11ee60/four_function_gaps/work/verification/baseline/app_wiring_tmp",
+    "--junitxml=/workspace/scratch/0e089a11ee60/four_function_gaps/work/verification/baseline/app_wiring.xml",
+    "tests/test_manager_app_announcement_chain_20261009.py",
+    "tests/test_manager_hk_authority_app_wiring_20261009.py",
+    "tests/test_manager_app_plan_identity_20261009.py"
+  ],
+  "cwd": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app",
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "exit_code": 1,
+  "tests": 20,
+  "passed": 17,
+  "failed": 3,
+  "skipped": 0,
+  "failed_cases": [
+    "tests.test_manager_app_plan_identity_20261009::test_scheduled_dispatch_cannot_reuse_saved_other_selection_binding",
+    "tests.test_manager_app_plan_identity_20261009::test_app_immutable_authority_read_clock_does_not_stale_plan",
+    "tests.test_manager_app_plan_identity_20261009::test_app_persisted_availability_change_stales_plan_with_same_read_clock"
+  ],
+  "log_sha256": "2ef6b5f8cf73aae753c164f619d54c58a494295425efd95dc88dca2f3d10a93b",
+  "xml_sha256": "3165e82500a5ba6c58f2633fd236b81560fe0c7f3bb98b995c50b58a5b865e67",
+  "test_files": {
+    "tests/test_manager_app_announcement_chain_20261009.py": "a1c53d3d8512ba96a51bcab7255b186659fe9605f08a25de3dee1304e009c7ff",
+    "tests/test_manager_hk_authority_app_wiring_20261009.py": "b03d4715002cdf6a5c551ef7d6eb302c5d7d50ce2cee11f05158c68deb6e8b99",
+    "tests/test_manager_app_plan_identity_20261009.py": "596a372bd9ff426e3b7468beb4d9fbdc94bb1b2e268e9ac975458ac4f0259ca9"
+  }
+}

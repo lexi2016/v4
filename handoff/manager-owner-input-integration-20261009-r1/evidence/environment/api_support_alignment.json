@@ -1,0 +1,43 @@
+[
+  {
+    "path": "apps/api/v35_api/review_router.py",
+    "source_commit": "a7f5d09fb19de10564925757207977aadc080cc1",
+    "repository_path": "handoff/hk-close-hk-calendar-20261007/api/apps/api/v35_api/review_router.py",
+    "sha256": "ef6e870077fecd1e025ec1a0741ec3f766b76ef914b60661e4f32937acc9e28d",
+    "git_blob_sha": "d94d76fe6bc7833438dbe41455585a9a06b7f2d9",
+    "bytes": 42184,
+    "prior_support_sha256": "18ad60727c4d1a1a073d85229a0ac3c1555ebce7a801e9536336cbfd24671d14",
+    "role": "FROZEN_API_TEST_SUPPORT_NOT_PRODUCTION_PATCH"
+  },
+  {
+    "path": "v4/manager_research/research_attention.py",
+    "source_commit": "a7f5d09fb19de10564925757207977aadc080cc1",
+    "repository_path": "handoff/v4-running-source-20261005/api/v4/manager_research/research_attention.py",
+    "sha256": "3f5385ed850b0336cb85ad85cac3aeab44d2908620c636a4cfc19f5fdf3619aa",
+    "git_blob_sha": "c3edf3996d77247615da563c4309dac8967113bc",
+    "bytes": 43072,
+    "prior_support_sha256": "ccf9246193e082f6fd09e83fae0df00533c8dc0ef27ebb5f5335dfc35d76be96",
+    "role": "FROZEN_API_TEST_SUPPORT_NOT_PRODUCTION_PATCH"
+  },
+  {
+    "path": "v4/manager_research/__init__.py",
+    "source_commit": "a7f5d09fb19de10564925757207977aadc080cc1",
+    "repository_path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/__init__.py",
+    "sha256": "7902d6b467cacfa763ca6adef297b823c924c573cdb79df2c2e04ec758c38cc4",
+    "git_blob_sha": "66f16815275fc940cf0e193a1bb592d8919d9a7d",
+    "bytes": 1005,
+    "prior_support_sha256": "4032724b98ed267185b12b8ec78dd9bcb0423ab1c89a6f0dad99397fd51159d9",
+    "role": "FROZEN_PACKAGE_INITIALIZER_TEST_SUPPORT_NOT_PRODUCTION_PATCH"
+  },
+  {
+    "path": "v4/manager_research/announcement_observation.py",
+    "source_commit": "a7f5d09fb19de10564925757207977aadc080cc1",
+    "repository_path": "handoff/v4-running-source-20261005/api/v4/manager_research/announcement_observation.py",
+    "sha256": "8e58cab8e9e398d7c628c2f994a5005442d3a6c5ba5f218a155d949b8af74f54",
+    "git_blob_sha": "9e28c8b939fccc3f82da89d19a0f9dc157a26b92",
+    "bytes": 5599,
+    "prior_support_sha256": "f86f2f0ac90b4e4490a74a27984c84f9c632075c47862d3627493282afef17ed",
+    "role": "FROZEN_API_TEST_SUPPORT_NOT_PRODUCTION_PATCH",
+    "reason": "Canonical snapshot omitted positive_observations projection expected by API research_attention; use verified API bytes in both isolated test roots."
+  }
+]

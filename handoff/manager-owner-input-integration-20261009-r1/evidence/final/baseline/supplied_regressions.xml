@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="25" skipped="0" tests="103" time="5.739" timestamp="2026-10-09T09:06:01.888324-07:00" hostname="f2c20067ed3d"><testcase classname="tests.test_issue8_selection_gaps" name="test_closed_connect_is_not_applicable_even_when_membership_root_absent" time="0.005" /><testcase classname="tests.test_issue8_selection_gaps" name="test_unverified_calendar_never_claims_closed_or_open[missing_sha]" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_unverified_calendar_never_claims_closed_or_open[drift]" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_unverified_calendar_never_claims_closed_or_open[missing_file]" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_calendar_full_half_and_weekend[20260929-APPLICABLE]" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_calendar_full_half_and_weekend[20260928-APPLICABLE]" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_calendar_full_half_and_weekend[20261003-NOT_APPLICABLE]" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_formal_gate_stays_empty_even_with_same_day_membership[NOT_APPLICABLE]" time="0.000" /><testcase classname="tests.test_issue8_selection_gaps" name="test_formal_gate_stays_empty_even_with_same_day_membership[CANNOT_CONFIRM]" time="0.000" /><testcase classname="tests.test_issue8_selection_gaps" name="test_open_unknown_membership_not_promoted_and_prior_day_rejected" time="0.001"><failure message="AssertionError: assert ([] == []&#10;  &#10;  Use -v to get more diff and 'HK_CONNECT_M...CS_UNVERIFIED' == 'TARGET_HK_CO...ROLE_MISMATCH'&#10;  &#10;  - TARGET_HK_CONNECT_MEMBERSHIP_DATE_OR_ROLE_MISMATCH&#10;  + HK_CONNECT_MEMBERSHIP_SEMANTICS_UNVERIFIED)">tests/test_issue8_selection_gaps.py:128: in test_open_unknown_membership_not_promoted_and_prior_day_rejected
+    assert accepted==[] and rejected[0]['reason']=='TARGET_HK_CONNECT_MEMBERSHIP_DATE_OR_ROLE_MISMATCH'
+E   AssertionError: assert ([] == []
+E     
+E     Use -v to get more diff and 'HK_CONNECT_M...CS_UNVERIFIED' == 'TARGET_HK_CO...ROLE_MISMATCH'
+E     
+E     - TARGET_HK_CONNECT_MEMBERSHIP_DATE_OR_ROLE_MISMATCH
+E     + HK_CONNECT_MEMBERSHIP_SEMANTICS_UNVERIFIED)</failure></testcase><testcase classname="tests.test_issue8_selection_gaps" name="test_scope_filter_keeps_counts_gaps_and_original_lane_unchanged" time="0.003" /><testcase classname="tests.test_issue8_selection_gaps" name="test_verified_scope_admits_fresh_official_evidence_only_and_does_not_create_focus" time="0.001"><failure message="AssertionError: assert [] == ['HK.01234']&#10;  &#10;  Right contains one more item: 'HK.01234'&#10;  Use -v to get more diff">tests/test_issue8_selection_gaps.py:155: in test_verified_scope_admits_fresh_official_evidence_only_and_does_not_create_focus
+    assert [r['symbol'] for r in a['cards']]==['HK.01234']
+E   AssertionError: assert [] == ['HK.01234']
+E     
+E     Right contains one more item: 'HK.01234'
+E     Use -v to get more diff</failure></testcase><testcase classname="tests.test_issue8_selection_gaps" name="test_observation_only_never_uses_invalid_or_duplicate_evidence[missing_retrieved]" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_observation_only_never_uses_invalid_or_duplicate_evidence[missing_available]" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_observation_only_never_uses_invalid_or_duplicate_evidence[late]" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_observation_only_never_uses_invalid_or_duplicate_evidence[stale]" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_observation_only_never_uses_invalid_or_duplicate_evidence[naive]" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_observation_only_never_uses_invalid_or_duplicate_evidence[wrong_subject]" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_observation_only_never_uses_invalid_or_duplicate_evidence[missing_ref]" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_observation_only_never_uses_invalid_or_duplicate_evidence[wrong_hash]" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_observation_only_never_uses_invalid_or_duplicate_evidence[duplicate]" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_source_and_us_gap_statuses_remain_separate_not_ready" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_gap_only_change_changes_attention_identity_but_read_clock_does_not" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_true_archive_clock_mapping_and_missing_clock_branches[None]" time="0.004" /><testcase classname="tests.test_issue8_selection_gaps" name="test_true_archive_clock_mapping_and_missing_clock_branches[available_at]" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_true_archive_clock_mapping_and_missing_clock_branches[retrieved_at]" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_true_archive_clock_mapping_and_missing_clock_branches[both]" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_legal_clocks_do_not_replace_independent_business_relationship" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_frozen_positive_subtree_preserved_without_promoting_five_stocks" time="0.000"><failure message="KeyError: 'V4_INPUT_ROOT'">tests/test_issue8_selection_gaps.py:240: in test_frozen_positive_subtree_preserved_without_promoting_five_stocks
+    f=json.loads((Path(os.environ['V4_INPUT_ROOT'])/'evidence/FROZEN_SELECTED_FIELDS.json').read_text())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;frozen os&gt;:714: in __getitem__
+    ???
+E   KeyError: 'V4_INPUT_ROOT'</failure></testcase><testcase classname="tests.test_issue8_selection_gaps" name="test_retained_observation_rejects_unsafe_flags_late_refs_and_bad_identity[unsafe_owner_flag]" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_retained_observation_rejects_unsafe_flags_late_refs_and_bad_identity[late_body_ref]" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_retained_observation_rejects_unsafe_flags_late_refs_and_bad_identity[late_directory_ref]" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_retained_observation_rejects_unsafe_flags_late_refs_and_bad_identity[bad_identity_shape]" time="0.001" /><testcase classname="tests.test_issue8_selection_gaps" name="test_two_source_join_still_needs_ready_us_evidence_with_legal_issuer_times" time="0.001" /><testcase classname="tests.test_manager_announcement_date_catalog" name="test_date_url_uses_proven_query_and_does_not_use_latest_five_filter" time="0.000" /><testcase classname="tests.test_manager_announcement_date_catalog" name="test_dynamic_pagination_proves_empty_terminal_and_preserves_display_mismatch" time="0.003"><failure message="AssertionError: assert 'SOURCE_IDENT...ECTION_RESULT' == 'CODE_INTERSE...ECTION_RESULT'&#10;  &#10;  - CODE_INTERSECTION_ONLY_NOT_SELECTION_RESULT&#10;  + SOURCE_IDENTITY_RESEARCH_REFERENCE_ONLY_NOT_CONNECT_ELIGIBILITY_OR_SELECTION_RESULT">tests/test_manager_announcement_date_catalog.py:111: in test_dynamic_pagination_proves_empty_terminal_and_preserves_display_mismatch
+    assert result['manager_consumer_use'] == 'CODE_INTERSECTION_ONLY_NOT_SELECTION_RESULT'
+E   AssertionError: assert 'SOURCE_IDENT...ECTION_RESULT' == 'CODE_INTERSE...ECTION_RESULT'
+E     
+E     - CODE_INTERSECTION_ONLY_NOT_SELECTION_RESULT
+E     + SOURCE_IDENTITY_RESEARCH_REFERENCE_ONLY_NOT_CONNECT_ELIGIBILITY_OR_SELECTION_RESULT</failure></testcase><testcase classname="tests.test_manager_announcement_date_catalog" name="test_zero_total_is_complete_only_with_empty_page_one" time="0.001" /><testcase classname="tests.test_manager_announcement_date_catalog" name="test_source_116_h_identifiers_are_preserved_even_when_not_numeric_master_tickers" time="0.001"><failure message="AssertionError: assert [{'art_code':...es': [], ...}] == []&#10;  &#10;  Left contains one more item: {'art_code': 'AN202609290000000001', 'blob_sha256': 'd72393331c93624ca280f7b5cff3d59df44490f60d0702b77e729074c4236659', 'display_time': '2026-09-29 09:00:00:000', 'matched_master_codes': [], ...}&#10;  Use -v to get more diff">tests/test_manager_announcement_date_catalog.py:132: in test_source_116_h_identifiers_are_preserved_even_when_not_numeric_master_tickers
+    assert result['manager_consumer_rows'] == []
+E   AssertionError: assert [{'art_code':...es': [], ...}] == []
+E     
+E     Left contains one more item: {'art_code': 'AN202609290000000001', 'blob_sha256': 'd72393331c93624ca280f7b5cff3d59df44490f60d0702b77e729074c4236659', 'display_time': '2026-09-29 09:00:00:000', 'matched_master_codes': [], ...}
+E     Use -v to get more diff</failure></testcase><testcase classname="tests.test_manager_announcement_date_catalog" name="test_missing_hk_source_stock_code_forces_partial_and_retains_original_row[missing]" time="0.001" /><testcase classname="tests.test_manager_announcement_date_catalog" name="test_missing_hk_source_stock_code_forces_partial_and_retains_original_row[null]" time="0.001" /><testcase classname="tests.test_manager_announcement_date_catalog" name="test_missing_hk_source_stock_code_forces_partial_and_retains_original_row[empty]" time="0.001" /><testcase classname="tests.test_manager_announcement_date_catalog" name="test_duplicate_art_code_keeps_rows_but_forces_partial" time="0.001" /><testcase classname="tests.test_manager_announcement_date_catalog" name="test_total_drift_and_cross_notice_date_are_partial_and_rows_are_retained" time="0.002" /><testcase classname="tests.test_manager_announcement_date_catalog" name="test_missing_terminal_page_is_partial_without_retry" time="0.001" /><testcase classname="tests.test_manager_announcement_date_catalog" name="test_explicit_resume_reuses_verified_refs_and_only_requests_missing_page" time="0.004" /><testcase classname="tests.test_manager_announcement_date_catalog" name="test_catalog_product_readback_rederives_from_refs" time="0.002" /><testcase classname="tests.test_manager_announcement_date_catalog" name="test_api_requires_explicit_publication_date_and_routes_date_catalog_scope" time="0.172" /><testcase classname="tests.test_manager_announcement_date_catalog" name="test_existing_owner_persists_and_reuses_date_catalog_without_refetch" time="0.056" /><testcase classname="tests.test_manager_announcement_date_catalog" name="test_owner_accepts_saved_refs_without_network_and_rejects_bad_ref_closed" time="0.052" /><testcase classname="tests.test_manager_announcement_supervisor" name="test_proposal_windows_use_original_hk_calendar" time="0.005" /><testcase classname="tests.test_manager_announcement_supervisor" name="test_supervisor_does_not_queue_or_wait_for_owner" time="0.025" /><testcase classname="tests.test_manager_announcement_supervisor" name="test_disabled_supervisor_has_no_worker_or_state" time="0.000" /><testcase classname="tests.test_manager_announcement_supervisor" name="test_tail_blackout_blocks_even_explicit_worker" time="0.000" /><testcase classname="tests.test_manager_announcement_supervisor" name="test_binding_rejects_missing_or_tampered_required_identity" time="0.001" /><testcase classname="tests.test_manager_announcement_supervisor" name="test_timeout_terminates_only_spawned_process_group" time="0.103" /><testcase classname="tests.test_manager_announcement_supervisor" name="test_binding_inventory_includes_full_stage_and_body_capture_dependency_closure" time="0.048"><failure message="FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'">tests/test_manager_announcement_supervisor.py:87: in test_binding_inventory_includes_full_stage_and_body_capture_dependency_closure
+    files=_binding(tmp_path)['files']
+          ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'</failure></testcase><testcase classname="tests.test_manager_announcement_supervisor" name="test_complete_bound_source_inventory_and_disabled_config" time="0.047"><failure message="FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'">tests/test_manager_announcement_supervisor.py:158: in test_complete_bound_source_inventory_and_disabled_config
+    v=_binding(tmp_path);assert validate_binding(v)['enabled'] is False
+      ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'</failure></testcase><testcase classname="tests.test_manager_announcement_supervisor" name="test_plan_only_binding_requires_separate_matching_manual_owner_canary" time="0.029"><failure message="FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'">tests/test_manager_announcement_supervisor.py:164: in test_plan_only_binding_requires_separate_matching_manual_owner_canary
+    value,_=_plan_only_binding(tmp_path)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:99: in _plan_only_binding
+    value=_binding(tmp_path);app=Path(value['app_root']);state=Path(value['manager_state_root'])
+          ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'</failure></testcase><testcase classname="tests.test_manager_announcement_supervisor" name="test_plan_only_binding_accepts_fresh_manual_owner_evidence_from_same_api_root" time="0.030"><failure message="FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'">tests/test_manager_announcement_supervisor.py:170: in test_plan_only_binding_accepts_fresh_manual_owner_evidence_from_same_api_root
+    value,canary=_plan_only_binding(tmp_path,same_owner_root=True)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:99: in _plan_only_binding
+    value=_binding(tmp_path);app=Path(value['app_root']);state=Path(value['manager_state_root'])
+          ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'</failure></testcase><testcase classname="tests.test_manager_announcement_supervisor" name="test_plan_only_binding_rejects_response_body_with_wrong_sha" time="0.029"><failure message="FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'">tests/test_manager_announcement_supervisor.py:178: in test_plan_only_binding_rejects_response_body_with_wrong_sha
+    value,_=_plan_only_binding(tmp_path,tamper_body_sha=True)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:99: in _plan_only_binding
+    value=_binding(tmp_path);app=Path(value['app_root']);state=Path(value['manager_state_root'])
+          ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'</failure></testcase><testcase classname="tests.test_manager_announcement_supervisor" name="test_plan_only_binding_rejects_forged_or_announcement_canary" time="0.042"><failure message="FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'">tests/test_manager_announcement_supervisor.py:186: in test_plan_only_binding_rejects_forged_or_announcement_canary
+    value,canary=_plan_only_binding(tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:99: in _plan_only_binding
+    value=_binding(tmp_path);app=Path(value['app_root']);state=Path(value['manager_state_root'])
+          ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'</failure></testcase><testcase classname="tests.test_manager_announcement_supervisor" name="test_plan_only_binding_rejects_owner_source_migration_mismatch" time="0.049"><failure message="FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'">tests/test_manager_announcement_supervisor.py:201: in test_plan_only_binding_rejects_owner_source_migration_mismatch
+    value,canary=_plan_only_binding(tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:99: in _plan_only_binding
+    value=_binding(tmp_path);app=Path(value['app_root']);state=Path(value['manager_state_root'])
+          ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'</failure></testcase><testcase classname="tests.test_manager_announcement_supervisor" name="test_binding_rejects_source_and_root_drift[missing_catalog]" time="0.046"><failure message="FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'">tests/test_manager_announcement_supervisor.py:216: in test_binding_rejects_source_and_root_drift
+    v=_binding(tmp_path);app=Path(v['app_root'])
+      ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'</failure></testcase><testcase classname="tests.test_manager_announcement_supervisor" name="test_binding_rejects_source_and_root_drift[unlisted_new_source]" time="0.038"><failure message="FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'">tests/test_manager_announcement_supervisor.py:216: in test_binding_rejects_source_and_root_drift
+    v=_binding(tmp_path);app=Path(v['app_root'])
+      ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'</failure></testcase><testcase classname="tests.test_manager_announcement_supervisor" name="test_binding_rejects_source_and_root_drift[changed_source]" time="0.032"><failure message="FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'">tests/test_manager_announcement_supervisor.py:216: in test_binding_rejects_source_and_root_drift
+    v=_binding(tmp_path);app=Path(v['app_root'])
+      ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'</failure></testcase><testcase classname="tests.test_manager_announcement_supervisor" name="test_binding_rejects_source_and_root_drift[state_overlap]" time="0.034"><failure message="FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'">tests/test_manager_announcement_supervisor.py:216: in test_binding_rejects_source_and_root_drift
+    v=_binding(tmp_path);app=Path(v['app_root'])
+      ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'</failure></testcase><testcase classname="tests.test_manager_announcement_supervisor" name="test_binding_rejects_source_and_root_drift[python_target]" time="0.051"><failure message="FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'">tests/test_manager_announcement_supervisor.py:216: in test_binding_rejects_source_and_root_drift
+    v=_binding(tmp_path);app=Path(v['app_root'])
+      ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'</failure></testcase><testcase classname="tests.test_manager_announcement_supervisor" name="test_binding_rejects_source_and_root_drift[unsafe_flag]" time="0.049"><failure message="FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'">tests/test_manager_announcement_supervisor.py:216: in test_binding_rejects_source_and_root_drift
+    v=_binding(tmp_path);app=Path(v['app_root'])
+      ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/shutil.py:260: in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app/apps/__init__.py'</failure></testcase><testcase classname="tests.test_manager_announcement_supervisor" name="test_daemon_disabled_hook_preserves_original_minute_dispatch" time="0.040" /><testcase classname="tests.test_manager_announcement_supervisor" name="test_revoked_binding_cancels_only_owned_child" time="0.002" /><testcase classname="tests.test_manager_announcement_supervisor" name="test_worker_and_supervisor_executable_sources_parse_without_import_stubs" time="0.017" /><testcase classname="tests.test_manager_announcement_supervisor" name="test_worker_real_cli_missing_binding_is_json_failure_and_no_state" time="0.149" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_legacy_over_64_mib_is_read_losslessly_without_rewrite" time="2.903"><failure message="AssertionError: assert 'OWNER_ATTEMPT_UNVERIFIED' == 'CURRENT'&#10;  &#10;  - CURRENT&#10;  + OWNER_ATTEMPT_UNVERIFIED">tests/test_manager_plan_readback_issue24.py:59: in test_legacy_over_64_mib_is_read_losslessly_without_rewrite
+    assert w._readback_plan(store, DATE, current())['plan_product']['status'] == 'CURRENT'
+E   AssertionError: assert 'OWNER_ATTEMPT_UNVERIFIED' == 'CURRENT'
+E     
+E     - CURRENT
+E     + OWNER_ATTEMPT_UNVERIFIED</failure></testcase><testcase classname="tests.test_manager_plan_readback_issue24" name="test_ordinary_store_and_shared_reader_keep_64_mib_limit" time="0.003" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_plan_above_cap_rejected_before_json_decode" time="0.001" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_writer_rejects_over_budget_before_any_publication" time="0.002" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_exact_cap_supported_and_writer_bytes_unchanged" time="0.002" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_immutable_run_cannot_be_overwritten" time="0.001" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_run_collision_does_not_overwrite_any_prior_run[run]" time="0.002" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_run_collision_does_not_overwrite_any_prior_run[attempt]" time="0.002" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_existing_plan_identity_validators_remain_fail_closed[&lt;lambda&gt;0]" time="0.002" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_existing_plan_identity_validators_remain_fail_closed[&lt;lambda&gt;1]" time="0.001" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_existing_plan_identity_validators_remain_fail_closed[&lt;lambda&gt;2]" time="0.001" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_existing_plan_identity_validators_remain_fail_closed[&lt;lambda&gt;3]" time="0.002" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_existing_plan_identity_validators_remain_fail_closed[&lt;lambda&gt;4]" time="0.002" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_existing_plan_identity_validators_remain_fail_closed[&lt;lambda&gt;5]" time="0.002" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_existing_plan_identity_validators_remain_fail_closed[&lt;lambda&gt;6]" time="0.002" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_tampered_sha_is_not_accepted" time="0.002" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_legacy_manual_plan_without_execution_kind_remains_valid" time="0.002" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_cutoff_and_stale_identity_still_control_consumption" time="0.014" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_failed_save_readback_never_gets_success_journal[READBACK_FAILED]" time="0.037"><failure message="Failed: DID NOT RAISE ValueError">tests/test_manager_plan_readback_issue24.py:186: in test_failed_save_readback_never_gets_success_journal
+    with pytest.raises(ValueError,match='WORKSPACE_PLAN_SAVE_READBACK_FAILED'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError</failure></testcase><testcase classname="tests.test_manager_plan_readback_issue24" name="test_failed_save_readback_never_gets_success_journal[STALE_INPUTS_CHANGED]" time="0.012"><failure message="Failed: DID NOT RAISE ValueError">tests/test_manager_plan_readback_issue24.py:186: in test_failed_save_readback_never_gets_success_journal
+    with pytest.raises(ValueError,match='WORKSPACE_PLAN_SAVE_READBACK_FAILED'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError</failure></testcase><testcase classname="tests.test_manager_plan_readback_issue24" name="test_failed_save_readback_never_gets_success_journal[NOT_MATERIALIZED]" time="0.016"><failure message="Failed: DID NOT RAISE ValueError">tests/test_manager_plan_readback_issue24.py:186: in test_failed_save_readback_never_gets_success_journal
+    with pytest.raises(ValueError,match='WORKSPACE_PLAN_SAVE_READBACK_FAILED'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError</failure></testcase><testcase classname="tests.test_manager_plan_readback_issue24" name="test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_RUN]" time="0.018"><failure message="Failed: DID NOT RAISE ValueError">tests/test_manager_plan_readback_issue24.py:186: in test_failed_save_readback_never_gets_success_journal
+    with pytest.raises(ValueError,match='WORKSPACE_PLAN_SAVE_READBACK_FAILED'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError</failure></testcase><testcase classname="tests.test_manager_plan_readback_issue24" name="test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_SHA]" time="0.013"><failure message="Failed: DID NOT RAISE ValueError">tests/test_manager_plan_readback_issue24.py:186: in test_failed_save_readback_never_gets_success_journal
+    with pytest.raises(ValueError,match='WORKSPACE_PLAN_SAVE_READBACK_FAILED'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError</failure></testcase><testcase classname="tests.test_manager_plan_readback_issue24" name="test_failed_save_readback_never_gets_success_journal[CURRENT_NOT_CONSUMED]" time="0.014"><failure message="AssertionError: assert {'FAILED', 'R...CEEDED_EMPTY'} &lt;= {'FAILED', 'RUNNING'}&#10;  &#10;  Extra items in the left set:&#10;  'SUCCEEDED_EMPTY'">tests/test_manager_plan_readback_issue24.py:188: in test_failed_save_readback_never_gets_success_journal
+    assert {r['state'] for r in seen}&lt;={'RUNNING','FAILED'}
+E   AssertionError: assert {'FAILED', 'R...CEEDED_EMPTY'} &lt;= {'FAILED', 'RUNNING'}
+E     
+E     Extra items in the left set:
+E     'SUCCEEDED_EMPTY'</failure></testcase><testcase classname="tests.test_manager_plan_readback_issue24" name="test_success_returns_read_back_terminal_attempt" time="0.014" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_symlink_boundary_is_not_weakened" time="0.001" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_future_oversize_refresh_preserves_old_plan_and_records_failure" time="0.011" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_terminal_attempt_read_failure_cannot_return_saved_success" time="0.014" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_latest_plan_write_failure_leaves_prior_plan_and_no_success" time="0.013" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_missing_plan_has_no_writes_and_is_not_success" time="0.002" /><testcase classname="tests.test_manager_plan_readback_issue24" name="test_null_and_insufficient_evidence_survive_lossless_save" time="0.015" /></testsuite></testsuites>

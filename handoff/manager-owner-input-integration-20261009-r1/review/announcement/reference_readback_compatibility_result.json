@@ -1,0 +1,9 @@
+{
+  "chunk_id": "e8318c",
+  "wall_time_seconds": 0.000027342,
+  "exit_code": 0,
+  "original_token_count": 92,
+  "output": "{\n  \"status\": \"PASS_EXPECTED_COMPATIBILITY_DISTINCTION\",\n  \"scope\": \"SYNTHETIC_FIXTURE_REAL_R2_OWNER_ROUTE_READBACK\",\n  \"old_reference_error\": \"ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_HANDOFF_BINDING_INVALID\",\n  \"fixed_git_support_cli_result\": \"OWNER_READBACK_VERIFIED\",\n  \"readback_byte_mutations\": 0,\n  \"real_owner_data_verified\": false,\n  \"natural_run_verified\": false\n}\n",
+  "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=.:tests runtime_locked/bin/python review/announcement/reference_readback_compatibility.py",
+  "cwd": "four_function_gaps/work/baseline/app"
+}

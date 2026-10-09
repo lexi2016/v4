@@ -1,0 +1,177 @@
+{
+  "scope": "ISOLATED_SYNTHETIC_APP_INTEGRATION_NOT_MAC_ACCEPTANCE",
+  "baseline_commit": "a7f5d09fb19de10564925757207977aadc080cc1",
+  "groups": {
+    "baseline": [
+      {
+        "group": "app_wiring",
+        "exit_code": 1,
+        "tests": 20,
+        "passed": 17,
+        "failed": 3,
+        "skipped": 0,
+        "failed_cases": [
+          "tests.test_manager_app_plan_identity_20261009::test_scheduled_dispatch_cannot_reuse_saved_other_selection_binding",
+          "tests.test_manager_app_plan_identity_20261009::test_app_immutable_authority_read_clock_does_not_stale_plan",
+          "tests.test_manager_app_plan_identity_20261009::test_app_persisted_availability_change_stales_plan_with_same_read_clock"
+        ],
+        "log_sha256": "2ef6b5f8cf73aae753c164f619d54c58a494295425efd95dc88dca2f3d10a93b"
+      },
+      {
+        "group": "adjacent_owner_contracts",
+        "exit_code": 1,
+        "tests": 113,
+        "passed": 112,
+        "failed": 1,
+        "skipped": 0,
+        "failed_cases": [
+          "tests.test_manager_daily_dispatch_20261008::test_worker_plan_only_uses_bound_rpc_and_never_builds_collection_service"
+        ],
+        "log_sha256": "c3ef77db62f037398110320bad8e13365b7621e91a84cb7b62a97f2262b4a4cd"
+      },
+      {
+        "group": "supplied_regressions",
+        "exit_code": 1,
+        "tests": 103,
+        "passed": 78,
+        "failed": 25,
+        "skipped": 0,
+        "failed_cases": [
+          "tests.test_issue8_selection_gaps::test_open_unknown_membership_not_promoted_and_prior_day_rejected",
+          "tests.test_issue8_selection_gaps::test_verified_scope_admits_fresh_official_evidence_only_and_does_not_create_focus",
+          "tests.test_issue8_selection_gaps::test_frozen_positive_subtree_preserved_without_promoting_five_stocks",
+          "tests.test_manager_announcement_date_catalog::test_dynamic_pagination_proves_empty_terminal_and_preserves_display_mismatch",
+          "tests.test_manager_announcement_date_catalog::test_source_116_h_identifiers_are_preserved_even_when_not_numeric_master_tickers",
+          "tests.test_manager_announcement_supervisor::test_binding_inventory_includes_full_stage_and_body_capture_dependency_closure",
+          "tests.test_manager_announcement_supervisor::test_complete_bound_source_inventory_and_disabled_config",
+          "tests.test_manager_announcement_supervisor::test_plan_only_binding_requires_separate_matching_manual_owner_canary",
+          "tests.test_manager_announcement_supervisor::test_plan_only_binding_accepts_fresh_manual_owner_evidence_from_same_api_root",
+          "tests.test_manager_announcement_supervisor::test_plan_only_binding_rejects_response_body_with_wrong_sha",
+          "tests.test_manager_announcement_supervisor::test_plan_only_binding_rejects_forged_or_announcement_canary",
+          "tests.test_manager_announcement_supervisor::test_plan_only_binding_rejects_owner_source_migration_mismatch",
+          "tests.test_manager_announcement_supervisor::test_binding_rejects_source_and_root_drift[missing_catalog]",
+          "tests.test_manager_announcement_supervisor::test_binding_rejects_source_and_root_drift[unlisted_new_source]",
+          "tests.test_manager_announcement_supervisor::test_binding_rejects_source_and_root_drift[changed_source]",
+          "tests.test_manager_announcement_supervisor::test_binding_rejects_source_and_root_drift[state_overlap]",
+          "tests.test_manager_announcement_supervisor::test_binding_rejects_source_and_root_drift[python_target]",
+          "tests.test_manager_announcement_supervisor::test_binding_rejects_source_and_root_drift[unsafe_flag]",
+          "tests.test_manager_plan_readback_issue24::test_legacy_over_64_mib_is_read_losslessly_without_rewrite",
+          "tests.test_manager_plan_readback_issue24::test_failed_save_readback_never_gets_success_journal[READBACK_FAILED]",
+          "tests.test_manager_plan_readback_issue24::test_failed_save_readback_never_gets_success_journal[STALE_INPUTS_CHANGED]",
+          "tests.test_manager_plan_readback_issue24::test_failed_save_readback_never_gets_success_journal[NOT_MATERIALIZED]",
+          "tests.test_manager_plan_readback_issue24::test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_RUN]",
+          "tests.test_manager_plan_readback_issue24::test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_SHA]",
+          "tests.test_manager_plan_readback_issue24::test_failed_save_readback_never_gets_success_journal[CURRENT_NOT_CONSUMED]"
+        ],
+        "log_sha256": "910855b456de0e1823bf02bf757004f61b6baa4cda6a57a8f4521585a1bb5c50"
+      },
+      {
+        "group": "existing_announcement",
+        "exit_code": 1,
+        "tests": 59,
+        "passed": 58,
+        "failed": 1,
+        "skipped": 0,
+        "failed_cases": [
+          "tests.test_manager_announcement_parity_20261008::test_missing_original_archive_is_not_empty_connect_selection"
+        ],
+        "log_sha256": "2c6a35bb3d6fe151b98787ddb49559d8c91ab99f9d1da18490a85ae6042bb601"
+      }
+    ],
+    "repaired": [
+      {
+        "group": "app_wiring",
+        "exit_code": 0,
+        "tests": 20,
+        "passed": 20,
+        "failed": 0,
+        "skipped": 0,
+        "failed_cases": [],
+        "log_sha256": "561a5a65fab86d6a7e671cf72ec6fc9d41a8a3fc985a6ec42b5bbead04e4c446"
+      },
+      {
+        "group": "adjacent_owner_contracts",
+        "exit_code": 1,
+        "tests": 113,
+        "passed": 112,
+        "failed": 1,
+        "skipped": 0,
+        "failed_cases": [
+          "tests.test_manager_daily_dispatch_20261008::test_worker_plan_only_uses_bound_rpc_and_never_builds_collection_service"
+        ],
+        "log_sha256": "1466723685766cffc198d447ba2d0d6d503e4fe22a36616c81698367625bc3f2"
+      },
+      {
+        "group": "supplied_regressions",
+        "exit_code": 1,
+        "tests": 103,
+        "passed": 78,
+        "failed": 25,
+        "skipped": 0,
+        "failed_cases": [
+          "tests.test_issue8_selection_gaps::test_open_unknown_membership_not_promoted_and_prior_day_rejected",
+          "tests.test_issue8_selection_gaps::test_verified_scope_admits_fresh_official_evidence_only_and_does_not_create_focus",
+          "tests.test_issue8_selection_gaps::test_frozen_positive_subtree_preserved_without_promoting_five_stocks",
+          "tests.test_manager_announcement_date_catalog::test_dynamic_pagination_proves_empty_terminal_and_preserves_display_mismatch",
+          "tests.test_manager_announcement_date_catalog::test_source_116_h_identifiers_are_preserved_even_when_not_numeric_master_tickers",
+          "tests.test_manager_announcement_supervisor::test_binding_inventory_includes_full_stage_and_body_capture_dependency_closure",
+          "tests.test_manager_announcement_supervisor::test_complete_bound_source_inventory_and_disabled_config",
+          "tests.test_manager_announcement_supervisor::test_plan_only_binding_requires_separate_matching_manual_owner_canary",
+          "tests.test_manager_announcement_supervisor::test_plan_only_binding_accepts_fresh_manual_owner_evidence_from_same_api_root",
+          "tests.test_manager_announcement_supervisor::test_plan_only_binding_rejects_response_body_with_wrong_sha",
+          "tests.test_manager_announcement_supervisor::test_plan_only_binding_rejects_forged_or_announcement_canary",
+          "tests.test_manager_announcement_supervisor::test_plan_only_binding_rejects_owner_source_migration_mismatch",
+          "tests.test_manager_announcement_supervisor::test_binding_rejects_source_and_root_drift[missing_catalog]",
+          "tests.test_manager_announcement_supervisor::test_binding_rejects_source_and_root_drift[unlisted_new_source]",
+          "tests.test_manager_announcement_supervisor::test_binding_rejects_source_and_root_drift[changed_source]",
+          "tests.test_manager_announcement_supervisor::test_binding_rejects_source_and_root_drift[state_overlap]",
+          "tests.test_manager_announcement_supervisor::test_binding_rejects_source_and_root_drift[python_target]",
+          "tests.test_manager_announcement_supervisor::test_binding_rejects_source_and_root_drift[unsafe_flag]",
+          "tests.test_manager_plan_readback_issue24::test_legacy_over_64_mib_is_read_losslessly_without_rewrite",
+          "tests.test_manager_plan_readback_issue24::test_failed_save_readback_never_gets_success_journal[READBACK_FAILED]",
+          "tests.test_manager_plan_readback_issue24::test_failed_save_readback_never_gets_success_journal[STALE_INPUTS_CHANGED]",
+          "tests.test_manager_plan_readback_issue24::test_failed_save_readback_never_gets_success_journal[NOT_MATERIALIZED]",
+          "tests.test_manager_plan_readback_issue24::test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_RUN]",
+          "tests.test_manager_plan_readback_issue24::test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_SHA]",
+          "tests.test_manager_plan_readback_issue24::test_failed_save_readback_never_gets_success_journal[CURRENT_NOT_CONSUMED]"
+        ],
+        "log_sha256": "597ac40201842f25a99968751838f4c415ad8e5d82b48b5fdb29f99fa511454f"
+      },
+      {
+        "group": "existing_announcement",
+        "exit_code": 1,
+        "tests": 59,
+        "passed": 58,
+        "failed": 1,
+        "skipped": 0,
+        "failed_cases": [
+          "tests.test_manager_announcement_parity_20261008::test_missing_original_archive_is_not_empty_connect_selection"
+        ],
+        "log_sha256": "a38245e09b428332cc7a2f80a8fbe5457859daef6c57e19b527997f5fb8b41f9"
+      }
+    ]
+  },
+  "repository_suite_status": "FAIL",
+  "mac_runtime": "NOT_RUN",
+  "deployment": "NOT_RUN",
+  "live_api_ui": "NOT_RUN",
+  "natural_window": "NOT_RUN",
+  "configuration_sha256": null,
+  "configuration_identity_status": "ACTUAL_MAC_CONFIGURATION_NOT_AVAILABLE",
+  "baseline_totals": {
+    "tests": 295,
+    "passed": 265,
+    "failed": 30,
+    "skipped": 0
+  },
+  "repaired_totals": {
+    "tests": 295,
+    "passed": 268,
+    "failed": 27,
+    "skipped": 0
+  },
+  "focused_20_breakdown": {
+    "create_app_cases": 12,
+    "direct_native_consumer_cases": 8
+  }
+}

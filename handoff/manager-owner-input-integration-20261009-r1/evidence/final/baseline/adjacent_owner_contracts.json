@@ -1,0 +1,50 @@
+{
+  "group": "adjacent_owner_contracts",
+  "variant": "baseline",
+  "source_root": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app",
+  "started_at": "2026-10-09T16:05:54.625382+00:00",
+  "elapsed_seconds": 6.671,
+  "command": [
+    "/workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/bin/python",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "--tb=short",
+    "--color=no",
+    "-p",
+    "no:cacheprovider",
+    "--basetemp=/workspace/scratch/0e089a11ee60/four_function_gaps/work/verification/baseline/adjacent_owner_contracts_tmp",
+    "--junitxml=/workspace/scratch/0e089a11ee60/four_function_gaps/work/verification/baseline/adjacent_owner_contracts.xml",
+    "tests/test_manager_three_channel_hk_reader.py",
+    "tests/test_manager_daily_channels_20261008.py",
+    "tests/test_manager_workspace_exact_page_binding_20261008.py",
+    "tests/test_manager_workspace_owner_20261008.py",
+    "tests/test_manager_daily_dispatch_20261008.py",
+    "tests/test_manager_daily_automation_20261008.py",
+    "tests/test_manager_input_contracts_20261008.py"
+  ],
+  "cwd": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app",
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "exit_code": 1,
+  "tests": 113,
+  "passed": 112,
+  "failed": 1,
+  "skipped": 0,
+  "failed_cases": [
+    "tests.test_manager_daily_dispatch_20261008::test_worker_plan_only_uses_bound_rpc_and_never_builds_collection_service"
+  ],
+  "log_sha256": "c3ef77db62f037398110320bad8e13365b7621e91a84cb7b62a97f2262b4a4cd",
+  "xml_sha256": "99d1d3bf013f3acc206c7fa4e8efd1b0a38ab8c65cd50a1854ac2e64623f1115",
+  "test_files": {
+    "tests/test_manager_three_channel_hk_reader.py": "d037d4f43559e45d23f92b63a27317f2e5587b1b86649fbb9e6198a62618e7e5",
+    "tests/test_manager_daily_channels_20261008.py": "43688012eb751ac5c63c09e689aa85a82d3dfd147f82274e3e55f3530dacd536",
+    "tests/test_manager_workspace_exact_page_binding_20261008.py": "7b3777e7333b167b7c0e81049daf7ca2e29f6936da50db7ff6d223548d4d6bd7",
+    "tests/test_manager_workspace_owner_20261008.py": "46ebbea9f71baf052ebbd1185d2dc25bcd4bc92d3e2e6da8ebd96c41135294ea",
+    "tests/test_manager_daily_dispatch_20261008.py": "5751d7831d10d9c21767e7e5b47199b98aea877ab76badcff36246e12f3eb6ac",
+    "tests/test_manager_daily_automation_20261008.py": "32d1baf5f79672d94fbcc2053e16aa4dfaefd8637cd153c4dfadf3fc6e43a45e",
+    "tests/test_manager_input_contracts_20261008.py": "7622f1a6affa4beb30be9221aa13d9e3ae11f835cddb5014b561840aaca6905f"
+  }
+}

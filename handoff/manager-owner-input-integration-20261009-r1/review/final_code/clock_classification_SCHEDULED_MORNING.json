@@ -1,0 +1,10 @@
+{
+  "kind": "SCHEDULED_MORNING",
+  "changed_projection_inputs": [
+    ".market_screen.data_context.research_cutoff",
+    ".plan_context.research_cutoff"
+  ],
+  "same_source_bytes": true,
+  "same_witness_only_reuse": "separately tested",
+  "classification": "EXISTING_CUTOFF_SENSITIVE_SCREEN_IDENTITY_OUTSIDE_TWO_FILE_PATCH"
+}

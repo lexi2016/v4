@@ -1,0 +1,27 @@
+{
+  "baseline": {
+    "expected_paths": 1065,
+    "missing": [],
+    "mismatches": []
+  },
+  "repaired": {
+    "expected_paths": 1065,
+    "missing": [],
+    "mismatches": [
+      {
+        "path": "v4/manager_research/workspace.py",
+        "expected_sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+        "actual_sha256": "7a4875f1ab5ba46ac6c18bdaffe2c103a136734fda276fbee918163332844bb0"
+      },
+      {
+        "path": "v4/manager_research/connect_selection.py",
+        "expected_sha256": "eaa01a13d8065b11cc8397a12edaad8b892f183158aa1f9475d29645dee09d83",
+        "actual_sha256": "238f608d8b130aaed6ecfeaea6a66550bf918045c82adeb9aa3ce4f7000ea291"
+      }
+    ]
+  },
+  "exact_r2_preimages": {
+    "v4/manager_research/workspace.py": true,
+    "v4/manager_research/connect_selection.py": true
+  }
+}

@@ -1,0 +1,103 @@
+FLEGACY_MISSING_JOURNAL_PROBE={"status": "OWNER_ATTEMPT_UNVERIFIED", "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "generated_at": "2026-10-03T00:00:00+00:00", "sha256": "2bf31dee3b8403d81eab9c5b07a53759f033be7f149af772a8ad56d8767e0a8c", "execution_kind": "MANUAL_REFRESH", "execution_context": null, "original_owner": "ManagerResearchJobService.refresh_workspace_plan", "last_checked_at": "2026-10-10T00:03:09.355508+08:00", "consumed": false, "run_readback": {"status": "CANNOT_CONFIRM", "target_trade_date": "20261002", "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "artifact_sha256": "2bf31dee3b8403d81eab9c5b07a53759f033be7f149af772a8ad56d8767e0a8c", "input_identity": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "owner": "ManagerResearchJobService.refresh_workspace_plan", "read_at": "2026-10-10T00:03:09.355508+08:00", "owner_attempt_run_id": null, "owner_attempt_sha256": null, "owner_attempt_state": null, "owner_finished_at": null}, "reason": "WORKSPACE_PLAN_ATTEMPT_MISSING"}
+.ISSUE8_PROBES={"old_scope_error": "HK_CONNECT_MEMBERSHIP_SEMANTICS_UNVERIFIED", "prior_day_with_explicit_v2": "TARGET_HK_CONNECT_MEMBERSHIP_DATE_OR_ROLE_MISMATCH", "event_lane_positive_observations_present": false, "review_positive_count": 1, "old_scope_official_admitted": 0, "v2_scope_official_admitted": 1, "old_scope_scored_symbols": [], "v2_scope_scored_symbols": ["HK.01234"], "v2_scope_observation_count": 0, "synthetic_projection_probe": "IN_MEMORY_FIELD_RESTORATION_ONLY_NOT_SOURCE_PATCH", "bridge_duplicate_observation_count": 1, "bridge_scored_cards": [], "bridge_observation_safety": [{"focus_eligible": false, "qualified": false, "buy_allowed": false, "RESEARCH_ONLY": true, "production_allowed": false, "buy_gate_updated": false, "orders_sent": false}], "frozen_selected_fields_in_package": false}
+.CATALOG_AND_SUPERVISOR_PROBES={"status": "COMPLETE", "manager_consumer_use": "SOURCE_IDENTITY_RESEARCH_REFERENCE_ONLY_NOT_CONNECT_ELIGIBILITY_OR_SELECTION_RESULT", "source_identity_basis": "EASTMONEY_116_H_SOURCE_REFERENCE", "manager_consumer_row_count": 1, "manager_source_codes": ["H5354"], "manager_matched_master_codes": [], "connect_eligibility_status": "NOT_ASSESSED", "semantic_analysis": "NOT_RUN", "source_rederivation": "VERIFIED_AGAINST_SYNTHETIC_MEMORY_BLOBS", "safety": {"RESEARCH_ONLY": true, "production_allowed": false, "buy_gate_updated": false, "orders_sent": false}, "supervisor_missing_required": ["apps/__init__.py"], "supervisor_missing_plan_owner_required": ["apps/__init__.py"], "supervisor_missing_plan_owner_sources": [], "frozen_tree_truncated": false, "original_initializer_candidates": [{"path": "handoff/v4-running-source-20261005/canonical/apps/api/__init__.py", "mode": "100644", "type": "blob", "sha": "481352bbb1ecff3a6a08b12f73f6ed8ab3be3dcf", "size": 41, "url": "https://api.github.com/repos/lexi2016/v4/git/blobs/481352bbb1ecff3a6a08b12f73f6ed8ab3be3dcf"}]}
+.
+=================================== FAILURES ===================================
+___________________ test_real_plan_readback_fault_boundaries ___________________
+
+tmp_path = PosixPath('/workspace/scratch/0e089a11ee60/four_function_gaps/review/baseline_triage/tmp/test_real_plan_readback_fault_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f671d7f8080>
+
+    def test_real_plan_readback_fault_boundaries(tmp_path, monkeypatch):
+        t = load_test("test_manager_plan_readback_issue24")
+        w, s = t.w, t.s
+        outputs = []
+        cases = ("normal", "first_product_read_error", "first_product_wrong_run",
+                 "first_product_wrong_sha", "final_product_read_error", "same_run_journal_read_error")
+        for case in cases:
+            store = s.ManagerResearchStore(tmp_path / case)
+            writes, readbacks = [], []
+            read_count = 0
+            real_read = store._read
+            real_write = store._write_atomic
+            real_readback = w._readback_plan
+    
+            def recording_write(path, value):
+                real_write(path, value)
+                if "workspace_plan_runs" in path.parts:
+                    writes.append(dict(path_role="latest" if path.name == "latest.json" else "exact_run",
+                                       state=value["state"], last_success_at=value.get("last_success_at"),
+                                       success_scope=value.get("success_scope")))
+    
+            def faulting_read(path):
+                nonlocal read_count
+                value = real_read(path)
+                if path == t.latest(store) and value is not None:
+                    read_count += 1
+                    if case == "first_product_read_error" and read_count == 1:
+                        raise s.StoreError("TRIAGE_SYNTHETIC_FIRST_PRODUCT_READ_ERROR")
+                    if case == "first_product_wrong_run" and read_count == 1:
+                        value = deepcopy(value)
+                        value["run_id"] = "b" * 32
+                        return t.seal(value)
+                    if case == "first_product_wrong_sha" and read_count == 1:
+                        value = deepcopy(value)
+                        value["sha256"] = "0" * 64
+                        return value
+                    if case == "final_product_read_error" and read_count == 2:
+                        raise s.StoreError("TRIAGE_SYNTHETIC_FINAL_PRODUCT_READ_ERROR")
+                if (case == "same_run_journal_read_error" and "workspace_plan_runs" in path.parts
+                        and path.name == t.RUN + ".json" and value is not None
+                        and value.get("state") == "SUCCEEDED_EMPTY"):
+                    raise s.StoreError("TRIAGE_SYNTHETIC_EXACT_JOURNAL_READ_ERROR")
+                return value
+    
+            def observed_readback(*args, **kwargs):
+                value = real_readback(*args, **kwargs)
+                readbacks.append(deepcopy(value.get("plan_product")))
+                return value
+    
+            returned = None
+            error = None
+            with monkeypatch.context() as mp:
+                mp.setattr(w, "_now", lambda: t.TIME)
+                mp.setattr(w, "uuid4", lambda: SimpleNamespace(hex=t.RUN))
+                mp.setattr(w, "get_workspace", lambda *args, **kwargs: t.current("SYNTHETIC_ONLY"))
+                mp.setattr(store, "_read", faulting_read)
+                mp.setattr(store, "_write_atomic", recording_write)
+                mp.setattr(w, "_readback_plan", observed_readback)
+                try:
+>                   returned = w.refresh_workspace_plan(SimpleNamespace(store=store), t.DATE)
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+review/baseline_triage/test_diagnostics.py:144: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+work/baseline/app/v4/manager_research/workspace.py:1236: in refresh_workspace_plan
+    readback=_read_plan(service.store,date)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+work/baseline/app/v4/manager_research/workspace.py:907: in _read_plan
+    row=store._read(store.root/'workspace_plans'/date_token(date)/'latest.json')
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/workspace/scratch/0e089a11ee60/four_function_gaps/review/baseline_triage/tmp/test_real_plan_readback_fault_0/first_product_read_error/workspace_plans/20261002/latest.json')
+
+    def faulting_read(path):
+        nonlocal read_count
+        value = real_read(path)
+        if path == t.latest(store) and value is not None:
+            read_count += 1
+            if case == "first_product_read_error" and read_count == 1:
+>               raise s.StoreError("TRIAGE_SYNTHETIC_FIRST_PRODUCT_READ_ERROR")
+E               v4.manager_research.store.StoreError: TRIAGE_SYNTHETIC_FIRST_PRODUCT_READ_ERROR
+
+review/baseline_triage/test_diagnostics.py:112: StoreError
+=============================== warnings summary ===============================
+::test_catalog_source_identity_contract_and_binding_inventory
+  /workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED ../../../../dev::test_real_plan_readback_fault_boundaries - v4.manager...
+1 failed, 3 passed, 1 warning in 0.98s

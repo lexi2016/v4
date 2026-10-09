@@ -1,0 +1,40 @@
+{
+  "group": "existing_announcement",
+  "variant": "repaired",
+  "source_root": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/repaired/app",
+  "started_at": "2026-10-09T16:06:08.640267+00:00",
+  "elapsed_seconds": 7.045,
+  "command": [
+    "/workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/bin/python",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "--tb=short",
+    "--color=no",
+    "-p",
+    "no:cacheprovider",
+    "--basetemp=/workspace/scratch/0e089a11ee60/four_function_gaps/work/verification/repaired/existing_announcement_tmp",
+    "--junitxml=/workspace/scratch/0e089a11ee60/four_function_gaps/work/verification/repaired/existing_announcement.xml",
+    "tests/test_manager_announcement_parity_20261008.py",
+    "tests/test_manager_announcement_handoff_20261009.py"
+  ],
+  "cwd": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/repaired/app",
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "exit_code": 1,
+  "tests": 59,
+  "passed": 58,
+  "failed": 1,
+  "skipped": 0,
+  "failed_cases": [
+    "tests.test_manager_announcement_parity_20261008::test_missing_original_archive_is_not_empty_connect_selection"
+  ],
+  "log_sha256": "a38245e09b428332cc7a2f80a8fbe5457859daef6c57e19b527997f5fb8b41f9",
+  "xml_sha256": "5ccc88297a1a09a6a9da0f29a11c685a29772b8a5f31d8eb824db09232b92af1",
+  "test_files": {
+    "tests/test_manager_announcement_parity_20261008.py": "22fccef9d1904c2ea0f52f645e4810cef876574bb8574722109fa37f0a29b4ed",
+    "tests/test_manager_announcement_handoff_20261009.py": "dd38c69af5230927d59f4c10ec375b41506999663a623da278a76c14a101dfe2"
+  }
+}

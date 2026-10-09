@@ -1,0 +1,589 @@
+{
+  "scope": "SYNTHETIC_OFFLINE_BASELINE_TRIAGE_NOT_MAC_ACCEPTANCE",
+  "source_root": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app",
+  "python_executable": "/workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/bin/python",
+  "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "network": "DENIED_BY_PROCESS_AUDIT_HOOK",
+  "fixed_r2_count": 20,
+  "fixed_r2_matches_package": true,
+  "before_sha256": {
+    "apps/api/v35_api/app.py": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+    "apps/api/v35_api/manager_research_router.py": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+    "tests/test_issue8_selection_gaps.py": "c9f242bc64b0b31a16cef0a6f732df45fabfa80654d4aace4cc405b8ec98c9a8",
+    "tests/test_manager_announcement_date_catalog.py": "41c21fc88221a23608592e23cf925bfb1060c955f00bdb8391abf847071c49a7",
+    "tests/test_manager_announcement_supervisor.py": "a48b4d8de4721b02d82d4ef1f1e6e7f5a74e58d3671055bee21e9efc72ec5d3c",
+    "tests/test_manager_plan_readback_issue24.py": "1d7866fb800b3d9bff235c09159f169f3debe777a710a7d688f59217e45b5989",
+    "upstreams/v3_shared_data/shared_data/hk_d1_evidence.py": "08c499732300a0e6026cda7ec7c2257807c542cd989f90a9427285dc34b73850",
+    "upstreams/v3_shared_data/shared_data/hk_security_master.py": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+    "upstreams/v3_shared_data/shared_data/store.py": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+    "v4/manager_research/announcement_analysis.py": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+    "v4/manager_research/connect_capture_adapter.py": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b",
+    "v4/manager_research/connect_selection.py": "eaa01a13d8065b11cc8397a12edaad8b892f183158aa1f9475d29645dee09d83",
+    "v4/manager_research/plan_owner_dispatch.py": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+    "v4/manager_research/service.py": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+    "v4/manager_research/workspace.py": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+    "v4/manager_research/workspace_announcements.py": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+    "v4/manager_research/workspace_daily_channels.py": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+    "v4/manager_research/workspace_history.py": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+    "v4/manager_research/workspace_plan.py": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+    "v4/manager_research/workspace_plan_autorun.py": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34",
+    "v4/manager_research/announcement_observation.py": "f86f2f0ac90b4e4490a74a27984c84f9c632075c47862d3627493282afef17ed",
+    "v4/manager_research/announcement_catalog.py": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68",
+    "v4/manager_research/research_attention.py": "3f5385ed850b0336cb85ad85cac3aeab44d2908620c636a4cfc19f5fdf3619aa",
+    "infrastructure/scheduling/manager_announcement_supervisor.py": "e9a1e6f79abf268855a88d15dc579744ec4739f3561eccc56972badd89653ffa",
+    "apps/api/__init__.py": "ba6c324cbd4be60367b15bd3d6035c8165ee11c8ef9950d3282a0bb75849c991"
+  },
+  "installed_versions": {
+    "annotated-doc": "0.0.5",
+    "annotated-types": "0.8.0",
+    "anyio": "4.14.2",
+    "certifi": "2026.7.22",
+    "charset-normalizer": "3.5.1",
+    "click": "8.4.2",
+    "colorama": "0.4.6",
+    "fastapi": "0.141.1",
+    "h11": "0.16.0",
+    "httpcore": "1.0.9",
+    "httpx": "0.28.1",
+    "idna": "3.19",
+    "iniconfig": "2.3.0",
+    "numpy": "2.5.3",
+    "packaging": "26.3",
+    "pandas": "3.0.6",
+    "pluggy": "1.6.0",
+    "pyarrow": "24.0.0",
+    "pydantic": "2.13.4",
+    "pydantic-core": "2.46.4",
+    "pygments": "2.21.0",
+    "pytest": "9.1.1",
+    "python-dateutil": "2.9.0.post0",
+    "requests": "2.34.2",
+    "six": "1.17.0",
+    "starlette": "1.6.0",
+    "typing-extensions": "4.16.0",
+    "typing-inspection": "0.4.4",
+    "tzdata": "2026.4",
+    "urllib3": "2.8.0",
+    "uvicorn": "0.52.4"
+  },
+  "all_31_lock_versions_match": true,
+  "plan_real_readback_probes": [
+    {
+      "case": "normal",
+      "fault_injected": false,
+      "returned": true,
+      "returned_product": {
+        "status": "CURRENT",
+        "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "generated_at": "2026-10-03T00:00:00+00:00",
+        "sha256": "1c0fa8a8c8fff33e7abca070c8bc075a49e7750c71969cdb9a93829bcf8ffa9c",
+        "execution_kind": "MANUAL_REFRESH",
+        "execution_context": null,
+        "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
+        "last_checked_at": "2026-10-03T08:00:00+08:00",
+        "consumed": true,
+        "run_readback": {
+          "status": "VERIFIED",
+          "target_trade_date": "20261002",
+          "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "artifact_sha256": "1c0fa8a8c8fff33e7abca070c8bc075a49e7750c71969cdb9a93829bcf8ffa9c",
+          "input_identity": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "owner": "ManagerResearchJobService.refresh_workspace_plan",
+          "read_at": "2026-10-03T08:00:00+08:00",
+          "owner_attempt_run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "owner_attempt_sha256": "7633c23b7d6b26e4c01847a4842638fd51e323d00174f52b82891f5e38c3704d",
+          "owner_attempt_state": "SUCCEEDED_EMPTY",
+          "owner_finished_at": "2026-10-03T00:00:00+00:00"
+        }
+      },
+      "exception": null,
+      "journal_writes_completed": [
+        {
+          "path_role": "exact_run",
+          "state": "RUNNING",
+          "last_success_at": null,
+          "success_scope": null
+        },
+        {
+          "path_role": "latest",
+          "state": "RUNNING",
+          "last_success_at": null,
+          "success_scope": null
+        },
+        {
+          "path_role": "exact_run",
+          "state": "SUCCEEDED_EMPTY",
+          "last_success_at": "2026-10-03T00:00:00+00:00",
+          "success_scope": "EXACT_DATE_RESEARCH_PLAN_NOT_FORMAL_RECOMMENDATION_OR_NATURAL_CAPTURE"
+        },
+        {
+          "path_role": "latest",
+          "state": "SUCCEEDED_EMPTY",
+          "last_success_at": "2026-10-03T00:00:00+00:00",
+          "success_scope": "EXACT_DATE_RESEARCH_PLAN_NOT_FORMAL_RECOMMENDATION_OR_NATURAL_CAPTURE"
+        }
+      ],
+      "actual_readback_results": [
+        {
+          "status": "CURRENT",
+          "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "generated_at": "2026-10-03T00:00:00+00:00",
+          "sha256": "1c0fa8a8c8fff33e7abca070c8bc075a49e7750c71969cdb9a93829bcf8ffa9c",
+          "execution_kind": "MANUAL_REFRESH",
+          "execution_context": null,
+          "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
+          "last_checked_at": "2026-10-03T08:00:00+08:00",
+          "consumed": true,
+          "run_readback": {
+            "status": "VERIFIED",
+            "target_trade_date": "20261002",
+            "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "artifact_sha256": "1c0fa8a8c8fff33e7abca070c8bc075a49e7750c71969cdb9a93829bcf8ffa9c",
+            "input_identity": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner": "ManagerResearchJobService.refresh_workspace_plan",
+            "read_at": "2026-10-03T08:00:00+08:00",
+            "owner_attempt_run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "owner_attempt_sha256": "7633c23b7d6b26e4c01847a4842638fd51e323d00174f52b82891f5e38c3704d",
+            "owner_attempt_state": "SUCCEEDED_EMPTY",
+            "owner_finished_at": "2026-10-03T00:00:00+00:00"
+          }
+        }
+      ],
+      "terminal_state": "SUCCEEDED_EMPTY",
+      "terminal_last_success_at": "2026-10-03T00:00:00+00:00",
+      "terminal_has_success_scope": true,
+      "subsequent_real_get_product": {
+        "status": "CURRENT",
+        "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "generated_at": "2026-10-03T00:00:00+00:00",
+        "sha256": "1c0fa8a8c8fff33e7abca070c8bc075a49e7750c71969cdb9a93829bcf8ffa9c",
+        "execution_kind": "MANUAL_REFRESH",
+        "execution_context": null,
+        "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
+        "last_checked_at": "2026-10-10T00:03:43.575872+08:00",
+        "consumed": true,
+        "run_readback": {
+          "status": "VERIFIED",
+          "target_trade_date": "20261002",
+          "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "artifact_sha256": "1c0fa8a8c8fff33e7abca070c8bc075a49e7750c71969cdb9a93829bcf8ffa9c",
+          "input_identity": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "owner": "ManagerResearchJobService.refresh_workspace_plan",
+          "read_at": "2026-10-10T00:03:43.575872+08:00",
+          "owner_attempt_run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "owner_attempt_sha256": "7633c23b7d6b26e4c01847a4842638fd51e323d00174f52b82891f5e38c3704d",
+          "owner_attempt_state": "SUCCEEDED_EMPTY",
+          "owner_finished_at": "2026-10-03T00:00:00+00:00"
+        }
+      }
+    },
+    {
+      "case": "first_product_read_error",
+      "fault_injected": true,
+      "returned": false,
+      "returned_product": null,
+      "exception": {
+        "type": "StoreError",
+        "message": "TRIAGE_SYNTHETIC_FIRST_PRODUCT_READ_ERROR"
+      },
+      "journal_writes_completed": [
+        {
+          "path_role": "exact_run",
+          "state": "RUNNING",
+          "last_success_at": null,
+          "success_scope": null
+        },
+        {
+          "path_role": "latest",
+          "state": "RUNNING",
+          "last_success_at": null,
+          "success_scope": null
+        },
+        {
+          "path_role": "exact_run",
+          "state": "FAILED",
+          "last_success_at": null,
+          "success_scope": null
+        },
+        {
+          "path_role": "latest",
+          "state": "FAILED",
+          "last_success_at": null,
+          "success_scope": null
+        }
+      ],
+      "actual_readback_results": [],
+      "terminal_state": "FAILED",
+      "terminal_last_success_at": null,
+      "terminal_has_success_scope": false,
+      "subsequent_real_get_product": {
+        "status": "OWNER_ATTEMPT_UNVERIFIED",
+        "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "generated_at": "2026-10-03T00:00:00+00:00",
+        "sha256": "1c0fa8a8c8fff33e7abca070c8bc075a49e7750c71969cdb9a93829bcf8ffa9c",
+        "execution_kind": "MANUAL_REFRESH",
+        "execution_context": null,
+        "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
+        "last_checked_at": "2026-10-10T00:03:43.592405+08:00",
+        "consumed": false,
+        "run_readback": {
+          "status": "CANNOT_CONFIRM",
+          "target_trade_date": "20261002",
+          "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "artifact_sha256": "1c0fa8a8c8fff33e7abca070c8bc075a49e7750c71969cdb9a93829bcf8ffa9c",
+          "input_identity": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "owner": "ManagerResearchJobService.refresh_workspace_plan",
+          "read_at": "2026-10-10T00:03:43.592405+08:00",
+          "owner_attempt_run_id": null,
+          "owner_attempt_sha256": null,
+          "owner_attempt_state": null,
+          "owner_finished_at": null
+        },
+        "reason": "PLAN_OWNER_PRODUCT_ATTEMPT_READBACK_MISMATCH"
+      }
+    },
+    {
+      "case": "first_product_wrong_run",
+      "fault_injected": true,
+      "returned": false,
+      "returned_product": null,
+      "exception": {
+        "type": "ValueError",
+        "message": "WORKSPACE_PLAN_SAVE_READBACK_FAILED"
+      },
+      "journal_writes_completed": [
+        {
+          "path_role": "exact_run",
+          "state": "RUNNING",
+          "last_success_at": null,
+          "success_scope": null
+        },
+        {
+          "path_role": "latest",
+          "state": "RUNNING",
+          "last_success_at": null,
+          "success_scope": null
+        },
+        {
+          "path_role": "exact_run",
+          "state": "FAILED",
+          "last_success_at": null,
+          "success_scope": null
+        },
+        {
+          "path_role": "latest",
+          "state": "FAILED",
+          "last_success_at": null,
+          "success_scope": null
+        }
+      ],
+      "actual_readback_results": [],
+      "terminal_state": "FAILED",
+      "terminal_last_success_at": null,
+      "terminal_has_success_scope": false,
+      "subsequent_real_get_product": {
+        "status": "OWNER_ATTEMPT_UNVERIFIED",
+        "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "generated_at": "2026-10-03T00:00:00+00:00",
+        "sha256": "1c0fa8a8c8fff33e7abca070c8bc075a49e7750c71969cdb9a93829bcf8ffa9c",
+        "execution_kind": "MANUAL_REFRESH",
+        "execution_context": null,
+        "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
+        "last_checked_at": "2026-10-10T00:03:43.607817+08:00",
+        "consumed": false,
+        "run_readback": {
+          "status": "CANNOT_CONFIRM",
+          "target_trade_date": "20261002",
+          "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "artifact_sha256": "1c0fa8a8c8fff33e7abca070c8bc075a49e7750c71969cdb9a93829bcf8ffa9c",
+          "input_identity": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "owner": "ManagerResearchJobService.refresh_workspace_plan",
+          "read_at": "2026-10-10T00:03:43.607817+08:00",
+          "owner_attempt_run_id": null,
+          "owner_attempt_sha256": null,
+          "owner_attempt_state": null,
+          "owner_finished_at": null
+        },
+        "reason": "PLAN_OWNER_PRODUCT_ATTEMPT_READBACK_MISMATCH"
+      }
+    },
+    {
+      "case": "first_product_wrong_sha",
+      "fault_injected": true,
+      "returned": false,
+      "returned_product": null,
+      "exception": {
+        "type": "ValueError",
+        "message": "WORKSPACE_STORED_PLAN_INVALID"
+      },
+      "journal_writes_completed": [
+        {
+          "path_role": "exact_run",
+          "state": "RUNNING",
+          "last_success_at": null,
+          "success_scope": null
+        },
+        {
+          "path_role": "latest",
+          "state": "RUNNING",
+          "last_success_at": null,
+          "success_scope": null
+        },
+        {
+          "path_role": "exact_run",
+          "state": "FAILED",
+          "last_success_at": null,
+          "success_scope": null
+        },
+        {
+          "path_role": "latest",
+          "state": "FAILED",
+          "last_success_at": null,
+          "success_scope": null
+        }
+      ],
+      "actual_readback_results": [],
+      "terminal_state": "FAILED",
+      "terminal_last_success_at": null,
+      "terminal_has_success_scope": false,
+      "subsequent_real_get_product": {
+        "status": "OWNER_ATTEMPT_UNVERIFIED",
+        "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "generated_at": "2026-10-03T00:00:00+00:00",
+        "sha256": "1c0fa8a8c8fff33e7abca070c8bc075a49e7750c71969cdb9a93829bcf8ffa9c",
+        "execution_kind": "MANUAL_REFRESH",
+        "execution_context": null,
+        "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
+        "last_checked_at": "2026-10-10T00:03:43.624291+08:00",
+        "consumed": false,
+        "run_readback": {
+          "status": "CANNOT_CONFIRM",
+          "target_trade_date": "20261002",
+          "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "artifact_sha256": "1c0fa8a8c8fff33e7abca070c8bc075a49e7750c71969cdb9a93829bcf8ffa9c",
+          "input_identity": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "owner": "ManagerResearchJobService.refresh_workspace_plan",
+          "read_at": "2026-10-10T00:03:43.624291+08:00",
+          "owner_attempt_run_id": null,
+          "owner_attempt_sha256": null,
+          "owner_attempt_state": null,
+          "owner_finished_at": null
+        },
+        "reason": "PLAN_OWNER_PRODUCT_ATTEMPT_READBACK_MISMATCH"
+      }
+    },
+    {
+      "case": "final_product_read_error",
+      "fault_injected": true,
+      "returned": false,
+      "returned_product": null,
+      "exception": {
+        "type": "ValueError",
+        "message": "WORKSPACE_PLAN_SAVE_READBACK_FAILED"
+      },
+      "journal_writes_completed": [
+        {
+          "path_role": "exact_run",
+          "state": "RUNNING",
+          "last_success_at": null,
+          "success_scope": null
+        },
+        {
+          "path_role": "latest",
+          "state": "RUNNING",
+          "last_success_at": null,
+          "success_scope": null
+        },
+        {
+          "path_role": "exact_run",
+          "state": "SUCCEEDED_EMPTY",
+          "last_success_at": "2026-10-03T00:00:00+00:00",
+          "success_scope": "EXACT_DATE_RESEARCH_PLAN_NOT_FORMAL_RECOMMENDATION_OR_NATURAL_CAPTURE"
+        },
+        {
+          "path_role": "latest",
+          "state": "SUCCEEDED_EMPTY",
+          "last_success_at": "2026-10-03T00:00:00+00:00",
+          "success_scope": "EXACT_DATE_RESEARCH_PLAN_NOT_FORMAL_RECOMMENDATION_OR_NATURAL_CAPTURE"
+        },
+        {
+          "path_role": "exact_run",
+          "state": "FAILED",
+          "last_success_at": null,
+          "success_scope": null
+        },
+        {
+          "path_role": "latest",
+          "state": "FAILED",
+          "last_success_at": null,
+          "success_scope": null
+        }
+      ],
+      "actual_readback_results": [
+        {
+          "status": "READBACK_FAILED",
+          "reason": "StoreError"
+        }
+      ],
+      "terminal_state": "FAILED",
+      "terminal_last_success_at": null,
+      "terminal_has_success_scope": false,
+      "subsequent_real_get_product": {
+        "status": "OWNER_ATTEMPT_UNVERIFIED",
+        "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "generated_at": "2026-10-03T00:00:00+00:00",
+        "sha256": "1c0fa8a8c8fff33e7abca070c8bc075a49e7750c71969cdb9a93829bcf8ffa9c",
+        "execution_kind": "MANUAL_REFRESH",
+        "execution_context": null,
+        "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
+        "last_checked_at": "2026-10-10T00:03:43.643182+08:00",
+        "consumed": false,
+        "run_readback": {
+          "status": "CANNOT_CONFIRM",
+          "target_trade_date": "20261002",
+          "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "artifact_sha256": "1c0fa8a8c8fff33e7abca070c8bc075a49e7750c71969cdb9a93829bcf8ffa9c",
+          "input_identity": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "owner": "ManagerResearchJobService.refresh_workspace_plan",
+          "read_at": "2026-10-10T00:03:43.643182+08:00",
+          "owner_attempt_run_id": null,
+          "owner_attempt_sha256": null,
+          "owner_attempt_state": null,
+          "owner_finished_at": null
+        },
+        "reason": "PLAN_OWNER_PRODUCT_ATTEMPT_READBACK_MISMATCH"
+      }
+    },
+    {
+      "case": "same_run_journal_read_error",
+      "fault_injected": true,
+      "returned": false,
+      "returned_product": null,
+      "exception": {
+        "type": "ValueError",
+        "message": "WORKSPACE_PLAN_SAVE_READBACK_FAILED"
+      },
+      "journal_writes_completed": [
+        {
+          "path_role": "exact_run",
+          "state": "RUNNING",
+          "last_success_at": null,
+          "success_scope": null
+        },
+        {
+          "path_role": "latest",
+          "state": "RUNNING",
+          "last_success_at": null,
+          "success_scope": null
+        },
+        {
+          "path_role": "exact_run",
+          "state": "SUCCEEDED_EMPTY",
+          "last_success_at": "2026-10-03T00:00:00+00:00",
+          "success_scope": "EXACT_DATE_RESEARCH_PLAN_NOT_FORMAL_RECOMMENDATION_OR_NATURAL_CAPTURE"
+        },
+        {
+          "path_role": "latest",
+          "state": "SUCCEEDED_EMPTY",
+          "last_success_at": "2026-10-03T00:00:00+00:00",
+          "success_scope": "EXACT_DATE_RESEARCH_PLAN_NOT_FORMAL_RECOMMENDATION_OR_NATURAL_CAPTURE"
+        },
+        {
+          "path_role": "exact_run",
+          "state": "FAILED",
+          "last_success_at": null,
+          "success_scope": null
+        },
+        {
+          "path_role": "latest",
+          "state": "FAILED",
+          "last_success_at": null,
+          "success_scope": null
+        }
+      ],
+      "actual_readback_results": [
+        {
+          "status": "OWNER_ATTEMPT_UNVERIFIED",
+          "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "generated_at": "2026-10-03T00:00:00+00:00",
+          "sha256": "1c0fa8a8c8fff33e7abca070c8bc075a49e7750c71969cdb9a93829bcf8ffa9c",
+          "execution_kind": "MANUAL_REFRESH",
+          "execution_context": null,
+          "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
+          "last_checked_at": "2026-10-03T08:00:00+08:00",
+          "consumed": false,
+          "run_readback": {
+            "status": "CANNOT_CONFIRM",
+            "target_trade_date": "20261002",
+            "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "artifact_sha256": "1c0fa8a8c8fff33e7abca070c8bc075a49e7750c71969cdb9a93829bcf8ffa9c",
+            "input_identity": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner": "ManagerResearchJobService.refresh_workspace_plan",
+            "read_at": "2026-10-03T08:00:00+08:00",
+            "owner_attempt_run_id": null,
+            "owner_attempt_sha256": null,
+            "owner_attempt_state": null,
+            "owner_finished_at": null
+          },
+          "reason": "TRIAGE_SYNTHETIC_EXACT_JOURNAL_READ_ERROR"
+        }
+      ],
+      "terminal_state": "FAILED",
+      "terminal_last_success_at": null,
+      "terminal_has_success_scope": false,
+      "subsequent_real_get_product": {
+        "status": "OWNER_ATTEMPT_UNVERIFIED",
+        "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "generated_at": "2026-10-03T00:00:00+00:00",
+        "sha256": "1c0fa8a8c8fff33e7abca070c8bc075a49e7750c71969cdb9a93829bcf8ffa9c",
+        "execution_kind": "MANUAL_REFRESH",
+        "execution_context": null,
+        "original_owner": "ManagerResearchJobService.refresh_workspace_plan",
+        "last_checked_at": "2026-10-10T00:03:43.663958+08:00",
+        "consumed": false,
+        "run_readback": {
+          "status": "CANNOT_CONFIRM",
+          "target_trade_date": "20261002",
+          "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "artifact_sha256": "1c0fa8a8c8fff33e7abca070c8bc075a49e7750c71969cdb9a93829bcf8ffa9c",
+          "input_identity": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "owner": "ManagerResearchJobService.refresh_workspace_plan",
+          "read_at": "2026-10-10T00:03:43.663958+08:00",
+          "owner_attempt_run_id": null,
+          "owner_attempt_sha256": null,
+          "owner_attempt_state": null,
+          "owner_finished_at": null
+        },
+        "reason": "PLAN_OWNER_PRODUCT_ATTEMPT_READBACK_MISMATCH"
+      }
+    }
+  ],
+  "after_sha256": {
+    "apps/api/v35_api/app.py": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+    "apps/api/v35_api/manager_research_router.py": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+    "tests/test_issue8_selection_gaps.py": "c9f242bc64b0b31a16cef0a6f732df45fabfa80654d4aace4cc405b8ec98c9a8",
+    "tests/test_manager_announcement_date_catalog.py": "41c21fc88221a23608592e23cf925bfb1060c955f00bdb8391abf847071c49a7",
+    "tests/test_manager_announcement_supervisor.py": "a48b4d8de4721b02d82d4ef1f1e6e7f5a74e58d3671055bee21e9efc72ec5d3c",
+    "tests/test_manager_plan_readback_issue24.py": "1d7866fb800b3d9bff235c09159f169f3debe777a710a7d688f59217e45b5989",
+    "upstreams/v3_shared_data/shared_data/hk_d1_evidence.py": "08c499732300a0e6026cda7ec7c2257807c542cd989f90a9427285dc34b73850",
+    "upstreams/v3_shared_data/shared_data/hk_security_master.py": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+    "upstreams/v3_shared_data/shared_data/store.py": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+    "v4/manager_research/announcement_analysis.py": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+    "v4/manager_research/connect_capture_adapter.py": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b",
+    "v4/manager_research/connect_selection.py": "eaa01a13d8065b11cc8397a12edaad8b892f183158aa1f9475d29645dee09d83",
+    "v4/manager_research/plan_owner_dispatch.py": "e4ff0cf9a9aa5af2277ff0c91773dfbb05b656121a65850bc2087b850f8e2bee",
+    "v4/manager_research/service.py": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+    "v4/manager_research/workspace.py": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+    "v4/manager_research/workspace_announcements.py": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+    "v4/manager_research/workspace_daily_channels.py": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+    "v4/manager_research/workspace_history.py": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+    "v4/manager_research/workspace_plan.py": "881599ba5a68badd7e18271c57666937f3e954088dfcfcb4c827dcf99419be7f",
+    "v4/manager_research/workspace_plan_autorun.py": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34",
+    "v4/manager_research/announcement_observation.py": "f86f2f0ac90b4e4490a74a27984c84f9c632075c47862d3627493282afef17ed",
+    "v4/manager_research/announcement_catalog.py": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68",
+    "v4/manager_research/research_attention.py": "3f5385ed850b0336cb85ad85cac3aeab44d2908620c636a4cfc19f5fdf3619aa",
+    "infrastructure/scheduling/manager_announcement_supervisor.py": "e9a1e6f79abf268855a88d15dc579744ec4739f3561eccc56972badd89653ffa",
+    "apps/api/__init__.py": "ba6c324cbd4be60367b15bd3d6035c8165ee11c8ef9950d3282a0bb75849c991"
+  },
+  "source_and_original_tests_unchanged": true
+}

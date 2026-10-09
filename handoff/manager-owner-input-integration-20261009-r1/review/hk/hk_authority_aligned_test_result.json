@@ -1,0 +1,30 @@
+{
+  "command": [
+    "/workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/bin/python",
+    "-m",
+    "pytest",
+    "-c",
+    "pyproject.toml",
+    "-p",
+    "no:cacheprovider",
+    "--tb=short",
+    "-q",
+    "tests/test_manager_three_channel_hk_reader.py",
+    "tests/test_manager_daily_channels_20261008.py",
+    "/workspace/scratch/0e089a11ee60/four_function_gaps/review/hk/test_hk_authority_app_wiring.py"
+  ],
+  "cwd": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app",
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app",
+    "V4_TEST_APP_ROOT": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app"
+  },
+  "elapsed_seconds": 3.837,
+  "exit_code": 0,
+  "classification": "OFFLINE_SYNTHETIC_ONLY",
+  "import_support_adaptation": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/import_support_adaptation.json",
+  "api_support_alignment": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/api_support_alignment.json",
+  "market_runtime_acceptance": "NOT_RUN",
+  "deployment": "NOT_RUN",
+  "test_source_sha256": "54fe4df269b6d55f6a89aa1c3222cc69da8ddee0b9d5c051aa403f6a10896315"
+}

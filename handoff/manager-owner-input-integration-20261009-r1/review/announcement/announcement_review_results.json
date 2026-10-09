@@ -1,0 +1,91 @@
+{
+  "scope": "ANNOUNCEMENT_CHAIN_INDEPENDENT_REVIEW",
+  "implementation_status": "NO_PRODUCTION_SOURCE_CHANGE",
+  "baseline_commit": "a7f5d09fb19de10564925757207977aadc080cc1",
+  "execution_root": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app",
+  "runtime_service_type": "_v4_manager_research_runtime.service.ManagerResearchJobService",
+  "input_kind": "EXPLICIT_SYNTHETIC_FIXTURE_ORIGINAL_OWNER_ARTIFACT_CONTRACT",
+  "interface_kind": "ACTUAL_CREATE_APP_IN_PROCESS_ASGI",
+  "python_version": "3.12.14",
+  "project_python_requirement": ">=3.14",
+  "project_python_requirement_met": false,
+  "dependencies": {
+    "fastapi": "0.141.1",
+    "starlette": "1.6.0",
+    "httpx": "0.28.1",
+    "pandas": "3.0.6",
+    "pyarrow": "24.0.0",
+    "pytest": "9.1.1"
+  },
+  "app_wired_regression": {
+    "exit_code": 0,
+    "passed": 1,
+    "failed": 0,
+    "seconds": 1.7,
+    "log": "app_wired_test_final.log"
+  },
+  "existing_regressions": {
+    "exit_code": 1,
+    "passed": 58,
+    "failed": 1,
+    "seconds": 6.19,
+    "log": "existing_parity_handoff_aligned.log",
+    "failure": "test_missing_original_archive_is_not_empty_connect_selection",
+    "diagnosis": "Support fixture lacks calendar_applicability; fixed R2 retains HK_CONNECT_CALENDAR_UNVERIFIED fail-closed requirement."
+  },
+  "fixed_r2_source_hashes": [
+    {
+      "path": "apps/api/v35_api/app.py",
+      "before_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "after_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "unchanged": true
+    },
+    {
+      "path": "apps/api/v35_api/manager_research_router.py",
+      "before_sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+      "after_sha256": "5c2bb2aa5716726295811eee7919dce1e36420ce027589b0e467351b79b7fd7a",
+      "unchanged": true
+    },
+    {
+      "path": "v4/manager_research/service.py",
+      "before_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "after_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "unchanged": true
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "before_sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+      "after_sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+      "unchanged": true
+    },
+    {
+      "path": "v4/manager_research/workspace_daily_channels.py",
+      "before_sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+      "after_sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+      "unchanged": true
+    },
+    {
+      "path": "v4/manager_research/workspace_announcements.py",
+      "before_sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+      "after_sha256": "82187a190f2a308cc193473a9583f0c8edb82782ce45217a1dce8c866f172f0b",
+      "unchanged": true
+    },
+    {
+      "path": "v4/manager_research/announcement_analysis.py",
+      "before_sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+      "after_sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+      "unchanged": true
+    }
+  ],
+  "real_20261009_capture_reader_reviewer_import": "CANNOT_CONFIRM",
+  "external_api_ui_acceptance": "NOT_RUN",
+  "deployment": "NOT_RUN",
+  "natural_run_verified": false,
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "test_sha256": "a1c53d3d8512ba96a51bcab7255b186659fe9605f08a25de3dee1304e009c7ff"
+}

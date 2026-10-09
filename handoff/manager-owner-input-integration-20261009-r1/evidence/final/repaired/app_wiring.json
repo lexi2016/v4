@@ -1,0 +1,40 @@
+{
+  "group": "app_wiring",
+  "variant": "repaired",
+  "source_root": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/repaired/app",
+  "started_at": "2026-10-09T16:05:47.019096+00:00",
+  "elapsed_seconds": 8.486,
+  "command": [
+    "/workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/bin/python",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "--tb=short",
+    "--color=no",
+    "-p",
+    "no:cacheprovider",
+    "--basetemp=/workspace/scratch/0e089a11ee60/four_function_gaps/work/verification/repaired/app_wiring_tmp",
+    "--junitxml=/workspace/scratch/0e089a11ee60/four_function_gaps/work/verification/repaired/app_wiring.xml",
+    "tests/test_manager_app_announcement_chain_20261009.py",
+    "tests/test_manager_hk_authority_app_wiring_20261009.py",
+    "tests/test_manager_app_plan_identity_20261009.py"
+  ],
+  "cwd": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/repaired/app",
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "exit_code": 0,
+  "tests": 20,
+  "passed": 20,
+  "failed": 0,
+  "skipped": 0,
+  "failed_cases": [],
+  "log_sha256": "561a5a65fab86d6a7e671cf72ec6fc9d41a8a3fc985a6ec42b5bbead04e4c446",
+  "xml_sha256": "6698ac9bc1b4f015418be38199f27ccdc8905d3037e91b905f7de21024e41411",
+  "test_files": {
+    "tests/test_manager_app_announcement_chain_20261009.py": "a1c53d3d8512ba96a51bcab7255b186659fe9605f08a25de3dee1304e009c7ff",
+    "tests/test_manager_hk_authority_app_wiring_20261009.py": "b03d4715002cdf6a5c551ef7d6eb302c5d7d50ce2cee11f05158c68deb6e8b99",
+    "tests/test_manager_app_plan_identity_20261009.py": "596a372bd9ff426e3b7468beb4d9fbdc94bb1b2e268e9ac975458ac4f0259ca9"
+  }
+}

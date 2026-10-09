@@ -1,0 +1,26 @@
+--- a/v4/manager_research/connect_selection.py
++++ b/v4/manager_research/connect_selection.py
+@@ -183,10 +183,10 @@
+                 source_refs=deepcopy(raw.get('source_refs',[]))))
+             continue
+         row=deepcopy(dict(raw))
+-        # A witness clock is diagnostic only, not a source clock and not a
+-        # volatile component of input_identity/idempotency.
++        # read_at is a diagnostic witness clock; persisted available_at is
++        # source provenance and must remain part of input_identity/idempotency.
+         row.update(connect_eligibility='VERIFIED_TARGET_UNIVERSE',
+-            membership_source={k:deepcopy(v) for k,v in scope['source'].items() if k!='available_at'},
++            membership_source={k:deepcopy(v) for k,v in scope['source'].items() if k!='read_at'},
+             membership_input_identity=scope['identity'],
+             membership_semantics='TARGET_DATE_AUTHORITY_AS_READ_NOT_HISTORICAL_SELECTION_CAPTURE')
+         out.append(row)
+--- a/v4/manager_research/workspace.py
++++ b/v4/manager_research/workspace.py
+@@ -1169,6 +1169,7 @@
+                         and existing.get('execution_kind') == execution_kind
+                         and existing['input_identity']==prepared['input_identity']
+                         and existing_workspace.get('semantic_version')==prepared.get('semantic_version')
++                        and existing_workspace.get('date_bindings')==prepared.get('date_bindings')
+                         and existing_cutoff is not None and existing_cutoff<=now
+                         and existing_generated is not None and existing_cutoff is not None
+                         and existing_generated<=now

@@ -1,0 +1,25 @@
+{
+  "kind": "FRESH_REFERENCE_CLI_COMPATIBILITY_DIAGNOSTIC_WITH_ABSOLUTE_ARGV",
+  "command": [
+    "/workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/bin/python",
+    "-B",
+    "/workspace/scratch/0e089a11ee60/four_function_gaps/review/announcement/reference_readback_compatibility.py"
+  ],
+  "cwd": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app",
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": ".:tests"
+  },
+  "executed_at": "2026-10-09T16:19:38.749015+00:00",
+  "exit_code": 0,
+  "stdout": "{\n  \"status\": \"PASS_EXPECTED_COMPATIBILITY_DISTINCTION\",\n  \"scope\": \"SYNTHETIC_FIXTURE_REAL_R2_OWNER_ROUTE_READBACK\",\n  \"old_reference_error\": \"ANNOUNCEMENT_OWNER_IMPORT_RECEIPT_HANDOFF_BINDING_INVALID\",\n  \"fixed_git_support_cli_result\": \"OWNER_READBACK_VERIFIED\",\n  \"readback_byte_mutations\": 0,\n  \"real_owner_data_verified\": false,\n  \"natural_run_verified\": false\n}\n",
+  "stderr": "/workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n  from starlette.testclient import TestClient as TestClient  # noqa\n",
+  "historical_record_preserved": "reference_readback_compatibility_result.json",
+  "source_sha256": {
+    "review/announcement/reference_readback_compatibility.py": "1365405964e04716d4da3afc52cfa29b56a59b7a9cd02c066ffb0417531bb591",
+    "input/package/code/actual_owner_runner_20261009/ops/run_manager_daily_announcement.py": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee",
+    "work/baseline/app/ops/run_manager_daily_announcement.py": "aee0e5c31f30b296864a7ad81263fbc748b65cb9b4d443f83a756019cbc94a38"
+  },
+  "counted_in_295": false,
+  "mac_and_natural_run": "NOT_RUN"
+}

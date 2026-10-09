@@ -1,0 +1,110 @@
+        def stage_workbench_ensure(
+            date: str | None = None,
+            stage: str = "STAGE_0940_0945",
+            force: bool = False,
+        ) -> dict:
+            selected = _strict_date(date) if date is not None else _catalog()["default_date"]
+            if not selected:
+                selected = _catalog()["system_date"]
+            if stage not in FROZEN_STAGE_IDS:
+                raise HTTPException(status_code=422, detail="unknown stage")
+            if shared_selection_consumer is not None:
+                return project_shared_selection(
+                    shared_selection_consumer.ensure(selected, stage, force=force),
+                    limit=50,
+                    ordinary_hk_display=True,
+                )
+            return stage_runner.ensure(selected, stage, force=force)
+    
+        @app.get("/api/v3/stage-center/selection")
+        def shared_stage_selection(
+            date: str | None = None,
+            stage: str = "STAGE_0940_0945",
+            limit: int = Query(default=50, ge=1, le=200),
+        ) -> dict:
+            selected = _strict_date(date) if date is not None else _catalog()["default_date"]
+            if not selected:
+                selected = _catalog()["system_date"]
+            if stage not in FROZEN_STAGE_IDS:
+                raise HTTPException(status_code=422, detail="unknown stage")
+            if shared_selection_consumer is None:
+                return shared_selection_unconfigured(selected, stage)
+            return project_shared_selection(
+                shared_selection_consumer.get(selected, stage),
+                limit,
+                ordinary_hk_display=True,
+            )
+    
+        @app.get("/api/v3/manager/stage-selection")
+        def manager_stage_selection(
+            date: str | None = None,
+            stage: str | None = None,
+            market: str | None = None,
+            limit: int = Query(default=50, ge=1, le=50),
+        ) -> dict:
+            """Read the manager's exact HK_CONNECT stage lane only.
+    
+            The shared stage-center route remains a compatibility projection for
+            its historical scheduled-market response.  This dedicated route is a
+            narrower boundary for the manager consumer and never falls back to
+            the unified or A-share lane.
+            """
+            if date is None:
+                raise HTTPException(status_code=422, detail="date is required")
+            selected = _strict_date(date)
+            if stage != "STAGE_0935_0940":
+                raise HTTPException(status_code=422, detail="stage must be STAGE_0935_0940")
+            if market != "HK_CONNECT":
+                raise HTTPException(status_code=422, detail="market must be HK_CONNECT")
+            if shared_selection_consumer is None:
+                return shared_selection_unconfigured(selected, stage)
+            return project_shared_selection(
+                shared_selection_consumer.get(selected, stage, markets=("HK_CONNECT",)),
+                limit,
+            )
+    
+        @app.post("/api/v3/stage-center/selection/ensure")
+        def shared_stage_selection_ensure(
+            date: str | None = None,
+            stage: str = "STAGE_0940_0945",
+            force: bool = False,
+        ) -> dict:
+            selected = _strict_date(date) if date is not None else _catalog()["default_date"]
+            if not selected:
+                selected = _catalog()["system_date"]
+            if stage not in FROZEN_STAGE_IDS:
+                raise HTTPException(status_code=422, detail="unknown stage")
+            if shared_selection_consumer is None:
+                return shared_selection_unconfigured(selected, stage)
+            return project_shared_selection(
+                shared_selection_consumer.ensure(selected, stage, force=force),
+                limit=200,
+                ordinary_hk_display=True,
+            )
+    
+        app.include_router(
+            create_runtime_router(
+                store.root,
+                ledger_root=ledger_root,
+                stage_selection_root=configured_selection_root,
+                current_date=current_date,
+            )
+        )
+        app.include_router(create_runtime_graph_router(store.root))
+>       app.include_router(create_review_router(
+            store.root,
+            hk_close_root=os.environ.get("V35_REVIEW_CORE_CLOSE_ROOT") or None,
+            review_root=os.environ.get("V4_DAILY_REVIEW_ROOT"),
+            generation_bindings_path=os.environ.get("V4_REVIEW_GENERATION_BINDINGS_PATH"),
+            generation_bindings_sha256=os.environ.get("V4_REVIEW_GENERATION_BINDINGS_SHA256"),
+            intraday_root=os.environ.get("V4_INTRADAY_RESEARCH_ROOT"),
+        ))
+E       TypeError: create_review_router() got an unexpected keyword argument 'hk_close_root'
+
+apps/api/v35_api/app.py:5165: TypeError
+=========================== short test summary info ============================
+FAILED ::test_create_app_existing_root_precedence[shared] - TypeError: create...
+FAILED ::test_create_app_existing_root_precedence[master_env] - TypeError: cr...
+FAILED ::test_create_app_existing_root_precedence[screen_env] - TypeError: cr...
+FAILED ::test_create_app_workspace_reads_real_synthetic_v2_master_panel_chain
+4 failed, 33 passed in 2.95s

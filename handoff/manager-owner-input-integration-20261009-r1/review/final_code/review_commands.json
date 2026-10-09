@@ -1,0 +1,140 @@
+[
+  {
+    "id": "baseline_focused",
+    "phase": "PRE_FINAL_SUPPORT",
+    "cwd": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app",
+      "V4_TEST_APP_ROOT": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app"
+    },
+    "argv": [
+      "/workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp=/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code/tmp_baseline_focused",
+      "--junitxml=/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code/baseline_focused.xml",
+      "tests/test_manager_app_plan_identity_20261009.py",
+      "tests/test_manager_app_announcement_chain_20261009.py",
+      "tests/test_manager_hk_authority_app_wiring_20261009.py"
+    ],
+    "stdout_and_stderr": "/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code/baseline_focused.log"
+  },
+  {
+    "id": "baseline_final",
+    "phase": "FINAL_ALIGNED_SUPPORT",
+    "cwd": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app",
+      "V4_TEST_APP_ROOT": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/baseline/app"
+    },
+    "argv": [
+      "/workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp=/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code/tmp_baseline_final",
+      "--junitxml=/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code/baseline_final.xml",
+      "tests/test_manager_app_plan_identity_20261009.py",
+      "tests/test_manager_app_announcement_chain_20261009.py",
+      "tests/test_manager_hk_authority_app_wiring_20261009.py"
+    ],
+    "stdout_and_stderr": "/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code/baseline_final.log"
+  },
+  {
+    "id": "repaired_focused",
+    "phase": "PRE_FINAL_SUPPORT",
+    "cwd": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/repaired/app",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/repaired/app",
+      "V4_TEST_APP_ROOT": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/repaired/app"
+    },
+    "argv": [
+      "/workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp=/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code/tmp_repaired_focused",
+      "--junitxml=/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code/repaired_focused.xml",
+      "tests/test_manager_app_plan_identity_20261009.py",
+      "tests/test_manager_app_announcement_chain_20261009.py",
+      "tests/test_manager_hk_authority_app_wiring_20261009.py"
+    ],
+    "stdout_and_stderr": "/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code/repaired_focused.log"
+  },
+  {
+    "id": "repaired_final",
+    "phase": "FINAL_ALIGNED_SUPPORT",
+    "cwd": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/repaired/app",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/repaired/app",
+      "V4_TEST_APP_ROOT": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/repaired/app"
+    },
+    "argv": [
+      "/workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp=/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code/tmp_repaired_final",
+      "--junitxml=/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code/repaired_final.xml",
+      "tests/test_manager_app_plan_identity_20261009.py",
+      "tests/test_manager_app_announcement_chain_20261009.py",
+      "tests/test_manager_hk_authority_app_wiring_20261009.py"
+    ],
+    "stdout_and_stderr": "/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code/repaired_final.log"
+  },
+  {
+    "id": "edges_final",
+    "phase": "FINAL_ALIGNED_SUPPORT",
+    "cwd": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/repaired/app",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/repaired/app"
+    },
+    "argv": [
+      "/workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp=/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code/tmp_edges_final",
+      "--junitxml=/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code/edges_final.xml",
+      "/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code/test_independent_edges.py"
+    ],
+    "stdout_and_stderr": "/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code/edges_final.log"
+  },
+  {
+    "id": "clock_classification",
+    "phase": "FINAL_ALIGNED_SUPPORT",
+    "cwd": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/repaired/app",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PLAN_AUDIT_APP_ROOT": "/workspace/scratch/0e089a11ee60/four_function_gaps/work/repaired/app"
+    },
+    "argv": [
+      "/workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp=/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code/tmp_clock_classification",
+      "--junitxml=/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code/clock_classification.xml",
+      "/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code/test_clock_boundary_classification.py"
+    ],
+    "stdout_and_stderr": "/workspace/scratch/0e089a11ee60/four_function_gaps/review/final_code/clock_classification.log"
+  }
+]

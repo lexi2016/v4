@@ -1,0 +1,1489 @@
+.........FFFFFFFFFFFFFF.....FFFFF..F.F............FFFFFFFFFFFFFFFFFFFF.. [ 69%]
+F.................FFFFFF.......                                          [100%]
+=================================== FAILURES ===================================
+_______ test_open_unknown_membership_not_promoted_and_prior_day_rejected _______
+
+    def test_open_unknown_membership_not_promoted_and_prior_day_rejected():
+        s={**deepcopy(UNKNOWN),'calendar_applicability':scope()['calendar_applicability']}
+        formal=cs.selection_diagnostics({'target_trade_date':'20261002'}, {}, {}, s, [])['formal_selection']
+        assert formal['status']=='CANNOT_CONFIRM'
+        d1=scope();d1['source']['source_date']='20260930'
+        accepted,rejected=cs.filter_cards([{'symbol':'HK.01234'}],d1)
+>       assert accepted==[] and rejected[0]['reason']=='TARGET_HK_CONNECT_MEMBERSHIP_DATE_OR_ROLE_MISMATCH'
+E       AssertionError: assert ([] == []
+E         
+E         Use -v to get more diff and 'HK_CONNECT_M...CS_UNVERIFIED' == 'TARGET_HK_CO...ROLE_MISMATCH'
+E         
+E         - TARGET_HK_CONNECT_MEMBERSHIP_DATE_OR_ROLE_MISMATCH
+E         + HK_CONNECT_MEMBERSHIP_SEMANTICS_UNVERIFIED)
+
+tests/test_issue8_selection_gaps.py:128: AssertionError
+_______ test_scope_filter_keeps_counts_gaps_and_original_lane_unchanged ________
+
+    def test_scope_filter_keeps_counts_gaps_and_original_lane_unchanged():
+        lane=event_lane(review(),{},CTX);before=deepcopy(lane)
+        scr,filtered=cs.evidence_view({'cards':[{'symbol':'HK.01234'}]},lane,UNKNOWN)
+        assert filtered['official_documents']==[] and scr['cards']==[]
+        diag=filtered['research_scope_diagnostics']
+        assert diag['counts']['official_documents']=={'input':1,'admitted':0,'rejected':1}
+        assert diag['status']=='CANNOT_CONFIRM' and diag['gaps']==UNKNOWN['gaps']
+        assert lane==before
+        a=attention(filtered,scr)
+>       assert a['status']=='READY_WITH_GAPS'
+E       AssertionError: assert 'READY' == 'READY_WITH_GAPS'
+E         
+E         - READY_WITH_GAPS
+E         + READY
+
+tests/test_issue8_selection_gaps.py:140: AssertionError
+_ test_verified_scope_admits_fresh_official_evidence_only_and_does_not_create_focus _
+
+    def test_verified_scope_admits_fresh_official_evidence_only_and_does_not_create_focus():
+        rv=review();rv['official_documents'].append({**rv['official_documents'][0],'symbol':'HK.09999'})
+        scr,lane=cs.evidence_view({},event_lane(rv,{},CTX),scope())
+        a=attention(lane,scr)
+>       assert [r['symbol'] for r in a['cards']]==['HK.01234']
+E       AssertionError: assert [] == ['HK.01234']
+E         
+E         Right contains one more item: 'HK.01234'
+E         Use -v to get more diff
+
+tests/test_issue8_selection_gaps.py:155: AssertionError
+_ test_observation_only_never_uses_invalid_or_duplicate_evidence[missing_retrieved] _
+
+bad = 'missing_retrieved'
+
+    @pytest.mark.parametrize('bad',['missing_retrieved','missing_available','late','stale','naive','wrong_subject','missing_ref','wrong_hash','duplicate'])
+    def test_observation_only_never_uses_invalid_or_duplicate_evidence(bad):
+        rv=review();p=rv['positive_observations'][0]
+        if bad=='missing_retrieved':p.pop('retrieved_at')
+        if bad=='missing_available':p.pop('available_at')
+        if bad=='late':p['available_at']='2026-10-04T01:00:00+08:00'
+        if bad=='stale':p['published_at']='2026-09-01T01:00:00+08:00'
+        if bad=='naive':p['available_at']='2026-10-02T01:00:00'
+        if bad=='wrong_subject':p['support']['action_subject']='HK.09999'
+        if bad=='missing_ref':p['evidence']=[]
+        if bad=='wrong_hash':p['evidence'][0]['body_ref']['body_sha256']='z'*64
+        if bad=='duplicate':rv['positive_observations'].append(deepcopy(p))
+        scr,lane=cs.evidence_view({},event_lane(rv,{},CTX),UNKNOWN)
+        a=attention(lane,scr)
+>       assert len(a['observation_only']['cards'])==(1 if bad=='duplicate' else 0)
+                   ^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'observation_only'
+
+tests/test_issue8_selection_gaps.py:175: KeyError
+_ test_observation_only_never_uses_invalid_or_duplicate_evidence[missing_available] _
+
+bad = 'missing_available'
+
+    @pytest.mark.parametrize('bad',['missing_retrieved','missing_available','late','stale','naive','wrong_subject','missing_ref','wrong_hash','duplicate'])
+    def test_observation_only_never_uses_invalid_or_duplicate_evidence(bad):
+        rv=review();p=rv['positive_observations'][0]
+        if bad=='missing_retrieved':p.pop('retrieved_at')
+        if bad=='missing_available':p.pop('available_at')
+        if bad=='late':p['available_at']='2026-10-04T01:00:00+08:00'
+        if bad=='stale':p['published_at']='2026-09-01T01:00:00+08:00'
+        if bad=='naive':p['available_at']='2026-10-02T01:00:00'
+        if bad=='wrong_subject':p['support']['action_subject']='HK.09999'
+        if bad=='missing_ref':p['evidence']=[]
+        if bad=='wrong_hash':p['evidence'][0]['body_ref']['body_sha256']='z'*64
+        if bad=='duplicate':rv['positive_observations'].append(deepcopy(p))
+        scr,lane=cs.evidence_view({},event_lane(rv,{},CTX),UNKNOWN)
+        a=attention(lane,scr)
+>       assert len(a['observation_only']['cards'])==(1 if bad=='duplicate' else 0)
+                   ^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'observation_only'
+
+tests/test_issue8_selection_gaps.py:175: KeyError
+_____ test_observation_only_never_uses_invalid_or_duplicate_evidence[late] _____
+
+bad = 'late'
+
+    @pytest.mark.parametrize('bad',['missing_retrieved','missing_available','late','stale','naive','wrong_subject','missing_ref','wrong_hash','duplicate'])
+    def test_observation_only_never_uses_invalid_or_duplicate_evidence(bad):
+        rv=review();p=rv['positive_observations'][0]
+        if bad=='missing_retrieved':p.pop('retrieved_at')
+        if bad=='missing_available':p.pop('available_at')
+        if bad=='late':p['available_at']='2026-10-04T01:00:00+08:00'
+        if bad=='stale':p['published_at']='2026-09-01T01:00:00+08:00'
+        if bad=='naive':p['available_at']='2026-10-02T01:00:00'
+        if bad=='wrong_subject':p['support']['action_subject']='HK.09999'
+        if bad=='missing_ref':p['evidence']=[]
+        if bad=='wrong_hash':p['evidence'][0]['body_ref']['body_sha256']='z'*64
+        if bad=='duplicate':rv['positive_observations'].append(deepcopy(p))
+        scr,lane=cs.evidence_view({},event_lane(rv,{},CTX),UNKNOWN)
+        a=attention(lane,scr)
+>       assert len(a['observation_only']['cards'])==(1 if bad=='duplicate' else 0)
+                   ^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'observation_only'
+
+tests/test_issue8_selection_gaps.py:175: KeyError
+____ test_observation_only_never_uses_invalid_or_duplicate_evidence[stale] _____
+
+bad = 'stale'
+
+    @pytest.mark.parametrize('bad',['missing_retrieved','missing_available','late','stale','naive','wrong_subject','missing_ref','wrong_hash','duplicate'])
+    def test_observation_only_never_uses_invalid_or_duplicate_evidence(bad):
+        rv=review();p=rv['positive_observations'][0]
+        if bad=='missing_retrieved':p.pop('retrieved_at')
+        if bad=='missing_available':p.pop('available_at')
+        if bad=='late':p['available_at']='2026-10-04T01:00:00+08:00'
+        if bad=='stale':p['published_at']='2026-09-01T01:00:00+08:00'
+        if bad=='naive':p['available_at']='2026-10-02T01:00:00'
+        if bad=='wrong_subject':p['support']['action_subject']='HK.09999'
+        if bad=='missing_ref':p['evidence']=[]
+        if bad=='wrong_hash':p['evidence'][0]['body_ref']['body_sha256']='z'*64
+        if bad=='duplicate':rv['positive_observations'].append(deepcopy(p))
+        scr,lane=cs.evidence_view({},event_lane(rv,{},CTX),UNKNOWN)
+        a=attention(lane,scr)
+>       assert len(a['observation_only']['cards'])==(1 if bad=='duplicate' else 0)
+                   ^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'observation_only'
+
+tests/test_issue8_selection_gaps.py:175: KeyError
+____ test_observation_only_never_uses_invalid_or_duplicate_evidence[naive] _____
+
+bad = 'naive'
+
+    @pytest.mark.parametrize('bad',['missing_retrieved','missing_available','late','stale','naive','wrong_subject','missing_ref','wrong_hash','duplicate'])
+    def test_observation_only_never_uses_invalid_or_duplicate_evidence(bad):
+        rv=review();p=rv['positive_observations'][0]
+        if bad=='missing_retrieved':p.pop('retrieved_at')
+        if bad=='missing_available':p.pop('available_at')
+        if bad=='late':p['available_at']='2026-10-04T01:00:00+08:00'
+        if bad=='stale':p['published_at']='2026-09-01T01:00:00+08:00'
+        if bad=='naive':p['available_at']='2026-10-02T01:00:00'
+        if bad=='wrong_subject':p['support']['action_subject']='HK.09999'
+        if bad=='missing_ref':p['evidence']=[]
+        if bad=='wrong_hash':p['evidence'][0]['body_ref']['body_sha256']='z'*64
+        if bad=='duplicate':rv['positive_observations'].append(deepcopy(p))
+        scr,lane=cs.evidence_view({},event_lane(rv,{},CTX),UNKNOWN)
+        a=attention(lane,scr)
+>       assert len(a['observation_only']['cards'])==(1 if bad=='duplicate' else 0)
+                   ^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'observation_only'
+
+tests/test_issue8_selection_gaps.py:175: KeyError
+_ test_observation_only_never_uses_invalid_or_duplicate_evidence[wrong_subject] _
+
+bad = 'wrong_subject'
+
+    @pytest.mark.parametrize('bad',['missing_retrieved','missing_available','late','stale','naive','wrong_subject','missing_ref','wrong_hash','duplicate'])
+    def test_observation_only_never_uses_invalid_or_duplicate_evidence(bad):
+        rv=review();p=rv['positive_observations'][0]
+        if bad=='missing_retrieved':p.pop('retrieved_at')
+        if bad=='missing_available':p.pop('available_at')
+        if bad=='late':p['available_at']='2026-10-04T01:00:00+08:00'
+        if bad=='stale':p['published_at']='2026-09-01T01:00:00+08:00'
+        if bad=='naive':p['available_at']='2026-10-02T01:00:00'
+        if bad=='wrong_subject':p['support']['action_subject']='HK.09999'
+        if bad=='missing_ref':p['evidence']=[]
+        if bad=='wrong_hash':p['evidence'][0]['body_ref']['body_sha256']='z'*64
+        if bad=='duplicate':rv['positive_observations'].append(deepcopy(p))
+        scr,lane=cs.evidence_view({},event_lane(rv,{},CTX),UNKNOWN)
+        a=attention(lane,scr)
+>       assert len(a['observation_only']['cards'])==(1 if bad=='duplicate' else 0)
+                   ^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'observation_only'
+
+tests/test_issue8_selection_gaps.py:175: KeyError
+_ test_observation_only_never_uses_invalid_or_duplicate_evidence[missing_ref] __
+
+bad = 'missing_ref'
+
+    @pytest.mark.parametrize('bad',['missing_retrieved','missing_available','late','stale','naive','wrong_subject','missing_ref','wrong_hash','duplicate'])
+    def test_observation_only_never_uses_invalid_or_duplicate_evidence(bad):
+        rv=review();p=rv['positive_observations'][0]
+        if bad=='missing_retrieved':p.pop('retrieved_at')
+        if bad=='missing_available':p.pop('available_at')
+        if bad=='late':p['available_at']='2026-10-04T01:00:00+08:00'
+        if bad=='stale':p['published_at']='2026-09-01T01:00:00+08:00'
+        if bad=='naive':p['available_at']='2026-10-02T01:00:00'
+        if bad=='wrong_subject':p['support']['action_subject']='HK.09999'
+        if bad=='missing_ref':p['evidence']=[]
+        if bad=='wrong_hash':p['evidence'][0]['body_ref']['body_sha256']='z'*64
+        if bad=='duplicate':rv['positive_observations'].append(deepcopy(p))
+        scr,lane=cs.evidence_view({},event_lane(rv,{},CTX),UNKNOWN)
+        a=attention(lane,scr)
+>       assert len(a['observation_only']['cards'])==(1 if bad=='duplicate' else 0)
+                   ^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'observation_only'
+
+tests/test_issue8_selection_gaps.py:175: KeyError
+__ test_observation_only_never_uses_invalid_or_duplicate_evidence[wrong_hash] __
+
+bad = 'wrong_hash'
+
+    @pytest.mark.parametrize('bad',['missing_retrieved','missing_available','late','stale','naive','wrong_subject','missing_ref','wrong_hash','duplicate'])
+    def test_observation_only_never_uses_invalid_or_duplicate_evidence(bad):
+        rv=review();p=rv['positive_observations'][0]
+        if bad=='missing_retrieved':p.pop('retrieved_at')
+        if bad=='missing_available':p.pop('available_at')
+        if bad=='late':p['available_at']='2026-10-04T01:00:00+08:00'
+        if bad=='stale':p['published_at']='2026-09-01T01:00:00+08:00'
+        if bad=='naive':p['available_at']='2026-10-02T01:00:00'
+        if bad=='wrong_subject':p['support']['action_subject']='HK.09999'
+        if bad=='missing_ref':p['evidence']=[]
+        if bad=='wrong_hash':p['evidence'][0]['body_ref']['body_sha256']='z'*64
+        if bad=='duplicate':rv['positive_observations'].append(deepcopy(p))
+        scr,lane=cs.evidence_view({},event_lane(rv,{},CTX),UNKNOWN)
+        a=attention(lane,scr)
+>       assert len(a['observation_only']['cards'])==(1 if bad=='duplicate' else 0)
+                   ^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'observation_only'
+
+tests/test_issue8_selection_gaps.py:175: KeyError
+__ test_observation_only_never_uses_invalid_or_duplicate_evidence[duplicate] ___
+
+bad = 'duplicate'
+
+    @pytest.mark.parametrize('bad',['missing_retrieved','missing_available','late','stale','naive','wrong_subject','missing_ref','wrong_hash','duplicate'])
+    def test_observation_only_never_uses_invalid_or_duplicate_evidence(bad):
+        rv=review();p=rv['positive_observations'][0]
+        if bad=='missing_retrieved':p.pop('retrieved_at')
+        if bad=='missing_available':p.pop('available_at')
+        if bad=='late':p['available_at']='2026-10-04T01:00:00+08:00'
+        if bad=='stale':p['published_at']='2026-09-01T01:00:00+08:00'
+        if bad=='naive':p['available_at']='2026-10-02T01:00:00'
+        if bad=='wrong_subject':p['support']['action_subject']='HK.09999'
+        if bad=='missing_ref':p['evidence']=[]
+        if bad=='wrong_hash':p['evidence'][0]['body_ref']['body_sha256']='z'*64
+        if bad=='duplicate':rv['positive_observations'].append(deepcopy(p))
+        scr,lane=cs.evidence_view({},event_lane(rv,{},CTX),UNKNOWN)
+        a=attention(lane,scr)
+>       assert len(a['observation_only']['cards'])==(1 if bad=='duplicate' else 0)
+                   ^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'observation_only'
+
+tests/test_issue8_selection_gaps.py:175: KeyError
+__________ test_source_and_us_gap_statuses_remain_separate_not_ready ___________
+
+    def test_source_and_us_gap_statuses_remain_separate_not_ready():
+        scr,lane=cs.evidence_view({},event_lane(review(),{},CTX),scope())
+        us=dict(status='PARTIAL',mapping_eligible=True,gaps=['US_SOURCE_PARTIAL'],
+                research_material_input={'complete':False,'gaps':['ARCHIVE_ARTICLE_ACQUISITION_TIME_MISSING:fixture']})
+        out=attention(lane,scr,us)
+>       assert out['status']=='READY_WITH_GAPS'
+E       AssertionError: assert 'READY' == 'READY_WITH_GAPS'
+E         
+E         - READY_WITH_GAPS
+E         + READY
+
+tests/test_issue8_selection_gaps.py:184: AssertionError
+___ test_gap_only_change_changes_attention_identity_but_read_clock_does_not ____
+
+    def test_gap_only_change_changes_attention_identity_but_read_clock_does_not():
+        scr,lane=cs.evidence_view({},event_lane(review(),{},CTX),UNKNOWN)
+        a=attention(lane,scr)
+        other=deepcopy(lane);other['gaps'].append('NEW_SOURCE_GAP')
+        b=attention(other,scr)
+>       assert a['input_identity']!=b['input_identity']
+E       AssertionError: assert 'e440f61a03b1ce722d62d0b0008bb0503fa4865ef0247bf5903e1f0176f7a7e4' != 'e440f61a03b1ce722d62d0b0008bb0503fa4865ef0247bf5903e1f0176f7a7e4'
+
+tests/test_issue8_selection_gaps.py:197: AssertionError
+_____ test_frozen_positive_subtree_preserved_without_promoting_five_stocks _____
+
+    def test_frozen_positive_subtree_preserved_without_promoting_five_stocks():
+>       f=json.loads((Path(os.environ['V4_INPUT_ROOT'])/'evidence/FROZEN_SELECTED_FIELDS.json').read_text())
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_issue8_selection_gaps.py:240: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = environ({'PYTHONDONTWRITEBYTECODE': '1', 'COLORTERM': '', 'no_proxy': 'localhost,127.0.0.1,::1,10.0.0.0/8,172.16.0.0/1...': 'tests/test_issue8_selection_gaps.py::test_frozen_positive_subtree_preserved_without_promoting_five_stocks (call)'})
+key = 'V4_INPUT_ROOT'
+
+>   ???
+E   KeyError: 'V4_INPUT_ROOT'
+
+<frozen os>:714: KeyError
+_ test_retained_observation_rejects_unsafe_flags_late_refs_and_bad_identity[unsafe_owner_flag] _
+
+bad = 'unsafe_owner_flag'
+
+    @pytest.mark.parametrize('bad',['unsafe_owner_flag','late_body_ref','late_directory_ref','bad_identity_shape'])
+    def test_retained_observation_rejects_unsafe_flags_late_refs_and_bad_identity(bad):
+        rv=review();p=rv['positive_observations'][0]
+        if bad=='unsafe_owner_flag':p['production_allowed']=True
+        if bad=='late_body_ref':p['evidence'][0]['body_ref']['retrieved_at']='2026-10-04T08:00:00+08:00'
+        if bad=='late_directory_ref':p['evidence'][0]['directory_ref']={'retrieved_at':'2026-10-04T08:00:00+08:00'}
+        if bad=='bad_identity_shape':p['proposition_id']=['not-a-scalar']
+        scr,lane=cs.evidence_view({},event_lane(rv,{},CTX),UNKNOWN)
+        out=attention(lane,scr)
+>       assert out['observation_only']['cards']==[]
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'observation_only'
+
+tests/test_issue8_selection_gaps.py:262: KeyError
+_ test_retained_observation_rejects_unsafe_flags_late_refs_and_bad_identity[late_body_ref] _
+
+bad = 'late_body_ref'
+
+    @pytest.mark.parametrize('bad',['unsafe_owner_flag','late_body_ref','late_directory_ref','bad_identity_shape'])
+    def test_retained_observation_rejects_unsafe_flags_late_refs_and_bad_identity(bad):
+        rv=review();p=rv['positive_observations'][0]
+        if bad=='unsafe_owner_flag':p['production_allowed']=True
+        if bad=='late_body_ref':p['evidence'][0]['body_ref']['retrieved_at']='2026-10-04T08:00:00+08:00'
+        if bad=='late_directory_ref':p['evidence'][0]['directory_ref']={'retrieved_at':'2026-10-04T08:00:00+08:00'}
+        if bad=='bad_identity_shape':p['proposition_id']=['not-a-scalar']
+        scr,lane=cs.evidence_view({},event_lane(rv,{},CTX),UNKNOWN)
+        out=attention(lane,scr)
+>       assert out['observation_only']['cards']==[]
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'observation_only'
+
+tests/test_issue8_selection_gaps.py:262: KeyError
+_ test_retained_observation_rejects_unsafe_flags_late_refs_and_bad_identity[late_directory_ref] _
+
+bad = 'late_directory_ref'
+
+    @pytest.mark.parametrize('bad',['unsafe_owner_flag','late_body_ref','late_directory_ref','bad_identity_shape'])
+    def test_retained_observation_rejects_unsafe_flags_late_refs_and_bad_identity(bad):
+        rv=review();p=rv['positive_observations'][0]
+        if bad=='unsafe_owner_flag':p['production_allowed']=True
+        if bad=='late_body_ref':p['evidence'][0]['body_ref']['retrieved_at']='2026-10-04T08:00:00+08:00'
+        if bad=='late_directory_ref':p['evidence'][0]['directory_ref']={'retrieved_at':'2026-10-04T08:00:00+08:00'}
+        if bad=='bad_identity_shape':p['proposition_id']=['not-a-scalar']
+        scr,lane=cs.evidence_view({},event_lane(rv,{},CTX),UNKNOWN)
+        out=attention(lane,scr)
+>       assert out['observation_only']['cards']==[]
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'observation_only'
+
+tests/test_issue8_selection_gaps.py:262: KeyError
+_ test_retained_observation_rejects_unsafe_flags_late_refs_and_bad_identity[bad_identity_shape] _
+
+bad = 'bad_identity_shape'
+
+    @pytest.mark.parametrize('bad',['unsafe_owner_flag','late_body_ref','late_directory_ref','bad_identity_shape'])
+    def test_retained_observation_rejects_unsafe_flags_late_refs_and_bad_identity(bad):
+        rv=review();p=rv['positive_observations'][0]
+        if bad=='unsafe_owner_flag':p['production_allowed']=True
+        if bad=='late_body_ref':p['evidence'][0]['body_ref']['retrieved_at']='2026-10-04T08:00:00+08:00'
+        if bad=='late_directory_ref':p['evidence'][0]['directory_ref']={'retrieved_at':'2026-10-04T08:00:00+08:00'}
+        if bad=='bad_identity_shape':p['proposition_id']=['not-a-scalar']
+        scr,lane=cs.evidence_view({},event_lane(rv,{},CTX),UNKNOWN)
+        out=attention(lane,scr)
+>       assert out['observation_only']['cards']==[]
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'observation_only'
+
+tests/test_issue8_selection_gaps.py:262: KeyError
+_ test_dynamic_pagination_proves_empty_terminal_and_preserves_display_mismatch _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7ffaf0d38f50>
+
+    def test_dynamic_pagination_proves_empty_terminal_and_preserves_display_mismatch(monkeypatch):
+        rows = [_row(i, display_date='2026-09-30' if i == 1 else '2026-09-29') for i in range(1, 21)]
+        rows2 = [_row(21)]
+        fixture = _CaptureFixture(monkeypatch, {1: _response(1, 21, rows),
+            2: _response(2, 21, rows2), 3: _response(3, 21, [])})
+        result = _collect(fixture)
+    
+        assert result['status'] == 'COMPLETE'
+        assert result['total_hits'] == result['captured_row_count'] == result['unique_art_code_count'] == 21
+        assert result['expected_data_page_count'] == 2
+        assert result['expected_terminal_page_index'] == 3 and result['terminal_empty_seen'] is True
+        assert [call[0] for call in fixture.calls] == [1, 2, 3]
+        assert all(call[2] is True for call in fixture.calls)
+        assert result['display_notice_date_mismatch_count'] == 1
+        assert len(result['source_rows']) == 21
+        assert len(result['manager_consumer_rows']) == 21
+        assert result['source_rows'][0]['display_notice_date_mismatch'] is True
+        assert result['source_rows'][0]['notice_date'] == '2026-09-29 00:00:00'
+>       assert result['manager_consumer_use'] == 'CODE_INTERSECTION_ONLY_NOT_SELECTION_RESULT'
+E       AssertionError: assert 'SOURCE_IDENT...ECTION_RESULT' == 'CODE_INTERSE...ECTION_RESULT'
+E         
+E         - CODE_INTERSECTION_ONLY_NOT_SELECTION_RESULT
+E         + SOURCE_IDENTITY_RESEARCH_REFERENCE_ONLY_NOT_CONNECT_ELIGIBILITY_OR_SELECTION_RESULT
+
+tests/test_manager_announcement_date_catalog.py:111: AssertionError
+_ test_source_116_h_identifiers_are_preserved_even_when_not_numeric_master_tickers _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7ffaf0d41d30>
+
+    def test_source_116_h_identifiers_are_preserved_even_when_not_numeric_master_tickers(monkeypatch):
+        fixture = _CaptureFixture(monkeypatch, {1: _response(1, 1, [_row(1, stock_code='H5354')]),
+            2: _response(2, 1, [])})
+        result = _collect(fixture)
+        assert result['status'] == 'COMPLETE'
+        assert result['source_rows'][0]['source_codes_116_H'][0]['stock_code'] == 'H5354'
+        assert 'EASTMONEY_CATALOG_HK_116_H_STOCK_CODE_MISSING' not in result['gaps']
+>       assert result['manager_consumer_rows'] == []
+E       AssertionError: assert [{'art_code':...es': [], ...}] == []
+E         
+E         Left contains one more item: {'art_code': 'AN202609290000000001', 'blob_sha256': 'd72393331c93624ca280f7b5cff3d59df44490f60d0702b77e729074c4236659', 'display_time': '2026-09-29 09:00:00:000', 'matched_master_codes': [], ...}
+E         Use -v to get more diff
+
+tests/test_manager_announcement_date_catalog.py:132: AssertionError
+_______________ test_supervisor_does_not_queue_or_wait_for_owner _______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7ffaefc8c290>
+
+    def test_supervisor_does_not_queue_or_wait_for_owner(monkeypatch):
+>       from infrastructure.scheduling.manager_announcement_supervisor import AnnouncementSupervisor
+
+tests/test_manager_announcement_supervisor.py:23: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+infrastructure/scheduling/__init__.py:4: in <module>
+    from infrastructure.scheduling.dispatcher import DispatchReceipt, dispatch_due
+infrastructure/scheduling/dispatcher.py:25: in <module>
+    from infrastructure.scheduling.executor_registry import WorkloadExecutionError
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Fixed Python executor registry for the V3.5 runtime dispatcher.
+    
+    The registry selects a whitelisted Python module and a fixed argument list per
+    ``workload_id``.  It never reads ``WorkloadDefinition.command``: the catalog
+    command remains an audit/oracle field only.  Business inputs come exclusively
+    from the V3.5/shared-owned roots passed at construction; when an input is
+    absent the module fails closed and the registry raises a structured failure.
+    """
+    from __future__ import annotations
+    
+    import hashlib
+    import json
+    import os
+    import subprocess
+    import sys
+    import time
+    from dataclasses import dataclass
+    from pathlib import Path
+    from typing import Any, Callable
+    
+    from contracts.runtime_tasks import DispatchRequest, WorkloadDefinition
+>   from ops.daily_materialize import resolve_selector_panel
+E   ModuleNotFoundError: No module named 'ops.daily_materialize'
+
+infrastructure/scheduling/executor_registry.py:22: ModuleNotFoundError
+_______________ test_disabled_supervisor_has_no_worker_or_state ________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7ffaefb36d50>
+
+    def test_disabled_supervisor_has_no_worker_or_state(monkeypatch):
+>       from infrastructure.scheduling.manager_announcement_supervisor import AnnouncementSupervisor
+
+tests/test_manager_announcement_supervisor.py:35: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+infrastructure/scheduling/__init__.py:4: in <module>
+    from infrastructure.scheduling.dispatcher import DispatchReceipt, dispatch_due
+infrastructure/scheduling/dispatcher.py:25: in <module>
+    from infrastructure.scheduling.executor_registry import WorkloadExecutionError
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Fixed Python executor registry for the V3.5 runtime dispatcher.
+    
+    The registry selects a whitelisted Python module and a fixed argument list per
+    ``workload_id``.  It never reads ``WorkloadDefinition.command``: the catalog
+    command remains an audit/oracle field only.  Business inputs come exclusively
+    from the V3.5/shared-owned roots passed at construction; when an input is
+    absent the module fails closed and the registry raises a structured failure.
+    """
+    from __future__ import annotations
+    
+    import hashlib
+    import json
+    import os
+    import subprocess
+    import sys
+    import time
+    from dataclasses import dataclass
+    from pathlib import Path
+    from typing import Any, Callable
+    
+    from contracts.runtime_tasks import DispatchRequest, WorkloadDefinition
+>   from ops.daily_materialize import resolve_selector_panel
+E   ModuleNotFoundError: No module named 'ops.daily_materialize'
+
+infrastructure/scheduling/executor_registry.py:22: ModuleNotFoundError
+________________ test_tail_blackout_blocks_even_explicit_worker ________________
+
+    def test_tail_blackout_blocks_even_explicit_worker():
+>       from infrastructure.scheduling.manager_announcement_supervisor import AnnouncementSupervisor
+
+tests/test_manager_announcement_supervisor.py:42: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+infrastructure/scheduling/__init__.py:4: in <module>
+    from infrastructure.scheduling.dispatcher import DispatchReceipt, dispatch_due
+infrastructure/scheduling/dispatcher.py:25: in <module>
+    from infrastructure.scheduling.executor_registry import WorkloadExecutionError
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Fixed Python executor registry for the V3.5 runtime dispatcher.
+    
+    The registry selects a whitelisted Python module and a fixed argument list per
+    ``workload_id``.  It never reads ``WorkloadDefinition.command``: the catalog
+    command remains an audit/oracle field only.  Business inputs come exclusively
+    from the V3.5/shared-owned roots passed at construction; when an input is
+    absent the module fails closed and the registry raises a structured failure.
+    """
+    from __future__ import annotations
+    
+    import hashlib
+    import json
+    import os
+    import subprocess
+    import sys
+    import time
+    from dataclasses import dataclass
+    from pathlib import Path
+    from typing import Any, Callable
+    
+    from contracts.runtime_tasks import DispatchRequest, WorkloadDefinition
+>   from ops.daily_materialize import resolve_selector_panel
+E   ModuleNotFoundError: No module named 'ops.daily_materialize'
+
+infrastructure/scheduling/executor_registry.py:22: ModuleNotFoundError
+__________ test_binding_rejects_missing_or_tampered_required_identity __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-401/test_binding_rejects_missing_o0')
+
+    def test_binding_rejects_missing_or_tampered_required_identity(tmp_path):
+>       from infrastructure.scheduling.manager_announcement_supervisor import validate_binding
+
+tests/test_manager_announcement_supervisor.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+infrastructure/scheduling/__init__.py:4: in <module>
+    from infrastructure.scheduling.dispatcher import DispatchReceipt, dispatch_due
+infrastructure/scheduling/dispatcher.py:25: in <module>
+    from infrastructure.scheduling.executor_registry import WorkloadExecutionError
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Fixed Python executor registry for the V3.5 runtime dispatcher.
+    
+    The registry selects a whitelisted Python module and a fixed argument list per
+    ``workload_id``.  It never reads ``WorkloadDefinition.command``: the catalog
+    command remains an audit/oracle field only.  Business inputs come exclusively
+    from the V3.5/shared-owned roots passed at construction; when an input is
+    absent the module fails closed and the registry raises a structured failure.
+    """
+    from __future__ import annotations
+    
+    import hashlib
+    import json
+    import os
+    import subprocess
+    import sys
+    import time
+    from dataclasses import dataclass
+    from pathlib import Path
+    from typing import Any, Callable
+    
+    from contracts.runtime_tasks import DispatchRequest, WorkloadDefinition
+>   from ops.daily_materialize import resolve_selector_panel
+E   ModuleNotFoundError: No module named 'ops.daily_materialize'
+
+infrastructure/scheduling/executor_registry.py:22: ModuleNotFoundError
+______________ test_timeout_terminates_only_spawned_process_group ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-401/test_timeout_terminates_only_s0')
+
+    def test_timeout_terminates_only_spawned_process_group(tmp_path):
+>       from infrastructure.scheduling.manager_announcement_supervisor import supervise_child
+
+tests/test_manager_announcement_supervisor.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+infrastructure/scheduling/__init__.py:4: in <module>
+    from infrastructure.scheduling.dispatcher import DispatchReceipt, dispatch_due
+infrastructure/scheduling/dispatcher.py:25: in <module>
+    from infrastructure.scheduling.executor_registry import WorkloadExecutionError
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Fixed Python executor registry for the V3.5 runtime dispatcher.
+    
+    The registry selects a whitelisted Python module and a fixed argument list per
+    ``workload_id``.  It never reads ``WorkloadDefinition.command``: the catalog
+    command remains an audit/oracle field only.  Business inputs come exclusively
+    from the V3.5/shared-owned roots passed at construction; when an input is
+    absent the module fails closed and the registry raises a structured failure.
+    """
+    from __future__ import annotations
+    
+    import hashlib
+    import json
+    import os
+    import subprocess
+    import sys
+    import time
+    from dataclasses import dataclass
+    from pathlib import Path
+    from typing import Any, Callable
+    
+    from contracts.runtime_tasks import DispatchRequest, WorkloadDefinition
+>   from ops.daily_materialize import resolve_selector_panel
+E   ModuleNotFoundError: No module named 'ops.daily_materialize'
+
+infrastructure/scheduling/executor_registry.py:22: ModuleNotFoundError
+_ test_binding_inventory_includes_full_stage_and_body_capture_dependency_closure _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-401/test_binding_inventory_include0')
+
+    def test_binding_inventory_includes_full_stage_and_body_capture_dependency_closure(tmp_path):
+>       files=_binding(tmp_path)['files']
+              ^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_announcement_supervisor.py:87: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_manager_announcement_supervisor.py:66: in _binding
+    from infrastructure.scheduling.manager_announcement_supervisor import binding_inventory,BINDING_SCHEMA
+infrastructure/scheduling/__init__.py:4: in <module>
+    from infrastructure.scheduling.dispatcher import DispatchReceipt, dispatch_due
+infrastructure/scheduling/dispatcher.py:25: in <module>
+    from infrastructure.scheduling.executor_registry import WorkloadExecutionError
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Fixed Python executor registry for the V3.5 runtime dispatcher.
+    
+    The registry selects a whitelisted Python module and a fixed argument list per
+    ``workload_id``.  It never reads ``WorkloadDefinition.command``: the catalog
+    command remains an audit/oracle field only.  Business inputs come exclusively
+    from the V3.5/shared-owned roots passed at construction; when an input is
+    absent the module fails closed and the registry raises a structured failure.
+    """
+    from __future__ import annotations
+    
+    import hashlib
+    import json
+    import os
+    import subprocess
+    import sys
+    import time
+    from dataclasses import dataclass
+    from pathlib import Path
+    from typing import Any, Callable
+    
+    from contracts.runtime_tasks import DispatchRequest, WorkloadDefinition
+>   from ops.daily_materialize import resolve_selector_panel
+E   ModuleNotFoundError: No module named 'ops.daily_materialize'
+
+infrastructure/scheduling/executor_registry.py:22: ModuleNotFoundError
+___________ test_complete_bound_source_inventory_and_disabled_config ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-401/test_complete_bound_source_inv0')
+
+    def test_complete_bound_source_inventory_and_disabled_config(tmp_path):
+>       from infrastructure.scheduling.manager_announcement_supervisor import validate_binding
+
+tests/test_manager_announcement_supervisor.py:157: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+infrastructure/scheduling/__init__.py:4: in <module>
+    from infrastructure.scheduling.dispatcher import DispatchReceipt, dispatch_due
+infrastructure/scheduling/dispatcher.py:25: in <module>
+    from infrastructure.scheduling.executor_registry import WorkloadExecutionError
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Fixed Python executor registry for the V3.5 runtime dispatcher.
+    
+    The registry selects a whitelisted Python module and a fixed argument list per
+    ``workload_id``.  It never reads ``WorkloadDefinition.command``: the catalog
+    command remains an audit/oracle field only.  Business inputs come exclusively
+    from the V3.5/shared-owned roots passed at construction; when an input is
+    absent the module fails closed and the registry raises a structured failure.
+    """
+    from __future__ import annotations
+    
+    import hashlib
+    import json
+    import os
+    import subprocess
+    import sys
+    import time
+    from dataclasses import dataclass
+    from pathlib import Path
+    from typing import Any, Callable
+    
+    from contracts.runtime_tasks import DispatchRequest, WorkloadDefinition
+>   from ops.daily_materialize import resolve_selector_panel
+E   ModuleNotFoundError: No module named 'ops.daily_materialize'
+
+infrastructure/scheduling/executor_registry.py:22: ModuleNotFoundError
+____ test_plan_only_binding_requires_separate_matching_manual_owner_canary _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-401/test_plan_only_binding_require0')
+
+    def test_plan_only_binding_requires_separate_matching_manual_owner_canary(tmp_path):
+>       from infrastructure.scheduling.manager_announcement_supervisor import validate_binding
+
+tests/test_manager_announcement_supervisor.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+infrastructure/scheduling/__init__.py:4: in <module>
+    from infrastructure.scheduling.dispatcher import DispatchReceipt, dispatch_due
+infrastructure/scheduling/dispatcher.py:25: in <module>
+    from infrastructure.scheduling.executor_registry import WorkloadExecutionError
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Fixed Python executor registry for the V3.5 runtime dispatcher.
+    
+    The registry selects a whitelisted Python module and a fixed argument list per
+    ``workload_id``.  It never reads ``WorkloadDefinition.command``: the catalog
+    command remains an audit/oracle field only.  Business inputs come exclusively
+    from the V3.5/shared-owned roots passed at construction; when an input is
+    absent the module fails closed and the registry raises a structured failure.
+    """
+    from __future__ import annotations
+    
+    import hashlib
+    import json
+    import os
+    import subprocess
+    import sys
+    import time
+    from dataclasses import dataclass
+    from pathlib import Path
+    from typing import Any, Callable
+    
+    from contracts.runtime_tasks import DispatchRequest, WorkloadDefinition
+>   from ops.daily_materialize import resolve_selector_panel
+E   ModuleNotFoundError: No module named 'ops.daily_materialize'
+
+infrastructure/scheduling/executor_registry.py:22: ModuleNotFoundError
+_ test_plan_only_binding_accepts_fresh_manual_owner_evidence_from_same_api_root _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-401/test_plan_only_binding_accepts0')
+
+    def test_plan_only_binding_accepts_fresh_manual_owner_evidence_from_same_api_root(tmp_path):
+>       from infrastructure.scheduling.manager_announcement_supervisor import validate_binding
+
+tests/test_manager_announcement_supervisor.py:169: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+infrastructure/scheduling/__init__.py:4: in <module>
+    from infrastructure.scheduling.dispatcher import DispatchReceipt, dispatch_due
+infrastructure/scheduling/dispatcher.py:25: in <module>
+    from infrastructure.scheduling.executor_registry import WorkloadExecutionError
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Fixed Python executor registry for the V3.5 runtime dispatcher.
+    
+    The registry selects a whitelisted Python module and a fixed argument list per
+    ``workload_id``.  It never reads ``WorkloadDefinition.command``: the catalog
+    command remains an audit/oracle field only.  Business inputs come exclusively
+    from the V3.5/shared-owned roots passed at construction; when an input is
+    absent the module fails closed and the registry raises a structured failure.
+    """
+    from __future__ import annotations
+    
+    import hashlib
+    import json
+    import os
+    import subprocess
+    import sys
+    import time
+    from dataclasses import dataclass
+    from pathlib import Path
+    from typing import Any, Callable
+    
+    from contracts.runtime_tasks import DispatchRequest, WorkloadDefinition
+>   from ops.daily_materialize import resolve_selector_panel
+E   ModuleNotFoundError: No module named 'ops.daily_materialize'
+
+infrastructure/scheduling/executor_registry.py:22: ModuleNotFoundError
+_________ test_plan_only_binding_rejects_response_body_with_wrong_sha __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-401/test_plan_only_binding_rejects0')
+
+    def test_plan_only_binding_rejects_response_body_with_wrong_sha(tmp_path):
+>       from infrastructure.scheduling.manager_announcement_supervisor import validate_binding
+
+tests/test_manager_announcement_supervisor.py:177: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+infrastructure/scheduling/__init__.py:4: in <module>
+    from infrastructure.scheduling.dispatcher import DispatchReceipt, dispatch_due
+infrastructure/scheduling/dispatcher.py:25: in <module>
+    from infrastructure.scheduling.executor_registry import WorkloadExecutionError
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Fixed Python executor registry for the V3.5 runtime dispatcher.
+    
+    The registry selects a whitelisted Python module and a fixed argument list per
+    ``workload_id``.  It never reads ``WorkloadDefinition.command``: the catalog
+    command remains an audit/oracle field only.  Business inputs come exclusively
+    from the V3.5/shared-owned roots passed at construction; when an input is
+    absent the module fails closed and the registry raises a structured failure.
+    """
+    from __future__ import annotations
+    
+    import hashlib
+    import json
+    import os
+    import subprocess
+    import sys
+    import time
+    from dataclasses import dataclass
+    from pathlib import Path
+    from typing import Any, Callable
+    
+    from contracts.runtime_tasks import DispatchRequest, WorkloadDefinition
+>   from ops.daily_materialize import resolve_selector_panel
+E   ModuleNotFoundError: No module named 'ops.daily_materialize'
+
+infrastructure/scheduling/executor_registry.py:22: ModuleNotFoundError
+_________ test_plan_only_binding_rejects_forged_or_announcement_canary _________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-401/test_plan_only_binding_rejects1')
+
+    def test_plan_only_binding_rejects_forged_or_announcement_canary(tmp_path):
+        import hashlib,json
+>       from infrastructure.scheduling.manager_announcement_supervisor import validate_binding
+
+tests/test_manager_announcement_supervisor.py:185: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+infrastructure/scheduling/__init__.py:4: in <module>
+    from infrastructure.scheduling.dispatcher import DispatchReceipt, dispatch_due
+infrastructure/scheduling/dispatcher.py:25: in <module>
+    from infrastructure.scheduling.executor_registry import WorkloadExecutionError
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Fixed Python executor registry for the V3.5 runtime dispatcher.
+    
+    The registry selects a whitelisted Python module and a fixed argument list per
+    ``workload_id``.  It never reads ``WorkloadDefinition.command``: the catalog
+    command remains an audit/oracle field only.  Business inputs come exclusively
+    from the V3.5/shared-owned roots passed at construction; when an input is
+    absent the module fails closed and the registry raises a structured failure.
+    """
+    from __future__ import annotations
+    
+    import hashlib
+    import json
+    import os
+    import subprocess
+    import sys
+    import time
+    from dataclasses import dataclass
+    from pathlib import Path
+    from typing import Any, Callable
+    
+    from contracts.runtime_tasks import DispatchRequest, WorkloadDefinition
+>   from ops.daily_materialize import resolve_selector_panel
+E   ModuleNotFoundError: No module named 'ops.daily_materialize'
+
+infrastructure/scheduling/executor_registry.py:22: ModuleNotFoundError
+________ test_plan_only_binding_rejects_owner_source_migration_mismatch ________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-401/test_plan_only_binding_rejects2')
+
+    def test_plan_only_binding_rejects_owner_source_migration_mismatch(tmp_path):
+        import hashlib,json
+>       from infrastructure.scheduling.manager_announcement_supervisor import validate_binding
+
+tests/test_manager_announcement_supervisor.py:200: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+infrastructure/scheduling/__init__.py:4: in <module>
+    from infrastructure.scheduling.dispatcher import DispatchReceipt, dispatch_due
+infrastructure/scheduling/dispatcher.py:25: in <module>
+    from infrastructure.scheduling.executor_registry import WorkloadExecutionError
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Fixed Python executor registry for the V3.5 runtime dispatcher.
+    
+    The registry selects a whitelisted Python module and a fixed argument list per
+    ``workload_id``.  It never reads ``WorkloadDefinition.command``: the catalog
+    command remains an audit/oracle field only.  Business inputs come exclusively
+    from the V3.5/shared-owned roots passed at construction; when an input is
+    absent the module fails closed and the registry raises a structured failure.
+    """
+    from __future__ import annotations
+    
+    import hashlib
+    import json
+    import os
+    import subprocess
+    import sys
+    import time
+    from dataclasses import dataclass
+    from pathlib import Path
+    from typing import Any, Callable
+    
+    from contracts.runtime_tasks import DispatchRequest, WorkloadDefinition
+>   from ops.daily_materialize import resolve_selector_panel
+E   ModuleNotFoundError: No module named 'ops.daily_materialize'
+
+infrastructure/scheduling/executor_registry.py:22: ModuleNotFoundError
+_________ test_binding_rejects_source_and_root_drift[missing_catalog] __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-401/test_binding_rejects_source_an0')
+case = 'missing_catalog'
+
+    @pytest.mark.parametrize('case',['missing_catalog','unlisted_new_source','changed_source','state_overlap','python_target','unsafe_flag'])
+    def test_binding_rejects_source_and_root_drift(tmp_path,case):
+>       from infrastructure.scheduling.manager_announcement_supervisor import validate_binding
+
+tests/test_manager_announcement_supervisor.py:215: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+infrastructure/scheduling/__init__.py:4: in <module>
+    from infrastructure.scheduling.dispatcher import DispatchReceipt, dispatch_due
+infrastructure/scheduling/dispatcher.py:25: in <module>
+    from infrastructure.scheduling.executor_registry import WorkloadExecutionError
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Fixed Python executor registry for the V3.5 runtime dispatcher.
+    
+    The registry selects a whitelisted Python module and a fixed argument list per
+    ``workload_id``.  It never reads ``WorkloadDefinition.command``: the catalog
+    command remains an audit/oracle field only.  Business inputs come exclusively
+    from the V3.5/shared-owned roots passed at construction; when an input is
+    absent the module fails closed and the registry raises a structured failure.
+    """
+    from __future__ import annotations
+    
+    import hashlib
+    import json
+    import os
+    import subprocess
+    import sys
+    import time
+    from dataclasses import dataclass
+    from pathlib import Path
+    from typing import Any, Callable
+    
+    from contracts.runtime_tasks import DispatchRequest, WorkloadDefinition
+>   from ops.daily_materialize import resolve_selector_panel
+E   ModuleNotFoundError: No module named 'ops.daily_materialize'
+
+infrastructure/scheduling/executor_registry.py:22: ModuleNotFoundError
+_______ test_binding_rejects_source_and_root_drift[unlisted_new_source] ________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-401/test_binding_rejects_source_an1')
+case = 'unlisted_new_source'
+
+    @pytest.mark.parametrize('case',['missing_catalog','unlisted_new_source','changed_source','state_overlap','python_target','unsafe_flag'])
+    def test_binding_rejects_source_and_root_drift(tmp_path,case):
+>       from infrastructure.scheduling.manager_announcement_supervisor import validate_binding
+
+tests/test_manager_announcement_supervisor.py:215: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+infrastructure/scheduling/__init__.py:4: in <module>
+    from infrastructure.scheduling.dispatcher import DispatchReceipt, dispatch_due
+infrastructure/scheduling/dispatcher.py:25: in <module>
+    from infrastructure.scheduling.executor_registry import WorkloadExecutionError
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Fixed Python executor registry for the V3.5 runtime dispatcher.
+    
+    The registry selects a whitelisted Python module and a fixed argument list per
+    ``workload_id``.  It never reads ``WorkloadDefinition.command``: the catalog
+    command remains an audit/oracle field only.  Business inputs come exclusively
+    from the V3.5/shared-owned roots passed at construction; when an input is
+    absent the module fails closed and the registry raises a structured failure.
+    """
+    from __future__ import annotations
+    
+    import hashlib
+    import json
+    import os
+    import subprocess
+    import sys
+    import time
+    from dataclasses import dataclass
+    from pathlib import Path
+    from typing import Any, Callable
+    
+    from contracts.runtime_tasks import DispatchRequest, WorkloadDefinition
+>   from ops.daily_materialize import resolve_selector_panel
+E   ModuleNotFoundError: No module named 'ops.daily_materialize'
+
+infrastructure/scheduling/executor_registry.py:22: ModuleNotFoundError
+__________ test_binding_rejects_source_and_root_drift[changed_source] __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-401/test_binding_rejects_source_an2')
+case = 'changed_source'
+
+    @pytest.mark.parametrize('case',['missing_catalog','unlisted_new_source','changed_source','state_overlap','python_target','unsafe_flag'])
+    def test_binding_rejects_source_and_root_drift(tmp_path,case):
+>       from infrastructure.scheduling.manager_announcement_supervisor import validate_binding
+
+tests/test_manager_announcement_supervisor.py:215: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+infrastructure/scheduling/__init__.py:4: in <module>
+    from infrastructure.scheduling.dispatcher import DispatchReceipt, dispatch_due
+infrastructure/scheduling/dispatcher.py:25: in <module>
+    from infrastructure.scheduling.executor_registry import WorkloadExecutionError
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Fixed Python executor registry for the V3.5 runtime dispatcher.
+    
+    The registry selects a whitelisted Python module and a fixed argument list per
+    ``workload_id``.  It never reads ``WorkloadDefinition.command``: the catalog
+    command remains an audit/oracle field only.  Business inputs come exclusively
+    from the V3.5/shared-owned roots passed at construction; when an input is
+    absent the module fails closed and the registry raises a structured failure.
+    """
+    from __future__ import annotations
+    
+    import hashlib
+    import json
+    import os
+    import subprocess
+    import sys
+    import time
+    from dataclasses import dataclass
+    from pathlib import Path
+    from typing import Any, Callable
+    
+    from contracts.runtime_tasks import DispatchRequest, WorkloadDefinition
+>   from ops.daily_materialize import resolve_selector_panel
+E   ModuleNotFoundError: No module named 'ops.daily_materialize'
+
+infrastructure/scheduling/executor_registry.py:22: ModuleNotFoundError
+__________ test_binding_rejects_source_and_root_drift[state_overlap] ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-401/test_binding_rejects_source_an3')
+case = 'state_overlap'
+
+    @pytest.mark.parametrize('case',['missing_catalog','unlisted_new_source','changed_source','state_overlap','python_target','unsafe_flag'])
+    def test_binding_rejects_source_and_root_drift(tmp_path,case):
+>       from infrastructure.scheduling.manager_announcement_supervisor import validate_binding
+
+tests/test_manager_announcement_supervisor.py:215: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+infrastructure/scheduling/__init__.py:4: in <module>
+    from infrastructure.scheduling.dispatcher import DispatchReceipt, dispatch_due
+infrastructure/scheduling/dispatcher.py:25: in <module>
+    from infrastructure.scheduling.executor_registry import WorkloadExecutionError
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Fixed Python executor registry for the V3.5 runtime dispatcher.
+    
+    The registry selects a whitelisted Python module and a fixed argument list per
+    ``workload_id``.  It never reads ``WorkloadDefinition.command``: the catalog
+    command remains an audit/oracle field only.  Business inputs come exclusively
+    from the V3.5/shared-owned roots passed at construction; when an input is
+    absent the module fails closed and the registry raises a structured failure.
+    """
+    from __future__ import annotations
+    
+    import hashlib
+    import json
+    import os
+    import subprocess
+    import sys
+    import time
+    from dataclasses import dataclass
+    from pathlib import Path
+    from typing import Any, Callable
+    
+    from contracts.runtime_tasks import DispatchRequest, WorkloadDefinition
+>   from ops.daily_materialize import resolve_selector_panel
+E   ModuleNotFoundError: No module named 'ops.daily_materialize'
+
+infrastructure/scheduling/executor_registry.py:22: ModuleNotFoundError
+__________ test_binding_rejects_source_and_root_drift[python_target] ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-401/test_binding_rejects_source_an4')
+case = 'python_target'
+
+    @pytest.mark.parametrize('case',['missing_catalog','unlisted_new_source','changed_source','state_overlap','python_target','unsafe_flag'])
+    def test_binding_rejects_source_and_root_drift(tmp_path,case):
+>       from infrastructure.scheduling.manager_announcement_supervisor import validate_binding
+
+tests/test_manager_announcement_supervisor.py:215: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+infrastructure/scheduling/__init__.py:4: in <module>
+    from infrastructure.scheduling.dispatcher import DispatchReceipt, dispatch_due
+infrastructure/scheduling/dispatcher.py:25: in <module>
+    from infrastructure.scheduling.executor_registry import WorkloadExecutionError
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Fixed Python executor registry for the V3.5 runtime dispatcher.
+    
+    The registry selects a whitelisted Python module and a fixed argument list per
+    ``workload_id``.  It never reads ``WorkloadDefinition.command``: the catalog
+    command remains an audit/oracle field only.  Business inputs come exclusively
+    from the V3.5/shared-owned roots passed at construction; when an input is
+    absent the module fails closed and the registry raises a structured failure.
+    """
+    from __future__ import annotations
+    
+    import hashlib
+    import json
+    import os
+    import subprocess
+    import sys
+    import time
+    from dataclasses import dataclass
+    from pathlib import Path
+    from typing import Any, Callable
+    
+    from contracts.runtime_tasks import DispatchRequest, WorkloadDefinition
+>   from ops.daily_materialize import resolve_selector_panel
+E   ModuleNotFoundError: No module named 'ops.daily_materialize'
+
+infrastructure/scheduling/executor_registry.py:22: ModuleNotFoundError
+___________ test_binding_rejects_source_and_root_drift[unsafe_flag] ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-401/test_binding_rejects_source_an5')
+case = 'unsafe_flag'
+
+    @pytest.mark.parametrize('case',['missing_catalog','unlisted_new_source','changed_source','state_overlap','python_target','unsafe_flag'])
+    def test_binding_rejects_source_and_root_drift(tmp_path,case):
+>       from infrastructure.scheduling.manager_announcement_supervisor import validate_binding
+
+tests/test_manager_announcement_supervisor.py:215: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+infrastructure/scheduling/__init__.py:4: in <module>
+    from infrastructure.scheduling.dispatcher import DispatchReceipt, dispatch_due
+infrastructure/scheduling/dispatcher.py:25: in <module>
+    from infrastructure.scheduling.executor_registry import WorkloadExecutionError
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Fixed Python executor registry for the V3.5 runtime dispatcher.
+    
+    The registry selects a whitelisted Python module and a fixed argument list per
+    ``workload_id``.  It never reads ``WorkloadDefinition.command``: the catalog
+    command remains an audit/oracle field only.  Business inputs come exclusively
+    from the V3.5/shared-owned roots passed at construction; when an input is
+    absent the module fails closed and the registry raises a structured failure.
+    """
+    from __future__ import annotations
+    
+    import hashlib
+    import json
+    import os
+    import subprocess
+    import sys
+    import time
+    from dataclasses import dataclass
+    from pathlib import Path
+    from typing import Any, Callable
+    
+    from contracts.runtime_tasks import DispatchRequest, WorkloadDefinition
+>   from ops.daily_materialize import resolve_selector_panel
+E   ModuleNotFoundError: No module named 'ops.daily_materialize'
+
+infrastructure/scheduling/executor_registry.py:22: ModuleNotFoundError
+_________ test_daemon_disabled_hook_preserves_original_minute_dispatch _________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7ffaefb3a390>
+
+    def test_daemon_disabled_hook_preserves_original_minute_dispatch(monkeypatch):
+>       from ops import run_v35_macos_scheduler_daemon as daemon
+
+tests/test_manager_announcement_supervisor.py:227: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+ops/run_v35_macos_scheduler_daemon.py:26: in <module>
+    from ops import run_v35_macos_scheduler as scheduler
+ops/run_v35_macos_scheduler.py:19: in <module>
+    from infrastructure.scheduling.executor_registry import STAGE_BY_SLOT, WorkloadExecutionError
+infrastructure/scheduling/__init__.py:4: in <module>
+    from infrastructure.scheduling.dispatcher import DispatchReceipt, dispatch_due
+infrastructure/scheduling/dispatcher.py:25: in <module>
+    from infrastructure.scheduling.executor_registry import WorkloadExecutionError
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Fixed Python executor registry for the V3.5 runtime dispatcher.
+    
+    The registry selects a whitelisted Python module and a fixed argument list per
+    ``workload_id``.  It never reads ``WorkloadDefinition.command``: the catalog
+    command remains an audit/oracle field only.  Business inputs come exclusively
+    from the V3.5/shared-owned roots passed at construction; when an input is
+    absent the module fails closed and the registry raises a structured failure.
+    """
+    from __future__ import annotations
+    
+    import hashlib
+    import json
+    import os
+    import subprocess
+    import sys
+    import time
+    from dataclasses import dataclass
+    from pathlib import Path
+    from typing import Any, Callable
+    
+    from contracts.runtime_tasks import DispatchRequest, WorkloadDefinition
+>   from ops.daily_materialize import resolve_selector_panel
+E   ModuleNotFoundError: No module named 'ops.daily_materialize'
+
+infrastructure/scheduling/executor_registry.py:22: ModuleNotFoundError
+________________ test_revoked_binding_cancels_only_owned_child _________________
+
+    def test_revoked_binding_cancels_only_owned_child():
+>       from infrastructure.scheduling.manager_announcement_supervisor import supervise_child
+
+tests/test_manager_announcement_supervisor.py:241: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+infrastructure/scheduling/__init__.py:4: in <module>
+    from infrastructure.scheduling.dispatcher import DispatchReceipt, dispatch_due
+infrastructure/scheduling/dispatcher.py:25: in <module>
+    from infrastructure.scheduling.executor_registry import WorkloadExecutionError
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Fixed Python executor registry for the V3.5 runtime dispatcher.
+    
+    The registry selects a whitelisted Python module and a fixed argument list per
+    ``workload_id``.  It never reads ``WorkloadDefinition.command``: the catalog
+    command remains an audit/oracle field only.  Business inputs come exclusively
+    from the V3.5/shared-owned roots passed at construction; when an input is
+    absent the module fails closed and the registry raises a structured failure.
+    """
+    from __future__ import annotations
+    
+    import hashlib
+    import json
+    import os
+    import subprocess
+    import sys
+    import time
+    from dataclasses import dataclass
+    from pathlib import Path
+    from typing import Any, Callable
+    
+    from contracts.runtime_tasks import DispatchRequest, WorkloadDefinition
+>   from ops.daily_materialize import resolve_selector_panel
+E   ModuleNotFoundError: No module named 'ops.daily_materialize'
+
+infrastructure/scheduling/executor_registry.py:22: ModuleNotFoundError
+__________ test_legacy_over_64_mib_is_read_losslessly_without_rewrite __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-401/test_legacy_over_64_mib_is_rea0')
+
+    def test_legacy_over_64_mib_is_read_losslessly_without_rewrite(tmp_path):
+        store = s.ManagerResearchStore(tmp_path)
+        row = plan('e' * (64 * 1024 * 1024))
+        put_legacy(store, row)
+        before = latest(store).stat()
+        got = w._read_plan(store, DATE)
+        assert got == row
+        after = latest(store).stat()
+        assert (before.st_ino, before.st_size, before.st_mtime_ns) == (after.st_ino, after.st_size, after.st_mtime_ns)
+>       assert w._readback_plan(store, DATE, current())['plan_product']['status'] == 'CURRENT'
+E       AssertionError: assert 'OWNER_ATTEMPT_UNVERIFIED' == 'CURRENT'
+E         
+E         - CURRENT
+E         + OWNER_ATTEMPT_UNVERIFIED
+
+tests/test_manager_plan_readback_issue24.py:59: AssertionError
+____ test_failed_save_readback_never_gets_success_journal[READBACK_FAILED] _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-401/test_failed_save_readback_neve0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7ffaef127f20>
+status = 'READBACK_FAILED'
+
+    @pytest.mark.parametrize('status',['READBACK_FAILED','STALE_INPUTS_CHANGED','NOT_MATERIALIZED','CURRENT_WRONG_RUN','CURRENT_WRONG_SHA','CURRENT_NOT_CONSUMED'])
+    def test_failed_save_readback_never_gets_success_journal(tmp_path,monkeypatch,status):
+        store=s.ManagerResearchStore(tmp_path);seen=[]
+        write=store._write_atomic
+        def recording(path,value):
+            if 'workspace_plan_runs' in path.parts:seen.append(deepcopy(dict(value)))
+            write(path,value)
+        monkeypatch.setattr(store,'_write_atomic',recording)
+        monkeypatch.setattr(w,'_now',lambda:TIME)
+        monkeypatch.setattr(w,'uuid4',lambda:SimpleNamespace(hex=RUN))
+        monkeypatch.setattr(w,'get_workspace',lambda *a,**k:current())
+        def bad_readback(store,date,value):
+            saved=store._read(latest(store))
+            return {**value,'plan_product':dict(status='CURRENT' if status.startswith('CURRENT_') else status,
+                run_id='b'*32 if status=='CURRENT_WRONG_RUN' else RUN,
+                sha256='0'*64 if status=='CURRENT_WRONG_SHA' else saved['sha256'],
+                consumed=status!='CURRENT_NOT_CONSUMED')}
+        monkeypatch.setattr(w,'_readback_plan',bad_readback)
+>       with pytest.raises(ValueError,match='WORKSPACE_PLAN_SAVE_READBACK_FAILED'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_plan_readback_issue24.py:186: Failed
+__ test_failed_save_readback_never_gets_success_journal[STALE_INPUTS_CHANGED] __
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-401/test_failed_save_readback_neve1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7ffaefac4680>
+status = 'STALE_INPUTS_CHANGED'
+
+    @pytest.mark.parametrize('status',['READBACK_FAILED','STALE_INPUTS_CHANGED','NOT_MATERIALIZED','CURRENT_WRONG_RUN','CURRENT_WRONG_SHA','CURRENT_NOT_CONSUMED'])
+    def test_failed_save_readback_never_gets_success_journal(tmp_path,monkeypatch,status):
+        store=s.ManagerResearchStore(tmp_path);seen=[]
+        write=store._write_atomic
+        def recording(path,value):
+            if 'workspace_plan_runs' in path.parts:seen.append(deepcopy(dict(value)))
+            write(path,value)
+        monkeypatch.setattr(store,'_write_atomic',recording)
+        monkeypatch.setattr(w,'_now',lambda:TIME)
+        monkeypatch.setattr(w,'uuid4',lambda:SimpleNamespace(hex=RUN))
+        monkeypatch.setattr(w,'get_workspace',lambda *a,**k:current())
+        def bad_readback(store,date,value):
+            saved=store._read(latest(store))
+            return {**value,'plan_product':dict(status='CURRENT' if status.startswith('CURRENT_') else status,
+                run_id='b'*32 if status=='CURRENT_WRONG_RUN' else RUN,
+                sha256='0'*64 if status=='CURRENT_WRONG_SHA' else saved['sha256'],
+                consumed=status!='CURRENT_NOT_CONSUMED')}
+        monkeypatch.setattr(w,'_readback_plan',bad_readback)
+>       with pytest.raises(ValueError,match='WORKSPACE_PLAN_SAVE_READBACK_FAILED'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_plan_readback_issue24.py:186: Failed
+____ test_failed_save_readback_never_gets_success_journal[NOT_MATERIALIZED] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-401/test_failed_save_readback_neve2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7ffaefac55e0>
+status = 'NOT_MATERIALIZED'
+
+    @pytest.mark.parametrize('status',['READBACK_FAILED','STALE_INPUTS_CHANGED','NOT_MATERIALIZED','CURRENT_WRONG_RUN','CURRENT_WRONG_SHA','CURRENT_NOT_CONSUMED'])
+    def test_failed_save_readback_never_gets_success_journal(tmp_path,monkeypatch,status):
+        store=s.ManagerResearchStore(tmp_path);seen=[]
+        write=store._write_atomic
+        def recording(path,value):
+            if 'workspace_plan_runs' in path.parts:seen.append(deepcopy(dict(value)))
+            write(path,value)
+        monkeypatch.setattr(store,'_write_atomic',recording)
+        monkeypatch.setattr(w,'_now',lambda:TIME)
+        monkeypatch.setattr(w,'uuid4',lambda:SimpleNamespace(hex=RUN))
+        monkeypatch.setattr(w,'get_workspace',lambda *a,**k:current())
+        def bad_readback(store,date,value):
+            saved=store._read(latest(store))
+            return {**value,'plan_product':dict(status='CURRENT' if status.startswith('CURRENT_') else status,
+                run_id='b'*32 if status=='CURRENT_WRONG_RUN' else RUN,
+                sha256='0'*64 if status=='CURRENT_WRONG_SHA' else saved['sha256'],
+                consumed=status!='CURRENT_NOT_CONSUMED')}
+        monkeypatch.setattr(w,'_readback_plan',bad_readback)
+>       with pytest.raises(ValueError,match='WORKSPACE_PLAN_SAVE_READBACK_FAILED'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_plan_readback_issue24.py:186: Failed
+___ test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_RUN] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-401/test_failed_save_readback_neve3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7ffaefb3bfe0>
+status = 'CURRENT_WRONG_RUN'
+
+    @pytest.mark.parametrize('status',['READBACK_FAILED','STALE_INPUTS_CHANGED','NOT_MATERIALIZED','CURRENT_WRONG_RUN','CURRENT_WRONG_SHA','CURRENT_NOT_CONSUMED'])
+    def test_failed_save_readback_never_gets_success_journal(tmp_path,monkeypatch,status):
+        store=s.ManagerResearchStore(tmp_path);seen=[]
+        write=store._write_atomic
+        def recording(path,value):
+            if 'workspace_plan_runs' in path.parts:seen.append(deepcopy(dict(value)))
+            write(path,value)
+        monkeypatch.setattr(store,'_write_atomic',recording)
+        monkeypatch.setattr(w,'_now',lambda:TIME)
+        monkeypatch.setattr(w,'uuid4',lambda:SimpleNamespace(hex=RUN))
+        monkeypatch.setattr(w,'get_workspace',lambda *a,**k:current())
+        def bad_readback(store,date,value):
+            saved=store._read(latest(store))
+            return {**value,'plan_product':dict(status='CURRENT' if status.startswith('CURRENT_') else status,
+                run_id='b'*32 if status=='CURRENT_WRONG_RUN' else RUN,
+                sha256='0'*64 if status=='CURRENT_WRONG_SHA' else saved['sha256'],
+                consumed=status!='CURRENT_NOT_CONSUMED')}
+        monkeypatch.setattr(w,'_readback_plan',bad_readback)
+>       with pytest.raises(ValueError,match='WORKSPACE_PLAN_SAVE_READBACK_FAILED'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_plan_readback_issue24.py:186: Failed
+___ test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_SHA] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-401/test_failed_save_readback_neve4')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7ffaef125730>
+status = 'CURRENT_WRONG_SHA'
+
+    @pytest.mark.parametrize('status',['READBACK_FAILED','STALE_INPUTS_CHANGED','NOT_MATERIALIZED','CURRENT_WRONG_RUN','CURRENT_WRONG_SHA','CURRENT_NOT_CONSUMED'])
+    def test_failed_save_readback_never_gets_success_journal(tmp_path,monkeypatch,status):
+        store=s.ManagerResearchStore(tmp_path);seen=[]
+        write=store._write_atomic
+        def recording(path,value):
+            if 'workspace_plan_runs' in path.parts:seen.append(deepcopy(dict(value)))
+            write(path,value)
+        monkeypatch.setattr(store,'_write_atomic',recording)
+        monkeypatch.setattr(w,'_now',lambda:TIME)
+        monkeypatch.setattr(w,'uuid4',lambda:SimpleNamespace(hex=RUN))
+        monkeypatch.setattr(w,'get_workspace',lambda *a,**k:current())
+        def bad_readback(store,date,value):
+            saved=store._read(latest(store))
+            return {**value,'plan_product':dict(status='CURRENT' if status.startswith('CURRENT_') else status,
+                run_id='b'*32 if status=='CURRENT_WRONG_RUN' else RUN,
+                sha256='0'*64 if status=='CURRENT_WRONG_SHA' else saved['sha256'],
+                consumed=status!='CURRENT_NOT_CONSUMED')}
+        monkeypatch.setattr(w,'_readback_plan',bad_readback)
+>       with pytest.raises(ValueError,match='WORKSPACE_PLAN_SAVE_READBACK_FAILED'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_plan_readback_issue24.py:186: Failed
+__ test_failed_save_readback_never_gets_success_journal[CURRENT_NOT_CONSUMED] __
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-401/test_failed_save_readback_neve5')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7ffaef125340>
+status = 'CURRENT_NOT_CONSUMED'
+
+    @pytest.mark.parametrize('status',['READBACK_FAILED','STALE_INPUTS_CHANGED','NOT_MATERIALIZED','CURRENT_WRONG_RUN','CURRENT_WRONG_SHA','CURRENT_NOT_CONSUMED'])
+    def test_failed_save_readback_never_gets_success_journal(tmp_path,monkeypatch,status):
+        store=s.ManagerResearchStore(tmp_path);seen=[]
+        write=store._write_atomic
+        def recording(path,value):
+            if 'workspace_plan_runs' in path.parts:seen.append(deepcopy(dict(value)))
+            write(path,value)
+        monkeypatch.setattr(store,'_write_atomic',recording)
+        monkeypatch.setattr(w,'_now',lambda:TIME)
+        monkeypatch.setattr(w,'uuid4',lambda:SimpleNamespace(hex=RUN))
+        monkeypatch.setattr(w,'get_workspace',lambda *a,**k:current())
+        def bad_readback(store,date,value):
+            saved=store._read(latest(store))
+            return {**value,'plan_product':dict(status='CURRENT' if status.startswith('CURRENT_') else status,
+                run_id='b'*32 if status=='CURRENT_WRONG_RUN' else RUN,
+                sha256='0'*64 if status=='CURRENT_WRONG_SHA' else saved['sha256'],
+                consumed=status!='CURRENT_NOT_CONSUMED')}
+        monkeypatch.setattr(w,'_readback_plan',bad_readback)
+        with pytest.raises(ValueError,match='WORKSPACE_PLAN_SAVE_READBACK_FAILED'):
+            w.refresh_workspace_plan(SimpleNamespace(store=store),DATE)
+>       assert {r['state'] for r in seen}<={'RUNNING','FAILED'}
+E       AssertionError: assert {'FAILED', 'R...CEEDED_EMPTY'} <= {'FAILED', 'RUNNING'}
+E         
+E         Extra items in the left set:
+E         'SUCCEEDED_EMPTY'
+
+tests/test_manager_plan_readback_issue24.py:188: AssertionError
+=============================== warnings summary ===============================
+../../../runtime_locked/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_issue8_selection_gaps.py::test_open_unknown_membership_not_promoted_and_prior_day_rejected
+FAILED tests/test_issue8_selection_gaps.py::test_scope_filter_keeps_counts_gaps_and_original_lane_unchanged
+FAILED tests/test_issue8_selection_gaps.py::test_verified_scope_admits_fresh_official_evidence_only_and_does_not_create_focus
+FAILED tests/test_issue8_selection_gaps.py::test_observation_only_never_uses_invalid_or_duplicate_evidence[missing_retrieved]
+FAILED tests/test_issue8_selection_gaps.py::test_observation_only_never_uses_invalid_or_duplicate_evidence[missing_available]
+FAILED tests/test_issue8_selection_gaps.py::test_observation_only_never_uses_invalid_or_duplicate_evidence[late]
+FAILED tests/test_issue8_selection_gaps.py::test_observation_only_never_uses_invalid_or_duplicate_evidence[stale]
+FAILED tests/test_issue8_selection_gaps.py::test_observation_only_never_uses_invalid_or_duplicate_evidence[naive]
+FAILED tests/test_issue8_selection_gaps.py::test_observation_only_never_uses_invalid_or_duplicate_evidence[wrong_subject]
+FAILED tests/test_issue8_selection_gaps.py::test_observation_only_never_uses_invalid_or_duplicate_evidence[missing_ref]
+FAILED tests/test_issue8_selection_gaps.py::test_observation_only_never_uses_invalid_or_duplicate_evidence[wrong_hash]
+FAILED tests/test_issue8_selection_gaps.py::test_observation_only_never_uses_invalid_or_duplicate_evidence[duplicate]
+FAILED tests/test_issue8_selection_gaps.py::test_source_and_us_gap_statuses_remain_separate_not_ready
+FAILED tests/test_issue8_selection_gaps.py::test_gap_only_change_changes_attention_identity_but_read_clock_does_not
+FAILED tests/test_issue8_selection_gaps.py::test_frozen_positive_subtree_preserved_without_promoting_five_stocks
+FAILED tests/test_issue8_selection_gaps.py::test_retained_observation_rejects_unsafe_flags_late_refs_and_bad_identity[unsafe_owner_flag]
+FAILED tests/test_issue8_selection_gaps.py::test_retained_observation_rejects_unsafe_flags_late_refs_and_bad_identity[late_body_ref]
+FAILED tests/test_issue8_selection_gaps.py::test_retained_observation_rejects_unsafe_flags_late_refs_and_bad_identity[late_directory_ref]
+FAILED tests/test_issue8_selection_gaps.py::test_retained_observation_rejects_unsafe_flags_late_refs_and_bad_identity[bad_identity_shape]
+FAILED tests/test_manager_announcement_date_catalog.py::test_dynamic_pagination_proves_empty_terminal_and_preserves_display_mismatch
+FAILED tests/test_manager_announcement_date_catalog.py::test_source_116_h_identifiers_are_preserved_even_when_not_numeric_master_tickers
+FAILED tests/test_manager_announcement_supervisor.py::test_supervisor_does_not_queue_or_wait_for_owner
+FAILED tests/test_manager_announcement_supervisor.py::test_disabled_supervisor_has_no_worker_or_state
+FAILED tests/test_manager_announcement_supervisor.py::test_tail_blackout_blocks_even_explicit_worker
+FAILED tests/test_manager_announcement_supervisor.py::test_binding_rejects_missing_or_tampered_required_identity
+FAILED tests/test_manager_announcement_supervisor.py::test_timeout_terminates_only_spawned_process_group
+FAILED tests/test_manager_announcement_supervisor.py::test_binding_inventory_includes_full_stage_and_body_capture_dependency_closure
+FAILED tests/test_manager_announcement_supervisor.py::test_complete_bound_source_inventory_and_disabled_config
+FAILED tests/test_manager_announcement_supervisor.py::test_plan_only_binding_requires_separate_matching_manual_owner_canary
+FAILED tests/test_manager_announcement_supervisor.py::test_plan_only_binding_accepts_fresh_manual_owner_evidence_from_same_api_root
+FAILED tests/test_manager_announcement_supervisor.py::test_plan_only_binding_rejects_response_body_with_wrong_sha
+FAILED tests/test_manager_announcement_supervisor.py::test_plan_only_binding_rejects_forged_or_announcement_canary
+FAILED tests/test_manager_announcement_supervisor.py::test_plan_only_binding_rejects_owner_source_migration_mismatch
+FAILED tests/test_manager_announcement_supervisor.py::test_binding_rejects_source_and_root_drift[missing_catalog]
+FAILED tests/test_manager_announcement_supervisor.py::test_binding_rejects_source_and_root_drift[unlisted_new_source]
+FAILED tests/test_manager_announcement_supervisor.py::test_binding_rejects_source_and_root_drift[changed_source]
+FAILED tests/test_manager_announcement_supervisor.py::test_binding_rejects_source_and_root_drift[state_overlap]
+FAILED tests/test_manager_announcement_supervisor.py::test_binding_rejects_source_and_root_drift[python_target]
+FAILED tests/test_manager_announcement_supervisor.py::test_binding_rejects_source_and_root_drift[unsafe_flag]
+FAILED tests/test_manager_announcement_supervisor.py::test_daemon_disabled_hook_preserves_original_minute_dispatch
+FAILED tests/test_manager_announcement_supervisor.py::test_revoked_binding_cancels_only_owned_child
+FAILED tests/test_manager_plan_readback_issue24.py::test_legacy_over_64_mib_is_read_losslessly_without_rewrite
+FAILED tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[READBACK_FAILED]
+FAILED tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[STALE_INPUTS_CHANGED]
+FAILED tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[NOT_MATERIALIZED]
+FAILED tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_RUN]
+FAILED tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_WRONG_SHA]
+FAILED tests/test_manager_plan_readback_issue24.py::test_failed_save_readback_never_gets_success_journal[CURRENT_NOT_CONSUMED]
+48 failed, 55 passed, 1 warning in 5.47s

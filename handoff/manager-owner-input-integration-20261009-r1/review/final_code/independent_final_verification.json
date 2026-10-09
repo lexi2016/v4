@@ -1,0 +1,48 @@
+{
+  "source_changes_during_final_tests": {
+    "baseline": [],
+    "repaired": []
+  },
+  "test_results": {
+    "baseline_final": {
+      "tests": "20",
+      "failures": "3",
+      "errors": "0",
+      "skipped": "0",
+      "time": "6.855"
+    },
+    "repaired_final": {
+      "tests": "20",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "7.130"
+    },
+    "edges_final": {
+      "tests": "7",
+      "failures": "2",
+      "errors": "0",
+      "skipped": "0",
+      "time": "3.646"
+    },
+    "clock_classification": {
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.894"
+    }
+  },
+  "critical_source_sha256": {
+    "baseline": {
+      "v4/manager_research/workspace.py": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+      "v4/manager_research/connect_selection.py": "eaa01a13d8065b11cc8397a12edaad8b892f183158aa1f9475d29645dee09d83",
+      "v4/manager_research/announcement_observation.py": "8e58cab8e9e398d7c628c2f994a5005442d3a6c5ba5f218a155d949b8af74f54"
+    },
+    "repaired": {
+      "v4/manager_research/workspace.py": "7a4875f1ab5ba46ac6c18bdaffe2c103a136734fda276fbee918163332844bb0",
+      "v4/manager_research/connect_selection.py": "238f608d8b130aaed6ecfeaea6a66550bf918045c82adeb9aa3ce4f7000ea291",
+      "v4/manager_research/announcement_observation.py": "8e58cab8e9e398d7c628c2f994a5005442d3a6c5ba5f218a155d949b8af74f54"
+    }
+  }
+}

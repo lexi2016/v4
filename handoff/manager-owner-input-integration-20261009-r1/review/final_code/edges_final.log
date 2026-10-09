@@ -1,0 +1,62 @@
+FF.....                                                                  [100%]
+=================================== FAILURES ===================================
+_ test_same_immutable_inputs_reuse_scheduled_run_with_advancing_native_witness[SCHEDULED_MORNING] _
+
+material_owner = (<_v4_manager_research_runtime.service.ManagerResearchJobService object at 0x7f6f594a94f0>, <starlette.testclient.Test...ation_relative': 'universes/20261009/HK_CONNECT_FULL_MARKET.authority/0bf6e2de0194becca4ad6b0c/publication.json', ...})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f6f5aa5ac30>
+kind = 'SCHEDULED_MORNING'
+
+    @pytest.mark.parametrize("kind", ["SCHEDULED_MORNING", "SCHEDULED_PREOPEN"])
+    def test_same_immutable_inputs_reuse_scheduled_run_with_advancing_native_witness(material_owner, monkeypatch, kind):
+        service, client, roots, witness, _owner, _built = material_owner
+        workspace = importlib.import_module(service.__class__.__module__.rsplit(".", 1)[0] + ".workspace")
+        clock, deadline = clocks(kind)
+        witness[0] = clock
+        monkeypatch.setattr(workspace, "_now", lambda: witness[0].isoformat())
+        first = service.refresh_workspace_plan(DATE, execution_kind=kind, now=clock, deadline=deadline)
+        assert len(first["material_discovery_evidence"]["cards"]) == 1
+        before = {key: _snapshot(roots[key]) for key in ("shared", "research", "manager")}
+        witness[0] += timedelta(seconds=30)
+        repeated = service.refresh_workspace_plan(DATE, execution_kind=kind, now=witness[0], deadline=deadline)
+>       assert repeated["plan_product"]["status"] == "ALREADY_MATERIALIZED"
+E       AssertionError: assert 'CURRENT' == 'ALREADY_MATERIALIZED'
+E         
+E         - ALREADY_MATERIALIZED
+E         + CURRENT
+
+../../../review/final_code/test_independent_edges.py:37: AssertionError
+_ test_same_immutable_inputs_reuse_scheduled_run_with_advancing_native_witness[SCHEDULED_PREOPEN] _
+
+material_owner = (<_v4_manager_research_runtime.service.ManagerResearchJobService object at 0x7f6f59153cb0>, <starlette.testclient.Test...ation_relative': 'universes/20261009/HK_CONNECT_FULL_MARKET.authority/0bf6e2de0194becca4ad6b0c/publication.json', ...})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f6f59308dd0>
+kind = 'SCHEDULED_PREOPEN'
+
+    @pytest.mark.parametrize("kind", ["SCHEDULED_MORNING", "SCHEDULED_PREOPEN"])
+    def test_same_immutable_inputs_reuse_scheduled_run_with_advancing_native_witness(material_owner, monkeypatch, kind):
+        service, client, roots, witness, _owner, _built = material_owner
+        workspace = importlib.import_module(service.__class__.__module__.rsplit(".", 1)[0] + ".workspace")
+        clock, deadline = clocks(kind)
+        witness[0] = clock
+        monkeypatch.setattr(workspace, "_now", lambda: witness[0].isoformat())
+        first = service.refresh_workspace_plan(DATE, execution_kind=kind, now=clock, deadline=deadline)
+        assert len(first["material_discovery_evidence"]["cards"]) == 1
+        before = {key: _snapshot(roots[key]) for key in ("shared", "research", "manager")}
+        witness[0] += timedelta(seconds=30)
+        repeated = service.refresh_workspace_plan(DATE, execution_kind=kind, now=witness[0], deadline=deadline)
+>       assert repeated["plan_product"]["status"] == "ALREADY_MATERIALIZED"
+E       AssertionError: assert 'CURRENT' == 'ALREADY_MATERIALIZED'
+E         
+E         - ALREADY_MATERIALIZED
+E         + CURRENT
+
+../../../review/final_code/test_independent_edges.py:37: AssertionError
+=============================== warnings summary ===============================
+review/final_code/test_independent_edges.py::test_same_immutable_inputs_reuse_scheduled_run_with_advancing_native_witness[SCHEDULED_MORNING]
+  /workspace/scratch/0e089a11ee60/four_function_gaps/runtime_locked/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED ../../../review/final_code/test_independent_edges.py::test_same_immutable_inputs_reuse_scheduled_run_with_advancing_native_witness[SCHEDULED_MORNING]
+FAILED ../../../review/final_code/test_independent_edges.py::test_same_immutable_inputs_reuse_scheduled_run_with_advancing_native_witness[SCHEDULED_PREOPEN]
+2 failed, 5 passed, 1 warning in 3.64s
