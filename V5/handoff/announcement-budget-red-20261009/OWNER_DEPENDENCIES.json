@@ -1,0 +1,96 @@
+{
+  "entries": [
+    {
+      "bundle_path": "owner_dependencies/v4/manager_research/announcement_analysis.py",
+      "app_path": "v4/manager_research/announcement_analysis.py",
+      "source_commit": "0382f753929365048d231a7252d9c328d40f8522",
+      "path": "handoff/manager-daily-chain-20261008/source/api_app/v4/manager_research/announcement_analysis.py",
+      "sha256": "b60b8c0c663b203d2ece5a5b451eb41ca296396b2db3630dff4a92a8566f373f",
+      "manifest": "handoff/manager-daily-chain-20261008/bundle_manifest.json",
+      "manifest_sha256": "d4e737dd6537899b1ee9d29c780c5481d2d857fb4a79cee6e1fb44671a5ccb21",
+      "git_blob_sha1": "879c4bd6f963dba2fc34457a06b4622d758408d2",
+      "selection_basis": "R3 immutable API release source; only app module delta versus actual R2 base, independently reviewed and live-verified."
+    },
+    {
+      "bundle_path": "owner_dependencies/v4/manager_research/workspace_announcements.py",
+      "app_path": "v4/manager_research/workspace_announcements.py",
+      "source_commit": "0382f753929365048d231a7252d9c328d40f8522",
+      "path": "handoff/manager-daily-chain-20261008/source/api_app/v4/manager_research/workspace_announcements.py",
+      "sha256": "60839e20df9b61be04629481752ab3072a1088d229c87980e83059b590548e50",
+      "manifest": "handoff/manager-daily-chain-20261008/bundle_manifest.json",
+      "manifest_sha256": "d4e737dd6537899b1ee9d29c780c5481d2d857fb4a79cee6e1fb44671a5ccb21",
+      "git_blob_sha1": "192f943785d5783323956c7099461b4f1f69e860",
+      "selection_basis": "R2 API release file; C1+D1 actual runtime delta versus frozen actual API base inventory"
+    },
+    {
+      "bundle_path": "owner_dependencies/v4/manager_research/announcement_catalog.py",
+      "app_path": "v4/manager_research/announcement_catalog.py",
+      "source_commit": "0382f753929365048d231a7252d9c328d40f8522",
+      "path": "handoff/manager-daily-chain-20261008/compat_r3/candidate_app/v4/manager_research/announcement_catalog.py",
+      "sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68",
+      "manifest": "handoff/manager-daily-chain-20261008/bundle_manifest.json",
+      "manifest_sha256": "d4e737dd6537899b1ee9d29c780c5481d2d857fb4a79cee6e1fb44671a5ccb21",
+      "git_blob_sha1": "aa12f2f47edb63819d91519c6c4747882512dd6f",
+      "selection_basis": "support dependency copied from the exact R2 app preimage for the isolated R3 compatibility tests"
+    },
+    {
+      "bundle_path": "owner_dependencies/v4/manager_research/announcement_selection.py",
+      "app_path": "v4/manager_research/announcement_selection.py",
+      "source_commit": "0382f753929365048d231a7252d9c328d40f8522",
+      "path": "handoff/manager-daily-chain-20261008/compat_r3/candidate_app/v4/manager_research/announcement_selection.py",
+      "sha256": "0924f1806766fc4b580fb17fa8e39206005a25cdc02467757278b1560e104f21",
+      "manifest": "handoff/manager-daily-chain-20261008/bundle_manifest.json",
+      "manifest_sha256": "d4e737dd6537899b1ee9d29c780c5481d2d857fb4a79cee6e1fb44671a5ccb21",
+      "git_blob_sha1": "f302a48d4a806cbc1acb3664abdc9ca9ac4b1eef",
+      "selection_basis": "support dependency copied from the exact R2 app preimage for the isolated R3 compatibility tests"
+    },
+    {
+      "bundle_path": "owner_dependencies/v4/manager_research/store.py",
+      "app_path": "v4/manager_research/store.py",
+      "source_commit": "0382f753929365048d231a7252d9c328d40f8522",
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/store.py",
+      "logical_path": "v4/manager_research/store.py",
+      "sha256": "79e077d2133f8c0bd33dde253e752bc6482423565ec11e9217d88b86f02cc07e",
+      "manifest": "handoff/v4-running-source-20261005/manifests/api-008.json",
+      "manifest_sha256": "68bb3461f6ec1e3ef9eb0abdcaa3474824dc449ae0c57d752ac7d16450cce7df",
+      "git_blob_sha1": "c9af9a6ae87858ebee111766d4db0fd0639943b5",
+      "selection_basis": "fixed API variant manifest; source text read, not executed"
+    },
+    {
+      "bundle_path": "owner_dependencies/v4/manager_research/cache_contract.py",
+      "app_path": "v4/manager_research/cache_contract.py",
+      "source_commit": "0382f753929365048d231a7252d9c328d40f8522",
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/cache_contract.py",
+      "logical_path": "v4/manager_research/cache_contract.py",
+      "sha256": "0dabc0d2787fae9af2e3c0fb3f5bf3e49c71d28649ffd30c07c31f5e8d071b7f",
+      "manifest": "handoff/v4-running-source-20261005/manifests/api-008.json",
+      "manifest_sha256": "68bb3461f6ec1e3ef9eb0abdcaa3474824dc449ae0c57d752ac7d16450cce7df",
+      "git_blob_sha1": "5c4f431d28a1c9807945cbab8b87853a320ae357",
+      "selection_basis": "fixed API variant manifest; source text read, not executed"
+    },
+    {
+      "bundle_path": "owner_dependencies/v4/manager_research/safety.py",
+      "app_path": "v4/manager_research/safety.py",
+      "source_commit": "0382f753929365048d231a7252d9c328d40f8522",
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/safety.py",
+      "logical_path": "v4/manager_research/safety.py",
+      "sha256": "c82fcdee6845e765783584f5ac46a9d4ca6b6b9fda1c3c2e919c17ab17c7f3e8",
+      "manifest": "handoff/v4-running-source-20261005/manifests/api-008.json",
+      "manifest_sha256": "68bb3461f6ec1e3ef9eb0abdcaa3474824dc449ae0c57d752ac7d16450cce7df",
+      "git_blob_sha1": "117439469386ffb3d58c9d047766c6c5cccbd06a",
+      "selection_basis": "fixed API variant manifest; source text read, not executed"
+    },
+    {
+      "bundle_path": "owner_dependencies/v4/manager_research/workspace_plan.py",
+      "app_path": "v4/manager_research/workspace_plan.py",
+      "source_commit": "0382f753929365048d231a7252d9c328d40f8522",
+      "path": "handoff/v4-running-source-20261005/api/v4/manager_research/workspace_plan.py",
+      "logical_path": "v4/manager_research/workspace_plan.py",
+      "sha256": "be0d5e69ff72efd07d2caca4e68948245db4900a8c41f467e9c30f6899c044b1",
+      "manifest": "handoff/v4-running-source-20261005/manifests/api-008.json",
+      "manifest_sha256": "68bb3461f6ec1e3ef9eb0abdcaa3474824dc449ae0c57d752ac7d16450cce7df",
+      "git_blob_sha1": "10abaf491648f20b3618fbf3404c440a7ca77dc7",
+      "selection_basis": "fixed API variant manifest; source text read, not executed"
+    }
+  ]
+}

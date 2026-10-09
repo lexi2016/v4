@@ -18,6 +18,8 @@ import threading
 import time
 from typing import Any, Mapping, Sequence
 from urllib.parse import urlencode, urljoin, urlparse
+from urllib.error import HTTPError
+from email.utils import parsedate_to_datetime, format_datetime
 from urllib.request import HTTPCookieProcessor, HTTPRedirectHandler, Request, build_opener
 from .errors import public_error
 
@@ -164,6 +166,54 @@ def _default_transport(*, max_response_bytes: int = 32 * 1024 * 1024) -> SourceT
     return request
 
 
+def _http_capture_policy(status: int, headers: Mapping[str, Any] | None,
+                         body: bytes | None = None) -> dict[str, Any] | None:
+    """Only status and a validated Retry-After may leave the transport boundary."""
+    headers = headers or {}
+    content_type = next((str(v).lower() for k, v in headers.items()
+                         if str(k).lower() == "content-type"), "")
+    challenge = False
+    if body is not None and ("text/html" in content_type or body.lstrip().lower().startswith((b"<html", b"<!doctype html"))):
+        text = body[:256 * 1024].decode("utf-8", errors="replace").lower()
+        challenge = bool(re.search(r"<input\b[^>]*\bname\s*=\s*['\"]?captcha\b", text)
+                         or re.search(r"<title>\s*(?:security verification|verify you are human)\s*</title>", text)
+                         or re.search(r"<(?:div|iframe)\b[^>]*\b(?:g-recaptcha|h-captcha)\b", text))
+    if status not in {403, 429, 503} and not challenge:
+        return None
+    policy = {"status_code": status, "reason": "CAPTCHA_CHALLENGE" if challenge else f"HTTP_{status}",
+              "action": "STOP", "retry_after_raw": None, "retry_after_seconds": None,
+              "cooldown_until_utc": None, "automatic_retry": False}
+    if status in {429, 503} and not challenge:
+        raw = next((str(v).strip() for k, v in headers.items()
+                    if str(k).lower() == "retry-after"), None)
+        if raw is not None and len(raw) <= 128 and "\r" not in raw and "\n" not in raw:
+            try:
+                now = datetime.fromisoformat(_now()).astimezone(timezone.utc)
+                if re.fullmatch(r"[0-9]{1,10}", raw):
+                    seconds = int(raw)
+                    until = now + timedelta(seconds=seconds)
+                else:
+                    until = parsedate_to_datetime(raw)
+                    if until.tzinfo is None:
+                        raise ValueError("RETRY_AFTER_TIMEZONE_REQUIRED")
+                    until = max(now, until.astimezone(timezone.utc))
+                    seconds = math.ceil((until - now).total_seconds())
+                    raw = format_datetime(until, usegmt=True)
+                policy.update(action="STOP_AND_COOLDOWN", retry_after_raw=raw,
+                    retry_after_seconds=seconds, cooldown_until_utc=until.isoformat(timespec="seconds"))
+            except (ValueError, TypeError, OverflowError):
+                pass  # Unknown delay is a stop, not permission to guess/retry.
+    return policy
+
+
+def _enforce_http_policy(budget: Any | None, policy: dict[str, Any] | None) -> None:
+    if policy is None:
+        return
+    if budget is not None:
+        budget.record_http_policy(policy)
+    raise ProviderError("EASTMONEY_HK_" + policy["reason"] + "_STOP")
+
+
 def _default_eastmoney_hk_transport(*, max_response_bytes: int = 8 * 1024 * 1024) -> SourceTransport:
     """Read the tested Eastmoney HK list/detail and full attached PDF only."""
     if isinstance(max_response_bytes, bool) or not isinstance(max_response_bytes, int) or max_response_bytes < 1:
@@ -187,6 +237,14 @@ def _default_eastmoney_hk_transport(*, max_response_bytes: int = 8 * 1024 * 1024
         try:
             try:
                 response_context = opener.open(request_obj, timeout=timeout)
+            except HTTPError as exc:
+                try:
+                    if byte_budget is not None:
+                        byte_budget.mark_transport_unknown()
+                    _enforce_http_policy(byte_budget, _http_capture_policy(exc.code, exc.headers))
+                    raise
+                finally:
+                    exc.close()
             except BaseException:
                 if byte_budget is not None:
                     byte_budget.mark_transport_unknown()
@@ -492,6 +550,14 @@ class HkexOfficialProvider:
                         method="GET", byte_budget=_byte_budget)
                 else:
                     response = self._eastmoney_transport(url, timeout=request_timeout, method="GET")
+            except HTTPError as exc:
+                try:
+                    if _byte_budget is not None:
+                        _byte_budget.mark_transport_unknown()
+                    _enforce_http_policy(_byte_budget, _http_capture_policy(exc.code, exc.headers))
+                    raise
+                finally:
+                    exc.close()
             except BaseException:
                 # Monitored transport reports exact read progress and marks IO
                 # uncertainty itself; opaque transports cannot prove consumption.
@@ -517,6 +583,8 @@ class HkexOfficialProvider:
                 raise ProviderError("EASTMONEY_HK_REDIRECT_TARGET_REFUSED")
             if not isinstance(response.body, bytes) or len(response.body) > 8 * 1024 * 1024:
                 raise ProviderError("EASTMONEY_HK_RESPONSE_SIZE_BUDGET_EXCEEDED")
+            _enforce_http_policy(_byte_budget,
+                _http_capture_policy(response.status_code, response.headers, response.body))
             return response
         except ProviderError:
             raise

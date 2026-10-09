@@ -135,6 +135,7 @@ class SharedCaptureGate:
         self._leases: dict[str, dict[str, Any]] = {}
         self._admission_stop: str | None = None
         self._unknown_requests = 0
+        self._http_policy: dict[str, Any] | None = None
 
     @property
     def elapsed_seconds(self) -> float:
@@ -241,7 +242,22 @@ class SharedCaptureGate:
             if lease is not None and not lease["unknown"]:
                 lease["unknown"] = True
                 self._unknown_requests += 1
-            self._admission_stop = "BODY_BATCH_TRANSPORT_CONSUMPTION_UNKNOWN"
+            if self._http_policy is None:
+                self._admission_stop = "BODY_BATCH_TRANSPORT_CONSUMPTION_UNKNOWN"
+            self._condition.notify_all()
+
+    def record_http_policy(self, policy: Mapping[str, Any]) -> None:
+        # Already sanitized by the provider; retain only the published contract.
+        allowed = ("status_code", "reason", "action", "retry_after_raw",
+                   "retry_after_seconds", "cooldown_until_utc", "automatic_retry")
+        clean = {key: policy.get(key) for key in allowed}
+        with self._condition:
+            previous = self._http_policy
+            if (previous is None or (previous["action"] != "STOP" and clean["action"] == "STOP")
+                    or (previous["action"] == clean["action"] == "STOP_AND_COOLDOWN"
+                        and str(clean["cooldown_until_utc"]) > str(previous["cooldown_until_utc"]))):
+                self._http_policy = clean
+            self._admission_stop = "BODY_BATCH_" + str(self._http_policy["reason"]) + "_STOP"
             self._condition.notify_all()
 
     def accounting_snapshot(self) -> dict[str, Any]:
@@ -249,7 +265,8 @@ class SharedCaptureGate:
             return {"scope": "THIS_GATE", "observed_response_bytes": self.response_bytes,
                     "unknown_consumption_requests": self._unknown_requests,
                     "admission_stop_reason": self._admission_stop,
-                    "physical_network_bytes_verified": False}
+                    "physical_network_bytes_verified": False,
+                    "http_policy": dict(self._http_policy) if self._http_policy is not None else None}
 
     def record_response_bytes(self, size: int) -> None:
         if isinstance(size, bool) or not isinstance(size, int) or size < 0:
@@ -285,14 +302,17 @@ class SharedCaptureGate:
 
 class _WorkerProviders:
     """Reuse one provider/opener per worker; share only the material store."""
-    def __init__(self, api: Mapping[str, Any], store: Any):
+    def __init__(self, api: Mapping[str, Any], store: Any, gate: SharedCaptureGate | None = None):
         self.api = api
         self.store = store
+        self.gate = gate
         self.local = threading.local()
 
     def get(self) -> Any:
         if not hasattr(self.local, "provider"):
             self.local.provider = self.api["HkexOfficialProvider"](material_store=self.store, timeout=20.0)
+            if self.gate is not None:
+                self.local.provider._capture_policy = self.gate
         return self.local.provider
 
 
@@ -718,7 +738,8 @@ def _run_article_canary(api: Mapping[str, Any], store: Any, provider: Any,
 def run_capture(catalog_read: Mapping[str, Any], material_root: str | Path,
                 output_root: str | Path, target_trade_date: str, publication_date: str,
                 *, canary_article: str | None = None,
-                api_overrides: Mapping[str, Any] | None = None) -> dict[str, Any]:
+                api_overrides: Mapping[str, Any] | None = None,
+                capture_gate: SharedCaptureGate | None = None) -> dict[str, Any]:
     from infrastructure.owned_io import SafeRoot
     # One batch owner, including canary; marker checks and all aggregate writes
     # stay within this lease. Existing incomplete markers still forbid retries.
@@ -729,13 +750,14 @@ def run_capture(catalog_read: Mapping[str, Any], material_root: str | Path,
     with SafeRoot(output.parent).kernel_lock(lock_name, timeout=0):
         return _run_capture_owned(catalog_read, material_root, output_root,
             target_trade_date, publication_date, canary_article=canary_article,
-            api_overrides=api_overrides)
+            api_overrides=api_overrides, capture_gate=capture_gate)
 
 
 def _run_capture_owned(catalog_read: Mapping[str, Any], material_root: str | Path,
                 output_root: str | Path, target_trade_date: str, publication_date: str,
                 *, canary_article: str | None = None,
-                api_overrides: Mapping[str, Any] | None = None) -> dict[str, Any]:
+                api_overrides: Mapping[str, Any] | None = None,
+                capture_gate: SharedCaptureGate | None = None) -> dict[str, Any]:
     """Capture every catalog article; writes only below ``output_root``."""
     target_trade_date = re.sub(r"-", "", str(target_trade_date))
     if not re.fullmatch(r"\d{8}", target_trade_date):
@@ -752,6 +774,8 @@ def _run_capture_owned(catalog_read: Mapping[str, Any], material_root: str | Pat
     catalog = _catalog_product(catalog_read)
     output = Path(output_root)
     if canary_article is not None:
+        if capture_gate is not None:
+            raise ValueError("BODY_BATCH_SHARED_GATE_CANARY_NOT_SUPPORTED")
         if (target_trade_date != APPROVED_CANARY_TARGET_DATE
                 or publication_date != APPROVED_CANARY_PUBLICATION_DATE
                 or canary_article != APPROVED_CANARY_ARTICLE):
@@ -780,10 +804,17 @@ def _run_capture_owned(catalog_read: Mapping[str, Any], material_root: str | Pat
         "workers": WORKERS, "max_seconds": MAX_SECONDS, "max_network_requests": MAX_NETWORK_REQUESTS,
         "max_response_bytes": MAX_RESPONSE_BYTES, "max_extended_content_pages": MAX_EXTENDED_CONTENT_PAGES,
         "max_body_characters": MAX_EXTENDED_BODY_CHARACTERS, "one_attempt_only": True})
-    providers = _WorkerProviders(api, store)
-    gate = SharedCaptureGate(seconds=MAX_SECONDS, max_requests=MAX_NETWORK_REQUESTS,
-        max_bytes=MAX_RESPONSE_BYTES, interval=REQUEST_INTERVAL_SECONDS)
-    gate.set_response_limits(per_response=api["MAX_EASTMONEY_RESPONSE_BYTES"], total=MAX_RESPONSE_BYTES)
+    gate = capture_gate
+    if gate is None:
+        gate = SharedCaptureGate(seconds=MAX_SECONDS, max_requests=MAX_NETWORK_REQUESTS,
+            max_bytes=MAX_RESPONSE_BYTES, interval=REQUEST_INTERVAL_SECONDS)
+        gate.set_response_limits(per_response=api["MAX_EASTMONEY_RESPONSE_BYTES"], total=MAX_RESPONSE_BYTES)
+    elif (gate.seconds != MAX_SECONDS or gate.max_requests != MAX_NETWORK_REQUESTS
+            or gate.max_response_bytes_total != MAX_RESPONSE_BYTES
+            or gate.max_response_bytes != api["MAX_EASTMONEY_RESPONSE_BYTES"]
+            or gate.interval != REQUEST_INTERVAL_SECONDS):
+        raise ValueError("BODY_BATCH_OWNER_GATE_LIMITS_MISMATCH")
+    providers = _WorkerProviders(api, store, gate)
     by_art: dict[str, dict[str, Any]] = {}
     with ThreadPoolExecutor(max_workers=WORKERS, thread_name_prefix="hk-ann-body") as pool:
         futures = {pool.submit(_capture_worker, api, store, providers, gate, row, output,

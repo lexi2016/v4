@@ -512,12 +512,21 @@ def capture_eastmoney(provider: Any, url: str, *, budget: CaptureBudget | None =
     """Capture an Eastmoney response into the existing shared MaterialStore."""
     if provider._material_store is None or not _safe_eastmoney_url(url):
         raise ValueError('EASTMONEY_HK_SHARED_STORE_OR_URL_INVALID')
+    bound_policy = getattr(provider, '_capture_policy', None)
+    if budget is not None and bound_policy is not None and budget is not bound_policy:
+        raise ValueError('EASTMONEY_HK_CAPTURE_POLICY_GATE_MISMATCH')
+    implicit_policy = budget is None and bound_policy is not None
+    if implicit_policy:
+        budget = bound_policy
+    admitted = False
     req = dict(source=EASTMONEY_SOURCE, method='GET', url=url)
     key = EASTMONEY_REQUEST_PREFIX + digest(req)
 
     def fetch(_url):
+        nonlocal admitted
         if budget is not None:
             budget.before_request()
+            admitted = True
         request_timeout = provider._timeout
         if budget is not None:
             remaining = budget.seconds - budget.elapsed_seconds
@@ -543,13 +552,17 @@ def capture_eastmoney(provider: Any, url: str, *, budget: CaptureBudget | None =
         return dict(body=_encode_envelope(response), retrieved_at=response.retrieved_at,
                     content_type='application/vnd.v4.source-envelope+json')
 
-    ttl = 300.0 if urlsplit(url).hostname == 'np-anotice-stock.eastmoney.com' else None
-    material = provider._material_store.fetch(key, url=url, ttl_seconds=ttl,
-        transport=fetch, force=force)
-    status, final_url, body = _decode_envelope(material.body)
-    return dict(request=req, source_key=key, blob_sha256=material.sha256,
-        body_sha256=sha256(body).hexdigest(), retrieved_at=material.retrieved_at,
-        http_status=status, final_url=final_url, from_cache=material.from_cache)
+    try:
+        ttl = 300.0 if urlsplit(url).hostname == 'np-anotice-stock.eastmoney.com' else None
+        material = provider._material_store.fetch(key, url=url, ttl_seconds=ttl,
+            transport=fetch, force=force)
+        status, final_url, body = _decode_envelope(material.body)
+        return dict(request=req, source_key=key, blob_sha256=material.sha256,
+            body_sha256=sha256(body).hexdigest(), retrieved_at=material.retrieved_at,
+            http_status=status, final_url=final_url, from_cache=material.from_cache)
+    finally:
+        if implicit_policy and admitted:
+            budget.end_request()
 
 
 def read_eastmoney_response(store: Any, ref: Mapping[str, Any]) -> bytes:
