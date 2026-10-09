@@ -93,7 +93,7 @@ def load_owner():
 def _request(value):
     required = ('target_date', 'now', 'action', 'view', 'selection_date',
                 'announcement_date', 'inputs', 'rebound', 'manager_output_root')
-    exact_keys(value, required + (('rebound_owner',) if 'rebound_owner' in value else ()))
+    exact_keys(value, required + tuple(key for key in ('rebound_owner','membership') if key in value))
     trade_date(value['target_date'])
     if aware(value['now']) > datetime.now(timezone.utc):
         raise ValueError('MANAGER_FUTURE_CUTOFF')
@@ -165,6 +165,24 @@ def _request(value):
             raise ValueError('MANAGER_REBOUND_OWNER_RUN_ID')
         for key in ('artifact_sha256', 'manifest_sha256', 'receipt_sha256'):
             sha(reference[key])
+    if value.get('membership') is not None:
+        from v5_shadow.membership_reader import OWNER_SHA
+        membership = value['membership']
+        exact_keys(membership, ('root','files','authority_owner_sha256','require_v2'))
+        if membership['require_v2'] is not True or membership['authority_owner_sha256'] != OWNER_SHA:
+            raise ValueError('MANAGER_MEMBERSHIP_OWNER_BINDING')
+        membership_root = no_symlinks(membership['root'])
+        others = [output,*roots]
+        for key in ('rebound','rebound_owner'):
+            if value.get(key) is not None:others.append(no_symlinks(value[key]['root']))
+        if any(membership_root.is_relative_to(other) or other.is_relative_to(membership_root) for other in others):
+            raise ValueError('MANAGER_MEMBERSHIP_ROOT_OVERLAP')
+        if not isinstance(membership['files'],dict) or len(membership['files']) != 7:
+            raise ValueError('MANAGER_MEMBERSHIP_SEVEN_FILES')
+        for relative,digest in membership['files'].items():
+            common._relative(membership_root,relative);sha(digest)
+            if not relative.startswith('universes/'+value['target_date']+'/') or not relative.endswith('.json'):
+                raise ValueError('MANAGER_MEMBERSHIP_PATH')
     canonical_bytes(value)
     return value
 
@@ -190,7 +208,7 @@ def _snapshot(binding):
 
 
 def _identity():
-    names = ('rebound_owner.py', 'health.py', 'module_artifacts.py', 'archive_reader.py', 'announcement_bridge.py', 'manager_plan.py', 'manager_plan_gate.py', 'manager_plan_io.py', 'a_preselection.py',
+    names = ('membership_reader.py', 'hk_membership_recovery.py', 'rebound_owner.py', 'health.py', 'module_artifacts.py', 'archive_reader.py', 'announcement_bridge.py', 'manager_plan.py', 'manager_plan_gate.py', 'manager_plan_io.py', 'a_preselection.py',
              'contracts.py', 'digests.py', 'composition.py', 'module_api.py', 'api_gateway.py',
              'shadow_store.py', 'legacy_adapter.py', 'source_capsule.py', 'provider_evidence.py', '__init__.py')
     return {name: hashlib.sha256((BASE / 'src/v5_shadow' / name).read_bytes()).hexdigest() for name in names}
@@ -207,6 +225,17 @@ def _assemble(request):
         root = private / name; root.mkdir(parents=True); roots[name] = root
         for relative, raw in files.items():
             target = root / relative; target.parent.mkdir(parents=True, exist_ok=True); target.write_bytes(raw)
+    membership_readback = None; membership_snapshot = None
+    if request.get('membership') is not None:
+        from v5_shadow.membership_reader import read_private as read_membership, install_transport
+        membership_root = private/'membership';membership_root.mkdir();roots['membership']=membership_root
+        try:
+            membership_snapshot = _snapshot(request['membership'])
+            for relative,raw in membership_snapshot.items():
+                target=membership_root/relative;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(raw)
+            membership_readback = read_membership(membership_root,request['membership']['files'],request['target_date'])
+        except (OSError,ValueError,KeyError,TypeError) as error:
+            membership_readback = dict(target_date=request['target_date'],error=str(error) if isinstance(error,ValueError) else 'MEMBERSHIP_INPUT_READ_FAILED:'+type(error).__name__)
     archive_readback = None
     if 'archives' in roots:
         from v5_shadow.archive_reader import read_private, source_proxy
@@ -224,6 +253,8 @@ def _assemble(request):
         except (OSError, ValueError, KeyError, TypeError) as error:
             observation_error = str(error) if isinstance(error, ValueError) else 'REBOUND_OWNER_READ_FAILED:' + type(error).__name__
     workspace = load_owner()
+    if membership_readback is not None:
+        install_transport(roots['membership'],membership_readback)
     store_module = importlib.import_module('v4.manager_research.store')
     material_module = importlib.import_module('v4.manager_research.materials')
     bridge = importlib.import_module('v4.manager_research.us_market_bridge')
@@ -340,6 +371,8 @@ def _assemble(request):
     for name, binding in request['inputs'].items():
         if _snapshot(binding) != snapshots[name]:
             raise ValueError('MANAGER_INPUT_CHANGED')
+    if membership_snapshot is not None and _snapshot(request['membership']) != membership_snapshot:
+        raise ValueError('MANAGER_MEMBERSHIP_INPUT_CHANGED')
     _sources()
     archive_diagnostics = None if archive_readback is None else dict(
         source_capsule_sha256=archive_readback['source_capsule_sha256'],
@@ -349,6 +382,7 @@ def _assemble(request):
         supplied_file_sha256=request['inputs']['archives']['files'],
         coverage_basis='BOUND_FILES_AND_ORIGINAL_MANIFEST_NOT_FULL_MARKET')
     return dict(schema_version='v5.manager_plan.v1', payload=payload, readback=readback, archive_readback=archive_diagnostics,
+        membership_readback=membership_readback,
         request_sha256=sha256_json(request), source_capsule_sha256=PIN, implementation_identity=_identity(),
         execution_kind='MANUAL_REFRESH' if request['action']=='refresh' else 'READ_ONLY',
         natural_verified=False, source_origin_verified=False, production_allowed=False,
