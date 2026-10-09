@@ -1,0 +1,48 @@
+{
+  "dispatch_time_reason": "Exact task receipt timestamp was not exposed to this worker.",
+  "dispatch_time_utc": null,
+  "expected_terminal_type": "BLOCKED_ISSUE_PACKAGE",
+  "final_consumed": false,
+  "final_received": true,
+  "lifecycle_status": "CORRECTED_PACKAGE_PENDING_INDEPENDENT_RECHECK",
+  "milestone": "static_saved_evaluation_mechanism_scan_and_issue_package",
+  "outputs": [
+    "SCOPE.md",
+    "ISSUE_PACKAGE_ZH.md",
+    "ISSUE_PACKAGE.json",
+    "COMMANDS_RUN.md",
+    "CODE_ATTACHMENTS.zip",
+    "PACKAGE_RECEIPT.json",
+    "SHA256SUMS.txt",
+    "review/INDEPENDENT_PACKAGE_REVIEW_RECEIPT.json"
+  ],
+  "prepared_at_utc": "2026-10-09T00:57:15Z",
+  "receipt_verified": true,
+  "review_status": "PR5_CORRECTION_APPLIED_PENDING_INDEPENDENT_RECHECK",
+  "schema": "F5_RFF_SAVED_EVAL_RECOVERY_LEDGER_V1",
+  "scope": {
+    "candidate_execution_id": "F5_FULL64_RFF_LOGISTIC_R1_20260927_RESUME_20260928_01",
+    "fit_predict_truth_counts_from_prior_receipts": {
+      "candidate_predict": 1,
+      "fit": 1,
+      "truth_decode": 1
+    },
+    "new_run_started": false,
+    "registry_changed": false,
+    "route_id": "F5_FULL64_RFF_LOGISTIC_R1_20260927",
+    "score_or_truth_rows_read": false,
+    "tests_run": false
+  },
+  "terminal_status": "BLOCKED_DIRECT_SAVED_EVAL_REUSE",
+  "worker": "/root/rff_saved_eval_recovery",
+  "corrective_update": {
+    "trigger": "Independent package review findings P1-PR5-ACCEPTED-JOIN-OMITTED and P2-LOCAL-ONLY-SOURCE-LINKS",
+    "pr5_worker_sha256": "3ea10757a81207147e5cfb9e68e69750a0579786153e7ce58ccf342a3184058c",
+    "pr5_test_sha256": "c19f32aee9aae82919e49583ec041da97852ce5520918810ab1e14e3446980ad",
+    "pr5_independent_mac_receipt_sha256": "28f5cac31469a488987bffba4a799ba73910392bff36e74403dcfd42edd20630",
+    "reported_pr5_scope": "29 of 29 synthetic cases passed; no full-worker or L04 acceptance claimed",
+    "old_candidate_execution_or_binding_mutated": false,
+    "registry_mutated": false,
+    "tests_run_for_this_correction": false
+  }
+}

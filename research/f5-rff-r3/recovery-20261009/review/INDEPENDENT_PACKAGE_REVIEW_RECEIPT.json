@@ -1,0 +1,151 @@
+{
+  "schema": "F5_RFF_SAVED_EVAL_RECOVERY_PACKAGE_INDEPENDENT_REVIEW_V1",
+  "reviewer": {
+    "agent_id": "/root/r3_metadata_review",
+    "role": "independent read-only reviewer",
+    "model": "gpt-6-luna",
+    "reasoning_effort": "max"
+  },
+  "reviewed_at_local": "2026-10-09T09:05:59.373752+08:00",
+  "target": {
+    "package_root": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_RECOVERY_20261009",
+    "issue_route_id": "F5_FULL64_RFF_LOGISTIC_R1_20260927",
+    "related_repository": "lexi2016/v4",
+    "related_issue": 2,
+    "related_pull_request": 5
+  },
+  "verdict": "FAIL_SUBMISSION_AS_WRITTEN_PENDING_PR5_JOIN_REFERENCE_CORRECTION",
+  "statuses": {
+    "package_integrity": "PASS",
+    "static_blocker_claims": "PASS_WITH_ONE_STALE_JOIN_STATUS",
+    "private_repo_code_attachment_safety": "PASS_LIMITED_STATIC_SCAN",
+    "chat_submission_readiness": "FAIL_PENDING_P1"
+  },
+  "package_integrity": {
+    "package_receipt_sha256": "46f0d7eae89528ace8c4c159ff1405d4e0a6e1946797ab12f0c4e974259af2a0",
+    "expected_package_receipt_sha256": "46f0d7eae89528ace8c4c159ff1405d4e0a6e1946797ab12f0c4e974259af2a0",
+    "zip_sha256": "7052c194d6a6c064396b0542407ef51b10433417845536425903d01550f09813",
+    "expected_zip_sha256": "7052c194d6a6c064396b0542407ef51b10433417845536425903d01550f09813",
+    "sha256_sums_all_match": true,
+    "zip_testzip": "PASS",
+    "zip_member_count": 15,
+    "zip_suffix_counts": {
+      ".md": 1,
+      ".json": 1,
+      ".py": 13
+    }
+  },
+  "findings": [
+    {
+      "id": "P1-PR5-ACCEPTED-JOIN-OMITTED",
+      "severity": "P1",
+      "files": [
+        "ISSUE_PACKAGE_ZH.md",
+        "ISSUE_PACKAGE.json",
+        "CODE_ATTACHMENTS.zip"
+      ],
+      "references": [
+        "ISSUE_PACKAGE_ZH.md:40",
+        "ISSUE_PACKAGE_ZH.md:48",
+        "ISSUE_PACKAGE.json:127"
+      ],
+      "evidence": {
+        "package_text": "The package says the prior join must remain CANNOT_CONFIRM until a separately accepted row-safe join rule exists.",
+        "accepted_pr5": {
+          "head_sha": "66a57bead52a20845e1d2af6035c7f19f0b04ed7",
+          "worker_sha256": "3ea10757a81207147e5cfb9e68e69750a0579786153e7ce58ccf342a3184058c",
+          "test_sha256": "c19f32aee9aae82919e49583ec041da97852ce5520918810ab1e14e3446980ad",
+          "independent_mac_receipt_sha256": "28f5cac31469a488987bffba4a799ba73910392bff36e74403dcfd42edd20630",
+          "scoped_tests": {
+            "tests": 29,
+            "passed": 29,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "duration_seconds": 2.745
+          }
+        },
+        "zip_current_worker_sha256": {
+          "rff/src/rff_worker.py": "cecff1218a60c3c67405168b742f40ba76286efbd2435d8f31703375c640619d"
+        },
+        "accepted_worker_in_zip": false
+      },
+      "impact": "This wording can send the next Chat task to re-implement or re-approve the route-local truth join already accepted in PR#5. The true historical failure rows/keys and exact real-run trigger remain unknown, but the deterministic helper rule is no longer absent.",
+      "required_correction": "Keep the old failed candidate execution and its original worker binding immutable. State that its row/key-specific failure details remain CANNOT_CONFIRM; cite PR#5 and the accepted local helper SHA 3ea10757a81207147e5cfb9e68e69750a0579786153e7ce58ccf342a3184058c plus the 29/29 Mac receipt. Require the new zero-fit saved-evaluation binding to reuse/bind that accepted helper; do not create a second join rule. Either add the accepted worker to CODE_ATTACHMENTS.zip or link PR#5 by immutable commit/SHA.",
+      "acceptance_effect": "BLOCKS_SUBMISSION_AS_WRITTEN"
+    },
+    {
+      "id": "P2-LOCAL-ONLY-SOURCE-LINKS",
+      "severity": "P2",
+      "file": "ISSUE_PACKAGE_ZH.md",
+      "references": [
+        "lines 26, 28, 30, 32"
+      ],
+      "evidence": {
+        "absolute_local_markdown_link_lines": [
+          26,
+          28,
+          30,
+          32
+        ]
+      },
+      "impact": "Those source links will not resolve for a Chat recipient or in a GitHub issue in lexi2016/v4.",
+      "suggested_correction": "Use repo-relative paths with line references or immutable GitHub blob links tied to the reviewed commit.",
+      "acceptance_effect": "NON_BLOCKING_PORTABILITY_ISSUE"
+    }
+  ],
+  "verified_blocker_evidence": [
+    {
+      "claim": "RFF CLI launches the candidate owner/worker; it has no separate saved-evaluation command in its parser.",
+      "source": "CODE_ATTACHMENTS.zip:rff/src/rff_candidate_entry.py",
+      "sha256": "ce8476ab930a0789079757250a71060d48b813344bdc6b4f156f791f39556e8e",
+      "references": "1022-1029, 1052-1068"
+    },
+    {
+      "claim": "RFF worker performs fit/predict, writes saved scores/Top3 and seal, then truth read and join inside the candidate worker.",
+      "source": "CODE_ATTACHMENTS.zip:rff/src/rff_worker.py",
+      "sha256": "cecff1218a60c3c67405168b742f40ba76286efbd2435d8f31703375c640619d",
+      "references": "246, 323, 349-391"
+    },
+    {
+      "claim": "RFF completion module creates a receipt after official terminalization/readback; it is not an independent score-only evaluator.",
+      "source": "CODE_ATTACHMENTS.zip:rff/src/rff_evaluation_completion.py",
+      "sha256": "f740a102c06a8ddd5199ae002ec4e329d8e77d5a9aefa70f6eeec613407ee352",
+      "references": "489-526, 531-580"
+    },
+    {
+      "claim": "XENDCG R2 runner requires its R2 schemas and hardcoded XENDCG route/execution IDs.",
+      "source": "CODE_ATTACHMENTS.zip:xendcg_saved_eval/src/run_saved_evaluation_r2.py",
+      "sha256": "25d91cdcf2737f73a074ac87edf6492b2a81f5aeebdcb74f04ceadf19ae3a5aa",
+      "references": "149-178"
+    }
+  ],
+  "private_repo_shareability": {
+    "assessment": "SAFE_TO_SHARE_TO_THE_STATED_PRIVATE_REPOSITORY_AS_CODE_ONLY",
+    "zip_members": 15,
+    "data_like_members": [],
+    "high_confidence_credential_pattern_hits": [],
+    "contains_receipts_or_registry_data": false,
+    "basis": "Archive contains README, manifest and Python source only; no market rows, score/Top3/truth/model artifacts or registry records detected. Static scan checked common private-key/API-token patterns; this is not a guarantee for arbitrary secret formats. No GitHub upload or repository visibility check was performed."
+  },
+  "minimum_chat_ready_update": [
+    "State the supported mechanism blocker remains: no RFF-specific zero-fit saved-evaluation entry, and XENDCG R2 identity checks reject direct RFF reuse.",
+    "Separate the accepted PR#5 route-local join implementation from unknown historical rows/keys; reuse/bind the accepted helper and do not re-open its synthetic fix.",
+    "Preserve the prior candidate execution identity/code SHA; use a new evaluation execution identity and bind accepted helper SHA.",
+    "Replace machine-local evidence links with repo-relative or immutable GitHub links."
+  ],
+  "authorization_boundary": {
+    "score_or_top3_rows_read": false,
+    "truth_rows_read": false,
+    "model_read_or_loaded": false,
+    "fit_predict_or_research_evaluation_run": false,
+    "registry_mutated": false,
+    "package_files_modified_outside_review": false,
+    "github_uploaded_or_mutated": false
+  },
+  "limits": [
+    "No real saved data or artifact rows were opened.",
+    "The actual historical join-failure key/row details remain CANNOT_CONFIRM.",
+    "Repository private visibility was assumed from the parent-provided target; it was not queried."
+  ]
+}

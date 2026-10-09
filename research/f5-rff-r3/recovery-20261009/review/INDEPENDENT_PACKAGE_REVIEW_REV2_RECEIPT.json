@@ -1,0 +1,80 @@
+{
+  "schema": "F5_RFF_SAVED_EVAL_RECOVERY_PACKAGE_INDEPENDENT_REVIEW_REV2_V1",
+  "reviewer": {
+    "agent_id": "/root/r3_metadata_review",
+    "identity_independent_of_writer": true
+  },
+  "verdict": "PASS_SUBMISSION_READY",
+  "scope": {
+    "rechecked": [
+      "Closure of previously reported P1: distinguish accepted synthetic route-local join from unknown historical real row/key, and bind saved-evaluation work to the accepted PR#5 worker SHA while retaining historical candidate identity.",
+      "Closure of previously reported P2: portable evidence references in the issue package.",
+      "Identity and integrity of the three newly attached PR#5 artifacts."
+    ],
+    "not_rechecked_or_run": [
+      "RFF/R2 mechanism review already recorded in the prior independent receipt.",
+      "29 Mac tests were not rerun.",
+      "No research, saved-evaluation execution, or real score/truth/model-row inspection was performed."
+    ]
+  },
+  "evidence": {
+    "package": {
+      "path": "handoffs/F5_RFF_SAVED_EVAL_RECOVERY_20261009",
+      "package_receipt_sha256": "f45746587e71295b90cdaeb3325530a02e5832a7d0cc7332c6a4becbedd748f9",
+      "attachments_zip_sha256": "878e4432cd536ea96835b1b073916f71afaebee10f21239d801a0bb5d071bd64",
+      "sha256sums": "ALL_MATCH",
+      "zip_integrity": "PASS",
+      "zip_member_count": 19
+    },
+    "issue_corrections": {
+      "markdown_evidence_lines": [
+        12,
+        28,
+        38,
+        46
+      ],
+      "json_evidence_lines": [
+        "143-170",
+        "204-242"
+      ],
+      "finding": "P1/P2 closed: package states the accepted PR#5 route-local helper should be reused and its SHA bound for saved-evaluation work; the unknown historical real row/key remains CANNOT_CONFIRM; the prior candidate identity/binding is preserved; evidence links use immutable commit-based repository URLs rather than local absolute paths."
+    },
+    "pr5_accepted_attachments": [
+      {
+        "archive_path": "rff/pr5_accepted/src/rff_worker.py",
+        "bytes": 28369,
+        "sha256": "3ea10757a81207147e5cfb9e68e69750a0579786153e7ce58ccf342a3184058c",
+        "result": "MATCH"
+      },
+      {
+        "archive_path": "rff/pr5_accepted/tests/test_rff_truth_join.py",
+        "bytes": 15174,
+        "sha256": "c19f32aee9aae82919e49583ec041da97852ce5520918810ab1e14e3446980ad",
+        "result": "MATCH"
+      },
+      {
+        "archive_path": "rff/pr5_accepted/review/INDEPENDENT_MAC_REVIEW_RECEIPT.json",
+        "bytes": 4643,
+        "sha256": "28f5cac31469a488987bffba4a799ba73910392bff36e74403dcfd42edd20630",
+        "result": "MATCH",
+        "embedded_test_summary": "29/29 synthetic Mac tests passed (reported by the attached prior receipt; not rerun in this review)."
+      }
+    ],
+    "prior_review_preserved": {
+      "path": "review/INDEPENDENT_PACKAGE_REVIEW_RECEIPT.json",
+      "sha256": "d1d309f7821ec0d3e60f17cd5c908bfc133a3ea63fa42dd4264c5cb1a1c8e9cb"
+    }
+  },
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "acceptance_boundary": {
+    "submission_readiness": "PASS",
+    "synthetic_pr5_join": "ACCEPTED_RECEIPT_PRESENT",
+    "historical_real_row_key_identity": "CANNOT_CONFIRM",
+    "saved_evaluation_execution_or_result": "CANNOT_CONFIRM",
+    "production_or_trading_status": "NOT_IN_SCOPE"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "schema": "F5_RFF_SAVED_EVAL_RECOVERY_PACKAGE_RECEIPT_V1",
+  "created_at_utc": "2026-10-09T00:57:15Z",
+  "updated_at_utc": "2026-10-09T01:11:50Z",
+  "status": "CORRECTED_PENDING_INDEPENDENT_RECHECK",
+  "root": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_SAVED_EVAL_RECOVERY_20261009",
+  "files": {
+    "SCOPE.md": "8b9d0378609c6fe66fb57d64bfa62c8ced8fe8bbddbea385f2141c663be12439",
+    "MINIMAL_LEDGER.json": "25f9c806e6f8766255559b6282bb83c9a8d0085bdafdb16ffcdda2770b72dc2d",
+    "ISSUE_PACKAGE_ZH.md": "27785990324d00e5dc6bdf63e1516114de08936ebc3ec9d166c3de4190d83176",
+    "ISSUE_PACKAGE.json": "46cfa93412735bf5ea4ab9f28e26940a07b6504bfc0547ee611c3db77ac2f161",
+    "COMMANDS_RUN.md": "3b2fb5de7e76889a28e6943c509cebb4ce9362c5c730b3729a79a1dfbe137662",
+    "CODE_ATTACHMENTS.zip": "878e4432cd536ea96835b1b073916f71afaebee10f21239d801a0bb5d071bd64"
+  },
+  "archive_integrity": "PASS_ZIP_TESTZIP",
+  "package_checks": {
+    "checksums_file": "SHA256SUMS.txt",
+    "checksums_excludes": [
+      "PACKAGE_RECEIPT.json",
+      "SHA256SUMS.txt"
+    ],
+    "sha256_sums_all_match": true,
+    "zip_member_count": 19,
+    "zip_suffix_counts": {
+      ".md": 2,
+      ".json": 2,
+      ".py": 15
+    },
+    "zip_testzip": "PASS",
+    "source_manifest_member_hashes": "PASS",
+    "json_documents": [
+      "MINIMAL_LEDGER.json",
+      "ISSUE_PACKAGE.json",
+      "PACKAGE_RECEIPT.json"
+    ],
+    "score_truth_model_registry_data_members": 0,
+    "pr5_review_receipt_member": "rff/pr5_accepted/review/INDEPENDENT_MAC_REVIEW_RECEIPT.json",
+    "pr5_review_receipt_sha256": "28f5cac31469a488987bffba4a799ba73910392bff36e74403dcfd42edd20630",
+    "prior_package_review_receipt_preserved": true,
+    "prior_package_review_receipt_sha256": "d1d309f7821ec0d3e60f17cd5c908bfc133a3ea63fa42dd4264c5cb1a1c8e9cb",
+    "prior_package_review_verdict": "FAIL_SUBMISSION_AS_WRITTEN_PENDING_PR5_JOIN_REFERENCE_CORRECTION"
+  },
+  "score_rows_read": false,
+  "top3_rows_read": false,
+  "truth_rows_read": false,
+  "model_loaded": false,
+  "fit_predict_started": false,
+  "tests_run_for_corrective_patch": false,
+  "registry_mutated": false,
+  "review_status": "PR5_CORRECTION_APPLIED_PENDING_INDEPENDENT_RECHECK"
+}
