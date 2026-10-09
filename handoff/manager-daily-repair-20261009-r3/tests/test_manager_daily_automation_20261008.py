@@ -1,0 +1,390 @@
+"""Bound daily-dispatch contracts; synthetic clocks and no runtime claims."""
+import hashlib
+import importlib.util
+import json
+from datetime import datetime
+from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
+
+from ops import run_manager_announcement_cycle as cycle
+from v4.manager_research import plan_owner_dispatch as dispatch
+from v4.manager_research.store import ManagerResearchStore
+from v4.manager_research.workspace_projection import FLAGS, HK
+from manager_r3_assessed_fixture import assessed_service
+
+_supervisor_name = "infrastructure.scheduling.manager_announcement_supervisor"
+import sys
+supervisor = sys.modules.get(_supervisor_name)
+if supervisor is None:
+    _supervisor_spec = importlib.util.spec_from_file_location(
+        _supervisor_name, Path(__file__).resolve().parents[1]
+        / "infrastructure/scheduling/manager_announcement_supervisor.py")
+    supervisor = importlib.util.module_from_spec(_supervisor_spec)
+    sys.modules[_supervisor_name] = supervisor
+    _supervisor_spec.loader.exec_module(supervisor)
+
+
+def test_daily_automation_config_is_fixed_and_budgeted():
+    value = supervisor.daily_automation_config({
+        "enabled": True,
+        "same_day_catchup_slots_local": ["10:00", "12:30", "15:45", "18:30", "22:30"],
+        "us_mapping_budget_seconds": 5,
+        "max_attempts_per_target_date": 5,
+        "status": "PROPOSAL_ONLY",
+    })
+    assert value["enabled"] is True
+    assert value["us_mapping_budget_seconds"] == 5
+    assert len(value["same_day_catchup_slots_local"]) == 5
+
+    with pytest.raises(ValueError, match="DAILY_AUTOMATION_SLOT_SEQUENCE_INVALID"):
+        supervisor.daily_automation_config({
+            "enabled": True, "same_day_catchup_slots_local": ["10:01"],
+            "us_mapping_budget_seconds": 5, "max_attempts_per_target_date": 5,
+            "status": "PROPOSAL_ONLY",
+        })
+
+
+def test_real_binding_renderer_emits_enabled_daily_and_morning_configs(tmp_path, monkeypatch):
+    renderer_path = Path(__file__).resolve().parents[1] / "ops/render_manager_announcement_binding.py"
+    spec = importlib.util.spec_from_file_location("_manager_daily_binding_renderer", renderer_path)
+    renderer = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(renderer)
+    monkeypatch.setattr(renderer, "binding_inventory", lambda _app: {"synthetic/owned.py": "a" * 64})
+    monkeypatch.setattr(renderer, "validate_binding", lambda value, _app: value)
+
+    app = Path(__file__).resolve().parents[1]
+    state = tmp_path / "state"
+    master = tmp_path / "master"
+    state.mkdir()
+    master.mkdir()
+    receipt = tmp_path / "plan-canary.json"
+    receipt.write_text('{"status":"SYNTHETIC_TEST_ONLY"}', encoding="utf-8")
+    output = tmp_path / "rendered-binding.json"
+    renderer.main([
+        "--app-root", str(app), "--manager-state-root", str(state),
+        "--security-master-root", str(master), "--python", sys.executable,
+        "--output", str(output), "--enabled", "--plan-material-refresh-only",
+        "--daily-automation", "--plan-activation-receipt", str(receipt),
+    ])
+    value = json.loads(output.read_text(encoding="utf-8"))
+    assert value["morning_plan"] == {
+        "enabled": True, "interval_seconds": 300, "status": "PROPOSAL_ONLY"}
+    assert value["daily_automation"]["enabled"] is True
+    assert value["daily_automation"]["same_day_catchup_slots_local"] == [
+        "10:00", "12:30", "15:45", "18:30", "22:30"]
+    assert value["daily_automation"]["status"] == "PROPOSAL_ONLY"
+    assert cycle.daily_cycle_branch("20261008", now=datetime(2026, 10, 8, 18, 30, tzinfo=HK),
+        plan_config=value["plan_material_refresh"], preopen_config=value["preopen_plan"],
+        morning_plan_config=value["morning_plan"], daily_config=value["daily_automation"])[0] == "SAME_DAY_CATCHUP"
+
+
+def test_daily_branch_preserves_preopen_and_uses_only_fixed_catchup_slots():
+    daily = {"enabled": True,
+        "same_day_catchup_slots_local": ["10:00", "12:30", "15:45", "18:30", "22:30"],
+        "us_mapping_budget_seconds": 5, "max_attempts_per_target_date": 5,
+        "status": "PROPOSAL_ONLY"}
+    morning = {"enabled": True, "interval_seconds": 300, "status": "PROPOSAL_ONLY"}
+    evening = {"enabled": True, "start_local": "16:00", "end_local": "23:00",
+        "max_attempts_per_target_date": 3, "retry_backoff_seconds": 600,
+        "status": "PROPOSAL_ONLY"}
+    preopen = {"enabled": True, "lead_seconds": 180, "status": "PROPOSAL_ONLY"}
+    assert cycle.daily_cycle_branch("20261008", now=datetime(2026, 10, 8, 9, 27, tzinfo=HK),
+        plan_config=evening, preopen_config=preopen, morning_plan_config=morning,
+        daily_config=daily) == ("PREOPEN", None)
+    assert cycle.daily_cycle_branch("20261008", now=datetime(2026, 10, 8, 10, 0, tzinfo=HK),
+        plan_config=evening, preopen_config=preopen, morning_plan_config=morning,
+        daily_config=daily) == ("SAME_DAY_CATCHUP", "20261008T1000")
+    assert cycle.daily_cycle_branch("20261008", now=datetime(2026, 10, 8, 10, 1, tzinfo=HK),
+        plan_config=evening, preopen_config=preopen, morning_plan_config=morning,
+        daily_config=daily) == (None, None)
+    assert cycle.daily_cycle_branch("20261008", now=datetime(2026, 10, 8, 15, 30, tzinfo=HK),
+        plan_config=evening, preopen_config=preopen, morning_plan_config=morning,
+        daily_config=daily) == (None, None)
+    assert cycle.daily_cycle_branch("20261008", now=datetime(2026, 10, 8, 15, 40, 59, tzinfo=HK),
+        plan_config=evening, preopen_config=preopen, morning_plan_config=morning,
+        daily_config=daily) == (None, None)
+    assert cycle.daily_cycle_branch("20261008", now=datetime(2026, 10, 8, 18, 30, 59, tzinfo=HK),
+        plan_config=evening, preopen_config=preopen, morning_plan_config=morning,
+        daily_config=daily) == ("SAME_DAY_CATCHUP", "20261008T1830")
+    assert cycle.daily_cycle_branch("20261008", now=datetime(2026, 10, 8, 22, 30, tzinfo=HK),
+        plan_config=evening, preopen_config=preopen, morning_plan_config=morning,
+        daily_config=daily) == ("SAME_DAY_CATCHUP", "20261008T2230")
+
+
+def test_daily_morning_dispatch_runs_us_owner_before_separate_plan_budget(tmp_path, monkeypatch):
+    state = tmp_path / "state"
+    master = tmp_path / "master"
+    master.mkdir()
+    service = SimpleNamespace(store=ManagerResearchStore(state),
+        _workspace_security_master_root=master,
+        _workspace_reads=SimpleNamespace(run=lambda key, fn, seconds: fn()))
+    events = []
+    us_contexts = []
+    def refresh_us(date, **kwargs):
+        events.append("us")
+        us_contexts.append((date, kwargs))
+        return {"status": "INPUT_MISSING", "target_trade_date": date,
+            "execution_status": "US_MARKET_INPUT_MISSING", "gaps": ["INPUT_MISSING"],
+            "matches": [], "coverage": {"matched_us_symbol_count": None}, **FLAGS}
+    service.refresh_us_mapping_research = refresh_us
+    binding = {
+        "schema_version": supervisor.BINDING_SCHEMA, "enabled": True,
+        "policy_status": "PROPOSAL_ONLY", "policy": "BALANCED_V1",
+        "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
+        "research_only": True, "app_root": str(dispatch.APP_ROOT),
+        "manager_state_root": str(state), "security_master_root": str(master),
+        "plan_material_refresh_only": True, "announcement_collection_enabled": False,
+        "preopen_plan": {"enabled": True, "lead_seconds": 180, "status": "PROPOSAL_ONLY"},
+        "morning_plan": {"enabled": True, "interval_seconds": 300, "status": "PROPOSAL_ONLY"},
+        "plan_material_refresh": {"enabled": True, "start_local": "16:00", "end_local": "23:00",
+            "max_attempts_per_target_date": 3, "retry_backoff_seconds": 600,
+            "status": "PROPOSAL_ONLY"},
+        "daily_automation": {"enabled": True,
+            "same_day_catchup_slots_local": ["10:00", "12:30", "15:45", "18:30", "22:30"],
+            "us_mapping_budget_seconds": 5, "max_attempts_per_target_date": 5,
+            "status": "PROPOSAL_ONLY"},
+    }
+    raw = json.dumps(binding, sort_keys=True).encode()
+    binding_path = tmp_path / "binding.json"
+    binding_path.write_bytes(raw)
+    sha = hashlib.sha256(raw).hexdigest()
+    monkeypatch.setenv("V4_MANAGER_PLAN_OWNER_BINDING_PATH", str(binding_path))
+    monkeypatch.setattr(supervisor, "validate_binding", lambda value, **_: value)
+    monkeypatch.setattr(dispatch, "clock_now", lambda: datetime(2026, 10, 8, 7, 0, tzinfo=HK))
+    plan_calls = []
+    def one_plan(owner, bound, identity, **kwargs):
+        events.append("plan")
+        plan_calls.append((identity, kwargs.get("us_mapping_result")))
+        return {"schema_version": dispatch.SCHEMA, "status": "PARTIAL",
+            "branch": identity["branch"], "target_trade_date": identity["target_trade_date"],
+            "us_mapping_research": kwargs.get("us_mapping_result"), **FLAGS}
+    monkeypatch.setattr(dispatch, "_execute_serialized_cycle", one_plan)
+    result = dispatch.execute_bound_daily_cycle(service, "20261008", sha)
+
+    assert events == ["us", "plan"]
+    assert len(plan_calls) == 1
+    assert us_contexts[0][0] == "20261008"
+    assert us_contexts[0][1]["timeout_seconds"] == 5
+    assert us_contexts[0][1]["execution_context"]["timing"] == "ON_TIME"
+    assert plan_calls[0][1]["status"] == "INPUT_MISSING"
+    assert result["branch"] == "MORNING"
+
+
+def test_daily_preopen_branch_never_invokes_us_owner(tmp_path, monkeypatch):
+    state = tmp_path / "state"
+    master = tmp_path / "master"
+    master.mkdir()
+    service = SimpleNamespace(store=ManagerResearchStore(state),
+        _workspace_security_master_root=master,
+        _workspace_reads=SimpleNamespace(run=lambda key, fn, seconds: fn()),
+        refresh_us_mapping_research=lambda *_a, **_k: pytest.fail("PREOPEN must not call US owner"))
+    binding = {
+        "schema_version": supervisor.BINDING_SCHEMA, "enabled": True,
+        "policy_status": "PROPOSAL_ONLY", "policy": "BALANCED_V1",
+        "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
+        "research_only": True, "app_root": str(dispatch.APP_ROOT),
+        "manager_state_root": str(state), "security_master_root": str(master),
+        "plan_material_refresh_only": True, "announcement_collection_enabled": False,
+        "preopen_plan": {"enabled": True, "lead_seconds": 180, "status": "PROPOSAL_ONLY"},
+        "morning_plan": {"enabled": True, "interval_seconds": 300, "status": "PROPOSAL_ONLY"},
+        "plan_material_refresh": {"enabled": True, "start_local": "16:00", "end_local": "23:00",
+            "max_attempts_per_target_date": 3, "retry_backoff_seconds": 600,
+            "status": "PROPOSAL_ONLY"},
+        "daily_automation": {"enabled": True,
+            "same_day_catchup_slots_local": ["10:00", "12:30", "15:45", "18:30", "22:30"],
+            "us_mapping_budget_seconds": 5, "max_attempts_per_target_date": 5,
+            "status": "PROPOSAL_ONLY"},
+    }
+    raw = json.dumps(binding, sort_keys=True).encode()
+    path = tmp_path / "binding.json"
+    path.write_bytes(raw)
+    monkeypatch.setenv("V4_MANAGER_PLAN_OWNER_BINDING_PATH", str(path))
+    monkeypatch.setattr(supervisor, "validate_binding", lambda value, **_: value)
+    monkeypatch.setattr(dispatch, "clock_now", lambda: datetime(2026, 10, 8, 9, 27, tzinfo=HK))
+    branches = []
+    monkeypatch.setattr(dispatch, "_execute_serialized_cycle",
+        lambda owner, bound, identity, **kwargs: branches.append(identity["branch"]) or
+            {"status": "SUCCEEDED", "branch": identity["branch"],
+             "target_trade_date": identity["target_trade_date"], **FLAGS})
+    result = dispatch.execute_bound_daily_cycle(service, "20261008", hashlib.sha256(raw).hexdigest())
+    assert branches == ["PREOPEN"]
+    assert result["branch"] == "PREOPEN"
+
+
+def test_daily_catchup_retry_budget_counts_sealed_receipts_on_target_date(tmp_path):
+    service = SimpleNamespace(store=ManagerResearchStore(tmp_path / "state"))
+    date = "20261008"
+    parent = service.store.root / "workspace_plan_dispatch" / date
+    for index, slot in enumerate(("1000", "1230", "1545"), 1):
+        identity = dispatch._parent_trigger_identity(
+            date, date, "SAME_DAY_CATCHUP", "a" * 64,
+            scheduled_slot=date + "T" + slot)
+        path = parent / identity["trigger_id"] / "0001.json"
+        row = dispatch._seal_dispatch({
+            "schema_version": dispatch.DISPATCH_SCHEMA,
+            "state": "COMPLETED",
+            "parent_trigger_identity": identity,
+            "sequence": 1,
+            "started_at": f"2026-10-08T{slot[:2]}:{slot[2:]}:00+08:00",
+            "finished_at": f"2026-10-08T{slot[:2]}:{slot[2:]}:01+08:00",
+            "response": {"status": "SUCCEEDED"},
+            **FLAGS,
+        })
+        service.store._write_atomic(path, row)
+    assert dispatch._daily_catchup_attempt_count(service, date) == 3
+
+
+def test_admitted_morning_slot_survives_minute_rollover_after_us_preparation(monkeypatch):
+    from ops import run_manager_announcement_cycle as original_cycle
+
+    config = {"enabled": True, "same_day_catchup_slots_local": [
+        "10:00", "12:30", "15:45", "18:30", "22:30"],
+        "us_mapping_budget_seconds": 5, "max_attempts_per_target_date": 5,
+        "status": "PROPOSAL_ONLY"}
+    morning = {"enabled": True, "interval_seconds": 300, "status": "PROPOSAL_ONLY"}
+    plan_config = {"enabled": True, "start_local": "16:00", "end_local": "23:00",
+        "max_attempts_per_target_date": 3, "retry_backoff_seconds": 600,
+        "status": "PROPOSAL_ONLY"}
+    admitted = datetime(2026, 10, 8, 7, 0, tzinfo=HK)
+    completed_us = datetime(2026, 10, 8, 7, 1, 2, tzinfo=HK)
+    assert original_cycle.daily_cycle_branch("20261008", now=admitted,
+        plan_config=plan_config, morning_plan_config=morning, daily_config=config)[0] == "MORNING"
+    assert original_cycle.daily_admitted_branch_is_live("20261008", "20261008", "MORNING",
+        scheduled_slot="20261008T0700", now=completed_us, plan_config=plan_config,
+        morning_plan_config=morning, daily_config=config)
+
+    observed = {}
+    monkeypatch.setattr(original_cycle, "valid_owner_plan_result", lambda *_: True)
+    def morning_owner(service, target, *, now, config, execution_context, us_market_request_context):
+        observed.update(now=now, execution_context=execution_context)
+        return {"status": "MATERIALIZED", "target_trade_date": target}
+    monkeypatch.setattr("v4.manager_research.workspace_plan_autorun.run_scheduled_morning_plan", morning_owner)
+    result = original_cycle.run_scheduled_plan_target(object(), "20261008", "20261008",
+        now=completed_us, plan_config=plan_config, morning_plan_config=morning,
+        daily_config=config, daily_branch="MORNING", scheduled_slot="20261008T0700",
+        trigger_id="d" * 64)
+    assert result["status"] == "SUCCEEDED"
+    assert observed["now"] == completed_us
+    assert observed["execution_context"]["scheduled_for"] == admitted.isoformat()
+
+
+def test_original_morning_owner_uses_admitted_slot_with_real_later_start(monkeypatch):
+    from v4.manager_research import workspace_plan_autorun as autorun
+
+    scheduled_for = datetime(2026, 10, 8, 7, 0, tzinfo=HK)
+    actual_start = datetime(2026, 10, 8, 7, 1, 2, tzinfo=HK)
+    captured = {}
+    service = SimpleNamespace(refresh_workspace_plan=lambda *args, **kwargs:
+        captured.update(args=args, kwargs=kwargs) or {})
+    monkeypatch.setattr(autorun, "owner_plan_readback", lambda *_a, **_k: {
+        "status": "MATERIALIZED", "target_trade_date": "20261008",
+        "generated_at": actual_start.isoformat(), "owner_finished_at": actual_start.isoformat(),
+    })
+    context = {"trigger_kind": "SCHEDULED", "timing": "ON_TIME",
+        "scheduled_for": scheduled_for.isoformat(), "trigger_id": "e" * 64,
+        "natural_run_verified": False}
+    result = autorun.run_scheduled_morning_plan(service, "20261008", now=actual_start,
+        config={"enabled": True, "interval_seconds": 300, "status": "PROPOSAL_ONLY"},
+        execution_context=context)
+    assert result["status"] == "MATERIALIZED"
+    assert captured["kwargs"]["now"] == actual_start
+    assert captured["kwargs"]["execution_context"] == context
+
+
+def test_full_bound_morning_rpc_survives_us_preparation_minute_rollover(tmp_path, monkeypatch):
+    from v4.manager_research.service import ManagerResearchJobService
+    from v4.manager_research import workspace as workspace_owner
+
+    service = assessed_service(tmp_path, monkeypatch,
+        now=datetime(2026, 10, 8, 7, 0, tzinfo=HK))
+    state = service.store.root
+    master = tmp_path / "master"
+    master.mkdir()
+    service._workspace_security_master_root = master
+    service.refresh_us_mapping_research = lambda date, **kwargs: {
+        "status": "INPUT_MISSING", "target_trade_date": date, "matches": [],
+        "execution_status": "US_MARKET_INPUT_MISSING", "gaps": ["INPUT_MISSING"], **FLAGS}
+    binding = {
+        "schema_version": supervisor.BINDING_SCHEMA, "enabled": True,
+        "policy_status": "PROPOSAL_ONLY", "policy": "BALANCED_V1",
+        "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
+        "research_only": True, "app_root": str(dispatch.APP_ROOT),
+        "manager_state_root": str(state), "security_master_root": str(master),
+        "plan_material_refresh_only": True, "announcement_collection_enabled": False,
+        "preopen_plan": {"enabled": True, "lead_seconds": 180, "status": "PROPOSAL_ONLY"},
+        "morning_plan": {"enabled": True, "interval_seconds": 300, "status": "PROPOSAL_ONLY"},
+        "plan_material_refresh": {"enabled": True, "start_local": "16:00", "end_local": "23:00",
+            "max_attempts_per_target_date": 3, "retry_backoff_seconds": 600,
+            "status": "PROPOSAL_ONLY"},
+        "daily_automation": {"enabled": True,
+            "same_day_catchup_slots_local": ["10:00", "12:30", "15:45", "18:30", "22:30"],
+            "us_mapping_budget_seconds": 5, "max_attempts_per_target_date": 5,
+            "status": "PROPOSAL_ONLY"},
+    }
+    raw = json.dumps(binding, sort_keys=True).encode()
+    path = tmp_path / "binding.json"
+    path.write_bytes(raw)
+    monkeypatch.setenv("V4_MANAGER_PLAN_OWNER_BINDING_PATH", str(path))
+    monkeypatch.setattr(supervisor, "validate_binding", lambda value, **_: value)
+    monkeypatch.setattr(workspace_owner, "_now", lambda: "2026-10-08T07:01:04+08:00")
+    clock = iter([
+        datetime(2026, 10, 8, 7, 0, 58, tzinfo=HK),  # RPC admission
+        datetime(2026, 10, 8, 7, 0, 58, tzinfo=HK),  # US owner start
+        datetime(2026, 10, 8, 7, 1, 3, tzinfo=HK),   # plan admission
+        datetime(2026, 10, 8, 7, 1, 3, tzinfo=HK),   # original owner execution
+        datetime(2026, 10, 8, 7, 1, 5, tzinfo=HK),   # dispatch terminal
+    ])
+    monkeypatch.setattr(dispatch, "clock_now", lambda: next(clock))
+    result = dispatch.execute_bound_daily_cycle(service, "20261008", hashlib.sha256(raw).hexdigest())
+    assert result["branch"] == "MORNING"
+    assert result.get("us_mapping_research", {}).get("status") == "INPUT_MISSING", result
+    context = result["plan_result"].get("execution_context")
+    assert context is not None
+    assert context["scheduled_for"] == "2026-10-08T07:00:00+08:00"
+    assert context["started_at"].startswith("2026-10-08T07:01:03")
+    assert result["plan_result"]["execution_kind"] == "SCHEDULED_MORNING"
+    service.close()
+
+
+def test_late_input_advances_same_day_plan_without_overwriting_preopen_history(tmp_path, monkeypatch):
+    from v4.manager_research import workspace as workspace_owner
+    from v4.manager_research import workspace_history
+    from v4.manager_research.service import ManagerResearchJobService
+    import hashlib
+
+    preopen_at = datetime(2026, 10, 8, 9, 27, tzinfo=HK)
+    service = assessed_service(tmp_path, monkeypatch, now=preopen_at, state_name="late-state")
+    monkeypatch.setattr(workspace_owner, "_now", lambda: "2026-10-08T01:28:00+00:00")
+    preopen = service.refresh_workspace_plan("20261008",
+        execution_kind="SCHEDULED_PREOPEN", now=preopen_at,
+        deadline=datetime(2026, 10, 8, 9, 30, tzinfo=HK))
+    old_run = preopen["plan_product"]["run_id"]
+    old_path = service.store.root / "workspace_plans" / "20261008" / (old_run + ".json")
+    old_bytes = old_path.read_bytes()
+
+    original_get_workspace = workspace_owner.get_workspace
+    late_identity = hashlib.sha256(b"synthetic late reviewed input").hexdigest()
+    def late_input(owner, target, **kwargs):
+        value = original_get_workspace(owner, target, **kwargs)
+        value["input_identity"] = late_identity
+        value["gaps"] = sorted(set([*value.get("gaps", []), "SYNTHETIC_LATE_REVIEWED_INPUT"]))
+        return value
+    monkeypatch.setattr(workspace_owner, "get_workspace", late_input)
+    monkeypatch.setattr(workspace_owner, "_now", lambda: "2026-10-08T10:30:01+00:00")
+    result = cycle.run_same_day_catchup_plan(service, "20261008",
+        now=datetime(2026, 10, 8, 18, 30, tzinfo=HK),
+        scheduled_slot="20261008T1830", trigger_id="c" * 64)
+
+    assert result["status"] == "PARTIAL"
+    assert result["plan_result"]["run_id"] != old_run
+    assert result["plan_result"]["execution_kind"] == "MANUAL_REFRESH"
+    assert result["plan_result"]["execution_context"]["timing"] == "LATE_CATCHUP"
+    latest = workspace_owner._read_plan(service.store, "20261008")
+    assert latest["run_id"] == result["plan_result"]["run_id"]
+    assert old_path.read_bytes() == old_bytes
+    recovered, _ = workspace_history._read_candidate(service.store, "20261008",
+        old_run + ".json", boundary=workspace_history.boundary_context("20261008"))
+    assert recovered["run_id"] == old_run
+    service.close()

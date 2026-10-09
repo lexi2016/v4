@@ -1,0 +1,94 @@
+COMMAND: /workspace/scratch/6168fe203da9/r3-venv314/bin/python -m pytest tests/test_manager_r3_binding_identity.py::test_explicit_rpc_canary_pins_api_sources_without_migrating_worker_sources -q
+F                                                                        [100%]
+=================================== FAILURES ===================================
+__ test_explicit_rpc_canary_pins_api_sources_without_migrating_worker_sources __
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-32/test_explicit_rpc_canary_pins_0')
+
+    def test_explicit_rpc_canary_pins_api_sources_without_migrating_worker_sources(tmp_path):
+        binding, worker, owner = synthetic_binding(tmp_path)
+        assert (worker / "v4/manager_research/service.py").read_bytes() != (owner / "v4/manager_research/service.py").read_bytes()
+        # Use the implementation's closed inventory here so this test isolates
+        # the RPC canary contract from the separate consumer-inventory regression.
+        binding["plan_owner_binding"]["files"] = supervisor.plan_owner_inventory(owner)
+        canary_path = Path(binding["plan_activation_receipt"]["path"])
+        canary = json.loads(canary_path.read_bytes())
+        canary["owner_binding_identity_sha256"] = _identity_sha(binding["plan_owner_binding"])
+        assert "source_migration_receipt" not in canary
+        binding["plan_activation_receipt"] = _json_file(canary_path, canary)
+>       assert supervisor.validate_binding(binding, expected_app=worker) == binding
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_identity.py:538: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+infrastructure/scheduling/manager_announcement_supervisor.py:450: in validate_binding
+    _validate_plan_canary(value.get('plan_activation_receipt'),app=app,state=state,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+receipt_ref = {'path': '/tmp/pytest-of-root/pytest-32/test_explicit_rpc_canary_pins_0/evidence/canary.json', 'sha256': '6826c2fbfe41341e4957e1f881ff67cb06f44462fd93402e742759437fd26da9'}
+app = PosixPath('/tmp/pytest-of-root/pytest-32/test_explicit_rpc_canary_pins_0/worker-app')
+state = PosixPath('/tmp/pytest-of-root/pytest-32/test_explicit_rpc_canary_pins_0/state')
+expected_owner_app = PosixPath('/tmp/pytest-of-root/pytest-32/test_explicit_rpc_canary_pins_0/api-app')
+
+    def _validate_plan_canary(receipt_ref: Any, *, app: Path, state: Path,
+                              expected_owner_app: Path | None=None) -> None:
+        """Validate explicit manual-plan owner evidence without accepting an announcement canary."""
+        if not isinstance(receipt_ref,dict):
+            raise ValueError('PLAN_REFRESH_CANARY_REQUIRED')
+        receipt_path=_path(receipt_ref.get('path'))
+        expected_sha=str(receipt_ref.get('sha256') or '')
+        if not re.fullmatch(r'[0-9a-f]{64}',expected_sha):
+            raise ValueError('PLAN_REFRESH_CANARY_SHA_INVALID')
+        try:
+            raw=SafeRoot(receipt_path.parent).read_bytes(receipt_path.name,max_bytes=1024*1024)
+            if hashlib.sha256(raw).hexdigest()!=expected_sha:
+                raise ValueError('PLAN_REFRESH_CANARY_SHA_MISMATCH')
+            canary=json.loads(raw)
+        except (OSError,ValueError,TypeError) as exc:
+            if str(exc).startswith('PLAN_REFRESH_CANARY_'):raise
+            raise ValueError('PLAN_REFRESH_CANARY_INVALID') from exc
+        if not isinstance(canary,dict):
+            raise ValueError('PLAN_REFRESH_CANARY_CONTRACT_INVALID')
+        scope=canary.get('scope')
+        target=str(canary.get('target_trade_date') or '')
+        if (canary.get('schema_version')!=PLAN_CANARY_SCHEMA
+                or canary.get('status')!=PLAN_CANARY_STATUS
+                or canary.get('app_root')!=str(app) or canary.get('manager_state_root')!=str(state)
+                or canary.get('policy_status')!='PROPOSAL_ONLY'
+                or scope not in {PLAN_CANARY_NEXT_SCOPE,PLAN_CANARY_HISTORICAL_SCOPE}
+                or canary.get('plan_material_refresh_only') is not True
+                or canary.get('execution_mode')!='HISTORICAL_MANUAL_REFRESH_OWNER_HTTP_READBACK'
+                or canary.get('hook_executed') is not False
+                or canary.get('candidate_binding_app_root')!=str(app)
+                or not isinstance(canary.get('owner_execution_app_root'),str)
+                or canary.get('announcement_collection_enabled') is not False
+                or canary.get('announcement_network_requests')!=0
+                or canary.get('production_allowed') is not False
+                or canary.get('buy_gate_updated') is not False or canary.get('orders_sent') is not False
+                or canary.get('research_only') is not True):
+            raise ValueError('PLAN_REFRESH_CANARY_CONTRACT_INVALID')
+        if scope==PLAN_CANARY_HISTORICAL_SCOPE:
+            if not re.fullmatch(r'20\d{6}',target):
+                raise ValueError('PLAN_REFRESH_CANARY_HISTORICAL_TARGET_INVALID')
+            _validate_historical_plan_canary_target(target)
+        source_root=_path(canary.get('owner_execution_app_root'))
+        if expected_owner_app is not None and source_root!=expected_owner_app:
+            raise ValueError('PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH')
+        migration_ref=canary.get('source_migration_receipt')
+        if source_root == app:
+            # A fresh API-owner canary may be executed by the exact same release
+            # root that the plan-only cycle will load. Its closed binding inventory
+            # below is the source pin; no cross-release migration receipt applies.
+            if migration_ref is not None:
+                raise ValueError('PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED')
+        else:
+            if not isinstance(migration_ref,dict):
+>               raise ValueError('PLAN_REFRESH_CANARY_SOURCE_MIGRATION_REQUIRED')
+E               ValueError: PLAN_REFRESH_CANARY_SOURCE_MIGRATION_REQUIRED
+
+infrastructure/scheduling/manager_announcement_supervisor.py:288: ValueError
+=========================== short test summary info ============================
+FAILED tests/test_manager_r3_binding_identity.py::test_explicit_rpc_canary_pins_api_sources_without_migrating_worker_sources
+1 failed in 0.16s
+
+EXIT_CODE: 1

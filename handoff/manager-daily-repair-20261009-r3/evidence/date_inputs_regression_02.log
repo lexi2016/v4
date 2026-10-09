@@ -1,0 +1,31 @@
+...........F...F..F.............................................         [100%]
+=================================== FAILURES ===================================
+_ test_default_auto_get_reuses_exact_current_saved_context_but_owner_preview_does_not _
+tests/test_manager_workspace_exact_page_binding_20261008.py:146: in test_default_auto_get_reuses_exact_current_saved_context_but_owner_preview_does_not
+    _import(client, registration)
+tests/test_manager_announcement_parity_20261008.py:262: in _import
+    assert response.status_code == 200, response.text
+E   AssertionError: {"detail":"ANNOUNCEMENT_ANALYSIS_IMPORT_REJECTED"}
+E   assert 409 == 200
+E    +  where 409 = <Response [409 Conflict]>.status_code
+__________ test_late_catchup_plan_preserves_server_execution_context ___________
+tests/test_manager_workspace_owner_20261008.py:106: in test_late_catchup_plan_preserves_server_execution_context
+    attempt=svc.store._read(svc.store.root/'workspace_plan_runs'/DAY/(saved['run_id']+'.json'))
+                                                                      ^^^^^^^^^^^^^^^
+E   TypeError: 'NoneType' object is not subscriptable
+_____ test_retrospective_plan_keeps_real_read_and_generation_time_explicit _____
+tests/test_manager_workspace_owner_20261008.py:166: in test_retrospective_plan_keeps_real_read_and_generation_time_explicit
+    generated=datetime.fromisoformat(result['plan_product']['generated_at'].replace('Z','+00:00'))
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'NoneType' object has no attribute 'replace'
+=============================== warnings summary ===============================
+../../r3-venv/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/6168fe203da9/r3-venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_manager_workspace_exact_page_binding_20261008.py::test_default_auto_get_reuses_exact_current_saved_context_but_owner_preview_does_not
+FAILED tests/test_manager_workspace_owner_20261008.py::test_late_catchup_plan_preserves_server_execution_context
+FAILED tests/test_manager_workspace_owner_20261008.py::test_retrospective_plan_keeps_real_read_and_generation_time_explicit
+3 failed, 61 passed, 1 warning in 4.45s

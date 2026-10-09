@@ -1,0 +1,1981 @@
+COMMAND: /workspace/scratch/6168fe203da9/r3-venv314/bin/python -m pytest tests/test_manager_r3_binding_identity.py -q
+FF.FFF........F.FFFFF.FFF........F.FFFFF..........F......FF.             [100%]
+=================================== FAILURES ===================================
+_ test_dual_roots_admit_the_same_raw_binding_and_echo_original_owner_identity[False] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_dual_roots_admit_the_same0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5cde4e7e10>
+daily = False
+
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_dual_roots_admit_the_same_raw_binding_and_echo_original_owner_identity(tmp_path, monkeypatch, daily):
+        service, binding, worker, owner, ref = bound_owner(tmp_path, monkeypatch)
+        assert worker != owner
+        assert (worker / "v4/manager_research/service.py").read_bytes() != (owner / "v4/manager_research/service.py").read_bytes()
+        # The worker still validates the top-level root and every closed source pin.
+>       assert supervisor.validate_binding(binding, expected_app=worker) == binding
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_identity.py:226: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+infrastructure/scheduling/manager_announcement_supervisor.py:431: in validate_binding
+    owner_app=_validate_plan_owner_identity(value,app=app,state=state,master=master)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = {'schema_version': 'v4.manager_research.announcement_binding.v1', 'enabled': True, 'policy_status': 'PROPOSAL_ONLY', 'policy': 'BALANCED_V1', ...}
+app = PosixPath('/tmp/pytest-of-root/pytest-28/test_dual_roots_admit_the_same0/worker-app')
+state = PosixPath('/tmp/pytest-of-root/pytest-28/test_dual_roots_admit_the_same0/state')
+master = PosixPath('/tmp/pytest-of-root/pytest-28/test_dual_roots_admit_the_same0/master')
+
+    def _validate_plan_owner_identity(value: dict, *, app: Path, state: Path,
+                                      master: Path) -> Path | None:
+        if 'plan_owner_binding' not in value:
+            return None
+        identity=value['plan_owner_binding']
+        if (not isinstance(identity,dict)
+                or set(identity)!={'schema_version','owner','app_root','files'}
+                or identity.get('schema_version')!=PLAN_OWNER_BINDING_SCHEMA
+                or identity.get('owner')!=PLAN_OWNER):
+            raise ValueError('PLAN_OWNER_BINDING_IDENTITY_INVALID')
+        if value.get('plan_material_refresh_only') is not True:
+            raise ValueError('PLAN_OWNER_BINDING_REQUIRES_PLAN_ONLY_MODE')
+        try:
+            owner_app=_path(identity.get('app_root'))
+        except ValueError as exc:
+            raise ValueError('PLAN_OWNER_BINDING_PATH_NOT_EXACT') from exc
+        if (any(owner_app==root or owner_app in root.parents or root in owner_app.parents
+                for root in (state,master))
+                or (owner_app!=app and (owner_app in app.parents or app in owner_app.parents))):
+            raise ValueError('PLAN_OWNER_BINDING_ROOTS_OVERLAP')
+        if not owner_app.is_dir():
+            raise ValueError('PLAN_OWNER_BINDING_ROOT_MISSING')
+        files=identity.get('files')
+        if (not isinstance(files,dict) or len(files)>4096
+                or any(not isinstance(rel,str) or Path(rel).is_absolute() or '..' in Path(rel).parts
+                    or not re.fullmatch('[0-9a-f]{64}',str(sha)) for rel,sha in files.items())):
+            raise ValueError('PLAN_OWNER_BINDING_INVENTORY_INVALID')
+        try:
+            actual=plan_owner_inventory(owner_app)
+        except (OSError,ValueError) as exc:
+            raise ValueError('PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE') from exc
+        if actual!=files:
+>           raise ValueError('PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH')
+E           ValueError: PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH
+
+infrastructure/scheduling/manager_announcement_supervisor.py:171: ValueError
+_ test_dual_roots_admit_the_same_raw_binding_and_echo_original_owner_identity[True] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_dual_roots_admit_the_same1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5cde4e7230>
+daily = True
+
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_dual_roots_admit_the_same_raw_binding_and_echo_original_owner_identity(tmp_path, monkeypatch, daily):
+        service, binding, worker, owner, ref = bound_owner(tmp_path, monkeypatch)
+        assert worker != owner
+        assert (worker / "v4/manager_research/service.py").read_bytes() != (owner / "v4/manager_research/service.py").read_bytes()
+        # The worker still validates the top-level root and every closed source pin.
+>       assert supervisor.validate_binding(binding, expected_app=worker) == binding
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_identity.py:226: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+infrastructure/scheduling/manager_announcement_supervisor.py:431: in validate_binding
+    owner_app=_validate_plan_owner_identity(value,app=app,state=state,master=master)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = {'schema_version': 'v4.manager_research.announcement_binding.v1', 'enabled': True, 'policy_status': 'PROPOSAL_ONLY', 'policy': 'BALANCED_V1', ...}
+app = PosixPath('/tmp/pytest-of-root/pytest-28/test_dual_roots_admit_the_same1/worker-app')
+state = PosixPath('/tmp/pytest-of-root/pytest-28/test_dual_roots_admit_the_same1/state')
+master = PosixPath('/tmp/pytest-of-root/pytest-28/test_dual_roots_admit_the_same1/master')
+
+    def _validate_plan_owner_identity(value: dict, *, app: Path, state: Path,
+                                      master: Path) -> Path | None:
+        if 'plan_owner_binding' not in value:
+            return None
+        identity=value['plan_owner_binding']
+        if (not isinstance(identity,dict)
+                or set(identity)!={'schema_version','owner','app_root','files'}
+                or identity.get('schema_version')!=PLAN_OWNER_BINDING_SCHEMA
+                or identity.get('owner')!=PLAN_OWNER):
+            raise ValueError('PLAN_OWNER_BINDING_IDENTITY_INVALID')
+        if value.get('plan_material_refresh_only') is not True:
+            raise ValueError('PLAN_OWNER_BINDING_REQUIRES_PLAN_ONLY_MODE')
+        try:
+            owner_app=_path(identity.get('app_root'))
+        except ValueError as exc:
+            raise ValueError('PLAN_OWNER_BINDING_PATH_NOT_EXACT') from exc
+        if (any(owner_app==root or owner_app in root.parents or root in owner_app.parents
+                for root in (state,master))
+                or (owner_app!=app and (owner_app in app.parents or app in owner_app.parents))):
+            raise ValueError('PLAN_OWNER_BINDING_ROOTS_OVERLAP')
+        if not owner_app.is_dir():
+            raise ValueError('PLAN_OWNER_BINDING_ROOT_MISSING')
+        files=identity.get('files')
+        if (not isinstance(files,dict) or len(files)>4096
+                or any(not isinstance(rel,str) or Path(rel).is_absolute() or '..' in Path(rel).parts
+                    or not re.fullmatch('[0-9a-f]{64}',str(sha)) for rel,sha in files.items())):
+            raise ValueError('PLAN_OWNER_BINDING_INVENTORY_INVALID')
+        try:
+            actual=plan_owner_inventory(owner_app)
+        except (OSError,ValueError) as exc:
+            raise ValueError('PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE') from exc
+        if actual!=files:
+>           raise ValueError('PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH')
+E           ValueError: PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH
+
+infrastructure/scheduling/manager_announcement_supervisor.py:171: ValueError
+_ test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[False-api_root-PLAN_OWNER_BINDING_API_ROOT_MISMATCH] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_gate_rejection_preserves_1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5cde2c0380>
+damage = 'api_root', code = 'PLAN_OWNER_BINDING_API_ROOT_MISMATCH'
+daily = False
+
+    @pytest.mark.parametrize("damage,code", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("api_root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_BINDING_DISABLED"),
+        ("worker_file", "ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_file", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_missing", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_extra", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_name", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_fields", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_symlink", "PLAN_OWNER_BINDING_PATH_NOT_EXACT"),
+        ("owner_source_symlink", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("api_consumer", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_consumer_missing", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("owner_overlap", "PLAN_OWNER_BINDING_ROOTS_OVERLAP"),
+        ("canary_owner", "PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH"),
+        ("canary_identity_missing", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_identity_wrong", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_migration", "PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED"),
+        ("master", "PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH"),
+    ])
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_gate_rejection_preserves_code_and_never_enters_owner_or_writes(tmp_path, monkeypatch, damage, code, daily):
+        service, binding, worker, owner, ref = bound_owner(tmp_path, monkeypatch)
+        sha = ref["sha256"]
+        if damage == "sha":
+            sha = "0" * 64
+        elif damage == "api_root":
+            other = tmp_path / "actual-other-api"; other.mkdir()
+            monkeypatch.setattr(dispatch, "APP_ROOT", other)
+        elif damage == "disabled":
+            binding["enabled"] = False
+        elif damage == "worker_file":
+            (worker / "ops/run_manager_announcement_cycle.py").write_text("# changed worker\n")
+        elif damage == "api_file":
+            (owner / "v4/manager_research/plan_owner_dispatch.py").write_text("# changed API\n")
+        elif damage == "owner_file_missing":
+            binding["plan_owner_binding"]["files"].pop("apps/api/v35_api/app.py")
+        elif damage == "owner_file_extra":
+            binding["plan_owner_binding"]["files"]["apps/api/v35_api/unpinned.py"] = "a" * 64
+        elif damage == "owner_name":
+            binding["plan_owner_binding"]["owner"] = "OtherOwner"
+        elif damage == "owner_fields":
+            binding["plan_owner_binding"]["expected_app"] = str(owner)
+        elif damage == "owner_symlink":
+            link = tmp_path / "api-link"; link.symlink_to(owner, target_is_directory=True)
+            binding["plan_owner_binding"]["app_root"] = str(link)
+        elif damage == "owner_source_symlink":
+            source = owner / "apps/api/v35_api/app.py"
+            source.unlink(); source.symlink_to(worker / "apps/api/v35_api/app.py")
+        elif damage == "api_consumer":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").write_text("# changed real API consumer\n")
+        elif damage == "api_consumer_missing":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").unlink()
+        elif damage == "owner_overlap":
+            binding["plan_owner_binding"]["app_root"] = binding["manager_state_root"]
+        elif damage == "canary_owner":
+            # Replace the pinned evidence consistently; the new root binding must
+            # still reject a canary executed by another API release.
+            binding["plan_activation_receipt"] = _canary(tmp_path / "wrong-evidence", worker, worker, service.store.root)
+        elif damage.startswith("canary_identity") or damage == "canary_migration":
+            canary_path = Path(binding["plan_activation_receipt"]["path"])
+            canary = json.loads(canary_path.read_bytes())
+            if damage == "canary_identity_missing":
+                canary.pop("owner_binding_identity_sha256")
+            elif damage == "canary_identity_wrong":
+                canary["owner_binding_identity_sha256"] = "0" * 64
+            else:
+                canary["source_migration_receipt"] = {"path": str(tmp_path / "unexpected.json"), "sha256": "a" * 64}
+            binding["plan_activation_receipt"] = _json_file(canary_path, canary)
+        elif damage == "master":
+            service._workspace_security_master_root = tmp_path / "other-master"
+        if damage not in {"sha", "api_root", "worker_file", "api_file", "master",
+                          "owner_source_symlink", "api_consumer", "api_consumer_missing"}:
+            ref = _json_file(Path(ref["path"]), binding)
+            sha = ref["sha256"]
+        execute = dispatch.execute_bound_daily_cycle if daily else dispatch.execute_bound_plan_cycle
+        with pytest.raises(ValueError) as captured:
+            execute(service, DATE, sha)
+        expected = "PLAN_OWNER_DAILY_BINDING_DISABLED" if daily and damage == "disabled" else code
+>       assert str(captured.value) == expected
+E       AssertionError: assert 'PLAN_OWNER_B...TORY_MISMATCH' == 'PLAN_OWNER_B...ROOT_MISMATCH'
+E         
+E         - PLAN_OWNER_BINDING_API_ROOT_MISMATCH
+E         ?                    ^^ ^ ^^^
+E         + PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH
+E         ?                    ^^^^^^^ ^^^^^^ ^
+
+tests/test_manager_r3_binding_identity.py:321: AssertionError
+_ test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[False-disabled-PLAN_OWNER_BINDING_DISABLED] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_gate_rejection_preserves_2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5cde2c0c00>
+damage = 'disabled', code = 'PLAN_OWNER_BINDING_DISABLED', daily = False
+
+    @pytest.mark.parametrize("damage,code", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("api_root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_BINDING_DISABLED"),
+        ("worker_file", "ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_file", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_missing", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_extra", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_name", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_fields", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_symlink", "PLAN_OWNER_BINDING_PATH_NOT_EXACT"),
+        ("owner_source_symlink", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("api_consumer", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_consumer_missing", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("owner_overlap", "PLAN_OWNER_BINDING_ROOTS_OVERLAP"),
+        ("canary_owner", "PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH"),
+        ("canary_identity_missing", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_identity_wrong", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_migration", "PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED"),
+        ("master", "PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH"),
+    ])
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_gate_rejection_preserves_code_and_never_enters_owner_or_writes(tmp_path, monkeypatch, damage, code, daily):
+        service, binding, worker, owner, ref = bound_owner(tmp_path, monkeypatch)
+        sha = ref["sha256"]
+        if damage == "sha":
+            sha = "0" * 64
+        elif damage == "api_root":
+            other = tmp_path / "actual-other-api"; other.mkdir()
+            monkeypatch.setattr(dispatch, "APP_ROOT", other)
+        elif damage == "disabled":
+            binding["enabled"] = False
+        elif damage == "worker_file":
+            (worker / "ops/run_manager_announcement_cycle.py").write_text("# changed worker\n")
+        elif damage == "api_file":
+            (owner / "v4/manager_research/plan_owner_dispatch.py").write_text("# changed API\n")
+        elif damage == "owner_file_missing":
+            binding["plan_owner_binding"]["files"].pop("apps/api/v35_api/app.py")
+        elif damage == "owner_file_extra":
+            binding["plan_owner_binding"]["files"]["apps/api/v35_api/unpinned.py"] = "a" * 64
+        elif damage == "owner_name":
+            binding["plan_owner_binding"]["owner"] = "OtherOwner"
+        elif damage == "owner_fields":
+            binding["plan_owner_binding"]["expected_app"] = str(owner)
+        elif damage == "owner_symlink":
+            link = tmp_path / "api-link"; link.symlink_to(owner, target_is_directory=True)
+            binding["plan_owner_binding"]["app_root"] = str(link)
+        elif damage == "owner_source_symlink":
+            source = owner / "apps/api/v35_api/app.py"
+            source.unlink(); source.symlink_to(worker / "apps/api/v35_api/app.py")
+        elif damage == "api_consumer":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").write_text("# changed real API consumer\n")
+        elif damage == "api_consumer_missing":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").unlink()
+        elif damage == "owner_overlap":
+            binding["plan_owner_binding"]["app_root"] = binding["manager_state_root"]
+        elif damage == "canary_owner":
+            # Replace the pinned evidence consistently; the new root binding must
+            # still reject a canary executed by another API release.
+            binding["plan_activation_receipt"] = _canary(tmp_path / "wrong-evidence", worker, worker, service.store.root)
+        elif damage.startswith("canary_identity") or damage == "canary_migration":
+            canary_path = Path(binding["plan_activation_receipt"]["path"])
+            canary = json.loads(canary_path.read_bytes())
+            if damage == "canary_identity_missing":
+                canary.pop("owner_binding_identity_sha256")
+            elif damage == "canary_identity_wrong":
+                canary["owner_binding_identity_sha256"] = "0" * 64
+            else:
+                canary["source_migration_receipt"] = {"path": str(tmp_path / "unexpected.json"), "sha256": "a" * 64}
+            binding["plan_activation_receipt"] = _json_file(canary_path, canary)
+        elif damage == "master":
+            service._workspace_security_master_root = tmp_path / "other-master"
+        if damage not in {"sha", "api_root", "worker_file", "api_file", "master",
+                          "owner_source_symlink", "api_consumer", "api_consumer_missing"}:
+            ref = _json_file(Path(ref["path"]), binding)
+            sha = ref["sha256"]
+        execute = dispatch.execute_bound_daily_cycle if daily else dispatch.execute_bound_plan_cycle
+        with pytest.raises(ValueError) as captured:
+            execute(service, DATE, sha)
+        expected = "PLAN_OWNER_DAILY_BINDING_DISABLED" if daily and damage == "disabled" else code
+>       assert str(captured.value) == expected
+E       AssertionError: assert 'PLAN_OWNER_B...TORY_MISMATCH' == 'PLAN_OWNER_BINDING_DISABLED'
+E         
+E         - PLAN_OWNER_BINDING_DISABLED
+E         + PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH
+
+tests/test_manager_r3_binding_identity.py:321: AssertionError
+_ test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[False-worker_file-ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_gate_rejection_preserves_3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5cde2fd150>
+damage = 'worker_file', code = 'ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH'
+daily = False
+
+    @pytest.mark.parametrize("damage,code", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("api_root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_BINDING_DISABLED"),
+        ("worker_file", "ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_file", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_missing", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_extra", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_name", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_fields", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_symlink", "PLAN_OWNER_BINDING_PATH_NOT_EXACT"),
+        ("owner_source_symlink", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("api_consumer", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_consumer_missing", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("owner_overlap", "PLAN_OWNER_BINDING_ROOTS_OVERLAP"),
+        ("canary_owner", "PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH"),
+        ("canary_identity_missing", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_identity_wrong", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_migration", "PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED"),
+        ("master", "PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH"),
+    ])
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_gate_rejection_preserves_code_and_never_enters_owner_or_writes(tmp_path, monkeypatch, damage, code, daily):
+        service, binding, worker, owner, ref = bound_owner(tmp_path, monkeypatch)
+        sha = ref["sha256"]
+        if damage == "sha":
+            sha = "0" * 64
+        elif damage == "api_root":
+            other = tmp_path / "actual-other-api"; other.mkdir()
+            monkeypatch.setattr(dispatch, "APP_ROOT", other)
+        elif damage == "disabled":
+            binding["enabled"] = False
+        elif damage == "worker_file":
+            (worker / "ops/run_manager_announcement_cycle.py").write_text("# changed worker\n")
+        elif damage == "api_file":
+            (owner / "v4/manager_research/plan_owner_dispatch.py").write_text("# changed API\n")
+        elif damage == "owner_file_missing":
+            binding["plan_owner_binding"]["files"].pop("apps/api/v35_api/app.py")
+        elif damage == "owner_file_extra":
+            binding["plan_owner_binding"]["files"]["apps/api/v35_api/unpinned.py"] = "a" * 64
+        elif damage == "owner_name":
+            binding["plan_owner_binding"]["owner"] = "OtherOwner"
+        elif damage == "owner_fields":
+            binding["plan_owner_binding"]["expected_app"] = str(owner)
+        elif damage == "owner_symlink":
+            link = tmp_path / "api-link"; link.symlink_to(owner, target_is_directory=True)
+            binding["plan_owner_binding"]["app_root"] = str(link)
+        elif damage == "owner_source_symlink":
+            source = owner / "apps/api/v35_api/app.py"
+            source.unlink(); source.symlink_to(worker / "apps/api/v35_api/app.py")
+        elif damage == "api_consumer":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").write_text("# changed real API consumer\n")
+        elif damage == "api_consumer_missing":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").unlink()
+        elif damage == "owner_overlap":
+            binding["plan_owner_binding"]["app_root"] = binding["manager_state_root"]
+        elif damage == "canary_owner":
+            # Replace the pinned evidence consistently; the new root binding must
+            # still reject a canary executed by another API release.
+            binding["plan_activation_receipt"] = _canary(tmp_path / "wrong-evidence", worker, worker, service.store.root)
+        elif damage.startswith("canary_identity") or damage == "canary_migration":
+            canary_path = Path(binding["plan_activation_receipt"]["path"])
+            canary = json.loads(canary_path.read_bytes())
+            if damage == "canary_identity_missing":
+                canary.pop("owner_binding_identity_sha256")
+            elif damage == "canary_identity_wrong":
+                canary["owner_binding_identity_sha256"] = "0" * 64
+            else:
+                canary["source_migration_receipt"] = {"path": str(tmp_path / "unexpected.json"), "sha256": "a" * 64}
+            binding["plan_activation_receipt"] = _json_file(canary_path, canary)
+        elif damage == "master":
+            service._workspace_security_master_root = tmp_path / "other-master"
+        if damage not in {"sha", "api_root", "worker_file", "api_file", "master",
+                          "owner_source_symlink", "api_consumer", "api_consumer_missing"}:
+            ref = _json_file(Path(ref["path"]), binding)
+            sha = ref["sha256"]
+        execute = dispatch.execute_bound_daily_cycle if daily else dispatch.execute_bound_plan_cycle
+        with pytest.raises(ValueError) as captured:
+            execute(service, DATE, sha)
+        expected = "PLAN_OWNER_DAILY_BINDING_DISABLED" if daily and damage == "disabled" else code
+>       assert str(captured.value) == expected
+E       AssertionError: assert 'PLAN_OWNER_B...TORY_MISMATCH' == 'ANNOUNCEMENT...TORY_MISMATCH'
+E         
+E         - ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH
+E         ?    ---- ^^^^
+E         + PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH
+E         ? ++  +++  ^
+
+tests/test_manager_r3_binding_identity.py:321: AssertionError
+_ test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[False-api_consumer_missing-PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_gate_rejection_preserves_12')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5cde460b50>
+damage = 'api_consumer_missing'
+code = 'PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE', daily = False
+
+    @pytest.mark.parametrize("damage,code", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("api_root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_BINDING_DISABLED"),
+        ("worker_file", "ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_file", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_missing", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_extra", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_name", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_fields", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_symlink", "PLAN_OWNER_BINDING_PATH_NOT_EXACT"),
+        ("owner_source_symlink", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("api_consumer", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_consumer_missing", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("owner_overlap", "PLAN_OWNER_BINDING_ROOTS_OVERLAP"),
+        ("canary_owner", "PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH"),
+        ("canary_identity_missing", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_identity_wrong", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_migration", "PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED"),
+        ("master", "PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH"),
+    ])
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_gate_rejection_preserves_code_and_never_enters_owner_or_writes(tmp_path, monkeypatch, damage, code, daily):
+        service, binding, worker, owner, ref = bound_owner(tmp_path, monkeypatch)
+        sha = ref["sha256"]
+        if damage == "sha":
+            sha = "0" * 64
+        elif damage == "api_root":
+            other = tmp_path / "actual-other-api"; other.mkdir()
+            monkeypatch.setattr(dispatch, "APP_ROOT", other)
+        elif damage == "disabled":
+            binding["enabled"] = False
+        elif damage == "worker_file":
+            (worker / "ops/run_manager_announcement_cycle.py").write_text("# changed worker\n")
+        elif damage == "api_file":
+            (owner / "v4/manager_research/plan_owner_dispatch.py").write_text("# changed API\n")
+        elif damage == "owner_file_missing":
+            binding["plan_owner_binding"]["files"].pop("apps/api/v35_api/app.py")
+        elif damage == "owner_file_extra":
+            binding["plan_owner_binding"]["files"]["apps/api/v35_api/unpinned.py"] = "a" * 64
+        elif damage == "owner_name":
+            binding["plan_owner_binding"]["owner"] = "OtherOwner"
+        elif damage == "owner_fields":
+            binding["plan_owner_binding"]["expected_app"] = str(owner)
+        elif damage == "owner_symlink":
+            link = tmp_path / "api-link"; link.symlink_to(owner, target_is_directory=True)
+            binding["plan_owner_binding"]["app_root"] = str(link)
+        elif damage == "owner_source_symlink":
+            source = owner / "apps/api/v35_api/app.py"
+            source.unlink(); source.symlink_to(worker / "apps/api/v35_api/app.py")
+        elif damage == "api_consumer":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").write_text("# changed real API consumer\n")
+        elif damage == "api_consumer_missing":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").unlink()
+        elif damage == "owner_overlap":
+            binding["plan_owner_binding"]["app_root"] = binding["manager_state_root"]
+        elif damage == "canary_owner":
+            # Replace the pinned evidence consistently; the new root binding must
+            # still reject a canary executed by another API release.
+            binding["plan_activation_receipt"] = _canary(tmp_path / "wrong-evidence", worker, worker, service.store.root)
+        elif damage.startswith("canary_identity") or damage == "canary_migration":
+            canary_path = Path(binding["plan_activation_receipt"]["path"])
+            canary = json.loads(canary_path.read_bytes())
+            if damage == "canary_identity_missing":
+                canary.pop("owner_binding_identity_sha256")
+            elif damage == "canary_identity_wrong":
+                canary["owner_binding_identity_sha256"] = "0" * 64
+            else:
+                canary["source_migration_receipt"] = {"path": str(tmp_path / "unexpected.json"), "sha256": "a" * 64}
+            binding["plan_activation_receipt"] = _json_file(canary_path, canary)
+        elif damage == "master":
+            service._workspace_security_master_root = tmp_path / "other-master"
+        if damage not in {"sha", "api_root", "worker_file", "api_file", "master",
+                          "owner_source_symlink", "api_consumer", "api_consumer_missing"}:
+            ref = _json_file(Path(ref["path"]), binding)
+            sha = ref["sha256"]
+        execute = dispatch.execute_bound_daily_cycle if daily else dispatch.execute_bound_plan_cycle
+        with pytest.raises(ValueError) as captured:
+            execute(service, DATE, sha)
+        expected = "PLAN_OWNER_DAILY_BINDING_DISABLED" if daily and damage == "disabled" else code
+>       assert str(captured.value) == expected
+E       AssertionError: assert 'PLAN_OWNER_B...TORY_MISMATCH' == 'PLAN_OWNER_B...Y_UNAVAILABLE'
+E         
+E         - PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE
+E         + PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH
+
+tests/test_manager_r3_binding_identity.py:321: AssertionError
+_ test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[False-canary_owner-PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_gate_rejection_preserves_14')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5cde337c50>
+damage = 'canary_owner', code = 'PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH'
+daily = False
+
+    @pytest.mark.parametrize("damage,code", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("api_root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_BINDING_DISABLED"),
+        ("worker_file", "ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_file", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_missing", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_extra", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_name", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_fields", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_symlink", "PLAN_OWNER_BINDING_PATH_NOT_EXACT"),
+        ("owner_source_symlink", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("api_consumer", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_consumer_missing", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("owner_overlap", "PLAN_OWNER_BINDING_ROOTS_OVERLAP"),
+        ("canary_owner", "PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH"),
+        ("canary_identity_missing", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_identity_wrong", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_migration", "PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED"),
+        ("master", "PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH"),
+    ])
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_gate_rejection_preserves_code_and_never_enters_owner_or_writes(tmp_path, monkeypatch, damage, code, daily):
+        service, binding, worker, owner, ref = bound_owner(tmp_path, monkeypatch)
+        sha = ref["sha256"]
+        if damage == "sha":
+            sha = "0" * 64
+        elif damage == "api_root":
+            other = tmp_path / "actual-other-api"; other.mkdir()
+            monkeypatch.setattr(dispatch, "APP_ROOT", other)
+        elif damage == "disabled":
+            binding["enabled"] = False
+        elif damage == "worker_file":
+            (worker / "ops/run_manager_announcement_cycle.py").write_text("# changed worker\n")
+        elif damage == "api_file":
+            (owner / "v4/manager_research/plan_owner_dispatch.py").write_text("# changed API\n")
+        elif damage == "owner_file_missing":
+            binding["plan_owner_binding"]["files"].pop("apps/api/v35_api/app.py")
+        elif damage == "owner_file_extra":
+            binding["plan_owner_binding"]["files"]["apps/api/v35_api/unpinned.py"] = "a" * 64
+        elif damage == "owner_name":
+            binding["plan_owner_binding"]["owner"] = "OtherOwner"
+        elif damage == "owner_fields":
+            binding["plan_owner_binding"]["expected_app"] = str(owner)
+        elif damage == "owner_symlink":
+            link = tmp_path / "api-link"; link.symlink_to(owner, target_is_directory=True)
+            binding["plan_owner_binding"]["app_root"] = str(link)
+        elif damage == "owner_source_symlink":
+            source = owner / "apps/api/v35_api/app.py"
+            source.unlink(); source.symlink_to(worker / "apps/api/v35_api/app.py")
+        elif damage == "api_consumer":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").write_text("# changed real API consumer\n")
+        elif damage == "api_consumer_missing":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").unlink()
+        elif damage == "owner_overlap":
+            binding["plan_owner_binding"]["app_root"] = binding["manager_state_root"]
+        elif damage == "canary_owner":
+            # Replace the pinned evidence consistently; the new root binding must
+            # still reject a canary executed by another API release.
+            binding["plan_activation_receipt"] = _canary(tmp_path / "wrong-evidence", worker, worker, service.store.root)
+        elif damage.startswith("canary_identity") or damage == "canary_migration":
+            canary_path = Path(binding["plan_activation_receipt"]["path"])
+            canary = json.loads(canary_path.read_bytes())
+            if damage == "canary_identity_missing":
+                canary.pop("owner_binding_identity_sha256")
+            elif damage == "canary_identity_wrong":
+                canary["owner_binding_identity_sha256"] = "0" * 64
+            else:
+                canary["source_migration_receipt"] = {"path": str(tmp_path / "unexpected.json"), "sha256": "a" * 64}
+            binding["plan_activation_receipt"] = _json_file(canary_path, canary)
+        elif damage == "master":
+            service._workspace_security_master_root = tmp_path / "other-master"
+        if damage not in {"sha", "api_root", "worker_file", "api_file", "master",
+                          "owner_source_symlink", "api_consumer", "api_consumer_missing"}:
+            ref = _json_file(Path(ref["path"]), binding)
+            sha = ref["sha256"]
+        execute = dispatch.execute_bound_daily_cycle if daily else dispatch.execute_bound_plan_cycle
+        with pytest.raises(ValueError) as captured:
+            execute(service, DATE, sha)
+        expected = "PLAN_OWNER_DAILY_BINDING_DISABLED" if daily and damage == "disabled" else code
+>       assert str(captured.value) == expected
+E       AssertionError: assert 'PLAN_OWNER_B...TORY_MISMATCH' == 'PLAN_REFRESH...ROOT_MISMATCH'
+E         
+E         - PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH
+E         + PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH
+
+tests/test_manager_r3_binding_identity.py:321: AssertionError
+_ test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[False-canary_identity_missing-PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_gate_rejection_preserves_15')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5cde337f70>
+damage = 'canary_identity_missing'
+code = 'PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH', daily = False
+
+    @pytest.mark.parametrize("damage,code", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("api_root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_BINDING_DISABLED"),
+        ("worker_file", "ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_file", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_missing", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_extra", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_name", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_fields", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_symlink", "PLAN_OWNER_BINDING_PATH_NOT_EXACT"),
+        ("owner_source_symlink", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("api_consumer", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_consumer_missing", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("owner_overlap", "PLAN_OWNER_BINDING_ROOTS_OVERLAP"),
+        ("canary_owner", "PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH"),
+        ("canary_identity_missing", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_identity_wrong", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_migration", "PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED"),
+        ("master", "PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH"),
+    ])
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_gate_rejection_preserves_code_and_never_enters_owner_or_writes(tmp_path, monkeypatch, damage, code, daily):
+        service, binding, worker, owner, ref = bound_owner(tmp_path, monkeypatch)
+        sha = ref["sha256"]
+        if damage == "sha":
+            sha = "0" * 64
+        elif damage == "api_root":
+            other = tmp_path / "actual-other-api"; other.mkdir()
+            monkeypatch.setattr(dispatch, "APP_ROOT", other)
+        elif damage == "disabled":
+            binding["enabled"] = False
+        elif damage == "worker_file":
+            (worker / "ops/run_manager_announcement_cycle.py").write_text("# changed worker\n")
+        elif damage == "api_file":
+            (owner / "v4/manager_research/plan_owner_dispatch.py").write_text("# changed API\n")
+        elif damage == "owner_file_missing":
+            binding["plan_owner_binding"]["files"].pop("apps/api/v35_api/app.py")
+        elif damage == "owner_file_extra":
+            binding["plan_owner_binding"]["files"]["apps/api/v35_api/unpinned.py"] = "a" * 64
+        elif damage == "owner_name":
+            binding["plan_owner_binding"]["owner"] = "OtherOwner"
+        elif damage == "owner_fields":
+            binding["plan_owner_binding"]["expected_app"] = str(owner)
+        elif damage == "owner_symlink":
+            link = tmp_path / "api-link"; link.symlink_to(owner, target_is_directory=True)
+            binding["plan_owner_binding"]["app_root"] = str(link)
+        elif damage == "owner_source_symlink":
+            source = owner / "apps/api/v35_api/app.py"
+            source.unlink(); source.symlink_to(worker / "apps/api/v35_api/app.py")
+        elif damage == "api_consumer":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").write_text("# changed real API consumer\n")
+        elif damage == "api_consumer_missing":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").unlink()
+        elif damage == "owner_overlap":
+            binding["plan_owner_binding"]["app_root"] = binding["manager_state_root"]
+        elif damage == "canary_owner":
+            # Replace the pinned evidence consistently; the new root binding must
+            # still reject a canary executed by another API release.
+            binding["plan_activation_receipt"] = _canary(tmp_path / "wrong-evidence", worker, worker, service.store.root)
+        elif damage.startswith("canary_identity") or damage == "canary_migration":
+            canary_path = Path(binding["plan_activation_receipt"]["path"])
+            canary = json.loads(canary_path.read_bytes())
+            if damage == "canary_identity_missing":
+                canary.pop("owner_binding_identity_sha256")
+            elif damage == "canary_identity_wrong":
+                canary["owner_binding_identity_sha256"] = "0" * 64
+            else:
+                canary["source_migration_receipt"] = {"path": str(tmp_path / "unexpected.json"), "sha256": "a" * 64}
+            binding["plan_activation_receipt"] = _json_file(canary_path, canary)
+        elif damage == "master":
+            service._workspace_security_master_root = tmp_path / "other-master"
+        if damage not in {"sha", "api_root", "worker_file", "api_file", "master",
+                          "owner_source_symlink", "api_consumer", "api_consumer_missing"}:
+            ref = _json_file(Path(ref["path"]), binding)
+            sha = ref["sha256"]
+        execute = dispatch.execute_bound_daily_cycle if daily else dispatch.execute_bound_plan_cycle
+        with pytest.raises(ValueError) as captured:
+            execute(service, DATE, sha)
+        expected = "PLAN_OWNER_DAILY_BINDING_DISABLED" if daily and damage == "disabled" else code
+>       assert str(captured.value) == expected
+E       AssertionError: assert 'PLAN_OWNER_B...TORY_MISMATCH' == 'PLAN_REFRESH...TITY_MISMATCH'
+E         
+E         - PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH
+E         + PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH
+
+tests/test_manager_r3_binding_identity.py:321: AssertionError
+_ test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[False-canary_identity_wrong-PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_gate_rejection_preserves_16')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5cde22d760>
+damage = 'canary_identity_wrong'
+code = 'PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH', daily = False
+
+    @pytest.mark.parametrize("damage,code", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("api_root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_BINDING_DISABLED"),
+        ("worker_file", "ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_file", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_missing", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_extra", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_name", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_fields", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_symlink", "PLAN_OWNER_BINDING_PATH_NOT_EXACT"),
+        ("owner_source_symlink", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("api_consumer", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_consumer_missing", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("owner_overlap", "PLAN_OWNER_BINDING_ROOTS_OVERLAP"),
+        ("canary_owner", "PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH"),
+        ("canary_identity_missing", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_identity_wrong", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_migration", "PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED"),
+        ("master", "PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH"),
+    ])
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_gate_rejection_preserves_code_and_never_enters_owner_or_writes(tmp_path, monkeypatch, damage, code, daily):
+        service, binding, worker, owner, ref = bound_owner(tmp_path, monkeypatch)
+        sha = ref["sha256"]
+        if damage == "sha":
+            sha = "0" * 64
+        elif damage == "api_root":
+            other = tmp_path / "actual-other-api"; other.mkdir()
+            monkeypatch.setattr(dispatch, "APP_ROOT", other)
+        elif damage == "disabled":
+            binding["enabled"] = False
+        elif damage == "worker_file":
+            (worker / "ops/run_manager_announcement_cycle.py").write_text("# changed worker\n")
+        elif damage == "api_file":
+            (owner / "v4/manager_research/plan_owner_dispatch.py").write_text("# changed API\n")
+        elif damage == "owner_file_missing":
+            binding["plan_owner_binding"]["files"].pop("apps/api/v35_api/app.py")
+        elif damage == "owner_file_extra":
+            binding["plan_owner_binding"]["files"]["apps/api/v35_api/unpinned.py"] = "a" * 64
+        elif damage == "owner_name":
+            binding["plan_owner_binding"]["owner"] = "OtherOwner"
+        elif damage == "owner_fields":
+            binding["plan_owner_binding"]["expected_app"] = str(owner)
+        elif damage == "owner_symlink":
+            link = tmp_path / "api-link"; link.symlink_to(owner, target_is_directory=True)
+            binding["plan_owner_binding"]["app_root"] = str(link)
+        elif damage == "owner_source_symlink":
+            source = owner / "apps/api/v35_api/app.py"
+            source.unlink(); source.symlink_to(worker / "apps/api/v35_api/app.py")
+        elif damage == "api_consumer":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").write_text("# changed real API consumer\n")
+        elif damage == "api_consumer_missing":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").unlink()
+        elif damage == "owner_overlap":
+            binding["plan_owner_binding"]["app_root"] = binding["manager_state_root"]
+        elif damage == "canary_owner":
+            # Replace the pinned evidence consistently; the new root binding must
+            # still reject a canary executed by another API release.
+            binding["plan_activation_receipt"] = _canary(tmp_path / "wrong-evidence", worker, worker, service.store.root)
+        elif damage.startswith("canary_identity") or damage == "canary_migration":
+            canary_path = Path(binding["plan_activation_receipt"]["path"])
+            canary = json.loads(canary_path.read_bytes())
+            if damage == "canary_identity_missing":
+                canary.pop("owner_binding_identity_sha256")
+            elif damage == "canary_identity_wrong":
+                canary["owner_binding_identity_sha256"] = "0" * 64
+            else:
+                canary["source_migration_receipt"] = {"path": str(tmp_path / "unexpected.json"), "sha256": "a" * 64}
+            binding["plan_activation_receipt"] = _json_file(canary_path, canary)
+        elif damage == "master":
+            service._workspace_security_master_root = tmp_path / "other-master"
+        if damage not in {"sha", "api_root", "worker_file", "api_file", "master",
+                          "owner_source_symlink", "api_consumer", "api_consumer_missing"}:
+            ref = _json_file(Path(ref["path"]), binding)
+            sha = ref["sha256"]
+        execute = dispatch.execute_bound_daily_cycle if daily else dispatch.execute_bound_plan_cycle
+        with pytest.raises(ValueError) as captured:
+            execute(service, DATE, sha)
+        expected = "PLAN_OWNER_DAILY_BINDING_DISABLED" if daily and damage == "disabled" else code
+>       assert str(captured.value) == expected
+E       AssertionError: assert 'PLAN_OWNER_B...TORY_MISMATCH' == 'PLAN_REFRESH...TITY_MISMATCH'
+E         
+E         - PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH
+E         + PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH
+
+tests/test_manager_r3_binding_identity.py:321: AssertionError
+_ test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[False-canary_migration-PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_gate_rejection_preserves_17')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5cde4055d0>
+damage = 'canary_migration'
+code = 'PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED', daily = False
+
+    @pytest.mark.parametrize("damage,code", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("api_root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_BINDING_DISABLED"),
+        ("worker_file", "ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_file", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_missing", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_extra", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_name", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_fields", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_symlink", "PLAN_OWNER_BINDING_PATH_NOT_EXACT"),
+        ("owner_source_symlink", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("api_consumer", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_consumer_missing", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("owner_overlap", "PLAN_OWNER_BINDING_ROOTS_OVERLAP"),
+        ("canary_owner", "PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH"),
+        ("canary_identity_missing", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_identity_wrong", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_migration", "PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED"),
+        ("master", "PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH"),
+    ])
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_gate_rejection_preserves_code_and_never_enters_owner_or_writes(tmp_path, monkeypatch, damage, code, daily):
+        service, binding, worker, owner, ref = bound_owner(tmp_path, monkeypatch)
+        sha = ref["sha256"]
+        if damage == "sha":
+            sha = "0" * 64
+        elif damage == "api_root":
+            other = tmp_path / "actual-other-api"; other.mkdir()
+            monkeypatch.setattr(dispatch, "APP_ROOT", other)
+        elif damage == "disabled":
+            binding["enabled"] = False
+        elif damage == "worker_file":
+            (worker / "ops/run_manager_announcement_cycle.py").write_text("# changed worker\n")
+        elif damage == "api_file":
+            (owner / "v4/manager_research/plan_owner_dispatch.py").write_text("# changed API\n")
+        elif damage == "owner_file_missing":
+            binding["plan_owner_binding"]["files"].pop("apps/api/v35_api/app.py")
+        elif damage == "owner_file_extra":
+            binding["plan_owner_binding"]["files"]["apps/api/v35_api/unpinned.py"] = "a" * 64
+        elif damage == "owner_name":
+            binding["plan_owner_binding"]["owner"] = "OtherOwner"
+        elif damage == "owner_fields":
+            binding["plan_owner_binding"]["expected_app"] = str(owner)
+        elif damage == "owner_symlink":
+            link = tmp_path / "api-link"; link.symlink_to(owner, target_is_directory=True)
+            binding["plan_owner_binding"]["app_root"] = str(link)
+        elif damage == "owner_source_symlink":
+            source = owner / "apps/api/v35_api/app.py"
+            source.unlink(); source.symlink_to(worker / "apps/api/v35_api/app.py")
+        elif damage == "api_consumer":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").write_text("# changed real API consumer\n")
+        elif damage == "api_consumer_missing":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").unlink()
+        elif damage == "owner_overlap":
+            binding["plan_owner_binding"]["app_root"] = binding["manager_state_root"]
+        elif damage == "canary_owner":
+            # Replace the pinned evidence consistently; the new root binding must
+            # still reject a canary executed by another API release.
+            binding["plan_activation_receipt"] = _canary(tmp_path / "wrong-evidence", worker, worker, service.store.root)
+        elif damage.startswith("canary_identity") or damage == "canary_migration":
+            canary_path = Path(binding["plan_activation_receipt"]["path"])
+            canary = json.loads(canary_path.read_bytes())
+            if damage == "canary_identity_missing":
+                canary.pop("owner_binding_identity_sha256")
+            elif damage == "canary_identity_wrong":
+                canary["owner_binding_identity_sha256"] = "0" * 64
+            else:
+                canary["source_migration_receipt"] = {"path": str(tmp_path / "unexpected.json"), "sha256": "a" * 64}
+            binding["plan_activation_receipt"] = _json_file(canary_path, canary)
+        elif damage == "master":
+            service._workspace_security_master_root = tmp_path / "other-master"
+        if damage not in {"sha", "api_root", "worker_file", "api_file", "master",
+                          "owner_source_symlink", "api_consumer", "api_consumer_missing"}:
+            ref = _json_file(Path(ref["path"]), binding)
+            sha = ref["sha256"]
+        execute = dispatch.execute_bound_daily_cycle if daily else dispatch.execute_bound_plan_cycle
+        with pytest.raises(ValueError) as captured:
+            execute(service, DATE, sha)
+        expected = "PLAN_OWNER_DAILY_BINDING_DISABLED" if daily and damage == "disabled" else code
+>       assert str(captured.value) == expected
+E       AssertionError: assert 'PLAN_OWNER_B...TORY_MISMATCH' == 'PLAN_REFRESH...ON_UNEXPECTED'
+E         
+E         - PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED
+E         + PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH
+
+tests/test_manager_r3_binding_identity.py:321: AssertionError
+_ test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[False-master-PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_gate_rejection_preserves_18')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5cde3931d0>
+damage = 'master', code = 'PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH'
+daily = False
+
+    @pytest.mark.parametrize("damage,code", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("api_root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_BINDING_DISABLED"),
+        ("worker_file", "ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_file", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_missing", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_extra", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_name", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_fields", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_symlink", "PLAN_OWNER_BINDING_PATH_NOT_EXACT"),
+        ("owner_source_symlink", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("api_consumer", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_consumer_missing", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("owner_overlap", "PLAN_OWNER_BINDING_ROOTS_OVERLAP"),
+        ("canary_owner", "PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH"),
+        ("canary_identity_missing", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_identity_wrong", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_migration", "PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED"),
+        ("master", "PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH"),
+    ])
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_gate_rejection_preserves_code_and_never_enters_owner_or_writes(tmp_path, monkeypatch, damage, code, daily):
+        service, binding, worker, owner, ref = bound_owner(tmp_path, monkeypatch)
+        sha = ref["sha256"]
+        if damage == "sha":
+            sha = "0" * 64
+        elif damage == "api_root":
+            other = tmp_path / "actual-other-api"; other.mkdir()
+            monkeypatch.setattr(dispatch, "APP_ROOT", other)
+        elif damage == "disabled":
+            binding["enabled"] = False
+        elif damage == "worker_file":
+            (worker / "ops/run_manager_announcement_cycle.py").write_text("# changed worker\n")
+        elif damage == "api_file":
+            (owner / "v4/manager_research/plan_owner_dispatch.py").write_text("# changed API\n")
+        elif damage == "owner_file_missing":
+            binding["plan_owner_binding"]["files"].pop("apps/api/v35_api/app.py")
+        elif damage == "owner_file_extra":
+            binding["plan_owner_binding"]["files"]["apps/api/v35_api/unpinned.py"] = "a" * 64
+        elif damage == "owner_name":
+            binding["plan_owner_binding"]["owner"] = "OtherOwner"
+        elif damage == "owner_fields":
+            binding["plan_owner_binding"]["expected_app"] = str(owner)
+        elif damage == "owner_symlink":
+            link = tmp_path / "api-link"; link.symlink_to(owner, target_is_directory=True)
+            binding["plan_owner_binding"]["app_root"] = str(link)
+        elif damage == "owner_source_symlink":
+            source = owner / "apps/api/v35_api/app.py"
+            source.unlink(); source.symlink_to(worker / "apps/api/v35_api/app.py")
+        elif damage == "api_consumer":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").write_text("# changed real API consumer\n")
+        elif damage == "api_consumer_missing":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").unlink()
+        elif damage == "owner_overlap":
+            binding["plan_owner_binding"]["app_root"] = binding["manager_state_root"]
+        elif damage == "canary_owner":
+            # Replace the pinned evidence consistently; the new root binding must
+            # still reject a canary executed by another API release.
+            binding["plan_activation_receipt"] = _canary(tmp_path / "wrong-evidence", worker, worker, service.store.root)
+        elif damage.startswith("canary_identity") or damage == "canary_migration":
+            canary_path = Path(binding["plan_activation_receipt"]["path"])
+            canary = json.loads(canary_path.read_bytes())
+            if damage == "canary_identity_missing":
+                canary.pop("owner_binding_identity_sha256")
+            elif damage == "canary_identity_wrong":
+                canary["owner_binding_identity_sha256"] = "0" * 64
+            else:
+                canary["source_migration_receipt"] = {"path": str(tmp_path / "unexpected.json"), "sha256": "a" * 64}
+            binding["plan_activation_receipt"] = _json_file(canary_path, canary)
+        elif damage == "master":
+            service._workspace_security_master_root = tmp_path / "other-master"
+        if damage not in {"sha", "api_root", "worker_file", "api_file", "master",
+                          "owner_source_symlink", "api_consumer", "api_consumer_missing"}:
+            ref = _json_file(Path(ref["path"]), binding)
+            sha = ref["sha256"]
+        execute = dispatch.execute_bound_daily_cycle if daily else dispatch.execute_bound_plan_cycle
+        with pytest.raises(ValueError) as captured:
+            execute(service, DATE, sha)
+        expected = "PLAN_OWNER_DAILY_BINDING_DISABLED" if daily and damage == "disabled" else code
+>       assert str(captured.value) == expected
+E       AssertionError: assert 'PLAN_OWNER_B...TORY_MISMATCH' == 'PLAN_OWNER_S...ROOT_MISMATCH'
+E         
+E         - PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH
+E         + PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH
+
+tests/test_manager_r3_binding_identity.py:321: AssertionError
+_ test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[True-api_root-PLAN_OWNER_BINDING_API_ROOT_MISMATCH] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_gate_rejection_preserves_20')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5cde39f620>
+damage = 'api_root', code = 'PLAN_OWNER_BINDING_API_ROOT_MISMATCH', daily = True
+
+    @pytest.mark.parametrize("damage,code", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("api_root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_BINDING_DISABLED"),
+        ("worker_file", "ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_file", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_missing", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_extra", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_name", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_fields", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_symlink", "PLAN_OWNER_BINDING_PATH_NOT_EXACT"),
+        ("owner_source_symlink", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("api_consumer", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_consumer_missing", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("owner_overlap", "PLAN_OWNER_BINDING_ROOTS_OVERLAP"),
+        ("canary_owner", "PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH"),
+        ("canary_identity_missing", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_identity_wrong", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_migration", "PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED"),
+        ("master", "PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH"),
+    ])
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_gate_rejection_preserves_code_and_never_enters_owner_or_writes(tmp_path, monkeypatch, damage, code, daily):
+        service, binding, worker, owner, ref = bound_owner(tmp_path, monkeypatch)
+        sha = ref["sha256"]
+        if damage == "sha":
+            sha = "0" * 64
+        elif damage == "api_root":
+            other = tmp_path / "actual-other-api"; other.mkdir()
+            monkeypatch.setattr(dispatch, "APP_ROOT", other)
+        elif damage == "disabled":
+            binding["enabled"] = False
+        elif damage == "worker_file":
+            (worker / "ops/run_manager_announcement_cycle.py").write_text("# changed worker\n")
+        elif damage == "api_file":
+            (owner / "v4/manager_research/plan_owner_dispatch.py").write_text("# changed API\n")
+        elif damage == "owner_file_missing":
+            binding["plan_owner_binding"]["files"].pop("apps/api/v35_api/app.py")
+        elif damage == "owner_file_extra":
+            binding["plan_owner_binding"]["files"]["apps/api/v35_api/unpinned.py"] = "a" * 64
+        elif damage == "owner_name":
+            binding["plan_owner_binding"]["owner"] = "OtherOwner"
+        elif damage == "owner_fields":
+            binding["plan_owner_binding"]["expected_app"] = str(owner)
+        elif damage == "owner_symlink":
+            link = tmp_path / "api-link"; link.symlink_to(owner, target_is_directory=True)
+            binding["plan_owner_binding"]["app_root"] = str(link)
+        elif damage == "owner_source_symlink":
+            source = owner / "apps/api/v35_api/app.py"
+            source.unlink(); source.symlink_to(worker / "apps/api/v35_api/app.py")
+        elif damage == "api_consumer":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").write_text("# changed real API consumer\n")
+        elif damage == "api_consumer_missing":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").unlink()
+        elif damage == "owner_overlap":
+            binding["plan_owner_binding"]["app_root"] = binding["manager_state_root"]
+        elif damage == "canary_owner":
+            # Replace the pinned evidence consistently; the new root binding must
+            # still reject a canary executed by another API release.
+            binding["plan_activation_receipt"] = _canary(tmp_path / "wrong-evidence", worker, worker, service.store.root)
+        elif damage.startswith("canary_identity") or damage == "canary_migration":
+            canary_path = Path(binding["plan_activation_receipt"]["path"])
+            canary = json.loads(canary_path.read_bytes())
+            if damage == "canary_identity_missing":
+                canary.pop("owner_binding_identity_sha256")
+            elif damage == "canary_identity_wrong":
+                canary["owner_binding_identity_sha256"] = "0" * 64
+            else:
+                canary["source_migration_receipt"] = {"path": str(tmp_path / "unexpected.json"), "sha256": "a" * 64}
+            binding["plan_activation_receipt"] = _json_file(canary_path, canary)
+        elif damage == "master":
+            service._workspace_security_master_root = tmp_path / "other-master"
+        if damage not in {"sha", "api_root", "worker_file", "api_file", "master",
+                          "owner_source_symlink", "api_consumer", "api_consumer_missing"}:
+            ref = _json_file(Path(ref["path"]), binding)
+            sha = ref["sha256"]
+        execute = dispatch.execute_bound_daily_cycle if daily else dispatch.execute_bound_plan_cycle
+        with pytest.raises(ValueError) as captured:
+            execute(service, DATE, sha)
+        expected = "PLAN_OWNER_DAILY_BINDING_DISABLED" if daily and damage == "disabled" else code
+>       assert str(captured.value) == expected
+E       AssertionError: assert 'PLAN_OWNER_B...TORY_MISMATCH' == 'PLAN_OWNER_B...ROOT_MISMATCH'
+E         
+E         - PLAN_OWNER_BINDING_API_ROOT_MISMATCH
+E         ?                    ^^ ^ ^^^
+E         + PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH
+E         ?                    ^^^^^^^ ^^^^^^ ^
+
+tests/test_manager_r3_binding_identity.py:321: AssertionError
+_ test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[True-disabled-PLAN_OWNER_BINDING_DISABLED] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_gate_rejection_preserves_21')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5cde411630>
+damage = 'disabled', code = 'PLAN_OWNER_BINDING_DISABLED', daily = True
+
+    @pytest.mark.parametrize("damage,code", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("api_root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_BINDING_DISABLED"),
+        ("worker_file", "ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_file", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_missing", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_extra", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_name", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_fields", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_symlink", "PLAN_OWNER_BINDING_PATH_NOT_EXACT"),
+        ("owner_source_symlink", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("api_consumer", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_consumer_missing", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("owner_overlap", "PLAN_OWNER_BINDING_ROOTS_OVERLAP"),
+        ("canary_owner", "PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH"),
+        ("canary_identity_missing", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_identity_wrong", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_migration", "PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED"),
+        ("master", "PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH"),
+    ])
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_gate_rejection_preserves_code_and_never_enters_owner_or_writes(tmp_path, monkeypatch, damage, code, daily):
+        service, binding, worker, owner, ref = bound_owner(tmp_path, monkeypatch)
+        sha = ref["sha256"]
+        if damage == "sha":
+            sha = "0" * 64
+        elif damage == "api_root":
+            other = tmp_path / "actual-other-api"; other.mkdir()
+            monkeypatch.setattr(dispatch, "APP_ROOT", other)
+        elif damage == "disabled":
+            binding["enabled"] = False
+        elif damage == "worker_file":
+            (worker / "ops/run_manager_announcement_cycle.py").write_text("# changed worker\n")
+        elif damage == "api_file":
+            (owner / "v4/manager_research/plan_owner_dispatch.py").write_text("# changed API\n")
+        elif damage == "owner_file_missing":
+            binding["plan_owner_binding"]["files"].pop("apps/api/v35_api/app.py")
+        elif damage == "owner_file_extra":
+            binding["plan_owner_binding"]["files"]["apps/api/v35_api/unpinned.py"] = "a" * 64
+        elif damage == "owner_name":
+            binding["plan_owner_binding"]["owner"] = "OtherOwner"
+        elif damage == "owner_fields":
+            binding["plan_owner_binding"]["expected_app"] = str(owner)
+        elif damage == "owner_symlink":
+            link = tmp_path / "api-link"; link.symlink_to(owner, target_is_directory=True)
+            binding["plan_owner_binding"]["app_root"] = str(link)
+        elif damage == "owner_source_symlink":
+            source = owner / "apps/api/v35_api/app.py"
+            source.unlink(); source.symlink_to(worker / "apps/api/v35_api/app.py")
+        elif damage == "api_consumer":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").write_text("# changed real API consumer\n")
+        elif damage == "api_consumer_missing":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").unlink()
+        elif damage == "owner_overlap":
+            binding["plan_owner_binding"]["app_root"] = binding["manager_state_root"]
+        elif damage == "canary_owner":
+            # Replace the pinned evidence consistently; the new root binding must
+            # still reject a canary executed by another API release.
+            binding["plan_activation_receipt"] = _canary(tmp_path / "wrong-evidence", worker, worker, service.store.root)
+        elif damage.startswith("canary_identity") or damage == "canary_migration":
+            canary_path = Path(binding["plan_activation_receipt"]["path"])
+            canary = json.loads(canary_path.read_bytes())
+            if damage == "canary_identity_missing":
+                canary.pop("owner_binding_identity_sha256")
+            elif damage == "canary_identity_wrong":
+                canary["owner_binding_identity_sha256"] = "0" * 64
+            else:
+                canary["source_migration_receipt"] = {"path": str(tmp_path / "unexpected.json"), "sha256": "a" * 64}
+            binding["plan_activation_receipt"] = _json_file(canary_path, canary)
+        elif damage == "master":
+            service._workspace_security_master_root = tmp_path / "other-master"
+        if damage not in {"sha", "api_root", "worker_file", "api_file", "master",
+                          "owner_source_symlink", "api_consumer", "api_consumer_missing"}:
+            ref = _json_file(Path(ref["path"]), binding)
+            sha = ref["sha256"]
+        execute = dispatch.execute_bound_daily_cycle if daily else dispatch.execute_bound_plan_cycle
+        with pytest.raises(ValueError) as captured:
+            execute(service, DATE, sha)
+        expected = "PLAN_OWNER_DAILY_BINDING_DISABLED" if daily and damage == "disabled" else code
+>       assert str(captured.value) == expected
+E       AssertionError: assert 'PLAN_OWNER_B...TORY_MISMATCH' == 'PLAN_OWNER_D...DING_DISABLED'
+E         
+E         - PLAN_OWNER_DAILY_BINDING_DISABLED
+E         + PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH
+
+tests/test_manager_r3_binding_identity.py:321: AssertionError
+_ test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[True-worker_file-ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_gate_rejection_preserves_22')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5cde3d2970>
+damage = 'worker_file', code = 'ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH'
+daily = True
+
+    @pytest.mark.parametrize("damage,code", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("api_root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_BINDING_DISABLED"),
+        ("worker_file", "ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_file", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_missing", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_extra", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_name", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_fields", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_symlink", "PLAN_OWNER_BINDING_PATH_NOT_EXACT"),
+        ("owner_source_symlink", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("api_consumer", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_consumer_missing", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("owner_overlap", "PLAN_OWNER_BINDING_ROOTS_OVERLAP"),
+        ("canary_owner", "PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH"),
+        ("canary_identity_missing", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_identity_wrong", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_migration", "PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED"),
+        ("master", "PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH"),
+    ])
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_gate_rejection_preserves_code_and_never_enters_owner_or_writes(tmp_path, monkeypatch, damage, code, daily):
+        service, binding, worker, owner, ref = bound_owner(tmp_path, monkeypatch)
+        sha = ref["sha256"]
+        if damage == "sha":
+            sha = "0" * 64
+        elif damage == "api_root":
+            other = tmp_path / "actual-other-api"; other.mkdir()
+            monkeypatch.setattr(dispatch, "APP_ROOT", other)
+        elif damage == "disabled":
+            binding["enabled"] = False
+        elif damage == "worker_file":
+            (worker / "ops/run_manager_announcement_cycle.py").write_text("# changed worker\n")
+        elif damage == "api_file":
+            (owner / "v4/manager_research/plan_owner_dispatch.py").write_text("# changed API\n")
+        elif damage == "owner_file_missing":
+            binding["plan_owner_binding"]["files"].pop("apps/api/v35_api/app.py")
+        elif damage == "owner_file_extra":
+            binding["plan_owner_binding"]["files"]["apps/api/v35_api/unpinned.py"] = "a" * 64
+        elif damage == "owner_name":
+            binding["plan_owner_binding"]["owner"] = "OtherOwner"
+        elif damage == "owner_fields":
+            binding["plan_owner_binding"]["expected_app"] = str(owner)
+        elif damage == "owner_symlink":
+            link = tmp_path / "api-link"; link.symlink_to(owner, target_is_directory=True)
+            binding["plan_owner_binding"]["app_root"] = str(link)
+        elif damage == "owner_source_symlink":
+            source = owner / "apps/api/v35_api/app.py"
+            source.unlink(); source.symlink_to(worker / "apps/api/v35_api/app.py")
+        elif damage == "api_consumer":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").write_text("# changed real API consumer\n")
+        elif damage == "api_consumer_missing":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").unlink()
+        elif damage == "owner_overlap":
+            binding["plan_owner_binding"]["app_root"] = binding["manager_state_root"]
+        elif damage == "canary_owner":
+            # Replace the pinned evidence consistently; the new root binding must
+            # still reject a canary executed by another API release.
+            binding["plan_activation_receipt"] = _canary(tmp_path / "wrong-evidence", worker, worker, service.store.root)
+        elif damage.startswith("canary_identity") or damage == "canary_migration":
+            canary_path = Path(binding["plan_activation_receipt"]["path"])
+            canary = json.loads(canary_path.read_bytes())
+            if damage == "canary_identity_missing":
+                canary.pop("owner_binding_identity_sha256")
+            elif damage == "canary_identity_wrong":
+                canary["owner_binding_identity_sha256"] = "0" * 64
+            else:
+                canary["source_migration_receipt"] = {"path": str(tmp_path / "unexpected.json"), "sha256": "a" * 64}
+            binding["plan_activation_receipt"] = _json_file(canary_path, canary)
+        elif damage == "master":
+            service._workspace_security_master_root = tmp_path / "other-master"
+        if damage not in {"sha", "api_root", "worker_file", "api_file", "master",
+                          "owner_source_symlink", "api_consumer", "api_consumer_missing"}:
+            ref = _json_file(Path(ref["path"]), binding)
+            sha = ref["sha256"]
+        execute = dispatch.execute_bound_daily_cycle if daily else dispatch.execute_bound_plan_cycle
+        with pytest.raises(ValueError) as captured:
+            execute(service, DATE, sha)
+        expected = "PLAN_OWNER_DAILY_BINDING_DISABLED" if daily and damage == "disabled" else code
+>       assert str(captured.value) == expected
+E       AssertionError: assert 'PLAN_OWNER_B...TORY_MISMATCH' == 'ANNOUNCEMENT...TORY_MISMATCH'
+E         
+E         - ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH
+E         ?    ---- ^^^^
+E         + PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH
+E         ? ++  +++  ^
+
+tests/test_manager_r3_binding_identity.py:321: AssertionError
+_ test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[True-api_consumer_missing-PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_gate_rejection_preserves_31')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5cde2dec10>
+damage = 'api_consumer_missing'
+code = 'PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE', daily = True
+
+    @pytest.mark.parametrize("damage,code", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("api_root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_BINDING_DISABLED"),
+        ("worker_file", "ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_file", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_missing", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_extra", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_name", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_fields", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_symlink", "PLAN_OWNER_BINDING_PATH_NOT_EXACT"),
+        ("owner_source_symlink", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("api_consumer", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_consumer_missing", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("owner_overlap", "PLAN_OWNER_BINDING_ROOTS_OVERLAP"),
+        ("canary_owner", "PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH"),
+        ("canary_identity_missing", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_identity_wrong", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_migration", "PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED"),
+        ("master", "PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH"),
+    ])
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_gate_rejection_preserves_code_and_never_enters_owner_or_writes(tmp_path, monkeypatch, damage, code, daily):
+        service, binding, worker, owner, ref = bound_owner(tmp_path, monkeypatch)
+        sha = ref["sha256"]
+        if damage == "sha":
+            sha = "0" * 64
+        elif damage == "api_root":
+            other = tmp_path / "actual-other-api"; other.mkdir()
+            monkeypatch.setattr(dispatch, "APP_ROOT", other)
+        elif damage == "disabled":
+            binding["enabled"] = False
+        elif damage == "worker_file":
+            (worker / "ops/run_manager_announcement_cycle.py").write_text("# changed worker\n")
+        elif damage == "api_file":
+            (owner / "v4/manager_research/plan_owner_dispatch.py").write_text("# changed API\n")
+        elif damage == "owner_file_missing":
+            binding["plan_owner_binding"]["files"].pop("apps/api/v35_api/app.py")
+        elif damage == "owner_file_extra":
+            binding["plan_owner_binding"]["files"]["apps/api/v35_api/unpinned.py"] = "a" * 64
+        elif damage == "owner_name":
+            binding["plan_owner_binding"]["owner"] = "OtherOwner"
+        elif damage == "owner_fields":
+            binding["plan_owner_binding"]["expected_app"] = str(owner)
+        elif damage == "owner_symlink":
+            link = tmp_path / "api-link"; link.symlink_to(owner, target_is_directory=True)
+            binding["plan_owner_binding"]["app_root"] = str(link)
+        elif damage == "owner_source_symlink":
+            source = owner / "apps/api/v35_api/app.py"
+            source.unlink(); source.symlink_to(worker / "apps/api/v35_api/app.py")
+        elif damage == "api_consumer":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").write_text("# changed real API consumer\n")
+        elif damage == "api_consumer_missing":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").unlink()
+        elif damage == "owner_overlap":
+            binding["plan_owner_binding"]["app_root"] = binding["manager_state_root"]
+        elif damage == "canary_owner":
+            # Replace the pinned evidence consistently; the new root binding must
+            # still reject a canary executed by another API release.
+            binding["plan_activation_receipt"] = _canary(tmp_path / "wrong-evidence", worker, worker, service.store.root)
+        elif damage.startswith("canary_identity") or damage == "canary_migration":
+            canary_path = Path(binding["plan_activation_receipt"]["path"])
+            canary = json.loads(canary_path.read_bytes())
+            if damage == "canary_identity_missing":
+                canary.pop("owner_binding_identity_sha256")
+            elif damage == "canary_identity_wrong":
+                canary["owner_binding_identity_sha256"] = "0" * 64
+            else:
+                canary["source_migration_receipt"] = {"path": str(tmp_path / "unexpected.json"), "sha256": "a" * 64}
+            binding["plan_activation_receipt"] = _json_file(canary_path, canary)
+        elif damage == "master":
+            service._workspace_security_master_root = tmp_path / "other-master"
+        if damage not in {"sha", "api_root", "worker_file", "api_file", "master",
+                          "owner_source_symlink", "api_consumer", "api_consumer_missing"}:
+            ref = _json_file(Path(ref["path"]), binding)
+            sha = ref["sha256"]
+        execute = dispatch.execute_bound_daily_cycle if daily else dispatch.execute_bound_plan_cycle
+        with pytest.raises(ValueError) as captured:
+            execute(service, DATE, sha)
+        expected = "PLAN_OWNER_DAILY_BINDING_DISABLED" if daily and damage == "disabled" else code
+>       assert str(captured.value) == expected
+E       AssertionError: assert 'PLAN_OWNER_B...TORY_MISMATCH' == 'PLAN_OWNER_B...Y_UNAVAILABLE'
+E         
+E         - PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE
+E         + PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH
+
+tests/test_manager_r3_binding_identity.py:321: AssertionError
+_ test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[True-canary_owner-PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_gate_rejection_preserves_33')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5cde2decf0>
+damage = 'canary_owner', code = 'PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH'
+daily = True
+
+    @pytest.mark.parametrize("damage,code", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("api_root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_BINDING_DISABLED"),
+        ("worker_file", "ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_file", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_missing", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_extra", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_name", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_fields", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_symlink", "PLAN_OWNER_BINDING_PATH_NOT_EXACT"),
+        ("owner_source_symlink", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("api_consumer", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_consumer_missing", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("owner_overlap", "PLAN_OWNER_BINDING_ROOTS_OVERLAP"),
+        ("canary_owner", "PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH"),
+        ("canary_identity_missing", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_identity_wrong", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_migration", "PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED"),
+        ("master", "PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH"),
+    ])
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_gate_rejection_preserves_code_and_never_enters_owner_or_writes(tmp_path, monkeypatch, damage, code, daily):
+        service, binding, worker, owner, ref = bound_owner(tmp_path, monkeypatch)
+        sha = ref["sha256"]
+        if damage == "sha":
+            sha = "0" * 64
+        elif damage == "api_root":
+            other = tmp_path / "actual-other-api"; other.mkdir()
+            monkeypatch.setattr(dispatch, "APP_ROOT", other)
+        elif damage == "disabled":
+            binding["enabled"] = False
+        elif damage == "worker_file":
+            (worker / "ops/run_manager_announcement_cycle.py").write_text("# changed worker\n")
+        elif damage == "api_file":
+            (owner / "v4/manager_research/plan_owner_dispatch.py").write_text("# changed API\n")
+        elif damage == "owner_file_missing":
+            binding["plan_owner_binding"]["files"].pop("apps/api/v35_api/app.py")
+        elif damage == "owner_file_extra":
+            binding["plan_owner_binding"]["files"]["apps/api/v35_api/unpinned.py"] = "a" * 64
+        elif damage == "owner_name":
+            binding["plan_owner_binding"]["owner"] = "OtherOwner"
+        elif damage == "owner_fields":
+            binding["plan_owner_binding"]["expected_app"] = str(owner)
+        elif damage == "owner_symlink":
+            link = tmp_path / "api-link"; link.symlink_to(owner, target_is_directory=True)
+            binding["plan_owner_binding"]["app_root"] = str(link)
+        elif damage == "owner_source_symlink":
+            source = owner / "apps/api/v35_api/app.py"
+            source.unlink(); source.symlink_to(worker / "apps/api/v35_api/app.py")
+        elif damage == "api_consumer":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").write_text("# changed real API consumer\n")
+        elif damage == "api_consumer_missing":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").unlink()
+        elif damage == "owner_overlap":
+            binding["plan_owner_binding"]["app_root"] = binding["manager_state_root"]
+        elif damage == "canary_owner":
+            # Replace the pinned evidence consistently; the new root binding must
+            # still reject a canary executed by another API release.
+            binding["plan_activation_receipt"] = _canary(tmp_path / "wrong-evidence", worker, worker, service.store.root)
+        elif damage.startswith("canary_identity") or damage == "canary_migration":
+            canary_path = Path(binding["plan_activation_receipt"]["path"])
+            canary = json.loads(canary_path.read_bytes())
+            if damage == "canary_identity_missing":
+                canary.pop("owner_binding_identity_sha256")
+            elif damage == "canary_identity_wrong":
+                canary["owner_binding_identity_sha256"] = "0" * 64
+            else:
+                canary["source_migration_receipt"] = {"path": str(tmp_path / "unexpected.json"), "sha256": "a" * 64}
+            binding["plan_activation_receipt"] = _json_file(canary_path, canary)
+        elif damage == "master":
+            service._workspace_security_master_root = tmp_path / "other-master"
+        if damage not in {"sha", "api_root", "worker_file", "api_file", "master",
+                          "owner_source_symlink", "api_consumer", "api_consumer_missing"}:
+            ref = _json_file(Path(ref["path"]), binding)
+            sha = ref["sha256"]
+        execute = dispatch.execute_bound_daily_cycle if daily else dispatch.execute_bound_plan_cycle
+        with pytest.raises(ValueError) as captured:
+            execute(service, DATE, sha)
+        expected = "PLAN_OWNER_DAILY_BINDING_DISABLED" if daily and damage == "disabled" else code
+>       assert str(captured.value) == expected
+E       AssertionError: assert 'PLAN_OWNER_B...TORY_MISMATCH' == 'PLAN_REFRESH...ROOT_MISMATCH'
+E         
+E         - PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH
+E         + PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH
+
+tests/test_manager_r3_binding_identity.py:321: AssertionError
+_ test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[True-canary_identity_missing-PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_gate_rejection_preserves_34')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5cde2ce2e0>
+damage = 'canary_identity_missing'
+code = 'PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH', daily = True
+
+    @pytest.mark.parametrize("damage,code", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("api_root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_BINDING_DISABLED"),
+        ("worker_file", "ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_file", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_missing", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_extra", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_name", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_fields", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_symlink", "PLAN_OWNER_BINDING_PATH_NOT_EXACT"),
+        ("owner_source_symlink", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("api_consumer", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_consumer_missing", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("owner_overlap", "PLAN_OWNER_BINDING_ROOTS_OVERLAP"),
+        ("canary_owner", "PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH"),
+        ("canary_identity_missing", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_identity_wrong", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_migration", "PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED"),
+        ("master", "PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH"),
+    ])
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_gate_rejection_preserves_code_and_never_enters_owner_or_writes(tmp_path, monkeypatch, damage, code, daily):
+        service, binding, worker, owner, ref = bound_owner(tmp_path, monkeypatch)
+        sha = ref["sha256"]
+        if damage == "sha":
+            sha = "0" * 64
+        elif damage == "api_root":
+            other = tmp_path / "actual-other-api"; other.mkdir()
+            monkeypatch.setattr(dispatch, "APP_ROOT", other)
+        elif damage == "disabled":
+            binding["enabled"] = False
+        elif damage == "worker_file":
+            (worker / "ops/run_manager_announcement_cycle.py").write_text("# changed worker\n")
+        elif damage == "api_file":
+            (owner / "v4/manager_research/plan_owner_dispatch.py").write_text("# changed API\n")
+        elif damage == "owner_file_missing":
+            binding["plan_owner_binding"]["files"].pop("apps/api/v35_api/app.py")
+        elif damage == "owner_file_extra":
+            binding["plan_owner_binding"]["files"]["apps/api/v35_api/unpinned.py"] = "a" * 64
+        elif damage == "owner_name":
+            binding["plan_owner_binding"]["owner"] = "OtherOwner"
+        elif damage == "owner_fields":
+            binding["plan_owner_binding"]["expected_app"] = str(owner)
+        elif damage == "owner_symlink":
+            link = tmp_path / "api-link"; link.symlink_to(owner, target_is_directory=True)
+            binding["plan_owner_binding"]["app_root"] = str(link)
+        elif damage == "owner_source_symlink":
+            source = owner / "apps/api/v35_api/app.py"
+            source.unlink(); source.symlink_to(worker / "apps/api/v35_api/app.py")
+        elif damage == "api_consumer":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").write_text("# changed real API consumer\n")
+        elif damage == "api_consumer_missing":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").unlink()
+        elif damage == "owner_overlap":
+            binding["plan_owner_binding"]["app_root"] = binding["manager_state_root"]
+        elif damage == "canary_owner":
+            # Replace the pinned evidence consistently; the new root binding must
+            # still reject a canary executed by another API release.
+            binding["plan_activation_receipt"] = _canary(tmp_path / "wrong-evidence", worker, worker, service.store.root)
+        elif damage.startswith("canary_identity") or damage == "canary_migration":
+            canary_path = Path(binding["plan_activation_receipt"]["path"])
+            canary = json.loads(canary_path.read_bytes())
+            if damage == "canary_identity_missing":
+                canary.pop("owner_binding_identity_sha256")
+            elif damage == "canary_identity_wrong":
+                canary["owner_binding_identity_sha256"] = "0" * 64
+            else:
+                canary["source_migration_receipt"] = {"path": str(tmp_path / "unexpected.json"), "sha256": "a" * 64}
+            binding["plan_activation_receipt"] = _json_file(canary_path, canary)
+        elif damage == "master":
+            service._workspace_security_master_root = tmp_path / "other-master"
+        if damage not in {"sha", "api_root", "worker_file", "api_file", "master",
+                          "owner_source_symlink", "api_consumer", "api_consumer_missing"}:
+            ref = _json_file(Path(ref["path"]), binding)
+            sha = ref["sha256"]
+        execute = dispatch.execute_bound_daily_cycle if daily else dispatch.execute_bound_plan_cycle
+        with pytest.raises(ValueError) as captured:
+            execute(service, DATE, sha)
+        expected = "PLAN_OWNER_DAILY_BINDING_DISABLED" if daily and damage == "disabled" else code
+>       assert str(captured.value) == expected
+E       AssertionError: assert 'PLAN_OWNER_B...TORY_MISMATCH' == 'PLAN_REFRESH...TITY_MISMATCH'
+E         
+E         - PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH
+E         + PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH
+
+tests/test_manager_r3_binding_identity.py:321: AssertionError
+_ test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[True-canary_identity_wrong-PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_gate_rejection_preserves_35')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5cde3ee190>
+damage = 'canary_identity_wrong'
+code = 'PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH', daily = True
+
+    @pytest.mark.parametrize("damage,code", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("api_root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_BINDING_DISABLED"),
+        ("worker_file", "ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_file", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_missing", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_extra", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_name", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_fields", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_symlink", "PLAN_OWNER_BINDING_PATH_NOT_EXACT"),
+        ("owner_source_symlink", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("api_consumer", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_consumer_missing", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("owner_overlap", "PLAN_OWNER_BINDING_ROOTS_OVERLAP"),
+        ("canary_owner", "PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH"),
+        ("canary_identity_missing", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_identity_wrong", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_migration", "PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED"),
+        ("master", "PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH"),
+    ])
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_gate_rejection_preserves_code_and_never_enters_owner_or_writes(tmp_path, monkeypatch, damage, code, daily):
+        service, binding, worker, owner, ref = bound_owner(tmp_path, monkeypatch)
+        sha = ref["sha256"]
+        if damage == "sha":
+            sha = "0" * 64
+        elif damage == "api_root":
+            other = tmp_path / "actual-other-api"; other.mkdir()
+            monkeypatch.setattr(dispatch, "APP_ROOT", other)
+        elif damage == "disabled":
+            binding["enabled"] = False
+        elif damage == "worker_file":
+            (worker / "ops/run_manager_announcement_cycle.py").write_text("# changed worker\n")
+        elif damage == "api_file":
+            (owner / "v4/manager_research/plan_owner_dispatch.py").write_text("# changed API\n")
+        elif damage == "owner_file_missing":
+            binding["plan_owner_binding"]["files"].pop("apps/api/v35_api/app.py")
+        elif damage == "owner_file_extra":
+            binding["plan_owner_binding"]["files"]["apps/api/v35_api/unpinned.py"] = "a" * 64
+        elif damage == "owner_name":
+            binding["plan_owner_binding"]["owner"] = "OtherOwner"
+        elif damage == "owner_fields":
+            binding["plan_owner_binding"]["expected_app"] = str(owner)
+        elif damage == "owner_symlink":
+            link = tmp_path / "api-link"; link.symlink_to(owner, target_is_directory=True)
+            binding["plan_owner_binding"]["app_root"] = str(link)
+        elif damage == "owner_source_symlink":
+            source = owner / "apps/api/v35_api/app.py"
+            source.unlink(); source.symlink_to(worker / "apps/api/v35_api/app.py")
+        elif damage == "api_consumer":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").write_text("# changed real API consumer\n")
+        elif damage == "api_consumer_missing":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").unlink()
+        elif damage == "owner_overlap":
+            binding["plan_owner_binding"]["app_root"] = binding["manager_state_root"]
+        elif damage == "canary_owner":
+            # Replace the pinned evidence consistently; the new root binding must
+            # still reject a canary executed by another API release.
+            binding["plan_activation_receipt"] = _canary(tmp_path / "wrong-evidence", worker, worker, service.store.root)
+        elif damage.startswith("canary_identity") or damage == "canary_migration":
+            canary_path = Path(binding["plan_activation_receipt"]["path"])
+            canary = json.loads(canary_path.read_bytes())
+            if damage == "canary_identity_missing":
+                canary.pop("owner_binding_identity_sha256")
+            elif damage == "canary_identity_wrong":
+                canary["owner_binding_identity_sha256"] = "0" * 64
+            else:
+                canary["source_migration_receipt"] = {"path": str(tmp_path / "unexpected.json"), "sha256": "a" * 64}
+            binding["plan_activation_receipt"] = _json_file(canary_path, canary)
+        elif damage == "master":
+            service._workspace_security_master_root = tmp_path / "other-master"
+        if damage not in {"sha", "api_root", "worker_file", "api_file", "master",
+                          "owner_source_symlink", "api_consumer", "api_consumer_missing"}:
+            ref = _json_file(Path(ref["path"]), binding)
+            sha = ref["sha256"]
+        execute = dispatch.execute_bound_daily_cycle if daily else dispatch.execute_bound_plan_cycle
+        with pytest.raises(ValueError) as captured:
+            execute(service, DATE, sha)
+        expected = "PLAN_OWNER_DAILY_BINDING_DISABLED" if daily and damage == "disabled" else code
+>       assert str(captured.value) == expected
+E       AssertionError: assert 'PLAN_OWNER_B...TORY_MISMATCH' == 'PLAN_REFRESH...TITY_MISMATCH'
+E         
+E         - PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH
+E         + PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH
+
+tests/test_manager_r3_binding_identity.py:321: AssertionError
+_ test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[True-canary_migration-PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_gate_rejection_preserves_36')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5cde2ab770>
+damage = 'canary_migration'
+code = 'PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED', daily = True
+
+    @pytest.mark.parametrize("damage,code", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("api_root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_BINDING_DISABLED"),
+        ("worker_file", "ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_file", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_missing", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_extra", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_name", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_fields", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_symlink", "PLAN_OWNER_BINDING_PATH_NOT_EXACT"),
+        ("owner_source_symlink", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("api_consumer", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_consumer_missing", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("owner_overlap", "PLAN_OWNER_BINDING_ROOTS_OVERLAP"),
+        ("canary_owner", "PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH"),
+        ("canary_identity_missing", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_identity_wrong", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_migration", "PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED"),
+        ("master", "PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH"),
+    ])
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_gate_rejection_preserves_code_and_never_enters_owner_or_writes(tmp_path, monkeypatch, damage, code, daily):
+        service, binding, worker, owner, ref = bound_owner(tmp_path, monkeypatch)
+        sha = ref["sha256"]
+        if damage == "sha":
+            sha = "0" * 64
+        elif damage == "api_root":
+            other = tmp_path / "actual-other-api"; other.mkdir()
+            monkeypatch.setattr(dispatch, "APP_ROOT", other)
+        elif damage == "disabled":
+            binding["enabled"] = False
+        elif damage == "worker_file":
+            (worker / "ops/run_manager_announcement_cycle.py").write_text("# changed worker\n")
+        elif damage == "api_file":
+            (owner / "v4/manager_research/plan_owner_dispatch.py").write_text("# changed API\n")
+        elif damage == "owner_file_missing":
+            binding["plan_owner_binding"]["files"].pop("apps/api/v35_api/app.py")
+        elif damage == "owner_file_extra":
+            binding["plan_owner_binding"]["files"]["apps/api/v35_api/unpinned.py"] = "a" * 64
+        elif damage == "owner_name":
+            binding["plan_owner_binding"]["owner"] = "OtherOwner"
+        elif damage == "owner_fields":
+            binding["plan_owner_binding"]["expected_app"] = str(owner)
+        elif damage == "owner_symlink":
+            link = tmp_path / "api-link"; link.symlink_to(owner, target_is_directory=True)
+            binding["plan_owner_binding"]["app_root"] = str(link)
+        elif damage == "owner_source_symlink":
+            source = owner / "apps/api/v35_api/app.py"
+            source.unlink(); source.symlink_to(worker / "apps/api/v35_api/app.py")
+        elif damage == "api_consumer":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").write_text("# changed real API consumer\n")
+        elif damage == "api_consumer_missing":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").unlink()
+        elif damage == "owner_overlap":
+            binding["plan_owner_binding"]["app_root"] = binding["manager_state_root"]
+        elif damage == "canary_owner":
+            # Replace the pinned evidence consistently; the new root binding must
+            # still reject a canary executed by another API release.
+            binding["plan_activation_receipt"] = _canary(tmp_path / "wrong-evidence", worker, worker, service.store.root)
+        elif damage.startswith("canary_identity") or damage == "canary_migration":
+            canary_path = Path(binding["plan_activation_receipt"]["path"])
+            canary = json.loads(canary_path.read_bytes())
+            if damage == "canary_identity_missing":
+                canary.pop("owner_binding_identity_sha256")
+            elif damage == "canary_identity_wrong":
+                canary["owner_binding_identity_sha256"] = "0" * 64
+            else:
+                canary["source_migration_receipt"] = {"path": str(tmp_path / "unexpected.json"), "sha256": "a" * 64}
+            binding["plan_activation_receipt"] = _json_file(canary_path, canary)
+        elif damage == "master":
+            service._workspace_security_master_root = tmp_path / "other-master"
+        if damage not in {"sha", "api_root", "worker_file", "api_file", "master",
+                          "owner_source_symlink", "api_consumer", "api_consumer_missing"}:
+            ref = _json_file(Path(ref["path"]), binding)
+            sha = ref["sha256"]
+        execute = dispatch.execute_bound_daily_cycle if daily else dispatch.execute_bound_plan_cycle
+        with pytest.raises(ValueError) as captured:
+            execute(service, DATE, sha)
+        expected = "PLAN_OWNER_DAILY_BINDING_DISABLED" if daily and damage == "disabled" else code
+>       assert str(captured.value) == expected
+E       AssertionError: assert 'PLAN_OWNER_B...TORY_MISMATCH' == 'PLAN_REFRESH...ON_UNEXPECTED'
+E         
+E         - PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED
+E         + PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH
+
+tests/test_manager_r3_binding_identity.py:321: AssertionError
+_ test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[True-master-PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_gate_rejection_preserves_37')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5cde3e2580>
+damage = 'master', code = 'PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH'
+daily = True
+
+    @pytest.mark.parametrize("damage,code", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("api_root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_BINDING_DISABLED"),
+        ("worker_file", "ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_file", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_missing", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_file_extra", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("owner_name", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_fields", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+        ("owner_symlink", "PLAN_OWNER_BINDING_PATH_NOT_EXACT"),
+        ("owner_source_symlink", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("api_consumer", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+        ("api_consumer_missing", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+        ("owner_overlap", "PLAN_OWNER_BINDING_ROOTS_OVERLAP"),
+        ("canary_owner", "PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH"),
+        ("canary_identity_missing", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_identity_wrong", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+        ("canary_migration", "PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED"),
+        ("master", "PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH"),
+    ])
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_gate_rejection_preserves_code_and_never_enters_owner_or_writes(tmp_path, monkeypatch, damage, code, daily):
+        service, binding, worker, owner, ref = bound_owner(tmp_path, monkeypatch)
+        sha = ref["sha256"]
+        if damage == "sha":
+            sha = "0" * 64
+        elif damage == "api_root":
+            other = tmp_path / "actual-other-api"; other.mkdir()
+            monkeypatch.setattr(dispatch, "APP_ROOT", other)
+        elif damage == "disabled":
+            binding["enabled"] = False
+        elif damage == "worker_file":
+            (worker / "ops/run_manager_announcement_cycle.py").write_text("# changed worker\n")
+        elif damage == "api_file":
+            (owner / "v4/manager_research/plan_owner_dispatch.py").write_text("# changed API\n")
+        elif damage == "owner_file_missing":
+            binding["plan_owner_binding"]["files"].pop("apps/api/v35_api/app.py")
+        elif damage == "owner_file_extra":
+            binding["plan_owner_binding"]["files"]["apps/api/v35_api/unpinned.py"] = "a" * 64
+        elif damage == "owner_name":
+            binding["plan_owner_binding"]["owner"] = "OtherOwner"
+        elif damage == "owner_fields":
+            binding["plan_owner_binding"]["expected_app"] = str(owner)
+        elif damage == "owner_symlink":
+            link = tmp_path / "api-link"; link.symlink_to(owner, target_is_directory=True)
+            binding["plan_owner_binding"]["app_root"] = str(link)
+        elif damage == "owner_source_symlink":
+            source = owner / "apps/api/v35_api/app.py"
+            source.unlink(); source.symlink_to(worker / "apps/api/v35_api/app.py")
+        elif damage == "api_consumer":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").write_text("# changed real API consumer\n")
+        elif damage == "api_consumer_missing":
+            (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").unlink()
+        elif damage == "owner_overlap":
+            binding["plan_owner_binding"]["app_root"] = binding["manager_state_root"]
+        elif damage == "canary_owner":
+            # Replace the pinned evidence consistently; the new root binding must
+            # still reject a canary executed by another API release.
+            binding["plan_activation_receipt"] = _canary(tmp_path / "wrong-evidence", worker, worker, service.store.root)
+        elif damage.startswith("canary_identity") or damage == "canary_migration":
+            canary_path = Path(binding["plan_activation_receipt"]["path"])
+            canary = json.loads(canary_path.read_bytes())
+            if damage == "canary_identity_missing":
+                canary.pop("owner_binding_identity_sha256")
+            elif damage == "canary_identity_wrong":
+                canary["owner_binding_identity_sha256"] = "0" * 64
+            else:
+                canary["source_migration_receipt"] = {"path": str(tmp_path / "unexpected.json"), "sha256": "a" * 64}
+            binding["plan_activation_receipt"] = _json_file(canary_path, canary)
+        elif damage == "master":
+            service._workspace_security_master_root = tmp_path / "other-master"
+        if damage not in {"sha", "api_root", "worker_file", "api_file", "master",
+                          "owner_source_symlink", "api_consumer", "api_consumer_missing"}:
+            ref = _json_file(Path(ref["path"]), binding)
+            sha = ref["sha256"]
+        execute = dispatch.execute_bound_daily_cycle if daily else dispatch.execute_bound_plan_cycle
+        with pytest.raises(ValueError) as captured:
+            execute(service, DATE, sha)
+        expected = "PLAN_OWNER_DAILY_BINDING_DISABLED" if daily and damage == "disabled" else code
+>       assert str(captured.value) == expected
+E       AssertionError: assert 'PLAN_OWNER_B...TORY_MISMATCH' == 'PLAN_OWNER_S...ROOT_MISMATCH'
+E         
+E         - PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH
+E         + PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH
+
+tests/test_manager_r3_binding_identity.py:321: AssertionError
+_________ test_renderer_pins_both_roots_in_one_reviewable_raw_binding __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_renderer_pins_both_roots_0')
+
+    def test_renderer_pins_both_roots_in_one_reviewable_raw_binding(tmp_path):
+        from ops import render_manager_announcement_binding as renderer
+        binding, worker, owner = synthetic_binding(tmp_path)
+        output = tmp_path / "rendered.json"
+>       assert renderer.main([
+            "--app-root", str(worker), "--plan-owner-app-root", str(owner),
+            "--manager-state-root", binding["manager_state_root"],
+            "--security-master-root", binding["security_master_root"],
+            "--python", binding["python"], "--output", str(output),
+            "--enabled", "--plan-material-refresh-only", "--daily-automation",
+            "--plan-activation-receipt", binding["plan_activation_receipt"]["path"],
+        ]) == 0
+
+tests/test_manager_r3_binding_identity.py:434: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+ops/render_manager_announcement_binding.py:78: in main
+    validate_binding(value,app);out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(value,ensure_ascii=False,sort_keys=True,indent=2))
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/scheduling/manager_announcement_supervisor.py:450: in validate_binding
+    _validate_plan_canary(value.get('plan_activation_receipt'),app=app,state=state,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+receipt_ref = {'path': '/tmp/pytest-of-root/pytest-28/test_renderer_pins_both_roots_0/evidence/canary.json', 'sha256': '2cd2c518ddddc8e7f554d79a7c32f69633cb86585e78cee4c1380f5d821307db'}
+app = PosixPath('/tmp/pytest-of-root/pytest-28/test_renderer_pins_both_roots_0/worker-app')
+state = PosixPath('/tmp/pytest-of-root/pytest-28/test_renderer_pins_both_roots_0/state')
+expected_owner_app = PosixPath('/tmp/pytest-of-root/pytest-28/test_renderer_pins_both_roots_0/api-app')
+
+    def _validate_plan_canary(receipt_ref: Any, *, app: Path, state: Path,
+                              expected_owner_app: Path | None=None) -> None:
+        """Validate explicit manual-plan owner evidence without accepting an announcement canary."""
+        if not isinstance(receipt_ref,dict):
+            raise ValueError('PLAN_REFRESH_CANARY_REQUIRED')
+        receipt_path=_path(receipt_ref.get('path'))
+        expected_sha=str(receipt_ref.get('sha256') or '')
+        if not re.fullmatch(r'[0-9a-f]{64}',expected_sha):
+            raise ValueError('PLAN_REFRESH_CANARY_SHA_INVALID')
+        try:
+            raw=SafeRoot(receipt_path.parent).read_bytes(receipt_path.name,max_bytes=1024*1024)
+            if hashlib.sha256(raw).hexdigest()!=expected_sha:
+                raise ValueError('PLAN_REFRESH_CANARY_SHA_MISMATCH')
+            canary=json.loads(raw)
+        except (OSError,ValueError,TypeError) as exc:
+            if str(exc).startswith('PLAN_REFRESH_CANARY_'):raise
+            raise ValueError('PLAN_REFRESH_CANARY_INVALID') from exc
+        if not isinstance(canary,dict):
+            raise ValueError('PLAN_REFRESH_CANARY_CONTRACT_INVALID')
+        scope=canary.get('scope')
+        target=str(canary.get('target_trade_date') or '')
+        if (canary.get('schema_version')!=PLAN_CANARY_SCHEMA
+                or canary.get('status')!=PLAN_CANARY_STATUS
+                or canary.get('app_root')!=str(app) or canary.get('manager_state_root')!=str(state)
+                or canary.get('policy_status')!='PROPOSAL_ONLY'
+                or scope not in {PLAN_CANARY_NEXT_SCOPE,PLAN_CANARY_HISTORICAL_SCOPE}
+                or canary.get('plan_material_refresh_only') is not True
+                or canary.get('execution_mode')!='HISTORICAL_MANUAL_REFRESH_OWNER_HTTP_READBACK'
+                or canary.get('hook_executed') is not False
+                or canary.get('candidate_binding_app_root')!=str(app)
+                or not isinstance(canary.get('owner_execution_app_root'),str)
+                or canary.get('announcement_collection_enabled') is not False
+                or canary.get('announcement_network_requests')!=0
+                or canary.get('production_allowed') is not False
+                or canary.get('buy_gate_updated') is not False or canary.get('orders_sent') is not False
+                or canary.get('research_only') is not True):
+            raise ValueError('PLAN_REFRESH_CANARY_CONTRACT_INVALID')
+        if scope==PLAN_CANARY_HISTORICAL_SCOPE:
+            if not re.fullmatch(r'20\d{6}',target):
+                raise ValueError('PLAN_REFRESH_CANARY_HISTORICAL_TARGET_INVALID')
+            _validate_historical_plan_canary_target(target)
+        source_root=_path(canary.get('owner_execution_app_root'))
+        if expected_owner_app is not None and source_root!=expected_owner_app:
+            raise ValueError('PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH')
+        migration_ref=canary.get('source_migration_receipt')
+        if source_root == app:
+            # A fresh API-owner canary may be executed by the exact same release
+            # root that the plan-only cycle will load. Its closed binding inventory
+            # below is the source pin; no cross-release migration receipt applies.
+            if migration_ref is not None:
+                raise ValueError('PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED')
+        else:
+            if not isinstance(migration_ref,dict):
+>               raise ValueError('PLAN_REFRESH_CANARY_SOURCE_MIGRATION_REQUIRED')
+E               ValueError: PLAN_REFRESH_CANARY_SOURCE_MIGRATION_REQUIRED
+
+infrastructure/scheduling/manager_announcement_supervisor.py:288: ValueError
+_____ test_owner_inventory_pins_actual_api_consumer_package_and_new_files ______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_owner_inventory_pins_actu0')
+
+    def test_owner_inventory_pins_actual_api_consumer_package_and_new_files(tmp_path):
+        owner = _source_root(tmp_path / "api")
+        extra = owner / "v3_shared_data/shared_data/new_consumer.py"
+        extra.write_text("# synthetic additional imported module\n")
+        inventory = supervisor.plan_owner_inventory(owner)
+        for path in (extra, owner / "v3_shared_data/shared_data/hk_daily_supplement.py"):
+>           assert inventory.get(str(path.relative_to(owner))) == hashlib.sha256(path.read_bytes()).hexdigest()
+E           AssertionError: assert None == 'fecce7b1a7bddf92cf663c0c702154e9cc58d0661d41e6a199cae92cf54eae7e'
+E            +  where None = <built-in method get of dict object at 0x7f5cdd36b180>('v3_shared_data/shared_data/new_consumer.py')
+E            +    where <built-in method get of dict object at 0x7f5cdd36b180> = {'apps/__init__.py': 'e2353dfbdc26887f096f73ba82b02f49c070dd024aa52c8bba68bd91e4f50f26', 'apps/api/__init__.py': 'e131...'apps/api/v35_api/manager_research_router.py': '6dadd1079a0e854c22e703083b16f5ac4b2b2261cd1f3bf98e48bbdd10da3c4e', ...}.get
+E            +    and   'v3_shared_data/shared_data/new_consumer.py' = str(PosixPath('v3_shared_data/shared_data/new_consumer.py'))
+E            +      where PosixPath('v3_shared_data/shared_data/new_consumer.py') = relative_to(PosixPath('/tmp/pytest-of-root/pytest-28/test_owner_inventory_pins_actu0/api'))
+E            +        where relative_to = PosixPath('/tmp/pytest-of-root/pytest-28/test_owner_inventory_pins_actu0/api/v3_shared_data/shared_data/new_consumer.py').relative_to
+E            +  and   'fecce7b1a7bddf92cf663c0c702154e9cc58d0661d41e6a199cae92cf54eae7e' = <built-in method hexdigest of _hashlib.HASH object at 0x7f5cdd4c1c50>()
+E            +    where <built-in method hexdigest of _hashlib.HASH object at 0x7f5cdd4c1c50> = <sha256 _hashlib.HASH object @ 0x7f5cdd4c1c50>.hexdigest
+E            +      where <sha256 _hashlib.HASH object @ 0x7f5cdd4c1c50> = <built-in function openssl_sha256>(b'# synthetic additional imported module\n')
+E            +        where <built-in function openssl_sha256> = hashlib.sha256
+E            +        and   b'# synthetic additional imported module\n' = read_bytes()
+E            +          where read_bytes = PosixPath('/tmp/pytest-of-root/pytest-28/test_owner_inventory_pins_actu0/api/v3_shared_data/shared_data/new_consumer.py').read_bytes
+
+tests/test_manager_r3_binding_identity.py:533: AssertionError
+______ test_owner_entry_files_share_the_existing_total_source_byte_budget ______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-28/test_owner_entry_files_share_t0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5cdd36e200>
+
+    def test_owner_entry_files_share_the_existing_total_source_byte_budget(tmp_path, monkeypatch):
+        owner = _source_root(tmp_path / "api")
+        count = len(supervisor.binding_inventory(owner))
+        payload = b"x" * (64 * 1024 * 1024 // (count + 1))
+        monkeypatch.setattr(supervisor.SafeRoot, "read_bytes", lambda *_args, **_kwargs: payload)
+>       with pytest.raises(ValueError, match="SOURCE_BYTE_BUDGET"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_r3_binding_identity.py:541: Failed
+=========================== short test summary info ============================
+FAILED tests/test_manager_r3_binding_identity.py::test_dual_roots_admit_the_same_raw_binding_and_echo_original_owner_identity[False]
+FAILED tests/test_manager_r3_binding_identity.py::test_dual_roots_admit_the_same_raw_binding_and_echo_original_owner_identity[True]
+FAILED tests/test_manager_r3_binding_identity.py::test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[False-api_root-PLAN_OWNER_BINDING_API_ROOT_MISMATCH]
+FAILED tests/test_manager_r3_binding_identity.py::test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[False-disabled-PLAN_OWNER_BINDING_DISABLED]
+FAILED tests/test_manager_r3_binding_identity.py::test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[False-worker_file-ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH]
+FAILED tests/test_manager_r3_binding_identity.py::test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[False-api_consumer_missing-PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE]
+FAILED tests/test_manager_r3_binding_identity.py::test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[False-canary_owner-PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH]
+FAILED tests/test_manager_r3_binding_identity.py::test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[False-canary_identity_missing-PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH]
+FAILED tests/test_manager_r3_binding_identity.py::test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[False-canary_identity_wrong-PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH]
+FAILED tests/test_manager_r3_binding_identity.py::test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[False-canary_migration-PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED]
+FAILED tests/test_manager_r3_binding_identity.py::test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[False-master-PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH]
+FAILED tests/test_manager_r3_binding_identity.py::test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[True-api_root-PLAN_OWNER_BINDING_API_ROOT_MISMATCH]
+FAILED tests/test_manager_r3_binding_identity.py::test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[True-disabled-PLAN_OWNER_BINDING_DISABLED]
+FAILED tests/test_manager_r3_binding_identity.py::test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[True-worker_file-ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH]
+FAILED tests/test_manager_r3_binding_identity.py::test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[True-api_consumer_missing-PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE]
+FAILED tests/test_manager_r3_binding_identity.py::test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[True-canary_owner-PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH]
+FAILED tests/test_manager_r3_binding_identity.py::test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[True-canary_identity_missing-PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH]
+FAILED tests/test_manager_r3_binding_identity.py::test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[True-canary_identity_wrong-PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH]
+FAILED tests/test_manager_r3_binding_identity.py::test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[True-canary_migration-PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED]
+FAILED tests/test_manager_r3_binding_identity.py::test_gate_rejection_preserves_code_and_never_enters_owner_or_writes[True-master-PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH]
+FAILED tests/test_manager_r3_binding_identity.py::test_renderer_pins_both_roots_in_one_reviewable_raw_binding
+FAILED tests/test_manager_r3_binding_identity.py::test_owner_inventory_pins_actual_api_consumer_package_and_new_files
+FAILED tests/test_manager_r3_binding_identity.py::test_owner_entry_files_share_the_existing_total_source_byte_budget
+23 failed, 37 passed in 3.32s
+
+EXIT_CODE: 1

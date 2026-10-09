@@ -1,0 +1,11 @@
+COMMAND: ["/workspace/scratch/6168fe203da9/r3-venv314/bin/python", "r3-work/delivery/manager-daily-repair-20261009-r3/tools/assemble_test_fixture.py", "--snapshot-root", "v4-input", "--output", "r3-work/reproduced-tool-check"]
+{
+  "status": "ASSEMBLED_TEST_FIXTURE_ONLY",
+  "output": "/workspace/scratch/6168fe203da9/r3-work/reproduced-tool-check",
+  "files": 116,
+  "manifest_sha256": "b5796b768e71ba9329adc60631a6470b186d50d4b2470c7a395b6e7a1810ad81",
+  "full_runtime_image": false,
+  "integrated": "NOT_RUN",
+  "deployed": "NOT_RUN"
+}
+EXIT_CODE=0

@@ -1,0 +1,494 @@
+{
+  "schema_version": "v4.manager_r3.shared_owner_scope_audit.v1",
+  "captured_at_utc": "2026-10-09T04:10:00.819237+00:00",
+  "audit_status": "BLOCKED_PENDING_EXISTING_SHARED_OWNER_REGISTRATION_AND_ENFORCED_SCOPE_REVIEW",
+  "delivery_decision": "COMPLETE_R1_R2_AFTER_BYTES_PLUS_R3_FIXES; DO_NOT_REMOVE_DAILY_BEHAVIOR_TO_AVOID_SHARED_DEPENDENCIES",
+  "repository": {
+    "full_name": "lexi2016/v4",
+    "source_commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+    "r1_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+    "r2_commit": "6a2fa48faf1da0a7d0d1715b3a4a40f55249b64c",
+    "shared_baseline_commit": "66bb05a2e12976775ccb997191ce943bae8cc9a5"
+  },
+  "policy": {
+    "repository_path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/issue30_release_policy/ops/api_release_integration.py",
+    "local_path": "/workspace/scratch/6168fe203da9/v4-input/handoff/manager-daily-failure-20261009-r3/package/source_snapshot/issue30_release_policy/ops/api_release_integration.py",
+    "file_sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+    "policy_sha256": "c55f4f09269661e0db05fa566aa1be9a96b2aa681912223c38fb802c4127e1b6",
+    "ownership_source_lines": [
+      26,
+      53
+    ],
+    "enforcement_source_lines": [
+      573,
+      603
+    ],
+    "source_allowlist_source_lines": [
+      813,
+      840
+    ],
+    "manager_owned_prefixes": [
+      "domains/manager_research/",
+      "v4/manager_research/",
+      "apps/api/v35_api/manager_"
+    ],
+    "policy_changed_by_this_work": false
+  },
+  "probe": {
+    "started_at_utc": "2026-10-09T04:10:00.758354+00:00",
+    "finished_at_utc": "2026-10-09T04:10:00.819237+00:00",
+    "command": {
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "-"
+      ],
+      "stdin_utf8": "from pathlib import Path\nimport hashlib, json, os, platform, runpy, sys\npolicy = Path('/workspace/scratch/6168fe203da9/v4-input/handoff/manager-daily-failure-20261009-r3/package/source_snapshot/issue30_release_policy/ops/api_release_integration.py')\nmodule = runpy.run_path(str(policy))\nscope = module['module_scope']('manager')\npaths = [\n    'apps/api/v35_api/manager_research_router.py',\n    'v4/manager_research/plan_owner_dispatch.py',\n    'v4/manager_research/service.py',\n    'v4/manager_research/us_mapping_research.py',\n    'v4/manager_research/workspace.py',\n    'v4/manager_research/workspace_history.py',\n    'v4/manager_research/workspace_plan_autorun.py',\n    'v4/manager_research/plan_owner_binding_contract.py',\n    'infrastructure/_research_peripheral_store_parts/_namespace.py',\n    'infrastructure/scheduling/manager_announcement_supervisor.py',\n    'ops/render_manager_announcement_binding.py',\n    'ops/run_manager_announcement_cycle.py',\n    'v3_shared_data/shared_data/hk_daily_supplement.py',\n    'tests/test_manager_plan_owner_r3.py',\n    'apps/web/src/api/managerWorkspace.ts',\n]\nresults = []\nfor path in paths:\n    try:\n        module['_validate_module_scope'](scope, [path])\n        result = 'ACCEPTED_OWNERSHIP_ONLY'\n    except ValueError as exc:\n        result = str(exc)\n    results.append({'path': path, 'result': result})\ntry:\n    module['module_scope']('manager', ['ops/run_manager_announcement_cycle.py'])\n    shared_result = 'UNEXPECTED_ACCEPTANCE'\nexcept ValueError as exc:\n    shared_result = str(exc)\nprint(json.dumps({\n    'environment': {'python_executable': sys.executable, 'python_version': sys.version,\n        'platform': platform.platform(), 'machine': platform.machine(), 'cwd': os.getcwd(),\n        'bytecode_writes_disabled': sys.dont_write_bytecode},\n    'file_sha256': hashlib.sha256(policy.read_bytes()).hexdigest(),\n    'module_scope': scope, 'results': results,\n    'shared_paths_reclassification': {'module': 'manager',\n        'shared_paths': ['ops/run_manager_announcement_cycle.py'], 'result': shared_result},\n}, ensure_ascii=False, indent=2))\n",
+      "cwd": "/workspace/scratch/6168fe203da9",
+      "environment_overrides": {}
+    },
+    "exit_code": 0,
+    "stdout": "{\n  \"environment\": {\n    \"python_executable\": \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python\",\n    \"python_version\": \"3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]\",\n    \"platform\": \"Linux-6.18.44-x86_64-with-glibc2.39\",\n    \"machine\": \"x86_64\",\n    \"cwd\": \"/workspace/scratch/6168fe203da9\",\n    \"bytecode_writes_disabled\": true\n  },\n  \"file_sha256\": \"1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050\",\n  \"module_scope\": {\n    \"module\": \"manager\",\n    \"shared_paths\": [],\n    \"policy_sha256\": \"c55f4f09269661e0db05fa566aa1be9a96b2aa681912223c38fb802c4127e1b6\"\n  },\n  \"results\": [\n    {\n      \"path\": \"apps/api/v35_api/manager_research_router.py\",\n      \"result\": \"ACCEPTED_OWNERSHIP_ONLY\"\n    },\n    {\n      \"path\": \"v4/manager_research/plan_owner_dispatch.py\",\n      \"result\": \"ACCEPTED_OWNERSHIP_ONLY\"\n    },\n    {\n      \"path\": \"v4/manager_research/service.py\",\n      \"result\": \"ACCEPTED_OWNERSHIP_ONLY\"\n    },\n    {\n      \"path\": \"v4/manager_research/us_mapping_research.py\",\n      \"result\": \"ACCEPTED_OWNERSHIP_ONLY\"\n    },\n    {\n      \"path\": \"v4/manager_research/workspace.py\",\n      \"result\": \"ACCEPTED_OWNERSHIP_ONLY\"\n    },\n    {\n      \"path\": \"v4/manager_research/workspace_history.py\",\n      \"result\": \"ACCEPTED_OWNERSHIP_ONLY\"\n    },\n    {\n      \"path\": \"v4/manager_research/workspace_plan_autorun.py\",\n      \"result\": \"ACCEPTED_OWNERSHIP_ONLY\"\n    },\n    {\n      \"path\": \"v4/manager_research/plan_owner_binding_contract.py\",\n      \"result\": \"ACCEPTED_OWNERSHIP_ONLY\"\n    },\n    {\n      \"path\": \"infrastructure/_research_peripheral_store_parts/_namespace.py\",\n      \"result\": \"API_RELEASE_MODULE_PATH_NOT_OWNED:infrastructure/_research_peripheral_store_parts/_namespace.py\"\n    },\n    {\n      \"path\": \"infrastructure/scheduling/manager_announcement_supervisor.py\",\n      \"result\": \"API_RELEASE_MODULE_PATH_NOT_OWNED:infrastructure/scheduling/manager_announcement_supervisor.py\"\n    },\n    {\n      \"path\": \"ops/render_manager_announcement_binding.py\",\n      \"result\": \"API_RELEASE_MODULE_PATH_NOT_OWNED:ops/render_manager_announcement_binding.py\"\n    },\n    {\n      \"path\": \"ops/run_manager_announcement_cycle.py\",\n      \"result\": \"API_RELEASE_MODULE_PATH_NOT_OWNED:ops/run_manager_announcement_cycle.py\"\n    },\n    {\n      \"path\": \"v3_shared_data/shared_data/hk_daily_supplement.py\",\n      \"result\": \"API_RELEASE_MODULE_PATH_NOT_OWNED:v3_shared_data/shared_data/hk_daily_supplement.py\"\n    },\n    {\n      \"path\": \"tests/test_manager_plan_owner_r3.py\",\n      \"result\": \"API_RELEASE_MODULE_PATH_NOT_OWNED:tests/test_manager_plan_owner_r3.py\"\n    },\n    {\n      \"path\": \"apps/web/src/api/managerWorkspace.ts\",\n      \"result\": \"API_RELEASE_MODULE_PATH_NOT_OWNED:apps/web/src/api/managerWorkspace.ts\"\n    }\n  ],\n  \"shared_paths_reclassification\": {\n    \"module\": \"manager\",\n    \"shared_paths\": [\n      \"ops/run_manager_announcement_cycle.py\"\n    ],\n    \"result\": \"API_RELEASE_MODULE_SHARED_PATH_NOT_ALLOWED\"\n  }\n}\n",
+    "stderr": "",
+    "parsed_result": {
+      "environment": {
+        "python_executable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+        "machine": "x86_64",
+        "cwd": "/workspace/scratch/6168fe203da9",
+        "bytecode_writes_disabled": true
+      },
+      "file_sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+      "module_scope": {
+        "module": "manager",
+        "shared_paths": [],
+        "policy_sha256": "c55f4f09269661e0db05fa566aa1be9a96b2aa681912223c38fb802c4127e1b6"
+      },
+      "results": [
+        {
+          "path": "apps/api/v35_api/manager_research_router.py",
+          "result": "ACCEPTED_OWNERSHIP_ONLY"
+        },
+        {
+          "path": "v4/manager_research/plan_owner_dispatch.py",
+          "result": "ACCEPTED_OWNERSHIP_ONLY"
+        },
+        {
+          "path": "v4/manager_research/service.py",
+          "result": "ACCEPTED_OWNERSHIP_ONLY"
+        },
+        {
+          "path": "v4/manager_research/us_mapping_research.py",
+          "result": "ACCEPTED_OWNERSHIP_ONLY"
+        },
+        {
+          "path": "v4/manager_research/workspace.py",
+          "result": "ACCEPTED_OWNERSHIP_ONLY"
+        },
+        {
+          "path": "v4/manager_research/workspace_history.py",
+          "result": "ACCEPTED_OWNERSHIP_ONLY"
+        },
+        {
+          "path": "v4/manager_research/workspace_plan_autorun.py",
+          "result": "ACCEPTED_OWNERSHIP_ONLY"
+        },
+        {
+          "path": "v4/manager_research/plan_owner_binding_contract.py",
+          "result": "ACCEPTED_OWNERSHIP_ONLY"
+        },
+        {
+          "path": "infrastructure/_research_peripheral_store_parts/_namespace.py",
+          "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:infrastructure/_research_peripheral_store_parts/_namespace.py"
+        },
+        {
+          "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+          "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:infrastructure/scheduling/manager_announcement_supervisor.py"
+        },
+        {
+          "path": "ops/render_manager_announcement_binding.py",
+          "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:ops/render_manager_announcement_binding.py"
+        },
+        {
+          "path": "ops/run_manager_announcement_cycle.py",
+          "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:ops/run_manager_announcement_cycle.py"
+        },
+        {
+          "path": "v3_shared_data/shared_data/hk_daily_supplement.py",
+          "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:v3_shared_data/shared_data/hk_daily_supplement.py"
+        },
+        {
+          "path": "tests/test_manager_plan_owner_r3.py",
+          "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:tests/test_manager_plan_owner_r3.py"
+        },
+        {
+          "path": "apps/web/src/api/managerWorkspace.ts",
+          "result": "API_RELEASE_MODULE_PATH_NOT_OWNED:apps/web/src/api/managerWorkspace.ts"
+        }
+      ],
+      "shared_paths_reclassification": {
+        "module": "manager",
+        "shared_paths": [
+          "ops/run_manager_announcement_cycle.py"
+        ],
+        "result": "API_RELEASE_MODULE_SHARED_PATH_NOT_ALLOWED"
+      }
+    },
+    "scope": "READ_ONLY_PYTHON_POLICY_FUNCTIONS; NO_CANDIDATE_BUILD_OR_LIVE_SERVICE_CALL"
+  },
+  "pending_owner_registration": [
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/_namespace.py",
+      "profile": "api",
+      "registration_status": "PENDING_EXISTING_SHARED_OWNER",
+      "existing_policy_result": "API_RELEASE_MODULE_PATH_NOT_OWNED:infrastructure/_research_peripheral_store_parts/_namespace.py",
+      "observed_current_api_before_sha256": null,
+      "before_mode_status": "MUST_CONFIRM_ABSENT_ON_MAC",
+      "r1_reused_after_sha256": "04d71a71d33cdc90ec362289095dd2ac6e357f79af1528f8c573f6ddcc24e68d",
+      "final_after_sha256_source": "FINAL_R3_SOURCE_MANIFEST; do not assume R1 hash if R3 changes this file",
+      "necessity": "R1 split-store global resolver addition; required dependency remains in the complete R1 payload."
+    },
+    {
+      "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "profile": "api",
+      "registration_status": "PENDING_EXISTING_SHARED_OWNER",
+      "existing_policy_result": "API_RELEASE_MODULE_PATH_NOT_OWNED:infrastructure/scheduling/manager_announcement_supervisor.py",
+      "observed_current_api_before_sha256": "73eb6a2f7cbf2e2307a87edc3013e355c331f2ce87e6e0ae693b9f78de2dd34a",
+      "before_mode_status": "MUST_READ_ON_MAC",
+      "r1_reused_after_sha256": "2ed9640b7c1568df065884f9f71a1df82b288c342bc94135ef4fd06b4c510373",
+      "final_after_sha256_source": "FINAL_R3_SOURCE_MANIFEST; do not assume R1 hash if R3 changes this file",
+      "necessity": "R1 daily_automation_config and validation are imported by complete R1 dispatch/cycle behavior."
+    },
+    {
+      "path": "ops/render_manager_announcement_binding.py",
+      "profile": "api",
+      "registration_status": "PENDING_EXISTING_SHARED_OWNER",
+      "existing_policy_result": "API_RELEASE_MODULE_PATH_NOT_OWNED:ops/render_manager_announcement_binding.py",
+      "observed_current_api_before_sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a",
+      "before_mode_status": "MUST_READ_ON_MAC",
+      "r1_reused_after_sha256": "78049be0625c15539dcd44c1924ba8f89d5dd5a06a074c723a84d68fb45b3f39",
+      "final_after_sha256_source": "FINAL_R3_SOURCE_MANIFEST; do not assume R1 hash if R3 changes this file",
+      "necessity": "Original binding renderer carries the R1 binding contract; it is an offline renderer, not a new release owner."
+    },
+    {
+      "path": "ops/run_manager_announcement_cycle.py",
+      "profile": "api",
+      "registration_status": "PENDING_EXISTING_SHARED_OWNER",
+      "existing_policy_result": "API_RELEASE_MODULE_PATH_NOT_OWNED:ops/run_manager_announcement_cycle.py",
+      "observed_current_api_before_sha256": "c6f9cfa57515682b4f076e10f2030196dc9377bdbb9ec4abe737e36d15485c1c",
+      "before_mode_status": "MUST_READ_ON_MAC",
+      "r1_reused_after_sha256": "ac05519d31be2ad5de640190d9219335e14cd70e6273bdc652b32b85e929ffa1",
+      "final_after_sha256_source": "FINAL_R3_SOURCE_MANIFEST; do not assume R1 hash if R3 changes this file",
+      "necessity": "R1 dispatch supplies new daily/context keyword arguments absent from the recorded current API runner."
+    },
+    {
+      "path": "v3_shared_data/shared_data/hk_daily_supplement.py",
+      "profile": "api_consumer",
+      "registration_status": "PENDING_EXISTING_SHARED_OWNER",
+      "existing_policy_result": "API_RELEASE_MODULE_PATH_NOT_OWNED:v3_shared_data/shared_data/hk_daily_supplement.py",
+      "observed_current_api_before_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+      "before_mode_status": "MUST_READ_ON_MAC",
+      "reused_consumer_after_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+      "source_scope": "API consumer copy only; not the HK 0.2 updater owner and not a new producer",
+      "final_after_sha256_source": "FINAL_R3_SOURCE_MANIFEST"
+    }
+  ],
+  "registration_rule": "A registration JSON, source allowlist, explicit-untracked declaration, or caller-supplied shared_paths cannot override the checked-in POLICY. The original shared owner must close its real enforced ownership gate through its existing reviewed process. This delivery does not change POLICY or create a publisher.",
+  "dependency_compatibility": {
+    "r1_dispatch_path": "handoff/manager-daily-automation-repair-20261008-r1/after/api/v4/manager_research/plan_owner_dispatch.py",
+    "r1_call_source_lines": [
+      330,
+      337
+    ],
+    "r1_daily_config_import_source_lines": [
+      476,
+      493
+    ],
+    "current_runner_path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_api_manager/ops/run_manager_announcement_cycle.py",
+    "current_runner_signature_source_lines": [
+      272,
+      275
+    ],
+    "finding": "Complete R1 dispatch always passes daily_config/daily_branch/scheduled_slot/trigger_id/us_market_request_context; recorded current API runner accepts none of these. Removing blocked shared deltas while retaining full R1 dispatch is not a runnable complete candidate.",
+    "finding_method": "STATIC_SOURCE_SIGNATURE_COMPARISON; not a live TypeError observation"
+  },
+  "recorded_current_api": {
+    "service_label": "com.lexi.v35.api-only",
+    "pid": "78617",
+    "release_id": "issue32_preselection_api_actual_r4",
+    "configured_app_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+    "release_manifest_sha256": "16675f6016d40e8a5eaf7b1e3e37694228364fae544e8a7b73e4bf17e1f5a9e6",
+    "plist_sha256": "c88e4069f6deb467a204b4510824e62b15cb8fc11dfa7892a43e5ec8eaed8ec4",
+    "manager_preimage_paths": [
+      {
+        "path": "apps/api/v35_api/manager_research_router.py",
+        "sha256": "84f65a351e1e44171820cb8698e4198b3084e39b8d0cfe82c6b4bc05595f8073",
+        "bytes": 26922,
+        "status": "MATCH_EXPECTED",
+        "expected_r1_before_sha256": "84f65a351e1e44171820cb8698e4198b3084e39b8d0cfe82c6b4bc05595f8073"
+      },
+      {
+        "path": "infrastructure/_research_peripheral_store_parts/_namespace.py",
+        "sha256": null,
+        "bytes": null,
+        "status": "MISSING_IN_SOURCE_ROOT",
+        "expected_r1_before_sha256": null
+      },
+      {
+        "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+        "sha256": "73eb6a2f7cbf2e2307a87edc3013e355c331f2ce87e6e0ae693b9f78de2dd34a",
+        "bytes": 28502,
+        "status": "MATCH_EXPECTED",
+        "expected_r1_before_sha256": "73eb6a2f7cbf2e2307a87edc3013e355c331f2ce87e6e0ae693b9f78de2dd34a"
+      },
+      {
+        "path": "ops/render_manager_announcement_binding.py",
+        "sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a",
+        "bytes": 3058,
+        "status": "MATCH_EXPECTED",
+        "expected_r1_before_sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a"
+      },
+      {
+        "path": "ops/run_manager_announcement_cycle.py",
+        "sha256": "c6f9cfa57515682b4f076e10f2030196dc9377bdbb9ec4abe737e36d15485c1c",
+        "bytes": 25368,
+        "status": "MATCH_EXPECTED",
+        "expected_r1_before_sha256": "c6f9cfa57515682b4f076e10f2030196dc9377bdbb9ec4abe737e36d15485c1c"
+      },
+      {
+        "path": "v4/manager_research/plan_owner_dispatch.py",
+        "sha256": "8fad78ec64b1ff3ab80242fedc93dfcf7cbed25e6839821aab7f024ca297bf75",
+        "bytes": 26827,
+        "status": "MATCH_EXPECTED",
+        "expected_r1_before_sha256": "8fad78ec64b1ff3ab80242fedc93dfcf7cbed25e6839821aab7f024ca297bf75"
+      },
+      {
+        "path": "v4/manager_research/service.py",
+        "sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37",
+        "bytes": 93685,
+        "status": "MATCH_EXPECTED",
+        "expected_r1_before_sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37"
+      },
+      {
+        "path": "v4/manager_research/us_mapping_research.py",
+        "sha256": "297dc6f5950d3614437378c22e3157b6866823fbf25fd39cb47f112ffea40da7",
+        "bytes": 14052,
+        "status": "MATCH_EXPECTED",
+        "expected_r1_before_sha256": "297dc6f5950d3614437378c22e3157b6866823fbf25fd39cb47f112ffea40da7"
+      },
+      {
+        "path": "v4/manager_research/workspace.py",
+        "sha256": "183e3ebd0322883a8f8cef37c0244f424f16c63d3120245e263bb9585133dea3",
+        "bytes": 59319,
+        "status": "MATCH_EXPECTED",
+        "expected_r1_before_sha256": "183e3ebd0322883a8f8cef37c0244f424f16c63d3120245e263bb9585133dea3"
+      },
+      {
+        "path": "v4/manager_research/workspace_history.py",
+        "sha256": "da5e1223326631cc9070c3059ca606bac3840ef468ad5c06f2f3a51534f82ec1",
+        "bytes": 17474,
+        "status": "MATCH_EXPECTED",
+        "expected_r1_before_sha256": "da5e1223326631cc9070c3059ca606bac3840ef468ad5c06f2f3a51534f82ec1"
+      },
+      {
+        "path": "v4/manager_research/workspace_plan_autorun.py",
+        "sha256": "703bef8d9a04861c6cb4161880427126badd69eece234f9b53eaa5ae59d7c6ef",
+        "bytes": 11309,
+        "status": "MATCH_EXPECTED",
+        "expected_r1_before_sha256": "703bef8d9a04861c6cb4161880427126badd69eece234f9b53eaa5ae59d7c6ef"
+      },
+      {
+        "path": "v3_shared_data/shared_data/hk_daily_supplement.py",
+        "sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+        "bytes": 35128,
+        "status": "MATCH_EXPECTED",
+        "expected_r1_before_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c"
+      }
+    ],
+    "manager_preimages_present_matching": {
+      "recorded_paths": 12,
+      "present": 11,
+      "missing": 1,
+      "all_present_match_expected": true
+    },
+    "issue32_protected_paths": [
+      {
+        "path": "apps/api/v35_api/app.py",
+        "sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+        "bytes": 324648,
+        "preserve": true
+      },
+      {
+        "path": "apps/api/v35_api/preselection_router.py",
+        "sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+        "bytes": 1322,
+        "preserve": true
+      },
+      {
+        "path": "apps/api/v35_api/preselection_service.py",
+        "sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+        "bytes": 30761,
+        "preserve": true
+      }
+    ],
+    "module_loaded_identity": "CANNOT_CONFIRM; plist, launchd pid, configured root/manifest and on-disk file SHAs are available, but Python sys.modules was not introspected."
+  },
+  "recorded_current_worker": {
+    "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app",
+    "binding_sha256": "c0fbff52449eb5dbf5c1655f17cf08915bea1214f9499cc8a4df1176d9625951",
+    "source_identity": {
+      "cycle": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app/ops/run_manager_announcement_cycle.py",
+        "exists": true,
+        "sha256": "cd91604a7f7d7f2f960bbbd337fcd453bf97bb298c14f0a7fb8804fdcbaf0a84",
+        "bytes": 18829
+      },
+      "supervisor": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app/infrastructure/scheduling/manager_announcement_supervisor.py",
+        "exists": true,
+        "sha256": "fd41e7ae1ba82429fb75364d42e96c435aa5855fb471c4fb55a0d38c962aa22a",
+        "bytes": 25925
+      },
+      "worker_dispatch_client": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app/v4/manager_research/plan_owner_dispatch.py",
+        "exists": true,
+        "sha256": "f4ddb61e341aa48f24aad62e9d0aa7bf2c9a0fc3d07bfae7ec285f78f1467fe3",
+        "bytes": 7169
+      }
+    },
+    "rule": "This is not the API root. Do not apply API before pins to the worker root."
+  },
+  "actual_shared_builder": {
+    "status": "NOT_ATTACHED; EXACT_CURRENT_OWNER_ENTRY_AND_SOURCE_ALLOWLIST_MUST_BE_SUPPLIED_ON_MAC",
+    "recursive_tree_check": {
+      "source_commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+      "entry_count": 2628,
+      "truncated": false,
+      "performed_in_prior_read_only_audit": true,
+      "remote_repeated_for_this_write": false
+    },
+    "current_create_api_module_delta_in_tree": false,
+    "known_builder_snapshots": [
+      "handoff/v4-running-source-20261005/api/ops/build_release_candidate.py",
+      "handoff/v4-running-source-20261005/canonical/ops/build_release_candidate.py"
+    ],
+    "rule": "The 20261005 builders are historical source snapshots, not proof of the current Issue30 shared integration entry."
+  },
+  "manager_owned_subset_delta_template": {
+    "status": "OWNERSHIP_SCOPE_CHECKED; PLACEHOLDERS_NOT_EXECUTABLE_RECEIPT; NOT_FULL_DELIVERY_AUTHORIZATION",
+    "must_keep_pending_paths_outside_this_subset": [
+      "infrastructure/_research_peripheral_store_parts/_namespace.py",
+      "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "ops/render_manager_announcement_binding.py",
+      "ops/run_manager_announcement_cycle.py",
+      "v3_shared_data/shared_data/hk_daily_supplement.py"
+    ],
+    "template": {
+      "schema_version": "v4.api_release_delta_receipt.v2",
+      "base": {
+        "release_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4",
+        "app_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+        "release_id": "issue32_preselection_api_actual_r4",
+        "release_manifest_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/release-manifest.json",
+        "release_manifest_sha256": "16675f6016d40e8a5eaf7b1e3e37694228364fae544e8a7b73e4bf17e1f5a9e6",
+        "application_inventory_sha256": "<READ_FROM_ACTUAL_CURRENT_MAC_BASE>",
+        "application_inventory_entry_count": "<ACTUAL_NONNEGATIVE_INTEGER_FROM_MAC>",
+        "api_plist_path": "<EXACT_ACTIVE_API_PLIST_PATH_FROM_EXISTING_OWNER>",
+        "api_plist_sha256": "c88e4069f6deb467a204b4510824e62b15cb8fc11dfa7892a43e5ec8eaed8ec4"
+      },
+      "module_scope": {
+        "module": "manager",
+        "shared_paths": [],
+        "policy_sha256": "c55f4f09269661e0db05fa566aa1be9a96b2aa681912223c38fb802c4127e1b6"
+      },
+      "entries": [
+        {
+          "path": "v4/manager_research/workspace.py",
+          "before_sha256": "183e3ebd0322883a8f8cef37c0244f424f16c63d3120245e263bb9585133dea3",
+          "after_sha256": "<FINAL_R3_WORKSPACE_SHA256>",
+          "before_mode": "<ACTUAL_CURRENT_MAC_MODE>",
+          "after_mode": "<FINAL_CANDIDATE_MODE>",
+          "unified_diff_sha256": "<CANONICAL_UNIFIED_DIFF_SHA256>",
+          "unified_diff_hunk_count": "<ACTUAL_NONNEGATIVE_INTEGER>"
+        }
+      ]
+    },
+    "new_file_rule": "For absent additions, before_sha256, before_mode, unified_diff_sha256 and unified_diff_hunk_count are null. All entries must be sorted. Existing files require exact modes and diff proof.",
+    "reference_source_lines": [
+      620,
+      665
+    ]
+  },
+  "minimum_existing_owner_next_actions": [
+    "Read the actual current active API root, release manifest, plist and full inventory; compare all declared before hashes and all three Issue32 protected hashes. Reject drift without rolling back parallel changes.",
+    "Identify and pin the current original shared-owner builder/check entry and source allowlist. Independently register all five unowned paths and close real enforced ownership review; registration alone is not acceptance.",
+    "Use a new non-overlapping isolated candidate root. Preserve the complete actual current base and overlay only the declared complete R1/R2+R3 runtime deltas; never replace the API with an old whole package.",
+    "Use a non-deploy prepare/check helper for source hashes, missing-before additions, path/symlink checks, modes and explicit pending registration. Keep tests and evidence outside the runtime delta.",
+    "Verify new candidate manifest, delta and non-delta inventory/modes, protected hashes and targeted tests against final after hashes. Re-read active identity before further owner steps.",
+    "Keep worker/API binding identities separate and prepare same-version binding inputs under the original owner. Do not modify production binding, canary, LaunchAgent or services during this handoff.",
+    "Only the existing owner may later perform separately authorized integration/deployment/API/UI/natural acceptance and rollback. Do not infer any of those from synthetic fixtures or HTTP 200."
+  ],
+  "rollback_contract": {
+    "current_action": "NONE; ACTIVE_ROOT_UNCHANGED",
+    "isolated_failure": "Stop; preserve failure receipt and incomplete candidate. Do not overwrite a pre-existing candidate.",
+    "future_deployed_rollback": "Original shared owner verifies the exact recorded immutable base and current pointer using its existing shared-lock process. Roll back only the approved delta or exact still-valid cumulative base; preserve concurrent repairs and immutable run/attempt/state.",
+    "verify_recorded_base_source_lines": [
+      544,
+      570
+    ]
+  },
+  "stage_status": {
+    "CODE_TESTS_DELIVERY": "SEE_FINAL_CODE_MANIFEST_AND_TEST_RECEIPTS",
+    "INTEGRATED": "NOT_RUN",
+    "DEPLOYED": "NOT_RUN",
+    "API": "NOT_RUN",
+    "UI": "NOT_RUN",
+    "NATURAL": "NOT_RUN"
+  },
+  "status_scope": "API means actual Mac live API readback; synthetic route tests must be reported separately.",
+  "safety_flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "actions": {
+    "production_config_changed": false,
+    "launchagent_changed": false,
+    "service_started_stopped_reloaded": false,
+    "real_owner_post_sent": false,
+    "live_plan_or_state_written": false,
+    "new_producer_scheduler_automation_publisher_created": false
+  },
+  "source_references": [
+    {
+      "path": "handoff/manager-daily-failure-20261009-r3/package/CHAT_TASK.md",
+      "lines": [
+        24,
+        41
+      ]
+    },
+    {
+      "path": "handoff/manager-daily-failure-20261009-r3/package/current_vs_candidate.json",
+      "lines": [
+        4,
+        123
+      ]
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/tools/initialize_api_web_candidate.py",
+      "lines": [
+        17,
+        19
+      ]
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/tools/apply_r1_r2_api_web.py",
+      "lines": [
+        50,
+        72
+      ]
+    }
+  ]
+}

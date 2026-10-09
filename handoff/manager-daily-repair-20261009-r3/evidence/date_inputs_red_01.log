@@ -1,0 +1,42 @@
+.F.FFFF...                                                               [100%]
+=================================== FAILURES ===================================
+_______ test_retrospective_latest_preserves_1008_qualified_auto_history ________
+tests/test_manager_r3_dates_inputs.py:181: in test_retrospective_latest_preserves_1008_qualified_auto_history
+    _assert_same_product(original, historical_auto, target=CATCH_UP, publication="20261007")
+tests/test_manager_r3_dates_inputs.py:95: in _assert_same_product
+    run = product["run_readback"]
+          ^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'run_readback'
+_ test_all_unavailable_inputs_do_not_materialize_a_plan_or_invent_zero[absent] _
+tests/test_manager_r3_dates_inputs.py:209: in test_all_unavailable_inputs_do_not_materialize_a_plan_or_invent_zero
+    assert result["status"] == "CANNOT_CONFIRM"
+           ^^^^^^^^^^^^^^^^
+E   KeyError: 'status'
+_ test_all_unavailable_inputs_do_not_materialize_a_plan_or_invent_zero[captured_not_imported] _
+tests/test_manager_r3_dates_inputs.py:209: in test_all_unavailable_inputs_do_not_materialize_a_plan_or_invent_zero
+    assert result["status"] == "CANNOT_CONFIRM"
+           ^^^^^^^^^^^^^^^^
+E   KeyError: 'status'
+_ test_unassessed_import_does_not_authorize_a_successful_empty_plan[fixture_options0-1] _
+tests/test_manager_r3_dates_inputs.py:235: in test_unassessed_import_does_not_authorize_a_successful_empty_plan
+    assert value["status"] == "CANNOT_CONFIRM"
+           ^^^^^^^^^^^^^^^
+E   KeyError: 'status'
+_ test_unassessed_import_does_not_authorize_a_successful_empty_plan[fixture_options1-None] _
+tests/test_manager_r3_dates_inputs.py:235: in test_unassessed_import_does_not_authorize_a_successful_empty_plan
+    assert value["status"] == "CANNOT_CONFIRM"
+           ^^^^^^^^^^^^^^^
+E   KeyError: 'status'
+=============================== warnings summary ===============================
+../../r3-venv/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/6168fe203da9/r3-venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_manager_r3_dates_inputs.py::test_retrospective_latest_preserves_1008_qualified_auto_history
+FAILED tests/test_manager_r3_dates_inputs.py::test_all_unavailable_inputs_do_not_materialize_a_plan_or_invent_zero[absent]
+FAILED tests/test_manager_r3_dates_inputs.py::test_all_unavailable_inputs_do_not_materialize_a_plan_or_invent_zero[captured_not_imported]
+FAILED tests/test_manager_r3_dates_inputs.py::test_unassessed_import_does_not_authorize_a_successful_empty_plan[fixture_options0-1]
+FAILED tests/test_manager_r3_dates_inputs.py::test_unassessed_import_does_not_authorize_a_successful_empty_plan[fixture_options1-None]
+5 failed, 5 passed, 1 warning in 1.72s

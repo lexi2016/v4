@@ -1,0 +1,120 @@
+COMMAND: /workspace/scratch/6168fe203da9/r3-venv314/bin/python -m pytest tests/test_manager_r3_binding_identity.py -q --tb=short
+..............................................................FFFFFFFFFF [ 79%]
+FFF................                                                      [100%]
+=================================== FAILURES ===================================
+_ test_input_not_ready_can_retry_after_backoff_then_cache_verified_partial[False] _
+tests/test_manager_r3_binding_identity.py:598: in test_input_not_ready_can_retry_after_backoff_then_cache_verified_partial
+    assert blocked["failure_reasons"] == ["PLAN_OWNER_RETRY_BACKOFF"]
+E   AssertionError: assert ['ANNOUNCEMEN...NNOT_CONFIRM'] == ['PLAN_OWNER_RETRY_BACKOFF']
+E     
+E     At index 0 diff: 'ANNOUNCEMENT:NOT_RUN' != 'PLAN_OWNER_RETRY_BACKOFF'
+E     Left contains one more item: 'OVERSOLD:CANNOT_CONFIRM'
+E     Use -v to get more diff
+_ test_input_not_ready_can_retry_after_backoff_then_cache_verified_partial[True] _
+tests/test_manager_r3_binding_identity.py:598: in test_input_not_ready_can_retry_after_backoff_then_cache_verified_partial
+    assert blocked["failure_reasons"] == ["PLAN_OWNER_RETRY_BACKOFF"]
+E   AssertionError: assert ['ANNOUNCEMEN...NNOT_CONFIRM'] == ['PLAN_OWNER_RETRY_BACKOFF']
+E     
+E     At index 0 diff: 'ANNOUNCEMENT:NOT_RUN' != 'PLAN_OWNER_RETRY_BACKOFF'
+E     Left contains one more item: 'OVERSOLD:CANNOT_CONFIRM'
+E     Use -v to get more diff
+____ test_input_not_ready_uses_original_bounded_retry_budget[PREOPEN-False] ____
+tests/test_manager_r3_binding_identity.py:644: in test_input_not_ready_uses_original_bounded_retry_budget
+    assert blocked["failure_reasons"] == ["PLAN_OWNER_RETRY_BACKOFF"]
+E   AssertionError: assert ['ANNOUNCEMEN...NNOT_CONFIRM'] == ['PLAN_OWNER_RETRY_BACKOFF']
+E     
+E     At index 0 diff: 'ANNOUNCEMENT:NOT_RUN' != 'PLAN_OWNER_RETRY_BACKOFF'
+E     Left contains one more item: 'OVERSOLD:CANNOT_CONFIRM'
+E     Use -v to get more diff
+____ test_input_not_ready_uses_original_bounded_retry_budget[PREOPEN-True] _____
+tests/test_manager_r3_binding_identity.py:644: in test_input_not_ready_uses_original_bounded_retry_budget
+    assert blocked["failure_reasons"] == ["PLAN_OWNER_RETRY_BACKOFF"]
+E   AssertionError: assert ['ANNOUNCEMEN...NNOT_CONFIRM'] == ['PLAN_OWNER_RETRY_BACKOFF']
+E     
+E     At index 0 diff: 'ANNOUNCEMENT:NOT_RUN' != 'PLAN_OWNER_RETRY_BACKOFF'
+E     Left contains one more item: 'OVERSOLD:CANNOT_CONFIRM'
+E     Use -v to get more diff
+_ test_input_not_ready_uses_original_bounded_retry_budget[EVENING_NEXT_SESSION-False] _
+tests/test_manager_r3_binding_identity.py:644: in test_input_not_ready_uses_original_bounded_retry_budget
+    assert blocked["failure_reasons"] == ["PLAN_OWNER_RETRY_BACKOFF"]
+E   AssertionError: assert ['ANNOUNCEMEN...NNOT_CONFIRM'] == ['PLAN_OWNER_RETRY_BACKOFF']
+E     
+E     At index 0 diff: 'ANNOUNCEMENT:NOT_RUN' != 'PLAN_OWNER_RETRY_BACKOFF'
+E     Left contains one more item: 'OVERSOLD:CANNOT_CONFIRM'
+E     Use -v to get more diff
+_ test_input_not_ready_uses_original_bounded_retry_budget[EVENING_NEXT_SESSION-True] _
+tests/test_manager_r3_binding_identity.py:644: in test_input_not_ready_uses_original_bounded_retry_budget
+    assert blocked["failure_reasons"] == ["PLAN_OWNER_RETRY_BACKOFF"]
+E   AssertionError: assert ['ANNOUNCEMEN...NNOT_CONFIRM'] == ['PLAN_OWNER_RETRY_BACKOFF']
+E     
+E     At index 0 diff: 'ANNOUNCEMENT:NOT_RUN' != 'PLAN_OWNER_RETRY_BACKOFF'
+E     Left contains one more item: 'OVERSOLD:CANNOT_CONFIRM'
+E     Use -v to get more diff
+________ test_input_not_ready_and_owner_failure_share_one_retry_budget _________
+tests/test_manager_r3_binding_identity.py:670: in test_input_not_ready_and_owner_failure_share_one_retry_budget
+    assert outcomes == ["INPUT_NOT_READY", "OWNER_FAILED", "INPUT_NOT_READY"]
+E   AssertionError: assert ['INPUT_NOT_R...UT_NOT_READY'] == ['INPUT_NOT_R...UT_NOT_READY']
+E     
+E     At index 1 diff: 'INPUT_NOT_READY' != 'OWNER_FAILED'
+E     Use -v to get more diff
+__________ test_window_expiring_before_owner_is_not_triggered[False] ___________
+tests/test_manager_r3_binding_identity.py:687: in test_window_expiring_before_owner_is_not_triggered
+    assert result["dispatch_outcome"] == "NOT_TRIGGERED"
+E   AssertionError: assert 'OWNER_FAILED' == 'NOT_TRIGGERED'
+E     
+E     - NOT_TRIGGERED
+E     + OWNER_FAILED
+___________ test_window_expiring_before_owner_is_not_triggered[True] ___________
+tests/test_manager_r3_binding_identity.py:687: in test_window_expiring_before_owner_is_not_triggered
+    assert result["dispatch_outcome"] == "NOT_TRIGGERED"
+E   AssertionError: assert 'OWNER_FAILED' == 'NOT_TRIGGERED'
+E     
+E     - NOT_TRIGGERED
+E     + OWNER_FAILED
+______ test_cycle_explicit_unconfirmed_readback_is_preserved_by_dispatch _______
+tests/test_manager_r3_binding_identity.py:704: in test_cycle_explicit_unconfirmed_readback_is_preserved_by_dispatch
+    assert response["dispatch_outcome"] == "READBACK_UNCONFIRMED"
+E   AssertionError: assert 'OWNER_FAILED' == 'READBACK_UNCONFIRMED'
+E     
+E     - READBACK_UNCONFIRMED
+E     + OWNER_FAILED
+_ test_explicit_historical_canary_requires_exact_dynamic_readback[date=20261008&view=dynamic] _
+tests/test_manager_r3_binding_identity.py:725: in test_explicit_historical_canary_requires_exact_dynamic_readback
+    assert supervisor.validate_binding(binding, expected_app=worker) == binding
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/scheduling/manager_announcement_supervisor.py:464: in validate_binding
+    _validate_plan_canary(value.get('plan_activation_receipt'),app=app,state=state,
+infrastructure/scheduling/manager_announcement_supervisor.py:369: in _validate_plan_canary
+    raise ValueError('PLAN_REFRESH_CANARY_HTTP_EVIDENCE_INVALID')
+E   ValueError: PLAN_REFRESH_CANARY_HTTP_EVIDENCE_INVALID
+_ test_explicit_historical_canary_requires_exact_dynamic_readback[view=dynamic&date=20261008] _
+tests/test_manager_r3_binding_identity.py:725: in test_explicit_historical_canary_requires_exact_dynamic_readback
+    assert supervisor.validate_binding(binding, expected_app=worker) == binding
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/scheduling/manager_announcement_supervisor.py:464: in validate_binding
+    _validate_plan_canary(value.get('plan_activation_receipt'),app=app,state=state,
+infrastructure/scheduling/manager_announcement_supervisor.py:369: in _validate_plan_canary
+    raise ValueError('PLAN_REFRESH_CANARY_HTTP_EVIDENCE_INVALID')
+E   ValueError: PLAN_REFRESH_CANARY_HTTP_EVIDENCE_INVALID
+_ test_explicit_historical_canary_rejects_missing_duplicate_or_unknown_query[date=20261008] _
+tests/test_manager_r3_binding_identity.py:739: in test_explicit_historical_canary_rejects_missing_duplicate_or_unknown_query
+    with pytest.raises(ValueError, match="PLAN_REFRESH_CANARY_HTTP_EVIDENCE_INVALID"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+=========================== short test summary info ============================
+FAILED tests/test_manager_r3_binding_identity.py::test_input_not_ready_can_retry_after_backoff_then_cache_verified_partial[False]
+FAILED tests/test_manager_r3_binding_identity.py::test_input_not_ready_can_retry_after_backoff_then_cache_verified_partial[True]
+FAILED tests/test_manager_r3_binding_identity.py::test_input_not_ready_uses_original_bounded_retry_budget[PREOPEN-False]
+FAILED tests/test_manager_r3_binding_identity.py::test_input_not_ready_uses_original_bounded_retry_budget[PREOPEN-True]
+FAILED tests/test_manager_r3_binding_identity.py::test_input_not_ready_uses_original_bounded_retry_budget[EVENING_NEXT_SESSION-False]
+FAILED tests/test_manager_r3_binding_identity.py::test_input_not_ready_uses_original_bounded_retry_budget[EVENING_NEXT_SESSION-True]
+FAILED tests/test_manager_r3_binding_identity.py::test_input_not_ready_and_owner_failure_share_one_retry_budget
+FAILED tests/test_manager_r3_binding_identity.py::test_window_expiring_before_owner_is_not_triggered[False]
+FAILED tests/test_manager_r3_binding_identity.py::test_window_expiring_before_owner_is_not_triggered[True]
+FAILED tests/test_manager_r3_binding_identity.py::test_cycle_explicit_unconfirmed_readback_is_preserved_by_dispatch
+FAILED tests/test_manager_r3_binding_identity.py::test_explicit_historical_canary_requires_exact_dynamic_readback[date=20261008&view=dynamic]
+FAILED tests/test_manager_r3_binding_identity.py::test_explicit_historical_canary_requires_exact_dynamic_readback[view=dynamic&date=20261008]
+FAILED tests/test_manager_r3_binding_identity.py::test_explicit_historical_canary_rejects_missing_duplicate_or_unknown_query[date=20261008]
+13 failed, 78 passed in 4.75s
+
+EXIT_CODE: 1

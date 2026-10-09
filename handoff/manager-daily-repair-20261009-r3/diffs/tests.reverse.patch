@@ -1,0 +1,1663 @@
+--- a/tests/manager_r3_assessed_fixture.py
++++ /dev/null
+@@ -1,44 +0,0 @@
+-"""Legal synthetic prerequisites for inherited owner/dispatch regressions.
+-
+-Use the original reviewed-announcement builder, import route and consumer.
+-No ready flag or successful plan is injected. These helpers only create
+-temporary test state, and do not establish a real market result.
+-"""
+-from copy import deepcopy
+-from datetime import datetime, timedelta
+-
+-import test_manager_announcement_parity_20261008 as original
+-from v4.manager_research import workspace
+-
+-
+-def assessed_service(tmp_path, monkeypatch, *, now, state_name="assessed-state"):
+-    available = now - timedelta(minutes=1)
+-    class ImportClock(datetime):
+-        @classmethod
+-        def now(cls, tz=None):
+-            return available.astimezone(tz) if tz else available.replace(tzinfo=None)
+-    monkeypatch.setattr(original.api, "datetime", ImportClock)
+-    monkeypatch.setattr(original.consumer, "_now", lambda: available.isoformat())
+-    service = original._FixtureService(tmp_path / state_name)
+-    with original._client(service) as client:
+-        _, registration = original._fixture(service, disposition="NOT_SELECTED",
+-            listing_at="2026-10-07T01:00:00+00:00",
+-            body_at="2026-10-07T01:01:00+00:00",
+-            reviewed_at="2026-10-07T02:00:00+00:00")
+-        original._import(client, registration)
+-    projection = workspace.get_workspace(service, "20261008", include_saved=False, now=now)
+-    channel = next(row for row in projection["daily_channels"]["channels"]
+-                   if row["channel"] == "ANNOUNCEMENT")
+-    assert channel["status"] == "READY_EMPTY", channel
+-    assert channel["candidate_count"] == 0
+-    assert channel["input_identity"]
+-    return service
+-
+-
+-def assessed_projection(tmp_path, monkeypatch, *, now):
+-    service = assessed_service(tmp_path, monkeypatch, now=now)
+-    try:
+-        return deepcopy(workspace.get_workspace(service, "20261008",
+-            include_saved=False, now=now))
+-    finally:
+-        service.close()
+--- a/tests/test_manager_daily_automation_20261008.py
++++ b/tests/test_manager_daily_automation_20261008.py
+@@ -12,7 +12,6 @@
+ from v4.manager_research import plan_owner_dispatch as dispatch
+ from v4.manager_research.store import ManagerResearchStore
+ from v4.manager_research.workspace_projection import FLAGS, HK
+-from manager_r3_assessed_fixture import assessed_service
+ 
+ _supervisor_name = "infrastructure.scheduling.manager_announcement_supervisor"
+ import sys
+@@ -297,12 +296,11 @@
+     from v4.manager_research.service import ManagerResearchJobService
+     from v4.manager_research import workspace as workspace_owner
+ 
+-    service = assessed_service(tmp_path, monkeypatch,
+-        now=datetime(2026, 10, 8, 7, 0, tzinfo=HK))
+-    state = service.store.root
++    state = tmp_path / "state"
+     master = tmp_path / "master"
+     master.mkdir()
+-    service._workspace_security_master_root = master
++    service = ManagerResearchJobService(ManagerResearchStore(state), None, None,
++        workspace_security_master_root=master)
+     service.refresh_us_mapping_research = lambda date, **kwargs: {
+         "status": "INPUT_MISSING", "target_trade_date": date, "matches": [],
+         "execution_status": "US_MARKET_INPUT_MISSING", "gaps": ["INPUT_MISSING"], **FLAGS}
+@@ -354,8 +352,8 @@
+     from v4.manager_research.service import ManagerResearchJobService
+     import hashlib
+ 
++    service = ManagerResearchJobService(ManagerResearchStore(tmp_path / "late-state"), None, None)
+     preopen_at = datetime(2026, 10, 8, 9, 27, tzinfo=HK)
+-    service = assessed_service(tmp_path, monkeypatch, now=preopen_at, state_name="late-state")
+     monkeypatch.setattr(workspace_owner, "_now", lambda: "2026-10-08T01:28:00+00:00")
+     preopen = service.refresh_workspace_plan("20261008",
+         execution_kind="SCHEDULED_PREOPEN", now=preopen_at,
+--- a/tests/test_manager_daily_dispatch_20261008.py
++++ b/tests/test_manager_daily_dispatch_20261008.py
+@@ -29,7 +29,6 @@
+ from v4.manager_research.store import ManagerResearchStore
+ from v4.manager_research.workspace_projection import FLAGS, HK
+ from v4.manager_research.workspace_read_control import ReadCoordinator
+-from manager_r3_assessed_fixture import assessed_projection
+ 
+ 
+ DATE = "20261008"
+@@ -256,11 +255,12 @@
+     binding_path.write_text(json.dumps(binding, sort_keys=True), encoding="utf-8")
+     sha = hashlib.sha256(binding_path.read_bytes()).hexdigest()
+ 
+-    assessed = assessed_projection(tmp_path, monkeypatch, now=now)
+     def current(*_args, **kwargs):
+-        value = deepcopy(assessed)
+-        value["plan_context"]["research_cutoff"] = kwargs["now"].isoformat()
+-        return value
++        cutoff = kwargs["now"].isoformat()
++        return {"target_trade_date": DATE, "input_identity": "a" * 64,
++            "semantic_version": "SYNTHETIC_DISPATCH_CONTRACT", "gaps": [], "stocks": [],
++            "existing_material_coverage": {}, "summary": {}, "lanes": [],
++            "plan_context": {"research_cutoff": cutoff}}
+ 
+     monkeypatch.setattr(workspace, "get_workspace", current)
+     monkeypatch.setattr(workspace, "_now", lambda: "2026-10-08T02:00:01+00:00")
+@@ -338,9 +338,11 @@
+ 
+ def test_real_plan_owner_duplicate_keeps_single_product_and_same_attempt(tmp_path, monkeypatch):
+     service, sha, _ = bound_service(tmp_path, monkeypatch)
+-    assessed = assessed_projection(tmp_path, monkeypatch, now=PREOPEN)
+     def current(*args, **kwargs):
+-        return deepcopy(assessed)
++        return {"target_trade_date": DATE, "input_identity": "a" * 64,
++                "semantic_version": "SYNTHETIC_DISPATCH_CONTRACT", "gaps": [], "stocks": [],
++                "existing_material_coverage": {}, "summary": {}, "lanes": [],
++                "plan_context": {"research_cutoff": PREOPEN.isoformat()}}
+     monkeypatch.setattr(workspace, "get_workspace", current)
+     monkeypatch.setattr(workspace, "_now", lambda: (PREOPEN + timedelta(seconds=1)).isoformat())
+     owner_calls = []
+@@ -450,8 +452,11 @@
+         raise TimeoutError("synthetic US latency beyond both the owner window and RPC budget")
+     service.refresh_us_mapping_research = slow_preparation
+     monkeypatch.setattr(dispatch, "clock_now", lambda: clock["now"])
+-    assessed = assessed_projection(tmp_path, monkeypatch, now=now)
+-    monkeypatch.setattr(workspace, "get_workspace", lambda *args, **kwargs: deepcopy(assessed))
++    monkeypatch.setattr(workspace, "get_workspace", lambda *args, **kwargs: {
++        "target_trade_date": DATE, "input_identity": "a" * 64,
++        "semantic_version": "SYNTHETIC_DISPATCH_CONTRACT", "gaps": [], "stocks": [],
++        "existing_material_coverage": {}, "summary": {}, "lanes": [],
++        "plan_context": {"research_cutoff": now.isoformat()}})
+     def owner_completion_clock():
+         clock["now"] = now + timedelta(seconds=1)
+         return clock["now"].isoformat()
+@@ -504,9 +509,11 @@
+         _workspace_security_master_root=service._workspace_security_master_root,
+         _existing_research_source=None, _workspace_us_market_reader=None,
+         _workspace_reads=ReadCoordinator())
+-    assessed = assessed_projection(tmp_path, monkeypatch, now=PREOPEN)
+     def current(*args, **kwargs):
+-        return deepcopy(assessed)
++        return {"target_trade_date": DATE, "input_identity": "a" * 64,
++                "semantic_version": "SYNTHETIC_DISPATCH_CONTRACT", "gaps": [], "stocks": [],
++                "existing_material_coverage": {}, "summary": {}, "lanes": [],
++                "plan_context": {"research_cutoff": PREOPEN.isoformat()}}
+     monkeypatch.setattr(workspace, "get_workspace", current)
+     clock = {"now": PREOPEN}
+     monkeypatch.setattr(dispatch, "clock_now", lambda: clock["now"])
+--- a/tests/test_manager_r3_binding_identity.py
++++ /dev/null
+@@ -1,765 +0,0 @@
+-"""R3 binding contracts using synthetic roots/receipts and temporary state only.
+-
+-No fixture calls a live HTTP endpoint, executes its synthetic source files,
+-collects research data, or reads an actual plan/state directory.
+-"""
+-from copy import deepcopy
+-from datetime import datetime, timedelta
+-import asyncio
+-import hashlib
+-import importlib.util
+-import json
+-from pathlib import Path
+-import sys
+-from types import SimpleNamespace
+-
+-import pytest
+-
+-
+-_supervisor_name = "infrastructure.scheduling.manager_announcement_supervisor"
+-supervisor = sys.modules.get(_supervisor_name)
+-if supervisor is None:
+-    _spec = importlib.util.spec_from_file_location(
+-        _supervisor_name, Path(__file__).resolve().parents[1]
+-        / "infrastructure/scheduling/manager_announcement_supervisor.py")
+-    supervisor = importlib.util.module_from_spec(_spec)
+-    sys.modules[_supervisor_name] = supervisor
+-    _spec.loader.exec_module(supervisor)
+-
+-from ops import run_manager_announcement_cycle as cycle
+-from v4.manager_research import plan_owner_dispatch as dispatch
+-from v4.manager_research import workspace
+-from v4.manager_research.store import ManagerResearchStore
+-from v4.manager_research.workspace_projection import FLAGS, HK
+-from v4.manager_research.workspace_read_control import ReadCoordinator
+-
+-
+-DATE = "20261009"
+-NOW = datetime(2026, 10, 9, 9, 27, tzinfo=HK)
+-OWNER = "ManagerResearchJobService.refresh_workspace_plan"
+-IDENTITY_SCHEMA = "v4.manager_research.plan_owner_identity.v1"
+-API_ENTRY_FILES = (
+-    "apps/api/v35_api/app.py",
+-    "apps/api/v35_api/manager_workbench_router.py",
+-    "apps/api/v35_api/preselection_router.py",
+-    "apps/api/v35_api/preselection_service.py",
+-    "v3_shared_data/shared_data/hk_daily_supplement.py",
+-)
+-
+-
+-def _json_file(path, value):
+-    path.parent.mkdir(parents=True, exist_ok=True)
+-    raw = json.dumps(value, ensure_ascii=False, sort_keys=True).encode()
+-    path.write_bytes(raw)
+-    return {"path": str(path), "sha256": hashlib.sha256(raw).hexdigest()}
+-
+-
+-def _source_root(path):
+-    """A closed inventory of inert fixture bytes; never imported or executed."""
+-    for root in ("v4/manager_research", "infrastructure", "contracts", "domains",
+-                 "stage_center", "upstreams/v3_shared_data/shared_data"):
+-        (path / root).mkdir(parents=True, exist_ok=True)
+-    for rel in set(supervisor.REQUIRED_FILES) | set(supervisor.PLAN_OWNER_SOURCE_FILES) | set(API_ENTRY_FILES) | {
+-        "v4/manager_research/plan_owner_dispatch.py",
+-        "v4/manager_research/workspace_projection.py",
+-    }:
+-        target = path / rel
+-        target.parent.mkdir(parents=True, exist_ok=True)
+-        target.write_text("# inert synthetic binding fixture: " + path.name + "/" + rel + "\n", encoding="utf-8")
+-    return path
+-
+-
+-def _owner_inventory(app):
+-    # The expected contract extends the existing closed inventory with the
+-    # actual API injection entry point and its protected Issue32 neighbours.
+-    paths = set(API_ENTRY_FILES) | {str(path.relative_to(app))
+-        for path in (app / "v3_shared_data").rglob("*")
+-        if path.is_file() and path.suffix in {".py", ".json"}}
+-    return {**supervisor.binding_inventory(app), **{
+-        rel: hashlib.sha256((app / rel).read_bytes()).hexdigest() for rel in paths}}
+-
+-
+-def _owner_identity(app):
+-    return {"schema_version": IDENTITY_SCHEMA, "owner": OWNER,
+-            "app_root": str(app), "files": _owner_inventory(app)}
+-
+-
+-def _identity_sha(identity):
+-    return hashlib.sha256(json.dumps(identity, ensure_ascii=False, sort_keys=True,
+-        separators=(",", ":")).encode("utf-8")).hexdigest()
+-
+-
+-def _canary(root, worker, owner, state, *, legacy_migration=False):
+-    product = {"status": "CURRENT", "run_id": "1" * 32, "sha256": "2" * 64,
+-               "original_owner": OWNER, "execution_kind": "MANUAL_REFRESH"}
+-    readback = {
+-        "target_trade_date": "20261008", "store_latest_matches_http_plan_product": True,
+-        "plan_product": product,
+-        "persisted_store": {"target_trade_date": "20261008", "run_id": "1" * 32,
+-            "product_sha256": "2" * 64, "execution_kind": "MANUAL_REFRESH", "owner": OWNER, **FLAGS},
+-        "workspace_plan_attempt": {"state": "SUCCEEDED", "execution_kind": "MANUAL_REFRESH"},
+-        "safety": dict(FLAGS),
+-    }
+-    evidence = {}
+-    for name, method, endpoint in (
+-        ("refresh", "POST", "/api/v4/manager/research/workspace/refresh?date=20261008"),
+-        ("readback", "GET", "/api/v4/manager/research/workspace?date=20261008"),
+-    ):
+-        body = _json_file(root / (name + "-body.json"), readback)
+-        evidence[name] = _json_file(root / (name + "-receipt.json"), {
+-            "http_status": 200, "content_type": "application/json",
+-            "request": {"method": method, "url": "http://127.0.0.1:8873" + endpoint},
+-            "response": {**body, "bytes": Path(body["path"]).stat().st_size},
+-            "readback": readback,
+-        })
+-    value = {
+-        "schema_version": supervisor.PLAN_CANARY_SCHEMA,
+-        "status": supervisor.PLAN_CANARY_STATUS,
+-        "scope": supervisor.PLAN_CANARY_NEXT_SCOPE,
+-        "app_root": str(worker), "candidate_binding_app_root": str(worker),
+-        "owner_execution_app_root": str(owner), "manager_state_root": str(state),
+-        "policy_status": "PROPOSAL_ONLY", "plan_material_refresh_only": True,
+-        "execution_mode": "HISTORICAL_MANUAL_REFRESH_OWNER_HTTP_READBACK",
+-        "hook_executed": False, "announcement_collection_enabled": False,
+-        "announcement_network_requests": 0, "research_only": True,
+-        "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
+-        "target_trade_date": "20261008", "run_id": "1" * 32,
+-        "product_sha256": "2" * 64, "input_identity": "3" * 64,
+-        "execution_kind": "MANUAL_REFRESH", "owner": OWNER,
+-        "formal_recommendation_count": 0, "owner_attempt_state": "SUCCEEDED",
+-        "owner_evidence": evidence,
+-    }
+-    if worker != owner and not legacy_migration:
+-        value["owner_binding_identity_sha256"] = _identity_sha(_owner_identity(owner))
+-    elif worker != owner:
+-        value["source_migration_receipt"] = _json_file(root / "migration.json", {
+-            "schema_version": "manager_daily_chain.plan_owner_source_migration.v1",
+-            "source_app_root": str(owner), "candidate_app_root": str(worker),
+-            "manager_state_root": str(state), "owner": OWNER,
+-            "owner_sources": {rel: hashlib.sha256((owner / rel).read_bytes()).hexdigest()
+-                              for rel in supervisor.PLAN_OWNER_SOURCE_FILES},
+-        })
+-    return _json_file(root / "canary.json", value)
+-
+-
+-def synthetic_binding(tmp_path, *, dual=True, enabled=True):
+-    worker = _source_root(tmp_path / "worker-app")
+-    owner = _source_root(tmp_path / "api-app") if dual else worker
+-    state, master = tmp_path / "state", tmp_path / "master"
+-    state.mkdir(); master.mkdir()
+-    interpreter = Path(sys.executable)
+-    value = {
+-        "schema_version": supervisor.BINDING_SCHEMA, "enabled": enabled,
+-        "policy_status": "PROPOSAL_ONLY", "policy": "BALANCED_V1",
+-        "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
+-        "research_only": True, "app_root": str(worker),
+-        "manager_state_root": str(state), "security_master_root": str(master),
+-        "python": str(interpreter), "python_resolved": str(interpreter.resolve()),
+-        "python_sha256": hashlib.sha256(interpreter.read_bytes()).hexdigest(),
+-        "priority_codes": [], "files": supervisor.binding_inventory(worker),
+-        "plan_material_refresh_only": True, "announcement_collection_enabled": False,
+-        "preopen_plan": {"enabled": True, "lead_seconds": 180, "status": "PROPOSAL_ONLY"},
+-        "morning_plan": {"enabled": True, "interval_seconds": 300, "status": "PROPOSAL_ONLY"},
+-        "plan_material_refresh": {"enabled": True, "start_local": "16:00", "end_local": "23:00",
+-            "max_attempts_per_target_date": 3, "retry_backoff_seconds": 600,
+-            "status": "PROPOSAL_ONLY"},
+-        "daily_automation": {"enabled": True,
+-            "same_day_catchup_slots_local": ["10:00", "12:30", "15:45", "18:30", "22:30"],
+-            "us_mapping_budget_seconds": 5, "max_attempts_per_target_date": 5,
+-            "status": "PROPOSAL_ONLY"},
+-        "plan_activation_receipt": _canary(tmp_path / "evidence", worker, owner, state),
+-    }
+-    if dual:
+-        value["plan_owner_binding"] = _owner_identity(owner)
+-    return value, worker, owner
+-
+-
+-class SyntheticOwner:
+-    def __init__(self, binding):
+-        self.store = ManagerResearchStore(Path(binding["manager_state_root"]))
+-        self._workspace_security_master_root = Path(binding["security_master_root"])
+-        self._existing_research_source = object()
+-        self._workspace_us_market_reader = None
+-        self._workspace_reads = ReadCoordinator()
+-        self.owner_calls = []
+-        self.writes = []
+-        original_write = self.store._write_atomic
+-        def write(path, value):
+-            self.writes.append(path)
+-            return original_write(path, value)
+-        self.store._write_atomic = write
+-
+-    def refresh_workspace_plan(self, date, **kwargs):
+-        self.owner_calls.append((date, kwargs))
+-        now, kind = kwargs["now"], kwargs["execution_kind"]
+-        attempt = workspace.seal_attempt({
+-            "schema_version": workspace.ATTEMPT_SCHEMA, "owner": OWNER,
+-            "target_trade_date": date, "run_id": "4" * 32,
+-            "state": "SUCCEEDED", "execution_kind": kind,
+-            "started_at": now.isoformat(), "finished_at": (now + timedelta(seconds=1)).isoformat(),
+-            "failure_reasons": [], "input_identity": "6" * 64, **FLAGS,
+-        })
+-        return {"target_trade_date": date, "input_identity": "6" * 64,
+-            "plan_context": {"research_cutoff": now.isoformat()},
+-            "plan_product": {"status": "CURRENT", "run_id": "4" * 32, "sha256": "5" * 64,
+-                "generated_at": (now + timedelta(seconds=1)).isoformat(),
+-                "execution_kind": kind, "original_owner": OWNER, "consumed": True},
+-            "workspace_plan_attempt": attempt}
+-
+-
+-def bound_owner(tmp_path, monkeypatch, *, dual=True, enabled=True):
+-    binding, worker, owner = synthetic_binding(tmp_path, dual=dual, enabled=enabled)
+-    service = SyntheticOwner(binding)
+-    ref = _json_file(tmp_path / "binding.json", binding)
+-    monkeypatch.setenv("V4_MANAGER_PLAN_OWNER_BINDING_PATH", ref["path"])
+-    monkeypatch.setattr(dispatch, "APP_ROOT", owner)
+-    monkeypatch.setattr(dispatch, "clock_now", lambda: NOW)
+-    return service, binding, worker, owner, ref
+-
+-
+-@pytest.mark.parametrize("daily", [False, True])
+-def test_dual_roots_admit_the_same_raw_binding_and_echo_original_owner_identity(tmp_path, monkeypatch, daily):
+-    service, binding, worker, owner, ref = bound_owner(tmp_path, monkeypatch)
+-    assert worker != owner
+-    assert (worker / "v4/manager_research/service.py").read_bytes() != (owner / "v4/manager_research/service.py").read_bytes()
+-    # The worker still validates the top-level root and every closed source pin.
+-    assert supervisor.validate_binding(binding, expected_app=worker) == binding
+-    execute = dispatch.execute_bound_daily_cycle if daily else dispatch.execute_bound_plan_cycle
+-    result = execute(service, DATE, ref["sha256"])
+-    assert len(service.owner_calls) == 1
+-    assert result["binding_sha256"] == ref["sha256"]
+-    assert result["target_trade_date"] == DATE
+-    assert result["plan_result"]["run_id"] == "4" * 32
+-    assert result["plan_result"]["product_sha256"] == "5" * 64
+-    assert result["plan_result"]["input_identity"] == "6" * 64
+-    assert result["parent_trigger_receipt"]["binding_sha256"] == ref["sha256"]
+-    assert result["parent_trigger_receipt"]["owner_readback_status"] == "VERIFIED"
+-    assert result["dispatch_outcome"] == "OWNER_RESULT"
+-    assert all(result[key] is flag for key, flag in FLAGS.items())
+-
+-
+-@pytest.mark.parametrize("damage,code", [
+-    ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+-    ("api_root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+-    ("disabled", "PLAN_OWNER_BINDING_DISABLED"),
+-    ("worker_file", "ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH"),
+-    ("api_file", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+-    ("owner_file_missing", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+-    ("owner_file_extra", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+-    ("owner_name", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+-    ("owner_fields", "PLAN_OWNER_BINDING_IDENTITY_INVALID"),
+-    ("owner_symlink", "PLAN_OWNER_BINDING_PATH_NOT_EXACT"),
+-    ("owner_source_symlink", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+-    ("api_consumer", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+-    ("api_consumer_missing", "PLAN_OWNER_BINDING_INVENTORY_UNAVAILABLE"),
+-    ("owner_overlap", "PLAN_OWNER_BINDING_ROOTS_OVERLAP"),
+-    ("canary_owner", "PLAN_REFRESH_CANARY_OWNER_APP_ROOT_MISMATCH"),
+-    ("canary_identity_missing", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+-    ("canary_identity_wrong", "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH"),
+-    ("canary_migration", "PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED"),
+-    ("master", "PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH"),
+-])
+-@pytest.mark.parametrize("daily", [False, True])
+-def test_gate_rejection_preserves_code_and_never_enters_owner_or_writes(tmp_path, monkeypatch, damage, code, daily):
+-    service, binding, worker, owner, ref = bound_owner(tmp_path, monkeypatch)
+-    sha = ref["sha256"]
+-    if damage == "sha":
+-        sha = "0" * 64
+-    elif damage == "api_root":
+-        other = tmp_path / "actual-other-api"; other.mkdir()
+-        monkeypatch.setattr(dispatch, "APP_ROOT", other)
+-    elif damage == "disabled":
+-        binding["enabled"] = False
+-    elif damage == "worker_file":
+-        (worker / "ops/run_manager_announcement_cycle.py").write_text("# changed worker\n")
+-    elif damage == "api_file":
+-        (owner / "v4/manager_research/plan_owner_dispatch.py").write_text("# changed API\n")
+-    elif damage == "owner_file_missing":
+-        binding["plan_owner_binding"]["files"].pop("apps/api/v35_api/app.py")
+-    elif damage == "owner_file_extra":
+-        binding["plan_owner_binding"]["files"]["apps/api/v35_api/unpinned.py"] = "a" * 64
+-    elif damage == "owner_name":
+-        binding["plan_owner_binding"]["owner"] = "OtherOwner"
+-    elif damage == "owner_fields":
+-        binding["plan_owner_binding"]["expected_app"] = str(owner)
+-    elif damage == "owner_symlink":
+-        link = tmp_path / "api-link"; link.symlink_to(owner, target_is_directory=True)
+-        binding["plan_owner_binding"]["app_root"] = str(link)
+-    elif damage == "owner_source_symlink":
+-        source = owner / "apps/api/v35_api/app.py"
+-        source.unlink(); source.symlink_to(worker / "apps/api/v35_api/app.py")
+-    elif damage == "api_consumer":
+-        (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").write_text("# changed real API consumer\n")
+-    elif damage == "api_consumer_missing":
+-        (owner / "v3_shared_data/shared_data/hk_daily_supplement.py").unlink()
+-    elif damage == "owner_overlap":
+-        binding["plan_owner_binding"]["app_root"] = binding["manager_state_root"]
+-    elif damage == "canary_owner":
+-        # Replace the pinned evidence consistently; the new root binding must
+-        # still reject a canary executed by another API release.
+-        binding["plan_activation_receipt"] = _canary(tmp_path / "wrong-evidence", worker, worker, service.store.root)
+-    elif damage.startswith("canary_identity") or damage == "canary_migration":
+-        canary_path = Path(binding["plan_activation_receipt"]["path"])
+-        canary = json.loads(canary_path.read_bytes())
+-        if damage == "canary_identity_missing":
+-            canary.pop("owner_binding_identity_sha256")
+-        elif damage == "canary_identity_wrong":
+-            canary["owner_binding_identity_sha256"] = "0" * 64
+-        else:
+-            canary["source_migration_receipt"] = {"path": str(tmp_path / "unexpected.json"), "sha256": "a" * 64}
+-        binding["plan_activation_receipt"] = _json_file(canary_path, canary)
+-    elif damage == "master":
+-        service._workspace_security_master_root = tmp_path / "other-master"
+-    if damage not in {"sha", "api_root", "worker_file", "api_file", "master",
+-                      "owner_source_symlink", "api_consumer", "api_consumer_missing"}:
+-        ref = _json_file(Path(ref["path"]), binding)
+-        sha = ref["sha256"]
+-    execute = dispatch.execute_bound_daily_cycle if daily else dispatch.execute_bound_plan_cycle
+-    with pytest.raises(ValueError) as captured:
+-        execute(service, DATE, sha)
+-    expected = "PLAN_OWNER_DAILY_BINDING_DISABLED" if daily and damage == "disabled" else code
+-    assert str(captured.value) == expected
+-    assert type(captured.value).__name__ == "PlanOwnerAdmissionError"
+-    assert service.owner_calls == []
+-    assert service.writes == []
+-    assert not list(service.store.root.glob("workspace_plans/**/*.json"))
+-    assert not list(service.store.root.glob("workspace_plan_dispatch/**/*.json"))
+-
+-
+-def test_legacy_single_root_keeps_its_exact_root_gate(tmp_path, monkeypatch):
+-    service, binding, worker, owner, ref = bound_owner(tmp_path, monkeypatch, dual=False)
+-    result = dispatch.execute_bound_plan_cycle(service, DATE, ref["sha256"])
+-    assert result["plan_result"]["run_id"] == "4" * 32
+-    assert len(service.owner_calls) == 1
+-    monkeypatch.setattr(dispatch, "APP_ROOT", tmp_path)
+-    with pytest.raises(ValueError, match="ANNOUNCEMENT_BINDING_CWD_MISMATCH"):
+-        dispatch.execute_bound_plan_cycle(service, DATE, ref["sha256"])
+-    assert len(service.owner_calls) == 1
+-
+-
+-def test_daily_disabled_is_rejected_even_when_shared_binding_is_enabled(tmp_path, monkeypatch):
+-    service, binding, _, _, ref = bound_owner(tmp_path, monkeypatch, dual=False)
+-    binding["daily_automation"]["enabled"] = False
+-    ref = _json_file(Path(ref["path"]), binding)
+-    with pytest.raises(ValueError, match="PLAN_OWNER_DAILY_BINDING_DISABLED"):
+-        dispatch.execute_bound_daily_cycle(service, DATE, ref["sha256"])
+-    assert service.owner_calls == []
+-    assert service.writes == []
+-
+-
+-@pytest.mark.parametrize("daily", [False, True])
+-def test_router_keeps_a_safe_admission_reason_instead_of_collapsing_it(tmp_path, monkeypatch, daily):
+-    from fastapi import HTTPException
+-    from starlette.requests import Request
+-    from apps.api.v35_api.manager_research_router import create_manager_research_router
+-    service, _, _, _, ref = bound_owner(tmp_path, monkeypatch)
+-    router = create_manager_research_router(service)
+-    suffix = "/daily-cycle" if daily else "/scheduled-cycle"
+-    endpoint = next(route.endpoint for route in router.routes if route.path.endswith(suffix))
+-    async def receive():
+-        return {"type": "http.request", "body": b"", "more_body": False}
+-    request = Request({"type": "http", "method": "POST", "path": suffix,
+-        "headers": [], "query_string": b"", "scheme": "http",
+-        "server": ("fixture.invalid", 80), "client": ("fixture", 1)}, receive=receive)
+-    with pytest.raises(HTTPException) as captured:
+-        asyncio.run(endpoint(request, date=DATE, binding_sha256="0" * 64))
+-    assert captured.value.status_code == 409
+-    assert captured.value.detail == "PLAN_OWNER_BINDING_SHA_MISMATCH"
+-    assert service.owner_calls == []
+-    assert service.writes == []
+-
+-
+-@pytest.mark.parametrize("detail,expected_code,expected_outcome", [
+-    ("PLAN_OWNER_BINDING_SHA_MISMATCH", "PLAN_OWNER_BINDING_SHA_MISMATCH", "GATE_REJECTED"),
+-    ("PLAN_OWNER_BINDING_API_ROOT_MISMATCH", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH", "GATE_REJECTED"),
+-    ("PLAN_OWNER_BINDING_DISABLED", "PLAN_OWNER_BINDING_DISABLED", "GATE_REJECTED"),
+-    ("/secret/path arbitrary exception", "PLAN_OWNER_RPC_HTTP_409", "READBACK_UNCONFIRMED"),
+-])
+-def test_client_preserves_only_allowlisted_admission_codes(tmp_path, monkeypatch, detail, expected_code, expected_outcome):
+-    _, _, _, _, ref = bound_owner(tmp_path, monkeypatch, dual=False)
+-    requests = []
+-    class Connection:
+-        def __init__(self, *args, **kwargs): pass
+-        def request(self, method, path, **kwargs): requests.append((method, path))
+-        def getresponse(self):
+-            return SimpleNamespace(status=409, getheader=lambda *_: "application/json",
+-                read=lambda *_: json.dumps({"detail": detail}).encode())
+-        def close(self): pass
+-    monkeypatch.setattr(dispatch.http.client, "HTTPConnection", Connection)
+-    result = dispatch.request_bound_plan_cycle(ref["path"], DATE)
+-    assert len(requests) == 1
+-    assert result["parent_trigger_receipt"]["failure_code"] == expected_code
+-    assert result["dispatch_outcome"] == expected_outcome
+-    assert result["binding_sha256"] == ref["sha256"]
+-    assert result["target_trade_date"] == DATE
+-    assert "secret" not in json.dumps(result)
+-
+-
+-def test_transport_failure_keeps_owner_execution_unconfirmed(tmp_path, monkeypatch):
+-    _, _, _, _, ref = bound_owner(tmp_path, monkeypatch, dual=False)
+-    class Connection:
+-        def __init__(self, *args, **kwargs): pass
+-        def request(self, *args, **kwargs): raise TimeoutError("synthetic transport timeout")
+-        def close(self): pass
+-    monkeypatch.setattr(dispatch.http.client, "HTTPConnection", Connection)
+-    result = dispatch.request_bound_plan_cycle(ref["path"], DATE)
+-    assert result["dispatch_outcome"] == "READBACK_UNCONFIRMED"
+-    assert result["parent_trigger_receipt"]["owner_readback_status"] == "NOT_CONFIRMED"
+-    assert "run_id" not in result and "product_sha256" not in result
+-
+-
+-def test_input_not_ready_is_distinct_from_original_owner_failure():
+-    identity = dispatch._parent_trigger_identity(DATE, DATE, "PREOPEN", "a" * 64)
+-    missing = dispatch._cycle_result(identity, NOW, {
+-        "status": "PARTIAL", "branch": "PREOPEN", "plan_result": {
+-            "status": "CANNOT_CONFIRM", "target_trade_date": DATE,
+-            "failure_reasons": ["HK_UNIVERSE_V2_ARTIFACT_MISSING"]}})
+-    failed = dispatch._cycle_result(identity, NOW, {
+-        "status": "FAILED", "branch": "PREOPEN", "plan_result": {
+-            "status": "FAILED", "target_trade_date": DATE,
+-            "failure_reasons": ["PLAN_OWNER_FAILED:RuntimeError"]}})
+-    assert missing["dispatch_outcome"] == "INPUT_NOT_READY"
+-    assert missing["plan_result"]["failure_reasons"] == ["HK_UNIVERSE_V2_ARTIFACT_MISSING"]
+-    assert failed["dispatch_outcome"] == "OWNER_FAILED"
+-    for result in (missing, failed):
+-        assert result["parent_trigger_receipt"]["owner_readback_status"] == "UNVERIFIED"
+-        assert result["parent_trigger_receipt"]["owner_run_id"] is None
+-        assert result["parent_trigger_receipt"]["owner_product_sha256"] is None
+-
+-
+-def test_renderer_pins_both_roots_in_one_reviewable_raw_binding(tmp_path):
+-    from ops import render_manager_announcement_binding as renderer
+-    binding, worker, owner = synthetic_binding(tmp_path)
+-    output = tmp_path / "rendered.json"
+-    assert renderer.main([
+-        "--app-root", str(worker), "--plan-owner-app-root", str(owner),
+-        "--manager-state-root", binding["manager_state_root"],
+-        "--security-master-root", binding["security_master_root"],
+-        "--python", binding["python"], "--output", str(output),
+-        "--enabled", "--plan-material-refresh-only", "--daily-automation",
+-        "--plan-activation-receipt", binding["plan_activation_receipt"]["path"],
+-    ]) == 0
+-    rendered = json.loads(output.read_bytes())
+-    assert rendered["app_root"] == str(worker)
+-    assert rendered["files"] == supervisor.binding_inventory(worker)
+-    assert rendered["plan_owner_binding"] == binding["plan_owner_binding"]
+-    assert rendered["plan_activation_receipt"] == binding["plan_activation_receipt"]
+-
+-
+-def _request_fixture():
+-    from starlette.requests import Request
+-    async def receive():
+-        return {"type": "http.request", "body": b"", "more_body": False}
+-    return Request({"type": "http", "method": "POST", "path": "/fixture",
+-        "headers": [], "query_string": b"", "scheme": "http",
+-        "server": ("fixture.invalid", 80), "client": ("fixture", 1)}, receive=receive)
+-
+-
+-def test_manual_router_preserves_input_missing_without_persisted_product_read():
+-    from apps.api.v35_api.manager_research_router import create_manager_research_router
+-    owner_calls, stored_reads = [], []
+-    result = {"target_trade_date": DATE, "status": "CANNOT_CONFIRM",
+-        "reason": "WORKSPACE_PLAN_INPUTS_NOT_READY",
+-        "failure_reasons": ["HK_UNIVERSE_V2_ARTIFACT_MISSING"],
+-        "plan_product": {"status": "CANNOT_CONFIRM", "consumed": False, "run_id": None, "sha256": None},
+-        "workspace_plan_attempt": None, **FLAGS}
+-    def refresh(date, **kwargs):
+-        owner_calls.append((date, kwargs))
+-        return deepcopy(result)
+-    def persisted(*args):
+-        stored_reads.append(args)
+-        raise ValueError("a missing input has no stored successful plan")
+-    service = SimpleNamespace(refresh_workspace_plan=refresh, get_workspace_plan=persisted)
+-    router = create_manager_research_router(service)
+-    endpoint = next(route.endpoint for route in router.routes if route.path.endswith("/workspace/refresh"))
+-    returned = asyncio.run(endpoint(_request_fixture(), date=DATE))
+-    assert returned["status"] == "CANNOT_CONFIRM"
+-    assert returned["failure_reasons"] == ["HK_UNIVERSE_V2_ARTIFACT_MISSING"]
+-    assert returned["plan_product"]["run_id"] is None
+-    assert returned["store_latest_matches_http_plan_product"] is False
+-    assert len(owner_calls) == 1
+-    assert stored_reads == []
+-
+-
+-@pytest.mark.parametrize("damage", ["run_id", "product_sha256", "input_identity", "dispatch_outcome"])
+-def test_http_200_still_rejects_mismatched_owner_identity(tmp_path, monkeypatch, damage):
+-    service, _, _, _, ref = bound_owner(tmp_path, monkeypatch, dual=False)
+-    value = dispatch.execute_bound_plan_cycle(service, DATE, ref["sha256"])
+-    if damage == "dispatch_outcome":
+-        value["dispatch_outcome"] = "GATE_REJECTED"
+-    else:
+-        value["plan_result"][damage] = "b" * (32 if damage == "run_id" else 64)
+-    class Connection:
+-        def __init__(self, *args, **kwargs): pass
+-        def request(self, *args, **kwargs): pass
+-        def getresponse(self):
+-            return SimpleNamespace(status=200, getheader=lambda *_: "application/json",
+-                read=lambda *_: json.dumps(value).encode())
+-        def close(self): pass
+-    monkeypatch.setattr(dispatch.http.client, "HTTPConnection", Connection)
+-    returned = dispatch.request_bound_plan_cycle(ref["path"], DATE)
+-    assert returned["status"] == "FAILED"
+-    assert returned["dispatch_outcome"] == "READBACK_UNCONFIRMED"
+-    assert returned["parent_trigger_receipt"]["failure_code"] == "PLAN_OWNER_RPC_PARENT_TRIGGER_READBACK_INVALID"
+-
+-
+-def test_router_does_not_disclose_unclassified_exception_text(tmp_path, monkeypatch):
+-    from fastapi import HTTPException
+-    from apps.api.v35_api.manager_research_router import create_manager_research_router
+-    service, _, _, _, ref = bound_owner(tmp_path, monkeypatch)
+-    def unknown(*args, **kwargs):
+-        raise ValueError("/secret/path arbitrary exception")
+-    monkeypatch.setattr(dispatch, "execute_bound_plan_cycle", unknown)
+-    router = create_manager_research_router(service)
+-    endpoint = next(route.endpoint for route in router.routes if route.path.endswith("/scheduled-cycle"))
+-    with pytest.raises(HTTPException) as captured:
+-        asyncio.run(endpoint(_request_fixture(), date=DATE, binding_sha256=ref["sha256"]))
+-    assert captured.value.status_code == 409
+-    assert captured.value.detail == "SCHEDULED_WORKSPACE_OWNER_FAILED"
+-
+-
+-def test_legacy_cross_root_canary_still_requires_identical_owner_sources(tmp_path):
+-    binding, worker, owner = synthetic_binding(tmp_path)
+-    binding.pop("plan_owner_binding")
+-    binding["plan_activation_receipt"] = _canary(tmp_path / "legacy-evidence", worker, owner,
+-        Path(binding["manager_state_root"]), legacy_migration=True)
+-    with pytest.raises(ValueError, match="PLAN_REFRESH_CANARY_SOURCE_MIGRATION_MISMATCH"):
+-        supervisor.validate_binding(binding, expected_app=worker)
+-
+-
+-def test_explicit_rpc_canary_pins_api_sources_without_migrating_worker_sources(tmp_path):
+-    binding, worker, owner = synthetic_binding(tmp_path)
+-    assert (worker / "v4/manager_research/service.py").read_bytes() != (owner / "v4/manager_research/service.py").read_bytes()
+-    # Use the implementation's closed inventory here so this test isolates
+-    # the RPC canary contract from the separate consumer-inventory regression.
+-    binding["plan_owner_binding"]["files"] = supervisor.plan_owner_inventory(owner)
+-    canary_path = Path(binding["plan_activation_receipt"]["path"])
+-    canary = json.loads(canary_path.read_bytes())
+-    canary["owner_binding_identity_sha256"] = _identity_sha(binding["plan_owner_binding"])
+-    assert "source_migration_receipt" not in canary
+-    binding["plan_activation_receipt"] = _json_file(canary_path, canary)
+-    assert supervisor.validate_binding(binding, expected_app=worker) == binding
+-
+-
+-def test_owner_inventory_pins_actual_api_consumer_package_and_new_files(tmp_path):
+-    owner = _source_root(tmp_path / "api")
+-    extra = owner / "v3_shared_data/shared_data/new_consumer.py"
+-    extra.write_text("# synthetic additional imported module\n")
+-    inventory = supervisor.plan_owner_inventory(owner)
+-    for path in (extra, owner / "v3_shared_data/shared_data/hk_daily_supplement.py"):
+-        assert inventory.get(str(path.relative_to(owner))) == hashlib.sha256(path.read_bytes()).hexdigest()
+-
+-
+-def test_owner_entry_files_share_the_existing_total_source_byte_budget(tmp_path, monkeypatch):
+-    owner = _source_root(tmp_path / "api")
+-    count = len(supervisor.binding_inventory(owner))
+-    payload = b"x" * (64 * 1024 * 1024 // (count + 1))
+-    monkeypatch.setattr(supervisor.SafeRoot, "read_bytes", lambda *_args, **_kwargs: payload)
+-    with pytest.raises(ValueError, match="SOURCE_BYTE_BUDGET"):
+-        supervisor.plan_owner_inventory(owner)
+-
+-
+-def test_known_gate_code_on_http_500_still_leaves_execution_unconfirmed(tmp_path, monkeypatch):
+-    _, _, _, _, ref = bound_owner(tmp_path, monkeypatch, dual=False)
+-    class Connection:
+-        def __init__(self, *args, **kwargs): pass
+-        def request(self, *args, **kwargs): pass
+-        def getresponse(self):
+-            return SimpleNamespace(status=500, getheader=lambda *_: "application/json",
+-                read=lambda *_: b'{"detail":"PLAN_OWNER_BINDING_DISABLED"}')
+-        def close(self): pass
+-    monkeypatch.setattr(dispatch.http.client, "HTTPConnection", Connection)
+-    result = dispatch.request_bound_plan_cycle(ref["path"], DATE)
+-    assert result["dispatch_outcome"] == "READBACK_UNCONFIRMED"
+-
+-
+-@pytest.mark.parametrize("daily", [False, True])
+-def test_input_not_ready_can_retry_after_backoff_then_cache_verified_partial(tmp_path, monkeypatch, daily):
+-    from test_manager_r3_cycle_outcomes import missing_input
+-    service, _, _, _, ref = bound_owner(tmp_path, monkeypatch)
+-    original_refresh = service.refresh_workspace_plan
+-    ready = False
+-    def refresh(date, **kwargs):
+-        if ready:
+-            return original_refresh(date, **kwargs)
+-        service.owner_calls.append((date, kwargs))
+-        return missing_input(date)
+-    service.refresh_workspace_plan = refresh
+-    execute = dispatch.execute_bound_daily_cycle if daily else dispatch.execute_bound_plan_cycle
+-    first = execute(service, DATE, ref["sha256"])
+-    assert first["status"] == "PARTIAL"
+-    assert first["dispatch_outcome"] == "INPUT_NOT_READY"
+-    assert workspace._read_plan(service.store, DATE) is None
+-    writes = len(service.writes)
+-
+-    ready = True
+-    monkeypatch.setattr(dispatch, "clock_now", lambda: NOW + timedelta(seconds=59))
+-    blocked = execute(service, DATE, ref["sha256"])
+-    assert blocked["failure_reasons"] == ["PLAN_OWNER_RETRY_BACKOFF"]
+-    assert len(service.owner_calls) == 1 and len(service.writes) == writes
+-
+-    monkeypatch.setattr(dispatch, "clock_now", lambda: NOW + timedelta(minutes=1))
+-    second = execute(service, DATE, ref["sha256"])
+-    assert len(service.owner_calls) == 2
+-    assert second["dispatch_outcome"] == "OWNER_RESULT"
+-    assert second["status"] == "PARTIAL"  # Independent US gap, verified plan.
+-    assert second["parent_trigger_receipt"]["owner_readback_status"] == "VERIFIED"
+-    assert second["plan_result"]["run_id"] == "4" * 32
+-    assert second["dispatch_receipt"] != first["dispatch_receipt"]
+-    assert (second["parent_trigger_receipt"]["trigger_id"]
+-            == first["parent_trigger_receipt"]["trigger_id"])
+-
+-    monkeypatch.setattr(dispatch, "clock_now", lambda: NOW + timedelta(minutes=2))
+-    third = execute(service, DATE, ref["sha256"])
+-    assert third["dispatch_receipt"] == second["dispatch_receipt"]
+-    assert third["plan_result"] == second["plan_result"]
+-    assert len(service.owner_calls) == 2
+-
+-
+-@pytest.mark.parametrize("daily", [False, True])
+-@pytest.mark.parametrize("branch", ["PREOPEN", "EVENING_NEXT_SESSION"])
+-def test_input_not_ready_uses_original_bounded_retry_budget(tmp_path, monkeypatch, branch, daily):
+-    from test_manager_r3_cycle_outcomes import missing_input
+-    service, _, _, _, ref = bound_owner(tmp_path, monkeypatch)
+-    def refresh(date, **kwargs):
+-        service.owner_calls.append((date, kwargs))
+-        return missing_input(date)
+-    service.refresh_workspace_plan = refresh
+-    monkeypatch.setattr(workspace, "get_workspace", lambda *_a, **_k: {"input_identity": "a" * 64})
+-    start = NOW if branch == "PREOPEN" else datetime(2026, 10, 8, 16, 0, tzinfo=HK)
+-    backoff = 60 if branch == "PREOPEN" else 600
+-    execute = dispatch.execute_bound_daily_cycle if daily else dispatch.execute_bound_plan_cycle
+-    references = []
+-    for attempt in range(3):
+-        monkeypatch.setattr(dispatch, "clock_now", lambda attempt=attempt: start + timedelta(seconds=attempt * backoff))
+-        response = execute(service, DATE, ref["sha256"])
+-        assert response["branch"] == branch
+-        assert response["dispatch_outcome"] == "INPUT_NOT_READY"
+-        assert len(service.owner_calls) == attempt + 1
+-        references.append(response["dispatch_receipt"]["path"])
+-        if attempt == 0:
+-            writes = len(service.writes)
+-            monkeypatch.setattr(dispatch, "clock_now", lambda: start + timedelta(seconds=backoff - 1))
+-            blocked = execute(service, DATE, ref["sha256"])
+-            assert blocked["failure_reasons"] == ["PLAN_OWNER_RETRY_BACKOFF"]
+-            assert len(service.owner_calls) == 1 and len(service.writes) == writes
+-    assert len(set(references)) == 3
+-    writes = len(service.writes)
+-    monkeypatch.setattr(dispatch, "clock_now", lambda: start + timedelta(seconds=2 * backoff + 30))
+-    exhausted = execute(service, DATE, ref["sha256"])
+-    assert exhausted["failure_reasons"] == ["PLAN_OWNER_RETRY_LIMIT_REACHED"]
+-    assert exhausted["dispatch_outcome"] == "GATE_REJECTED"
+-    assert len(service.owner_calls) == 3 and len(service.writes) == writes
+-    assert workspace._read_plan(service.store, DATE) is None
+-    assert not (service.store.root / "workspace_plan_runs").exists()
+-
+-
+-def test_input_not_ready_and_owner_failure_share_one_retry_budget(tmp_path, monkeypatch):
+-    from test_manager_r3_cycle_outcomes import missing_input
+-    service, _, _, _, ref = bound_owner(tmp_path, monkeypatch)
+-    def refresh(date, **kwargs):
+-        service.owner_calls.append((date, kwargs))
+-        if len(service.owner_calls) == 2:
+-            raise RuntimeError("synthetic owner failure")
+-        return missing_input(date)
+-    service.refresh_workspace_plan = refresh
+-    outcomes = []
+-    for attempt in range(3):
+-        monkeypatch.setattr(dispatch, "clock_now", lambda attempt=attempt: NOW + timedelta(minutes=attempt))
+-        outcomes.append(dispatch.execute_bound_plan_cycle(service, DATE, ref["sha256"])["dispatch_outcome"])
+-    assert outcomes == ["INPUT_NOT_READY", "OWNER_FAILED", "INPUT_NOT_READY"]
+-    writes = len(service.writes)
+-    monkeypatch.setattr(dispatch, "clock_now", lambda: NOW + timedelta(minutes=2, seconds=30))
+-    response = dispatch.execute_bound_plan_cycle(service, DATE, ref["sha256"])
+-    assert response["failure_reasons"] == ["PLAN_OWNER_RETRY_LIMIT_REACHED"]
+-    assert len(service.owner_calls) == 3 and len(service.writes) == writes
+-
+-
+-@pytest.mark.parametrize("daily", [False, True])
+-def test_window_expiring_before_owner_is_not_triggered(tmp_path, monkeypatch, daily):
+-    service, _, _, _, ref = bound_owner(tmp_path, monkeypatch)
+-    admitted = NOW.replace(minute=29, second=59)
+-    expired = NOW.replace(minute=30, second=0)
+-    ticks = iter([admitted, admitted, expired, expired])
+-    monkeypatch.setattr(dispatch, "clock_now", lambda: next(ticks))
+-    execute = dispatch.execute_bound_daily_cycle if daily else dispatch.execute_bound_plan_cycle
+-    result = execute(service, DATE, ref["sha256"])
+-    assert result["dispatch_outcome"] == "NOT_TRIGGERED"
+-    assert result["parent_trigger_receipt"]["dispatch_outcome"] == "NOT_TRIGGERED"
+-    assert result["plan_result"]["status"] == "EXPIRED_NO_BACKFILL"
+-    assert result["failure_reasons"] == ["PLAN_OWNER_WINDOW_EXPIRED_BEFORE_EXECUTION"]
+-    assert service.owner_calls == []
+-    assert workspace._read_plan(service.store, DATE) is None
+-
+-
+-def test_cycle_explicit_unconfirmed_readback_is_preserved_by_dispatch(monkeypatch):
+-    from v4.manager_research import workspace_plan_autorun as autorun
+-    monkeypatch.setattr(autorun, "run_scheduled_preopen_plan_safe", lambda *_a, **_k: {
+-        "status": "MATERIALIZED", "target_trade_date": DATE})
+-    branch = cycle.run_scheduled_plan_target(object(), DATE, DATE, now=NOW,
+-        plan_config={"enabled": True}, preopen_config={"enabled": True, "lead_seconds": 180})
+-    assert branch["dispatch_outcome"] == "READBACK_UNCONFIRMED"
+-    identity = dispatch._parent_trigger_identity(DATE, DATE, "PREOPEN", "a" * 64)
+-    response = dispatch._cycle_result(identity, NOW, branch)
+-    assert response["dispatch_outcome"] == "READBACK_UNCONFIRMED"
+-    assert response["parent_trigger_receipt"]["dispatch_outcome"] == "READBACK_UNCONFIRMED"
+-    assert response["parent_trigger_receipt"]["owner_readback_status"] == "UNVERIFIED"
+-    assert response["failure_reasons"] == ["PLAN_OWNER_PRODUCT_READBACK_INVALID"]
+-
+-
+-def _historical_canary_url(binding, url):
+-    canary_path = Path(binding["plan_activation_receipt"]["path"])
+-    canary = json.loads(canary_path.read_bytes())
+-    canary["scope"] = supervisor.PLAN_CANARY_HISTORICAL_SCOPE
+-    receipt_path = Path(canary["owner_evidence"]["readback"]["path"])
+-    receipt = json.loads(receipt_path.read_bytes())
+-    receipt["request"]["url"] = url
+-    canary["owner_evidence"]["readback"] = _json_file(receipt_path, receipt)
+-    binding["plan_activation_receipt"] = _json_file(canary_path, canary)
+-
+-
+-@pytest.mark.parametrize("query", ["date=20261008&view=dynamic", "view=dynamic&date=20261008"])
+-def test_explicit_historical_canary_requires_exact_dynamic_readback(tmp_path, query):
+-    binding, worker, _ = synthetic_binding(tmp_path)
+-    _historical_canary_url(binding, "http://127.0.0.1:8873/api/v4/manager/research/workspace?" + query)
+-    assert supervisor.validate_binding(binding, expected_app=worker) == binding
+-
+-
+-@pytest.mark.parametrize("query", [
+-    "date=20261008", "date=20261008&view=auto", "date=20261008&view=",
+-    "date=20261009&view=dynamic", "view=dynamic",
+-    "date=20261008&date=20261008&view=dynamic",
+-    "date=20261008&view=dynamic&view=dynamic",
+-    "date=20261008&view=dynamic&extra=true",
+-    "date=20261008&view=dynamic&", "date=20261008&view=dynamic#ignored",
+-])
+-def test_explicit_historical_canary_rejects_missing_duplicate_or_unknown_query(tmp_path, query):
+-    binding, worker, _ = synthetic_binding(tmp_path)
+-    _historical_canary_url(binding, "http://127.0.0.1:8873/api/v4/manager/research/workspace?" + query)
+-    with pytest.raises(ValueError, match="PLAN_REFRESH_CANARY_HTTP_EVIDENCE_INVALID"):
+-        supervisor.validate_binding(binding, expected_app=worker)
+-
+-
+-@pytest.mark.parametrize("origin", [
+-    "http://localhost:8873", "https://127.0.0.1:8873", "http://127.0.0.1:8874",
+-    "http://user@127.0.0.1:8873", "\thttp://127.0.0.1:8873",
+-])
+-def test_explicit_historical_canary_keeps_exact_loopback_origin(tmp_path, origin):
+-    binding, worker, _ = synthetic_binding(tmp_path)
+-    _historical_canary_url(binding, origin + "/api/v4/manager/research/workspace?date=20261008&view=dynamic")
+-    with pytest.raises(ValueError, match="PLAN_REFRESH_CANARY_HTTP_EVIDENCE_INVALID"):
+-        supervisor.validate_binding(binding, expected_app=worker)
+-
+-
+-@pytest.mark.parametrize("dynamic", [False, True])
+-def test_legacy_historical_canary_keeps_original_exact_url_contract(tmp_path, dynamic):
+-    binding, worker, _ = synthetic_binding(tmp_path, dual=False)
+-    _historical_canary_url(binding,
+-        "http://127.0.0.1:8873/api/v4/manager/research/workspace?date=20261008"
+-        + ("&view=dynamic" if dynamic else ""))
+-    if dynamic:
+-        with pytest.raises(ValueError, match="PLAN_REFRESH_CANARY_HTTP_EVIDENCE_INVALID"):
+-            supervisor.validate_binding(binding, expected_app=worker)
+-    else:
+-        assert supervisor.validate_binding(binding, expected_app=worker) == binding
+-
+--- a/tests/test_manager_r3_cycle_outcomes.py
++++ /dev/null
+@@ -1,169 +0,0 @@
+-"""Original cycle/owner adapters preserve input admission and trigger identity.
+-
+-Only synthetic clocks, diagnostic responses and temporary stores are used.
+-The product-creation behavior is exercised by test_manager_r3_dates_inputs.
+-"""
+-from copy import deepcopy
+-from datetime import datetime
+-from types import SimpleNamespace
+-
+-import pytest
+-
+-from ops import run_manager_announcement_cycle as cycle
+-from v4.manager_research import workspace, workspace_plan_autorun as autorun
+-from v4.manager_research.store import ManagerResearchStore
+-from v4.manager_research.workspace_projection import FLAGS, HK
+-
+-
+-def missing_input(date="20261009"):
+-    return {
+-        "target_trade_date": date,
+-        "status": "CANNOT_CONFIRM",
+-        "reason": "WORKSPACE_PLAN_INPUTS_NOT_READY",
+-        "failure_reasons": ["ANNOUNCEMENT:NOT_RUN", "OVERSOLD:CANNOT_CONFIRM"],
+-        "input_identity": "a" * 64,
+-        "plan_product": {
+-            "status": "CANNOT_CONFIRM", "consumed": False,
+-            "run_id": None, "sha256": None,
+-        },
+-        **FLAGS,
+-    }
+-
+-
+-@pytest.mark.parametrize("kind", ["SCHEDULED_MORNING", "SCHEDULED_PREOPEN", "MANUAL_REFRESH"])
+-def test_owner_admission_is_distinct_from_a_product_readback(kind):
+-    value = missing_input()
+-    result = autorun.owner_plan_readback(value, "20261009", expected_kind=kind)
+-    assert result["status"] == "CANNOT_CONFIRM"
+-    assert result["reason"] == "WORKSPACE_PLAN_INPUTS_NOT_READY"
+-    assert result["failure_reasons"] == value["failure_reasons"]
+-    assert result["run_id"] is None
+-    assert result["product_sha256"] is None
+-    assert result["execution_kind_source"] == "OWNER_INPUT_DIAGNOSTIC"
+-
+-
+-@pytest.mark.parametrize("field,value", [
+-    ("run_id", "1" * 32), ("sha256", "b" * 64), ("consumed", True),
+-])
+-def test_input_admission_cannot_hide_a_materialized_product(field, value):
+-    response = missing_input()
+-    response["plan_product"][field] = value
+-    with pytest.raises(ValueError):
+-        autorun.owner_plan_readback(response, "20261009", expected_kind="MANUAL_REFRESH")
+-
+-
+-def test_input_admission_date_and_reasons_are_required():
+-    with pytest.raises(ValueError):
+-        autorun.owner_plan_readback(missing_input("20261008"), "20261009", expected_kind="MANUAL_REFRESH")
+-    value = missing_input()
+-    value["failure_reasons"] = []
+-    with pytest.raises(ValueError):
+-        autorun.owner_plan_readback(value, "20261009", expected_kind="MANUAL_REFRESH")
+-
+-
+-def test_input_admission_cannot_hide_an_owner_attempt():
+-    value = missing_input()
+-    value["workspace_plan_attempt"] = {"run_id": "1" * 32, "state": "FAILED"}
+-    with pytest.raises(ValueError, match="PLAN_OWNER_INPUT_DIAGNOSTIC_INVALID"):
+-        autorun.owner_plan_readback(value, "20261009", expected_kind="MANUAL_REFRESH")
+-
+-
+-@pytest.mark.parametrize("branch,hour,minute", [("MORNING", 7, 0), ("PREOPEN", 9, 27)])
+-def test_original_scheduled_wrappers_keep_input_missing_and_supply_context(branch, hour, minute):
+-    calls = []
+-    def refresh(date, **kwargs):
+-        calls.append((date, deepcopy(kwargs)))
+-        return missing_input(date)
+-    service = SimpleNamespace(refresh_workspace_plan=refresh)
+-    now = datetime(2026, 10, 9, hour, minute, tzinfo=HK)
+-    if branch == "MORNING":
+-        result = autorun.run_scheduled_morning_plan(service, "20261009", now=now,
+-            config={"enabled": True, "interval_seconds": 300, "status": "PROPOSAL_ONLY"})
+-    else:
+-        result = autorun.run_scheduled_preopen_plan_safe(service, "20261009", now=now)
+-    assert result["status"] == "CANNOT_CONFIRM"
+-    assert result["reason"] == "WORKSPACE_PLAN_INPUTS_NOT_READY"
+-    assert result["run_id"] is None
+-    context = calls[0][1]["execution_context"]
+-    assert context["trigger_kind"] == "SCHEDULED"
+-    assert context["scheduled_for"] == now.isoformat()
+-    assert context["natural_run_verified"] is False
+-
+-
+-def test_original_evening_owner_keeps_input_missing_without_saved_product(tmp_path, monkeypatch):
+-    calls = []
+-    store = ManagerResearchStore(tmp_path / "state")
+-    def refresh(date, **kwargs):
+-        calls.append((date, deepcopy(kwargs)))
+-        return missing_input(date)
+-    service = SimpleNamespace(store=store, refresh_workspace_plan=refresh)
+-    monkeypatch.setattr(workspace, "get_workspace", lambda *_a, **_k: {"input_identity": "a" * 64})
+-    now = datetime(2026, 10, 8, 17, 0, tzinfo=HK)
+-    result = cycle.run_next_hk_session_plan_material_refresh(service, "20261008", now=now,
+-        config={"enabled": True})
+-    assert result["target_trade_date"] == "20261009"
+-    assert result["status"] == "CANNOT_CONFIRM"
+-    assert result["reason"] == "WORKSPACE_PLAN_INPUTS_NOT_READY"
+-    assert workspace._read_plan(store, "20261009") is None
+-    assert calls[0][1]["execution_context"] == {
+-        "trigger_kind": "SCHEDULED", "timing": "ON_TIME",
+-        "scheduled_for": now.isoformat(), "natural_run_verified": False,
+-    }
+-
+-
+-def test_saved_owner_projection_preserves_the_same_execution_context(tmp_path):
+-    service = SimpleNamespace(store=ManagerResearchStore(tmp_path / "state"))
+-    context = {"trigger_kind": "SCHEDULED", "timing": "LATE_CATCHUP",
+-        "scheduled_for": "2026-10-09T10:00:00+08:00", "natural_run_verified": False}
+-    saved = {"run_id": "1" * 32, "sha256": "b" * 64,
+-        "workspace": {"target_trade_date": "20261009"},
+-        "execution_kind": "MANUAL_REFRESH", "execution_context": context,
+-        "owner": autorun.PLAN_OWNER}
+-    readback = cycle._saved_owner_readback(service, "20261009", saved)
+-    assert readback["plan_product"]["execution_context"] == context
+-    readback["plan_product"]["execution_context"]["timing"] = "ON_TIME"
+-    assert saved["execution_context"]["timing"] == "LATE_CATCHUP"
+-
+-
+-def test_scheduled_envelope_never_turns_input_not_ready_into_owner_failed():
+-    service = SimpleNamespace(refresh_workspace_plan=lambda date, **_kwargs: missing_input(date))
+-    result = cycle.run_scheduled_plan_target(service, "20261009", "20261009",
+-        now=datetime(2026, 10, 9, 9, 27, tzinfo=HK), plan_config={"enabled": True})
+-    assert result["status"] == "PARTIAL"
+-    assert result["dispatch_outcome"] == "INPUT_NOT_READY"
+-    assert result["plan_result"]["status"] == "CANNOT_CONFIRM"
+-    assert result["failure_reasons"] == missing_input()["failure_reasons"]
+-    assert cycle.valid_owner_plan_result(result["plan_result"], "PREOPEN") is False
+-
+-
+-def test_plan_only_child_outside_slot_does_not_send_owner_request(tmp_path, monkeypatch, capsys):
+-    from infrastructure.scheduling import manager_announcement_supervisor as supervisor
+-    from v4.manager_research import plan_owner_dispatch as dispatch
+-    class Clock(datetime):
+-        @classmethod
+-        def now(cls, tz=None):
+-            now = datetime(2026, 10, 9, 11, 1, tzinfo=HK)
+-            return now.astimezone(tz) if tz else now.replace(tzinfo=None)
+-    binding = {
+-        "enabled": True, "plan_material_refresh_only": True,
+-        "announcement_collection_enabled": False, "plan_material_refresh": {"enabled": True},
+-        "morning_plan": {"enabled": True}, "daily_automation": {"enabled": True},
+-    }
+-    # Admission/canary/root validation is independently tested without stubs in
+-    # test_manager_r3_binding_identity. This test isolates the existing child slot.
+-    monkeypatch.setattr(supervisor, "load_binding", lambda *_args: binding)
+-    monkeypatch.setattr(cycle, "datetime", Clock)
+-    monkeypatch.setattr(cycle.sys, "version_info", (3, 14, 0))
+-    monkeypatch.chdir(cycle.APP_ROOT)
+-    for key in ("PRODUCTION_ALLOWED", "BUY_GATE_UPDATED", "ORDERS_SENT"):
+-        monkeypatch.delenv(key, raising=False)
+-    def forbidden(*_args, **_kwargs):
+-        pytest.fail("a non-due child sent an owner request")
+-    monkeypatch.setattr(dispatch, "request_bound_plan_cycle", forbidden)
+-    monkeypatch.setattr(dispatch, "request_bound_daily_cycle", forbidden)
+-    assert cycle.main(["--binding", str(tmp_path / "not-read.json")]) == 0
+-    import json
+-    result = json.loads(capsys.readouterr().out)
+-    assert result["status"] == "NOT_DUE"
+-    assert result["dispatch_outcome"] == "NOT_TRIGGERED"
+-    assert result["network_requests"] == result["state_writes"] == 0
+--- a/tests/test_manager_r3_dates_inputs.py
++++ /dev/null
+@@ -1,418 +0,0 @@
+-"""R3 exact-date/input contracts using synthetic sources and the real owners.
+-
+-Only fixture source documents and clocks are injected. The announcement import,
+-workspace owner, product/attempt store, and HTTP routes are application code.
+-These tests neither access live state nor establish Mac/API/UI/natural recovery.
+-"""
+-from __future__ import annotations
+-
+-from datetime import datetime, timedelta
+-import hashlib
+-import json
+-from types import SimpleNamespace
+-
+-import pytest
+-
+-import test_manager_announcement_parity_20261008 as announcement_fixture
+-from test_manager_announcement_parity_20261008 import (
+-    _FixtureService, _client, _fixture, _import, _snapshot,
+-)
+-from v4.manager_research import workspace
+-from v4.manager_research.workspace_projection import FLAGS, HK
+-
+-
+-CURRENT = "20261009"
+-CATCH_UP = "20261008"
+-OWNER = "ManagerResearchJobService.refresh_workspace_plan"
+-
+-
+-def _freeze(monkeypatch, actual: datetime) -> None:
+-    """Keep capture/import, owner execution and subsequent GET times explicit."""
+-    class RouterClock(datetime):
+-        @classmethod
+-        def now(cls, tz=None):
+-            return actual.astimezone(tz) if tz else actual.replace(tzinfo=None)
+-
+-    monkeypatch.setattr(announcement_fixture.api, "datetime", RouterClock)
+-    monkeypatch.setattr(announcement_fixture.consumer, "_now", lambda: actual.isoformat())
+-    monkeypatch.setattr(announcement_fixture, "NOW", actual + timedelta(seconds=2))
+-    monkeypatch.setattr(workspace, "_now", lambda: (actual + timedelta(seconds=1)).isoformat())
+-
+-
+-@pytest.fixture
+-def service(tmp_path, monkeypatch):
+-    _freeze(monkeypatch, datetime(2026, 10, 9, 10, 0, tzinfo=HK))
+-    owner = _FixtureService(tmp_path / "synthetic-manager-state")
+-    # No tested path may turn a source read into capture or a second producer.
+-    monkeypatch.setattr(owner, "refresh_announcements",
+-        lambda *a, **k: pytest.fail("workspace started announcement collection"))
+-    monkeypatch.setattr(owner, "refresh_catalyst_observations",
+-        lambda *a, **k: pytest.fail("workspace started catalyst collection"))
+-    monkeypatch.setattr(owner, "refresh_us_mapping_research",
+-        lambda *a, **k: pytest.fail("workspace started daily mapping production"))
+-    try:
+-        yield owner
+-    finally:
+-        owner.close()
+-
+-
+-def _source(service, client, *, target=CURRENT, publication="2026-10-08",
+-            run_id="1" * 32, disposition="SELECTED_EVENT", import_product=True,
+-            **options):
+-    target_iso = f"{target[:4]}-{target[4:6]}-{target[6:]}"
+-    product, registration = _fixture(service, target=target, publication=publication,
+-        run_id=run_id, listing_at=publication + "T21:00:00+00:00",
+-        body_at=publication + "T21:01:00+00:00",
+-        reviewed_at=target_iso + "T00:00:00+00:00", disposition=disposition,
+-        **options)
+-    assert registration is not None
+-    if import_product:
+-        _import(client, registration)
+-    return product, registration
+-
+-
+-def _refresh(client, *, target=CURRENT, publication="20261008"):
+-    return client.post("/api/v4/manager/research/workspace/refresh",
+-        params={"date": target, "selection_date": target,
+-                "announcement_date": publication},
+-        headers={"Origin": "http://testserver"})
+-
+-
+-def _read(client, *, target=CURRENT, publication="20261008", view=None):
+-    params = {"date": target, "selection_date": target,
+-              "announcement_date": publication}
+-    if view is not None:
+-        params["view"] = view
+-    response = client.get("/api/v4/manager/research/workspace", params=params)
+-    assert response.status_code == 200, response.text
+-    return response.json()
+-
+-
+-def _channels(value):
+-    return {row["channel"]: row for row in value["daily_channels"]["channels"]}
+-
+-
+-def _stored_content(service):
+-    # Kernel admission may create a mutex file; it is not a research artifact
+-    # or an owner attempt and does not establish materialization.
+-    return {name: sha for name, sha in _snapshot(service.store.root).items()
+-            if not name.startswith(".locks/")}
+-
+-
+-def _assert_same_product(saved, read, *, target, publication):
+-    product = read["plan_product"]
+-    run = product["run_readback"]
+-    assert read["target_trade_date"] == target
+-    assert read["date_bindings"] == {
+-        "plan_date": target, "selection_date": target,
+-        "announcement_date": publication,
+-    }
+-    assert product["status"] == "CURRENT"
+-    assert product["consumed"] is True
+-    assert product["run_id"] == saved["plan_product"]["run_id"] == run["run_id"]
+-    assert product["sha256"] == saved["plan_product"]["sha256"] == run["artifact_sha256"]
+-    assert read["input_identity"] == saved["input_identity"] == run["input_identity"]
+-    assert read["plan_context"] == saved["plan_context"]
+-    assert product["original_owner"] == run["owner"] == OWNER
+-    assert run["status"] == "VERIFIED"
+-    assert run["owner_attempt_run_id"] == product["run_id"]
+-    assert all(read[key] is flag for key, flag in FLAGS.items())
+-    assert all(channel["natural_run_verified"] is False
+-               for channel in read["daily_channels"]["channels"])
+-
+-
+-def _assert_selected_source(value, product, registration, *, target, publication):
+-    announcement = _channels(value)["ANNOUNCEMENT"]
+-    assert announcement["status"] == "READY"
+-    assert announcement["candidate_count"] == 1
+-    row, = announcement["rows"]
+-    assert row["symbol"] == "HK.01234"
+-    assert row["reason"] == "Synthetic fixture disposition only."
+-    assert row["target_trade_date"] == target
+-    assert row["data_date"] == publication
+-    assert row["run_id"] == registration["evidence_run_id"]
+-    assert row["product_sha256"] == product["sha256"]
+-    assert row["source_manifest_sha256"] == product["source_manifest_sha256"]
+-    assert row["source_refs"]
+-    consumed, = value["announcement_reviewed_analysis"]["products"]
+-    assert consumed["status"] == "CONSUMED"
+-    assert consumed["evidence_run_id"] == row["run_id"]
+-    assert consumed["product_sha256"] == row["product_sha256"]
+-    assert consumed["owner_import_receipt_sha256"]
+-
+-
+-def test_retrospective_1008_dynamic_reads_saved_identity_without_changing_auto_history(service):
+-    with _client(service) as client:
+-        product, registration = _source(service, client, target=CATCH_UP,
+-            publication="2026-10-07")
+-        posted = _refresh(client, target=CATCH_UP, publication="20261007")
+-        assert posted.status_code == 200, posted.text
+-        saved = posted.json()
+-        assert saved["plan_product"]["execution_context"]["timing"] == "RETROSPECTIVE"
+-        assert saved["plan_context"]["research_cutoff"] == "2026-10-09T10:00:00+08:00"
+-        initial = _snapshot(service.store.root)
+-        dynamic = _read(client, target=CATCH_UP, publication="20261007", view="dynamic")
+-        _assert_same_product(saved, dynamic, target=CATCH_UP, publication="20261007")
+-        _assert_selected_source(dynamic, product, registration,
+-            target=CATCH_UP, publication="20261007")
+-        historical_auto = _read(client, target=CATCH_UP, publication="20261007")
+-        assert historical_auto["plan_product"]["consumed"] is False
+-        assert historical_auto["plan_product"]["run_id"] is None
+-        assert historical_auto["read_context"]["reason"] == "HISTORY_QUALIFIED_SAVED_PLAN_MISSING"
+-        assert _snapshot(service.store.root) == initial
+-
+-
+-def test_retrospective_latest_preserves_1008_qualified_auto_history(service, monkeypatch):
+-    early = datetime(2026, 10, 8, 9, 27, tzinfo=HK)
+-    _freeze(monkeypatch, early)
+-    with _client(service) as client:
+-        _source(service, client, target=CATCH_UP, publication="2026-10-07")
+-        posted = _refresh(client, target=CATCH_UP, publication="20261007")
+-        assert posted.status_code == 200, posted.text
+-        original = posted.json()
+-        # The existing low-level scheduled owner establishes normal historical
+-        # eligibility; this is an actual write, not a resealed success DTO.
+-        original = service.refresh_workspace_plan(CATCH_UP,
+-            execution_kind="SCHEDULED_PREOPEN", now=early,
+-            deadline=datetime(2026, 10, 8, 9, 30, tzinfo=HK))
+-        path = service.store.root / "workspace_plans" / CATCH_UP / (
+-            original["plan_product"]["run_id"] + ".json")
+-        original_bytes = path.read_bytes()
+-        _freeze(monkeypatch, datetime(2026, 10, 9, 10, 0, tzinfo=HK))
+-        late = _refresh(client, target=CATCH_UP, publication="20261007")
+-        assert late.status_code == 200, late.text
+-        retrospective = late.json()
+-        assert retrospective["plan_product"]["run_id"] != original["plan_product"]["run_id"]
+-        initial = _snapshot(service.store.root)
+-        dynamic = _read(client, target=CATCH_UP, publication="20261007", view="dynamic")
+-        _assert_same_product(retrospective, dynamic, target=CATCH_UP, publication="20261007")
+-        historical_auto = _read(client, target=CATCH_UP, publication="20261007")
+-        assert historical_auto["plan_product"]["status"] == "CURRENT", historical_auto["read_context"]
+-        assert historical_auto["plan_product"]["consumed"] is True
+-        assert historical_auto["plan_product"]["run_id"] == original["plan_product"]["run_id"]
+-        assert historical_auto["plan_product"]["sha256"] == original["plan_product"]["sha256"]
+-        assert historical_auto["input_identity"] == original["input_identity"]
+-        assert historical_auto["workspace_plan_attempt"] == original["workspace_plan_attempt"]
+-        assert historical_auto["plan_context"] == original["plan_context"]
+-        assert path.read_bytes() == original_bytes
+-        assert _snapshot(service.store.root) == initial
+-
+-
+-def test_current_1009_default_auto_reads_same_saved_run_sha_inputs_and_stock_reason(service):
+-    with _client(service) as client:
+-        product, registration = _source(service, client)
+-        posted = _refresh(client)
+-        assert posted.status_code == 200, posted.text
+-        saved = posted.json()
+-        initial = _snapshot(service.store.root)
+-        read = _read(client)  # Ordinary browser contract: no explicit view.
+-        _assert_same_product(saved, read, target=CURRENT, publication="20261008")
+-        _assert_selected_source(read, product, registration,
+-            target=CURRENT, publication="20261008")
+-        assert _snapshot(service.store.root) == initial
+-
+-
+-@pytest.mark.parametrize("source_state", ["absent", "captured_not_imported"])
+-@pytest.mark.parametrize("target,publication", [(CURRENT, "20261008"), (CATCH_UP, "20261007")])
+-def test_all_unavailable_inputs_do_not_materialize_a_plan_or_invent_zero(service, source_state, target, publication):
+-    with _client(service) as client:
+-        if source_state == "captured_not_imported":
+-            publication_iso = f"{publication[:4]}-{publication[4:6]}-{publication[6:]}"
+-            _source(service, client, target=target, publication=publication_iso, import_product=False)
+-        initial = _stored_content(service)
+-        response = _refresh(client, target=target, publication=publication)
+-        assert response.status_code == 200, response.text
+-        result = response.json()
+-        assert result.get("status") == "CANNOT_CONFIRM"
+-        assert result["reason"] == "WORKSPACE_PLAN_INPUTS_NOT_READY"
+-        assert result["failure_reasons"]
+-        assert result["plan_product"]["consumed"] is False
+-        assert result["plan_product"]["run_id"] is None
+-        assert result["plan_product"]["sha256"] is None
+-        assert result.get("workspace_plan_attempt") is None
+-        assert service.get_workspace_plan(target) is None
+-        assert _stored_content(service) == initial
+-        read = _read(client, target=target, publication=publication, view="dynamic")
+-        assert read["plan_product"]["run_id"] is None
+-        assert read["plan_product"]["consumed"] is False
+-        assert read["read_context"]["candidate_count_known"] is False
+-        assert all(channel["candidate_count"] is None for channel in _channels(read).values())
+-        assert read["us_mapping_research"]["daily_run"]["status"] == "NOT_RUN"
+-        assert read["us_mapping_research"]["daily_run"]["run_id"] is None
+-
+-
+-def test_new_input_failure_preserves_previous_plan_and_same_run_attempt(service):
+-    with _client(service) as client:
+-        _source(service, client)
+-        posted = _refresh(client)
+-        assert posted.status_code == 200, posted.text
+-        original = service.get_workspace_plan(CURRENT)
+-        assert original is not None
+-        initial = _stored_content(service)
+-        # Only the injected source becomes unavailable; immutable owner
+-        # products, receipts and evidence files remain in the fixture store.
+-        service.catalogs.clear()
+-        refused = _refresh(client)
+-        assert refused.status_code == 200, refused.text
+-        assert refused.json()["status"] == "CANNOT_CONFIRM"
+-        assert refused.json()["reason"] == "WORKSPACE_PLAN_INPUTS_NOT_READY"
+-        assert service.get_workspace_plan(CURRENT) == original
+-        assert _stored_content(service) == initial
+-
+-
+-@pytest.mark.parametrize("fixture_options,pending", [({"reader_gap": True}, 1), ({"no_decisions": True}, None)])
+-def test_unassessed_import_does_not_authorize_a_successful_empty_plan(service, fixture_options, pending):
+-    with _client(service) as client:
+-        _source(service, client, **fixture_options)
+-        before = _stored_content(service)
+-        response = _refresh(client)
+-        assert response.status_code == 200, response.text
+-        value = response.json()
+-        assert value.get("status") == "CANNOT_CONFIRM"
+-        assert value["reason"] == "WORKSPACE_PLAN_INPUTS_NOT_READY"
+-        announcement = _channels(value)["ANNOUNCEMENT"]
+-        assert announcement["status"] == "PARTIAL"
+-        assert announcement["candidate_count"] is None
+-        assert announcement["pending_count"] == pending
+-        assert "ANNOUNCEMENT_SELECTION_NOT_ASSESSED" in value["failure_reasons"]
+-        assert service.get_workspace_plan(CURRENT) is None
+-        assert _stored_content(service) == before
+-
+-
+-def test_verified_not_selected_input_saves_traceable_empty_result(service):
+-    with _client(service) as client:
+-        product, registration = _source(service, client, disposition="NOT_SELECTED")
+-        response = _refresh(client)
+-        assert response.status_code == 200, response.text
+-        result = response.json()
+-        saved = service.get_workspace_plan(CURRENT)
+-        assert saved is not None
+-        assert saved["run_id"] == result["plan_product"]["run_id"]
+-        assert saved["sha256"] == result["plan_product"]["sha256"]
+-        assert saved["input_identity"] == result["input_identity"]
+-        assert saved["owner"] == OWNER
+-        announcement = _channels(saved["workspace"])["ANNOUNCEMENT"]
+-        assert announcement["status"] == "READY_EMPTY"
+-        assert announcement["candidate_count"] == announcement["pending_count"] == 0
+-        assert announcement["rows"] == []
+-        consumed, = saved["workspace"]["announcement_reviewed_analysis"]["products"]
+-        assert consumed["status"] == "CONSUMED"
+-        assert consumed["product_sha256"] == product["sha256"]
+-        assert consumed["evidence_run_id"] == registration["evidence_run_id"]
+-        assert consumed["not_selected_stock_count"] == 1
+-        original_analysis = service.get_announcement_analysis(CURRENT, "2026-10-08")
+-        decisions = original_analysis["analysis"]["stock_selection"]["article_decisions"]
+-        assert decisions[0]["disposition"] == "NOT_SELECTED"
+-        assert decisions[0]["reason"] == "Synthetic fixture disposition only."
+-        _assert_same_product(result, _read(client), target=CURRENT, publication="20261008")
+-
+-
+-@pytest.mark.parametrize("failure", [RuntimeError, ImportError])
+-def test_unavailable_us_channel_preserves_verified_announcement_stock_and_evidence(service, failure):
+-    with _client(service) as client:
+-        product, registration = _source(service, client)
+-
+-        def unavailable(_session):
+-            raise failure("Synthetic independent US source unavailable")
+-
+-        service._workspace_us_market_reader = SimpleNamespace(read_exact_session=unavailable)
+-        posted = _refresh(client)
+-        assert posted.status_code == 200, posted.text
+-        saved = posted.json()
+-        read = _read(client)
+-        _assert_same_product(saved, read, target=CURRENT, publication="20261008")
+-        _assert_selected_source(read, product, registration,
+-            target=CURRENT, publication="20261008")
+-        assert read["us_market_attention"]["status"] == "SOURCE_FAILED"
+-        assert "US_MARKET_READER_FAILED:" + failure.__name__ in read["us_market_attention"]["gaps"]
+-        assert read["us_mapping_research"]["daily_run"]["status"] == "NOT_RUN"
+-        assert read["us_mapping_research"]["daily_run"]["run_id"] is None
+-        assert _channels(read)["OVERSOLD"]["candidate_count"] is None
+-
+-
+-@pytest.mark.parametrize("materialize_mapping", [False, True], ids=["capture_only", "valid_empty_mapping"])
+-def test_verified_us_capture_requires_its_separate_daily_mapping_before_plan_consumption(
+-        service, tmp_path, monkeypatch, materialize_mapping):
+-    from infrastructure.research_peripheral_store import ResearchPeripheralStore
+-    from test_manager_us_mapping_research import _synthetic_us_payload
+-    from v4.manager_research import us_mapping_research
+-    from v4.manager_research.service import ManagerResearchJobService
+-    from v4.manager_research.us_market_bridge import ResearchPeripheralUsMarketReader
+-
+-    source_root = tmp_path / "synthetic-us-source"
+-    ResearchPeripheralStore(source_root).publish(_synthetic_us_payload("20261008", {}))
+-    service._workspace_us_market_reader = ResearchPeripheralUsMarketReader(source_root)
+-
+-    # Supply exact temporary source/registry files. The original readers check
+-    # their schemas, checksums and availability; no successful mapping DTO or
+-    # input-validation function is mocked.
+-    reviewed = {"schema_version": "v4.manager_research.us_mapping_reviewed.v1",
+-        "target_trade_date": us_mapping_research._TARGET_SEED,
+-        "report": {"sha256": "a" * 64},
+-        "cards": [{"daily_match_symbols": [symbol], "hk_symbol": "HK.01234",
+-            "hk_name": "Synthetic relation issuer", "reason": "Synthetic reviewed relation",
+-            "official_sources": [{"url": "https://fixture.invalid/synthetic-relation"}]}
+-            for symbol in ("NVDA", "AMD", "LITE", "AVGO")], **FLAGS}
+-    reviewed["artifact_sha256"] = us_mapping_research.sha256_json(reviewed)
+-    seed_path = tmp_path / "synthetic-us-reviewed.json"
+-    seed_raw = (json.dumps(reviewed, sort_keys=True) + "\n").encode()
+-    seed_path.write_bytes(seed_raw)
+-    registry = {"schema_version": "v4.manager_research.us_mapping_relation_registry.v1",
+-        "source_seed_sha256": hashlib.sha256(seed_raw).hexdigest(),
+-        "source_report_sha256": reviewed["report"]["sha256"],
+-        "available_at": "2026-10-01T00:00:00+08:00",
+-        "availability_basis": "V4_RELEASE_PUBLICATION", "release_id": "SYNTHETIC_TEST_ONLY",
+-        "release_manifest_sha256": "b" * 64, "deployment_receipt_sha256": "c" * 64}
+-    registry["artifact_sha256"] = us_mapping_research.sha256_json(registry)
+-    registry_path = tmp_path / "synthetic-us-registry.json"
+-    registry_path.write_text(json.dumps(registry, sort_keys=True) + "\n")
+-    monkeypatch.setattr(us_mapping_research, "REVIEWED_PATH", seed_path)
+-    monkeypatch.setattr(us_mapping_research, "RELATION_REGISTRY_PATH", registry_path)
+-
+-    mapping = None
+-    if materialize_mapping:
+-        started = datetime(2026, 10, 9, 9, 59, tzinfo=HK)
+-
+-        class MappingClock(datetime):
+-            @classmethod
+-            def now(cls, tz=None):
+-                finished = started + timedelta(seconds=1)
+-                return finished.astimezone(tz) if tz else finished.replace(tzinfo=None)
+-
+-        monkeypatch.setattr(us_mapping_research, "datetime", MappingClock)
+-        # Invoke the original owner explicitly once. The service fixture's
+-        # fail-on-call guard still prevents plan/GET from starting it again.
+-        mapping = ManagerResearchJobService.refresh_us_mapping_research(
+-            service, CURRENT, now=started, timeout_seconds=2,
+-            execution_context={"trigger_kind": "MANUAL", "timing": "UNCLASSIFIED",
+-                "natural_run_verified": False})
+-        assert mapping["status"] == "VALID_EMPTY", mapping.get("gaps")
+-        assert mapping["coverage"]["matched_hk_relation_count"] == 0
+-        assert mapping["us_session_date"] == "20261008"
+-
+-    source_before = _snapshot(source_root)
+-    with _client(service) as client:
+-        posted = _refresh(client)
+-        assert posted.status_code == 200, posted.text
+-        value = posted.json()
+-        assert value["us_market_attention"]["status"] == "READY"
+-        assert value["us_market_attention"]["source_identity"]["status"] == "VERIFIED"
+-        daily = value["us_mapping_research"]["daily_run"]
+-        reference = value["owner_chain"]["us_mapping_daily_plan_reference"]
+-        if mapping is None:
+-            assert daily["status"] == "NOT_RUN" and daily["run_id"] is None
+-            assert reference["status"] != "CONSUMED"
+-            assert value["status"] == "CANNOT_CONFIRM"
+-            assert value["reason"] == "WORKSPACE_PLAN_INPUTS_NOT_READY"
+-            assert service.get_workspace_plan(CURRENT) is None
+-        else:
+-            assert reference["status"] == "CONSUMED"
+-            assert reference["run_id"] == daily["run_id"] == mapping["run_id"]
+-            assert reference["artifact_sha256"] == daily["artifact_sha256"] == mapping["artifact_sha256"]
+-            assert daily["input_identity"] == mapping["input_identity"]
+-            assert daily["source_identity"] == mapping["source_identity"]
+-            _assert_same_product(value, _read(client), target=CURRENT, publication="20261008")
+-        # An assessed US empty result does not invent zero counts for the
+-        # independent, still-unavailable announcement/HK/screen channels.
+-        assert all(channel["candidate_count"] is None for channel in _channels(value).values())
+-        assert _snapshot(source_root) == source_before
+--- a/tests/test_manager_workspace_exact_page_binding_20261008.py
++++ b/tests/test_manager_workspace_exact_page_binding_20261008.py
+@@ -21,16 +21,10 @@
+ 
+     monkeypatch.setattr(fixture_module.api, 'datetime', FrozenRouterClock)
+     monkeypatch.setattr(fixture_module, 'NOW', datetime(2026, 10, 8, 10, 0, 3, tzinfo=HK))
+-    monkeypatch.setattr(fixture_module.consumer, '_now', lambda: actual.isoformat())
+     monkeypatch.setattr(workspace_owner, '_now', lambda: '2026-10-08T02:00:02+00:00')
+     service = _FixtureService(tmp_path / 'manager-state')
+     try:
+         with _client(service) as client:
+-            # R3 owner entry points require an assessed legal input. Keep this
+-            # date-binding test empty through a real reviewed NOT_SELECTED
+-            # import instead of treating missing inputs as a saved plan.
+-            _, registration = _fixture(service, disposition='NOT_SELECTED')
+-            _import(client, registration)
+             default_refresh = client.post('/api/v4/manager/research/workspace/refresh',
+                 params={'date': TARGET}, headers={'Origin': 'http://testserver'})
+             assert default_refresh.status_code == 200, default_refresh.text
+@@ -69,10 +63,6 @@
+             assert different_value['plan_product']['consumed'] is False
+             assert different_value['plan_context']['announcement_publication_date'] == '2026-10-06'
+ 
+-            _, earlier_registration = _fixture(service, publication='2026-10-06',
+-                run_id='2' * 32, disposition='NOT_SELECTED',
+-                listing_at='2026-10-06T21:00:00+00:00', body_at='2026-10-06T21:01:00+00:00')
+-            _import(client, earlier_registration)
+             explicit_refresh = client.post('/api/v4/manager/research/workspace/refresh',
+                 params={'date': TARGET, 'selection_date': TARGET,
+                     'announcement_date': '20261006'},
+@@ -103,13 +93,10 @@
+ 
+     monkeypatch.setattr(fixture_module.api, 'datetime', FrozenRouterClock)
+     monkeypatch.setattr(fixture_module, 'NOW', datetime(2026, 10, 8, 10, 0, 3, tzinfo=HK))
+-    monkeypatch.setattr(fixture_module.consumer, '_now', lambda: actual.isoformat())
+     monkeypatch.setattr(workspace_owner, '_now', lambda: '2026-10-08T02:00:02+00:00')
+     service = _FixtureService(tmp_path / 'manager-state')
+     try:
+         with _client(service) as client:
+-            _, registration = _fixture(service, disposition='NOT_SELECTED')
+-            _import(client, registration)
+             posted = client.post('/api/v4/manager/research/workspace/refresh',
+                 params={'date': TARGET}, headers={'Origin': 'http://testserver'})
+             assert posted.status_code == 200, posted.text
+@@ -137,29 +124,17 @@
+             assert wrong_selection.status_code == 200, wrong_selection.text
+             assert wrong_selection.json()['plan_product']['status'] == 'STALE_INPUTS_CHANGED'
+ 
+-            # A new source catalog run changes this binding's source identity.
+-            # The now-present initial reviewed product is immutable: a second
+-            # import cannot overwrite it, and ordinary auto must revalidate
+-            # the changed source and expose the old sealed plan as stale.
+-            original_product_path = fixture_module.analysis.product_path(service.store, TARGET, '2026-10-07')
+-            original_product_bytes = original_product_path.read_bytes()
++            # Import a later, source-bound current-owner product for the same
++            # full date binding. The sealed plan must become stale after the
++            # ordinary auto read re-runs the owner and compares identities.
+             _, registration = _fixture(service, target=TARGET, publication='2026-10-07',
+                 run_id='f' * 32, reviewed_at='2026-10-08T00:00:00+00:00')
+             assert registration is not None
+-            refused = client.post('/api/v4/manager/research/announcements/analysis/import',
+-                headers={'Origin': 'http://testserver'}, json={
+-                    'schema_version': 'v4.manager_research.announcement_analysis_import_ref.v1',
+-                    'evidence_run_id': registration['evidence_run_id'],
+-                    'handoff_manifest_sha256': registration['handoff_manifest_sha256'],
+-                    'product_sha256': registration['product_sha256']})
+-            assert refused.status_code == 409, refused.text
+-            assert original_product_path.read_bytes() == original_product_bytes
++            _import(client, registration)
+             changed_source = client.get('/api/v4/manager/research/workspace', params={
+                 'date': TARGET, 'selection_date': TARGET, 'announcement_date': '20261007'})
+             assert changed_source.status_code == 200, changed_source.text
+             assert changed_source.json()['plan_product']['status'] == 'STALE_INPUTS_CHANGED'
+-            assert changed_source.json()['plan_product']['run_id'] == saved_run
+-            assert changed_source.json()['plan_product']['sha256'] == saved['plan_product']['sha256']
+ 
+         # A no-save owner evaluation starts at its actual requested clock and
+         # cannot consume the sealed readback cutoff as a shortcut.
+--- a/tests/test_manager_workspace_owner_20261008.py
++++ b/tests/test_manager_workspace_owner_20261008.py
+@@ -28,26 +28,6 @@
+     monkeypatch.setattr(w, 'get_workspace', lambda *args, **kwargs: current())
+     monkeypatch.setattr(w, '_now', lambda:'2026-10-08T01:28:01+00:00')
+     return svc
+-
+-
+-@pytest.fixture
+-def assessed_owner(tmp_path, monkeypatch):
+-    """Explicit R3 owner calls need actual assessed input, even for zero picks."""
+-    from test_manager_announcement_parity_20261008 import _FixtureService, _client, _fixture, _import, consumer, api
+-    class ImportClock(datetime):
+-        @classmethod
+-        def now(cls, tz=None):
+-            return NOW.astimezone(tz) if tz else NOW.replace(tzinfo=None)
+-    service = _FixtureService(tmp_path / 'assessed-manager')
+-    monkeypatch.setattr(api, 'datetime', ImportClock)
+-    monkeypatch.setattr(consumer, '_now', lambda: NOW.isoformat())
+-    try:
+-        with _client(service) as client:
+-            _, registration = _fixture(service, disposition='NOT_SELECTED')
+-            _import(client, registration)
+-        yield service
+-    finally:
+-        service.close()
+ 
+ 
+ def test_manual_saved_plan_never_becomes_scheduled_by_fast_path(tmp_path, monkeypatch):
+@@ -98,8 +78,8 @@
+     assert attempt['state']=='FAILED' and attempt['run_id']=='9'*32
+ 
+ 
+-def test_late_catchup_plan_preserves_server_execution_context(assessed_owner, monkeypatch):
+-    svc=assessed_owner
++def test_late_catchup_plan_preserves_server_execution_context(tmp_path, monkeypatch):
++    svc=owner(tmp_path,monkeypatch)
+     started=datetime.fromisoformat('2026-10-08T10:00:00+08:00')
+     finished='2026-10-08T02:00:01+00:00'
+     monkeypatch.setattr(w,'_now',lambda:finished)
+@@ -107,7 +87,6 @@
+         'scheduled_for':'2026-10-08T10:00:00+08:00','natural_run_verified':False}
+     result=w.refresh_workspace_plan(svc,DAY,execution_kind='MANUAL_REFRESH',now=started,
+         execution_context=context)
+-    assert result['plan_product']['status']=='CURRENT',result.get('failure_reasons')
+     saved=svc.store._read(svc.store.root/'workspace_plans'/DAY/'latest.json')
+     attempt=svc.store._read(svc.store.root/'workspace_plan_runs'/DAY/(saved['run_id']+'.json'))
+     assert saved['execution_context']=={
+@@ -155,20 +134,18 @@
+     assert daily['latest_attempt_affects_saved_plan'] is False
+ 
+ 
+-def test_retrospective_plan_keeps_real_read_and_generation_time_explicit(assessed_owner, monkeypatch):
+-    svc=assessed_owner
++def test_retrospective_plan_keeps_real_read_and_generation_time_explicit(tmp_path, monkeypatch):
++    svc=owner(tmp_path,monkeypatch)
+     actual=datetime.fromisoformat('2026-10-09T10:00:00+08:00')
+     observed=[]
+-    original_read=w.get_workspace
+     def capture_read(service,date,*,include_saved,now,**kwargs):
+         observed.append(now)
+-        return original_read(service,date,include_saved=include_saved,now=now,**kwargs)
++        return {**current(),'plan_context':{'research_cutoff':now.isoformat()}}
+     monkeypatch.setattr(w,'get_workspace',capture_read)
+     monkeypatch.setattr(w,'_now',lambda:'2026-10-09T02:00:01+00:00')
+     result=w.refresh_workspace_plan(svc,'20261008',execution_kind='MANUAL_REFRESH',now=actual,
+         execution_context={'trigger_kind':'MANUAL','timing':'RETROSPECTIVE',
+             'scheduled_for':None,'natural_run_verified':False})
+-    assert result['plan_product']['status']=='CURRENT',result.get('failure_reasons')
+     cutoff=datetime.fromisoformat(result['plan_context']['research_cutoff'])
+     generated=datetime.fromisoformat(result['plan_product']['generated_at'].replace('Z','+00:00'))
+     assert observed==[actual]

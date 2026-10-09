@@ -1,0 +1,38 @@
+...FFFF...                                                               [100%]
+=================================== FAILURES ===================================
+_ test_all_unavailable_inputs_do_not_materialize_a_plan_or_invent_zero[absent] _
+tests/test_manager_r3_dates_inputs.py:222: in test_all_unavailable_inputs_do_not_materialize_a_plan_or_invent_zero
+    assert result.get("status") == "CANNOT_CONFIRM"
+E   AssertionError: assert None == 'CANNOT_CONFIRM'
+E    +  where None = <built-in method get of dict object at 0x7fdcc289c680>('status')
+E    +    where <built-in method get of dict object at 0x7fdcc289c680> = {'RESEARCH_ONLY': True, 'announcement_observation': {'schema_version': 'v4.manager_research.announcement_observation.v...': '20261009', 'publication_date': '2026-10-08', 'status': 'NOT_IMPORTED', ...}], 'research_references': [], ...}, ...}.get
+_ test_all_unavailable_inputs_do_not_materialize_a_plan_or_invent_zero[captured_not_imported] _
+tests/test_manager_r3_dates_inputs.py:222: in test_all_unavailable_inputs_do_not_materialize_a_plan_or_invent_zero
+    assert result.get("status") == "CANNOT_CONFIRM"
+E   AssertionError: assert None == 'CANNOT_CONFIRM'
+E    +  where None = <built-in method get of dict object at 0x7fdcc2902b40>('status')
+E    +    where <built-in method get of dict object at 0x7fdcc2902b40> = {'RESEARCH_ONLY': True, 'announcement_observation': {'schema_version': 'v4.manager_research.announcement_observation.v...': '20261009', 'publication_date': '2026-10-08', 'status': 'NOT_IMPORTED', ...}], 'research_references': [], ...}, ...}.get
+_ test_unassessed_import_does_not_authorize_a_successful_empty_plan[fixture_options0-1] _
+tests/test_manager_r3_dates_inputs.py:248: in test_unassessed_import_does_not_authorize_a_successful_empty_plan
+    assert value.get("status") == "CANNOT_CONFIRM"
+E   AssertionError: assert None == 'CANNOT_CONFIRM'
+E    +  where None = <built-in method get of dict object at 0x7fdcc3bfc500>('status')
+E    +    where <built-in method get of dict object at 0x7fdcc3bfc500> = {'RESEARCH_ONLY': True, 'announcement_observation': {'schema_version': 'v4.manager_research.announcement_observation.v...date': '20261009', 'publication_date': '2026-10-08', 'status': 'CONSUMED', ...}], 'research_references': [], ...}, ...}.get
+_ test_unassessed_import_does_not_authorize_a_successful_empty_plan[fixture_options1-None] _
+tests/test_manager_r3_dates_inputs.py:248: in test_unassessed_import_does_not_authorize_a_successful_empty_plan
+    assert value.get("status") == "CANNOT_CONFIRM"
+E   AssertionError: assert None == 'CANNOT_CONFIRM'
+E    +  where None = <built-in method get of dict object at 0x7fdcc4bb3880>('status')
+E    +    where <built-in method get of dict object at 0x7fdcc4bb3880> = {'RESEARCH_ONLY': True, 'announcement_observation': {'schema_version': 'v4.manager_research.announcement_observation.v...date': '20261009', 'publication_date': '2026-10-08', 'status': 'CONSUMED', ...}], 'research_references': [], ...}, ...}.get
+=============================== warnings summary ===============================
+../../r3-venv/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/6168fe203da9/r3-venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_manager_r3_dates_inputs.py::test_all_unavailable_inputs_do_not_materialize_a_plan_or_invent_zero[absent]
+FAILED tests/test_manager_r3_dates_inputs.py::test_all_unavailable_inputs_do_not_materialize_a_plan_or_invent_zero[captured_not_imported]
+FAILED tests/test_manager_r3_dates_inputs.py::test_unassessed_import_does_not_authorize_a_successful_empty_plan[fixture_options0-1]
+FAILED tests/test_manager_r3_dates_inputs.py::test_unassessed_import_does_not_authorize_a_successful_empty_plan[fixture_options1-None]
+4 failed, 6 passed, 1 warning in 1.63s

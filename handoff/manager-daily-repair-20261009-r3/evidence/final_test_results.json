@@ -1,0 +1,138 @@
+{
+  "schema_version": "v4.manager_r3.synthetic_test_results.v1",
+  "core": {
+    "argv": [
+      "/workspace/scratch/6168fe203da9/r3-venv314/bin/python",
+      "-m",
+      "pytest",
+      "tests/test_manager_r3_binding_identity.py",
+      "tests/test_manager_r3_dates_inputs.py",
+      "tests/test_manager_r3_cycle_outcomes.py",
+      "tests/test_manager_daily_dispatch_20261008.py",
+      "tests/test_manager_daily_automation_20261008.py",
+      "tests/test_manager_us_daily_automation_20261008.py",
+      "tests/test_manager_workspace_owner_20261008.py",
+      "tests/test_manager_workspace_exact_page_binding_20261008.py",
+      "tests/test_manager_history_contract_20261008.py",
+      "tests/test_manager_daily_channels_20261008.py",
+      "tests/test_manager_owner_namespace_contracts.py::test_research_peripheral_namespace_resolves_facade_then_builtins",
+      "-q"
+    ],
+    "cwd": "/workspace/scratch/6168fe203da9/r3-work/reproduced-final",
+    "exit_code": 0,
+    "summary": "235 passed, 1 warning in 12.38s",
+    "log": "evidence/final_core_py314.log",
+    "log_sha256": "c01d9c4bbf58b2a16f468fc2ad896ca50123b5072ea4683f79ba782198cab0d9"
+  },
+  "adjacent": {
+    "argv": [
+      "/workspace/scratch/6168fe203da9/r3-venv314/bin/python",
+      "-m",
+      "pytest",
+      "tests/test_manager_announcement_parity_20261008.py",
+      "-q"
+    ],
+    "cwd": "/workspace/scratch/6168fe203da9/r3-work/reproduced-final",
+    "exit_code": 1,
+    "summary": "1 failed, 38 passed, 1 warning in 2.49s",
+    "log": "evidence/final_adjacent_parity_py314.log",
+    "log_sha256": "58bf3f89c3528133a55ac15d30ba03928163a55068432af99ae8789afcb34db0"
+  },
+  "adjacent_known_failure": {
+    "node": "test_missing_original_archive_is_not_empty_connect_selection",
+    "failure": "expected selection_diagnostics READY, actual PARTIAL",
+    "classification": "EXISTS_IN_UNMODIFIED_R1_R2_BASELINE",
+    "baseline_log": "evidence/r3_existing_archive_baseline_py314.log",
+    "original_test_preserved": true,
+    "r3_get_projection_logic_changed": false
+  },
+  "protected_issue32": [
+    {
+      "path": "apps/api/v35_api/app.py",
+      "sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "actual_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "apps/api/v35_api/preselection_router.py",
+      "sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "actual_sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "apps/api/v35_api/preselection_service.py",
+      "sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+      "actual_sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+      "status": "UNCHANGED"
+    }
+  ],
+  "native_compile": [
+    {
+      "path": "apps/api/v35_api/manager_research_router.py",
+      "sha256": "c115c250aa4e66940688bcfab4ebc56811b632e5de81e5ee18c510a9927398d1",
+      "status": "COMPILED_PYTHON_314"
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/_namespace.py",
+      "sha256": "04d71a71d33cdc90ec362289095dd2ac6e357f79af1528f8c573f6ddcc24e68d",
+      "status": "COMPILED_PYTHON_314"
+    },
+    {
+      "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "sha256": "f55d5c3c5f2a72f2bb80d13a11a284aab41bf3ab5c0c17ce8ad1705cb5104b81",
+      "status": "COMPILED_PYTHON_314"
+    },
+    {
+      "path": "ops/render_manager_announcement_binding.py",
+      "sha256": "2892f985c2e034341d2a95a4be0a668bfe84113117d41f380191be02fdf0559c",
+      "status": "COMPILED_PYTHON_314"
+    },
+    {
+      "path": "ops/run_manager_announcement_cycle.py",
+      "sha256": "51d143128d66cf4517547122361bbf3d1548c8e20d8bab511c185a74f31fbe4d",
+      "status": "COMPILED_PYTHON_314"
+    },
+    {
+      "path": "v3_shared_data/shared_data/hk_daily_supplement.py",
+      "sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+      "status": "COMPILED_PYTHON_314"
+    },
+    {
+      "path": "v4/manager_research/plan_owner_dispatch.py",
+      "sha256": "0ec7a85fc9efdec332df4850401779c02dd7d2bafc0dd6cf4c445efa49e99151",
+      "status": "COMPILED_PYTHON_314"
+    },
+    {
+      "path": "v4/manager_research/service.py",
+      "sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "status": "COMPILED_PYTHON_314"
+    },
+    {
+      "path": "v4/manager_research/us_mapping_research.py",
+      "sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+      "status": "COMPILED_PYTHON_314"
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "sha256": "db95f11b4e3d60fae109d9d6f39bfc0a061fcab148f0ac441a95ccd49f042b7c",
+      "status": "COMPILED_PYTHON_314"
+    },
+    {
+      "path": "v4/manager_research/workspace_history.py",
+      "sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+      "status": "COMPILED_PYTHON_314"
+    },
+    {
+      "path": "v4/manager_research/workspace_plan_autorun.py",
+      "sha256": "2879790c1d82551c39e653d3d28cdaddd3c002bceccbc67453064bd261673f76",
+      "status": "COMPILED_PYTHON_314"
+    }
+  ],
+  "fixture_manifest_sha256": "084ada0c27392ec606fe3927303727f04bc3fe8e466e3a5d463d9fa6650b9be3",
+  "business_recovery": "NOT_VERIFIED",
+  "INTEGRATED": "NOT_RUN",
+  "DEPLOYED": "NOT_RUN",
+  "API": "NOT_RUN",
+  "UI": "NOT_RUN",
+  "NATURAL": "NOT_RUN"
+}

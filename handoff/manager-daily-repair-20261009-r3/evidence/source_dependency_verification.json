@@ -1,0 +1,621 @@
+{
+  "schema_version": "v4.manager_r3.source_git_object_verification.v1",
+  "repository": "lexi2016/v4",
+  "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+  "fixed_tree_truncated": false,
+  "checked_references": 122,
+  "unique_paths": 121,
+  "status": "PASS",
+  "matches": [
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/apps/api/__init__.py",
+      "git_blob_sha1": "481352bbb1ecff3a6a08b12f73f6ed8ab3be3dcf",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/apps/api/v35_api/__init__.py",
+      "git_blob_sha1": "19e1779e4a18403fa705d1c74bd7e6b05fd7e01a",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/issue32_protected/apps/api/v35_api/app.py",
+      "git_blob_sha1": "f2cdb61eb5689f70bf9f9508e96a0262c0af7389",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/apps/api/v35_api/manager_workbench_router.py",
+      "git_blob_sha1": "793a8687601d34a042565f14b14b607bf0c46c10",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/issue32_protected/apps/api/v35_api/preselection_router.py",
+      "git_blob_sha1": "6cad6dc5428de11b930667c86317a11ae1a3e4e8",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/issue32_protected/apps/api/v35_api/preselection_service.py",
+      "git_blob_sha1": "95d37f7d92447b7013dc08301b7b954f2b2f4d61",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/contracts/__init__.py",
+      "git_blob_sha1": "bdeb74d7a882d62b6f3eb78a06b8127f2121ff40",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/contracts/market_calendar_2026.json",
+      "git_blob_sha1": "c8177cfdeb55c038a88e915f206780eeba8b0d32",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/contracts/runtime_tasks.py",
+      "git_blob_sha1": "4b25839e4668f726b8b45887272f26d33302e6a2",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/contracts/stages.py",
+      "git_blob_sha1": "41bf1ba5de290c23a22695d9454b4991976c3e39",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/contracts/trading_calendar.py",
+      "git_blob_sha1": "b0a6a32d8b2e14c7bb054a1ded35d93da1bc504c",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/contracts/trading_calendar_2026.json",
+      "git_blob_sha1": "a5248566bb87551a71c173ca80ae7d242625a384",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/contracts/trading_safety.py",
+      "git_blob_sha1": "c966c0fd459f9edf08f1d3b61d9459299d3ef319",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/contracts/us_equity_calendar.py",
+      "git_blob_sha1": "825a88fd532f12845b4ffb9a794bf11b07a0ca0c",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/contracts/us_equity_calendar_2026.json",
+      "git_blob_sha1": "58ac5e41c1d3ed8c0be5616ec316c955f35afb63",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/domains/preselection.py",
+      "git_blob_sha1": "4fce41432f8fd016cb64882e30d08a03ed920b0d",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/infrastructure/__init__.py",
+      "git_blob_sha1": "647f68415f88ab9dfb514686554c9f9abf4c1cd6",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/infrastructure/_research_peripheral_store_parts/envelope_validation.py",
+      "git_blob_sha1": "c63c65425c81bd19446bc58d6df5cb591a19679d",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/infrastructure/_research_peripheral_store_parts/historical_backfill.py",
+      "git_blob_sha1": "fd041559b2e2236114493a8e536a0b021b7d7a24",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/infrastructure/_research_peripheral_store_parts/market_validation.py",
+      "git_blob_sha1": "82473ea2759c3f327aba256f4785bfa62c9a2323",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/infrastructure/_research_peripheral_store_parts/primitives.py",
+      "git_blob_sha1": "d8d8299ff2167fd3aefadd1425593aedf7b9ebad",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/infrastructure/_research_peripheral_store_parts/publish_read.py",
+      "git_blob_sha1": "63a7be703ff1f4e19b8379ab84d3b46b5a194b84",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/infrastructure/_research_peripheral_store_parts/refresh_audit.py",
+      "git_blob_sha1": "1182855dd5a8c7020731a7c1e1c6181c57b8c5ca",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/infrastructure/_research_peripheral_store_parts/replacement.py",
+      "git_blob_sha1": "0c5b4f989b80e942456352a56b3b77d0926cb30a",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/infrastructure/_research_peripheral_store_parts/session_validation.py",
+      "git_blob_sha1": "48685dc90d51e3aa496348e11a08ac8a89d8af26",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/infrastructure/data_store.py",
+      "git_blob_sha1": "c1cc44f6d6e70a363cf5722b145a805ff73e1e4d",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/infrastructure/formula_generation.py",
+      "git_blob_sha1": "b209a2a2ef63308772e3b922641c45e99907810e",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/infrastructure/interprocess_lock.py",
+      "git_blob_sha1": "a97e733725834235fbcc9129639ae198fa8770cd",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/infrastructure/isolated_package_loader.py",
+      "git_blob_sha1": "c351e33930bb5e7b8321940ec88afc42c34038fc",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/infrastructure/market_time.py",
+      "git_blob_sha1": "bcac1bd49b6861d60f8820e0bbc7dd7fa42c8fd0",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/infrastructure/owned_io.py",
+      "git_blob_sha1": "1b6666551980c44ebb0b05f133c189909d79c7df",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/infrastructure/owned_path.py",
+      "git_blob_sha1": "2d9873a41c09a05c62975210a13a59bf350a1a5a",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/infrastructure/preselection_pool_store.py",
+      "git_blob_sha1": "0e9df7a85177fe031241d8b8743d6a1996d985c7",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/infrastructure/research_peripheral_store.py",
+      "git_blob_sha1": "9bc740c094697370208b4e84a07e724648a80a8a",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/infrastructure/scheduling/catalog.py",
+      "git_blob_sha1": "bf5df12e05ed5d68c8e0a123b4be67d961a8d67c",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/infrastructure/trading_safety.py",
+      "git_blob_sha1": "5f10cfb51cb3dacd327447475964e0f6867ee89f",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/ops/daily_materialize.py",
+      "git_blob_sha1": "2c2c9b700d4cfabcf19d24646c088e4130fa346d",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-chain-20261008/source/api_app/ops/manager_announcement_body_batch.py",
+      "git_blob_sha1": "7e94ede9b572da32d94cf7a0dd1981c1c7cdc21b",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-chain-20261008/source/api_app/ops/run_manager_daily_announcement.py",
+      "git_blob_sha1": "9cca1b53a9cb007fbcda054a3db00d8e40d29208",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/pyproject.toml",
+      "git_blob_sha1": "bdbaad68ebda8d3aecbc2573a2d2ebe31645ab69",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/stage_center/consumer.py",
+      "git_blob_sha1": "491f832e98d0cf8af87bd45eaa7c15d5f16779a6",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-chain-20261008/compat_r3/candidate_app/v4/__init__.py",
+      "git_blob_sha1": "3ad9513f40e0c4c6eb5c09fa404aaa95e3ee8753",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-chain-20261008/compat_r3/candidate_app/v4/__init__.py",
+      "git_blob_sha1": "3ad9513f40e0c4c6eb5c09fa404aaa95e3ee8753",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/activation_canary.py",
+      "git_blob_sha1": "ebf50edf0f42fdaacd89b06c859b761a6f2475e0",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-chain-20261008/compat_r3/candidate_app/v4/manager_research/announcement_analysis.py",
+      "git_blob_sha1": "879c4bd6f963dba2fc34457a06b4622d758408d2",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/announcement_autorun.py",
+      "git_blob_sha1": "8bd17bd141a962d8429e81d620306724461cfac1",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-chain-20261008/compat_r3/candidate_app/v4/manager_research/announcement_catalog.py",
+      "git_blob_sha1": "aa12f2f47edb63819d91519c6c4747882512dd6f",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/announcement_materials.py",
+      "git_blob_sha1": "fbd174f760613d5388cc2683235cf2e57048741b",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/announcement_observation.py",
+      "git_blob_sha1": "1f585c53233cd49de8e4d104b05b3d5ed6f6a03d",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-chain-20261008/compat_r3/candidate_app/v4/manager_research/announcement_selection.py",
+      "git_blob_sha1": "f302a48d4a806cbc1acb3664abdc9ca9ac4b1eef",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/announcement_source.py",
+      "git_blob_sha1": "d6d2c2fd556f62c81a667051534a769195c4abf8",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/archive_catalyst_inputs.py",
+      "git_blob_sha1": "91901e86fcd2bf9d09391c47c2c1963c1dbb27b3",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/attention_decision.py",
+      "git_blob_sha1": "deae8d18c88682eb8e06593603485dcab043b4be",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/cache_contract.py",
+      "git_blob_sha1": "5c4f431d28a1c9807945cbab8b87853a320ae357",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/catalyst_observations.py",
+      "git_blob_sha1": "3fdd9eac88a95a53bf9b19da5f7877ce6581f243",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/catalyst_projection.py",
+      "git_blob_sha1": "21f50142999e6dd690bb1546f200c979f9f3137f",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/connect_capture_adapter.py",
+      "git_blob_sha1": "9a05b49406e9ff7f6cc35745a6177fdf338dde19",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/connect_selection.py",
+      "git_blob_sha1": "de85b54d09fe8264b44799679fd11d42accbcd69",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/contracts.py",
+      "git_blob_sha1": "643abdd5bff9a196bb993275e5f57bea79881e90",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/errors.py",
+      "git_blob_sha1": "b21b534f4c361a3c16f755025cf92399f24f3619",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/event_source.py",
+      "git_blob_sha1": "95a23aecc73db041c92677d6238c35b77d6516e1",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/evidence_identity.py",
+      "git_blob_sha1": "f29fdc0361647d842de5b4b90ee2cae715361ebc",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/existing_materials.py",
+      "git_blob_sha1": "a38381749c6286be9560dd969baa6af19135c82c",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/financial_projection.py",
+      "git_blob_sha1": "2da27b9b690f537aae2f1e1f5d4ea982ff762b61",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/hkex_provider.py",
+      "git_blob_sha1": "8b7aa95d7ff93a6aed32a92a0f0897b3cfaee240",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/issuer_us_relations.py",
+      "git_blob_sha1": "d5cf87f1eb80d020743c8a73cab0640152912ce4",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/material_transport.py",
+      "git_blob_sha1": "891dc20d7d8a737c8aaecbb50c3615763195a616",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/materializer_replay.py",
+      "git_blob_sha1": "33857630e526de3ce23df54eaf31b75f9c4a91eb",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/materials.py",
+      "git_blob_sha1": "555d285fa5b5cd7714c68a5c582797577c3ffaea",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/pdf_parser.py",
+      "git_blob_sha1": "0294e489d5f8fb58b36a086ba1787c0022e01fd0",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/ports.py",
+      "git_blob_sha1": "b4fad4ff57694f5d4a7ea27071160ffaf7f85036",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/reader_source.py",
+      "git_blob_sha1": "016596f0945a99492f85d8085bed2eb23c1dddd9",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/recommendation.py",
+      "git_blob_sha1": "88d5184c1d61e0c662921821425c786d4e2b3b7c",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/replay_readiness.py",
+      "git_blob_sha1": "b935174a7472da491974b2d84515a495a81df8f4",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/research_attention.py",
+      "git_blob_sha1": "d604a4f4dadac305e1d618c2b9c0325a32e852f1",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/research_evidence.py",
+      "git_blob_sha1": "ec5d612601508f91ede01e07d0fff9426930c275",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/safety.py",
+      "git_blob_sha1": "117439469386ffb3d58c9d047766c6c5cccbd06a",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/stage_read_timing.py",
+      "git_blob_sha1": "0a84b3bd9ca47610b287adf98338bc748b0a8c54",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/store.py",
+      "git_blob_sha1": "c9af9a6ae87858ebee111766d4db0fd0639943b5",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/us_market_bridge.py",
+      "git_blob_sha1": "6b79f476e1251d2ac55d03e832de76ebbef1c72d",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/vibe_binding_preflight.py",
+      "git_blob_sha1": "b5064173eabfba4ca377ee0fc66c996c61a40a93",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/workspace_actions.py",
+      "git_blob_sha1": "631714d9ae8c156e4eeefdba84740683b761570f",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-workbench-repair-20261008/after/v4/manager_research/workspace_announcements.py",
+      "git_blob_sha1": "5ddab4231e20da6f4c010b1cd68d966f2e3d3408",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/workspace_briefing.py",
+      "git_blob_sha1": "7c61130742f98fffd19a7b3c5c80d0765368d216",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/workspace_daily_channels.py",
+      "git_blob_sha1": "5e6a5a75ab1d1c3bbe8f32e56084356dd57f5984",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/workspace_discovery.py",
+      "git_blob_sha1": "d27203bc60a41534f312907d8f6cd6d5e3628b1f",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/workspace_plan.py",
+      "git_blob_sha1": "25bdc2c417f28307a4bdd3a05e868ac2285b25c2",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-chain-20261008/compat_r3/candidate_app/v4/manager_research/workspace_projection.py",
+      "git_blob_sha1": "5799baef183dd4a93bdbc24c817a5df3d9e3cc33",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/workspace_read_control.py",
+      "git_blob_sha1": "2ef88175e1a232d669dc23a05f35c48e27309bcf",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/v4-running-source-20261005/canonical/v4/manager_research/workspace_semantics.py",
+      "git_blob_sha1": "438a5c0198f39000a645323a3177cf1964ca4cbb",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_api_manager/apps/api/v35_api/manager_research_router.py",
+      "git_blob_sha1": "8d8fb5cc5ea95d35041b280ab410f1ca207e9bca",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_api_manager/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "git_blob_sha1": "c6dc099e5021f71780cde33046549c8d07e32d11",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_api_manager/ops/render_manager_announcement_binding.py",
+      "git_blob_sha1": "6e1062dbe2a2c8d6cb4bec1178fef395dc1cfe02",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_api_manager/ops/run_manager_announcement_cycle.py",
+      "git_blob_sha1": "365749fd9622cf32e1c8416e88468d7226c25437",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_api_manager/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "git_blob_sha1": "3d2913f5386c4a0d7d1033f3dcbca9521a2e5880",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_api_manager/v4/manager_research/plan_owner_dispatch.py",
+      "git_blob_sha1": "e196a8cc1d5c8c6867cf254eba326d8de1e510ef",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_api_manager/v4/manager_research/service.py",
+      "git_blob_sha1": "fe21c0ef9674a0dc8e638706071c39ea0a7f3aa6",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_api_manager/v4/manager_research/us_mapping_research.py",
+      "git_blob_sha1": "d5c1b0cd5bad6fd522ad1a060548d4520b631e58",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_api_manager/v4/manager_research/workspace.py",
+      "git_blob_sha1": "380b3a24ff5c69bef033ccc93f2d131784af8b56",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_api_manager/v4/manager_research/workspace_history.py",
+      "git_blob_sha1": "4901ce1fb9ab2f73517275ad89fd187b27bff375",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_api_manager/v4/manager_research/workspace_plan_autorun.py",
+      "git_blob_sha1": "aeb0bdaa1a335aafe072c278a8059ceca5849b52",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_bound_announcement_worker_20261006/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "git_blob_sha1": "365a73dae0c969a93712420cfc41955c17a39596",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_bound_announcement_worker_20261006/ops/render_manager_announcement_binding.py",
+      "git_blob_sha1": "6e1062dbe2a2c8d6cb4bec1178fef395dc1cfe02",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_bound_announcement_worker_20261006/ops/run_manager_announcement_cycle.py",
+      "git_blob_sha1": "b87c005ad32ee0348fe3c1d4183c217aa3f66031",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_bound_announcement_worker_20261006/v4/manager_research/plan_owner_dispatch.py",
+      "git_blob_sha1": "4d57dc6fe4d2785740860aa67c6335141652347e",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_bound_announcement_worker_20261006/v4/manager_research/workspace_plan_autorun.py",
+      "git_blob_sha1": "668f61984fd67f2a2a9e70cb429afe0a19466b24",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-automation-repair-20261008-r1/after/api/apps/api/v35_api/manager_research_router.py",
+      "git_blob_sha1": "600805407813d24f644ac9849e364f2b1b00a4f2",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-automation-repair-20261008-r1/after/api/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "git_blob_sha1": "06221d9a72f69afa634adca6a8f297b370752bf2",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-automation-repair-20261008-r1/after/api/ops/render_manager_announcement_binding.py",
+      "git_blob_sha1": "53d185344f912c152cd51f9ee18a9463d259ec5a",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-automation-repair-20261008-r1/after/api/ops/run_manager_announcement_cycle.py",
+      "git_blob_sha1": "d762bc0343ea168a1e3841c8cc71c80e25cb48ad",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-automation-repair-20261008-r1/after/api/v4/manager_research/plan_owner_dispatch.py",
+      "git_blob_sha1": "bb9d94d2fd27ebbdef0f7b13543a9ac4dc09e4db",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-automation-repair-20261009-r2/after/api/v4/manager_research/workspace.py",
+      "git_blob_sha1": "e2ec0af87b8b40fe40a4f28c6098cae11f0b636a",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-automation-repair-20261008-r1/after/api/v4/manager_research/workspace_plan_autorun.py",
+      "git_blob_sha1": "58ee5b3b0af6b225cb44ee74cb20b1e16231745d",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-automation-repair-20261008-r1/after/web/apps/web/src/api/managerWorkspace.ts",
+      "git_blob_sha1": "b6713b8012958c90079e86a2e7a13df32b3ef66c",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-automation-repair-20261009-r2/after/web/apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "git_blob_sha1": "a2c668220659d4e1808cafed0116438721d22ac0",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-automation-repair-20261008-r1/after/web/apps/web/src/manager-selection/dailyResearchRun.ts",
+      "git_blob_sha1": "6a58eb272c1523c839a2f8895990c16a9da54b7a",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-automation-repair-20261008-r1/after/web/apps/web/src/manager-selection/researchAttention.ts",
+      "git_blob_sha1": "89473e23fc68904ee9515cb17898b2c466d5947d",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-automation-repair-20261008-r1/after/hk_child/ops/_macos_research_panel_daily_parts/_namespace.py",
+      "git_blob_sha1": "ba1155c213459e9da31c98d8eb39d5413dfb4880",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-automation-repair-20261008-r1/after/hk_child/ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "git_blob_sha1": "4d389d15eba3db0263793f4e0ebcccc930c12a51",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-automation-repair-20261008-r1/after/hk_child/ops/ensure_hk_security_master.py",
+      "git_blob_sha1": "a6c44fc3611df03066792272d939832f7dafe37e",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-automation-repair-20261008-r1/after/hk_child/ops/macos_research_panel_daily.py",
+      "git_blob_sha1": "a9b48f9512e5f0d0442ceb650b1f440f82ab3fba",
+      "result": "MATCH_FIXED_GIT_TREE"
+    },
+    {
+      "path": "handoff/manager-daily-automation-repair-20261008-r1/after/hk_upstream/shared_data/hk_daily_supplement.py",
+      "git_blob_sha1": "34e9323b0710cf663f92e08051e157045831e325",
+      "result": "MATCH_FIXED_GIT_TREE"
+    }
+  ]
+}

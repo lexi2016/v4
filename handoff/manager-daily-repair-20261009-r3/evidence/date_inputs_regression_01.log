@@ -1,0 +1,42 @@
+FF...F..F.............................................                   [100%]
+=================================== FAILURES ===================================
+_________ test_manual_refresh_replays_only_the_saved_full_page_binding _________
+tests/test_manager_workspace_exact_page_binding_20261008.py:48: in test_manual_refresh_replays_only_the_saved_full_page_binding
+    assert default_value['plan_product']['status'] == 'CURRENT'
+E   AssertionError: assert 'NOT_MATERIALIZED' == 'CURRENT'
+E     
+E     - CURRENT
+E     + NOT_MATERIALIZED
+_ test_default_auto_get_reuses_exact_current_saved_context_but_owner_preview_does_not _
+tests/test_manager_workspace_exact_page_binding_20261008.py:113: in test_default_auto_get_reuses_exact_current_saved_context_but_owner_preview_does_not
+    assert value['plan_product']['status'] == 'CURRENT'
+E   AssertionError: assert 'NOT_MATERIALIZED' == 'CURRENT'
+E     
+E     - CURRENT
+E     + NOT_MATERIALIZED
+__________ test_late_catchup_plan_preserves_server_execution_context ___________
+tests/test_manager_workspace_owner_20261008.py:88: in test_late_catchup_plan_preserves_server_execution_context
+    result=w.refresh_workspace_plan(svc,DAY,execution_kind='MANUAL_REFRESH',now=started,
+v4/manager_research/workspace.py:1193: in refresh_workspace_plan
+    prepared['read_context'].update(status='CANNOT_CONFIRM',candidate_count_known=False)
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'read_context'
+_____ test_retrospective_plan_keeps_real_read_and_generation_time_explicit _____
+tests/test_manager_workspace_owner_20261008.py:146: in test_retrospective_plan_keeps_real_read_and_generation_time_explicit
+    result=w.refresh_workspace_plan(svc,'20261008',execution_kind='MANUAL_REFRESH',now=actual,
+v4/manager_research/workspace.py:1193: in refresh_workspace_plan
+    prepared['read_context'].update(status='CANNOT_CONFIRM',candidate_count_known=False)
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'read_context'
+=============================== warnings summary ===============================
+../../r3-venv/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/6168fe203da9/r3-venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_manager_workspace_exact_page_binding_20261008.py::test_manual_refresh_replays_only_the_saved_full_page_binding
+FAILED tests/test_manager_workspace_exact_page_binding_20261008.py::test_default_auto_get_reuses_exact_current_saved_context_but_owner_preview_does_not
+FAILED tests/test_manager_workspace_owner_20261008.py::test_late_catchup_plan_preserves_server_execution_context
+FAILED tests/test_manager_workspace_owner_20261008.py::test_retrospective_plan_keeps_real_read_and_generation_time_explicit
+4 failed, 50 passed, 1 warning in 2.85s

@@ -1,0 +1,308 @@
+COMMAND: /workspace/scratch/6168fe203da9/r3-venv314/bin/python -m pytest tests/test_manager_r3_binding_identity.py tests/test_manager_daily_dispatch_20261008.py tests/test_manager_daily_automation_20261008.py -q
+........................................................................ [ 74%]
+...F..F....FF.F........FF                                                [100%]
+=================================== FAILURES ===================================
+__ test_daily_running_receipt_recovers_exact_committed_owner_without_reentry ___
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-37/test_daily_running_receipt_rec0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f090d6fc440>
+
+    def test_daily_running_receipt_recovers_exact_committed_owner_without_reentry(tmp_path, monkeypatch):
+        now = datetime(2026, 10, 8, 10, 0, tzinfo=HK)
+        service, _sha, binding_path = bound_service(tmp_path, monkeypatch, now=now)
+        binding = json.loads(binding_path.read_bytes())
+        binding["daily_automation"] = {"enabled": True,
+            "same_day_catchup_slots_local": ["10:00", "12:30", "15:45", "18:30", "22:30"],
+            "us_mapping_budget_seconds": 5, "max_attempts_per_target_date": 5,
+            "status": "PROPOSAL_ONLY"}
+        binding_path.write_text(json.dumps(binding, sort_keys=True), encoding="utf-8")
+        sha = hashlib.sha256(binding_path.read_bytes()).hexdigest()
+    
+        def current(*_args, **kwargs):
+            cutoff = kwargs["now"].isoformat()
+            return {"target_trade_date": DATE, "input_identity": "a" * 64,
+                "semantic_version": "SYNTHETIC_DISPATCH_CONTRACT", "gaps": [], "stocks": [],
+                "existing_material_coverage": {}, "summary": {}, "lanes": [],
+                "plan_context": {"research_cutoff": cutoff}}
+    
+        monkeypatch.setattr(workspace, "get_workspace", current)
+        monkeypatch.setattr(workspace, "_now", lambda: "2026-10-08T02:00:01+00:00")
+        owner_calls = []
+    
+        def persist_once(date, **kwargs):
+            owner_calls.append((date, kwargs))
+            return workspace.refresh_workspace_plan(service, date, **kwargs)
+    
+        service.refresh_workspace_plan = persist_once
+        original_run_owner = dispatch._run_owner_branches
+    
+        class SimulatedProcessTermination(BaseException):
+            pass
+    
+        def interrupt_after_original_owner(*args, **kwargs):
+            original_run_owner(*args, **kwargs)
+            raise SimulatedProcessTermination()
+    
+        monkeypatch.setattr(dispatch, "_run_owner_branches", interrupt_after_original_owner)
+>       with pytest.raises(SimulatedProcessTermination):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE SimulatedProcessTermination
+
+tests/test_manager_daily_dispatch_20261008.py:284: Failed
+_____ test_real_plan_owner_duplicate_keeps_single_product_and_same_attempt _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-37/test_real_plan_owner_duplicate0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f090d78e2e0>
+
+    def test_real_plan_owner_duplicate_keeps_single_product_and_same_attempt(tmp_path, monkeypatch):
+        service, sha, _ = bound_service(tmp_path, monkeypatch)
+        def current(*args, **kwargs):
+            return {"target_trade_date": DATE, "input_identity": "a" * 64,
+                    "semantic_version": "SYNTHETIC_DISPATCH_CONTRACT", "gaps": [], "stocks": [],
+                    "existing_material_coverage": {}, "summary": {}, "lanes": [],
+                    "plan_context": {"research_cutoff": PREOPEN.isoformat()}}
+        monkeypatch.setattr(workspace, "get_workspace", current)
+        monkeypatch.setattr(workspace, "_now", lambda: (PREOPEN + timedelta(seconds=1)).isoformat())
+        owner_calls = []
+        def refresh_once(date, **kwargs):
+            owner_calls.append((date, kwargs))
+            return workspace.refresh_workspace_plan(service, date, **kwargs)
+        service.refresh_workspace_plan = refresh_once
+        first = dispatch.execute_bound_plan_cycle(service, DATE, sha)
+        monkeypatch.setattr(dispatch, "clock_now", lambda: PREOPEN + timedelta(seconds=2))
+        second = dispatch.execute_bound_plan_cycle(service, DATE, sha)
+>       assert first["parent_trigger_receipt"]["owner_readback_status"] == "VERIFIED"
+E       AssertionError: assert 'UNVERIFIED' == 'VERIFIED'
+E         
+E         - VERIFIED
+E         + UNVERIFIED
+E         ? ++
+
+tests/test_manager_daily_dispatch_20261008.py:356: AssertionError
+_ test_slow_us_preparation_cannot_consume_plan_window[now0-SCHEDULED_MORNING-cutoff0] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-37/test_slow_us_preparation_canno0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f090d6fe270>
+now = datetime.datetime(2026, 10, 8, 7, 0, tzinfo=zoneinfo.ZoneInfo(key='Asia/Hong_Kong'))
+kind = 'SCHEDULED_MORNING'
+cutoff = datetime.datetime(2026, 10, 8, 9, 25, tzinfo=zoneinfo.ZoneInfo(key='Asia/Hong_Kong'))
+
+    @pytest.mark.parametrize("now,kind,cutoff", [
+        (MORNING, "SCHEDULED_MORNING", MORNING.replace(hour=9, minute=25)),
+        (PREOPEN, "SCHEDULED_PREOPEN", PREOPEN.replace(minute=30)),
+    ])
+    def test_slow_us_preparation_cannot_consume_plan_window(tmp_path, monkeypatch, now, kind, cutoff):
+        service, sha, _ = bound_service(tmp_path, monkeypatch, now=now)
+        service._workspace_us_market_reader = object()
+        clock = {"now": now}
+        us_calls = []
+        def slow_preparation(*args, **kwargs):
+            us_calls.append(1)
+            clock["now"] = cutoff + timedelta(seconds=31)
+            raise TimeoutError("synthetic US latency beyond both the owner window and RPC budget")
+        service.refresh_us_mapping_research = slow_preparation
+        monkeypatch.setattr(dispatch, "clock_now", lambda: clock["now"])
+        monkeypatch.setattr(workspace, "get_workspace", lambda *args, **kwargs: {
+            "target_trade_date": DATE, "input_identity": "a" * 64,
+            "semantic_version": "SYNTHETIC_DISPATCH_CONTRACT", "gaps": [], "stocks": [],
+            "existing_material_coverage": {}, "summary": {}, "lanes": [],
+            "plan_context": {"research_cutoff": now.isoformat()}})
+        def owner_completion_clock():
+            clock["now"] = now + timedelta(seconds=1)
+            return clock["now"].isoformat()
+        monkeypatch.setattr(workspace, "_now", owner_completion_clock)
+        service.refresh_workspace_plan = lambda date, **kwargs: workspace.refresh_workspace_plan(service, date, **kwargs)
+        result = dispatch.execute_bound_plan_cycle(service, DATE, sha)
+        assert us_calls == []
+>       assert result["status"] == "PARTIAL"
+E       AssertionError: assert 'FAILED' == 'PARTIAL'
+E         
+E         - PARTIAL
+E         + FAILED
+
+tests/test_manager_daily_dispatch_20261008.py:467: AssertionError
+_ test_slow_us_preparation_cannot_consume_plan_window[now1-SCHEDULED_PREOPEN-cutoff1] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-37/test_slow_us_preparation_canno1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f090d78e900>
+now = datetime.datetime(2026, 10, 8, 9, 27, tzinfo=zoneinfo.ZoneInfo(key='Asia/Hong_Kong'))
+kind = 'SCHEDULED_PREOPEN'
+cutoff = datetime.datetime(2026, 10, 8, 9, 30, tzinfo=zoneinfo.ZoneInfo(key='Asia/Hong_Kong'))
+
+    @pytest.mark.parametrize("now,kind,cutoff", [
+        (MORNING, "SCHEDULED_MORNING", MORNING.replace(hour=9, minute=25)),
+        (PREOPEN, "SCHEDULED_PREOPEN", PREOPEN.replace(minute=30)),
+    ])
+    def test_slow_us_preparation_cannot_consume_plan_window(tmp_path, monkeypatch, now, kind, cutoff):
+        service, sha, _ = bound_service(tmp_path, monkeypatch, now=now)
+        service._workspace_us_market_reader = object()
+        clock = {"now": now}
+        us_calls = []
+        def slow_preparation(*args, **kwargs):
+            us_calls.append(1)
+            clock["now"] = cutoff + timedelta(seconds=31)
+            raise TimeoutError("synthetic US latency beyond both the owner window and RPC budget")
+        service.refresh_us_mapping_research = slow_preparation
+        monkeypatch.setattr(dispatch, "clock_now", lambda: clock["now"])
+        monkeypatch.setattr(workspace, "get_workspace", lambda *args, **kwargs: {
+            "target_trade_date": DATE, "input_identity": "a" * 64,
+            "semantic_version": "SYNTHETIC_DISPATCH_CONTRACT", "gaps": [], "stocks": [],
+            "existing_material_coverage": {}, "summary": {}, "lanes": [],
+            "plan_context": {"research_cutoff": now.isoformat()}})
+        def owner_completion_clock():
+            clock["now"] = now + timedelta(seconds=1)
+            return clock["now"].isoformat()
+        monkeypatch.setattr(workspace, "_now", owner_completion_clock)
+        service.refresh_workspace_plan = lambda date, **kwargs: workspace.refresh_workspace_plan(service, date, **kwargs)
+        result = dispatch.execute_bound_plan_cycle(service, DATE, sha)
+        assert us_calls == []
+>       assert result["status"] == "PARTIAL"
+E       AssertionError: assert 'FAILED' == 'PARTIAL'
+E         
+E         - PARTIAL
+E         + FAILED
+
+tests/test_manager_daily_dispatch_20261008.py:467: AssertionError
+___ test_separate_owner_instances_share_kernel_admission_and_single_product ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-37/test_separate_owner_instances_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f090d6fcad0>
+
+    def test_separate_owner_instances_share_kernel_admission_and_single_product(tmp_path, monkeypatch):
+        from concurrent.futures import ThreadPoolExecutor
+        service, sha, _ = bound_service(tmp_path, monkeypatch)
+        second = SimpleNamespace(
+            store=ManagerResearchStore(service.store.root),
+            _workspace_security_master_root=service._workspace_security_master_root,
+            _existing_research_source=None, _workspace_us_market_reader=None,
+            _workspace_reads=ReadCoordinator())
+        def current(*args, **kwargs):
+            return {"target_trade_date": DATE, "input_identity": "a" * 64,
+                    "semantic_version": "SYNTHETIC_DISPATCH_CONTRACT", "gaps": [], "stocks": [],
+                    "existing_material_coverage": {}, "summary": {}, "lanes": [],
+                    "plan_context": {"research_cutoff": PREOPEN.isoformat()}}
+        monkeypatch.setattr(workspace, "get_workspace", current)
+        clock = {"now": PREOPEN}
+        monkeypatch.setattr(dispatch, "clock_now", lambda: clock["now"])
+        def owner_completion_clock():
+            clock["now"] = PREOPEN + timedelta(seconds=1)
+            return clock["now"].isoformat()
+        monkeypatch.setattr(workspace, "_now", owner_completion_clock)
+        service.refresh_workspace_plan = lambda date, **kwargs: workspace.refresh_workspace_plan(service, date, **kwargs)
+        second.refresh_workspace_plan = lambda date, **kwargs: workspace.refresh_workspace_plan(second, date, **kwargs)
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            rows = list(pool.map(lambda owner: dispatch.execute_bound_plan_cycle(owner, DATE, sha), [service, second]))
+>       assert rows[0]["plan_result"]["run_id"] == rows[1]["plan_result"]["run_id"]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'run_id'
+
+tests/test_manager_daily_dispatch_20261008.py:528: KeyError
+_____ test_full_bound_morning_rpc_survives_us_preparation_minute_rollover ______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-37/test_full_bound_morning_rpc_su0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f090f061010>
+
+    def test_full_bound_morning_rpc_survives_us_preparation_minute_rollover(tmp_path, monkeypatch):
+        from v4.manager_research.service import ManagerResearchJobService
+        from v4.manager_research import workspace as workspace_owner
+    
+        state = tmp_path / "state"
+        master = tmp_path / "master"
+        master.mkdir()
+        service = ManagerResearchJobService(ManagerResearchStore(state), None, None,
+            workspace_security_master_root=master)
+        service.refresh_us_mapping_research = lambda date, **kwargs: {
+            "status": "INPUT_MISSING", "target_trade_date": date, "matches": [],
+            "execution_status": "US_MARKET_INPUT_MISSING", "gaps": ["INPUT_MISSING"], **FLAGS}
+        binding = {
+            "schema_version": supervisor.BINDING_SCHEMA, "enabled": True,
+            "policy_status": "PROPOSAL_ONLY", "policy": "BALANCED_V1",
+            "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
+            "research_only": True, "app_root": str(dispatch.APP_ROOT),
+            "manager_state_root": str(state), "security_master_root": str(master),
+            "plan_material_refresh_only": True, "announcement_collection_enabled": False,
+            "preopen_plan": {"enabled": True, "lead_seconds": 180, "status": "PROPOSAL_ONLY"},
+            "morning_plan": {"enabled": True, "interval_seconds": 300, "status": "PROPOSAL_ONLY"},
+            "plan_material_refresh": {"enabled": True, "start_local": "16:00", "end_local": "23:00",
+                "max_attempts_per_target_date": 3, "retry_backoff_seconds": 600,
+                "status": "PROPOSAL_ONLY"},
+            "daily_automation": {"enabled": True,
+                "same_day_catchup_slots_local": ["10:00", "12:30", "15:45", "18:30", "22:30"],
+                "us_mapping_budget_seconds": 5, "max_attempts_per_target_date": 5,
+                "status": "PROPOSAL_ONLY"},
+        }
+        raw = json.dumps(binding, sort_keys=True).encode()
+        path = tmp_path / "binding.json"
+        path.write_bytes(raw)
+        monkeypatch.setenv("V4_MANAGER_PLAN_OWNER_BINDING_PATH", str(path))
+        monkeypatch.setattr(supervisor, "validate_binding", lambda value, **_: value)
+        monkeypatch.setattr(workspace_owner, "_now", lambda: "2026-10-08T07:01:04+08:00")
+        clock = iter([
+            datetime(2026, 10, 8, 7, 0, 58, tzinfo=HK),  # RPC admission
+            datetime(2026, 10, 8, 7, 0, 58, tzinfo=HK),  # US owner start
+            datetime(2026, 10, 8, 7, 1, 3, tzinfo=HK),   # plan admission
+            datetime(2026, 10, 8, 7, 1, 3, tzinfo=HK),   # original owner execution
+            datetime(2026, 10, 8, 7, 1, 5, tzinfo=HK),   # dispatch terminal
+        ])
+        monkeypatch.setattr(dispatch, "clock_now", lambda: next(clock))
+        result = dispatch.execute_bound_daily_cycle(service, "20261008", hashlib.sha256(raw).hexdigest())
+        assert result["branch"] == "MORNING"
+        assert result.get("us_mapping_research", {}).get("status") == "INPUT_MISSING", result
+        context = result["plan_result"].get("execution_context")
+>       assert context is not None
+E       assert None is not None
+
+tests/test_manager_daily_automation_20261008.py:342: AssertionError
+__ test_late_input_advances_same_day_plan_without_overwriting_preopen_history __
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-37/test_late_input_advances_same_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f090ccc9e10>
+
+    def test_late_input_advances_same_day_plan_without_overwriting_preopen_history(tmp_path, monkeypatch):
+        from v4.manager_research import workspace as workspace_owner
+        from v4.manager_research import workspace_history
+        from v4.manager_research.service import ManagerResearchJobService
+        import hashlib
+    
+        service = ManagerResearchJobService(ManagerResearchStore(tmp_path / "late-state"), None, None)
+        preopen_at = datetime(2026, 10, 8, 9, 27, tzinfo=HK)
+        monkeypatch.setattr(workspace_owner, "_now", lambda: "2026-10-08T01:28:00+00:00")
+        preopen = service.refresh_workspace_plan("20261008",
+            execution_kind="SCHEDULED_PREOPEN", now=preopen_at,
+            deadline=datetime(2026, 10, 8, 9, 30, tzinfo=HK))
+        old_run = preopen["plan_product"]["run_id"]
+        old_path = service.store.root / "workspace_plans" / "20261008" / (old_run + ".json")
+        old_bytes = old_path.read_bytes()
+    
+        original_get_workspace = workspace_owner.get_workspace
+        late_identity = hashlib.sha256(b"synthetic late reviewed input").hexdigest()
+        def late_input(owner, target, **kwargs):
+            value = original_get_workspace(owner, target, **kwargs)
+            value["input_identity"] = late_identity
+            value["gaps"] = sorted(set([*value.get("gaps", []), "SYNTHETIC_LATE_REVIEWED_INPUT"]))
+            return value
+        monkeypatch.setattr(workspace_owner, "get_workspace", late_input)
+        monkeypatch.setattr(workspace_owner, "_now", lambda: "2026-10-08T10:30:01+00:00")
+        result = cycle.run_same_day_catchup_plan(service, "20261008",
+            now=datetime(2026, 10, 8, 18, 30, tzinfo=HK),
+            scheduled_slot="20261008T1830", trigger_id="c" * 64)
+    
+        assert result["status"] == "PARTIAL"
+        assert result["plan_result"]["run_id"] != old_run
+        assert result["plan_result"]["execution_kind"] == "MANUAL_REFRESH"
+>       assert result["plan_result"]["execution_context"]["timing"] == "LATE_CATCHUP"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'execution_context'
+
+tests/test_manager_daily_automation_20261008.py:381: KeyError
+=========================== short test summary info ============================
+FAILED tests/test_manager_daily_dispatch_20261008.py::test_daily_running_receipt_recovers_exact_committed_owner_without_reentry
+FAILED tests/test_manager_daily_dispatch_20261008.py::test_real_plan_owner_duplicate_keeps_single_product_and_same_attempt
+FAILED tests/test_manager_daily_dispatch_20261008.py::test_slow_us_preparation_cannot_consume_plan_window[now0-SCHEDULED_MORNING-cutoff0]
+FAILED tests/test_manager_daily_dispatch_20261008.py::test_slow_us_preparation_cannot_consume_plan_window[now1-SCHEDULED_PREOPEN-cutoff1]
+FAILED tests/test_manager_daily_dispatch_20261008.py::test_separate_owner_instances_share_kernel_admission_and_single_product
+FAILED tests/test_manager_daily_automation_20261008.py::test_full_bound_morning_rpc_survives_us_preparation_minute_rollover
+FAILED tests/test_manager_daily_automation_20261008.py::test_late_input_advances_same_day_plan_without_overwriting_preopen_history
+7 failed, 90 passed in 3.59s
+
+EXIT_CODE: 1

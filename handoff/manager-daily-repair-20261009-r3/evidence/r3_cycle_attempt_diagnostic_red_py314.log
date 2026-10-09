@@ -1,0 +1,15 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______________ test_input_admission_cannot_hide_an_owner_attempt _______________
+
+    def test_input_admission_cannot_hide_an_owner_attempt():
+        value = missing_input()
+        value["workspace_plan_attempt"] = {"run_id": "1" * 32, "state": "FAILED"}
+>       with pytest.raises(ValueError, match="PLAN_OWNER_INPUT_DIAGNOSTIC_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_r3_cycle_outcomes.py:67: Failed
+=========================== short test summary info ============================
+FAILED tests/test_manager_r3_cycle_outcomes.py::test_input_admission_cannot_hide_an_owner_attempt
+1 failed in 0.04s

@@ -1,0 +1,55 @@
+{
+  "schema_version": "v4.manager_r3.acceptance_status.v1",
+  "IMPLEMENTED": "COMPLETE",
+  "TESTED": "PASS_CORE_WITH_EXISTING_ADJACENT_FAILURE",
+  "INDEPENDENT_REVIEW": "PASS_WITHIN_SCOPE",
+  "INTEGRATION_GATE": "BLOCKED_PENDING_EXISTING_SHARED_OWNER",
+  "INTEGRATED": "NOT_RUN",
+  "DEPLOYED": "NOT_RUN",
+  "API": "NOT_RUN",
+  "UI": "NOT_RUN",
+  "NATURAL": "NOT_RUN",
+  "actual_daily_stock_selection_repaired": false,
+  "core_result": "235 passed, 1 warning in 12.38s",
+  "adjacent_result": "1 failed, 38 passed, 1 warning in 2.49s",
+  "protected_issue32": [
+    {
+      "path": "apps/api/v35_api/app.py",
+      "sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "actual_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "apps/api/v35_api/preselection_router.py",
+      "sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "actual_sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "apps/api/v35_api/preselection_service.py",
+      "sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+      "actual_sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+      "status": "UNCHANGED"
+    }
+  ],
+  "readback_scope": "API status here means live Mac API; synthetic HTTP routes are counted under TESTED.",
+  "existing_unresolved": [
+    "Current original shared owner policy rejects five necessary paths",
+    "Current builder/actual before modes/full runtime inventory require original owner repinning",
+    "Baseline archive parity expected READY but actual PARTIAL",
+    "Prior R1 HK supplement behavior P2 and HK child conflict remain open",
+    "Real announcement/HK/US daily inputs and actual dispatch remain unverified"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "evidence": {
+    "tests": "evidence/final_test_results.json",
+    "review": "evidence/independent_review.md",
+    "ownership": "evidence/shared_owner_scope_audit.json",
+    "patches": "evidence/package_patch_verification.json"
+  }
+}

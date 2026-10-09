@@ -1,0 +1,50 @@
+{
+  "candidate_sha256": {
+    "infrastructure/scheduling/manager_announcement_supervisor.py": "f55d5c3c5f2a72f2bb80d13a11a284aab41bf3ab5c0c17ce8ad1705cb5104b81",
+    "ops/render_manager_announcement_binding.py": "2892f985c2e034341d2a95a4be0a668bfe84113117d41f380191be02fdf0559c",
+    "v4/manager_research/plan_owner_dispatch.py": "0ec7a85fc9efdec332df4850401779c02dd7d2bafc0dd6cf4c445efa49e99151",
+    "apps/api/v35_api/manager_research_router.py": "c115c250aa4e66940688bcfab4ebc56811b632e5de81e5ee18c510a9927398d1",
+    "v4/manager_research/workspace.py": "db95f11b4e3d60fae109d9d6f39bfc0a061fcab148f0ac441a95ccd49f042b7c",
+    "v4/manager_research/workspace_plan_autorun.py": "2879790c1d82551c39e653d3d28cdaddd3c002bceccbc67453064bd261673f76",
+    "ops/run_manager_announcement_cycle.py": "51d143128d66cf4517547122361bbf3d1548c8e20d8bab511c185a74f31fbe4d"
+  },
+  "observations": [
+    {
+      "case": "inputs_ready_on_second_trigger",
+      "first_status": "PARTIAL",
+      "first_outcome": "INPUT_NOT_READY",
+      "second_status": "PARTIAL",
+      "second_outcome": "OWNER_RESULT",
+      "owner_calls": 2,
+      "same_receipt": false,
+      "second_run_id": "44444444444444444444444444444444"
+    },
+    {
+      "case": "window_expired_before_owner",
+      "status": "FAILED",
+      "outcome": "NOT_TRIGGERED",
+      "owner_calls": 0,
+      "reason": [
+        "PLAN_OWNER_WINDOW_EXPIRED_BEFORE_EXECUTION"
+      ],
+      "plan_status": "EXPIRED_NO_BACKFILL"
+    },
+    {
+      "case": "explicit_unconfirmed_is_overwritten",
+      "branch_status": "FAILED",
+      "branch_outcome": "READBACK_UNCONFIRMED",
+      "dispatch_outcome": "READBACK_UNCONFIRMED",
+      "reason": [
+        "PLAN_OWNER_PRODUCT_READBACK_INVALID"
+      ],
+      "owner_readback": "UNVERIFIED"
+    },
+    {
+      "case": "historical_canary_with_required_dynamic_view",
+      "scope": "HISTORICAL_MANUAL_REFRESH_WITH_HTTP_READBACK",
+      "get_url": "http://127.0.0.1:8873/api/v4/manager/research/workspace?date=20261008&view=dynamic",
+      "outcome": "ACCEPTED"
+    }
+  ]
+}
+

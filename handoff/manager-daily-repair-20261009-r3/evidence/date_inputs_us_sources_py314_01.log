@@ -1,0 +1,28 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_ test_verified_us_capture_requires_its_separate_daily_mapping_before_plan_consumption[capture_only] _
+tests/test_manager_r3_dates_inputs.py:336: in test_verified_us_capture_requires_its_separate_daily_mapping_before_plan_consumption
+    from infrastructure.research_peripheral_store import ResearchPeripheralStore
+infrastructure/research_peripheral_store.py:17: in <module>
+    from infrastructure.data_store import NativeDataStore, _date, _sha256
+infrastructure/data_store.py:14: in <module>
+    from infrastructure.interprocess_lock import owned_interprocess_lock
+E   ModuleNotFoundError: No module named 'infrastructure.interprocess_lock'
+_ test_verified_us_capture_requires_its_separate_daily_mapping_before_plan_consumption[valid_empty_mapping] _
+tests/test_manager_r3_dates_inputs.py:336: in test_verified_us_capture_requires_its_separate_daily_mapping_before_plan_consumption
+    from infrastructure.research_peripheral_store import ResearchPeripheralStore
+infrastructure/research_peripheral_store.py:17: in <module>
+    from infrastructure.data_store import NativeDataStore, _date, _sha256
+infrastructure/data_store.py:14: in <module>
+    from infrastructure.interprocess_lock import owned_interprocess_lock
+E   ModuleNotFoundError: No module named 'infrastructure.interprocess_lock'
+=============================== warnings summary ===============================
+../../r3-venv314/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/6168fe203da9/r3-venv314/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_manager_r3_dates_inputs.py::test_verified_us_capture_requires_its_separate_daily_mapping_before_plan_consumption[capture_only]
+FAILED tests/test_manager_r3_dates_inputs.py::test_verified_us_capture_requires_its_separate_daily_mapping_before_plan_consumption[valid_empty_mapping]
+2 failed, 13 deselected, 1 warning in 0.29s

@@ -1,0 +1,38 @@
+COMMAND: /workspace/scratch/6168fe203da9/r3-venv314/bin/python -m pytest tests/test_manager_r3_binding_identity.py::test_http_200_still_rejects_mismatched_owner_identity[dispatch_outcome] -q
+F                                                                        [100%]
+=================================== FAILURES ===================================
+___ test_http_200_still_rejects_mismatched_owner_identity[dispatch_outcome] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-40/test_http_200_still_rejects_mi0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f50cd53fe10>
+damage = 'dispatch_outcome'
+
+    @pytest.mark.parametrize("damage", ["run_id", "product_sha256", "input_identity", "dispatch_outcome"])
+    def test_http_200_still_rejects_mismatched_owner_identity(tmp_path, monkeypatch, damage):
+        service, _, _, _, ref = bound_owner(tmp_path, monkeypatch, dual=False)
+        value = dispatch.execute_bound_plan_cycle(service, DATE, ref["sha256"])
+        if damage == "dispatch_outcome":
+            value["dispatch_outcome"] = "GATE_REJECTED"
+        else:
+            value["plan_result"][damage] = "b" * (32 if damage == "run_id" else 64)
+        class Connection:
+            def __init__(self, *args, **kwargs): pass
+            def request(self, *args, **kwargs): pass
+            def getresponse(self):
+                return SimpleNamespace(status=200, getheader=lambda *_: "application/json",
+                    read=lambda *_: json.dumps(value).encode())
+            def close(self): pass
+        monkeypatch.setattr(dispatch.http.client, "HTTPConnection", Connection)
+        returned = dispatch.request_bound_plan_cycle(ref["path"], DATE)
+>       assert returned["status"] == "FAILED"
+E       AssertionError: assert 'PARTIAL' == 'FAILED'
+E         
+E         - FAILED
+E         + PARTIAL
+
+tests/test_manager_r3_binding_identity.py:501: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_manager_r3_binding_identity.py::test_http_200_still_rejects_mismatched_owner_identity[dispatch_outcome]
+1 failed in 0.21s
+
+EXIT_CODE: 1

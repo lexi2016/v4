@@ -1,0 +1,174 @@
+{
+  "schema_version": "v4.manager_r3.retained_prior_profiles.v1",
+  "input_commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+  "files": [
+    {
+      "profile": "web",
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "r1_before_sha256": "5854af5d1e2b33cc469ba6abd49096bb2f727280161c663edf4b757742f9ce92",
+      "after_sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+      "after_origin": {
+        "kind": "repository",
+        "repository": "lexi2016/v4",
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "path": "handoff/manager-daily-automation-repair-20261008-r1/after/web/apps/web/src/api/managerWorkspace.ts",
+        "git_blob_sha1": "b6713b8012958c90079e86a2e7a13df32b3ef66c"
+      },
+      "r1_source_manifest": "handoff/manager-daily-automation-repair-20261008-r1/source_manifest.json",
+      "r2_source_manifest": null,
+      "r3_modified": false,
+      "included_in_r3_runtime_delta": false,
+      "integration": "PENDING_CURRENT_OWNER_BEFORE_AND_SCOPE_GATES"
+    },
+    {
+      "profile": "web",
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "r1_before_sha256": "fbb20e417bb4d9ff7cbd25c5aa29f387a1650438d6e638216b3f4d7c1a209497",
+      "after_sha256": "ffd5c8cbfdaba9eb7e277695114647ef037b88ae16269be5547d3eff0649d3a3",
+      "after_origin": {
+        "kind": "repository",
+        "repository": "lexi2016/v4",
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "path": "handoff/manager-daily-automation-repair-20261009-r2/after/web/apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "git_blob_sha1": "a2c668220659d4e1808cafed0116438721d22ac0"
+      },
+      "r1_source_manifest": "handoff/manager-daily-automation-repair-20261008-r1/source_manifest.json",
+      "r2_source_manifest": "handoff/manager-daily-automation-repair-20261009-r2/source_manifest.json",
+      "r3_modified": false,
+      "included_in_r3_runtime_delta": false,
+      "integration": "PENDING_CURRENT_OWNER_BEFORE_AND_SCOPE_GATES"
+    },
+    {
+      "profile": "web",
+      "path": "apps/web/src/manager-selection/dailyResearchRun.ts",
+      "r1_before_sha256": null,
+      "after_sha256": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d",
+      "after_origin": {
+        "kind": "repository",
+        "repository": "lexi2016/v4",
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "path": "handoff/manager-daily-automation-repair-20261008-r1/after/web/apps/web/src/manager-selection/dailyResearchRun.ts",
+        "git_blob_sha1": "6a58eb272c1523c839a2f8895990c16a9da54b7a"
+      },
+      "r1_source_manifest": "handoff/manager-daily-automation-repair-20261008-r1/source_manifest.json",
+      "r2_source_manifest": null,
+      "r3_modified": false,
+      "included_in_r3_runtime_delta": false,
+      "integration": "PENDING_CURRENT_OWNER_BEFORE_AND_SCOPE_GATES"
+    },
+    {
+      "profile": "web",
+      "path": "apps/web/src/manager-selection/researchAttention.ts",
+      "r1_before_sha256": "16bb02dd12c22fd6c55f6c42bb57f8e48ac66864673ba403380381cb2b63f3ef",
+      "after_sha256": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c",
+      "after_origin": {
+        "kind": "repository",
+        "repository": "lexi2016/v4",
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "path": "handoff/manager-daily-automation-repair-20261008-r1/after/web/apps/web/src/manager-selection/researchAttention.ts",
+        "git_blob_sha1": "89473e23fc68904ee9515cb17898b2c466d5947d"
+      },
+      "r1_source_manifest": "handoff/manager-daily-automation-repair-20261008-r1/source_manifest.json",
+      "r2_source_manifest": null,
+      "r3_modified": false,
+      "included_in_r3_runtime_delta": false,
+      "integration": "PENDING_CURRENT_OWNER_BEFORE_AND_SCOPE_GATES"
+    },
+    {
+      "profile": "hk_child",
+      "path": "ops/_macos_research_panel_daily_parts/_namespace.py",
+      "r1_before_sha256": null,
+      "after_sha256": "d9d742f198bf1fb011d20e630ef9961a7b5e6a476f3d52c92584fc3e7b487be6",
+      "after_origin": {
+        "kind": "repository",
+        "repository": "lexi2016/v4",
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "path": "handoff/manager-daily-automation-repair-20261008-r1/after/hk_child/ops/_macos_research_panel_daily_parts/_namespace.py",
+        "git_blob_sha1": "ba1155c213459e9da31c98d8eb39d5413dfb4880"
+      },
+      "r1_source_manifest": "handoff/manager-daily-automation-repair-20261008-r1/source_manifest.json",
+      "r2_source_manifest": null,
+      "r3_modified": false,
+      "included_in_r3_runtime_delta": false,
+      "integration": "PENDING_CURRENT_OWNER_BEFORE_AND_SCOPE_GATES"
+    },
+    {
+      "profile": "hk_child",
+      "path": "ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "r1_before_sha256": "d3db5b9644bbf2fb1f4e245717907862ebe1cee2d0f650a8d45d732fd4a71940",
+      "after_sha256": "d07be30a40c35aee9d710fcdcc7ae66b031488cc4c5e7029824e3c76ed3fd71c",
+      "after_origin": {
+        "kind": "repository",
+        "repository": "lexi2016/v4",
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "path": "handoff/manager-daily-automation-repair-20261008-r1/after/hk_child/ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+        "git_blob_sha1": "4d389d15eba3db0263793f4e0ebcccc930c12a51"
+      },
+      "r1_source_manifest": "handoff/manager-daily-automation-repair-20261008-r1/source_manifest.json",
+      "r2_source_manifest": null,
+      "r3_modified": false,
+      "included_in_r3_runtime_delta": false,
+      "integration": "PENDING_CURRENT_OWNER_BEFORE_AND_SCOPE_GATES"
+    },
+    {
+      "profile": "hk_child",
+      "path": "ops/ensure_hk_security_master.py",
+      "r1_before_sha256": "6c341a33c0283b023219c46cc2a1c6aaca49cf4b5dcb88aa2fb5527a13145601",
+      "after_sha256": "495ced4f0f06f170606ee576e035dafc99b540cd9fad0a28f2f2a36e5989ddb9",
+      "after_origin": {
+        "kind": "repository",
+        "repository": "lexi2016/v4",
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "path": "handoff/manager-daily-automation-repair-20261008-r1/after/hk_child/ops/ensure_hk_security_master.py",
+        "git_blob_sha1": "a6c44fc3611df03066792272d939832f7dafe37e"
+      },
+      "r1_source_manifest": "handoff/manager-daily-automation-repair-20261008-r1/source_manifest.json",
+      "r2_source_manifest": null,
+      "r3_modified": false,
+      "included_in_r3_runtime_delta": false,
+      "integration": "PENDING_CURRENT_OWNER_BEFORE_AND_SCOPE_GATES"
+    },
+    {
+      "profile": "hk_child",
+      "path": "ops/macos_research_panel_daily.py",
+      "r1_before_sha256": "07aa9770c6ae0bb0cfd012e57843a37fedda6724a57cd52d7c339d854fc6609b",
+      "after_sha256": "1963990fcde99b2681c837b8b66ea12f1ab066aba47729af5d0900073bc79ef3",
+      "after_origin": {
+        "kind": "repository",
+        "repository": "lexi2016/v4",
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "path": "handoff/manager-daily-automation-repair-20261008-r1/after/hk_child/ops/macos_research_panel_daily.py",
+        "git_blob_sha1": "a9b48f9512e5f0d0442ceb650b1f440f82ab3fba"
+      },
+      "r1_source_manifest": "handoff/manager-daily-automation-repair-20261008-r1/source_manifest.json",
+      "r2_source_manifest": null,
+      "r3_modified": false,
+      "included_in_r3_runtime_delta": false,
+      "integration": "PENDING_CURRENT_OWNER_BEFORE_AND_SCOPE_GATES"
+    },
+    {
+      "profile": "hk_upstream",
+      "path": "shared_data/hk_daily_supplement.py",
+      "r1_before_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+      "after_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+      "after_origin": {
+        "kind": "repository",
+        "repository": "lexi2016/v4",
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "path": "handoff/manager-daily-automation-repair-20261008-r1/after/hk_upstream/shared_data/hk_daily_supplement.py",
+        "git_blob_sha1": "34e9323b0710cf663f92e08051e157045831e325"
+      },
+      "r1_source_manifest": "handoff/manager-daily-automation-repair-20261008-r1/source_manifest.json",
+      "r2_source_manifest": null,
+      "r3_modified": false,
+      "included_in_r3_runtime_delta": false,
+      "integration": "PENDING_CURRENT_OWNER_BEFORE_AND_SCOPE_GATES"
+    }
+  ],
+  "notes": [
+    "Exact prior candidates retained by reference, not assumed deployed.",
+    "R3 supplies current API and five worker preimages; no complete current web/HK child preimages.",
+    "Actual HK child namespace conflict and prior HK supplement P2 remain open.",
+    "API nested v3_shared_data consumer is separately included in api profile; do not confuse with upstream root."
+  ]
+}
