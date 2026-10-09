@@ -1,7 +1,7 @@
 {
   "status": "IMPLEMENTED_MAC_REVALIDATION_PENDING",
-  "parent_commit": "db871765422a03e7b74fb467052eaaa25c8ec8ea",
-  "red_evidence": "Parent independent static review: derived output symlinks, returned oversized 429 policy ordering, and date-history reset gaps. Eight new offline regression candidates written before fixes; Mac execution pending; existing 47 tests preserved.",
+  "parent_commit": "874ff9aaf27a7fb24a2d22c066c7c412dafdff2c",
+  "red_evidence": "Parent Mac 55 PASS then unique real run 16cc60afcb089f11690430b05853114c: terminal RECEIPT_BINDING_INVALID from compact batch vs indented top-level JSON; values identical, old 7536 file SHA unchanged, BLOCKED retained. New seven offline regression candidates NOT_RUN.",
   "cloud_product_tests": "NOT_RUN",
   "entries": [
     {
@@ -10,7 +10,7 @@
       "source_commit": "0fd5eb374cb155232ed003d5fc4d0d3594252491",
       "preimage_path": "pinned/ops/manager_announcement_body_batch.py",
       "preimage_sha256": "7e37ed7e904d80c135a51bdff1aaa95aec02012eecfcfdc8a1770fa31297cbdb",
-      "previous_candidate_sha256": "424acb293396d0c1782d64727d237e74a6063a4ed252d50e708cdcac14a16d2d",
+      "previous_candidate_sha256": "2eca580a8b426118afb5b24a3f276b38853518f4da9d26c14a524001b014ef54",
       "sha256": "2eca580a8b426118afb5b24a3f276b38853518f4da9d26c14a524001b014ef54"
     },
     {
@@ -28,7 +28,7 @@
       "source_commit": "0fd5eb374cb155232ed003d5fc4d0d3594252491",
       "preimage_path": "pinned/v4/manager_research/hkex_provider.py",
       "preimage_sha256": "7bc565f9c7a210bc4966622cfde60875ec9f002f7b38a5d9063c467a9499d56d",
-      "previous_candidate_sha256": "f624d9a7e1b60307a512b163427ee5461eca4e6907880439ac9d6030272b0396",
+      "previous_candidate_sha256": "695be83528a047bccd4fba519caf445a1fcb8d07624345bf9b0fd5d5ae604794",
       "sha256": "695be83528a047bccd4fba519caf445a1fcb8d07624345bf9b0fd5d5ae604794"
     },
     {
@@ -37,8 +37,8 @@
       "source_commit": null,
       "preimage_path": null,
       "preimage_sha256": null,
-      "previous_candidate_sha256": "2dc5b4d126ece4426117141c6fa630b665d13631c3a83a4bd5ed80262913ff41",
-      "sha256": "5bf534ff90601d1dc2fe4bd349798033836f8335d9ecbbbcdb79d057f8de981a"
+      "previous_candidate_sha256": "5bf534ff90601d1dc2fe4bd349798033836f8335d9ecbbbcdb79d057f8de981a",
+      "sha256": "b63f0dae641c0186d210664bcf08796a3e73f78121507af8d04da64ac507e686"
     },
     {
       "candidate_path": "candidate/ops/run_manager_daily_announcement.py",
@@ -46,8 +46,17 @@
       "source_commit": "0fd5eb374cb155232ed003d5fc4d0d3594252491",
       "preimage_path": "pinned/ops/run_manager_daily_announcement.py",
       "preimage_sha256": "bfb853fb982e0b2da1024fa942ae9dc5d67fa88a8d112f46054608641129c1ee",
+      "previous_candidate_sha256": "f2b51313a8696365d120da98224b44d5495925ea42a2974b59414d6de31b8139",
+      "sha256": "57ac27e0741d87774ab6b11d3c607365fa2afab562446e4e618ae5c4c23b28aa"
+    },
+    {
+      "candidate_path": "candidate/ops/recover_announcement_evidence_offline.py",
+      "target_app_path": "ops/recover_announcement_evidence_offline.py",
+      "source_commit": null,
+      "preimage_path": null,
+      "preimage_sha256": null,
       "previous_candidate_sha256": null,
-      "sha256": "f2b51313a8696365d120da98224b44d5495925ea42a2974b59414d6de31b8139"
+      "sha256": "6046624ec89aa4c39b9e5ab0889cd32d0f758257bebc39e61b53e340ea6027a4"
     }
   ]
 }

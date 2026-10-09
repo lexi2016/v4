@@ -56,6 +56,13 @@ def _verify_app() -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
+def _reject_offline_recovery(path: Path) -> None:
+    for component in (path,*path.parents):
+        marker=component/'OFFLINE_RECOVERY.json'
+        if marker.exists() or marker.is_symlink():
+            raise ValueError('V5_OWNER_OFFLINE_RECOVERY_NETWORK_FORBIDDEN')
+
+
 class PrivateOwner:
     def __init__(self, root: Path, private_parent: Path, forbidden_roots: list[Path],
                  *, initialize: bool=False, capture_enabled: bool=False,
@@ -65,6 +72,7 @@ class PrivateOwner:
         from v4.manager_research.materials import MaterialStore
         from v4.manager_research.hkex_provider import HkexOfficialProvider
         self.root=_absolute(root)
+        _reject_offline_recovery(self.root)
         parent=_absolute(private_parent)
         known_v4 = [Path.home()/'Library/Application Support/com.lexi.v4.local',
                     Path.home()/'Desktop/学习/v4_app']
@@ -123,6 +131,7 @@ class PrivateOwner:
             self.io.write_bytes(POLICY,_raw(state))
 
     def begin_capture(self,target: str,publication: str):
+        _reject_offline_recovery(self.root)
         if not self.capture_enabled:
             raise ValueError('V5_OWNER_CAPTURE_NOT_ENABLED')
         from ops.manager_announcement_body_batch import (SharedCaptureGate,MAX_SECONDS,

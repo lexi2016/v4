@@ -261,14 +261,8 @@ def _capture(args: argparse.Namespace) -> dict[str, Any]:
                              target, publication)
     body_path = evidence_root / "body_corpus.json"
     body_manifest_path = evidence_root / "body_corpus_manifest.json"
-    if body_batch.get("body_corpus") != "body_corpus.json":
-        body_value = _load(evidence_root / "body_batch" / str(body_batch.get("body_corpus")))
-        _write_exclusive(body_path, body_value)
-    else:
-        _write_exclusive(body_path, _load(evidence_root / "body_batch/body_corpus.json"))
-    _write_exclusive(body_manifest_path, _load(evidence_root / "body_batch/body_corpus_manifest.json"))
+    _publish_body_batch(evidence_root, body_batch)
     body_batch_receipt = evidence_root / "body_batch_receipt.json"
-    _write_exclusive(body_batch_receipt, _load(evidence_root / "body_batch/batch_receipt.json"))
     capture_receipt = {"schema_version": "v4.manager_research.announcement_daily_capture.v1",
         "status": body_batch.get("status"), "evidence_run_id": run_id,
         "target_trade_date": target, "publication_date": publication,
@@ -280,6 +274,24 @@ def _capture(args: argparse.Namespace) -> dict[str, Any]:
         "original_point_in_time_availability": "CANNOT_CONFIRM", **FLAGS}
     _write_exclusive(evidence_root / "capture_receipt.json", capture_receipt)
     return capture_receipt
+
+
+def _publish_body_batch(evidence_root: Path, batch: dict[str, Any]) -> None:
+    # Receipt hashes bind bytes, not the decoded JSON value. Never reserialize.
+    if (batch.get("body_corpus") != "body_corpus.json"
+            or batch.get("body_corpus_manifest") != "body_corpus_manifest.json"):
+        raise ValueError("ANNOUNCEMENT_BATCH_ARTIFACT_PATH_INVALID")
+    batch_root = evidence_root / "body_batch"
+    if _load(batch_root / "batch_receipt.json") != batch:
+        raise ValueError("ANNOUNCEMENT_BATCH_RECEIPT_MISMATCH")
+    for name,key in (("body_corpus.json","body_corpus_sha256"),
+                     ("body_corpus_manifest.json","body_corpus_manifest_sha256")):
+        if _file_sha(batch_root / name) != batch.get(key):
+            raise ValueError("ANNOUNCEMENT_BATCH_SOURCE_SHA_MISMATCH")
+    for source,destination in (("body_corpus.json","body_corpus.json"),
+            ("body_corpus_manifest.json","body_corpus_manifest.json"),
+            ("batch_receipt.json","body_batch_receipt.json")):
+        _copy_json_bytes(batch_root / source,evidence_root / destination)
 
 
 def _evidence_run_id(target: str, publication: str, catalog: dict[str, Any]) -> str:

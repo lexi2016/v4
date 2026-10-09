@@ -1,0 +1,113 @@
+"""Offline byte-serialization and BLOCKED recovery candidates. Mac execution only."""
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+import shutil
+import sys
+import tempfile
+import unittest
+from urllib.parse import parse_qs,urlsplit
+spec=importlib.util.spec_from_file_location('recovery_owner_support',Path(__file__).with_name('test_v5_private_owner.py'))
+support=importlib.util.module_from_spec(spec);sys.modules[spec.name]=support;spec.loader.exec_module(support)
+from ops import run_manager_daily_announcement as daily
+from ops.recover_announcement_evidence_offline import recover,prepare_recovered
+from ops.run_v5_private_announcement import PrivateOwner
+from v4.manager_research.workspace_announcements import validate_terminal_body_capture
+
+def sha(raw):return hashlib.sha256(raw).hexdigest()
+def snapshot(root):return {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
+
+class OfflineRecoveryTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.fixture=support.V5PrivateOwnerTests();cls.fixture.setUp()
+        rows=[{'art_code':'AN202610080000%04d'%i,'notice_date':'2026-10-08 00:00:00',
+            'display_time':'2026-10-08 12:00:00:000','title':'离线 notice %d'%i,
+            'codes':[{'market_code':'116','ann_type':'H','stock_code':'%05d'%i,'short_name':'Fixture'}]}
+            for i in (1,2)]
+        def transport(url,**kwargs):
+            query=parse_qs(urlsplit(url).query)
+            if urlsplit(url).path=='/api/security/ann':
+                page=int(query['page_index'][0]);data={'list':rows if page==1 else [],'page_index':page,'page_size':20,'total_hits':2}
+            else:
+                art=query['art_code'][0];i=int(art[-4:])
+                if i==2:raise OSError('SYNTHETIC_UNKNOWN_CONSUMPTION')
+                data={'art_code':art,'notice_title':rows[i-1]['title'],'notice_date':rows[i-1]['notice_date'],
+                    'notice_content':'离线 body','page_size':1,'security':[{'market_uni':'116','stock':'%05d'%i}]}
+            return support.SourceResponse(url=url,final_url=url,status_code=200,body=json.dumps({'success':1,'data':data}).encode(),
+                headers={'Content-Type':'application/json'},retrieved_at='2026-10-09T00:00:00+00:00')
+        owner=cls.fixture.owner(transport,initialize=True,capture_enabled=True)
+        cls.result=owner.execute(['capture','--target-date','20261009','--publication-date','2026-10-08'])
+        cls.run=cls.result['evidence_run_id']
+        cls.prefix=Path('announcement_agent_runs')/cls.run/'evidence'
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.fixture.tearDown();cls.fixture.doCleanups()
+
+    def setUp(self):
+        self.tmp=tempfile.TemporaryDirectory(prefix='offline-recovery-test-');self.addCleanup(self.tmp.cleanup)
+        self.base=Path(self.tmp.name).resolve();self.source=self.base/'old';self.out=self.base/'recovery'
+        shutil.copytree(self.fixture.root,self.source)
+        self.evidence=self.source/self.prefix
+        # Reproduce the old CLI bug: same JSON values, different actual bytes.
+        capture=json.loads((self.evidence/'capture_receipt.json').read_bytes())
+        for name,key in [('body_corpus.json','body_corpus_file_sha256'),('body_corpus_manifest.json','body_corpus_manifest_file_sha256'),('body_batch_receipt.json','body_batch_receipt_sha256')]:
+            raw=(json.dumps(json.loads((self.evidence/name).read_bytes()),ensure_ascii=False,sort_keys=True,indent=2)+'\n').encode()
+            (self.evidence/name).write_bytes(raw);capture[key]=sha(raw)
+        (self.evidence/'capture_receipt.json').write_text(json.dumps(capture,indent=2)+'\n')
+        self.policy_sha=sha((self.source/'transport_policy.json').read_bytes())
+        self.batch_sha=sha((self.evidence/'body_batch/batch_receipt.json').read_bytes())
+        self.original=snapshot(self.source)
+
+    def recover(self):return recover(self.source,self.out,self.run,self.policy_sha,self.batch_sha)
+
+    def test_capture_publishes_exact_authoritative_batch_bytes(self):
+        evidence=self.fixture.root/self.prefix
+        for top,batch in [('body_corpus.json','body_corpus.json'),('body_corpus_manifest.json','body_corpus_manifest.json'),('body_batch_receipt.json','batch_receipt.json')]:
+            self.assertEqual((evidence/top).read_bytes(),(evidence/'body_batch'/batch).read_bytes())
+        result=validate_terminal_body_capture(evidence,json.loads((evidence/'catalog_read.json').read_bytes()),'20261009','2026-10-08',expected_run_id=self.run)
+        self.assertEqual(result['status'],'PARTIAL_BODY_MATERIAL_CAPTURE_WITH_TERMINAL_GAPS')
+        self.assertEqual(len(result['failed_articles']),1)
+
+    def test_serialization_only_recovery_keeps_originals_and_partial_status(self):
+        with self.assertRaisesRegex(ValueError,'RECEIPT_BINDING_INVALID'):
+            validate_terminal_body_capture(self.evidence,json.loads((self.evidence/'catalog_read.json').read_bytes()),'20261009','2026-10-08',expected_run_id=self.run)
+        result=self.recover()
+        self.assertEqual(result['terminal']['status'],'PARTIAL_BODY_MATERIAL_CAPTURE_WITH_TERMINAL_GAPS')
+        self.assertEqual(len(result['terminal']['failed_articles']),1)
+        self.assertEqual(snapshot(self.source),self.original)
+        for name in result['original_files']:self.assertEqual((self.out/'original'/name).read_bytes(),self.original[name])
+        self.assertEqual((self.out/'transport_policy.json').read_bytes(),self.original['transport_policy.json'])
+        self.assertFalse((self.out/self.prefix/'semantic_catalog.json').exists())
+
+    def test_authoritative_body_tampering_is_rejected(self):
+        path=self.evidence/'body_batch/body_corpus.json';path.write_bytes(path.read_bytes()+b' ')
+        with self.assertRaisesRegex(ValueError,'AUTHORITATIVE_BODY_SHA_MISMATCH'):self.recover()
+        self.assertFalse(self.out.exists())
+
+    def test_changed_top_level_json_cannot_be_hidden_as_serialization(self):
+        path=self.evidence/'body_corpus.json';value=json.loads(path.read_bytes());value['article_count']=999
+        path.write_text(json.dumps(value))
+        with self.assertRaisesRegex(ValueError,'NOT_SERIALIZATION_ONLY'):self.recover()
+        self.assertFalse(self.out.exists())
+
+    def test_expected_blocked_policy_sha_is_mandatory(self):
+        self.policy_sha='0'*64
+        with self.assertRaisesRegex(ValueError,'POLICY_SHA_MISMATCH'):self.recover()
+        self.assertFalse(self.out.exists())
+
+    def test_recovery_root_and_descendants_cannot_initialize_network_owner(self):
+        self.recover()
+        for root in (self.out,self.out/'new-owner'):
+            with self.assertRaisesRegex(ValueError,'OFFLINE_RECOVERY_NETWORK_FORBIDDEN'):
+                PrivateOwner(root,self.base,[self.base/'v4'],initialize=True,capture_enabled=True)
+        self.assertEqual(snapshot(self.source),self.original)
+
+    def test_missing_real_reader_output_remains_missing(self):
+        self.recover()
+        with self.assertRaises(FileNotFoundError):prepare_recovered(self.out,self.out/'semantic_catalog.json')
+        self.assertFalse((self.out/'semantic_catalog.json').exists())
+
+if __name__=='__main__':unittest.main(verbosity=2)
