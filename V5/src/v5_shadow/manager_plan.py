@@ -93,7 +93,7 @@ def load_owner():
 def _request(value):
     required = ('target_date', 'now', 'action', 'view', 'selection_date',
                 'announcement_date', 'inputs', 'rebound', 'manager_output_root')
-    exact_keys(value, required + tuple(key for key in ('rebound_owner','membership') if key in value))
+    exact_keys(value, required + tuple(key for key in ('rebound_owner','membership','registry_observation') if key in value))
     trade_date(value['target_date'])
     if aware(value['now']) > datetime.now(timezone.utc):
         raise ValueError('MANAGER_FUTURE_CUTOFF')
@@ -183,6 +183,21 @@ def _request(value):
             common._relative(membership_root,relative);sha(digest)
             if not relative.startswith('universes/'+value['target_date']+'/') or not relative.endswith('.json'):
                 raise ValueError('MANAGER_MEMBERSHIP_PATH')
+    if value.get('registry_observation') is not None:
+        registry = value['registry_observation']
+        exact_keys(registry, ('root','files','source_date','source_label','format'))
+        registry_root = no_symlinks(registry['root'])
+        if not Path(registry['root']).is_absolute() or not registry_root.is_dir():
+            raise ValueError('REGISTRY_ROOT')
+        others = [output, *roots]
+        for key in ('rebound','rebound_owner','membership'):
+            if value.get(key) is not None: others.append(no_symlinks(value[key]['root']))
+        if any(registry_root.is_relative_to(other) or other.is_relative_to(registry_root) for other in others):
+            raise ValueError('REGISTRY_ROOT_OVERLAP')
+        if not isinstance(registry['files'], dict) or len(registry['files']) != 1:
+            raise ValueError('REGISTRY_SINGLE_RAW_FILE_REQUIRED')
+        for relative, digest in registry['files'].items():
+            common._relative(registry_root, relative); sha(digest)
     canonical_bytes(value)
     return value
 
@@ -208,7 +223,7 @@ def _snapshot(binding):
 
 
 def _identity():
-    names = ('membership_reader.py', 'hk_membership_recovery.py', 'rebound_owner.py', 'health.py', 'module_artifacts.py', 'archive_reader.py', 'announcement_bridge.py', 'manager_plan.py', 'manager_plan_gate.py', 'manager_plan_io.py', 'a_preselection.py',
+    names = ('registry_observation.py', 'membership_reader.py', 'hk_membership_recovery.py', 'rebound_owner.py', 'health.py', 'module_artifacts.py', 'archive_reader.py', 'announcement_bridge.py', 'manager_plan.py', 'manager_plan_gate.py', 'manager_plan_io.py', 'a_preselection.py',
              'contracts.py', 'digests.py', 'composition.py', 'module_api.py', 'api_gateway.py',
              'shadow_store.py', 'legacy_adapter.py', 'source_capsule.py', 'provider_evidence.py', '__init__.py')
     return {name: hashlib.sha256((BASE / 'src/v5_shadow' / name).read_bytes()).hexdigest() for name in names}
@@ -225,6 +240,21 @@ def _assemble(request):
         root = private / name; root.mkdir(parents=True); roots[name] = root
         for relative, raw in files.items():
             target = root / relative; target.parent.mkdir(parents=True, exist_ok=True); target.write_bytes(raw)
+    registry_snapshot = None; registry_rows = None; registry_error = None
+    if request.get('registry_observation') is not None:
+        from v5_shadow.registry_observation import decode, project, clock
+        registry_started = clock()
+        try:
+            registry_snapshot = _snapshot(request['registry_observation'])
+            registry_root = private/'registry'; registry_root.mkdir(); roots['registry']=registry_root
+            for relative, raw in registry_snapshot.items():
+                target=registry_root/relative; target.parent.mkdir(parents=True, exist_ok=True); target.write_bytes(raw)
+            registry_private_binding = dict(request['registry_observation'], root=str(registry_root))
+            if _snapshot(registry_private_binding) != registry_snapshot:
+                raise ValueError('REGISTRY_PRIVATE_COPY_MISMATCH')
+            registry_rows = decode(next(iter(registry_snapshot.values())), request['registry_observation'])
+        except (OSError, ValueError, KeyError, TypeError, UnicodeError) as error:
+            registry_error = str(error) if isinstance(error, ValueError) else 'REGISTRY_READ_FAILED:' + type(error).__name__
     membership_readback = None; membership_snapshot = None
     if request.get('membership') is not None:
         from v5_shadow.membership_reader import read_private as read_membership, install_transport
@@ -366,6 +396,18 @@ def _assemble(request):
         observation['binding_reference'] = copy.deepcopy(observation_binding['reference'])
         observation['scope'] = 'INDEPENDENT_READ_TIME_OBSERVATION_NOT_SAVED_PLAN_OR_FORMAL_SELECTION'
         payload['rebound_research_observation'] = observation
+    if request.get('registry_observation') is not None:
+        if registry_error is None:
+            observation = project(registry_rows, request['registry_observation'], archive_readback, registry_started)
+            if (_snapshot(request['registry_observation']) != registry_snapshot or
+                    _snapshot(registry_private_binding) != registry_snapshot):
+                raise ValueError('REGISTRY_CHANGED_DURING_READ')
+            observation['read_receipt'].update(observed_finished_at=clock(), before_after_raw_sha256_stable=True)
+        else:
+            observation = dict(status='CANNOT_CONFIRM', clues=[], reason_codes=[registry_error],
+                formal_eligible=False, fresh_catalyst_eligible=False, natural_verified=False,
+                scope='INDEPENDENT_CURRENT_READ_NOT_SAVED_PLAN_OR_FORMAL_SELECTION')
+        payload['registry_research_observation'] = observation
     if violations:
         raise ValueError('MANAGER_BOUNDARY_VIOLATION:' + ','.join(violations))
     for name, binding in request['inputs'].items():
