@@ -1,0 +1,2445 @@
+diff --git a/candidate/src/rff_saved_eval_contracts.py b/candidate/src/rff_saved_eval_contracts.py
+new file mode 100644
+--- /dev/null
++++ b/candidate/src/rff_saved_eval_contracts.py
+@@ -0,0 +1,655 @@
++"""RFF saved-evaluation identities and metadata preparation; never a producer.
++
++Preparation opens source, JSON metadata and the registry prefix only. Score,
++Top3, label and model rows are not opened here. A prepared binding is unsigned;
++the native controller must independently review it and issue a separate release.
++"""
++from __future__ import annotations
++
++import ast
++import hashlib
++import importlib.util
++import json
++import math
++import os
++import re
++import sys
++import tempfile
++from pathlib import Path
++from typing import Any, Mapping
++
++ROUTE = "F5_FULL64_RFF_LOGISTIC_R1_20260927"
++CANDIDATE = ROUTE + "_RESUME_20260928_01"
++SAFETY = {"research_only": True, "production_allowed": False,
++          "buy_gate_updated": False, "orders_sent": False}
++ZERO_AUTHORIZATIONS = ("fit_calls_authorized", "predict_calls_authorized",
++    "control_fit_calls_authorized", "control_predict_calls_authorized",
++    "calibrator_fit_calls_authorized", "model_load_calls_authorized")
++ZERO_COUNTS = {"fit_calls": 0, "real_fit_returned_count": 0, "predict_calls": 0,
++    "control_fit_calls": 0, "control_predict_calls": 0, "calibrator_fit_calls": 0,
++    "model_load_calls": 0, "fit_call_entered": False, "candidate_model_loaded": False}
++CONTROLS = ("FROZEN_UNWEIGHTED_PLUS_PATH", "FROZEN_BASE34")
++EVALUATION = {"year": 2024, "grid_rows": 169986, "scoreable_rows": 120084,
++              "sessions": 246, "selection_slots": 738, "known_positive_denominator": 126}
++PINS = {
++    "accepted_worker": "3ea10757a81207147e5cfb9e68e69750a0579786153e7ce58ccf342a3184058c",
++    "experiment_contract": "e6c1509955730a032d183563d6ffcf2501a587dd5734426f35fc59b222491135",
++    "candidate_binding": "efe96e1d1046d074f545d7d53501d7281d2fad2e24b0a8f9f1ad9199f06f44d7",
++    "candidate_spec": "ec28511f6e2d8567635ed0d7bd5d0a92805e7310e08f944bd1e854a5b99ab3fc",
++    "prediction_seal": "4fc18f9ae2cd47d3a1a23adaadd2ddcc5db9aa97b60a1758d78f2b497cdc8bfa",
++    "candidate_start": "69a41b317075cfcb21c26133401e19b8af7a435185c87d5f4cf76f7b2e24d9af",
++    "candidate_terminal": "5fe5704e4fb63a00e1802a14ba7e09f41985342a89e4f0c301793991b80ff0cf",
++    "candidate_scores": "3b87a52e5b2d2df88e3091a2c8e3b5262f809bf6323363a31047223f91bdc006",
++    "candidate_top3": "273504cc6152dedf2f6f88ae6fb6af5598af84340b2e954241d7b6ff6f63a78e",
++    "FROZEN_BASE34_scores": "b3c1e4dec4f98f84aad466291bb9968aaa1bdc5993892166c0693f54e956edcd",
++    "FROZEN_BASE34_top3": "182f95feab6ac840c03cb63772e10f918aa1ea5b82c34b36036dd2aded25da40",
++    "FROZEN_UNWEIGHTED_PLUS_PATH_scores": "5e0335ce334b4deda2f88705cde6601adf62c6c0e24a0bdb826d2858001a99cc",
++    "FROZEN_UNWEIGHTED_PLUS_PATH_top3": "c3efc891e6d4432e0d97d64d38500bd61d2ff5fef853d7aa0cd005f5af3a625b",
++    "score_aware_metrics": "fc93d6225c75b633981508a18c428e7649122571c7d897264d0b7da1e591eb8c",
++    "frozen_metrics": "c8ffabf345069d64a82ac686e6747afda8c22433f1309eecdc999a7ad1eac763",
++    "resource_tree": "9d0792a8e582d0345c83ddaf83a15612a5629b5f0460833b4715068324ff2752",
++    "execution_guard": "85929366a7b018480085c02f80edd312f7f47de94bab5c32982d4e8637d7d7e0",
++    "registry_adapter": "8596f2a20c165b5fbc2b92a597cb3e1177f6e40bfefac62753b40b3c7daae17f",
++    "builder": "df4bfc89fa5487966a8c7e1c1c50832e140339c2ccda3a02a9a59e5aaaeb58cf",
++    "validator": "80e49d05d13f33ee7e2cb8d4d10cae0e297bcdf5b113ff857d3bd141dea0f438",
++}
++SOURCE_NAMES = ("rff_saved_eval_contracts", "rff_saved_eval_frames",
++                "rff_saved_eval_registration", "rff_saved_eval_worker",
++                "run_rff_saved_evaluation")
++INPUT_NAMES = {"candidate_scores", "candidate_top3", "eval_truth", "eval_calendar",
++               *(f"{arm}_{kind}" for arm in CONTROLS for kind in ("scores", "top3"))}
++_EXPERIMENT_RELATIVE = Path("research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/contracts/EXPERIMENT_CONTRACT.json")
++_SCORE_AWARE_RELATIVE = Path("research/hk_burst_f5/batches/full64_xendcg_r1_20260924/src/score_aware_metrics.py")
++_POLICY_NAME = "EXPERIMENT_REGISTRY_APPEND_COMPATIBILITY_POLICY_V1.json"
++
++
++class SavedEvaluationError(RuntimeError):
++    pass
++
++
++def canonical_bytes(value: Any) -> bytes:
++    return json.dumps(value, ensure_ascii=False, sort_keys=True,
++                      separators=(",", ":"), allow_nan=False).encode("utf-8")
++
++
++def sha256_bytes(raw: bytes) -> str:
++    return hashlib.sha256(raw).hexdigest()
++
++
++def sha256_file(path: Path) -> str:
++    h = hashlib.sha256()
++    with Path(path).open("rb") as stream:
++        for block in iter(lambda: stream.read(1024 * 1024), b""):
++            h.update(block)
++    return h.hexdigest()
++
++
++def plain_path(path: str | Path, *, exists: bool = True) -> Path:
++    p = Path(path).expanduser().absolute()
++    # Reject aliases in every directory component; inputs cannot be rebound by
++    # changing a symlink after the metadata check.
++    if any(q.is_symlink() for q in (p, *p.parents)):
++        raise SavedEvaluationError(f"SYMLINK_PATH_FORBIDDEN:{p}")
++    if exists and not p.is_file():
++        raise SavedEvaluationError(f"BOUND_FILE_MISSING:{p}")
++    return p.resolve(strict=exists)
++
++
++def file_record(path: str | Path, expected_sha: str | None = None) -> dict[str, Any]:
++    p = plain_path(path)
++    digest = sha256_file(p)
++    if expected_sha is not None and digest != expected_sha:
++        raise SavedEvaluationError(f"BOUND_FILE_SHA_MISMATCH:{p}:{digest}:{expected_sha}")
++    return {"path": str(p), "sha256": digest, "bytes": p.stat().st_size}
++
++
++def checked_read(record: Mapping[str, Any], *, name: str = "snapshot") -> bytes:
++    p = plain_path(record["path"])
++    raw = p.read_bytes()
++    if sha256_bytes(raw) != record.get("sha256"):
++        raise SavedEvaluationError(f"BOUND_SNAPSHOT_SHA_MISMATCH:{name}:{p}")
++    if "bytes" in record and len(raw) != record["bytes"]:
++        raise SavedEvaluationError(f"BOUND_SNAPSHOT_SIZE_MISMATCH:{name}:{p}")
++    return raw
++
++
++def json_object(raw: bytes, *, name: str) -> dict[str, Any]:
++    value = json.loads(raw)
++    if not isinstance(value, dict):
++        raise SavedEvaluationError(f"JSON_OBJECT_REQUIRED:{name}")
++    return value
++
++
++def write_json_exclusive(path: Path, value: Mapping[str, Any]) -> str:
++    p = plain_path(path, exists=False)
++    p.parent.mkdir(parents=True, exist_ok=True)
++    raw = canonical_bytes(value) + b"\n"
++    fd, tempname = tempfile.mkstemp(prefix=".rff-saved-eval-", dir=p.parent)
++    temporary = Path(tempname)
++    try:
++        with os.fdopen(fd, "wb") as stream:
++            stream.write(raw)
++            stream.flush()
++            os.fsync(stream.fileno())
++        os.link(temporary, p)  # atomic create; an existing receipt is never replaced
++        dirfd = os.open(p.parent, os.O_RDONLY)
++        try:
++            os.fsync(dirfd)
++        finally:
++            os.close(dirfd)
++    finally:
++        temporary.unlink(missing_ok=True)
++    return sha256_bytes(raw)
++
++
++def load_bound_module(record: Mapping[str, Any], name: str, *, package: bool = False):
++    raw = checked_read(record, name=name)
++    path = Path(record["path"])
++    existing = sys.modules.get(name)
++    if existing is not None:
++        if (Path(str(getattr(existing, "__file__", ""))).resolve() != path.resolve()
++                or getattr(existing, "__rff_source_sha256__", None) != record["sha256"]):
++            raise SavedEvaluationError(f"CACHED_MODULE_IDENTITY_MISMATCH:{name}")
++        return existing
++    spec = importlib.util.spec_from_file_location(name, path,
++        submodule_search_locations=[str(path.parent)] if package else None)
++    if spec is None:
++        raise SavedEvaluationError(f"MODULE_SPEC_FAILED:{name}")
++    module = importlib.util.module_from_spec(spec)
++    sys.modules[name] = module
++    try:
++        exec(compile(raw, str(path), "exec"), module.__dict__)
++        module.__rff_source_sha256__ = record["sha256"]
++    except BaseException:
++        sys.modules.pop(name, None)
++        raise
++    return module
++
++
++def verify_sources(binding: Mapping[str, Any]) -> None:
++    if sha256_bytes(canonical_bytes(binding["code_files"])) != binding["code_sha256"]:
++        raise SavedEvaluationError("CODE_MANIFEST_SHA_MISMATCH")
++    for category in ("code_files", "executable_helpers", "official_helpers", "metadata_files"):
++        for name, record in binding[category].items():
++            checked_read(record, name=f"{category}:{name}")
++
++
++def validate_resources(value: Mapping[str, Any]) -> dict[str, Any]:
++    keys = {"cpu_threads", "aggregate_process_tree_rss_bytes_max", "wall_seconds_max", "sample_seconds"}
++    if set(value) != keys:
++        raise SavedEvaluationError("EXPLICIT_RESOURCE_BOUNDS_REQUIRED_NO_HISTORICAL_DEFAULTS")
++    for name in ("cpu_threads", "aggregate_process_tree_rss_bytes_max"):
++        if type(value[name]) is not int or value[name] <= 0:
++            raise SavedEvaluationError(f"RESOURCE_POSITIVE_INTEGER_REQUIRED:{name}")
++    for name in ("wall_seconds_max", "sample_seconds"):
++        if type(value[name]) not in (int, float) or not math.isfinite(value[name]) or value[name] <= 0:
++            raise SavedEvaluationError(f"RESOURCE_POSITIVE_FINITE_REQUIRED:{name}")
++    if value["sample_seconds"] > value["wall_seconds_max"]:
++        raise SavedEvaluationError("RESOURCE_SAMPLE_EXCEEDS_WALL_BOUND")
++    return dict(value)
++
++
++def execution_spec(execution_id: str, resources: Mapping[str, Any]) -> dict[str, Any]:
++    if not re.fullmatch(r"[A-Za-z0-9_\-]{1,160}", execution_id) or execution_id == CANDIDATE:
++        raise SavedEvaluationError("NEW_EVALUATION_EXECUTION_ID_REQUIRED")
++    return {"schema": "F5_RFF_SAVED_EVALUATION_RUN_SPEC_V1", "route_id": ROUTE,
++        "execution_id": execution_id, "candidate_execution_id": CANDIDATE,
++        **{key: 0 for key in ZERO_AUTHORIZATIONS},
++        "evaluation_truth_decode_authorized": 1,
++        "candidate_model_load_authorized": False, "automatic_retry": False,
++        "evidence_ceiling": "DIRECTION_ONLY", "safety": dict(SAFETY),
++        "resources": validate_resources(resources), "evaluation_contract": dict(EVALUATION),
++        "experiment_contract_sha256": PINS["experiment_contract"],
++        "accepted_worker_sha256": PINS["accepted_worker"],
++        "historical_candidate_debits": {"fit": 1, "predict": 1, "truth_decode": 1},
++        "historical_debits_reset": False}
++
++
++def validate_execution_spec(spec: Mapping[str, Any]) -> None:
++    expected = execution_spec(str(spec.get("execution_id", "")), spec.get("resources", {}))
++    for key in ZERO_AUTHORIZATIONS:
++        if type(spec.get(key)) is not int or spec[key] != 0:
++            raise SavedEvaluationError(f"ZERO_AUTHORIZATION_REQUIRED:{key}")
++    if canonical_bytes(dict(spec)) != canonical_bytes(expected):
++        raise SavedEvaluationError("RFF_SAVED_EVALUATION_SPEC_SCOPE_MISMATCH")
++
++
++def validate_new_paths(output: Path, trace: Path, candidate_root: Path,
++                       inputs: Mapping[str, Mapping[str, Any]], *, require_new: bool) -> None:
++    output = plain_path(output, exists=False)
++    trace = plain_path(trace, exists=False)
++    candidate = plain_path(candidate_root, exists=False)
++    if output.is_relative_to(candidate) or candidate.is_relative_to(output):
++        raise SavedEvaluationError("OUTPUT_OVERLAPS_CANDIDATE_ROOT")
++    if trace.is_relative_to(output) or trace.is_relative_to(candidate):
++        raise SavedEvaluationError("TRACE_OVERLAPS_CANDIDATE_OR_WORKER_OUTPUT")
++    for name, record in inputs.items():
++        p = plain_path(record["path"], exists=False)
++        if p.is_relative_to(output) or trace == p or output.is_relative_to(p):
++            raise SavedEvaluationError(f"MUTABLE_PATH_OVERLAPS_BOUND_INPUT:{name}")
++        if p.exists() and trace.exists() and os.path.samefile(p, trace):
++            raise SavedEvaluationError(f"TRACE_ALIASES_BOUND_INPUT:{name}")
++    if require_new and (output.exists() or trace.exists()):
++        raise SavedEvaluationError("OUTPUT_OR_TRACE_EXISTS_NO_REENTRY")
++
++
++def _opaque_record(path: str | Path, digest: str) -> dict[str, Any]:
++    if not re.fullmatch(r"[0-9a-f]{64}", str(digest)):
++        raise SavedEvaluationError("ARTIFACT_SHA256_REQUIRED")
++    # No content read, hash or size measurement. plain_path checks only path
++    # identity (including symlinks); data artifacts need not exist to prepare.
++    return {"path": str(plain_path(path, exists=False)), "sha256": digest}
++
++
++def _old_native_records(old: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
++    """Preserve the two bindings enforced by rff_candidate_entry.py:351-385.
++
++    The historical worker/source manifest is deliberately not replayed: PR5
++    supplies a separately accepted worker and this is a new source manifest.
++    """
++    result = {}
++    for name in ("native_runtime", "native_reference_contract"):
++        path, digest = old.get(name + "_path"), old.get(name + "_sha256")
++        mirror = old.get("executable_helpers", {}).get(name, {})
++        if (not isinstance(path, str) or not Path(path).is_absolute()
++                or mirror.get("path") != path):
++            raise SavedEvaluationError(f"ORIGINAL_NATIVE_PATH_BINDING_MISMATCH:{name}")
++        if (not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest)
++                or mirror.get("sha256") != digest):
++            raise SavedEvaluationError(f"ORIGINAL_NATIVE_SHA_BINDING_MISMATCH:{name}")
++        result[name] = file_record(path, digest)
++    return result
++
++
++def _declared_frozen_metrics_path(record: Mapping[str, Any]) -> Path:
++    """Read only the pinned helper's two literal path assignments, without import.
++
++    score_aware_metrics.py:20-25 uses Path(literal) and path / literal. This
++    intentionally supports only those named assignments and that grammar;
++    evaluator functions and the accepted join helper are never inspected here.
++    """
++    tree = ast.parse(checked_read(record, name="score_aware_metrics"), filename=record["path"])
++    values = {}
++
++    def path_value(node):
++        if isinstance(node, ast.Name) and node.id == "F5_SOURCE_ROOT" and node.id in values:
++            return values[node.id]
++        if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "Path"
++                and len(node.args) == 1 and not node.keywords
++                and isinstance(node.args[0], ast.Constant) and isinstance(node.args[0].value, str)):
++            return Path(node.args[0].value)
++        if (isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div)
++                and isinstance(node.right, ast.Constant) and isinstance(node.right.value, str)):
++            return path_value(node.left) / node.right.value
++        raise SavedEvaluationError("FROZEN_METRICS_PATH_LITERAL_BINDING_REQUIRED")
++
++    for statement in tree.body:
++        if (isinstance(statement, ast.Assign) and len(statement.targets) == 1
++                and isinstance(statement.targets[0], ast.Name)
++                and statement.targets[0].id in ("F5_SOURCE_ROOT", "FROZEN_METRICS_PATH")):
++            name = statement.targets[0].id
++            if name in values:
++                raise SavedEvaluationError("FROZEN_METRICS_PATH_DUPLICATE_BINDING")
++            values[name] = path_value(statement.value)
++    path = values.get("FROZEN_METRICS_PATH")
++    if path is None or set(values) != {"F5_SOURCE_ROOT", "FROZEN_METRICS_PATH"} or not path.is_absolute():
++        raise SavedEvaluationError("FROZEN_METRICS_PATH_LITERAL_BINDING_REQUIRED")
++    return plain_path(path, exists=False)
++
++
++def _append_policy_path(validator_record: Mapping[str, Any]) -> Path:
++    # Exactly the implicit dependency used at import by the pinned validator.
++    return plain_path(validator_record["path"]).parents[1] / "contracts" / _POLICY_NAME
++
++
++def _require_reference(record: Mapping[str, Any], path: str | Path, digest: str,
++                       code: str) -> None:
++    expected = _opaque_record(path, digest)
++    if any(record.get(key) != expected[key] for key in ("path", "sha256")):
++        raise SavedEvaluationError(code)
++
++
++def _validate_original_evaluation_scope(scope: Mapping[str, Any]) -> None:
++    # Issue #33 and the original worker require the five counters. The exposed
++    # 2024 scope is fixed by the pinned experiment contract; historical metadata
++    # need not grow a new "year" key to be usable without mutation.
++    for name, expected in EVALUATION.items():
++        if name == "year" and name not in scope:
++            continue
++        if canonical_bytes(scope.get(name)) != canonical_bytes(expected):
++            raise SavedEvaluationError(f"ORIGINAL_EVALUATION_SCOPE_MISMATCH:{name}")
++
++
++def _validate_frozen_dependencies(binding: Mapping[str, Any]) -> None:
++    """Cross-bind metadata using the immutable candidate and original producers.
++
++    Only source and JSON metadata are opened. Data records remain opaque until
++    the new owner has committed its durable RUN_STARTED.
++    """
++    metadata, helpers, official, inputs = (binding[key] for key in
++        ("metadata_files", "executable_helpers", "official_helpers", "input_files"))
++    old = json_object(checked_read(metadata["candidate_binding"]), name="candidate_binding")
++    old_spec = json_object(checked_read(metadata["candidate_spec"]), name="candidate_spec")
++    if (old.get("route_id") != ROUTE or old.get("execution_id") != CANDIDATE
++            or old.get("input_binding_path") != metadata["candidate_binding"]["path"]):
++        raise SavedEvaluationError("ORIGINAL_CANDIDATE_IDENTITY_MISMATCH")
++    _require_reference(metadata["candidate_spec"], old["run_spec_path"], old["run_spec_sha256"],
++                       "ORIGINAL_CANDIDATE_SPEC_BINDING_MISMATCH")
++    if old_spec.get("route_id") != ROUTE or old_spec.get("execution_id") != CANDIDATE:
++        raise SavedEvaluationError("ORIGINAL_CANDIDATE_SPEC_IDENTITY_MISMATCH")
++    contract_record = metadata["experiment_contract"]
++    _require_reference(contract_record, old["experiment_contract_path"], old["experiment_contract_sha256"],
++                       "ORIGINAL_EXPERIMENT_CONTRACT_BINDING_MISMATCH")
++    if old_spec.get("experiment_contract_sha256") != contract_record["sha256"]:
++        raise SavedEvaluationError("ORIGINAL_SPEC_EXPERIMENT_CONTRACT_MISMATCH")
++    contract = json_object(checked_read(contract_record), name="experiment_contract")
++    if canonical_bytes(old_spec.get("decision_gates")) != canonical_bytes(contract["decision_gates"]):
++        raise SavedEvaluationError("ORIGINAL_DECISION_GATES_CHANGED")
++    _validate_original_evaluation_scope(old["evaluation_contract"])
++    original_output = plain_path(old["output_root"], exists=False)
++    if binding["candidate_output_root"] != str(original_output):
++        raise SavedEvaluationError("OLD_CANDIDATE_OUTPUT_ROOT_MISMATCH")
++    for name, filename in (("candidate_scores", "CANDIDATE_SCORES.csv.gz"),
++                           ("candidate_top3", "CANDIDATE_TOP3.csv.gz")):
++        _require_reference(inputs[name], original_output / filename, PINS[name],
++                           f"ORIGINAL_CANDIDATE_ARTIFACT_PATH_OR_SHA_MISMATCH:{name}")
++    for alias, original_name in (("eval_truth", "eval_meta.csv.gz"), ("eval_calendar", "eval_calendar.csv.gz")):
++        original = old["input_files"][original_name]
++        _require_reference(inputs[alias], original["path"], original["sha256"],
++                           f"OLD_CANDIDATE_EVALUATION_INPUT_MISMATCH:{alias}")
++    for arm in CONTROLS:
++        original = old["baseline_artifacts"][arm]
++        for kind in ("scores", "top3"):
++            _require_reference(inputs[f"{arm}_{kind}"], original[f"{kind}_path"], original[f"{kind}_sha256"],
++                               f"OLD_CONTROL_PATH_OR_SHA_CHANGED:{arm}:{kind}")
++    for name, path in (("prediction_seal", original_output / "PREDICTION_SEALED_BEFORE_EVAL_TRUTH_READ.json"),
++                       ("candidate_start", old["start_receipt_path"]),
++                       ("candidate_terminal", original_output / "CANDIDATE_TERMINAL_RECEIPT.json")):
++        _require_reference(metadata[name], path, PINS[name], f"ORIGINAL_METADATA_PATH_MISMATCH:{name}")
++    seal = json_object(checked_read(metadata["prediction_seal"]), name="prediction_seal")
++    validate_seal(seal, EVALUATION, CANDIDATE)
++    for name in ("candidate_scores", "candidate_top3"):
++        if seal.get(name + "_sha256") != inputs[name]["sha256"]:
++            raise SavedEvaluationError(f"PREDICTION_SEAL_ARTIFACT_SHA_MISMATCH:{name}")
++    start = json_object(checked_read(metadata["candidate_start"]), name="candidate_start")
++    terminal = json_object(checked_read(metadata["candidate_terminal"]), name="candidate_terminal")
++    if (start.get("execution_id") != CANDIDATE or start.get("route_id") != ROUTE
++            or start.get("run_spec_sha256") != metadata["candidate_spec"]["sha256"]
++            or start.get("input_binding_sha256") != metadata["candidate_binding"]["sha256"]
++            or start.get("source_code_sha256") != old["code_sha256"]
++            or terminal.get("execution_id") != CANDIDATE
++            or terminal.get("start_receipt_sha256") != metadata["candidate_start"]["sha256"]):
++        raise SavedEvaluationError("ORIGINAL_RECEIPT_CHAIN_IDENTITY_MISMATCH")
++
++    native = _old_native_records(old)
++    for name, record in (("native_runtime", helpers["native_runtime"]),
++                         ("native_reference_contract", metadata["native_reference"])):
++        _require_reference(record, native[name]["path"], native[name]["sha256"],
++                           f"ORIGINAL_NATIVE_REFERENCE_BINDING_MISMATCH:{name}")
++    reference = json_object(checked_read(metadata["native_reference"]), name="native_reference")
++    if (reference.get("schema") != "F5_FULL64_RFF_NATIVE_REFERENCE_RUNTIME_V1"
++            or reference.get("route_id") != ROUTE):
++        raise SavedEvaluationError("ORIGINAL_NATIVE_REFERENCE_IDENTITY_MISMATCH")
++    runtime = reference["runtime_contract"]
++    _require_reference(metadata["native_runtime_contract"], runtime["path"], runtime["sha256"],
++                       "NATIVE_RUNTIME_CONTRACT_REFERENCE_MISMATCH")
++    # SOURCE_MAP.json ties these declarations to the same frozen candidate
++    # binding. Validate their metadata, without importing its historical code.
++    if (old["runtime_contract_path"] != runtime["path"]
++            or ("runtime_contract_sha256" in old and old["runtime_contract_sha256"] != runtime["sha256"])):
++        raise SavedEvaluationError("ORIGINAL_RUNTIME_CONTRACT_BINDING_MISMATCH")
++    _require_reference(old["executable_helpers"]["runtime_contract"], runtime["path"], runtime["sha256"],
++                       "ORIGINAL_RUNTIME_CONTRACT_BINDING_MISMATCH")
++    for name, record in official.items():
++        original = old["official_helpers"][name]
++        _require_reference(record, original["path"], original["sha256"],
++                           f"ORIGINAL_OFFICIAL_HELPER_BINDING_MISMATCH:{name}")
++    _require_reference(helpers["resource_tree"], old["resource_tree_path"], PINS["resource_tree"],
++                       "RESOURCE_TREE_PATH_BINDING_MISMATCH")
++    contract_path = Path(contract_record["path"])
++    root = contract_path.parents[len(_EXPERIMENT_RELATIVE.parts) - 1]
++    if contract_path != root / _EXPERIMENT_RELATIVE:
++        raise SavedEvaluationError("ORIGINAL_EXPERIMENT_CONTRACT_PATH_MISMATCH")
++    if (binding["official_registry_path"] != old["official_registry_path"]
++            or binding["official_registry_path"] != str(root / "contracts/EXPERIMENT_REGISTRY.jsonl")):
++        raise SavedEvaluationError("OFFICIAL_REGISTRY_PATH_BINDING_MISMATCH")
++    _require_reference(helpers["score_aware_metrics"], root / _SCORE_AWARE_RELATIVE, PINS["score_aware_metrics"],
++                       "SCORE_AWARE_HELPER_PATH_BINDING_MISMATCH")
++    original_score_aware = old["code_files"]["score_aware_metrics"]
++    _require_reference(helpers["score_aware_metrics"], original_score_aware["path"], original_score_aware["sha256"],
++                       "ORIGINAL_SCORE_AWARE_BINDING_MISMATCH")
++    metrics_path = _declared_frozen_metrics_path(helpers["score_aware_metrics"])
++    if helpers["frozen_metrics"]["path"] != str(metrics_path):
++        raise SavedEvaluationError("FROZEN_METRICS_PATH_BINDING_MISMATCH")
++    for name, filename in (("frozen_settings", "settings.py"), ("frozen_package_init", "__init__.py")):
++        if helpers[name]["path"] != str(metrics_path.parent / filename):
++            raise SavedEvaluationError(f"FROZEN_METRICS_PACKAGE_PATH_MISMATCH:{name}")
++    if metadata["append_policy"]["path"] != str(_append_policy_path(official["validator"])):
++        raise SavedEvaluationError("OFFICIAL_APPEND_POLICY_PATH_BINDING_MISMATCH")
++    policy = json_object(checked_read(metadata["append_policy"]), name="append_policy")
++    builder = policy.get("official_builder", {})
++    if any(builder.get(key) != official["builder"][key] for key in ("path", "sha256")):
++        raise SavedEvaluationError("OFFICIAL_APPEND_POLICY_BUILDER_BINDING_MISMATCH")
++
++
++def prepare(config: Mapping[str, Any]) -> dict[str, Any]:
++    """Bind local metadata once. No approval or real evaluation is generated."""
++    root = plain_path(config["project_root"], exists=False)
++    recovery = plain_path(config["recovery_root"], exists=False)
++    spec = execution_spec(str(config["execution_id"]), config["resources"])
++    old_binding_record = file_record(config["candidate_binding_path"], PINS["candidate_binding"])
++    old = json_object(checked_read(old_binding_record), name="candidate_binding")
++    old_spec_record = file_record(old["run_spec_path"], PINS["candidate_spec"])
++    old_spec = json_object(checked_read(old_spec_record), name="candidate_spec")
++    if (old.get("route_id") != ROUTE or old.get("execution_id") != CANDIDATE
++            or old_spec.get("route_id") != ROUTE or old_spec.get("execution_id") != CANDIDATE
++            or old.get("run_spec_sha256") != PINS["candidate_spec"]
++            or old.get("input_binding_path") != old_binding_record["path"]):
++        raise SavedEvaluationError("ORIGINAL_CANDIDATE_IDENTITY_MISMATCH")
++    original_output = plain_path(old["output_root"], exists=False)
++    if recovery.is_relative_to(original_output) or original_output.is_relative_to(recovery):
++        raise SavedEvaluationError("RECOVERY_ROOT_OVERLAPS_OLD_CANDIDATE")
++    contract_record = file_record(root / _EXPERIMENT_RELATIVE, PINS["experiment_contract"])
++    contract = json_object(checked_read(contract_record), name="experiment_contract")
++    if old_spec.get("decision_gates") != contract["decision_gates"]:
++        raise SavedEvaluationError("ORIGINAL_DECISION_GATES_CHANGED")
++    _validate_original_evaluation_scope(old["evaluation_contract"])
++    seal_record = file_record(original_output / "PREDICTION_SEALED_BEFORE_EVAL_TRUTH_READ.json", PINS["prediction_seal"])
++    seal = json_object(checked_read(seal_record), name="prediction_seal")
++    validate_seal(seal, EVALUATION, CANDIDATE)
++    inputs = {
++        "candidate_scores": _opaque_record(original_output / "CANDIDATE_SCORES.csv.gz", PINS["candidate_scores"]),
++        "candidate_top3": _opaque_record(original_output / "CANDIDATE_TOP3.csv.gz", PINS["candidate_top3"]),
++        "eval_truth": _opaque_record(old["input_files"]["eval_meta.csv.gz"]["path"], old["input_files"]["eval_meta.csv.gz"]["sha256"]),
++        "eval_calendar": _opaque_record(old["input_files"]["eval_calendar.csv.gz"]["path"], old["input_files"]["eval_calendar.csv.gz"]["sha256"]),
++    }
++    for arm in CONTROLS:
++        for kind in ("scores", "top3"):
++            item = old["baseline_artifacts"][arm]
++            name = f"{arm}_{kind}"
++            if item[f"{kind}_sha256"] != PINS[name]:
++                raise SavedEvaluationError(f"FROZEN_CONTROL_IDENTITY_MISMATCH:{name}")
++            inputs[name] = _opaque_record(item[f"{kind}_path"], PINS[name])
++    code_files = {name: file_record(Path(__file__).parent / f"{name}.py") for name in SOURCE_NAMES}
++    metrics = Path(config["frozen_metrics_path"])
++    native = _old_native_records(old)
++    helpers = {
++        "accepted_worker": file_record(config["accepted_worker_path"], PINS["accepted_worker"]),
++        "score_aware_metrics": file_record(root / _SCORE_AWARE_RELATIVE, PINS["score_aware_metrics"]),
++        "frozen_metrics": file_record(metrics, PINS["frozen_metrics"]),
++        "frozen_settings": file_record(metrics.parent / "settings.py"),
++        "frozen_package_init": file_record(metrics.parent / "__init__.py"),
++        "native_runtime": native["native_runtime"],
++        "resource_tree": file_record(old["resource_tree_path"], PINS["resource_tree"]),
++    }
++    native_reference = native["native_reference_contract"]
++    native_doc = json_object(checked_read(native_reference), name="native_reference")
++    runtime_record = file_record(native_doc["runtime_contract"]["path"], native_doc["runtime_contract"]["sha256"])
++    official = {name: file_record(old["official_helpers"][name]["path"], PINS[name])
++                for name in ("execution_guard", "registry_adapter", "builder", "validator")}
++    policy_path = _append_policy_path(official["validator"])
++    metadata = {"candidate_binding": old_binding_record, "candidate_spec": old_spec_record,
++        "prediction_seal": seal_record, "experiment_contract": contract_record,
++        "candidate_start": file_record(old["start_receipt_path"], PINS["candidate_start"]),
++        "candidate_terminal": file_record(original_output / "CANDIDATE_TERMINAL_RECEIPT.json", PINS["candidate_terminal"]),
++        "native_reference": native_reference, "native_runtime_contract": runtime_record,
++        "append_policy": file_record(policy_path)}
++    registry_path = plain_path(root / "contracts/EXPERIMENT_REGISTRY.jsonl")
++    registry_bytes = registry_path.read_bytes()
++    events = [json_object(line, name="registry_event") for line in registry_bytes.splitlines() if line]
++    if not events or any(e.get("execution_id") == spec["execution_id"] for e in events):
++        raise SavedEvaluationError("REGISTRY_EMPTY_OR_EXECUTION_ALREADY_PRESENT")
++    output = recovery / "execution" / spec["execution_id"]
++    trace = recovery / "evidence" / (spec["execution_id"] + ".resource.json")
++    spec_path = recovery / "contracts/RUN_SPEC.json"
++    binding_path = recovery / "contracts/INPUT_BINDING.json"
++    protected = {**inputs, **metadata, **helpers, **official, **code_files,
++                 "registry": {"path": str(registry_path)}}
++    validate_new_paths(output, trace, original_output, protected, require_new=True)
++    for path in (spec_path, binding_path):
++        if path.exists() or any(path.resolve() == Path(v["path"]).resolve() for v in protected.values()):
++            raise SavedEvaluationError(f"PREPARATION_DESTINATION_EXISTS_OR_PROTECTED:{path}")
++    binding = {"schema": "F5_RFF_SAVED_EVALUATION_INPUT_BINDING_V1", "route_id": ROUTE,
++        "execution_id": spec["execution_id"], "candidate_execution_id": CANDIDATE,
++        "candidate_output_root": str(original_output), "recovery_root": str(recovery),
++        "run_spec_path": str(spec_path), "input_binding_path": str(binding_path),
++        "parent_release_path": str(recovery / "contracts/PARENT_RELEASE.json"),
++        "reviewer_transcript_path": str(recovery / "contracts/INDEPENDENT_LOCAL_REVIEW.json"),
++        "output_root": str(output), "resource_trace_path": str(trace),
++        "start_receipt_path": str(output / "EVALUATION_START_RECEIPT.json"),
++        "resources": spec["resources"], "evaluation_contract": dict(EVALUATION),
++        "code_files": code_files, "code_sha256": sha256_bytes(canonical_bytes(code_files)),
++        "executable_helpers": helpers, "official_helpers": official,
++        "metadata_files": metadata, "input_files": inputs,
++        "official_registry_path": str(registry_path),
++        "official_registry_sha256_before_start": sha256_bytes(registry_bytes),
++        "expected_previous_event_sha256": events[-1]["event_sha256"],
++        "expected_route_event_sha256_before_start": [e["event_sha256"] for e in events
++            if e.get("route_id") == ROUTE or e.get("experiment_id") == ROUTE],
++        "synthetic_only": False, "safety": dict(SAFETY),
++        "historical_candidate_mutation": False, "automatic_retry": False}
++    _validate_frozen_dependencies(binding)
++    # No existing run is touched if either filename was already present.
++    binding["run_spec_sha256"] = write_json_exclusive(spec_path, spec)
++    binding_sha = write_json_exclusive(binding_path, binding)
++    return {"status": "PREPARED_UNSIGNED_REQUIRES_LOCAL_REVIEW_AND_PARENT_RELEASE",
++        "run_spec_path": str(spec_path), "run_spec_sha256": binding["run_spec_sha256"],
++        "input_binding_path": str(binding_path), "input_binding_sha256": binding_sha,
++        "execution_id": spec["execution_id"], "source_code_sha256": binding["code_sha256"],
++        "data_rows_read": False, "registry_mutated": False, "execution_started": False}
++
++
++def validate_seal(seal: Mapping[str, Any], evaluation: Mapping[str, Any], candidate_id: str) -> None:
++    expected = {"schema": "F5_FULL64_RFF_PREDICTION_SEAL_V1", "route_id": ROUTE,
++        "execution_id": candidate_id, "status": "PREDICTION_FROZEN_BEFORE_EVALUATION_TRUTH_READ",
++        "score_kind": "RAW_LOGISTIC_DECISION_MARGIN",
++        "probability_kind": "FITTED_LOGISTIC_SIGMOID_NO_CALIBRATOR", "predict_calls": 1,
++        "grid_rows": evaluation["grid_rows"], "scoreable_rows": evaluation["scoreable_rows"],
++        "evaluation_sessions": evaluation["sessions"], "evaluation_label_values_decoded": False,
++        "safety": dict(SAFETY)}
++    for key, value in expected.items():
++        if canonical_bytes(seal.get(key)) != canonical_bytes(value):
++            raise SavedEvaluationError(f"RFF_PREDICTION_SEAL_SCOPE_MISMATCH:{key}")
++
++
++def load_documents(spec_path: Path, binding_path: Path):
++    spec_path, binding_path = plain_path(spec_path), plain_path(binding_path)
++    spec_raw, binding_raw = spec_path.read_bytes(), binding_path.read_bytes()
++    spec = json_object(spec_raw, name="run_spec")
++    binding = json_object(binding_raw, name="input_binding")
++    validate_execution_spec(spec)
++    expected = {"schema": "F5_RFF_SAVED_EVALUATION_INPUT_BINDING_V1",
++        "route_id": ROUTE, "execution_id": spec["execution_id"],
++        "candidate_execution_id": CANDIDATE, "run_spec_path": str(spec_path),
++        "run_spec_sha256": sha256_bytes(spec_raw), "input_binding_path": str(binding_path),
++        "resources": spec["resources"], "evaluation_contract": EVALUATION,
++        "synthetic_only": False, "safety": SAFETY, "automatic_retry": False,
++        "historical_candidate_mutation": False}
++    for key, value in expected.items():
++        if canonical_bytes(binding.get(key)) != canonical_bytes(value):
++            raise SavedEvaluationError(f"RFF_BINDING_SCOPE_MISMATCH:{key}")
++    if set(binding["code_files"]) != set(SOURCE_NAMES) or set(binding["input_files"]) != INPUT_NAMES:
++        raise SavedEvaluationError("RFF_EXECUTABLE_OR_INPUT_SET_MISMATCH")
++    for category in ("metadata_files", "executable_helpers", "official_helpers", "input_files"):
++        for name, record in binding[category].items():
++            if name in PINS and record.get("sha256") != PINS[name]:
++                raise SavedEvaluationError(f"FROZEN_IDENTITY_PIN_MISMATCH:{name}")
++    required = {"metadata_files": {"candidate_binding", "candidate_spec", "prediction_seal",
++            "experiment_contract", "candidate_start", "candidate_terminal", "native_reference",
++            "native_runtime_contract", "append_policy"},
++        "executable_helpers": {"accepted_worker", "score_aware_metrics", "frozen_metrics",
++            "frozen_settings", "frozen_package_init", "native_runtime", "resource_tree"},
++        "official_helpers": {"execution_guard", "registry_adapter", "builder", "validator"}}
++    for category, names in required.items():
++        if set(binding.get(category, {})) != names:
++            raise SavedEvaluationError(f"BOUND_DEPENDENCY_CLOSURE_MISMATCH:{category}")
++    verify_sources(binding)
++    for name in SOURCE_NAMES:
++        if Path(binding["code_files"][name]["path"]).resolve() != Path(__file__).parent.resolve() / f"{name}.py":
++            raise SavedEvaluationError(f"NEW_SOURCE_IMPORT_ROOT_MISMATCH:{name}")
++    _validate_frozen_dependencies(binding)
++    recovery = plain_path(binding["recovery_root"], exists=False)
++    output = recovery / "execution" / spec["execution_id"]
++    expected_paths = {"recovery_root": recovery, "output_root": output,
++        "run_spec_path": recovery / "contracts/RUN_SPEC.json",
++        "input_binding_path": recovery / "contracts/INPUT_BINDING.json",
++        "parent_release_path": recovery / "contracts/PARENT_RELEASE.json",
++        "reviewer_transcript_path": recovery / "contracts/INDEPENDENT_LOCAL_REVIEW.json",
++        "resource_trace_path": recovery / "evidence" / (spec["execution_id"] + ".resource.json"),
++        "start_receipt_path": output / "EVALUATION_START_RECEIPT.json"}
++    if any(binding.get(name) != str(path) for name, path in expected_paths.items()):
++        raise SavedEvaluationError("EVALUATION_EXECUTION_PATH_IDENTITY_MISMATCH")
++    candidate = plain_path(binding["candidate_output_root"], exists=False)
++    if recovery.is_relative_to(candidate) or candidate.is_relative_to(recovery):
++        raise SavedEvaluationError("RECOVERY_ROOT_OVERLAPS_OLD_CANDIDATE")
++    protected = {f"{category}:{name}": record for category in
++        ("input_files", "metadata_files", "executable_helpers", "official_helpers", "code_files")
++        for name, record in binding[category].items()}
++    for name in ("official_registry_path", "run_spec_path", "input_binding_path",
++                 "parent_release_path", "reviewer_transcript_path"):
++        protected[name] = {"path": binding[name]}
++    # load_documents is also used after RUN_STARTED; freshness is the owner's
++    # pre-claim responsibility, while aliases remain forbidden on every read.
++    validate_new_paths(output, expected_paths["resource_trace_path"], candidate, protected, require_new=False)
++    return spec, binding, spec_raw, binding_raw
++
++
++def verify_review_release(binding: Mapping[str, Any], spec_raw: bytes, binding_raw: bytes) -> dict[str, Any]:
++    release_record = file_record(binding["parent_release_path"])
++    review_record = file_record(binding["reviewer_transcript_path"])
++    release = json_object(checked_read(release_record), name="parent_release")
++    review = json_object(checked_read(review_record), name="local_review")
++    identities = {"route_id": binding["route_id"], "execution_id": binding["execution_id"],
++        "candidate_execution_id": binding["candidate_execution_id"],
++        "run_spec_sha256": sha256_bytes(spec_raw), "input_binding_sha256": sha256_bytes(binding_raw),
++        "source_code_sha256": binding["code_sha256"]}
++    reviewer = review.get("reviewer_agent")
++    if (not isinstance(reviewer, str) or not reviewer.strip()
++            or not isinstance(review.get("writer_agent"), str) or not review["writer_agent"].strip()
++            or reviewer == review["writer_agent"]):
++        raise SavedEvaluationError("INDEPENDENT_LOCAL_REVIEWER_REQUIRED")
++    review_expected = {**identities, "schema": "F5_RFF_SAVED_EVAL_LOCAL_REVIEW_V1",
++        "reviewer_verdict": "PASS", "REVIEWED": "PASS", "BEHAVIOR_VERIFIED": "PASS",
++        "scope": "EXACT_LOCAL_RFF_SAVED_EVALUATION_BINDING"}
++    for key, value in review_expected.items():
++        if canonical_bytes(review.get(key)) != canonical_bytes(value):
++            raise SavedEvaluationError(f"REVIEW_IDENTITY_OR_SCOPE_MISMATCH:{key}")
++    release_expected = {**identities, "schema": "F5_RFF_SAVED_EVAL_PARENT_RELEASE_V1",
++        "active": True, "saved_prediction_evaluation_authorized": True,
++        "automatic_retry": False, "evaluation_truth_decode_authorized": 1,
++        "candidate_model_load_authorized": False,
++        **{key: 0 for key in ZERO_AUTHORIZATIONS}, "reviewer_agent": reviewer,
++        "reviewer_transcript_path": review_record["path"],
++        "reviewer_transcript_sha256": review_record["sha256"],
++        "resource_caps": binding["resources"], "safety": SAFETY,
++        "official_registry_path": binding["official_registry_path"],
++        "official_registry_sha256_before_start": binding["official_registry_sha256_before_start"],
++        "expected_route_event_sha256_before_start": binding["expected_route_event_sha256_before_start"]}
++    for key, value in release_expected.items():
++        if canonical_bytes(release.get(key)) != canonical_bytes(value):
++            raise SavedEvaluationError(f"PARENT_RELEASE_SCOPE_MISMATCH:{key}")
++    if (not isinstance(release.get("parent_authorization_id"), str) or not release["parent_authorization_id"].strip()
++            or not isinstance(release.get("parent_controller_id"), str) or not release["parent_controller_id"].strip()
++            or release["parent_controller_id"] == reviewer):
++        raise SavedEvaluationError("PARENT_AUTHORIZATION_IDENTITY_REQUIRED")
++    return {"release": release_record, "review": review_record}
+diff --git a/candidate/src/rff_saved_eval_frames.py b/candidate/src/rff_saved_eval_frames.py
+new file mode 100644
+--- /dev/null
++++ b/candidate/src/rff_saved_eval_frames.py
+@@ -0,0 +1,351 @@
++"""Pure frame composition for the RFF route's saved prediction evaluation.
++
++The caller owns file identities, the durable execution lifecycle and actual
++truth-read counters.  It must pass the SHA-bound accepted RFF worker module and
++the unchanged score-aware wrapper.  Only that worker's accepted ``_join_truth``
++attaches outcomes.  This module reads no files, loads no model, emits no scores,
++and never reselects the saved candidate Top3.
++"""
++from __future__ import annotations
++
++import copy
++import math
++from typing import Any, Mapping
++
++import numpy as np
++import pandas as pd
++
++
++KEYS = ["code", "session_id"]
++OUTCOMES = ["y", "label_status", "first_exact", "episode_state"]
++SCORE_COLUMNS = KEYS + ["market_date", "scoreable", "ranking_score", "probability"]
++TOP3_COLUMNS = SCORE_COLUMNS + ["rank", "weight"]
++TRUTH_COLUMNS = KEYS + ["market_date", "scoreable", *OUTCOMES]
++CONTROL_NAMES = ("FROZEN_UNWEIGHTED_PLUS_PATH", "FROZEN_BASE34")
++ROUTE_ID = "F5_FULL64_RFF_LOGISTIC_R1_20260927"
++SAFETY = {"research_only": True, "production_allowed": False,
++          "buy_gate_updated": False, "orders_sent": False}
++
++
++class RFFSavedEvaluationError(RuntimeError):
++    """A saved-frame or frozen metric contract failed; callers must stop."""
++
++
++def _require_schema(frame: Any, columns: list[str], *, name: str) -> None:
++    if (not isinstance(frame, pd.DataFrame) or not frame.columns.is_unique
++            or not set(columns).issubset(frame.columns)):
++        raise RFFSavedEvaluationError(f"RFF_FRAME_SCHEMA_MISMATCH:{name}")
++
++
++def _require_sessions(frame: pd.DataFrame, *, name: str) -> None:
++    values = frame["session_id"]
++    if not pd.api.types.is_numeric_dtype(values.dtype) or pd.api.types.is_bool_dtype(values.dtype):
++        raise RFFSavedEvaluationError(f"RFF_SESSION_ID_NOT_INTEGER:{name}")
++    numbers = values.to_numpy(dtype=np.float64, na_value=np.nan)
++    if not np.isfinite(numbers).all() or not np.equal(numbers, np.floor(numbers)).all():
++        raise RFFSavedEvaluationError(f"RFF_SESSION_ID_NOT_INTEGER:{name}")
++
++
++def _require_keys(frame: pd.DataFrame, *, name: str) -> None:
++    if frame[KEYS].isna().any().any() or frame.duplicated(KEYS).any():
++        raise RFFSavedEvaluationError(f"RFF_FRAME_KEYS_INVALID:{name}")
++    if not frame["code"].map(lambda value: isinstance(value, str)).all():
++        raise RFFSavedEvaluationError(f"RFF_CODE_MUST_REMAIN_STRING:{name}")
++    _require_sessions(frame, name=name)
++
++
++def _binary_mask(frame: pd.DataFrame, *, name: str) -> np.ndarray:
++    if not frame["scoreable"].isin([0, 1, False, True]).fillna(False).all():
++        raise RFFSavedEvaluationError(f"RFF_SCOREABLE_MASK_NOT_BINARY:{name}")
++    return frame["scoreable"].to_numpy(dtype=bool)
++
++
++def _candidate_score_domain(frame: pd.DataFrame, *, name: str) -> None:
++    mask = _binary_mask(frame, name=name)
++    for column, error_prefix in (("ranking_score", "RAW_SCORE"), ("probability", "PROBABILITY")):
++        if not pd.api.types.is_numeric_dtype(frame[column].dtype):
++            raise RFFSavedEvaluationError(f"RFF_{error_prefix}_DTYPE_INVALID:{name}")
++        values = frame[column].to_numpy(dtype=np.float64, na_value=np.nan)
++        if not np.isfinite(values[mask]).all() or not np.isnan(values[~mask]).all():
++            raise RFFSavedEvaluationError(f"RFF_{error_prefix}_COVERAGE_INVALID:{name}")
++        if column == "probability" and not np.logical_and(values[mask] >= 0, values[mask] <= 1).all():
++            raise RFFSavedEvaluationError(f"RFF_PROBABILITY_RANGE_INVALID:{name}")
++
++
++def _assert_equal(left: pd.DataFrame, right: pd.DataFrame, *, error: str) -> None:
++    try:
++        pd.testing.assert_frame_equal(left, right, check_dtype=False, check_exact=True,
++                                      check_like=False, check_index_type=False)
++    except AssertionError as exc:
++        raise RFFSavedEvaluationError(error) from exc
++
++
++def _check_full_metadata(frame: pd.DataFrame, truth: pd.DataFrame, *, name: str) -> None:
++    """Compare full-grid metadata without attaching or replacing any outcome."""
++    left = frame.sort_values(KEYS, kind="mergesort").reset_index(drop=True)
++    right = truth.sort_values(KEYS, kind="mergesort").reset_index(drop=True)
++    _assert_equal(left[KEYS + ["scoreable"]], right[KEYS + ["scoreable"]],
++                  error=f"RFF_SCOREABLE_FLAGS_DIFFER_BY_KEY:{name}")
++    _assert_equal(left[KEYS + ["market_date"]], right[KEYS + ["market_date"]],
++                  error=f"RFF_MARKET_DATE_DIFFERS_BY_KEY:{name}")
++
++
++def _check_dates(frame: pd.DataFrame, calendar: pd.DataFrame, *, name: str) -> None:
++    # This is a session/date consistency check, not an outcome join.
++    dates = calendar.set_index("session_id")["market_date"]
++    expected = frame["session_id"].map(dates)
++    if frame["market_date"].isna().any() or expected.isna().any() or not frame["market_date"].eq(expected).all():
++        raise RFFSavedEvaluationError(f"RFF_MARKET_DATE_DIFFERS_FROM_CALENDAR:{name}")
++
++
++def _check_saved_candidate_top3(top3: pd.DataFrame, scores: pd.DataFrame, *, slots: int) -> None:
++    if len(top3) != slots:
++        raise RFFSavedEvaluationError("RFF_TOP3_SELECTION_SLOT_COUNT_MISMATCH")
++    if not top3["weight"].eq("1/3").all():
++        raise RFFSavedEvaluationError("RFF_TOP3_WEIGHT_CHANGED")
++    if (top3["rank"].isna().any() or not top3["rank"].isin([1, 2, 3]).all()
++            or top3.duplicated(["session_id", "rank"]).any()):
++        raise RFFSavedEvaluationError("RFF_TOP3_RANK_INVALID")
++    if set(top3["session_id"]) != set(scores["session_id"]):
++        raise RFFSavedEvaluationError("RFF_TOP3_SESSION_SET_MISMATCH")
++    if not top3.groupby("session_id", sort=False).size().eq(3).all():
++        raise RFFSavedEvaluationError("RFF_TOP3_NOT_EXACTLY_THREE_PER_SESSION")
++
++    # Validate saved picks against the saved score grid.  No truth column is
++    # present here, and no new Top3 is selected or returned.
++    grid = scores.set_index(KEYS, verify_integrity=True)
++    pick_keys = pd.MultiIndex.from_frame(top3[KEYS])
++    if not pick_keys.isin(grid.index).all():
++        raise RFFSavedEvaluationError("RFF_TOP3_NOT_SUBSET_OF_SAVED_GRID")
++    values = grid.loc[pick_keys].reset_index()
++    picks = top3.reset_index(drop=True)
++    for column in ("market_date", "scoreable", "ranking_score", "probability"):
++        _assert_equal(picks[[column]], values[[column]],
++                      error=f"RFF_TOP3_GRID_VALUE_MISMATCH:{column}")
++    if not _binary_mask(top3, name="candidate_top3").all():
++        raise RFFSavedEvaluationError("RFF_TOP3_CONTAINS_UNSCOREABLE_ROW")
++
++    grids = {sid: frame for sid, frame in scores.groupby("session_id", sort=False)}
++    for sid, selections in top3.groupby("session_id", sort=False):
++        frame = grids[sid]
++        eligible = frame["scoreable"].to_numpy(dtype=bool)
++        margins = frame["ranking_score"].to_numpy(dtype=np.float64)
++        codes = frame["code"].to_numpy(dtype=str)
++        for pick in selections.itertuples(index=False):
++            preceding = eligible & ((margins > pick.ranking_score)
++                                    | ((margins == pick.ranking_score) & (codes < pick.code)))
++            if int(preceding.sum()) + 1 != pick.rank:
++                raise RFFSavedEvaluationError("RFF_TOP3_RANK_NOT_ORDER_STATISTIC")
++
++
++def _deep_equal(left: Any, right: Any) -> bool:
++    """Only a compatibility check; metric arithmetic stays in the frozen code."""
++    if isinstance(left, np.generic):
++        left = left.item()
++    if isinstance(right, np.generic):
++        right = right.item()
++    if isinstance(left, float) and isinstance(right, float) and math.isnan(left) and math.isnan(right):
++        return True
++    if isinstance(left, Mapping) and isinstance(right, Mapping):
++        return set(left) == set(right) and all(_deep_equal(left[key], right[key]) for key in left)
++    if isinstance(left, (list, tuple)) and isinstance(right, (list, tuple)):
++        return len(left) == len(right) and all(_deep_equal(a, b) for a, b in zip(left, right))
++    if isinstance(left, np.ndarray) or isinstance(right, np.ndarray):
++        return bool(np.array_equal(left, right, equal_nan=True))
++    return bool(left == right)
++
++
++def evaluate_frames(
++    *,
++    candidate_scores: Any,
++    candidate_top3: Any,
++    truth: Any,
++    calendar: Any,
++    controls: Mapping[str, Mapping[str, Any]],
++    score_aware: Any,
++    accepted_worker: Any,
++    evaluation_contract: Mapping[str, Any],
++    experiment_contract: Mapping[str, Any],
++    execution_id: str,
++    artifact_sha256: Mapping[str, str] | None = None,
++) -> dict[str, Any]:
++    """Evaluate bound saved frames with the original RFF metric composition.
++
++    ``accepted_worker`` must be the module whose complete file SHA256 is
++    3ea10757a81207147e5cfb9e68e69750a0579786153e7ce58ccf342a3184058c.
++    ``score_aware`` and its frozen evaluator/configuration must already have
++    passed the caller's source identity checks.  This pure layer cannot verify
++    file hashes or observe how many times labels were decoded.
++    """
++    expected = {}
++    for key in ("year", "grid_rows", "scoreable_rows", "sessions", "selection_slots", "known_positive_denominator"):
++        value = evaluation_contract.get(key)
++        if type(value) is not int or value < 0:
++            raise RFFSavedEvaluationError(f"RFF_EVALUATION_CONTRACT_INVALID:{key}")
++        expected[key] = value
++    if (expected["year"] != 2024 or expected["sessions"] == 0
++            or expected["selection_slots"] != 3 * expected["sessions"]):
++        raise RFFSavedEvaluationError("RFF_EVALUATION_SLOT_OR_YEAR_CONTRACT_INVALID")
++    if experiment_contract.get("route_id") != ROUTE_ID:
++        raise RFFSavedEvaluationError("RFF_EXPERIMENT_ROUTE_MISMATCH")
++    gates = experiment_contract["decision_gates"]
++    primary_gate, practical_gate = gates["development_primary"], gates["practical_base34"]
++    if (primary_gate.get("operator") != ">" or primary_gate.get("value") != 0.0
++            or practical_gate.get("operator") != ">=" or practical_gate.get("value") != 0.03):
++        raise RFFSavedEvaluationError("RFF_DEVELOPMENT_GATES_CHANGED")
++    promotion_gates = gates["original_promotion_gates_unchanged"]
++    if promotion_gates.get("promotion_now") is not False or promotion_gates.get("single_exposed_year_blocks_promotion") is not True:
++        raise RFFSavedEvaluationError("RFF_PROMOTION_CEILING_CHANGED")
++
++    for name, frame, columns in (("candidate_scores", candidate_scores, SCORE_COLUMNS),
++                                 ("candidate_top3", candidate_top3, TOP3_COLUMNS),
++                                 ("truth", truth, TRUTH_COLUMNS)):
++        _require_schema(frame, columns, name=name)
++        _require_keys(frame, name=name)
++        _binary_mask(frame, name=name)
++    _require_schema(calendar, ["session_id", "market_date"], name="calendar")
++    _require_sessions(calendar, name="calendar")
++    if (len(candidate_scores) != expected["grid_rows"] or len(truth) != expected["grid_rows"]):
++        raise RFFSavedEvaluationError("RFF_FULL_G_OR_TRUTH_ROW_COUNT_MISMATCH")
++    for name, frame in (("candidate_scores", candidate_scores), ("truth", truth)):
++        if int(_binary_mask(frame, name=name).sum()) != expected["scoreable_rows"]:
++            raise RFFSavedEvaluationError(f"RFF_SCOREABLE_ROW_COUNT_MISMATCH:{name}")
++    _candidate_score_domain(candidate_scores, name="candidate_scores")
++    if (len(calendar) != expected["sessions"] or calendar["session_id"].duplicated().any()
++            or calendar["market_date"].isna().any()):
++        raise RFFSavedEvaluationError("RFF_CALENDAR_DOMAIN_INVALID")
++    if set(candidate_scores["session_id"]) != set(calendar["session_id"]):
++        raise RFFSavedEvaluationError("RFF_FULL_G_SESSIONS_DIFFER_FROM_CALENDAR")
++    # Match accepted RFF: first_exact may be missing on outcomes for which the
++    # original helper does not consume it.  Do not import XENDCG's stricter rule.
++    if truth[["label_status", "episode_state"]].isna().any().any():
++        raise RFFSavedEvaluationError("RFF_EVALUATION_OUTCOME_METADATA_MISSING")
++    for column in ("y", "first_exact"):
++        if not pd.api.types.is_numeric_dtype(truth[column].dtype) or pd.api.types.is_bool_dtype(truth[column].dtype):
++            raise RFFSavedEvaluationError(f"RFF_TRUTH_NUMERIC_DTYPE_INVALID:{column}")
++    labels = truth["y"].to_numpy(dtype=np.float64, na_value=np.nan)
++    if np.isinf(labels).any() or not np.isin(labels[np.isfinite(labels)], [0., 1.]).all():
++        raise RFFSavedEvaluationError("RFF_TRUTH_LABEL_DOMAIN_INVALID")
++
++    # These are the only outcome attachments in the new evaluation path.
++    # Preserve the accepted function, its left-domain rule and its diagnostics.
++    candidate_frame = accepted_worker._join_truth(candidate_scores, truth)
++    candidate_selected = accepted_worker._join_truth(candidate_top3, truth)
++    _check_full_metadata(candidate_scores, truth, name="candidate_scores")
++    _check_saved_candidate_top3(candidate_top3, candidate_scores, slots=expected["selection_slots"])
++    for name, frame in (("candidate_scores", candidate_scores), ("candidate_top3", candidate_top3), ("truth", truth)):
++        _check_dates(frame, calendar, name=name)
++    calendar_frame = calendar[["session_id", "market_date"]].copy()
++    calendar_frame["session_id"] = calendar_frame["session_id"].astype(np.int64)
++
++    frozen = score_aware.frozen_metrics()
++    candidate_metrics = score_aware.arm_metrics(
++        candidate_frame, candidate_selected, calendar_frame,
++        score_kind=score_aware.RAW_RANKING_SCORE, score_column="ranking_score",
++    )
++    raw_ap = {key: candidate_metrics["probability"][key]
++              for key in ("scored", "known", "unknown", "positive_known", "average_precision_known", "pr_auc_definition")}
++    # Exact historical RFF behavior: keep the binary-probability block intact.
++    # The raw AP is retained separately, because finite sigmoid outputs can tie.
++    candidate_metrics["probability"] = score_aware.probability_metrics(candidate_frame)
++    observed_episodes = candidate_metrics["confirmed_new_events"]
++    if observed_episodes != expected["known_positive_denominator"]:
++        raise RFFSavedEvaluationError("RFF_CONFIRMED_NEW_EPISODE_DENOMINATOR_MISMATCH:CANDIDATE_RFF_LOGISTIC")
++    arms = {"CANDIDATE_RFF_LOGISTIC": candidate_metrics}
++    selected_by_arm = {}
++    binary_compatibility = {}
++    if set(controls) != set(CONTROL_NAMES):
++        raise RFFSavedEvaluationError("RFF_FROZEN_CONTROL_SET_MISMATCH")
++    for name in CONTROL_NAMES:
++        control_frame = controls[name]["scores"]
++        stored_top3 = controls[name]["top3"]
++        _require_schema(control_frame, TRUTH_COLUMNS + ["probability"], name=name)
++        _require_keys(control_frame, name=name)
++        _binary_mask(control_frame, name=name)
++        _check_full_metadata(control_frame, truth, name=name)
++        _check_dates(control_frame, calendar_frame, name=name)
++        stored = control_frame[KEYS + OUTCOMES].sort_values(KEYS, kind="mergesort").reset_index(drop=True)
++        reference = truth[KEYS + OUTCOMES].sort_values(KEYS, kind="mergesort").reset_index(drop=True)
++        _assert_equal(stored, reference, error=f"RFF_FROZEN_CONTROL_OUTCOMES_CHANGED:{name}")
++        selected = score_aware.select_top3(control_frame)
++        original_selected = frozen.select_top3(control_frame)
++        _assert_equal(selected, original_selected, error=f"RFF_FROZEN_CONTROL_SELECTOR_CHANGED:{name}")
++        identity_columns = KEYS + ["rank", "probability"]
++        _require_schema(stored_top3, identity_columns, name=f"{name}_top3")
++        _require_keys(stored_top3, name=f"{name}_top3")
++        identity = lambda frame: frame[identity_columns].sort_values(["session_id", "rank", "code"], kind="mergesort").reset_index(drop=True)
++        _assert_equal(identity(selected), identity(stored_top3), error=f"RFF_FROZEN_CONTROL_TOP3_CHANGED:{name}")
++        wrapped = score_aware.arm_metrics(control_frame, selected, calendar_frame)
++        original = frozen.arm_metrics(control_frame, selected, calendar_frame)
++        if not _deep_equal(wrapped, original):
++            raise RFFSavedEvaluationError(f"RFF_FROZEN_CONTROL_METRICS_CHANGED:{name}")
++        if wrapped["confirmed_new_events"] != observed_episodes:
++            raise RFFSavedEvaluationError(f"RFF_CONFIRMED_NEW_EPISODE_DENOMINATOR_MISMATCH:{name}")
++        arms[name] = wrapped
++        selected_by_arm[name] = selected
++        binary_compatibility[name] = True
++
++    paired = {}
++    for name in CONTROL_NAMES:
++        delta = score_aware.paired_precision(candidate_selected, selected_by_arm[name], calendar_frame["session_id"])
++        if delta["denominator"] != expected["selection_slots"]:
++            raise RFFSavedEvaluationError(f"RFF_PAIRED_SLOT_DENOMINATOR_MISMATCH:{name}")
++        if (len(delta["daily"]) != expected["sessions"]
++                or [row["session_id"] for row in delta["daily"]] != list(calendar_frame["session_id"])):
++            raise RFFSavedEvaluationError(f"RFF_PAIRED_SESSION_DOMAIN_MISMATCH:{name}")
++        paired[name] = delta
++    primary = paired["FROZEN_UNWEIGHTED_PLUS_PATH"]["lower"] > 0.0
++    practical = paired["FROZEN_BASE34"]["lower"] >= 0.03
++    hashes = artifact_sha256 or {}
++    return {
++        "schema": "F5_FULL64_RFF_LOGISTIC_FULL2024_METRICS_V1",
++        "status": "EXPOSED_RETROSPECTIVE_DEVELOPMENT_EVALUATION_RECOVERED",
++        "route_id": ROUTE_ID, "execution_id": execution_id, "year": expected["year"],
++        "grid_rows": len(candidate_frame), "scoreable_rows": expected["scoreable_rows"],
++        "sessions": len(calendar_frame), "selection_slots": expected["selection_slots"],
++        "truth_positive_denominator": observed_episodes,
++        "confirmed_new_episode_denominator": observed_episodes,
++        "known_positive_rows_full_g": int((candidate_frame["y"] == 1).sum()),
++        "arms": arms, "paired_precision": paired,
++        "development_gates": {
++            "paired_lower_vs_plus_gt_zero": bool(primary),
++            "paired_lower_vs_base34_ge_003": bool(practical),
++            "all_development_gates_pass": bool(primary and practical),
++            "development_decision": "DEVELOPMENT_PASS" if primary and practical else "DIRECTION_ONLY",
++        },
++        "original_promotion_gates": copy.deepcopy(promotion_gates),
++        "promotion_decision": "BLOCKED_SINGLE_EXPOSED_YEAR",
++        "decision_scope": "EXPOSED_2024_DEVELOPMENT_ONLY_Direction_ONLY_MAX",
++        "evidence_ceiling": "DIRECTION_ONLY", "evidence_status": "DIRECTION_ONLY",
++        "raw_score_contract": {
++            "top3_and_average_precision_score": "RAW_LOGISTIC_DECISION_MARGIN",
++            "event_probability": "FITTED_LOGISTIC_SIGMOID", "separate_calibrator": False,
++        },
++        "ranking_score_diagnostics": {"score_kind": "RAW_LOGISTIC_DECISION_MARGIN", **raw_ap},
++        "binary_control_evaluator_outputs_deep_equal_to_original": binary_compatibility,
++        "episode_denominator_check": {
++            "definition": "FULL_G_FROZEN_HELPER_CONFIRMED_NEW_EVENTS_CODE_SESSION",
++            "expected": expected["known_positive_denominator"],
++            "observed_by_arm": {name: arm["confirmed_new_events"] for name, arm in arms.items()},
++            "all_equal": True, "positive_y_rows_are_not_episode_denominator": True,
++        },
++        "evaluation_recovery_join_integrity": {
++            "accepted_join_worker_sha256": "3ea10757a81207147e5cfb9e68e69750a0579786153e7ce58ccf342a3184058c",
++            "full_g_exact_truth_key_domain": True,
++            "full_g_key_order_equals_truth": candidate_scores[KEYS].reset_index(drop=True).equals(truth[KEYS].reset_index(drop=True)),
++            "candidate_top3_is_unique_full_g_subset": True,
++            "persisted_candidate_top3_reselected": False,
++            "truth_nan_is_not_used_as_key_coverage_proxy": True,
++            "unknown_label_rows_full_g": int(candidate_frame["y"].isna().sum()),
++            "unknown_label_rows_candidate_top3": int(candidate_selected["y"].isna().sum()),
++        },
++        "fit_calls": 0, "fit_call_entered": False, "real_fit_returned_count": 0,
++        "predict_calls": 0, "control_fit_calls": 0, "control_predict_calls": 0,
++        "calibrator_fit_calls": 0, "model_load_calls": 0, "candidate_model_loaded": False,
++        "candidate_scores_sha256": hashes.get("candidate_scores"),
++        "candidate_top3_sha256": hashes.get("candidate_top3"),
++        "baseline_score_sha256": {name: hashes.get(f"{name}_scores") for name in CONTROL_NAMES},
++        "baseline_top3_sha256": {name: hashes.get(f"{name}_top3") for name in CONTROL_NAMES},
++        "sealed_forward": False, "oof": False, "probability_calibration": False,
++        "safety": dict(SAFETY),
++    }
+diff --git a/candidate/src/rff_saved_eval_registration.py b/candidate/src/rff_saved_eval_registration.py
+new file mode 100644
+--- /dev/null
++++ b/candidate/src/rff_saved_eval_registration.py
+@@ -0,0 +1,367 @@
++"""RFF saved-evaluation profile over the existing official registry owner.
++
++The original adapter owns locking, canonical materialization, compatibility
++validation and durable append. This module adds a frozen RFF scope; it never
++writes registry bytes itself, consumes a fit debit, or retries an append.
++
++The guard's required zero-activity fields describe the evaluation-only contract.
++Actual worker observations are recorded separately and may be unknown. A guard
++accounting summary therefore describes structural budget accounting; callers
++must also inspect ``actual_fit_count_status`` and ``observed_worker_accounting``
++before asserting any observed execution count.
++"""
++from __future__ import annotations
++
++import hashlib
++import json
++from pathlib import Path
++from typing import Any, Mapping
++
++
++ROUTE_ID = "F5_FULL64_RFF_LOGISTIC_R1_20260927"
++CANDIDATE_EXECUTION_ID = "F5_FULL64_RFF_LOGISTIC_R1_20260927_RESUME_20260928_01"
++NO_FIT_KIND = "NO_FIT_ENGINEERING_CANARY"
++COUNTERS = ("fit_calls", "real_fit_returned_count", "predict_calls",
++            "control_fit_calls", "control_predict_calls", "calibrator_fit_calls", "model_load_calls")
++ZERO_AUTHORIZATIONS = ("fit_calls_authorized", "predict_calls_authorized",
++                       "control_fit_calls_authorized", "control_predict_calls_authorized",
++                       "calibrator_fit_calls_authorized", "model_load_calls_authorized")
++SOURCE_CATEGORIES = ("code_files", "executable_helpers", "official_helpers",
++                     "metadata_files", "authorization_records")
++SAFETY = {"research_only": True, "production_allowed": False,
++          "buy_gate_updated": False, "orders_sent": False}
++
++
++def canonical_bytes(value: Any) -> bytes:
++    return json.dumps(value, ensure_ascii=False, sort_keys=True,
++                      separators=(",", ":"), allow_nan=False).encode("utf-8")
++
++
++def sha256_bytes(raw: bytes) -> str:
++    return hashlib.sha256(raw).hexdigest()
++
++
++def sha256_file(path: Path) -> str:
++    digest = hashlib.sha256()
++    with Path(path).open("rb") as stream:
++        for block in iter(lambda: stream.read(1024 * 1024), b""):
++            digest.update(block)
++    return digest.hexdigest()
++
++
++def event_profile(binding: Mapping[str, Any]) -> dict[str, str]:
++    if binding.get("route_id") != ROUTE_ID:
++        raise RuntimeError("RFF_SAVED_EVAL_ROUTE_ID_MISMATCH")
++    if binding.get("candidate_execution_id") != CANDIDATE_EXECUTION_ID:
++        raise RuntimeError("RFF_SAVED_EVAL_CANDIDATE_IDENTITY_MISMATCH")
++    return {
++        "track_id": "HK_BURST_F5_FULL_HISTORY_RESEARCH",
++        "route_id": ROUTE_ID,
++        "registration_mode": "LIVE_EXECUTION",
++        "start_stage": "RFF_SAVED_EVALUATION_RUN_STARTED",
++        "terminal_stage": "RFF_SAVED_EVALUATION_TERMINAL",
++        "occurred_at_reason": "LIVE_EXECUTION_UTC",
++        "baseline_id": "F5_FULL64_ORIGINAL_PLUS_PATH_BINARY_2024",
++        "one_variable": "rff_saved_prediction_full2024_evaluation_only",
++        "signal_scope": f"SAVED_PREDICTION_SEAL:{CANDIDATE_EXECUTION_ID}",
++        "target_scope": "EXPOSED_2024_FROZEN_LABELS_246_SESSIONS",
++        "device": "CPU_RESEARCH_ONLY",
++        "evidence_level": "DIRECTION_ONLY",
++    }
++
++
++def _route_events(events: list[dict[str, Any]], route_id: str) -> list[dict[str, Any]]:
++    return [row for row in events
++            if row.get("route_id") == route_id or row.get("experiment_id") == route_id]
++
++
++def _source_drift(binding: Mapping[str, Any]) -> dict[str, Any]:
++    """Compare current bytes with the frozen manifest without loading modules."""
++    changed = []
++    for category in SOURCE_CATEGORIES:
++        for name, item in binding.get(category, {}).items():
++            path = Path(item["path"])
++            observed_sha = None
++            error = None
++            try:
++                observed_sha = sha256_file(path) if path.is_file() else None
++                state = "MISSING" if observed_sha is None else "SHA_MISMATCH"
++            except OSError as exc:
++                state = "READ_ERROR"
++                error = {"type": type(exc).__name__, "message": str(exc)}
++            if observed_sha != item["sha256"]:
++                detail = {"category": category, "name": name, "path": str(path),
++                          "bound_sha256": item["sha256"], "observed_sha256": observed_sha,
++                          "state": state}
++                if error is not None:
++                    detail["error"] = error
++                changed.append(detail)
++    return {"status": "DRIFT_DETECTED" if changed else "UNCHANGED", "files": changed}
++
++
++def _check_no_observed_activity(value: Mapping[str, Any]) -> None:
++    for key in COUNTERS:
++        item = value.get(key)
++        if item is not None and (type(item) is not int or item != 0):
++            raise RuntimeError(f"RFF_SAVED_EVAL_OBSERVED_ACTIVITY_VIOLATES_ZERO_CONTRACT:{key}")
++    for key in ("fit_call_entered", "candidate_model_loaded"):
++        item = value.get(key)
++        if item is not None and item is not False:
++            raise RuntimeError(f"RFF_SAVED_EVAL_OBSERVED_ACTIVITY_VIOLATES_ZERO_CONTRACT:{key}")
++
++
++def _observed_accounting(event: Mapping[str, Any]) -> tuple[dict[str, Any], bool]:
++    _check_no_observed_activity(event)
++    supplied = event.get("observed_worker_accounting")
++    observed = dict(supplied) if isinstance(supplied, Mapping) else {
++        key: event.get(key) for key in (*COUNTERS, "fit_call_entered", "candidate_model_loaded")
++    }
++    _check_no_observed_activity(observed)
++    zero = (all(type(observed.get(key)) is int and observed[key] == 0 for key in COUNTERS)
++            and observed.get("fit_call_entered") is False
++            and observed.get("candidate_model_loaded") is False)
++    known = zero and observed.get("status", "KNOWN") in {"KNOWN", "KNOWN_NOT_LAUNCHED"}
++    for key in (*COUNTERS, "fit_call_entered", "candidate_model_loaded"):
++        observed.setdefault(key, None)
++    observed["status"] = observed.get("status", "KNOWN") if known else "UNKNOWN"
++    return observed, known
++
++
++def build_official_adapter_class(
++    adapter_module: Any, *, binding: Mapping[str, Any], run_spec_path: Path,
++    input_binding_path: Path, run_spec_sha256: str, input_binding_sha256: str,
++):
++    """Create the RFF route profile without modifying the official owner.
++
++    Source drift prevents success, but an already claimed run may close as
++    CANNOT_CONFIRM with complete bound/observed drift evidence. RUN_SPEC and
++    INPUT_BINDING identities never relax. Append errors always propagate; the
++    owner may inspect the durable chain, and must never blindly retry.
++    """
++    frozen = json.loads(canonical_bytes(dict(binding)))
++    profile = event_profile(frozen)
++    route_id = frozen["route_id"]
++    execution_id = frozen["execution_id"]
++    if not isinstance(execution_id, str) or not execution_id or execution_id == CANDIDATE_EXECUTION_ID:
++        raise RuntimeError("RFF_SAVED_EVAL_NEW_EXECUTION_ID_REQUIRED")
++    registry_path = Path(frozen["official_registry_path"]).resolve()
++    start_receipt_path = Path(frozen["start_receipt_path"]).resolve()
++    run_spec_path = Path(run_spec_path).resolve()
++    input_binding_path = Path(input_binding_path).resolve()
++    expected_registry_sha = frozen["official_registry_sha256_before_start"]
++    expected_previous_sha = frozen["expected_previous_event_sha256"]
++    expected_route = frozen["expected_route_event_sha256_before_start"]
++
++    class RffSavedEvaluationOfficialAdapter(adapter_module.OfficialRegistryAdapter):
++        def __init__(self, **kwargs):
++            if kwargs.get("event_profile") is None:
++                kwargs["event_profile"] = profile
++            elif dict(kwargs["event_profile"]) != profile:
++                raise RuntimeError("RFF_SAVED_EVAL_EVENT_PROFILE_MISMATCH")
++            super().__init__(**kwargs)
++            if (self.registry_path != registry_path or self.contract_path != run_spec_path
++                    or self.input_binding_path != input_binding_path):
++                raise RuntimeError("RFF_SAVED_EVAL_ADAPTER_PATH_IDENTITY_MISMATCH")
++            for key, actual in (("builder", self.builder_path), ("validator", self.validator_path)):
++                if actual != Path(frozen["official_helpers"][key]["path"]).resolve():
++                    raise RuntimeError(f"RFF_SAVED_EVAL_ADAPTER_HELPER_PATH_MISMATCH:{key}")
++            self.authorization_records: dict[str, Any] = {}
++            self._authorization_records_snapshot: dict[str, Any] | None = None
++
++        def _verify_core_snapshots(self) -> None:
++            if not run_spec_path.is_file() or sha256_file(run_spec_path) != run_spec_sha256:
++                raise RuntimeError("RFF_SAVED_EVAL_RUN_SPEC_CHANGED")
++            if not input_binding_path.is_file() or sha256_file(input_binding_path) != input_binding_sha256:
++                raise RuntimeError("RFF_SAVED_EVAL_INPUT_BINDING_CHANGED")
++            if json.loads(input_binding_path.read_bytes()) != frozen:
++                raise RuntimeError("RFF_SAVED_EVAL_BOUND_BINDING_OBJECT_MISMATCH")
++            if sha256_bytes(canonical_bytes(frozen["code_files"])) != frozen["code_sha256"]:
++                raise RuntimeError("RFF_SAVED_EVAL_CODE_MANIFEST_SHA_MISMATCH")
++            spec = json.loads(run_spec_path.read_bytes())
++            if (any(type(spec.get(key)) is not int or spec[key] != 0 for key in ZERO_AUTHORIZATIONS)
++                    or spec.get("candidate_model_load_authorized") is not False):
++                raise RuntimeError("RFF_SAVED_EVAL_SPEC_NOT_ZERO_ACTIVITY")
++
++        def _authorization_snapshot(self) -> dict[str, Any]:
++            records = (self._authorization_records_snapshot
++                       if self._authorization_records_snapshot is not None else self.authorization_records)
++            if not isinstance(records, Mapping):
++                raise RuntimeError("RFF_SAVED_EVAL_AUTHORIZATION_RECORDS_NOT_OBJECT")
++            return json.loads(canonical_bytes(dict(records)))
++
++        def source_drift(self) -> dict[str, Any]:
++            return _source_drift(dict(frozen, authorization_records=self._authorization_snapshot()))
++
++        def _verify_contract_snapshots(self) -> dict[str, Any]:
++            """Keep core bytes exact and return explicit dependency/authority drift."""
++            self._verify_core_snapshots()
++            return self.source_drift()
++
++        def claim_run_started(self, event: Mapping[str, Any], *, max_real_fit_debits: int) -> None:
++            with self._locked():
++                raw, events = self._read_validated()
++                if any(row.get("execution_id") == execution_id for row in events):
++                    raise RuntimeError("RFF_SAVED_EVAL_EXECUTION_ID_ALREADY_REGISTERED")
++                if sha256_bytes(raw) != expected_registry_sha or sha256_file(registry_path) != expected_registry_sha:
++                    raise RuntimeError("RFF_SAVED_EVAL_REGISTRY_PREFIX_CHANGED")
++                # The parent sets release/review records before claiming. Freeze
++                # their declarations in the same lock as the durable start.
++                if self._authorization_records_snapshot is None:
++                    self._authorization_records_snapshot = self._authorization_snapshot()
++                drift = self._verify_contract_snapshots()
++                if drift["files"]:
++                    raise RuntimeError("RFF_SAVED_EVAL_BOUND_SOURCE_DRIFT:" + canonical_bytes(drift).decode())
++                if [row.get("event_sha256") for row in _route_events(events, route_id)] != expected_route:
++                    raise RuntimeError("RFF_SAVED_EVAL_ROUTE_PREFIX_MISMATCH")
++                if not events or events[-1].get("event_sha256") != expected_previous_sha:
++                    raise RuntimeError("RFF_SAVED_EVAL_PREVIOUS_EVENT_SHA_MISMATCH")
++                if (type(max_real_fit_debits) is not int or max_real_fit_debits != 1
++                        or event.get("event_type") != "RUN_STARTED"
++                        or event.get("experiment_id") != route_id
++                        or event.get("execution_id") != execution_id
++                        or not event.get("arm")
++                        or event.get("execution_kind") != NO_FIT_KIND
++                        or event.get("contract_sha256") != run_spec_sha256
++                        or event.get("input_binding_sha256") != input_binding_sha256
++                        or any(type(event.get(key)) is not int or event[key] != 0
++                               for key in ("planned_real_fit_count", "real_fit_budget_debit"))):
++                    raise RuntimeError("RFF_SAVED_EVAL_START_IDENTITY_OR_ZERO_DEBIT_MISMATCH")
++                self._append_unlocked(raw, events, self._event_spec(event, event_type="RUN_STARTED"))
++                after_raw, after = self._read_validated()
++                if (not after_raw.startswith(raw) or len(after) != len(events) + 1
++                        or after[-1].get("registry_event_id") != f"{execution_id}_RUN_STARTED"):
++                    raise RuntimeError("RFF_SAVED_EVAL_START_DURABLE_READBACK_MISMATCH")
++
++        def terminalize(self, claim: Any, event: Mapping[str, Any]) -> None:
++            with self._locked():
++                raw, events = self._read_validated()
++                drift = self._verify_contract_snapshots()
++                starts = [row for row in events if row.get("execution_id") == execution_id
++                          and row.get("event_type") == "RUN_STARTED"]
++                terminals = [row for row in events if row.get("execution_id") == execution_id
++                             and row.get("event_type") == "TERMINAL"]
++                if len(starts) != 1 or terminals:
++                    raise RuntimeError("RFF_SAVED_EVAL_TERMINAL_LIFECYCLE_INVALID")
++                start = starts[0]
++                if start.get("authorization_records", {}) != self._authorization_snapshot():
++                    raise RuntimeError("RFF_SAVED_EVAL_START_AUTHORIZATION_IDENTITY_MISMATCH")
++                for key in ("experiment_id", "execution_id", "arm", "contract_sha256", "input_binding_sha256"):
++                    if start.get(key) != getattr(claim, key) or event.get(key) != getattr(claim, key):
++                        raise RuntimeError(f"RFF_SAVED_EVAL_TERMINAL_IDENTITY_MISMATCH:{key}")
++                if (event.get("event_type") != "TERMINAL" or event.get("execution_kind") != NO_FIT_KIND
++                        or getattr(claim, "execution_kind", None) != NO_FIT_KIND
++                        or type(getattr(claim, "real_fit_budget_debit", None)) is not int
++                        or getattr(claim, "real_fit_budget_debit", None) != 0
++                        or any(type(event.get(key)) is not int or event[key] != 0
++                               or type((start.get("deterministic_metrics") or {}).get(key)) is not int
++                               or start["deterministic_metrics"][key] != 0
++                               for key in ("planned_real_fit_count", "real_fit_budget_debit"))):
++                    raise RuntimeError("RFF_SAVED_EVAL_TERMINAL_NOT_ZERO_DEBIT")
++                status = event.get("terminal_status")
++                if status not in {"COMPLETED", "CANNOT_CONFIRM"}:
++                    raise RuntimeError("RFF_SAVED_EVAL_TERMINAL_STATUS_INVALID")
++                if [row.get("event_sha256") for row in _route_events(events, route_id)] != expected_route + [start["event_sha256"]]:
++                    raise RuntimeError("RFF_SAVED_EVAL_ROUTE_CHANGED_AFTER_START")
++                start_index = events.index(start)
++                prefix = b"".join(raw.splitlines(keepends=True)[:start_index])
++                if (len(events) != start_index + 1 or sha256_bytes(prefix) != expected_registry_sha
++                        or start.get("previous_event_sha256") != expected_previous_sha):
++                    raise RuntimeError("RFF_SAVED_EVAL_REGISTRY_CHANGED_AFTER_START")
++                missing_receipt = not start_receipt_path.is_file()
++                if missing_receipt:
++                    if status != "CANNOT_CONFIRM":
++                        raise RuntimeError("RFF_SAVED_EVAL_START_RECEIPT_MISSING")
++                else:
++                    receipt = json.loads(start_receipt_path.read_bytes())
++                    expected_receipt = {
++                        "status": "RUN_STARTED_DURABLE", "execution_id": execution_id,
++                        "candidate_execution_id": CANDIDATE_EXECUTION_ID, "route_id": route_id,
++                        "run_spec_sha256": run_spec_sha256, "input_binding_sha256": input_binding_sha256,
++                        "source_code_sha256": frozen["code_sha256"], "start_event_sha256": start["event_sha256"],
++                        "official_registry_sha256_after_start": sha256_bytes(raw),
++                    }
++                    if not isinstance(receipt, dict) or any(receipt.get(key) != value for key, value in expected_receipt.items()):
++                        raise RuntimeError("RFF_SAVED_EVAL_START_RECEIPT_IDENTITY_MISMATCH")
++                if drift["files"] and status != "CANNOT_CONFIRM":
++                    raise RuntimeError("RFF_SAVED_EVAL_SOURCE_DRIFT_REQUIRES_CANNOT_CONFIRM:" + canonical_bytes(drift).decode())
++                observed, known = _observed_accounting(event)
++                if status == "COMPLETED" and (not known or observed["status"] != "KNOWN"):
++                    raise RuntimeError("RFF_SAVED_EVAL_COMPLETED_REQUIRES_OBSERVED_ZERO_ACTIVITY")
++                projected = dict(event, observed_worker_accounting=observed, source_drift=drift)
++                spec = self._event_spec(projected, event_type="TERMINAL")
++                if missing_receipt:
++                    spec["stop_reason"] = "START_RECEIPT_MISSING_AFTER_DURABLE_START"
++                self._append_unlocked(raw, events, spec)
++                after_raw, after = self._read_validated()
++                if (not after_raw.startswith(raw) or len(after) != len(events) + 1
++                        or after[-1].get("registry_event_id") != f"{execution_id}_TERMINAL"
++                        or after[-1].get("decision") != status):
++                    raise RuntimeError("RFF_SAVED_EVAL_TERMINAL_DURABLE_READBACK_MISMATCH")
++
++        def _event_spec(self, event: Mapping[str, Any], *, event_type: str) -> dict[str, Any]:
++            _check_no_observed_activity(event)
++            for key, expected in SAFETY.items():
++                if key in event and event[key] is not expected:
++                    raise RuntimeError(f"RFF_SAVED_EVAL_SAFETY_FLAG_MISMATCH:{key}")
++            if event.get("promotion_now", False) is not False:
++                raise RuntimeError("RFF_SAVED_EVAL_SAFETY_FLAG_MISMATCH:promotion_now")
++            spec = super()._event_spec(event, event_type=event_type)
++            spec.update(code_sha256=frozen["code_sha256"], candidate_execution_id=CANDIDATE_EXECUTION_ID,
++                        evidence_ceiling="DIRECTION_ONLY", promotion_now=False,
++                        route_truth_status="EXPOSED_2024_AFTER_CANDIDATE_PREDICTION_SEAL",
++                        authorization_records=self._authorization_snapshot())
++            metrics = dict(spec.get("deterministic_metrics") or {})
++            reasons = dict((spec.get("input_identity") or {}).get("null_reasons") or {})
++            metrics.update(execution_kind=NO_FIT_KIND, planned_real_fit_count=0,
++                           real_fit_budget_debit=0, fit_call_entered=False, real_fit_returned_count=0,
++                           fit_accounting_basis="STATIC_EVALUATION_ONLY_CONTRACT",
++                           guard_accounting_scope="STRUCTURAL_ZERO_DEBIT_NOT_WORKER_OBSERVATION")
++            if event_type == "RUN_STARTED":
++                spec["truth_access"] = "NOT_READ_IN_THIS_EVALUATION"
++                spec["sealed_status"] = "EXPOSED_2024_CURRENT_EVALUATION_NOT_STARTED"
++                metrics.update(truth_positive_denominator=None, selection_slots=None,
++                               truth_accounting={"decode_attempts": 0, "decode_completed": 0})
++                reasons["deterministic_metrics.truth_positive_denominator"] = "TRUTH_NOT_READ_AT_RUN_START"
++                reasons["deterministic_metrics.selection_slots"] = "NOT_MEASURED_AT_RUN_START"
++            else:
++                observed, known = _observed_accounting(event)
++                drift = dict(event["source_drift"])
++                evaluation = dict(event.get("evaluation_metrics") or {})
++                completed = event["terminal_status"] == "COMPLETED"
++                if completed and evaluation.get("metrics_computed") is not True:
++                    raise RuntimeError("RFF_SAVED_EVAL_COMPLETED_REQUIRES_VALIDATED_METRICS")
++                if not completed and evaluation.get("metrics_computed") is True:
++                    evaluation = {"metrics_computed": False, "reported_metrics_not_accepted": True,
++                                  "reported_metrics_sha256": evaluation.get("metrics_sha256")}
++                spec.update(truth_access=str(event["truth_access"]), sealed_status=str(event["sealed_status"]),
++                            evaluation_metrics=evaluation)
++                metrics.update(
++                    truth_positive_denominator=event.get("truth_positive_denominator") if completed else None,
++                    selection_slots=event.get("selection_slots") if completed else None,
++                    evaluation_metrics=evaluation, source_drift=drift,
++                    observed_worker_accounting=observed,
++                    actual_fit_count_status="OBSERVED_ZERO_ACTIVITY" if known else "CANNOT_CONFIRM_WORKER_OBSERVATION_MISSING",
++                    truth_accounting=dict(event.get("truth_accounting") or {}),
++                )
++                if not known:
++                    reasons["deterministic_metrics.observed_worker_accounting"] = "WORKER_OBSERVATION_MISSING_OR_INVALID"
++                for key in ("truth_positive_denominator", "selection_slots"):
++                    if metrics[key] is None:
++                        reasons[f"deterministic_metrics.{key}"] = "METRICS_NOT_VALIDATED"
++                if drift["files"]:
++                    spec["stop_reason"] = "BOUND_SOURCE_DRIFT_AFTER_DURABLE_START"
++                    unavailable = {str(Path(item["path"]).resolve()) for item in drift["files"]
++                                   if item["state"] in {"MISSING", "READ_ERROR"}}
++                    artifacts = [path for path in spec["artifact_paths"]
++                                 if str(Path(path).resolve()) not in unavailable]
++                    spec["artifact_paths"] = artifacts
++                    spec["artifact_path"] = artifacts
++                elif event.get("stop_reason"):
++                    spec["stop_reason"] = str(event["stop_reason"])
++            spec["deterministic_metrics"] = metrics
++            identity = dict(spec.get("input_identity") or {})
++            identity.update(candidate_execution_id=CANDIDATE_EXECUTION_ID, null_reasons=reasons)
++            spec["input_identity"] = identity
++            return spec
++
++    return RffSavedEvaluationOfficialAdapter
+diff --git a/candidate/src/rff_saved_eval_worker.py b/candidate/src/rff_saved_eval_worker.py
+new file mode 100644
+--- /dev/null
++++ b/candidate/src/rff_saved_eval_worker.py
+@@ -0,0 +1,259 @@
++"""One saved-score evaluation after an official durable start; no model producer.
++
++The native launcher owns the real release and registry validation. This generic
++worker also runs on synthetic snapshots in tests, but its caller-supplied payload
++must equal the immutable binding and start receipt byte identities. It never
++imports the candidate entry, calls a training/prediction API, or opens a model.
++"""
++from __future__ import annotations
++
++import hashlib
++import importlib.util
++import io
++import json
++import sys
++import traceback
++from pathlib import Path
++from typing import Any, Mapping
++
++
++def _common(payload):
++    record = payload["code_files"]["rff_saved_eval_contracts"]
++    path = Path(record["path"])
++    if path.resolve() != Path(__file__).resolve().parent / "rff_saved_eval_contracts.py":
++        raise RuntimeError("WORKER_COMMON_SOURCE_PATH_MISMATCH")
++    raw = path.read_bytes()
++    if hashlib.sha256(raw).hexdigest() != record["sha256"]:
++        raise RuntimeError("WORKER_COMMON_SOURCE_SHA_MISMATCH")
++    name = "_rff_saved_common_" + record["sha256"][:16]
++    module = sys.modules.get(name)
++    if module is not None and (
++            Path(str(getattr(module, "__file__", ""))).resolve() != path.resolve()
++            or getattr(module, "__rff_source_sha256__", None) != record["sha256"]):
++        raise RuntimeError("WORKER_COMMON_CACHED_SOURCE_IDENTITY_MISMATCH")
++    if module is None:
++        spec = importlib.util.spec_from_file_location(name, path)
++        module = importlib.util.module_from_spec(spec)
++        sys.modules[name] = module
++        try:
++            exec(compile(raw, str(path), "exec"), module.__dict__)
++            module.__rff_source_sha256__ = record["sha256"]
++        except BaseException:
++            sys.modules.pop(name, None)
++            raise
++    return module
++
++
++def _read_csv(raw: bytes, *, name: str, columns: list[str]):
++    import pandas as pd
++    dtype = {"code": "string"} if "code" in columns else None
++    try:
++        return pd.read_csv(io.BytesIO(raw), compression="gzip", usecols=columns,
++                           dtype=dtype, float_precision="round_trip")
++    except Exception as exc:
++        raise RuntimeError(f"SAVED_CSV_PARSE_FAILED:{name}:{type(exc).__name__}:{exc}") from exc
++
++
++def _load_evaluators(common, binding):
++    helpers = binding["executable_helpers"]
++    # Reject a wrong accepted identity before executing its module body.
++    if helpers["accepted_worker"]["sha256"] != common.PINS["accepted_worker"]:
++        raise common.SavedEvaluationError("ACCEPTED_PR5_JOIN_SHA_MISMATCH")
++    if helpers["score_aware_metrics"]["sha256"] != common.PINS["score_aware_metrics"]:
++        raise common.SavedEvaluationError("SCORE_AWARE_METRICS_SOURCE_SHA_MISMATCH")
++    accepted = common.load_bound_module(helpers["accepted_worker"], "_rff_saved_accepted_pr5")
++    score_aware = common.load_bound_module(helpers["score_aware_metrics"], "_rff_saved_score_aware")
++    if (helpers["frozen_metrics"]["sha256"] != score_aware.FROZEN_METRICS_SHA256
++            or Path(helpers["frozen_metrics"]["path"]).resolve() != score_aware.FROZEN_METRICS_PATH.resolve()):
++        raise common.SavedEvaluationError("FROZEN_EVALUATOR_PATH_OR_SHA_MISMATCH")
++    package_dir = common.plain_path(helpers["frozen_metrics"]["path"]).parent
++    for name, filename in (("frozen_settings", "settings.py"), ("frozen_package_init", "__init__.py")):
++        if common.plain_path(helpers[name]["path"]) != package_dir / filename:
++            raise common.SavedEvaluationError(f"FROZEN_EVALUATOR_PACKAGE_LOCATION_MISMATCH:{name}")
++    # Compile the exact already verified source bytes, including the settings
++    # dependency omitted from the remote issue attachment. Never invent bins.
++    common.load_bound_module(helpers["frozen_package_init"], "spike5", package=True)
++    common.load_bound_module(helpers["frozen_settings"], "spike5.settings")
++    metrics = common.load_bound_module(helpers["frozen_metrics"], "spike5.metrics")
++    if score_aware.frozen_metrics() is not metrics:
++        raise common.SavedEvaluationError("FROZEN_EVALUATOR_IMPORT_IDENTITY_MISMATCH")
++    allowed = {Path(v["path"]).resolve() for v in helpers.values()}
++    for name, module in list(sys.modules.items()):
++        if name == "spike5" or name.startswith("spike5."):
++            origin = Path(str(getattr(module, "__file__", ""))).resolve()
++            if origin not in allowed:
++                raise common.SavedEvaluationError(f"UNBOUND_FROZEN_PACKAGE_DEPENDENCY:{name}:{origin}")
++    frames = common.load_bound_module(binding["code_files"]["rff_saved_eval_frames"], "_rff_saved_frames")
++    return frames, score_aware, accepted
++
++
++def _validate_child_runtime(common, binding, payload):
++    """Use the bound native verifier in this child; never repair its environment."""
++    native = common.load_bound_module(binding["executable_helpers"]["native_runtime"],
++                                      "_rff_saved_native_runtime")
++    reference = common.json_object(common.checked_read(binding["metadata_files"]["native_reference"],
++        name="native_reference"), name="native_reference")
++    expected = native.native_spec_from_contract(reference)
++    supplied = payload.get("native_spec")
++    if not isinstance(supplied, Mapping) or common.canonical_bytes(supplied) != common.canonical_bytes(expected):
++        raise common.SavedEvaluationError("CHILD_NATIVE_SPEC_BINDING_MISMATCH")
++    # Preserve all original observation fields, including the explicit False
++    # for distribution-lock coverage. No synthetic/skip branch exists here.
++    return native.verify_child_launch_environment(supplied)
++
++
++def _start_and_binding(common, payload):
++    binding_raw = common.checked_read({"path": payload["input_binding_path"],
++        "sha256": payload["input_binding_sha256"]}, name="input_binding")
++    binding = common.json_object(binding_raw, name="input_binding")
++    for key, value in binding.items():
++        if common.canonical_bytes(payload.get(key)) != common.canonical_bytes(value):
++            raise common.SavedEvaluationError(f"PAYLOAD_BINDING_MISMATCH:{key}")
++    spec_raw = common.checked_read({"path": binding["run_spec_path"],
++        "sha256": binding["run_spec_sha256"]}, name="run_spec")
++    spec = common.json_object(spec_raw, name="run_spec")
++    for key in common.ZERO_AUTHORIZATIONS:
++        if type(spec.get(key)) is not int or spec[key] != 0:
++            raise common.SavedEvaluationError(f"WORKER_ZERO_AUTHORIZATION_REQUIRED:{key}")
++    if (spec.get("candidate_model_load_authorized") is not False
++            or type(spec.get("evaluation_truth_decode_authorized")) is not int
++            or spec["evaluation_truth_decode_authorized"] != 1
++            or spec.get("automatic_retry") is not False
++            or spec.get("safety") != common.SAFETY):
++        raise common.SavedEvaluationError("WORKER_AUTHORIZATION_SCOPE_MISMATCH")
++    output = common.plain_path(binding["output_root"], exists=False)
++    start_path = common.plain_path(binding["start_receipt_path"])
++    if start_path.parent != output or start_path.name != "EVALUATION_START_RECEIPT.json":
++        raise common.SavedEvaluationError("START_RECEIPT_OUTPUT_ROOT_MISMATCH")
++    if not output.is_dir() or {p.name for p in output.iterdir()} != {start_path.name}:
++        raise common.SavedEvaluationError("WORKER_OUTPUT_NOT_EMPTY_NO_REENTRY")
++    start = common.json_object(common.checked_read({"path": str(start_path),
++        "sha256": payload["start_receipt_sha256"]}, name="start_receipt"), name="start_receipt")
++    expected = {"status": "RUN_STARTED_DURABLE", "execution_id": binding["execution_id"], "candidate_execution_id": binding["candidate_execution_id"],
++        "route_id": binding["route_id"], "run_spec_sha256": binding["run_spec_sha256"],
++        "input_binding_sha256": payload["input_binding_sha256"],
++        "source_code_sha256": binding["code_sha256"], "real_fit_budget_debit": 0,
++        "planned_real_fit_count": 0, **common.ZERO_COUNTS}
++    for key, value in expected.items():
++        if common.canonical_bytes(start.get(key)) != common.canonical_bytes(value):
++            raise common.SavedEvaluationError(f"WORKER_DURABLE_START_IDENTITY_MISMATCH:{key}")
++    if not isinstance(start.get("start_event_sha256"), str) or len(start["start_event_sha256"]) != 64:
++        raise common.SavedEvaluationError("WORKER_DURABLE_START_EVENT_ID_MISSING")
++    return binding, output
++
++
++def run_saved_evaluation(payload: Mapping[str, Any]) -> dict[str, Any]:
++    common = _common(payload)
++    binding, output = _start_and_binding(common, payload)
++    execution_id = binding["execution_id"]
++    counts = {**common.ZERO_COUNTS, "evaluation_truth_artifact_read_attempts": 0,
++        "evaluation_truth_artifact_reads_completed": 0, "evaluation_truth_decode_attempts": 0,
++        "evaluation_truth_decodes_completed": 0, "control_label_artifacts_decoded": 0,
++        "evaluation_label_values_decoded": False}
++    status = {"schema": "F5_RFF_SAVED_EVAL_WORKER_STATUS_V1", "execution_id": execution_id,
++        "candidate_execution_id": binding["candidate_execution_id"], "route_id": binding["route_id"],
++        "safety": dict(common.SAFETY), "automatic_retry": False,
++        "run_spec_sha256": binding["run_spec_sha256"], "source_code_sha256": binding["code_sha256"],
++        "input_binding_sha256": payload["input_binding_sha256"],
++        "start_receipt_sha256": payload["start_receipt_sha256"], "metrics_computed": False,
++        "native_runtime_check_attempts": 0, "native_runtime_checks_completed": 0,
++        "native_runtime_observation": None}
++    try:
++        common.verify_sources(binding)
++        if set(binding["input_files"]) != common.INPUT_NAMES:
++            raise common.SavedEvaluationError("SAVED_EVALUATION_INPUT_SET_MISMATCH")
++        status["native_runtime_check_attempts"] = 1
++        status["native_runtime_observation"] = _validate_child_runtime(common, binding, payload)
++        status["native_runtime_checks_completed"] = 1
++        frames, score_aware, accepted = _load_evaluators(common, binding)
++        metadata = {name: common.json_object(common.checked_read(record, name=name), name=name)
++                    for name, record in binding["metadata_files"].items()
++                    if name in ("experiment_contract", "prediction_seal")}
++        seal = metadata["prediction_seal"]
++        common.validate_seal(seal, binding["evaluation_contract"], binding["candidate_execution_id"])
++        for name in ("candidate_scores", "candidate_top3"):
++            if seal.get(name + "_sha256") != binding["input_files"][name]["sha256"]:
++                raise common.SavedEvaluationError(f"PREDICTION_SEAL_ARTIFACT_MISMATCH:{name}")
++        # All saved non-truth bytes are checked before any label decode. A bad
++        # candidate CSV must fail without even opening the evaluation truth.
++        snapshots = {name: common.checked_read(record, name=name)
++                     for name, record in binding["input_files"].items() if name != "eval_truth"}
++        scores = _read_csv(snapshots["candidate_scores"], name="candidate_scores", columns=frames.SCORE_COLUMNS)
++        selected = _read_csv(snapshots["candidate_top3"], name="candidate_top3", columns=frames.TOP3_COLUMNS)
++        calendar = _read_csv(snapshots["eval_calendar"], name="eval_calendar", columns=["session_id", "market_date"])
++        frames._require_schema(scores, frames.SCORE_COLUMNS, name="candidate_scores")
++        frames._require_keys(scores, name="candidate_scores")
++        frames._candidate_score_domain(scores, name="candidate_scores")
++        frames._require_schema(selected, frames.TOP3_COLUMNS, name="candidate_top3")
++        frames._require_keys(selected, name="candidate_top3")
++        frames._check_saved_candidate_top3(selected, scores, slots=binding["evaluation_contract"]["selection_slots"])
++        counts["evaluation_truth_artifact_read_attempts"] = 1
++        truth_raw = common.checked_read(binding["input_files"]["eval_truth"], name="eval_truth")
++        counts["evaluation_truth_artifact_reads_completed"] = 1
++        common.write_json_exclusive(output / "EVALUATION_TRUTH_READ_START.json", {
++            "schema": "F5_RFF_SAVED_EVAL_TRUTH_READ_START_V1", "execution_id": execution_id,
++            "candidate_execution_id": binding["candidate_execution_id"], "route_id": binding["route_id"],
++            "label_values_decode_started": True, "evaluation_truth_decode_attempts": 1,
++            "evaluation_truth_decodes_completed": None,
++            "completion_status": "NOT_YET_OBSERVED", "truth_sha256": binding["input_files"]["eval_truth"]["sha256"],
++            "run_spec_sha256": binding["run_spec_sha256"], "source_code_sha256": binding["code_sha256"],
++            "input_binding_sha256": payload["input_binding_sha256"],
++            "start_receipt_sha256": payload["start_receipt_sha256"],
++            "prediction_seal_sha256": binding["metadata_files"]["prediction_seal"]["sha256"],
++            **common.ZERO_COUNTS, "safety": dict(common.SAFETY)})
++        counts["evaluation_truth_decode_attempts"] = 1
++        truth = _read_csv(truth_raw, name="eval_truth", columns=frames.TRUTH_COLUMNS)
++        del truth_raw
++        counts["evaluation_truth_decodes_completed"] = 1
++        counts["evaluation_label_values_decoded"] = True
++        controls = {}
++        for arm in common.CONTROLS:
++            controls[arm] = {"scores": _read_csv(snapshots[f"{arm}_scores"], name=f"{arm}_scores",
++                columns=frames.TRUTH_COLUMNS + ["probability"])}
++            counts["control_label_artifacts_decoded"] += 1
++            controls[arm]["top3"] = _read_csv(snapshots[f"{arm}_top3"], name=f"{arm}_top3",
++                columns=["code", "session_id", "rank", "probability"])
++        artifact_sha = {name: record["sha256"] for name, record in binding["input_files"].items()}
++        metrics = frames.evaluate_frames(candidate_scores=scores, candidate_top3=selected,
++            truth=truth, calendar=calendar, controls=controls, score_aware=score_aware,
++            accepted_worker=accepted, evaluation_contract=binding["evaluation_contract"],
++            experiment_contract=metadata["experiment_contract"], execution_id=execution_id,
++            artifact_sha256=artifact_sha)
++        status["metrics_computed"] = True
++        metrics.update(counts)
++        metrics.update({"candidate_execution_id": binding["candidate_execution_id"],
++            "evaluation_truth_decodes": counts["evaluation_truth_decode_attempts"],
++            "prediction_seal_sha256": binding["metadata_files"]["prediction_seal"]["sha256"],
++            "accepted_worker_sha256": common.PINS["accepted_worker"],
++            "run_spec_sha256": binding["run_spec_sha256"],
++            "input_binding_sha256": payload["input_binding_sha256"],
++            "start_receipt_sha256": payload["start_receipt_sha256"],
++            "source_code_sha256": binding["code_sha256"], "metrics_computed": True,
++            "native_runtime_check_attempts": status["native_runtime_check_attempts"],
++            "native_runtime_checks_completed": status["native_runtime_checks_completed"],
++            "native_runtime_observation": status["native_runtime_observation"]})
++        # Recheck sources/metadata only. Evaluation inputs are consumed from the
++        # exact verified snapshots above; no second truth read is performed.
++        common.verify_sources(binding)
++        metrics_sha = common.write_json_exclusive(output / "METRICS.json", metrics)
++        status["metrics_sha256"] = metrics_sha
++        result = {"schema": "F5_RFF_SAVED_EVAL_RESULT_V1", "status": "COMPLETED",
++            **status, **counts, "metrics_sha256": metrics_sha,
++            "input_sha256": artifact_sha, "source_code_sha256": binding["code_sha256"],
++            "prediction_seal_sha256": binding["metadata_files"]["prediction_seal"]["sha256"],
++            "evidence_ceiling": "DIRECTION_ONLY", "historical_candidate_mutation": False}
++        result["schema"] = "F5_RFF_SAVED_EVAL_RESULT_V1"
++        result_sha = common.write_json_exclusive(output / "EVALUATION_RESULT_RECEIPT.json", result)
++        common.write_json_exclusive(output / "EVALUATION_WORKER_STATUS.json", {
++            **status, **counts, "status": "COMPLETED", "metrics_sha256": metrics_sha,
++            "result_receipt_sha256": result_sha})
++        return result
++    except BaseException as exc:
++        common.write_json_exclusive(output / "EVALUATION_WORKER_STATUS.json", {
++            **status, **counts, "status": "FAILED", "error_type": type(exc).__name__, "error": str(exc)})
++        common.write_json_exclusive(output / "EVALUATION_FAILURE_EVIDENCE.json", {
++            **status, "schema": "F5_RFF_SAVED_EVAL_FAILURE_V1", "status": "FAILED",
++            "stage": "SAVED_EVALUATION_WORKER", "error_type": type(exc).__name__,
++            "error": str(exc), "traceback": traceback.format_exc(), **counts,
++            "automatic_retry": False, "safety": dict(common.SAFETY)})
++        raise
+diff --git a/candidate/src/run_rff_saved_evaluation.py b/candidate/src/run_rff_saved_evaluation.py
+new file mode 100644
+--- /dev/null
++++ b/candidate/src/run_rff_saved_evaluation.py
+@@ -0,0 +1,788 @@
++#!/usr/bin/env python3
++"""Prepare an unsigned binding, or run one explicitly released saved evaluation.
++
++Imports are inert. The CLI run path validates the real RFF binding and native
++runtime before a zero-debit official RUN_STARTED. The internal execution seam
++also supports generated fixtures; it is not a local-review or release issuer.
++No append, worker invocation, truth decode, or failed execution is retried.
++"""
++from __future__ import annotations
++
++import argparse
++import contextlib
++import hashlib
++import importlib.util
++import json
++import os
++import signal
++import sys
++import tempfile
++import traceback
++from dataclasses import asdict
++from datetime import datetime, timezone
++from pathlib import Path
++from typing import Any, Mapping
++
++ARM = "SAVED_RFF_EVALUATION_ONLY"
++TRUTH_KEYS = ("evaluation_truth_artifact_read_attempts", "evaluation_truth_artifact_reads_completed",
++              "evaluation_truth_decode_attempts", "evaluation_truth_decodes_completed",
++              "control_label_artifacts_decoded", "evaluation_label_values_decoded")
++
++
++def _common():
++    path = Path(__file__).resolve().with_name("rff_saved_eval_contracts.py")
++    raw = path.read_bytes()
++    digest = hashlib.sha256(raw).hexdigest()
++    name = "_rff_launcher_contracts_" + digest[:16]
++    if name not in sys.modules:
++        spec = importlib.util.spec_from_file_location(name, path)
++        module = importlib.util.module_from_spec(spec)
++        sys.modules[name] = module
++        exec(compile(raw, str(path), "exec"), module.__dict__)
++    return sys.modules[name]
++
++
++@contextlib.contextmanager
++def _fresh_source_imports():
++    """Original importlib helpers and spawned imports cannot reuse old pyc files."""
++    keys = ("PYTHONPYCACHEPREFIX", "PYTHONDONTWRITEBYTECODE")
++    before_env = {key: os.environ.get(key) for key in keys}
++    before_prefix, before_flag = sys.pycache_prefix, sys.dont_write_bytecode
++    with tempfile.TemporaryDirectory(prefix="rff-saved-eval-imports-") as directory:
++        sys.pycache_prefix = directory
++        sys.dont_write_bytecode = True
++        os.environ["PYTHONPYCACHEPREFIX"] = directory
++        os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
++        try:
++            yield
++        finally:
++            sys.pycache_prefix, sys.dont_write_bytecode = before_prefix, before_flag
++            for key, value in before_env.items():
++                if value is None:
++                    os.environ.pop(key, None)
++                else:
++                    os.environ[key] = value
++
++
++def _identity(binding, input_binding_sha256):
++    return {"execution_id": binding["execution_id"], "route_id": binding["route_id"],
++            "candidate_execution_id": binding["candidate_execution_id"],
++            "run_spec_sha256": binding["run_spec_sha256"],
++            "input_binding_sha256": input_binding_sha256,
++            "source_code_sha256": binding["code_sha256"]}
++
++
++def _error(exc, stage):
++    detail = {"stage": stage, "type": type(exc).__name__, "message": str(exc),
++              "traceback": traceback.format_exc()}
++    abort = getattr(exc, "rff_monitor_abort", None)
++    if isinstance(abort, Mapping):
++        detail["monitor_abort"] = dict(abort)
++    return detail
++
++
++def _optional_json(common, path):
++    path = Path(path)
++    try:
++        if not path.exists():
++            return None, {"path": str(path), "sha256": None, "status": "MISSING"}
++        ref = common.file_record(path)
++        doc = common.json_object(common.checked_read(ref), name=path.name)
++        common.canonical_bytes(doc)  # reject NaN/Infinity in malformed evidence
++        return doc, {**ref, "status": "PRESENT"}
++    except Exception as exc:
++        return None, {"path": str(path), "status": "INVALID", "error": str(exc)}
++
++
++def _readback(common, adapter, binding, binding_sha, *, terminal_status=None):
++    """One validated readback of an exact prefix plus this execution's events."""
++    with adapter._locked():
++        raw, events = adapter._read_validated()
++    own = [(i, row) for i, row in enumerate(events) if row.get("execution_id") == binding["execution_id"]]
++    expected_types = ["RUN_STARTED"] if terminal_status is None else ["RUN_STARTED", "TERMINAL"]
++    if [row.get("event_type") for _, row in own] != expected_types:
++        raise RuntimeError("DURABLE_LIFECYCLE_READBACK_NOT_UNIQUE")
++    index, start = own[0]
++    prefix = b"".join(raw.splitlines(keepends=True)[:index])
++    if (len(events) != index + len(own)
++            or common.sha256_bytes(prefix) != binding["official_registry_sha256_before_start"]
++            or start.get("previous_event_sha256") != binding["expected_previous_event_sha256"]):
++        raise RuntimeError("DURABLE_LIFECYCLE_READBACK_PREFIX_MISMATCH")
++    expected = {"experiment_id": binding["route_id"], "route_id": binding["route_id"],
++        "execution_id": binding["execution_id"], "arm": ARM,
++        "contract_sha256": binding["run_spec_sha256"], "input_binding_sha256": binding_sha,
++        "code_sha256": binding["code_sha256"], "candidate_execution_id": binding["candidate_execution_id"]}
++    for _, row in own:
++        if any(common.canonical_bytes(row.get(key)) != common.canonical_bytes(value) for key, value in expected.items()):
++            raise RuntimeError("DURABLE_LIFECYCLE_READBACK_IDENTITY_MISMATCH")
++        metrics = row.get("deterministic_metrics") or {}
++        if (metrics.get("execution_kind") != "NO_FIT_ENGINEERING_CANARY"
++                or any(type(metrics.get(key)) is not int or metrics[key] != 0
++                       for key in ("real_fit_budget_debit", "planned_real_fit_count"))
++                or row.get("authorization_records", {}) != adapter._authorization_snapshot()):
++            raise RuntimeError("DURABLE_LIFECYCLE_READBACK_DEBIT_OR_AUTHORIZATION_MISMATCH")
++    route = [row["event_sha256"] for row in events
++             if row.get("route_id") == binding["route_id"] or row.get("experiment_id") == binding["route_id"]]
++    if route != binding["expected_route_event_sha256_before_start"] + [row["event_sha256"] for _, row in own]:
++        raise RuntimeError("DURABLE_LIFECYCLE_READBACK_ROUTE_MISMATCH")
++    if terminal_status is not None:
++        terminal = own[1][1]
++        if (terminal.get("previous_event_sha256") != start["event_sha256"]
++                or terminal.get("decision") != terminal_status):
++            raise RuntimeError("DURABLE_TERMINAL_READBACK_STATUS_MISMATCH")
++    return raw, [row for _, row in own]
++
++
++def _observations(common, binding, binding_sha, start_sha, *, monitor_entered, descriptor, monitor_error=None):
++    output = Path(binding["output_root"])
++    status, status_ref = _optional_json(common, output / "EVALUATION_WORKER_STATUS.json")
++    marker, marker_ref = _optional_json(common, output / "EVALUATION_TRUTH_READ_START.json")
++    spawn, spawn_ref = _optional_json(common, output / "EVALUATION_MONITOR_FAILURE.json")
++    abort_file, abort_ref = _optional_json(common, output / "EVALUATION_MONITOR_ABORT.json")
++    expected = {**_identity(binding, binding_sha), "start_receipt_sha256": start_sha}
++    zero = lambda value: all(common.canonical_bytes(value.get(key)) == common.canonical_bytes(item)
++                             for key, item in common.ZERO_COUNTS.items())
++    valid_status = (status is not None and status.get("schema") == "F5_RFF_SAVED_EVAL_WORKER_STATUS_V1"
++                    and status.get("status") in {"COMPLETED", "FAILED"}
++                    and all(status.get(key) == item for key, item in expected.items())
++                    and zero(status) and status.get("safety") == common.SAFETY)
++    valid_marker = (marker is not None
++                    and marker.get("schema") == "F5_RFF_SAVED_EVAL_TRUTH_READ_START_V1"
++                    and all(marker.get(key) == item for key, item in expected.items())
++                    and marker.get("truth_sha256") == binding["input_files"]["eval_truth"]["sha256"]
++                    and marker.get("prediction_seal_sha256") == binding["metadata_files"]["prediction_seal"]["sha256"]
++                    and marker.get("label_values_decode_started") is True
++                    and type(marker.get("evaluation_truth_decode_attempts")) is int
++                    and marker["evaluation_truth_decode_attempts"] == 1
++                    and marker.get("evaluation_truth_decodes_completed") is None
++                    and zero(marker) and marker.get("safety") == common.SAFETY)
++    truth_valid = False
++    if valid_status:
++        limits = dict(zip(TRUTH_KEYS[:5], (1, 1, 1, 1, 2)))
++        truth_valid = all(type(status.get(key)) is int and 0 <= status[key] <= limit for key, limit in limits.items())
++        if truth_valid:
++            ra, rc, da, dc, controls = [status[key] for key in TRUTH_KEYS[:5]]
++            truth_valid = (ra >= rc >= da >= dc and (controls == 0 or dc == 1)
++                           and status.get("evaluation_label_values_decoded") is (dc == 1)
++                           and (valid_marker if da else marker_ref["status"] == "MISSING"))
++    expected_sources = {**binding["code_files"], "resource_tree": binding["executable_helpers"]["resource_tree"]}
++    def source_identity_matches(reported):
++        return (isinstance(reported, dict) and set(reported) == set(expected_sources)
++            and all(isinstance(reported[name], dict)
++                    and all(reported[name].get(key) == ref.get(key) for key in ("path", "sha256"))
++                    for name, ref in expected_sources.items()))
++    # The original SPAWN_START try also contains context-manager exit. Its
++    # PROCESS_NOT_STARTED label alone can be wrong after start() returned.
++    # Require the wrapper's actual start observations; an in-memory abort
++    # remains authoritative even when its evidence file could not be written.
++    aborts = [abort_file] if abort_file is not None else []
++    attached_abort = (monitor_error or {}).get("monitor_abort")
++    if isinstance(attached_abort, dict):
++        aborts.append(attached_abort)
++    def verified_no_start(abort):
++        workers = abort.get("workers")
++        return (abort.get("schema") == "F5_RFF_SAVED_EVAL_MONITOR_ABORT_V1"
++            and abort.get("status") == "MONITOR_ABORT"
++            and abort.get("stage") == "UNEXPECTED_MONITOR_EXCEPTION"
++            and all(abort.get(key) == value for key, value in _identity(binding, binding_sha).items())
++            and abort.get("target_descriptor") == descriptor
++            and abort.get("resource_trace_path") == binding["resource_trace_path"]
++            and source_identity_matches(abort.get("source_files"))
++            and abort.get("exit_code_state") == "PROCESS_NOT_STARTED"
++            and abort.get("process_tree_termination_confirmed") is True
++            and type(abort.get("process_creation_count")) is int
++            and isinstance(workers, list) and len(workers) == abort["process_creation_count"]
++            and all(type(abort.get(key)) is int and abort[key] == 0
++                    for key in ("process_start_attempted_count", "process_start_returned_count"))
++            and all(isinstance(worker, dict) and worker.get("pid") is None
++                    and worker.get("process_state") == "PROCESS_NOT_STARTED"
++                    and worker.get("process_start_attempted") is False
++                    and worker.get("process_start_returned") is False for worker in workers))
++    proven_abort_no_start = bool(aborts) and all(verified_no_start(abort) for abort in aborts)
++    proven_no_spawn = not monitor_entered or proven_abort_no_start
++    proven_no_spawn = proven_no_spawn and status_ref["status"] == "MISSING" and marker_ref["status"] == "MISSING"
++    observed = {"status": "KNOWN" if valid_status else "KNOWN_NOT_LAUNCHED" if proven_no_spawn else "UNKNOWN",
++                **{key: value if valid_status or proven_no_spawn else None for key, value in common.ZERO_COUNTS.items()}}
++    if status is not None and not valid_status:
++        observed["reported_activity_not_validated"] = {key: status.get(key) for key in common.ZERO_COUNTS}
++    if truth_valid:
++        truth = {"status": "WORKER_STATUS_VERIFIED", **{key: status[key] for key in TRUTH_KEYS}}
++    elif valid_marker:
++        truth = {"status": "ATTEMPT_DURABLE_COMPLETION_UNKNOWN", **{key: None for key in TRUTH_KEYS},
++                 "evaluation_truth_artifact_read_attempts": 1, "evaluation_truth_artifact_reads_completed": 1,
++                 "evaluation_truth_decode_attempts": 1}
++    elif proven_no_spawn:
++        truth = {"status": "KNOWN_NOT_LAUNCHED", **{key: 0 for key in TRUTH_KEYS[:5]},
++                 "evaluation_label_values_decoded": False}
++    else:
++        truth = {"status": "CANNOT_CONFIRM", **{key: None for key in TRUTH_KEYS}}
++    if status is not None and not truth_valid:
++        truth["reported_truth_counts_not_validated"] = {key: status.get(key) for key in TRUTH_KEYS}
++    return observed, truth, status if valid_status and truth_valid else None, {
++        "worker_status": status_ref, "truth_read_start": marker_ref, "monitor_failure": spawn_ref,
++        "monitor_abort": abort_ref}
++
++
++def _validate_completion(common, binding, binding_sha, start_sha, monitor, status, truth):
++    if (not isinstance(monitor, dict) or type(monitor.get("worker_exitcode")) is not int
++            or monitor["worker_exitcode"] != 0 or monitor.get("terminal_reason") is not None
++            or (monitor.get("post_trace_fsync_terminal_check") or {}).get("after_trace_fsync") is not True
++            or (monitor.get("final_post_fsync_check") or {}).get("after_final_trace_fsync") is not True):
++        raise RuntimeError("MONITOR_COMPLETION_AND_FINAL_FSYNC_NOT_CONFIRMED")
++    trace, trace_ref = _optional_json(common, binding["resource_trace_path"])
++    if (trace is None or trace.get("terminal_reason") is not None or trace.get("worker_exitcode") != 0
++            or monitor.get("threads") != binding["resources"]["cpu_threads"]
++            or monitor.get("wall_seconds_max") != binding["resources"]["wall_seconds_max"]
++            or monitor.get("aggregate_rss_bytes_max") != binding["resources"]["aggregate_process_tree_rss_bytes_max"]):
++        raise RuntimeError("DURABLE_RESOURCE_TRACE_MISSING_OR_SCOPE_MISMATCH")
++    if (status is None or status.get("status") != "COMPLETED" or status.get("metrics_computed") is not True
++            or type(status.get("native_runtime_check_attempts")) is not int
++            or status["native_runtime_check_attempts"] != 1
++            or type(status.get("native_runtime_checks_completed")) is not int
++            or status["native_runtime_checks_completed"] != 1
++            or not isinstance(status.get("native_runtime_observation"), dict)
++            or truth.get("evaluation_truth_decode_attempts") != 1
++            or truth.get("evaluation_truth_decodes_completed") != 1
++            or truth.get("control_label_artifacts_decoded") != 2):
++        raise RuntimeError("WORKER_COMPLETION_AND_ACTUAL_COUNTERS_NOT_CONFIRMED")
++    output = Path(binding["output_root"])
++    result_ref = common.file_record(output / "EVALUATION_RESULT_RECEIPT.json", status["result_receipt_sha256"])
++    result = common.json_object(common.checked_read(result_ref), name="result_receipt")
++    expected = {**_identity(binding, binding_sha), "start_receipt_sha256": start_sha,
++        "schema": "F5_RFF_SAVED_EVAL_RESULT_V1", "status": "COMPLETED", "metrics_computed": True,
++        "metrics_sha256": status["metrics_sha256"], "evidence_ceiling": "DIRECTION_ONLY",
++        "historical_candidate_mutation": False, "automatic_retry": False, "safety": common.SAFETY,
++        "prediction_seal_sha256": binding["metadata_files"]["prediction_seal"]["sha256"],
++        "input_sha256": {name: ref["sha256"] for name, ref in binding["input_files"].items()},
++        "native_runtime_check_attempts": 1, "native_runtime_checks_completed": 1,
++        "native_runtime_observation": status["native_runtime_observation"],
++        **common.ZERO_COUNTS, **{key: truth[key] for key in TRUTH_KEYS}}
++    if any(common.canonical_bytes(result.get(key)) != common.canonical_bytes(value) for key, value in expected.items()):
++        raise RuntimeError("SAVED_RESULT_RECEIPT_IDENTITY_OR_COUNTERS_MISMATCH")
++    metrics_ref = common.file_record(output / "METRICS.json", status["metrics_sha256"])
++    metrics = common.json_object(common.checked_read(metrics_ref), name="metrics")
++    expected_metrics = {**{key: expected[key] for key in ("execution_id", "route_id", "candidate_execution_id",
++                          "run_spec_sha256", "input_binding_sha256", "prediction_seal_sha256",
++                          "source_code_sha256", "start_receipt_sha256", "native_runtime_check_attempts",
++                          "native_runtime_checks_completed", "native_runtime_observation")},
++        "schema": "F5_FULL64_RFF_LOGISTIC_FULL2024_METRICS_V1", "evidence_ceiling": "DIRECTION_ONLY",
++        "evidence_status": "DIRECTION_ONLY", "promotion_decision": "BLOCKED_SINGLE_EXPOSED_YEAR",
++        "safety": common.SAFETY, "accepted_worker_sha256": common.PINS["accepted_worker"],
++        **{key: binding["evaluation_contract"][key] for key in ("year", "grid_rows", "scoreable_rows", "sessions", "selection_slots")},
++        "truth_positive_denominator": binding["evaluation_contract"]["known_positive_denominator"],
++        **common.ZERO_COUNTS, **{key: truth[key] for key in TRUTH_KEYS}}
++    if any(common.canonical_bytes(metrics.get(key)) != common.canonical_bytes(value) for key, value in expected_metrics.items()):
++        raise RuntimeError("SAVED_METRICS_IDENTITY_DENOMINATOR_OR_SAFETY_MISMATCH")
++    if set(metrics["arms"]) != {"CANDIDATE_RFF_LOGISTIC", *common.CONTROLS}:
++        raise RuntimeError("SAVED_METRICS_ARM_SET_MISMATCH")
++    if (metrics.get("binary_control_evaluator_outputs_deep_equal_to_original") != {arm: True for arm in common.CONTROLS}
++            or metrics.get("episode_denominator_check", {}).get("all_equal") is not True
++            or any(metrics["paired_precision"][arm]["denominator"] != binding["evaluation_contract"]["selection_slots"]
++                   for arm in common.CONTROLS)):
++        raise RuntimeError("SAVED_METRICS_PARITY_OR_PAIRED_DENOMINATOR_MISMATCH")
++    paired = metrics["paired_precision"]
++    gates = metrics["development_gates"]
++    if (gates["paired_lower_vs_plus_gt_zero"] is not (paired[common.CONTROLS[0]]["lower"] > 0)
++            or gates["paired_lower_vs_base34_ge_003"] is not (paired[common.CONTROLS[1]]["lower"] >= .03)):
++        raise RuntimeError("SAVED_METRICS_DEVELOPMENT_GATE_MISMATCH")
++    fields = ("slots", "hits_known", "unknown_selected", "precision_lower", "precision_upper",
++              "confirmed_new_events", "hit_unique_episodes", "episode_coverage_confirmed")
++    summary = {"metrics_computed": True, "metrics_sha256": metrics_ref["sha256"],
++        "evidence_ceiling": "DIRECTION_ONLY", "arms": {name: {key: arm[key] for key in fields}
++        for name, arm in metrics["arms"].items()}, "paired_precision": {
++            name: {key: value for key, value in row.items() if key != "daily"} for name, row in paired.items()},
++        "development_gates": gates, "original_promotion_gates": metrics["original_promotion_gates"],
++        "promotion_decision": metrics["promotion_decision"]}
++    return summary, {"metrics": metrics_ref, "result_receipt": result_ref, "resource_trace": trace_ref}
++
++
++def _execute_bound(*, binding, input_binding_sha256, adapter, guard, guard_module,
++                   native_spec, native_observation, monitor):
++    """Internal integration seam; CLI must validate release/native metadata first."""
++    common = _common()
++    resources = common.validate_resources(binding["resources"])
++    # The packaged helper's interface explicitly rejects any other value.
++    # Never substitute this for the controller's newly approved resource cap.
++    if resources["cpu_threads"] != 4:
++        raise RuntimeError("PACKAGED_MONITOR_THREAD_PROFILE_UNSUPPORTED_REQUIRES_EXPLICIT_4")
++    common.verify_sources(binding)
++    common.checked_read({"path": binding["input_binding_path"], "sha256": input_binding_sha256}, name="input_binding")
++    common.checked_read({"path": binding["run_spec_path"], "sha256": binding["run_spec_sha256"]}, name="run_spec")
++    output, trace = Path(binding["output_root"]), Path(binding["resource_trace_path"])
++    protected = {f"{category}:{name}": ref for category in
++        ("input_files", "code_files", "executable_helpers", "official_helpers", "metadata_files")
++        for name, ref in binding[category].items()}
++    for name in ("official_registry_path", "run_spec_path", "input_binding_path", "parent_release_path", "reviewer_transcript_path"):
++        if name in binding:
++            protected[name] = {"path": binding[name]}
++    common.validate_new_paths(output, trace, Path(binding["candidate_output_root"]), protected, require_new=True)
++    before_accounting = asdict(guard.accounting())
++    if before_accounting["real_fit_budget_debit_count"] != 1:
++        raise RuntimeError("HISTORICAL_CANDIDATE_FIT_DEBIT_NOT_ONE")
++    output.mkdir(parents=True, exist_ok=False)
++    trace.parent.mkdir(parents=True, exist_ok=True)
++    identity = _identity(binding, input_binding_sha256)
++    descriptor = {**binding["code_files"]["rff_saved_eval_worker"],
++                  "module_name": "rff_saved_evaluation_worker_target", "callable": "run_saved_evaluation"}
++    claim, start_sha, monitor_result = None, None, None
++    monitor_entered, start_error, error = False, None, None
++    try:
++        claim = guard.claim_no_fit(execution_id=binding["execution_id"], arm=ARM,
++            contract_sha256=binding["run_spec_sha256"], input_binding_sha256=input_binding_sha256)
++    except BaseException as exc:
++        start_error = _error(exc, "OFFICIAL_RUN_STARTED_APPEND")
++        try:
++            start_raw, own = _readback(common, adapter, binding, input_binding_sha256)
++        except BaseException as readback_exc:
++            common.write_json_exclusive(output / "EVALUATION_PRESTART_FAILURE.json", {
++                **identity, "status": "START_NOT_CONFIRMED_NO_WORKER_LAUNCHED", "error": start_error,
++                "readback_error": _error(readback_exc, "RUN_STARTED_SINGLE_READBACK"),
++                "automatic_retry": False, "safety": common.SAFETY})
++            raise exc
++        claim = guard_module.ExecutionClaim(experiment_id=binding["route_id"], execution_id=binding["execution_id"],
++            arm=ARM, contract_sha256=binding["run_spec_sha256"], input_binding_sha256=input_binding_sha256,
++            execution_kind="NO_FIT_ENGINEERING_CANARY", real_fit_budget_debit=0)
++    try:
++        if start_error is None:
++            start_raw, own = _readback(common, adapter, binding, input_binding_sha256)
++        start_sha = common.write_json_exclusive(Path(binding["start_receipt_path"]), {
++            "schema": "F5_RFF_SAVED_EVAL_START_RECEIPT_V1", **identity,
++            "status": "RUN_STARTED_DURABLE", "start_event_sha256": own[0]["event_sha256"],
++            "official_registry_sha256_after_start": common.sha256_bytes(start_raw),
++            "real_fit_budget_debit": 0, "planned_real_fit_count": 0, **common.ZERO_COUNTS,
++            "historical_candidate_debits": {"fit": 1, "predict": 1, "truth_decode": 1},
++            "start_append_raised_after_durable": start_error is not None,
++            "safety": common.SAFETY, "automatic_retry": False})
++        if start_error is not None:
++            error = start_error
++        else:
++            drift = adapter._verify_contract_snapshots()
++            if drift["files"]:
++                raise RuntimeError("BOUND_DEPENDENCY_OR_RELEASE_CHANGED_AFTER_START")
++            payload = {**binding, "input_binding_sha256": input_binding_sha256,
++                       "start_receipt_sha256": start_sha, "native_spec": native_spec}
++            monitor_entered = True
++            monitor_result = monitor(None, payload, native_spec=native_spec,
++                native_runtime_helper_path=Path(binding["executable_helpers"]["native_runtime"]["path"]),
++                wall_seconds_max=resources["wall_seconds_max"],
++                rss_bytes_max=resources["aggregate_process_tree_rss_bytes_max"], threads=resources["cpu_threads"],
++                sample_seconds=resources["sample_seconds"], resource_trace_path=trace,
++                target_descriptor=descriptor, failure_evidence_path=output / "EVALUATION_MONITOR_FAILURE.json",
++                failure_context={"source_files": binding["code_files"], **identity})
++    except BaseException as exc:
++        error = _error(exc, "MONITOR_OR_START_RECEIPT")
++    try:
++        observed, truth, worker_status, evidence = _observations(common, binding, input_binding_sha256, start_sha,
++            monitor_entered=monitor_entered, descriptor=descriptor, monitor_error=error)
++    except BaseException as exc:
++        error = _error(exc, "READ_WORKER_OBSERVATIONS")
++        observed = {"status": "UNKNOWN", **{key: None for key in common.ZERO_COUNTS}}
++        truth = {"status": "CANNOT_CONFIRM", **{key: None for key in TRUTH_KEYS}}
++        worker_status, evidence = None, {"observation_read_error": error}
++    evaluation = {"metrics_computed": False, "evidence_ceiling": "DIRECTION_ONLY"}
++    terminal_status = "CANNOT_CONFIRM"
++    if error is None:
++        try:
++            evaluation, completed_evidence = _validate_completion(common, binding, input_binding_sha256, start_sha,
++                                                                  monitor_result, worker_status, truth)
++            common.verify_sources(binding)
++            drift = adapter._verify_contract_snapshots()
++            if drift["files"]:
++                raise RuntimeError("BOUND_DEPENDENCY_OR_RELEASE_CHANGED_AFTER_WORKER")
++            evidence.update(completed_evidence)
++            terminal_status = "COMPLETED"
++        except BaseException as exc:
++            error = _error(exc, "VERIFY_SAVED_EVALUATION_COMPLETION")
++            evaluation = {"metrics_computed": False, "evidence_ceiling": "DIRECTION_ONLY"}
++    try:
++        for name in ("METRICS.json", "EVALUATION_RESULT_RECEIPT.json", "EVALUATION_FAILURE_EVIDENCE.json",
++                     "EVALUATION_WORKER_ERROR.json", "EVALUATION_MONITOR_ABORT.json"):
++            _, ref = _optional_json(common, output / name)
++            evidence.setdefault(name, ref)
++        _, ref = _optional_json(common, trace)
++        evidence.setdefault("resource_trace", ref)
++    except BaseException as exc:
++        error = _error(exc, "COLLECT_OPTIONAL_EVALUATION_EVIDENCE")
++        evidence["collection_error"] = error
++        evaluation, terminal_status = {"metrics_computed": False, "evidence_ceiling": "DIRECTION_ONLY"}, "CANNOT_CONFIRM"
++    monitor_summary = {key: value for key, value in (monitor_result if isinstance(monitor_result, dict) else {}).items()
++                       if key != "samples"}
++    run_receipt = {"schema": "F5_RFF_SAVED_EVAL_RUN_RECEIPT_V1", **identity, "status": terminal_status,
++        "observed_worker_accounting": observed, "truth_accounting": truth, "evaluation_metrics": evaluation,
++        "start_receipt_sha256": start_sha, "error": error, "evidence": evidence,
++        "resources": resources, "resource_observation": monitor_summary, "native_observation": native_observation,
++        "historical_guard_accounting_before": before_accounting,
++        "historical_candidate_debits": {"fit": 1, "predict": 1, "truth_decode": 1},
++        "real_fit_budget_debit": 0, "historical_candidate_mutation": False,
++        "safety": common.SAFETY, "evidence_ceiling": "DIRECTION_ONLY", "automatic_retry": False,
++        "recorded_at_utc": datetime.now(timezone.utc).isoformat()}
++    run_sha, run_receipt_error, artifact_collection_error = None, None, None
++    try:
++        run_sha = common.write_json_exclusive(output / "EVALUATION_RUN_RECEIPT.json", run_receipt)
++    except BaseException as exc:
++        # A receipt write is not allowed to bypass an already owed terminal.
++        # Preserve the observation in the terminal event; do not replace/retry
++        # a partially written or pre-existing receipt.
++        run_receipt_error = _error(exc, "WRITE_EVALUATION_RUN_RECEIPT")
++        error, terminal_status = run_receipt_error, "CANNOT_CONFIRM"
++        evaluation = {"metrics_computed": False, "evidence_ceiling": "DIRECTION_ONLY"}
++    try:
++        adapter.artifact_paths = list(dict.fromkeys([*adapter.artifact_paths,
++            *(p for p in output.iterdir() if p.is_file()), *([trace] if trace.is_file() else [])]))
++    except BaseException as exc:
++        artifact_collection_error = _error(exc, "COLLECT_TERMINAL_ARTIFACT_REFERENCES")
++        error, terminal_status = artifact_collection_error, "CANNOT_CONFIRM"
++        evaluation = {"metrics_computed": False, "evidence_ceiling": "DIRECTION_ONLY"}
++    event = {"event_type": "TERMINAL", **{key: getattr(claim, key) for key in
++        ("experiment_id", "execution_id", "arm", "contract_sha256", "input_binding_sha256")},
++        "execution_kind": "NO_FIT_ENGINEERING_CANARY", "planned_real_fit_count": 0, "real_fit_budget_debit": 0,
++        "terminal_status": terminal_status, "observed_worker_accounting": observed, "truth_accounting": truth,
++        "truth_access": "EVAL_LABELS_DECODED_AFTER_SAVED_PREDICTION_SEAL" if truth.get("evaluation_truth_decodes_completed") == 1
++                        else "NOT_READ_IN_THIS_EVALUATION" if truth.get("evaluation_truth_decode_attempts") == 0 else "CANNOT_CONFIRM",
++        "sealed_status": "EXPOSED_2024_POST_SEAL_EVALUATION",
++        "truth_positive_denominator": binding["evaluation_contract"]["known_positive_denominator"] if terminal_status == "COMPLETED" else None,
++        "selection_slots": binding["evaluation_contract"]["selection_slots"] if terminal_status == "COMPLETED" else None,
++        "evaluation_metrics": evaluation, "stop_reason": error["message"] if error else None,
++        **common.SAFETY, "promotion_now": False}
++    terminal_error = None
++    try:
++        adapter.terminalize(claim, event)
++    except BaseException as exc:
++        terminal_error = _error(exc, "OFFICIAL_TERMINAL_APPEND")
++    try:
++        after_raw, own = _readback(common, adapter, binding, input_binding_sha256, terminal_status=terminal_status)
++        after_accounting = asdict(guard.accounting())
++        if after_accounting["real_fit_budget_debit_count"] != before_accounting["real_fit_budget_debit_count"]:
++            raise RuntimeError("HISTORICAL_FIT_BUDGET_CHANGED")
++    except BaseException as exc:
++        common.write_json_exclusive(output / "TERMINALIZATION_BLOCKED.json", {
++            **identity, "status": "TERMINALIZATION_UNCONFIRMED", "terminal_append_error": terminal_error,
++            "readback_error": _error(exc, "TERMINAL_SINGLE_READBACK"), "run_receipt_sha256": run_sha,
++            "observed_worker_accounting": observed, "truth_accounting": truth,
++            "automatic_retry": False, "safety": common.SAFETY})
++        raise RuntimeError("TERMINALIZATION_UNCONFIRMED_NO_AUTOMATIC_RETRY") from exc
++    terminal_receipt = {"schema": "F5_RFF_SAVED_EVAL_TERMINAL_RECEIPT_V1", **identity, "status": terminal_status,
++        "start_event_sha256": own[0]["event_sha256"], "terminal_event_sha256": own[1]["event_sha256"],
++        "official_registry_sha256_after_terminal": common.sha256_bytes(after_raw),
++        "run_receipt_sha256": run_sha, "start_receipt_sha256": start_sha,
++        "run_receipt_error": run_receipt_error, "artifact_collection_error": artifact_collection_error,
++        "start_and_run_receipts_complete": start_sha is not None and run_sha is not None,
++        "terminal_append_raised_after_durable": terminal_error is not None, "terminal_append_error": terminal_error,
++        "historical_guard_accounting_after": after_accounting, "real_fit_budget_debit": 0,
++        "safety": common.SAFETY, "evidence_ceiling": "DIRECTION_ONLY", "automatic_retry": False}
++    common.write_json_exclusive(output / "EVALUATION_TERMINAL_RECEIPT.json", terminal_receipt)
++    return terminal_receipt
++
++
++def _check_monitor_backend(resource_tree, resources):
++    """Observe the real parent-only OS backend once before any RUN_STARTED."""
++    try:
++        rss, members, _known = resource_tree._tree_rss_bytes(os.getpid(), None, {})
++        if type(rss) is not int or rss <= 0 or members != [os.getpid()]:
++            raise ValueError("PARENT_RSS_SAMPLE_INVALID_OR_SCOPE_MISMATCH")
++        backend = "psutil" if resource_tree._load_psutil() is not None else "posix_ps"
++    except Exception as exc:
++        raise RuntimeError(f"MONITOR_BACKEND_PREFLIGHT_FAILED:{type(exc).__name__}:{exc}") from exc
++    cap = resources["aggregate_process_tree_rss_bytes_max"]
++    if rss > cap:
++        raise RuntimeError(f"RESOURCE_RSS_ALREADY_EXCEEDS_BOUND:{rss}:{cap}")
++    return {"scope": "CALLER_ONLY_BEFORE_RUN_STARTED", "backend": backend,
++        "aggregate_process_tree_rss_bytes": rss, "process_ids": list(members),
++        "sample_count": 1, "aggregate_process_tree_rss_bytes_max": cap,
++        "worker_spawned": False}
++
++
++@contextlib.contextmanager
++def _defer_sigint_during_abort(record):
++    """Finish one bounded cleanup despite a second user interrupt, then rethrow."""
++    previous = None
++    installed = False
++    record["sigint_deferred_during_cleanup"] = 0
++    def defer(signum, _frame):
++        record["sigint_deferred_during_cleanup"] += 1
++    try:
++        previous = signal.getsignal(signal.SIGINT)
++        signal.signal(signal.SIGINT, defer)
++        installed = True
++    except (ValueError, OSError) as exc:
++        # The production CLI runs on the main thread. A non-main-thread caller
++        # receives explicit evidence that Python could not defer its signals.
++        record["sigint_deferral_error"] = {"type": type(exc).__name__, "message": str(exc)}
++    record["sigint_deferral_installed"] = installed
++    try:
++        yield
++    finally:
++        if installed:
++            signal.signal(signal.SIGINT, previous)
++
++
++def _monitor_once(resource_tree, target, payload, **kwargs):
++    """Call the original monitor once and close its tree on unexpected failure."""
++    processes = []
++    known_processes = {}
++    original_mp = resource_tree.mp
++    original_sample = resource_tree._tree_rss_bytes
++
++    class ProcessProxy:
++        # The actual SpawnProcess is the object pickled by start(). Attaching a
++        # local start closure to that real object would break multiprocessing.
++        def __init__(self, process):
++            self.process = process
++            self.process_start_attempted = False
++            self.process_start_returned = False
++            self.popen_instances = []
++            self.popen_handle_recovered = False
++            self.popen_recovery_error = None
++            self.sigint_deferred_during_start = 0
++            self.start_sigint_guard_installed = False
++
++        def recover_existing_handle(self):
++            """Adopt only an observed Popen of this exact existing Process."""
++            if self.process._popen is not None:
++                return
++            launched = [popen for popen in self.popen_instances
++                        if type(getattr(popen, "pid", None)) is int and popen.pid > 0]
++            if len(launched) == 1:
++                popen = launched[0]
++                self.process._popen = popen
++                if type(getattr(popen, "sentinel", None)) is int:
++                    self.process._sentinel = popen.sentinel
++                # This is the already spawned child, registered for ordinary
++                # multiprocessing ownership, not a new Process or second start.
++                from multiprocessing import process as process_module
++                process_module._children.add(self.process)
++                self.popen_handle_recovered = True
++            elif len(launched) > 1:
++                self.popen_recovery_error = {
++                    "type": "AmbiguousPopenIdentity", "message": "MULTIPLE_OBSERVED_HANDLES_FOR_EXACT_PROCESS"}
++
++        def start(self):
++            from multiprocessing import popen_spawn_posix
++            original_init = popen_spawn_posix.Popen.__init__
++            previous_sigint = signal.getsignal(signal.SIGINT)
++
++            def defer_start_sigint(_signum, _frame):
++                self.sigint_deferred_during_start += 1
++
++            def observe_init(popen, process_obj):
++                # Observe before __init__: construction can itself raise after
++                # launching the OS child but before returning its Popen object.
++                if process_obj is self.process:
++                    self.popen_instances.append(popen)
++                return original_init(popen, process_obj)
++
++            # Fail before any actual start if this CLI cannot establish the
++            # short signal guard. A SIGINT return/assignment gap must not lose
++            # the only real child handle. The previous handler is always restored.
++            signal.signal(signal.SIGINT, defer_start_sigint)
++            self.start_sigint_guard_installed = True
++            try:
++                popen_spawn_posix.Popen.__init__ = observe_init
++                try:
++                    self.process_start_attempted = True
++                    try:
++                        result = self.process.start()
++                        self.process_start_returned = True
++                    except BaseException:
++                        try:
++                            self.recover_existing_handle()
++                        except BaseException as recovery_exc:
++                            self.popen_recovery_error = {
++                                "type": type(recovery_exc).__name__, "message": str(recovery_exc)}
++                        raise
++                finally:
++                    popen_spawn_posix.Popen.__init__ = original_init
++            finally:
++                signal.signal(signal.SIGINT, previous_sigint)
++            if self.sigint_deferred_during_start:
++                raise KeyboardInterrupt("SIGINT_DEFERRED_UNTIL_PROCESS_HANDLE_ASSIGNED")
++            return result
++
++        def __getattr__(self, name):
++            return getattr(self.process, name)
++
++    class ContextProxy:
++        def __init__(self, context):
++            self.context = context
++
++        def Process(self, *args, **process_kwargs):
++            process = ProcessProxy(self.context.Process(*args, **process_kwargs))
++            processes.append(process)
++            return process
++
++        def __getattr__(self, name):
++            return getattr(self.context, name)
++
++    class MultiprocessingProxy:
++        def get_context(self, *args, **context_kwargs):
++            return ContextProxy(original_mp.get_context(*args, **context_kwargs))
++
++        def __getattr__(self, name):
++            return getattr(original_mp, name)
++
++    def sampled_tree(*args, **sample_kwargs):
++        nonlocal known_processes
++        result = original_sample(*args, **sample_kwargs)
++        # Retain the latest live map, not historical PIDs that can be reused.
++        known_processes = dict(result[2])
++        return result
++
++    try:
++        resource_tree.mp = MultiprocessingProxy()
++        resource_tree._tree_rss_bytes = sampled_tree
++        try:
++            return resource_tree.run_spawn_monitored(target, payload, **kwargs)
++        finally:
++            resource_tree.mp = original_mp
++            resource_tree._tree_rss_bytes = original_sample
++    except BaseException as exc:
++        context = dict(kwargs.get("failure_context") or {})
++        abort = {**{key: value for key, value in context.items() if key != "source_files"},
++            "schema": "F5_RFF_SAVED_EVAL_MONITOR_ABORT_V1", "status": "MONITOR_ABORT",
++            "stage": "UNEXPECTED_MONITOR_EXCEPTION", "exception_type": type(exc).__name__,
++            "exception_message": str(exc), "traceback": traceback.format_exc(),
++            "target_descriptor": kwargs.get("target_descriptor"),
++            "resource_trace_path": str(Path(kwargs["resource_trace_path"]).resolve()),
++            "process_creation_count": len(processes), "workers": [],
++            "process_start_attempted_count": sum(process.process_start_attempted for process in processes),
++            "process_start_returned_count": sum(process.process_start_returned for process in processes),
++            "automatic_retry": False, "worker_restarted": False}
++        # The primary exception remains the one raised by the original monitor.
++        # A failed evidence write must not erase the only cleanup observation.
++        exc.rff_monitor_abort = abort
++        with _defer_sigint_during_abort(abort):
++            for process in processes:
++                worker = {"pid": None, "exit_code": None, "process_state": "CANNOT_CONFIRM",
++                    "process_start_attempted": process.process_start_attempted,
++                    "process_start_returned": process.process_start_returned,
++                    "popen_instances_observed": len(process.popen_instances),
++                    "popen_handle_recovered": process.popen_handle_recovered,
++                    "popen_recovery_error": process.popen_recovery_error,
++                    "start_sigint_guard_installed": process.start_sigint_guard_installed,
++                    "sigint_deferred_during_start": process.sigint_deferred_during_start,
++                    "cleanup_attempted": False, "termination": None, "cleanup_error": None}
++                abort["workers"].append(worker)
++                try:
++                    worker["pid"] = process.pid
++                    if process.pid is None:
++                        # _Popen can launch before BaseProcess assigns its
++                        # handle. A failed start() with pid=None is not proof
++                        # of zero execution or a clean process tree.
++                        worker["process_state"] = ("START_ATTEMPTED_PID_UNAVAILABLE"
++                            if process.process_start_attempted else "PROCESS_NOT_STARTED")
++                        continue
++                    worker["cleanup_attempted"] = True
++                    try:
++                        worker["termination"] = resource_tree._safe_terminate_descendants(
++                            process, dict(known_processes))
++                    except BaseException as cleanup_exc:
++                        worker["cleanup_error"] = {
++                            "type": type(cleanup_exc).__name__, "message": str(cleanup_exc)}
++                    worker["exit_code"] = process.exitcode
++                    worker["worker_alive_after_cleanup"] = process.is_alive()
++                    if ((worker["termination"] or {}).get("confirmed") is True
++                            and type(worker["exit_code"]) is int
++                            and worker["worker_alive_after_cleanup"] is False):
++                        worker["process_state"] = "EXIT_CONFIRMED_AFTER_ABORT_CLEANUP"
++                    # A joined handle is closed once; no extra terminate call.
++                    if type(worker["exit_code"]) is int:
++                        process.close()
++                except BaseException as observation_exc:
++                    worker["observation_error"] = {
++                        "type": type(observation_exc).__name__, "message": str(observation_exc)}
++            states = [row["process_state"] for row in abort["workers"]]
++            never_started = all(state == "PROCESS_NOT_STARTED" for state in states)
++            abort["process_tree_termination_confirmed"] = all(
++                state in {"PROCESS_NOT_STARTED", "EXIT_CONFIRMED_AFTER_ABORT_CLEANUP"} for state in states)
++            abort["exit_code_state"] = ("PROCESS_NOT_STARTED" if never_started else
++                "JOINED_AFTER_ABORT_CLEANUP" if abort["process_tree_termination_confirmed"] else "CANNOT_CONFIRM")
++            source_files = dict(context.get("source_files") or {})
++            monitor_path = Path(resource_tree.__file__).resolve()
++            try:
++                monitor_sha = resource_tree._sha256_file(monitor_path)
++            except BaseException as source_exc:
++                monitor_sha = None
++                abort["monitor_source_observation_error"] = {
++                    "type": type(source_exc).__name__, "message": str(source_exc)}
++            source_files.setdefault("resource_tree", {"path": str(monitor_path), "sha256": monitor_sha})
++            abort["source_files"] = source_files
++            failure_path = kwargs.get("failure_evidence_path")
++            if failure_path is not None:
++                abort_path = Path(failure_path).with_name("EVALUATION_MONITOR_ABORT.json")
++                abort["abort_evidence_path"] = str(abort_path.resolve())
++                try:
++                    resource_tree.write_failure_evidence_atomic(abort_path, abort)
++                except BaseException as write_exc:
++                    abort["abort_evidence_write_error"] = {
++                        "type": type(write_exc).__name__, "message": str(write_exc)}
++                    exc.add_note(f"MONITOR_ABORT_EVIDENCE_WRITE_FAILED:{type(write_exc).__name__}:{write_exc}")
++        raise
++
++
++def _run_real(spec_path, binding_path):
++    common = _common()
++    spec, binding, spec_raw, binding_raw = common.load_documents(Path(spec_path), Path(binding_path))
++    authorizations = common.verify_review_release(binding, spec_raw, binding_raw)
++    if binding["resources"]["cpu_threads"] != 4:
++        raise RuntimeError("PACKAGED_MONITOR_THREAD_PROFILE_UNSUPPORTED_REQUIRES_EXPLICIT_4")
++    with _fresh_source_imports():
++        native = common.load_bound_module(binding["executable_helpers"]["native_runtime"], "_rff_saved_native_runtime")
++        native_reference = common.json_object(common.checked_read(binding["metadata_files"]["native_reference"]), name="native_reference")
++        native_spec = native.native_spec_from_contract(native_reference)
++        native_observation = native.validate_native_files(native_spec, require_macos=True)
++        guard_module = common.load_bound_module(binding["official_helpers"]["execution_guard"], "execution_guard_core")
++        adapter_module = common.load_bound_module(binding["official_helpers"]["registry_adapter"], "_rff_saved_registry_adapter")
++        registration = common.load_bound_module(binding["code_files"]["rff_saved_eval_registration"], "_rff_saved_registration")
++        adapter_class = registration.build_official_adapter_class(adapter_module, binding=binding,
++            run_spec_path=Path(spec_path), input_binding_path=Path(binding_path),
++            run_spec_sha256=common.sha256_bytes(spec_raw), input_binding_sha256=common.sha256_bytes(binding_raw))
++        artifact_paths = [Path(ref["path"]) for category in
++            ("code_files", "executable_helpers", "official_helpers", "metadata_files") for ref in binding[category].values()]
++        artifact_paths += [Path(ref["path"]) for ref in authorizations.values()]
++        adapter = adapter_class(registry_path=Path(binding["official_registry_path"]),
++            contract_path=Path(spec_path), input_binding_path=Path(binding_path), artifact_paths=artifact_paths,
++            builder_path=Path(binding["official_helpers"]["builder"]["path"]),
++            validator_path=Path(binding["official_helpers"]["validator"]["path"]),
++            event_profile=registration.event_profile(binding))
++        adapter.authorization_records = authorizations
++        guard = guard_module.ExecutionGuard(adapter, experiment_id=binding["route_id"], max_real_fit_debits=1)
++        # multiprocessing spawn must be able to re-import the original module
++        # by its actual filename. The fresh pycache directory is inherited.
++        monitor_record = binding["executable_helpers"]["resource_tree"]
++        monitor_directory = str(Path(monitor_record["path"]).parent)
++        if monitor_directory not in sys.path:
++            sys.path.insert(0, monitor_directory)
++        resource_tree = common.load_bound_module(monitor_record, "resource_tree")
++        native_observation["resource_backend_preflight"] = _check_monitor_backend(resource_tree, binding["resources"])
++        return _execute_bound(binding=binding, input_binding_sha256=common.sha256_bytes(binding_raw),
++            adapter=adapter, guard=guard, guard_module=guard_module, native_spec=native_spec,
++            native_observation=native_observation,
++            monitor=lambda target, payload, **kwargs: _monitor_once(resource_tree, target, payload, **kwargs))
++
++
++def main(argv=None):
++    parser = argparse.ArgumentParser(description=__doc__)
++    commands = parser.add_subparsers(dest="command", required=True)
++    prepare = commands.add_parser("prepare", help="metadata only; create unsigned spec/binding, no evaluation")
++    prepare.add_argument("--config", required=True)
++    run = commands.add_parser("run", help="native Mac controller release required; one saved evaluation")
++    run.add_argument("--run-spec", required=True)
++    run.add_argument("--input-binding", required=True)
++    args = parser.parse_args(argv)
++    common = _common()
++    try:
++        if args.command == "prepare":
++            config = common.json_object(Path(args.config).read_bytes(), name="prepare_config")
++            result = common.prepare(config)
++        else:
++            result = _run_real(args.run_spec, args.input_binding)
++        print(json.dumps(result, ensure_ascii=False, sort_keys=True, allow_nan=False))
++        return 0 if result.get("status") in {"COMPLETED", "PREPARED_UNSIGNED_REQUIRES_LOCAL_REVIEW_AND_PARENT_RELEASE"} else 1
++    except Exception as exc:
++        print(json.dumps({"status": "CANNOT_CONFIRM", "error_type": type(exc).__name__, "error": str(exc),
++                          "automatic_retry": False, "safety": common.SAFETY}, ensure_ascii=False), file=sys.stderr)
++        return 2
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())

@@ -1,0 +1,243 @@
+{
+  "schema": "F5_RFF_SAVED_EVAL_RECOVERY_ISSUE_V1",
+  "status": "BLOCKED_DIRECT_SAVED_EVAL_REUSE",
+  "created_at_utc": "2026-10-09T00:57:15Z",
+  "route_id": "F5_FULL64_RFF_LOGISTIC_R1_20260927",
+  "candidate_execution_id": "F5_FULL64_RFF_LOGISTIC_R1_20260927_RESUME_20260928_01",
+  "research_boundary": {
+    "evidence_ceiling": "DIRECTION_ONLY",
+    "sealed_truth_status": "EXPOSED_2024_AFTER_CANDIDATE_PREDICTION_SEAL",
+    "existing_candidate_calls": {
+      "fit": 1,
+      "candidate_predict": 1,
+      "truth_decode": 1,
+      "evaluation_completed": false
+    },
+    "existing_failure": "CANDIDATE_TRUTH_JOIN_DOMAIN_MISMATCH",
+    "candidate_result_sha256": null,
+    "metrics_sha256": null,
+    "completion_receipt_exists": false
+  },
+  "frozen_contract": {
+    "path": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/contracts/EXPERIMENT_CONTRACT.json",
+    "sha256": "e6c1509955730a032d183563d6ffcf2501a587dd5734426f35fc59b222491135",
+    "development_primary": "paired lower candidate-minus-frozen-PLUS > 0",
+    "practical_base34": "paired lower candidate-minus-frozen-BASE34 >= 0.03",
+    "promotion_now": false,
+    "candidate_metrics_or_thresholds_changed": false
+  },
+  "candidate_identity": {
+    "input_binding_path": "handoffs/F5_RFF_R3_DEPENDENCY_PREFLIGHT_REPAIR_LOCAL_20260928/staging/true_r3_candidate_01/CANDIDATE_INPUT_BINDING_NATIVE_ADAPTATION_R3_REBOUND.json",
+    "input_binding_schema": "F5_FULL64_XENDCG_CANDIDATE_INPUT_BINDING_R5_V1",
+    "input_binding_sha256": "efe96e1d1046d074f545d7d53501d7281d2fad2e24b0a8f9f1ad9199f06f44d7",
+    "run_spec_path": "handoffs/F5_RFF_R3_DEPENDENCY_PREFLIGHT_REPAIR_LOCAL_20260928/staging/true_r3_candidate_01/CANDIDATE_RUN_SPEC_NATIVE_ADAPTATION_R3_REBOUND.json",
+    "run_spec_sha256": "ec28511f6e2d8567635ed0d7bd5d0a92805e7310e08f944bd1e854a5b99ab3fc",
+    "output_root": "handoffs/F5_RFF_RESUME_EXECUTION_20260928/execution/F5_FULL64_RFF_LOGISTIC_R1_20260927_RESUME_20260928_01/candidate_output",
+    "prediction_seal": {
+      "path": "handoffs/F5_RFF_RESUME_EXECUTION_20260928/execution/F5_FULL64_RFF_LOGISTIC_R1_20260927_RESUME_20260928_01/candidate_output/PREDICTION_SEALED_BEFORE_EVAL_TRUTH_READ.json",
+      "sha256": "4fc18f9ae2cd47d3a1a23adaadd2ddcc5db9aa97b60a1758d78f2b497cdc8bfa",
+      "status": "PREDICTION_FROZEN_BEFORE_EVALUATION_TRUTH_READ",
+      "grid_rows": 169986,
+      "scoreable_rows": 120084,
+      "sessions": 246,
+      "predict_calls": 1,
+      "score_rows_read": false
+    },
+    "saved_artifacts_metadata_only": {
+      "scores_path": "handoffs/F5_RFF_RESUME_EXECUTION_20260928/execution/F5_FULL64_RFF_LOGISTIC_R1_20260927_RESUME_20260928_01/candidate_output/CANDIDATE_SCORES.csv.gz",
+      "scores_sha256": "3b87a52e5b2d2df88e3091a2c8e3b5262f809bf6323363a31047223f91bdc006",
+      "top3_path": "handoffs/F5_RFF_RESUME_EXECUTION_20260928/execution/F5_FULL64_RFF_LOGISTIC_R1_20260927_RESUME_20260928_01/candidate_output/CANDIDATE_TOP3.csv.gz",
+      "top3_sha256": "273504cc6152dedf2f6f88ae6fb6af5598af84340b2e954241d7b6ff6f63a78e",
+      "artifact_bytes_opened": false
+    },
+    "evaluation_scope": {
+      "grid_rows": 169986,
+      "scoreable_rows": 120084,
+      "sessions": 246,
+      "selection_slots": 738,
+      "known_positive_denominator": 126,
+      "shared_score_aware_metrics_path": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/src/score_aware_metrics.py",
+      "shared_score_aware_metrics_sha256": "fc93d6225c75b633981508a18c428e7649122571c7d897264d0b7da1e591eb8c",
+      "scope_match_is_static_metadata_only": true
+    },
+    "control_artifact_hashes": {
+      "FROZEN_BASE34_scores": "b3c1e4dec4f98f84aad466291bb9968aaa1bdc5993892166c0693f54e956edcd",
+      "FROZEN_BASE34_top3": "182f95feab6ac840c03cb63772e10f918aa1ea5b82c34b36036dd2aded25da40",
+      "FROZEN_UNWEIGHTED_PLUS_PATH_scores": "5e0335ce334b4deda2f88705cde6601adf62c6c0e24a0bdb826d2858001a99cc",
+      "FROZEN_UNWEIGHTED_PLUS_PATH_top3": "c3efc891e6d4432e0d97d64d38500bd61d2ff5fef853d7aa0cd005f5af3a625b",
+      "control_bytes_opened": false
+    }
+  },
+  "first_blocker": {
+    "summary": "No RFF route-scoped zero-fit saved-evaluation entry exists; the only RFF CLI invokes the complete candidate owner/worker. The frozen XENDCG R2 runner accepts only XENDCG saved-evaluation schema, route, and execution identities.",
+    "rff_candidate_entry": {
+      "path": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/src/rff_candidate_entry.py",
+      "sha256": "ce8476ab930a0789079757250a71060d48b813344bdc6b4f156f791f39556e8e",
+      "relevant_lines": [
+        1022,
+        1052
+      ]
+    },
+    "rff_worker": {
+      "path": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/src/rff_worker.py",
+      "sha256": "cecff1218a60c3c67405168b742f40ba76286efbd2435d8f31703375c640619d",
+      "relevant_lines": [
+        349,
+        370,
+        382,
+        390
+      ]
+    },
+    "rff_completion_only": {
+      "path": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/src/rff_evaluation_completion.py",
+      "sha256": "f740a102c06a8ddd5199ae002ec4e329d8e77d5a9aefa70f6eeec613407ee352",
+      "relevant_line": 489
+    },
+    "xendcg_r2_runner": {
+      "path": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/candidate_01/evaluation_recovery_02/src/run_saved_evaluation_r2.py",
+      "current_sha256": "25d91cdcf2737f73a074ac87edf6492b2a81f5aeebdcb74f04ceadf19ae3a5aa",
+      "run_spec_path": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/candidate_01/evaluation_recovery_02/contracts/RUN_SPEC_R2.json",
+      "run_spec_sha256": "ce961bf0ead34871eb039c7e1c9e8a1cde654943fdfc431935e612052c306a53",
+      "input_binding_path": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/candidate_01/evaluation_recovery_02/contracts/INPUT_BINDING_R2.json",
+      "input_binding_sha256": "7c7d74780879030059fd546593e758769f3ce8f5f68df3d04656cdb19db9912c",
+      "accepted_route_id": "F5_FULL64_XENDCG_R1_20260924",
+      "accepted_execution_id": "F5_FULL64_XENDCG_R1_20260924_SAVED_EVAL_R2_01",
+      "relevant_lines": [
+        149,
+        156,
+        160,
+        176
+      ],
+      "rff_binding_direct_failure": "R2_CONTRACT_SCHEMA_MISMATCH; a new R2-schema RFF contract would then fail the hardcoded route/execution checks"
+    },
+    "saved_evaluation_entry": {
+      "path": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/candidate_01/evaluation_recovery_02/src/saved_evaluation_entry.py",
+      "current_sha256": "ce631a11b764a15cf6dfb4a0427b905de4126e36c68368d079242a33f13c2a99",
+      "relevant_lines": [
+        291,
+        310,
+        320
+      ]
+    },
+    "current_r2_code_binding_mismatches": [
+      {
+        "path": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/candidate_01/evaluation_recovery_02/src/run_saved_evaluation_r2.py",
+        "frozen_expected_sha256": "15210893c66e639d0aea28ab352462d879152688865fa3ccc3972c1b9a6ddcd6",
+        "current_sha256": "25d91cdcf2737f73a074ac87edf6492b2a81f5aeebdcb74f04ceadf19ae3a5aa"
+      },
+      {
+        "path": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/candidate_01/evaluation_recovery_02/src/saved_evaluation_entry.py",
+        "frozen_expected_sha256": "c8e604ceb4155f111006418d522c80c1d7a03d467cdb00761cb61690465b941e",
+        "current_sha256": "ce631a11b764a15cf6dfb4a0427b905de4126e36c68368d079242a33f13c2a99"
+      },
+      {
+        "path": "research/hk_burst_f5/batches/meta2023_baseplus64_r1_20260923/src/resource_tree.py",
+        "frozen_expected_sha256": "8b13418ea44416a14bdf03e65dd79abee0872c95254e80cc28ca16dbc9f77190",
+        "current_sha256": "9d0792a8e582d0345c83ddaf83a15612a5629b5f0460833b4715068324ff2752"
+      }
+    ],
+    "identity_drift_scope": "At least these three files differ from the R2 input-binding manifest; no drift cause was investigated."
+  },
+  "minimum_route_scoped_repair": [
+    "Create one RFF-specific saved-evaluation RUN_SPEC and INPUT_BINDING, with a new evaluation execution ID and the existing RFF candidate execution as candidate_execution_id.",
+    "Reuse the existing saved-evaluation lifecycle and score-aware helpers, and bind the exact PR5 accepted RFF helper SHA 3ea10757a81207147e5cfb9e68e69750a0579786153e7ce58ccf342a3184058c, the RFF frozen contract, saved prediction seal, score/Top3 paths and SHA, unchanged controls, route event prefix, official adapter/guard, and fresh output/trace roots with actual Mac resource bounds.",
+    "Keep fit, candidate predict, control fit/predict, calibrator fit, and model load at zero. Preserve the old failed candidate execution and its binding unchanged; reuse the accepted helper exactly and do not create or re-approve a second join rule. The historical failure row/key remains CANNOT_CONFIRM.",
+    "Do not alter candidate artifacts, thresholds, controls, route policy, or prior registry events. Do not retry automatically."
+  ],
+  "future_execution_plan": {
+    "new_execution_id": null,
+    "new_execution_id_reason": "Must be chosen and frozen in the route-scoped reviewed RUN_SPEC; no new identity was invented in this blocker package.",
+    "route_id": "F5_FULL64_RFF_LOGISTIC_R1_20260927",
+    "candidate_execution_id": "F5_FULL64_RFF_LOGISTIC_R1_20260927_RESUME_20260928_01",
+    "expected_events": [
+      "RUN_STARTED",
+      "TERMINAL"
+    ],
+    "fit_predict_model_load_calls": 0,
+    "control_fit_predict_calls": 0,
+    "calibrator_fit_calls": 0,
+    "evaluation_truth_decode": 1,
+    "automatic_retry": false,
+    "executable_command": null,
+    "executable_command_reason": "No RFF-scoped saved-evaluation entry, identity binding, or parent release is frozen.",
+    "required_accepted_join_helper_sha256": "3ea10757a81207147e5cfb9e68e69750a0579786153e7ce58ccf342a3184058c",
+    "candidate_execution_mutation": false
+  },
+  "acceptance": [
+    "Independent Reviewer inspects the actual route-scoped saved-evaluation code and bindings, verifies the exact accepted PR5 helper SHA plus candidate/control/helper identity and zero-count contract, and returns REVIEWED plus BEHAVIOR_VERIFIED for that new saved-evaluation path.",
+    "Before truth read, verify the new evaluation execution has a unique durable RUN_STARTED and exact immutable candidate/controls/helper SHA binding.",
+    "Verify no fit, candidate/control predict, calibrator fit, or model load; verify output/trace roots are fresh and separate from candidate output; automatic retries remain false.",
+    "Bind and reuse the accepted helper exactly; do not re-open the accepted synthetic join tests or create a second rule. Preserve CANNOT_CONFIRM for the historical real row/key details and stop if any candidate, controls, helper, or identity binding differs.",
+    "Verify one terminal event, complete receipt chain, counts, metrics SHA, and maximum evidence status DIRECTION_ONLY."
+  ],
+  "cannot_confirm": [
+    "The real row/key that triggered the historical CANDIDATE_TRUTH_JOIN_DOMAIN_MISMATCH and the accepted helper's behavior on those original rows; no score or truth rows were opened.",
+    "Exact score/Top3 schema and key-order parity with the XENDCG evaluation worker; no score or Top3 rows were read.",
+    "An executable RFF saved-evaluation command or frozen RFF evaluation execution identity.",
+    "Full-worker/L04 behavior for the accepted PR5 helper and its result on the historical real failure execution.",
+    "External or Git persistence of the local registry."
+  ],
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "no_reads_or_runs": {
+    "score_rows_read": false,
+    "top3_rows_read": false,
+    "truth_rows_read_in_this_batch": false,
+    "model_loaded": false,
+    "fit_started": false,
+    "predict_started": false,
+    "research_preflight_run": false,
+    "registry_mutated": false,
+    "tests_run": false
+  },
+  "code_attachment": {
+    "path": "CODE_ATTACHMENTS.zip",
+    "sha256": "878e4432cd536ea96835b1b073916f71afaebee10f21239d801a0bb5d071bd64",
+    "member_count": 19,
+    "contains_market_or_score_data": false,
+    "contains_review_receipt": true
+  },
+  "accepted_pr5_truth_join": {
+    "repository": "lexi2016/v4",
+    "pull_request": 5,
+    "head_sha": "66a57bead52a20845e1d2af6035c7f19f0b04ed7",
+    "accepted_worker": {
+      "archive_member": "CODE_ATTACHMENTS.zip:rff/pr5_accepted/src/rff_worker.py",
+      "sha256": "3ea10757a81207147e5cfb9e68e69750a0579786153e7ce58ccf342a3184058c",
+      "historical_pre_pr5_worker_sha256": "cecff1218a60c3c67405168b742f40ba76286efbd2435d8f31703375c640619d",
+      "immutable_github_permalink": "https://github.com/lexi2016/v4/blob/66a57bead52a20845e1d2af6035c7f19f0b04ed7/research/f5-rff-r3/research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/src/rff_worker.py",
+      "relevant_lines": [
+        80,
+        100,
+        108
+      ]
+    },
+    "accepted_test": {
+      "archive_member": "CODE_ATTACHMENTS.zip:rff/pr5_accepted/tests/test_rff_truth_join.py",
+      "sha256": "c19f32aee9aae82919e49583ec041da97852ce5520918810ab1e14e3446980ad",
+      "immutable_github_permalink": "https://github.com/lexi2016/v4/blob/66a57bead52a20845e1d2af6035c7f19f0b04ed7/research/f5-rff-r3/research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/tests/test_rff_truth_join.py",
+      "relevant_lines": [
+        77,
+        101
+      ]
+    },
+    "independent_mac_receipt": {
+      "archive_member": "CODE_ATTACHMENTS.zip:rff/pr5_accepted/review/INDEPENDENT_MAC_REVIEW_RECEIPT.json",
+      "sha256": "28f5cac31469a488987bffba4a799ba73910392bff36e74403dcfd42edd20630",
+      "status": "PASS_SCOPED_MAC_SYNTHETIC_ACCEPTANCE",
+      "tests": 29,
+      "passed": 29,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "behavior_verified_scope": "29 synthetic cases only; full-worker and L04 remain CANNOT_CONFIRM"
+    },
+    "saved_eval_requirement": "A future route-scoped zero-fit saved-evaluation binding must bind/reuse this exact accepted helper SHA. Do not create a second join rule or mutate the old candidate execution/binding.",
+    "historical_failure_keys": "CANNOT_CONFIRM"
+  },
+  "prior_pr5_evidence_rerun_this_package_patch": false
+}

@@ -1,0 +1,95 @@
+{
+  "schema": "F5_RFF_PR5_FIXTURE_MAC_INDEPENDENT_REVIEW_V1",
+  "reviewer": {
+    "agent_id": "/root/r3_metadata_review",
+    "role": "independent read-only reviewer",
+    "model": "gpt-6-luna",
+    "reasoning_effort": "max"
+  },
+  "reviewed_at_local": "2026-10-09T08:35:49.853172+08:00",
+  "target": {
+    "repository": "lexi2016/v4",
+    "pull_request": 5,
+    "head_sha": "66a57bead52a20845e1d2af6035c7f19f0b04ed7",
+    "test_file": "research/f5-rff-r3/research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/tests/test_rff_truth_join.py"
+  },
+  "verdict": "PASS_SCOPED_MAC_SYNTHETIC_ACCEPTANCE",
+  "statuses": {
+    "reviewed": "REVIEWED",
+    "behavior_verified": "BEHAVIOR_VERIFIED_SCOPED_29_SYNTHETIC_CASES",
+    "full_worker_or_l04": "CANNOT_CONFIRM"
+  },
+  "diff_check": {
+    "test_sha256": "c19f32aee9aae82919e49583ec041da97852ce5520918810ab1e14e3446980ad",
+    "expected_test_sha256": "c19f32aee9aae82919e49583ec041da97852ce5520918810ab1e14e3446980ad",
+    "line_delta": {
+      "added": 7,
+      "removed": 3
+    },
+    "assertions_removed": false,
+    "change_summary": "module-scoped metric_modules fixture; replace whole-sys.modules patch.dict restore with pytest.MonkeyPatch setting/restoring only the two synthetic entries, preserving imported native dependency modules",
+    "worker_sha256": "3ea10757a81207147e5cfb9e68e69750a0579786153e7ce58ccf342a3184058c",
+    "expected_worker_sha256": "3ea10757a81207147e5cfb9e68e69750a0579786153e7ce58ccf342a3184058c",
+    "worker_unchanged": true
+  },
+  "fixture_paths_verified": [
+    "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_PR5_FIXTURE_MAC_ACCEPTANCE_20261009/pr_head/research/f5-rff-r3/research/hk_burst_f5/batches/full64_xendcg_r1_20260924/candidate_01/src/candidate_worker.py",
+    "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_PR5_FIXTURE_MAC_ACCEPTANCE_20261009/pr_head/research/f5-rff-r3/research/hk_burst_f5/batches/full64_xendcg_r1_20260924/src/score_aware_metrics.py",
+    "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_PR5_FIXTURE_MAC_ACCEPTANCE_20261009/pr_head/research/f5-rff-r3/external_frozen_evaluator/metrics.py"
+  ],
+  "test_run": {
+    "command_record": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_PR5_FIXTURE_MAC_ACCEPTANCE_20261009/review/mac_pytest_29_fixture_fix_20261009T083523/COMMAND.json",
+    "runtime": "macOS; bound Python 3.12.13 venv; pytest 9.1.1",
+    "exit_code": 0,
+    "summary": {
+      "tests": 29,
+      "passed": 29,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "duration_seconds": 2.745
+    },
+    "artifacts": {
+      "stdout.log": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_PR5_FIXTURE_MAC_ACCEPTANCE_20261009/review/mac_pytest_29_fixture_fix_20261009T083523/stdout.log",
+        "sha256": "2b59a0d3e0b0bd1b847360ee594751354e04e0aef67d68567e0d3ccab4512503",
+        "bytes": 5731
+      },
+      "stderr.log": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_PR5_FIXTURE_MAC_ACCEPTANCE_20261009/review/mac_pytest_29_fixture_fix_20261009T083523/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "junit.xml": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_PR5_FIXTURE_MAC_ACCEPTANCE_20261009/review/mac_pytest_29_fixture_fix_20261009T083523/junit.xml",
+        "sha256": "87505a8885dde34805ce31cb47f4d5e656ff0288dacd753ed263dc897508d18c",
+        "bytes": 6112
+      },
+      "COMMAND.json": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_PR5_FIXTURE_MAC_ACCEPTANCE_20261009/review/mac_pytest_29_fixture_fix_20261009T083523/COMMAND.json",
+        "sha256": "60882b128169bd8a628ba863529888286a10c542b0eae3de2edfb260404bd456",
+        "bytes": 969
+      },
+      "EXIT.json": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/handoffs/F5_RFF_PR5_FIXTURE_MAC_ACCEPTANCE_20261009/review/mac_pytest_29_fixture_fix_20261009T083523/EXIT.json",
+        "sha256": "214c7a0ba3077525704427f937caa7046a2dd051b925d02755b0f918beae71c5",
+        "bytes": 868
+      }
+    }
+  },
+  "findings": [],
+  "authorization_boundary": {
+    "real_inputs_or_truth_read": false,
+    "fit": false,
+    "predict": false,
+    "real_evaluation": false,
+    "recovery": false,
+    "registry_written": false,
+    "business_sources_or_bindings_modified": false,
+    "github_mutated_or_merged": false
+  },
+  "limitations": [
+    "This PASS covers only the synthetic 29-case truth-join test file on the bound Mac environment.",
+    "No real worker execution or L04 acceptance is claimed."
+  ]
+}

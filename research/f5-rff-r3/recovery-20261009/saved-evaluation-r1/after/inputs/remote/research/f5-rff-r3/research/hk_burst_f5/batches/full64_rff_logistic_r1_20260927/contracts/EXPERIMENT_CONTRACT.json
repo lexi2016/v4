@@ -1,0 +1,94 @@
+{
+  "schema": "F5_FULL64_RFF_LOGISTIC_CONTRACT_V1",
+  "route_id": "F5_FULL64_RFF_LOGISTIC_R1_20260927",
+  "baseline_id": "F5_FULL64_ORIGINAL_PLUS_PATH_BINARY_2024",
+  "status": "FROZEN_BEFORE_SOURCE_IMPLEMENTATION",
+  "goal": "Test one RFF RBF logistic classifier on the original frozen 2018-2023 training rows and the full exposed 2024 evaluation fold.",
+  "hypothesis": "A fixed 256-dimensional RBF random-feature map with equal-weight L2 logistic classification may improve the frozen 2024 Top3 ranking while retaining the original data, row order, candidate pool, controls, labels, and evaluation helpers.",
+  "one_variable": "Replace the original XENDCG learner with train-only mean imputation/standardization, fixed RFF-RBF(256,gamma=1/64,seed=42), and equal-weight L2 logistic regression C=1.",
+  "input_identity": {
+    "parent_training_plan_path": "/Users/lexi/Desktop/学习/因子工厂/research/hk_burst_f5/batches/full64_xendcg_r1_20260924/input_refs/plan_package/TRAINING_PLAN.json",
+    "parent_training_plan_sha256": "fd94cc4952efaed5341abe858da20a01118cb7adbdd4b7492826f321c7bf37fc",
+    "training_rows": 539631,
+    "features": 64,
+    "positive_rows": 899,
+    "evaluation_grid_G": 169986,
+    "scoreable_rows_S": 120084,
+    "sessions": 246,
+    "selection_slots": 738,
+    "confirmed_new_episode_denominator": 126,
+    "feature_set_and_order": "exactly the original frozen 64-column FULL64 order",
+    "training_fold": "original 2018-2023 eligible/mature/purged rows, all rows retained",
+    "evaluation_fold": "full exposed 2024 grid, original Top3 helper, 246 sessions and 738 slots",
+    "controls": ["FROZEN_UNWEIGHTED_PLUS_PATH", "FROZEN_BASE34"]
+  },
+  "preprocessing": {
+    "fit_rows": "training fold only",
+    "missing_value_rule": "per-feature train mean; all-NaN train feature mean is 0; then standardize",
+    "standardization": "train-only population mean/std; zero or non-finite std becomes 1; evaluation uses frozen train statistics",
+    "infinity": "reject before fit or prediction",
+    "feature_order_or_row_filter_change": false
+  },
+  "random_fourier_features": {
+    "kernel": "RBF",
+    "dimension": 256,
+    "gamma": 0.015625,
+    "seed": 42,
+    "rng": "numpy.random.RandomState(42)",
+    "draw_order": "normal projection W [64,256] with scale sqrt(2*gamma), then uniform phase b [256] in [0,2*pi)",
+    "map": "sqrt(2/256) * cos(X_standardized @ W + b)",
+    "dtype": "float64",
+    "chunking": "fixed 4096-row transform chunks; one preallocated training RFF matrix; evaluation projected in chunks after the training matrix is released"
+  },
+  "learner": {
+    "family": "binary logistic regression",
+    "objective": "mean(binary cross-entropy) + ||w||^2/(2*C*n); intercept is unpenalized",
+    "C": 1.0,
+    "sample_weights": "all ones; no class, episode, day, or control weights",
+    "optimizer": "SciPy L-BFGS-B with analytic gradient",
+    "options": {
+      "ftol": 2.220446049250313e-9,
+      "gtol": 1e-5,
+      "maxiter": 200,
+      "maxfun": 5000,
+      "maxls": 20,
+      "maxcor": 10
+    },
+    "fit_budget": 1,
+    "failed_fit_consumes_budget": true,
+    "nonconvergence": "STOP_OPTIMIZER_NOT_CONVERGED; record full OptimizeResult; no changed options, retry, or evaluation",
+    "max_call_counts": {"candidate_fit": 1, "candidate_full_S_predict": 1, "control_fit": 0, "control_predict": 0, "calibrator_fit": 0, "evaluation_truth_decode": 1},
+    "record_full_optimizer_result": true
+  },
+  "prediction_and_evaluation": {
+    "prediction": "one public full-S call; internal fixed transform chunks do not create extra model-predict calls",
+    "ranking_score": "raw logistic decision margin; original raw-ranking-score AP/Top3 path",
+    "event_probability": "sigmoid(raw margin) emitted by the fitted logistic classifier; no separate calibrator",
+    "save_predictions_before_truth": true,
+    "evaluator": "original accepted score-aware and episode metric helpers; original PLUS and BASE34 controls unchanged",
+    "selection_slots_denominator": 738,
+    "truth_positive_denominator": 126,
+    "decision_scope": "exposed-2024-development only; max DIRECTION_ONLY"
+  },
+  "decision_gates": {
+    "development_primary": {"metric": "paired lower candidate-minus-frozen-PLUS", "operator": ">", "value": 0.0},
+    "practical_base34": {"metric": "paired lower candidate-minus-frozen-BASE34", "operator": ">=", "value": 0.03},
+    "original_promotion_gates_unchanged": {
+      "paired_precision_lower_gain": 0.03,
+      "relative_precision_lower_ratio": 1.25,
+      "random_lift_lower": 2.0,
+      "positive_years_min": 2,
+      "selected_unknown_fraction_max": 0.05,
+      "empty_slots_max": 0,
+      "episode_coverage_gain_min": 0.0,
+      "ap_known_gain_min": 0.0,
+      "brier_known_gain_max": 0.0,
+      "promotion_now": false,
+      "single_exposed_year_blocks_promotion": true
+    },
+    "never_infer_breakthrough_from_primary_alone": true
+  },
+  "resources": {"cpu_threads": 4, "aggregate_process_tree_rss_bytes_max": 3221225472, "wall_seconds_max": 1800, "monitor": "existing sampled resource monitor; sampling is not a hard peak guarantee"},
+  "safety": {"research_only": true, "production_allowed": false, "buy_gate_updated": false, "orders_sent": false},
+  "stop_rule": "Any identity, row/schema, resource, optimizer convergence, execution accounting, sealing, or evaluation mismatch fails closed; no second fit, modified solver, alternate seed, or follow-on candidate."
+}

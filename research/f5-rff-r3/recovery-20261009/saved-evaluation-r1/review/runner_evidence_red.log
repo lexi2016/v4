@@ -1,0 +1,43 @@
+test_completed_receipts_require_child_native_check_and_matching_source (test_run_rff_saved_evaluation.RunnerTests.test_completed_receipts_require_child_native_check_and_matching_source) ... ok
+test_explicit_process_not_started_proof_records_known_zero (test_run_rff_saved_evaluation.RunnerTests.test_explicit_process_not_started_proof_records_known_zero) ... ok
+test_full_saved_file_lifecycle_preserves_old_fit_and_closes_once (test_run_rff_saved_evaluation.RunnerTests.test_full_saved_file_lifecycle_preserves_old_fit_and_closes_once) ... ok
+test_missing_status_preserves_marker_and_reports_unknown_completion (test_run_rff_saved_evaluation.RunnerTests.test_missing_status_preserves_marker_and_reports_unknown_completion) ... ok
+test_monitor_exception_without_spawn_proof_does_not_invent_zero (test_run_rff_saved_evaluation.RunnerTests.test_monitor_exception_without_spawn_proof_does_not_invent_zero) ... ok
+test_optional_evidence_stat_error_cannot_skip_failure_terminal (test_run_rff_saved_evaluation.RunnerTests.test_optional_evidence_stat_error_cannot_skip_failure_terminal) ... ERROR
+test_parse_failure_records_attempt_one_completion_zero (test_run_rff_saved_evaluation.RunnerTests.test_parse_failure_records_attempt_one_completion_zero) ... ok
+test_preexisting_output_rejects_before_start_and_keeps_bytes (test_run_rff_saved_evaluation.RunnerTests.test_preexisting_output_rejects_before_start_and_keeps_bytes) ... ok
+test_rehashed_metrics_cannot_claim_different_source_code_identity (test_run_rff_saved_evaluation.RunnerTests.test_rehashed_metrics_cannot_claim_different_source_code_identity) ... ok
+test_resource_profile_mismatch_is_rejected_before_start (test_run_rff_saved_evaluation.RunnerTests.test_resource_profile_mismatch_is_rejected_before_start) ... ok
+test_run_receipt_write_failure_still_attempts_failure_terminal (test_run_rff_saved_evaluation.RunnerTests.test_run_receipt_write_failure_still_attempts_failure_terminal) ... ok
+test_second_invocation_cannot_append_or_reread_truth (test_run_rff_saved_evaluation.RunnerTests.test_second_invocation_cannot_append_or_reread_truth) ... ok
+test_start_append_failure_before_durable_is_not_retried_or_terminalized (test_run_rff_saved_evaluation.RunnerTests.test_start_append_failure_before_durable_is_not_retried_or_terminalized) ... ok
+test_start_append_raised_after_durable_is_read_back_then_closed_without_worker (test_run_rff_saved_evaluation.RunnerTests.test_start_append_raised_after_durable_is_read_back_then_closed_without_worker) ... ok
+test_start_receipt_write_failure_still_attempts_failure_terminal (test_run_rff_saved_evaluation.RunnerTests.test_start_receipt_write_failure_still_attempts_failure_terminal) ... ok
+test_terminal_append_raised_after_durable_is_read_back_without_retry (test_run_rff_saved_evaluation.RunnerTests.test_terminal_append_raised_after_durable_is_read_back_without_retry) ... ok
+test_unprovable_terminal_failure_reports_dangling_start_without_retry (test_run_rff_saved_evaluation.RunnerTests.test_unprovable_terminal_failure_reports_dangling_start_without_retry) ... ok
+test_worker_exit_zero_without_final_fsync_check_is_not_completed (test_run_rff_saved_evaluation.RunnerTests.test_worker_exit_zero_without_final_fsync_check_is_not_completed) ... ok
+
+======================================================================
+ERROR: test_optional_evidence_stat_error_cannot_skip_failure_terminal (test_run_rff_saved_evaluation.RunnerTests.test_optional_evidence_stat_error_cannot_skip_failure_terminal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/f05cf31db0d4/issue33/candidate/tests/test_run_rff_saved_evaluation.py", line 320, in test_optional_evidence_stat_error_cannot_skip_failure_terminal
+    result = self.execute()
+             ^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33/candidate/tests/test_run_rff_saved_evaluation.py", line 117, in execute
+    return self.runner._execute_bound(binding=self.binding, input_binding_sha256=self.f.binding_sha,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33/candidate/src/run_rff_saved_evaluation.py", line 370, in _execute_bound
+    _, ref = _optional_json(common, output / name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33/candidate/src/run_rff_saved_evaluation.py", line 85, in _optional_json
+    if not path.exists():
+           ^^^^^^^^^^^^^
+  File "/workspace/scratch/f05cf31db0d4/issue33/candidate/tests/test_run_rff_saved_evaluation.py", line 317, in denied
+    raise PermissionError("SYNTHETIC_EVIDENCE_STAT_DENIED")
+PermissionError: SYNTHETIC_EVIDENCE_STAT_DENIED
+
+----------------------------------------------------------------------
+Ran 18 tests in 14.964s
+
+FAILED (errors=1)

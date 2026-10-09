@@ -1,0 +1,40 @@
+{
+  "schema": "F5_RFF_SAVED_EVAL_PARENT_RELEASE_V1",
+  "active": false,
+  "route_id": "F5_FULL64_RFF_LOGISTIC_R1_20260927",
+  "execution_id": "FILL_FROM_EXACT_LOCAL_RUN_SPEC",
+  "candidate_execution_id": "F5_FULL64_RFF_LOGISTIC_R1_20260927_RESUME_20260928_01",
+  "run_spec_sha256": "FILL_FROM_EXACT_LOCAL_BYTES",
+  "input_binding_sha256": "FILL_FROM_EXACT_LOCAL_BYTES",
+  "source_code_sha256": "FILL_FROM_EXACT_LOCAL_BINDING_CODE_SHA256",
+  "parent_authorization_id": "FILL_ACTUAL_CONTROLLER_AUTHORIZATION_ID",
+  "parent_controller_id": "FILL_ACTUAL_CONTROLLER_IDENTITY",
+  "reviewer_agent": "FILL_FROM_VERIFIED_LOCAL_REVIEW",
+  "reviewer_transcript_path": "FILL_EXACT_LOCAL_REVIEW_PATH",
+  "reviewer_transcript_sha256": "FILL_FROM_EXACT_LOCAL_REVIEW_BYTES",
+  "saved_prediction_evaluation_authorized": false,
+  "fit_calls_authorized": 0,
+  "predict_calls_authorized": 0,
+  "control_fit_calls_authorized": 0,
+  "control_predict_calls_authorized": 0,
+  "calibrator_fit_calls_authorized": 0,
+  "model_load_calls_authorized": 0,
+  "candidate_model_load_authorized": false,
+  "evaluation_truth_decode_authorized": 1,
+  "automatic_retry": false,
+  "official_registry_path": "FILL_FROM_EXACT_LOCAL_BINDING",
+  "official_registry_sha256_before_start": "FILL_FROM_EXACT_LOCAL_BINDING",
+  "expected_route_event_sha256_before_start": [],
+  "resource_caps": {
+    "cpu_threads": null,
+    "aggregate_process_tree_rss_bytes_max": null,
+    "wall_seconds_max": null,
+    "sample_seconds": null
+  },
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

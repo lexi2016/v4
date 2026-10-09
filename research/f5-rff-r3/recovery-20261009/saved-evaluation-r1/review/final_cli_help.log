@@ -1,0 +1,15 @@
+usage: run_rff_saved_evaluation.py [-h] {prepare,run} ...
+
+Prepare an unsigned binding, or run one explicitly released saved evaluation.
+Imports are inert. The CLI run path validates the real RFF binding and native
+runtime before a zero-debit official RUN_STARTED. The internal execution seam
+also supports generated fixtures; it is not a local-review or release issuer.
+No append, worker invocation, truth decode, or failed execution is retried.
+
+positional arguments:
+  {prepare,run}
+    prepare      metadata only; create unsigned spec/binding, no evaluation
+    run          native Mac controller release required; one saved evaluation
+
+options:
+  -h, --help     show this help message and exit

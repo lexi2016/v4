@@ -1,0 +1,36 @@
+Actual output excerpts from the first unmodified-OS-backend monitor test run.
+These were captured before the explicitly synthetic namespace/RSS fixture was
+added. This file is an excerpt, not a newly rerun or reconstructed PASS result.
+
+Command:
+python -m unittest discover -s issue33/candidate/tests -p test_rff_saved_eval_monitor.py -v
+
+FAIL: test_original_resource_breach_returns_without_adapter_cleanup_retry
+AssertionError: 'RSS_ROOT_MISSING_FROM_SNAPSHOT:2;PROCESS_TREE[94 chars]RMED' != 'RSS_LIMIT_EXCEEDED'
+- RSS_ROOT_MISSING_FROM_SNAPSHOT:2;PROCESS_TREE_TERMINATION_UNCONFIRMED;PROCESS_TREE_TERMINATION_UNCONFIRMED;PROCESS_TREE_TERMINATION_UNCONFIRMED
++ RSS_LIMIT_EXCEEDED
+
+FAIL: test_real_spawn_normal_completion_has_no_extra_cleanup
+AssertionError: -15 != 0
+
+Ran 8 tests in 4.098s
+FAILED (failures=6)
+
+Separate original-backend abort observation excerpt:
+  process_creation_count: 1
+  process_tree_termination_confirmed: false
+  workers[0].exit_code: -15
+  workers[0].worker_alive_after_cleanup: false
+  workers[0].termination.enumeration_errors included:
+    PROCESS_SNAPSHOT_FAILED:CalledProcessError
+    DIRECT_KILL_CHECK_FAILED:7:ResourceLimitError
+
+Original OS helper error:
+subprocess.CalledProcessError: Command '['ps', '-axo', 'pid=,ppid=,rss=,stat=']' returned non-zero exit status 1.
+resource_tree.ResourceLimitError: PROCESS_SNAPSHOT_FAILED:CalledProcessError
+
+This container did not provide psutil; its ps/proc output and Python process IDs
+were observed to use different namespaces. No production helper was changed to
+work around that environment. Later synthetic tests explicitly substitute only
+the process-snapshot rows, using test-owned real child IDs/liveness and synthetic
+RSS values. Those tests do not validate the Mac OS RSS backend or L04.

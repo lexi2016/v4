@@ -1,0 +1,128 @@
+{
+  "members": [
+    {
+      "archive_path": "rff/src/rff_candidate_entry.py",
+      "bytes": 61364,
+      "sha256": "ce8476ab930a0789079757250a71060d48b813344bdc6b4f156f791f39556e8e",
+      "source_path": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/src/rff_candidate_entry.py",
+      "role": "mechanism_reference"
+    },
+    {
+      "archive_path": "rff/pre_pr5_historical/src/rff_worker.py",
+      "bytes": 26856,
+      "sha256": "cecff1218a60c3c67405168b742f40ba76286efbd2435d8f31703375c640619d",
+      "source_path": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/src/rff_worker.py",
+      "role": "pre_pr5_historical"
+    },
+    {
+      "archive_path": "rff/src/rff_evaluation_completion.py",
+      "bytes": 45247,
+      "sha256": "f740a102c06a8ddd5199ae002ec4e329d8e77d5a9aefa70f6eeec613407ee352",
+      "source_path": "research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/src/rff_evaluation_completion.py",
+      "role": "mechanism_reference"
+    },
+    {
+      "archive_path": "xendcg_saved_eval/src/run_saved_evaluation_r2.py",
+      "bytes": 39837,
+      "sha256": "25d91cdcf2737f73a074ac87edf6492b2a81f5aeebdcb74f04ceadf19ae3a5aa",
+      "source_path": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/candidate_01/evaluation_recovery_02/src/run_saved_evaluation_r2.py",
+      "role": "mechanism_reference"
+    },
+    {
+      "archive_path": "xendcg_saved_eval/src/saved_evaluation_entry.py",
+      "bytes": 29056,
+      "sha256": "ce631a11b764a15cf6dfb4a0427b905de4126e36c68368d079242a33f13c2a99",
+      "source_path": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/candidate_01/evaluation_recovery_02/src/saved_evaluation_entry.py",
+      "role": "mechanism_reference"
+    },
+    {
+      "archive_path": "xendcg_saved_eval/src/evaluation_worker.py",
+      "bytes": 39172,
+      "sha256": "1ee350797f5ee64908b7fe3eaaff379446266e9c33642037e00eed4ef5b05180",
+      "source_path": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/candidate_01/evaluation_recovery_02/src/evaluation_worker.py",
+      "role": "mechanism_reference"
+    },
+    {
+      "archive_path": "xendcg_saved_eval/src/saved_evaluation_registration.py",
+      "bytes": 11791,
+      "sha256": "3231b35670e67231d0c83a06fb8c5f18110f558670e1b1c89bc8a5d2a2328570",
+      "source_path": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/candidate_01/evaluation_recovery_02/src/saved_evaluation_registration.py",
+      "role": "mechanism_reference"
+    },
+    {
+      "archive_path": "shared/src/score_aware_metrics.py",
+      "bytes": 8230,
+      "sha256": "fc93d6225c75b633981508a18c428e7649122571c7d897264d0b7da1e591eb8c",
+      "source_path": "research/hk_burst_f5/batches/full64_xendcg_r1_20260924/src/score_aware_metrics.py",
+      "role": "mechanism_reference"
+    },
+    {
+      "archive_path": "xendcg_saved_eval/helpers/resource_tree.py",
+      "bytes": 41031,
+      "sha256": "9d0792a8e582d0345c83ddaf83a15612a5629b5f0460833b4715068324ff2752",
+      "source_path": "research/hk_burst_f5/batches/meta2023_baseplus64_r1_20260923/src/resource_tree.py",
+      "role": "mechanism_reference"
+    },
+    {
+      "archive_path": "official_helpers/execution_guard_core.py",
+      "bytes": 17613,
+      "sha256": "85929366a7b018480085c02f80edd312f7f47de94bab5c32982d4e8637d7d7e0",
+      "source_path": "workspace/hkconnect_price_semantics_v2_20260919/zero_label_parity/execution_guard_core.py",
+      "role": "mechanism_reference"
+    },
+    {
+      "archive_path": "official_helpers/registry_adapter.py",
+      "bytes": 23598,
+      "sha256": "8596f2a20c165b5fbc2b92a597cb3e1177f6e40bfefac62753b40b3c7daae17f",
+      "source_path": "workspace/hkconnect_price_semantics_v2_20260919/zero_label_parity/registry_adapter.py",
+      "role": "mechanism_reference"
+    },
+    {
+      "archive_path": "official_helpers/build_experiment_registry_backfill_20260821.py",
+      "bytes": 108971,
+      "sha256": "df4bfc89fa5487966a8c7e1c1c50832e140339c2ccda3a02a9a59e5aaaeb58cf",
+      "source_path": "contracts/build_experiment_registry_backfill_20260821.py",
+      "role": "mechanism_reference"
+    },
+    {
+      "archive_path": "official_helpers/validate_experiment_registry_append_compatibility_v1.py",
+      "bytes": 28035,
+      "sha256": "80e49d05d13f33ee7e2cb8d4d10cae0e297bcdf5b113ff857d3bd141dea0f438",
+      "source_path": "contracts/validate_experiment_registry_append_compatibility_v1.py",
+      "role": "mechanism_reference"
+    },
+    {
+      "archive_path": "rff/pr5_accepted/src/rff_worker.py",
+      "bytes": 28369,
+      "sha256": "3ea10757a81207147e5cfb9e68e69750a0579786153e7ce58ccf342a3184058c",
+      "source_path": "handoffs/F5_RFF_PR5_FIXTURE_MAC_ACCEPTANCE_20261009/pr_head/research/f5-rff-r3/research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/src/rff_worker.py",
+      "role": "accepted_pr5_worker",
+      "relevant_lines": [
+        80,
+        100,
+        108
+      ],
+      "immutable_github_permalink": "https://github.com/lexi2016/v4/blob/66a57bead52a20845e1d2af6035c7f19f0b04ed7/research/f5-rff-r3/research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/src/rff_worker.py"
+    },
+    {
+      "archive_path": "rff/pr5_accepted/tests/test_rff_truth_join.py",
+      "bytes": 15174,
+      "sha256": "c19f32aee9aae82919e49583ec041da97852ce5520918810ab1e14e3446980ad",
+      "source_path": "handoffs/F5_RFF_PR5_FIXTURE_MAC_ACCEPTANCE_20261009/pr_head/research/f5-rff-r3/research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/tests/test_rff_truth_join.py",
+      "role": "accepted_pr5_test",
+      "relevant_lines": [
+        77,
+        101
+      ],
+      "immutable_github_permalink": "https://github.com/lexi2016/v4/blob/66a57bead52a20845e1d2af6035c7f19f0b04ed7/research/f5-rff-r3/research/hk_burst_f5/batches/full64_rff_logistic_r1_20260927/tests/test_rff_truth_join.py"
+    },
+    {
+      "archive_path": "rff/pr5_accepted/review/INDEPENDENT_MAC_REVIEW_RECEIPT.json",
+      "bytes": 4643,
+      "sha256": "28f5cac31469a488987bffba4a799ba73910392bff36e74403dcfd42edd20630",
+      "source_path": "handoffs/F5_RFF_PR5_FIXTURE_MAC_ACCEPTANCE_20261009/review/INDEPENDENT_MAC_REVIEW_RECEIPT.json",
+      "role": "accepted_pr5_independent_review_receipt"
+    }
+  ],
+  "schema": "F5_RFF_SAVED_EVAL_CODE_ATTACHMENT_MANIFEST_V1"
+}
