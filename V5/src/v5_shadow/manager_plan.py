@@ -103,7 +103,7 @@ def _request(value):
             trade_date(value[key])
     if value['action'] == 'refresh' and (value['selection_date'] is not None or value['announcement_date'] is not None):
         raise ValueError('MANAGER_REFRESH_USES_ORIGINAL_TARGET_BINDINGS')
-    exact_keys(value['inputs'], ('manager', 'materials', 'us'))
+    exact_keys(value['inputs'], ('manager', 'materials', 'us', 'archives') if 'archives' in value['inputs'] else ('manager', 'materials', 'us'))
     roots = []
     for name, binding in value['inputs'].items():
         exact_keys(binding, ('root', 'files'))
@@ -116,6 +116,10 @@ def _request(value):
         for relative, digest in binding['files'].items():
             common._relative(root, relative)
             sha(digest)
+            if name == 'archives':
+                from v5_shadow.archive_reader import PATTERN
+                if relative != 'manifest.json' and not re.fullmatch(PATTERN, relative):
+                    raise ValueError('MANAGER_ARCHIVE_INPUT_PATH')
             if name == 'manager' and not relative.startswith(('us_mapping_research/', 'workspace_announcements/',
                     'workspace_announcement_runs/', 'announcement_agent_runs/')):
                 raise ValueError('MANAGER_OWNER_INPUT_PATH')
@@ -123,6 +127,15 @@ def _request(value):
                 raise ValueError('MANAGER_US_INPUT_PATH')
             if name == 'materials' and not re.fullmatch(r'(?:blobs/[0-9a-f]{64}|index/[0-9a-f]{64}\.json)', relative):
                 raise ValueError('MANAGER_MATERIAL_INPUT_PATH')
+    if 'archives' in value['inputs']:
+        archive_root = no_symlinks(value['inputs']['archives']['root'])
+        for name, binding in value['inputs'].items():
+            if name != 'archives':
+                other = no_symlinks(binding['root'])
+                if archive_root.is_relative_to(other) or other.is_relative_to(archive_root):
+                    raise ValueError('MANAGER_ARCHIVE_ROOT_OVERLAP')
+    if 'archives' in value['inputs'] and 'manifest.json' not in value['inputs']['archives']['files']:
+        raise ValueError('MANAGER_ARCHIVE_MANIFEST_REQUIRED')
     output = no_symlinks(value['manager_output_root'])
     if not Path(value['manager_output_root']).is_absolute() or not output.is_dir():
         raise ValueError('MANAGER_OUTPUT_ROOT')
@@ -160,7 +173,7 @@ def _snapshot(binding):
 
 
 def _identity():
-    names = ('announcement_bridge.py', 'manager_plan.py', 'manager_plan_gate.py', 'manager_plan_io.py', 'a_preselection.py',
+    names = ('archive_reader.py', 'announcement_bridge.py', 'manager_plan.py', 'manager_plan_gate.py', 'manager_plan_io.py', 'a_preselection.py',
              'contracts.py', 'digests.py', 'composition.py', 'module_api.py', 'api_gateway.py',
              'shadow_store.py', 'legacy_adapter.py', 'source_capsule.py', 'provider_evidence.py', '__init__.py')
     return {name: hashlib.sha256((BASE / 'src/v5_shadow' / name).read_bytes()).hexdigest() for name in names}
@@ -177,6 +190,10 @@ def _assemble(request):
         root = private / name; root.mkdir(parents=True); roots[name] = root
         for relative, raw in files.items():
             target = root / relative; target.parent.mkdir(parents=True, exist_ok=True); target.write_bytes(raw)
+    archive_readback = None
+    if 'archives' in roots:
+        from v5_shadow.archive_reader import read_private, source_proxy
+        archive_readback = read_private(roots['archives'], request['inputs']['archives'])
     rebound = None
     if request['rebound'] is not None:
         from v5_shadow.shadow_store import read_shadow, _ref
@@ -214,7 +231,8 @@ def _assemble(request):
             return durable._transaction(date, identity)
     service = SimpleNamespace(store=OwnerStore(roots['manager']),
         _material_store=material_module.MaterialStore(roots['materials']),
-        observation_reader=None, _close_observation_reader=None, _existing_research_source=None,
+        observation_reader=None, _close_observation_reader=None,
+        _existing_research_source=source_proxy(archive_readback) if archive_readback is not None else None,
         _catalyst_data_root=None, _catalyst_news_owner_root=None, _workspace_ledger_root=None,
         _workspace_security_master_root=None, _workspace_screen_authority_root=None,
         _workspace_us_market_reader=bridge.ResearchPeripheralUsMarketReader(roots['us']) if snapshots['us'] else None,
@@ -278,7 +296,14 @@ def _assemble(request):
         if _snapshot(binding) != snapshots[name]:
             raise ValueError('MANAGER_INPUT_CHANGED')
     _sources()
-    return dict(schema_version='v5.manager_plan.v1', payload=payload, readback=readback,
+    archive_diagnostics = None if archive_readback is None else dict(
+        source_capsule_sha256=archive_readback['source_capsule_sha256'],
+        validated_artifacts=sum(row.get('payload') is not None for row in archive_readback['records'].values()),
+        rejected_artifacts={key:row['error'] for key,row in archive_readback['records'].items() if 'error' in row},
+        rejected_slot_lists={key:row['error'] for key,row in archive_readback['slots'].items() if 'error' in row},
+        supplied_file_sha256=request['inputs']['archives']['files'],
+        coverage_basis='BOUND_FILES_AND_ORIGINAL_MANIFEST_NOT_FULL_MARKET')
+    return dict(schema_version='v5.manager_plan.v1', payload=payload, readback=readback, archive_readback=archive_diagnostics,
         request_sha256=sha256_json(request), source_capsule_sha256=PIN, implementation_identity=_identity(),
         execution_kind='MANUAL_REFRESH' if request['action']=='refresh' else 'READ_ONLY',
         natural_verified=False, source_origin_verified=False, production_allowed=False,

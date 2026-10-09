@@ -1,0 +1,637 @@
+{
+  "schema_version": "v5.archive_reader_source.v1",
+  "source_commit": "8342862f05ca9f6516f51b3164b6110651e5af77",
+  "variant": "api",
+  "entries": [
+    {
+      "relative_path": "contracts/__init__.py",
+      "sha256": "6334176641872990a56b559f965a9dc6d65f29ab0a0efc0752ef1a73fe42bc7d",
+      "bytes": 55,
+      "source_path": "handoff/v4-running-source-20261005/canonical/contracts/__init__.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "contracts/research.py",
+      "sha256": "cd71bdd8ac24037627520c3cca6f658e83fc4e51c8a7934f6c6c9222f4b2f3c1",
+      "bytes": 13060,
+      "source_path": "handoff/v4-running-source-20261005/canonical/contracts/research.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "contracts/research_day_product.py",
+      "sha256": "f0e4d36e30259db6bf94bb3374241ce9d96ea04a4cf5eb18f74b871decef277d",
+      "bytes": 102936,
+      "source_path": "handoff/v4-running-source-20261005/api/contracts/research_day_product.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "contracts/runtime_tasks.py",
+      "sha256": "f9923462342eaaeafba6255e9f8adda54f9852ea4996cf6da0cf82e4faf32965",
+      "bytes": 3350,
+      "source_path": "handoff/v4-running-source-20261005/canonical/contracts/runtime_tasks.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "contracts/stages.py",
+      "sha256": "d0ac1771a1005888e53e9a322da65f959cfbcbcc665357b8783d5eb4eda9c6df",
+      "bytes": 2036,
+      "source_path": "handoff/v4-running-source-20261005/canonical/contracts/stages.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "contracts/trading_calendar.py",
+      "sha256": "584f28d18273a8824c5f68a701aa4404123b5c71900caada3e2772828991ee8f",
+      "bytes": 9291,
+      "source_path": "handoff/v4-running-source-20261005/api/contracts/trading_calendar.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "contracts/us_equity_calendar.py",
+      "sha256": "73f223fb032e6c3a3a9f462f41b29fd029365ecfc98942bc5413a911faeba452",
+      "bytes": 3603,
+      "source_path": "handoff/v4-running-source-20261005/canonical/contracts/us_equity_calendar.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/d1_review_lane_producer.py",
+      "sha256": "9bff043d44f186469869aac80c10211ee0c8d1de3ab28ba0d6571d812d182c03",
+      "bytes": 38806,
+      "source_path": "handoff/v4-running-source-20261005/api/domains/d1_review_lane_producer.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/d1_review_source_producer.py",
+      "sha256": "195ab9af387eae5c4dfe38bf9685cf566e27bbc74baab9e37cd736ec21903c8a",
+      "bytes": 27903,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/d1_review_source_producer.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/daily_research_review.py",
+      "sha256": "8541ec2696de3aac718979b72658f946ebe5eeda27778e4e627c6b586adeeaea",
+      "bytes": 16330,
+      "source_path": "handoff/v4-running-source-20261005/api/domains/daily_research_review.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/intraday_research.py",
+      "sha256": "aef3f038a67c11109e18616fd9c943265e79933c68ea2f1cf4beea22fc652fc2",
+      "bytes": 35131,
+      "source_path": "handoff/v4-running-source-20261005/api/domains/intraday_research.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/preselection_materializer.py",
+      "sha256": "f090146f39eaaf1ea5baaa5da60cddc2aefe738be16eb1609f166b643953d84e",
+      "bytes": 51134,
+      "source_path": "handoff/v4-running-source-20261005/api/domains/preselection_materializer.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_day_product.py",
+      "sha256": "de085c51b34946aedf9134fdb6edbbd48fee4dfb3386dab1d327768c4b73ea1f",
+      "bytes": 65157,
+      "source_path": "handoff/v4-running-source-20261005/api/domains/research_day_product.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/__init__.py",
+      "sha256": "f0c1d0aa21e9370ca6962dbf86a01e0325c55e718a73a7fa95e4d469f29c9855",
+      "bytes": 791,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/__init__.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/_cache.py",
+      "sha256": "5080b2b9daec511877f90877c0682aa6ebb506ba536ee2f44740428bca2ae0f7",
+      "bytes": 7557,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/_cache.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/_evidence.py",
+      "sha256": "02ae017474bdb91af0bddb89684d567f90574112f6a93527007c54c05ad0400d",
+      "bytes": 8875,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/_evidence.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/_owned_io.py",
+      "sha256": "dacd18dff80b84a13d98b1eae0ccb3d024f327a7d941d95bb068dd9331a15ec1",
+      "bytes": 3872,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/_owned_io.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/_snapshot.py",
+      "sha256": "248161565dd55f8dce3a46632ada3f0b1f88fde0e01904db4ad76ef4a91ccba6",
+      "bytes": 7857,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/_snapshot.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/assembly.py",
+      "sha256": "6b1c36ea8d22d8975fa0123c0e0ef1d12cf0c3323d9a4e7a37709e5d0c98de7e",
+      "bytes": 5780,
+      "source_path": "handoff/v4-running-source-20261005/api/domains/research_review_generation/assembly.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/data_core/__init__.py",
+      "sha256": "0e7dce5ded9af6a90921df6c7670852894e6849275b25febae1cf5e73754ae59",
+      "bytes": 88,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/data_core/__init__.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/data_core/breadth.py",
+      "sha256": "e74d0592856c14c10ceff97546ba5cd9ac528e9fe77022a0322a05ff473167e5",
+      "bytes": 10065,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/data_core/breadth.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/data_core/data.py",
+      "sha256": "f243a1f186b37ca2fa6c76b428c4597a2ebc9ab685a2d00dbf3ceb1e7d9fd2d7",
+      "bytes": 18006,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/data_core/data.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/data_core/emotion_metrics.py",
+      "sha256": "132e89d992f2f0a17fe23c9c8acc562659c5966f6e5be2e2d87ae01779682bac",
+      "bytes": 22793,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/data_core/emotion_metrics.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/data_core/fetchers.py",
+      "sha256": "350cdba92df688bfa827d8f115992a29c9dc4ca09093060fe5c3b47374afc168",
+      "bytes": 12647,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/data_core/fetchers.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/data_core/fuyao_sources.py",
+      "sha256": "b08e40f5574189181221eae5a37ae4ca7a1d25b565986797a037b7c76cb54b85",
+      "bytes": 14948,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/data_core/fuyao_sources.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/data_core/market_facts.py",
+      "sha256": "f494b1788b5710b456e6fc2dca74c05a48e0910a2463b2adf33b2c174df3e7b4",
+      "bytes": 27965,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/data_core/market_facts.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/data_core/stats_context.py",
+      "sha256": "9a9c1e80a617ed15009b58fcafd0dba7826992e78c3e7d10e0dcd607aa74d0d2",
+      "bytes": 13664,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/data_core/stats_context.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/data_core/theme_tree.py",
+      "sha256": "51e42f77067315a94b0940bf7ce8608ec990a6c378be1bb2bc24c183bf1ffd9e",
+      "bytes": 13256,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/data_core/theme_tree.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/data_core/trade_calendar.py",
+      "sha256": "be67388f1fe1aa02701df783ee0e0aeb5dc81f0bb4a8423c138a738e8ae22c97",
+      "bytes": 8089,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/data_core/trade_calendar.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/data_core/util.py",
+      "sha256": "bf773d20ec2edf398d083b1c6beedc5234ecff9440f4632ceeaf763e12fffc6b",
+      "bytes": 3012,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/data_core/util.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/generation.py",
+      "sha256": "b36dcbc550f31697391ed08d00b305b9291d51e8707532589f0e7bce0b1a20c2",
+      "bytes": 17101,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/generation.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/model_provider.py",
+      "sha256": "8db1dcc867cbb758cc538c4419b75d199250d96a6f1bc163876ba7356d74a9a9",
+      "bytes": 8195,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/model_provider.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/owned_authority.py",
+      "sha256": "7bd218fba2444085723a4d9290931463a14c6e16878cebb73e655ae4f2e98072",
+      "bytes": 19924,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/owned_authority.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/owned_runtime.py",
+      "sha256": "401291b45ce8a169f7027df5b49336c9bde7bb9a6634c7bce66189e01b90ced9",
+      "bytes": 13098,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/owned_runtime.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/vibe_core/__init__.py",
+      "sha256": "28c57552ab121d3a582bc59e716ed90996e97ecf2d334634011b3511be4a7853",
+      "bytes": 75,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/vibe_core/__init__.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/vibe_core/analysts.py",
+      "sha256": "f1022ecaf5e4597683179c5e6eeed82d02b6da3a5d9c6a9e997a952e74cf520b",
+      "bytes": 7605,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/vibe_core/analysts.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/vibe_core/deepdive/__init__.py",
+      "sha256": "e427831aaf0d571f7cb4e98723f0a00d145af60e3221afac6128dc6daa219d11",
+      "bytes": 59,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/vibe_core/deepdive/__init__.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/vibe_core/deepdive/schemas.py",
+      "sha256": "fd7706bb31276910ea7acc0c8ce393a7d5b7a3c86280fdc2a5ffdbe2a0a544ae",
+      "bytes": 1878,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/vibe_core/deepdive/schemas.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/vibe_core/helpers.py",
+      "sha256": "dffcb252a8cb80eb415136f550d0368791f630f411525639bf3f073c745c9aaf",
+      "bytes": 816,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/vibe_core/helpers.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/vibe_core/llm_errors.py",
+      "sha256": "f48f74f3d03d537a28c0b82c11620971f2b1c41be28c7bebb7ec14ba5af131e8",
+      "bytes": 6049,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/vibe_core/llm_errors.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-001.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/vibe_core/preflight.py",
+      "sha256": "5f10839944af3e12d14a46e6a5a434a9d75475ebe74a05763cfca2d3d807dfca",
+      "bytes": 5042,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/vibe_core/preflight.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/vibe_core/prompts.py",
+      "sha256": "833962c06d4be62e9801474af6a5020d80e89f6c1460e360618361ad079a492a",
+      "bytes": 4233,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/vibe_core/prompts.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/vibe_core/reflection_context.py",
+      "sha256": "cfa7140d52d7494631d8537f797567f9e5e7a0ef81581c170f5e726b3621635f",
+      "bytes": 6701,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/vibe_core/reflection_context.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/vibe_core/review_graph.py",
+      "sha256": "6a21ac2ddc5b82bf10f75e4d8b104c6ef29ea29972beb92bcbb8de1e9fa60fe6",
+      "bytes": 777,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/vibe_core/review_graph.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/vibe_core/roles.py",
+      "sha256": "cacc7b2a981e3c9a3f866e5a76d7cbd2257cd78bd01332311f4ab4f959fcd86a",
+      "bytes": 1144,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/vibe_core/roles.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/vibe_core/schemas.py",
+      "sha256": "71c640384e6c02566e94454baf3686da49ce9ba905aca1a6cdf05bb35084ae85",
+      "bytes": 15331,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/vibe_core/schemas.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/vibe_core/serializer.py",
+      "sha256": "82b67b12fd2bfd21d3363e63ee487e5fc8d60e049cf362f0789bd7522c0d88bc",
+      "bytes": 4471,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/vibe_core/serializer.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/vibe_core/state.py",
+      "sha256": "0499048b06d1fe4376b8f82b64fb401412efed888527fc91d46a4907d5567624",
+      "bytes": 1873,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/vibe_core/state.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/vibe_core/structured.py",
+      "sha256": "f885d094e8c3ffaede8861ebdaa4d23b47f9624cdeff11b0336333bfb297b712",
+      "bytes": 3287,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/vibe_core/structured.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/vibe_core/synthesizer.py",
+      "sha256": "b7116799db7f73a6443fa82ee0aa8b4a98e01bf84a78e1482a0e97d70669af06",
+      "bytes": 3187,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/vibe_core/synthesizer.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/vibe_core/util.py",
+      "sha256": "71b03ab4727a209cd9b1c26b0bf7e7ce35617240b1df04fc19d986c14506222f",
+      "bytes": 290,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/vibe_core/util.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "domains/research_review_generation/vibe_core/verification.py",
+      "sha256": "1e369984953eed3ff96bc1df6299f5fa24ef48c4019f8d69037b2673dc9755ce",
+      "bytes": 6714,
+      "source_path": "handoff/v4-running-source-20261005/canonical/domains/research_review_generation/vibe_core/verification.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "domains/runtime_policy.py",
+      "sha256": "bb571a0bd431a072f03d051ca919d21aab04f12bc5a0973da4edad61b9424c85",
+      "bytes": 5561,
+      "source_path": "handoff/v4-running-source-20261005/api/domains/runtime_policy.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/__init__.py",
+      "sha256": "46068d69d6783fdcd33b3428ae3c7e8e690d5149f4f00837f6b1d1184dd6f47b",
+      "bytes": 68,
+      "source_path": "handoff/v4-running-source-20261005/canonical/infrastructure/__init__.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/data_store.py",
+      "sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+      "bytes": 10704,
+      "source_path": "handoff/v4-running-source-20261005/canonical/infrastructure/data_store.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/formula_generation.py",
+      "sha256": "0904603912d6257cb02f41dfaf66c080e2f682e690b1c1901a86a7bafe1e74f0",
+      "bytes": 17448,
+      "source_path": "handoff/v4-running-source-20261005/canonical/infrastructure/formula_generation.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/historical_pool_sources.py",
+      "sha256": "dbee92a602619f923ef27def8200604fa14f074680c34d65031b69c55181fcf8",
+      "bytes": 33923,
+      "source_path": "handoff/v4-running-source-20261005/api/infrastructure/historical_pool_sources.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/http_transport.py",
+      "sha256": "b34f906be69051da0f0f5e2f4980bf9b4c310d88ad9fc1b50b3246fceffccc69",
+      "bytes": 9429,
+      "source_path": "handoff/v4-running-source-20261005/canonical/infrastructure/http_transport.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/interprocess_lock.py",
+      "sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+      "bytes": 7514,
+      "source_path": "handoff/v4-running-source-20261005/canonical/infrastructure/interprocess_lock.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/isolated_package_loader.py",
+      "sha256": "c714d4b95c03da061f592e076cd12188dbeefcd9f0fae7aeaae18c0450e915eb",
+      "bytes": 6946,
+      "source_path": "handoff/v4-running-source-20261005/canonical/infrastructure/isolated_package_loader.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/market_time.py",
+      "sha256": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+      "bytes": 960,
+      "source_path": "handoff/v4-running-source-20261005/canonical/infrastructure/market_time.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/owned_io.py",
+      "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+      "bytes": 9354,
+      "source_path": "handoff/v4-running-source-20261005/canonical/infrastructure/owned_io.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/owned_path.py",
+      "sha256": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+      "bytes": 2251,
+      "source_path": "handoff/v4-running-source-20261005/canonical/infrastructure/owned_path.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/preselection_pool_store.py",
+      "sha256": "c96db1543e8b28e640b3c2d2a64aaae6a96d9a2a4a2401ca2780519233805171",
+      "bytes": 30341,
+      "source_path": "handoff/v4-running-source-20261005/api/infrastructure/preselection_pool_store.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/research_lane_source.py",
+      "sha256": "2a58fe0db5c5d7915e7dbc884b8720e7d32a8c0084fe5e78b0e9e37f9e738cd4",
+      "bytes": 24125,
+      "source_path": "handoff/v4-running-source-20261005/canonical/infrastructure/research_lane_source.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/research_peripheral_store.py",
+      "sha256": "1bcb74e9194932d5ec3d6ac24d7ec42979532cf495b270a1a04b09082706f4fe",
+      "bytes": 73460,
+      "source_path": "handoff/v4-running-source-20261005/api/infrastructure/research_peripheral_store.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/research_store.py",
+      "sha256": "471ad4ceb0c34f080da674d147df5bb96045c5e7998ab41ba2845297ab63ab6f",
+      "bytes": 172644,
+      "source_path": "handoff/v4-running-source-20261005/api/infrastructure/research_store.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/scheduling/__init__.py",
+      "sha256": "66f43516bae3998546285e3c757925a2d8c04c157f17309f13d53eef0668a425",
+      "bytes": 348,
+      "source_path": "handoff/v4-running-source-20261005/canonical/infrastructure/scheduling/__init__.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/scheduling/catalog.py",
+      "sha256": "96c1b7ec2a3c9a94b7f6ac094a5d0ad12ab3c92287201cc7143b42386846a417",
+      "bytes": 11044,
+      "source_path": "handoff/v4-running-source-20261005/canonical/infrastructure/scheduling/catalog.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/scheduling/dispatcher.py",
+      "sha256": "7e61cbb234246bd88c9325fb0641c4bbead10debed09b924298e406b06854668",
+      "bytes": 18368,
+      "source_path": "handoff/v4-running-source-20261005/api/infrastructure/scheduling/dispatcher.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/scheduling/execution_ledger.py",
+      "sha256": "966fba07ec9d32abcab5435441e4e574002bcdd7b63d6494ff94d7a7e7018007",
+      "bytes": 22725,
+      "source_path": "handoff/v4-running-source-20261005/canonical/infrastructure/scheduling/execution_ledger.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/scheduling/executor_registry.py",
+      "sha256": "f462a3254c15cfe9043783b6e07c88781ea4a3151a652c02509da3f2d9b870c9",
+      "bytes": 101560,
+      "source_path": "handoff/v4-running-source-20261005/api/infrastructure/scheduling/executor_registry.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/secure_evidence_fs.py",
+      "sha256": "f12477fa19c2d8c308d3eb5bd5f1ba17adef2ba8d3b1ac00685bbb4245421d56",
+      "bytes": 19294,
+      "source_path": "handoff/v4-running-source-20261005/canonical/infrastructure/secure_evidence_fs.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/stage_acquisition_universe_commit.py",
+      "sha256": "5ca1b4219dfa7c0031c69eae8fa2af99d9ea16f60ecb603bbee1c55207c75c2b",
+      "bytes": 98409,
+      "source_path": "handoff/v4-running-source-20261005/api/infrastructure/stage_acquisition_universe_commit.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/stage_acquisition_universe_contracts.py",
+      "sha256": "8598dfbd3e739608370612fe276b9c282d22908b902188dbc2185421e06addf3",
+      "bytes": 57524,
+      "source_path": "handoff/v4-running-source-20261005/api/infrastructure/stage_acquisition_universe_contracts.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/stage_store.py",
+      "sha256": "00d3dca6b90f86b7a6f6707f3150f2189e2eb15fcbb7eb5198db4ffd5e0392c4",
+      "bytes": 24016,
+      "source_path": "handoff/v4-running-source-20261005/canonical/infrastructure/stage_store.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "infrastructure/trading_safety.py",
+      "sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+      "bytes": 2597,
+      "source_path": "handoff/v4-running-source-20261005/canonical/infrastructure/trading_safety.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-002.json"
+    },
+    {
+      "relative_path": "ops/daily_materialize.py",
+      "sha256": "e350f409b291bee26e2218dc0ace6436d7a85cc48a20569f7e6f3e987bb265d4",
+      "bytes": 27110,
+      "source_path": "handoff/v4-running-source-20261005/canonical/ops/daily_materialize.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-003.json"
+    },
+    {
+      "relative_path": "ops/materialize_research_peripherals.py",
+      "sha256": "e71d1db359f1153b179e86e09331a03d6263f00c9a23147f57d286a21cd12180",
+      "bytes": 86377,
+      "source_path": "handoff/v4-running-source-20261005/api/ops/materialize_research_peripherals.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-003.json"
+    },
+    {
+      "relative_path": "ops/us_market_digest.py",
+      "sha256": "7c73342d8e2cfff536d81faf7d616e507581b67f5bf5ff44d9a97380859577ea",
+      "bytes": 99595,
+      "source_path": "handoff/v4-running-source-20261005/api/ops/us_market_digest.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-003.json"
+    },
+    {
+      "relative_path": "stage_center/__init__.py",
+      "sha256": "f5bc18e6c6143feaa23627ac8b66885810adbf77fb2135a295526fd188949955",
+      "bytes": 1098,
+      "source_path": "handoff/v4-running-source-20261005/canonical/stage_center/__init__.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-003.json"
+    },
+    {
+      "relative_path": "stage_center/acquisition.py",
+      "sha256": "33e5003faed8127ec3393eb36af473c0d63ee3a79843418ef1a950ce7b697397",
+      "bytes": 13342,
+      "source_path": "handoff/v4-running-source-20261005/canonical/stage_center/acquisition.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-004.json"
+    },
+    {
+      "relative_path": "stage_center/calendar.py",
+      "sha256": "681aae5b50acb89620998acda372531971bd26ae346f0334f37ea6e5b1de8124",
+      "bytes": 4721,
+      "source_path": "handoff/v4-running-source-20261005/api/stage_center/calendar.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-004.json"
+    },
+    {
+      "relative_path": "stage_center/candidate_input.py",
+      "sha256": "59c6bb0ef13a5aaa576477708385ec4ac68b7d20a69e3fc61d984da4a8284aff",
+      "bytes": 17567,
+      "source_path": "handoff/v4-running-source-20261005/canonical/stage_center/candidate_input.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-004.json"
+    },
+    {
+      "relative_path": "stage_center/consumer.py",
+      "sha256": "61f8a3541aa7a2e698cc4374385e3d20d41b40ffd5a3cd7d87c9494cb8726cf4",
+      "bytes": 33874,
+      "source_path": "handoff/v4-running-source-20261005/api/stage_center/consumer.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-004.json"
+    },
+    {
+      "relative_path": "stage_center/contracts.py",
+      "sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+      "bytes": 2331,
+      "source_path": "handoff/v4-running-source-20261005/canonical/stage_center/contracts.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-004.json"
+    },
+    {
+      "relative_path": "stage_center/execution_evidence.py",
+      "sha256": "e4c4ea94d892158383620beab1825014f21e926b57907354475f8c9ff382704b",
+      "bytes": 7682,
+      "source_path": "handoff/v4-running-source-20261005/api/stage_center/execution_evidence.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-004.json"
+    },
+    {
+      "relative_path": "stage_center/input_contracts.py",
+      "sha256": "9521a336709286ab301368a70e2c99f6db6a8ffe288347977328619de7611fd2",
+      "bytes": 2796,
+      "source_path": "handoff/v4-running-source-20261005/canonical/stage_center/input_contracts.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-004.json"
+    },
+    {
+      "relative_path": "stage_center/raw_store.py",
+      "sha256": "130fb1cf5a298fb03b0657ecd90ffdf4f5c9a24a4da4cfd079188c1bac9c1476",
+      "bytes": 36595,
+      "source_path": "handoff/v4-running-source-20261005/api/stage_center/raw_store.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-004.json"
+    },
+    {
+      "relative_path": "stage_center/selection.py",
+      "sha256": "31e80e068890be03957920870719030463262c78911953541be3074f8650d4c9",
+      "bytes": 92532,
+      "source_path": "handoff/v4-running-source-20261005/api/stage_center/selection.py",
+      "frozen_manifest": "handoff/v4-running-source-20261005/manifests/api-004.json"
+    }
+  ]
+}
