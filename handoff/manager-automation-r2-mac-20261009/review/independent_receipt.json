@@ -1,0 +1,510 @@
+{
+  "schema_version": "v4.manager_r2_cumulative_independent_review.v1",
+  "decision": "PASS",
+  "decision_qualifier": "P2_CANNOT_CONFIRM_HK_MAPPED_CONSUMER_BEHAVIOR",
+  "reviewer_identity": "/root/r2_cumulative_review",
+  "writer_identity": "/root/r2_cumulative_writer",
+  "independent_reviewer": true,
+  "scope": {
+    "goal": "Cumulative fixed R1 then R2 isolated API/web candidate correctness, local target behavior, and handoff readiness; no production integration or deployment.",
+    "candidate_api": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/api",
+    "candidate_web": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/web/apps/web",
+    "candidate_test": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test",
+    "report_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/review/independent_review.md",
+    "report_sha256": "7fa9af9401268c8b67da981f229529bdfac54d037475aaa659e06538630f4159",
+    "production_actions": "NONE",
+    "live_get_post_collection": "NONE",
+    "service_scheduler_automation_mutation": "NONE"
+  },
+  "frozen_identity": {
+    "minimum_receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/receipts/r2_candidate_minimum_verification.json",
+    "minimum_receipt_sha256": "ded59483a74cba04858175c3f69867a7b1476dbe6e142fbf69e309bdc4a32fce",
+    "minimum_receipt_expected_sha256": "ded59483a74cba04858175c3f69867a7b1476dbe6e142fbf69e309bdc4a32fce",
+    "source_receipts_verified": [
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/receipts/r2_candidate_baseline_inventory.json",
+        "expected_sha256": "222b775bd58295dfbb7a6d73978b905bdf768af26dbe95c1b7371da8c20d2554",
+        "actual_sha256": "222b775bd58295dfbb7a6d73978b905bdf768af26dbe95c1b7371da8c20d2554",
+        "match": true
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/receipts/r2_api_web_cumulative_application.json",
+        "expected_sha256": "ac36fb99286cc76760e5a8c275dc21ea661992c474aac1c625d764408c67b18b",
+        "actual_sha256": "ac36fb99286cc76760e5a8c275dc21ea661992c474aac1c625d764408c67b18b",
+        "match": true
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/receipts/r2_hk_supplement_consumer_increment.json",
+        "expected_sha256": "87518301f097a60442213299b7966392fbe056c5b47022f9ae06b0d9a7864aaa",
+        "actual_sha256": "87518301f097a60442213299b7966392fbe056c5b47022f9ae06b0d9a7864aaa",
+        "match": true
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r1_api_before.json",
+        "expected_sha256": "8cdbe148aaaa52ae171866e85a613bdb4a00af89d012733114995fb5c3adef96",
+        "actual_sha256": "8cdbe148aaaa52ae171866e85a613bdb4a00af89d012733114995fb5c3adef96",
+        "match": true
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r1_web_before.json",
+        "expected_sha256": "23a5632bac768e0e1f67a1bf294478b8c52e3e95ac7d8e673ef7586e172d67e7",
+        "actual_sha256": "23a5632bac768e0e1f67a1bf294478b8c52e3e95ac7d8e673ef7586e172d67e7",
+        "match": true
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r1_api_after.json",
+        "expected_sha256": "fe8b0d196c4d1f024fbe5c7b9d6c8591be490cef80cf731ab65f5a35b7b9de9e",
+        "actual_sha256": "fe8b0d196c4d1f024fbe5c7b9d6c8591be490cef80cf731ab65f5a35b7b9de9e",
+        "match": true
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r1_web_after.json",
+        "expected_sha256": "beca59d6aaa0fe5af6fd41bed6738b3e0a5a5e33b93fe0071f3803f668196d3b",
+        "actual_sha256": "beca59d6aaa0fe5af6fd41bed6738b3e0a5a5e33b93fe0071f3803f668196d3b",
+        "match": true
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r2_api_after.json",
+        "expected_sha256": "88e672ddb3aca6be7c0ee09dba1304534380ccc568a9127fe91dcee56c3d0b21",
+        "actual_sha256": "88e672ddb3aca6be7c0ee09dba1304534380ccc568a9127fe91dcee56c3d0b21",
+        "match": true
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r2_web_after.json",
+        "expected_sha256": "c0717b3f18ac49026d283d0777b1ecf915f2ffa4c7e4d3ef0fde008a11f56ee3",
+        "actual_sha256": "c0717b3f18ac49026d283d0777b1ecf915f2ffa4c7e4d3ef0fde008a11f56ee3",
+        "match": true
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r2_tests_after.json",
+        "expected_sha256": "5d7a230af58c8810ab1f228bb0d39722cb743d7b3fb713025ecfb093801c66cb",
+        "actual_sha256": "5d7a230af58c8810ab1f228bb0d39722cb743d7b3fb713025ecfb093801c66cb",
+        "match": true
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/coordination/live_get_baseline.json",
+        "expected_sha256": "dede23e119ee901656e07a0da837314d3cdd27d7f6690637428d6b1b14237fa1",
+        "actual_sha256": "dede23e119ee901656e07a0da837314d3cdd27d7f6690637428d6b1b14237fa1",
+        "match": true
+      }
+    ],
+    "r1_intake_manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+    "r2_intake_manifest_sha256": "a5ffd6b8847dadb079228aff602a2338e3a575b0053ae884631de42fdcc66a85",
+    "candidate_profile_after_checks": [
+      {
+        "profile": "api",
+        "path": "apps/api/v35_api/manager_research_router.py",
+        "initial_before_sha256": "84f65a351e1e44171820cb8698e4198b3084e39b8d0cfe82c6b4bc05595f8073",
+        "r1_after_sha256": "c3ec90ffb88f1378c4d9a1912fc78747f4440d0331696de4f1a015ad72946f4c",
+        "r2_after_sha256": null,
+        "expected_current_sha256": "c3ec90ffb88f1378c4d9a1912fc78747f4440d0331696de4f1a015ad72946f4c",
+        "actual_candidate_sha256": "c3ec90ffb88f1378c4d9a1912fc78747f4440d0331696de4f1a015ad72946f4c",
+        "match": true
+      },
+      {
+        "profile": "api",
+        "path": "infrastructure/_research_peripheral_store_parts/_namespace.py",
+        "initial_before_sha256": null,
+        "r1_after_sha256": "04d71a71d33cdc90ec362289095dd2ac6e357f79af1528f8c573f6ddcc24e68d",
+        "r2_after_sha256": null,
+        "expected_current_sha256": "04d71a71d33cdc90ec362289095dd2ac6e357f79af1528f8c573f6ddcc24e68d",
+        "actual_candidate_sha256": "04d71a71d33cdc90ec362289095dd2ac6e357f79af1528f8c573f6ddcc24e68d",
+        "match": true
+      },
+      {
+        "profile": "api",
+        "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+        "initial_before_sha256": "73eb6a2f7cbf2e2307a87edc3013e355c331f2ce87e6e0ae693b9f78de2dd34a",
+        "r1_after_sha256": "2ed9640b7c1568df065884f9f71a1df82b288c342bc94135ef4fd06b4c510373",
+        "r2_after_sha256": null,
+        "expected_current_sha256": "2ed9640b7c1568df065884f9f71a1df82b288c342bc94135ef4fd06b4c510373",
+        "actual_candidate_sha256": "2ed9640b7c1568df065884f9f71a1df82b288c342bc94135ef4fd06b4c510373",
+        "match": true
+      },
+      {
+        "profile": "api",
+        "path": "ops/render_manager_announcement_binding.py",
+        "initial_before_sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a",
+        "r1_after_sha256": "78049be0625c15539dcd44c1924ba8f89d5dd5a06a074c723a84d68fb45b3f39",
+        "r2_after_sha256": null,
+        "expected_current_sha256": "78049be0625c15539dcd44c1924ba8f89d5dd5a06a074c723a84d68fb45b3f39",
+        "actual_candidate_sha256": "78049be0625c15539dcd44c1924ba8f89d5dd5a06a074c723a84d68fb45b3f39",
+        "match": true
+      },
+      {
+        "profile": "api",
+        "path": "ops/run_manager_announcement_cycle.py",
+        "initial_before_sha256": "c6f9cfa57515682b4f076e10f2030196dc9377bdbb9ec4abe737e36d15485c1c",
+        "r1_after_sha256": "ac05519d31be2ad5de640190d9219335e14cd70e6273bdc652b32b85e929ffa1",
+        "r2_after_sha256": null,
+        "expected_current_sha256": "ac05519d31be2ad5de640190d9219335e14cd70e6273bdc652b32b85e929ffa1",
+        "actual_candidate_sha256": "ac05519d31be2ad5de640190d9219335e14cd70e6273bdc652b32b85e929ffa1",
+        "match": true
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/plan_owner_dispatch.py",
+        "initial_before_sha256": "8fad78ec64b1ff3ab80242fedc93dfcf7cbed25e6839821aab7f024ca297bf75",
+        "r1_after_sha256": "d896359dbfd39f41ed3e316d54424c6f1172d935aa1d77a47463167d7bf1ed90",
+        "r2_after_sha256": null,
+        "expected_current_sha256": "d896359dbfd39f41ed3e316d54424c6f1172d935aa1d77a47463167d7bf1ed90",
+        "actual_candidate_sha256": "d896359dbfd39f41ed3e316d54424c6f1172d935aa1d77a47463167d7bf1ed90",
+        "match": true
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/service.py",
+        "initial_before_sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37",
+        "r1_after_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+        "r2_after_sha256": null,
+        "expected_current_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+        "actual_candidate_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+        "match": true
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/us_mapping_research.py",
+        "initial_before_sha256": "297dc6f5950d3614437378c22e3157b6866823fbf25fd39cb47f112ffea40da7",
+        "r1_after_sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+        "r2_after_sha256": null,
+        "expected_current_sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+        "actual_candidate_sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+        "match": true
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/workspace.py",
+        "initial_before_sha256": "183e3ebd0322883a8f8cef37c0244f424f16c63d3120245e263bb9585133dea3",
+        "r1_after_sha256": "58a471c5ce7ece837c66948392ec2e6d73459343515225e19d694749c45ab1a4",
+        "r2_after_sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+        "expected_current_sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+        "actual_candidate_sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+        "match": true
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/workspace_history.py",
+        "initial_before_sha256": "da5e1223326631cc9070c3059ca606bac3840ef468ad5c06f2f3a51534f82ec1",
+        "r1_after_sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+        "r2_after_sha256": null,
+        "expected_current_sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+        "actual_candidate_sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+        "match": true
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/workspace_plan_autorun.py",
+        "initial_before_sha256": "703bef8d9a04861c6cb4161880427126badd69eece234f9b53eaa5ae59d7c6ef",
+        "r1_after_sha256": "14d168300bba42124649f56b79ae65b41359bcfa6928b59fea4a36beb2b511f5",
+        "r2_after_sha256": null,
+        "expected_current_sha256": "14d168300bba42124649f56b79ae65b41359bcfa6928b59fea4a36beb2b511f5",
+        "actual_candidate_sha256": "14d168300bba42124649f56b79ae65b41359bcfa6928b59fea4a36beb2b511f5",
+        "match": true
+      },
+      {
+        "profile": "web",
+        "path": "apps/web/src/api/managerWorkspace.ts",
+        "initial_before_sha256": "5854af5d1e2b33cc469ba6abd49096bb2f727280161c663edf4b757742f9ce92",
+        "r1_after_sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+        "r2_after_sha256": null,
+        "expected_current_sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+        "actual_candidate_sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+        "match": true
+      },
+      {
+        "profile": "web",
+        "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "initial_before_sha256": "fbb20e417bb4d9ff7cbd25c5aa29f387a1650438d6e638216b3f4d7c1a209497",
+        "r1_after_sha256": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6",
+        "r2_after_sha256": "ffd5c8cbfdaba9eb7e277695114647ef037b88ae16269be5547d3eff0649d3a3",
+        "expected_current_sha256": "ffd5c8cbfdaba9eb7e277695114647ef037b88ae16269be5547d3eff0649d3a3",
+        "actual_candidate_sha256": "ffd5c8cbfdaba9eb7e277695114647ef037b88ae16269be5547d3eff0649d3a3",
+        "match": true
+      },
+      {
+        "profile": "web",
+        "path": "apps/web/src/manager-selection/dailyResearchRun.ts",
+        "initial_before_sha256": null,
+        "r1_after_sha256": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d",
+        "r2_after_sha256": null,
+        "expected_current_sha256": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d",
+        "actual_candidate_sha256": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d",
+        "match": true
+      },
+      {
+        "profile": "web",
+        "path": "apps/web/src/manager-selection/researchAttention.ts",
+        "initial_before_sha256": "16bb02dd12c22fd6c55f6c42bb57f8e48ac66864673ba403380381cb2b63f3ef",
+        "r1_after_sha256": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c",
+        "r2_after_sha256": null,
+        "expected_current_sha256": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c",
+        "actual_candidate_sha256": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c",
+        "match": true
+      },
+      {
+        "profile": "api_consumer_increment",
+        "path": "v3_shared_data/shared_data/hk_daily_supplement.py",
+        "initial_before_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+        "expected_current_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+        "actual_candidate_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+        "test_mirror_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+        "match": true
+      }
+    ],
+    "candidate_source_tree_diff_vs_pinned_initial_inventory": {
+      "api": {
+        "baseline_file_count": 1016,
+        "candidate_file_count": 1025,
+        "changed_paths": [
+          "apps/api/v35_api/manager_research_router.py",
+          "infrastructure/scheduling/manager_announcement_supervisor.py",
+          "ops/render_manager_announcement_binding.py",
+          "ops/run_manager_announcement_cycle.py",
+          "v3_shared_data/shared_data/hk_daily_supplement.py",
+          "v4/manager_research/plan_owner_dispatch.py",
+          "v4/manager_research/service.py",
+          "v4/manager_research/us_mapping_research.py",
+          "v4/manager_research/workspace.py",
+          "v4/manager_research/workspace_history.py",
+          "v4/manager_research/workspace_plan_autorun.py"
+        ],
+        "added_paths": [
+          "infrastructure/_research_peripheral_store_parts/_namespace.py",
+          "tests/manager_daily_ui_owner_fixture.py",
+          "tests/manager_daily_ui_parent_route_worker.py",
+          "tests/manager_daily_ui_route_fixture.py",
+          "tests/test_manager_announcement_parity_20261008.py",
+          "tests/test_manager_daily_automation_20261008.py",
+          "tests/test_manager_owner_namespace_contracts.py",
+          "tests/test_manager_us_daily_automation_20261008.py",
+          "tests/test_manager_workspace_exact_page_binding_20261008.py"
+        ],
+        "deleted_paths": []
+      },
+      "web": {
+        "baseline_file_count": 123,
+        "candidate_file_count": 127,
+        "changed_paths": [
+          "apps/web/src/api/managerWorkspace.ts",
+          "apps/web/src/manager-selection/catalystObservationPanel.ts",
+          "apps/web/src/manager-selection/researchAttention.ts"
+        ],
+        "added_paths": [
+          "apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts",
+          "apps/web/src/manager-selection/dailyResearchRun.spec.ts",
+          "apps/web/src/manager-selection/dailyResearchRun.ts",
+          "apps/web/src/views/ManagerSelectionView.dailyIntegration.spec.ts"
+        ],
+        "deleted_paths": []
+      }
+    },
+    "candidate_tree_diff_excludes": [
+      "node_modules",
+      "__pycache__",
+      "candidate/web/apps/web/dist generated output"
+    ],
+    "test_route_fixture": {
+      "path": "candidate/test/tests/test_manager_announcement_parity_20261008.py",
+      "sha256": "22fccef9d1904c2ea0f52f645e4810cef876574bb8574722109fa37f0a29b4ed",
+      "minimum_receipt_loaded_module_pin_match": true,
+      "minimum_receipt_loaded_module": {
+        "module": "test_manager_announcement_parity_20261008",
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/test_manager_announcement_parity_20261008.py",
+        "sha256": "22fccef9d1904c2ea0f52f645e4810cef876574bb8574722109fa37f0a29b4ed"
+      }
+    }
+  },
+  "environment": {
+    "python_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "python_version": "Python 3.14.6",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "TMPDIR": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/tmp",
+    "TMPDIR_realpath": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/tmp",
+    "TMPDIR_is_symlink": false,
+    "V4_TEST_SOURCE_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test",
+    "PYTHONPATH": [
+      "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test",
+      "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/upstreams",
+      "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests"
+    ],
+    "node": "v24.19.0",
+    "npm": "11.17.0",
+    "vitest": "4.1.10",
+    "vite": "7.3.6"
+  },
+  "tests": [
+    {
+      "name": "R2 workspace auto POST/readback contract",
+      "source_path": "incoming/r2/independent_tests/test_workspace_auto_readback_contract.py",
+      "source_sha256": "e20677a6aef3d1ea856b8692cb9beb303c921473b95839d81248de50de6d3c29",
+      "cwd": "candidate/test",
+      "exit_code": 0,
+      "result": "4 passed",
+      "log_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/review/r2_auto_readback.log",
+      "log_sha256": "f3ff0520e279ec6c149e89699e3211b55be2a422d4179b812a22c9237834275e"
+    },
+    {
+      "name": "R2 exact page binding/readback",
+      "source_path": "candidate/test/tests/test_manager_workspace_exact_page_binding_20261008.py",
+      "source_sha256": "7b3777e7333b167b7c0e81049daf7ca2e29f6936da50db7ff6d223548d4d6bd7",
+      "cwd": "candidate/test",
+      "exit_code": 0,
+      "result": "2 passed",
+      "log_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/review/r2_exact_page.log",
+      "log_sha256": "80c0b39418b91e445fe987411688c18b51bdae9052e6a3d6b9243a7c8a3d267d"
+    },
+    {
+      "name": "R1 daily automation / catch-up owner",
+      "source_path": "candidate/test/tests/test_manager_daily_automation_20261008.py",
+      "source_sha256": "32d1baf5f79672d94fbcc2053e16aa4dfaefd8637cd153c4dfadf3fc6e43a45e",
+      "cwd": "candidate/test",
+      "exit_code": 0,
+      "result": "10 passed",
+      "log_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/review/r1_daily_automation.log",
+      "log_sha256": "6209a75ece51a9b1632e7d7b4482f579ecd2eaf4bd4f0b5a5cd4df3cbc8defe1"
+    },
+    {
+      "name": "R1 US daily automation owner",
+      "source_path": "candidate/test/tests/test_manager_us_daily_automation_20261008.py",
+      "source_sha256": "619afccbc08dba0c151939991e7cb7e636359bf6ab99b623ea64b9ec50cd1ba4",
+      "cwd": "candidate/test",
+      "exit_code": 0,
+      "result": "12 passed",
+      "log_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/review/r1_us_daily_automation.log",
+      "log_sha256": "c6761eb659e35e4b8c9ce4cc68d07b16c3d6e0aac235b1b50e0b8c9add4ccbaf"
+    },
+    {
+      "name": "Original ManagerSelectionView parent SFC integration",
+      "source_path": "candidate/test/apps/web/src/views/ManagerSelectionView.dailyIntegration.spec.ts",
+      "source_sha256": "2d1f353823a96745f4d1c4a0e9eed55f9ba1caec0ea766bd0f16861e303dc668",
+      "cwd": "candidate/test/apps/web",
+      "exit_code": 0,
+      "result": "5 passed",
+      "log_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/review/parent_sfc_daily_integration.log",
+      "log_sha256": "37f286be016a17f5a095bd6af2574d5d9b9a085793484a85df01d33384bae63c"
+    },
+    {
+      "name": "Candidate web full typecheck",
+      "source_path": "candidate/web/apps/web/package.json",
+      "source_sha256": "c19353356c407e397c4eeda0bf052c0229e6fb814c55de43eb60a43263306d2b",
+      "cwd": "candidate/web/apps/web",
+      "exit_code": 0,
+      "result": "vue-tsc --noEmit; no diagnostics",
+      "log_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/review/candidate_web_typecheck.log",
+      "log_sha256": "16b4018cae57fe1052ea85fd680aa74ae29b25bcd0cded804c7a52cb0c66ec91"
+    },
+    {
+      "name": "Candidate web full build",
+      "source_path": "candidate/web/apps/web/package.json",
+      "source_sha256": "c19353356c407e397c4eeda0bf052c0229e6fb814c55de43eb60a43263306d2b",
+      "cwd": "candidate/web/apps/web",
+      "exit_code": 0,
+      "result": "Vite 7.3.6; 117 modules transformed; build completed",
+      "log_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/review/candidate_web_build.log",
+      "log_sha256": "8664146c2ea582300ed4d2e3f2bfa4f121c157ef79a7e76b990c9a17a2fe0455"
+    },
+    {
+      "name": "HK daily supplement declared test collection probe",
+      "source_path": "candidate/test/tests/test_hk_daily_supplement_r4.py",
+      "source_sha256": "7085f61af64c20f3153ca5e6d7948c0e0e54c3236e2e5ec364b9662d5d1dfc94",
+      "cwd": "candidate/test",
+      "exit_code": 2,
+      "result": "collection error: missing upstreams.v3_shared_data.shared_data.hk_daily_supplement",
+      "log_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/review/hk_declared_test_collect.log",
+      "log_sha256": "7f95237205d9cc0dfcc49e73b167e838fd5fe89e7097be5eb1e46b329cfaf0d4"
+    },
+    {
+      "name": "HK consumer lazy import identity probe",
+      "source_path": "candidate/test/v4/manager_research/workspace_plan.py",
+      "source_sha256": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb",
+      "cwd": "candidate/test",
+      "exit_code": 0,
+      "result": "synthetic spy observed candidate v3_shared_data module and SHA",
+      "log_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/review/consumer_import_probe.log",
+      "log_sha256": "7a743bad86344792e38deb8aabdae1c58c6a0b48ec615b4672abd1b25421437f"
+    }
+  ],
+  "behavior_verified": [
+    "ordinary auto GET returns the same saved same-day plan run after POST, with later read timestamp and original sealed cutoff",
+    "changed source/date bindings produce stale plan status instead of reusing the saved cutoff",
+    "future auto plan and past-date auto history remain separated from explicit dynamic read",
+    "missing US daily input preserves announcement output and unknown counts in the parent SFC",
+    "late response after plan-date change does not overwrite current target view",
+    "daily catch-up and US owner failure boundaries are covered by local synthetic owner tests"
+  ],
+  "hk_consumer": {
+    "api_path": "candidate/api/v3_shared_data/shared_data/hk_daily_supplement.py",
+    "api_before_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+    "api_after_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+    "test_mirror_path": "candidate/test/v3_shared_data/shared_data/hk_daily_supplement.py",
+    "test_mirror_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+    "workspace_plan_callsite": "v3_shared_data.shared_data.hk_daily_supplement.read_verified_daily_supplement at candidate/test/v4/manager_research/workspace_plan.py:646",
+    "synthetic_lazy_import_probe_log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/review/consumer_import_probe.log",
+    "synthetic_lazy_import_probe_log_sha256": "7a743bad86344792e38deb8aabdae1c58c6a0b48ec615b4672abd1b25421437f",
+    "mapped_reader_actual_input_behavior": "CANNOT_CONFIRM",
+    "declared_test_path": "candidate/test/tests/test_hk_daily_supplement_r4.py",
+    "declared_test_sha256": "7085f61af64c20f3153ca5e6d7948c0e0e54c3236e2e5ec364b9662d5d1dfc94",
+    "declared_test_import": "upstreams.v3_shared_data.shared_data.hk_daily_supplement at line 15",
+    "declared_test_candidate_upstream_module_present": false,
+    "collect_only_exit_code": 2,
+    "collect_only_log": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/review/hk_declared_test_collect.log",
+    "collect_only_log_sha256": "7f95237205d9cc0dfcc49e73b167e838fd5fe89e7097be5eb1e46b329cfaf0d4",
+    "prior_frozen_r1_hk_review_status": "PASS_LIMITED_SYNTHETIC_BOUNDARIES_WITH_TWO_PREEXISTING_SUPPLEMENT_CASE_FAILURES",
+    "prior_frozen_r1_complete_suite": {
+      "status": "FAIL_PREEXISTING_CASES_REPRODUCED",
+      "passed": 13,
+      "failed": 2,
+      "failed_nodeids": [
+        "tests/test_hk_daily_supplement_r4.py::test_screen_uses_master_universe_sidecar_volume_and_missing_only_price_overlay",
+        "tests/test_hk_daily_supplement_r4.py::test_complete_panel_history_skips_sidecar_and_preserves_canonical_baseline"
+      ],
+      "evidence": [
+        {
+          "line": 426,
+          "assertion": "result[\"coverage\"][\"input_candidate_count\"] == 3",
+          "actual": 0
+        },
+        {
+          "line": 485,
+          "assertion": "result[\"coverage\"][\"input_candidate_count\"] == 1",
+          "actual": 0
+        }
+      ],
+      "classification": "PREEXISTING_BASELINE_FAILURE_NOT_CAUSED_BY_THIS_HK_DELTA"
+    }
+  },
+  "risk_findings": {
+    "P0": [],
+    "P1": [],
+    "P2": [
+      {
+        "id": "HK_MAPPED_CONSUMER_TEST_NAMESPACE_GAP",
+        "status": "NON_BLOCKING_CANNOT_CONFIRM",
+        "evidence": "Declared HK test imports upstreams.v3_shared_data..., absent from candidate/test/upstreams, so collection exits 2; actual API consumer uses v3_shared_data... and SHA f71d6bb8...3862. Two prior cloud suite cases are explicitly pre-existing against the preimage.",
+        "impact": "The candidate consumer import binding and SHA are verified, but reader behavior through this API consumer is not independently exercised in the Mac test assembly.",
+        "minimal_follow_up": "Add a focused test that imports the API consumer namespace directly when that test path is next in scope; no production/updater mapping is required for this verdict."
+      }
+    ]
+  },
+  "states": {
+    "REVIEWED": "PASS: exact frozen cumulative R1/R2 API/web paths and consumer mapping SHA checked",
+    "TESTED": "PASS: required Python, parent-SFC, candidate web typecheck/build reruns; HK declared test collect is recorded as a scoped coverage limitation",
+    "BEHAVIOR_VERIFIED": "PASS: only named synthetic local route/SFC/owner contracts above",
+    "INTEGRATED": "CANNOT_CONFIRM",
+    "DEPLOYED": "NOT_RUN",
+    "API_VERIFIED": "NOT_RUN",
+    "UI_VERIFIED": "NOT_RUN",
+    "NATURAL_VERIFIED": "NATURAL_SLOT_UNVERIFIED",
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "live_boundary": {
+    "live_get_baseline_sha256": "dede23e119ee901656e07a0da837314d3cdd27d7f6690637428d6b1b14237fa1",
+    "coordinator_clarification": "Three GETs were concurrent; the 10/8 auto 500 reached the capacity branch. Do not attribute it to candidate history logic.",
+    "host_progress_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/coordination/HOST_PROGRESS.md",
+    "host_progress_sha256": "eefa1bac237eb18da2d5e9b5e6900668f6b72ab8e1e97169b87f1f6666ba4ca9",
+    "new_live_requests": 0
+  }
+}

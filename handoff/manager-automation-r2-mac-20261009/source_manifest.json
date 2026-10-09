@@ -1,0 +1,183 @@
+{
+  "schema_version": "v4.manager_r2_mac.handoff_manifest.v1",
+  "parent_commit": "6a2fa48faf1da0a7d0d1715b3a4a40f55249b64c",
+  "branch": "codex/manager-automation-r2-mac-20261009",
+  "scope": "isolated cumulative API/web candidate and independent Mac verification; not deployment",
+  "files": [
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/tools/initialize_api_web_candidate.py",
+      "sha256": "6ce65bc1393d363faf5280d04db0a57ca7f06db0ea98e796ee5e017139699a0f",
+      "git_blob_sha": "6cb086a37d387991a24dc7b68abee604e0d9529f",
+      "bytes": 6822
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/tools/apply_r1_r2_api_web.py",
+      "sha256": "c9e7638b221b147e1572403872954f6e3e0c389d8389003a03b364fbee402df1",
+      "git_blob_sha": "2153a079b9cb64e5945f8553553c27ae25261e56",
+      "bytes": 15196
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/evidence/receipts/r2_candidate_minimum_verification.json",
+      "sha256": "ded59483a74cba04858175c3f69867a7b1476dbe6e142fbf69e309bdc4a32fce",
+      "git_blob_sha": "9f7fea9f1f4aab2fdf8d825192eb1da9cb17a0f2",
+      "bytes": 22833
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/evidence/receipts/r2_api_web_cumulative_application.json",
+      "sha256": "ac36fb99286cc76760e5a8c275dc21ea661992c474aac1c625d764408c67b18b",
+      "git_blob_sha": "89b0ae3ddde78fa1627acf3a4da1af3da514b14b",
+      "bytes": 66983
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/evidence/receipts/r2_hk_supplement_consumer_increment.json",
+      "sha256": "87518301f097a60442213299b7966392fbe056c5b47022f9ae06b0d9a7864aaa",
+      "git_blob_sha": "5a75f9d337bb2e8121bca564de2a50c84024e127",
+      "bytes": 4155
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/integration_audit/source_root_map.json",
+      "sha256": "87f40571f645f61de8b064d47d5ae0fb897c2b0a667864ebe9818f0b099ec67c",
+      "git_blob_sha": "a5b6e7d3625db894840128d4acacd5904f8c3c8a",
+      "bytes": 8486
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/integration_audit/r1_r2_production_preimage_audit.json",
+      "sha256": "e78284700f472322dfd853fd16892d8304e0646b46732223909800de752d4f6d",
+      "git_blob_sha": "4c5eff583d4c2cf84bd31a30b3935371ba2a488a",
+      "bytes": 50470
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/integration_audit/supplement_consumer_map.json",
+      "sha256": "8f9ebdcde00733486edc53a8c6bf1ca35a7f847a5875b83cb31256143b1a07d7",
+      "git_blob_sha": "ed653bc3876e6097cb3ea378059da3a7a3141891",
+      "bytes": 10333
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/input_audit/r2-input-identity-audit.json",
+      "sha256": "ac1c4181f0f2c420946af368a1f795285e2b3eb8e068d24d60d5aa9a3d4ba43f",
+      "git_blob_sha": "a04a2d1a62924b5412dd963dc513e404378f4a96",
+      "bytes": 18565
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/input_audit/r2-input-identity-audit.md",
+      "sha256": "b06f0725cd8c5f62f50f1f39c2afa3af6a82ba49b26604db7bf354d9378f3059",
+      "git_blob_sha": "4283984983559ee8387d3bde09f1134b0a6a6f25",
+      "bytes": 4247
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/coordination/live_get_baseline.json",
+      "sha256": "dede23e119ee901656e07a0da837314d3cdd27d7f6690637428d6b1b14237fa1",
+      "git_blob_sha": "34d57baf2c6b47c82bc2d8fa4748827aad2213ae",
+      "bytes": 14876
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/coordination/live_auto_500_log_excerpt.json",
+      "sha256": "3c0c9e813114e6fd1c6207a26c871d0c5f3a17b384bc69be5b8f45cf1bc92ee5",
+      "git_blob_sha": "5c0169ce8de09a6f38447165778e6891785937ac",
+      "bytes": 4264
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/README.md",
+      "sha256": "4fc518164b0ab20e1b71a05637d0c06ea9396453ecaafa7b0b33f4572021cbc4",
+      "git_blob_sha": "50adb239ae83655bbcf494ede7c95bf55469b359",
+      "bytes": 5615
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/coordination/HOST_PROGRESS.md",
+      "sha256": "e1e0218ee27b18917525b7f3298fc2378783a52cc3f774a27a584fffef0cb5f5",
+      "git_blob_sha": "8ba9a84f073ceda51f2974779ec5c73d3c489106",
+      "bytes": 3870
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/coordination/ledger.json",
+      "sha256": "3cecd4552aab5e47db9e4bea2b50ea09cfeac18443f7dab7d2ad36466947165e",
+      "git_blob_sha": "b3e94841df6502c0fafdf0c24d113269aa44a13a",
+      "bytes": 6348
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/review/independent_review.md",
+      "sha256": "7fa9af9401268c8b67da981f229529bdfac54d037475aaa659e06538630f4159",
+      "git_blob_sha": "73a4a22a86e130187bc6f77ea14c83d7c764954a",
+      "bytes": 6698
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/review/independent_receipt.json",
+      "sha256": "f3e8bf2c27c0ec1ddb7ff94433fe2177eb4d5b9163e755b3fb098dfa967bb655",
+      "git_blob_sha": "6c50b99dd7e0822bac012c619bf3ba9c58da4ea8",
+      "bytes": 29116
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/review/r1_us_daily_automation.log",
+      "sha256": "c6761eb659e35e4b8c9ce4cc68d07b16c3d6e0aac235b1b50e0b8c9add4ccbaf",
+      "git_blob_sha": "603a227959fa9028e3ba29b95ce296e7c1446ec5",
+      "bytes": 99
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/review/r2_exact_page.log",
+      "sha256": "80c0b39418b91e445fe987411688c18b51bdae9052e6a3d6b9243a7c8a3d267d",
+      "git_blob_sha": "d1f809a131d08a80a624300f24207eac380d106f",
+      "bytes": 98
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/review/hk_declared_test_collect.log",
+      "sha256": "7f95237205d9cc0dfcc49e73b167e838fd5fe89e7097be5eb1e46b329cfaf0d4",
+      "git_blob_sha": "b29d3929115659aadaf9d2aa9d4492b3f6515c51",
+      "bytes": 1336
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/review/r1_daily_automation.log",
+      "sha256": "6209a75ece51a9b1632e7d7b4482f579ecd2eaf4bd4f0b5a5cd4df3cbc8defe1",
+      "git_blob_sha": "ef09b815e98c1222ab3fc921e77a2e5bb00c0846",
+      "bytes": 99
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/review/candidate_web_typecheck.log",
+      "sha256": "16b4018cae57fe1052ea85fd680aa74ae29b25bcd0cded804c7a52cb0c66ec91",
+      "git_blob_sha": "865d7798953e8f3ed0339599095cc78d18cd426c",
+      "bytes": 48
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/review/parent_sfc_daily_integration.log",
+      "sha256": "37f286be016a17f5a095bd6af2574d5d9b9a085793484a85df01d33384bae63c",
+      "git_blob_sha": "05a09a9aa7ce730eee94b79694649615dbf590ee",
+      "bytes": 387
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/review/candidate_web_build.log",
+      "sha256": "8664146c2ea582300ed4d2e3f2bfa4f121c157ef79a7e76b990c9a17a2fe0455",
+      "git_blob_sha": "5b966c6df7f0d632864030554c7ab79f2263e2e6",
+      "bytes": 1072
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/review/consumer_import_probe.log",
+      "sha256": "7a743bad86344792e38deb8aabdae1c58c6a0b48ec615b4672abd1b25421437f",
+      "git_blob_sha": "e2566bf883fbc6ea283d5f9612c25d7e196de5e2",
+      "bytes": 866
+    },
+    {
+      "path": "handoff/manager-automation-r2-mac-20261009/review/r2_auto_readback.log",
+      "sha256": "f3ff0520e279ec6c149e89699e3211b55be2a422d4179b812a22c9237834275e",
+      "git_blob_sha": "16078b25860851845208e1e62a4e3841c815a66d",
+      "bytes": 98
+    }
+  ],
+  "exclusions": [
+    "raw market and business state",
+    "credentials and account data",
+    "candidate full snapshots",
+    "node_modules",
+    "dist",
+    "venv"
+  ],
+  "states": {
+    "REVIEWED": "PASS_SCOPED",
+    "TESTED": "PASS_SCOPED",
+    "BEHAVIOR_VERIFIED": "PASS_SYNTHETIC_ONLY",
+    "INTEGRATED": "CANNOT_CONFIRM",
+    "DEPLOYED": "NOT_RUN",
+    "API_VERIFIED": "NOT_RUN_LIVE",
+    "UI_VERIFIED": "NOT_RUN_LIVE",
+    "NATURAL_VERIFIED": "NATURAL_SLOT_UNVERIFIED"
+  },
+  "business_goal_complete": false
+}

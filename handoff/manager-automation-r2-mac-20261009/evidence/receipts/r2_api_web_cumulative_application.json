@@ -1,0 +1,1294 @@
+{
+  "schema_version": "v4.manager_r2_api_web_cumulative_application.v1",
+  "captured_at_utc": "2026-10-09T01:22:56.701193+00:00",
+  "scope": "ISOLATED_CANDIDATE_ONLY; R1 API+WEB THEN R2 API+WEB; NO HK PRODUCTION PROFILES",
+  "r1_source_manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+  "r2_source_manifest_sha256": "a5ffd6b8847dadb079228aff602a2338e3a575b0053ae884631de42fdcc66a85",
+  "r1_commit": "3f2aa6c92d87da098d33b5349698e55d337fd165",
+  "r2_parent_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+  "r2_commit": "6a2fa48faf1da0a7d0d1715b3a4a40f55249b64c",
+  "r1_application": {
+    "selected_rows": [
+      {
+        "profile": "api",
+        "path": "apps/api/v35_api/manager_research_router.py",
+        "before_sha256": "84f65a351e1e44171820cb8698e4198b3084e39b8d0cfe82c6b4bc05595f8073",
+        "after_sha256": "c3ec90ffb88f1378c4d9a1912fc78747f4440d0331696de4f1a015ad72946f4c"
+      },
+      {
+        "profile": "tests",
+        "path": "apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts",
+        "before_sha256": null,
+        "after_sha256": "b5b57a45102775d2f57b1af14456f8a9bf2b23c6a8a96f4b30c87da245f9ac0d"
+      },
+      {
+        "profile": "web",
+        "path": "apps/web/src/api/managerWorkspace.ts",
+        "before_sha256": "5854af5d1e2b33cc469ba6abd49096bb2f727280161c663edf4b757742f9ce92",
+        "after_sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb"
+      },
+      {
+        "profile": "web",
+        "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "before_sha256": "fbb20e417bb4d9ff7cbd25c5aa29f387a1650438d6e638216b3f4d7c1a209497",
+        "after_sha256": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6"
+      },
+      {
+        "profile": "tests",
+        "path": "apps/web/src/manager-selection/dailyResearchRun.spec.ts",
+        "before_sha256": null,
+        "after_sha256": "1fed6bbd4454e77c8b0e67e41c4b3d7fac0f4a1cae67893f1e3d438d29366501"
+      },
+      {
+        "profile": "web",
+        "path": "apps/web/src/manager-selection/dailyResearchRun.ts",
+        "before_sha256": null,
+        "after_sha256": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d"
+      },
+      {
+        "profile": "web",
+        "path": "apps/web/src/manager-selection/researchAttention.ts",
+        "before_sha256": "16bb02dd12c22fd6c55f6c42bb57f8e48ac66864673ba403380381cb2b63f3ef",
+        "after_sha256": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c"
+      },
+      {
+        "profile": "api",
+        "path": "infrastructure/_research_peripheral_store_parts/_namespace.py",
+        "before_sha256": null,
+        "after_sha256": "04d71a71d33cdc90ec362289095dd2ac6e357f79af1528f8c573f6ddcc24e68d"
+      },
+      {
+        "profile": "api",
+        "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+        "before_sha256": "73eb6a2f7cbf2e2307a87edc3013e355c331f2ce87e6e0ae693b9f78de2dd34a",
+        "after_sha256": "2ed9640b7c1568df065884f9f71a1df82b288c342bc94135ef4fd06b4c510373"
+      },
+      {
+        "profile": "api",
+        "path": "ops/render_manager_announcement_binding.py",
+        "before_sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a",
+        "after_sha256": "78049be0625c15539dcd44c1924ba8f89d5dd5a06a074c723a84d68fb45b3f39"
+      },
+      {
+        "profile": "api",
+        "path": "ops/run_manager_announcement_cycle.py",
+        "before_sha256": "c6f9cfa57515682b4f076e10f2030196dc9377bdbb9ec4abe737e36d15485c1c",
+        "after_sha256": "ac05519d31be2ad5de640190d9219335e14cd70e6273bdc652b32b85e929ffa1"
+      },
+      {
+        "profile": "tests",
+        "path": "tests/manager_daily_ui_owner_fixture.py",
+        "before_sha256": null,
+        "after_sha256": "59e78904ca76deaa381799719cbeb6c1841bd7df318d354c2e5ad6298e768020"
+      },
+      {
+        "profile": "tests",
+        "path": "tests/manager_daily_ui_route_fixture.py",
+        "before_sha256": null,
+        "after_sha256": "8d1d4ee850d70213b210941faf8c46cdd8741ca05102dfb36794dae4f40df104"
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_manager_daily_automation_20261008.py",
+        "before_sha256": null,
+        "after_sha256": "32d1baf5f79672d94fbcc2053e16aa4dfaefd8637cd153c4dfadf3fc6e43a45e"
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_manager_owner_namespace_contracts.py",
+        "before_sha256": null,
+        "after_sha256": "5a3203582a4857e9d5a269976b43aaff604f374ffc10ce94d8c8d843e2d5c1a0"
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_manager_us_daily_automation_20261008.py",
+        "before_sha256": null,
+        "after_sha256": "619afccbc08dba0c151939991e7cb7e636359bf6ab99b623ea64b9ec50cd1ba4"
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_manager_workspace_exact_page_binding_20261008.py",
+        "before_sha256": null,
+        "after_sha256": "9717711ce8eb3aca116b1ded70f3c833a573b6cb95f522468390eefb1e4d03a9"
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/plan_owner_dispatch.py",
+        "before_sha256": "8fad78ec64b1ff3ab80242fedc93dfcf7cbed25e6839821aab7f024ca297bf75",
+        "after_sha256": "d896359dbfd39f41ed3e316d54424c6f1172d935aa1d77a47463167d7bf1ed90"
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/service.py",
+        "before_sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37",
+        "after_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4"
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/us_mapping_research.py",
+        "before_sha256": "297dc6f5950d3614437378c22e3157b6866823fbf25fd39cb47f112ffea40da7",
+        "after_sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7"
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/workspace.py",
+        "before_sha256": "183e3ebd0322883a8f8cef37c0244f424f16c63d3120245e263bb9585133dea3",
+        "after_sha256": "58a471c5ce7ece837c66948392ec2e6d73459343515225e19d694749c45ab1a4"
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/workspace_history.py",
+        "before_sha256": "da5e1223326631cc9070c3059ca606bac3840ef468ad5c06f2f3a51534f82ec1",
+        "after_sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af"
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/workspace_plan_autorun.py",
+        "before_sha256": "703bef8d9a04861c6cb4161880427126badd69eece234f9b53eaa5ae59d7c6ef",
+        "after_sha256": "14d168300bba42124649f56b79ae65b41359bcfa6928b59fea4a36beb2b511f5"
+      }
+    ],
+    "git_apply_checks": [
+      {
+        "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/api",
+        "argv": [
+          "git",
+          "-C",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/api",
+          "apply",
+          "--check",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/api/apps/api/v35_api/manager_research_router.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/api/infrastructure/_research_peripheral_store_parts/_namespace.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/api/infrastructure/scheduling/manager_announcement_supervisor.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/api/ops/render_manager_announcement_binding.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/api/ops/run_manager_announcement_cycle.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/tests/tests/manager_daily_ui_owner_fixture.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/tests/tests/manager_daily_ui_route_fixture.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/tests/tests/test_manager_daily_automation_20261008.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/tests/tests/test_manager_owner_namespace_contracts.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/tests/tests/test_manager_us_daily_automation_20261008.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/tests/tests/test_manager_workspace_exact_page_binding_20261008.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/api/v4/manager_research/plan_owner_dispatch.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/api/v4/manager_research/service.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/api/v4/manager_research/us_mapping_research.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/api/v4/manager_research/workspace.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/api/v4/manager_research/workspace_history.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/api/v4/manager_research/workspace_plan_autorun.py.patch"
+        ],
+        "exit_code": 0
+      },
+      {
+        "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/web",
+        "argv": [
+          "git",
+          "-C",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/web",
+          "apply",
+          "--check",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/tests/apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/web/apps/web/src/api/managerWorkspace.ts.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/web/apps/web/src/manager-selection/catalystObservationPanel.ts.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/tests/apps/web/src/manager-selection/dailyResearchRun.spec.ts.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/web/apps/web/src/manager-selection/dailyResearchRun.ts.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/web/apps/web/src/manager-selection/researchAttention.ts.patch"
+        ],
+        "exit_code": 0
+      }
+    ],
+    "git_apply": [
+      {
+        "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/api",
+        "argv": [
+          "git",
+          "-C",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/api",
+          "apply",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/api/apps/api/v35_api/manager_research_router.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/api/infrastructure/_research_peripheral_store_parts/_namespace.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/api/infrastructure/scheduling/manager_announcement_supervisor.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/api/ops/render_manager_announcement_binding.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/api/ops/run_manager_announcement_cycle.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/tests/tests/manager_daily_ui_owner_fixture.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/tests/tests/manager_daily_ui_route_fixture.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/tests/tests/test_manager_daily_automation_20261008.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/tests/tests/test_manager_owner_namespace_contracts.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/tests/tests/test_manager_us_daily_automation_20261008.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/tests/tests/test_manager_workspace_exact_page_binding_20261008.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/api/v4/manager_research/plan_owner_dispatch.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/api/v4/manager_research/service.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/api/v4/manager_research/us_mapping_research.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/api/v4/manager_research/workspace.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/api/v4/manager_research/workspace_history.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/api/v4/manager_research/workspace_plan_autorun.py.patch"
+        ],
+        "exit_code": 0
+      },
+      {
+        "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/web",
+        "argv": [
+          "git",
+          "-C",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/web",
+          "apply",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/tests/apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/web/apps/web/src/api/managerWorkspace.ts.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/web/apps/web/src/manager-selection/catalystObservationPanel.ts.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/tests/apps/web/src/manager-selection/dailyResearchRun.spec.ts.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/web/apps/web/src/manager-selection/dailyResearchRun.ts.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/web/apps/web/src/manager-selection/researchAttention.ts.patch"
+        ],
+        "exit_code": 0
+      }
+    ],
+    "candidate_directory_mode_changes": [
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/api/apps",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/api/apps/api",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/api/apps/api/v35_api",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/api/infrastructure",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/api/infrastructure/scheduling",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/api/ops",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/api/tests",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      }
+    ],
+    "after_identities": [
+      {
+        "profile": "api",
+        "path": "apps/api/v35_api/manager_research_router.py",
+        "sha256": "c3ec90ffb88f1378c4d9a1912fc78747f4440d0331696de4f1a015ad72946f4c",
+        "bytes": 30588
+      },
+      {
+        "profile": "api",
+        "path": "infrastructure/_research_peripheral_store_parts/_namespace.py",
+        "sha256": "04d71a71d33cdc90ec362289095dd2ac6e357f79af1528f8c573f6ddcc24e68d",
+        "bytes": 534
+      },
+      {
+        "profile": "api",
+        "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+        "sha256": "2ed9640b7c1568df065884f9f71a1df82b288c342bc94135ef4fd06b4c510373",
+        "bytes": 30208
+      },
+      {
+        "profile": "api",
+        "path": "ops/render_manager_announcement_binding.py",
+        "sha256": "78049be0625c15539dcd44c1924ba8f89d5dd5a06a074c723a84d68fb45b3f39",
+        "bytes": 5380
+      },
+      {
+        "profile": "api",
+        "path": "ops/run_manager_announcement_cycle.py",
+        "sha256": "ac05519d31be2ad5de640190d9219335e14cd70e6273bdc652b32b85e929ffa1",
+        "bytes": 36743
+      },
+      {
+        "profile": "tests",
+        "path": "tests/manager_daily_ui_owner_fixture.py",
+        "sha256": "59e78904ca76deaa381799719cbeb6c1841bd7df318d354c2e5ad6298e768020",
+        "bytes": 10401
+      },
+      {
+        "profile": "tests",
+        "path": "tests/manager_daily_ui_route_fixture.py",
+        "sha256": "8d1d4ee850d70213b210941faf8c46cdd8741ca05102dfb36794dae4f40df104",
+        "bytes": 2188
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_manager_daily_automation_20261008.py",
+        "sha256": "32d1baf5f79672d94fbcc2053e16aa4dfaefd8637cd153c4dfadf3fc6e43a45e",
+        "bytes": 21642
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_manager_owner_namespace_contracts.py",
+        "sha256": "5a3203582a4857e9d5a269976b43aaff604f374ffc10ce94d8c8d843e2d5c1a0",
+        "bytes": 1135
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_manager_us_daily_automation_20261008.py",
+        "sha256": "619afccbc08dba0c151939991e7cb7e636359bf6ab99b623ea64b9ec50cd1ba4",
+        "bytes": 24638
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_manager_workspace_exact_page_binding_20261008.py",
+        "sha256": "9717711ce8eb3aca116b1ded70f3c833a573b6cb95f522468390eefb1e4d03a9",
+        "bytes": 4746
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/plan_owner_dispatch.py",
+        "sha256": "d896359dbfd39f41ed3e316d54424c6f1172d935aa1d77a47463167d7bf1ed90",
+        "bytes": 46210
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/service.py",
+        "sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+        "bytes": 94921
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/us_mapping_research.py",
+        "sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+        "bytes": 57938
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/workspace.py",
+        "sha256": "58a471c5ce7ece837c66948392ec2e6d73459343515225e19d694749c45ab1a4",
+        "bytes": 76020
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/workspace_history.py",
+        "sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+        "bytes": 21208
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/workspace_plan_autorun.py",
+        "sha256": "14d168300bba42124649f56b79ae65b41359bcfa6928b59fea4a36beb2b511f5",
+        "bytes": 14055
+      },
+      {
+        "profile": "tests",
+        "path": "apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts",
+        "sha256": "b5b57a45102775d2f57b1af14456f8a9bf2b23c6a8a96f4b30c87da245f9ac0d",
+        "bytes": 6248
+      },
+      {
+        "profile": "web",
+        "path": "apps/web/src/api/managerWorkspace.ts",
+        "sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+        "bytes": 109062
+      },
+      {
+        "profile": "web",
+        "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "sha256": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6",
+        "bytes": 65108
+      },
+      {
+        "profile": "tests",
+        "path": "apps/web/src/manager-selection/dailyResearchRun.spec.ts",
+        "sha256": "1fed6bbd4454e77c8b0e67e41c4b3d7fac0f4a1cae67893f1e3d438d29366501",
+        "bytes": 10147
+      },
+      {
+        "profile": "web",
+        "path": "apps/web/src/manager-selection/dailyResearchRun.ts",
+        "sha256": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d",
+        "bytes": 19519
+      },
+      {
+        "profile": "web",
+        "path": "apps/web/src/manager-selection/researchAttention.ts",
+        "sha256": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c",
+        "bytes": 23801
+      }
+    ]
+  },
+  "r1_after_verification": {
+    "api": {
+      "argv": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/tools/verify_delivery.py",
+        "--source-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/api",
+        "--profile",
+        "api",
+        "--against",
+        "after",
+        "--report",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r1_api_after.json"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"against\": \"after\",\n  \"base_commit\": \"09f82ac665e36a002e7f67f949b7e38f4e0598bf\",\n  \"failures\": [],\n  \"manifest_sha256\": \"3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560\",\n  \"package_files_checked\": 33,\n  \"package_patches_checked\": 35,\n  \"package_root\": \"/Users/lexi/Desktop/\\u5b66\\u4e60/agents\\u8c03\\u8bd5/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1\",\n  \"preserve_files_checked\": 1,\n  \"profile\": \"api\",\n  \"schema_version\": \"v4.manager_workbench_repair.delivery_verification.v1\",\n  \"source_files_checked\": 11,\n  \"source_root\": \"/Users/lexi/Desktop/\\u5b66\\u4e60/agents\\u8c03\\u8bd5/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/api\",\n  \"status\": \"PASS\"\n}",
+      "report": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r1_api_after.json"
+    },
+    "web": {
+      "argv": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/tools/verify_delivery.py",
+        "--source-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/web",
+        "--profile",
+        "web",
+        "--against",
+        "after",
+        "--report",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r1_web_after.json"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"against\": \"after\",\n  \"base_commit\": \"09f82ac665e36a002e7f67f949b7e38f4e0598bf\",\n  \"failures\": [],\n  \"manifest_sha256\": \"3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560\",\n  \"package_files_checked\": 33,\n  \"package_patches_checked\": 35,\n  \"package_root\": \"/Users/lexi/Desktop/\\u5b66\\u4e60/agents\\u8c03\\u8bd5/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1\",\n  \"preserve_files_checked\": 0,\n  \"profile\": \"web\",\n  \"schema_version\": \"v4.manager_workbench_repair.delivery_verification.v1\",\n  \"source_files_checked\": 4,\n  \"source_root\": \"/Users/lexi/Desktop/\\u5b66\\u4e60/agents\\u8c03\\u8bd5/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/web\",\n  \"status\": \"PASS\"\n}",
+      "report": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r1_web_after.json"
+    }
+  },
+  "fixed_test_dependencies": {
+    "web": [
+      {
+        "path": "apps/web/src/api/managerAnnouncementAnalysis.ts",
+        "sha256": "f30ec19c2c5b21f79ecfe3a3a23b1cf9d59bc5f5f48d117c7db4bcce39f3e5b5",
+        "bytes": 19705,
+        "declared_source_commit": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
+        "declared_source_path": "handoff/announcement-daily-repair-20261007/source/apps/web/src/api/managerAnnouncementAnalysis.ts",
+        "status": "ALREADY_PRESENT_MATCHES_FIXED_PIN"
+      },
+      {
+        "path": "apps/web/src/manager-selection/announcementAnalysis.ts",
+        "sha256": "7365a33cd65c024131844ea7a451bc3d89220f6391a17863f31a3781e0b6e327",
+        "bytes": 17541,
+        "declared_source_commit": "9dfa50346357b6dc4b2463a30dcbf3718fce2f03",
+        "declared_source_path": "handoff/announcement-daily-repair-20261007/source/apps/web/src/manager-selection/announcementAnalysis.ts",
+        "status": "ALREADY_PRESENT_MATCHES_FIXED_PIN"
+      }
+    ],
+    "python": [
+      {
+        "path": "tests/test_manager_announcement_parity_20261008.py",
+        "sha256": "22fccef9d1904c2ea0f52f645e4810cef876574bb8574722109fa37f0a29b4ed",
+        "bytes": 40192,
+        "declared_source_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+        "declared_source_paths": [
+          "handoff/manager-workbench-repair-20261008/after/tests/test_manager_announcement_parity_20261008.py"
+        ],
+        "actual_package_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/incoming/repair/after/tests/test_manager_announcement_parity_20261008.py",
+        "status": "RESTORED_TO_ISOLATED_TEST_TREE_FROM_FIXED_PIN"
+      }
+    ]
+  },
+  "r2_application": {
+    "selected_rows": [
+      {
+        "profile": "web",
+        "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "before_sha256": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6",
+        "after_sha256": "ffd5c8cbfdaba9eb7e277695114647ef037b88ae16269be5547d3eff0649d3a3"
+      },
+      {
+        "profile": "tests",
+        "path": "apps/web/src/views/ManagerSelectionView.dailyIntegration.spec.ts",
+        "before_sha256": null,
+        "after_sha256": "2d1f353823a96745f4d1c4a0e9eed55f9ba1caec0ea766bd0f16861e303dc668"
+      },
+      {
+        "profile": "tests",
+        "path": "tests/manager_daily_ui_parent_route_worker.py",
+        "before_sha256": null,
+        "after_sha256": "bc40e4716f5dffad231318723e130a6879518a5ec681d4a31df316014d265eaa"
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_manager_workspace_exact_page_binding_20261008.py",
+        "before_sha256": "9717711ce8eb3aca116b1ded70f3c833a573b6cb95f522468390eefb1e4d03a9",
+        "after_sha256": "7b3777e7333b167b7c0e81049daf7ca2e29f6936da50db7ff6d223548d4d6bd7"
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/workspace.py",
+        "before_sha256": "58a471c5ce7ece837c66948392ec2e6d73459343515225e19d694749c45ab1a4",
+        "after_sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc"
+      }
+    ],
+    "git_apply_checks": [
+      {
+        "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/api",
+        "argv": [
+          "git",
+          "-C",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/api",
+          "apply",
+          "--check",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r2/patches/tests/tests/manager_daily_ui_parent_route_worker.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r2/patches/tests/tests/test_manager_workspace_exact_page_binding_20261008.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r2/patches/api/v4/manager_research/workspace.py.patch"
+        ],
+        "exit_code": 0
+      },
+      {
+        "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/web",
+        "argv": [
+          "git",
+          "-C",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/web",
+          "apply",
+          "--check",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r2/patches/web/apps/web/src/manager-selection/catalystObservationPanel.ts.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r2/patches/tests/apps/web/src/views/ManagerSelectionView.dailyIntegration.spec.ts.patch"
+        ],
+        "exit_code": 0
+      }
+    ],
+    "git_apply": [
+      {
+        "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/api",
+        "argv": [
+          "git",
+          "-C",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/api",
+          "apply",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r2/patches/tests/tests/manager_daily_ui_parent_route_worker.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r2/patches/tests/tests/test_manager_workspace_exact_page_binding_20261008.py.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r2/patches/api/v4/manager_research/workspace.py.patch"
+        ],
+        "exit_code": 0
+      },
+      {
+        "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/web",
+        "argv": [
+          "git",
+          "-C",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/web",
+          "apply",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r2/patches/web/apps/web/src/manager-selection/catalystObservationPanel.ts.patch",
+          "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r2/patches/tests/apps/web/src/views/ManagerSelectionView.dailyIntegration.spec.ts.patch"
+        ],
+        "exit_code": 0
+      }
+    ],
+    "candidate_directory_mode_changes": [],
+    "after_identities": [
+      {
+        "profile": "tests",
+        "path": "tests/manager_daily_ui_parent_route_worker.py",
+        "sha256": "bc40e4716f5dffad231318723e130a6879518a5ec681d4a31df316014d265eaa",
+        "bytes": 10216
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_manager_workspace_exact_page_binding_20261008.py",
+        "sha256": "7b3777e7333b167b7c0e81049daf7ca2e29f6936da50db7ff6d223548d4d6bd7",
+        "bytes": 8634
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/workspace.py",
+        "sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+        "bytes": 76034
+      },
+      {
+        "profile": "web",
+        "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "sha256": "ffd5c8cbfdaba9eb7e277695114647ef037b88ae16269be5547d3eff0649d3a3",
+        "bytes": 65122
+      },
+      {
+        "profile": "tests",
+        "path": "apps/web/src/views/ManagerSelectionView.dailyIntegration.spec.ts",
+        "sha256": "2d1f353823a96745f4d1c4a0e9eed55f9ba1caec0ea766bd0f16861e303dc668",
+        "bytes": 17938
+      }
+    ]
+  },
+  "r2_after_verification": {
+    "api": {
+      "argv": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r2/tools/verify_delivery.py",
+        "--source-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/api",
+        "--profile",
+        "api",
+        "--against",
+        "after",
+        "--report",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r2_api_after.json"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"against\": \"after\",\n  \"base_commit\": \"008649895054cb24f1d1c3df37e215d307615db3\",\n  \"failures\": [],\n  \"manifest_sha256\": \"a5ffd6b8847dadb079228aff602a2338e3a575b0053ae884631de42fdcc66a85\",\n  \"package_files_checked\": 5,\n  \"package_patches_checked\": 5,\n  \"package_root\": \"/Users/lexi/Desktop/\\u5b66\\u4e60/agents\\u8c03\\u8bd5/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r2\",\n  \"preserve_files_checked\": 0,\n  \"profile\": \"api\",\n  \"schema_version\": \"v4.manager_workbench_repair.delivery_verification.v1\",\n  \"source_files_checked\": 1,\n  \"source_root\": \"/Users/lexi/Desktop/\\u5b66\\u4e60/agents\\u8c03\\u8bd5/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/api\",\n  \"status\": \"PASS\"\n}",
+      "report": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r2_api_after.json"
+    },
+    "web": {
+      "argv": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r2/tools/verify_delivery.py",
+        "--source-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/web",
+        "--profile",
+        "web",
+        "--against",
+        "after",
+        "--report",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r2_web_after.json"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"against\": \"after\",\n  \"base_commit\": \"008649895054cb24f1d1c3df37e215d307615db3\",\n  \"failures\": [],\n  \"manifest_sha256\": \"a5ffd6b8847dadb079228aff602a2338e3a575b0053ae884631de42fdcc66a85\",\n  \"package_files_checked\": 5,\n  \"package_patches_checked\": 5,\n  \"package_root\": \"/Users/lexi/Desktop/\\u5b66\\u4e60/agents\\u8c03\\u8bd5/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r2\",\n  \"preserve_files_checked\": 0,\n  \"profile\": \"web\",\n  \"schema_version\": \"v4.manager_workbench_repair.delivery_verification.v1\",\n  \"source_files_checked\": 1,\n  \"source_root\": \"/Users/lexi/Desktop/\\u5b66\\u4e60/agents\\u8c03\\u8bd5/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/web\",\n  \"status\": \"PASS\"\n}",
+      "report": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r2_web_after.json"
+    },
+    "tests": {
+      "argv": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r2/tools/verify_delivery.py",
+        "--source-root",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test",
+        "--profile",
+        "tests",
+        "--against",
+        "after",
+        "--report",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r2_tests_after.json"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"against\": \"after\",\n  \"base_commit\": \"008649895054cb24f1d1c3df37e215d307615db3\",\n  \"failures\": [],\n  \"manifest_sha256\": \"a5ffd6b8847dadb079228aff602a2338e3a575b0053ae884631de42fdcc66a85\",\n  \"package_files_checked\": 5,\n  \"package_patches_checked\": 5,\n  \"package_root\": \"/Users/lexi/Desktop/\\u5b66\\u4e60/agents\\u8c03\\u8bd5/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r2\",\n  \"preserve_files_checked\": 0,\n  \"profile\": \"tests\",\n  \"schema_version\": \"v4.manager_workbench_repair.delivery_verification.v1\",\n  \"source_files_checked\": 3,\n  \"source_root\": \"/Users/lexi/Desktop/\\u5b66\\u4e60/agents\\u8c03\\u8bd5/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test\",\n  \"status\": \"PASS\"\n}",
+      "report": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r2_tests_after.json"
+    }
+  },
+  "isolated_test_assembly": {
+    "root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test",
+    "api_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/api",
+    "web_source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/web/apps/web",
+    "web_component_overlay": "COPIED_EXACT_POSTPATCH_WEB_TREE",
+    "candidate_directory_mode_changes": [
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/domains",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/domains/research_review_generation",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/domains/research_review_generation/data_core",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/domains/research_review_generation/vibe_core",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/domains/research_review_generation/vibe_core/deepdive",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/v3_shared_data",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/v3_shared_data/shared_data",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/v3_shared_data/tests",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/v3_shared_data/tests/fixtures",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/v3_shared_data/tests/fixtures/exact-search-morning-news-20260824",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/v3_shared_data/scripts",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/v3_shared_data/scripts/live_acquisition",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/contracts",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/contracts/migration",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/frontend",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/optimization",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/hkconnect_stage_replay",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/hkconnect_stage_replay/20260730",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/hkconnect_stage_replay/20260730/STAGE_0930_0935",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/hkconnect_stage_replay/20260730/STAGE_1445_1500",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/hkconnect_stage_replay/20260730/STAGE_1300_1315",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/research",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/research/commits",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/research/commits/ce9b94199b06c8d489f72dd9ed8697cb9bbcf82f",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/research/commits/ce9b94199b06c8d489f72dd9ed8697cb9bbcf82f/domains",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/research/commits/ce9b94199b06c8d489f72dd9ed8697cb9bbcf82f/contracts",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/research/commits/ce9b94199b06c8d489f72dd9ed8697cb9bbcf82f/contracts/migration",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/research/commits/276acc36f375691aa318e469cf12bd12348b1452",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/research/commits/276acc36f375691aa318e469cf12bd12348b1452/contracts",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/research/commits/276acc36f375691aa318e469cf12bd12348b1452/contracts/migration",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/research/snapshots",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/preselection_optional_pools",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/preselection_optional_pools/commits",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/preselection_optional_pools/commits/89ddcfc01999442c59b7c3fb25b0e5e5e64aebfa",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/preselection_optional_pools/commits/89ddcfc01999442c59b7c3fb25b0e5e5e64aebfa/domains",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/preselection_optional_pools/commits/89ddcfc01999442c59b7c3fb25b0e5e5e64aebfa/infrastructure",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/preselection_optional_pools/commits/764333395cf67375743f003d6b23816430471099",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/preselection_optional_pools/commits/764333395cf67375743f003d6b23816430471099/contracts",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/preselection_optional_pools/commits/764333395cf67375743f003d6b23816430471099/contracts/migration",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/preselection_optional_pools/commits/8c7ff01ade4f5d82db8adc5cb64c7038698888e5",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/preselection_optional_pools/commits/8c7ff01ade4f5d82db8adc5cb64c7038698888e5/ops",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/preselection_optional_pools/commits/8c7ff01ade4f5d82db8adc5cb64c7038698888e5/apps",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/preselection_optional_pools/commits/8c7ff01ade4f5d82db8adc5cb64c7038698888e5/apps/web",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/fixtures/preselection_optional_pools/commits/8c7ff01ade4f5d82db8adc5cb64c7038698888e5/apps/web/src",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/docs",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/docs/evidence",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/docs/evidence/agent-cluster",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/docs/optimization",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/docs/superpowers",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/docs/superpowers/plans",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/docs/superpowers/handoffs",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/verification",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/v4/manager_research/_vendor",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/v4/manager_research/_vendor/licenses",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/v4/manager_research/_vendor/pypdf",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/v4/manager_research/_vendor/pypdf/_crypt_providers",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/v4/manager_research/_vendor/pypdf/annotations",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/v4/manager_research/_vendor/pypdf/_text_extraction",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/v4/manager_research/_vendor/pypdf/_text_extraction/_layout_mode",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/v4/manager_research/_vendor/pypdf/generic",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/v4/manager_research/_vendor/pypdf/_codecs",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/upstreams",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/upstreams/review_core",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/upstreams/v3_shared_data",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/upstreams/v3_shared_data/shared_data",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/upstreams/v3_shared_data/tests",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/upstreams/v3_shared_data/tests/fixtures",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/upstreams/v3_shared_data/tests/fixtures/exact-search-morning-news-20260824",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/upstreams/v3_shared_data/scripts",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/upstreams/v3_shared_data/scripts/live_acquisition",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/upstreams/shared_research",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/ops/_macos_research_panel_daily_parts",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/ops/benchmarks",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/ops/migration",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/.tours",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/infrastructure/runtime_graph",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/infrastructure/scheduling/_executor_registry_parts",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/stage_center",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/stage_center/tests",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/stage_center/_selection_parts",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/stage_center/hk_stage8",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/apps/web",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/apps/web/daily-research-command",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/apps/web/preview",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/apps/web/manager-selection",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/apps/web/src",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/apps/web/src/composables",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/apps/web/src/contracts",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/apps/web/src/styles",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/apps/web/src/components",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/apps/web/src/components/research",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/apps/web/src/components/daily-research-command",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/apps/web/src/components/review",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/apps/web/src/daily-research-command",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/apps/web/src/api",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/apps/web/src/views",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/apps/web/src/manager-selection",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/apps/web/src/manager-selection/adapters",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/apps/web/src/manager-selection/__tests__",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/apps/web/src/manager-selection/__tests__/fixtures",
+        "mode_before": "0o555",
+        "mode_after": "0o755"
+      }
+    ]
+  },
+  "web_build_directory_mode_changes": [],
+  "retained_r1_api_web_records": [
+    {
+      "profile": "api",
+      "path": "apps/api/v35_api/manager_research_router.py",
+      "sha256": "c3ec90ffb88f1378c4d9a1912fc78747f4440d0331696de4f1a015ad72946f4c",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "profile": "web",
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "profile": "web",
+      "path": "apps/web/src/manager-selection/dailyResearchRun.ts",
+      "sha256": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "profile": "web",
+      "path": "apps/web/src/manager-selection/researchAttention.ts",
+      "sha256": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "profile": "api",
+      "path": "infrastructure/_research_peripheral_store_parts/_namespace.py",
+      "sha256": "04d71a71d33cdc90ec362289095dd2ac6e357f79af1528f8c573f6ddcc24e68d",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "profile": "api",
+      "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "sha256": "2ed9640b7c1568df065884f9f71a1df82b288c342bc94135ef4fd06b4c510373",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "profile": "api",
+      "path": "ops/render_manager_announcement_binding.py",
+      "sha256": "78049be0625c15539dcd44c1924ba8f89d5dd5a06a074c723a84d68fb45b3f39",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "profile": "api",
+      "path": "ops/run_manager_announcement_cycle.py",
+      "sha256": "ac05519d31be2ad5de640190d9219335e14cd70e6273bdc652b32b85e929ffa1",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "profile": "api",
+      "path": "v4/manager_research/plan_owner_dispatch.py",
+      "sha256": "d896359dbfd39f41ed3e316d54424c6f1172d935aa1d77a47463167d7bf1ed90",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "profile": "api",
+      "path": "v4/manager_research/service.py",
+      "sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "profile": "api",
+      "path": "v4/manager_research/us_mapping_research.py",
+      "sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "profile": "api",
+      "path": "v4/manager_research/workspace_history.py",
+      "sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    },
+    {
+      "profile": "api",
+      "path": "v4/manager_research/workspace_plan_autorun.py",
+      "sha256": "14d168300bba42124649f56b79ae65b41359bcfa6928b59fea4a36beb2b511f5",
+      "role": "REUSED_R1_DELTA_UNCHANGED; actual runtime roots still require original R1 gates"
+    }
+  ],
+  "r1_test_files_omitted": [
+    {
+      "path": "tests/test_hk_daily_publication_chain.py",
+      "before_sha256": null,
+      "reason": "HK-only test profile excluded by frozen scope"
+    },
+    {
+      "path": "tests/test_hk_daily_supplement_r4.py",
+      "before_sha256": "6e28ec956e048517b6312f57d6a351253717ee50a5f5f6d20079787e8bc819b6",
+      "reason": "HK-only test profile excluded by frozen scope"
+    },
+    {
+      "path": "tests/test_manager_daily_dispatch_20261008.py",
+      "before_sha256": "f4137ac34bc45c4deec95c5c238cbec12776be4e383e485557c27fc4a24d66b1",
+      "reason": "legacy test before bytes absent from scoped API snapshot; excluded from minimum R2 canary"
+    },
+    {
+      "path": "tests/test_manager_history_contract_20261008.py",
+      "before_sha256": "36eeb5b9f41a927f6b9b19f6d1d1bd6f515986631ccd5754e14bbd423eacd774",
+      "reason": "legacy test before bytes absent from scoped API snapshot; excluded from minimum R2 canary"
+    },
+    {
+      "path": "tests/test_manager_workspace_owner_20261008.py",
+      "before_sha256": "9d1faeee5a0d8e1d9466244023d0a9fbbb3032d7934de40337096a1d35eda13e",
+      "reason": "legacy test before bytes absent from scoped API snapshot; excluded from minimum R2 canary"
+    }
+  ],
+  "hk_profiles": "NOT_APPLIED",
+  "production_or_service_actions": "NONE"
+}

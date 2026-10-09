@@ -1,0 +1,156 @@
+{
+  "schema_version": "v4.manager_r2_current_source_roots.v1",
+  "observed_at_local": "2026-10-09T09:13:44+08:00",
+  "scope": "read-only path/process/source mapping; no service/config/state/data changes; tests not run",
+  "api_8873": {
+    "plist": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+    "plist_refs": [
+      "Label at line 8",
+      "V35_APP_ROOT and release id at lines 29-30",
+      "PYTHONPATH and release manifest identity at lines 36-38",
+      "WorkingDirectory at lines 83-84"
+    ],
+    "label": "com.lexi.v35.api-only",
+    "configured_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api-r2/app",
+    "release_id": "manager-workbench-r1-mac-20261008-api-r2",
+    "launchctl": "gui/501/com.lexi.v35.api-only state=running pid=34989",
+    "process_command": "python -B -m apps.api.v35_api.run --host 127.0.0.1 --port 8873",
+    "lsof_cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api-r2/app",
+    "cwd_matches_configured_root": true,
+    "actual_loaded_per_module_identity": "NOT_VERIFIED"
+  },
+  "web_source_roots": {
+    "r1_initial_candidate_root": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/candidate/web",
+    "exists": true,
+    "role": "source closure; manifest relative paths begin apps/web/",
+    "evidence": "R1 source manifest root binding and task-specified initial source location",
+    "canonical_repo_root": "/Users/lexi/Desktop/学习/v4_app",
+    "canonical_web_dir": "/Users/lexi/Desktop/学习/v4_app/apps/web",
+    "role_caveat": "separate canonical source comparison; not substituted for R1 candidate root",
+    "dist_used_as_source": false,
+    "loaded_browser_or_static_asset_source": "NOT_VERIFIED"
+  },
+  "scheduler": {
+    "plist": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+    "label": "com.lexi.v35.scheduler",
+    "plist_refs": [
+      "V35_APP_ROOT at lines 17-18",
+      "HK child app root/module SHA at lines 75-80",
+      "HK updater script at lines 89-90",
+      "WorkingDirectory at lines 185-186"
+    ],
+    "configured_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/hk-research-calendar-all-r1-20261007-scheduler/app",
+    "release_id": "hk-research-calendar-all-r1-20261007-scheduler",
+    "launchctl": "gui/501/com.lexi.v35.scheduler state=running pid=1310",
+    "process_command": "python -S -m ops.run_v35_macos_scheduler_daemon (launched by configured shell)",
+    "lsof_cwd": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/hk-research-calendar-all-r1-20261007-scheduler/app",
+    "cwd_matches_configured_root": true,
+    "scheduler_contract_actual_sha256": "7389cae30de08cf68c31e5b0bb6f5b17fead403366946496b7a4de148229d0ef"
+  },
+  "hk_child": {
+    "configured_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app",
+    "configured_release_id": "r3a-r9-import-closure-20260930T193024Z",
+    "configured_main_module_sha256": "07aa9770c6ae0bb0cfd012e57843a37fedda6724a57cd52d7c339d854fc6609b",
+    "actual_main_module_sha256": "07aa9770c6ae0bb0cfd012e57843a37fedda6724a57cd52d7c339d854fc6609b",
+    "matches_plist_sha": true,
+    "loaded_child_process_identity": "NOT_VERIFIED_IN_THIS_READ_ONLY_CHECK"
+  },
+  "hk_updater": {
+    "plist_key": "V35_RESEARCH_PANEL_HK_UPDATER_SCRIPT",
+    "updater_script": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+    "updater_sha256": "45d31c1e6608d1a9af163ffd56ea111d5caeb40000c58cd140534cf81859634e",
+    "package_root_formula": "resolve(updater_script).parents[1]",
+    "derived_package_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data",
+    "shared_package_root_plist": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data",
+    "package_roots_equal": true,
+    "static_import_evidence": {
+      "file": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+      "lines": [
+        {
+          "line": 8,
+          "text": "PACKAGE_ROOT = Path(__file__).resolve().parents[1]"
+        },
+        {
+          "line": 9,
+          "text": "if str(PACKAGE_ROOT) not in sys.path:"
+        },
+        {
+          "line": 10,
+          "text": "sys.path.insert(0, str(PACKAGE_ROOT))"
+        },
+        {
+          "line": 12,
+          "text": "from shared_data.hk_0_2 import update_hk_0_2_panel_from_vipdoc"
+        },
+        {
+          "line": 13,
+          "text": "from shared_data.store import StoreError"
+        }
+      ],
+      "loaded_modules_not_imported_during_audit": true
+    },
+    "resolved_imports": [
+      {
+        "module_or_note": "shared_data.hk_0_2",
+        "relative_path": "shared_data/hk_0_2.py",
+        "absolute_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+        "exists": true,
+        "actual_sha256": "45a5091cb26800b7ccf8d7c3c75b680e951d492ac8ceb5f30b80a1ff9a6eebac"
+      },
+      {
+        "module_or_note": "shared_data.store",
+        "relative_path": "shared_data/store.py",
+        "absolute_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data/shared_data/store.py",
+        "exists": true,
+        "actual_sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16"
+      },
+      {
+        "module_or_note": "not_imported_by_updater",
+        "relative_path": "shared_data/hk_daily_supplement.py",
+        "absolute_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+        "exists": false,
+        "actual_sha256": null
+      }
+    ],
+    "actual_hk_0_2_owner_sha256_matches_known_owner": "45a5091cb26800b7ccf8d7c3c75b680e951d492ac8ceb5f30b80a1ff9a6eebac"
+  },
+  "announcement_worker_bound_root": {
+    "plist_key": "V4_MANAGER_ANNOUNCEMENT_APP_ROOT",
+    "configured_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260928-manager-daily-plan-r2/app",
+    "configured_cycle_sha256": "d3e5a0b3ebdbe1edc1b2ee8262abcd57a2e2e7d72ffc74ce521e04a5b13faec6",
+    "distinct_from_api_8873_root": true,
+    "module_file_identity": "configured paths/hashes only; process-loaded Python module not introspected"
+  },
+  "issue30_policy": {
+    "file": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE30_MAC_20261008/integration/ops/api_release_integration.py",
+    "file_sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+    "policy_sha256": "c55f4f09269661e0db05fa566aa1be9a96b2aa681912223c38fb802c4127e1b6",
+    "candidate_delta_receipt": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE30_MAC_20261008/candidate/issue30_preselection_mac_20261008_r1/api-integration-delta-receipt.json",
+    "candidate_delta_receipt_sha256": "ae471ae127a67f66a3902afb40a530dd3423712d60d42cbc70f6976bda30c0a4",
+    "current_module_scope_from_receipt": {
+      "module": "preselection",
+      "policy_sha256": "c55f4f09269661e0db05fa566aa1be9a96b2aa681912223c38fb802c4127e1b6",
+      "shared_paths": [
+        "apps/api/v35_api/app.py"
+      ]
+    }
+  },
+  "issue32_current_owner": {
+    "ledger": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/WORK_LEDGER.json",
+    "ledger_sha256": "f2c2b563f5227ee5f21ccef8086b9b2e759853947125ce43ec31f56e06db296b",
+    "writer": "issue30_mac_integration",
+    "milestone": "API candidate complete; release plan and paired scheduler/shared candidate pending",
+    "lifecycle_status": "running",
+    "final_received": false,
+    "final_consumed": false,
+    "receipt_verified": false,
+    "reviewer_status": "dispatched",
+    "reviewer_reason": "Source slice only; actual candidate review pending",
+    "candidate_used_as_live_source": false
+  },
+  "observed_process_commands": {
+    "api_pid": 34989,
+    "scheduler_pid": 1310,
+    "captured_by": "launchctl list/print, ps -o pid,ppid,command, lsof -a -p PID -d cwd"
+  }
+}

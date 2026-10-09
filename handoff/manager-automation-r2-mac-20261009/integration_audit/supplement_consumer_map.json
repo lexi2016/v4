@@ -1,0 +1,218 @@
+{
+  "schema_version": "v4.manager_r1_hk_daily_supplement_consumer_map.v1",
+  "observed_at_local": "2026-10-09T09:23:06+08:00",
+  "scope": "Targeted read-only search of the confirmed live 8873 API app root, its bundled v3_shared_data package, the configured HK child app root, and the manifest-defined HK updater package root. No module import, test, build, collection, or business-data read.",
+  "r1_manifest_entry": {
+    "manifest": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/intake/r1_source_manifest.json",
+    "path": "shared_data/hk_daily_supplement.py",
+    "profile": "hk_upstream",
+    "worktree_path": "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+    "change": "modified",
+    "expected_before_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+    "expected_after_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+    "before_source_origin": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v3_shared_data/shared_data/hk_daily_supplement.py",
+    "before_source_basis": "PRIOR_MAC_SUPPLIED_UPSTREAM_BYTES_HOST_PACKAGE_ROOT_BINDING_REQUIRED",
+    "patch_path": "patches/hk_upstream/shared_data/hk_daily_supplement.py.patch"
+  },
+  "consumer_roots": {
+    "api_8873": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api-r2/app",
+      "root_binding_source": "prior source_root_map.json; current com.lexi.v35.api-only plist + launchctl/lsof audit",
+      "pythonpath_entry": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api-r2/app",
+      "package_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api-r2/app/v3_shared_data",
+      "module_import": "v3_shared_data.shared_data.hk_daily_supplement",
+      "module_file": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api-r2/app/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "exists": true,
+      "actual_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+      "status_against_r1_before": "MATCH_BEFORE",
+      "expected_r1_before_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+      "expected_r1_after_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+      "current_file_is_symlink": false
+    },
+    "hk_child": {
+      "app_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app",
+      "module_file_candidate": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "exists": false,
+      "references_found_by_scoped_rg": "none for hk_daily_supplement, read_verified_daily_supplement, capture_daily_supplement",
+      "search_scope": "confirmed configured HK child app root, Python source files only",
+      "consumer_status": "NO_MATCH_IN_HK_CHILD_ROOT"
+    },
+    "hk02_updater": {
+      "updater_script": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+      "updater_sha256": "45d31c1e6608d1a9af163ffd56ea111d5caeb40000c58cd140534cf81859634e",
+      "derived_package_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data",
+      "static_import_evidence": {
+        "file": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+        "lines": [
+          {
+            "line": 8,
+            "text": "PACKAGE_ROOT = Path(__file__).resolve().parents[1]"
+          },
+          {
+            "line": 9,
+            "text": "if str(PACKAGE_ROOT) not in sys.path:"
+          },
+          {
+            "line": 10,
+            "text": "sys.path.insert(0, str(PACKAGE_ROOT))"
+          },
+          {
+            "line": 12,
+            "text": "from shared_data.hk_0_2 import update_hk_0_2_panel_from_vipdoc"
+          },
+          {
+            "line": 13,
+            "text": "from shared_data.store import StoreError"
+          }
+        ],
+        "loaded_modules_not_imported_during_audit": true
+      },
+      "resolved_imports": [
+        {
+          "module_or_note": "shared_data.hk_0_2",
+          "relative_path": "shared_data/hk_0_2.py",
+          "absolute_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+          "exists": true,
+          "actual_sha256": "45a5091cb26800b7ccf8d7c3c75b680e951d492ac8ceb5f30b80a1ff9a6eebac"
+        },
+        {
+          "module_or_note": "shared_data.store",
+          "relative_path": "shared_data/store.py",
+          "absolute_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data/shared_data/store.py",
+          "exists": true,
+          "actual_sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16"
+        },
+        {
+          "module_or_note": "not_imported_by_updater",
+          "relative_path": "shared_data/hk_daily_supplement.py",
+          "absolute_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2/app/upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+          "exists": false,
+          "actual_sha256": null
+        }
+      ],
+      "consumer_status": "UPDATER_IMPORTS_shared_data.hk_0_2_AND_shared_data.store; DOES_NOT_IMPORT_hk_daily_supplement"
+    }
+  },
+  "api_execution_path": [
+    {
+      "file": "apps/api/v35_api/manager_research_router.py",
+      "symbol": "create_manager_research_router.read_manager_workspace",
+      "lines": [
+        203,
+        219
+      ],
+      "edge": "GET /workspace calls service.get_workspace"
+    },
+    {
+      "file": "v4/manager_research/service.py",
+      "symbol": "ManagerResearchJobService.get_workspace",
+      "lines": [
+        393,
+        399
+      ],
+      "edge": "delegates to v4.manager_research.workspace.get_workspace"
+    },
+    {
+      "file": "v4/manager_research/workspace.py",
+      "symbol": "get_workspace -> _compute_workspace",
+      "lines": [
+        429,
+        456
+      ],
+      "edge": "dynamic/current workspace computation"
+    },
+    {
+      "file": "v4/manager_research/workspace.py",
+      "symbol": "_compute_workspace",
+      "lines": [
+        559,
+        562
+      ],
+      "edge": "calls read_rebound_screen"
+    },
+    {
+      "file": "v4/manager_research/workspace_plan.py",
+      "symbol": "read_rebound_screen -> _read_hk02_daily_supplement_witness",
+      "lines": [
+        1102,
+        1109
+      ],
+      "condition": "only when codes_needing_repair is nonempty and research_cutoff exists"
+    },
+    {
+      "file": "v4/manager_research/workspace_plan.py",
+      "symbol": "_read_hk02_daily_supplement_witness",
+      "lines": [
+        641,
+        648
+      ],
+      "edge": "lazy-imports and calls v3_shared_data.shared_data.hk_daily_supplement.read_verified_daily_supplement"
+    }
+  ],
+  "consumer_verdict": {
+    "module_present_in_other_confirmed_root": true,
+    "true_consumer_root": "8873 API app bundle: app/v3_shared_data/shared_data/hk_daily_supplement.py",
+    "current_api_source_sha_matches_r1_before": true,
+    "hk_child_uses_module": false,
+    "hk02_updater_uses_module": false,
+    "module_is_reachable_in_current_api_source_path": true,
+    "actual_runtime_invocation_observed_this_check": false,
+    "interpretation": "This is an API-side reader/consumer module for the HK daily-supplement sidecar. The configured HK02 updater is a separate shared_data.hk_0_2 producer path. The source is not unused by the current API code path, but an actual request invocation was not observed."
+  },
+  "evidence_references": [
+    {
+      "file": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/intake/r1_source_manifest.json",
+      "lines": [
+        660,
+        674
+      ],
+      "symbols": "files[] entry for shared_data/hk_daily_supplement.py"
+    },
+    {
+      "file": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api-r2/app/apps/api/v35_api/manager_research_router.py",
+      "lines": [
+        203,
+        219
+      ],
+      "symbols": "create_manager_research_router.read_manager_workspace"
+    },
+    {
+      "file": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api-r2/app/v4/manager_research/service.py",
+      "lines": [
+        393,
+        399
+      ],
+      "symbols": "ManagerResearchJobService.get_workspace"
+    },
+    {
+      "file": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api-r2/app/v4/manager_research/workspace.py",
+      "lines": [
+        18,
+        429,
+        456,
+        562
+      ],
+      "symbols": "get_workspace, _compute_workspace, read_rebound_screen import/call"
+    },
+    {
+      "file": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api-r2/app/v4/manager_research/workspace_plan.py",
+      "lines": [
+        641,
+        648,
+        975,
+        1102,
+        1109
+      ],
+      "symbols": "_read_hk02_daily_supplement_witness, read_rebound_screen"
+    },
+    {
+      "file": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api-r2/app/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+      "symbols": "read_verified_daily_supplement export"
+    },
+    {
+      "file": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app",
+      "search": "rg exact module/function names over Python files; no hits"
+    }
+  ]
+}

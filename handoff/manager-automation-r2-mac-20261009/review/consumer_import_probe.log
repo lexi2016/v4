@@ -1,0 +1,21 @@
+{
+  "consumer": "v4.manager_research.workspace_plan._read_hk02_daily_supplement_witness",
+  "consumer_file": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/v4/manager_research/workspace_plan.py",
+  "consumer_callsite": "v3_shared_data.shared_data.hk_daily_supplement.read_verified_daily_supplement",
+  "result": {
+    "probe": "SYNTHETIC_IMPORT_ONLY"
+  },
+  "observed_module": {
+    "module_file": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/v3_shared_data/shared_data/hk_daily_supplement.py",
+    "module_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+    "args_count": 1,
+    "kwargs": [
+      "expected_codes",
+      "expected_master",
+      "expected_panel",
+      "requested",
+      "research_cutoff",
+      "target_date"
+    ]
+  }
+}

@@ -1,0 +1,285 @@
+{
+  "announcement_0630": {
+    "intended_time_from_runbook": "06:30",
+    "local_automation_search": {
+      "automation_toml_count_examined": 6,
+      "matching_enabled_0630_announcement_task_found": false,
+      "relevant_nonmatching_candidates": [
+        {
+          "id": "20-30",
+          "name": "16:20 港股通多路候选复盘与22:00供料",
+          "rrule": "RRULE:FREQ=DAILY;BYDAY=MO,TU,WE,TH,FR;BYHOUR=16,21;BYMINUTE=20,50;BYSECOND=0;BYSETPOS=1,4",
+          "sha256": "ca2ca36d4c2cda9e7473e45314ce48a0b0184e99ea96fa45aad0d2c0ce722b27",
+          "status": "PAUSED"
+        },
+        {
+          "id": "v4",
+          "name": "V4 实际选股结果跟进",
+          "rrule": "FREQ=DAILY;BYHOUR=10,17;BYMINUTE=0;BYSECOND=0;UNTIL=20261009T090000Z",
+          "sha256": "0e9ee2da995676a73c9a9e5a9e8bbef6623bc1b73d92c6d02adbe5fc5ecd217c",
+          "status": "PAUSED"
+        }
+      ],
+      "root": "/Users/lexi/.codex/automations",
+      "timezone_key_for_target_task": "CANNOT_CONFIRM",
+      "historical_pointer": {
+        "automation_id": "automation-3",
+        "source": "parent_provided_historical_record",
+        "parent_chat_id": "01a11654-a832-70c1-b6ba-036c79e146e8",
+        "historical_activity": "Latest completed turn read the exact automation.toml path and called automation_update mode=view for id automation-3; accompanying commentary said the original 06:30 definition had been found.",
+        "current_exact_path": "/Users/lexi/.codex/automations/automation-3/automation.toml",
+        "current_exact_path_exists": false,
+        "current_exact_path_checked_in_this_supplement": true,
+        "same_id_view_observation": "Rendered automation card in the app",
+        "same_id_view_returned_definition_or_status": false,
+        "rendered_card_counts_as_current_config_evidence": false,
+        "current_configuration_state": "CANNOT_CONFIRM",
+        "enabled_state_and_timezone": "CANNOT_CONFIRM"
+      }
+    },
+    "local_contract": {
+      "capture_resume_supported": "--resume-evidence-run-id requires exact saved run/date pair and owner GET readback; no fresh POST on that resume path",
+      "external_reader_and_reviewer_invoked_by_local_cli": false,
+      "external_review_authentication": "DECLARED_ONLY",
+      "reader_and_reviewer_outputs_are_inputs_to_prepare_and_register_handoff": true,
+      "reader_reviewer_task_schedule_timezone_and_retry_owner": "CANNOT_CONFIRM",
+      "register_handoff_checks_distinct_declared_identities_and_source_hashes": true,
+      "runbook_path": "/Users/lexi/Desktop/学习/v4_app/docs/manager_daily_research.md",
+      "same_byte_register_retry": "idempotent no-op; different preexisting output bytes rejected and preserved"
+    },
+    "run_20261008": {
+      "analysis_product": {
+        "file_sha256": "30546cf1c5efcf7a9f1b43e1f73e72c0f72e17bc0edfef1787b074fd6f3fc790",
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_announcements/20261008/eastmoney_date_catalog/20261007/analysis.v1.json",
+        "product_sha256": "8b1e906db2cdcb8784d9658085aa4f1aa0711a8711b83a38c9ee8d7567151157",
+        "status": "VERIFIED"
+      },
+      "capture_status": "PARTIAL_BODY_MATERIAL_CAPTURE_WITH_TERMINAL_GAPS",
+      "evidence_run_id": "3f9d37a643060b57992167f3df05d987",
+      "external_identity_boundary": {
+        "evidence_binding_status": "OUTPUT_BOUND",
+        "external_review_status": "DECLARED",
+        "natural_0630_scheduled_dispatch_proven": false,
+        "platform_identity_authenticated": false
+      },
+      "handoff_manifest": {
+        "manifest_sha256": "70ffa628e43d43c451defecb728197cde4bcc437bbfafc3e883ecf0b3327a03e",
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/announcement_agent_runs/3f9d37a643060b57992167f3df05d987/evidence/handoff_manifest.v1.json",
+        "present": true,
+        "reader_reviewer_and_input_hashes_bound": true
+      },
+      "owner_import_receipt": {
+        "available_at": "2026-10-08T00:55:47.166416+00:00",
+        "file_sha256": "9ba65441e965cb343c10205477a6c6d520883a50bf0e8ce5d1c31a9577889de4",
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_announcements/20261008/eastmoney_date_catalog/20261007/owner_import_receipt.v1.json",
+        "status": "VERIFIED"
+      },
+      "parent_task_id_from_bound_import_receipt": "01a11654-a832-70c1-b6ba-036c79e146e8",
+      "publication_date": "2026-10-07",
+      "reader_output": {
+        "file_sha256": "c5be7708a6fb9ede9736541cb11810f28da8bde26b3051376e4df33f6540f88e",
+        "present": true,
+        "reader_identity_declared": "/root/announcement_reader_01|/root/announcement_reader_02|/root/announcement_reader_03|/root/announcement_reader_04",
+        "row_count": 613,
+        "status": "PASS_613_UNIQUE_ANNOUNCEMENTS_WITH_SOURCE_BOUND_READS_AND_EXPLICIT_GAPS"
+      },
+      "reviewer_output": {
+        "article_decision_count": 613,
+        "decision_status": "EXPLICIT_DISPOSITIONS",
+        "file_sha256": "86866ab816a1ab949bb6761523880d18fe38eac8c52a9da9805aceb21e9f013f",
+        "identity_differs_from_reader": true,
+        "present": true,
+        "review_conclusion": "PASS",
+        "reviewed_at": "2026-10-08T08:09:08+08:00",
+        "reviewer_identity_declared": "/root/announcement_semantic_reviewer",
+        "source_hashes_match_capture": true
+      },
+      "run_evidence_present": true,
+      "target_trade_date": "20261008"
+    },
+    "run_20261009": {
+      "evidence_run_for_target_and_publication_pair_present": false,
+      "observed_at": "2026-10-09T09:15:06+08:00",
+      "owner_product_present": false,
+      "status": "CANNOT_CONFIRM"
+    }
+  },
+  "audit_time": "2026-10-09T09:15:06+08:00",
+  "boundary_status": "US_ORIGINAL_TASK_AND_10_08_10_09_SOURCE_RECEIPTS_CONFIRMED; ANNOUNCEMENT_10_08_OUTPUTS_BOUND_AND_IMPORTED_BUT_RECURRING_0630_CONFIG_AND_10_09_RUN_CANNOT_CONFIRM; AUTOMATION_3_HISTORICAL_POINTER_ONLY; CURRENT_FILE_MISSING; CONFIG_CANNOT_CONFIRM",
+  "cannot_confirm": [
+    "No exact enabled 06:30 announcement-heartbeat automation config was found in the six bounded local automation.toml files; recurring automation ID, timezone, and enabled flag remain unconfirmed.",
+    "The 2026-10-08 run parent_task_id is bound in its owner receipt, but does not map to a recurring automation definition in the bounded files; external_review_status is DECLARED and does not authenticate platform identity.",
+    "No target=20261009/publication=2026-10-08 announcement evidence run or owner import product was found under the configured manager research state root as of 09:15 CST; natural 06:30 execution remains unconfirmed.",
+    "The R1 daily mapping hook is present in the active API release source, but this audit did not inspect a natural plan-dispatch receipt proving a specific hook invocation.",
+    "Historical automation-3 pointer is from the parent task record only; the exact current automation.toml path is absent, and the same-ID view returned only a rendered card without definition or status. Current configuration, enabled state, and timezone remain CANNOT_CONFIRM."
+  ],
+  "evidence_paths": [
+    "/Users/lexi/Library/LaunchAgents/com.lexi.v4.us-market-digest.plist",
+    "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app/ops/run_us_market_slot.py",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api-r2/app/apps/api/v35_api/run.py",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api-r2/app/apps/api/v35_api/app.py",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api-r2/app/v4/manager_research/plan_owner_dispatch.py",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api-r2/app/v4/manager_research/service.py",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/dispatcher/receipts/live/20261008/0415/f76606a2c3eb462fb4c207ec33229b2a.dispatch-receipt.json",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/receipts/research/peripherals/20261007/external_finance.json",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/research/peripherals/20261007/external_finance.json",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/dispatcher/receipts/live/20261009/0415/11438e3e254c42a9b3222b324795d85a.dispatch-receipt.json",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/receipts/research/peripherals/20261008/external_finance.json",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/research/peripherals/20261008/external_finance.json",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/announcement_agent_runs/3f9d37a643060b57992167f3df05d987/evidence/capture_receipt.json",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/announcement_agent_runs/3f9d37a643060b57992167f3df05d987/evidence/reader_output.json",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/announcement_agent_runs/3f9d37a643060b57992167f3df05d987/evidence/reviewer_output.json",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/announcement_agent_runs/3f9d37a643060b57992167f3df05d987/evidence/handoff_manifest.v1.json",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_announcements/20261008/eastmoney_date_catalog/20261007/analysis.v1.json",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/workspace_announcements/20261008/eastmoney_date_catalog/20261007/owner_import_receipt.v1.json",
+    "/Users/lexi/.codex/automations/20-30/automation.toml",
+    "/Users/lexi/.codex/automations/v4/automation.toml",
+    "/Users/lexi/.codex/automations/automation/automation.toml",
+    "/Users/lexi/.codex/automations/automation-2/automation.toml",
+    "/Users/lexi/.codex/automations/v3-5/automation.toml",
+    "/Users/lexi/.codex/automations/v3-5-mac/automation.toml",
+    "/Users/lexi/Desktop/学习/v4_app/docs/manager_daily_research.md",
+    "/Users/lexi/Desktop/学习/v4_app/ops/run_manager_daily_announcement.py",
+    "/Users/lexi/Desktop/学习/v4_app/v4/manager_research/announcement_analysis.py",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/intake/R2_SOURCE_AND_INPUT_RECONCILIATION.md",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/intake/R2_HOST_CONTINUATION.md"
+  ],
+  "recommended_next_step": "Have the original automation owner read back the existing recurring heartbeat definition that maps to parent_task_id 01a11654-a832-70c1-b6ba-036c79e146e8 (task ID, enabled flag, timezone, 06:30 slot), then retrieve the 2026-10-09 run's exact capture/reader/reviewer/handoff/import receipts. Do not create a replacement automation; preserve the 2026-10-08 partial capture status and DECLARED-only identity boundary.",
+  "schema_version": "v4.manager_automation_input_identity_audit.v1",
+  "scope": "Read-only identity check for the existing US four-slot launchd task and original 06:30 announcement heartbeat. No service/task changes, API writes, UI actions, raw market rows, or external messages.",
+  "us_task": {
+    "api_reader_root_check": {
+      "api_app_py_sha256": "90a2bf6390c6c0e219aa3d9bb22bc3b3630ecb2d447df494ae69425933424ed7",
+      "api_label": "com.lexi.v35.api-only",
+      "api_pid_at_audit_time": 34989,
+      "api_process_running_at_audit_time": true,
+      "api_release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-workbench-r1-mac-20261008-api-r2/app",
+      "api_v35_data_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+      "r1_daily_mapping_hook": {
+        "actual_daily_plan_invocation_receipt_checked": false,
+        "plan_owner_dispatch_sha256": "8fad78ec64b1ff3ab80242fedc93dfcf7cbed25e6839821aab7f024ca297bf75",
+        "present_in_current_api_release_source": true,
+        "service_sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37"
+      },
+      "reader_constructor": "ResearchPeripheralUsMarketReader(store.root)",
+      "runner_data_root_equals_api_reader_root": true
+    },
+    "configuration": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app",
+      "argv": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "-B",
+        "-m",
+        "ops.run_us_market_slot",
+        "--data-root",
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+        "--ledger-root",
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/dispatcher"
+      ],
+      "data_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+      "explicit_timezone_key": false,
+      "host_timezone_observed": "CST +0800",
+      "keep_alive": false,
+      "launchd_label": "com.lexi.v4.us-market-digest",
+      "ledger_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/dispatcher",
+      "plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v4.us-market-digest.plist",
+      "plist_sha256": "19bb483cbd93374530ad71df72a524a20451086ae85f194ec53aacb0e23e5a2e",
+      "python_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "run_at_load": false,
+      "runner_file_sha256": "16f7895072a66b8a7e6ed0c792f74069101426cfa1194df3bd89e63d95f4d948",
+      "runner_matches_expected_sha256": true,
+      "runner_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app/ops/run_us_market_slot.py",
+      "start_calendar_interval_local": [
+        "04:15",
+        "05:15",
+        "21:00",
+        "22:00"
+      ],
+      "state": "PRESENT"
+    },
+    "natural_dispatches": [
+      {
+        "capture_id": "347f4254eaaec34b48a5133f",
+        "capture_origin": "ORIGINAL_TIME_CAPTURE",
+        "capture_phase": "POST_CLOSE",
+        "capture_run_id": "us-rss:20261007:POST_CLOSE:347f4254eaaec34b48a5133f",
+        "capture_status": "READY",
+        "collector_invoked": true,
+        "dispatch_ledger_sha256": "3bcd0508c99194dcef5fe720972a5a9ea4ee19079859b714301c8dbbcbb22b0a",
+        "dispatch_receipt_file_sha256": "938b070493a95b6dad0e814b85272bb3af063e41f3acd537314486031ba9292e",
+        "dispatch_receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/dispatcher/receipts/live/20261008/0415/f76606a2c3eb462fb4c207ec33229b2a.dispatch-receipt.json",
+        "dispatch_run_id": "f76606a2c3eb462fb4c207ec33229b2a",
+        "dry_run": false,
+        "finished_at_utc": "2026-10-07T20:15:07.278659Z",
+        "market_day_reason": "OPEN_FULL_DAY",
+        "market_day_status": "VERIFIED",
+        "mode": "LIVE",
+        "payload_file_sha256_matches": true,
+        "payload_sha256": "34c529faf0b356afcd47a48d583e18bb63de29beea36fa0fda7af8736c5a8056",
+        "research_only_flags": {
+          "buy_gate_updated": false,
+          "orders_sent": false,
+          "production_allowed": false
+        },
+        "rss_capture_item_count": 6,
+        "rss_capture_status": "READY",
+        "scheduled_slot_local": "04:15",
+        "source_receipt_item_count": 14,
+        "source_receipt_market_snapshot_status": "READY",
+        "source_receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/receipts/research/peripherals/20261007/external_finance.json",
+        "source_receipt_schema": "v3_5.research_peripheral_receipt.v1",
+        "source_receipt_sha256": "c3b7226fb42aed31e465305af00583f04427b4af7ae85ee558f35fdb86ccc296",
+        "source_receipt_source": "external_finance",
+        "source_session_date": "20261007",
+        "status": "SUCCEEDED",
+        "target_business_date": "20261008"
+      },
+      {
+        "capture_id": "b6b559bcb376aa97a8327c04",
+        "capture_origin": "ORIGINAL_TIME_CAPTURE",
+        "capture_phase": "POST_CLOSE",
+        "capture_run_id": "us-rss:20261008:POST_CLOSE:b6b559bcb376aa97a8327c04",
+        "capture_status": "READY",
+        "collector_invoked": true,
+        "dispatch_ledger_sha256": "35552ae71c2eee058bd8732abee0f4dff8bde21d6555c9fbb87481553205919f",
+        "dispatch_receipt_file_sha256": "28a88a2f809c4031cef2235031fae0787e6a6b528879d3e54af487a59c96e9bd",
+        "dispatch_receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/dispatcher/receipts/live/20261009/0415/11438e3e254c42a9b3222b324795d85a.dispatch-receipt.json",
+        "dispatch_run_id": "11438e3e254c42a9b3222b324795d85a",
+        "dry_run": false,
+        "finished_at_utc": "2026-10-08T20:15:07.701239Z",
+        "market_day_reason": "OPEN_FULL_DAY",
+        "market_day_status": "VERIFIED",
+        "mode": "LIVE",
+        "payload_file_sha256_matches": true,
+        "payload_sha256": "6c96e5bb2681e8407670d5f79cafd014935d3e6592130102157d54759c64aa16",
+        "research_only_flags": {
+          "buy_gate_updated": false,
+          "orders_sent": false,
+          "production_allowed": false
+        },
+        "rss_capture_item_count": 3,
+        "rss_capture_status": "READY",
+        "scheduled_slot_local": "04:15",
+        "source_receipt_item_count": 9,
+        "source_receipt_market_snapshot_status": "READY",
+        "source_receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/receipts/research/peripherals/20261008/external_finance.json",
+        "source_receipt_schema": "v3_5.research_peripheral_receipt.v1",
+        "source_receipt_sha256": "fab53928b64ec6764fb26bc6a3b8ec5d69d9927859c11ae18771f323672d7e4b",
+        "source_receipt_source": "external_finance",
+        "source_session_date": "20261008",
+        "status": "SUCCEEDED",
+        "target_business_date": "20261009"
+      }
+    ],
+    "process_state": {
+      "launchctl_row": {
+        "label": "com.lexi.v4.us-market-digest",
+        "last_status": "0",
+        "pid": "-"
+      },
+      "loaded_in_launchd": true,
+      "process_running_at_audit_time": false
+    }
+  }
+}

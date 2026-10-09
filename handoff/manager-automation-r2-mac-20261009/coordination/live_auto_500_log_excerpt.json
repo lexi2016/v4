@@ -1,0 +1,167 @@
+{
+  "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/logs/v4-api/stdout.log",
+  "records": [
+    {
+      "ts": "2026-10-09T01:22:39.240911Z",
+      "level": "INFO",
+      "logger": "uvicorn.access",
+      "message": "127.0.0.1:58359 - \"GET /api/v4/manager/research/workspace?date=20261008&selection_date=20261008&announcement_date=20261007&view=auto HTTP/1.1\" 500"
+    },
+    {
+      "ts": "2026-10-09T01:22:39.241328Z",
+      "level": "ERROR",
+      "logger": "uvicorn.error",
+      "message": "Exception in ASGI application\n",
+      "exc_info": {
+        "type": "WorkspaceReadError",
+        "frames": [
+          {
+            "file": "h11_impl.py",
+            "line": 416,
+            "function": "run_asgi"
+          },
+          {
+            "file": "proxy_headers.py",
+            "line": 63,
+            "function": "__call__"
+          },
+          {
+            "file": "applications.py",
+            "line": 1163,
+            "function": "__call__"
+          },
+          {
+            "file": "applications.py",
+            "line": 96,
+            "function": "__call__"
+          },
+          {
+            "file": "errors.py",
+            "line": 186,
+            "function": "__call__"
+          },
+          {
+            "file": "errors.py",
+            "line": 164,
+            "function": "__call__"
+          },
+          {
+            "file": "exceptions.py",
+            "line": 63,
+            "function": "__call__"
+          },
+          {
+            "file": "_exception_handler.py",
+            "line": 53,
+            "function": "wrapped_app"
+          },
+          {
+            "file": "_exception_handler.py",
+            "line": 42,
+            "function": "wrapped_app"
+          },
+          {
+            "file": "asyncexitstack.py",
+            "line": 18,
+            "function": "__call__"
+          },
+          {
+            "file": "routing.py",
+            "line": 670,
+            "function": "__call__"
+          },
+          {
+            "file": "routing.py",
+            "line": 2734,
+            "function": "app"
+          },
+          {
+            "file": "routing.py",
+            "line": 1780,
+            "function": "handle"
+          },
+          {
+            "file": "routing.py",
+            "line": 2789,
+            "function": "handle"
+          },
+          {
+            "file": "routing.py",
+            "line": 1800,
+            "function": "_handle_selected"
+          },
+          {
+            "file": "routing.py",
+            "line": 1279,
+            "function": "handle"
+          },
+          {
+            "file": "routing.py",
+            "line": 158,
+            "function": "app"
+          },
+          {
+            "file": "_exception_handler.py",
+            "line": 53,
+            "function": "wrapped_app"
+          },
+          {
+            "file": "_exception_handler.py",
+            "line": 42,
+            "function": "wrapped_app"
+          },
+          {
+            "file": "routing.py",
+            "line": 144,
+            "function": "app"
+          },
+          {
+            "file": "routing.py",
+            "line": 706,
+            "function": "app"
+          },
+          {
+            "file": "routing.py",
+            "line": 352,
+            "function": "run_endpoint_function"
+          },
+          {
+            "file": "manager_research_router.py",
+            "line": 225,
+            "function": "read_manager_workspace"
+          },
+          {
+            "file": "concurrency.py",
+            "line": 34,
+            "function": "run_in_threadpool"
+          },
+          {
+            "file": "to_thread.py",
+            "line": 65,
+            "function": "run_sync"
+          },
+          {
+            "file": "_asyncio.py",
+            "line": 2641,
+            "function": "run_sync_in_worker_thread"
+          },
+          {
+            "file": "_asyncio.py",
+            "line": 1033,
+            "function": "run"
+          },
+          {
+            "file": "service.py",
+            "line": 409,
+            "function": "get_workspace"
+          },
+          {
+            "file": "workspace_read_control.py",
+            "line": 201,
+            "function": "run"
+          }
+        ]
+      }
+    }
+  ]
+}

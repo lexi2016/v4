@@ -1,0 +1,403 @@
+{
+  "schema_version": "v4.manager_r2_candidate_minimum_verification.v1",
+  "captured_at_utc": "2026-10-09T01:35:57.478237+00:00",
+  "status": {
+    "implementation": "READY_FOR_INDEPENDENT_REVIEW",
+    "writer_canaries": "PASS_FOR_CANDIDATE_ROOT",
+    "independent_review": "PENDING",
+    "live_api_or_ui_acceptance": "CANNOT_CONFIRM",
+    "natural_slot": "NOT_RUN"
+  },
+  "scope": "Cumulative R1 then R2 isolated API/web candidate; one additional R1 HK daily-supplement consumer mapped to the confirmed API package plus its declared test; no live root or service changes.",
+  "versions": {
+    "python_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "python": "Python 3.14.6",
+    "node": "v24.19.0",
+    "npm": "11.17.0",
+    "vitest": "4.1.10",
+    "vite": "7.3.6",
+    "tmpdir": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/tmp",
+    "tmpdir_realpath": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/tmp",
+    "tmpdir_is_symlink": false,
+    "python_env": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "V4_TEST_SOURCE_ROOT": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test",
+      "V4_TEST_PYTHON": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "PYTHONPATH": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test:/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/upstreams:/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests"
+    }
+  },
+  "source_receipts": [
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/receipts/r2_candidate_baseline_inventory.json",
+      "sha256": "222b775bd58295dfbb7a6d73978b905bdf768af26dbe95c1b7371da8c20d2554"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/receipts/r2_api_web_cumulative_application.json",
+      "sha256": "ac36fb99286cc76760e5a8c275dc21ea661992c474aac1c625d764408c67b18b"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/receipts/r2_hk_supplement_consumer_increment.json",
+      "sha256": "87518301f097a60442213299b7966392fbe056c5b47022f9ae06b0d9a7864aaa"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r1_api_before.json",
+      "sha256": "8cdbe148aaaa52ae171866e85a613bdb4a00af89d012733114995fb5c3adef96"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r1_web_before.json",
+      "sha256": "23a5632bac768e0e1f67a1bf294478b8c52e3e95ac7d8e673ef7586e172d67e7"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r1_api_after.json",
+      "sha256": "fe8b0d196c4d1f024fbe5c7b9d6c8591be490cef80cf731ab65f5a35b7b9de9e"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r1_web_after.json",
+      "sha256": "beca59d6aaa0fe5af6fd41bed6738b3e0a5a5e33b93fe0071f3803f668196d3b"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r2_api_after.json",
+      "sha256": "88e672ddb3aca6be7c0ee09dba1304534380ccc568a9127fe91dcee56c3d0b21"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r2_web_after.json",
+      "sha256": "c0717b3f18ac49026d283d0777b1ecf915f2ffa4c7e4d3ef0fde008a11f56ee3"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/r2_tests_after.json",
+      "sha256": "5d7a230af58c8810ab1f228bb0d39722cb743d7b3fb713025ecfb093801c66cb"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/coordination/live_get_baseline.json",
+      "sha256": "dede23e119ee901656e07a0da837314d3cdd27d7f6690637428d6b1b14237fa1"
+    }
+  ],
+  "applied_candidate_paths": {
+    "r1_selected_rows": [
+      {
+        "profile": "api",
+        "path": "apps/api/v35_api/manager_research_router.py",
+        "before_sha256": "84f65a351e1e44171820cb8698e4198b3084e39b8d0cfe82c6b4bc05595f8073",
+        "after_sha256": "c3ec90ffb88f1378c4d9a1912fc78747f4440d0331696de4f1a015ad72946f4c"
+      },
+      {
+        "profile": "tests",
+        "path": "apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts",
+        "before_sha256": null,
+        "after_sha256": "b5b57a45102775d2f57b1af14456f8a9bf2b23c6a8a96f4b30c87da245f9ac0d"
+      },
+      {
+        "profile": "web",
+        "path": "apps/web/src/api/managerWorkspace.ts",
+        "before_sha256": "5854af5d1e2b33cc469ba6abd49096bb2f727280161c663edf4b757742f9ce92",
+        "after_sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb"
+      },
+      {
+        "profile": "web",
+        "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "before_sha256": "fbb20e417bb4d9ff7cbd25c5aa29f387a1650438d6e638216b3f4d7c1a209497",
+        "after_sha256": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6"
+      },
+      {
+        "profile": "tests",
+        "path": "apps/web/src/manager-selection/dailyResearchRun.spec.ts",
+        "before_sha256": null,
+        "after_sha256": "1fed6bbd4454e77c8b0e67e41c4b3d7fac0f4a1cae67893f1e3d438d29366501"
+      },
+      {
+        "profile": "web",
+        "path": "apps/web/src/manager-selection/dailyResearchRun.ts",
+        "before_sha256": null,
+        "after_sha256": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d"
+      },
+      {
+        "profile": "web",
+        "path": "apps/web/src/manager-selection/researchAttention.ts",
+        "before_sha256": "16bb02dd12c22fd6c55f6c42bb57f8e48ac66864673ba403380381cb2b63f3ef",
+        "after_sha256": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c"
+      },
+      {
+        "profile": "api",
+        "path": "infrastructure/_research_peripheral_store_parts/_namespace.py",
+        "before_sha256": null,
+        "after_sha256": "04d71a71d33cdc90ec362289095dd2ac6e357f79af1528f8c573f6ddcc24e68d"
+      },
+      {
+        "profile": "api",
+        "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+        "before_sha256": "73eb6a2f7cbf2e2307a87edc3013e355c331f2ce87e6e0ae693b9f78de2dd34a",
+        "after_sha256": "2ed9640b7c1568df065884f9f71a1df82b288c342bc94135ef4fd06b4c510373"
+      },
+      {
+        "profile": "api",
+        "path": "ops/render_manager_announcement_binding.py",
+        "before_sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a",
+        "after_sha256": "78049be0625c15539dcd44c1924ba8f89d5dd5a06a074c723a84d68fb45b3f39"
+      },
+      {
+        "profile": "api",
+        "path": "ops/run_manager_announcement_cycle.py",
+        "before_sha256": "c6f9cfa57515682b4f076e10f2030196dc9377bdbb9ec4abe737e36d15485c1c",
+        "after_sha256": "ac05519d31be2ad5de640190d9219335e14cd70e6273bdc652b32b85e929ffa1"
+      },
+      {
+        "profile": "tests",
+        "path": "tests/manager_daily_ui_owner_fixture.py",
+        "before_sha256": null,
+        "after_sha256": "59e78904ca76deaa381799719cbeb6c1841bd7df318d354c2e5ad6298e768020"
+      },
+      {
+        "profile": "tests",
+        "path": "tests/manager_daily_ui_route_fixture.py",
+        "before_sha256": null,
+        "after_sha256": "8d1d4ee850d70213b210941faf8c46cdd8741ca05102dfb36794dae4f40df104"
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_manager_daily_automation_20261008.py",
+        "before_sha256": null,
+        "after_sha256": "32d1baf5f79672d94fbcc2053e16aa4dfaefd8637cd153c4dfadf3fc6e43a45e"
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_manager_owner_namespace_contracts.py",
+        "before_sha256": null,
+        "after_sha256": "5a3203582a4857e9d5a269976b43aaff604f374ffc10ce94d8c8d843e2d5c1a0"
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_manager_us_daily_automation_20261008.py",
+        "before_sha256": null,
+        "after_sha256": "619afccbc08dba0c151939991e7cb7e636359bf6ab99b623ea64b9ec50cd1ba4"
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_manager_workspace_exact_page_binding_20261008.py",
+        "before_sha256": null,
+        "after_sha256": "9717711ce8eb3aca116b1ded70f3c833a573b6cb95f522468390eefb1e4d03a9"
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/plan_owner_dispatch.py",
+        "before_sha256": "8fad78ec64b1ff3ab80242fedc93dfcf7cbed25e6839821aab7f024ca297bf75",
+        "after_sha256": "d896359dbfd39f41ed3e316d54424c6f1172d935aa1d77a47463167d7bf1ed90"
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/service.py",
+        "before_sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37",
+        "after_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4"
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/us_mapping_research.py",
+        "before_sha256": "297dc6f5950d3614437378c22e3157b6866823fbf25fd39cb47f112ffea40da7",
+        "after_sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7"
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/workspace.py",
+        "before_sha256": "183e3ebd0322883a8f8cef37c0244f424f16c63d3120245e263bb9585133dea3",
+        "after_sha256": "58a471c5ce7ece837c66948392ec2e6d73459343515225e19d694749c45ab1a4"
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/workspace_history.py",
+        "before_sha256": "da5e1223326631cc9070c3059ca606bac3840ef468ad5c06f2f3a51534f82ec1",
+        "after_sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af"
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/workspace_plan_autorun.py",
+        "before_sha256": "703bef8d9a04861c6cb4161880427126badd69eece234f9b53eaa5ae59d7c6ef",
+        "after_sha256": "14d168300bba42124649f56b79ae65b41359bcfa6928b59fea4a36beb2b511f5"
+      }
+    ],
+    "r2_selected_rows": [
+      {
+        "profile": "web",
+        "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "before_sha256": "516b20050a9c4911415f8d5d9b94e5f58aa74c6b01711ec728edbe7582b351c6",
+        "after_sha256": "ffd5c8cbfdaba9eb7e277695114647ef037b88ae16269be5547d3eff0649d3a3"
+      },
+      {
+        "profile": "tests",
+        "path": "apps/web/src/views/ManagerSelectionView.dailyIntegration.spec.ts",
+        "before_sha256": null,
+        "after_sha256": "2d1f353823a96745f4d1c4a0e9eed55f9ba1caec0ea766bd0f16861e303dc668"
+      },
+      {
+        "profile": "tests",
+        "path": "tests/manager_daily_ui_parent_route_worker.py",
+        "before_sha256": null,
+        "after_sha256": "bc40e4716f5dffad231318723e130a6879518a5ec681d4a31df316014d265eaa"
+      },
+      {
+        "profile": "tests",
+        "path": "tests/test_manager_workspace_exact_page_binding_20261008.py",
+        "before_sha256": "9717711ce8eb3aca116b1ded70f3c833a573b6cb95f522468390eefb1e4d03a9",
+        "after_sha256": "7b3777e7333b167b7c0e81049daf7ca2e29f6936da50db7ff6d223548d4d6bd7"
+      },
+      {
+        "profile": "api",
+        "path": "v4/manager_research/workspace.py",
+        "before_sha256": "58a471c5ce7ece837c66948392ec2e6d73459343515225e19d694749c45ab1a4",
+        "after_sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc"
+      }
+    ],
+    "r1_retained_api_web_records_verified": 13,
+    "r1_hk_consumer_increment": {
+      "api_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/api/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "api_before_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+      "api_after_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+      "test_assembly_mirror_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "test_assembly_mirror_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+      "declared_test_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/test_hk_daily_supplement_r4.py",
+      "declared_test_sha256": "7085f61af64c20f3153ca5e6d7948c0e0e54c3236e2e5ec364b9662d5d1dfc94",
+      "baseline_source_path": "/Users/lexi/Desktop/学习/v4_app/tests/test_hk_daily_supplement_r4.py",
+      "baseline_source_sha256": "6e28ec956e048517b6312f57d6a351253717ee50a5f5f6d20079787e8bc819b6",
+      "baseline_source_bytes": 23591,
+      "baseline_source_git_state": "Observed untracked in the calling checkout; byte hash and size match the manifest pinned before. The declared before commit object is not present locally, so commit-level provenance is CANNOT_CONFIRM.",
+      "patch_sha256": "a982d395dd9262523e92f4301e673b3993ad8482cbc9fda5c3e211a06bd4c9d7",
+      "consumer_mapping_receipt": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/receipts/r2_hk_supplement_consumer_increment.json",
+      "mapping_result": "API 8873 consumer matched before; candidate API consumer updated to pinned after; HK child/updater left unchanged."
+    },
+    "candidate_test_root_marker": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/AGENTS.md",
+      "copied_from": "/Users/lexi/Desktop/学习/v4_app/AGENTS.md",
+      "sha256": "c6802a779319289f0cd0d6a84408be4249d96eb16c9d6c3817e9cd8ddacbdd03",
+      "purpose": "Exact project file copied as required test-root marker; not runtime application code."
+    },
+    "writer_tools": [
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/tools/initialize_api_web_candidate.py",
+        "sha256": "6ce65bc1393d363faf5280d04db0a57ca7f06db0ea98e796ee5e017139699a0f"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/tools/apply_r1_r2_api_web.py",
+        "sha256": "c9e7638b221b147e1572403872954f6e3e0c389d8389003a03b364fbee402df1"
+      }
+    ],
+    "web_build_output_delta_from_initial_candidate": [
+      {
+        "path": "apps/web/dist/assets/managerSelection-B3M-7Ecn.js",
+        "before": {
+          "kind": "file",
+          "sha256": "cb8bf140dd7cdabd2f38bdec268b7afc93f24b21190ff5f394f20ea703ede397",
+          "bytes": 406219,
+          "target": null
+        },
+        "after": null
+      },
+      {
+        "path": "apps/web/dist/assets/managerSelection-D_H302dy.js",
+        "before": null,
+        "after": {
+          "kind": "file",
+          "sha256": "7411072fe48a2570a8ddd8af756e0d6da1d404e9714b2f802f5119781e985a9f",
+          "bytes": 421946
+        }
+      },
+      {
+        "path": "apps/web/dist/manager-selection/index.html",
+        "before": {
+          "kind": "file",
+          "sha256": "6a42ffb1e1907134bd715f1545622531dbf3b6588c4e0eccf0f053165317bdf9",
+          "bytes": 678,
+          "target": null
+        },
+        "after": {
+          "kind": "file",
+          "sha256": "124d9151173f71e00f3ea76e40543feb9d9dfca864bea37f5ac22c3e09184d14",
+          "bytes": 678
+        }
+      }
+    ],
+    "generated_test_cache": [
+      {
+        "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/apps/web/node_modules/.vite/vitest/da39a3ee5e6b4b0d3255bfef95601890afd80709/results.json",
+        "sha256": "9a259d41a96ee35c934f3c2e74bd2cf241ffda62de7187b1f73c2725ffa89fda",
+        "bytes": 133,
+        "role": "generated Vitest cache"
+      }
+    ]
+  },
+  "writer_canaries": [
+    {
+      "name": "R2 workspace auto POST/readback contract",
+      "cwd": "/Users/lexi/Desktop/学习/v4_app",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 TMPDIR='/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/tmp' V4_TEST_SOURCE_ROOT='/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test' V4_TEST_PYTHON='/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' PYTHONPATH='/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test:/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/upstreams:/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests' '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q -p no:cacheprovider '/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r2/independent_tests/test_workspace_auto_readback_contract.py'",
+      "exit_code": 0,
+      "result": "4 passed in 0.56s",
+      "candidate_root_binding": "Test explicitly validates V4_TEST_SOURCE_ROOT and inserts it at sys.path index 0 before candidate imports."
+    },
+    {
+      "name": "Exact page binding/readback initial wrong-root invocation",
+      "cwd": "/Users/lexi/Desktop/学习/v4_app",
+      "command": "python -m pytest -q -p no:cacheprovider <E>/candidate/test/tests/test_manager_workspace_exact_page_binding_20261008.py",
+      "exit_code": 1,
+      "result": "2 failed; both observed PLAN_AFTER_READ_CUTOFF where CURRENT expected.",
+      "classification": "Invalid source-root verification; loaded module paths were not captured and this test file has no V4_TEST_SOURCE_ROOT guard/sys.path insertion. CANNOT_CONFIRM candidate behavior from this run. Preserved here as execution error evidence, not a candidate defect."
+    },
+    {
+      "name": "Exact page binding/readback corrected candidate-root rerun",
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test",
+      "command": "python inline wrapper calling pytest.main([\"-q\",\"-p\",\"no:cacheprovider\",\"tests/test_manager_workspace_exact_page_binding_20261008.py\"]) with ImportReceipt pytest_collection_finish hook; fixed env above.",
+      "exit_code": 0,
+      "result": "2 passed in 0.41s",
+      "loaded_candidate_modules": [
+        {
+          "module": "v4.manager_research.workspace",
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/v4/manager_research/workspace.py",
+          "sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc"
+        },
+        {
+          "module": "apps.api.v35_api.manager_research_router",
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/apps/api/v35_api/manager_research_router.py",
+          "sha256": "c3ec90ffb88f1378c4d9a1912fc78747f4440d0331696de4f1a015ad72946f4c"
+        },
+        {
+          "module": "test_manager_announcement_parity_20261008",
+          "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/test_manager_announcement_parity_20261008.py",
+          "sha256": "22fccef9d1904c2ea0f52f645e4810cef876574bb8574722109fa37f0a29b4ed"
+        }
+      ],
+      "fixture_time_values": {
+        "router_actual_now": "2026-10-08T10:00:00+08:00",
+        "workspace_owner_generated_at_clock": "2026-10-08T02:00:02+00:00 (same instant as 2026-10-08T10:00:02+08:00)",
+        "fixture_service_get_now": "2026-10-08T10:00:03+08:00",
+        "order": "cutoff 10:00:00+08 < generated_at 10:00:02+08 < readback 10:00:03+08",
+        "finding": "No timezone reversal. The first failure was due to the test process running from the workspace root without binding imports to candidate; corrected candidate-root run passes."
+      }
+    },
+    {
+      "name": "R2 manager daily integration Vitest",
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/apps/web",
+      "command": "./node_modules/.bin/vitest run src/views/ManagerSelectionView.dailyIntegration.spec.ts",
+      "exit_code": 0,
+      "result": "1 test file, 5 tests passed (Vitest 4.1.10)."
+    },
+    {
+      "name": "candidate web full typecheck",
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/web/apps/web",
+      "command": "npm run typecheck",
+      "exit_code": 0,
+      "result": "vue-tsc --noEmit; no diagnostics."
+    },
+    {
+      "name": "candidate web full build",
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/web/apps/web",
+      "command": "npm run build",
+      "exit_code": 0,
+      "result": "Vite 7.3.6; 117 modules transformed; build completed."
+    }
+  ],
+  "not_run_or_cannot_confirm": [
+    "The modified HK supplement unit test file was restored and patch-applied with exact pinned identities, but its suite was not run in this scoped pass. R1 TESTING.md records two baseline-reproduced failures; its imports use the separate upstream package path, which remains outside this mapped API-consumer increment.",
+    "No live API GET/POST, service reload, deployment, browser page reload, natural scheduled run, or market/business-data operation was performed. Existing live GET snapshot is referenced above and was not repeated.",
+    "Independent Reviewer rerun and behavior verdict remain pending; writer canaries are supporting evidence only.",
+    "The manifest test before bytes were verified by exact SHA/size, but the local matching source file is untracked and the declared before commit object is not available locally; commit-level provenance remains CANNOT_CONFIRM."
+  ],
+  "live_baseline_summary": "Only existing read-only receipt is referenced: 2026-10-08 auto GET HTTP 500; dynamic GET HTTP 200 but no plan materialization and US NOT_RUN; 2026-10-09 auto GET HTTP 200 without a plan. These historical states were not repeated. In the cumulative R1 candidate, workspace_read_control.py raises WORKSPACE_READ_BUSY at the mapped capacity branch (line 201), and the changed manager router catches WorkspaceReadError and maps that code to HTTP 503 (lines 229-232); this is code-path inspection only and does not verify the live loaded version or explain the observed HTTP 500.",
+  "safety": "No production/canonical tree, live service, scheduler, HK child, actual HK02 updater, trading permission, or business data was modified."
+}

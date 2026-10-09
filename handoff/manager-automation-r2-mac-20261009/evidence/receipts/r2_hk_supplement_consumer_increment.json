@@ -1,0 +1,71 @@
+{
+  "schema_version": "v4.manager_r2_hk_daily_supplement_consumer_increment.v1",
+  "captured_at_utc": "2026-10-09T01:27:26.018398+00:00",
+  "scope": "ISOLATED_CANDIDATE_ONLY; one R1 HK daily supplement API consumer mapped from hk_upstream source; exact declared corresponding test",
+  "source_manifest_sha256": "3dc30402ab8c377994ca7d9c2f86cef1f135468166a2c033816f9537a729f560",
+  "consumer_map_sha256": "8f9ebdcde00733486edc53a8c6bf1ca35a7f847a5875b83cb31256143b1a07d7",
+  "api_consumer": {
+    "manifest_profile": "hk_upstream",
+    "manifest_path": "shared_data/hk_daily_supplement.py",
+    "actual_candidate_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/api/v3_shared_data/shared_data/hk_daily_supplement.py",
+    "consumer_module": "v3_shared_data.shared_data.hk_daily_supplement",
+    "source_before_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+    "candidate_before_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+    "after_payload_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+    "candidate_after_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+    "test_assembly_mirror_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/v3_shared_data/shared_data/hk_daily_supplement.py",
+    "test_assembly_mirror_after_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+    "mapping_reason": "confirmed 8873 API consumer import; mapped away from the unrelated HK02 updater and HK child"
+  },
+  "corresponding_test": {
+    "manifest_path": "tests/test_hk_daily_supplement_r4.py",
+    "candidate_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test/tests/test_hk_daily_supplement_r4.py",
+    "before_source_path": "/Users/lexi/Desktop/学习/v4_app/tests/test_hk_daily_supplement_r4.py",
+    "before_source_commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+    "before_expected_sha256": "6e28ec956e048517b6312f57d6a351253717ee50a5f5f6d20079787e8bc819b6",
+    "before_source_actual_sha256": "6e28ec956e048517b6312f57d6a351253717ee50a5f5f6d20079787e8bc819b6",
+    "after_payload_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/after/tests/tests/test_hk_daily_supplement_r4.py",
+    "after_sha256": "7085f61af64c20f3153ca5e6d7948c0e0e54c3236e2e5ec364b9662d5d1dfc94",
+    "patch_path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/tests/tests/test_hk_daily_supplement_r4.py.patch",
+    "patch_sha256": "a982d395dd9262523e92f4301e673b3993ad8482cbc9fda5c3e211a06bd4c9d7",
+    "git_apply_check": {
+      "argv": [
+        "git",
+        "-C",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test",
+        "apply",
+        "--check",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/tests/tests/test_hk_daily_supplement_r4.py.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "git_apply": {
+      "argv": [
+        "git",
+        "-C",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate/test",
+        "apply",
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/incoming/r1/patches/tests/tests/test_hk_daily_supplement_r4.py.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  },
+  "identity_gates": {
+    "manifest_api_before": true,
+    "manifest_api_after": true,
+    "manifest_test_before": true,
+    "manifest_test_after": true,
+    "map_api_before": true,
+    "api_candidate_before": true,
+    "test_assembly_module_before": true,
+    "authoritative_test_before": true,
+    "api_after_payload": true,
+    "test_after_payload": true,
+    "test_patch": true
+  },
+  "excluded": "HK child and hk02 updater paths unchanged; no service, live request, scheduler, POST, market or business-data operation"
+}

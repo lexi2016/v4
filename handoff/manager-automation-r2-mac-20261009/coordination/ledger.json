@@ -1,0 +1,116 @@
+{
+  "goal": "经理工作台每日自动三路研究选股；接收R1+R2并核现场可执行接续",
+  "phase": "CANDIDATE_REVIEWED_AWAITING_SHARED_INTEGRATION",
+  "writer": "/root/r2_cumulative_writer",
+  "reviewer": "/root/r2_cumulative_review",
+  "allowed_paths": [
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/intake",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/coordination",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/input_audit",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/integration_audit",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/candidate",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/tools",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/receipts",
+    "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/review"
+  ],
+  "forbidden": [
+    "canonical/live business source changes",
+    "app.py/shared publish",
+    "service/scheduler/automation changes",
+    "POST/producer/capture",
+    "Stage/Vibe8910",
+    "business state mutation"
+  ],
+  "pass_signal": "Pinned R1/R2 package and per-profile current preimages identified; real US/announcement/HK owner identities and precise deployment dependency established",
+  "stop_rule": "Exact source drift: preserve and report; do not override other owner or immutable release. HK existing namespace and supplement root mismatch retained as separate blockers.",
+  "parallel_shared_owner": {
+    "thread": "01a0ff4f-2b8f-7311-add9-cba3f560cc4d",
+    "title": "制定港股阶段修复计划",
+    "observed_status": "Active #32 candidate integration, no cutover yet"
+  },
+  "workers": [
+    {
+      "worker": "/root/r2_original_task_identity",
+      "milestone": "original US/announcement task contracts",
+      "dispatch_time": "2026-10-09T01:08:30.573333+00:00",
+      "expected_terminal_type": "read-only identity receipt",
+      "lifecycle_status": "COMPLETED",
+      "final_received": true,
+      "final_consumed": true,
+      "receipt_verified": true,
+      "receipts": {
+        "r2-input-identity-audit.json": "ac1c4181f0f2c420946af368a1f795285e2b3eb8e068d24d60d5aa9a3d4ba43f",
+        "r2-input-identity-audit.md": "b06f0725cd8c5f62f50f1f39c2afa3af6a82ba49b26604db7bf354d9378f3059"
+      },
+      "followup": "Record historical automation-3 identity and current exact-path absence; rendered view card supplies no config proof"
+    },
+    {
+      "worker": "/root/r2_current_preimages",
+      "milestone": "current roots and R1 preimages",
+      "dispatch_time": "2026-10-09T01:08:30.573442+00:00",
+      "expected_terminal_type": "preimage/ownership receipt",
+      "lifecycle_status": "COMPLETED",
+      "final_received": true,
+      "final_consumed": true,
+      "receipt_verified": true,
+      "receipts": {
+        "source_root_map.json": "87f40571f645f61de8b064d47d5ae0fb897c2b0a667864ebe9818f0b099ec67c",
+        "r1_r2_production_preimage_audit.json": "e78284700f472322dfd853fd16892d8304e0646b46732223909800de752d4f6d",
+        "r1_r2_integration_conflicts.md": "a611e901ba5c9c94b21bfd0d2c4d3fcde4d84cb1eca3b71b1d3b67e8c7ef3375",
+        "supplement_consumer_map.json": "8f9ebdcde00733486edc53a8c6bf1ca35a7f847a5875b83cb31256143b1a07d7"
+      },
+      "followup": "Resolve actual supplement consumer root only; prior root receipt remains verified"
+    },
+    {
+      "worker": "/root/r2_cumulative_writer",
+      "milestone": "isolated API/web R1 then R2",
+      "dispatch_time": "2026-10-09T01:14:17.157415+00:00",
+      "expected_terminal_type": "candidate manifest and focused canary receipt",
+      "lifecycle_status": "COMPLETED",
+      "final_received": true,
+      "final_consumed": true,
+      "receipt_verified": true,
+      "scope_addendum": "Apply fixed R1 hk_daily_supplement delta only to verified API bundled v3_shared_data consumer; before 5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c; no actual HK02 updater changes",
+      "receipts": {
+        "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_AUTOMATION_R2_MAC_20261009/evidence/receipts/r2_candidate_minimum_verification.json": "ded59483a74cba04858175c3f69867a7b1476dbe6e142fbf69e309bdc4a32fce"
+      }
+    },
+    {
+      "worker": "/root/r2_cumulative_review",
+      "milestone": "independent actual diff and Mac candidate behaviors",
+      "dispatch_time": "2026-10-09T01:38:48.524792+00:00",
+      "expected_terminal_type": "REVIEWED TESTED BEHAVIOR_VERIFIED scoped PASS/FAIL receipt",
+      "lifecycle_status": "COMPLETED",
+      "final_received": true,
+      "final_consumed": true,
+      "receipt_verified": true,
+      "milestone_update": "Independent focused canaries and full web typecheck/build PASS reported; final receipt pending, no repeated checks or status polling",
+      "verdict": "PASS_FROZEN_ISOLATED_CANDIDATE",
+      "followup": "Only correct 11 referenced receipts vs 12 including root receipt wording; no tests or verdict rerun",
+      "receipts": {
+        "independent_review.md": "7fa9af9401268c8b67da981f229529bdfac54d037475aaa659e06538630f4159",
+        "independent_receipt.json": "f3e8bf2c27c0ec1ddb7ff94433fe2177eb4d5b9163e755b3fb098dfa967bb655"
+      }
+    }
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "writer_scope": "Initialize exact API+existing web snapshot; apply R1 then R2 only api/web declared paths and corresponding tests; no HK/bound-worker/live changes until mapping resolved; verified bundled API supplement R1 delta now allowed",
+  "updated_at": "2026-10-09T01:21:15.964198+00:00",
+  "candidate_status": {
+    "REVIEWED": "PASS_SCOPED",
+    "TESTED": "PASS_SCOPED",
+    "BEHAVIOR_VERIFIED": "PASS_SYNTHETIC_SCOPE",
+    "INTEGRATED": "CANNOT_CONFIRM",
+    "DEPLOYED": "NOT_RUN",
+    "API_VERIFIED": "NOT_RUN_LIVE",
+    "UI_VERIFIED": "NOT_RUN_LIVE",
+    "NATURAL_VERIFIED": "NATURAL_SLOT_UNVERIFIED"
+  },
+  "business_goal_complete": false,
+  "github_branch": "codex/manager-automation-r2-mac-20261009",
+  "github_parent": "6a2fa48faf1da0a7d0d1715b3a4a40f55249b64c"
+}
