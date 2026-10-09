@@ -1,0 +1,3 @@
+NOT_RUN: subprocess uid/gid demotion failed before pytest started: subprocess.SubprocessError: Exception occurred in preexec_fn.
+Current runtime uid/euid=0. No escalation or global permissions change attempted.
+R3 namespace capability probe also failed before Python: unshare: write failed /proc/self/uid_map: Operation not permitted

@@ -1,0 +1,32 @@
+..F.......................................                               [100%]
+=================================== FAILURES ===================================
+____ test_real_pytest_commands_preserve_ids_inside_and_outside_the_package _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-381/test_real_pytest_commands_pres0')
+
+    def test_real_pytest_commands_preserve_ids_inside_and_outside_the_package(tmp_path):
+        package, output = tmp_path / 'package', tmp_path / 'test_output'
+        package.mkdir(); output.mkdir()
+        write(output / 'pytest.ini', '[pytest]\n')
+        module = runner(); observed = {}
+        for label, folder in [('inside', package / 'test_container/tests'),
+                              ('release', output / 'work/release/tests')]:
+            write(folder / 'test_fixture.py', 'def test_one():\n    assert True\n')
+            result = subprocess.run(module.pytest_command(package, output, label, folder), cwd=package,
+                env={**os.environ, 'PYTHONDONTWRITEBYTECODE': '1', 'PYTEST_DISABLE_PLUGIN_AUTOLOAD': '1'},
+                capture_output=True, text=True, timeout=30)
+            assert result.returncode == 0, result.stdout + result.stderr
+            observed[label] = module.junit_gate(output / (label + '.junit.xml'), 1, ['test_fixture::test_one'])
+>       assert {name: value['status'] for name, value in observed.items()} == {'inside': 'PASS', 'release': 'PASS'}, observed
+E       AssertionError: {'inside': {'status': 'FAIL', 'expected_tests': 1, 'observed_tests': 1, 'passed': 1, ...}, 'release': {'status': 'PASS', 'expected_tests': 1, 'observed_tests': 1, 'passed': 1, ...}}
+E       assert {'inside': 'F...ease': 'PASS'} == {'inside': 'P...ease': 'PASS'}
+E         
+E         Omitting 1 identical items, use -vv to show
+E         Differing items:
+E         {'inside': 'FAIL'} != {'inside': 'PASS'}
+E         Use -v to get more diff
+
+work/review/delivery_tests/test_run_checks_gates.py:107: AssertionError
+=========================== short test summary info ============================
+FAILED work/review/delivery_tests/test_run_checks_gates.py::test_real_pytest_commands_preserve_ids_inside_and_outside_the_package
+1 failed, 41 passed in 1.26s

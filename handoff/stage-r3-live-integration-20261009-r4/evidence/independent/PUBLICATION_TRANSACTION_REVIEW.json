@@ -1,0 +1,97 @@
+{
+  "RESEARCH_ONLY": true,
+  "artifacts": {
+    "original_guard": {
+      "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/publication/reference/api_release_integration_before.py",
+      "sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050"
+    },
+    "original_publisher": {
+      "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/publication/reference/api_only_cutover_issue32_r4.py",
+      "sha256": "864a07b9bdf915a14b877eac89ddc931bb0f4976b70599c242671ff177e9cf25"
+    },
+    "publication_tests": {
+      "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/publication/tests/test_stage_api_release.py",
+      "sha256": "4c2e1c8ba0a8d4f400e161fc7a444fcbc75dbfff8b917fc638f8681c024d6466"
+    },
+    "stage_wrapper": {
+      "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/publication/tools/stage_api_release.py",
+      "sha256": "6a3771b465f7ed8fb570050cba395f210c3eafa899252081c6b0aaa873dfda63"
+    }
+  },
+  "buy_gate_updated": false,
+  "mac_steps_section_6": {
+    "command_names_flags_confirmation_literals_output_keys_raw_receipt_sha_and_continuation_arguments": "MATCH_FROZEN_CLI",
+    "path": "/workspace/scratch/49c844334a98/stage-r3-live-integration-20261009-r4/MAC_STEPS.md",
+    "required_doc_correction": null,
+    "sha256_at_review": "dcf343789afdd03dfeac7acff17d0e9eff15695222d3c685b2febeb27317787a",
+    "source_path_note": "Prepare explicitly selects the packaged publisher.",
+    "status": "PASS"
+  },
+  "orders_sent": false,
+  "production_allowed": false,
+  "resolved_findings": [
+    {
+      "finding": "One-shot verification immediately after bootstrap could reject healthy delayed launchd or HTTP startup.",
+      "id": "TX-01",
+      "resolution": "Bounded60-second readiness polling accepts known transitions and transient HTTP startup failures; unknown runtime identity and semantic failures remain rejection.",
+      "severity": "P1",
+      "status": "RESOLVED_IN_REVIEWED_SOURCE"
+    },
+    {
+      "finding": "Candidate identity verification omitted the full installed plist SHA comparison against the prepared target.",
+      "id": "TX-02",
+      "resolution": "Stage verification now checks exact base/candidate pointer SHA and repeats candidate/source verification after HTTP reads.",
+      "severity": "P1",
+      "status": "RESOLVED_IN_REVIEWED_SOURCE"
+    },
+    {
+      "finding": "Historical HTTP projection omitted financial safety fields.",
+      "id": "TX-03",
+      "resolution": "Historical financial flags are validated recursively; flag presence and value are included in compared semantics. Existing historical natural evidence is not relabelled.",
+      "severity": "P2",
+      "status": "RESOLVED_IN_REVIEWED_SOURCE"
+    }
+  ],
+  "retained_original_interfaces": [
+    "_switch_lock",
+    "_require_release_lock",
+    "_file_metadata",
+    "_apply_file_metadata",
+    "_atomic_replace_bytes",
+    "_create_preimage_exclusive",
+    "_create_prepared_transaction",
+    "_record",
+    "_signed_receipt",
+    "_assert_prepared_transaction",
+    "_verify_recovery_backup",
+    "_verify_rollback_base",
+    "_recovery_state",
+    "_wait_for_unloaded",
+    "_restore_after_failure",
+    "_verify_readonly_guards"
+  ],
+  "reviewed_at_utc": "2026-10-09T15:03:34+00:00",
+  "reviewer": "r4_release",
+  "schema_version": "V4_STAGE_PUBLICATION_TRANSACTION_REVIEW_V1",
+  "scope": "READ_ONLY_SOURCE_AND_CONTRACT_REVIEW_OF_FROZEN_STAGE_WRAPPER",
+  "status": "PASS_NO_OPEN_TRANSACTION_FINDINGS",
+  "transaction_checks": {
+    "bootout_absence_result": "ABSENT_CONFIRMED_REQUIRED_AND_RECORDED",
+    "continuation": "EXACT_PLAN_FILE_SHA_SIGNED_RECEIPTS_IMMUTABLE_PREPARED_CONTRACT_BACKUP_SHA_METADATA_RECORDED_BASE_AND_POINTER_CAS",
+    "lease_owner": "UNCHANGED_ISSUE32_PUBLISHER_WITH_ORIGINAL_ISSUE30_GUARD",
+    "manager_and_history_roots": "PRESERVED_FROM_ACTIVE_PLIST_NO_STATE_COPY",
+    "original_publisher_and_guard_bytes_unchanged": true,
+    "publisher_attribute_assignments": [],
+    "receipt_flags": "ORIGINAL_SIGNED_RECEIPTS_UNCHANGED_RESEARCH_FLAGS_ADDED_TO_WRAPPER_OUTPUT_ONLY",
+    "recovery_after_candidate_damage": "USES_RECORDED_BASE_AND_ORIGINAL_RECOVERY_WITHOUT_REQUIRING_DAMAGED_STAGE_CANDIDATE_OR_HELPER",
+    "stage_candidate_verification": "ORIGINAL_LEASE_ASSERTED_BEFORE_AND_AFTER_STAGE_GUARD_READ"
+  },
+  "verification_boundaries": {
+    "live_mac_api_ui_and_natural_acceptance": "NOT_RUN_BY_THIS_REVIEW",
+    "publication_test_results": "SEPARATE_AUTHOR_AND_INDEPENDENT_REVIEW_RECEIPTS",
+    "reviewer_executed_publication_or_service_actions": false,
+    "reviewer_reran_author_40_tests": false,
+    "reviewer_reran_independent_4_http_probes": false,
+    "source_files_modified_by_review": false
+  }
+}

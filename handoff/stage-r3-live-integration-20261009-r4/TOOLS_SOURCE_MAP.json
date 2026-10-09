@@ -1,0 +1,102 @@
+{
+  "after_policy_sha256": "b1d846e6676d916e9bc9cfff5c9f2134b38c89da55ae54aaaa90c7828b15e8ab",
+  "before_policy_sha256": "c55f4f09269661e0db05fa566aa1be9a96b2aa681912223c38fb802c4127e1b6",
+  "cutover_publisher_modified": false,
+  "files": [
+    {
+      "after_bytes": 65190,
+      "after_path": "release_tools/after/ops/api_release_integration.py",
+      "after_sha256": "5325f7a81acadb4016385416c88319e4baab0a26974ac19ed17dd7debb7e0f29",
+      "before_bytes": 57781,
+      "before_path": "release_tools/before/ops/api_release_integration.py",
+      "before_sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+      "operation": "modify",
+      "relative_path": "ops/api_release_integration.py"
+    },
+    {
+      "after_bytes": 37416,
+      "after_path": "release_tools/after/ops/build_release_candidate.py",
+      "after_sha256": "33bd9f8b4dd1803e0ff583a7763576374b83f89d38bac6ca0249316f17a10404",
+      "before_bytes": 36367,
+      "before_path": "release_tools/before/ops/build_release_candidate.py",
+      "before_sha256": "81f4290a6f51e5958048d782c2d4b1eecfc42f892e387e6c1a22bb71912abef6",
+      "operation": "modify",
+      "relative_path": "ops/build_release_candidate.py"
+    },
+    {
+      "after_bytes": 41262,
+      "after_path": "release_tools/after/ops/build_release_candidate_stage.py",
+      "after_sha256": "79cbb7ab98ca894594c2f80f802d9ed410bf64489decad469fdf3fc9d6b402df",
+      "before_bytes": 41262,
+      "before_path": "release_tools/before/ops/build_release_candidate_stage.py",
+      "before_sha256": "79cbb7ab98ca894594c2f80f802d9ed410bf64489decad469fdf3fc9d6b402df",
+      "operation": "unchanged",
+      "relative_path": "ops/build_release_candidate_stage.py"
+    },
+    {
+      "after_bytes": 19809,
+      "after_path": "release_tools/after/ops/create_api_module_delta.py",
+      "after_sha256": "594a537982c8e060d29158445468a5cfd6af585f3b78c7872fe7625bf6f8012d",
+      "before_bytes": 6580,
+      "before_path": "release_tools/before/ops/create_api_module_delta.py",
+      "before_sha256": "04e67a3ce948eecf9dac04083277bd919c7ec8880ec5814bbe57e7a5ba8d0072",
+      "operation": "modify",
+      "relative_path": "ops/create_api_module_delta.py"
+    },
+    {
+      "after_bytes": 22797,
+      "after_path": "release_tools/after/ops/prepare_api_only_cutover.py",
+      "after_sha256": "0fee40c13bdb76d8d4d7b5b0068eb8b6e7cade9187a5f3c3154b7d6238a1af4c",
+      "before_bytes": 22797,
+      "before_path": "release_tools/before/ops/prepare_api_only_cutover.py",
+      "before_sha256": "0fee40c13bdb76d8d4d7b5b0068eb8b6e7cade9187a5f3c3154b7d6238a1af4c",
+      "operation": "unchanged",
+      "relative_path": "ops/prepare_api_only_cutover.py"
+    },
+    {
+      "after_bytes": 11775,
+      "after_path": "release_tools/after/ops/release_candidate_audit.py",
+      "after_sha256": "84d30676cf88d244f930eb0abc1f8184db20e53ec2e0ad7a4f32590086673cdf",
+      "before_bytes": 11775,
+      "before_path": "release_tools/before/ops/release_candidate_audit.py",
+      "before_sha256": "84d30676cf88d244f930eb0abc1f8184db20e53ec2e0ad7a4f32590086673cdf",
+      "operation": "unchanged",
+      "relative_path": "ops/release_candidate_audit.py"
+    },
+    {
+      "after_bytes": 980,
+      "after_path": "release_tools/after/ops/release_candidate_ports.py",
+      "after_sha256": "1b70ef9725335c1570b96b937753917ac9d5114cfa66359ee08178eb282fd7d4",
+      "before_bytes": 980,
+      "before_path": "release_tools/before/ops/release_candidate_ports.py",
+      "before_sha256": "1b70ef9725335c1570b96b937753917ac9d5114cfa66359ee08178eb282fd7d4",
+      "operation": "unchanged",
+      "relative_path": "ops/release_candidate_ports.py"
+    },
+    {
+      "after_bytes": 11977,
+      "after_path": "release_tools/after/ops/release_candidate_sources.py",
+      "after_sha256": "76d963c71cb388e1f7efc51478078f0f21dd280093646fc9d47e955dfe04a738",
+      "before_bytes": 11977,
+      "before_path": "release_tools/before/ops/release_candidate_sources.py",
+      "before_sha256": "76d963c71cb388e1f7efc51478078f0f21dd280093646fc9d47e955dfe04a738",
+      "operation": "unchanged",
+      "relative_path": "ops/release_candidate_sources.py"
+    },
+    {
+      "after_bytes": 17695,
+      "after_path": "release_tools/after/ops/stage_service_overlay_contract.py",
+      "after_sha256": "36eb27395bfd10cc78c6f0ba237eb67afe22716f653e56b5dec2ab3827e22838",
+      "before_bytes": 17695,
+      "before_path": "release_tools/before/ops/stage_service_overlay_contract.py",
+      "before_sha256": "36eb27395bfd10cc78c6f0ba237eb67afe22716f653e56b5dec2ab3827e22838",
+      "operation": "unchanged",
+      "relative_path": "ops/stage_service_overlay_contract.py"
+    }
+  ],
+  "fixed_ref": "137431f5de3917ff4526784351f5638e115061e5",
+  "schema_version": "v4.stage_r4.release_source_map.v1",
+  "source_prefix": "handoff/issue30-api-module-isolation-20261008-r1/after",
+  "source_repository": "lexi2016/v4",
+  "stage_service_modified": false
+}

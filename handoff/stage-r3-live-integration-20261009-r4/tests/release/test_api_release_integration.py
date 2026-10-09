@@ -1,0 +1,300 @@
+from __future__ import annotations
+
+import difflib
+import hashlib
+import json
+from pathlib import Path
+import plistlib
+
+import pytest
+
+from ops import api_release_integration as integration
+from ops.prepare_api_only_cutover import render_cutover, sha256_file
+
+
+def _sha(raw: bytes) -> str:
+    return hashlib.sha256(raw).hexdigest()
+
+
+def _write_active_release(
+    root: Path, api_plist: Path, *, release_id: str = "active-release",
+    files: dict[str, bytes] | None = None,
+) -> dict[str, Path | str]:
+    release_root = root / release_id
+    app_root = release_root / "app"
+    app_root.mkdir(parents=True)
+    for relative, raw in (files or {
+        "apps/api/v35_api/app.py": b"VALUE = 1\n",
+        "stable-module.py": b"STABLE = True\n",
+    }).items():
+        target = app_root / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(raw)
+    entries = integration.inventory_tree(app_root)
+    manifest = {
+        "schema_version": "v4.release_candidate.v1",
+        "activation_status": "NOT_ACTIVATED",
+        "candidate": {
+            "root": str(release_root),
+            "app_root": str(app_root),
+            "release_id": release_id,
+        },
+        "application_inventory": {
+            "entry_count": len(entries),
+            "aggregate_sha256": integration.inventory_digest(entries),
+            "entries": entries,
+        },
+    }
+    manifest_path = release_root / "release-manifest.json"
+    manifest_path.write_text(json.dumps(manifest, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+    manifest_sha = sha256_file(manifest_path)
+    manager_root = root / "current-manager"
+    manager_root.mkdir(exist_ok=True)
+    api_plist.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "Label": "com.lexi.v35.api-only",
+        "ProgramArguments": [
+            "/usr/bin/env",
+            "RESEARCH_ONLY=1",
+            "production_allowed=false",
+            "PRODUCTION_ALLOWED=false",
+            "buy_gate_updated=false",
+            "BUY_GATE_UPDATED=false",
+            "orders_sent=false",
+            "ORDERS_SENT=false",
+            f"V35_APP_ROOT={app_root}",
+            f"V35_RELEASE_ID={release_id}",
+            f"V35_RELEASE_MANIFEST_PATH={manifest_path}",
+            f"V35_RELEASE_MANIFEST_SHA256={manifest_sha}",
+            f"V4_MANAGER_RESEARCH_STATE_ROOT={manager_root}",
+            f"PYTHONPATH={app_root / 'upstreams'}:{app_root}",
+            "/usr/bin/python3",
+            "-B",
+            "-m",
+            "apps.api.v35_api.run",
+        ],
+        "WorkingDirectory": str(app_root),
+    }
+    api_plist.write_bytes(plistlib.dumps(payload, fmt=plistlib.FMT_XML, sort_keys=True))
+    return {
+        "release_root": release_root,
+        "app_root": app_root,
+        "manifest_path": manifest_path,
+        "manifest_sha256": manifest_sha,
+        "api_plist": api_plist,
+        "manager_root": manager_root,
+    }
+
+
+def _delta_receipt(
+    active: dict[str, Path | str], source_root: Path, *,
+    relative: str = "apps/api/v35_api/app.py", before_override: str | None = None,
+) -> Path:
+    base_identity = integration.read_active_release(Path(str(active["api_plist"])))
+    base_path = Path(str(active["app_root"])) / relative
+    source_path = source_root / relative
+    before = base_path.read_bytes()
+    after = source_path.read_bytes()
+    diff_lines = list(difflib.unified_diff(
+        before.decode("utf-8").splitlines(), after.decode("utf-8").splitlines(),
+        fromfile="before", tofile="after", n=0, lineterm="",
+    ))
+    diff_raw = ("\n".join(diff_lines) + ("\n" if diff_lines else "")).encode("utf-8")
+    entry = {
+        "path": relative,
+        "before_sha256": before_override or _sha(before),
+        "after_sha256": _sha(after),
+        "before_mode": f"{base_path.stat().st_mode & 0o7777:04o}",
+        "after_mode": f"{source_path.stat().st_mode & 0o7777:04o}",
+        "unified_diff_sha256": _sha(diff_raw),
+        "unified_diff_hunk_count": sum(line.startswith("@@") for line in diff_lines),
+    }
+    value = {
+        "schema_version": integration.DELTA_SCHEMA_VERSION,
+        "base": integration._base_binding(base_identity),
+        "module_scope": integration.module_scope("preselection", [relative]),
+        "entries": [entry],
+    }
+    path = source_root.parent / "delta-receipt.json"
+    path.write_text(json.dumps(value, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
+def _integrated_candidate(
+    tmp_path: Path, *, wrong_before: bool = False,
+) -> tuple[dict[str, Path | str], Path, dict[str, object]]:
+    active = _write_active_release(
+        tmp_path,
+        tmp_path / "LaunchAgents" / "com.lexi.v35.api-only.plist",
+        files={
+            "apps/api/v35_api/app.py": b"VALUE = 1\n",
+            "stable-module.py": b"STABLE = True\n",
+        },
+    )
+    source_root = tmp_path / "source"
+    changed = source_root / "apps/api/v35_api/app.py"
+    changed.parent.mkdir(parents=True)
+    changed.write_bytes(b"VALUE = 2\n")
+    receipt = _delta_receipt(
+        active, source_root,
+        before_override=("f" * 64 if wrong_before else None),
+    )
+    candidate_root = tmp_path / "candidate"
+    candidate_root.mkdir()
+    details = integration.build_integrated_app(
+        active_api_plist_path=Path(str(active["api_plist"])),
+        source_root=source_root,
+        candidate_root=candidate_root,
+        delta_receipt_path=receipt,
+    )
+    entries = integration.inventory_tree(candidate_root / "app")
+    manifest = {
+        "schema_version": "v4.release_candidate.v1",
+        "activation_status": "NOT_ACTIVATED",
+        "candidate": {
+            "root": str(candidate_root),
+            "app_root": str(candidate_root / "app"),
+            "release_id": candidate_root.name,
+        },
+        "application_inventory": {
+            "entry_count": len(entries),
+            "aggregate_sha256": integration.inventory_digest(entries),
+            "entries": entries,
+        },
+        "api_integration": details,
+    }
+    manifest_path = candidate_root / "release-manifest.json"
+    manifest_path.write_text(json.dumps(manifest, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+    return active, candidate_root, manifest
+
+
+def test_prepare_refuses_legacy_api_candidate_without_integration_lineage(tmp_path: Path) -> None:
+    active = _write_active_release(
+        tmp_path,
+        tmp_path / "LaunchAgents" / "com.lexi.v35.api-only.plist",
+    )
+    candidate_root = tmp_path / "legacy-candidate"
+    (candidate_root / "app").mkdir(parents=True)
+    candidate_manifest = candidate_root / "release-manifest.json"
+    candidate_manifest.write_text("{}\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="API_RELEASE_INTEGRATION"):
+        render_cutover(
+            source_plist_path=Path(str(active["api_plist"])),
+            candidate_root=candidate_root,
+            release_id="legacy-candidate",
+            manifest_path=candidate_manifest,
+            manifest_sha256=sha256_file(candidate_manifest),
+            current_manager_state_root=Path(str(active["manager_root"])),
+            source_root=tmp_path / "source",
+        )
+
+    assert not (candidate_root / "config" / "com.lexi.v35.api-only.plist").exists()
+
+
+def test_candidate_is_active_base_plus_exact_delta_and_prepare_pins_it(tmp_path: Path) -> None:
+    active, candidate_root, _manifest = _integrated_candidate(tmp_path)
+    candidate_manifest = candidate_root / "release-manifest.json"
+    before = Path(str(active["api_plist"])).read_bytes()
+    receipt = integration.verify_api_release_candidate(
+        candidate_root=candidate_root,
+        active_api_plist_path=Path(str(active["api_plist"])),
+        expected_manifest_sha256=sha256_file(candidate_manifest),
+    )
+    assert receipt["status"] == "PASS"
+    assert receipt["delta_paths"] == ["apps/api/v35_api/app.py"]
+    assert receipt["non_delta_entry_count"] == 1
+    plan = render_cutover(
+        source_plist_path=Path(str(active["api_plist"])),
+        candidate_root=candidate_root,
+        release_id=candidate_root.name,
+        manifest_path=candidate_manifest,
+        manifest_sha256=sha256_file(candidate_manifest),
+        current_manager_state_root=Path(str(active["manager_root"])),
+        source_root=tmp_path / "source",
+    )
+    assert plan["api_release_integration"]["preflight_revalidation_required_under_shared_lock"] is True
+    assert Path(str(active["api_plist"])).read_bytes() == before
+
+
+def test_wrong_before_sha_and_active_base_drift_are_rejected(tmp_path: Path) -> None:
+    root = tmp_path / "wrong-before"
+    root.mkdir()
+    active = _write_active_release(root, root / "LaunchAgents" / "com.lexi.v35.api-only.plist")
+    source_root = root / "source"
+    source = source_root / "apps/api/v35_api/app.py"
+    source.parent.mkdir(parents=True)
+    source.write_bytes(b"VALUE = 2\n")
+    receipt_path = _delta_receipt(active, source_root, before_override="f" * 64)
+    candidate_root = root / "candidate"
+    candidate_root.mkdir()
+    with pytest.raises(ValueError, match="API_RELEASE_DELTA_BEFORE_SHA_MISMATCH"):
+        integration.build_integrated_app(
+            active_api_plist_path=Path(str(active["api_plist"])),
+            source_root=source_root,
+            candidate_root=candidate_root,
+            delta_receipt_path=receipt_path,
+        )
+
+    good_root = tmp_path / "base-drift"
+    good_root.mkdir()
+    good_active, candidate_root, _manifest = _integrated_candidate(good_root)
+    _write_active_release(
+        good_root,
+        Path(str(good_active["api_plist"])),
+        release_id="replacement-release",
+        files={"apps/api/v35_api/app.py": b"VALUE = 9\n", "stable-module.py": b"STABLE = True\n"},
+    )
+    with pytest.raises(ValueError, match="API_RELEASE_INTEGRATION_ACTIVE_BASE_CHANGED"):
+        integration.verify_api_release_candidate(
+            candidate_root=candidate_root,
+            active_api_plist_path=Path(str(good_active["api_plist"])),
+        )
+
+
+@pytest.mark.parametrize("damage", ["unlisted_change", "delete_file"])
+def test_candidate_rejects_unlisted_changes_and_deletions(tmp_path: Path, damage: str) -> None:
+    active, candidate_root, manifest = _integrated_candidate(tmp_path)
+    app_root = candidate_root / "app"
+    if damage == "unlisted_change":
+        (app_root / "stable-module.py").write_bytes(b"STABLE = False\n")
+    else:
+        (app_root / "stable-module.py").unlink()
+    entries = integration.inventory_tree(app_root)
+    manifest["application_inventory"] = {
+        "entry_count": len(entries),
+        "aggregate_sha256": integration.inventory_digest(entries),
+        "entries": entries,
+    }
+    (candidate_root / "release-manifest.json").write_text(
+        json.dumps(manifest, sort_keys=True, indent=2) + "\n", encoding="utf-8"
+    )
+    expected = "API_RELEASE_INTEGRATION_UNLISTED_FILE_CHANGED" if damage == "unlisted_change" else "API_RELEASE_INTEGRATION_FILE_REMOVED"
+    with pytest.raises(ValueError, match=expected):
+        integration.verify_api_release_candidate(
+            candidate_root=candidate_root,
+            active_api_plist_path=Path(str(active["api_plist"])),
+        )
+
+
+def test_shared_lock_is_required_and_blocks_a_second_publisher(tmp_path: Path) -> None:
+    active, candidate_root, _manifest = _integrated_candidate(tmp_path)
+    api_plist = Path(str(active["api_plist"]))
+    with pytest.raises(ValueError, match="API_RELEASE_SHARED_LOCK_REQUIRED"):
+        integration.verify_api_release_candidate(
+            candidate_root=candidate_root,
+            active_api_plist_path=api_plist,
+            require_shared_lock=True,
+        )
+
+    with integration.shared_api_release_lock(api_plist, timeout_seconds=0.2) as lease:
+        verified = integration.verify_api_release_candidate(
+            candidate_root=candidate_root,
+            active_api_plist_path=api_plist,
+            lock_lease=lease,
+            require_shared_lock=True,
+        )
+        assert verified["status"] == "PASS"
+        with pytest.raises(ValueError, match="API_RELEASE_SHARED_LOCK_BUSY"):
+            with integration.shared_api_release_lock(api_plist, timeout_seconds=0.05):
+                pass

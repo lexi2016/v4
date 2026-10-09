@@ -1,0 +1,14 @@
+Captured from exec session 12813 (the test was run before the preserving plan implementation).
+Command: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONDONTWRITEBYTECODE=1 python -B -m pytest -q --tb=short -p no:cacheprovider tests/test_live_release_preparation.py -k publication_handoff
+Exit code: 1
+
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____ test_publication_handoff_preserves_current_manager_and_history_roots _____
+tests/test_live_release_preparation.py:222: in test_publication_handoff_preserves_current_manager_and_history_roots
+    plan_path=Path(result['prepared_plan_path'])
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'prepared_plan_path'
+=========================== short test summary info ============================
+FAILED tests/test_live_release_preparation.py::test_publication_handoff_preserves_current_manager_and_history_roots
+1 failed, 17 deselected in 2.32s

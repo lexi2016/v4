@@ -1,0 +1,138 @@
+{
+  "RESEARCH_ONLY": true,
+  "api_live_verified": false,
+  "browser_verified": false,
+  "buy_gate_updated": false,
+  "candidate_only": true,
+  "case_names": [
+    "test_prepare_preserves_manager_history_and_has_no_service_actions",
+    "test_execute_and_manual_rollback_reuse_original_transaction",
+    "test_bad_candidate_readback_automatically_restores_preimage[run]",
+    "test_bad_candidate_readback_automatically_restores_preimage[safety]",
+    "test_bad_candidate_readback_automatically_restores_preimage[reader]",
+    "test_bad_candidate_readback_automatically_restores_preimage[row]",
+    "test_bad_candidate_readback_automatically_restores_preimage[count]",
+    "test_bad_candidate_readback_automatically_restores_preimage[natural]",
+    "test_bad_candidate_readback_automatically_restores_preimage[static]",
+    "test_bad_candidate_readback_automatically_restores_preimage[history]",
+    "test_bad_candidate_readback_automatically_restores_preimage[history_safety]",
+    "test_preflight_drift_has_no_service_action[pointer]",
+    "test_preflight_drift_has_no_service_action[manifest]",
+    "test_preflight_drift_has_no_service_action[staged]",
+    "test_preflight_drift_has_no_service_action[history]",
+    "test_preflight_drift_has_no_service_action[scheduler]",
+    "test_preflight_drift_has_no_service_action[plan]",
+    "test_bootstrap_failure_uses_original_automatic_recovery",
+    "test_manual_rollback_after_candidate_corruption_does_not_require_candidate",
+    "test_rollback_rejects_tampered_proofs_before_service_action[receipt]",
+    "test_rollback_rejects_tampered_proofs_before_service_action[prepared]",
+    "test_rollback_rejects_tampered_proofs_before_service_action[backup]",
+    "test_rollback_rejects_tampered_proofs_before_service_action[plan]",
+    "test_unknown_pointer_after_bootout_is_not_overwritten",
+    "test_explicit_confirmation_and_expected_hashes_are_required",
+    "test_wrong_expected_hash_arguments_never_touch_service[current]",
+    "test_wrong_expected_hash_arguments_never_touch_service[staged]",
+    "test_wrong_expected_hash_arguments_never_touch_service[plan]",
+    "test_shared_publication_lock_contention_never_touches_service",
+    "test_candidate_waits_for_launchd_and_http_readiness",
+    "test_candidate_startup_timeout_returns_structured_recovery_context",
+    "test_same_identity_pointer_drift_after_bootstrap_is_rejected",
+    "test_resume_after_failed_base_bootstrap_with_absent_pointer",
+    "test_existing_historical_natural_evidence_is_not_reclassified",
+    "test_manager_history_bytes_modes_and_result_flags_survive_switch_and_rollback",
+    "test_startup_absence_timeout_can_automatically_restore_base",
+    "test_verified_selection_counts_and_unified_projection_are_bound[unified]",
+    "test_verified_selection_counts_and_unified_projection_are_bound[selected_algorithm]",
+    "test_verified_selection_counts_and_unified_projection_are_bound[requested]",
+    "test_cli_failure_has_concrete_receipt_and_current_sha_for_continuation"
+  ],
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "tests/test_stage_api_release.py",
+    "--junitxml=evidence/publication_final.junit.xml"
+  ],
+  "cwd": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/publication",
+  "deployed": false,
+  "duration_seconds": 135.459,
+  "environment": {
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "pytest": "9.1.1",
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "python_executable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python"
+  },
+  "external_boundaries": [
+    "launchctl print/bootout/bootstrap are simulated in tests",
+    "loopback HTTP is simulated using actual delivered API route/R3 fixture projection",
+    "npm build receipts and external dependency discovery come from existing coordinator synthetic fixture",
+    "approved fixture manifest pins and machine paths substituted only in temporary test modules"
+  ],
+  "files": [
+    {
+      "bytes": 52500,
+      "path": "tools/stage_api_release.py",
+      "sha256": "6a3771b465f7ed8fb570050cba395f210c3eafa899252081c6b0aaa873dfda63"
+    },
+    {
+      "bytes": 24557,
+      "path": "tests/test_stage_api_release.py",
+      "sha256": "4c2e1c8ba0a8d4f400e161fc7a444fcbc75dbfff8b917fc638f8681c024d6466"
+    },
+    {
+      "bytes": 125029,
+      "path": "reference/api_only_cutover_issue32_r4.py",
+      "sha256": "864a07b9bdf915a14b877eac89ddc931bb0f4976b70599c242671ff177e9cf25"
+    },
+    {
+      "bytes": 57781,
+      "path": "reference/api_release_integration_before.py",
+      "sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050"
+    }
+  ],
+  "junit": {
+    "path": "evidence/publication_final.junit.xml",
+    "sha256": "5a13e7c6d35fe07c4d752d74297b62b2f3632e0766bcd9c6490db17623330c41"
+  },
+  "natural_verified": false,
+  "not_run": [
+    "Mac publication",
+    "real launchd operations",
+    "8873 live HTTP or browser",
+    "natural Stage execution"
+  ],
+  "orders_sent": false,
+  "production_allowed": false,
+  "publisher_constant_assignments_in_adapter": false,
+  "reused_transaction_functions": [
+    "_switch_lock",
+    "_require_release_lock",
+    "_create_prepared_transaction",
+    "_record",
+    "_launchctl_action",
+    "_wait_for_unloaded",
+    "_atomic_replace_bytes",
+    "_restore_after_failure"
+  ],
+  "schema_version": "V4_STAGE_PUBLICATION_VERIFICATION_V1",
+  "scope": "CHAT_SOURCE_AND_SYNTHETIC_LAUNCHD_HTTP_ONLY",
+  "status": "PASS",
+  "tdd_evidence": {
+    "counterexamples_and_positive_green": "evidence/publication_readback_green.junit.xml",
+    "initial_full_suite": "evidence/publication_first_green.junit.xml",
+    "initial_full_suite_note": "23passed; one test setup failed because tampering attempted a0400plan without first changing fixture mode; fixed only test setup.",
+    "missing_publisher_red": "evidence/publication_red.junit.xml",
+    "three_counterexample_red": "evidence/publication_readback_red.junit.xml"
+  },
+  "tests": {
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0,
+    "tests": 40
+  },
+  "unchanged_original_publisher": true
+}

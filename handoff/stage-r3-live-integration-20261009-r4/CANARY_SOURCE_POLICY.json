@@ -1,0 +1,23 @@
+{
+  "groups": {
+    "api": {
+      "copy_roots": [
+        "."
+      ],
+      "optional_roots": [],
+      "symlinks": []
+    },
+    "ui": {
+      "copy_roots": [
+        "apps/web"
+      ],
+      "optional_roots": [],
+      "symlinks": []
+    }
+  },
+  "provenance": {
+    "feedback_commit": "137431f5de3917ff4526784351f5638e115061e5",
+    "source": "Issue32 actual app reported in fixed read-only preflight; Stage files not prepared in R4"
+  },
+  "schema_version": "V4_CANARY_SOURCE_POLICY_V1"
+}

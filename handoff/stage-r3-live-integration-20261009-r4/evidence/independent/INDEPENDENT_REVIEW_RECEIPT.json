@@ -1,0 +1,253 @@
+{
+  "RESEARCH_ONLY": true,
+  "application_or_release_implementation_authorship": false,
+  "buy_gate_updated": false,
+  "closed_findings": {
+    "publication": {
+      "cases": [
+        "historical_unsafe_flag",
+        "missing_unified_rows",
+        "wrong_execution_algorithm_sha",
+        "truncated_requested_count"
+      ],
+      "corrected_source_sha256": "6a3771b465f7ed8fb570050cba395f210c3eafa899252081c6b0aaa873dfda63",
+      "initial_source_sha256": "f911692dd27e73a4de72522d06fe2c842abd5a1e4af729c14825657466f42e8f",
+      "status": "ALL_FOUR_REJECTED_AND_PREIMAGE_RESTORED"
+    },
+    "ui_build_helper": {
+      "cases": [
+        "missing_referenced_assets",
+        "prepared_manifest_changed"
+      ],
+      "corrected_source_sha256": "06aa4fd4a034af1cf3b1e761a5e9d0c062eec1f26152f2b08f6f2c202e16e4dc",
+      "initial_source_sha256": "4ee043ebef270425dae3da6233017cc483b6aa453cca00c11f64ad90abb3b284",
+      "status": "CLOSED_BY_EXACT_INDEPENDENT_REPLAY"
+    }
+  },
+  "copied_files": 213,
+  "copy_bytes_and_modes_equal_before_and_after": true,
+  "counts_frozen_before_run": {
+    "api": 129,
+    "integration": 86,
+    "release": 152,
+    "review_gates": 42,
+    "ui": 70
+  },
+  "elapsed_seconds": 167.342826,
+  "environment": {
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "python_executable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "ui_runtime": {
+      "dependencies": {
+        "@babel/parser": {
+          "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/ui_runtime/node_modules/@babel/parser/package.json",
+          "sha256": "808c30900ff9e55aafff6361e55c21a39556bdcd2d349e0474fde1e985d855af",
+          "version": "7.29.7"
+        },
+        "@vue/compiler-sfc": {
+          "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/ui_runtime/node_modules/@vue/compiler-sfc/package.json",
+          "sha256": "832f2adcf393f5202a853dc667d4bd84e6b3fdfe814510f60a80722451ab3b2f",
+          "version": "3.5.40"
+        },
+        "@vue/server-renderer": {
+          "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/ui_runtime/node_modules/@vue/server-renderer/package.json",
+          "sha256": "d90c1bfca2773528632fdd90eb427023d32cccf4d146596e6b61d2d7f6d58f8d",
+          "version": "3.5.40"
+        },
+        "vue": {
+          "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/ui_runtime/node_modules/vue/package.json",
+          "sha256": "36152efc62db43cd37a9bf71c20a263eae6f5f72d91f5a94ceca4e7ae7eadc4c",
+          "version": "3.5.40"
+        }
+      },
+      "executable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "node": "v24.19.0",
+      "runtime_lock_sha256": "b0b4d2a1ddbbabe75eef96abc947b1dc2fa1c12e8d8c4337bafc5d806643a096",
+      "runtime_package_sha256": "43aa047a9ab7b9cebb034ddf2f66d7c960ba3216a574a6ce071c6f742e420214",
+      "runtime_root": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/ui_runtime"
+    }
+  },
+  "evidence": {
+    "complete_check_results": {
+      "bytes": 75938,
+      "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/full_package_independent_run/RESULTS.json",
+      "sha256": "1e26aeaf89f366de50cfdb52c0dbb75338d40112a2155e4148391593c0662bdc"
+    },
+    "copied_file_inventory": {
+      "bytes": 41597,
+      "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/FINAL_PACKAGE_COPY_RECEIPT.json",
+      "sha256": "3fa65e6b2462ae3c4b5f8cc6875e64b9f4ae3366dc1211682bfad92374af5c47"
+    },
+    "corrected_helper_probes": {
+      "bytes": 2204,
+      "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/ui_build_probes_fixed/RESULTS.json",
+      "sha256": "d3c029eb55ebf4bf4e5ce8bf2a523af590003a12e223d396c44ff94ed66dcc76"
+    },
+    "initial_helper_probes": {
+      "bytes": 2180,
+      "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/ui_build_probes/RESULTS.json",
+      "sha256": "7192637cbb52d303d34ed07c0222b04bae27fa9f510787919ff86452bb54a820"
+    },
+    "publication_review_and_four_closed_probes": {
+      "bytes": 5335,
+      "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/PUBLICATION_REVIEW_RECEIPT.json",
+      "sha256": "28f6a14e789a562e2a1e7bb4504b0dc3fa0d30119006e4504f18ceb1b2650b04"
+    }
+  },
+  "exact_cases_total": 479,
+  "execution_verified": false,
+  "finished_at_utc": "2026-10-09T15:07:13.117159+00:00",
+  "fresh_api_to_ui_fixture": {
+    "RESEARCH_ONLY": true,
+    "after_source_sha256": {
+      "apps/api/v35_api/app.py": "a51b927e98e23ccdd33a849644abfa544232809aab29c2e7223969cc2308d0b8",
+      "stage_center/consumer.py": "16f004edb60ab256993f02ec4df36caa5d2cb3aa55bff643834c3119ec86d207",
+      "stage_center/execution_evidence.py": "1be96e736fda2863f6f8ff2315e8879a98499bbd30f5a911b46423c4dc6f094b",
+      "stage_center/research_read_binding.py": "c33a1452df34c7dcc7fc96e61b1177079c54c467164b7cb957d773f2d2e0ba05"
+    },
+    "buy_gate_updated": false,
+    "files": {
+      "consumer_response": {
+        "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/full_package_independent_run/full_chain_fixture/consumer_response.json",
+        "sha256": "a6251fbbca322ff930ddecd8d5e290d034cb56428a3ea6fc7677720e204d5e18"
+      },
+      "workbench_response": {
+        "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/full_package_independent_run/full_chain_fixture/workbench_response.json",
+        "sha256": "1a631f369f7e710690bb92d1579b92e42b550dc0ceb7a29fca67bc29a51a397e"
+      }
+    },
+    "fixture_receipt_sha256": "e776f0bf4d2d383a61916f5f026623fac5f6c7816942953000826ae06f011bc7",
+    "markets": {
+      "A_SHARE": {
+        "algorithm_sha256": "fa010779e194b06ee9a77799d6b41a8d76a641a047b05b96c4594766e4497506",
+        "artifact_id": "selection-e5d88685d620faf075def015",
+        "raw_artifact_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "requested_rows": 216,
+        "run_id": "run-e5d88685d620faf075def015",
+        "selected_rows": 10,
+        "source_rows": 206
+      },
+      "HK_CONNECT": {
+        "algorithm_sha256": "fa010779e194b06ee9a77799d6b41a8d76a641a047b05b96c4594766e4497506",
+        "artifact_id": "selection-9bc44f8a85d15f80dab62284",
+        "raw_artifact_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "requested_rows": 695,
+        "run_id": "run-9bc44f8a85d15f80dab62284",
+        "selected_rows": 10,
+        "source_rows": 695
+      }
+    },
+    "orders_sent": false,
+    "production_allowed": false,
+    "scope": "SYNTHETIC_TRIOS_ORIGINAL_R3_SELECTION_STORE_OWNER_WRITER_AND_EXACT_R4_API_ROUTE",
+    "status": "PASS"
+  },
+  "independent_copy": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/final_package_frozen",
+  "natural_verified": false,
+  "not_run": [
+    "R4_REAL_MAC_RUNTIME_OR_ACL_VALIDATION",
+    "R4_REAL_NPM_VITE_PRODUCTION_BUILD",
+    "R4_LIVE_8873_HTTP_OR_BROWSER_ACCEPTANCE",
+    "R4_LAUNCHD_EXECUTION_OR_DEPLOYMENT",
+    "R4_NATURAL_MARKET_SESSION_ACCEPTANCE"
+  ],
+  "open_reproduced_findings": [],
+  "orders_sent": false,
+  "original_package": "/workspace/scratch/49c844334a98/stage-r3-live-integration-20261009-r4",
+  "package_verifier_after": "PASS",
+  "package_verifier_before": "PASS",
+  "parent_frozen_hashes": {
+    "DELIVERY_MANIFEST.json": "439056ef8f1a342fcf5e04af491e61a4c52bde5bc66795101209ac08e11bfb81",
+    "SOURCE_MAP.json": "8773920e5d09da693b42d453bc4638e0cc1358d10da8c53fb12fe115eb0e6ab9",
+    "TEST_EXPECTATIONS.json": "4a7e7ecb44e98eb58469e0d310e19d3dc49ad1c8d89c17a2d12152ebca488b58"
+  },
+  "previous_R3_real_Mac_and_research_receipts": "PRESERVED_SEPARATELY_NOT_RELABELED_AS_THIS_RUN",
+  "production_allowed": false,
+  "recorded_at_utc": "2026-10-09T15:10:17.128109+00:00",
+  "reviewer_role": "/root/r4_independent_review",
+  "schema_version": "V4_STAGE_R4_INDEPENDENT_FINAL_REVIEW_V1",
+  "scope": "ISOLATED_SOURCE_FIXTURE_AND_COMPILED_VUE_TESTS_NOT_LIVE_HTTP_DEPLOYMENT_OR_NATURAL_ACCEPTANCE",
+  "started_at_utc": "2026-10-09T15:04:25.774333+00:00",
+  "suites": {
+    "api": {
+      "errors": 0,
+      "exact_case_ids_matched": true,
+      "expected_tests": 129,
+      "failures": 0,
+      "observed_tests": 129,
+      "passed": 129,
+      "report": {
+        "bytes": 20621,
+        "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/full_package_independent_run/api.junit.xml",
+        "sha256": "0d363dcd2a0528bfa93872a7d6e75e36af60ced246d62f9e0afe1efa6a930269"
+      },
+      "skipped": 0,
+      "status": "PASS"
+    },
+    "integration": {
+      "errors": 0,
+      "exact_case_ids_matched": true,
+      "expected_tests": 86,
+      "failures": 0,
+      "observed_tests": 86,
+      "passed": 86,
+      "report": {
+        "bytes": 13441,
+        "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/full_package_independent_run/integration.junit.xml",
+        "sha256": "4078bc392d34863626ca4c6ce78856c4801688f23aa94b1ae593128a84f229e8"
+      },
+      "skipped": 0,
+      "status": "PASS"
+    },
+    "release": {
+      "errors": 0,
+      "exact_case_ids_matched": true,
+      "expected_tests": 152,
+      "failures": 0,
+      "observed_tests": 152,
+      "passed": 152,
+      "report": {
+        "bytes": 21683,
+        "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/full_package_independent_run/release.junit.xml",
+        "sha256": "71f5dce09230bec7b7633ad9e86bed06dc26014a218190b504160dcb054b3835"
+      },
+      "skipped": 0,
+      "status": "PASS"
+    },
+    "review_gates": {
+      "errors": 0,
+      "exact_case_ids_matched": true,
+      "expected_tests": 42,
+      "failures": 0,
+      "observed_tests": 42,
+      "passed": 42,
+      "report": {
+        "bytes": 6377,
+        "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/full_package_independent_run/review_gates.junit.xml",
+        "sha256": "f7fd87209f155907eb907760dd26b431e4b2fd44e3766148e08f0b18734a1d1b"
+      },
+      "skipped": 0,
+      "status": "PASS"
+    },
+    "ui": {
+      "cancelled": 0,
+      "exact_case_ids_matched": true,
+      "expected_tests": 70,
+      "failures": 0,
+      "observed_tests": 70,
+      "passed": 70,
+      "report": {
+        "bytes": 16050,
+        "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/full_package_independent_run/ui.stdout.log",
+        "sha256": "579900cb1fce699a8dac19f67a57850a4e0f68d5c575afcfd2e112bcb063a458"
+      },
+      "skipped": 0,
+      "status": "PASS",
+      "todo": 0
+    }
+  },
+  "verdict": "PASS_FOR_FROZEN_APPLICATION_TOOLS_TESTS_AND_ISOLATED_CHECKS",
+  "verification_runner_authorship": true,
+  "verification_runner_peer_review_by": "/root/r4_release"
+}

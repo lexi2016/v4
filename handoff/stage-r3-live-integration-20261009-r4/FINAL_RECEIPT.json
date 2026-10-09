@@ -1,0 +1,81 @@
+{
+  "RESEARCH_ONLY": true,
+  "application_files": 7,
+  "approved_target": {
+    "A_SHARE_run_id": "run-2688466a1ae4464ba7237f0b",
+    "HK_CONNECT_run_id": "run-cfbdc9b36a7308da178d193a",
+    "date": "20261009",
+    "mode": "CURRENT_DAY_RESEARCH_REPLAY",
+    "run_manifest_sha256": "9b5df949141ed1533cb7a71e2c46bebe341bea663f5f966bda16225754e89857",
+    "stage": "STAGE_0930_0935"
+  },
+  "base_commit": "137431f5de3917ff4526784351f5638e115061e5",
+  "browser_acceptance": "NOT_RUN_IN_CHAT",
+  "buy_gate_updated": false,
+  "code_frozen": true,
+  "completed": [
+    "EXACT_ISSUE32_UI_REBASE",
+    "OPTIONAL_APPROVED_RESEARCH_READ_BINDING_WITH_ORIGINAL_HISTORY_ROOT",
+    "CONCRETE_EXISTING_RELEASE_BUILD_AND_BOUNDED_PUBLICATION_RECOVERY"
+  ],
+  "deployment": "NOT_RUN_IN_CHAT",
+  "execution_verified": false,
+  "formal_hk_d1": "CANNOT_CONFIRM",
+  "hk_connect_membership": "CANNOT_CONFIRM",
+  "mac_acl_launchd": "NOT_RUN_IN_CHAT",
+  "natural_verified": false,
+  "orders_sent": false,
+  "production_allowed": false,
+  "recorded_at_utc": "2026-10-09T15:14:00.048129+00:00",
+  "release_tool_files": {
+    "modified": 3,
+    "unchanged_dependencies": 6
+  },
+  "research_config_pair": "GENERATED_AND_VERIFIED_FROM_REAL_MAC_INPUT_ONLY",
+  "research_run_base_commit": "9a0c3f318a438b386d69a8385ce644ea18a31dfb",
+  "schema_version": "V4_STAGE_R4_DELIVERY_RESULT_V1",
+  "source_identity_scope": "GITHUB_BYTES_MATCH_FIXED_MAC_REPORTED_SHA_NOT_DIRECT_MAC_READ",
+  "source_map_sha256": "8773920e5d09da693b42d453bc4638e0cc1358d10da8c53fb12fe115eb0e6ab9",
+  "status": "CODE_READY_NOT_DEPLOYED",
+  "test_expectations_sha256": "4a7e7ecb44e98eb58469e0d310e19d3dc49ad1c8d89c17a2d12152ebca488b58",
+  "tests": {
+    "author": {
+      "errors": 0,
+      "expected_tests": {
+        "api": 129,
+        "integration": 86,
+        "release": 152,
+        "review_gates": 42,
+        "ui": 70
+      },
+      "failures": 0,
+      "finished_at_utc": "2026-10-09T15:06:31.591952+00:00",
+      "receipt": "evidence/full_package_author/RESULTS.json",
+      "receipt_sha256": "488bbb3a69f527662a47164cef5096c825dcf1cd18c6aaf760a43f2bb9125e99",
+      "scope": "ISOLATED_SOURCE_FIXTURE_AND_COMPILED_VUE_TESTS_NOT_LIVE_HTTP_DEPLOYMENT_OR_NATURAL_ACCEPTANCE",
+      "skips": 0,
+      "started_at_utc": "2026-10-09T15:03:55.032444+00:00",
+      "status": "PASS",
+      "total": 479
+    },
+    "independent": {
+      "errors": 0,
+      "expected_tests": {
+        "api": 129,
+        "integration": 86,
+        "release": 152,
+        "review_gates": 42,
+        "ui": 70
+      },
+      "failures": 0,
+      "finished_at_utc": "2026-10-09T15:07:13.117159+00:00",
+      "receipt": "evidence/full_package_independent/RESULTS.json",
+      "receipt_sha256": "1e26aeaf89f366de50cfdb52c0dbb75338d40112a2155e4148391593c0662bdc",
+      "scope": "ISOLATED_SOURCE_FIXTURE_AND_COMPILED_VUE_TESTS_NOT_LIVE_HTTP_DEPLOYMENT_OR_NATURAL_ACCEPTANCE",
+      "skips": 0,
+      "started_at_utc": "2026-10-09T15:04:25.774333+00:00",
+      "status": "PASS",
+      "total": 479
+    }
+  }
+}

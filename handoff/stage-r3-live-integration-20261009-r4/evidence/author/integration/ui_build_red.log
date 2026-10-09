@@ -1,0 +1,147 @@
+FFFFFFFF                                                                 [100%]
+=================================== FAILURES ===================================
+_ test_readonly_prepared_ui_builds_in_new_writable_tree_and_preserves_history_entry _
+
+setup = namespace(package=PosixPath('/tmp/pytest-of-root/pytest-351/test_readonly_prepared_ui_buil0/package'), actual=PosixPat...pps/web/dist/manager-selection/index.html': ('87576059f56fc2d8005c5db62b0d7a8ab3f3ed09aff577e37c57c05eb22109ae', 292)})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f815e1742c0>
+
+    def test_readonly_prepared_ui_builds_in_new_writable_tree_and_preserves_history_entry(setup, monkeypatch):
+        builder = module('build_stage_ui')
+        calls = fake_npm(monkeypatch, builder)
+        result = builder.build_stage_ui(package=setup.package, prepared_ui=setup.prepared, destination=setup.destination)
+>       assert result['status'] == 'UI_BUILD_PREPARED', result
+E       AssertionError: {'status': 'NOT_IMPLEMENTED', 'write_performed': False}
+E       assert 'NOT_IMPLEMENTED' == 'UI_BUILD_PREPARED'
+E         
+E         - UI_BUILD_PREPARED
+E         + NOT_IMPLEMENTED
+
+tests/test_stage_ui_build.py:103: AssertionError
+___________ test_prepared_source_drift_rejects_before_output_or_npm ____________
+
+setup = namespace(package=PosixPath('/tmp/pytest-of-root/pytest-351/test_prepared_source_drift_rej0/package'), actual=PosixPat...pps/web/dist/manager-selection/index.html': ('87576059f56fc2d8005c5db62b0d7a8ab3f3ed09aff577e37c57c05eb22109ae', 292)})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f815e174f50>
+
+    def test_prepared_source_drift_rejects_before_output_or_npm(setup, monkeypatch):
+        builder = module('build_stage_ui')
+        changed = setup.prepared / 'apps/web/src/App.vue'
+        changed.chmod(0o644)
+        changed.write_text('drift')
+        calls = fake_npm(monkeypatch, builder)
+        result = builder.build_stage_ui(package=setup.package, prepared_ui=setup.prepared, destination=setup.destination)
+>       assert result['status'] == 'PREFLIGHT_FAILED'
+E       AssertionError: assert 'NOT_IMPLEMENTED' == 'PREFLIGHT_FAILED'
+E         
+E         - PREFLIGHT_FAILED
+E         + NOT_IMPLEMENTED
+
+tests/test_stage_ui_build.py:124: AssertionError
+_____________ test_missing_prepare_manifest_rejects_before_output ______________
+
+setup = namespace(package=PosixPath('/tmp/pytest-of-root/pytest-351/test_missing_prepare_manifest_0/package'), actual=PosixPat...pps/web/dist/manager-selection/index.html': ('87576059f56fc2d8005c5db62b0d7a8ab3f3ed09aff577e37c57c05eb22109ae', 292)})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f815df93080>
+
+    def test_missing_prepare_manifest_rejects_before_output(setup, monkeypatch):
+        builder = module('build_stage_ui')
+        setup.prepared.chmod(0o755)
+        (setup.prepared / 'CANARY_SOURCE_MANIFEST.json').unlink()
+        calls = fake_npm(monkeypatch, builder)
+        result = builder.build_stage_ui(package=setup.package, prepared_ui=setup.prepared, destination=setup.destination)
+>       assert result['status'] == 'PREFLIGHT_FAILED'
+E       AssertionError: assert 'NOT_IMPLEMENTED' == 'PREFLIGHT_FAILED'
+E         
+E         - PREFLIGHT_FAILED
+E         + NOT_IMPLEMENTED
+
+tests/test_stage_ui_build.py:134: AssertionError
+____________________ test_failed_npm_ci_is_not_a_build_pass ____________________
+
+setup = namespace(package=PosixPath('/tmp/pytest-of-root/pytest-351/test_failed_npm_ci_is_not_a_bu0/package'), actual=PosixPat...pps/web/dist/manager-selection/index.html': ('87576059f56fc2d8005c5db62b0d7a8ab3f3ed09aff577e37c57c05eb22109ae', 292)})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f815df93200>
+
+    def test_failed_npm_ci_is_not_a_build_pass(setup, monkeypatch):
+        builder = module('build_stage_ui')
+        calls = fake_npm(monkeypatch, builder, failure='ci')
+        result = builder.build_stage_ui(package=setup.package, prepared_ui=setup.prepared, destination=setup.destination)
+>       assert result['status'] == 'BUILD_FAILED'
+E       AssertionError: assert 'NOT_IMPLEMENTED' == 'BUILD_FAILED'
+E         
+E         - BUILD_FAILED
+E         + NOT_IMPLEMENTED
+
+tests/test_stage_ui_build.py:142: AssertionError
+___________ test_build_changing_source_cannot_seal_static_artifacts ____________
+
+setup = namespace(package=PosixPath('/tmp/pytest-of-root/pytest-351/test_build_changing_source_can0/package'), actual=PosixPat...pps/web/dist/manager-selection/index.html': ('87576059f56fc2d8005c5db62b0d7a8ab3f3ed09aff577e37c57c05eb22109ae', 292)})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f815dfb5940>
+
+    def test_build_changing_source_cannot_seal_static_artifacts(setup, monkeypatch):
+        builder = module('build_stage_ui')
+        fake_npm(monkeypatch, builder, mutate_source=True)
+        result = builder.build_stage_ui(package=setup.package, prepared_ui=setup.prepared, destination=setup.destination)
+>       assert result['status'] == 'BUILD_FAILED'
+E       AssertionError: assert 'NOT_IMPLEMENTED' == 'BUILD_FAILED'
+E         
+E         - BUILD_FAILED
+E         + NOT_IMPLEMENTED
+
+tests/test_stage_ui_build.py:153: AssertionError
+_______________________ test_static_symlink_is_rejected ________________________
+
+setup = namespace(package=PosixPath('/tmp/pytest-of-root/pytest-351/test_static_symlink_is_rejecte0/package'), actual=PosixPat...pps/web/dist/manager-selection/index.html': ('87576059f56fc2d8005c5db62b0d7a8ab3f3ed09aff577e37c57c05eb22109ae', 292)})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f815dfb4da0>
+
+    def test_static_symlink_is_rejected(setup, monkeypatch):
+        builder = module('build_stage_ui')
+        fake_npm(monkeypatch, builder, symlink=True)
+        result = builder.build_stage_ui(package=setup.package, prepared_ui=setup.prepared, destination=setup.destination)
+>       assert result['status'] == 'BUILD_FAILED'
+E       AssertionError: assert 'NOT_IMPLEMENTED' == 'BUILD_FAILED'
+E         
+E         - BUILD_FAILED
+E         + NOT_IMPLEMENTED
+
+tests/test_stage_ui_build.py:163: AssertionError
+_______________ test_missing_existing_manager_entry_is_rejected ________________
+
+setup = namespace(package=PosixPath('/tmp/pytest-of-root/pytest-351/test_missing_existing_manager_0/package'), actual=PosixPat...pps/web/dist/manager-selection/index.html': ('87576059f56fc2d8005c5db62b0d7a8ab3f3ed09aff577e37c57c05eb22109ae', 292)})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f815dfb5970>
+
+    def test_missing_existing_manager_entry_is_rejected(setup, monkeypatch):
+        builder = module('build_stage_ui')
+        fake_npm(monkeypatch, builder, omit_manager=True)
+        result = builder.build_stage_ui(package=setup.package, prepared_ui=setup.prepared, destination=setup.destination)
+>       assert result['status'] == 'BUILD_FAILED'
+E       AssertionError: assert 'NOT_IMPLEMENTED' == 'BUILD_FAILED'
+E         
+E         - BUILD_FAILED
+E         + NOT_IMPLEMENTED
+
+tests/test_stage_ui_build.py:171: AssertionError
+________________ test_output_inside_prepared_source_is_rejected ________________
+
+setup = namespace(package=PosixPath('/tmp/pytest-of-root/pytest-351/test_output_inside_prepared_so0/package'), actual=PosixPat...pps/web/dist/manager-selection/index.html': ('87576059f56fc2d8005c5db62b0d7a8ab3f3ed09aff577e37c57c05eb22109ae', 292)})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f815dfb6330>
+
+    def test_output_inside_prepared_source_is_rejected(setup, monkeypatch):
+        builder = module('build_stage_ui')
+        calls = fake_npm(monkeypatch, builder)
+        result = builder.build_stage_ui(package=setup.package, prepared_ui=setup.prepared,
+                                       destination=setup.prepared / 'bad-output')
+>       assert result['status'] == 'PREFLIGHT_FAILED'
+E       AssertionError: assert 'NOT_IMPLEMENTED' == 'PREFLIGHT_FAILED'
+E         
+E         - PREFLIGHT_FAILED
+E         + NOT_IMPLEMENTED
+
+tests/test_stage_ui_build.py:180: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_stage_ui_build.py::test_readonly_prepared_ui_builds_in_new_writable_tree_and_preserves_history_entry
+FAILED tests/test_stage_ui_build.py::test_prepared_source_drift_rejects_before_output_or_npm
+FAILED tests/test_stage_ui_build.py::test_missing_prepare_manifest_rejects_before_output
+FAILED tests/test_stage_ui_build.py::test_failed_npm_ci_is_not_a_build_pass
+FAILED tests/test_stage_ui_build.py::test_build_changing_source_cannot_seal_static_artifacts
+FAILED tests/test_stage_ui_build.py::test_static_symlink_is_rejected - Assert...
+FAILED tests/test_stage_ui_build.py::test_missing_existing_manager_entry_is_rejected
+FAILED tests/test_stage_ui_build.py::test_output_inside_prepared_source_is_rejected
+8 failed in 0.27s

@@ -1,0 +1,125 @@
+{
+  "RESEARCH_ONLY": true,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "production_allowed": false,
+  "publication_references": [
+    {
+      "bytes": 125029,
+      "constants_modified": false,
+      "operation": "UNCHANGED_FROZEN_REFERENCE",
+      "path": "test_support/publication/api_only_cutover_issue32_r4.py",
+      "sha256": "864a07b9bdf915a14b877eac89ddc931bb0f4976b70599c242671ff177e9cf25"
+    },
+    {
+      "bytes": 57781,
+      "constants_modified": false,
+      "operation": "UNCHANGED_FROZEN_REFERENCE",
+      "path": "test_support/publication/api_release_integration_before.py",
+      "sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050"
+    }
+  ],
+  "schema_version": "V4_STAGE_R4_HANDOFF_TOOL_IDENTITIES_V1",
+  "scope": "NEW_PACKAGE_ENTRYPOINTS_AND_UNCHANGED_PUBLICATION_REFERENCES",
+  "tools": [
+    {
+      "after_bytes": 14214,
+      "after_sha256": "06aa4fd4a034af1cf3b1e761a5e9d0c062eec1f26152f2b08f6f2c202e16e4dc",
+      "before_bytes": 0,
+      "before_sha256": null,
+      "in_place_mac_tool_replacement": false,
+      "operation": "NEW_HANDOFF_FILE",
+      "path": "tools/build_stage_ui.py",
+      "provenance": "R4_AUTHORED_TOOL",
+      "source_commit": null
+    },
+    {
+      "after_bytes": 12548,
+      "after_sha256": "5c7e0079796bc599fa43b684f81aae3ce55977e6fade71a0f3580d9d72610ebb",
+      "before_bytes": 0,
+      "before_sha256": null,
+      "in_place_mac_tool_replacement": false,
+      "operation": "NEW_HANDOFF_FILE",
+      "path": "tools/canary_sources.py",
+      "provenance": "BYTE_IDENTICAL_R3_TOOL",
+      "source_commit": "9a0c3f318a438b386d69a8385ce644ea18a31dfb"
+    },
+    {
+      "after_bytes": 3644,
+      "after_sha256": "9e6c30055b9aa7adf93c9f2cb91b578e22b93cd927de75693a372f5eb55b9e36",
+      "before_bytes": 0,
+      "before_sha256": null,
+      "in_place_mac_tool_replacement": false,
+      "operation": "NEW_HANDOFF_FILE",
+      "path": "tools/export_research_binding_fixture.py",
+      "provenance": "R4_AUTHORED_TOOL",
+      "source_commit": null
+    },
+    {
+      "after_bytes": 16958,
+      "after_sha256": "e2aefe2196b4087dd4158463222f4346f6be310aac6b52ad79afab57052ea014",
+      "before_bytes": 0,
+      "before_sha256": null,
+      "in_place_mac_tool_replacement": false,
+      "operation": "NEW_HANDOFF_FILE",
+      "path": "tools/prepare_canary.py",
+      "provenance": "BYTE_IDENTICAL_R3_TOOL",
+      "source_commit": "9a0c3f318a438b386d69a8385ce644ea18a31dfb"
+    },
+    {
+      "after_bytes": 37502,
+      "after_sha256": "442a90b4c0832ff9fec193865e7fc0a00be32fce002e8728fe49edf413d23fa2",
+      "before_bytes": 0,
+      "before_sha256": null,
+      "in_place_mac_tool_replacement": false,
+      "operation": "NEW_HANDOFF_FILE",
+      "path": "tools/prepare_live_release.py",
+      "provenance": "R4_AUTHORED_TOOL",
+      "source_commit": null
+    },
+    {
+      "after_bytes": 9442,
+      "after_sha256": "c564dbdb739f239c8243f3dd38705d73a2998ff11e0757b50899e80503daedc9",
+      "before_bytes": 0,
+      "before_sha256": null,
+      "in_place_mac_tool_replacement": false,
+      "operation": "NEW_HANDOFF_FILE",
+      "path": "tools/prepare_research_binding.py",
+      "provenance": "R4_AUTHORED_TOOL",
+      "source_commit": null
+    },
+    {
+      "after_bytes": 29798,
+      "after_sha256": "c475af281b8d4cdf3e36201d6d5c470ce18b8cfe4d0c8b1b4d0f9992ee5b9bde",
+      "before_bytes": 0,
+      "before_sha256": null,
+      "in_place_mac_tool_replacement": false,
+      "operation": "NEW_HANDOFF_FILE",
+      "path": "tools/run_checks.py",
+      "provenance": "R4_AUTHORED_TOOL",
+      "source_commit": null
+    },
+    {
+      "after_bytes": 52500,
+      "after_sha256": "6a3771b465f7ed8fb570050cba395f210c3eafa899252081c6b0aaa873dfda63",
+      "before_bytes": 0,
+      "before_sha256": null,
+      "in_place_mac_tool_replacement": false,
+      "operation": "NEW_HANDOFF_FILE",
+      "path": "tools/stage_api_release.py",
+      "provenance": "R4_AUTHORED_TOOL",
+      "source_commit": null
+    },
+    {
+      "after_bytes": 12692,
+      "after_sha256": "d0273e5ed209d986402c1f1dd2a3db66249c7c59feb58d31b8aa57b1ac296b80",
+      "before_bytes": 0,
+      "before_sha256": null,
+      "in_place_mac_tool_replacement": false,
+      "operation": "NEW_HANDOFF_FILE",
+      "path": "tools/verify_package.py",
+      "provenance": "R4_AUTHORED_TOOL",
+      "source_commit": null
+    }
+  ]
+}

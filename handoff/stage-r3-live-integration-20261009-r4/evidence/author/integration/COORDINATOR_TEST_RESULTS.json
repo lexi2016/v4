@@ -1,0 +1,65 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "--tb=short",
+    "-p",
+    "no:cacheprovider",
+    "--junitxml=/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/integration/evidence/coordinator-final.xml",
+    "tests/test_live_release_preparation.py"
+  ],
+  "cwd": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/integration",
+  "environment": {
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "bytecode_disabled_by_command": true,
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "pytest_cache_plugin_disabled": true,
+    "python_executable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "python_version": "3.12.14",
+    "uid": 0
+  },
+  "exit_code": 0,
+  "files": [
+    {
+      "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/integration/tools/prepare_live_release.py",
+      "sha256": "442a90b4c0832ff9fec193865e7fc0a00be32fce002e8728fe49edf413d23fa2"
+    },
+    {
+      "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/integration/tests/test_live_release_preparation.py",
+      "sha256": "11114206d1aa8080835b714cb73f415def241e60dc5200e8643d171dde3a3eeb"
+    },
+    {
+      "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/integration/evidence/coordinator-preserving-plan-red.log",
+      "sha256": "25c9b3a98b40653b8b5e0a6601c29818c8338a83049491cba04d0a87b3ef4e45"
+    },
+    {
+      "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/integration/evidence/coordinator-final.log",
+      "sha256": "ba208cf273a90f9f6f081eb58bb8b4856dc6dbc543d0e5a7093cc1e66182ce18"
+    },
+    {
+      "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/integration/evidence/coordinator-final.xml",
+      "sha256": "e4e677f3f494ccd589b73284f20f869334d70232cae01e1ad538edf8515f08dd"
+    }
+  ],
+  "pytest_totals": {
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0,
+    "tests": 18
+  },
+  "red": {
+    "capture": "Exact prior tool stdout, recorded after implementation; not a new red run.",
+    "error": "KeyError: 'prepared_plan_path'",
+    "exit_code": 1,
+    "failed_test": "test_publication_handoff_preserves_current_manager_and_history_roots",
+    "status": "EXPECTED_FAIL"
+  },
+  "schema_version": "V4_STAGE_COORDINATOR_TEST_EVIDENCE_V1",
+  "scope": "Original release guard and full builder plus real synthetic R3 binding evidence; npm build outputs and dependency discovery are explicit fixture boundaries. No deployment or Mac acceptance.",
+  "status": "PASS",
+  "tests_passed": 18
+}

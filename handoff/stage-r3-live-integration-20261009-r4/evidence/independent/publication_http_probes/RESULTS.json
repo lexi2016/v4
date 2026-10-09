@@ -1,0 +1,112 @@
+{
+  "RESEARCH_ONLY": true,
+  "actual_deployment": false,
+  "actual_service_actions": false,
+  "buy_gate_updated": false,
+  "cases": [
+    {
+      "accepted": true,
+      "fault": "historical_unsafe_flag",
+      "fixture_root": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/publication_http_probes/historical_unsafe_flag",
+      "mutations": [
+        "historical.orders_sent=true",
+        "historical.orders_sent=true",
+        "historical.orders_sent=true",
+        "historical.orders_sent=true",
+        "historical.orders_sent=true",
+        "historical.orders_sent=true",
+        "historical.orders_sent=true",
+        "historical.orders_sent=true",
+        "historical.orders_sent=true",
+        "historical.orders_sent=true",
+        "historical.orders_sent=true",
+        "historical.orders_sent=true",
+        "historical.orders_sent=true",
+        "historical.orders_sent=true",
+        "historical.orders_sent=true",
+        "historical.orders_sent=true",
+        "historical.orders_sent=true",
+        "historical.orders_sent=true",
+        "historical.orders_sent=true"
+      ],
+      "pointer_restored_to_preimage": false,
+      "result_receipt_path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/publication_http_probes/historical_unsafe_flag/prepared_release/stage-publication/operations/feb824d2bf85462bb22ea3521164c445/operation_receipt.json",
+      "returned_status": "STAGE_API_SWITCHED_AND_READBACK_VERIFIED",
+      "simulated_service_actions": [
+        "bootout",
+        "bootstrap"
+      ]
+    },
+    {
+      "accepted": true,
+      "fault": "missing_unified_rows",
+      "fixture_root": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/publication_http_probes/missing_unified_rows",
+      "mutations": [
+        "target.unified_rows=[]"
+      ],
+      "pointer_restored_to_preimage": false,
+      "result_receipt_path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/publication_http_probes/missing_unified_rows/prepared_release/stage-publication/operations/957bbd2d5730405e99262056360be414/operation_receipt.json",
+      "returned_status": "STAGE_API_SWITCHED_AND_READBACK_VERIFIED",
+      "simulated_service_actions": [
+        "bootout",
+        "bootstrap"
+      ]
+    },
+    {
+      "accepted": true,
+      "fault": "wrong_execution_algorithm_sha",
+      "fixture_root": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/publication_http_probes/wrong_execution_algorithm_sha",
+      "mutations": [
+        "target.execution_evidence.selection_results.A_SHARE.algorithm_sha256=ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      ],
+      "pointer_restored_to_preimage": false,
+      "result_receipt_path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/publication_http_probes/wrong_execution_algorithm_sha/prepared_release/stage-publication/operations/8cc10bb6d2f34e9a814e647b091227dc/operation_receipt.json",
+      "returned_status": "STAGE_API_SWITCHED_AND_READBACK_VERIFIED",
+      "simulated_service_actions": [
+        "bootout",
+        "bootstrap"
+      ]
+    },
+    {
+      "accepted": true,
+      "fault": "truncated_requested_count",
+      "fixture_root": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/publication_http_probes/truncated_requested_count",
+      "mutations": [
+        "target.markets.A.requested_rows=200 (approved=216)"
+      ],
+      "pointer_restored_to_preimage": false,
+      "result_receipt_path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/publication_http_probes/truncated_requested_count/prepared_release/stage-publication/operations/499d7d87565b4e79b937be4f7292ef68/operation_receipt.json",
+      "returned_status": "STAGE_API_SWITCHED_AND_READBACK_VERIFIED",
+      "simulated_service_actions": [
+        "bootout",
+        "bootstrap"
+      ]
+    }
+  ],
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "-B",
+    "work/review/probe_publication_http_semantics.py",
+    "--output",
+    "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/publication_http_probes"
+  ],
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "R3_PACKAGE": "/workspace/scratch/49c844334a98/v4/handoff/stage-r2-mac-adaptation-20261009-r3",
+    "R4_API_AFTER_ROOT": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/frozen_api/after",
+    "R4_API_BEFORE_ROOT": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/frozen_api/before",
+    "R4_API_TEST_ROOT": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/frozen_api/tests",
+    "R4_API_TOOL_ROOT": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/frozen_api/tools",
+    "R4_API_WORK_ROOT": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/frozen_api",
+    "R4_PUBLICATION_REFERENCE_ROOT": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/frozen_publication_initial/references",
+    "R4_RELEASE_TOOL_ROOT": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/frozen_initial/release/baseline_run/ops",
+    "R4_TOOL_ROOT": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/frozen_publication_initial/tools"
+  },
+  "fixture_source_sha256": "67fb7443f411f52421449ec61c3061423f854fb671d5caeddde353c62a9948c0",
+  "orders_sent": false,
+  "production_allowed": false,
+  "scope": "ISOLATED_LINUX_FIXTURE_WITH_SIMULATED_LAUNCHD_AND_HTTP",
+  "tool_path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/frozen_publication_initial/tools/stage_api_release.py",
+  "tool_sha256": "f911692dd27e73a4de72522d06fe2c842abd5a1e4af729c14825657466f42e8f",
+  "tool_unchanged": true
+}

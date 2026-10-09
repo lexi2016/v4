@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="24" time="78.908" timestamp="2026-10-09T07:50:50.581292-07:00" hostname="f2c20067ed3d"><testcase classname="tests.test_stage_api_release" name="test_prepare_preserves_manager_history_and_has_no_service_actions" time="2.208" /><testcase classname="tests.test_stage_api_release" name="test_execute_and_manual_rollback_reuse_original_transaction" time="3.812" /><testcase classname="tests.test_stage_api_release" name="test_bad_candidate_readback_automatically_restores_preimage[run]" time="3.589" /><testcase classname="tests.test_stage_api_release" name="test_bad_candidate_readback_automatically_restores_preimage[safety]" time="3.624" /><testcase classname="tests.test_stage_api_release" name="test_bad_candidate_readback_automatically_restores_preimage[reader]" time="4.042" /><testcase classname="tests.test_stage_api_release" name="test_bad_candidate_readback_automatically_restores_preimage[row]" time="3.813" /><testcase classname="tests.test_stage_api_release" name="test_bad_candidate_readback_automatically_restores_preimage[count]" time="3.996" /><testcase classname="tests.test_stage_api_release" name="test_bad_candidate_readback_automatically_restores_preimage[natural]" time="3.577" /><testcase classname="tests.test_stage_api_release" name="test_bad_candidate_readback_automatically_restores_preimage[static]" time="3.616" /><testcase classname="tests.test_stage_api_release" name="test_bad_candidate_readback_automatically_restores_preimage[history]" time="3.144" /><testcase classname="tests.test_stage_api_release" name="test_preflight_drift_has_no_service_action[pointer]" time="2.072" /><testcase classname="tests.test_stage_api_release" name="test_preflight_drift_has_no_service_action[manifest]" time="2.802" /><testcase classname="tests.test_stage_api_release" name="test_preflight_drift_has_no_service_action[staged]" time="2.846" /><testcase classname="tests.test_stage_api_release" name="test_preflight_drift_has_no_service_action[history]" time="2.704" /><testcase classname="tests.test_stage_api_release" name="test_preflight_drift_has_no_service_action[scheduler]" time="2.484" /><testcase classname="tests.test_stage_api_release" name="test_preflight_drift_has_no_service_action[plan]" time="2.359"><failure message="PermissionError: [Errno 13] Permission denied: '/tmp/pytest-of-root/pytest-385/test_preflight_drift_has_no_se5/prepared_release/stage-publication/verified-publication-plan.json'">publication = namespace(case=namespace(root=PosixPath('/tmp/pytest-of-root/pytest-385/test_preflight_drift_has_no_se5'), package=Pos...state'), stage_plist=PosixPath('/tmp/pytest-of-root/pytest-385/test_preflight_drift_has_no_se5/stage-scheduler.plist'))
+fault = 'plan'
+
+    @pytest.mark.parametrize('fault', ['pointer', 'manifest', 'staged', 'history', 'scheduler', 'plan'])
+    def test_preflight_drift_has_no_service_action(publication, fault):
+        case = publication; prepared = prepare(case)
+        plan = json.loads(Path(prepared['plan_path']).read_text())
+        files = {'pointer': case.pointer, 'manifest': Path(case.result['manifest_path']),
+            'staged': Path(plan['target']['staged_api_plist_path']),
+            'history': case.case.research.history.root / 'selection_latest.json',
+            'scheduler': case.stage_plist, 'plan': Path(prepared['plan_path'])}
+&gt;       path = files[fault]; path.write_bytes(path.read_bytes() + b' ')
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_stage_api_release.py:255: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1036: in write_bytes
+    with self.open(mode='wb') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/tmp/pytest-of-root/pytest-385/test_preflight_drift_has_no_se5/prepared_release/stage-publication/verified-publication-plan.json')
+mode = 'wb', buffering = -1, encoding = None, errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+&gt;       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       PermissionError: [Errno 13] Permission denied: '/tmp/pytest-of-root/pytest-385/test_preflight_drift_has_no_se5/prepared_release/stage-publication/verified-publication-plan.json'
+
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1013: PermissionError</failure></testcase><testcase classname="tests.test_stage_api_release" name="test_bootstrap_failure_uses_original_automatic_recovery" time="3.340" /><testcase classname="tests.test_stage_api_release" name="test_manual_rollback_after_candidate_corruption_does_not_require_candidate" time="4.433" /><testcase classname="tests.test_stage_api_release" name="test_rollback_rejects_tampered_proofs_before_service_action[receipt]" time="3.949" /><testcase classname="tests.test_stage_api_release" name="test_rollback_rejects_tampered_proofs_before_service_action[prepared]" time="3.373" /><testcase classname="tests.test_stage_api_release" name="test_rollback_rejects_tampered_proofs_before_service_action[backup]" time="3.847" /><testcase classname="tests.test_stage_api_release" name="test_rollback_rejects_tampered_proofs_before_service_action[plan]" time="3.527" /><testcase classname="tests.test_stage_api_release" name="test_unknown_pointer_after_bootout_is_not_overwritten" time="3.159" /><testcase classname="tests.test_stage_api_release" name="test_explicit_confirmation_and_expected_hashes_are_required" time="2.484" /></testsuite></testsuites>

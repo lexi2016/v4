@@ -1,0 +1,169 @@
+{
+  "RESEARCH_ONLY": true,
+  "actual_app_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+  "base_commit": "137431f5de3917ff4526784351f5638e115061e5",
+  "buy_gate_updated": false,
+  "canary_source_policy_sha256": "46385e5b9ebd1d091760c9e3d9e7c000fffcd02fbee4d8de82e7d37f6436bca1",
+  "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+  "canonical_write_performed": false,
+  "current_api_app_source": {
+    "bytes": 324648,
+    "git_blob_sha1": "f2cdb61eb5689f70bf9f9508e96a0262c0af7389",
+    "path": "handoff/issue32-stage-autorun-fix-20261009-r1/after/source/actual_api/apps/api/v35_api/app.py",
+    "repository": "lexi2016/v4",
+    "sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+    "verified": "GITHUB_BLOB_BYTES_MATCH_MAC_REPORTED_ACTIVE_PREIMAGE"
+  },
+  "files": [
+    {
+      "accepted_before_sha256": [
+        "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5"
+      ],
+      "after_bytes": 327298,
+      "after_path": "after/api/apps/api/v35_api/app.py",
+      "after_sha256": "a51b927e98e23ccdd33a849644abfa544232809aab29c2e7223969cc2308d0b8",
+      "before_bytes": 324648,
+      "before_path": "before/api/apps/api/v35_api/app.py",
+      "before_sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "group": "api",
+      "operation": "modify",
+      "relative_path": "apps/api/v35_api/app.py",
+      "reuses_r3_bytes_without_change": false
+    },
+    {
+      "accepted_before_sha256": [
+        "61f8a3541aa7a2e698cc4374385e3d20d41b40ffd5a3cd7d87c9494cb8726cf4"
+      ],
+      "after_bytes": 35451,
+      "after_path": "after/api/stage_center/consumer.py",
+      "after_sha256": "16f004edb60ab256993f02ec4df36caa5d2cb3aa55bff643834c3119ec86d207",
+      "before_bytes": 33874,
+      "before_path": "before/api/stage_center/consumer.py",
+      "before_sha256": "61f8a3541aa7a2e698cc4374385e3d20d41b40ffd5a3cd7d87c9494cb8726cf4",
+      "group": "api",
+      "operation": "modify",
+      "relative_path": "stage_center/consumer.py",
+      "reuses_r3_bytes_without_change": true
+    },
+    {
+      "accepted_before_sha256": [
+        "e4c4ea94d892158383620beab1825014f21e926b57907354475f8c9ff382704b"
+      ],
+      "after_bytes": 25837,
+      "after_path": "after/api/stage_center/execution_evidence.py",
+      "after_sha256": "1be96e736fda2863f6f8ff2315e8879a98499bbd30f5a911b46423c4dc6f094b",
+      "before_bytes": 7682,
+      "before_path": "before/api/stage_center/execution_evidence.py",
+      "before_sha256": "e4c4ea94d892158383620beab1825014f21e926b57907354475f8c9ff382704b",
+      "group": "api",
+      "operation": "modify",
+      "relative_path": "stage_center/execution_evidence.py",
+      "reuses_r3_bytes_without_change": true
+    },
+    {
+      "accepted_before_sha256": [],
+      "after_bytes": 23771,
+      "after_path": "after/api/stage_center/research_read_binding.py",
+      "after_sha256": "c33a1452df34c7dcc7fc96e61b1177079c54c467164b7cb957d773f2d2e0ba05",
+      "before_bytes": 0,
+      "before_path": null,
+      "before_sha256": null,
+      "group": "api",
+      "operation": "add",
+      "relative_path": "stage_center/research_read_binding.py",
+      "reuses_r3_bytes_without_change": false
+    },
+    {
+      "accepted_before_sha256": [
+        "f43bdb2c7214bce09221757eecb75eea9d5e1c746a3213bb53e6d0c84b751d9c"
+      ],
+      "after_bytes": 123582,
+      "after_path": "after/ui/apps/web/src/App.vue",
+      "after_sha256": "8f1c00c4b278fd46736d9176d94752539f46e7c04d38fc13129084e6b9164c0f",
+      "before_bytes": 120981,
+      "before_path": "before/ui/apps/web/src/App.vue",
+      "before_sha256": "f43bdb2c7214bce09221757eecb75eea9d5e1c746a3213bb53e6d0c84b751d9c",
+      "conditional_historical_preimage": false,
+      "current_mac_bytes_verified": true,
+      "current_mac_verification": {
+        "commit": "137431f5de3917ff4526784351f5638e115061e5",
+        "observed_sha256": "f43bdb2c7214bce09221757eecb75eea9d5e1c746a3213bb53e6d0c84b751d9c",
+        "provenance": "FIXED_READONLY_PREFLIGHT_SHA_MATCHES_EXISTING_REPOSITORY_BLOB",
+        "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+        "status": "MATCHES_REPORTED_LOADED_PREIMAGE"
+      },
+      "group": "ui",
+      "operation": "modify",
+      "relative_path": "apps/web/src/App.vue",
+      "source_git_blob_sha1": "779bb1fbfbd7ba13687b9ebaf5cd4cc55f890369",
+      "source_ref": "137431f5de3917ff4526784351f5638e115061e5",
+      "source_repository_path": "handoff/hk-close-hk-calendar-20261007/api/apps/web/src/App.vue"
+    },
+    {
+      "accepted_before_sha256": [
+        "07188178bbcd5ae2b01b9d6c1ef9dffd7b94f1b27f0211501cc2464566c5bc8b"
+      ],
+      "after_bytes": 8779,
+      "after_path": "after/ui/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "after_sha256": "eca21b9d5674e3a18b09672c43401164ca356fd84fd6c719c14453c006f0ee5d",
+      "before_bytes": 3466,
+      "before_path": "before/ui/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "before_sha256": "07188178bbcd5ae2b01b9d6c1ef9dffd7b94f1b27f0211501cc2464566c5bc8b",
+      "conditional_historical_preimage": false,
+      "current_mac_bytes_verified": true,
+      "current_mac_verification": {
+        "commit": "137431f5de3917ff4526784351f5638e115061e5",
+        "observed_sha256": "07188178bbcd5ae2b01b9d6c1ef9dffd7b94f1b27f0211501cc2464566c5bc8b",
+        "provenance": "FIXED_READONLY_PREFLIGHT_SHA_MATCHES_EXISTING_REPOSITORY_BLOB",
+        "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+        "status": "MATCHES_REPORTED_LOADED_PREIMAGE"
+      },
+      "group": "ui",
+      "operation": "modify",
+      "relative_path": "apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "source_git_blob_sha1": "73d0f6cc417c153e53c73244758424199e35b639",
+      "source_ref": "137431f5de3917ff4526784351f5638e115061e5",
+      "source_repository_path": "handoff/stage-research-recovery-20261009-r2/before/ui/apps/web/src/components/review/StageExecutionEvidencePanel.vue"
+    },
+    {
+      "accepted_before_sha256": [
+        "9a882a174b433488684b05781ade00beb665706e962f753700960a4250d13419"
+      ],
+      "after_bytes": 4723,
+      "after_path": "after/ui/apps/web/src/contracts/runtime.ts",
+      "after_sha256": "b3d437e906f81d08af045f5b0f3990662c64676572376d42edddaf109f3dd980",
+      "before_bytes": 3044,
+      "before_path": "before/ui/apps/web/src/contracts/runtime.ts",
+      "before_sha256": "9a882a174b433488684b05781ade00beb665706e962f753700960a4250d13419",
+      "conditional_historical_preimage": false,
+      "current_mac_bytes_verified": true,
+      "current_mac_verification": {
+        "commit": "137431f5de3917ff4526784351f5638e115061e5",
+        "observed_sha256": "9a882a174b433488684b05781ade00beb665706e962f753700960a4250d13419",
+        "provenance": "FIXED_READONLY_PREFLIGHT_SHA_MATCHES_EXISTING_REPOSITORY_BLOB",
+        "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+        "status": "MATCHES_REPORTED_LOADED_PREIMAGE"
+      },
+      "group": "ui",
+      "operation": "modify",
+      "relative_path": "apps/web/src/contracts/runtime.ts",
+      "source_git_blob_sha1": "9481e8c0562d96698ca7898d81807dc3e2449263",
+      "source_ref": "137431f5de3917ff4526784351f5638e115061e5",
+      "source_repository_path": "handoff/stage-research-recovery-20261009-r2/before/ui/apps/web/src/contracts/runtime.ts"
+    }
+  ],
+  "generated_at_mac_only": [
+    "stage_center/approved_research_read.json",
+    "stage_center/approved_research_read.sha256"
+  ],
+  "natural_verified": false,
+  "orders_sent": false,
+  "original_minimal_fix_commit": "0fc3e8304e11700230517616ded0c86f83a4b257",
+  "production_allowed": false,
+  "research_algorithm_base_commit": "9a0c3f318a438b386d69a8385ce644ea18a31dfb",
+  "schema_version": "V4_STAGE_R4_SOURCE_MAP_V1",
+  "source_identity_scope": "GITHUB_BYTES_MATCH_FIXED_MAC_REPORTED_SHA_NOT_DIRECT_MAC_READ",
+  "source_repository": "lexi2016/v4",
+  "test_expectations_sha256": "4a7e7ecb44e98eb58469e0d310e19d3dc49ad1c8d89c17a2d12152ebca488b58",
+  "tools_source_map_sha256": "3892e242591683526535da5f2376e4c92c30930f96609268edb9b4b1ed8c3722"
+}

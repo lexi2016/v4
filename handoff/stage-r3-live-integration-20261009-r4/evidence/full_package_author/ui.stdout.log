@@ -1,0 +1,436 @@
+TAP version 13
+# (node:1457) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: new response shows A result and quote gap while HK stays before its algorithm
+ok 1 - new response shows A result and quote gap while HK stays before its algorithm
+  ---
+  duration_ms: 12.15425
+  type: 'test'
+  ...
+# Subtest: independent selection result remains visible when the receipt is missing
+ok 2 - independent selection result remains visible when the receipt is missing
+  ---
+  duration_ms: 1.013528
+  type: 'test'
+  ...
+# Subtest: verified empty result is an explicit zero instead of an unknown count
+ok 3 - verified empty result is an explicit zero instead of an unknown count
+  ---
+  duration_ms: 0.754137
+  type: 'test'
+  ...
+# Subtest: null quote counters remain unknown and cannot become zero
+ok 4 - null quote counters remain unknown and cannot become zero
+  ---
+  duration_ms: 0.618297
+  type: 'test'
+  ...
+# Subtest: invalid quote counter -1 is not displayed as an observation
+ok 5 - invalid quote counter -1 is not displayed as an observation
+  ---
+  duration_ms: 0.665367
+  type: 'test'
+  ...
+# Subtest: invalid quote counter 1.5 is not displayed as an observation
+ok 6 - invalid quote counter 1.5 is not displayed as an observation
+  ---
+  duration_ms: 0.514486
+  type: 'test'
+  ...
+# Subtest: invalid quote counter NaN is not displayed as an observation
+ok 7 - invalid quote counter NaN is not displayed as an observation
+  ---
+  duration_ms: 0.461147
+  type: 'test'
+  ...
+# Subtest: invalid quote counter Infinity is not displayed as an observation
+ok 8 - invalid quote counter Infinity is not displayed as an observation
+  ---
+  duration_ms: 0.473215
+  type: 'test'
+  ...
+# Subtest: invalid quote counter true is not displayed as an observation
+ok 9 - invalid quote counter true is not displayed as an observation
+  ---
+  duration_ms: 0.443721
+  type: 'test'
+  ...
+# Subtest: source count larger than requested is presented as a conflict
+ok 10 - source count larger than requested is presented as a conflict
+  ---
+  duration_ms: 5.434867
+  type: 'test'
+  ...
+# Subtest: conflicting declared gap is not silently accepted as full coverage
+ok 11 - conflicting declared gap is not silently accepted as full coverage
+  ---
+  duration_ms: 0.765654
+  type: 'test'
+  ...
+# Subtest: old bound selection can show computed rows but quote counts remain receipt declarations
+ok 12 - old bound selection can show computed rows but quote counts remain receipt declarations
+  ---
+  duration_ms: 0.583577
+  type: 'test'
+  ...
+# Subtest: old unbound selection declaration does not claim calculation
+ok 13 - old unbound selection declaration does not claim calculation
+  ---
+  duration_ms: 0.358847
+  type: 'test'
+  ...
+# Subtest: new no-result verdict cannot be upgraded by an old bound receipt
+ok 14 - new no-result verdict cannot be upgraded by an old bound receipt
+  ---
+  duration_ms: 0.419035
+  type: 'test'
+  ...
+# Subtest: new summary map missing A cannot fall back to old bound counts (empty)
+ok 15 - new summary map missing A cannot fall back to old bound counts (empty)
+  ---
+  duration_ms: 0.3338
+  type: 'test'
+  ...
+# Subtest: new summary map missing A cannot fall back to old bound counts (HK_CONNECT)
+ok 16 - new summary map missing A cannot fall back to old bound counts (HK_CONNECT)
+  ---
+  duration_ms: 0.268764
+  type: 'test'
+  ...
+# Subtest: legacy observed_rows fallback is labeled as receipt evidence
+ok 17 - legacy observed_rows fallback is labeled as receipt evidence
+  ---
+  duration_ms: 0.351606
+  type: 'test'
+  ...
+# Subtest: NATURAL plus owner binding is still distinct from natural acceptance
+ok 18 - NATURAL plus owner binding is still distinct from natural acceptance
+  ---
+  duration_ms: 0.383153
+  type: 'test'
+  ...
+# Subtest: owner history conflict is shown without hiding the verified result
+ok 19 - owner history conflict is shown without hiding the verified result
+  ---
+  duration_ms: 0.445354
+  type: 'test'
+  ...
+# Subtest: selection-to-receipt identity conflict is explicit while stored result remains visible
+ok 20 - selection-to-receipt identity conflict is explicit while stored result remains visible
+  ---
+  duration_ms: 0.269556
+  type: 'test'
+  ...
+# Subtest: missing record time is not inferred from date, stage, due status or current clock
+ok 21 - missing record time is not inferred from date, stage, due status or current clock
+  ---
+  duration_ms: 0.34065
+  type: 'test'
+  ...
+# Subtest: only the HK lane is rendered for the HK-only late stage
+ok 22 - only the HK lane is rendered for the HK-only late stage
+  ---
+  duration_ms: 0.487506
+  type: 'test'
+  ...
+# Subtest: raw reason codes and identifiers remain inside closed technical details
+ok 23 - raw reason codes and identifiers remain inside closed technical details
+  ---
+  duration_ms: 1.495045
+  type: 'test'
+  ...
+# (node:1458) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: compiled live Stage renders both R3 research results with their distinct quote counts
+ok 24 - compiled live Stage renders both R3 research results with their distinct quote counts
+  ---
+  duration_ms: 26.383041
+  type: 'test'
+  ...
+# Subtest: compiled live Stage suppresses evidence from another workbench date
+ok 25 - compiled live Stage suppresses evidence from another workbench date
+  ---
+  duration_ms: 9.114829
+  type: 'test'
+  ...
+# Subtest: compiled live Stage suppresses evidence from another workbench stage
+ok 26 - compiled live Stage suppresses evidence from another workbench stage
+  ---
+  duration_ms: 6.670391
+  type: 'test'
+  ...
+# Subtest: compiled live Stage suppresses evidence from another evidence date
+ok 27 - compiled live Stage suppresses evidence from another evidence date
+  ---
+  duration_ms: 4.629896
+  type: 'test'
+  ...
+# Subtest: compiled live Stage suppresses evidence from another evidence stage
+ok 28 - compiled live Stage suppresses evidence from another evidence stage
+  ---
+  duration_ms: 6.482145
+  type: 'test'
+  ...
+# Subtest: compiled live Stage keeps rows while rejecting conflicting result date
+ok 29 - compiled live Stage keeps rows while rejecting conflicting result date
+  ---
+  duration_ms: 8.317053
+  type: 'test'
+  ...
+# Subtest: compiled live Stage keeps rows while rejecting conflicting result stage
+ok 30 - compiled live Stage keeps rows while rejecting conflicting result stage
+  ---
+  duration_ms: 3.367183
+  type: 'test'
+  ...
+# Subtest: compiled live Stage keeps rows while rejecting conflicting result market
+ok 31 - compiled live Stage keeps rows while rejecting conflicting result market
+  ---
+  duration_ms: 3.691649
+  type: 'test'
+  ...
+# Subtest: compiled live Stage keeps rows while rejecting conflicting result run
+ok 32 - compiled live Stage keeps rows while rejecting conflicting result run
+  ---
+  duration_ms: 3.7944
+  type: 'test'
+  ...
+# Subtest: compiled live Stage keeps rows while rejecting conflicting result artifact
+ok 33 - compiled live Stage keeps rows while rejecting conflicting result artifact
+  ---
+  duration_ms: 4.357506
+  type: 'test'
+  ...
+# Subtest: compiled live Stage keeps rows while rejecting conflicting result algorithm SHA
+ok 34 - compiled live Stage keeps rows while rejecting conflicting result algorithm SHA
+  ---
+  duration_ms: 2.818487
+  type: 'test'
+  ...
+# Subtest: compiled live Stage keeps rows while rejecting conflicting result artifact SHA
+ok 35 - compiled live Stage keeps rows while rejecting conflicting result artifact SHA
+  ---
+  duration_ms: 11.598835
+  type: 'test'
+  ...
+# Subtest: compiled live Stage keeps rows while rejecting conflicting result count
+ok 36 - compiled live Stage keeps rows while rejecting conflicting result count
+  ---
+  duration_ms: 4.007923
+  type: 'test'
+  ...
+# Subtest: same malformed SHA cannot bind a result even when both response fields agree
+ok 37 - same malformed SHA cannot bind a result even when both response fields agree
+  ---
+  duration_ms: 2.22743
+  type: 'test'
+  ...
+# Subtest: same run and artifact can display a verified zero without inventing unavailable zeroes
+ok 38 - same run and artifact can display a verified zero without inventing unavailable zeroes
+  ---
+  duration_ms: 1.915641
+  type: 'test'
+  ...
+# Subtest: full unified rows bind counts even when existing A card view is capped at 12
+ok 39 - full unified rows bind counts even when existing A card view is capped at 12
+  ---
+  duration_ms: 1.861222
+  type: 'test'
+  ...
+# Subtest: old evidence is hidden during loading
+ok 40 - old evidence is hidden during loading
+  ---
+  duration_ms: 1.414196
+  type: 'test'
+  ...
+# Subtest: old evidence is hidden during failed request
+ok 41 - old evidence is hidden during failed request
+  ---
+  duration_ms: 1.138772
+  type: 'test'
+  ...
+# Subtest: current HK-only Stage keeps A inapplicable and shows only the HK result panel
+ok 42 - current HK-only Stage keeps A inapplicable and shows only the HK result panel
+  ---
+  duration_ms: 1.402598
+  type: 'test'
+  ...
+# Subtest: current manager button executes its original exact-date navigation callback
+ok 43 - current manager button executes its original exact-date navigation callback
+  ---
+  duration_ms: 1.928821
+  type: 'test'
+  ...
+# Subtest: task status and research entry events retain the full live App state transitions
+ok 44 - task status and research entry events retain the full live App state transitions
+  ---
+  duration_ms: 2.022158
+  type: 'test'
+  ...
+# Subtest: normal and exact backfill route construction retain all original request identities
+ok 45 - normal and exact backfill route construction retain all original request identities
+  ---
+  duration_ms: 2.187581
+  type: 'test'
+  ...
+# Subtest: existing exact request and backfill safety validators retain their rejection behavior
+ok 46 - existing exact request and backfill safety validators retain their rejection behavior
+  ---
+  duration_ms: 1.888312
+  type: 'test'
+  ...
+# Subtest: all pre-existing live functions except the two reviewed display count functions retain exact AST bytes
+ok 47 - all pre-existing live functions except the two reviewed display count functions retain exact AST bytes
+  ---
+  duration_ms: 64.55126
+  type: 'test'
+  ...
+# Subtest: all live template event handlers and runtime task-status types remain exact
+ok 48 - all live template event handlers and runtime task-status types remain exact
+  ---
+  duration_ms: 0.390963
+  type: 'test'
+  ...
+# (node:1469) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: calculated HK research result keeps count, quote coverage and source limitations visible independently
+ok 49 - calculated HK research result keeps count, quote coverage and source limitations visible independently
+  ---
+  duration_ms: 10.164319
+  type: 'test'
+  ...
+# Subtest: research source conflict stays separate from ten calculated rows
+ok 50 - research source conflict stays separate from ten calculated rows
+  ---
+  duration_ms: 0.773996
+  type: 'test'
+  ...
+# Subtest: evidence panel refuses summary scope mismatch in trade_date
+ok 51 - evidence panel refuses summary scope mismatch in trade_date
+  ---
+  duration_ms: 0.739495
+  type: 'test'
+  ...
+# Subtest: evidence panel refuses summary scope mismatch in stage_id
+ok 52 - evidence panel refuses summary scope mismatch in stage_id
+  ---
+  duration_ms: 3.816983
+  type: 'test'
+  ...
+# Subtest: evidence panel refuses summary scope mismatch in market
+ok 53 - evidence panel refuses summary scope mismatch in market
+  ---
+  duration_ms: 0.704594
+  type: 'test'
+  ...
+# Subtest: explicit replay evidence never renders a natural trigger: {"execution_origin":"MANUAL_REPLAY"}
+ok 54 - explicit replay evidence never renders a natural trigger: {"execution_origin":"MANUAL_REPLAY"}
+  ---
+  duration_ms: 0.734538
+  type: 'test'
+  ...
+# Subtest: explicit replay evidence never renders a natural trigger: {"execution_origin":"HISTORICAL_BACKFILL"}
+ok 55 - explicit replay evidence never renders a natural trigger: {"execution_origin":"HISTORICAL_BACKFILL"}
+  ---
+  duration_ms: 0.514665
+  type: 'test'
+  ...
+# Subtest: explicit replay evidence never renders a natural trigger: {"execution_origin":"LATE_CATCHUP_REPLAY"}
+ok 56 - explicit replay evidence never renders a natural trigger: {"execution_origin":"LATE_CATCHUP_REPLAY"}
+  ---
+  duration_ms: 0.568054
+  type: 'test'
+  ...
+# Subtest: explicit replay evidence never renders a natural trigger: {"due_status":"HISTORICAL_BACKFILL"}
+ok 57 - explicit replay evidence never renders a natural trigger: {"due_status":"HISTORICAL_BACKFILL"}
+  ---
+  duration_ms: 0.825241
+  type: 'test'
+  ...
+# Subtest: explicit replay evidence never renders a natural trigger: {"due_status":"LATE_CATCHUP_REPLAY"}
+ok 58 - explicit replay evidence never renders a natural trigger: {"due_status":"LATE_CATCHUP_REPLAY"}
+  ---
+  duration_ms: 0.717753
+  type: 'test'
+  ...
+# Subtest: explicit replay evidence never renders a natural trigger: {"same_day_late_observation_recovery":true}
+ok 59 - explicit replay evidence never renders a natural trigger: {"same_day_late_observation_recovery":true}
+  ---
+  duration_ms: 0.406076
+  type: 'test'
+  ...
+# Subtest: explicit replay evidence never renders a natural trigger: {"attempt_mode_status":"NATURAL_DECLARATION_CONFLICT"}
+ok 60 - explicit replay evidence never renders a natural trigger: {"attempt_mode_status":"NATURAL_DECLARATION_CONFLICT"}
+  ---
+  duration_ms: 0.425935
+  type: 'test'
+  ...
+# Subtest: current App SSR displays ten verified research rows despite CANNOT_CONFIRM
+ok 61 - current App SSR displays ten verified research rows despite CANNOT_CONFIRM
+  ---
+  duration_ms: 18.675943
+  type: 'test'
+  ...
+# Subtest: current App SSR does not borrow a research summary with conflicting date
+ok 62 - current App SSR does not borrow a research summary with conflicting date
+  ---
+  duration_ms: 7.101034
+  type: 'test'
+  ...
+# Subtest: current App SSR does not borrow a research summary with conflicting stage
+ok 63 - current App SSR does not borrow a research summary with conflicting stage
+  ---
+  duration_ms: 3.95129
+  type: 'test'
+  ...
+# Subtest: current App SSR does not borrow a research summary with conflicting run
+ok 64 - current App SSR does not borrow a research summary with conflicting run
+  ---
+  duration_ms: 3.667503
+  type: 'test'
+  ...
+# Subtest: current App SSR does not borrow a research summary with conflicting sha
+ok 65 - current App SSR does not borrow a research summary with conflicting sha
+  ---
+  duration_ms: 3.198765
+  type: 'test'
+  ...
+# Subtest: current App SSR does not borrow a research summary with conflicting market
+ok 66 - current App SSR does not borrow a research summary with conflicting market
+  ---
+  duration_ms: 2.748084
+  type: 'test'
+  ...
+# Subtest: current App SSR does not borrow a research summary with conflicting no_evidence
+ok 67 - current App SSR does not borrow a research summary with conflicting no_evidence
+  ---
+  duration_ms: 2.163155
+  type: 'test'
+  ...
+# Subtest: SFC runtime can render the consumer JSON fixture through the actual evidence panel
+ok 68 - SFC runtime can render the consumer JSON fixture through the actual evidence panel
+  ---
+  duration_ms: 1.531308
+  type: 'test'
+  ...
+# Subtest: original API projection preserves same-run research identity through the current App SSR
+ok 69 - original API projection preserves same-run research identity through the current App SSR
+  ---
+  duration_ms: 5.38907
+  type: 'test'
+  ...
+# Subtest: backfill result is never labeled natural by a different namespace receipt
+ok 70 - backfill result is never labeled natural by a different namespace receipt
+  ---
+  duration_ms: 0.449309
+  type: 'test'
+  ...
+1..70
+# tests 70
+# suites 0
+# pass 70
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 824.645271

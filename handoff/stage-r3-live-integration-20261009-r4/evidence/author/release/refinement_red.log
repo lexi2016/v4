@@ -1,0 +1,78 @@
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+___ test_candidate_verification_cli_requires_pinned_manifest_and_is_readonly ___
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-349/test_candidate_verification_cl0')
+
+    def test_candidate_verification_cli_requires_pinned_manifest_and_is_readonly(tmp_path):
+        active, after, built, changes, root, manifest = integrated(tmp_path)
+        before = guard._inventory_snapshot(tmp_path)
+        tool = Path(builder.__file__)
+        args = [sys.executable,'-B',str(tool),'--verify-api-candidate',
+                '--candidate-root',str(root),'--api-plist',str(active['api_plist']),
+                '--expected-manifest-sha256',sha((root/'release-manifest.json').read_bytes())]
+        result = subprocess.run(args,capture_output=True,text=True)
+>       assert result.returncode==0,result.stderr
+E       AssertionError: usage: build_release_candidate.py [-h] --source-root SOURCE_ROOT
+E                                           --candidate-root CANDIDATE_ROOT
+E                                           [--api-plist API_PLIST]
+E                                           [--scheduler-plist SCHEDULER_PLIST]
+E                                           [--python PYTHON] --release-id RELEASE_ID
+E                                           [--api-integration-delta-receipt API_INTEGRATION_DELTA_RECEIPT]
+E                                           [--stage-service-candidate]
+E                                           [--stage-plist STAGE_PLIST]
+E                                           [--stage-runtime-python STAGE_RUNTIME_PYTHON]
+E                                           [--stage-overlay-path RELATIVE_PATH]
+E                                           [--backup-plist BACKUP_PLIST]
+E                                           [--legacy-repo LEGACY_REPO]
+E                                           [--legacy-evidence-root LEGACY_EVIDENCE_ROOT]
+E                                           [--receipt-path RECEIPT_PATH]
+E                                           [--formal-release-root FORMAL_RELEASE_ROOT]
+E                                           [--include-untracked-path RELATIVE_PATH]
+E         build_release_candidate.py: error: the following arguments are required: --source-root, --release-id
+E         
+E       assert 2 == 0
+E        +  where 2 = CompletedProcess(args=['/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python', '-B', '/workspace/s...ELATIVE_PATH]\nbuild_release_candidate.py: error: the following arguments are required: --source-root, --release-id\n').returncode
+
+candidate_run/tests/test_stage_release_r4.py:282: AssertionError
+___________ test_staging_detects_generated_source_drift_before_ready ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-349/test_staging_detects_generated0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f7b518d75c0>
+
+    def test_staging_detects_generated_source_drift_before_ready(tmp_path,monkeypatch):
+        original=delta.subprocess.check_output
+        def mutate(*args,**kwargs):
+            value=original(*args,**kwargs)
+            write(tmp_path/'source-staging/stage_center/consumer.py',b'UNREVIEWED\n')
+            return value
+        monkeypatch.setattr(delta.subprocess,'check_output',mutate)
+>       with pytest.raises(ValueError,match='API_STAGE_SOURCE'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+candidate_run/tests/test_stage_release_r4.py:297: Failed
+___ test_staging_cannot_use_an_independent_extra_git_commit_as_source_proof ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-349/test_staging_cannot_use_an_ind0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f7b518e2f00>
+
+    def test_staging_cannot_use_an_independent_extra_git_commit_as_source_proof(tmp_path,monkeypatch):
+        original=delta.subprocess.check_output
+        def mutate(*args,**kwargs):
+            value=original(*args,**kwargs)
+            source=tmp_path/'source-staging'
+            write(source/'stolen.txt',b'UNREVIEWED\n')
+            subprocess.run(['git','-C',str(source),'add','--','stolen.txt'],check=True)
+            return value
+        monkeypatch.setattr(delta.subprocess,'check_output',mutate)
+>       with pytest.raises(ValueError,match='API_STAGE_SOURCE'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+candidate_run/tests/test_stage_release_r4.py:311: Failed
+=========================== short test summary info ============================
+FAILED candidate_run/tests/test_stage_release_r4.py::test_candidate_verification_cli_requires_pinned_manifest_and_is_readonly
+FAILED candidate_run/tests/test_stage_release_r4.py::test_staging_detects_generated_source_drift_before_ready
+FAILED candidate_run/tests/test_stage_release_r4.py::test_staging_cannot_use_an_independent_extra_git_commit_as_source_proof
+3 failed, 34 deselected in 0.42s

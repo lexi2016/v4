@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="8" skipped="0" tests="8" time="0.240" timestamp="2026-10-09T07:08:09.369895-07:00" hostname="f2c20067ed3d"><testcase classname="tests.test_stage_ui_build" name="test_readonly_prepared_ui_builds_in_new_writable_tree_and_preserves_history_entry" time="0.028"><failure message="AssertionError: {'status': 'NOT_IMPLEMENTED', 'write_performed': False}&#10;assert 'NOT_IMPLEMENTED' == 'UI_BUILD_PREPARED'&#10;  &#10;  - UI_BUILD_PREPARED&#10;  + NOT_IMPLEMENTED">setup = namespace(package=PosixPath('/tmp/pytest-of-root/pytest-351/test_readonly_prepared_ui_buil0/package'), actual=PosixPat...pps/web/dist/manager-selection/index.html': ('87576059f56fc2d8005c5db62b0d7a8ab3f3ed09aff577e37c57c05eb22109ae', 292)})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f815e1742c0&gt;
+
+    def test_readonly_prepared_ui_builds_in_new_writable_tree_and_preserves_history_entry(setup, monkeypatch):
+        builder = module('build_stage_ui')
+        calls = fake_npm(monkeypatch, builder)
+        result = builder.build_stage_ui(package=setup.package, prepared_ui=setup.prepared, destination=setup.destination)
+&gt;       assert result['status'] == 'UI_BUILD_PREPARED', result
+E       AssertionError: {'status': 'NOT_IMPLEMENTED', 'write_performed': False}
+E       assert 'NOT_IMPLEMENTED' == 'UI_BUILD_PREPARED'
+E         
+E         - UI_BUILD_PREPARED
+E         + NOT_IMPLEMENTED
+
+tests/test_stage_ui_build.py:103: AssertionError</failure></testcase><testcase classname="tests.test_stage_ui_build" name="test_prepared_source_drift_rejects_before_output_or_npm" time="0.018"><failure message="AssertionError: assert 'NOT_IMPLEMENTED' == 'PREFLIGHT_FAILED'&#10;  &#10;  - PREFLIGHT_FAILED&#10;  + NOT_IMPLEMENTED">setup = namespace(package=PosixPath('/tmp/pytest-of-root/pytest-351/test_prepared_source_drift_rej0/package'), actual=PosixPat...pps/web/dist/manager-selection/index.html': ('87576059f56fc2d8005c5db62b0d7a8ab3f3ed09aff577e37c57c05eb22109ae', 292)})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f815e174f50&gt;
+
+    def test_prepared_source_drift_rejects_before_output_or_npm(setup, monkeypatch):
+        builder = module('build_stage_ui')
+        changed = setup.prepared / 'apps/web/src/App.vue'
+        changed.chmod(0o644)
+        changed.write_text('drift')
+        calls = fake_npm(monkeypatch, builder)
+        result = builder.build_stage_ui(package=setup.package, prepared_ui=setup.prepared, destination=setup.destination)
+&gt;       assert result['status'] == 'PREFLIGHT_FAILED'
+E       AssertionError: assert 'NOT_IMPLEMENTED' == 'PREFLIGHT_FAILED'
+E         
+E         - PREFLIGHT_FAILED
+E         + NOT_IMPLEMENTED
+
+tests/test_stage_ui_build.py:124: AssertionError</failure></testcase><testcase classname="tests.test_stage_ui_build" name="test_missing_prepare_manifest_rejects_before_output" time="0.023"><failure message="AssertionError: assert 'NOT_IMPLEMENTED' == 'PREFLIGHT_FAILED'&#10;  &#10;  - PREFLIGHT_FAILED&#10;  + NOT_IMPLEMENTED">setup = namespace(package=PosixPath('/tmp/pytest-of-root/pytest-351/test_missing_prepare_manifest_0/package'), actual=PosixPat...pps/web/dist/manager-selection/index.html': ('87576059f56fc2d8005c5db62b0d7a8ab3f3ed09aff577e37c57c05eb22109ae', 292)})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f815df93080&gt;
+
+    def test_missing_prepare_manifest_rejects_before_output(setup, monkeypatch):
+        builder = module('build_stage_ui')
+        setup.prepared.chmod(0o755)
+        (setup.prepared / 'CANARY_SOURCE_MANIFEST.json').unlink()
+        calls = fake_npm(monkeypatch, builder)
+        result = builder.build_stage_ui(package=setup.package, prepared_ui=setup.prepared, destination=setup.destination)
+&gt;       assert result['status'] == 'PREFLIGHT_FAILED'
+E       AssertionError: assert 'NOT_IMPLEMENTED' == 'PREFLIGHT_FAILED'
+E         
+E         - PREFLIGHT_FAILED
+E         + NOT_IMPLEMENTED
+
+tests/test_stage_ui_build.py:134: AssertionError</failure></testcase><testcase classname="tests.test_stage_ui_build" name="test_failed_npm_ci_is_not_a_build_pass" time="0.028"><failure message="AssertionError: assert 'NOT_IMPLEMENTED' == 'BUILD_FAILED'&#10;  &#10;  - BUILD_FAILED&#10;  + NOT_IMPLEMENTED">setup = namespace(package=PosixPath('/tmp/pytest-of-root/pytest-351/test_failed_npm_ci_is_not_a_bu0/package'), actual=PosixPat...pps/web/dist/manager-selection/index.html': ('87576059f56fc2d8005c5db62b0d7a8ab3f3ed09aff577e37c57c05eb22109ae', 292)})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f815df93200&gt;
+
+    def test_failed_npm_ci_is_not_a_build_pass(setup, monkeypatch):
+        builder = module('build_stage_ui')
+        calls = fake_npm(monkeypatch, builder, failure='ci')
+        result = builder.build_stage_ui(package=setup.package, prepared_ui=setup.prepared, destination=setup.destination)
+&gt;       assert result['status'] == 'BUILD_FAILED'
+E       AssertionError: assert 'NOT_IMPLEMENTED' == 'BUILD_FAILED'
+E         
+E         - BUILD_FAILED
+E         + NOT_IMPLEMENTED
+
+tests/test_stage_ui_build.py:142: AssertionError</failure></testcase><testcase classname="tests.test_stage_ui_build" name="test_build_changing_source_cannot_seal_static_artifacts" time="0.020"><failure message="AssertionError: assert 'NOT_IMPLEMENTED' == 'BUILD_FAILED'&#10;  &#10;  - BUILD_FAILED&#10;  + NOT_IMPLEMENTED">setup = namespace(package=PosixPath('/tmp/pytest-of-root/pytest-351/test_build_changing_source_can0/package'), actual=PosixPat...pps/web/dist/manager-selection/index.html': ('87576059f56fc2d8005c5db62b0d7a8ab3f3ed09aff577e37c57c05eb22109ae', 292)})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f815dfb5940&gt;
+
+    def test_build_changing_source_cannot_seal_static_artifacts(setup, monkeypatch):
+        builder = module('build_stage_ui')
+        fake_npm(monkeypatch, builder, mutate_source=True)
+        result = builder.build_stage_ui(package=setup.package, prepared_ui=setup.prepared, destination=setup.destination)
+&gt;       assert result['status'] == 'BUILD_FAILED'
+E       AssertionError: assert 'NOT_IMPLEMENTED' == 'BUILD_FAILED'
+E         
+E         - BUILD_FAILED
+E         + NOT_IMPLEMENTED
+
+tests/test_stage_ui_build.py:153: AssertionError</failure></testcase><testcase classname="tests.test_stage_ui_build" name="test_static_symlink_is_rejected" time="0.018"><failure message="AssertionError: assert 'NOT_IMPLEMENTED' == 'BUILD_FAILED'&#10;  &#10;  - BUILD_FAILED&#10;  + NOT_IMPLEMENTED">setup = namespace(package=PosixPath('/tmp/pytest-of-root/pytest-351/test_static_symlink_is_rejecte0/package'), actual=PosixPat...pps/web/dist/manager-selection/index.html': ('87576059f56fc2d8005c5db62b0d7a8ab3f3ed09aff577e37c57c05eb22109ae', 292)})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f815dfb4da0&gt;
+
+    def test_static_symlink_is_rejected(setup, monkeypatch):
+        builder = module('build_stage_ui')
+        fake_npm(monkeypatch, builder, symlink=True)
+        result = builder.build_stage_ui(package=setup.package, prepared_ui=setup.prepared, destination=setup.destination)
+&gt;       assert result['status'] == 'BUILD_FAILED'
+E       AssertionError: assert 'NOT_IMPLEMENTED' == 'BUILD_FAILED'
+E         
+E         - BUILD_FAILED
+E         + NOT_IMPLEMENTED
+
+tests/test_stage_ui_build.py:163: AssertionError</failure></testcase><testcase classname="tests.test_stage_ui_build" name="test_missing_existing_manager_entry_is_rejected" time="0.017"><failure message="AssertionError: assert 'NOT_IMPLEMENTED' == 'BUILD_FAILED'&#10;  &#10;  - BUILD_FAILED&#10;  + NOT_IMPLEMENTED">setup = namespace(package=PosixPath('/tmp/pytest-of-root/pytest-351/test_missing_existing_manager_0/package'), actual=PosixPat...pps/web/dist/manager-selection/index.html': ('87576059f56fc2d8005c5db62b0d7a8ab3f3ed09aff577e37c57c05eb22109ae', 292)})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f815dfb5970&gt;
+
+    def test_missing_existing_manager_entry_is_rejected(setup, monkeypatch):
+        builder = module('build_stage_ui')
+        fake_npm(monkeypatch, builder, omit_manager=True)
+        result = builder.build_stage_ui(package=setup.package, prepared_ui=setup.prepared, destination=setup.destination)
+&gt;       assert result['status'] == 'BUILD_FAILED'
+E       AssertionError: assert 'NOT_IMPLEMENTED' == 'BUILD_FAILED'
+E         
+E         - BUILD_FAILED
+E         + NOT_IMPLEMENTED
+
+tests/test_stage_ui_build.py:171: AssertionError</failure></testcase><testcase classname="tests.test_stage_ui_build" name="test_output_inside_prepared_source_is_rejected" time="0.021"><failure message="AssertionError: assert 'NOT_IMPLEMENTED' == 'PREFLIGHT_FAILED'&#10;  &#10;  - PREFLIGHT_FAILED&#10;  + NOT_IMPLEMENTED">setup = namespace(package=PosixPath('/tmp/pytest-of-root/pytest-351/test_output_inside_prepared_so0/package'), actual=PosixPat...pps/web/dist/manager-selection/index.html': ('87576059f56fc2d8005c5db62b0d7a8ab3f3ed09aff577e37c57c05eb22109ae', 292)})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f815dfb6330&gt;
+
+    def test_output_inside_prepared_source_is_rejected(setup, monkeypatch):
+        builder = module('build_stage_ui')
+        calls = fake_npm(monkeypatch, builder)
+        result = builder.build_stage_ui(package=setup.package, prepared_ui=setup.prepared,
+                                       destination=setup.prepared / 'bad-output')
+&gt;       assert result['status'] == 'PREFLIGHT_FAILED'
+E       AssertionError: assert 'NOT_IMPLEMENTED' == 'PREFLIGHT_FAILED'
+E         
+E         - PREFLIGHT_FAILED
+E         + NOT_IMPLEMENTED
+
+tests/test_stage_ui_build.py:180: AssertionError</failure></testcase></testsuite></testsuites>

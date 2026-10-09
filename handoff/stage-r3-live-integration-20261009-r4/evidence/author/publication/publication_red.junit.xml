@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="1" time="1.578" timestamp="2026-10-09T07:41:43.438262-07:00" hostname="f2c20067ed3d"><testcase classname="tests.test_stage_api_release" name="test_prepare_preserves_manager_history_and_has_no_service_actions" time="1.525"><error message="failed on setup with &quot;AssertionError: bounded Stage publisher is missing&#10;assert False&#10; +  where False = callable(None)&#10; +    where None = getattr(namespace(), 'prepare_stage_publication', None)&quot;">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-380/test_prepare_preserves_manager0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7f31eb74d7c0&gt;
+
+    @pytest.fixture
+    def publication(tmp_path, monkeypatch):
+        sibling = Path(__file__).with_name('test_live_release_preparation.py')
+        fixture_file = sibling if sibling.exists() else WORK / 'integration/tests/test_live_release_preparation.py'
+        fixture = load('_publication_integration_fixture', fixture_file, monkeypatch)
+        case = fixture.case.__wrapped__(tmp_path, monkeypatch)
+        manager = tmp_path / 'manager_state'
+        disabled = tmp_path / 'disabled-binding.json'
+        dump(disabled, dict(enabled=False, announcement_collection_enabled=False,
+                            plan_material_refresh_only=False, manager_state_root=str(manager)))
+        screen = tmp_path / 'screen_authority'; screen.mkdir()
+        stage_plist = tmp_path / 'stage-scheduler.plist'
+        stage_plist.write_bytes(b'UNCHANGED STAGE SCHEDULER\n')
+        current = plistlib.loads(case.pointer.read_bytes())
+        current.update(KeepAlive=True, RunAtLoad=False)
+        current['ProgramArguments'][1:1] = [
+            'V4_MANAGER_PLAN_OWNER_BINDING_PATH=' + str(disabled),
+            'V4_MANAGER_SCREEN_AUTHORITY_ROOT=' + str(screen),
+        ]
+        case.pointer.write_bytes(plistlib.dumps(current, sort_keys=True))
+        case.pointer_before = case.pointer.read_bytes()
+        result = case.tool.prepare_live_release(**case.args)
+        shutil.copyfile(Path(case.tool.__file__), case.package / 'tools/prepare_live_release.py')
+        tool_file = TOOLS / 'stage_api_release.py'
+        tool = load('_stage_publication_under_test', tool_file, monkeypatch) if tool_file.exists() else SimpleNamespace()
+&gt;       assert callable(getattr(tool, 'prepare_stage_publication', None)), 'bounded Stage publisher is missing'
+E       AssertionError: bounded Stage publisher is missing
+E       assert False
+E        +  where False = callable(None)
+E        +    where None = getattr(namespace(), 'prepare_stage_publication', None)
+
+tests/test_stage_api_release.py:67: AssertionError</error></testcase></testsuite></testsuites>

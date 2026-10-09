@@ -1,0 +1,95 @@
+{
+  "RESEARCH_ONLY": true,
+  "buy_gate_updated": false,
+  "canary_source_policy_sha256": "47fb035202d7cf8b8e087aef2abfc567066ac7c68f7302ca41f259e24638d1b5",
+  "copy_roots": [
+    "apps/web"
+  ],
+  "destination": null,
+  "errors": [],
+  "excluded_roots": [],
+  "files": [
+    {
+      "accepted_before_sha256": [
+        "f43bdb2c7214bce09221757eecb75eea9d5e1c746a3213bb53e6d0c84b751d9c"
+      ],
+      "after_sha256": "8f1c00c4b278fd46736d9176d94752539f46e7c04d38fc13129084e6b9164c0f",
+      "observed_sha256": "f43bdb2c7214bce09221757eecb75eea9d5e1c746a3213bb53e6d0c84b751d9c",
+      "operation": "modify",
+      "relative_path": "apps/web/src/App.vue",
+      "status": "BEFORE_MATCH"
+    },
+    {
+      "accepted_before_sha256": [
+        "07188178bbcd5ae2b01b9d6c1ef9dffd7b94f1b27f0211501cc2464566c5bc8b"
+      ],
+      "after_sha256": "eca21b9d5674e3a18b09672c43401164ca356fd84fd6c719c14453c006f0ee5d",
+      "observed_sha256": "07188178bbcd5ae2b01b9d6c1ef9dffd7b94f1b27f0211501cc2464566c5bc8b",
+      "operation": "modify",
+      "relative_path": "apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "status": "BEFORE_MATCH"
+    },
+    {
+      "accepted_before_sha256": [
+        "9a882a174b433488684b05781ade00beb665706e962f753700960a4250d13419"
+      ],
+      "after_sha256": "b3d437e906f81d08af045f5b0f3990662c64676572376d42edddaf109f3dd980",
+      "observed_sha256": "9a882a174b433488684b05781ade00beb665706e962f753700960a4250d13419",
+      "operation": "modify",
+      "relative_path": "apps/web/src/contracts/runtime.ts",
+      "status": "BEFORE_MATCH"
+    }
+  ],
+  "group": "ui",
+  "ignored_names": [
+    ".cache",
+    ".git",
+    ".pytest_cache",
+    ".venv",
+    "__pycache__",
+    "node_modules",
+    "venv"
+  ],
+  "inspect_only": true,
+  "optional_roots": [],
+  "orders_sent": false,
+  "package": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/ui/preflight_package",
+  "package_files": [
+    {
+      "after_path": "after/ui/apps/web/src/App.vue",
+      "after_sha256": "8f1c00c4b278fd46736d9176d94752539f46e7c04d38fc13129084e6b9164c0f",
+      "group": "ui",
+      "observed_sha256": "8f1c00c4b278fd46736d9176d94752539f46e7c04d38fc13129084e6b9164c0f",
+      "relative_path": "apps/web/src/App.vue",
+      "status": "AFTER_SHA_MATCH"
+    },
+    {
+      "after_path": "after/ui/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "after_sha256": "eca21b9d5674e3a18b09672c43401164ca356fd84fd6c719c14453c006f0ee5d",
+      "group": "ui",
+      "observed_sha256": "eca21b9d5674e3a18b09672c43401164ca356fd84fd6c719c14453c006f0ee5d",
+      "relative_path": "apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "status": "AFTER_SHA_MATCH"
+    },
+    {
+      "after_path": "after/ui/apps/web/src/contracts/runtime.ts",
+      "after_sha256": "b3d437e906f81d08af045f5b0f3990662c64676572376d42edddaf109f3dd980",
+      "group": "ui",
+      "observed_sha256": "b3d437e906f81d08af045f5b0f3990662c64676572376d42edddaf109f3dd980",
+      "relative_path": "apps/web/src/contracts/runtime.ts",
+      "status": "AFTER_SHA_MATCH"
+    }
+  ],
+  "permissions_restored": null,
+  "production_allowed": false,
+  "schema_version": "V4_EXACT_SHA_CANARY_PREPARATION_V1",
+  "source_bytes_and_permissions_unchanged": null,
+  "source_files_changed": [],
+  "source_links": [],
+  "source_map_sha256": "b62bebafc63df9cbd1d3c563024043f4e0c013a07d4a79aeb63582158f5c4707",
+  "source_root": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/ui/before",
+  "source_tree_sha256": "cfa87fb492d30682d0941569132c9607225579c626e8ded3661a8054a4d2751b",
+  "source_verification_scope": "DECLARED_SOURCE_SET_BYTES_MODES_AND_LINK_IDENTITIES",
+  "status": "PREFLIGHT_OK",
+  "write_performed": false
+}

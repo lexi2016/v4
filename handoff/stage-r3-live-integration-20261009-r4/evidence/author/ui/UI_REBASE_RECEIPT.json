@@ -1,0 +1,157 @@
+{
+  "schema_version": "V4_STAGE_R4_LIVE_UI_REBASE_RECEIPT_V1",
+  "status": "IMPLEMENTED_AND_COMPILED_VUE_TESTED_ISOLATED_ONLY",
+  "input_ref": "137431f5de3917ff4526784351f5638e115061e5",
+  "r3_accepted_commit_preserved": "9a0c3f318a438b386d69a8385ce644ea18a31dfb",
+  "preimage_scope": "THREE_SOURCE_FILES_MATCH_FIXED_MAC_READONLY_PREFLIGHT_SHA256",
+  "direct_mac_read": false,
+  "candidate_live_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+  "source_map_entries": [
+    {
+      "group": "ui",
+      "operation": "modify",
+      "relative_path": "apps/web/src/App.vue",
+      "before_path": "before/ui/apps/web/src/App.vue",
+      "before_sha256": "f43bdb2c7214bce09221757eecb75eea9d5e1c746a3213bb53e6d0c84b751d9c",
+      "before_bytes": 120981,
+      "accepted_before_sha256": [
+        "f43bdb2c7214bce09221757eecb75eea9d5e1c746a3213bb53e6d0c84b751d9c"
+      ],
+      "after_path": "after/ui/apps/web/src/App.vue",
+      "after_sha256": "8f1c00c4b278fd46736d9176d94752539f46e7c04d38fc13129084e6b9164c0f",
+      "after_bytes": 123582,
+      "source_ref": "137431f5de3917ff4526784351f5638e115061e5",
+      "source_repository_path": "handoff/hk-close-hk-calendar-20261007/api/apps/web/src/App.vue",
+      "source_git_blob_sha1": "779bb1fbfbd7ba13687b9ebaf5cd4cc55f890369",
+      "conditional_historical_preimage": false,
+      "current_mac_bytes_verified": true,
+      "current_mac_verification": {
+        "commit": "137431f5de3917ff4526784351f5638e115061e5",
+        "status": "MATCHES_REPORTED_LOADED_PREIMAGE",
+        "provenance": "FIXED_READONLY_PREFLIGHT_SHA_MATCHES_EXISTING_REPOSITORY_BLOB",
+        "observed_sha256": "f43bdb2c7214bce09221757eecb75eea9d5e1c746a3213bb53e6d0c84b751d9c",
+        "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app"
+      }
+    },
+    {
+      "group": "ui",
+      "operation": "modify",
+      "relative_path": "apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "before_path": "before/ui/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "before_sha256": "07188178bbcd5ae2b01b9d6c1ef9dffd7b94f1b27f0211501cc2464566c5bc8b",
+      "before_bytes": 3466,
+      "accepted_before_sha256": [
+        "07188178bbcd5ae2b01b9d6c1ef9dffd7b94f1b27f0211501cc2464566c5bc8b"
+      ],
+      "after_path": "after/ui/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "after_sha256": "eca21b9d5674e3a18b09672c43401164ca356fd84fd6c719c14453c006f0ee5d",
+      "after_bytes": 8779,
+      "source_ref": "137431f5de3917ff4526784351f5638e115061e5",
+      "source_repository_path": "handoff/stage-research-recovery-20261009-r2/before/ui/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "source_git_blob_sha1": "73d0f6cc417c153e53c73244758424199e35b639",
+      "conditional_historical_preimage": false,
+      "current_mac_bytes_verified": true,
+      "current_mac_verification": {
+        "commit": "137431f5de3917ff4526784351f5638e115061e5",
+        "status": "MATCHES_REPORTED_LOADED_PREIMAGE",
+        "provenance": "FIXED_READONLY_PREFLIGHT_SHA_MATCHES_EXISTING_REPOSITORY_BLOB",
+        "observed_sha256": "07188178bbcd5ae2b01b9d6c1ef9dffd7b94f1b27f0211501cc2464566c5bc8b",
+        "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app"
+      }
+    },
+    {
+      "group": "ui",
+      "operation": "modify",
+      "relative_path": "apps/web/src/contracts/runtime.ts",
+      "before_path": "before/ui/apps/web/src/contracts/runtime.ts",
+      "before_sha256": "9a882a174b433488684b05781ade00beb665706e962f753700960a4250d13419",
+      "before_bytes": 3044,
+      "accepted_before_sha256": [
+        "9a882a174b433488684b05781ade00beb665706e962f753700960a4250d13419"
+      ],
+      "after_path": "after/ui/apps/web/src/contracts/runtime.ts",
+      "after_sha256": "b3d437e906f81d08af045f5b0f3990662c64676572376d42edddaf109f3dd980",
+      "after_bytes": 4723,
+      "source_ref": "137431f5de3917ff4526784351f5638e115061e5",
+      "source_repository_path": "handoff/stage-research-recovery-20261009-r2/before/ui/apps/web/src/contracts/runtime.ts",
+      "source_git_blob_sha1": "9481e8c0562d96698ca7898d81807dc3e2449263",
+      "conditional_historical_preimage": false,
+      "current_mac_bytes_verified": true,
+      "current_mac_verification": {
+        "commit": "137431f5de3917ff4526784351f5638e115061e5",
+        "status": "MATCHES_REPORTED_LOADED_PREIMAGE",
+        "provenance": "FIXED_READONLY_PREFLIGHT_SHA_MATCHES_EXISTING_REPOSITORY_BLOB",
+        "observed_sha256": "9a882a174b433488684b05781ade00beb665706e962f753700960a4250d13419",
+        "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app"
+      }
+    }
+  ],
+  "tests": {
+    "red": {
+      "tests": 70,
+      "passed": 13,
+      "expected_assertion_failures": 57,
+      "errors": 0,
+      "exit_code": 1
+    },
+    "green": {
+      "tests": 70,
+      "passed": 70,
+      "failed": 0,
+      "skipped": 0,
+      "exit_code": 0
+    },
+    "compiled_live_app": 25,
+    "legacy_panel": 23,
+    "r3_research_presentation": 22,
+    "environment": {
+      "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+      "node": "24.19.0",
+      "vue": "3.5.40",
+      "@vue/compiler-sfc": "3.5.40",
+      "@vue/server-renderer": "3.5.40",
+      "@babel/parser": "7.29.7"
+    },
+    "command": "STAGE_UI_RUNTIME=<installed-vue-app> STAGE_UI_CONSUMER_FIXTURE=<R3-offline-generated>/consumer_response.json node --disable-warning=ExperimentalWarning --test tests/*.test.mjs",
+    "actual_boundary": "Real full live App setup functions/template plus real panel compiled by Vue. Other views and review HTTP client are explicit stubs; SSR does not run browser mount hooks.",
+    "fixture_scope": "R3_OFFLINE_SYNTHETIC_RUNNER_CONSUMER_PROJECTION_NOT_MAC_PYTDX"
+  },
+  "original_prepare_canary": {
+    "exact_before": "PREFLIGHT_OK",
+    "candidate_after": "ALREADY_AFTER",
+    "old_r3_canonical_before": "PREFLIGHT_FAILED_EXPECTED",
+    "preflight_scope": "LOCAL_EXACT_THREE_PREIMAGES_ONLY_NOT_FULL_LOADED_MAC_SOURCE_TREE",
+    "write_performed": false
+  },
+  "preserved": [
+    "Current full manager App source and manager-selection navigation",
+    "All pre-existing functions except two display-count functions unchanged",
+    "All existing template event attributes unchanged",
+    "Existing Stage read URLs and exact validators unchanged",
+    "Existing approved-backfill precedence and HK-only stage behavior",
+    "Current runtime task-status contract prefix unchanged",
+    "R3 accepted panel after bytes unchanged",
+    "Full payload unified_rows and status flags not mutated"
+  ],
+  "not_run": [
+    "FULL_VITE_BUILD",
+    "FULL_LIVE_DEPENDENCY_GRAPH_VERIFICATION",
+    "MAC_8873_HTTP",
+    "MAC_8873_BROWSER",
+    "DEPLOYMENT",
+    "NATURAL_PERIOD_ACCEPTANCE"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "evidence_files": {
+    "current-live-ui.patch": "698f05df561908ade11f2a8ac08803d21aca00ea46e862baee82072d7f9a6821",
+    "evidence/INPUT_IDENTITIES.json": "24d283c188f77eaff16c47371b726885fcc82787bbdd278969f01cd9b71930c3",
+    "evidence/ui_RED_summary.log": "7bb1e3e576b17b3d544fff6c7beb4fe57a4efe4cd4b9c776e1872abbf791c871",
+    "evidence/ui_GREEN_summary.log": "9fe1c9fb58ec13a1a6be2fa97e340319b03b85a97d9b311c14c646fcf2c50bd3",
+    "evidence/original_prepare_before.json": "20ff923eb5d9b134cb2800886224c46001dbcab7f0f3653d3e978743b3b64aff",
+    "evidence/original_prepare_after.json": "64dc9ddd942eef51b46701d2ba1fadf455b5a6643c0d1b68b0ae1aefa2a8376b",
+    "evidence/original_prepare_wrong_canonical.json": "190a43567f326e164741797b2f121c6f0b44d1a3ac5ed4fb25ec29af72cd5aee"
+  }
+}

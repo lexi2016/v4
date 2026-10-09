@@ -1,0 +1,104 @@
+{
+  "RESEARCH_ONLY": true,
+  "actual_deployment": false,
+  "actual_service_actions": false,
+  "buy_gate_updated": false,
+  "cases": [
+    {
+      "accepted": false,
+      "error": "STAGE_SWITCH_FAILED_AND_ROLLED_BACK:HISTORICAL_FINANCIAL_SAFETY_CHANGED",
+      "exception_type": "PublicationFailure",
+      "fault": "historical_unsafe_flag",
+      "fixture_root": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/publication_http_probes_fixed/historical_unsafe_flag",
+      "mutations": [
+        "historical.orders_sent=true"
+      ],
+      "pointer_restored_to_preimage": true,
+      "simulated_service_actions": [
+        "bootout",
+        "bootstrap",
+        "bootout",
+        "bootstrap"
+      ]
+    },
+    {
+      "accepted": false,
+      "error": "STAGE_SWITCH_FAILED_AND_ROLLED_BACK:RESEARCH_HTTP_UNIFIED_ROWS_MISMATCH",
+      "exception_type": "PublicationFailure",
+      "fault": "missing_unified_rows",
+      "fixture_root": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/publication_http_probes_fixed/missing_unified_rows",
+      "mutations": [
+        "target.unified_rows=[]"
+      ],
+      "pointer_restored_to_preimage": true,
+      "simulated_service_actions": [
+        "bootout",
+        "bootstrap",
+        "bootout",
+        "bootstrap"
+      ]
+    },
+    {
+      "accepted": false,
+      "error": "STAGE_SWITCH_FAILED_AND_ROLLED_BACK:RESEARCH_HTTP_SELECTED_EVIDENCE_MISMATCH:A_SHARE",
+      "exception_type": "PublicationFailure",
+      "fault": "wrong_execution_algorithm_sha",
+      "fixture_root": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/publication_http_probes_fixed/wrong_execution_algorithm_sha",
+      "mutations": [
+        "target.execution_evidence.selection_results.A_SHARE.algorithm_sha256=ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      ],
+      "pointer_restored_to_preimage": true,
+      "simulated_service_actions": [
+        "bootout",
+        "bootstrap",
+        "bootout",
+        "bootstrap"
+      ]
+    },
+    {
+      "accepted": false,
+      "error": "STAGE_SWITCH_FAILED_AND_ROLLED_BACK:RESEARCH_HTTP_MARKET_COUNTS_OR_STATUS_MISMATCH:A_SHARE",
+      "exception_type": "PublicationFailure",
+      "fault": "truncated_requested_count",
+      "fixture_root": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/publication_http_probes_fixed/truncated_requested_count",
+      "mutations": [
+        "target.markets.A.requested_rows=200 (approved=216)"
+      ],
+      "pointer_restored_to_preimage": true,
+      "simulated_service_actions": [
+        "bootout",
+        "bootstrap",
+        "bootout",
+        "bootstrap"
+      ]
+    }
+  ],
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "-B",
+    "work/review/probe_publication_http_semantics.py",
+    "--tool-root",
+    "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/frozen_publication_final/tools",
+    "--output",
+    "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/publication_http_probes_fixed"
+  ],
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "R3_PACKAGE": "/workspace/scratch/49c844334a98/v4/handoff/stage-r2-mac-adaptation-20261009-r3",
+    "R4_API_AFTER_ROOT": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/frozen_api/after",
+    "R4_API_BEFORE_ROOT": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/frozen_api/before",
+    "R4_API_TEST_ROOT": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/frozen_api/tests",
+    "R4_API_TOOL_ROOT": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/frozen_api/tools",
+    "R4_API_WORK_ROOT": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/frozen_api",
+    "R4_PUBLICATION_REFERENCE_ROOT": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/frozen_publication_initial/references",
+    "R4_RELEASE_TOOL_ROOT": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/frozen_initial/release/baseline_run/ops",
+    "R4_TOOL_ROOT": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/frozen_publication_final/tools"
+  },
+  "fixture_source_sha256": "67fb7443f411f52421449ec61c3061423f854fb671d5caeddde353c62a9948c0",
+  "orders_sent": false,
+  "production_allowed": false,
+  "scope": "ISOLATED_LINUX_FIXTURE_WITH_SIMULATED_LAUNCHD_AND_HTTP",
+  "tool_path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/frozen_publication_final/tools/stage_api_release.py",
+  "tool_sha256": "6a3771b465f7ed8fb570050cba395f210c3eafa899252081c6b0aaa873dfda63",
+  "tool_unchanged": true
+}

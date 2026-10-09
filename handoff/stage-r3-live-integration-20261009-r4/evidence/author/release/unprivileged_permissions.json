@@ -1,0 +1,14 @@
+{
+  "status": "NOT_RUN",
+  "reason": "subprocess uid/gid demotion failed in preexec_fn before tests started",
+  "runtime_uid": 0,
+  "target_uid": 65534,
+  "root_permission_mode_assertions": "PASS in 152-test suite",
+  "mac_acl_flags_xattrs": "NOT_RUN",
+  "namespace_probe": {
+    "command": "unshare --user --map-user=65534 --map-group=65534 -- python -B -c \"import os; print(os.getuid(), os.geteuid(), os.getgid())\"",
+    "exit_code": 1,
+    "stderr": "unshare: write failed /proc/self/uid_map: Operation not permitted",
+    "pytest_started": false
+  }
+}

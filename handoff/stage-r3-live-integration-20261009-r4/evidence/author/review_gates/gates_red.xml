@@ -1,0 +1,545 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="29" skipped="0" tests="40" time="0.610" timestamp="2026-10-09T07:25:00.235050-07:00" hostname="f2c20067ed3d"><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_junit_exact_complete_cases_pass" time="0.003"><failure message="TypeError: junit_gate() takes 2 positional arguments but 3 were given">tmp_path = PosixPath('/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/gates_red_tmp/test_junit_exact_complete_case0')
+
+    def test_junit_exact_complete_cases_pass(tmp_path):
+        path = tmp_path / 'result.xml'; junit(path, [case()])
+&gt;       result = runner().junit_gate(path, 1, ['test_fixture::one'])
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: junit_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:73: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_junit_incomplete_or_substituted_cases_fail[missing]" time="0.002"><failure message="TypeError: junit_gate() takes 2 positional arguments but 3 were given">tmp_path = PosixPath('/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/gates_red_tmp/test_junit_incomplete_or_subst0')
+defect = 'missing'
+
+    @pytest.mark.parametrize('defect', ['missing', 'declared_only', 'skip', 'failure', 'error',
+                                      'wrong_id', 'duplicate_id', 'count_changed'])
+    def test_junit_incomplete_or_substituted_cases_fail(tmp_path, defect):
+        path = tmp_path / 'result.xml'
+        if defect == 'declared_only': junit(path, [], tests=1)
+        elif defect == 'skip': junit(path, [case(child='&lt;skipped/&gt;')], skipped=1)
+        elif defect == 'failure': junit(path, [case(child='&lt;failure/&gt;')], failures=1)
+        elif defect == 'error': junit(path, [case(child='&lt;error/&gt;')], errors=1)
+        elif defect == 'wrong_id': junit(path, [case('replacement')])
+        elif defect == 'duplicate_id': junit(path, [case(), case()])
+        elif defect == 'count_changed': junit(path, [case(), case('two')])
+&gt;       assert runner().junit_gate(path, 1, ['test_fixture::one'])['status'] == 'FAIL'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: junit_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:89: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_junit_incomplete_or_substituted_cases_fail[declared_only]" time="0.003"><failure message="TypeError: junit_gate() takes 2 positional arguments but 3 were given">tmp_path = PosixPath('/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/gates_red_tmp/test_junit_incomplete_or_subst1')
+defect = 'declared_only'
+
+    @pytest.mark.parametrize('defect', ['missing', 'declared_only', 'skip', 'failure', 'error',
+                                      'wrong_id', 'duplicate_id', 'count_changed'])
+    def test_junit_incomplete_or_substituted_cases_fail(tmp_path, defect):
+        path = tmp_path / 'result.xml'
+        if defect == 'declared_only': junit(path, [], tests=1)
+        elif defect == 'skip': junit(path, [case(child='&lt;skipped/&gt;')], skipped=1)
+        elif defect == 'failure': junit(path, [case(child='&lt;failure/&gt;')], failures=1)
+        elif defect == 'error': junit(path, [case(child='&lt;error/&gt;')], errors=1)
+        elif defect == 'wrong_id': junit(path, [case('replacement')])
+        elif defect == 'duplicate_id': junit(path, [case(), case()])
+        elif defect == 'count_changed': junit(path, [case(), case('two')])
+&gt;       assert runner().junit_gate(path, 1, ['test_fixture::one'])['status'] == 'FAIL'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: junit_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:89: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_junit_incomplete_or_substituted_cases_fail[skip]" time="0.002"><failure message="TypeError: junit_gate() takes 2 positional arguments but 3 were given">tmp_path = PosixPath('/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/gates_red_tmp/test_junit_incomplete_or_subst2')
+defect = 'skip'
+
+    @pytest.mark.parametrize('defect', ['missing', 'declared_only', 'skip', 'failure', 'error',
+                                      'wrong_id', 'duplicate_id', 'count_changed'])
+    def test_junit_incomplete_or_substituted_cases_fail(tmp_path, defect):
+        path = tmp_path / 'result.xml'
+        if defect == 'declared_only': junit(path, [], tests=1)
+        elif defect == 'skip': junit(path, [case(child='&lt;skipped/&gt;')], skipped=1)
+        elif defect == 'failure': junit(path, [case(child='&lt;failure/&gt;')], failures=1)
+        elif defect == 'error': junit(path, [case(child='&lt;error/&gt;')], errors=1)
+        elif defect == 'wrong_id': junit(path, [case('replacement')])
+        elif defect == 'duplicate_id': junit(path, [case(), case()])
+        elif defect == 'count_changed': junit(path, [case(), case('two')])
+&gt;       assert runner().junit_gate(path, 1, ['test_fixture::one'])['status'] == 'FAIL'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: junit_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:89: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_junit_incomplete_or_substituted_cases_fail[failure]" time="0.002"><failure message="TypeError: junit_gate() takes 2 positional arguments but 3 were given">tmp_path = PosixPath('/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/gates_red_tmp/test_junit_incomplete_or_subst3')
+defect = 'failure'
+
+    @pytest.mark.parametrize('defect', ['missing', 'declared_only', 'skip', 'failure', 'error',
+                                      'wrong_id', 'duplicate_id', 'count_changed'])
+    def test_junit_incomplete_or_substituted_cases_fail(tmp_path, defect):
+        path = tmp_path / 'result.xml'
+        if defect == 'declared_only': junit(path, [], tests=1)
+        elif defect == 'skip': junit(path, [case(child='&lt;skipped/&gt;')], skipped=1)
+        elif defect == 'failure': junit(path, [case(child='&lt;failure/&gt;')], failures=1)
+        elif defect == 'error': junit(path, [case(child='&lt;error/&gt;')], errors=1)
+        elif defect == 'wrong_id': junit(path, [case('replacement')])
+        elif defect == 'duplicate_id': junit(path, [case(), case()])
+        elif defect == 'count_changed': junit(path, [case(), case('two')])
+&gt;       assert runner().junit_gate(path, 1, ['test_fixture::one'])['status'] == 'FAIL'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: junit_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:89: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_junit_incomplete_or_substituted_cases_fail[error]" time="0.004"><failure message="TypeError: junit_gate() takes 2 positional arguments but 3 were given">tmp_path = PosixPath('/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/gates_red_tmp/test_junit_incomplete_or_subst4')
+defect = 'error'
+
+    @pytest.mark.parametrize('defect', ['missing', 'declared_only', 'skip', 'failure', 'error',
+                                      'wrong_id', 'duplicate_id', 'count_changed'])
+    def test_junit_incomplete_or_substituted_cases_fail(tmp_path, defect):
+        path = tmp_path / 'result.xml'
+        if defect == 'declared_only': junit(path, [], tests=1)
+        elif defect == 'skip': junit(path, [case(child='&lt;skipped/&gt;')], skipped=1)
+        elif defect == 'failure': junit(path, [case(child='&lt;failure/&gt;')], failures=1)
+        elif defect == 'error': junit(path, [case(child='&lt;error/&gt;')], errors=1)
+        elif defect == 'wrong_id': junit(path, [case('replacement')])
+        elif defect == 'duplicate_id': junit(path, [case(), case()])
+        elif defect == 'count_changed': junit(path, [case(), case('two')])
+&gt;       assert runner().junit_gate(path, 1, ['test_fixture::one'])['status'] == 'FAIL'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: junit_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:89: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_junit_incomplete_or_substituted_cases_fail[wrong_id]" time="0.003"><failure message="TypeError: junit_gate() takes 2 positional arguments but 3 were given">tmp_path = PosixPath('/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/gates_red_tmp/test_junit_incomplete_or_subst5')
+defect = 'wrong_id'
+
+    @pytest.mark.parametrize('defect', ['missing', 'declared_only', 'skip', 'failure', 'error',
+                                      'wrong_id', 'duplicate_id', 'count_changed'])
+    def test_junit_incomplete_or_substituted_cases_fail(tmp_path, defect):
+        path = tmp_path / 'result.xml'
+        if defect == 'declared_only': junit(path, [], tests=1)
+        elif defect == 'skip': junit(path, [case(child='&lt;skipped/&gt;')], skipped=1)
+        elif defect == 'failure': junit(path, [case(child='&lt;failure/&gt;')], failures=1)
+        elif defect == 'error': junit(path, [case(child='&lt;error/&gt;')], errors=1)
+        elif defect == 'wrong_id': junit(path, [case('replacement')])
+        elif defect == 'duplicate_id': junit(path, [case(), case()])
+        elif defect == 'count_changed': junit(path, [case(), case('two')])
+&gt;       assert runner().junit_gate(path, 1, ['test_fixture::one'])['status'] == 'FAIL'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: junit_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:89: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_junit_incomplete_or_substituted_cases_fail[duplicate_id]" time="0.002"><failure message="TypeError: junit_gate() takes 2 positional arguments but 3 were given">tmp_path = PosixPath('/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/gates_red_tmp/test_junit_incomplete_or_subst6')
+defect = 'duplicate_id'
+
+    @pytest.mark.parametrize('defect', ['missing', 'declared_only', 'skip', 'failure', 'error',
+                                      'wrong_id', 'duplicate_id', 'count_changed'])
+    def test_junit_incomplete_or_substituted_cases_fail(tmp_path, defect):
+        path = tmp_path / 'result.xml'
+        if defect == 'declared_only': junit(path, [], tests=1)
+        elif defect == 'skip': junit(path, [case(child='&lt;skipped/&gt;')], skipped=1)
+        elif defect == 'failure': junit(path, [case(child='&lt;failure/&gt;')], failures=1)
+        elif defect == 'error': junit(path, [case(child='&lt;error/&gt;')], errors=1)
+        elif defect == 'wrong_id': junit(path, [case('replacement')])
+        elif defect == 'duplicate_id': junit(path, [case(), case()])
+        elif defect == 'count_changed': junit(path, [case(), case('two')])
+&gt;       assert runner().junit_gate(path, 1, ['test_fixture::one'])['status'] == 'FAIL'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: junit_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:89: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_junit_incomplete_or_substituted_cases_fail[count_changed]" time="0.002"><failure message="TypeError: junit_gate() takes 2 positional arguments but 3 were given">tmp_path = PosixPath('/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/gates_red_tmp/test_junit_incomplete_or_subst7')
+defect = 'count_changed'
+
+    @pytest.mark.parametrize('defect', ['missing', 'declared_only', 'skip', 'failure', 'error',
+                                      'wrong_id', 'duplicate_id', 'count_changed'])
+    def test_junit_incomplete_or_substituted_cases_fail(tmp_path, defect):
+        path = tmp_path / 'result.xml'
+        if defect == 'declared_only': junit(path, [], tests=1)
+        elif defect == 'skip': junit(path, [case(child='&lt;skipped/&gt;')], skipped=1)
+        elif defect == 'failure': junit(path, [case(child='&lt;failure/&gt;')], failures=1)
+        elif defect == 'error': junit(path, [case(child='&lt;error/&gt;')], errors=1)
+        elif defect == 'wrong_id': junit(path, [case('replacement')])
+        elif defect == 'duplicate_id': junit(path, [case(), case()])
+        elif defect == 'count_changed': junit(path, [case(), case('two')])
+&gt;       assert runner().junit_gate(path, 1, ['test_fixture::one'])['status'] == 'FAIL'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: junit_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:89: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_tap_exact_complete_cases_pass" time="0.001"><failure message="TypeError: tap_gate() takes 2 positional arguments but 3 were given">def test_tap_exact_complete_cases_pass():
+&gt;       result = runner().tap_gate(tap(), 1, ['one'])
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: tap_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:93: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_tap_incomplete_or_substituted_cases_fail[summary_only]" time="0.001"><failure message="TypeError: tap_gate() takes 2 positional arguments but 3 were given">defect = 'summary_only'
+
+    @pytest.mark.parametrize('defect', ['summary_only', 'missing_plan', 'duplicate_plan', 'wrong_plan',
+                                      'wrong_id', 'duplicate_id', 'not_ok', 'number_gap',
+                                      'skip_directive', 'todo_directive', 'skipped', 'cancelled',
+                                      'todo', 'fewer'])
+    def test_tap_incomplete_or_substituted_cases_fail(defect):
+        values = {
+            'summary_only': '# tests 1\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n',
+            'missing_plan': tap(plan=''), 'duplicate_plan': tap(plan='1..1\n1..1'),
+            'wrong_plan': tap(plan='1..2'), 'wrong_id': tap(assertion='ok 1 - replacement'),
+            'duplicate_id': tap(assertion='ok 1 - one\nok 2 - one', tests=2, passed=2, plan='1..2'),
+            'not_ok': tap(assertion='not ok 1 - one'), 'number_gap': tap(assertion='ok 2 - one'),
+            'skip_directive': tap(assertion='ok 1 - one # SKIP'),
+            'todo_directive': tap(assertion='ok 1 - one # TODO'),
+            'skipped': tap(skipped=1), 'cancelled': tap(cancelled=1), 'todo': tap(todo=1),
+            'fewer': tap(tests=0, passed=0),
+        }
+&gt;       assert runner().tap_gate(values[defect], 1, ['one'])['status'] == 'FAIL'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: tap_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:114: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_tap_incomplete_or_substituted_cases_fail[missing_plan]" time="0.001"><failure message="TypeError: tap_gate() takes 2 positional arguments but 3 were given">defect = 'missing_plan'
+
+    @pytest.mark.parametrize('defect', ['summary_only', 'missing_plan', 'duplicate_plan', 'wrong_plan',
+                                      'wrong_id', 'duplicate_id', 'not_ok', 'number_gap',
+                                      'skip_directive', 'todo_directive', 'skipped', 'cancelled',
+                                      'todo', 'fewer'])
+    def test_tap_incomplete_or_substituted_cases_fail(defect):
+        values = {
+            'summary_only': '# tests 1\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n',
+            'missing_plan': tap(plan=''), 'duplicate_plan': tap(plan='1..1\n1..1'),
+            'wrong_plan': tap(plan='1..2'), 'wrong_id': tap(assertion='ok 1 - replacement'),
+            'duplicate_id': tap(assertion='ok 1 - one\nok 2 - one', tests=2, passed=2, plan='1..2'),
+            'not_ok': tap(assertion='not ok 1 - one'), 'number_gap': tap(assertion='ok 2 - one'),
+            'skip_directive': tap(assertion='ok 1 - one # SKIP'),
+            'todo_directive': tap(assertion='ok 1 - one # TODO'),
+            'skipped': tap(skipped=1), 'cancelled': tap(cancelled=1), 'todo': tap(todo=1),
+            'fewer': tap(tests=0, passed=0),
+        }
+&gt;       assert runner().tap_gate(values[defect], 1, ['one'])['status'] == 'FAIL'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: tap_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:114: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_tap_incomplete_or_substituted_cases_fail[duplicate_plan]" time="0.001"><failure message="TypeError: tap_gate() takes 2 positional arguments but 3 were given">defect = 'duplicate_plan'
+
+    @pytest.mark.parametrize('defect', ['summary_only', 'missing_plan', 'duplicate_plan', 'wrong_plan',
+                                      'wrong_id', 'duplicate_id', 'not_ok', 'number_gap',
+                                      'skip_directive', 'todo_directive', 'skipped', 'cancelled',
+                                      'todo', 'fewer'])
+    def test_tap_incomplete_or_substituted_cases_fail(defect):
+        values = {
+            'summary_only': '# tests 1\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n',
+            'missing_plan': tap(plan=''), 'duplicate_plan': tap(plan='1..1\n1..1'),
+            'wrong_plan': tap(plan='1..2'), 'wrong_id': tap(assertion='ok 1 - replacement'),
+            'duplicate_id': tap(assertion='ok 1 - one\nok 2 - one', tests=2, passed=2, plan='1..2'),
+            'not_ok': tap(assertion='not ok 1 - one'), 'number_gap': tap(assertion='ok 2 - one'),
+            'skip_directive': tap(assertion='ok 1 - one # SKIP'),
+            'todo_directive': tap(assertion='ok 1 - one # TODO'),
+            'skipped': tap(skipped=1), 'cancelled': tap(cancelled=1), 'todo': tap(todo=1),
+            'fewer': tap(tests=0, passed=0),
+        }
+&gt;       assert runner().tap_gate(values[defect], 1, ['one'])['status'] == 'FAIL'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: tap_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:114: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_tap_incomplete_or_substituted_cases_fail[wrong_plan]" time="0.001"><failure message="TypeError: tap_gate() takes 2 positional arguments but 3 were given">defect = 'wrong_plan'
+
+    @pytest.mark.parametrize('defect', ['summary_only', 'missing_plan', 'duplicate_plan', 'wrong_plan',
+                                      'wrong_id', 'duplicate_id', 'not_ok', 'number_gap',
+                                      'skip_directive', 'todo_directive', 'skipped', 'cancelled',
+                                      'todo', 'fewer'])
+    def test_tap_incomplete_or_substituted_cases_fail(defect):
+        values = {
+            'summary_only': '# tests 1\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n',
+            'missing_plan': tap(plan=''), 'duplicate_plan': tap(plan='1..1\n1..1'),
+            'wrong_plan': tap(plan='1..2'), 'wrong_id': tap(assertion='ok 1 - replacement'),
+            'duplicate_id': tap(assertion='ok 1 - one\nok 2 - one', tests=2, passed=2, plan='1..2'),
+            'not_ok': tap(assertion='not ok 1 - one'), 'number_gap': tap(assertion='ok 2 - one'),
+            'skip_directive': tap(assertion='ok 1 - one # SKIP'),
+            'todo_directive': tap(assertion='ok 1 - one # TODO'),
+            'skipped': tap(skipped=1), 'cancelled': tap(cancelled=1), 'todo': tap(todo=1),
+            'fewer': tap(tests=0, passed=0),
+        }
+&gt;       assert runner().tap_gate(values[defect], 1, ['one'])['status'] == 'FAIL'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: tap_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:114: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_tap_incomplete_or_substituted_cases_fail[wrong_id]" time="0.001"><failure message="TypeError: tap_gate() takes 2 positional arguments but 3 were given">defect = 'wrong_id'
+
+    @pytest.mark.parametrize('defect', ['summary_only', 'missing_plan', 'duplicate_plan', 'wrong_plan',
+                                      'wrong_id', 'duplicate_id', 'not_ok', 'number_gap',
+                                      'skip_directive', 'todo_directive', 'skipped', 'cancelled',
+                                      'todo', 'fewer'])
+    def test_tap_incomplete_or_substituted_cases_fail(defect):
+        values = {
+            'summary_only': '# tests 1\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n',
+            'missing_plan': tap(plan=''), 'duplicate_plan': tap(plan='1..1\n1..1'),
+            'wrong_plan': tap(plan='1..2'), 'wrong_id': tap(assertion='ok 1 - replacement'),
+            'duplicate_id': tap(assertion='ok 1 - one\nok 2 - one', tests=2, passed=2, plan='1..2'),
+            'not_ok': tap(assertion='not ok 1 - one'), 'number_gap': tap(assertion='ok 2 - one'),
+            'skip_directive': tap(assertion='ok 1 - one # SKIP'),
+            'todo_directive': tap(assertion='ok 1 - one # TODO'),
+            'skipped': tap(skipped=1), 'cancelled': tap(cancelled=1), 'todo': tap(todo=1),
+            'fewer': tap(tests=0, passed=0),
+        }
+&gt;       assert runner().tap_gate(values[defect], 1, ['one'])['status'] == 'FAIL'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: tap_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:114: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_tap_incomplete_or_substituted_cases_fail[duplicate_id]" time="0.001"><failure message="TypeError: tap_gate() takes 2 positional arguments but 3 were given">defect = 'duplicate_id'
+
+    @pytest.mark.parametrize('defect', ['summary_only', 'missing_plan', 'duplicate_plan', 'wrong_plan',
+                                      'wrong_id', 'duplicate_id', 'not_ok', 'number_gap',
+                                      'skip_directive', 'todo_directive', 'skipped', 'cancelled',
+                                      'todo', 'fewer'])
+    def test_tap_incomplete_or_substituted_cases_fail(defect):
+        values = {
+            'summary_only': '# tests 1\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n',
+            'missing_plan': tap(plan=''), 'duplicate_plan': tap(plan='1..1\n1..1'),
+            'wrong_plan': tap(plan='1..2'), 'wrong_id': tap(assertion='ok 1 - replacement'),
+            'duplicate_id': tap(assertion='ok 1 - one\nok 2 - one', tests=2, passed=2, plan='1..2'),
+            'not_ok': tap(assertion='not ok 1 - one'), 'number_gap': tap(assertion='ok 2 - one'),
+            'skip_directive': tap(assertion='ok 1 - one # SKIP'),
+            'todo_directive': tap(assertion='ok 1 - one # TODO'),
+            'skipped': tap(skipped=1), 'cancelled': tap(cancelled=1), 'todo': tap(todo=1),
+            'fewer': tap(tests=0, passed=0),
+        }
+&gt;       assert runner().tap_gate(values[defect], 1, ['one'])['status'] == 'FAIL'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: tap_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:114: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_tap_incomplete_or_substituted_cases_fail[not_ok]" time="0.001"><failure message="TypeError: tap_gate() takes 2 positional arguments but 3 were given">defect = 'not_ok'
+
+    @pytest.mark.parametrize('defect', ['summary_only', 'missing_plan', 'duplicate_plan', 'wrong_plan',
+                                      'wrong_id', 'duplicate_id', 'not_ok', 'number_gap',
+                                      'skip_directive', 'todo_directive', 'skipped', 'cancelled',
+                                      'todo', 'fewer'])
+    def test_tap_incomplete_or_substituted_cases_fail(defect):
+        values = {
+            'summary_only': '# tests 1\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n',
+            'missing_plan': tap(plan=''), 'duplicate_plan': tap(plan='1..1\n1..1'),
+            'wrong_plan': tap(plan='1..2'), 'wrong_id': tap(assertion='ok 1 - replacement'),
+            'duplicate_id': tap(assertion='ok 1 - one\nok 2 - one', tests=2, passed=2, plan='1..2'),
+            'not_ok': tap(assertion='not ok 1 - one'), 'number_gap': tap(assertion='ok 2 - one'),
+            'skip_directive': tap(assertion='ok 1 - one # SKIP'),
+            'todo_directive': tap(assertion='ok 1 - one # TODO'),
+            'skipped': tap(skipped=1), 'cancelled': tap(cancelled=1), 'todo': tap(todo=1),
+            'fewer': tap(tests=0, passed=0),
+        }
+&gt;       assert runner().tap_gate(values[defect], 1, ['one'])['status'] == 'FAIL'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: tap_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:114: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_tap_incomplete_or_substituted_cases_fail[number_gap]" time="0.001"><failure message="TypeError: tap_gate() takes 2 positional arguments but 3 were given">defect = 'number_gap'
+
+    @pytest.mark.parametrize('defect', ['summary_only', 'missing_plan', 'duplicate_plan', 'wrong_plan',
+                                      'wrong_id', 'duplicate_id', 'not_ok', 'number_gap',
+                                      'skip_directive', 'todo_directive', 'skipped', 'cancelled',
+                                      'todo', 'fewer'])
+    def test_tap_incomplete_or_substituted_cases_fail(defect):
+        values = {
+            'summary_only': '# tests 1\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n',
+            'missing_plan': tap(plan=''), 'duplicate_plan': tap(plan='1..1\n1..1'),
+            'wrong_plan': tap(plan='1..2'), 'wrong_id': tap(assertion='ok 1 - replacement'),
+            'duplicate_id': tap(assertion='ok 1 - one\nok 2 - one', tests=2, passed=2, plan='1..2'),
+            'not_ok': tap(assertion='not ok 1 - one'), 'number_gap': tap(assertion='ok 2 - one'),
+            'skip_directive': tap(assertion='ok 1 - one # SKIP'),
+            'todo_directive': tap(assertion='ok 1 - one # TODO'),
+            'skipped': tap(skipped=1), 'cancelled': tap(cancelled=1), 'todo': tap(todo=1),
+            'fewer': tap(tests=0, passed=0),
+        }
+&gt;       assert runner().tap_gate(values[defect], 1, ['one'])['status'] == 'FAIL'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: tap_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:114: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_tap_incomplete_or_substituted_cases_fail[skip_directive]" time="0.001"><failure message="TypeError: tap_gate() takes 2 positional arguments but 3 were given">defect = 'skip_directive'
+
+    @pytest.mark.parametrize('defect', ['summary_only', 'missing_plan', 'duplicate_plan', 'wrong_plan',
+                                      'wrong_id', 'duplicate_id', 'not_ok', 'number_gap',
+                                      'skip_directive', 'todo_directive', 'skipped', 'cancelled',
+                                      'todo', 'fewer'])
+    def test_tap_incomplete_or_substituted_cases_fail(defect):
+        values = {
+            'summary_only': '# tests 1\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n',
+            'missing_plan': tap(plan=''), 'duplicate_plan': tap(plan='1..1\n1..1'),
+            'wrong_plan': tap(plan='1..2'), 'wrong_id': tap(assertion='ok 1 - replacement'),
+            'duplicate_id': tap(assertion='ok 1 - one\nok 2 - one', tests=2, passed=2, plan='1..2'),
+            'not_ok': tap(assertion='not ok 1 - one'), 'number_gap': tap(assertion='ok 2 - one'),
+            'skip_directive': tap(assertion='ok 1 - one # SKIP'),
+            'todo_directive': tap(assertion='ok 1 - one # TODO'),
+            'skipped': tap(skipped=1), 'cancelled': tap(cancelled=1), 'todo': tap(todo=1),
+            'fewer': tap(tests=0, passed=0),
+        }
+&gt;       assert runner().tap_gate(values[defect], 1, ['one'])['status'] == 'FAIL'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: tap_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:114: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_tap_incomplete_or_substituted_cases_fail[todo_directive]" time="0.001"><failure message="TypeError: tap_gate() takes 2 positional arguments but 3 were given">defect = 'todo_directive'
+
+    @pytest.mark.parametrize('defect', ['summary_only', 'missing_plan', 'duplicate_plan', 'wrong_plan',
+                                      'wrong_id', 'duplicate_id', 'not_ok', 'number_gap',
+                                      'skip_directive', 'todo_directive', 'skipped', 'cancelled',
+                                      'todo', 'fewer'])
+    def test_tap_incomplete_or_substituted_cases_fail(defect):
+        values = {
+            'summary_only': '# tests 1\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n',
+            'missing_plan': tap(plan=''), 'duplicate_plan': tap(plan='1..1\n1..1'),
+            'wrong_plan': tap(plan='1..2'), 'wrong_id': tap(assertion='ok 1 - replacement'),
+            'duplicate_id': tap(assertion='ok 1 - one\nok 2 - one', tests=2, passed=2, plan='1..2'),
+            'not_ok': tap(assertion='not ok 1 - one'), 'number_gap': tap(assertion='ok 2 - one'),
+            'skip_directive': tap(assertion='ok 1 - one # SKIP'),
+            'todo_directive': tap(assertion='ok 1 - one # TODO'),
+            'skipped': tap(skipped=1), 'cancelled': tap(cancelled=1), 'todo': tap(todo=1),
+            'fewer': tap(tests=0, passed=0),
+        }
+&gt;       assert runner().tap_gate(values[defect], 1, ['one'])['status'] == 'FAIL'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: tap_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:114: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_tap_incomplete_or_substituted_cases_fail[skipped]" time="0.001"><failure message="TypeError: tap_gate() takes 2 positional arguments but 3 were given">defect = 'skipped'
+
+    @pytest.mark.parametrize('defect', ['summary_only', 'missing_plan', 'duplicate_plan', 'wrong_plan',
+                                      'wrong_id', 'duplicate_id', 'not_ok', 'number_gap',
+                                      'skip_directive', 'todo_directive', 'skipped', 'cancelled',
+                                      'todo', 'fewer'])
+    def test_tap_incomplete_or_substituted_cases_fail(defect):
+        values = {
+            'summary_only': '# tests 1\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n',
+            'missing_plan': tap(plan=''), 'duplicate_plan': tap(plan='1..1\n1..1'),
+            'wrong_plan': tap(plan='1..2'), 'wrong_id': tap(assertion='ok 1 - replacement'),
+            'duplicate_id': tap(assertion='ok 1 - one\nok 2 - one', tests=2, passed=2, plan='1..2'),
+            'not_ok': tap(assertion='not ok 1 - one'), 'number_gap': tap(assertion='ok 2 - one'),
+            'skip_directive': tap(assertion='ok 1 - one # SKIP'),
+            'todo_directive': tap(assertion='ok 1 - one # TODO'),
+            'skipped': tap(skipped=1), 'cancelled': tap(cancelled=1), 'todo': tap(todo=1),
+            'fewer': tap(tests=0, passed=0),
+        }
+&gt;       assert runner().tap_gate(values[defect], 1, ['one'])['status'] == 'FAIL'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: tap_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:114: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_tap_incomplete_or_substituted_cases_fail[cancelled]" time="0.001"><failure message="TypeError: tap_gate() takes 2 positional arguments but 3 were given">defect = 'cancelled'
+
+    @pytest.mark.parametrize('defect', ['summary_only', 'missing_plan', 'duplicate_plan', 'wrong_plan',
+                                      'wrong_id', 'duplicate_id', 'not_ok', 'number_gap',
+                                      'skip_directive', 'todo_directive', 'skipped', 'cancelled',
+                                      'todo', 'fewer'])
+    def test_tap_incomplete_or_substituted_cases_fail(defect):
+        values = {
+            'summary_only': '# tests 1\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n',
+            'missing_plan': tap(plan=''), 'duplicate_plan': tap(plan='1..1\n1..1'),
+            'wrong_plan': tap(plan='1..2'), 'wrong_id': tap(assertion='ok 1 - replacement'),
+            'duplicate_id': tap(assertion='ok 1 - one\nok 2 - one', tests=2, passed=2, plan='1..2'),
+            'not_ok': tap(assertion='not ok 1 - one'), 'number_gap': tap(assertion='ok 2 - one'),
+            'skip_directive': tap(assertion='ok 1 - one # SKIP'),
+            'todo_directive': tap(assertion='ok 1 - one # TODO'),
+            'skipped': tap(skipped=1), 'cancelled': tap(cancelled=1), 'todo': tap(todo=1),
+            'fewer': tap(tests=0, passed=0),
+        }
+&gt;       assert runner().tap_gate(values[defect], 1, ['one'])['status'] == 'FAIL'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: tap_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:114: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_tap_incomplete_or_substituted_cases_fail[todo]" time="0.001"><failure message="TypeError: tap_gate() takes 2 positional arguments but 3 were given">defect = 'todo'
+
+    @pytest.mark.parametrize('defect', ['summary_only', 'missing_plan', 'duplicate_plan', 'wrong_plan',
+                                      'wrong_id', 'duplicate_id', 'not_ok', 'number_gap',
+                                      'skip_directive', 'todo_directive', 'skipped', 'cancelled',
+                                      'todo', 'fewer'])
+    def test_tap_incomplete_or_substituted_cases_fail(defect):
+        values = {
+            'summary_only': '# tests 1\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n',
+            'missing_plan': tap(plan=''), 'duplicate_plan': tap(plan='1..1\n1..1'),
+            'wrong_plan': tap(plan='1..2'), 'wrong_id': tap(assertion='ok 1 - replacement'),
+            'duplicate_id': tap(assertion='ok 1 - one\nok 2 - one', tests=2, passed=2, plan='1..2'),
+            'not_ok': tap(assertion='not ok 1 - one'), 'number_gap': tap(assertion='ok 2 - one'),
+            'skip_directive': tap(assertion='ok 1 - one # SKIP'),
+            'todo_directive': tap(assertion='ok 1 - one # TODO'),
+            'skipped': tap(skipped=1), 'cancelled': tap(cancelled=1), 'todo': tap(todo=1),
+            'fewer': tap(tests=0, passed=0),
+        }
+&gt;       assert runner().tap_gate(values[defect], 1, ['one'])['status'] == 'FAIL'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: tap_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:114: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_tap_incomplete_or_substituted_cases_fail[fewer]" time="0.001"><failure message="TypeError: tap_gate() takes 2 positional arguments but 3 were given">defect = 'fewer'
+
+    @pytest.mark.parametrize('defect', ['summary_only', 'missing_plan', 'duplicate_plan', 'wrong_plan',
+                                      'wrong_id', 'duplicate_id', 'not_ok', 'number_gap',
+                                      'skip_directive', 'todo_directive', 'skipped', 'cancelled',
+                                      'todo', 'fewer'])
+    def test_tap_incomplete_or_substituted_cases_fail(defect):
+        values = {
+            'summary_only': '# tests 1\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n',
+            'missing_plan': tap(plan=''), 'duplicate_plan': tap(plan='1..1\n1..1'),
+            'wrong_plan': tap(plan='1..2'), 'wrong_id': tap(assertion='ok 1 - replacement'),
+            'duplicate_id': tap(assertion='ok 1 - one\nok 2 - one', tests=2, passed=2, plan='1..2'),
+            'not_ok': tap(assertion='not ok 1 - one'), 'number_gap': tap(assertion='ok 2 - one'),
+            'skip_directive': tap(assertion='ok 1 - one # SKIP'),
+            'todo_directive': tap(assertion='ok 1 - one # TODO'),
+            'skipped': tap(skipped=1), 'cancelled': tap(cancelled=1), 'todo': tap(todo=1),
+            'fewer': tap(tests=0, passed=0),
+        }
+&gt;       assert runner().tap_gate(values[defect], 1, ['one'])['status'] == 'FAIL'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: tap_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:114: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_bound_expectations_accept_only_the_frozen_test_files" time="0.003"><failure message="ValueError: exact nonzero counts for every required suite and maximum_skipped=0 required">tmp_path = PosixPath('/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/gates_red_tmp/test_bound_expectations_accept0')
+
+    def test_bound_expectations_accept_only_the_frozen_test_files(tmp_path):
+        package = tmp_path / 'package'; miniature(package)
+&gt;       value, observed = runner().load_expectations(package)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+work/review/delivery_tests/test_run_checks_gates.py:119: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+package = PosixPath('/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/gates_red_tmp/test_bound_expectations_accept0/package')
+
+    def load_expectations(package):
+        """Frozen reviewed counts, never learned from the current test run."""
+        path = package / 'TEST_EXPECTATIONS.json'
+        value = json.loads(path.read_text())
+        counts = value['expected_tests']
+        if (value.get('schema_version') != 'V4_TEST_EXPECTATIONS_V1'
+                or set(counts) != set(REQUIRED_SUITES)
+                or any(type(n) is not int or n &lt; 1 for n in counts.values())
+                or value.get('maximum_skipped') != 0):
+&gt;           raise ValueError('exact nonzero counts for every required suite and maximum_skipped=0 required')
+E           ValueError: exact nonzero counts for every required suite and maximum_skipped=0 required
+
+work/review/delivery_tools/run_checks.py:14: ValueError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_expectations_reject_unreviewed_counts_cases_or_files[unbound_sha]" time="0.003" /><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_expectations_reject_unreviewed_counts_cases_or_files[zero_count]" time="0.003" /><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_expectations_reject_unreviewed_counts_cases_or_files[missing_suite]" time="0.003" /><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_expectations_reject_unreviewed_counts_cases_or_files[extra_suite]" time="0.003" /><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_expectations_reject_unreviewed_counts_cases_or_files[wrong_id_count]" time="0.003" /><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_expectations_reject_unreviewed_counts_cases_or_files[duplicate_id]" time="0.003" /><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_expectations_reject_unreviewed_counts_cases_or_files[missing_file]" time="0.003" /><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_expectations_reject_unreviewed_counts_cases_or_files[changed_file]" time="0.003" /><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_expectations_reject_unreviewed_counts_cases_or_files[added_file]" time="0.003" /><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_expectations_reject_unreviewed_counts_cases_or_files[outside_path]" time="0.003" /><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_expectations_reject_unreviewed_counts_cases_or_files[symlink_file]" time="0.003" /><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_real_zero_exit_skipped_process_is_rejected[pytest]" time="0.204"><failure message="TypeError: junit_gate() takes 2 positional arguments but 3 were given">tmp_path = PosixPath('/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/gates_red_tmp/test_real_zero_exit_skipped_pr0')
+framework = 'pytest'
+
+    @pytest.mark.parametrize('framework', ['pytest', 'node'])
+    def test_real_zero_exit_skipped_process_is_rejected(tmp_path, framework):
+        if framework == 'pytest':
+            path = tmp_path / 'test_real.py'
+            write(path, "import pytest\n@pytest.mark.skip(reason='real skipped process')\ndef test_one():\n    assert True\n")
+            xml = tmp_path / 'result.xml'
+            process = subprocess.run([sys.executable, '-B', '-m', 'pytest', '-q', '-p', 'no:cacheprovider',
+                                      str(path), '--junitxml=' + str(xml)], capture_output=True, text=True,
+                                     env={**os.environ, 'PYTEST_DISABLE_PLUGIN_AUTOLOAD': '1', 'PYTHONDONTWRITEBYTECODE': '1'})
+&gt;           gate = runner().junit_gate(xml, 1, ['test_real::test_one'])
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           TypeError: junit_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:158: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_real_zero_exit_skipped_process_is_rejected[node]" time="0.163"><failure message="TypeError: tap_gate() takes 2 positional arguments but 3 were given">tmp_path = PosixPath('/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/gates_red_tmp/test_real_zero_exit_skipped_pr1')
+framework = 'node'
+
+    @pytest.mark.parametrize('framework', ['pytest', 'node'])
+    def test_real_zero_exit_skipped_process_is_rejected(tmp_path, framework):
+        if framework == 'pytest':
+            path = tmp_path / 'test_real.py'
+            write(path, "import pytest\n@pytest.mark.skip(reason='real skipped process')\ndef test_one():\n    assert True\n")
+            xml = tmp_path / 'result.xml'
+            process = subprocess.run([sys.executable, '-B', '-m', 'pytest', '-q', '-p', 'no:cacheprovider',
+                                      str(path), '--junitxml=' + str(xml)], capture_output=True, text=True,
+                                     env={**os.environ, 'PYTEST_DISABLE_PLUGIN_AUTOLOAD': '1', 'PYTHONDONTWRITEBYTECODE': '1'})
+            gate = runner().junit_gate(xml, 1, ['test_real::test_one'])
+        else:
+            path = tmp_path / 'real.test.mjs'
+            write(path, "import test from 'node:test';\ntest('one', {skip:'real skipped process'}, () =&gt; {});\n")
+            node = shutil.which('node'); assert node is not None
+            process = subprocess.run([node, '--test', '--test-reporter=tap', str(path)], capture_output=True, text=True)
+&gt;           gate = runner().tap_gate(process.stdout, 1, ['one'])
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           TypeError: tap_gate() takes 2 positional arguments but 3 were given
+
+work/review/delivery_tests/test_run_checks_gates.py:164: TypeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_fixture_gate_requires_actual_receipt_and_responses" time="0.001"><failure message="AttributeError: module 'independent_r4_gate_runner' has no attribute 'validate_fixture'">tmp_path = PosixPath('/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/gates_red_tmp/test_fixture_gate_requires_act0')
+
+    def test_fixture_gate_requires_actual_receipt_and_responses(tmp_path):
+        with pytest.raises((ValueError, OSError)):
+&gt;           runner().validate_fixture(tmp_path / 'missing_fixture', {}, 'a' * 64)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'independent_r4_gate_runner' has no attribute 'validate_fixture'
+
+work/review/delivery_tests/test_run_checks_gates.py:171: AttributeError</failure></testcase><testcase classname="work.review.delivery_tests.test_run_checks_gates" name="test_review_output_cannot_overlap_any_input" time="0.002"><failure message="AttributeError: module 'independent_r4_gate_runner' has no attribute 'new_output'">tmp_path = PosixPath('/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/gates_red_tmp/test_review_output_cannot_over0')
+
+    def test_review_output_cannot_overlap_any_input(tmp_path):
+        source = tmp_path / 'source'; source.mkdir()
+        with pytest.raises((ValueError, OSError)):
+&gt;           runner().new_output(source / 'nested', [source])
+            ^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'independent_r4_gate_runner' has no attribute 'new_output'
+
+work/review/delivery_tests/test_run_checks_gates.py:177: AttributeError</failure></testcase></testsuite></testsuites>

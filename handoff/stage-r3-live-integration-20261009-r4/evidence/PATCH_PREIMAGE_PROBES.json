@@ -1,0 +1,110 @@
+{
+  "RESEARCH_ONLY": true,
+  "buy_gate_updated": false,
+  "finished_at_utc": "2026-10-09T15:07:50.970745+00:00",
+  "inspections": {
+    "api": {
+      "report_sha256": "9de713dea052df4326918d2668377a0b256a956a63fe3d8e0403d0c969908655",
+      "status": "PREFLIGHT_OK"
+    },
+    "ui": {
+      "report_sha256": "79a080cda3ce6eee2da9a9757b2f18fba808b1eaba002ea7706ce502946b8d4c",
+      "status": "PREFLIGHT_OK"
+    }
+  },
+  "orders_sent": false,
+  "package_write_performed": false,
+  "patches": {
+    "api": {
+      "all_after_sha256_matched": true,
+      "commands": [
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/49c844334a98/stage-r3-live-integration-20261009-r4/patches/api-before-to-after.patch"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/49c844334a98/stage-r3-live-integration-20261009-r4/patches/api-before-to-after.patch"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": ""
+        }
+      ],
+      "files": 4,
+      "patch_sha256": "87899d8e3047e67352dc850adbdaf0ee878a3e0518eeeadf2f46237a5ce8b1af",
+      "status": "PASS"
+    },
+    "release": {
+      "all_after_sha256_matched": true,
+      "commands": [
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/49c844334a98/stage-r3-live-integration-20261009-r4/patches/release-tools-before-to-after.patch"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/49c844334a98/stage-r3-live-integration-20261009-r4/patches/release-tools-before-to-after.patch"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": ""
+        }
+      ],
+      "files": 9,
+      "patch_sha256": "d610d56e48abeb8c6c1e26f672686d3408c8e8b9f034fef5f4f606d2a870cef6",
+      "status": "PASS"
+    },
+    "ui": {
+      "all_after_sha256_matched": true,
+      "commands": [
+        {
+          "command": [
+            "git",
+            "apply",
+            "--check",
+            "/workspace/scratch/49c844334a98/stage-r3-live-integration-20261009-r4/patches/ui-before-to-after.patch"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": ""
+        },
+        {
+          "command": [
+            "git",
+            "apply",
+            "/workspace/scratch/49c844334a98/stage-r3-live-integration-20261009-r4/patches/ui-before-to-after.patch"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": ""
+        }
+      ],
+      "files": 3,
+      "patch_sha256": "698f05df561908ade11f2a8ac08803d21aca00ea46e862baee82072d7f9a6821",
+      "status": "PASS"
+    }
+  },
+  "production_allowed": false,
+  "scope": "GIT_BYTES_MATCH_FIXED_MAC_REPORTED_PREIMAGE_FIXTURE_NOT_FULL_MAC_APP_OR_PERMISSION_ACCEPTANCE",
+  "source_map_sha256": "8773920e5d09da693b42d453bc4638e0cc1358d10da8c53fb12fe115eb0e6ab9",
+  "status": "PASS"
+}

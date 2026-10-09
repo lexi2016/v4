@@ -1,0 +1,118 @@
+{
+  "RESEARCH_ONLY": true,
+  "actual_browser_verification": false,
+  "actual_deployment": false,
+  "actual_service_actions": false,
+  "buy_gate_updated": false,
+  "counterexamples": {
+    "all_original_probes_replayed_unchanged": true,
+    "corrected_evidence": {
+      "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/publication_http_probes_fixed/RESULTS.json",
+      "sha256": "2579e4312dfea41e064739f04ae022d6514a1e25f170fd29e86d8f4fa24f0951"
+    },
+    "corrected_tool_sha256": "6a3771b465f7ed8fb570050cba395f210c3eafa899252081c6b0aaa873dfda63",
+    "findings": [
+      {
+        "case": "historical_unsafe_flag",
+        "preimage_restored": true,
+        "rejection": "STAGE_SWITCH_FAILED_AND_ROLLED_BACK:HISTORICAL_FINANCIAL_SAFETY_CHANGED",
+        "simulated_actions": [
+          "bootout",
+          "bootstrap",
+          "bootout",
+          "bootstrap"
+        ],
+        "status": "CLOSED"
+      },
+      {
+        "case": "missing_unified_rows",
+        "preimage_restored": true,
+        "rejection": "STAGE_SWITCH_FAILED_AND_ROLLED_BACK:RESEARCH_HTTP_UNIFIED_ROWS_MISMATCH",
+        "simulated_actions": [
+          "bootout",
+          "bootstrap",
+          "bootout",
+          "bootstrap"
+        ],
+        "status": "CLOSED"
+      },
+      {
+        "case": "wrong_execution_algorithm_sha",
+        "preimage_restored": true,
+        "rejection": "STAGE_SWITCH_FAILED_AND_ROLLED_BACK:RESEARCH_HTTP_SELECTED_EVIDENCE_MISMATCH:A_SHARE",
+        "simulated_actions": [
+          "bootout",
+          "bootstrap",
+          "bootout",
+          "bootstrap"
+        ],
+        "status": "CLOSED"
+      },
+      {
+        "case": "truncated_requested_count",
+        "preimage_restored": true,
+        "rejection": "STAGE_SWITCH_FAILED_AND_ROLLED_BACK:RESEARCH_HTTP_MARKET_COUNTS_OR_STATUS_MISMATCH:A_SHARE",
+        "simulated_actions": [
+          "bootout",
+          "bootstrap",
+          "bootout",
+          "bootstrap"
+        ],
+        "status": "CLOSED"
+      }
+    ],
+    "initial_evidence": {
+      "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/publication_http_probes/RESULTS.json",
+      "sha256": "ab0662ed789805fbb3193937d4974118dad9cccf6329a8d7240d9fdbecec03a7"
+    },
+    "initial_tool_sha256": "f911692dd27e73a4de72522d06fe2c842abd5a1e4af729c14825657466f42e8f"
+  },
+  "execution_verified": false,
+  "final_assembled_package_check": "PENDING_PARENT_FROZEN_NOTICE",
+  "independent_suite": {
+    "errors": 0,
+    "failures": 0,
+    "junit": {
+      "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/evidence_initial/publication_independent.xml",
+      "sha256": "58821f81f792e131e85370531b7c161ab387c420398987fdd958626f6825f466"
+    },
+    "passed": 40,
+    "run_receipt": {
+      "path": "/workspace/scratch/49c844334a98/v4/handoff/stage-r3-live-integration-20261009-r4/work/review/PUBLICATION_INDEPENDENT.json",
+      "sha256": "c3631abdf5c3d39aeb64510c5144fb45fddd08ee6ec4a5940b3e6d031564e76c"
+    },
+    "skipped": 0,
+    "tests": 40
+  },
+  "natural_verified": false,
+  "open_reproduced_publication_findings": [],
+  "orders_sent": false,
+  "production_allowed": false,
+  "recorded_at_utc": "2026-10-09T15:02:46.751513+00:00",
+  "reviewer_is_production_code_author": false,
+  "reviewer_role": "/root/r4_independent_review",
+  "schema_version": "V4_STAGE_R4_INDEPENDENT_PUBLICATION_REVIEW_V1",
+  "scope": "ISOLATED_LINUX_ORIGINAL_STORE_AND_CANDIDATE_FIXTURES_WITH_SIMULATED_LAUNCHD_AND_HTTP",
+  "source_review": {
+    "candidate_corruption_does_not_block_original_base_recovery": true,
+    "current_manager_and_history_roots_preserved": true,
+    "frozen_publisher_constants_changed": false,
+    "prepared_receipt_and_recorded_base_bound_for_rollback": true,
+    "shared_original_lock_and_transaction_primitives_reused": true,
+    "unchanged_original_lock_guard_sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+    "unchanged_original_publisher_sha256": "864a07b9bdf915a14b877eac89ddc931bb0f4976b70599c242671ff177e9cf25"
+  },
+  "source_sha256": {
+    "references/api_only_cutover_issue32_r4.py": "864a07b9bdf915a14b877eac89ddc931bb0f4976b70599c242671ff177e9cf25",
+    "references/api_release_integration_before.py": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+    "tests/test_live_release_preparation.py": "11114206d1aa8080835b714cb73f415def241e60dc5200e8643d171dde3a3eeb",
+    "tests/test_stage_api_release.py": "4c2e1c8ba0a8d4f400e161fc7a444fcbc75dbfff8b917fc638f8681c024d6466",
+    "tools/build_stage_ui.py": "06aa4fd4a034af1cf3b1e761a5e9d0c062eec1f26152f2b08f6f2c202e16e4dc",
+    "tools/canary_sources.py": "5c7e0079796bc599fa43b684f81aae3ce55977e6fade71a0f3580d9d72610ebb",
+    "tools/prepare_canary.py": "e2aefe2196b4087dd4158463222f4346f6be310aac6b52ad79afab57052ea014",
+    "tools/prepare_live_release.py": "442a90b4c0832ff9fec193865e7fc0a00be32fce002e8728fe49edf413d23fa2",
+    "tools/prepare_research_binding.py": "c564dbdb739f239c8243f3dd38705d73a2998ff11e0757b50899e80503daedc9",
+    "tools/stage_api_release.py": "6a3771b465f7ed8fb570050cba395f210c3eafa899252081c6b0aaa873dfda63"
+  },
+  "verdict": "PASS_FOR_FROZEN_PUBLICATION_SOURCE"
+}

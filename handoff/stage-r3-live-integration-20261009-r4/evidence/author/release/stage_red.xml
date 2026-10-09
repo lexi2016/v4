@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="15" skipped="0" tests="34" time="0.498" timestamp="2026-10-09T07:03:36.917780-07:00" hostname="f2c20067ed3d"><testcase classname="tests.test_stage_release_r4" name="test_stage_exact_ownership_and_shared_scope_are_supported" time="0.001"><failure message="ValueError: API_RELEASE_MODULE_UNKNOWN">def test_stage_exact_ownership_and_shared_scope_are_supported():
+&gt;       scope = guard.module_scope('stage', SHARED)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+candidate_run/tests/test_stage_release_r4.py:135: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+module = 'stage'
+shared_paths = ['apps/api/v35_api/app.py', 'apps/web/src/App.vue', 'apps/web/src/contracts/runtime.ts']
+
+    def module_scope(module: str, shared_paths: Sequence[str] = ()) -&gt; dict[str, Any]:
+        if not isinstance(module, str) or module not in POLICY["modules"]:
+&gt;           raise ValueError("API_RELEASE_MODULE_UNKNOWN")
+E           ValueError: API_RELEASE_MODULE_UNKNOWN
+
+candidate_run/ops/api_release_integration.py:575: ValueError</failure></testcase><testcase classname="tests.test_stage_release_r4" name="test_stage_does_not_acquire_other_owners[stage_center/selection.py]" time="0.000" /><testcase classname="tests.test_stage_release_r4" name="test_stage_does_not_acquire_other_owners[stage_center/runner.py]" time="0.000" /><testcase classname="tests.test_stage_release_r4" name="test_stage_does_not_acquire_other_owners[domains/preselection.py]" time="0.000" /><testcase classname="tests.test_stage_release_r4" name="test_stage_does_not_acquire_other_owners[v4/manager_research/keep.py]" time="0.000" /><testcase classname="tests.test_stage_release_r4" name="test_stage_does_not_acquire_other_owners[apps/api/v35_api/config.py]" time="0.000" /><testcase classname="tests.test_stage_release_r4" name="test_stage_does_not_acquire_other_owners[apps/api/v35_api/run.py]" time="0.000" /><testcase classname="tests.test_stage_release_r4" name="test_stage_does_not_acquire_other_owners[apps/web/src/components/ManagerPanel.vue]" time="0.001" /><testcase classname="tests.test_stage_release_r4" name="test_stage_does_not_acquire_other_owners[ops/prepare_api_only_cutover.py]" time="0.000" /><testcase classname="tests.test_stage_release_r4" name="test_stage_generated_tree_replaces_only_exact_static_delta" time="0.006"><failure message="ValueError: API_MODULE_DELTA_CHANGE_SET_INVALID">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_stage_generated_tree_repl0')
+
+    def test_stage_generated_tree_replaces_only_exact_static_delta(tmp_path):
+&gt;       active, after, built, changes, root, manifest = integrated(tmp_path)
+                                                        ^^^^^^^^^^^^^^^^^^^^
+
+candidate_run/tests/test_stage_release_r4.py:151: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+candidate_run/tests/test_stage_release_r4.py:119: in integrated
+    active, after, built, pins, changes, receipt = make_delta(tmp_path)
+                                                   ^^^^^^^^^^^^^^^^^^^^
+candidate_run/tests/test_stage_release_r4.py:113: in make_delta
+    delta.create_module_delta(active_api_plist_path=Path(active['api_plist']),
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+active_api_plist_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_stage_generated_tree_repl0/LaunchAgents/com.lexi.v35.api-only.plist')
+after_root = PosixPath('/tmp/pytest-of-root/pytest-344/test_stage_generated_tree_repl0/reviewed-after')
+change_set_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_stage_generated_tree_repl0/changes.json')
+output_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_stage_generated_tree_repl0/delta.json')
+
+    def create_module_delta(*, active_api_plist_path: Path, after_root: Path,
+                            change_set_path: Path, output_path: Path) -&gt; dict[str, Any]:
+        after_root = integration._exact_path(after_root, kind='directory', label='API_MODULE_DELTA_AFTER_ROOT')
+        change_set_path = integration._exact_path(change_set_path, kind='file', label='API_MODULE_DELTA_CHANGE_SET')
+        raw, change_token = integration._read_file(change_set_path)
+        changes = integration._json_object(raw, 'API_MODULE_DELTA_CHANGE_SET')
+        if (set(changes) != {'schema_version', 'module', 'shared_paths', 'files'}
+                or changes['schema_version'] != CHANGE_SET_SCHEMA
+                or not isinstance(changes['files'], list) or not changes['files']):
+&gt;           raise ValueError('API_MODULE_DELTA_CHANGE_SET_INVALID')
+E           ValueError: API_MODULE_DELTA_CHANGE_SET_INVALID
+
+candidate_run/ops/create_api_module_delta.py:38: ValueError</failure></testcase><testcase classname="tests.test_stage_release_r4" name="test_static_changes_require_complete_exact_reviewed_proof[missing_proof]" time="0.005" /><testcase classname="tests.test_stage_release_r4" name="test_static_changes_require_complete_exact_reviewed_proof[digest]" time="0.007" /><testcase classname="tests.test_stage_release_r4" name="test_static_changes_require_complete_exact_reviewed_proof[wrong_base]" time="0.005" /><testcase classname="tests.test_stage_release_r4" name="test_static_changes_require_complete_exact_reviewed_proof[omitted_entry]" time="0.005" /><testcase classname="tests.test_stage_release_r4" name="test_static_changes_require_complete_exact_reviewed_proof[missing_after]" time="0.005" /><testcase classname="tests.test_stage_release_r4" name="test_static_changes_require_complete_exact_reviewed_proof[extra_after]" time="0.005" /><testcase classname="tests.test_stage_release_r4" name="test_static_changes_require_complete_exact_reviewed_proof[wrong_module]" time="0.006" /><testcase classname="tests.test_stage_release_r4" name="test_static_changes_require_complete_exact_reviewed_proof[source_delete]" time="0.005" /><testcase classname="tests.test_stage_release_r4" name="test_static_changes_require_complete_exact_reviewed_proof[duplicate_static_path]" time="0.005" /><testcase classname="tests.test_stage_release_r4" name="test_static_changes_require_complete_exact_reviewed_proof[static_symlink]" time="0.005" /><testcase classname="tests.test_stage_release_r4" name="test_static_changes_require_complete_exact_reviewed_proof[unknown_proof_field]" time="0.005" /><testcase classname="tests.test_stage_release_r4" name="test_complete_candidate_verifier_rejects_resealed_drift[undeclared_static]" time="0.005"><failure message="ValueError: API_MODULE_DELTA_CHANGE_SET_INVALID">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi0')
+damage = 'undeclared_static'
+
+    @pytest.mark.parametrize('damage', ['undeclared_static', 'missing_static', 'manager', 'mode', 'active_drift'])
+    def test_complete_candidate_verifier_rejects_resealed_drift(tmp_path, damage):
+&gt;       active, after, built, changes, root, manifest = integrated(tmp_path)
+                                                        ^^^^^^^^^^^^^^^^^^^^
+
+candidate_run/tests/test_stage_release_r4.py:195: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+candidate_run/tests/test_stage_release_r4.py:119: in integrated
+    active, after, built, pins, changes, receipt = make_delta(tmp_path)
+                                                   ^^^^^^^^^^^^^^^^^^^^
+candidate_run/tests/test_stage_release_r4.py:113: in make_delta
+    delta.create_module_delta(active_api_plist_path=Path(active['api_plist']),
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+active_api_plist_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi0/LaunchAgents/com.lexi.v35.api-only.plist')
+after_root = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi0/reviewed-after')
+change_set_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi0/changes.json')
+output_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi0/delta.json')
+
+    def create_module_delta(*, active_api_plist_path: Path, after_root: Path,
+                            change_set_path: Path, output_path: Path) -&gt; dict[str, Any]:
+        after_root = integration._exact_path(after_root, kind='directory', label='API_MODULE_DELTA_AFTER_ROOT')
+        change_set_path = integration._exact_path(change_set_path, kind='file', label='API_MODULE_DELTA_CHANGE_SET')
+        raw, change_token = integration._read_file(change_set_path)
+        changes = integration._json_object(raw, 'API_MODULE_DELTA_CHANGE_SET')
+        if (set(changes) != {'schema_version', 'module', 'shared_paths', 'files'}
+                or changes['schema_version'] != CHANGE_SET_SCHEMA
+                or not isinstance(changes['files'], list) or not changes['files']):
+&gt;           raise ValueError('API_MODULE_DELTA_CHANGE_SET_INVALID')
+E           ValueError: API_MODULE_DELTA_CHANGE_SET_INVALID
+
+candidate_run/ops/create_api_module_delta.py:38: ValueError</failure></testcase><testcase classname="tests.test_stage_release_r4" name="test_complete_candidate_verifier_rejects_resealed_drift[missing_static]" time="0.005"><failure message="ValueError: API_MODULE_DELTA_CHANGE_SET_INVALID">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi1')
+damage = 'missing_static'
+
+    @pytest.mark.parametrize('damage', ['undeclared_static', 'missing_static', 'manager', 'mode', 'active_drift'])
+    def test_complete_candidate_verifier_rejects_resealed_drift(tmp_path, damage):
+&gt;       active, after, built, changes, root, manifest = integrated(tmp_path)
+                                                        ^^^^^^^^^^^^^^^^^^^^
+
+candidate_run/tests/test_stage_release_r4.py:195: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+candidate_run/tests/test_stage_release_r4.py:119: in integrated
+    active, after, built, pins, changes, receipt = make_delta(tmp_path)
+                                                   ^^^^^^^^^^^^^^^^^^^^
+candidate_run/tests/test_stage_release_r4.py:113: in make_delta
+    delta.create_module_delta(active_api_plist_path=Path(active['api_plist']),
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+active_api_plist_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi1/LaunchAgents/com.lexi.v35.api-only.plist')
+after_root = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi1/reviewed-after')
+change_set_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi1/changes.json')
+output_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi1/delta.json')
+
+    def create_module_delta(*, active_api_plist_path: Path, after_root: Path,
+                            change_set_path: Path, output_path: Path) -&gt; dict[str, Any]:
+        after_root = integration._exact_path(after_root, kind='directory', label='API_MODULE_DELTA_AFTER_ROOT')
+        change_set_path = integration._exact_path(change_set_path, kind='file', label='API_MODULE_DELTA_CHANGE_SET')
+        raw, change_token = integration._read_file(change_set_path)
+        changes = integration._json_object(raw, 'API_MODULE_DELTA_CHANGE_SET')
+        if (set(changes) != {'schema_version', 'module', 'shared_paths', 'files'}
+                or changes['schema_version'] != CHANGE_SET_SCHEMA
+                or not isinstance(changes['files'], list) or not changes['files']):
+&gt;           raise ValueError('API_MODULE_DELTA_CHANGE_SET_INVALID')
+E           ValueError: API_MODULE_DELTA_CHANGE_SET_INVALID
+
+candidate_run/ops/create_api_module_delta.py:38: ValueError</failure></testcase><testcase classname="tests.test_stage_release_r4" name="test_complete_candidate_verifier_rejects_resealed_drift[manager]" time="0.005"><failure message="ValueError: API_MODULE_DELTA_CHANGE_SET_INVALID">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi2')
+damage = 'manager'
+
+    @pytest.mark.parametrize('damage', ['undeclared_static', 'missing_static', 'manager', 'mode', 'active_drift'])
+    def test_complete_candidate_verifier_rejects_resealed_drift(tmp_path, damage):
+&gt;       active, after, built, changes, root, manifest = integrated(tmp_path)
+                                                        ^^^^^^^^^^^^^^^^^^^^
+
+candidate_run/tests/test_stage_release_r4.py:195: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+candidate_run/tests/test_stage_release_r4.py:119: in integrated
+    active, after, built, pins, changes, receipt = make_delta(tmp_path)
+                                                   ^^^^^^^^^^^^^^^^^^^^
+candidate_run/tests/test_stage_release_r4.py:113: in make_delta
+    delta.create_module_delta(active_api_plist_path=Path(active['api_plist']),
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+active_api_plist_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi2/LaunchAgents/com.lexi.v35.api-only.plist')
+after_root = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi2/reviewed-after')
+change_set_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi2/changes.json')
+output_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi2/delta.json')
+
+    def create_module_delta(*, active_api_plist_path: Path, after_root: Path,
+                            change_set_path: Path, output_path: Path) -&gt; dict[str, Any]:
+        after_root = integration._exact_path(after_root, kind='directory', label='API_MODULE_DELTA_AFTER_ROOT')
+        change_set_path = integration._exact_path(change_set_path, kind='file', label='API_MODULE_DELTA_CHANGE_SET')
+        raw, change_token = integration._read_file(change_set_path)
+        changes = integration._json_object(raw, 'API_MODULE_DELTA_CHANGE_SET')
+        if (set(changes) != {'schema_version', 'module', 'shared_paths', 'files'}
+                or changes['schema_version'] != CHANGE_SET_SCHEMA
+                or not isinstance(changes['files'], list) or not changes['files']):
+&gt;           raise ValueError('API_MODULE_DELTA_CHANGE_SET_INVALID')
+E           ValueError: API_MODULE_DELTA_CHANGE_SET_INVALID
+
+candidate_run/ops/create_api_module_delta.py:38: ValueError</failure></testcase><testcase classname="tests.test_stage_release_r4" name="test_complete_candidate_verifier_rejects_resealed_drift[mode]" time="0.005"><failure message="ValueError: API_MODULE_DELTA_CHANGE_SET_INVALID">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi3')
+damage = 'mode'
+
+    @pytest.mark.parametrize('damage', ['undeclared_static', 'missing_static', 'manager', 'mode', 'active_drift'])
+    def test_complete_candidate_verifier_rejects_resealed_drift(tmp_path, damage):
+&gt;       active, after, built, changes, root, manifest = integrated(tmp_path)
+                                                        ^^^^^^^^^^^^^^^^^^^^
+
+candidate_run/tests/test_stage_release_r4.py:195: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+candidate_run/tests/test_stage_release_r4.py:119: in integrated
+    active, after, built, pins, changes, receipt = make_delta(tmp_path)
+                                                   ^^^^^^^^^^^^^^^^^^^^
+candidate_run/tests/test_stage_release_r4.py:113: in make_delta
+    delta.create_module_delta(active_api_plist_path=Path(active['api_plist']),
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+active_api_plist_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi3/LaunchAgents/com.lexi.v35.api-only.plist')
+after_root = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi3/reviewed-after')
+change_set_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi3/changes.json')
+output_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi3/delta.json')
+
+    def create_module_delta(*, active_api_plist_path: Path, after_root: Path,
+                            change_set_path: Path, output_path: Path) -&gt; dict[str, Any]:
+        after_root = integration._exact_path(after_root, kind='directory', label='API_MODULE_DELTA_AFTER_ROOT')
+        change_set_path = integration._exact_path(change_set_path, kind='file', label='API_MODULE_DELTA_CHANGE_SET')
+        raw, change_token = integration._read_file(change_set_path)
+        changes = integration._json_object(raw, 'API_MODULE_DELTA_CHANGE_SET')
+        if (set(changes) != {'schema_version', 'module', 'shared_paths', 'files'}
+                or changes['schema_version'] != CHANGE_SET_SCHEMA
+                or not isinstance(changes['files'], list) or not changes['files']):
+&gt;           raise ValueError('API_MODULE_DELTA_CHANGE_SET_INVALID')
+E           ValueError: API_MODULE_DELTA_CHANGE_SET_INVALID
+
+candidate_run/ops/create_api_module_delta.py:38: ValueError</failure></testcase><testcase classname="tests.test_stage_release_r4" name="test_complete_candidate_verifier_rejects_resealed_drift[active_drift]" time="0.006"><failure message="ValueError: API_MODULE_DELTA_CHANGE_SET_INVALID">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi4')
+damage = 'active_drift'
+
+    @pytest.mark.parametrize('damage', ['undeclared_static', 'missing_static', 'manager', 'mode', 'active_drift'])
+    def test_complete_candidate_verifier_rejects_resealed_drift(tmp_path, damage):
+&gt;       active, after, built, changes, root, manifest = integrated(tmp_path)
+                                                        ^^^^^^^^^^^^^^^^^^^^
+
+candidate_run/tests/test_stage_release_r4.py:195: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+candidate_run/tests/test_stage_release_r4.py:119: in integrated
+    active, after, built, pins, changes, receipt = make_delta(tmp_path)
+                                                   ^^^^^^^^^^^^^^^^^^^^
+candidate_run/tests/test_stage_release_r4.py:113: in make_delta
+    delta.create_module_delta(active_api_plist_path=Path(active['api_plist']),
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+active_api_plist_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi4/LaunchAgents/com.lexi.v35.api-only.plist')
+after_root = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi4/reviewed-after')
+change_set_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi4/changes.json')
+output_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_complete_candidate_verifi4/delta.json')
+
+    def create_module_delta(*, active_api_plist_path: Path, after_root: Path,
+                            change_set_path: Path, output_path: Path) -&gt; dict[str, Any]:
+        after_root = integration._exact_path(after_root, kind='directory', label='API_MODULE_DELTA_AFTER_ROOT')
+        change_set_path = integration._exact_path(change_set_path, kind='file', label='API_MODULE_DELTA_CHANGE_SET')
+        raw, change_token = integration._read_file(change_set_path)
+        changes = integration._json_object(raw, 'API_MODULE_DELTA_CHANGE_SET')
+        if (set(changes) != {'schema_version', 'module', 'shared_paths', 'files'}
+                or changes['schema_version'] != CHANGE_SET_SCHEMA
+                or not isinstance(changes['files'], list) or not changes['files']):
+&gt;           raise ValueError('API_MODULE_DELTA_CHANGE_SET_INVALID')
+E           ValueError: API_MODULE_DELTA_CHANGE_SET_INVALID
+
+candidate_run/ops/create_api_module_delta.py:38: ValueError</failure></testcase><testcase classname="tests.test_stage_release_r4" name="test_preparation_creates_concrete_git_source_without_modifying_readonly_inputs" time="0.007"><failure message="AssertionError: Stage R4 needs supported isolated Git source staging&#10;assert False&#10; +  where False = hasattr(delta, 'prepare_stage_source')">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_preparation_creates_concr0')
+
+    def test_preparation_creates_concrete_git_source_without_modifying_readonly_inputs(tmp_path):
+&gt;       active, after, built, source, merged, result = prepared_source(tmp_path,readonly=True)
+                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+candidate_run/tests/test_stage_release_r4.py:235: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_preparation_creates_concr0')
+readonly = True
+
+    def prepared_source(tmp_path, readonly=False):
+        active, after, built, pins, changes = case(tmp_path)
+        code_changes = {key:value for key,value in changes.items() if key != 'static_tree'}
+        code_changes['files'] = [row for row in changes['files'] if not row['path'].startswith(DIST)]
+        dump(pins,code_changes)
+        if readonly:
+            for path in CODE: (after/path).chmod(0o444)
+            for path in sorted(after.rglob('*'), key=lambda p:len(p.parts), reverse=True):
+                if path.is_dir(): path.chmod(0o555)
+            after.chmod(0o555)
+        before = guard._inventory_snapshot(Path(active['app_root']))
+        originals = guard._inventory_snapshot(after)
+&gt;       assert hasattr(delta, 'prepare_stage_source'), 'Stage R4 needs supported isolated Git source staging'
+E       AssertionError: Stage R4 needs supported isolated Git source staging
+E       assert False
+E        +  where False = hasattr(delta, 'prepare_stage_source')
+
+candidate_run/tests/test_stage_release_r4.py:222: AssertionError</failure></testcase><testcase classname="tests.test_stage_release_r4" name="test_existing_full_builder_accepts_isolated_source_and_reports_real_static_origin" time="0.010"><failure message="AssertionError: Stage R4 needs supported isolated Git source staging&#10;assert False&#10; +  where False = hasattr(delta, 'prepare_stage_source')">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_existing_full_builder_acc0')
+
+    def test_existing_full_builder_accepts_isolated_source_and_reports_real_static_origin(tmp_path):
+&gt;       active, after, built, source, merged, prepared = prepared_source(tmp_path)
+                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+candidate_run/tests/test_stage_release_r4.py:250: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_existing_full_builder_acc0')
+readonly = False
+
+    def prepared_source(tmp_path, readonly=False):
+        active, after, built, pins, changes = case(tmp_path)
+        code_changes = {key:value for key,value in changes.items() if key != 'static_tree'}
+        code_changes['files'] = [row for row in changes['files'] if not row['path'].startswith(DIST)]
+        dump(pins,code_changes)
+        if readonly:
+            for path in CODE: (after/path).chmod(0o444)
+            for path in sorted(after.rglob('*'), key=lambda p:len(p.parts), reverse=True):
+                if path.is_dir(): path.chmod(0o555)
+            after.chmod(0o555)
+        before = guard._inventory_snapshot(Path(active['app_root']))
+        originals = guard._inventory_snapshot(after)
+&gt;       assert hasattr(delta, 'prepare_stage_source'), 'Stage R4 needs supported isolated Git source staging'
+E       AssertionError: Stage R4 needs supported isolated Git source staging
+E       assert False
+E        +  where False = hasattr(delta, 'prepare_stage_source')
+
+candidate_run/tests/test_stage_release_r4.py:222: AssertionError</failure></testcase><testcase classname="tests.test_stage_release_r4" name="test_source_preparation_refuses_unreviewed_or_unsafe_staging[existing_source]" time="0.009"><failure message="AssertionError: Stage R4 staging API missing&#10;assert False&#10; +  where False = hasattr(delta, 'prepare_stage_source')">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_source_preparation_refuse0')
+damage = 'existing_source'
+
+    @pytest.mark.parametrize('damage',['existing_source','alias_dist','wrong_dist_sha','extra_code',
+                                      'wrong_after_sha','output_in_active'])
+    def test_source_preparation_refuses_unreviewed_or_unsafe_staging(tmp_path,damage):
+        active, after, built, pins, changes=case(tmp_path)
+        changes.pop('static_tree')
+        changes['files']=[row for row in changes['files'] if not row['path'].startswith(DIST)]
+        source=tmp_path/'source'
+        output=tmp_path/'complete.json'
+        digest=static_record(guard.inventory_tree(after))['aggregate_sha256']
+        if damage=='existing_source': source.mkdir(); write(source/'untouched',b'KEEP\n')
+        if damage=='alias_dist':
+            alias=tmp_path/'dist-alias';alias.symlink_to(built,target_is_directory=True);built=alias
+        if damage=='wrong_dist_sha': digest='f'*64
+        if damage=='extra_code':
+            row=deepcopy(changes['files'][0]);row['path']='v4/manager_research/keep.py'
+            changes['files'].append(row)
+        if damage=='wrong_after_sha': changes['files'][0]['after_sha256']='f'*64
+        if damage=='output_in_active':output=Path(active['app_root'])/'output.json'
+        dump(pins,changes)
+&gt;       assert hasattr(delta,'prepare_stage_source'), 'Stage R4 staging API missing'
+E       AssertionError: Stage R4 staging API missing
+E       assert False
+E        +  where False = hasattr(delta, 'prepare_stage_source')
+
+candidate_run/tests/test_stage_release_r4.py:291: AssertionError</failure></testcase><testcase classname="tests.test_stage_release_r4" name="test_source_preparation_refuses_unreviewed_or_unsafe_staging[alias_dist]" time="0.009"><failure message="AssertionError: Stage R4 staging API missing&#10;assert False&#10; +  where False = hasattr(delta, 'prepare_stage_source')">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_source_preparation_refuse1')
+damage = 'alias_dist'
+
+    @pytest.mark.parametrize('damage',['existing_source','alias_dist','wrong_dist_sha','extra_code',
+                                      'wrong_after_sha','output_in_active'])
+    def test_source_preparation_refuses_unreviewed_or_unsafe_staging(tmp_path,damage):
+        active, after, built, pins, changes=case(tmp_path)
+        changes.pop('static_tree')
+        changes['files']=[row for row in changes['files'] if not row['path'].startswith(DIST)]
+        source=tmp_path/'source'
+        output=tmp_path/'complete.json'
+        digest=static_record(guard.inventory_tree(after))['aggregate_sha256']
+        if damage=='existing_source': source.mkdir(); write(source/'untouched',b'KEEP\n')
+        if damage=='alias_dist':
+            alias=tmp_path/'dist-alias';alias.symlink_to(built,target_is_directory=True);built=alias
+        if damage=='wrong_dist_sha': digest='f'*64
+        if damage=='extra_code':
+            row=deepcopy(changes['files'][0]);row['path']='v4/manager_research/keep.py'
+            changes['files'].append(row)
+        if damage=='wrong_after_sha': changes['files'][0]['after_sha256']='f'*64
+        if damage=='output_in_active':output=Path(active['app_root'])/'output.json'
+        dump(pins,changes)
+&gt;       assert hasattr(delta,'prepare_stage_source'), 'Stage R4 staging API missing'
+E       AssertionError: Stage R4 staging API missing
+E       assert False
+E        +  where False = hasattr(delta, 'prepare_stage_source')
+
+candidate_run/tests/test_stage_release_r4.py:291: AssertionError</failure></testcase><testcase classname="tests.test_stage_release_r4" name="test_source_preparation_refuses_unreviewed_or_unsafe_staging[wrong_dist_sha]" time="0.008"><failure message="AssertionError: Stage R4 staging API missing&#10;assert False&#10; +  where False = hasattr(delta, 'prepare_stage_source')">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_source_preparation_refuse2')
+damage = 'wrong_dist_sha'
+
+    @pytest.mark.parametrize('damage',['existing_source','alias_dist','wrong_dist_sha','extra_code',
+                                      'wrong_after_sha','output_in_active'])
+    def test_source_preparation_refuses_unreviewed_or_unsafe_staging(tmp_path,damage):
+        active, after, built, pins, changes=case(tmp_path)
+        changes.pop('static_tree')
+        changes['files']=[row for row in changes['files'] if not row['path'].startswith(DIST)]
+        source=tmp_path/'source'
+        output=tmp_path/'complete.json'
+        digest=static_record(guard.inventory_tree(after))['aggregate_sha256']
+        if damage=='existing_source': source.mkdir(); write(source/'untouched',b'KEEP\n')
+        if damage=='alias_dist':
+            alias=tmp_path/'dist-alias';alias.symlink_to(built,target_is_directory=True);built=alias
+        if damage=='wrong_dist_sha': digest='f'*64
+        if damage=='extra_code':
+            row=deepcopy(changes['files'][0]);row['path']='v4/manager_research/keep.py'
+            changes['files'].append(row)
+        if damage=='wrong_after_sha': changes['files'][0]['after_sha256']='f'*64
+        if damage=='output_in_active':output=Path(active['app_root'])/'output.json'
+        dump(pins,changes)
+&gt;       assert hasattr(delta,'prepare_stage_source'), 'Stage R4 staging API missing'
+E       AssertionError: Stage R4 staging API missing
+E       assert False
+E        +  where False = hasattr(delta, 'prepare_stage_source')
+
+candidate_run/tests/test_stage_release_r4.py:291: AssertionError</failure></testcase><testcase classname="tests.test_stage_release_r4" name="test_source_preparation_refuses_unreviewed_or_unsafe_staging[extra_code]" time="0.009"><failure message="AssertionError: Stage R4 staging API missing&#10;assert False&#10; +  where False = hasattr(delta, 'prepare_stage_source')">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_source_preparation_refuse3')
+damage = 'extra_code'
+
+    @pytest.mark.parametrize('damage',['existing_source','alias_dist','wrong_dist_sha','extra_code',
+                                      'wrong_after_sha','output_in_active'])
+    def test_source_preparation_refuses_unreviewed_or_unsafe_staging(tmp_path,damage):
+        active, after, built, pins, changes=case(tmp_path)
+        changes.pop('static_tree')
+        changes['files']=[row for row in changes['files'] if not row['path'].startswith(DIST)]
+        source=tmp_path/'source'
+        output=tmp_path/'complete.json'
+        digest=static_record(guard.inventory_tree(after))['aggregate_sha256']
+        if damage=='existing_source': source.mkdir(); write(source/'untouched',b'KEEP\n')
+        if damage=='alias_dist':
+            alias=tmp_path/'dist-alias';alias.symlink_to(built,target_is_directory=True);built=alias
+        if damage=='wrong_dist_sha': digest='f'*64
+        if damage=='extra_code':
+            row=deepcopy(changes['files'][0]);row['path']='v4/manager_research/keep.py'
+            changes['files'].append(row)
+        if damage=='wrong_after_sha': changes['files'][0]['after_sha256']='f'*64
+        if damage=='output_in_active':output=Path(active['app_root'])/'output.json'
+        dump(pins,changes)
+&gt;       assert hasattr(delta,'prepare_stage_source'), 'Stage R4 staging API missing'
+E       AssertionError: Stage R4 staging API missing
+E       assert False
+E        +  where False = hasattr(delta, 'prepare_stage_source')
+
+candidate_run/tests/test_stage_release_r4.py:291: AssertionError</failure></testcase><testcase classname="tests.test_stage_release_r4" name="test_source_preparation_refuses_unreviewed_or_unsafe_staging[wrong_after_sha]" time="0.009"><failure message="AssertionError: Stage R4 staging API missing&#10;assert False&#10; +  where False = hasattr(delta, 'prepare_stage_source')">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_source_preparation_refuse4')
+damage = 'wrong_after_sha'
+
+    @pytest.mark.parametrize('damage',['existing_source','alias_dist','wrong_dist_sha','extra_code',
+                                      'wrong_after_sha','output_in_active'])
+    def test_source_preparation_refuses_unreviewed_or_unsafe_staging(tmp_path,damage):
+        active, after, built, pins, changes=case(tmp_path)
+        changes.pop('static_tree')
+        changes['files']=[row for row in changes['files'] if not row['path'].startswith(DIST)]
+        source=tmp_path/'source'
+        output=tmp_path/'complete.json'
+        digest=static_record(guard.inventory_tree(after))['aggregate_sha256']
+        if damage=='existing_source': source.mkdir(); write(source/'untouched',b'KEEP\n')
+        if damage=='alias_dist':
+            alias=tmp_path/'dist-alias';alias.symlink_to(built,target_is_directory=True);built=alias
+        if damage=='wrong_dist_sha': digest='f'*64
+        if damage=='extra_code':
+            row=deepcopy(changes['files'][0]);row['path']='v4/manager_research/keep.py'
+            changes['files'].append(row)
+        if damage=='wrong_after_sha': changes['files'][0]['after_sha256']='f'*64
+        if damage=='output_in_active':output=Path(active['app_root'])/'output.json'
+        dump(pins,changes)
+&gt;       assert hasattr(delta,'prepare_stage_source'), 'Stage R4 staging API missing'
+E       AssertionError: Stage R4 staging API missing
+E       assert False
+E        +  where False = hasattr(delta, 'prepare_stage_source')
+
+candidate_run/tests/test_stage_release_r4.py:291: AssertionError</failure></testcase><testcase classname="tests.test_stage_release_r4" name="test_source_preparation_refuses_unreviewed_or_unsafe_staging[output_in_active]" time="0.009"><failure message="AssertionError: Stage R4 staging API missing&#10;assert False&#10; +  where False = hasattr(delta, 'prepare_stage_source')">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-344/test_source_preparation_refuse5')
+damage = 'output_in_active'
+
+    @pytest.mark.parametrize('damage',['existing_source','alias_dist','wrong_dist_sha','extra_code',
+                                      'wrong_after_sha','output_in_active'])
+    def test_source_preparation_refuses_unreviewed_or_unsafe_staging(tmp_path,damage):
+        active, after, built, pins, changes=case(tmp_path)
+        changes.pop('static_tree')
+        changes['files']=[row for row in changes['files'] if not row['path'].startswith(DIST)]
+        source=tmp_path/'source'
+        output=tmp_path/'complete.json'
+        digest=static_record(guard.inventory_tree(after))['aggregate_sha256']
+        if damage=='existing_source': source.mkdir(); write(source/'untouched',b'KEEP\n')
+        if damage=='alias_dist':
+            alias=tmp_path/'dist-alias';alias.symlink_to(built,target_is_directory=True);built=alias
+        if damage=='wrong_dist_sha': digest='f'*64
+        if damage=='extra_code':
+            row=deepcopy(changes['files'][0]);row['path']='v4/manager_research/keep.py'
+            changes['files'].append(row)
+        if damage=='wrong_after_sha': changes['files'][0]['after_sha256']='f'*64
+        if damage=='output_in_active':output=Path(active['app_root'])/'output.json'
+        dump(pins,changes)
+&gt;       assert hasattr(delta,'prepare_stage_source'), 'Stage R4 staging API missing'
+E       AssertionError: Stage R4 staging API missing
+E       assert False
+E        +  where False = hasattr(delta, 'prepare_stage_source')
+
+candidate_run/tests/test_stage_release_r4.py:291: AssertionError</failure></testcase></testsuite></testsuites>

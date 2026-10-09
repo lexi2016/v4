@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="10" time="0.381" timestamp="2026-10-09T07:16:35.315316-07:00" hostname="f2c20067ed3d"><testcase classname="tests.test_stage_ui_build" name="test_readonly_prepared_ui_builds_in_new_writable_tree_and_preserves_history_entry" time="0.035" /><testcase classname="tests.test_stage_ui_build" name="test_prepared_source_drift_rejects_before_output_or_npm" time="0.024" /><testcase classname="tests.test_stage_ui_build" name="test_missing_prepare_manifest_rejects_before_output" time="0.024" /><testcase classname="tests.test_stage_ui_build" name="test_failed_npm_ci_is_not_a_build_pass" time="0.026" /><testcase classname="tests.test_stage_ui_build" name="test_build_changing_source_cannot_seal_static_artifacts" time="0.030" /><testcase classname="tests.test_stage_ui_build" name="test_static_symlink_is_rejected" time="0.034" /><testcase classname="tests.test_stage_ui_build" name="test_missing_existing_manager_entry_is_rejected" time="0.032" /><testcase classname="tests.test_stage_ui_build" name="test_output_inside_prepared_source_is_rejected" time="0.026" /><testcase classname="tests.test_stage_ui_build" name="test_missing_local_entry_script_cannot_seal_unrelated_javascript" time="0.041"><failure message="AssertionError: assert 'UI_BUILD_PREPARED' == 'BUILD_FAILED'&#10;  &#10;  - BUILD_FAILED&#10;  + UI_BUILD_PREPARED">setup = namespace(package=PosixPath('/tmp/pytest-of-root/pytest-361/test_missing_local_entry_scrip0/package'), actual=PosixPat...pps/web/dist/manager-selection/index.html': ('87576059f56fc2d8005c5db62b0d7a8ab3f3ed09aff577e37c57c05eb22109ae', 292)})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7fabb1365df0&gt;
+
+    def test_missing_local_entry_script_cannot_seal_unrelated_javascript(setup, monkeypatch):
+        builder = module('build_stage_ui')
+        fake_npm(monkeypatch, builder, missing_script=True)
+        result = builder.build_stage_ui(package=setup.package, prepared_ui=setup.prepared, destination=setup.destination)
+&gt;       assert result['status'] == 'BUILD_FAILED'
+E       AssertionError: assert 'UI_BUILD_PREPARED' == 'BUILD_FAILED'
+E         
+E         - BUILD_FAILED
+E         + UI_BUILD_PREPARED
+
+tests/test_stage_ui_build.py:194: AssertionError</failure></testcase><testcase classname="tests.test_stage_ui_build" name="test_prepare_manifest_changed_during_build_cannot_seal_outputs" time="0.055"><failure message="AssertionError: assert 'UI_BUILD_PREPARED' == 'BUILD_FAILED'&#10;  &#10;  - BUILD_FAILED&#10;  + UI_BUILD_PREPARED">setup = namespace(package=PosixPath('/tmp/pytest-of-root/pytest-361/test_prepare_manifest_changed_0/package'), actual=PosixPat...pps/web/dist/manager-selection/index.html': ('87576059f56fc2d8005c5db62b0d7a8ab3f3ed09aff577e37c57c05eb22109ae', 292)})
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7fabb1342e70&gt;
+
+    def test_prepare_manifest_changed_during_build_cannot_seal_outputs(setup, monkeypatch):
+        builder = module('build_stage_ui')
+        fake_npm(monkeypatch, builder, manifest_to_mutate=setup.prepared / 'CANARY_SOURCE_MANIFEST.json')
+        result = builder.build_stage_ui(package=setup.package, prepared_ui=setup.prepared, destination=setup.destination)
+&gt;       assert result['status'] == 'BUILD_FAILED'
+E       AssertionError: assert 'UI_BUILD_PREPARED' == 'BUILD_FAILED'
+E         
+E         - BUILD_FAILED
+E         + UI_BUILD_PREPARED
+
+tests/test_stage_ui_build.py:203: AssertionError</failure></testcase></testsuite></testsuites>
