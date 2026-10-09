@@ -138,3 +138,12 @@ print(json.dumps({'root':str(f.derived)}))
             product=next(row for row in products if row['target_trade_date']=='20261009' and row['publication_date']=='2026-10-08')
             self.assertEqual(product['status'],'CONSUMED')
             self.assertEqual(product['product_sha256'],result['announcement_offline_readback']['consumption']['product_sha256'])
+
+    def test_default_query_uses_original_calendar_and_real_default_read(self):
+        cutoff=datetime.now(timezone.utc).isoformat()
+        explicit=read_owner(self.binding,cutoff)
+        default=read_owner(self.binding,cutoff,default_analysis=True)
+        self.assertEqual(default['analysis']['date_selection_basis'],'PREVIOUS_HK_TRADING_SESSION')
+        self.assertEqual(default['analysis']['publication_date'],'2026-10-08')
+        self.assertEqual(explicit['analysis']['date_selection_basis'],'EXPLICIT')
+        self.assertEqual(default['analysis']['analysis'],explicit['analysis']['analysis'])

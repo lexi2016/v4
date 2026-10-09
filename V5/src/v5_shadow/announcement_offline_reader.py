@@ -43,8 +43,9 @@ def install_consumer_contract(module):
     return consumer_pin
 
 
-def read_owner(binding,cutoff):
+def read_owner(binding,cutoff,*,default_analysis=False):
     sources();request=dict(binding=binding,cutoff=cutoff)
+    if default_analysis:request['default_analysis']=True
     child=subprocess.run([sys.executable,'-I','-B',str(Path(__file__).resolve())],input=canonical_bytes(request),
         stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=120,
         env={k:v for k,v in os.environ.items() if not k.startswith(('V4_','V35_'))})
@@ -128,6 +129,23 @@ def _worker(request):
     if (analysis.get('analysis',{}).get('status')!='VERIFIED' or analysis['analysis']['product_sha256']!=declared['product_sha256']
             or analysis!=json.loads(io.read_bytes('offline_import_readback.json'))):raise ValueError('OFFLINE_MANAGER_ANALYSIS_READBACK_MISMATCH')
     consumption=announcements.read_analysis_consumption(owner,target,publication,cutoff=request['cutoff'],analysis_readback=analysis)
+    if request.get('default_analysis') is True:
+        # Real default read, not an EXPLICIT payload with its label rewritten.
+        # The offline app intentionally ships no calendar because its CLI only
+        # accepts explicit dates. Bind the existing manager's verified calendar.
+        from types import ModuleType
+        from v5_shadow.manager_plan import CAPSULE, _sources
+        _sources()
+        if 'contracts' in sys.modules:raise ValueError('OFFLINE_DEFAULT_CALENDAR_NAMESPACE_OCCUPIED')
+        package=ModuleType('contracts');package.__path__=[str(CAPSULE/'contracts')]
+        sys.modules['contracts']=package
+        from v4.manager_research.announcement_analysis import read
+        analysis=read(owner,target,None)
+        if (analysis.get('date_selection_basis')!='PREVIOUS_HK_TRADING_SESSION'
+                or analysis.get('publication_date')!=publication
+                or analysis.get('analysis',{}).get('status')!='VERIFIED'
+                or analysis['analysis']['product_sha256']!=declared['product_sha256']):
+            raise ValueError('OFFLINE_DEFAULT_ANALYSIS_DATE_OR_PRODUCT')
     verify_recovery(root,declared['recovery_receipt_sha256']);check_products()
     if io.read_bytes('manager_binding.v1.json')!=raw:raise ValueError('OFFLINE_MANAGER_BINDING_CHANGED')
     sources()
