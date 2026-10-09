@@ -1,0 +1,50 @@
+{
+  "schema": "R4_MAC_VALIDATION_SUMMARY_V1",
+  "base_commit": "57d00a88e3e7cbc586cb1cf7d9452a41cf1d5a7c",
+  "date": "2026-10-10",
+  "target_date": "20261009",
+  "stage": "STAGE_0930_0935",
+  "tests": {
+    "status": "FAIL",
+    "total": 479,
+    "passed": 413,
+    "failures": 8,
+    "setup_errors": 58,
+    "failure_type": "PermissionError on test-owned copies retaining 0444",
+    "independent_python": "3.14.6",
+    "independent_pytest": "9.1.1",
+    "uid": 501
+  },
+  "candidate_behavior": {
+    "api": "PASS",
+    "ui": "PASS",
+    "history_dates_compared": 18,
+    "history_semantics": "PASS",
+    "A_rows": 10,
+    "HK_rows": 10,
+    "A_quotes": "206/216",
+    "HK_quotes": "695/695"
+  },
+  "deployed": false,
+  "natural_verified": false,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "RESEARCH_ONLY": true,
+  "temp_cleanup": {
+    "temp_18873_listener_absent": true,
+    "temp_api_pid_54109_absent": true,
+    "playwright_browser_pid_54548_absent": true,
+    "active_8873_listener_pid_44968": true,
+    "active_8873_process_identity_unchanged": true,
+    "active_8873_cwd_unchanged": true,
+    "api_plist_sha_unchanged": true,
+    "selection_latest_sha_unchanged": true
+  },
+  "evidence_sha256": {
+    "handoff/R4_LOCAL_INTEGRATION_RECEIPT_20261010.md": "4f4c65b01b19e421ebd31ac9203036c7e65193091ec182f8e80d59d696b884b3",
+    "evidence/review/r2-local-20261009-r4-479-v35env/RESULTS.json": "93892d84751999d65f88dff2aafc1eebceb60c28cc8959e2a3540f35b3216223",
+    "evidence/review/r2-local-20261009-r4-479-v35env/UI_BEHAVIOR_REVIEW.json": "d1267dfcd5a4b8393c43743af695426519e805eede5377e0a50415a3a4f15bc4",
+    "evidence/CLEANUP_VERIFICATION_20261010.json": "866e9d06a6a8fe6691f172577ea31f91dc1111bed4b52c33b0b2b90ce4a42438"
+  }
+}

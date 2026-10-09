@@ -1,0 +1,61 @@
+{
+  "schema_version": "r4.reviewer_ui_behavior_review.v1",
+  "reviewer": "r2_local_review",
+  "reviewed_at_local": "2026-10-10T00:09:29+08:00",
+  "scope": "READ_ONLY_REVIEW_OF_ISOLATED_R4_CANDIDATE_UI_AND_SAME_RUN_API; NO SOURCE OR LIVE_8873 WRITES",
+  "review_status": "PASS_FOR_ISOLATED_CANDIDATE_UI",
+  "candidate": {
+    "pid": 54109,
+    "url": "http://127.0.0.1:18873/?date=20261009&stage=STAGE_0930_0935",
+    "browser_session": "r4-http-20261010"
+  },
+  "evidence_sha256": {
+    "browser_receipt": "4f1cc537f0332fd3cc3239a9baf041f1cfa478162016b1de8cc2cd8ba5634b3d",
+    "screenshot": "dca0975cfed55d2c61ee68191f0f76b29f0dd6101081a2b10a161b3be03ea9d0",
+    "snapshot": "baea59ade7340b24b8787dbf375a6d13fba54d63f11fcb02837ad17f2c656071",
+    "api_receipt": "745cafcc8a0ea11a135709cd10a8c860e4deda843ec7f93374b17508f74f9f9a",
+    "history_receipt": "e66b191f97431f239eb736d466040fbbed0e5459e76ad649ea0b4bf1198bb8c9"
+  },
+  "independent_review": {
+    "browser_receipt_json_parsed": true,
+    "browser_receipt_screenshot_and_snapshot_hashes_match": true,
+    "screenshot_reviewed": true,
+    "snapshot_reviewed": true,
+    "api_receipt_sha_matches_prior_direct_http_readback": "580dc7e59a03323557857924d3095dc5e416ef54ee2d39d381c2aa63db1798d8",
+    "history_receipt_status": "PASS",
+    "history_comparison_count": 18
+  },
+  "observed_target_behavior": {
+    "trade_date": "20261009",
+    "stage_id": "STAGE_0930_0935",
+    "A_rows_visible": 10,
+    "HK_rows_visible": 10,
+    "A_quote_coverage_visible": "206 / 216; 10 missing",
+    "HK_quote_coverage_visible": "695 / 695; 0 missing",
+    "HK_research_limitations_visible": [
+      "non-formal D1",
+      "HK Connect eligibility pending confirmation",
+      "list date 20261008 retained"
+    ],
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "natural_slot_unverified_visible": true,
+    "writer_playwright_assertions_all_pass": true,
+    "writer_playwright_network": {
+      "request_count": 19,
+      "all_requests_are_loopback_get_200": true
+    },
+    "writer_playwright_console": {
+      "summary": "Total messages: 0 (Errors: 0, Warnings: 0)",
+      "errors": 0,
+      "warnings": 0
+    }
+  },
+  "limitations": [
+    "This is isolated candidate loopback UI behavior, not live 8873 or deployment.",
+    "Natural-time, execution, formal HK Connect membership/D-1/PIT remain unverified.",
+    "The independent 479-test run remains FAIL: 413 passed and 66 PermissionError errors in read-only temp clones."
+  ]
+}
