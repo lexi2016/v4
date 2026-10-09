@@ -109,7 +109,8 @@ def worker(request):
     evidence=importlib.import_module('domains.manager_research_evidence')
     owner_sha=hashlib.sha256(sources['stage_center/hk_universe_preflight.py']).hexdigest()
     capture=_capture(raw,request['sdk_sha256'],request['target_date'],owner)
-    contract_owner=dict(code_ref='stage_center/hk_universe_preflight.py',code_sha256=owner_sha)
+    contract_owner=dict(code_ref='stage_center/hk_universe_preflight.py',code_sha256=owner_sha,
+        role='PURE_CAPTURED_HK_CONNECT_CONTRACT_V2')
     built=owner.build_captured_hk_connect_authority_v2(capture,trade_date=request['target_date'],producer_owner=capture['producer_owner'],contract_owner=contract_owner)
     # Only immutable writes below the explicit empty V5 root; no publisher from V4 is run.
     files={built['paths'][kind+'_relative']:built[kind+'_bytes'] for kind in ('artifact','manifest','receipt','current')}
