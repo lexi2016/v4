@@ -2,6 +2,7 @@
 import sys
 from pathlib import Path
 if __package__ in (None,''):sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+import ast
 import copy
 import hashlib
 import json
@@ -21,6 +22,27 @@ def sources():
         if path.is_symlink() or hashlib.sha256(path.read_bytes()).hexdigest()!=entry['sha256']:raise ValueError('OFFLINE_MANAGER_APP_BYTES')
 
 
+CONSUMER_FUNCTIONS=('validate_registered_handoff','validate_owner_analysis_import_receipt',
+                    '_analysis_time_refs','read_analysis_consumption')
+
+
+def install_consumer_contract(module):
+    """Augment offline owner with exact pinned manager checks, not old terminal code.
+
+    Keep the new retained-page validator and analysis owner. Replace only the
+    registered handoff/owner receipt checks with the strengthened manager source,
+    and add its missing consumption function. No source file is modified.
+    """
+    from v5_shadow.manager_plan import _sources, PIN as consumer_pin
+    raw=_sources()['v4/manager_research/workspace_announcements.py']
+    tree=ast.parse(raw)
+    definitions={node.name:node for node in tree.body if isinstance(node,ast.FunctionDef)}
+    selected=[definitions[name] for name in CONSUMER_FUNCTIONS]
+    compiled=ast.fix_missing_locations(ast.Module(body=selected,type_ignores=[]))
+    exec(compile(compiled,'<pinned-manager-announcement-consumption>','exec'),module.__dict__)
+    return consumer_pin
+
+
 def read_owner(binding,cutoff):
     sources();request=dict(binding=binding,cutoff=cutoff)
     child=subprocess.run([sys.executable,'-I','-B',str(Path(__file__).resolve())],input=canonical_bytes(request),
@@ -30,7 +52,9 @@ def read_owner(binding,cutoff):
     try:result=json.loads(child.stdout)
     except ValueError as error:raise ValueError('OFFLINE_MANAGER_CHILD_RESPONSE') from error
     if child.returncode:raise ValueError(result.get('reason','OFFLINE_MANAGER_READ_FAILED'))
-    if result.get('app_manifest_sha256')!=PIN or result.get('request_sha256')!=sha256_json(request):raise ValueError('OFFLINE_MANAGER_CHILD_IDENTITY')
+    from v5_shadow.manager_plan import PIN as consumer_pin
+    if (result.get('app_manifest_sha256')!=PIN or result.get('consumer_source_capsule_sha256')!=consumer_pin
+            or result.get('request_sha256')!=sha256_json(request)):raise ValueError('OFFLINE_MANAGER_CHILD_IDENTITY')
     sources();return result
 
 
@@ -62,7 +86,8 @@ def _worker(request):
     from infrastructure.owned_io import SafeRoot
     from ops.run_v5_offline_analysis import OfflineAnalysisOwner,verify_recovery
     from ops.run_v5_private_announcement import SENTINEL_BASE
-    from v4.manager_research.workspace_announcements import read_analysis_consumption
+    from v4.manager_research import workspace_announcements as announcements
+    consumer_pin=install_consumer_contract(announcements)
     from urllib.parse import urlencode
     from v5_shadow.composition import no_symlinks
     from datetime import datetime,timezone
@@ -102,12 +127,12 @@ def _worker(request):
     analysis=owner.request(SENTINEL_BASE,'/api/v4/manager/research/announcements/analysis?'+urlencode({'date':target,'publication_date':publication}))
     if (analysis.get('analysis',{}).get('status')!='VERIFIED' or analysis['analysis']['product_sha256']!=declared['product_sha256']
             or analysis!=json.loads(io.read_bytes('offline_import_readback.json'))):raise ValueError('OFFLINE_MANAGER_ANALYSIS_READBACK_MISMATCH')
-    consumption=read_analysis_consumption(owner,target,publication,cutoff=request['cutoff'],analysis_readback=analysis)
+    consumption=announcements.read_analysis_consumption(owner,target,publication,cutoff=request['cutoff'],analysis_readback=analysis)
     verify_recovery(root,declared['recovery_receipt_sha256']);check_products()
     if io.read_bytes('manager_binding.v1.json')!=raw:raise ValueError('OFFLINE_MANAGER_BINDING_CHANGED')
     sources()
     return dict(catalog=catalog,analysis=analysis,consumption=consumption,cutoff=request['cutoff'],
-        binding_sha256=binding['binding_sha256'],app_manifest_sha256=PIN,request_sha256=sha256_json(request))
+        binding_sha256=binding['binding_sha256'],app_manifest_sha256=PIN,consumer_source_capsule_sha256=consumer_pin,request_sha256=sha256_json(request))
 
 
 if __name__=='__main__':

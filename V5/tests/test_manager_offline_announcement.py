@@ -26,6 +26,24 @@ class OfflineAnnouncementTransportTests(unittest.TestCase):
 
     def install(self,error=None):install_transport(self.service,self.module,self.binding,self.result,error)
 
+    def test_overlay_keeps_new_terminal_and_installs_existing_manager_checks(self):
+        script=r"""
+import sys
+from v5_shadow.announcement_offline_reader import APP,install_consumer_contract,CONSUMER_FUNCTIONS
+sys.path.insert(0,str(APP))
+from v4.manager_research import workspace_announcements as module
+terminal=module.validate_terminal_body_capture
+assert not hasattr(module,'read_analysis_consumption')
+install_consumer_contract(module)
+assert module.validate_terminal_body_capture is terminal
+for name in CONSUMER_FUNCTIONS:
+    assert getattr(module,name).__code__.co_filename=='<pinned-manager-announcement-consumption>'
+assert 'validate_registered_handoff' in module.read_analysis_consumption.__code__.co_names
+assert 'validate_owner_analysis_import_receipt' in module.read_analysis_consumption.__code__.co_names
+"""
+        child=subprocess.run([sys.executable,'-B','-c',script],capture_output=True,text=True,timeout=30)
+        self.assertEqual(child.returncode,0,child.stderr)
+
     def test_exact_pair_selects_offline_owner_interface(self):
         self.install()
         self.assertEqual(self.service.get_announcement_date_catalog('20261009','2026-10-08'),self.result['catalog'])
