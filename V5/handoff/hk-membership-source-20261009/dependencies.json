@@ -1,0 +1,174 @@
+{
+  "closure": "module-level static local imports for listed entrypoints; not all lazy paths or CLI execution",
+  "edges": {
+    "ops/_macos_research_panel_daily_parts/__init__.py": [],
+    "infrastructure/__init__.py": [],
+    "ops/macos_research_panel_daily.py": [
+      "infrastructure/owned_io.py",
+      "infrastructure/formula_generation.py"
+    ],
+    "infrastructure/formula_generation.py": [],
+    "infrastructure/owned_io.py": [],
+    "domains/manager_research_evidence.py": [
+      "infrastructure/manager_input_attestation.py"
+    ],
+    "infrastructure/manager_input_attestation.py": [],
+    "ops/ensure_hk_security_master.py": [
+      "infrastructure/isolated_package_loader.py"
+    ],
+    "infrastructure/isolated_package_loader.py": [],
+    "stage_center/hk_universe_preflight.py": [],
+    "ops/_macos_research_panel_daily_parts/hk_market_capture.py": [
+      "ops/_macos_research_panel_daily_parts/_namespace.py"
+    ],
+    "ops/_macos_research_panel_daily_parts/_namespace.py": []
+  },
+  "external_module_level": [
+    "__future__",
+    "argparse",
+    "base64",
+    "builtins",
+    "contextlib",
+    "dataclasses",
+    "datetime",
+    "decimal",
+    "functools",
+    "hashlib",
+    "importlib.util",
+    "json",
+    "logging",
+    "math",
+    "os",
+    "pathlib",
+    "re",
+    "stat",
+    "struct",
+    "subprocess",
+    "sys",
+    "tempfile",
+    "threading",
+    "time",
+    "types",
+    "typing",
+    "uuid",
+    "zoneinfo"
+  ],
+  "lazy_imports_not_claimed_closed": [
+    {
+      "source": "ops/macos_research_panel_daily.py",
+      "line": 1467,
+      "module": "ops.a_formula_input_manifest"
+    },
+    {
+      "source": "ops/macos_research_panel_daily.py",
+      "line": 99,
+      "module": "contracts.trading_calendar"
+    },
+    {
+      "source": "ops/macos_research_panel_daily.py",
+      "line": 181,
+      "module": "pytdx.hq"
+    },
+    {
+      "source": "ops/macos_research_panel_daily.py",
+      "line": 509,
+      "module": "pandas"
+    },
+    {
+      "source": "ops/macos_research_panel_daily.py",
+      "line": 670,
+      "module": "pyarrow.parquet"
+    },
+    {
+      "source": "ops/macos_research_panel_daily.py",
+      "line": 280,
+      "module": "futu"
+    },
+    {
+      "source": "ops/macos_research_panel_daily.py",
+      "line": 700,
+      "module": "infrastructure.formula_generation"
+    },
+    {
+      "source": "ops/macos_research_panel_daily.py",
+      "line": 1247,
+      "module": "signal"
+    },
+    {
+      "source": "ops/macos_research_panel_daily.py",
+      "line": 190,
+      "module": "pytdx.config.hosts"
+    },
+    {
+      "source": "infrastructure/formula_generation.py",
+      "line": 51,
+      "module": "datetime"
+    },
+    {
+      "source": "infrastructure/formula_generation.py",
+      "line": 165,
+      "module": "pyarrow.parquet"
+    },
+    {
+      "source": "infrastructure/owned_io.py",
+      "line": 187,
+      "module": "fcntl"
+    },
+    {
+      "source": "domains/manager_research_evidence.py",
+      "line": 59,
+      "module": "hashlib"
+    },
+    {
+      "source": "domains/manager_research_evidence.py",
+      "line": 60,
+      "module": "importlib.util"
+    },
+    {
+      "source": "domains/manager_research_evidence.py",
+      "line": 61,
+      "module": "re"
+    },
+    {
+      "source": "domains/manager_research_evidence.py",
+      "line": 140,
+      "module": "hashlib"
+    },
+    {
+      "source": "domains/manager_research_evidence.py",
+      "line": 141,
+      "module": "re"
+    },
+    {
+      "source": "domains/manager_research_evidence.py",
+      "line": 284,
+      "module": "re"
+    },
+    {
+      "source": "domains/manager_research_evidence.py",
+      "line": 33,
+      "module": "re"
+    },
+    {
+      "source": "ops/ensure_hk_security_master.py",
+      "line": 173,
+      "module": "re"
+    },
+    {
+      "source": "ops/ensure_hk_security_master.py",
+      "line": 117,
+      "module": "infrastructure"
+    },
+    {
+      "source": "stage_center/hk_universe_preflight.py",
+      "line": 148,
+      "module": "futu"
+    },
+    {
+      "source": "ops/_macos_research_panel_daily_parts/hk_market_capture.py",
+      "line": 223,
+      "module": "futu"
+    }
+  ],
+  "dynamic_owner_dependency": "ops.ensure_hk_security_master._load_hk_connect_v2_contract loads source/stage_center/hk_universe_preflight.py by filename; included. Do not import stage_center package init."
+}
