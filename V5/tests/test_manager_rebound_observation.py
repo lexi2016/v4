@@ -76,6 +76,8 @@ class ManagerReboundObservationTests(unittest.TestCase):
             started_at='2026-10-08T01:00:01+00:00',finished_at='2026-10-08T01:00:02+00:00',
             execution_kind='SYNTHETIC_TEST' if kind=='SYNTHETIC' else 'MANUAL_RECORDED_INPUT_REPLAY',
             snapshot=snapshot,snapshot_sha256=snapshot['snapshot_sha256'],
+            # Synthetic contract declaration, not dependency/runtime attestation.
+            dependencies={'status':'MATCH'},implementation_identity=owner._identity(),
             context={'market_session':'20261007','plan_trade_date':'20261008'},
             computation_status=legacy['status'],reason_codes=list(owner.BLOCKERS),
             legacy_diagnostic={'status':'UNTRUSTED_LEGACY_ASSERTIONS','payload':legacy},
