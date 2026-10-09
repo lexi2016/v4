@@ -1,0 +1,52 @@
+usage: wechat_pipeline_runner.py [-h] --run-dir RUN_DIR [--url URL]
+                                 [--title TITLE] [--target-date TARGET_DATE]
+                                 [--effective-trade-date EFFECTIVE_TRADE_DATE]
+                                 [--yesterday-run-dir YESTERDAY_RUN_DIR]
+                                 [--panel PANEL]
+                                 [--image-workers IMAGE_WORKERS]
+                                 [--image-retries IMAGE_RETRIES]
+                                 [--fetch-mode {http,auto,crawl4ai}]
+                                 [--adopt-frozen-package ADOPT_FROZEN_PACKAGE]
+                                 [--adopt-package-sha256 ADOPT_PACKAGE_SHA256]
+                                 [--adopt-package-id ADOPT_PACKAGE_ID]
+                                 [--adopt-input-digest ADOPT_INPUT_DIGEST]
+                                 [--legacy-source-summary LEGACY_SOURCE_SUMMARY]
+                                 [--legacy-source-manifest LEGACY_SOURCE_MANIFEST]
+                                 --stage STAGE [--resume] [--source-only]
+
+公众号管线编排器
+
+options:
+  -h, --help            show this help message and exit
+  --run-dir RUN_DIR
+  --url URL
+  --title TITLE
+  --target-date TARGET_DATE
+  --effective-trade-date EFFECTIVE_TRADE_DATE
+  --yesterday-run-dir YESTERDAY_RUN_DIR
+  --panel PANEL
+  --image-workers IMAGE_WORKERS
+                        Fetch image concurrency (1-3 on the Mac intake).
+  --image-retries IMAGE_RETRIES
+                        Fetch image retries after the first attempt (0-3).
+  --fetch-mode {http,auto,crawl4ai}
+                        Article HTML transport for the Mac intake.
+  --adopt-frozen-package ADOPT_FROZEN_PACKAGE
+                        Explicit trusted legacy package ZIP for read-only
+                        source revalidation.
+  --adopt-package-sha256 ADOPT_PACKAGE_SHA256
+                        Externally fixed SHA-256 of the legacy package ZIP.
+  --adopt-package-id ADOPT_PACKAGE_ID
+                        Package id bound by the trusted ZIP.
+  --adopt-input-digest ADOPT_INPUT_DIGEST
+                        Input digest bound by the trusted ZIP.
+  --legacy-source-summary LEGACY_SOURCE_SUMMARY
+                        Original frozen-run summary whose bytes match the ZIP
+                        source_intake_sha256.
+  --legacy-source-manifest LEGACY_SOURCE_MANIFEST
+                        Original frozen-run manifest whose bytes match the ZIP
+                        source_manifest_sha256.
+  --stage STAGE         , 分隔的 stage 或 all
+  --resume              按工件存在跳过已完成 stage
+  --source-only         仅 summary 阶段生成 source-only 归档；不允许与
+                        build_v3/sync/validate 等阶段混用

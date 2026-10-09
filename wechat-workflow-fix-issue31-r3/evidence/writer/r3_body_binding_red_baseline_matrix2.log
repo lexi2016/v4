@@ -1,0 +1,43 @@
+COMMAND: ISSUE31_FETCH_SCRIPTS=/workspace/scratch/64559d708105/issue31/r3/baseline/wechat/scripts PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/workspace/scratch/64559d708105/issue31/r3/writer_evidence:/workspace/scratch/64559d708105/issue31/r3/candidate/wechat/tests:/workspace/scratch/64559d708105/issue31/r3/baseline/wechat/scripts:/workspace/scratch/64559d708105/issue31/r3/candidate/wechat/external /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -v test_wechat_article_fetch_recovery.WechatArticleBodyBindingMacCompatibilityTests
+CWD: /workspace/scratch/64559d708105/issue31/r3/candidate/wechat/tests
+EXIT_CODE: 1
+--- STDOUT ---
+--- STDERR ---
+test_bound_collector_source_matches_mac_input_binding (test_wechat_article_fetch_recovery.WechatArticleBodyBindingMacCompatibilityTests.test_bound_collector_source_matches_mac_input_binding) ... ok
+test_collector_projection_decodes_amp_filters_and_deduplicates_in_order (test_wechat_article_fetch_recovery.WechatArticleBodyBindingMacCompatibilityTests.test_collector_projection_decodes_amp_filters_and_deduplicates_in_order) ... FAIL
+test_image_only_gif_or_non_mmbiz_body_does_not_create_image_evidence (test_wechat_article_fetch_recovery.WechatArticleBodyBindingMacCompatibilityTests.test_image_only_gif_or_non_mmbiz_body_does_not_create_image_evidence) ... ok
+test_text_and_image_only_body_accept_only_ordered_unique_manifest (test_wechat_article_fetch_recovery.WechatArticleBodyBindingMacCompatibilityTests.test_text_and_image_only_body_accept_only_ordered_unique_manifest) ... ERROR
+test_text_body_with_missing_projected_manifest_row_is_rejected (test_wechat_article_fetch_recovery.WechatArticleBodyBindingMacCompatibilityTests.test_text_body_with_missing_projected_manifest_row_is_rejected) ... FAIL
+
+======================================================================
+ERROR: test_text_and_image_only_body_accept_only_ordered_unique_manifest (test_wechat_article_fetch_recovery.WechatArticleBodyBindingMacCompatibilityTests.test_text_and_image_only_body_accept_only_ordered_unique_manifest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/64559d708105/issue31/r3/candidate/wechat/tests/test_wechat_article_fetch_recovery.py", line 629, in test_text_and_image_only_body_accept_only_ordered_unique_manifest
+    fetch._validate_article_body(image_only, self._rows([first, second]))
+  File "/workspace/scratch/64559d708105/issue31/r3/baseline/wechat/scripts/wechat_article_fetch.py", line 77, in _validate_article_body
+    raise ValueError("empty-text BODY has no ordered js_content images matching the image manifest")
+ValueError: empty-text BODY has no ordered js_content images matching the image manifest
+
+======================================================================
+FAIL: test_collector_projection_decodes_amp_filters_and_deduplicates_in_order (test_wechat_article_fetch_recovery.WechatArticleBodyBindingMacCompatibilityTests.test_collector_projection_decodes_amp_filters_and_deduplicates_in_order)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/64559d708105/issue31/r3/candidate/wechat/tests/test_wechat_article_fetch_recovery.py", line 618, in test_collector_projection_decodes_amp_filters_and_deduplicates_in_order
+    with self.assertRaises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_text_body_with_missing_projected_manifest_row_is_rejected (test_wechat_article_fetch_recovery.WechatArticleBodyBindingMacCompatibilityTests.test_text_body_with_missing_projected_manifest_row_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/64559d708105/issue31/r3/candidate/wechat/tests/test_wechat_article_fetch_recovery.py", line 600, in test_text_body_with_missing_projected_manifest_row_is_rejected
+    with self.assertRaisesRegex(ValueError, "manifest"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.002s
+
+FAILED (failures=2, errors=1)

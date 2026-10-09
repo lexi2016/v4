@@ -1,0 +1,52 @@
+{
+  "schema_version": "issue31-r3-delivery-status-v1",
+  "created_at": "2026-10-09T03:44:29.565711+00:00",
+  "written": true,
+  "tested": "PASS_R3_OFFLINE_SCOPE",
+  "reviewed": "PASS_R3_OFFLINE_SCOPE",
+  "reviewer_literal_verdict": {
+    "reviewed": "PASS_OFFLINE_SCOPE",
+    "source_candidate_tested": "PASS",
+    "behavior_verified": "PARTIAL",
+    "mac_r3_revalidation": "CANNOT_CONFIRM",
+    "drive_complete_zip_raw_readback": "CANNOT_CONFIRM",
+    "open_p0": 0,
+    "open_p1": 0,
+    "open_p2": 0,
+    "resolved_prior_p1": [
+      "R2-MAC-001"
+    ]
+  },
+  "behavior_verified": "PARTIAL",
+  "r3_mac_actual_revalidation": "NOT_RUN_CANNOT_CONFIRM",
+  "inherited_r2_mac_evidence": "RECEIVED_AND_HASH_VERIFIED; original subpath scope only",
+  "drive_complete_zip_raw_readback": "CANNOT_CONFIRM_HTTP403_CODE1010",
+  "open_r3_offline_product_findings": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0
+  },
+  "independent_review_receipt": {
+    "path": "evidence/reviewer/R3_REVIEW_RECEIPT.json",
+    "bytes": 13976,
+    "sha256": "b000ed926c0ee94954bab881fa7e5dcd362f921dd461b9bab91a295d950b3d0a"
+  },
+  "source_manifest": {
+    "path": "SOURCE_MANIFEST.json",
+    "bytes": 3330,
+    "sha256": "fdf171a96845b26bb23f30dd3f6b2ed4b3429b23bc2a7af9cb8428a480ba6da3"
+  },
+  "integrated": false,
+  "deployed": false,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "issue_state": "OPEN",
+  "issue_close_allowed": false,
+  "publication_kind": "New isolated review branch and delivery directory; no merge or deployment",
+  "remaining_requirements": [
+    "Run the documented new R3 source revalidation on the actual Mac with exact original source anchors and final source SHA.",
+    "Complete the required full Drive ZIP raw-byte retrieval and verify expected SHA; current transfer remains blocked.",
+    "Assess the complete Issue #31 acceptance requirements; one article recovery or offline candidate PASS does not authorize issue closure."
+  ]
+}

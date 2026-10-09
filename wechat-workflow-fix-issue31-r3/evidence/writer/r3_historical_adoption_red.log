@@ -1,0 +1,41 @@
+COMMAND: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3 -m unittest -v test_wechat_article_fetch_recovery.WechatArticleFetchRecoveryTests.test_runner_adopts_frozen_legacy_source_then_prepare_reuses_cache
+CWD: /workspace/scratch/64559d708105/issue31/r3/candidate/wechat/tests
+EXIT_CODE: 1
+--- STDOUT ---
+{"schema_version": "wechat-article-fetch-state-v1", "status": "SOURCE_CAPTURED_NEED_OCR", "source_status": "BODY_IDENTITY_VERIFIED", "identity": {"url": "https://mp.weixin.qq.com/s/OfflineFixtureToken", "token": "OfflineFixtureToken", "title": "离线合成文章", "account": "合成公众号", "biz": "fixture-biz", "article_date": "20261008", "content_hash": "6f1fd8b505111406a84eca2dae65f84071b3a01e3999c1da494e70c89eae09dd", "http_status": "200", "html_bytes": "2588", "image_count": "50"}, "image_count": 50, "ocr_status_from_intake": "OCR_IMPORT_ERROR", "ocr_summary_status": "NOT_PRESENT", "next_missing_stage": "prepare_ocr", "attempt_id": "attempt_20261009T031558Z_3e2c729b0bcf", "collector_execution_status": "OCR_IMPORT_ERROR", "continuation_status": "RESUME_VIA_PREPARE_OCR", "production_allowed": false, "buy_gate_updated": false, "orders_sent": false, "collector_returncode": 17}
+{"status": "PREPARED", "run_dir": "/tmp/tmpzu_adsqb/run", "image_count": 50, "sliced_image_count": 0}
+
+--- STDERR ---
+test_runner_adopts_frozen_legacy_source_then_prepare_reuses_cache (test_wechat_article_fetch_recovery.WechatArticleFetchRecoveryTests.test_runner_adopts_frozen_legacy_source_then_prepare_reuses_cache) ... usage: python3 -m unittest [-h] --run-dir RUN_DIR [--url URL] [--title TITLE]
+                           [--target-date TARGET_DATE]
+                           [--effective-trade-date EFFECTIVE_TRADE_DATE]
+                           [--yesterday-run-dir YESTERDAY_RUN_DIR]
+                           [--panel PANEL] [--image-workers IMAGE_WORKERS]
+                           [--image-retries IMAGE_RETRIES]
+                           [--fetch-mode {http,auto,crawl4ai}] --stage STAGE
+                           [--resume] [--source-only]
+python3 -m unittest: error: unrecognized arguments: --adopt-frozen-package /tmp/tmpzu_adsqb/frozen_package/wechat_chat_materials_legacy_fixture_r1.zip --adopt-package-sha256 5e998298436f99fb1a79406538e91e82aac0cd01fb5dc37e4fdfe179c3e70d6f --adopt-package-id legacy_fixture_r1 --adopt-input-digest 16015d4233ee485aeae2f54913ac016ca08558669d563070bb38273f2e702fa0 --legacy-source-summary /tmp/tmpzu_adsqb/legacy_source/wechat_article_intake_summary.json --legacy-source-manifest /tmp/tmpzu_adsqb/legacy_source/wechat_article_image_manifest.csv
+ERROR
+
+======================================================================
+ERROR: test_runner_adopts_frozen_legacy_source_then_prepare_reuses_cache (test_wechat_article_fetch_recovery.WechatArticleFetchRecoveryTests.test_runner_adopts_frozen_legacy_source_then_prepare_reuses_cache)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/64559d708105/issue31/r3/candidate/wechat/tests/test_wechat_article_fetch_recovery.py", line 646, in test_runner_adopts_frozen_legacy_source_then_prepare_reuses_cache
+    self.assertEqual(runner.main(args), 0)
+                     ^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/64559d708105/issue31/r3/candidate/wechat/scripts/wechat_pipeline_runner.py", line 1667, in main
+    args = parser.parse_args(argv)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/argparse.py", line 1908, in parse_args
+    self.error(msg)
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/argparse.py", line 2650, in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/argparse.py", line 2637, in exit
+    _sys.exit(status)
+SystemExit: 2
+
+----------------------------------------------------------------------
+Ran 1 test in 0.167s
+
+FAILED (errors=1)

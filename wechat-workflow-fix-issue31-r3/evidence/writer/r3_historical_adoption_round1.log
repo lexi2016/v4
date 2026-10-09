@@ -1,0 +1,160 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_ WechatArticleFetchRecoveryTests.test_runner_adopts_frozen_legacy_source_then_prepare_reuses_cache _
+
+self = <test_wechat_article_fetch_recovery.WechatArticleFetchRecoveryTests testMethod=test_runner_adopts_frozen_legacy_source_then_prepare_reuses_cache>
+
+    def test_runner_adopts_frozen_legacy_source_then_prepare_reuses_cache(self) -> None:
+        run_dir, frozen_zip, legacy_summary, legacy_manifest, frozen = self._prepare_historical_package_fixture()
+        source_names = (
+            "wechat_article_intake_summary.json",
+            "wechat_article_raw.html",
+            "wechat_article_image_manifest.csv",
+            "wechat_article_image_checkpoint.json",
+        )
+        source_before = {
+            name: hashlib.sha256((run_dir / name).read_bytes()).hexdigest()
+            for name in source_names
+        }
+        ocr_before = frozen["ocr_hashes"]
+        args = [
+            "--run-dir", str(run_dir), "--url", URL,
+            "--title", "离线合成文章", "--target-date", "20261008",
+            "--stage", "fetch",
+            "--adopt-frozen-package", str(frozen_zip),
+            "--adopt-package-sha256", str(frozen["package_sha256"]),
+            "--adopt-package-id", str(frozen["package_id"]),
+            "--adopt-input-digest", str(frozen["input_digest"]),
+            "--legacy-source-summary", str(legacy_summary),
+            "--legacy-source-manifest", str(legacy_manifest),
+        ]
+    
+        with patch.object(runner.sys, "platform", "darwin"):
+>           self.assertEqual(runner.main(args), 0)
+                             ^^^^^^^^^^^^^^^^^
+
+tests/test_wechat_article_fetch_recovery.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/wechat_pipeline_runner.py:1770: in main
+    run_stage(s, args)
+scripts/wechat_pipeline_runner.py:1599: in run_stage
+    _run_fetch(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+run_dir = PosixPath('/tmp/tmpptiokjtu/rebound/run'), target_date = '20261008'
+url = 'https://mp.weixin.qq.com/s/OfflineFixtureToken'
+article = {'url': 'https://mp.weixin.qq.com/s/OfflineFixtureToken', 'title': '离线合成文章', 'target_date': '20261008', 'account': '合成公众号', ...}
+title = '离线合成文章', image_workers = None, image_retries = None, fetch_mode = None
+adopt_frozen_package = '/tmp/tmpptiokjtu/frozen_package/wechat_chat_materials_legacy_fixture_r1.zip'
+adopt_package_sha256 = '879ab3fa68ff6743fe8ae6f63b47d25b79b0cf39b4773803d87d49460d4bd3b5'
+adopt_package_id = 'legacy_fixture_r1'
+adopt_input_digest = '16015d4233ee485aeae2f54913ac016ca08558669d563070bb38273f2e702fa0'
+legacy_source_summary = '/tmp/tmpptiokjtu/legacy_source/wechat_article_intake_summary.json'
+legacy_source_manifest = '/tmp/tmpptiokjtu/legacy_source/wechat_article_image_manifest.csv'
+
+    def _run_fetch(
+        run_dir: Path,
+        target_date: str,
+        url: str,
+        *,
+        article: dict | None = None,
+        title: str = "",
+        image_workers: int | None = None,
+        image_retries: int | None = None,
+        fetch_mode: str | None = None,
+        adopt_frozen_package: str = "",
+        adopt_package_sha256: str = "",
+        adopt_package_id: str = "",
+        adopt_input_digest: str = "",
+        legacy_source_summary: str = "",
+        legacy_source_manifest: str = "",
+    ) -> None:
+        """Fetch source artifacts; tolerate legacy skip-OCR empty-pool exit.
+    
+        The legacy command performs extraction after the skip-OCR fetch and exits
+        with ``FAIL_EMPTY_STOCK_POOL`` because OCR text is intentionally empty.
+        A semantically complete intake is still a valid fetch checkpoint, so only
+        that post-fetch exit is tolerated; transport/identity failures remain
+        fatal.
+        """
+        run_dir = validate_run_dir(run_dir)
+        # The collector writes these paths directly.  Reject pre-existing links
+        # before invoking it so a stale run cannot redirect an output outside the
+        # validated run root.
+        for name in (
+            "wechat_article_intake_summary.json",
+            "wechat_article_raw.html",
+            "wechat_article_image_manifest.csv",
+            "wechat_article_ocr_text.txt",
+            "wechat_article_intake_report.md",
+            "wechat_research_collection_usage_plan.md",
+            "wechat_article_images",
+            "_fetch_staging",
+        ):
+            _reject_symlink_components(run_dir / name, f"fetch output {name}")
+        image_dir = run_dir / "wechat_article_images"
+        if image_dir.is_dir():
+            for path in image_dir.iterdir():
+                _reject_symlink_components(path, f"fetch image output {path.name}")
+        # The legacy fetch command also performs archive/sync work before OCR.  Keep
+        # those side effects inside the run until the explicit ``sync`` stage.
+        fetch_staging = run_dir / "_fetch_staging"
+        v3_staging = fetch_staging / "v3_system"
+        archive_staging = fetch_staging / "legacy_archive"
+        if (sys.platform or "").startswith("win"):
+            v3_staging.mkdir(parents=True, exist_ok=True)
+            archive_staging.mkdir(parents=True, exist_ok=True)
+    
+        env_utf8 = child_process_env()
+        cmd = build_fetch_command(
+            run_dir,
+            target_date,
+            url,
+            image_workers=image_workers,
+            image_retries=image_retries,
+            fetch_mode=fetch_mode,
+            adopt_frozen_package=adopt_frozen_package,
+            adopt_package_sha256=adopt_package_sha256,
+            adopt_package_id=adopt_package_id,
+            adopt_input_digest=adopt_input_digest,
+            legacy_source_summary=legacy_source_summary,
+            legacy_source_manifest=legacy_source_manifest,
+        )
+        completed = subprocess.run(cmd, check=False, capture_output=True, text=True, encoding="utf-8", env=env_utf8)
+        research = load_article_research(run_dir)
+        reviewed_article = article if isinstance(article, dict) else (
+            research.get("article", {}) if isinstance(research, dict) else {}
+        )
+        if not isinstance(reviewed_article, dict):
+            reviewed_article = {}
+        try:
+            _require_exact_intake(
+                run_dir,
+                reviewed_article,
+                expected_url=url,
+                expected_title=title,
+                expected_date=target_date,
+            )
+        except (OSError, ValueError, TypeError, RuntimeError) as exc:
+            if completed.returncode == 0:
+                raise RuntimeError("fetch completed without an exact intake identity checkpoint") from exc
+            exact_intake_error = exc
+        else:
+            exact_intake_error = None
+        if completed.returncode == 0:
+            return
+        failure_output = f"{completed.stdout or ''}\n{completed.stderr or ''}"
+        if "FAIL_EMPTY_STOCK_POOL" in failure_output and exact_intake_error is None:
+            print(json.dumps({"status": "FETCH_INTAKE_READY", "pipeline_returncode": completed.returncode}, ensure_ascii=False))
+            return
+>       raise subprocess.CalledProcessError(completed.returncode, cmd, output=completed.stdout, stderr=completed.stderr)
+E       subprocess.CalledProcessError: Command '['/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python', '-X', 'utf8', '/workspace/scratch/64559d708105/issue31/r3/candidate/wechat/scripts/wechat_article_fetch.py', '--url', 'https://mp.weixin.qq.com/s/OfflineFixtureToken', '--out', '/tmp/tmpptiokjtu/rebound/run', '--skip-ocr', '--adopt-frozen-package', '/tmp/tmpptiokjtu/frozen_package/wechat_chat_materials_legacy_fixture_r1.zip', '--adopt-package-sha256', '879ab3fa68ff6743fe8ae6f63b47d25b79b0cf39b4773803d87d49460d4bd3b5', '--adopt-package-id', 'legacy_fixture_r1', '--adopt-input-digest', '16015d4233ee485aeae2f54913ac016ca08558669d563070bb38273f2e702fa0', '--legacy-source-summary', '/tmp/tmpptiokjtu/legacy_source/wechat_article_intake_summary.json', '--legacy-source-manifest', '/tmp/tmpptiokjtu/legacy_source/wechat_article_image_manifest.csv']' returned non-zero exit status 2.
+
+scripts/wechat_pipeline_runner.py:807: CalledProcessError
+----------------------------- Captured stdout call -----------------------------
+{"schema_version": "wechat-article-fetch-state-v1", "status": "SOURCE_CAPTURED_NEED_OCR", "source_status": "BODY_IDENTITY_VERIFIED", "identity": {"url": "https://mp.weixin.qq.com/s/OfflineFixtureToken", "token": "OfflineFixtureToken", "title": "离线合成文章", "account": "合成公众号", "biz": "fixture-biz", "article_date": "20261008", "content_hash": "6f1fd8b505111406a84eca2dae65f84071b3a01e3999c1da494e70c89eae09dd", "http_status": "200", "html_bytes": "2588", "image_count": "50"}, "image_count": 50, "ocr_status_from_intake": "OCR_IMPORT_ERROR", "ocr_summary_status": "NOT_PRESENT", "next_missing_stage": "prepare_ocr", "attempt_id": "attempt_20261009T032313Z_2e89fc631e1e", "collector_execution_status": "OCR_IMPORT_ERROR", "continuation_status": "RESUME_VIA_PREPARE_OCR", "production_allowed": false, "buy_gate_updated": false, "orders_sent": false, "collector_returncode": 17}
+{"status": "PREPARED", "run_dir": "/tmp/tmpptiokjtu/run", "image_count": 50, "sliced_image_count": 0}
+{"stage": "fetch", "action": "RUN"}
+=========================== short test summary info ============================
+FAILED tests/test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_runner_adopts_frozen_legacy_source_then_prepare_reuses_cache
+1 failed, 23 deselected in 0.34s

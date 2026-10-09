@@ -1,0 +1,73 @@
+{
+  "schema_version": "issue31-r3-source-manifest-v1",
+  "mac_feedback_commit": "9735baa24d1c26c0836850a1336888022c77781a",
+  "r2_commit": "6e1f34ab74741635f8b30c67887fa5fc07f0e6c2",
+  "baseline_provenance": "BASELINE_PROVENANCE.json",
+  "changed_file_count": 3,
+  "unchanged_baseline_file_count": 32,
+  "files": [
+    {
+      "path": "wechat/scripts/wechat_article_fetch.py",
+      "group": "runtime",
+      "change": "modified",
+      "before": {
+        "bytes": 58707,
+        "sha256": "5d648dac0b712a05be2345d1fe73020d3e99520b8256b003c29120c232dedb17",
+        "git_blob_sha1": "7ec3d1e621e056ef89ee108e41d6272c861e6219",
+        "crlf_count": 0,
+        "lf_without_cr_count": 1202
+      },
+      "after": {
+        "bytes": 91948,
+        "sha256": "192564aea7421a9af42b0116c32708848765cbb433c8692351f0db75098b860f",
+        "git_blob_sha1": "0e12c7ec559ab1b1774e6e11ac8df3d6887d1ac8",
+        "crlf_count": 0,
+        "lf_without_cr_count": 1804
+      },
+      "before_source_url": "https://github.com/lexi2016/v4/blob/6e1f34ab74741635f8b30c67887fa5fc07f0e6c2/wechat-workflow-fix-issue31-r2/source/wechat/scripts/wechat_article_fetch.py",
+      "mac_apply_note": "Apply only to an isolated copy with the exact before SHA. A different current file requires a new diff and independent review."
+    },
+    {
+      "path": "wechat/scripts/wechat_pipeline_runner.py",
+      "group": "runtime",
+      "change": "modified",
+      "before": {
+        "bytes": 74185,
+        "sha256": "b65fc26d232d2c3f38b5ec72f0b739728ff867a85b3e97da0dc26729ebf5d63e",
+        "git_blob_sha1": "b5e64502d1bef70a576465ffdb5578fc84b600cc",
+        "crlf_count": 0,
+        "lf_without_cr_count": 1710
+      },
+      "after": {
+        "bytes": 77999,
+        "sha256": "46d8761e44a250642cbcd7a513604fad1148d09726010d6f0eab5f269f256bcd",
+        "git_blob_sha1": "a5e22dcb20a6dea3d9544cfc4497ada20ae94460",
+        "crlf_count": 0,
+        "lf_without_cr_count": 1777
+      },
+      "before_source_url": "https://github.com/lexi2016/v4/blob/9735baa24d1c26c0836850a1336888022c77781a/wechat-workflow-issue31-mac-20261009/source_current/scripts/wechat_pipeline_runner.py",
+      "mac_apply_note": "Apply only to an isolated copy with the exact before SHA. A different current file requires a new diff and independent review."
+    },
+    {
+      "path": "wechat/tests/test_wechat_article_fetch_recovery.py",
+      "group": "tests",
+      "change": "modified",
+      "before": {
+        "bytes": 31535,
+        "sha256": "3d5a55f32c62a1ea250f1bdfef3b41584abcccbb06199000357483acdde2e124",
+        "git_blob_sha1": "1956f27586dbc49777c907b443fa568ebc138e89",
+        "crlf_count": 0,
+        "lf_without_cr_count": 568
+      },
+      "after": {
+        "bytes": 52232,
+        "sha256": "3c2316ff77f291c91bb2d04efe00b3f0304c9c8cdf461d731da48b3435d83e92",
+        "git_blob_sha1": "6c93e46d6e0e315b29f3bd21ee63e7f8e4519bf6",
+        "crlf_count": 0,
+        "lf_without_cr_count": 977
+      },
+      "before_source_url": "https://github.com/lexi2016/v4/blob/6e1f34ab74741635f8b30c67887fa5fc07f0e6c2/wechat-workflow-fix-issue31-r2/source/wechat/tests/test_wechat_article_fetch_recovery.py",
+      "mac_apply_note": "Apply only to an isolated copy with the exact before SHA. A different current file requires a new diff and independent review."
+    }
+  ]
+}

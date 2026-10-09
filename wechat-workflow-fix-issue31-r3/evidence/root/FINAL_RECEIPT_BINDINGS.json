@@ -1,0 +1,49 @@
+{
+  "checked_at": "2026-10-09T03:44:29.561774+00:00",
+  "status": "ALL_MATCH",
+  "scope": "Delivery byte consistency only; no duplicate product tests or product verdict",
+  "checked_receipt_references": {
+    "writer_evidence/R3_WRITER_RECEIPT.json": [
+      "candidate/wechat/scripts/wechat_article_fetch.py",
+      "candidate/wechat/scripts/wechat_pipeline_runner.py",
+      "candidate/wechat/tests/test_wechat_article_fetch_recovery.py",
+      "writer_evidence/IMPLEMENTATION_PLAN.md",
+      "writer_evidence/R3_ACCEPTANCE_COMMANDS.md",
+      "writer_evidence/r3_recovery_suite_round3.log",
+      "writer_evidence/r3_historical_adoption_round6.log",
+      "writer_evidence/r3_runner_help.log",
+      "writer_evidence/r3_fetch_help.log",
+      "writer_evidence/baseline_r2_mac_001_reproduction.log",
+      "writer_evidence/r3_body_binding_red_baseline_matrix2.log",
+      "writer_evidence/r3_r2_mac_001_candidate_reproduction_final.log",
+      "writer_evidence/r3_historical_adoption_red.log",
+      "writer_evidence/candidate_pre_fix_r2_mac_001_reproduction.log",
+      "writer_evidence/R3_WRITER_RECEIPT.initial.json",
+      "writer_evidence/R3_ACCEPTANCE_COMMANDS.initial.md"
+    ],
+    "reviewer_evidence/R3_REVIEW_RECEIPT.json": [
+      "delivery/wechat-workflow-fix-issue31-r3/actual_diff.patch",
+      "delivery/wechat-workflow-fix-issue31-r3/SOURCE_MANIFEST.json",
+      "candidate/wechat/scripts/wechat_article_fetch.py",
+      "candidate/wechat/scripts/wechat_pipeline_runner.py",
+      "candidate/wechat/tests/test_wechat_article_fetch_recovery.py",
+      "writer_evidence/R3_WRITER_RECEIPT.json",
+      "writer_evidence/R3_ACCEPTANCE_COMMANDS.md",
+      "writer_evidence/R3_WRITER_RECEIPT.initial.json",
+      "writer_evidence/R3_ACCEPTANCE_COMMANDS.initial.md",
+      "reviewer_evidence/r3_fetch_recovery_pytest.log",
+      "reviewer_evidence/r3_adoption_focus_pytest.log",
+      "reviewer_evidence/r3_runner_resume_prepare_probe.py",
+      "reviewer_evidence/r3_runner_resume_prepare_probe.log",
+      "reviewer_evidence/r2_mac_001_baseline_repro.log",
+      "mac_inputs/evidence/mac_actual/r2_fetch_recovery_tests_final.log",
+      "mac_inputs/evidence/mac_actual/r2_appendix_regression_tests_final.log",
+      "mac_inputs/evidence/mac_actual/actual_collector_cli_cache_reuse.log",
+      "mac_inputs/evidence/mac_actual/actual_runner_vision.log",
+      "mac_inputs/evidence/mac_actual/actual_runner_fetch.log",
+      "root_evidence/DRIVE_R2_ZIP_READBACK.json"
+    ]
+  },
+  "candidate_matches_reviewed_bytes": true,
+  "packaged_source_matches_reviewed_bytes": true
+}

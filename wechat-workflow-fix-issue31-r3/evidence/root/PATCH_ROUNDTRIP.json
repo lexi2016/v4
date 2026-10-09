@@ -1,0 +1,56 @@
+{
+  "status": "PASS",
+  "scope": "Packaging byte mechanics only; not a product verdict",
+  "candidate_file_count": 35,
+  "baseline_file_count": 35,
+  "actual_diff_sha256": "739df58d9cfb1213bfa7ff879ecd4ec660c1778acb3d85ad1a92ce619ecc1f12",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "apply",
+        "--check",
+        "actual_diff.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "actual_diff.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "--reverse",
+        "--check",
+        "actual_diff.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "--reverse",
+        "actual_diff.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "forward_exact_bytes": true,
+  "reverse_exact_bytes": true,
+  "mac_behavior_verified": false
+}

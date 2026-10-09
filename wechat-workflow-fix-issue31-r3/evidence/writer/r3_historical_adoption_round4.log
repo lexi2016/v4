@@ -1,0 +1,91 @@
+.F                                                                       [100%]
+=================================== FAILURES ===================================
+_ WechatArticleFetchRecoveryTests.test_runner_adopts_frozen_legacy_source_then_prepare_reuses_cache _
+
+self = <test_wechat_article_fetch_recovery.WechatArticleFetchRecoveryTests testMethod=test_runner_adopts_frozen_legacy_source_then_prepare_reuses_cache>
+
+    def test_runner_adopts_frozen_legacy_source_then_prepare_reuses_cache(self) -> None:
+        run_dir, frozen_zip, legacy_summary, legacy_manifest, frozen = self._prepare_historical_package_fixture()
+        source_names = (
+            "wechat_article_intake_summary.json",
+            "wechat_article_raw.html",
+            "wechat_article_image_manifest.csv",
+            "wechat_article_image_checkpoint.json",
+        )
+        source_before = {
+            name: hashlib.sha256((run_dir / name).read_bytes()).hexdigest()
+            for name in source_names
+        }
+        ocr_before = frozen["ocr_hashes"]
+        with patch.object(fetch, "_intake_script") as collector_entry:
+            self.assertEqual(fetch.main(["--url", URL, "--out", str(run_dir), "--skip-ocr"]), 2)
+            collector_entry.assert_not_called()
+        args = [
+            "--run-dir", str(run_dir), "--url", URL,
+            "--title", "离线合成文章", "--target-date", "20261008",
+            "--stage", "fetch",
+            "--adopt-frozen-package", str(frozen_zip),
+            "--adopt-package-sha256", str(frozen["package_sha256"]),
+            "--adopt-package-id", str(frozen["package_id"]),
+            "--adopt-input-digest", str(frozen["input_digest"]),
+            "--legacy-source-summary", str(legacy_summary),
+            "--legacy-source-manifest", str(legacy_manifest),
+        ]
+    
+        with patch.object(runner.sys, "platform", "darwin"):
+            self.assertEqual(runner.main(args), 0)
+    
+        receipt_paths = list((run_dir / "evidence" / "wechat_article_fetch_adoptions").glob("*/REVALIDATION_RECEIPT.json"))
+        self.assertEqual(len(receipt_paths), 1)
+        adoption = json.loads(receipt_paths[0].read_text(encoding="utf-8-sig"))
+        self.assertFalse(adoption["historical_promotion_claimed"])
+        self.assertFalse(adoption["collector_invoked"])
+        self.assertEqual(adoption["package"]["package_id"], frozen["package_id"])
+        self.assertEqual(source_before, {
+            name: hashlib.sha256((run_dir / name).read_bytes()).hexdigest()
+            for name in source_names
+        })
+        state = json.loads((run_dir / "wechat_article_fetch_state.json").read_text(encoding="utf-8-sig"))
+        self.assertEqual(state["next_missing_stage"], "package")
+        self.assertEqual(state["historical_promotion_claimed"], False)
+        self.assertEqual(state["ocr_cache_status"], "OCR_OK")
+    
+        with (run_dir / "wechat_article_image_manifest.csv").open(
+            "r", encoding="utf-8-sig", newline=""
+        ) as stream:
+            reader = csv.DictReader(stream)
+            manifest_fields_before = list(reader.fieldnames or [])
+            manifest_rows_before = list(reader)
+        source_projection_before = fetch._image_source_projection_sha256(
+            manifest_fields_before, manifest_rows_before,
+        )
+        image_paths_before = [row["local_path"] for row in manifest_rows_before]
+    
+        self.assertEqual(prepare_ocr.main(["--run-dir", str(run_dir)]), 0)
+        self.assertEqual(ocr_before, {
+            path.name: hashlib.sha256(path.read_bytes()).hexdigest()
+            for path in run_dir.iterdir()
+            if path.is_file() and path.name in ocr_before
+        })
+>       self.assertEqual(source_before, {
+            name: hashlib.sha256((run_dir / name).read_bytes()).hexdigest()
+            for name in source_names
+            if name != "wechat_article_image_manifest.csv"
+        })
+E       AssertionError: {'wec[214 chars]mage_manifest.csv': '25e19aa1f40fa64e3b5140006[144 chars]0bd'} != {'wec[214 chars]mage_checkpoint.json': '02f68aada3d2435c40dd1f[39 chars]0bd'}
+E         {'wechat_article_image_checkpoint.json': '02f68aada3d2435c40dd1f5384617e9096d2b13329094e406fc68c30fe7980bd',
+E       -  'wechat_article_image_manifest.csv': '25e19aa1f40fa64e3b514000607750b1dfe3db2d7710816fd48de7beea595459',
+E          'wechat_article_intake_summary.json': 'e346317331ba026da3e372f15c577a613f70bd998e2a177c94c3582f445f8f83',
+E          'wechat_article_raw.html': '6f1fd8b505111406a84eca2dae65f84071b3a01e3999c1da494e70c89eae09dd'}
+
+tests/test_wechat_article_fetch_recovery.py:687: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"schema_version": "wechat-article-fetch-state-v1", "status": "SOURCE_CAPTURED_NEED_OCR", "source_status": "BODY_IDENTITY_VERIFIED", "identity": {"url": "https://mp.weixin.qq.com/s/OfflineFixtureToken", "token": "OfflineFixtureToken", "title": "离线合成文章", "account": "合成公众号", "biz": "fixture-biz", "article_date": "20261008", "content_hash": "6f1fd8b505111406a84eca2dae65f84071b3a01e3999c1da494e70c89eae09dd", "http_status": "200", "html_bytes": "2588", "image_count": "50"}, "image_count": 50, "ocr_status_from_intake": "OCR_IMPORT_ERROR", "ocr_summary_status": "NOT_PRESENT", "next_missing_stage": "prepare_ocr", "attempt_id": "attempt_20261009T032513Z_d4ebedb68b0b", "collector_execution_status": "OCR_IMPORT_ERROR", "continuation_status": "RESUME_VIA_PREPARE_OCR", "production_allowed": false, "buy_gate_updated": false, "orders_sent": false, "collector_returncode": 17}
+{"status": "PREPARED", "run_dir": "/tmp/tmpo9u7bal9/run", "image_count": 50, "sliced_image_count": 0}
+{"status": "ERROR", "error": "ValueError: existing intake source lacks its bound fetch attempt identity"}
+{"stage": "fetch", "action": "RUN"}
+{"status": "STAGES_DONE", "run_dir": "/tmp/tmpo9u7bal9/rebound/run", "stages": ["fetch"]}
+{"status": "PREPARED", "run_dir": "/tmp/tmpo9u7bal9/rebound/run", "image_count": 50, "sliced_image_count": 0}
+=========================== short test summary info ============================
+FAILED tests/test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_runner_adopts_frozen_legacy_source_then_prepare_reuses_cache
+1 failed, 1 passed, 23 deselected in 0.72s

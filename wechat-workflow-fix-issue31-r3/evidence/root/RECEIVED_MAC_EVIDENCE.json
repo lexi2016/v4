@@ -1,0 +1,65 @@
+{
+  "schema_version": "issue31-r3-received-mac-evidence-v1",
+  "scope": "Previously performed R2 Mac acceptance, received and hash-verified; not a new R3 Mac run.",
+  "source_commit": "9735baa24d1c26c0836850a1336888022c77781a",
+  "sources": [
+    {
+      "path": "REVIEW_RECEIPT.json",
+      "source_url": "https://github.com/lexi2016/v4/blob/9735baa24d1c26c0836850a1336888022c77781a/wechat-workflow-issue31-mac-20261009/REVIEW_RECEIPT.json",
+      "bytes": 7195,
+      "sha256": "c64142b70cd04d5319921087a42d97f4a2eb3708413cce688caca65fb4661303"
+    },
+    {
+      "path": "REVIEW_FINDINGS.md",
+      "source_url": "https://github.com/lexi2016/v4/blob/9735baa24d1c26c0836850a1336888022c77781a/wechat-workflow-issue31-mac-20261009/REVIEW_FINDINGS.md",
+      "bytes": 5362,
+      "sha256": "858fde8b077acabb6f4e5a35ed1ea75d81a918a7aa0b8549e9abe5e2c5b7f506"
+    },
+    {
+      "path": "evidence/WRITER_RECEIPT.json",
+      "source_url": "https://github.com/lexi2016/v4/blob/9735baa24d1c26c0836850a1336888022c77781a/wechat-workflow-issue31-mac-20261009/evidence/WRITER_RECEIPT.json",
+      "bytes": 43619,
+      "sha256": "86c28fb160125d0766a6ac2169385460302a90158a1ddcf24c9a76afc72a56e8"
+    },
+    {
+      "path": "MAC_INPUT_BINDING.json",
+      "source_url": "https://github.com/lexi2016/v4/blob/9735baa24d1c26c0836850a1336888022c77781a/wechat-workflow-issue31-mac-20261009/MAC_INPUT_BINDING.json",
+      "bytes": 5730,
+      "sha256": "30cd7d33b5276932d4a1bc5a26db0307b9f36810fb461903d5026c9c03d97de2"
+    }
+  ],
+  "received_verdict": {
+    "reviewed": "FAIL",
+    "tested": "PASS",
+    "behavior_verified": "PARTIAL",
+    "target_daily_restore": "FAIL",
+    "complete_zip_raw_readback": "CANNOT_CONFIRM",
+    "p0": 0,
+    "p1": 1,
+    "p2": 0
+  },
+  "preserved_pass_scope": [
+    "Mac independent targeted fetch recovery 17/17 and appendix 3/3",
+    "Actual collector saved HTML with 50/50 local image reuse; zero network attempts",
+    "Prepare and Vision cache paths: canary 3/3, full 50/50, new OCR attempts 0",
+    "Synthetic appendix actual CLI: 108 rows A81/BJ3/HK24; missing price evidence remains CANNOT_CONFIRM"
+  ],
+  "original_frozen_package_locator": {
+    "package_id": "wechat_20261008_ZfZPPo1xSsfROmFZbaqSuw_r1",
+    "input_digest": "c93e458747fe18fa33373785d79a9b026c15792d02fa9263db7b6f2bda48abc2",
+    "path": "/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/evidence/issue31_r2_mac_20261009/mac_actual/original_inputs/wechat_chat_materials_wechat_20261008_ZfZPPo1xSsfROmFZbaqSuw_r1.zip",
+    "bytes": 11012092,
+    "sha256": "c8a0dcfb548012bc8feb4e818e0cad7eead7de5a564a0ecaa85d64ce3763956f",
+    "expected_sha256": "c8a0dcfb548012bc8feb4e818e0cad7eead7de5a564a0ecaa85d64ce3763956f",
+    "matches_expected": true
+  },
+  "input_run_id": "20261008_html_recovery_ZfZPPo1xSsfROmFZbaqSuw",
+  "input_url": "https://mp.weixin.qq.com/s/ZfZPPo1xSsfROmFZbaqSuw",
+  "article_date": "20261008",
+  "original_zip_bytes_observed_by_this_linux_coordinator": false,
+  "new_r3_mac_acceptance": "NOT_RUN",
+  "drive_raw_bytes_for_r2_zip": "CANNOT_CONFIRM",
+  "integrated": false,
+  "deployed": false,
+  "issue_close_allowed": false
+}

@@ -1,0 +1,330 @@
+{
+  "schema_version": "issue31-r3-baseline-v1",
+  "repository": "lexi2016/v4",
+  "mac_feedback_commit": "9735baa24d1c26c0836850a1336888022c77781a",
+  "r2_commit": "6e1f34ab74741635f8b30c67887fa5fc07f0e6c2",
+  "construction": "Prior composed R2 candidate; overlay current Mac source_current and current wechat AGENTS; restore exact R2 four code/test files; retain actual Mac workflow without remote redacted replacement. Supporting snapshots are labeled individually.",
+  "not_a_complete_current_mac_worktree": true,
+  "source_current_collector_read_only": true,
+  "source_current_runner_available": true,
+  "inherited_rules_available": true,
+  "received_raw_files": 47,
+  "download_receipt": "INPUT_DOWNLOAD_RECEIPT.json",
+  "files": [
+    {
+      "path": "skill/baimao-chokepoint/SKILL.md",
+      "bytes": 9185,
+      "sha256": "b6f0d8dc97b3b896e04ac8c79edf047a57d9ac6f8c3f4587f028c8fae4ca0b4e",
+      "source_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+      "source_path": "wechat-workflow-review/source/skill/baimao-chokepoint/SKILL.md",
+      "source_url": "https://github.com/lexi2016/v4/blob/bdb736bddd3c04e061eff0a43c47104523d144a0/wechat-workflow-review/source/skill/baimao-chokepoint/SKILL.md",
+      "role": "unchanged original review supporting snapshot"
+    },
+    {
+      "path": "skill/baimao-feed/SKILL.md",
+      "bytes": 15282,
+      "sha256": "ede5b21cb4c928ba0d08c4690abb900c9fedb27ef24cd419bc078ba2d3d8b6cf",
+      "source_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+      "source_path": "wechat-workflow-review/source/skill/baimao-feed/SKILL.md",
+      "source_url": "https://github.com/lexi2016/v4/blob/bdb736bddd3c04e061eff0a43c47104523d144a0/wechat-workflow-review/source/skill/baimao-feed/SKILL.md",
+      "role": "unchanged original review supporting snapshot"
+    },
+    {
+      "path": "skill/baimao-feed/references/archive-contract.md",
+      "bytes": 4830,
+      "sha256": "cf50b11a841028789c4b9d1ef5f594e58d982494c53a88915ae6fd6de64a5383",
+      "source_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+      "source_path": "wechat-workflow-review/source/skill/baimao-feed/references/archive-contract.md",
+      "source_url": "https://github.com/lexi2016/v4/blob/bdb736bddd3c04e061eff0a43c47104523d144a0/wechat-workflow-review/source/skill/baimao-feed/references/archive-contract.md",
+      "role": "unchanged original review supporting snapshot"
+    },
+    {
+      "path": "skill/baimao-feed/references/drive-chat-handoff.md",
+      "bytes": 6002,
+      "sha256": "d103f3f97ccb2769f955506295657eeb8858aef8647364675c0ffa85fcecf0dd",
+      "source_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+      "source_path": "wechat-workflow-review/source/skill/baimao-feed/references/drive-chat-handoff.md",
+      "source_url": "https://github.com/lexi2016/v4/blob/bdb736bddd3c04e061eff0a43c47104523d144a0/wechat-workflow-review/source/skill/baimao-feed/references/drive-chat-handoff.md",
+      "role": "unchanged original review supporting snapshot"
+    },
+    {
+      "path": "skill/baimao-method/SKILL.md",
+      "bytes": 10528,
+      "sha256": "c656c617c5985e98b69e0cd77be22358a5148ca30c693f7917f328e862d5a62b",
+      "source_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+      "source_path": "wechat-workflow-review/source/skill/baimao-method/SKILL.md",
+      "source_url": "https://github.com/lexi2016/v4/blob/bdb736bddd3c04e061eff0a43c47104523d144a0/wechat-workflow-review/source/skill/baimao-method/SKILL.md",
+      "role": "unchanged original review supporting snapshot"
+    },
+    {
+      "path": "skill/baimao-method/references/wechat-report-chain.md",
+      "bytes": 4950,
+      "sha256": "21b3c7c4b0ab6571a83ae7b29ea3ce5af4c7ab6d5bb4a515f03eaa95a40c331c",
+      "source_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+      "source_path": "wechat-workflow-review/source/skill/baimao-method/references/wechat-report-chain.md",
+      "source_url": "https://github.com/lexi2016/v4/blob/bdb736bddd3c04e061eff0a43c47104523d144a0/wechat-workflow-review/source/skill/baimao-method/references/wechat-report-chain.md",
+      "role": "unchanged original review supporting snapshot"
+    },
+    {
+      "path": "v4_app/apps/api/v35_api/wechat_research_router.py",
+      "bytes": 3103,
+      "sha256": "9989c824ec154856857ba1513a0de3ba464420aa0cfed49c8ff0c2397078c091",
+      "source_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+      "source_path": "wechat-workflow-review/source/v4_app/apps/api/v35_api/wechat_research_router.py",
+      "source_url": "https://github.com/lexi2016/v4/blob/bdb736bddd3c04e061eff0a43c47104523d144a0/wechat-workflow-review/source/v4_app/apps/api/v35_api/wechat_research_router.py",
+      "role": "unchanged original review supporting snapshot"
+    },
+    {
+      "path": "v4_app/apps/web/src/api/wechat_research.ts",
+      "bytes": 14754,
+      "sha256": "eb42b8dcdec5ae8b6bf72e132f94394009cc9ea65f4b83471fc077e59a1084fa",
+      "source_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+      "source_path": "wechat-workflow-review/source/v4_app/apps/web/src/api/wechat_research.ts",
+      "source_url": "https://github.com/lexi2016/v4/blob/bdb736bddd3c04e061eff0a43c47104523d144a0/wechat-workflow-review/source/v4_app/apps/web/src/api/wechat_research.ts",
+      "role": "unchanged original review supporting snapshot"
+    },
+    {
+      "path": "v4_app/apps/web/src/components/research/WechatResearchPanel.vue",
+      "bytes": 14210,
+      "sha256": "4cb44d8e06164d967339c201dca48cabef7aa1b7678c30a107c7ecab1b143592",
+      "source_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+      "source_path": "wechat-workflow-review/source/v4_app/apps/web/src/components/research/WechatResearchPanel.vue",
+      "source_url": "https://github.com/lexi2016/v4/blob/bdb736bddd3c04e061eff0a43c47104523d144a0/wechat-workflow-review/source/v4_app/apps/web/src/components/research/WechatResearchPanel.vue",
+      "role": "unchanged original review supporting snapshot"
+    },
+    {
+      "path": "v4_app/infrastructure/wechat_research_archive.py",
+      "bytes": 50794,
+      "sha256": "b5d23f521dbcad34a79a6757c455c3418e185aaeda29f49dbf4cd923f22d0016",
+      "source_commit": "e7dcf69d342a43d605521d551aafb4dc5c3911af",
+      "source_path": "wechat-workflow-fix-r1/source/v4_app/infrastructure/wechat_research_archive.py",
+      "source_url": "https://github.com/lexi2016/v4/blob/e7dcf69d342a43d605521d551aafb4dc5c3911af/wechat-workflow-fix-r1/source/v4_app/infrastructure/wechat_research_archive.py",
+      "role": "unchanged R1 supporting snapshot"
+    },
+    {
+      "path": "v4_app/ops/index_wechat_research.py",
+      "bytes": 6898,
+      "sha256": "e741b6de83e231bc9940576d714854c038069326fd44ca7a1e8b8339d665c176",
+      "source_commit": "e7dcf69d342a43d605521d551aafb4dc5c3911af",
+      "source_path": "wechat-workflow-fix-r1/source/v4_app/ops/index_wechat_research.py",
+      "source_url": "https://github.com/lexi2016/v4/blob/e7dcf69d342a43d605521d551aafb4dc5c3911af/wechat-workflow-fix-r1/source/v4_app/ops/index_wechat_research.py",
+      "role": "unchanged R1 supporting snapshot"
+    },
+    {
+      "path": "v4_app/tests/fixtures/wechat_stage_a/IMPORT_RECEIPT.json",
+      "bytes": 2407,
+      "sha256": "4064398176ebf39fa18eb1790e1736a40140346c3a7167d597a4aa5659805c49",
+      "source_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+      "source_path": "wechat-workflow-review/source/v4_app/tests/fixtures/wechat_stage_a/IMPORT_RECEIPT.json",
+      "source_url": "https://github.com/lexi2016/v4/blob/bdb736bddd3c04e061eff0a43c47104523d144a0/wechat-workflow-review/source/v4_app/tests/fixtures/wechat_stage_a/IMPORT_RECEIPT.json",
+      "role": "unchanged original review supporting snapshot"
+    },
+    {
+      "path": "v4_app/tests/fixtures/wechat_stage_a/report.md",
+      "bytes": 48,
+      "sha256": "f9921ca25bf4aa9fd5e3e1829f60802f6249fd0a303506b3192560c2d8453236",
+      "source_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+      "source_path": "wechat-workflow-review/source/v4_app/tests/fixtures/wechat_stage_a/report.md",
+      "source_url": "https://github.com/lexi2016/v4/blob/bdb736bddd3c04e061eff0a43c47104523d144a0/wechat-workflow-review/source/v4_app/tests/fixtures/wechat_stage_a/report.md",
+      "role": "unchanged original review supporting snapshot"
+    },
+    {
+      "path": "v4_app/tests/test_wechat_stage_a.py",
+      "bytes": 30247,
+      "sha256": "6abb6949e28a0846aa28022c752a50873b22d07d7d9e8e302f971b25d949dacf",
+      "source_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+      "source_path": "wechat-workflow-review/source/v4_app/tests/test_wechat_stage_a.py",
+      "source_url": "https://github.com/lexi2016/v4/blob/bdb736bddd3c04e061eff0a43c47104523d144a0/wechat-workflow-review/source/v4_app/tests/test_wechat_stage_a.py",
+      "role": "unchanged original review supporting snapshot"
+    },
+    {
+      "path": "v4_app/tests/wechat_ui/client.test.cjs",
+      "bytes": 5429,
+      "sha256": "a747099f68c1cec34c18aee42098e4bb33d90446404bd68d3a78894b933b0b90",
+      "source_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+      "source_path": "wechat-workflow-review/source/v4_app/tests/wechat_ui/client.test.cjs",
+      "source_url": "https://github.com/lexi2016/v4/blob/bdb736bddd3c04e061eff0a43c47104523d144a0/wechat-workflow-review/source/v4_app/tests/wechat_ui/client.test.cjs",
+      "role": "unchanged original review supporting snapshot"
+    },
+    {
+      "path": "wechat/AGENTS.md",
+      "bytes": 13365,
+      "sha256": "a8c4548f33627285d13731d3ab531ec5a8bddd3bbfa6232fb6f713e9ee4877a3",
+      "source_commit": "9735baa24d1c26c0836850a1336888022c77781a",
+      "source_path": "wechat-workflow-issue31-mac-20261009/inherited_instructions/wechat.AGENTS.md",
+      "source_url": "https://github.com/lexi2016/v4/blob/9735baa24d1c26c0836850a1336888022c77781a/wechat-workflow-issue31-mac-20261009/inherited_instructions/wechat.AGENTS.md",
+      "role": "current Mac inherited project rule"
+    },
+    {
+      "path": "wechat/WORKFLOW_公众号链接固定执行方案.md",
+      "bytes": 36364,
+      "sha256": "04a3d1cf5be4c8d278a04c76d4e3455d741fa8c2fcfb109b90f1431ac83de345",
+      "source_commit": "9735baa24d1c26c0836850a1336888022c77781a",
+      "source_path": "wechat-workflow-issue31-mac-20261009/source_current/WORKFLOW_公众号链接固定执行方案.md",
+      "source_url": "https://github.com/lexi2016/v4/blob/9735baa24d1c26c0836850a1336888022c77781a/wechat-workflow-issue31-mac-20261009/source_current/WORKFLOW_公众号链接固定执行方案.md",
+      "role": "current Mac snapshot"
+    },
+    {
+      "path": "wechat/external/wechat_article_intake.py",
+      "bytes": 32925,
+      "sha256": "de9499c2e049bcf6d3da5ea6375831aece5eb2374e338e057f04e60dfd0c6058",
+      "source_commit": "9735baa24d1c26c0836850a1336888022c77781a",
+      "source_path": "wechat-workflow-issue31-mac-20261009/source_current/external/wechat_article_intake.py",
+      "source_url": "https://github.com/lexi2016/v4/blob/9735baa24d1c26c0836850a1336888022c77781a/wechat-workflow-issue31-mac-20261009/source_current/external/wechat_article_intake.py",
+      "role": "current Mac snapshot"
+    },
+    {
+      "path": "wechat/scripts/wechat_article_fetch.py",
+      "bytes": 58707,
+      "sha256": "5d648dac0b712a05be2345d1fe73020d3e99520b8256b003c29120c232dedb17",
+      "source_commit": "6e1f34ab74741635f8b30c67887fa5fc07f0e6c2",
+      "source_path": "wechat-workflow-fix-issue31-r2/source/wechat/scripts/wechat_article_fetch.py",
+      "source_url": "https://github.com/lexi2016/v4/blob/6e1f34ab74741635f8b30c67887fa5fc07f0e6c2/wechat-workflow-fix-issue31-r2/source/wechat/scripts/wechat_article_fetch.py",
+      "role": "fixed R2 candidate file"
+    },
+    {
+      "path": "wechat/scripts/wechat_chat_handoff.py",
+      "bytes": 92937,
+      "sha256": "4b8b358883cac5538df244126bd42efc70ff358681f7512afda5242833981fdf",
+      "source_commit": "9735baa24d1c26c0836850a1336888022c77781a",
+      "source_path": "wechat-workflow-issue31-mac-20261009/source_current/scripts/wechat_chat_handoff.py",
+      "source_url": "https://github.com/lexi2016/v4/blob/9735baa24d1c26c0836850a1336888022c77781a/wechat-workflow-issue31-mac-20261009/source_current/scripts/wechat_chat_handoff.py",
+      "role": "current Mac snapshot"
+    },
+    {
+      "path": "wechat/scripts/wechat_common.py",
+      "bytes": 24659,
+      "sha256": "25934b26357060e3322dcf393816383558a166a5a969244a7e4f1e8de4582446",
+      "source_commit": "9735baa24d1c26c0836850a1336888022c77781a",
+      "source_path": "wechat-workflow-issue31-mac-20261009/source_current/scripts/wechat_common.py",
+      "source_url": "https://github.com/lexi2016/v4/blob/9735baa24d1c26c0836850a1336888022c77781a/wechat-workflow-issue31-mac-20261009/source_current/scripts/wechat_common.py",
+      "role": "current Mac snapshot"
+    },
+    {
+      "path": "wechat/scripts/wechat_crawl4ai_fetch.py",
+      "bytes": 5831,
+      "sha256": "bc611b7a1d4476507a57f83e8ccc5211fb3c5c95ff9ab04df142827fb6ebe7cb",
+      "source_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+      "source_path": "wechat-workflow-review/source/wechat/scripts/wechat_crawl4ai_fetch.py",
+      "source_url": "https://github.com/lexi2016/v4/blob/bdb736bddd3c04e061eff0a43c47104523d144a0/wechat-workflow-review/source/wechat/scripts/wechat_crawl4ai_fetch.py",
+      "role": "unchanged original review supporting snapshot"
+    },
+    {
+      "path": "wechat/scripts/wechat_macos_ocr.py",
+      "bytes": 40734,
+      "sha256": "be7e039d778babd32918da2b7d9620a7b3b9e98e6e62625840eaad1b6d4d834d",
+      "source_commit": "9735baa24d1c26c0836850a1336888022c77781a",
+      "source_path": "wechat-workflow-issue31-mac-20261009/source_current/scripts/wechat_macos_ocr.py",
+      "source_url": "https://github.com/lexi2016/v4/blob/9735baa24d1c26c0836850a1336888022c77781a/wechat-workflow-issue31-mac-20261009/source_current/scripts/wechat_macos_ocr.py",
+      "role": "current Mac snapshot"
+    },
+    {
+      "path": "wechat/scripts/wechat_pipeline_runner.py",
+      "bytes": 74185,
+      "sha256": "b65fc26d232d2c3f38b5ec72f0b739728ff867a85b3e97da0dc26729ebf5d63e",
+      "source_commit": "9735baa24d1c26c0836850a1336888022c77781a",
+      "source_path": "wechat-workflow-issue31-mac-20261009/source_current/scripts/wechat_pipeline_runner.py",
+      "source_url": "https://github.com/lexi2016/v4/blob/9735baa24d1c26c0836850a1336888022c77781a/wechat-workflow-issue31-mac-20261009/source_current/scripts/wechat_pipeline_runner.py",
+      "role": "current Mac snapshot"
+    },
+    {
+      "path": "wechat/scripts/wechat_prepare_ocr.py",
+      "bytes": 11731,
+      "sha256": "980c9004a1fa38862708ee325970ab8adfebbd66661cb42f0f8318436eebe606",
+      "source_commit": "9735baa24d1c26c0836850a1336888022c77781a",
+      "source_path": "wechat-workflow-issue31-mac-20261009/source_current/scripts/wechat_prepare_ocr.py",
+      "source_url": "https://github.com/lexi2016/v4/blob/9735baa24d1c26c0836850a1336888022c77781a/wechat-workflow-issue31-mac-20261009/source_current/scripts/wechat_prepare_ocr.py",
+      "role": "current Mac snapshot"
+    },
+    {
+      "path": "wechat/scripts/wechat_yesterday_performance.py",
+      "bytes": 89787,
+      "sha256": "840908dc4350d91abd7b74e94ec4993954ba32edca6bcc7eb8eac646824d3f5c",
+      "source_commit": "6e1f34ab74741635f8b30c67887fa5fc07f0e6c2",
+      "source_path": "wechat-workflow-fix-issue31-r2/source/wechat/scripts/wechat_yesterday_performance.py",
+      "source_url": "https://github.com/lexi2016/v4/blob/6e1f34ab74741635f8b30c67887fa5fc07f0e6c2/wechat-workflow-fix-issue31-r2/source/wechat/scripts/wechat_yesterday_performance.py",
+      "role": "fixed R2 candidate file"
+    },
+    {
+      "path": "wechat/templates/chat_research_prompt.md",
+      "bytes": 13462,
+      "sha256": "29aec527fe954c1408f8a94905bfc9f5e7f28a2e97195008d2ee8978936a1c6f",
+      "source_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+      "source_path": "wechat-workflow-review/source/wechat/templates/chat_research_prompt.md",
+      "source_url": "https://github.com/lexi2016/v4/blob/bdb736bddd3c04e061eff0a43c47104523d144a0/wechat-workflow-review/source/wechat/templates/chat_research_prompt.md",
+      "role": "unchanged original review supporting snapshot"
+    },
+    {
+      "path": "wechat/tests/test_chat_review_regressions.py",
+      "bytes": 16928,
+      "sha256": "baf72d48c13b27629caf2399a59db974b7b9697b3568d02fe7b9b6aa8c753698",
+      "source_commit": "e7dcf69d342a43d605521d551aafb4dc5c3911af",
+      "source_path": "wechat-workflow-fix-r1/source/wechat/tests/test_chat_review_regressions.py",
+      "source_url": "https://github.com/lexi2016/v4/blob/e7dcf69d342a43d605521d551aafb4dc5c3911af/wechat-workflow-fix-r1/source/wechat/tests/test_chat_review_regressions.py",
+      "role": "unchanged R1 supporting snapshot"
+    },
+    {
+      "path": "wechat/tests/test_prior_mentions_performance_appendix.py",
+      "bytes": 26675,
+      "sha256": "969e5f05b2ecdc8e65d8de2255336b3a7f8ed275095640da755bac1168609588",
+      "source_commit": "6e1f34ab74741635f8b30c67887fa5fc07f0e6c2",
+      "source_path": "wechat-workflow-fix-issue31-r2/source/wechat/tests/test_prior_mentions_performance_appendix.py",
+      "source_url": "https://github.com/lexi2016/v4/blob/6e1f34ab74741635f8b30c67887fa5fc07f0e6c2/wechat-workflow-fix-issue31-r2/source/wechat/tests/test_prior_mentions_performance_appendix.py",
+      "role": "fixed R2 candidate file"
+    },
+    {
+      "path": "wechat/tests/test_review_wechat_boundaries.py",
+      "bytes": 1067,
+      "sha256": "65a7b0b451d1bf8ffee921e513116ffd3d0b833360cce7cb0720345685a3e504",
+      "source_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+      "source_path": "wechat-workflow-review/source/wechat/tests/test_review_wechat_boundaries.py",
+      "source_url": "https://github.com/lexi2016/v4/blob/bdb736bddd3c04e061eff0a43c47104523d144a0/wechat-workflow-review/source/wechat/tests/test_review_wechat_boundaries.py",
+      "role": "unchanged original review supporting snapshot"
+    },
+    {
+      "path": "wechat/tests/test_wechat_article_fetch_recovery.py",
+      "bytes": 31535,
+      "sha256": "3d5a55f32c62a1ea250f1bdfef3b41584abcccbb06199000357483acdde2e124",
+      "source_commit": "6e1f34ab74741635f8b30c67887fa5fc07f0e6c2",
+      "source_path": "wechat-workflow-fix-issue31-r2/source/wechat/tests/test_wechat_article_fetch_recovery.py",
+      "source_url": "https://github.com/lexi2016/v4/blob/6e1f34ab74741635f8b30c67887fa5fc07f0e6c2/wechat-workflow-fix-issue31-r2/source/wechat/tests/test_wechat_article_fetch_recovery.py",
+      "role": "fixed R2 candidate file"
+    },
+    {
+      "path": "wechat/tests/test_wechat_chat_handoff.py",
+      "bytes": 29435,
+      "sha256": "a1df48347402728fef6ee65897eca89a52ad9f3abf2c7591891be196219a5814",
+      "source_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+      "source_path": "wechat-workflow-review/source/wechat/tests/test_wechat_chat_handoff.py",
+      "source_url": "https://github.com/lexi2016/v4/blob/bdb736bddd3c04e061eff0a43c47104523d144a0/wechat-workflow-review/source/wechat/tests/test_wechat_chat_handoff.py",
+      "role": "unchanged original review supporting snapshot"
+    },
+    {
+      "path": "wechat/tests/test_wechat_handoff_v2.py",
+      "bytes": 19906,
+      "sha256": "71e9582a85ef4fccb7fdb9ccc9ea9d60f2808a973f67f8f98d337526c6820530",
+      "source_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+      "source_path": "wechat-workflow-review/source/wechat/tests/test_wechat_handoff_v2.py",
+      "source_url": "https://github.com/lexi2016/v4/blob/bdb736bddd3c04e061eff0a43c47104523d144a0/wechat-workflow-review/source/wechat/tests/test_wechat_handoff_v2.py",
+      "role": "unchanged original review supporting snapshot"
+    },
+    {
+      "path": "wechat/tests/test_wechat_macos_ocr_cache.py",
+      "bytes": 14830,
+      "sha256": "02c6cc2ea4de2f69b8319d00921495086a785cc14d873fe0ebd4c8165418a821",
+      "source_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+      "source_path": "wechat-workflow-review/source/wechat/tests/test_wechat_macos_ocr_cache.py",
+      "source_url": "https://github.com/lexi2016/v4/blob/bdb736bddd3c04e061eff0a43c47104523d144a0/wechat-workflow-review/source/wechat/tests/test_wechat_macos_ocr_cache.py",
+      "role": "unchanged original review supporting snapshot"
+    },
+    {
+      "path": "wechat/tests/test_wechat_prepare_ocr_manifest.py",
+      "bytes": 4252,
+      "sha256": "c7f2b8aaf1b85596aa2a974277f602581171541b40cce737d62d2e09c7232dbf",
+      "source_commit": "bdb736bddd3c04e061eff0a43c47104523d144a0",
+      "source_path": "wechat-workflow-review/source/wechat/tests/test_wechat_prepare_ocr_manifest.py",
+      "source_url": "https://github.com/lexi2016/v4/blob/bdb736bddd3c04e061eff0a43c47104523d144a0/wechat-workflow-review/source/wechat/tests/test_wechat_prepare_ocr_manifest.py",
+      "role": "unchanged original review supporting snapshot"
+    }
+  ]
+}

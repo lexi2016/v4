@@ -1,0 +1,17 @@
+COMMAND: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3 /workspace/scratch/64559d708105/issue31/r3/mac_inputs/reviewer/reproduce_r2_mac_001.py --candidate-scripts /workspace/scratch/64559d708105/issue31/r3/candidate/wechat/scripts --collector-scripts /workspace/scratch/64559d708105/issue31/r3/candidate/wechat/external
+CWD: /workspace/scratch/64559d708105/issue31/r3
+EXIT_CODE: 1
+--- STDOUT ---
+
+--- STDERR ---
+Traceback (most recent call last):
+  File "/workspace/scratch/64559d708105/issue31/r3/mac_inputs/reviewer/reproduce_r2_mac_001.py", line 134, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/workspace/scratch/64559d708105/issue31/r3/mac_inputs/reviewer/reproduce_r2_mac_001.py", line 127, in main
+    run_binding(fetch, collector)
+  File "/workspace/scratch/64559d708105/issue31/r3/mac_inputs/reviewer/reproduce_r2_mac_001.py", line 22, in run_binding
+    fetch._validate_article_body(text_html, [])
+  File "/workspace/scratch/64559d708105/issue31/r3/candidate/wechat/scripts/wechat_article_fetch.py", line 70, in _validate_article_body
+    raise ValueError("js_content BODY collector image projection does not exactly match the ordered manifest")
+ValueError: js_content BODY collector image projection does not exactly match the ordered manifest

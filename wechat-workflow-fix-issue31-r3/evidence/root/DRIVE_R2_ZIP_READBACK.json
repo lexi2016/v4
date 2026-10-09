@@ -1,0 +1,25 @@
+{
+  "attempt_started_at": "2026-10-09T02:59:48.294484+00:00",
+  "file_id": "1kzaeWN8SqAvKKt7E4zhgFoehOYsBtNrW",
+  "parent_ids": [
+    "1PLFC70VYzZpjG6Bk4IkEQHTtquNGPNyD"
+  ],
+  "modified_time": "2026-10-09T01:47:04.281Z",
+  "expected_size_bytes": 11012113,
+  "expected_sha256": "f335cc03ee936315f9f91d825235208bb25ee899a3d92a832dd57e4aee8de34a",
+  "environment": "Linux coordinator; existing Google Drive connector streamed artifact",
+  "metadata_verified": true,
+  "raw_bytes_obtained": false,
+  "hash_computed": false,
+  "trusted_hash_match": false,
+  "scope": "Only the fixed R2 Mac isolated acceptance ZIP; no fresh recovery or deployment",
+  "attempts_this_turn": 1,
+  "status": "CANNOT_CONFIRM",
+  "http_status": 403,
+  "reason": "Forbidden",
+  "failure_layer": "connector-provided artifact URL to Linux urllib",
+  "response_body_excerpt": "error code: 1010\n",
+  "permission_cause": "CANNOT_CONFIRM",
+  "further_retry": false,
+  "attempt_finished_at": "2026-10-09T02:59:48.432979+00:00"
+}

@@ -1,0 +1,12 @@
+{
+  "checked_at": "2026-10-09T03:10:55.289427+00:00",
+  "target": "COPY_REBIND_RECEIPT.json",
+  "expected_bytes": 6380,
+  "expected_sha256": "709350d03c1bf1fa37be42070d7710346c0cb485dd4db052011d18e8cafd8d4e",
+  "fixed_git_tree_match": false,
+  "task_workspace_match": false,
+  "library_filename_or_hash_search_relevant_match": false,
+  "status": "RAW_RECEIPT_NOT_OBTAINED",
+  "available_evidence": "Fixed Mac WRITER_RECEIPT.input_identity.source_run_copy_receipt contains only path, bytes and SHA.",
+  "decision": "Do not infer its schema or permit unauthenticated path normalization. Implement the already supported local frozen ZIP trust path and require current summary bytes to match the trusted source binding. Reaccept using an unchanged-byte copy of the original frozen run if available."
+}

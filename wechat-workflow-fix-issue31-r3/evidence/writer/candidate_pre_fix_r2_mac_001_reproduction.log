@@ -1,0 +1,9 @@
+COMMAND: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python /workspace/scratch/64559d708105/issue31/r3/mac_inputs/reviewer/reproduce_r2_mac_001.py --candidate-scripts /workspace/scratch/64559d708105/issue31/r3/candidate/wechat/scripts --collector-scripts /workspace/scratch/64559d708105/issue31/r3/candidate/wechat/external --mode all
+CWD: /workspace/scratch/64559d708105/issue31/r3
+EXIT_CODE: 0
+--- STDOUT ---
+text_body_missing_manifest=ACCEPTED
+external_collector_unique_images= ['https://mmbiz.qpic.cn/example/repeated']
+candidate_image_only_duplicate=REJECTED: empty-text BODY has no ordered js_content images matching the image manifest
+{"promotion_validation": "ACCEPTED", "body_has_image": true, "manifest_rows": 0, "identity_image_count": "0", "raw_html_sha256": "d2c6cedd208f25865c0a26d1ca1bb5f7a57ebb94efd1ee35d6cb1b7e463ff178"}
+--- STDERR ---

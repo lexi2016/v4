@@ -1,0 +1,248 @@
+{
+  "schema_version": "issue31-r3-independent-review-v1",
+  "reviewer_identity": "/root/luna_max_reviewer",
+  "issue": 31,
+  "reviewed_scope": "R3 frozen candidate; body-to-manifest source binding and anchored historical saved-HTML revalidation through the existing runner, adapter, and prepare_ocr path",
+  "source_feedback": {
+    "base_commit": "9735baa24d1c26c0836850a1336888022c77781a",
+    "comment_id": 6072731268
+  },
+  "verdict": {
+    "reviewed": "PASS_OFFLINE_SCOPE",
+    "source_candidate_tested": "PASS",
+    "behavior_verified": "PARTIAL",
+    "mac_r3_revalidation": "CANNOT_CONFIRM",
+    "drive_complete_zip_raw_readback": "CANNOT_CONFIRM",
+    "open_p0": 0,
+    "open_p1": 0,
+    "open_p2": 0,
+    "resolved_prior_p1": ["R2-MAC-001"]
+  },
+  "scope_and_integrity": {
+    "product_source_modified_by_reviewer": false,
+    "product_tests_modified_by_reviewer": false,
+    "git_or_remote_modified_by_reviewer": false,
+    "network_or_live_collector_used_by_reviewer": false,
+    "mac_runtime_used_by_reviewer": false,
+    "ocr_engine_executed_by_reviewer": false,
+    "reviewer_artifacts_directory": "/workspace/scratch/64559d708105/issue31/r3/reviewer_evidence",
+    "candidate_diff_scope": "Three changed candidate files; parent mechanical packaging reports forward/reverse patch match to the frozen 35-file baseline/candidate trees.",
+    "delivery_patch": {
+      "path": "delivery/wechat-workflow-fix-issue31-r3/actual_diff.patch",
+      "bytes": 68150,
+      "sha256": "739df58d9cfb1213bfa7ff879ecd4ec660c1778acb3d85ad1a92ce619ecc1f12"
+    },
+    "source_manifest": {
+      "path": "delivery/wechat-workflow-fix-issue31-r3/SOURCE_MANIFEST.json",
+      "bytes": 3330,
+      "sha256": "fdf171a96845b26bb23f30dd3f6b2ed4b3429b23bc2a7af9cb8428a480ba6da3",
+      "note": "Matches the parent-verified delivery manifest; product-file hashes below were independently recomputed from candidate bytes."
+    }
+  },
+  "candidate_bindings": [
+    {
+      "path": "candidate/wechat/scripts/wechat_article_fetch.py",
+      "bytes": 91948,
+      "sha256": "192564aea7421a9af42b0116c32708848765cbb433c8692351f0db75098b860f"
+    },
+    {
+      "path": "candidate/wechat/scripts/wechat_pipeline_runner.py",
+      "bytes": 77999,
+      "sha256": "46d8761e44a250642cbcd7a513604fad1148d09726010d6f0eab5f269f256bcd"
+    },
+    {
+      "path": "candidate/wechat/tests/test_wechat_article_fetch_recovery.py",
+      "bytes": 52232,
+      "sha256": "3c2316ff77f291c91bb2d04efe00b3f0304c9c8cdf461d731da48b3435d83e92"
+    }
+  ],
+  "writer_metadata_bindings": [
+    {
+      "path": "writer_evidence/R3_WRITER_RECEIPT.json",
+      "bytes": 17417,
+      "sha256": "bebde41f5dd55b4f6a2f8f0f04aa3ee226194ddca76bc100ecc4758c55e7d86c",
+      "reviewer_check": "Correctly separates source_feedback_commit 9735baa24d1c26c0836850a1336888022c77781a from comment_id 6072731268 and records candidate_pre_fix reproduction exit_code 0 as red evidence."
+    },
+    {
+      "path": "writer_evidence/R3_ACCEPTANCE_COMMANDS.md",
+      "bytes": 8168,
+      "sha256": "a4cc517f518df5fc2c31830a74d9ed5b71cd35414c1f30110110e3a935f6b8f1",
+      "reviewer_check": "Requires hashing the complete frozen ZIP before reading manifest source hashes, defines WECHAT_WORKTREE as the scripts-containing wechat root, and documents exact original summary/CSV anchor matching and path-only rebinding."
+    },
+    {
+      "path": "writer_evidence/R3_WRITER_RECEIPT.initial.json",
+      "bytes": 15875,
+      "sha256": "49cfdf308263ae2ac3de9d4bb5875f0209f93fd931d775822af1bc5d5935b3e7",
+      "reviewer_check": "Preserved initial metadata version; superseded by corrected current receipt."
+    },
+    {
+      "path": "writer_evidence/R3_ACCEPTANCE_COMMANDS.initial.md",
+      "bytes": 7287,
+      "sha256": "e93e7e1c62268767b6e349874503fd7aa6c17da21cd8fe5e1c77c602b11023c1",
+      "reviewer_check": "Preserved initial documentation version; superseded by corrected current command instructions."
+    }
+  ],
+  "independent_checks": [
+    {
+      "name": "Frozen candidate affected recovery and body-binding suite",
+      "cwd": "/workspace/scratch/64559d708105/issue31/r3/candidate/wechat/tests",
+      "argv": [
+        "python",
+        "-m",
+        "pytest",
+        "-vv",
+        "--basetemp=/workspace/scratch/64559d708105/issue31/r3/reviewer_scratch/pytest_final/fetch_recovery",
+        "test_wechat_article_fetch_recovery.py"
+      ],
+      "environment": {
+        "python": "3.12.14 Linux",
+        "pytest": "9.1.1",
+        "PYTHONPATH": "/workspace/scratch/64559d708105/issue31/test_deps:/workspace/scratch/64559d708105/issue31/r3/candidate/wechat/scripts:/workspace/scratch/64559d708105/issue31/r3/candidate/wechat/tests:/workspace/scratch/64559d708105/issue31/r3/candidate/v4_app"
+      },
+      "exit_code": 0,
+      "result": "25 passed, 3 subtests passed",
+      "log": {
+        "path": "reviewer_evidence/r3_fetch_recovery_pytest.log",
+        "bytes": 4469,
+        "sha256": "865f1c04de08a3b04382e148d1c853dd58e9acd989f848d731a6e5187e89860e"
+      },
+      "scope_note": "Offline suite against the three frozen candidate files; temporary pytest basetemp is scratch, not a delivered evidence artifact."
+    },
+    {
+      "name": "Focused anchored legacy adoption and refusal cases",
+      "cwd": "/workspace/scratch/64559d708105/issue31/r3/candidate/wechat/tests",
+      "argv": [
+        "python",
+        "-m",
+        "pytest",
+        "-vv",
+        "-k",
+        "runner_adopts_frozen_legacy_source_then_prepare_reuses_cache or frozen_adoption_rejects_summary_mutation_and_unsafe_image_rebinding",
+        "test_wechat_article_fetch_recovery.py"
+      ],
+      "environment": {
+        "python": "3.12.14 Linux",
+        "pytest": "9.1.1",
+        "PYTHONPATH": "/workspace/scratch/64559d708105/issue31/test_deps:/workspace/scratch/64559d708105/issue31/r3/candidate/wechat/scripts:/workspace/scratch/64559d708105/issue31/r3/candidate/wechat/tests:/workspace/scratch/64559d708105/issue31/r3/candidate/v4_app"
+      },
+      "exit_code": 0,
+      "result": "2 passed, 23 deselected",
+      "log": {
+        "path": "reviewer_evidence/r3_adoption_focus_pytest.log",
+        "bytes": 796,
+        "sha256": "f5e19c800b3beb028da2e187c4e80d127819d4635ada67107ca79265fc700017"
+      },
+      "scope_note": "These two tests are a subset of the full suite and are not added to its test count."
+    },
+    {
+      "name": "Reviewer end-to-end saved-HTML http_status=0 adoption then actual runner prepare_ocr resume",
+      "cwd": "/workspace/scratch/64559d708105/issue31/r3/candidate/wechat",
+      "argv": [
+        "python",
+        "/workspace/scratch/64559d708105/issue31/r3/reviewer_evidence/r3_runner_resume_prepare_probe.py"
+      ],
+      "probe": {
+        "path": "reviewer_evidence/r3_runner_resume_prepare_probe.py",
+        "bytes": 6610,
+        "sha256": "ccf672b05954f7752df4bf8561959d0387e6d9386bf96d52d3a43a3461f78063"
+      },
+      "exit_code": 0,
+      "result": "PASS; source http_status=0; runner fetch adoption exit 0; resumed fetch was SKIP_RESUME and prepare_ocr was RUN; 50 in-run images were verified; source and existing OCR result/cache bytes remained stable; one revalidation receipt; next stage package; zero collector invocations and network_attempts during adoption/resume.",
+      "log": {
+        "path": "reviewer_evidence/r3_runner_resume_prepare_probe.log",
+        "bytes": 2047,
+        "sha256": "b40cdf7079e79039156054c592243622f76f29379597b02d7e00e478b939fe0a"
+      },
+      "fixture_boundary": "An offline synthetic ZIP/summary/manifest and 50-image fixture were built before the measured adoption/resume steps; its fixture setup log includes collector_returncode=17. That setup is not evidence of historical collection. The measured adoption and resume invoked no collector or network and executed the real candidate runner, adapter subprocess, and existing prepare_ocr child path. The runner Mac branch was exercised by a patched platform flag in Linux; this is not an actual Mac run."
+    },
+    {
+      "name": "R2-MAC-001 baseline behavior reproduction",
+      "cwd": "Not captured by the preserved output log.",
+      "argv": "The original minimal reproduction was run against the R2 baseline adapter and supplied collector; argv was not captured in the log.",
+      "exit_code": 0,
+      "result": "The baseline accepted a text-bearing BODY containing an mmbiz image with zero manifest rows and identity image_count=0; duplicate image-only URLs were rejected although the actual collector projects ordered unique mmbiz URLs.",
+      "log": {
+        "path": "reviewer_evidence/r2_mac_001_baseline_repro.log",
+        "bytes": 428,
+        "sha256": "e8f55fb0e6d1a9e5646a3a5af13a2c725c3b6be176b79e08350603f595496771"
+      },
+      "scope_note": "This is baseline red evidence only. The packaged reproduction script in mac_inputs documents a portable invocation but states it was not executed after packaging; it is not presented as a new run."
+    }
+  ],
+  "resolved_findings": [
+    {
+      "id": "R2-MAC-001",
+      "original_severity": "P1",
+      "status": "RESOLVED_IN_R3_CANDIDATE",
+      "evidence": "The frozen candidate applies the bound collector's HTML-unescaped, ordered unique mmbiz projection with GIF filtering to every BODY, including text-bearing BODY; exact manifest order/count is required. The independent full suite includes missing-row, duplicate/order, image-only, GIF/non-mmbiz, and actual collector-source binding cases, all passing.",
+      "baseline_log": "reviewer_evidence/r2_mac_001_baseline_repro.log"
+    },
+    {
+      "id": "R3-LEGACY-REVALIDATION",
+      "original_severity": "P1 acceptance risk",
+      "status": "CLOSED_FOR_OFFLINE_SCOPE; MAC_REPLAY_PENDING",
+      "evidence": "Explicit adoption validates an externally supplied frozen ZIP SHA/id/digest through the existing handoff ZIP validator; the original summary and CSV byte hashes must match the ZIP's source hashes; current summary allows only the four exact collector path-key rebindings; manifest source rows/order and non-path fields remain bound; current raw HTML, BODY image projection, image bytes, and in-run paths are checked. Historical PROMOTION_RECEIPT/collector activity is not fabricated. Unanchored http_status=0 and mutation/outside/traversal/symlink cases reject. The end-to-end Linux probe then resumed through actual prepare_ocr and preserved OCR result/cache hashes.",
+      "limitation": "The actual Mac source files, original package bytes, and runtime were not available for this R3 execution; real Mac revalidation is not confirmed."
+    }
+  ],
+  "inherited_mac_evidence_not_retested_as_r3": {
+    "source": "r3/mac_inputs/REVIEW_RECEIPT.json and its referenced actual Mac evidence",
+    "prior_r2_fetch_recovery": {
+      "result": "17 tests passed on Mac",
+      "log": {
+        "path": "mac_inputs/evidence/mac_actual/r2_fetch_recovery_tests_final.log",
+        "bytes": 17654,
+        "sha256": "2a4e4b875dfd8c7aff4989dbef13aafd8d3b40c7d8cde506a8bcbb7e320d7fe1"
+      }
+    },
+    "prior_r2_appendix_targeted": {
+      "result": "3 tests passed on Mac",
+      "log": {
+        "path": "mac_inputs/evidence/mac_actual/r2_appendix_regression_tests_final.log",
+        "bytes": 720,
+        "sha256": "f8b0b93e95d5fa847b74448613fb04c9915e040306b2be32468fc1dabb46f488"
+      }
+    },
+    "saved_html_and_cached_images": {
+      "result": "Prior Mac evidence reports 50/50 images reused, no network attempts, and prepare_ocr exit 0; this validates that saved-input/cache path only.",
+      "log": {
+        "path": "mac_inputs/evidence/mac_actual/actual_collector_cli_cache_reuse.log",
+        "bytes": 1540,
+        "sha256": "c5f53cbba14734118626dda401f840584304fbdf876b5f02cd73ba72ee101407"
+      }
+    },
+    "prior_runner_vision_cache": {
+      "result": "Prior Mac evidence reports 3/3 canary and 50/50 full cache reuse with zero OCR attempts; no fresh Vision/OCR was run.",
+      "log": {
+        "path": "mac_inputs/evidence/mac_actual/actual_runner_vision.log",
+        "bytes": 1971,
+        "sha256": "32653dd6064fd3a4e3c027639f56276545d37de01f553232bfa1caa41d4086ab"
+      }
+    },
+    "prior_default_runner_fetch": {
+      "result": "Prior Mac default fetch failed closed before R3 adoption support; this is the gap R3 targeted, not an R3 failure or pass.",
+      "log": {
+        "path": "mac_inputs/evidence/mac_actual/actual_runner_fetch.log",
+        "bytes": 1638,
+        "sha256": "012a6e9be5ffbf2e96a3352f02ec64c2697f8bbdc6428774abd41a364484ac69"
+      }
+    },
+    "full_zip_raw_readback": {
+      "status": "CANNOT_CONFIRM",
+      "detail": "The parent performed a new streaming read of Drive metadata but the artifact URL returned HTTP 403/code 1010; no raw bytes were obtained.",
+      "evidence": {
+        "path": "root_evidence/DRIVE_R2_ZIP_READBACK.json",
+        "bytes": 996,
+        "sha256": "6a819e6f5b947ffd9c0798bee02b04fd0d7ad8757e298ed53e195cfd672409a4"
+      }
+    }
+  },
+  "remaining_confirmation_boundaries": [
+    "No actual Mac R3 invocation or actual Mac original-run revalidation was performed in this Linux review. The documented Mac command sequence is not execution evidence.",
+    "The frozen original ZIP, raw article HTML, and 50 original image bytes were not available in the Linux review workspace; synthetic offline artifacts do not upgrade Mac behavior.",
+    "No fresh external collection, Vision/OCR engine run, deployment, or workflow-data mutation was performed.",
+    "Drive full ZIP raw-byte delivery remains CANNOT_CONFIRM despite verified metadata; do not infer successful download from metadata alone.",
+    "R3 review conclusions apply only to source candidate hashes listed above and the exercised offline scope."
+  ],
+  "no_open_product_findings": "No P0/P1/P2 product-source blocker was reproduced in the frozen candidate within the stated offline scope. Mac revalidation and full ZIP readback are explicit unresolved confirmations, not silently promoted to PASS."
+}

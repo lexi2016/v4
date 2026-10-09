@@ -1,0 +1,7 @@
+{"status": "PREPARED", "run_dir": "/tmp/tmpq3ovcx87/rebound/run", "image_count": 50, "sliced_image_count": 0}
+{"schema_version": "wechat-article-fetch-state-v1", "status": "SOURCE_CAPTURED_NEED_OCR", "source_status": "BODY_IDENTITY_VERIFIED", "identity": {"url": "https://mp.weixin.qq.com/s/OfflineFixtureToken", "token": "OfflineFixtureToken", "title": "离线合成文章", "account": "合成公众号", "biz": "fixture-biz", "article_date": "20261008", "content_hash": "6f1fd8b505111406a84eca2dae65f84071b3a01e3999c1da494e70c89eae09dd", "http_status": "200", "html_bytes": "2588", "image_count": "50"}, "image_count": 50, "ocr_status_from_intake": "OCR_IMPORT_ERROR", "ocr_summary_status": "NOT_PRESENT", "next_missing_stage": "prepare_ocr", "attempt_id": "attempt_20261009T033659Z_b28a5e797961", "collector_execution_status": "OCR_IMPORT_ERROR", "continuation_status": "RESUME_VIA_PREPARE_OCR", "production_allowed": false, "buy_gate_updated": false, "orders_sent": false, "collector_returncode": 17}
+{"status": "PREPARED", "run_dir": "/tmp/tmpq3ovcx87/run", "image_count": 50, "sliced_image_count": 0}
+Traceback (most recent call last):
+  File "/workspace/scratch/64559d708105/issue31/r3/reviewer_evidence/r3_runner_resume_prepare_probe.py", line 107, in <module>
+    raise AssertionError("recreated prepare_ocr checkpoint differs from its byte-stable prior cache")
+AssertionError: recreated prepare_ocr checkpoint differs from its byte-stable prior cache

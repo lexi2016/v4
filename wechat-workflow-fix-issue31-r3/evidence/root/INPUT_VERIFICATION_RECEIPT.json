@@ -1,0 +1,16 @@
+{
+  "schema_version": "issue31-r3-input-verification-v1",
+  "source_commit": "9735baa24d1c26c0836850a1336888022c77781a",
+  "scope": "Received immutable artifacts; not Mac reexecution",
+  "retrieved_files": 47,
+  "download_bytes_and_git_blob_sha": "ALL_MATCH",
+  "source_and_inherited_rule_bindings": 14,
+  "source_and_inherited_rule_bindings_result": "ALL_MATCH",
+  "manifest_members": 46,
+  "manifest_result": "ALL_MATCH",
+  "named_independent_log_hashes": "ALL_MATCH",
+  "mac_writer_receipt_and_actual_diff": "ALL_MATCH",
+  "preserved_verification_output": "{\"manifest_files\": 46, \"mac_review_log_hashes\": \"MATCH\", \"writer_receipt_and_actual_diff\": \"MATCH\", \"verification_scope\": \"received immutable artifacts, not a rerun on Mac\"}\n",
+  "download_receipt": "../INPUT_DOWNLOAD_RECEIPT.json",
+  "source_composition": "../BASELINE_PROVENANCE.json"
+}

@@ -1,0 +1,76 @@
+{
+  "schema_version": "issue31-r3-scope-v1",
+  "updated_at": "2026-10-09T03:15:09.802825+00:00",
+  "GOAL": [
+    "Repair R2-MAC-001 on all BODY paths with actual collector projection semantics.",
+    "Enable explicit, currently revalidated historical source reuse with an independent frozen-input anchor; never fabricate historical promotion evidence.",
+    "Preserve received Mac OCR/cache and appendix PASS evidence; deliver exact incremental source and bounded reacceptance instructions."
+  ],
+  "WRITER": {
+    "agent": "/root/luna_max_writer",
+    "model": "gpt-6-luna",
+    "reasoning_effort": "max",
+    "sole_product_writer": true
+  },
+  "REVIEWER": {
+    "agent": "/root/luna_max_reviewer",
+    "model": "gpt-6-luna",
+    "reasoning_effort": "max",
+    "independent": true
+  },
+  "ROOT_ROLE": "coordination, architecture, provenance, packaging, Git delivery and status; no business-code changes or duplicate product review",
+  "ALLOWED_PRODUCT_PATHS": [
+    "wechat/scripts/wechat_article_fetch.py",
+    "wechat/tests/test_wechat_article_fetch_recovery.py",
+    "wechat/scripts/wechat_pipeline_runner.py"
+  ],
+  "ALLOWED_EVIDENCE_PATHS": [
+    "writer_evidence/",
+    "reviewer_evidence/",
+    "root_evidence/"
+  ],
+  "PENDING_SCOPE_DECISIONS": [],
+  "FORBIDDEN": [
+    "Production/deployment/merge/issue closure",
+    "Modification of original Mac run, images, OCR, market data or prior frozen R1/R2 evidence",
+    "Replacing collector, OCR engine or Drive client",
+    "Forged old ATTEMPT/PROMOTION receipt or acceptance from self-reported summary alone",
+    "Rerunning unchanged broad appendix/OCR/full test suites without a concrete changed dependency or new risk",
+    "Second product writer or second product review verdict from coordinator"
+  ],
+  "PASS_CRITERIA": [
+    "Mac supplied reproduction rejects omitted image manifest with text and accepts exact collector projection.",
+    "Targeted red-to-green regressions cover image completeness and source trust counterexamples.",
+    "Explicit legacy adoption validates trusted frozen-input identity and unchanged current artifacts; normal unbound runs stay rejected.",
+    "Independent reviewer reruns final exact candidate SHA; distinct Linux and actual Mac labels.",
+    "Patch applies and reverses to exact declared bytes; published Git blobs match.",
+    "Rebound fixture uses actual runner -> prepare_ocr; existing OCR bytes remain unchanged and invalid rebinding is rejected."
+  ],
+  "STOP_CONDITIONS": [
+    "Unverified source identity or package bytes: fail closed with concrete evidence, no network fallback to manufacture success.",
+    "New material change outside allowed paths: writer reports evidence and root records scope revision.",
+    "Drive raw-byte attempt remains bounded; HTTP403/code1010 is preserved without guessing permissions."
+  ],
+  "AUTHORIZATION": "User directed continuation after complete Mac feedback; reversible isolated fixes and reviewable branch delivery are authorized. No deployment or issue closure authorized.",
+  "SCOPE_REVISIONS": [
+    {
+      "at": "2026-10-09T03:07:27.228061+00:00",
+      "path": "wechat/scripts/wechat_pipeline_runner.py",
+      "reason": "Actual Mac call chain _run_fetch -> adapter --skip-ocr -> _require_exact_intake has no explicit legacy adoption forwarding or current-proof recognition. Explicit opt-in and subsequent local proof checks require runner integration.",
+      "authorization": "Existing user instruction to continue controlled historical recovery; coordinator scope decision; no production action."
+    }
+  ],
+  "LEGACY_ADOPTION_ARCHITECTURE": {
+    "anchor": "Existing local v2 ZIP validated against an externally frozen expected SHA; reuse current handoff validator.",
+    "working_copy": "An isolated, already path-rebound copy whose artifacts the current prepare/handoff consumers can read safely.",
+    "optional_read_only_originals": [
+      "Original source summary, SHA exactly equals trusted ZIP source_intake_sha256",
+      "Original source manifest CSV, SHA exactly equals trusted ZIP source_manifest_sha256"
+    ],
+    "allowed_rebinding": "Compare original and current records; only actual collector summary path fields (html_path, image_manifest_path, ocr_text_path, image_checkpoint_path) and CSV local_path may change by a strict old-root to current-root mapping. All other values and CSV row/column order must match.",
+    "rejection": "Wrong original SHA, nonpath edits, arbitrary outside path, traversal or unsupported stale absolute paths fail closed.",
+    "immutability": "Do not rewrite current or original summary/manifest/BODY/raw HTML/images/OCR or historical receipts. Write a new current revalidation receipt only.",
+    "minimum_integration_probe": "Actual runner fetch -> existing prepare_ocr path; preserve OCR bytes; no fresh OCR engine run.",
+    "consumer_changes": false
+  }
+}

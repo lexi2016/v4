@@ -1,0 +1,22 @@
+usage: wechat_article_fetch.py [-h] --url URL --out OUT
+                               [--html-file HTML_FILE]
+                               [--adopt-frozen-package ADOPT_FROZEN_PACKAGE]
+                               [--adopt-package-sha256 ADOPT_PACKAGE_SHA256]
+                               [--adopt-package-id ADOPT_PACKAGE_ID]
+                               [--adopt-input-digest ADOPT_INPUT_DIGEST]
+                               [--legacy-source-summary LEGACY_SOURCE_SUMMARY]
+                               [--legacy-source-manifest LEGACY_SOURCE_MANIFEST]
+
+Fail-closed local WeChat article intake adapter
+
+options:
+  -h, --help            show this help message and exit
+  --url URL
+  --out OUT
+  --html-file HTML_FILE
+  --adopt-frozen-package ADOPT_FROZEN_PACKAGE
+  --adopt-package-sha256 ADOPT_PACKAGE_SHA256
+  --adopt-package-id ADOPT_PACKAGE_ID
+  --adopt-input-digest ADOPT_INPUT_DIGEST
+  --legacy-source-summary LEGACY_SOURCE_SUMMARY
+  --legacy-source-manifest LEGACY_SOURCE_MANIFEST

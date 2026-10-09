@@ -1,0 +1,35 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+cachedir: .pytest_cache
+rootdir: /workspace/scratch/64559d708105/issue31/r3/candidate/wechat/tests
+plugins: anyio-4.15.1
+collecting ... collected 25 items
+
+test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_changed_image_url_after_prepare_is_not_accepted_as_same_source PASSED [  4%]
+test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_changed_raw_html_is_not_accepted_from_stale_http_identity PASSED [  8%]
+test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_explicit_saved_html_permission_is_bound_to_attempt_and_source_bytes PASSED [ 12%]
+test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_frozen_adoption_rejects_summary_mutation_and_unsafe_image_rebinding PASSED [ 16%]
+test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_http_failure_keeps_candidate_outputs_only_in_attempt_evidence PASSED [ 20%]
+test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_image_only_body_is_valid_when_ordered_images_match_manifest PASSED [ 24%]
+test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_interrupted_promotion_recovers_the_same_verified_attempt PASSED [ 28%]
+test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_malformed_old_summary_with_orphan_images_refuses_new_collector PASSED [ 32%]
+test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_module_not_found_after_complete_body_is_source_only_resume PASSED [ 36%]
+test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_ocr_failure_preserves_verified_source_and_resume_does_not_refetch PASSED [ 40%]
+test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_ocr_ok_summary_without_valid_ocr_artifacts_is_not_package_ready PASSED [ 44%]
+test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_output_abbreviation_cannot_escape_the_attempt_root PASSED [ 48%]
+test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_process_killed_during_temp_image_write_rolls_forward_atomically PASSED [ 52%]
+test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_runner_adopts_frozen_legacy_source_then_prepare_reuses_cache PASSED [ 56%]
+test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_saved_html_promotion_receipt_gap_recovers_after_summary_commit PASSED [ 60%]
+test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_summary_claim_does_not_replace_real_body_html PASSED [ 64%]
+test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_unknown_exception_retains_source_but_does_not_claim_fetch_pass PASSED [ 68%]
+test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_valid_full_ocr_cache_is_reused_and_package_is_next_stage PASSED [ 72%]
+test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_verify_page_is_kept_only_as_attempt_evidence PASSED [ 76%]
+test_wechat_article_fetch_recovery.py::WechatArticleBodyBindingMacCompatibilityTests::test_bound_collector_source_matches_mac_input_binding PASSED [ 80%]
+test_wechat_article_fetch_recovery.py::WechatArticleBodyBindingMacCompatibilityTests::test_collector_projection_decodes_amp_filters_and_deduplicates_in_order PASSED [ 84%]
+test_wechat_article_fetch_recovery.py::WechatArticleBodyBindingMacCompatibilityTests::test_image_only_gif_or_non_mmbiz_body_does_not_create_image_evidence PASSED [ 88%]
+test_wechat_article_fetch_recovery.py::WechatArticleBodyBindingMacCompatibilityTests::test_prepare_promotion_rejects_text_body_image_missing_from_manifest PASSED [ 92%]
+test_wechat_article_fetch_recovery.py::WechatArticleBodyBindingMacCompatibilityTests::test_text_and_image_only_body_accept_only_ordered_unique_manifest 
+test_wechat_article_fetch_recovery.py::WechatArticleBodyBindingMacCompatibilityTests::test_text_and_image_only_body_accept_only_ordered_unique_manifest PASSED [ 96%]
+test_wechat_article_fetch_recovery.py::WechatArticleBodyBindingMacCompatibilityTests::test_text_body_with_missing_projected_manifest_row_is_rejected PASSED [100%]
+
+==================== 25 passed, 3 subtests passed in 2.37s =====================

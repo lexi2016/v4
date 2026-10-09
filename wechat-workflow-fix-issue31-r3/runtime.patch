@@ -1,0 +1,857 @@
+--- a/wechat/scripts/wechat_article_fetch.py
++++ b/wechat/scripts/wechat_article_fetch.py
+@@ -8,6 +8,7 @@
+ import argparse
+ import csv
+ import hashlib
++import io
+ import json
+ import os
+ import re
+@@ -19,6 +20,7 @@
+ from pathlib import Path
+ from pathlib import PureWindowsPath
+ from urllib.parse import urlsplit
++import zipfile
+ 
+ sys.path.insert(0, str(Path(__file__).resolve().parent))
+ from wechat_common import (
+@@ -33,48 +35,53 @@
+ _PREPARE_MUTABLE_MANIFEST_FIELDS = frozenset({
+     "local_path", "download_status", "image_size", "ocr_text_length",
+ })
+-
+-
+-class _IntakeBodyEvidenceParser(_ArticleBodyTextParser):
+-    """Use the shared js_content parser and retain ordered image source URLs."""
+-
+-    def __init__(self) -> None:
+-        super().__init__()
+-        self.body_image_urls: list[str] = []
+-
+-    def on_image(self, attrs: list[tuple[str, str | None]]) -> None:
+-        attributes = {str(key).lower(): str(value or "").strip() for key, value in attrs}
+-        source = attributes.get("data-src") or attributes.get("src")
+-        if source:
+-            self.body_image_urls.append(source)
+-
+-
+-def _source_image_url(value: object) -> str:
+-    raw = str(value or "").strip()
+-    if raw.startswith("//"):
+-        return "https:" + raw
+-    parsed = urlsplit(raw)
+-    if parsed.scheme.lower() in {"http", "https"} and parsed.hostname:
+-        return parsed._replace(scheme="https", netloc=parsed.netloc.lower(), fragment="").geturl()
+-    return raw
++_LEGACY_PREPARE_EXTENSION_FIELDS = frozenset({
++    "download_status", "image_size", "ocr_text_length",
++})
++_LEGACY_SUMMARY_PATHS = {
++    "html_path": "wechat_article_raw.html",
++    "image_manifest_path": "wechat_article_image_manifest.csv",
++    "ocr_text_path": "wechat_article_ocr_text.txt",
++    "image_checkpoint_path": "wechat_article_image_checkpoint.json",
++}
++_ADOPTION_EVIDENCE_ROOT = Path("evidence/wechat_article_fetch_adoptions")
++
++
++def _collector_image_contract() -> dict:
++    """Load the bound collector's parser so adapter validation cannot drift."""
++    bundled = Path(__file__).resolve().parent.parent / "external" / "wechat_article_intake.py"
++    candidates = [bundled]
++    if not bundled.is_file():
++        candidates.append(_intake_script())
++    for candidate in candidates:
++        if candidate.is_file() and not candidate.is_symlink():
++            namespace = runpy.run_path(str(candidate.resolve()), run_name="_issue31_collector_contract")
++            if callable(namespace.get("extract_image_urls")):
++                return namespace
++            raise ValueError("bound WeChat collector lacks extract_image_urls")
++    raise FileNotFoundError("bound WeChat collector source is unavailable")
+ 
+ 
+ def _validate_article_body(html_bytes: bytes, manifest_rows: list[dict[str, str]]) -> None:
+-    """Reject summary-only BODY claims; allow real text or matched image-only BODY."""
+-    try:
+-        parser = _IntakeBodyEvidenceParser()
+-        parser.feed(html_bytes.decode("utf-8-sig", errors="replace"))
++    """Bind every BODY to the collector's ordered, unique image projection."""
++    try:
++        html_text = html_bytes.decode("utf-8-sig", errors="replace")
++        parser = _ArticleBodyTextParser()
++        parser.feed(html_text)
+         parser.close()
+     except (TypeError, ValueError) as exc:
+         raise ValueError("raw article HTML cannot be parsed") from exc
+     if not parser._found_root:
+         raise ValueError("raw article HTML has no js_content BODY block")
+-    if parser.text().strip():
+-        return
+-    observed = [_source_image_url(value) for value in parser.body_image_urls]
+-    expected = [_source_image_url(row.get("url")) for row in manifest_rows]
+-    if not expected or observed != expected:
+-        raise ValueError("empty-text BODY has no ordered js_content images matching the image manifest")
++    try:
++        observed = _collector_image_contract()["extract_image_urls"](html_text)
++    except (OSError, RuntimeError, TypeError, ValueError, KeyError) as exc:
++        raise ValueError("real collector image URL projection could not be verified") from exc
++    expected = [str(row.get("url") or "") for row in manifest_rows]
++    if observed != expected:
++        raise ValueError("js_content BODY collector image projection does not exactly match the ordered manifest")
++    if not parser.text().strip() and not observed:
++        raise ValueError("empty-text BODY has no collector images")
+ 
+ 
+ def _image_source_projection_sha256(fields: list[str], rows: list[dict[str, str]]) -> str:
+@@ -844,6 +851,559 @@
+         "buy_gate_updated": False,
+         "orders_sent": False,
+     }
++
++
++def _read_external_anchor(raw: str, label: str) -> tuple[Path, bytes]:
++    value = str(raw or "").strip()
++    if not value or "\x00" in value or ".." in Path(value).parts or ".." in PureWindowsPath(value).parts:
++        raise ValueError(f"unsafe {label} path")
++    path = Path(value).expanduser()
++    if path.is_symlink():
++        raise ValueError(f"{label} must not be a symlink")
++    _reject_symlink_components(path, label)
++    resolved = path.resolve(strict=True)
++    if resolved.is_symlink() or not resolved.is_file():
++        raise ValueError(f"{label} must be a regular file")
++    return resolved, resolved.read_bytes()
++
++
++def _read_strict_csv(data: bytes, label: str) -> tuple[list[str], list[dict[str, str]]]:
++    try:
++        stream = io.StringIO(data.decode("utf-8-sig"), newline="")
++        reader = csv.DictReader(stream)
++        fields = list(reader.fieldnames or [])
++        rows = list(reader)
++    except (UnicodeError, csv.Error) as exc:
++        raise ValueError(f"{label} is not valid UTF-8 CSV") from exc
++    if not fields or len(fields) != len(set(fields)) or any(not field for field in fields):
++        raise ValueError(f"{label} has an empty or duplicate column")
++    if any(None in row for row in rows):
++        raise ValueError(f"{label} has rows with extra columns")
++    return fields, rows
++
++
++def _relative_artifact_value(value: object, *, root: Path, expected: str,
++                             label: str, must_exist: bool) -> Path:
++    raw = str(value or "").strip()
++    if not raw or "\x00" in raw or ".." in Path(raw).parts or ".." in PureWindowsPath(raw).parts:
++        raise ValueError(f"{label} path is empty or unsafe")
++    candidate = Path(raw)
++    root_resolved = root.resolve(strict=False)
++    if candidate.is_absolute():
++        if candidate.resolve(strict=False) != (root_resolved / expected).resolve(strict=False):
++            raise ValueError(f"{label} path is not the exact run-root mapping")
++        relative = Path(expected)
++    else:
++        parts = list(candidate.parts)
++        if len(parts) >= 2 and parts[0] == "runs" and parts[1] == root.name:
++            parts = parts[2:]
++        elif parts and parts[0] == root.name:
++            parts = parts[1:]
++        relative = Path(*parts)
++        if relative.as_posix() != expected:
++            raise ValueError(f"{label} path is not the exact run-root mapping")
++    if must_exist:
++        resolved = safe_run_path(root, relative, must_exist=True, label=label)
++        if resolved.is_symlink() or not resolved.is_file():
++            raise ValueError(f"{label} is not a regular in-run file")
++    return relative
++
++
++def _legacy_summary_path_projection(source: dict, current: dict, *, source_root: Path,
++                                    run_dir: Path) -> dict[str, dict[str, str]]:
++    if set(source) != set(current):
++        raise ValueError("legacy/current source summary fields differ")
++    mappings: dict[str, dict[str, str]] = {}
++    projected = dict(source)
++    for key, relative in _LEGACY_SUMMARY_PATHS.items():
++        if key not in source:
++            continue
++        _relative_artifact_value(
++            source[key], root=source_root, expected=relative,
++            label=f"original summary {key}", must_exist=False,
++        )
++        _relative_artifact_value(
++            current[key], root=run_dir, expected=relative,
++            label=f"current summary {key}", must_exist=True,
++        )
++        projected[key] = current[key]
++        mappings[key] = {"source": str(source[key]), "current": str(current[key])}
++    if projected != current:
++        raise ValueError("legacy source summary differs beyond the four exact path fields")
++    for required in ("html_path", "image_manifest_path"):
++        if required not in mappings:
++            raise ValueError(f"legacy source summary is missing required path field {required}")
++    return mappings
++
++
++def _summary_published_at(summary: dict) -> str:
++    for key in ("published_at", "published_at_iso"):
++        value = str(summary.get(key) or "").strip()
++        if value:
++            return value
++    for key in ("raw_publish_time", "publish_time", "ct"):
++        value = str(summary.get(key) or "").strip()
++        if not value:
++            continue
++        try:
++            timestamp = int(value)
++            if timestamp > 0:
++                return datetime.fromtimestamp(timestamp, tz=_CN_TZ).isoformat()
++        except (TypeError, ValueError, OverflowError, OSError):
++            continue
++    return ""
++
++
++def _validate_legacy_source(run_dir: Path, requested_url: str, *, package_path: str,
++                            expected_package_sha256: str, package_id: str, input_digest: str,
++                            source_summary_path: str | Path, source_manifest_path: str | Path,
++                            source_run_root: str | Path | None = None,
++                            allow_prepare_extensions: bool = False) -> dict:
++    """Revalidate an explicitly frozen historical package without collector/network work."""
++    try:
++        import wechat_chat_handoff as handoff
++    except ImportError as exc:
++        raise ValueError("frozen package validator is unavailable") from exc
++
++    package_file, package_bytes = _read_external_anchor(package_path, "frozen package ZIP")
++    observed_package_sha = hashlib.sha256(package_bytes).hexdigest()
++    expected_package_sha = str(expected_package_sha256 or "").strip().lower()
++    if not re.fullmatch(r"[0-9a-f]{64}", expected_package_sha) or observed_package_sha != expected_package_sha:
++        raise ValueError("frozen package ZIP does not match the externally expected SHA-256")
++    package_identifier = str(package_id or "").strip()
++    expected_input_digest = str(input_digest or "").strip().lower()
++    if not package_identifier or not re.fullmatch(r"[0-9a-f]{64}", expected_input_digest):
++        raise ValueError("frozen package id/input digest is invalid")
++    package_validation = handoff._validate_package_zip(
++        package_file, source_run=None, package_id=package_identifier,
++        declared_sha=expected_package_sha, observed_sha=observed_package_sha,
++    )
++    if (package_validation.get("package_identity_status") != "VERIFIED"
++            or package_validation.get("input_digest") != expected_input_digest):
++        raise ValueError("frozen ZIP is not the expected trusted v2 package")
++
++    try:
++        with zipfile.ZipFile(package_file) as archive:
++            names = handoff._zip_member_names(archive)
++            frozen_manifest = handoff._zip_json(archive, "manifest.json", label="manifest")
++            descriptor = frozen_manifest.get("input_descriptor")
++            package_csv_bytes, package_rows = handoff._zip_manifest_rows(
++                archive, names, int(frozen_manifest["total_images"]),
++            )
++    except (OSError, KeyError, TypeError, ValueError, zipfile.BadZipFile) as exc:
++        raise ValueError("frozen package ZIP cannot be read") from exc
++    if not isinstance(descriptor, dict):
++        raise ValueError("frozen package input descriptor is missing")
++    source_intake_sha = str(frozen_manifest.get("source_intake_sha256") or "").lower()
++    source_manifest_sha = str(frozen_manifest.get("source_manifest_sha256") or "").lower()
++    if not re.fullmatch(r"[0-9a-f]{64}", source_intake_sha) or not re.fullmatch(r"[0-9a-f]{64}", source_manifest_sha):
++        raise ValueError("frozen package does not bind both original intake source files")
++
++    source_summary_file, source_summary_bytes = _read_external_anchor(
++        str(source_summary_path), "original source summary",
++    )
++    source_manifest_file, source_manifest_bytes = _read_external_anchor(
++        str(source_manifest_path), "original source manifest",
++    )
++    if hashlib.sha256(source_summary_bytes).hexdigest() != source_intake_sha:
++        raise ValueError("original source summary SHA-256 differs from trusted package")
++    if hashlib.sha256(source_manifest_bytes).hexdigest() != source_manifest_sha:
++        raise ValueError("original source manifest SHA-256 differs from trusted package")
++    inferred_source_root = source_summary_file.parent.resolve()
++    anchor_source_root = Path(source_run_root).resolve(strict=False) if source_run_root else inferred_source_root
++    if source_run_root is None and source_manifest_file.parent.resolve() != inferred_source_root:
++        raise ValueError("original summary and manifest anchors must come from the same frozen run")
++
++    try:
++        source_summary = handoff._json_no_duplicate_keys(
++            source_summary_bytes, label="original source summary",
++        )
++        current_summary_path = safe_run_path(
++            run_dir, "wechat_article_intake_summary.json", must_exist=True,
++            label="current intake summary",
++        )
++        current_summary_bytes = current_summary_path.read_bytes()
++        current_summary = handoff._json_no_duplicate_keys(
++            current_summary_bytes, label="current intake summary",
++        )
++    except (OSError, ValueError, TypeError) as exc:
++        raise ValueError("legacy source summary is missing or invalid") from exc
++    if not isinstance(source_summary, dict) or not isinstance(current_summary, dict):
++        raise ValueError("legacy source summary must be a JSON object")
++    if str(source_summary.get("identity_status") or "").upper() != "PASS" or str(current_summary.get("identity_status") or "").upper() != "PASS":
++        raise ValueError("legacy source requires identity_status=PASS in both anchored summaries")
++    summary_path_map = _legacy_summary_path_projection(
++        source_summary, current_summary, source_root=anchor_source_root, run_dir=run_dir,
++    )
++    try:
++        source_identity = validate_intake_identity(source_summary, requested_url, allow_saved_html=True)
++        current_identity = validate_intake_identity(current_summary, requested_url, allow_saved_html=True)
++    except (OSError, ValueError, TypeError) as exc:
++        raise ValueError(f"legacy BODY identity is not verified against the request: {exc}") from exc
++    if source_identity != current_identity:
++        raise ValueError("legacy/current summary identities differ")
++    if current_identity["http_status"] not in {"0", "200"}:
++        raise ValueError("historical adoption permits only HTTP 200 or saved-HTML status 0")
++
++    manifest_path = safe_run_path(
++        run_dir, "wechat_article_image_manifest.csv", must_exist=True,
++        label="current image manifest",
++    )
++    current_manifest_bytes = manifest_path.read_bytes()
++    if hashlib.sha256(current_manifest_bytes).hexdigest() == source_manifest_sha:
++        # An original-byte copy is valid only if its image paths already resolve inside this run.
++        pass
++    source_fields, source_rows = _read_strict_csv(source_manifest_bytes, "original source manifest")
++    current_fields, current_rows = _read_strict_csv(current_manifest_bytes, "current image manifest")
++    package_fields, parsed_package_rows = _read_strict_csv(package_csv_bytes, "frozen package manifest.csv")
++    if not (source_fields == current_fields == package_fields):
++        raise ValueError("legacy/current/frozen image manifest column order differs")
++    if not (len(source_rows) == len(current_rows) == len(parsed_package_rows) == int(source_identity["image_count"])):
++        raise ValueError("legacy/current/frozen image manifest row counts differ")
++    if frozen_manifest.get("source_run_id") != run_dir.name:
++        raise ValueError("frozen package source_run_id does not match the isolated run name")
++    if int(frozen_manifest.get("total_images", -1)) != int(source_identity["image_count"]):
++        raise ValueError("frozen package image count differs from the source summary")
++
++    mutable_fields = {"local_path"}
++    if allow_prepare_extensions:
++        mutable_fields.update(_LEGACY_PREPARE_EXTENSION_FIELDS)
++    path_map: list[dict[str, str]] = []
++    stable_fields = [field for field in source_fields if field not in mutable_fields]
++    if not {"idx", "url", "bytes"}.issubset(stable_fields) or not ({"sha256", "image_sha256"} & set(stable_fields)):
++        raise ValueError("legacy manifest lacks stable index/URL/hash/byte columns")
++    for index, (source_row, current_row, package_row) in enumerate(
++            zip(source_rows, current_rows, parsed_package_rows), 1):
++        if any(source_row.get(field) != current_row.get(field) for field in stable_fields):
++            raise ValueError(f"legacy/current manifest differs outside prepare path/status fields at row {index}")
++        if any(current_row.get(field) != package_row.get(field) for field in stable_fields):
++            raise ValueError(f"current manifest differs from trusted frozen package at row {index}")
++        expected_index = f"{index:03d}"
++        if str(current_row.get("idx") or "").strip() != str(index):
++            raise ValueError(f"current manifest order is invalid at IMAGE{expected_index}")
++        source_local = str(source_row.get("local_path") or "").strip()
++        current_local = str(current_row.get("local_path") or "").strip()
++        package_local = str(package_row.get("local_path") or package_row.get("path") or "").strip()
++        if not source_local or not current_local or not package_local:
++            raise ValueError(f"image path is missing at IMAGE{expected_index}")
++        source_parts = Path(source_local)
++        _relative_artifact_value(
++            source_local, root=anchor_source_root,
++            expected=f"wechat_article_images/{source_parts.name}",
++            label=f"original manifest IMAGE{expected_index}", must_exist=False,
++        )
++        _relative_artifact_value(
++            current_local, root=run_dir,
++            expected=f"wechat_article_images/{source_parts.name}",
++            label=f"current manifest IMAGE{expected_index}", must_exist=True,
++        )
++        if Path(current_local).name != source_parts.name:
++            raise ValueError(f"image filename changed during path rebinding at IMAGE{expected_index}")
++        if package_local != f"images/IMAGE{index:03d}{source_parts.suffix.lower()}":
++            raise ValueError(f"frozen package image order/path differs at IMAGE{expected_index}")
++        path_map.append({"index": str(index), "source": source_local, "current": current_local,
++                         "package": package_local})
++
++    package_manifest = frozen_manifest
++    for field, expected in (
++        ("original_url", current_identity["url"]),
++        ("title", current_identity["title"]),
++        ("account", current_identity["account"]),
++        ("biz", current_identity["biz"]),
++        ("article_date", current_identity["article_date"]),
++        ("content_hash", current_identity["content_hash"]),
++        ("total_images", int(current_identity["image_count"])),
++    ):
++        value = package_manifest.get(field)
++        if field == "original_url":
++            value = canonical_article_url(str(value or ""))
++        if value != expected:
++            raise ValueError(f"trusted package identity differs from the source summary: {field}")
++    if package_manifest.get("source_run_id") != run_dir.name:
++        raise ValueError("trusted package identity differs from the current isolated run")
++    published_at = _summary_published_at(current_summary)
++    if not published_at or package_manifest.get("published_at") != published_at:
++        raise ValueError("trusted package published_at differs from the exact source summary")
++    descriptor_identity = descriptor.get("identity")
++    if not isinstance(descriptor_identity, dict) or any(
++            descriptor_identity.get(key) != package_manifest.get(key)
++            for key in ("original_url", "article_id", "title", "account", "biz", "published_at",
++                        "article_date", "content_hash", "source_run_id")):
++        raise ValueError("trusted package descriptor identity is incomplete")
++
++    html_path, validated_manifest_path = _validate_intake_artifacts(run_dir, current_summary)
++    if validated_manifest_path != manifest_path:
++        raise ValueError("current summary manifest path differs from the bound manifest")
++    raw_html_bytes = html_path.read_bytes()
++    raw_html_sha = hashlib.sha256(raw_html_bytes).hexdigest()
++    if raw_html_sha != str(descriptor.get("raw_html_sha256") or "").lower():
++        raise ValueError("current raw HTML SHA-256 differs from the trusted package descriptor")
++    _validate_article_body(raw_html_bytes, current_rows)
++    try:
++        _, _, validated_rows = handoff._manifest_rows(run_dir, {"image_count": len(current_rows)})
++    except (OSError, ValueError, TypeError, RuntimeError, csv.Error) as exc:
++        raise ValueError(f"current image bytes do not match the frozen manifest contract: {exc}") from exc
++    for index, (row, package_row) in enumerate(zip(validated_rows, parsed_package_rows), 1):
++        if (row.get("url") != package_row.get("url")
++                or row.get("sha256") != package_row.get("sha256")
++                or row.get("bytes") != package_row.get("bytes")):
++            raise ValueError(f"current image source/hash/bytes differ from frozen package at IMAGE{index:03d}")
++    if allow_prepare_extensions and "ocr_text_length" in current_fields:
++        try:
++            ocr_records, _ = handoff._ocr_records(run_dir, validated_rows)
++        except (OSError, ValueError, TypeError, RuntimeError, csv.Error):
++            ocr_records = {}
++        for index, (source_row, current_row) in enumerate(zip(source_rows, current_rows), 1):
++            old_length = str(source_row.get("ocr_text_length") or "")
++            new_length = str(current_row.get("ocr_text_length") or "")
++            if old_length == new_length or not new_length:
++                continue
++            record = ocr_records.get(index)
++            if (not re.fullmatch(r"[0-9]+", new_length) or not isinstance(record, dict)
++                    or len(str(record.get("text") or "")) != int(new_length)):
++                raise ValueError(f"post-prepare OCR length is not bound to verified OCR at IMAGE{index:03d}")
++
++    identity = {
++        "url": current_identity["url"], "title": current_identity["title"],
++        "account": current_identity["account"], "biz": current_identity["biz"],
++        "article_date": current_identity["article_date"],
++        "content_hash": current_identity["content_hash"],
++        "image_count": int(current_identity["image_count"]),
++        "source_run_id": run_dir.name,
++    }
++    image_projection = _image_source_projection_sha256(current_fields, current_rows)
++    current_artifacts = {
++        "wechat_article_intake_summary.json": hashlib.sha256(current_summary_bytes).hexdigest(),
++        "wechat_article_raw.html": raw_html_sha,
++        "wechat_article_image_manifest.csv": hashlib.sha256(current_manifest_bytes).hexdigest(),
++        "images": [
++            {"idx": str(row.get("idx") or ""), "url": str(row.get("url") or ""),
++             "sha256": str(row.get("sha256") or row.get("image_sha256") or "").lower(),
++             "bytes": str(row.get("bytes") or "")}
++            for row in current_rows
++        ],
++    }
++    return {
++        "package_file": package_file,
++        "package_sha256": observed_package_sha,
++        "package_id": package_identifier,
++        "input_digest": expected_input_digest,
++        "source_intake_sha256": source_intake_sha,
++        "source_manifest_sha256": source_manifest_sha,
++        "source_summary_path": source_summary_file,
++        "source_manifest_path": source_manifest_file,
++        "source_summary_bytes": source_summary_bytes,
++        "source_manifest_bytes": source_manifest_bytes,
++        "source_run_root": str(anchor_source_root),
++        "source_summary_sha256": hashlib.sha256(source_summary_bytes).hexdigest(),
++        "source_manifest_sha256_observed": hashlib.sha256(source_manifest_bytes).hexdigest(),
++        "current_manifest_sha256": hashlib.sha256(current_manifest_bytes).hexdigest(),
++        "current_summary_sha256": hashlib.sha256(current_summary_bytes).hexdigest(),
++        "summary_path_mapping": summary_path_map,
++        "manifest_path_mapping": path_map,
++        "identity": identity,
++        "image_source_projection_sha256": image_projection,
++        "raw_html_sha256": raw_html_sha,
++        "current_artifacts": current_artifacts,
++        "summary": current_summary,
++        "validated_identity": current_identity,
++    }
++
++
++def _adoption_receipt_payload(run_dir: Path, result: dict) -> dict:
++    state = _source_state(
++        run_dir, result["summary"], result["validated_identity"],
++        "LEGACY_SOURCE_REVALIDATED", None,
++    )
++    ocr_cache_status = state["ocr_summary_status"]
++    state.update(
++        status="LEGACY_SOURCE_REVALIDATED_" + ("OCR_READY" if state["next_missing_stage"] == "package" else "NEED_OCR"),
++        source_status="HISTORICAL_SOURCE_REVALIDATED",
++        collector_execution_status="NOT_INVOKED_HISTORICAL_REVALIDATION",
++        continuation_status="NEXT_STAGE_READY",
++        historical_promotion_claimed=False,
++        collector_invoked=False,
++        network_attempts=0,
++        ocr_cache_status=ocr_cache_status,
++    )
++    receipt = {
++        "receipt_version": "wechat-legacy-source-revalidation-v1",
++        "status": "HISTORICAL_SOURCE_REVALIDATED",
++        "run_dir": str(run_dir.resolve()),
++        "historical_promotion_claimed": False,
++        "collector_invoked": False,
++        "network_attempts": 0,
++        "source_run_root": result["source_run_root"],
++        "source_anchors": {
++            "original_summary_sha256": result["source_summary_sha256"],
++            "expected_summary_sha256": result["source_intake_sha256"],
++            "original_manifest_sha256": result["source_manifest_sha256_observed"],
++            "expected_manifest_sha256": result["source_manifest_sha256"],
++        },
++        "current_artifacts": result["current_artifacts"],
++        "path_rebinding": {
++            "summary": result["summary_path_mapping"],
++            "manifest": result["manifest_path_mapping"],
++        },
++        "identity": result["identity"],
++        "image_source_projection_sha256": result["image_source_projection_sha256"],
++        "package": {
++            "path": str(result["package_file"]),
++            "package_id": result["package_id"],
++            "input_digest": result["input_digest"],
++            "external_expected_sha256": result["package_sha256"],
++            "observed_sha256": result["package_sha256"],
++            "source_run_id": result["identity"]["source_run_id"],
++            "raw_html_sha256": result["raw_html_sha256"],
++        },
++        "ocr_cache_status": ocr_cache_status,
++        "next_missing_stage": state["next_missing_stage"],
++    }
++    return {"receipt": receipt, "state": state}
++
++
++def _persist_legacy_adoption(run_dir: Path, requested_url: str, *, package_path: str,
++                             expected_package_sha256: str, package_id: str, input_digest: str,
++                             source_summary_path: str, source_manifest_path: str) -> dict:
++    result = _validate_legacy_source(
++        run_dir, requested_url, package_path=package_path,
++        expected_package_sha256=expected_package_sha256, package_id=package_id,
++        input_digest=input_digest, source_summary_path=source_summary_path,
++        source_manifest_path=source_manifest_path,
++    )
++    anchor = json.dumps({
++        "package_sha256": result["package_sha256"],
++        "package_path": str(result["package_file"]),
++        "source_summary_sha256": result["source_summary_sha256"],
++        "source_manifest_sha256": result["source_manifest_sha256_observed"],
++        "current_summary_sha256": result["current_summary_sha256"],
++        "current_manifest_sha256": result["current_manifest_sha256"],
++        "source_run_root": result["source_run_root"],
++    }, sort_keys=True, separators=(",", ":")).encode("utf-8")
++    adoption_id = "adopt_" + hashlib.sha256(anchor).hexdigest()[:24]
++    adoption_dir = run_dir / _ADOPTION_EVIDENCE_ROOT / adoption_id
++    _reject_symlink_components(adoption_dir, "legacy adoption evidence")
++    adoption_dir.mkdir(parents=True, exist_ok=True)
++    _write_bytes_create_only(
++        adoption_dir / "ORIGINAL_SOURCE_SUMMARY.json", result["source_summary_bytes"],
++        label="original source summary anchor",
++    )
++    _write_bytes_create_only(
++        adoption_dir / "ORIGINAL_SOURCE_MANIFEST.csv", result["source_manifest_bytes"],
++        label="original source manifest anchor",
++    )
++    record = _adoption_receipt_payload(run_dir, result)
++    record["receipt"].update({
++        "adoption_id": adoption_id,
++        "package_path": str(result["package_file"]),
++        "original_source_summary_sidecar": str((adoption_dir / "ORIGINAL_SOURCE_SUMMARY.json").relative_to(run_dir)),
++        "original_source_manifest_sidecar": str((adoption_dir / "ORIGINAL_SOURCE_MANIFEST.csv").relative_to(run_dir)),
++    })
++    receipt_bytes = json.dumps(record["receipt"], ensure_ascii=False, sort_keys=True, indent=2).encode("utf-8-sig")
++    _write_bytes_create_only(
++        adoption_dir / "REVALIDATION_RECEIPT.json", receipt_bytes,
++        label="historical source revalidation receipt",
++    )
++    record["state"]["revalidation_receipt"] = str(adoption_dir / "REVALIDATION_RECEIPT.json")
++    return record
++
++
++def _verify_adoption_receipt(run_dir: Path, receipt_path: Path, requested_url: str) -> dict:
++    if receipt_path.is_symlink() or not receipt_path.is_file():
++        raise ValueError("historical revalidation receipt is not a regular file")
++    try:
++        receipt = json.loads(receipt_path.read_text(encoding="utf-8-sig"))
++    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
++        raise ValueError("historical revalidation receipt is invalid") from exc
++    if not isinstance(receipt, dict) or receipt.get("receipt_version") != "wechat-legacy-source-revalidation-v1":
++        raise ValueError("historical revalidation receipt version is invalid")
++    if (receipt.get("run_dir") != str(run_dir.resolve())
++            or receipt.get("historical_promotion_claimed") is not False
++            or receipt.get("collector_invoked") is not False
++            or receipt.get("network_attempts") != 0):
++        raise ValueError("historical revalidation receipt scope is invalid")
++    adoption_dir = receipt_path.parent
++    summary_sidecar = safe_run_path(
++        run_dir, receipt.get("original_source_summary_sidecar"), must_exist=True,
++        label="original source summary sidecar",
++    )
++    manifest_sidecar = safe_run_path(
++        run_dir, receipt.get("original_source_manifest_sidecar"), must_exist=True,
++        label="original source manifest sidecar",
++    )
++    expected_sidecar_parent = adoption_dir.resolve()
++    if summary_sidecar.parent.resolve() != expected_sidecar_parent or manifest_sidecar.parent.resolve() != expected_sidecar_parent:
++        raise ValueError("historical source anchors are outside their adoption evidence directory")
++    package = receipt.get("package") if isinstance(receipt.get("package"), dict) else {}
++    if package.get("path") != receipt.get("package_path"):
++        raise ValueError("historical revalidation ZIP path binding is invalid")
++    result = _validate_legacy_source(
++        run_dir, requested_url,
++        package_path=str(package.get("path") or ""),
++        expected_package_sha256=str(package.get("external_expected_sha256") or ""),
++        package_id=str(package.get("package_id") or ""),
++        input_digest=str(package.get("input_digest") or ""),
++        source_summary_path=str(summary_sidecar),
++        source_manifest_path=str(manifest_sidecar),
++        source_run_root=str(receipt.get("source_run_root") or ""),
++        allow_prepare_extensions=(
++            hashlib.sha256(safe_run_path(
++                run_dir, "wechat_article_image_manifest.csv", must_exist=True,
++                label="current image manifest",
++            ).read_bytes()).hexdigest()
++            != str((receipt.get("current_artifacts") or {}).get("wechat_article_image_manifest.csv") or "").lower()
++        ),
++    )
++    expected_payload = _adoption_receipt_payload(run_dir, result)["receipt"]
++    expected_payload.update({
++        "adoption_id": receipt.get("adoption_id"),
++        "package_path": str(result["package_file"]),
++        "original_source_summary_sidecar": str(summary_sidecar.relative_to(run_dir)),
++        "original_source_manifest_sidecar": str(manifest_sidecar.relative_to(run_dir)),
++    })
++    recorded_manifest_sha = str(
++        (receipt.get("current_artifacts") or {}).get("wechat_article_image_manifest.csv") or ""
++    ).lower()
++    if not re.fullmatch(r"[0-9a-f]{64}", recorded_manifest_sha):
++        raise ValueError("historical receipt lacks its original current-manifest SHA-256")
++    # prepare_ocr may update only its established mutable manifest columns.
++    # The source anchors, stable-column comparison, current path checks, image
++    # bytes, and OCR records are revalidated above on every reuse.
++    expected_payload["current_artifacts"]["wechat_article_image_manifest.csv"] = recorded_manifest_sha
++    if receipt != expected_payload:
++        raise ValueError("historical revalidation receipt no longer matches its source/package artifacts")
++    record = _adoption_receipt_payload(run_dir, result)
++    record["state"].update(revalidation_receipt=str(receipt_path))
++    return record
++
++
++def _find_legacy_adoption(run_dir: Path, requested_url: str, *, required: bool) -> dict | None:
++    root = run_dir / _ADOPTION_EVIDENCE_ROOT
++    if not root.exists() and not root.is_symlink():
++        if required:
++            raise ValueError("explicit frozen-package adoption evidence is required for this historical run")
++        return None
++    _reject_symlink_components(root, "historical adoption evidence root")
++    if root.is_symlink() or not root.is_dir():
++        raise ValueError("historical adoption evidence root is unsafe")
++    receipts = sorted(root.glob("adopt_*/REVALIDATION_RECEIPT.json"))
++    valid: list[dict] = []
++    errors: list[str] = []
++    for receipt_path in receipts:
++        try:
++            valid.append(_verify_adoption_receipt(run_dir, receipt_path, requested_url))
++        except (OSError, ValueError, RuntimeError, TypeError, csv.Error) as exc:
++            errors.append(str(exc))
++    if len(valid) > 1:
++        raise ValueError("multiple historical revalidation receipts match this run")
++    if valid:
++        return valid[0]
++    if required:
++        detail = errors[0] if errors else "no complete receipt exists"
++        raise ValueError("explicit frozen-package revalidation failed: " + detail)
++    if receipts:
++        raise ValueError("historical revalidation receipt is invalid: " + (errors[0] if errors else "unknown error"))
++    return None
+ 
+ 
+ def _validated_ocr_status(run_dir: Path, summary: dict, image_count: int) -> str:
+@@ -1058,9 +1618,19 @@
+     parser.add_argument("--url", required=True)
+     parser.add_argument("--out", required=True)
+     parser.add_argument("--html-file", default="")
++    parser.add_argument("--adopt-frozen-package", default="")
++    parser.add_argument("--adopt-package-sha256", default="")
++    parser.add_argument("--adopt-package-id", default="")
++    parser.add_argument("--adopt-input-digest", default="")
++    parser.add_argument("--legacy-source-summary", default="")
++    parser.add_argument("--legacy-source-manifest", default="")
+     raw_args = list(sys.argv[1:] if argv is None else argv)
+     try:
+-        _reject_duplicate_options(raw_args, {"--url", "--out", "--html-file"})
++        _reject_duplicate_options(raw_args, {
++            "--url", "--out", "--html-file", "--adopt-frozen-package",
++            "--adopt-package-sha256", "--adopt-package-id", "--adopt-input-digest",
++            "--legacy-source-summary", "--legacy-source-manifest",
++        })
+     except ValueError as exc:
+         print(json.dumps({"status": "ERROR", "error": f"{type(exc).__name__}: {exc}"}, ensure_ascii=False))
+         return 2
+@@ -1070,6 +1640,38 @@
+         out_dir = _safe_output_dir(args.out)
+         out_dir.mkdir(parents=True, exist_ok=True)
+         _existing_identity_conflict(out_dir, args.url)
++
++        adoption_values = (
++            args.adopt_frozen_package, args.adopt_package_sha256,
++            args.adopt_package_id, args.adopt_input_digest,
++            args.legacy_source_summary, args.legacy_source_manifest,
++        )
++        if any(adoption_values) and not all(adoption_values):
++            raise ValueError("frozen adoption requires package path/SHA/id/digest and both original source anchors")
++        if all(adoption_values):
++            adopted = _persist_legacy_adoption(
++                out_dir, args.url,
++                package_path=args.adopt_frozen_package,
++                expected_package_sha256=args.adopt_package_sha256,
++                package_id=args.adopt_package_id,
++                input_digest=args.adopt_input_digest,
++                source_summary_path=args.legacy_source_summary,
++                source_manifest_path=args.legacy_source_manifest,
++            )
++            state = adopted["state"]
++            _write_fetch_state(out_dir, state)
++            print(json.dumps(state, ensure_ascii=False))
++            return 0
++
++        prior_adoption = _find_legacy_adoption(out_dir, args.url, required=False)
++        if prior_adoption is not None:
++            state = prior_adoption["state"]
++            state["status"] = "LEGACY_SOURCE_REUSED_" + (
++                "OCR_READY" if state["next_missing_stage"] == "package" else "NEED_OCR"
++            )
++            _write_fetch_state(out_dir, state)
++            print(json.dumps(state, ensure_ascii=False))
++            return 0
+ 
+         existing = _existing_verified_source(out_dir, args.url)
+         if existing is not None:
+--- a/wechat/scripts/wechat_pipeline_runner.py
++++ b/wechat/scripts/wechat_pipeline_runner.py
+@@ -182,6 +182,12 @@
+     image_workers: int | None = None,
+     image_retries: int | None = None,
+     fetch_mode: str | None = None,
++    adopt_frozen_package: str = "",
++    adopt_package_sha256: str = "",
++    adopt_package_id: str = "",
++    adopt_input_digest: str = "",
++    legacy_source_summary: str = "",
++    legacy_source_manifest: str = "",
+ ) -> list[str]:
+     """Build the platform-safe read-only fetch command for one run."""
+ 
+@@ -201,6 +207,22 @@
+             str(run_dir),
+             "--skip-ocr",
+         ]
++        adoption_values = (
++            adopt_frozen_package, adopt_package_sha256, adopt_package_id,
++            adopt_input_digest, legacy_source_summary, legacy_source_manifest,
++        )
++        if any(adoption_values) and not all(adoption_values):
++            raise ValueError("historical adoption requires the frozen ZIP identity and both original source anchors")
++        if all(adoption_values):
++            for flag, value in (
++                ("--adopt-frozen-package", adopt_frozen_package),
++                ("--adopt-package-sha256", adopt_package_sha256),
++                ("--adopt-package-id", adopt_package_id),
++                ("--adopt-input-digest", adopt_input_digest),
++                ("--legacy-source-summary", legacy_source_summary),
++                ("--legacy-source-manifest", legacy_source_manifest),
++            ):
++                command.extend([flag, str(value)])
+         if image_workers is not None:
+             command.extend(["--image-workers", str(image_workers)])
+         if image_retries is not None:
+@@ -464,9 +486,12 @@
+     if not expected_url:
+         expected_url = str(summary.get("article_url") or summary.get("url") or "").strip()
+     try:
+-        from wechat_article_fetch import validate_intake_identity
+-
+-        identity = validate_intake_identity(summary, expected_url)
++        import wechat_article_fetch as intake_fetch
++
++        adoption = intake_fetch._find_legacy_adoption(run_dir, expected_url, required=False)
++        identity = intake_fetch.validate_intake_identity(
++            summary, expected_url, allow_saved_html=adoption is not None,
++        )
+     except (OSError, ValueError, TypeError) as exc:
+         raise RuntimeError(f"exact intake identity is not verified: {exc}") from exc
+ 
+@@ -694,6 +719,12 @@
+     image_workers: int | None = None,
+     image_retries: int | None = None,
+     fetch_mode: str | None = None,
++    adopt_frozen_package: str = "",
++    adopt_package_sha256: str = "",
++    adopt_package_id: str = "",
++    adopt_input_digest: str = "",
++    legacy_source_summary: str = "",
++    legacy_source_manifest: str = "",
+ ) -> None:
+     """Fetch source artifacts; tolerate legacy skip-OCR empty-pool exit.
+ 
+@@ -739,6 +770,12 @@
+         image_workers=image_workers,
+         image_retries=image_retries,
+         fetch_mode=fetch_mode,
++        adopt_frozen_package=adopt_frozen_package,
++        adopt_package_sha256=adopt_package_sha256,
++        adopt_package_id=adopt_package_id,
++        adopt_input_digest=adopt_input_digest,
++        legacy_source_summary=legacy_source_summary,
++        legacy_source_manifest=legacy_source_manifest,
+     )
+     completed = subprocess.run(cmd, check=False, capture_output=True, text=True, encoding="utf-8", env=env_utf8)
+     research = load_article_research(run_dir)
+@@ -1568,6 +1605,12 @@
+             image_workers=getattr(args, "image_workers", None),
+             image_retries=getattr(args, "image_retries", None),
+             fetch_mode=getattr(args, "fetch_mode", None),
++            adopt_frozen_package=getattr(args, "adopt_frozen_package", ""),
++            adopt_package_sha256=getattr(args, "adopt_package_sha256", ""),
++            adopt_package_id=getattr(args, "adopt_package_id", ""),
++            adopt_input_digest=getattr(args, "adopt_input_digest", ""),
++            legacy_source_summary=getattr(args, "legacy_source_summary", ""),
++            legacy_source_manifest=getattr(args, "legacy_source_manifest", ""),
+         )
+     elif stage == "prepare_ocr":
+         _sub(PY, "-X", "utf8", str(SCRIPT_DIR / "wechat_prepare_ocr.py"), "--run-dir", str(run_dir))
+@@ -1657,6 +1700,12 @@
+     parser.add_argument("--image-workers", type=int, default=None, help="Fetch image concurrency (1-3 on the Mac intake).")
+     parser.add_argument("--image-retries", type=int, default=None, help="Fetch image retries after the first attempt (0-3).")
+     parser.add_argument("--fetch-mode", choices=("http", "auto", "crawl4ai"), default=None, help="Article HTML transport for the Mac intake.")
++    parser.add_argument("--adopt-frozen-package", default="", help="Explicit trusted legacy package ZIP for read-only source revalidation.")
++    parser.add_argument("--adopt-package-sha256", default="", help="Externally fixed SHA-256 of the legacy package ZIP.")
++    parser.add_argument("--adopt-package-id", default="", help="Package id bound by the trusted ZIP.")
++    parser.add_argument("--adopt-input-digest", default="", help="Input digest bound by the trusted ZIP.")
++    parser.add_argument("--legacy-source-summary", default="", help="Original frozen-run summary whose bytes match the ZIP source_intake_sha256.")
++    parser.add_argument("--legacy-source-manifest", default="", help="Original frozen-run manifest whose bytes match the ZIP source_manifest_sha256.")
+     parser.add_argument("--stage", required=True, help=", 分隔的 stage 或 all")
+     parser.add_argument("--resume", action="store_true", help="按工件存在跳过已完成 stage")
+     parser.add_argument(
+@@ -1677,6 +1726,24 @@
+             "error": "--source-only is restricted to --stage summary",
+         }, ensure_ascii=False))
+         return 2
++
++    adoption_values = (
++        args.adopt_frozen_package, args.adopt_package_sha256, args.adopt_package_id,
++        args.adopt_input_digest, args.legacy_source_summary, args.legacy_source_manifest,
++    )
++    if any(adoption_values):
++        if not all(adoption_values):
++            print(json.dumps({
++                "status": "ERROR",
++                "error": "historical adoption requires the frozen ZIP identity and both original source anchors",
++            }, ensure_ascii=False))
++            return 2
++        if sys.platform != "darwin" or stages != ["fetch"] or args.resume:
++            print(json.dumps({
++                "status": "ERROR",
++                "error": "historical adoption is restricted to a direct Mac --stage fetch run without --resume",
++            }, ensure_ascii=False))
++            return 2
+ 
+     run_dir = validate_run_dir(args.run_dir)
+     try:

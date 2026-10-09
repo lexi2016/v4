@@ -1,0 +1,287 @@
+{
+  "receipt_version": "issue31-r3-writer-receipt-v1",
+  "issue": 31,
+  "source_feedback_comment_id": "9735baa24d1c26c0836850a1336888022c77781a",
+  "task": "R2-MAC-001 body-to-ordered-image-manifest validation and controlled legacy source revalidation",
+  "writer_status": "FROZEN_PENDING_INDEPENDENT_REVIEW",
+  "review_status": "PENDING_AT_WRITER_FREEZE",
+  "scope": {
+    "only_product_paths_changed": [
+      "candidate/wechat/scripts/wechat_article_fetch.py",
+      "candidate/wechat/scripts/wechat_pipeline_runner.py",
+      "candidate/wechat/tests/test_wechat_article_fetch_recovery.py"
+    ],
+    "evidence_directory": "writer_evidence/",
+    "forbidden_actions_performed": [],
+    "mac_acceptance": "PENDING; Linux offline synthetic fixtures only",
+    "raw_article_or_original_50_images_read_in_this_workspace": false,
+    "collector_modified": false,
+    "handoff_or_ocr_consumer_modified": false,
+    "ocr_engine_executed": false,
+    "network_access": "blocked by per-process sitecustomize guard; zero blocked or allowed network events in recorded final runs",
+    "services_or_deployment_changed": false
+  },
+  "root_cause_and_fix": {
+    "body_binding_root_cause": "Adapter validation treated text-bearing BODY and image-only BODY differently from the actual Mac collector projection, so manifest omissions could pass for text-bearing articles and valid duplicate image URLs could be misinterpreted.",
+    "body_binding_fix": "For every BODY, derive the ordered image list from js_content using the bound collector contract: HTML entity decoding, mmbiz-only filtering, wx_fmt=gif exclusion, ordered first-seen URL de-duplication. Require exact equality with consecutive manifest indices while retaining existing path, image-file, byte-count, and SHA checks.",
+    "historical_recovery_root_cause": "The historical saved-HTML source lacked a current cryptographic revalidation path through the actual runner; allowing status 0 from stale summary state would be unsafe and would not establish source integrity.",
+    "historical_recovery_fix": "Added explicit opt-in runner flags that forward to the existing adapter. The adapter validates the frozen v2 ZIP with the existing handoff validator and external expected SHA/id/digest, verifies the exact original summary/CSV source hashes, path-only rebindings, current raw HTML and ordered BODY image projection, current image bytes, and current identity. It appends a current-only receipt and does not claim old promotion or invoke collector/network/OCR.",
+    "runner_resume_fix": "Runner identity checks validate the current revalidation receipt and artifacts before allowing the saved-HTML http_status=0 compatibility path; ordinary unanchored status 0 remains rejected."
+  },
+  "manifest_extension_boundary": {
+    "first_adoption": "Original summary and manifest bytes must hash exactly to frozen ZIP source_intake_sha256 and source_manifest_sha256. Original, current, and packaged CSV column names/order and row order must agree. Initial CSV value difference is restricted to local_path mapped with the exact same image basename from the original run root to the isolated current run root and the ZIP-ordered image member. Summary differences are limited to html_path, image_manifest_path, ocr_text_path, and image_checkpoint_path exact run-root mappings; all other fields remain equal.",
+    "prepare_ocr_existing_columns_only": [
+      "download_status",
+      "image_size",
+      "ocr_text_length"
+    ],
+    "prepare_ocr_allowed_behavior": "Only values in these already-present columns may change after prepare_ocr; it may not add/drop/reorder CSV columns or rows. download_status is checked against valid current image state, image_size against decoded image bytes, and any changed non-empty ocr_text_length against the corresponding verified OCR record. local_path, source URL, index, byte length, source/image hash, row order, and every other field remain bound. OCR slice manifest may be refreshed by prepare_ocr.",
+    "unchanged_byte_bound_artifacts": [
+      "original source summary anchor",
+      "current raw HTML",
+      "image checkpoint",
+      "existing OCR text/results/checkpoint/summary/cache files"
+    ],
+    "test_observation": "The actual prepare_ocr.main fixture refreshed its allowed CSV values while all existing OCR cache file SHA-256 values and source artifacts except the expected manifest update remained unchanged."
+  },
+  "changed_product_files": [
+    {
+      "path": "candidate/wechat/scripts/wechat_article_fetch.py",
+      "bytes": 91948,
+      "sha256": "192564aea7421a9af42b0116c32708848765cbb433c8692351f0db75098b860f",
+      "line_endings": {
+        "crlf_count": 0,
+        "lf_count": 1804
+      }
+    },
+    {
+      "path": "candidate/wechat/scripts/wechat_pipeline_runner.py",
+      "bytes": 77999,
+      "sha256": "46d8761e44a250642cbcd7a513604fad1148d09726010d6f0eab5f269f256bcd",
+      "line_endings": {
+        "crlf_count": 0,
+        "lf_count": 1777
+      }
+    },
+    {
+      "path": "candidate/wechat/tests/test_wechat_article_fetch_recovery.py",
+      "bytes": 52232,
+      "sha256": "3c2316ff77f291c91bb2d04efe00b3f0304c9c8cdf461d731da48b3435d83e92",
+      "line_endings": {
+        "crlf_count": 0,
+        "lf_count": 977
+      }
+    }
+  ],
+  "additional_evidence_files": [
+    {
+      "path": "writer_evidence/IMPLEMENTATION_PLAN.md",
+      "bytes": 4968,
+      "sha256": "10a96a956fc1f494d12991a59ca4b4b816c7ac5a2500b7fa79d3a56d63707395"
+    },
+    {
+      "path": "writer_evidence/R3_ACCEPTANCE_COMMANDS.md",
+      "bytes": 7287,
+      "sha256": "e93e7e1c62268767b6e349874503fd7aa6c17da21cd8fe5e1c77c602b11023c1"
+    }
+  ],
+  "tests": {
+    "collected_functions_in_executed_recovery_suite": [
+      "test_ocr_failure_preserves_verified_source_and_resume_does_not_refetch",
+      "test_verify_page_is_kept_only_as_attempt_evidence",
+      "test_module_not_found_after_complete_body_is_source_only_resume",
+      "test_explicit_saved_html_permission_is_bound_to_attempt_and_source_bytes",
+      "test_unknown_exception_retains_source_but_does_not_claim_fetch_pass",
+      "test_interrupted_promotion_recovers_the_same_verified_attempt",
+      "test_process_killed_during_temp_image_write_rolls_forward_atomically",
+      "test_malformed_old_summary_with_orphan_images_refuses_new_collector",
+      "test_image_only_body_is_valid_when_ordered_images_match_manifest",
+      "test_http_failure_keeps_candidate_outputs_only_in_attempt_evidence",
+      "test_changed_raw_html_is_not_accepted_from_stale_http_identity",
+      "test_changed_image_url_after_prepare_is_not_accepted_as_same_source",
+      "test_ocr_ok_summary_without_valid_ocr_artifacts_is_not_package_ready",
+      "test_valid_full_ocr_cache_is_reused_and_package_is_next_stage",
+      "test_runner_adopts_frozen_legacy_source_then_prepare_reuses_cache",
+      "test_frozen_adoption_rejects_summary_mutation_and_unsafe_image_rebinding",
+      "test_summary_claim_does_not_replace_real_body_html",
+      "test_output_abbreviation_cannot_escape_the_attempt_root",
+      "test_saved_html_promotion_receipt_gap_recovers_after_summary_commit",
+      "test_bound_collector_source_matches_mac_input_binding",
+      "test_text_body_with_missing_projected_manifest_row_is_rejected",
+      "test_prepare_promotion_rejects_text_body_image_missing_from_manifest",
+      "test_collector_projection_decodes_amp_filters_and_deduplicates_in_order",
+      "test_text_and_image_only_body_accept_only_ordered_unique_manifest",
+      "test_image_only_gif_or_non_mmbiz_body_does_not_create_image_evidence"
+    ],
+    "new_r3_targeted_tests": [
+      "test_runner_adopts_frozen_legacy_source_then_prepare_reuses_cache",
+      "test_frozen_adoption_rejects_summary_mutation_and_unsafe_image_rebinding",
+      "test_bound_collector_source_matches_mac_input_binding",
+      "test_text_body_with_missing_projected_manifest_row_is_rejected",
+      "test_prepare_promotion_rejects_text_body_image_missing_from_manifest",
+      "test_collector_projection_decodes_amp_filters_and_deduplicates_in_order",
+      "test_text_and_image_only_body_accept_only_ordered_unique_manifest",
+      "test_image_only_gif_or_non_mmbiz_body_does_not_create_image_evidence"
+    ],
+    "final_affected_suite": {
+      "cwd": "/workspace/scratch/64559d708105/issue31/r3/candidate/wechat",
+      "argv": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_wechat_article_fetch_recovery.py"
+      ],
+      "environment": {
+        "PYTHONPATH": "/workspace/scratch/64559d708105/issue31/r3/writer_evidence:/workspace/scratch/64559d708105/issue31/test_deps:/workspace/scratch/64559d708105/issue31/r3/candidate/wechat/scripts",
+        "ISSUE31_NETWORK_GUARD_LOG": "/workspace/scratch/64559d708105/issue31/r3/writer_evidence/r3_recovery_suite_network_round3.jsonl",
+        "sitecustomize": "/workspace/scratch/64559d708105/issue31/r3/writer_evidence/sitecustomize.py"
+      },
+      "exit_code": 0,
+      "result": "25 passed, 3 subtests passed in 2.30s",
+      "log": {
+        "path": "writer_evidence/r3_recovery_suite_round3.log",
+        "bytes": 115,
+        "sha256": "d888719960e746186eac6c50076231f6d4ac3346b02920b343e1b3f4f621570e"
+      },
+      "network_guard_events": 0,
+      "network_guard_log_created": false
+    },
+    "focused_adoption_and_refusal": {
+      "cwd": "/workspace/scratch/64559d708105/issue31/r3/candidate/wechat",
+      "argv": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_wechat_article_fetch_recovery.py",
+        "-k",
+        "runner_adopts_frozen_legacy_source_then_prepare_reuses_cache or frozen_adoption_rejects_summary_mutation_and_unsafe_image_rebinding"
+      ],
+      "environment": {
+        "PYTHONPATH": "/workspace/scratch/64559d708105/issue31/r3/writer_evidence:/workspace/scratch/64559d708105/issue31/test_deps:/workspace/scratch/64559d708105/issue31/r3/candidate/wechat/scripts",
+        "ISSUE31_NETWORK_GUARD_LOG": "/workspace/scratch/64559d708105/issue31/r3/writer_evidence/r3_round_adoption_network.jsonl",
+        "sitecustomize": "/workspace/scratch/64559d708105/issue31/r3/writer_evidence/sitecustomize.py"
+      },
+      "exit_code": 0,
+      "result": "2 passed, 23 deselected in 0.74s",
+      "log": {
+        "path": "writer_evidence/r3_historical_adoption_round6.log",
+        "bytes": 113,
+        "sha256": "c9bb7aaca675b83c65e8cb93e11268d35a8ca6febc1d40e4b1064fab5d08c080"
+      },
+      "network_guard_events": 0,
+      "network_guard_log_created": false
+    },
+    "runner_help": {
+      "cwd": "/workspace/scratch/64559d708105/issue31/r3/candidate/wechat",
+      "argv": [
+        "python",
+        "scripts/wechat_pipeline_runner.py",
+        "--help"
+      ],
+      "exit_code": 0,
+      "log": {
+        "path": "writer_evidence/r3_runner_help.log",
+        "bytes": 2769,
+        "sha256": "e1ce5d147d18b6e079844ee21fba78d3e2ae04469b7751ba5fad5da74d1f897a"
+      },
+      "verified_flags": [
+        "--adopt-frozen-package",
+        "--adopt-package-sha256",
+        "--adopt-package-id",
+        "--adopt-input-digest",
+        "--legacy-source-summary",
+        "--legacy-source-manifest"
+      ]
+    },
+    "adapter_help": {
+      "cwd": "/workspace/scratch/64559d708105/issue31/r3/candidate/wechat",
+      "argv": [
+        "python",
+        "scripts/wechat_article_fetch.py",
+        "--help"
+      ],
+      "exit_code": 0,
+      "log": {
+        "path": "writer_evidence/r3_fetch_help.log",
+        "bytes": 1000,
+        "sha256": "26fb99625d66616918265ab0ebc1e7f7143cd0b4b8297fbb61025f6b1de88ae7"
+      },
+      "verified_flags": [
+        "--adopt-frozen-package",
+        "--adopt-package-sha256",
+        "--adopt-package-id",
+        "--adopt-input-digest",
+        "--legacy-source-summary",
+        "--legacy-source-manifest"
+      ]
+    },
+    "behavior_coverage": [
+      "real collector projection source binding; HTML entity decoding; mmbiz-only; GIF excluded; ordered de-duplication",
+      "text-bearing BODY and image-only BODY with missing, duplicate, extra, or misordered manifest rows",
+      "valid image-only BODY accepted only when its ordered unique image projection equals the manifest",
+      "runner -> actual adapter subprocess -> actual prepare_ocr.main path for explicit saved-HTML http_status=0 with frozen anchors",
+      "receipt reports historical_promotion_claimed=false, collector_invoked=false, network_attempts=0, and local OCR cache status independently",
+      "verified OCR cache remains byte-identical and yields package as next missing stage",
+      "unanchored http_status=0, altered summary, external path, path traversal, and symlink are refused before collector invocation"
+    ]
+  },
+  "red_and_intermediate_evidence": {
+    "r2_baseline_reproduction": {
+      "log": {
+        "path": "writer_evidence/baseline_r2_mac_001_reproduction.log",
+        "bytes": 875,
+        "sha256": "c65125825be73899a01b5ce5cb5c4199f651f80b3bbb5b18fd9bc24a914bdfe5"
+      },
+      "exit_code": 0,
+      "observed_old_bug": "text_body_missing_manifest=ACCEPTED; promotion validation accepted an image-bearing body with zero manifest rows."
+    },
+    "baseline_matrix_red": {
+      "log": {
+        "path": "writer_evidence/r3_body_binding_red_baseline_matrix2.log",
+        "bytes": 4363,
+        "sha256": "27e95c5eab838fd7fa8d06877a75e4737e5099d70fb6d022994c16d89099357a"
+      },
+      "note": "Pre-fix baseline matrix recorded rejected contract cases; preserved unchanged as red evidence."
+    },
+    "pre_fix_replay_exit1": {
+      "log": {
+        "path": "writer_evidence/candidate_pre_fix_r2_mac_001_reproduction.log",
+        "bytes": 876,
+        "sha256": "e6109757c5296a41ef3a0dd3cb095a0bf65a1cd72e6ae94cae2feb72778c5b81"
+      },
+      "exit_code": 1,
+      "note": "This is a historical candidate replay artifact; not counted as final validation."
+    },
+    "candidate_reproduction_final_exit1": {
+      "log": {
+        "path": "writer_evidence/r3_r2_mac_001_candidate_reproduction_final.log",
+        "bytes": 1315,
+        "sha256": "3c305d77a8a67077b3c16bbafcf344d20afbcf41873dd40f3c5d446b55af8296"
+      },
+      "exit_code": 1,
+      "note": "The supplied R2 reproducer encodes the old acceptance expectation and now exits on the desired ValueError for a missing manifest row. This harness exit is not a passing test; final behavior is established by the named green regression tests."
+    },
+    "early_adoption_red": {
+      "log": {
+        "path": "writer_evidence/r3_historical_adoption_red.log",
+        "bytes": 4078,
+        "sha256": "c54cc527f0f70cdb90d4d8b6a4d671e1122979f36efb1101d4ddbc9d6b3dffd2"
+      },
+      "note": "Captured before runner adoption flags existed; superseded by the green focused and full-suite runs."
+    }
+  },
+  "known_boundaries": [
+    "No actual Mac invocation was performed in this Linux workspace; Mac compatibility remains pending independent Mac acceptance.",
+    "The original Mac ZIP, article HTML, and 50 original image files were not supplied into the Linux workspace; no claim is made that those bytes were reread here.",
+    "A source summary or CSV without exact match to frozen ZIP source hash is rejected. The unavailable COPY_REBIND_RECEIPT schema is not inferred or used.",
+    "An isolated current run must already have consumer-safe in-run rebased paths; old absolute paths outside that run are rejected.",
+    "A valid current revalidation receipt proves current source artifacts only; it does not fabricate a past collector attempt, promotion, or OCR execution.",
+    "The synthetic fixture validates existing OCR cache artifacts and prepare_ocr path behavior without running an OCR engine."
+  ],
+  "review": {
+    "state": "PENDING_AT_WRITER_FREEZE",
+    "superseded_by": "Independent reviewer receipt when available; this writer receipt does not claim reviewer approval."
+  }
+}

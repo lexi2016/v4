@@ -1,0 +1,11 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+cachedir: .pytest_cache
+rootdir: /workspace/scratch/64559d708105/issue31/r3/candidate/wechat/tests
+plugins: anyio-4.15.1
+collecting ... collected 25 items / 23 deselected / 2 selected
+
+test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_frozen_adoption_rejects_summary_mutation_and_unsafe_image_rebinding PASSED [ 50%]
+test_wechat_article_fetch_recovery.py::WechatArticleFetchRecoveryTests::test_runner_adopts_frozen_legacy_source_then_prepare_reuses_cache PASSED [100%]
+
+======================= 2 passed, 23 deselected in 0.75s =======================
