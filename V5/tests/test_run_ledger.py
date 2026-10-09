@@ -1,17 +1,16 @@
-import copy
 from concurrent.futures import ThreadPoolExecutor
-from pathlib import Path
-import tempfile
+from threading import Barrier
+from unittest.mock import patch
+import errno
+import os
 import unittest
-from v5_shadow.run_ledger import MARKER,claim_run,finish_run
+from daily_ledger_fixture import make_ledger_fixture
+from v5_shadow.run_ledger import claim_run,finish_run
 
 class RunLedgerTests(unittest.TestCase):
     def setUp(self):
-        self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup);self.root=Path(self.tmp.name).resolve()
-        (self.root/'.v5-daily-run-ledger').write_bytes(MARKER)
-        self.identity=dict(lane='us_mapping',target_date='20261009',research_cutoff='2026-10-09T00:00:00Z',
-            input_sha256='a'*64,code_sha256='b'*64,config_sha256='c'*64,dependency_sha256='d'*64)
-        self.success=dict(status='SUCCEEDED',product_reference={'artifact_sha256':'e'*64},readback_verified=True,retry_safe_without_external_effect=False,reason_codes=[])
+        self.fixture=make_ledger_fixture(self.addCleanup)
+        self.root=self.fixture.root;self.identity=self.fixture.identity;self.success=self.fixture.success
 
     def test_concurrent_claim_only_one_owner_starts(self):
         with ThreadPoolExecutor(max_workers=4) as pool:values=list(pool.map(lambda _:claim_run(self.root,self.identity),range(4)))
@@ -47,3 +46,49 @@ class RunLedgerTests(unittest.TestCase):
     def test_readback_required_before_success(self):
         claim=claim_run(self.root,self.identity)
         with self.assertRaisesRegex(ValueError,'READBACK_REQUIRED'):finish_run(self.root,claim,dict(self.success,readback_verified=False))
+
+    def test_first_lock_creation_avoids_darwin_create_or_open_race(self):
+        original_open=os.open
+        modes=[]
+        def open_with_darwin_race(path, flags, *args, **kwargs):
+            if path=='.lock':
+                modes.append(flags)
+                if flags & os.O_CREAT and not flags & os.O_EXCL:
+                    raise FileNotFoundError(errno.ENOENT,'simulated Darwin first-create race',path)
+            return original_open(path,flags,*args,**kwargs)
+        with patch('v5_shadow.run_ledger.os.open',side_effect=open_with_darwin_race):
+            self.assertEqual(claim_run(self.root,self.identity)['status'],'CLAIMED')
+            self.assertEqual(claim_run(self.root,self.identity)['status'],'IN_PROGRESS_OR_OUTCOME_UNKNOWN')
+        self.assertEqual(len(modes),3)  # create; EEXIST; existing-file open
+        self.assertTrue(modes[0]&os.O_EXCL);self.assertTrue(modes[1]&os.O_EXCL)
+        self.assertFalse(modes[2]&os.O_CREAT)
+
+    def test_first_creation_four_threads_twenty_fresh_roots(self):
+        # Every round races a new lane/day/lock, never a warmed existing lock.
+        # All rounds must pass; no retry-until-green or ignored exceptions.
+        for round_number in range(20):
+            with self.subTest(round=round_number):
+                fixture=make_ledger_fixture(self.addCleanup)
+                barrier=Barrier(4,timeout=10)
+                def claim(_):
+                    barrier.wait()
+                    return claim_run(fixture.root,fixture.identity)
+                with ThreadPoolExecutor(max_workers=4) as pool:
+                    values=list(pool.map(claim,range(4)))
+                self.assertEqual(sorted(v['status'] for v in values),
+                    ['CLAIMED']+['IN_PROGRESS_OR_OUTCOME_UNKNOWN']*3)
+                state=claim_run(fixture.root,fixture.identity)['state']
+                self.assertEqual(len(state['attempts']),1)
+                self.assertTrue(fixture.root.is_dir())
+
+    def test_real_lock_open_enoent_propagates_without_retry(self):
+        original_open=os.open
+        attempts=[]
+        def missing_lock(path, flags, *args, **kwargs):
+            if path=='.lock':
+                attempts.append(flags)
+                raise FileNotFoundError(errno.ENOENT,'missing parent',path)
+            return original_open(path,flags,*args,**kwargs)
+        with patch('v5_shadow.run_ledger.os.open',side_effect=missing_lock):
+            with self.assertRaises(FileNotFoundError):claim_run(self.root,self.identity)
+        self.assertEqual(len(attempts),1)

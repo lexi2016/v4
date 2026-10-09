@@ -2,12 +2,12 @@ from datetime import datetime,timezone
 from unittest.mock import patch
 from v5_shadow.daily_dispatch import dispatch_due
 from v5_shadow.digests import sha256_json
-from test_run_ledger import RunLedgerTests
+from daily_ledger_fixture import make_ledger_fixture
 import unittest
 
 class DailyDispatchTests(unittest.TestCase):
     def setUp(self):
-        fixture=RunLedgerTests();fixture.setUp();self.addCleanup(fixture.doCleanups);self.root=fixture.root;self.fixture=fixture
+        self.fixture=make_ledger_fixture(self.addCleanup);self.root=self.fixture.root
         self.clock=patch('v5_shadow.daily_dispatch.datetime');self.mock=self.clock.start();self.addCleanup(self.clock.stop)
         self.mock.now.return_value=datetime.fromisoformat('2026-10-09T01:00:00+00:00')
 

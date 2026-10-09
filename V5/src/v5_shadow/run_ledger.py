@@ -30,7 +30,12 @@ def locked(root,identity):
     try:
         if _read_at(fd,None,'.v5-daily-run-ledger')!=MARKER:raise ValueError('DAILY_LEDGER_MARKER')
         lane=_directory(fd,identity['lane']);day=_directory(lane,identity['target_date'])
-        lock=os.open('.lock',os.O_CREAT|os.O_RDWR|os.O_NOFOLLOW|os.O_NONBLOCK,0o600,dir_fd=day)
+        flags=os.O_RDWR|os.O_NOFOLLOW|os.O_NONBLOCK
+        # Avoid Darwin's concurrent first-create openat(O_CREAT) fallback race.
+        # Only EEXIST means another creator won; real ENOENT must propagate.
+        # Never unlink/replace this inode: flock users must share the same lock.
+        try:lock=os.open('.lock',flags|os.O_CREAT|os.O_EXCL,0o600,dir_fd=day)
+        except FileExistsError:lock=os.open('.lock',flags,dir_fd=day)
         if not stat.S_ISREG(os.fstat(lock).st_mode):raise ValueError('DAILY_LEDGER_LOCK')
         fcntl.flock(lock,fcntl.LOCK_EX)
         yield day,key
