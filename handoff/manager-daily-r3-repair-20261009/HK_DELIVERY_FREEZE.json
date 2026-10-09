@@ -1,0 +1,110 @@
+{
+  "schema_version": "v4.manager_r3.hk_freeze.v1",
+  "status": "PASS_SCOPED_SOURCE_AND_LOG_INTEGRITY",
+  "hk_child_sources": [
+    {
+      "path": "ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "before_sha256": "d3db5b9644bbf2fb1f4e245717907862ebe1cee2d0f650a8d45d732fd4a71940",
+      "after_sha256": "d07be30a40c35aee9d710fcdcc7ae66b031488cc4c5e7029824e3c76ed3fd71c",
+      "reused_original_after": "after/hk_child/ops/_macos_research_panel_daily_parts/hk_capture_gate.py"
+    },
+    {
+      "path": "ops/ensure_hk_security_master.py",
+      "before_sha256": "6c341a33c0283b023219c46cc2a1c6aaca49cf4b5dcb88aa2fb5527a13145601",
+      "after_sha256": "495ced4f0f06f170606ee576e035dafc99b540cd9fad0a28f2f2a36e5989ddb9",
+      "reused_original_after": "after/hk_child/ops/ensure_hk_security_master.py"
+    },
+    {
+      "path": "ops/macos_research_panel_daily.py",
+      "before_sha256": "07aa9770c6ae0bb0cfd012e57843a37fedda6724a57cd52d7c339d854fc6609b",
+      "after_sha256": "1963990fcde99b2681c837b8b66ea12f1ab066aba47729af5d0900073bc79ef3",
+      "reused_original_after": "after/hk_child/ops/macos_research_panel_daily.py"
+    }
+  ],
+  "preserved_namespace": {
+    "path": "ops/_macos_research_panel_daily_parts/_namespace.py",
+    "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+    "r1_new_file_applied": false,
+    "read_global_ast_equal": true
+  },
+  "api_consumer_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+  "original_tests": [
+    {
+      "path": "candidate/tests/test_hk_daily_publication_chain.py",
+      "sha256": "5e70c7f2943df396b0d8dde48c8adcc0153962306d71c0ececb72af17e04eec3",
+      "original_r1_unchanged": true
+    },
+    {
+      "path": "candidate/tests/test_hk_daily_supplement_r4.py",
+      "sha256": "7085f61af64c20f3153ca5e6d7948c0e0e54c3236e2e5ec364b9662d5d1dfc94",
+      "original_r1_unchanged": true
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "HK_INPUT_CONTINUATION.md",
+      "sha256": "23cc984d037b8601202833e51bc0767b7482ee000984e5de0d8983b6735d8382",
+      "bytes": 39277
+    },
+    {
+      "path": "HK_REPLAY_RECEIPT.json",
+      "sha256": "f99b6655dfd0df1e0f17ddc8feae146ef40dc942c7455e84c1779802650e0166",
+      "bytes": 1792
+    },
+    {
+      "path": "HK_TEST_EVIDENCE.json",
+      "sha256": "15f92051d665c1481f75a48336231d3050b550d847d6fce4f509ee60df3eb1ec",
+      "bytes": 3980
+    },
+    {
+      "path": "candidate/tests/test_manager_r3_hk_continuation.py",
+      "sha256": "686ba041564a07671d550e379cdba2f6e455af2bf2fc7d8b0a0b95792fcfeb23",
+      "bytes": 15828
+    },
+    {
+      "path": "hk_validation/test_dependencies/DEPENDENCY_ORIGIN.json",
+      "sha256": "026b473c46e63b03d9c50d3152b76c04f055680ce537c3631fca1e63d66e1693",
+      "bytes": 1249
+    }
+  ],
+  "test_dependency_files": [
+    {
+      "path": "upstreams/v3_shared_data/scripts/live_acquisition/contracts.py",
+      "sha256": "ea20a940814915ec1d744b7df23ea48e4287e4baa9716889a648c9210ea3b34e",
+      "original_source_bytes_unchanged": true,
+      "source_in_both_origin_inventories": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/scripts/live_acquisition/orchestrator.py",
+      "sha256": "a95fa35e17b6090f3bb196ee6bb75a456d9fb918ce64dd4cd78d7d6005d4f46d",
+      "original_source_bytes_unchanged": true,
+      "source_in_both_origin_inventories": true
+    }
+  ],
+  "shell_document_blocks_syntax_checked": 6,
+  "last_scoped_result": {
+    "name": "final_scoped",
+    "argv": [
+      "/workspace/scratch/a154a3323e32/test_env/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "-s",
+      "-p",
+      "no:cacheprovider",
+      "tests/test_manager_r3_hk_continuation.py"
+    ],
+    "cwd": "/workspace/scratch/21926b793c00/candidate",
+    "exit_code": 0,
+    "log_path": "/workspace/scratch/21926b793c00/hk_validation/final_scoped.log",
+    "log_sha256": "aaab8f47ba0f181b9fcaf846592b61a36162da296be30687687ac76881f9e25a",
+    "summary": "13 passed in 2.20s",
+    "test_file_sha256": "686ba041564a07671d550e379cdba2f6e455af2bf2fc7d8b0a0b95792fcfeb23"
+  },
+  "live_IO": "NOT_RUN",
+  "integrated": "NOT_RUN",
+  "deployed": "NOT_RUN",
+  "api_ui_natural": "NOT_RUN",
+  "document_link_status": "PORTABLE_PACKAGE_RELATIVE_AND_FIXED_COMMIT_LINKS; NO_SCRATCH_LINKS",
+  "document_review_correction": "S8 points to pinned unchanged parent workspace_plan source; no runtime payload added."
+}

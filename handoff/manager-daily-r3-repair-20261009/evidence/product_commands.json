@@ -1,0 +1,36 @@
+{
+  "product_adjacent": {
+    "cwd": "/workspace/scratch/21926b793c00/candidate",
+    "python": "/workspace/scratch/a154a3323e32/test_env/bin/python",
+    "argv": [
+      "-m",
+      "pytest",
+      "-p",
+      "no:cacheprovider",
+      "-q",
+      "tests/test_manager_r3_product_contract.py",
+      "tests/test_manager_daily_channels_20261008.py",
+      "tests/test_manager_workspace_exact_page_binding_20261008.py",
+      "tests/test_manager_history_contract_20261008.py",
+      "tests/test_manager_us_mapping_isolation_20261008.py",
+      "tests/test_manager_announcement_parity_20261008.py"
+    ],
+    "exit_code": 1,
+    "result": "1 failed, 98 passed, 1 warning in 6.82s",
+    "log": "evidence/product_adjacent_green.log"
+  },
+  "product_before_module": {
+    "cwd": "/workspace/scratch/21926b793c00/candidate",
+    "python": "/workspace/scratch/a154a3323e32/test_env/bin/python",
+    "body": "import subprocess\nimport pytest\nfrom v4.manager_research import workspace_daily_channels as module\nsource = subprocess.run(['git', 'show', 'c973cbc:v4/manager_research/workspace_daily_channels.py'], check=True, capture_output=True, text=True).stdout\nexec(compile(source, module.__file__, 'exec'), module.__dict__)\nprint('Synthetic-only comparison: original c973cbc workspace_daily_channels loaded in this Python process; no source file changed.', flush=True)\nraise SystemExit(pytest.main(['-p', 'no:cacheprovider', '-q', 'tests/test_manager_announcement_parity_20261008.py::test_missing_original_archive_is_not_empty_connect_selection']))\n",
+    "exit_code": 1,
+    "result": "1 failed, 1 warning in 0.49s",
+    "log": "evidence/product_preexisting_failure_baseline.log",
+    "scope": "Only workspace_daily_channels replaced in process; all other dependencies kept as candidate at that execution"
+  },
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": "/workspace/scratch/21926b793c00/candidate:/workspace/scratch/21926b793c00/candidate/upstreams:/workspace/scratch/21926b793c00/candidate/tests"
+  },
+  "provenance": "Exact commands returned by original executing agent from the tool call history; not rerun when this receipt was written."
+}

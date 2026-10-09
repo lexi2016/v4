@@ -1,0 +1,13 @@
+{
+  "default_python_attempt": {
+    "status": "FAILED_ENVIRONMENT",
+    "reason": "No module named pytest",
+    "source_changed": false
+  },
+  "tested_interpreter": "/workspace/scratch/a154a3323e32/test_env/bin/python",
+  "source_root": "/workspace/scratch/21926b793c00/candidate",
+  "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=<candidate>:<candidate>/upstreams:<candidate>/tests <python314> -m pytest -q -p no:cacheprovider tests/test_manager_daily_automation_20261008.py tests/test_manager_us_daily_automation_20261008.py tests/test_manager_workspace_exact_page_binding_20261008.py",
+  "exit_code": 0,
+  "result": "24 passed, 1 StarletteDeprecationWarning",
+  "scope": "Linux synthetic baseline; no live service or input"
+}

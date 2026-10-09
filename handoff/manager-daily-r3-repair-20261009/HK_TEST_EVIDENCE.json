@@ -1,0 +1,98 @@
+{
+  "schema_version": "v4.manager_r3.hk_validation.v1",
+  "python": "Python 3.14.6",
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": "/workspace/scratch/21926b793c00/candidate:/workspace/scratch/21926b793c00/candidate/upstreams:/workspace/scratch/21926b793c00/candidate/tests",
+    "V4_R3_HK_CHILD_ROOT": "/workspace/scratch/21926b793c00/hk_child_candidate",
+    "V4_R3_INPUT_PACKAGE_ROOT": "/workspace/scratch/21926b793c00/input/remote/handoff/manager-daily-failure-20261009-r3/package",
+    "V4_R3_OWNER_TEST_DEPENDENCY_ROOT": "/workspace/scratch/21926b793c00/hk_validation/test_dependencies"
+  },
+  "executions": [
+    {
+      "name": "initial_scoped",
+      "argv": [
+        "/workspace/scratch/a154a3323e32/test_env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-s",
+        "-p",
+        "no:cacheprovider",
+        "tests/test_manager_r3_hk_continuation.py"
+      ],
+      "cwd": "/workspace/scratch/21926b793c00/candidate",
+      "exit_code": 1,
+      "log_path": "/workspace/scratch/21926b793c00/hk_validation/initial_scoped.log",
+      "log_sha256": "0e0ddcab6a925b8e2354932edc1d18ab7c9ea92f866b83c86a66e0d2adb53f10",
+      "summary": "2 failed, 11 passed in 0.85s"
+    },
+    {
+      "name": "original_supplement",
+      "argv": [
+        "/workspace/scratch/a154a3323e32/test_env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-s",
+        "-p",
+        "no:cacheprovider",
+        "tests/test_hk_daily_supplement_r4.py"
+      ],
+      "cwd": "/workspace/scratch/21926b793c00/candidate",
+      "exit_code": 1,
+      "log_path": "/workspace/scratch/21926b793c00/hk_validation/original_supplement.log",
+      "log_sha256": "d8f30a322c3ff4268138613ed773a5938dabf2c38fab36967b29c3eb4dd9941d",
+      "summary": "2 failed, 13 passed in 0.40s"
+    },
+    {
+      "name": "isolated_contract_still_missing_imports",
+      "argv": [
+        "/workspace/scratch/a154a3323e32/test_env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-s",
+        "-p",
+        "no:cacheprovider",
+        "tests/test_manager_r3_hk_continuation.py",
+        "-k",
+        "original_owner_roundtrip"
+      ],
+      "cwd": "/workspace/scratch/21926b793c00/candidate",
+      "exit_code": 1,
+      "log_path": "/workspace/scratch/21926b793c00/hk_validation/isolated_contract_still_missing_imports.log",
+      "log_sha256": "c2d5610d7b8c37443be4d3b6be13d5edef817fd71be142db79dc17a411474546",
+      "summary": "2 failed, 11 deselected in 1.90s",
+      "test_file_sha256": "918bde108d090ab7f0c1bae7ba944ed9f7c8ea75f6cef896be86fa497a729a31"
+    },
+    {
+      "name": "final_scoped",
+      "argv": [
+        "/workspace/scratch/a154a3323e32/test_env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-s",
+        "-p",
+        "no:cacheprovider",
+        "tests/test_manager_r3_hk_continuation.py"
+      ],
+      "cwd": "/workspace/scratch/21926b793c00/candidate",
+      "exit_code": 0,
+      "log_path": "/workspace/scratch/21926b793c00/hk_validation/final_scoped.log",
+      "log_sha256": "aaab8f47ba0f181b9fcaf846592b61a36162da296be30687687ac76881f9e25a",
+      "summary": "13 passed in 2.20s",
+      "test_file_sha256": "686ba041564a07671d550e379cdba2f6e455af2bf2fc7d8b0a0b95792fcfeb23"
+    }
+  ],
+  "final_scope": {
+    "actual_api_nested_reader": "7 PASSED, synthetic data through real workspace_plan callsite; no spy replacing reader",
+    "actual_hk_child_entry_and_negative_paths": "4 PASSED, isolated exact child bytes with current candidate dependencies",
+    "original_owner_synthetic_roundtrip": "2 PASSED, original assertions unchanged; two frozen prior-source imports supplied only to tests",
+    "original_supplement_suite": "13 PASSED / 2 PRE_EXISTING SCREEN FAILURES RETAINED",
+    "actual_HK02_supplement_producer": "CANNOT_CONFIRM / HK_DAILY_SUPPLEMENT_OWNER_UNAVAILABLE",
+    "live_full_chain": "NOT_RUN / CANNOT_CONFIRM",
+    "natural_window": "NOT_RUN / CANNOT_CONFIRM"
+  }
+}

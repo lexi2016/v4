@@ -1,0 +1,105 @@
+{
+  "schema_version": "v4.manager_r3.acceptance.v1",
+  "delivery_id": "manager-daily-r3-repair-20261009",
+  "input_commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+  "shared_parent": "66bb05a2e12976775ccb997191ce943bae8cc9a5",
+  "implementation": {
+    "status": "IMPLEMENTED",
+    "new_r3_runtime_files": 7,
+    "runtime_profile_records": 32,
+    "scope": "ISOLATED_CANDIDATE_ONLY",
+    "profiles": {
+      "api_current": 13,
+      "api_r2_increment": 7,
+      "worker_current": 5,
+      "hk_child": 3,
+      "web_cumulative": 4
+    }
+  },
+  "synthetic_tests": {
+    "status": "TESTED",
+    "final_new_tests": 66,
+    "breakdown": {
+      "binding": 44,
+      "product": 9,
+      "hk": 13
+    },
+    "receipt": "evidence/final_scoped_receipt.json",
+    "final_binding_with_legacy_and_independent": 86,
+    "group_counts_overlap": true
+  },
+  "independent_review": {
+    "status": "REVIEWED",
+    "unresolved_reproducible_p0_p1": 0,
+    "report": "independent_review/FINAL_REVIEW.md",
+    "report_sha256": "d9bb25f4ceca87882c112b376f4c2d1be2e74833a612090086cbb3500abf16b5",
+    "receipt": "independent_review/final_review.json",
+    "final_binding_tests": 86,
+    "final_product_policy_verifier_tests": 33,
+    "hk_tests": 13,
+    "groups_overlap": true
+  },
+  "mac_acceptance": {
+    "INTEGRATED": "NOT_RUN",
+    "DEPLOYED": "NOT_RUN",
+    "LIVE_API": "NOT_RUN",
+    "LIVE_UI": "NOT_RUN",
+    "NATURAL": "NOT_RUN"
+  },
+  "real_products": {
+    "20261008": {
+      "status": "CANNOT_CONFIRM",
+      "required_read_mode_if_legally_saved": "dynamic",
+      "ordinary_auto_historical_eligibility_preserved": true
+    },
+    "20261009": {
+      "status": "CANNOT_CONFIRM",
+      "required_read_mode_if_legally_saved": "auto",
+      "same_saved_run_sha_inputs_required": true
+    }
+  },
+  "preserved_failures": [
+    {
+      "scope": "announcement parity",
+      "failed": 1,
+      "comparison": "same prechange module failure reproduced",
+      "log": "evidence/product_preexisting_failure_baseline.log"
+    },
+    {
+      "scope": "legacy plan-only fixture",
+      "failed": 4,
+      "comparison": "same prechange cycle failure reproduced; missing existing _transaction fixture contract",
+      "log": "evidence/binding_preexisting_confirm.log"
+    },
+    {
+      "scope": "existing HK supplement screen",
+      "failed": 2,
+      "comparison": "frozen R1 tests; volume/unit/finality proof remains unavailable",
+      "log": "hk_validation/original_supplement.log"
+    }
+  ],
+  "known_operational_gaps": [
+    "Current binding and actual process-loaded roots remain for original shared owner to reconcile",
+    "Announcement owner import and US daily mapping require legal exact-date inputs",
+    "Actual HK02 supplement producer is unavailable in supplied actual root",
+    "HK V2 membership/master/PIT and required six-session volume evidence remain separately gated",
+    "No actual dispatch receipt or real target-day plan product was generated or read by Chat"
+  ],
+  "source_manifest_sha256": "2288039fdfdc763904b943d57fb02ad16879b9fa5d7a2c4bc7e1b8b414ba4213",
+  "flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "scope_boundaries": {
+    "real_owner_post": false,
+    "real_collection": false,
+    "real_plan_state_io": false,
+    "service_reload_restart": false,
+    "deployment": false,
+    "production_configuration_change": false,
+    "new_producer_scheduler_automation_panel": false,
+    "stage_buy_vibe8910_change": false
+  }
+}

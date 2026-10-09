@@ -1,0 +1,24 @@
+{
+  "schema_version": "v4.manager_r3.hk_test_dependency_inventory.v1",
+  "scope": "TEST_ONLY_EXISTING_CODE_NO_PRODUCT_CHANGES",
+  "source_root": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate",
+  "source_head": "3f2aa6c92d87da098d33b5349698e55d337fd165",
+  "source_origin_path": "/workspace/scratch/a154a3323e32/investigation/continuation_20261009/candidate/candidate_origin.json",
+  "source_origin_sha256": "df62c2c7e7477cd9660acad8dcb05ad1c256228040bb62a6c625f906f21f5e52",
+  "source_runtime_status": "PRIOR_ROUND_REFERENCE_NOT_CURRENT_MAC_RUNTIME",
+  "test_dependency_root": "/workspace/scratch/21926b793c00/hk_validation/test_dependencies",
+  "copied_files": [
+    {
+      "path": "upstreams/v3_shared_data/scripts/live_acquisition/contracts.py",
+      "sha256": "ea20a940814915ec1d744b7df23ea48e4287e4baa9716889a648c9210ea3b34e",
+      "original_source_bytes_unchanged": true,
+      "source_in_both_origin_inventories": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/scripts/live_acquisition/orchestrator.py",
+      "sha256": "a95fa35e17b6090f3bb196ee6bb75a456d9fb918ce64dd4cd78d7d6005d4f46d",
+      "original_source_bytes_unchanged": true,
+      "source_in_both_origin_inventories": true
+    }
+  ]
+}

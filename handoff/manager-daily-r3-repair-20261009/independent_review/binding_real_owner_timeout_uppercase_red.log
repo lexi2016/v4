@@ -1,0 +1,113 @@
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+_ test_real_preopen_owner_exception_keeps_timeout_unknown_and_details_bounded[timeout] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-118/test_real_preopen_owner_except0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f197098aea0>
+failure = 'timeout'
+
+    @pytest.mark.parametrize("failure", ["timeout", "timeout_uppercase", "uppercase_detail"])
+    def test_real_preopen_owner_exception_keeps_timeout_unknown_and_details_bounded(tmp_path, monkeypatch, failure):
+        fixture = original._fixture(tmp_path, monkeypatch)
+    
+        def failed_owner(date, **kwargs):
+            fixture.events.append(("plan", date, kwargs))
+            if failure.startswith("timeout"):
+                raise TimeoutError("SYNTHETIC_PRIVATE_UPPERCASE_DETAIL" if failure == "timeout_uppercase"
+                                   else "synthetic completion is unknown")
+            raise ValueError("SYNTHETIC_PRIVATE_UPPERCASE_DETAIL")
+    
+        fixture.service.refresh_workspace_plan = failed_owner
+        with original._client(fixture.service) as client:
+            original._memory_transport(monkeypatch, client)
+            result = original.dispatch.request_bound_plan_cycle(fixture.path, original.DATE)
+        assert len(fixture.events) == 1
+        assert result["status"] == "FAILED"
+        if failure.startswith("timeout"):
+>           assert result["dispatch_outcome"] == "CANNOT_CONFIRM", result
+E           AssertionError: {'status': 'FAILED', 'branch': 'PREOPEN', 'target_trade_date': '20261009', 'plan_result': {'status': 'FAILED', 'reason': 'TimeoutError', 'failure_reasons': ['PREOPEN_PLAN_OWNER_FAILED:TimeoutError'], 'blocks_announcement': False, ...}, ...}
+E           assert 'OWNER_FAILED' == 'CANNOT_CONFIRM'
+E             
+E             - CANNOT_CONFIRM
+E             + OWNER_FAILED
+
+independent_review/test_binding_real_owner_paths.py:63: AssertionError
+_ test_real_preopen_owner_exception_keeps_timeout_unknown_and_details_bounded[timeout_uppercase] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-118/test_real_preopen_owner_except1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f197098afd0>
+failure = 'timeout_uppercase'
+
+    @pytest.mark.parametrize("failure", ["timeout", "timeout_uppercase", "uppercase_detail"])
+    def test_real_preopen_owner_exception_keeps_timeout_unknown_and_details_bounded(tmp_path, monkeypatch, failure):
+        fixture = original._fixture(tmp_path, monkeypatch)
+    
+        def failed_owner(date, **kwargs):
+            fixture.events.append(("plan", date, kwargs))
+            if failure.startswith("timeout"):
+                raise TimeoutError("SYNTHETIC_PRIVATE_UPPERCASE_DETAIL" if failure == "timeout_uppercase"
+                                   else "synthetic completion is unknown")
+            raise ValueError("SYNTHETIC_PRIVATE_UPPERCASE_DETAIL")
+    
+        fixture.service.refresh_workspace_plan = failed_owner
+        with original._client(fixture.service) as client:
+            original._memory_transport(monkeypatch, client)
+            result = original.dispatch.request_bound_plan_cycle(fixture.path, original.DATE)
+        assert len(fixture.events) == 1
+        assert result["status"] == "FAILED"
+        if failure.startswith("timeout"):
+>           assert result["dispatch_outcome"] == "CANNOT_CONFIRM", result
+E           AssertionError: {'status': 'FAILED', 'branch': 'PREOPEN', 'target_trade_date': '20261009', 'plan_result': {'status': 'FAILED', 'reason...re_reasons': ['PREOPEN_PLAN_OWNER_FAILED:SYNTHETIC_PRIVATE_UPPERCASE_DETAIL'], 'blocks_announcement': False, ...}, ...}
+E           assert 'OWNER_FAILED' == 'CANNOT_CONFIRM'
+E             
+E             - CANNOT_CONFIRM
+E             + OWNER_FAILED
+
+independent_review/test_binding_real_owner_paths.py:63: AssertionError
+_ test_real_preopen_owner_exception_keeps_timeout_unknown_and_details_bounded[uppercase_detail] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-118/test_real_preopen_owner_except2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f1970b77410>
+failure = 'uppercase_detail'
+
+    @pytest.mark.parametrize("failure", ["timeout", "timeout_uppercase", "uppercase_detail"])
+    def test_real_preopen_owner_exception_keeps_timeout_unknown_and_details_bounded(tmp_path, monkeypatch, failure):
+        fixture = original._fixture(tmp_path, monkeypatch)
+    
+        def failed_owner(date, **kwargs):
+            fixture.events.append(("plan", date, kwargs))
+            if failure.startswith("timeout"):
+                raise TimeoutError("SYNTHETIC_PRIVATE_UPPERCASE_DETAIL" if failure == "timeout_uppercase"
+                                   else "synthetic completion is unknown")
+            raise ValueError("SYNTHETIC_PRIVATE_UPPERCASE_DETAIL")
+    
+        fixture.service.refresh_workspace_plan = failed_owner
+        with original._client(fixture.service) as client:
+            original._memory_transport(monkeypatch, client)
+            result = original.dispatch.request_bound_plan_cycle(fixture.path, original.DATE)
+        assert len(fixture.events) == 1
+        assert result["status"] == "FAILED"
+        if failure.startswith("timeout"):
+            assert result["dispatch_outcome"] == "CANNOT_CONFIRM", result
+>       assert "SYNTHETIC_PRIVATE_UPPERCASE_DETAIL" not in json.dumps(result), result
+E       AssertionError: {'status': 'FAILED', 'branch': 'PREOPEN', 'target_trade_date': '20261009', 'plan_result': {'status': 'FAILED', 'reason...re_reasons': ['PREOPEN_PLAN_OWNER_FAILED:SYNTHETIC_PRIVATE_UPPERCASE_DETAIL'], 'blocks_announcement': False, ...}, ...}
+E       assert 'SYNTHETIC_P...RCASE_DETAIL' not in '{"status": ...ht": false}}'
+E         
+E         'SYNTHETIC_PRIVATE_UPPERCASE_DETAIL' is contained here:
+E         ?           --------------------------------------------------                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           reason": "SYNTHETIC_PRIVATE_UPPERCASE_DETAIL", "failure_reasons": ["PREOPEN_PLAN_OWNER_FAILED:SYNTHETIC_PRIVATE_UPPERCASE_DETAIL"], "blocks_announcement": false, "policy_status": "PROPOSAL_ONLY"}, "failure_reasons": ["PREOPEN_PLAN_OWNER_FAILED:SYNTHETIC_PRIVATE_UPPERCASE_DETAIL"], "owner": "ManagerResearchJobService.refresh_workspace_...
+E         
+E         ...Full output truncated (2 lines hidden), use '-vv' to show
+
+independent_review/test_binding_real_owner_paths.py:64: AssertionError
+=============================== warnings summary ===============================
+../a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED independent_review/test_binding_real_owner_paths.py::test_real_preopen_owner_exception_keeps_timeout_unknown_and_details_bounded[timeout]
+FAILED independent_review/test_binding_real_owner_paths.py::test_real_preopen_owner_exception_keeps_timeout_unknown_and_details_bounded[timeout_uppercase]
+FAILED independent_review/test_binding_real_owner_paths.py::test_real_preopen_owner_exception_keeps_timeout_unknown_and_details_bounded[uppercase_detail]
+3 failed, 1 warning in 0.89s

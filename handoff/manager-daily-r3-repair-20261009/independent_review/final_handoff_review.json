@@ -1,0 +1,123 @@
+{
+  "status": "PASS",
+  "documents_and_cli": [
+    {
+      "path": "HOST_HANDOFF.md",
+      "sha256": "9fcf50e6afba6f42047eea14c01d81df1f4d9a81cb188d0167ba7a45ed6ba711",
+      "bash_blocks": [
+        {
+          "block": 1,
+          "bash_n_exit_code": 0,
+          "executed": false
+        },
+        {
+          "block": 2,
+          "bash_n_exit_code": 0,
+          "executed": false
+        }
+      ]
+    },
+    {
+      "path": "TESTING.md",
+      "sha256": "21a2700207a81d5ddc0b9962266eab5589e946410b17b71b49af1584d64bab06",
+      "bash_blocks": [
+        {
+          "block": 1,
+          "bash_n_exit_code": 0,
+          "executed": false
+        },
+        {
+          "block": 2,
+          "bash_n_exit_code": 0,
+          "executed": false
+        },
+        {
+          "block": 3,
+          "bash_n_exit_code": 0,
+          "executed": false
+        }
+      ]
+    },
+    {
+      "path": "HK_INPUT_CONTINUATION.md",
+      "sha256": "23cc984d037b8601202833e51bc0767b7482ee000984e5de0d8983b6735d8382",
+      "bash_blocks": [
+        {
+          "block": 1,
+          "bash_n_exit_code": 0,
+          "executed": false
+        },
+        {
+          "block": 2,
+          "bash_n_exit_code": 0,
+          "executed": false
+        },
+        {
+          "block": 3,
+          "bash_n_exit_code": 0,
+          "executed": false
+        },
+        {
+          "block": 4,
+          "bash_n_exit_code": 0,
+          "executed": false
+        },
+        {
+          "block": 5,
+          "bash_n_exit_code": 0,
+          "executed": false
+        },
+        {
+          "block": 6,
+          "bash_n_exit_code": 0,
+          "executed": false
+        }
+      ]
+    },
+    {
+      "path": "README_DELIVERY.md",
+      "sha256": "377b6f97544e8213e9890365f7773fd2a3dfab2c5c2acf803beaee6d5978cb78",
+      "bash_blocks": [
+        {
+          "block": 1,
+          "bash_n_exit_code": 0,
+          "executed": false
+        }
+      ]
+    },
+    {
+      "path": "tools/verify_delivery.py",
+      "sha256": "2ee5276989fd1b3bb523ef74b636b884a63e21d04a0d96c4602abbc0242bf234",
+      "documented_options_present": [
+        "--against",
+        "--package",
+        "--profile",
+        "--source-root"
+      ]
+    },
+    {
+      "path": "candidate/ops/render_manager_announcement_binding.py",
+      "sha256": "44fba219e65a2c67bf0dc5d7d9f012e6ece757bb5a2b38a273f616dbfe7aa4db",
+      "documented_options_present": [
+        "--app-root",
+        "--daily-automation",
+        "--enabled",
+        "--manager-state-root",
+        "--output",
+        "--plan-activation-receipt",
+        "--plan-material-refresh-only",
+        "--plan-owner-app-root",
+        "--python",
+        "--security-master-root"
+      ]
+    }
+  ],
+  "source_map_sha256": "1c7ab8afbcce9c73be996f45d3c4966ec612445f047c918d123f55a6a5601fbb",
+  "hk_s8_fixed_source": {
+    "repository_path": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/workspace_plan.py",
+    "git_blob_sha": "25bdc2c417f28307a4bdd3a05e868ac2285b25c2",
+    "sha256": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb"
+  },
+  "business_commands_executed": false,
+  "scope": "BASH_SYNTAX_STATIC_CLI_OPTIONS_AND_MANUAL_SEMANTIC_REVIEW"
+}

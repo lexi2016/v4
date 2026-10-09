@@ -1,0 +1,3361 @@
+--- a/apps/api/v35_api/manager_research_router.py
++++ b/apps/api/v35_api/manager_research_router.py
+@@ -9,15 +9,18 @@
+ 
+ import asyncio
+ from datetime import datetime, timezone
++import hashlib
+ import json
+ from threading import Event
+ import re
+ from typing import Any, Literal
++from uuid import uuid4
+ 
+ from starlette.concurrency import run_in_threadpool
+ from fastapi import APIRouter, HTTPException, Query, Request
+ from v4.manager_research.store import StoreError
+ from v4.manager_research.workspace_read_control import WorkspaceReadError
++from v4.manager_research.workspace_projection import HK
+ 
+ 
+ _DATE_RE = re.compile(r"^\d{8}$")
+@@ -241,14 +244,32 @@
+                     pass
+ 
+     @router.post("/workspace/refresh")
+-    async def refresh_manager_workspace(request: Request, date: str | None = None) -> dict[str, Any]:
+-        _same_origin(request)
+-        await _reject_client_body(request)
+-        target = _date(date)
++    async def refresh_manager_workspace(request: Request, date: str | None = None,
++            selection_date: str | None = None,
++            announcement_date: str | None = None) -> dict[str, Any]:
++        _same_origin(request)
++        await _reject_client_body(request)
++        target = _date(date)
++        workspace_date_bindings: dict[str, str] = {}
++        if selection_date is not None:
++            workspace_date_bindings['selection_date'] = _date(selection_date)
++        if announcement_date is not None:
++            normalized_announcement = _announcement_date(announcement_date)
++            assert normalized_announcement is not None
++            workspace_date_bindings['announcement_date'] = normalized_announcement
++        actual_now = datetime.now(HK)
++        target_day = datetime.strptime(target, "%Y%m%d").date()
++        timing = "RETROSPECTIVE" if target_day < actual_now.astimezone(HK).date() else "UNCLASSIFIED"
++        trigger_id = hashlib.sha256(uuid4().bytes).hexdigest()
+         try:
+             # Existing owner projects existing inputs; no catalyst refresh,
+             # quote collection, Stage job or browser-supplied stock list.
+-            result = await run_in_threadpool(service.refresh_workspace_plan, target)
++            result = await run_in_threadpool(service.refresh_workspace_plan, target,
++                execution_kind="MANUAL_REFRESH", now=actual_now,
++                workspace_date_bindings=workspace_date_bindings or None,
++                execution_context={"trigger_kind":"MANUAL","timing":timing,
++                    "scheduled_for":None,"trigger_id":trigger_id,
++                    "natural_run_verified":False})
+             if not isinstance(result, dict) or not isinstance(result.get("plan_product"), dict):
+                 raise ValueError("WORKSPACE_PLAN_REFRESH_RESULT_INVALID")
+             product = result["plan_product"]
+@@ -302,6 +323,34 @@
+         except (ValueError, OSError, KeyError, TypeError, StoreError) as exc:
+             raise HTTPException(status_code=409, detail="WORKSPACE_PLAN_REFRESH_FAILED") from exc
+ 
++    @router.post("/workspace/us-mapping/refresh")
++    async def refresh_us_mapping(request: Request, date: str | None = None) -> dict[str, Any]:
++        """Explicit, bounded recovery through the original US mapping owner."""
++        _same_origin(request)
++        await _reject_client_body(request)
++        target = _date(date)
++        actual_now = datetime.now(HK)
++        target_day = datetime.strptime(target, "%Y%m%d").date()
++        timing = "RETROSPECTIVE" if target_day < actual_now.date() else "UNCLASSIFIED"
++        trigger_id = hashlib.sha256(uuid4().bytes).hexdigest()
++        try:
++            result = await run_in_threadpool(
++                service.refresh_us_mapping_research, target, now=actual_now,
++                timeout_seconds=5.0,
++                execution_context={
++                    "trigger_kind": "MANUAL",
++                    "timing": timing,
++                    "scheduled_for": None,
++                    "trigger_id": trigger_id,
++                    "natural_run_verified": False,
++                },
++            )
++            if not isinstance(result, dict) or result.get("target_trade_date") != target:
++                raise ValueError("US_MAPPING_OWNER_RESULT_INVALID")
++            return {**result, "target_trade_date": target}
++        except (ValueError, OSError, KeyError, TypeError, RuntimeError, TimeoutError, StoreError) as exc:
++            raise HTTPException(status_code=409, detail="US_MAPPING_OWNER_REFRESH_FAILED") from exc
++
+     @router.post("/workspace/scheduled-cycle")
+     async def run_bound_workspace_cycle(request: Request, date: str | None = None,
+             binding_sha256: str | None = None) -> dict[str, Any]:
+@@ -315,6 +364,27 @@
+             from v4.manager_research.plan_owner_dispatch import execute_bound_plan_cycle
+             return await run_in_threadpool(execute_bound_plan_cycle, service, target, binding_sha256)
+         except (ValueError, OSError, KeyError, TypeError, RuntimeError, TimeoutError, StoreError) as exc:
++            from v4.manager_research.plan_owner_dispatch import PlanOwnerAdmissionError
++            if isinstance(exc, PlanOwnerAdmissionError):
++                raise HTTPException(status_code=409, detail=exc.detail(target, binding_sha256)) from exc
++            raise HTTPException(status_code=409, detail="SCHEDULED_WORKSPACE_OWNER_FAILED") from exc
++
++    @router.post("/workspace/daily-cycle")
++    async def run_bound_daily_workspace_cycle(request: Request, date: str | None = None,
++            binding_sha256: str | None = None) -> dict[str, Any]:
++        """Run the fixed daily preparation and one original-plan child."""
++        _same_origin(request)
++        await _reject_client_body(request)
++        target = _date(date)
++        if binding_sha256 is None or re.fullmatch(r"[0-9a-f]{64}", binding_sha256) is None:
++            raise HTTPException(status_code=422, detail="binding_sha256 must be a lowercase SHA256")
++        try:
++            from v4.manager_research.plan_owner_dispatch import execute_bound_daily_cycle
++            return await run_in_threadpool(execute_bound_daily_cycle, service, target, binding_sha256)
++        except (ValueError, OSError, KeyError, TypeError, RuntimeError, TimeoutError, StoreError) as exc:
++            from v4.manager_research.plan_owner_dispatch import PlanOwnerAdmissionError
++            if isinstance(exc, PlanOwnerAdmissionError):
++                raise HTTPException(status_code=409, detail=exc.detail(target, binding_sha256)) from exc
+             raise HTTPException(status_code=409, detail="SCHEDULED_WORKSPACE_OWNER_FAILED") from exc
+ 
+     @router.get("/announcements")
+--- /dev/null
++++ b/infrastructure/_research_peripheral_store_parts/_namespace.py
+@@ -0,0 +1,17 @@
++"""Resolve facade globals for the split research-peripheral store owner."""
++from __future__ import annotations
++
++import builtins
++
++
++def read_global(scope, name):
++    try:
++        return scope[name]
++    except KeyError:
++        values = scope.get("__builtins__", builtins)
++        if isinstance(values, dict):
++            if name in values:
++                return values[name]
++        elif hasattr(values, name):
++            return getattr(values, name)
++        raise NameError("name '" + name + "' is not defined", name=name) from None
+--- a/infrastructure/scheduling/manager_announcement_supervisor.py
++++ b/infrastructure/scheduling/manager_announcement_supervisor.py
+@@ -21,6 +21,7 @@
+ from infrastructure.owned_io import SafeRoot
+ 
+ BINDING_SCHEMA='v4.manager_research.announcement_binding.v1'
++PLAN_OWNER_BINDING_SCHEMA='v4.manager_research.plan_owner_binding.v1'
+ PLAN_CANARY_SCHEMA='manager_daily_chain.plan_refresh_owner_evidence.v2'
+ PLAN_CANARY_STATUS='PASS_OWNER_READBACK_EVIDENCE_FOR_PLAN_BINDING'
+ PLAN_CANARY_NEXT_SCOPE='NEXT_HK_SESSION_MANUAL_REFRESH_WITH_HTTP_READBACK'
+@@ -33,6 +34,14 @@
+     'v4/manager_research/workspace_plan_autorun.py',
+ )
+ PLAN_OWNER='ManagerResearchJobService.refresh_workspace_plan'
++DAILY_CATCHUP_SLOTS_LOCAL=('10:00','12:30','15:45','18:30','22:30')
++DAILY_AUTOMATION_DEFAULTS={
++    'enabled':False,
++    'same_day_catchup_slots_local':list(DAILY_CATCHUP_SLOTS_LOCAL),
++    'us_mapping_budget_seconds':5,
++    'max_attempts_per_target_date':5,
++    'status':'PROPOSAL_ONLY',
++}
+ REQUIRED_FILES=(
+     'ops/run_manager_announcement_cycle.py',
+     'ops/run_manager_daily_announcement.py',
+@@ -51,6 +60,13 @@
+     'v4/manager_research/service.py','v4/manager_research/workspace.py',
+     'upstreams/v3_shared_data/shared_data/hk_security_master.py','uv.lock',
+ )
++PLAN_OWNER_REQUIRED_FILES=REQUIRED_FILES+(
++    'v4/manager_research/plan_owner_dispatch.py',
++    'v4/manager_research/workspace_plan.py',
++    'v4/manager_research/workspace_plan_autorun.py',
++    'v4/manager_research/us_mapping_research.py',
++    'v3_shared_data/shared_data/hk_daily_supplement.py',
++)
+ 
+ 
+ def _path(text: Any) -> Path:
+@@ -61,16 +77,42 @@
+     return path
+ 
+ 
++def daily_automation_config(value: Any=None) -> dict[str,Any]:
++    config=dict(DAILY_AUTOMATION_DEFAULTS)
++    config['same_day_catchup_slots_local']=list(DAILY_CATCHUP_SLOTS_LOCAL)
++    if value is not None:
++        if not isinstance(value,dict) or set(value)-set(DAILY_AUTOMATION_DEFAULTS):
++            raise ValueError('DAILY_AUTOMATION_CONFIG_INVALID')
++        config.update(value)
++    if type(config['enabled']) is not bool or config['status']!='PROPOSAL_ONLY':
++        raise ValueError('DAILY_AUTOMATION_CONFIG_INVALID')
++    slots=config['same_day_catchup_slots_local']
++    if (not isinstance(slots,list) or tuple(slots)!=DAILY_CATCHUP_SLOTS_LOCAL
++            or any(not re.fullmatch(r'\d{2}:\d{2}',str(slot)) for slot in slots)):
++        raise ValueError('DAILY_AUTOMATION_SLOT_SEQUENCE_INVALID')
++    budget=config['us_mapping_budget_seconds']
++    if isinstance(budget,bool) or not isinstance(budget,(int,float)) or not 0<budget<=5:
++        raise ValueError('DAILY_AUTOMATION_US_BUDGET_INVALID')
++    attempts=config['max_attempts_per_target_date']
++    if isinstance(attempts,bool) or not isinstance(attempts,int) or not 1<=attempts<=len(slots):
++        raise ValueError('DAILY_AUTOMATION_ATTEMPT_LIMIT_INVALID')
++    return config
++
++
+ def binding_inventory(app: Path) -> dict[str,str]:
+-    """Closed inventory of the original worker's supplied source roots.
++    """Closed inventory of the bound role's supplied source roots.
+ 
+     Include all source files in these packages, not just files modified here.
+     Missing imported modules remain native integration failures, not fake stubs.
+     """
+     paths=set(REQUIRED_FILES)
+     for base in ('v4/manager_research','infrastructure','contracts','domains','stage_center',
+-                 'upstreams/v3_shared_data/shared_data'):
++                 'upstreams/v3_shared_data/shared_data','v3_shared_data/shared_data'):
+         directory=app/base
++        # The existing worker has no API nested consumer tree. When present,
++        # pin the whole tree; explicit owners must include its required reader.
++        if (base=='v3_shared_data/shared_data' and not directory.exists()
++                and not directory.is_symlink()):continue
+         if not directory.is_dir():raise ValueError('ANNOUNCEMENT_BINDING_SOURCE_ROOT_MISSING')
+         for parent,dirs,names in os.walk(directory,followlinks=False):
+             dirs[:]=[d for d in dirs if d not in {'__pycache__','.pytest_cache','tests'}]
+@@ -86,6 +128,44 @@
+         if total>64*1024*1024:raise ValueError('ANNOUNCEMENT_BINDING_SOURCE_BYTE_BUDGET')
+         result[rel]=hashlib.sha256(raw).hexdigest()
+     return result
++
++
++def owner_inventory_sha256(files: dict[str,str]) -> str:
++    return hashlib.sha256(json.dumps(files,ensure_ascii=False,sort_keys=True,
++        separators=(',',':')).encode('utf-8')).hexdigest()
++
++
++def _validate_plan_owner(value: dict, *, app: Path, state: Path, master: Path,
++                         expected_owner_app: Path | None) -> dict | None:
++    """Bind the API owner separately from the existing worker cwd/inventory.
++
++    A legacy binding remains a same-root contract. An explicit owner is an
++    additional closed source inventory, never a replacement for worker pins.
++    """
++    if 'plan_owner' not in value:
++        if expected_owner_app is not None and app!=expected_owner_app.resolve():
++            raise ValueError('PLAN_OWNER_BINDING_API_ROOT_MISMATCH')
++        return None
++    owner=value['plan_owner']
++    if (not isinstance(owner,dict) or set(owner)!={'schema_version','owner','app_root','files'}
++            or owner.get('schema_version')!=PLAN_OWNER_BINDING_SCHEMA or owner.get('owner')!=PLAN_OWNER):
++        raise ValueError('PLAN_OWNER_BINDING_CONTRACT_INVALID')
++    owner_app=_path(owner.get('app_root'))
++    if expected_owner_app is not None and owner_app!=expected_owner_app.resolve():
++        raise ValueError('PLAN_OWNER_BINDING_API_ROOT_MISMATCH')
++    if any(owner_app==root or owner_app in root.parents or root in owner_app.parents
++           for root in (state,master)):
++        raise ValueError('PLAN_OWNER_BINDING_ROOTS_OVERLAP')
++    if not owner_app.is_dir():
++        raise ValueError('PLAN_OWNER_BINDING_ROOT_MISSING')
++    files=owner.get('files')
++    if (not isinstance(files,dict) or not set(PLAN_OWNER_REQUIRED_FILES)<=set(files) or len(files)>4096
++            or any(not isinstance(rel,str) or Path(rel).is_absolute() or '..' in Path(rel).parts
++                   or not re.fullmatch('[0-9a-f]{64}',str(sha)) for rel,sha in files.items())):
++        raise ValueError('PLAN_OWNER_BINDING_INVENTORY_INVALID')
++    if binding_inventory(owner_app)!=files:
++        raise ValueError('PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH')
++    return owner
+ 
+ 
+ def _response_body_identity(path: Path, expected_bytes: int) -> tuple[int,str,dict[str,Any]]:
+@@ -148,7 +228,8 @@
+         raise ValueError('PLAN_REFRESH_CANARY_HISTORICAL_CALENDAR_UNAVAILABLE') from exc
+ 
+ 
+-def _validate_plan_canary(receipt_ref: Any, *, app: Path, state: Path) -> None:
++def _validate_plan_canary(receipt_ref: Any, *, app: Path, state: Path,
++                          owner_identity: dict | None=None) -> None:
+     """Validate explicit manual-plan owner evidence without accepting an announcement canary."""
+     if not isinstance(receipt_ref,dict):
+         raise ValueError('PLAN_REFRESH_CANARY_REQUIRED')
+@@ -190,7 +271,16 @@
+         _validate_historical_plan_canary_target(target)
+     source_root=_path(canary.get('owner_execution_app_root'))
+     migration_ref=canary.get('source_migration_receipt')
+-    if source_root == app:
++    if owner_identity is not None:
++        # A new role-separated contract needs evidence from this exact API
++        # owner and its closed source inventory. A legacy source migration
++        # into the worker does not attest the separately running API.
++        if (source_root!=Path(owner_identity['app_root'])
++                or canary.get('owner_source_inventory_sha256')!=owner_inventory_sha256(owner_identity['files'])):
++            raise ValueError('PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH')
++        if migration_ref is not None:
++            raise ValueError('PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED')
++    elif source_root == app:
+         # A fresh API-owner canary may be executed by the exact same release
+         # root that the plan-only cycle will load. Its closed binding inventory
+         # below is the source pin; no cross-release migration receipt applies.
+@@ -243,9 +333,12 @@
+     evidence=canary.get('owner_evidence')
+     if not isinstance(evidence,dict):raise ValueError('PLAN_REFRESH_CANARY_EVIDENCE_INVALID')
+     loaded=[]
++    readback_endpoint='/api/v4/manager/research/workspace?date='+target
++    if owner_identity is not None and scope==PLAN_CANARY_HISTORICAL_SCOPE:
++        readback_endpoint+='&view=dynamic'
+     for name,method,endpoint in (
+         ('refresh','POST','/api/v4/manager/research/workspace/refresh?date='+target),
+-        ('readback','GET','/api/v4/manager/research/workspace?date='+target),
++        ('readback','GET',readback_endpoint),
+     ):
+         ref=evidence.get(name)
+         if not isinstance(ref,dict):raise ValueError('PLAN_REFRESH_CANARY_EVIDENCE_INVALID')
+@@ -313,7 +406,8 @@
+         raise ValueError('PLAN_REFRESH_CANARY_READBACK_MISMATCH')
+ 
+ 
+-def validate_binding(value: Any, expected_app: Path | None=None) -> dict:
++def validate_binding(value: Any, expected_app: Path | None=None, *,
++                     expected_owner_app: Path | None=None) -> dict:
+     if (not isinstance(value,dict) or value.get('schema_version')!=BINDING_SCHEMA
+             or type(value.get('enabled')) is not bool or value.get('policy_status')!='PROPOSAL_ONLY'
+             or value.get('policy') not in {'BALANCED_V1','LOW_LOAD_V1'}
+@@ -333,12 +427,16 @@
+     if (state==app or app in state.parents or state==master or state in master.parents or master in state.parents
+             or state in app.parents or master==app or app in master.parents):
+         raise ValueError('ANNOUNCEMENT_BINDING_ROOTS_OVERLAP')
++    owner_identity=_validate_plan_owner(value,app=app,state=state,master=master,
++        expected_owner_app=expected_owner_app)
+     plan_only=value.get('plan_material_refresh_only',False)
+     collection=value.get('announcement_collection_enabled',True)
+     if type(plan_only) is not bool or type(collection) is not bool:
+         raise ValueError('ANNOUNCEMENT_COLLECTION_CONFIG_INVALID')
+     if plan_only and collection:
+         raise ValueError('PLAN_MATERIAL_REFRESH_ONLY_CONFIG_INVALID')
++    if owner_identity is not None and not plan_only:
++        raise ValueError('PLAN_OWNER_BINDING_REQUIRES_PLAN_ONLY_MODE')
+     if not app.is_dir() or not master.is_dir() or not interpreter.is_file():
+         raise ValueError('ANNOUNCEMENT_BINDING_ROOT_MISSING')
+     preopen=value.get('preopen_plan', {'enabled': True, 'lead_seconds': 180, 'status': 'PROPOSAL_ONLY'})
+@@ -349,6 +447,9 @@
+         raise ValueError('ANNOUNCEMENT_PREOPEN_PLAN_CONFIG_INVALID')
+     from v4.manager_research.workspace_plan_autorun import morning_config
+     morning_config(value.get('morning_plan'))
++    daily = daily_automation_config(value.get('daily_automation'))
++    if daily['enabled'] and not plan_only:
++        raise ValueError('DAILY_AUTOMATION_REQUIRES_PLAN_ONLY_MODE')
+     if plan_only:
+         from ops.run_manager_announcement_cycle import _plan_refresh_config
+         refresh=_plan_refresh_config(value.get('plan_material_refresh'))
+@@ -356,7 +457,8 @@
+             raise ValueError('PLAN_MATERIAL_REFRESH_ONLY_CONFIG_INVALID')
+         if value.get('activation_receipt') is not None:
+             raise ValueError('PLAN_REFRESH_CANNOT_REUSE_ANNOUNCEMENT_RECEIPT')
+-        _validate_plan_canary(value.get('plan_activation_receipt'),app=app,state=state)
++        _validate_plan_canary(value.get('plan_activation_receipt'),app=app,state=state,
++            owner_identity=owner_identity)
+     elif value.get('plan_activation_receipt') is not None or value.get('plan_material_refresh') is not None:
+         raise ValueError('PLAN_REFRESH_CONFIG_WITHOUT_PLAN_ONLY_MODE')
+     files=value.get('files'); priorities=value.get('priority_codes')
+--- a/ops/render_manager_announcement_binding.py
++++ b/ops/render_manager_announcement_binding.py
+@@ -7,35 +7,79 @@
+ import argparse, hashlib, json
+ from pathlib import Path
+ from infrastructure.owned_io import SafeRoot
+-from infrastructure.scheduling.manager_announcement_supervisor import BINDING_SCHEMA,binding_inventory,validate_binding
++from infrastructure.scheduling.manager_announcement_supervisor import (
++    BINDING_SCHEMA, PLAN_OWNER_BINDING_SCHEMA, PLAN_OWNER, DAILY_CATCHUP_SLOTS_LOCAL, binding_inventory,
++    daily_automation_config, validate_binding,
++)
+ 
+ 
+ def main(argv=None):
+     p=argparse.ArgumentParser(description=__doc__)
+     p.add_argument('--app-root',required=True);p.add_argument('--manager-state-root',required=True);p.add_argument('--security-master-root',required=True)
++    p.add_argument('--plan-owner-app-root',help='Exact API owner root; app-root remains the worker root')
+     p.add_argument('--python',required=True);p.add_argument('--output',required=True);p.add_argument('--enabled',action='store_true')
+-    p.add_argument('--activation-receipt')
++    p.add_argument('--activation-receipt');p.add_argument('--plan-activation-receipt')
++    p.add_argument('--plan-material-refresh-only',action='store_true')
++    p.add_argument('--daily-automation',action='store_true')
+     p.add_argument('--policy',default='BALANCED_V1',choices=('BALANCED_V1','LOW_LOAD_V1'));p.add_argument('--priority-code',action='append',default=[])
+     p.add_argument('--preopen-lead-seconds',type=int,default=180)
+     args=p.parse_args(argv)
+     app=Path(args.app_root).expanduser().resolve();py=Path(args.python).expanduser();resolved=py.resolve();out=Path(args.output).expanduser().resolve()
+-    activation=None
++    if args.daily_automation and not args.plan_material_refresh_only:
++        raise ValueError('DAILY_AUTOMATION_REQUIRES_PLAN_ONLY_MODE')
++    if args.plan_material_refresh_only and not args.enabled:
++        raise ValueError('PLAN_MATERIAL_REFRESH_ONLY_REQUIRES_ENABLED_CANARY')
++    activation=None;plan_activation=None
+     if args.enabled:
+-        if not args.activation_receipt:
+-            raise ValueError('ANNOUNCEMENT_ACTIVATION_RECEIPT_REQUIRED')
+-        receipt=Path(args.activation_receipt).expanduser()
+-        if not receipt.is_absolute() or '..' in receipt.parts or receipt.resolve()!=receipt:
+-            raise ValueError('ANNOUNCEMENT_ACTIVATION_RECEIPT_PATH_NOT_EXACT')
+-        raw=SafeRoot(receipt.parent).read_bytes(receipt.name,max_bytes=8*1024*1024)
+-        activation={'path':str(receipt),'sha256':hashlib.sha256(raw).hexdigest()}
++        if args.plan_material_refresh_only:
++            if not args.plan_activation_receipt:
++                raise ValueError('PLAN_REFRESH_CANARY_REQUIRED')
++            receipt=Path(args.plan_activation_receipt).expanduser()
++            if not receipt.is_absolute() or '..' in receipt.parts or receipt.resolve()!=receipt:
++                raise ValueError('PLAN_REFRESH_CANARY_PATH_NOT_EXACT')
++            raw=SafeRoot(receipt.parent).read_bytes(receipt.name,max_bytes=8*1024*1024)
++            plan_activation={'path':str(receipt),'sha256':hashlib.sha256(raw).hexdigest()}
++        else:
++            if not args.activation_receipt:
++                raise ValueError('ANNOUNCEMENT_ACTIVATION_RECEIPT_REQUIRED')
++            receipt=Path(args.activation_receipt).expanduser()
++            if not receipt.is_absolute() or '..' in receipt.parts or receipt.resolve()!=receipt:
++                raise ValueError('ANNOUNCEMENT_ACTIVATION_RECEIPT_PATH_NOT_EXACT')
++            raw=SafeRoot(receipt.parent).read_bytes(receipt.name,max_bytes=8*1024*1024)
++            activation={'path':str(receipt),'sha256':hashlib.sha256(raw).hexdigest()}
++    daily=daily_automation_config({
++        'enabled':bool(args.daily_automation),
++        'same_day_catchup_slots_local':list(DAILY_CATCHUP_SLOTS_LOCAL),
++        'us_mapping_budget_seconds':5,
++        'max_attempts_per_target_date':5,
++        'status':'PROPOSAL_ONLY',
++    })
+     value={'schema_version':BINDING_SCHEMA,'enabled':bool(args.enabled),'policy_status':'PROPOSAL_ONLY','policy':args.policy,
+       'production_allowed':False,'buy_gate_updated':False,'orders_sent':False,'research_only':True,
+       'app_root':str(app),'manager_state_root':str(Path(args.manager_state_root).expanduser().resolve()),
+       'security_master_root':str(Path(args.security_master_root).expanduser().resolve()),'python':str(py),'python_resolved':str(resolved),
+       'python_sha256':hashlib.sha256(resolved.read_bytes()).hexdigest(),'priority_codes':list(dict.fromkeys(args.priority_code)),
+-      'preopen_plan':{'enabled':True,'lead_seconds':args.preopen_lead_seconds,'status':'PROPOSAL_ONLY'},'files':binding_inventory(app)}
++      'plan_material_refresh_only':bool(args.plan_material_refresh_only),
++      'announcement_collection_enabled':not args.plan_material_refresh_only,
++      'preopen_plan':{'enabled':True,'lead_seconds':args.preopen_lead_seconds,'status':'PROPOSAL_ONLY'},
++      'morning_plan':{'enabled':bool(args.plan_material_refresh_only),'interval_seconds':300,'status':'PROPOSAL_ONLY'},
++      'plan_material_refresh':({'enabled':True,'start_local':'16:00','end_local':'23:00',
++          'max_attempts_per_target_date':3,'retry_backoff_seconds':600,'status':'PROPOSAL_ONLY'}
++          if args.plan_material_refresh_only else None),
++      'daily_automation':daily,'files':binding_inventory(app)}
+     if activation is not None:value['activation_receipt']=activation
++    if plan_activation is not None:value['plan_activation_receipt']=plan_activation
++    if args.plan_owner_app_root is not None:
++        owner_app=Path(args.plan_owner_app_root).expanduser()
++        if not owner_app.is_absolute() or '..' in owner_app.parts or owner_app.resolve()!=owner_app:
++            raise ValueError('PLAN_OWNER_BINDING_PATH_NOT_EXACT')
++        value['plan_owner']={'schema_version':PLAN_OWNER_BINDING_SCHEMA,'owner':PLAN_OWNER,
++            'app_root':str(owner_app),'files':binding_inventory(owner_app)}
+     validate_binding(value,app);out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(value,ensure_ascii=False,sort_keys=True,indent=2))
+-    print(json.dumps({'status':'RENDERED_DISABLED' if not args.enabled else 'RENDERED_ENABLED_CANARY_VALIDATED','path':str(out),'file_count':len(value['files'])},ensure_ascii=False))
++    rendered_status=('RENDERED_DISABLED' if not args.enabled else
++        'RENDERED_ENABLED_PLAN_DAILY_CANARY_VALIDATED' if args.plan_material_refresh_only and args.daily_automation else
++        'RENDERED_ENABLED_PLAN_CANARY_VALIDATED' if args.plan_material_refresh_only else
++        'RENDERED_ENABLED_CANARY_VALIDATED')
++    print(json.dumps({'status':rendered_status,'path':str(out),'file_count':len(value['files'])},ensure_ascii=False))
+     return 0
+ if __name__=='__main__':raise SystemExit(main())
+--- a/ops/run_manager_announcement_cycle.py
++++ b/ops/run_manager_announcement_cycle.py
+@@ -245,11 +245,140 @@
+             else source_date if branch is not None else None)
+ 
+ 
++def daily_cycle_branch(source_date:str,*,now:datetime,plan_config:Mapping[str,Any] | None,
++                       preopen_config:Mapping[str,Any] | None=None,
++                       morning_plan_config:Mapping[str,Any] | None=None,
++                       daily_config:Mapping[str,Any] | None=None) -> tuple[str | None,str | None]:
++    """Keep original windows and add only the sealed finite same-day catch-up slots."""
++    from infrastructure.scheduling.manager_announcement_supervisor import daily_automation_config
++    from v4.manager_research.workspace_projection import HK,date_token
++    from contracts.trading_calendar import load_market_calendar,resolve_market_states,TradingDayState
++    source=date_token(source_date)
++    if now.tzinfo is None or now.astimezone(HK).strftime('%Y%m%d')!=source:
++        raise ValueError('PLAN_OWNER_SOURCE_DATE_CLOCK_MISMATCH')
++    original=scheduled_cycle_branch(source,now=now,plan_config=plan_config,
++        preopen_config=preopen_config,morning_plan_config=morning_plan_config)
++    if original in {'MORNING','PREOPEN'}:
++        return original,None
++    cfg=daily_automation_config(daily_config)
++    if not cfg['enabled']:
++        return original,None
++    state=resolve_market_states(load_market_calendar(),source)['hk_securities']
++    if state not in {TradingDayState.FULL_TRADING_DAY,TradingDayState.HALF_TRADING_DAY_AM}:
++        return None,None
++    local=now.astimezone(HK)
++    slot=local.strftime('%H:%M')
++    if slot in cfg['same_day_catchup_slots_local']:
++        return 'SAME_DAY_CATCHUP',local.strftime('%Y%m%dT%H%M')
++    return original,None
++
++
++def daily_cycle_target(source_date:str,*,now:datetime,plan_config:Mapping[str,Any] | None,
++                       preopen_config:Mapping[str,Any] | None=None,
++                       morning_plan_config:Mapping[str,Any] | None=None,
++                       daily_config:Mapping[str,Any] | None=None) -> str | None:
++    branch,_=daily_cycle_branch(source_date,now=now,plan_config=plan_config,
++        preopen_config=preopen_config,morning_plan_config=morning_plan_config,
++        daily_config=daily_config)
++    return (next_hk_session_date(source_date) if branch=='EVENING_NEXT_SESSION'
++            else source_date if branch is not None else None)
++
++
++def daily_admitted_branch_is_live(source_date:str,target_date:str,branch:str,*,scheduled_slot:str | None,
++                                  now:datetime,plan_config:Mapping[str,Any] | None,
++                                  preopen_config:Mapping[str,Any] | None=None,
++                                  morning_plan_config:Mapping[str,Any] | None=None,
++                                  daily_config:Mapping[str,Any] | None=None) -> bool:
++    """Revalidate an already-admitted daily slot without losing minute-rollover work.
++
++    Admission happens once in the bound RPC. The bounded US preparation and
++    plan call can cross a wall-clock minute, so the original slot is retained
++    for up to two minutes while still requiring the same Hong Kong trade date.
++    A fresh child cannot use this grace period: its RPC must first pass the
++    exact-minute ``daily_cycle_branch`` admission above.
++    """
++    from datetime import timedelta
++    from v4.manager_research.workspace_projection import HK,date_token
++    source=date_token(source_date);target=date_token(target_date)
++    if now.tzinfo is None or now.astimezone(HK).strftime('%Y%m%d')!=source:
++        return False
++    local=now.astimezone(HK)
++    if branch in {'MORNING','SAME_DAY_CATCHUP'}:
++        if not isinstance(scheduled_slot,str) or not re.fullmatch(source+r'T\d{4}',scheduled_slot):
++            return False
++        slot_time=datetime.strptime(scheduled_slot,'%Y%m%dT%H%M').replace(tzinfo=HK)
++        if local < slot_time or local >= slot_time+timedelta(seconds=120):
++            return False
++        if branch=='MORNING':
++            from v4.manager_research.workspace_plan_autorun import morning_config,morning_window
++            cfg=morning_config(morning_plan_config)
++            start,freeze=morning_window(source)
++            return bool(target==source and cfg['enabled'] and start<=slot_time<freeze
++                and (slot_time.hour*60+slot_time.minute)%(cfg['interval_seconds']//60)==0)
++        from infrastructure.scheduling.manager_announcement_supervisor import daily_automation_config
++        cfg=daily_automation_config(daily_config)
++        return bool(target==source and cfg['enabled']
++            and slot_time.strftime('%H:%M') in cfg['same_day_catchup_slots_local'])
++    expected_branch,expected_slot=daily_cycle_branch(source,now=local,plan_config=plan_config,
++        preopen_config=preopen_config,morning_plan_config=morning_plan_config,daily_config=daily_config)
++    expected_target=daily_cycle_target(source,now=local,plan_config=plan_config,
++        preopen_config=preopen_config,morning_plan_config=morning_plan_config,daily_config=daily_config)
++    return bool(expected_branch==branch and expected_target==target and expected_slot==scheduled_slot)
++
++
++def run_same_day_catchup_plan(service:Any,target_trade_date:str,*,now:datetime,
++                              scheduled_slot:str,trigger_id:str,
++                              us_market_request_context:Mapping[str,Any] | None=None) -> dict[str,Any]:
++    """Refresh only through the original manual plan owner with truthful late timing."""
++    from v4.manager_research.workspace import _read_plan
++    from v4.manager_research.workspace_plan_autorun import owner_plan_readback
++    from v4.manager_research.workspace_projection import HK,date_token
++    from v4.manager_research.workspace import get_workspace
++    from v4.manager_research.workspace import verified_plan_attempt
++    from datetime import datetime as _datetime
++    target=date_token(target_trade_date);local=now.astimezone(HK)
++    if local.strftime('%Y%m%d')!=target or not re.fullmatch(target+r'T\d{4}',scheduled_slot):
++        raise ValueError('SAME_DAY_CATCHUP_IDENTITY_INVALID')
++    scheduled_for=_datetime.strptime(scheduled_slot,'%Y%m%dT%H%M').replace(tzinfo=HK)
++    execution_context={'trigger_kind':'SCHEDULED','timing':'LATE_CATCHUP',
++        'scheduled_for':scheduled_for.isoformat(),'trigger_id':trigger_id,
++        'natural_run_verified':False}
++    saved=_read_plan(service.store,target)
++    current=get_workspace(service,target,include_saved=False,now=local,
++        us_market_request_context=us_market_request_context)
++    unchanged=bool(saved is not None and saved.get('input_identity')==current.get('input_identity')
++        and saved.get('workspace',{}).get('semantic_version')==current.get('semantic_version'))
++    if unchanged and saved.get('execution_kind')=='SCHEDULED_PREOPEN':
++        result=_saved_owner_readback(service,target,saved)
++        plan=owner_plan_readback(result,target,expected_kind='SCHEDULED_PREOPEN')
++        plan={**plan,'status':'PRESERVED_SCHEDULED_PREOPEN',
++            'owner_product_status':'PRESERVED_SCHEDULED_PREOPEN'}
++    elif (unchanged and saved.get('execution_kind')=='MANUAL_REFRESH'
++          and isinstance(saved.get('execution_context'),Mapping)):
++        result=_saved_owner_readback(service,target,saved)
++        plan=owner_plan_readback(result,target,expected_kind='MANUAL_REFRESH')
++    else:
++        value=service.refresh_workspace_plan(target,execution_kind='MANUAL_REFRESH',now=local,
++            execution_context=execution_context,
++            us_market_request_context=us_market_request_context)
++        plan=owner_plan_readback(value,target,expected_kind='MANUAL_REFRESH')
++    valid=valid_owner_plan_result(plan,'SAME_DAY_CATCHUP')
++    state=plan.get('status')
++    status=('PARTIAL' if valid and state=='PARTIAL' else 'SUCCEEDED' if valid else 'FAILED')
++    reasons=plan.get('failure_reasons') if isinstance(plan.get('failure_reasons'),list) else None
++    return {'status':status,'branch':'SAME_DAY_CATCHUP','target_trade_date':target,
++        'plan_result':plan,'failure_reasons':reasons,
++        'owner':'ManagerResearchJobService.refresh_workspace_plan','policy_status':'PROPOSAL_ONLY',
++        'RESEARCH_ONLY':True,'production_allowed':False,'buy_gate_updated':False,'orders_sent':False}
++
++
+ def valid_owner_plan_result(plan:Mapping[str,Any],branch:str) -> bool:
+     """The wire receipt preserves the same owner/run/attempt contract as the wrapper."""
++    if any(key in plan and not isinstance(plan[key],str) for key in ('status','owner_attempt_state')):
++        return False
+     expected={'MORNING':'SCHEDULED_MORNING','PREOPEN':'SCHEDULED_PREOPEN',
+-              'EVENING_NEXT_SESSION':'MANUAL_REFRESH'}.get(branch)
+-    preserved=(branch in {'MORNING','EVENING_NEXT_SESSION'}
++              'EVENING_NEXT_SESSION':'MANUAL_REFRESH','SAME_DAY_CATCHUP':'MANUAL_REFRESH'}.get(branch)
++    preserved=(branch in {'MORNING','EVENING_NEXT_SESSION','SAME_DAY_CATCHUP'}
+         and plan.get('owner_product_status')=='PRESERVED_SCHEDULED_PREOPEN'
+         and plan.get('execution_kind')=='SCHEDULED_PREOPEN')
+     return bool(expected and (plan.get('execution_kind')==expected or preserved)
+@@ -272,29 +401,71 @@
+ def run_scheduled_plan_target(service:Any,target_trade_date:str,source_date:str,*,now:datetime,
+                               plan_config:Mapping[str,Any] | None,
+                               preopen_config:Mapping[str,Any] | None=None,
+-                              morning_plan_config:Mapping[str,Any] | None=None) -> dict[str,Any]:
++                              morning_plan_config:Mapping[str,Any] | None=None,
++                              daily_config:Mapping[str,Any] | None=None,
++                              daily_branch:str | None=None,scheduled_slot:str | None=None,
++                              trigger_id:str | None=None,
++                              us_market_request_context:Mapping[str,Any] | None=None) -> dict[str,Any]:
+     """Execute one target-date branch through the injected Manager owner."""
+     from v4.manager_research.workspace_plan_autorun import run_scheduled_preopen_plan_safe,run_scheduled_morning_plan
+     from v4.manager_research.workspace_projection import HK,date_token
+     source=date_token(source_date);target=date_token(target_trade_date)
+-    if scheduled_cycle_target(source,now=now,plan_config=plan_config,preopen_config=preopen_config,
+-                              morning_plan_config=morning_plan_config)!=target:
+-        raise ValueError('PLAN_OWNER_TARGET_DATE_OR_WINDOW_MISMATCH')
+-    branch=scheduled_cycle_branch(source,now=now,plan_config=plan_config,preopen_config=preopen_config,
+-                                  morning_plan_config=morning_plan_config)
++    if daily_branch is None:
++        if scheduled_cycle_target(source,now=now,plan_config=plan_config,preopen_config=preopen_config,
++                                  morning_plan_config=morning_plan_config)!=target:
++            raise ValueError('PLAN_OWNER_TARGET_DATE_OR_WINDOW_MISMATCH')
++        branch=scheduled_cycle_branch(source,now=now,plan_config=plan_config,preopen_config=preopen_config,
++                                      morning_plan_config=morning_plan_config)
++    else:
++        if not daily_admitted_branch_is_live(source,target,daily_branch,scheduled_slot=scheduled_slot,
++                now=now,plan_config=plan_config,preopen_config=preopen_config,
++                morning_plan_config=morning_plan_config,daily_config=daily_config):
++            raise ValueError('PLAN_OWNER_DAILY_TARGET_OR_WINDOW_MISMATCH')
++        branch=daily_branch
+     if branch=='MORNING':
+-        plan=run_scheduled_morning_plan(service,target,now=now,config=morning_plan_config)
++        execution_context=None
++        if daily_branch is not None:
++            from datetime import datetime as _datetime
++            scheduled_for=_datetime.strptime(str(scheduled_slot),'%Y%m%dT%H%M').replace(tzinfo=HK)
++            execution_context={'trigger_kind':'SCHEDULED','timing':'ON_TIME',
++                'scheduled_for':scheduled_for.isoformat(),'trigger_id':trigger_id,
++                'natural_run_verified':False}
++        plan=run_scheduled_morning_plan(service,target,now=now,config=morning_plan_config,
++            execution_context=execution_context,us_market_request_context=us_market_request_context)
++        branch_status_override=None
++        branch_failure_override=None
+     elif branch=='PREOPEN':
+         plan=run_scheduled_preopen_plan_safe(service,target,now=now,config=preopen_config)
++        branch_status_override=None
++        branch_failure_override=None
++    elif branch=='SAME_DAY_CATCHUP':
++        if scheduled_slot is None or trigger_id is None:
++            raise ValueError('SAME_DAY_CATCHUP_IDENTITY_REQUIRED')
++        catchup=run_same_day_catchup_plan(service,target,now=now,scheduled_slot=scheduled_slot,
++            trigger_id=trigger_id,us_market_request_context=us_market_request_context)
++        plan=catchup.get('plan_result') if isinstance(catchup,Mapping) else None
++        if not isinstance(plan,Mapping):
++            raise ValueError('SAME_DAY_CATCHUP_OWNER_READBACK_MISSING')
++        plan=dict(plan)
++        branch_status_override=catchup.get('status')
++        branch_failure_override=catchup.get('failure_reasons')
+     else:
+         plan=run_next_hk_session_plan_material_refresh(service,source,now=now,config=plan_config)
+         if plan.get('target_trade_date')!=target:raise ValueError('PLAN_OWNER_EVENING_TARGET_MISMATCH')
+         branch='EVENING_NEXT_SESSION'
++        branch_status_override=None
++        branch_failure_override=None
+     state=plan.get('status')
+     successful={'MATERIALIZED','ALREADY_MATERIALIZED','ALREADY_CURRENT','PRESERVED_SCHEDULED_PREOPEN'}
+     status='SUCCEEDED' if state in successful else 'PARTIAL' if state in {'PARTIAL','RETRY_BACKOFF'} else 'FAILED'
+     reasons=plan.get('failure_reasons') if isinstance(plan.get('failure_reasons'),list) else None
+     owner_readback_valid=valid_owner_plan_result(plan,branch)
++    if branch_status_override=='FAILED' and status=='SUCCEEDED':
++        status='FAILED'
++        reasons=branch_failure_override if isinstance(branch_failure_override,list) else ['PLAN_BRANCH_STATUS_INVALID']
++    elif branch_status_override=='PARTIAL' and status=='SUCCEEDED':
++        status='PARTIAL'
++        reasons=branch_failure_override if isinstance(branch_failure_override,list) else reasons
+     if status=='SUCCEEDED' and not owner_readback_valid:
+         status='FAILED'
+         reasons=['PLAN_OWNER_PRODUCT_READBACK_INVALID']
+@@ -317,7 +488,12 @@
+     parser.add_argument('--dry-run',action='store_true')
+     args=parser.parse_args(argv)
+     from infrastructure.scheduling.manager_announcement_supervisor import load_binding
+-    value=load_binding(args.binding,APP_ROOT)
++    try:
++        value=load_binding(args.binding,APP_ROOT)
++    except (ValueError,OSError,KeyError,TypeError) as exc:
++        from v4.manager_research.plan_owner_dispatch import local_admission_failure
++        print(json.dumps(local_admission_failure(exc)))
++        return 2
+     if sys.version_info < (3,14):raise RuntimeError('PYTHON_314_REQUIRED')
+     if Path.cwd().resolve()!=APP_ROOT:raise ValueError('ANNOUNCEMENT_WORKER_CWD_MISMATCH')
+     plan_only=value.get('plan_material_refresh_only',False)
+@@ -332,9 +508,16 @@
+         raise ValueError('ANNOUNCEMENT_WORKER_UNSAFE_ENVIRONMENT')
+     from v4.manager_research.workspace_projection import HK
+     now=datetime.now(HK)
+-    plan_target=(scheduled_cycle_target(now.strftime('%Y%m%d'),now=now,
+-        plan_config=value.get('plan_material_refresh'),preopen_config=value.get('preopen_plan'),
+-        morning_plan_config=value.get('morning_plan')) if value['enabled'] else None)
++    from infrastructure.scheduling.manager_announcement_supervisor import daily_automation_config
++    daily_config=daily_automation_config(value.get('daily_automation'))
++    if value['enabled'] and daily_config['enabled']:
++        plan_target=daily_cycle_target(now.strftime('%Y%m%d'),now=now,
++            plan_config=value.get('plan_material_refresh'),preopen_config=value.get('preopen_plan'),
++            morning_plan_config=value.get('morning_plan'),daily_config=value.get('daily_automation'))
++    else:
++        plan_target=(scheduled_cycle_target(now.strftime('%Y%m%d'),now=now,
++            plan_config=value.get('plan_material_refresh'),preopen_config=value.get('preopen_plan'),
++            morning_plan_config=value.get('morning_plan')) if value['enabled'] else None)
+     if args.dry_run:
+         print(json.dumps(dict(status='DRY_RUN',dry_run=True,network_requests=0,state_writes=0,
+             plan_material_refresh_only=plan_only,plan_target_trade_date=plan_target,
+@@ -343,18 +526,19 @@
+         return 0
+     if plan_only:
+         if plan_target is None:
+-            print(json.dumps(dict(status='NOT_DUE',network_requests=0,state_writes=0,
++            print(json.dumps(dict(status='NOT_DUE' if value['enabled'] else 'DISABLED',network_requests=0,state_writes=0,
++                owner_execution_status='OWNER_NOT_CALLED',
+                 plan_material_refresh_only=True,announcement_collection='DISABLED_PLAN_REFRESH_ONLY',
+                 policy_status='PROPOSAL_ONLY',RESEARCH_ONLY=True,production_allowed=False,
+                 buy_gate_updated=False,orders_sent=False)))
+             return 0
+         try:
+-            from v4.manager_research.plan_owner_dispatch import request_bound_plan_cycle
+-            result=request_bound_plan_cycle(args.binding,plan_target)
++            from v4.manager_research.plan_owner_dispatch import request_bound_daily_cycle,request_bound_plan_cycle
++            result=(request_bound_daily_cycle(args.binding,plan_target) if daily_config['enabled']
++                    else request_bound_plan_cycle(args.binding,plan_target))
+         except (ValueError,OSError,TimeoutError) as exc:
+-            message=str(exc)
+-            safe_reason=message if re.fullmatch(r'[A-Z][A-Z0-9_]{0,95}',message) else type(exc).__name__.upper()
+-            result={'status':'FAILED','reason':safe_reason,'outcome':'OWNER_READBACK_REQUIRED_NO_RETRY'}
++            from v4.manager_research.plan_owner_dispatch import rpc_call_failure
++            result=rpc_call_failure(exc)
+         print(json.dumps({**result,'policy_status':'PROPOSAL_ONLY','announcement_network_requests':0,
+             'RESEARCH_ONLY':True,'production_allowed':False,'buy_gate_updated':False,'orders_sent':False}))
+         return 2 if result.get('status')=='FAILED' else 0
+@@ -386,9 +570,8 @@
+                 from v4.manager_research.plan_owner_dispatch import request_bound_plan_cycle
+                 plan_result=request_bound_plan_cycle(args.binding,plan_target)
+             except (ValueError,OSError,TimeoutError) as exc:
+-                reason=str(exc)
+-                if not re.fullmatch(r'[A-Z][A-Z0-9_]{0,95}',reason):reason=type(exc).__name__
+-                plan_result={'status':'FAILED','reason':reason,'blocks_announcement':False}
++                from v4.manager_research.plan_owner_dispatch import rpc_call_failure
++                plan_result={**rpc_call_failure(exc),'blocks_announcement':False}
+         if not announcement_enabled:
+             print(json.dumps(dict(status='ANNOUNCEMENT_COLLECTION_DISABLED',plan_cycle=plan_result,
+                 production_allowed=False,buy_gate_updated=False,orders_sent=False)))
+--- a/v4/manager_research/plan_owner_dispatch.py
++++ b/v4/manager_research/plan_owner_dispatch.py
+@@ -1,7 +1,7 @@
+ """Bounded loopback RPC to the API's fully injected ManagerResearch owner."""
+ from __future__ import annotations
+ 
+-from datetime import datetime
++from datetime import datetime, timedelta, timezone
+ import hashlib
+ import http.client
+ import json
+@@ -23,6 +23,71 @@
+ MAX_FAILED_DISPATCHES = 3
+ MAX_RESPONSE_BYTES = 256 * 1024
+ KNOWN_RPC_HTTP_ERROR_DETAILS = frozenset({"SCHEDULED_WORKSPACE_OWNER_FAILED"})
++REJECTION_SCHEMA = "v4.manager_research.plan_owner_rejection.v1"
++# Only this bounded vocabulary crosses the API error boundary. A matching
++# exception string after admission is never evidence the owner was not called.
++PLAN_OWNER_GATE_CODES = frozenset({
++    "PLAN_OWNER_SERVER_BINDING_NOT_CONFIGURED", "PLAN_OWNER_BINDING_PATH_NOT_EXACT",
++    "PLAN_OWNER_BINDING_UNAVAILABLE", "PLAN_OWNER_BINDING_SHA_MISMATCH",
++    "PLAN_OWNER_BINDING_JSON_INVALID", "PLAN_OWNER_BINDING_DISABLED",
++    "PLAN_OWNER_DAILY_BINDING_DISABLED", "PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH",
++    "PLAN_OWNER_BINDING_API_ROOT_MISMATCH", "PLAN_OWNER_BINDING_CONTRACT_INVALID",
++    "PLAN_OWNER_BINDING_ROOTS_OVERLAP", "PLAN_OWNER_BINDING_ROOT_MISSING",
++    "PLAN_OWNER_BINDING_INVENTORY_INVALID", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH",
++    "PLAN_OWNER_BINDING_REQUIRES_PLAN_ONLY_MODE", "PLAN_OWNER_ADMISSION_FAILED",
++    "PLAN_OWNER_TARGET_DATE_OR_WINDOW_MISMATCH", "PLAN_OWNER_CLOCK_MUST_BE_AWARE",
++    "ANNOUNCEMENT_BINDING_CONTRACT_INVALID", "ANNOUNCEMENT_BINDING_CWD_MISMATCH",
++    "ANNOUNCEMENT_BINDING_PATH_INVALID", "ANNOUNCEMENT_BINDING_PATH_NOT_EXACT",
++    "ANNOUNCEMENT_BINDING_ROOTS_OVERLAP", "ANNOUNCEMENT_BINDING_ROOT_MISSING",
++    "ANNOUNCEMENT_BINDING_INVENTORY_INVALID", "ANNOUNCEMENT_BINDING_CLOSED_INVENTORY_MISMATCH",
++    "ANNOUNCEMENT_BINDING_INTERPRETER_SHA_MISMATCH", "ANNOUNCEMENT_BINDING_SOURCE_SYMLINK",
++    "ANNOUNCEMENT_BINDING_SOURCE_ROOT_MISSING", "ANNOUNCEMENT_BINDING_SOURCE_BYTE_BUDGET",
++    "ANNOUNCEMENT_BINDING_INVENTORY_TOO_LARGE", "PLAN_MATERIAL_REFRESH_ONLY_CONFIG_INVALID",
++    "PLAN_REFRESH_CANARY_REQUIRED", "PLAN_REFRESH_CANARY_SHA_MISMATCH",
++    "PLAN_REFRESH_CANARY_OWNER_IDENTITY_MISMATCH", "PLAN_REFRESH_CANARY_CONTRACT_INVALID",
++    "PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED", "PLAN_REFRESH_CANARY_RESPONSE_INVALID",
++    "PLAN_REFRESH_CANARY_RESPONSE_SHA_MISMATCH", "PLAN_REFRESH_CANARY_RESPONSE_READBACK_MISMATCH",
++    "PLAN_REFRESH_CANARY_HTTP_EVIDENCE_INVALID", "PLAN_REFRESH_CANNOT_REUSE_ANNOUNCEMENT_RECEIPT",
++})
++RPC_FAILURE_CODES = frozenset({
++    "PLAN_OWNER_RPC_FAILED", "PLAN_OWNER_RPC_TRANSPORT_FAILED", "PLAN_OWNER_RPC_RESPONSE_TOO_LARGE",
++    "PLAN_OWNER_RPC_CONTENT_TYPE_INVALID", "PLAN_OWNER_RPC_RESPONSE_JSON_INVALID",
++    "PLAN_OWNER_RPC_PARENT_TRIGGER_READBACK_INVALID", "SCHEDULED_WORKSPACE_OWNER_FAILED",
++}) | PLAN_OWNER_GATE_CODES | frozenset(f"PLAN_OWNER_RPC_HTTP_{status}" for status in range(100, 600))
++OWNER_FAILURE_CODES = frozenset({
++    "PLAN_OWNER_EXECUTION_FAILED", "PLAN_OWNER_EXECUTION_TIMEOUT",
++    "PLAN_OWNER_PARENT_TRIGGER_BRANCH_READBACK_MISMATCH", "PLAN_OWNER_PRODUCT_READBACK_INVALID",
++    "PLAN_OWNER_WINDOW_EXPIRED_BEFORE_EXECUTION", "PLAN_OWNER_EVENING_TARGET_MISMATCH",
++})
++
++
++class PlanOwnerAdmissionError(ValueError):
++    """Raised only within the read-only gate, before either research owner."""
++    def __init__(self, reason: str):
++        self.reason = reason if reason in PLAN_OWNER_GATE_CODES else "PLAN_OWNER_ADMISSION_FAILED"
++        super().__init__(self.reason)
++
++    def detail(self, target_date: str, binding_sha256: str) -> dict[str, Any]:
++        return {"schema_version": REJECTION_SCHEMA, "status": "GATE_REJECTED",
++            "owner": OWNER, "reason": self.reason, "failure_stage": "ADMISSION",
++            "owner_execution_status": "OWNER_NOT_CALLED", "target_trade_date": target_date,
++            "binding_sha256": binding_sha256, **FLAGS}
++
++
++def local_admission_failure(exc: Exception) -> dict[str, Any]:
++    """For the worker's binding load, before constructing an RPC connection."""
++    reason = "PLAN_OWNER_BINDING_UNAVAILABLE" if isinstance(exc, OSError) else str(exc)
++    error = PlanOwnerAdmissionError(reason)
++    return {"status": "FAILED", "reason": error.reason, "failure_stage": "ADMISSION",
++        "owner_execution_status": "OWNER_NOT_CALLED", "network_requests": 0, "state_writes": 0, **FLAGS}
++
++
++def rpc_call_failure(exc: Exception) -> dict[str, Any]:
++    """A caller exception is not proof of remote non-execution."""
++    reason = str(exc)
++    return {"status": "FAILED", "reason": reason if reason in RPC_FAILURE_CODES else "PLAN_OWNER_RPC_FAILED",
++        "failure_stage": "READBACK", "owner_execution_status": "CANNOT_CONFIRM",
++        "outcome": "OWNER_READBACK_REQUIRED_NO_RETRY", **FLAGS}
+ 
+ 
+ def clock_now() -> datetime:
+@@ -60,9 +125,9 @@
+                              binding_sha256: str, *, scheduled_slot: str | None = None) -> dict[str, str]:
+     source = date_token(source_date)
+     target = date_token(target_date)
+-    if branch not in {"MORNING", "PREOPEN", "EVENING_NEXT_SESSION"}:
++    if branch not in {"MORNING", "PREOPEN", "EVENING_NEXT_SESSION", "SAME_DAY_CATCHUP"}:
+         raise ValueError("PLAN_OWNER_PARENT_TRIGGER_BRANCH_INVALID")
+-    if (branch in {"MORNING", "PREOPEN"}) != (source == target):
++    if (branch in {"MORNING", "PREOPEN", "SAME_DAY_CATCHUP"}) != (source == target):
+         raise ValueError("PLAN_OWNER_PARENT_TRIGGER_DATE_BRANCH_MISMATCH")
+     if not re.fullmatch(r"[0-9a-f]{64}", str(binding_sha256 or "")):
+         raise ValueError("PLAN_OWNER_PARENT_TRIGGER_BINDING_SHA_INVALID")
+@@ -74,7 +139,7 @@
+         "branch": branch,
+         "binding_sha256": binding_sha256,
+     }
+-    if branch == "MORNING":
++    if branch in {"MORNING", "SAME_DAY_CATCHUP"}:
+         if not isinstance(scheduled_slot, str) or not re.fullmatch(source + r"T\d{4}", scheduled_slot):
+             raise ValueError("PLAN_OWNER_PARENT_TRIGGER_SLOT_INVALID")
+         identity["scheduled_slot"] = scheduled_slot
+@@ -106,6 +171,7 @@
+         "MORNING": "SCHEDULED_MORNING",
+         "PREOPEN": "SCHEDULED_PREOPEN",
+         "EVENING_NEXT_SESSION": "MANUAL_REFRESH",
++        "SAME_DAY_CATCHUP": "MANUAL_REFRESH",
+     }.get(str(identity.get("branch")))
+     return {
+         **dict(identity),
+@@ -131,8 +197,12 @@
+ 
+ 
+ def _rpc_failure_receipt(identity: Mapping[str, str], *, now: datetime,
+-                          code: str, http_status: int | None = None) -> dict[str, Any]:
+-    safe_code = code if re.fullmatch(r"[A-Z][A-Z0-9_]{0,95}", str(code or "")) else "PLAN_OWNER_RPC_FAILED"
++                          code: str, http_status: int | None = None,
++                          admission_rejected: bool = False) -> dict[str, Any]:
++    safe_code = code if code in RPC_FAILURE_CODES else "PLAN_OWNER_RPC_FAILED"
++    rejected = admission_rejected and safe_code in PLAN_OWNER_GATE_CODES
++    outcome = "OWNER_NOT_CALLED" if rejected else "CANNOT_CONFIRM"
++    phase = "ADMISSION" if rejected else "TRANSPORT" if safe_code == "PLAN_OWNER_RPC_TRANSPORT_FAILED" else "READBACK"
+     receipt = {
+         **dict(identity),
+         "triggered_at": now.isoformat(),
+@@ -140,6 +210,8 @@
+         "owner": OWNER,
+         "owner_readback_status": "NOT_CONFIRMED",
+         "failure_code": safe_code,
++        "failure_stage": phase,
++        "owner_execution_status": outcome,
+         "request_count": 1,
+         "idempotency_status": "NEXT_TRIGGER_RECONCILES_EXISTING_OWNER_LEDGER",
+     }
+@@ -151,6 +223,8 @@
+         "owner": OWNER,
+         "binding_sha256": identity["binding_sha256"],
+         "target_trade_date": identity["target_trade_date"],
++        "failure_stage": phase,
++        "owner_execution_status": outcome,
+         "parent_trigger_receipt": receipt,
+         **FLAGS,
+     }
+@@ -241,9 +315,31 @@
+     }
+ 
+ 
++def _dispatch_outcome(result: Mapping[str, Any]) -> str:
++    plan = result.get("plan_result")
++    if not isinstance(plan, Mapping):
++        return "CANNOT_CONFIRM"
++    # Use an explicit owner status, never infer missing inputs from empty rows
++    # or from the absence of a product/run. Preserve the original input reason.
++    if not isinstance(plan.get("status"), str):
++        return "CANNOT_CONFIRM"
++    if plan["status"] in {"CANNOT_CONFIRM", "INPUT_MISSING", "INPUTS_NOT_READY"}:
++        return "INPUT_NOT_READY"
++    reasons = plan.get("failure_reasons")
++    if isinstance(reasons, list) and "PLAN_OWNER_EXECUTION_TIMEOUT" in reasons:
++        return "CANNOT_CONFIRM"
++    if plan.get("status") == "FAILED":
++        return "OWNER_FAILED"
++    from ops.run_manager_announcement_cycle import valid_owner_plan_result
++    if valid_owner_plan_result(plan, str(result.get("branch"))):
++        return "OWNER_RESULT"
++    return "CANNOT_CONFIRM"
++
++
+ def _cycle_result(identity: Mapping[str, str], now: datetime, result: Mapping[str, Any]) -> dict[str, Any]:
+     return {**compact_cycle_receipt(result), "schema_version": SCHEMA, "owner": OWNER,
+             "binding_sha256": identity["binding_sha256"], "target_trade_date": identity["target_trade_date"],
++            "dispatch_outcome": _dispatch_outcome(result),
+             "parent_trigger_receipt": _parent_trigger_receipt(identity, now=now, result=result), **FLAGS}
+ 
+ 
+@@ -259,15 +355,69 @@
+     return result
+ 
+ 
+-def _run_owner_branches(service: Any, binding: Mapping[str, Any], identity: Mapping[str, str]) -> dict[str, Any]:
++def _daily_catchup_attempt_count(service: Any, date: str) -> int:
++    """Count only durable SAME_DAY_CATCHUP dispatch attempts for this date."""
++    base = f"workspace_plan_dispatch/{date}"
++    try:
++        with service.store._io.directory(base) as fd:
++            names = sorted(os.listdir(fd))
++    except FileNotFoundError:
++        return 0
++    if len(names) > 2048:
++        raise ValueError("PLAN_OWNER_DISPATCH_RECEIPT_BOUND_EXCEEDED")
++    count = 0
++    files_seen = 0
++    for trigger_id in names:
++        if not re.fullmatch(r"[0-9a-f]{64}", trigger_id):
++            raise ValueError("PLAN_OWNER_DISPATCH_TRIGGER_DIRECTORY_INVALID")
++        rel = f"{base}/{trigger_id}"
++        try:
++            with service.store._io.directory(rel) as fd:
++                entries = sorted(os.listdir(fd))
++        except FileNotFoundError:
++            continue
++        files_seen += len(entries)
++        if files_seen > MAX_DISPATCH_RECEIPTS:
++            raise ValueError("PLAN_OWNER_DISPATCH_RECEIPT_BOUND_EXCEEDED")
++        for name in entries:
++            if not re.fullmatch(r"\d{4}\.json", name):
++                raise ValueError("PLAN_OWNER_DISPATCH_RECEIPT_NAME_INVALID")
++            row = service.store._read(service.store.root / rel / name)
++            identity = row.get("parent_trigger_identity") if isinstance(row, Mapping) else None
++            if (not isinstance(row, Mapping) or not isinstance(identity, Mapping)
++                    or row.get("schema_version") != DISPATCH_SCHEMA
++                    or row.get("sha256") != _seal_dispatch(row)["sha256"]
++                    or row.get("target_trade_date", identity.get("target_trade_date")) != date
++                    or row.get("sequence") != int(name[:4])
++                    or row.get("state") not in {"RUNNING", "COMPLETED"}
++                    or identity.get("trigger_id") != trigger_id
++                    or identity.get("target_trade_date") != date
++                    or any(row.get(key) is not flag for key, flag in FLAGS.items())):
++                raise ValueError("PLAN_OWNER_DISPATCH_RECEIPT_INVALID")
++            if identity.get("branch") == "SAME_DAY_CATCHUP":
++                count += 1
++    return count
++
++
++def _run_owner_branches(service: Any, binding: Mapping[str, Any], identity: Mapping[str, str], *,
++                        daily_mode: bool = False,
++                        us_mapping_result: Mapping[str, Any] | None = None,
++                        us_market_request_context: Mapping[str, Any] | None = None) -> dict[str, Any]:
+     date, branch = identity["target_trade_date"], identity["branch"]
+     # Recheck the actual API clock immediately before calling the plan owner.
+     # No unrelated mutable source preparation may consume this legal window.
+     execution_now = clock_now()
+-    if (_expected_target(binding, execution_now) != date
+-            or _expected_branch(binding, execution_now) != branch
+-            or (branch == "MORNING"
+-                and identity["scheduled_slot"] != execution_now.astimezone(HK).strftime("%Y%m%dT%H%M"))):
++    if daily_mode:
++        from ops.run_manager_announcement_cycle import daily_admitted_branch_is_live
++        admitted_live=daily_admitted_branch_is_live(identity["source_trade_date"],date,branch,
++            scheduled_slot=identity.get("scheduled_slot"),now=execution_now,
++            plan_config=binding.get("plan_material_refresh"),preopen_config=binding.get("preopen_plan"),
++            morning_plan_config=binding.get("morning_plan"),daily_config=binding.get("daily_automation"))
++    else:
++        expected_branch, expected_slot = _expected_branch(binding,execution_now), None
++        expected_target = _expected_target(binding,execution_now)
++        admitted_live=(expected_target == date and expected_branch == branch)
++    if not admitted_live:
+         result = {"status": "FAILED", "branch": branch,
+                   "failure_reasons": ["PLAN_OWNER_WINDOW_EXPIRED_BEFORE_EXECUTION"],
+                   "plan_result": {"status": "EXPIRED_NO_BACKFILL", "target_trade_date": date}}
+@@ -275,34 +425,289 @@
+         from ops.run_manager_announcement_cycle import run_scheduled_plan_target
+         result = run_scheduled_plan_target(service, date, identity["source_trade_date"],
+             now=execution_now, plan_config=binding.get("plan_material_refresh"),
+-            preopen_config=binding.get("preopen_plan"), morning_plan_config=binding.get("morning_plan"))
++            preopen_config=binding.get("preopen_plan"), morning_plan_config=binding.get("morning_plan"),
++            daily_config=binding.get("daily_automation") if daily_mode else None,
++            daily_branch=branch if daily_mode else None,
++            scheduled_slot=identity.get("scheduled_slot"),trigger_id=identity["trigger_id"],
++            us_market_request_context=us_market_request_context)
+     if result.get("branch") != branch:
+         raise ValueError("PLAN_OWNER_PARENT_TRIGGER_BRANCH_READBACK_MISMATCH")
+-    daily = (_us_mapping_dispatch_status(service, date) if branch in {"MORNING", "PREOPEN"}
++    daily = (dict(us_mapping_result) if us_mapping_result is not None else
++             _us_mapping_dispatch_status(service, date) if branch in {"MORNING", "PREOPEN"}
+              else {"status": "NOT_DUE_US_SESSION_NOT_CLOSED", "target_trade_date": date,
+                    "source_date": identity["source_trade_date"], "execution_attempted": False, **FLAGS})
+     result = {**result, "us_mapping_research": compact_cycle_receipt(daily)}
+-    if branch in {"MORNING", "PREOPEN"} and daily.get("status") not in {"COMPLETED", "VALID_EMPTY"}:
++    if (us_mapping_result is not None or branch in {"MORNING", "PREOPEN"}) and daily.get("status") not in {"COMPLETED", "VALID_EMPTY"}:
+         result["status"] = "FAILED" if result.get("status") == "FAILED" else "PARTIAL"
+     return result
+ 
+ 
+-def _execute_serialized_cycle(service: Any, binding: Mapping[str, Any], identity: Mapping[str, str]) -> dict[str, Any]:
++def _recover_interrupted_daily_owner(service: Any, identity: Mapping[str, str], *,
++                                     prior: Mapping[str, Any], now: datetime,
++                                     us_mapping_result: Mapping[str, Any] | None) -> dict[str, Any] | None:
++    """Recover only the exact daily owner product committed by this trigger.
++
++    The owner product and its immutable terminal attempt are the evidence. We
++    read the original latest product once, then the exact run journal through
++    the original workspace readback helpers. No source projection, directory
++    scan, owner call, or product write occurs during reconciliation.
++    """
++    branch = str(identity.get("branch"))
++    if (branch not in {"MORNING", "SAME_DAY_CATCHUP"}
++            or not isinstance(us_mapping_result, Mapping)
++            or prior.get("state") != "RUNNING"
++            or prior.get("parent_trigger_identity") != dict(identity)):
++        return None
++    date = str(identity.get("target_trade_date") or "")
++    expected_kind = "SCHEDULED_MORNING" if branch == "MORNING" else "MANUAL_REFRESH"
++    expected_timing = "ON_TIME" if branch == "MORNING" else "LATE_CATCHUP"
++    slot = identity.get("scheduled_slot")
++    try:
++        if not isinstance(slot, str) or not re.fullmatch(date + r"T\d{4}", slot):
++            return None
++        expected_scheduled = datetime.strptime(slot, "%Y%m%dT%H%M").replace(tzinfo=HK)
++        from .workspace import _read_plan, verified_plan_attempt
++        from .workspace_plan_autorun import owner_plan_readback
++        saved = _read_plan(service.store, date)
++        if not isinstance(saved, Mapping):
++            return None
++        execution_context = saved.get("execution_context")
++        workspace = saved.get("workspace")
++        if not isinstance(execution_context, Mapping) or not isinstance(workspace, Mapping):
++            return None
++        workspace_context = workspace.get("execution_context")
++        scheduled_for = _aware_timestamp(execution_context.get("scheduled_for"))
++        dispatch_started = _aware_timestamp(prior.get("started_at"))
++        owner_started = _aware_timestamp(execution_context.get("started_at"))
++        generated_at = _aware_timestamp(saved.get("generated_at"))
++        if (saved.get("target_trade_date") != date
++                or saved.get("owner") != OWNER
++                or saved.get("execution_kind") != expected_kind
++                or execution_context.get("trigger_kind") != "SCHEDULED"
++                or execution_context.get("timing") != expected_timing
++                or execution_context.get("natural_run_verified") is not False
++                or execution_context.get("trigger_id") != identity.get("trigger_id")
++                or scheduled_for is None
++                or scheduled_for.astimezone(HK) != expected_scheduled
++                or dispatch_started is None or owner_started is None or generated_at is None
++                or owner_started.astimezone(timezone.utc) < dispatch_started.astimezone(timezone.utc)
++                or generated_at.astimezone(timezone.utc) < dispatch_started.astimezone(timezone.utc)
++                or not isinstance(workspace_context, Mapping)
++                or dict(workspace_context) != dict(execution_context)
++                or saved.get("input_identity") != workspace.get("input_identity")):
++            return None
++        attempt = verified_plan_attempt(service.store, saved)
++        if not isinstance(attempt, Mapping):
++            return None
++        product = {
++            "status": "CURRENT", "consumed": True, "run_id": saved.get("run_id"),
++            "sha256": saved.get("sha256"), "generated_at": saved.get("generated_at"),
++            "execution_kind": expected_kind, "original_owner": saved.get("owner"),
++            "execution_context": dict(execution_context),
++        }
++        plan = owner_plan_readback({
++            "target_trade_date": date, "input_identity": saved.get("input_identity"),
++            "plan_product": product, "workspace_plan_attempt": dict(attempt),
++        }, date, expected_kind=expected_kind)
++        from ops.run_manager_announcement_cycle import valid_owner_plan_result
++        if (plan.get("target_trade_date") != date
++                or plan.get("execution_context", {}).get("trigger_id") != identity.get("trigger_id")
++                or not valid_owner_plan_result(plan, branch)):
++            return None
++        status = "PARTIAL" if plan.get("owner_attempt_state") == "PARTIAL" else "SUCCEEDED"
++        if us_mapping_result.get("status") not in {"COMPLETED", "VALID_EMPTY"}:
++            status = "PARTIAL"
++        return {
++            "status": status, "branch": branch, "target_trade_date": date,
++            "plan_result": plan,
++            "us_mapping_research": compact_cycle_receipt(us_mapping_result),
++            "failure_reasons": list(plan.get("failure_reasons") or []),
++            "reconciliation_status": "EXACT_OWNER_PRODUCT_AND_ATTEMPT_READBACK",
++            "reconciled_at": now.isoformat(),
++            "owner": OWNER, "policy_status": "PROPOSAL_ONLY",
++            "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
++        }
++    except (ImportError, OSError, ValueError, KeyError, TypeError, RuntimeError, TimeoutError):
++        # Any evidence ambiguity remains a blocked RUNNING receipt.
++        return None
++
++
++def _daily_trigger_digest(*parts: str) -> str:
++    return hashlib.sha256("\x1f".join(parts).encode("utf-8")).hexdigest()
++
++
++def _daily_us_failure(date: str, now: datetime, execution_context: Mapping[str, Any], code: str) -> dict[str, Any]:
++    from .us_mapping_research import DAILY_SCHEMA, _execution_metadata
++    finished = max(datetime.now(now.tzinfo), now)
++    context = _execution_metadata(dict(execution_context), target=date,
++        started_at=now, finished_at=finished,
++        research_cutoff_policy="TARGET_DATE_END_OF_DAY_RETROSPECTIVE"
++            if now.astimezone(HK).strftime("%Y%m%d") > date else "ACTUAL_OWNER_EXECUTION_CUTOFF")
++    return {
++        "schema_version": DAILY_SCHEMA, "status": "FAILED", "target_trade_date": date,
++        "run_id": None, "generated_at": None, "us_session_date": None,
++        "research_cutoff": None,
++        "coverage": {"reviewed_us_symbol_count": 4, "matched_us_symbol_count": None,
++            "matched_hk_relation_count": None, "configured_us_universe_count": None,
++            "available_us_universe_count": None, "full_market_coverage": False},
++        "matches": [], "execution_status": code, "execution_context": context,
++        "gaps": [code], **FLAGS,
++    }
++
++
++def _admit_bound_cycle(service: Any, target_date: str, binding_sha256: str, *,
++                       daily_mode: bool) -> tuple[dict[str, Any], dict[str, str], datetime]:
++    """Shared read-only admission, kept entirely before US/plan/store dispatch."""
++    try:
++        return _validate_bound_cycle(service, target_date, binding_sha256, daily_mode=daily_mode)
++    except (ValueError, OSError, KeyError, TypeError) as exc:
++        reason = "PLAN_OWNER_BINDING_UNAVAILABLE" if isinstance(exc, OSError) else str(exc)
++        raise PlanOwnerAdmissionError(reason) from exc
++
++
++def _validate_bound_cycle(service: Any, target_date: str, binding_sha256: str, *,
++                          daily_mode: bool) -> tuple[dict[str, Any], dict[str, str], datetime]:
++    binding_path = os.environ.get("V4_MANAGER_PLAN_OWNER_BINDING_PATH", "").strip()
++    if not binding_path:
++        raise ValueError("PLAN_OWNER_SERVER_BINDING_NOT_CONFIGURED")
++    raw = _raw_binding(binding_path)
++    actual_sha = hashlib.sha256(raw).hexdigest()
++    if not re.fullmatch(r"[0-9a-f]{64}", str(binding_sha256 or "")) or actual_sha != binding_sha256:
++        raise ValueError("PLAN_OWNER_BINDING_SHA_MISMATCH")
++    try:
++        value = json.loads(raw)
++    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
++        raise ValueError("PLAN_OWNER_BINDING_JSON_INVALID") from exc
++    from infrastructure.scheduling.manager_announcement_supervisor import (
++        daily_automation_config, validate_binding,
++    )
++    binding = validate_binding(value, expected_owner_app=APP_ROOT)
++    daily_config = daily_automation_config(binding.get("daily_automation"))
++    if not binding.get("enabled") or (daily_mode and not daily_config["enabled"]):
++        raise ValueError("PLAN_OWNER_DAILY_BINDING_DISABLED" if daily_mode else "PLAN_OWNER_BINDING_DISABLED")
++    state_root = Path(str(binding.get("manager_state_root") or "")).resolve()
++    master_root = Path(str(binding.get("security_master_root") or "")).resolve()
++    service_master = getattr(service, "_workspace_security_master_root", None)
++    if (Path(service.store.root).resolve() != state_root or service_master is None
++            or Path(service_master).resolve() != master_root):
++        raise ValueError("PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH")
++    date = date_token(target_date)
++    now = clock_now()
++    if now.tzinfo is None:
++        raise ValueError("PLAN_OWNER_CLOCK_MUST_BE_AWARE")
++    source_date = now.astimezone(HK).strftime("%Y%m%d")
++    if daily_mode:
++        from ops.run_manager_announcement_cycle import daily_cycle_branch, daily_cycle_target
++        branch, scheduled_slot = daily_cycle_branch(source_date, now=now,
++            plan_config=binding.get("plan_material_refresh"),preopen_config=binding.get("preopen_plan"),
++            morning_plan_config=binding.get("morning_plan"),daily_config=binding.get("daily_automation"))
++        expected_target = daily_cycle_target(source_date,now=now,
++            plan_config=binding.get("plan_material_refresh"),preopen_config=binding.get("preopen_plan"),
++            morning_plan_config=binding.get("morning_plan"),daily_config=binding.get("daily_automation"))
++    else:
++        branch, scheduled_slot = _expected_branch(binding, now), None
++        expected_target = _expected_target(binding, now)
++    if not branch or expected_target != date:
++        raise ValueError("PLAN_OWNER_TARGET_DATE_OR_WINDOW_MISMATCH")
++    slot = scheduled_slot if branch == "SAME_DAY_CATCHUP" else (
++        now.astimezone(HK).strftime("%Y%m%dT%H%M") if branch == "MORNING" else None)
++    identity = _parent_trigger_identity(source_date,date,branch,actual_sha,scheduled_slot=slot)
++    return binding, identity, now
++
++
++def execute_bound_daily_cycle(service: Any, target_date: str, binding_sha256: str) -> dict[str, Any]:
++    """Run the US owner first, then one independent original plan RPC budget."""
++    binding, identity, now = _admit_bound_cycle(service,target_date,binding_sha256,daily_mode=True)
++    from infrastructure.scheduling.manager_announcement_supervisor import daily_automation_config
++    daily_config = daily_automation_config(binding.get("daily_automation"))
++    date, branch, actual_sha = identity["target_trade_date"], identity["branch"], identity["binding_sha256"]
++    slot = scheduled_slot = identity.get("scheduled_slot")
++
++    us_result = None
++    request_context = None
++    if branch in {"MORNING", "SAME_DAY_CATCHUP"}:
++        owner_started = clock_now()
++        if owner_started.tzinfo is None or owner_started.astimezone(HK).strftime("%Y%m%d") != date:
++            raise ValueError("US_MAPPING_DAILY_OWNER_CLOCK_INVALID")
++        if branch == "MORNING":
++            from v4.manager_research.workspace_plan_autorun import morning_window
++            scheduled_for = datetime.strptime(str(slot), "%Y%m%dT%H%M").replace(tzinfo=HK)
++            phase_id = "MORNING_US"
++            timing = "ON_TIME"
++        else:
++            scheduled_for = datetime.strptime(str(scheduled_slot), "%Y%m%dT%H%M").replace(tzinfo=HK)
++            phase_id = "CATCHUP_US:" + str(scheduled_slot)
++            timing = "LATE_CATCHUP"
++        us_trigger = _daily_trigger_digest(date,actual_sha,phase_id)
++        us_context = {"trigger_kind":"SCHEDULED","timing":timing,
++            "scheduled_for":scheduled_for.isoformat(),"trigger_id":us_trigger,
++            "natural_run_verified":False}
++        if callable(getattr(service,"refresh_us_mapping_research",None)):
++            try:
++                us_result = service.refresh_us_mapping_research(date,now=owner_started,
++                    timeout_seconds=float(daily_config["us_mapping_budget_seconds"]),
++                    execution_context=us_context)
++            except (OSError,TimeoutError,ValueError,KeyError,TypeError,RuntimeError) as exc:
++                code = "US_MAPPING_OWNER_CALL_FAILED:" + type(exc).__name__
++                us_result = _daily_us_failure(date,owner_started,us_context,code)
++        else:
++            us_result = _daily_us_failure(date,owner_started,us_context,"US_MAPPING_DAILY_OWNER_UNAVAILABLE")
++        if (us_result.get("status") == "FAILED"
++                and us_result.get("execution_status") in {"US_MAPPING_OWNER_READ_TIMEOUT","US_MAPPING_OWNER_READ_BUSY"}):
++            request_context = {"target_trade_date":date,
++                "execution_status":us_result["execution_status"],"bypass_reader":True}
++    return service._workspace_reads.run(
++        (date,"SCHEDULED_DAILY_OWNER",identity["trigger_id"]),
++        lambda: _execute_serialized_cycle(service,binding,identity,daily_mode=True,
++            us_mapping_result=us_result,us_market_request_context=request_context),seconds=30.0)
++
++
++def _execute_serialized_cycle(service: Any, binding: Mapping[str, Any], identity: Mapping[str, str], *,
++                              daily_mode: bool = False,
++                              us_mapping_result: Mapping[str, Any] | None = None,
++                              us_market_request_context: Mapping[str, Any] | None = None) -> dict[str, Any]:
+     date = identity["target_trade_date"]
+     # The existing store supplies the process lock and no-follow atomic I/O.
+     # These are dispatch receipts only; all research products retain their owner.
+     with service.store._transaction(date, "workspace-plan-bound-dispatch"):
+         now = clock_now()
+-        if (_expected_target(binding, now) != date or _expected_branch(binding, now) != identity["branch"]
+-                or (identity["branch"] == "MORNING"
+-                    and identity["scheduled_slot"] != now.astimezone(HK).strftime("%Y%m%dT%H%M"))):
++        if daily_mode:
++            from ops.run_manager_announcement_cycle import daily_admitted_branch_is_live
++            admitted_live=daily_admitted_branch_is_live(identity["source_trade_date"],date,
++                identity["branch"],scheduled_slot=identity.get("scheduled_slot"),now=now,
++                plan_config=binding.get("plan_material_refresh"),preopen_config=binding.get("preopen_plan"),
++                morning_plan_config=binding.get("morning_plan"),daily_config=binding.get("daily_automation"))
++        else:
++            expected_branch, expected_slot = _expected_branch(binding,now), None
++            expected_target = _expected_target(binding,now)
++            admitted_live=(expected_target == date and expected_branch == identity["branch"])
++        if not admitted_live:
+             return _blocked_dispatch(identity, now, "PLAN_OWNER_WINDOW_EXPIRED_DURING_ADMISSION")
+         history = _dispatch_history(service, identity)
+         prior = history[-1] if history else None
+         if prior is not None and prior["state"] == "RUNNING":
+-            # A terminated API may have committed the owner product before its
+-            # response. Do not issue an unbounded duplicate after that ambiguity.
+-            return _blocked_dispatch(identity, now, "PLAN_OWNER_RECONCILIATION_REQUIRED", prior)
++            recovered = (_recover_interrupted_daily_owner(service, identity, prior=prior,
++                now=now, us_mapping_result=us_mapping_result) if daily_mode else None)
++            if recovered is None:
++                return _blocked_dispatch(identity, now, "PLAN_OWNER_RECONCILIATION_REQUIRED", prior)
++            response = _cycle_result(identity, now, recovered)
++            completed = _seal_dispatch({**prior, "state": "COMPLETED",
++                "finished_at": now.isoformat(), "response": response})
++            path = (service.store.root / "workspace_plan_dispatch" / date / identity["trigger_id"]
++                    / f"{prior['sequence']:04d}.json")
++            service.store._write_atomic(path, completed)
++            if service.store._read(path) != completed:
++                raise ValueError("PLAN_OWNER_DISPATCH_RECONCILIATION_READBACK_FAILED")
++            return {**response, "dispatch_receipt": _receipt_reference(identity, completed)}
++        if (prior is not None and prior["state"] == "COMPLETED"
++                and prior["response"].get("status") in {"SUCCEEDED", "PARTIAL"}):
++            return {**dict(prior["response"]),
++                "dispatch_receipt": _receipt_reference(identity, prior)}
++        if daily_mode and identity["branch"] == "SAME_DAY_CATCHUP":
++            from infrastructure.scheduling.manager_announcement_supervisor import daily_automation_config
++            if _daily_catchup_attempt_count(service, date) >= daily_automation_config(
++                    binding.get("daily_automation"))["max_attempts_per_target_date"]:
++                return _blocked_dispatch(identity, now, "PLAN_OWNER_CATCHUP_RETRY_LIMIT_REACHED", prior)
+         failures = [row for row in history if row["response"].get("status") == "FAILED"]
+         if len(failures) >= MAX_FAILED_DISPATCHES or len(history) >= MAX_DISPATCH_RECEIPTS:
+             return _blocked_dispatch(identity, now, "PLAN_OWNER_RETRY_LIMIT_REACHED", prior)
+@@ -317,16 +722,19 @@
+                 / f"{sequence:04d}.json")
+         started = _seal_dispatch({"schema_version": DISPATCH_SCHEMA, "state": "RUNNING",
+             "parent_trigger_identity": dict(identity), "sequence": sequence,
++            "target_trade_date": date,
+             "started_at": now.isoformat(), **FLAGS})
+         service.store._write_atomic(path, started)
+         if service.store._read(path) != started:
+             raise ValueError("PLAN_OWNER_DISPATCH_START_READBACK_FAILED")
+         try:
+-            result = _run_owner_branches(service, binding, identity)
++            result = _run_owner_branches(service, binding, identity,daily_mode=daily_mode,
++                us_mapping_result=us_mapping_result,
++                us_market_request_context=us_market_request_context)
+         except Exception as exc:
+-            reason = str(exc)
+-            if not re.fullmatch(r"[A-Z][A-Z0-9_]{0,95}", reason):
+-                reason = "PLAN_OWNER_FAILED:" + type(exc).__name__
++            reason = "PLAN_OWNER_EXECUTION_TIMEOUT" if isinstance(exc, TimeoutError) else str(exc)
++            if reason not in OWNER_FAILURE_CODES:
++                reason = "PLAN_OWNER_EXECUTION_FAILED"
+             result = {"status": "FAILED", "branch": identity["branch"],
+                       "failure_reasons": [reason], "plan_result": {"status": "FAILED",
+                       "target_trade_date": date, "failure_reasons": [reason]}}
+@@ -340,40 +748,35 @@
+ 
+ 
+ def execute_bound_plan_cycle(service: Any, target_date: str, binding_sha256: str) -> dict[str, Any]:
+-    binding_path = os.environ.get("V4_MANAGER_PLAN_OWNER_BINDING_PATH", "").strip()
+-    if not binding_path:
+-        raise ValueError("PLAN_OWNER_SERVER_BINDING_NOT_CONFIGURED")
+-    raw = _raw_binding(binding_path)
+-    actual_sha = hashlib.sha256(raw).hexdigest()
+-    if not re.fullmatch(r"[0-9a-f]{64}", str(binding_sha256 or "")) or actual_sha != binding_sha256:
+-        raise ValueError("PLAN_OWNER_BINDING_SHA_MISMATCH")
+-    try:
+-        binding_value = json.loads(raw)
+-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+-        raise ValueError("PLAN_OWNER_BINDING_JSON_INVALID") from exc
+-    from infrastructure.scheduling.manager_announcement_supervisor import validate_binding
+-    binding = validate_binding(binding_value, expected_app=APP_ROOT)
+-    if not binding.get("enabled"):
+-        raise ValueError("PLAN_OWNER_BINDING_DISABLED")
+-    state_root = Path(str(binding.get("manager_state_root") or "")).resolve()
+-    master_root = Path(str(binding.get("security_master_root") or "")).resolve()
+-    service_master = getattr(service, "_workspace_security_master_root", None)
+-    if Path(service.store.root).resolve() != state_root or service_master is None or Path(service_master).resolve() != master_root:
+-        raise ValueError("PLAN_OWNER_STATE_OR_MASTER_ROOT_MISMATCH")
+-    date = date_token(target_date)
+-    now = clock_now()
+-    if now.tzinfo is None or _expected_target(binding, now) != date:
+-        raise ValueError("PLAN_OWNER_TARGET_DATE_OR_WINDOW_MISMATCH")
+-    source_date = now.astimezone(HK).strftime("%Y%m%d")
+-    branch = _expected_branch(binding, now)
+-    parent_identity = _parent_trigger_identity(source_date, date, branch, actual_sha,
+-        scheduled_slot=now.astimezone(HK).strftime("%Y%m%dT%H%M") if branch == "MORNING" else None)
++    binding, parent_identity, _now = _admit_bound_cycle(service,target_date,binding_sha256,daily_mode=False)
++    date = parent_identity["target_trade_date"]
+     return service._workspace_reads.run(
+         (date, "SCHEDULED_PLAN_OWNER", parent_identity["trigger_id"]),
+         lambda: _execute_serialized_cycle(service, binding, parent_identity), seconds=30.0)
+ 
+ 
+ def request_bound_plan_cycle(binding_path: str | Path, target_date: str) -> dict[str, Any]:
++    return _request_bound_cycle(binding_path,target_date,daily_mode=False)
++
++
++def request_bound_daily_cycle(binding_path: str | Path, target_date: str) -> dict[str, Any]:
++    return _request_bound_cycle(binding_path,target_date,daily_mode=True)
++
++
++def _verified_admission_rejection(detail: Any, *, date: str, sha: str) -> bool:
++    return (isinstance(detail, dict)
++        and set(detail) == {"schema_version", "status", "owner", "reason", "failure_stage",
++                           "owner_execution_status", "target_trade_date", "binding_sha256", *FLAGS}
++        and detail.get("schema_version") == REJECTION_SCHEMA and detail.get("status") == "GATE_REJECTED"
++        and detail.get("owner") == OWNER and isinstance(detail.get("reason"), str)
++        and detail["reason"] in PLAN_OWNER_GATE_CODES
++        and detail.get("failure_stage") == "ADMISSION"
++        and detail.get("owner_execution_status") == "OWNER_NOT_CALLED"
++        and detail.get("target_trade_date") == date and detail.get("binding_sha256") == sha
++        and all(detail.get(key) is flag for key, flag in FLAGS.items()))
++
++
++def _request_bound_cycle(binding_path: str | Path, target_date: str, *, daily_mode: bool) -> dict[str, Any]:
+     """One fixed loopback request with no proxy, redirect, retry, or fallback."""
+     raw_binding = _raw_binding(binding_path)
+     sha = hashlib.sha256(raw_binding).hexdigest()
+@@ -383,14 +786,35 @@
+         raise ValueError("PLAN_OWNER_CLOCK_MUST_BE_AWARE")
+     source_date = now.astimezone(HK).strftime("%Y%m%d")
+     binding = json.loads(raw_binding)
+-    if not isinstance(binding, Mapping) or _expected_target(binding, now) != date:
++    if not isinstance(binding, Mapping):
++        raise ValueError("PLAN_OWNER_BINDING_JSON_INVALID")
++    if daily_mode:
++        from infrastructure.scheduling.manager_announcement_supervisor import daily_automation_config
++        from ops.run_manager_announcement_cycle import daily_cycle_branch,daily_cycle_target
++        if not daily_automation_config(binding.get("daily_automation"))["enabled"]:
++            raise ValueError("PLAN_OWNER_DAILY_BINDING_DISABLED")
++        branch,scheduled_slot=daily_cycle_branch(source_date,now=now,
++            plan_config=binding.get("plan_material_refresh"),preopen_config=binding.get("preopen_plan"),
++            morning_plan_config=binding.get("morning_plan"),daily_config=binding.get("daily_automation"))
++        expected_target=daily_cycle_target(source_date,now=now,
++            plan_config=binding.get("plan_material_refresh"),preopen_config=binding.get("preopen_plan"),
++            morning_plan_config=binding.get("morning_plan"),daily_config=binding.get("daily_automation"))
++    else:
++        expected_target,branch=_expected_target(binding,now),_expected_branch(binding,now)
++        scheduled_slot=None
++    if not branch or expected_target != date:
+         raise ValueError("PLAN_OWNER_TARGET_DATE_OR_WINDOW_MISMATCH")
+-    branch = _expected_branch(binding, now)
+     parent_identity = _parent_trigger_identity(source_date, date, branch, sha,
+-        scheduled_slot=now.astimezone(HK).strftime("%Y%m%dT%H%M") if branch == "MORNING" else None)
+-    connection = http.client.HTTPConnection("127.0.0.1", 8873, timeout=35.0)
++        scheduled_slot=(scheduled_slot if branch=="SAME_DAY_CATCHUP" else
++            now.astimezone(HK).strftime("%Y%m%dT%H%M") if branch=="MORNING" else None))
++    # The daily server path may spend its fixed 5s US preparation budget and
++    # then the existing 30s plan-owner budget. Preserve the legacy transport
++    # contract while leaving bounded readback headroom below the parent cap.
++    connection = http.client.HTTPConnection("127.0.0.1", 8873,
++        timeout=40.0 if daily_mode else 35.0)
+     try:
+-        path = "/api/v4/manager/research/workspace/scheduled-cycle?" + urlencode(
++        endpoint="/api/v4/manager/research/workspace/daily-cycle" if daily_mode else "/api/v4/manager/research/workspace/scheduled-cycle"
++        path = endpoint + "?" + urlencode(
+             {"date": date, "binding_sha256": sha})
+         try:
+             connection.request("POST", path, body=b"", headers={"Content-Length": "0", "Accept": "application/json"})
+@@ -412,6 +836,9 @@
+                 except (UnicodeDecodeError, json.JSONDecodeError):
+                     error_body = None
+                 detail = error_body.get("detail") if isinstance(error_body, dict) else None
++                if response.status == 409 and _verified_admission_rejection(detail,date=date,sha=sha):
++                    return _rpc_failure_receipt(parent_identity,now=now,code=detail["reason"],
++                        http_status=response.status,admission_rejected=True)
+                 if isinstance(detail, str) and detail in KNOWN_RPC_HTTP_ERROR_DETAILS:
+                     code = detail
+             elif response.status == 200:
+@@ -454,6 +881,7 @@
+                 or value.get("owner") != OWNER or value.get("target_trade_date") != date
+                 or value.get("binding_sha256") != sha
+                 or value.get("branch") != branch
++                or ("dispatch_outcome" in value and value["dispatch_outcome"] != _dispatch_outcome(value))
+                 or any(value.get(key) is not flag for key, flag in FLAGS.items())
+                 or value.get("status") not in {"SUCCEEDED", "PARTIAL", "FAILED"}
+                 or not isinstance(server_trigger, dict)
+@@ -482,4 +910,5 @@
+         connection.close()
+ 
+ 
+-__all__ = ["APP_ROOT", "OWNER", "SCHEMA", "compact_cycle_receipt", "execute_bound_plan_cycle", "request_bound_plan_cycle"]
++__all__ = ["APP_ROOT", "OWNER", "SCHEMA", "compact_cycle_receipt", "execute_bound_plan_cycle",
++           "execute_bound_daily_cycle", "request_bound_plan_cycle", "request_bound_daily_cycle"]
+--- a/v4/manager_research/service.py
++++ b/v4/manager_research/service.py
+@@ -5,6 +5,7 @@
+ from concurrent.futures import Future, ThreadPoolExecutor, TimeoutError as FutureTimeoutError, as_completed
+ from datetime import datetime, timezone
+ from decimal import Decimal, InvalidOperation
++import json
+ import re
+ import os
+ from uuid import uuid4
+@@ -392,7 +393,8 @@
+ 
+     def get_workspace(self, target_trade_date: str, *, view: str = "dynamic",
+                       now: datetime | None = None, cancel_event: threading.Event | None = None,
+-                      selection_date: str | None = None, announcement_date: str | None = None) -> dict[str, Any]:
++                      selection_date: str | None = None, announcement_date: str | None = None,
++                      us_market_request_context: Mapping[str, Any] | None = None) -> dict[str, Any]:
+         # Legacy internal callers retain dynamic semantics. The browser GET
+         # explicitly supplies auto (historical for past HK dates).
+         from .workspace import get_workspace
+@@ -404,15 +406,25 @@
+             options['selection_date'] = strict_trade_date(selection_date)
+         if announcement_date is not None:
+             options['announcement_date'] = strict_trade_date(announcement_date.replace('-', ''))
++        if us_market_request_context is not None:
++            options['us_market_request_context'] = dict(us_market_request_context)
+         key = (target_trade_date, view, now.isoformat() if now is not None else "SERVER_CLOCK",
+-               options.get('selection_date'), options.get('announcement_date'))
++               options.get('selection_date'), options.get('announcement_date'),
++               json.dumps(options.get('us_market_request_context'), sort_keys=True))
+         return self._workspace_reads.run(key,
+             lambda: get_workspace(self, target_trade_date, view=view, now=now, **options), cancelled=cancel_event)
+ 
+-    def refresh_us_mapping_research(self, target_trade_date: str, *, now: datetime) -> dict[str, Any]:
+-        """Persist a daily US-to-HK projection from the already injected owners."""
++    def refresh_us_mapping_research(self, target_trade_date: str, *, now: datetime,
++                                    timeout_seconds: float | None = None,
++                                    execution_context: Mapping[str, Any] | None = None) -> dict[str, Any]:
++        """Persist a bounded daily US-to-HK projection from the injected owner.
++
++        The builder runs in a single non-queueing read lane; only this caller
++        can publish its accepted result. A timed-out reader can never write.
++        """
+         from .us_mapping_research import persist_daily_run
+-        return persist_daily_run(self, target_trade_date, now=now)
++        return persist_daily_run(self, target_trade_date, now=now,
++            timeout_seconds=timeout_seconds, execution_context=execution_context)
+ 
+     def refresh_announcements(self, target_trade_date: str, *, resume: bool = False,
+                               schedule: Mapping[str, Any] | None = None,
+@@ -455,9 +467,15 @@
+         return _read_plan(self.store, strict_trade_date(target_trade_date))
+ 
+     def refresh_workspace_plan(self, target_trade_date: str, *, execution_kind: str = 'MANUAL_REFRESH',
+-                               now: datetime | None = None, deadline: datetime | None = None) -> dict[str, Any]:
++                               now: datetime | None = None, deadline: datetime | None = None,
++                               execution_context: Mapping[str, Any] | None = None,
++                               us_market_request_context: Mapping[str, Any] | None = None,
++                               workspace_date_bindings: Mapping[str, Any] | None = None) -> dict[str, Any]:
+         from .workspace import refresh_workspace_plan
+-        return refresh_workspace_plan(self, target_trade_date, execution_kind=execution_kind, now=now, deadline=deadline)
++        return refresh_workspace_plan(self, target_trade_date, execution_kind=execution_kind, now=now,
++                                      deadline=deadline, execution_context=execution_context,
++                                      us_market_request_context=us_market_request_context,
++                                      workspace_date_bindings=workspace_date_bindings)
+ 
+     def _read_input(self, target_trade_date: str) -> dict[str, Any]:
+         target_trade_date = strict_trade_date(target_trade_date)
+--- a/v4/manager_research/us_mapping_research.py
++++ b/v4/manager_research/us_mapping_research.py
+@@ -8,15 +8,21 @@
+ from __future__ import annotations
+ 
+ from copy import deepcopy
++from contextlib import nullcontext
+ from datetime import datetime, timezone
+ import hashlib
+ import json
++import math
+ from pathlib import Path
+ import re
++import threading
++import time
++from types import SimpleNamespace
+ from typing import Any, Mapping
+ from uuid import uuid4
+ 
+-from .contracts import sha256_json, strict_trade_date
++from .contracts import canonical_json, sha256_json, strict_trade_date
++from .safety import assert_manager_safe_tree
+ from .workspace_projection import FLAGS, HK, digest, timestamp
+ from .workspace_plan import plan_context
+ 
+@@ -27,10 +33,613 @@
+ _SHA = re.compile(r"^[0-9a-f]{64}$")
+ _TARGET_SEED = "20260930"
+ _DAILY_RELATION_TYPES = {"DIRECT_NAMED_COMPONENT_SUPPLY", "PRODUCT_PEER", "OPTICAL_TRANSPORT_PEER"}
++MAX_PREPARATION_SECONDS = 5.0
++DISPATCH_SCHEMA = "v4.manager_research.us_mapping_dispatch_attempt.v1"
++_OWNER = "ManagerResearchJobService.refresh_us_mapping_research"
++MAX_OWNER_SCAN_RUNS = 256
++MAX_OWNER_SCAN_BYTES = 32 * 1024 * 1024
++MAX_OWNER_RUN_BYTES = 1024 * 1024
++
++
++class _ReadBudget:
++    """One monotonic wall-clock and byte/file budget for owner-side recovery scans."""
++
++    def __init__(self, deadline: float, *, max_runs: int = MAX_OWNER_SCAN_RUNS,
++                 max_bytes: int = MAX_OWNER_SCAN_BYTES):
++        self.deadline = deadline
++        self.max_runs = max_runs
++        self.max_bytes = max_bytes
++        self.runs = 0
++        self.bytes_read = 0
++
++    def check(self) -> None:
++        if time.monotonic() >= self.deadline:
++            raise TimeoutError("US_MAPPING_OWNER_BUDGET_EXHAUSTED")
++
++    def read_json(self, store: Any, path: Path, *, run_artifact: bool = False) -> dict[str, Any] | None:
++        self.check()
++        if run_artifact:
++            self.runs += 1
++            if self.runs > self.max_runs:
++                raise TimeoutError("US_MAPPING_OWNER_SCAN_RUN_BOUND_EXCEEDED")
++        relative = str(path.relative_to(store.root))
++        try:
++            raw = store._io.read_bytes(relative, max_bytes=MAX_OWNER_RUN_BYTES)
++        except FileNotFoundError:
++            self.check()
++            return None
++        self.check()
++        self.bytes_read += len(raw)
++        if self.bytes_read > self.max_bytes:
++            raise TimeoutError("US_MAPPING_OWNER_SCAN_BYTE_BOUND_EXCEEDED")
++        try:
++            value = json.loads(raw.decode("utf-8"))
++            if not isinstance(value, dict):
++                raise ValueError("not an object")
++            assert_manager_safe_tree(value)
++            canonical_json(value)
++            return value
++        except (UnicodeError, ValueError, TypeError) as exc:
++            raise ValueError("US_MAPPING_OWNER_SCAN_OBJECT_INVALID") from exc
++
++
++class _BuildJob:
++    def __init__(self, service: Any, date: str, now: datetime):
++        self.done = threading.Event()
++        self.value: dict[str, Any] | None = None
++        self.error: BaseException | None = None
++        self.service = SimpleNamespace(
++            _workspace_us_market_reader=getattr(service, "_workspace_us_market_reader", None),
++        )
++        self.date = date
++        self.now = now
++
++
++_BUILD_LOCK = threading.Lock()
++_ACTIVE_BUILD: _BuildJob | None = None
++_ACTIVE_WORKSPACE_READERS: set[int] = set()
++
++
++def workspace_reader_busy(reader: Any) -> bool:
++    """Return whether this exact injected reader is owned by a live bounded read."""
++    if reader is None:
++        return False
++    with _BUILD_LOCK:
++        active = _ACTIVE_BUILD
++        build_busy = bool(active is not None and not active.done.is_set()
++            and getattr(active.service, '_workspace_us_market_reader', None) is reader)
++        return build_busy or id(reader) in _ACTIVE_WORKSPACE_READERS
++
++
++def try_enter_workspace_reader(reader: Any) -> bool:
++    """Claim a direct workspace read so a new bounded owner cannot race it."""
++    if reader is None:
++        return True
++    with _BUILD_LOCK:
++        active = _ACTIVE_BUILD
++        if (active is not None and not active.done.is_set()
++                and getattr(active.service, '_workspace_us_market_reader', None) is reader):
++            return False
++        key = id(reader)
++        if key in _ACTIVE_WORKSPACE_READERS:
++            return False
++        _ACTIVE_WORKSPACE_READERS.add(key)
++        return True
++
++
++def leave_workspace_reader(reader: Any) -> None:
++    if reader is None:
++        return
++    with _BUILD_LOCK:
++        _ACTIVE_WORKSPACE_READERS.discard(id(reader))
++
++
++def _bounded_build(service: Any, date: str, now: datetime, timeout_seconds: float) -> tuple[dict[str, Any] | None, str | None]:
++    """Run only the pure source projection in one process-wide, non-queueing lane."""
++    global _ACTIVE_BUILD
++    with _BUILD_LOCK:
++        reader = getattr(service, "_workspace_us_market_reader", None)
++        if reader is not None and id(reader) in _ACTIVE_WORKSPACE_READERS:
++            return None, "US_MAPPING_OWNER_READ_BUSY"
++        if _ACTIVE_BUILD is not None and not _ACTIVE_BUILD.done.is_set():
++            return None, "US_MAPPING_OWNER_READ_BUSY"
++        job = _BuildJob(service, date, now)
++        _ACTIVE_BUILD = job
++
++        def compute() -> None:
++            try:
++                job.value = build_daily_run(job.service, job.date, now=job.now)
++            except BaseException as exc:  # always release the single lane, including unexpected reader exits
++                job.error = exc
++            finally:
++                job.done.set()
++
++        threading.Thread(target=compute, name="manager-us-daily-build", daemon=True).start()
++    if not job.done.wait(timeout_seconds):
++        return None, "US_MAPPING_OWNER_READ_TIMEOUT"
++    if job.error is not None:
++        return None, "US_MAPPING_OWNER_BUILD_FAILED"
++    return job.value, None
+ 
+ 
+ def _now_text(now: datetime) -> str:
+     return now.astimezone(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
++
++
++def _aware_text(value: Any) -> str | None:
++    if not isinstance(value, str):
++        return None
++    try:
++        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
++    except ValueError:
++        return None
++    if parsed.tzinfo is None or parsed.utcoffset() is None:
++        return None
++    return parsed.isoformat()
++
++
++def _execution_metadata(value: Mapping[str, Any] | None, *, target: str,
++                        started_at: datetime, finished_at: datetime,
++                        research_cutoff_policy: str) -> dict[str, Any]:
++    supplied = dict(value) if isinstance(value, Mapping) else {}
++    trigger_kind = supplied.get("trigger_kind", "UNKNOWN")
++    timing = supplied.get("timing", "UNCLASSIFIED")
++    if trigger_kind not in {"SCHEDULED", "MANUAL", "UNKNOWN"}:
++        raise ValueError("US_MAPPING_EXECUTION_TRIGGER_KIND_INVALID")
++    if timing not in {"ON_TIME", "LATE_CATCHUP", "RETROSPECTIVE", "UNCLASSIFIED"}:
++        raise ValueError("US_MAPPING_EXECUTION_TIMING_INVALID")
++    if supplied.get("natural_run_verified", False) is not False:
++        raise ValueError("US_MAPPING_NATURAL_RUN_CANNOT_BE_INFERRED")
++    scheduled_for = supplied.get("scheduled_for")
++    if scheduled_for is not None and _aware_text(scheduled_for) is None:
++        raise ValueError("US_MAPPING_SCHEDULED_FOR_MUST_BE_AWARE")
++    trigger_id = supplied.get("trigger_id")
++    if trigger_id is not None and not re.fullmatch(r"[0-9a-f]{64}", str(trigger_id)):
++        raise ValueError("US_MAPPING_TRIGGER_ID_INVALID")
++    result = {
++        "trigger_kind": trigger_kind,
++        "timing": timing,
++        "scheduled_for": _aware_text(scheduled_for) if scheduled_for is not None else None,
++        "started_at": started_at.isoformat(timespec="microseconds"),
++        "finished_at": finished_at.isoformat(timespec="microseconds"),
++        "natural_run_verified": False,
++        "research_cutoff_policy": research_cutoff_policy,
++        "owner": _OWNER,
++    }
++    if trigger_id is not None:
++        result["trigger_id"] = trigger_id
++    return result
++
++
++def _target_bound_cutoff(target: str, actual_now: datetime) -> tuple[datetime, str, str]:
++    """Past-date recovery reads only through the target's end-of-day boundary."""
++    if actual_now.tzinfo is None or actual_now.utcoffset() is None:
++        raise ValueError("US_MAPPING_CLOCK_MUST_BE_AWARE")
++    target_day = datetime.strptime(target, "%Y%m%d").date()
++    local_now = actual_now.astimezone(HK)
++    if target_day > local_now.date():
++        raise ValueError("US_MAPPING_FUTURE_TARGET_NOT_ELIGIBLE")
++    if target_day < local_now.date():
++        cutoff = datetime.combine(target_day, datetime.max.time(), HK)
++        return cutoff, "TARGET_DATE_END_OF_DAY_RETROSPECTIVE", "RETROSPECTIVE"
++    return actual_now.astimezone(HK), "ACTUAL_OWNER_EXECUTION_CUTOFF", "UNCLASSIFIED"
++
++
++def _failure_result(date: str, code: str, *, now: datetime,
++                    execution_context: Mapping[str, Any] | None = None,
++                    research_cutoff: datetime | None = None,
++                    cutoff_policy: str = "ACTUAL_OWNER_EXECUTION_CUTOFF") -> dict[str, Any]:
++    finished = datetime.now(now.tzinfo)
++    context = dict(execution_context or {})
++    if context.get("timing") == "UNCLASSIFIED" and context.get("trigger_kind") == "SCHEDULED":
++        context["timing"] = "LATE_CATCHUP"
++    return {
++        "schema_version": DAILY_SCHEMA,
++        "status": "FAILED",
++        "target_trade_date": date,
++        "run_id": None,
++        "generated_at": None,
++        "us_session_date": None,
++        "research_cutoff": research_cutoff.isoformat() if research_cutoff else None,
++        "coverage": {"reviewed_us_symbol_count": 4, "matched_us_symbol_count": None,
++                      "matched_hk_relation_count": None, "configured_us_universe_count": None,
++                      "available_us_universe_count": None, "full_market_coverage": False},
++        "matches": [],
++        "execution_status": code,
++        "execution_context": _execution_metadata(
++            context, target=date, started_at=now, finished_at=finished,
++            research_cutoff_policy=cutoff_policy),
++        "gaps": [code],
++        **FLAGS,
++    }
++
++
++def _seal_dispatch(value: Mapping[str, Any]) -> dict[str, Any]:
++    body = {key: item for key, item in value.items() if key != "sha256"}
++    return {**body, "sha256": sha256_json(body)}
++
++
++def _dispatch_path(store: Any, date: str, trigger_id: str, suffix: str = "") -> Path:
++    if not re.fullmatch(r"[0-9a-f]{64}", trigger_id):
++        raise ValueError("US_MAPPING_TRIGGER_ID_INVALID")
++    return store.root / "us_mapping_dispatch" / date / f"{trigger_id}{suffix}.json"
++
++
++def _read_dispatch(store: Any, date: str, trigger_id: str, *,
++                   read_budget: _ReadBudget | None = None) -> dict[str, Any] | None:
++    path = _dispatch_path(store, date, trigger_id)
++    row = read_budget.read_json(store, path) if read_budget else store._read(path)
++    if row is None:
++        return None
++    attempt = row.get("attempt")
++    attempt_context = attempt.get("execution_context") if isinstance(attempt, Mapping) else None
++    attempt_start = _aware_text(attempt.get("started_at")) if isinstance(attempt, Mapping) else None
++    attempt_finish = _aware_text(attempt.get("finished_at")) if isinstance(attempt, Mapping) else None
++    if (row.get("schema_version") != DISPATCH_SCHEMA or row.get("target_trade_date") != date
++            or row.get("trigger_id") != trigger_id or row.get("state") != "COMPLETED"
++            or row.get("sha256") != _seal_dispatch(row)["sha256"]
++            or not isinstance(attempt, Mapping) or attempt.get("trigger_id") != trigger_id
++            or attempt_start is None or attempt_finish is None
++            or datetime.fromisoformat(attempt_finish) < datetime.fromisoformat(attempt_start)
++            or not isinstance(attempt_context, Mapping)
++            or attempt_context.get("trigger_id") != trigger_id
++            or attempt_context.get("started_at") is None or attempt_context.get("finished_at") is None
++            or any(row.get(key) is not flag for key, flag in FLAGS.items())):
++        raise ValueError("US_MAPPING_DISPATCH_RECEIPT_INVALID")
++    return row
++
++
++def _read_publication_intent(store: Any, date: str, trigger_id: str, *,
++                             read_budget: _ReadBudget | None = None) -> dict[str, Any] | None:
++    path = _dispatch_path(store, date, trigger_id, '.publishing')
++    row = read_budget.read_json(store, path) if read_budget else store._read(path)
++    if row is None:
++        return None
++    if (row.get('schema_version') != 'v4.manager_research.us_mapping_publication_intent.v1'
++            or row.get('state') != 'PUBLISHING' or row.get('target_trade_date') != date
++            or row.get('trigger_id') != trigger_id
++            or not re.fullmatch(r'[0-9a-f]{32}', str(row.get('run_id') or ''))
++            or not _SHA.fullmatch(str(row.get('artifact_sha256') or ''))
++            or row.get('sha256') != _seal_dispatch(row)['sha256']
++            or any(row.get(key) is not flag for key, flag in FLAGS.items())):
++        raise ValueError('US_MAPPING_PUBLICATION_INTENT_INVALID')
++    return row
++
++
++def _write_publication_intent(store: Any, date: str, trigger_id: str,
++                              started: Mapping[str, Any], saved: Mapping[str, Any], *,
++                              read_budget: _ReadBudget) -> dict[str, Any]:
++    read_budget.check()
++    intent = _seal_dispatch({
++        'schema_version': 'v4.manager_research.us_mapping_publication_intent.v1',
++        'state': 'PUBLISHING', 'target_trade_date': date, 'trigger_id': trigger_id,
++        'started_at': started.get('started_at'), 'run_id': saved.get('run_id'),
++        'artifact_sha256': saved.get('artifact_sha256'), 'owner': _OWNER, **FLAGS,
++    })
++    path = _dispatch_path(store, date, trigger_id, '.publishing')
++    relative = str(path.relative_to(store.root))
++    raw = json.dumps(intent, ensure_ascii=False, sort_keys=True,
++                     separators=(',', ':'), allow_nan=False).encode('utf-8')
++    store._io.write_bytes(relative, raw, require_absent=True)
++    read_budget.check()
++    readback = read_budget.read_json(store, path)
++    if readback != intent:
++        raise ValueError('US_MAPPING_PUBLICATION_INTENT_READBACK_FAILED')
++    return intent
++
++
++def _latest_dispatch_attempt(store: Any, date: str) -> dict[str, Any] | None:
++    names = store._io.files(f"us_mapping_dispatch/{date}")
++    terminal_names = [name for name in names if re.fullmatch(r"[0-9a-f]{64}\.json", name)]
++    started_names = [name for name in names if re.fullmatch(r"[0-9a-f]{64}\.started\.json", name)]
++    if len(terminal_names) + len(started_names) > 2048:
++        raise ValueError("US_MAPPING_DISPATCH_RECEIPT_BOUND_EXCEEDED")
++    rows = []
++    terminal_ids = set()
++    for name in terminal_names:
++        receipt = _read_dispatch(store, date, name[:-5])
++        if receipt is None:
++            continue
++        terminal_ids.add(str(receipt.get('trigger_id')))
++        finished_text = receipt.get("finished_at")
++        finished = _aware_text(finished_text)
++        if finished is None:
++            raise ValueError("US_MAPPING_DISPATCH_FINISHED_AT_INVALID")
++        rows.append((datetime.fromisoformat(finished), 'TERMINAL', receipt))
++    for name in started_names:
++        trigger_id = name[:-len('.started.json')]
++        if trigger_id in terminal_ids:
++            continue
++        path = _dispatch_path(store, date, trigger_id, '.started')
++        started = store._read(path)
++        if started is None:
++            continue
++        started_at = _aware_text(started.get('started_at'))
++        if (started.get('schema_version') != DISPATCH_SCHEMA or started.get('state') != 'RUNNING'
++                or started.get('target_trade_date') != date or started.get('trigger_id') != trigger_id
++                or started.get('sha256') != _seal_dispatch(started)['sha256']
++                or started_at is None or any(started.get(key) is not flag for key, flag in FLAGS.items())):
++            raise ValueError('US_MAPPING_DISPATCH_STARTED_RECEIPT_INVALID')
++        intent = _read_publication_intent(store, date, trigger_id)
++        pending = {
++            'schema_version': DISPATCH_SCHEMA,
++            'state': 'PUBLISHING' if intent else 'RUNNING',
++            'status': 'CANNOT_CONFIRM',
++            'execution_status': 'US_MAPPING_DISPATCH_RECONCILIATION_REQUIRED' if intent
++                else 'US_MAPPING_DISPATCH_IN_PROGRESS',
++            'target_trade_date': date, 'trigger_id': trigger_id,
++            'started_at': started_at, 'finished_at': None,
++            'execution_context': deepcopy(started.get('execution_context')),
++            'run_id': intent.get('run_id') if intent else None,
++            'artifact_sha256': intent.get('artifact_sha256') if intent else None,
++            'research_cutoff': None, 'generated_at': None,
++            'gaps': ['US_MAPPING_DISPATCH_RECONCILIATION_REQUIRED' if intent
++                     else 'US_MAPPING_DISPATCH_TERMINAL_RECEIPT_MISSING'],
++            'coverage': {'reviewed_us_symbol_count': 4, 'matched_us_symbol_count': None,
++                'matched_hk_relation_count': None, 'configured_us_universe_count': None,
++                'available_us_universe_count': None, 'full_market_coverage': False},
++            'receipt_sha256': started.get('sha256'),
++            'receipt_path': f'us_mapping_dispatch/{date}/{trigger_id}.started.json',
++            'owner': _OWNER, **FLAGS,
++        }
++        rows.append((datetime.fromisoformat(started_at), 'PENDING', pending))
++    if not rows:
++        return None
++    _, row_kind, receipt = max(rows, key=lambda item: item[0].astimezone(timezone.utc))
++    if row_kind == 'PENDING':
++        return receipt
++    result = receipt.get("result") if isinstance(receipt.get("result"), Mapping) else {}
++    return {
++        "status": result.get("status", "CANNOT_CONFIRM"),
++        "state": receipt.get('state'),
++        "execution_status": result.get("execution_status"),
++        "research_cutoff": result.get("research_cutoff"),
++        "generated_at": result.get("generated_at"),
++        "run_id": result.get("run_id"),
++        "artifact_sha256": result.get("artifact_sha256"),
++        "trigger_id": (receipt.get("attempt", {}).get("trigger_id")
++                       if isinstance(receipt.get("attempt"), Mapping) else receipt.get("trigger_id")),
++        "started_at": (receipt.get("attempt", {}).get("started_at")
++                       if isinstance(receipt.get("attempt"), Mapping) else receipt.get("started_at")),
++        "finished_at": (receipt.get("attempt", {}).get("finished_at")
++                         if isinstance(receipt.get("attempt"), Mapping) else receipt.get("finished_at")),
++        "execution_context": deepcopy(
++            receipt.get("attempt", {}).get("execution_context")
++            if isinstance(receipt.get("attempt"), Mapping) else result.get("execution_context")),
++        "run_execution_context": deepcopy(result.get("execution_context")),
++        "gaps": deepcopy(result.get("gaps") or []),
++        "coverage": deepcopy(result.get("coverage")),
++        "receipt_sha256": receipt.get("sha256"),
++        "receipt_path": f"us_mapping_dispatch/{date}/{receipt.get('trigger_id')}.json",
++        "owner": _OWNER,
++        **FLAGS,
++    }
++
++
++def _read_exact_run(store: Any, date: str, run_id: str, expected_sha: str | None = None, *,
++                    read_budget: _ReadBudget | None = None) -> dict[str, Any]:
++    if not re.fullmatch(r"[0-9a-f]{32}", str(run_id or "")):
++        raise ValueError("US_MAPPING_DAILY_RUN_ID_INVALID")
++    path = store.root / "us_mapping_research" / date / "runs" / f"{run_id}.json"
++    artifact = (read_budget.read_json(store, path, run_artifact=True)
++                if read_budget else store._read(path))
++    if artifact is None:
++        raise ValueError("US_MAPPING_DAILY_ARTIFACT_MISSING")
++    unsigned = {key: item for key, item in artifact.items() if key != "artifact_sha256"}
++    if (artifact.get("schema_version") != DAILY_SCHEMA or artifact.get("target_trade_date") != date
++            or artifact.get("run_id") != run_id or artifact.get("artifact_sha256") != sha256_json(unsigned)
++            or (expected_sha is not None and artifact.get("artifact_sha256") != expected_sha)):
++        raise ValueError("US_MAPPING_DAILY_ARTIFACT_INTEGRITY_FAILED")
++    _safe_tree(artifact)
++    return artifact
++
++
++def _run_for_trigger(store: Any, date: str, trigger_id: str, *,
++                     read_budget: _ReadBudget | None = None) -> dict[str, Any] | None:
++    intent = _read_publication_intent(store, date, trigger_id, read_budget=read_budget)
++    if intent is not None:
++        row = _read_exact_run(store, date, intent['run_id'], intent['artifact_sha256'],
++                              read_budget=read_budget)
++        if read_budget:
++            read_budget.check()
++        return row
++    if read_budget:
++        read_budget.check()
++    names = store._io.files(f"us_mapping_research/{date}/runs")
++    if read_budget:
++        read_budget.check()
++    if len(names) > 4096:
++        raise ValueError("US_MAPPING_DAILY_RUN_BOUND_EXCEEDED")
++    matches = []
++    for name in names:
++        if read_budget:
++            read_budget.check()
++        if not re.fullmatch(r"[0-9a-f]{32}\.json", name):
++            raise ValueError("US_MAPPING_DAILY_RUN_NAME_INVALID")
++        row = _read_exact_run(store, date, name[:-5], read_budget=read_budget)
++        if read_budget:
++            read_budget.check()
++        if ((row.get("execution_context") or {}).get("trigger_id") == trigger_id):
++            matches.append(row)
++    if len(matches) > 1:
++        raise ValueError("US_MAPPING_TRIGGER_RUN_AMBIGUOUS")
++    return matches[0] if matches else None
++
++
++def _equivalent_run(store: Any, date: str, candidate: Mapping[str, Any], *,
++                    read_budget: _ReadBudget | None = None) -> dict[str, Any] | None:
++    if read_budget:
++        read_budget.check()
++    names = store._io.files(f"us_mapping_research/{date}/runs")
++    if read_budget:
++        read_budget.check()
++    if len(names) > 4096:
++        raise ValueError("US_MAPPING_DAILY_RUN_BOUND_EXCEEDED")
++    for name in names:
++        if read_budget:
++            read_budget.check()
++        if not re.fullmatch(r"[0-9a-f]{32}\.json", name):
++            raise ValueError("US_MAPPING_DAILY_RUN_NAME_INVALID")
++        row = _read_exact_run(store, date, name[:-5], read_budget=read_budget)
++        if read_budget:
++            read_budget.check()
++        if (row.get("input_identity") == candidate.get("input_identity")
++                and row.get("source_identity") == candidate.get("source_identity")
++                and row.get("relation_artifact_sha256") == candidate.get("relation_artifact_sha256")
++                and row.get("status") == candidate.get("status")):
++            return row
++    return None
++
++
++def _write_dispatch_terminal(store: Any, date: str, trigger_id: str,
++                             started: Mapping[str, Any], result: Mapping[str, Any], *,
++                             read_budget: _ReadBudget | None = None,
++                             attempt_context: Mapping[str, Any] | None = None) -> dict[str, Any]:
++    result_summary = {
++        "status": result.get("status"),
++        "run_id": result.get("run_id"),
++        "artifact_sha256": result.get("artifact_sha256"),
++        "execution_status": result.get("execution_status"),
++        "research_cutoff": result.get("research_cutoff"),
++        "generated_at": result.get("generated_at"),
++        "execution_context": deepcopy(result.get("execution_context")),
++        "gaps": list(result.get("gaps") or []),
++        "coverage": deepcopy(result.get("coverage")),
++        **FLAGS,
++    }
++    # A failure has no immutable run to read back, so preserve its complete
++    # unknown/null DTO inside the sealed dispatch terminal for idempotent
++    # same-trigger replay. Successful rows remain referenced by exact run/SHA.
++    if not isinstance(result.get("run_id"), str):
++        result_summary["failure_dto"] = {
++            key: deepcopy(result.get(key))
++            for key in ("schema_version", "status", "target_trade_date", "run_id", "generated_at",
++                        "us_session_date", "research_cutoff", "coverage", "matches",
++                        "source_identity", "input_identity", "artifact_sha256",
++                        "execution_status", "execution_context", "gaps", *FLAGS.keys())
++            if key in result
++        }
++    attempt = {
++        "trigger_id": trigger_id,
++        "started_at": started.get("started_at"),
++        "finished_at": ((attempt_context or {}).get("finished_at")
++                         or result_summary.get("execution_context", {}).get("finished_at")),
++        "execution_context": deepcopy(dict(attempt_context or result_summary.get("execution_context") or {})),
++    }
++    terminal = _seal_dispatch({
++        "schema_version": DISPATCH_SCHEMA,
++        "state": "COMPLETED",
++        "target_trade_date": date,
++        "trigger_id": trigger_id,
++        "started_at": started["started_at"],
++        "finished_at": attempt.get("finished_at"),
++        "result": result_summary,
++        "attempt": attempt,
++        **FLAGS,
++    })
++    if read_budget:
++        read_budget.check()
++    raw = json.dumps(terminal, ensure_ascii=False, sort_keys=True,
++                     separators=(",", ":"), allow_nan=False).encode("utf-8")
++    relative = str(_dispatch_path(store, date, trigger_id).relative_to(store.root))
++    store._io.write_bytes(relative, raw, require_absent=True)
++    if read_budget:
++        read_budget.check()
++    readback = (read_budget.read_json(store, _dispatch_path(store, date, trigger_id))
++                if read_budget else store._read(_dispatch_path(store, date, trigger_id)))
++    if readback != terminal:
++        raise ValueError("US_MAPPING_DISPATCH_TERMINAL_READBACK_FAILED")
++    return terminal
++
++
++def _attempt_execution_context(supplied: Mapping[str, Any], *, target: str, started_at: datetime,
++                               finished_at: datetime, cutoff_policy: str) -> dict[str, Any]:
++    return _execution_metadata(supplied, target=target,
++        started_at=started_at, finished_at=finished_at,
++        research_cutoff_policy=cutoff_policy)
++
++
++def _result_from_dispatch(store: Any, date: str, receipt: Mapping[str, Any]) -> dict[str, Any]:
++    result = receipt.get("result")
++    if not isinstance(result, Mapping):
++        raise ValueError("US_MAPPING_DISPATCH_RESULT_INVALID")
++    if isinstance(result.get("run_id"), str):
++        saved = _read_exact_run(store, date, result["run_id"], result.get("artifact_sha256"))
++        attempt = receipt.get("attempt") if isinstance(receipt.get("attempt"), Mapping) else {}
++        saved["latest_attempt"] = {
++            "status": result.get("status"),
++            "execution_status": result.get("execution_status"),
++            "trigger_id": attempt.get("trigger_id"),
++            "started_at": attempt.get("started_at"),
++            "finished_at": attempt.get("finished_at"),
++            "execution_context": deepcopy(attempt.get("execution_context")),
++            "run_id": result.get("run_id"),
++            "artifact_sha256": result.get("artifact_sha256"),
++            "run_execution_context": deepcopy(saved.get("execution_context")),
++            **FLAGS,
++        }
++        return saved
++    full_dto = result.get("failure_dto")
++    if isinstance(full_dto, Mapping):
++        return deepcopy(dict(full_dto))
++    # Tolerate older terminal receipts without the additive full DTO fields.
++    return {
++        "schema_version": DAILY_SCHEMA,
++        "target_trade_date": date,
++        "status": result.get("status", "CANNOT_CONFIRM"),
++        "run_id": None,
++        "generated_at": None,
++        "us_session_date": None,
++        "research_cutoff": result.get("research_cutoff"),
++        "coverage": deepcopy(result.get("coverage") or {
++            "reviewed_us_symbol_count": 4, "matched_us_symbol_count": None,
++            "matched_hk_relation_count": None, "configured_us_universe_count": None,
++            "available_us_universe_count": None, "full_market_coverage": False}),
++        "matches": [],
++        "execution_status": result.get("execution_status"),
++        "execution_context": deepcopy(result.get("execution_context")),
++        "gaps": list(result.get("gaps") or ["US_MAPPING_OWNER_FAILURE_DTO_UNAVAILABLE"]),
++        **FLAGS,
++    }
++
++
++def _promote_recovered_run(store: Any, date: str, recovered: Mapping[str, Any], *,
++                           read_budget: _ReadBudget) -> None:
++    """Repair latest for an orphaned committed run without ever moving it backwards."""
++    read_budget.check()
++    with store._io.kernel_lock(
++            ".locks/us-mapping-products.v1.mutex",
++            timeout=max(0.0, read_budget.deadline - time.monotonic())):
++        current = _read_saved(store, date, read_budget=read_budget)
++        if current is not None:
++            if current.get("run_id") == recovered.get("run_id"):
++                return
++            current_generated = _aware_text(current.get("generated_at"))
++            recovered_generated = _aware_text(recovered.get("generated_at"))
++            if current_generated is None or recovered_generated is None:
++                raise ValueError("US_MAPPING_RECOVERY_GENERATED_AT_INVALID")
++            current_time = datetime.fromisoformat(current_generated).astimezone(timezone.utc)
++            recovered_time = datetime.fromisoformat(recovered_generated).astimezone(timezone.utc)
++            if current_time >= recovered_time:
++                return
++            if recovered.get("status") not in {"COMPLETED", "VALID_EMPTY", "PARTIAL"}:
++                return
++        pointer = {
++            "schema_version": "v4.manager_research.us_mapping_daily_pointer.v1",
++            "target_trade_date": date,
++            "run_id": recovered["run_id"],
++            "artifact_sha256": recovered["artifact_sha256"],
++            **FLAGS,
++        }
++        raw = json.dumps(pointer, ensure_ascii=False, sort_keys=True,
++                         separators=(",", ":"), allow_nan=False).encode("utf-8")
++        read_budget.check()
++        store._io.write_bytes(f"us_mapping_research/{date}/latest.json", raw)
++        read_budget.check()
++        readback = _read_saved(store, date, read_budget=read_budget)
++        if (readback is None or readback.get("run_id") != recovered.get("run_id")
++                or readback.get("artifact_sha256") != recovered.get("artifact_sha256")):
++            raise ValueError("US_MAPPING_RECOVERY_POINTER_READBACK_FAILED")
+ 
+ 
+ def _safe_tree(value: Mapping[str, Any]) -> None:
+@@ -54,9 +663,9 @@
+     return value
+ 
+ 
+-def _read_saved(store: Any, date: str) -> dict[str, Any] | None:
++def _read_saved(store: Any, date: str, *, read_budget: _ReadBudget | None = None) -> dict[str, Any] | None:
+     path = store.root / "us_mapping_research" / date / "latest.json"
+-    pointer = store._read(path)
++    pointer = read_budget.read_json(store, path) if read_budget else store._read(path)
+     if pointer is None:
+         return None
+     if (pointer.get("schema_version") != "v4.manager_research.us_mapping_daily_pointer.v1"
+@@ -64,7 +673,9 @@
+             or not isinstance(pointer.get("run_id"), str)
+             or not _SHA.fullmatch(str(pointer.get("artifact_sha256") or ""))):
+         raise ValueError("US_MAPPING_DAILY_POINTER_INVALID")
+-    artifact = store._read(path.parent / "runs" / f"{pointer['run_id']}.json")
++    artifact_path = path.parent / "runs" / f"{pointer['run_id']}.json"
++    artifact = (read_budget.read_json(store, artifact_path, run_artifact=True)
++                if read_budget else store._read(artifact_path))
+     if artifact is None:
+         raise ValueError("US_MAPPING_DAILY_ARTIFACT_MISSING")
+     unsigned = {key: item for key, item in artifact.items() if key != "artifact_sha256"}
+@@ -110,6 +721,67 @@
+             "input_identity": None,
+             **FLAGS,
+         }
++    try:
++        latest_attempt = _latest_dispatch_attempt(service.store, date)
++    except (OSError, ValueError, KeyError, TypeError):
++        latest_attempt = {
++            "status": "CANNOT_CONFIRM",
++            "execution_status": "US_MAPPING_DISPATCH_READBACK_INVALID",
++            "run_id": None,
++            "artifact_sha256": None,
++            "gaps": ["US_MAPPING_DISPATCH_READBACK_INVALID"],
++            **FLAGS,
++        }
++    if latest_attempt is not None:
++        daily["latest_attempt"] = latest_attempt
++        if daily.get("status") == "NOT_RUN":
++            attempt_result = latest_attempt
++            daily.update({
++                "status": attempt_result.get("status", "CANNOT_CONFIRM"),
++                "run_id": attempt_result.get("run_id"),
++                "generated_at": None,
++                "research_cutoff": attempt_result.get("research_cutoff"),
++                "coverage": deepcopy(attempt_result.get("coverage") or daily["coverage"]),
++                "matches": [],
++                "gaps": list(attempt_result.get("gaps") or []),
++                "execution_context": deepcopy(attempt_result.get("execution_context")),
++                "execution_status": attempt_result.get("execution_status"),
++            })
++        pending_state = latest_attempt.get('state') in {'RUNNING', 'PUBLISHING'}
++        pending_matches_saved_run = bool(
++            daily.get('run_id')
++            and ((latest_attempt.get('run_id') == daily.get('run_id')
++                  and latest_attempt.get('artifact_sha256') == daily.get('artifact_sha256'))
++                 or ((daily.get('execution_context') or {}).get('trigger_id')
++                     == latest_attempt.get('trigger_id'))))
++        if pending_state and pending_matches_saved_run:
++            daily['saved_product_status'] = daily.get('status')
++            daily['saved_product_run_readback_status'] = 'VERIFIED'
++            daily['saved_product_coverage'] = deepcopy(daily.get('coverage'))
++            daily['saved_product_matches'] = deepcopy(daily.get('matches') or [])
++            daily['status'] = 'CANNOT_CONFIRM'
++            daily['execution_status'] = latest_attempt.get('execution_status')
++            daily['coverage'] = {
++                'reviewed_us_symbol_count': 4, 'matched_us_symbol_count': None,
++                'matched_hk_relation_count': None, 'configured_us_universe_count': None,
++                'available_us_universe_count': None, 'full_market_coverage': False,
++            }
++            daily['matches'] = []
++            daily['gaps'] = sorted(set([*(daily.get('gaps') or []),
++                'US_MAPPING_OWNER_ATTEMPT_NOT_TERMINAL']))
++    pending_product_attempt = (isinstance(daily.get('latest_attempt'), Mapping)
++        and daily['latest_attempt'].get('state') in {'RUNNING', 'PUBLISHING'}
++        and daily.get('saved_product_status') is not None)
++    daily["run_readback"] = {
++        "status": "CANNOT_CONFIRM" if pending_product_attempt else
++            "VERIFIED" if daily.get("run_id") and daily.get("artifact_sha256") else "CANNOT_CONFIRM",
++        "artifact_status": "VERIFIED" if pending_product_attempt else None,
++        "target_trade_date": date,
++        "run_id": daily.get("run_id"),
++        "artifact_sha256": daily.get("artifact_sha256"),
++        "owner": _OWNER,
++        "read_at": datetime.now(HK).isoformat(timespec="microseconds"),
++    }
+     if date == _TARGET_SEED:
+         try:
+             reviewed = _read_reviewed()
+@@ -242,8 +914,14 @@
+     coverage = bridge.get("coverage") if isinstance(bridge.get("coverage"), Mapping) else {}
+     source_identity = bridge.get("source_identity") if isinstance(bridge.get("source_identity"), Mapping) else None
+     relation_sha = reviewed.get("artifact_sha256") if relation_available else None
+-    identity = digest([date, bridge.get("expected_us_session"), bridge.get("research_cutoff"), source_identity,
+-                       matches, relation_sha])
++    # Cutoff is evidence on the run, but moving a clock over unchanged inputs
++    # does not create a distinct mapping product. Eligibility, exact source
++    # lineage and relation publication identity do.
++    identity = digest([date, bridge.get("expected_us_session"), source_identity,
++                       bridge.get("source_response_sha256"), bridge.get("captured_at"),
++                       bridge.get("status"), bool(relation_available),
++                       relation_available_at.isoformat() if relation_available_at else None,
++                       relation_registry_gap, matches, relation_sha])
+     run_id = uuid4().hex
+     value = {
+         "schema_version": DAILY_SCHEMA,
+@@ -277,29 +955,185 @@
+     return value
+ 
+ 
+-def persist_daily_run(service: Any, target_trade_date: str, *, now: datetime) -> dict[str, Any]:
+-    value = build_daily_run(service, target_trade_date, now=now)
+-    unsigned = dict(value)
+-    value["artifact_sha256"] = sha256_json(unsigned)
+-    _safe_tree(value)
++def persist_daily_run(service: Any, target_trade_date: str, *, now: datetime,
++                      timeout_seconds: float | None = None,
++                      execution_context: Mapping[str, Any] | None = None) -> dict[str, Any]:
++    date = strict_trade_date(target_trade_date)
++    budget = MAX_PREPARATION_SECONDS if timeout_seconds is None else timeout_seconds
++    if isinstance(budget, bool) or not isinstance(budget, (int, float)) or not math.isfinite(budget) or not 0 < budget <= MAX_PREPARATION_SECONDS:
++        raise ValueError("US_MAPPING_OWNER_BUDGET_INVALID")
++    if now.tzinfo is None or now.utcoffset() is None:
++        raise ValueError("US_MAPPING_CLOCK_MUST_BE_AWARE")
++    actual_started = now
++    research_cutoff, cutoff_policy, resolved_timing = _target_bound_cutoff(date, actual_started)
++    supplied_context = dict(execution_context or {})
++    trigger_kind = supplied_context.get("trigger_kind", "UNKNOWN")
++    timing = resolved_timing if resolved_timing == "RETROSPECTIVE" else supplied_context.get("timing", "UNCLASSIFIED")
++    if trigger_kind == "SCHEDULED" and timing == "UNCLASSIFIED":
++        timing = "LATE_CATCHUP"
++    supplied_context.update({"trigger_kind": trigger_kind, "timing": timing})
++    trigger_id = supplied_context.get("trigger_id")
++    if trigger_id is not None and not re.fullmatch(r"[0-9a-f]{64}", str(trigger_id)):
++        raise ValueError("US_MAPPING_TRIGGER_ID_INVALID")
++
+     store = service.store
+-    directory = store.root / "us_mapping_research" / value["target_trade_date"]
+-    run_path = directory / "runs" / f"{value['run_id']}.json"
+-    pointer_path = directory / "latest.json"
+-    with store._transaction(value["target_trade_date"], value["input_identity"]):
+-        store._write_atomic(run_path, value)
+-        pointer = {
+-            "schema_version": "v4.manager_research.us_mapping_daily_pointer.v1",
+-            "target_trade_date": value["target_trade_date"],
+-            "run_id": value["run_id"],
+-            "artifact_sha256": value["artifact_sha256"],
+-            **FLAGS,
+-        }
+-        store._write_atomic(pointer_path, pointer)
+-    saved = _read_saved(store, value["target_trade_date"])
+-    if saved is None or saved.get("artifact_sha256") != value["artifact_sha256"]:
+-        raise ValueError("US_MAPPING_DAILY_READBACK_FAILED")
+-    return saved
++    deadline = time.monotonic() + float(budget)
++    read_budget = _ReadBudget(deadline)
++    trigger_lock = (store._io.kernel_lock(f".locks/us-mapping-trigger-{trigger_id}.mutex",
++                                          timeout=max(0.0, deadline - time.monotonic()))
++                    if trigger_id else nullcontext())
++    try:
++        with trigger_lock:
++            started_path = _dispatch_path(store, date, str(trigger_id), ".started") if trigger_id else None
++            terminal_path = _dispatch_path(store, date, str(trigger_id)) if trigger_id else None
++            terminal = _read_dispatch(store, date, str(trigger_id), read_budget=read_budget) if trigger_id else None
++            if terminal is not None:
++                read_budget.check()
++                return _result_from_dispatch(store, date, terminal)
++            started = read_budget.read_json(store, started_path) if started_path is not None else None
++            if started is not None:
++                if (started.get("schema_version") != DISPATCH_SCHEMA or started.get("state") != "RUNNING"
++                        or started.get("target_trade_date") != date or started.get("trigger_id") != trigger_id
++                        or started.get("sha256") != _seal_dispatch(started)["sha256"]):
++                    raise ValueError("US_MAPPING_DISPATCH_STARTED_RECEIPT_INVALID")
++                reconciled = _run_for_trigger(store, date, str(trigger_id), read_budget=read_budget)
++                if reconciled is not None:
++                    _promote_recovered_run(store, date, reconciled, read_budget=read_budget)
++                    finished = max(datetime.now(actual_started.tzinfo), actual_started)
++                    prior_started = datetime.fromisoformat(started["started_at"])
++                    attempt_context = _attempt_execution_context(supplied_context, target=date,
++                        started_at=prior_started, finished_at=finished, cutoff_policy=cutoff_policy)
++                    terminal = _write_dispatch_terminal(store, date, str(trigger_id), started,
++                        reconciled, read_budget=read_budget, attempt_context=attempt_context)
++                    return _result_from_dispatch(store, date, terminal)
++                failure = _failure_result(date, "US_MAPPING_RECONCILIATION_REQUIRED", now=actual_started,
++                    execution_context=supplied_context, research_cutoff=research_cutoff,
++                    cutoff_policy=cutoff_policy)
++                _write_dispatch_terminal(store, date, str(trigger_id), started, failure,
++                    attempt_context=failure["execution_context"])
++                return failure
++
++            started_record = None
++            if trigger_id:
++                started_record = _seal_dispatch({
++                    "schema_version": DISPATCH_SCHEMA, "state": "RUNNING",
++                    "target_trade_date": date, "trigger_id": trigger_id,
++                    "started_at": actual_started.isoformat(timespec="microseconds"),
++                    "budget_seconds": float(budget), "owner": _OWNER,
++                    "execution_context": {key: value for key, value in supplied_context.items()
++                                          if key not in {"started_at", "finished_at"}},
++                    **FLAGS,
++                })
++                raw_started = json.dumps(started_record, ensure_ascii=False, sort_keys=True,
++                                         separators=(",", ":"), allow_nan=False).encode("utf-8")
++                read_budget.check()
++                store._io.write_bytes(str(started_path.relative_to(store.root)), raw_started, require_absent=True)
++                read_budget.check()
++                if read_budget.read_json(store, started_path) != started_record:
++                    raise ValueError("US_MAPPING_DISPATCH_STARTED_READBACK_FAILED")
++
++            remaining = deadline - time.monotonic()
++            if remaining <= 0:
++                build = None
++                build_error = "US_MAPPING_OWNER_READ_TIMEOUT"
++            else:
++                build, build_error = _bounded_build(service, date, research_cutoff, remaining)
++            actual_finished = max(datetime.now(actual_started.tzinfo), actual_started)
++            if build_error is not None or build is None:
++                failure = _failure_result(date, build_error or "US_MAPPING_OWNER_BUILD_FAILED",
++                    now=actual_started, execution_context=supplied_context,
++                    research_cutoff=research_cutoff, cutoff_policy=cutoff_policy)
++                if trigger_id and started_record is not None:
++                    _write_dispatch_terminal(store, date, str(trigger_id), started_record, failure,
++                        attempt_context=failure["execution_context"])
++                return failure
++            read_budget.check()
++
++            value = dict(build)
++            if value.get("target_trade_date") != date:
++                raise ValueError("US_MAPPING_DAILY_TARGET_MISMATCH")
++            context = _execution_metadata(supplied_context, target=date,
++                started_at=actual_started, finished_at=actual_finished,
++                research_cutoff_policy=cutoff_policy)
++            value["generated_at"] = _now_text(actual_finished)
++            value["execution_context"] = context
++            value["research_cutoff_policy"] = cutoff_policy
++            unsigned = dict(value)
++            value["artifact_sha256"] = sha256_json(unsigned)
++            _safe_tree(value)
++
++            remaining = deadline - time.monotonic()
++            if remaining <= 0:
++                failure = _failure_result(date, "US_MAPPING_OWNER_PUBLICATION_BUDGET_EXHAUSTED",
++                    now=actual_started, execution_context=supplied_context,
++                    research_cutoff=research_cutoff, cutoff_policy=cutoff_policy)
++                if trigger_id and started_record is not None:
++                    _write_dispatch_terminal(store, date, str(trigger_id), started_record, failure,
++                        attempt_context=failure["execution_context"])
++                return failure
++
++            with store._io.kernel_lock(".locks/us-mapping-products.v1.mutex", timeout=remaining):
++                reusable = _equivalent_run(store, date, value, read_budget=read_budget)
++                if reusable is None:
++                    run_relative = f"us_mapping_research/{date}/runs/{value['run_id']}.json"
++                    raw_value = json.dumps(value, ensure_ascii=False, sort_keys=True,
++                                           separators=(",", ":"), allow_nan=False).encode("utf-8")
++                    read_budget.check()
++                    store._io.write_bytes(run_relative, raw_value, require_absent=True)
++                    read_budget.check()
++                    saved = _read_exact_run(store, date, value["run_id"], value["artifact_sha256"],
++                                            read_budget=read_budget)
++                else:
++                    saved = reusable
++                prior = _read_saved(store, date, read_budget=read_budget)
++                if (saved.get("status") in {"COMPLETED", "VALID_EMPTY", "PARTIAL"} or prior is None):
++                    if trigger_id and started_record is not None:
++                        _write_publication_intent(store, date, str(trigger_id), started_record,
++                            saved, read_budget=read_budget)
++                    pointer = {
++                        "schema_version": "v4.manager_research.us_mapping_daily_pointer.v1",
++                        "target_trade_date": date,
++                        "run_id": saved["run_id"],
++                        "artifact_sha256": saved["artifact_sha256"],
++                        **FLAGS,
++                    }
++                    raw_pointer = json.dumps(pointer, ensure_ascii=False, sort_keys=True,
++                                             separators=(",", ":"), allow_nan=False).encode("utf-8")
++                    read_budget.check()
++                    store._io.write_bytes(f"us_mapping_research/{date}/latest.json", raw_pointer)
++                    read_budget.check()
++                    readback = _read_saved(store, date, read_budget=read_budget)
++                    if readback is None or readback.get("run_id") != saved["run_id"]:
++                        raise ValueError("US_MAPPING_DAILY_POINTER_READBACK_FAILED")
++                else:
++                    # Keep a previous same-date successful product visible;
++                    # the failed/unknown attempt remains in its own immutable run/receipt.
++                    readback = _read_saved(store, date, read_budget=read_budget)
++                    if readback is None:
++                        raise ValueError("US_MAPPING_DAILY_PRIOR_READBACK_FAILED")
++
++            if trigger_id and started_record is not None:
++                attempt_context = _attempt_execution_context(supplied_context, target=date,
++                    started_at=actual_started, finished_at=max(datetime.now(actual_started.tzinfo), actual_started),
++                    cutoff_policy=cutoff_policy)
++                terminal = _write_dispatch_terminal(store, date, str(trigger_id), started_record, saved,
++                    attempt_context=attempt_context)
++                return _result_from_dispatch(store, date, terminal)
++            return saved
++    except (OSError, TimeoutError, ValueError) as exc:
++        if str(exc) in {"US_MAPPING_OWNER_READ_TIMEOUT", "US_MAPPING_OWNER_READ_BUSY",
++                        "US_MAPPING_OWNER_BUDGET_EXHAUSTED",
++                        "US_MAPPING_OWNER_SCAN_RUN_BOUND_EXCEEDED",
++                        "US_MAPPING_OWNER_SCAN_BYTE_BOUND_EXCEEDED"}:
++            code = str(exc)
++        elif "LOCK_TIMEOUT" in str(exc):
++            code = "US_MAPPING_OWNER_LOCK_TIMEOUT"
++        else:
++            raise
++        failure = _failure_result(date, code, now=actual_started,
++            execution_context=supplied_context, research_cutoff=research_cutoff,
++            cutoff_policy=cutoff_policy)
++        return failure
+ 
+ 
+ __all__ = ["DAILY_SCHEMA", "SCHEMA", "build_daily_run", "persist_daily_run", "read_workspace_mapping"]
+--- a/v4/manager_research/workspace.py
++++ b/v4/manager_research/workspace.py
+@@ -35,6 +35,43 @@
+     return datetime.now(timezone.utc).isoformat(timespec='microseconds')
+ 
+ 
++def _plan_execution_context(value: Mapping[str, Any] | None, *, execution_kind: str,
++                           started_at: datetime) -> dict | None:
++    if value is None and execution_kind not in {'SCHEDULED_PREOPEN','SCHEDULED_MORNING'}:
++        return None
++    supplied = dict(value or {})
++    allowed = {'trigger_kind','timing','scheduled_for','natural_run_verified','trigger_id'}
++    if set(supplied) - allowed:
++        raise ValueError('WORKSPACE_PLAN_EXECUTION_CONTEXT_FIELDS_INVALID')
++    trigger_kind = supplied.get('trigger_kind', 'SCHEDULED' if execution_kind.startswith('SCHEDULED_') else 'UNKNOWN')
++    timing = supplied.get('timing', 'ON_TIME' if execution_kind.startswith('SCHEDULED_') else 'UNCLASSIFIED')
++    if trigger_kind not in {'SCHEDULED','MANUAL','UNKNOWN'}:
++        raise ValueError('WORKSPACE_PLAN_EXECUTION_TRIGGER_KIND_INVALID')
++    if timing not in {'ON_TIME','LATE_CATCHUP','RETROSPECTIVE','UNCLASSIFIED'}:
++        raise ValueError('WORKSPACE_PLAN_EXECUTION_TIMING_INVALID')
++    if supplied.get('natural_run_verified', False) is not False:
++        raise ValueError('WORKSPACE_PLAN_NATURAL_RUN_CANNOT_BE_INFERRED')
++    scheduled_for = supplied.get('scheduled_for')
++    if scheduled_for is not None:
++        parsed = timestamp(scheduled_for)
++        if parsed is None:
++            raise ValueError('WORKSPACE_PLAN_SCHEDULED_FOR_MUST_BE_AWARE')
++        scheduled_for = parsed.isoformat()
++    if trigger_kind == 'SCHEDULED' and scheduled_for is None:
++        scheduled_for = started_at.isoformat()
++    trigger_id = supplied.get('trigger_id')
++    if trigger_id is not None and not re.fullmatch(r'[0-9a-f]{64}',str(trigger_id)):
++        raise ValueError('WORKSPACE_PLAN_TRIGGER_ID_INVALID')
++    result = {'trigger_kind':trigger_kind,'timing':timing,'scheduled_for':scheduled_for,
++        'started_at':started_at.isoformat(timespec='microseconds'),
++        'natural_run_verified':False}
++    if timing == 'RETROSPECTIVE':
++        result['research_cutoff_policy'] = 'ACTUAL_OWNER_EXECUTION_CUTOFF_RETROSPECTIVE'
++    if trigger_id is not None:
++        result['trigger_id'] = trigger_id
++    return result
++
++
+ def _daily_mapping_plan_reference(service: Any, date: str,
+                                   context: Mapping[str, Any]) -> tuple[dict, dict, list[str]]:
+     """Bind a saved US mapping to this plan only when it precedes its cutoff."""
+@@ -46,9 +83,23 @@
+         # must not prevent the original announcement/market owners from being
+         # read, and it does not prove that zero relationships were assessed.
+         reason = 'US_MAPPING_READER_UNAVAILABLE:' + type(exc).__name__
+-        mapping_read = dict(status='CANNOT_CONFIRM', target_trade_date=date,
+-            mapping={'status':'NOT_EVALUATED'}, daily_run={'status':'NOT_RUN'},
+-            gaps=[reason], **FLAGS)
++        daily = dict(schema_version='v4.manager_research.us_mapping_daily_run.v1',
++            status='CANNOT_CONFIRM', target_trade_date=date,
++            run_id=None, generated_at=None, us_session_date=None, research_cutoff=None,
++            source_identity=None, input_identity=None, artifact_sha256=None,
++            coverage=dict(reviewed_us_symbol_count=None, matched_us_symbol_count=None,
++                matched_hk_relation_count=None, configured_us_universe_count=None,
++                available_us_universe_count=None, full_market_coverage=False),
++            matches=[], gaps=[reason], **FLAGS)
++        # The original API contract scopes the retrospective reference to 9/30.
++        # A failed reader cannot prove that those saved cards or a daily run are absent.
++        reviewed = dict(schema_version='v4.manager_research.us_mapping_reviewed.v1',
++            status='CANNOT_CONFIRM', target_trade_date=date, reviewed_at=None,
++            cards=[], gaps=[reason], **FLAGS) if date == '20260930' else None
++        mapping_read = dict(schema_version='v4.manager_research.us_mapping_research.v1',
++            status='CANNOT_CONFIRM', target_trade_date=date,
++            mapping={'status':'NOT_EVALUATED'}, daily_run=daily,
++            reviewed_research=reviewed, gaps=[reason], **FLAGS)
+         reference = dict(status='NOT_CONSUMED', target_trade_date=date,
+             artifact_sha256=None, run_id=None, available_at=None,
+             plan_cutoff=context.get('research_cutoff'), matches=None,
+@@ -428,7 +479,8 @@
+ 
+ def get_workspace(service: Any,target_trade_date: str, *, include_saved: bool = True,
+                   view: str = 'dynamic', now: datetime | None = None,
+-                  selection_date: str | None = None, announcement_date: str | None = None) -> dict:
++                  selection_date: str | None = None, announcement_date: str | None = None,
++                  us_market_request_context: Mapping[str, Any] | None = None) -> dict:
+     date = date_token(target_trade_date)
+     selection = date_token(selection_date) if selection_date is not None else date
+     from .announcement_analysis import previous_hk_session
+@@ -450,11 +502,27 @@
+         from .workspace_daily_channels import build_daily_channels
+         result['daily_channels'] = build_daily_channels(result)
+         return result
+-    context = plan_context(date, now=clock)
+-    if announcement_date is not None:
++    # A non-history page read is re-evaluated from the original owners. When the
++    # complete date binding matches the sealed plan, use that plan's original
++    # as-of context so a few seconds of wall-clock drift do not change the
++    # semantic projection. This is not a cached-success shortcut: all sources
++    # below are still re-read and _readback_plan compares their identities.
++    saved_context = (_saved_plan_context_for_bindings(service, date, bindings)
++                     if include_saved and view in {'auto', 'dynamic'} else None)
++    context = saved_context
++    if context is None:
++        context = plan_context(date, now=clock)
++    if announcement_date is not None and saved_context is None:
+         context['announcement_publication_date'] = datetime.strptime(publication, '%Y%m%d').strftime('%Y-%m-%d')
+-    result = _compute_workspace(service, date, include_saved=include_saved, context=context)
++    if us_market_request_context is not None and (view != 'dynamic' or include_saved):
++        raise ValueError('WORKSPACE_US_REQUEST_CONTEXT_REQUIRES_DYNAMIC_OWNER_READ')
++    # Bind before the saved-product comparison so the comparison can reject a
++    # different selection/publication query and preserve exact page identity.
++    result = _compute_workspace(service, date, include_saved=False, context=context,
++        us_market_request_context=us_market_request_context)
+     result['date_bindings'] = bindings
++    if include_saved:
++        result = _readback_plan(service.store, date, result, read_at=clock)
+     result['read_context'] = dict(mode='CURRENT_DYNAMIC_PREVIEW',
+         status='VERIFIED_WITH_GAPS' if result['gaps'] else 'VERIFIED',
+         as_of=result['plan_context']['research_cutoff'],
+@@ -462,6 +530,36 @@
+     from .workspace_daily_channels import build_daily_channels
+     result['daily_channels'] = build_daily_channels(result)
+     return result
++
++
++def _saved_plan_context_for_bindings(service: Any, date: str,
++                                     bindings: Mapping[str, Any]) -> dict | None:
++    """Return a verified saved cutoff only for an exact full date binding.
++
++    The helper deliberately returns context, not a saved workspace result.
++    ``get_workspace`` continues to execute every existing owner reader at that
++    context, and the normal semantic identity check decides whether the saved
++    product remains current. Unknown legacy bindings never authorize replay.
++    """
++    try:
++        saved = _read_plan(service.store, date)
++    except _ERROR_TYPES:
++        return None
++    if not isinstance(saved, Mapping):
++        return None
++    workspace = saved.get('workspace')
++    if not isinstance(workspace, Mapping):
++        return None
++    saved_bindings = workspace.get('date_bindings')
++    expected = {'plan_date': date, 'selection_date': bindings.get('selection_date'),
++        'announcement_date': bindings.get('announcement_date')}
++    if not isinstance(saved_bindings, Mapping) or dict(saved_bindings) != expected:
++        return None
++    context = workspace.get('plan_context')
++    if (not isinstance(context, Mapping) or context.get('plan_trade_date') != date
++            or timestamp(context.get('research_cutoff')) is None):
++        return None
++    return deepcopy(dict(context))
+ 
+ 
+ def _read_close_recapture_inputs(reader: Any, requested_date: str, context: Mapping[str, Any]) -> tuple[dict, dict]:
+@@ -497,7 +595,74 @@
+     return planning,requested
+ 
+ 
+-def _compute_workspace(service: Any, date: str, *, include_saved: bool = True, context: dict) -> dict:
++_US_OWNER_NON_REENTRY_CODES = frozenset({
++    'US_MAPPING_OWNER_READ_TIMEOUT', 'US_MAPPING_OWNER_READ_BUSY',
++})
++
++
++def _us_mapping_non_reentry_value(date: str, context: Mapping[str, Any], code: str) -> dict:
++    from .us_market_bridge import project_us_market
++    value = project_us_market(None, date, context)
++    value['status'] = 'SOURCE_FAILED'
++    value['gaps'] = [f'US_MARKET_DAILY_OWNER_NOT_RETRIED:{code}']
++    value['bounded_owner_execution_status'] = code
++    return value
++
++
++def _project_us_market_attention(service: Any, date: str, context: Mapping[str, Any], *,
++                                  us_market_request_context: Mapping[str, Any] | None = None) -> dict:
++    """Project exact US evidence while honoring a request-local bounded-owner timeout.
++
++    Only the daily owner may set the narrowly allowlisted suppression context.
++    It prevents the plan from entering the same reader after its bounded build
++    timed out, while preserving a truthful missing/failed DTO and leaving the
++    injected reader untouched for concurrent requests.
++    """
++    from .us_market_bridge import project_us_market
++
++    request = us_market_request_context
++    if request is not None:
++        _validate_us_market_request_context(date, request)
++        code = str(request['execution_status'])
++        return _us_mapping_non_reentry_value(date, context, code)
++
++    reader = getattr(service, '_workspace_us_market_reader', None)
++    leave_workspace_reader = None
++    try:
++        from .us_mapping_research import (
++            leave_workspace_reader, try_enter_workspace_reader, workspace_reader_busy,
++        )
++        if workspace_reader_busy(reader) or not try_enter_workspace_reader(reader):
++            return _us_mapping_non_reentry_value(date, context, 'US_MAPPING_OWNER_READ_BUSY')
++    except ImportError:
++        # The raw bridge remains readable if the optional daily owner package
++        # is absent; its exact reader contract still controls the result.
++        leave_workspace_reader = None
++    try:
++        return project_us_market(reader, date, context)
++    except (WorkspaceReadError, TimeoutError):
++        raise
++    except (ImportError, OSError, ValueError, KeyError, TypeError, RuntimeError, AttributeError) as exc:
++        value = project_us_market(None, date, context)
++        value['status'] = 'SOURCE_FAILED'
++        value['gaps'] = ['US_MARKET_READER_FAILED:' + type(exc).__name__]
++        return value
++    finally:
++        if callable(leave_workspace_reader):
++            leave_workspace_reader(reader)
++
++
++def _validate_us_market_request_context(date: str, request: Mapping[str, Any]) -> None:
++    if (not isinstance(request, Mapping)
++            or set(request) != {'target_trade_date', 'execution_status', 'bypass_reader'}
++            or request.get('target_trade_date') != date
++            or request.get('bypass_reader') is not True
++            or request.get('execution_status') not in _US_OWNER_NON_REENTRY_CODES):
++        raise ValueError('WORKSPACE_US_REQUEST_CONTEXT_INVALID')
++
++
++def _compute_workspace(service: Any, date: str, *, include_saved: bool = True, context: dict,
++                       us_market_request_context: Mapping[str, Any] | None = None) -> dict:
+     from copy import deepcopy
+     context = deepcopy(context)
+     try:
+@@ -649,19 +814,12 @@
+     from .announcement_observation import event_lane
+     value['announcement_observation'] = event_lane(announcement_review, market_screen, context)
+     # US evidence is read from the existing exact-session peripheral store.
+-    # This GET never fetches or materializes US data.
+-    from .us_market_bridge import project_us_market
++    # A bounded daily-owner timeout is passed through this one request only so
++    # the plan cannot re-enter a still-blocked reader; no shared service reader
++    # is replaced and no source values are synthesized.
+     with phase('us_market_exact_read'):
+-        try:
+-            us_market = project_us_market(
+-                getattr(service, '_workspace_us_market_reader', None), date, context
+-            )
+-        except (WorkspaceReadError, TimeoutError):
+-            raise
+-        except (ImportError, OSError, ValueError, KeyError, TypeError, RuntimeError, AttributeError) as exc:
+-            us_market = project_us_market(None, date, context)
+-            us_market['status'] = 'SOURCE_FAILED'
+-            us_market['gaps'] = ['US_MARKET_READER_FAILED:' + type(exc).__name__]
++        us_market = _project_us_market_attention(service, date, context,
++            us_market_request_context=us_market_request_context)
+     us_market['research_material_input']=deepcopy(relation_material_input)
+     value['us_market_attention'] = us_market
+     from .research_attention import build_research_attention
+@@ -767,6 +925,47 @@
+     return row
+ 
+ 
++def _overlay_us_mapping_attempt(saved_workspace: Mapping[str, Any],
++                                current_workspace: Mapping[str, Any],
++                                plan_cutoff: Any) -> dict:
++    """Expose fresh attempt status while keeping the saved plan's consumed run immutable."""
++    saved_mapping = saved_workspace.get('us_mapping_research')
++    current_mapping = current_workspace.get('us_mapping_research')
++    base = deepcopy(dict(saved_mapping if isinstance(saved_mapping, Mapping)
++                         else current_mapping if isinstance(current_mapping, Mapping) else {}))
++    current_daily = current_mapping.get('daily_run') if isinstance(current_mapping, Mapping) else None
++    saved_daily = base.get('daily_run')
++    if not isinstance(saved_daily, Mapping):
++        saved_daily = deepcopy(dict(current_daily)) if isinstance(current_daily, Mapping) else {}
++        base['daily_run'] = saved_daily
++    else:
++        saved_daily = deepcopy(dict(saved_daily))
++        base['daily_run'] = saved_daily
++    latest_attempt = (current_daily.get('latest_attempt')
++                      if isinstance(current_daily, Mapping) else None)
++    if isinstance(latest_attempt, Mapping):
++        cutoff = timestamp(plan_cutoff)
++        attempt_finished = timestamp(latest_attempt.get('finished_at'))
++        saved_daily['latest_attempt'] = deepcopy(dict(latest_attempt))
++        saved_daily['latest_attempt_after_plan_cutoff'] = bool(
++            cutoff is not None and attempt_finished is not None and attempt_finished > cutoff)
++        saved_daily['latest_attempt_affects_saved_plan'] = False
++        base['latest_attempt'] = deepcopy(dict(latest_attempt))
++    else:
++        saved_run = saved_daily.get('run_id') if isinstance(saved_daily, Mapping) else None
++        saved_generated = timestamp(saved_daily.get('generated_at')) if isinstance(saved_daily, Mapping) else None
++        cutoff = timestamp(plan_cutoff)
++        if saved_run is None and isinstance(current_daily, Mapping):
++            current_generated = timestamp(current_daily.get('generated_at'))
++            if cutoff is not None and current_generated is not None and current_generated > cutoff:
++                saved_daily.update({"status":"NOT_CONSUMED_AFTER_CUTOFF", "run_id":None,
++                    "generated_at":None, "matches":[], "artifact_sha256":None,
++                    "input_identity":None,
++                    "gaps":sorted(set([*(saved_daily.get('gaps') or []),
++                                         "US_MAPPING_DAILY_RUN_AFTER_PLAN_CUTOFF"]))})
++    return base
++
++
+ def verified_plan_attempt(store: Any, saved: Mapping[str, Any]) -> dict | None:
+     """Read the exact product's sealed journal, independently of latest.json."""
+     from .workspace_plan_autorun import owner_plan_readback, morning_window, preopen_window
+@@ -774,10 +973,11 @@
+     kind = saved.get('execution_kind', 'MANUAL_REFRESH')
+     attempt = store._read(store.root/'workspace_plan_runs'/date/(saved['run_id']+'.json'))
+     if attempt is None and kind == 'MANUAL_REFRESH':
+-        return None  # Legacy manual plans still require full source replay.
++        raise ValueError('WORKSPACE_PLAN_ATTEMPT_MISSING')
+     product = dict(status='CURRENT', consumed=True, run_id=saved['run_id'],
+         sha256=saved['sha256'], generated_at=saved['generated_at'],
+-        execution_kind=kind, original_owner=saved['owner'])
++        execution_kind=kind, original_owner=saved['owner'],
++        execution_context=deepcopy(saved.get('execution_context')))
+     owner_plan_readback(dict(target_trade_date=date,input_identity=saved['input_identity'],
+         plan_product=product,workspace_plan_attempt=attempt),date,expected_kind=kind)
+     if kind in {'SCHEDULED_MORNING','SCHEDULED_PREOPEN'}:
+@@ -787,7 +987,29 @@
+     return dict(attempt)
+ 
+ 
+-def _readback_plan(store: Any,date: str,current: dict) -> dict:
++def _plan_run_readback(saved: Mapping[str, Any] | None, attempt: Mapping[str, Any] | None,
++                       *, read_at: Any, verified: bool) -> dict:
++    """Expose live verification without writing into the immutable plan product."""
++    owner = 'ManagerResearchJobService.refresh_workspace_plan'
++    attempt = attempt if isinstance(attempt, Mapping) else {}
++    read_time = timestamp(read_at)
++    saved = saved if isinstance(saved, Mapping) else {}
++    return {
++        'status': 'VERIFIED' if verified else 'CANNOT_CONFIRM',
++        'target_trade_date': saved.get('target_trade_date'),
++        'run_id': saved.get('run_id'),
++        'artifact_sha256': saved.get('sha256'),
++        'input_identity': saved.get('input_identity'),
++        'owner': owner,
++        'read_at': read_time.isoformat() if read_time is not None else _now(),
++        'owner_attempt_run_id': attempt.get('run_id') if verified else None,
++        'owner_attempt_sha256': attempt.get('sha256') if verified else None,
++        'owner_attempt_state': attempt.get('state') if verified else None,
++        'owner_finished_at': attempt.get('finished_at') if verified else None,
++    }
++
++
++def _readback_plan(store: Any,date: str,current: dict, *, read_at: Any = None) -> dict:
+     from copy import deepcopy
+     try:
+         saved=_read_plan(store,date)
+@@ -798,15 +1020,27 @@
+         # projection, and are NOT presented as successfully read back.
+         current['plan_product']=dict(status='READBACK_FAILED',reason=type(exc).__name__)
+         return current
++    read_time = (read_at.astimezone(HK) if isinstance(read_at, datetime)
++                 and read_at.tzinfo is not None and read_at.utcoffset() is not None
++                 else timestamp(read_at) if read_at is not None else timestamp(_now()))
++    if read_time is None:
++        read_time = timestamp(_now())
+     saved_cutoff=timestamp(((saved or {}).get('workspace') or {}).get('plan_context',{}).get('research_cutoff'))
+     current_cutoff=timestamp(current.get('plan_context',{}).get('research_cutoff'))
+     after_cutoff=bool(saved is not None and (saved_cutoff is None or current_cutoff is None or saved_cutoff>current_cutoff))
++    saved_bindings = ((saved or {}).get('workspace') or {}).get('date_bindings')
++    current_bindings = current.get('date_bindings')
++    bindings_match = (saved_bindings is None and current_bindings is None) or (
++        isinstance(saved_bindings, Mapping) and isinstance(current_bindings, Mapping)
++        and dict(saved_bindings) == dict(current_bindings))
+     same=(saved is not None and not after_cutoff and saved['input_identity']==current['input_identity']
+-          and saved['workspace'].get('semantic_version')==current.get('semantic_version'))
++          and saved['workspace'].get('semantic_version')==current.get('semantic_version')
++          and bindings_match)
+     plan_attempt_error = None
++    verified_attempt = None
+     if same:
+         try:
+-            verified_plan_attempt(store,saved)
++            verified_attempt=verified_plan_attempt(store,saved)
+         except _ERROR_TYPES as exc:
+             plan_attempt_error = str(exc) if re.fullmatch(r'[A-Z][A-Z0-9_]{0,127}',str(exc)) else type(exc).__name__
+             same = False
+@@ -817,24 +1051,35 @@
+         # Eligibility diagnostics describe this read's owner binding, not the
+         # saved plan's binding. Refresh them without changing its identity,
+         # run_id or sealed bytes; the existing deep-copy overlay stays read-only.
+-        for key in ('lanes','runtime_gaps','run_accounting','continuity_gap','market_screen','market_screen_evidence','owner_chain','announcement_review','announcement_observation','announcement_reviewed_analysis','us_market_attention','research_attention','stage_read_timing','repair_contract','selection_diagnostics','date_bindings','daily_channels'):
++        for key in ('lanes','runtime_gaps','run_accounting','continuity_gap','market_screen','market_screen_evidence','owner_chain','announcement_review','announcement_observation','announcement_reviewed_analysis','us_market_attention','research_attention','stage_read_timing','repair_contract','selection_diagnostics','date_bindings'):
+             if key in current:value[key]=deepcopy(current[key])
+-        value['runtime_status_read_at']=current['plan_context']['research_cutoff']
++        value['us_mapping_research'] = _overlay_us_mapping_attempt(
++            saved['workspace'], current, saved['workspace'].get('plan_context', {}).get('research_cutoff'))
++        value['runtime_status_read_at']=read_time.isoformat() if read_time is not None else _now()
+     value['plan_product']=dict(status='CURRENT' if same else ('OWNER_ATTEMPT_UNVERIFIED' if plan_attempt_error else 'PLAN_AFTER_READ_CUTOFF' if after_cutoff else 'STALE_INPUTS_CHANGED' if saved else 'NOT_MATERIALIZED'),
+         run_id=saved.get('run_id') if saved else None,generated_at=saved.get('generated_at') if saved else None,
+         sha256=saved.get('sha256') if saved else None,
+         execution_kind=saved.get('execution_kind','MANUAL_REFRESH') if saved else None,
++        execution_context=deepcopy(saved.get('execution_context')) if saved else None,
+         original_owner='ManagerResearchJobService.refresh_workspace_plan',
+-        last_checked_at=current['plan_context']['research_cutoff'],consumed=same)
++        last_checked_at=read_time.isoformat() if read_time is not None else _now(),consumed=same,
++        run_readback=_plan_run_readback(saved,verified_attempt,
++            read_at=read_time.isoformat() if read_time is not None else _now(),verified=same))
+     if plan_attempt_error:
+         value['plan_product']['reason'] = plan_attempt_error
+     value['workspace_plan_attempt']=attempt
+     value['observation_mode']='EXACT_DATE_PLAN_READBACK' if same else 'READ_ONLY_EXISTING_OWNER_PREVIEW'
++    if same:
++        from .workspace_daily_channels import build_daily_channels
++        value['daily_channels']=build_daily_channels(value)
+     return value
+ 
+ 
+ def refresh_workspace_plan(service: Any,target_trade_date: str, *, execution_kind: str = 'MANUAL_REFRESH',
+-                           now: datetime | None = None, deadline: datetime | None = None) -> dict:
++                           now: datetime | None = None, deadline: datetime | None = None,
++                           execution_context: Mapping[str, Any] | None = None,
++                           us_market_request_context: Mapping[str, Any] | None = None,
++                           workspace_date_bindings: Mapping[str, Any] | None = None) -> dict:
+     """Persist an exact-date plan from existing verified owners only.
+ 
+     ``SCHEDULED_PREOPEN`` is reserved for the bounded pre-open autorun.  It
+@@ -855,6 +1100,29 @@
+     if scheduled and now.astimezone(timezone.utc) >= deadline.astimezone(timezone.utc):
+         raise ValueError('WORKSPACE_PLAN_SCHEDULED_DEADLINE_EXPIRED')
+     date=date_token(target_trade_date)
++    workspace_dates: dict[str, str] = {}
++    if workspace_date_bindings is not None:
++        if not isinstance(workspace_date_bindings, Mapping) or set(workspace_date_bindings)-{'selection_date','announcement_date'}:
++            raise ValueError('WORKSPACE_PLAN_DATE_BINDINGS_INVALID')
++        if 'selection_date' in workspace_date_bindings:
++            workspace_dates['selection_date'] = date_token(workspace_date_bindings['selection_date'])
++        if 'announcement_date' in workspace_date_bindings:
++            workspace_dates['announcement_date'] = date_token(str(workspace_date_bindings['announcement_date']).replace('-',''))
++        if not workspace_dates:
++            raise ValueError('WORKSPACE_PLAN_DATE_BINDINGS_INVALID')
++    if us_market_request_context is not None:
++        _validate_us_market_request_context(date, us_market_request_context)
++    context_start = now if now is not None else datetime.now(HK)
++    if context_start.tzinfo is None or context_start.utcoffset() is None:
++        raise ValueError('WORKSPACE_PLAN_EXECUTION_CLOCK_MUST_BE_AWARE')
++    plan_execution_context = _plan_execution_context(execution_context,
++        execution_kind=execution_kind, started_at=context_start)
++    plan_read_now = now
++    if plan_execution_context is not None and plan_execution_context.get('timing') == 'RETROSPECTIVE':
++        target_day = datetime.strptime(date,'%Y%m%d').date()
++        actual_day = context_start.astimezone(HK).date()
++        if target_day >= actual_day or execution_kind != 'MANUAL_REFRESH':
++            raise ValueError('WORKSPACE_PLAN_RETROSPECTIVE_TARGET_INVALID')
+     if execution_kind == 'SCHEDULED_MORNING':
+         from .workspace_plan_autorun import morning_window
+         start, freeze = morning_window(date)
+@@ -882,13 +1150,19 @@
+                     and prior_product_attempt.get('execution_kind') == existing.get('execution_kind')
+                     and prior_product_attempt.get('state') in {'SUCCEEDED','SUCCEEDED_EMPTY','PARTIAL'}
+                     and prior_product_attempt.get('input_identity') == existing['input_identity'])
++                if same_owner_attempt:
++                    try:
++                        prior_product_attempt = verified_plan_attempt(service.store, existing)
++                    except _ERROR_TYPES:
++                        same_owner_attempt = False
+                 existing_workspace=existing['workspace']
+                 existing_context=existing_workspace.get('plan_context') if isinstance(existing_workspace.get('plan_context'),dict) else {}
+                 existing_generated=timestamp(existing.get('generated_at'))
+                 existing_cutoff=timestamp(existing_context.get('research_cutoff'))
+                 open_at=deadline.astimezone(timezone.utc)
+                 try:
+-                    prepared=get_workspace(service,date,include_saved=False,now=now)
++                        prepared=get_workspace(service,date,include_saved=False,now=plan_read_now,
++                            us_market_request_context=us_market_request_context,**workspace_dates)
+                 except _ERROR_TYPES as exc:
+                     preparation_error=exc
+                 if (prepared is not None and same_owner_attempt
+@@ -900,12 +1174,14 @@
+                         and existing_generated<=now
+                         and existing_generated.astimezone(timezone.utc)<open_at
+                         and existing_cutoff.astimezone(timezone.utc)<=open_at):
+-                    from copy import deepcopy
+                     value=deepcopy(prepared)
+                     value['plan_product']=dict(status='ALREADY_MATERIALIZED',run_id=existing.get('run_id'),
+                         generated_at=existing.get('generated_at'),sha256=existing.get('sha256'),
+                         execution_kind=existing['execution_kind'], consumed=True,
+-                        original_owner='ManagerResearchJobService.refresh_workspace_plan')
++                        original_owner='ManagerResearchJobService.refresh_workspace_plan',
++                        execution_context=deepcopy(existing.get('execution_context')),
++                        run_readback=_plan_run_readback(existing,prior_product_attempt,
++                            read_at=now,verified=True))
+                     value['workspace_plan_attempt']=deepcopy(prior_product_attempt)
+                     from .workspace_daily_channels import build_daily_channels
+                     value['daily_channels']=build_daily_channels(value)
+@@ -922,6 +1198,8 @@
+         attempt=dict(schema_version=ATTEMPT_SCHEMA,target_trade_date=date,run_id=run_id,
+             owner='ManagerResearchJobService.refresh_workspace_plan',state='RUNNING',execution_kind=execution_kind,
+             started_at=(now.astimezone(timezone.utc).isoformat(timespec='microseconds') if now is not None else _now()),last_success_at=(prior or {}).get('last_success_at'),failure_reasons=[],**FLAGS)
++        if plan_execution_context is not None:
++            attempt['execution_context'] = deepcopy(plan_execution_context)
+         def write_attempt() -> None:
+             sealed=validate_attempt(seal_attempt(attempt),date)
+             service.store._write_atomic(run_root/(run_id+'.json'),sealed)
+@@ -930,16 +1208,23 @@
+         try:
+             if preparation_error is not None:
+                 raise preparation_error
+-            value=prepared if prepared is not None else get_workspace(service,date,include_saved=False,now=now)
++            value=prepared if prepared is not None else get_workspace(service,date,include_saved=False,
++                now=plan_read_now,us_market_request_context=us_market_request_context,**workspace_dates)
++            completed_at=_now()
++            if plan_execution_context is not None:
++                plan_execution_context['finished_at'] = completed_at
++                value['execution_context'] = deepcopy(plan_execution_context)
+             failures=sorted(set(value['gaps']))
+             state='PARTIAL' if failures else ('SUCCEEDED' if value['stocks'] else 'SUCCEEDED_EMPTY')
+             checkpoint()
+-            completed_at=_now()
+             if deadline is not None and timestamp(completed_at) >= deadline.astimezone(timezone.utc):
+                 raise TimeoutError('WORKSPACE_PLAN_SCHEDULED_COMPLETION_DEADLINE_EXCEEDED')
+             product=dict(schema_version=PLAN_SCHEMA,target_trade_date=date,run_id=run_id,
+                 generated_at=completed_at,owner='ManagerResearchJobService.refresh_workspace_plan',
+                 execution_kind=execution_kind,input_identity=value['input_identity'],workspace=value,**FLAGS)
++            if plan_execution_context is not None:
++                product['execution_context'] = deepcopy(plan_execution_context)
++                attempt['execution_context'] = deepcopy(plan_execution_context)
+             product['read_contract_sha256'] = contract_identity()
+             product['sha256']=digest(product)
+             root=service.store.root/'workspace_plans'/date
+--- a/v4/manager_research/workspace_history.py
++++ b/v4/manager_research/workspace_history.py
+@@ -39,7 +39,28 @@
+     return plan_context(date, now=opening)
+ 
+ 
+-def _read_candidate(store: Any, date: str, name: str) -> tuple[dict | None, int]:
++def _execution_context_qualifies(row: Mapping[str, Any], boundary: Mapping[str, Any]) -> bool:
++    """A late or retrospective manual-kind plan can never masquerade as history."""
++    context = row.get('execution_context')
++    if context is None:
++        return True  # Preserve original MANUAL_REFRESH compatibility.
++    if not isinstance(context, Mapping):
++        return False
++    if (context.get('timing') != 'ON_TIME'
++            or context.get('trigger_kind') not in {'SCHEDULED','MANUAL','UNKNOWN'}
++            or context.get('natural_run_verified') is not False):
++        return False
++    scheduled = timestamp(context.get('scheduled_for'))
++    started = timestamp(context.get('started_at'))
++    finished = timestamp(context.get('finished_at'))
++    cutoff = timestamp(boundary.get('research_cutoff'))
++    generated = timestamp(row.get('generated_at'))
++    return bool(scheduled and started and finished and cutoff and generated
++        and scheduled <= started <= finished <= cutoff and generated <= cutoff)
++
++
++def _read_candidate(store: Any, date: str, name: str, *,
++                    boundary: Mapping[str, Any] | None = None) -> tuple[dict | None, int]:
+     from .workspace import PLAN_SCHEMA
+     path = f'workspace_plans/{date}/{name}'
+     try:
+@@ -63,6 +84,8 @@
+         or not timestamp(row.get('generated_at'))
+         or name not in {'latest.json', str(row.get('run_id'))+'.json'}):
+         raise ValueError('HISTORY_PLAN_IDENTITY_INVALID')
++    if boundary is not None and not _execution_context_qualifies(row, boundary):
++        return None, len(raw)
+     if (body.get('schema_version') != SCHEMA
+         or not re.fullmatch(r'[0-9a-f]{64}', str(body.get('input_identity','')))
+         or any(not isinstance(body.get(k), dict) for k in ('summary','briefing','plan_context'))
+@@ -94,7 +117,7 @@
+     def eligible(row: dict | None) -> bool:
+         return bool(row and timestamp(row['generated_at']) <= limit
+             and timestamp(row['workspace']['plan_context']['research_cutoff']) <= limit)
+-    latest, total = _read_candidate(store, date, 'latest.json')
++    latest, total = _read_candidate(store, date, 'latest.json', boundary=boundary)
+     if eligible(latest):
+         return latest
+     # A later dynamic refresh must not mask an earlier exact-date pre-session
+@@ -119,7 +142,7 @@
+     candidates = []
+     for name in sorted(names):
+         checkpoint()
+-        row, size = _read_candidate(store, date, name)
++        row, size = _read_candidate(store, date, name, boundary=boundary)
+         total += size
+         if total > _MAX_SCAN_BYTES:
+             raise ValueError('HISTORY_RUN_BYTES_BOUND_EXCEEDED')
+@@ -243,11 +266,43 @@
+     )
+ 
+ 
++def _reader_revalidation(saved: Mapping[str, Any]) -> dict:
++    """Separate source-byte identity from a supported historical read contract.
++
++    A different source fingerprint never admits a plan by itself. Only a
++    contract named in the sealed saved product can enter cross-source replay;
++    the original owners, cutoff, PIT and complete frozen fields decide below.
++    No-fingerprint legacy plans retain their existing full-replay admission.
++    """
++    reader = saved.get('read_contract_sha256')
++    if reader is not None and (not isinstance(reader, str)
++                               or not re.fullmatch(r'[0-9a-f]{64}', reader)):
++        raise ValueError('HISTORY_READER_IDENTITY_INVALID')
++    saved_read = saved['workspace'].get('read_context')
++    if saved_read is not None and not isinstance(saved_read, Mapping):
++        raise ValueError('HISTORY_READ_CONTRACT_UNPROVEN')
++    saved_contract = saved_read.get('contract') if saved_read is not None else None
++    if saved_contract is not None and saved_contract != READ_CONTRACT:
++        raise ValueError('HISTORY_READ_CONTRACT_UNSUPPORTED')
++    current_reader = contract_identity()
++    changed = reader is not None and reader != current_reader
++    if changed and saved_contract != READ_CONTRACT:
++        raise ValueError('HISTORY_READ_CONTRACT_UNPROVEN')
++    return dict(status='REVALIDATION_REQUIRED',
++        mode=('LEGACY_FULL_REVALIDATION' if reader is None else
++              'SAME_CONTRACT_SOURCE_CHANGE' if changed else 'IDENTICAL_SOURCE'),
++        saved_contract=saved_contract, current_contract=READ_CONTRACT,
++        saved_read_contract_sha256=reader, current_read_contract_sha256=current_reader,
++        method='ORIGINAL_OWNERS_EXACT_CUTOFF_FULL_REPLAY',
++        source_stable_during_revalidation=None, saved_plan_modified=False)
++
++
+ def read_history(service: Any, date: str) -> dict:
+     from .workspace import _compute_workspace, _ERROR_TYPES, verified_plan_attempt
+     boundary = boundary_context(date)
+     saved = None
+     ctx = None
++    reader_revalidation = None
+     try:
+         with phase('saved_plan_gate'):
+             saved = select_plan(service.store, date, boundary)
+@@ -262,9 +317,7 @@
+             from .workspace_semantics import SEMANTIC_VERSION
+             if saved['workspace'].get('semantic_version') != SEMANTIC_VERSION:
+                 raise ValueError('HISTORY_SEMANTIC_VERSION_CHANGED')
+-            reader = saved.get('read_contract_sha256')
+-            if reader is not None and reader != contract_identity():
+-                raise ValueError('HISTORY_READER_VERSION_CHANGED')
++            reader_revalidation = _reader_revalidation(saved)
+             _pit(saved['workspace'], timestamp(ctx['research_cutoff']))
+         # Mandatory original schema/SHA/safety/source validation. The memo
+         # below _compute_workspace caches ONLY pure projections of these
+@@ -277,6 +330,14 @@
+             if any(saved['workspace'].get(k) != verified.get(k) for k in _BUSINESS_FIELDS):
+                 raise ValueError('HISTORY_FROZEN_PROJECTION_CHANGED')
+             _pit(verified, timestamp(ctx['research_cutoff']))
++        # The byte identity still protects this whole replay. A deployment
++        # change during owner validation cannot become a compatible read.
++        with phase('historical_reader_stability'):
++            stable = contract_identity() == reader_revalidation['current_read_contract_sha256']
++            reader_revalidation['source_stable_during_revalidation'] = stable
++            if not stable:
++                raise ValueError('HISTORY_READER_CHANGED_DURING_REVALIDATION')
++            reader_revalidation['status'] = 'VERIFIED'
+         # Return the verified projection, never unchecked saved stock/actions.
+         verified['plan_product'] = dict(status='CURRENT', consumed=True, run_id=saved['run_id'],
+             sha256=saved['sha256'], generated_at=saved['generated_at'],
+@@ -288,7 +349,8 @@
+             status='VERIFIED_WITH_GAPS' if verified['gaps'] else 'VERIFIED',
+             as_of=ctx['research_cutoff'], boundary_basis='SAVED_CUTOFF_NOT_LATER_THAN_MANAGER_FIRST_CONTINUOUS_STAGE',
+             candidate_count_known=bool(verified['stocks']) or not verified['gaps'],
+-            contract=READ_CONTRACT, legacy_full_revalidation=reader is None)
++            contract=READ_CONTRACT, legacy_full_revalidation=saved.get('read_contract_sha256') is None,
++            reader_compatibility=reader_revalidation)
+         us_market = verified.get('us_market_attention')
+         if isinstance(us_market, dict):
+             recheck = _mark_historical_us_recheck(us_market, ctx, saved)
+@@ -304,6 +366,9 @@
+         # boundary or at the current page time.
+         failed_context = ctx if isinstance(ctx, Mapping) else boundary
+         result = unavailable(date, dict(failed_context), 'SOURCE_FAILED', reason, saved=saved)
++        if reader_revalidation is not None:
++            result['read_context']['reader_compatibility'] = dict(
++                reader_revalidation, status='FAILED', reason=reason)
+         if saved is not None and ctx is not None:
+             _attach_historical_us_recheck(result, service, date, ctx, saved)
+             result['read_context']['as_of'] = ctx['research_cutoff']
+--- a/v4/manager_research/workspace_plan_autorun.py
++++ b/v4/manager_research/workspace_plan_autorun.py
+@@ -19,6 +19,22 @@
+     "status": "PROPOSAL_ONLY",
+ }
+ PLAN_OWNER = "ManagerResearchJobService.refresh_workspace_plan"
++# Preserve declared gate/readback diagnostics, never arbitrary exception text.
++# Original owner PARTIAL/gaps are returned above this exception boundary intact.
++PREOPEN_FAILURE_REASONS = frozenset({
++    "PREOPEN_PLAN_ENABLED_INVALID", "PREOPEN_PLAN_LEAD_SECONDS_INVALID",
++    "PREOPEN_PLAN_CLOCK_MUST_BE_AWARE", "PREOPEN_PLAN_TARGET_NOT_HK_TRADING_SESSION",
++    "PREOPEN_PLAN_STAGE_BOUNDARY_UNAVAILABLE", "PREOPEN_PLAN_STAGE_BOUNDARY_INVALID",
++    "PLAN_OWNER_PRODUCT_AND_ATTEMPT_REQUIRED", "PLAN_OWNER_EXECUTION_KIND_MISMATCH",
++    "PLAN_OWNER_PRODUCT_ATTEMPT_READBACK_MISMATCH", "WORKSPACE_DATE_INVALID",
++    "WORKSPACE_ATTEMPT_HASH_INVALID", "WORKSPACE_ATTEMPT_CONTRACT_INVALID",
++    "WORKSPACE_ATTEMPT_TERMINAL_TIME_INVALID", "WORKSPACE_PLAN_DATE_BINDINGS_INVALID",
++    "WORKSPACE_PLAN_SCHEDULED_DEADLINE_EXPIRED", "WORKSPACE_PLAN_SAVE_READBACK_FAILED",
++    "WORKSPACE_PLAN_ATTEMPT_READBACK_FAILED", "PLAN_CUTOFF_MUST_HAVE_TIMEZONE",
++    "PLAN_TARGET_NOT_VERIFIED_HK_TRADING_SESSION", "PLAN_HALF_DAY_CLOSE_UNAVAILABLE",
++    "PLAN_SESSION_CLOSE_INVALID_NATIVE_CALENDAR", "PLAN_COMPLETED_HK_SESSION_OUTSIDE_NATIVE_CALENDAR",
++    "PLAN_TWO_COMPLETED_HK_SESSIONS_UNAVAILABLE", "PLAN_SOURCE_WINDOW_EXCEEDS_31_DAY_BOUND",
++})
+ 
+ 
+ def owner_plan_readback(value: Any, target_trade_date: str, *, expected_kind: str,
+@@ -42,6 +58,26 @@
+     product_sha = str(product.get("sha256") or "")
+     identity = str(value.get("input_identity") or "")
+     generated = timestamp(product.get("generated_at"))
++    execution_context = product.get("execution_context")
++    attempt_context = attempt.get("execution_context")
++    execution_context_valid = True
++    if execution_context is not None or attempt_context is not None:
++        if not isinstance(execution_context, Mapping) or not isinstance(attempt_context, Mapping):
++            execution_context_valid = False
++        elif dict(execution_context) != dict(attempt_context):
++            execution_context_valid = False
++        else:
++            start = timestamp(execution_context.get("started_at"))
++            finish = timestamp(execution_context.get("finished_at"))
++            scheduled_for = timestamp(execution_context.get("scheduled_for")) if execution_context.get("scheduled_for") else None
++            execution_context_valid = bool(
++                execution_context.get("trigger_kind") in {"SCHEDULED","MANUAL","UNKNOWN"}
++                and execution_context.get("timing") in {"ON_TIME","LATE_CATCHUP","RETROSPECTIVE","UNCLASSIFIED"}
++                and execution_context.get("natural_run_verified") is False
++                and start is not None and finish is not None and generated is not None
++                and start <= generated <= finish
++                and (scheduled_for is None or scheduled_for <= start)
++                and (execution_context.get("trigger_kind") != "SCHEDULED" or scheduled_for is not None))
+     if (value.get("target_trade_date") != date
+             or product_status not in {"CURRENT", "ALREADY_MATERIALIZED", "PRESERVED_SCHEDULED_PREOPEN"}
+             or product.get("consumed") is not True
+@@ -54,6 +90,7 @@
+             or attempt.get("input_identity") != identity
+             or attempt.get("state") not in {"SUCCEEDED", "SUCCEEDED_EMPTY", "PARTIAL"}
+             or (attempt.get("state") == "PARTIAL") != bool(attempt.get("failure_reasons"))
++            or not execution_context_valid
+             or timestamp(attempt.get("started_at")) > generated
+             or timestamp(attempt.get("finished_at")) < generated):
+         raise ValueError("PLAN_OWNER_PRODUCT_ATTEMPT_READBACK_MISMATCH")
+@@ -64,6 +101,7 @@
+         "target_trade_date": date, "owner": PLAN_OWNER,
+         "run_id": run_id, "product_sha256": product_sha, "input_identity": identity,
+         "generated_at": product["generated_at"], "execution_kind": kind,
++        "execution_context": dict(execution_context) if isinstance(execution_context, Mapping) else None,
+         "execution_kind_source": "OWNER_READBACK",
+         "owner_attempt_run_id": attempt["run_id"], "owner_attempt_sha256": attempt["sha256"],
+         "owner_attempt_state": attempt["state"], "owner_finished_at": attempt["finished_at"],
+@@ -160,14 +198,19 @@
+     """Isolate plan-freeze failure from the announcement owner execution."""
+     try:
+         return run_scheduled_preopen_plan(service, target_trade_date, now=now, config=config)
+-    except Exception as exc:  # bounded worker records the class; never the message/secrets
++    except Exception as exc:
++        # Capture timeout by type before the safe wrapper loses the exception.
++        # Uppercase text is not evidence of either a stable code or completion.
++        is_timeout = isinstance(exc, TimeoutError)
++        code = "PLAN_OWNER_EXECUTION_TIMEOUT" if is_timeout else "PLAN_OWNER_EXECUTION_FAILED"
+         reason = str(exc)
+-        if not re.fullmatch(r"[A-Z][A-Z0-9_]{0,95}", reason):
+-            reason = type(exc).__name__
++        if is_timeout or reason not in PREOPEN_FAILURE_REASONS:
++            reason = code
+         return {
+             "status": "FAILED",
+             "reason": reason,
+-            "failure_reasons": ["PREOPEN_PLAN_OWNER_FAILED:" + reason],
++            "failure_code": code,
++            "failure_reasons": [code] + ([reason] if reason != code else []),
+             "blocks_announcement": False,
+             "policy_status": "PROPOSAL_ONLY",
+         }
+@@ -202,6 +245,8 @@
+     *,
+     now: datetime,
+     config: Mapping[str, Any] | None = None,
++    execution_context: Mapping[str, Any] | None = None,
++    us_market_request_context: Mapping[str, Any] | None = None,
+ ) -> dict[str, Any]:
+     cfg = morning_config(config)
+     if now.tzinfo is None:
+@@ -213,15 +258,31 @@
+     if local.strftime("%Y%m%d") != date:
+         raise ValueError("MORNING_PLAN_DATE_CLOCK_MISMATCH")
+     start, freeze = morning_window(date)
+-    if local < start:
+-        return {"status": "NOT_DUE", "target_trade_date": date, "policy_status": "PROPOSAL_ONLY"}
+-    if local >= freeze:
+-        return {"status": "EXPIRED_NO_BACKFILL", "target_trade_date": date, "policy_status": "PROPOSAL_ONLY"}
+-    if (local.hour * 60 + local.minute) % (cfg["interval_seconds"] // 60):
+-        return {"status": "INTERVAL_NOT_DUE", "target_trade_date": date, "policy_status": "PROPOSAL_ONLY"}
++    admitted_schedule = None
++    if isinstance(execution_context, Mapping) and execution_context.get("trigger_kind") == "SCHEDULED":
++        admitted_schedule = timestamp(execution_context.get("scheduled_for"))
++        if (admitted_schedule is None or admitted_schedule.astimezone(HK).strftime("%Y%m%d") != date
++                or admitted_schedule.tzinfo is None):
++            raise ValueError("MORNING_PLAN_SCHEDULED_CONTEXT_INVALID")
++        scheduled_local = admitted_schedule.astimezone(HK)
++        if (scheduled_local.second or scheduled_local.microsecond
++                or not start <= scheduled_local < freeze
++                or (scheduled_local.hour * 60 + scheduled_local.minute) % (cfg["interval_seconds"] // 60)
++                or local < scheduled_local or local >= scheduled_local + timedelta(seconds=120)):
++            return {"status": "EXPIRED_NO_BACKFILL", "target_trade_date": date,
++                    "policy_status": "PROPOSAL_ONLY"}
++    else:
++        if local < start:
++            return {"status": "NOT_DUE", "target_trade_date": date, "policy_status": "PROPOSAL_ONLY"}
++        if local >= freeze:
++            return {"status": "EXPIRED_NO_BACKFILL", "target_trade_date": date, "policy_status": "PROPOSAL_ONLY"}
++        if (local.hour * 60 + local.minute) % (cfg["interval_seconds"] // 60):
++            return {"status": "INTERVAL_NOT_DUE", "target_trade_date": date, "policy_status": "PROPOSAL_ONLY"}
+ 
+     value = service.refresh_workspace_plan(
+-        date, execution_kind="SCHEDULED_MORNING", now=local, deadline=freeze
++        date, execution_kind="SCHEDULED_MORNING", now=local, deadline=freeze,
++        execution_context=execution_context,
++        us_market_request_context=us_market_request_context,
+     )
+     readback = owner_plan_readback(value, date, expected_kind="SCHEDULED_MORNING",
+                                   allow_preserved_preopen=True)
+--- a/v3_shared_data/shared_data/hk_daily_supplement.py
++++ b/v3_shared_data/shared_data/hk_daily_supplement.py
+@@ -378,6 +378,29 @@
+         prior_pointer = _pointer_bytes(pointer_path)
+         prior_doc = json.loads(prior_pointer) if prior_pointer is not None else None
+         prior_manifest_sha = str((prior_doc or {}).get("manifest_sha256") or "") or None
++        # Reuse only a fully verified exact-parent READY sidecar. Malformed or
++        # mismatched existing pointers fail in the reader; they are never
++        # treated as a cache miss and overwritten by a fresh provider call.
++        if prior_pointer is not None:
++            cached = read_verified_daily_supplement(
++                root, target_date=target_date, requested=sessions,
++                research_cutoff=_time_text(clock()), expected_panel=panel,
++                expected_master=master, expected_codes=codes,
++            )
++            if cached is not None and cached.get("status") == "READY":
++                manifest = cached["manifest"]
++                pointer = cached["pointer"]
++                return {
++                    "status": "READY", "target_date": target_date,
++                    "run_id": manifest["run_id"],
++                    "manifest_relative": pointer["manifest_relative"],
++                    "manifest_sha256": cached["manifest_sha256"],
++                    "raw_capture_sha256": cached["raw_capture_sha256"],
++                    "code_count": manifest["code_count"],
++                    "record_status_counts": dict(manifest["record_status_counts"]),
++                    "published_at": pointer["published_at"], "reused": True,
++                    **SAFETY,
++                }
+     else:
+         prior_pointer = None
+         prior_manifest_sha = None
+@@ -532,7 +555,8 @@
+     return {"status": status, "target_date": target_date, "run_id": run_id,
+             "manifest_relative": manifest_rel, "manifest_sha256": manifest_sha,
+             "raw_capture_sha256": raw_sha, "code_count": len(selected_codes),
+-            "record_status_counts": manifest["record_status_counts"], **SAFETY}
++            "record_status_counts": manifest["record_status_counts"],
++            "published_at": pointer["published_at"], **SAFETY}
+ 
+ 
+ def read_verified_daily_supplement(
+--- a/v4/manager_research/workspace_daily_channels.py
++++ b/v4/manager_research/workspace_daily_channels.py
+@@ -23,13 +23,25 @@
+ 
+ 
+ def _references(value: Any) -> list[dict[str, Any]]:
+-    # Keep source pointers in the first-screen projection. Original bodies and
+-    # nested evidence remain in their existing owner fields, not duplicated.
+-    keys = {'card_id','art_code','title','owner','source','source_ref','source_date',
++    # Native market refs carry payload/manifest pointers; material cards keep
++    # them one source_refs edge below the card. Preserve those scalar pointers
++    # with their card identity, never recursively copy bodies or evidence.
++    keys = {'card_id','art_code','title','owner','source','source_id','source_ref','source_date',
+         'product_sha256','source_sha256','source_manifest_sha256','artifact_sha256',
++        'payload_path','payload_sha256','manifest_path','manifest_sha256',
++        'artifact_path','pointer_path','pointer_sha256','receipt_sha256',
+         'sha256','run_id','evidence_run_id','published_at','available_at','generated_at'}
+-    return [{key:item for key,item in row.items() if key in keys
+-             and (item is None or isinstance(item,(str,int,float,bool)))} for row in _rows(value)]
++    def scalars(row: Mapping[str, Any]) -> dict[str, Any]:
++        return {key:item for key,item in row.items() if key in keys
++                and (item is None or isinstance(item,(str,int,float,bool)))}
++    result = []
++    for row in _rows(value):
++        direct = scalars(row)
++        result.append(direct)
++        anchors = {key:direct[key] for key in ('card_id','art_code') if key in direct}
++        for reference in _rows(row.get('source_refs')):
++            result.append({**anchors, **scalars(reference)})
++    return result
+ 
+ 
+ def _checks(products: list[Mapping[str, Any]]) -> list[dict[str, Any]]:

@@ -1,0 +1,342 @@
+{"api_consumer_file": "/workspace/scratch/21926b793c00/candidate/v3_shared_data/shared_data/hk_daily_supplement.py", "api_consumer_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862", "callsite_file": "/workspace/scratch/21926b793c00/candidate/v4/manager_research/workspace_plan.py", "callsite_sha256": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb", "scope": "SYNTHETIC_ACTUAL_API_READER_BEHAVIOR"}
+.......{"dependency_root": "/workspace/scratch/21926b793c00/candidate", "hk_child_root": "/workspace/scratch/21926b793c00/hk_child_candidate", "loaded_modules": {"ensure": {"file": "/workspace/scratch/21926b793c00/hk_child_candidate/ops/ensure_hk_security_master.py", "sha256": "495ced4f0f06f170606ee576e035dafc99b540cd9fad0a28f2f2a36e5989ddb9"}, "entry": {"file": "/workspace/scratch/21926b793c00/hk_child_candidate/ops/macos_research_panel_daily.py", "sha256": "1963990fcde99b2681c837b8b66ea12f1ab066aba47729af5d0900073bc79ef3"}, "gate": {"file": "/workspace/scratch/21926b793c00/hk_child_candidate/ops/_macos_research_panel_daily_parts/hk_capture_gate.py", "sha256": "d07be30a40c35aee9d710fcdcc7ae66b031488cc4c5e7029824e3c76ed3fd71c"}, "namespace": {"file": "/workspace/scratch/21926b793c00/hk_child_candidate/ops/_macos_research_panel_daily_parts/_namespace.py", "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1"}}, "scope": "ISOLATED_EXPLICIT_CHILD_MODULE_BINDING"}
+...FF.
+=================================== FAILURES ===================================
+_____ test_actual_hk_entry_original_owner_roundtrip_and_final_gate[False] ______
+
+actual_hk_modules = namespace(namespace=<module 'ops._macos_research_panel_daily_parts._namespace' from '/workspace/scratch/21926b793c00/h...nager_r3_actual_hk_child' from '/workspace/scratch/21926b793c00/hk_child_candidate/ops/macos_research_panel_daily.py'>)
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-79/test_actual_hk_entry_original_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe13d7da350>
+capsys = <_pytest.capture.CaptureFixture object at 0x7fe13d69cf50>
+reject_readback = False
+
+    @pytest.mark.parametrize("reject_readback", [False, True])
+    def test_actual_hk_entry_original_owner_roundtrip_and_final_gate(
+        actual_hk_modules, tmp_path, monkeypatch, capsys, reject_readback,
+    ):
+        # Retain the original owner test's assertions. Its fake Futu/TDX boundary
+        # and fixture updater are test dependencies, not an actual HK02 deployment.
+>       original_chain.test_actual_entry_publishes_and_reuses_full_hk_chain_with_original_owners(
+            tmp_path, monkeypatch, capsys, reject_readback)
+
+tests/test_manager_r3_hk_continuation.py:245: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-79/test_actual_hk_entry_original_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe13d7da350>
+capsys = <_pytest.capture.CaptureFixture object at 0x7fe13d69cf50>
+reject_candidate_readback = False
+
+    @pytest.mark.parametrize("reject_candidate_readback", [False, True])
+    def test_actual_entry_publishes_and_reuses_full_hk_chain_with_original_owners(
+        tmp_path, monkeypatch, capsys, reject_candidate_readback
+    ):
+        import importlib
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+    
+        import pandas as pd
+    
+        actual = _load_actual_layer()
+        date = "20261008"
+        monkeypatch.setattr(gate, "_today_shanghai", lambda: date)
+        app_root = Path(__file__).resolve().parents[1]
+        package_root = app_root / "upstreams" / "v3_shared_data"
+        updater = package_root / "scripts" / "update_hk_0_2_panel.py"
+        monkeypatch.syspath_prepend(str(package_root))
+        hk02 = importlib.import_module("shared_data.hk_0_2")
+        loader = importlib.import_module("infrastructure.isolated_package_loader")
+        ensure = importlib.import_module("ops.ensure_hk_security_master")
+        capture_module = importlib.import_module(
+            "ops._macos_research_panel_daily_parts.hk_market_capture")
+    
+        flags = {"production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
+        state_root = tmp_path / "shared-data"
+        asset_root = state_root / "assets" / "hk_0_2"
+        asset_root.mkdir(parents=True)
+        tdx_root = tmp_path / "tdx"
+        seed_panel = tmp_path / "seed-panel.parquet"
+        codes = [f"HK.{number:05d}" for number in range(1, 601)]
+        pd.DataFrame([{"trade_date_compact": "20261007", "code_norm": code,
+            "close": 10.0} for code in codes]).to_parquet(seed_panel, index=False)
+        seed_manifest = {"panel_sha256": hashlib.sha256(seed_panel.read_bytes()).hexdigest()}
+        monkeypatch.setattr(hk02, "load_frozen_hk_0_2_assets",
+            lambda _root: SimpleNamespace(panel_path=seed_panel, panel_manifest=seed_manifest))
+    
+        class FrozenShanghaiClock(datetime):
+            @classmethod
+            def now(cls, tz=None):
+                fixed = datetime(2026, 10, 8, 17, 20, tzinfo=ZoneInfo("Asia/Shanghai"))
+                return fixed.astimezone(tz) if tz is not None else fixed
+    
+        monkeypatch.setattr(ensure, "datetime", FrozenShanghaiClock)
+        monkeypatch.setattr(actual, "_today_shanghai", lambda: date)
+        monkeypatch.setattr(capture_module, "_utc_now_iso",
+            lambda: "2026-10-08T09:20:00+00:00")
+    
+        class FakeFutuContext:
+            def __init__(self):
+                self.closed = False
+    
+            def get_plate_stock(self, _plate):
+                return 0, pd.DataFrame([{"code": code, "stock_name": f"Synthetic issuer {code[3:]}"}
+                                        for code in codes])
+    
+            def get_market_snapshot(self, requested_codes):
+                return 0, pd.DataFrame([{
+                    "code": code, "name": f"Synthetic issuer {code[3:]}",
+                    "update_time": "2026-10-08 17:20:00", "open_price": 10.0,
+                    "high_price": 11.0, "low_price": 9.0, "last_price": 10.0,
+                    "volume": 1000, "turnover": 10000.0,
+                    "outstanding_shares": 1000000, "circular_market_val": 10000000.0,
+                    "listing_date": "2010-01-01", "lot_size": 100,
+                    "stock_owner": "Synthetic owner", "stock_child_type": "Synthetic type",
+                    "sec_status": "NORMAL",
+                } for code in requested_codes])
+    
+            def close(self):
+                self.closed = True
+    
+        contexts = []
+        futu = SimpleNamespace(OpenQuoteContext=lambda **_kwargs:
+            contexts.append(FakeFutuContext()) or contexts[-1])
+        monkeypatch.setitem(sys.modules, "futu", futu)
+    
+        def publish_panel_with_original_owner(updater_path, python, assets, tdx, target):
+            result = hk02.update_hk_0_2_panel_from_vipdoc(
+                assets, tdx_root=tdx, through_date=target)
+            return {**result, "target_date": target,
+                "argv": [str(python), str(updater_path), "--asset-root", str(assets),
+                         "--tdx-root", str(tdx), "--through-date", target], **flags}
+    
+        monkeypatch.setattr(actual, "run_hk_0_2_authority", publish_panel_with_original_owner)
+    
+        def read_published_panel(root):
+            root = Path(root).resolve()
+            pointer = json.loads((root / "panel_latest.json").read_text(encoding="utf-8"))
+            manifest_path = (root / pointer["manifest_relative"]).resolve()
+            manifest_path.relative_to(root)
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            panel_path = (root / manifest["panel_relative"]).resolve()
+            panel_path.relative_to(root)
+            return SimpleNamespace(panel_manifest=manifest, panel_path=panel_path)
+    
+        original_isolated_loader = loader.load_isolated_package_module
+    
+        def isolated_loader(root, *, package_directory, module_leaf, namespace_prefix):
+            if package_directory == "shared_data" and module_leaf == "hk_0_2":
+                return SimpleNamespace(load_frozen_hk_0_2_assets=read_published_panel)
+            return original_isolated_loader(root, package_directory=package_directory,
+                module_leaf=module_leaf, namespace_prefix=namespace_prefix)
+    
+        monkeypatch.setattr(loader, "load_isolated_package_module", isolated_loader)
+    
+        supplement_payload = {"status": "PARTIAL_WITH_PENDING", "target_date": date,
+            "through_date": date, "run_id": "synthetic-supplement", "code_count": 600,
+            "record_status_counts": {"PENDING": 600}, "volume_unit_status": "NOT_PROVEN",
+            "price_basis": "UNKNOWN", **flags}
+    
+        class CompletedSupplement:
+            returncode = 0
+            stdout = json.dumps(supplement_payload) + "\n"
+    
+        monkeypatch.setattr(actual.subprocess, "run", lambda *_args, **_kwargs: CompletedSupplement())
+    
+        if reject_candidate_readback:
+            original_read_verified_chain = gate.read_verified_chain
+    
+            def reject_candidate(*args, **kwargs):
+                if kwargs.get("_pointer_override") is not None:
+                    raise ValueError("synthetic candidate readback rejection")
+                return original_read_verified_chain(*args, **kwargs)
+    
+            monkeypatch.setattr(gate, "read_verified_chain", reject_candidate)
+    
+        receipt_root = tmp_path / "receipts"
+        args = ["--date", date, "--lane", "HK", "--receipt-root", str(receipt_root),
+            "--hk-tdx-root", str(tdx_root), "--hk-updater-script", str(updater),
+            "--hk-python-executable", sys.executable, "--hk-asset-root", str(asset_root)]
+        result_code = actual.main(args)
+        capsys.readouterr()
+        if reject_candidate_readback:
+            assert result_code == 2
+            attempt_path = receipt_root / "hk_publication" / date / "latest_attempt.json"
+            attempt = json.loads(attempt_path.read_text(encoding="utf-8"))
+            assert attempt["status"] == "CANNOT_CONFIRM"
+            assert not (receipt_root / "hk_publication" / date / "latest.json").exists()
+            unpromoted_terminal = json.loads(
+                (receipt_root / attempt["terminal_relative"]).read_text(encoding="utf-8"))
+            assert unpromoted_terminal["status"] == "READY"
+            lane = json.loads((receipt_root / f"hk-{date}.json").read_text(encoding="utf-8"))
+            assert lane["status"] == "CANNOT_CONFIRM"
+            assert len(contexts) == 1 and contexts[0].closed is True
+            return
+>       assert result_code == 0
+E       assert 1 == 0
+
+tests/test_hk_daily_publication_chain.py:619: AssertionError
+______ test_actual_hk_entry_original_owner_roundtrip_and_final_gate[True] ______
+
+actual_hk_modules = namespace(namespace=<module 'ops._macos_research_panel_daily_parts._namespace' from '/workspace/scratch/21926b793c00/h...nager_r3_actual_hk_child' from '/workspace/scratch/21926b793c00/hk_child_candidate/ops/macos_research_panel_daily.py'>)
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-79/test_actual_hk_entry_original_1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe13d7728f0>
+capsys = <_pytest.capture.CaptureFixture object at 0x7fe13d69f610>
+reject_readback = True
+
+    @pytest.mark.parametrize("reject_readback", [False, True])
+    def test_actual_hk_entry_original_owner_roundtrip_and_final_gate(
+        actual_hk_modules, tmp_path, monkeypatch, capsys, reject_readback,
+    ):
+        # Retain the original owner test's assertions. Its fake Futu/TDX boundary
+        # and fixture updater are test dependencies, not an actual HK02 deployment.
+>       original_chain.test_actual_entry_publishes_and_reuses_full_hk_chain_with_original_owners(
+            tmp_path, monkeypatch, capsys, reject_readback)
+
+tests/test_manager_r3_hk_continuation.py:245: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-79/test_actual_hk_entry_original_1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe13d7728f0>
+capsys = <_pytest.capture.CaptureFixture object at 0x7fe13d69f610>
+reject_candidate_readback = True
+
+    @pytest.mark.parametrize("reject_candidate_readback", [False, True])
+    def test_actual_entry_publishes_and_reuses_full_hk_chain_with_original_owners(
+        tmp_path, monkeypatch, capsys, reject_candidate_readback
+    ):
+        import importlib
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+    
+        import pandas as pd
+    
+        actual = _load_actual_layer()
+        date = "20261008"
+        monkeypatch.setattr(gate, "_today_shanghai", lambda: date)
+        app_root = Path(__file__).resolve().parents[1]
+        package_root = app_root / "upstreams" / "v3_shared_data"
+        updater = package_root / "scripts" / "update_hk_0_2_panel.py"
+        monkeypatch.syspath_prepend(str(package_root))
+        hk02 = importlib.import_module("shared_data.hk_0_2")
+        loader = importlib.import_module("infrastructure.isolated_package_loader")
+        ensure = importlib.import_module("ops.ensure_hk_security_master")
+        capture_module = importlib.import_module(
+            "ops._macos_research_panel_daily_parts.hk_market_capture")
+    
+        flags = {"production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
+        state_root = tmp_path / "shared-data"
+        asset_root = state_root / "assets" / "hk_0_2"
+        asset_root.mkdir(parents=True)
+        tdx_root = tmp_path / "tdx"
+        seed_panel = tmp_path / "seed-panel.parquet"
+        codes = [f"HK.{number:05d}" for number in range(1, 601)]
+        pd.DataFrame([{"trade_date_compact": "20261007", "code_norm": code,
+            "close": 10.0} for code in codes]).to_parquet(seed_panel, index=False)
+        seed_manifest = {"panel_sha256": hashlib.sha256(seed_panel.read_bytes()).hexdigest()}
+        monkeypatch.setattr(hk02, "load_frozen_hk_0_2_assets",
+            lambda _root: SimpleNamespace(panel_path=seed_panel, panel_manifest=seed_manifest))
+    
+        class FrozenShanghaiClock(datetime):
+            @classmethod
+            def now(cls, tz=None):
+                fixed = datetime(2026, 10, 8, 17, 20, tzinfo=ZoneInfo("Asia/Shanghai"))
+                return fixed.astimezone(tz) if tz is not None else fixed
+    
+        monkeypatch.setattr(ensure, "datetime", FrozenShanghaiClock)
+        monkeypatch.setattr(actual, "_today_shanghai", lambda: date)
+        monkeypatch.setattr(capture_module, "_utc_now_iso",
+            lambda: "2026-10-08T09:20:00+00:00")
+    
+        class FakeFutuContext:
+            def __init__(self):
+                self.closed = False
+    
+            def get_plate_stock(self, _plate):
+                return 0, pd.DataFrame([{"code": code, "stock_name": f"Synthetic issuer {code[3:]}"}
+                                        for code in codes])
+    
+            def get_market_snapshot(self, requested_codes):
+                return 0, pd.DataFrame([{
+                    "code": code, "name": f"Synthetic issuer {code[3:]}",
+                    "update_time": "2026-10-08 17:20:00", "open_price": 10.0,
+                    "high_price": 11.0, "low_price": 9.0, "last_price": 10.0,
+                    "volume": 1000, "turnover": 10000.0,
+                    "outstanding_shares": 1000000, "circular_market_val": 10000000.0,
+                    "listing_date": "2010-01-01", "lot_size": 100,
+                    "stock_owner": "Synthetic owner", "stock_child_type": "Synthetic type",
+                    "sec_status": "NORMAL",
+                } for code in requested_codes])
+    
+            def close(self):
+                self.closed = True
+    
+        contexts = []
+        futu = SimpleNamespace(OpenQuoteContext=lambda **_kwargs:
+            contexts.append(FakeFutuContext()) or contexts[-1])
+        monkeypatch.setitem(sys.modules, "futu", futu)
+    
+        def publish_panel_with_original_owner(updater_path, python, assets, tdx, target):
+            result = hk02.update_hk_0_2_panel_from_vipdoc(
+                assets, tdx_root=tdx, through_date=target)
+            return {**result, "target_date": target,
+                "argv": [str(python), str(updater_path), "--asset-root", str(assets),
+                         "--tdx-root", str(tdx), "--through-date", target], **flags}
+    
+        monkeypatch.setattr(actual, "run_hk_0_2_authority", publish_panel_with_original_owner)
+    
+        def read_published_panel(root):
+            root = Path(root).resolve()
+            pointer = json.loads((root / "panel_latest.json").read_text(encoding="utf-8"))
+            manifest_path = (root / pointer["manifest_relative"]).resolve()
+            manifest_path.relative_to(root)
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            panel_path = (root / manifest["panel_relative"]).resolve()
+            panel_path.relative_to(root)
+            return SimpleNamespace(panel_manifest=manifest, panel_path=panel_path)
+    
+        original_isolated_loader = loader.load_isolated_package_module
+    
+        def isolated_loader(root, *, package_directory, module_leaf, namespace_prefix):
+            if package_directory == "shared_data" and module_leaf == "hk_0_2":
+                return SimpleNamespace(load_frozen_hk_0_2_assets=read_published_panel)
+            return original_isolated_loader(root, package_directory=package_directory,
+                module_leaf=module_leaf, namespace_prefix=namespace_prefix)
+    
+        monkeypatch.setattr(loader, "load_isolated_package_module", isolated_loader)
+    
+        supplement_payload = {"status": "PARTIAL_WITH_PENDING", "target_date": date,
+            "through_date": date, "run_id": "synthetic-supplement", "code_count": 600,
+            "record_status_counts": {"PENDING": 600}, "volume_unit_status": "NOT_PROVEN",
+            "price_basis": "UNKNOWN", **flags}
+    
+        class CompletedSupplement:
+            returncode = 0
+            stdout = json.dumps(supplement_payload) + "\n"
+    
+        monkeypatch.setattr(actual.subprocess, "run", lambda *_args, **_kwargs: CompletedSupplement())
+    
+        if reject_candidate_readback:
+            original_read_verified_chain = gate.read_verified_chain
+    
+            def reject_candidate(*args, **kwargs):
+                if kwargs.get("_pointer_override") is not None:
+                    raise ValueError("synthetic candidate readback rejection")
+                return original_read_verified_chain(*args, **kwargs)
+    
+            monkeypatch.setattr(gate, "read_verified_chain", reject_candidate)
+    
+        receipt_root = tmp_path / "receipts"
+        args = ["--date", date, "--lane", "HK", "--receipt-root", str(receipt_root),
+            "--hk-tdx-root", str(tdx_root), "--hk-updater-script", str(updater),
+            "--hk-python-executable", sys.executable, "--hk-asset-root", str(asset_root)]
+        result_code = actual.main(args)
+        capsys.readouterr()
+        if reject_candidate_readback:
+>           assert result_code == 2
+E           assert 1 == 2
+
+tests/test_hk_daily_publication_chain.py:607: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_manager_r3_hk_continuation.py::test_actual_hk_entry_original_owner_roundtrip_and_final_gate[False]
+FAILED tests/test_manager_r3_hk_continuation.py::test_actual_hk_entry_original_owner_roundtrip_and_final_gate[True]
+2 failed, 11 passed in 0.85s

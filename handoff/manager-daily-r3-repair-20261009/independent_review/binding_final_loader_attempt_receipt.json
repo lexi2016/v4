@@ -1,0 +1,28 @@
+{
+  "cwd": "/workspace/scratch/21926b793c00/candidate",
+  "command": [
+    "/workspace/scratch/a154a3323e32/test_env/bin/python",
+    "-c",
+    "import r3_scoped_loader; r3_scoped_loader.install(); import pytest; raise SystemExit(pytest.main(['-q', '-p', 'no:cacheprovider', 'tests/test_manager_r3_binding_contract.py', 'tests/test_manager_daily_dispatch_20261008.py', 'tests/test_manager_daily_automation_20261008.py', '../independent_review/test_binding_real_owner_paths.py']))"
+  ],
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": "/workspace/scratch/21926b793c00/candidate:/workspace/scratch/21926b793c00/candidate/upstreams:/workspace/scratch/21926b793c00/candidate/tests",
+    "V4_R3_REVIEW_APP_ROOT": "/workspace/scratch/21926b793c00/candidate"
+  },
+  "source_sha256": {
+    "infrastructure/scheduling/manager_announcement_supervisor.py": "e9a1e6f79abf268855a88d15dc579744ec4739f3561eccc56972badd89653ffa",
+    "ops/render_manager_announcement_binding.py": "44fba219e65a2c67bf0dc5d7d9f012e6ece757bb5a2b38a273f616dbfe7aa4db",
+    "ops/run_manager_announcement_cycle.py": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44",
+    "v4/manager_research/plan_owner_dispatch.py": "2b532168bfdce41080121df318cb619011b98bb76195eba39df43046a130b987",
+    "apps/api/v35_api/manager_research_router.py": "9d8d132c58e7cf1c5a5609d93261483d578268ac24c60c2fa7a6a79b87344341",
+    "v4/manager_research/workspace_plan_autorun.py": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34",
+    "tests/test_manager_r3_binding_contract.py": "c3e6d1055ee936245593656ca365fd622af9148b0041cb715d3e292589e9ea39"
+  },
+  "source_unchanged_through_test": true,
+  "review_test_sha256": "ac7263ddacfd67ecf7069590a7d6b3ed9583fe506cc1de346b73361b04f09f85",
+  "exit_code": 1,
+  "log_sha256": "a8172e620f57ab26b760d9304c7e2ffbbfe8a8c47fd1df0c6c59b45b4adacf11",
+  "native_full_app_import_claimed": false,
+  "live_business_io": false
+}

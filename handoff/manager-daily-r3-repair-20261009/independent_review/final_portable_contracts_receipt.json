@@ -1,0 +1,33 @@
+{
+  "cwd": "/workspace/scratch/21926b793c00",
+  "command": [
+    "/workspace/scratch/a154a3323e32/test_env/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "candidate/tests/test_manager_r3_product_contract.py",
+    "tests/test_manager_r3_release_policy.py",
+    "tests/test_r3_delivery_verifier.py",
+    "independent_review/test_frozen_contracts.py",
+    "independent_review/test_verifier_manifest_closure.py"
+  ],
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": "/workspace/scratch/21926b793c00/candidate:/workspace/scratch/21926b793c00/candidate/upstreams:/workspace/scratch/21926b793c00/candidate/tests:/workspace/scratch/21926b793c00/independent_review",
+    "V4_R3_REVIEW_APP_ROOT": "/workspace/scratch/21926b793c00/candidate",
+    "V4_R3_POLICY_SOURCE": "/workspace/scratch/21926b793c00/release_policy_review/after/ops/api_release_integration.py"
+  },
+  "source_sha256": {
+    "tools/verify_delivery.py": "2ee5276989fd1b3bb523ef74b636b884a63e21d04a0d96c4602abbc0242bf234",
+    "release_policy_review/after/ops/api_release_integration.py": "ce74042648405a8de9aa7bd69fd0ac5cbe54e42e29db983d77d7e8519ac4cfac",
+    "independent_review/test_frozen_contracts.py": "b74e2e8de4990a1a0c1ea77f009682671ff844482521d3e25755d409f516751b",
+    "independent_review/test_verifier_manifest_closure.py": "bd65ac4979c3fa647669991b00f3d9470936f88c428bca840c4f29e6b3bc3bc6",
+    "candidate/v4/manager_research/workspace_daily_channels.py": "e5a74449f211c9e8ecfb4f886317db2263d524f0e29fa7912c9094928a5c6bab"
+  },
+  "source_unchanged_through_test": true,
+  "exit_code": 0,
+  "log_sha256": "064c3f3f1e3e4e47339fb643c8d73e5282496eb5a3464ab922d9061d27a0256b",
+  "live_business_io": false
+}

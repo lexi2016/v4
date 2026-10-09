@@ -1,0 +1,40 @@
+{
+  "schema_version": "v4.manager_r3.hk_child_original_replay.v1",
+  "scope": "ISOLATED_HK_CHILD_CODE_ONLY",
+  "actual_child_candidate_root": "/workspace/scratch/21926b793c00/hk_child_candidate",
+  "dependency_root": "/workspace/scratch/21926b793c00/candidate",
+  "source_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+  "replayed": [
+    {
+      "path": "ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "before_sha256": "d3db5b9644bbf2fb1f4e245717907862ebe1cee2d0f650a8d45d732fd4a71940",
+      "after_sha256": "d07be30a40c35aee9d710fcdcc7ae66b031488cc4c5e7029824e3c76ed3fd71c",
+      "reused_original_after": "after/hk_child/ops/_macos_research_panel_daily_parts/hk_capture_gate.py"
+    },
+    {
+      "path": "ops/ensure_hk_security_master.py",
+      "before_sha256": "6c341a33c0283b023219c46cc2a1c6aaca49cf4b5dcb88aa2fb5527a13145601",
+      "after_sha256": "495ced4f0f06f170606ee576e035dafc99b540cd9fad0a28f2f2a36e5989ddb9",
+      "reused_original_after": "after/hk_child/ops/ensure_hk_security_master.py"
+    },
+    {
+      "path": "ops/macos_research_panel_daily.py",
+      "before_sha256": "07aa9770c6ae0bb0cfd012e57843a37fedda6724a57cd52d7c339d854fc6609b",
+      "after_sha256": "1963990fcde99b2681c837b8b66ea12f1ab066aba47729af5d0900073bc79ef3",
+      "reused_original_after": "after/hk_child/ops/macos_research_panel_daily.py"
+    }
+  ],
+  "preserved_namespace": {
+    "path": "ops/_macos_research_panel_daily_parts/_namespace.py",
+    "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+    "r1_new_file_applied": false,
+    "read_global_ast_equal": true
+  },
+  "flags": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "live_data_or_state_io": "NOT_RUN"
+}

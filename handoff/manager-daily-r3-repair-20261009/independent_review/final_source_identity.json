@@ -1,0 +1,45 @@
+{
+  "candidate_baseline": "c973cbc268c686af4492a7dfa4cef8417ca8edf4",
+  "changed_tracked_production_paths": [
+    "apps/api/v35_api/manager_research_router.py",
+    "infrastructure/scheduling/manager_announcement_supervisor.py",
+    "ops/render_manager_announcement_binding.py",
+    "ops/run_manager_announcement_cycle.py",
+    "v4/manager_research/plan_owner_dispatch.py",
+    "v4/manager_research/workspace_daily_channels.py",
+    "v4/manager_research/workspace_plan_autorun.py"
+  ],
+  "candidate_source_sha256": {
+    "apps/api/v35_api/manager_research_router.py": "9d8d132c58e7cf1c5a5609d93261483d578268ac24c60c2fa7a6a79b87344341",
+    "infrastructure/scheduling/manager_announcement_supervisor.py": "e9a1e6f79abf268855a88d15dc579744ec4739f3561eccc56972badd89653ffa",
+    "ops/render_manager_announcement_binding.py": "44fba219e65a2c67bf0dc5d7d9f012e6ece757bb5a2b38a273f616dbfe7aa4db",
+    "ops/run_manager_announcement_cycle.py": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44",
+    "v4/manager_research/plan_owner_dispatch.py": "2b532168bfdce41080121df318cb619011b98bb76195eba39df43046a130b987",
+    "v4/manager_research/workspace_daily_channels.py": "e5a74449f211c9e8ecfb4f886317db2263d524f0e29fa7912c9094928a5c6bab",
+    "v4/manager_research/workspace_plan_autorun.py": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34",
+    "v3_shared_data/shared_data/hk_daily_supplement.py": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+    "v4/manager_research/workspace_plan.py": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb",
+    "tests/test_manager_r3_binding_contract.py": "c3e6d1055ee936245593656ca365fd622af9148b0041cb715d3e292589e9ea39",
+    "tests/test_manager_r3_product_contract.py": "7ecf4789b581818eb516fe420f03f159580f276600ebf0921c73ba3b01c2b21c",
+    "tests/test_manager_r3_hk_continuation.py": "686ba041564a07671d550e379cdba2f6e455af2bf2fc7d8b0a0b95792fcfeb23",
+    "tests/test_hk_daily_supplement_r4.py": "7085f61af64c20f3153ca5e6d7948c0e0e54c3236e2e5ec364b9662d5d1dfc94",
+    "apps/api/v35_api/app.py": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+    "apps/api/v35_api/preselection_router.py": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+    "apps/api/v35_api/preselection_service.py": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+    "ops/run_v35_macos_scheduler_daemon.py": "19e071da0c6b6748465853c4ad86a80d6060524333e9dab21647b67adc8b49ec",
+    "ops/launch_v35_macos_scheduler.sh": "0c577ae83b1f182dabf3b62e642a5bd5f0f8708b48e1806d8c653b691d2ec952"
+  },
+  "delivery_source_manifest_sha256": "2288039fdfdc763904b943d57fb02ad16879b9fa5d7a2c4bc7e1b8b414ba4213",
+  "reviewed_tools": {
+    "tools/verify_delivery.py": "2ee5276989fd1b3bb523ef74b636b884a63e21d04a0d96c4602abbc0242bf234",
+    "tools/replay_delivery.py": "6cba97e27e224af0c6b6cd2ed61cc295cfff095b2136a4150d59fa22ca2bfe25",
+    "release_policy_review/before/ops/api_release_integration.py": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+    "release_policy_review/after/ops/api_release_integration.py": "ce74042648405a8de9aa7bd69fd0ac5cbe54e42e29db983d77d7e8519ac4cfac",
+    "independent_review/test_frozen_contracts.py": "b74e2e8de4990a1a0c1ea77f009682671ff844482521d3e25755d409f516751b",
+    "independent_review/test_verifier_manifest_closure.py": "bd65ac4979c3fa647669991b00f3d9470936f88c428bca840c4f29e6b3bc3bc6",
+    "independent_review/test_binding_real_owner_paths.py": "ac7263ddacfd67ecf7069590a7d6b3ed9583fe506cc1de346b73361b04f09f85",
+    "independent_review/audit_source_payload.py": "dc6242f36f09194fea1a29d1908d69a56e4d6f29a188276d0d75ef1a1e881fa7"
+  },
+  "scope": "READ_ONLY_SOURCE_IDENTITY",
+  "live_business_io": false
+}

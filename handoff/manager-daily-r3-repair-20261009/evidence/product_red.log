@@ -1,0 +1,96 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+____ test_original_owner_source_pointers_survive_daily_projection[OVERSOLD] ____
+
+channel = 'OVERSOLD'
+
+    @pytest.mark.parametrize("channel", ["OVERSOLD", "HK_CONNECT"])
+    def test_original_owner_source_pointers_survive_daily_projection(channel):
+        """Losing native payload/manifest keys or one-level card refs must fail."""
+        source = view()
+        body = "SYNTHETIC_SOURCE_BODY_" * 10000
+        native_ref = {
+            "owner": "SYNTHETIC_VERIFIED_ORIGINAL_OWNER",
+            "source_id": "synthetic-source",
+            "source_date": "20261007",
+            "payload_path": "synthetic/panel.parquet",
+            "payload_sha256": "7" * 64,
+            "manifest_path": "synthetic/manifest.json",
+            "manifest_sha256": "8" * 64,
+            "body": body,
+            # Only the original card's immediate source pointers are projected.
+            "source_refs": [{"payload_sha256": "9" * 64, "body": body}],
+        }
+        if channel == "OVERSOLD":
+            source["market_screen"].update(
+                status="READY", input_identity="6" * 64, gaps=[],
+                strict=[{"code": "HK.00001", "reason_for_group": "Original two verified gates",
+                         "source_refs": [native_ref]}],
+            )
+        else:
+            source["selection_diagnostics"]["membership"] = target_scope()
+            source["stocks"] = [{
+                "symbol": "HK.00001", "why_watch": ["Original verified material reason"],
+                "connect_eligibility": "VERIFIED_TARGET_UNIVERSE",
+                "evidence": [{"card_id": "original-card", "body": body,
+                              "source_refs": [native_ref]}],
+            }]
+            source["focus_symbols"] = ["HK.00001"]
+        before = deepcopy(source)
+        result = next(row for row in project(source)["channels"] if row["channel"] == channel)
+        refs = result["rows"][0]["source_refs"]
+        kept = next((ref for ref in refs if ref.get("payload_sha256") == "7" * 64), None)
+>       assert kept is not None, refs
+E       AssertionError: [{'owner': 'SYNTHETIC_VERIFIED_ORIGINAL_OWNER', 'source_date': '20261007'}]
+E       assert None is not None
+
+tests/test_manager_r3_product_contract.py:50: AssertionError
+___ test_original_owner_source_pointers_survive_daily_projection[HK_CONNECT] ___
+
+channel = 'HK_CONNECT'
+
+    @pytest.mark.parametrize("channel", ["OVERSOLD", "HK_CONNECT"])
+    def test_original_owner_source_pointers_survive_daily_projection(channel):
+        """Losing native payload/manifest keys or one-level card refs must fail."""
+        source = view()
+        body = "SYNTHETIC_SOURCE_BODY_" * 10000
+        native_ref = {
+            "owner": "SYNTHETIC_VERIFIED_ORIGINAL_OWNER",
+            "source_id": "synthetic-source",
+            "source_date": "20261007",
+            "payload_path": "synthetic/panel.parquet",
+            "payload_sha256": "7" * 64,
+            "manifest_path": "synthetic/manifest.json",
+            "manifest_sha256": "8" * 64,
+            "body": body,
+            # Only the original card's immediate source pointers are projected.
+            "source_refs": [{"payload_sha256": "9" * 64, "body": body}],
+        }
+        if channel == "OVERSOLD":
+            source["market_screen"].update(
+                status="READY", input_identity="6" * 64, gaps=[],
+                strict=[{"code": "HK.00001", "reason_for_group": "Original two verified gates",
+                         "source_refs": [native_ref]}],
+            )
+        else:
+            source["selection_diagnostics"]["membership"] = target_scope()
+            source["stocks"] = [{
+                "symbol": "HK.00001", "why_watch": ["Original verified material reason"],
+                "connect_eligibility": "VERIFIED_TARGET_UNIVERSE",
+                "evidence": [{"card_id": "original-card", "body": body,
+                              "source_refs": [native_ref]}],
+            }]
+            source["focus_symbols"] = ["HK.00001"]
+        before = deepcopy(source)
+        result = next(row for row in project(source)["channels"] if row["channel"] == channel)
+        refs = result["rows"][0]["source_refs"]
+        kept = next((ref for ref in refs if ref.get("payload_sha256") == "7" * 64), None)
+>       assert kept is not None, refs
+E       AssertionError: [{'card_id': 'original-card'}]
+E       assert None is not None
+
+tests/test_manager_r3_product_contract.py:50: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_manager_r3_product_contract.py::test_original_owner_source_pointers_survive_daily_projection[OVERSOLD]
+FAILED tests/test_manager_r3_product_contract.py::test_original_owner_source_pointers_survive_daily_projection[HK_CONNECT]
+2 failed in 0.09s

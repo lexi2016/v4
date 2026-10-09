@@ -1,0 +1,175 @@
+{
+  "schema_version": "v4.manager_r3.isolated_patch_replay.v1",
+  "status": "PASS",
+  "manifest_sha256": "2288039fdfdc763904b943d57fb02ad16879b9fa5d7a2c4bc7e1b8b414ba4213",
+  "profiles": [
+    {
+      "profile": "api_current",
+      "status": "PASS",
+      "commands": [
+        {
+          "operation": "FORWARD_CHECK",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "FORWARD_APPLY",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "REVERSE_CHECK",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "REVERSE_APPLY",
+          "exit_code": 0,
+          "stderr": ""
+        }
+      ],
+      "before_files_checked": 13,
+      "after_files_checked": 13,
+      "preserved_paths": [
+        "apps/api/v35_api/app.py",
+        "apps/api/v35_api/preselection_router.py",
+        "apps/api/v35_api/preselection_service.py"
+      ],
+      "exact_original_tree_restored": true,
+      "temporary_directory_removed": true
+    },
+    {
+      "profile": "api_r2_increment",
+      "status": "PASS",
+      "commands": [
+        {
+          "operation": "FORWARD_CHECK",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "FORWARD_APPLY",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "REVERSE_CHECK",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "REVERSE_APPLY",
+          "exit_code": 0,
+          "stderr": ""
+        }
+      ],
+      "before_files_checked": 7,
+      "after_files_checked": 7,
+      "preserved_paths": [
+        "apps/api/v35_api/app.py",
+        "apps/api/v35_api/preselection_router.py",
+        "apps/api/v35_api/preselection_service.py"
+      ],
+      "exact_original_tree_restored": true,
+      "temporary_directory_removed": true
+    },
+    {
+      "profile": "worker_current",
+      "status": "PASS",
+      "commands": [
+        {
+          "operation": "FORWARD_CHECK",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "FORWARD_APPLY",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "REVERSE_CHECK",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "REVERSE_APPLY",
+          "exit_code": 0,
+          "stderr": ""
+        }
+      ],
+      "before_files_checked": 5,
+      "after_files_checked": 5,
+      "preserved_paths": [],
+      "exact_original_tree_restored": true,
+      "temporary_directory_removed": true
+    },
+    {
+      "profile": "hk_child",
+      "status": "PASS",
+      "commands": [
+        {
+          "operation": "FORWARD_CHECK",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "FORWARD_APPLY",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "REVERSE_CHECK",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "REVERSE_APPLY",
+          "exit_code": 0,
+          "stderr": ""
+        }
+      ],
+      "before_files_checked": 3,
+      "after_files_checked": 3,
+      "preserved_paths": [
+        "ops/_macos_research_panel_daily_parts/_namespace.py"
+      ],
+      "exact_original_tree_restored": true,
+      "temporary_directory_removed": true
+    },
+    {
+      "profile": "web_cumulative",
+      "status": "PASS",
+      "commands": [
+        {
+          "operation": "FORWARD_CHECK",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "FORWARD_APPLY",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "REVERSE_CHECK",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "operation": "REVERSE_APPLY",
+          "exit_code": 0,
+          "stderr": ""
+        }
+      ],
+      "before_files_checked": 4,
+      "after_files_checked": 4,
+      "preserved_paths": [],
+      "exact_original_tree_restored": true,
+      "temporary_directory_removed": true
+    }
+  ],
+  "runtime_source_writes": 0,
+  "live_business_io": false,
+  "deployment_claimed": false
+}

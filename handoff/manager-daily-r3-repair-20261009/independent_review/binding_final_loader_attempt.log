@@ -1,0 +1,76 @@
+........................................................................ [ 83%]
+....F.........                                                           [100%]
+=================================== FAILURES ===================================
+___ test_admitted_morning_slot_survives_minute_rollover_after_us_preparation ___
+
+obj = <module 'v4'>, name = 'manager_research', ann = 'v4.manager_research'
+
+    def annotated_getattr(obj: object, name: str, ann: str) -> object:
+        try:
+>           obj = getattr(obj, name)
+                  ^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'v4' has no attribute 'manager_research'
+
+../../a154a3323e32/test_env/lib/python3.14/site-packages/_pytest/monkeypatch.py:95: AttributeError
+
+The above exception was the direct cause of the following exception:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fc2d5bd10f0>
+
+    def test_admitted_morning_slot_survives_minute_rollover_after_us_preparation(monkeypatch):
+        from ops import run_manager_announcement_cycle as original_cycle
+    
+        config = {"enabled": True, "same_day_catchup_slots_local": [
+            "10:00", "12:30", "15:45", "18:30", "22:30"],
+            "us_mapping_budget_seconds": 5, "max_attempts_per_target_date": 5,
+            "status": "PROPOSAL_ONLY"}
+        morning = {"enabled": True, "interval_seconds": 300, "status": "PROPOSAL_ONLY"}
+        plan_config = {"enabled": True, "start_local": "16:00", "end_local": "23:00",
+            "max_attempts_per_target_date": 3, "retry_backoff_seconds": 600,
+            "status": "PROPOSAL_ONLY"}
+        admitted = datetime(2026, 10, 8, 7, 0, tzinfo=HK)
+        completed_us = datetime(2026, 10, 8, 7, 1, 2, tzinfo=HK)
+        assert original_cycle.daily_cycle_branch("20261008", now=admitted,
+            plan_config=plan_config, morning_plan_config=morning, daily_config=config)[0] == "MORNING"
+        assert original_cycle.daily_admitted_branch_is_live("20261008", "20261008", "MORNING",
+            scheduled_slot="20261008T0700", now=completed_us, plan_config=plan_config,
+            morning_plan_config=morning, daily_config=config)
+    
+        observed = {}
+        monkeypatch.setattr(original_cycle, "valid_owner_plan_result", lambda *_: True)
+        def morning_owner(service, target, *, now, config, execution_context, us_market_request_context):
+            observed.update(now=now, execution_context=execution_context)
+            return {"status": "MATERIALIZED", "target_trade_date": target}
+>       monkeypatch.setattr("v4.manager_research.workspace_plan_autorun.run_scheduled_morning_plan", morning_owner)
+
+tests/test_manager_daily_automation_20261008.py:262: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../a154a3323e32/test_env/lib/python3.14/site-packages/_pytest/monkeypatch.py:107: in derive_importpath
+    target = resolve(module)
+             ^^^^^^^^^^^^^^^
+../../a154a3323e32/test_env/lib/python3.14/site-packages/_pytest/monkeypatch.py:89: in resolve
+    found = annotated_getattr(found, part, used)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+obj = <module 'v4'>, name = 'manager_research', ann = 'v4.manager_research'
+
+    def annotated_getattr(obj: object, name: str, ann: str) -> object:
+        try:
+            obj = getattr(obj, name)
+        except AttributeError as e:
+>           raise AttributeError(
+                f"{type(obj).__name__!r} object at {ann} has no attribute {name!r}"
+            ) from e
+E           AttributeError: 'module' object at v4.manager_research has no attribute 'manager_research'
+
+../../a154a3323e32/test_env/lib/python3.14/site-packages/_pytest/monkeypatch.py:97: AttributeError
+=============================== warnings summary ===============================
+../../a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_manager_daily_automation_20261008.py::test_admitted_morning_slot_survives_minute_rollover_after_us_preparation
+1 failed, 85 passed, 1 warning in 5.13s

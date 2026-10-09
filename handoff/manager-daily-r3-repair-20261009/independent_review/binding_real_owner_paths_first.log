@@ -1,0 +1,103 @@
+F..FF                                                                    [100%]
+=================================== FAILURES ===================================
+___________ test_actual_api_inventory_includes_nested_consumer_bytes ___________
+
+    def test_actual_api_inventory_includes_nested_consumer_bytes():
+>       inventory = original.supervisor.binding_inventory(APP_ROOT)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+independent_review/test_binding_real_owner_paths.py:17: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+candidate/infrastructure/scheduling/manager_announcement_supervisor.py:127: in binding_inventory
+    raw=io.read_bytes(rel,max_bytes=8*1024*1024);total+=len(raw)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <infrastructure.owned_io.SafeRoot object at 0x7f2174fd0980>
+relative = 'apps/__init__.py', max_bytes = 8388608
+
+    def read_bytes(self, relative: str, *, max_bytes: int = 64 * 1024 * 1024) -> bytes:
+        with self.parent(relative) as (parent, name):
+>           fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '__init__.py'
+
+candidate/infrastructure/owned_io.py:105: FileNotFoundError
+_ test_real_preopen_owner_exception_keeps_timeout_unknown_and_details_bounded[timeout] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-116/test_real_preopen_owner_except0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f21750e2f90>
+failure = 'timeout'
+
+    @pytest.mark.parametrize("failure", ["timeout", "uppercase_detail"])
+    def test_real_preopen_owner_exception_keeps_timeout_unknown_and_details_bounded(tmp_path, monkeypatch, failure):
+        fixture = original._fixture(tmp_path, monkeypatch)
+    
+        def failed_owner(date, **kwargs):
+            fixture.events.append(("plan", date, kwargs))
+            if failure == "timeout":
+                raise TimeoutError("synthetic completion is unknown")
+            raise ValueError("SYNTHETIC_PRIVATE_UPPERCASE_DETAIL")
+    
+        fixture.service.refresh_workspace_plan = failed_owner
+        with original._client(fixture.service) as client:
+            original._memory_transport(monkeypatch, client)
+            result = original.dispatch.request_bound_plan_cycle(fixture.path, original.DATE)
+        assert len(fixture.events) == 1
+        assert result["status"] == "FAILED"
+        if failure == "timeout":
+>           assert result["dispatch_outcome"] == "CANNOT_CONFIRM", result
+E           AssertionError: {'status': 'FAILED', 'branch': 'PREOPEN', 'target_trade_date': '20261009', 'plan_result': {'status': 'FAILED', 'reason': 'TimeoutError', 'failure_reasons': ['PREOPEN_PLAN_OWNER_FAILED:TimeoutError'], 'blocks_announcement': False, ...}, ...}
+E           assert 'OWNER_FAILED' == 'CANNOT_CONFIRM'
+E             
+E             - CANNOT_CONFIRM
+E             + OWNER_FAILED
+
+independent_review/test_binding_real_owner_paths.py:57: AssertionError
+_ test_real_preopen_owner_exception_keeps_timeout_unknown_and_details_bounded[uppercase_detail] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-116/test_real_preopen_owner_except1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f21742fa470>
+failure = 'uppercase_detail'
+
+    @pytest.mark.parametrize("failure", ["timeout", "uppercase_detail"])
+    def test_real_preopen_owner_exception_keeps_timeout_unknown_and_details_bounded(tmp_path, monkeypatch, failure):
+        fixture = original._fixture(tmp_path, monkeypatch)
+    
+        def failed_owner(date, **kwargs):
+            fixture.events.append(("plan", date, kwargs))
+            if failure == "timeout":
+                raise TimeoutError("synthetic completion is unknown")
+            raise ValueError("SYNTHETIC_PRIVATE_UPPERCASE_DETAIL")
+    
+        fixture.service.refresh_workspace_plan = failed_owner
+        with original._client(fixture.service) as client:
+            original._memory_transport(monkeypatch, client)
+            result = original.dispatch.request_bound_plan_cycle(fixture.path, original.DATE)
+        assert len(fixture.events) == 1
+        assert result["status"] == "FAILED"
+        if failure == "timeout":
+            assert result["dispatch_outcome"] == "CANNOT_CONFIRM", result
+        else:
+>           assert "SYNTHETIC_PRIVATE_UPPERCASE_DETAIL" not in json.dumps(result), result
+E           AssertionError: {'status': 'FAILED', 'branch': 'PREOPEN', 'target_trade_date': '20261009', 'plan_result': {'status': 'FAILED', 'reason...re_reasons': ['PREOPEN_PLAN_OWNER_FAILED:SYNTHETIC_PRIVATE_UPPERCASE_DETAIL'], 'blocks_announcement': False, ...}, ...}
+E           assert 'SYNTHETIC_P...RCASE_DETAIL' not in '{"status": ...ht": false}}'
+E             
+E             'SYNTHETIC_PRIVATE_UPPERCASE_DETAIL' is contained here:
+E             ?           --------------------------------------------------                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               reason": "SYNTHETIC_PRIVATE_UPPERCASE_DETAIL", "failure_reasons": ["PREOPEN_PLAN_OWNER_FAILED:SYNTHETIC_PRIVATE_UPPERCASE_DETAIL"], "blocks_announcement": false, "policy_status": "PROPOSAL_ONLY"}, "failure_reasons": ["PREOPEN_PLAN_OWNER_FAILED:SYNTHETIC_PRIVATE_UPPERCASE_DETAIL"], "owner": "ManagerResearchJobService.refresh_workspace_...
+E             
+E             ...Full output truncated (2 lines hidden), use '-vv' to show
+
+independent_review/test_binding_real_owner_paths.py:59: AssertionError
+=============================== warnings summary ===============================
+../a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED independent_review/test_binding_real_owner_paths.py::test_actual_api_inventory_includes_nested_consumer_bytes
+FAILED independent_review/test_binding_real_owner_paths.py::test_real_preopen_owner_exception_keeps_timeout_unknown_and_details_bounded[timeout]
+FAILED independent_review/test_binding_real_owner_paths.py::test_real_preopen_owner_exception_keeps_timeout_unknown_and_details_bounded[uppercase_detail]
+3 failed, 2 passed, 1 warning in 0.78s

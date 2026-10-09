@@ -1,0 +1,383 @@
+{
+  "schema_version": "v4.manager_r3.independent_review.v1",
+  "reviewer": "/root/independent_r3_review",
+  "conclusion": "REVIEWED",
+  "unresolved_reproducible_p0_p1": [],
+  "business_acceptance": "NOT_RUN",
+  "authored_or_edited_production_source": false,
+  "reviewed_manifest_sha256": "2288039fdfdc763904b943d57fb02ad16879b9fa5d7a2c4bc7e1b8b414ba4213",
+  "reviewed_profile_counts": {
+    "api_current": 13,
+    "api_r2_increment": 7,
+    "worker_current": 5,
+    "hk_child": 3,
+    "web_cumulative": 4
+  },
+  "reviewed_source_records": 32,
+  "candidate_baseline": "c973cbc268c686af4492a7dfa4cef8417ca8edf4",
+  "candidate_source_sha256": {
+    "apps/api/v35_api/manager_research_router.py": "9d8d132c58e7cf1c5a5609d93261483d578268ac24c60c2fa7a6a79b87344341",
+    "infrastructure/scheduling/manager_announcement_supervisor.py": "e9a1e6f79abf268855a88d15dc579744ec4739f3561eccc56972badd89653ffa",
+    "ops/render_manager_announcement_binding.py": "44fba219e65a2c67bf0dc5d7d9f012e6ece757bb5a2b38a273f616dbfe7aa4db",
+    "ops/run_manager_announcement_cycle.py": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44",
+    "v4/manager_research/plan_owner_dispatch.py": "2b532168bfdce41080121df318cb619011b98bb76195eba39df43046a130b987",
+    "v4/manager_research/workspace_daily_channels.py": "e5a74449f211c9e8ecfb4f886317db2263d524f0e29fa7912c9094928a5c6bab",
+    "v4/manager_research/workspace_plan_autorun.py": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34",
+    "v3_shared_data/shared_data/hk_daily_supplement.py": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+    "v4/manager_research/workspace_plan.py": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb",
+    "tests/test_manager_r3_binding_contract.py": "c3e6d1055ee936245593656ca365fd622af9148b0041cb715d3e292589e9ea39",
+    "tests/test_manager_r3_product_contract.py": "7ecf4789b581818eb516fe420f03f159580f276600ebf0921c73ba3b01c2b21c",
+    "tests/test_manager_r3_hk_continuation.py": "686ba041564a07671d550e379cdba2f6e455af2bf2fc7d8b0a0b95792fcfeb23",
+    "tests/test_hk_daily_supplement_r4.py": "7085f61af64c20f3153ca5e6d7948c0e0e54c3236e2e5ec364b9662d5d1dfc94",
+    "apps/api/v35_api/app.py": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+    "apps/api/v35_api/preselection_router.py": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+    "apps/api/v35_api/preselection_service.py": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+    "ops/run_v35_macos_scheduler_daemon.py": "19e071da0c6b6748465853c4ad86a80d6060524333e9dab21647b67adc8b49ec",
+    "ops/launch_v35_macos_scheduler.sh": "0c577ae83b1f182dabf3b62e642a5bd5f0f8708b48e1806d8c653b691d2ec952"
+  },
+  "reviewed_tools_sha256": {
+    "tools/verify_delivery.py": "2ee5276989fd1b3bb523ef74b636b884a63e21d04a0d96c4602abbc0242bf234",
+    "tools/replay_delivery.py": "6cba97e27e224af0c6b6cd2ed61cc295cfff095b2136a4150d59fa22ca2bfe25",
+    "release_policy_review/before/ops/api_release_integration.py": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+    "release_policy_review/after/ops/api_release_integration.py": "ce74042648405a8de9aa7bd69fd0ac5cbe54e42e29db983d77d7e8519ac4cfac",
+    "independent_review/test_frozen_contracts.py": "b74e2e8de4990a1a0c1ea77f009682671ff844482521d3e25755d409f516751b",
+    "independent_review/test_verifier_manifest_closure.py": "bd65ac4979c3fa647669991b00f3d9470936f88c428bca840c4f29e6b3bc3bc6",
+    "independent_review/test_binding_real_owner_paths.py": "ac7263ddacfd67ecf7069590a7d6b3ed9583fe506cc1de346b73361b04f09f85",
+    "independent_review/audit_source_payload.py": "dc6242f36f09194fea1a29d1908d69a56e4d6f29a188276d0d75ef1a1e881fa7"
+  },
+  "findings": [
+    {
+      "id": "R3-IR-01",
+      "severity": "P1",
+      "status": "CLOSED",
+      "summary": "manifest file/profile/nonempty/path correspondence accepted unchecked sources",
+      "red": "verifier_manifest_closure_red.log",
+      "green": [
+        "verifier_hardened_independent.log",
+        "final_portable_contracts.log"
+      ],
+      "fixed_source_sha256": "2ee5276989fd1b3bb523ef74b636b884a63e21d04a0d96c4602abbc0242bf234"
+    },
+    {
+      "id": "R3-IR-02",
+      "severity": "P1",
+      "status": "CLOSED",
+      "summary": "real PREOPEN safe wrapper lost TimeoutError completion uncertainty, including uppercase messages",
+      "red": "binding_real_owner_timeout_uppercase_red.log",
+      "green": "binding_final_independent.log",
+      "fixed_source_sha256": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34"
+    },
+    {
+      "id": "R3-IR-03",
+      "severity": "P1",
+      "status": "CLOSED",
+      "summary": "real PREOPEN wrapper exposed arbitrary uppercase exception detail",
+      "red": "binding_real_owner_paths_red.log",
+      "green": "binding_final_independent.log",
+      "fixed_source_sha256": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34"
+    },
+    {
+      "id": "R3-IR-04",
+      "severity": "P2",
+      "status": "CLOSED",
+      "summary": "HK S8 link pointed at undelivered unchanged workspace_plan.py",
+      "evidence": "final_handoff_review.json"
+    }
+  ],
+  "additional_reviewed_requirement": {
+    "nested_api_reader_required": true,
+    "worker_without_nested_api_tree_remains_valid": true,
+    "actual_reader_drift_rejected_before_owner_for_both_routes": true,
+    "evidence": "test_binding_real_owner_paths.py"
+  },
+  "independent_test_runs": [
+    {
+      "name": "final_binding",
+      "passed": 86,
+      "failed": 0,
+      "exit_code": 0,
+      "parts": {
+        "new_binding_contracts": 44,
+        "existing_daily_contracts": 36,
+        "independent_real_path_probes": 6
+      },
+      "log": "binding_final_independent.log",
+      "log_sha256": "0ca151198d875122f7e5030edffe8ad102e852687da97ec421138bee4f36afd0",
+      "receipt": "binding_final_independent_receipt.json"
+    },
+    {
+      "name": "final_product_policy_verifier_portable_review",
+      "passed": 33,
+      "failed": 0,
+      "exit_code": 0,
+      "parts": {
+        "product": 9,
+        "policy": 9,
+        "original_verifier": 6,
+        "reviewer_foundation": 6,
+        "reviewer_manifest_closure": 3
+      },
+      "log": "final_portable_contracts.log",
+      "log_sha256": "064c3f3f1e3e4e47339fb643c8d73e5282496eb5a3464ab922d9061d27a0256b",
+      "receipt": "final_portable_contracts_receipt.json"
+    },
+    {
+      "name": "hk_scoped",
+      "passed": 13,
+      "failed": 0,
+      "exit_code": 0,
+      "log": "hk_contracts.log",
+      "log_sha256": "dd4394341e25b2026aa04d5f175c850e6ec4c789b5db82224a3866c15981549c",
+      "source_receipt": "hk_source_identity.json"
+    },
+    {
+      "name": "original_hk_supplement",
+      "passed": 13,
+      "failed": 2,
+      "exit_code": 1,
+      "log": "hk_original_contracts.log",
+      "classification": "PRESERVED_EXISTING_SCREEN_ASSERTIONS"
+    },
+    {
+      "name": "existing_product_archive_assertion",
+      "passed": 0,
+      "failed": 1,
+      "exit_code": 1,
+      "log": "current_known_failure.log",
+      "baseline_log": "prechange_product_and_known_failure.log",
+      "classification": "PRESERVED_CURRENT_AND_PRECHANGE_FAILURE"
+    }
+  ],
+  "preserved_review_assembly_errors": [
+    {
+      "log": "binding_real_owner_paths_first.log",
+      "summary": "incomplete candidate is not a complete binding inventory fixture; subsequently used original synthetic role fixture with actual reader bytes"
+    },
+    {
+      "log": "binding_final_loader_attempt.log",
+      "passed": 85,
+      "failed": 1,
+      "summary": "extra namespace pre-install omitted package child attribute for original monkeypatch; documented native pytest invocation then passed without production or assertion edits"
+    },
+    {
+      "log": "source_payload_audit_initial_error.log",
+      "summary": "parent source has no duplicate under remote; final audit binds existing candidate baseline Git object to supplied remote tree blob"
+    }
+  ],
+  "writer_existing_failures_reviewed_not_independently_rerun": {
+    "count": 4,
+    "scope": "old plan_refresh_only SimpleNamespace store lacks existing _transaction contract",
+    "evidence": "../evidence/binding_preexisting_confirm.log"
+  },
+  "source_role_audit": {
+    "status": "PASS",
+    "records": 32,
+    "receipt": "source_payload_identity.json"
+  },
+  "patch_replay": {
+    "status": "PASS",
+    "profiles": [
+      {
+        "profile": "api_current",
+        "status": "PASS",
+        "before_files_checked": 13,
+        "after_files_checked": 13,
+        "exact_original_tree_restored": true
+      },
+      {
+        "profile": "api_r2_increment",
+        "status": "PASS",
+        "before_files_checked": 7,
+        "after_files_checked": 7,
+        "exact_original_tree_restored": true
+      },
+      {
+        "profile": "worker_current",
+        "status": "PASS",
+        "before_files_checked": 5,
+        "after_files_checked": 5,
+        "exact_original_tree_restored": true
+      },
+      {
+        "profile": "hk_child",
+        "status": "PASS",
+        "before_files_checked": 3,
+        "after_files_checked": 3,
+        "exact_original_tree_restored": true
+      },
+      {
+        "profile": "web_cumulative",
+        "status": "PASS",
+        "before_files_checked": 4,
+        "after_files_checked": 4,
+        "exact_original_tree_restored": true
+      }
+    ],
+    "receipt": "patch_replay_receipt.json",
+    "result": "patch_replay.json",
+    "result_sha256": "8550a2e3f13bf86ff5bd1d7287db2761d903c5f581041ea2151d5da1ec82879b",
+    "temporary_roots_removed": true
+  },
+  "handoff_review": {
+    "status": "PASS",
+    "documents_and_cli": [
+      {
+        "path": "HOST_HANDOFF.md",
+        "sha256": "9fcf50e6afba6f42047eea14c01d81df1f4d9a81cb188d0167ba7a45ed6ba711",
+        "bash_blocks": [
+          {
+            "block": 1,
+            "bash_n_exit_code": 0,
+            "executed": false
+          },
+          {
+            "block": 2,
+            "bash_n_exit_code": 0,
+            "executed": false
+          }
+        ]
+      },
+      {
+        "path": "TESTING.md",
+        "sha256": "21a2700207a81d5ddc0b9962266eab5589e946410b17b71b49af1584d64bab06",
+        "bash_blocks": [
+          {
+            "block": 1,
+            "bash_n_exit_code": 0,
+            "executed": false
+          },
+          {
+            "block": 2,
+            "bash_n_exit_code": 0,
+            "executed": false
+          },
+          {
+            "block": 3,
+            "bash_n_exit_code": 0,
+            "executed": false
+          }
+        ]
+      },
+      {
+        "path": "HK_INPUT_CONTINUATION.md",
+        "sha256": "23cc984d037b8601202833e51bc0767b7482ee000984e5de0d8983b6735d8382",
+        "bash_blocks": [
+          {
+            "block": 1,
+            "bash_n_exit_code": 0,
+            "executed": false
+          },
+          {
+            "block": 2,
+            "bash_n_exit_code": 0,
+            "executed": false
+          },
+          {
+            "block": 3,
+            "bash_n_exit_code": 0,
+            "executed": false
+          },
+          {
+            "block": 4,
+            "bash_n_exit_code": 0,
+            "executed": false
+          },
+          {
+            "block": 5,
+            "bash_n_exit_code": 0,
+            "executed": false
+          },
+          {
+            "block": 6,
+            "bash_n_exit_code": 0,
+            "executed": false
+          }
+        ]
+      },
+      {
+        "path": "README_DELIVERY.md",
+        "sha256": "377b6f97544e8213e9890365f7773fd2a3dfab2c5c2acf803beaee6d5978cb78",
+        "bash_blocks": [
+          {
+            "block": 1,
+            "bash_n_exit_code": 0,
+            "executed": false
+          }
+        ]
+      },
+      {
+        "path": "tools/verify_delivery.py",
+        "sha256": "2ee5276989fd1b3bb523ef74b636b884a63e21d04a0d96c4602abbc0242bf234",
+        "documented_options_present": [
+          "--against",
+          "--package",
+          "--profile",
+          "--source-root"
+        ]
+      },
+      {
+        "path": "candidate/ops/render_manager_announcement_binding.py",
+        "sha256": "44fba219e65a2c67bf0dc5d7d9f012e6ece757bb5a2b38a273f616dbfe7aa4db",
+        "documented_options_present": [
+          "--app-root",
+          "--daily-automation",
+          "--enabled",
+          "--manager-state-root",
+          "--output",
+          "--plan-activation-receipt",
+          "--plan-material-refresh-only",
+          "--plan-owner-app-root",
+          "--python",
+          "--security-master-root"
+        ]
+      }
+    ],
+    "source_map_sha256": "1c7ab8afbcce9c73be996f45d3c4966ec612445f047c918d123f55a6a5601fbb",
+    "hk_s8_fixed_source": {
+      "repository_path": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/workspace_plan.py",
+      "git_blob_sha": "25bdc2c417f28307a4bdd3a05e868ac2285b25c2",
+      "sha256": "c734f3e986af81b39bf11c09d93caf7a205526c8b4df940a4beeb011f74e0ebb"
+    },
+    "business_commands_executed": false,
+    "scope": "BASH_SYNTAX_STATIC_CLI_OPTIONS_AND_MANUAL_SEMANTIC_REVIEW"
+  },
+  "business_status": {
+    "INTEGRATED": "NOT_RUN",
+    "DEPLOYED": "NOT_RUN",
+    "LIVE_API": "NOT_RUN",
+    "LIVE_UI": "NOT_RUN",
+    "NATURAL": "NOT_RUN",
+    "REAL_20261008_20261009_PRODUCTS": "NOT_RUN",
+    "ACTUAL_RUNTIME_LOADED_IDENTITY": "NOT_RUN",
+    "HK02_PRODUCER_RESTORATION": "CANNOT_CONFIRM"
+  },
+  "boundaries": {
+    "live_owner_post": false,
+    "live_source_network": false,
+    "business_state_or_plan_io": false,
+    "production_configuration_changes": false,
+    "services_or_deployment": false,
+    "github_write": false,
+    "full_repository_test_claimed": false,
+    "native_full_application_import_claimed": false,
+    "current_web_build_claimed": false,
+    "test_groups_must_not_be_summed": true
+  },
+  "flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "report": "FINAL_REVIEW.md",
+  "report_sha256": "d9bb25f4ceca87882c112b376f4c2d1be2e74833a612090086cbb3500abf16b5",
+  "supporting_artifact_sha256": {
+    "final_source_identity.json": "84cadf099f228349091f2793891ab20184bb713d65e9cb79b84e6237e6795124",
+    "source_payload_identity.json": "dce215623d8fdb9eb19cb7105d455ba8595ecef40cdd4a5b6482564691ec54b9",
+    "patch_replay_receipt.json": "c44478d1a1a73ccb551a0feae8a6342d12d1fb92c22b72e9beb0047403415e48",
+    "binding_final_independent_receipt.json": "6cfe9c44cd2e497a4eb57c034a4d0d880af4be058b10a08ac4f7ce72b2305ebb",
+    "final_portable_contracts_receipt.json": "61bdcd38411bfd1a5a6624ccf3c6fcccfb95db30d3d9ea074d8fd4d640f3d327",
+    "final_handoff_review.json": "7edab27e877365b7db68e316e7331d0f685c1236106857135c293606c45d60ba",
+    "hk_source_identity.json": "2b63172bd9297b0f9a42fea85a904f93cc552b75565055d873d3be21c756c00b"
+  }
+}

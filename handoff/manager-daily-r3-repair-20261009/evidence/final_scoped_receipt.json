@@ -1,0 +1,90 @@
+{
+  "schema_version": "v4.manager_r3.final_scoped_test.v1",
+  "status": "PASS",
+  "result": "66 passed, 1 warning in 7.59s",
+  "exit_code": 0,
+  "cwd": "/workspace/scratch/21926b793c00/candidate",
+  "argv": [
+    "/workspace/scratch/a154a3323e32/test_env/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "tests/test_manager_r3_binding_contract.py",
+    "tests/test_manager_r3_product_contract.py",
+    "tests/test_manager_r3_hk_continuation.py"
+  ],
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": "/workspace/scratch/21926b793c00/candidate:/workspace/scratch/21926b793c00/candidate/upstreams:/workspace/scratch/21926b793c00/candidate/tests",
+    "V4_R3_HK_CHILD_ROOT": "/workspace/scratch/21926b793c00/hk_child_candidate",
+    "V4_R3_INPUT_PACKAGE_ROOT": "/workspace/scratch/21926b793c00/input/remote/handoff/manager-daily-failure-20261009-r3/package",
+    "V4_R3_OWNER_TEST_DEPENDENCY_ROOT": "/workspace/scratch/21926b793c00/hk_validation/test_dependencies"
+  },
+  "tests": [
+    {
+      "path": "tests/test_manager_r3_binding_contract.py",
+      "sha256": "c3e6d1055ee936245593656ca365fd622af9148b0041cb715d3e292589e9ea39"
+    },
+    {
+      "path": "tests/test_manager_r3_product_contract.py",
+      "sha256": "7ecf4789b581818eb516fe420f03f159580f276600ebf0921c73ba3b01c2b21c"
+    },
+    {
+      "path": "tests/test_manager_r3_hk_continuation.py",
+      "sha256": "686ba041564a07671d550e379cdba2f6e455af2bf2fc7d8b0a0b95792fcfeb23"
+    }
+  ],
+  "runtime_sources": [
+    {
+      "path": "apps/api/v35_api/manager_research_router.py",
+      "sha256": "9d8d132c58e7cf1c5a5609d93261483d578268ac24c60c2fa7a6a79b87344341"
+    },
+    {
+      "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "sha256": "e9a1e6f79abf268855a88d15dc579744ec4739f3561eccc56972badd89653ffa"
+    },
+    {
+      "path": "ops/render_manager_announcement_binding.py",
+      "sha256": "44fba219e65a2c67bf0dc5d7d9f012e6ece757bb5a2b38a273f616dbfe7aa4db"
+    },
+    {
+      "path": "ops/run_manager_announcement_cycle.py",
+      "sha256": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44"
+    },
+    {
+      "path": "v4/manager_research/plan_owner_dispatch.py",
+      "sha256": "2b532168bfdce41080121df318cb619011b98bb76195eba39df43046a130b987"
+    },
+    {
+      "path": "v4/manager_research/workspace_daily_channels.py",
+      "sha256": "e5a74449f211c9e8ecfb4f886317db2263d524f0e29fa7912c9094928a5c6bab"
+    },
+    {
+      "path": "v4/manager_research/workspace_plan_autorun.py",
+      "sha256": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34"
+    }
+  ],
+  "log_path": "evidence/final_scoped_after_review.log",
+  "log_sha256": "6a895bcd67f93b15713cbb5ddaef81db6c07bca4a3dbb210828cf6b5b52f36cc",
+  "live_business_io": false,
+  "native_mac_acceptance": "NOT_RUN",
+  "flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "new_case_breakdown": {
+    "binding": 44,
+    "product": 9,
+    "hk": 13
+  },
+  "review_findings_closed": [
+    "VERIFIER_PROFILE_CLOSURE",
+    "REAL_PREOPEN_TIMEOUT_CATEGORY",
+    "REAL_PREOPEN_BOUNDED_ERROR_REASON",
+    "ACTUAL_NESTED_HK_CONSUMER_PIN"
+  ]
+}

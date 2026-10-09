@@ -1,0 +1,56 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_ test_owner_inventory_cannot_omit_required_owner_entry_even_with_matching_pins[v4/manager_research/plan_owner_dispatch.py] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-103/test_owner_inventory_cannot_om0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f71b833f490>
+relative = 'v4/manager_research/plan_owner_dispatch.py'
+
+    @pytest.mark.parametrize("relative", ["v4/manager_research/plan_owner_dispatch.py",
+                                         "v4/manager_research/workspace_plan_autorun.py"])
+    def test_owner_inventory_cannot_omit_required_owner_entry_even_with_matching_pins(tmp_path, monkeypatch, relative):
+        f = _fixture(tmp_path, monkeypatch)
+        (f.owner_root / relative).unlink()
+        del f.binding["plan_owner"]["files"][relative]
+        # Re-pin all declarative metadata: a closed inventory still needs its
+        # mandatory owner entry points, not only agreement with surviving files.
+        f.canary["owner_source_inventory_sha256"] = hashlib.sha256(
+            _json_bytes(f.binding["plan_owner"]["files"])).hexdigest()
+        f.binding["plan_activation_receipt"] = _write_json(f.root / "canary.json", f.canary)
+>       with pytest.raises(ValueError, match="PLAN_OWNER_BINDING_INVENTORY_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_r3_binding_contract.py:476: Failed
+_ test_owner_inventory_cannot_omit_required_owner_entry_even_with_matching_pins[v4/manager_research/workspace_plan_autorun.py] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-103/test_owner_inventory_cannot_om1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f71b833f820>
+relative = 'v4/manager_research/workspace_plan_autorun.py'
+
+    @pytest.mark.parametrize("relative", ["v4/manager_research/plan_owner_dispatch.py",
+                                         "v4/manager_research/workspace_plan_autorun.py"])
+    def test_owner_inventory_cannot_omit_required_owner_entry_even_with_matching_pins(tmp_path, monkeypatch, relative):
+        f = _fixture(tmp_path, monkeypatch)
+        (f.owner_root / relative).unlink()
+        del f.binding["plan_owner"]["files"][relative]
+        # Re-pin all declarative metadata: a closed inventory still needs its
+        # mandatory owner entry points, not only agreement with surviving files.
+        f.canary["owner_source_inventory_sha256"] = hashlib.sha256(
+            _json_bytes(f.binding["plan_owner"]["files"])).hexdigest()
+        f.binding["plan_activation_receipt"] = _write_json(f.root / "canary.json", f.canary)
+>       with pytest.raises(ValueError, match="PLAN_OWNER_BINDING_INVENTORY_INVALID"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_r3_binding_contract.py:476: Failed
+=============================== warnings summary ===============================
+../../a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_manager_r3_binding_contract.py::test_owner_inventory_cannot_omit_required_owner_entry_even_with_matching_pins[v4/manager_research/plan_owner_dispatch.py]
+FAILED tests/test_manager_r3_binding_contract.py::test_owner_inventory_cannot_omit_required_owner_entry_even_with_matching_pins[v4/manager_research/workspace_plan_autorun.py]
+2 failed, 33 deselected, 1 warning in 0.49s

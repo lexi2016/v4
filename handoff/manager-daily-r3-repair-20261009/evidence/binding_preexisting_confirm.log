@@ -1,0 +1,189 @@
+READ_ONLY_BASELINE_SOURCE=c973cbc:ops/run_manager_announcement_cycle.py
+.FFFF..                                                                  [100%]
+=================================== FAILURES ===================================
+__ test_same_authoritative_input_sha_skips_new_refresh_even_when_cutoff_moves __
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-93/test_same_authoritative_input_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fd307c04d60>
+
+    def test_same_authoritative_input_sha_skips_new_refresh_even_when_cutoff_moves(tmp_path,monkeypatch):
+        identity='a'*64
+        prior=saved_plan(identity)
+        monkeypatch.setattr(workspace,'_read_plan',lambda *_:prior)
+        monkeypatch.setattr(workspace,'get_workspace',lambda *_,**__:current_workspace(identity,'2026-09-28T22:00:00+08:00'))
+        service=SimpleNamespace(store=SimpleNamespace(root=Path(tmp_path)),
+            refresh_workspace_plan=lambda *_,**__:pytest.fail('same-input plan was re-published'))
+>       result=cycle.run_next_hk_session_plan_material_refresh(service,'20260928',
+            now=datetime.fromisoformat('2026-09-28T22:00:00+08:00'),config=AFTER_CLOSE)
+
+tests/test_manager_announcement_plan_refresh_only.py:45: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+service = namespace(store=namespace(root=PosixPath('/tmp/pytest-of-root/pytest-93/test_same_authoritative_input_0')), refresh_wo...nction test_same_authoritative_input_sha_skips_new_refresh_even_when_cutoff_moves.<locals>.<lambda> at 0x7fd307ad1fe0>)
+source_date = '20260928'
+now = datetime.datetime(2026, 9, 28, 22, 0, tzinfo=datetime.timezone(datetime.timedelta(seconds=28800)))
+config = {'enabled': True, 'start_local': '16:00', 'end_local': '23:00', 'max_attempts_per_target_date': 3, ...}
+
+    def run_next_hk_session_plan_material_refresh(service:Any,source_date:str,*,now:datetime,
+                                                   config:Mapping[str,Any] | None=None) -> dict[str,Any]:
+        """Persist a next-session MANUAL_REFRESH through the existing workspace-plan owner."""
+        cfg=_plan_refresh_config(config)
+        if now.tzinfo is None:raise ValueError('PLAN_MATERIAL_REFRESH_CLOCK_MUST_BE_AWARE')
+        local=now.astimezone(ZoneInfo('Asia/Hong_Kong'))
+        if not cfg['enabled']:return {'status':'DISABLED','policy_status':'PROPOSAL_ONLY'}
+        if local.strftime('%Y%m%d')!=source_date:
+            raise ValueError('PLAN_MATERIAL_REFRESH_SOURCE_DATE_CLOCK_MISMATCH')
+        if local.timetz().replace(tzinfo=None)<cfg['start_local']:
+            return {'status':'NOT_DUE','policy_status':'PROPOSAL_ONLY'}
+        if local.timetz().replace(tzinfo=None)>=cfg['end_local']:
+            return {'status':'EXPIRED_NO_BACKFILL','policy_status':'PROPOSAL_ONLY'}
+        target=next_hk_session_date(source_date)
+        # Serialize admission, source identity, retry budget, and the existing
+        # owner's write across API processes. This lock produces no business data.
+>       with service.store._transaction(target,'workspace-plan-evening-dispatch'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute '_transaction'
+
+ops/run_manager_announcement_cycle.py:142: AttributeError
+_______ test_evening_draft_never_replaces_valid_scheduled_preopen_freeze _______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-93/test_evening_draft_never_repla0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fd307c06b10>
+
+    def test_evening_draft_never_replaces_valid_scheduled_preopen_freeze(tmp_path,monkeypatch):
+        prior=saved_plan('b'*64,kind='SCHEDULED_PREOPEN')
+        monkeypatch.setattr(workspace,'_read_plan',lambda *_:prior)
+        monkeypatch.setattr(workspace,'get_workspace',lambda *_,**__:pytest.fail('freeze must be preserved'))
+        service=SimpleNamespace(store=SimpleNamespace(root=Path(tmp_path)),
+            refresh_workspace_plan=lambda *_,**__:pytest.fail('freeze must not be overwritten'))
+>       result=cycle.run_next_hk_session_plan_material_refresh(service,'20260928',
+            now=datetime.fromisoformat('2026-09-28T22:00:00+08:00'),config=AFTER_CLOSE)
+
+tests/test_manager_announcement_plan_refresh_only.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+service = namespace(store=namespace(root=PosixPath('/tmp/pytest-of-root/pytest-93/test_evening_draft_never_repla0')), refresh_wo...e_plan=<function test_evening_draft_never_replaces_valid_scheduled_preopen_freeze.<locals>.<lambda> at 0x7fd307ae9fe0>)
+source_date = '20260928'
+now = datetime.datetime(2026, 9, 28, 22, 0, tzinfo=datetime.timezone(datetime.timedelta(seconds=28800)))
+config = {'enabled': True, 'start_local': '16:00', 'end_local': '23:00', 'max_attempts_per_target_date': 3, ...}
+
+    def run_next_hk_session_plan_material_refresh(service:Any,source_date:str,*,now:datetime,
+                                                   config:Mapping[str,Any] | None=None) -> dict[str,Any]:
+        """Persist a next-session MANUAL_REFRESH through the existing workspace-plan owner."""
+        cfg=_plan_refresh_config(config)
+        if now.tzinfo is None:raise ValueError('PLAN_MATERIAL_REFRESH_CLOCK_MUST_BE_AWARE')
+        local=now.astimezone(ZoneInfo('Asia/Hong_Kong'))
+        if not cfg['enabled']:return {'status':'DISABLED','policy_status':'PROPOSAL_ONLY'}
+        if local.strftime('%Y%m%d')!=source_date:
+            raise ValueError('PLAN_MATERIAL_REFRESH_SOURCE_DATE_CLOCK_MISMATCH')
+        if local.timetz().replace(tzinfo=None)<cfg['start_local']:
+            return {'status':'NOT_DUE','policy_status':'PROPOSAL_ONLY'}
+        if local.timetz().replace(tzinfo=None)>=cfg['end_local']:
+            return {'status':'EXPIRED_NO_BACKFILL','policy_status':'PROPOSAL_ONLY'}
+        target=next_hk_session_date(source_date)
+        # Serialize admission, source identity, retry budget, and the existing
+        # owner's write across API processes. This lock produces no business data.
+>       with service.store._transaction(target,'workspace-plan-evening-dispatch'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute '_transaction'
+
+ops/run_manager_announcement_cycle.py:142: AttributeError
+____ test_changed_input_persists_next_session_through_original_manual_owner ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-93/test_changed_input_persists_ne0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fd307aa44d0>
+
+    def test_changed_input_persists_next_session_through_original_manual_owner(tmp_path,monkeypatch):
+        state={'saved':saved_plan('a'*64)};calls=[]
+        monkeypatch.setattr(workspace,'_read_plan',lambda *_:state['saved'])
+        monkeypatch.setattr(workspace,'get_workspace',lambda *_,**__:current_workspace('c'*64))
+        class Service:
+            store=SimpleNamespace(root=Path(tmp_path))
+            def refresh_workspace_plan(self,date,**kwargs):
+                calls.append((date,kwargs))
+                state['saved']=saved_plan('c'*64,run_id='d'*32)
+                return {'workspace_plan_attempt':{'state':'PARTIAL','failure_reasons':['INPUT_GAP']}}
+>       result=cycle.run_next_hk_session_plan_material_refresh(Service(),'20260928',
+            now=datetime.fromisoformat('2026-09-28T22:00:00+08:00'),config=AFTER_CLOSE)
+
+tests/test_manager_announcement_plan_refresh_only.py:74: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+service = <test_manager_announcement_plan_refresh_only.test_changed_input_persists_next_session_through_original_manual_owner.<locals>.Service object at 0x7fd307beee40>
+source_date = '20260928'
+now = datetime.datetime(2026, 9, 28, 22, 0, tzinfo=datetime.timezone(datetime.timedelta(seconds=28800)))
+config = {'enabled': True, 'start_local': '16:00', 'end_local': '23:00', 'max_attempts_per_target_date': 3, ...}
+
+    def run_next_hk_session_plan_material_refresh(service:Any,source_date:str,*,now:datetime,
+                                                   config:Mapping[str,Any] | None=None) -> dict[str,Any]:
+        """Persist a next-session MANUAL_REFRESH through the existing workspace-plan owner."""
+        cfg=_plan_refresh_config(config)
+        if now.tzinfo is None:raise ValueError('PLAN_MATERIAL_REFRESH_CLOCK_MUST_BE_AWARE')
+        local=now.astimezone(ZoneInfo('Asia/Hong_Kong'))
+        if not cfg['enabled']:return {'status':'DISABLED','policy_status':'PROPOSAL_ONLY'}
+        if local.strftime('%Y%m%d')!=source_date:
+            raise ValueError('PLAN_MATERIAL_REFRESH_SOURCE_DATE_CLOCK_MISMATCH')
+        if local.timetz().replace(tzinfo=None)<cfg['start_local']:
+            return {'status':'NOT_DUE','policy_status':'PROPOSAL_ONLY'}
+        if local.timetz().replace(tzinfo=None)>=cfg['end_local']:
+            return {'status':'EXPIRED_NO_BACKFILL','policy_status':'PROPOSAL_ONLY'}
+        target=next_hk_session_date(source_date)
+        # Serialize admission, source identity, retry budget, and the existing
+        # owner's write across API processes. This lock produces no business data.
+>       with service.store._transaction(target,'workspace-plan-evening-dispatch'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute '_transaction'
+
+ops/run_manager_announcement_cycle.py:142: AttributeError
+_______ test_failed_same_input_is_backed_off_and_retry_budget_is_bounded _______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-93/test_failed_same_input_is_back0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fd307ae1480>
+
+    def test_failed_same_input_is_backed_off_and_retry_budget_is_bounded(tmp_path,monkeypatch):
+        identity='a'*64
+        monkeypatch.setattr(workspace,'_read_plan',lambda *_:None)
+        monkeypatch.setattr(workspace,'get_workspace',lambda *_,**__:current_workspace(identity))
+        failed={'state':'FAILED','input_identity':identity,
+            'started_at':'2026-09-28T13:00:00+00:00','finished_at':'2026-09-28T13:00:05+00:00'}
+        monkeypatch.setattr(cycle,'_attempts_today',lambda *args:[failed])
+        service=SimpleNamespace(store=SimpleNamespace(root=Path(tmp_path)),
+            refresh_workspace_plan=lambda *_,**__:pytest.fail('retry backoff not honored'))
+>       result=cycle.run_next_hk_session_plan_material_refresh(service,'20260928',
+            now=datetime.fromisoformat('2026-09-28T21:05:00+08:00'),config=AFTER_CLOSE)
+
+tests/test_manager_announcement_plan_refresh_only.py:93: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+service = namespace(store=namespace(root=PosixPath('/tmp/pytest-of-root/pytest-93/test_failed_same_input_is_back0')), refresh_wo...e_plan=<function test_failed_same_input_is_backed_off_and_retry_budget_is_bounded.<locals>.<lambda> at 0x7fd307aea090>)
+source_date = '20260928'
+now = datetime.datetime(2026, 9, 28, 21, 5, tzinfo=datetime.timezone(datetime.timedelta(seconds=28800)))
+config = {'enabled': True, 'start_local': '16:00', 'end_local': '23:00', 'max_attempts_per_target_date': 3, ...}
+
+    def run_next_hk_session_plan_material_refresh(service:Any,source_date:str,*,now:datetime,
+                                                   config:Mapping[str,Any] | None=None) -> dict[str,Any]:
+        """Persist a next-session MANUAL_REFRESH through the existing workspace-plan owner."""
+        cfg=_plan_refresh_config(config)
+        if now.tzinfo is None:raise ValueError('PLAN_MATERIAL_REFRESH_CLOCK_MUST_BE_AWARE')
+        local=now.astimezone(ZoneInfo('Asia/Hong_Kong'))
+        if not cfg['enabled']:return {'status':'DISABLED','policy_status':'PROPOSAL_ONLY'}
+        if local.strftime('%Y%m%d')!=source_date:
+            raise ValueError('PLAN_MATERIAL_REFRESH_SOURCE_DATE_CLOCK_MISMATCH')
+        if local.timetz().replace(tzinfo=None)<cfg['start_local']:
+            return {'status':'NOT_DUE','policy_status':'PROPOSAL_ONLY'}
+        if local.timetz().replace(tzinfo=None)>=cfg['end_local']:
+            return {'status':'EXPIRED_NO_BACKFILL','policy_status':'PROPOSAL_ONLY'}
+        target=next_hk_session_date(source_date)
+        # Serialize admission, source identity, retry budget, and the existing
+        # owner's write across API processes. This lock produces no business data.
+>       with service.store._transaction(target,'workspace-plan-evening-dispatch'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute '_transaction'
+
+ops/run_manager_announcement_cycle.py:142: AttributeError
+=========================== short test summary info ============================
+FAILED tests/test_manager_announcement_plan_refresh_only.py::test_same_authoritative_input_sha_skips_new_refresh_even_when_cutoff_moves
+FAILED tests/test_manager_announcement_plan_refresh_only.py::test_evening_draft_never_replaces_valid_scheduled_preopen_freeze
+FAILED tests/test_manager_announcement_plan_refresh_only.py::test_changed_input_persists_next_session_through_original_manual_owner
+FAILED tests/test_manager_announcement_plan_refresh_only.py::test_failed_same_input_is_backed_off_and_retry_budget_is_bounded
+4 failed, 3 passed in 0.17s

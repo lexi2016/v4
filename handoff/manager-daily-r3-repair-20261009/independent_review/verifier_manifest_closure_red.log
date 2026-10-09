@@ -1,0 +1,130 @@
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+__ test_manifest_profile_and_logical_path_must_be_closed[undeclared_profile] ___
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-106/test_manifest_profile_and_logi0')
+damage = 'undeclared_profile'
+
+    @pytest.mark.parametrize("damage", ["undeclared_profile", "wrong_payload_filename", "empty_selected_profile"])
+    def test_manifest_profile_and_logical_path_must_be_closed(tmp_path, damage):
+        verifier, package, source = make_delivery(tmp_path)
+        manifest_path = package / "source_manifest.json"
+        manifest = json.loads(manifest_path.read_text())
+        row = manifest["files"][0]
+        if damage == "undeclared_profile":
+            row["profile"] = "undeclared_worker"
+            for side in ("before", "after"):
+                old = package / row[side + "_path"]
+                new_relative = f"{side}/undeclared_worker/ops/owned.py"
+                new = package / new_relative
+                new.parent.mkdir(parents=True)
+                old.rename(new)
+                row[side + "_path"] = new_relative
+            # A source-root check for declared worker now has no matching record.
+        elif damage == "wrong_payload_filename":
+            for side in ("before", "after"):
+                old = package / row[side + "_path"]
+                new_relative = f"{side}/worker/ops/different.py"
+                old.rename(package / new_relative)
+                row[side + "_path"] = new_relative
+            # Logical source path still says owned.py; payload names disagree.
+        else:
+            manifest["profiles"]["empty"] = dict(manifest["profiles"]["worker"])
+        if damage in {"undeclared_profile", "empty_selected_profile"}:
+            (source / "ops/owned.py").write_bytes(b"UNREVIEWED_SOURCE_DRIFT\n")
+        manifest_path.write_text(json.dumps(manifest))
+        selected = "empty" if damage == "empty_selected_profile" else "worker"
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+independent_review/test_verifier_manifest_closure.py:39: Failed
+----------------------------- Captured stdout call -----------------------------
+{"damage": "undeclared_profile", "unexpected_acceptance": {"against": "before", "business_io": false, "deployment_claimed": false, "manifest_sha256": "a7f86a5a825d989aeb6aa07812e6f7115f49a6be4cfe722524fb30184e0ef873", "payload_count": 2, "preserved_checked": [], "profile": "worker", "schema_version": "v4.manager_r3.delivery.v1", "source_checked": [], "source_root": "/tmp/pytest-of-root/pytest-106/test_manifest_profile_and_logi0/isolated-source", "source_writes": 0, "status": "PASS"}}
+_ test_manifest_profile_and_logical_path_must_be_closed[wrong_payload_filename] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-106/test_manifest_profile_and_logi1')
+damage = 'wrong_payload_filename'
+
+    @pytest.mark.parametrize("damage", ["undeclared_profile", "wrong_payload_filename", "empty_selected_profile"])
+    def test_manifest_profile_and_logical_path_must_be_closed(tmp_path, damage):
+        verifier, package, source = make_delivery(tmp_path)
+        manifest_path = package / "source_manifest.json"
+        manifest = json.loads(manifest_path.read_text())
+        row = manifest["files"][0]
+        if damage == "undeclared_profile":
+            row["profile"] = "undeclared_worker"
+            for side in ("before", "after"):
+                old = package / row[side + "_path"]
+                new_relative = f"{side}/undeclared_worker/ops/owned.py"
+                new = package / new_relative
+                new.parent.mkdir(parents=True)
+                old.rename(new)
+                row[side + "_path"] = new_relative
+            # A source-root check for declared worker now has no matching record.
+        elif damage == "wrong_payload_filename":
+            for side in ("before", "after"):
+                old = package / row[side + "_path"]
+                new_relative = f"{side}/worker/ops/different.py"
+                old.rename(package / new_relative)
+                row[side + "_path"] = new_relative
+            # Logical source path still says owned.py; payload names disagree.
+        else:
+            manifest["profiles"]["empty"] = dict(manifest["profiles"]["worker"])
+        if damage in {"undeclared_profile", "empty_selected_profile"}:
+            (source / "ops/owned.py").write_bytes(b"UNREVIEWED_SOURCE_DRIFT\n")
+        manifest_path.write_text(json.dumps(manifest))
+        selected = "empty" if damage == "empty_selected_profile" else "worker"
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+independent_review/test_verifier_manifest_closure.py:39: Failed
+----------------------------- Captured stdout call -----------------------------
+{"damage": "wrong_payload_filename", "unexpected_acceptance": {"against": "before", "business_io": false, "deployment_claimed": false, "manifest_sha256": "e15d457097170eac9c961d450f501fb8013f37f70a79957aad8ae4e88bb7c8c1", "payload_count": 2, "preserved_checked": [], "profile": "worker", "schema_version": "v4.manager_r3.delivery.v1", "source_checked": ["ops/owned.py"], "source_root": "/tmp/pytest-of-root/pytest-106/test_manifest_profile_and_logi1/isolated-source", "source_writes": 0, "status": "PASS"}}
+_ test_manifest_profile_and_logical_path_must_be_closed[empty_selected_profile] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-106/test_manifest_profile_and_logi2')
+damage = 'empty_selected_profile'
+
+    @pytest.mark.parametrize("damage", ["undeclared_profile", "wrong_payload_filename", "empty_selected_profile"])
+    def test_manifest_profile_and_logical_path_must_be_closed(tmp_path, damage):
+        verifier, package, source = make_delivery(tmp_path)
+        manifest_path = package / "source_manifest.json"
+        manifest = json.loads(manifest_path.read_text())
+        row = manifest["files"][0]
+        if damage == "undeclared_profile":
+            row["profile"] = "undeclared_worker"
+            for side in ("before", "after"):
+                old = package / row[side + "_path"]
+                new_relative = f"{side}/undeclared_worker/ops/owned.py"
+                new = package / new_relative
+                new.parent.mkdir(parents=True)
+                old.rename(new)
+                row[side + "_path"] = new_relative
+            # A source-root check for declared worker now has no matching record.
+        elif damage == "wrong_payload_filename":
+            for side in ("before", "after"):
+                old = package / row[side + "_path"]
+                new_relative = f"{side}/worker/ops/different.py"
+                old.rename(package / new_relative)
+                row[side + "_path"] = new_relative
+            # Logical source path still says owned.py; payload names disagree.
+        else:
+            manifest["profiles"]["empty"] = dict(manifest["profiles"]["worker"])
+        if damage in {"undeclared_profile", "empty_selected_profile"}:
+            (source / "ops/owned.py").write_bytes(b"UNREVIEWED_SOURCE_DRIFT\n")
+        manifest_path.write_text(json.dumps(manifest))
+        selected = "empty" if damage == "empty_selected_profile" else "worker"
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+independent_review/test_verifier_manifest_closure.py:39: Failed
+----------------------------- Captured stdout call -----------------------------
+{"damage": "empty_selected_profile", "unexpected_acceptance": {"against": "before", "business_io": false, "deployment_claimed": false, "manifest_sha256": "0a8ec9ddbeef38d1c319141e6a7a9882adbe30d74159d77a598271a901de08ff", "payload_count": 2, "preserved_checked": [], "profile": "empty", "schema_version": "v4.manager_r3.delivery.v1", "source_checked": [], "source_root": "/tmp/pytest-of-root/pytest-106/test_manifest_profile_and_logi2/isolated-source", "source_writes": 0, "status": "PASS"}}
+=========================== short test summary info ============================
+FAILED independent_review/test_verifier_manifest_closure.py::test_manifest_profile_and_logical_path_must_be_closed[undeclared_profile]
+FAILED independent_review/test_verifier_manifest_closure.py::test_manifest_profile_and_logical_path_must_be_closed[wrong_payload_filename]
+FAILED independent_review/test_verifier_manifest_closure.py::test_manifest_profile_and_logical_path_must_be_closed[empty_selected_profile]
+3 failed in 0.05s

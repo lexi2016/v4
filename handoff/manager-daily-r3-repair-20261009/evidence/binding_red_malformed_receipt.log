@@ -1,0 +1,121 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+____ test_malformed_200_owner_receipt_is_bounded_unknown_completion[status] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-111/test_malformed_200_owner_recei0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5f0ed2f490>
+field = 'status'
+
+    @pytest.mark.parametrize("field", ["status", "owner_attempt_state"])
+    def test_malformed_200_owner_receipt_is_bounded_unknown_completion(tmp_path, monkeypatch, field):
+        f = _fixture(tmp_path, monkeypatch)
+        body = dispatch.execute_bound_plan_cycle(f.service, DATE, f.sha)
+        body["plan_result"][field] = {"invalid": True}
+        with _client(f.service) as client:
+            _memory_transport(monkeypatch, client, body_override=body)
+>           result = dispatch.request_bound_plan_cycle(f.path, DATE)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:488: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+v4/manager_research/plan_owner_dispatch.py:757: in request_bound_plan_cycle
+    return _request_bound_cycle(binding_path,target_date,daily_mode=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/plan_owner_dispatch.py:861: in _request_bound_cycle
+    and valid_owner_plan_result(plan, branch)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+plan = {'execution_context': None, 'execution_kind': 'SCHEDULED_PREOPEN', 'execution_kind_source': 'OWNER_READBACK', 'failure_reasons': [], ...}
+branch = 'PREOPEN'
+
+    def valid_owner_plan_result(plan:Mapping[str,Any],branch:str) -> bool:
+        """The wire receipt preserves the same owner/run/attempt contract as the wrapper."""
+        expected={'MORNING':'SCHEDULED_MORNING','PREOPEN':'SCHEDULED_PREOPEN',
+                  'EVENING_NEXT_SESSION':'MANUAL_REFRESH','SAME_DAY_CATCHUP':'MANUAL_REFRESH'}.get(branch)
+        preserved=(branch in {'MORNING','EVENING_NEXT_SESSION','SAME_DAY_CATCHUP'}
+            and plan.get('owner_product_status')=='PRESERVED_SCHEDULED_PREOPEN'
+            and plan.get('execution_kind')=='SCHEDULED_PREOPEN')
+        return bool(expected and (plan.get('execution_kind')==expected or preserved)
+            and plan.get('execution_kind_source')=='OWNER_READBACK'
+            and plan.get('owner')=='ManagerResearchJobService.refresh_workspace_plan'
+            and re.fullmatch(r'[0-9a-f]{32}',str(plan.get('run_id') or ''))
+            and plan.get('owner_attempt_run_id')==plan.get('run_id')
+            and re.fullmatch(r'[0-9a-f]{64}',str(plan.get('owner_attempt_sha256') or ''))
+            and re.fullmatch(r'[0-9a-f]{64}',str(plan.get('product_sha256') or ''))
+            and re.fullmatch(r'[0-9a-f]{64}',str(plan.get('input_identity') or ''))
+            and isinstance(plan.get('failure_reasons'),list)
+            and ((plan.get('owner_attempt_state')=='PARTIAL' and plan.get('status')=='PARTIAL'
+                  and bool(plan.get('failure_reasons')))
+                 or (plan.get('owner_attempt_state') in {'SUCCEEDED','SUCCEEDED_EMPTY'}
+                     and not plan.get('failure_reasons')
+>                    and plan.get('status') in {'MATERIALIZED','ALREADY_MATERIALIZED',
+                                              'ALREADY_CURRENT','PRESERVED_SCHEDULED_PREOPEN'})))
+E       TypeError: cannot use 'dict' as a set element (unhashable type: 'dict')
+
+ops/run_manager_announcement_cycle.py:395: TypeError
+_ test_malformed_200_owner_receipt_is_bounded_unknown_completion[owner_attempt_state] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-111/test_malformed_200_owner_recei1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5f0ed2f5c0>
+field = 'owner_attempt_state'
+
+    @pytest.mark.parametrize("field", ["status", "owner_attempt_state"])
+    def test_malformed_200_owner_receipt_is_bounded_unknown_completion(tmp_path, monkeypatch, field):
+        f = _fixture(tmp_path, monkeypatch)
+        body = dispatch.execute_bound_plan_cycle(f.service, DATE, f.sha)
+        body["plan_result"][field] = {"invalid": True}
+        with _client(f.service) as client:
+            _memory_transport(monkeypatch, client, body_override=body)
+>           result = dispatch.request_bound_plan_cycle(f.path, DATE)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:488: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+v4/manager_research/plan_owner_dispatch.py:757: in request_bound_plan_cycle
+    return _request_bound_cycle(binding_path,target_date,daily_mode=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/plan_owner_dispatch.py:861: in _request_bound_cycle
+    and valid_owner_plan_result(plan, branch)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+plan = {'execution_context': None, 'execution_kind': 'SCHEDULED_PREOPEN', 'execution_kind_source': 'OWNER_READBACK', 'failure_reasons': [], ...}
+branch = 'PREOPEN'
+
+    def valid_owner_plan_result(plan:Mapping[str,Any],branch:str) -> bool:
+        """The wire receipt preserves the same owner/run/attempt contract as the wrapper."""
+        expected={'MORNING':'SCHEDULED_MORNING','PREOPEN':'SCHEDULED_PREOPEN',
+                  'EVENING_NEXT_SESSION':'MANUAL_REFRESH','SAME_DAY_CATCHUP':'MANUAL_REFRESH'}.get(branch)
+        preserved=(branch in {'MORNING','EVENING_NEXT_SESSION','SAME_DAY_CATCHUP'}
+            and plan.get('owner_product_status')=='PRESERVED_SCHEDULED_PREOPEN'
+            and plan.get('execution_kind')=='SCHEDULED_PREOPEN')
+        return bool(expected and (plan.get('execution_kind')==expected or preserved)
+            and plan.get('execution_kind_source')=='OWNER_READBACK'
+            and plan.get('owner')=='ManagerResearchJobService.refresh_workspace_plan'
+            and re.fullmatch(r'[0-9a-f]{32}',str(plan.get('run_id') or ''))
+            and plan.get('owner_attempt_run_id')==plan.get('run_id')
+            and re.fullmatch(r'[0-9a-f]{64}',str(plan.get('owner_attempt_sha256') or ''))
+            and re.fullmatch(r'[0-9a-f]{64}',str(plan.get('product_sha256') or ''))
+            and re.fullmatch(r'[0-9a-f]{64}',str(plan.get('input_identity') or ''))
+            and isinstance(plan.get('failure_reasons'),list)
+            and ((plan.get('owner_attempt_state')=='PARTIAL' and plan.get('status')=='PARTIAL'
+                  and bool(plan.get('failure_reasons')))
+>                or (plan.get('owner_attempt_state') in {'SUCCEEDED','SUCCEEDED_EMPTY'}
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     and not plan.get('failure_reasons')
+                     and plan.get('status') in {'MATERIALIZED','ALREADY_MATERIALIZED',
+                                              'ALREADY_CURRENT','PRESERVED_SCHEDULED_PREOPEN'})))
+E       TypeError: cannot use 'dict' as a set element (unhashable type: 'dict')
+
+ops/run_manager_announcement_cycle.py:393: TypeError
+=============================== warnings summary ===============================
+../../a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_manager_r3_binding_contract.py::test_malformed_200_owner_receipt_is_bounded_unknown_completion[status]
+FAILED tests/test_manager_r3_binding_contract.py::test_malformed_200_owner_receipt_is_bounded_unknown_completion[owner_attempt_state]
+2 failed, 35 deselected, 1 warning in 0.84s

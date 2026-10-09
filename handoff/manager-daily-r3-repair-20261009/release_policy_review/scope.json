@@ -1,0 +1,20 @@
+{
+  "status": "CODE_PROPOSAL_FOR_ORIGINAL_SHARED_OWNER_REVIEW",
+  "automatic_application": false,
+  "current_policy_sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+  "candidate_source_sha256": "ce74042648405a8de9aa7bd69fd0ac5cbe54e42e29db983d77d7e8519ac4cfac",
+  "changes": {
+    "exact_shared_paths": [
+      "infrastructure/_research_peripheral_store_parts/_namespace.py",
+      "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "ops/render_manager_announcement_binding.py",
+      "ops/run_manager_announcement_cycle.py",
+      "v3_shared_data/shared_data/hk_daily_supplement.py"
+    ],
+    "new_modules_allowed": [
+      "manager"
+    ],
+    "broad_prefixes_added": []
+  },
+  "not_implemented_in_live_owner": true
+}

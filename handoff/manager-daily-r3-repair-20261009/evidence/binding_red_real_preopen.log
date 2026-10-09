@@ -1,0 +1,159 @@
+FFFF.                                                                    [100%]
+=================================== FAILURES ===================================
+_ test_real_preopen_wrapper_preserves_exception_category_without_private_detail[TimeoutError-synthetic completion is unknown-CANNOT_CONFIRM-PLAN_OWNER_EXECUTION_TIMEOUT] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-120/test_real_preopen_wrapper_pres0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fb02c0ef490>
+error_type = <class 'TimeoutError'>, message = 'synthetic completion is unknown'
+outcome = 'CANNOT_CONFIRM', code = 'PLAN_OWNER_EXECUTION_TIMEOUT'
+
+    @pytest.mark.parametrize("error_type,message,outcome,code", [
+        (TimeoutError, "synthetic completion is unknown", "CANNOT_CONFIRM", "PLAN_OWNER_EXECUTION_TIMEOUT"),
+        (TimeoutError, "SYNTHETIC_PRIVATE_UPPERCASE_DETAIL", "CANNOT_CONFIRM", "PLAN_OWNER_EXECUTION_TIMEOUT"),
+        (ValueError, "SYNTHETIC_PRIVATE_UPPERCASE_DETAIL", "OWNER_FAILED", "PLAN_OWNER_EXECUTION_FAILED"),
+        (ValueError, "PLAN_TWO_COMPLETED_HK_SESSIONS_UNAVAILABLE", "OWNER_FAILED", "PLAN_OWNER_EXECUTION_FAILED"),
+    ])
+    def test_real_preopen_wrapper_preserves_exception_category_without_private_detail(
+            tmp_path, monkeypatch, error_type, message, outcome, code):
+        f = _fixture(tmp_path, monkeypatch)
+    
+        def failed_owner(date, **kwargs):
+            f.events.append(("plan", date, kwargs))
+            raise error_type(message)
+    
+        f.service.refresh_workspace_plan = failed_owner
+        # Keep the real branch selector and PREOPEN safe wrapper. Only the final
+        # original owner method raises; bypassing _run_owner_branches hid this bug.
+        with _client(f.service) as client:
+            _memory_transport(monkeypatch, client)
+            result = dispatch.request_bound_plan_cycle(f.path, DATE)
+        assert len(f.events) == 1
+        assert result["status"] == "FAILED"
+>       assert result["dispatch_outcome"] == outcome
+E       AssertionError: assert 'OWNER_FAILED' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + OWNER_FAILED
+
+tests/test_manager_r3_binding_contract.py:539: AssertionError
+_ test_real_preopen_wrapper_preserves_exception_category_without_private_detail[TimeoutError-SYNTHETIC_PRIVATE_UPPERCASE_DETAIL-CANNOT_CONFIRM-PLAN_OWNER_EXECUTION_TIMEOUT] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-120/test_real_preopen_wrapper_pres1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fb02c0ef5c0>
+error_type = <class 'TimeoutError'>
+message = 'SYNTHETIC_PRIVATE_UPPERCASE_DETAIL', outcome = 'CANNOT_CONFIRM'
+code = 'PLAN_OWNER_EXECUTION_TIMEOUT'
+
+    @pytest.mark.parametrize("error_type,message,outcome,code", [
+        (TimeoutError, "synthetic completion is unknown", "CANNOT_CONFIRM", "PLAN_OWNER_EXECUTION_TIMEOUT"),
+        (TimeoutError, "SYNTHETIC_PRIVATE_UPPERCASE_DETAIL", "CANNOT_CONFIRM", "PLAN_OWNER_EXECUTION_TIMEOUT"),
+        (ValueError, "SYNTHETIC_PRIVATE_UPPERCASE_DETAIL", "OWNER_FAILED", "PLAN_OWNER_EXECUTION_FAILED"),
+        (ValueError, "PLAN_TWO_COMPLETED_HK_SESSIONS_UNAVAILABLE", "OWNER_FAILED", "PLAN_OWNER_EXECUTION_FAILED"),
+    ])
+    def test_real_preopen_wrapper_preserves_exception_category_without_private_detail(
+            tmp_path, monkeypatch, error_type, message, outcome, code):
+        f = _fixture(tmp_path, monkeypatch)
+    
+        def failed_owner(date, **kwargs):
+            f.events.append(("plan", date, kwargs))
+            raise error_type(message)
+    
+        f.service.refresh_workspace_plan = failed_owner
+        # Keep the real branch selector and PREOPEN safe wrapper. Only the final
+        # original owner method raises; bypassing _run_owner_branches hid this bug.
+        with _client(f.service) as client:
+            _memory_transport(monkeypatch, client)
+            result = dispatch.request_bound_plan_cycle(f.path, DATE)
+        assert len(f.events) == 1
+        assert result["status"] == "FAILED"
+>       assert result["dispatch_outcome"] == outcome
+E       AssertionError: assert 'OWNER_FAILED' == 'CANNOT_CONFIRM'
+E         
+E         - CANNOT_CONFIRM
+E         + OWNER_FAILED
+
+tests/test_manager_r3_binding_contract.py:539: AssertionError
+_ test_real_preopen_wrapper_preserves_exception_category_without_private_detail[ValueError-SYNTHETIC_PRIVATE_UPPERCASE_DETAIL-OWNER_FAILED-PLAN_OWNER_EXECUTION_FAILED] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-120/test_real_preopen_wrapper_pres2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fb02a9e0050>
+error_type = <class 'ValueError'>
+message = 'SYNTHETIC_PRIVATE_UPPERCASE_DETAIL', outcome = 'OWNER_FAILED'
+code = 'PLAN_OWNER_EXECUTION_FAILED'
+
+    @pytest.mark.parametrize("error_type,message,outcome,code", [
+        (TimeoutError, "synthetic completion is unknown", "CANNOT_CONFIRM", "PLAN_OWNER_EXECUTION_TIMEOUT"),
+        (TimeoutError, "SYNTHETIC_PRIVATE_UPPERCASE_DETAIL", "CANNOT_CONFIRM", "PLAN_OWNER_EXECUTION_TIMEOUT"),
+        (ValueError, "SYNTHETIC_PRIVATE_UPPERCASE_DETAIL", "OWNER_FAILED", "PLAN_OWNER_EXECUTION_FAILED"),
+        (ValueError, "PLAN_TWO_COMPLETED_HK_SESSIONS_UNAVAILABLE", "OWNER_FAILED", "PLAN_OWNER_EXECUTION_FAILED"),
+    ])
+    def test_real_preopen_wrapper_preserves_exception_category_without_private_detail(
+            tmp_path, monkeypatch, error_type, message, outcome, code):
+        f = _fixture(tmp_path, monkeypatch)
+    
+        def failed_owner(date, **kwargs):
+            f.events.append(("plan", date, kwargs))
+            raise error_type(message)
+    
+        f.service.refresh_workspace_plan = failed_owner
+        # Keep the real branch selector and PREOPEN safe wrapper. Only the final
+        # original owner method raises; bypassing _run_owner_branches hid this bug.
+        with _client(f.service) as client:
+            _memory_transport(monkeypatch, client)
+            result = dispatch.request_bound_plan_cycle(f.path, DATE)
+        assert len(f.events) == 1
+        assert result["status"] == "FAILED"
+        assert result["dispatch_outcome"] == outcome
+>       assert result["plan_result"]["failure_code"] == code
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'failure_code'
+
+tests/test_manager_r3_binding_contract.py:540: KeyError
+_ test_real_preopen_wrapper_preserves_exception_category_without_private_detail[ValueError-PLAN_TWO_COMPLETED_HK_SESSIONS_UNAVAILABLE-OWNER_FAILED-PLAN_OWNER_EXECUTION_FAILED] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-120/test_real_preopen_wrapper_pres3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fb02a9d3240>
+error_type = <class 'ValueError'>
+message = 'PLAN_TWO_COMPLETED_HK_SESSIONS_UNAVAILABLE', outcome = 'OWNER_FAILED'
+code = 'PLAN_OWNER_EXECUTION_FAILED'
+
+    @pytest.mark.parametrize("error_type,message,outcome,code", [
+        (TimeoutError, "synthetic completion is unknown", "CANNOT_CONFIRM", "PLAN_OWNER_EXECUTION_TIMEOUT"),
+        (TimeoutError, "SYNTHETIC_PRIVATE_UPPERCASE_DETAIL", "CANNOT_CONFIRM", "PLAN_OWNER_EXECUTION_TIMEOUT"),
+        (ValueError, "SYNTHETIC_PRIVATE_UPPERCASE_DETAIL", "OWNER_FAILED", "PLAN_OWNER_EXECUTION_FAILED"),
+        (ValueError, "PLAN_TWO_COMPLETED_HK_SESSIONS_UNAVAILABLE", "OWNER_FAILED", "PLAN_OWNER_EXECUTION_FAILED"),
+    ])
+    def test_real_preopen_wrapper_preserves_exception_category_without_private_detail(
+            tmp_path, monkeypatch, error_type, message, outcome, code):
+        f = _fixture(tmp_path, monkeypatch)
+    
+        def failed_owner(date, **kwargs):
+            f.events.append(("plan", date, kwargs))
+            raise error_type(message)
+    
+        f.service.refresh_workspace_plan = failed_owner
+        # Keep the real branch selector and PREOPEN safe wrapper. Only the final
+        # original owner method raises; bypassing _run_owner_branches hid this bug.
+        with _client(f.service) as client:
+            _memory_transport(monkeypatch, client)
+            result = dispatch.request_bound_plan_cycle(f.path, DATE)
+        assert len(f.events) == 1
+        assert result["status"] == "FAILED"
+        assert result["dispatch_outcome"] == outcome
+>       assert result["plan_result"]["failure_code"] == code
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'failure_code'
+
+tests/test_manager_r3_binding_contract.py:540: KeyError
+=============================== warnings summary ===============================
+../../a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_manager_r3_binding_contract.py::test_real_preopen_wrapper_preserves_exception_category_without_private_detail[TimeoutError-synthetic completion is unknown-CANNOT_CONFIRM-PLAN_OWNER_EXECUTION_TIMEOUT]
+FAILED tests/test_manager_r3_binding_contract.py::test_real_preopen_wrapper_preserves_exception_category_without_private_detail[TimeoutError-SYNTHETIC_PRIVATE_UPPERCASE_DETAIL-CANNOT_CONFIRM-PLAN_OWNER_EXECUTION_TIMEOUT]
+FAILED tests/test_manager_r3_binding_contract.py::test_real_preopen_wrapper_preserves_exception_category_without_private_detail[ValueError-SYNTHETIC_PRIVATE_UPPERCASE_DETAIL-OWNER_FAILED-PLAN_OWNER_EXECUTION_FAILED]
+FAILED tests/test_manager_r3_binding_contract.py::test_real_preopen_wrapper_preserves_exception_category_without_private_detail[ValueError-PLAN_TWO_COMPLETED_HK_SESSIONS_UNAVAILABLE-OWNER_FAILED-PLAN_OWNER_EXECUTION_FAILED]
+4 failed, 1 passed, 39 deselected, 1 warning in 1.01s

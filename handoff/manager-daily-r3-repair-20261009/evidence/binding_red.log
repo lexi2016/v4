@@ -1,0 +1,1323 @@
+FFFFFFFFFFFFFFFFFFFFF                                                    [100%]
+=================================== FAILURES ===================================
+_ test_one_binding_passes_unchanged_scheduler_worker_and_distinct_api_owner[False] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-75/test_one_binding_passes_unchan0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8e217975c0>
+daily = False
+
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_one_binding_passes_unchanged_scheduler_worker_and_distinct_api_owner(tmp_path, monkeypatch, daily):
+>       f = _fixture(tmp_path, monkeypatch, daily=daily)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:189: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_manager_r3_binding_contract.py:98: in _fixture
+    binding = _binding(tmp_path)
+              ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:529: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/workspace/scratch/21926b793c00/candidate/apps/__init__.py')
+dst = PosixPath('/tmp/pytest-of-root/pytest-75/test_one_binding_passes_unchan0/app/apps/__init__.py')
+follow_symlinks = True
+
+    def copyfile(src, dst, *, follow_symlinks=True):
+        """Copy data from src to dst in the most efficient way possible.
+    
+        If follow_symlinks is not set and src is a symbolic link, a new
+        symlink will be created instead of copying the file it points to.
+    
+        """
+        sys.audit("shutil.copyfile", src, dst)
+    
+        if _samefile(src, dst):
+            raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
+    
+        file_size = 0
+        for i, fn in enumerate([src, dst]):
+            try:
+                st = _stat(fn)
+            except OSError:
+                # File most likely does not exist
+                pass
+            else:
+                # XXX What about other special files? (sockets, devices...)
+                if stat.S_ISFIFO(st.st_mode):
+                    fn = fn.path if isinstance(fn, os.DirEntry) else fn
+                    raise SpecialFileError("`%s` is a named pipe" % fn)
+                if _WINDOWS and i == 0:
+                    file_size = st.st_size
+    
+        if not follow_symlinks and _islink(src):
+            os.symlink(os.readlink(src), dst)
+        else:
+>           with open(src, 'rb') as fsrc:
+                 ^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/21926b793c00/candidate/apps/__init__.py'
+
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:313: FileNotFoundError
+_ test_one_binding_passes_unchanged_scheduler_worker_and_distinct_api_owner[True] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-75/test_one_binding_passes_unchan1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8e21797ce0>
+daily = True
+
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_one_binding_passes_unchanged_scheduler_worker_and_distinct_api_owner(tmp_path, monkeypatch, daily):
+>       f = _fixture(tmp_path, monkeypatch, daily=daily)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:189: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_manager_r3_binding_contract.py:98: in _fixture
+    binding = _binding(tmp_path)
+              ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:529: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/workspace/scratch/21926b793c00/candidate/apps/__init__.py')
+dst = PosixPath('/tmp/pytest-of-root/pytest-75/test_one_binding_passes_unchan1/app/apps/__init__.py')
+follow_symlinks = True
+
+    def copyfile(src, dst, *, follow_symlinks=True):
+        """Copy data from src to dst in the most efficient way possible.
+    
+        If follow_symlinks is not set and src is a symbolic link, a new
+        symlink will be created instead of copying the file it points to.
+    
+        """
+        sys.audit("shutil.copyfile", src, dst)
+    
+        if _samefile(src, dst):
+            raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
+    
+        file_size = 0
+        for i, fn in enumerate([src, dst]):
+            try:
+                st = _stat(fn)
+            except OSError:
+                # File most likely does not exist
+                pass
+            else:
+                # XXX What about other special files? (sockets, devices...)
+                if stat.S_ISFIFO(st.st_mode):
+                    fn = fn.path if isinstance(fn, os.DirEntry) else fn
+                    raise SpecialFileError("`%s` is a named pipe" % fn)
+                if _WINDOWS and i == 0:
+                    file_size = st.st_size
+    
+        if not follow_symlinks and _islink(src):
+            os.symlink(os.readlink(src), dst)
+        else:
+>           with open(src, 'rb') as fsrc:
+                 ^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/21926b793c00/candidate/apps/__init__.py'
+
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:313: FileNotFoundError
+_ test_admission_rejects_before_either_owner_and_returns_bounded_reason[sha-PLAN_OWNER_BINDING_SHA_MISMATCH-False] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-75/test_admission_rejects_before_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8e2177bad0>
+daily = False, damage = 'sha', reason = 'PLAN_OWNER_BINDING_SHA_MISMATCH'
+
+    @pytest.mark.parametrize("daily", [False, True])
+    @pytest.mark.parametrize("damage,reason", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_DAILY_BINDING_DISABLED"),
+        ("owner_inventory", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+    ])
+    def test_admission_rejects_before_either_owner_and_returns_bounded_reason(tmp_path, monkeypatch, daily, damage, reason):
+>       f = _fixture(tmp_path, monkeypatch, daily=daily)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:217: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_manager_r3_binding_contract.py:98: in _fixture
+    binding = _binding(tmp_path)
+              ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:529: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/workspace/scratch/21926b793c00/candidate/apps/__init__.py')
+dst = PosixPath('/tmp/pytest-of-root/pytest-75/test_admission_rejects_before_0/app/apps/__init__.py')
+follow_symlinks = True
+
+    def copyfile(src, dst, *, follow_symlinks=True):
+        """Copy data from src to dst in the most efficient way possible.
+    
+        If follow_symlinks is not set and src is a symbolic link, a new
+        symlink will be created instead of copying the file it points to.
+    
+        """
+        sys.audit("shutil.copyfile", src, dst)
+    
+        if _samefile(src, dst):
+            raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
+    
+        file_size = 0
+        for i, fn in enumerate([src, dst]):
+            try:
+                st = _stat(fn)
+            except OSError:
+                # File most likely does not exist
+                pass
+            else:
+                # XXX What about other special files? (sockets, devices...)
+                if stat.S_ISFIFO(st.st_mode):
+                    fn = fn.path if isinstance(fn, os.DirEntry) else fn
+                    raise SpecialFileError("`%s` is a named pipe" % fn)
+                if _WINDOWS and i == 0:
+                    file_size = st.st_size
+    
+        if not follow_symlinks and _islink(src):
+            os.symlink(os.readlink(src), dst)
+        else:
+>           with open(src, 'rb') as fsrc:
+                 ^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/21926b793c00/candidate/apps/__init__.py'
+
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:313: FileNotFoundError
+_ test_admission_rejects_before_either_owner_and_returns_bounded_reason[sha-PLAN_OWNER_BINDING_SHA_MISMATCH-True] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-75/test_admission_rejects_before_1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8e21414af0>
+daily = True, damage = 'sha', reason = 'PLAN_OWNER_BINDING_SHA_MISMATCH'
+
+    @pytest.mark.parametrize("daily", [False, True])
+    @pytest.mark.parametrize("damage,reason", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_DAILY_BINDING_DISABLED"),
+        ("owner_inventory", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+    ])
+    def test_admission_rejects_before_either_owner_and_returns_bounded_reason(tmp_path, monkeypatch, daily, damage, reason):
+>       f = _fixture(tmp_path, monkeypatch, daily=daily)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:217: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_manager_r3_binding_contract.py:98: in _fixture
+    binding = _binding(tmp_path)
+              ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:529: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/workspace/scratch/21926b793c00/candidate/apps/__init__.py')
+dst = PosixPath('/tmp/pytest-of-root/pytest-75/test_admission_rejects_before_1/app/apps/__init__.py')
+follow_symlinks = True
+
+    def copyfile(src, dst, *, follow_symlinks=True):
+        """Copy data from src to dst in the most efficient way possible.
+    
+        If follow_symlinks is not set and src is a symbolic link, a new
+        symlink will be created instead of copying the file it points to.
+    
+        """
+        sys.audit("shutil.copyfile", src, dst)
+    
+        if _samefile(src, dst):
+            raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
+    
+        file_size = 0
+        for i, fn in enumerate([src, dst]):
+            try:
+                st = _stat(fn)
+            except OSError:
+                # File most likely does not exist
+                pass
+            else:
+                # XXX What about other special files? (sockets, devices...)
+                if stat.S_ISFIFO(st.st_mode):
+                    fn = fn.path if isinstance(fn, os.DirEntry) else fn
+                    raise SpecialFileError("`%s` is a named pipe" % fn)
+                if _WINDOWS and i == 0:
+                    file_size = st.st_size
+    
+        if not follow_symlinks and _islink(src):
+            os.symlink(os.readlink(src), dst)
+        else:
+>           with open(src, 'rb') as fsrc:
+                 ^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/21926b793c00/candidate/apps/__init__.py'
+
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:313: FileNotFoundError
+_ test_admission_rejects_before_either_owner_and_returns_bounded_reason[root-PLAN_OWNER_BINDING_API_ROOT_MISMATCH-False] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-75/test_admission_rejects_before_2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8e21415ae0>
+daily = False, damage = 'root', reason = 'PLAN_OWNER_BINDING_API_ROOT_MISMATCH'
+
+    @pytest.mark.parametrize("daily", [False, True])
+    @pytest.mark.parametrize("damage,reason", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_DAILY_BINDING_DISABLED"),
+        ("owner_inventory", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+    ])
+    def test_admission_rejects_before_either_owner_and_returns_bounded_reason(tmp_path, monkeypatch, daily, damage, reason):
+>       f = _fixture(tmp_path, monkeypatch, daily=daily)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:217: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_manager_r3_binding_contract.py:98: in _fixture
+    binding = _binding(tmp_path)
+              ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:529: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/workspace/scratch/21926b793c00/candidate/apps/__init__.py')
+dst = PosixPath('/tmp/pytest-of-root/pytest-75/test_admission_rejects_before_2/app/apps/__init__.py')
+follow_symlinks = True
+
+    def copyfile(src, dst, *, follow_symlinks=True):
+        """Copy data from src to dst in the most efficient way possible.
+    
+        If follow_symlinks is not set and src is a symbolic link, a new
+        symlink will be created instead of copying the file it points to.
+    
+        """
+        sys.audit("shutil.copyfile", src, dst)
+    
+        if _samefile(src, dst):
+            raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
+    
+        file_size = 0
+        for i, fn in enumerate([src, dst]):
+            try:
+                st = _stat(fn)
+            except OSError:
+                # File most likely does not exist
+                pass
+            else:
+                # XXX What about other special files? (sockets, devices...)
+                if stat.S_ISFIFO(st.st_mode):
+                    fn = fn.path if isinstance(fn, os.DirEntry) else fn
+                    raise SpecialFileError("`%s` is a named pipe" % fn)
+                if _WINDOWS and i == 0:
+                    file_size = st.st_size
+    
+        if not follow_symlinks and _islink(src):
+            os.symlink(os.readlink(src), dst)
+        else:
+>           with open(src, 'rb') as fsrc:
+                 ^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/21926b793c00/candidate/apps/__init__.py'
+
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:313: FileNotFoundError
+_ test_admission_rejects_before_either_owner_and_returns_bounded_reason[root-PLAN_OWNER_BINDING_API_ROOT_MISMATCH-True] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-75/test_admission_rejects_before_3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8e215a1550>
+daily = True, damage = 'root', reason = 'PLAN_OWNER_BINDING_API_ROOT_MISMATCH'
+
+    @pytest.mark.parametrize("daily", [False, True])
+    @pytest.mark.parametrize("damage,reason", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_DAILY_BINDING_DISABLED"),
+        ("owner_inventory", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+    ])
+    def test_admission_rejects_before_either_owner_and_returns_bounded_reason(tmp_path, monkeypatch, daily, damage, reason):
+>       f = _fixture(tmp_path, monkeypatch, daily=daily)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:217: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_manager_r3_binding_contract.py:98: in _fixture
+    binding = _binding(tmp_path)
+              ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:529: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/workspace/scratch/21926b793c00/candidate/apps/__init__.py')
+dst = PosixPath('/tmp/pytest-of-root/pytest-75/test_admission_rejects_before_3/app/apps/__init__.py')
+follow_symlinks = True
+
+    def copyfile(src, dst, *, follow_symlinks=True):
+        """Copy data from src to dst in the most efficient way possible.
+    
+        If follow_symlinks is not set and src is a symbolic link, a new
+        symlink will be created instead of copying the file it points to.
+    
+        """
+        sys.audit("shutil.copyfile", src, dst)
+    
+        if _samefile(src, dst):
+            raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
+    
+        file_size = 0
+        for i, fn in enumerate([src, dst]):
+            try:
+                st = _stat(fn)
+            except OSError:
+                # File most likely does not exist
+                pass
+            else:
+                # XXX What about other special files? (sockets, devices...)
+                if stat.S_ISFIFO(st.st_mode):
+                    fn = fn.path if isinstance(fn, os.DirEntry) else fn
+                    raise SpecialFileError("`%s` is a named pipe" % fn)
+                if _WINDOWS and i == 0:
+                    file_size = st.st_size
+    
+        if not follow_symlinks and _islink(src):
+            os.symlink(os.readlink(src), dst)
+        else:
+>           with open(src, 'rb') as fsrc:
+                 ^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/21926b793c00/candidate/apps/__init__.py'
+
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:313: FileNotFoundError
+_ test_admission_rejects_before_either_owner_and_returns_bounded_reason[disabled-PLAN_OWNER_DAILY_BINDING_DISABLED-False] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-75/test_admission_rejects_before_4')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8e215a1250>
+daily = False, damage = 'disabled', reason = 'PLAN_OWNER_DAILY_BINDING_DISABLED'
+
+    @pytest.mark.parametrize("daily", [False, True])
+    @pytest.mark.parametrize("damage,reason", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_DAILY_BINDING_DISABLED"),
+        ("owner_inventory", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+    ])
+    def test_admission_rejects_before_either_owner_and_returns_bounded_reason(tmp_path, monkeypatch, daily, damage, reason):
+>       f = _fixture(tmp_path, monkeypatch, daily=daily)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:217: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_manager_r3_binding_contract.py:98: in _fixture
+    binding = _binding(tmp_path)
+              ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:529: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/workspace/scratch/21926b793c00/candidate/apps/__init__.py')
+dst = PosixPath('/tmp/pytest-of-root/pytest-75/test_admission_rejects_before_4/app/apps/__init__.py')
+follow_symlinks = True
+
+    def copyfile(src, dst, *, follow_symlinks=True):
+        """Copy data from src to dst in the most efficient way possible.
+    
+        If follow_symlinks is not set and src is a symbolic link, a new
+        symlink will be created instead of copying the file it points to.
+    
+        """
+        sys.audit("shutil.copyfile", src, dst)
+    
+        if _samefile(src, dst):
+            raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
+    
+        file_size = 0
+        for i, fn in enumerate([src, dst]):
+            try:
+                st = _stat(fn)
+            except OSError:
+                # File most likely does not exist
+                pass
+            else:
+                # XXX What about other special files? (sockets, devices...)
+                if stat.S_ISFIFO(st.st_mode):
+                    fn = fn.path if isinstance(fn, os.DirEntry) else fn
+                    raise SpecialFileError("`%s` is a named pipe" % fn)
+                if _WINDOWS and i == 0:
+                    file_size = st.st_size
+    
+        if not follow_symlinks and _islink(src):
+            os.symlink(os.readlink(src), dst)
+        else:
+>           with open(src, 'rb') as fsrc:
+                 ^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/21926b793c00/candidate/apps/__init__.py'
+
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:313: FileNotFoundError
+_ test_admission_rejects_before_either_owner_and_returns_bounded_reason[disabled-PLAN_OWNER_DAILY_BINDING_DISABLED-True] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-75/test_admission_rejects_before_5')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8e21459f40>
+daily = True, damage = 'disabled', reason = 'PLAN_OWNER_DAILY_BINDING_DISABLED'
+
+    @pytest.mark.parametrize("daily", [False, True])
+    @pytest.mark.parametrize("damage,reason", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_DAILY_BINDING_DISABLED"),
+        ("owner_inventory", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+    ])
+    def test_admission_rejects_before_either_owner_and_returns_bounded_reason(tmp_path, monkeypatch, daily, damage, reason):
+>       f = _fixture(tmp_path, monkeypatch, daily=daily)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:217: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_manager_r3_binding_contract.py:98: in _fixture
+    binding = _binding(tmp_path)
+              ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:529: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/workspace/scratch/21926b793c00/candidate/apps/__init__.py')
+dst = PosixPath('/tmp/pytest-of-root/pytest-75/test_admission_rejects_before_5/app/apps/__init__.py')
+follow_symlinks = True
+
+    def copyfile(src, dst, *, follow_symlinks=True):
+        """Copy data from src to dst in the most efficient way possible.
+    
+        If follow_symlinks is not set and src is a symbolic link, a new
+        symlink will be created instead of copying the file it points to.
+    
+        """
+        sys.audit("shutil.copyfile", src, dst)
+    
+        if _samefile(src, dst):
+            raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
+    
+        file_size = 0
+        for i, fn in enumerate([src, dst]):
+            try:
+                st = _stat(fn)
+            except OSError:
+                # File most likely does not exist
+                pass
+            else:
+                # XXX What about other special files? (sockets, devices...)
+                if stat.S_ISFIFO(st.st_mode):
+                    fn = fn.path if isinstance(fn, os.DirEntry) else fn
+                    raise SpecialFileError("`%s` is a named pipe" % fn)
+                if _WINDOWS and i == 0:
+                    file_size = st.st_size
+    
+        if not follow_symlinks and _islink(src):
+            os.symlink(os.readlink(src), dst)
+        else:
+>           with open(src, 'rb') as fsrc:
+                 ^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/21926b793c00/candidate/apps/__init__.py'
+
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:313: FileNotFoundError
+_ test_admission_rejects_before_either_owner_and_returns_bounded_reason[owner_inventory-PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH-False] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-75/test_admission_rejects_before_6')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8e21545310>
+daily = False, damage = 'owner_inventory'
+reason = 'PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH'
+
+    @pytest.mark.parametrize("daily", [False, True])
+    @pytest.mark.parametrize("damage,reason", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_DAILY_BINDING_DISABLED"),
+        ("owner_inventory", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+    ])
+    def test_admission_rejects_before_either_owner_and_returns_bounded_reason(tmp_path, monkeypatch, daily, damage, reason):
+>       f = _fixture(tmp_path, monkeypatch, daily=daily)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:217: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_manager_r3_binding_contract.py:98: in _fixture
+    binding = _binding(tmp_path)
+              ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:529: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/workspace/scratch/21926b793c00/candidate/apps/__init__.py')
+dst = PosixPath('/tmp/pytest-of-root/pytest-75/test_admission_rejects_before_6/app/apps/__init__.py')
+follow_symlinks = True
+
+    def copyfile(src, dst, *, follow_symlinks=True):
+        """Copy data from src to dst in the most efficient way possible.
+    
+        If follow_symlinks is not set and src is a symbolic link, a new
+        symlink will be created instead of copying the file it points to.
+    
+        """
+        sys.audit("shutil.copyfile", src, dst)
+    
+        if _samefile(src, dst):
+            raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
+    
+        file_size = 0
+        for i, fn in enumerate([src, dst]):
+            try:
+                st = _stat(fn)
+            except OSError:
+                # File most likely does not exist
+                pass
+            else:
+                # XXX What about other special files? (sockets, devices...)
+                if stat.S_ISFIFO(st.st_mode):
+                    fn = fn.path if isinstance(fn, os.DirEntry) else fn
+                    raise SpecialFileError("`%s` is a named pipe" % fn)
+                if _WINDOWS and i == 0:
+                    file_size = st.st_size
+    
+        if not follow_symlinks and _islink(src):
+            os.symlink(os.readlink(src), dst)
+        else:
+>           with open(src, 'rb') as fsrc:
+                 ^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/21926b793c00/candidate/apps/__init__.py'
+
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:313: FileNotFoundError
+_ test_admission_rejects_before_either_owner_and_returns_bounded_reason[owner_inventory-PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH-True] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-75/test_admission_rejects_before_7')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8e213dfbd0>
+daily = True, damage = 'owner_inventory'
+reason = 'PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH'
+
+    @pytest.mark.parametrize("daily", [False, True])
+    @pytest.mark.parametrize("damage,reason", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_DAILY_BINDING_DISABLED"),
+        ("owner_inventory", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+    ])
+    def test_admission_rejects_before_either_owner_and_returns_bounded_reason(tmp_path, monkeypatch, daily, damage, reason):
+>       f = _fixture(tmp_path, monkeypatch, daily=daily)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:217: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_manager_r3_binding_contract.py:98: in _fixture
+    binding = _binding(tmp_path)
+              ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:529: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/workspace/scratch/21926b793c00/candidate/apps/__init__.py')
+dst = PosixPath('/tmp/pytest-of-root/pytest-75/test_admission_rejects_before_7/app/apps/__init__.py')
+follow_symlinks = True
+
+    def copyfile(src, dst, *, follow_symlinks=True):
+        """Copy data from src to dst in the most efficient way possible.
+    
+        If follow_symlinks is not set and src is a symbolic link, a new
+        symlink will be created instead of copying the file it points to.
+    
+        """
+        sys.audit("shutil.copyfile", src, dst)
+    
+        if _samefile(src, dst):
+            raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
+    
+        file_size = 0
+        for i, fn in enumerate([src, dst]):
+            try:
+                st = _stat(fn)
+            except OSError:
+                # File most likely does not exist
+                pass
+            else:
+                # XXX What about other special files? (sockets, devices...)
+                if stat.S_ISFIFO(st.st_mode):
+                    fn = fn.path if isinstance(fn, os.DirEntry) else fn
+                    raise SpecialFileError("`%s` is a named pipe" % fn)
+                if _WINDOWS and i == 0:
+                    file_size = st.st_size
+    
+        if not follow_symlinks and _islink(src):
+            os.symlink(os.readlink(src), dst)
+        else:
+>           with open(src, 'rb') as fsrc:
+                 ^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/21926b793c00/candidate/apps/__init__.py'
+
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:313: FileNotFoundError
+_ test_gate_reason_survives_rpc_and_transport_timeout_does_not_claim_owner_not_called _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-75/test_gate_reason_survives_rpc_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8e213deeb0>
+
+    def test_gate_reason_survives_rpc_and_transport_timeout_does_not_claim_owner_not_called(tmp_path, monkeypatch):
+>       f = _fixture(tmp_path, monkeypatch)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:246: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_manager_r3_binding_contract.py:98: in _fixture
+    binding = _binding(tmp_path)
+              ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:529: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/workspace/scratch/21926b793c00/candidate/apps/__init__.py')
+dst = PosixPath('/tmp/pytest-of-root/pytest-75/test_gate_reason_survives_rpc_0/app/apps/__init__.py')
+follow_symlinks = True
+
+    def copyfile(src, dst, *, follow_symlinks=True):
+        """Copy data from src to dst in the most efficient way possible.
+    
+        If follow_symlinks is not set and src is a symbolic link, a new
+        symlink will be created instead of copying the file it points to.
+    
+        """
+        sys.audit("shutil.copyfile", src, dst)
+    
+        if _samefile(src, dst):
+            raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
+    
+        file_size = 0
+        for i, fn in enumerate([src, dst]):
+            try:
+                st = _stat(fn)
+            except OSError:
+                # File most likely does not exist
+                pass
+            else:
+                # XXX What about other special files? (sockets, devices...)
+                if stat.S_ISFIFO(st.st_mode):
+                    fn = fn.path if isinstance(fn, os.DirEntry) else fn
+                    raise SpecialFileError("`%s` is a named pipe" % fn)
+                if _WINDOWS and i == 0:
+                    file_size = st.st_size
+    
+        if not follow_symlinks and _islink(src):
+            os.symlink(os.readlink(src), dst)
+        else:
+>           with open(src, 'rb') as fsrc:
+                 ^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/21926b793c00/candidate/apps/__init__.py'
+
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:313: FileNotFoundError
+_______________ test_legacy_same_root_remains_strictly_supported _______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-75/test_legacy_same_root_remains_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8e216fa820>
+
+    def test_legacy_same_root_remains_strictly_supported(tmp_path, monkeypatch):
+>       f = _fixture(tmp_path, monkeypatch, dual=False)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:264: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_manager_r3_binding_contract.py:98: in _fixture
+    binding = _binding(tmp_path)
+              ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:529: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/workspace/scratch/21926b793c00/candidate/apps/__init__.py')
+dst = PosixPath('/tmp/pytest-of-root/pytest-75/test_legacy_same_root_remains_0/app/apps/__init__.py')
+follow_symlinks = True
+
+    def copyfile(src, dst, *, follow_symlinks=True):
+        """Copy data from src to dst in the most efficient way possible.
+    
+        If follow_symlinks is not set and src is a symbolic link, a new
+        symlink will be created instead of copying the file it points to.
+    
+        """
+        sys.audit("shutil.copyfile", src, dst)
+    
+        if _samefile(src, dst):
+            raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
+    
+        file_size = 0
+        for i, fn in enumerate([src, dst]):
+            try:
+                st = _stat(fn)
+            except OSError:
+                # File most likely does not exist
+                pass
+            else:
+                # XXX What about other special files? (sockets, devices...)
+                if stat.S_ISFIFO(st.st_mode):
+                    fn = fn.path if isinstance(fn, os.DirEntry) else fn
+                    raise SpecialFileError("`%s` is a named pipe" % fn)
+                if _WINDOWS and i == 0:
+                    file_size = st.st_size
+    
+        if not follow_symlinks and _islink(src):
+            os.symlink(os.readlink(src), dst)
+        else:
+>           with open(src, 'rb') as fsrc:
+                 ^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/21926b793c00/candidate/apps/__init__.py'
+
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:313: FileNotFoundError
+_ test_dual_root_inventory_and_fresh_owner_canary_are_real_checks[worker_file] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-75/test_dual_root_inventory_and_f0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8e21671d90>
+damage = 'worker_file'
+
+    @pytest.mark.parametrize("damage", ["worker_file", "owner_file", "canary_root", "canary_inventory", "response_sha"])
+    def test_dual_root_inventory_and_fresh_owner_canary_are_real_checks(tmp_path, monkeypatch, damage):
+>       f = _fixture(tmp_path, monkeypatch)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:272: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_manager_r3_binding_contract.py:98: in _fixture
+    binding = _binding(tmp_path)
+              ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:529: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/workspace/scratch/21926b793c00/candidate/apps/__init__.py')
+dst = PosixPath('/tmp/pytest-of-root/pytest-75/test_dual_root_inventory_and_f0/app/apps/__init__.py')
+follow_symlinks = True
+
+    def copyfile(src, dst, *, follow_symlinks=True):
+        """Copy data from src to dst in the most efficient way possible.
+    
+        If follow_symlinks is not set and src is a symbolic link, a new
+        symlink will be created instead of copying the file it points to.
+    
+        """
+        sys.audit("shutil.copyfile", src, dst)
+    
+        if _samefile(src, dst):
+            raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
+    
+        file_size = 0
+        for i, fn in enumerate([src, dst]):
+            try:
+                st = _stat(fn)
+            except OSError:
+                # File most likely does not exist
+                pass
+            else:
+                # XXX What about other special files? (sockets, devices...)
+                if stat.S_ISFIFO(st.st_mode):
+                    fn = fn.path if isinstance(fn, os.DirEntry) else fn
+                    raise SpecialFileError("`%s` is a named pipe" % fn)
+                if _WINDOWS and i == 0:
+                    file_size = st.st_size
+    
+        if not follow_symlinks and _islink(src):
+            os.symlink(os.readlink(src), dst)
+        else:
+>           with open(src, 'rb') as fsrc:
+                 ^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/21926b793c00/candidate/apps/__init__.py'
+
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:313: FileNotFoundError
+_ test_dual_root_inventory_and_fresh_owner_canary_are_real_checks[owner_file] __
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-75/test_dual_root_inventory_and_f1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8e21670f50>
+damage = 'owner_file'
+
+    @pytest.mark.parametrize("damage", ["worker_file", "owner_file", "canary_root", "canary_inventory", "response_sha"])
+    def test_dual_root_inventory_and_fresh_owner_canary_are_real_checks(tmp_path, monkeypatch, damage):
+>       f = _fixture(tmp_path, monkeypatch)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:272: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_manager_r3_binding_contract.py:98: in _fixture
+    binding = _binding(tmp_path)
+              ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:529: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/workspace/scratch/21926b793c00/candidate/apps/__init__.py')
+dst = PosixPath('/tmp/pytest-of-root/pytest-75/test_dual_root_inventory_and_f1/app/apps/__init__.py')
+follow_symlinks = True
+
+    def copyfile(src, dst, *, follow_symlinks=True):
+        """Copy data from src to dst in the most efficient way possible.
+    
+        If follow_symlinks is not set and src is a symbolic link, a new
+        symlink will be created instead of copying the file it points to.
+    
+        """
+        sys.audit("shutil.copyfile", src, dst)
+    
+        if _samefile(src, dst):
+            raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
+    
+        file_size = 0
+        for i, fn in enumerate([src, dst]):
+            try:
+                st = _stat(fn)
+            except OSError:
+                # File most likely does not exist
+                pass
+            else:
+                # XXX What about other special files? (sockets, devices...)
+                if stat.S_ISFIFO(st.st_mode):
+                    fn = fn.path if isinstance(fn, os.DirEntry) else fn
+                    raise SpecialFileError("`%s` is a named pipe" % fn)
+                if _WINDOWS and i == 0:
+                    file_size = st.st_size
+    
+        if not follow_symlinks and _islink(src):
+            os.symlink(os.readlink(src), dst)
+        else:
+>           with open(src, 'rb') as fsrc:
+                 ^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/21926b793c00/candidate/apps/__init__.py'
+
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:313: FileNotFoundError
+_ test_dual_root_inventory_and_fresh_owner_canary_are_real_checks[canary_root] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-75/test_dual_root_inventory_and_f2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8e21578f70>
+damage = 'canary_root'
+
+    @pytest.mark.parametrize("damage", ["worker_file", "owner_file", "canary_root", "canary_inventory", "response_sha"])
+    def test_dual_root_inventory_and_fresh_owner_canary_are_real_checks(tmp_path, monkeypatch, damage):
+>       f = _fixture(tmp_path, monkeypatch)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:272: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_manager_r3_binding_contract.py:98: in _fixture
+    binding = _binding(tmp_path)
+              ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:529: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/workspace/scratch/21926b793c00/candidate/apps/__init__.py')
+dst = PosixPath('/tmp/pytest-of-root/pytest-75/test_dual_root_inventory_and_f2/app/apps/__init__.py')
+follow_symlinks = True
+
+    def copyfile(src, dst, *, follow_symlinks=True):
+        """Copy data from src to dst in the most efficient way possible.
+    
+        If follow_symlinks is not set and src is a symbolic link, a new
+        symlink will be created instead of copying the file it points to.
+    
+        """
+        sys.audit("shutil.copyfile", src, dst)
+    
+        if _samefile(src, dst):
+            raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
+    
+        file_size = 0
+        for i, fn in enumerate([src, dst]):
+            try:
+                st = _stat(fn)
+            except OSError:
+                # File most likely does not exist
+                pass
+            else:
+                # XXX What about other special files? (sockets, devices...)
+                if stat.S_ISFIFO(st.st_mode):
+                    fn = fn.path if isinstance(fn, os.DirEntry) else fn
+                    raise SpecialFileError("`%s` is a named pipe" % fn)
+                if _WINDOWS and i == 0:
+                    file_size = st.st_size
+    
+        if not follow_symlinks and _islink(src):
+            os.symlink(os.readlink(src), dst)
+        else:
+>           with open(src, 'rb') as fsrc:
+                 ^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/21926b793c00/candidate/apps/__init__.py'
+
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:313: FileNotFoundError
+_ test_dual_root_inventory_and_fresh_owner_canary_are_real_checks[canary_inventory] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-75/test_dual_root_inventory_and_f3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8e21579700>
+damage = 'canary_inventory'
+
+    @pytest.mark.parametrize("damage", ["worker_file", "owner_file", "canary_root", "canary_inventory", "response_sha"])
+    def test_dual_root_inventory_and_fresh_owner_canary_are_real_checks(tmp_path, monkeypatch, damage):
+>       f = _fixture(tmp_path, monkeypatch)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:272: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_manager_r3_binding_contract.py:98: in _fixture
+    binding = _binding(tmp_path)
+              ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:529: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/workspace/scratch/21926b793c00/candidate/apps/__init__.py')
+dst = PosixPath('/tmp/pytest-of-root/pytest-75/test_dual_root_inventory_and_f3/app/apps/__init__.py')
+follow_symlinks = True
+
+    def copyfile(src, dst, *, follow_symlinks=True):
+        """Copy data from src to dst in the most efficient way possible.
+    
+        If follow_symlinks is not set and src is a symbolic link, a new
+        symlink will be created instead of copying the file it points to.
+    
+        """
+        sys.audit("shutil.copyfile", src, dst)
+    
+        if _samefile(src, dst):
+            raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
+    
+        file_size = 0
+        for i, fn in enumerate([src, dst]):
+            try:
+                st = _stat(fn)
+            except OSError:
+                # File most likely does not exist
+                pass
+            else:
+                # XXX What about other special files? (sockets, devices...)
+                if stat.S_ISFIFO(st.st_mode):
+                    fn = fn.path if isinstance(fn, os.DirEntry) else fn
+                    raise SpecialFileError("`%s` is a named pipe" % fn)
+                if _WINDOWS and i == 0:
+                    file_size = st.st_size
+    
+        if not follow_symlinks and _islink(src):
+            os.symlink(os.readlink(src), dst)
+        else:
+>           with open(src, 'rb') as fsrc:
+                 ^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/21926b793c00/candidate/apps/__init__.py'
+
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:313: FileNotFoundError
+_ test_dual_root_inventory_and_fresh_owner_canary_are_real_checks[response_sha] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-75/test_dual_root_inventory_and_f4')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8e21530ff0>
+damage = 'response_sha'
+
+    @pytest.mark.parametrize("damage", ["worker_file", "owner_file", "canary_root", "canary_inventory", "response_sha"])
+    def test_dual_root_inventory_and_fresh_owner_canary_are_real_checks(tmp_path, monkeypatch, damage):
+>       f = _fixture(tmp_path, monkeypatch)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:272: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_manager_r3_binding_contract.py:98: in _fixture
+    binding = _binding(tmp_path)
+              ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:529: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/workspace/scratch/21926b793c00/candidate/apps/__init__.py')
+dst = PosixPath('/tmp/pytest-of-root/pytest-75/test_dual_root_inventory_and_f4/app/apps/__init__.py')
+follow_symlinks = True
+
+    def copyfile(src, dst, *, follow_symlinks=True):
+        """Copy data from src to dst in the most efficient way possible.
+    
+        If follow_symlinks is not set and src is a symbolic link, a new
+        symlink will be created instead of copying the file it points to.
+    
+        """
+        sys.audit("shutil.copyfile", src, dst)
+    
+        if _samefile(src, dst):
+            raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
+    
+        file_size = 0
+        for i, fn in enumerate([src, dst]):
+            try:
+                st = _stat(fn)
+            except OSError:
+                # File most likely does not exist
+                pass
+            else:
+                # XXX What about other special files? (sockets, devices...)
+                if stat.S_ISFIFO(st.st_mode):
+                    fn = fn.path if isinstance(fn, os.DirEntry) else fn
+                    raise SpecialFileError("`%s` is a named pipe" % fn)
+                if _WINDOWS and i == 0:
+                    file_size = st.st_size
+    
+        if not follow_symlinks and _islink(src):
+            os.symlink(os.readlink(src), dst)
+        else:
+>           with open(src, 'rb') as fsrc:
+                 ^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/21926b793c00/candidate/apps/__init__.py'
+
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:313: FileNotFoundError
+_______ test_explicit_owner_historical_canary_requires_dynamic_readback ________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-75/test_explicit_owner_historical0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8e215313b0>
+
+    def test_explicit_owner_historical_canary_requires_dynamic_readback(tmp_path, monkeypatch):
+>       f = _fixture(tmp_path, monkeypatch, historical=True)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:291: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_manager_r3_binding_contract.py:98: in _fixture
+    binding = _binding(tmp_path)
+              ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:529: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/workspace/scratch/21926b793c00/candidate/apps/__init__.py')
+dst = PosixPath('/tmp/pytest-of-root/pytest-75/test_explicit_owner_historical0/app/apps/__init__.py')
+follow_symlinks = True
+
+    def copyfile(src, dst, *, follow_symlinks=True):
+        """Copy data from src to dst in the most efficient way possible.
+    
+        If follow_symlinks is not set and src is a symbolic link, a new
+        symlink will be created instead of copying the file it points to.
+    
+        """
+        sys.audit("shutil.copyfile", src, dst)
+    
+        if _samefile(src, dst):
+            raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
+    
+        file_size = 0
+        for i, fn in enumerate([src, dst]):
+            try:
+                st = _stat(fn)
+            except OSError:
+                # File most likely does not exist
+                pass
+            else:
+                # XXX What about other special files? (sockets, devices...)
+                if stat.S_ISFIFO(st.st_mode):
+                    fn = fn.path if isinstance(fn, os.DirEntry) else fn
+                    raise SpecialFileError("`%s` is a named pipe" % fn)
+                if _WINDOWS and i == 0:
+                    file_size = st.st_size
+    
+        if not follow_symlinks and _islink(src):
+            os.symlink(os.readlink(src), dst)
+        else:
+>           with open(src, 'rb') as fsrc:
+                 ^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/21926b793c00/candidate/apps/__init__.py'
+
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:313: FileNotFoundError
+___ test_renderer_generates_reviewable_dual_root_without_dropping_inventory ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-75/test_renderer_generates_review0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8e226c80e0>
+
+    def test_renderer_generates_reviewable_dual_root_without_dropping_inventory(tmp_path, monkeypatch):
+>       f = _fixture(tmp_path, monkeypatch)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:303: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_manager_r3_binding_contract.py:98: in _fixture
+    binding = _binding(tmp_path)
+              ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:529: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/workspace/scratch/21926b793c00/candidate/apps/__init__.py')
+dst = PosixPath('/tmp/pytest-of-root/pytest-75/test_renderer_generates_review0/app/apps/__init__.py')
+follow_symlinks = True
+
+    def copyfile(src, dst, *, follow_symlinks=True):
+        """Copy data from src to dst in the most efficient way possible.
+    
+        If follow_symlinks is not set and src is a symbolic link, a new
+        symlink will be created instead of copying the file it points to.
+    
+        """
+        sys.audit("shutil.copyfile", src, dst)
+    
+        if _samefile(src, dst):
+            raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
+    
+        file_size = 0
+        for i, fn in enumerate([src, dst]):
+            try:
+                st = _stat(fn)
+            except OSError:
+                # File most likely does not exist
+                pass
+            else:
+                # XXX What about other special files? (sockets, devices...)
+                if stat.S_ISFIFO(st.st_mode):
+                    fn = fn.path if isinstance(fn, os.DirEntry) else fn
+                    raise SpecialFileError("`%s` is a named pipe" % fn)
+                if _WINDOWS and i == 0:
+                    file_size = st.st_size
+    
+        if not follow_symlinks and _islink(src):
+            os.symlink(os.readlink(src), dst)
+        else:
+>           with open(src, 'rb') as fsrc:
+                 ^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/21926b793c00/candidate/apps/__init__.py'
+
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:313: FileNotFoundError
+_________ test_unknown_execution_error_is_not_admission_or_secret_text _________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-75/test_unknown_execution_error_i0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8e215c03d0>
+
+    def test_unknown_execution_error_is_not_admission_or_secret_text(tmp_path, monkeypatch):
+>       f = _fixture(tmp_path, monkeypatch)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:319: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_manager_r3_binding_contract.py:98: in _fixture
+    binding = _binding(tmp_path)
+              ^^^^^^^^^^^^^^^^^^
+tests/test_manager_announcement_supervisor.py:70: in _binding
+    shutil.copy2(original/'apps/__init__.py',app/'apps/__init__.py')
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:529: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/workspace/scratch/21926b793c00/candidate/apps/__init__.py')
+dst = PosixPath('/tmp/pytest-of-root/pytest-75/test_unknown_execution_error_i0/app/apps/__init__.py')
+follow_symlinks = True
+
+    def copyfile(src, dst, *, follow_symlinks=True):
+        """Copy data from src to dst in the most efficient way possible.
+    
+        If follow_symlinks is not set and src is a symbolic link, a new
+        symlink will be created instead of copying the file it points to.
+    
+        """
+        sys.audit("shutil.copyfile", src, dst)
+    
+        if _samefile(src, dst):
+            raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
+    
+        file_size = 0
+        for i, fn in enumerate([src, dst]):
+            try:
+                st = _stat(fn)
+            except OSError:
+                # File most likely does not exist
+                pass
+            else:
+                # XXX What about other special files? (sockets, devices...)
+                if stat.S_ISFIFO(st.st_mode):
+                    fn = fn.path if isinstance(fn, os.DirEntry) else fn
+                    raise SpecialFileError("`%s` is a named pipe" % fn)
+                if _WINDOWS and i == 0:
+                    file_size = st.st_size
+    
+        if not follow_symlinks and _islink(src):
+            os.symlink(os.readlink(src), dst)
+        else:
+>           with open(src, 'rb') as fsrc:
+                 ^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/21926b793c00/candidate/apps/__init__.py'
+
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/shutil.py:313: FileNotFoundError
+______ test_cycle_missing_binding_reports_local_admission_without_network ______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-75/test_cycle_missing_binding_rep0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8e226d1650>
+capsys = <_pytest.capture.CaptureFixture object at 0x7f8e213d6510>
+
+    def test_cycle_missing_binding_reports_local_admission_without_network(tmp_path, monkeypatch, capsys):
+        missing = tmp_path / "missing.json"
+        monkeypatch.setattr(dispatch.http.client, "HTTPConnection", lambda *a, **k: pytest.fail("unexpected transport"))
+>       assert cycle.main(["--binding", str(missing), "--dry-run"]) == 2
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:335: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+ops/run_manager_announcement_cycle.py:489: in main
+    value=load_binding(args.binding,APP_ROOT)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/scheduling/manager_announcement_supervisor.py:436: in load_binding
+    value=json.loads(SafeRoot(p.parent).read_bytes(p.name,max_bytes=1024*1024))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <infrastructure.owned_io.SafeRoot object at 0x7f8e213d5d30>
+relative = 'missing.json', max_bytes = 1048576
+
+    def read_bytes(self, relative: str, *, max_bytes: int = 64 * 1024 * 1024) -> bytes:
+        with self.parent(relative) as (parent, name):
+>           fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: 'missing.json'
+
+infrastructure/owned_io.py:105: FileNotFoundError
+=============================== warnings summary ===============================
+../../a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_manager_r3_binding_contract.py::test_one_binding_passes_unchanged_scheduler_worker_and_distinct_api_owner[False]
+FAILED tests/test_manager_r3_binding_contract.py::test_one_binding_passes_unchanged_scheduler_worker_and_distinct_api_owner[True]
+FAILED tests/test_manager_r3_binding_contract.py::test_admission_rejects_before_either_owner_and_returns_bounded_reason[sha-PLAN_OWNER_BINDING_SHA_MISMATCH-False]
+FAILED tests/test_manager_r3_binding_contract.py::test_admission_rejects_before_either_owner_and_returns_bounded_reason[sha-PLAN_OWNER_BINDING_SHA_MISMATCH-True]
+FAILED tests/test_manager_r3_binding_contract.py::test_admission_rejects_before_either_owner_and_returns_bounded_reason[root-PLAN_OWNER_BINDING_API_ROOT_MISMATCH-False]
+FAILED tests/test_manager_r3_binding_contract.py::test_admission_rejects_before_either_owner_and_returns_bounded_reason[root-PLAN_OWNER_BINDING_API_ROOT_MISMATCH-True]
+FAILED tests/test_manager_r3_binding_contract.py::test_admission_rejects_before_either_owner_and_returns_bounded_reason[disabled-PLAN_OWNER_DAILY_BINDING_DISABLED-False]
+FAILED tests/test_manager_r3_binding_contract.py::test_admission_rejects_before_either_owner_and_returns_bounded_reason[disabled-PLAN_OWNER_DAILY_BINDING_DISABLED-True]
+FAILED tests/test_manager_r3_binding_contract.py::test_admission_rejects_before_either_owner_and_returns_bounded_reason[owner_inventory-PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH-False]
+FAILED tests/test_manager_r3_binding_contract.py::test_admission_rejects_before_either_owner_and_returns_bounded_reason[owner_inventory-PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH-True]
+FAILED tests/test_manager_r3_binding_contract.py::test_gate_reason_survives_rpc_and_transport_timeout_does_not_claim_owner_not_called
+FAILED tests/test_manager_r3_binding_contract.py::test_legacy_same_root_remains_strictly_supported
+FAILED tests/test_manager_r3_binding_contract.py::test_dual_root_inventory_and_fresh_owner_canary_are_real_checks[worker_file]
+FAILED tests/test_manager_r3_binding_contract.py::test_dual_root_inventory_and_fresh_owner_canary_are_real_checks[owner_file]
+FAILED tests/test_manager_r3_binding_contract.py::test_dual_root_inventory_and_fresh_owner_canary_are_real_checks[canary_root]
+FAILED tests/test_manager_r3_binding_contract.py::test_dual_root_inventory_and_fresh_owner_canary_are_real_checks[canary_inventory]
+FAILED tests/test_manager_r3_binding_contract.py::test_dual_root_inventory_and_fresh_owner_canary_are_real_checks[response_sha]
+FAILED tests/test_manager_r3_binding_contract.py::test_explicit_owner_historical_canary_requires_dynamic_readback
+FAILED tests/test_manager_r3_binding_contract.py::test_renderer_generates_reviewable_dual_root_without_dropping_inventory
+FAILED tests/test_manager_r3_binding_contract.py::test_unknown_execution_error_is_not_admission_or_secret_text
+FAILED tests/test_manager_r3_binding_contract.py::test_cycle_missing_binding_reports_local_admission_without_network
+21 failed, 1 warning in 2.88s

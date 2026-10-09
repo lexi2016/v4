@@ -1,0 +1,57 @@
+{
+  "cwd": "/workspace/scratch/21926b793c00",
+  "command": [
+    "/workspace/scratch/a154a3323e32/test_env/bin/python",
+    "/workspace/scratch/21926b793c00/tools/replay_delivery.py",
+    "--package",
+    "/workspace/scratch/21926b793c00/delivery/manager-daily-r3-repair-20261009"
+  ],
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "exit_code": 0,
+  "stderr": "",
+  "manifest_sha256": "2288039fdfdc763904b943d57fb02ad16879b9fa5d7a2c4bc7e1b8b414ba4213",
+  "verifier_sha256": "2ee5276989fd1b3bb523ef74b636b884a63e21d04a0d96c4602abbc0242bf234",
+  "replay_tool_sha256": "6cba97e27e224af0c6b6cd2ed61cc295cfff095b2136a4150d59fa22ca2bfe25",
+  "result_sha256": "8550a2e3f13bf86ff5bd1d7287db2761d903c5f581041ea2151d5da1ec82879b",
+  "profiles": [
+    {
+      "profile": "api_current",
+      "status": "PASS",
+      "before_files_checked": 13,
+      "after_files_checked": 13,
+      "exact_original_tree_restored": true
+    },
+    {
+      "profile": "api_r2_increment",
+      "status": "PASS",
+      "before_files_checked": 7,
+      "after_files_checked": 7,
+      "exact_original_tree_restored": true
+    },
+    {
+      "profile": "worker_current",
+      "status": "PASS",
+      "before_files_checked": 5,
+      "after_files_checked": 5,
+      "exact_original_tree_restored": true
+    },
+    {
+      "profile": "hk_child",
+      "status": "PASS",
+      "before_files_checked": 3,
+      "after_files_checked": 3,
+      "exact_original_tree_restored": true
+    },
+    {
+      "profile": "web_cumulative",
+      "status": "PASS",
+      "before_files_checked": 4,
+      "after_files_checked": 4,
+      "exact_original_tree_restored": true
+    }
+  ],
+  "writes": "new temporary source roots only, removed",
+  "live_business_io": false
+}

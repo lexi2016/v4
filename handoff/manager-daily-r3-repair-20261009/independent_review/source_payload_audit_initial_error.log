@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/workspace/scratch/21926b793c00/independent_review/audit_source_payload.py", line 194, in <module>
+    print(json.dumps(run(args.workspace, args.package), indent=2))
+                     ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/21926b793c00/independent_review/audit_source_payload.py", line 141, in run
+    original_raw = (remote / origin["repository_path"]).read_bytes()
+  File "/workspace/scratch/a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py", line 777, in read_bytes
+    with self.open(mode='rb', buffering=0) as f:
+         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py", line 771, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/21926b793c00/input/remote/handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/workspace_daily_channels.py'

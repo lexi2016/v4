@@ -1,0 +1,15 @@
+--- a/ops/api_release_integration.py
++++ b/ops/api_release_integration.py
+@@ -49,6 +49,12 @@
+         "ops/prepare_api_only_cutover.py": ["api_platform"],
+         "ops/api_release_integration.py": ["api_platform"],
+         "ops/create_api_module_delta.py": ["api_platform"],
++        # R3 manager dependencies: exact paths reviewed by the shared API owner.
++        "infrastructure/_research_peripheral_store_parts/_namespace.py": ["manager"],
++        "infrastructure/scheduling/manager_announcement_supervisor.py": ["manager"],
++        "ops/render_manager_announcement_binding.py": ["manager"],
++        "ops/run_manager_announcement_cycle.py": ["manager"],
++        "v3_shared_data/shared_data/hk_daily_supplement.py": ["manager"],
+     },
+ }
+ POLICY_SHA256 = hashlib.sha256(json.dumps(

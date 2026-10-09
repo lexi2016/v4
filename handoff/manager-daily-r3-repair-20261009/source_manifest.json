@@ -1,0 +1,798 @@
+{
+  "schema_version": "v4.manager_r3.delivery.v1",
+  "base_commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+  "parent_shared_baseline": "66bb05a2e12976775ccb997191ce943bae8cc9a5",
+  "profiles": {
+    "api_current": {
+      "role": "CURRENT_ISSUE32_API",
+      "scope": "CUMULATIVE_R1_R2_R3",
+      "patch_path": "runtime/api_current.patch",
+      "patch_sha256": "1674a09d42a09aa8769a584766b8d08319e43f345e07fc17543b0403dd1d3092",
+      "source_file_count": 13
+    },
+    "api_r2_increment": {
+      "role": "PREVIOUSLY_VERIFIED_R2_API_CANDIDATE",
+      "scope": "R3_INCREMENT_ONLY",
+      "patch_path": "runtime/api_r2_increment.patch",
+      "patch_sha256": "a8c4936e6f0c355589748176fdcc18a692712d79dd8bdb9f0078e08fc00a3666",
+      "source_file_count": 7
+    },
+    "worker_current": {
+      "role": "CURRENT_20261006_BOUND_MANAGER_WORKER",
+      "scope": "CUMULATIVE_COMPATIBLE_WORKER",
+      "patch_path": "runtime/worker_current.patch",
+      "patch_sha256": "27710b9652687f24b43b5bc6ce13108825e0e520470698a1ed42d7958392ab52",
+      "source_file_count": 5
+    },
+    "hk_child": {
+      "role": "CURRENT_HK_CHILD",
+      "scope": "THREE_EXACT_R1_REPLAYS_KEEP_EXISTING_NAMESPACE",
+      "patch_path": "runtime/hk_child.patch",
+      "patch_sha256": "e35f3c386df925d1e99ac7c8ba5af049035aff8b1f339aded7f86b477d2d816f",
+      "source_file_count": 3
+    },
+    "web_cumulative": {
+      "role": "PINNED_R1_WEB_BEFORE",
+      "scope": "REUSED_R1_R2_NO_NEW_R3_UI_CODE",
+      "patch_path": "runtime/web_cumulative.patch",
+      "patch_sha256": "bc316c5ab40489090b16b0dcbebac4a7c25b4a4dd50408ca4a3aa71397aaa7b6",
+      "source_file_count": 4
+    }
+  },
+  "files": [
+    {
+      "profile": "api_current",
+      "path": "apps/api/v35_api/manager_research_router.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "source_root_observed_in_package": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+        "repository_path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_api_manager/apps/api/v35_api/manager_research_router.py",
+        "basis": "MATCH_EXPECTED",
+        "r3_live_snapshot_available": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/api_current/apps/api/v35_api/manager_research_router.py",
+      "before_sha256": "84f65a351e1e44171820cb8698e4198b3084e39b8d0cfe82c6b4bc05595f8073",
+      "before_bytes": 26922,
+      "before_git_blob_sha": "8d8fb5cc5ea95d35041b280ab410f1ca207e9bca",
+      "after_path": "after/api_current/apps/api/v35_api/manager_research_router.py",
+      "after_sha256": "9d8d132c58e7cf1c5a5609d93261483d578268ac24c60c2fa7a6a79b87344341",
+      "after_bytes": 31088,
+      "after_git_blob_sha": "31cc593405789b73b21eef1d5d9ee17ede4f3028"
+    },
+    {
+      "profile": "api_current",
+      "path": "infrastructure/_research_peripheral_store_parts/_namespace.py",
+      "change": "added",
+      "before_origin": {
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "source_root_observed_in_package": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+        "repository_path": null,
+        "basis": "MISSING_IN_SOURCE_ROOT",
+        "r3_live_snapshot_available": false,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": null,
+      "before_sha256": null,
+      "before_bytes": null,
+      "before_git_blob_sha": null,
+      "after_path": "after/api_current/infrastructure/_research_peripheral_store_parts/_namespace.py",
+      "after_sha256": "04d71a71d33cdc90ec362289095dd2ac6e357f79af1528f8c573f6ddcc24e68d",
+      "after_bytes": 534,
+      "after_git_blob_sha": "bc89327734ad3eeffcd4d9ba6fbdfae4fe90235d"
+    },
+    {
+      "profile": "api_current",
+      "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "source_root_observed_in_package": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+        "repository_path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_api_manager/infrastructure/scheduling/manager_announcement_supervisor.py",
+        "basis": "MATCH_EXPECTED",
+        "r3_live_snapshot_available": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/api_current/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "before_sha256": "73eb6a2f7cbf2e2307a87edc3013e355c331f2ce87e6e0ae693b9f78de2dd34a",
+      "before_bytes": 28502,
+      "before_git_blob_sha": "c6dc099e5021f71780cde33046549c8d07e32d11",
+      "after_path": "after/api_current/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "after_sha256": "e9a1e6f79abf268855a88d15dc579744ec4739f3561eccc56972badd89653ffa",
+      "after_bytes": 34170,
+      "after_git_blob_sha": "0acf933f1385625220a2e8255f9c7dc8fc0d0a1b"
+    },
+    {
+      "profile": "api_current",
+      "path": "ops/render_manager_announcement_binding.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "source_root_observed_in_package": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+        "repository_path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_api_manager/ops/render_manager_announcement_binding.py",
+        "basis": "MATCH_EXPECTED",
+        "r3_live_snapshot_available": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/api_current/ops/render_manager_announcement_binding.py",
+      "before_sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a",
+      "before_bytes": 3058,
+      "before_git_blob_sha": "6e1062dbe2a2c8d6cb4bec1178fef395dc1cfe02",
+      "after_path": "after/api_current/ops/render_manager_announcement_binding.py",
+      "after_sha256": "44fba219e65a2c67bf0dc5d7d9f012e6ece757bb5a2b38a273f616dbfe7aa4db",
+      "after_bytes": 5967,
+      "after_git_blob_sha": "220ab6f587958cef7d90c7e3110625d3942b95e3"
+    },
+    {
+      "profile": "api_current",
+      "path": "ops/run_manager_announcement_cycle.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "source_root_observed_in_package": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+        "repository_path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_api_manager/ops/run_manager_announcement_cycle.py",
+        "basis": "MATCH_EXPECTED",
+        "r3_live_snapshot_available": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/api_current/ops/run_manager_announcement_cycle.py",
+      "before_sha256": "c6f9cfa57515682b4f076e10f2030196dc9377bdbb9ec4abe737e36d15485c1c",
+      "before_bytes": 25368,
+      "before_git_blob_sha": "365749fd9622cf32e1c8416e88468d7226c25437",
+      "after_path": "after/api_current/ops/run_manager_announcement_cycle.py",
+      "after_sha256": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44",
+      "after_bytes": 37015,
+      "after_git_blob_sha": "e492fcb3d3e2487288d5b4e57e6bee40916892cd"
+    },
+    {
+      "profile": "api_current",
+      "path": "v3_shared_data/shared_data/hk_daily_supplement.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "source_root_observed_in_package": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+        "repository_path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_api_manager/v3_shared_data/shared_data/hk_daily_supplement.py",
+        "basis": "MATCH_EXPECTED",
+        "r3_live_snapshot_available": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/api_current/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "before_sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+      "before_bytes": 35128,
+      "before_git_blob_sha": "3d2913f5386c4a0d7d1033f3dcbca9521a2e5880",
+      "after_path": "after/api_current/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "after_sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+      "after_bytes": 36498,
+      "after_git_blob_sha": "34e9323b0710cf663f92e08051e157045831e325"
+    },
+    {
+      "profile": "api_current",
+      "path": "v4/manager_research/plan_owner_dispatch.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "source_root_observed_in_package": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+        "repository_path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_api_manager/v4/manager_research/plan_owner_dispatch.py",
+        "basis": "MATCH_EXPECTED",
+        "r3_live_snapshot_available": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/api_current/v4/manager_research/plan_owner_dispatch.py",
+      "before_sha256": "8fad78ec64b1ff3ab80242fedc93dfcf7cbed25e6839821aab7f024ca297bf75",
+      "before_bytes": 26827,
+      "before_git_blob_sha": "e196a8cc1d5c8c6867cf254eba326d8de1e510ef",
+      "after_path": "after/api_current/v4/manager_research/plan_owner_dispatch.py",
+      "after_sha256": "2b532168bfdce41080121df318cb619011b98bb76195eba39df43046a130b987",
+      "after_bytes": 53112,
+      "after_git_blob_sha": "c87e5535ff902eb3de3a805d502f1d8c7a7a875e"
+    },
+    {
+      "profile": "api_current",
+      "path": "v4/manager_research/service.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "source_root_observed_in_package": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+        "repository_path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_api_manager/v4/manager_research/service.py",
+        "basis": "MATCH_EXPECTED",
+        "r3_live_snapshot_available": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/api_current/v4/manager_research/service.py",
+      "before_sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37",
+      "before_bytes": 93685,
+      "before_git_blob_sha": "fe21c0ef9674a0dc8e638706071c39ea0a7f3aa6",
+      "after_path": "after/api_current/v4/manager_research/service.py",
+      "after_sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "after_bytes": 94921,
+      "after_git_blob_sha": "141624c44cb7a2b76d6ad1761852396e1fa8f8f2"
+    },
+    {
+      "profile": "api_current",
+      "path": "v4/manager_research/us_mapping_research.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "source_root_observed_in_package": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+        "repository_path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_api_manager/v4/manager_research/us_mapping_research.py",
+        "basis": "MATCH_EXPECTED",
+        "r3_live_snapshot_available": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/api_current/v4/manager_research/us_mapping_research.py",
+      "before_sha256": "297dc6f5950d3614437378c22e3157b6866823fbf25fd39cb47f112ffea40da7",
+      "before_bytes": 14052,
+      "before_git_blob_sha": "d5c1b0cd5bad6fd522ad1a060548d4520b631e58",
+      "after_path": "after/api_current/v4/manager_research/us_mapping_research.py",
+      "after_sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+      "after_bytes": 57938,
+      "after_git_blob_sha": "e0fc26de11bdff6b77577b067ecf15f0dc929f12"
+    },
+    {
+      "profile": "api_current",
+      "path": "v4/manager_research/workspace.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "source_root_observed_in_package": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+        "repository_path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_api_manager/v4/manager_research/workspace.py",
+        "basis": "MATCH_EXPECTED",
+        "r3_live_snapshot_available": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/api_current/v4/manager_research/workspace.py",
+      "before_sha256": "183e3ebd0322883a8f8cef37c0244f424f16c63d3120245e263bb9585133dea3",
+      "before_bytes": 59319,
+      "before_git_blob_sha": "380b3a24ff5c69bef033ccc93f2d131784af8b56",
+      "after_path": "after/api_current/v4/manager_research/workspace.py",
+      "after_sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+      "after_bytes": 76034,
+      "after_git_blob_sha": "e2ec0af87b8b40fe40a4f28c6098cae11f0b636a"
+    },
+    {
+      "profile": "api_current",
+      "path": "v4/manager_research/workspace_daily_channels.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "repository_path": "handoff/manager-workbench-mac-completion-20261008/source/api_app/v4/manager_research/workspace_daily_channels.py",
+        "git_blob_sha": "5e6a5a75ab1d1c3bbe8f32e56084356dd57f5984",
+        "basis": "PINNED_PARENT_MAC_COMPLETION_SOURCE_NOT_IN_32_R3_LIVE_SNAPSHOTS",
+        "r3_live_snapshot_available": false,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/api_current/v4/manager_research/workspace_daily_channels.py",
+      "before_sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+      "before_bytes": 12982,
+      "before_git_blob_sha": "5e6a5a75ab1d1c3bbe8f32e56084356dd57f5984",
+      "after_path": "after/api_current/v4/manager_research/workspace_daily_channels.py",
+      "after_sha256": "e5a74449f211c9e8ecfb4f886317db2263d524f0e29fa7912c9094928a5c6bab",
+      "after_bytes": 13586,
+      "after_git_blob_sha": "a203b4b11e81af2cbda02f8050b09d4597425aa2"
+    },
+    {
+      "profile": "api_current",
+      "path": "v4/manager_research/workspace_history.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "source_root_observed_in_package": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+        "repository_path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_api_manager/v4/manager_research/workspace_history.py",
+        "basis": "MATCH_EXPECTED",
+        "r3_live_snapshot_available": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/api_current/v4/manager_research/workspace_history.py",
+      "before_sha256": "da5e1223326631cc9070c3059ca606bac3840ef468ad5c06f2f3a51534f82ec1",
+      "before_bytes": 17474,
+      "before_git_blob_sha": "4901ce1fb9ab2f73517275ad89fd187b27bff375",
+      "after_path": "after/api_current/v4/manager_research/workspace_history.py",
+      "after_sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+      "after_bytes": 21208,
+      "after_git_blob_sha": "02d455e8d3ec8ff0c50e2cf34b6acdff206cf756"
+    },
+    {
+      "profile": "api_current",
+      "path": "v4/manager_research/workspace_plan_autorun.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "source_root_observed_in_package": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+        "repository_path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_api_manager/v4/manager_research/workspace_plan_autorun.py",
+        "basis": "MATCH_EXPECTED",
+        "r3_live_snapshot_available": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/api_current/v4/manager_research/workspace_plan_autorun.py",
+      "before_sha256": "703bef8d9a04861c6cb4161880427126badd69eece234f9b53eaa5ae59d7c6ef",
+      "before_bytes": 11309,
+      "before_git_blob_sha": "aeb0bdaa1a335aafe072c278a8059ceca5849b52",
+      "after_path": "after/api_current/v4/manager_research/workspace_plan_autorun.py",
+      "after_sha256": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34",
+      "after_bytes": 15547,
+      "after_git_blob_sha": "dcab179e3cc291991e14e426adf8093fb31b71ef"
+    },
+    {
+      "profile": "api_r2_increment",
+      "path": "apps/api/v35_api/manager_research_router.py",
+      "change": "modified",
+      "before_origin": {
+        "basis": "EXACT_LOCAL_ASSEMBLY_OF_FIXED_R1_R2_AFTER_AND_PARENT_SOURCE",
+        "local_comparison_commit": "c973cbc268c686af4492a7dfa4cef8417ca8edf4",
+        "r1_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+        "r2_commit": "6a2fa48faf1da0a7d0d1715b3a4a40f55249b64c",
+        "not_current_api_preimage": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/api_r2_increment/apps/api/v35_api/manager_research_router.py",
+      "before_sha256": "c3ec90ffb88f1378c4d9a1912fc78747f4440d0331696de4f1a015ad72946f4c",
+      "before_bytes": 30588,
+      "before_git_blob_sha": "600805407813d24f644ac9849e364f2b1b00a4f2",
+      "after_path": "after/api_r2_increment/apps/api/v35_api/manager_research_router.py",
+      "after_sha256": "9d8d132c58e7cf1c5a5609d93261483d578268ac24c60c2fa7a6a79b87344341",
+      "after_bytes": 31088,
+      "after_git_blob_sha": "31cc593405789b73b21eef1d5d9ee17ede4f3028"
+    },
+    {
+      "profile": "api_r2_increment",
+      "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "change": "modified",
+      "before_origin": {
+        "basis": "EXACT_LOCAL_ASSEMBLY_OF_FIXED_R1_R2_AFTER_AND_PARENT_SOURCE",
+        "local_comparison_commit": "c973cbc268c686af4492a7dfa4cef8417ca8edf4",
+        "r1_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+        "r2_commit": "6a2fa48faf1da0a7d0d1715b3a4a40f55249b64c",
+        "not_current_api_preimage": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/api_r2_increment/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "before_sha256": "2ed9640b7c1568df065884f9f71a1df82b288c342bc94135ef4fd06b4c510373",
+      "before_bytes": 30208,
+      "before_git_blob_sha": "06221d9a72f69afa634adca6a8f297b370752bf2",
+      "after_path": "after/api_r2_increment/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "after_sha256": "e9a1e6f79abf268855a88d15dc579744ec4739f3561eccc56972badd89653ffa",
+      "after_bytes": 34170,
+      "after_git_blob_sha": "0acf933f1385625220a2e8255f9c7dc8fc0d0a1b"
+    },
+    {
+      "profile": "api_r2_increment",
+      "path": "ops/render_manager_announcement_binding.py",
+      "change": "modified",
+      "before_origin": {
+        "basis": "EXACT_LOCAL_ASSEMBLY_OF_FIXED_R1_R2_AFTER_AND_PARENT_SOURCE",
+        "local_comparison_commit": "c973cbc268c686af4492a7dfa4cef8417ca8edf4",
+        "r1_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+        "r2_commit": "6a2fa48faf1da0a7d0d1715b3a4a40f55249b64c",
+        "not_current_api_preimage": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/api_r2_increment/ops/render_manager_announcement_binding.py",
+      "before_sha256": "78049be0625c15539dcd44c1924ba8f89d5dd5a06a074c723a84d68fb45b3f39",
+      "before_bytes": 5380,
+      "before_git_blob_sha": "53d185344f912c152cd51f9ee18a9463d259ec5a",
+      "after_path": "after/api_r2_increment/ops/render_manager_announcement_binding.py",
+      "after_sha256": "44fba219e65a2c67bf0dc5d7d9f012e6ece757bb5a2b38a273f616dbfe7aa4db",
+      "after_bytes": 5967,
+      "after_git_blob_sha": "220ab6f587958cef7d90c7e3110625d3942b95e3"
+    },
+    {
+      "profile": "api_r2_increment",
+      "path": "ops/run_manager_announcement_cycle.py",
+      "change": "modified",
+      "before_origin": {
+        "basis": "EXACT_LOCAL_ASSEMBLY_OF_FIXED_R1_R2_AFTER_AND_PARENT_SOURCE",
+        "local_comparison_commit": "c973cbc268c686af4492a7dfa4cef8417ca8edf4",
+        "r1_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+        "r2_commit": "6a2fa48faf1da0a7d0d1715b3a4a40f55249b64c",
+        "not_current_api_preimage": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/api_r2_increment/ops/run_manager_announcement_cycle.py",
+      "before_sha256": "ac05519d31be2ad5de640190d9219335e14cd70e6273bdc652b32b85e929ffa1",
+      "before_bytes": 36743,
+      "before_git_blob_sha": "d762bc0343ea168a1e3841c8cc71c80e25cb48ad",
+      "after_path": "after/api_r2_increment/ops/run_manager_announcement_cycle.py",
+      "after_sha256": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44",
+      "after_bytes": 37015,
+      "after_git_blob_sha": "e492fcb3d3e2487288d5b4e57e6bee40916892cd"
+    },
+    {
+      "profile": "api_r2_increment",
+      "path": "v4/manager_research/plan_owner_dispatch.py",
+      "change": "modified",
+      "before_origin": {
+        "basis": "EXACT_LOCAL_ASSEMBLY_OF_FIXED_R1_R2_AFTER_AND_PARENT_SOURCE",
+        "local_comparison_commit": "c973cbc268c686af4492a7dfa4cef8417ca8edf4",
+        "r1_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+        "r2_commit": "6a2fa48faf1da0a7d0d1715b3a4a40f55249b64c",
+        "not_current_api_preimage": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/api_r2_increment/v4/manager_research/plan_owner_dispatch.py",
+      "before_sha256": "d896359dbfd39f41ed3e316d54424c6f1172d935aa1d77a47463167d7bf1ed90",
+      "before_bytes": 46210,
+      "before_git_blob_sha": "bb9d94d2fd27ebbdef0f7b13543a9ac4dc09e4db",
+      "after_path": "after/api_r2_increment/v4/manager_research/plan_owner_dispatch.py",
+      "after_sha256": "2b532168bfdce41080121df318cb619011b98bb76195eba39df43046a130b987",
+      "after_bytes": 53112,
+      "after_git_blob_sha": "c87e5535ff902eb3de3a805d502f1d8c7a7a875e"
+    },
+    {
+      "profile": "api_r2_increment",
+      "path": "v4/manager_research/workspace_daily_channels.py",
+      "change": "modified",
+      "before_origin": {
+        "basis": "EXACT_LOCAL_ASSEMBLY_OF_FIXED_R1_R2_AFTER_AND_PARENT_SOURCE",
+        "local_comparison_commit": "c973cbc268c686af4492a7dfa4cef8417ca8edf4",
+        "r1_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+        "r2_commit": "6a2fa48faf1da0a7d0d1715b3a4a40f55249b64c",
+        "not_current_api_preimage": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/api_r2_increment/v4/manager_research/workspace_daily_channels.py",
+      "before_sha256": "de4e91150d3198dda40e170660de8a83c717811d478411941015b7cf1364c15f",
+      "before_bytes": 12982,
+      "before_git_blob_sha": "5e6a5a75ab1d1c3bbe8f32e56084356dd57f5984",
+      "after_path": "after/api_r2_increment/v4/manager_research/workspace_daily_channels.py",
+      "after_sha256": "e5a74449f211c9e8ecfb4f886317db2263d524f0e29fa7912c9094928a5c6bab",
+      "after_bytes": 13586,
+      "after_git_blob_sha": "a203b4b11e81af2cbda02f8050b09d4597425aa2"
+    },
+    {
+      "profile": "api_r2_increment",
+      "path": "v4/manager_research/workspace_plan_autorun.py",
+      "change": "modified",
+      "before_origin": {
+        "basis": "EXACT_LOCAL_ASSEMBLY_OF_FIXED_R1_R2_AFTER_AND_PARENT_SOURCE",
+        "local_comparison_commit": "c973cbc268c686af4492a7dfa4cef8417ca8edf4",
+        "r1_commit": "008649895054cb24f1d1c3df37e215d307615db3",
+        "r2_commit": "6a2fa48faf1da0a7d0d1715b3a4a40f55249b64c",
+        "not_current_api_preimage": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/api_r2_increment/v4/manager_research/workspace_plan_autorun.py",
+      "before_sha256": "14d168300bba42124649f56b79ae65b41359bcfa6928b59fea4a36beb2b511f5",
+      "before_bytes": 14055,
+      "before_git_blob_sha": "58ee5b3b0af6b225cb44ee74cb20b1e16231745d",
+      "after_path": "after/api_r2_increment/v4/manager_research/workspace_plan_autorun.py",
+      "after_sha256": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34",
+      "after_bytes": 15547,
+      "after_git_blob_sha": "dcab179e3cc291991e14e426adf8093fb31b71ef"
+    },
+    {
+      "profile": "hk_child",
+      "path": "ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "source_root_observed_in_package": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app",
+        "repository_path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/hk_child_conflict/ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+        "basis": "EXPECTED_SHA_UNSET",
+        "r3_live_snapshot_available": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/hk_child/ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "before_sha256": "d3db5b9644bbf2fb1f4e245717907862ebe1cee2d0f650a8d45d732fd4a71940",
+      "before_bytes": 14219,
+      "before_git_blob_sha": "57fa7f9dcd5ee6485c70c757add8c40f11344ca4",
+      "after_path": "after/hk_child/ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "after_sha256": "d07be30a40c35aee9d710fcdcc7ae66b031488cc4c5e7029824e3c76ed3fd71c",
+      "after_bytes": 72911,
+      "after_git_blob_sha": "4d389d15eba3db0263793f4e0ebcccc930c12a51"
+    },
+    {
+      "profile": "hk_child",
+      "path": "ops/ensure_hk_security_master.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "source_root_observed_in_package": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app",
+        "repository_path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/hk_child_conflict/ops/ensure_hk_security_master.py",
+        "basis": "MATCH_EXPECTED",
+        "r3_live_snapshot_available": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/hk_child/ops/ensure_hk_security_master.py",
+      "before_sha256": "6c341a33c0283b023219c46cc2a1c6aaca49cf4b5dcb88aa2fb5527a13145601",
+      "before_bytes": 41556,
+      "before_git_blob_sha": "ec79858502ef793766b71755a037500f0eb2e991",
+      "after_path": "after/hk_child/ops/ensure_hk_security_master.py",
+      "after_sha256": "495ced4f0f06f170606ee576e035dafc99b540cd9fad0a28f2f2a36e5989ddb9",
+      "after_bytes": 44249,
+      "after_git_blob_sha": "a6c44fc3611df03066792272d939832f7dafe37e"
+    },
+    {
+      "profile": "hk_child",
+      "path": "ops/macos_research_panel_daily.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "source_root_observed_in_package": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z/app",
+        "repository_path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/hk_child_conflict/ops/macos_research_panel_daily.py",
+        "basis": "MATCH_EXPECTED",
+        "r3_live_snapshot_available": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/hk_child/ops/macos_research_panel_daily.py",
+      "before_sha256": "07aa9770c6ae0bb0cfd012e57843a37fedda6724a57cd52d7c339d854fc6609b",
+      "before_bytes": 97708,
+      "before_git_blob_sha": "0fd228db36da3af1c1ae4d130c856bae479a2bba",
+      "after_path": "after/hk_child/ops/macos_research_panel_daily.py",
+      "after_sha256": "1963990fcde99b2681c837b8b66ea12f1ab066aba47729af5d0900073bc79ef3",
+      "after_bytes": 98276,
+      "after_git_blob_sha": "a9b48f9512e5f0d0442ceb650b1f440f82ab3fba"
+    },
+    {
+      "profile": "web_cumulative",
+      "path": "apps/web/src/api/managerWorkspace.ts",
+      "change": "modified",
+      "before_origin": {
+        "commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+        "repository_path": "handoff/manager-workbench-mac-completion-20261008/source/web/apps/web/src/api/managerWorkspace.ts",
+        "git_blob_sha": "75575be074e82c9df69714d5d956595259ffb14c",
+        "basis": "PROBLEM_PACKAGE_FROZEN_SOURCE_PIN",
+        "r3_live_snapshot_available": false,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/web_cumulative/apps/web/src/api/managerWorkspace.ts",
+      "before_sha256": "5854af5d1e2b33cc469ba6abd49096bb2f727280161c663edf4b757742f9ce92",
+      "before_bytes": 101431,
+      "before_git_blob_sha": "75575be074e82c9df69714d5d956595259ffb14c",
+      "after_path": "after/web_cumulative/apps/web/src/api/managerWorkspace.ts",
+      "after_sha256": "27689d66f46e47b2ed714adb3fa571a5fd024a26c5d3d97d238ae5931e2afcfb",
+      "after_bytes": 109062,
+      "after_git_blob_sha": "b6713b8012958c90079e86a2e7a13df32b3ef66c"
+    },
+    {
+      "profile": "web_cumulative",
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "change": "modified",
+      "before_origin": {
+        "commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+        "repository_path": "handoff/manager-workbench-mac-completion-20261008/source/web/apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "git_blob_sha": "7404344a5eb6da884352f65804a857fc582f1bf0",
+        "basis": "PROBLEM_PACKAGE_FROZEN_SOURCE_PIN",
+        "r3_live_snapshot_available": false,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/web_cumulative/apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "before_sha256": "fbb20e417bb4d9ff7cbd25c5aa29f387a1650438d6e638216b3f4d7c1a209497",
+      "before_bytes": 64295,
+      "before_git_blob_sha": "7404344a5eb6da884352f65804a857fc582f1bf0",
+      "after_path": "after/web_cumulative/apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "after_sha256": "ffd5c8cbfdaba9eb7e277695114647ef037b88ae16269be5547d3eff0649d3a3",
+      "after_bytes": 65122,
+      "after_git_blob_sha": "a2c668220659d4e1808cafed0116438721d22ac0"
+    },
+    {
+      "profile": "web_cumulative",
+      "path": "apps/web/src/manager-selection/dailyResearchRun.ts",
+      "change": "added",
+      "before_origin": {
+        "commit": null,
+        "repository_path": null,
+        "git_blob_sha": null,
+        "basis": "ABSENT_IN_SUPPLIED_SOURCE_CLOSURE_HOST_ABSENCE_GATE_REQUIRED",
+        "r3_live_snapshot_available": false,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": null,
+      "before_sha256": null,
+      "before_bytes": null,
+      "before_git_blob_sha": null,
+      "after_path": "after/web_cumulative/apps/web/src/manager-selection/dailyResearchRun.ts",
+      "after_sha256": "5e12c62c954b1689fb8540621d7db650ebe88aa0ef763363ff42fef40a52107d",
+      "after_bytes": 19519,
+      "after_git_blob_sha": "6a58eb272c1523c839a2f8895990c16a9da54b7a"
+    },
+    {
+      "profile": "web_cumulative",
+      "path": "apps/web/src/manager-selection/researchAttention.ts",
+      "change": "modified",
+      "before_origin": {
+        "commit": "09f82ac665e36a002e7f67f949b7e38f4e0598bf",
+        "repository_path": "handoff/manager-daily-automation-problem-20261008/source/web_snapshot/apps/web/src/manager-selection/researchAttention.ts",
+        "git_blob_sha": "e5eb03dbeac99aaffdc08fec4e7eb4fc07a08390",
+        "basis": "PROBLEM_PACKAGE_FROZEN_SOURCE_PIN",
+        "r3_live_snapshot_available": false,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/web_cumulative/apps/web/src/manager-selection/researchAttention.ts",
+      "before_sha256": "16bb02dd12c22fd6c55f6c42bb57f8e48ac66864673ba403380381cb2b63f3ef",
+      "before_bytes": 22383,
+      "before_git_blob_sha": "e5eb03dbeac99aaffdc08fec4e7eb4fc07a08390",
+      "after_path": "after/web_cumulative/apps/web/src/manager-selection/researchAttention.ts",
+      "after_sha256": "a7aeb4e0a84aaa340260e7a09d522b5e96cf579fcca18f6aa747154716a32a1c",
+      "after_bytes": 23801,
+      "after_git_blob_sha": "89473e23fc68904ee9515cb17898b2c466d5947d"
+    },
+    {
+      "profile": "worker_current",
+      "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "source_root_observed_in_package": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app",
+        "repository_path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_bound_announcement_worker_20261006/infrastructure/scheduling/manager_announcement_supervisor.py",
+        "basis": "MATCH_EXPECTED",
+        "r3_live_snapshot_available": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/worker_current/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "before_sha256": "fd41e7ae1ba82429fb75364d42e96c435aa5855fb471c4fb55a0d38c962aa22a",
+      "before_bytes": 25925,
+      "before_git_blob_sha": "365a73dae0c969a93712420cfc41955c17a39596",
+      "after_path": "after/worker_current/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "after_sha256": "e9a1e6f79abf268855a88d15dc579744ec4739f3561eccc56972badd89653ffa",
+      "after_bytes": 34170,
+      "after_git_blob_sha": "0acf933f1385625220a2e8255f9c7dc8fc0d0a1b"
+    },
+    {
+      "profile": "worker_current",
+      "path": "ops/render_manager_announcement_binding.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "source_root_observed_in_package": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app",
+        "repository_path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_bound_announcement_worker_20261006/ops/render_manager_announcement_binding.py",
+        "basis": "MATCH_EXPECTED",
+        "r3_live_snapshot_available": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/worker_current/ops/render_manager_announcement_binding.py",
+      "before_sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a",
+      "before_bytes": 3058,
+      "before_git_blob_sha": "6e1062dbe2a2c8d6cb4bec1178fef395dc1cfe02",
+      "after_path": "after/worker_current/ops/render_manager_announcement_binding.py",
+      "after_sha256": "44fba219e65a2c67bf0dc5d7d9f012e6ece757bb5a2b38a273f616dbfe7aa4db",
+      "after_bytes": 5967,
+      "after_git_blob_sha": "220ab6f587958cef7d90c7e3110625d3942b95e3"
+    },
+    {
+      "profile": "worker_current",
+      "path": "ops/run_manager_announcement_cycle.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "source_root_observed_in_package": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app",
+        "repository_path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_bound_announcement_worker_20261006/ops/run_manager_announcement_cycle.py",
+        "basis": "MATCH_EXPECTED",
+        "r3_live_snapshot_available": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/worker_current/ops/run_manager_announcement_cycle.py",
+      "before_sha256": "cd91604a7f7d7f2f960bbbd337fcd453bf97bb298c14f0a7fb8804fdcbaf0a84",
+      "before_bytes": 18829,
+      "before_git_blob_sha": "b87c005ad32ee0348fe3c1d4183c217aa3f66031",
+      "after_path": "after/worker_current/ops/run_manager_announcement_cycle.py",
+      "after_sha256": "01b93a8985bc43f8f08ae5c6d97637abc2273fb20987fb27c6a78c6fc5b59d44",
+      "after_bytes": 37015,
+      "after_git_blob_sha": "e492fcb3d3e2487288d5b4e57e6bee40916892cd"
+    },
+    {
+      "profile": "worker_current",
+      "path": "v4/manager_research/plan_owner_dispatch.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "source_root_observed_in_package": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app",
+        "repository_path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_bound_announcement_worker_20261006/v4/manager_research/plan_owner_dispatch.py",
+        "basis": "MATCH_EXPECTED",
+        "r3_live_snapshot_available": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/worker_current/v4/manager_research/plan_owner_dispatch.py",
+      "before_sha256": "f4ddb61e341aa48f24aad62e9d0aa7bf2c9a0fc3d07bfae7ec285f78f1467fe3",
+      "before_bytes": 7169,
+      "before_git_blob_sha": "4d57dc6fe4d2785740860aa67c6335141652347e",
+      "after_path": "after/worker_current/v4/manager_research/plan_owner_dispatch.py",
+      "after_sha256": "2b532168bfdce41080121df318cb619011b98bb76195eba39df43046a130b987",
+      "after_bytes": 53112,
+      "after_git_blob_sha": "c87e5535ff902eb3de3a805d502f1d8c7a7a875e"
+    },
+    {
+      "profile": "worker_current",
+      "path": "v4/manager_research/workspace_plan_autorun.py",
+      "change": "modified",
+      "before_origin": {
+        "commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+        "source_root_observed_in_package": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manager-us-mapping-daily-20261006-r2/app",
+        "repository_path": "handoff/manager-daily-failure-20261009-r3/package/source_snapshot/current_bound_announcement_worker_20261006/v4/manager_research/workspace_plan_autorun.py",
+        "basis": "MATCH_EXPECTED",
+        "r3_live_snapshot_available": true,
+        "host_recheck_required": true
+      },
+      "after_origin": "ISOLATED_R3_CANDIDATE_OR_FIXED_REUSED_AFTER",
+      "before_path": "before/worker_current/v4/manager_research/workspace_plan_autorun.py",
+      "before_sha256": "e785ae1d465175bec0517e7c3b4a8d6e16593967cba554aa0428817a85cd079b",
+      "before_bytes": 9439,
+      "before_git_blob_sha": "668f61984fd67f2a2a9e70cb429afe0a19466b24",
+      "after_path": "after/worker_current/v4/manager_research/workspace_plan_autorun.py",
+      "after_sha256": "d7b2940f1203b62d642137a6b8eecffac566d0c1bf625d514c1345c0fc1a2a34",
+      "after_bytes": 15547,
+      "after_git_blob_sha": "dcab179e3cc291991e14e426adf8093fb31b71ef"
+    }
+  ],
+  "preserve": [
+    {
+      "profiles": [
+        "api_current",
+        "api_r2_increment"
+      ],
+      "path": "apps/api/v35_api/app.py",
+      "sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "reference_path": "reference/preserved/issue32_protected/apps/api/v35_api/app.py",
+      "host_recheck_required": true
+    },
+    {
+      "profiles": [
+        "api_current",
+        "api_r2_increment"
+      ],
+      "path": "apps/api/v35_api/preselection_router.py",
+      "sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "reference_path": "reference/preserved/issue32_protected/apps/api/v35_api/preselection_router.py",
+      "host_recheck_required": true
+    },
+    {
+      "profiles": [
+        "api_current",
+        "api_r2_increment"
+      ],
+      "path": "apps/api/v35_api/preselection_service.py",
+      "sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+      "reference_path": "reference/preserved/issue32_protected/apps/api/v35_api/preselection_service.py",
+      "host_recheck_required": true
+    },
+    {
+      "profiles": [
+        "hk_child"
+      ],
+      "path": "ops/_macos_research_panel_daily_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "reference_path": "reference/preserved/hk_child_conflict/ops/_macos_research_panel_daily_parts/_namespace.py",
+      "host_recheck_required": true
+    }
+  ],
+  "flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "policy_review_only": "release_policy_review/scope.json",
+  "not_full_deployable_app": true,
+  "actual_runtime_process_identity": "NOT_RUN"
+}

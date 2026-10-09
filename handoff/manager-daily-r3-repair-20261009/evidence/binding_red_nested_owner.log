@@ -1,0 +1,56 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_ test_nested_hk_owner_consumer_is_required_even_if_file_and_pin_are_removed[False] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-113/test_nested_hk_owner_consumer_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f4b7e4335c0>
+remove_pin = False
+
+    @pytest.mark.parametrize("remove_pin", [False, True])
+    def test_nested_hk_owner_consumer_is_required_even_if_file_and_pin_are_removed(tmp_path, monkeypatch, remove_pin):
+        f = _fixture(tmp_path, monkeypatch)
+        (f.owner_root / OWNER_HK_SUPPLEMENT).unlink()
+        if remove_pin:
+            f.binding["plan_owner"]["files"].pop(OWNER_HK_SUPPLEMENT, None)
+        f.canary["owner_source_inventory_sha256"] = hashlib.sha256(
+            _json_bytes(f.binding["plan_owner"]["files"])).hexdigest()
+        f.binding["plan_activation_receipt"] = _write_json(f.root / "canary.json", f.canary)
+        reason = ("PLAN_OWNER_BINDING_INVENTORY_INVALID" if remove_pin
+            else "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH")
+>       with pytest.raises(ValueError, match=reason):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_r3_binding_contract.py:499: Failed
+_ test_nested_hk_owner_consumer_is_required_even_if_file_and_pin_are_removed[True] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-113/test_nested_hk_owner_consumer_1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f4b7e433950>
+remove_pin = True
+
+    @pytest.mark.parametrize("remove_pin", [False, True])
+    def test_nested_hk_owner_consumer_is_required_even_if_file_and_pin_are_removed(tmp_path, monkeypatch, remove_pin):
+        f = _fixture(tmp_path, monkeypatch)
+        (f.owner_root / OWNER_HK_SUPPLEMENT).unlink()
+        if remove_pin:
+            f.binding["plan_owner"]["files"].pop(OWNER_HK_SUPPLEMENT, None)
+        f.canary["owner_source_inventory_sha256"] = hashlib.sha256(
+            _json_bytes(f.binding["plan_owner"]["files"])).hexdigest()
+        f.binding["plan_activation_receipt"] = _write_json(f.root / "canary.json", f.canary)
+        reason = ("PLAN_OWNER_BINDING_INVENTORY_INVALID" if remove_pin
+            else "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH")
+>       with pytest.raises(ValueError, match=reason):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_manager_r3_binding_contract.py:499: Failed
+=============================== warnings summary ===============================
+../../a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_manager_r3_binding_contract.py::test_nested_hk_owner_consumer_is_required_even_if_file_and_pin_are_removed[False]
+FAILED tests/test_manager_r3_binding_contract.py::test_nested_hk_owner_consumer_is_required_even_if_file_and_pin_are_removed[True]
+2 failed, 37 deselected, 1 warning in 0.51s

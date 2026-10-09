@@ -1,0 +1,129 @@
+.............FF                                                          [100%]
+=================================== FAILURES ===================================
+_ test_screen_uses_master_universe_sidecar_volume_and_missing_only_price_overlay _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f9ededfd9d0>
+
+    def test_screen_uses_master_universe_sidecar_volume_and_missing_only_price_overlay(monkeypatch):
+        day = TARGET
+        prior60 = [(date(2026, 7, 1) + timedelta(days=i)).strftime("%Y%m%d") for i in range(60)]
+        previous5 = prior60[-5:]
+        codes = ["HK.00001", "HK.00002", "HK.00003"]
+        names = {code: {"name": f"Verified {code}"} for code in codes}
+        master = {"owner": "FIXTURE_MASTER", "artifact_path": "master.csv",
+                  "artifact_sha256": "d" * 64, "manifest_path": "master.json",
+                  "manifest_sha256": "c" * 64, "run_id": "m", "row_count": 3,
+                  "captured_at": "2026-09-30T12:00:00+00:00", "names": names}
+        panel = {"owner": "FIXTURE_PANEL", "panel_path": "panel.parquet",
+                 "panel_sha256": "b" * 64, "panel_manifest_path": "panel.json",
+                 "panel_manifest_sha256": "a" * 64, "panel_max_date": day,
+                 "panel_rows": 180, "panel_code_count": 4,
+                 "source_contract": "fixture", "price_currency": "HKD",
+                 "price_basis": "RAW", "session_kind": "FULL_DAY_CLOSE", "amount_unit": "HKD"}
+        rows = []
+        for code in codes:
+            for index, session in enumerate(prior60):
+                if code == "HK.00002" and session == previous5[-1]:
+                    continue
+                rows.append({"trade_date_compact": session, "code_norm": code, "name": code,
+                             "open": 70.0, "high": 100.0, "low": 60.0, "close": 70.0,
+                             "amount": 1000.0, "trade": 99999.0, "pre_close": 70.0})
+        # Existing prices are kept when sidecar differs. Missing target OHLC is
+        # filled from the sidecar, but target amount remains the panel value.
+        rows.append({"trade_date_compact": day, "code_norm": "HK.00001", "name": "old name",
+                     "open": float("nan"), "high": float("nan"), "low": float("nan"),
+                     "close": float("nan"), "amount": 12345.0, "trade": 999999.0,
+                     "pre_close": 69.0})
+        rows.append({"trade_date_compact": day, "code_norm": "HK.99999", "name": "panel only",
+                     "open": 70.0, "high": 90.0, "low": 69.0, "close": 70.0,
+                     "amount": 1.0, "trade": 100.0, "pre_close": 70.0})
+        frame = pd.DataFrame(rows)
+        bar_map = {}
+        for code in codes:
+            by_date = {session: _supplement_bar(session, 10.0, high=150.0)
+                       for session in previous5}
+            by_date[day] = _supplement_bar(day, 15.0, high=90.0, close=70.0,
+                                           low=69.0, amount=999999.0)
+            bar_map[code] = by_date
+        # Code 2 has a missing panel previous-five row, filled from the exact
+        # sidecar. Code 3 deliberately has no target bar and remains pending.
+        bar_map["HK.00003"].pop(day)
+        records = {
+            code: {"status": "READY" if day in bars else "PENDING",
+                   "bars": list(bars.values()), "error_code": None}
+            for code, bars in bar_map.items()
+        }
+        pointer = {"raw_capture_relative": "daily_supplements/runs/r/raw_capture.json",
+                   "manifest_relative": "daily_supplements/runs/r/manifest.json"}
+        manifest_sha = "f" * 64
+        capture_sha = "1" * 64
+        supplement_witness = {"status": "PARTIAL_WITH_PENDING", "records": records,
+                              "pointer": pointer, "manifest_sha256": manifest_sha,
+                              "raw_capture_sha256": capture_sha}
+        sessions = {"prior60": prior60, "previous5": previous5,
+                    "panel_session": prior60[0], "calendar_sha256": "e" * 64}
+        monkeypatch.setattr(workspace_plan, "_read_hk02_panel_witness", lambda *_: (panel, []))
+        monkeypatch.setattr(workspace_plan, "_screen_security_master_witness", lambda *_: (master, {}))
+        monkeypatch.setattr(workspace_plan, "rebound_history_sessions", lambda *_: sessions)
+        monkeypatch.setattr(workspace_plan, "_read_hk02_daily_supplement_witness",
+                            lambda *_: supplement_witness)
+        monkeypatch.setattr(pd, "read_parquet", lambda *_args, **_kwargs: frame.copy())
+    
+        result = workspace_plan.read_rebound_screen(Path("/fixture/authority"), {
+            "market_session": day, "plan_trade_date": "20261002",
+            "research_cutoff": "2026-10-01T03:00:00+00:00",
+        })
+>       assert result["coverage"]["input_candidate_count"] == 3
+E       assert 0 == 3
+
+tests/test_hk_daily_supplement_r4.py:426: AssertionError
+__ test_complete_panel_history_skips_sidecar_and_preserves_canonical_baseline __
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f9eded5e6d0>
+
+    def test_complete_panel_history_skips_sidecar_and_preserves_canonical_baseline(monkeypatch):
+        day = TARGET
+        prior60 = [(date(2026, 7, 1) + timedelta(days=index)).strftime("%Y%m%d")
+                   for index in range(60)]
+        previous5 = prior60[-5:]
+        code = "HK.00001"
+        frame = pd.DataFrame([
+            {"trade_date_compact": session, "code_norm": code, "name": "Canonical",
+             "open": 70.0, "high": 100.0, "low": 60.0, "close": 70.0,
+             "amount": 1000.0, "trade": 10.0, "pre_close": 70.0}
+            for session in prior60
+        ] + [{"trade_date_compact": day, "code_norm": code, "name": "Canonical",
+              "open": 70.0, "high": 90.0, "low": 69.0, "close": 70.0,
+              "amount": 12345.0, "trade": 15.0, "pre_close": 70.0}])
+        panel = {"owner": "FIXTURE_PANEL", "panel_path": "panel.parquet",
+                 "panel_sha256": "b" * 64, "panel_manifest_path": "panel.json",
+                 "panel_manifest_sha256": "a" * 64, "panel_max_date": day,
+                 "panel_rows": len(frame), "panel_code_count": 1,
+                 "source_contract": "fixture", "price_currency": "HKD",
+                 "price_basis": "RAW", "session_kind": "FULL_DAY_CLOSE", "amount_unit": "HKD"}
+        master = {"owner": "FIXTURE_MASTER", "artifact_path": "master.csv",
+                  "artifact_sha256": "d" * 64, "manifest_path": "master.json",
+                  "manifest_sha256": "c" * 64, "run_id": "m", "row_count": 1,
+                  "captured_at": "2026-09-30T12:00:00+00:00",
+                  "names": {code: {"name": "Canonical"}}}
+        sessions = {"prior60": prior60, "previous5": previous5,
+                    "panel_session": prior60[0], "calendar_sha256": "e" * 64}
+        monkeypatch.setattr(workspace_plan, "_read_hk02_panel_witness", lambda *_: (panel, []))
+        monkeypatch.setattr(workspace_plan, "_screen_security_master_witness", lambda *_: (master, {}))
+        monkeypatch.setattr(workspace_plan, "rebound_history_sessions", lambda *_: sessions)
+        monkeypatch.setattr(workspace_plan, "_read_hk02_daily_supplement_witness",
+                            lambda *_: pytest.fail("canonical complete panel must not read sidecar"))
+        monkeypatch.setattr(pd, "read_parquet", lambda *_args, **_kwargs: frame.copy())
+    
+        result = workspace_plan.read_rebound_screen(Path("/fixture/authority"), {
+            "market_session": day, "plan_trade_date": "20261002",
+            "research_cutoff": "2026-10-01T03:00:00+00:00",
+        })
+>       assert result["coverage"]["input_candidate_count"] == 1
+E       assert 0 == 1
+
+tests/test_hk_daily_supplement_r4.py:485: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_hk_daily_supplement_r4.py::test_screen_uses_master_universe_sidecar_volume_and_missing_only_price_overlay
+FAILED tests/test_hk_daily_supplement_r4.py::test_complete_panel_history_skips_sidecar_and_preserves_canonical_baseline
+2 failed, 13 passed in 0.53s

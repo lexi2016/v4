@@ -1,0 +1,216 @@
+........................F..FFFFF                                         [100%]
+=================================== FAILURES ===================================
+_____ test_unverified_409_cannot_claim_owner_was_not_called[reason_object] _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-95/test_unverified_409_cannot_cla3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f48989d43d0>
+damage = 'reason_object'
+
+    @pytest.mark.parametrize("damage", ["sha", "date", "unknown", "reason_object", "extra_field", "unsafe"])
+    def test_unverified_409_cannot_claim_owner_was_not_called(tmp_path, monkeypatch, damage):
+        f = _fixture(tmp_path, monkeypatch)
+        monkeypatch.setattr(dispatch, "APP_ROOT", f.worker)
+        detail = {"schema_version": REJECTION_SCHEMA, "status": "GATE_REJECTED", "owner": dispatch.OWNER,
+            "reason": "PLAN_OWNER_BINDING_API_ROOT_MISMATCH", "failure_stage": "ADMISSION",
+            "owner_execution_status": "OWNER_NOT_CALLED", "target_trade_date": DATE,
+            "binding_sha256": f.sha, **FLAGS}
+        if damage == "sha":
+            detail["binding_sha256"] = "f" * 64
+        elif damage == "date":
+            detail["target_trade_date"] = "20261008"
+        elif damage == "unknown":
+            detail["reason"] = "PRIVATE_UPPERCASE_DETAIL"
+        elif damage == "reason_object":
+            detail["reason"] = {"unexpected": True}
+        elif damage == "extra_field":
+            detail["unbounded_error"] = "private details"
+        else:
+            detail["orders_sent"] = True
+        with _client(f.service) as client:
+            _memory_transport(monkeypatch, client, body_override={"detail": detail})
+>           result = dispatch.request_bound_plan_cycle(f.path, DATE)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:389: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+v4/manager_research/plan_owner_dispatch.py:724: in request_bound_plan_cycle
+    return _request_bound_cycle(binding_path,target_date,daily_mode=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4/manager_research/plan_owner_dispatch.py:803: in _request_bound_cycle
+    if response.status == 409 and _verified_admission_rejection(detail,date=date,sha=sha):
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+detail = {'RESEARCH_ONLY': True, 'binding_sha256': '7e9e46a474effd43b98b44a8b8486e38ab7c47b72795f1aba0580d83af6a3919', 'buy_gate_updated': False, 'failure_stage': 'ADMISSION', ...}
+date = '20261009'
+sha = '7e9e46a474effd43b98b44a8b8486e38ab7c47b72795f1aba0580d83af6a3919'
+
+    def _verified_admission_rejection(detail: Any, *, date: str, sha: str) -> bool:
+        return (isinstance(detail, dict)
+            and set(detail) == {"schema_version", "status", "owner", "reason", "failure_stage",
+                               "owner_execution_status", "target_trade_date", "binding_sha256", *FLAGS}
+            and detail.get("schema_version") == REJECTION_SCHEMA and detail.get("status") == "GATE_REJECTED"
+>           and detail.get("owner") == OWNER and detail.get("reason") in PLAN_OWNER_GATE_CODES
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            and detail.get("failure_stage") == "ADMISSION"
+            and detail.get("owner_execution_status") == "OWNER_NOT_CALLED"
+            and detail.get("target_trade_date") == date and detail.get("binding_sha256") == sha
+            and all(detail.get(key) is flag for key, flag in FLAGS.items()))
+E       TypeError: cannot use 'dict' as a set element (unhashable type: 'dict')
+
+v4/manager_research/plan_owner_dispatch.py:736: TypeError
+__ test_worker_distinguishes_disabled_from_not_due_without_business_io[False] __
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-95/test_worker_distinguishes_disa0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f4896a8fc40>
+capsys = <_pytest.capture.CaptureFixture object at 0x7f4897689310>
+disabled = False
+
+    @pytest.mark.parametrize("disabled", [False, True])
+    def test_worker_distinguishes_disabled_from_not_due_without_business_io(tmp_path, monkeypatch, capsys, disabled):
+        f = _fixture(tmp_path, monkeypatch)
+        f.binding["enabled"] = not disabled
+        _write_json(f.path, f.binding)
+        monkeypatch.setattr(cycle, "APP_ROOT", f.worker)
+        monkeypatch.chdir(f.worker)
+        class Clock(datetime):
+            @classmethod
+            def now(cls, tz=None):
+                return NOW.replace(hour=11, minute=0)
+        monkeypatch.setattr(cycle, "datetime", Clock)
+        monkeypatch.setattr(dispatch.http.client, "HTTPConnection", lambda *a, **k: pytest.fail("unexpected transport"))
+        assert cycle.main(["--binding", str(f.path)]) == 0
+        result = json.loads(capsys.readouterr().out)
+        assert result["status"] == ("DISABLED" if disabled else "NOT_DUE")
+>       assert result["owner_execution_status"] == "OWNER_NOT_CALLED"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'owner_execution_status'
+
+/workspace/scratch/21926b793c00/candidate/tests/test_manager_r3_binding_contract.py:411: KeyError
+__ test_worker_distinguishes_disabled_from_not_due_without_business_io[True] ___
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-95/test_worker_distinguishes_disa1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f4898a864a0>
+capsys = <_pytest.capture.CaptureFixture object at 0x7f489768a350>
+disabled = True
+
+    @pytest.mark.parametrize("disabled", [False, True])
+    def test_worker_distinguishes_disabled_from_not_due_without_business_io(tmp_path, monkeypatch, capsys, disabled):
+        f = _fixture(tmp_path, monkeypatch)
+        f.binding["enabled"] = not disabled
+        _write_json(f.path, f.binding)
+        monkeypatch.setattr(cycle, "APP_ROOT", f.worker)
+        monkeypatch.chdir(f.worker)
+        class Clock(datetime):
+            @classmethod
+            def now(cls, tz=None):
+                return NOW.replace(hour=11, minute=0)
+        monkeypatch.setattr(cycle, "datetime", Clock)
+        monkeypatch.setattr(dispatch.http.client, "HTTPConnection", lambda *a, **k: pytest.fail("unexpected transport"))
+        assert cycle.main(["--binding", str(f.path)]) == 0
+        result = json.loads(capsys.readouterr().out)
+>       assert result["status"] == ("DISABLED" if disabled else "NOT_DUE")
+E       AssertionError: assert 'NOT_DUE' == 'DISABLED'
+E         
+E         - DISABLED
+E         + NOT_DUE
+
+/workspace/scratch/21926b793c00/candidate/tests/test_manager_r3_binding_contract.py:410: AssertionError
+_ test_dispatched_owner_outcome_preserves_input_gaps_and_timeout_uncertainty[input-INPUT_NOT_READY] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-95/test_dispatched_owner_outcome_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f4896c87ee0>
+kind = 'input', outcome = 'INPUT_NOT_READY'
+
+    @pytest.mark.parametrize("kind,outcome", [("input", "INPUT_NOT_READY"),
+        ("error", "OWNER_FAILED"), ("timeout", "CANNOT_CONFIRM")])
+    def test_dispatched_owner_outcome_preserves_input_gaps_and_timeout_uncertainty(tmp_path, monkeypatch, kind, outcome):
+        f = _fixture(tmp_path, monkeypatch)
+        def downstream(service, binding, identity, **kwargs):
+            if kind == "error":
+                raise ValueError("PRIVATE_UPPERCASE_DETAIL")
+            if kind == "timeout":
+                raise TimeoutError("synthetic uncertain completion")
+            return {"status": "FAILED", "branch": identity["branch"],
+                "plan_result": {"status": "CANNOT_CONFIRM", "target_trade_date": DATE,
+                    "failure_reasons": ["HK_UNIVERSE_V2_ARTIFACT_MISSING"]}}
+        monkeypatch.setattr(dispatch, "_run_owner_branches", downstream)
+        with _client(f.service) as client:
+            _memory_transport(monkeypatch, client)
+            result = dispatch.request_bound_plan_cycle(f.path, DATE)
+        assert result["status"] == "FAILED"
+>       assert result["dispatch_outcome"] == outcome
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'dispatch_outcome'
+
+tests/test_manager_r3_binding_contract.py:433: KeyError
+_ test_dispatched_owner_outcome_preserves_input_gaps_and_timeout_uncertainty[error-OWNER_FAILED] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-95/test_dispatched_owner_outcome_1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f48989f6c80>
+kind = 'error', outcome = 'OWNER_FAILED'
+
+    @pytest.mark.parametrize("kind,outcome", [("input", "INPUT_NOT_READY"),
+        ("error", "OWNER_FAILED"), ("timeout", "CANNOT_CONFIRM")])
+    def test_dispatched_owner_outcome_preserves_input_gaps_and_timeout_uncertainty(tmp_path, monkeypatch, kind, outcome):
+        f = _fixture(tmp_path, monkeypatch)
+        def downstream(service, binding, identity, **kwargs):
+            if kind == "error":
+                raise ValueError("PRIVATE_UPPERCASE_DETAIL")
+            if kind == "timeout":
+                raise TimeoutError("synthetic uncertain completion")
+            return {"status": "FAILED", "branch": identity["branch"],
+                "plan_result": {"status": "CANNOT_CONFIRM", "target_trade_date": DATE,
+                    "failure_reasons": ["HK_UNIVERSE_V2_ARTIFACT_MISSING"]}}
+        monkeypatch.setattr(dispatch, "_run_owner_branches", downstream)
+        with _client(f.service) as client:
+            _memory_transport(monkeypatch, client)
+            result = dispatch.request_bound_plan_cycle(f.path, DATE)
+        assert result["status"] == "FAILED"
+>       assert result["dispatch_outcome"] == outcome
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'dispatch_outcome'
+
+tests/test_manager_r3_binding_contract.py:433: KeyError
+_ test_dispatched_owner_outcome_preserves_input_gaps_and_timeout_uncertainty[timeout-CANNOT_CONFIRM] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-95/test_dispatched_owner_outcome_2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f48975ce6d0>
+kind = 'timeout', outcome = 'CANNOT_CONFIRM'
+
+    @pytest.mark.parametrize("kind,outcome", [("input", "INPUT_NOT_READY"),
+        ("error", "OWNER_FAILED"), ("timeout", "CANNOT_CONFIRM")])
+    def test_dispatched_owner_outcome_preserves_input_gaps_and_timeout_uncertainty(tmp_path, monkeypatch, kind, outcome):
+        f = _fixture(tmp_path, monkeypatch)
+        def downstream(service, binding, identity, **kwargs):
+            if kind == "error":
+                raise ValueError("PRIVATE_UPPERCASE_DETAIL")
+            if kind == "timeout":
+                raise TimeoutError("synthetic uncertain completion")
+            return {"status": "FAILED", "branch": identity["branch"],
+                "plan_result": {"status": "CANNOT_CONFIRM", "target_trade_date": DATE,
+                    "failure_reasons": ["HK_UNIVERSE_V2_ARTIFACT_MISSING"]}}
+        monkeypatch.setattr(dispatch, "_run_owner_branches", downstream)
+        with _client(f.service) as client:
+            _memory_transport(monkeypatch, client)
+            result = dispatch.request_bound_plan_cycle(f.path, DATE)
+        assert result["status"] == "FAILED"
+>       assert result["dispatch_outcome"] == outcome
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'dispatch_outcome'
+
+tests/test_manager_r3_binding_contract.py:433: KeyError
+=============================== warnings summary ===============================
+../../a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_manager_r3_binding_contract.py::test_unverified_409_cannot_claim_owner_was_not_called[reason_object]
+FAILED tests/test_manager_r3_binding_contract.py::test_worker_distinguishes_disabled_from_not_due_without_business_io[False]
+FAILED tests/test_manager_r3_binding_contract.py::test_worker_distinguishes_disabled_from_not_due_without_business_io[True]
+FAILED tests/test_manager_r3_binding_contract.py::test_dispatched_owner_outcome_preserves_input_gaps_and_timeout_uncertainty[input-INPUT_NOT_READY]
+FAILED tests/test_manager_r3_binding_contract.py::test_dispatched_owner_outcome_preserves_input_gaps_and_timeout_uncertainty[error-OWNER_FAILED]
+FAILED tests/test_manager_r3_binding_contract.py::test_dispatched_owner_outcome_preserves_input_gaps_and_timeout_uncertainty[timeout-CANNOT_CONFIRM]
+6 failed, 26 passed, 1 warning in 2.73s

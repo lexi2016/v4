@@ -1,0 +1,199 @@
+{
+  "status": "PASS",
+  "verified": [
+    {
+      "role": "current_api_manager",
+      "path": "apps/api/v35_api/manager_research_router.py",
+      "sha256": "84f65a351e1e44171820cb8698e4198b3084e39b8d0cfe82c6b4bc05595f8073",
+      "bytes": 26922
+    },
+    {
+      "role": "current_api_manager",
+      "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "sha256": "73eb6a2f7cbf2e2307a87edc3013e355c331f2ce87e6e0ae693b9f78de2dd34a",
+      "bytes": 28502
+    },
+    {
+      "role": "current_api_manager",
+      "path": "ops/render_manager_announcement_binding.py",
+      "sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a",
+      "bytes": 3058
+    },
+    {
+      "role": "current_api_manager",
+      "path": "ops/run_manager_announcement_cycle.py",
+      "sha256": "c6f9cfa57515682b4f076e10f2030196dc9377bdbb9ec4abe737e36d15485c1c",
+      "bytes": 25368
+    },
+    {
+      "role": "current_api_manager",
+      "path": "v4/manager_research/plan_owner_dispatch.py",
+      "sha256": "8fad78ec64b1ff3ab80242fedc93dfcf7cbed25e6839821aab7f024ca297bf75",
+      "bytes": 26827
+    },
+    {
+      "role": "current_api_manager",
+      "path": "v4/manager_research/service.py",
+      "sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37",
+      "bytes": 93685
+    },
+    {
+      "role": "current_api_manager",
+      "path": "v4/manager_research/us_mapping_research.py",
+      "sha256": "297dc6f5950d3614437378c22e3157b6866823fbf25fd39cb47f112ffea40da7",
+      "bytes": 14052
+    },
+    {
+      "role": "current_api_manager",
+      "path": "v4/manager_research/workspace.py",
+      "sha256": "183e3ebd0322883a8f8cef37c0244f424f16c63d3120245e263bb9585133dea3",
+      "bytes": 59319
+    },
+    {
+      "role": "current_api_manager",
+      "path": "v4/manager_research/workspace_history.py",
+      "sha256": "da5e1223326631cc9070c3059ca606bac3840ef468ad5c06f2f3a51534f82ec1",
+      "bytes": 17474
+    },
+    {
+      "role": "current_api_manager",
+      "path": "v4/manager_research/workspace_plan_autorun.py",
+      "sha256": "703bef8d9a04861c6cb4161880427126badd69eece234f9b53eaa5ae59d7c6ef",
+      "bytes": 11309
+    },
+    {
+      "role": "current_api_manager",
+      "path": "v3_shared_data/shared_data/hk_daily_supplement.py",
+      "sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+      "bytes": 35128
+    },
+    {
+      "role": "issue32_protected",
+      "path": "apps/api/v35_api/app.py",
+      "sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "bytes": 324648
+    },
+    {
+      "role": "issue32_protected",
+      "path": "apps/api/v35_api/preselection_router.py",
+      "sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "bytes": 1322
+    },
+    {
+      "role": "issue32_protected",
+      "path": "apps/api/v35_api/preselection_service.py",
+      "sha256": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044",
+      "bytes": 30761
+    },
+    {
+      "role": "previous_bound_announcement_worker_20260928",
+      "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "sha256": "fd41e7ae1ba82429fb75364d42e96c435aa5855fb471c4fb55a0d38c962aa22a",
+      "bytes": 25925
+    },
+    {
+      "role": "previous_bound_announcement_worker_20260928",
+      "path": "ops/run_manager_announcement_cycle.py",
+      "sha256": "d3e5a0b3ebdbe1edc1b2ee8262abcd57a2e2e7d72ffc74ce521e04a5b13faec6",
+      "bytes": 15488
+    },
+    {
+      "role": "previous_bound_announcement_worker_20260928",
+      "path": "ops/render_manager_announcement_binding.py",
+      "sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a",
+      "bytes": 3058
+    },
+    {
+      "role": "current_shared_scheduler",
+      "path": "ops/run_v35_macos_scheduler_daemon.py",
+      "sha256": "19e071da0c6b6748465853c4ad86a80d6060524333e9dab21647b67adc8b49ec",
+      "bytes": 34320
+    },
+    {
+      "role": "current_shared_scheduler",
+      "path": "ops/launch_v35_macos_scheduler.sh",
+      "sha256": "0c577ae83b1f182dabf3b62e642a5bd5f0f8708b48e1806d8c653b691d2ec952",
+      "bytes": 3982
+    },
+    {
+      "role": "current_bound_announcement_worker_20261006",
+      "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "sha256": "fd41e7ae1ba82429fb75364d42e96c435aa5855fb471c4fb55a0d38c962aa22a",
+      "bytes": 25925
+    },
+    {
+      "role": "current_bound_announcement_worker_20261006",
+      "path": "ops/run_manager_announcement_cycle.py",
+      "sha256": "cd91604a7f7d7f2f960bbbd337fcd453bf97bb298c14f0a7fb8804fdcbaf0a84",
+      "bytes": 18829
+    },
+    {
+      "role": "current_bound_announcement_worker_20261006",
+      "path": "ops/render_manager_announcement_binding.py",
+      "sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a",
+      "bytes": 3058
+    },
+    {
+      "role": "current_bound_announcement_worker_20261006",
+      "path": "v4/manager_research/plan_owner_dispatch.py",
+      "sha256": "f4ddb61e341aa48f24aad62e9d0aa7bf2c9a0fc3d07bfae7ec285f78f1467fe3",
+      "bytes": 7169
+    },
+    {
+      "role": "current_bound_announcement_worker_20261006",
+      "path": "v4/manager_research/workspace_plan_autorun.py",
+      "sha256": "e785ae1d465175bec0517e7c3b4a8d6e16593967cba554aa0428817a85cd079b",
+      "bytes": 9439
+    },
+    {
+      "role": "hk_child_conflict",
+      "path": "ops/macos_research_panel_daily.py",
+      "sha256": "07aa9770c6ae0bb0cfd012e57843a37fedda6724a57cd52d7c339d854fc6609b",
+      "bytes": 97708
+    },
+    {
+      "role": "hk_child_conflict",
+      "path": "ops/_macos_research_panel_daily_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "bytes": 527
+    },
+    {
+      "role": "hk_child_conflict",
+      "path": "ops/_macos_research_panel_daily_parts/hk_capture_gate.py",
+      "sha256": "d3db5b9644bbf2fb1f4e245717907862ebe1cee2d0f650a8d45d732fd4a71940",
+      "bytes": 14219
+    },
+    {
+      "role": "hk_child_conflict",
+      "path": "ops/ensure_hk_security_master.py",
+      "sha256": "6c341a33c0283b023219c46cc2a1c6aaca49cf4b5dcb88aa2fb5527a13145601",
+      "bytes": 41556
+    },
+    {
+      "role": "hk02_updater_actual",
+      "path": "scripts/update_hk_0_2_panel.py",
+      "sha256": "45d31c1e6608d1a9af163ffd56ea111d5caeb40000c58cd140534cf81859634e",
+      "bytes": 1345
+    },
+    {
+      "role": "hk02_updater_actual",
+      "path": "shared_data/hk_0_2.py",
+      "sha256": "45a5091cb26800b7ccf8d7c3c75b680e951d492ac8ceb5f30b80a1ff9a6eebac",
+      "bytes": 57090
+    },
+    {
+      "role": "hk02_updater_actual",
+      "path": "shared_data/store.py",
+      "sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+      "bytes": 27895
+    },
+    {
+      "role": "issue30_release_policy",
+      "path": "ops/api_release_integration.py",
+      "sha256": "1f4afc70d7e5920b67c2b148def6b9167819664c33c92b475d919a097b9dd050",
+      "bytes": 57781
+    }
+  ],
+  "unavailable": 1,
+  "basis": "Fixed remote Git blob and package SHA/bytes; not live Mac re-read"
+}

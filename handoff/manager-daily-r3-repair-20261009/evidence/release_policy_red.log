@@ -1,0 +1,30 @@
+F........                                                                [100%]
+=================================== FAILURES ===================================
+_____ test_manager_delta_requires_and_accepts_exact_reviewed_shared_paths ______
+
+    def test_manager_delta_requires_and_accepts_exact_reviewed_shared_paths():
+>       scope = policy.module_scope('manager', REQUIRED_SHARED)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_release_policy.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+module = 'manager'
+shared_paths = ('infrastructure/_research_peripheral_store_parts/_namespace.py', 'infrastructure/scheduling/manager_announcement_supe...announcement_binding.py', 'ops/run_manager_announcement_cycle.py', 'v3_shared_data/shared_data/hk_daily_supplement.py')
+
+    def module_scope(module: str, shared_paths: Sequence[str] = ()) -> dict[str, Any]:
+        if not isinstance(module, str) or module not in POLICY["modules"]:
+            raise ValueError("API_RELEASE_MODULE_UNKNOWN")
+        if isinstance(shared_paths, (str, bytes)):
+            raise ValueError("API_RELEASE_MODULE_SHARED_PATHS_INVALID")
+        paths = [_normalise_relative(value) for value in shared_paths]
+        if len(set(paths)) != len(paths):
+            raise ValueError("API_RELEASE_MODULE_SHARED_PATH_DUPLICATE")
+        if any(module not in POLICY["shared"].get(path, ()) for path in paths):
+>           raise ValueError("API_RELEASE_MODULE_SHARED_PATH_NOT_ALLOWED")
+E           ValueError: API_RELEASE_MODULE_SHARED_PATH_NOT_ALLOWED
+
+input/remote/handoff/manager-daily-failure-20261009-r3/package/source_snapshot/issue30_release_policy/ops/api_release_integration.py:582: ValueError
+=========================== short test summary info ============================
+FAILED tests/test_manager_r3_release_policy.py::test_manager_delta_requires_and_accepts_exact_reviewed_shared_paths
+1 failed, 8 passed in 0.07s

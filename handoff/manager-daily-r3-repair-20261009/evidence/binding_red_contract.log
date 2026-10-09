@@ -1,0 +1,613 @@
+FFFFFFFFFFF...F..FFFF                                                    [100%]
+=================================== FAILURES ===================================
+_ test_one_binding_passes_unchanged_scheduler_worker_and_distinct_api_owner[False] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-78/test_one_binding_passes_unchan0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa42a963100>
+daily = False
+
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_one_binding_passes_unchanged_scheduler_worker_and_distinct_api_owner(tmp_path, monkeypatch, daily):
+        f = _fixture(tmp_path, monkeypatch, daily=daily)
+        environment = {"V4_MANAGER_ANNOUNCEMENT_BINDING": str(f.path),
+            "V4_MANAGER_ANNOUNCEMENT_APP_ROOT": str(f.worker),
+            "V4_MANAGER_ANNOUNCEMENT_PYTHON": f.binding["python"],
+            "V4_MANAGER_ANNOUNCEMENT_PYTHON_SHA256": f.binding["python_sha256"],
+            "V4_MANAGER_ANNOUNCEMENT_CYCLE_SHA256": f.binding["files"]["ops/run_manager_announcement_cycle.py"],
+            "V4_MANAGER_ANNOUNCEMENT_PLAN_CANARY_SHA256": f.binding["plan_activation_receipt"]["sha256"]}
+        assert _scheduler_loader()(environment)["binding_sha256"] == f.sha
+        with _client(f.service) as client:
+            calls = _memory_transport(monkeypatch, client)
+            result = (dispatch.request_bound_daily_cycle if daily else dispatch.request_bound_plan_cycle)(f.path, DATE)
+>       assert result["status"] == "PARTIAL"  # Independent US reader remains absent.
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: assert 'FAILED' == 'PARTIAL'
+E         
+E         - PARTIAL
+E         + FAILED
+
+tests/test_manager_r3_binding_contract.py:224: AssertionError
+_ test_one_binding_passes_unchanged_scheduler_worker_and_distinct_api_owner[True] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-78/test_one_binding_passes_unchan1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa42a963230>
+daily = True
+
+    @pytest.mark.parametrize("daily", [False, True])
+    def test_one_binding_passes_unchanged_scheduler_worker_and_distinct_api_owner(tmp_path, monkeypatch, daily):
+        f = _fixture(tmp_path, monkeypatch, daily=daily)
+        environment = {"V4_MANAGER_ANNOUNCEMENT_BINDING": str(f.path),
+            "V4_MANAGER_ANNOUNCEMENT_APP_ROOT": str(f.worker),
+            "V4_MANAGER_ANNOUNCEMENT_PYTHON": f.binding["python"],
+            "V4_MANAGER_ANNOUNCEMENT_PYTHON_SHA256": f.binding["python_sha256"],
+            "V4_MANAGER_ANNOUNCEMENT_CYCLE_SHA256": f.binding["files"]["ops/run_manager_announcement_cycle.py"],
+            "V4_MANAGER_ANNOUNCEMENT_PLAN_CANARY_SHA256": f.binding["plan_activation_receipt"]["sha256"]}
+        assert _scheduler_loader()(environment)["binding_sha256"] == f.sha
+        with _client(f.service) as client:
+            calls = _memory_transport(monkeypatch, client)
+            result = (dispatch.request_bound_daily_cycle if daily else dispatch.request_bound_plan_cycle)(f.path, DATE)
+>       assert result["status"] == "PARTIAL"  # Independent US reader remains absent.
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: assert 'FAILED' == 'PARTIAL'
+E         
+E         - PARTIAL
+E         + FAILED
+
+tests/test_manager_r3_binding_contract.py:224: AssertionError
+_ test_admission_rejects_before_either_owner_and_returns_bounded_reason[sha-PLAN_OWNER_BINDING_SHA_MISMATCH-False] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-78/test_admission_rejects_before_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa42a7ffbf0>
+daily = False, damage = 'sha', reason = 'PLAN_OWNER_BINDING_SHA_MISMATCH'
+
+    @pytest.mark.parametrize("daily", [False, True])
+    @pytest.mark.parametrize("damage,reason", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_DAILY_BINDING_DISABLED"),
+        ("owner_inventory", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+    ])
+    def test_admission_rejects_before_either_owner_and_returns_bounded_reason(tmp_path, monkeypatch, daily, damage, reason):
+        f = _fixture(tmp_path, monkeypatch, daily=daily)
+        f.service.refresh_us_mapping_research = lambda *a, **k: pytest.fail("gate invoked US owner")
+        if damage == "sha":
+            f.sha = "f" * 64
+        elif damage == "root":
+            monkeypatch.setattr(dispatch, "APP_ROOT", f.worker)
+        elif damage == "disabled":
+            f.binding["enabled"] = False
+            f.sha = _write_json(f.path, f.binding)["sha256"]
+            if not daily:
+                reason = "PLAN_OWNER_BINDING_DISABLED"
+        else:
+            (f.owner_root / "v4/manager_research/store.py").write_text("# changed owner source\n")
+        with _client(f.service) as client:
+            endpoint = "daily-cycle" if daily else "scheduled-cycle"
+            response = client.post("/api/v4/manager/research/workspace/" + endpoint,
+                params={"date": DATE, "binding_sha256": f.sha})
+        assert response.status_code == 409
+        detail = response.json()["detail"]
+>       assert isinstance(detail, dict), "the API collapsed the admission failure into an opaque string"
+E       AssertionError: the API collapsed the admission failure into an opaque string
+E       assert False
+E        +  where False = isinstance('SCHEDULED_WORKSPACE_OWNER_FAILED', dict)
+
+tests/test_manager_r3_binding_contract.py:260: AssertionError
+_ test_admission_rejects_before_either_owner_and_returns_bounded_reason[sha-PLAN_OWNER_BINDING_SHA_MISMATCH-True] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-78/test_admission_rejects_before_1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa429206f10>
+daily = True, damage = 'sha', reason = 'PLAN_OWNER_BINDING_SHA_MISMATCH'
+
+    @pytest.mark.parametrize("daily", [False, True])
+    @pytest.mark.parametrize("damage,reason", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_DAILY_BINDING_DISABLED"),
+        ("owner_inventory", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+    ])
+    def test_admission_rejects_before_either_owner_and_returns_bounded_reason(tmp_path, monkeypatch, daily, damage, reason):
+        f = _fixture(tmp_path, monkeypatch, daily=daily)
+        f.service.refresh_us_mapping_research = lambda *a, **k: pytest.fail("gate invoked US owner")
+        if damage == "sha":
+            f.sha = "f" * 64
+        elif damage == "root":
+            monkeypatch.setattr(dispatch, "APP_ROOT", f.worker)
+        elif damage == "disabled":
+            f.binding["enabled"] = False
+            f.sha = _write_json(f.path, f.binding)["sha256"]
+            if not daily:
+                reason = "PLAN_OWNER_BINDING_DISABLED"
+        else:
+            (f.owner_root / "v4/manager_research/store.py").write_text("# changed owner source\n")
+        with _client(f.service) as client:
+            endpoint = "daily-cycle" if daily else "scheduled-cycle"
+            response = client.post("/api/v4/manager/research/workspace/" + endpoint,
+                params={"date": DATE, "binding_sha256": f.sha})
+        assert response.status_code == 409
+        detail = response.json()["detail"]
+>       assert isinstance(detail, dict), "the API collapsed the admission failure into an opaque string"
+E       AssertionError: the API collapsed the admission failure into an opaque string
+E       assert False
+E        +  where False = isinstance('SCHEDULED_WORKSPACE_OWNER_FAILED', dict)
+
+tests/test_manager_r3_binding_contract.py:260: AssertionError
+_ test_admission_rejects_before_either_owner_and_returns_bounded_reason[root-PLAN_OWNER_BINDING_API_ROOT_MISMATCH-False] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-78/test_admission_rejects_before_2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa4292c7130>
+daily = False, damage = 'root', reason = 'PLAN_OWNER_BINDING_API_ROOT_MISMATCH'
+
+    @pytest.mark.parametrize("daily", [False, True])
+    @pytest.mark.parametrize("damage,reason", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_DAILY_BINDING_DISABLED"),
+        ("owner_inventory", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+    ])
+    def test_admission_rejects_before_either_owner_and_returns_bounded_reason(tmp_path, monkeypatch, daily, damage, reason):
+        f = _fixture(tmp_path, monkeypatch, daily=daily)
+        f.service.refresh_us_mapping_research = lambda *a, **k: pytest.fail("gate invoked US owner")
+        if damage == "sha":
+            f.sha = "f" * 64
+        elif damage == "root":
+            monkeypatch.setattr(dispatch, "APP_ROOT", f.worker)
+        elif damage == "disabled":
+            f.binding["enabled"] = False
+            f.sha = _write_json(f.path, f.binding)["sha256"]
+            if not daily:
+                reason = "PLAN_OWNER_BINDING_DISABLED"
+        else:
+            (f.owner_root / "v4/manager_research/store.py").write_text("# changed owner source\n")
+        with _client(f.service) as client:
+            endpoint = "daily-cycle" if daily else "scheduled-cycle"
+            response = client.post("/api/v4/manager/research/workspace/" + endpoint,
+                params={"date": DATE, "binding_sha256": f.sha})
+        assert response.status_code == 409
+        detail = response.json()["detail"]
+>       assert isinstance(detail, dict), "the API collapsed the admission failure into an opaque string"
+E       AssertionError: the API collapsed the admission failure into an opaque string
+E       assert False
+E        +  where False = isinstance('SCHEDULED_WORKSPACE_OWNER_FAILED', dict)
+
+tests/test_manager_r3_binding_contract.py:260: AssertionError
+_ test_admission_rejects_before_either_owner_and_returns_bounded_reason[root-PLAN_OWNER_BINDING_API_ROOT_MISMATCH-True] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-78/test_admission_rejects_before_3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa42a83f150>
+daily = True, damage = 'root', reason = 'PLAN_OWNER_BINDING_API_ROOT_MISMATCH'
+
+    @pytest.mark.parametrize("daily", [False, True])
+    @pytest.mark.parametrize("damage,reason", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_DAILY_BINDING_DISABLED"),
+        ("owner_inventory", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+    ])
+    def test_admission_rejects_before_either_owner_and_returns_bounded_reason(tmp_path, monkeypatch, daily, damage, reason):
+        f = _fixture(tmp_path, monkeypatch, daily=daily)
+        f.service.refresh_us_mapping_research = lambda *a, **k: pytest.fail("gate invoked US owner")
+        if damage == "sha":
+            f.sha = "f" * 64
+        elif damage == "root":
+            monkeypatch.setattr(dispatch, "APP_ROOT", f.worker)
+        elif damage == "disabled":
+            f.binding["enabled"] = False
+            f.sha = _write_json(f.path, f.binding)["sha256"]
+            if not daily:
+                reason = "PLAN_OWNER_BINDING_DISABLED"
+        else:
+            (f.owner_root / "v4/manager_research/store.py").write_text("# changed owner source\n")
+        with _client(f.service) as client:
+            endpoint = "daily-cycle" if daily else "scheduled-cycle"
+            response = client.post("/api/v4/manager/research/workspace/" + endpoint,
+                params={"date": DATE, "binding_sha256": f.sha})
+        assert response.status_code == 409
+        detail = response.json()["detail"]
+>       assert isinstance(detail, dict), "the API collapsed the admission failure into an opaque string"
+E       AssertionError: the API collapsed the admission failure into an opaque string
+E       assert False
+E        +  where False = isinstance('SCHEDULED_WORKSPACE_OWNER_FAILED', dict)
+
+tests/test_manager_r3_binding_contract.py:260: AssertionError
+_ test_admission_rejects_before_either_owner_and_returns_bounded_reason[disabled-PLAN_OWNER_DAILY_BINDING_DISABLED-False] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-78/test_admission_rejects_before_4')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa42a83d150>
+daily = False, damage = 'disabled', reason = 'PLAN_OWNER_BINDING_DISABLED'
+
+    @pytest.mark.parametrize("daily", [False, True])
+    @pytest.mark.parametrize("damage,reason", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_DAILY_BINDING_DISABLED"),
+        ("owner_inventory", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+    ])
+    def test_admission_rejects_before_either_owner_and_returns_bounded_reason(tmp_path, monkeypatch, daily, damage, reason):
+        f = _fixture(tmp_path, monkeypatch, daily=daily)
+        f.service.refresh_us_mapping_research = lambda *a, **k: pytest.fail("gate invoked US owner")
+        if damage == "sha":
+            f.sha = "f" * 64
+        elif damage == "root":
+            monkeypatch.setattr(dispatch, "APP_ROOT", f.worker)
+        elif damage == "disabled":
+            f.binding["enabled"] = False
+            f.sha = _write_json(f.path, f.binding)["sha256"]
+            if not daily:
+                reason = "PLAN_OWNER_BINDING_DISABLED"
+        else:
+            (f.owner_root / "v4/manager_research/store.py").write_text("# changed owner source\n")
+        with _client(f.service) as client:
+            endpoint = "daily-cycle" if daily else "scheduled-cycle"
+            response = client.post("/api/v4/manager/research/workspace/" + endpoint,
+                params={"date": DATE, "binding_sha256": f.sha})
+        assert response.status_code == 409
+        detail = response.json()["detail"]
+>       assert isinstance(detail, dict), "the API collapsed the admission failure into an opaque string"
+E       AssertionError: the API collapsed the admission failure into an opaque string
+E       assert False
+E        +  where False = isinstance('SCHEDULED_WORKSPACE_OWNER_FAILED', dict)
+
+tests/test_manager_r3_binding_contract.py:260: AssertionError
+_ test_admission_rejects_before_either_owner_and_returns_bounded_reason[disabled-PLAN_OWNER_DAILY_BINDING_DISABLED-True] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-78/test_admission_rejects_before_5')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa429257d40>
+daily = True, damage = 'disabled', reason = 'PLAN_OWNER_DAILY_BINDING_DISABLED'
+
+    @pytest.mark.parametrize("daily", [False, True])
+    @pytest.mark.parametrize("damage,reason", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_DAILY_BINDING_DISABLED"),
+        ("owner_inventory", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+    ])
+    def test_admission_rejects_before_either_owner_and_returns_bounded_reason(tmp_path, monkeypatch, daily, damage, reason):
+        f = _fixture(tmp_path, monkeypatch, daily=daily)
+        f.service.refresh_us_mapping_research = lambda *a, **k: pytest.fail("gate invoked US owner")
+        if damage == "sha":
+            f.sha = "f" * 64
+        elif damage == "root":
+            monkeypatch.setattr(dispatch, "APP_ROOT", f.worker)
+        elif damage == "disabled":
+            f.binding["enabled"] = False
+            f.sha = _write_json(f.path, f.binding)["sha256"]
+            if not daily:
+                reason = "PLAN_OWNER_BINDING_DISABLED"
+        else:
+            (f.owner_root / "v4/manager_research/store.py").write_text("# changed owner source\n")
+        with _client(f.service) as client:
+            endpoint = "daily-cycle" if daily else "scheduled-cycle"
+            response = client.post("/api/v4/manager/research/workspace/" + endpoint,
+                params={"date": DATE, "binding_sha256": f.sha})
+        assert response.status_code == 409
+        detail = response.json()["detail"]
+>       assert isinstance(detail, dict), "the API collapsed the admission failure into an opaque string"
+E       AssertionError: the API collapsed the admission failure into an opaque string
+E       assert False
+E        +  where False = isinstance('SCHEDULED_WORKSPACE_OWNER_FAILED', dict)
+
+tests/test_manager_r3_binding_contract.py:260: AssertionError
+_ test_admission_rejects_before_either_owner_and_returns_bounded_reason[owner_inventory-PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH-False] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-78/test_admission_rejects_before_6')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa42915d040>
+daily = False, damage = 'owner_inventory'
+reason = 'PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH'
+
+    @pytest.mark.parametrize("daily", [False, True])
+    @pytest.mark.parametrize("damage,reason", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_DAILY_BINDING_DISABLED"),
+        ("owner_inventory", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+    ])
+    def test_admission_rejects_before_either_owner_and_returns_bounded_reason(tmp_path, monkeypatch, daily, damage, reason):
+        f = _fixture(tmp_path, monkeypatch, daily=daily)
+        f.service.refresh_us_mapping_research = lambda *a, **k: pytest.fail("gate invoked US owner")
+        if damage == "sha":
+            f.sha = "f" * 64
+        elif damage == "root":
+            monkeypatch.setattr(dispatch, "APP_ROOT", f.worker)
+        elif damage == "disabled":
+            f.binding["enabled"] = False
+            f.sha = _write_json(f.path, f.binding)["sha256"]
+            if not daily:
+                reason = "PLAN_OWNER_BINDING_DISABLED"
+        else:
+            (f.owner_root / "v4/manager_research/store.py").write_text("# changed owner source\n")
+        with _client(f.service) as client:
+            endpoint = "daily-cycle" if daily else "scheduled-cycle"
+            response = client.post("/api/v4/manager/research/workspace/" + endpoint,
+                params={"date": DATE, "binding_sha256": f.sha})
+        assert response.status_code == 409
+        detail = response.json()["detail"]
+>       assert isinstance(detail, dict), "the API collapsed the admission failure into an opaque string"
+E       AssertionError: the API collapsed the admission failure into an opaque string
+E       assert False
+E        +  where False = isinstance('SCHEDULED_WORKSPACE_OWNER_FAILED', dict)
+
+tests/test_manager_r3_binding_contract.py:260: AssertionError
+_ test_admission_rejects_before_either_owner_and_returns_bounded_reason[owner_inventory-PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH-True] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-78/test_admission_rejects_before_7')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa4291f2190>
+daily = True, damage = 'owner_inventory'
+reason = 'PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH'
+
+    @pytest.mark.parametrize("daily", [False, True])
+    @pytest.mark.parametrize("damage,reason", [
+        ("sha", "PLAN_OWNER_BINDING_SHA_MISMATCH"),
+        ("root", "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"),
+        ("disabled", "PLAN_OWNER_DAILY_BINDING_DISABLED"),
+        ("owner_inventory", "PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH"),
+    ])
+    def test_admission_rejects_before_either_owner_and_returns_bounded_reason(tmp_path, monkeypatch, daily, damage, reason):
+        f = _fixture(tmp_path, monkeypatch, daily=daily)
+        f.service.refresh_us_mapping_research = lambda *a, **k: pytest.fail("gate invoked US owner")
+        if damage == "sha":
+            f.sha = "f" * 64
+        elif damage == "root":
+            monkeypatch.setattr(dispatch, "APP_ROOT", f.worker)
+        elif damage == "disabled":
+            f.binding["enabled"] = False
+            f.sha = _write_json(f.path, f.binding)["sha256"]
+            if not daily:
+                reason = "PLAN_OWNER_BINDING_DISABLED"
+        else:
+            (f.owner_root / "v4/manager_research/store.py").write_text("# changed owner source\n")
+        with _client(f.service) as client:
+            endpoint = "daily-cycle" if daily else "scheduled-cycle"
+            response = client.post("/api/v4/manager/research/workspace/" + endpoint,
+                params={"date": DATE, "binding_sha256": f.sha})
+        assert response.status_code == 409
+        detail = response.json()["detail"]
+>       assert isinstance(detail, dict), "the API collapsed the admission failure into an opaque string"
+E       AssertionError: the API collapsed the admission failure into an opaque string
+E       assert False
+E        +  where False = isinstance('SCHEDULED_WORKSPACE_OWNER_FAILED', dict)
+
+tests/test_manager_r3_binding_contract.py:260: AssertionError
+_ test_gate_reason_survives_rpc_and_transport_timeout_does_not_claim_owner_not_called _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-78/test_gate_reason_survives_rpc_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa4291f0670>
+
+    def test_gate_reason_survives_rpc_and_transport_timeout_does_not_claim_owner_not_called(tmp_path, monkeypatch):
+        f = _fixture(tmp_path, monkeypatch)
+        monkeypatch.setattr(dispatch, "APP_ROOT", f.worker)
+        with _client(f.service) as client:
+            calls = _memory_transport(monkeypatch, client)
+            result = dispatch.request_bound_plan_cycle(f.path, DATE)
+            assert len(calls) == 1
+>           assert result["parent_trigger_receipt"]["failure_code"] == "PLAN_OWNER_BINDING_API_ROOT_MISMATCH"
+E           AssertionError: assert 'SCHEDULED_WO..._OWNER_FAILED' == 'PLAN_OWNER_B...ROOT_MISMATCH'
+E             
+E             - PLAN_OWNER_BINDING_API_ROOT_MISMATCH
+E             + SCHEDULED_WORKSPACE_OWNER_FAILED
+
+tests/test_manager_r3_binding_contract.py:276: AssertionError
+_ test_dual_root_inventory_and_fresh_owner_canary_are_real_checks[canary_root] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-78/test_dual_root_inventory_and_f2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa4291c1910>
+damage = 'canary_root'
+
+    @pytest.mark.parametrize("damage", ["worker_file", "owner_file", "canary_root", "canary_inventory", "response_sha"])
+    def test_dual_root_inventory_and_fresh_owner_canary_are_real_checks(tmp_path, monkeypatch, damage):
+        f = _fixture(tmp_path, monkeypatch)
+        if damage in {"worker_file", "owner_file"}:
+            root = f.worker if damage == "worker_file" else f.owner_root
+            (root / "v4/manager_research/new_unlisted_source.py").write_text("# extra source\n")
+        elif damage == "response_sha":
+            receipt = json.loads(Path(f.canary["owner_evidence"]["readback"]["path"]).read_bytes())
+            Path(receipt["response"]["path"]).write_bytes(b"{}")
+        else:
+            if damage == "canary_root":
+                f.canary["owner_execution_app_root"] = str(f.worker)
+            else:
+                f.canary["owner_source_inventory_sha256"] = "0" * 64
+            f.binding["plan_activation_receipt"] = _write_json(f.root / "canary.json", f.canary)
+>       with pytest.raises((ValueError, OSError)):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE any of (ValueError, OSError)
+
+tests/test_manager_r3_binding_contract.py:309: Failed
+_______ test_explicit_owner_historical_canary_requires_dynamic_readback ________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-78/test_explicit_owner_historical0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa4292b39d0>
+
+    def test_explicit_owner_historical_canary_requires_dynamic_readback(tmp_path, monkeypatch):
+        f = _fixture(tmp_path, monkeypatch, historical=True)
+>       assert supervisor.validate_binding(f.binding, f.worker) is f.binding
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:316: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+infrastructure/scheduling/manager_announcement_supervisor.py:392: in validate_binding
+    _validate_plan_canary(value.get('plan_activation_receipt'),app=app,state=state)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+receipt_ref = {'path': '/tmp/pytest-of-root/pytest-78/test_explicit_owner_historical0/canary.json', 'sha256': 'f7dba2fc19030b3c22e51d62edabb729dda32a04222c4b3f08a7fe84f8d15354'}
+app = PosixPath('/tmp/pytest-of-root/pytest-78/test_explicit_owner_historical0/worker')
+state = PosixPath('/tmp/pytest-of-root/pytest-78/test_explicit_owner_historical0/state')
+
+    def _validate_plan_canary(receipt_ref: Any, *, app: Path, state: Path) -> None:
+        """Validate explicit manual-plan owner evidence without accepting an announcement canary."""
+        if not isinstance(receipt_ref,dict):
+            raise ValueError('PLAN_REFRESH_CANARY_REQUIRED')
+        receipt_path=_path(receipt_ref.get('path'))
+        expected_sha=str(receipt_ref.get('sha256') or '')
+        if not re.fullmatch(r'[0-9a-f]{64}',expected_sha):
+            raise ValueError('PLAN_REFRESH_CANARY_SHA_INVALID')
+        try:
+            raw=SafeRoot(receipt_path.parent).read_bytes(receipt_path.name,max_bytes=1024*1024)
+            if hashlib.sha256(raw).hexdigest()!=expected_sha:
+                raise ValueError('PLAN_REFRESH_CANARY_SHA_MISMATCH')
+            canary=json.loads(raw)
+        except (OSError,ValueError,TypeError) as exc:
+            if str(exc).startswith('PLAN_REFRESH_CANARY_'):raise
+            raise ValueError('PLAN_REFRESH_CANARY_INVALID') from exc
+        if not isinstance(canary,dict):
+            raise ValueError('PLAN_REFRESH_CANARY_CONTRACT_INVALID')
+        scope=canary.get('scope')
+        target=str(canary.get('target_trade_date') or '')
+        if (canary.get('schema_version')!=PLAN_CANARY_SCHEMA
+                or canary.get('status')!=PLAN_CANARY_STATUS
+                or canary.get('app_root')!=str(app) or canary.get('manager_state_root')!=str(state)
+                or canary.get('policy_status')!='PROPOSAL_ONLY'
+                or scope not in {PLAN_CANARY_NEXT_SCOPE,PLAN_CANARY_HISTORICAL_SCOPE}
+                or canary.get('plan_material_refresh_only') is not True
+                or canary.get('execution_mode')!='HISTORICAL_MANUAL_REFRESH_OWNER_HTTP_READBACK'
+                or canary.get('hook_executed') is not False
+                or canary.get('candidate_binding_app_root')!=str(app)
+                or not isinstance(canary.get('owner_execution_app_root'),str)
+                or canary.get('announcement_collection_enabled') is not False
+                or canary.get('announcement_network_requests')!=0
+                or canary.get('production_allowed') is not False
+                or canary.get('buy_gate_updated') is not False or canary.get('orders_sent') is not False
+                or canary.get('research_only') is not True):
+            raise ValueError('PLAN_REFRESH_CANARY_CONTRACT_INVALID')
+        if scope==PLAN_CANARY_HISTORICAL_SCOPE:
+            if not re.fullmatch(r'20\d{6}',target):
+                raise ValueError('PLAN_REFRESH_CANARY_HISTORICAL_TARGET_INVALID')
+            _validate_historical_plan_canary_target(target)
+        source_root=_path(canary.get('owner_execution_app_root'))
+        migration_ref=canary.get('source_migration_receipt')
+        if source_root == app:
+            # A fresh API-owner canary may be executed by the exact same release
+            # root that the plan-only cycle will load. Its closed binding inventory
+            # below is the source pin; no cross-release migration receipt applies.
+            if migration_ref is not None:
+                raise ValueError('PLAN_REFRESH_CANARY_SOURCE_MIGRATION_UNEXPECTED')
+        else:
+            if not isinstance(migration_ref,dict):
+>               raise ValueError('PLAN_REFRESH_CANARY_SOURCE_MIGRATION_REQUIRED')
+E               ValueError: PLAN_REFRESH_CANARY_SOURCE_MIGRATION_REQUIRED
+
+infrastructure/scheduling/manager_announcement_supervisor.py:231: ValueError
+___ test_renderer_generates_reviewable_dual_root_without_dropping_inventory ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-78/test_renderer_generates_review0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa42b8a00e0>
+
+    def test_renderer_generates_reviewable_dual_root_without_dropping_inventory(tmp_path, monkeypatch):
+        f = _fixture(tmp_path, monkeypatch)
+        from ops.render_manager_announcement_binding import main
+        output = tmp_path / "rendered.json"
+>       main(["--app-root", str(f.worker), "--plan-owner-app-root", str(f.owner_root),
+            "--manager-state-root", f.binding["manager_state_root"],
+            "--security-master-root", f.binding["security_master_root"],
+            "--python", f.binding["python"], "--output", str(output), "--enabled",
+            "--plan-material-refresh-only", "--plan-activation-receipt", f.binding["plan_activation_receipt"]["path"]])
+
+tests/test_manager_r3_binding_contract.py:330: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+ops/render_manager_announcement_binding.py:25: in main
+    args=p.parse_args(argv)
+         ^^^^^^^^^^^^^^^^^^
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/argparse.py:2009: in parse_args
+    self.error(msg)
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/argparse.py:2782: in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = ArgumentParser(prog='python -m pytest', usage=None, description='Render an exact, reviewable binding for the existing ...ared-root canary passes.\n', formatter_class=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True)
+status = 2
+message = 'python -m pytest: error: unrecognized arguments: --plan-owner-app-root /tmp/pytest-of-root/pytest-78/test_renderer_generates_review0/api-owner\n'
+
+    def exit(self, status=0, message=None):
+        if message:
+            self._print_message(message, _sys.stderr)
+>       _sys.exit(status)
+E       SystemExit: 2
+
+../../a154a3323e32/python_runtime/cpython-3.14.6-linux-x86_64-gnu/lib/python3.14/argparse.py:2769: SystemExit
+----------------------------- Captured stderr call -----------------------------
+usage: python -m pytest [-h] --app-root APP_ROOT
+                        --manager-state-root MANAGER_STATE_ROOT
+                        --security-master-root SECURITY_MASTER_ROOT
+                        --python PYTHON --output OUTPUT [--enabled]
+                        [--activation-receipt ACTIVATION_RECEIPT]
+                        [--plan-activation-receipt PLAN_ACTIVATION_RECEIPT]
+                        [--plan-material-refresh-only] [--daily-automation]
+                        [--policy {BALANCED_V1,LOW_LOAD_V1}]
+                        [--priority-code PRIORITY_CODE]
+                        [--preopen-lead-seconds PREOPEN_LEAD_SECONDS]
+python -m pytest: error: unrecognized arguments: --plan-owner-app-root /tmp/pytest-of-root/pytest-78/test_renderer_generates_review0/api-owner
+_________ test_unknown_execution_error_is_not_admission_or_secret_text _________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-78/test_unknown_execution_error_i0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa428d6c150>
+
+    def test_unknown_execution_error_is_not_admission_or_secret_text(tmp_path, monkeypatch):
+        f = _fixture(tmp_path, monkeypatch)
+        def fail(*a, **k):
+            raise ValueError("PLAN_OWNER_BINDING_SHA_MISMATCH")
+        monkeypatch.setattr(dispatch, "_execute_serialized_cycle", fail)
+        with _client(f.service) as client:
+            calls = _memory_transport(monkeypatch, client)
+            result = dispatch.request_bound_plan_cycle(f.path, DATE)
+        assert len(calls) == 1
+>       assert result["owner_execution_status"] == "CANNOT_CONFIRM"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'owner_execution_status'
+
+tests/test_manager_r3_binding_contract.py:351: KeyError
+______ test_cycle_missing_binding_reports_local_admission_without_network ______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-78/test_cycle_missing_binding_rep0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa42921ecd0>
+capsys = <_pytest.capture.CaptureFixture object at 0x7fa42a5b7a10>
+
+    def test_cycle_missing_binding_reports_local_admission_without_network(tmp_path, monkeypatch, capsys):
+        missing = tmp_path / "missing.json"
+        monkeypatch.setattr(dispatch.http.client, "HTTPConnection", lambda *a, **k: pytest.fail("unexpected transport"))
+>       assert cycle.main(["--binding", str(missing), "--dry-run"]) == 2
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_manager_r3_binding_contract.py:359: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+ops/run_manager_announcement_cycle.py:489: in main
+    value=load_binding(args.binding,APP_ROOT)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+infrastructure/scheduling/manager_announcement_supervisor.py:436: in load_binding
+    value=json.loads(SafeRoot(p.parent).read_bytes(p.name,max_bytes=1024*1024))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <infrastructure.owned_io.SafeRoot object at 0x7fa42a54bfb0>
+relative = 'missing.json', max_bytes = 1048576
+
+    def read_bytes(self, relative: str, *, max_bytes: int = 64 * 1024 * 1024) -> bytes:
+        with self.parent(relative) as (parent, name):
+>           fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: 'missing.json'
+
+infrastructure/owned_io.py:105: FileNotFoundError
+=============================== warnings summary ===============================
+../../a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /workspace/scratch/a154a3323e32/test_env/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_manager_r3_binding_contract.py::test_one_binding_passes_unchanged_scheduler_worker_and_distinct_api_owner[False]
+FAILED tests/test_manager_r3_binding_contract.py::test_one_binding_passes_unchanged_scheduler_worker_and_distinct_api_owner[True]
+FAILED tests/test_manager_r3_binding_contract.py::test_admission_rejects_before_either_owner_and_returns_bounded_reason[sha-PLAN_OWNER_BINDING_SHA_MISMATCH-False]
+FAILED tests/test_manager_r3_binding_contract.py::test_admission_rejects_before_either_owner_and_returns_bounded_reason[sha-PLAN_OWNER_BINDING_SHA_MISMATCH-True]
+FAILED tests/test_manager_r3_binding_contract.py::test_admission_rejects_before_either_owner_and_returns_bounded_reason[root-PLAN_OWNER_BINDING_API_ROOT_MISMATCH-False]
+FAILED tests/test_manager_r3_binding_contract.py::test_admission_rejects_before_either_owner_and_returns_bounded_reason[root-PLAN_OWNER_BINDING_API_ROOT_MISMATCH-True]
+FAILED tests/test_manager_r3_binding_contract.py::test_admission_rejects_before_either_owner_and_returns_bounded_reason[disabled-PLAN_OWNER_DAILY_BINDING_DISABLED-False]
+FAILED tests/test_manager_r3_binding_contract.py::test_admission_rejects_before_either_owner_and_returns_bounded_reason[disabled-PLAN_OWNER_DAILY_BINDING_DISABLED-True]
+FAILED tests/test_manager_r3_binding_contract.py::test_admission_rejects_before_either_owner_and_returns_bounded_reason[owner_inventory-PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH-False]
+FAILED tests/test_manager_r3_binding_contract.py::test_admission_rejects_before_either_owner_and_returns_bounded_reason[owner_inventory-PLAN_OWNER_BINDING_CLOSED_INVENTORY_MISMATCH-True]
+FAILED tests/test_manager_r3_binding_contract.py::test_gate_reason_survives_rpc_and_transport_timeout_does_not_claim_owner_not_called
+FAILED tests/test_manager_r3_binding_contract.py::test_dual_root_inventory_and_fresh_owner_canary_are_real_checks[canary_root]
+FAILED tests/test_manager_r3_binding_contract.py::test_explicit_owner_historical_canary_requires_dynamic_readback
+FAILED tests/test_manager_r3_binding_contract.py::test_renderer_generates_reviewable_dual_root_without_dropping_inventory
+FAILED tests/test_manager_r3_binding_contract.py::test_unknown_execution_error_is_not_admission_or_secret_text
+FAILED tests/test_manager_r3_binding_contract.py::test_cycle_missing_binding_reports_local_admission_without_network
+16 failed, 5 passed, 1 warning in 2.24s
