@@ -473,6 +473,12 @@ def build_workspace(date: str, *, catalyst: Mapping[str, Any], materials: Sequen
             artifact={**value,'consumed':bool(value and value.get('status') in _DATA)},
             attempt=attempts.get(lane),next_plan=plans.get(lane)))
     screen = deepcopy(dict(market_screen)) if isinstance(market_screen, Mapping) else None
+    # The displayed as-of clock is not a change of source evidence. Normalize
+    # only a separate hash input; retain session, phase and every admission field.
+    screen_identity = deepcopy(screen)
+    if isinstance(screen_identity, dict) and isinstance(screen_identity.get('data_context'), Mapping):
+        screen_identity['data_context'] = {key: value for key, value in screen_identity['data_context'].items()
+                                           if key != 'research_cutoff'}
     screen_summary_counts = _market_screen_summary_counts(screen)
     result= dict(schema_version=SCHEMA,semantic_version=SEMANTIC_VERSION,rejected_relations=rejected_relations,
         decision_projection_version='20260921.manager-decision-ux.a1',
@@ -491,7 +497,7 @@ def build_workspace(date: str, *, catalyst: Mapping[str, Any], materials: Sequen
         replacement_context='COMPARISON_ONLY_NO_POSITION_READ',
         input_identity=digest(dict(decision_projection_version='20260921.manager-decision-ux.a1',semantic_version=SEMANTIC_VERSION,catalyst=catalyst,materials=materials,stage=stage,close=close,
             discovered_cards=discovered_cards,discovery_rejections=discovery_rejections,price_quotes=price_quotes,
-            market_screen=screen,
+            market_screen=screen_identity,
             plan_context={k:v for k,v in context.items() if k!='research_cutoff'} if plan_context else None)),
         plan_context=context,
         browser_consumption='NOT_ACKNOWLEDGED_BY_SERVER',**FLAGS)

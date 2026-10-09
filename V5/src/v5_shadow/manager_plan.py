@@ -29,7 +29,7 @@ from v5_shadow.announcement_bridge import _input_limit
 BASE = Path(__file__).resolve().parents[2]
 CAPSULE = BASE / 'vendor/manager_plan_baseline'
 DESCRIPTOR = BASE / 'contracts/manager_plan_source_manifest.json'
-PIN = '45527d7135e7d728d0d563f4d3d70cd54001045c9a8b6d56288b27d44aeab736'
+PIN = '61f288f00095ce0e60adf20598123e702d855462ac7d7216334ecfd1064933f5'
 ROUTE = '/api/v4/manager/research/workspace'
 NAMESPACES = ('v4', 'contracts', 'infrastructure', 'ops', 'domains', 'stage_center')
 
