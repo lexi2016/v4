@@ -93,7 +93,7 @@ def load_owner():
 def _request(value):
     required = ('target_date', 'now', 'action', 'view', 'selection_date',
                 'announcement_date', 'inputs', 'rebound', 'manager_output_root')
-    exact_keys(value, required + tuple(key for key in ('rebound_owner','membership','registry_observation','rebound_observation') if key in value))
+    exact_keys(value, required + tuple(key for key in ('rebound_owner','membership','registry_observation','rebound_observation','announcement_offline_owner') if key in value))
     trade_date(value['target_date'])
     if aware(value['now']) > datetime.now(timezone.utc):
         raise ValueError('MANAGER_FUTURE_CUTOFF')
@@ -183,6 +183,17 @@ def _request(value):
             common._relative(membership_root,relative);sha(digest)
             if not relative.startswith('universes/'+value['target_date']+'/') or not relative.endswith('.json'):
                 raise ValueError('MANAGER_MEMBERSHIP_PATH')
+    if value.get('announcement_offline_owner') is not None:
+        binding=value['announcement_offline_owner']
+        exact_keys(binding, ('root','binding_sha256','target_date','publication_date'))
+        root=no_symlinks(binding['root'])
+        if not Path(binding['root']).is_absolute():raise ValueError('OFFLINE_MANAGER_ROOT')
+        if root.is_relative_to(output) or output.is_relative_to(root):raise ValueError('OFFLINE_MANAGER_OUTPUT_OVERLAP')
+        sha(binding['binding_sha256']);trade_date(binding['target_date'])
+        if not re.fullmatch(r'[0-9]{4}-[0-9]{2}-[0-9]{2}',str(binding['publication_date'])):
+            raise ValueError('OFFLINE_MANAGER_PUBLICATION_DATE')
+        trade_date(binding['publication_date'].replace('-',''))
+        if binding['target_date']!=value['target_date']:raise ValueError('OFFLINE_MANAGER_TARGET_DATE')
     if value.get('rebound_observation') is not None:
         binding=value['rebound_observation']
         exact_keys(binding, ('root','reference'))
@@ -237,7 +248,7 @@ def _snapshot(binding):
 
 
 def _identity():
-    names = ('manager_panel_observation.py', 'rebound_observation.py', 'registry_observation.py', 'membership_reader.py', 'hk_membership_recovery.py', 'rebound_owner.py', 'health.py', 'module_artifacts.py', 'archive_reader.py', 'announcement_bridge.py', 'manager_plan.py', 'manager_plan_gate.py', 'manager_plan_io.py', 'a_preselection.py',
+    names = ('announcement_offline_reader.py', 'manager_panel_observation.py', 'rebound_observation.py', 'registry_observation.py', 'membership_reader.py', 'hk_membership_recovery.py', 'rebound_owner.py', 'health.py', 'module_artifacts.py', 'archive_reader.py', 'announcement_bridge.py', 'manager_plan.py', 'manager_plan_gate.py', 'manager_plan_io.py', 'a_preselection.py',
              'contracts.py', 'digests.py', 'composition.py', 'module_api.py', 'api_gateway.py',
              'shadow_store.py', 'legacy_adapter.py', 'source_capsule.py', 'provider_evidence.py', '__init__.py')
     return {name: hashlib.sha256((BASE / 'src/v5_shadow' / name).read_bytes()).hexdigest() for name in names}
@@ -304,6 +315,12 @@ def _assemble(request):
             panel_artifact=read_rebound_observation(panel_binding['root'],panel_binding['reference'])
         except (OSError,ValueError,KeyError,TypeError) as error:
             panel_error=str(error) if isinstance(error,ValueError) else 'PANEL_OBSERVATION_READ_FAILED:'+type(error).__name__
+    offline_result=None;offline_error=None
+    if request.get('announcement_offline_owner') is not None:
+        from v5_shadow.announcement_offline_reader import read_owner, install_transport as install_offline_transport
+        try:offline_result=read_owner(request['announcement_offline_owner'],request['now'])
+        except (OSError,ValueError,KeyError,TypeError,subprocess.TimeoutExpired) as error:
+            offline_error=str(error) if isinstance(error,ValueError) else 'OFFLINE_MANAGER_READ_FAILED:'+type(error).__name__
     workspace = load_owner()
     if membership_readback is not None:
         install_transport(roots['membership'],membership_readback)
@@ -352,6 +369,8 @@ def _assemble(request):
     announcements = importlib.import_module('v4.manager_research.workspace_announcements')
     service.get_announcement_date_catalog = lambda date, publication: announcements.read_date_catalog(service, date, publication)
     service.get_announcement_analysis = lambda date, publication=None: analysis.read(service, date, publication)
+    if request.get('announcement_offline_owner') is not None:
+        install_offline_transport(service,announcements,request['announcement_offline_owner'],offline_result,offline_error)
     # History enumerates and reads through _io directly. Route those original
     # plan reads to the same durable owner, not to the private input directory.
     service.store._io = OverlayIO(durable._io, service.store._io)
@@ -465,6 +484,10 @@ def _assemble(request):
         coverage_basis='BOUND_FILES_AND_ORIGINAL_MANIFEST_NOT_FULL_MARKET')
     return dict(schema_version='v5.manager_plan.v1', payload=payload, readback=readback, archive_readback=archive_diagnostics,
         membership_readback=membership_readback,
+        announcement_offline_readback=None if request.get('announcement_offline_owner') is None else dict(
+            status='VERIFIED_READ_TRANSPORT' if offline_error is None else 'CANNOT_CONFIRM',
+            error=offline_error,binding=request['announcement_offline_owner'],
+            consumption=None if offline_result is None else offline_result['consumption']),
         request_sha256=sha256_json(request), source_capsule_sha256=PIN, implementation_identity=_identity(),
         execution_kind='MANUAL_REFRESH' if request['action']=='refresh' else 'READ_ONLY',
         natural_verified=False, source_origin_verified=False, production_allowed=False,
