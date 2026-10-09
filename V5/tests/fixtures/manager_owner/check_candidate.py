@@ -34,6 +34,43 @@ class ProductionAdmissionTests(unittest.TestCase):
         from v5_shadow.manager_plan_gate import rejection_reason
         return rejection_reason(self.daily, '20261008', self.context, self.bridge)
 
+    def test_overlay_enumerates_original_files_with_suffix_and_owner_routing(self):
+        import importlib
+        import tempfile
+        from v5_shadow.manager_plan import OverlayIO
+        SafeRoot = importlib.import_module('infrastructure.owned_io').SafeRoot
+        with tempfile.TemporaryDirectory(prefix='v5-overlay-files-') as temporary:
+            root = Path(temporary)
+            private, durable = root/'private', root/'durable'
+            private.mkdir(); durable.mkdir()
+            private_io, durable_io = SafeRoot(private), SafeRoot(durable)
+            announcement = 'workspace_announcements/20261008/_auto_commits'
+            plans = 'workspace_plans/20261008'
+            # Real entries in both roots prove routing and filtering; empty
+            # directories or a stubbed files() cannot satisfy these assertions.
+            for io, relative, names in (
+                (private_io, announcement, ['b.json', 'a.json', 'body.txt']),
+                (durable_io, announcement, ['wrong-owner.json']),
+                (durable_io, plans, ['saved.json', 'note.txt']),
+                (private_io, plans, ['wrong-plan.json']),
+                (private_io, 'workspace_plans_extra', ['private.json'])):
+                for name in names:
+                    io.write_bytes(relative+'/'+name, b'{}')
+            overlay = OverlayIO(durable_io, private_io)
+            before = {str(p.relative_to(root)):p.read_bytes() for p in root.rglob('*') if p.is_file()}
+            self.assertEqual(overlay.files(announcement), ['a.json', 'b.json'])
+            self.assertEqual(overlay.files(announcement, suffix='.txt'), ['body.txt'])
+            self.assertEqual(overlay.files(plans), ['saved.json'])
+            self.assertEqual(overlay.files(plans, suffix='.txt'), ['note.txt'])
+            self.assertEqual(overlay.files('workspace_plans_extra'), ['private.json'])
+            self.assertEqual(overlay.files('absent'), [])
+            self.assertEqual(overlay.files(), [])
+            self.assertEqual(overlay.read_bytes(plans+'/saved.json'), b'{}')
+            with overlay.directory(plans) as fd:
+                self.assertIsInstance(fd, int)
+            after = {str(p.relative_to(root)):p.read_bytes() for p in root.rglob('*') if p.is_file()}
+            self.assertEqual(after, before)
+
     def test_same_session_earlier_cutoff_and_truncated_generation_are_accepted(self):
         self.assertIsNone(self.reason())
         self.daily['status']='COMPLETED'

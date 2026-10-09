@@ -21,7 +21,7 @@ class ManagerDateGateProcessTests(unittest.TestCase):
         result = subprocess.run([sys.executable, '-B', str(FIXTURE/'check_candidate.py'), '-v'],
             capture_output=True, text=True, timeout=120)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn('Ran 5 tests', result.stderr)
+        self.assertIn('Ran 6 tests', result.stderr)
 
 
 if __name__ == '__main__':unittest.main()

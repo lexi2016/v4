@@ -33,6 +33,25 @@ ROUTE = '/api/v4/manager/research/workspace'
 NAMESPACES = ('v4', 'contracts', 'infrastructure', 'ops', 'domains', 'stage_center')
 
 
+class OverlayIO:
+    """Original SafeRoot read protocol, with plan-owned paths routed durably."""
+    def __init__(self, durable_io, private_io):
+        self.durable_io = durable_io
+        self.private_io = private_io
+
+    def _reader(self, relative):
+        return self.durable_io if str(relative).split('/')[0] in ('workspace_plans', 'workspace_plan_runs') else self.private_io
+
+    def read_bytes(self, relative, **kwargs):
+        return self._reader(relative).read_bytes(relative, **kwargs)
+
+    def directory(self, relative=None, **kwargs):
+        return self._reader(relative).directory(relative, **kwargs)
+
+    def files(self, relative=None, *, suffix='.json'):
+        return self._reader(relative).files(relative, suffix=suffix)
+
+
 def _sources():
     descriptor = json.loads(DESCRIPTOR.read_bytes())
     if sha256_json(descriptor) != PIN:
@@ -202,18 +221,7 @@ def _assemble(request):
             cards=[], gaps=['V5_CATALYST_OWNER_NOT_BOUND'], **workspace.FLAGS))
     # History enumerates and reads through _io directly. Route those original
     # plan reads to the same durable owner, not to the private input directory.
-    private_io = service.store._io
-    class OverlayIO:
-        def read_bytes(self, relative, **kwargs):
-            selected = durable._io if str(relative).split('/')[0] in ('workspace_plans', 'workspace_plan_runs') else private_io
-            return selected.read_bytes(relative, **kwargs)
-        def directory(self, relative=None, **kwargs):
-            selected = durable._io if str(relative).split('/')[0] in ('workspace_plans', 'workspace_plan_runs') else private_io
-            return selected.directory(relative, **kwargs)
-        def files(self, relative=None, *, suffix='.json'):
-            selected = durable._io if str(relative).split('/')[0] in ('workspace_plans', 'workspace_plan_runs') else private_io
-            return selected.files(relative, suffix=suffix)
-    service.store._io = OverlayIO()
+    service.store._io = OverlayIO(durable._io, service.store._io)
     # Consume the independently committed rebound owner, never recompute its
     # algorithm within the manager. Missing evidence retains the original empty
     # screen and its UNKNOWN fields/reasons.

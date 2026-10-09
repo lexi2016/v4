@@ -137,3 +137,12 @@ MaterialStore and US reader own separate SafeRoot instances. They do not use
 this overlay. The six existing adapter tests remain the regression coverage.
 Cloud validation for the correction: AST parse and git diff check only;
 Mac rerun and real US09 manager request remain NOT_RUN on this correction.
+
+Added an original-SafeRoot regression for the production OverlayIO class using
+real populated private and durable directories, conflicting owner entries,
+`.json`/`.txt` suffix filtering, exact first-component routing, no-argument and
+missing-directory reads, read_bytes/directory delegation and unchanged bytes.
+The class was lifted out of `_assemble` solely to exercise that same production
+protocol directly; `_assemble` instantiates it with its original durable/private
+SafeRoots. The existing eight outer tests remain; the candidate subprocess now
+contains six tests rather than five. No mocks or original assertions were removed.
