@@ -1,0 +1,7 @@
+# Chat fix request: restore the active manager-workspace validators
+
+The integrated three-channel candidate has a frontend validation regression in `apps/web/src/api/managerWorkspace.ts`. The final candidate removed `validateIndependentObservations`, `validateResearchInputDiagnostics`, and `validateResearchDisplayConsistency`, including their call sites. `validateManagerWorkspace` still calls `validateResearchAttention`, but malformed `research_attention.observation_only` and `input_diagnostics` fields are no longer rejected.
+
+Please make the smallest source change in `apps/web/src/api/managerWorkspace.ts` that restores the active-before validation functions and their validation call sites while retaining the new three-channel date-binding/screen contract. Do not edit unrelated modules, weaken validators, adjust tests to skip failures, or change trading/BUY behavior. The active-before and integrated-candidate full source files are provided under `source/`; the unchanged negative contract test is under `tests/issue8R2.spec.ts`, with its exact synthetic fixtures under `tests/fixtures/`.
+
+Acceptance: reproduce the same 76 Issue8 R2 tests against baseline/candidate; candidate must reject the same malformed observation/input/safety/reference/time/PIT/cross-field payloads as the active baseline. Also rerun the existing three-channel and adjacent daily-automation focused specs (25 total) so the new contract remains intact. Send the minimal diff and test logs back for local integration and independent review.

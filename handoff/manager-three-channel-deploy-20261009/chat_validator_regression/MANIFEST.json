@@ -1,0 +1,80 @@
+{
+  "schema_version": "chat_validator_regression_handoff.v1",
+  "status": "PREPARED_FOR_CHAT_REPAIR",
+  "deployment_gate": "FAIL_P1_VALIDATION_REGRESSION",
+  "source_release_manifest_sha256": "042044b644a370d75d8224655a38374b9b5c91af7a0863681b02509b88787c6c",
+  "rollback_managerWorkspace_sha256": "6bd208174c650beb1b089058de458643beb601a97455ff472330984e88dd6d7d",
+  "candidate_managerWorkspace_sha256": "35a879624032cfffb1c3e4afba3c4ae6298df7d5dffb5db90d9ad42142f496ee",
+  "issue8R2_spec_sha256": "3b8e004f31135674d63c1affd25cc41d759bfd10187a1dfc318f64c53636f873",
+  "repro_command": "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python -B /Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/review/compare_legacy_frontend_failures.py",
+  "file_count": 11,
+  "files": [
+    {
+      "path": "source/managerWorkspace.active-before.ts",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/rollback/issue32_predeploy_20261009/app/apps/web/src/api/managerWorkspace.ts",
+      "bytes": 100086,
+      "sha256": "6bd208174c650beb1b089058de458643beb601a97455ff472330984e88dd6d7d"
+    },
+    {
+      "path": "source/managerWorkspace.candidate-after.ts",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r1/app/apps/web/src/api/managerWorkspace.ts",
+      "bytes": 109896,
+      "sha256": "35a879624032cfffb1c3e4afba3c4ae6298df7d5dffb5db90d9ad42142f496ee"
+    },
+    {
+      "path": "tests/issue8R2.spec.ts",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r1/app/apps/web/src/manager-selection/__tests__/issue8R2.spec.ts",
+      "bytes": 16344,
+      "sha256": "3b8e004f31135674d63c1affd25cc41d759bfd10187a1dfc318f64c53636f873"
+    },
+    {
+      "path": "tests/fixtures/issue8R2.fixture.ts",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r1/app/apps/web/src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts",
+      "bytes": 4410,
+      "sha256": "173d1711fc86fbb392eb616d4dde7bcab21b5b1a74b24372b9314b1297a31525"
+    },
+    {
+      "path": "tests/fixtures/issue8R2.ownerObservations.json",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/candidate/three_channel_release_r1/app/apps/web/src/manager-selection/__tests__/fixtures/issue8R2.ownerObservations.json",
+      "bytes": 50645,
+      "sha256": "0a56e12d5a56e7534b9a484e8bc2443677a2abeb5d3a9feea56ac0d641b2dce8"
+    },
+    {
+      "path": "tests/managerWorkspace.threeChannel.spec.ts",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/apps/web/src/api/managerWorkspace.threeChannel.spec.ts",
+      "bytes": 6823,
+      "sha256": "a3f3f5d01cea2d8b2fab55968117af76dc50d0ef87d8552b4aaca9ca1b2895d4"
+    },
+    {
+      "path": "tests/managerWorkspace.dailyAutomation.spec.ts",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_MAC_ACCEPTANCE_20261009/candidate/mac_source_v2/apps/web/src/api/managerWorkspace.dailyAutomation.spec.ts",
+      "bytes": 6248,
+      "sha256": "b5b57a45102775d2f57b1af14456f8a9bf2b23c6a8a96f4b30c87da245f9ac0d"
+    },
+    {
+      "path": "reviewer/final_frontend_deployment_gate_20261009.md",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/review/final_frontend_deployment_gate_20261009.md",
+      "bytes": 4593,
+      "sha256": "f4d8d25d70826d2a9ab1d28b810c80c027fb1c97f7241771c10f7d4d11df0c56"
+    },
+    {
+      "path": "reviewer/legacy-frontend-failure-classification.json",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/review/tmp/legacy-frontend-baseline-r1/legacy-frontend-failure-classification.json",
+      "bytes": 18529,
+      "sha256": "acb7ebfd80024959b4114ff2c2ed9452737263290e886458a2aaa22fe89ce0f1"
+    },
+    {
+      "path": "reviewer/logs/rollback_base.log",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/review/tmp/legacy-frontend-baseline-r1/logs/rollback_base.log",
+      "bytes": 475331,
+      "sha256": "a4dd0a4dce782fa71467a8bc09794667eef051f8ddd3f9ae5f12cf3def8c8b2a"
+    },
+    {
+      "path": "reviewer/logs/integrated_candidate.log",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_THREE_CHANNEL_DEPLOY_20261009/review/tmp/legacy-frontend-baseline-r1/logs/integrated_candidate.log",
+      "bytes": 488792,
+      "sha256": "49b65d5375706cbb646b0183c5dcdf8b571705526a4dbb76c81e6876bad3a479"
+    }
+  ],
+  "scope_note": "No source fix is implemented in this package. Candidate and live service remain unchanged."
+}
