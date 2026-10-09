@@ -39,6 +39,13 @@ if CANDIDATE.exists():
         if hashlib.sha256((ROOT / entry['candidate_path']).read_bytes()).hexdigest() != entry['sha256']:
             raise RuntimeError('CANDIDATE_SOURCE_SHA_MISMATCH: ' + entry['candidate_path'])
     import v4.manager_research
+    provider_candidate = CANDIDATE / 'v4/manager_research/hkex_provider.py'
+    if provider_candidate.exists():
+        provider_spec = importlib.util.spec_from_file_location('v4.manager_research.hkex_provider', provider_candidate)
+        provider_module = importlib.util.module_from_spec(provider_spec)
+        sys.modules[provider_spec.name] = provider_module
+        provider_spec.loader.exec_module(provider_module)
+        v4.manager_research.hkex_provider = provider_module
     source_spec = importlib.util.spec_from_file_location('v4.manager_research.announcement_source',
         CANDIDATE / 'v4/manager_research/announcement_source.py')
     source = importlib.util.module_from_spec(source_spec)

@@ -524,7 +524,11 @@ def capture_eastmoney(provider: Any, url: str, *, budget: CaptureBudget | None =
             if remaining <= 0:
                 raise CaptureBudgetExpired('ANNOUNCEMENT_TIME_BUDGET_EXHAUSTED')
             request_timeout = min(provider._timeout, remaining)
-        response = provider._request_eastmoney_hk(url,timeout=request_timeout)
+        bounded_request = getattr(provider, '_request_eastmoney_hk_budgeted', None)
+        if bounded_request is not None and hasattr(budget, 'reserve_transport_read'):
+            response = bounded_request(url, timeout=request_timeout, budget=budget)
+        else:
+            response = provider._request_eastmoney_hk(url,timeout=request_timeout)
         # The batch gate accounts physical bytes before store/hash validation can
         # fail. Generic CaptureBudget callers retain their existing accounting.
         record_transport = getattr(budget, 'record_transport_response', None)

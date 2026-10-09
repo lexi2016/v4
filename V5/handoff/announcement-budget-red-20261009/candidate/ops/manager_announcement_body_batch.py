@@ -16,12 +16,15 @@ import math
 from pathlib import Path
 import re
 import threading
+import sys
 import time
 from uuid import uuid4
 from typing import Any, Mapping
 from urllib.parse import urlsplit
 
 APP_ROOT = Path(__file__).resolve().parents[1]
+if str(APP_ROOT) not in sys.path:
+    sys.path.insert(0, str(APP_ROOT))
 WORKERS = 3
 MAX_SECONDS = 3600.0
 MAX_NETWORK_REQUESTS = 2000
@@ -129,7 +132,9 @@ class SharedCaptureGate:
         self._condition = threading.Condition(threading.Lock())
         self._slots = threading.BoundedSemaphore(WORKERS)
         self._local = threading.local()
-        self._leases: dict[str, dict[str, int | None]] = {}
+        self._leases: dict[str, dict[str, Any]] = {}
+        self._admission_stop: str | None = None
+        self._unknown_requests = 0
 
     @property
     def elapsed_seconds(self) -> float:
@@ -150,6 +155,8 @@ class SharedCaptureGate:
             with self._condition:
                 while True:
                     self.check()
+                    if self._admission_stop:
+                        raise RuntimeError(self._admission_stop)
                     if self.requests >= self.max_requests:
                         raise RuntimeError("BODY_BATCH_REQUEST_BUDGET_EXHAUSTED")
                     reserved = sum(int(lease["reserved"] or 0) for lease in self._leases.values())
@@ -159,7 +166,7 @@ class SharedCaptureGate:
                             max(0.0, self.interval - (time.monotonic() - self._last)))
                     if not wait:
                         request_id = uuid4().hex
-                        self._leases[request_id] = {"reserved": self.max_response_bytes, "settled": None}
+                        self._leases[request_id] = {"reserved": self.max_response_bytes, "settled": None, "observed": 0, "unknown": False}
                         self._local.request_id = request_id
                         self.requests += 1
                         self._last = time.monotonic()
@@ -185,26 +192,78 @@ class SharedCaptureGate:
             self.max_response_bytes = per_response
             self._max_response_bytes_total = total
 
+    def _account_observed(self, lease: dict[str, Any], size: int) -> None:
+        # Called with the condition held. Totals are cumulative per request;
+        # the transport, provider and source may report the same total again.
+        if type(size) is not int or size < lease["observed"]:
+            raise ValueError("BODY_BATCH_RESPONSE_SIZE_INVALID")
+        delta = size - lease["observed"]
+        lease["observed"] = size
+        lease["reserved"] = max(0, lease["reserved"] - delta)
+        self.response_bytes += delta
+        reserved = sum(item["reserved"] for item in self._leases.values())
+        if self.response_bytes + reserved > self.max_response_bytes_total:
+            # An opaque injected transport can return more than its reservation.
+            # Retain the exact evidence, then stop; never pretend the bytes fit.
+            self._admission_stop = "BODY_BATCH_RESPONSE_BYTE_BUDGET_EXHAUSTED"
+        self._condition.notify_all()
+
+    def reserve_transport_read(self, requested: int) -> int:
+        """Bound the next read, including the over-limit probe, before it runs."""
+        if type(requested) is not int or requested < 1:
+            raise ValueError("BODY_BATCH_READ_SIZE_INVALID")
+        with self._condition:
+            self.check()
+            if self._admission_stop:
+                raise RuntimeError(self._admission_stop)
+            lease = self._leases.get(getattr(self._local, "request_id", None))
+            if lease is None or lease["settled"] is not None:
+                raise RuntimeError("BODY_BATCH_READ_WITHOUT_ACTIVE_REQUEST")
+            reserved = sum(item["reserved"] for item in self._leases.values())
+            available = max(0, self.max_response_bytes_total - self.response_bytes - reserved)
+            allowed = min(requested, lease["reserved"] + available)
+            if allowed <= 0:
+                raise RuntimeError("BODY_BATCH_RESPONSE_BYTE_BUDGET_EXHAUSTED")
+            lease["reserved"] = max(lease["reserved"], allowed)
+            return allowed
+
+    def record_transport_progress(self, size: int) -> None:
+        """Record proven bytes even if the next read or validation will fail."""
+        with self._condition:
+            lease = self._leases.get(getattr(self._local, "request_id", None))
+            if lease is None:
+                raise RuntimeError("BODY_BATCH_PROGRESS_WITHOUT_ACTIVE_REQUEST")
+            self._account_observed(lease, size)
+
+    def mark_transport_unknown(self) -> None:
+        with self._condition:
+            lease = self._leases.get(getattr(self._local, "request_id", None))
+            if lease is not None and not lease["unknown"]:
+                lease["unknown"] = True
+                self._unknown_requests += 1
+            self._admission_stop = "BODY_BATCH_TRANSPORT_CONSUMPTION_UNKNOWN"
+            self._condition.notify_all()
+
+    def accounting_snapshot(self) -> dict[str, Any]:
+        with self._condition:
+            return {"scope": "THIS_GATE", "observed_response_bytes": self.response_bytes,
+                    "unknown_consumption_requests": self._unknown_requests,
+                    "admission_stop_reason": self._admission_stop,
+                    "physical_network_bytes_verified": False}
+
     def record_response_bytes(self, size: int) -> None:
         if isinstance(size, bool) or not isinstance(size, int) or size < 0:
             raise ValueError("BODY_BATCH_RESPONSE_SIZE_INVALID")
         with self._condition:
-            request_id = getattr(self._local, "request_id", None)
-            lease = self._leases.get(request_id)
+            lease = self._leases.get(getattr(self._local, "request_id", None))
             if lease is None:
-                # Cache hits have no transport admission and cost no physical bytes.
-                self.check()
+                self.check()  # Cache hits have no transport admission.
                 return
-            if lease["settled"] is not None:
-                if lease["settled"] != size:
-                    raise RuntimeError("BODY_BATCH_RESPONSE_SETTLEMENT_MISMATCH")
-            else:
-                # Charge before checking time so late responses/hash failures do
-                # not disappear from the physical byte total.
-                lease["settled"] = size
-                lease["reserved"] = 0
-                self.response_bytes += size
-                self._condition.notify_all()
+            if lease["settled"] is not None and lease["settled"] != size:
+                raise RuntimeError("BODY_BATCH_RESPONSE_SETTLEMENT_MISMATCH")
+            self._account_observed(lease, size)
+            lease["settled"] = size
+            lease["reserved"] = 0
             if size > self.max_response_bytes or self.response_bytes > self.max_response_bytes_total:
                 raise RuntimeError("BODY_BATCH_RESPONSE_BYTE_BUDGET_EXHAUSTED")
             self.check()
@@ -400,6 +459,7 @@ def _capture_url_owned(api: Mapping[str, Any], store: Any, provider: Any, gate: 
                        terminal_at=utc_now())
         return receipt, None
     finally:
+        receipt["byte_accounting"] = gate.accounting_snapshot()
         gate.end_request()
         # Written by caller after identity metadata has been attached.
         if not receipt_path.exists():
@@ -745,7 +805,8 @@ def _run_capture_owned(catalog_read: Mapping[str, Any], material_root: str | Pat
             atomic_json(output / "progress.json", {"schema": "v4.manager_research.body_batch_progress.v1",
                 "completed_article_rows": len(by_art), "total_article_rows": len(rows),
                 "body_status_counts": done_counts, "physical_requests": gate.requests,
-                "response_bytes": gate.response_bytes, "elapsed_seconds": round(gate.elapsed_seconds, 3),
+                "response_bytes": gate.response_bytes, "byte_accounting": gate.accounting_snapshot(),
+                "elapsed_seconds": round(gate.elapsed_seconds, 3),
                 "updated_at": utc_now()})
     results: list[dict[str, Any]] = []
     corpus_rows: list[dict[str, Any]] = []
@@ -790,6 +851,7 @@ def _run_capture_owned(catalog_read: Mapping[str, Any], material_root: str | Pat
         "article_index_shard_count": math.ceil(len(results) / ARTICLE_SHARD_SIZE),
         "limits": {"workers": WORKERS, "physical_requests": gate.requests,
             "max_physical_requests": MAX_NETWORK_REQUESTS, "response_bytes": gate.response_bytes,
+            "byte_accounting": gate.accounting_snapshot(),
             "max_response_bytes": MAX_RESPONSE_BYTES, "max_extended_content_pages": MAX_EXTENDED_CONTENT_PAGES,
             "max_body_characters": MAX_EXTENDED_BODY_CHARACTERS,
             "elapsed_seconds": round(gate.elapsed_seconds, 3),
