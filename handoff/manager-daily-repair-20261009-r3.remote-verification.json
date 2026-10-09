@@ -1,0 +1,963 @@
+{
+  "schema_version": "v4.manager_r3.remote_readback_receipt.v1",
+  "status": "PASS",
+  "repository": "lexi2016/v4",
+  "branch": "chat/manager-daily-repair-r3-20261009-dc68db18",
+  "verified_delivery_commit": "dc68db18f0207b8802c09c4d1eb32318ee34a3f2",
+  "verified_delivery_tree": "e8afb34a4c2bf069083ff025736cba25ea2ca65f",
+  "input_commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+  "verified_at_utc": "2026-10-09 04:41:43 UTC",
+  "scope": {
+    "status": "PASS",
+    "base_commit": "b98d85c95d19780e2900dce7de9372328e67acf6",
+    "new_tree": "e8afb34a4c2bf069083ff025736cba25ea2ca65f",
+    "existing_blobs_preserved": 2103,
+    "added_blobs": 131
+  },
+  "verification_method": "Each fixed-commit remote file was fetched in base64, whitespace-normalized, and compared against the complete base64 of the verified local file; remote Git blob SHA was also compared. ZIP included.",
+  "full_content_files_verified": 131,
+  "package_files": 130,
+  "zip": {
+    "path": "handoff/manager-daily-repair-20261009-r3.zip",
+    "bytes": 743800,
+    "sha256": "c8468c5e161b65fd01e105099af7bc97c40343c2ebfc986b3d518b8da6838c69",
+    "git_blob_sha1": "8deffc6cab7fb0c7af70b1afc73f97916ec76f23"
+  },
+  "payload_manifest": {
+    "path": "handoff/manager-daily-repair-20261009-r3/PAYLOAD_MANIFEST.json",
+    "bytes": 23040,
+    "sha256": "8fa52dc0aa726a7ad9ee733fa04c5926f1f0c9c52bd93b18b7ed2ba338edc978",
+    "git_blob_sha1": "b7807f7a1ab0728cf5e6636c330fed43be9fbc08"
+  },
+  "retries": [
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/diffs/r3_only.patch",
+      "first_result": "Tool call failed in parallel batch; same file immediately reread and full bytes matched"
+    }
+  ],
+  "files": [
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/PAYLOAD_MANIFEST.json",
+      "bytes": 23040,
+      "sha256": "8fa52dc0aa726a7ad9ee733fa04c5926f1f0c9c52bd93b18b7ed2ba338edc978",
+      "git_blob_sha1": "b7807f7a1ab0728cf5e6636c330fed43be9fbc08",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/README.md",
+      "bytes": 7462,
+      "sha256": "bdce9452d906fd27b45b19ea2aa270f185aa8f188e54ab0e73f263696d6ac44a",
+      "git_blob_sha1": "e0fb722e9d28a76010f41d5b8c7ecbc5750e0d80",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/TESTING.md",
+      "bytes": 7267,
+      "sha256": "c7ef198b9404faf2e64fd9a202ccf23218f214d1da7f1e7b75b26242f4ae30c7",
+      "git_blob_sha1": "68b43f3780400e4026d72587f92ddfda7c36cb19",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/acceptance_status.json",
+      "bytes": 2271,
+      "sha256": "2349f96474c6890a1a5bd60158bb87630d0564f71f5c8e54b1591e59b14acc24",
+      "git_blob_sha1": "20a7ece058b76193d53965d82c8e9e02ac272b59",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/after/api/apps/api/v35_api/manager_research_router.py",
+      "bytes": 31892,
+      "sha256": "c115c250aa4e66940688bcfab4ebc56811b632e5de81e5ee18c510a9927398d1",
+      "git_blob_sha1": "974cdb52ca625de7a648f507a8b777cf95214c9a",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/after/api/infrastructure/_research_peripheral_store_parts/_namespace.py",
+      "bytes": 534,
+      "sha256": "04d71a71d33cdc90ec362289095dd2ac6e357f79af1528f8c573f6ddcc24e68d",
+      "git_blob_sha1": "bc89327734ad3eeffcd4d9ba6fbdfae4fe90235d",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/after/api/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "bytes": 36096,
+      "sha256": "f55d5c3c5f2a72f2bb80d13a11a284aab41bf3ab5c0c17ce8ad1705cb5104b81",
+      "git_blob_sha1": "3a43cd1b73972812a4e3801e57b16b885b558f52",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/after/api/ops/render_manager_announcement_binding.py",
+      "bytes": 5938,
+      "sha256": "2892f985c2e034341d2a95a4be0a668bfe84113117d41f380191be02fdf0559c",
+      "git_blob_sha1": "80612433ab887fa107bbb2433e885b3bbbfe6875",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/after/api/ops/run_manager_announcement_cycle.py",
+      "bytes": 37464,
+      "sha256": "51d143128d66cf4517547122361bbf3d1548c8e20d8bab511c185a74f31fbe4d",
+      "git_blob_sha1": "8a1b6934bfe57e1d0bdb6276efa750976dcd3de4",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/after/api/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "bytes": 36498,
+      "sha256": "f71d6bb8bc0d55a0205d9734562c37d249654e3e39ccc85e18dd6398aa3c3862",
+      "git_blob_sha1": "34e9323b0710cf663f92e08051e157045831e325",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/after/api/v4/manager_research/plan_owner_dispatch.py",
+      "bytes": 52778,
+      "sha256": "0ec7a85fc9efdec332df4850401779c02dd7d2bafc0dd6cf4c445efa49e99151",
+      "git_blob_sha1": "578497d7e876482cb22e1e9a33ec6653dcae3885",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/after/api/v4/manager_research/service.py",
+      "bytes": 94921,
+      "sha256": "d7798b66cd8d1691c7b9f081380ce702c7e840b5fb137f4d72aeef56e4bef8a4",
+      "git_blob_sha1": "141624c44cb7a2b76d6ad1761852396e1fa8f8f2",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/after/api/v4/manager_research/us_mapping_research.py",
+      "bytes": 57938,
+      "sha256": "f4a0919382d6daecaac67429a886980197fc2476f99de3ccda241fb1da8ba8b7",
+      "git_blob_sha1": "e0fc26de11bdff6b77577b067ecf15f0dc929f12",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/after/api/v4/manager_research/workspace.py",
+      "bytes": 79789,
+      "sha256": "db95f11b4e3d60fae109d9d6f39bfc0a061fcab148f0ac441a95ccd49f042b7c",
+      "git_blob_sha1": "866706d750f92a15270306c9bf7a500dcc8f63a5",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/after/api/v4/manager_research/workspace_history.py",
+      "bytes": 21208,
+      "sha256": "75a8ba0e550d092c7862b268f89b11862282a5c6d05810c32500e4e15c3026af",
+      "git_blob_sha1": "02d455e8d3ec8ff0c50e2cf34b6acdff206cf756",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/after/api/v4/manager_research/workspace_plan_autorun.py",
+      "bytes": 16036,
+      "sha256": "2879790c1d82551c39e653d3d28cdaddd3c002bceccbc67453064bd261673f76",
+      "git_blob_sha1": "cfa0ad18b699ea17d90d3f5bf2476132d66bc457",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/after/worker/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "bytes": 36096,
+      "sha256": "f55d5c3c5f2a72f2bb80d13a11a284aab41bf3ab5c0c17ce8ad1705cb5104b81",
+      "git_blob_sha1": "3a43cd1b73972812a4e3801e57b16b885b558f52",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/after/worker/ops/render_manager_announcement_binding.py",
+      "bytes": 5938,
+      "sha256": "2892f985c2e034341d2a95a4be0a668bfe84113117d41f380191be02fdf0559c",
+      "git_blob_sha1": "80612433ab887fa107bbb2433e885b3bbbfe6875",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/after/worker/ops/run_manager_announcement_cycle.py",
+      "bytes": 37464,
+      "sha256": "51d143128d66cf4517547122361bbf3d1548c8e20d8bab511c185a74f31fbe4d",
+      "git_blob_sha1": "8a1b6934bfe57e1d0bdb6276efa750976dcd3de4",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/after/worker/v4/manager_research/plan_owner_dispatch.py",
+      "bytes": 52778,
+      "sha256": "0ec7a85fc9efdec332df4850401779c02dd7d2bafc0dd6cf4c445efa49e99151",
+      "git_blob_sha1": "578497d7e876482cb22e1e9a33ec6653dcae3885",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/after/worker/v4/manager_research/workspace_plan_autorun.py",
+      "bytes": 16036,
+      "sha256": "2879790c1d82551c39e653d3d28cdaddd3c002bceccbc67453064bd261673f76",
+      "git_blob_sha1": "cfa0ad18b699ea17d90d3f5bf2476132d66bc457",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/api/apps/api/v35_api/manager_research_router.py",
+      "bytes": 26922,
+      "sha256": "84f65a351e1e44171820cb8698e4198b3084e39b8d0cfe82c6b4bc05595f8073",
+      "git_blob_sha1": "8d8fb5cc5ea95d35041b280ab410f1ca207e9bca",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/api/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "bytes": 28502,
+      "sha256": "73eb6a2f7cbf2e2307a87edc3013e355c331f2ce87e6e0ae693b9f78de2dd34a",
+      "git_blob_sha1": "c6dc099e5021f71780cde33046549c8d07e32d11",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/api/ops/render_manager_announcement_binding.py",
+      "bytes": 3058,
+      "sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a",
+      "git_blob_sha1": "6e1062dbe2a2c8d6cb4bec1178fef395dc1cfe02",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/api/ops/run_manager_announcement_cycle.py",
+      "bytes": 25368,
+      "sha256": "c6f9cfa57515682b4f076e10f2030196dc9377bdbb9ec4abe737e36d15485c1c",
+      "git_blob_sha1": "365749fd9622cf32e1c8416e88468d7226c25437",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/api/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "bytes": 35128,
+      "sha256": "5528a6b44bfb5b79265732b85beb1fb89860355b48a852da07264fb34231c79c",
+      "git_blob_sha1": "3d2913f5386c4a0d7d1033f3dcbca9521a2e5880",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/api/v4/manager_research/plan_owner_dispatch.py",
+      "bytes": 26827,
+      "sha256": "8fad78ec64b1ff3ab80242fedc93dfcf7cbed25e6839821aab7f024ca297bf75",
+      "git_blob_sha1": "e196a8cc1d5c8c6867cf254eba326d8de1e510ef",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/api/v4/manager_research/service.py",
+      "bytes": 93685,
+      "sha256": "16edcea443ed19fa5a2808f9160b4255bcfe65c309eb48207815afdd834fdd37",
+      "git_blob_sha1": "fe21c0ef9674a0dc8e638706071c39ea0a7f3aa6",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/api/v4/manager_research/us_mapping_research.py",
+      "bytes": 14052,
+      "sha256": "297dc6f5950d3614437378c22e3157b6866823fbf25fd39cb47f112ffea40da7",
+      "git_blob_sha1": "d5c1b0cd5bad6fd522ad1a060548d4520b631e58",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/api/v4/manager_research/workspace.py",
+      "bytes": 59319,
+      "sha256": "183e3ebd0322883a8f8cef37c0244f424f16c63d3120245e263bb9585133dea3",
+      "git_blob_sha1": "380b3a24ff5c69bef033ccc93f2d131784af8b56",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/api/v4/manager_research/workspace_history.py",
+      "bytes": 17474,
+      "sha256": "da5e1223326631cc9070c3059ca606bac3840ef468ad5c06f2f3a51534f82ec1",
+      "git_blob_sha1": "4901ce1fb9ab2f73517275ad89fd187b27bff375",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/api/v4/manager_research/workspace_plan_autorun.py",
+      "bytes": 11309,
+      "sha256": "703bef8d9a04861c6cb4161880427126badd69eece234f9b53eaa5ae59d7c6ef",
+      "git_blob_sha1": "aeb0bdaa1a335aafe072c278a8059ceca5849b52",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/fixture/tests/test_manager_daily_automation_20261008.py",
+      "bytes": 21642,
+      "sha256": "32d1baf5f79672d94fbcc2053e16aa4dfaefd8637cd153c4dfadf3fc6e43a45e",
+      "git_blob_sha1": "5f675eccb1ea0108fb78b209d51f73b11bc9fc28",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/fixture/tests/test_manager_daily_dispatch_20261008.py",
+      "bytes": 28067,
+      "sha256": "5751d7831d10d9c21767e7e5b47199b98aea877ab76badcff36246e12f3eb6ac",
+      "git_blob_sha1": "93764ac14a0a6b3a81200201208e851306d3249d",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/fixture/tests/test_manager_workspace_exact_page_binding_20261008.py",
+      "bytes": 8634,
+      "sha256": "7b3777e7333b167b7c0e81049daf7ca2e29f6936da50db7ff6d223548d4d6bd7",
+      "git_blob_sha1": "08f1af0ae911b35c2834aa37bd05f0f3c4a46e76",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/fixture/tests/test_manager_workspace_owner_20261008.py",
+      "bytes": 20390,
+      "sha256": "46ebbea9f71baf052ebbd1185d2dc25bcd4bc92d3e2e6da8ebd96c41135294ea",
+      "git_blob_sha1": "7657a46f08b96ce052b1907da6e6efef9de54dd1",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/r1r2/apps/api/v35_api/manager_research_router.py",
+      "bytes": 30588,
+      "sha256": "c3ec90ffb88f1378c4d9a1912fc78747f4440d0331696de4f1a015ad72946f4c",
+      "git_blob_sha1": "600805407813d24f644ac9849e364f2b1b00a4f2",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/r1r2/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "bytes": 30208,
+      "sha256": "2ed9640b7c1568df065884f9f71a1df82b288c342bc94135ef4fd06b4c510373",
+      "git_blob_sha1": "06221d9a72f69afa634adca6a8f297b370752bf2",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/r1r2/ops/render_manager_announcement_binding.py",
+      "bytes": 5380,
+      "sha256": "78049be0625c15539dcd44c1924ba8f89d5dd5a06a074c723a84d68fb45b3f39",
+      "git_blob_sha1": "53d185344f912c152cd51f9ee18a9463d259ec5a",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/r1r2/ops/run_manager_announcement_cycle.py",
+      "bytes": 36743,
+      "sha256": "ac05519d31be2ad5de640190d9219335e14cd70e6273bdc652b32b85e929ffa1",
+      "git_blob_sha1": "d762bc0343ea168a1e3841c8cc71c80e25cb48ad",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/r1r2/v4/manager_research/plan_owner_dispatch.py",
+      "bytes": 46210,
+      "sha256": "d896359dbfd39f41ed3e316d54424c6f1172d935aa1d77a47463167d7bf1ed90",
+      "git_blob_sha1": "bb9d94d2fd27ebbdef0f7b13543a9ac4dc09e4db",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/r1r2/v4/manager_research/workspace.py",
+      "bytes": 76034,
+      "sha256": "a6225ef5583a73c066a5c31400f84e237aaceb63abefcf199cfb8c9b8af7dcdc",
+      "git_blob_sha1": "e2ec0af87b8b40fe40a4f28c6098cae11f0b636a",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/r1r2/v4/manager_research/workspace_plan_autorun.py",
+      "bytes": 14055,
+      "sha256": "14d168300bba42124649f56b79ae65b41359bcfa6928b59fea4a36beb2b511f5",
+      "git_blob_sha1": "58ee5b3b0af6b225cb44ee74cb20b1e16231745d",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/worker/infrastructure/scheduling/manager_announcement_supervisor.py",
+      "bytes": 25925,
+      "sha256": "fd41e7ae1ba82429fb75364d42e96c435aa5855fb471c4fb55a0d38c962aa22a",
+      "git_blob_sha1": "365a73dae0c969a93712420cfc41955c17a39596",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/worker/ops/render_manager_announcement_binding.py",
+      "bytes": 3058,
+      "sha256": "6d9f7a221df8ea8cdb0eb5e79a699f4a8f38459dbf1c4c1742b7550b8da0cc4a",
+      "git_blob_sha1": "6e1062dbe2a2c8d6cb4bec1178fef395dc1cfe02",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/worker/ops/run_manager_announcement_cycle.py",
+      "bytes": 18829,
+      "sha256": "cd91604a7f7d7f2f960bbbd337fcd453bf97bb298c14f0a7fb8804fdcbaf0a84",
+      "git_blob_sha1": "b87c005ad32ee0348fe3c1d4183c217aa3f66031",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/worker/v4/manager_research/plan_owner_dispatch.py",
+      "bytes": 7169,
+      "sha256": "f4ddb61e341aa48f24aad62e9d0aa7bf2c9a0fc3d07bfae7ec285f78f1467fe3",
+      "git_blob_sha1": "4d57dc6fe4d2785740860aa67c6335141652347e",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/before/worker/v4/manager_research/workspace_plan_autorun.py",
+      "bytes": 9439,
+      "sha256": "e785ae1d465175bec0517e7c3b4a8d6e16593967cba554aa0428817a85cd079b",
+      "git_blob_sha1": "668f61984fd67f2a2a9e70cb429afe0a19466b24",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/diffs/api.patch",
+      "bytes": 201673,
+      "sha256": "56c6bb4ac1359a7ab012e4bd576290628bae528bdcb80f4fd883288003572b52",
+      "git_blob_sha1": "76a08a90418154763480c38dfbf0abd6531aeb56",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/diffs/api.reverse.patch",
+      "bytes": 201673,
+      "sha256": "7239be84c2175e0c118c6ac620b968782626a6e39522f7141af9570eff92a0a5",
+      "git_blob_sha1": "159c5b17ff0f9841a46c70d412aa4a548b3a3ac3",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/diffs/r3_only.patch",
+      "bytes": 50276,
+      "sha256": "081998a51f1a257bddb7c66f71bcc54170998836f5e3345f82a5893f58692cac",
+      "git_blob_sha1": "dfe92b45ae0ce54849f2aa94227b069909bb446d",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/diffs/r3_only.reverse.patch",
+      "bytes": 50276,
+      "sha256": "41124a181e93e70d11875c6a7975e1f1192db4d40dc8453d626e6392323037da",
+      "git_blob_sha1": "faccb9951024580fe1059f39bf5d56f1f3c7e9c2",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/diffs/tests.patch",
+      "bytes": 89900,
+      "sha256": "719f08a584e7fade44c098a3f35735e99a7398c3ef71361ead28942afd4fd4ed",
+      "git_blob_sha1": "6aaa80818a0a5689860624f2e0be48f6641064f9",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/diffs/tests.reverse.patch",
+      "bytes": 89900,
+      "sha256": "85f7ce47ccc78c25cee8353910f5a2afa659134766f1339894ac6e735634753c",
+      "git_blob_sha1": "51ee26b0992503f5f272f19fc83e93dc950ca9ce",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/diffs/worker.patch",
+      "bytes": 132651,
+      "sha256": "8117dd489c1e6934d1103f12a182dab8d0c9108f1332d6b45a669679ae24d1cc",
+      "git_blob_sha1": "0ef91b52a94bb1c57e9ec90302fdff4d26db675d",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/diffs/worker.reverse.patch",
+      "bytes": 132846,
+      "sha256": "a83e98c26de13d6e94b6902c7c810a598f58817ec02bfb21c3ce44706cd39f99",
+      "git_blob_sha1": "312d6318d5a88eb5398ce2179ea63cb4ba15a1a5",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/docs/BINDING_CONTRACT.md",
+      "bytes": 25610,
+      "sha256": "018e6e3f4b121f0677f6b0cc67054eba5d5daf43382cd7507e6dc6c0037a8dd0",
+      "git_blob_sha1": "55bbc25e4530183b82fa09f5864cedecf61226a8",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/docs/IMPLEMENTATION_PLAN.md",
+      "bytes": 4012,
+      "sha256": "8a97e27b36ea92022c0404f1733e847e9d69a097b44aaee53872a504137735de",
+      "git_blob_sha1": "997fad350abcb4742edc914cce78e76629087361",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/docs/INPUT_AND_DATE_CONTRACT.md",
+      "bytes": 17945,
+      "sha256": "3fb58744aaaa5311e7b376922208f0db75a3109dfc9c92c76618fd24ef7cbe89",
+      "git_blob_sha1": "92b60c0cdc641ff95af1d8285fa71d08e1d03f68",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/docs/MAC_INTEGRATION_CONTRACT.md",
+      "bytes": 8153,
+      "sha256": "ab9f74c5ce4c457ae40f57be86225a4a14ff68eb9ee5d30e0ea32c6d1218f97c",
+      "git_blob_sha1": "e29e25bfdadcb6126e97fca70113d2210a753366",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/date_inputs_final_command_error_py314.log",
+      "bytes": 92,
+      "sha256": "f7f56a4e34c0b6d1fe7bc78953ce46fc4465e3b53a5269f27c511cf1d4c8a125",
+      "git_blob_sha1": "bfdc152586992a6c9f88bfba02a2cce260d0b305",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/date_inputs_final_focused_py314.log",
+      "bytes": 615,
+      "sha256": "7d958306d308c7da0ef0439771ea833474d079634899c3e916efb38fc8820a42",
+      "git_blob_sha1": "23d070095ad5a3fde8e78768e1e0c491d9bae27e",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/date_inputs_final_py314.log",
+      "bytes": 1334,
+      "sha256": "c625a630ad20d599dda1acc3f2bacfc08b90b3a2a0d0e1d15efb466873bcc106",
+      "git_blob_sha1": "fa702105a5995f1408fa80ec4ae3679674a797f1",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/date_inputs_fixture_diagnosis_01.log",
+      "bytes": 2326,
+      "sha256": "245c8e44f1cd4e53c373e9bb642188756e0da32c85a593fb4c73e3cb6e6a7ce0",
+      "git_blob_sha1": "292855be694292437547661ae5d2685e3cb52951",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/date_inputs_fixture_diagnosis_02.log",
+      "bytes": 662,
+      "sha256": "d0e24dfd725ee07088b30a51515a9a8f0835c849a3e7b58349ff3e83764b72a4",
+      "git_blob_sha1": "6abf055bf9cffa5fadee00fd733b91c4b54e937e",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/date_inputs_green_01.log",
+      "bytes": 609,
+      "sha256": "6b495be5061f2bde6437966e9be07a684353840837df0e69e1f64edd8b292eb2",
+      "git_blob_sha1": "8c294b34bb474ebfee7bfceb49cd1a6e122e4a72",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/date_inputs_green_02.log",
+      "bytes": 609,
+      "sha256": "cd8252f2b9dfab5bbb5588cdfe34c0193f1a25a334f40d65a3394877ab599d69",
+      "git_blob_sha1": "83772c099a71db40a18cbcda3998eac18ad13ef1",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/date_inputs_parity_baseline_py314.log",
+      "bytes": 1243,
+      "sha256": "07ff06df077d4e2544696fe95847d7963813988a06e5e53de68949bb9d84998f",
+      "git_blob_sha1": "96641b19bec8476604b2cf8ab86c36ba56a33626",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/date_inputs_red_01.log",
+      "bytes": 3071,
+      "sha256": "4fa1600301656fdcb4ef7720360e22fb4fe915e1d785c59ce42a02d50c961931",
+      "git_blob_sha1": "9175487c86fcc4fc2025e4febd94dbb38179a4d4",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/date_inputs_red_02.log",
+      "bytes": 5142,
+      "sha256": "929b023bed8f8b25d33484f9a63da95d265d3581940e5b337c051586bc5ad2c9",
+      "git_blob_sha1": "9b5ce78f83b31386ccea7df214f874cb6ee2a978",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/date_inputs_red_03.log",
+      "bytes": 4152,
+      "sha256": "fc80bed7ada6ddf09e6ac2fe22dedfedd41dba3243af934c8c6b921eab15f05a",
+      "git_blob_sha1": "2615f3455795b80f52d93ff52e78e22a5faacc12",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/date_inputs_regression_01.log",
+      "bytes": 3088,
+      "sha256": "6da3d5941c03fe6a9f088607cdb6ca67ab994236955fe9708fb22ee904db9501",
+      "git_blob_sha1": "c859342a13c96d05d1c201b5472899f3f1f7e606",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/date_inputs_regression_02.log",
+      "bytes": 2599,
+      "sha256": "688af4e2f060faaa6858db6fda95cbadad7fe53f396aca5c7e5aeb08b9387665",
+      "git_blob_sha1": "bd3c4b97187509d9dd820d168ce3e93f22d1910c",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/date_inputs_regression_03.log",
+      "bytes": 609,
+      "sha256": "04eabc96f63b66f7d0748fd0a0ad137b8d4c12a1e2919be42f8ef66927dda821",
+      "git_blob_sha1": "4972bfa0e349eca574692998b59bd02a95d6f96e",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/date_inputs_regression_py314.log",
+      "bytes": 615,
+      "sha256": "2b0387bab571f8fca3dfb7a86c1b4ef69022fb67d470fc5794bc4522bf7b8f79",
+      "git_blob_sha1": "656bf876f15f594560c88629188bfbebbd6bfa96",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/date_inputs_us_sources_py314_01.log",
+      "bytes": 2381,
+      "sha256": "15b85045fd3538d9407961ee8d1c4872e39f954c004ba20a68ddef308d105b80",
+      "git_blob_sha1": "88e355b85bfc4bba9559c691b994640b9bd7c024",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/date_inputs_us_sources_py314_02.log",
+      "bytes": 629,
+      "sha256": "1eecec8aba316a9fc99f3706d5f64cdf1d5f158af4541770e4b09be4d272adfe",
+      "git_blob_sha1": "93df0aec3feb82d21d3849680ec4e5f1f6e6af38",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/delivery_assembly_initial.log",
+      "bytes": 304,
+      "sha256": "701dda84ce92d45e4a972971acad3614f6b342f885701c02db748a5b858f0b38",
+      "git_blob_sha1": "11e47109e3da8474e3f6cc7e9eebcaf052643585",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/delivery_assembly_tool_check.log",
+      "bytes": 550,
+      "sha256": "03f88b916667181b0b64dde9fb68da8036134dce2d683bf2ea55f030f11748d5",
+      "git_blob_sha1": "df8bee96cf1c6d223f411cca254555ef7448ccaa",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/final_adjacent_parity_py314.log",
+      "bytes": 2646,
+      "sha256": "58bf3f89c3528133a55ac15d30ba03928163a55068432af99ae8789afcb34db0",
+      "git_blob_sha1": "7e1b07adb4cae6f568ff7a09d03ebf45fd8eaddc",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/final_core_py314.log",
+      "bytes": 1634,
+      "sha256": "c01d9c4bbf58b2a16f468fc2ad896ca50123b5072ea4683f79ba782198cab0d9",
+      "git_blob_sha1": "69e294e750a58a37c085de752bad551db667c551",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/final_fixture_assembly.log",
+      "bytes": 540,
+      "sha256": "facf6785e0c8a9a9cfb5954d7550b7a39a845af1f03c9ad15f7fb5a50d49a6b0",
+      "git_blob_sha1": "b419114baa5d74ad0b68085d94bb9256dad9a3a7",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/final_test_results.json",
+      "bytes": 5513,
+      "sha256": "5a955318daff865a9f78e46c9c2e8bfa7741d8fd278363bfeadc11d3ecc9735f",
+      "git_blob_sha1": "eabc1380c66cf6f9763ddf85f7ecf658834e160d",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/independent_review.md",
+      "bytes": 15317,
+      "sha256": "8b1a3e6038bd453c0cfaba0a4d7ec7485c5ffa2561d34471840eca787f6ccdb4",
+      "git_blob_sha1": "1a2b4ab8d6534194078771910fcbf60ade3423f6",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/independent_review_final_tests_py314.log",
+      "bytes": 948,
+      "sha256": "7e2fff3ef582b4614fa498c93ce0aa1ab9d61c1efb5f946ed7fa0e7840196567",
+      "git_blob_sha1": "7cf0b2967e41a5c778f29fede1539c1ae18b0db4",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/independent_review_green.json",
+      "bytes": 2051,
+      "sha256": "a7049c213f49f458f986d5dc15b798f416b97d37f2baec378879ba9e39263948",
+      "git_blob_sha1": "c99f9e11c9710def02cf742bb32790ee04b996e1",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/independent_review_probes.py",
+      "bytes": 5701,
+      "sha256": "fffd94fb12cf8d668aa3ab8a558ddf3e88771ac7de9a85bfc348480863fa3628",
+      "git_blob_sha1": "926d3ff7ccbf649b448f1af04fe25a0665f6f4d6",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/independent_review_red.json",
+      "bytes": 2046,
+      "sha256": "8f262842fbb6cc8089d762ea306f7b15f503f2abe70e42c1d66b568eb4de216d",
+      "git_blob_sha1": "d0520dc09122d77d0103bdf58642db964ac16594",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/package_patch_verification.json",
+      "bytes": 8127,
+      "sha256": "6e8e19ac943c42ee6b9f63adc7ff1baf1e0cba61580f05716b193d5487bfebeb",
+      "git_blob_sha1": "5f74dbc3b387352dde7e0bf2a497534505e3fcba",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/r3_binding_different_sources_canary_red_py314.log",
+      "bytes": 6339,
+      "sha256": "f5e8d6f768df8d7f3aa5263e9e077d0464c657378ccdcbfcee2b76dc3222308d",
+      "git_blob_sha1": "5f22f943fdbccb2d2433a81784f9668317dac33d",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/r3_binding_green_py314.log",
+      "bytes": 231,
+      "sha256": "cfeddd9d07842f1586d95500aac663f19d4f947b20f51fc471785c8781b209ed",
+      "git_blob_sha1": "0237dcdc43856ebce6f4a4bc52f86616f2e4351c",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/r3_binding_outcome_readback_red_py314.log",
+      "bytes": 2134,
+      "sha256": "0051d3b67c39e6186f083dfc5f3ca6a349f67246b81e9636e8454c9e633fe5de",
+      "git_blob_sha1": "66321b1b113ce19ca36ee202eb2b5f329cbe8602",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/r3_binding_red.log",
+      "bytes": 149583,
+      "sha256": "d64b78e9a6e977c31f469f89e0c578a61feb729ee490cea108e36d01e565c7f4",
+      "git_blob_sha1": "1fae81c4ba1239ee943bf7817b5ab7864296b37f",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/r3_binding_regression_initial_py314.log",
+      "bytes": 18345,
+      "sha256": "4a3365ec4a313ad03c8bdfb579babfd69159e92ff3257a2d86964d660d4ee0c9",
+      "git_blob_sha1": "8e6a0208bf2f07f0b08bc6f776dabe9933544873",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/r3_binding_review_green_py314.log",
+      "bytes": 322,
+      "sha256": "5e48b8741883407bc23e6e82ec9b7f02a51cb2b3bae367ecd2ec06b4e9ed5f74",
+      "git_blob_sha1": "5fed2f902ba53b452e56bade489b6c1071b47519",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/r3_binding_review_red_py314.log",
+      "bytes": 8771,
+      "sha256": "5c5e05775e72142bb29b83165c67d896443fc8e9b9ca4423950fa308c3693306",
+      "git_blob_sha1": "6c0b5bd1d70b6deaf743eec6e76e3e2bd53be6de",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/r3_binding_review_regression_py314.log",
+      "bytes": 973,
+      "sha256": "3f8d9677ef2ef16810782353e0b3b24d80765e1f4474c8a5360b925e70802a49",
+      "git_blob_sha1": "db2810fe77c9b3b49f13d8aa68b954f2a56ca8ce",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/r3_binding_rpc_canary_red_py314.log",
+      "bytes": 127016,
+      "sha256": "ad68f73e5060deaa8f1b7cd7ad5bd118cbd5f5360a674eaa1f6d1d8eef2fcb60",
+      "git_blob_sha1": "4bf1fbdb85c09af341111ded563bfa33edb45109",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/r3_cycle_attempt_diagnostic_red_py314.log",
+      "bytes": 877,
+      "sha256": "aeec643f4da7f987544185e60c825b6eabe7f40ebd81b0308d15d00dc5034442",
+      "git_blob_sha1": "80e58c109270656c079632b95aefc740886aed69",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/r3_cycle_green.log",
+      "bytes": 99,
+      "sha256": "2e7359278a3ddbcdcac04b10012e312304df9ea151a5dd23c920b9c3e3c6fa13",
+      "git_blob_sha1": "00791dddaff134d1b33c9e5ffe32591dec595034",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/r3_cycle_python314.log",
+      "bytes": 99,
+      "sha256": "bcc18f81f2b868f2d324a8c78ff54b3e1894321e6f39eb5b25238d04e3a3dd37",
+      "git_blob_sha1": "4d9b1987ebd7d5f34d42ac7da0a033a32aa0c09a",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/r3_cycle_red.log",
+      "bytes": 16580,
+      "sha256": "77c6e2a0f7ddef761f66eec7366d4db0174544fdb582ddbbd420c7e06636f3a6",
+      "git_blob_sha1": "81d8a0380734858749c09e43ffda0b8a0733aeb1",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/r3_existing_archive_baseline_py314.log",
+      "bytes": 2657,
+      "sha256": "6cbb1da525637c77780168c48b6fa6fc435d68f7f197ad597b9269d3aa5e48e0",
+      "git_blob_sha1": "d33ff5d46dd1d3411ac8353a869a5a08ae7757eb",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/r3_existing_archive_candidate_py314.log",
+      "bytes": 2658,
+      "sha256": "08bb703b57eb2df84843614aee9286ec7bd28b269d772cadda0e18c0145f06cd",
+      "git_blob_sha1": "412242b91df0728087f81d6d710e3cba3af27ae8",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/r3_inherited_intermediate.log",
+      "bytes": 1661,
+      "sha256": "9c328ff2f567f3253b357904a1c2ceba3b9d8b51465f09c20cb371ecd68dff25",
+      "git_blob_sha1": "1226786276853465a6cee46df728df1c738a0fe1",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/shared_owner_scope_audit.json",
+      "bytes": 29382,
+      "sha256": "a377d58d8db23a61f30eb1034c277f4b49c348ec8b5c6a79772c686d8904f4b4",
+      "git_blob_sha1": "dc0f1a6074cb376cf694fd58dea9316fc9e1928c",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/source_dependency_verification.json",
+      "bytes": 28708,
+      "sha256": "4441d662abaca7956de9cc1b80670caf4213b93bd49fbdace70d90f2884f966c",
+      "git_blob_sha1": "c7a5b4e9c6f6a5e04caa7c785d99873d0a79956a",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/evidence/test_environment.json",
+      "bytes": 1855,
+      "sha256": "de531daa27999bf7d2630938ebb372fde6aabfc04bb5333c795889f493d7c354",
+      "git_blob_sha1": "dca9a1917dd42ca1826072c22b762fd51c74e1b9",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/prior_candidates.json",
+      "bytes": 8812,
+      "sha256": "e569375be29e4a5224675e0f8df873c25ae32cfc72cb1fd51d5f7112254a5235",
+      "git_blob_sha1": "ad649a744bf887051f6912ecedb3cff77d7b53b3",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/requirements-test.txt",
+      "bytes": 520,
+      "sha256": "f9313295bb6130e8be0ebdd922f30f052de22fe5cc116dfe17b316698935b933",
+      "git_blob_sha1": "659496ac99b36a4c5387836ea60819db8060fd4e",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/source_manifest.json",
+      "bytes": 30160,
+      "sha256": "2a3d0825e7c36d30f9635de5b23e252c8ba254287b09491403c5859b35bb01d5",
+      "git_blob_sha1": "b0c64193010d8fdc5126a9bee46c010c70680de9",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/test_changes.json",
+      "bytes": 6054,
+      "sha256": "3517fc442bc13ef64c971b6d5efd5456f1ea5d04069a6ca5c2149798a8b184c9",
+      "git_blob_sha1": "38faa1efd4f17ff2b7fa3d89e0eeade32dabc6c1",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/test_fixture_manifest.json",
+      "bytes": 53492,
+      "sha256": "084ada0c27392ec606fe3927303727f04bc3fe8e466e3a5d463d9fa6650b9be3",
+      "git_blob_sha1": "1827f30eae61c9b7a22b5db20fe03558eb9fcdbc",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/tests/manager_r3_assessed_fixture.py",
+      "bytes": 1952,
+      "sha256": "0b359501cc7a3c29e168e5b5d792ab0b638ead5b36df35799e5abdecac9e4638",
+      "git_blob_sha1": "f0b1a36b0b6942afb5cd9359d2a3e8a05f4feefa",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/tests/test_manager_announcement_parity_20261008.py",
+      "bytes": 40192,
+      "sha256": "22fccef9d1904c2ea0f52f645e4810cef876574bb8574722109fa37f0a29b4ed",
+      "git_blob_sha1": "899b9cb388d63fd88a84ad268df98e0290183ef0",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/tests/test_manager_daily_automation_20261008.py",
+      "bytes": 21726,
+      "sha256": "daf6997ee7c4d7e4d3bdd9cdb1149f1655d5455deced1879fb79dd2cd2a446da",
+      "git_blob_sha1": "63045e402d79647673f110ab8e92df37e066e5b7",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/tests/test_manager_daily_channels_20261008.py",
+      "bytes": 9283,
+      "sha256": "0fd82492fbfc87e44e04836a1312c76c5113d12db0c76f7a59c4f5c58b44eace",
+      "git_blob_sha1": "84bba51ef11c3af42f4c6bd5731b46d49f9e755d",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/tests/test_manager_daily_dispatch_20261008.py",
+      "bytes": 27375,
+      "sha256": "a6f355f991fc8f96ad39b1f5b80a1ebb70e6b4974391cbaecdd59b861705b0ed",
+      "git_blob_sha1": "22b17eaca26bf9f0443101d4141599e5258f6171",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/tests/test_manager_history_contract_20261008.py",
+      "bytes": 15113,
+      "sha256": "ba8b74490c9fcb248bc102c0c22aa76ec121f268730ab13ac14c2f69e013d188",
+      "git_blob_sha1": "3e0f6b5002963b3eb29aa8327fab2b0c2d405282",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/tests/test_manager_owner_namespace_contracts.py",
+      "bytes": 1135,
+      "sha256": "5a3203582a4857e9d5a269976b43aaff604f374ffc10ce94d8c8d843e2d5c1a0",
+      "git_blob_sha1": "8a46a9e72b4ddac91a14f7e16624fcc21364c56e",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/tests/test_manager_r3_binding_identity.py",
+      "bytes": 41306,
+      "sha256": "dbb2c445c8181f255cc8a6835ccb20b1b512520e977d92e8c097a8af3e937243",
+      "git_blob_sha1": "e331667b174473f330e144b5e400c0f8eadecb67",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/tests/test_manager_r3_cycle_outcomes.py",
+      "bytes": 8160,
+      "sha256": "83beb43e40a3cb01d95b220269c323e2e939c0a51e98bfae3fbd91c4ca04e46c",
+      "git_blob_sha1": "d9d466d446bbdef6fb39e502cded664a19e086be",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/tests/test_manager_r3_dates_inputs.py",
+      "bytes": 22190,
+      "sha256": "ab7a42ebcfece698e5df3a6031ddfc5652b20dc65e5123ccd5eb4ea640abeb57",
+      "git_blob_sha1": "e6b33a4fac884e7486b03aa9dce0e1786c18cc44",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/tests/test_manager_us_daily_automation_20261008.py",
+      "bytes": 24638,
+      "sha256": "619afccbc08dba0c151939991e7cb7e636359bf6ab99b623ea64b9ec50cd1ba4",
+      "git_blob_sha1": "6a32a95bdaec8d66d74c454219bed4cf95b62664",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/tests/test_manager_us_mapping_research.py",
+      "bytes": 19113,
+      "sha256": "1c077f679083252b11d07c1499081304e7a3200b2d170baa682ade18be718dcc",
+      "git_blob_sha1": "11a08514d51b1eeea45b7326ecf87336f9c1fe18",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/tests/test_manager_workspace_exact_page_binding_20261008.py",
+      "bytes": 10575,
+      "sha256": "c42a82f2a839f243efeab5e8fe4ff17c654006a8160a01ef28517b893c48192f",
+      "git_blob_sha1": "75f741d237855ee8e8e653e844b9da5bf490d97d",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/tests/test_manager_workspace_owner_20261008.py",
+      "bytes": 21417,
+      "sha256": "ff2d75044e173a21020338f4980e2347cba3988d90d9e6eae2fdca1ba778856e",
+      "git_blob_sha1": "31b0ac131e4d13da5d7f658853f6e58a939d9169",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/tools/__pycache__/verify_delivery.cpython-314.pyc",
+      "bytes": 12062,
+      "sha256": "c105a506ce0f1ac1b82bd2720d9f849009a974d741462cd8c3fe7e5ee1ba986f",
+      "git_blob_sha1": "8bbf6a30a28584ee702b7a851f943b83ea682fcd",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/tools/assemble_test_fixture.py",
+      "bytes": 4466,
+      "sha256": "da66e33f3bf53f9f54a6537a22ede85b3a591912859437ccfe3b36a23d695f1b",
+      "git_blob_sha1": "a99fe76577bac6f9545b07ce9903aafa90a379a0",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3/tools/verify_delivery.py",
+      "bytes": 6647,
+      "sha256": "687e89f85ef5ec3828386e85d465b4eba7dab5c39ccb2bd138b8d6af91906b05",
+      "git_blob_sha1": "93857348d4e82693a2bac5a398b06dfeecd65eb9",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    },
+    {
+      "path": "handoff/manager-daily-repair-20261009-r3.zip",
+      "bytes": 743800,
+      "sha256": "c8468c5e161b65fd01e105099af7bc97c40343c2ebfc986b3d518b8da6838c69",
+      "git_blob_sha1": "8deffc6cab7fb0c7af70b1afc73f97916ec76f23",
+      "status": "FULL_CONTENT_READBACK_MATCH"
+    }
+  ],
+  "live_operations_performed": false,
+  "INTEGRATED": "NOT_RUN",
+  "DEPLOYED": "NOT_RUN",
+  "API": "NOT_RUN",
+  "UI": "NOT_RUN",
+  "NATURAL": "NOT_RUN"
+}
