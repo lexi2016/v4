@@ -1,0 +1,46 @@
+{
+  "scope": "actual 20261009 STAGE_0925 receipt identity; readonly specialist semantic audit",
+  "files": [
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261009/STAGE_0925/receipt.json",
+      "sha256": "adbea512e47e2b1a30eb6bf74fa493ec59e080d933d556c402f91625a06fed4e"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261009/A_SHARE_SELECTION_STAGE_0925/run-c9942f671877c4011d4c3c98/artifact.csv",
+      "sha256": "e4b70a925cb39b210730ef4f4c84d5e7e0e147809409f04d9e541392db9d51fe"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261009/A_SHARE_SELECTION_STAGE_0925/run-c9942f671877c4011d4c3c98/manifest.json",
+      "sha256": "62637646dd15236032495a4c8cdab6586acab62e27caecc1a8b904f0d422d0f3"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261009/A_SHARE_SELECTION_STAGE_0925/run-c9942f671877c4011d4c3c98/receipt.json",
+      "sha256": "bb84f5a68180020526b3b8f767b0803811a3f8628b2177c30636bd13802b059d"
+    }
+  ],
+  "a_result": {
+    "requested_rows": 216,
+    "source_rows": 205,
+    "selected_rows": 10,
+    "missing_symbols": 11,
+    "status": "PARTIAL_WITH_ROWS",
+    "dispatch_mode": "RECOVERY",
+    "due_status": "LATE_CATCHUP_REPLAY",
+    "natural_status": "NATURAL_SLOT_UNVERIFIED"
+  },
+  "a_prep_correction": "A_SHARE_STAGE_ACQUISITION_UNIVERSE_V3 READY 216 rows; V2 path check was incorrect",
+  "timing": {
+    "helper_max_wait_seconds": 5,
+    "actual_lag_seconds": 5.918268,
+    "stage_cutoff": "09:25:05",
+    "actual_evaluation": "09:25:05.918268",
+    "hk_reference_window": "09:15-09:20",
+    "scheduled_0920_node": false
+  },
+  "HK": "BLOCKED_MISSING_20261008_MASTER",
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

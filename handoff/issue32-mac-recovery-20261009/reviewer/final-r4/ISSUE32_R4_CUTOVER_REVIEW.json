@@ -1,0 +1,72 @@
+{
+  "schema_version": "v4.issue32.r4.independent_review.v1",
+  "review_status": "PASS",
+  "behavior_verified": "PASS_SCOPED_TO_GUARD_AND_UNCHANGED_CANDIDATE_API_RECEIPT",
+  "can_deploy": "YES_LOCAL_API_ONLY_TEST_PUBLICATION_AFTER_LOCKED_LIVE_PREFLIGHT",
+  "deployed": "NO",
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "reviewed_diff": {
+    "helper_path": "tools/api_only_cutover_issue32_r4.py",
+    "helper_sha256": "a7698c20c271097e85e108b2cc2f5cf7868a6a4d0b5988203196257b56a1db7b",
+    "delta": "preflight readback opts into allow_r1_consumption_validation=True",
+    "line": 820,
+    "reversed_delta_sha256": "9b28e5f9bfa06b5cd6f2169ebf85a6f3ad99b72e966518dcebaeb3bd30f67020"
+  },
+  "candidate": {
+    "release_id": "issue32_preselection_api_actual_r4",
+    "manifest_sha256": "16675f6016d40e8a5eaf7b1e3e37694228364fae544e8a7b73e4bf17e1f5a9e6",
+    "inventory_entry_count": 1018,
+    "non_delta_entry_count": 1015,
+    "non_delta_inventory_sha256": "9341192fd205ca8fccaba52747671f647b9c0f39dd4c0f5695ac5901ab311415",
+    "directory_entry_count": 115,
+    "delta_files": {
+      "apps/api/v35_api/app.py": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5",
+      "apps/api/v35_api/preselection_router.py": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "apps/api/v35_api/preselection_service.py": "cbed3aa4797889051eb7bebe4b8e3240b568d72b4dfb5c20f65e914d39e48044"
+    },
+    "release_verifier": "PASS"
+  },
+  "focused_regression": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B '/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/tools/test_api_preflight_r1_extension.py'",
+    "status": "PASS_R1_EXTENSION_STRICT_ALLOWLIST",
+    "receipt_sha256": "5cb1659c6830478baa5631f2d98443adf170decb031509bda16bdc712e21a664",
+    "baseline_sha256": "c511e4c0241e7f98820aeba0e763a967223da1af454d14c6bac89c6fe8d49c31",
+    "response_raw_sha256": "e6388eaea085347dd041b8372ee86fabd608be7c8676043327d3ed080ce8d748",
+    "response_stripped_sha256": "646605cfa3ccc6b8a2e90938132712fdee9e98b2cdcb14296a71a02ca9b86f89",
+    "extension_count": 1,
+    "malicious_extension_rejected": "HISTORICAL_ANALYSIS_CONSUMPTION_VALIDATION_SCHEMA_MISMATCH:current_analysis",
+    "service_or_pointer_mutation_called": false,
+    "payload_bytes_persisted_or_printed": false
+  },
+  "cutover_plan": {
+    "sha256": "1263126d04f14c9094b3d6e1a3d850d4a5b97f3a975d5b9bd27df4d73e6559f0",
+    "preflight_status": "READY_API_ONLY_R2_CUTOVER",
+    "active_plist_sha256": "495a9be82e715979d59c03f5c4dd883a7570c55f15b72fa5ed309cacb3914356",
+    "staged_plist_sha256": "c88e4069f6deb467a204b4510824e62b15cb8fc11dfa7892a43e5ec8eaed8ec4",
+    "preflight_receipt_sha256": "0cf0b729ad216f14742b3a5b4cf200890782a5c6faf900f1d789c1406c1b793c",
+    "safety": {
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    "scheduler_action": "UNCHANGED",
+    "formal_manager_state_action": "READ_ONLY",
+    "execution_boundary": "PLAN_AND_HELPER_ONLY; no live switch/plist write/launchctl/UI reload in this review",
+    "rollback_command_contract": "rollback --receipt <operation_receipt.json> --confirm ROLLBACK_API_ONLY_TO_ISSUE32_RECORDED_PREIMAGE_R4 --expected-current-plist-sha256 <observed current plist SHA>",
+    "rollback_executed": false
+  },
+  "acceptance": {
+    "a_api_candidate_behavior": "PASS; 216 rows paginate 200+16 for 20261009, reused same application inventory receipt",
+    "hk_exact_20261008_input": "CANNOT_CONFIRM_MISSING",
+    "stage_result": "CANNOT_CONFIRM",
+    "manager_workspace": "CANNOT_CONFIRM",
+    "live_api_after_switch": "CANNOT_CONFIRM_NOT_RUN",
+    "reloaded_ui": "CANNOT_CONFIRM_NOT_RUN",
+    "natural_slot": "CANNOT_CONFIRM_NOT_RUN"
+  }
+}

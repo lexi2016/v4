@@ -1,0 +1,68 @@
+{
+  "schema_version": "v4.issue32.analysis_preflight_baseline_diagnosis.v1",
+  "status": "DIAGNOSED_STRICT_MODE_MISMATCH",
+  "finding": "Active and candidate historical-analysis responses are byte-identical; the only difference from the pinned raw response is the additive top-level consumption_validation member.",
+  "query": "/api/v4/manager/research/announcements/analysis?date=20261008&publication_date=2026-10-07",
+  "baseline": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_MANAGER_R1_MAC_20261008/control/pre_switch_product_baseline.json",
+    "file_sha256": "c511e4c0241e7f98820aeba0e763a967223da1af454d14c6bac89c6fe8d49c31",
+    "current_analysis_response_sha256": "646605cfa3ccc6b8a2e90938132712fdee9e98b2cdcb14296a71a02ca9b86f89"
+  },
+  "active_candidate_comparison": {
+    "candidate_release_id": "issue32_preselection_api_actual_r4",
+    "candidate_manifest_sha256": "16675f6016d40e8a5eaf7b1e3e37694228364fae544e8a7b73e4bf17e1f5a9e6",
+    "candidate_inventory_sha256": "c5c8752f0aa57eea0d0dc6986e663bb672e29ce9acea2b0134cb3551227a25f1",
+    "active_response": {
+      "http_status": 200,
+      "bytes": 4296143,
+      "sha256": "e6388eaea085347dd041b8372ee86fabd608be7c8676043327d3ed080ce8d748",
+      "repeated_read_byte_stable": true,
+      "stripped_consumption_validation_sha256": "646605cfa3ccc6b8a2e90938132712fdee9e98b2cdcb14296a71a02ca9b86f89"
+    },
+    "candidate_response": {
+      "http_status": 200,
+      "bytes": 4296143,
+      "sha256": "e6388eaea085347dd041b8372ee86fabd608be7c8676043327d3ed080ce8d748",
+      "repeated_read_byte_stable": true,
+      "stripped_consumption_validation_sha256": "646605cfa3ccc6b8a2e90938132712fdee9e98b2cdcb14296a71a02ca9b86f89"
+    },
+    "active_equals_candidate_exact": true,
+    "stripped_sha_matches_frozen_baseline": true,
+    "stripped_member_count": 1,
+    "analysis_product_sha256": "8b1e906db2cdcb8784d9658085aa4f1aa0711a8711b83a38c9ee8d7567151157",
+    "owner_import_status": "VERIFIED",
+    "consumption_validation": {
+      "schema_version": "v4.manager_research.announcement_analysis_consumption.v1",
+      "status": "VERIFIED",
+      "target_trade_date": "20261008",
+      "publication_date": "2026-10-07",
+      "product_sha256": "8b1e906db2cdcb8784d9658085aa4f1aa0711a8711b83a38c9ee8d7567151157",
+      "source_manifest_sha256": "c0bfcb53cc3bb5a56264d38e92e907b18a1a09f4055ea39494dbbc16bcfb6f20",
+      "reviewed_at": "2026-10-08T08:09:08+08:00",
+      "owner_available_at": "2026-10-08T00:55:47.166416+00:00",
+      "latest_source_or_review_at": "2026-10-08T08:55:47.166416+08:00",
+      "stable_across_repeated_reads": true
+    }
+  },
+  "preflight_verifier": {
+    "helper_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/tools/api_only_cutover_issue32_r4.py",
+    "helper_sha256": "9b28e5f9bfa06b5cd6f2169ebf85a6f3ad99b72e966518dcebaeb3bd30f67020",
+    "strict_default_result": "HISTORICAL_ANALYSIS_RESPONSE_SHA_MISMATCH:current_analysis",
+    "allow_r1_consumption_validation_result": "HISTORICAL_ANALYSIS_PRODUCTS_VERIFIED_WORKSPACE_CANNOT_CONFIRM",
+    "allow_r1_current_and_legacy_analysis_comparisons_match_baseline": true,
+    "workspace_status": "CANNOT_CONFIRM",
+    "preflight_failure_receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/evidence/api_cutover_preflight_failure_issue32_r4.json",
+    "preflight_failure_receipt_sha256": "83d13d6f6a64d3f2ae26c82bcaed8e3ab9a8c1d565c30513e16d5476bbd2e689",
+    "live_api_or_scheduler_changed": false,
+    "live_state_after_error": "UNCHANGED"
+  },
+  "recommended_guard_handling": "Preserve the original immutable baseline and raw response hashes; use the existing allow_r1_consumption_validation=True path in preflight so only the known additive member is stripped for baseline byte comparison and separately validated. Record observed full-response SHA and canonical extension SHA. Do not overwrite or delete historical evidence.",
+  "validation_boundary": {
+    "api_current_analysis_active_candidate_parity": "PASS",
+    "historical_analysis_with_approved_extension_validation": "PASS",
+    "ui_or_page_restoration": "CANNOT_CONFIRM",
+    "stage_result": "CANNOT_CONFIRM",
+    "natural_run": "CANNOT_CONFIRM",
+    "live_mutations": "NONE"
+  }
+}

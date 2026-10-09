@@ -1,0 +1,90 @@
+{
+  "schema_version": "v4.issue32.r4.bootout_transition_independent_review.v1",
+  "review_status": "PASS",
+  "tested_status": "PASS_9_CASES",
+  "behavior_verified": "PASS_BOUNDED_LAUNCHD_TRANSITION_AND_FAIL_CLOSED_RECOVERY",
+  "can_deploy": "YES_LOCAL_API_ONLY_TEST_PUBLICATION_AFTER_SHARED_LOCK_LIVE_PREFLIGHT",
+  "deployed": "NO",
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "incident": {
+    "failed_execute_receipt": "evidence/api_only_switch_runs/20261009T014528Z-2a214853/operation_receipt.json",
+    "failed_execute_receipt_sha256": "e161ffe589e1c95f699c0c545f4578bdf3a1dcdb8e5fe9af457392b4216ef2ed",
+    "failed_status": "ROLLBACK_INCOMPLETE",
+    "original_error": "API_ONLY_SWITCH_BOOTOUT_NOT_CONFIRMED",
+    "transient_state": "LOADED_UNVERIFIED; identity=null; API_ONLY_LAUNCH_AGENT_NOT_RUNNING",
+    "active_plist_sha256_at_failure": "495a9be82e715979d59c03f5c4dd883a7570c55f15b72fa5ed309cacb3914356",
+    "guarded_rollback_receipt": "evidence/api_only_switch_runs/20261009T014609Z-rollback-c26d2871/operation_receipt.json",
+    "guarded_rollback_receipt_sha256": "c1a309bc25a5f03e16b1c7b94751bac461b4688379da70221dc69dd777d37c28",
+    "guarded_rollback_status": "ROLLED_BACK_TO_PREIMAGE",
+    "recovered_old_api_pid": "76542",
+    "recovered_old_api_http_status": 200,
+    "active_plist_sha256_after_recovery": "495a9be82e715979d59c03f5c4dd883a7570c55f15b72fa5ed309cacb3914356"
+  },
+  "source_diff": {
+    "baseline_path": "evidence/publisher_before_async_fix.py",
+    "baseline_mode": "0444",
+    "baseline_sha256": "a7698c20c271097e85e108b2cc2f5cf7868a6a4d0b5988203196257b56a1db7b",
+    "current_path": "tools/api_only_cutover_issue32_r4.py",
+    "current_sha256": "864a07b9bdf915a14b877eac89ddc931bb0f4976b70599c242671ff177e9cf25",
+    "unified_diff_path": "evidence/publisher_asyncfix_unified.diff",
+    "unified_diff_sha256": "6cf4610eb96d7a7823723e939e572f3528788c0a722f01a26a60caa541b0c791",
+    "unified_diff_lines": 259,
+    "regenerated_hunks_match": true,
+    "scope": "bounded unload/recovery waits, recorded identity allowlist, timeout/unknown fail-closed, post-wait active plist CAS, recovery API readback receipt; no business app changes"
+  },
+  "state_transition_test": {
+    "path": "tools/test_api_launchctl_transition_r1.py",
+    "sha256": "6f9193000b4ce39458e0c1d97acd85b584615aa2d8c399d30b7d6941b9cb4c08",
+    "command": "PYTHONDONTWRITEBYTECODE=1 ISSUE32_TRANSITION_RECEIPT_PATH=<reviewer/final-r4/api_launchctl_transition_independent_rerun_p2.json> <pinned-v3.5-mac-python> -B tools/test_api_launchctl_transition_r1.py",
+    "case_count": 9,
+    "status": "PASS_BOUNDED_BOOTOUT_TRANSITION_AND_FAIL_CLOSED_RECOVERY",
+    "independent_receipt_path": "reviewer/final-r4/api_launchctl_transition_independent_rerun_p2.json",
+    "receipt_sha256": "f0cd646d5a655ed293a9430300ff6c4fb7f1e0888cac6a1750f8e13415b264e7",
+    "launchctl_called": false,
+    "service_started_or_stopped": false,
+    "active_api_plist_read_or_written": false,
+    "pointer_or_scheduler_mutation": false
+  },
+  "fresh_readonly_preflight": {
+    "path": "reviewer/final-r4/api_only_preflight_independent_rerun.json",
+    "sha256": "90017195f3d1c72300cb6a4b57fe466af7fb7aa34a8371b4bf15e9aac6857b76",
+    "status": "READY_API_ONLY_R2_CUTOVER",
+    "active_api_plist_sha256": "495a9be82e715979d59c03f5c4dd883a7570c55f15b72fa5ed309cacb3914356",
+    "active_api_pid": "76542",
+    "candidate_manifest_sha256": "16675f6016d40e8a5eaf7b1e3e37694228364fae544e8a7b73e4bf17e1f5a9e6",
+    "staged_plist_sha256": "c88e4069f6deb467a204b4510824e62b15cb8fc11dfa7892a43e5ec8eaed8ec4",
+    "api_release_integration": "PASS",
+    "scheduler_action": "UNCHANGED",
+    "formal_manager_state_action": "READ_ONLY",
+    "safety": {
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    "shared_lock_live_preflight": "MUST_BE_REPEATED_BY_EXECUTE; NOT_RUN_BY_REVIEWER"
+  },
+  "retained_prior_api_acceptance": {
+    "candidate_canary_path": "reviewer/actual-candidate-r1/API_CANDIDATE_CANARY.json",
+    "candidate_canary_sha256": "2a1485ef8b9005ac231fcfe35883cdf167e4a6d3a791bb8acb7f1caef7772c1b",
+    "a_share_rows": 216,
+    "pagination": [
+      200,
+      16
+    ],
+    "target_date": "20261009",
+    "stage_result_verified": false
+  },
+  "cannot_confirm": {
+    "candidate_live_api_after_switch": "NOT_RUN",
+    "hk_exact_20261008_input": "CANNOT_CONFIRM",
+    "manager_workspace_completeness": "CANNOT_CONFIRM",
+    "stage_result": "CANNOT_CONFIRM",
+    "reloaded_ui": "CANNOT_CONFIRM",
+    "natural_slot": "CANNOT_CONFIRM"
+  }
+}

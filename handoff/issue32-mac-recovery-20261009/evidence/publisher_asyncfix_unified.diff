@@ -1,0 +1,259 @@
+--- /Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/evidence/publisher_before_async_fix.py
++++ /Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/tools/api_only_cutover_issue32_r4.py
+@@ -29,7 +29,7 @@
+ from datetime import datetime, timezone
+ from html.parser import HTMLParser
+ from pathlib import Path
+-from typing import Any, Mapping
++from typing import Any, Mapping, Sequence
+ from urllib.parse import parse_qs, urlsplit
+ 
+ sys.dont_write_bytecode = True
+@@ -1644,8 +1644,84 @@
+         "V35_APP_ROOT", "V35_RELEASE_ID", "V35_RELEASE_MANIFEST_SHA256"))
+ 
+ 
++def _candidate_runtime_identity(plan: Mapping[str, Any]) -> dict[str, Any]:
++    return {"state": "running", "V35_RELEASE_ID": plan["target"]["release_id"],
++        "V35_APP_ROOT": plan["target"]["app_root"],
++        "V35_RELEASE_MANIFEST_SHA256": plan["target"]["release_manifest_sha256"]}
++
++
++def _wait_for_unloaded(expected_identities: Sequence[Mapping[str, Any]], *,
++                       timeout_s: int = 30) -> dict[str, Any]:
++    """Wait for launchd to confirm the exact label absent after bootout.
++
++    `launchctl bootout` returns before macOS has necessarily removed the job.
++    Intermediate `LOADED_UNVERIFIED` states are waited out; a running job is
++    accepted as transitional only when its runtime identity belongs to this
++    recorded transaction. Unknown identity/state and timeout remain failures.
++    """
++    if timeout_s <= 0 or not expected_identities:
++        raise ValueError("API_ONLY_BOOTOUT_WAIT_ARGUMENTS_INVALID")
++    deadline = time.monotonic() + timeout_s
++    poll_count = 0
++    last: dict[str, Any] | None = None
++    while True:
++        observed = _observe_loaded()
++        poll_count += 1
++        state = observed.get("state")
++        if state == "NOT_LOADED":
++            return {**observed, "poll_count": poll_count, "wait_status": "ABSENT_CONFIRMED"}
++        if state == "LOADED":
++            identity = observed.get("identity")
++            if (not isinstance(identity, Mapping) or not identity.get("pid")
++                    or not any(_identity_matches(identity, expected) for expected in expected_identities)):
++                raise ValueError("API_ONLY_BOOTOUT_REFUSES_UNKNOWN_LOADED_IDENTITY:" + str(observed))
++        elif state != "LOADED_UNVERIFIED":
++            raise ValueError("API_ONLY_BOOTOUT_STATE_UNVERIFIED:" + str(observed))
++        last = observed
++        remaining = deadline - time.monotonic()
++        if remaining <= 0:
++            raise ValueError("API_ONLY_BOOTOUT_ABSENCE_TIMEOUT:" + str(last))
++        time.sleep(min(0.5, remaining))
++
++
++def _wait_for_recovery_transition(plan: Mapping[str, Any], *,
++                                  timeout_s: int = 30) -> tuple[dict[str, Any], str]:
++    """Resolve a launchd transition to absence or one recorded transaction identity."""
++    if timeout_s <= 0:
++        raise ValueError("API_ONLY_RECOVERY_WAIT_ARGUMENT_INVALID")
++    old_identity = plan["before"]["loaded_identity"]
++    candidate_identity = _candidate_runtime_identity(plan)
++    deadline = time.monotonic() + timeout_s
++    poll_count = 0
++    last: dict[str, Any] | None = None
++    while True:
++        observed = _observe_loaded()
++        poll_count += 1
++        state = observed.get("state")
++        if state == "NOT_LOADED":
++            return ({**observed, "poll_count": poll_count,
++                     "transition_wait_status": "ABSENT_CONFIRMED"}, "unloaded")
++        if state == "LOADED":
++            identity = observed.get("identity")
++            if not isinstance(identity, Mapping) or not identity.get("pid"):
++                raise ValueError("API_ONLY_RECOVERY_RUNTIME_STATE_UNVERIFIED:" + str(observed))
++            if _identity_matches(identity, old_identity):
++                return (observed, "original")
++            if _identity_matches(identity, candidate_identity):
++                return (observed, "candidate")
++            raise ValueError("API_ONLY_ROLLBACK_REFUSES_UNKNOWN_LOADED_IDENTITY")
++        if state != "LOADED_UNVERIFIED":
++            raise ValueError("API_ONLY_RECOVERY_RUNTIME_STATE_UNVERIFIED:" + str(observed))
++        last = observed
++        remaining = deadline - time.monotonic()
++        if remaining <= 0:
++            raise ValueError("API_ONLY_RECOVERY_RUNTIME_TRANSITION_TIMEOUT:" + str(last))
++        time.sleep(min(0.5, remaining))
++
++
+ def _recovery_state(plan: Mapping[str, Any], candidate_plist_sha: str, *,
+-                     expected_current_sha: str | None = None) -> tuple[str, dict[str, Any], str]:
++                     expected_current_sha: str | None = None,
++                     wait_for_transition: bool = False) -> tuple[str, dict[str, Any], str]:
+     if (ACTIVE_API_PLIST.is_symlink()
+             or (ACTIVE_API_PLIST.exists() and not ACTIVE_API_PLIST.is_file())):
+         raise ValueError("API_ONLY_ROLLBACK_ACTIVE_PLIST_PATH_UNAVAILABLE")
+@@ -1661,6 +1737,16 @@
+         if current_sha != expected_current_sha:
+             raise ValueError("API_ONLY_ROLLBACK_CURRENT_PLIST_PREIMAGE_MISMATCH")
+     observed = _observe_loaded()
++    if observed.get("state") == "LOADED_UNVERIFIED" and wait_for_transition:
++        observed, runtime_role = _wait_for_recovery_transition(plan)
++        if (ACTIVE_API_PLIST.is_symlink()
++                or (ACTIVE_API_PLIST.exists() and not ACTIVE_API_PLIST.is_file())):
++            raise ValueError("API_ONLY_ROLLBACK_ACTIVE_PLIST_PATH_UNAVAILABLE")
++        latest_sha = (_sha(_regular_file(ACTIVE_API_PLIST, "API_ONLY_ROLLBACK_ACTIVE_PLIST"))
++                      if ACTIVE_API_PLIST.exists() else "ABSENT")
++        if latest_sha != current_sha:
++            raise ValueError("API_ONLY_ROLLBACK_ACTIVE_PLIST_CHANGED_DURING_RUNTIME_WAIT")
++        return current_sha, observed, runtime_role
+     if observed.get("state") == "NOT_LOADED":
+         return current_sha, observed, "unloaded"
+     if observed.get("state") != "LOADED":
+@@ -1670,9 +1756,7 @@
+         raise ValueError("API_ONLY_ROLLBACK_RUNTIME_STATE_UNVERIFIED:" + str(observed))
+     if _identity_matches(identity, plan["before"]["loaded_identity"]):
+         return current_sha, observed, "original"
+-    candidate_identity = {"state": "running", "V35_RELEASE_ID": plan["target"]["release_id"],
+-        "V35_APP_ROOT": plan["target"]["app_root"],
+-        "V35_RELEASE_MANIFEST_SHA256": plan["target"]["release_manifest_sha256"]}
++    candidate_identity = _candidate_runtime_identity(plan)
+     if _identity_matches(identity, candidate_identity):
+         return current_sha, observed, "candidate"
+     raise ValueError("API_ONLY_ROLLBACK_REFUSES_UNKNOWN_LOADED_IDENTITY")
+@@ -1709,7 +1793,8 @@
+             plan, backup_path, original_raw, backup_metadata, base_record, lock_lease=lock_lease)
+         old_identity = plan["before"]["loaded_identity"]
+         current_sha, observed, runtime_role = _recovery_state(
+-            plan, candidate_plist_sha, expected_current_sha=expected_current_sha)
++            plan, candidate_plist_sha, expected_current_sha=expected_current_sha,
++            wait_for_transition=True)
+         # Freeze this attempt's observed state as an exact CAS. ABSENT is an
+         # explicit state, never a wildcard permitting replacement of a file.
+         attempt_pointer_sha = current_sha
+@@ -1718,7 +1803,8 @@
+             _verify_recovery_backup(plan, backup_path, original_raw, backup_metadata,
+                                     recorded_base, lock_lease=lock_lease)
+             _, _, checked_role = _recovery_state(
+-                plan, candidate_plist_sha, expected_current_sha=attempt_pointer_sha)
++                plan, candidate_plist_sha, expected_current_sha=attempt_pointer_sha,
++                wait_for_transition=True)
+             if checked_role != "candidate":
+                 raise ValueError("API_ONLY_ROLLBACK_RUNTIME_CHANGED_BEFORE_BOOTOUT")
+             try:
+@@ -1726,16 +1812,17 @@
+                 _launchctl_action("bootout")
+             except Exception:
+                 pass
+-            observed = _observe_loaded()
+-            if observed.get("state") != "NOT_LOADED":
+-                raise ValueError("API_ONLY_ROLLBACK_COULD_NOT_CONFIRM_JOB_UNLOADED:" + str(observed))
++            unloaded = _wait_for_unloaded([_candidate_runtime_identity(plan)], timeout_s=30)
++            if unloaded.get("wait_status") != "ABSENT_CONFIRMED":
++                raise ValueError("API_ONLY_ROLLBACK_COULD_NOT_CONFIRM_JOB_UNLOADED:" + str(unloaded))
+         # Recovery validates the recorded base; it must not require a healthy
+         # candidate or demand that a missing active pointer already be the base.
+         _assert_prepared_transaction(prepared_transaction, lock_lease)
+         _verify_recovery_backup(plan, backup_path, original_raw, backup_metadata,
+                                 recorded_base, lock_lease=lock_lease)
+         current_sha, observed, runtime_role = _recovery_state(
+-            plan, candidate_plist_sha, expected_current_sha=attempt_pointer_sha)
++            plan, candidate_plist_sha, expected_current_sha=attempt_pointer_sha,
++            wait_for_transition=True)
+         if runtime_role == "candidate":
+             raise ValueError("API_ONLY_ROLLBACK_CANDIDATE_REAPPEARED_BEFORE_RESTORE")
+         if current_sha == candidate_plist_sha:
+@@ -1757,7 +1844,8 @@
+         _verify_recovery_backup(plan, backup_path, original_raw, backup_metadata,
+                                 recorded_base, lock_lease=lock_lease)
+         _, observed, runtime_role = _recovery_state(plan, candidate_plist_sha,
+-            expected_current_sha=plan["before"]["active_api_plist_sha256"])
++            expected_current_sha=plan["before"]["active_api_plist_sha256"],
++            wait_for_transition=True)
+         if runtime_role == "candidate":
+             raise ValueError("API_ONLY_ROLLBACK_CANDIDATE_REAPPEARED_BEFORE_BOOTSTRAP")
+         bootstrap_error = None
+@@ -1767,20 +1855,34 @@
+                 _launchctl_action("bootstrap")
+             except Exception as exc:
+                 bootstrap_error = str(exc)
+-                observed = _observe_loaded()
+-                if observed.get("state") != "LOADED" or not _identity_matches(observed.get("identity"), old_identity):
+-                    raise ValueError("API_ONLY_ROLLBACK_BOOTSTRAP_STATE_UNRESOLVED") from exc
+         deadline = time.monotonic() + 30
+         verified = None
++        last_observed: dict[str, Any] | None = None
+         while time.monotonic() < deadline:
+             observed = _observe_loaded()
+-            if observed.get("state") == "LOADED" and _identity_matches(observed.get("identity"), old_identity):
+-                verified = {"runtime": observed["identity"],
+-                            "http": _verify_openapi(require_manager_route=False)}
+-                break
+-            time.sleep(1)
++            last_observed = observed
++            if observed.get("state") == "LOADED":
++                identity = observed.get("identity")
++                if not isinstance(identity, Mapping) or not identity.get("pid"):
++                    raise ValueError("API_ONLY_ROLLBACK_RUNTIME_STATE_UNVERIFIED:" + str(observed))
++                if _identity_matches(identity, old_identity):
++                    try:
++                        verified = {"runtime": identity,
++                                    "http": _verify_openapi(require_manager_route=False)}
++                        break
++                    except (ValueError, OSError) as exc:
++                        last_observed = {**observed, "readback_error": str(exc)[:300]}
++                elif _identity_matches(identity, _candidate_runtime_identity(plan)):
++                    raise ValueError("API_ONLY_ROLLBACK_CANDIDATE_RUNTIME_REAPPEARED")
++                else:
++                    raise ValueError("API_ONLY_ROLLBACK_REFUSES_UNKNOWN_LOADED_IDENTITY")
++            elif observed.get("state") not in {"NOT_LOADED", "LOADED_UNVERIFIED"}:
++                raise ValueError("API_ONLY_ROLLBACK_RUNTIME_STATE_UNVERIFIED:" + str(observed))
++            time.sleep(0.5)
+         if verified is None:
+-            raise ValueError("API_ONLY_ROLLBACK_OLD_API_READBACK_FAILED")
++            raise ValueError("API_ONLY_ROLLBACK_OLD_API_READBACK_FAILED:" + str(last_observed)) from (
++                ValueError(bootstrap_error) if bootstrap_error else None
++            )
+         try:
+             historical_products: Any = _verify_historical_product_readback()
+         except Exception as exc:
+@@ -1884,8 +1986,8 @@
+         _require_release_lock(lock_lease)
+         bootout_started = True
+         _launchctl_action("bootout")
+-        unloaded = _observe_loaded()
+-        if unloaded.get("state") != "NOT_LOADED":
++        unloaded = _wait_for_unloaded([preflight["before"]["loaded_identity"]], timeout_s=30)
++        if unloaded.get("wait_status") != "ABSENT_CONFIRMED":
+             raise ValueError("API_ONLY_SWITCH_BOOTOUT_NOT_CONFIRMED:" + str(unloaded))
+         if _sha_file(ACTIVE_API_PLIST) != before_sha:
+             raise ValueError("API_ONLY_SWITCH_ACTIVE_PLIST_CHANGED_AFTER_BOOTOUT")
+@@ -1910,6 +2012,7 @@
+         final = _record(receipt_path, "API_ONLY_R2_SWITCHED_AND_READBACK_VERIFIED", {
+             "before": preflight["before"], "after": {**preflight["after"],
+                 "loaded_identity": verification["runtime"]},
++            "bootout_absence_verification": unloaded,
+             "candidate_release": preflight["candidate_release"],
+             "api_release_integration": preflight["api_release_integration"],
+             "backup_path": str(backup_path), "backup_sha256": before_sha,
+@@ -1971,7 +2074,7 @@
+     if expected_current_sha is None:
+         raise ValueError("API_ONLY_ROLLBACK_EXPECTED_CURRENT_SHA_INVALID")
+     current_sha, _, runtime_role = _recovery_state(plan, candidate_sha,
+-                                                   expected_current_sha=expected_current_sha)
++        expected_current_sha=expected_current_sha, wait_for_transition=True)
+     if receipt["status"] == "API_ONLY_R2_SWITCHED_AND_READBACK_VERIFIED":
+         # Ordinary rollback of a successful publication retains the full
+         # current-candidate guard. Interrupted recovery instead relies on the
+@@ -1989,7 +2092,8 @@
+             raise ValueError("API_ONLY_ROLLBACK_RECEIPT_INTEGRATION_MISMATCH")
+     guards = _verify_readonly_guards(plan)
+     _assert_prepared_transaction(prepared_transaction, lock_lease)
+-    _recovery_state(plan, candidate_sha, expected_current_sha=expected_current_sha)
++    _recovery_state(plan, candidate_sha, expected_current_sha=expected_current_sha,
++                    wait_for_transition=True)
+     prepared_transaction["expected_current_sha"] = expected_current_sha
+     operation_dir = _new_operation_dir("-rollback")
+     _record(operation_dir / "operation_receipt.json", "PREPARED", {

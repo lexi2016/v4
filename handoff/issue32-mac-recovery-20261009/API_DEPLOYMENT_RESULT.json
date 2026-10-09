@@ -1,0 +1,43 @@
+{
+  "status": "DEPLOYED_API_VERIFIED_UI_VERIFIED_PRESELECTION_SCOPE",
+  "release_id": "issue32_preselection_api_actual_r4",
+  "pid": 78617,
+  "manifest_sha256": "16675f6016d40e8a5eaf7b1e3e37694228364fae544e8a7b73e4bf17e1f5a9e6",
+  "operation_receipt": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/evidence/api_only_switch_runs/20261009T021002Z-d7e774e0/operation_receipt.json",
+  "operation_receipt_file_sha256": "c29f302b01092432fcd50c7bb0b47ea5e35a770d900f02983e252af38f0100bf",
+  "source_root": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/candidate/issue32_preselection_api_actual_r4/app",
+  "runtime_location_caveat": "Permanent task candidate root; not canonical full app or formal release store",
+  "date": "20261009",
+  "api_counts": {
+    "a_all_pool": 216,
+    "pages": [
+      200,
+      16
+    ],
+    "premarket": 37,
+    "research": 186,
+    "fingerprint": "697ebc54de9068f782df05ef22fa7fc5c412a86f1424d1de90c2fc6b92ba04ab"
+  },
+  "ui": {
+    "reloaded": true,
+    "observed_release": "issue32_preselection_api_actual_r4",
+    "date": "2026-10-09",
+    "A_summary": "当前显示 200 / 共 216 条（待补齐）",
+    "research": "完整 186 条",
+    "HK": "CANNOT_CONFIRM missing20261008 security master",
+    "visible_A_rows": 200,
+    "complete_UI_rows": false,
+    "complete_stage_input_rows": 216
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "remaining": {
+    "HK_input": "BLOCKED",
+    "scheduler_shared_fix": "CANDIDATE_IN_PROGRESS",
+    "natural_slot": "UNVERIFIED_RECOVERY_RESULT_ONLY"
+  }
+}

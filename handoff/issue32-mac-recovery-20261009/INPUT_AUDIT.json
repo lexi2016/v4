@@ -1,0 +1,35 @@
+{
+  "target_date": "20261009",
+  "required_price_date": "20261008",
+  "required_eligibility_date": "20261008",
+  "master_index": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_security_master/latest.json",
+    "sha256": "7547d5c65a773ebeb51a81ec0a1ab173dc311ee3009b61088bede48260bcd763",
+    "entry_count": 36,
+    "latest_confirmed_date": "20260930",
+    "required_entry_present": false
+  },
+  "price_observation": {
+    "date": "20261008",
+    "manifest_sha256": "a9c75b248d264e2ed78532cbfc1004f8de97b8e8f91c587a66b50f5afa020bee",
+    "panel_sha256": "785212e96f9f088075800f55dfaf09ef83fccdde7c220e24f9f14d8808db5f90",
+    "provider_finality": "CANNOT_CONFIRM"
+  },
+  "local_HK_pool": {
+    "row_count": 0,
+    "status": "EXPECTED_MISSING",
+    "sha256": "3d00fc3ebd27df59724d808277d256d4636aedde1d0c3dc620a34c99fa166f7f"
+  },
+  "actual_failure": "17:30 and 18:00 executor invoked; ensure exact-date reuse unavailable 20261008; dependent materialize raised KeyError. Empty started_workload_ids does not mean no invocation.",
+  "checked_additional_roots": [
+    "20260923 shared owner .runtime/data",
+    "canonical upstreams/v3_shared_data/.runtime/data",
+    "20260904 review-core package .runtime/data",
+    "configured state/workspace shared store and adjacent backup/archive names",
+    "acceptance/universe_canary targeted filenames"
+  ],
+  "recovery_source_found": false,
+  "outside_scoped_roots": "CANNOT_CONFIRM",
+  "reviewer": "hk_today_tomorrow_blocker",
+  "raw_market_data_uploaded": false
+}

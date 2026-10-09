@@ -1,0 +1,57 @@
+{
+  "case_count": 9,
+  "cases": [
+    {
+      "case": "bootout_async_unverified_to_absent",
+      "poll_count": 2,
+      "status": "PASS"
+    },
+    {
+      "case": "bootout_known_preimage_identity_continues_until_absent",
+      "poll_count": 2,
+      "status": "PASS"
+    },
+    {
+      "case": "bootout_known_candidate_identity_continues_until_absent",
+      "poll_count": 2,
+      "status": "PASS"
+    },
+    {
+      "case": "transition_resolves_to_recorded_preimage",
+      "resolved_role": "original",
+      "status": "PASS"
+    },
+    {
+      "case": "unknown_loaded_identity_rejected",
+      "status": "PASS"
+    },
+    {
+      "case": "unknown_launchctl_state_rejected",
+      "status": "PASS"
+    },
+    {
+      "case": "persistent_transition_times_out_closed",
+      "status": "PASS"
+    },
+    {
+      "case": "receipt_recovery_waits_for_absence_and_rechecks_pointer_cas",
+      "resolved_role": "unloaded",
+      "status": "PASS"
+    },
+    {
+      "case": "pointer_drift_during_wait_refused",
+      "status": "PASS"
+    }
+  ],
+  "isolated_temp_pointer_used": true,
+  "launchctl_called": false,
+  "live_active_api_plist_read_or_written": false,
+  "pointer_or_scheduler_mutation": false,
+  "publisher_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/tools/api_only_cutover_issue32_r4.py",
+  "publisher_sha256": "864a07b9bdf915a14b877eac89ddc931bb0f4976b70599c242671ff177e9cf25",
+  "schema_version": "v4.issue32.api_launchctl_transition_regression.v1",
+  "service_started_or_stopped": false,
+  "status": "PASS_BOUNDED_BOOTOUT_TRANSITION_AND_FAIL_CLOSED_RECOVERY",
+  "test_script_path": "/Users/lexi/Desktop/学习/agents调试/V4_ISSUE32_MAC_20261009/tools/test_api_launchctl_transition_r1.py",
+  "test_script_sha256": "6f9193000b4ce39458e0c1d97acd85b584615aa2d8c399d30b7d6941b9cb4c08"
+}
