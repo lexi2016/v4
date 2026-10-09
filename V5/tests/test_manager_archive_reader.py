@@ -1,5 +1,6 @@
 """Synthetic transport fixtures; Mac executes original validators and workspace."""
 import ast
+from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 from pathlib import Path
@@ -17,7 +18,7 @@ class ArchiveWiringTests(unittest.TestCase):
         for name in ('manager','materials','us','archives'):
             p=self.root/name;p.mkdir();inputs[name]={'root':str(p),'files':{}}
         output=self.root/'plans';output.mkdir();(output/'.v5-manager-plan-root').write_text('v5.manager-plan-root.v1\n')
-        self.request=dict(target_date='20261009',now='2026-10-09T08:00:00+00:00',action='read',view='dynamic',selection_date=None,announcement_date=None,inputs=inputs,rebound=None,manager_output_root=str(output))
+        self.request=dict(target_date='20261009',now='2026-10-09T06:58:22.011193+00:00',action='read',view='dynamic',selection_date=None,announcement_date=None,inputs=inputs,rebound=None,manager_output_root=str(output))
         # Field sets are the frozen contract, not a replacement validator.
         tree=ast.parse((BASE/'vendor/archive_reader_baseline/contracts/research.py').read_text())
         fields={n.targets[0].id:ast.literal_eval(n.value) for n in tree.body if isinstance(n,ast.Assign) and isinstance(n.targets[0],ast.Name) and n.targets[0].id in ('_ARTICLE_FIELDS','_POOL_FIELDS','DEDUPE_KEY_FIELDS')}
@@ -78,3 +79,8 @@ class ArchiveWiringTests(unittest.TestCase):
     def test_archive_and_us_roots_cannot_overlap(self):
         self.request['inputs']['archives']['root']=self.request['inputs']['us']['root']
         with self.assertRaisesRegex(ValueError,'MANAGER_ARCHIVE_ROOT_OVERLAP'):run_manager_plan(self.request)
+
+    def test_future_cutoff_remains_rejected_before_owner_execution(self):
+        self.request['now']=(datetime.now(timezone.utc)+timedelta(days=1)).isoformat()
+        with self.assertRaisesRegex(ValueError,'MANAGER_FUTURE_CUTOFF'):
+            run_manager_plan(self.request)
