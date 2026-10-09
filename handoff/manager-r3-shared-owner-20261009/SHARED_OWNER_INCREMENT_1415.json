@@ -1,0 +1,30 @@
+{
+  "observed_at": "2026-10-09T14:16:07.791161+08:00",
+  "source_thread": "01a11b41-3ebc-7dc3-a902-798efe90d567",
+  "status": "ACTIVE_SCHEDULER_UNCHANGED_INDEPENDENT_READBACK",
+  "active_scheduler_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app",
+  "active_plist_sha256": "b9e9e8361e9ce6eaca58df0688fcd214bf35bdc702f5febe405d07c6ceb05754",
+  "active_scheduler_protected_files": [
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app/ops/run_v35_macos_scheduler_daemon.py",
+      "sha256": "19e071da0c6b6748465853c4ad86a80d6060524333e9dab21647b67adc8b49ec"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/issue32-preselection-scheduler-mac-20261009-r1/app/ops/launch_v35_macos_scheduler.sh",
+      "sha256": "0c577ae83b1f182dabf3b62e642a5bd5f0f8708b48e1806d8c653b691d2ec952"
+    }
+  ],
+  "reported_other_sha_prefixes": [
+    "c5a922",
+    "2634b6"
+  ],
+  "interpretation": "Reported source hashes are not the configured active scheduler hashes. Request exact source root in candidate receipt. Do not replace active scheduler bytes with API/worker/canonical copies.",
+  "candidate_rule": "Compare daemon/launcher preservation within each root separately. R3 must not touch either file; different roots may legitimately have different bytes.",
+  "reported_input_evidence_not_independently_retested": {
+    "two_day_plans": "NOT_MATERIALIZED",
+    "US_POST_CLOSE_20261007_20261008": "reported reusable, mapping NOT_RUN",
+    "HK_20261008": "previous Connect day 20260930 aligned but pool not bound to exact capture",
+    "HK_20261009": "required 20261008 capture missing; READY pool with 20260930 signal/master does not meet target-date contract"
+  },
+  "release_state": "WAITING_INDEPENDENT_CANDIDATE_PASS_NO_DEPLOYMENT"
+}
