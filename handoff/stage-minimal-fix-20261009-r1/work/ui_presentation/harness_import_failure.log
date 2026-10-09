@@ -1,0 +1,27 @@
+<anonymous_script>:3
+const { defineComponent as _defineComponent } = vue;
+                        ^^
+
+SyntaxError: Unexpected identifier 'as'
+    at new Function (<anonymous>)
+    at file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/ssr_harness.mjs:33:19
+    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)
+    at async node:internal/modules/esm/loader:643:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.19.0
+✖ tests/presentation.test.mjs (211.759948ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 219.897634
+
+✖ failing tests:
+
+test at tests/presentation.test.mjs:1:1
+✖ tests/presentation.test.mjs (211.759948ms)
+  'test failed'

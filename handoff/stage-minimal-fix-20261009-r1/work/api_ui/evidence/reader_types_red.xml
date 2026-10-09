@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="4" skipped="0" tests="4" time="0.092" timestamp="2026-10-08T21:15:31.965249-07:00" hostname="f2c20067ed3d"><testcase classname="tests.test_execution_evidence" name="test_unknown_selection_status_is_not_a_verified_result[None]" time="0.007"><failure message="AssertionError: assert 'RESULT_AVAILABLE' == 'NO_VERIFIED_RESULT'&#10;  &#10;  - NO_VERIFIED_RESULT&#10;  + RESULT_AVAILABLE">tests/test_execution_evidence.py:220: in test_unknown_selection_status_is_not_a_verified_result
+    assert r["selection_results"]["A_SHARE"]["status"]=="NO_VERIFIED_RESULT"
+E   AssertionError: assert 'RESULT_AVAILABLE' == 'NO_VERIFIED_RESULT'
+E     
+E     - NO_VERIFIED_RESULT
+E     + RESULT_AVAILABLE</failure></testcase><testcase classname="tests.test_execution_evidence" name="test_unknown_selection_status_is_not_a_verified_result[UNRECOGNIZED_READY]" time="0.007"><failure message="AssertionError: assert 'RESULT_AVAILABLE' == 'NO_VERIFIED_RESULT'&#10;  &#10;  - NO_VERIFIED_RESULT&#10;  + RESULT_AVAILABLE">tests/test_execution_evidence.py:220: in test_unknown_selection_status_is_not_a_verified_result
+    assert r["selection_results"]["A_SHARE"]["status"]=="NO_VERIFIED_RESULT"
+E   AssertionError: assert 'RESULT_AVAILABLE' == 'NO_VERIFIED_RESULT'
+E     
+E     - NO_VERIFIED_RESULT
+E     + RESULT_AVAILABLE</failure></testcase><testcase classname="tests.test_execution_evidence" name="test_boolean_one_is_not_a_selected_row_count[binding]" time="0.009"><failure message="AssertionError: assert 'BOUND_TO_VER...ELECTION_TRIO' == 'SELECTION_TRIO_CONFLICT'&#10;  &#10;  - SELECTION_TRIO_CONFLICT&#10;  + BOUND_TO_VERIFIED_SELECTION_TRIO">tests/test_execution_evidence.py:232: in test_boolean_one_is_not_a_selected_row_count
+    assert r["selection_artifact_bindings"]["A_SHARE"]["status"]=="SELECTION_TRIO_CONFLICT"
+E   AssertionError: assert 'BOUND_TO_VER...ELECTION_TRIO' == 'SELECTION_TRIO_CONFLICT'
+E     
+E     - SELECTION_TRIO_CONFLICT
+E     + BOUND_TO_VERIFIED_SELECTION_TRIO</failure></testcase><testcase classname="tests.test_execution_evidence" name="test_boolean_one_is_not_a_selected_row_count[original]" time="0.008"><failure message="AssertionError: assert 'BOUND_TO_VER...ELECTION_TRIO' == 'SELECTION_TRIO_CONFLICT'&#10;  &#10;  - SELECTION_TRIO_CONFLICT&#10;  + BOUND_TO_VERIFIED_SELECTION_TRIO">tests/test_execution_evidence.py:232: in test_boolean_one_is_not_a_selected_row_count
+    assert r["selection_artifact_bindings"]["A_SHARE"]["status"]=="SELECTION_TRIO_CONFLICT"
+E   AssertionError: assert 'BOUND_TO_VER...ELECTION_TRIO' == 'SELECTION_TRIO_CONFLICT'
+E     
+E     - SELECTION_TRIO_CONFLICT
+E     + BOUND_TO_VERIFIED_SELECTION_TRIO</failure></testcase></testsuite></testsuites>

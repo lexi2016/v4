@@ -1,0 +1,23 @@
+{
+  "name": "writer_independent",
+  "command": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "tests",
+    "--junitxml=/workspace/scratch/25c09a595aec/stage_minimal/final_package_check_r1/writer_independent/junit.xml"
+  ],
+  "cwd": "/workspace/scratch/25c09a595aec/stage_minimal/delivery/work/hk_entrypoint/receipt_review",
+  "started_at_utc": "2026-10-09T04:34:43.510088+00:00",
+  "finished_at_utc": "2026-10-09T04:34:44.103425+00:00",
+  "exit_code": 0,
+  "expected_tests": 7,
+  "tests": 7,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "passed": true
+}

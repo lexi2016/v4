@@ -1,0 +1,33 @@
+{
+  "input_commit": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+  "target_trade_date": "20261009",
+  "recorded_at_utc": "2026-10-09T04:38:00.135052+00:00",
+  "record_time_scope": "THIS_DELIVERY_METADATA_NOT_A_BUSINESS_EXECUTION_TIMESTAMP",
+  "implemented": "SOURCE_CANDIDATE_COMPLETE",
+  "tested": "PASS_SOURCE_AND_SSR_ONLY_10_SCOPED_SUITES",
+  "reviewed": "PASS_IN_STATED_SOURCE_AND_CONDITIONAL_REFERENCE_SCOPE",
+  "integrated_on_mac": "NOT_RUN",
+  "deployed": "NOT_RUN",
+  "real_stage_verified": "NOT_RUN",
+  "api_ui_verified": "NOT_RUN",
+  "natural_verified": "NOT_RUN",
+  "hk_input": "BLOCKED_DATA_20261008_ORIGINAL_ELIGIBILITY_MASTER_MISSING",
+  "a_missing_quotes": "NOT_RECONSTRUCTED",
+  "historical_data": "NOT_RECONSTRUCTED",
+  "vibe_8910": "UNCHANGED",
+  "business_data_modified": false,
+  "research_only_required": true,
+  "research_only_runtime_env_observed": false,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "github_intent": {
+    "repository": "lexi2016/v4",
+    "branch": "chat/stage-minimal-fix-20261009-r1",
+    "allowed_prefix": "handoff/stage-minimal-fix-20261009-r1",
+    "parent": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+    "merge": false,
+    "deploy": false,
+    "status": "PREPARED; final post-commit readback is included with the ZIP"
+  }
+}

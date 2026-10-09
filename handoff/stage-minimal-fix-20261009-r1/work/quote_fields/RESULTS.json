@@ -1,0 +1,49 @@
+{
+  "runs": [
+    {
+      "phase": "before",
+      "total": 65,
+      "failures": 52,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 13,
+      "exit_code": 1,
+      "log": "evidence/before_final/stdout.log",
+      "execution": "evidence/before_final/execution.json"
+    },
+    {
+      "phase": "after",
+      "total": 65,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 65,
+      "exit_code": 0,
+      "log": "evidence/after_final/stdout.log",
+      "execution": "evidence/after_final/execution.json"
+    }
+  ],
+  "initial_before": {
+    "tests": 63,
+    "failed": 50,
+    "passed": 13,
+    "exit_code": 1,
+    "log": "red.log"
+  },
+  "initial_after": {
+    "tests": 63,
+    "passed": 63,
+    "failed": 0,
+    "exit_code": 0,
+    "log": "green.log"
+  },
+  "scope": "SOURCE_SELECTOR_SLICES_WITH_PINNED_HISTORICAL_SUPPORT",
+  "mac": "NOT_RUN",
+  "full_current_owner": "NOT_RUN",
+  "actual_api_ui": "NOT_RUN",
+  "natural_execution": "NOT_RUN",
+  "real_market_data_used": false,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

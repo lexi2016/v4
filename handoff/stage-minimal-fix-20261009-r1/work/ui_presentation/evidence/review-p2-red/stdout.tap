@@ -1,0 +1,182 @@
+TAP version 13
+# (node:19) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: new response shows A result and quote gap while HK stays before its algorithm
+ok 1 - new response shows A result and quote gap while HK stays before its algorithm
+  ---
+  duration_ms: 6.114175
+  type: 'test'
+  ...
+# Subtest: independent selection result remains visible when the receipt is missing
+ok 2 - independent selection result remains visible when the receipt is missing
+  ---
+  duration_ms: 0.486063
+  type: 'test'
+  ...
+# Subtest: verified empty result is an explicit zero instead of an unknown count
+ok 3 - verified empty result is an explicit zero instead of an unknown count
+  ---
+  duration_ms: 0.562886
+  type: 'test'
+  ...
+# Subtest: null quote counters remain unknown and cannot become zero
+ok 4 - null quote counters remain unknown and cannot become zero
+  ---
+  duration_ms: 0.58639
+  type: 'test'
+  ...
+# Subtest: invalid quote counter -1 is not displayed as an observation
+ok 5 - invalid quote counter -1 is not displayed as an observation
+  ---
+  duration_ms: 0.424933
+  type: 'test'
+  ...
+# Subtest: invalid quote counter 1.5 is not displayed as an observation
+ok 6 - invalid quote counter 1.5 is not displayed as an observation
+  ---
+  duration_ms: 0.418895
+  type: 'test'
+  ...
+# Subtest: invalid quote counter NaN is not displayed as an observation
+ok 7 - invalid quote counter NaN is not displayed as an observation
+  ---
+  duration_ms: 2.223383
+  type: 'test'
+  ...
+# Subtest: invalid quote counter Infinity is not displayed as an observation
+ok 8 - invalid quote counter Infinity is not displayed as an observation
+  ---
+  duration_ms: 0.554373
+  type: 'test'
+  ...
+# Subtest: invalid quote counter true is not displayed as an observation
+ok 9 - invalid quote counter true is not displayed as an observation
+  ---
+  duration_ms: 0.476129
+  type: 'test'
+  ...
+# Subtest: source count larger than requested is presented as a conflict
+ok 10 - source count larger than requested is presented as a conflict
+  ---
+  duration_ms: 0.691805
+  type: 'test'
+  ...
+# Subtest: conflicting declared gap is not silently accepted as full coverage
+ok 11 - conflicting declared gap is not silently accepted as full coverage
+  ---
+  duration_ms: 0.392366
+  type: 'test'
+  ...
+# Subtest: old bound selection can show computed rows but quote counts remain receipt declarations
+ok 12 - old bound selection can show computed rows but quote counts remain receipt declarations
+  ---
+  duration_ms: 0.422861
+  type: 'test'
+  ...
+# Subtest: old unbound selection declaration does not claim calculation
+ok 13 - old unbound selection declaration does not claim calculation
+  ---
+  duration_ms: 0.330545
+  type: 'test'
+  ...
+# Subtest: new no-result verdict cannot be upgraded by an old bound receipt
+ok 14 - new no-result verdict cannot be upgraded by an old bound receipt
+  ---
+  duration_ms: 0.340509
+  type: 'test'
+  ...
+# Subtest: new summary map missing A cannot fall back to old bound counts (empty)
+not ok 15 - new summary map missing A cannot fall back to old bound counts (empty)
+  ---
+  duration_ms: 1.193231
+  type: 'test'
+  location: '/workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:98:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /选股结果待核对/. Input:
+    
+    'A股 已计算 10 只 行情 205 / 216 只，缺 11 只 回执记录计数 执行记录尚未完整绑定'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: 'A股 已计算 10 只 行情 205 / 216 只，缺 11 只 回执记录计数 执行记录尚未完整绑定'
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:102:12)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+# Subtest: new summary map missing A cannot fall back to old bound counts (HK_CONNECT)
+not ok 16 - new summary map missing A cannot fall back to old bound counts (HK_CONNECT)
+  ---
+  duration_ms: 0.411064
+  type: 'test'
+  location: '/workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:98:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /选股结果待核对/. Input:
+    
+    'A股 已计算 10 只 行情 205 / 216 只，缺 11 只 回执记录计数 执行记录尚未完整绑定'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: 'A股 已计算 10 只 行情 205 / 216 只，缺 11 只 回执记录计数 执行记录尚未完整绑定'
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:102:12)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+# Subtest: legacy observed_rows fallback is labeled as receipt evidence
+ok 17 - legacy observed_rows fallback is labeled as receipt evidence
+  ---
+  duration_ms: 2.614277
+  type: 'test'
+  ...
+# Subtest: NATURAL plus owner binding is still distinct from natural acceptance
+ok 18 - NATURAL plus owner binding is still distinct from natural acceptance
+  ---
+  duration_ms: 0.480756
+  type: 'test'
+  ...
+# Subtest: owner history conflict is shown without hiding the verified result
+ok 19 - owner history conflict is shown without hiding the verified result
+  ---
+  duration_ms: 0.380288
+  type: 'test'
+  ...
+# Subtest: selection-to-receipt identity conflict is explicit while stored result remains visible
+ok 20 - selection-to-receipt identity conflict is explicit while stored result remains visible
+  ---
+  duration_ms: 0.205491
+  type: 'test'
+  ...
+# Subtest: missing record time is not inferred from date, stage, due status or current clock
+ok 21 - missing record time is not inferred from date, stage, due status or current clock
+  ---
+  duration_ms: 0.208647
+  type: 'test'
+  ...
+# Subtest: only the HK lane is rendered for the HK-only late stage
+ok 22 - only the HK lane is rendered for the HK-only late stage
+  ---
+  duration_ms: 0.353609
+  type: 'test'
+  ...
+# Subtest: raw reason codes and identifiers remain inside closed technical details
+ok 23 - raw reason codes and identifiers remain inside closed technical details
+  ---
+  duration_ms: 0.281333
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 21
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 277.623038

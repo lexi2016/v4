@@ -1,0 +1,56 @@
+{
+  "scope": "Only current identities needed to close the A-share quote-to-result chain; no raw business data was read by Chat.",
+  "current_actual_stage_owner": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app",
+  "source_groups": [
+    {
+      "purpose": "Confirm original current collector dispatch and previous-close field mapping; apply only the missing raw-value pass-through if reproduced on current bytes.",
+      "owner": "current_actual_stage_owner",
+      "relative_paths": [
+        "stage_center/live_collectors.py",
+        "stage_center/_live_collectors_parts/collector_registry.py",
+        "stage_center/_live_collectors_parts/a_auction.py",
+        "stage_center/_live_collectors_parts/a_minute.py",
+        "stage_center/_live_collectors_parts/selection_builder_registry.py",
+        "stage_center/_live_collectors_parts/_namespace.py",
+        "infrastructure/tdx_minute_replay_provider.py"
+      ],
+      "current_byte_identity_status": "NOT_INCLUDED_IN_20_FILE_HANDOFF"
+    },
+    {
+      "purpose": "Verify the same frozen formula, result-envelope persistence and actual consumer field retention in the full current owner; historical support must not replace these files.",
+      "owner": "current_actual_stage_owner",
+      "relative_paths": [
+        "stage_center/_selection_parts/market_quality.py",
+        "stage_center/_selection_parts/primitives_io.py",
+        "stage_center/_selection_parts/schema_values.py",
+        "stage_center/_selection_parts/selection_envelope.py",
+        "stage_center/_selection_parts/store_publication.py",
+        "stage_center/_selection_parts/store_verification.py",
+        "stage_center/_selection_parts/artifact_codec.py",
+        "stage_center/_selection_parts/_namespace.py"
+      ],
+      "current_byte_identity_status": "NOT_INCLUDED_IN_20_FILE_HANDOFF"
+    },
+    {
+      "purpose": "Confirm the configured shared root and the original HQ minute source/aggregate field semantics, including any existing tdxpy compatibility layer.",
+      "owner": "Resolve from the actual Stage configuration shared_data_root; do not substitute canonical.",
+      "relative_paths": [
+        "scripts/live_acquisition/pytdx_hq.py",
+        "scripts/live_acquisition/futu_minute.py",
+        "scripts/live_acquisition/contracts.py"
+      ],
+      "additional_identity": "Installed pytdx/tdxpy module path/version and actual API adapter used, without credentials.",
+      "current_byte_identity_status": "NOT_INCLUDED_IN_20_FILE_HANDOFF"
+    }
+  ],
+  "local_readback_evidence": [
+    "For one fixed-date selected code: whether provider payload and collector SourceResult carry prev_close_price, the associated prior session/date/source method, whether builder transmits it to qmt.lastClose, and whether the result row preserves it.",
+    "For 09:25 missing 11 codes and later missing 10 codes: original requested/returned sets and per-code stop reason; distinguish EMPTY_PAGE, provider exception, invalid fields, and market/window rejection.",
+    "Read current result artifact/manifest/receipt bytes and selected run identity; do not repair prior saved runs by editing fields."
+  ],
+  "forbidden_substitutions": [
+    "No historical support file is treated as current actual without matching its fresh owner SHA.",
+    "No current price is used as previous close, no missing price is changed to 0, no new producer or cross-date fallback is introduced.",
+    "No algorithm weights, scoring inputs, ordering or Top10 contract are changed by this field projection candidate."
+  ]
+}

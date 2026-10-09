@@ -1,0 +1,16 @@
+{
+  "app_change": "ONE_TEXT_REPLACEMENT_ONLY",
+  "app_before_sha256": "995a680995cc42feadeaa8d2bdd44294c8ec782a908d664c698faf69d4cf02a1",
+  "app_after_sha256": "e13a92e7f990ef18de0909edf0d2644410ba55194b21b583d43b76d648801dc5",
+  "runtime_types_change": "ADDED_OPTIONAL_EXECUTION_READBACK_FIELDS_ONLY",
+  "unchanged_in_app": [
+    "date_stage_initialization",
+    "date_stage_selection",
+    "buttons_handlers",
+    "component_mount_conditions",
+    "result_lists",
+    "page_limits",
+    "backfill_navigation"
+  ],
+  "browser_or_whole_app_build_run": false
+}

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="6" skipped="0" tests="32" time="0.742" timestamp="2026-10-08T21:19:23.105956-07:00" hostname="f2c20067ed3d"><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_real_store_writer_reader_retains_results_and_binds_only_owner_history[actual_stage]" time="0.023" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_real_store_writer_reader_retains_results_and_binds_only_owner_history[canonical]" time="0.020" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_real_slot_invocation_clock_reaches_reader[actual_stage]" time="0.019"><failure message="AssertionError: assert None == 'OWNER_RUNNER_INVOCATION_UTC'">runtime = namespace(variant='actual_stage', selection=&lt;module 'stage_center.selection' from '/workspace/scratch/25c09a595aec/sta...mal/work/quote_fields/support/infrastructure/owned_io.py'&gt;, input_error=&lt;class 'conftest.runtime.&lt;locals&gt;.InputError'&gt;)
+
+    def test_real_slot_invocation_clock_reaches_reader(runtime):
+        before = datetime.now(timezone.utc)
+        written = runtime.run_noop()
+        read = runtime.read(selection_store=runtime.store)
+        assert before &lt;= datetime.fromisoformat(written["runner_invoked_at"]) &lt;= datetime.now(timezone.utc)
+        assert written["runner_clock_source"] == "OWNER_RUNNER_INVOCATION_UTC"
+        assert read["runner_invoked_at"] == written["runner_invoked_at"]
+&gt;       assert read["invocation_time_source"] == written["runner_clock_source"]
+E       AssertionError: assert None == 'OWNER_RUNNER_INVOCATION_UTC'
+
+stage_minimal/work/hk_entrypoint/api_review/tests/test_writer_reader_integration.py:44: AssertionError</failure></testcase><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_real_slot_invocation_clock_reaches_reader[canonical]" time="0.021"><failure message="AssertionError: assert None == 'OWNER_RUNNER_INVOCATION_UTC'">runtime = namespace(variant='canonical', selection=&lt;module 'stage_center.selection' from '/workspace/scratch/25c09a595aec/stage_...mal/work/quote_fields/support/infrastructure/owned_io.py'&gt;, input_error=&lt;class 'conftest.runtime.&lt;locals&gt;.InputError'&gt;)
+
+    def test_real_slot_invocation_clock_reaches_reader(runtime):
+        before = datetime.now(timezone.utc)
+        written = runtime.run_noop()
+        read = runtime.read(selection_store=runtime.store)
+        assert before &lt;= datetime.fromisoformat(written["runner_invoked_at"]) &lt;= datetime.now(timezone.utc)
+        assert written["runner_clock_source"] == "OWNER_RUNNER_INVOCATION_UTC"
+        assert read["runner_invoked_at"] == written["runner_invoked_at"]
+&gt;       assert read["invocation_time_source"] == written["runner_clock_source"]
+E       AssertionError: assert None == 'OWNER_RUNNER_INVOCATION_UTC'
+
+stage_minimal/work/hk_entrypoint/api_review/tests/test_writer_reader_integration.py:44: AssertionError</failure></testcase><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_valid_selection_remains_visible_when_receipt_cannot_be_used[actual_stage-absent]" time="0.023" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_valid_selection_remains_visible_when_receipt_cannot_be_used[actual_stage-malformed_json]" time="0.020" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_valid_selection_remains_visible_when_receipt_cannot_be_used[actual_stage-wrong_identity]" time="0.016" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_valid_selection_remains_visible_when_receipt_cannot_be_used[actual_stage-safety_true]" time="0.017" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_valid_selection_remains_visible_when_receipt_cannot_be_used[canonical-absent]" time="0.016" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_valid_selection_remains_visible_when_receipt_cannot_be_used[canonical-malformed_json]" time="0.022" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_valid_selection_remains_visible_when_receipt_cannot_be_used[canonical-wrong_identity]" time="0.016" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_valid_selection_remains_visible_when_receipt_cannot_be_used[canonical-safety_true]" time="0.018" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_missing_configured_selection_store_never_uses_writer_declared_root[actual_stage]" time="0.017" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_missing_configured_selection_store_never_uses_writer_declared_root[canonical]" time="0.017" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_other_empty_configured_store_cannot_verify_real_writer_trio[actual_stage]" time="0.019" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_other_empty_configured_store_cannot_verify_real_writer_trio[canonical]" time="0.018" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_owner_written_archive_does_not_authenticate_bad_selection_declaration[actual_stage-canonical_used_as_bytes]" time="0.020" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_owner_written_archive_does_not_authenticate_bad_selection_declaration[actual_stage-absolute_path]" time="0.021" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_owner_written_archive_does_not_authenticate_bad_selection_declaration[actual_stage-other_slot]" time="0.022" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_owner_written_archive_does_not_authenticate_bad_selection_declaration[canonical-canonical_used_as_bytes]" time="0.026" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_owner_written_archive_does_not_authenticate_bad_selection_declaration[canonical-absolute_path]" time="0.023" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_owner_written_archive_does_not_authenticate_bad_selection_declaration[canonical-other_slot]" time="0.022" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_replaced_pointer_during_real_store_verification_is_not_current_binding[actual_stage]" time="0.024" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_replaced_pointer_during_real_store_verification_is_not_current_binding[canonical]" time="0.024" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_reformat_after_writer_still_passes_original_store_but_fails_byte_binding[actual_stage]" time="0.025" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_reformat_after_writer_still_passes_original_store_but_fails_byte_binding[canonical]" time="0.024" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_unknown_api_lane_status_cannot_authenticate_receipt_references[actual_stage]" time="0.023"><failure message="AssertionError: assert 'BOUND_TO_VERIFIED_SELECTION' != 'BOUND_TO_VERIFIED_SELECTION'">runtime = namespace(variant='actual_stage', selection=&lt;module 'stage_center.selection' from '/workspace/scratch/25c09a595aec/sta...mal/work/quote_fields/support/infrastructure/owned_io.py'&gt;, input_error=&lt;class 'conftest.runtime.&lt;locals&gt;.InputError'&gt;)
+
+    def test_unknown_api_lane_status_cannot_authenticate_receipt_references(runtime):
+        runtime.write(runtime.base_payload())
+        runtime.lanes["A_SHARE"]["status"] = "UNRECOGNIZED_READY"
+        output = runtime.read(selection_store=runtime.store)
+        assert output["selection_results"]["A_SHARE"]["status"] == "NO_VERIFIED_RESULT"
+&gt;       assert output["markets"]["A_SHARE"]["selection_binding"] != "BOUND_TO_VERIFIED_SELECTION"
+E       AssertionError: assert 'BOUND_TO_VERIFIED_SELECTION' != 'BOUND_TO_VERIFIED_SELECTION'
+
+stage_minimal/work/hk_entrypoint/api_review/tests/test_writer_reader_integration.py:141: AssertionError</failure></testcase><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_unknown_api_lane_status_cannot_authenticate_receipt_references[canonical]" time="0.025"><failure message="AssertionError: assert 'BOUND_TO_VERIFIED_SELECTION' != 'BOUND_TO_VERIFIED_SELECTION'">runtime = namespace(variant='canonical', selection=&lt;module 'stage_center.selection' from '/workspace/scratch/25c09a595aec/stage_...mal/work/quote_fields/support/infrastructure/owned_io.py'&gt;, input_error=&lt;class 'conftest.runtime.&lt;locals&gt;.InputError'&gt;)
+
+    def test_unknown_api_lane_status_cannot_authenticate_receipt_references(runtime):
+        runtime.write(runtime.base_payload())
+        runtime.lanes["A_SHARE"]["status"] = "UNRECOGNIZED_READY"
+        output = runtime.read(selection_store=runtime.store)
+        assert output["selection_results"]["A_SHARE"]["status"] == "NO_VERIFIED_RESULT"
+&gt;       assert output["markets"]["A_SHARE"]["selection_binding"] != "BOUND_TO_VERIFIED_SELECTION"
+E       AssertionError: assert 'BOUND_TO_VERIFIED_SELECTION' != 'BOUND_TO_VERIFIED_SELECTION'
+
+stage_minimal/work/hk_entrypoint/api_review/tests/test_writer_reader_integration.py:141: AssertionError</failure></testcase><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_json_container_status_is_refused_without_crashing_selection_display[actual_stage]" time="0.012"><failure message="TypeError: cannot use 'list' as a set element (unhashable type: 'list')">runtime = namespace(variant='actual_stage', selection=&lt;module 'stage_center.selection' from '/workspace/scratch/25c09a595aec/sta...mal/work/quote_fields/support/infrastructure/owned_io.py'&gt;, input_error=&lt;class 'conftest.runtime.&lt;locals&gt;.InputError'&gt;)
+
+    def test_json_container_status_is_refused_without_crashing_selection_display(runtime):
+        runtime.lanes["A_SHARE"]["status"] = []
+&gt;       output = runtime.read(selection_store=runtime.store)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+stage_minimal/work/hk_entrypoint/api_review/tests/test_writer_reader_integration.py:148: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+stage_minimal/work/hk_entrypoint/api_review/tests/conftest.py:128: in read
+    return reader.read_stage_execution(receipt_root, DATE, STAGE, lanes, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+stage_minimal/work/api_ui/after/source/actual_api/stage_center/execution_evidence.py:186: in read_stage_execution
+    "selection_results": _verified_result_summaries(stage_id, verified_markets),
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+stage_id = 'STAGE_0925'
+verified_markets = {'A_SHARE': {'schema_version': 'stage_center.selection.v2', 'trade_date': '20261009', 'stage_id': 'STAGE_0925', 'market': 'A_SHARE', ...}, 'HK_CONNECT': {'status': 'CANNOT_CONFIRM', 'selected_rows': 0}}
+
+    def _verified_result_summaries(
+        stage_id: str, verified_markets: Mapping[str, Mapping[str, Any]],
+    ) -&gt; dict[str, Any]:
+        """SelectionStore results remain visible even when execution evidence is absent."""
+        summaries: dict[str, Any] = {}
+        for market in STAGE_BY_ID[stage_id].markets:
+            lane = verified_markets.get(market) or {}
+            selected = _counter(lane.get("selected_rows"))
+            identities = all(isinstance(lane.get(key), str) and lane[key] for key in _IDENTITY)
+&gt;           available = identities and selected is not None and lane.get("status") in {"READY", "READY_EMPTY", "PARTIAL_WITH_ROWS", "NOOP_ALREADY_VERIFIED"}
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           TypeError: cannot use 'list' as a set element (unhashable type: 'list')
+
+stage_minimal/work/api_ui/after/source/actual_api/stage_center/execution_evidence.py:67: TypeError</failure></testcase><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_json_container_status_is_refused_without_crashing_selection_display[canonical]" time="0.014"><failure message="TypeError: cannot use 'list' as a set element (unhashable type: 'list')">runtime = namespace(variant='canonical', selection=&lt;module 'stage_center.selection' from '/workspace/scratch/25c09a595aec/stage_...mal/work/quote_fields/support/infrastructure/owned_io.py'&gt;, input_error=&lt;class 'conftest.runtime.&lt;locals&gt;.InputError'&gt;)
+
+    def test_json_container_status_is_refused_without_crashing_selection_display(runtime):
+        runtime.lanes["A_SHARE"]["status"] = []
+&gt;       output = runtime.read(selection_store=runtime.store)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+stage_minimal/work/hk_entrypoint/api_review/tests/test_writer_reader_integration.py:148: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+stage_minimal/work/hk_entrypoint/api_review/tests/conftest.py:128: in read
+    return reader.read_stage_execution(receipt_root, DATE, STAGE, lanes, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+stage_minimal/work/api_ui/after/source/actual_api/stage_center/execution_evidence.py:186: in read_stage_execution
+    "selection_results": _verified_result_summaries(stage_id, verified_markets),
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+stage_id = 'STAGE_0925'
+verified_markets = {'A_SHARE': {'schema_version': 'stage_center.selection.v2', 'trade_date': '20261009', 'stage_id': 'STAGE_0925', 'market': 'A_SHARE', ...}, 'HK_CONNECT': {'status': 'CANNOT_CONFIRM', 'selected_rows': 0}}
+
+    def _verified_result_summaries(
+        stage_id: str, verified_markets: Mapping[str, Mapping[str, Any]],
+    ) -&gt; dict[str, Any]:
+        """SelectionStore results remain visible even when execution evidence is absent."""
+        summaries: dict[str, Any] = {}
+        for market in STAGE_BY_ID[stage_id].markets:
+            lane = verified_markets.get(market) or {}
+            selected = _counter(lane.get("selected_rows"))
+            identities = all(isinstance(lane.get(key), str) and lane[key] for key in _IDENTITY)
+&gt;           available = identities and selected is not None and lane.get("status") in {"READY", "READY_EMPTY", "PARTIAL_WITH_ROWS", "NOOP_ALREADY_VERIFIED"}
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           TypeError: cannot use 'list' as a set element (unhashable type: 'list')
+
+stage_minimal/work/api_ui/after/source/actual_api/stage_center/execution_evidence.py:67: TypeError</failure></testcase><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_original_writer_does_not_create_hk_input_from_a_missing_candidate[actual_stage]" time="0.015" /><testcase classname="stage_minimal.work.hk_entrypoint.api_review.tests.test_writer_reader_integration" name="test_original_writer_does_not_create_hk_input_from_a_missing_candidate[canonical]" time="0.014" /></testsuite></testsuites>

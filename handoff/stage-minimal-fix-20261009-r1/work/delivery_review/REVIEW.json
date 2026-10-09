@@ -1,0 +1,246 @@
+{
+  "review_status": "PASS_DELIVERY_GUIDANCE_WITH_STATED_NOT_RUN_BOUNDARIES",
+  "reviewer": "stage_receipt_binding; independent of delivery-document author",
+  "recorded_at_utc": "2026-10-09T04:36:26.743455+00:00",
+  "fixed_input_commit": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+  "open_findings": [],
+  "scope": "Four top-level delivery documents, their factual/protocol/CLI and source-identity boundaries; not whole-package final execution or deployment acceptance",
+  "documents": [
+    {
+      "path": "delivery/README.md",
+      "sha256": "fbf0946f5a25e158b1354413ff6e5d39e60fce3642f15060e0c6a09f2c6639df",
+      "bytes": 6129
+    },
+    {
+      "path": "delivery/PROMPT_FOR_MAC.md",
+      "sha256": "74065f8fa9c5e65c64c74c07a54cb353abd40ff23671a2996abea2c852e6b182",
+      "bytes": 3168
+    },
+    {
+      "path": "delivery/ROOT_CAUSE.zh-CN.md",
+      "sha256": "e3b1bb19a9f938dd4abb5ab4383217aeb87e31e63b713ea498bd1dbbc673622d",
+      "bytes": 3403
+    },
+    {
+      "path": "delivery/MAC_ACCEPTANCE.md",
+      "sha256": "23657c23bf6f5096fa6ff4594be0938924ddb320d93265fd53e692dcc4c5f805",
+      "bytes": 11258
+    }
+  ],
+  "source_map_identity_check": {
+    "source_variants": 15,
+    "patch_groups": 8,
+    "exact_before_after_matches": true,
+    "conditional_variants": 8,
+    "files": [
+      {
+        "group": "quote_common",
+        "relative_path": "stage_center/_selection_parts/a_auction.py",
+        "conditional_historical_preimage": false,
+        "before_sha256": "d0a96edcb4d87f223b117917a8f0d68276bd088a88abe8f787d245c8e1c669ad",
+        "after_sha256": "01b00f748daa0ef7b0502805d977d883b20616c2070aa35685744af8f9131af1"
+      },
+      {
+        "group": "quote_common",
+        "relative_path": "stage_center/_selection_parts/a_live.py",
+        "conditional_historical_preimage": false,
+        "before_sha256": "b7faa3286df4f0312075c7a4563d3f4deed463d3f10ab2c4902967e8d5d7781d",
+        "after_sha256": "4225b27df7067663da42b635773bf90e94b4601fc2478b8decb5c635f77d86a0"
+      },
+      {
+        "group": "receipt_actual_stage",
+        "relative_path": "stage_center/_runner_parts/runner_receipts.py",
+        "conditional_historical_preimage": false,
+        "before_sha256": "d3d9e69230b00a2864eae106f1c5c89ea0d383e20c2e87d655d4cabd273bbc83",
+        "after_sha256": "d634647ef5f50620a4b98a696a61b7d2d1491e9f7c2c351e0e621168a2e03f9f"
+      },
+      {
+        "group": "receipt_actual_stage",
+        "relative_path": "stage_center/_runner_parts/slot_execution.py",
+        "conditional_historical_preimage": false,
+        "before_sha256": "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a",
+        "after_sha256": "447a07af0470b86436f7aba128f782429a7b8e7fcf8dad8b92e6d01b7cfb6d96"
+      },
+      {
+        "group": "receipt_canonical",
+        "relative_path": "stage_center/_runner_parts/runner_receipts.py",
+        "conditional_historical_preimage": false,
+        "before_sha256": "af4322e65f21a4e14cc2680a63a2d93ad9bab855b235c7ef0751704549d986d5",
+        "after_sha256": "e7877b8c94b118a224b7b8b762be51b02f8aa24b2341e92d2677289961d66e20"
+      },
+      {
+        "group": "receipt_canonical",
+        "relative_path": "stage_center/_runner_parts/slot_execution.py",
+        "conditional_historical_preimage": false,
+        "before_sha256": "86ea1de7e32e6f29deb6622b4af37b4723e0b086d4c700cd513671ceed719d8a",
+        "after_sha256": "6e50b9406bc09d9a6c4c73ae1b96a2bd73a7d82a0ae00df30371026edadf7fd8"
+      },
+      {
+        "group": "api_ui_actual_api_reader",
+        "relative_path": "stage_center/execution_evidence.py",
+        "conditional_historical_preimage": false,
+        "before_sha256": "e4c4ea94d892158383620beab1825014f21e926b57907354475f8c9ff382704b",
+        "after_sha256": "bd79b1844568a79750ccce6c547cfe08f651291f1863e213fb25629d34a67b79"
+      },
+      {
+        "group": "api_ui_conditional_api_consumer",
+        "relative_path": "stage_center/consumer.py",
+        "conditional_historical_preimage": true,
+        "before_sha256": "61f8a3541aa7a2e698cc4374385e3d20d41b40ffd5a3cd7d87c9494cb8726cf4",
+        "after_sha256": "bc428dc5b3747b0eb1e3c4d68ae4e6f2441882393cfa4a31e4c4c962b924c234"
+      },
+      {
+        "group": "entrypoint_clock_actual_stage",
+        "relative_path": "ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+        "conditional_historical_preimage": true,
+        "before_sha256": "95ce916246f3376fc3618c0890ee1f76f2b0231c50d77fe5440a9b956884a674",
+        "after_sha256": "1f65476c5a274195b789a3529a3e95821bfcf81278c6ac72e01c52655932cf08"
+      },
+      {
+        "group": "entrypoint_clock_actual_stage",
+        "relative_path": "ops/_run_stage_center_nodes_parts/node_entry.py",
+        "conditional_historical_preimage": true,
+        "before_sha256": "f9530f010055476e17d87e93198e28d3f4943ed34255a2419130eb9f39deb6ed",
+        "after_sha256": "3a40b79ecea876997aad9272205ebf61289af2a17162057fa680174c50e74fd2"
+      },
+      {
+        "group": "entrypoint_clock_canonical",
+        "relative_path": "ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+        "conditional_historical_preimage": true,
+        "before_sha256": "95ce916246f3376fc3618c0890ee1f76f2b0231c50d77fe5440a9b956884a674",
+        "after_sha256": "1f65476c5a274195b789a3529a3e95821bfcf81278c6ac72e01c52655932cf08"
+      },
+      {
+        "group": "entrypoint_clock_canonical",
+        "relative_path": "ops/_run_stage_center_nodes_parts/node_entry.py",
+        "conditional_historical_preimage": true,
+        "before_sha256": "2343cd5e250aaa05acc698ba2daf34220f13ffb5543c655df799fdb3bd7fe464",
+        "after_sha256": "0efb31e207a7282eea9308c81c69c7bfd0f4c989d03d03acc9407e430f832fe6"
+      },
+      {
+        "group": "conditional_existing_ui",
+        "relative_path": "apps/web/src/App.vue",
+        "conditional_historical_preimage": true,
+        "before_sha256": "995a680995cc42feadeaa8d2bdd44294c8ec782a908d664c698faf69d4cf02a1",
+        "after_sha256": "e13a92e7f990ef18de0909edf0d2644410ba55194b21b583d43b76d648801dc5"
+      },
+      {
+        "group": "conditional_existing_ui",
+        "relative_path": "apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+        "conditional_historical_preimage": true,
+        "before_sha256": "07188178bbcd5ae2b01b9d6c1ef9dffd7b94f1b27f0211501cc2464566c5bc8b",
+        "after_sha256": "6cb4aecf34fe69a0b95af9075bfabbcd0c504dc29026cb31edd17ef83f764a6a"
+      },
+      {
+        "group": "conditional_existing_ui",
+        "relative_path": "apps/web/src/contracts/runtime.ts",
+        "conditional_historical_preimage": true,
+        "before_sha256": "9a882a174b433488684b05781ade00beb665706e962f753700960a4250d13419",
+        "after_sha256": "c440de3ff964daa01994cbcd04d9b3ce1f417737a39034520c478ef83448bebe"
+      }
+    ]
+  },
+  "ui_runtime_override": {
+    "change_scope": "One test dependency-location expression only; product sources unchanged",
+    "env": "STAGE_UI_RUNTIME",
+    "default": "work/ui_runtime",
+    "explicit_runtime": "/workspace/scratch/25c09a595aec/stage_minimal/work/ui_runtime",
+    "command": "STAGE_UI_RUNTIME=/workspace/scratch/25c09a595aec/stage_minimal/work/ui_runtime node --test stage_minimal/work/ui_review/tests/independent_presentation.test.mjs",
+    "harness": {
+      "path": "work/ui_review/tests/component_harness.mjs",
+      "sha256": "de4cffce748211dbbf627e1bb9a0a367cc4df1ddeff26d5cf243d4096f7ce7fb",
+      "bytes": 3856
+    },
+    "counts": {
+      "tests": 25,
+      "pass": 25,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "logs": [
+      {
+        "path": "work/ui_review/evidence/independent-runtime-override.stdout",
+        "sha256": "0f90031cbdf2167bf62b66eb526f0a7e77df24af3630f8b702e7fbb7fb94c38f",
+        "bytes": 2641
+      },
+      {
+        "path": "work/ui_review/evidence/independent-runtime-override.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    ],
+    "product_source_identity_unchanged": [
+      {
+        "path": "work/ui_presentation/after/apps/web/src/App.vue",
+        "sha256": "e13a92e7f990ef18de0909edf0d2644410ba55194b21b583d43b76d648801dc5",
+        "bytes": 120790
+      },
+      {
+        "path": "work/ui_presentation/after/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+        "sha256": "6cb4aecf34fe69a0b95af9075bfabbcd0c504dc29026cb31edd17ef83f764a6a",
+        "bytes": 6369
+      },
+      {
+        "path": "work/ui_presentation/after/apps/web/src/contracts/runtime.ts",
+        "sha256": "c440de3ff964daa01994cbcd04d9b3ce1f417737a39034520c478ef83448bebe",
+        "bytes": 3553
+      }
+    ],
+    "note": "Same existing 25 independent cases, not 25 additional coverage cases. Real Vue compilation and SSR, not complete App build or browser acceptance."
+  },
+  "supporting_references": [
+    {
+      "path": "work/hk_entrypoint/references/handoff/v4-running-source-20261005/stage/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "sha256": "f9530f010055476e17d87e93198e28d3f4943ed34255a2419130eb9f39deb6ed",
+      "bytes": 42295
+    },
+    {
+      "path": "work/hk_entrypoint/references/handoff/v4-running-source-20261005/stage/ops/run_stage_center_tick.py",
+      "sha256": "4eb8e1a3be0e3780ff9cb62417c695c5aab67948f224db462d3f6e3a67299f42",
+      "bytes": 25917
+    },
+    {
+      "path": "input/baseline/DIAGNOSIS.md",
+      "sha256": "bd23e715e26ddd34024933a2d256e120aaa0333a6c07b479c365986bfa0c366a",
+      "bytes": 4065
+    },
+    {
+      "path": "input/baseline/PROMPT_FOR_CHAT.md",
+      "sha256": "8d83b151afea4b2daf64fdab649a81a12a3a98892879ee23134237d315f6903b",
+      "bytes": 6068
+    },
+    {
+      "path": "input/baseline/SOURCE_MANIFEST.json",
+      "sha256": "55bf1d0e608e35d830f89aa85a1b5cd9d24b4f42689b9455dd2ba167bd8d59c0",
+      "bytes": 5638
+    },
+    {
+      "path": "input/baseline/CURRENT_API_UI_SUMMARY.json",
+      "sha256": "afb2471b2e4587702580a1b898c3b3632d6a29fa0941aa913222a61c9131abd6",
+      "bytes": 44695
+    },
+    {
+      "path": "work/hk_entrypoint/HK_AND_ENTRYPOINT_REVIEW.md",
+      "sha256": "ff3331f59a9f7f85e257ea090a52bf90f9ce620fae60d250b4f801b9c0d8e7de",
+      "bytes": 18074
+    },
+    {
+      "path": "work/ui_review/evidence/APP_AND_CONTRACT_DIFF_VERIFICATION.json",
+      "sha256": "b55abfd55da564de459ad313e7c4d8b223674a0c3b9a624c19cc7f13c90bff64",
+      "bytes": 560
+    }
+  ],
+  "not_run": [
+    "MAC_CURRENT_SOURCE_IDENTITY",
+    "MAC_INTEGRATION",
+    "CURRENT_FULL_APP_BUILD",
+    "REAL_STAGE_EXECUTION",
+    "BUSINESS_DATA_RECONSTRUCTION",
+    "DEPLOYMENT",
+    "8873_API_UI_ACCEPTANCE",
+    "NATURAL_SLOT_ACCEPTANCE"
+  ],
+  "package_final_manifest_and_all_suite_replay": "Separate final assembly/verification task; not claimed by this four-document audit"
+}

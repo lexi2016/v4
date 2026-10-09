@@ -1,0 +1,40 @@
+{
+  "status": "PASS_SOURCE_SLICE_SCOPE_ONLY",
+  "test_count": 39,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 0,
+  "environment": {
+    "system": "Linux",
+    "python": "3.14.7",
+    "executable": "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python"
+  },
+  "command": "python -m pytest -q stage_minimal/work/receipt_binding/tests --junitxml=stage_minimal/work/receipt_binding/evidence/candidate-final-tests.xml",
+  "boundaries": [
+    "TEST_SEAMS_ARE_NOT_CURRENT_MAC_RUNTIME",
+    "NO_REAL_INPUT_OR_QUOTE_COLLECTION",
+    "NO_ALGORITHM_CHANGE",
+    "NO_EXECUTION_OR_NATURAL_VERIFICATION",
+    "NO_DEPLOYMENT"
+  ],
+  "retained_failures": [
+    {
+      "file": "evidence/baseline-gap.stderr",
+      "status": "ENV_PYTEST_NOT_INSTALLED"
+    },
+    {
+      "file": "evidence/baseline-gap-venv.stdout",
+      "status": "EXPECTED_RED_2_GAPS"
+    },
+    {
+      "file": "evidence/writer-final.stdout",
+      "status": "39_CANDIDATE_PASS_2_BASELINE_RED_COLLECTED"
+    }
+  ],
+  "test_files": [
+    "tests/test_owner_receipt_binding.py",
+    "tests/test_slot_receipt_wiring.py"
+  ],
+  "collection_configuration": "pytest.ini explicit python_files; baseline RED evidence not candidate",
+  "last_execution_stdout": "evidence/writer-explicit-scope.stdout"
+}

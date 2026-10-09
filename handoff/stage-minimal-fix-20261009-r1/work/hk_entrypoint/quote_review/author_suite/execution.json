@@ -1,0 +1,107 @@
+{
+  "phase": "after",
+  "command": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-m",
+    "pytest",
+    "--junitxml=/workspace/scratch/25c09a595aec/stage_minimal/work/hk_entrypoint/quote_review/author_suite/junit.xml"
+  ],
+  "cwd": "/workspace/scratch/25c09a595aec/stage_minimal/work/quote_fields",
+  "started_at": "2026-10-09T04:10:52.049343+00:00",
+  "finished_at": "2026-10-09T04:10:52.468199+00:00",
+  "exit_code": 0,
+  "python": "3.14.7 (main, Sep 24 2026, 17:58:18) [Clang 22.1.3 ]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "scope": "ACTUAL_SELECTOR_SLICES_WITH_HISTORICAL_SUPPORT_AND_TEST_NAMESPACE_SEAMS",
+  "full_actual_owner_import": "NOT_RUN",
+  "mac": "NOT_RUN",
+  "api_ui": "NOT_RUN",
+  "natural": "NOT_RUN",
+  "source_files": [
+    {
+      "path": "after/stage_center/_selection_parts/a_auction.py",
+      "bytes": 9078,
+      "sha256": "01b00f748daa0ef7b0502805d977d883b20616c2070aa35685744af8f9131af1"
+    },
+    {
+      "path": "after/stage_center/_selection_parts/a_live.py",
+      "bytes": 9704,
+      "sha256": "4225b27df7067663da42b635773bf90e94b4601fc2478b8decb5c635f77d86a0"
+    },
+    {
+      "path": "support/infrastructure/interprocess_lock.py",
+      "bytes": 7514,
+      "sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0"
+    },
+    {
+      "path": "support/infrastructure/owned_io.py",
+      "bytes": 9354,
+      "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0"
+    },
+    {
+      "path": "support/stage_center/_selection_parts/_namespace.py",
+      "bytes": 527,
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1"
+    },
+    {
+      "path": "support/stage_center/_selection_parts/artifact_codec.py",
+      "bytes": 2997,
+      "sha256": "6c0ddaed1dfe7a066be9aeb1c726e2357f5c1814b0baca834c37bb1879aeeb9d"
+    },
+    {
+      "path": "support/stage_center/_selection_parts/market_quality.py",
+      "bytes": 5196,
+      "sha256": "726cd4987a070bf78ac7416756f3cbba86633b1176f6f43535ac747263474b3f"
+    },
+    {
+      "path": "support/stage_center/_selection_parts/primitives_io.py",
+      "bytes": 11285,
+      "sha256": "6f492e2d32fab11970993adfe694cf159cccafe2205b288685917f93560e2501"
+    },
+    {
+      "path": "support/stage_center/_selection_parts/schema_values.py",
+      "bytes": 3956,
+      "sha256": "80b0c21556c78c89132a08ca24eb80b5a211791719cb54801497dbe74472e458"
+    },
+    {
+      "path": "support/stage_center/_selection_parts/selection_envelope.py",
+      "bytes": 4569,
+      "sha256": "be7748ff72fd85375fc6575a6a40281fb1518c8faf0e55f352f167fbbc42bd89"
+    },
+    {
+      "path": "support/stage_center/_selection_parts/store_publication.py",
+      "bytes": 9540,
+      "sha256": "e3ee42413c35aa098cddc136795fcf04a37898bc2224d815cbe9e2b854c5c968"
+    },
+    {
+      "path": "support/stage_center/_selection_parts/store_verification.py",
+      "bytes": 7231,
+      "sha256": "af061784202e35bd7c497208407ce1313876683544d89bcb05153ebca1e7af0f"
+    },
+    {
+      "path": "support/stage_center/calendar.py",
+      "bytes": 4805,
+      "sha256": "31fed97066d9b804a71f15c48d4e0f8baa5d9af621e1d81dc0340fd6619e4099"
+    },
+    {
+      "path": "support/stage_center/contracts.py",
+      "bytes": 2331,
+      "sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d"
+    },
+    {
+      "path": "support/stage_center/selection.py",
+      "bytes": 31705,
+      "sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294"
+    },
+    {
+      "path": "before/stage_center/_selection_parts/a_auction.py",
+      "bytes": 7957,
+      "sha256": "d0a96edcb4d87f223b117917a8f0d68276bd088a88abe8f787d245c8e1c669ad"
+    },
+    {
+      "path": "before/stage_center/_selection_parts/a_live.py",
+      "bytes": 7307,
+      "sha256": "b7faa3286df4f0312075c7a4563d3f4deed463d3f10ab2c4902967e8d5d7781d"
+    }
+  ]
+}

@@ -1,0 +1,375 @@
+(node:12) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✖ new response shows A result and quote gap while HK stays before its algorithm (5.480444ms)
+✖ independent selection result remains visible when the receipt is missing (0.531791ms)
+✖ verified empty result is an explicit zero instead of an unknown count (0.468918ms)
+✖ null quote counters remain unknown and cannot become zero (0.452304ms)
+✖ invalid quote counter -1 is not displayed as an observation (0.465032ms)
+✖ invalid quote counter 1.5 is not displayed as an observation (0.385546ms)
+✖ invalid quote counter NaN is not displayed as an observation (0.363804ms)
+✖ invalid quote counter Infinity is not displayed as an observation (0.400367ms)
+✖ invalid quote counter true is not displayed as an observation (0.380779ms)
+✖ source count larger than requested is presented as a conflict (0.824105ms)
+✖ conflicting declared gap is not silently accepted as full coverage (0.423681ms)
+✖ old bound selection can show computed rows but quote counts remain receipt declarations (0.363493ms)
+✖ old unbound selection declaration does not claim calculation (2.509533ms)
+✖ new no-result verdict cannot be upgraded by an old bound receipt (0.424623ms)
+✖ legacy observed_rows fallback is labeled as receipt evidence (0.369202ms)
+✖ NATURAL plus owner binding is still distinct from natural acceptance (0.401389ms)
+✖ owner history conflict is shown without hiding the verified result (0.408219ms)
+✖ selection-to-receipt identity conflict is explicit while stored result remains visible (0.323545ms)
+✖ missing record time is not inferred from date, stage, due status or current clock (0.400087ms)
+✖ only the HK lane is rendered for the HK-only late stage (0.828036ms)
+✔ raw reason codes and identifiers remain inside closed technical details (0.370013ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 1
+ℹ fail 20
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 236.346819
+
+✖ failing tests:
+
+test at tests/presentation.test.mjs:5:1
+✖ new response shows A result and quote gap while HK stays before its algorithm (5.480444ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /已计算 10 只/. Input:
+  
+  'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:7:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位',
+    expected: /已计算 10 只/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/presentation.test.mjs:14:1
+✖ independent selection result remains visible when the receipt is missing (0.531791ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /已计算 10 只/. Input:
+  
+  ''
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:19:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '',
+    expected: /已计算 10 只/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/presentation.test.mjs:25:1
+✖ verified empty result is an explicit zero instead of an unknown count (0.468918ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /已保存空结果（0 只）/. Input:
+  
+  'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:30:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位',
+    expected: /已保存空结果（0 只）/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/presentation.test.mjs:34:1
+✖ null quote counters remain unknown and cannot become zero (0.452304ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /行情 未知 \/ 未知 只；缺口数量未知/. Input:
+  
+  'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:39:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位',
+    expected: /行情 未知 \/ 未知 只；缺口数量未知/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/presentation.test.mjs:44:3
+✖ invalid quote counter -1 is not displayed as an observation (0.465032ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /行情 未知 \/ 216 只；缺口数量未知/. Input:
+  
+  'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:48:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位',
+    expected: /行情 未知 \/ 216 只；缺口数量未知/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/presentation.test.mjs:44:3
+✖ invalid quote counter 1.5 is not displayed as an observation (0.385546ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /行情 未知 \/ 216 只；缺口数量未知/. Input:
+  
+  'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:48:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位',
+    expected: /行情 未知 \/ 216 只；缺口数量未知/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/presentation.test.mjs:44:3
+✖ invalid quote counter NaN is not displayed as an observation (0.363804ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /行情 未知 \/ 216 只；缺口数量未知/. Input:
+  
+  'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:48:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位',
+    expected: /行情 未知 \/ 216 只；缺口数量未知/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/presentation.test.mjs:44:3
+✖ invalid quote counter Infinity is not displayed as an observation (0.400367ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /行情 未知 \/ 216 只；缺口数量未知/. Input:
+  
+  'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:48:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位',
+    expected: /行情 未知 \/ 216 只；缺口数量未知/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/presentation.test.mjs:44:3
+✖ invalid quote counter true is not displayed as an observation (0.380779ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /行情 未知 \/ 216 只；缺口数量未知/. Input:
+  
+  'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:48:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位',
+    expected: /行情 未知 \/ 216 只；缺口数量未知/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/presentation.test.mjs:53:1
+✖ source count larger than requested is presented as a conflict (0.824105ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /行情计数待核对/. Input:
+  
+  'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:57:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位',
+    expected: /行情计数待核对/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/presentation.test.mjs:61:1
+✖ conflicting declared gap is not silently accepted as full coverage (0.423681ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /行情计数待核对/. Input:
+  
+  'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:65:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位',
+    expected: /行情计数待核对/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/presentation.test.mjs:69:1
+✖ old bound selection can show computed rows but quote counts remain receipt declarations (0.363493ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /已计算 10 只/. Input:
+  
+  'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:73:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位',
+    expected: /已计算 10 只/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/presentation.test.mjs:79:1
+✖ old unbound selection declaration does not claim calculation (2.509533ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /选股结果待核对/. Input:
+  
+  'A_SHARE · 未记录 选股引用：NO_VERIFIED_SELECTION_BINDING 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:84:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'A_SHARE · 未记录 选股引用：NO_VERIFIED_SELECTION_BINDING 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位',
+    expected: /选股结果待核对/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/presentation.test.mjs:89:1
+✖ new no-result verdict cannot be upgraded by an old bound receipt (0.424623ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /选股结果待核对/. Input:
+  
+  'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:93:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位',
+    expected: /选股结果待核对/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/presentation.test.mjs:97:1
+✖ legacy observed_rows fallback is labeled as receipt evidence (0.369202ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /行情 206 \/ 216 只，缺 10 只/. Input:
+  
+  'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 206 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:102:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 206 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位',
+    expected: /行情 206 \/ 216 只，缺 10 只/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/presentation.test.mjs:106:1
+✖ NATURAL plus owner binding is still distinct from natural acceptance (0.401389ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /运行方式（回执声明） 自然触发（NATURAL）/. Input:
+  
+  '执行尝试与已验证产物分列 20261009 · STAGE_0925 · SELECTION_REFERENCES_PARTIALLY_BOUND_EXECUTION_UNVERIFIED 尝试模式（回执声明）：NATURAL / DUE；记录时间：2026-10-09T01:45:09+00:00 执行状态（声明）：PARTIAL_WITH_ROWS；节点尝试：1 · SETTLED_PARTIAL 此处不独立认证自然／补跑血缘。选股身份匹配只验证对应产物引用；原回执自计算SHA不是运行认证。 A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位 HK_CONNECT · CANNOT_CONFIRM 选股引用：NO_VERIFIED_SELECTION_BINDING 回执计数：请求 未记录／未绑定 / 来源 未记录／未绑定 / 接受 未记录／未绑定 / 选择 0 失败层：PRESELECTION_INPUT'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:113:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '执行尝试与已验证产物分列 20261009 · STAGE_0925 · SELECTION_REFERENCES_PARTIALLY_BOUND_EXECUTION_UNVERIFIED 尝试模式（回执声明）：NATURAL / DUE；记录时间：2026-10-09T01:45:09+00:00 执行状态（声明）：PARTIAL_WITH_ROWS；节点尝试：1 · SETTLED_PARTIAL 此处不独立认证自然／补跑血缘。选股身份匹配只验证对应产物引用；原回执自计算SHA不是运行认证。 A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位 HK_CONNECT · CANNOT_CONFIRM 选股引用：NO_VERIFIED_SELECTION_BINDING 回执计数：请求 未记录／未绑定 / 来源 未记录／未绑定 / 接受 未记录／未绑定 / 选择 0 失败层：PRESELECTION_INPUT',
+    expected: /运行方式（回执声明） 自然触发（NATURAL）/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/presentation.test.mjs:120:1
+✖ owner history conflict is shown without hiding the verified result (0.408219ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /已计算 10 只/. Input:
+  
+  'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:125:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位',
+    expected: /已计算 10 只/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/presentation.test.mjs:131:1
+✖ selection-to-receipt identity conflict is explicit while stored result remains visible (0.323545ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /已计算 10 只/. Input:
+  
+  'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:135:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位',
+    expected: /已计算 10 只/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/presentation.test.mjs:139:1
+✖ missing record time is not inferred from date, stage, due status or current clock (0.400087ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /记录时间 原回执未记录/. Input:
+  
+  '执行尝试与已验证产物分列 20261009 · STAGE_0925 · SELECTION_REFERENCES_PARTIALLY_BOUND_EXECUTION_UNVERIFIED 尝试模式（回执声明）：RECOVERY / LATE_CATCHUP_REPLAY；记录时间：原回执未记录，不推断历史开始时间 执行状态（声明）：PARTIAL_WITH_ROWS；节点尝试：1 · SETTLED_PARTIAL 此处不独立认证自然／补跑血缘。选股身份匹配只验证对应产物引用；原回执自计算SHA不是运行认证。 A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位 HK_CONNECT · CANNOT_CONFIRM 选股引用：NO_VERIFIED_SELECTION_BINDING 回执计数：请求 未记录／未绑定 / 来源 未记录／未绑定 / 接受 未记录／未绑定 / 选择 0 失败层：PRESELECTION_INPUT'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:142:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '执行尝试与已验证产物分列 20261009 · STAGE_0925 · SELECTION_REFERENCES_PARTIALLY_BOUND_EXECUTION_UNVERIFIED 尝试模式（回执声明）：RECOVERY / LATE_CATCHUP_REPLAY；记录时间：原回执未记录，不推断历史开始时间 执行状态（声明）：PARTIAL_WITH_ROWS；节点尝试：1 · SETTLED_PARTIAL 此处不独立认证自然／补跑血缘。选股身份匹配只验证对应产物引用；原回执自计算SHA不是运行认证。 A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位 HK_CONNECT · CANNOT_CONFIRM 选股引用：NO_VERIFIED_SELECTION_BINDING 回执计数：请求 未记录／未绑定 / 来源 未记录／未绑定 / 接受 未记录／未绑定 / 选择 0 失败层：PRESELECTION_INPUT',
+    expected: /记录时间 原回执未记录/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/presentation.test.mjs:146:1
+✖ only the HK lane is rendered for the HK-only late stage (0.828036ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位'
+  - ''
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/tests/presentation.test.mjs:150:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'A_SHARE · 未记录 选股引用：BOUND_TO_VERIFIED_SELECTION 回执计数：请求 216 / 来源 205 / 接受 未记录／未绑定 / 选择 10 失败层：未记录或未定位',
+    expected: '',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

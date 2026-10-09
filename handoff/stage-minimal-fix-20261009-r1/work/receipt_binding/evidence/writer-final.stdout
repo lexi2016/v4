@@ -1,0 +1,32 @@
+.................................FF......                                [100%]
+=================================== FAILURES ===================================
+______________ test_future_receipt_records_real_owner_write_time _______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-22/test_future_receipt_records_re0')
+
+    def test_future_receipt_records_real_owner_write_time(tmp_path):
+        result,_=_write("actual_stage",tmp_path)
+>       assert result.get("recorded_at"),"RECEIPT_RECORD_TIME_NOT_RECORDED"
+E       AssertionError: RECEIPT_RECORD_TIME_NOT_RECORDED
+E       assert None
+E        +  where None = <built-in method get of dict object at 0x7fb0ec267340>('recorded_at')
+E        +    where <built-in method get of dict object at 0x7fb0ec267340> = {'schema_version': 'stage_center.runner.receipt.v1', 'runner': 'stage_center', 'trade_date': '20261009', 'stage_id': 'STAGE_0940_0945', ...}.get
+
+stage_minimal/work/receipt_binding/tests/test_receipt_baseline_gap.py:36: AssertionError
+______________ test_future_receipt_keeps_immutable_owner_history _______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-22/test_future_receipt_keeps_immu0')
+
+    def test_future_receipt_keeps_immutable_owner_history(tmp_path):
+        result,root=_write("canonical",tmp_path)
+        history=result.get("receipt_history")
+>       assert isinstance(history,dict),"NO_IMMUTABLE_NATURAL_RECOVERY_HISTORY"
+E       AssertionError: NO_IMMUTABLE_NATURAL_RECOVERY_HISTORY
+E       assert False
+E        +  where False = isinstance(None, dict)
+
+stage_minimal/work/receipt_binding/tests/test_receipt_baseline_gap.py:41: AssertionError
+=========================== short test summary info ============================
+FAILED stage_minimal/work/receipt_binding/tests/test_receipt_baseline_gap.py::test_future_receipt_records_real_owner_write_time
+FAILED stage_minimal/work/receipt_binding/tests/test_receipt_baseline_gap.py::test_future_receipt_keeps_immutable_owner_history
+2 failed, 39 passed in 0.16s

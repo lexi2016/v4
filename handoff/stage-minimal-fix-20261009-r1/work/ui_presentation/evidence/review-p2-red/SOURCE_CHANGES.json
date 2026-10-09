@@ -1,0 +1,56 @@
+{
+  "files": [
+    {
+      "relative_path": "apps/web/src/App.vue",
+      "repository_path": "handoff/v4-running-source-20261005/api/apps/web/src/App.vue",
+      "ref": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "role": "HISTORICAL_API_UI_REFERENCE_20261005_NOT_CURRENT_ASSET_PROOF",
+      "before": {
+        "bytes": 120779,
+        "sha256": "995a680995cc42feadeaa8d2bdd44294c8ec782a908d664c698faf69d4cf02a1",
+        "git_blob_sha1": "174fe256526957e11ae12ba640663033de81993d"
+      },
+      "after": {
+        "bytes": 120790,
+        "sha256": "e13a92e7f990ef18de0909edf0d2644410ba55194b21b583d43b76d648801dc5",
+        "git_blob_sha1": "d5344ee4068dcb7a3d89f406a2b232b90fe2d415"
+      }
+    },
+    {
+      "relative_path": "apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "repository_path": "handoff/v4-running-source-20261005/api/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "ref": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "role": "HISTORICAL_API_UI_REFERENCE_20261005_NOT_CURRENT_ASSET_PROOF",
+      "before": {
+        "bytes": 3466,
+        "sha256": "07188178bbcd5ae2b01b9d6c1ef9dffd7b94f1b27f0211501cc2464566c5bc8b",
+        "git_blob_sha1": "73d0f6cc417c153e53c73244758424199e35b639"
+      },
+      "after": {
+        "bytes": 6380,
+        "sha256": "1095262c523e696cd267304e7829732380b35ef502eba97ef9c798353d06804e",
+        "git_blob_sha1": "7ace25f18b1e4214b1cec6a5bdb194d565f1e5da"
+      }
+    },
+    {
+      "relative_path": "apps/web/src/contracts/runtime.ts",
+      "repository_path": "handoff/v4-running-source-20261005/api/apps/web/src/contracts/runtime.ts",
+      "ref": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "role": "HISTORICAL_API_UI_REFERENCE_20261005_NOT_CURRENT_ASSET_PROOF",
+      "before": {
+        "bytes": 3044,
+        "sha256": "9a882a174b433488684b05781ade00beb665706e962f753700960a4250d13419",
+        "git_blob_sha1": "9481e8c0562d96698ca7898d81807dc3e2449263"
+      },
+      "after": {
+        "bytes": 3553,
+        "sha256": "c440de3ff964daa01994cbcd04d9b3ce1f417737a39034520c478ef83448bebe",
+        "git_blob_sha1": "10c97f15afcd72a07086432d561f4591503ef637"
+      }
+    }
+  ],
+  "current_ui_asset_identity": "NOT_PROVIDED",
+  "scope": "CONDITIONAL_UI_SOURCE_CANDIDATE_ON_20261005_REFERENCE",
+  "requires_current_frontend_before_sha_match": true,
+  "business_logic_change": "NONE; result and execution evidence presentation only"
+}

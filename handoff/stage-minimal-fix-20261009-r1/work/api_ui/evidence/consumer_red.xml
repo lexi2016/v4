@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.074" timestamp="2026-10-08T21:22:28.493237-07:00" hostname="f2c20067ed3d"><testcase classname="tests.test_execution_evidence" name="test_original_consumer_call_binds_its_existing_store" time="0.021"><failure message="AssertionError: assert 'SELECTION_STORE_NOT_BOUND' == 'BOUND_TO_VER...ELECTION_TRIO'&#10;  &#10;  - BOUND_TO_VERIFIED_SELECTION_TRIO&#10;  + SELECTION_STORE_NOT_BOUND">reader = &lt;module 'stage_reader_890bf45babd74a3ba26639153fe3e75c.execution_evidence' from '/workspace/scratch/25c09a595aec/stage_minimal/work/api_ui/after/source/actual_api/stage_center/execution_evidence.py'&gt;
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-55/test_original_consumer_call_bi0')
+
+    def test_original_consumer_call_binds_its_existing_store(reader,tmp_path):
+        """Execute the unchanged consumer call boundary, not the full historical API."""
+        source=Path(os.environ.get("STAGE_CONSUMER_FILE",str(ROOT/"after/conditional_api/stage_center/consumer.py")))
+        tree=ast.parse(source.read_text())
+        calls=[node for node in ast.walk(tree) if isinstance(node,ast.Assign)
+               and isinstance(node.value,ast.Call) and isinstance(node.value.func,ast.Name)
+               and node.value.func.id=="read_stage_execution"]
+        assert len(calls)==1
+        store,binding=store_fixture(tmp_path/"selection")
+        payload=receipt();payload["selection_artifacts"]={"A_SHARE":binding}
+        publish(tmp_path/"receipts",payload,archive=True)
+        response={"markets":verified()}
+        scope=dict(self=SimpleNamespace(store=store,execution_receipt_root=tmp_path/"receipts"),
+                   trade_date=DATE,stage_id=STAGE,response=response,read_stage_execution=reader.read_stage_execution)
+        exec(compile(ast.fix_missing_locations(ast.Module(body=calls,type_ignores=[])),str(source),"exec"),scope)
+        evidence=response["execution_evidence"]
+&gt;       assert evidence["selection_artifact_bindings"]["A_SHARE"]["status"]=="BOUND_TO_VERIFIED_SELECTION_TRIO"
+E       AssertionError: assert 'SELECTION_STORE_NOT_BOUND' == 'BOUND_TO_VER...ELECTION_TRIO'
+E         
+E         - BOUND_TO_VERIFIED_SELECTION_TRIO
+E         + SELECTION_STORE_NOT_BOUND
+
+tests/test_execution_evidence.py:251: AssertionError</failure></testcase></testsuite></testsuites>

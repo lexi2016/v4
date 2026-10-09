@@ -1,0 +1,11 @@
+--- a/stage_center/consumer.py
++++ b/stage_center/consumer.py
+@@ -724,7 +724,7 @@
+             **SAFETY_FLAGS,
+         }
+         response["execution_evidence"] = read_stage_execution(
+-            self.execution_receipt_root, trade_date, stage_id, response["markets"]
++            self.execution_receipt_root, trade_date, stage_id, response["markets"], selection_store=self.store
+         )
+         return response
+ 

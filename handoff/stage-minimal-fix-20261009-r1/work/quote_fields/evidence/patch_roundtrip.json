@@ -1,0 +1,28 @@
+{
+  "status": "PASS_EXACT_BYTES",
+  "commands": [
+    {
+      "argv": [
+        "git",
+        "apply",
+        "--check",
+        "/workspace/scratch/25c09a595aec/stage_minimal/work/quote_fields/runtime_quote_projection.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "git",
+        "apply",
+        "/workspace/scratch/25c09a595aec/stage_minimal/work/quote_fields/runtime_quote_projection.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "reverse_exit_code": 0,
+  "before_after_files": 2
+}

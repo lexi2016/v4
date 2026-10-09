@@ -1,0 +1,621 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="52" skipped="0" tests="65" time="0.412" timestamp="2026-10-08T21:07:55.884028-07:00" hostname="f2c20067ed3d"><testcase classname="tests.test_quote_projection" name="test_auction_unknown_daily_change_is_not_open_last_zero[previous0-PREV_CLOSE_PRICE_MISSING]" time="0.004"><failure message="assert 0.0 is None">previous = &lt;object object at 0x7f3cbdd25a40&gt;
+reason = 'PREV_CLOSE_PRICE_MISSING'
+
+    @pytest.mark.parametrize("previous,reason", INVALID_BASES)
+    def test_auction_unknown_daily_change_is_not_open_last_zero(previous, reason):
+        source = auction_row(previous)
+        current = run([source])
+        row = current["rows"][0]
+        assert "prev_close_price" in row
+        assert row["prev_close_price"] is None
+&gt;       assert row["current_change_pct"] is None
+E       assert 0.0 is None
+
+tests/test_quote_projection.py:105: AssertionError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_auction_unknown_daily_change_is_not_open_last_zero[None-PREV_CLOSE_PRICE_MISSING]" time="0.001"><failure message="assert 0.0 is None">previous = None, reason = 'PREV_CLOSE_PRICE_MISSING'
+
+    @pytest.mark.parametrize("previous,reason", INVALID_BASES)
+    def test_auction_unknown_daily_change_is_not_open_last_zero(previous, reason):
+        source = auction_row(previous)
+        current = run([source])
+        row = current["rows"][0]
+        assert "prev_close_price" in row
+        assert row["prev_close_price"] is None
+&gt;       assert row["current_change_pct"] is None
+E       assert 0.0 is None
+
+tests/test_quote_projection.py:105: AssertionError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_auction_unknown_daily_change_is_not_open_last_zero[-PREV_CLOSE_PRICE_MISSING]" time="0.001"><failure message="assert 0.0 is None">previous = '', reason = 'PREV_CLOSE_PRICE_MISSING'
+
+    @pytest.mark.parametrize("previous,reason", INVALID_BASES)
+    def test_auction_unknown_daily_change_is_not_open_last_zero(previous, reason):
+        source = auction_row(previous)
+        current = run([source])
+        row = current["rows"][0]
+        assert "prev_close_price" in row
+        assert row["prev_close_price"] is None
+&gt;       assert row["current_change_pct"] is None
+E       assert 0.0 is None
+
+tests/test_quote_projection.py:105: AssertionError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_auction_unknown_daily_change_is_not_open_last_zero[0-PREV_CLOSE_PRICE_INVALID]" time="0.000"><failure message="assert 0.0 is None">previous = 0, reason = 'PREV_CLOSE_PRICE_INVALID'
+
+    @pytest.mark.parametrize("previous,reason", INVALID_BASES)
+    def test_auction_unknown_daily_change_is_not_open_last_zero(previous, reason):
+        source = auction_row(previous)
+        current = run([source])
+        row = current["rows"][0]
+        assert "prev_close_price" in row
+&gt;       assert row["prev_close_price"] is None
+E       assert 0.0 is None
+
+tests/test_quote_projection.py:104: AssertionError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_auction_unknown_daily_change_is_not_open_last_zero[-100-PREV_CLOSE_PRICE_INVALID]" time="0.001"><failure message="assert -100.0 is None">previous = -100, reason = 'PREV_CLOSE_PRICE_INVALID'
+
+    @pytest.mark.parametrize("previous,reason", INVALID_BASES)
+    def test_auction_unknown_daily_change_is_not_open_last_zero(previous, reason):
+        source = auction_row(previous)
+        current = run([source])
+        row = current["rows"][0]
+        assert "prev_close_price" in row
+&gt;       assert row["prev_close_price"] is None
+E       assert -100.0 is None
+
+tests/test_quote_projection.py:104: AssertionError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_auction_unknown_daily_change_is_not_open_last_zero[bad-price-PREV_CLOSE_PRICE_INVALID]" time="0.001"><failure message="assert 0.0 is None">previous = 'bad-price', reason = 'PREV_CLOSE_PRICE_INVALID'
+
+    @pytest.mark.parametrize("previous,reason", INVALID_BASES)
+    def test_auction_unknown_daily_change_is_not_open_last_zero(previous, reason):
+        source = auction_row(previous)
+        current = run([source])
+        row = current["rows"][0]
+        assert "prev_close_price" in row
+        assert row["prev_close_price"] is None
+&gt;       assert row["current_change_pct"] is None
+E       assert 0.0 is None
+
+tests/test_quote_projection.py:105: AssertionError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_auction_unknown_daily_change_is_not_open_last_zero[nan-PREV_CLOSE_PRICE_INVALID]" time="0.001"><failure message="assert 0.0 is None">previous = nan, reason = 'PREV_CLOSE_PRICE_INVALID'
+
+    @pytest.mark.parametrize("previous,reason", INVALID_BASES)
+    def test_auction_unknown_daily_change_is_not_open_last_zero(previous, reason):
+        source = auction_row(previous)
+        current = run([source])
+        row = current["rows"][0]
+        assert "prev_close_price" in row
+        assert row["prev_close_price"] is None
+&gt;       assert row["current_change_pct"] is None
+E       assert 0.0 is None
+
+tests/test_quote_projection.py:105: AssertionError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_auction_unknown_daily_change_is_not_open_last_zero[inf-PREV_CLOSE_PRICE_INVALID]" time="0.001"><failure message="assert 0.0 is None">previous = inf, reason = 'PREV_CLOSE_PRICE_INVALID'
+
+    @pytest.mark.parametrize("previous,reason", INVALID_BASES)
+    def test_auction_unknown_daily_change_is_not_open_last_zero(previous, reason):
+        source = auction_row(previous)
+        current = run([source])
+        row = current["rows"][0]
+        assert "prev_close_price" in row
+        assert row["prev_close_price"] is None
+&gt;       assert row["current_change_pct"] is None
+E       assert 0.0 is None
+
+tests/test_quote_projection.py:105: AssertionError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_auction_unknown_daily_change_is_not_open_last_zero[True-PREV_CLOSE_PRICE_INVALID]" time="0.001"><failure message="assert 0.0 is None">previous = True, reason = 'PREV_CLOSE_PRICE_INVALID'
+
+    @pytest.mark.parametrize("previous,reason", INVALID_BASES)
+    def test_auction_unknown_daily_change_is_not_open_last_zero(previous, reason):
+        source = auction_row(previous)
+        current = run([source])
+        row = current["rows"][0]
+        assert "prev_close_price" in row
+        assert row["prev_close_price"] is None
+&gt;       assert row["current_change_pct"] is None
+E       assert 0.0 is None
+
+tests/test_quote_projection.py:105: AssertionError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_live_unknown_daily_change_is_not_intrastage_return[previous0-PREV_CLOSE_PRICE_MISSING]" time="0.001"><failure message="AssertionError: assert 'prev_close_price' in {'code': 'A.000001', 'score': 98.000588, 'status': 'WATCH_ONLY', 'formal_eligible': False, ...}">previous = &lt;object object at 0x7f3cbdd25a40&gt;
+reason = 'PREV_CLOSE_PRICE_MISSING'
+
+    @pytest.mark.parametrize("previous,reason", INVALID_BASES)
+    def test_live_unknown_daily_change_is_not_intrastage_return(previous, reason):
+        source = live_row(previous)
+        current = run([source], LIVE_STAGES[0])
+        row = current["rows"][0]
+&gt;       assert "prev_close_price" in row
+E       AssertionError: assert 'prev_close_price' in {'code': 'A.000001', 'score': 98.000588, 'status': 'WATCH_ONLY', 'formal_eligible': False, ...}
+
+tests/test_quote_projection.py:116: AssertionError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_live_unknown_daily_change_is_not_intrastage_return[None-PREV_CLOSE_PRICE_MISSING]" time="0.001"><failure message="AssertionError: assert 'prev_close_price' in {'code': 'A.000001', 'score': 98.000588, 'status': 'WATCH_ONLY', 'formal_eligible': False, ...}">previous = None, reason = 'PREV_CLOSE_PRICE_MISSING'
+
+    @pytest.mark.parametrize("previous,reason", INVALID_BASES)
+    def test_live_unknown_daily_change_is_not_intrastage_return(previous, reason):
+        source = live_row(previous)
+        current = run([source], LIVE_STAGES[0])
+        row = current["rows"][0]
+&gt;       assert "prev_close_price" in row
+E       AssertionError: assert 'prev_close_price' in {'code': 'A.000001', 'score': 98.000588, 'status': 'WATCH_ONLY', 'formal_eligible': False, ...}
+
+tests/test_quote_projection.py:116: AssertionError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_live_unknown_daily_change_is_not_intrastage_return[-PREV_CLOSE_PRICE_MISSING]" time="0.001"><failure message="AssertionError: assert 'prev_close_price' in {'code': 'A.000001', 'score': 98.000588, 'status': 'WATCH_ONLY', 'formal_eligible': False, ...}">previous = '', reason = 'PREV_CLOSE_PRICE_MISSING'
+
+    @pytest.mark.parametrize("previous,reason", INVALID_BASES)
+    def test_live_unknown_daily_change_is_not_intrastage_return(previous, reason):
+        source = live_row(previous)
+        current = run([source], LIVE_STAGES[0])
+        row = current["rows"][0]
+&gt;       assert "prev_close_price" in row
+E       AssertionError: assert 'prev_close_price' in {'code': 'A.000001', 'score': 98.000588, 'status': 'WATCH_ONLY', 'formal_eligible': False, ...}
+
+tests/test_quote_projection.py:116: AssertionError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_live_unknown_daily_change_is_not_intrastage_return[0-PREV_CLOSE_PRICE_INVALID]" time="0.001"><failure message="AssertionError: assert 'prev_close_price' in {'code': 'A.000001', 'score': 98.000588, 'status': 'WATCH_ONLY', 'formal_eligible': False, ...}">previous = 0, reason = 'PREV_CLOSE_PRICE_INVALID'
+
+    @pytest.mark.parametrize("previous,reason", INVALID_BASES)
+    def test_live_unknown_daily_change_is_not_intrastage_return(previous, reason):
+        source = live_row(previous)
+        current = run([source], LIVE_STAGES[0])
+        row = current["rows"][0]
+&gt;       assert "prev_close_price" in row
+E       AssertionError: assert 'prev_close_price' in {'code': 'A.000001', 'score': 98.000588, 'status': 'WATCH_ONLY', 'formal_eligible': False, ...}
+
+tests/test_quote_projection.py:116: AssertionError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_live_unknown_daily_change_is_not_intrastage_return[-100-PREV_CLOSE_PRICE_INVALID]" time="0.001"><failure message="AssertionError: assert 'prev_close_price' in {'code': 'A.000001', 'score': 98.000588, 'status': 'WATCH_ONLY', 'formal_eligible': False, ...}">previous = -100, reason = 'PREV_CLOSE_PRICE_INVALID'
+
+    @pytest.mark.parametrize("previous,reason", INVALID_BASES)
+    def test_live_unknown_daily_change_is_not_intrastage_return(previous, reason):
+        source = live_row(previous)
+        current = run([source], LIVE_STAGES[0])
+        row = current["rows"][0]
+&gt;       assert "prev_close_price" in row
+E       AssertionError: assert 'prev_close_price' in {'code': 'A.000001', 'score': 98.000588, 'status': 'WATCH_ONLY', 'formal_eligible': False, ...}
+
+tests/test_quote_projection.py:116: AssertionError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_live_unknown_daily_change_is_not_intrastage_return[bad-price-PREV_CLOSE_PRICE_INVALID]" time="0.001"><failure message="AssertionError: assert 'prev_close_price' in {'code': 'A.000001', 'score': 98.000588, 'status': 'WATCH_ONLY', 'formal_eligible': False, ...}">previous = 'bad-price', reason = 'PREV_CLOSE_PRICE_INVALID'
+
+    @pytest.mark.parametrize("previous,reason", INVALID_BASES)
+    def test_live_unknown_daily_change_is_not_intrastage_return(previous, reason):
+        source = live_row(previous)
+        current = run([source], LIVE_STAGES[0])
+        row = current["rows"][0]
+&gt;       assert "prev_close_price" in row
+E       AssertionError: assert 'prev_close_price' in {'code': 'A.000001', 'score': 98.000588, 'status': 'WATCH_ONLY', 'formal_eligible': False, ...}
+
+tests/test_quote_projection.py:116: AssertionError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_live_unknown_daily_change_is_not_intrastage_return[nan-PREV_CLOSE_PRICE_INVALID]" time="0.001"><failure message="AssertionError: assert 'prev_close_price' in {'code': 'A.000001', 'score': 98.000588, 'status': 'WATCH_ONLY', 'formal_eligible': False, ...}">previous = nan, reason = 'PREV_CLOSE_PRICE_INVALID'
+
+    @pytest.mark.parametrize("previous,reason", INVALID_BASES)
+    def test_live_unknown_daily_change_is_not_intrastage_return(previous, reason):
+        source = live_row(previous)
+        current = run([source], LIVE_STAGES[0])
+        row = current["rows"][0]
+&gt;       assert "prev_close_price" in row
+E       AssertionError: assert 'prev_close_price' in {'code': 'A.000001', 'score': 98.000588, 'status': 'WATCH_ONLY', 'formal_eligible': False, ...}
+
+tests/test_quote_projection.py:116: AssertionError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_live_unknown_daily_change_is_not_intrastage_return[inf-PREV_CLOSE_PRICE_INVALID]" time="0.001"><failure message="AssertionError: assert 'prev_close_price' in {'code': 'A.000001', 'score': 98.000588, 'status': 'WATCH_ONLY', 'formal_eligible': False, ...}">previous = inf, reason = 'PREV_CLOSE_PRICE_INVALID'
+
+    @pytest.mark.parametrize("previous,reason", INVALID_BASES)
+    def test_live_unknown_daily_change_is_not_intrastage_return(previous, reason):
+        source = live_row(previous)
+        current = run([source], LIVE_STAGES[0])
+        row = current["rows"][0]
+&gt;       assert "prev_close_price" in row
+E       AssertionError: assert 'prev_close_price' in {'code': 'A.000001', 'score': 98.000588, 'status': 'WATCH_ONLY', 'formal_eligible': False, ...}
+
+tests/test_quote_projection.py:116: AssertionError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_live_unknown_daily_change_is_not_intrastage_return[True-PREV_CLOSE_PRICE_INVALID]" time="0.001"><failure message="AssertionError: assert 'prev_close_price' in {'code': 'A.000001', 'score': 98.000588, 'status': 'WATCH_ONLY', 'formal_eligible': False, ...}">previous = True, reason = 'PREV_CLOSE_PRICE_INVALID'
+
+    @pytest.mark.parametrize("previous,reason", INVALID_BASES)
+    def test_live_unknown_daily_change_is_not_intrastage_return(previous, reason):
+        source = live_row(previous)
+        current = run([source], LIVE_STAGES[0])
+        row = current["rows"][0]
+&gt;       assert "prev_close_price" in row
+E       AssertionError: assert 'prev_close_price' in {'code': 'A.000001', 'score': 98.000588, 'status': 'WATCH_ONLY', 'formal_eligible': False, ...}
+
+tests/test_quote_projection.py:116: AssertionError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_observed_daily_return_and_true_zero_are_preserved[105-5-STAGE_0925]" time="0.001" /><testcase classname="tests.test_quote_projection" name="test_observed_daily_return_and_true_zero_are_preserved[105-5-STAGE_0930_0935]" time="0.000"><failure message="KeyError: 'prev_close_price'">stage = 'STAGE_0930_0935', price = 105, expected = 5
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", *LIVE_STAGES))
+    @pytest.mark.parametrize("price,expected", [(105, 5), (100, 0), (95, -5)])
+    def test_observed_daily_return_and_true_zero_are_preserved(stage, price, expected):
+        source = auction_row(100, price) if stage == "STAGE_0925" else live_row(100, price)
+        current = run([source], stage)
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:130: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_observed_daily_return_and_true_zero_are_preserved[105-5-STAGE_0935_0940]" time="0.001"><failure message="KeyError: 'prev_close_price'">stage = 'STAGE_0935_0940', price = 105, expected = 5
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", *LIVE_STAGES))
+    @pytest.mark.parametrize("price,expected", [(105, 5), (100, 0), (95, -5)])
+    def test_observed_daily_return_and_true_zero_are_preserved(stage, price, expected):
+        source = auction_row(100, price) if stage == "STAGE_0925" else live_row(100, price)
+        current = run([source], stage)
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:130: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_observed_daily_return_and_true_zero_are_preserved[105-5-STAGE_0940_0945]" time="0.001"><failure message="KeyError: 'prev_close_price'">stage = 'STAGE_0940_0945', price = 105, expected = 5
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", *LIVE_STAGES))
+    @pytest.mark.parametrize("price,expected", [(105, 5), (100, 0), (95, -5)])
+    def test_observed_daily_return_and_true_zero_are_preserved(stage, price, expected):
+        source = auction_row(100, price) if stage == "STAGE_0925" else live_row(100, price)
+        current = run([source], stage)
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:130: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_observed_daily_return_and_true_zero_are_preserved[105-5-STAGE_0945_1030]" time="0.001"><failure message="KeyError: 'prev_close_price'">stage = 'STAGE_0945_1030', price = 105, expected = 5
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", *LIVE_STAGES))
+    @pytest.mark.parametrize("price,expected", [(105, 5), (100, 0), (95, -5)])
+    def test_observed_daily_return_and_true_zero_are_preserved(stage, price, expected):
+        source = auction_row(100, price) if stage == "STAGE_0925" else live_row(100, price)
+        current = run([source], stage)
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:130: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_observed_daily_return_and_true_zero_are_preserved[105-5-STAGE_1300_1315]" time="0.001"><failure message="KeyError: 'prev_close_price'">stage = 'STAGE_1300_1315', price = 105, expected = 5
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", *LIVE_STAGES))
+    @pytest.mark.parametrize("price,expected", [(105, 5), (100, 0), (95, -5)])
+    def test_observed_daily_return_and_true_zero_are_preserved(stage, price, expected):
+        source = auction_row(100, price) if stage == "STAGE_0925" else live_row(100, price)
+        current = run([source], stage)
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:130: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_observed_daily_return_and_true_zero_are_preserved[105-5-STAGE_1445_1500]" time="0.000"><failure message="KeyError: 'prev_close_price'">stage = 'STAGE_1445_1500', price = 105, expected = 5
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", *LIVE_STAGES))
+    @pytest.mark.parametrize("price,expected", [(105, 5), (100, 0), (95, -5)])
+    def test_observed_daily_return_and_true_zero_are_preserved(stage, price, expected):
+        source = auction_row(100, price) if stage == "STAGE_0925" else live_row(100, price)
+        current = run([source], stage)
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:130: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_observed_daily_return_and_true_zero_are_preserved[100-0-STAGE_0925]" time="0.001" /><testcase classname="tests.test_quote_projection" name="test_observed_daily_return_and_true_zero_are_preserved[100-0-STAGE_0930_0935]" time="0.000"><failure message="KeyError: 'prev_close_price'">stage = 'STAGE_0930_0935', price = 100, expected = 0
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", *LIVE_STAGES))
+    @pytest.mark.parametrize("price,expected", [(105, 5), (100, 0), (95, -5)])
+    def test_observed_daily_return_and_true_zero_are_preserved(stage, price, expected):
+        source = auction_row(100, price) if stage == "STAGE_0925" else live_row(100, price)
+        current = run([source], stage)
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:130: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_observed_daily_return_and_true_zero_are_preserved[100-0-STAGE_0935_0940]" time="0.001"><failure message="KeyError: 'prev_close_price'">stage = 'STAGE_0935_0940', price = 100, expected = 0
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", *LIVE_STAGES))
+    @pytest.mark.parametrize("price,expected", [(105, 5), (100, 0), (95, -5)])
+    def test_observed_daily_return_and_true_zero_are_preserved(stage, price, expected):
+        source = auction_row(100, price) if stage == "STAGE_0925" else live_row(100, price)
+        current = run([source], stage)
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:130: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_observed_daily_return_and_true_zero_are_preserved[100-0-STAGE_0940_0945]" time="0.001"><failure message="KeyError: 'prev_close_price'">stage = 'STAGE_0940_0945', price = 100, expected = 0
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", *LIVE_STAGES))
+    @pytest.mark.parametrize("price,expected", [(105, 5), (100, 0), (95, -5)])
+    def test_observed_daily_return_and_true_zero_are_preserved(stage, price, expected):
+        source = auction_row(100, price) if stage == "STAGE_0925" else live_row(100, price)
+        current = run([source], stage)
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:130: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_observed_daily_return_and_true_zero_are_preserved[100-0-STAGE_0945_1030]" time="0.000"><failure message="KeyError: 'prev_close_price'">stage = 'STAGE_0945_1030', price = 100, expected = 0
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", *LIVE_STAGES))
+    @pytest.mark.parametrize("price,expected", [(105, 5), (100, 0), (95, -5)])
+    def test_observed_daily_return_and_true_zero_are_preserved(stage, price, expected):
+        source = auction_row(100, price) if stage == "STAGE_0925" else live_row(100, price)
+        current = run([source], stage)
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:130: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_observed_daily_return_and_true_zero_are_preserved[100-0-STAGE_1300_1315]" time="0.001"><failure message="KeyError: 'prev_close_price'">stage = 'STAGE_1300_1315', price = 100, expected = 0
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", *LIVE_STAGES))
+    @pytest.mark.parametrize("price,expected", [(105, 5), (100, 0), (95, -5)])
+    def test_observed_daily_return_and_true_zero_are_preserved(stage, price, expected):
+        source = auction_row(100, price) if stage == "STAGE_0925" else live_row(100, price)
+        current = run([source], stage)
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:130: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_observed_daily_return_and_true_zero_are_preserved[100-0-STAGE_1445_1500]" time="0.001"><failure message="KeyError: 'prev_close_price'">stage = 'STAGE_1445_1500', price = 100, expected = 0
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", *LIVE_STAGES))
+    @pytest.mark.parametrize("price,expected", [(105, 5), (100, 0), (95, -5)])
+    def test_observed_daily_return_and_true_zero_are_preserved(stage, price, expected):
+        source = auction_row(100, price) if stage == "STAGE_0925" else live_row(100, price)
+        current = run([source], stage)
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:130: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_observed_daily_return_and_true_zero_are_preserved[95--5-STAGE_0925]" time="0.001" /><testcase classname="tests.test_quote_projection" name="test_observed_daily_return_and_true_zero_are_preserved[95--5-STAGE_0930_0935]" time="0.000"><failure message="KeyError: 'prev_close_price'">stage = 'STAGE_0930_0935', price = 95, expected = -5
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", *LIVE_STAGES))
+    @pytest.mark.parametrize("price,expected", [(105, 5), (100, 0), (95, -5)])
+    def test_observed_daily_return_and_true_zero_are_preserved(stage, price, expected):
+        source = auction_row(100, price) if stage == "STAGE_0925" else live_row(100, price)
+        current = run([source], stage)
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:130: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_observed_daily_return_and_true_zero_are_preserved[95--5-STAGE_0935_0940]" time="0.001"><failure message="KeyError: 'prev_close_price'">stage = 'STAGE_0935_0940', price = 95, expected = -5
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", *LIVE_STAGES))
+    @pytest.mark.parametrize("price,expected", [(105, 5), (100, 0), (95, -5)])
+    def test_observed_daily_return_and_true_zero_are_preserved(stage, price, expected):
+        source = auction_row(100, price) if stage == "STAGE_0925" else live_row(100, price)
+        current = run([source], stage)
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:130: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_observed_daily_return_and_true_zero_are_preserved[95--5-STAGE_0940_0945]" time="0.001"><failure message="KeyError: 'prev_close_price'">stage = 'STAGE_0940_0945', price = 95, expected = -5
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", *LIVE_STAGES))
+    @pytest.mark.parametrize("price,expected", [(105, 5), (100, 0), (95, -5)])
+    def test_observed_daily_return_and_true_zero_are_preserved(stage, price, expected):
+        source = auction_row(100, price) if stage == "STAGE_0925" else live_row(100, price)
+        current = run([source], stage)
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:130: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_observed_daily_return_and_true_zero_are_preserved[95--5-STAGE_0945_1030]" time="0.000"><failure message="KeyError: 'prev_close_price'">stage = 'STAGE_0945_1030', price = 95, expected = -5
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", *LIVE_STAGES))
+    @pytest.mark.parametrize("price,expected", [(105, 5), (100, 0), (95, -5)])
+    def test_observed_daily_return_and_true_zero_are_preserved(stage, price, expected):
+        source = auction_row(100, price) if stage == "STAGE_0925" else live_row(100, price)
+        current = run([source], stage)
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:130: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_observed_daily_return_and_true_zero_are_preserved[95--5-STAGE_1300_1315]" time="0.001"><failure message="KeyError: 'prev_close_price'">stage = 'STAGE_1300_1315', price = 95, expected = -5
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", *LIVE_STAGES))
+    @pytest.mark.parametrize("price,expected", [(105, 5), (100, 0), (95, -5)])
+    def test_observed_daily_return_and_true_zero_are_preserved(stage, price, expected):
+        source = auction_row(100, price) if stage == "STAGE_0925" else live_row(100, price)
+        current = run([source], stage)
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:130: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_observed_daily_return_and_true_zero_are_preserved[95--5-STAGE_1445_1500]" time="0.001"><failure message="KeyError: 'prev_close_price'">stage = 'STAGE_1445_1500', price = 95, expected = -5
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", *LIVE_STAGES))
+    @pytest.mark.parametrize("price,expected", [(105, 5), (100, 0), (95, -5)])
+    def test_observed_daily_return_and_true_zero_are_preserved(stage, price, expected):
+        source = auction_row(100, price) if stage == "STAGE_0925" else live_row(100, price)
+        current = run([source], stage)
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:130: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_auction_daily_return_uses_match_price_even_when_card_last_differs" time="0.000" /><testcase classname="tests.test_quote_projection" name="test_missing_or_invalid_last_is_distinct_from_missing_previous_close[None-STAGE_0925]" time="0.001"><failure message="KeyError: 'current_change_pct_missing_reason'">stage = 'STAGE_0925', last = None
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", LIVE_STAGES[0]))
+    @pytest.mark.parametrize("last", [None, 0, -5, float("nan"), True])
+    def test_missing_or_invalid_last_is_distinct_from_missing_previous_close(stage, last):
+        source = auction_row(100, last) if stage == "STAGE_0925" else live_row(100, last)
+        current = run([source], stage)
+        row = current["rows"][0]
+        assert row["prev_close_price"] == 100
+        assert row["current_change_pct"] is None
+        expected = "AUCTION_PRICE_MISSING_OR_INVALID" if stage == "STAGE_0925" else "LAST_PRICE_MISSING_OR_INVALID"
+&gt;       assert row["current_change_pct_missing_reason"] == expected
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'current_change_pct_missing_reason'
+
+tests/test_quote_projection.py:154: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_missing_or_invalid_last_is_distinct_from_missing_previous_close[None-STAGE_0930_0935]" time="0.000"><failure message="KeyError: 'prev_close_price'">stage = 'STAGE_0930_0935', last = None
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", LIVE_STAGES[0]))
+    @pytest.mark.parametrize("last", [None, 0, -5, float("nan"), True])
+    def test_missing_or_invalid_last_is_distinct_from_missing_previous_close(stage, last):
+        source = auction_row(100, last) if stage == "STAGE_0925" else live_row(100, last)
+        current = run([source], stage)
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:151: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_missing_or_invalid_last_is_distinct_from_missing_previous_close[0-STAGE_0925]" time="0.000"><failure message="assert -100.0 is None">stage = 'STAGE_0925', last = 0
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", LIVE_STAGES[0]))
+    @pytest.mark.parametrize("last", [None, 0, -5, float("nan"), True])
+    def test_missing_or_invalid_last_is_distinct_from_missing_previous_close(stage, last):
+        source = auction_row(100, last) if stage == "STAGE_0925" else live_row(100, last)
+        current = run([source], stage)
+        row = current["rows"][0]
+        assert row["prev_close_price"] == 100
+&gt;       assert row["current_change_pct"] is None
+E       assert -100.0 is None
+
+tests/test_quote_projection.py:152: AssertionError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_missing_or_invalid_last_is_distinct_from_missing_previous_close[0-STAGE_0930_0935]" time="0.000"><failure message="KeyError: 'prev_close_price'">stage = 'STAGE_0930_0935', last = 0
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", LIVE_STAGES[0]))
+    @pytest.mark.parametrize("last", [None, 0, -5, float("nan"), True])
+    def test_missing_or_invalid_last_is_distinct_from_missing_previous_close(stage, last):
+        source = auction_row(100, last) if stage == "STAGE_0925" else live_row(100, last)
+        current = run([source], stage)
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:151: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_missing_or_invalid_last_is_distinct_from_missing_previous_close[-5-STAGE_0925]" time="0.001"><failure message="assert -105.0 is None">stage = 'STAGE_0925', last = -5
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", LIVE_STAGES[0]))
+    @pytest.mark.parametrize("last", [None, 0, -5, float("nan"), True])
+    def test_missing_or_invalid_last_is_distinct_from_missing_previous_close(stage, last):
+        source = auction_row(100, last) if stage == "STAGE_0925" else live_row(100, last)
+        current = run([source], stage)
+        row = current["rows"][0]
+        assert row["prev_close_price"] == 100
+&gt;       assert row["current_change_pct"] is None
+E       assert -105.0 is None
+
+tests/test_quote_projection.py:152: AssertionError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_missing_or_invalid_last_is_distinct_from_missing_previous_close[-5-STAGE_0930_0935]" time="0.000"><failure message="KeyError: 'prev_close_price'">stage = 'STAGE_0930_0935', last = -5
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", LIVE_STAGES[0]))
+    @pytest.mark.parametrize("last", [None, 0, -5, float("nan"), True])
+    def test_missing_or_invalid_last_is_distinct_from_missing_previous_close(stage, last):
+        source = auction_row(100, last) if stage == "STAGE_0925" else live_row(100, last)
+        current = run([source], stage)
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:151: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_missing_or_invalid_last_is_distinct_from_missing_previous_close[nan-STAGE_0925]" time="0.000"><failure message="KeyError: 'current_change_pct_missing_reason'">stage = 'STAGE_0925', last = nan
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", LIVE_STAGES[0]))
+    @pytest.mark.parametrize("last", [None, 0, -5, float("nan"), True])
+    def test_missing_or_invalid_last_is_distinct_from_missing_previous_close(stage, last):
+        source = auction_row(100, last) if stage == "STAGE_0925" else live_row(100, last)
+        current = run([source], stage)
+        row = current["rows"][0]
+        assert row["prev_close_price"] == 100
+        assert row["current_change_pct"] is None
+        expected = "AUCTION_PRICE_MISSING_OR_INVALID" if stage == "STAGE_0925" else "LAST_PRICE_MISSING_OR_INVALID"
+&gt;       assert row["current_change_pct_missing_reason"] == expected
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'current_change_pct_missing_reason'
+
+tests/test_quote_projection.py:154: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_missing_or_invalid_last_is_distinct_from_missing_previous_close[nan-STAGE_0930_0935]" time="0.000"><failure message="KeyError: 'prev_close_price'">stage = 'STAGE_0930_0935', last = nan
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", LIVE_STAGES[0]))
+    @pytest.mark.parametrize("last", [None, 0, -5, float("nan"), True])
+    def test_missing_or_invalid_last_is_distinct_from_missing_previous_close(stage, last):
+        source = auction_row(100, last) if stage == "STAGE_0925" else live_row(100, last)
+        current = run([source], stage)
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:151: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_missing_or_invalid_last_is_distinct_from_missing_previous_close[True-STAGE_0925]" time="0.001"><failure message="KeyError: 'current_change_pct_missing_reason'">stage = 'STAGE_0925', last = True
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", LIVE_STAGES[0]))
+    @pytest.mark.parametrize("last", [None, 0, -5, float("nan"), True])
+    def test_missing_or_invalid_last_is_distinct_from_missing_previous_close(stage, last):
+        source = auction_row(100, last) if stage == "STAGE_0925" else live_row(100, last)
+        current = run([source], stage)
+        row = current["rows"][0]
+        assert row["prev_close_price"] == 100
+        assert row["current_change_pct"] is None
+        expected = "AUCTION_PRICE_MISSING_OR_INVALID" if stage == "STAGE_0925" else "LAST_PRICE_MISSING_OR_INVALID"
+&gt;       assert row["current_change_pct_missing_reason"] == expected
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'current_change_pct_missing_reason'
+
+tests/test_quote_projection.py:154: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_missing_or_invalid_last_is_distinct_from_missing_previous_close[True-STAGE_0930_0935]" time="0.000"><failure message="KeyError: 'prev_close_price'">stage = 'STAGE_0930_0935', last = True
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", LIVE_STAGES[0]))
+    @pytest.mark.parametrize("last", [None, 0, -5, float("nan"), True])
+    def test_missing_or_invalid_last_is_distinct_from_missing_previous_close(stage, last):
+        source = auction_row(100, last) if stage == "STAGE_0925" else live_row(100, last)
+        current = run([source], stage)
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:151: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_216_input_accounting_and_top10_scoring_rank_remain_unchanged[STAGE_0925]" time="0.009" /><testcase classname="tests.test_quote_projection" name="test_216_input_accounting_and_top10_scoring_rank_remain_unchanged[STAGE_0930_0935]" time="0.010" /><testcase classname="tests.test_quote_projection" name="test_216_input_accounting_and_top10_scoring_rank_remain_unchanged[STAGE_0935_0940]" time="0.009" /><testcase classname="tests.test_quote_projection" name="test_216_input_accounting_and_top10_scoring_rank_remain_unchanged[STAGE_0940_0945]" time="0.009" /><testcase classname="tests.test_quote_projection" name="test_216_input_accounting_and_top10_scoring_rank_remain_unchanged[STAGE_0945_1030]" time="0.009" /><testcase classname="tests.test_quote_projection" name="test_216_input_accounting_and_top10_scoring_rank_remain_unchanged[STAGE_1300_1315]" time="0.009" /><testcase classname="tests.test_quote_projection" name="test_216_input_accounting_and_top10_scoring_rank_remain_unchanged[STAGE_1445_1500]" time="0.009" /><testcase classname="tests.test_quote_projection" name="test_current_support_pressure_invalidation_rule_is_unchanged" time="0.000" /><testcase classname="tests.test_quote_projection" name="test_live_flattened_qmt_input_projects_existing_baseline_without_new_aliases" time="0.000"><failure message="KeyError: 'prev_close_price'">def test_live_flattened_qmt_input_projects_existing_baseline_without_new_aliases():
+        source = {
+            "code": "A.000001", "qmt_open": 102, "qmt_last": 105,
+            "qmt_prev_close": 100, "qmt_high": 106, "qmt_low": 101,
+            "qmt_amount": 10_000_000,
+        }
+        row = run([source], LIVE_STAGES[0])["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:211: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_live_0925_tie_break_runs_before_missing_gap_output_projection" time="0.001"><failure message="assert 0.0 is None">def test_live_0925_tie_break_runs_before_missing_gap_output_projection():
+        rows = [
+            live_row(None, 100, opened=100, code="A.000001", rank=1),
+            live_row(100, 100, opened=100, code="A.000002", rank=2),
+        ]
+        kwargs = {"source_status": "READY", "requested_rows": 2,
+                  "missing_symbols": (), "cannot_confirm": (), "source_evidence": TOP10}
+        before = BEFORE_LIVE._select_a_live_stage_body(
+            selection.__dict__, rows, DATE, "STAGE_0925", RAW_SHA, **kwargs,
+        )
+        after = selection.select_a_live_stage(rows, DATE, "STAGE_0925", RAW_SHA, **kwargs)
+        assert ranking(after) == ranking(before)
+        assert [row["code"] for row in after["rows"]] == ["A.000001", "A.000002"]
+&gt;       assert after["rows"][0]["qmt_gap_pct"] is None
+E       assert 0.0 is None
+
+tests/test_quote_projection.py:228: AssertionError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_live_no_open_or_last_does_not_export_a_zero_gap" time="0.000"><failure message="KeyError: 'prev_close_price'">def test_live_no_open_or_last_does_not_export_a_zero_gap():
+        source = live_row(100, None, opened=None)
+        current = run([source], LIVE_STAGES[0])
+        row = current["rows"][0]
+&gt;       assert row["prev_close_price"] == 100
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:236: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_nullable_price_observations_survive_real_store_and_json[STAGE_0925]" time="0.006"><failure message="assert 0.0 is None">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-3/test_nullable_price_observatio0')
+stage = 'STAGE_0925'
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", LIVE_STAGES[0]))
+    def test_nullable_price_observations_survive_real_store_and_json(tmp_path, stage):
+        source = auction_row(None) if stage == "STAGE_0925" else live_row(None)
+        envelope = run([source], stage)
+        store = selection.SelectionStore(tmp_path / "synthetic")
+        stored = store.publish(envelope, market="A_SHARE")
+        readback = store.read_verified(DATE, stage, "A_SHARE")
+        assert stored == readback == envelope
+        row = json.loads(json.dumps(readback, allow_nan=False))["rows"][0]
+        assert row["prev_close_price"] is None
+&gt;       assert row["current_change_pct"] is None
+E       assert 0.0 is None
+
+tests/test_quote_projection.py:253: AssertionError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_nullable_price_observations_survive_real_store_and_json[STAGE_0930_0935]" time="0.004"><failure message="KeyError: 'prev_close_price'">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-3/test_nullable_price_observatio1')
+stage = 'STAGE_0930_0935'
+
+    @pytest.mark.parametrize("stage", ("STAGE_0925", LIVE_STAGES[0]))
+    def test_nullable_price_observations_survive_real_store_and_json(tmp_path, stage):
+        source = auction_row(None) if stage == "STAGE_0925" else live_row(None)
+        envelope = run([source], stage)
+        store = selection.SelectionStore(tmp_path / "synthetic")
+        stored = store.publish(envelope, market="A_SHARE")
+        readback = store.read_verified(DATE, stage, "A_SHARE")
+        assert stored == readback == envelope
+        row = json.loads(json.dumps(readback, allow_nan=False))["rows"][0]
+&gt;       assert row["prev_close_price"] is None
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'prev_close_price'
+
+tests/test_quote_projection.py:252: KeyError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_old_run_is_preserved_and_new_projection_cannot_overwrite_slot" time="0.002"><failure message="assert 0.0 is None">tmp_path = PosixPath('/tmp/pytest-of-root/pytest-3/test_old_run_is_preserved_and_0')
+
+    def test_old_run_is_preserved_and_new_projection_cannot_overwrite_slot(tmp_path):
+        rows = [auction_row(None)]
+        before = run(rows, before=True)
+        after = run(rows)
+        assert before["rows"][0]["current_change_pct"] == 0
+&gt;       assert after["rows"][0]["current_change_pct"] is None
+E       assert 0.0 is None
+
+tests/test_quote_projection.py:270: AssertionError</failure></testcase><testcase classname="tests.test_quote_projection" name="test_wrong_date_still_rejected_without_any_projection" time="0.000" /></testsuite></testsuites>

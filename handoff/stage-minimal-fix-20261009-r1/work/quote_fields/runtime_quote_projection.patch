@@ -1,0 +1,99 @@
+--- a/stage_center/_selection_parts/a_auction.py
++++ b/stage_center/_selection_parts/a_auction.py
+@@ -76,15 +76,24 @@
+             source_last_bar_time=_v4_global(_v4_scope, '_a_row_value')(source, "update_time", "time"),
+             next_validation_time=next_validation_time or _v4_global(_v4_scope, '_a_row_value')(source, "next_validation_time"),
+         )
++        # Observation fields are projected after the frozen score call. A
++        # missing day baseline must not become the generic card's last/open
++        # return; keep the original score inputs and ranking unchanged.
++        observed_prev_close = prev_close if prev_close is not None and prev_close > 0 else None
++        change_missing_reason = None
++        if observed_prev_close is None:
++            previous_value = _v4_global(_v4_scope, '_a_row_value')(source, "prev_close_price", "prev_close", "last_close")
++            change_missing_reason = "PREV_CLOSE_PRICE_MISSING" if previous_value is None else "PREV_CLOSE_PRICE_INVALID"
++        elif price is None or price <= 0:
++            change_missing_reason = "AUCTION_PRICE_MISSING_OR_INVALID"
++        observed_change = current_change if change_missing_reason is None else None
+         normalized.append(
+             {
+                 "code": code,
+                 "score": _v4_global(_v4_scope, 'round')(bounded_score, 6),
+                 "status": "集合竞价成交代理观察",
+                 "formal_eligible": False,
+-                "prev_close_price": prev_close,
+-                "current_change_pct": None if current_change is None else _v4_global(_v4_scope, 'round')(current_change, 4),
+-                "qmt_gap_pct": 0.0 if current_change is None else _v4_global(_v4_scope, 'round')(current_change, 6),
++                "qmt_gap_pct": None if observed_change is None else _v4_global(_v4_scope, 'round')(observed_change, 6),
+                 "qmt_amount": amount,
+                 "stage_score": _v4_global(_v4_scope, 'round')(bounded_score, 6),
+                 "support": price,
+@@ -98,11 +107,16 @@
+                     "formula=windows_v3_live_stage_quality_score",
+                     "score_bounded_0_100=true",
+                     "current_change_pct_basis=AUCTION_PRICE_VS_PREV_CLOSE",
++                    *([f"current_change_pct_missing_reason={change_missing_reason}"] if change_missing_reason else []),
+                 ],
+                 "action_level": "NO_BUY",
+                 "trade_status": "WATCH_ONLY",
+                 "bar_order": index,
+                 **card,
++                "prev_close_price": observed_prev_close,
++                "current_change_pct": None if observed_change is None else _v4_global(_v4_scope, 'round')(observed_change, 4),
++                "current_change_pct_basis": "AUCTION_PRICE_VS_PREV_CLOSE",
++                "current_change_pct_missing_reason": change_missing_reason,
+             }
+         )
+     normalized = _v4_global(_v4_scope, '_cap_recommendations')(_v4_global(_v4_scope, 'sorted')(normalized, key=lambda item: item["score"], reverse=True))
+--- a/stage_center/_selection_parts/a_live.py
++++ b/stage_center/_selection_parts/a_live.py
+@@ -52,6 +52,25 @@
+             high_price=qmt.get("high"),
+             low_price=qmt.get("low"),
+         )
++        # Project the baseline already supplied to the frozen formula. The
++        # generic card's last/open fallback is an intrastage return, not a
++        # day return; this projection never changes qmt or scoring inputs.
++        previous_value = qmt.get("lastClose")
++        observed_prev_close = None if _v4_global(_v4_scope, 'isinstance')(previous_value, _v4_global(_v4_scope, 'bool')) else _v4_global(_v4_scope, '_live_safe_float')(previous_value)
++        change_missing_reason = None
++        if observed_prev_close is None or observed_prev_close <= 0:
++            observed_prev_close = None
++            change_missing_reason = "PREV_CLOSE_PRICE_MISSING" if previous_value in (None, "") else "PREV_CLOSE_PRICE_INVALID"
++        last_value = qmt.get("lastPrice")
++        observed_last = None if _v4_global(_v4_scope, 'isinstance')(last_value, _v4_global(_v4_scope, 'bool')) else _v4_global(_v4_scope, '_live_safe_float')(last_value)
++        if change_missing_reason is None and (observed_last is None or observed_last <= 0):
++            change_missing_reason = "LAST_PRICE_MISSING_OR_INVALID"
++        observed_change = _v4_global(_v4_scope, '_live_pct_change')(observed_last, observed_prev_close) if change_missing_reason is None else None
++        gap_value = qmt.get("open") if _v4_global(_v4_scope, '_live_safe_float')(qmt.get("open")) else qmt.get("lastPrice")
++        observed_gap_price = None if _v4_global(_v4_scope, 'isinstance')(gap_value, _v4_global(_v4_scope, 'bool')) else _v4_global(_v4_scope, '_live_safe_float')(gap_value)
++        gap_missing_reason = change_missing_reason if observed_prev_close is None else (
++            "OPEN_PRICE_MISSING_OR_INVALID" if observed_gap_price is None or observed_gap_price <= 0 else None
++        )
+         formal_eligible = _v4_global(_v4_scope, '_truthy')(source.get("formal_eligible"), False)
+         lane_evidence = _v4_global(_v4_scope, 'list')(source.get("lane_evidence") or ())
+         if formal_eligible:
+@@ -69,6 +88,11 @@
+             "status": "WATCH_ONLY",
+             "formal_eligible": formal_eligible,
+             **card,
++            "prev_close_price": observed_prev_close,
++            "current_change_pct": None if observed_change is None else _v4_global(_v4_scope, 'round')(observed_change, 4),
++            "current_change_pct_basis": "LAST_PRICE_VS_PREV_CLOSE",
++            "current_change_pct_missing_reason": change_missing_reason,
++            "qmt_gap_pct_missing_reason": gap_missing_reason,
+             "source_mode": "A_SHARE_WINDOWS_V3_LIVE_STAGE",
+             "lane_evidence": _v4_global(_v4_scope, 'list')(_v4_global(_v4_scope, 'dict').fromkeys((*lane_evidence, "WINDOWS_V3_LIVE_FORMULA"))),
+             "action_level": "WATCH_ONLY",
+@@ -97,6 +121,11 @@
+     top10 = _v4_global(_v4_scope, '_top10_contract')(source_evidence)
+     legacy = _v4_global(_v4_scope, '_legacy_backfill')(source_evidence) and not top10
+     selected = _v4_global(_v4_scope, '_cap_recommendations')(_v4_global(_v4_scope, 'sorted')(selected, key=_v4_global(_v4_scope, 'stage_row_sort_key')), preserve_legacy=legacy)
++    # qmt_gap_pct can be an old-formula tie-break. Normalize unknown output
++    # only after the unchanged sort and Top10 boundary have finished.
++    for row in selected:
++        if row["qmt_gap_pct_missing_reason"] is not None:
++            row["qmt_gap_pct"] = None
+     algorithm_sha = (
+         _v4_global(_v4_scope, 'A_SHARE_LIVE_ALGORITHM_SHA256') if top10 else _v4_global(_v4_scope, 'LEGACY_A_SHARE_LIVE_ALGORITHM_SHA256')
+     )

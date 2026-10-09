@@ -1,0 +1,64 @@
+{
+  "command": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "/workspace/scratch/25c09a595aec/stage_minimal/work/api_ui/tests",
+    "--junitxml=/workspace/scratch/25c09a595aec/stage_minimal/work/hk_entrypoint/api_review/evidence/independent_author_with_consumer/junit.xml"
+  ],
+  "returncode": 0,
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "started_at": "2026-10-09T04:23:40.119438+00:00",
+  "completed_at": "2026-10-09T04:23:40.477148+00:00",
+  "python": "Python 3.14.7",
+  "sources_unchanged": true,
+  "sources": [
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/api_ui/after/source/actual_api/stage_center/execution_evidence.py",
+      "sha256": "bd79b1844568a79750ccce6c547cfe08f651291f1863e213fb25629d34a67b79",
+      "bytes": 17382
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/api_ui/after/conditional_api/stage_center/consumer.py",
+      "sha256": "bc428dc5b3747b0eb1e3c4d68ae4e6f2441882393cfa4a31e4c4c962b924c234",
+      "bytes": 33902
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/receipt_binding/after/source/actual_stage/stage_center/_runner_parts/runner_receipts.py",
+      "sha256": "d634647ef5f50620a4b98a696a61b7d2d1491e9f7c2c351e0e621168a2e03f9f",
+      "bytes": 15898
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/receipt_binding/after/source/actual_stage/stage_center/_runner_parts/slot_execution.py",
+      "sha256": "447a07af0470b86436f7aba128f782429a7b8e7fcf8dad8b92e6d01b7cfb6d96",
+      "bytes": 47067
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/receipt_binding/after/source/canonical/stage_center/_runner_parts/runner_receipts.py",
+      "sha256": "e7877b8c94b118a224b7b8b762be51b02f8aa24b2341e92d2677289961d66e20",
+      "bytes": 11327
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/receipt_binding/after/source/canonical/stage_center/_runner_parts/slot_execution.py",
+      "sha256": "6e50b9406bc09d9a6c4c73ae1b96a2bd73a7d82a0ae00df30371026edadf7fd8",
+      "bytes": 50051
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/api_ui/tests/test_execution_evidence.py",
+      "sha256": "af6b07e223c08c39560d89e8db9c4a2540b291567d7cb3187c0daa9e2fc15934",
+      "bytes": 14820
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/hk_entrypoint/api_review/tests/conftest.py",
+      "sha256": "e0504ad9cd4e693f8d1d0179450d7408bf79c1664103155d8eafd289af264df7",
+      "bytes": 7691
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/quote_fields/SUPPORT_MANIFEST.json",
+      "sha256": "4f6ea1af0517af51f61fc9954ca7b65906b7b04ffcd8c0067a25bd662d7ac11e",
+      "bytes": 6391
+    }
+  ],
+  "test_scope": "SOURCE_SLICE_WITH_ORIGINAL_HISTORICAL_SUPPORT_NOT_MAC_RUNTIME"
+}

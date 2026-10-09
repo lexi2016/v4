@@ -1,0 +1,80 @@
+{
+  "scope": "LOCAL_PATCH_BYTE_ROUNDTRIP_NO_CURRENT_UI_OR_DEPLOYMENT_ASSERTION",
+  "patch_sha256": "bd2a270532c759a73acb898949611333e9f59d4da9ebeff206f7e47bc5c25474",
+  "changes": [
+    {
+      "relative_path": "apps/web/src/App.vue",
+      "removed_lines": 1,
+      "added_lines": 1
+    },
+    {
+      "relative_path": "apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "removed_lines": 22,
+      "added_lines": 97
+    },
+    {
+      "relative_path": "apps/web/src/contracts/runtime.ts",
+      "removed_lines": 0,
+      "added_lines": 9
+    }
+  ],
+  "app_only_one_exact_copy_replacement": true,
+  "app_mounting_date_stage_buttons_handlers_other_bytes_preserved": true,
+  "runtime_existing_types_exactly_preserved_after_removing_optional_addition": true,
+  "after_byte_matches": [
+    "apps/web/src/App.vue",
+    "apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+    "apps/web/src/contracts/runtime.ts"
+  ],
+  "reverse_restores_all_before_bytes": true,
+  "commands": [
+    {
+      "phase": "before_check",
+      "command": [
+        "git",
+        "apply",
+        "--check",
+        "/workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/runtime_ui_presentation.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "phase": "apply",
+      "command": [
+        "git",
+        "apply",
+        "/workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/runtime_ui_presentation.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "phase": "after_reverse_check",
+      "command": [
+        "git",
+        "apply",
+        "--reverse",
+        "--check",
+        "/workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/runtime_ui_presentation.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "phase": "reverse",
+      "command": [
+        "git",
+        "apply",
+        "--reverse",
+        "/workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation/runtime_ui_presentation.patch"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

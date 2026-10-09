@@ -1,0 +1,95 @@
+{
+  "schema_version": "v4.stage_minimal.independent_quote_projection_review.v1",
+  "reviewer": "stage_hk_and_entrypoint (read-only reviewer of quote_fields candidate)",
+  "fixed_input_commit": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+  "status": "PASS_SOURCE_SLICE_WITH_HISTORICAL_SUPPORT",
+  "source_checks": [
+    {
+      "relative_path": "stage_center/_selection_parts/a_auction.py",
+      "actual_source": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/_selection_parts/a_auction.py",
+      "canonical_source": "/Users/lexi/Desktop/学习/v4_app/stage_center/_selection_parts/a_auction.py",
+      "source_ref": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "source_repository_path": "handoff/stage-minimal-flow-20261009/source/actual_stage/stage_center/_selection_parts/a_auction.py",
+      "actual_canonical_same_before_bytes": true,
+      "before": {
+        "bytes": 7957,
+        "sha256": "d0a96edcb4d87f223b117917a8f0d68276bd088a88abe8f787d245c8e1c669ad",
+        "git_blob_sha1": "0dd8b201d888d4eeadbe6a3b806f44b3c3457f77"
+      },
+      "after": {
+        "bytes": 9078,
+        "sha256": "01b00f748daa0ef7b0502805d977d883b20616c2070aa35685744af8f9131af1",
+        "git_blob_sha1": "6acde7f10dc11719e13dbd09ebd560a34892317d"
+      }
+    },
+    {
+      "relative_path": "stage_center/_selection_parts/a_live.py",
+      "actual_source": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app/stage_center/_selection_parts/a_live.py",
+      "canonical_source": "/Users/lexi/Desktop/学习/v4_app/stage_center/_selection_parts/a_live.py",
+      "source_ref": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "source_repository_path": "handoff/stage-minimal-flow-20261009/source/actual_stage/stage_center/_selection_parts/a_live.py",
+      "actual_canonical_same_before_bytes": true,
+      "before": {
+        "bytes": 7307,
+        "sha256": "b7faa3286df4f0312075c7a4563d3f4deed463d3f10ab2c4902967e8d5d7781d",
+        "git_blob_sha1": "ca1f1b6d95d9d2b76591b77d372e7415fe2c5ce7"
+      },
+      "after": {
+        "bytes": 9704,
+        "sha256": "4225b27df7067663da42b635773bf90e94b4601fc2478b8decb5c635f77d86a0",
+        "git_blob_sha1": "5815f97d8f72a4f73476d912a0f40c2df6a94cef"
+      }
+    }
+  ],
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "author_suite": {
+    "junit": "/workspace/scratch/25c09a595aec/stage_minimal/work/hk_entrypoint/quote_review/author_suite/junit.xml",
+    "tests": 65,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "execution": "/workspace/scratch/25c09a595aec/stage_minimal/work/hk_entrypoint/quote_review/author_suite/execution.json"
+  },
+  "independent_probes": {
+    "junit": "/workspace/scratch/25c09a595aec/stage_minimal/work/hk_entrypoint/quote_review/independent_probes.xml",
+    "tests": 15,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "source": "/workspace/scratch/25c09a595aec/stage_minimal/work/hk_entrypoint/quote_review/tests/test_independent_projection.py",
+    "source_sha256": "7ecfd035769b413a937d0adc45d0f05c8fdb384e48a4366a2f839f80288e0645",
+    "command": [
+      "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "stage_minimal/work/hk_entrypoint/quote_review/tests/test_independent_projection.py",
+      "--junitxml=stage_minimal/work/hk_entrypoint/quote_review/independent_probes.xml"
+    ],
+    "cwd": "/workspace/scratch/25c09a595aec",
+    "exit_code_observed": 0
+  },
+  "verified_properties": [
+    "Original selector entrypoints are executed with byte-verified frozen before/after sources.",
+    "For all seven supported A stage paths, 240 supplied rows call the same original score function with identical qmt/candidate/stage arguments and retain Top10 codes, scores and ranks.",
+    "No before-score qmt/previous-close coercion was introduced; formula bytes and algorithm ID/SHA are unchanged in the provided source slice.",
+    "Known day return overrides the generic card last/open fallback; missing/invalid baseline remains null with reason; genuine zero remains numeric zero.",
+    "Existing alias precedence and nested qmt identity remain authoritative; no unscored top-level baseline is borrowed.",
+    "Opening-gap observation may remain known while last/day change is unavailable.",
+    "Input objects, old stored results and unchanged stage safety flags remain preserved in the tests."
+  ],
+  "limits": [
+    "Support imports and package namespace shells are explicitly historical test support, not a full current-owner import.",
+    "Current collector/TDX provider/raw previous-close presence cannot be established from the supplied selector slice.",
+    "The change does not reconstruct missing market rows, missing previous-close values, historical outputs, or HK data.",
+    "Actual Mac integration, real data capture, API/UI and natural stage acceptance were not executed by this reviewer.",
+    "This review does not include the separate receipt writer or clock patch."
+  ]
+}

@@ -1,0 +1,99 @@
+{
+  "status": "PASS_CONDITIONAL_UI_SOURCE_SSR",
+  "reviewer": "stage_receipt_binding (independent of UI author)",
+  "review_scope": "3 conditional UI source files at fixed 28ab historical reference baseline",
+  "findings": [
+    {
+      "id": "UI-P2-001",
+      "severity": "P2",
+      "status": "CLOSED_RETESTED",
+      "problem": "New selection_results object missing a market key incorrectly used legacy receipt counts.",
+      "initial_component_sha256": "1095262c523e696cd267304e7829732380b35ef502eba97ef9c798353d06804e",
+      "final_component_sha256": "6cb4aecf34fe69a0b95af9075bfabbcd0c504dc29026cb31edd17ef83f764a6a",
+      "fix": "Legacy path only when selection_results top-level field is absent.",
+      "independent_red": "evidence/independent-initial.stdout",
+      "independent_green": "evidence/independent-final.stdout"
+    }
+  ],
+  "open_findings": [],
+  "initial_author_suite": {
+    "tests": 21,
+    "pass": 21,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0
+  },
+  "initial_independent_suite": {
+    "tests": 25,
+    "pass": 24,
+    "fail": 1,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0
+  },
+  "final_author_suite": {
+    "tests": 23,
+    "pass": 23,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0
+  },
+  "final_independent_suite": {
+    "tests": 25,
+    "pass": 25,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0
+  },
+  "environment": {
+    "node": "v24.19.0",
+    "vue": "3.5.13",
+    "@vue/compiler-sfc": "3.5.13",
+    "@vue/server-renderer": "3.5.13",
+    "platform": "Linux"
+  },
+  "warning": "Node stripTypeScriptTypes ExperimentalWarning; preserved in raw stdout",
+  "final_sources": [
+    {
+      "path": "stage_minimal/work/ui_presentation/after/apps/web/src/App.vue",
+      "sha256": "e13a92e7f990ef18de0909edf0d2644410ba55194b21b583d43b76d648801dc5",
+      "bytes": 120790
+    },
+    {
+      "path": "stage_minimal/work/ui_presentation/after/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "sha256": "6cb4aecf34fe69a0b95af9075bfabbcd0c504dc29026cb31edd17ef83f764a6a",
+      "bytes": 6369
+    },
+    {
+      "path": "stage_minimal/work/ui_presentation/after/apps/web/src/contracts/runtime.ts",
+      "sha256": "c440de3ff964daa01994cbcd04d9b3ce1f417737a39034520c478ef83448bebe",
+      "bytes": 3553
+    }
+  ],
+  "final_source_readback_stable": true,
+  "checks": {
+    "fixed_reference_before_git_blobs": "3/3 PASS",
+    "App.vue": "Exactly one text replacement; all script/events/date/stage/conditions/buttons/page limits unchanged",
+    "runtime.ts": "Optional response fields only; preexisting types unchanged",
+    "null_counters": "Preserved unknown, never coerced to zero",
+    "A_vs_HK": "Independent result labels; saved HK result remains visible despite older HK blocked receipt",
+    "natural_verification": "Owner history binding and NATURAL declaration do not elevate natural acceptance",
+    "escaping": "Vue SSR escapes diagnostic markup; raw technical details remain closed"
+  },
+  "not_run": [
+    "CURRENT_MAC_FRONTEND_IDENTITY_RECHECK",
+    "FULL_APP_TYPESCRIPT_BUILD",
+    "BROWSER_RENDER_AND_INTERACTION",
+    "8873_LIVE_API_UI_ACCEPTANCE",
+    "DEPLOYMENT",
+    "NATURAL_SLOT_ACCEPTANCE"
+  ],
+  "conditions": [
+    "Apply only after exact actual UI before SHA matches or supply current frontend source for rebase.",
+    "20-file issue input did not include current frontend assets.",
+    "Support is real Vue SFC compilation and SSR, not a whole existing App build."
+  ]
+}

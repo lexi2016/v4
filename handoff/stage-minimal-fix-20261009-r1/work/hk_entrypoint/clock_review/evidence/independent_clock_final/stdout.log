@@ -1,0 +1,610 @@
+FFFFFFFFFFFF..........                                                   [100%]
+=================================== FAILURES ===================================
+_ test_real_node_window_and_stage_cutoff_are_distinct[actual_stage-STAGE_0940_0945-1e-06-RECOVERY] _
+
+rt = namespace(scope={'__name__': 'independent_clock_b85fc59e40104e2c950ee200e1f2c1fe.original_facade', '__doc__': None, '_...on evaluate_due at 0x7f1c5e06c5c0>, events=[('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+stage = 'STAGE_0940_0945', late = 1e-06, expected_mode = 'RECOVERY'
+
+    @pytest.mark.parametrize("stage,late,expected_mode", [
+        ("STAGE_0940_0945", 0.000001, "RECOVERY"),
+        ("STAGE_0945_1030", 0.25, "NATURAL"),
+        ("STAGE_0945_1030", 5.000001, "RECOVERY"),
+    ])
+    def test_real_node_window_and_stage_cutoff_are_distinct(rt, stage, late, expected_mode):
+        target = cutoff(rt, stage)
+        wake = target + timedelta(seconds=late)
+>       result, (observed, mode, decision), calls = run_stage(rt, stage, target - timedelta(seconds=2), wake)
+                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:151: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:136: in run_stage
+    result = rt.entry._run_nodes_body(rt.scope, {}, trade_date=DATE,
+stage_minimal/work/entrypoint_clock/after/actual_stage/ops/_run_stage_center_nodes_parts/node_entry.py:374: in _run_nodes_body
+    result = _v4_global(_v4_scope, '_dispatch_stage')(
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:132: in dispatch
+    decision = rt.evaluate_due(key, date, evaluated)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:81: in evaluate_due
+    return DueDecision(stage_id=stage_id, trade_date=trade_date, status=status, scheduled_at=scheduled_at, idempotency_key=key, calendar=calendar)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DueDecision object at 0x7f1c5e0d2080>, stage_id = 'STAGE_0940_0945'
+trade_date = '20261009', status = 'LATE_CATCHUP_REPLAY'
+scheduled_at = datetime.datetime(2026, 10, 9, 9, 45, 5, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+idempotency_key = '1dce1a65f2522555eaf74c81646860e0dd7a33564f70404c46f7ff34057d6b71'
+calendar = {'a_share': 'TRADING_DAY', 'hk_securities': 'TRADING_DAY', 'hk_connect': 'NON_TRADING_DAY'}
+same_day_late_observation_recovery = False
+
+    def __init__(self, *, stage_id: str, trade_date: str, status: str, scheduled_at: datetime | None, idempotency_key: str, calendar: dict[str, str], same_day_late_observation_recovery: bool = False):
+        self.stage_id = stage_id
+        self.trade_date = trade_date
+        self.status = status
+        self.scheduled_at = scheduled_at
+        self.idempotency_key = idempotency_key
+        self.calendar = calendar
+>       self.calendar_provenance = calendar_provenance()
+                                   ^^^^^^^^^^^^^^^^^^^
+E       NameError: name 'calendar_provenance' is not defined
+
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:36: NameError
+_ test_real_node_window_and_stage_cutoff_are_distinct[actual_stage-STAGE_0945_1030-0.25-NATURAL] _
+
+rt = namespace(scope={'__name__': 'independent_clock_de4c46fc684d4f009e2347fe0250639c.original_facade', '__doc__': None, '_...on evaluate_due at 0x7f1c5dfd2fb0>, events=[('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+stage = 'STAGE_0945_1030', late = 0.25, expected_mode = 'NATURAL'
+
+    @pytest.mark.parametrize("stage,late,expected_mode", [
+        ("STAGE_0940_0945", 0.000001, "RECOVERY"),
+        ("STAGE_0945_1030", 0.25, "NATURAL"),
+        ("STAGE_0945_1030", 5.000001, "RECOVERY"),
+    ])
+    def test_real_node_window_and_stage_cutoff_are_distinct(rt, stage, late, expected_mode):
+        target = cutoff(rt, stage)
+        wake = target + timedelta(seconds=late)
+>       result, (observed, mode, decision), calls = run_stage(rt, stage, target - timedelta(seconds=2), wake)
+                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:151: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:136: in run_stage
+    result = rt.entry._run_nodes_body(rt.scope, {}, trade_date=DATE,
+stage_minimal/work/entrypoint_clock/after/actual_stage/ops/_run_stage_center_nodes_parts/node_entry.py:374: in _run_nodes_body
+    result = _v4_global(_v4_scope, '_dispatch_stage')(
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:132: in dispatch
+    decision = rt.evaluate_due(key, date, evaluated)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:81: in evaluate_due
+    return DueDecision(stage_id=stage_id, trade_date=trade_date, status=status, scheduled_at=scheduled_at, idempotency_key=key, calendar=calendar)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DueDecision object at 0x7f1c5dfdd780>, stage_id = 'STAGE_0945_1030'
+trade_date = '20261009', status = 'LATE_CATCHUP_REPLAY'
+scheduled_at = datetime.datetime(2026, 10, 9, 10, 30, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+idempotency_key = '5f250643401d95932cbf16699f063b0fa0ad4d1bf0f47665c7da666d92e35eb2'
+calendar = {'a_share': 'TRADING_DAY', 'hk_securities': 'TRADING_DAY', 'hk_connect': 'NON_TRADING_DAY'}
+same_day_late_observation_recovery = False
+
+    def __init__(self, *, stage_id: str, trade_date: str, status: str, scheduled_at: datetime | None, idempotency_key: str, calendar: dict[str, str], same_day_late_observation_recovery: bool = False):
+        self.stage_id = stage_id
+        self.trade_date = trade_date
+        self.status = status
+        self.scheduled_at = scheduled_at
+        self.idempotency_key = idempotency_key
+        self.calendar = calendar
+>       self.calendar_provenance = calendar_provenance()
+                                   ^^^^^^^^^^^^^^^^^^^
+E       NameError: name 'calendar_provenance' is not defined
+
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:36: NameError
+_ test_real_node_window_and_stage_cutoff_are_distinct[actual_stage-STAGE_0945_1030-5.000001-RECOVERY] _
+
+rt = namespace(scope={'__name__': 'independent_clock_0ce57da8e3df40638460f199ff35e6d6.original_facade', '__doc__': None, '_...on evaluate_due at 0x7f1c5df25dd0>, events=[('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+stage = 'STAGE_0945_1030', late = 5.000001, expected_mode = 'RECOVERY'
+
+    @pytest.mark.parametrize("stage,late,expected_mode", [
+        ("STAGE_0940_0945", 0.000001, "RECOVERY"),
+        ("STAGE_0945_1030", 0.25, "NATURAL"),
+        ("STAGE_0945_1030", 5.000001, "RECOVERY"),
+    ])
+    def test_real_node_window_and_stage_cutoff_are_distinct(rt, stage, late, expected_mode):
+        target = cutoff(rt, stage)
+        wake = target + timedelta(seconds=late)
+>       result, (observed, mode, decision), calls = run_stage(rt, stage, target - timedelta(seconds=2), wake)
+                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:151: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:136: in run_stage
+    result = rt.entry._run_nodes_body(rt.scope, {}, trade_date=DATE,
+stage_minimal/work/entrypoint_clock/after/actual_stage/ops/_run_stage_center_nodes_parts/node_entry.py:374: in _run_nodes_body
+    result = _v4_global(_v4_scope, '_dispatch_stage')(
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:132: in dispatch
+    decision = rt.evaluate_due(key, date, evaluated)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:81: in evaluate_due
+    return DueDecision(stage_id=stage_id, trade_date=trade_date, status=status, scheduled_at=scheduled_at, idempotency_key=key, calendar=calendar)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DueDecision object at 0x7f1c5dfdf580>, stage_id = 'STAGE_0945_1030'
+trade_date = '20261009', status = 'LATE_CATCHUP_REPLAY'
+scheduled_at = datetime.datetime(2026, 10, 9, 10, 30, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+idempotency_key = '5f250643401d95932cbf16699f063b0fa0ad4d1bf0f47665c7da666d92e35eb2'
+calendar = {'a_share': 'TRADING_DAY', 'hk_securities': 'TRADING_DAY', 'hk_connect': 'NON_TRADING_DAY'}
+same_day_late_observation_recovery = False
+
+    def __init__(self, *, stage_id: str, trade_date: str, status: str, scheduled_at: datetime | None, idempotency_key: str, calendar: dict[str, str], same_day_late_observation_recovery: bool = False):
+        self.stage_id = stage_id
+        self.trade_date = trade_date
+        self.status = status
+        self.scheduled_at = scheduled_at
+        self.idempotency_key = idempotency_key
+        self.calendar = calendar
+>       self.calendar_provenance = calendar_provenance()
+                                   ^^^^^^^^^^^^^^^^^^^
+E       NameError: name 'calendar_provenance' is not defined
+
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:36: NameError
+_ test_real_node_window_and_stage_cutoff_are_distinct[canonical-STAGE_0940_0945-1e-06-RECOVERY] _
+
+rt = namespace(scope={'__name__': 'independent_clock_782a2fcc0b5746ba99724fae31b188d8.original_facade', '__doc__': None, '_...on evaluate_due at 0x7f1c5e06c930>, events=[('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+stage = 'STAGE_0940_0945', late = 1e-06, expected_mode = 'RECOVERY'
+
+    @pytest.mark.parametrize("stage,late,expected_mode", [
+        ("STAGE_0940_0945", 0.000001, "RECOVERY"),
+        ("STAGE_0945_1030", 0.25, "NATURAL"),
+        ("STAGE_0945_1030", 5.000001, "RECOVERY"),
+    ])
+    def test_real_node_window_and_stage_cutoff_are_distinct(rt, stage, late, expected_mode):
+        target = cutoff(rt, stage)
+        wake = target + timedelta(seconds=late)
+>       result, (observed, mode, decision), calls = run_stage(rt, stage, target - timedelta(seconds=2), wake)
+                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:151: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:136: in run_stage
+    result = rt.entry._run_nodes_body(rt.scope, {}, trade_date=DATE,
+stage_minimal/work/entrypoint_clock/after/canonical/ops/_run_stage_center_nodes_parts/node_entry.py:366: in _run_nodes_body
+    result = _v4_global(_v4_scope, '_dispatch_stage')(
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:132: in dispatch
+    decision = rt.evaluate_due(key, date, evaluated)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:81: in evaluate_due
+    return DueDecision(stage_id=stage_id, trade_date=trade_date, status=status, scheduled_at=scheduled_at, idempotency_key=key, calendar=calendar)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DueDecision object at 0x7f1c5dfdf9a0>, stage_id = 'STAGE_0940_0945'
+trade_date = '20261009', status = 'LATE_CATCHUP_REPLAY'
+scheduled_at = datetime.datetime(2026, 10, 9, 9, 45, 5, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+idempotency_key = '1dce1a65f2522555eaf74c81646860e0dd7a33564f70404c46f7ff34057d6b71'
+calendar = {'a_share': 'TRADING_DAY', 'hk_securities': 'TRADING_DAY', 'hk_connect': 'NON_TRADING_DAY'}
+same_day_late_observation_recovery = False
+
+    def __init__(self, *, stage_id: str, trade_date: str, status: str, scheduled_at: datetime | None, idempotency_key: str, calendar: dict[str, str], same_day_late_observation_recovery: bool = False):
+        self.stage_id = stage_id
+        self.trade_date = trade_date
+        self.status = status
+        self.scheduled_at = scheduled_at
+        self.idempotency_key = idempotency_key
+        self.calendar = calendar
+>       self.calendar_provenance = calendar_provenance()
+                                   ^^^^^^^^^^^^^^^^^^^
+E       NameError: name 'calendar_provenance' is not defined
+
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:36: NameError
+_ test_real_node_window_and_stage_cutoff_are_distinct[canonical-STAGE_0945_1030-0.25-NATURAL] _
+
+rt = namespace(scope={'__name__': 'independent_clock_053ed0d520464364b08896916a1faaed.original_facade', '__doc__': None, '_...on evaluate_due at 0x7f1c5df26b90>, events=[('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+stage = 'STAGE_0945_1030', late = 0.25, expected_mode = 'NATURAL'
+
+    @pytest.mark.parametrize("stage,late,expected_mode", [
+        ("STAGE_0940_0945", 0.000001, "RECOVERY"),
+        ("STAGE_0945_1030", 0.25, "NATURAL"),
+        ("STAGE_0945_1030", 5.000001, "RECOVERY"),
+    ])
+    def test_real_node_window_and_stage_cutoff_are_distinct(rt, stage, late, expected_mode):
+        target = cutoff(rt, stage)
+        wake = target + timedelta(seconds=late)
+>       result, (observed, mode, decision), calls = run_stage(rt, stage, target - timedelta(seconds=2), wake)
+                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:151: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:136: in run_stage
+    result = rt.entry._run_nodes_body(rt.scope, {}, trade_date=DATE,
+stage_minimal/work/entrypoint_clock/after/canonical/ops/_run_stage_center_nodes_parts/node_entry.py:366: in _run_nodes_body
+    result = _v4_global(_v4_scope, '_dispatch_stage')(
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:132: in dispatch
+    decision = rt.evaluate_due(key, date, evaluated)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:81: in evaluate_due
+    return DueDecision(stage_id=stage_id, trade_date=trade_date, status=status, scheduled_at=scheduled_at, idempotency_key=key, calendar=calendar)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DueDecision object at 0x7f1c5dff2020>, stage_id = 'STAGE_0945_1030'
+trade_date = '20261009', status = 'LATE_CATCHUP_REPLAY'
+scheduled_at = datetime.datetime(2026, 10, 9, 10, 30, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+idempotency_key = '5f250643401d95932cbf16699f063b0fa0ad4d1bf0f47665c7da666d92e35eb2'
+calendar = {'a_share': 'TRADING_DAY', 'hk_securities': 'TRADING_DAY', 'hk_connect': 'NON_TRADING_DAY'}
+same_day_late_observation_recovery = False
+
+    def __init__(self, *, stage_id: str, trade_date: str, status: str, scheduled_at: datetime | None, idempotency_key: str, calendar: dict[str, str], same_day_late_observation_recovery: bool = False):
+        self.stage_id = stage_id
+        self.trade_date = trade_date
+        self.status = status
+        self.scheduled_at = scheduled_at
+        self.idempotency_key = idempotency_key
+        self.calendar = calendar
+>       self.calendar_provenance = calendar_provenance()
+                                   ^^^^^^^^^^^^^^^^^^^
+E       NameError: name 'calendar_provenance' is not defined
+
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:36: NameError
+_ test_real_node_window_and_stage_cutoff_are_distinct[canonical-STAGE_0945_1030-5.000001-RECOVERY] _
+
+rt = namespace(scope={'__name__': 'independent_clock_22324d5b68ac4619bea18bfd543ede51.original_facade', '__doc__': None, '_...on evaluate_due at 0x7f1c5df717a0>, events=[('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+stage = 'STAGE_0945_1030', late = 5.000001, expected_mode = 'RECOVERY'
+
+    @pytest.mark.parametrize("stage,late,expected_mode", [
+        ("STAGE_0940_0945", 0.000001, "RECOVERY"),
+        ("STAGE_0945_1030", 0.25, "NATURAL"),
+        ("STAGE_0945_1030", 5.000001, "RECOVERY"),
+    ])
+    def test_real_node_window_and_stage_cutoff_are_distinct(rt, stage, late, expected_mode):
+        target = cutoff(rt, stage)
+        wake = target + timedelta(seconds=late)
+>       result, (observed, mode, decision), calls = run_stage(rt, stage, target - timedelta(seconds=2), wake)
+                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:151: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:136: in run_stage
+    result = rt.entry._run_nodes_body(rt.scope, {}, trade_date=DATE,
+stage_minimal/work/entrypoint_clock/after/canonical/ops/_run_stage_center_nodes_parts/node_entry.py:366: in _run_nodes_body
+    result = _v4_global(_v4_scope, '_dispatch_stage')(
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:132: in dispatch
+    decision = rt.evaluate_due(key, date, evaluated)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:81: in evaluate_due
+    return DueDecision(stage_id=stage_id, trade_date=trade_date, status=status, scheduled_at=scheduled_at, idempotency_key=key, calendar=calendar)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DueDecision object at 0x7f1c5dff3ca0>, stage_id = 'STAGE_0945_1030'
+trade_date = '20261009', status = 'LATE_CATCHUP_REPLAY'
+scheduled_at = datetime.datetime(2026, 10, 9, 10, 30, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+idempotency_key = '5f250643401d95932cbf16699f063b0fa0ad4d1bf0f47665c7da666d92e35eb2'
+calendar = {'a_share': 'TRADING_DAY', 'hk_securities': 'TRADING_DAY', 'hk_connect': 'NON_TRADING_DAY'}
+same_day_late_observation_recovery = False
+
+    def __init__(self, *, stage_id: str, trade_date: str, status: str, scheduled_at: datetime | None, idempotency_key: str, calendar: dict[str, str], same_day_late_observation_recovery: bool = False):
+        self.stage_id = stage_id
+        self.trade_date = trade_date
+        self.status = status
+        self.scheduled_at = scheduled_at
+        self.idempotency_key = idempotency_key
+        self.calendar = calendar
+>       self.calendar_provenance = calendar_provenance()
+                                   ^^^^^^^^^^^^^^^^^^^
+E       NameError: name 'calendar_provenance' is not defined
+
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:36: NameError
+_ test_wall_clock_jumps_are_visible_to_original_due_decision[actual_stage--0.5-NATURAL-NOT_DUE] _
+
+rt = namespace(scope={'__name__': 'independent_clock_155481ff8df94f67a94f4d539329f9b5.original_facade', '__doc__': None, '_...on evaluate_due at 0x7f1c5dd545c0>, events=[('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+shift = -0.5, mode = 'NATURAL', status = 'NOT_DUE'
+
+    @pytest.mark.parametrize("shift,mode,status", [
+        (-0.5, "NATURAL", "NOT_DUE"),
+        (-6.0, "RECOVERY", "NOT_DUE"),
+        (86_400.0, "RECOVERY", "CANNOT_CONFIRM"),
+    ])
+    def test_wall_clock_jumps_are_visible_to_original_due_decision(rt, shift, mode, status):
+        stage = "STAGE_0940_0945"
+        target = cutoff(rt, stage)
+        wake = target + timedelta(seconds=shift)
+>       result, (observed, actual_mode, decision), calls = run_stage(rt, stage, target - timedelta(seconds=2), wake)
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:171: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:136: in run_stage
+    result = rt.entry._run_nodes_body(rt.scope, {}, trade_date=DATE,
+stage_minimal/work/entrypoint_clock/after/actual_stage/ops/_run_stage_center_nodes_parts/node_entry.py:374: in _run_nodes_body
+    result = _v4_global(_v4_scope, '_dispatch_stage')(
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:132: in dispatch
+    decision = rt.evaluate_due(key, date, evaluated)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:81: in evaluate_due
+    return DueDecision(stage_id=stage_id, trade_date=trade_date, status=status, scheduled_at=scheduled_at, idempotency_key=key, calendar=calendar)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DueDecision object at 0x7f1c5df652a0>, stage_id = 'STAGE_0940_0945'
+trade_date = '20261009', status = 'NOT_DUE'
+scheduled_at = datetime.datetime(2026, 10, 9, 9, 45, 5, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+idempotency_key = '1dce1a65f2522555eaf74c81646860e0dd7a33564f70404c46f7ff34057d6b71'
+calendar = {'a_share': 'TRADING_DAY', 'hk_securities': 'TRADING_DAY', 'hk_connect': 'NON_TRADING_DAY'}
+same_day_late_observation_recovery = False
+
+    def __init__(self, *, stage_id: str, trade_date: str, status: str, scheduled_at: datetime | None, idempotency_key: str, calendar: dict[str, str], same_day_late_observation_recovery: bool = False):
+        self.stage_id = stage_id
+        self.trade_date = trade_date
+        self.status = status
+        self.scheduled_at = scheduled_at
+        self.idempotency_key = idempotency_key
+        self.calendar = calendar
+>       self.calendar_provenance = calendar_provenance()
+                                   ^^^^^^^^^^^^^^^^^^^
+E       NameError: name 'calendar_provenance' is not defined
+
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:36: NameError
+_ test_wall_clock_jumps_are_visible_to_original_due_decision[actual_stage--6.0-RECOVERY-NOT_DUE] _
+
+rt = namespace(scope={'__name__': 'independent_clock_ad69fc91e69646109ca1291bd6960912.original_facade', '__doc__': None, '_...on evaluate_due at 0x7f1c5dd56da0>, events=[('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+shift = -6.0, mode = 'RECOVERY', status = 'NOT_DUE'
+
+    @pytest.mark.parametrize("shift,mode,status", [
+        (-0.5, "NATURAL", "NOT_DUE"),
+        (-6.0, "RECOVERY", "NOT_DUE"),
+        (86_400.0, "RECOVERY", "CANNOT_CONFIRM"),
+    ])
+    def test_wall_clock_jumps_are_visible_to_original_due_decision(rt, shift, mode, status):
+        stage = "STAGE_0940_0945"
+        target = cutoff(rt, stage)
+        wake = target + timedelta(seconds=shift)
+>       result, (observed, actual_mode, decision), calls = run_stage(rt, stage, target - timedelta(seconds=2), wake)
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:171: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:136: in run_stage
+    result = rt.entry._run_nodes_body(rt.scope, {}, trade_date=DATE,
+stage_minimal/work/entrypoint_clock/after/actual_stage/ops/_run_stage_center_nodes_parts/node_entry.py:374: in _run_nodes_body
+    result = _v4_global(_v4_scope, '_dispatch_stage')(
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:132: in dispatch
+    decision = rt.evaluate_due(key, date, evaluated)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:81: in evaluate_due
+    return DueDecision(stage_id=stage_id, trade_date=trade_date, status=status, scheduled_at=scheduled_at, idempotency_key=key, calendar=calendar)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DueDecision object at 0x7f1c5df679a0>, stage_id = 'STAGE_0940_0945'
+trade_date = '20261009', status = 'NOT_DUE'
+scheduled_at = datetime.datetime(2026, 10, 9, 9, 45, 5, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+idempotency_key = '1dce1a65f2522555eaf74c81646860e0dd7a33564f70404c46f7ff34057d6b71'
+calendar = {'a_share': 'TRADING_DAY', 'hk_securities': 'TRADING_DAY', 'hk_connect': 'NON_TRADING_DAY'}
+same_day_late_observation_recovery = False
+
+    def __init__(self, *, stage_id: str, trade_date: str, status: str, scheduled_at: datetime | None, idempotency_key: str, calendar: dict[str, str], same_day_late_observation_recovery: bool = False):
+        self.stage_id = stage_id
+        self.trade_date = trade_date
+        self.status = status
+        self.scheduled_at = scheduled_at
+        self.idempotency_key = idempotency_key
+        self.calendar = calendar
+>       self.calendar_provenance = calendar_provenance()
+                                   ^^^^^^^^^^^^^^^^^^^
+E       NameError: name 'calendar_provenance' is not defined
+
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:36: NameError
+_ test_wall_clock_jumps_are_visible_to_original_due_decision[actual_stage-86400.0-RECOVERY-CANNOT_CONFIRM] _
+
+rt = namespace(scope={'__name__': 'independent_clock_50cea240858f4184aea180044c5bbf8f.original_facade', '__doc__': None, '_...on evaluate_due at 0x7f1c5dd35d20>, events=[('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+shift = 86400.0, mode = 'RECOVERY', status = 'CANNOT_CONFIRM'
+
+    @pytest.mark.parametrize("shift,mode,status", [
+        (-0.5, "NATURAL", "NOT_DUE"),
+        (-6.0, "RECOVERY", "NOT_DUE"),
+        (86_400.0, "RECOVERY", "CANNOT_CONFIRM"),
+    ])
+    def test_wall_clock_jumps_are_visible_to_original_due_decision(rt, shift, mode, status):
+        stage = "STAGE_0940_0945"
+        target = cutoff(rt, stage)
+        wake = target + timedelta(seconds=shift)
+>       result, (observed, actual_mode, decision), calls = run_stage(rt, stage, target - timedelta(seconds=2), wake)
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:171: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:136: in run_stage
+    result = rt.entry._run_nodes_body(rt.scope, {}, trade_date=DATE,
+stage_minimal/work/entrypoint_clock/after/actual_stage/ops/_run_stage_center_nodes_parts/node_entry.py:374: in _run_nodes_body
+    result = _v4_global(_v4_scope, '_dispatch_stage')(
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:132: in dispatch
+    decision = rt.evaluate_due(key, date, evaluated)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:81: in evaluate_due
+    return DueDecision(stage_id=stage_id, trade_date=trade_date, status=status, scheduled_at=scheduled_at, idempotency_key=key, calendar=calendar)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DueDecision object at 0x7f1c5df288e0>, stage_id = 'STAGE_0940_0945'
+trade_date = '20261009', status = 'CANNOT_CONFIRM'
+scheduled_at = datetime.datetime(2026, 10, 9, 9, 45, 5, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+idempotency_key = '1dce1a65f2522555eaf74c81646860e0dd7a33564f70404c46f7ff34057d6b71'
+calendar = {'a_share': 'TRADING_DAY', 'hk_securities': 'TRADING_DAY', 'hk_connect': 'NON_TRADING_DAY'}
+same_day_late_observation_recovery = False
+
+    def __init__(self, *, stage_id: str, trade_date: str, status: str, scheduled_at: datetime | None, idempotency_key: str, calendar: dict[str, str], same_day_late_observation_recovery: bool = False):
+        self.stage_id = stage_id
+        self.trade_date = trade_date
+        self.status = status
+        self.scheduled_at = scheduled_at
+        self.idempotency_key = idempotency_key
+        self.calendar = calendar
+>       self.calendar_provenance = calendar_provenance()
+                                   ^^^^^^^^^^^^^^^^^^^
+E       NameError: name 'calendar_provenance' is not defined
+
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:36: NameError
+_ test_wall_clock_jumps_are_visible_to_original_due_decision[canonical--0.5-NATURAL-NOT_DUE] _
+
+rt = namespace(scope={'__name__': 'independent_clock_760b80a8f03c4faaaddf1df2cedb8476.original_facade', '__doc__': None, '_...on evaluate_due at 0x7f1c5ddd4bf0>, events=[('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+shift = -0.5, mode = 'NATURAL', status = 'NOT_DUE'
+
+    @pytest.mark.parametrize("shift,mode,status", [
+        (-0.5, "NATURAL", "NOT_DUE"),
+        (-6.0, "RECOVERY", "NOT_DUE"),
+        (86_400.0, "RECOVERY", "CANNOT_CONFIRM"),
+    ])
+    def test_wall_clock_jumps_are_visible_to_original_due_decision(rt, shift, mode, status):
+        stage = "STAGE_0940_0945"
+        target = cutoff(rt, stage)
+        wake = target + timedelta(seconds=shift)
+>       result, (observed, actual_mode, decision), calls = run_stage(rt, stage, target - timedelta(seconds=2), wake)
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:171: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:136: in run_stage
+    result = rt.entry._run_nodes_body(rt.scope, {}, trade_date=DATE,
+stage_minimal/work/entrypoint_clock/after/canonical/ops/_run_stage_center_nodes_parts/node_entry.py:366: in _run_nodes_body
+    result = _v4_global(_v4_scope, '_dispatch_stage')(
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:132: in dispatch
+    decision = rt.evaluate_due(key, date, evaluated)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:81: in evaluate_due
+    return DueDecision(stage_id=stage_id, trade_date=trade_date, status=status, scheduled_at=scheduled_at, idempotency_key=key, calendar=calendar)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DueDecision object at 0x7f1c5df2b640>, stage_id = 'STAGE_0940_0945'
+trade_date = '20261009', status = 'NOT_DUE'
+scheduled_at = datetime.datetime(2026, 10, 9, 9, 45, 5, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+idempotency_key = '1dce1a65f2522555eaf74c81646860e0dd7a33564f70404c46f7ff34057d6b71'
+calendar = {'a_share': 'TRADING_DAY', 'hk_securities': 'TRADING_DAY', 'hk_connect': 'NON_TRADING_DAY'}
+same_day_late_observation_recovery = False
+
+    def __init__(self, *, stage_id: str, trade_date: str, status: str, scheduled_at: datetime | None, idempotency_key: str, calendar: dict[str, str], same_day_late_observation_recovery: bool = False):
+        self.stage_id = stage_id
+        self.trade_date = trade_date
+        self.status = status
+        self.scheduled_at = scheduled_at
+        self.idempotency_key = idempotency_key
+        self.calendar = calendar
+>       self.calendar_provenance = calendar_provenance()
+                                   ^^^^^^^^^^^^^^^^^^^
+E       NameError: name 'calendar_provenance' is not defined
+
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:36: NameError
+_ test_wall_clock_jumps_are_visible_to_original_due_decision[canonical--6.0-RECOVERY-NOT_DUE] _
+
+rt = namespace(scope={'__name__': 'independent_clock_714c826f72ad45f491b5ea809e89b690.original_facade', '__doc__': None, '_...on evaluate_due at 0x7f1c5ddd7a00>, events=[('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+shift = -6.0, mode = 'RECOVERY', status = 'NOT_DUE'
+
+    @pytest.mark.parametrize("shift,mode,status", [
+        (-0.5, "NATURAL", "NOT_DUE"),
+        (-6.0, "RECOVERY", "NOT_DUE"),
+        (86_400.0, "RECOVERY", "CANNOT_CONFIRM"),
+    ])
+    def test_wall_clock_jumps_are_visible_to_original_due_decision(rt, shift, mode, status):
+        stage = "STAGE_0940_0945"
+        target = cutoff(rt, stage)
+        wake = target + timedelta(seconds=shift)
+>       result, (observed, actual_mode, decision), calls = run_stage(rt, stage, target - timedelta(seconds=2), wake)
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:171: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:136: in run_stage
+    result = rt.entry._run_nodes_body(rt.scope, {}, trade_date=DATE,
+stage_minimal/work/entrypoint_clock/after/canonical/ops/_run_stage_center_nodes_parts/node_entry.py:366: in _run_nodes_body
+    result = _v4_global(_v4_scope, '_dispatch_stage')(
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:132: in dispatch
+    decision = rt.evaluate_due(key, date, evaluated)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:81: in evaluate_due
+    return DueDecision(stage_id=stage_id, trade_date=trade_date, status=status, scheduled_at=scheduled_at, idempotency_key=key, calendar=calendar)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DueDecision object at 0x7f1c5dd30640>, stage_id = 'STAGE_0940_0945'
+trade_date = '20261009', status = 'NOT_DUE'
+scheduled_at = datetime.datetime(2026, 10, 9, 9, 45, 5, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+idempotency_key = '1dce1a65f2522555eaf74c81646860e0dd7a33564f70404c46f7ff34057d6b71'
+calendar = {'a_share': 'TRADING_DAY', 'hk_securities': 'TRADING_DAY', 'hk_connect': 'NON_TRADING_DAY'}
+same_day_late_observation_recovery = False
+
+    def __init__(self, *, stage_id: str, trade_date: str, status: str, scheduled_at: datetime | None, idempotency_key: str, calendar: dict[str, str], same_day_late_observation_recovery: bool = False):
+        self.stage_id = stage_id
+        self.trade_date = trade_date
+        self.status = status
+        self.scheduled_at = scheduled_at
+        self.idempotency_key = idempotency_key
+        self.calendar = calendar
+>       self.calendar_provenance = calendar_provenance()
+                                   ^^^^^^^^^^^^^^^^^^^
+E       NameError: name 'calendar_provenance' is not defined
+
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:36: NameError
+_ test_wall_clock_jumps_are_visible_to_original_due_decision[canonical-86400.0-RECOVERY-CANNOT_CONFIRM] _
+
+rt = namespace(scope={'__name__': 'independent_clock_c3a8868bb5c14770a07bf169aa1c923a.original_facade', '__doc__': None, '_...on evaluate_due at 0x7f1c5dd96400>, events=[('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+shift = 86400.0, mode = 'RECOVERY', status = 'CANNOT_CONFIRM'
+
+    @pytest.mark.parametrize("shift,mode,status", [
+        (-0.5, "NATURAL", "NOT_DUE"),
+        (-6.0, "RECOVERY", "NOT_DUE"),
+        (86_400.0, "RECOVERY", "CANNOT_CONFIRM"),
+    ])
+    def test_wall_clock_jumps_are_visible_to_original_due_decision(rt, shift, mode, status):
+        stage = "STAGE_0940_0945"
+        target = cutoff(rt, stage)
+        wake = target + timedelta(seconds=shift)
+>       result, (observed, actual_mode, decision), calls = run_stage(rt, stage, target - timedelta(seconds=2), wake)
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:171: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:136: in run_stage
+    result = rt.entry._run_nodes_body(rt.scope, {}, trade_date=DATE,
+stage_minimal/work/entrypoint_clock/after/canonical/ops/_run_stage_center_nodes_parts/node_entry.py:366: in _run_nodes_body
+    result = _v4_global(_v4_scope, '_dispatch_stage')(
+stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py:132: in dispatch
+    decision = rt.evaluate_due(key, date, evaluated)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:81: in evaluate_due
+    return DueDecision(stage_id=stage_id, trade_date=trade_date, status=status, scheduled_at=scheduled_at, idempotency_key=key, calendar=calendar)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DueDecision object at 0x7f1c5dd31660>, stage_id = 'STAGE_0940_0945'
+trade_date = '20261009', status = 'CANNOT_CONFIRM'
+scheduled_at = datetime.datetime(2026, 10, 9, 9, 45, 5, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+idempotency_key = '1dce1a65f2522555eaf74c81646860e0dd7a33564f70404c46f7ff34057d6b71'
+calendar = {'a_share': 'TRADING_DAY', 'hk_securities': 'TRADING_DAY', 'hk_connect': 'NON_TRADING_DAY'}
+same_day_late_observation_recovery = False
+
+    def __init__(self, *, stage_id: str, trade_date: str, status: str, scheduled_at: datetime | None, idempotency_key: str, calendar: dict[str, str], same_day_late_observation_recovery: bool = False):
+        self.stage_id = stage_id
+        self.trade_date = trade_date
+        self.status = status
+        self.scheduled_at = scheduled_at
+        self.idempotency_key = idempotency_key
+        self.calendar = calendar
+>       self.calendar_provenance = calendar_provenance()
+                                   ^^^^^^^^^^^^^^^^^^^
+E       NameError: name 'calendar_provenance' is not defined
+
+stage_minimal/work/entrypoint_clock/test_support/scheduler.py:36: NameError
+=========================== short test summary info ============================
+FAILED stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py::test_real_node_window_and_stage_cutoff_are_distinct[actual_stage-STAGE_0940_0945-1e-06-RECOVERY]
+FAILED stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py::test_real_node_window_and_stage_cutoff_are_distinct[actual_stage-STAGE_0945_1030-0.25-NATURAL]
+FAILED stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py::test_real_node_window_and_stage_cutoff_are_distinct[actual_stage-STAGE_0945_1030-5.000001-RECOVERY]
+FAILED stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py::test_real_node_window_and_stage_cutoff_are_distinct[canonical-STAGE_0940_0945-1e-06-RECOVERY]
+FAILED stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py::test_real_node_window_and_stage_cutoff_are_distinct[canonical-STAGE_0945_1030-0.25-NATURAL]
+FAILED stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py::test_real_node_window_and_stage_cutoff_are_distinct[canonical-STAGE_0945_1030-5.000001-RECOVERY]
+FAILED stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py::test_wall_clock_jumps_are_visible_to_original_due_decision[actual_stage--0.5-NATURAL-NOT_DUE]
+FAILED stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py::test_wall_clock_jumps_are_visible_to_original_due_decision[actual_stage--6.0-RECOVERY-NOT_DUE]
+FAILED stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py::test_wall_clock_jumps_are_visible_to_original_due_decision[actual_stage-86400.0-RECOVERY-CANNOT_CONFIRM]
+FAILED stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py::test_wall_clock_jumps_are_visible_to_original_due_decision[canonical--0.5-NATURAL-NOT_DUE]
+FAILED stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py::test_wall_clock_jumps_are_visible_to_original_due_decision[canonical--6.0-RECOVERY-NOT_DUE]
+FAILED stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py::test_wall_clock_jumps_are_visible_to_original_due_decision[canonical-86400.0-RECOVERY-CANNOT_CONFIRM]
+12 failed, 10 passed in 0.53s

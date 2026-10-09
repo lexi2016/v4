@@ -1,0 +1,31 @@
+(node:12) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ new response shows A result and quote gap while HK stays before its algorithm (6.99645ms)
+✔ independent selection result remains visible when the receipt is missing (0.476249ms)
+✔ verified empty result is an explicit zero instead of an unknown count (0.639709ms)
+✔ null quote counters remain unknown and cannot become zero (0.48996ms)
+✔ invalid quote counter -1 is not displayed as an observation (0.547464ms)
+✔ invalid quote counter 1.5 is not displayed as an observation (1.002882ms)
+✔ invalid quote counter NaN is not displayed as an observation (0.412615ms)
+✔ invalid quote counter Infinity is not displayed as an observation (0.806544ms)
+✔ invalid quote counter true is not displayed as an observation (0.496058ms)
+✔ source count larger than requested is presented as a conflict (0.753756ms)
+✔ conflicting declared gap is not silently accepted as full coverage (0.433386ms)
+✔ old bound selection can show computed rows but quote counts remain receipt declarations (0.389692ms)
+✔ old unbound selection declaration does not claim calculation (0.715751ms)
+✔ new no-result verdict cannot be upgraded by an old bound receipt (0.366147ms)
+✔ legacy observed_rows fallback is labeled as receipt evidence (0.390293ms)
+✔ NATURAL plus owner binding is still distinct from natural acceptance (0.487847ms)
+✔ owner history conflict is shown without hiding the verified result (0.491671ms)
+✔ selection-to-receipt identity conflict is explicit while stored result remains visible (2.585185ms)
+✔ missing record time is not inferred from date, stage, due status or current clock (0.422119ms)
+✔ only the HK lane is rendered for the HK-only late stage (0.369763ms)
+✔ raw reason codes and identifiers remain inside closed technical details (0.279751ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 268.52516

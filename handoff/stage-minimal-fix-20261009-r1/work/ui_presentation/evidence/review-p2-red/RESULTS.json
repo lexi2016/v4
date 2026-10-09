@@ -1,0 +1,53 @@
+{
+  "scope": "SOURCE_ONLY_VUE_SFC_COMPILE_AND_SSR_NOT_FULL_APP_BUILD_OR_BROWSER_ACCEPTANCE",
+  "phase": "after",
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "--test",
+    "--test-reporter=tap",
+    "tests/presentation.test.mjs"
+  ],
+  "cwd": "/workspace/scratch/25c09a595aec/stage_minimal/work/ui_presentation",
+  "started_at_utc": "2026-10-09T04:25:56.625Z",
+  "finished_at_utc": "2026-10-09T04:25:56.980Z",
+  "test_clock_scope": "TEST_PROCESS_ONLY_NOT_A_BUSINESS_OR_RECEIPT_TIMESTAMP",
+  "node": "v24.19.0",
+  "runtime": "/workspace/scratch/25c09a595aec/stage_minimal/work/ui_runtime",
+  "packages": {
+    "vue": "3.5.13",
+    "@vue/compiler-sfc": "3.5.13",
+    "@vue/server-renderer": "3.5.13"
+  },
+  "sources": [
+    {
+      "relative_path": "apps/web/src/App.vue",
+      "bytes": 120790,
+      "sha256": "e13a92e7f990ef18de0909edf0d2644410ba55194b21b583d43b76d648801dc5"
+    },
+    {
+      "relative_path": "apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "bytes": 6380,
+      "sha256": "1095262c523e696cd267304e7829732380b35ef502eba97ef9c798353d06804e"
+    },
+    {
+      "relative_path": "apps/web/src/contracts/runtime.ts",
+      "bytes": 3553,
+      "sha256": "c440de3ff964daa01994cbcd04d9b3ce1f417737a39034520c478ef83448bebe"
+    }
+  ],
+  "exit_code": 1,
+  "signal": null,
+  "error": null,
+  "tests": 23,
+  "pass": 21,
+  "fail": 2,
+  "skipped": 0,
+  "cancelled": 0,
+  "todo": 0,
+  "artifacts": [
+    "stdout.tap",
+    "stderr.log",
+    "generated/compiled-component.js",
+    "generated/runtime-component.js"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "name": "writer_author",
+  "command": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "tests/test_owner_receipt_binding.py",
+    "tests/test_slot_receipt_wiring.py",
+    "--junitxml=/workspace/scratch/25c09a595aec/stage_minimal/final_package_check_r1/writer_author/junit.xml"
+  ],
+  "cwd": "/workspace/scratch/25c09a595aec/stage_minimal/delivery/work/receipt_binding",
+  "started_at_utc": "2026-10-09T04:34:39.574924+00:00",
+  "finished_at_utc": "2026-10-09T04:34:40.031112+00:00",
+  "exit_code": 0,
+  "expected_tests": 39,
+  "tests": 39,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "passed": true
+}

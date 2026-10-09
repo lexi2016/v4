@@ -1,0 +1,60 @@
+{
+  "reviewer": "/root/stage_hk_and_entrypoint",
+  "candidate_author": "/root/stage_receipt_binding",
+  "status": "PASS_SOURCE_SLICE_WITH_HISTORICAL_SUPPORT",
+  "reviewed_at": "2026-10-09T04:25:07.845484+00:00",
+  "fixed_input_commit": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+  "modified_product_files": false,
+  "files": [
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/receipt_binding/after/source/actual_stage/stage_center/_runner_parts/runner_receipts.py",
+      "sha256": "d634647ef5f50620a4b98a696a61b7d2d1491e9f7c2c351e0e621168a2e03f9f"
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/receipt_binding/after/source/actual_stage/stage_center/_runner_parts/slot_execution.py",
+      "sha256": "447a07af0470b86436f7aba128f782429a7b8e7fcf8dad8b92e6d01b7cfb6d96"
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/receipt_binding/after/source/canonical/stage_center/_runner_parts/runner_receipts.py",
+      "sha256": "e7877b8c94b118a224b7b8b762be51b02f8aa24b2341e92d2677289961d66e20"
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/receipt_binding/after/source/canonical/stage_center/_runner_parts/slot_execution.py",
+      "sha256": "6e50b9406bc09d9a6c4c73ae1b96a2bd73a7d82a0ae00df30371026edadf7fd8"
+    }
+  ],
+  "open_p0_p1_p2_findings": [],
+  "verification": [
+    {
+      "suite": "Exact author candidate test files independent rerun",
+      "passed": 39,
+      "failed": 0,
+      "evidence": "evidence/independent_author_exact_candidate_files"
+    },
+    {
+      "suite": "Independent finalization / actual deadline / lane isolation",
+      "passed": 7,
+      "failed": 0,
+      "evidence": "evidence/independent_finalization"
+    },
+    {
+      "suite": "Independent original SelectionStore writer-to-reader plus conditional consumer",
+      "passed": 34,
+      "failed": 0,
+      "evidence": "../api_review/evidence/independent_with_conditional_consumer"
+    }
+  ],
+  "historical_verification_issue": {
+    "command": "pytest work/receipt_binding/tests",
+    "result": "39 PASS + 2 RED because baseline-only test script remained collectible",
+    "evidence": "evidence/independent_author_suite",
+    "resolution": "Independent rerun freezes exact two candidate files; author pytest.ini now explicitly names these two; final handoff must not accidentally include baseline tests as candidate success tests"
+  },
+  "algorithm_invariance": "SLOT_ALGORITHM_INVARIANTS.json proves complete slot AST unchanged after deleting only declared receipt instrumentation and mapping six wrapper calls back to original writer in each variant",
+  "limits": [
+    "Original slot lock and dispatcher checked in prior fixed-reference HK_AND_ENTRYPOINT_REVIEW, not run live",
+    "Historical SelectionStore/IO/deadline helper support does not establish current Mac dependency identity",
+    "Synthetic provider/input seams only; no real input collected, no HK eligibility supplied",
+    "No deployment, API/UI, live budget or natural run acceptance; archive remains owner-written evidence, not independent proof"
+  ]
+}

@@ -1,0 +1,33 @@
+(node:13) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ new response shows A result and quote gap while HK stays before its algorithm (6.219529ms)
+✔ independent selection result remains visible when the receipt is missing (0.575545ms)
+✔ verified empty result is an explicit zero instead of an unknown count (0.522507ms)
+✔ null quote counters remain unknown and cannot become zero (0.538521ms)
+✔ invalid quote counter -1 is not displayed as an observation (0.541615ms)
+✔ invalid quote counter 1.5 is not displayed as an observation (0.362562ms)
+✔ invalid quote counter NaN is not displayed as an observation (0.421339ms)
+✔ invalid quote counter Infinity is not displayed as an observation (0.436411ms)
+✔ invalid quote counter true is not displayed as an observation (0.418985ms)
+✔ source count larger than requested is presented as a conflict (0.548125ms)
+✔ conflicting declared gap is not silently accepted as full coverage (1.969852ms)
+✔ old bound selection can show computed rows but quote counts remain receipt declarations (0.363964ms)
+✔ old unbound selection declaration does not claim calculation (0.235316ms)
+✔ new no-result verdict cannot be upgraded by an old bound receipt (0.30653ms)
+✔ new summary map missing A cannot fall back to old bound counts (empty) (0.407428ms)
+✔ new summary map missing A cannot fall back to old bound counts (HK_CONNECT) (0.216888ms)
+✔ legacy observed_rows fallback is labeled as receipt evidence (0.205792ms)
+✔ NATURAL plus owner binding is still distinct from natural acceptance (0.30633ms)
+✔ owner history conflict is shown without hiding the verified result (0.379678ms)
+✔ selection-to-receipt identity conflict is explicit while stored result remains visible (0.212141ms)
+✔ missing record time is not inferred from date, stage, due status or current clock (0.274853ms)
+✔ only the HK lane is rendered for the HK-only late stage (0.624537ms)
+✔ raw reason codes and identifiers remain inside closed technical details (0.38813ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 280.76899

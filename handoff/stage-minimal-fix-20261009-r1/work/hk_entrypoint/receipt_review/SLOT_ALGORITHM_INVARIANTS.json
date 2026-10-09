@@ -1,0 +1,30 @@
+{
+  "scope": "Original slot execution control flow/collector and selector calls; remove only new receipt instrumentation and rename its wrapper calls back to original owner writer",
+  "normalizations": [
+    "new exact helper import",
+    "runner_invoked_at assignment",
+    "input_bindings initializer and one capture assignment",
+    "new local receipt wrapper definition",
+    "rename calls to wrapper back to self._write_receipt"
+  ],
+  "results": [
+    {
+      "variant": "actual_stage",
+      "before_sha256": "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a",
+      "after_sha256": "447a07af0470b86436f7aba128f782429a7b8e7fcf8dad8b92e6d01b7cfb6d96",
+      "original_receipt_calls": 6,
+      "all_original_ast_except_declared_receipt_instrumentation_identical": true,
+      "baseline_ast_sha256": "e1c6c01c2e1b181b59f9e743575c723e99e149b74b9139ef7fe2b2675ddb7025",
+      "normalized_candidate_ast_sha256": "e1c6c01c2e1b181b59f9e743575c723e99e149b74b9139ef7fe2b2675ddb7025"
+    },
+    {
+      "variant": "canonical",
+      "before_sha256": "86ea1de7e32e6f29deb6622b4af37b4723e0b086d4c700cd513671ceed719d8a",
+      "after_sha256": "6e50b9406bc09d9a6c4c73ae1b96a2bd73a7d82a0ae00df30371026edadf7fd8",
+      "original_receipt_calls": 6,
+      "all_original_ast_except_declared_receipt_instrumentation_identical": true,
+      "baseline_ast_sha256": "78ef4d97764d841d824e823f56f660c569fc30f5ae635c77ff03b5cca35ff3e1",
+      "normalized_candidate_ast_sha256": "78ef4d97764d841d824e823f56f660c569fc30f5ae635c77ff03b5cca35ff3e1"
+    }
+  ]
+}

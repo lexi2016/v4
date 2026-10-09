@@ -1,0 +1,149 @@
+{
+  "checks": [
+    {
+      "file": "stage_center/_selection_parts/a_auction.py",
+      "assignment": "amount",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_auction.py",
+      "assignment": "price",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_auction.py",
+      "assignment": "prev_close",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_auction.py",
+      "assignment": "current_change",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_auction.py",
+      "assignment": "qmt",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_auction.py",
+      "assignment": "bounded_score",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_auction.py",
+      "assignment": "normalized",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_auction.py",
+      "assignment": "algorithm_sha",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_live.py",
+      "assignment": "qmt_value",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_live.py",
+      "assignment": "qmt",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_live.py",
+      "assignment": "candidate_value",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_live.py",
+      "assignment": "candidate",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_live.py",
+      "assignment": "live_score",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_live.py",
+      "assignment": "news_score",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_live.py",
+      "assignment": "research_score",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_live.py",
+      "assignment": "research_bonus",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_live.py",
+      "assignment": "stage_score",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_live.py",
+      "assignment": "selected",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_live.py",
+      "assignment": "algorithm_sha",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_live.py",
+      "presort_field": "code",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_live.py",
+      "presort_field": "score",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_live.py",
+      "presort_field": "stage_score",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_live.py",
+      "presort_field": "qmt_amount",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_live.py",
+      "presort_field": "qmt_gap_pct",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_live.py",
+      "presort_field": "stage1_formal_rank",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_live.py",
+      "presort_field": "acquisition_rank",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_live.py",
+      "presort_field": "formal_eligible",
+      "unchanged_ast": true
+    },
+    {
+      "file": "stage_center/_selection_parts/a_live.py",
+      "presort_field": "pool_score",
+      "unchanged_ast": true
+    }
+  ],
+  "actual_selection_py_unchanged_sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294",
+  "actual_contracts_unchanged_sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+  "algorithm_manifest_runtime_sha256": "eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2",
+  "actual_formula_helper_current_identity": "NOT_PROVIDED; historical helper pinned separately; local owner must verify",
+  "score_and_rank_behavior": "TESTED_SAME_INPUT_DIFFERENTIAL"
+}

@@ -1,0 +1,92 @@
+{
+  "reviewer": "/root/stage_hk_and_entrypoint",
+  "candidate_author": "/root",
+  "status": "PASS_CONDITIONAL_HISTORICAL_SOURCE_SLICE",
+  "reviewed_at": "2026-10-09T04:29:48.355435+00:00",
+  "files": [
+    {
+      "variant": "actual_stage",
+      "file": "deadline_supervision.py",
+      "before_path": "/workspace/scratch/25c09a595aec/stage_minimal/work/entrypoint_clock/before/actual_stage/ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+      "after_path": "/workspace/scratch/25c09a595aec/stage_minimal/work/entrypoint_clock/after/actual_stage/ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+      "before_sha256": "95ce916246f3376fc3618c0890ee1f76f2b0231c50d77fe5440a9b956884a674",
+      "after_sha256": "1f65476c5a274195b789a3529a3e95821bfcf81278c6ac72e01c52655932cf08",
+      "fixed_repository_path": "handoff/v4-running-source-20261005/canonical/ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+      "fixed_commit": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "before_git_blob_sha1": "b175aa766ff636f3e90f1b209116a94f2415c0d9",
+      "tree_blob_matches": true,
+      "conditional_on_current_mac_preimage_match": true,
+      "only_one_declared_line_replaced": true
+    },
+    {
+      "variant": "actual_stage",
+      "file": "node_entry.py",
+      "before_path": "/workspace/scratch/25c09a595aec/stage_minimal/work/entrypoint_clock/before/actual_stage/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "after_path": "/workspace/scratch/25c09a595aec/stage_minimal/work/entrypoint_clock/after/actual_stage/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "before_sha256": "f9530f010055476e17d87e93198e28d3f4943ed34255a2419130eb9f39deb6ed",
+      "after_sha256": "3a40b79ecea876997aad9272205ebf61289af2a17162057fa680174c50e74fd2",
+      "fixed_repository_path": "handoff/v4-running-source-20261005/stage/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "fixed_commit": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "before_git_blob_sha1": "86971b3f46c4755cabce98e501f5d4d60f2df5b0",
+      "tree_blob_matches": true,
+      "conditional_on_current_mac_preimage_match": true,
+      "only_one_declared_line_replaced": true
+    },
+    {
+      "variant": "canonical",
+      "file": "deadline_supervision.py",
+      "before_path": "/workspace/scratch/25c09a595aec/stage_minimal/work/entrypoint_clock/before/canonical/ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+      "after_path": "/workspace/scratch/25c09a595aec/stage_minimal/work/entrypoint_clock/after/canonical/ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+      "before_sha256": "95ce916246f3376fc3618c0890ee1f76f2b0231c50d77fe5440a9b956884a674",
+      "after_sha256": "1f65476c5a274195b789a3529a3e95821bfcf81278c6ac72e01c52655932cf08",
+      "fixed_repository_path": "handoff/v4-running-source-20261005/canonical/ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+      "fixed_commit": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "before_git_blob_sha1": "b175aa766ff636f3e90f1b209116a94f2415c0d9",
+      "tree_blob_matches": true,
+      "conditional_on_current_mac_preimage_match": true,
+      "only_one_declared_line_replaced": true
+    },
+    {
+      "variant": "canonical",
+      "file": "node_entry.py",
+      "before_path": "/workspace/scratch/25c09a595aec/stage_minimal/work/entrypoint_clock/before/canonical/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "after_path": "/workspace/scratch/25c09a595aec/stage_minimal/work/entrypoint_clock/after/canonical/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "before_sha256": "2343cd5e250aaa05acc698ba2daf34220f13ffb5543c655df799fdb3bd7fe464",
+      "after_sha256": "0efb31e207a7282eea9308c81c69c7bfd0f4c989d03d03acc9407e430f832fe6",
+      "fixed_repository_path": "handoff/v4-running-source-20261005/canonical/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "fixed_commit": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "before_git_blob_sha1": "7bc03ed562aff33c93e50234ce18bfadeb85541b",
+      "tree_blob_matches": true,
+      "conditional_on_current_mac_preimage_match": true,
+      "only_one_declared_line_replaced": true
+    }
+  ],
+  "modified_product_files": false,
+  "open_p0_p1_p2_findings": [],
+  "verification": [
+    {
+      "suite": "Independent complete helper imports + original Node/mode/evaluate_due + actual contracts",
+      "passed": 22,
+      "failed": 0,
+      "evidence": "evidence/independent_clock_review_pass"
+    },
+    {
+      "suite": "Independent rerun author exact-contract suite",
+      "passed": 29,
+      "failed": 0,
+      "evidence": "evidence/independent_clock_author_final"
+    }
+  ],
+  "fixture_correction": {
+    "evidence": "evidence/independent_clock_final",
+    "result": "12 failed,10 passed; omitted synthetic calendar_provenance in reviewer fixture caused NameError; candidate untouched",
+    "resolution": "Added explicit calendar-provenance seam; all22 pass"
+  },
+  "limitations": [
+    "All four candidates apply to separately pinned historical helper preimages, not proven current Mac helpers",
+    "Five seconds bounds the requested sleep, not OS scheduling latency or complete pipeline runtime",
+    "Clock, calendar, dispatcher are explicit test seams; test sets Connect closed and does not enable observation collection",
+    "No live collection/deployment/HTTP/UI/natural-stage acceptance",
+    "Original market quote cutoff and algorithm not changed; wall-clock invocation/evaluation is recorded separately from scheduled cutoff"
+  ]
+}

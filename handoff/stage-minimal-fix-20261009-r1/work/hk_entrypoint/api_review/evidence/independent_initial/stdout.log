@@ -1,0 +1,138 @@
+..FF......................FFFF..                                         [100%]
+=================================== FAILURES ===================================
+_________ test_real_slot_invocation_clock_reaches_reader[actual_stage] _________
+
+runtime = namespace(variant='actual_stage', selection=<module 'stage_center.selection' from '/workspace/scratch/25c09a595aec/sta...mal/work/quote_fields/support/infrastructure/owned_io.py'>, input_error=<class 'conftest.runtime.<locals>.InputError'>)
+
+    def test_real_slot_invocation_clock_reaches_reader(runtime):
+        before = datetime.now(timezone.utc)
+        written = runtime.run_noop()
+        read = runtime.read(selection_store=runtime.store)
+        assert before <= datetime.fromisoformat(written["runner_invoked_at"]) <= datetime.now(timezone.utc)
+        assert written["runner_clock_source"] == "OWNER_RUNNER_INVOCATION_UTC"
+        assert read["runner_invoked_at"] == written["runner_invoked_at"]
+>       assert read["invocation_time_source"] == written["runner_clock_source"]
+E       AssertionError: assert None == 'OWNER_RUNNER_INVOCATION_UTC'
+
+stage_minimal/work/hk_entrypoint/api_review/tests/test_writer_reader_integration.py:44: AssertionError
+__________ test_real_slot_invocation_clock_reaches_reader[canonical] ___________
+
+runtime = namespace(variant='canonical', selection=<module 'stage_center.selection' from '/workspace/scratch/25c09a595aec/stage_...mal/work/quote_fields/support/infrastructure/owned_io.py'>, input_error=<class 'conftest.runtime.<locals>.InputError'>)
+
+    def test_real_slot_invocation_clock_reaches_reader(runtime):
+        before = datetime.now(timezone.utc)
+        written = runtime.run_noop()
+        read = runtime.read(selection_store=runtime.store)
+        assert before <= datetime.fromisoformat(written["runner_invoked_at"]) <= datetime.now(timezone.utc)
+        assert written["runner_clock_source"] == "OWNER_RUNNER_INVOCATION_UTC"
+        assert read["runner_invoked_at"] == written["runner_invoked_at"]
+>       assert read["invocation_time_source"] == written["runner_clock_source"]
+E       AssertionError: assert None == 'OWNER_RUNNER_INVOCATION_UTC'
+
+stage_minimal/work/hk_entrypoint/api_review/tests/test_writer_reader_integration.py:44: AssertionError
+_ test_unknown_api_lane_status_cannot_authenticate_receipt_references[actual_stage] _
+
+runtime = namespace(variant='actual_stage', selection=<module 'stage_center.selection' from '/workspace/scratch/25c09a595aec/sta...mal/work/quote_fields/support/infrastructure/owned_io.py'>, input_error=<class 'conftest.runtime.<locals>.InputError'>)
+
+    def test_unknown_api_lane_status_cannot_authenticate_receipt_references(runtime):
+        runtime.write(runtime.base_payload())
+        runtime.lanes["A_SHARE"]["status"] = "UNRECOGNIZED_READY"
+        output = runtime.read(selection_store=runtime.store)
+        assert output["selection_results"]["A_SHARE"]["status"] == "NO_VERIFIED_RESULT"
+>       assert output["markets"]["A_SHARE"]["selection_binding"] != "BOUND_TO_VERIFIED_SELECTION"
+E       AssertionError: assert 'BOUND_TO_VERIFIED_SELECTION' != 'BOUND_TO_VERIFIED_SELECTION'
+
+stage_minimal/work/hk_entrypoint/api_review/tests/test_writer_reader_integration.py:141: AssertionError
+_ test_unknown_api_lane_status_cannot_authenticate_receipt_references[canonical] _
+
+runtime = namespace(variant='canonical', selection=<module 'stage_center.selection' from '/workspace/scratch/25c09a595aec/stage_...mal/work/quote_fields/support/infrastructure/owned_io.py'>, input_error=<class 'conftest.runtime.<locals>.InputError'>)
+
+    def test_unknown_api_lane_status_cannot_authenticate_receipt_references(runtime):
+        runtime.write(runtime.base_payload())
+        runtime.lanes["A_SHARE"]["status"] = "UNRECOGNIZED_READY"
+        output = runtime.read(selection_store=runtime.store)
+        assert output["selection_results"]["A_SHARE"]["status"] == "NO_VERIFIED_RESULT"
+>       assert output["markets"]["A_SHARE"]["selection_binding"] != "BOUND_TO_VERIFIED_SELECTION"
+E       AssertionError: assert 'BOUND_TO_VERIFIED_SELECTION' != 'BOUND_TO_VERIFIED_SELECTION'
+
+stage_minimal/work/hk_entrypoint/api_review/tests/test_writer_reader_integration.py:141: AssertionError
+_ test_json_container_status_is_refused_without_crashing_selection_display[actual_stage] _
+
+runtime = namespace(variant='actual_stage', selection=<module 'stage_center.selection' from '/workspace/scratch/25c09a595aec/sta...mal/work/quote_fields/support/infrastructure/owned_io.py'>, input_error=<class 'conftest.runtime.<locals>.InputError'>)
+
+    def test_json_container_status_is_refused_without_crashing_selection_display(runtime):
+        runtime.lanes["A_SHARE"]["status"] = []
+>       output = runtime.read(selection_store=runtime.store)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+stage_minimal/work/hk_entrypoint/api_review/tests/test_writer_reader_integration.py:148: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+stage_minimal/work/hk_entrypoint/api_review/tests/conftest.py:128: in read
+    return reader.read_stage_execution(receipt_root, DATE, STAGE, lanes, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+stage_minimal/work/api_ui/after/source/actual_api/stage_center/execution_evidence.py:186: in read_stage_execution
+    "selection_results": _verified_result_summaries(stage_id, verified_markets),
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+stage_id = 'STAGE_0925'
+verified_markets = {'A_SHARE': {'schema_version': 'stage_center.selection.v2', 'trade_date': '20261009', 'stage_id': 'STAGE_0925', 'market': 'A_SHARE', ...}, 'HK_CONNECT': {'status': 'CANNOT_CONFIRM', 'selected_rows': 0}}
+
+    def _verified_result_summaries(
+        stage_id: str, verified_markets: Mapping[str, Mapping[str, Any]],
+    ) -> dict[str, Any]:
+        """SelectionStore results remain visible even when execution evidence is absent."""
+        summaries: dict[str, Any] = {}
+        for market in STAGE_BY_ID[stage_id].markets:
+            lane = verified_markets.get(market) or {}
+            selected = _counter(lane.get("selected_rows"))
+            identities = all(isinstance(lane.get(key), str) and lane[key] for key in _IDENTITY)
+>           available = identities and selected is not None and lane.get("status") in {"READY", "READY_EMPTY", "PARTIAL_WITH_ROWS", "NOOP_ALREADY_VERIFIED"}
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           TypeError: cannot use 'list' as a set element (unhashable type: 'list')
+
+stage_minimal/work/api_ui/after/source/actual_api/stage_center/execution_evidence.py:67: TypeError
+_ test_json_container_status_is_refused_without_crashing_selection_display[canonical] _
+
+runtime = namespace(variant='canonical', selection=<module 'stage_center.selection' from '/workspace/scratch/25c09a595aec/stage_...mal/work/quote_fields/support/infrastructure/owned_io.py'>, input_error=<class 'conftest.runtime.<locals>.InputError'>)
+
+    def test_json_container_status_is_refused_without_crashing_selection_display(runtime):
+        runtime.lanes["A_SHARE"]["status"] = []
+>       output = runtime.read(selection_store=runtime.store)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+stage_minimal/work/hk_entrypoint/api_review/tests/test_writer_reader_integration.py:148: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+stage_minimal/work/hk_entrypoint/api_review/tests/conftest.py:128: in read
+    return reader.read_stage_execution(receipt_root, DATE, STAGE, lanes, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+stage_minimal/work/api_ui/after/source/actual_api/stage_center/execution_evidence.py:186: in read_stage_execution
+    "selection_results": _verified_result_summaries(stage_id, verified_markets),
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+stage_id = 'STAGE_0925'
+verified_markets = {'A_SHARE': {'schema_version': 'stage_center.selection.v2', 'trade_date': '20261009', 'stage_id': 'STAGE_0925', 'market': 'A_SHARE', ...}, 'HK_CONNECT': {'status': 'CANNOT_CONFIRM', 'selected_rows': 0}}
+
+    def _verified_result_summaries(
+        stage_id: str, verified_markets: Mapping[str, Mapping[str, Any]],
+    ) -> dict[str, Any]:
+        """SelectionStore results remain visible even when execution evidence is absent."""
+        summaries: dict[str, Any] = {}
+        for market in STAGE_BY_ID[stage_id].markets:
+            lane = verified_markets.get(market) or {}
+            selected = _counter(lane.get("selected_rows"))
+            identities = all(isinstance(lane.get(key), str) and lane[key] for key in _IDENTITY)
+>           available = identities and selected is not None and lane.get("status") in {"READY", "READY_EMPTY", "PARTIAL_WITH_ROWS", "NOOP_ALREADY_VERIFIED"}
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           TypeError: cannot use 'list' as a set element (unhashable type: 'list')
+
+stage_minimal/work/api_ui/after/source/actual_api/stage_center/execution_evidence.py:67: TypeError
+=========================== short test summary info ============================
+FAILED stage_minimal/work/hk_entrypoint/api_review/tests/test_writer_reader_integration.py::test_real_slot_invocation_clock_reaches_reader[actual_stage]
+FAILED stage_minimal/work/hk_entrypoint/api_review/tests/test_writer_reader_integration.py::test_real_slot_invocation_clock_reaches_reader[canonical]
+FAILED stage_minimal/work/hk_entrypoint/api_review/tests/test_writer_reader_integration.py::test_unknown_api_lane_status_cannot_authenticate_receipt_references[actual_stage]
+FAILED stage_minimal/work/hk_entrypoint/api_review/tests/test_writer_reader_integration.py::test_unknown_api_lane_status_cannot_authenticate_receipt_references[canonical]
+FAILED stage_minimal/work/hk_entrypoint/api_review/tests/test_writer_reader_integration.py::test_json_container_status_is_refused_without_crashing_selection_display[actual_stage]
+FAILED stage_minimal/work/hk_entrypoint/api_review/tests/test_writer_reader_integration.py::test_json_container_status_is_refused_without_crashing_selection_display[canonical]
+6 failed, 26 passed in 0.76s

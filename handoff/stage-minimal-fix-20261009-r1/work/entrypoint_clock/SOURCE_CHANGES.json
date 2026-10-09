@@ -1,0 +1,145 @@
+{
+  "input_commit": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+  "source_reference_date": "20261005",
+  "current_mac_helper_identity": "NOT_SUPPLIED",
+  "configured_stage_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_STAGE_RECOVERY_20261003/issue23_runner_helper_r3/stage_r1_binding_candidate_r3/app",
+  "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+  "groups": [
+    {
+      "variant": "actual_stage",
+      "patch": "work/entrypoint_clock/patches/actual_stage.patch",
+      "files": [
+        {
+          "relative_path": "ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+          "before": {
+            "bytes": 1112,
+            "sha256": "95ce916246f3376fc3618c0890ee1f76f2b0231c50d77fe5440a9b956884a674",
+            "git_blob_sha1": "b175aa766ff636f3e90f1b209116a94f2415c0d9"
+          },
+          "after": {
+            "bytes": 1217,
+            "sha256": "1f65476c5a274195b789a3529a3e95821bfcf81278c6ac72e01c52655932cf08",
+            "git_blob_sha1": "da67fe15083a441b20087ffba91b10e78315e524"
+          },
+          "before_path": "work/entrypoint_clock/before/actual_stage/ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+          "after_path": "work/entrypoint_clock/after/actual_stage/ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+          "conditional_historical_preimage": true
+        },
+        {
+          "relative_path": "ops/_run_stage_center_nodes_parts/node_entry.py",
+          "before": {
+            "bytes": 42295,
+            "sha256": "f9530f010055476e17d87e93198e28d3f4943ed34255a2419130eb9f39deb6ed",
+            "git_blob_sha1": "86971b3f46c4755cabce98e501f5d4d60f2df5b0"
+          },
+          "after": {
+            "bytes": 42350,
+            "sha256": "3a40b79ecea876997aad9272205ebf61289af2a17162057fa680174c50e74fd2",
+            "git_blob_sha1": "77b88ae2d58686321585a9924c747fa5c94f8fea"
+          },
+          "before_path": "work/entrypoint_clock/before/actual_stage/ops/_run_stage_center_nodes_parts/node_entry.py",
+          "after_path": "work/entrypoint_clock/after/actual_stage/ops/_run_stage_center_nodes_parts/node_entry.py",
+          "conditional_historical_preimage": true
+        }
+      ],
+      "roundtrip": "PASS_EXACT_BYTES_FORWARD_AND_REVERSE",
+      "commands": [
+        {
+          "flags": [
+            "--check"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [
+            "--reverse",
+            "--check"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [
+            "--reverse"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "variant": "canonical",
+      "patch": "work/entrypoint_clock/patches/canonical.patch",
+      "files": [
+        {
+          "relative_path": "ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+          "before": {
+            "bytes": 1112,
+            "sha256": "95ce916246f3376fc3618c0890ee1f76f2b0231c50d77fe5440a9b956884a674",
+            "git_blob_sha1": "b175aa766ff636f3e90f1b209116a94f2415c0d9"
+          },
+          "after": {
+            "bytes": 1217,
+            "sha256": "1f65476c5a274195b789a3529a3e95821bfcf81278c6ac72e01c52655932cf08",
+            "git_blob_sha1": "da67fe15083a441b20087ffba91b10e78315e524"
+          },
+          "before_path": "work/entrypoint_clock/before/canonical/ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+          "after_path": "work/entrypoint_clock/after/canonical/ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+          "conditional_historical_preimage": true
+        },
+        {
+          "relative_path": "ops/_run_stage_center_nodes_parts/node_entry.py",
+          "before": {
+            "bytes": 33168,
+            "sha256": "2343cd5e250aaa05acc698ba2daf34220f13ffb5543c655df799fdb3bd7fe464",
+            "git_blob_sha1": "7bc03ed562aff33c93e50234ce18bfadeb85541b"
+          },
+          "after": {
+            "bytes": 33223,
+            "sha256": "0efb31e207a7282eea9308c81c69c7bfd0f4c989d03d03acc9407e430f832fe6",
+            "git_blob_sha1": "d0c1fd4c564922c7c14955ff3681864f709bcce7"
+          },
+          "before_path": "work/entrypoint_clock/before/canonical/ops/_run_stage_center_nodes_parts/node_entry.py",
+          "after_path": "work/entrypoint_clock/after/canonical/ops/_run_stage_center_nodes_parts/node_entry.py",
+          "conditional_historical_preimage": true
+        }
+      ],
+      "roundtrip": "PASS_EXACT_BYTES_FORWARD_AND_REVERSE",
+      "commands": [
+        {
+          "flags": [
+            "--check"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [
+            "--reverse",
+            "--check"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "flags": [
+            "--reverse"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        }
+      ]
+    }
+  ]
+}

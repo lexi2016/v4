@@ -1,0 +1,26 @@
+{
+  "status": "PASS_SOURCE_FUNCTIONS_ONLY",
+  "final_tests": 29,
+  "passed": 29,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 0,
+  "red": {
+    "failed": 16,
+    "passed": 12,
+    "skipped": 1,
+    "postimage_only_preservation_check_skipped": true
+  },
+  "red_log": "evidence/clock_exact_red.log",
+  "green_log": "evidence/clock_exact_green.log",
+  "scope": "ORIGINAL_WAIT_AND_NODE_BODIES_ORIGINAL_MODE_AND_DUE_WITH_ACTUAL_STAGE_CONTRACTS",
+  "boundaries": [
+    "synthetic wall clock",
+    "explicit test calendar",
+    "dispatcher spy; no real collector"
+  ],
+  "algorithm_and_cutoff_change": false,
+  "mac": "NOT_RUN",
+  "deployment": "NOT_RUN",
+  "natural": "NOT_RUN"
+}

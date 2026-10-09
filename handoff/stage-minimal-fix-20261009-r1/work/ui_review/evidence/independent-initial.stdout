@@ -1,0 +1,54 @@
+(node:28) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ a real selection summary survives completely absent execution receipt lanes (6.399526ms)
+✔ current verified HK result remains above an older blocked execution declaration (0.559912ms)
+✔ a new negative result summary is never replaced by old bound receipt counts (0.650194ms)
+✔ a present null new summary is not downgraded to a receipt-based selection (0.358427ms)
+✖ an explicitly new result map with a missing market does not use older receipt rows (1.199971ms)
+✔ unrecognized summary status "UNKNOWN" cannot display verified rows (0.937806ms)
+✔ unrecognized summary status "READY" cannot display verified rows (1.878567ms)
+✔ unrecognized summary status [] cannot display verified rows (0.634231ms)
+✔ unrecognized summary status null cannot display verified rows (0.391736ms)
+✔ nonpositive or invalid nonempty-result selected count null is not confirmed (0.507235ms)
+✔ nonpositive or invalid nonempty-result selected count -1 is not confirmed (0.511762ms)
+✔ nonpositive or invalid nonempty-result selected count 0 is not confirmed (0.255044ms)
+✔ nonpositive or invalid nonempty-result selected count 0.5 is not confirmed (0.195326ms)
+✔ nonpositive or invalid nonempty-result selected count true is not confirmed (0.257919ms)
+✔ nonpositive or invalid nonempty-result selected count 10 is not confirmed (0.23851ms)
+✔ nonpositive or invalid nonempty-result selected count 9007199254740992 is not confirmed (0.209608ms)
+✔ verified empty has an explicit zero but missing acquisition counts stay unknown (0.392606ms)
+✔ current null acquisition counters never take old fully populated receipt values (0.361981ms)
+✔ legacy reference fallback is allowed only with its exact verified selection binding (0.261844ms)
+✔ legacy observed rows fallback remains a declared quote count, never a selected count (0.275184ms)
+✔ owner history and declared NATURAL do not satisfy execution acceptance (0.362322ms)
+✔ a recorded-time declaration without owner history is not displayed as verified time (2.636711ms)
+✔ an unsafe counter range gives a count conflict rather than a negative missing quote count (0.383352ms)
+✔ HK-only stage never gains a fabricated A lane from stale receipt data (0.288724ms)
+✔ display escaping and technical details retain untrusted diagnostic text without executing markup (0.328663ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 24
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 270.033184
+
+✖ failing tests:
+
+test at stage_minimal/work/ui_review/tests/independent_presentation.test.mjs:45:1
+✖ an explicitly new result map with a missing market does not use older receipt rows (1.199971ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /选股结果待核对/. Input:
+  
+  'A股 已计算 10 只 行情 206 / 216 只，缺 10 只 回执记录计数 执行记录尚未完整绑定'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/25c09a595aec/stage_minimal/work/ui_review/tests/independent_presentation.test.mjs:49:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'A股 已计算 10 只 行情 206 / 216 只，缺 10 只 回执记录计数 执行记录尚未完整绑定',
+    expected: /选股结果待核对/,
+    operator: 'match',
+    diff: 'simple'
+  }

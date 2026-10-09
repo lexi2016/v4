@@ -1,0 +1,142 @@
+FFFFFFFFFFFFFFFFFFFFFFF                                                  [100%]
+=================================== FAILURES ===================================
+______ test_verified_result_remains_visible_when_receipt_root_is_unbound _______
+tests/test_execution_evidence.py:82: in test_verified_result_remains_visible_when_receipt_root_is_unbound
+    a=r["selection_results"]["A_SHARE"]
+      ^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'selection_results'
+_______ test_legacy_receipt_reports_result_and_hk_input_block_separately _______
+tests/test_execution_evidence.py:93: in test_legacy_receipt_reports_result_and_hk_input_block_separately
+    assert r["selection_results"]["A_SHARE"]["selected_rows"]==10
+           ^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'selection_results'
+______ test_owner_history_is_bound_but_does_not_certify_natural_execution ______
+tests/test_execution_evidence.py:105: in test_owner_history_is_bound_but_does_not_certify_natural_execution
+    assert r["receipt_history_binding"]=="OWNER_HISTORY_SHA_BOUND"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'receipt_history_binding'
+____________ test_owner_history_conflicts_cannot_be_promoted[bytes] ____________
+tests/test_execution_evidence.py:134: in test_owner_history_conflicts_cannot_be_promoted
+    assert r["receipt_history_binding"]=="OWNER_HISTORY_CONFLICT"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'receipt_history_binding'
+_________ test_owner_history_conflicts_cannot_be_promoted[pointer_sha] _________
+tests/test_execution_evidence.py:134: in test_owner_history_conflicts_cannot_be_promoted
+    assert r["receipt_history_binding"]=="OWNER_HISTORY_CONFLICT"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'receipt_history_binding'
+_________ test_owner_history_conflicts_cannot_be_promoted[wrong_slot] __________
+tests/test_execution_evidence.py:134: in test_owner_history_conflicts_cannot_be_promoted
+    assert r["receipt_history_binding"]=="OWNER_HISTORY_CONFLICT"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'receipt_history_binding'
+_______ test_owner_history_conflicts_cannot_be_promoted[payload_change] ________
+tests/test_execution_evidence.py:134: in test_owner_history_conflicts_cannot_be_promoted
+    assert r["receipt_history_binding"]=="OWNER_HISTORY_CONFLICT"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'receipt_history_binding'
+_________ test_owner_history_conflicts_cannot_be_promoted[naive_clock] _________
+tests/test_execution_evidence.py:134: in test_owner_history_conflicts_cannot_be_promoted
+    assert r["receipt_history_binding"]=="OWNER_HISTORY_CONFLICT"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'receipt_history_binding'
+_____ test_owner_history_conflicts_cannot_be_promoted[false_clock_source] ______
+tests/test_execution_evidence.py:134: in test_owner_history_conflicts_cannot_be_promoted
+    assert r["receipt_history_binding"]=="OWNER_HISTORY_CONFLICT"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'receipt_history_binding'
+___________ test_owner_history_conflicts_cannot_be_promoted[symlink] ___________
+tests/test_execution_evidence.py:134: in test_owner_history_conflicts_cannot_be_promoted
+    assert r["receipt_history_binding"]=="OWNER_HISTORY_CONFLICT"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'receipt_history_binding'
+_________ test_selection_trio_uses_both_canonical_and_file_byte_hashes _________
+tests/test_execution_evidence.py:167: in test_selection_trio_uses_both_canonical_and_file_byte_hashes
+    r=reader.read_stage_execution(tmp_path/"receipts",DATE,STAGE,verified(),selection_store=store)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: read_stage_execution() got an unexpected keyword argument 'selection_store'
+____ test_declared_trio_without_bound_store_is_not_independent_verification ____
+tests/test_execution_evidence.py:176: in test_declared_trio_without_bound_store_is_not_independent_verification
+    assert r["selection_artifact_bindings"]["A_SHARE"]["status"]=="SELECTION_STORE_NOT_BOUND"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'selection_artifact_bindings'
+_ test_selection_trio_conflicts_preserve_result_but_refuse_binding[canonical_used_as_bytes] _
+tests/test_execution_evidence.py:191: in test_selection_trio_conflicts_preserve_result_but_refuse_binding
+    r=reader.read_stage_execution(tmp_path/"receipts",DATE,STAGE,verified(),selection_store=store)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: read_stage_execution() got an unexpected keyword argument 'selection_store'
+_ test_selection_trio_conflicts_preserve_result_but_refuse_binding[artifact_after_verify] _
+tests/test_execution_evidence.py:191: in test_selection_trio_conflicts_preserve_result_but_refuse_binding
+    r=reader.read_stage_execution(tmp_path/"receipts",DATE,STAGE,verified(),selection_store=store)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: read_stage_execution() got an unexpected keyword argument 'selection_store'
+_ test_selection_trio_conflicts_preserve_result_but_refuse_binding[declared_path] _
+tests/test_execution_evidence.py:191: in test_selection_trio_conflicts_preserve_result_but_refuse_binding
+    r=reader.read_stage_execution(tmp_path/"receipts",DATE,STAGE,verified(),selection_store=store)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: read_stage_execution() got an unexpected keyword argument 'selection_store'
+_ test_selection_trio_conflicts_preserve_result_but_refuse_binding[wrong_identity] _
+tests/test_execution_evidence.py:191: in test_selection_trio_conflicts_preserve_result_but_refuse_binding
+    r=reader.read_stage_execution(tmp_path/"receipts",DATE,STAGE,verified(),selection_store=store)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: read_stage_execution() got an unexpected keyword argument 'selection_store'
+_ test_selection_trio_conflicts_preserve_result_but_refuse_binding[wrong_count] _
+tests/test_execution_evidence.py:191: in test_selection_trio_conflicts_preserve_result_but_refuse_binding
+    r=reader.read_stage_execution(tmp_path/"receipts",DATE,STAGE,verified(),selection_store=store)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: read_stage_execution() got an unexpected keyword argument 'selection_store'
+_ test_selection_trio_conflicts_preserve_result_but_refuse_binding[manifest_format_change] _
+tests/test_execution_evidence.py:191: in test_selection_trio_conflicts_preserve_result_but_refuse_binding
+    r=reader.read_stage_execution(tmp_path/"receipts",DATE,STAGE,verified(),selection_store=store)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: read_stage_execution() got an unexpected keyword argument 'selection_store'
+_____ test_receipt_replaced_during_store_verification_is_not_history_bound _____
+tests/test_execution_evidence.py:205: in test_receipt_replaced_during_store_verification_is_not_history_bound
+    r=reader.read_stage_execution(tmp_path/"receipts",DATE,STAGE,verified(),selection_store=store)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: read_stage_execution() got an unexpected keyword argument 'selection_store'
+_______ test_invalid_selection_counts_are_not_reported_as_computed[None] _______
+tests/test_execution_evidence.py:214: in test_invalid_selection_counts_are_not_reported_as_computed
+    assert r["selection_results"]["A_SHARE"]["status"]=="NO_VERIFIED_RESULT"
+           ^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'selection_results'
+_______ test_invalid_selection_counts_are_not_reported_as_computed[True] _______
+tests/test_execution_evidence.py:214: in test_invalid_selection_counts_are_not_reported_as_computed
+    assert r["selection_results"]["A_SHARE"]["status"]=="NO_VERIFIED_RESULT"
+           ^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'selection_results'
+________ test_invalid_selection_counts_are_not_reported_as_computed[-1] ________
+tests/test_execution_evidence.py:214: in test_invalid_selection_counts_are_not_reported_as_computed
+    assert r["selection_results"]["A_SHARE"]["status"]=="NO_VERIFIED_RESULT"
+           ^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'selection_results'
+________ test_invalid_selection_counts_are_not_reported_as_computed[10] ________
+tests/test_execution_evidence.py:214: in test_invalid_selection_counts_are_not_reported_as_computed
+    assert r["selection_results"]["A_SHARE"]["status"]=="NO_VERIFIED_RESULT"
+           ^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'selection_results'
+=========================== short test summary info ============================
+FAILED tests/test_execution_evidence.py::test_verified_result_remains_visible_when_receipt_root_is_unbound
+FAILED tests/test_execution_evidence.py::test_legacy_receipt_reports_result_and_hk_input_block_separately
+FAILED tests/test_execution_evidence.py::test_owner_history_is_bound_but_does_not_certify_natural_execution
+FAILED tests/test_execution_evidence.py::test_owner_history_conflicts_cannot_be_promoted[bytes]
+FAILED tests/test_execution_evidence.py::test_owner_history_conflicts_cannot_be_promoted[pointer_sha]
+FAILED tests/test_execution_evidence.py::test_owner_history_conflicts_cannot_be_promoted[wrong_slot]
+FAILED tests/test_execution_evidence.py::test_owner_history_conflicts_cannot_be_promoted[payload_change]
+FAILED tests/test_execution_evidence.py::test_owner_history_conflicts_cannot_be_promoted[naive_clock]
+FAILED tests/test_execution_evidence.py::test_owner_history_conflicts_cannot_be_promoted[false_clock_source]
+FAILED tests/test_execution_evidence.py::test_owner_history_conflicts_cannot_be_promoted[symlink]
+FAILED tests/test_execution_evidence.py::test_selection_trio_uses_both_canonical_and_file_byte_hashes
+FAILED tests/test_execution_evidence.py::test_declared_trio_without_bound_store_is_not_independent_verification
+FAILED tests/test_execution_evidence.py::test_selection_trio_conflicts_preserve_result_but_refuse_binding[canonical_used_as_bytes]
+FAILED tests/test_execution_evidence.py::test_selection_trio_conflicts_preserve_result_but_refuse_binding[artifact_after_verify]
+FAILED tests/test_execution_evidence.py::test_selection_trio_conflicts_preserve_result_but_refuse_binding[declared_path]
+FAILED tests/test_execution_evidence.py::test_selection_trio_conflicts_preserve_result_but_refuse_binding[wrong_identity]
+FAILED tests/test_execution_evidence.py::test_selection_trio_conflicts_preserve_result_but_refuse_binding[wrong_count]
+FAILED tests/test_execution_evidence.py::test_selection_trio_conflicts_preserve_result_but_refuse_binding[manifest_format_change]
+FAILED tests/test_execution_evidence.py::test_receipt_replaced_during_store_verification_is_not_history_bound
+FAILED tests/test_execution_evidence.py::test_invalid_selection_counts_are_not_reported_as_computed[None]
+FAILED tests/test_execution_evidence.py::test_invalid_selection_counts_are_not_reported_as_computed[True]
+FAILED tests/test_execution_evidence.py::test_invalid_selection_counts_are_not_reported_as_computed[-1]
+FAILED tests/test_execution_evidence.py::test_invalid_selection_counts_are_not_reported_as_computed[10]
+23 failed in 0.30s

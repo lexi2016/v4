@@ -1,0 +1,162 @@
+TAP version 13
+# (node:35) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: a real selection summary survives completely absent execution receipt lanes
+ok 1 - a real selection summary survives completely absent execution receipt lanes
+  ---
+  duration_ms: 5.493963
+  type: 'test'
+  ...
+# Subtest: current verified HK result remains above an older blocked execution declaration
+ok 2 - current verified HK result remains above an older blocked execution declaration
+  ---
+  duration_ms: 0.574323
+  type: 'test'
+  ...
+# Subtest: a new negative result summary is never replaced by old bound receipt counts
+ok 3 - a new negative result summary is never replaced by old bound receipt counts
+  ---
+  duration_ms: 0.593861
+  type: 'test'
+  ...
+# Subtest: a present null new summary is not downgraded to a receipt-based selection
+ok 4 - a present null new summary is not downgraded to a receipt-based selection
+  ---
+  duration_ms: 0.370304
+  type: 'test'
+  ...
+# Subtest: an explicitly new result map with a missing market does not use older receipt rows
+ok 5 - an explicitly new result map with a missing market does not use older receipt rows
+  ---
+  duration_ms: 0.485362
+  type: 'test'
+  ...
+# Subtest: unrecognized summary status "UNKNOWN" cannot display verified rows
+ok 6 - unrecognized summary status "UNKNOWN" cannot display verified rows
+  ---
+  duration_ms: 0.400207
+  type: 'test'
+  ...
+# Subtest: unrecognized summary status "READY" cannot display verified rows
+ok 7 - unrecognized summary status "READY" cannot display verified rows
+  ---
+  duration_ms: 0.457942
+  type: 'test'
+  ...
+# Subtest: unrecognized summary status [] cannot display verified rows
+ok 8 - unrecognized summary status [] cannot display verified rows
+  ---
+  duration_ms: 0.414638
+  type: 'test'
+  ...
+# Subtest: unrecognized summary status null cannot display verified rows
+ok 9 - unrecognized summary status null cannot display verified rows
+  ---
+  duration_ms: 2.006825
+  type: 'test'
+  ...
+# Subtest: nonpositive or invalid nonempty-result selected count null is not confirmed
+ok 10 - nonpositive or invalid nonempty-result selected count null is not confirmed
+  ---
+  duration_ms: 0.539441
+  type: 'test'
+  ...
+# Subtest: nonpositive or invalid nonempty-result selected count -1 is not confirmed
+ok 11 - nonpositive or invalid nonempty-result selected count -1 is not confirmed
+  ---
+  duration_ms: 0.248014
+  type: 'test'
+  ...
+# Subtest: nonpositive or invalid nonempty-result selected count 0 is not confirmed
+ok 12 - nonpositive or invalid nonempty-result selected count 0 is not confirmed
+  ---
+  duration_ms: 0.254193
+  type: 'test'
+  ...
+# Subtest: nonpositive or invalid nonempty-result selected count 0.5 is not confirmed
+ok 13 - nonpositive or invalid nonempty-result selected count 0.5 is not confirmed
+  ---
+  duration_ms: 0.175448
+  type: 'test'
+  ...
+# Subtest: nonpositive or invalid nonempty-result selected count true is not confirmed
+ok 14 - nonpositive or invalid nonempty-result selected count true is not confirmed
+  ---
+  duration_ms: 0.140256
+  type: 'test'
+  ...
+# Subtest: nonpositive or invalid nonempty-result selected count 10 is not confirmed
+ok 15 - nonpositive or invalid nonempty-result selected count 10 is not confirmed
+  ---
+  duration_ms: 0.134437
+  type: 'test'
+  ...
+# Subtest: nonpositive or invalid nonempty-result selected count 9007199254740992 is not confirmed
+ok 16 - nonpositive or invalid nonempty-result selected count 9007199254740992 is not confirmed
+  ---
+  duration_ms: 0.233573
+  type: 'test'
+  ...
+# Subtest: verified empty has an explicit zero but missing acquisition counts stay unknown
+ok 17 - verified empty has an explicit zero but missing acquisition counts stay unknown
+  ---
+  duration_ms: 0.273061
+  type: 'test'
+  ...
+# Subtest: current null acquisition counters never take old fully populated receipt values
+ok 18 - current null acquisition counters never take old fully populated receipt values
+  ---
+  duration_ms: 0.260182
+  type: 'test'
+  ...
+# Subtest: legacy reference fallback is allowed only with its exact verified selection binding
+ok 19 - legacy reference fallback is allowed only with its exact verified selection binding
+  ---
+  duration_ms: 0.291738
+  type: 'test'
+  ...
+# Subtest: legacy observed rows fallback remains a declared quote count, never a selected count
+ok 20 - legacy observed rows fallback remains a declared quote count, never a selected count
+  ---
+  duration_ms: 0.274523
+  type: 'test'
+  ...
+# Subtest: owner history and declared NATURAL do not satisfy execution acceptance
+ok 21 - owner history and declared NATURAL do not satisfy execution acceptance
+  ---
+  duration_ms: 0.241234
+  type: 'test'
+  ...
+# Subtest: a recorded-time declaration without owner history is not displayed as verified time
+ok 22 - a recorded-time declaration without owner history is not displayed as verified time
+  ---
+  duration_ms: 0.189338
+  type: 'test'
+  ...
+# Subtest: an unsafe counter range gives a count conflict rather than a negative missing quote count
+ok 23 - an unsafe counter range gives a count conflict rather than a negative missing quote count
+  ---
+  duration_ms: 0.644185
+  type: 'test'
+  ...
+# Subtest: HK-only stage never gains a fabricated A lane from stale receipt data
+ok 24 - HK-only stage never gains a fabricated A lane from stale receipt data
+  ---
+  duration_ms: 0.341781
+  type: 'test'
+  ...
+# Subtest: display escaping and technical details retain untrusted diagnostic text without executing markup
+ok 25 - display escaping and technical details retain untrusted diagnostic text without executing markup
+  ---
+  duration_ms: 0.302514
+  type: 'test'
+  ...
+1..25
+# tests 25
+# suites 0
+# pass 25
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 232.175827

@@ -1,0 +1,64 @@
+{
+  "reviewer": "/root/stage_hk_and_entrypoint",
+  "candidate_author": "/root",
+  "status": "PASS_SOURCE_SLICE_WITH_HISTORICAL_SUPPORT",
+  "reviewed_at": "2026-10-09T04:25:07.844804+00:00",
+  "fixed_input_commit": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+  "modified_product_files": false,
+  "current_mac_or_deployment_acceptance": false,
+  "files": [
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/api_ui/after/source/actual_api/stage_center/execution_evidence.py",
+      "sha256": "bd79b1844568a79750ccce6c547cfe08f651291f1863e213fb25629d34a67b79"
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/api_ui/after/conditional_api/stage_center/consumer.py",
+      "sha256": "bc428dc5b3747b0eb1e3c4d68ae4e6f2441882393cfa4a31e4c4c962b924c234"
+    }
+  ],
+  "closed_findings": [
+    {
+      "id": "API-INTEGRATION-01",
+      "priority": "P2",
+      "problem": "Slot owner emits runner_clock_source; reader fetched another absent field, losing invocation clock source",
+      "resolution": "Reader maps runner_clock_source to invocation_time_source",
+      "evidence": "evidence/independent_initial -> evidence/independent_after_reader_fix"
+    },
+    {
+      "id": "API-INTEGRATION-02",
+      "priority": "P2",
+      "problem": "Unknown lane status rejected result summary but could still authenticate receipt reference/trio",
+      "resolution": "Typed allowed-status helper shared by summary/reference/trio",
+      "evidence": "evidence/independent_initial -> evidence/independent_after_reader_fix"
+    },
+    {
+      "id": "API-ROBUSTNESS-03",
+      "priority": "P3",
+      "problem": "JSON container status caused unhashable TypeError; historical consumer stringifies status but current identity is unknown",
+      "resolution": "Allowed-status helper requires str before membership",
+      "evidence": "evidence/independent_initial -> evidence/independent_after_reader_fix"
+    }
+  ],
+  "open_p0_p1_p2_findings": [],
+  "verification": [
+    {
+      "suite": "Independent writer-to-reader using original SelectionStore plus conditional consumer call",
+      "passed": 34,
+      "failed": 0,
+      "evidence": "evidence/independent_with_conditional_consumer"
+    },
+    {
+      "suite": "Independent rerun of API author suite",
+      "passed": 28,
+      "failed": 0,
+      "evidence": "evidence/independent_author_with_consumer"
+    }
+  ],
+  "limits": [
+    "SelectionStore facade and contracts match actual handoff; publication/verification helpers, calendar, IO and namespace are separately pinned historical support, not proven current Mac dependencies",
+    "Candidate acquisition and existing-slot lookup are explicit synthetic seams; no provider/service ran",
+    "Consumer whole-file current Mac SHA is unknown; conditional historical reference only; matching preimage or equivalent narrow port needs host verification",
+    "Owner archives are not independent run attestation; execution_verified and natural_verified remain false",
+    "No historical input rebuild, real HK eligibility acquisition, deployment, HTTP/UI or natural-session acceptance performed"
+  ]
+}

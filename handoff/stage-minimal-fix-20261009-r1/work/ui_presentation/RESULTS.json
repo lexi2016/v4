@@ -1,0 +1,137 @@
+{
+  "status": "SOURCE_CANDIDATE_TESTED_AND_REVIEWED_CONDITIONAL_ON_CURRENT_UI_IDENTITY",
+  "baseline_ref": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+  "source_role": "HISTORICAL_API_UI_REFERENCE_20261005_NOT_CURRENT_ASSET_PROOF",
+  "current_ui_asset_identity": "NOT_PROVIDED",
+  "product_files": [
+    {
+      "relative_path": "apps/web/src/App.vue",
+      "repository_path": "handoff/v4-running-source-20261005/api/apps/web/src/App.vue",
+      "ref": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "role": "HISTORICAL_API_UI_REFERENCE_20261005_NOT_CURRENT_ASSET_PROOF",
+      "before": {
+        "bytes": 120779,
+        "sha256": "995a680995cc42feadeaa8d2bdd44294c8ec782a908d664c698faf69d4cf02a1",
+        "git_blob_sha1": "174fe256526957e11ae12ba640663033de81993d"
+      },
+      "after": {
+        "bytes": 120790,
+        "sha256": "e13a92e7f990ef18de0909edf0d2644410ba55194b21b583d43b76d648801dc5",
+        "git_blob_sha1": "d5344ee4068dcb7a3d89f406a2b232b90fe2d415"
+      }
+    },
+    {
+      "relative_path": "apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "repository_path": "handoff/v4-running-source-20261005/api/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "ref": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "role": "HISTORICAL_API_UI_REFERENCE_20261005_NOT_CURRENT_ASSET_PROOF",
+      "before": {
+        "bytes": 3466,
+        "sha256": "07188178bbcd5ae2b01b9d6c1ef9dffd7b94f1b27f0211501cc2464566c5bc8b",
+        "git_blob_sha1": "73d0f6cc417c153e53c73244758424199e35b639"
+      },
+      "after": {
+        "bytes": 6369,
+        "sha256": "6cb4aecf34fe69a0b95af9075bfabbcd0c504dc29026cb31edd17ef83f764a6a",
+        "git_blob_sha1": "f2e0af1a769ae35c40c62343277e189f40e507d4"
+      }
+    },
+    {
+      "relative_path": "apps/web/src/contracts/runtime.ts",
+      "repository_path": "handoff/v4-running-source-20261005/api/apps/web/src/contracts/runtime.ts",
+      "ref": "28ab2d35020adf031f10f38c1040514fc81b6d66",
+      "role": "HISTORICAL_API_UI_REFERENCE_20261005_NOT_CURRENT_ASSET_PROOF",
+      "before": {
+        "bytes": 3044,
+        "sha256": "9a882a174b433488684b05781ade00beb665706e962f753700960a4250d13419",
+        "git_blob_sha1": "9481e8c0562d96698ca7898d81807dc3e2449263"
+      },
+      "after": {
+        "bytes": 3553,
+        "sha256": "c440de3ff964daa01994cbcd04d9b3ce1f417737a39034520c478ef83448bebe",
+        "git_blob_sha1": "10c97f15afcd72a07086432d561f4591503ef637"
+      }
+    }
+  ],
+  "scope": "VUE_SFC_COMPILE_PLUS_SSR_PRESENTATION_ONLY",
+  "runtime": {
+    "node": "v24.19.0",
+    "packages": {
+      "vue": "3.5.13",
+      "@vue/compiler-sfc": "3.5.13",
+      "@vue/server-renderer": "3.5.13"
+    }
+  },
+  "final_author_baseline": {
+    "tests": 23,
+    "pass": 1,
+    "fail": 22,
+    "exit_code": 1,
+    "evidence": "evidence/final-baseline-red/RESULTS.json"
+  },
+  "final_author_candidate": {
+    "tests": 23,
+    "pass": 23,
+    "fail": 0,
+    "exit_code": 0,
+    "evidence": "evidence/review-p2-green/RESULTS.json"
+  },
+  "independent_review": {
+    "reviewer": "/root/stage_receipt_binding",
+    "author_suite_reproduced": {
+      "tests": 23,
+      "pass": 23,
+      "fail": 0,
+      "evidence": "../ui_review/evidence/author-suite-final.stdout"
+    },
+    "independent_suite": {
+      "tests": 25,
+      "pass": 25,
+      "fail": 0,
+      "evidence": "../ui_review/evidence/independent-final.stdout"
+    },
+    "initial_independent_suite": {
+      "tests": 25,
+      "pass": 24,
+      "fail": 1,
+      "evidence": "../ui_review/evidence/independent-initial.stdout"
+    },
+    "source_identity_readback": "../ui_review/evidence/FINAL_SOURCE_IDENTITY.json",
+    "closed_p2": "New selection_results presence with a missing market key must not fall back to old bound receipt counts",
+    "p2_author_red": {
+      "tests": 23,
+      "pass": 21,
+      "fail": 2,
+      "evidence": "evidence/review-p2-red/RESULTS.json"
+    },
+    "p2_fix": "Only absence of the entire top-level selection_results property permits legacy compatibility"
+  },
+  "patch": {
+    "path": "runtime_ui_presentation.patch",
+    "sha256": "bd2a270532c759a73acb898949611333e9f59d4da9ebeff206f7e47bc5c25474",
+    "byte_roundtrip": "PASS",
+    "evidence": "evidence/PATCH_ROUNDTRIP.json"
+  },
+  "warnings": [
+    "Node stripTypeScriptTypes ExperimentalWarning is present in preserved TAP output"
+  ],
+  "test_infrastructure_history": {
+    "initial_import_adapter_syntax_failure": "harness_import_failure.log",
+    "classification": "TEST_HELPER_FAILURE_FIXED_BEFORE_VALID_PRODUCT_RED_GREEN"
+  },
+  "not_performed": [
+    "CURRENT_MAC_UI_SOURCE_OR_LOADED_STATIC_ASSET_SHA_VERIFICATION",
+    "FULL_APP_BUILD_OR_PROJECT_WIDE_TYPESCRIPT_CHECK",
+    "BROWSER_VISUAL_OR_INTERACTION_ACCEPTANCE",
+    "DEPLOYMENT_OR_SERVICE_MODIFICATION",
+    "LIVE_API_OR_BUSINESS_DATA_MODIFICATION",
+    "NATURAL_WINDOW_ACCEPTANCE",
+    "MISSING_QUOTES_OR_HK_MASTER_RECONSTRUCTION"
+  ],
+  "unchanged": [
+    "StageSummaryPanel.vue",
+    "App mount conditions/date/stage/buttons/handlers",
+    "selection algorithm and weights/ranking",
+    "quote collectors and pool builders"
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "command": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "/workspace/scratch/25c09a595aec/stage_minimal/work/hk_entrypoint/api_review/tests",
+    "--junitxml=/workspace/scratch/25c09a595aec/stage_minimal/work/hk_entrypoint/api_review/evidence/independent_initial/junit.xml"
+  ],
+  "returncode": 1,
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "sources": [
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/api_ui/after/source/actual_api/stage_center/execution_evidence.py",
+      "sha256": "476dfd6791b34b3b434403e59a095cbffc0738ce543aeab43f1cea15bbc2813e",
+      "bytes": 17168
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/receipt_binding/after/source/actual_stage/stage_center/_runner_parts/runner_receipts.py",
+      "sha256": "d634647ef5f50620a4b98a696a61b7d2d1491e9f7c2c351e0e621168a2e03f9f",
+      "bytes": 15898
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/receipt_binding/after/source/actual_stage/stage_center/_runner_parts/slot_execution.py",
+      "sha256": "447a07af0470b86436f7aba128f782429a7b8e7fcf8dad8b92e6d01b7cfb6d96",
+      "bytes": 47067
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/receipt_binding/after/source/canonical/stage_center/_runner_parts/runner_receipts.py",
+      "sha256": "e7877b8c94b118a224b7b8b762be51b02f8aa24b2341e92d2677289961d66e20",
+      "bytes": 11327
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/receipt_binding/after/source/canonical/stage_center/_runner_parts/slot_execution.py",
+      "sha256": "6e50b9406bc09d9a6c4c73ae1b96a2bd73a7d82a0ae00df30371026edadf7fd8",
+      "bytes": 50051
+    }
+  ]
+}

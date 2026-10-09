@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="14" skipped="1" tests="27" time="0.386" timestamp="2026-10-08T21:21:37.966948-07:00" hostname="f2c20067ed3d"><testcase classname="tests.test_entrypoint_clock" name="test_wait_returns_actual_wake_not_planned_cutoff[actual_stage-0.25]" time="0.011"><failure message="AssertionError: assert datetime.datetime(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) == datetime.datetime(2026, 10, 9, 9, 45, 0, 250000, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))">runtime = ({'__builtins__': &lt;module 'builtins' (built-in)&gt;, 'datetime': &lt;class 'test_entrypoint_clock.clock.&lt;locals&gt;.RealWake'&gt;,...), 'MAX_CALENDAR_WAIT_SECONDS': 5.0, ...}, [('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+lag = 0.25
+
+    @pytest.mark.parametrize("lag", [0.25, 4.75, 8.0, -2.0])
+    def test_wait_returns_actual_wake_not_planned_cutoff(runtime, lag):
+        scope,events = runtime
+        wake = CUTOFF + timedelta(seconds=lag)
+        clock(scope,wake)
+        sleeps=[]
+        observed,waited=scope["_bounded_wait_until"](CUTOFF,CUTOFF-timedelta(seconds=2),sleep=sleeps.append)
+&gt;       assert observed == wake
+E       AssertionError: assert datetime.datetime(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) == datetime.datetime(2026, 10, 9, 9, 45, 0, 250000, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+
+tests/test_entrypoint_clock.py:60: AssertionError</failure></testcase><testcase classname="tests.test_entrypoint_clock" name="test_wait_returns_actual_wake_not_planned_cutoff[actual_stage-4.75]" time="0.010"><failure message="AssertionError: assert datetime.datetime(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) == datetime.datetime(2026, 10, 9, 9, 45, 4, 750000, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))">runtime = ({'__builtins__': &lt;module 'builtins' (built-in)&gt;, 'datetime': &lt;class 'test_entrypoint_clock.clock.&lt;locals&gt;.RealWake'&gt;,...), 'MAX_CALENDAR_WAIT_SECONDS': 5.0, ...}, [('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+lag = 4.75
+
+    @pytest.mark.parametrize("lag", [0.25, 4.75, 8.0, -2.0])
+    def test_wait_returns_actual_wake_not_planned_cutoff(runtime, lag):
+        scope,events = runtime
+        wake = CUTOFF + timedelta(seconds=lag)
+        clock(scope,wake)
+        sleeps=[]
+        observed,waited=scope["_bounded_wait_until"](CUTOFF,CUTOFF-timedelta(seconds=2),sleep=sleeps.append)
+&gt;       assert observed == wake
+E       AssertionError: assert datetime.datetime(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) == datetime.datetime(2026, 10, 9, 9, 45, 4, 750000, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+
+tests/test_entrypoint_clock.py:60: AssertionError</failure></testcase><testcase classname="tests.test_entrypoint_clock" name="test_wait_returns_actual_wake_not_planned_cutoff[actual_stage-8.0]" time="0.010"><failure message="AssertionError: assert datetime.datetime(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) == datetime.datetime(2026, 10, 9, 9, 45, 8, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))">runtime = ({'__builtins__': &lt;module 'builtins' (built-in)&gt;, 'datetime': &lt;class 'test_entrypoint_clock.clock.&lt;locals&gt;.RealWake'&gt;,...), 'MAX_CALENDAR_WAIT_SECONDS': 5.0, ...}, [('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+lag = 8.0
+
+    @pytest.mark.parametrize("lag", [0.25, 4.75, 8.0, -2.0])
+    def test_wait_returns_actual_wake_not_planned_cutoff(runtime, lag):
+        scope,events = runtime
+        wake = CUTOFF + timedelta(seconds=lag)
+        clock(scope,wake)
+        sleeps=[]
+        observed,waited=scope["_bounded_wait_until"](CUTOFF,CUTOFF-timedelta(seconds=2),sleep=sleeps.append)
+&gt;       assert observed == wake
+E       AssertionError: assert datetime.datetime(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) == datetime.datetime(2026, 10, 9, 9, 45, 8, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+
+tests/test_entrypoint_clock.py:60: AssertionError</failure></testcase><testcase classname="tests.test_entrypoint_clock" name="test_wait_returns_actual_wake_not_planned_cutoff[actual_stage--2.0]" time="0.011"><failure message="AssertionError: assert datetime.datetime(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) == datetime.datetime(2026, 10, 9, 9, 44, 58, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))">runtime = ({'__builtins__': &lt;module 'builtins' (built-in)&gt;, 'datetime': &lt;class 'test_entrypoint_clock.clock.&lt;locals&gt;.RealWake'&gt;,...), 'MAX_CALENDAR_WAIT_SECONDS': 5.0, ...}, [('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+lag = -2.0
+
+    @pytest.mark.parametrize("lag", [0.25, 4.75, 8.0, -2.0])
+    def test_wait_returns_actual_wake_not_planned_cutoff(runtime, lag):
+        scope,events = runtime
+        wake = CUTOFF + timedelta(seconds=lag)
+        clock(scope,wake)
+        sleeps=[]
+        observed,waited=scope["_bounded_wait_until"](CUTOFF,CUTOFF-timedelta(seconds=2),sleep=sleeps.append)
+&gt;       assert observed == wake
+E       AssertionError: assert datetime.datetime(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) == datetime.datetime(2026, 10, 9, 9, 44, 58, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+
+tests/test_entrypoint_clock.py:60: AssertionError</failure></testcase><testcase classname="tests.test_entrypoint_clock" name="test_wait_returns_actual_wake_not_planned_cutoff[canonical-0.25]" time="0.009"><failure message="AssertionError: assert datetime.datetime(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) == datetime.datetime(2026, 10, 9, 9, 45, 0, 250000, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))">runtime = ({'__builtins__': &lt;module 'builtins' (built-in)&gt;, 'datetime': &lt;class 'test_entrypoint_clock.clock.&lt;locals&gt;.RealWake'&gt;,...), 'MAX_CALENDAR_WAIT_SECONDS': 5.0, ...}, [('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+lag = 0.25
+
+    @pytest.mark.parametrize("lag", [0.25, 4.75, 8.0, -2.0])
+    def test_wait_returns_actual_wake_not_planned_cutoff(runtime, lag):
+        scope,events = runtime
+        wake = CUTOFF + timedelta(seconds=lag)
+        clock(scope,wake)
+        sleeps=[]
+        observed,waited=scope["_bounded_wait_until"](CUTOFF,CUTOFF-timedelta(seconds=2),sleep=sleeps.append)
+&gt;       assert observed == wake
+E       AssertionError: assert datetime.datetime(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) == datetime.datetime(2026, 10, 9, 9, 45, 0, 250000, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+
+tests/test_entrypoint_clock.py:60: AssertionError</failure></testcase><testcase classname="tests.test_entrypoint_clock" name="test_wait_returns_actual_wake_not_planned_cutoff[canonical-4.75]" time="0.010"><failure message="AssertionError: assert datetime.datetime(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) == datetime.datetime(2026, 10, 9, 9, 45, 4, 750000, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))">runtime = ({'__builtins__': &lt;module 'builtins' (built-in)&gt;, 'datetime': &lt;class 'test_entrypoint_clock.clock.&lt;locals&gt;.RealWake'&gt;,...), 'MAX_CALENDAR_WAIT_SECONDS': 5.0, ...}, [('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+lag = 4.75
+
+    @pytest.mark.parametrize("lag", [0.25, 4.75, 8.0, -2.0])
+    def test_wait_returns_actual_wake_not_planned_cutoff(runtime, lag):
+        scope,events = runtime
+        wake = CUTOFF + timedelta(seconds=lag)
+        clock(scope,wake)
+        sleeps=[]
+        observed,waited=scope["_bounded_wait_until"](CUTOFF,CUTOFF-timedelta(seconds=2),sleep=sleeps.append)
+&gt;       assert observed == wake
+E       AssertionError: assert datetime.datetime(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) == datetime.datetime(2026, 10, 9, 9, 45, 4, 750000, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+
+tests/test_entrypoint_clock.py:60: AssertionError</failure></testcase><testcase classname="tests.test_entrypoint_clock" name="test_wait_returns_actual_wake_not_planned_cutoff[canonical-8.0]" time="0.009"><failure message="AssertionError: assert datetime.datetime(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) == datetime.datetime(2026, 10, 9, 9, 45, 8, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))">runtime = ({'__builtins__': &lt;module 'builtins' (built-in)&gt;, 'datetime': &lt;class 'test_entrypoint_clock.clock.&lt;locals&gt;.RealWake'&gt;,...), 'MAX_CALENDAR_WAIT_SECONDS': 5.0, ...}, [('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+lag = 8.0
+
+    @pytest.mark.parametrize("lag", [0.25, 4.75, 8.0, -2.0])
+    def test_wait_returns_actual_wake_not_planned_cutoff(runtime, lag):
+        scope,events = runtime
+        wake = CUTOFF + timedelta(seconds=lag)
+        clock(scope,wake)
+        sleeps=[]
+        observed,waited=scope["_bounded_wait_until"](CUTOFF,CUTOFF-timedelta(seconds=2),sleep=sleeps.append)
+&gt;       assert observed == wake
+E       AssertionError: assert datetime.datetime(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) == datetime.datetime(2026, 10, 9, 9, 45, 8, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+
+tests/test_entrypoint_clock.py:60: AssertionError</failure></testcase><testcase classname="tests.test_entrypoint_clock" name="test_wait_returns_actual_wake_not_planned_cutoff[canonical--2.0]" time="0.010"><failure message="AssertionError: assert datetime.datetime(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) == datetime.datetime(2026, 10, 9, 9, 44, 58, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))">runtime = ({'__builtins__': &lt;module 'builtins' (built-in)&gt;, 'datetime': &lt;class 'test_entrypoint_clock.clock.&lt;locals&gt;.RealWake'&gt;,...), 'MAX_CALENDAR_WAIT_SECONDS': 5.0, ...}, [('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+lag = -2.0
+
+    @pytest.mark.parametrize("lag", [0.25, 4.75, 8.0, -2.0])
+    def test_wait_returns_actual_wake_not_planned_cutoff(runtime, lag):
+        scope,events = runtime
+        wake = CUTOFF + timedelta(seconds=lag)
+        clock(scope,wake)
+        sleeps=[]
+        observed,waited=scope["_bounded_wait_until"](CUTOFF,CUTOFF-timedelta(seconds=2),sleep=sleeps.append)
+&gt;       assert observed == wake
+E       AssertionError: assert datetime.datetime(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) == datetime.datetime(2026, 10, 9, 9, 44, 58, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+
+tests/test_entrypoint_clock.py:60: AssertionError</failure></testcase><testcase classname="tests.test_entrypoint_clock" name="test_non_wait_keeps_evaluation_and_never_reads_clock[actual_stage-6-1000]" time="0.010" /><testcase classname="tests.test_entrypoint_clock" name="test_non_wait_keeps_evaluation_and_never_reads_clock[actual_stage-3-1]" time="0.010" /><testcase classname="tests.test_entrypoint_clock" name="test_non_wait_keeps_evaluation_and_never_reads_clock[actual_stage-0-5]" time="0.010" /><testcase classname="tests.test_entrypoint_clock" name="test_non_wait_keeps_evaluation_and_never_reads_clock[actual_stage--1-5]" time="0.011" /><testcase classname="tests.test_entrypoint_clock" name="test_non_wait_keeps_evaluation_and_never_reads_clock[actual_stage-1--1]" time="0.011" /><testcase classname="tests.test_entrypoint_clock" name="test_non_wait_keeps_evaluation_and_never_reads_clock[canonical-6-1000]" time="0.010" /><testcase classname="tests.test_entrypoint_clock" name="test_non_wait_keeps_evaluation_and_never_reads_clock[canonical-3-1]" time="0.009" /><testcase classname="tests.test_entrypoint_clock" name="test_non_wait_keeps_evaluation_and_never_reads_clock[canonical-0-5]" time="0.009" /><testcase classname="tests.test_entrypoint_clock" name="test_non_wait_keeps_evaluation_and_never_reads_clock[canonical--1-5]" time="0.009" /><testcase classname="tests.test_entrypoint_clock" name="test_non_wait_keeps_evaluation_and_never_reads_clock[canonical-1--1]" time="0.010" /><testcase classname="tests.test_entrypoint_clock" name="test_original_node_dispatch_uses_wake_and_original_mode_policy[actual_stage-0.0-NATURAL-DUE]" time="0.017" /><testcase classname="tests.test_entrypoint_clock" name="test_original_node_dispatch_uses_wake_and_original_mode_policy[actual_stage-0.25-NATURAL-LATE_CATCHUP_REPLAY]" time="0.015"><failure message="AssertionError: assert ('20261009', ...)), 'NATURAL') == ('20261009', ...)), 'NATURAL')&#10;  &#10;  At index 2 diff: RealWake(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) != datetime.datetime(2026, 10, 9, 9, 45, 0, 250000, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))&#10;  Use -v to get more diff">runtime = ({'__builtins__': &lt;module 'builtins' (built-in)&gt;, 'datetime': &lt;class 'test_entrypoint_clock.clock.&lt;locals&gt;.RealWake'&gt;,...), 'MAX_CALENDAR_WAIT_SECONDS': 5.0, ...}, [('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+lag = 0.25, mode = 'NATURAL', due = 'LATE_CATCHUP_REPLAY'
+
+    @pytest.mark.parametrize("lag,mode,due", [(0.0,"NATURAL","DUE"),(0.25,"NATURAL","LATE_CATCHUP_REPLAY"),(8,"RECOVERY","LATE_CATCHUP_REPLAY"),(-2,"RECOVERY","NOT_DUE")])
+    def test_original_node_dispatch_uses_wake_and_original_mode_policy(runtime,lag,mode,due):
+        scope,events=runtime
+        wake=CUTOFF+timedelta(seconds=lag)
+        clock(scope,wake)
+        node=SimpleNamespace(is_prep=False,stage_id=STAGE,node_id=STAGE,scheduled_at=lambda _:CUTOFF)
+        calls=[]
+        evaluate_due=original_due()
+        def dispatch(config,date,stage,evaluated,**kwargs):
+            decision=evaluate_due(stage,date,evaluated)
+            calls.append((date,stage,evaluated,kwargs,decision))
+            return {"status":"READY","dispatch_mode":kwargs["mode"],"stage_id":stage}
+        scope.update(_valid_trade_date=lambda day:day==DAY,
+                     _node_candidates=lambda *args,**kwargs:(node,),
+                     STAGE_BY_ID={STAGE:SimpleNamespace(cutoff="09:45:00")},
+                     _dispatch_stage=dispatch,TRANSIENT_STATUSES={"CANNOT_CONFIRM"},
+                     SCHEMA_VERSION="stage_center.nodes.v1",NODE_SCHEDULE_VERSION="original-test-boundary",
+                     _safe_flags=lambda:dict(production_allowed=False,buy_gate_updated=False,orders_sent=False))
+        value=scope["_run_nodes_body"](scope,{},trade_date=DAY,evaluated_at=CUTOFF-timedelta(seconds=2),explicit_node=STAGE,materializer=None,runner=object(),sleep=lambda _:None)
+        assert len(calls)==1
+        date,stage,evaluated,kwargs,decision=calls[0]
+&gt;       assert (date,stage,evaluated,kwargs["mode"])==(DAY,STAGE,wake,mode)
+E       AssertionError: assert ('20261009', ...)), 'NATURAL') == ('20261009', ...)), 'NATURAL')
+E         
+E         At index 2 diff: RealWake(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) != datetime.datetime(2026, 10, 9, 9, 45, 0, 250000, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+E         Use -v to get more diff
+
+tests/test_entrypoint_clock.py:109: AssertionError</failure></testcase><testcase classname="tests.test_entrypoint_clock" name="test_original_node_dispatch_uses_wake_and_original_mode_policy[actual_stage-8-RECOVERY-LATE_CATCHUP_REPLAY]" time="0.015"><failure message="AssertionError: assert ('20261009', ...)), 'NATURAL') == ('20261009', ...), 'RECOVERY')&#10;  &#10;  At index 2 diff: RealWake(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) != datetime.datetime(2026, 10, 9, 9, 45, 8, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))&#10;  Use -v to get more diff">runtime = ({'__builtins__': &lt;module 'builtins' (built-in)&gt;, 'datetime': &lt;class 'test_entrypoint_clock.clock.&lt;locals&gt;.RealWake'&gt;,...), 'MAX_CALENDAR_WAIT_SECONDS': 5.0, ...}, [('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+lag = 8, mode = 'RECOVERY', due = 'LATE_CATCHUP_REPLAY'
+
+    @pytest.mark.parametrize("lag,mode,due", [(0.0,"NATURAL","DUE"),(0.25,"NATURAL","LATE_CATCHUP_REPLAY"),(8,"RECOVERY","LATE_CATCHUP_REPLAY"),(-2,"RECOVERY","NOT_DUE")])
+    def test_original_node_dispatch_uses_wake_and_original_mode_policy(runtime,lag,mode,due):
+        scope,events=runtime
+        wake=CUTOFF+timedelta(seconds=lag)
+        clock(scope,wake)
+        node=SimpleNamespace(is_prep=False,stage_id=STAGE,node_id=STAGE,scheduled_at=lambda _:CUTOFF)
+        calls=[]
+        evaluate_due=original_due()
+        def dispatch(config,date,stage,evaluated,**kwargs):
+            decision=evaluate_due(stage,date,evaluated)
+            calls.append((date,stage,evaluated,kwargs,decision))
+            return {"status":"READY","dispatch_mode":kwargs["mode"],"stage_id":stage}
+        scope.update(_valid_trade_date=lambda day:day==DAY,
+                     _node_candidates=lambda *args,**kwargs:(node,),
+                     STAGE_BY_ID={STAGE:SimpleNamespace(cutoff="09:45:00")},
+                     _dispatch_stage=dispatch,TRANSIENT_STATUSES={"CANNOT_CONFIRM"},
+                     SCHEMA_VERSION="stage_center.nodes.v1",NODE_SCHEDULE_VERSION="original-test-boundary",
+                     _safe_flags=lambda:dict(production_allowed=False,buy_gate_updated=False,orders_sent=False))
+        value=scope["_run_nodes_body"](scope,{},trade_date=DAY,evaluated_at=CUTOFF-timedelta(seconds=2),explicit_node=STAGE,materializer=None,runner=object(),sleep=lambda _:None)
+        assert len(calls)==1
+        date,stage,evaluated,kwargs,decision=calls[0]
+&gt;       assert (date,stage,evaluated,kwargs["mode"])==(DAY,STAGE,wake,mode)
+E       AssertionError: assert ('20261009', ...)), 'NATURAL') == ('20261009', ...), 'RECOVERY')
+E         
+E         At index 2 diff: RealWake(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) != datetime.datetime(2026, 10, 9, 9, 45, 8, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+E         Use -v to get more diff
+
+tests/test_entrypoint_clock.py:109: AssertionError</failure></testcase><testcase classname="tests.test_entrypoint_clock" name="test_original_node_dispatch_uses_wake_and_original_mode_policy[actual_stage--2-RECOVERY-NOT_DUE]" time="0.014"><failure message="AssertionError: assert ('20261009', ...)), 'NATURAL') == ('20261009', ...), 'RECOVERY')&#10;  &#10;  At index 2 diff: RealWake(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) != datetime.datetime(2026, 10, 9, 9, 44, 58, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))&#10;  Use -v to get more diff">runtime = ({'__builtins__': &lt;module 'builtins' (built-in)&gt;, 'datetime': &lt;class 'test_entrypoint_clock.clock.&lt;locals&gt;.RealWake'&gt;,...), 'MAX_CALENDAR_WAIT_SECONDS': 5.0, ...}, [('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+lag = -2, mode = 'RECOVERY', due = 'NOT_DUE'
+
+    @pytest.mark.parametrize("lag,mode,due", [(0.0,"NATURAL","DUE"),(0.25,"NATURAL","LATE_CATCHUP_REPLAY"),(8,"RECOVERY","LATE_CATCHUP_REPLAY"),(-2,"RECOVERY","NOT_DUE")])
+    def test_original_node_dispatch_uses_wake_and_original_mode_policy(runtime,lag,mode,due):
+        scope,events=runtime
+        wake=CUTOFF+timedelta(seconds=lag)
+        clock(scope,wake)
+        node=SimpleNamespace(is_prep=False,stage_id=STAGE,node_id=STAGE,scheduled_at=lambda _:CUTOFF)
+        calls=[]
+        evaluate_due=original_due()
+        def dispatch(config,date,stage,evaluated,**kwargs):
+            decision=evaluate_due(stage,date,evaluated)
+            calls.append((date,stage,evaluated,kwargs,decision))
+            return {"status":"READY","dispatch_mode":kwargs["mode"],"stage_id":stage}
+        scope.update(_valid_trade_date=lambda day:day==DAY,
+                     _node_candidates=lambda *args,**kwargs:(node,),
+                     STAGE_BY_ID={STAGE:SimpleNamespace(cutoff="09:45:00")},
+                     _dispatch_stage=dispatch,TRANSIENT_STATUSES={"CANNOT_CONFIRM"},
+                     SCHEMA_VERSION="stage_center.nodes.v1",NODE_SCHEDULE_VERSION="original-test-boundary",
+                     _safe_flags=lambda:dict(production_allowed=False,buy_gate_updated=False,orders_sent=False))
+        value=scope["_run_nodes_body"](scope,{},trade_date=DAY,evaluated_at=CUTOFF-timedelta(seconds=2),explicit_node=STAGE,materializer=None,runner=object(),sleep=lambda _:None)
+        assert len(calls)==1
+        date,stage,evaluated,kwargs,decision=calls[0]
+&gt;       assert (date,stage,evaluated,kwargs["mode"])==(DAY,STAGE,wake,mode)
+E       AssertionError: assert ('20261009', ...)), 'NATURAL') == ('20261009', ...), 'RECOVERY')
+E         
+E         At index 2 diff: RealWake(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) != datetime.datetime(2026, 10, 9, 9, 44, 58, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+E         Use -v to get more diff
+
+tests/test_entrypoint_clock.py:109: AssertionError</failure></testcase><testcase classname="tests.test_entrypoint_clock" name="test_original_node_dispatch_uses_wake_and_original_mode_policy[canonical-0.0-NATURAL-DUE]" time="0.012" /><testcase classname="tests.test_entrypoint_clock" name="test_original_node_dispatch_uses_wake_and_original_mode_policy[canonical-0.25-NATURAL-LATE_CATCHUP_REPLAY]" time="0.012"><failure message="AssertionError: assert ('20261009', ...)), 'NATURAL') == ('20261009', ...)), 'NATURAL')&#10;  &#10;  At index 2 diff: RealWake(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) != datetime.datetime(2026, 10, 9, 9, 45, 0, 250000, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))&#10;  Use -v to get more diff">runtime = ({'__builtins__': &lt;module 'builtins' (built-in)&gt;, 'datetime': &lt;class 'test_entrypoint_clock.clock.&lt;locals&gt;.RealWake'&gt;,...), 'MAX_CALENDAR_WAIT_SECONDS': 5.0, ...}, [('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+lag = 0.25, mode = 'NATURAL', due = 'LATE_CATCHUP_REPLAY'
+
+    @pytest.mark.parametrize("lag,mode,due", [(0.0,"NATURAL","DUE"),(0.25,"NATURAL","LATE_CATCHUP_REPLAY"),(8,"RECOVERY","LATE_CATCHUP_REPLAY"),(-2,"RECOVERY","NOT_DUE")])
+    def test_original_node_dispatch_uses_wake_and_original_mode_policy(runtime,lag,mode,due):
+        scope,events=runtime
+        wake=CUTOFF+timedelta(seconds=lag)
+        clock(scope,wake)
+        node=SimpleNamespace(is_prep=False,stage_id=STAGE,node_id=STAGE,scheduled_at=lambda _:CUTOFF)
+        calls=[]
+        evaluate_due=original_due()
+        def dispatch(config,date,stage,evaluated,**kwargs):
+            decision=evaluate_due(stage,date,evaluated)
+            calls.append((date,stage,evaluated,kwargs,decision))
+            return {"status":"READY","dispatch_mode":kwargs["mode"],"stage_id":stage}
+        scope.update(_valid_trade_date=lambda day:day==DAY,
+                     _node_candidates=lambda *args,**kwargs:(node,),
+                     STAGE_BY_ID={STAGE:SimpleNamespace(cutoff="09:45:00")},
+                     _dispatch_stage=dispatch,TRANSIENT_STATUSES={"CANNOT_CONFIRM"},
+                     SCHEMA_VERSION="stage_center.nodes.v1",NODE_SCHEDULE_VERSION="original-test-boundary",
+                     _safe_flags=lambda:dict(production_allowed=False,buy_gate_updated=False,orders_sent=False))
+        value=scope["_run_nodes_body"](scope,{},trade_date=DAY,evaluated_at=CUTOFF-timedelta(seconds=2),explicit_node=STAGE,materializer=None,runner=object(),sleep=lambda _:None)
+        assert len(calls)==1
+        date,stage,evaluated,kwargs,decision=calls[0]
+&gt;       assert (date,stage,evaluated,kwargs["mode"])==(DAY,STAGE,wake,mode)
+E       AssertionError: assert ('20261009', ...)), 'NATURAL') == ('20261009', ...)), 'NATURAL')
+E         
+E         At index 2 diff: RealWake(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) != datetime.datetime(2026, 10, 9, 9, 45, 0, 250000, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+E         Use -v to get more diff
+
+tests/test_entrypoint_clock.py:109: AssertionError</failure></testcase><testcase classname="tests.test_entrypoint_clock" name="test_original_node_dispatch_uses_wake_and_original_mode_policy[canonical-8-RECOVERY-LATE_CATCHUP_REPLAY]" time="0.012"><failure message="AssertionError: assert ('20261009', ...)), 'NATURAL') == ('20261009', ...), 'RECOVERY')&#10;  &#10;  At index 2 diff: RealWake(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) != datetime.datetime(2026, 10, 9, 9, 45, 8, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))&#10;  Use -v to get more diff">runtime = ({'__builtins__': &lt;module 'builtins' (built-in)&gt;, 'datetime': &lt;class 'test_entrypoint_clock.clock.&lt;locals&gt;.RealWake'&gt;,...), 'MAX_CALENDAR_WAIT_SECONDS': 5.0, ...}, [('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+lag = 8, mode = 'RECOVERY', due = 'LATE_CATCHUP_REPLAY'
+
+    @pytest.mark.parametrize("lag,mode,due", [(0.0,"NATURAL","DUE"),(0.25,"NATURAL","LATE_CATCHUP_REPLAY"),(8,"RECOVERY","LATE_CATCHUP_REPLAY"),(-2,"RECOVERY","NOT_DUE")])
+    def test_original_node_dispatch_uses_wake_and_original_mode_policy(runtime,lag,mode,due):
+        scope,events=runtime
+        wake=CUTOFF+timedelta(seconds=lag)
+        clock(scope,wake)
+        node=SimpleNamespace(is_prep=False,stage_id=STAGE,node_id=STAGE,scheduled_at=lambda _:CUTOFF)
+        calls=[]
+        evaluate_due=original_due()
+        def dispatch(config,date,stage,evaluated,**kwargs):
+            decision=evaluate_due(stage,date,evaluated)
+            calls.append((date,stage,evaluated,kwargs,decision))
+            return {"status":"READY","dispatch_mode":kwargs["mode"],"stage_id":stage}
+        scope.update(_valid_trade_date=lambda day:day==DAY,
+                     _node_candidates=lambda *args,**kwargs:(node,),
+                     STAGE_BY_ID={STAGE:SimpleNamespace(cutoff="09:45:00")},
+                     _dispatch_stage=dispatch,TRANSIENT_STATUSES={"CANNOT_CONFIRM"},
+                     SCHEMA_VERSION="stage_center.nodes.v1",NODE_SCHEDULE_VERSION="original-test-boundary",
+                     _safe_flags=lambda:dict(production_allowed=False,buy_gate_updated=False,orders_sent=False))
+        value=scope["_run_nodes_body"](scope,{},trade_date=DAY,evaluated_at=CUTOFF-timedelta(seconds=2),explicit_node=STAGE,materializer=None,runner=object(),sleep=lambda _:None)
+        assert len(calls)==1
+        date,stage,evaluated,kwargs,decision=calls[0]
+&gt;       assert (date,stage,evaluated,kwargs["mode"])==(DAY,STAGE,wake,mode)
+E       AssertionError: assert ('20261009', ...)), 'NATURAL') == ('20261009', ...), 'RECOVERY')
+E         
+E         At index 2 diff: RealWake(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) != datetime.datetime(2026, 10, 9, 9, 45, 8, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+E         Use -v to get more diff
+
+tests/test_entrypoint_clock.py:109: AssertionError</failure></testcase><testcase classname="tests.test_entrypoint_clock" name="test_original_node_dispatch_uses_wake_and_original_mode_policy[canonical--2-RECOVERY-NOT_DUE]" time="0.017"><failure message="AssertionError: assert ('20261009', ...)), 'NATURAL') == ('20261009', ...), 'RECOVERY')&#10;  &#10;  At index 2 diff: RealWake(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) != datetime.datetime(2026, 10, 9, 9, 44, 58, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))&#10;  Use -v to get more diff">runtime = ({'__builtins__': &lt;module 'builtins' (built-in)&gt;, 'datetime': &lt;class 'test_entrypoint_clock.clock.&lt;locals&gt;.RealWake'&gt;,...), 'MAX_CALENDAR_WAIT_SECONDS': 5.0, ...}, [('CALENDAR_WAIT_START', {'wait_seconds': 2.0}), ('CALENDAR_WAIT_END', {})])
+lag = -2, mode = 'RECOVERY', due = 'NOT_DUE'
+
+    @pytest.mark.parametrize("lag,mode,due", [(0.0,"NATURAL","DUE"),(0.25,"NATURAL","LATE_CATCHUP_REPLAY"),(8,"RECOVERY","LATE_CATCHUP_REPLAY"),(-2,"RECOVERY","NOT_DUE")])
+    def test_original_node_dispatch_uses_wake_and_original_mode_policy(runtime,lag,mode,due):
+        scope,events=runtime
+        wake=CUTOFF+timedelta(seconds=lag)
+        clock(scope,wake)
+        node=SimpleNamespace(is_prep=False,stage_id=STAGE,node_id=STAGE,scheduled_at=lambda _:CUTOFF)
+        calls=[]
+        evaluate_due=original_due()
+        def dispatch(config,date,stage,evaluated,**kwargs):
+            decision=evaluate_due(stage,date,evaluated)
+            calls.append((date,stage,evaluated,kwargs,decision))
+            return {"status":"READY","dispatch_mode":kwargs["mode"],"stage_id":stage}
+        scope.update(_valid_trade_date=lambda day:day==DAY,
+                     _node_candidates=lambda *args,**kwargs:(node,),
+                     STAGE_BY_ID={STAGE:SimpleNamespace(cutoff="09:45:00")},
+                     _dispatch_stage=dispatch,TRANSIENT_STATUSES={"CANNOT_CONFIRM"},
+                     SCHEMA_VERSION="stage_center.nodes.v1",NODE_SCHEDULE_VERSION="original-test-boundary",
+                     _safe_flags=lambda:dict(production_allowed=False,buy_gate_updated=False,orders_sent=False))
+        value=scope["_run_nodes_body"](scope,{},trade_date=DAY,evaluated_at=CUTOFF-timedelta(seconds=2),explicit_node=STAGE,materializer=None,runner=object(),sleep=lambda _:None)
+        assert len(calls)==1
+        date,stage,evaluated,kwargs,decision=calls[0]
+&gt;       assert (date,stage,evaluated,kwargs["mode"])==(DAY,STAGE,wake,mode)
+E       AssertionError: assert ('20261009', ...)), 'NATURAL') == ('20261009', ...), 'RECOVERY')
+E         
+E         At index 2 diff: RealWake(2026, 10, 9, 9, 45, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')) != datetime.datetime(2026, 10, 9, 9, 44, 58, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai'))
+E         Use -v to get more diff
+
+tests/test_entrypoint_clock.py:109: AssertionError</failure></testcase><testcase classname="tests.test_entrypoint_clock" name="test_only_two_wait_statements_changed_per_variant" time="0.000"><skipped type="pytest.skip" message="postimage-only preservation check">/workspace/scratch/25c09a595aec/stage_minimal/work/entrypoint_clock/tests/test_entrypoint_clock.py:118: postimage-only preservation check</skipped></testcase></testsuite></testsuites>

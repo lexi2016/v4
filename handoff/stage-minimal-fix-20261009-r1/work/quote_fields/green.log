@@ -1,0 +1,13 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.7, pytest-9.1.1, pluggy-1.6.0
+rootdir: /workspace/scratch/25c09a595aec/stage_minimal/work/quote_fields
+configfile: pytest.ini
+testpaths: tests
+plugins: anyio-4.15.1
+collected 63 items
+
+tests/test_quote_projection.py ......................................... [ 65%]
+......................                                                   [100%]
+
+- generated xml file: /workspace/scratch/25c09a595aec/stage_minimal/work/quote_fields/green.xml -
+============================== 63 passed in 0.15s ==============================

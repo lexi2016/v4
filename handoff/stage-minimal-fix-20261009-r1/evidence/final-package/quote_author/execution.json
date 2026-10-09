@@ -1,0 +1,23 @@
+{
+  "name": "quote_author",
+  "command": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "tests",
+    "--junitxml=/workspace/scratch/25c09a595aec/stage_minimal/final_package_check_r1/quote_author/junit.xml"
+  ],
+  "cwd": "/workspace/scratch/25c09a595aec/stage_minimal/delivery/work/quote_fields",
+  "started_at_utc": "2026-10-09T04:34:39.121444+00:00",
+  "finished_at_utc": "2026-10-09T04:34:39.574648+00:00",
+  "exit_code": 0,
+  "expected_tests": 65,
+  "tests": 65,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "passed": true
+}

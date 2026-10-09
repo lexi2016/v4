@@ -1,0 +1,89 @@
+{
+  "command": [
+    "/workspace/scratch/25c09a595aec/issue28/references/work/test-venv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "/workspace/scratch/25c09a595aec/stage_minimal/work/hk_entrypoint/clock_review/tests",
+    "--junitxml=/workspace/scratch/25c09a595aec/stage_minimal/work/hk_entrypoint/clock_review/evidence/independent_clock_final/junit.xml"
+  ],
+  "returncode": 1,
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "started_at": "2026-10-09T04:27:54.335813+00:00",
+  "completed_at": "2026-10-09T04:27:55.094389+00:00",
+  "python": "Python 3.14.7",
+  "sources_unchanged": true,
+  "sources": [
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/entrypoint_clock/after/actual_stage/ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+      "sha256": "1f65476c5a274195b789a3529a3e95821bfcf81278c6ac72e01c52655932cf08",
+      "bytes": 1217
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/entrypoint_clock/after/actual_stage/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "sha256": "3a40b79ecea876997aad9272205ebf61289af2a17162057fa680174c50e74fd2",
+      "bytes": 42350
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/entrypoint_clock/after/canonical/ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+      "sha256": "1f65476c5a274195b789a3529a3e95821bfcf81278c6ac72e01c52655932cf08",
+      "bytes": 1217
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/entrypoint_clock/after/canonical/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "sha256": "0efb31e207a7282eea9308c81c69c7bfd0f4c989d03d03acc9407e430f832fe6",
+      "bytes": 33223
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/entrypoint_clock/before/actual_stage/ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+      "sha256": "95ce916246f3376fc3618c0890ee1f76f2b0231c50d77fe5440a9b956884a674",
+      "bytes": 1112
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/entrypoint_clock/before/actual_stage/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "sha256": "f9530f010055476e17d87e93198e28d3f4943ed34255a2419130eb9f39deb6ed",
+      "bytes": 42295
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/entrypoint_clock/before/canonical/ops/_run_stage_center_nodes_parts/deadline_supervision.py",
+      "sha256": "95ce916246f3376fc3618c0890ee1f76f2b0231c50d77fe5440a9b956884a674",
+      "bytes": 1112
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/entrypoint_clock/before/canonical/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "sha256": "2343cd5e250aaa05acc698ba2daf34220f13ffb5543c655df799fdb3bd7fe464",
+      "bytes": 33168
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/entrypoint_clock/test_support/contracts.py",
+      "sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+      "bytes": 2331
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/entrypoint_clock/test_support/namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "bytes": 527
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/entrypoint_clock/test_support/run_stage_center_nodes.py",
+      "sha256": "8e9ca56aca8a21950590abe83ef305e46a022490eb61f48e0c5d19c2493e1772",
+      "bytes": 13421
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/entrypoint_clock/test_support/scheduler.py",
+      "sha256": "db110aba2fe504213591330000120b660cff04292728b5325711e2fa6799e7b0",
+      "bytes": 7099
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/entrypoint_clock/tests/test_entrypoint_clock.py",
+      "sha256": "b47248a131c1b41678223e43859760269ada352482a8ec311122a42973f879ef",
+      "bytes": 7115
+    },
+    {
+      "path": "/workspace/scratch/25c09a595aec/stage_minimal/work/hk_entrypoint/clock_review/tests/test_independent_clock.py",
+      "sha256": "4d06041216b29234dee595d41ba40b1da6a25b14993cdae4fe685a8f98349c4d",
+      "bytes": 10497
+    }
+  ],
+  "test_scope": "SOURCE_SLICE_WITH_ORIGINAL_HISTORICAL_SUPPORT_NOT_MAC_RUNTIME"
+}

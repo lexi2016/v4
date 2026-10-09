@@ -1,0 +1,35 @@
+(node:12) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ a real selection summary survives completely absent execution receipt lanes (5.412042ms)
+✔ current verified HK result remains above an older blocked execution declaration (0.553222ms)
+✔ a new negative result summary is never replaced by old bound receipt counts (0.573702ms)
+✔ a present null new summary is not downgraded to a receipt-based selection (0.350825ms)
+✔ an explicitly new result map with a missing market does not use older receipt rows (0.40852ms)
+✔ unrecognized summary status "UNKNOWN" cannot display verified rows (0.491391ms)
+✔ unrecognized summary status "READY" cannot display verified rows (0.383193ms)
+✔ unrecognized summary status [] cannot display verified rows (1.885597ms)
+✔ unrecognized summary status null cannot display verified rows (0.755689ms)
+✔ nonpositive or invalid nonempty-result selected count null is not confirmed (0.604597ms)
+✔ nonpositive or invalid nonempty-result selected count -1 is not confirmed (0.263787ms)
+✔ nonpositive or invalid nonempty-result selected count 0 is not confirmed (0.263727ms)
+✔ nonpositive or invalid nonempty-result selected count 0.5 is not confirmed (0.183359ms)
+✔ nonpositive or invalid nonempty-result selected count true is not confirmed (0.175258ms)
+✔ nonpositive or invalid nonempty-result selected count 10 is not confirmed (0.164642ms)
+✔ nonpositive or invalid nonempty-result selected count 9007199254740992 is not confirmed (0.215947ms)
+✔ verified empty has an explicit zero but missing acquisition counts stay unknown (0.265139ms)
+✔ current null acquisition counters never take old fully populated receipt values (0.282865ms)
+✔ legacy reference fallback is allowed only with its exact verified selection binding (0.287342ms)
+✔ legacy observed rows fallback remains a declared quote count, never a selected count (0.437121ms)
+✔ owner history and declared NATURAL do not satisfy execution acceptance (0.286771ms)
+✔ a recorded-time declaration without owner history is not displayed as verified time (0.400007ms)
+✔ an unsafe counter range gives a count conflict rather than a negative missing quote count (0.366708ms)
+✔ HK-only stage never gains a fabricated A lane from stale receipt data (2.690489ms)
+✔ display escaping and technical details retain untrusted diagnostic text without executing markup (0.277738ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 231.430193

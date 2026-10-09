@@ -1,0 +1,36 @@
+FFFF                                                                     [100%]
+=================================== FAILURES ===================================
+_________ test_unknown_selection_status_is_not_a_verified_result[None] _________
+tests/test_execution_evidence.py:220: in test_unknown_selection_status_is_not_a_verified_result
+    assert r["selection_results"]["A_SHARE"]["status"]=="NO_VERIFIED_RESULT"
+E   AssertionError: assert 'RESULT_AVAILABLE' == 'NO_VERIFIED_RESULT'
+E     
+E     - NO_VERIFIED_RESULT
+E     + RESULT_AVAILABLE
+__ test_unknown_selection_status_is_not_a_verified_result[UNRECOGNIZED_READY] __
+tests/test_execution_evidence.py:220: in test_unknown_selection_status_is_not_a_verified_result
+    assert r["selection_results"]["A_SHARE"]["status"]=="NO_VERIFIED_RESULT"
+E   AssertionError: assert 'RESULT_AVAILABLE' == 'NO_VERIFIED_RESULT'
+E     
+E     - NO_VERIFIED_RESULT
+E     + RESULT_AVAILABLE
+____________ test_boolean_one_is_not_a_selected_row_count[binding] _____________
+tests/test_execution_evidence.py:232: in test_boolean_one_is_not_a_selected_row_count
+    assert r["selection_artifact_bindings"]["A_SHARE"]["status"]=="SELECTION_TRIO_CONFLICT"
+E   AssertionError: assert 'BOUND_TO_VER...ELECTION_TRIO' == 'SELECTION_TRIO_CONFLICT'
+E     
+E     - SELECTION_TRIO_CONFLICT
+E     + BOUND_TO_VERIFIED_SELECTION_TRIO
+____________ test_boolean_one_is_not_a_selected_row_count[original] ____________
+tests/test_execution_evidence.py:232: in test_boolean_one_is_not_a_selected_row_count
+    assert r["selection_artifact_bindings"]["A_SHARE"]["status"]=="SELECTION_TRIO_CONFLICT"
+E   AssertionError: assert 'BOUND_TO_VER...ELECTION_TRIO' == 'SELECTION_TRIO_CONFLICT'
+E     
+E     - SELECTION_TRIO_CONFLICT
+E     + BOUND_TO_VERIFIED_SELECTION_TRIO
+=========================== short test summary info ============================
+FAILED tests/test_execution_evidence.py::test_unknown_selection_status_is_not_a_verified_result[None]
+FAILED tests/test_execution_evidence.py::test_unknown_selection_status_is_not_a_verified_result[UNRECOGNIZED_READY]
+FAILED tests/test_execution_evidence.py::test_boolean_one_is_not_a_selected_row_count[binding]
+FAILED tests/test_execution_evidence.py::test_boolean_one_is_not_a_selected_row_count[original]
+4 failed, 23 deselected in 0.10s

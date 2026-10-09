@@ -1,0 +1,20 @@
+--- a/ops/_run_stage_center_nodes_parts/deadline_supervision.py
++++ b/ops/_run_stage_center_nodes_parts/deadline_supervision.py
+@@ -16,5 +16,5 @@
+         _v4_global(_v4_scope, '_deadline').event("CALENDAR_WAIT_START", wait_seconds=delta)
+         sleep(delta)
+         _v4_global(_v4_scope, '_deadline').checkpoint("CALENDAR_WAIT_END")
+-        return cutoff, delta
++        return _v4_global(_v4_scope, '_as_shanghai')(_v4_global(_v4_scope, 'datetime').now(_v4_global(_v4_scope, 'SHANGHAI'))), delta
+     return current, 0.0
+--- a/ops/_run_stage_center_nodes_parts/node_entry.py
++++ b/ops/_run_stage_center_nodes_parts/node_entry.py
+@@ -355,7 +355,7 @@
+         after_wait, waited = _v4_global(_v4_scope, '_bounded_wait_until')(target, evaluated, sleep=sleep)
+         if waited:
+             evaluated = after_wait
+-            mode = "NATURAL"
++            mode = _v4_global(_v4_scope, '_node_mode')(node, trade_date, evaluated)
+         stage_precaptures = prepared_snapshots.get(node.stage_id or "")
+         if (
+             node.stage_id == "STAGE_1545_1555"

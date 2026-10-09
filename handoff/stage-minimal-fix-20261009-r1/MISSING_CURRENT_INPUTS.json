@@ -1,0 +1,48 @@
+{
+  "target_trade_date": "20261009",
+  "items": [
+    {
+      "id": "hk_eligibility",
+      "status": "BLOCKED_DATA",
+      "required_date": "20261008",
+      "required": "Original eligibility/security master index entry and immutable artifact/manifest/receipt with original captured_at and matching universe; then exact price/PIT and original target-date Top100/local pool",
+      "current": "Bounded Mac audit found no original source; latest confirmed 20260930; formal target pool 0"
+    },
+    {
+      "id": "a_current_quote_path",
+      "status": "NOT_VERIFIED_ON_MAC",
+      "required": "Current actual collector/provider/selection_builder_registry.py source SHA and same-symbol source→builder/qmt→result evidence",
+      "current": "Projection candidate fixed; missing quotes and real previous-close values not reconstructed"
+    },
+    {
+      "id": "actual_entrypoint",
+      "status": "CURRENT_IDENTITY_NOT_SUPPLIED",
+      "required": "Current plist argv/config/lexical interpreter/import root and nodes/tick/helpers/deadline/calendar SHA",
+      "current": "Historical same-owner reference supports conditional two-line clock delta and existing CLI; not a current full app"
+    },
+    {
+      "id": "api_consumer_and_ui",
+      "status": "CURRENT_IDENTITY_NOT_SUPPLIED",
+      "required": "Current consumer and frontend source/bundle/loaded asset SHA at 8873",
+      "current": "reader actual provided; consumer/UI only historical before images; exact-match condition enforced"
+    },
+    {
+      "id": "input_trio_binding",
+      "status": "NOT_FULLY_BOUND",
+      "required": "Original configured candidate and HK input resolver verified trio identities exposed to original receipt path",
+      "current": "A records validated CandidateInput references but API does not independently reread candidate root; HK StageUniverseBinding exposes only artifact SHA, marks NOT_EXPOSED_BY_STAGE_UNIVERSE_BINDING"
+    },
+    {
+      "id": "natural_execution",
+      "status": "NOT_RUN",
+      "required": "Independent actual natural trigger/entry/invocation, legal quote cutoff, original algorithm/raw/selection/final owner receipt and 8873 same-run readback",
+      "current": "Old NATURAL/DUE declaration and future owner history never automatically verify natural execution"
+    },
+    {
+      "id": "historical_reconstruction",
+      "status": "NOT_RUN",
+      "required": "Real dated inputs and original approved recovery scope",
+      "current": "No historical missing data or old write clock reconstructed; optional verified-source restore retains writer-quiescence limitation"
+    }
+  ]
+}
