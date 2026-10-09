@@ -1,0 +1,25 @@
+{
+  "schema_version": "v5.daily_schedule_sources.v1",
+  "entries": [
+    {
+      "relative_path": "contracts/trading_calendar.py",
+      "bytes": 9291,
+      "sha256": "584f28d18273a8824c5f68a701aa4404123b5c71900caada3e2772828991ee8f",
+      "source_path": "vendor/a_close_baseline/contracts/trading_calendar.py"
+    },
+    {
+      "relative_path": "contracts/market_calendar_2026.json",
+      "bytes": 3473,
+      "sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+      "source_path": "vendor/a_close_baseline/contracts/market_calendar_2026.json"
+    },
+    {
+      "relative_path": "contracts/runtime_workloads.json",
+      "bytes": 51682,
+      "sha256": "7389cae30de08cf68c31e5b0bb6f5b17fead403366946496b7a4de148229d0ef",
+      "source_path": "source_inputs/next_owner_candidates/r10_daily_automation/source/scheduler/contracts/runtime_workloads.json"
+    }
+  ],
+  "scope": "CLOSE_PLAN_ONLY",
+  "runtime_verified": false
+}
