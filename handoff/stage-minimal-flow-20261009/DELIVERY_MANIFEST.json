@@ -1,0 +1,106 @@
+{
+  "files": [
+    {
+      "path": "CURRENT_API_UI_SUMMARY.json",
+      "sha256": "afb2471b2e4587702580a1b898c3b3632d6a29fa0941aa913222a61c9131abd6",
+      "bytes": 44695
+    },
+    {
+      "path": "DIAGNOSIS.md",
+      "sha256": "bd23e715e26ddd34024933a2d256e120aaa0333a6c07b479c365986bfa0c366a",
+      "bytes": 4065
+    },
+    {
+      "path": "PROMPT_FOR_CHAT.md",
+      "sha256": "8d83b151afea4b2daf64fdab649a81a12a3a98892879ee23134237d315f6903b",
+      "bytes": 6068
+    },
+    {
+      "path": "README.md",
+      "sha256": "d24977069afdc66b5d0082ace25c6b5bf95edd7fafd895ec095c76b6269de438",
+      "bytes": 1330
+    },
+    {
+      "path": "SOURCE_MANIFEST.json",
+      "sha256": "55bf1d0e608e35d830f89aa85a1b5cd9d24b4f42689b9455dd2ba167bd8d59c0",
+      "bytes": 5638
+    },
+    {
+      "path": "WORK_LEDGER.json",
+      "sha256": "9e3f6fbdb8bd7e140ccbf282e11ad1bd1c62576afe9fd42030f1b5779c12bc8e",
+      "bytes": 1260
+    },
+    {
+      "path": "source/actual_api/stage_center/execution_evidence.py",
+      "sha256": "e4c4ea94d892158383620beab1825014f21e926b57907354475f8c9ff382704b",
+      "bytes": 7682
+    },
+    {
+      "path": "source/actual_stage/stage_center/_runner_parts/hk_input_validation.py",
+      "sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+      "bytes": 23786
+    },
+    {
+      "path": "source/actual_stage/stage_center/_runner_parts/runner_receipts.py",
+      "sha256": "d3d9e69230b00a2864eae106f1c5c89ea0d383e20c2e87d655d4cabd273bbc83",
+      "bytes": 7766
+    },
+    {
+      "path": "source/actual_stage/stage_center/_runner_parts/slot_execution.py",
+      "sha256": "278085fb1effdc9dcf5c5dc9626d68faea0bc53c44f66be4eb89f9a0415fc07a",
+      "bytes": 46386
+    },
+    {
+      "path": "source/actual_stage/stage_center/_selection_parts/a_auction.py",
+      "sha256": "d0a96edcb4d87f223b117917a8f0d68276bd088a88abe8f787d245c8e1c669ad",
+      "bytes": 7957
+    },
+    {
+      "path": "source/actual_stage/stage_center/_selection_parts/a_live.py",
+      "sha256": "b7faa3286df4f0312075c7a4563d3f4deed463d3f10ab2c4902967e8d5d7781d",
+      "bytes": 7307
+    },
+    {
+      "path": "source/actual_stage/stage_center/contracts.py",
+      "sha256": "6880f6a82c7f4fb0fde5c0661bd5a8bb12b590661a4b8552bcb3d6be969ae83d",
+      "bytes": 2331
+    },
+    {
+      "path": "source/actual_stage/stage_center/runner.py",
+      "sha256": "2dbfa90c42cb4bd3b9b78d20bfbd1ac15eba0f3a18dd1105b32decd04a2b5232",
+      "bytes": 44615
+    },
+    {
+      "path": "source/actual_stage/stage_center/selection.py",
+      "sha256": "ccf7dddfb72fe88b5bff68ce9501e0a8ef9f41a212008a495824017943675294",
+      "bytes": 31705
+    },
+    {
+      "path": "source/canonical/stage_center/_runner_parts/runner_receipts.py",
+      "sha256": "af4322e65f21a4e14cc2680a63a2d93ad9bab855b235c7ef0751704549d986d5",
+      "bytes": 3588
+    },
+    {
+      "path": "source/canonical/stage_center/_runner_parts/slot_execution.py",
+      "sha256": "86ea1de7e32e6f29deb6622b4af37b4723e0b086d4c700cd513671ceed719d8a",
+      "bytes": 49370
+    },
+    {
+      "path": "source/canonical/stage_center/contracts.py",
+      "sha256": "7741d0b977cc9994a0b526b35d6b3a3586bfb3b6c0b2f09f4cf8f05449c2bb18",
+      "bytes": 3665
+    },
+    {
+      "path": "source/canonical/stage_center/runner.py",
+      "sha256": "d36cc60c538f23ab0f48c7387523d83ed5cebbdc67c0dd630e671f98ecdffa48",
+      "bytes": 83846
+    }
+  ],
+  "excluded": [
+    "raw market data",
+    "credentials",
+    "account data",
+    "runtime responses with quote rows"
+  ],
+  "source_slice_only": true
+}
